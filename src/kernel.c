@@ -444,7 +444,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80009C30);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009C50);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009C90);
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80009C90); /* osPiRawWriteIo - needs -O1 */
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009CE0);
 
