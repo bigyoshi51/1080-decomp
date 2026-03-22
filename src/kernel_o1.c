@@ -8,6 +8,12 @@ extern void func_80005DC0(s32*, s32, s32);
 extern void func_80005C00(void);
 extern void func_80004FE0(s32*, s32*, s32);
 extern void func_800053D0(s32*, s32*, s32);
+extern s32 D_8000A3E0;
+extern s32 func_800066B0(void);
+extern void func_800066D0(s32);
+extern void func_80003D0C(s32*);
+extern void* D_8000A420;
+extern s32 D_8000A418;
 extern s32 siacs_bss_0000;
 extern s32 func_800009D8(void*, s32, s32, void*);
 extern void func_8000857C(void);
@@ -326,4 +332,42 @@ s32 func_80004AC0(s32 devAddr, s32* data) {
     }
     *data = *(volatile s32*)(0xA0000000 | devAddr);
     return 0;
+}
+
+/* __osSetGlobalIntMask */
+void func_800061F0(s32 mask) {
+    register s32 sr = func_800066B0();
+    D_8000A3E0 |= mask;
+    func_800066D0(sr);
+}
+
+/* __osResetGlobalIntMask (bitwise) */
+void func_80006250(s32 mask) {
+    register s32 sr = func_800066B0();
+    D_8000A3E0 &= ~(mask & ~0x401);
+    func_800066D0(sr);
+}
+
+/* osSetEventMesg */
+typedef struct { s32 queue; s32 msg; } OSEventState;
+extern OSEventState __osEventStateTab[];
+
+void func_80004DE0(s32 event, void* queue, s32 msg) {
+    register s32 sr = func_800066B0();
+    OSEventState* es = &__osEventStateTab[event];
+    es->queue = (s32)queue;
+    es->msg = msg;
+    func_800066D0(sr);
+}
+
+/* osYieldThread */
+extern void* D_8000A420;
+extern s32 D_8000A418;
+extern void func_80003D0C(s32*);
+
+void func_80009A50(void) {
+    register s32 sr = func_800066B0();
+    *(s16*)((char*)D_8000A420 + 0x10) = 2;
+    func_80003D0C(&D_8000A418);
+    func_800066D0(sr);
 }

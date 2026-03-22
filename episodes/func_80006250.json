@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80006250",
+  "asm_text": "\nnonmatching func_80006250, 0x58\n\nglabel func_80006250\n    /* 7250 80006250 27BDFFD8 */  addiu      $sp, $sp, -0x28\n    /* 7254 80006254 AFBF001C */  sw         $ra, 0x1C($sp)\n    /* 7258 80006258 AFA40028 */  sw         $a0, 0x28($sp)\n    /* 725C 8000625C 0C0019AC */  jal        func_800066B0\n    /* 7260 80006260 AFB00018 */   sw        $s0, 0x18($sp)\n    /* 7264 80006264 8FAF0028 */  lw         $t7, 0x28($sp)\n    /* 7268 80006268 3C0E8001 */  lui        $t6, %hi(D_8000A3E0)\n    /* 726C 8000626C 8DCEA3E0 */  lw         $t6, %lo(D_8000A3E0)($t6)\n    /* 7270 80006270 2401FBFE */  addiu      $at, $zero, -0x402\n    /* 7274 80006274 01E1C024 */  and        $t8, $t7, $at\n    /* 7278 80006278 0300C827 */  not        $t9, $t8\n    /* 727C 8000627C 00408025 */  or         $s0, $v0, $zero\n    /* 7280 80006280 3C018001 */  lui        $at, %hi(D_8000A3E0)\n    /* 7284 80006284 01D94024 */  and        $t0, $t6, $t9\n    /* 7288 80006288 AC28A3E0 */  sw         $t0, %lo(D_8000A3E0)($at)\n    /* 728C 8000628C 0C0019B4 */  jal        func_800066D0\n    /* 7290 80006290 02002025 */   or        $a0, $s0, $zero\n    /* 7294 80006294 8FBF001C */  lw         $ra, 0x1C($sp)\n    /* 7298 80006298 8FB00018 */  lw         $s0, 0x18($sp)\n    /* 729C 8000629C 27BD0028 */  addiu      $sp, $sp, 0x28\n    /* 72A0 800062A0 03E00008 */  jr         $ra\n    /* 72A4 800062A4 00000000 */   nop\nendlabel func_80006250\n    /* 72A8 800062A8 00000000 */  nop\n    /* 72AC 800062AC 00000000 */  nop\n",
+  "m2c_output": "s32 func_800066B0();                                /* extern */\n? func_800066D0(s32);                               /* extern */\nextern s32 D_8000A3E0;\n\nvoid func_80006250(s32 arg0) {\n    s32 temp_s0;\n\n    temp_s0 = func_800066B0();\n    D_8000A3E0 &= ~(arg0 & ~0x401);\n    func_800066D0(temp_s0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_80006250(s32 mask) { register s32 sr = func_800066B0(); D_8000A3E0 &= ~(mask & ~0x401); func_800066D0(sr); }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_80006250(s32 mask) { register s32 sr = func_800066B0(); D_8000A3E0 &= ~(mask & ~0x401); func_800066D0(sr); }",
+  "matched": true,
+  "instruction_count": 24,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1774223479.1871815,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_800066B0",
+    "func_800066D0"
+  ],
+  "referenced_data": [
+    "D_8000A3E0"
+  ],
+  "segment": "kernel"
+}

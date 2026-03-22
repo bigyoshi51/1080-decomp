@@ -1,0 +1,33 @@
+{
+  "function_name": "func_800061F0",
+  "asm_text": "\nnonmatching func_800061F0, 0x4C\n\nglabel func_800061F0\n    /* 71F0 800061F0 27BDFFD8 */  addiu      $sp, $sp, -0x28\n    /* 71F4 800061F4 AFBF001C */  sw         $ra, 0x1C($sp)\n    /* 71F8 800061F8 AFA40028 */  sw         $a0, 0x28($sp)\n    /* 71FC 800061FC 0C0019AC */  jal        func_800066B0\n    /* 7200 80006200 AFB00018 */   sw        $s0, 0x18($sp)\n    /* 7204 80006204 3C0E8001 */  lui        $t6, %hi(D_8000A3E0)\n    /* 7208 80006208 8DCEA3E0 */  lw         $t6, %lo(D_8000A3E0)($t6)\n    /* 720C 8000620C 8FAF0028 */  lw         $t7, 0x28($sp)\n    /* 7210 80006210 00408025 */  or         $s0, $v0, $zero\n    /* 7214 80006214 3C018001 */  lui        $at, %hi(D_8000A3E0)\n    /* 7218 80006218 01CFC025 */  or         $t8, $t6, $t7\n    /* 721C 8000621C AC38A3E0 */  sw         $t8, %lo(D_8000A3E0)($at)\n    /* 7220 80006220 0C0019B4 */  jal        func_800066D0\n    /* 7224 80006224 02002025 */   or        $a0, $s0, $zero\n    /* 7228 80006228 8FBF001C */  lw         $ra, 0x1C($sp)\n    /* 722C 8000622C 8FB00018 */  lw         $s0, 0x18($sp)\n    /* 7230 80006230 27BD0028 */  addiu      $sp, $sp, 0x28\n    /* 7234 80006234 03E00008 */  jr         $ra\n    /* 7238 80006238 00000000 */   nop\nendlabel func_800061F0\n    /* 723C 8000623C 00000000 */  nop\n",
+  "m2c_output": "s32 func_800066B0();                                /* extern */\n? func_800066D0(s32);                               /* extern */\nextern s32 D_8000A3E0;\n\nvoid func_800061F0(s32 arg0) {\n    s32 temp_s0;\n\n    temp_s0 = func_800066B0();\n    D_8000A3E0 |= arg0;\n    func_800066D0(temp_s0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_800061F0(s32 mask) { register s32 sr = func_800066B0(); D_8000A3E0 |= mask; func_800066D0(sr); }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_800061F0(s32 mask) { register s32 sr = func_800066B0(); D_8000A3E0 |= mask; func_800066D0(sr); }",
+  "matched": true,
+  "instruction_count": 20,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1774223478.9510272,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_800066B0",
+    "func_800066D0"
+  ],
+  "referenced_data": [
+    "D_8000A3E0"
+  ],
+  "segment": "kernel"
+}

@@ -1,0 +1,31 @@
+{
+  "function_name": "func_80004DE0",
+  "asm_text": "\nnonmatching func_80004DE0, 0x68\n\nglabel func_80004DE0\n    /* 5DE0 80004DE0 27BDFFD8 */  addiu      $sp, $sp, -0x28\n    /* 5DE4 80004DE4 AFBF001C */  sw         $ra, 0x1C($sp)\n    /* 5DE8 80004DE8 AFA40028 */  sw         $a0, 0x28($sp)\n    /* 5DEC 80004DEC AFA5002C */  sw         $a1, 0x2C($sp)\n    /* 5DF0 80004DF0 AFA60030 */  sw         $a2, 0x30($sp)\n    /* 5DF4 80004DF4 0C0019AC */  jal        func_800066B0\n    /* 5DF8 80004DF8 AFB00018 */   sw        $s0, 0x18($sp)\n    /* 5DFC 80004DFC 8FAE0028 */  lw         $t6, 0x28($sp)\n    /* 5E00 80004E00 3C188002 */  lui        $t8, %hi(__osEventStateTab)\n    /* 5E04 80004E04 8FA8002C */  lw         $t0, 0x2C($sp)\n    /* 5E08 80004E08 27189510 */  addiu      $t8, $t8, %lo(__osEventStateTab)\n    /* 5E0C 80004E0C 000E78C0 */  sll        $t7, $t6, 3\n    /* 5E10 80004E10 01F8C821 */  addu       $t9, $t7, $t8\n    /* 5E14 80004E14 AFB90020 */  sw         $t9, 0x20($sp)\n    /* 5E18 80004E18 AF280000 */  sw         $t0, 0x0($t9)\n    /* 5E1C 80004E1C 8FAA0020 */  lw         $t2, 0x20($sp)\n    /* 5E20 80004E20 8FA90030 */  lw         $t1, 0x30($sp)\n    /* 5E24 80004E24 00408025 */  or         $s0, $v0, $zero\n    /* 5E28 80004E28 02002025 */  or         $a0, $s0, $zero\n    /* 5E2C 80004E2C 0C0019B4 */  jal        func_800066D0\n    /* 5E30 80004E30 AD490004 */   sw        $t1, 0x4($t2)\n    /* 5E34 80004E34 8FBF001C */  lw         $ra, 0x1C($sp)\n    /* 5E38 80004E38 8FB00018 */  lw         $s0, 0x18($sp)\n    /* 5E3C 80004E3C 27BD0028 */  addiu      $sp, $sp, 0x28\n    /* 5E40 80004E40 03E00008 */  jr         $ra\n    /* 5E44 80004E44 00000000 */   nop\nendlabel func_80004DE0\n    /* 5E48 80004E48 00000000 */  nop\n    /* 5E4C 80004E4C 00000000 */  nop\n",
+  "m2c_output": "s32 func_800066B0();                                /* extern */\n? func_800066D0(s32);                               /* extern */\nextern ? __osEventStateTab;\n\nvoid func_80004DE0(s32 arg0, s32 arg1, s32 arg2) {\n    s32 *sp20;\n    s32 *temp_t9;\n    s32 temp_v0;\n\n    temp_v0 = func_800066B0();\n    temp_t9 = (arg0 * 8) + &__osEventStateTab;\n    sp20 = temp_t9;\n    *temp_t9 = arg1;\n    sp20->unk4 = arg2;\n    func_800066D0(temp_v0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_80004DE0(s32 event, void* queue, s32 msg) { register s32 sr = func_800066B0(); OSEventState* es = &__osEventStateTab[event]; es->queue = (s32)queue; es->msg = msg; func_800066D0(sr); }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_80004DE0(s32 event, void* queue, s32 msg) { register s32 sr = func_800066B0(); OSEventState* es = &__osEventStateTab[event]; es->queue = (s32)queue; es->msg = msg; func_800066D0(sr); }",
+  "matched": true,
+  "instruction_count": 28,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1774223479.4435213,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_800066B0",
+    "func_800066D0"
+  ],
+  "referenced_data": [],
+  "segment": "kernel"
+}
