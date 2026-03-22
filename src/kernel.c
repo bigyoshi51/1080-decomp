@@ -371,7 +371,15 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800056EC);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800056F0);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80005800);
+/* __osSiCreateAccessQueue */
+extern s32 siacs_bss_0000;
+extern void func_800053D0(s32*, s32*, s32);
+
+void func_80005800(void) {
+    D_8000A480 = 1;
+    func_800053D0(&__osPiAccessQueue, &siacs_bss_0000, 1);
+    func_80005DC0(&__osPiAccessQueue, 0, 0);
+}
 
 /* __osPiGetAccess */
 extern s32 D_8000A480;
