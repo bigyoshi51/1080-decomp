@@ -71,7 +71,13 @@ build/assets/%.bin.o: assets/%.bin
 verify: $(ROM)
 	@md5sum -c checksum.md5 && echo "ROM OK" || echo "ROM MISMATCH"
 
+# Snapshot expected objects for objdiff baseline
+expected:
+	$(RM) -r expected
+	mkdir -p expected/src
+	cp build/src/kernel.c.o expected/src/
+
 clean:
 	rm -rf build $(ROM)
 
-.PHONY: all clean verify
+.PHONY: all clean verify expected

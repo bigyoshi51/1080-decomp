@@ -42,7 +42,9 @@ segments:
     start: 0x1000
     vram: 0x80000000
     subsegments:
-      - [0x1000, asm, kernel]
+      - [0x1000, c, kernel]
+      - [0xAE60, .rodata, kernel]
+      - [0xAFD0, .data, kernel]
 
   # mainuso filesystem: compressed USO data modules + assets
   # Contains: audio_bank, audio_seq, audio_wave, snowboard models,

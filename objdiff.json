@@ -1,0 +1,34 @@
+{
+  "custom_make": "make",
+  "custom_args": [],
+  "build_target": false,
+  "build_base": true,
+  "watch_patterns": [
+    "src/**/*.c",
+    "src/**/*.h",
+    "include/**/*.h",
+    "asm/**/*.s"
+  ],
+  "units": [
+    {
+      "name": "src/kernel",
+      "target_path": "expected/src/kernel.c.o",
+      "base_path": "build/src/kernel.c.o",
+      "metadata": {
+        "source_path": "src/kernel.c",
+        "progress_categories": ["kernel"]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    }
+  ],
+  "progress_categories": [
+    {
+      "id": "kernel",
+      "name": "Kernel"
+    }
+  ]
+}
