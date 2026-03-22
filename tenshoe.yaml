@@ -23,7 +23,7 @@ options:
   build_path: build
   asset_path: assets
 
-  find_file_boundaries: True
+  find_file_boundaries: False
   use_legacy_include_asm: False
 
 segments:
@@ -42,7 +42,7 @@ segments:
     start: 0x1000
     vram: 0x80000000
     subsegments:
-      - [0x1000, asm, kernel]
+      - [0x1000, c, kernel]
 
   # mainuso filesystem: compressed USO data modules + assets
   # Contains: audio_bank, audio_seq, audio_wave, snowboard models,

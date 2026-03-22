@@ -35,15 +35,15 @@ SECTIONS
     {
         FILL(0x00000000);
         kernel_TEXT_START = .;
-        build/asm/kernel.s.o(.text);
+        build/src/kernel.c.o(.text);
         kernel_TEXT_END = .;
         kernel_TEXT_SIZE = ABSOLUTE(kernel_TEXT_END - kernel_TEXT_START);
         kernel_RODATA_START = .;
-        build/asm/kernel.s.o(.rodata);
+        build/src/kernel.c.o(.rodata);
         kernel_RODATA_END = .;
         kernel_RODATA_SIZE = ABSOLUTE(kernel_RODATA_END - kernel_RODATA_START);
         kernel_DATA_START = .;
-        build/asm/kernel.s.o(.data);
+        build/src/kernel.c.o(.data);
         kernel_DATA_END = .;
         kernel_DATA_SIZE = ABSOLUTE(kernel_DATA_END - kernel_DATA_START);
     }
@@ -52,7 +52,7 @@ SECTIONS
     {
         FILL(0x00000000);
         kernel_BSS_START = .;
-        build/asm/kernel.s.o(.bss);
+        build/src/kernel.c.o(.bss);
         kernel_BSS_END = .;
         kernel_BSS_SIZE = ABSOLUTE(kernel_BSS_END - kernel_BSS_START);
     }
