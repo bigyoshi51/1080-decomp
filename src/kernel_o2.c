@@ -256,8 +256,6 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80006510);
 
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", __osResetGlobalIntMask);
-
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800066D0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800066F0);
