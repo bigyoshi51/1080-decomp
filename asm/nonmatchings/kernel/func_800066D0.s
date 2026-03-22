@@ -1,5 +1,5 @@
 
-nonmatching func_800066D0, 0x1C
+nonmatching func_800066D0, 0x20
 
 glabel func_800066D0
     /* 76D0 800066D0 10000002 */  b          .L800066DC
@@ -11,4 +11,6 @@ glabel func_800066D0
     /* 76E0 800066E0 27BD0020 */  addiu      $sp, $sp, 0x20
     /* 76E4 800066E4 03E00008 */  jr         $ra
     /* 76E8 800066E8 00000000 */   nop
+/* glabel func_800066EC */
+    /* 76EC 800066EC 00C03825 */  or         $a3, $a2, $zero
 endlabel func_800066D0

@@ -1,5 +1,5 @@
 
-nonmatching func_80009584, 0x118
+nonmatching func_80009584, 0x12C
 
 glabel func_80009584
     /* A584 80009584 27BDFDB0 */  addiu      $sp, $sp, -0x250
@@ -77,4 +77,10 @@ glabel func_80009584
     /* A690 80009690 8FB20020 */  lw         $s2, 0x20($sp)
     /* A694 80009694 03E00008 */  jr         $ra
     /* A698 80009698 27BD0250 */   addiu     $sp, $sp, 0x250
+/* glabel func_8000969C */
+    /* A69C 8000969C 27BDFFC8 */  addiu      $sp, $sp, -0x38
+    /* A6A0 800096A0 AFBF001C */  sw         $ra, 0x1C($sp)
+    /* A6A4 800096A4 AFA40038 */  sw         $a0, 0x38($sp)
+    /* A6A8 800096A8 AFB00014 */  sw         $s0, 0x14($sp)
+    /* A6AC 800096AC AFB10018 */  sw         $s1, 0x18($sp)
 endlabel func_80009584

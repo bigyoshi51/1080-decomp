@@ -1,6 +1,6 @@
 
 /* Handwritten function */
-nonmatching func_80005000, 0xAC
+nonmatching func_80005000, 0x10C
 
 glabel func_80005000
     /* 6000 80005000 18A0001F */  blez       $a1, .L80005080
@@ -57,3 +57,31 @@ endlabel func_80005000
     /* 60B4 800050B4 00000000 */  nop
     /* 60B8 800050B8 00000000 */  nop
     /* 60BC 800050BC 00000000 */  nop
+
+/* glabel func_800050C0 */
+    /* 60C0 800050C0 27BDFFD0 */  addiu      $sp, $sp, -0x30
+    /* 60C4 800050C4 AFA40030 */  sw         $a0, 0x30($sp)
+    /* 60C8 800050C8 44802000 */  mtc1       $zero, $f4
+    /* 60CC 800050CC 8FAE0030 */  lw         $t6, 0x30($sp)
+    /* 60D0 800050D0 AFBF001C */  sw         $ra, 0x1C($sp)
+    /* 60D4 800050D4 AFB00018 */  sw         $s0, 0x18($sp)
+    /* 60D8 800050D8 AFA00024 */  sw         $zero, 0x24($sp)
+    /* 60DC 800050DC E7A4002C */  swc1       $f4, 0x2C($sp)
+    /* 60E0 800050E0 AFAE0028 */  sw         $t6, 0x28($sp)
+  .L800050E4:
+    /* 60E4 800050E4 8FB80024 */  lw         $t8, 0x24($sp)
+    /* 60E8 800050E8 8FAF0028 */  lw         $t7, 0x28($sp)
+    /* 60EC 800050EC 241901B0 */  addiu      $t9, $zero, 0x1B0
+    /* 60F0 800050F0 24060002 */  addiu      $a2, $zero, 0x2
+    /* 60F4 800050F4 03382823 */  subu       $a1, $t9, $t8
+    /* 60F8 800050F8 0C0019BC */  jal        func_800066F0
+    /* 60FC 800050FC 01F82021 */   addu      $a0, $t7, $t8
+    /* 6100 80005100 8FA80024 */  lw         $t0, 0x24($sp)
+    /* 6104 80005104 00408025 */  or         $s0, $v0, $zero
+    /* 6108 80005108 01104821 */  addu       $t1, $t0, $s0
+    /* 610C 8000510C AFA90024 */  sw         $t1, 0x24($sp)
+    /* 6110 80005110 8FAA0024 */  lw         $t2, 0x24($sp)
+    /* 6114 80005114 2D4101B0 */  sltiu      $at, $t2, 0x1B0
+    /* 6118 80005118 1420FFF2 */  bnez       $at, .L800050E4
+    /* 611C 8000511C 00000000 */   nop
+endlabel func_80005000

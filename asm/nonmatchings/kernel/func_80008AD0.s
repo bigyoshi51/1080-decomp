@@ -1,5 +1,5 @@
 
-nonmatching func_80008AD0, 0xDC
+nonmatching func_80008AD0, 0xE0
 
 glabel func_80008AD0
     /* 9AD0 80008AD0 27BDFFD8 */  addiu      $sp, $sp, -0x28
@@ -64,3 +64,7 @@ glabel func_80008AD0
     /* 9BA8 80008BA8 00000000 */   nop
 endlabel func_80008AD0
     /* 9BAC 80008BAC 00000000 */  nop
+
+/* glabel func_80008BB0 */
+    /* 9BB0 80008BB0 27BDFFE8 */  addiu      $sp, $sp, -0x18
+endlabel func_80008AD0

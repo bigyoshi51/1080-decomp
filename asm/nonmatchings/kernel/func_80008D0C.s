@@ -1,5 +1,5 @@
 
-nonmatching func_80008D0C, 0x3C
+nonmatching func_80008D0C, 0x40
 
 glabel func_80008D0C
     /* 9D0C 80008D0C 354B0020 */  ori        $t3, $t2, 0x20
@@ -17,4 +17,6 @@ glabel func_80008D0C
     /* 9D3C 80008D3C 27BD0020 */  addiu      $sp, $sp, 0x20
     /* 9D40 80008D40 03E00008 */  jr         $ra
     /* 9D44 80008D44 00000000 */   nop
+/* glabel func_80008D48 */
+    /* 9D48 80008D48 27BDFFE8 */  addiu      $sp, $sp, -0x18
 endlabel func_80008D0C
