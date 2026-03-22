@@ -6,27 +6,29 @@ LD_SCRIPT := $(TARGET).ld
 BASEROM   := baserom.z64
 
 # Paths
-TOOLS     := ../../tools
-GCC_DIR   := $(TOOLS)/gcc_2.7.2/linux
+TOOLS       := ../../tools
+IDO_DIR     := $(TOOLS)/ido-static-recomp/build/7.1/out
+ASM_PROC    := python3 $(TOOLS)/asm-processor/asm_processor.py
+ASM_PRELUDE := $(TOOLS)/asm-processor/prelude.inc
 
 # Tools
 CROSS    := mips-linux-gnu-
-IDO_DIR  := $(TOOLS)/ido-static-recomp/build/7.1/out
 AS       := $(CROSS)as
 CC       := $(IDO_DIR)/cc
 LD       := $(CROSS)ld
 OBJCOPY  := $(CROSS)objcopy
 
 # Flags
-ASFLAGS  := -march=vr4300 -mabi=32 -G 0 -I include
-OPTFLAGS := -O2
-CFLAGS   := -G 0 -mips2 -non_shared
-CPPFLAGS := -I include
+ASFLAGS  := -EB -march=vr4300 -mtune=vr4300 -mabi=32 -I include
+OPT_FLAGS := -O2
+MIPSISET := -mips2 -32
+CFLAGS   := -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul
+CPPFLAGS := -I include -I src
 LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map --no-check-sections
 
 # Collect source files
 C_FILES   := $(shell find src -name '*.c' -type f 2>/dev/null)
-ASM_FILES := $(shell find asm -name '*.s' -not -path 'asm/nonmatchings/*' -type f 2>/dev/null)
+ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 
 # Object files
@@ -45,15 +47,17 @@ $(ROM): $(ELF)
 $(ELF): $(O_FILES) $(LD_SCRIPT)
 	$(LD) $(LDFLAGS) -o $@
 
-# C source (IDO compiler with asm-processor for INCLUDE_ASM)
+# C source -- two-phase asm-processor pattern (like SSSV)
+# Phase 1: strip GLOBAL_ASM/INCLUDE_ASM blocks, output clean C
+# Phase 2: compile with IDO, then patch asm back into .o
 build/src/%.c.o: src/%.c
-	@mkdir -p $(dir $@)
-	python3 $(TOOLS)/asm-processor/build.py \
-		--asm-prelude include/macro.inc \
-		$(CC) -- $(AS) $(ASFLAGS) -- \
-		$(OPTFLAGS) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	@mkdir -p $(dir $@) build/$(<D)
+	$(ASM_PROC) $(OPT_FLAGS) $< > build/$<
+	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(MIPSISET) $(CPPFLAGS) -o $@ build/$<
+	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ \
+		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 
-# Assembly (standalone asm files, NOT nonmatchings)
+# Standalone assembly (functions too small for asm-processor)
 build/asm/%.s.o: asm/%.s
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
