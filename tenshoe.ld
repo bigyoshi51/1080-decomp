@@ -61,19 +61,75 @@ SECTIONS
     kernel_ROM_END = __romPos;
     kernel_VRAM_END = .;
 
-    uso_data_ROM_START = __romPos;
-    uso_data_VRAM = ADDR(.uso_data);
-    .uso_data : AT(uso_data_ROM_START)
+    mainuso_data_ROM_START = __romPos;
+    mainuso_data_VRAM = ADDR(.mainuso_data);
+    .mainuso_data : AT(mainuso_data_ROM_START)
     {
         FILL(0x00000000);
-        uso_data_DATA_START = .;
-        build/assets/uso_data.bin.o(.data);
-        uso_data_DATA_END = .;
-        uso_data_DATA_SIZE = ABSOLUTE(uso_data_DATA_END - uso_data_DATA_START);
+        mainuso_data_DATA_START = .;
+        build/assets/mainuso_data.bin.o(.data);
+        mainuso_data_DATA_END = .;
+        mainuso_data_DATA_SIZE = ABSOLUTE(mainuso_data_DATA_END - mainuso_data_DATA_START);
     }
-    __romPos += SIZEOF(.uso_data);
-    uso_data_ROM_END = __romPos;
-    uso_data_VRAM_END = .;
+    __romPos += SIZEOF(.mainuso_data);
+    mainuso_data_ROM_END = __romPos;
+    mainuso_data_VRAM_END = .;
+
+    rom_fs_ROM_START = __romPos;
+    rom_fs_VRAM = ADDR(.rom_fs);
+    .rom_fs : AT(rom_fs_ROM_START)
+    {
+        FILL(0x00000000);
+        rom_fs_DATA_START = .;
+        build/assets/rom_fs.bin.o(.data);
+        rom_fs_DATA_END = .;
+        rom_fs_DATA_SIZE = ABSOLUTE(rom_fs_DATA_END - rom_fs_DATA_START);
+    }
+    __romPos += SIZEOF(.rom_fs);
+    rom_fs_ROM_END = __romPos;
+    rom_fs_VRAM_END = .;
+
+    bootup_uso_ROM_START = __romPos;
+    bootup_uso_VRAM = ADDR(.bootup_uso);
+    .bootup_uso : AT(bootup_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        bootup_uso_DATA_START = .;
+        build/assets/bootup_uso.bin.o(.data);
+        bootup_uso_DATA_END = .;
+        bootup_uso_DATA_SIZE = ABSOLUTE(bootup_uso_DATA_END - bootup_uso_DATA_START);
+    }
+    __romPos += SIZEOF(.bootup_uso);
+    bootup_uso_ROM_END = __romPos;
+    bootup_uso_VRAM_END = .;
+
+    game_libs_ROM_START = __romPos;
+    game_libs_VRAM = ADDR(.game_libs);
+    .game_libs : AT(game_libs_ROM_START)
+    {
+        FILL(0x00000000);
+        game_libs_DATA_START = .;
+        build/assets/game_libs.bin.o(.data);
+        game_libs_DATA_END = .;
+        game_libs_DATA_SIZE = ABSOLUTE(game_libs_DATA_END - game_libs_DATA_START);
+    }
+    __romPos += SIZEOF(.game_libs);
+    game_libs_ROM_END = __romPos;
+    game_libs_VRAM_END = .;
+
+    game_data_ROM_START = __romPos;
+    game_data_VRAM = ADDR(.game_data);
+    .game_data : AT(game_data_ROM_START)
+    {
+        FILL(0x00000000);
+        game_data_DATA_START = .;
+        build/assets/game_data.bin.o(.data);
+        game_data_DATA_END = .;
+        game_data_DATA_SIZE = ABSOLUTE(game_data_DATA_END - game_data_DATA_START);
+    }
+    __romPos += SIZEOF(.game_data);
+    game_data_ROM_END = __romPos;
+    game_data_VRAM_END = .;
 
     /DISCARD/ :
     {

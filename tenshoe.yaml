@@ -33,28 +33,39 @@ segments:
   # IPL3 boot code (CIC-6105)
   - [0x40, bin, ipl3]
 
-  # Boot stub (loaded by IPL3 to 0x80100000, jumps to kernel at 0x80000000)
-  # CIC-6105 loads 1MB from ROM 0x1000 to 0x80100000
-  # The stub clears BSS and jumps to 0x80000460
-
   # Kernel / resident code (always loaded at VRAM 0x80000000)
   # Contains libultra, USO loader, audio, and core game systems
-  # .text: ROM 0x1000 - 0xAE60 (132 functions, ~40K)
-  # .rodata: ROM 0xAE60 - ~0xAFD0 (strings: USO loader messages, format strings)
-  # .data: ROM 0xAFD0 - 0xBBC0 (libultra data, VI modes, audio data)
-  # .bss: VRAM 0x8000ABC0 - 0x800155C0 (680K, not in ROM)
+  # 108 functions, ~43K code + data
+  # BSS: VRAM 0x8000ABC0 - 0x800155C0 (680K, not in ROM)
   - name: kernel
     type: code
     start: 0x1000
     vram: 0x80000000
     subsegments:
-      - [0x1000, asm, kernel]        # .text + .rodata + .data (all in one for now)
+      - [0x1000, asm, kernel]
 
-  # USO modules and asset data (loaded dynamically via DMA)
-  # The game uses USO (Universal Shared Objects) - a relocatable
-  # module system. Each USO has its own .text/.rodata/.data sections,
-  # compressed and loaded on demand. Individual USO boundaries TBD.
-  - [0xBBC0, bin, uso_data]
+  # mainuso filesystem: compressed USO data modules + assets
+  # Contains: audio_bank, audio_seq, audio_wave, snowboard models,
+  # character models, textures (Yay0 compressed), game logic metadata
+  # All data-only (no executable code) except bg*tex which are Yay0 textures
+  - [0xBBC0, bin, mainuso_data]
+
+  # rom filesystem metadata
+  - [0xD9FDB0, bin, rom_fs]
+
+  # bootup.uso: main game engine (Giles Goddard's libgdl)
+  # 302 functions, 84K .text, 196K data, 807 debug strings
+  # C++ code: SnowBoarder, CollShape, PolyShape, GfxLib, SkinMgr, etc.
+  - [0xD9FE28, bin, bootup_uso]
+
+  # Game support libraries: libultra + libc + libgdl support code
+  # 1,371 functions, 480K code (mixed IDO + GCC compiled)
+  # No debug strings (stripped production code)
+  - [0xDE50D4, bin, game_libs]
+
+  # Data/assets region: structured data tables, lookup tables
+  # 1.7MB of non-code data
+  - [0xE5D0D4, bin, game_data]
 
   # ROM end
   - [0x1000000]
