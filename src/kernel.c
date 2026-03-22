@@ -373,7 +373,18 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800056F0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005800);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80005850);
+/* __osPiGetAccess */
+extern s32 D_8000A480;
+extern void func_80005C00(void);
+extern void func_80004FE0(s32*, s32*, s32);
+
+void func_80005850(void) {
+    s32 msg;
+    if (D_8000A480 == 0) {
+        func_80005C00();
+    }
+    func_80004FE0(&__osPiAccessQueue, &msg, 1);
+}
 
 extern s32 __osPiAccessQueue;
 extern s32 func_80005DC0(s32*, s32, s32);
@@ -558,11 +569,25 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000894C);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000898C);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008A08);
+extern void func_8000857C(void);
+extern void func_8000785C(s32);
+extern void func_80008ED0(void);
+
+void func_80008A08(void) {
+    func_8000857C();
+    func_8000785C(0);
+    func_80008ED0();
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008A38);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008AA0);
+extern void func_80007760(void);
+
+void func_80008AA0(void) {
+    func_80007760();
+    func_8000785C(0);
+    func_80008ED0();
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008AD0);
 
