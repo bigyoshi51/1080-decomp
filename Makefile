@@ -11,17 +11,17 @@ GCC_DIR   := $(TOOLS)/gcc_2.7.2/linux
 
 # Tools
 CROSS    := mips-linux-gnu-
+IDO_DIR  := $(TOOLS)/ido-static-recomp/build/7.1/out
 AS       := $(CROSS)as
-CC       := $(GCC_DIR)/gcc
+CC       := $(IDO_DIR)/cc
 LD       := $(CROSS)ld
 OBJCOPY  := $(CROSS)objcopy
-STRIP    := $(CROSS)strip
 
 # Flags
 ASFLAGS  := -march=vr4300 -mabi=32 -G 0 -I include
 OPTFLAGS := -O2
-CFLAGS   := -G 0 -mgp32 -mfp32
-CPPFLAGS := -I include -DINCLUDE_ASM_USE_MACRO_INC=1
+CFLAGS   := -G 0 -mips2 -non_shared
+CPPFLAGS := -I include
 LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map --no-check-sections
 
 # Collect source files
@@ -45,13 +45,13 @@ $(ROM): $(ELF)
 $(ELF): $(O_FILES) $(LD_SCRIPT)
 	$(LD) $(LDFLAGS) -o $@
 
-# C source (using asm-processor to handle INCLUDE_ASM)
+# C source (IDO compiler with asm-processor for INCLUDE_ASM)
 build/src/%.c.o: src/%.c
 	@mkdir -p $(dir $@)
-	COMPILER_PATH=$(GCC_DIR) python3 $(TOOLS)/asm-processor/build.py \
+	python3 $(TOOLS)/asm-processor/build.py \
 		--asm-prelude include/macro.inc \
 		$(CC) -- $(AS) $(ASFLAGS) -- \
-		-c $(OPTFLAGS) $(CFLAGS) $(CPPFLAGS) -o $@ $<
+		$(OPTFLAGS) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # Assembly (standalone asm files, NOT nonmatchings)
 build/asm/%.s.o: asm/%.s

@@ -3,6 +3,7 @@
 
 # Evaluate this file only once in case it's included more than once
 .ifndef _MACRO_INC_GUARD
+.internal _MACRO_INC_GUARD
 .set _MACRO_INC_GUARD, 1
 
 # A function symbol.
