@@ -1,0 +1,32 @@
+{
+  "function_name": "func_80008BB4",
+  "asm_text": "\nnonmatching func_80008BB4, 0x50\n\nglabel func_80008BB4\n    /* 9BB0 80008BB0 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* 9BB4 80008BB4 AFBF0014 */  sw         $ra, 0x14($sp)\n    /* 9BB8 80008BB8 AFA40018 */  sw         $a0, 0x18($sp)\n    /* 9BBC 80008BBC 0C002400 */  jal        func_80009000\n    /* 9BC0 80008BC0 AFA5001C */   sw        $a1, 0x1C($sp)\n    /* 9BC4 80008BC4 10400003 */  beqz       $v0, .L80008BD4\n    /* 9BC8 80008BC8 00000000 */   nop\n    /* 9BCC 80008BCC 10000008 */  b          .L80008BF0\n    /* 9BD0 80008BD0 2402FFFF */   addiu     $v0, $zero, -0x1\n  .L80008BD4:\n    /* 9BD4 80008BD4 8FAE0018 */  lw         $t6, 0x18($sp)\n    /* 9BD8 80008BD8 3C01A000 */  lui        $at, %hi(D_A0000000)\n    /* 9BDC 80008BDC 8FB9001C */  lw         $t9, 0x1C($sp)\n    /* 9BE0 80008BE0 01C17825 */  or         $t7, $t6, $at\n    /* 9BE4 80008BE4 8DF80000 */  lw         $t8, %lo(D_A0000000)($t7)\n    /* 9BE8 80008BE8 00001025 */  or         $v0, $zero, $zero\n    /* 9BEC 80008BEC AF380000 */  sw         $t8, 0x0($t9)\n  .L80008BF0:\n    /* 9BF0 80008BF0 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* 9BF4 80008BF4 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* 9BF8 80008BF8 03E00008 */  jr         $ra\n    /* 9BFC 80008BFC 00000000 */   nop\nendlabel func_80008BB4\n",
+  "m2c_output": "s32 func_80009000();                                /* extern */\nextern ? D_A0000000;\n\ns32 func_80008BB4(s32 arg0, s32 *arg1) {\n    if (func_80009000() != 0) {\n        return -1;\n    }\n    *arg1 = *(arg0 | (s32) &D_A0000000);\n    return 0;\n}\n",
+  "attempts": [
+    {
+      "c_code": "s32 func_80008BB4(s32 devAddr, s32* data) {\n    if (func_80009000() != 0) { return -1; }\n    *data = *(volatile s32*)(0xA0000000 | devAddr);\n    return 0;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "s32 func_80008BB4(s32 devAddr, s32* data) {\n    if (func_80009000() != 0) { return -1; }\n    *data = *(volatile s32*)(0xA0000000 | devAddr);\n    return 0;\n}",
+  "matched": true,
+  "instruction_count": 20,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1774233960.5009944,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_80009000"
+  ],
+  "referenced_data": [
+    "D_A0000000"
+  ],
+  "segment": "kernel"
+}

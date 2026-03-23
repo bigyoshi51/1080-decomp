@@ -102,9 +102,9 @@ void func_80008AA0(void) {
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008AD0);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008BB4);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C00);
+
+
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
 
