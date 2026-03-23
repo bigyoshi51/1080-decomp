@@ -1,0 +1,30 @@
+{
+  "function_name": "func_800012AC",
+  "asm_text": "\nnonmatching func_800012AC, 0x10\n\nglabel func_800012AC\n    /* 22AC 800012AC 3C028001 */  lui        $v0, %hi(D_80013004)\n    /* 22B0 800012B0 AFA40000 */  sw         $a0, 0x0($sp)\n    /* 22B4 800012B4 03E00008 */  jr         $ra\n    /* 22B8 800012B8 8C423004 */   lw        $v0, %lo(D_80013004)($v0)\nendlabel func_800012AC\n",
+  "m2c_output": "extern s32 D_80013004;\n\ns32 func_800012AC(s32 arg0) {\n    return D_80013004;\n}\n",
+  "attempts": [
+    {
+      "c_code": "s32 func_800012AC(s32 arg0) { return D_80013004; }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "s32 func_800012AC(s32 arg0) { return D_80013004; }",
+  "matched": true,
+  "instruction_count": 4,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1774227577.977056,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [
+    "D_80013004"
+  ],
+  "segment": "kernel"
+}

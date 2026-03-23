@@ -1,0 +1,28 @@
+{
+  "function_name": "func_80000688",
+  "asm_text": "\nnonmatching func_80000688, 0x10\n\nglabel func_80000688\n    /* 1688 80000688 8C8E0004 */  lw         $t6, 0x4($a0)\n    /* 168C 8000068C 01C57821 */  addu       $t7, $t6, $a1\n    /* 1690 80000690 03E00008 */  jr         $ra\n    /* 1694 80000694 AC8F0004 */   sw        $t7, 0x4($a0)\nendlabel func_80000688\n",
+  "m2c_output": "void func_80000688(void *arg0, s32 arg1) {\n    arg0->unk4 = (s32) (arg0->unk4 + arg1);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_80000688(s32* file, s32 offset) { file[1] += offset; }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_80000688(s32* file, s32 offset) { file[1] += offset; }",
+  "matched": true,
+  "instruction_count": 4,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1774227577.5175452,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "kernel"
+}

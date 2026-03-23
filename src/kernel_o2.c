@@ -59,7 +59,10 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000660);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000688);
+/* uso_advance_position */
+void func_80000688(s32* file, s32 offset) {
+    file[1] += offset;
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_file_open);
 
@@ -84,7 +87,10 @@ s32 uso_skip_to_end(FileState* file) {
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_skip_to_end);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800007C4);
+/* uso_file_check — always returns 1 (success) */
+s32 func_800007C4(s32 a0, s32 a1) {
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800007D4);
 
@@ -107,9 +113,15 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80000E8C);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001088);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800010B4);
+/* uso_get_vtable — returns pointer to USO vtable */
+extern s32 D_80012BC0;
+void* func_800010B4(void) {
+    return &D_80012BC0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800010C0);
+/* uso_set_callbacks (no-op) */
+void func_800010C0(s32 a0, s32 a1) {
+}
 
 void func_800010CC(s32 a0, ...) {
 }
@@ -120,7 +132,10 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_find_file);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800012AC);
+/* uso_get_error — returns last error code */
+s32 func_800012AC(s32 arg0) {
+    return D_80013004;
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800012BC);
 
@@ -157,7 +172,10 @@ s32 func_80001470(s32* file, s32 whence, s32 offset) {
 void func_80001494(s32 arg0) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000149C);
+/* uso_ret_zero — returns 0.0f */
+float func_8000149C(void) {
+    return 0.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001584);
 
