@@ -1,0 +1,37 @@
+{
+  "function_name": "func_80006110",
+  "asm_text": "\nnonmatching func_80006110, 0xE0\n\nglabel func_80006110\n    /* 7110 80006110 27BDFFD8 */  addiu      $sp, $sp, -0x28\n    /* 7114 80006114 AFBF001C */  sw         $ra, 0x1C($sp)\n    /* 7118 80006118 AFA40028 */  sw         $a0, 0x28($sp)\n    /* 711C 8000611C AFA5002C */  sw         $a1, 0x2C($sp)\n    /* 7120 80006120 0C0019AC */  jal        func_800066B0\n    /* 7124 80006124 AFB00018 */   sw        $s0, 0x18($sp)\n    /* 7128 80006128 8FAE0028 */  lw         $t6, 0x28($sp)\n    /* 712C 8000612C 00408025 */  or         $s0, $v0, $zero\n    /* 7130 80006130 15C00004 */  bnez       $t6, .L80006144\n    /* 7134 80006134 00000000 */   nop\n    /* 7138 80006138 3C0F8001 */  lui        $t7, %hi(D_8000A420)\n    /* 713C 8000613C 8DEFA420 */  lw         $t7, %lo(D_8000A420)($t7)\n    /* 7140 80006140 AFAF0028 */  sw         $t7, 0x28($sp)\n  .L80006144:\n    /* 7144 80006144 8FB80028 */  lw         $t8, 0x28($sp)\n    /* 7148 80006148 8FA8002C */  lw         $t0, 0x2C($sp)\n    /* 714C 8000614C 8F190004 */  lw         $t9, 0x4($t8)\n    /* 7150 80006150 13280020 */  beq        $t9, $t0, .L800061D4\n    /* 7154 80006154 00000000 */   nop\n    /* 7158 80006158 AF080004 */  sw         $t0, 0x4($t8)\n    /* 715C 8000615C 3C0A8001 */  lui        $t2, %hi(D_8000A420)\n    /* 7160 80006160 8D4AA420 */  lw         $t2, %lo(D_8000A420)($t2)\n    /* 7164 80006164 8FA90028 */  lw         $t1, 0x28($sp)\n    /* 7168 80006168 112A000C */  beq        $t1, $t2, .L8000619C\n    /* 716C 8000616C 00000000 */   nop\n    /* 7170 80006170 952B0010 */  lhu        $t3, 0x10($t1)\n    /* 7174 80006174 24010001 */  addiu      $at, $zero, 0x1\n    /* 7178 80006178 11610008 */  beq        $t3, $at, .L8000619C\n    /* 717C 8000617C 00000000 */   nop\n    /* 7180 80006180 8D240008 */  lw         $a0, 0x8($t1)\n    /* 7184 80006184 0C000FFC */  jal        func_80003FF0\n    /* 7188 80006188 01202825 */   or        $a1, $t1, $zero\n    /* 718C 8000618C 8FAC0028 */  lw         $t4, 0x28($sp)\n    /* 7190 80006190 8D840008 */  lw         $a0, 0x8($t4)\n    /* 7194 80006194 0C000F83 */  jal        func_80003E0C\n    /* 7198 80006198 01802825 */   or        $a1, $t4, $zero\n  .L8000619C:\n    /* 719C 8000619C 3C0D8001 */  lui        $t5, %hi(D_8000A420)\n    /* 71A0 800061A0 3C0F8001 */  lui        $t7, %hi(D_8000A418)\n    /* 71A4 800061A4 8DEFA418 */  lw         $t7, %lo(D_8000A418)($t7)\n    /* 71A8 800061A8 8DADA420 */  lw         $t5, %lo(D_8000A420)($t5)\n    /* 71AC 800061AC 8DF90004 */  lw         $t9, 0x4($t7)\n    /* 71B0 800061B0 8DAE0004 */  lw         $t6, 0x4($t5)\n    /* 71B4 800061B4 01D9082A */  slt        $at, $t6, $t9\n    /* 71B8 800061B8 10200006 */  beqz       $at, .L800061D4\n    /* 71BC 800061BC 00000000 */   nop\n    /* 71C0 800061C0 24080002 */  addiu      $t0, $zero, 0x2\n    /* 71C4 800061C4 3C048001 */  lui        $a0, %hi(D_8000A418)\n    /* 71C8 800061C8 A5A80010 */  sh         $t0, 0x10($t5)\n    /* 71CC 800061CC 0C000F43 */  jal        func_80003D0C\n    /* 71D0 800061D0 2484A418 */   addiu     $a0, $a0, %lo(D_8000A418)\n  .L800061D4:\n    /* 71D4 800061D4 0C0019B4 */  jal        func_800066D0\n    /* 71D8 800061D8 02002025 */   or        $a0, $s0, $zero\n    /* 71DC 800061DC 8FBF001C */  lw         $ra, 0x1C($sp)\n    /* 71E0 800061E0 8FB00018 */  lw         $s0, 0x18($sp)\n    /* 71E4 800061E4 27BD0028 */  addiu      $sp, $sp, 0x28\n    /* 71E8 800061E8 03E00008 */  jr         $ra\n    /* 71EC 800061EC 00000000 */   nop\nendlabel func_80006110\n",
+  "m2c_output": "? func_80003D0C(void **);                           /* extern */\n? func_80003E0C(s32, void *);                       /* extern */\n? func_80003FF0(s32, void *);                       /* extern */\ns32 func_800066B0();                                /* extern */\n? func_800066D0(s32);                               /* extern */\nextern void *D_8000A418;\nextern void *D_8000A420;\n\nvoid func_80006110(void *arg0, s32 arg1) {\n    s32 temp_s0;\n\n    temp_s0 = func_800066B0();\n    if (arg0 == NULL) {\n        arg0 = D_8000A420;\n    }\n    if (arg0->unk4 != arg1) {\n        arg0->unk4 = arg1;\n        if ((arg0 != D_8000A420) && (arg0->unk10 != 1)) {\n            func_80003FF0(arg0->unk8, arg0);\n            func_80003E0C(arg0->unk8, arg0);\n        }\n        if (D_8000A420->unk4 < D_8000A418->unk4) {\n            D_8000A420->unk10 = 2;\n            func_80003D0C(&D_8000A418);\n        }\n    }\n    func_800066D0(temp_s0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_80006110(Thread* thread, s32 pri) {\n    register s32 sr = func_800066B0();\n    if (thread == 0) thread = (Thread*)D_8000A420;\n    if (thread->pri != pri) {\n        thread->pri = pri;\n        if (thread != (Thread*)D_8000A420 && thread->state != 1) {\n            func_80003FF0(thread->queue, thread);\n            func_80003E0C(thread->queue, thread);\n        }\n        if (((Thread*)D_8000A420)->pri < ((Thread*)D_8000A418)->pri) {\n            ((Thread*)D_8000A420)->state = 2;\n            func_80003D0C(&D_8000A418);\n        }\n    }\n    func_800066D0(sr);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_80006110(Thread* thread, s32 pri) {\n    register s32 sr = func_800066B0();\n    if (thread == 0) thread = (Thread*)D_8000A420;\n    if (thread->pri != pri) {\n        thread->pri = pri;\n        if (thread != (Thread*)D_8000A420 && thread->state != 1) {\n            func_80003FF0(thread->queue, thread);\n            func_80003E0C(thread->queue, thread);\n        }\n        if (((Thread*)D_8000A420)->pri < ((Thread*)D_8000A418)->pri) {\n            ((Thread*)D_8000A420)->state = 2;\n            func_80003D0C(&D_8000A418);\n        }\n    }\n    func_800066D0(sr);\n}",
+  "matched": true,
+  "instruction_count": 56,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1774223988.3197148,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_800066B0",
+    "func_80003FF0",
+    "func_80003E0C",
+    "func_80003D0C",
+    "func_800066D0"
+  ],
+  "referenced_data": [
+    "D_8000A420",
+    "D_8000A418"
+  ],
+  "segment": "kernel"
+}
