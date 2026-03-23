@@ -27,10 +27,10 @@ CPPFLAGS := -I include -I src
 LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map --no-check-sections
 
 # Per-file optimization overrides
-build/src/kernel_o1.c.o: OPT_FLAGS := -O1
+# (kernel.c is compiled at default -O2; O1 functions use INCLUDE_ASM)
 
-# Collect source files
-C_FILES   := $(shell find src -name '*.c' -type f 2>/dev/null)
+# Collect source files (exclude o1/ reference sources)
+C_FILES   := $(shell find src -maxdepth 1 -name '*.c' -type f 2>/dev/null)
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 
