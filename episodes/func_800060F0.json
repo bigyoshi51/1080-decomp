@@ -1,0 +1,30 @@
+{
+  "function_name": "func_800060F0",
+  "asm_text": "\nnonmatching func_800060F0, 0x18\n\nglabel func_800060F0\n    /* 70F0 800060F0 14800003 */  bnez       $a0, .L80006100\n    /* 70F4 800060F4 00000000 */   nop\n    /* 70F8 800060F8 3C048001 */  lui        $a0, %hi(D_8000A420)\n    /* 70FC 800060FC 8C84A420 */  lw         $a0, %lo(D_8000A420)($a0)\n  .L80006100:\n    /* 7100 80006100 03E00008 */  jr         $ra\n    /* 7104 80006104 8C820004 */   lw        $v0, 0x4($a0)\nendlabel func_800060F0\n    /* 7108 80006108 00000000 */  nop\n    /* 710C 8000610C 00000000 */  nop\n",
+  "m2c_output": "extern void *D_8000A420;\n\ns32 func_800060F0(void *arg0) {\n    void *var_a0;\n\n    var_a0 = arg0;\n    if (var_a0 == NULL) {\n        var_a0 = D_8000A420;\n    }\n    return var_a0->unk4;\n}\n",
+  "attempts": [
+    {
+      "c_code": "/* osGetThreadPri */\ns32 func_800060F0(Thread* thread) {\n    if (thread == 0) {\n        thread = (Thread*)D_8000A420;\n    }\n    return thread->pri;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "/* osGetThreadPri */\ns32 func_800060F0(Thread* thread) {\n    if (thread == 0) {\n        thread = (Thread*)D_8000A420;\n    }\n    return thread->pri;\n}",
+  "matched": true,
+  "instruction_count": 8,
+  "has_branches": true,
+  "has_calls": false,
+  "timestamp": 1774226810.8446004,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [
+    "D_8000A420"
+  ],
+  "segment": "kernel"
+}

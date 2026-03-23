@@ -28,6 +28,15 @@ typedef struct {
     s32 msgCount;
     s32** msg;
 } OSMesgQueue;
+
+typedef struct Thread {
+    s32 field0;
+    s32 pri;
+    s32 queue;
+    s32 pad0C;
+    u16 state;
+} Thread;
+
 extern void func_8000857C(void);
 extern void func_8000785C(s32);
 extern void func_80008ED0(void);
@@ -163,7 +172,14 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80005134);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800051F0);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800052C0);
+/* __osSiDeviceBusy */
+s32 func_800052C0(void) {
+    register u32 status = *(volatile u32*)0xA4800018;
+    if (status & 3) {
+        return 1;
+    }
+    return 0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800056C0);
@@ -186,23 +202,42 @@ void func_80005850(void) {
 
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800059C0);
+/* osSendMesg */
+s32 func_800059C0(OSMesgQueue* mq, s32 msg, s32 flags) {
+    register s32 saveMask = func_800066B0();
+    register s32 last;
+    while (mq->validCount >= mq->msgCount) {
+        if (flags == 1) {
+            ((Thread*)D_8000A420)->state = 8;
+            func_80003D0C((s32*)&mq->fullqueue);
+        } else {
+            func_800066D0(saveMask);
+            return -1;
+        }
+    }
+    last = (mq->first + mq->validCount) % mq->msgCount;
+    mq->msg[last] = (s32*)msg;
+    mq->validCount++;
+    if (*(void**)mq->mtqueue != 0) {
+        register void* t = (void*)func_80003E54(mq);
+        func_8000A110(t);
+    }
+    func_800066D0(saveMask);
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005C00);
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800060F0);
+/* osGetThreadPri */
+s32 func_800060F0(Thread* thread) {
+    if (thread == 0) {
+        thread = (Thread*)D_8000A420;
+    }
+    return thread->pri;
+}
 
 /* osSetThreadPri */
-typedef struct Thread {
-    s32 field0;
-    s32 pri;
-    s32 queue;
-    s32 pad0C;
-    u16 state;
-} Thread;
-
-
 
 
 void func_80006110(Thread* thread, s32 pri) {
@@ -231,7 +266,10 @@ void func_80006110(Thread* thread, s32 pri) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800062D0);
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800065B0);
+/* __rmonWriteWordTo (unimplemented stub) */
+s32 func_800065B0(s32 arg0) {
+    return -1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80006640);
 
@@ -271,7 +309,28 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80007A98);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007B3C);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80007DD0);
+/* osStopThread */
+void func_80007DD0(Thread* t) {
+    register s32 saveMask = func_800066B0();
+    register u16 state;
+    if (t == 0) {
+        state = 4;
+    } else {
+        state = t->state;
+    }
+    switch (state) {
+    case 4:
+        ((Thread*)D_8000A420)->state = 1;
+        func_80003D0C(0);
+        break;
+    case 2:
+    case 8:
+        t->state = 1;
+        func_80003FF0(t->queue, t);
+        break;
+    }
+    func_800066D0(saveMask);
+}
 
 
 
@@ -288,7 +347,10 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800081D0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800082EC);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008424);
+/* __rmonWriteWordTo (unimplemented stub) */
+s32 func_80008424(s32 arg0) {
+    return -1;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000858C);
@@ -413,49 +475,3 @@ void func_80009A50(void) {
     func_800066D0(sr);
 }
 
-/* osSendMesg */
-s32 func_800059C0(OSMesgQueue* mq, s32 msg, s32 flags) {
-    register s32 saveMask = func_800066B0();
-    register s32 last;
-    while (mq->validCount >= mq->msgCount) {
-        if (flags == 1) {
-            ((Thread*)D_8000A420)->state = 8;
-            func_80003D0C((s32*)&mq->fullqueue);
-        } else {
-            func_800066D0(saveMask);
-            return -1;
-        }
-    }
-    last = (mq->first + mq->validCount) % mq->msgCount;
-    mq->msg[last] = (s32*)msg;
-    mq->validCount++;
-    if (*(void**)mq->mtqueue != 0) {
-        register void* t = (void*)func_80003E54(mq);
-        func_8000A110(t);
-    }
-    func_800066D0(saveMask);
-    return 0;
-}
-
-/* osStopThread */
-void func_80007DD0(Thread* t) {
-    register s32 saveMask = func_800066B0();
-    register u16 state;
-    if (t == 0) {
-        state = 4;
-    } else {
-        state = t->state;
-    }
-    switch (state) {
-    case 4:
-        ((Thread*)D_8000A420)->state = 1;
-        func_80003D0C(0);
-        break;
-    case 2:
-    case 8:
-        t->state = 1;
-        func_80003FF0(t->queue, t);
-        break;
-    }
-    func_800066D0(saveMask);
-}

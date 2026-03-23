@@ -1,0 +1,28 @@
+{
+  "function_name": "func_80001470",
+  "asm_text": "\nnonmatching func_80001470, 0x24\n\nglabel func_80001470\n    /* 2470 80001470 50A00006 */  beql       $a1, $zero, .L8000148C\n    /* 2474 80001474 AC860004 */   sw        $a2, 0x4($a0)\n    /* 2478 80001478 8C8E0004 */  lw         $t6, 0x4($a0)\n    /* 247C 8000147C 01C67821 */  addu       $t7, $t6, $a2\n    /* 2480 80001480 10000002 */  b          .L8000148C\n    /* 2484 80001484 AC8F0004 */   sw        $t7, 0x4($a0)\n    /* 2488 80001488 AC860004 */  sw         $a2, 0x4($a0)\n  .L8000148C:\n    /* 248C 8000148C 03E00008 */  jr         $ra\n    /* 2490 80001490 8C820004 */   lw        $v0, 0x4($a0)\nendlabel func_80001470\n",
+  "m2c_output": "s32 func_80001470(void *arg0, s32 arg1, s32 arg2) {\n    if (arg1 != 0) {\n        arg0->unk4 = (s32) (arg0->unk4 + arg2);\n    } else {\n        arg0->unk4 = arg2;\n    }\n    return arg0->unk4;\n}\n",
+  "attempts": [
+    {
+      "c_code": "/* uso_seek */\ns32 func_80001470(s32* file, s32 whence, s32 offset) {\n    if (whence) {\n        file[1] += offset;\n    } else {\n        file[1] = offset;\n    }\n    return file[1];\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "/* uso_seek */\ns32 func_80001470(s32* file, s32 whence, s32 offset) {\n    if (whence) {\n        file[1] += offset;\n    } else {\n        file[1] = offset;\n    }\n    return file[1];\n}",
+  "matched": true,
+  "instruction_count": 9,
+  "has_branches": true,
+  "has_calls": false,
+  "timestamp": 1774227169.2414205,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "kernel"
+}

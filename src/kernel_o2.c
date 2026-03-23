@@ -138,11 +138,24 @@ s32 func_80001414(void* file, void* buf, s32 size) {
     return result;
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001460);
+/* uso_file_end — returns file position + size */
+s32 func_80001460(s32* file) {
+    return file[1] + file[3];
+}
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001470);
+/* uso_seek — set or adjust file position */
+s32 func_80001470(s32* file, s32 whence, s32 offset) {
+    if (whence) {
+        file[1] += offset;
+    } else {
+        file[1] = offset;
+    }
+    return file[1];
+}
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001494);
+/* uso_file_close (no-op) */
+void func_80001494(s32 arg0) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000149C);
 
