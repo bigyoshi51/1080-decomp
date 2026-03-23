@@ -86,11 +86,19 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000894C);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000898C);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008A08);
+void func_80008A08(void) {
+    func_8000857C();
+    func_8000785C(0);
+    func_80008ED0();
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008A38);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008AA0);
+void func_80008AA0(void) {
+    func_80007760();
+    func_8000785C(0);
+    func_80008ED0();
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008AD0);
 
@@ -136,7 +144,19 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800091F0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800091FC);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800092B0);
+/* rmon execute */
+s32 func_800092B0(s32 a0) {
+    s32 result;
+    if (func_80008430(a0) != 0) {
+        return 0;
+    }
+    func_80009148(0);
+    func_80009030(0x2B, a0);
+    func_80008498();
+    result = func_80006A98(0x04000000);
+    func_800091F0(0);
+    return result;
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009314);
 

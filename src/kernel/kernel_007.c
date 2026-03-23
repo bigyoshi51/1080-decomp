@@ -72,4 +72,7 @@ void func_80005850(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80005894);
+/* __osPiRelAccess */
+void func_80005894(void) {
+    func_80005DC0(&__osPiAccessQueue, 0, 0);
+}

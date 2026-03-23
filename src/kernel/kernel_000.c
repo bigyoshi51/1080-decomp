@@ -67,7 +67,14 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80000000);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800000B0);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000118);
+/* Boot init */
+void func_80000118(s32 a0, s32 a1) {
+    s32 saved = func_80002890(1);
+    func_8000A0E0();
+    func_80005350(a0, a1);
+    func_80005400(a0, a1);
+    func_80002890(saved);
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000168);
 
@@ -169,7 +176,9 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80000D2C);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000DEC);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000E58);
+void func_80000E58(void) {
+    D_80012C44(&D_8000A32C, &D_8000A340);
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000E8C);
 
@@ -185,7 +194,8 @@ void* func_800010B4(void) {
 void func_800010C0(s32 a0, s32 a1) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800010CC);
+void func_800010CC(s32 a0, ...) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800010E8);
 
@@ -246,11 +256,13 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001594);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800015D0);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800017B4);
+void func_800017B4(void) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800017BC);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800018A8);
+void func_800018A8(void) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800018B0);
 
