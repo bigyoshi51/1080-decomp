@@ -166,8 +166,6 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80000A88);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000A98);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000B34);
-
 /* uso_call_init — dispatches a function from the USO module vtable */
 typedef s32 (*UsoFunc)(void*);
 

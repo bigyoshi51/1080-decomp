@@ -1,5 +1,5 @@
 
-nonmatching func_800062F0, 0x200
+nonmatching func_800062F0, 0x2BC
 
 glabel func_800062F0
     /* 72F0 800062F0 27BDFFC8 */  addiu      $sp, $sp, -0x38
@@ -139,4 +139,56 @@ glabel func_800062F0
     /* 74E4 800064E4 AFAB0024 */  sw         $t3, 0x24($sp)
     /* 74E8 800064E8 01AC082B */  sltu       $at, $t5, $t4
     /* 74EC 800064EC 1420FFEE */  bnez       $at, .L800064A8
+    /* 74F0 800064F0 00000000 */  nop
+  .L800064F4:
+    /* 74F4 800064F4 3C088002 */  lui        $t0, %hi(__osRdb_IP6_CurWrite)
+    /* 74F8 800064F8 8D08930C */  lw         $t0, %lo(__osRdb_IP6_CurWrite)($t0)
+    /* 74FC 800064FC 3C0F8002 */  lui        $t7, %hi(__osRdb_IP6_Size)
+    /* 7500 80006500 8DEF9304 */  lw         $t7, %lo(__osRdb_IP6_Size)($t7)
+    /* 7504 80006504 3C018002 */  lui        $at, %hi(__osRdb_IP6_CurWrite)
+    /* 7508 80006508 25190001 */  addiu      $t9, $t0, 0x1
+    /* 750C 8000650C AC39930C */  sw         $t9, %lo(__osRdb_IP6_CurWrite)($at)
+    /* 7510 80006510 032F082B */  sltu       $at, $t9, $t7
+    /* 7514 80006514 14200002 */  bnez       $at, .L80006520
+    /* 7518 80006518 3C018002 */   lui       $at, %hi(__osRdb_IP6_CurWrite)
+    /* 751C 8000651C AC20930C */  sw         $zero, %lo(__osRdb_IP6_CurWrite)($at)
+  .L80006520:
+    /* 7520 80006520 8FA9003C */  lw         $t1, 0x3C($sp)
+    /* 7524 80006524 8FB8002C */  lw         $t8, 0x2C($sp)
+    /* 7528 80006528 3C0E8002 */  lui        $t6, %hi(__osRdb_IP6_Ct)
+    /* 752C 8000652C 8DCE9308 */  lw         $t6, %lo(__osRdb_IP6_Ct)($t6)
+    /* 7530 80006530 01385823 */  subu       $t3, $t1, $t8
+    /* 7534 80006534 8FAD0018 */  lw         $t5, 0x18($sp)
+    /* 7538 80006538 AFAB003C */  sw         $t3, 0x3C($sp)
+    /* 753C 8000653C 8FA8003C */  lw         $t0, 0x3C($sp)
+    /* 7540 80006540 3C018002 */  lui        $at, %hi(__osRdb_IP6_Ct)
+    /* 7544 80006544 25CA0001 */  addiu      $t2, $t6, 0x1
+    /* 7548 80006548 01B86021 */  addu       $t4, $t5, $t8
+    /* 754C 8000654C AC2A9308 */  sw         $t2, %lo(__osRdb_IP6_Ct)($at)
+    /* 7550 80006550 11000008 */  beqz       $t0, .L80006574
+    /* 7554 80006554 AFAC0018 */   sw        $t4, 0x18($sp)
+    /* 7558 80006558 3C198002 */  lui        $t9, %hi(__osRdb_IP6_Ct)
+    /* 755C 8000655C 3C0F8002 */  lui        $t7, %hi(__osRdb_IP6_Size)
+    /* 7560 80006560 8DEF9304 */  lw         $t7, %lo(__osRdb_IP6_Size)($t7)
+    /* 7564 80006564 8F399308 */  lw         $t9, %lo(__osRdb_IP6_Ct)($t9)
+    /* 7568 80006568 032F082B */  sltu       $at, $t9, $t7
+    /* 756C 8000656C 1420FFAB */  bnez       $at, .L8000641C
+    /* 7570 80006570 00000000 */   nop
+  .L80006574:
+    /* 7574 80006574 8FAE0020 */  lw         $t6, 0x20($sp)
+    /* 7578 80006578 11C00005 */  beqz       $t6, .L80006590
+    /* 757C 8000657C 00000000 */   nop
+    /* 7580 80006580 27AA0030 */  addiu      $t2, $sp, 0x30
+    /* 7584 80006584 8D490000 */  lw         $t1, 0x0($t2)
+    /* 7588 80006588 3C0BC000 */  lui        $t3, (0xC0000000 >> 16)
+    /* 758C 8000658C AD690000 */  sw         $t1, (0xC0000000 & 0xFFFF)($t3)
+  .L80006590:
+    /* 7590 80006590 0C0019B4 */  jal        func_800066D0
+    /* 7594 80006594 8FA4001C */   lw        $a0, 0x1C($sp)
+    /* 7598 80006598 8FBF0014 */  lw         $ra, 0x14($sp)
+    /* 759C 8000659C 8FA20018 */  lw         $v0, 0x18($sp)
+    /* 75A0 800065A0 27BD0038 */  addiu      $sp, $sp, 0x38
+    /* 75A4 800065A4 03E00008 */  jr         $ra
+    /* 75A8 800065A8 00000000 */   nop
 endlabel func_800062F0
+    /* 75AC 800065AC 00000000 */  nop
