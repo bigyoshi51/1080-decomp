@@ -36,6 +36,7 @@ SECTIONS
         FILL(0x00000000);
         kernel_TEXT_START = .;
         build/src/kernel/kernel_000.c.o(.text);
+        build/src/kernel/kernel_042.c.o(.text);
         build/src/kernel/kernel_027.c.o(.text);
         build/src/kernel/kernel_001.c.o(.text);
         build/src/kernel/kernel_002.c.o(.text);
