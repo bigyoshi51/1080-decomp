@@ -60,3 +60,20 @@ After the O1/O2 split, run:
 objdiff-cli report generate | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['measures']['matched_functions'])"
 ```
 Expected: >= 40 matched functions.
+
+## Fragment Merges Performed
+
+These asm files were merged into their parent functions. If re-running
+splat, ensure these are NOT treated as separate function boundaries.
+
+| Fragment | Merged Into | Reason |
+|----------|-------------|--------|
+| func_80009DF0 | func_80009D10 | osStartThread tail |
+| func_80005C00 | func_80005B10 | osCreateThread tail |
+| func_80003D0C | func_80003C24 | osDestroyThread tail |
+| func_800005D8 | func_800005DC | 4-byte prologue fragment |
+| func_80001CF0 | func_80001CF4 | 4-byte prologue fragment |
+| func_800056EC | func_800056F0 | 4-byte prologue fragment |
+| func_80008BB0 | func_80008BB4 | 4-byte prologue fragment |
+| func_80008D48 | func_80008D4C | 4-byte prologue fragment |
+| func_80009144 | func_80009148 | 4-byte prologue fragment |
