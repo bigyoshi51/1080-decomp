@@ -1,0 +1,34 @@
+{
+  "function_name": "func_80008D4C",
+  "asm_text": "\nnonmatching func_80008D4C, 0xA8\n\nglabel func_80008D4C\n    /* 9D48 80008D48 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* 9D4C 80008D4C AFBF0014 */  sw         $ra, 0x14($sp)\n    /* 9D50 80008D50 AFA40018 */  sw         $a0, 0x18($sp)\n    /* 9D54 80008D54 0C001AA6 */  jal        func_80006A98\n    /* 9D58 80008D58 3C040408 */   lui       $a0, (0x4080000 >> 16)\n    /* 9D5C 80008D5C 3C018002 */  lui        $at, %hi(D_8001FF80)\n    /* 9D60 80008D60 3C040400 */  lui        $a0, (0x4001000 >> 16)\n    /* 9D64 80008D64 AC22FF80 */  sw         $v0, %lo(D_8001FF80)($at)\n    /* 9D68 80008D68 0C001AA6 */  jal        func_80006A98\n    /* 9D6C 80008D6C 34841000 */   ori       $a0, $a0, (0x4001000 & 0xFFFF)\n    /* 9D70 80008D70 3C018002 */  lui        $at, %hi(D_8001FF84)\n    /* 9D74 80008D74 AC22FF84 */  sw         $v0, %lo(D_8001FF84)($at)\n    /* 9D78 80008D78 0C001AA6 */  jal        func_80006A98\n    /* 9D7C 80008D7C 3C040400 */   lui       $a0, (0x4000000 >> 16)\n    /* 9D80 80008D80 3C0E8002 */  lui        $t6, %hi(D_8001FF88)\n    /* 9D84 80008D84 25CEFF88 */  addiu      $t6, $t6, %lo(D_8001FF88)\n    /* 9D88 80008D88 ADC20000 */  sw         $v0, 0x0($t6)\n    /* 9D8C 80008D8C 8FAF0018 */  lw         $t7, 0x18($sp)\n    /* 9D90 80008D90 11E00013 */  beqz       $t7, .L80008DE0\n    /* 9D94 80008D94 00000000 */   nop\n    /* 9D98 80008D98 3C040400 */  lui        $a0, (0x4000004 >> 16)\n    /* 9D9C 80008D9C 0C001AA6 */  jal        func_80006A98\n    /* 9DA0 80008DA0 34840004 */   ori       $a0, $a0, (0x4000004 & 0xFFFF)\n    /* 9DA4 80008DA4 3C188002 */  lui        $t8, %hi(D_8001FF88)\n    /* 9DA8 80008DA8 2718FF88 */  addiu      $t8, $t8, %lo(D_8001FF88)\n    /* 9DAC 80008DAC 3C040400 */  lui        $a0, (0x4000008 >> 16)\n    /* 9DB0 80008DB0 AF020004 */  sw         $v0, 0x4($t8)\n    /* 9DB4 80008DB4 0C001AA6 */  jal        func_80006A98\n    /* 9DB8 80008DB8 34840008 */   ori       $a0, $a0, (0x4000008 & 0xFFFF)\n    /* 9DBC 80008DBC 3C198002 */  lui        $t9, %hi(D_8001FF88)\n    /* 9DC0 80008DC0 2739FF88 */  addiu      $t9, $t9, %lo(D_8001FF88)\n    /* 9DC4 80008DC4 3C040400 */  lui        $a0, (0x400000C >> 16)\n    /* 9DC8 80008DC8 AF220008 */  sw         $v0, 0x8($t9)\n    /* 9DCC 80008DCC 0C001AA6 */  jal        func_80006A98\n    /* 9DD0 80008DD0 3484000C */   ori       $a0, $a0, (0x400000C & 0xFFFF)\n    /* 9DD4 80008DD4 3C088002 */  lui        $t0, %hi(D_8001FF88)\n    /* 9DD8 80008DD8 2508FF88 */  addiu      $t0, $t0, %lo(D_8001FF88)\n    /* 9DDC 80008DDC AD02000C */  sw         $v0, 0xC($t0)\n  .L80008DE0:\n    /* 9DE0 80008DE0 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* 9DE4 80008DE4 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* 9DE8 80008DE8 03E00008 */  jr         $ra\n    /* 9DEC 80008DEC 00000000 */   nop\nendlabel func_80008D4C\n",
+  "m2c_output": "s32 func_80006A98(?);                               /* extern */\nextern s32 D_8001FF80;\nextern s32 D_8001FF84;\nextern ? D_8001FF88;\n\nvoid func_80008D4C(s32 arg0) {\n    D_8001FF80 = func_80006A98(0x04080000);\n    D_8001FF84 = func_80006A98(0x04001000);\n    D_8001FF88.unk0 = func_80006A98(0x04000000);\n    if (arg0 != 0) {\n        D_8001FF88.unk4 = func_80006A98(0x04000004);\n        D_8001FF88.unk8 = func_80006A98(0x04000008);\n        D_8001FF88.unkC = func_80006A98(0x0400000C);\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_80008D4C(s32 extended) {\n    D_8001FF80 = func_80006A98(0x04080000);\n    D_8001FF84 = func_80006A98(0x04001000);\n    *(s32*)&D_8001FF88 = func_80006A98(0x04000000);\n    if (extended != 0) {\n        *((s32*)&D_8001FF88 + 1) = func_80006A98(0x04000004);\n        *((s32*)&D_8001FF88 + 2) = func_80006A98(0x04000008);\n        *((s32*)&D_8001FF88 + 3) = func_80006A98(0x0400000C);\n    }\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_80008D4C(s32 extended) {\n    D_8001FF80 = func_80006A98(0x04080000);\n    D_8001FF84 = func_80006A98(0x04001000);\n    *(s32*)&D_8001FF88 = func_80006A98(0x04000000);\n    if (extended != 0) {\n        *((s32*)&D_8001FF88 + 1) = func_80006A98(0x04000004);\n        *((s32*)&D_8001FF88 + 2) = func_80006A98(0x04000008);\n        *((s32*)&D_8001FF88 + 3) = func_80006A98(0x0400000C);\n    }\n}",
+  "matched": true,
+  "instruction_count": 42,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1774324020.2881048,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_80006A98"
+  ],
+  "referenced_data": [
+    "D_8001FF80",
+    "D_8001FF84",
+    "D_8001FF88"
+  ],
+  "segment": "kernel"
+}

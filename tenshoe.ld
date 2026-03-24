@@ -71,6 +71,7 @@ SECTIONS
         build/src/kernel/kernel_022.c.o(.text);
         build/src/kernel/kernel_039.c.o(.text);
         build/src/kernel/kernel_041.c.o(.text);
+        build/src/kernel/kernel_044.c.o(.text);
         build/src/kernel/kernel_028.c.o(.text);
         build/src/kernel/kernel_035.c.o(.text);
         build/src/kernel/kernel_023.c.o(.text);

@@ -696,6 +696,22 @@
         "compiler": "ido7.1",
         "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
       }
+    },
+    {
+      "name": "src/kernel/kernel_044",
+      "target_path": "expected/src/kernel/kernel_044.c.o",
+      "base_path": "build/src/kernel/kernel_044.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_044.c",
+        "progress_categories": [
+          "game"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
     }
   ],
   "progress_categories": [
