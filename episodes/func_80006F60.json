@@ -1,0 +1,30 @@
+{
+  "function_name": "func_80006F60",
+  "asm_text": "\nnonmatching func_80006F60, 0x98\n\nglabel func_80006F60\n    /* 7F60 80006F60 27BDFFD0 */  addiu      $sp, $sp, -0x30\n    /* 7F64 80006F64 AFA40030 */  sw         $a0, 0x30($sp)\n    /* 7F68 80006F68 8FAE0030 */  lw         $t6, 0x30($sp)\n    /* 7F6C 80006F6C AFBF001C */  sw         $ra, 0x1C($sp)\n    /* 7F70 80006F70 AFA50034 */  sw         $a1, 0x34($sp)\n    /* 7F74 80006F74 AFA60038 */  sw         $a2, 0x38($sp)\n    /* 7F78 80006F78 AFB00018 */  sw         $s0, 0x18($sp)\n    /* 7F7C 80006F7C 240F0002 */  addiu      $t7, $zero, 0x2\n    /* 7F80 80006F80 AFAE0028 */  sw         $t6, 0x28($sp)\n    /* 7F84 80006F84 A1CF0008 */  sb         $t7, 0x8($t6)\n    /* 7F88 80006F88 8FB90030 */  lw         $t9, 0x30($sp)\n    /* 7F8C 80006F8C 8FB80038 */  lw         $t8, 0x38($sp)\n    /* 7F90 80006F90 A3380005 */  sb         $t8, 0x5($t9)\n    /* 7F94 80006F94 8FA80034 */  lw         $t0, 0x34($sp)\n    /* 7F98 80006F98 AFA0002C */  sw         $zero, 0x2C($sp)\n    /* 7F9C 80006F9C 11000011 */  beqz       $t0, .L80006FE4\n    /* 7FA0 80006FA0 00000000 */   nop\n  .L80006FA4:\n    /* 7FA4 80006FA4 8FAA002C */  lw         $t2, 0x2C($sp)\n    /* 7FA8 80006FA8 8FA90028 */  lw         $t1, 0x28($sp)\n    /* 7FAC 80006FAC 8FAB0034 */  lw         $t3, 0x34($sp)\n    /* 7FB0 80006FB0 24060008 */  addiu      $a2, $zero, 0x8\n    /* 7FB4 80006FB4 012A2021 */  addu       $a0, $t1, $t2\n    /* 7FB8 80006FB8 0C0019BC */  jal        func_800066F0\n    /* 7FBC 80006FBC 016A2823 */   subu      $a1, $t3, $t2\n    /* 7FC0 80006FC0 8FAC002C */  lw         $t4, 0x2C($sp)\n    /* 7FC4 80006FC4 00408025 */  or         $s0, $v0, $zero\n    /* 7FC8 80006FC8 8FAE0034 */  lw         $t6, 0x34($sp)\n    /* 7FCC 80006FCC 01906821 */  addu       $t5, $t4, $s0\n    /* 7FD0 80006FD0 AFAD002C */  sw         $t5, 0x2C($sp)\n    /* 7FD4 80006FD4 8FAF002C */  lw         $t7, 0x2C($sp)\n    /* 7FD8 80006FD8 01EE082B */  sltu       $at, $t7, $t6\n    /* 7FDC 80006FDC 1420FFF1 */  bnez       $at, .L80006FA4\n    /* 7FE0 80006FE0 00000000 */   nop\n  .L80006FE4:\n    /* 7FE4 80006FE4 8FBF001C */  lw         $ra, 0x1C($sp)\n    /* 7FE8 80006FE8 8FB00018 */  lw         $s0, 0x18($sp)\n    /* 7FEC 80006FEC 27BD0030 */  addiu      $sp, $sp, 0x30\n    /* 7FF0 80006FF0 03E00008 */  jr         $ra\n    /* 7FF4 80006FF4 00000000 */   nop\nendlabel func_80006F60\n",
+  "m2c_output": "s32 func_800066F0(void *, s32, ?);                  /* extern */\n\nvoid func_80006F60(void *arg0, u32 arg1, s32 arg2) {\n    u32 sp2C;\n    void *sp28;\n\n    sp28 = arg0;\n    arg0->unk8 = 2;\n    arg0->unk5 = (s8) arg2;\n    sp2C = 0;\n    if (arg1 != 0) {\n        do {\n            sp2C += func_800066F0(sp28 + sp2C, arg1 - sp2C, 8);\n        } while (sp2C < arg1);\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_80006F60(char* buf, s32 size, s32 domain) {\n    s32 totalSent;\n    char* p = buf;\n\n    *(u8*)(buf + 8) = 2;\n    *(u8*)(buf + 5) = domain;\n    totalSent = 0;\n    if (size != 0) {\n        do {\n            register s32 sent = func_800066F0(p + totalSent, size - totalSent, 8);\n            totalSent += sent;\n        } while ((u32)totalSent < (u32)size);\n    }\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_80006F60(char* buf, s32 size, s32 domain) {\n    s32 totalSent;\n    char* p = buf;\n\n    *(u8*)(buf + 8) = 2;\n    *(u8*)(buf + 5) = domain;\n    totalSent = 0;\n    if (size != 0) {\n        do {\n            register s32 sent = func_800066F0(p + totalSent, size - totalSent, 8);\n            totalSent += sent;\n        } while ((u32)totalSent < (u32)size);\n    }\n}",
+  "matched": true,
+  "instruction_count": 38,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1774323571.6492763,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_800066F0"
+  ],
+  "referenced_data": [],
+  "segment": "kernel"
+}
