@@ -71,6 +71,7 @@ SECTIONS
         build/src/kernel/kernel_024.c.o(.text);
         build/src/kernel/kernel_025.c.o(.text);
         build/src/kernel/kernel_026.c.o(.text);
+        build/src/kernel/kernel_037.c.o(.text);
         kernel_TEXT_END = .;
         kernel_TEXT_SIZE = ABSOLUTE(kernel_TEXT_END - kernel_TEXT_START);
         kernel_RODATA_START = .;
