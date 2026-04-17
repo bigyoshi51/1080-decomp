@@ -14,12 +14,10 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80005000);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800050C0);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80005120);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005134);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005184);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800051E0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800051F0);

@@ -80,15 +80,10 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80006790);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000698C);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800069BC);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80006A50);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80006A98);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80006AEC);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80006B20);
 
 
 
@@ -120,11 +115,8 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80007564);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007698);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80007760);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800077DC);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000785C);
 
 
 

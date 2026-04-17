@@ -1,5 +1,5 @@
 
-nonmatching func_800050C0, 0x60
+nonmatching func_800050C0, 0x74
 
 glabel func_800050C0
     /* 60C0 800050C0 27BDFFD0 */  addiu      $sp, $sp, -0x30
@@ -27,4 +27,9 @@ glabel func_800050C0
     /* 6114 80005114 2D4101B0 */  sltiu      $at, $t2, 0x1B0
     /* 6118 80005118 1420FFF2 */  bnez       $at, .L800050E4
     /* 611C 8000511C 00000000 */   nop
+    /* 6120 80005120 8FBF001C */  lw         $ra, 0x1C($sp)
+    /* 6124 80005124 8FB00018 */  lw         $s0, 0x18($sp)
+    /* 6128 80005128 27BD0030 */  addiu      $sp, $sp, 0x30
+    /* 612C 8000512C 03E00008 */  jr         $ra
+    /* 6130 80005130 00000000 */   nop
 endlabel func_800050C0
