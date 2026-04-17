@@ -23,8 +23,8 @@ jobs:
             | tar xz -C tools/ido-static-recomp/build/7.1/out
           chmod +x tools/ido-static-recomp/build/7.1/out/*
 
-      - name: Build objects
-        run: make RUN_CC_CHECK=0 -j$(nproc) build/tenshoe.elf
+      - name: Build C objects (no baserom required)
+        run: make RUN_CC_CHECK=0 -j$(nproc) objects
 
       - name: Generate progress report
         run: |

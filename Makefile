@@ -73,6 +73,9 @@ O_FILES     := $(BIN_O_FILES) $(C_O_FILES) $(ASM_O_FILES)
 # Default target
 all: verify
 
+# C objects only — used by CI for objdiff reports (no baserom required).
+objects: $(C_O_FILES)
+
 # Build ROM
 $(ROM): $(ELF)
 	$(OBJCOPY) -O binary $< $@
@@ -116,4 +119,4 @@ clean:
 setup: $(BASEROM)
 	python3 -m splat split tenshoe.yaml
 
-.PHONY: all clean verify expected setup
+.PHONY: all clean verify expected setup objects
