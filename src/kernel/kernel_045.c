@@ -15,4 +15,4 @@ s32 func_800029B0(u32 arg0, u32* arg1) {
     return 0;
 }
 
-/* func_80002A10 split out to kernel_056.c (-O2 -mips3, 64-bit helper) */
+/* func_80002A10 split out to kernel_056.c (-O1 -mips3, 64-bit helper) */
