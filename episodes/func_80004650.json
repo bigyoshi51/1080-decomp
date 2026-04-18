@@ -1,0 +1,15 @@
+{
+  "function_name": "func_80004650",
+  "symbol_name": "__osPiRawStartDma",
+  "matched": true,
+  "segment": "kernel",
+  "compiler": "IDO",
+  "compiler_flags": "-O1 -mips2",
+  "reference": "libreultra/src/io/pirawdma.c",
+  "notes": [
+    "Matched as the PI raw DMA helper.",
+    "Uses local symbols func_80004B30 and D_80000308 for osVirtualToPhysical/osRomBase.",
+    "PI register accesses use the D_A46000xx externs used elsewhere in the kernel."
+  ],
+  "final_c": "s32 func_80004650(s32 direction, u32 devAddr, s32 dramAddr, u32 size) {\n    register u32 status;\n\n    status = D_A4600010;\n    while (status & 3) {\n        status = D_A4600010;\n    }\n\n    D_A4600000 = func_80004B30(dramAddr);\n    D_A4600004 = (D_80000308 | devAddr) & 0x1FFFFFFF;\n\n    switch (direction) {\n        case 0:\n            D_A460000C = size - 1;\n            break;\n        case 1:\n            D_A4600008 = size - 1;\n            break;\n        default:\n            return -1;\n    }\n\n    return 0;\n}"
+}
