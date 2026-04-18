@@ -1,0 +1,28 @@
+{
+  "function_name": "func_800066F0",
+  "asm_text": "\nnonmatching func_800066F0, 0x30\n\nglabel func_800066F0\n    /* 76F0 800066F0 27BDFFF8 */  addiu      $sp, $sp, -0x8\n    /* 76F4 800066F4 10E00008 */  beqz       $a3, .L80006718\n    /* 76F8 800066F8 24C6FFFF */   addiu     $a2, $a2, -0x1\n  .L800066FC:\n    /* 76FC 800066FC 90AE0000 */  lbu        $t6, 0x0($a1)\n    /* 7700 80006700 00C03825 */  or         $a3, $a2, $zero\n    /* 7704 80006704 24C6FFFF */  addiu      $a2, $a2, -0x1\n    /* 7708 80006708 24840001 */  addiu      $a0, $a0, 0x1\n    /* 770C 8000670C 24A50001 */  addiu      $a1, $a1, 0x1\n    /* 7710 80006710 14E0FFFA */  bnez       $a3, .L800066FC\n    /* 7714 80006714 A08EFFFF */   sb        $t6, -0x1($a0)\n  .L80006718:\n    /* 7718 80006718 03E00008 */  jr         $ra\n    /* 771C 8000671C 27BD0008 */   addiu     $sp, $sp, 0x8\nendlabel func_800066F0\n",
+  "m2c_output": "void func_800066F0(void *arg0, u8 *arg1, s32 arg2, s32 arg3) {\n    s32 temp_a3;\n    s32 var_a2;\n    u8 *var_a1;\n    u8 temp_t6;\n    void *var_a0;\n\n    var_a0 = arg0;\n    var_a1 = arg1;\n    var_a2 = arg2 - 1;\n    if (arg3 != 0) {\n        do {\n            temp_t6 = *var_a1;\n            temp_a3 = var_a2;\n            var_a2 -= 1;\n            var_a0 += 1;\n            var_a1 += 1;\n            var_a0->unk-1 = temp_t6;\n        } while (temp_a3 != 0);\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_800066F0(u8* dst, u8* src, s32 n, s32 ctr) {\n    char pad[4];\n    n--;\n    if (ctr != 0) {\n        do {\n            *dst = *src;\n            ctr = n;\n            n--;\n            dst++;\n            src++;\n        } while (ctr != 0);\n    }\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_800066F0(u8* dst, u8* src, s32 n, s32 ctr) {\n    char pad[4];\n    n--;\n    if (ctr != 0) {\n        do {\n            *dst = *src;\n            ctr = n;\n            n--;\n            dst++;\n            src++;\n        } while (ctr != 0);\n    }\n}",
+  "matched": true,
+  "instruction_count": 12,
+  "has_branches": true,
+  "has_calls": false,
+  "timestamp": 1776472406.675288,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "kernel"
+}

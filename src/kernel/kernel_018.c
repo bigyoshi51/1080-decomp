@@ -70,7 +70,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800066D0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800066EC);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800066F0);
+/* func_800066F0 split out to kernel_048.c (-O1) */
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80006720);
 

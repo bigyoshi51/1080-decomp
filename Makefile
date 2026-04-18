@@ -61,6 +61,7 @@ build/src/kernel/kernel_044.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_045.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_046.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_047.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_048.c.o: OPT_FLAGS := -O1
 
 # Collect source files (kernel/ subdirectory, exclude o1/ reference)
 C_FILES   := $(shell find src/kernel -name '*.c' -type f 2>/dev/null)
