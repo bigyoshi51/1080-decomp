@@ -1,5 +1,5 @@
 
-nonmatching func_80009148, 0xAC
+nonmatching func_80009148, 0xB8
 
 glabel func_80009148
     /* A144 80009144 27BDFF38 */  addiu      $sp, $sp, -0xC8
@@ -48,4 +48,8 @@ glabel func_80009148
   .L800091E8:
     /* A1E8 800091E8 8FBF001C */  lw         $ra, 0x1C($sp)
     /* A1EC 800091EC 8FB00018 */  lw         $s0, 0x18($sp)
+  .L800091F0:
+    /* A1F0 800091F0 27BD00C8 */  addiu      $sp, $sp, 0xC8
+    /* A1F4 800091F4 03E00008 */  jr         $ra
+    /* A1F8 800091F8 00000000 */   nop
 endlabel func_80009148
