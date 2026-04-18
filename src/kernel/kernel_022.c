@@ -148,7 +148,7 @@ s32 func_800092B0(s32 a0) {
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009314);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009474);
+/* func_80009474 split out to kernel_054.c (-O1, NON_MATCHING) */
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009584);
 
