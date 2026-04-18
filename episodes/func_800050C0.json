@@ -1,0 +1,30 @@
+{
+  "function_name": "func_800050C0",
+  "asm_text": "\nnonmatching func_800050C0, 0x74\n\nglabel func_800050C0\n    /* 60C0 800050C0 27BDFFD0 */  addiu      $sp, $sp, -0x30\n    /* 60C4 800050C4 AFA40030 */  sw         $a0, 0x30($sp)\n    /* 60C8 800050C8 44802000 */  mtc1       $zero, $f4\n    /* 60CC 800050CC 8FAE0030 */  lw         $t6, 0x30($sp)\n    /* 60D0 800050D0 AFBF001C */  sw         $ra, 0x1C($sp)\n    /* 60D4 800050D4 AFB00018 */  sw         $s0, 0x18($sp)\n    /* 60D8 800050D8 AFA00024 */  sw         $zero, 0x24($sp)\n    /* 60DC 800050DC E7A4002C */  swc1       $f4, 0x2C($sp)\n    /* 60E0 800050E0 AFAE0028 */  sw         $t6, 0x28($sp)\n  .L800050E4:\n    /* 60E4 800050E4 8FB80024 */  lw         $t8, 0x24($sp)\n    /* 60E8 800050E8 8FAF0028 */  lw         $t7, 0x28($sp)\n    /* 60EC 800050EC 241901B0 */  addiu      $t9, $zero, 0x1B0\n    /* 60F0 800050F0 24060002 */  addiu      $a2, $zero, 0x2\n    /* 60F4 800050F4 03382823 */  subu       $a1, $t9, $t8\n    /* 60F8 800050F8 0C0019BC */  jal        func_800066F0\n    /* 60FC 800050FC 01F82021 */   addu      $a0, $t7, $t8\n    /* 6100 80005100 8FA80024 */  lw         $t0, 0x24($sp)\n    /* 6104 80005104 00408025 */  or         $s0, $v0, $zero\n    /* 6108 80005108 01104821 */  addu       $t1, $t0, $s0\n    /* 610C 8000510C AFA90024 */  sw         $t1, 0x24($sp)\n    /* 6110 80005110 8FAA0024 */  lw         $t2, 0x24($sp)\n    /* 6114 80005114 2D4101B0 */  sltiu      $at, $t2, 0x1B0\n    /* 6118 80005118 1420FFF2 */  bnez       $at, .L800050E4\n    /* 611C 8000511C 00000000 */   nop\n    /* 6120 80005120 8FBF001C */  lw         $ra, 0x1C($sp)\n    /* 6124 80005124 8FB00018 */  lw         $s0, 0x18($sp)\n    /* 6128 80005128 27BD0030 */  addiu      $sp, $sp, 0x30\n    /* 612C 8000512C 03E00008 */  jr         $ra\n    /* 6130 80005130 00000000 */   nop\nendlabel func_800050C0\n",
+  "m2c_output": "s32 func_800066F0(s32, s32, ?);                     /* extern */\n\nvoid func_800050C0(s32 arg0) {\n    f32 sp2C;\n    s32 sp28;\n    u32 sp24;\n\n    sp24 = 0;\n    sp2C = 0.0f;\n    sp28 = arg0;\n    do {\n        sp24 += func_800066F0(sp28 + sp24, 0x1B0 - sp24, 2);\n    } while (sp24 < 0x1B0U);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_800050C0(void* arg0) {\n    f32 dummy;\n    void* p;\n    s32 totalRecv;\n    dummy = 0.0f;\n    p = arg0;\n    totalRecv = 0;\n    do {\n        register s32 recv = func_800066F0((char*)p + totalRecv, 0x1B0 - totalRecv, 2);\n        totalRecv += recv;\n    } while ((u32)totalRecv < 0x1B0);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_800050C0(void* arg0) {\n    f32 dummy;\n    void* p;\n    s32 totalRecv;\n    dummy = 0.0f;\n    p = arg0;\n    totalRecv = 0;\n    do {\n        register s32 recv = func_800066F0((char*)p + totalRecv, 0x1B0 - totalRecv, 2);\n        totalRecv += recv;\n    } while ((u32)totalRecv < 0x1B0);\n}",
+  "matched": true,
+  "instruction_count": 29,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1776473864.442064,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_800066F0"
+  ],
+  "referenced_data": [],
+  "segment": "kernel"
+}
