@@ -336,23 +336,23 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800029A0);
 
 /* func_800029B0 + func_80002A10 split out to kernel_045.c (-O1) */
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002A3C);
+/* func_80002A3C split out to kernel_056.c (-O2 -mips3) */
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002A78);
+/* func_80002A78 split out to kernel_056.c (-O2 -mips3) */
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002AB4);
+/* func_80002AB4 split out to kernel_056.c (-O2 -mips3) */
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002AE0);
+/* func_80002AE0 split out to kernel_056.c (-O2 -mips3) */
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002B1C);
+/* func_80002B1C split out to kernel_056.c (-O2 -mips3) */
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002B78);
+/* func_80002B78 split out to kernel_056.c (-O2 -mips3) */
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002BA8);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002C08);
+/* func_80002C08 split out to kernel_056.c (-O2 -mips3) */
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002CA4);
+/* func_80002CA4 split out to kernel_056.c (-O2 -mips3) */
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002CD0);
 

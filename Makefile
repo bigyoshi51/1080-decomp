@@ -72,7 +72,7 @@ build/src/kernel/kernel_055.c.o: OPT_FLAGS := -O1
 # kernel_056: 64-bit libgcc-style helpers; -mips3 so IDO inlines d-arithmetic.
 # Post-compile, rewrite e_flags from mips3 (0x20000000) to mips2+noreorder
 # (0x10000001) so the linker will merge it with the rest of the kernel (mips2).
-build/src/kernel/kernel_056.c.o: OPT_FLAGS := -O2
+build/src/kernel/kernel_056.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_056.c.o: MIPSISET := -mips3 -32
 build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sys.argv[1],'r+b');f.seek(0x24);f.write(bytes.fromhex('10000001'));f.close()" $@
 

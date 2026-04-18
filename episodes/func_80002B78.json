@@ -1,0 +1,28 @@
+{
+  "function_name": "func_80002B78",
+  "asm_text": "\nnonmatching func_80002B78, 0x30\n\nglabel func_80002B78\n    /* 3B78 80002B78 AFA40000 */  sw         $a0, 0x0($sp)\n    /* 3B7C 80002B7C AFA50004 */  sw         $a1, 0x4($sp)\n    /* 3B80 80002B80 AFA60008 */  sw         $a2, 0x8($sp)\n    /* 3B84 80002B84 AFA7000C */  sw         $a3, 0xC($sp)\n    /* 3B88 80002B88 DFAF0008 */  ld         $t7, 0x8($sp)\n    /* 3B8C 80002B8C DFAE0000 */  ld         $t6, 0x0($sp)\n    /* 3B90 80002B90 01CF001D */  dmultu     $t6, $t7\n    /* 3B94 80002B94 00001012 */  mflo       $v0\n    /* 3B98 80002B98 0002183C */  dsll32     $v1, $v0, 0\n    /* 3B9C 80002B9C 0003183F */  dsra32     $v1, $v1, 0\n    /* 3BA0 80002BA0 03E00008 */  jr         $ra\n    /* 3BA4 80002BA4 0002103F */   dsra32    $v0, $v0, 0\nendlabel func_80002B78\n",
+  "m2c_output": "s64 func_80002B78(s64 arg0, ? arg1, s64 arg2, ? arg3) {\n    return (s64) (arg0 * arg2) >> 0x20;\n}\n",
+  "attempts": [
+    {
+      "c_code": "#include \"common.h\"\n\n/* 64-bit libgcc-style helpers. Compile at -O2 -mips3 so that IDO inlines the\n * d-arithmetic instructions (dsrlv/dsllv/ddivu/dmultu/...) instead of\n * emitting `jal __ull_rshift` back to themselves.\n *\n * Warning \"should not be used for ucode 32-bit compiles\" is expected. */\n\nu64 func_80002A10(u64 a, u64 b) { return a >> b; }  /* __ull_rshift */\nu64 func_80002A3C(u64 a, u64 b) { return a % b; }   /* __ull_rem */\nu64 func_80002A78(u64 a, u64 b) { return a / b; }   /* __ull_div */\nu64 func_80002AB4(u64 a, u64 b) { return a << b; }  /* __ll_lshift */\nu64 func_80002AE0(u64 a, u64 b) { return a % b; }   /* duplicate of A3C */\ns64 func_80002B1C(s64 a, s64 b) { return a / b; }   /* __ll_div */\ns64 func_80002B78(s64 a, s64 b) { return a * b; }   /* __ll_mul */\ns64 func_80002C08(s64 a, s64 b) {                   /* Euclidean mod */\n    s64 r = a % b;\n    if ((r < 0 && b > 0) || (r > 0 && b < 0)) r += b;\n    return r;\n}\ns64 func_80002CA4(s64 a, s64 b) { return a >> b; }  /* __ll_rshift */\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "#include \"common.h\"\n\n/* 64-bit libgcc-style helpers. Compile at -O2 -mips3 so that IDO inlines the\n * d-arithmetic instructions (dsrlv/dsllv/ddivu/dmultu/...) instead of\n * emitting `jal __ull_rshift` back to themselves.\n *\n * Warning \"should not be used for ucode 32-bit compiles\" is expected. */\n\nu64 func_80002A10(u64 a, u64 b) { return a >> b; }  /* __ull_rshift */\nu64 func_80002A3C(u64 a, u64 b) { return a % b; }   /* __ull_rem */\nu64 func_80002A78(u64 a, u64 b) { return a / b; }   /* __ull_div */\nu64 func_80002AB4(u64 a, u64 b) { return a << b; }  /* __ll_lshift */\nu64 func_80002AE0(u64 a, u64 b) { return a % b; }   /* duplicate of A3C */\ns64 func_80002B1C(s64 a, s64 b) { return a / b; }   /* __ll_div */\ns64 func_80002B78(s64 a, s64 b) { return a * b; }   /* __ll_mul */\ns64 func_80002C08(s64 a, s64 b) {                   /* Euclidean mod */\n    s64 r = a % b;\n    if ((r < 0 && b > 0) || (r > 0 && b < 0)) r += b;\n    return r;\n}\ns64 func_80002CA4(s64 a, s64 b) { return a >> b; }  /* __ll_rshift */\n",
+  "matched": true,
+  "instruction_count": 12,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776528573.0265994,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "kernel"
+}
