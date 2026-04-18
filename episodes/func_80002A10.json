@@ -1,0 +1,28 @@
+{
+  "function_name": "func_80002A10",
+  "asm_text": "\nnonmatching func_80002A10, 0x2C\n\nglabel func_80002A10\n    /* 3A10 80002A10 AFA40000 */  sw         $a0, 0x0($sp)\n    /* 3A14 80002A14 AFA50004 */  sw         $a1, 0x4($sp)\n    /* 3A18 80002A18 AFA60008 */  sw         $a2, 0x8($sp)\n    /* 3A1C 80002A1C AFA7000C */  sw         $a3, 0xC($sp)\n    /* 3A20 80002A20 DFAF0008 */  ld         $t7, 0x8($sp)\n    /* 3A24 80002A24 DFAE0000 */  ld         $t6, 0x0($sp)\n    /* 3A28 80002A28 01EE1016 */  dsrlv      $v0, $t6, $t7\n    /* 3A2C 80002A2C 0002183C */  dsll32     $v1, $v0, 0\n    /* 3A30 80002A30 0003183F */  dsra32     $v1, $v1, 0\n    /* 3A34 80002A34 03E00008 */  jr         $ra\n    /* 3A38 80002A38 0002103F */   dsra32    $v0, $v0, 0\nendlabel func_80002A10\n",
+  "m2c_output": "s64 func_80002A10(u64 arg0, ? arg1, s64 arg2, ? arg3) {\n    return (s64) (arg0 >> arg2) >> 0x20;\n}\n",
+  "attempts": [
+    {
+      "c_code": "#include \"common.h\"\n\n/* 64-bit libgcc-style helpers. Compile at -O2 -mips3 so that IDO inlines the\n * d-arithmetic instructions (dsrlv/dsllv/ddivu/dmultu/...) instead of\n * emitting `jal __ull_rshift` back to themselves.\n *\n * Warning \"should not be used for ucode 32-bit compiles\" is expected. */\n\nu64 func_80002A10(u64 a, u64 b) {\n    return a >> b;\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "#include \"common.h\"\n\n/* 64-bit libgcc-style helpers. Compile at -O2 -mips3 so that IDO inlines the\n * d-arithmetic instructions (dsrlv/dsllv/ddivu/dmultu/...) instead of\n * emitting `jal __ull_rshift` back to themselves.\n *\n * Warning \"should not be used for ucode 32-bit compiles\" is expected. */\n\nu64 func_80002A10(u64 a, u64 b) {\n    return a >> b;\n}\n",
+  "matched": true,
+  "instruction_count": 11,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776528418.3088577,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "kernel"
+}
