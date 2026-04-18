@@ -1,0 +1,30 @@
+{
+  "function_name": "func_80005134",
+  "asm_text": "\nnonmatching func_80005134, 0x50\n\nglabel func_80005134\n    /* 6134 80005134 27BDFFD0 */  addiu      $sp, $sp, -0x30\n    /* 6138 80005138 AFBF001C */  sw         $ra, 0x1C($sp)\n    /* 613C 8000513C AFB00018 */  sw         $s0, 0x18($sp)\n    /* 6140 80005140 AFA0002C */  sw         $zero, 0x2C($sp)\n  .L80005144:\n    /* 6144 80005144 27A40028 */  addiu      $a0, $sp, 0x28\n    /* 6148 80005148 24050001 */  addiu      $a1, $zero, 0x1\n    /* 614C 8000514C 0C0019BC */  jal        func_800066F0\n    /* 6150 80005150 2406000A */   addiu     $a2, $zero, 0xA\n    /* 6154 80005154 8FAE002C */  lw         $t6, 0x2C($sp)\n    /* 6158 80005158 00408025 */  or         $s0, $v0, $zero\n    /* 615C 8000515C 01D07821 */  addu       $t7, $t6, $s0\n    /* 6160 80005160 AFAF002C */  sw         $t7, 0x2C($sp)\n    /* 6164 80005164 8FB8002C */  lw         $t8, 0x2C($sp)\n    /* 6168 80005168 1B00FFF6 */  blez       $t8, .L80005144\n    /* 616C 8000516C 00000000 */   nop\n    /* 6170 80005170 8FBF001C */  lw         $ra, 0x1C($sp)\n    /* 6174 80005174 8FB00018 */  lw         $s0, 0x18($sp)\n    /* 6178 80005178 27BD0030 */  addiu      $sp, $sp, 0x30\n    /* 617C 8000517C 03E00008 */  jr         $ra\n    /* 6180 80005180 00000000 */   nop\nendlabel func_80005134\n",
+  "m2c_output": "s32 func_800066F0(? *, ?, ?);                       /* extern */\n\nvoid func_80005134(void) {\n    s32 sp2C;\n    ? sp28;\n\n    sp2C = 0;\n    do {\n        sp2C += func_800066F0(&sp28, 1, 0xA);\n    } while (sp2C <= 0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_80005134(void) {\n    s32 totalRecv;\n    s32 buf;\n    totalRecv = 0;\n    do {\n        register s32 recv = func_800066F0(&buf, 1, 10);\n        totalRecv += recv;\n    } while (totalRecv <= 0);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_80005134(void) {\n    s32 totalRecv;\n    s32 buf;\n    totalRecv = 0;\n    do {\n        register s32 recv = func_800066F0(&buf, 1, 10);\n        totalRecv += recv;\n    } while (totalRecv <= 0);\n}",
+  "matched": true,
+  "instruction_count": 20,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1776473740.0426908,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_800066F0"
+  ],
+  "referenced_data": [],
+  "segment": "kernel"
+}
