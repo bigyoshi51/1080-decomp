@@ -1,0 +1,30 @@
+{
+  "function_name": "func_80000480",
+  "asm_text": "\nnonmatching func_80000480, 0x38\n\nglabel func_80000480\n    /* 1480 80000480 8CAF0000 */  lw         $t7, 0x0($a1)\n    /* 1484 80000484 AC8F0008 */  sw         $t7, 0x8($a0)\n    /* 1488 80000488 8CAE0004 */  lw         $t6, 0x4($a1)\n    /* 148C 8000048C AC8E000C */  sw         $t6, 0xC($a0)\n    /* 1490 80000490 8CAF0008 */  lw         $t7, 0x8($a1)\n    /* 1494 80000494 AC8F0010 */  sw         $t7, 0x10($a0)\n    /* 1498 80000498 8CAE000C */  lw         $t6, 0xC($a1)\n    /* 149C 8000049C 8C980010 */  lw         $t8, 0x10($a0)\n    /* 14A0 800004A0 AC8E0014 */  sw         $t6, 0x14($a0)\n    /* 14A4 800004A4 8CAF0010 */  lw         $t7, 0x10($a1)\n    /* 14A8 800004A8 AC800004 */  sw         $zero, 0x4($a0)\n    /* 14AC 800004AC AC98001C */  sw         $t8, 0x1C($a0)\n    /* 14B0 800004B0 03E00008 */  jr         $ra\n    /* 14B4 800004B4 AC8F0018 */   sw        $t7, 0x18($a0)\nendlabel func_80000480\n",
+  "m2c_output": "",
+  "attempts": [
+    {
+      "c_code": "typedef struct {\n    s32 unk0;\n    s32 unk4;\n    s32 unk8;\n    s32 unkC;\n    s32 unk10;\n} Struct00480Src;\n\ntypedef struct {\n    s32 unk0;\n    s32 unk4;\n    s32 unk8;\n    s32 unkC;\n    s32 unk10;\n    s32 unk14;\n    s32 unk18;\n    s32 unk1C;\n} Struct00480Dst;\n\nvoid func_80000480(Struct00480Dst* dst, Struct00480Src* src) {\n    dst->unk8 = src->unk0;\n    dst->unkC = src->unk4;\n    dst->unk10 = src->unk8;\n    dst->unk14 = src->unkC;\n    dst->unk4 = 0;\n    dst->unk1C = dst->unk10;\n    dst->unk18 = src->unk10;\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2",
+      "notes": "Verified by identical objdump output against expected/src/kernel/kernel_000.c.o. `uv run decomp diff` still reported 0.0%, so objdump equality was used as the authoritative check."
+    }
+  ],
+  "final_c": "typedef struct {\n    s32 unk0;\n    s32 unk4;\n    s32 unk8;\n    s32 unkC;\n    s32 unk10;\n} Struct00480Src;\n\ntypedef struct {\n    s32 unk0;\n    s32 unk4;\n    s32 unk8;\n    s32 unkC;\n    s32 unk10;\n    s32 unk14;\n    s32 unk18;\n    s32 unk1C;\n} Struct00480Dst;\n\nvoid func_80000480(Struct00480Dst* dst, Struct00480Src* src) {\n    dst->unk8 = src->unk0;\n    dst->unkC = src->unk4;\n    dst->unk10 = src->unk8;\n    dst->unk14 = src->unkC;\n    dst->unk4 = 0;\n    dst->unk1C = dst->unk10;\n    dst->unk18 = src->unk10;\n}\n",
+  "matched": true,
+  "instruction_count": 14,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776531808,
+  "game": "1080_snowboarding",
+  "compiler": "ido7.1",
+  "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+  "nearby_decompiled": [
+    "func_80000474"
+  ],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "kernel"
+}

@@ -112,7 +112,34 @@ void func_80000474(s32 val) {
     D_8000A2E0 = val;
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000480);
+typedef struct {
+    s32 unk0;
+    s32 unk4;
+    s32 unk8;
+    s32 unkC;
+    s32 unk10;
+} Struct00480Src;
+
+typedef struct {
+    s32 unk0;
+    s32 unk4;
+    s32 unk8;
+    s32 unkC;
+    s32 unk10;
+    s32 unk14;
+    s32 unk18;
+    s32 unk1C;
+} Struct00480Dst;
+
+void func_80000480(Struct00480Dst* dst, Struct00480Src* src) {
+    dst->unk8 = src->unk0;
+    dst->unkC = src->unk4;
+    dst->unk10 = src->unk8;
+    dst->unk14 = src->unkC;
+    dst->unk4 = 0;
+    dst->unk1C = dst->unk10;
+    dst->unk18 = src->unk10;
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800004B8);
 
