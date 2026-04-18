@@ -1,0 +1,30 @@
+{
+  "function_name": "func_80004FD0",
+  "asm_text": "\nnonmatching func_80004FD0, 0x2C\n\nglabel func_80004FD0\n    /* 5FD0 80004FD0 3C0E8001 */  lui        $t6, %hi(D_8000A410)\n    /* 5FD4 80004FD4 3C0F8001 */  lui        $t7, %hi(D_8000A410)\n    /* 5FD8 80004FD8 25CEA410 */  addiu      $t6, $t6, %lo(D_8000A410)\n    /* 5FDC 80004FDC 25EFA410 */  addiu      $t7, $t7, %lo(D_8000A410)\n    /* 5FE0 80004FE0 AC8E0000 */  sw         $t6, 0x0($a0)\n    /* 5FE4 80004FE4 AC8F0004 */  sw         $t7, 0x4($a0)\n    /* 5FE8 80004FE8 AC800008 */  sw         $zero, 0x8($a0)\n    /* 5FEC 80004FEC AC80000C */  sw         $zero, 0xC($a0)\n    /* 5FF0 80004FF0 AC860010 */  sw         $a2, 0x10($a0)\n    /* 5FF4 80004FF4 03E00008 */  jr         $ra\n    /* 5FF8 80004FF8 AC850014 */   sw        $a1, 0x14($a0)\n    /* 5FFC 80004FFC 00000000 */  nop\nendlabel func_80004FD0\n",
+  "m2c_output": "extern ? D_8000A410;\n\nvoid func_80004FD0(void *arg0, s32 arg1, s32 arg2) {\n    arg0->unk0 = &D_8000A410;\n    arg0->unk4 = &D_8000A410;\n    arg0->unk8 = 0;\n    arg0->unkC = 0;\n    arg0->unk10 = arg2;\n    arg0->unk14 = arg1;\n}\n",
+  "attempts": [
+    {
+      "c_code": "typedef struct {\n    void* field_0; void* field_4;\n    s32 field_8; s32 field_C;\n    s32 field_10; s32 field_14;\n} Foo;\n\nvoid func_80004FD0(Foo* a0, s32 a1, s32 a2) {\n    a0->field_0 = &D_8000A410;\n    a0->field_4 = &D_8000A410;\n    a0->field_8 = 0;\n    a0->field_C = 0;\n    a0->field_10 = a2;\n    a0->field_14 = a1;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "typedef struct {\n    void* field_0; void* field_4;\n    s32 field_8; s32 field_C;\n    s32 field_10; s32 field_14;\n} Foo;\n\nvoid func_80004FD0(Foo* a0, s32 a1, s32 a2) {\n    a0->field_0 = &D_8000A410;\n    a0->field_4 = &D_8000A410;\n    a0->field_8 = 0;\n    a0->field_C = 0;\n    a0->field_10 = a2;\n    a0->field_14 = a1;\n}",
+  "matched": true,
+  "instruction_count": 12,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776474247.2062433,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [
+    "D_8000A410"
+  ],
+  "segment": "kernel"
+}
