@@ -412,7 +412,34 @@ void func_800007D4(void) {
     } while (var_s0 != end);
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000085C);
+typedef struct {
+    char pad_00[0x94];
+    s32 field_94;
+} UsoTable94;
+
+extern s32 D_8000A2F4;
+
+void func_8000085C(void) {
+    s32 var_s0;
+    UsoTable94* var_s1;
+    void* var_s2;
+    void* arg0;
+    UsoCallbacks84* state;
+    s32 end;
+
+    var_s1 = (UsoTable94*)0x800130A0;
+    var_s2 = (void*)0x80013112;
+    arg0 = &D_8000A2F4;
+    state = (UsoCallbacks84*)&D_80012BC0;
+    var_s0 = 0;
+    end = 0x87;
+    do {
+        state->field_84(arg0, var_s0, var_s1->field_94, var_s2);
+        var_s0 += 1;
+        var_s1 = (UsoTable94*)((char*)var_s1 + 0x9C);
+        var_s2 = (char*)var_s2 + 0x9C;
+    } while (var_s0 != end);
+}
 
 
 

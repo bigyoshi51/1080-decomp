@@ -1,0 +1,31 @@
+{
+  "function_name": "func_8000085C",
+  "asm_text": "\nnonmatching func_8000085C, 0x94\n\nglabel func_8000085C\n    /* 185C 8000085C 27BDFFD0 */  addiu      $sp, $sp, -0x30\n    /* 1860 80000860 AFB40024 */  sw         $s4, 0x24($sp)\n    /* 1864 80000864 AFB30020 */  sw         $s3, 0x20($sp)\n    /* 1868 80000868 AFB2001C */  sw         $s2, 0x1C($sp)\n    /* 186C 8000086C AFB10018 */  sw         $s1, 0x18($sp)\n    /* 1870 80000870 AFB50028 */  sw         $s5, 0x28($sp)\n    /* 1874 80000874 AFB00014 */  sw         $s0, 0x14($sp)\n    /* 1878 80000878 3C118001 */  lui        $s1, (0x80010000 >> 16)\n    /* 187C 8000087C 3C128001 */  lui        $s2, (0x80010000 >> 16)\n    /* 1880 80000880 3C138001 */  lui        $s3, %hi(D_8000A2F4)\n    /* 1884 80000884 3C148001 */  lui        $s4, %hi(D_80012BC0)\n    /* 1888 80000888 AFBF002C */  sw         $ra, 0x2C($sp)\n    /* 188C 8000088C 26942BC0 */  addiu      $s4, $s4, %lo(D_80012BC0)\n    /* 1890 80000890 2673A2F4 */  addiu      $s3, $s3, %lo(D_8000A2F4)\n    /* 1894 80000894 26523112 */  addiu      $s2, $s2, 0x3112\n    /* 1898 80000898 263130A0 */  addiu      $s1, $s1, 0x30A0\n    /* 189C 8000089C 00008025 */  or         $s0, $zero, $zero\n    /* 18A0 800008A0 24150087 */  addiu      $s5, $zero, 0x87\n  .L800008A4:\n    /* 18A4 800008A4 8E990084 */  lw         $t9, 0x84($s4)\n    /* 18A8 800008A8 02602025 */  or         $a0, $s3, $zero\n    /* 18AC 800008AC 02002825 */  or         $a1, $s0, $zero\n    /* 18B0 800008B0 8E260094 */  lw         $a2, 0x94($s1)\n    /* 18B4 800008B4 0320F809 */  jalr       $t9\n    /* 18B8 800008B8 02403825 */  or         $a3, $s2, $zero\n    /* 18BC 800008BC 26100001 */  addiu      $s0, $s0, 0x1\n    /* 18C0 800008C0 2631009C */  addiu      $s1, $s1, 0x9C\n    /* 18C4 800008C4 1615FFF7 */  bne        $s0, $s5, .L800008A4\n    /* 18C8 800008C8 2652009C */   addiu     $s2, $s2, 0x9C\n    /* 18CC 800008CC 8FBF002C */  lw         $ra, 0x2C($sp)\n    /* 18D0 800008D0 8FB00014 */  lw         $s0, 0x14($sp)\n    /* 18D4 800008D4 8FB10018 */  lw         $s1, 0x18($sp)\n    /* 18D8 800008D8 8FB2001C */  lw         $s2, 0x1C($sp)\n    /* 18DC 800008DC 8FB30020 */  lw         $s3, 0x20($sp)\n    /* 18E0 800008E0 8FB40024 */  lw         $s4, 0x24($sp)\n    /* 18E4 800008E4 8FB50028 */  lw         $s5, 0x28($sp)\n    /* 18E8 800008E8 03E00008 */  jr         $ra\n    /* 18EC 800008EC 27BD0030 */   addiu     $sp, $sp, 0x30\nendlabel func_8000085C\n",
+  "m2c_output": "extern ? D_8000A2F4;\nextern ? D_80012BC0;\n\nvoid func_8000085C(void) {\n    s32 var_s0;\n    s32 var_s2;\n    void *var_s1;\n\n    var_s2 = 0x80013112;\n    var_s1 = (void *)0x800130A0;\n    var_s0 = 0;\n    do {\n        D_80012BC0.unk84(&D_8000A2F4, var_s0, var_s1->unk94, var_s2);\n        var_s0 += 1;\n        var_s1 += 0x9C;\n        var_s2 += 0x9C;\n    } while (var_s0 != 0x87);\n}\n",
+  "attempts": [
+    {
+      "c_code": "#include \"common.h\"\n\ntypedef struct {\n    char pad_00[0x84];\n    void (*field_84)(void*, void*, s32, s32);\n} UsoCallbacks84;\n\ntypedef struct {\n    char pad_00[0x94];\n    s32 field_94;\n} UsoTable94;\n\nextern s32 D_8000A2F4;\nextern s32 D_80012BC0;\n\nvoid func_8000085C(void) {\n    s32 var_s0;\n    UsoTable94* var_s1;\n    void* var_s2;\n    void* arg0;\n    UsoCallbacks84* state;\n    s32 end;\n\n    var_s1 = (UsoTable94*)0x800130A0;\n    var_s2 = (void*)0x80013112;\n    arg0 = &D_8000A2F4;\n    state = (UsoCallbacks84*)&D_80012BC0;\n    var_s0 = 0;\n    end = 0x87;\n    do {\n        state->field_84(arg0, var_s0, var_s1->field_94, var_s2);\n        var_s0 += 1;\n        var_s1 = (UsoTable94*)((char*)var_s1 + 0x9C);\n        var_s2 = (char*)var_s2 + 0x9C;\n    } while (var_s0 != end);\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2",
+      "notes": "Verified in project by rebuilding build/src/kernel/kernel_000.c.o and matching the original asm shape exactly."
+    }
+  ],
+  "final_c": "#include \"common.h\"\n\ntypedef struct {\n    char pad_00[0x84];\n    void (*field_84)(void*, void*, s32, s32);\n} UsoCallbacks84;\n\ntypedef struct {\n    char pad_00[0x94];\n    s32 field_94;\n} UsoTable94;\n\nextern s32 D_8000A2F4;\nextern s32 D_80012BC0;\n\nvoid func_8000085C(void) {\n    s32 var_s0;\n    UsoTable94* var_s1;\n    void* var_s2;\n    void* arg0;\n    UsoCallbacks84* state;\n    s32 end;\n\n    var_s1 = (UsoTable94*)0x800130A0;\n    var_s2 = (void*)0x80013112;\n    arg0 = &D_8000A2F4;\n    state = (UsoCallbacks84*)&D_80012BC0;\n    var_s0 = 0;\n    end = 0x87;\n    do {\n        state->field_84(arg0, var_s0, var_s1->field_94, var_s2);\n        var_s0 += 1;\n        var_s1 = (UsoTable94*)((char*)var_s1 + 0x9C);\n        var_s2 = (char*)var_s2 + 0x9C;\n    } while (var_s0 != end);\n}\n",
+  "matched": true,
+  "instruction_count": 37,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1776604383.57232,
+  "game": "1080_snowboarding",
+  "compiler": "ido7.1",
+  "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [
+    "D_8000A2F4",
+    "D_80012BC0"
+  ],
+  "segment": "kernel"
+}
