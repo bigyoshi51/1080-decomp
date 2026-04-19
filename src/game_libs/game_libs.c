@@ -3214,7 +3214,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000601B4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000601DC);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 82% — target has stack frame -32 (vs my -24) and extra v0→a2 shuffle via stack after 2nd call */
+extern int gl_func_00000000();
+extern char gl_ref_00021CBC;
+
+void gl_func_00060260(char *a0) {
+    int r = gl_func_00000000(a0);
+    if (r != 0) return;
+    r = gl_func_00000000(&gl_ref_00021CBC, a0);
+    gl_func_00000000(r);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060260);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000602A8);
 
