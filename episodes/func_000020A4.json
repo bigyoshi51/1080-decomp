@@ -1,0 +1,28 @@
+{
+  "function_name": "func_000020A4",
+  "asm_text": "nonmatching func_000020A4, 0x8\n\nglabel func_000020A4\n    /* DD2B10 000020A4 03E00008 */  jr         $ra\n    /* DD2B14 000020A8 AC8000C0 */   sw        $zero, 0xC0($a0)\nendlabel func_000020A4\n",
+  "m2c_output": "void func_000020A4(void *arg0) {\n    arg0->unkC0 = 0;\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }",
+  "matched": true,
+  "instruction_count": 2,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776563176.6390786,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

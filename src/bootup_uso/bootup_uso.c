@@ -18,6 +18,7 @@ void func_00000044(float *dst) {
     *dst = buf[0];
 }
 
+extern void func_00000080(void *dst);
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000080);
 
 typedef struct { int a, b, c, d; } Quad4;
@@ -177,13 +178,29 @@ void func_00000B14(int **a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000B2C);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000B50);
+void func_00000B50(char *a0) {
+    int scratch;
+    func_00000008(&scratch);
+    func_00000044((float*)(a0 + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000B80);
+void func_00000B80(char *a0) {
+    int scratch;
+    func_00000008(&scratch);
+    func_00000080(a0 + 0x10);
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000BB0);
+void func_00000BB0(char *a0) {
+    int scratch;
+    func_00000008(&scratch);
+    func_000000F0(a0 + 0x10);
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000BE0);
+void func_00000BE0(char *a0) {
+    int scratch;
+    func_00000008(&scratch);
+    func_00000008((int*)(a0 + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000C10);
 
@@ -219,11 +236,11 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002014);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002060);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002080);
+void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020A4);
+void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020AC);
 
