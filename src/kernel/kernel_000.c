@@ -383,7 +383,24 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800017BC);
 void func_800018A8(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800018B0);
+void func_800018B0(void* arg0) {
+    s32 i;
+    char* ptr;
+
+    *(u8*)((char*)arg0 + 0x99) = 1;
+    *(s32*)((char*)arg0 + 0x38) = 0;
+    *(s32*)((char*)arg0 + 0x3C) = 0;
+    ptr = (char*)arg0 + 8;
+    i = 2;
+    do {
+        i += 4;
+        *(s32*)(ptr + 0x38) = 0;
+        *(s32*)(ptr + 0x3C) = 0;
+        *(s32*)(ptr + 0x40) = 0;
+        *(s32*)(ptr + 0x44) = 0;
+        ptr += 0x10;
+    } while (i != 0xE);
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800018F0);
 
