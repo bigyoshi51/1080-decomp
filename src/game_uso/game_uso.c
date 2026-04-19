@@ -85,7 +85,11 @@ void game_uso_func_0000249C(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000024BC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002714);
+void game_uso_func_00002714(int *a0, int a1, int a2) {
+    if (*(int*)((char*)a0 + 0x40) == a1) return;
+    *(int*)((char*)a0 + 0x40) = a1;
+    game_uso_func_00000000(a0, a2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
 
@@ -99,7 +103,11 @@ void game_uso_func_00002CA8(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002CC8);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002FC8);
+void game_uso_func_00002FC8(int *a0, int a1, int a2) {
+    if (*(int*)((char*)a0 + 0x40) == a1) return;
+    *(int*)((char*)a0 + 0x40) = a1;
+    game_uso_func_00000000(a0, a2);
+}
 
 void game_uso_func_00002FF8(void) {
     game_uso_func_00000000();
