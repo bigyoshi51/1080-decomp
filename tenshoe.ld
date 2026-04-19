@@ -284,75 +284,215 @@ SECTIONS
     penguin_uso_ROM_END = __romPos;
     penguin_uso_VRAM_END = .;
 
-    boarder1_uso_ROM_START = __romPos;
-    boarder1_uso_VRAM = ADDR(.boarder1_uso);
-    .boarder1_uso : AT(boarder1_uso_ROM_START)
+    boarder1_uso_pre_ROM_START = __romPos;
+    boarder1_uso_pre_VRAM = ADDR(.boarder1_uso_pre);
+    .boarder1_uso_pre : AT(boarder1_uso_pre_ROM_START)
     {
         FILL(0x00000000);
-        boarder1_uso_DATA_START = .;
-        build/assets/boarder1_uso.bin.o(.data);
-        boarder1_uso_DATA_END = .;
-        boarder1_uso_DATA_SIZE = ABSOLUTE(boarder1_uso_DATA_END - boarder1_uso_DATA_START);
+        boarder1_uso_pre_DATA_START = .;
+        build/assets/boarder1_uso_pre.bin.o(.data);
+        boarder1_uso_pre_DATA_END = .;
+        boarder1_uso_pre_DATA_SIZE = ABSOLUTE(boarder1_uso_pre_DATA_END - boarder1_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder1_uso_pre);
+    boarder1_uso_pre_ROM_END = __romPos;
+    boarder1_uso_pre_VRAM_END = .;
+
+    boarder1_uso_ROM_START = __romPos;
+    .boarder1_uso 0x00000000 : AT(boarder1_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder1_uso_TEXT_START = .;
+        build/src/boarder1_uso/boarder1_uso.c.o(.text);
+        boarder1_uso_TEXT_END = .;
+        boarder1_uso_TEXT_SIZE = ABSOLUTE(boarder1_uso_TEXT_END - boarder1_uso_TEXT_START);
     }
     __romPos += SIZEOF(.boarder1_uso);
     boarder1_uso_ROM_END = __romPos;
+    boarder1_uso_VRAM = ADDR(.boarder1_uso);
     boarder1_uso_VRAM_END = .;
 
-    boarder2_uso_ROM_START = __romPos;
-    boarder2_uso_VRAM = ADDR(.boarder2_uso);
-    .boarder2_uso : AT(boarder2_uso_ROM_START)
+    boarder1_uso_post_ROM_START = __romPos;
+    boarder1_uso_post_VRAM = ADDR(.boarder1_uso_post);
+    .boarder1_uso_post : AT(boarder1_uso_post_ROM_START)
     {
         FILL(0x00000000);
-        boarder2_uso_DATA_START = .;
-        build/assets/boarder2_uso.bin.o(.data);
-        boarder2_uso_DATA_END = .;
-        boarder2_uso_DATA_SIZE = ABSOLUTE(boarder2_uso_DATA_END - boarder2_uso_DATA_START);
+        boarder1_uso_post_DATA_START = .;
+        build/assets/boarder1_uso_post.bin.o(.data);
+        boarder1_uso_post_DATA_END = .;
+        boarder1_uso_post_DATA_SIZE = ABSOLUTE(boarder1_uso_post_DATA_END - boarder1_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder1_uso_post);
+    boarder1_uso_post_ROM_END = __romPos;
+    boarder1_uso_post_VRAM_END = .;
+
+    boarder2_uso_pre_ROM_START = __romPos;
+    boarder2_uso_pre_VRAM = ADDR(.boarder2_uso_pre);
+    .boarder2_uso_pre : AT(boarder2_uso_pre_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder2_uso_pre_DATA_START = .;
+        build/assets/boarder2_uso_pre.bin.o(.data);
+        boarder2_uso_pre_DATA_END = .;
+        boarder2_uso_pre_DATA_SIZE = ABSOLUTE(boarder2_uso_pre_DATA_END - boarder2_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder2_uso_pre);
+    boarder2_uso_pre_ROM_END = __romPos;
+    boarder2_uso_pre_VRAM_END = .;
+
+    boarder2_uso_ROM_START = __romPos;
+    .boarder2_uso 0x00000000 : AT(boarder2_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder2_uso_TEXT_START = .;
+        build/src/boarder2_uso/boarder2_uso.c.o(.text);
+        boarder2_uso_TEXT_END = .;
+        boarder2_uso_TEXT_SIZE = ABSOLUTE(boarder2_uso_TEXT_END - boarder2_uso_TEXT_START);
     }
     __romPos += SIZEOF(.boarder2_uso);
     boarder2_uso_ROM_END = __romPos;
+    boarder2_uso_VRAM = ADDR(.boarder2_uso);
     boarder2_uso_VRAM_END = .;
 
-    boarder3_uso_ROM_START = __romPos;
-    boarder3_uso_VRAM = ADDR(.boarder3_uso);
-    .boarder3_uso : AT(boarder3_uso_ROM_START)
+    boarder2_uso_post_ROM_START = __romPos;
+    boarder2_uso_post_VRAM = ADDR(.boarder2_uso_post);
+    .boarder2_uso_post : AT(boarder2_uso_post_ROM_START)
     {
         FILL(0x00000000);
-        boarder3_uso_DATA_START = .;
-        build/assets/boarder3_uso.bin.o(.data);
-        boarder3_uso_DATA_END = .;
-        boarder3_uso_DATA_SIZE = ABSOLUTE(boarder3_uso_DATA_END - boarder3_uso_DATA_START);
+        boarder2_uso_post_DATA_START = .;
+        build/assets/boarder2_uso_post.bin.o(.data);
+        boarder2_uso_post_DATA_END = .;
+        boarder2_uso_post_DATA_SIZE = ABSOLUTE(boarder2_uso_post_DATA_END - boarder2_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder2_uso_post);
+    boarder2_uso_post_ROM_END = __romPos;
+    boarder2_uso_post_VRAM_END = .;
+
+    boarder3_uso_pre_ROM_START = __romPos;
+    boarder3_uso_pre_VRAM = ADDR(.boarder3_uso_pre);
+    .boarder3_uso_pre : AT(boarder3_uso_pre_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder3_uso_pre_DATA_START = .;
+        build/assets/boarder3_uso_pre.bin.o(.data);
+        boarder3_uso_pre_DATA_END = .;
+        boarder3_uso_pre_DATA_SIZE = ABSOLUTE(boarder3_uso_pre_DATA_END - boarder3_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder3_uso_pre);
+    boarder3_uso_pre_ROM_END = __romPos;
+    boarder3_uso_pre_VRAM_END = .;
+
+    boarder3_uso_ROM_START = __romPos;
+    .boarder3_uso 0x00000000 : AT(boarder3_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder3_uso_TEXT_START = .;
+        build/src/boarder3_uso/boarder3_uso.c.o(.text);
+        boarder3_uso_TEXT_END = .;
+        boarder3_uso_TEXT_SIZE = ABSOLUTE(boarder3_uso_TEXT_END - boarder3_uso_TEXT_START);
     }
     __romPos += SIZEOF(.boarder3_uso);
     boarder3_uso_ROM_END = __romPos;
+    boarder3_uso_VRAM = ADDR(.boarder3_uso);
     boarder3_uso_VRAM_END = .;
 
-    boarder4_uso_ROM_START = __romPos;
-    boarder4_uso_VRAM = ADDR(.boarder4_uso);
-    .boarder4_uso : AT(boarder4_uso_ROM_START)
+    boarder3_uso_post_ROM_START = __romPos;
+    boarder3_uso_post_VRAM = ADDR(.boarder3_uso_post);
+    .boarder3_uso_post : AT(boarder3_uso_post_ROM_START)
     {
         FILL(0x00000000);
-        boarder4_uso_DATA_START = .;
-        build/assets/boarder4_uso.bin.o(.data);
-        boarder4_uso_DATA_END = .;
-        boarder4_uso_DATA_SIZE = ABSOLUTE(boarder4_uso_DATA_END - boarder4_uso_DATA_START);
+        boarder3_uso_post_DATA_START = .;
+        build/assets/boarder3_uso_post.bin.o(.data);
+        boarder3_uso_post_DATA_END = .;
+        boarder3_uso_post_DATA_SIZE = ABSOLUTE(boarder3_uso_post_DATA_END - boarder3_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder3_uso_post);
+    boarder3_uso_post_ROM_END = __romPos;
+    boarder3_uso_post_VRAM_END = .;
+
+    boarder4_uso_pre_ROM_START = __romPos;
+    boarder4_uso_pre_VRAM = ADDR(.boarder4_uso_pre);
+    .boarder4_uso_pre : AT(boarder4_uso_pre_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder4_uso_pre_DATA_START = .;
+        build/assets/boarder4_uso_pre.bin.o(.data);
+        boarder4_uso_pre_DATA_END = .;
+        boarder4_uso_pre_DATA_SIZE = ABSOLUTE(boarder4_uso_pre_DATA_END - boarder4_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder4_uso_pre);
+    boarder4_uso_pre_ROM_END = __romPos;
+    boarder4_uso_pre_VRAM_END = .;
+
+    boarder4_uso_ROM_START = __romPos;
+    .boarder4_uso 0x00000000 : AT(boarder4_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder4_uso_TEXT_START = .;
+        build/src/boarder4_uso/boarder4_uso.c.o(.text);
+        boarder4_uso_TEXT_END = .;
+        boarder4_uso_TEXT_SIZE = ABSOLUTE(boarder4_uso_TEXT_END - boarder4_uso_TEXT_START);
     }
     __romPos += SIZEOF(.boarder4_uso);
     boarder4_uso_ROM_END = __romPos;
+    boarder4_uso_VRAM = ADDR(.boarder4_uso);
     boarder4_uso_VRAM_END = .;
 
-    boarder5_uso_ROM_START = __romPos;
-    boarder5_uso_VRAM = ADDR(.boarder5_uso);
-    .boarder5_uso : AT(boarder5_uso_ROM_START)
+    boarder4_uso_post_ROM_START = __romPos;
+    boarder4_uso_post_VRAM = ADDR(.boarder4_uso_post);
+    .boarder4_uso_post : AT(boarder4_uso_post_ROM_START)
     {
         FILL(0x00000000);
-        boarder5_uso_DATA_START = .;
-        build/assets/boarder5_uso.bin.o(.data);
-        boarder5_uso_DATA_END = .;
-        boarder5_uso_DATA_SIZE = ABSOLUTE(boarder5_uso_DATA_END - boarder5_uso_DATA_START);
+        boarder4_uso_post_DATA_START = .;
+        build/assets/boarder4_uso_post.bin.o(.data);
+        boarder4_uso_post_DATA_END = .;
+        boarder4_uso_post_DATA_SIZE = ABSOLUTE(boarder4_uso_post_DATA_END - boarder4_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder4_uso_post);
+    boarder4_uso_post_ROM_END = __romPos;
+    boarder4_uso_post_VRAM_END = .;
+
+    boarder5_uso_pre_ROM_START = __romPos;
+    boarder5_uso_pre_VRAM = ADDR(.boarder5_uso_pre);
+    .boarder5_uso_pre : AT(boarder5_uso_pre_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder5_uso_pre_DATA_START = .;
+        build/assets/boarder5_uso_pre.bin.o(.data);
+        boarder5_uso_pre_DATA_END = .;
+        boarder5_uso_pre_DATA_SIZE = ABSOLUTE(boarder5_uso_pre_DATA_END - boarder5_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder5_uso_pre);
+    boarder5_uso_pre_ROM_END = __romPos;
+    boarder5_uso_pre_VRAM_END = .;
+
+    boarder5_uso_ROM_START = __romPos;
+    .boarder5_uso 0x00000000 : AT(boarder5_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder5_uso_TEXT_START = .;
+        build/src/boarder5_uso/boarder5_uso.c.o(.text);
+        boarder5_uso_TEXT_END = .;
+        boarder5_uso_TEXT_SIZE = ABSOLUTE(boarder5_uso_TEXT_END - boarder5_uso_TEXT_START);
     }
     __romPos += SIZEOF(.boarder5_uso);
     boarder5_uso_ROM_END = __romPos;
+    boarder5_uso_VRAM = ADDR(.boarder5_uso);
     boarder5_uso_VRAM_END = .;
+
+    boarder5_uso_post_ROM_START = __romPos;
+    boarder5_uso_post_VRAM = ADDR(.boarder5_uso_post);
+    .boarder5_uso_post : AT(boarder5_uso_post_ROM_START)
+    {
+        FILL(0x00000000);
+        boarder5_uso_post_DATA_START = .;
+        build/assets/boarder5_uso_post.bin.o(.data);
+        boarder5_uso_post_DATA_END = .;
+        boarder5_uso_post_DATA_SIZE = ABSOLUTE(boarder5_uso_post_DATA_END - boarder5_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.boarder5_uso_post);
+    boarder5_uso_post_ROM_END = __romPos;
+    boarder5_uso_post_VRAM_END = .;
 
     gui_uso_pre_ROM_START = __romPos;
     gui_uso_pre_VRAM = ADDR(.gui_uso_pre);
@@ -443,19 +583,47 @@ SECTIONS
     n64proc_uso_post_ROM_END = __romPos;
     n64proc_uso_post_VRAM_END = .;
 
-    titproc_uso_ROM_START = __romPos;
-    titproc_uso_VRAM = ADDR(.titproc_uso);
-    .titproc_uso : AT(titproc_uso_ROM_START)
+    titproc_uso_pre_ROM_START = __romPos;
+    titproc_uso_pre_VRAM = ADDR(.titproc_uso_pre);
+    .titproc_uso_pre : AT(titproc_uso_pre_ROM_START)
     {
         FILL(0x00000000);
-        titproc_uso_DATA_START = .;
-        build/assets/titproc_uso.bin.o(.data);
-        titproc_uso_DATA_END = .;
-        titproc_uso_DATA_SIZE = ABSOLUTE(titproc_uso_DATA_END - titproc_uso_DATA_START);
+        titproc_uso_pre_DATA_START = .;
+        build/assets/titproc_uso_pre.bin.o(.data);
+        titproc_uso_pre_DATA_END = .;
+        titproc_uso_pre_DATA_SIZE = ABSOLUTE(titproc_uso_pre_DATA_END - titproc_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.titproc_uso_pre);
+    titproc_uso_pre_ROM_END = __romPos;
+    titproc_uso_pre_VRAM_END = .;
+
+    titproc_uso_ROM_START = __romPos;
+    .titproc_uso 0x00000000 : AT(titproc_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        titproc_uso_TEXT_START = .;
+        build/src/titproc_uso/titproc_uso.c.o(.text);
+        titproc_uso_TEXT_END = .;
+        titproc_uso_TEXT_SIZE = ABSOLUTE(titproc_uso_TEXT_END - titproc_uso_TEXT_START);
     }
     __romPos += SIZEOF(.titproc_uso);
     titproc_uso_ROM_END = __romPos;
+    titproc_uso_VRAM = ADDR(.titproc_uso);
     titproc_uso_VRAM_END = .;
+
+    titproc_uso_post_ROM_START = __romPos;
+    titproc_uso_post_VRAM = ADDR(.titproc_uso_post);
+    .titproc_uso_post : AT(titproc_uso_post_ROM_START)
+    {
+        FILL(0x00000000);
+        titproc_uso_post_DATA_START = .;
+        build/assets/titproc_uso_post.bin.o(.data);
+        titproc_uso_post_DATA_END = .;
+        titproc_uso_post_DATA_SIZE = ABSOLUTE(titproc_uso_post_DATA_END - titproc_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.titproc_uso_post);
+    titproc_uso_post_ROM_END = __romPos;
+    titproc_uso_post_VRAM_END = .;
 
     eddproc_uso_pre_ROM_START = __romPos;
     eddproc_uso_pre_VRAM = ADDR(.eddproc_uso_pre);

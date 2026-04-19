@@ -62,11 +62,46 @@ segments:
   - [0x5579E0, bin, merlot143_uso]
   - [0x55BE00, bin, blin154_uso]
   - [0x560220, bin, penguin_uso]
-  - [0x561C1C, bin, boarder1_uso]
-  - [0x56AEA8, bin, boarder2_uso]
-  - [0x5726FC, bin, boarder3_uso]
-  - [0x57AE94, bin, boarder4_uso]
-  - [0x584160, bin, boarder5_uso]
+  - [0x561C1C, bin, boarder1_uso_pre]
+  - name: boarder1_uso
+    type: code
+    start: 0x56A750
+    vram: 0x00000000
+    subsegments:
+      - [0x56A750, c, boarder1_uso/boarder1_uso]
+  - [0x56A8F0, bin, boarder1_uso_post]
+  - [0x56AEA8, bin, boarder2_uso_pre]
+  - name: boarder2_uso
+    type: code
+    start: 0x571FBC
+    vram: 0x00000000
+    subsegments:
+      - [0x571FBC, c, boarder2_uso/boarder2_uso]
+  - [0x572150, bin, boarder2_uso_post]
+  - [0x5726FC, bin, boarder3_uso_pre]
+  - name: boarder3_uso
+    type: code
+    start: 0x57A790
+    vram: 0x00000000
+    subsegments:
+      - [0x57A790, c, boarder3_uso/boarder3_uso]
+  - [0x57A930, bin, boarder3_uso_post]
+  - [0x57AE94, bin, boarder4_uso_pre]
+  - name: boarder4_uso
+    type: code
+    start: 0x5839D8
+    vram: 0x00000000
+    subsegments:
+      - [0x5839D8, c, boarder4_uso/boarder4_uso]
+  - [0x583B70, bin, boarder4_uso_post]
+  - [0x584160, bin, boarder5_uso_pre]
+  - name: boarder5_uso
+    type: code
+    start: 0x58CC50
+    vram: 0x00000000
+    subsegments:
+      - [0x58CC50, c, boarder5_uso/boarder5_uso]
+  - [0x58CDF0, bin, boarder5_uso_post]
   # gui_uso: 21 KB code-bearing USO. Same VRAM=0 pattern as bootup_uso/game_libs.
   # Header at 0x58D484 (filesystem entry, magic 0x12345678 + name "gui.uso").
   # Inner USO data magic at 0x58D4AC. Text section starts at 0x58D530 with size
@@ -88,7 +123,14 @@ segments:
     subsegments:
       - [0x594A54, c, n64proc_uso/n64proc_uso]
   - [0x594E84, bin, n64proc_uso_post]
-  - [0x5953E0, bin, titproc_uso]
+  - [0x5953E0, bin, titproc_uso_pre]
+  - name: titproc_uso
+    type: code
+    start: 0x599CCC
+    vram: 0x00000000
+    subsegments:
+      - [0x599CCC, c, titproc_uso/titproc_uso]
+  - [0x59C6FC, bin, titproc_uso_post]
   - [0x59F1F4, bin, eddproc_uso_pre]
   - name: eddproc_uso
     type: code
