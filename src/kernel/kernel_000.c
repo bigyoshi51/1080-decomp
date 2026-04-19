@@ -155,7 +155,64 @@ dummy_label_580214:
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000260);
+extern s32 func_800005DC();
+extern s32 func_8000060C();
+
+void func_80000260(u8* arg0, s32 arg1, u8* arg2) {
+    u8 sp48[0x40];
+    s32 sp44;
+    s32 sp40;
+    s32 a2;
+    s32 v1;
+
+    if (func_8000060C(arg0, &sp44) != 0) {
+        a2 = 0;
+        if (sp44 > 0) {
+            if ((sp44 & 3) != 0) {
+                do {
+                    sp48[a2] = arg0[a2];
+                    a2++;
+                } while ((sp44 & 3) != a2);
+
+                if (a2 != sp44) {
+                    do {
+                        sp48[a2] = arg0[a2];
+                        sp48[a2 + 1] = arg0[a2 + 1];
+                        sp48[a2 + 2] = arg0[a2 + 2];
+                        sp48[a2 + 3] = arg0[a2 + 3];
+                        a2 += 4;
+                    } while (a2 != sp44);
+                }
+            } else {
+                do {
+                    sp48[a2] = arg0[a2];
+                    sp48[a2 + 1] = arg0[a2 + 1];
+                    sp48[a2 + 2] = arg0[a2 + 2];
+                    sp48[a2 + 3] = arg0[a2 + 3];
+                    a2 += 4;
+                } while (a2 != sp44);
+            }
+        }
+
+        sp48[a2] = 0;
+        sp40 = sp44 + 1;
+        func_800005DC(arg1, sp48, sp40, arg0);
+
+        v1 = 1;
+        arg2[0] = arg0[sp40];
+        sp40++;
+        if (arg2[0] != 0) {
+            do {
+                arg2[v1] = arg0[sp40];
+                v1++;
+                sp40++;
+            } while (arg2[v1 - 1] != 0);
+        }
+    } else {
+        func_800005DC(arg1, arg0);
+        arg2[0] = 0;
+    }
+}
 
 void func_800003A8(s32 arg0, s32 arg1, s32 arg2) {
     s32 savedMask;
