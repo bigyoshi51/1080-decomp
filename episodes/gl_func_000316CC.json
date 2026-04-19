@@ -1,0 +1,28 @@
+{
+  "function_name": "gl_func_000316CC",
+  "asm_text": "nonmatching gl_func_000316CC, 0x44\n\nglabel gl_func_000316CC\n    /* E167A4 000316CC 27BDFFE8 */  .word 0x27BDFFE8\n    /* E167A8 000316D0 AFA40018 */  .word 0xAFA40018\n    /* E167AC 000316D4 8FA60018 */  .word 0x8FA60018\n    /* E167B0 000316D8 AFBF0014 */  .word 0xAFBF0014\n    /* E167B4 000316DC 3C040000 */  .word 0x3C040000\n    /* E167B8 000316E0 24840430 */  .word 0x24840430\n    /* E167BC 000316E4 24050001 */  .word 0x24050001\n    /* E167C0 000316E8 2407007F */  .word 0x2407007F\n    /* E167C4 000316EC 0C011770 */  .word 0x0C011770\n    /* E167C8 000316F0 24C6017F */  .word 0x24C6017F\n    /* E167CC 000316F4 3C040000 */  .word 0x3C040000\n    /* E167D0 000316F8 0C01177C */  .word 0x0C01177C\n    /* E167D4 000316FC 24840430 */  .word 0x24840430\n    /* E167D8 00031700 8FBF0014 */  .word 0x8FBF0014\n    /* E167DC 00031704 27BD0018 */  .word 0x27BD0018\n    /* E167E0 00031708 03E00008 */  .word 0x03E00008\n    /* E167E4 0003170C 00000000 */  .word 0x00000000\nendlabel gl_func_000316CC\n",
+  "m2c_output": "",
+  "attempts": [
+    {
+      "c_code": "extern int gl_ref_00045DC0();\nextern int gl_ref_00045DF0();\nextern char gl_ref_00000430;\nvoid gl_func_000316CC(int a0) {\n    gl_ref_00045DC0(&gl_ref_00000430, 1, a0 + 0x17F, 0x7F);\n    gl_ref_00045DF0(&gl_ref_00000430);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern int gl_ref_00045DC0();\nextern int gl_ref_00045DF0();\nextern char gl_ref_00000430;\nvoid gl_func_000316CC(int a0) {\n    gl_ref_00045DC0(&gl_ref_00000430, 1, a0 + 0x17F, 0x7F);\n    gl_ref_00045DF0(&gl_ref_00000430);\n}",
+  "matched": true,
+  "instruction_count": 17,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776603771.2409694,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "game_libs"
+}
