@@ -2928,7 +2928,18 @@ int gl_func_00054C04(char *a0) {
     return gl_func_00000000(a0 + 0x10C);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054C24);
+extern int gl_func_00000000();
+
+void gl_func_00054C24(char *a0, char *a1) {
+    int val = *(int*)a1;
+    if (val == 0x72) {
+        int *p = *(int**)(a1 + 4);
+        *(int**)(a1 + 4) = p + 1;
+        *(int*)(a0 + 0x120) = *p;
+    } else {
+        gl_func_00000000();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054C6C);
 
