@@ -258,7 +258,18 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
 
+#ifdef NON_MATCHING
+/* 86.7%: body+control flow match; target has 2 extra a1 spills (to sp+0x1C and sp+0x4)
+ * that appear when callee is varargs — unique-extern varargs trick not applied here because
+ * callee is the shared placeholder gl_func_00000000. */
+int game_uso_func_0000A374(int a0, int a1, int a2) {
+    int r = gl_func_00000000(*(int*)&D_00000000, a1);
+    if (r == 0) return 0;
+    return gl_func_00000000(r, a2, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 
