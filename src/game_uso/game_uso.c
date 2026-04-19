@@ -225,7 +225,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006CF0);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006E88);
+void game_uso_func_00006E88(int *a0) {
+    int r;
+    gl_func_00000000(a0);
+    r = gl_func_00000000(a0);
+    *(int*)((char*)a0 + 0x80) = r;
+    if (r == 0) return;
+    *(int*)((char*)a0 + 0x40) = gl_func_00000000(a0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006ECC);
 
