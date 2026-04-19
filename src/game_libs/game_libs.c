@@ -1148,7 +1148,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DC7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DCF8);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 92.5% — missing `or a2, a0, zero` copy before andi */
+extern int gl_func_00000000();
+
+void gl_func_0002DD58(int a0) {
+    int *p = &a0;
+    gl_func_00000000(0x82030000 | ((a0 & 0xFF) << 8), 0x3E8);
+    (void)p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD58);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD90);
 
@@ -1993,7 +2004,17 @@ void gl_func_0003F880(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F880);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8B0);
+extern int gl_func_00000000();
+
+int gl_func_0003F8B0(int a0) {
+    char buf[0x98];
+    int pad;
+    int local;
+    local = 0x36;
+    gl_func_00000000(&local);
+    gl_func_00000000(&local);
+    return *(int*)&buf[0x48];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8E8);
 
