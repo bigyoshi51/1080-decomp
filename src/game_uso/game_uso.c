@@ -49,7 +49,18 @@ void game_uso_func_00000314(Pair2 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* 92%: int-reader variant with pointer-indirect load. Target emits
+ * `addiu t7, sp, 0x18; lw t9, 0(t7)` (16 instr) instead of standard `lw t6, 0x18(sp)` (15 instr).
+ * IDO won't force the address-materialize-then-load from C without pipe-breaking tricks. */
+void game_uso_func_0000035C(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000035C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000039C);
 
