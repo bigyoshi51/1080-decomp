@@ -446,7 +446,36 @@ void func_800010CC(s32 a0, ...) {
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800010E8);
 
+extern s32 D_80012D30;
+extern s32 D_80012D34;
+extern s32 D_80012D38;
+extern s32 D_80012D3C[];
+extern s32 D_80012D5C;
+
+#ifdef NON_MATCHING
+/* NON_MATCHING: IDO rewrites this pointer walk into a larger bulk-zeroing
+ * loop; the state reset is correct, but the generated loop shape differs. */
+void func_80001184(void) {
+    s32* ptr;
+    s32* end;
+
+    D_80012D5C = 0;
+    D_80012D30 = 0;
+    D_80012D34 = 0;
+    D_80012D38 = 0;
+    ptr = D_80012D3C;
+    end = &D_80012D5C;
+    do {
+        ptr += 4;
+        ptr[-4] = 0;
+        ptr[-3] = 0;
+        ptr[-2] = 0;
+        ptr[-1] = 0;
+    } while (ptr != end);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_find_file);
 
@@ -480,7 +509,42 @@ void* func_800012BC(void* arg0) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800012BC);
 #endif
 
+extern void func_80000A88(void*, s32);
+
+#ifdef NON_MATCHING
+/* NON_MATCHING: local stack layout differs from target, so the loop header
+ * buffer and file-state fields end up at different offsets and branch layout
+ * drifts after the `header[0] == 6` check. */
+s32 func_80001348(void* arg0, s32* arg1) {
+    s32 file[10];
+    s32 header[3];
+    s32 result;
+
+    result = func_800015D0(arg0, file);
+    if (result < 0) {
+        return result;
+    }
+
+    while (1) {
+        result = func_800009D8(header, 0xC, 1, file);
+        if (result <= 0) {
+            if (result == 0) {
+                result = -1000;
+            }
+            return result;
+        }
+        if (header[0] == 6) {
+            *arg1 = file[3] + file[1];
+            return 0;
+        }
+        if (header[0] != 8) {
+            func_80000A88(file, header[1]);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001348);
+#endif
 
 /* uso_read */
 s32 func_80001414(void* file, void* buf, s32 size) {
