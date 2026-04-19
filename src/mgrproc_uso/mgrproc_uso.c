@@ -110,11 +110,23 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000307
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003240);
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000032C8);
+void mgrproc_uso_func_000032C8(char *dst) {
+    int tmp;
+    mgrproc_uso_func_00000CC4(&tmp);
+    mgrproc_uso_func_00000CC4((int*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000032F8);
+void mgrproc_uso_func_000032F8(char *dst) {
+    int tmp;
+    mgrproc_uso_func_00000CC4(&tmp);
+    mgrproc_uso_func_00000D00((float*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003328);
+void mgrproc_uso_func_00003328(char *dst) {
+    int tmp;
+    mgrproc_uso_func_00000CC4(&tmp);
+    mgrproc_uso_func_00000D3C((Quad4*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003358);
 
