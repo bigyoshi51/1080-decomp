@@ -474,7 +474,35 @@ void* func_800012BC(void* arg0) {
     return file;
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001348);
+extern void func_80000A88(void*, s32);
+
+s32 func_80001348(void* arg0, s32* arg1) {
+    s32 file[10];
+    s32 header[3];
+    s32 result;
+
+    result = func_800015D0(arg0, file);
+    if (result < 0) {
+        return result;
+    }
+
+    while (1) {
+        result = func_800009D8(header, 0xC, 1, file);
+        if (result <= 0) {
+            if (result == 0) {
+                result = -1000;
+            }
+            return result;
+        }
+        if (header[0] == 6) {
+            *arg1 = file[3] + file[1];
+            return 0;
+        }
+        if (header[0] != 8) {
+            func_80000A88(file, header[1]);
+        }
+    }
+}
 
 /* uso_read */
 s32 func_80001414(void* file, void* buf, s32 size) {
