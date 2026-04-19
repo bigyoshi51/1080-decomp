@@ -4,13 +4,13 @@ In progress 1080 Snowboarding decompilation, mostly driven by Claude. Uses https
 
 ## Status
 
-Fourteen segments are being decompiled. USO overlays ship as a custom relocatable format; we match pre-relocation bytes by splatting at `VRAM=0` with per-segment symbol prefixes (`gl_func_`, `gui_func_`, etc.).
+Nineteen segments are being decompiled. USO overlays ship as a custom relocatable format (some Yay0-compressed); we match pre-relocation bytes by splatting at `VRAM=0` with per-segment symbol prefixes (`gl_func_`, `gui_func_`, etc.).
 
 | Segment        | Functions   | Code matched       | Notes                                          |
 |----------------|-------------|--------------------|------------------------------------------------|
 | `kernel`       | 96 / 237    | 10.0 KB / 40.0 KB  | libultra + USO loader + audio (`0x80000000`)   |
 | `bootup_uso`   | 124 / 359   | 5.7 KB / 81.6 KB   | Giles Goddard's libgdl engine                  |
-| `game_libs`    | 206 / 1,371 | 10.3 KB / 468.7 KB | Support libraries — wrapper mass-match (15 %)  |
+| `game_libs`    | 208 / 1,371 | 10.4 KB / 468.7 KB | Support libraries — wrapper mass-match (15 %)  |
 | `gui_uso`      | 4 / 22      | 0.2 KB / 18.1 KB   | GUI/menu helpers                               |
 | `titproc_uso`  | 0 / 43      | 0.0 KB / 10.5 KB   | Title-screen process                           |
 | `arcproc_uso`  | 0 / 50      | 0.0 KB / 10.4 KB   | Arcade-mode process                            |
@@ -18,9 +18,12 @@ Fourteen segments are being decompiled. USO overlays ship as a custom relocatabl
 | `eddproc_uso`  | 0 / 12      | 0.0 KB / 1.1 KB    | Edit-mode process                              |
 | `n64proc_uso`  | 0 / 6       | 0.0 KB / 1.0 KB    | N64-specific process                           |
 | `boarder1..5_uso` | 0 / 30   | 0.0 KB / 2.1 KB    | Per-character snowboarder USOs (6 funcs each)  |
-| **Total**      | **430 / 2,216** | **26.1 KB / 653.3 KB (4.00%)** |                                  |
+| `mgrproc_uso`  | 0 / 50      | 0.0 KB / 13.0 KB   | Manager process (Yay0-decompressed)            |
+| `game_uso`     | 0 / 201     | 0.0 KB / 70.8 KB   | Main game loop (Yay0-decompressed)             |
+| `timproc_uso_b1..b5` | 0 / 209 | 0.0 KB / 81.9 KB | Timer process variants (Yay0-decompressed)     |
+| **Total**      | **432 / 2,626** | **26.3 KB / 805.7 KB (3.26%)** |                                |
 
-Remaining un-splatted USOs (`mgrproc`, `timproc`, `game_uso`, `map4_data`) have non-standard headers — each contains only 1–5 detectable function prologues despite being 22 KB to 1.2 MB in size, suggesting either compression, encrypted code, or mostly-data USOs. These need hand-investigation. Pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
+Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
 ## Building
 
