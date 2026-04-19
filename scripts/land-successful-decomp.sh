@@ -64,9 +64,10 @@ for name in want:
     if fn is None:
         errors.append(f"{name}: not present in report.json")
         continue
-    if "fuzzy_match_percent" in fn:
+    fuzzy = fn.get("fuzzy_match_percent")
+    if fuzzy != 100.0:
         errors.append(
-            f"{name}: still fuzzy at {fn['fuzzy_match_percent']:.6f}%"
+            f"{name}: not an exact match (fuzzy_match_percent={fuzzy})"
         )
 
 if errors:
