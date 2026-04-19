@@ -1,0 +1,12 @@
+nonmatching mgrproc_uso_func_00001304, 0x20
+
+glabel mgrproc_uso_func_00001304
+    /* 001304 00001304 27BDFFE8 */  .word 0x27BDFFE8
+    /* 001308 00001308 AFBF0014 */  .word 0xAFBF0014
+    /* 00130C 0000130C 0C000000 */  .word 0x0C000000
+    /* 001310 00001310 00000000 */  .word 0x00000000
+    /* 001314 00001314 8FBF0014 */  .word 0x8FBF0014
+    /* 001318 00001318 27BD0018 */  .word 0x27BD0018
+    /* 00131C 0000131C 03E00008 */  .word 0x03E00008
+    /* 001320 00001320 00000000 */  .word 0x00000000
+endlabel mgrproc_uso_func_00001304

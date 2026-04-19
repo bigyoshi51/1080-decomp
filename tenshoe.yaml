@@ -139,7 +139,14 @@ segments:
     subsegments:
       - [0x59F480, c, eddproc_uso/eddproc_uso]
   - [0x59F900, bin, eddproc_uso_post]
-  - [0x5A015C, bin, mgrproc_uso]
+  # mgrproc_uso: Yay0-compressed USO. 2 Yay0 blocks; block 0 is bss-zeros (passthrough),
+  # block 1 is the actual text (50 functions, 0x3420 uncompressed). Block 1 is built
+  # from C and re-compressed at link time via crunch64; other slices passthrough.
+  - [0x5A015C, bin, mgrproc_uso_pre]
+  - [0x5A07CC, bin, mgrproc_uso_block0_yay0]
+  - [0x5A0A49, bin, mgrproc_uso_inter]
+  - [0x5A0A56, bin, mgrproc_uso_block1_yay0]
+  - [0x5A2927, bin, mgrproc_uso_post]
   - [0x5A5BE0, bin, arcproc_uso_pre]
   - name: arcproc_uso
     type: code

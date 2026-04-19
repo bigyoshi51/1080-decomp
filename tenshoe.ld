@@ -668,17 +668,44 @@ SECTIONS
     eddproc_uso_post_ROM_END = __romPos;
     eddproc_uso_post_VRAM_END = .;
 
-    mgrproc_uso_ROM_START = __romPos;
-    mgrproc_uso_VRAM = ADDR(.mgrproc_uso);
-    .mgrproc_uso : AT(mgrproc_uso_ROM_START)
+    /* mgrproc_uso: 5 slices, see tenshoe.yaml comment. block1 is the text
+     * Yay0 block — for now passthrough; later swap with `crunch64`-compressed
+     * output of build/src/mgrproc_uso/mgrproc_uso.c.o. */
+    mgrproc_uso_pre_ROM_START = __romPos;
+    .mgrproc_uso_pre : AT(mgrproc_uso_pre_ROM_START)
     {
         FILL(0x00000000);
-        mgrproc_uso_DATA_START = .;
-        build/assets/mgrproc_uso.bin.o(.data);
-        mgrproc_uso_DATA_END = .;
-        mgrproc_uso_DATA_SIZE = ABSOLUTE(mgrproc_uso_DATA_END - mgrproc_uso_DATA_START);
+        build/assets/mgrproc_uso_pre.bin.o(.data);
     }
-    __romPos += SIZEOF(.mgrproc_uso);
+    __romPos += SIZEOF(.mgrproc_uso_pre);
+
+    .mgrproc_uso_block0_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/mgrproc_uso_block0_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.mgrproc_uso_block0_yay0);
+
+    .mgrproc_uso_inter : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/mgrproc_uso_inter.bin.o(.data);
+    }
+    __romPos += SIZEOF(.mgrproc_uso_inter);
+
+    .mgrproc_uso_block1_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/mgrproc_uso_block1_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.mgrproc_uso_block1_yay0);
+
+    .mgrproc_uso_post : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/mgrproc_uso_post.bin.o(.data);
+    }
+    __romPos += SIZEOF(.mgrproc_uso_post);
     mgrproc_uso_ROM_END = __romPos;
     mgrproc_uso_VRAM_END = .;
 
