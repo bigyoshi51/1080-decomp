@@ -2273,7 +2273,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DA40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DB50);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DC08);
+extern int gl_func_00000000();
+void gl_func_0004DC08(char *a0, int *a1) {
+    gl_func_00000000(a1, a0 + 8);
+    a1[0x19] = 0;
+    a1[0x18] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DC44);
 
