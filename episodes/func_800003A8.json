@@ -1,0 +1,40 @@
+{
+  "function_name": "func_800003A8",
+  "asm_text": "\nnonmatching func_800003A8, 0xCC\n\nglabel func_800003A8\n    /* 13A8 800003A8 27BDFFE0 */  addiu      $sp, $sp, -0x20\n    /* 13AC 800003AC AFB00018 */  sw         $s0, 0x18($sp)\n    /* 13B0 800003B0 3C108001 */  lui        $s0, %hi(D_80013000)\n    /* 13B4 800003B4 26103000 */  addiu      $s0, $s0, %lo(D_80013000)\n    /* 13B8 800003B8 AFBF001C */  sw         $ra, 0x1C($sp)\n    /* 13BC 800003BC AFA40020 */  sw         $a0, 0x20($sp)\n    /* 13C0 800003C0 AFA50024 */  sw         $a1, 0x24($sp)\n    /* 13C4 800003C4 AFA60028 */  sw         $a2, 0x28($sp)\n    /* 13C8 800003C8 0C002838 */  jal        func_8000A0E0\n    /* 13CC 800003CC AE000000 */   sw        $zero, 0x0($s0)\n    /* 13D0 800003D0 0C001990 */  jal        func_80006640\n    /* 13D4 800003D4 00000000 */   nop\n    /* 13D8 800003D8 304E0003 */  andi       $t6, $v0, 0x3\n    /* 13DC 800003DC 51C00007 */  beql       $t6, $zero, .L800003FC\n    /* 13E0 800003E0 00002025 */   or        $a0, $zero, $zero\n  .L800003E4:\n    /* 13E4 800003E4 0C001990 */  jal        func_80006640\n    /* 13E8 800003E8 00000000 */   nop\n    /* 13EC 800003EC 304F0003 */  andi       $t7, $v0, 0x3\n    /* 13F0 800003F0 15E0FFFC */  bnez       $t7, .L800003E4\n    /* 13F4 800003F4 00000000 */   nop\n    /* 13F8 800003F8 00002025 */  or         $a0, $zero, $zero\n  .L800003FC:\n    /* 13FC 800003FC 8FA50024 */  lw         $a1, 0x24($sp)\n    /* 1400 80000400 8FA60020 */  lw         $a2, 0x20($sp)\n    /* 1404 80000404 0C001294 */  jal        func_80004A50\n    /* 1408 80000408 8FA70028 */   lw        $a3, 0x28($sp)\n    /* 140C 8000040C 0C001990 */  jal        func_80006640\n    /* 1410 80000410 00000000 */   nop\n    /* 1414 80000414 30590003 */  andi       $t9, $v0, 0x3\n    /* 1418 80000418 13200006 */  beqz       $t9, .L80000434\n    /* 141C 8000041C AE020000 */   sw        $v0, 0x0($s0)\n  .L80000420:\n    /* 1420 80000420 0C001990 */  jal        func_80006640\n    /* 1424 80000424 00000000 */   nop\n    /* 1428 80000428 30490003 */  andi       $t1, $v0, 0x3\n    /* 142C 8000042C 1520FFFC */  bnez       $t1, .L80000420\n    /* 1430 80000430 AE020000 */   sw        $v0, 0x0($s0)\n  .L80000434:\n    /* 1434 80000434 0C000A24 */  jal        func_80002890\n    /* 1438 80000438 24040001 */   addiu     $a0, $zero, 0x1\n    /* 143C 8000043C 00408025 */  or         $s0, $v0, $zero\n    /* 1440 80000440 8FA40020 */  lw         $a0, 0x20($sp)\n    /* 1444 80000444 0C0014D4 */  jal        func_80005350\n    /* 1448 80000448 8FA50028 */   lw        $a1, 0x28($sp)\n    /* 144C 8000044C 8FA40020 */  lw         $a0, 0x20($sp)\n    /* 1450 80000450 0C001500 */  jal        func_80005400\n    /* 1454 80000454 8FA50028 */   lw        $a1, 0x28($sp)\n    /* 1458 80000458 0C000A24 */  jal        func_80002890\n    /* 145C 8000045C 02002025 */   or        $a0, $s0, $zero\n  alabel D_80000460\n    /* 1460 80000460 8FBF001C */  lw         $ra, 0x1C($sp)\n    /* 1464 80000464 8FB00018 */  lw         $s0, 0x18($sp)\n    /* 1468 80000468 27BD0020 */  addiu      $sp, $sp, 0x20\n    /* 146C 8000046C 03E00008 */  jr         $ra\n    /* 1470 80000470 00000000 */   nop\nendlabel func_800003A8\n",
+  "m2c_output": "s32 func_80002890(s32);                             /* extern */\n? func_80004A50(?, s32, s32, s32);                  /* extern */\n? func_80005350(s32, s32);                          /* extern */\n? func_80005400(s32, s32);                          /* extern */\ns32 func_80006640();                                /* extern */\n? func_8000A0E0();                                  /* extern */\nextern s32 D_80013000;\n\nvoid func_800003A8(s32 arg0, s32 arg1, s32 arg2) {\n    s32 temp_s0;\n    s32 temp_v0;\n    s32 temp_v0_2;\n\n    D_80013000 = 0;\n    func_8000A0E0();\n    if (func_80006640() & 3) {\n        do {\n\n        } while (func_80006640() & 3);\n    }\n    func_80004A50(0, arg1, arg0, arg2);\n    temp_v0 = func_80006640();\n    D_80013000 = temp_v0;\n    if (temp_v0 & 3) {\n        do {\n            temp_v0_2 = func_80006640();\n            D_80013000 = temp_v0_2;\n        } while (temp_v0_2 & 3);\n    }\n    temp_s0 = func_80002890(1);\n    func_80005350(arg0, arg2);\n    func_80005400(arg0, arg2);\n    func_80002890(temp_s0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_800003A8(s32 arg0, s32 arg1, s32 arg2) {\n    s32 savedMask;\n    s32 status;\n    u16 first16;\n    u16 loop16;\n\n    D_80013000 = 0;\n    func_8000A0E0();\n    while (func_80006640() & 3) {}\n    func_80004A50(0, arg1, arg0, arg2);\n    status = func_80006640();\n    first16 = status;\n    D_80013000 = status;\n    if (first16 & 3) {\n        do {\n            status = func_80006640();\n            loop16 = status;\n            D_80013000 = status;\n        } while (loop16 & 3);\n    }\n    savedMask = func_80002890(1);\n    func_80005350(arg0, arg2);\n    func_80005400(arg0, arg2);\n    func_80002890(savedMask);\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2",
+      "notes": "Verified in project by rebuilding build/src/kernel/kernel_000.c.o and matching the original asm shape exactly, including the second wait loop's t9/t1 register sequence."
+    }
+  ],
+  "final_c": "void func_800003A8(s32 arg0, s32 arg1, s32 arg2) {\n    s32 savedMask;\n    s32 status;\n    u16 first16;\n    u16 loop16;\n\n    D_80013000 = 0;\n    func_8000A0E0();\n    while (func_80006640() & 3) {}\n    func_80004A50(0, arg1, arg0, arg2);\n    status = func_80006640();\n    first16 = status;\n    D_80013000 = status;\n    if (first16 & 3) {\n        do {\n            status = func_80006640();\n            loop16 = status;\n            D_80013000 = status;\n        } while (loop16 & 3);\n    }\n    savedMask = func_80002890(1);\n    func_80005350(arg0, arg2);\n    func_80005400(arg0, arg2);\n    func_80002890(savedMask);\n}\n",
+  "matched": true,
+  "instruction_count": 51,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1776570416,
+  "game": "1080_snowboarding",
+  "compiler": "ido7.1",
+  "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+  "nearby_decompiled": [
+    "func_8000020C",
+    "func_80000480"
+  ],
+  "called_functions": [
+    "func_8000A0E0",
+    "func_80006640",
+    "func_80004A50",
+    "func_80002890",
+    "func_80005350",
+    "func_80005400"
+  ],
+  "referenced_data": [
+    "D_80013000"
+  ],
+  "segment": "kernel"
+}

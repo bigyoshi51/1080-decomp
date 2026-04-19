@@ -32,6 +32,7 @@ extern s32 D_80012BE4;
 extern s32 D_80012C64;
 extern s32 D_80012C68;
 extern s32 D_80012D60[];
+extern s32 D_80013000;
 extern s32 D_8000A2E0;
 extern s32 D_8000A41C;
 extern s32 func_80002890(s32);
@@ -156,7 +157,31 @@ dummy_label_580214:
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000260);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800003A8);
+void func_800003A8(s32 arg0, s32 arg1, s32 arg2) {
+    s32 savedMask;
+    s32 status;
+    u16 first16;
+    u16 loop16;
+
+    D_80013000 = 0;
+    func_8000A0E0();
+    while (func_80006640() & 3) {}
+    func_80004A50(0, arg1, arg0, arg2);
+    status = func_80006640();
+    first16 = status;
+    D_80013000 = status;
+    if (first16 & 3) {
+        do {
+            status = func_80006640();
+            loop16 = status;
+            D_80013000 = status;
+        } while (loop16 & 3);
+    }
+    savedMask = func_80002890(1);
+    func_80005350(arg0, arg2);
+    func_80005400(arg0, arg2);
+    func_80002890(savedMask);
+}
 
 /* uso_set_alloc */
 extern s32 D_8000A2E0;
