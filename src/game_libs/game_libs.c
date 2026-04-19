@@ -1176,7 +1176,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000349E8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034A54);
+extern int gl_func_00000000();
+extern char gl_ref_0001E468;
+int gl_func_00034A54() {
+    return gl_func_00000000(&gl_ref_0001E468);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034A78);
 
@@ -1795,7 +1799,11 @@ int gl_func_00041104() {
     return gl_func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041124);
+extern int gl_func_00000000();
+extern char gl_ref_0001F568;
+int gl_func_00041124() {
+    return gl_func_00000000(&gl_ref_0001F568);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041148);
 
@@ -1844,7 +1852,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042144);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000421D4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042288);
+extern int gl_func_00000000();
+int gl_func_00042288() {
+    return gl_func_00000000(gl_func_00000000);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000422AC);
 
@@ -1856,7 +1867,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042440);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042484);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000424D8);
+extern int gl_func_00000000();
+extern char gl_ref_0001FCB4;
+int gl_func_000424D8() {
+    return gl_func_00000000(&gl_ref_0001FCB4);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000424FC);
 
@@ -2822,7 +2837,11 @@ void gl_func_00066364(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066384);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000663AC);
+extern int gl_func_00000000();
+extern char gl_ref_000224B0;
+int gl_func_000663AC() {
+    return gl_func_00000000(&gl_ref_000224B0);
+}
 
 extern int gl_func_00000000();
 void gl_func_000663D0(int *a0) {
