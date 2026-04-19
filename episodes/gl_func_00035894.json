@@ -1,0 +1,28 @@
+{
+  "function_name": "gl_func_00035894",
+  "asm_text": "nonmatching gl_func_00035894, 0x48\n\nglabel gl_func_00035894\n    /* E1A96C 00035894 27BDFFE8 */  .word 0x27BDFFE8\n    /* E1A970 00035898 AFBF0014 */  .word 0xAFBF0014\n    /* E1A974 0003589C 8C8E0004 */  .word 0x8C8E0004\n    /* E1A978 000358A0 3C040002 */  .word 0x3C040002\n    /* E1A97C 000358A4 15C00006 */  .word 0x15C00006\n    /* E1A980 000358A8 00000000 */  .word 0x00000000\n    /* E1A984 000358AC 3C040000 */  .word 0x3C040000\n    /* E1A988 000358B0 0C000000 */  .word 0x0C000000\n    /* E1A98C 000358B4 24840000 */  .word 0x24840000\n    /* E1A990 000358B8 10000005 */  .word 0x10000005\n    /* E1A994 000358BC 8FBF0014 */  .word 0x8FBF0014\n    /* E1A998 000358C0 0C000000 */  .word 0x0C000000\n    /* E1A99C 000358C4 2484E660 */  .word 0x2484E660\n    /* E1A9A0 000358C8 00001025 */  .word 0x00001025\n    /* E1A9A4 000358CC 8FBF0014 */  .word 0x8FBF0014\n    /* E1A9A8 000358D0 27BD0018 */  .word 0x27BD0018\n    /* E1A9AC 000358D4 03E00008 */  .word 0x03E00008\n    /* E1A9B0 000358D8 00000000 */  .word 0x00000000\nendlabel gl_func_00035894\n",
+  "m2c_output": "",
+  "attempts": [
+    {
+      "c_code": "extern int gl_func_00000000();\nextern char gl_ref_0001E660;\nint gl_func_00035894(int *a0) {\n    if (a0[1] == 0) {\n        return gl_func_00000000(gl_func_00000000);\n    }\n    gl_func_00000000(&gl_ref_0001E660);\n    return 0;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern int gl_func_00000000();\nextern char gl_ref_0001E660;\nint gl_func_00035894(int *a0) {\n    if (a0[1] == 0) {\n        return gl_func_00000000(gl_func_00000000);\n    }\n    gl_func_00000000(&gl_ref_0001E660);\n    return 0;\n}",
+  "matched": true,
+  "instruction_count": 18,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776603204.3157232,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "game_libs"
+}

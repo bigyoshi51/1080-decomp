@@ -315,23 +315,36 @@ void func_80000688(s32* file, s32 offset) {
     file[1] += offset;
 }
 
+/* NON_MATCHING: local header layout and return register match, but the final
+ * magic-check branch compiles as `bne` instead of target `beq`. */
+#ifdef NON_MATCHING
 s32 uso_file_open(FileState* file, u32* arg1) {
-    u32 header[3];
+    register s32 result;
+    struct {
+        u32 type;
+        u32 size;
+        u32 unk8;
+        s32 pad;
+    } header;
 
-    if (func_800009D8(header, 0xC, 1, file) < 0) {
+    if (func_800009D8(&header, 0xC, 1, file) < 0) {
         return D_80013004;
     }
-    if (header[0] == 0xA) {
+    if (header.type == 0xA) {
         return 0;
     }
-    if (func_800009D8(arg1, header[1], 1, file) < 0) {
+    if (func_800009D8(arg1, header.size, 1, file) < 0) {
         return D_80013004;
     }
+    result = -0x15;
     if (*arg1 == 0x12345678) {
-        return 1;
+        result = 1;
     }
-    return -0x15;
+    return result;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", uso_file_open);
+#endif
 
 /* uso_skip_to_end: reads USO section headers until End (type 11) */
 /* NON_MATCHING: beq operand order (cosmetic, $s2/$t6 swap in 2 instructions) */
@@ -433,7 +446,30 @@ void func_800010CC(s32 a0, ...) {
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800010E8);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
+extern s32 D_80012D30;
+extern s32 D_80012D34;
+extern s32 D_80012D38;
+extern s32 D_80012D3C[];
+extern s32 D_80012D5C;
+
+void func_80001184(void) {
+    s32* ptr;
+    s32* end;
+
+    D_80012D5C = 0;
+    D_80012D30 = 0;
+    D_80012D34 = 0;
+    D_80012D38 = 0;
+    ptr = D_80012D3C;
+    end = &D_80012D5C;
+    do {
+        ptr += 4;
+        ptr[-4] = 0;
+        ptr[-3] = 0;
+        ptr[-2] = 0;
+        ptr[-1] = 0;
+    } while (ptr != end);
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_find_file);
 
@@ -442,9 +478,54 @@ s32 func_800012AC(s32 arg0) {
     return D_80013004;
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800012BC);
+extern void* (*D_80012BF4)(s32, s32);
+extern s32 func_800015D0(void*, void*);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001348);
+void* func_800012BC(void* arg0) {
+    void* file;
+    s32 header[3];
+
+    file = D_80012BF4(0x28, 8);
+    if (func_800015D0(arg0, file) < 0) {
+        return 0;
+    }
+    if (func_800009D8(header, 0xC, 1, file) < 0) {
+        return 0;
+    }
+    ((s32*)file)[8] = ((s32*)file)[1];
+    ((s32*)file)[7] = ((s32*)file)[1] + header[1];
+    return file;
+}
+
+extern void func_80000A88(void*, s32);
+
+s32 func_80001348(void* arg0, s32* arg1) {
+    s32 file[10];
+    s32 header[3];
+    s32 result;
+
+    result = func_800015D0(arg0, file);
+    if (result < 0) {
+        return result;
+    }
+
+    while (1) {
+        result = func_800009D8(header, 0xC, 1, file);
+        if (result <= 0) {
+            if (result == 0) {
+                result = -1000;
+            }
+            return result;
+        }
+        if (header[0] == 6) {
+            *arg1 = file[3] + file[1];
+            return 0;
+        }
+        if (header[0] != 8) {
+            func_80000A88(file, header[1]);
+        }
+    }
+}
 
 /* uso_read */
 s32 func_80001414(void* file, void* buf, s32 size) {
