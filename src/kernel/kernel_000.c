@@ -126,16 +126,30 @@ void func_800001DC(char* dst, char* src) {
 /* uso_find_slash? — scan a string for '/' and write its index to *arg1 */
 s32 func_8000020C(char* arg0, s32* arg1) {
     s32 i;
+    s32 j;
 
     i = 0;
     if (*arg0 != '\0') {
         do {
-            if (arg0[i] == '/') {
-                *arg1 = i;
-                return 1;
-            }
+            j = i;
             i++;
+            if (arg0[j] == '/') {
+                i = i - 1;
+                j = i;
+                *arg1 = j;
+                return 1;
+                if (1) {}
+                if (1) {}
+                if (1) {}
+                if (1) {}
+                if (1) {}
+                if (1) {}
+            }
         } while (arg0[i] != '\0');
+        goto dummy_label_580214;
+dummy_label_580214:
+        ;
+        ;
     }
     return 0;
 }

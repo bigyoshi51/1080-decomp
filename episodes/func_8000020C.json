@@ -4,20 +4,20 @@
   "m2c_output": "s32 func_8000020C(u8 *arg0, s32 *arg1) {\n    s32 var_v1;\n    u8 temp_t8;\n\n    var_v1 = 0;\n    if (*arg0 != 0) {\nloop_1:\n        temp_t8 = *(arg0 + var_v1);\n        var_v1 += 1;\n        if (temp_t8 == 0x2F) {\n            *arg1 = var_v1 - 1;\n            return 1;\n        }\n        if (*(arg0 + var_v1) == 0) {\n            /* Duplicate return node #4. Try simplifying control flow for better match */\n            return 0;\n        }\n        goto loop_1;\n    }\n    return 0;\n}\n",
   "attempts": [
     {
-      "c_code": "s32 func_8000020C(char* arg0, s32* arg1) {\n    s32 i;\n\n    i = 0;\n    if (*arg0 != '\\0') {\n        do {\n            if (arg0[i] == '/') {\n                *arg1 = i;\n                return 1;\n            }\n            i++;\n        } while (arg0[i] != '\\0');\n    }\n    return 0;\n}\n",
+      "c_code": "s32 func_8000020C(char* arg0, s32* arg1) {\n    s32 i;\n    s32 j;\n\n    i = 0;\n    if (*arg0 != '\\0') {\n        do {\n            j = i;\n            i++;\n            if (arg0[j] == '/') {\n                i = i - 1;\n                j = i;\n                *arg1 = j;\n                return 1;\n                if (1) {}\n                if (1) {}\n                if (1) {}\n                if (1) {}\n                if (1) {}\n                if (1) {}\n            }\n        } while (arg0[i] != '\\0');\n        goto dummy_label_580214;\n dummy_label_580214:\n        ;\n        ;\n    }\n    return 0;\n}\n",
       "matched": true,
       "diff_count": 0,
       "diff_details": [],
       "compiler_flags": "-O2",
-      "notes": "Verified by identical objdump output against expected/src/kernel/kernel_000.c.o."
+      "notes": "Exact in project after adopting the permuter-discovered control-flow shape. The scratch hit used an unsigned return type, but the final s32 form above produces the same exact object code."
     }
   ],
-  "final_c": "s32 func_8000020C(char* arg0, s32* arg1) {\n    s32 i;\n\n    i = 0;\n    if (*arg0 != '\\0') {\n        do {\n            if (arg0[i] == '/') {\n                *arg1 = i;\n                return 1;\n            }\n            i++;\n        } while (arg0[i] != '\\0');\n    }\n    return 0;\n}\n",
+  "final_c": "s32 func_8000020C(char* arg0, s32* arg1) {\n    s32 i;\n    s32 j;\n\n    i = 0;\n    if (*arg0 != '\\0') {\n        do {\n            j = i;\n            i++;\n            if (arg0[j] == '/') {\n                i = i - 1;\n                j = i;\n                *arg1 = j;\n                return 1;\n                if (1) {}\n                if (1) {}\n                if (1) {}\n                if (1) {}\n                if (1) {}\n                if (1) {}\n            }\n        } while (arg0[i] != '\\0');\n        goto dummy_label_580214;\n dummy_label_580214:\n        ;\n        ;\n    }\n    return 0;\n}\n",
   "matched": true,
   "instruction_count": 21,
   "has_branches": true,
   "has_calls": false,
-  "timestamp": 1776561781,
+  "timestamp": 1776569629,
   "game": "1080_snowboarding",
   "compiler": "ido7.1",
   "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
