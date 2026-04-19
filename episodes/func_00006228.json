@@ -1,0 +1,31 @@
+{
+  "function_name": "func_00006228",
+  "asm_text": "nonmatching func_00006228, 0x2C\n\nglabel func_00006228\n    /* DD6C94 00006228 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* DD6C98 0000622C AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD6C9C 00006230 AFA40018 */  sw         $a0, 0x18($sp)\n    /* DD6CA0 00006234 0C00140B */  jal        func_0000502C\n    /* DD6CA4 00006238 2484003C */   addiu     $a0, $a0, 0x3C\n    /* DD6CA8 0000623C 0C000000 */  jal        func_00000000\n    /* DD6CAC 00006240 8FA40018 */   lw        $a0, 0x18($sp)\n    /* DD6CB0 00006244 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD6CB4 00006248 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* DD6CB8 0000624C 03E00008 */  jr         $ra\n    /* DD6CBC 00006250 00000000 */   nop\nendlabel func_00006228\n",
+  "m2c_output": "? func_00000000(s32);                               /* extern */\n? func_0000502C(s32);                               /* extern */\n\nvoid func_00006228(s32 arg0) {\n    func_0000502C(arg0 + 0x3C);\n    func_00000000(arg0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_00006228(char *a0) {\n    func_0000502C((int*)(a0 + 0x3C));\n    func_00000000(a0);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_00006228(char *a0) {\n    func_0000502C((int*)(a0 + 0x3C));\n    func_00000000(a0);\n}",
+  "matched": true,
+  "instruction_count": 11,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1776565078.3557434,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_0000502C",
+    "func_00000000"
+  ],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}
