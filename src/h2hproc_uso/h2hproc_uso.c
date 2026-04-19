@@ -6,7 +6,18 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000002
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000020C);
 
+#ifdef NON_MATCHING
+/* 91.7%: body matches 11/12. Target has trailing 0x00000000 padding that IDO won't emit;
+ * bytes through pos 10 are identical. See feedback_function_trailing_nop_padding.md. */
+void h2hproc_uso_func_00000274_inner(int *arg);
+
+void h2hproc_uso_func_00000274(int *a0) {
+    h2hproc_uso_func_00000274_inner((int*)a0[2]);
+    a0[2] = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000274);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002A4);
 
