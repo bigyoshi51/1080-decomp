@@ -1954,7 +1954,19 @@ int gl_func_0003ED18(int a0) {
     return gl_func_00000000(gl_func_00000000, a0, 0xA0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003ED44);
+extern int gl_func_00000000();
+
+void gl_func_0003ED44(float *a0, int a1) {
+    char buf[0xA0];
+    *(char*)&buf[0x08] = 0;
+    *(int*)&buf[0x48] = 2;
+    *(float**)&buf[0x50] = a0;
+    *(float*)&buf[0x4C] = *a0;
+    *(int*)&buf[0x58] = a1;
+    *(int*)&buf[0x54] = 0;
+    *(int*)&buf[0x00] = 15;
+    gl_func_00000000(buf);
+}
 
 extern int gl_func_00000000();
 void gl_func_0003ED8C(int *a0) {
