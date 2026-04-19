@@ -1075,7 +1075,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 97.67% — register choice for val/val|0x40 ($v0,$t6 vs target $t9,$t0) */
+extern int gl_func_00000000();
+
+void gl_func_0002A4D0(volatile unsigned char *a0) {
+    unsigned int val;
+    if (a0 == 0) return;
+    gl_func_00000000((void*)a0);
+    val = *a0;
+    val &= 0xFF7F;
+    *a0 = val;
+    *a0 = val | 0x40;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A4D0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A50C);
 
