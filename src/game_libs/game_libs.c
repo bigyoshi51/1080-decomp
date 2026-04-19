@@ -1987,7 +1987,22 @@ void gl_func_0003F12C(int a0) {
     gl_func_00000000(&scratch);
 }
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 92% — extra `sw a1, 188(sp)` spill (same family as gl_func_0003F008) */
+extern int gl_func_00000000();
+
+void gl_func_0003F158(int a0, int a1, int a2) {
+    char buf[0x98];
+    int pad;
+    int local;
+    gl_func_00000000(buf);
+    local = 0x2B;
+    *(int*)&buf[0x48] = a2;
+    gl_func_00000000(&local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F158);
+#endif
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: 92.5% — extra `sw a1, 188(sp)` (same family as gl_func_0003F008) */
