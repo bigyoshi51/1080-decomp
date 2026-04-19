@@ -696,18 +696,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DED0);
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: IDO spills a0/a1 defensively; expected skips those spills */
-extern int gl_func_00000000();
+int gl_func_0000DF20_inner(int a0, int a1);
+
 void gl_func_0000DF20(int a0, int a1, float a2) {
-    int rv = gl_func_00000000();
+    int rv = gl_func_0000DF20_inner(a0, a1);
     if (rv != 0) {
         *(float*)(rv + 0x10) = a2;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DF20);
-#endif
 
 extern int gl_func_00000000();
 
