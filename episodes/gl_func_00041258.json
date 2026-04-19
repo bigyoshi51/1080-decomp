@@ -1,0 +1,28 @@
+{
+  "function_name": "gl_func_00041258",
+  "asm_text": "nonmatching gl_func_00041258, 0x20\n\nglabel gl_func_00041258\n    /* E26330 00041258 27BDFFE8 */  .word 0x27BDFFE8\n    /* E26334 0004125C AFBF0014 */  .word 0xAFBF0014\n    /* E26338 00041260 0C000000 */  .word 0x0C000000\n    /* E2633C 00041264 00000000 */  .word 0x00000000\n    /* E26340 00041268 8FBF0014 */  .word 0x8FBF0014\n    /* E26344 0004126C 27BD0018 */  .word 0x27BD0018\n    /* E26348 00041270 03E00008 */  .word 0x03E00008\n    /* E2634C 00041274 00000000 */  .word 0x00000000\nendlabel gl_func_00041258\n",
+  "m2c_output": "",
+  "attempts": [
+    {
+      "c_code": "extern int gl_func_00000000();\nint gl_func_00041258() {\n    return gl_func_00000000();\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern int gl_func_00000000();\nint gl_func_00041258() {\n    return gl_func_00000000();\n}",
+  "matched": true,
+  "instruction_count": 8,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776569177.1116633,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "game_libs"
+}
