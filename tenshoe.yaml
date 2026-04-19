@@ -163,9 +163,39 @@ segments:
     subsegments:
       - [0x5AB6B0, c, h2hproc_uso/h2hproc_uso]
   - [0x5AD1E0, bin, h2hproc_uso_post]
-  - [0x5AF0EC, bin, timproc_uso]
+  # timproc_uso: 9 Yay0 blocks. Code blocks: 1 (55 prol), 3 (55 prol), 5 (98 prol).
+  # Other blocks + interspersed gaps are data — passthrough.
+  - [0x5AF0EC, bin, timproc_uso_pre]              # USO header
+  - [0x5AF18C, bin, timproc_uso_block0_yay0]      # 0x86 (data)
+  - [0x5AF212, bin, timproc_uso_inter01]          # 12 bytes
+  - [0x5AF21E, bin, timproc_uso_block1_yay0]     # 0x18E3 (CODE 55 funcs)
+  - [0x5B0B01, bin, timproc_uso_inter12]          # 13145 bytes data
+  - [0x5B3E5A, bin, timproc_uso_block2_yay0]      # 0x5F (data)
+  - [0x5B3EB9, bin, timproc_uso_inter23]          # 13 bytes
+  - [0x5B3EC6, bin, timproc_uso_block3_yay0]     # 0x19D4 (CODE 55 funcs)
+  - [0x5B589A, bin, timproc_uso_inter34]          # 30236 bytes data
+  - [0x5BCEB6, bin, timproc_uso_block4_yay0]      # 0x3FF (data)
+  - [0x5BD2B5, bin, timproc_uso_inter45]          # 13 bytes
+  - [0x5BD2C2, bin, timproc_uso_block5_yay0]     # 0x75A8 (CODE 98 funcs)
+  - [0x5C486A, bin, timproc_uso_inter56]          # 737272 bytes data
+  - [0x678862, bin, timproc_uso_block6_yay0]      # 0x13828 (data)
+  - [0x68C08A, bin, timproc_uso_inter67]          # 1548 bytes
+  - [0x68C696, bin, timproc_uso_block7_yay0]      # 0x2A724 (data)
+  - [0x6B6DBA, bin, timproc_uso_inter78]          # 2236 bytes
+  - [0x6B7676, bin, timproc_uso_block8_yay0]      # 0x2C8ED (data)
+  - [0x6E3F63, bin, timproc_uso_post]             # 1801 bytes
   - [0x6E466C, bin, map4_data_uso]
-  - [0x7CC8D8, bin, game_uso]
+  # game_uso: 4 Yay0 blocks. Only block 1 has code (200 functions, 0x11B30 uncomp).
+  # Blocks 0/2/3 + inter regions are data — leave as passthrough bin.
+  - [0x7CC8D8, bin, game_uso_pre]              # USO header + RoData + descriptor
+  - [0x7CCBA8, bin, game_uso_block0_yay0]      # 0x3D2 bytes (zero-data)
+  - [0x7CCF7A, bin, game_uso_inter01]          # 12-byte descriptor
+  - [0x7CCF86, bin, game_uso_block1_yay0]      # 0x9D6F bytes (CODE — built from C)
+  - [0x7D6CF5, bin, game_uso_inter12]          # 153289-byte data gap
+  - [0x7FC3BE, bin, game_uso_block2_yay0]      # 0x20AEC bytes (data)
+  - [0x81CEAA, bin, game_uso_inter23]          # 644-byte descriptor
+  - [0x81D12E, bin, game_uso_block3_yay0]      # 0x323D2 bytes (data)
+  - [0x84F500, bin, game_uso_post]             # 504 bytes
   - [0x84F6F8, bin, bg3tex_uso]
   - [0x8A8E60, bin, bg6tex_uso]
   - [0x8BF7B8, bin, bg7tex_uso]

@@ -1128,6 +1128,70 @@
         "compiler": "ido7.1",
         "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
       }
+    },
+    {
+      "name": "src/game_uso/game_uso",
+      "target_path": "expected/src/game_uso/game_uso.c.o",
+      "base_path": "build/src/game_uso/game_uso.c.o",
+      "metadata": {
+        "source_path": "src/game_uso/game_uso.c",
+        "progress_categories": [
+          "game_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/timproc_uso_b1/timproc_uso_b1",
+      "target_path": "expected/src/timproc_uso_b1/timproc_uso_b1.c.o",
+      "base_path": "build/src/timproc_uso_b1/timproc_uso_b1.c.o",
+      "metadata": {
+        "source_path": "src/timproc_uso_b1/timproc_uso_b1.c",
+        "progress_categories": [
+          "timproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/timproc_uso_b3/timproc_uso_b3",
+      "target_path": "expected/src/timproc_uso_b3/timproc_uso_b3.c.o",
+      "base_path": "build/src/timproc_uso_b3/timproc_uso_b3.c.o",
+      "metadata": {
+        "source_path": "src/timproc_uso_b3/timproc_uso_b3.c",
+        "progress_categories": [
+          "timproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/timproc_uso_b5/timproc_uso_b5",
+      "target_path": "expected/src/timproc_uso_b5/timproc_uso_b5.c.o",
+      "base_path": "build/src/timproc_uso_b5/timproc_uso_b5.c.o",
+      "metadata": {
+        "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+        "progress_categories": [
+          "timproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
     }
   ],
   "progress_categories": [
@@ -1190,6 +1254,14 @@
     {
       "id": "mgrproc_uso",
       "name": "mgrproc_uso"
+    },
+    {
+      "id": "game_uso",
+      "name": "game_uso"
+    },
+    {
+      "id": "timproc_uso",
+      "name": "timproc_uso"
     }
   ]
 }

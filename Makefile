@@ -77,7 +77,7 @@ build/src/kernel/kernel_056.c.o: MIPSISET := -mips3 -32
 build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sys.argv[1],'r+b');f.seek(0x24);f.write(bytes.fromhex('10000001'));f.close()" $@
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
-C_FILES   := $(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso -name '*.c' -type f 2>/dev/null)
+C_FILES   := $(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 -name '*.c' -type f 2>/dev/null)
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 
@@ -87,7 +87,11 @@ ASM_O_FILES := $(patsubst asm/%.s,build/asm/%.s.o,$(ASM_FILES))
 BIN_O_FILES := $(patsubst assets/%.bin,build/assets/%.bin.o,$(BIN_FILES))
 
 # Yay0-recompressed blocks (built from C, not extracted from baserom)
-YAY0_O_FILES := build/assets/mgrproc_uso_block1_yay0.bin.o
+YAY0_O_FILES := build/assets/mgrproc_uso_block1_yay0.bin.o \
+                build/assets/game_uso_block1_yay0.bin.o \
+                build/assets/timproc_uso_block1_yay0.bin.o \
+                build/assets/timproc_uso_block3_yay0.bin.o \
+                build/assets/timproc_uso_block5_yay0.bin.o
 
 O_FILES     := $(BIN_O_FILES) $(YAY0_O_FILES) $(C_O_FILES) $(ASM_O_FILES)
 
@@ -136,6 +140,28 @@ build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso.c.o
 	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
+# game_uso block 1: text 0x11B30 bytes uncompressed, 200 functions
+build/assets/game_uso_block1_yay0.bin: build/src/game_uso/game_uso.c.o
+	@mkdir -p $(dir $@)
+	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
+
+# timproc_uso code blocks (1: 55 fn, 3: 55 fn, 5: 99 fn)
+build/assets/timproc_uso_block1_yay0.bin: build/src/timproc_uso_b1/timproc_uso_b1.c.o
+	@mkdir -p $(dir $@)
+	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
+
+build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b3.c.o
+	@mkdir -p $(dir $@)
+	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
+
+build/assets/timproc_uso_block5_yay0.bin: build/src/timproc_uso_b5/timproc_uso_b5.c.o
+	@mkdir -p $(dir $@)
+	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
+
 # Wrap a build/-located .bin into a .o (mirror of the assets/-located rule above)
 build/assets/%.bin.o: build/assets/%.bin
 	@mkdir -p $(dir $@)
@@ -158,7 +184,7 @@ expected:
 	cp build/src/game_libs/*.o expected/src/game_libs/ 2>/dev/null || true
 	for d in gui_uso n64proc_uso eddproc_uso arcproc_uso h2hproc_uso titproc_uso \
 	         boarder1_uso boarder2_uso boarder3_uso boarder4_uso boarder5_uso \
-	         mgrproc_uso; do \
+	         mgrproc_uso game_uso timproc_uso_b1 timproc_uso_b3 timproc_uso_b5; do \
 	    mkdir -p expected/src/$$d; \
 	    cp build/src/$$d/*.o expected/src/$$d/ 2>/dev/null || true; \
 	done

@@ -795,17 +795,140 @@ SECTIONS
     h2hproc_uso_post_ROM_END = __romPos;
     h2hproc_uso_post_VRAM_END = .;
 
+    /* timproc_uso: 9 Yay0 blocks + interspersed bins. Code blocks: 1, 3, 5. */
     timproc_uso_ROM_START = __romPos;
-    timproc_uso_VRAM = ADDR(.timproc_uso);
-    .timproc_uso : AT(timproc_uso_ROM_START)
+    .timproc_uso_pre : AT(__romPos)
     {
         FILL(0x00000000);
-        timproc_uso_DATA_START = .;
-        build/assets/timproc_uso.bin.o(.data);
-        timproc_uso_DATA_END = .;
-        timproc_uso_DATA_SIZE = ABSOLUTE(timproc_uso_DATA_END - timproc_uso_DATA_START);
+        build/assets/timproc_uso_pre.bin.o(.data);
     }
-    __romPos += SIZEOF(.timproc_uso);
+    __romPos += SIZEOF(.timproc_uso_pre);
+
+    .timproc_uso_block0_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block0_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block0_yay0);
+
+    .timproc_uso_inter01 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_inter01.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_inter01);
+
+    .timproc_uso_block1_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block1_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block1_yay0);
+
+    .timproc_uso_inter12 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_inter12.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_inter12);
+
+    .timproc_uso_block2_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block2_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block2_yay0);
+
+    .timproc_uso_inter23 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_inter23.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_inter23);
+
+    .timproc_uso_block3_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block3_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block3_yay0);
+
+    .timproc_uso_inter34 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_inter34.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_inter34);
+
+    .timproc_uso_block4_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block4_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block4_yay0);
+
+    .timproc_uso_inter45 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_inter45.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_inter45);
+
+    .timproc_uso_block5_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block5_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block5_yay0);
+
+    .timproc_uso_inter56 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_inter56.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_inter56);
+
+    .timproc_uso_block6_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block6_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block6_yay0);
+
+    .timproc_uso_inter67 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_inter67.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_inter67);
+
+    .timproc_uso_block7_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block7_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block7_yay0);
+
+    .timproc_uso_inter78 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_inter78.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_inter78);
+
+    .timproc_uso_block8_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_block8_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_block8_yay0);
+
+    .timproc_uso_post : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/timproc_uso_post.bin.o(.data);
+    }
+    __romPos += SIZEOF(.timproc_uso_post);
     timproc_uso_ROM_END = __romPos;
     timproc_uso_VRAM_END = .;
 
