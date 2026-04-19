@@ -1,0 +1,28 @@
+{
+  "function_name": "gl_func_00006DC8",
+  "asm_text": "nonmatching gl_func_00006DC8, 0x30\n\nglabel gl_func_00006DC8\n    /* DEBEA0 00006DC8 27BDFFE8 */  .word 0x27BDFFE8\n    /* DEBEA4 00006DCC AFBF0014 */  .word 0xAFBF0014\n    /* DEBEA8 00006DD0 240501E0 */  .word 0x240501E0\n    /* DEBEAC 00006DD4 0C000000 */  .word 0x0C000000\n    /* DEBEB0 00006DD8 00003025 */  .word 0x00003025\n    /* DEBEB4 00006DDC 3C020000 */  .word 0x3C020000\n    /* DEBEB8 00006DE0 8C420138 */  .word 0x8C420138\n    /* DEBEBC 00006DE4 AC4000B4 */  .word 0xAC4000B4\n    /* DEBEC0 00006DE8 8FBF0014 */  .word 0x8FBF0014\n    /* DEBEC4 00006DEC 27BD0018 */  .word 0x27BD0018\n    /* DEBEC8 00006DF0 03E00008 */  .word 0x03E00008\n    /* DEBECC 00006DF4 00000000 */  .word 0x00000000\nendlabel gl_func_00006DC8\n",
+  "m2c_output": "",
+  "attempts": [
+    {
+      "c_code": "extern int gl_func_00000000();\nextern int *gl_ref_00000138;\n\nvoid gl_func_00006DC8(int a0) {\n    int *p;\n    gl_func_00000000(a0, 0x1E0, 0);\n    p = gl_ref_00000138;\n    p[45] = 0;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern int gl_func_00000000();\nextern int *gl_ref_00000138;\n\nvoid gl_func_00006DC8(int a0) {\n    int *p;\n    gl_func_00000000(a0, 0x1E0, 0);\n    p = gl_ref_00000138;\n    p[45] = 0;\n}",
+  "matched": true,
+  "instruction_count": 12,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776605123.0348783,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "game_libs"
+}

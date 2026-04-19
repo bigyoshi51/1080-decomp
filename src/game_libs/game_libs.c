@@ -180,7 +180,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006C38);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006CDC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006DC8);
+extern int gl_func_00000000();
+extern int *gl_ref_00000138;
+
+void gl_func_00006DC8(int a0) {
+    int *p;
+    gl_func_00000000(a0, 0x1E0, 0);
+    p = gl_ref_00000138;
+    p[45] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006DF8);
 
