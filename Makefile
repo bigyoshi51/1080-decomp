@@ -132,10 +132,18 @@ verify: $(ROM)
 # Snapshot expected objects for objdiff baseline
 expected:
 	$(RM) -r expected
-	mkdir -p expected/src/kernel expected/src/bootup_uso expected/src/game_libs
+	mkdir -p expected/src/kernel expected/src/bootup_uso expected/src/game_libs \
+		expected/src/gui_uso expected/src/n64proc_uso expected/src/eddproc_uso \
+		expected/src/arcproc_uso expected/src/h2hproc_uso expected/src/titproc_uso \
+		expected/src/boarder1_uso expected/src/boarder2_uso expected/src/boarder3_uso \
+		expected/src/boarder4_uso expected/src/boarder5_uso
 	cp build/src/kernel/*.o expected/src/kernel/
 	cp build/src/bootup_uso/*.o expected/src/bootup_uso/ 2>/dev/null || true
 	cp build/src/game_libs/*.o expected/src/game_libs/ 2>/dev/null || true
+	for d in gui_uso n64proc_uso eddproc_uso arcproc_uso h2hproc_uso titproc_uso \
+	         boarder1_uso boarder2_uso boarder3_uso boarder4_uso boarder5_uso; do \
+	    cp build/src/$$d/*.o expected/src/$$d/ 2>/dev/null || true; \
+	done
 
 clean:
 	rm -rf build $(ROM)

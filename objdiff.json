@@ -911,7 +911,9 @@
       "base_path": "build/src/bootup_uso/bootup_uso.c.o",
       "metadata": {
         "source_path": "src/bootup_uso/bootup_uso.c",
-        "progress_categories": ["bootup_uso"]
+        "progress_categories": [
+          "bootup_uso"
+        ]
       },
       "scratch": {
         "platform": "n64",
@@ -925,7 +927,185 @@
       "base_path": "build/src/game_libs/game_libs.c.o",
       "metadata": {
         "source_path": "src/game_libs/game_libs.c",
-        "progress_categories": ["game_libs"]
+        "progress_categories": [
+          "game_libs"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/gui_uso/gui_uso",
+      "target_path": "expected/src/gui_uso/gui_uso.c.o",
+      "base_path": "build/src/gui_uso/gui_uso.c.o",
+      "metadata": {
+        "source_path": "src/gui_uso/gui_uso.c",
+        "progress_categories": [
+          "gui_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/n64proc_uso/n64proc_uso",
+      "target_path": "expected/src/n64proc_uso/n64proc_uso.c.o",
+      "base_path": "build/src/n64proc_uso/n64proc_uso.c.o",
+      "metadata": {
+        "source_path": "src/n64proc_uso/n64proc_uso.c",
+        "progress_categories": [
+          "n64proc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/eddproc_uso/eddproc_uso",
+      "target_path": "expected/src/eddproc_uso/eddproc_uso.c.o",
+      "base_path": "build/src/eddproc_uso/eddproc_uso.c.o",
+      "metadata": {
+        "source_path": "src/eddproc_uso/eddproc_uso.c",
+        "progress_categories": [
+          "eddproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/arcproc_uso/arcproc_uso",
+      "target_path": "expected/src/arcproc_uso/arcproc_uso.c.o",
+      "base_path": "build/src/arcproc_uso/arcproc_uso.c.o",
+      "metadata": {
+        "source_path": "src/arcproc_uso/arcproc_uso.c",
+        "progress_categories": [
+          "arcproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/h2hproc_uso/h2hproc_uso",
+      "target_path": "expected/src/h2hproc_uso/h2hproc_uso.c.o",
+      "base_path": "build/src/h2hproc_uso/h2hproc_uso.c.o",
+      "metadata": {
+        "source_path": "src/h2hproc_uso/h2hproc_uso.c",
+        "progress_categories": [
+          "h2hproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/titproc_uso/titproc_uso",
+      "target_path": "expected/src/titproc_uso/titproc_uso.c.o",
+      "base_path": "build/src/titproc_uso/titproc_uso.c.o",
+      "metadata": {
+        "source_path": "src/titproc_uso/titproc_uso.c",
+        "progress_categories": [
+          "titproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/boarder1_uso/boarder1_uso",
+      "target_path": "expected/src/boarder1_uso/boarder1_uso.c.o",
+      "base_path": "build/src/boarder1_uso/boarder1_uso.c.o",
+      "metadata": {
+        "source_path": "src/boarder1_uso/boarder1_uso.c",
+        "progress_categories": [
+          "boarder1_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/boarder2_uso/boarder2_uso",
+      "target_path": "expected/src/boarder2_uso/boarder2_uso.c.o",
+      "base_path": "build/src/boarder2_uso/boarder2_uso.c.o",
+      "metadata": {
+        "source_path": "src/boarder2_uso/boarder2_uso.c",
+        "progress_categories": [
+          "boarder2_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/boarder3_uso/boarder3_uso",
+      "target_path": "expected/src/boarder3_uso/boarder3_uso.c.o",
+      "base_path": "build/src/boarder3_uso/boarder3_uso.c.o",
+      "metadata": {
+        "source_path": "src/boarder3_uso/boarder3_uso.c",
+        "progress_categories": [
+          "boarder3_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/boarder4_uso/boarder4_uso",
+      "target_path": "expected/src/boarder4_uso/boarder4_uso.c.o",
+      "base_path": "build/src/boarder4_uso/boarder4_uso.c.o",
+      "metadata": {
+        "source_path": "src/boarder4_uso/boarder4_uso.c",
+        "progress_categories": [
+          "boarder4_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/boarder5_uso/boarder5_uso",
+      "target_path": "expected/src/boarder5_uso/boarder5_uso.c.o",
+      "base_path": "build/src/boarder5_uso/boarder5_uso.c.o",
+      "metadata": {
+        "source_path": "src/boarder5_uso/boarder5_uso.c",
+        "progress_categories": [
+          "boarder5_uso"
+        ]
       },
       "scratch": {
         "platform": "n64",
@@ -935,8 +1115,61 @@
     }
   ],
   "progress_categories": [
-    {"id": "kernel", "name": "Kernel"},
-    {"id": "bootup_uso", "name": "Bootup USO"},
-    {"id": "game_libs", "name": "Game Libs"}
+    {
+      "id": "kernel",
+      "name": "Kernel"
+    },
+    {
+      "id": "bootup_uso",
+      "name": "Bootup USO"
+    },
+    {
+      "id": "game_libs",
+      "name": "Game Libs"
+    },
+    {
+      "id": "gui_uso",
+      "name": "gui_uso"
+    },
+    {
+      "id": "n64proc_uso",
+      "name": "n64proc_uso"
+    },
+    {
+      "id": "eddproc_uso",
+      "name": "eddproc_uso"
+    },
+    {
+      "id": "arcproc_uso",
+      "name": "arcproc_uso"
+    },
+    {
+      "id": "h2hproc_uso",
+      "name": "h2hproc_uso"
+    },
+    {
+      "id": "titproc_uso",
+      "name": "titproc_uso"
+    },
+    {
+      "id": "boarder1_uso",
+      "name": "boarder1_uso"
+    },
+    {
+      "id": "boarder2_uso",
+      "name": "boarder2_uso"
+    },
+    {
+      "id": "boarder3_uso",
+      "name": "boarder3_uso"
+    },
+    {
+      "id": "boarder4_uso",
+      "name": "boarder4_uso"
+    },
+    {
+      "id": "boarder5_uso",
+      "name": "boarder5_uso"
+    }
   ]
 }
