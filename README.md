@@ -10,8 +10,8 @@ Three segments are now being decompiled. USO overlays ship as a custom relocatab
 |----------------|------------|--------------------|-------------------------------------------|
 | `kernel`       | 94 / 237   | 9.1 KB / 39.5 KB   | libultra + USO loader + audio (`0x80000000`) |
 | `bootup_uso`   | 124 / 359  | 5.7 KB / 81.6 KB   | Giles Goddard's libgdl engine             |
-| `game_libs`    | 97 / 1,371 | 4.4 KB / 469 KB    | Support libraries — wrapper mass-match    |
-| **Total**      | **315 / 1,967** | **19.1 KB / 590 KB (3.25%)** |                                |
+| `game_libs`    | 123 / 1,371 | 5.9 KB / 469 KB   | Support libraries — wrapper mass-match    |
+| **Total**      | **341 / 1,967** | **20.7 KB / 590 KB (3.50%)** |                                |
 
 Remaining USO overlays (`game.uso`, character models, audio banks, etc.) are still opaque binary blobs — wiring them up is straightforward but currently deferred.
 
