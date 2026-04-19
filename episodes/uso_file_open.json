@@ -1,0 +1,35 @@
+{
+  "function_name": "uso_file_open",
+  "asm_text": "\nnonmatching uso_file_open, 0x9C\n\nglabel uso_file_open\n    /* 1698 80000698 27BDFFD8 */  addiu      $sp, $sp, -0x28\n    /* 169C 8000069C AFBF0014 */  sw         $ra, 0x14($sp)\n    /* 16A0 800006A0 AFA40028 */  sw         $a0, 0x28($sp)\n    /* 16A4 800006A4 AFA5002C */  sw         $a1, 0x2C($sp)\n    /* 16A8 800006A8 2405000C */  addiu      $a1, $zero, 0xC\n    /* 16AC 800006AC 8FA70028 */  lw         $a3, 0x28($sp)\n    /* 16B0 800006B0 27A40018 */  addiu      $a0, $sp, 0x18\n    /* 16B4 800006B4 0C000276 */  jal        func_800009D8\n    /* 16B8 800006B8 24060001 */   addiu     $a2, $zero, 0x1\n    /* 16BC 800006BC 04410004 */  bgez       $v0, .L800006D0\n    /* 16C0 800006C0 8FAE0018 */   lw        $t6, 0x18($sp)\n    /* 16C4 800006C4 3C028001 */  lui        $v0, %hi(D_80013004)\n    /* 16C8 800006C8 10000016 */  b          .L80000724\n    /* 16CC 800006CC 8C423004 */   lw        $v0, %lo(D_80013004)($v0)\n  .L800006D0:\n    /* 16D0 800006D0 2401000A */  addiu      $at, $zero, 0xA\n    /* 16D4 800006D4 15C10003 */  bne        $t6, $at, .L800006E4\n    /* 16D8 800006D8 8FA4002C */   lw        $a0, 0x2C($sp)\n    /* 16DC 800006DC 10000011 */  b          .L80000724\n    /* 16E0 800006E0 00001025 */   or        $v0, $zero, $zero\n  .L800006E4:\n    /* 16E4 800006E4 8FA5001C */  lw         $a1, 0x1C($sp)\n    /* 16E8 800006E8 24060001 */  addiu      $a2, $zero, 0x1\n    /* 16EC 800006EC 0C000276 */  jal        func_800009D8\n    /* 16F0 800006F0 8FA70028 */   lw        $a3, 0x28($sp)\n    /* 16F4 800006F4 04410004 */  bgez       $v0, .L80000708\n    /* 16F8 800006F8 8FAF002C */   lw        $t7, 0x2C($sp)\n    /* 16FC 800006FC 3C028001 */  lui        $v0, %hi(D_80013004)\n    /* 1700 80000700 10000008 */  b          .L80000724\n    /* 1704 80000704 8C423004 */   lw        $v0, %lo(D_80013004)($v0)\n  .L80000708:\n    /* 1708 80000708 8DF80000 */  lw         $t8, 0x0($t7)\n    /* 170C 8000070C 3C011234 */  lui        $at, (0x12345678 >> 16)\n    /* 1710 80000710 34215678 */  ori        $at, $at, (0x12345678 & 0xFFFF)\n    /* 1714 80000714 13010003 */  beq        $t8, $at, .L80000724\n    /* 1718 80000718 24020001 */   addiu     $v0, $zero, 0x1\n    /* 171C 8000071C 10000001 */  b          .L80000724\n    /* 1720 80000720 2402FFEB */   addiu     $v0, $zero, -0x15\n  .L80000724:\n    /* 1724 80000724 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* 1728 80000728 27BD0028 */  addiu      $sp, $sp, 0x28\n    /* 172C 8000072C 03E00008 */  jr         $ra\n    /* 1730 80000730 00000000 */   nop\nendlabel uso_file_open\n",
+  "m2c_output": "s32 func_800009D8(s32 *, s32, ?, s32);              /* extern */\nextern s32 D_80013004;\n\ns32 uso_file_open(s32 arg0, s32 *arg1) {\n    s32 sp18;\n    s32 var_v0;\n\n    if (func_800009D8(&sp18, 0xC, 1, arg0) < 0) {\n        return D_80013004;\n    }\n    if (sp18 == 0xA) {\n        return 0;\n    }\n    if (func_800009D8(arg1, sp1C, 1, arg0) < 0) {\n        return D_80013004;\n    }\n    var_v0 = 1;\n    if (*arg1 != 0x12345678) {\n        var_v0 = -0x15;\n    }\n    return var_v0;\n}\n",
+  "attempts": [
+    {
+      "c_code": "s32 uso_file_open(FileState* file, u32* arg1) {\n    u32 header[3];\n\n    if (func_800009D8(header, 0xC, 1, file) < 0) {\n        return D_80013004;\n    }\n    if (header[0] == 0xA) {\n        return 0;\n    }\n    if (func_800009D8(arg1, header[1], 1, file) < 0) {\n        return D_80013004;\n    }\n    if (*arg1 == 0x12345678) {\n        return 1;\n    }\n    return -0x15;\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2",
+      "notes": "Matched on the first in-file attempt. Verified by identical objdump output for uso_file_open in build/src/kernel/kernel_000.c.o versus expected/src/kernel/kernel_000.c.o."
+    }
+  ],
+  "final_c": "s32 uso_file_open(FileState* file, u32* arg1) {\n    u32 header[3];\n\n    if (func_800009D8(header, 0xC, 1, file) < 0) {\n        return D_80013004;\n    }\n    if (header[0] == 0xA) {\n        return 0;\n    }\n    if (func_800009D8(arg1, header[1], 1, file) < 0) {\n        return D_80013004;\n    }\n    if (*arg1 == 0x12345678) {\n        return 1;\n    }\n    return -0x15;\n}\n",
+  "matched": true,
+  "instruction_count": 39,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1776571923,
+  "game": "1080_snowboarding",
+  "compiler": "ido7.1",
+  "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+  "nearby_decompiled": [
+    "func_80000260",
+    "func_800003A8"
+  ],
+  "called_functions": [
+    "func_800009D8"
+  ],
+  "referenced_data": [
+    "D_80013004"
+  ],
+  "segment": "kernel"
+}
