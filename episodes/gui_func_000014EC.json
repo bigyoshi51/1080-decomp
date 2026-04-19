@@ -1,0 +1,26 @@
+{
+  "function_name": "gui_func_000014EC",
+  "project": "1080 Snowboarding (USA)",
+  "model": "manual",
+  "start_time": "2026-04-19T18:14:33.343973+00:00",
+  "end_time": "2026-04-19T18:14:33.344009+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T18:14:33.343999+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\n\nint gui_func_000014EC(int a0, int a1, int a2) {\n    return a1 - gl_func_00000000(a0, a2);\n}",
+  "metadata": {}
+}

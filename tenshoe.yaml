@@ -25,6 +25,12 @@ options:
   find_file_boundaries: False
   use_legacy_include_asm: False
 
+  # Match the existing bootup_uso/game_libs asm format (no .set noat header,
+  # `nonmatching SIZE` instead of size directive).
+  asm_inc_header: ""
+  asm_nonmatching_label_macro: "nonmatching"
+  asm_emit_size_directive: False
+
 segments:
   - [0x0, bin, header]
   - [0x40, bin, ipl3]
@@ -61,7 +67,19 @@ segments:
   - [0x5726FC, bin, boarder3_uso]
   - [0x57AE94, bin, boarder4_uso]
   - [0x584160, bin, boarder5_uso]
-  - [0x58D484, bin, gui_uso]
+  # gui_uso: 21 KB code-bearing USO. Same VRAM=0 pattern as bootup_uso/game_libs.
+  # Header at 0x58D484 (filesystem entry, magic 0x12345678 + name "gui.uso").
+  # Inner USO data magic at 0x58D4AC. Text section starts at 0x58D530 with size
+  # 0x4880 (per inline section header).
+  - [0x58D484, bin, gui_uso_pre]
+  - name: gui_uso
+    type: code
+    start: 0x58D530
+    vram: 0x00000000
+    symbol_name_format: gui_$VRAM
+    subsegments:
+      - [0x58D530, c, gui_uso/gui_uso]
+  - [0x591DB0, bin, gui_uso_post]
   - [0x5926B4, bin, n64proc_uso]
   - [0x5953E0, bin, titproc_uso]
   - [0x59F1F4, bin, eddproc_uso]
