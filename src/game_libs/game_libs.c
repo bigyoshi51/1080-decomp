@@ -937,7 +937,19 @@ void gl_func_00026C48(int a0, int a1) {
     gl_ref_0003B244(a0, &a1);
 }
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 91% — target has `or a2, a1, zero` + sll from a2 that IDO C won't emit */
+extern int gl_ref_0003B244();
+void gl_func_00026C6C(int a0, int a1) {
+    int local;
+    int *dummy = &a1;
+    local = a1 << 24;
+    gl_ref_0003B244(a0, &local);
+    (void)dummy;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C6C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C9C);
 
@@ -2122,7 +2134,13 @@ int gl_func_000424D8() {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000424FC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042540);
+extern int gl_func_00000000();
+extern char gl_ref_0001FCBC;
+extern int gl_ref_0001FB14;
+
+int gl_func_00042540(int a0) {
+    return gl_func_00000000(&gl_ref_0001FCBC, a0, gl_ref_0001FB14);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042570);
 
