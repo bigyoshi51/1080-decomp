@@ -1199,7 +1199,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003341C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003344C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000334B0);
+extern int gl_func_00000000();
+extern char gl_ref_0001E250;
+void gl_func_000334B0(int a0, int a1, int a2) {
+    gl_func_00000000(&gl_ref_0001E250, a0, a1, a2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000334E8);
 
