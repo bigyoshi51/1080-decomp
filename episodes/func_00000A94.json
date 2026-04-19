@@ -1,0 +1,28 @@
+{
+  "function_name": "func_00000A94",
+  "asm_text": "nonmatching func_00000A94, 0x8\n\nglabel func_00000A94\n    /* DD1500 00000A94 03E00008 */  jr         $ra\n    /* DD1504 00000A98 AC850008 */   sw        $a1, 0x8($a0)\nendlabel func_00000A94\n",
+  "m2c_output": "void func_00000A94(void *arg0, s32 arg1) {\n    arg0->unk8 = arg1;\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_00000A94(int *a0, int a1) { a0[2] = a1; }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_00000A94(int *a0, int a1) { a0[2] = a1; }",
+  "matched": true,
+  "instruction_count": 2,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776562970.8691697,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

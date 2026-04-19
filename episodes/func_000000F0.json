@@ -1,0 +1,30 @@
+{
+  "function_name": "func_000000F0",
+  "asm_text": "nonmatching func_000000F0, 0x58\n\nglabel func_000000F0\n    /* DD0B5C 000000F0 27BDFFD8 */  addiu      $sp, $sp, -0x28\n    /* DD0B60 000000F4 AFA40028 */  sw         $a0, 0x28($sp)\n    /* DD0B64 000000F8 AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD0B68 000000FC 3C040000 */  lui        $a0, (0x0 >> 16)\n    /* DD0B6C 00000100 24840000 */  addiu      $a0, $a0, 0x0\n    /* DD0B70 00000104 27A50018 */  addiu      $a1, $sp, 0x18\n    /* DD0B74 00000108 0C000000 */  jal        func_00000000\n    /* DD0B78 0000010C 24060010 */   addiu     $a2, $zero, 0x10\n    /* DD0B7C 00000110 27AF0018 */  addiu      $t7, $sp, 0x18\n    /* DD0B80 00000114 8DF90000 */  lw         $t9, 0x0($t7)\n    /* DD0B84 00000118 8FAE0028 */  lw         $t6, 0x28($sp)\n    /* DD0B88 0000011C ADD90000 */  sw         $t9, 0x0($t6)\n    /* DD0B8C 00000120 8DF80004 */  lw         $t8, 0x4($t7)\n    /* DD0B90 00000124 ADD80004 */  sw         $t8, 0x4($t6)\n    /* DD0B94 00000128 8DF90008 */  lw         $t9, 0x8($t7)\n    /* DD0B98 0000012C ADD90008 */  sw         $t9, 0x8($t6)\n    /* DD0B9C 00000130 8DF8000C */  lw         $t8, 0xC($t7)\n    /* DD0BA0 00000134 ADD8000C */  sw         $t8, 0xC($t6)\n    /* DD0BA4 00000138 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD0BA8 0000013C 27BD0028 */  addiu      $sp, $sp, 0x28\n    /* DD0BAC 00000140 03E00008 */  jr         $ra\n    /* DD0BB0 00000144 00000000 */   nop\nendlabel func_000000F0\n",
+  "m2c_output": "? func_00000000(?, ? *, ?);                         /* extern */\n\nvoid func_000000F0(void *arg0) {\n    ? sp18;\n\n    func_00000000(0, &sp18, 0x10);\n    arg0->unk0 = (s32) sp18.unk0;\n    arg0->unk4 = (s32) sp18.unk4;\n    arg0->unk8 = (s32) sp18.unk8;\n    arg0->unkC = (s32) sp18.unkC;\n}\n",
+  "attempts": [
+    {
+      "c_code": "typedef struct { int a, b, c, d; } Quad4;\nvoid func_000000F0(Quad4 *dst) {\n    Quad4 buf;\n    func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "typedef struct { int a, b, c, d; } Quad4;\nvoid func_000000F0(Quad4 *dst) {\n    Quad4 buf;\n    func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}",
+  "matched": true,
+  "instruction_count": 22,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1776562970.6337035,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

@@ -1,0 +1,28 @@
+{
+  "function_name": "func_00000B14",
+  "asm_text": "nonmatching func_00000B14, 0x18\n\nglabel func_00000B14\n    /* DD1580 00000B14 8C820000 */  lw         $v0, 0x0($a0)\n    /* DD1584 00000B18 10400002 */  beqz       $v0, .L00000B24\n    /* DD1588 00000B1C 00000000 */   nop\n    /* DD158C 00000B20 A045001D */  sb         $a1, 0x1D($v0)\n  .L00000B24:\n    /* DD1590 00000B24 03E00008 */  jr         $ra\n    /* DD1594 00000B28 00000000 */   nop\nendlabel func_00000B14\n",
+  "m2c_output": "void func_00000B14(void **arg0, s8 arg1) {\n    void *temp_v0;\n\n    temp_v0 = *arg0;\n    if (temp_v0 != NULL) {\n        temp_v0->unk1D = arg1;\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_00000B14(int **a0, int a1) {\n    int *v0 = *a0;\n    if (v0 != 0) ((char*)v0)[0x1D] = (char)a1;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_00000B14(int **a0, int a1) {\n    int *v0 = *a0;\n    if (v0 != 0) ((char*)v0)[0x1D] = (char)a1;\n}",
+  "matched": true,
+  "instruction_count": 6,
+  "has_branches": true,
+  "has_calls": false,
+  "timestamp": 1776562971.3471963,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}
