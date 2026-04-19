@@ -572,3 +572,4 @@ D_A0000200 = 0xA0000200;
 /* Cross-function .L labels referenced as float data from other INCLUDE_ASM'd functions. */
 .L0000087C = 0x0000087C;
 .L000008A8 = 0x000008A8;
+D_00000000 = 0x00000000;

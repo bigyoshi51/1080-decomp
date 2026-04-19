@@ -5,9 +5,18 @@
 void func_00000000() {
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000008);
+extern char D_00000000;
+void func_00000008(int *dst) {
+    int buf[2];
+    func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000044);
+void func_00000044(float *dst) {
+    float buf[2];
+    func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000080);
 
