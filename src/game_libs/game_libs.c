@@ -2052,7 +2052,25 @@ void gl_func_0003EF2C(int a0, int a1, int a2, int a3, int a4, int a5) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EF2C);
 #endif
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: ~94% — a1-spill family, 6-arg variant (same as gl_func_0003EF2C) */
+extern int gl_func_00000000();
+
+void gl_func_0003EF78(int a0, int a1, int a2, int a3, int a4, int a5) {
+    char buf[0x98];
+    int pad;
+    int local;
+    *(int*)&buf[0x48] = a2;
+    *(int*)&buf[0x4C] = a3;
+    *(int*)&buf[0x40] = a4;
+    *(int*)&buf[0x44] = a5;
+    gl_func_00000000(buf);
+    local = 4;
+    gl_func_00000000(&local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EF78);
+#endif
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: 93% — same a1-spill family as gl_func_0003F008 */
