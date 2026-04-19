@@ -1,0 +1,26 @@
+{
+  "function_name": "game_uso_func_00000280",
+  "project": "1080 Snowboarding (USA)",
+  "model": "manual",
+  "start_time": "2026-04-19T21:25:50.606685+00:00",
+  "end_time": "2026-04-19T21:25:50.606712+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T21:25:50.606705+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nextern char D_00000000;\nvoid game_uso_func_00000280(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}",
+  "metadata": {}
+}

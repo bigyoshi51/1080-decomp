@@ -1,0 +1,26 @@
+{
+  "function_name": "game_uso_func_000001D4",
+  "project": "1080 Snowboarding (USA)",
+  "model": "manual",
+  "start_time": "2026-04-19T21:29:39.094461+00:00",
+  "end_time": "2026-04-19T21:29:39.094487+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T21:29:39.094480+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c; } Tri3i;\ntypedef struct { float x, y, z; } Vec3;\nvoid game_uso_func_000001D4(Vec3 *dst) {\n    int pad_top[1];\n    Tri3i raw;\n    int pad_mid[2];\n    Tri3i tmp;\n    int pad_bot[2];\n    gl_func_00000000(&D_00000000, &raw, 12);\n    tmp = raw;\n    dst->x = *(float*)&tmp.a;\n    dst->y = *(float*)&tmp.b;\n    dst->z = *(float*)&tmp.c;\n}",
+  "metadata": {}
+}

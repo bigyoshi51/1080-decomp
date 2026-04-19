@@ -2,11 +2,38 @@
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000001D4);
+extern int gl_func_00000000();
+extern char D_00000000;
+typedef struct { int a, b, c; } Tri3i;
+typedef struct { float x, y, z; } Vec3;
+void game_uso_func_000001D4(Vec3 *dst) {
+    int pad_top[1];
+    Tri3i raw;
+    int pad_mid[2];
+    Tri3i tmp;
+    int pad_bot[2];
+    gl_func_00000000(&D_00000000, &raw, 12);
+    tmp = raw;
+    dst->x = *(float*)&tmp.a;
+    dst->y = *(float*)&tmp.b;
+    dst->z = *(float*)&tmp.c;
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000244);
+extern int gl_func_00000000();
+extern char D_00000000;
+void game_uso_func_00000244(float *dst) {
+    float buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000280);
+extern int gl_func_00000000();
+extern char D_00000000;
+void game_uso_func_00000280(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000002BC);
 
