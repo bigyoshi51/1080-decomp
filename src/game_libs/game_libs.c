@@ -3188,7 +3188,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067168);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006719C);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: expected saves a0 to a3 before using, mine uses a0 directly */
+extern int gl_func_00000000();
+extern char gl_ref_000416E0;
+void gl_func_000671E4(char *a0) {
+    *(int*)(a0 + 0x13E8) = 0;
+    *(int*)&gl_ref_000416E0 = 1;
+    gl_func_00000000(a0 + 0x11B0, &gl_ref_000416E0, 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000671E4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067220);
 
