@@ -446,7 +446,30 @@ void func_800010CC(s32 a0, ...) {
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800010E8);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
+extern s32 D_80012D30;
+extern s32 D_80012D34;
+extern s32 D_80012D38;
+extern s32 D_80012D3C[];
+extern s32 D_80012D5C;
+
+void func_80001184(void) {
+    s32* ptr;
+    s32* end;
+
+    D_80012D5C = 0;
+    D_80012D30 = 0;
+    D_80012D34 = 0;
+    D_80012D38 = 0;
+    ptr = D_80012D3C;
+    end = &D_80012D5C;
+    do {
+        ptr += 4;
+        ptr[-4] = 0;
+        ptr[-3] = 0;
+        ptr[-2] = 0;
+        ptr[-1] = 0;
+    } while (ptr != end);
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_find_file);
 
