@@ -1936,7 +1936,16 @@ void gl_func_0003F3A4(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F3D0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F410);
+extern int gl_func_00000000();
+
+void gl_func_0003F410(int a0) {
+    char buf[0x98];
+    int pad;
+    int local;
+    gl_func_00000000(buf);
+    local = 6;
+    gl_func_00000000(&local);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F444);
 
