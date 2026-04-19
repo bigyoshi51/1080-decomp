@@ -8,7 +8,8 @@ usage: ./scripts/land-successful-decomp.sh <function_name> [<function_name> ...]
 
 This script only lands verified exact decompiles. For each named function it
 requires:
-- no fuzzy_match_percent entry in report.json
+- report.json to mark it exact (either no fuzzy_match_percent entry or
+  fuzzy_match_percent == 100.0)
 - no INCLUDE_ASM fallback still present in src/
 - episodes/<function_name>.json exists and passes the canonical schema validator
 EOF
@@ -65,7 +66,7 @@ for name in want:
         errors.append(f"{name}: not present in report.json")
         continue
     fuzzy = fn.get("fuzzy_match_percent")
-    if fuzzy != 100.0:
+    if fuzzy is not None and fuzzy != 100.0:
         errors.append(
             f"{name}: not an exact match (fuzzy_match_percent={fuzzy})"
         )

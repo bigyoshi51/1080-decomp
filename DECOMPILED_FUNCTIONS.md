@@ -71,12 +71,15 @@ current worktree and the main worktree.
 
 Important: this script is for exact matches only. It now refuses to land a
 named function unless:
-- `report.json` has no `fuzzy_match_percent` for that function
+- `report.json` marks it exact (either no `fuzzy_match_percent` or
+  `fuzzy_match_percent == 100.0`)
 - the function no longer has an `INCLUDE_ASM` fallback in `src/`
 - `episodes/<function_name>.json` exists and passes `../../scripts/validate_episode_schema.py --require-match`
 
 If the function is still fuzzy, keep it wrapped as `NON_MATCHING` and do not
 log an episode.
+Before treating a function as exact, also compare built vs expected with
+`objdump -M no-aliases`; aliased disassembly can hide real opcode differences.
 
 ## Fragment Merges Performed
 
