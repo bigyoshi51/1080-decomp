@@ -3903,7 +3903,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067220);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067264);
 
+#ifdef NON_MATCHING
+/* 88.9%: simple no-arg wrapper (body matches 8/9 bytes). Target has trailing 0x00000000 padding
+ * that IDO won't emit. See feedback_function_trailing_nop_padding.md. */
+void gl_func_00067370(void) {
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067370);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067394);
 
