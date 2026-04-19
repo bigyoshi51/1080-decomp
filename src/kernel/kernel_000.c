@@ -372,7 +372,45 @@ s32 func_800007C4(s32 a0, s32 a1) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800007D4);
+typedef struct {
+    char pad_00[0x14];
+    s32 field_14;
+    char pad_18[0x34];
+    s32 field_4C;
+    char pad_50[0x22];
+} UsoEntry74;
+
+typedef struct {
+    char pad_00[0x84];
+    void (*field_84)(void*, void*, s32, s32);
+} UsoCallbacks84;
+
+extern s32 D_8000A2E4;
+extern s32 D_80012F7C;
+
+void func_800007D4(void) {
+    UsoEntry74** var_s0;
+    void* arg0;
+    UsoCallbacks84* state;
+    UsoEntry74** end;
+    UsoEntry74* temp_v0;
+
+    var_s0 = (UsoEntry74**)&D_80012D60;
+    arg0 = &D_8000A2E4;
+    state = (UsoCallbacks84*)&D_80012BC0;
+    end = (UsoEntry74**)&D_80012F7C;
+    temp_v0 = *var_s0;
+    do {
+        if (temp_v0 != 0) {
+            s32 temp_a2 = temp_v0->field_4C;
+            state->field_84(arg0, (char*)temp_v0 + 0x72, temp_a2, temp_a2 + temp_v0->field_14);
+        }
+        var_s0++;
+        if (var_s0 != end) {
+            temp_v0 = *var_s0;
+        }
+    } while (var_s0 != end);
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000085C);
 
