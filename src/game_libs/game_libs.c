@@ -1899,7 +1899,16 @@ void gl_func_0003ED8C(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EDBC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EE1C);
+extern int gl_func_00000000();
+
+void gl_func_0003EE1C(int a0) {
+    char buf[0x98];
+    int pad;
+    int local;
+    gl_func_00000000(buf);
+    local = 0x11;
+    gl_func_00000000(&local);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EE50);
 
