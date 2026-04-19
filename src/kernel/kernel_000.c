@@ -188,7 +188,25 @@ s32 func_8000058C(s32 arg0) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
+void func_80000598(u8* src, u8* dst, s32 count) {
+    s32 remaining;
+    u8* dstCurr;
+    u8* srcCurr;
+    u8 byte;
+
+    srcCurr = src;
+    dstCurr = dst;
+    remaining = count - 1;
+    if (count != 0) {
+        do {
+            byte = *srcCurr;
+            *dstCurr = byte;
+            dstCurr++;
+            srcCurr++;
+            remaining--;
+        } while (remaining != 0);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800005DC);
 

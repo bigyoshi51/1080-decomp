@@ -1,0 +1,31 @@
+{
+  "function_name": "func_80000598",
+  "asm_text": "\nnonmatching func_80000598, 0x40\n\nglabel func_80000598\n    /* 1598 80000598 00C03825 */  or         $a3, $a2, $zero\n    /* 159C 8000059C 00801025 */  or         $v0, $a0, $zero\n    /* 15A0 800005A0 00A01825 */  or         $v1, $a1, $zero\n    /* 15A4 800005A4 10C0000A */  beqz       $a2, .L800005D0\n    /* 15A8 800005A8 24C6FFFF */   addiu     $a2, $a2, -0x1\n  .L800005AC:\n    /* 15AC 800005AC 00402025 */  or         $a0, $v0, $zero\n    /* 15B0 800005B0 908E0000 */  lbu        $t6, 0x0($a0)\n    /* 15B4 800005B4 00603825 */  or         $a3, $v1, $zero\n    /* 15B8 800005B8 00C02825 */  or         $a1, $a2, $zero\n    /* 15BC 800005BC 24630001 */  addiu      $v1, $v1, 0x1\n    /* 15C0 800005C0 24420001 */  addiu      $v0, $v0, 0x1\n    /* 15C4 800005C4 A0EE0000 */  sb         $t6, 0x0($a3)\n    /* 15C8 800005C8 14C0FFF8 */  bnez       $a2, .L800005AC\n    /* 15CC 800005CC 24C6FFFF */   addiu     $a2, $a2, -0x1\n  .L800005D0:\n    /* 15D0 800005D0 03E00008 */  jr         $ra\n    /* 15D4 800005D4 00000000 */   nop\nendlabel func_80000598\n",
+  "m2c_output": "void func_80000598(u8 *arg0, u8 *arg1, s32 arg2) {\n    s32 var_a2;\n    u8 *temp_a3;\n    u8 *var_v0;\n    u8 *var_v1;\n    u8 temp_t6;\n\n    var_v0 = arg0;\n    var_v1 = arg1;\n    var_a2 = arg2 - 1;\n    if (arg2 != 0) {\n        do {\n            temp_t6 = *var_v0;\n            temp_a3 = var_v1;\n            var_v1 += 1;\n            var_v0 += 1;\n            *temp_a3 = temp_t6;\n            var_a2 -= 1;\n        } while (var_a2 != 0);\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_80000598(u8* src, u8* dst, s32 count) {\n    s32 remaining;\n    u8* dstCurr;\n    u8* srcCurr;\n    u8 byte;\n\n    srcCurr = src;\n    dstCurr = dst;\n    remaining = count - 1;\n    if (count != 0) {\n        do {\n            byte = *srcCurr;\n            *dstCurr = byte;\n            dstCurr++;\n            srcCurr++;\n            remaining--;\n        } while (remaining != 0);\n    }\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2",
+      "notes": "Verified by identical objdump output against expected/src/kernel/kernel_000.c.o."
+    }
+  ],
+  "final_c": "void func_80000598(u8* src, u8* dst, s32 count) {\n    s32 remaining;\n    u8* dstCurr;\n    u8* srcCurr;\n    u8 byte;\n\n    srcCurr = src;\n    dstCurr = dst;\n    remaining = count - 1;\n    if (count != 0) {\n        do {\n            byte = *srcCurr;\n            *dstCurr = byte;\n            dstCurr++;\n            srcCurr++;\n            remaining--;\n        } while (remaining != 0);\n    }\n}\n",
+  "matched": true,
+  "instruction_count": 16,
+  "has_branches": true,
+  "has_calls": false,
+  "timestamp": 1776564688,
+  "game": "1080_snowboarding",
+  "compiler": "ido7.1",
+  "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+  "nearby_decompiled": [
+    "func_80000480",
+    "func_8000058C"
+  ],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "kernel"
+}
