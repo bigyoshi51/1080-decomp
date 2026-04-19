@@ -603,7 +603,9 @@ void game_uso_func_00010F40(int a0) {
     game_uso_func_00000000(a0, 0x70004, 0, 1, 1, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010F7C);
+void game_uso_func_00010F7C(int a0) {
+    game_uso_func_00000000(a0, 0x70004, 0, 1, 1, 1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010FB8);
 
