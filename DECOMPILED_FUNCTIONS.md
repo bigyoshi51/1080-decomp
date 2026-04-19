@@ -92,6 +92,8 @@ splat, ensure these are NOT treated as separate function boundaries.
 | func_80005C00 | func_80005B10 | osCreateThread tail |
 | func_80003D0C | func_80003C24 | osDestroyThread tail |
 | func_800005D8 | func_800005DC | 4-byte prologue fragment |
+| func_8000060C | func_800005DC | mid-function continuation; shares `func_800005DC` stack frame and branches to `.L80000678` |
+| func_80000660 | func_800005DC | tail continuation; restores `func_800005DC` locals from stack and returns through the shared epilogue |
 | func_80001CF0 | func_80001CF4 | 4-byte prologue fragment |
 | func_800056EC | func_800056F0 | 4-byte prologue fragment |
 | func_80008BB0 | func_80008BB4 | 4-byte prologue fragment |

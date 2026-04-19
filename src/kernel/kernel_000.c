@@ -330,10 +330,11 @@ void func_80000598(u8* src, u8* dst, s32 count) {
     }
 }
 
+/* NOTE: `func_8000060C` and `func_80000660` are continuation fragments of
+ * `func_800005DC`, not standalone ABI-safe helpers. Keep the fragment-merge
+ * notes in DECOMPILED_FUNCTIONS.md in sync when this lane moves. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800005DC);
-
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000060C);
-
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000660);
 
 /* uso_advance_position */
