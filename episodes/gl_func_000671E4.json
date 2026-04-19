@@ -1,0 +1,28 @@
+{
+  "function_name": "gl_func_000671E4",
+  "asm_text": "nonmatching gl_func_000671E4, 0x3C\n\nglabel gl_func_000671E4\n    /* E4C2BC 000671E4 27BDFFE8 */  .word 0x27BDFFE8\n    /* E4C2C0 000671E8 AFBF0014 */  .word 0xAFBF0014\n    /* E4C2C4 000671EC 00803825 */  .word 0x00803825\n    /* E4C2C8 000671F0 3C050004 */  .word 0x3C050004\n    /* E4C2CC 000671F4 24A516E0 */  .word 0x24A516E0\n    /* E4C2D0 000671F8 ACE013E8 */  .word 0xACE013E8\n    /* E4C2D4 000671FC 240E0001 */  .word 0x240E0001\n    /* E4C2D8 00067200 ACAE0000 */  .word 0xACAE0000\n    /* E4C2DC 00067204 24E411B0 */  .word 0x24E411B0\n    /* E4C2E0 00067208 0C000000 */  .word 0x0C000000\n    /* E4C2E4 0006720C 24060001 */  .word 0x24060001\n    /* E4C2E8 00067210 8FBF0014 */  .word 0x8FBF0014\n    /* E4C2EC 00067214 27BD0018 */  .word 0x27BD0018\n    /* E4C2F0 00067218 03E00008 */  .word 0x03E00008\n    /* E4C2F4 0006721C 00000000 */  .word 0x00000000\nendlabel gl_func_000671E4\n",
+  "m2c_output": "",
+  "attempts": [
+    {
+      "c_code": "extern int gl_func_00000000();\nextern char gl_ref_000416E0;\nvoid gl_func_000671E4(char *a0_in) {\n    register char *a0 asm(\"$7\") = a0_in;\n    *(int*)(a0 + 0x13E8) = 0;\n    *(int*)&gl_ref_000416E0 = 1;\n    gl_func_00000000(a0 + 0x11B0, &gl_ref_000416E0, 1);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern int gl_func_00000000();\nextern char gl_ref_000416E0;\nvoid gl_func_000671E4(char *a0_in) {\n    register char *a0 asm(\"$7\") = a0_in;\n    *(int*)(a0 + 0x13E8) = 0;\n    *(int*)&gl_ref_000416E0 = 1;\n    gl_func_00000000(a0 + 0x11B0, &gl_ref_000416E0, 1);\n}",
+  "matched": true,
+  "instruction_count": 15,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776602488.616622,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "game_libs"
+}
