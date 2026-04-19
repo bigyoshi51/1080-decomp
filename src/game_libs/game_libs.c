@@ -2270,7 +2270,22 @@ void gl_func_0003F3A4(int a0) {
     gl_func_00000000(&scratch);
 }
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 93% — a1-spill family (only extra diff from target) */
+extern int gl_func_00000000();
+
+void gl_func_0003F3D0(int a0, int a1, int a2) {
+    char buf[0x98];
+    int pad;
+    int local;
+    gl_func_00000000(buf);
+    *(int*)&buf[0x40] = a2;
+    local = 5;
+    gl_func_00000000(&local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F3D0);
+#endif
 
 extern int gl_func_00000000();
 
