@@ -1950,7 +1950,15 @@ void gl_func_0003F218(int a0) {
     gl_func_00000000(&scratch);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F244);
+extern int gl_func_00000000();
+
+void gl_func_0003F244(int a0, int a1, int a2) {
+    char buf[0xA0];
+    *(int*)&buf[0] = 0x35;
+    *(int*)&buf[8] = a1;
+    *(int*)&buf[12] = a2;
+    gl_func_00000000(buf);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F278);
 
