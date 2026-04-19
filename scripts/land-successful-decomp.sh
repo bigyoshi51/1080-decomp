@@ -10,7 +10,7 @@ This script only lands verified exact decompiles. For each named function it
 requires:
 - no fuzzy_match_percent entry in report.json
 - no INCLUDE_ASM fallback still present in src/
-- episodes/<function_name>.json exists
+- episodes/<function_name>.json exists and passes the canonical schema validator
 EOF
     exit 1
 fi
@@ -95,6 +95,16 @@ ensure_episode_exists() {
     fi
 }
 
+ensure_episode_schema() {
+    local func_name="$1"
+
+    if ! python3 "$repo_root/../../scripts/validate_episode_schema.py" \
+        "$repo_root/episodes/${func_name}.json" --require-match; then
+        echo "land-successful-decomp: episodes/${func_name}.json does not match the canonical schema" >&2
+        exit 1
+    fi
+}
+
 main_worktree=""
 pending_path=""
 while IFS= read -r line; do
@@ -126,6 +136,7 @@ ensure_exact_functions "$repo_root/report.json" "$@"
 for func_name in "$@"; do
     ensure_not_include_asm "$func_name"
     ensure_episode_exists "$func_name"
+    ensure_episode_schema "$func_name"
 done
 
 git -C "$main_worktree" fetch origin

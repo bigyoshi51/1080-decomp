@@ -73,7 +73,7 @@ Important: this script is for exact matches only. It now refuses to land a
 named function unless:
 - `report.json` has no `fuzzy_match_percent` for that function
 - the function no longer has an `INCLUDE_ASM` fallback in `src/`
-- `episodes/<function_name>.json` exists
+- `episodes/<function_name>.json` exists and passes `../../scripts/validate_episode_schema.py --require-match`
 
 If the function is still fuzzy, keep it wrapped as `NON_MATCHING` and do not
 log an episode.
