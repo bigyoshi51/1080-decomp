@@ -63,11 +63,20 @@ Expected: >= 40 matched functions.
 
 After landing a successful decompile from a worktree, use:
 ```
-./scripts/land-successful-decomp.sh
+./scripts/land-successful-decomp.sh <function_name> [<function_name> ...]
 ```
 This rebases the current branch onto `origin/main`, fast-forwards the main
 worktree, pushes `origin/main`, and regenerates `report.json` in both the
 current worktree and the main worktree.
+
+Important: this script is for exact matches only. It now refuses to land a
+named function unless:
+- `report.json` has no `fuzzy_match_percent` for that function
+- the function no longer has an `INCLUDE_ASM` fallback in `src/`
+- `episodes/<function_name>.json` exists
+
+If the function is still fuzzy, keep it wrapped as `NON_MATCHING` and do not
+log an episode.
 
 ## Fragment Merges Performed
 
