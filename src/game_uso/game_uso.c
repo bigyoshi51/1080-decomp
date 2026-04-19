@@ -318,7 +318,11 @@ void game_uso_func_0000ABB8(char *dst) {
     game_uso_func_000040BC((float*)(dst + 0x10));
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ABE8);
+void game_uso_func_0000ABE8(char *dst) {
+    int tmp;
+    game_uso_func_00004080(&tmp);
+    game_uso_func_000040F8((Vec3*)(dst + 0x10));
+}
 
 void game_uso_func_0000AC18(char *dst) {
     int tmp;
