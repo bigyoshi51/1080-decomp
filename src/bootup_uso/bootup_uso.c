@@ -1180,7 +1180,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001438C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000144B4);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000144E0);
+void func_000144E0(void *a0, float a1, float a2) {
+    *(float*)((char*)a0 + 0x88) = a1;
+    *(float*)((char*)a0 + 0x8C) = a2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000144F4);
 
