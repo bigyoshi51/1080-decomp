@@ -159,7 +159,11 @@ void game_uso_func_00003998(char *dst) {
     game_uso_func_000001D4((Vec3*)(dst + 0x10));
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000039C8);
+void game_uso_func_000039C8(char *dst) {
+    int tmp;
+    game_uso_func_00000280(&tmp);
+    game_uso_func_0000039C((Quad4*)(dst + 0x10));
+}
 
 void game_uso_func_000039F8(char *dst) {
     int tmp;
