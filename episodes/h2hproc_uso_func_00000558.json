@@ -1,0 +1,33 @@
+{
+  "function_name": "h2hproc_uso_func_00000558",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-19T21:58:12.839692+00:00",
+  "end_time": "2026-04-19T21:58:12.839712+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T21:58:12.839706+00:00",
+      "assistant_text": "USO standard accessor template: Quad4 reader (16 bytes). See feedback_uso_accessor_template_reuse.md.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_0000002C);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_0000020C);\n\n#ifdef NON_MATCHING\n/* 91.7%: body matches 11/12. Target has trailing 0x00000000 padding that IDO won't emit;\n * bytes through pos 10 are identical. See feedback_function_trailing_nop_padding.md. */\nvoid h2hproc_uso_func_00000274_inner(int *arg);\n\nvoid h2hproc_uso_func_00000274(int *a0) {\n    h2hproc_uso_func_00000274_inner((int*)a0[2]);\n    a0[2] = 0;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000274);\n#endif\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000002A4);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000002FC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000354);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000003AC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000404);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_0000045C);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000004A4);\n\nvoid h2hproc_uso_func_000004E0(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid h2hproc_uso_func_0000051C(float *dst) {\n    float buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid h2hproc_uso_func_00000558(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000005B0);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000620);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000008EC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000944);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_0000099C);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000009F8);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000A88);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000BAC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000C18);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000E04);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000EB0);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000F60);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000FD0);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001204);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001360);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000015F0);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000017A0);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000019DC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001A0C);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001A3C);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001A6C);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001AFC);\n\n",
+  "metadata": {
+    "source_path": "src/h2hproc_uso/h2hproc_uso.c",
+    "asm_path": "asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00000558.s",
+    "segment": "h2hproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified 100% match via objdiff report."
+  }
+}
