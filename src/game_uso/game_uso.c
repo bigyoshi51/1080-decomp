@@ -35,7 +35,12 @@ void game_uso_func_00000280(int *dst) {
     *dst = buf[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000002BC);
+typedef struct { int a, b, c, d; } Quad4;
+void game_uso_func_000002BC(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000314);
 
@@ -145,11 +150,19 @@ void game_uso_func_00004080(int *dst) {
     *dst = buf[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000040BC);
+void game_uso_func_000040BC(float *dst) {
+    float buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000040F8);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00004168);
+void game_uso_func_00004168(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000041C0);
 
@@ -229,7 +242,6 @@ void game_uso_func_0000AD4C(int *dst) {
     *dst = buf[0];
 }
 
-typedef struct { int a, b, c, d; } Quad4;
 void game_uso_func_0000AD88(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
@@ -270,7 +282,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C08C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C0BC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C0F0);
+void game_uso_func_0000C0F0(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C12C);
 
@@ -280,11 +296,19 @@ void game_uso_func_0000C194(int *dst) {
     *dst = buf[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C1D0);
+void game_uso_func_0000C1D0(float *dst) {
+    float buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C20C);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C27C);
+void game_uso_func_0000C27C(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C2D4);
 
