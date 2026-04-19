@@ -129,7 +129,11 @@ void titproc_uso_func_00002920(char *dst) {
     titproc_uso_func_00000514((Quad4*)(dst + 0x10));
 }
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002950);
+void titproc_uso_func_00002950(char *dst) {
+    int tmp;
+    titproc_uso_func_0000049C(&tmp);
+    titproc_uso_func_0000056C((Vec3*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002980);
 
