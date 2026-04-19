@@ -168,7 +168,18 @@ void game_uso_func_000040BC(float *dst) {
     *dst = buf[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000040F8);
+void game_uso_func_000040F8(Vec3 *dst) {
+    int pad_top[1];
+    Tri3i raw;
+    int pad_mid[2];
+    Tri3i tmp;
+    int pad_bot[2];
+    gl_func_00000000(&D_00000000, &raw, 12);
+    tmp = raw;
+    dst->x = *(float*)&tmp.a;
+    dst->y = *(float*)&tmp.b;
+    dst->z = *(float*)&tmp.c;
+}
 
 void game_uso_func_00004168(Quad4 *dst) {
     Quad4 buf;
@@ -334,7 +345,18 @@ void game_uso_func_0000C1D0(float *dst) {
     *dst = buf[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C20C);
+void game_uso_func_0000C20C(Vec3 *dst) {
+    int pad_top[1];
+    Tri3i raw;
+    int pad_mid[2];
+    Tri3i tmp;
+    int pad_bot[2];
+    gl_func_00000000(&D_00000000, &raw, 12);
+    tmp = raw;
+    dst->x = *(float*)&tmp.a;
+    dst->y = *(float*)&tmp.b;
+    dst->z = *(float*)&tmp.c;
+}
 
 void game_uso_func_0000C27C(Quad4 *dst) {
     Quad4 buf;
