@@ -42,7 +42,11 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000011A
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000012AC);
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001304);
+void mgrproc_uso_func_00000000(void);
+
+void mgrproc_uso_func_00001304(void) {
+    mgrproc_uso_func_00000000();
+}
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001324);
 

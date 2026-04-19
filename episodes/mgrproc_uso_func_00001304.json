@@ -1,0 +1,33 @@
+{
+  "function_name": "mgrproc_uso_func_00001304",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-19T21:30:38.930431+00:00",
+  "end_time": "2026-04-19T21:30:38.930450+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T21:30:38.930445+00:00",
+      "assistant_text": "USO chain wrapper \u2192 func_00000000 placeholder.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 8,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_0000004C);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000000B0);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000000F8);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_0000019C);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000504);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000005D0);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000700);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000009A8);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000A14);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000AE0);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000B20);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000B5C);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000C14);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000CC4);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000D00);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000D3C);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000D94);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000E04);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000011A4);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000012AC);\n\nvoid mgrproc_uso_func_00000000(void);\n\nvoid mgrproc_uso_func_00001304(void) {\n    mgrproc_uso_func_00000000();\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001324);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000013C8);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000014F4);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001594);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001614);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_0000179C);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001824);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001AD0);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001B58);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001BE4);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001C90);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00001F30);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00002294);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00002324);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000023FC);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00002850);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00002940);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00002AFC);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00002B7C);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00002E3C);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00002F10);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00003074);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00003240);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000032C8);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000032F8);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00003328);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00003358);\n\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000033E8);\n\n",
+  "metadata": {
+    "source_path": "src/mgrproc_uso/mgrproc_uso.c",
+    "asm_path": "asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00001304.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified 100% match via objdiff report."
+  }
+}
