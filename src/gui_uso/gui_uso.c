@@ -28,7 +28,11 @@ int gui_func_000014EC(int a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00001514);
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000015BC);
+extern int gui_func_00000000();
+
+int gui_func_000015BC(int a0, int a1, int a2) {
+    return a1 - (gui_func_00000000(a0, a2) / 2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000015F4);
 
