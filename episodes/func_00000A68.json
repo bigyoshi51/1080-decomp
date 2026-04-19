@@ -1,0 +1,30 @@
+{
+  "function_name": "func_00000A68",
+  "asm_text": "nonmatching func_00000A68, 0x2C\n\nglabel func_00000A68\n    /* DD14D4 00000A68 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* DD14D8 00000A6C AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD14DC 00000A70 8C850000 */  lw         $a1, 0x0($a0)\n    /* DD14E0 00000A74 50A00004 */  beql       $a1, $zero, .L00000A88\n    /* DD14E4 00000A78 8FBF0014 */   lw        $ra, 0x14($sp)\n    /* DD14E8 00000A7C 0C000000 */  jal        func_00000000\n    /* DD14EC 00000A80 00A02025 */   or        $a0, $a1, $zero\n    /* DD14F0 00000A84 8FBF0014 */  lw         $ra, 0x14($sp)\n  .L00000A88:\n    /* DD14F4 00000A88 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* DD14F8 00000A8C 03E00008 */  jr         $ra\n    /* DD14FC 00000A90 00000000 */   nop\nendlabel func_00000A68\n",
+  "m2c_output": "? func_00000000(s32, s32);                          /* extern */\n\nvoid func_00000A68(s32 *arg0) {\n    s32 temp_a1;\n\n    temp_a1 = *arg0;\n    if (temp_a1 != 0) {\n        func_00000000(temp_a1, temp_a1);\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_00000A68(int *a0) {\n    int a1 = *a0;\n    if (a1 != 0) { func_00000000(a1); }\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_00000A68(int *a0) {\n    int a1 = *a0;\n    if (a1 != 0) { func_00000000(a1); }\n}",
+  "matched": true,
+  "instruction_count": 11,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1776562514.9916253,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

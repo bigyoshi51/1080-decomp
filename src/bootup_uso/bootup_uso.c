@@ -1,6 +1,8 @@
 #include "common.h"
 
-void func_00000000(void) {
+/* Unspecified args — func_00000000 is splat's synthetic symbol for unrelocated
+ * JAL target 0x0, called from many thunks with varying arg counts. */
+void func_00000000() {
 }
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000008);
@@ -11,13 +13,26 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000080);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000000F0);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000148);
+extern char D_00006538;
+void func_00000148(int a0, int a1, int a2) {
+    func_00000000(&D_00006538);
+    func_00000000(a0, a1, a2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000188);
+extern char D_00006544;
+void func_00000188(int a0, int a1, int a2) {
+    func_00000000(&D_00006544);
+    func_00000000(a0, a1, a2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000001C8);
+void func_000001C8(int a0) {
+    if (a0 != 0) {
+        func_00000000(2);
+    } else {
+        func_00000000(0);
+    }
+}
 
-extern void func_00000000(void);
 void func_000001FC(void) {
     func_00000000();
 }
@@ -56,9 +71,17 @@ void func_000002FC(void) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000031C);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000360);
+extern char D_00006550;
+void func_00000360(void) {
+    func_00000000();
+    func_00000000(&D_00006550);
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000038C);
+extern char D_00006568;
+void func_0000038C(void) {
+    func_00000000();
+    func_00000000(&D_00006568);
+}
 
 void func_000003B8(void) {
     func_00000000();
@@ -74,9 +97,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000057C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000610);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000085C);
+void func_0000085C(int *a0) {
+    int a1 = *a0;
+    if (a1 != 0) {
+        func_00000000(a1);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000888);
+void func_00000888(int *a0) {
+    int a1 = *a0;
+    if (a1 != 0) {
+        func_00000000(a1);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000008B4);
 
@@ -90,11 +123,21 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000098C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000009D8);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000A24);
+void func_00000A24(int *a0) {
+    int a1 = *a0;
+    if (a1 != 0) {
+        func_00000000(a1);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000A50);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000A68);
+void func_00000A68(int *a0) {
+    int a1 = *a0;
+    if (a1 != 0) {
+        func_00000000(a1);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000A94);
 

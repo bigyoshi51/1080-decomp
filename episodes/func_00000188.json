@@ -1,0 +1,32 @@
+{
+  "function_name": "func_00000188",
+  "asm_text": "nonmatching func_00000188, 0x40\n\nglabel func_00000188\n    /* DD0BF4 00000188 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* DD0BF8 0000018C AFA40018 */  sw         $a0, 0x18($sp)\n    /* DD0BFC 00000190 AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD0C00 00000194 3C040000 */  lui        $a0, %hi(D_00006544)\n    /* DD0C04 00000198 AFA5001C */  sw         $a1, 0x1C($sp)\n    /* DD0C08 0000019C AFA60020 */  sw         $a2, 0x20($sp)\n    /* DD0C0C 000001A0 0C000000 */  jal        func_00000000\n    /* DD0C10 000001A4 24846544 */   addiu     $a0, $a0, %lo(D_00006544)\n    /* DD0C14 000001A8 8FA40018 */  lw         $a0, 0x18($sp)\n    /* DD0C18 000001AC 8FA5001C */  lw         $a1, 0x1C($sp)\n    /* DD0C1C 000001B0 0C000000 */  jal        func_00000000\n    /* DD0C20 000001B4 8FA60020 */   lw        $a2, 0x20($sp)\n    /* DD0C24 000001B8 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD0C28 000001BC 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* DD0C2C 000001C0 03E00008 */  jr         $ra\n    /* DD0C30 000001C4 00000000 */   nop\nendlabel func_00000188\n",
+  "m2c_output": "? func_00000000(? *, s32, s32);                     /* extern */\nextern ? D_00006544;\n\nvoid func_00000188(? *arg0, s32 arg1, s32 arg2) {\n    func_00000000(&D_00006544);\n    func_00000000(arg0, arg1, arg2);\n}\n",
+  "attempts": [
+    {
+      "c_code": "extern char D_00006544;\nvoid func_00000188(int a0, int a1, int a2) {\n    func_00000000(&D_00006544);\n    func_00000000(a0, a1, a2);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern char D_00006544;\nvoid func_00000188(int a0, int a1, int a2) {\n    func_00000000(&D_00006544);\n    func_00000000(a0, a1, a2);\n}",
+  "matched": true,
+  "instruction_count": 16,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1776562513.292445,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [
+    "D_00006544"
+  ],
+  "segment": "bootup_uso"
+}

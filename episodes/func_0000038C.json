@@ -1,0 +1,32 @@
+{
+  "function_name": "func_0000038C",
+  "asm_text": "nonmatching func_0000038C, 0x2C\n\nglabel func_0000038C\n    /* DD0DF8 0000038C 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* DD0DFC 00000390 AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD0E00 00000394 0C000000 */  jal        func_00000000\n    /* DD0E04 00000398 00000000 */   nop\n    /* DD0E08 0000039C 3C040000 */  lui        $a0, %hi(D_00006568)\n    /* DD0E0C 000003A0 0C000000 */  jal        func_00000000\n    /* DD0E10 000003A4 24846568 */   addiu     $a0, $a0, %lo(D_00006568)\n    /* DD0E14 000003A8 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD0E18 000003AC 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* DD0E1C 000003B0 03E00008 */  jr         $ra\n    /* DD0E20 000003B4 00000000 */   nop\nendlabel func_0000038C\n",
+  "m2c_output": "? func_00000000(? *);                               /* extern */\nextern ? D_00006568;\n\nvoid func_0000038C(void) {\n    func_00000000();\n    func_00000000(&D_00006568);\n}\n",
+  "attempts": [
+    {
+      "c_code": "extern char D_00006568;\nvoid func_0000038C(void) {\n    func_00000000();\n    func_00000000(&D_00006568);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern char D_00006568;\nvoid func_0000038C(void) {\n    func_00000000();\n    func_00000000(&D_00006568);\n}",
+  "matched": true,
+  "instruction_count": 11,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1776562514.0147622,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [
+    "D_00006568"
+  ],
+  "segment": "bootup_uso"
+}

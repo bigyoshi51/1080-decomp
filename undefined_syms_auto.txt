@@ -568,3 +568,7 @@ D_0000CAC0 = 0x0000CAC0;
 D_0000CAC4 = 0x0000CAC4;
 D_0000CAC8 = 0x0000CAC8;
 D_A0000200 = 0xA0000200;
+
+/* Cross-function .L labels referenced as float data from other INCLUDE_ASM'd functions. */
+.L0000087C = 0x0000087C;
+.L000008A8 = 0x000008A8;
