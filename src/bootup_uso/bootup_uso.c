@@ -6,8 +6,8 @@
  * caller supplies their own forward decl with the return type they need. */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000000);
 
-/* Callers pick a return type via these declarations as needed. */
-extern void func_00000000();
+/* File-scope K&R decl, int return. Void-discarding callers just ignore
+ * the value; value-using callers get it directly. Same underlying symbol. */
 
 extern char D_00000000;
 void func_00000008(int *dst) {
@@ -138,13 +138,37 @@ void func_000008D4(int *a0) {
     func_00000000(*a0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000008F4);
+void func_000008F4(int *a0, int a1_orig) {
+    int ret = func_00000000(a0, a0[2]);
+    int node = *a0;
+    if (node != 0) {
+        func_00000000(node, ret, 0, a1_orig);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000940);
+void func_00000940(int *a0, int a1_orig) {
+    int ret = func_00000000(a0, a0[2]);
+    int node = *a0;
+    if (node != 0) {
+        func_00000000(node, ret, 3, a1_orig);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000098C);
+void func_0000098C(int *a0, int a1_orig) {
+    int ret = func_00000000(a0, a0[2]);
+    int node = *a0;
+    if (node != 0) {
+        func_00000000(node, ret, 1, a1_orig);
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000009D8);
+void func_000009D8(int *a0, int a1_orig) {
+    int ret = func_00000000(a0, a0[2]);
+    int node = *a0;
+    if (node != 0) {
+        func_00000000(node, ret, 2, a1_orig);
+    }
+}
 
 void func_00000A24(int *a0) {
     int a1 = *a0;

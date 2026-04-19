@@ -573,3 +573,9 @@ D_A0000200 = 0xA0000200;
 .L0000087C = 0x0000087C;
 .L000008A8 = 0x000008A8;
 D_00000000 = 0x00000000;
+
+/* Cross-function .L labels from decompiled 8F4/940/98C/9D8 (target-in-code refs from other funcs) */
+.L00000930 = 0x00000930;
+.L0000097C = 0x0000097C;
+.L000009C8 = 0x000009C8;
+.L00000A14 = 0x00000A14;

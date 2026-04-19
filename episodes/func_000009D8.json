@@ -1,0 +1,30 @@
+{
+  "function_name": "func_000009D8",
+  "asm_text": "nonmatching func_000009D8, 0x4C\n\nglabel func_000009D8\n    /* DD1444 000009D8 27BDFFE0 */  addiu      $sp, $sp, -0x20\n    /* DD1448 000009DC AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD144C 000009E0 AFA50024 */  sw         $a1, 0x24($sp)\n    /* DD1450 000009E4 8C850008 */  lw         $a1, 0x8($a0)\n    /* DD1454 000009E8 0C000000 */  jal        func_00000000\n    /* DD1458 000009EC AFA40020 */   sw        $a0, 0x20($sp)\n    /* DD145C 000009F0 8FA40020 */  lw         $a0, 0x20($sp)\n    /* DD1460 000009F4 00402825 */  or         $a1, $v0, $zero\n    /* DD1464 000009F8 24060002 */  addiu      $a2, $zero, 0x2\n    /* DD1468 000009FC 8C8E0000 */  lw         $t6, 0x0($a0)\n    /* DD146C 00000A00 8FA70024 */  lw         $a3, 0x24($sp)\n    /* DD1470 00000A04 11C00003 */  beqz       $t6, .L00000A14\n    /* DD1474 00000A08 AFAE0018 */   sw        $t6, 0x18($sp)\n    /* DD1478 00000A0C 0C000000 */  jal        func_00000000\n    /* DD147C 00000A10 01C02025 */   or        $a0, $t6, $zero\n  .L00000A14:\n    /* DD1480 00000A14 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD1484 00000A18 27BD0020 */  addiu      $sp, $sp, 0x20\n    /* DD1488 00000A1C 03E00008 */  jr         $ra\n    /* DD148C 00000A20 00000000 */   nop\nendlabel func_000009D8\n",
+  "m2c_output": "s32 func_00000000(s32, s32, ?, s32);                /* extern */\n\nvoid func_000009D8(void *arg0, s32 arg1) {\n    s32 sp18;\n    s32 temp_a1;\n    s32 temp_t6;\n\n    temp_a1 = func_00000000(arg0->unk8);\n    temp_t6 = arg0->unk0;\n    sp18 = temp_t6;\n    if (temp_t6 != 0) {\n        func_00000000(temp_t6, temp_a1, 2, arg1);\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_000009D8(int *a0, int a1_orig) {\n    int ret = func_00000000(a0, a0[2]);\n    int node = *a0;\n    if (node != 0) {\n        func_00000000(node, ret, 2, a1_orig);\n    }\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_000009D8(int *a0, int a1_orig) {\n    int ret = func_00000000(a0, a0[2]);\n    int node = *a0;\n    if (node != 0) {\n        func_00000000(node, ret, 2, a1_orig);\n    }\n}",
+  "matched": true,
+  "instruction_count": 19,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1776564032.2826846,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}
