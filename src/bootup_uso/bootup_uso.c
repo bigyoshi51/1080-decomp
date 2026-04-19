@@ -1,9 +1,13 @@
 #include "common.h"
 
-/* Unspecified args — func_00000000 is splat's synthetic symbol for unrelocated
- * JAL target 0x0, called from many thunks with varying arg counts. */
-void func_00000000() {
-}
+/* func_00000000 is splat's synthetic symbol for unrelocated JAL target 0x0.
+ * Its raw bytes are `jr $ra; nop` — keep as INCLUDE_ASM to preserve that
+ * without IDO emitting a return-value or masking by the return type. Every
+ * caller supplies their own forward decl with the return type they need. */
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000000);
+
+/* Callers pick a return type via these declarations as needed. */
+extern void func_00000000();
 
 extern char D_00000000;
 void func_00000008(int *dst) {
@@ -214,13 +218,25 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001A44);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001C10);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001C4C);
+void func_00001C4C(float *dst) {
+    float buf[2];
+    func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001C88);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001CF8);
+void func_00001CF8(int *dst) {
+    int buf[2];
+    func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001D34);
+void func_00001D34(Quad4 *dst) {
+    Quad4 buf;
+    func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001D8C);
 

@@ -1,0 +1,30 @@
+{
+  "function_name": "func_00001D34",
+  "asm_text": "nonmatching func_00001D34, 0x58\n\nglabel func_00001D34\n    /* DD27A0 00001D34 27BDFFD8 */  addiu      $sp, $sp, -0x28\n    /* DD27A4 00001D38 AFA40028 */  sw         $a0, 0x28($sp)\n    /* DD27A8 00001D3C AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD27AC 00001D40 3C040000 */  lui        $a0, (0x0 >> 16)\n    /* DD27B0 00001D44 24840000 */  addiu      $a0, $a0, 0x0\n    /* DD27B4 00001D48 27A50018 */  addiu      $a1, $sp, 0x18\n    /* DD27B8 00001D4C 0C000000 */  jal        func_00000000\n    /* DD27BC 00001D50 24060010 */   addiu     $a2, $zero, 0x10\n    /* DD27C0 00001D54 27AF0018 */  addiu      $t7, $sp, 0x18\n    /* DD27C4 00001D58 8DF90000 */  lw         $t9, 0x0($t7)\n    /* DD27C8 00001D5C 8FAE0028 */  lw         $t6, 0x28($sp)\n    /* DD27CC 00001D60 ADD90000 */  sw         $t9, 0x0($t6)\n    /* DD27D0 00001D64 8DF80004 */  lw         $t8, 0x4($t7)\n    /* DD27D4 00001D68 ADD80004 */  sw         $t8, 0x4($t6)\n    /* DD27D8 00001D6C 8DF90008 */  lw         $t9, 0x8($t7)\n    /* DD27DC 00001D70 ADD90008 */  sw         $t9, 0x8($t6)\n    /* DD27E0 00001D74 8DF8000C */  lw         $t8, 0xC($t7)\n    /* DD27E4 00001D78 ADD8000C */  sw         $t8, 0xC($t6)\n    /* DD27E8 00001D7C 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD27EC 00001D80 27BD0028 */  addiu      $sp, $sp, 0x28\n    /* DD27F0 00001D84 03E00008 */  jr         $ra\n    /* DD27F4 00001D88 00000000 */   nop\nendlabel func_00001D34\n",
+  "m2c_output": "? func_00000000(?, ? *, ?);                         /* extern */\n\nvoid func_00001D34(void *arg0) {\n    ? sp18;\n\n    func_00000000(0, &sp18, 0x10);\n    arg0->unk0 = (s32) sp18.unk0;\n    arg0->unk4 = (s32) sp18.unk4;\n    arg0->unk8 = (s32) sp18.unk8;\n    arg0->unkC = (s32) sp18.unkC;\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_00001D34(Quad4 *dst) {\n    Quad4 buf;\n    func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_00001D34(Quad4 *dst) {\n    Quad4 buf;\n    func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}",
+  "matched": true,
+  "instruction_count": 22,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1776563366.2931376,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}
