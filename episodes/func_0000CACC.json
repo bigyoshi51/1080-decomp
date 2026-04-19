@@ -1,0 +1,28 @@
+{
+  "function_name": "func_0000CACC",
+  "asm_text": "nonmatching func_0000CACC, 0x1C\n\nglabel func_0000CACC\n    /* DDD538 0000CACC 8C8F0A58 */  lw         $t7, 0xA58($a0)\n    /* DDD53C 0000CAD0 3C0E000F */  lui        $t6, (0xF4240 >> 16)\n    /* DDD540 0000CAD4 35CE4240 */  ori        $t6, $t6, (0xF4240 & 0xFFFF)\n    /* DDD544 0000CAD8 39F80100 */  xori       $t8, $t7, 0x100\n    /* DDD548 0000CADC AC8E0A14 */  sw         $t6, 0xA14($a0)\n    /* DDD54C 0000CAE0 03E00008 */  jr         $ra\n    /* DDD550 0000CAE4 AC980A58 */   sw        $t8, 0xA58($a0)\nendlabel func_0000CACC\n",
+  "m2c_output": "void func_0000CACC(void *arg0) {\n    arg0->unkA14 = 0xF4240;\n    arg0->unkA58 = (s32) (arg0->unkA58 ^ 0x100);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_0000CACC(char *a0) {\n    *(int*)(a0 + 0xA14) = 0xF4240;\n    *(int*)(a0 + 0xA58) = *(int*)(a0 + 0xA58) ^ 0x100;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_0000CACC(char *a0) {\n    *(int*)(a0 + 0xA14) = 0xF4240;\n    *(int*)(a0 + 0xA58) = *(int*)(a0 + 0xA58) ^ 0x100;\n}",
+  "matched": true,
+  "instruction_count": 7,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776563860.568828,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

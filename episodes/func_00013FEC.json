@@ -1,0 +1,28 @@
+{
+  "function_name": "func_00013FEC",
+  "asm_text": "nonmatching func_00013FEC, 0x18\n\nglabel func_00013FEC\n    /* DE4A58 00013FEC AC850074 */  sw         $a1, 0x74($a0)\n    /* DE4A5C 00013FF0 AC86008C */  sw         $a2, 0x8C($a0)\n    /* DE4A60 00013FF4 AC8700A4 */  sw         $a3, 0xA4($a0)\n    /* DE4A64 00013FF8 8FAE0010 */  lw         $t6, 0x10($sp)\n    /* DE4A68 00013FFC 03E00008 */  jr         $ra\n    /* DE4A6C 00014000 AC8E00BC */   sw        $t6, 0xBC($a0)\nendlabel func_00013FEC\n",
+  "m2c_output": "void func_00013FEC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {\n    arg0->unk74 = arg1;\n    arg0->unk8C = arg2;\n    arg0->unkA4 = arg3;\n    arg0->unkBC = arg4;\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_00013FEC(char *a0, int a1, int a2, int a3, int arg5) {\n    *(int*)(a0 + 0x74) = a1;\n    *(int*)(a0 + 0x8C) = a2;\n    *(int*)(a0 + 0xA4) = a3;\n    *(int*)(a0 + 0xBC) = arg5;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_00013FEC(char *a0, int a1, int a2, int a3, int arg5) {\n    *(int*)(a0 + 0x74) = a1;\n    *(int*)(a0 + 0x8C) = a2;\n    *(int*)(a0 + 0xA4) = a3;\n    *(int*)(a0 + 0xBC) = arg5;\n}",
+  "matched": true,
+  "instruction_count": 6,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776563860.8032377,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}
