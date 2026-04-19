@@ -30,7 +30,26 @@ void timproc_uso_b5_func_000003A8(Quad4 *dst) {
     *dst = buf;
 }
 
+typedef struct { int a, b, c; } Tri3i;
+typedef struct { float x, y, z; } Vec3;
+#ifdef NON_MATCHING
+/* 93.3%: Vec3 reader template. Target has trailing 0x03E00008 0x00000000 (jr ra; nop)
+ * after the real function end — splat bundled 8 extra bytes. Body bytes match exactly. */
+void timproc_uso_b5_func_00000400(Vec3 *dst) {
+    int pad_top[1];
+    Tri3i raw;
+    int pad_mid[2];
+    Tri3i tmp;
+    int pad_bot[2];
+    gl_func_00000000(&D_00000000, &raw, 12);
+    tmp = raw;
+    dst->x = *(float*)&tmp.a;
+    dst->y = *(float*)&tmp.b;
+    dst->z = *(float*)&tmp.c;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000400);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000478);
 
