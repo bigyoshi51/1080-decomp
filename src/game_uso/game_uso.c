@@ -128,13 +128,25 @@ void game_uso_func_00003948(char *a0) {
     game_uso_func_00000000(a0 + 0x50);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003968);
+void game_uso_func_00003968(char *dst) {
+    int tmp;
+    game_uso_func_00000280(&tmp);
+    game_uso_func_00000244((float*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003998);
+void game_uso_func_00003998(char *dst) {
+    int tmp;
+    game_uso_func_00000280(&tmp);
+    game_uso_func_000001D4((Vec3*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000039C8);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000039F8);
+void game_uso_func_000039F8(char *dst) {
+    int tmp;
+    game_uso_func_00000280(&tmp);
+    game_uso_func_00000280((int*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003A28);
 
@@ -220,13 +232,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7F8);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ABB8);
+void game_uso_func_0000ABB8(char *dst) {
+    int tmp;
+    game_uso_func_00004080(&tmp);
+    game_uso_func_000040BC((float*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ABE8);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AC18);
+void game_uso_func_0000AC18(char *dst) {
+    int tmp;
+    game_uso_func_00004080(&tmp);
+    game_uso_func_00004168((Quad4*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AC48);
+void game_uso_func_0000AC48(char *dst) {
+    int tmp;
+    game_uso_func_00004080(&tmp);
+    game_uso_func_00004080((int*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AC78);
 
@@ -276,9 +300,17 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BF7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BFDC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C05C);
+void game_uso_func_0000C05C(char *dst) {
+    int tmp;
+    game_uso_func_0000AD4C(&tmp);
+    game_uso_func_0000AD10((float*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C08C);
+void game_uso_func_0000C08C(char *dst) {
+    int tmp;
+    game_uso_func_0000AD4C(&tmp);
+    game_uso_func_0000ADE0((int*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C0BC);
 
@@ -488,13 +520,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001189C);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000119D4);
+void game_uso_func_000119D4(char *dst) {
+    int tmp;
+    game_uso_func_0000C194(&tmp);
+    game_uso_func_0000C1D0((float*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A04);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A34);
+void game_uso_func_00011A34(char *dst) {
+    int tmp;
+    game_uso_func_0000C194(&tmp);
+    game_uso_func_0000C27C((Quad4*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A64);
+void game_uso_func_00011A64(char *dst) {
+    int tmp;
+    game_uso_func_0000C194(&tmp);
+    game_uso_func_0000C194((int*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A94);
 
