@@ -1,0 +1,33 @@
+{
+  "function_name": "boarder3_uso_func_00000000",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-19T21:58:08.514396+00:00",
+  "end_time": "2026-04-19T21:58:08.514417+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T21:58:08.514411+00:00",
+      "assistant_text": "USO standard accessor template: int reader (4 bytes). See feedback_uso_accessor_template_reuse.md.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 15,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nvoid boarder3_uso_func_00000000(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid boarder3_uso_func_0000003C(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/boarder3_uso/boarder3_uso\", boarder3_uso_func_00000094);\n\nvoid boarder3_uso_func_000000D0(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid boarder3_uso_func_0000010C(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/boarder3_uso/boarder3_uso\", boarder3_uso_func_00000164);\n\n",
+  "metadata": {
+    "source_path": "src/boarder3_uso/boarder3_uso.c",
+    "asm_path": "asm/nonmatchings/boarder3_uso/boarder3_uso/boarder3_uso_func_00000000.s",
+    "segment": "boarder3_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified 100% match via objdiff report."
+  }
+}
