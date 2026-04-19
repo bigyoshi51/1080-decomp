@@ -90,6 +90,16 @@ segments:
     subsegments:
       - [0xDD0A6C, c, bootup_uso]
   - [0xDE50B8, bin, bootup_uso_post]
-  - [0xDE50D4, bin, game_libs]
+  # game_libs: 468 KB of raw relocatable text (1371 functions) followed by
+  # ~11 KB of data tables. Same decomp pattern as bootup_uso: VRAM=0,
+  # external symbol defs, per-.o matching.
+  - [0xDE50D4, bin, game_libs_pre]
+  - name: game_libs
+    type: code
+    start: 0xDE50D8
+    vram: 0x00000000
+    subsegments:
+      - [0xDE50D8, c, game_libs/game_libs]
+  - [0xE5A378, bin, game_libs_post]
   - [0xE5D0D4, bin, game_data]
   - [0x1000000]

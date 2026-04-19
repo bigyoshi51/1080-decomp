@@ -76,8 +76,8 @@ build/src/kernel/kernel_056.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_056.c.o: MIPSISET := -mips3 -32
 build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sys.argv[1],'r+b');f.seek(0x24);f.write(bytes.fromhex('10000001'));f.close()" $@
 
-# Collect source files (kernel/, bootup_uso/ — exclude o1/ reference)
-C_FILES   := $(shell find src/kernel src/bootup_uso -name '*.c' -type f 2>/dev/null)
+# Collect source files (kernel/, bootup_uso/, game_libs/ — exclude o1/ reference)
+C_FILES   := $(shell find src/kernel src/bootup_uso src/game_libs -name '*.c' -type f 2>/dev/null)
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 
@@ -132,9 +132,10 @@ verify: $(ROM)
 # Snapshot expected objects for objdiff baseline
 expected:
 	$(RM) -r expected
-	mkdir -p expected/src/kernel expected/src/bootup_uso
+	mkdir -p expected/src/kernel expected/src/bootup_uso expected/src/game_libs
 	cp build/src/kernel/*.o expected/src/kernel/
 	cp build/src/bootup_uso/*.o expected/src/bootup_uso/ 2>/dev/null || true
+	cp build/src/game_libs/*.o expected/src/game_libs/ 2>/dev/null || true
 
 clean:
 	rm -rf build $(ROM)

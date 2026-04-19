@@ -623,19 +623,50 @@ SECTIONS
     bootup_uso_post_ROM_END = __romPos;
     bootup_uso_post_VRAM_END = .;
 
-    game_libs_ROM_START = __romPos;
-    game_libs_VRAM = ADDR(.game_libs);
-    .game_libs : AT(game_libs_ROM_START)
+    game_libs_pre_ROM_START = __romPos;
+    game_libs_pre_VRAM = ADDR(.game_libs_pre);
+    .game_libs_pre : AT(game_libs_pre_ROM_START)
     {
         FILL(0x00000000);
-        game_libs_DATA_START = .;
-        build/assets/game_libs.bin.o(.data);
-        game_libs_DATA_END = .;
-        game_libs_DATA_SIZE = ABSOLUTE(game_libs_DATA_END - game_libs_DATA_START);
+        game_libs_pre_DATA_START = .;
+        build/assets/game_libs_pre.bin.o(.data);
+        game_libs_pre_DATA_END = .;
+        game_libs_pre_DATA_SIZE = ABSOLUTE(game_libs_pre_DATA_END - game_libs_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.game_libs_pre);
+    game_libs_pre_ROM_END = __romPos;
+    game_libs_pre_VRAM_END = .;
+
+    /* game_libs text: VRAM=0 (relocatable; all LUIs upper16=0, JALs target=0
+       in ROM for unresolved refs, pre-resolved intra-segment calls have
+       small targets that re-resolve cleanly at VRAM=0). */
+    game_libs_ROM_START = __romPos;
+    .game_libs 0x00000000 : AT(game_libs_ROM_START)
+    {
+        FILL(0x00000000);
+        game_libs_TEXT_START = .;
+        build/src/game_libs/game_libs.c.o(.text);
+        game_libs_TEXT_END = .;
+        game_libs_TEXT_SIZE = ABSOLUTE(game_libs_TEXT_END - game_libs_TEXT_START);
     }
     __romPos += SIZEOF(.game_libs);
     game_libs_ROM_END = __romPos;
+    game_libs_VRAM = ADDR(.game_libs);
     game_libs_VRAM_END = .;
+
+    game_libs_post_ROM_START = __romPos;
+    game_libs_post_VRAM = ADDR(.game_libs_post);
+    .game_libs_post : AT(game_libs_post_ROM_START)
+    {
+        FILL(0x00000000);
+        game_libs_post_DATA_START = .;
+        build/assets/game_libs_post.bin.o(.data);
+        game_libs_post_DATA_END = .;
+        game_libs_post_DATA_SIZE = ABSOLUTE(game_libs_post_DATA_END - game_libs_post_DATA_START);
+    }
+    __romPos += SIZEOF(.game_libs_post);
+    game_libs_post_ROM_END = __romPos;
+    game_libs_post_VRAM_END = .;
 
     game_data_ROM_START = __romPos;
     game_data_VRAM = ADDR(.game_data);

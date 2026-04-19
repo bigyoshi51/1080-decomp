@@ -904,12 +904,39 @@
         "compiler": "ido7.1",
         "c_flags": "-O2 -G 0 -mips3 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
       }
+    },
+    {
+      "name": "src/bootup_uso/bootup_uso",
+      "target_path": "expected/src/bootup_uso/bootup_uso.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso.c.o",
+      "metadata": {
+        "source_path": "src/bootup_uso/bootup_uso.c",
+        "progress_categories": ["bootup_uso"]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/game_libs/game_libs",
+      "target_path": "expected/src/game_libs/game_libs.c.o",
+      "base_path": "build/src/game_libs/game_libs.c.o",
+      "metadata": {
+        "source_path": "src/game_libs/game_libs.c",
+        "progress_categories": ["game_libs"]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
     }
   ],
   "progress_categories": [
-    {
-      "id": "kernel",
-      "name": "Kernel"
-    }
+    {"id": "kernel", "name": "Kernel"},
+    {"id": "bootup_uso", "name": "Bootup USO"},
+    {"id": "game_libs", "name": "Game Libs"}
   ]
 }
