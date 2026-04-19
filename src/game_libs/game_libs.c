@@ -2089,7 +2089,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F278);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F2B8);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 93.8% — extra `sw a1, 0xBC(sp)` (unused a1 arg, same family as 0003F008) */
+extern int gl_func_00000000();
+
+void gl_func_0003F308(char *a0, int a1, int *a2, int a3) {
+    char buf[0x98];
+    int pad;
+    int local;
+    *(int**)&buf[0x48] = a2;
+    *(int*)&buf[0x44] = a3;
+    *(int*)&buf[0x50] = *a2 & a3;
+    gl_func_00000000(buf);
+    local = 14;
+    gl_func_00000000(&local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F308);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F350);
 
