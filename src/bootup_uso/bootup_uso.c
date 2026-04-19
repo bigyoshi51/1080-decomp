@@ -1026,7 +1026,16 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CA4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CD8);
 
+#ifdef NON_MATCHING
+/* Structure matches but IDO emits beql with duplicated lw in epilogue rather than
+ * target's beq+or v0,zero path. Common IDO -O2 -> O1-style unfilled-slot mismatch. */
+int func_00011D40(int *a0, int a1) {
+    if (*(int*)((char*)a0 + 0x120) < a1) return 0;
+    return *(int*)((char*)a0 + a1 * 4 + 0xDC);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011D40);
+#endif
 
 void func_00011D70(void) {
 }
