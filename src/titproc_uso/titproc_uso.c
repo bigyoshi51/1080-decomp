@@ -1,5 +1,9 @@
 #include "common.h"
 
+extern int gl_func_00000000();
+extern char D_00000000;
+typedef struct { int a, b, c, d; } Quad4;
+
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000000);
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000098);
@@ -24,11 +28,23 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000003D
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000420);
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000049C);
+void titproc_uso_func_0000049C(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000004D8);
+void titproc_uso_func_000004D8(float *dst) {
+    float buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000514);
+void titproc_uso_func_00000514(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000056C);
 
