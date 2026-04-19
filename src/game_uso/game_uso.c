@@ -239,7 +239,13 @@ void game_uso_func_000044C8(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000044F4);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00005780);
+void game_uso_func_00005780(int *a0, int a1) {
+    if (a0 == 0) return;
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    if (a1 & 1) {
+        game_uso_func_00000000();
+    }
+}
 
 void game_uso_func_000057B8(char *a0) {
     game_uso_func_00000000(a0 + 0xE4);
