@@ -315,7 +315,23 @@ void func_80000688(s32* file, s32 offset) {
     file[1] += offset;
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", uso_file_open);
+s32 uso_file_open(FileState* file, u32* arg1) {
+    u32 header[3];
+
+    if (func_800009D8(header, 0xC, 1, file) < 0) {
+        return D_80013004;
+    }
+    if (header[0] == 0xA) {
+        return 0;
+    }
+    if (func_800009D8(arg1, header[1], 1, file) < 0) {
+        return D_80013004;
+    }
+    if (*arg1 == 0x12345678) {
+        return 1;
+    }
+    return -0x15;
+}
 
 /* uso_skip_to_end: reads USO section headers until End (type 11) */
 /* NON_MATCHING: beq operand order (cosmetic, $s2/$t6 swap in 2 instructions) */
