@@ -365,7 +365,10 @@ s32 uso_file_open(FileState* file, u32* arg1) {
 }
 
 /* uso_skip_to_end: reads USO section headers until End (type 11) */
-/* NON_MATCHING: beq operand order (cosmetic, $s2/$t6 swap in 2 instructions) */
+/* uso_skip_to_end: reads USO section headers until End (type 11) */
+/* NON_MATCHING: file offset handling is now correct via `((s32*)file)[1]`,
+ * but IDO still flips the 8/11 compare operand order (`beq s2,t6` and
+ * `bnel s3,t0`) instead of the target's `beq t6,s2` / `bnel t0,s3`. */
 #ifdef NON_MATCHING
 s32 uso_skip_to_end(FileState* file) {
     s32 pad;
@@ -375,10 +378,10 @@ s32 uso_skip_to_end(FileState* file) {
         if (func_800009D8(header, 12, 1, file) < 0) {
             return D_80013004;
         }
-        if (header[0] != 8) {
-            file->position += header[1];
+        if (8 != header[0]) {
+            ((s32*)file)[1] += header[1];
         }
-    } while (header[0] != 11);
+    } while (11 != header[0]);
     return 0;
 }
 #else
