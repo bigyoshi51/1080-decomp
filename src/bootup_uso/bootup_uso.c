@@ -821,7 +821,7 @@ void func_0000ED68(Quad4 *dst) {
     *dst = buf;
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EDC0);
+void func_0000EDC0(int a0, int a1) {}
 
 void func_0000EDCC(char *a0) {
     int scratch;
