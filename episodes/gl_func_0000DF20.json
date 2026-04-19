@@ -1,0 +1,28 @@
+{
+  "function_name": "gl_func_0000DF20",
+  "asm_text": "nonmatching gl_func_0000DF20, 0x2C\n\nglabel gl_func_0000DF20\n    /* DF2FF8 0000DF20 27BDFFE8 */  .word 0x27BDFFE8\n    /* DF2FFC 0000DF24 AFBF0014 */  .word 0xAFBF0014\n    /* DF3000 0000DF28 0C000000 */  .word 0x0C000000\n    /* DF3004 0000DF2C AFA60020 */  .word 0xAFA60020\n    /* DF3008 0000DF30 10400002 */  .word 0x10400002\n    /* DF300C 0000DF34 C7A40020 */  .word 0xC7A40020\n    /* DF3010 0000DF38 E4440010 */  .word 0xE4440010\n    /* DF3014 0000DF3C 8FBF0014 */  .word 0x8FBF0014\n    /* DF3018 0000DF40 27BD0018 */  .word 0x27BD0018\n    /* DF301C 0000DF44 03E00008 */  .word 0x03E00008\n    /* DF3020 0000DF48 00000000 */  .word 0x00000000\nendlabel gl_func_0000DF20\n",
+  "m2c_output": "",
+  "attempts": [
+    {
+      "c_code": "extern int *gl_func_00000000();\nvoid gl_func_0000DF20(int a0, int a1, float a2) {\n    int *r = gl_func_00000000();\n    if (r != 0) {\n        *(float*)((char*)r + 0x10) = a2;\n    }\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern int *gl_func_00000000();\nvoid gl_func_0000DF20(int a0, int a1, float a2) {\n    int *r = gl_func_00000000();\n    if (r != 0) {\n        *(float*)((char*)r + 0x10) = a2;\n    }\n}",
+  "matched": true,
+  "instruction_count": 11,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776575761.395765,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "game_libs"
+}
