@@ -357,7 +357,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B424);
 
+#ifdef NON_MATCHING
+/* 80.0%: USO wrapper a0+=0xEC. Body 8 instr matches, target has 2 trailing data words
+ * (lui+lw — looks like a data load from next function mis-bundled by splat). */
+void game_uso_func_0000B498(char *a0) {
+    game_uso_func_00000000(a0 + 0xEC);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B498);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B4C0);
 
