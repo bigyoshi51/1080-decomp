@@ -2220,7 +2220,24 @@ void gl_func_0003F244(int a0, int a1, int a2) {
     gl_func_00000000(buf);
 }
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: ~93% expected — a1-spill family */
+extern int gl_func_00000000();
+
+void gl_func_0003F278(int a0, int a1, int a2, int a3) {
+    char buf[0x98];
+    int pad;
+    int local;
+    *(int*)&buf[0x80] = a2;
+    *(int*)&buf[0x84] = a3;
+    *(int*)&buf[0x8C] = 0;
+    gl_func_00000000(buf);
+    local = 0xD;
+    gl_func_00000000(&local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F278);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F2B8);
 
