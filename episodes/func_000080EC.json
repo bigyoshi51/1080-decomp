@@ -1,0 +1,30 @@
+{
+  "function_name": "func_000080EC",
+  "asm_text": "nonmatching func_000080EC, 0x38\n\nglabel func_000080EC\n    /* DD8B58 000080EC 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* DD8B5C 000080F0 AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD8B60 000080F4 AFA40018 */  sw         $a0, 0x18($sp)\n    /* DD8B64 000080F8 0C000000 */  jal        func_00000000\n    /* DD8B68 000080FC 2484003C */   addiu     $a0, $a0, 0x3C\n    /* DD8B6C 00008100 8FA40018 */  lw         $a0, 0x18($sp)\n    /* DD8B70 00008104 0C000000 */  jal        func_00000000\n    /* DD8B74 00008108 24840074 */   addiu     $a0, $a0, 0x74\n    /* DD8B78 0000810C 0C000000 */  jal        func_00000000\n    /* DD8B7C 00008110 8FA40018 */   lw        $a0, 0x18($sp)\n    /* DD8B80 00008114 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD8B84 00008118 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* DD8B88 0000811C 03E00008 */  jr         $ra\n    /* DD8B8C 00008120 00000000 */   nop\nendlabel func_000080EC\n",
+  "m2c_output": "? func_00000000(s32);                               /* extern */\n\nvoid func_000080EC(s32 arg0) {\n    func_00000000(arg0 + 0x3C);\n    func_00000000(arg0 + 0x74);\n    func_00000000(arg0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_000080EC(char *a0) {\n    func_00000000((int*)(a0 + 0x3C));\n    func_00000000((int*)(a0 + 0x74));\n    func_00000000(a0);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_000080EC(char *a0) {\n    func_00000000((int*)(a0 + 0x3C));\n    func_00000000((int*)(a0 + 0x74));\n    func_00000000(a0);\n}",
+  "matched": true,
+  "instruction_count": 14,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1776565269.8426936,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}
