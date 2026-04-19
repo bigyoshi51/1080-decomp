@@ -45,6 +45,7 @@ extern void func_80009030(s32, s32);
 extern void func_80008498(void);
 extern s32 func_80006A98(s32);
 extern void func_800091F0(s32);
+extern s32 func_80009EA0(void);
 typedef struct { s32 pad[3]; s32 position; } FileState;
 
 typedef struct {
@@ -66,6 +67,25 @@ typedef struct Thread {
 
 typedef struct { s32 queue; s32 msg; } OSEventState;
 extern OSEventState __osEventStateTab[];
+
+typedef struct {
+    u8 pad_00[0x98];
+    u8 in_use;
+    u8 pad_99[3];
+} UsoSlot;
+
+typedef struct {
+    UsoSlot slots[4];
+} UsoSlotGroup;
+
+extern u8 D_80013138;
+extern UsoSlot D_800130A0;
+extern u8 D_800131D4;
+extern UsoSlot D_8001313C;
+extern u8 D_80013270;
+extern UsoSlot D_800131D8;
+extern UsoSlotGroup D_80013274;
+extern UsoSlotGroup D_800182E4;
 
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000000);
@@ -125,6 +145,9 @@ void func_800001DC(char* dst, char* src) {
 }
 
 /* uso_find_slash? — scan a string for '/' and write its index to *arg1 */
+/* NON_MATCHING: loop/index control flow is close, but the slash-hit path still
+ * needs dummy control-flow to keep IDO from reordering the return sequence. */
+#ifdef NON_MATCHING
 s32 func_8000020C(char* arg0, s32* arg1) {
     s32 i;
     s32 j;
@@ -154,6 +177,9 @@ dummy_label_580214:
     }
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_8000020C);
+#endif
 
 extern s32 func_800005DC();
 extern s32 func_8000060C();
@@ -388,6 +414,9 @@ typedef struct {
 extern s32 D_8000A2E4;
 extern s32 D_80012F7C;
 
+/* NON_MATCHING: callback dispatch structure is right, but the final
+ * `field_84` argument pair still compiles to the wrong pointer/add order. */
+#ifdef NON_MATCHING
 void func_800007D4(void) {
     UsoEntry74** var_s0;
     void* arg0;
@@ -411,6 +440,9 @@ void func_800007D4(void) {
         }
     } while (var_s0 != end);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800007D4);
+#endif
 
 typedef struct {
     char pad_00[0x94];
@@ -419,6 +451,9 @@ typedef struct {
 
 extern s32 D_8000A2F4;
 
+/* NON_MATCHING: traversal is correct, but the callback argument setup still
+ * compiles with the wrong register pairing for `var_s0` and `var_s2`. */
+#ifdef NON_MATCHING
 void func_8000085C(void) {
     s32 var_s0;
     UsoTable94* var_s1;
@@ -440,6 +475,9 @@ void func_8000085C(void) {
         var_s2 = (char*)var_s2 + 0x9C;
     } while (var_s0 != end);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_8000085C);
+#endif
 
 
 
@@ -655,7 +693,52 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800014A8);
 void func_800017B4(void) {
 }
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: the pool-walk body matches well, but the first three singleton
+ * flag checks still allocate the base registers differently from target
+ * (`v1`/`a0` in build versus direct `t6`/`t8`/`t0` loads with `at` stores). */
+void* func_800017BC(void) {
+    register u8* var_v1;
+
+    if (D_80013138 == 0) {
+        D_80013138 = 1;
+        return &D_800130A0;
+    }
+    if (D_800131D4 == 0) {
+        D_800131D4 = 1;
+        return &D_8001313C;
+    }
+    var_v1 = (u8*)&D_80013274;
+    if (D_80013270 == 0) {
+        D_80013270 = 1;
+        return &D_800131D8;
+    }
+loop_7:
+    if (*(u8*)(var_v1 + 0x98) == 0) {
+        *(u8*)(var_v1 + 0x98) = 1;
+        return var_v1;
+    }
+    if (*(u8*)(var_v1 + 0x134) == 0) {
+        *(u8*)(var_v1 + 0x134) = 1;
+        return var_v1 + 0x9C;
+    }
+    if (*(u8*)(var_v1 + 0x1D0) == 0) {
+        *(u8*)(var_v1 + 0x1D0) = 1;
+        return var_v1 + 0x138;
+    }
+    if (*(u8*)(var_v1 + 0x26C) == 0) {
+        *(u8*)(var_v1 + 0x26C) = 1;
+        return var_v1 + 0x1D4;
+    }
+    var_v1 += 0x270;
+    if (var_v1 != (u8*)&D_800182E4) {
+        goto loop_7;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800017BC);
+#endif
 
 void func_800018A8(void) {
 }
@@ -709,7 +792,15 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002530);
 
 
 
+/* NON_MATCHING: body matches (`jr $ra; nop`), but the target symbol is 16
+ * bytes wide in the object while the C symbol compiles as 8 bytes, so objdiff
+ * still reports it as fuzzy. */
+#ifdef NON_MATCHING
+void func_800029A0(void) {
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800029A0);
+#endif
 
 /* func_800029B0 + func_80002A10 split out to kernel_045.c (-O1) */
 
@@ -777,9 +868,49 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800047E4);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80004808);
+/* NON_MATCHING: stack data packing is correct, but IDO still chooses a
+ * different local layout (`-0x10` frame with `lwl/lwr`) instead of the
+ * target's tight `-0x8` frame and aligned `lw` from `sp+4`. */
+#ifdef NON_MATCHING
+void func_80004808(u8* arg0, u32 arg1) {
+    u8 sp4;
+    u32 sp0;
+    u8 temp_t8;
 
+    temp_t8 = (sp4 & 0xFF03) | 0x30;
+    sp4 = temp_t8;
+    sp4 = (arg1 & 3) | (temp_t8 & 0xFFFC);
+    sp0 = 0;
+    if (arg1 != 0) {
+        do {
+            *((u8*)&sp0 + sp0 + 5) = arg0[sp0];
+            sp0++;
+        } while (sp0 < arg1);
+    }
+    *(volatile u32*)0xC0000000 = *(u32*)&sp4;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80004808);
+#endif
+
+/* NON_MATCHING: control flow is correct, but IDO still emits branch-likely
+ * forms (`bnezl` / `beqzl`) for the two status polls instead of the target's
+ * plain `bnez` / `beqz` layout. */
+#ifdef NON_MATCHING
+void func_8000487C(void) {
+    if ((func_80009EA0() & 0x2000) == 0) {
+        do {
+        } while ((func_80009EA0() & 0x2000) == 0);
+    }
+    *(volatile u32*)0xC000000C = 0;
+    if (func_80009EA0() & 0x2000) {
+        do {
+        } while (func_80009EA0() & 0x2000);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000487C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800048E8);
 
