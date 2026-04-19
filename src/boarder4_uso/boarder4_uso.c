@@ -30,5 +30,14 @@ void boarder4_uso_func_0000010C(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* 92.3%: composite "int + Quad4 at dst+0x10" reader body matches; 1 trailing alignment nop IDO doesn't emit from C. */
+void boarder4_uso_func_00000164(char *dst) {
+    int tmp;
+    boarder4_uso_func_000000D0(&tmp);
+    boarder4_uso_func_0000010C((Quad4*)(dst + 0x10));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/boarder4_uso/boarder4_uso", boarder4_uso_func_00000164);
+#endif
 

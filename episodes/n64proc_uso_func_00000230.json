@@ -1,0 +1,33 @@
+{
+  "function_name": "n64proc_uso_func_00000230",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-19T23:59:42.545574+00:00",
+  "end_time": "2026-04-19T23:59:42.545604+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T23:59:42.545595+00:00",
+      "assistant_text": "Two-call USO-placeholder wrapper: gl_func_00000000(a0+0x58, 6); gl_func_00000000(a0+0x70, 3). IDO saves a0 to stack across the first jal, reloads, then adds different offset for second jal.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 14,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\n\nINCLUDE_ASM(\"asm/nonmatchings/n64proc_uso/n64proc_uso\", n64proc_uso_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/n64proc_uso/n64proc_uso\", n64proc_uso_func_00000014);\n\nINCLUDE_ASM(\"asm/nonmatchings/n64proc_uso/n64proc_uso\", n64proc_uso_func_00000100);\n\nvoid n64proc_uso_func_00000230(char *a0) {\n    gl_func_00000000(a0 + 0x58, 6);\n    gl_func_00000000(a0 + 0x70, 3);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/n64proc_uso/n64proc_uso\", n64proc_uso_func_00000268);\n\nINCLUDE_ASM(\"asm/nonmatchings/n64proc_uso/n64proc_uso\", n64proc_uso_func_00000364);\n\n",
+  "metadata": {
+    "source_path": "src/n64proc_uso/n64proc_uso.c",
+    "asm_path": "asm/nonmatchings/n64proc_uso/n64proc_uso/n64proc_uso_func_00000230.s",
+    "segment": "n64proc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff report; fuzzy_match_percent=100.0."
+  }
+}
