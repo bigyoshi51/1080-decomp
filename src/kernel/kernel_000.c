@@ -341,11 +341,7 @@ void func_80000688(s32* file, s32 offset) {
     file[1] += offset;
 }
 
-/* NON_MATCHING: local header layout and return register match, but the final
- * magic-check branch compiles as `bne` instead of target `beq`. */
-#ifdef NON_MATCHING
 s32 uso_file_open(FileState* file, u32* arg1) {
-    register s32 result;
     struct {
         u32 type;
         u32 size;
@@ -362,15 +358,11 @@ s32 uso_file_open(FileState* file, u32* arg1) {
     if (func_800009D8(arg1, header.size, 1, file) < 0) {
         return D_80013004;
     }
-    result = -0x15;
-    if (*arg1 == 0x12345678) {
-        result = 1;
+    if (*arg1 != 0x12345678) {
+        return -0x15;
     }
-    return result;
+    return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", uso_file_open);
-#endif
 
 /* uso_skip_to_end: reads USO section headers until End (type 11) */
 /* NON_MATCHING: beq operand order (cosmetic, $s2/$t6 swap in 2 instructions) */
