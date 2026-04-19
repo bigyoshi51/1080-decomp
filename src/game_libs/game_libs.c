@@ -1553,7 +1553,19 @@ void gl_func_00034E8C(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
 
+#ifdef NON_MATCHING
+/* 93.3%: body+epilogue match; delay slot has nop instead of target's sw a0,0x18(sp).
+ * Target spills a0 to caller's arg-save area during the jal — likely because callee
+ * uses va_list internally. IDO declaration-level controls don't reproduce the spill. */
+long long gl_func_00035164_callee(int, ...);
+
+int gl_func_00035164(int a0) {
+    long long r = gl_func_00035164_callee(a0);
+    return (int)r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035164);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
 
