@@ -446,30 +446,7 @@ void func_800010CC(s32 a0, ...) {
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800010E8);
 
-extern s32 D_80012D30;
-extern s32 D_80012D34;
-extern s32 D_80012D38;
-extern s32 D_80012D3C[];
-extern s32 D_80012D5C;
-
-void func_80001184(void) {
-    s32* ptr;
-    s32* end;
-
-    D_80012D5C = 0;
-    D_80012D30 = 0;
-    D_80012D34 = 0;
-    D_80012D38 = 0;
-    ptr = D_80012D3C;
-    end = &D_80012D5C;
-    do {
-        ptr += 4;
-        ptr[-4] = 0;
-        ptr[-3] = 0;
-        ptr[-2] = 0;
-        ptr[-1] = 0;
-    } while (ptr != end);
-}
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_find_file);
 
@@ -481,6 +458,9 @@ s32 func_800012AC(s32 arg0) {
 extern void* (*D_80012BF4)(s32, s32);
 extern s32 func_800015D0(void*, void*);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: control flow and return value match, but IDO keeps the frame
+ * 8 bytes smaller than target, so the spill slots land at the wrong offsets. */
 void* func_800012BC(void* arg0) {
     void* file;
     s32 header[3];
@@ -496,36 +476,11 @@ void* func_800012BC(void* arg0) {
     ((s32*)file)[7] = ((s32*)file)[1] + header[1];
     return file;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800012BC);
+#endif
 
-extern void func_80000A88(void*, s32);
-
-s32 func_80001348(void* arg0, s32* arg1) {
-    s32 file[10];
-    s32 header[3];
-    s32 result;
-
-    result = func_800015D0(arg0, file);
-    if (result < 0) {
-        return result;
-    }
-
-    while (1) {
-        result = func_800009D8(header, 0xC, 1, file);
-        if (result <= 0) {
-            if (result == 0) {
-                result = -1000;
-            }
-            return result;
-        }
-        if (header[0] == 6) {
-            *arg1 = file[3] + file[1];
-            return 0;
-        }
-        if (header[0] != 8) {
-            func_80000A88(file, header[1]);
-        }
-    }
-}
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80001348);
 
 /* uso_read */
 s32 func_80001414(void* file, void* buf, s32 size) {
