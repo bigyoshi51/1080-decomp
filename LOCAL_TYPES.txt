@@ -1,0 +1,11 @@
+__builtin_va_list	00000004	1
+va_list	00000004	2
+BOOL	00000004	3
+
+-------- START --------
+00000004 typedef void *__builtin_va_list;
+
+00000004 typedef void **va_list;
+
+00000004 typedef int BOOL;
+------- END ---------
