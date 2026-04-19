@@ -184,7 +184,25 @@ segments:
   - [0x6B6DBA, bin, timproc_uso_inter78]          # 2236 bytes
   - [0x6B7676, bin, timproc_uso_block8_yay0]      # 0x2C8ED (data)
   - [0x6E3F63, bin, timproc_uso_post]             # 1801 bytes
-  - [0x6E466C, bin, map4_data_uso]
+  # map4_data_uso: 8 Yay0 blocks. Only block 2 has code (3 tiny functions, 0xD0 uncomp).
+  # Other blocks are mesh/texture/audio data — passthrough.
+  - [0x6E466C, bin, map4_data_uso_pre]
+  - [0x6E4780, bin, map4_data_uso_block0_yay0]
+  - [0x71A805, bin, map4_data_uso_inter01]
+  - [0x71B292, bin, map4_data_uso_block1_yay0]
+  - [0x71C6D8, bin, map4_data_uso_inter12]
+  - [0x71C6E4, bin, map4_data_uso_block2_yay0]
+  - [0x71C785, bin, map4_data_uso_inter23]
+  - [0x71C9FA, bin, map4_data_uso_block3_yay0]
+  - [0x72634E, bin, map4_data_uso_inter34]
+  - [0x72689A, bin, map4_data_uso_block4_yay0]
+  - [0x752B06, bin, map4_data_uso_inter45]
+  - [0x753482, bin, map4_data_uso_block5_yay0]
+  - [0x783849, bin, map4_data_uso_inter56]
+  - [0x7843FE, bin, map4_data_uso_block6_yay0]
+  - [0x7ABBCA, bin, map4_data_uso_inter67]
+  - [0x7AC1C6, bin, map4_data_uso_block7_yay0]
+  - [0x7CC3AF, bin, map4_data_uso_post]
   # game_uso: 4 Yay0 blocks. Only block 1 has code (200 functions, 0x11B30 uncomp).
   # Blocks 0/2/3 + inter regions are data — leave as passthrough bin.
   - [0x7CC8D8, bin, game_uso_pre]              # USO header + RoData + descriptor

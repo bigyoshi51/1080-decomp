@@ -932,17 +932,126 @@ SECTIONS
     timproc_uso_ROM_END = __romPos;
     timproc_uso_VRAM_END = .;
 
+    /* map4_data_uso: 8 Yay0 blocks + 7 inter slices. Code: block 2 only. */
     map4_data_uso_ROM_START = __romPos;
-    map4_data_uso_VRAM = ADDR(.map4_data_uso);
-    .map4_data_uso : AT(map4_data_uso_ROM_START)
+    .map4_data_uso_pre : AT(__romPos)
     {
         FILL(0x00000000);
-        map4_data_uso_DATA_START = .;
-        build/assets/map4_data_uso.bin.o(.data);
-        map4_data_uso_DATA_END = .;
-        map4_data_uso_DATA_SIZE = ABSOLUTE(map4_data_uso_DATA_END - map4_data_uso_DATA_START);
+        build/assets/map4_data_uso_pre.bin.o(.data);
     }
-    __romPos += SIZEOF(.map4_data_uso);
+    __romPos += SIZEOF(.map4_data_uso_pre);
+
+    .map4_data_uso_block0_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_block0_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_block0_yay0);
+
+    .map4_data_uso_inter01 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_inter01.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_inter01);
+
+    .map4_data_uso_block1_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_block1_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_block1_yay0);
+
+    .map4_data_uso_inter12 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_inter12.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_inter12);
+
+    .map4_data_uso_block2_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_block2_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_block2_yay0);
+
+    .map4_data_uso_inter23 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_inter23.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_inter23);
+
+    .map4_data_uso_block3_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_block3_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_block3_yay0);
+
+    .map4_data_uso_inter34 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_inter34.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_inter34);
+
+    .map4_data_uso_block4_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_block4_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_block4_yay0);
+
+    .map4_data_uso_inter45 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_inter45.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_inter45);
+
+    .map4_data_uso_block5_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_block5_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_block5_yay0);
+
+    .map4_data_uso_inter56 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_inter56.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_inter56);
+
+    .map4_data_uso_block6_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_block6_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_block6_yay0);
+
+    .map4_data_uso_inter67 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_inter67.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_inter67);
+
+    .map4_data_uso_block7_yay0 : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_block7_yay0.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_block7_yay0);
+
+    .map4_data_uso_post : AT(__romPos)
+    {
+        FILL(0x00000000);
+        build/assets/map4_data_uso_post.bin.o(.data);
+    }
+    __romPos += SIZEOF(.map4_data_uso_post);
     map4_data_uso_ROM_END = __romPos;
     map4_data_uso_VRAM_END = .;
 
