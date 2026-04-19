@@ -42,7 +42,12 @@ void game_uso_func_000002BC(Quad4 *dst) {
     *dst = buf;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000314);
+typedef struct { int a, b; } Pair2;
+void game_uso_func_00000314(Pair2 *dst) {
+    Pair2 buf;
+    gl_func_00000000(&D_00000000, &buf, 8);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000035C);
 
