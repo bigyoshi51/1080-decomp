@@ -84,7 +84,18 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000B3C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001644);
 
+#ifdef NON_MATCHING
+/* 92.9%: body matches; IDO spills a0 (unused) to caller arg slot per feedback_ido_unused_arg_save.md
+ * but target doesn't. Fixable if a0 can be dropped from signature without changing a1's register. */
+void game_uso_func_00001714(int a0, int *a1) {
+    int v = *a1;
+    if (v == 8 || v == 9) {
+        gl_func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001714);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000174C);
 
