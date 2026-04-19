@@ -1,0 +1,28 @@
+{
+  "function_name": "func_000027C0",
+  "asm_text": "nonmatching func_000027C0, 0x28\n\nglabel func_000027C0\n    /* DD322C 000027C0 8CA20000 */  lw         $v0, 0x0($a1)\n    /* DD3230 000027C4 240103ED */  addiu      $at, $zero, 0x3ED\n    /* DD3234 000027C8 14410005 */  bne        $v0, $at, .L000027E0\n    /* DD3238 000027CC 24820018 */   addiu     $v0, $a0, 0x18\n    /* DD323C 000027D0 8C4E0000 */  lw         $t6, 0x0($v0)\n    /* DD3240 000027D4 2401FFF7 */  addiu      $at, $zero, -0x9\n    /* DD3244 000027D8 01C17824 */  and        $t7, $t6, $at\n    /* DD3248 000027DC AC4F0000 */  sw         $t7, 0x0($v0)\n  .L000027E0:\n    /* DD324C 000027E0 03E00008 */  jr         $ra\n    /* DD3250 000027E4 00000000 */   nop\nendlabel func_000027C0\n",
+  "m2c_output": "void func_000027C0(void *arg0, s32 *arg1) {\n    if (*arg1 == 0x3ED) {\n        arg0->unk18 = (s32) (arg0->unk18 & ~8);\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_000027C0(char *a0, int *a1) {\n    int msg_type = *a1;\n    int *flags = (int*)(a0 + 0x18);\n    if (msg_type == 0x3ED) {\n        *flags &= ~0x8;\n    }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_000027C0(char *a0, int *a1) {\n    int msg_type = *a1;\n    int *flags = (int*)(a0 + 0x18);\n    if (msg_type == 0x3ED) {\n        *flags &= ~0x8;\n    }",
+  "matched": true,
+  "instruction_count": 10,
+  "has_branches": true,
+  "has_calls": false,
+  "timestamp": 1776563540.239094,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}
