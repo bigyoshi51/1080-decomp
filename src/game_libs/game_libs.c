@@ -1965,7 +1965,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F82C);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 99.83% — local at sp+0x1C vs target sp+0x18; couldn't force 8-byte pad between saved_a1 and local without growing frame */
+extern int gl_func_00000000();
+
+void gl_func_0003F880(int a0, int a1) {
+    char buf[0x90];
+    int saved_a1;
+    int pad;
+    int local;
+    int *p;
+    saved_a1 = a1;
+    p = &saved_a1;
+    local = 0x2A;
+    gl_func_00000000(&local);
+    (void)p;
+    (void)buf;
+    (void)pad;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F880);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8B0);
 
@@ -2489,7 +2509,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DF90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 97.5% — v0/v1 swapped for p1/p2 pointers */
+void gl_func_0004E150(char *a0) {
+    char *p1 = *(char**)(a0 + 0x134);
+    char *p2 = *(char**)(p1 + 0x14);
+    (*(int(**)(char*))(p2 + 0xC))(p1 + *(short*)(p2 + 0x8));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E150);
+#endif
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: a0 spill slot off by 4 bytes */
