@@ -19,6 +19,9 @@ if [ ! -f objdiff.json ]; then
     exit 1
 fi
 
+jobs="$(getconf _NPROCESSORS_ONLN 2>/dev/null || nproc 2>/dev/null || echo 8)"
+make -j"$jobs" objects >/dev/null
+
 objdiff-cli report generate > report.json
 
 python3 - <<'PY'
