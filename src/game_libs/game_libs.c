@@ -3183,7 +3183,19 @@ int gl_func_000626EC(char *a0) {
     return gl_func_00000000(a0 + 0x40);
 }
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 91.7% — extra `sw a0, 24(sp)` vs target; target function may take single arg passed via $a1 unusually */
+extern int gl_func_00000000();
+
+void gl_func_0006270C(int a0, int *a1) {
+    int val = *a1;
+    if (val == 9) {
+        gl_func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006270C);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_0006273C(char *a0) {
