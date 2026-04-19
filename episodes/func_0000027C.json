@@ -1,0 +1,30 @@
+{
+  "function_name": "func_0000027C",
+  "asm_text": "nonmatching func_0000027C, 0x20\n\nglabel func_0000027C\n    /* DD0CE8 0000027C 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* DD0CEC 00000280 AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD0CF0 00000284 0C000000 */  jal        func_00000000\n    /* DD0CF4 00000288 00000000 */   nop\n    /* DD0CF8 0000028C 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD0CFC 00000290 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* DD0D00 00000294 03E00008 */  jr         $ra\n    /* DD0D04 00000298 00000000 */   nop\nendlabel func_0000027C\n",
+  "m2c_output": "? func_00000000();                                  /* extern */\n\nvoid func_0000027C(void) {\n    func_00000000();\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_0000027C(void) {\n    func_00000000();\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_0000027C(void) {\n    func_00000000();\n}",
+  "matched": true,
+  "instruction_count": 8,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1776562194.005867,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

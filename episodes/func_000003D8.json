@@ -1,0 +1,30 @@
+{
+  "function_name": "func_000003D8",
+  "asm_text": "nonmatching func_000003D8, 0x20\n\nglabel func_000003D8\n    /* DD0E44 000003D8 27BDFFE8 */  addiu      $sp, $sp, -0x18\n    /* DD0E48 000003DC AFBF0014 */  sw         $ra, 0x14($sp)\n    /* DD0E4C 000003E0 0C000000 */  jal        func_00000000\n    /* DD0E50 000003E4 00000000 */   nop\n    /* DD0E54 000003E8 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* DD0E58 000003EC 27BD0018 */  addiu      $sp, $sp, 0x18\n    /* DD0E5C 000003F0 03E00008 */  jr         $ra\n    /* DD0E60 000003F4 00000000 */   nop\nendlabel func_000003D8\n",
+  "m2c_output": "? func_00000000();                                  /* extern */\n\nvoid func_000003D8(void) {\n    func_00000000();\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_000003D8(void) {\n    func_00000000();\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_000003D8(void) {\n    func_00000000();\n}",
+  "matched": true,
+  "instruction_count": 8,
+  "has_branches": false,
+  "has_calls": true,
+  "timestamp": 1776562195.50915,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [
+    "func_00000000"
+  ],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

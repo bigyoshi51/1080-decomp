@@ -22,21 +22,37 @@ void func_000001FC(void) {
     func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000021C);
+void func_0000021C(void) {
+    func_00000000();
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000023C);
+void func_0000023C(void) {
+    func_00000000();
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000025C);
+void func_0000025C(void) {
+    func_00000000();
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000027C);
+void func_0000027C(void) {
+    func_00000000();
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000029C);
+void func_0000029C(void) {
+    func_00000000();
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000002BC);
+void func_000002BC(void) {
+    func_00000000();
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000002DC);
+void func_000002DC(void) {
+    func_00000000();
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000002FC);
+void func_000002FC(void) {
+    func_00000000();
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000031C);
 
@@ -44,9 +60,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000360);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000038C);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003B8);
+void func_000003B8(void) {
+    func_00000000();
+}
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003D8);
+void func_000003D8(void) {
+    func_00000000();
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003F8);
 
