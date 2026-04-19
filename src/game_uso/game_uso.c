@@ -385,7 +385,17 @@ void game_uso_func_0000C08C(char *dst) {
     game_uso_func_0000ADE0((int*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* 92.3%: composite reader (int + Quad4 at dst+0x10). Target has trailing nop padding
+ * (13 instructions; body is 12). See feedback_function_trailing_nop_padding.md. */
+void game_uso_func_0000C0BC(char *dst) {
+    int tmp;
+    game_uso_func_0000AD4C(&tmp);
+    game_uso_func_0000AD88((Quad4*)(dst + 0x10));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C0BC);
+#endif
 
 void game_uso_func_0000C0F0(int *dst) {
     int buf[2];
