@@ -61,6 +61,14 @@ objdiff-cli report generate | python3 -c "import json,sys; d=json.load(sys.stdin
 ```
 Expected: >= 40 matched functions.
 
+After landing a successful decompile from a worktree, use:
+```
+./scripts/land-successful-decomp.sh
+```
+This rebases the current branch onto `origin/main`, fast-forwards the main
+worktree, pushes `origin/main`, and regenerates `report.json` in both the
+current worktree and the main worktree.
+
 ## Fragment Merges Performed
 
 These asm files were merged into their parent functions. If re-running
