@@ -568,7 +568,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E588);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E5B8);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E5E8);
+float func_0000E5E8(char *a0) { return *(float*)(a0 + 0x198); }
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E5F0);
 
@@ -876,11 +876,17 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013CE8);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013D40);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013FE0);
+void func_00013FE0(char *a0, int a1, int a2) {
+    *(int*)(a0 + 0x44) = a1;
+    *(int*)(a0 + 0x5C) = a2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013FEC);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014004);
+void func_00014004(char *a0, int a1, int a2) {
+    *(int*)(a0 + 0x104) = a1;
+    *(int*)(a0 + 0x108) = a2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014010);
 

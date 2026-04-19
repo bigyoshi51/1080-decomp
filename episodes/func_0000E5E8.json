@@ -1,0 +1,28 @@
+{
+  "function_name": "func_0000E5E8",
+  "asm_text": "nonmatching func_0000E5E8, 0x8\n\nglabel func_0000E5E8\n    /* DDF054 0000E5E8 03E00008 */  jr         $ra\n    /* DDF058 0000E5EC C4800198 */   lwc1      $f0, 0x198($a0)\nendlabel func_0000E5E8\n",
+  "m2c_output": "f32 func_0000E5E8(void *arg0) {\n    return arg0->unk198;\n}\n",
+  "attempts": [
+    {
+      "c_code": "float func_0000E5E8(char *a0) { return *(float*)(a0 + 0x198); }",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "float func_0000E5E8(char *a0) { return *(float*)(a0 + 0x198); }",
+  "matched": true,
+  "instruction_count": 2,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776563698.7715037,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

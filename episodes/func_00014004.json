@@ -1,0 +1,28 @@
+{
+  "function_name": "func_00014004",
+  "asm_text": "nonmatching func_00014004, 0xC\n\nglabel func_00014004\n    /* DE4A70 00014004 AC850104 */  sw         $a1, 0x104($a0)\n    /* DE4A74 00014008 03E00008 */  jr         $ra\n    /* DE4A78 0001400C AC860108 */   sw        $a2, 0x108($a0)\nendlabel func_00014004\n",
+  "m2c_output": "void func_00014004(void *arg0, s32 arg1, s32 arg2) {\n    arg0->unk104 = arg1;\n    arg0->unk108 = arg2;\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_00014004(char *a0, int a1, int a2) {\n    *(int*)(a0 + 0x104) = a1;\n    *(int*)(a0 + 0x108) = a2;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_00014004(char *a0, int a1, int a2) {\n    *(int*)(a0 + 0x104) = a1;\n    *(int*)(a0 + 0x108) = a2;\n}",
+  "matched": true,
+  "instruction_count": 3,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776563699.2413476,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}

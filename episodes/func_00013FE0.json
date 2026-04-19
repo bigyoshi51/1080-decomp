@@ -1,0 +1,28 @@
+{
+  "function_name": "func_00013FE0",
+  "asm_text": "nonmatching func_00013FE0, 0xC\n\nglabel func_00013FE0\n    /* DE4A4C 00013FE0 AC850044 */  sw         $a1, 0x44($a0)\n    /* DE4A50 00013FE4 03E00008 */  jr         $ra\n    /* DE4A54 00013FE8 AC86005C */   sw        $a2, 0x5C($a0)\nendlabel func_00013FE0\n",
+  "m2c_output": "void func_00013FE0(void *arg0, s32 arg1, s32 arg2) {\n    arg0->unk44 = arg1;\n    arg0->unk5C = arg2;\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_00013FE0(char *a0, int a1, int a2) {\n    *(int*)(a0 + 0x44) = a1;\n    *(int*)(a0 + 0x5C) = a2;\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "void func_00013FE0(char *a0, int a1, int a2) {\n    *(int*)(a0 + 0x44) = a1;\n    *(int*)(a0 + 0x5C) = a2;\n}",
+  "matched": true,
+  "instruction_count": 3,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776563699.0071347,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "bootup_uso"
+}
