@@ -367,7 +367,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B290);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B310);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B3B0);
+extern int gl_func_00000000();
+int gl_func_0000B3B0() {
+    int r = gl_func_00000000();
+    if (r != 0) return 1;
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B3DC);
 
@@ -381,7 +386,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B5AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B638);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B6AC);
+extern int gl_func_00000000();
+void gl_func_0000B6AC(int *a0) {
+    gl_func_00000000(a0[1]);
+    gl_func_00000000(a0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B6D8);
 
@@ -1247,7 +1256,10 @@ void gl_func_00034DE8(int a0) {
     gl_func_00000000(gl_func_00000000);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034E10);
+extern int gl_func_00000000();
+int gl_func_00034E10(int a0) {
+    return gl_func_00000000(gl_func_00000000) == 2;
+}
 
 extern int gl_func_00000000();
 void gl_func_00034E3C(int a0) {
@@ -1272,7 +1284,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000351EC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003523C);
+extern int gl_func_00000000();
+void gl_func_0003523C(int a0, int a1, int a2) {
+    gl_func_00000000(gl_func_00000000, a1, a1 + a2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035268);
 
@@ -1804,7 +1819,11 @@ void gl_func_0003FC00(int a0) {
     gl_func_00000000(&scratch);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC2C);
+extern int gl_func_00000000();
+void gl_func_0003FC2C(int *a0) {
+    gl_func_00000000(a0);
+    a0[1] = 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
 
