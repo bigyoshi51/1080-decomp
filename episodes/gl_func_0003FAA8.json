@@ -1,0 +1,26 @@
+{
+  "function_name": "gl_func_0003FAA8",
+  "project": "1080 Snowboarding (USA)",
+  "model": "manual",
+  "start_time": "2026-04-19T16:06:43.385815+00:00",
+  "end_time": "2026-04-19T16:06:43.385841+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T16:06:43.385832+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\n\nint gl_func_0003FAA8(int a0) {\n    char buf[0x98];\n    int pad;\n    int local;\n    local = 0x24;\n    gl_func_00000000(&local);\n    gl_func_00000000(&local);\n    return *(int*)&buf[0x48];\n}",
+  "metadata": {}
+}
