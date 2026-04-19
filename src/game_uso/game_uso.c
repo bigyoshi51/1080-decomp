@@ -539,7 +539,18 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB04);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB7C);
 
+#ifdef NON_MATCHING
+/* 98.67%: ptr-temp `t` allocated to $v1 instead of target's $t6 (one-step register shift).
+ * IDO's allocator prefers $v1 for the named ptr-local; target skipped $v1 — possibly because
+ * of long-long-return reservation around game_uso_func_00000000. Logic identical. */
+void game_uso_func_0000FBF8(int *a0) {
+    int *t = *(int**)((char*)a0 + 0xB4);
+    int v = *(int*)((char*)a0 + 0xFC);
+    game_uso_func_00000000(a0, v | 2, v | 3, *(int*)((char*)t + 0x970), 0, 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FBF8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
 
