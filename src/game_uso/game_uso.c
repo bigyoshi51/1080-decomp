@@ -80,8 +80,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000008FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000940);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000B14);
-
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000B3C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001644);
@@ -132,6 +130,11 @@ void game_uso_func_00002FC8(int *a0, int a1, int a2) {
 
 void game_uso_func_00002FF8(void) {
     game_uso_func_00000000();
+}
+
+void game_uso_func_00000B14(void *a0) {
+    game_uso_func_00000000(a0);
+    game_uso_func_00000000(a0);
 }
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
