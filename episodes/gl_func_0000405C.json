@@ -1,0 +1,28 @@
+{
+  "function_name": "gl_func_0000405C",
+  "asm_text": "nonmatching gl_func_0000405C, 0x30\n\nglabel gl_func_0000405C\n    /* DE9134 0000405C 27BDFFE0 */  .word 0x27BDFFE0\n    /* DE9138 00004060 AFBF0014 */  .word 0xAFBF0014\n    /* DE913C 00004064 AFA40020 */  .word 0xAFA40020\n    /* DE9140 00004068 0C004F1C */  .word 0x0C004F1C\n    /* DE9144 0000406C 27A4001C */  .word 0x27A4001C\n    /* DE9148 00004070 8FA40020 */  .word 0x8FA40020\n    /* DE914C 00004074 0C004F1C */  .word 0x0C004F1C\n    /* DE9150 00004078 24840010 */  .word 0x24840010\n    /* DE9154 0000407C 8FBF0014 */  .word 0x8FBF0014\n    /* DE9158 00004080 27BD0020 */  .word 0x27BD0020\n    /* DE915C 00004084 03E00008 */  .word 0x03E00008\n    /* DE9160 00004088 00000000 */  .word 0x00000000\nendlabel gl_func_0000405C\n",
+  "m2c_output": "",
+  "attempts": [
+    {
+      "c_code": "extern int gl_ref_00013C70();\nint gl_func_0000405C(char *a0) {\n    int scratch;\n    gl_ref_00013C70(&scratch);\n    return gl_ref_00013C70(a0 + 0x10);\n}",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "",
+      "notes": "flags: -O2 -g2"
+    }
+  ],
+  "final_c": "extern int gl_ref_00013C70();\nint gl_func_0000405C(char *a0) {\n    int scratch;\n    gl_ref_00013C70(&scratch);\n    return gl_ref_00013C70(a0 + 0x10);\n}",
+  "matched": true,
+  "instruction_count": 12,
+  "has_branches": false,
+  "has_calls": false,
+  "timestamp": 1776569572.5887713,
+  "game": "glover",
+  "compiler": "gcc_2.7.2_kmc",
+  "compiler_flags": "-O2 -g2",
+  "nearby_decompiled": [],
+  "called_functions": [],
+  "referenced_data": [],
+  "segment": "game_libs"
+}
