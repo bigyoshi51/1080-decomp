@@ -1,0 +1,33 @@
+{
+  "function_name": "gui_func_000026D8",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-19T18:47:30.332915+00:00",
+  "end_time": "2026-04-19T18:47:30.332948+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T18:47:30.332938+00:00",
+      "assistant_text": "Conditional call (if a0->f10 != 0) with a0->f14 arg + clear a0->f10.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 17,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000148);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000918);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000B58);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000D04);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000F04);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_000013E8);\n\nextern int gui_func_00000000();\n\nint gui_func_000014B4(int a0, int a1, int a2) {\n    return a1 - (gui_func_00000000(a0, a2) / 2);\n}\n\nextern int gl_func_00000000();\n\nint gui_func_000014EC(int a0, int a1, int a2) {\n    return a1 - gl_func_00000000(a0, a2);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00001514);\n\nextern int gui_func_00000000();\n\nint gui_func_000015BC(int a0, int a1, int a2) {\n    return a1 - (gui_func_00000000(a0, a2) / 2);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_000015F4);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_0000267C);\n\nextern int gui_func_00000000();\nextern int gui_ref_00000150;\n\nvoid gui_func_000026D8(char *a0) {\n    if (*(int*)(a0 + 0x10) != 0) {\n        gui_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14), a0);\n    }\n    *(int*)(a0 + 0x10) = 0;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_0000271C);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_000027A0);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00002BB0);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00002DE0);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_0000329C);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00003714);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00003B80);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00004568);\n\n",
+  "metadata": {
+    "source_path": "src/gui_uso/gui_uso.c",
+    "asm_path": "asm/nonmatchings/gui_uso/gui_uso/gui_func_000026D8.s",
+    "segment": "gui_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff: fuzzy_match_percent=100.0"
+  }
+}

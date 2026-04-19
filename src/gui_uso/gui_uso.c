@@ -38,7 +38,15 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000015F4);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000267C);
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000026D8);
+extern int gui_func_00000000();
+extern int gui_ref_00000150;
+
+void gui_func_000026D8(char *a0) {
+    if (*(int*)(a0 + 0x10) != 0) {
+        gui_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14), a0);
+    }
+    *(int*)(a0 + 0x10) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000271C);
 
