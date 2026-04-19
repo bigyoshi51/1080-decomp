@@ -1550,13 +1550,12 @@ void gl_func_00034E8C(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
 
 #ifdef NON_MATCHING
-/* 93.3%: body+epilogue match; delay slot has nop instead of target's sw a0,0x18(sp).
- * Target spills a0 to caller's arg-save area during the jal — likely because callee
- * uses va_list internally. IDO declaration-level controls don't reproduce the spill. */
-long long gl_func_00035164_callee(int, ...);
+/* 93.3%: body+epilogue exact; jal delay slot has nop, target has sw a0, 0x18(sp).
+ * Unique-extern technique doesn't reproduce the a0 spill (tried typed int, typed int+vararg). */
+long long gl_func_00035164_inner(int a0);
 
 int gl_func_00035164(int a0) {
-    long long r = gl_func_00035164_callee(a0);
+    long long r = gl_func_00035164_inner(a0);
     return (int)r;
 }
 #else
@@ -3571,19 +3570,13 @@ int gl_func_000626EC(char *a0) {
     return gl_func_00000000(a0 + 0x40);
 }
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 91.7% — extra `sw a0, 24(sp)` vs target; target function may take single arg passed via $a1 unusually */
-extern int gl_func_00000000();
+void gl_func_0006270C_inner(int a0);
 
 void gl_func_0006270C(int a0, int *a1) {
     int val = *a1;
-    if (val == 9) {
-        gl_func_00000000();
-    }
+    if (val != 9) return;
+    gl_func_0006270C_inner(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006270C);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_0006273C(char *a0) {
