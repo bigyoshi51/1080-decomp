@@ -266,7 +266,16 @@ void func_00001D34(Quad4 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001D8C);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001DB8);
+void *func_00001DB8(void *a0, int a1, int a2) {
+    if (a0 == 0) {
+        a0 = (void*)func_00000000(0x48);
+        if (a0 == 0) goto end;
+    }
+    func_00000000(a0, a1);
+    *(int*)((char*)a0 + 0x40) = a2;
+end:
+    return a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001E08);
 
