@@ -2458,7 +2458,15 @@ int gl_func_000424D8() {
     return gl_func_00000000(&gl_ref_0001FCB4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000424FC);
+extern int gl_func_00000000();
+extern int gl_ref_00000214;
+extern char *gl_ref_00000240;
+
+void gl_func_000424FC(void) {
+    gl_func_00000000(gl_ref_00000214);
+    gl_func_00000000(*(int*)(gl_ref_00000240 + 0x180));
+    gl_func_00000000(*(int*)(gl_ref_00000240 + 0x184));
+}
 
 extern int gl_func_00000000();
 extern char gl_ref_0001FCBC;
