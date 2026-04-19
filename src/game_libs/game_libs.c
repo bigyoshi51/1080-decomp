@@ -939,7 +939,12 @@ int gl_func_000276E4() {
     return gl_func_0003B1AC();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027704);
+extern int gl_func_00000000();
+void gl_func_00027704(int a0, int a1) {
+    int r = gl_func_00000000(1);
+    gl_func_00000000(a0, a1);
+    gl_func_00000000(r);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027744);
 
