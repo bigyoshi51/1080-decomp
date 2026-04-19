@@ -72,7 +72,13 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000022B
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000240C);
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000026D0);
+void titproc_uso_func_00000000();
+
+void titproc_uso_func_000026D0(int *a0) {
+    int *p = *(int**)((char*)a0 + 0x6C0);
+    if (p == 0) return;
+    titproc_uso_func_00000000(p);
+}
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000026FC);
 

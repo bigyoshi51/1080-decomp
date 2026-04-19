@@ -1,0 +1,33 @@
+{
+  "function_name": "titproc_uso_func_000026D0",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-19T21:42:01.495397+00:00",
+  "end_time": "2026-04-19T21:42:01.495418+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T21:42:01.495412+00:00",
+      "assistant_text": "USO nullable dispatcher: load a0->f6C0 pointer, skip if null (beql), else call placeholder with loaded pointer as a0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 11,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000098);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000000CC);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000194);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000001E4);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000238);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_0000028C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000002E0);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000334);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000388);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000003D8);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000420);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_0000049C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000004D8);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000514);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_0000056C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000005DC);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000B6C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000C0C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000C54);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00000FD0);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_0000101C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_0000116C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000015F4);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001718);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001840);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001950);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001B10);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001BB8);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001C68);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001D7C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001E2C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00001E9C);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00002270);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000022BC);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_0000240C);\n\nvoid titproc_uso_func_00000000();\n\nvoid titproc_uso_func_000026D0(int *a0) {\n    int *p = *(int**)((char*)a0 + 0x6C0);\n    if (p == 0) return;\n    titproc_uso_func_00000000(p);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000026FC);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000028C0);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_000028F0);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00002920);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00002950);\n\nINCLUDE_ASM(\"asm/nonmatchings/titproc_uso/titproc_uso\", titproc_uso_func_00002980);\n\n",
+  "metadata": {
+    "source_path": "src/titproc_uso/titproc_uso.c",
+    "asm_path": "asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000026D0.s",
+    "segment": "titproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified 100% match via objdiff report."
+  }
+}
