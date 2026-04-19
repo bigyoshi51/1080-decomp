@@ -30,5 +30,9 @@ void boarder2_uso_func_0000010C(Quad4 *dst) {
     *dst = buf;
 }
 
-INCLUDE_ASM("asm/nonmatchings/boarder2_uso/boarder2_uso", boarder2_uso_func_00000164);
+void boarder2_uso_func_00000164(char *dst) {
+    int tmp;
+    boarder2_uso_func_000000D0(&tmp);
+    boarder2_uso_func_0000010C((Quad4*)(dst + 0x10));
+}
 
