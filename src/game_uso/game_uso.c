@@ -639,7 +639,11 @@ void game_uso_func_000119D4(char *dst) {
     game_uso_func_0000C1D0((float*)(dst + 0x10));
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A04);
+void game_uso_func_00011A04(char *dst) {
+    int tmp;
+    game_uso_func_0000C194(&tmp);
+    game_uso_func_0000C20C((Vec3*)(dst + 0x10));
+}
 
 void game_uso_func_00011A34(char *dst) {
     int tmp;
