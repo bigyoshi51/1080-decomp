@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b3_func_00001090",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-19T21:39:21.521042+00:00",
+  "end_time": "2026-04-19T21:39:21.521062+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-19T21:39:21.521056+00:00",
+      "assistant_text": "USO wrapper: a1 += 0x00220000 before placeholder call. lui+addu generated from large constant offset.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 9,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_0000004C);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000000B0);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000005A4);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_0000065C);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000006B0);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000006FC);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_0000074C);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000790);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000007D4);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000818);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000854);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000890);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000008CC);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000924);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000994);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000D60);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000DE4);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000E60);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00000FF4);\n\nvoid timproc_uso_b3_func_00000000();\n\nvoid timproc_uso_b3_func_00001090(int a0, char *a1) {\n    timproc_uso_b3_func_00000000(a0, a1 + 0x00220000);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000010B4);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000010E4);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00001184);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00001248);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000013B8);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00001660);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000017C8);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_0000183C);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00001870);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00001928);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000019CC);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00001C28);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00001C68);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_0000205C);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_0000208C);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000020BC);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000020EC);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_0000217C);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000021B0);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000021F4);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002240);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000022BC);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002300);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002344);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002388);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_000023E4);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002700);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_0000294C);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002A44);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002C98);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002DF0);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002EF0);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00002F48);\n\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b3/timproc_uso_b3\", timproc_uso_b3_func_00003050);\n\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b3/timproc_uso_b3.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00001090.s",
+    "segment": "timproc_uso_b3",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified 100% match via objdiff report."
+  }
+}
