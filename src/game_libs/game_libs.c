@@ -2026,7 +2026,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EF2C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EF78);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: 93% — same a1-spill family as gl_func_0003F008 */
+extern int gl_func_00000000();
+
+void gl_func_0003EFC4(int a0, int a1, int a2, int a3) {
+    char buf[0x98];
+    int pad;
+    int local;
+    *(int*)&buf[0x48] = 0;
+    *(int*)&buf[0x4C] = 0;
+    *(int*)&buf[0x40] = a2;
+    *(int*)&buf[0x44] = a3;
+    gl_func_00000000(buf);
+    local = 3;
+    gl_func_00000000(&local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EFC4);
+#endif
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: 92.5% — extra `sw a1, 188(sp)` vs target (target only spills a0) */
