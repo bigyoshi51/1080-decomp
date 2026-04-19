@@ -10,15 +10,15 @@ Fourteen segments are being decompiled. USO overlays ship as a custom relocatabl
 |----------------|-------------|--------------------|------------------------------------------------|
 | `kernel`       | 96 / 237    | 10.0 KB / 40.0 KB  | libultra + USO loader + audio (`0x80000000`)   |
 | `bootup_uso`   | 124 / 359   | 5.7 KB / 81.6 KB   | Giles Goddard's libgdl engine                  |
-| `game_libs`    | 196 / 1,371 | 9.6 KB / 468.7 KB  | Support libraries — wrapper mass-match         |
-| `gui_uso`      | 1 / 22      | 0.0 KB / 18.1 KB   | GUI/menu helpers                               |
+| `game_libs`    | 206 / 1,371 | 10.3 KB / 468.7 KB | Support libraries — wrapper mass-match (15 %)  |
+| `gui_uso`      | 4 / 22      | 0.2 KB / 18.1 KB   | GUI/menu helpers                               |
 | `titproc_uso`  | 0 / 43      | 0.0 KB / 10.5 KB   | Title-screen process                           |
 | `arcproc_uso`  | 0 / 50      | 0.0 KB / 10.4 KB   | Arcade-mode process                            |
 | `h2hproc_uso`  | 0 / 36      | 0.0 KB / 6.8 KB    | Head-to-head process                           |
 | `eddproc_uso`  | 0 / 12      | 0.0 KB / 1.1 KB    | Edit-mode process                              |
 | `n64proc_uso`  | 0 / 6       | 0.0 KB / 1.0 KB    | N64-specific process                           |
 | `boarder1..5_uso` | 0 / 30   | 0.0 KB / 2.1 KB    | Per-character snowboarder USOs (6 funcs each)  |
-| **Total**      | **417 / 2,166** | **25.3 KB / 640.2 KB (3.95%)** |                                  |
+| **Total**      | **430 / 2,216** | **26.1 KB / 653.3 KB (4.00%)** |                                  |
 
 Remaining un-splatted USOs (`mgrproc`, `timproc`, `game_uso`, `map4_data`) have non-standard headers — each contains only 1–5 detectable function prologues despite being 22 KB to 1.2 MB in size, suggesting either compression, encrypted code, or mostly-data USOs. These need hand-investigation. Pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
