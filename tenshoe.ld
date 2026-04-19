@@ -400,19 +400,48 @@ SECTIONS
     gui_uso_post_ROM_END = __romPos;
     gui_uso_post_VRAM_END = .;
 
-    n64proc_uso_ROM_START = __romPos;
-    n64proc_uso_VRAM = ADDR(.n64proc_uso);
-    .n64proc_uso : AT(n64proc_uso_ROM_START)
+    n64proc_uso_pre_ROM_START = __romPos;
+    n64proc_uso_pre_VRAM = ADDR(.n64proc_uso_pre);
+    .n64proc_uso_pre : AT(n64proc_uso_pre_ROM_START)
     {
         FILL(0x00000000);
-        n64proc_uso_DATA_START = .;
-        build/assets/n64proc_uso.bin.o(.data);
-        n64proc_uso_DATA_END = .;
-        n64proc_uso_DATA_SIZE = ABSOLUTE(n64proc_uso_DATA_END - n64proc_uso_DATA_START);
+        n64proc_uso_pre_DATA_START = .;
+        build/assets/n64proc_uso_pre.bin.o(.data);
+        n64proc_uso_pre_DATA_END = .;
+        n64proc_uso_pre_DATA_SIZE = ABSOLUTE(n64proc_uso_pre_DATA_END - n64proc_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.n64proc_uso_pre);
+    n64proc_uso_pre_ROM_END = __romPos;
+    n64proc_uso_pre_VRAM_END = .;
+
+    /* n64proc_uso text: same VRAM=0 pattern. Asm via scripts/generate-uso-asm.py. */
+    n64proc_uso_ROM_START = __romPos;
+    .n64proc_uso 0x00000000 : AT(n64proc_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        n64proc_uso_TEXT_START = .;
+        build/src/n64proc_uso/n64proc_uso.c.o(.text);
+        n64proc_uso_TEXT_END = .;
+        n64proc_uso_TEXT_SIZE = ABSOLUTE(n64proc_uso_TEXT_END - n64proc_uso_TEXT_START);
     }
     __romPos += SIZEOF(.n64proc_uso);
     n64proc_uso_ROM_END = __romPos;
+    n64proc_uso_VRAM = ADDR(.n64proc_uso);
     n64proc_uso_VRAM_END = .;
+
+    n64proc_uso_post_ROM_START = __romPos;
+    n64proc_uso_post_VRAM = ADDR(.n64proc_uso_post);
+    .n64proc_uso_post : AT(n64proc_uso_post_ROM_START)
+    {
+        FILL(0x00000000);
+        n64proc_uso_post_DATA_START = .;
+        build/assets/n64proc_uso_post.bin.o(.data);
+        n64proc_uso_post_DATA_END = .;
+        n64proc_uso_post_DATA_SIZE = ABSOLUTE(n64proc_uso_post_DATA_END - n64proc_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.n64proc_uso_post);
+    n64proc_uso_post_ROM_END = __romPos;
+    n64proc_uso_post_VRAM_END = .;
 
     titproc_uso_ROM_START = __romPos;
     titproc_uso_VRAM = ADDR(.titproc_uso);
@@ -428,19 +457,48 @@ SECTIONS
     titproc_uso_ROM_END = __romPos;
     titproc_uso_VRAM_END = .;
 
-    eddproc_uso_ROM_START = __romPos;
-    eddproc_uso_VRAM = ADDR(.eddproc_uso);
-    .eddproc_uso : AT(eddproc_uso_ROM_START)
+    eddproc_uso_pre_ROM_START = __romPos;
+    eddproc_uso_pre_VRAM = ADDR(.eddproc_uso_pre);
+    .eddproc_uso_pre : AT(eddproc_uso_pre_ROM_START)
     {
         FILL(0x00000000);
-        eddproc_uso_DATA_START = .;
-        build/assets/eddproc_uso.bin.o(.data);
-        eddproc_uso_DATA_END = .;
-        eddproc_uso_DATA_SIZE = ABSOLUTE(eddproc_uso_DATA_END - eddproc_uso_DATA_START);
+        eddproc_uso_pre_DATA_START = .;
+        build/assets/eddproc_uso_pre.bin.o(.data);
+        eddproc_uso_pre_DATA_END = .;
+        eddproc_uso_pre_DATA_SIZE = ABSOLUTE(eddproc_uso_pre_DATA_END - eddproc_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.eddproc_uso_pre);
+    eddproc_uso_pre_ROM_END = __romPos;
+    eddproc_uso_pre_VRAM_END = .;
+
+    /* eddproc_uso text: same VRAM=0 pattern. Asm via scripts/generate-uso-asm.py. */
+    eddproc_uso_ROM_START = __romPos;
+    .eddproc_uso 0x00000000 : AT(eddproc_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        eddproc_uso_TEXT_START = .;
+        build/src/eddproc_uso/eddproc_uso.c.o(.text);
+        eddproc_uso_TEXT_END = .;
+        eddproc_uso_TEXT_SIZE = ABSOLUTE(eddproc_uso_TEXT_END - eddproc_uso_TEXT_START);
     }
     __romPos += SIZEOF(.eddproc_uso);
     eddproc_uso_ROM_END = __romPos;
+    eddproc_uso_VRAM = ADDR(.eddproc_uso);
     eddproc_uso_VRAM_END = .;
+
+    eddproc_uso_post_ROM_START = __romPos;
+    eddproc_uso_post_VRAM = ADDR(.eddproc_uso_post);
+    .eddproc_uso_post : AT(eddproc_uso_post_ROM_START)
+    {
+        FILL(0x00000000);
+        eddproc_uso_post_DATA_START = .;
+        build/assets/eddproc_uso_post.bin.o(.data);
+        eddproc_uso_post_DATA_END = .;
+        eddproc_uso_post_DATA_SIZE = ABSOLUTE(eddproc_uso_post_DATA_END - eddproc_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.eddproc_uso_post);
+    eddproc_uso_post_ROM_END = __romPos;
+    eddproc_uso_post_VRAM_END = .;
 
     mgrproc_uso_ROM_START = __romPos;
     mgrproc_uso_VRAM = ADDR(.mgrproc_uso);
@@ -456,33 +514,91 @@ SECTIONS
     mgrproc_uso_ROM_END = __romPos;
     mgrproc_uso_VRAM_END = .;
 
-    arcproc_uso_ROM_START = __romPos;
-    arcproc_uso_VRAM = ADDR(.arcproc_uso);
-    .arcproc_uso : AT(arcproc_uso_ROM_START)
+    arcproc_uso_pre_ROM_START = __romPos;
+    arcproc_uso_pre_VRAM = ADDR(.arcproc_uso_pre);
+    .arcproc_uso_pre : AT(arcproc_uso_pre_ROM_START)
     {
         FILL(0x00000000);
-        arcproc_uso_DATA_START = .;
-        build/assets/arcproc_uso.bin.o(.data);
-        arcproc_uso_DATA_END = .;
-        arcproc_uso_DATA_SIZE = ABSOLUTE(arcproc_uso_DATA_END - arcproc_uso_DATA_START);
+        arcproc_uso_pre_DATA_START = .;
+        build/assets/arcproc_uso_pre.bin.o(.data);
+        arcproc_uso_pre_DATA_END = .;
+        arcproc_uso_pre_DATA_SIZE = ABSOLUTE(arcproc_uso_pre_DATA_END - arcproc_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.arcproc_uso_pre);
+    arcproc_uso_pre_ROM_END = __romPos;
+    arcproc_uso_pre_VRAM_END = .;
+
+    /* arcproc_uso text: same VRAM=0 pattern. Asm via scripts/generate-uso-asm.py. */
+    arcproc_uso_ROM_START = __romPos;
+    .arcproc_uso 0x00000000 : AT(arcproc_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        arcproc_uso_TEXT_START = .;
+        build/src/arcproc_uso/arcproc_uso.c.o(.text);
+        arcproc_uso_TEXT_END = .;
+        arcproc_uso_TEXT_SIZE = ABSOLUTE(arcproc_uso_TEXT_END - arcproc_uso_TEXT_START);
     }
     __romPos += SIZEOF(.arcproc_uso);
     arcproc_uso_ROM_END = __romPos;
+    arcproc_uso_VRAM = ADDR(.arcproc_uso);
     arcproc_uso_VRAM_END = .;
 
-    h2hproc_uso_ROM_START = __romPos;
-    h2hproc_uso_VRAM = ADDR(.h2hproc_uso);
-    .h2hproc_uso : AT(h2hproc_uso_ROM_START)
+    arcproc_uso_post_ROM_START = __romPos;
+    arcproc_uso_post_VRAM = ADDR(.arcproc_uso_post);
+    .arcproc_uso_post : AT(arcproc_uso_post_ROM_START)
     {
         FILL(0x00000000);
-        h2hproc_uso_DATA_START = .;
-        build/assets/h2hproc_uso.bin.o(.data);
-        h2hproc_uso_DATA_END = .;
-        h2hproc_uso_DATA_SIZE = ABSOLUTE(h2hproc_uso_DATA_END - h2hproc_uso_DATA_START);
+        arcproc_uso_post_DATA_START = .;
+        build/assets/arcproc_uso_post.bin.o(.data);
+        arcproc_uso_post_DATA_END = .;
+        arcproc_uso_post_DATA_SIZE = ABSOLUTE(arcproc_uso_post_DATA_END - arcproc_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.arcproc_uso_post);
+    arcproc_uso_post_ROM_END = __romPos;
+    arcproc_uso_post_VRAM_END = .;
+
+    h2hproc_uso_pre_ROM_START = __romPos;
+    h2hproc_uso_pre_VRAM = ADDR(.h2hproc_uso_pre);
+    .h2hproc_uso_pre : AT(h2hproc_uso_pre_ROM_START)
+    {
+        FILL(0x00000000);
+        h2hproc_uso_pre_DATA_START = .;
+        build/assets/h2hproc_uso_pre.bin.o(.data);
+        h2hproc_uso_pre_DATA_END = .;
+        h2hproc_uso_pre_DATA_SIZE = ABSOLUTE(h2hproc_uso_pre_DATA_END - h2hproc_uso_pre_DATA_START);
+    }
+    __romPos += SIZEOF(.h2hproc_uso_pre);
+    h2hproc_uso_pre_ROM_END = __romPos;
+    h2hproc_uso_pre_VRAM_END = .;
+
+    /* h2hproc_uso text: same VRAM=0 pattern. Asm via scripts/generate-uso-asm.py. */
+    h2hproc_uso_ROM_START = __romPos;
+    .h2hproc_uso 0x00000000 : AT(h2hproc_uso_ROM_START)
+    {
+        FILL(0x00000000);
+        h2hproc_uso_TEXT_START = .;
+        build/src/h2hproc_uso/h2hproc_uso.c.o(.text);
+        h2hproc_uso_TEXT_END = .;
+        h2hproc_uso_TEXT_SIZE = ABSOLUTE(h2hproc_uso_TEXT_END - h2hproc_uso_TEXT_START);
     }
     __romPos += SIZEOF(.h2hproc_uso);
     h2hproc_uso_ROM_END = __romPos;
+    h2hproc_uso_VRAM = ADDR(.h2hproc_uso);
     h2hproc_uso_VRAM_END = .;
+
+    h2hproc_uso_post_ROM_START = __romPos;
+    h2hproc_uso_post_VRAM = ADDR(.h2hproc_uso_post);
+    .h2hproc_uso_post : AT(h2hproc_uso_post_ROM_START)
+    {
+        FILL(0x00000000);
+        h2hproc_uso_post_DATA_START = .;
+        build/assets/h2hproc_uso_post.bin.o(.data);
+        h2hproc_uso_post_DATA_END = .;
+        h2hproc_uso_post_DATA_SIZE = ABSOLUTE(h2hproc_uso_post_DATA_END - h2hproc_uso_post_DATA_START);
+    }
+    __romPos += SIZEOF(.h2hproc_uso_post);
+    h2hproc_uso_post_ROM_END = __romPos;
+    h2hproc_uso_post_VRAM_END = .;
 
     timproc_uso_ROM_START = __romPos;
     timproc_uso_VRAM = ADDR(.timproc_uso);

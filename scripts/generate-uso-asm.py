@@ -47,6 +47,20 @@ def main():
 
     boundaries = [text_start] + prols + [text_end]
 
+    # asm-processor inserts a trailing nop into .s files with < 2 words. Merge
+    # any too-small chunk forward into the next function so each emitted .s
+    # file has at least 2 words (8 bytes). The first chunk (text_start to
+    # first prologue) is sometimes a tiny placeholder branch; if so, fold it
+    # into the first prologue function.
+    cleaned = [boundaries[0]]
+    for b in boundaries[1:]:
+        if b - cleaned[-1] >= 8:
+            cleaned.append(b)
+        # else: drop b — its chunk merges into the previous (cleaned[-1])
+    if cleaned[-1] != text_end:
+        cleaned.append(text_end)
+    boundaries = cleaned
+
     asm_dir = Path(f"asm/nonmatchings/{seg}/{seg}")
     asm_dir.mkdir(parents=True, exist_ok=True)
     for f in asm_dir.glob("*.s"):

@@ -1,0 +1,12 @@
+nonmatching arcproc_uso_func_00002864, 0x20
+
+glabel arcproc_uso_func_00002864
+    /* 5A89AC 00002864 27BDFFE8 */  .word 0x27BDFFE8
+    /* 5A89B0 00002868 AFBF0014 */  .word 0xAFBF0014
+    /* 5A89B4 0000286C 0C000000 */  .word 0x0C000000
+    /* 5A89B8 00002870 00000000 */  .word 0x00000000
+    /* 5A89BC 00002874 8FBF0014 */  .word 0x8FBF0014
+    /* 5A89C0 00002878 27BD0018 */  .word 0x27BD0018
+    /* 5A89C4 0000287C 03E00008 */  .word 0x03E00008
+    /* 5A89C8 00002880 00000000 */  .word 0x00000000
+endlabel arcproc_uso_func_00002864

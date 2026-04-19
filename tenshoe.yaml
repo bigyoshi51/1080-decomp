@@ -80,12 +80,40 @@ segments:
     subsegments:
       - [0x58D530, c, gui_uso/gui_uso]
   - [0x591DB0, bin, gui_uso_post]
-  - [0x5926B4, bin, n64proc_uso]
+  - [0x5926B4, bin, n64proc_uso_pre]
+  - name: n64proc_uso
+    type: code
+    start: 0x594A54
+    vram: 0x00000000
+    subsegments:
+      - [0x594A54, c, n64proc_uso/n64proc_uso]
+  - [0x594E84, bin, n64proc_uso_post]
   - [0x5953E0, bin, titproc_uso]
-  - [0x59F1F4, bin, eddproc_uso]
+  - [0x59F1F4, bin, eddproc_uso_pre]
+  - name: eddproc_uso
+    type: code
+    start: 0x59F480
+    vram: 0x00000000
+    subsegments:
+      - [0x59F480, c, eddproc_uso/eddproc_uso]
+  - [0x59F900, bin, eddproc_uso_post]
   - [0x5A015C, bin, mgrproc_uso]
-  - [0x5A5BE0, bin, arcproc_uso]
-  - [0x5AB208, bin, h2hproc_uso]
+  - [0x5A5BE0, bin, arcproc_uso_pre]
+  - name: arcproc_uso
+    type: code
+    start: 0x5A6148
+    vram: 0x00000000
+    subsegments:
+      - [0x5A6148, c, arcproc_uso/arcproc_uso]
+  - [0x5A8AC8, bin, arcproc_uso_post]
+  - [0x5AB208, bin, h2hproc_uso_pre]
+  - name: h2hproc_uso
+    type: code
+    start: 0x5AB6B0
+    vram: 0x00000000
+    subsegments:
+      - [0x5AB6B0, c, h2hproc_uso/h2hproc_uso]
+  - [0x5AD1E0, bin, h2hproc_uso_post]
   - [0x5AF0EC, bin, timproc_uso]
   - [0x6E466C, bin, map4_data_uso]
   - [0x7CC8D8, bin, game_uso]
