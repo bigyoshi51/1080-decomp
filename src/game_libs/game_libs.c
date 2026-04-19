@@ -709,7 +709,14 @@ void gl_func_0000DF20(int a0, int a1, float a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DF20);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DF4C);
+extern int gl_func_00000000();
+
+void gl_func_0000DF4C(int a0, int a1, int a2) {
+    int *r = (int*)gl_func_00000000(a0, a1, a2);
+    if (r == 0) return;
+    if ((r[1] & 1) == 0) return;
+    r[10] = a2;
+}
 
 extern int gl_func_00000000();
 
