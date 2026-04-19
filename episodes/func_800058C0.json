@@ -1,0 +1,46 @@
+{
+  "function_name": "func_800058C0",
+  "asm_text": "\nnonmatching func_800058C0, 0xF4\n\nglabel func_800058C0\n    /* 68C0 800058C0 3C0E8002 */  lui        $t6, %hi(D_8001B65C)\n    /* 68C4 800058C4 8DCEB65C */  lw         $t6, %lo(D_8001B65C)($t6)\n    /* 68C8 800058C8 27BDFFE0 */  addiu      $sp, $sp, -0x20\n    /* 68CC 800058CC 3C01B000 */  lui        $at, (0xB0000000 >> 16)\n    /* 68D0 800058D0 AFBF0014 */  sw         $ra, 0x14($sp)\n    /* 68D4 800058D4 15C10004 */  bne        $t6, $at, .L800058E8\n    /* 68D8 800058D8 AFA0001C */   sw        $zero, 0x1C($sp)\n    /* 68DC 800058DC 3C028002 */  lui        $v0, %hi(CartRomHandle)\n    /* 68E0 800058E0 10000030 */  b          .L800059A4\n    /* 68E4 800058E4 2442B650 */   addiu     $v0, $v0, %lo(CartRomHandle)\n  .L800058E8:\n    /* 68E8 800058E8 3C018002 */  lui        $at, %hi(D_8001B654)\n    /* 68EC 800058EC A020B654 */  sb         $zero, %lo(D_8001B654)($at)\n    /* 68F0 800058F0 3C018002 */  lui        $at, %hi(D_8001B65C)\n    /* 68F4 800058F4 3C0FB000 */  lui        $t7, (0xB0000000 >> 16)\n    /* 68F8 800058F8 AC2FB65C */  sw         $t7, %lo(D_8001B65C)($at)\n    /* 68FC 800058FC 00002025 */  or         $a0, $zero, $zero\n    /* 6900 80005900 0C000B6C */  jal        func_80002DB0\n    /* 6904 80005904 27A5001C */   addiu     $a1, $sp, 0x1C\n    /* 6908 80005908 8FB8001C */  lw         $t8, 0x1C($sp)\n    /* 690C 8000590C 3C018002 */  lui        $at, %hi(D_8001B655)\n    /* 6910 80005910 3C048002 */  lui        $a0, (0x80020000 >> 16)\n    /* 6914 80005914 331900FF */  andi       $t9, $t8, 0xFF\n    /* 6918 80005918 A039B655 */  sb         $t9, %lo(D_8001B655)($at)\n    /* 691C 8000591C 00184202 */  srl        $t0, $t8, 8\n    /* 6920 80005920 310900FF */  andi       $t1, $t0, 0xFF\n    /* 6924 80005924 3C018002 */  lui        $at, %hi(D_8001B658)\n    /* 6928 80005928 A029B658 */  sb         $t1, %lo(D_8001B658)($at)\n    /* 692C 8000592C 3C018002 */  lui        $at, %hi(D_8001B656)\n    /* 6930 80005930 00185402 */  srl        $t2, $t8, 16\n    /* 6934 80005934 00186502 */  srl        $t4, $t8, 20\n    /* 6938 80005938 314B000F */  andi       $t3, $t2, 0xF\n    /* 693C 8000593C 318D000F */  andi       $t5, $t4, 0xF\n    /* 6940 80005940 A02BB656 */  sb         $t3, %lo(D_8001B656)($at)\n    /* 6944 80005944 A02DB657 */  sb         $t5, %lo(D_8001B657)($at)\n    /* 6948 80005948 3C018002 */  lui        $at, %hi(D_8001B659)\n    /* 694C 8000594C A020B659 */  sb         $zero, %lo(D_8001B659)($at)\n    /* 6950 80005950 3C018002 */  lui        $at, %hi(D_8001B660)\n    /* 6954 80005954 2484B650 */  addiu      $a0, $a0, -0x49B0\n    /* 6958 80005958 AC20B660 */  sw         $zero, %lo(D_8001B660)($at)\n    /* 695C 8000595C 24840014 */  addiu      $a0, $a0, 0x14\n    /* 6960 80005960 0C000C34 */  jal        func_800030D0\n    /* 6964 80005964 24050060 */   addiu     $a1, $zero, 0x60\n    /* 6968 80005968 0C0019AC */  jal        func_800066B0\n    /* 696C 8000596C 00000000 */   nop\n    /* 6970 80005970 3C0E8001 */  lui        $t6, %hi(D_8000A46C)\n    /* 6974 80005974 8DCEA46C */  lw         $t6, %lo(D_8000A46C)($t6)\n    /* 6978 80005978 3C018002 */  lui        $at, %hi(CartRomHandle)\n    /* 697C 8000597C 3C0F8002 */  lui        $t7, %hi(CartRomHandle)\n    /* 6980 80005980 AC2EB650 */  sw         $t6, %lo(CartRomHandle)($at)\n    /* 6984 80005984 AFA20018 */  sw         $v0, 0x18($sp)\n    /* 6988 80005988 3C018001 */  lui        $at, %hi(D_8000A46C)\n    /* 698C 8000598C 25EFB650 */  addiu      $t7, $t7, %lo(CartRomHandle)\n    /* 6990 80005990 AC2FA46C */  sw         $t7, %lo(D_8000A46C)($at)\n    /* 6994 80005994 0C0019B4 */  jal        func_800066D0\n    /* 6998 80005998 8FA40018 */   lw        $a0, 0x18($sp)\n    /* 699C 8000599C 3C028002 */  lui        $v0, %hi(CartRomHandle)\n    /* 69A0 800059A0 2442B650 */  addiu      $v0, $v0, %lo(CartRomHandle)\n  .L800059A4:\n    /* 69A4 800059A4 8FBF0014 */  lw         $ra, 0x14($sp)\n    /* 69A8 800059A8 27BD0020 */  addiu      $sp, $sp, 0x20\n    /* 69AC 800059AC 03E00008 */  jr         $ra\n    /* 69B0 800059B0 00000000 */   nop\n    /* 69B4 800059B4 00000000 */  nop\n    /* 69B8 800059B8 00000000 */  nop\n    /* 69BC 800059BC 00000000 */  nop\nendlabel func_800058C0\n",
+  "m2c_output": "? func_80002DB0(?, u32 *);                          /* extern */\n? func_800030D0(?, ?);                              /* extern */\ns32 func_800066B0();                                /* extern */\n? func_800066D0(s32);                               /* extern */\nextern ? *CartRomHandle;\nextern ? *D_8000A46C;\nextern s8 D_8001B654;\nextern s8 D_8001B655;\nextern s8 D_8001B656;\nextern s8 D_8001B658;\nextern s8 D_8001B659;\nextern s32 D_8001B65C;\nextern s32 D_8001B660;\n\n? **func_800058C0(void) {\n    u32 sp1C;\n    s32 sp18;\n    s32 temp_v0;\n\n    sp1C = 0;\n    if (D_8001B65C == 0xB0000000) {\n\n    } else {\n        D_8001B654 = 0;\n        D_8001B65C = 0xB0000000;\n        func_80002DB0(0, &sp1C);\n        D_8001B655 = sp1C & 0xFF;\n        D_8001B658 = (sp1C >> 8) & 0xFF;\n        D_8001B656 = (sp1C >> 0x10) & 0xF;\n        D_8001B656 = (sp1C >> 0x14) & 0xF;\n        D_8001B659 = 0;\n        D_8001B660 = 0;\n        func_800030D0(0x8001B664, 0x60);\n        temp_v0 = func_800066B0();\n        CartRomHandle = D_8000A46C;\n        sp18 = temp_v0;\n        D_8000A46C = &CartRomHandle;\n        func_800066D0(sp18);\n    }\n    return &CartRomHandle;\n}\n",
+  "attempts": [
+    {
+      "c_code": "typedef struct {\n    u8 pad[0x74];\n} OSPiHandle;\n\nextern OSPiHandle CartRomHandle;\nextern void* D_8000A46C;\nextern u8 D_8001B654;\nextern u8 D_8001B655;\nextern u8 D_8001B656;\nextern u8 D_8001B657;\nextern u8 D_8001B658;\nextern u8 D_8001B659;\nextern volatile u32 D_8001B65C;\nextern u32 D_8001B660;\nextern s32 func_80002DB0(s32, u32*);\nextern void func_800030D0(void*, s32);\nextern s32 func_800066B0(void);\nextern void func_800066D0(s32);\n\nOSPiHandle* func_800058C0(void) {\n    u32 domain;\n    s32 saveMask;\n\n    domain = 0;\n    if (D_8001B65C == 0xB0000000) {\n        return &CartRomHandle;\n    }\n\n    D_8001B654 = 0;\n    D_8001B65C = 0xB0000000;\n    func_80002DB0(0, &domain);\n    D_8001B655 = domain & 0xFF;\n    D_8001B658 = (domain >> 8) & 0xFF;\n    D_8001B656 = (domain >> 0x10) & 0xF;\n    D_8001B657 = (domain >> 0x14) & 0xF;\n    D_8001B659 = 0;\n    D_8001B660 = 0;\n    func_800030D0((void*)0x8001B664, 0x60);\n    saveMask = func_800066B0();\n    *(void**)&CartRomHandle = D_8000A46C;\n    D_8000A46C = &CartRomHandle;\n    func_800066D0(saveMask);\n    return &CartRomHandle;\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2",
+      "notes": "Verified by exact in-project object diff against expected/src/kernel/kernel_008.c.o."
+    }
+  ],
+  "final_c": "typedef struct {\n    u8 pad[0x74];\n} OSPiHandle;\n\nextern OSPiHandle CartRomHandle;\nextern void* D_8000A46C;\nextern u8 D_8001B654;\nextern u8 D_8001B655;\nextern u8 D_8001B656;\nextern u8 D_8001B657;\nextern u8 D_8001B658;\nextern u8 D_8001B659;\nextern volatile u32 D_8001B65C;\nextern u32 D_8001B660;\nextern s32 func_80002DB0(s32, u32*);\nextern void func_800030D0(void*, s32);\nextern s32 func_800066B0(void);\nextern void func_800066D0(s32);\n\nOSPiHandle* func_800058C0(void) {\n    u32 domain;\n    s32 saveMask;\n\n    domain = 0;\n    if (D_8001B65C == 0xB0000000) {\n        return &CartRomHandle;\n    }\n\n    D_8001B654 = 0;\n    D_8001B65C = 0xB0000000;\n    func_80002DB0(0, &domain);\n    D_8001B655 = domain & 0xFF;\n    D_8001B658 = (domain >> 8) & 0xFF;\n    D_8001B656 = (domain >> 0x10) & 0xF;\n    D_8001B657 = (domain >> 0x14) & 0xF;\n    D_8001B659 = 0;\n    D_8001B660 = 0;\n    func_800030D0((void*)0x8001B664, 0x60);\n    saveMask = func_800066B0();\n    *(void**)&CartRomHandle = D_8000A46C;\n    D_8000A46C = &CartRomHandle;\n    func_800066D0(saveMask);\n    return &CartRomHandle;\n}\n",
+  "matched": true,
+  "instruction_count": 61,
+  "has_branches": true,
+  "has_calls": true,
+  "timestamp": 1776561561,
+  "game": "1080_snowboarding",
+  "compiler": "ido7.1",
+  "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+  "nearby_decompiled": [
+    "func_80004650"
+  ],
+  "called_functions": [
+    "func_80002DB0",
+    "func_800030D0",
+    "func_800066B0",
+    "func_800066D0"
+  ],
+  "referenced_data": [
+    "CartRomHandle",
+    "D_8000A46C",
+    "D_8001B654",
+    "D_8001B655",
+    "D_8001B656",
+    "D_8001B657",
+    "D_8001B658",
+    "D_8001B659",
+    "D_8001B65C",
+    "D_8001B660"
+  ],
+  "segment": "kernel"
+}
