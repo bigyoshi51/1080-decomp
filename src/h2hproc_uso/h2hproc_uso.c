@@ -35,7 +35,11 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000040
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000045C);
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000004A4);
+void h2hproc_uso_func_000004A4(char *a0) {
+    gl_func_00000000(a0, *(int*)(a0 + 0x6B4) ^ 1);
+    gl_func_00000000(*(int*)&D_00000000);
+    gl_func_00000000(&D_00000000);
+}
 
 void h2hproc_uso_func_000004E0(int *dst) {
     int buf[2];
