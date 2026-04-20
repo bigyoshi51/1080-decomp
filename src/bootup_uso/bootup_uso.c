@@ -359,7 +359,19 @@ void func_000020AC(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020AC);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020D8);
+void func_000020D8(char *a0, int a1) {
+    int i;
+    char *p;
+    if (*(int*)(a0 + 0xC0) > 0) {
+        i = 0;
+        p = a0;
+        do {
+            func_00000000(a1, *(int*)(p + 0xC4), *(int*)(p + 0xC8));
+            i++;
+            p += 8;
+        } while (i < *(int*)(a0 + 0xC0));
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000214C);
 
