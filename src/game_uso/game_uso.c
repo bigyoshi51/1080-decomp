@@ -303,7 +303,12 @@ void game_uso_func_00006E88(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006ECC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F28);
+void game_uso_func_00006F28(int *a0) {
+    *(int*)((char*)a0 + 0x64) = 2;
+    *(int*)((char*)a0 + 0x70) = 0;
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F40);
 
