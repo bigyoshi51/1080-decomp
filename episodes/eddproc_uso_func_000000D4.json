@@ -1,0 +1,33 @@
+{
+  "function_name": "eddproc_uso_func_000000D4",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T23:23:31.409852+00:00",
+  "end_time": "2026-04-20T23:23:31.409887+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T23:23:31.409879+00:00",
+      "assistant_text": "Applied standard Vec3 reader template from feedback_uso_accessor_template_reuse.md. Prerequisite: scripts/split-fragments.py first split this file (originally 0x88 bundle with 3 functions) into D4 + 144 + 150. The Tri3i raw + 3-pad layout (pad_top[1]/pad_mid[2]/pad_bot[2]) places raw at sp+0x38, tmp at sp+0x24 with 8-byte gaps as needed. Same template matches equivalent Vec3 readers in bootup_uso/game_uso verbatim.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 28,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\ntypedef struct { int a, b, c; } Tri3i;\ntypedef struct { float x, y, z; } Vec3;\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_00000000);\n\nvoid eddproc_uso_func_00000040(float *dst) {\n    float buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid eddproc_uso_func_0000007C(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\nvoid eddproc_uso_func_000000D4(Vec3 *dst) {\n    int pad_top[1];\n    Tri3i raw;\n    int pad_mid[2];\n    Tri3i tmp;\n    int pad_bot[2];\n    gl_func_00000000(&D_00000000, &raw, 12);\n    tmp = raw;\n    dst->x = *(float*)&tmp.a;\n    dst->y = *(float*)&tmp.b;\n    dst->z = *(float*)&tmp.c;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_00000144);\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_00000150);\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_0000015C);\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_000001F0);\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_0000025C);\n\nvoid eddproc_uso_func_0000032C(char *dst) {\n    int tmp;\n    gl_func_00000000(&tmp);\n    gl_func_00000000(dst + 0x10);\n}\n\nvoid eddproc_uso_func_0000035C(char *dst) {\n    int tmp;\n    gl_func_00000000(&tmp);\n    eddproc_uso_func_00000040((float*)(dst + 0x10));\n}\n\nvoid eddproc_uso_func_0000038C(char *dst) {\n    int tmp;\n    gl_func_00000000(&tmp);\n    eddproc_uso_func_0000007C((Quad4*)(dst + 0x10));\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_000003BC);\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_0000044C);\n\n",
+  "metadata": {
+    "source_path": "src/eddproc_uso/eddproc_uso.c",
+    "asm_path": "asm/nonmatchings/eddproc_uso/eddproc_uso/eddproc_uso_func_000000D4.s",
+    "segment": "eddproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff report.json shows fuzzy_match_percent 100.0; objdump -M no-aliases byte-identical to expected."
+  }
+}
