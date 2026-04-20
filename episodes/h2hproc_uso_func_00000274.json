@@ -1,0 +1,33 @@
+{
+  "function_name": "h2hproc_uso_func_00000274",
+  "project": "1080-agent-d",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T04:34:04.463883+00:00",
+  "end_time": "2026-04-20T04:34:04.463913+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T04:34:04.463902+00:00",
+      "assistant_text": "Simple wrapper: calls gl_func_00000000(a0[2]) then sets a0[2]=0. Originally NM-wrapped because of fictitious _inner self-reference confusion + trailing nop. Fixed by calling gl_func_00000000 directly + GLOBAL_ASM pad sidecar.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 11,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_0000002C);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_0000020C);\n\nvoid h2hproc_uso_func_00000274(int *a0) {\n    gl_func_00000000((int*)a0[2]);\n    a0[2] = 0;\n}\n#pragma GLOBAL_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00000274_pad.s\")\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000002A4);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000002FC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000354);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000003AC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000404);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_0000045C);\n\nvoid h2hproc_uso_func_000004A4(char *a0) {\n    gl_func_00000000(a0, *(int*)(a0 + 0x6B4) ^ 1);\n    gl_func_00000000(*(int*)&D_00000000);\n    gl_func_00000000(&D_00000000);\n}\n\nvoid h2hproc_uso_func_000004E0(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid h2hproc_uso_func_0000051C(float *dst) {\n    float buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid h2hproc_uso_func_00000558(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\ntypedef struct { int a, b, c; } Tri3i;\ntypedef struct { float x, y, z; } Vec3;\nvoid h2hproc_uso_func_000005B0(Vec3 *dst) {\n    int pad_top[1];\n    Tri3i raw;\n    int pad_mid[2];\n    Tri3i tmp;\n    int pad_bot[2];\n    gl_func_00000000(&D_00000000, &raw, 12);\n    tmp = raw;\n    dst->x = *(float*)&tmp.a;\n    dst->y = *(float*)&tmp.b;\n    dst->z = *(float*)&tmp.c;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000620);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000008EC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000944);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_0000099C);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000009F8);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000A88);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000BAC);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000C18);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000E04);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000EB0);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000F60);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00000FD0);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001204);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001360);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000015F0);\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_000017A0);\n\nvoid h2hproc_uso_func_000019DC(char *dst) {\n    int tmp;\n    h2hproc_uso_func_000004E0(&tmp);\n    h2hproc_uso_func_000004E0((int*)(dst + 0x10));\n}\n\nvoid h2hproc_uso_func_00001A0C(char *dst) {\n    int tmp;\n    h2hproc_uso_func_000004E0(&tmp);\n    h2hproc_uso_func_0000051C((float*)(dst + 0x10));\n}\n\nvoid h2hproc_uso_func_00001A3C(char *dst) {\n    int tmp;\n    h2hproc_uso_func_000004E0(&tmp);\n    h2hproc_uso_func_00000558((Quad4*)(dst + 0x10));\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001A6C);\n\n#ifdef NON_MATCHING\n/* 92.3 %: standard composite-reader template (int + Vec3 at +0x10) but the two\n * inner calls are USO-internal jal placeholders (target=0x4DC and 0x5AC, the\n * trailing-nop area before the actual h2h reader funcs). Body matches; the two\n * jal target bytes (0x0C000137 / 0x0C00016B vs our 0x0C000000+reloc) are\n * unreachable from C without inline asm. */\nextern int h2hproc_uso_func_h2h_4DC();\nextern int h2hproc_uso_func_h2h_5AC();\n\nvoid h2hproc_uso_func_00001AFC(char *a0) {\n    int tmp;\n    h2hproc_uso_func_h2h_4DC(&tmp);\n    h2hproc_uso_func_h2h_5AC(a0 + 0x10);\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso\", h2hproc_uso_func_00001AFC);\n#pragma GLOBAL_ASM(\"asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00001AFC_pad.s\")\n#endif\n\n",
+  "metadata": {
+    "source_path": "src/h2hproc_uso/h2hproc_uso.c",
+    "asm_path": "asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00000274.s",
+    "segment": "h2hproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -mips2 -G0 -Xcpluscomm -non_shared",
+    "verification": "Verified 100% via objdiff after pad-sidecar"
+  }
+}
