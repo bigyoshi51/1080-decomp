@@ -5,8 +5,6 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012DB8);
-
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001304C);
