@@ -845,8 +845,17 @@ void game_uso_func_0000D418(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 97.5%: all logic correct; IDO allocates t6 before t7 but target has t7
- * before t6 for the two paired reads. Register-order tiebreaker we can't flip. */
+/* 97.5%: all logic correct; IDO allocates t6 before t7 for the two paired
+ * reads (0xC0→0xC8 via $t6, 0xC4→0xCC via $t7), but target has t7 for the
+ * 0xC0→0xC8 copy and t6 for the 0xC4→0xCC copy — registers SWAPPED.
+ * Variants tried (2026-04-20, all produce t6/t7 in IDO-default order):
+ *   (a) swap store order (0xCC first, then 0xC8): still t6 first-seen
+ *   (b) 0xC8 copy BEFORE the -1000 stores, 0xCC copy AFTER: still t6 first
+ *   (c) named locals `s32 a, b`: forces $v0/$v1 (wrong register class)
+ * IDO's first-seen-gets-lowest-number rule is invariant to the stmt shapes
+ * we can write from C. Target was likely compiled from source using
+ * `register int x asm("$t7")` (GCC-only; IDO rejects per feedback_ido_no_gcc_register_asm.md).
+ * Cap at 97.5 %, no further C-level fix known. */
 void game_uso_func_0000D438(void *a0) {
     *(s32*)((char*)a0 + 0x64) = -1000;
     *(s32*)((char*)a0 + 0x68) = -1000;
