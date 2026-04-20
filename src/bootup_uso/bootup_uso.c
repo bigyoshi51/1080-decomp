@@ -712,7 +712,17 @@ void func_00008744(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000087A4);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008920);
+extern char *D_00000130;
+int func_00008920(int a0) {
+    char *p = D_00000130;
+    while (p != 0) {
+        if (func_00000000(*(int*)p, a0) == 0) {
+            return 1;
+        }
+        p = *(char**)(p + 4);
+    }
+    return 0;
+}
 
 int func_00008980(int arg0) {
     if (func_00000000(arg0) == 0) {
