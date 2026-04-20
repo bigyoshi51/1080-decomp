@@ -358,7 +358,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7F8);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AB98);
+void game_uso_func_0000AB98(void *a0) {
+    *(int*)((char*)a0 + 0x5C) = 0;
+    *(int*)((char*)a0 + 0x68) |= 4;
+    *(float*)((char*)a0 + 0x60) = *(float*)(&D_00000000 + 0x114);
+}
 
 void game_uso_func_0000ABB8(char *dst) {
     int tmp;
