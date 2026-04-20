@@ -912,7 +912,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE30);
+extern char D_00000138;
+void game_uso_func_0000EE30(char *a0, int a1, int a2) {
+    int *dptr = (int*)&D_00000138;
+    gl_func_00000000(*dptr, *(int*)(a0 + 0xB4), a1 * a2);
+}
 
 void game_uso_func_0000EE74(void *a0) {
     *(s32*)((char*)*(s32**)((char*)a0 + 0xB4) + 0x960) = 100;
