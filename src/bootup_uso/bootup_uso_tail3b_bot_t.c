@@ -18,11 +18,3 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000129A0);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012AC4);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012B7C);
-
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012BF8);
-
-void func_00012C08(void) {
-}
-
-

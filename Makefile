@@ -32,6 +32,7 @@ build/src/bootup_uso/bootup_uso_o0_1024C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_120A8.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_123F0.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: OPT_FLAGS := -O0
 # Trim .text sizes + reduce sh_addralign to 4 so split .o files link at the
 # exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
@@ -45,7 +46,9 @@ build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x1D84
 build/src/bootup_uso/bootup_uso_o0_120A8.c.o: TRUNCATE_TEXT := 0xE0
 build/src/bootup_uso/bootup_uso_tail3b_top.c.o: TRUNCATE_TEXT := 0x268
 build/src/bootup_uso/bootup_uso_o0_123F0.c.o: TRUNCATE_TEXT := 0x27C
-build/src/bootup_uso/bootup_uso_tail3b_bot.c.o: TRUNCATE_TEXT := 0x5A4
+build/src/bootup_uso/bootup_uso_tail3b_bot_t.c.o: TRUNCATE_TEXT := 0x510
+build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: TRUNCATE_TEXT := 0x7C
+build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: TRUNCATE_TEXT := 0x18
 build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: TRUNCATE_TEXT := 0x1E8
 build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 build/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
