@@ -913,7 +913,20 @@ void func_0000E9A4(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* 83 %: structure correct. Target has `lui a0, 0x0` before `sw ra, 20(sp)`
+ * in the prologue; IDO puts `sw ra` first. Same scheduling blocker as
+ * feedback_ido_o2_tiny_wrapper_unflippable. */
+extern char D_func_0000E9FC_arg1;
+extern char D_func_0000E9FC_arg2;
+extern int D_00000028;
+void func_0000E9FC(void) {
+    func_00000000(&D_func_0000E9FC_arg1);
+    D_00000028 = (int)&D_func_0000E9FC_arg2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E9FC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EA2C);
 
