@@ -2989,7 +2989,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E150);
 #endif
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: a0 spill slot off by 4 bytes */
+/* 93%: a0 spill offset differs. Target: ra=sp+0x14, a0-spill=sp+0x1C
+ * (4-byte gap at sp+0x18), frame=0x20. Ours: ra=sp+0x14, a0-spill=sp+0x18,
+ * frame=0x20. Adding any local that forces 0x1C bloats frame to 0x28.
+ * Tried: register hint, named origA0, split decl/assign, unused int local,
+ * volatile char*, char*base = a0 + 0xA0. IDO -O2's spill-slot allocator
+ * picks 0x18 whenever frame=0x20 is reachable — unreproducible from C. */
 extern int gl_func_00000000();
 void gl_func_0004E180(char *a0) {
     char *newA0 = a0 + 0xA0;
