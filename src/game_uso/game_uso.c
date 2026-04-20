@@ -388,7 +388,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B4C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B750);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B884);
+void game_uso_func_0000B884(char *dst) {
+    game_uso_func_0000AD10((float*)dst);
+    game_uso_func_0000AD10((float*)(dst + 0x14));
+    game_uso_func_0000AD4C((int*)(dst + 0x18));
+    game_uso_func_0000AD88((Quad4*)(dst + 0x4));
+    game_uso_func_0000AD4C((int*)(dst + 0x1C));
+    game_uso_func_0000AD10((float*)(dst + 0x20));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 
