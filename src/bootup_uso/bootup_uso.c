@@ -208,7 +208,13 @@ void func_00000B14(int **a0, int a1) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000B2C);
+extern float D_00000068;
+void func_00000B2C(void **a0, float a1) {
+    a1 = a1 / D_00000068;
+    if (*a0 != 0) {
+        *(float*)((char*)*a0 + 0x10) = a1;
+    }
+}
 
 void func_00000B50(char *a0) {
     int scratch;
