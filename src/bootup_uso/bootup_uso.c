@@ -199,7 +199,29 @@ void func_00000A94(int *a0, int a1) {
     a0[2] = a1;
 }
 
+#ifdef NON_MATCHING
+/* 97.8 %: IDO uses $v0 directly in the delay-slot `addiu v0, 8` for the 'n'
+ * case; target uses $v1 and `or v0, v1, zero` at the shared return block.
+ * Tried goto forms + named local — IDO always picks $v0 for the intermediate. */
+int func_00000A9C(int a0, int a1) {
+    if (a1 == 0)   goto L_AE4;
+    if (a1 == 'e') goto L_AEC;
+    if (a1 == 'd') goto L_AF4;
+    if (a1 == 'm') goto L_AFC;
+    if (a1 == 't') goto L_B04;
+    if (a1 == 'n') goto L_B0C;
+    if (a1 == 's') goto L_B0C;
+    return 2;
+L_AE4: return 1;
+L_AEC: return 4;
+L_AF4: return 0x10;
+L_AFC: return 0x40;
+L_B04: return 0x20;
+L_B0C: return 8;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000A9C);
+#endif
 
 void func_00000B14(int **a0, int a1) {
     int *v0 = *a0;
