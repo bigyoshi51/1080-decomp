@@ -811,15 +811,9 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002530);
 
 
 
-/* NON_MATCHING: body matches (`jr $ra; nop`), but the target symbol is 16
- * bytes wide in the object while the C symbol compiles as 8 bytes, so objdiff
- * still reports it as fuzzy. */
-#ifdef NON_MATCHING
 void func_800029A0(void) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800029A0);
-#endif
+#pragma GLOBAL_ASM("asm/nonmatchings/kernel/func_800029A0_pad.s")
 
 /* func_800029B0 + func_80002A10 split out to kernel_045.c (-O1) */
 
