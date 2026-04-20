@@ -1,0 +1,4 @@
+/* trailing alignment padding for boarder4_uso_func_00000164 */
+glabel _pad_boarder4_uso_func_00000164, local
+.word 0x00000000
+endlabel _pad_boarder4_uso_func_00000164
