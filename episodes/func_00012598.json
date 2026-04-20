@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00012598",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T01:30:35.790314+00:00",
+  "end_time": "2026-04-20T01:30:35.790338+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T01:30:35.790331+00:00",
+      "assistant_text": "Run 9 byte dec/inc helper. 6-function family: 3 decrementers (if byte>0) + 3 incrementers (if byte<10) at byte offsets 0x12/0x13/0x14 in a0->0x154. -O0, uses register char *p for $s0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 26,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Run 9 subset: byte increment/decrement helpers at 0x123F0..0x1266C.\n * 3 decrementers (if byte > 0) and 3 incrementers (if byte < 10), at offsets\n * 0x12, 0x13, 0x14 within a pointer loaded from a0->0x154. At -O0 so IDO\n * emits stack-reload-per-use + `register char *p` for the $s0 pointer. */\n\nextern int func_00000000();\n\nvoid func_000123F0(char *a0) {\n    register char *p;\n    if (*(unsigned char*)(*(char**)(a0 + 0x154) + 0x12) != 0) {\n        p = *(char**)(a0 + 0x154);\n        *(p + 0x12) -= 1;\n    }\n    func_00000000(*(unsigned char*)(*(char**)(a0 + 0x154) + 0x12));\n}\n\nvoid func_00012458(char *a0) {\n    register char *p;\n    if ((int)*(unsigned char*)(*(char**)(a0 + 0x154) + 0x12) < 10) {\n        p = *(char**)(a0 + 0x154);\n        *(p + 0x12) += 1;\n    }\n    func_00000000(*(unsigned char*)(*(char**)(a0 + 0x154) + 0x12));\n}\n\nvoid func_000124C4(char *a0) {\n    register char *p;\n    if (*(unsigned char*)(*(char**)(a0 + 0x154) + 0x13) != 0) {\n        p = *(char**)(a0 + 0x154);\n        *(p + 0x13) -= 1;\n    }\n    func_00000000(*(unsigned char*)(*(char**)(a0 + 0x154) + 0x13));\n}\n\nvoid func_0001252C(char *a0) {\n    register char *p;\n    if ((int)*(unsigned char*)(*(char**)(a0 + 0x154) + 0x13) < 10) {\n        p = *(char**)(a0 + 0x154);\n        *(p + 0x13) += 1;\n    }\n    func_00000000(*(unsigned char*)(*(char**)(a0 + 0x154) + 0x13));\n}\n\nvoid func_00012598(char *a0) {\n    register char *p;\n    if (*(unsigned char*)(*(char**)(a0 + 0x154) + 0x14) != 0) {\n        p = *(char**)(a0 + 0x154);\n        *(p + 0x14) -= 1;\n    }\n    func_00000000(*(unsigned char*)(*(char**)(a0 + 0x154) + 0x14));\n}\n\nvoid func_00012600(char *a0) {\n    register char *p;\n    if ((int)*(unsigned char*)(*(char**)(a0 + 0x154) + 0x14) < 10) {\n        p = *(char**)(a0 + 0x154);\n        *(p + 0x14) += 1;\n    }\n    func_00000000(*(unsigned char*)(*(char**)(a0 + 0x154) + 0x14));\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_123F0.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00012598.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff; fuzzy_match_percent=100.0."
+  }
+}
