@@ -465,7 +465,18 @@ void func_0000231C(float *dst) {
 }
 
 extern void func_00002358();
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002358);
+void func_00002358(Vec3 *dst) {
+    int pad_top[1];
+    Tri3i raw;
+    int pad_mid[2];
+    Tri3i tmp;
+    int pad_bot[2];
+    func_00000000(&D_00000000, &raw, 12);
+    tmp = raw;
+    dst->x = *(float*)&tmp.a;
+    dst->y = *(float*)&tmp.b;
+    dst->z = *(float*)&tmp.c;
+}
 
 void func_000023C8(Quad4 *dst) {
     Quad4 buf;
