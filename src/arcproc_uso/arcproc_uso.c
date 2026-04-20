@@ -8,6 +8,13 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000000
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000050);
 
+void arcproc_uso_func_00001B88(int *a0) {
+    int *t;
+    arcproc_uso_func_00000000(a0);
+    t = *(int**)((char*)a0 + 0xD4);
+    arcproc_uso_func_00000000(t, 0x8C, *(int*)((char*)t + 0x6B0));
+}
+
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000000B4);
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000012C);
@@ -77,7 +84,7 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000117
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000125C);
 
-void arcproc_uso_func_00000000(void);
+int arcproc_uso_func_00000000();
 
 void arcproc_uso_func_00001488(void) {
     arcproc_uso_func_00000000();
@@ -95,7 +102,7 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000199
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001B04);
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001B88);
+/* moved to before void-decl at line 80 to allow K&R implicit decl with args */
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001BBC);
 
