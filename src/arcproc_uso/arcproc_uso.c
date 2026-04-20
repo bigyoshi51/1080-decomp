@@ -107,15 +107,31 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F0
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F54);
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000022A4);
+void arcproc_uso_func_000022A4(char *dst) {
+    int tmp;
+    arcproc_uso_func_000008FC(&tmp);
+    arcproc_uso_func_000008FC((int*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000022D4);
+void arcproc_uso_func_000022D4(char *dst) {
+    int tmp;
+    arcproc_uso_func_000008FC(&tmp);
+    arcproc_uso_func_00000938((float*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00002304);
+void arcproc_uso_func_00002304(char *dst) {
+    int tmp;
+    arcproc_uso_func_000008FC(&tmp);
+    arcproc_uso_func_00000974((Quad4*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00002334);
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000023C4);
+void arcproc_uso_func_000023C4(char *dst) {
+    int tmp;
+    arcproc_uso_func_000008FC(&tmp);
+    arcproc_uso_func_000009CC((Vec3*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000023F4);
 

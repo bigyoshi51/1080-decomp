@@ -1,0 +1,33 @@
+{
+  "function_name": "arcproc_uso_func_000022D4",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T00:07:13.497118+00:00",
+  "end_time": "2026-04-20T00:07:13.497139+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T00:07:13.497133+00:00",
+      "assistant_text": "Composite 'int + Y reader at dst+0x10' template \u2014 first jal = local int reader at 0x8FC; second jal = appropriate typed reader.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 12,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000050);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000000B4);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000012C);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000019C);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000240);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000005C8);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000688);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000748);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000007B4);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000800);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000880);\n\nvoid arcproc_uso_func_000008FC(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid arcproc_uso_func_00000938(float *dst) {\n    float buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid arcproc_uso_func_00000974(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\ntypedef struct { int a, b, c; } Tri3i;\ntypedef struct { float x, y, z; } Vec3;\nvoid arcproc_uso_func_000009CC(Vec3 *dst) {\n    int pad_top[1];\n    Tri3i raw;\n    int pad_mid[2];\n    Tri3i tmp;\n    int pad_bot[2];\n    gl_func_00000000(&D_00000000, &raw, 12);\n    tmp = raw;\n    dst->x = *(float*)&tmp.a;\n    dst->y = *(float*)&tmp.b;\n    dst->z = *(float*)&tmp.c;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000A3C);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000D70);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000E58);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000EBC);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000F50);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00000FA8);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001170);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000125C);\n\nvoid arcproc_uso_func_00000000(void);\n\nvoid arcproc_uso_func_00001488(void) {\n    arcproc_uso_func_00000000();\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000014A8);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000014D0);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001604);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000016F4);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000199C);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001B04);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001B88);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001BBC);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001C74);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001D18);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001F0C);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00001F54);\n\nvoid arcproc_uso_func_000022A4(char *dst) {\n    int tmp;\n    arcproc_uso_func_000008FC(&tmp);\n    arcproc_uso_func_000008FC((int*)(dst + 0x10));\n}\n\nvoid arcproc_uso_func_000022D4(char *dst) {\n    int tmp;\n    arcproc_uso_func_000008FC(&tmp);\n    arcproc_uso_func_00000938((float*)(dst + 0x10));\n}\n\nvoid arcproc_uso_func_00002304(char *dst) {\n    int tmp;\n    arcproc_uso_func_000008FC(&tmp);\n    arcproc_uso_func_00000974((Quad4*)(dst + 0x10));\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00002334);\n\nvoid arcproc_uso_func_000023C4(char *dst) {\n    int tmp;\n    arcproc_uso_func_000008FC(&tmp);\n    arcproc_uso_func_000009CC((Vec3*)(dst + 0x10));\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000023F4);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00002438);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000247C);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000024C0);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000251C);\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_000027BC);\n\nvoid arcproc_uso_func_00002864(void) {\n    arcproc_uso_func_00000000();\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_00002884);\n\n",
+  "metadata": {
+    "source_path": "src/arcproc_uso/arcproc_uso.c",
+    "asm_path": "asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_000022D4.s",
+    "segment": "arcproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff report; fuzzy_match_percent=100.0."
+  }
+}
