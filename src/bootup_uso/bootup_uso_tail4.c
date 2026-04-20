@@ -11,7 +11,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001304C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013924);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013980);
+int func_00013980(float *a0) {
+    if (*(float*)((char*)a0 + 0x48) == 1.0f) {
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000139B0);
 

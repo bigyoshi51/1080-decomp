@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00013980",
+  "project": "1080-agent-d",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T01:00:00.393365+00:00",
+  "end_time": "2026-04-20T01:00:00.393387+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T01:00:00.393381+00:00",
+      "assistant_text": "Float-equal predicate: returns 1 if a0->[0x48] == 1.0f else 0. lui+mtc1 to materialize 1.0; c.eq.s + bc1f branches to skip the v0=1 set. IDO -O2 emits the early v0=0 init, then conditional v0=1 in the jr's delay slot.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 12,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00012E00);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001304C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00013924);\n\nint func_00013980(float *a0) {\n    if (*(float*)((char*)a0 + 0x48) == 1.0f) {\n        return 1;\n    }\n    return 0;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000139B0);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00013B20);\n\nvoid func_00013C70(int *dst) {\n    int buf[2];\n    func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid func_00013CAC(float *dst) {\n    float buf[2];\n    func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid func_00013CE8(Quad4 *dst) {\n    Quad4 buf;\n    func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00013D40);\n\nvoid func_00013FE0(char *a0, int a1, int a2) {\n    *(int*)(a0 + 0x44) = a1;\n    *(int*)(a0 + 0x5C) = a2;\n}\n\nvoid func_00013FEC(char *a0, int a1, int a2, int a3, int arg5) {\n    *(int*)(a0 + 0x74) = a1;\n    *(int*)(a0 + 0x8C) = a2;\n    *(int*)(a0 + 0xA4) = a3;\n    *(int*)(a0 + 0xBC) = arg5;\n}\n\nvoid func_00014004(char *a0, int a1, int a2) {\n    *(int*)(a0 + 0x104) = a1;\n    *(int*)(a0 + 0x108) = a2;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00014010);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000140C4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00014228);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001438C);\n\nvoid func_000144B4(int *a0, int a1, int a2, float a3, float arg5) {\n    *(float*)((char*)a0 + 0x44) = (float)a1;\n    *(float*)((char*)a0 + 0x5C) = (float)a2;\n    *(float*)((char*)a0 + 0x88) = a3;\n    *(float*)((char*)a0 + 0x8C) = arg5;\n}\n\nvoid func_000144E0(void *a0, float a1, float a2) {\n    *(float*)((char*)a0 + 0x88) = a1;\n    *(float*)((char*)a0 + 0x8C) = a2;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000144F4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00014598);\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail4.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00013980.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff fuzzy_match_percent 100.0."
+  }
+}
