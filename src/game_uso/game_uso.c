@@ -429,7 +429,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
 
+#ifdef NON_MATCHING
+/* ~50%: returns 0.0f via $f2 intermediate (mtc1 $0,$f2; mov.s $f0,$f2) —
+ * IDO -O2 always folds `return 0.0f` / `float x=0; return x;` etc. to direct
+ * mtc1 $0,$f0. The extra `nop` between mtc1 and jr suggests a pipeline stall
+ * or source idiom that isn't recoverable from any tested 4-insn C body
+ * (2026-04-20: tested 13+ variants: literal, local, volatile, negate, cast,
+ *  union punning, arg-ignore). Likely permuter-only. */
+float game_uso_func_00007ABC(void) {
+    return 0.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
 
