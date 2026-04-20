@@ -133,9 +133,21 @@ void arcproc_uso_func_000023C4(char *dst) {
     arcproc_uso_func_000009CC((Vec3*)(dst + 0x10));
 }
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000023F4);
+extern int gl_ref_00000040;
+extern int gl_ref_00000070;
+extern int gl_ref_00000074;
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00002438);
+void arcproc_uso_func_000023F4(void) {
+    gl_func_00000000(gl_ref_00000070);
+    gl_ref_00000040 = 4;
+    gl_func_00000000(gl_ref_00000074, -1, 0);
+}
+
+void arcproc_uso_func_00002438(void) {
+    gl_func_00000000(gl_ref_00000070);
+    gl_ref_00000040 = 1;
+    gl_func_00000000(gl_ref_00000074, -1, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000247C);
 
