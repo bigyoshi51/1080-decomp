@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00012D64",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T00:54:50.409765+00:00",
+  "end_time": "2026-04-20T00:54:50.409786+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T00:54:50.409779+00:00",
+      "assistant_text": "Another -O0 composite in run 11 of bootup_uso. Added to bootup_uso_o0_12DA4.c (which now covers 3 adjacent -O0 funcs: 00012D64, 00012DA4, 00012DB8). tail4 TRUNCATE_TEXT bumped from 0x1854 \u2192 0x1850 (4-byte adjustment; actual natural .text size).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern void func_0000F1F0(int *dst);\nextern void func_0000F23C(int *dst);\nextern void func_0000F2EC(int *dst);\n\nvoid func_00012D64(char *dst) {\n    int tmp;\n    func_0000F1F0(&tmp);\n    func_0000F23C((int*)(dst + 0x10));\n}\n\nvoid func_00012DA4(int a0) {}\n\nvoid func_00012DB8(char *dst) {\n    int tmp;\n    func_0000F1F0(&tmp);\n    func_0000F2EC((int*)(dst + 0x10));\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_12DA4.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00012D64.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff; fuzzy_match_percent=100.0. -O0 composite (int + Y reader at dst+0x10). Run 11 sibling of 00012DB8."
+  }
+}
