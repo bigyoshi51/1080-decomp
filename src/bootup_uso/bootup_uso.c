@@ -308,7 +308,14 @@ void *func_00001FC8(char *a0, int a1) {
     return p;
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002014);
+void *func_00002014(char *a0, int a1) {
+    void *p = *(void**)(a0 + 0x70);
+    int i;
+    for (i = 0; i < a1; i++) {
+        p = *(void**)((char*)p + 0x44);
+    }
+    return p;
+}
 
 void func_00002060(char *a0, int a1, int a2, int a3, int a4, int a5) {
     *(int*)(a0 + 0x80) = a1;
