@@ -73,11 +73,11 @@ void func_80004DE0(s32 event, void* queue, s32 msg) {
 
 
 #ifdef NON_MATCHING
-/* PI DOM2 timing + system init. Structurally correct but IDO emits separate
- * `lui $at` for each extern byte (D_800195D4/D5/D6/D7/D8/D9) instead of
- * sharing the base across adjacent bytes (target has e.g. sb t0, D6(at);
- * sb t1, D7(at) with a single at). To match, all these bytes must live in
- * a single struct or array so IDO sees them as one symbol. */
+/* PI DOM2 timing + system init. Tried both per-byte externs and struct-based
+ * addressing; IDO -O1 still emits a fresh `lui $at` per store regardless of
+ * struct typing, while target shares `$at` across adjacent %lo pairs. The
+ * coalescing appears to be a specific compiler mood we can't trigger from C.
+ * NON_MATCHING body is structurally correct; permuter or closer analysis needed. */
 extern u8 D_800195D4;
 extern u8 D_800195D5;
 extern u8 D_800195D6;
