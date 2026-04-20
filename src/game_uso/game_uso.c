@@ -876,7 +876,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
 
+#ifdef NON_MATCHING
+/* ~70 %: 17-insn conditional call. If (*(a0+0xB4))->field_990 != 0, call
+ * gl_func_00000000(a0, *(D_00000E70), *(D_00000E74)). Target has 2 extra
+ * stack spills (sw a1,4(sp); sw a2,8(sp)) which IDO -O2 doesn't produce
+ * for this call shape with K&R-declared gl_func_00000000. Also register
+ * chain differs (target: t6/t8/t7 via pointer-indirect; mine: v0/t6/v0).
+ * Likely needs explicit call prototype + per-callsite spilling — close
+ * cousin of feedback_ido_unspecified_args.md. */
+extern char D_00000E70;
+void game_uso_func_0000D8A8(char *a0) {
+    int *t6 = *(int**)(a0 + 0xB4);
+    if (*(int*)((char*)t6 + 0x990) != 0) {
+        int *p = (int*)&D_00000E70;
+        gl_func_00000000(a0, p[0], p[1]);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8A8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
 
