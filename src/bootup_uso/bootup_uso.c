@@ -484,7 +484,32 @@ void func_000023C8(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* 93.8% match. Scheduler reorders zero-stores ahead of s4 store; register
+ * allocation for 0x2710 const gets t1 not t2. Instruction set matches. */
+extern char D_0000731C;
+int *func_00002420(int *a0, int a1, int a2, int a3, int s4, int s5) {
+    if (a0 == 0) {
+        a0 = (int*)func_00000000(0x50);
+        if (a0 == 0) goto end;
+    }
+    func_00000000(a0, &D_0000731C);
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)a0 + 0x38) = a1;
+    *(int*)((char*)a0 + 0x40) = a2;
+    *(int*)((char*)a0 + 0x2C) = a3;
+    *(int*)((char*)a0 + 0x30) = s4;
+    *(int*)((char*)a0 + 0x3C) = 0;
+    *(int*)((char*)a0 + 0x44) = 0;
+    *(int*)((char*)a0 + 0x48) = 0x2710;
+    *(int*)((char*)a0 + 0x4C) = 0;
+    *(int*)((char*)a0 + 0x34) = s5;
+end:
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002420);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000024B8);
 
