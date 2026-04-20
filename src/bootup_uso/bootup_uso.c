@@ -659,7 +659,11 @@ void func_000089C0(int *dst) {
     *dst = buf[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000089FC);
+void func_000089FC(short *dst) {
+    short buf[4];
+    func_00000000(&D_00000000, buf, 2);
+    *dst = buf[0];
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008A38);
 
