@@ -72,4 +72,49 @@ void func_80004DE0(s32 event, void* queue, s32 msg) {
 }
 
 
+#ifdef NON_MATCHING
+/* PI DOM2 timing + system init. Structurally correct but IDO emits separate
+ * `lui $at` for each extern byte (D_800195D4/D5/D6/D7/D8/D9) instead of
+ * sharing the base across adjacent bytes (target has e.g. sb t0, D6(at);
+ * sb t1, D7(at) with a single at). To match, all these bytes must live in
+ * a single struct or array so IDO sees them as one symbol. */
+extern u8 D_800195D4;
+extern u8 D_800195D5;
+extern u8 D_800195D6;
+extern u8 D_800195D7;
+extern u8 D_800195D8;
+extern u8 D_800195D9;
+extern s32 D_800195D0;
+extern s32 D_800195DC;
+extern s32 D_800195E0;
+extern s32 D_80019644;
+extern void* D_8000A46C;
+extern s32 func_800030D0(s32*, s32);
+
+#define IO_WRITE(addr, val) (*(volatile s32*)(addr) = (val))
+
+void* func_80004E50(void) {
+    s32 sr;
+    D_800195D4 = 2;
+    D_800195DC = 0xA5000000;
+    D_800195D5 = 3;
+    D_800195D8 = 6;
+    D_800195D6 = 6;
+    D_800195D7 = 2;
+    D_800195D9 = 1;
+    IO_WRITE(0xA4600024, 3);
+    IO_WRITE(0xA4600028, D_800195D8);
+    IO_WRITE(0xA460002C, D_800195D6);
+    IO_WRITE(0xA4600030, D_800195D7);
+    D_800195E0 = 0;
+    func_800030D0(&D_800195E0 + 1, 0x60);
+    sr = func_800066B0();
+    D_800195D0 = (s32)D_8000A46C;
+    D_8000A46C = &D_800195D0;
+    D_80019644 = (s32)&D_800195D0;
+    func_800066D0(sr);
+    return &D_800195D0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80004E50);
+#endif
