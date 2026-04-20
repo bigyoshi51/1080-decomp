@@ -165,7 +165,48 @@ void game_uso_func_00001DC4(void *a0) {
  * void function would report ~0 % match and not compile-test meaningfully. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
 
+#ifdef NON_MATCHING
+/* 54% match. 3x3 matrix-vector multiply: dst = M * v, where M is at
+ * (*(a1+0x38))+0x70 with row stride 0x10 (Mat4 top-left 3x3), v is at
+ * a1+0x5C..0x68. Result stored to *a0; returns a0.
+ *
+ * Structural differences from target (not just register allocation):
+ *   - Target reads v components via `lwc1 $f6, 0x14(sp)` (direct sp);
+ *     our build uses `lwc1 $f0, 0(v1)` (pointer-indirect via v1 = &buf).
+ *   - Target computes all 3 results, stores f2/f0 to stack, computes f12,
+ *     stores f12, THEN does 3 batched lw/sw copies to *a0.
+ *   - Our build: compute-store-copy for each result individually.
+ * Tried: `int buf[3]`, Tri3i struct variant. Both produce v1-indirect
+ * float loads. Likely needs a more specific pattern (named Vec3 locals
+ * independent of buf, or a different expr shape). */
+int* game_uso_func_000023D4(int *a0, char *a1) {
+    int buf[3];
+    float *m;
+    float x, y, z;
+
+    buf[0] = *(int*)(a1 + 0x5C);
+    buf[1] = *(int*)(a1 + 0x60);
+    buf[2] = *(int*)(a1 + 0x64);
+
+    m = (float*)(*(char**)(a1 + 0x38) + 0x70);
+
+    x = *(float*)&buf[0];
+    y = *(float*)&buf[1];
+    z = *(float*)&buf[2];
+
+    *(float*)&buf[0] = m[0]*x + m[4]*y + m[8]*z;
+    *(float*)&buf[1] = m[1]*x + m[5]*y + m[9]*z;
+    *(float*)&buf[2] = m[2]*x + m[6]*y + m[10]*z;
+
+    a0[0] = buf[0];
+    a0[1] = buf[1];
+    a0[2] = buf[2];
+
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000023D4);
+#endif
 
 extern void game_uso_func_00000000();
 
