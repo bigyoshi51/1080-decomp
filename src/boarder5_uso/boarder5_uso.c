@@ -12,7 +12,19 @@ void boarder5_uso_func_00000040(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* Composite: gl_func_00000000 placeholder-call + boarder5_uso_func_00000040.
+ * First jal target is plain 0x0 (external placeholder), second is jal 0xF*4=0x3C
+ * (4 bytes before func_00000040 — USO cross-func placeholder). 3 trailing nops
+ * in declared size 0x3C. Body ordered same as boarder1/3/4 composites. */
+void boarder5_uso_func_00000098(char *dst) {
+    int tmp;
+    gl_func_00000000(&tmp);
+    boarder5_uso_func_00000040((Quad4*)(dst + 0x10));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/boarder5_uso/boarder5_uso", boarder5_uso_func_00000098);
+#endif
 
 void boarder5_uso_func_000000D4(int *dst) {
     int buf[2];
