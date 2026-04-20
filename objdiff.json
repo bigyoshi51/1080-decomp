@@ -922,6 +922,38 @@
       }
     },
     {
+      "name": "src/bootup_uso/bootup_uso_o0_F7F4",
+      "target_path": "expected/src/bootup_uso/bootup_uso_o0_F7F4.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_o0_F7F4.c.o",
+      "metadata": {
+        "source_path": "src/bootup_uso/bootup_uso_o0_F7F4.c",
+        "progress_categories": [
+          "bootup_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/bootup_uso/bootup_uso_tail",
+      "target_path": "expected/src/bootup_uso/bootup_uso_tail.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_tail.c.o",
+      "metadata": {
+        "source_path": "src/bootup_uso/bootup_uso_tail.c",
+        "progress_categories": [
+          "bootup_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
       "name": "src/game_libs/game_libs",
       "target_path": "expected/src/game_libs/game_libs.c.o",
       "base_path": "build/src/game_libs/game_libs.c.o",

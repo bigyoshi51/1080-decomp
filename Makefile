@@ -26,7 +26,15 @@ CFLAGS   := -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul
 CPPFLAGS := -I include -I src
 LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map --no-check-sections
 
-# Per-file optimization overrides (O1 libultra functions)
+# Per-file optimization overrides (O1 libultra functions, O0 empty stubs)
+build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: OPT_FLAGS := -O0
+# Truncate bootup_uso.c.o .text to exact end-of-last-function so the next .o
+# (bootup_uso_o0_F7F4.c.o) links at the correct non-16-aligned offset.
+build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF7F4
+# Reduce .text alignment and trim padding on the -O0 stubs and tail so they
+# land right at 0xF7F4 / 0xF81C rather than the next 16-aligned offset.
+build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: TRUNCATE_TEXT := 0x28
+build/src/bootup_uso/bootup_uso_tail.c.o: TRUNCATE_TEXT := 0x4E30
 build/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1
@@ -122,6 +130,7 @@ build/src/%.c.o: src/%.c
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ \
 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
+	@if [ -n "$(TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(TRUNCATE_TEXT); fi
 endif
 
 # Standalone assembly

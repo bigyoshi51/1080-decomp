@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000F7F4",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T00:41:14.500132+00:00",
+  "end_time": "2026-04-20T00:41:14.500155+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T00:41:14.500149+00:00",
+      "assistant_text": "void f(int a0) {} compiled at -O0 produces the 5-insn stub exactly. Required new bootup_uso_o0_F7F4.c file with -O0 override + scripts/truncate-elf-text.py to handle non-16-aligned split boundary (section size + addralign). See feedback_ido_o0_empty_stub.md.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 5,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* These two functions compile at -O0, not -O2. The -O0 output is a 5-insn\n * stub (`sw a0,0(sp); b +1; nop; jr ra; nop`) that -O2 collapses to 2 insns.\n * See feedback_ido_o0_empty_stub.md. */\n\nvoid func_0000F7F4(int a0) {}\n\nvoid func_0000F808(int a0) {}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_F7F4.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0000F7F4.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff report; fuzzy_match_percent=100.0. -O0 split file with section-size truncation."
+  }
+}
