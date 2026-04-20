@@ -83,7 +83,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000007EC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000858);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000008FC);
+void game_uso_func_000008FC(int *a0) {
+    int *v0 = (int*)*(int*)((char*)a0 + 0xF4);
+    gl_func_00000000(*(int*)((char*)v0 + 0xB4), a0);
+    gl_func_00000000(*(int*)((char*)a0 + 0x154), a0);
+    *(int*)((char*)a0 + 0x264) = 0;
+    gl_func_00000000(a0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000940);
 
