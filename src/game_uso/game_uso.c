@@ -160,6 +160,8 @@ void game_uso_func_00001DC4(void *a0) {
  * void function would report ~0 % match and not compile-test meaningfully. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
 
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000023D4);
+
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000023D8);
 
 extern void game_uso_func_00000000();
