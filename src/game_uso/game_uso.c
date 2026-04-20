@@ -520,6 +520,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
+/* game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
+ * Strategy-memo candidate for "per-frame compute" (1.4 KB, 11 cross-calls).
+ *
+ * ENTRY DECODE (insns 1-15 @ 0x9B88-0x9BC4):
+ *   args: (a0, a1, a2).  All three spilled to caller-slot (sp+0x1A8/AC/B0)
+ *         at entry — suggests varargs or multi-reuse callee.
+ *   if (a2 == 0) {
+ *       panic/assert(&SYM+0x7BC, &SYM+0x7C8, 0x623);
+ *       // jal gl_func_00000000, line number 0x623 = 1571
+ *   }
+ *   // sp+0x190: a local struct base.  `bnel v1,$0,...` on &local_struct
+ *   // is trivially true (stack addr nonzero) — suggests compiler generated
+ *   // null-guard around a pointer obtained from `local.field` indirection.
+ *
+ * BODY (insns 15-344 @ 0x9BC4-0x10E8): heavy float math (many lwc1/mul.s/
+ *   add.s/sub.s on sp+0x12C..sp+0x148, a quaternion or matrix slot), multiple
+ *   cross-USO calls (`jal 0` placeholders — 11 per memo), several struct
+ *   stores to sp+0x0C4..sp+0x144 (local buffer region).
+ *
+ * Deferred to future passes: full body decode is ~300 insns of float sched;
+ *   one /decompile run reads the prologue — subsequent runs will tighten
+ *   the dispatch logic and body math. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
