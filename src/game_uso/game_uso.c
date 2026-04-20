@@ -50,11 +50,13 @@ void game_uso_func_00000314(Pair2 *dst) {
 }
 
 #ifdef NON_MATCHING
-/* 92%: int-reader variant with pointer-indirect load. Target emits
- * `addiu t7, sp, 0x18; lw t9, 0(t7)` (16 instr) instead of standard `lw t6, 0x18(sp)` (15 instr).
- * IDO won't force the address-materialize-then-load from C without pipe-breaking tricks. */
+/* 98.1 %: int-reader variant with pointer-indirect load. `volatile int buf[2]`
+ * forces the address-materialize-then-load (`addiu t6, sp, 0x18; lw t7, 0(t6)`)
+ * matching target structure. Remaining diff is register choice (mine: t6/t7/t8,
+ * target: t7/t9/t6 — target skips t8, possibly long-long return reservation
+ * around game_uso_func_00000000 that we can't reproduce). */
 void game_uso_func_0000035C(int *dst) {
-    int buf[2];
+    volatile int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
