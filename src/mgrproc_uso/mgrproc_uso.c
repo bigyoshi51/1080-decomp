@@ -27,7 +27,13 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000A1
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000AE0);
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B20);
+extern char D_mgr_B20_1;
+extern char D_mgr_B20_2;
+void mgrproc_uso_func_00000B20(void) {
+    gl_func_00000000(*(int*)(&D_00000000 + 0x30));
+    gl_func_00000000(*(int*)(&D_mgr_B20_1 + 0x30));
+    gl_func_00000000(&D_mgr_B20_2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5C);
 
