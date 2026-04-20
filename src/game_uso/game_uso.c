@@ -579,6 +579,31 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
 
+/* game_uso_func_00007C1C: 0x10BC (1071 insns, 4.3 KB) — strategy-memo spine #3.
+ * 0x3B0-byte stack frame (944 bytes — huge local storage).
+ *
+ * SIGNATURE (5+ args): prologue spills $a0/$a1/$a3 back to caller slots at
+ *   sp+0x3B0/0x3B4/0x3BC, and loads $s0 from sp+0x3C4 (= caller's arg-5
+ *   stack slot, per O32 ABI). Saves $s0/$s1/$s2, $ra, and $f20/$f22/$f24
+ *   (doubleword FP saves — heavy float math ahead).
+ *
+ *   f(arg0, arg1, arg2_in_s2, arg3, ..., arg5_ptr_in_s0)
+ *
+ * ENTRY LOGIC (insns 1-20 @ 0x7C1C-0x7C6C):
+ *   s0 = arg5 (5th stack arg — a pointer)
+ *   s2 = arg2
+ *   if (s0 != 0) *s0 = 0.0f;   // zero the output accumulator through ptr
+ *   (reload a3 into $t6)
+ *   f24 = 0.0
+ *   v1 = &local[0x38C]
+ *   if (a3 != 0) branch to big block at +0x33*4 (another sub-check)
+ *
+ * Float math throughout: lwc1/swc1 to sp+0x348 and sp+0x38C regions
+ * (looks like two Vec3 / quaternion slots). Multiple `jal 0` cross-calls
+ * interspersed.
+ *
+ * Deferred: 1071 insns will not match in one tick. Multi-run tightening
+ * expected. Body structure TBD in next pass. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
