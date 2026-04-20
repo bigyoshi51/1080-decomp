@@ -400,7 +400,17 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002420);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000024B8);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002774);
+void func_00002774(char *a0, int a1) {
+    if (*(int*)(a0 + 0x18) & 8) {
+        char *p;
+        *(int*)(a0 + 0x3C) = a1;
+        *(int*)(*(char**)(a0 + 0x2C) + 0x70) = ((int*)a0)[a1 + 12];
+        p = *(char**)(*(char**)(a0 + 0x2C) + 0x70) + 0x134;
+        *(float*)(p + 8) = 0.0f;
+        *(float*)(p + 4) = 0.0f;
+        *(float*)p = 0.0f;
+    }
+}
 
 void func_000027C0(char *a0, int *a1) {
     int msg_type = *a1;
