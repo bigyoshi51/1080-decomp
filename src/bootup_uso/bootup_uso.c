@@ -1079,7 +1079,19 @@ void func_0000F15C(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* 80 %: structurally exact composite (int reader + Quad4 reader) per the
+ * cross-USO template memo. Function size is 0x30 but target symbol extends
+ * to 0x3C with 3 trailing alignment nops — per feedback_function_trailing_nop_padding,
+ * these nops are assembler-inserted and not reproducible from C. */
+void func_0000F1B4(char *a0) {
+    int scratch;
+    func_0000F120(&scratch);
+    func_0000F15C((Quad4*)(a0 + 0x10));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F1B4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F1F0);
 
