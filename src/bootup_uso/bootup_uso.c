@@ -297,7 +297,18 @@ void func_00001C4C(float *dst) {
 }
 
 extern void func_00001C88();
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001C88);
+void func_00001C88(Vec3 *dst) {
+    int pad_top[1];
+    Tri3i raw;
+    int pad_mid[2];
+    Tri3i tmp;
+    int pad_bot[2];
+    func_00000000(&D_00000000, &raw, 12);
+    tmp = raw;
+    dst->x = *(float*)&tmp.a;
+    dst->y = *(float*)&tmp.b;
+    dst->z = *(float*)&tmp.c;
+}
 
 void func_00001CF8(int *dst) {
     int buf[2];
