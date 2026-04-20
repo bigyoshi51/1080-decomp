@@ -80,6 +80,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000608);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000724);
 
+void game_uso_func_000007E0(int *a0) {
+    a0[9] = 0;
+    *a0 = 0;
+}
+
 void game_uso_func_000007EC(int *arg0) {
     int i;
     int *p;
@@ -123,6 +128,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000018FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001D30);
 
+void game_uso_func_00001DC4(void *a0) {
+    *(s32*)((char*)a0 + 0x40) = 0;
+    *(f32*)((char*)a0 + 0x2C) = 0.0f;
+    *(f32*)((char*)a0 + 0x30) = 0.0f;
+    *(f32*)((char*)a0 + 0x34) = 0.0f;
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000023D8);
@@ -144,6 +156,13 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002814);
+
+void game_uso_func_000028A8(void *a0) {
+    *(s32*)((char*)a0 + 0x40) = 0;
+    *(f32*)((char*)a0 + 0x2C) = 0.0f;
+    *(f32*)((char*)a0 + 0x30) = 0.0f;
+    *(f32*)((char*)a0 + 0x34) = 0.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000028C0);
 
