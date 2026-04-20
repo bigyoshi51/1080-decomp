@@ -440,19 +440,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
 
 #ifdef NON_MATCHING
-/* 98.33%: $s0/$s1 swapped — counter goes to s1, ptr to s0; target wants
- * counter→s0, ptr→s1. Swapping decl order, register hint, do/while restructure
- * all failed to flip the allocation. Cosmetic register diff only. */
+/* 90.2%: `char *base = a0` forces $s2 = arg0 reuse for 0x168 limit (target
+ * trick). Still stuck: $s0/$s1 pair — target has counter→s0, ptr→s1; ours
+ * has ptr→s0, counter→s1. Swapping `p += 0x24; i += 0x24;` order did NOT
+ * flip allocation here (unlike what I thought when contaminated baseline
+ * gave a false 100 %). See feedback_ido_loop_body_stmt_order_flips_allocno
+ * — that memo's premise was wrong and should be retired. */
 void game_uso_func_0000BF7C(char *a0) {
     int i;
     char *p;
-    game_uso_func_00000000(a0 + 0x224);
-    game_uso_func_0000ADE0((int*)(a0 + 0x274));
-    p = a0 + 0xB8;
-    for (i = 0; i < 0x168; i += 0x24) {
+    char *base;
+
+    base = a0;
+    game_uso_func_00000000(base + 0x224);
+    game_uso_func_0000ADE0((int*)(base + 0x274));
+    p = base + 0xB8;
+    i = 0;
+    do {
         game_uso_func_00000000(p);
         p += 0x24;
-    }
+        i += 0x24;
+    } while (i != 0x168);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BF7C);
