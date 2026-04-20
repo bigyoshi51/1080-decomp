@@ -101,6 +101,10 @@ void func_80000118(s32 a0, s32 a1) {
     func_80002890(saved);
 }
 
+#ifdef NON_MATCHING
+/* +8 bytes bloat (built 124 vs baserom 116). String-compare-like func; C
+ * structure produces extra cmp. Preserved as INCLUDE_ASM in default build
+ * so kernel section size matches baserom. */
 s32 func_80000168(char* a0, char* a1) {
     s32 nz;
 
@@ -125,6 +129,9 @@ s32 func_80000168(char* a0, char* a1) {
     nz = *a1 != '\0';
     return nz;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80000168);
+#endif
 
 void func_800001DC(char* dst, char* src) {
     char* s = src;
@@ -184,6 +191,12 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000020C);
 extern s32 func_800005DC();
 extern s32 func_8000060C();
 
+#ifdef NON_MATCHING
+/* +472 bytes bloat (built 800 vs baserom 328). Unrolled byte-copy loops
+ * produce 2.4x the original asm. Likely the original used memcpy/bcopy
+ * helpers or a different byte-copy idiom. Preserved as INCLUDE_ASM in
+ * default build so kernel section size matches baserom (this single bloat
+ * was responsible for ~80% of the kernel-section ROM-size mismatch). */
 void func_80000260(u8* arg0, s32 arg1, u8* arg2) {
     u8 sp48[0x40];
     s32 sp44;
@@ -239,6 +252,9 @@ void func_80000260(u8* arg0, s32 arg1, u8* arg2) {
         arg2[0] = 0;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80000260);
+#endif
 
 void func_800003A8(s32 arg0, s32 arg1, s32 arg2) {
     s32 savedMask;
@@ -310,6 +326,10 @@ s32 func_8000058C(s32 arg0) {
     return 0;
 }
 
+#ifdef NON_MATCHING
+/* +52 bytes bloat (built 120 vs baserom 68). Byte-copy loop; original was
+ * shorter, possibly word-aligned. Preserved as INCLUDE_ASM in default
+ * build so kernel section size matches baserom. */
 void func_80000598(u8* src, u8* dst, s32 count) {
     s32 remaining;
     u8* dstCurr;
@@ -329,6 +349,9 @@ void func_80000598(u8* src, u8* dst, s32 count) {
         } while (remaining != 0);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
+#endif
 
 /* NOTE: `func_8000060C` and `func_80000660` are continuation fragments of
  * `func_800005DC`, not standalone ABI-safe helpers. Keep the fragment-merge
