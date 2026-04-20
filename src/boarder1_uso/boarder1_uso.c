@@ -41,4 +41,3 @@ void boarder1_uso_func_00000164(char *dst) {
     boarder1_uso_func_0000010C((Quad4*)(dst + 0x10));
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/boarder1_uso/boarder1_uso/boarder1_uso_func_00000164_pad.s")
-
