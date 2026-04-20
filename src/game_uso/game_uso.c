@@ -377,6 +377,32 @@ void game_uso_func_000057B8(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
 
+/* game_uso_func_00005924: 0x110C (1100 insns, 4.3 KB) — strategy-memo spine
+ * candidate #2 (~29 cross-USO calls).  0x1D0-byte stack frame.
+ *
+ * ENTRY PROLOGUE (insns 1-5 @ 0x5924-0x5934):
+ *   addiu sp, -0x1D0
+ *   sw    s0, 0x20(sp)
+ *   or    s0, a0, 0          ; spill $a0 to $s0 (used throughout)
+ *   bne   t6, zero, 0x6A1C   ; <-- ODDITY: $t6 is uninitialized here!
+ *   sw    ra, 0x24(sp)         ; (bne delay slot)
+ *
+ * The bne reads $t6 before anything in this function writes it. Target
+ * 0x6A1C is the epilogue (lw ra; lw s0; addiu sp,+0x1D0; jr ra; nop).
+ * Possibilities: (a) original source declared `register int x asm("$t6")`
+ * in a caller context; (b) caller leaked $t6 with a compile-time known
+ * value; (c) this is a splat cross-function-code-sharing artifact where
+ * most callers enter at a LATER address than 0x5924. Leave INCLUDE_ASM;
+ * fix requires understanding the calling convention first.
+ *
+ * BODY STRUCTURE (rough): multiple `andi` mask extracts on a0[0x68] flag
+ * byte (bit 0, bit 1, bit 2, bit 3 each gate a separate code block), then
+ * falls through to a large per-frame update loop with cross-USO calls and
+ * float math on a0+0x148..0x1C4 sub-buffers.
+ *
+ * Deferred: full decode requires typed struct for the 0x4E0-byte main
+ * object (same struct constructed by game_uso_func_000044F4). Multi-run
+ * decomp expected. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00005924);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
