@@ -682,7 +682,19 @@ void func_00007E50(int *a0) {
     func_00000000(a0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007E70);
+extern int D_func_00007E70_a;
+extern int D_func_00007E70_b;
+void func_00007E70(char *a0) {
+    D_func_00007E70_a = 0;
+    func_00000000(a0);
+    if (D_func_00007E70_b != 0) {
+        int counter = *(int*)(a0 + 0x68) + 1;
+        *(int*)(a0 + 0x68) = counter;
+        if (counter == 1) {
+            func_00000000();
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007EC8);
 
