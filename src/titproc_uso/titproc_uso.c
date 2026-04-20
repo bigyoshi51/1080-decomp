@@ -24,7 +24,16 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000033
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000388);
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000003D8);
+extern char D_000003D0_A;
+
+void titproc_uso_func_000003D0(void) {
+    *(int*)((char*)&D_00000000 + 0x34) = 8;
+    *(int*)((char*)&D_00000000 + 0x40) = 0;
+    *(int*)((char*)&D_00000000 + 0x44) = 2;
+    gl_func_00000000(*(int*)((char*)&D_000003D0_A + 0xA8), -1, 0);
+}
+
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000420);
 
