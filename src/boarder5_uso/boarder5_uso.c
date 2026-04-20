@@ -26,5 +26,16 @@ void boarder5_uso_func_00000110(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* int+Quad4 composite body. jal targets are USO placeholders (0x34*4=0xD0
+ * and 0x43*4=0x10C) pointing 4 bytes before the real int/Quad4 reader entries
+ * — cross-USO placeholder pattern caps match regardless of C. */
+void boarder5_uso_func_00000168(char *dst) {
+    int tmp;
+    boarder5_uso_func_000000D4(&tmp);
+    boarder5_uso_func_00000110((Quad4*)(dst + 0x10));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/boarder5_uso/boarder5_uso", boarder5_uso_func_00000168);
+#endif
 
