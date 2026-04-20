@@ -408,7 +408,17 @@ void game_uso_func_00007448(void *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007448);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000074D8);
+void game_uso_func_000074D8(char *a0) {
+    char *t;
+    t = *(char**)(a0 + 0x30) + 0x758;
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x4C8);
+    t = *(char**)(a0 + 0x30) + 0x6F8;
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x4CC);
+    t = *(char**)(a0 + 0x30) + 0x6E0;
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x4D0);
+    t = *(char**)(a0 + 0x30) + 0x498;
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x4D4);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000751C);
 
