@@ -75,7 +75,12 @@ void timproc_uso_b3_func_00001090(int a0, char *a1) {
     timproc_uso_b3_func_00000000(a0, a1 + 0x00220000);
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000010B4);
+extern int gl_ref_00000040;
+
+void timproc_uso_b3_func_000010B4(int a0) {
+    gl_ref_00000040 = 9;
+    gl_func_00000000(a0, -1, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000010E4);
 
