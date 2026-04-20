@@ -840,7 +840,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D210);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D418);
+void game_uso_func_0000D418(char *a0) {
+    gl_func_00000000(a0 + 0x13C);
+}
 
 #ifdef NON_MATCHING
 /* 97.5%: all logic correct; IDO allocates t6 before t7 but target has t7
