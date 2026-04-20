@@ -180,7 +180,11 @@ void timproc_uso_b5_func_0000AA8C(char *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AABC);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AAF4);
+void timproc_uso_b5_func_0000AAF4(char *dst) {
+    int tmp;
+    timproc_uso_b5_func_00000330(&tmp);
+    timproc_uso_b5_func_00000400((Vec3*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AB24);
 
