@@ -36,7 +36,23 @@ int gui_func_000015BC(int a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000015F4);
 
+#ifdef NON_MATCHING
+/* 87%: 20 real insns match target bytes 1:1. Target has 3 extra "stray" insns
+ * (sw a1,0x14(a0); jr ra; sw zero,0x10(a0)) at end of declared size that aren't
+ * emitted by any C expression — appears to be dead code / compiler artifact
+ * inside the function's symbol size. */
+extern int gl_func_00000000();
+extern int gui_ref_00000150_a;
+int gui_func_0000267C(int *a0, int a1) {
+    int r1;
+    *(int*)((char*)a0 + 0x14) = a1;
+    r1 = gl_func_00000000(7);
+    *(int*)((char*)a0 + 0x10) = gl_func_00000000(gui_ref_00000150_a, *(int*)((char*)a0 + 0x14));
+    return gl_func_00000000(r1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000267C);
+#endif
 
 extern int gui_func_00000000();
 extern int gui_ref_00000150;
