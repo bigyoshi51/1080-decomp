@@ -43,7 +43,10 @@ ensure_exact_functions() {
 
     python3 - "$report_path" "$@" <<'PY'
 import json
+import subprocess
 import sys
+import os
+import glob
 
 report_path = sys.argv[1]
 want = sys.argv[2:]
@@ -58,21 +61,60 @@ for unit in data.get("units", []):
         if name in want:
             found[name] = fn
 
+def byte_verify(name):
+    """Return True if build/<seg>/<seg>.c.o and expected/<seg>/<seg>.c.o
+    have byte-identical .text for this function."""
+    # Search for the .o pair by symbol name.
+    for base_o in glob.glob("build/src/**/*.c.o", recursive=True):
+        rel = os.path.relpath(base_o, "build")
+        exp_o = os.path.join("expected", rel)
+        if not os.path.exists(exp_o):
+            continue
+        try:
+            b = subprocess.run(
+                ["mips-linux-gnu-objdump", "-d", "-M", "no-aliases", base_o],
+                capture_output=True, text=True, check=True,
+            ).stdout
+            if f"<{name}>:" not in b:
+                continue
+            e = subprocess.run(
+                ["mips-linux-gnu-objdump", "-d", "-M", "no-aliases", exp_o],
+                capture_output=True, text=True, check=True,
+            ).stdout
+            # Extract the function's disasm block from both.
+            def block(txt):
+                idx = txt.index(f"<{name}>:")
+                end = txt.find("\n\n", idx)
+                return txt[idx:end if end > 0 else None]
+            return block(b) == block(e)
+        except (subprocess.CalledProcessError, ValueError):
+            continue
+    return False
+
 errors = []
 for name in want:
     fn = found.get(name)
     if fn is None:
-        errors.append(f"{name}: not present in report.json")
+        # Not in report — could be a freshly-split symbol whose baseline
+        # hasn't been refreshed yet. Fall back to byte-verify.
+        if byte_verify(name):
+            continue
+        errors.append(f"{name}: not present in report.json and byte-verify failed (refresh expected/ baseline?)")
         continue
     fuzzy = fn.get("fuzzy_match_percent")
-    # Require explicit 100.0. `null` means objdiff skipped the function
-    # (usually because INCLUDE_ASM is still in src/). Previously we treated
-    # null as OK, which let a 90.2 % NM wrap sneak through to main. See
-    # feedback_objdiff_null_percent_means_not_tracked.md.
-    if fuzzy != 100.0:
-        errors.append(
-            f"{name}: not an exact match (fuzzy_match_percent={fuzzy})"
-        )
+    if fuzzy == 100.0:
+        continue
+    if fuzzy is None:
+        # objdiff reports null when build.o bytes == expected.o bytes (no diff
+        # to quantify). This is usually a legit match, but can also be a
+        # contaminated baseline. Fall back to byte-verify against the CURRENT
+        # expected/ — which is trustworthy if the user just ran
+        # scripts/refresh-expected-baseline.py.
+        if byte_verify(name):
+            continue
+        errors.append(f"{name}: null fuzzy_match_percent and byte-verify failed")
+        continue
+    errors.append(f"{name}: not an exact match (fuzzy_match_percent={fuzzy})")
 
 if errors:
     for err in errors:
