@@ -69,7 +69,22 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000C0
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000C54);
 
+#ifdef NON_MATCHING
+/* 99.42 %: body matches; bnel branch target differs by 3 instructions.
+ * Target tail-merges the v0!=21 epilogue with the v0==21 third-call's a0/a1
+ * reloads (bnel target = 0x1008 = `lw a1, 0x1C(sp)`). My version goes
+ * straight to epilogue (bnel target = 0x1010 = `addiu sp`). Cosmetic. */
+void titproc_uso_func_00000FD0(void *a0, int *a1) {
+    int v = *a1;
+    if (v == 21) {
+        gl_func_00000000();
+        gl_func_00000000(a0);
+        gl_func_00000000(a0, a1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000FD0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000101C);
 
