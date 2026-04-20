@@ -378,31 +378,47 @@ void game_uso_func_00007424(void *a0) {
 }
 
 #ifdef NON_MATCHING
-/* First pass: leaf, reads 4 float fields from table entries pointed to by
- * a0->0x30, mirrors them into a0->0x4C8..0x4D4, then scales 3 of them by
- * a0->0x33C or a0->0x36C and writes back into the table. Three mul.s ops.
- * Remaining gaps: instruction scheduling (IDO interleaves loads/stores
- * aggressively) and one unfinished trailing load (last .s insn reads
- * table+0x4D8 via addiu a2; that insn sequence looks like it belongs to a
- * NEXT function splat didn't separate — re-check with split-fragments). */
-void game_uso_func_00007448(void *a0) {
-    char *table = *(char**)((char*)a0 + 0x30);
-    float sx = *(float*)((char*)a0 + 0x33C);
-    float sy = *(float*)((char*)a0 + 0x36C);
-    float v1, v2, v3, v4;
+/* Inverse of game_uso_func_000074D8: pulls 4 floats from table (+0x30 deref)
+ * at offsets 0x768/0x708/0x6F0/0x4A8, mirrors them into a0+0x4C8..0x4D4,
+ * scales 3 of them in-place back into the table (by a0+0x33C=sx for the
+ * first, a0+0x36C=sy for the other two), then does one unscaled intra-table
+ * copy (table+0x4A8 = table+0x4D8).
+ *
+ * Match gap: IDO schedules the 4 inbound copies with a split
+ * `addiu vN, v1, OFFSET` + `lwc1 fN, 0x10(vN)` pair instead of a single
+ * `lwc1 fN, OFFSET+0x10(v1)` — even though the offsets fit in 16 bits and
+ * table is kept in v1 across all 4 copies. Attempts with named-base
+ * pointers (char *t = table + 0x758) in the C were merged by IDO back to
+ * direct offsets (~27 insns produced vs target 36 insns). Target also
+ * pre-computes `a3 = a0 + 0x35C` at insn 3 and uses `lwc1 f18, 0x10(a3)`
+ * for the 3rd scale_y access — probably a struct-field access in source.
+ * 27/36 insns match structurally; body is semantically correct. */
+void game_uso_func_00007448(char *a0) {
+    char *table = *(char**)(a0 + 0x30);
+    float sx = *(float*)(a0 + 0x33C);
+    char *t;
 
-    v1 = *(float*)(table + 0x758 + 0x10);
-    *(float*)((char*)a0 + 0x4C8) = v1;
-    v2 = *(float*)(table + 0x6F8 + 0x10);
-    *(float*)((char*)a0 + 0x4CC) = v2;
-    v3 = *(float*)(table + 0x6E0 + 0x10);
-    *(float*)((char*)a0 + 0x4D0) = v3;
-    v4 = *(float*)(table + 0x498 + 0x10);
-    *(float*)((char*)a0 + 0x4D4) = v4;
+    t = table + 0x758;
+    *(float*)(a0 + 0x4C8) = *(float*)(t + 0x10);
+    t = table + 0x6F8;
+    *(float*)(a0 + 0x4CC) = *(float*)(t + 0x10);
+    t = table + 0x6E0;
+    *(float*)(a0 + 0x4D0) = *(float*)(t + 0x10);
+    t = table + 0x498;
+    *(float*)(a0 + 0x4D4) = *(float*)(t + 0x10);
+    *(float*)(table + 0x768) = *(float*)(a0 + 0x4C8) * sx;
 
-    *(float*)((char*)a0 + 0xAC4) = *(float*)((char*)a0 + 0x4C8) * sx;
-    *(float*)(table + 0x6F8 + 0x10) = *(float*)((char*)a0 + 0x4CC) * sy;
-    *(float*)(table + 0x6E0 + 0x10) = *(float*)((char*)a0 + 0x4D0) * sx;
+    table = *(char**)(a0 + 0x30);
+    t = table + 0x6F8;
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x4CC) * *(float*)(a0 + 0x36C);
+
+    table = *(char**)(a0 + 0x30);
+    t = table + 0x6E0;
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x4D0) * *(float*)(a0 + 0x36C);
+
+    table = *(char**)(a0 + 0x30);
+    t = table + 0x498;
+    *(float*)(t + 0x10) = *(float*)(table + 0x4D8);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007448);
