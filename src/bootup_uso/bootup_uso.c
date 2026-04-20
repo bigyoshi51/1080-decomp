@@ -22,8 +22,20 @@ void func_00000044(float *dst) {
     *dst = buf[0];
 }
 
-extern void func_00000080(void *dst);
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000080);
+typedef struct { int a, b, c; } Tri3i;
+typedef struct { float x, y, z; } Vec3;
+void func_00000080(Vec3 *dst) {
+    int pad_top[1];
+    Tri3i raw;
+    int pad_mid[2];
+    Tri3i tmp;
+    int pad_bot[2];
+    func_00000000(&D_00000000, &raw, 12);
+    tmp = raw;
+    dst->x = *(float*)&tmp.a;
+    dst->y = *(float*)&tmp.b;
+    dst->z = *(float*)&tmp.c;
+}
 
 typedef struct { int a, b, c, d; } Quad4;
 void func_000000F0(Quad4 *dst) {
