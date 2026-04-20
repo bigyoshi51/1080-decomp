@@ -143,5 +143,17 @@ void mgrproc_uso_func_00003328(char *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003358);
 
+#ifdef NON_MATCHING
+/* 85.7%: standard composite-reader template (int + Vec3 at +0x10).
+ * Last function in the mgrproc_uso segment; original asm has 2 trailing
+ * nops (8 bytes) of alignment padding that IDO doesn't regenerate from
+ * C. Per feedback_function_trailing_nop_padding.md / feedback_truncate_text. */
+void mgrproc_uso_func_000033E8(char *dst) {
+    int tmp;
+    mgrproc_uso_func_00000CC4(&tmp);
+    mgrproc_uso_func_00000D94((Vec3*)(dst + 0x10));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000033E8);
+#endif
 
