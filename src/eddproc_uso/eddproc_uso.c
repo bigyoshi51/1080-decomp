@@ -56,19 +56,19 @@ INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000015
  * declared size 0x94 — see feedback_uso_stray_trailing_insns.md: caps
  * match %, pad-sidecar may help). This pass: structure only — needs unique
  * D_eddproc_N extern symbols per call site (feedback_uso_multi_placeholder_wrapper.md)
- * and D_eddproc_220 data pointer. Deferred to future pass. */
+ * and a base data symbol for the +0x220 pointer. Using standard D_00000000
+ * + offset for the pointer store (same convention as other USO wrappers);
+ * the per-site function extern would be unique `gl_func_00000000_N` names
+ * each mapped to 0x0 in undefined_syms_auto.txt (deferred to next pass). */
 void eddproc_uso_func_0000015C(char *a0) {
-    extern int *D_eddproc_00000220;
-    extern int D_eddproc_data_B;
-    extern int D_eddproc_data_B4;
-    *(int**)(a0 + 0xC) = &D_eddproc_00000220 + 0x88;  /* SYM+0x220 */
+    *(char**)(a0 + 0xC) = &D_00000000 + 0x220;
     gl_func_00000000(a0);
     gl_func_00000000(a0, 0xD6, 0x13, *(char**)(a0 + 0x44) + 0x10);
     gl_func_00000000(a0, 0x6C, 0x11, (char*)a0 + 0xA0);
     *(int*)(a0 + 0xA0) = 0x2328;
     *(int*)(a0 + 0xA4) = 0;
-    D_eddproc_data_B = gl_func_00000000(0x3E80);
-    D_eddproc_data_B4 = 0;
+    *(int*)&D_00000000 = gl_func_00000000(0x3E80);
+    *((int*)&D_00000000 + 1) = 0;
     gl_func_00000000(a0);
 }
 #else
