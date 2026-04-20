@@ -492,8 +492,18 @@ void func_000023C8(Quad4 *dst) {
 }
 
 #ifdef NON_MATCHING
-/* 93.8% match. Scheduler reorders zero-stores ahead of s4 store; register
- * allocation for 0x2710 const gets t1 not t2. Instruction set matches. */
+/* 93.8% match. IDO's list scheduler reorders: target emits
+ *   sw t0,0x30(a0); lw t1,0x2C(sp)(s5-load); zero-stores; sw t2,0x48(a0)
+ *   (0x2710 in $t2); sw t1,0x34(a0)
+ * IDO produces instead:
+ *   zero-stores; sw t1,0x48(a0) (0x2710 in $t1); sw t0,0x30(a0); lw t2,0x2C(sp);
+ *   sw t2,0x34(a0)
+ * i.e. IDO pushes the s4 store down past the zero-stores because stack-loaded
+ * t0 has more pending dependency than $zero. Const 0x2710 register flips t2→t1
+ * as a knock-on because the s5-load slot is gone. Tried: hoisting s5 into a
+ * named local before zero-stores (no effect — const-prop), and reading order
+ * variants. Same class as feedback_ido_sw_before_addu_unreachable.md — two
+ * independent instructions' ordering is not reachable from C source. */
 extern char D_0000731C;
 int *func_00002420(int *a0, int a1, int a2, int a3, int s4, int s5) {
     if (a0 == 0) {
