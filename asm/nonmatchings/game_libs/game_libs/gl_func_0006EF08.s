@@ -1,4 +1,4 @@
-nonmatching gl_func_0006EF08, 0x5C
+nonmatching gl_func_0006EF08, 0x58
 
 glabel gl_func_0006EF08
     /* E53FE0 0006EF08 27BDFFE0 */  .word 0x27BDFFE0
@@ -23,5 +23,4 @@ glabel gl_func_0006EF08
     /* E5402C 0006EF54 00601025 */  .word 0x00601025
     /* E54030 0006EF58 03E00008 */  .word 0x03E00008
     /* E54034 0006EF5C 00000000 */  .word 0x00000000
-    /* E54038 0006EF60 00000000 */  .word 0x00000000
 endlabel gl_func_0006EF08

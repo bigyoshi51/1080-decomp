@@ -1,4 +1,4 @@
-nonmatching boarder5_uso_func_00000098, 0x3C
+nonmatching boarder5_uso_func_00000098, 0x30
 
 glabel boarder5_uso_func_00000098
     /* 58CCE8 00000098 27BDFFE0 */  .word 0x27BDFFE0
@@ -13,7 +13,4 @@ glabel boarder5_uso_func_00000098
     /* 58CD0C 000000BC 27BD0020 */  .word 0x27BD0020
     /* 58CD10 000000C0 03E00008 */  .word 0x03E00008
     /* 58CD14 000000C4 00000000 */  .word 0x00000000
-    /* 58CD18 000000C8 00000000 */  .word 0x00000000
-    /* 58CD1C 000000CC 00000000 */  .word 0x00000000
-    /* 58CD20 000000D0 00000000 */  .word 0x00000000
 endlabel boarder5_uso_func_00000098

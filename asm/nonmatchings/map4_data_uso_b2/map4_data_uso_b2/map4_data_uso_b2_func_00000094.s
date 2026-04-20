@@ -1,4 +1,4 @@
-nonmatching map4_data_uso_b2_func_00000094, 0x3C
+nonmatching map4_data_uso_b2_func_00000094, 0x30
 
 glabel map4_data_uso_b2_func_00000094
     /* 000094 00000094 27BDFFE0 */  .word 0x27BDFFE0
@@ -13,7 +13,4 @@ glabel map4_data_uso_b2_func_00000094
     /* 0000B8 000000B8 27BD0020 */  .word 0x27BD0020
     /* 0000BC 000000BC 03E00008 */  .word 0x03E00008
     /* 0000C0 000000C0 00000000 */  .word 0x00000000
-    /* 0000C4 000000C4 00000000 */  .word 0x00000000
-    /* 0000C8 000000C8 00000000 */  .word 0x00000000
-    /* 0000CC 000000CC 00000000 */  .word 0x00000000
 endlabel map4_data_uso_b2_func_00000094

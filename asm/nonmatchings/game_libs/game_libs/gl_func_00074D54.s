@@ -1,4 +1,4 @@
-nonmatching gl_func_00074D54, 0x60
+nonmatching gl_func_00074D54, 0x58
 
 glabel gl_func_00074D54
     /* E59E2C 00074D54 27BDFFD8 */  .word 0x27BDFFD8
@@ -23,6 +23,4 @@ glabel gl_func_00074D54
     /* E59E78 00074DA0 27BD0028 */  .word 0x27BD0028
     /* E59E7C 00074DA4 03E00008 */  .word 0x03E00008
     /* E59E80 00074DA8 00000000 */  .word 0x00000000
-    /* E59E84 00074DAC 00000000 */  .word 0x00000000
-    /* E59E88 00074DB0 00000000 */  .word 0x00000000
 endlabel gl_func_00074D54

@@ -1,4 +1,4 @@
-nonmatching gl_func_0000959C, 0xD8
+nonmatching gl_func_0000959C, 0xD4
 
 glabel gl_func_0000959C
     /* DEE674 0000959C 27BDFFC8 */  .word 0x27BDFFC8
@@ -54,5 +54,4 @@ glabel gl_func_0000959C
     /* DEE73C 00009664 27BD0038 */  .word 0x27BD0038
     /* DEE740 00009668 03E00008 */  .word 0x03E00008
     /* DEE744 0000966C 00000000 */  .word 0x00000000
-    /* DEE748 00009670 00000000 */  .word 0x00000000
 endlabel gl_func_0000959C

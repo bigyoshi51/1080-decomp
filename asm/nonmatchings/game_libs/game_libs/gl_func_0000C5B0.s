@@ -1,4 +1,4 @@
-nonmatching gl_func_0000C5B0, 0x94
+nonmatching gl_func_0000C5B0, 0x90
 
 glabel gl_func_0000C5B0
     /* DF1688 0000C5B0 27BDFFD8 */  .word 0x27BDFFD8
@@ -37,5 +37,4 @@ glabel gl_func_0000C5B0
     /* DF170C 0000C634 00601025 */  .word 0x00601025
     /* DF1710 0000C638 03E00008 */  .word 0x03E00008
     /* DF1714 0000C63C 00000000 */  .word 0x00000000
-    /* DF1718 0000C640 00000000 */  .word 0x00000000
 endlabel gl_func_0000C5B0

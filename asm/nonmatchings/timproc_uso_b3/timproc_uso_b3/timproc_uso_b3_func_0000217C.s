@@ -1,4 +1,4 @@
-nonmatching timproc_uso_b3_func_0000217C, 0x34
+nonmatching timproc_uso_b3_func_0000217C, 0x30
 
 glabel timproc_uso_b3_func_0000217C
     /* 00217C 0000217C 27BDFFE0 */  .word 0x27BDFFE0
@@ -13,5 +13,4 @@ glabel timproc_uso_b3_func_0000217C
     /* 0021A0 000021A0 27BD0020 */  .word 0x27BD0020
     /* 0021A4 000021A4 03E00008 */  .word 0x03E00008
     /* 0021A8 000021A8 00000000 */  .word 0x00000000
-    /* 0021AC 000021AC 00000000 */  .word 0x00000000
 endlabel timproc_uso_b3_func_0000217C

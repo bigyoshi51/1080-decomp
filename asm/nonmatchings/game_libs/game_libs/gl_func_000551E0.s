@@ -1,4 +1,4 @@
-nonmatching gl_func_000551E0, 0x84
+nonmatching gl_func_000551E0, 0x80
 
 glabel gl_func_000551E0
     /* E3A2B8 000551E0 27BDFFE8 */  .word 0x27BDFFE8
@@ -33,5 +33,4 @@ glabel gl_func_000551E0
     /* E3A32C 00055254 27BD0018 */  .word 0x27BD0018
     /* E3A330 00055258 03E00008 */  .word 0x03E00008
     /* E3A334 0005525C 00000000 */  .word 0x00000000
-    /* E3A338 00055260 00000000 */  .word 0x00000000
 endlabel gl_func_000551E0

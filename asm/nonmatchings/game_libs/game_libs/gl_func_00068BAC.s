@@ -1,4 +1,4 @@
-nonmatching gl_func_00068BAC, 0x68
+nonmatching gl_func_00068BAC, 0x64
 
 glabel gl_func_00068BAC
     /* E4DC84 00068BAC 27BDFFE8 */  .word 0x27BDFFE8
@@ -26,5 +26,4 @@ glabel gl_func_00068BAC
     /* E4DCDC 00068C04 AC800008 */  .word 0xAC800008
     /* E4DCE0 00068C08 03E00008 */  .word 0x03E00008
     /* E4DCE4 00068C0C 00000000 */  .word 0x00000000
-    /* E4DCE8 00068C10 00000000 */  .word 0x00000000
 endlabel gl_func_00068BAC
