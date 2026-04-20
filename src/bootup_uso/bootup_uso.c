@@ -88,7 +88,11 @@ void func_000002FC(void) {
     func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000031C);
+void func_0000031C(int a0, int a1, int a2) {
+    int local1, local2;
+    func_00000000(a1, &local1, &local2, a2);
+    func_00000000(a0, local1, (signed char)local2);
+}
 
 extern char D_00006550;
 void func_00000360(void) {
