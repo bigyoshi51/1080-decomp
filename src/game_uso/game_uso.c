@@ -401,7 +401,24 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
 
+#ifdef NON_MATCHING
+/* 98.33%: $s0/$s1 swapped — counter goes to s1, ptr to s0; target wants
+ * counter→s0, ptr→s1. Swapping decl order, register hint, do/while restructure
+ * all failed to flip the allocation. Cosmetic register diff only. */
+void game_uso_func_0000BF7C(char *a0) {
+    int i;
+    char *p;
+    game_uso_func_00000000(a0 + 0x224);
+    game_uso_func_0000ADE0((int*)(a0 + 0x274));
+    p = a0 + 0xB8;
+    for (i = 0; i < 0x168; i += 0x24) {
+        game_uso_func_00000000(p);
+        p += 0x24;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BF7C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BFDC);
 
