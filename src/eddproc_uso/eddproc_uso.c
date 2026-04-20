@@ -26,7 +26,11 @@ INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000001F
 
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000025C);
 
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000032C);
+void eddproc_uso_func_0000032C(char *dst) {
+    int tmp;
+    gl_func_00000000(&tmp);
+    gl_func_00000000(dst + 0x10);
+}
 
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000035C);
 
