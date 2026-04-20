@@ -76,6 +76,8 @@ void timproc_uso_b3_func_00001090(int a0, char *a1) {
 }
 
 extern int gl_ref_00000040;
+extern int gl_ref_00000208;
+extern int gl_ref_0000020C;
 
 void timproc_uso_b3_func_000010B4(int a0) {
     gl_ref_00000040 = 9;
@@ -128,13 +130,21 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000217C);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021B0);
+void timproc_uso_b3_func_000021B0(void) {
+    gl_func_00000000(gl_ref_00000208);
+    gl_ref_00000040 = 4;
+    gl_func_00000000(gl_ref_0000020C, -1, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021F4);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002240);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000022BC);
+void timproc_uso_b3_func_000022BC(void) {
+    gl_func_00000000(gl_ref_00000208);
+    gl_ref_00000040 = 1;
+    gl_func_00000000(gl_ref_0000020C, -1, 0);
+}
 
 extern int gl_ref_00000208;
 extern int gl_ref_0000020C;
