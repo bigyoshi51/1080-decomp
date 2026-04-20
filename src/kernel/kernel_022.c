@@ -136,11 +136,10 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008ED0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008FB0);
 
+/* func_80008FF4 absorbed the former func_80009000 + func_80009030
+ * (splat mis-split: 8FF4 was prologue-only, 9000 and 9030 shared the
+ * same frame with 8FF4). Now one 0x150 function. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008FF4);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009000);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009030);
 
 /* func_80009148 split out to kernel_054.c (-O1, absorbed func_800091F0 fragment) */
 
