@@ -420,7 +420,10 @@ void game_uso_func_000074D8(char *a0) {
     *(float*)(t + 0x10) = *(float*)(a0 + 0x4D4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000751C);
+void game_uso_func_0000751C(char *a0) {
+    char *t = *(char**)(a0 + 0x30) + 0x758;
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x354) * *(float*)(a0 + 0x4C8);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 
