@@ -63,7 +63,12 @@ void game_uso_func_0000035C(int *dst) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000035C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000039C);
+void game_uso_func_0000039C(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000039C_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
 
