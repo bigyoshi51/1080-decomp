@@ -35,8 +35,6 @@ void titproc_uso_func_000003D0(void) {
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000420);
-
 void titproc_uso_func_0000049C(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
