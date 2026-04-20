@@ -135,6 +135,29 @@ void game_uso_func_00001DC4(void *a0) {
     *(f32*)((char*)a0 + 0x34) = 0.0f;
 }
 
+/* game_uso_func_00001DDC: 0x5FC (383 insns) — strategy-memo spine candidate,
+ * confirmed single function (grep -c 03E00008 = 1, not a bundle).
+ * ENTRY DISPATCH (first ~35 insns decoded):
+ *   key = a0[0x40]  ; dispatch key
+ *   if (key == 0) goto final_exit (very far forward, single-ra-restore)
+ *   if (key != 3)  goto branch_at_88 (unknown sub-case)
+ *   // case key == 3:
+ *   t6 = a0[0x14]   ; save to sp+0x170 (spill for reload)
+ *   v1 = a0[0x3C]
+ *   // Copy Vec3 from v1+0xA0..0xA8 (alias (v1+0x70)+0x34..0x38 via addiu trick)
+ *   //   into both t6[0x60..0x68] and back into v1[0xA0..0xA8]
+ *   // (routine mirrors a Vec3 then writes it back, same 3 floats)
+ *   goto late_label (b +0x15A from 0x1E58) — skip ~350 insns of other cases
+ * REMAINING 350+ insns: multiple dispatch cases (key=1, 2, 4, 5, ...? unknown
+ * yet) each doing Vec3 math / struct copies, converging on the final_exit.
+ * NEXT PASS: decode branch_at_88 (the non-3 fallthrough), then the other
+ * dispatch cases. The frame is 0x180 bytes so there are ~3 Vec3-worth of
+ * local spills for intermediate math. Likely a per-subsystem update driven
+ * by an enum/tag at a0[0x40].
+ * Leaving as INCLUDE_ASM until the next pass produces enough decoded body
+ * to be worth wrapping. Committing this comment IS the forward progress
+ * per the skill's "NM wrap with whatever partial C you get" rule — a stub
+ * void function would report ~0 % match and not compile-test meaningfully. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000023D8);
