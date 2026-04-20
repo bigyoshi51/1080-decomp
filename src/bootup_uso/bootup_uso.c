@@ -790,7 +790,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E9FC);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EA2C);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EAF8);
+extern int D_00000190;
+void func_0000EAF8(int a0) {
+    func_00000000(D_00000190, 3, 0);
+}
 
 void func_0000EB28(char *a0) {
     int scratch;
