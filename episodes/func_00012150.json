@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00012150",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T01:25:26.932968+00:00",
+  "end_time": "2026-04-20T01:25:26.932989+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T01:25:26.932983+00:00",
+      "assistant_text": "Run 8 of bootup_uso -O0 region. Simple field-setter/caller patterns; at -O0 IDO reloads args per use so the straightforward C matches naturally.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 14,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Run 8 of bootup_uso's -O0 region (0x120A8..0x12187). 3 functions.\n * See project_1080_bootup_uso_o0_runs.md + feedback_ido_o0_empty_stub.md. */\n\nextern int func_00000000();\nextern int D_00000150;\n\nvoid func_000120A8(char *a0, int a1, int a2, int a3) {\n    *(int*)(a0 + 0x13C) = a1;\n    *(int*)(a0 + 0x144) = a2;\n    func_00000000(*(int*)(a0 + 0x13C), *(int*)(a0 + 0x144), 0);\n    *(int*)(a0 + 0x144) = 0;\n}\n\nvoid func_00012110(int a0) {\n    func_00000000(D_00000150);\n    func_00000000(7);\n}\n\nvoid func_00012150(char *a0) {\n    func_00000000(*(int*)(a0 + 0x148), *(int*)(a0 + 0x154));\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_120A8.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00012150.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff; fuzzy_match_percent=100.0. -O0 Run 8 member."
+  }
+}
