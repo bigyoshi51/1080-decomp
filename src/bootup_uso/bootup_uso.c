@@ -297,7 +297,20 @@ end:
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001E08);
 
+#ifdef NON_MATCHING
+/* 98 %: IDO chooses $a1 to save `a0` across the call; target chooses $a3.
+ * Same bytes except for that single register field. Tried register, split
+ * locals, extra args — all stay in $a1. Likely decomp-permuter territory. */
+void func_00001F78(char *a0) {
+    char *new_node = (char*)func_00000000(0);
+    *(char**)(new_node + 0x44) = *(char**)(*(char**)(a0 + 0x74) + 0x44);
+    *(char**)(*(char**)(a0 + 0x74) + 0x44) = new_node;
+    *(char**)(a0 + 0x74) = new_node;
+    *(int*)(a0 + 0x78) += 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001F78);
+#endif
 
 void *func_00001FC8(char *a0, int a1) {
     void *p = *(void**)(a0 + 0x70);
