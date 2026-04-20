@@ -575,8 +575,10 @@ extern s32 D_80012D3C[];
 extern s32 D_80012D5C;
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: IDO rewrites this pointer walk into a larger bulk-zeroing
- * loop; the state reset is correct, but the generated loop shape differs. */
+/* NON_MATCHING: IDO auto-unrolls a simple pointer-walk loop with a runtime
+ * subu+andi guard, producing different prologue code than target. 4 structural
+ * variants tried (do-while, for(i<8), explicit end pointer, 8-way unroll);
+ * none match. Target uses a fixed 2-iter loop with no zero-guard. */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
