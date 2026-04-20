@@ -54,7 +54,7 @@ if readme.exists():
         readme_pct = float(m2.group(5))
         drift_f = mat_f - readme_mf
         drift_pct = pct - readme_pct
-        if abs(drift_pct) >= 2.0 or abs(drift_f) >= 25 or tot_f != readme_tf:
+        if abs(drift_pct) >= 0.1 or abs(drift_f) >= 5 or tot_f != readme_tf:
             print(f"refresh-report: README TOTAL row is stale — "
                   f"README says {readme_mf}/{readme_tf} ({readme_pct:.2f}%), "
                   f"actual {mat_f}/{tot_f} ({pct:.2f}%). Consider updating README.md.")
