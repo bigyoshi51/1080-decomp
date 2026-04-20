@@ -6,6 +6,14 @@
 extern int func_00000000();
 extern void *D_00000030;
 
+void func_0000F76C(char *a0) {
+    register char *p;
+    func_00000000((void*)0);
+    p = *(char**)(a0 + 0x28);
+    (*(void (**)(char *))(p + 0x74))(*(short*)(p + 0x70) + a0);
+    func_00000000(a0);
+}
+
 void func_0000F7D0(int a0) {
     D_00000030 = (void*)func_00000000;
 }
