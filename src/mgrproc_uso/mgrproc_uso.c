@@ -4,7 +4,25 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
+#ifdef NON_MATCHING
+/* Int-reader (pointer-indirect via volatile buf) with -O0 artifacts: 0x4C
+ * (19 insns) vs -O2 template's 15 insns. Three -O0 markers in target:
+ *   (a) `sw ra` BEFORE `sw a0` in prologue (-O2 opposite)
+ *   (b) unfilled jal delay slot (`jal 0; nop`) — -O2 fills with `addiu a2, 4`
+ *   (c) extra `b +1; nop` pair before epilogue (dead branch to next insn,
+ *       characteristic -O0 basic-block boundary per feedback_ido_o0_empty_stub.md)
+ * To match, split mgrproc_uso_func_00000000 into its own .c file with a
+ * `build/src/mgrproc_uso/<file>.c.o: OPT_FLAGS := -O0` Makefile override
+ * (same mechanism as bootup_uso_o0_*.c). Defer to infrastructure pass.
+ * Body semantics per feedback_uso_accessor_template_reuse.md int reader. */
+void mgrproc_uso_func_00000000(int *dst) {
+    volatile int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000000);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000004C);
 
