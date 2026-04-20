@@ -325,7 +325,22 @@ void game_uso_func_000071A4(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000071E0);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007424);
+void game_uso_func_00007424(void *a0) {
+    *(int*)((char*)a0 + 0x64) = 3;
+    gl_func_00000000(a0);
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007448);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000074D8);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000751C);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
 
