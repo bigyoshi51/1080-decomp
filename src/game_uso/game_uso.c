@@ -453,7 +453,29 @@ void game_uso_func_0000751C(char *a0) {
  * /decompile run won't match it; defer body decode to future passes. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 
+#ifdef NON_MATCHING
+/* 9 insns. Decoded semantics:
+ *   table = a0->0x30
+ *   v1 = table[0x908]
+ *   if (v1 != NULL) return v1[0xBC] - table[0xBC]
+ *   else return 0.0f
+ *
+ * TRICKY: target uses `beql v1, zero, +7 (.+0x28)` whose target at 0x7AC0
+ * lies PAST this function's declared end (0x7ABC) — it lands in the
+ * adjacent function game_uso_func_00007ABC at its 2nd insn (nop before
+ * jr ra). Effectively this function and 7ABC share the "return 0.0f"
+ * tail. This cross-function tail-share is unreproducible from standalone
+ * C — any if-returns-0 emits its own epilogue. Keep INCLUDE_ASM; the
+ * decoded body above is source-of-truth for what it computes. */
+float game_uso_func_00007A98(char *a0) {
+    char *table = *(char**)(a0 + 0x30);
+    char *v1 = *(char**)(table + 0x908);
+    if (v1 == NULL) return 0.0f;
+    return *(float*)(v1 + 0xBC) - *(float*)(table + 0xBC);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
+#endif
 
 #ifdef NON_MATCHING
 /* ~50%: returns 0.0f via $f2 intermediate (mtc1 $0,$f2; mov.s $f0,$f2) —
