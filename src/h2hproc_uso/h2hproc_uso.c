@@ -102,11 +102,23 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000015F
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000017A0);
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000019DC);
+void h2hproc_uso_func_000019DC(char *dst) {
+    int tmp;
+    h2hproc_uso_func_000004E0(&tmp);
+    h2hproc_uso_func_000004E0((int*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A0C);
+void h2hproc_uso_func_00001A0C(char *dst) {
+    int tmp;
+    h2hproc_uso_func_000004E0(&tmp);
+    h2hproc_uso_func_0000051C((float*)(dst + 0x10));
+}
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A3C);
+void h2hproc_uso_func_00001A3C(char *dst) {
+    int tmp;
+    h2hproc_uso_func_000004E0(&tmp);
+    h2hproc_uso_func_00000558((Quad4*)(dst + 0x10));
+}
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A6C);
 
