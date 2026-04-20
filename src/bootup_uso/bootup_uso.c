@@ -390,9 +390,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
 void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
 #ifdef NON_MATCHING
-/* 82%: matches up through 0x20C4. Last two indep instructions
- * (sw t9 counter, addu t1 addr) reordered. Same swap-of-independent-stores
- * scheduling issue as func_00002088 (similar pattern, opposite direction). */
+/* append-pair to a count+entries list at offset 0xC0 (count) + 0xC4 (pairs of 8).
+ * 10/11 insns match. Only diff: IDO schedules `sw t9,0xC0(a0)` BEFORE
+ * `addu t1,a0,t0`; target schedules addu first so both stores converge at
+ * function end with sw a1 in the jr delay slot. Tried 13 structural variants
+ * (named locals for entry ptr / char* base / struct fields / split idx+1 /
+ * store-order swaps) — IDO scheduler output is invariant. The swap of two
+ * independent instructions is not reachable from C source at -O2. */
 void func_000020AC(int *a0, int a1, int a2) {
     int idx;
     *(int*)((char*)a0 + *(int*)((char*)a0 + 0xC0) * 8 + 0xC8) = a2;
