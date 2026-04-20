@@ -390,7 +390,21 @@ void func_00002060(char *a0, int a1, int a2, int a3, int a4, int a5) {
 
 void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
 
+#ifdef NON_MATCHING
+/* append to count+entries list at 0x104 (count) + 0x108 (4-byte entries).
+ * 6/7 insns match. Only diff: IDO schedules `sw t6,0x104(a0)` BEFORE
+ * `addu t8,a0,t7`; target has addu first, sw count second. Same
+ * scheduler-reorder pattern as func_000020AC (the sibling 8-byte-pair
+ * variant). See feedback_ido_sw_before_addu_unreachable.md — two
+ * independent instructions' ordering not reachable from C at -O2. */
+void func_00002088(char *a0, int a1) {
+    int idx = *(int*)(a0 + 0x104);
+    *(int*)(a0 + 0x104) = idx + 1;
+    *(int*)(a0 + idx * 4 + 0x108) = a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
+#endif
 
 void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
