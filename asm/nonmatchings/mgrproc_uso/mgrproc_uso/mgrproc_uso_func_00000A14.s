@@ -1,4 +1,4 @@
-nonmatching mgrproc_uso_func_00000A14, 0xCC
+nonmatching mgrproc_uso_func_00000A14, 0xC0
 
 glabel mgrproc_uso_func_00000A14
     /* 000A14 00000A14 27BDFFB0 */  .word 0x27BDFFB0
@@ -49,7 +49,4 @@ glabel mgrproc_uso_func_00000A14
     /* 000AC8 00000AC8 27BD0050 */  .word 0x27BD0050
     /* 000ACC 00000ACC 03E00008 */  .word 0x03E00008
     /* 000AD0 00000AD0 00000000 */  .word 0x00000000
-    /* 000AD4 00000AD4 00000000 */  .word 0x00000000
-    /* 000AD8 00000AD8 00000000 */  .word 0x00000000
-    /* 000ADC 00000ADC 00000000 */  .word 0x00000000
 endlabel mgrproc_uso_func_00000A14

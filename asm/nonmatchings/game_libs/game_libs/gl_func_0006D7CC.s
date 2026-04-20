@@ -1,4 +1,4 @@
-nonmatching gl_func_0006D7CC, 0x198
+nonmatching gl_func_0006D7CC, 0x194
 
 glabel gl_func_0006D7CC
     /* E528A4 0006D7CC 27BDFFE8 */  .word 0x27BDFFE8
@@ -102,5 +102,4 @@ glabel gl_func_0006D7CC
     /* E52A2C 0006D954 40024800 */  .word 0x40024800
     /* E52A30 0006D958 03E00008 */  .word 0x03E00008
     /* E52A34 0006D95C 00000000 */  .word 0x00000000
-    /* E52A38 0006D960 00000000 */  .word 0x00000000
 endlabel gl_func_0006D7CC

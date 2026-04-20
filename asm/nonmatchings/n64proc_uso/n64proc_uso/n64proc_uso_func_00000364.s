@@ -1,4 +1,4 @@
-nonmatching n64proc_uso_func_00000364, 0xCC
+nonmatching n64proc_uso_func_00000364, 0xC4
 
 glabel n64proc_uso_func_00000364
     /* 594DB8 00000364 27BDFFB8 */  .word 0x27BDFFB8
@@ -50,6 +50,4 @@ glabel n64proc_uso_func_00000364
     /* 594E70 0000041C 27BD0048 */  .word 0x27BD0048
     /* 594E74 00000420 03E00008 */  .word 0x03E00008
     /* 594E78 00000424 00000000 */  .word 0x00000000
-    /* 594E7C 00000428 00000000 */  .word 0x00000000
-    /* 594E80 0000042C 00000000 */  .word 0x00000000
 endlabel n64proc_uso_func_00000364

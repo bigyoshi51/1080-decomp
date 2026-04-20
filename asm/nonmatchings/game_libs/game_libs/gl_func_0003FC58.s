@@ -1,4 +1,4 @@
-nonmatching gl_func_0003FC58, 0x2EC
+nonmatching gl_func_0003FC58, 0x2E8
 
 glabel gl_func_0003FC58
     /* E24D30 0003FC58 27BDFE80 */  .word 0x27BDFE80
@@ -187,5 +187,4 @@ glabel gl_func_0003FC58
     /* E2500C 0003FF34 AC2C0000 */  .word 0xAC2C0000
     /* E25010 0003FF38 03E00008 */  .word 0x03E00008
     /* E25014 0003FF3C 27BD0180 */  .word 0x27BD0180
-    /* E25018 0003FF40 00000000 */  .word 0x00000000
 endlabel gl_func_0003FC58

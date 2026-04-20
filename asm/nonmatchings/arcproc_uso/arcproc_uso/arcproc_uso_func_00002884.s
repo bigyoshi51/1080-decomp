@@ -1,4 +1,4 @@
-nonmatching arcproc_uso_func_00002884, 0xFC
+nonmatching arcproc_uso_func_00002884, 0xF8
 
 glabel arcproc_uso_func_00002884
     /* 5A89CC 00002884 27BDFF98 */  .word 0x27BDFF98
@@ -63,5 +63,4 @@ glabel arcproc_uso_func_00002884
     /* 5A8AB8 00002970 8FB70030 */  .word 0x8FB70030
     /* 5A8ABC 00002974 03E00008 */  .word 0x03E00008
     /* 5A8AC0 00002978 27BD0068 */  .word 0x27BD0068
-    /* 5A8AC4 0000297C 00000000 */  .word 0x00000000
 endlabel arcproc_uso_func_00002884

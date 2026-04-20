@@ -1,4 +1,4 @@
-nonmatching game_uso_func_00011A94, 0x9C
+nonmatching game_uso_func_00011A94, 0x90
 
 glabel game_uso_func_00011A94
     /* 011A94 00011A94 27BDFFD8 */  .word 0x27BDFFD8
@@ -37,7 +37,4 @@ glabel game_uso_func_00011A94
     /* 011B18 00011B18 00601025 */  .word 0x00601025
     /* 011B1C 00011B1C 03E00008 */  .word 0x03E00008
     /* 011B20 00011B20 00000000 */  .word 0x00000000
-    /* 011B24 00011B24 00000000 */  .word 0x00000000
-    /* 011B28 00011B28 00000000 */  .word 0x00000000
-    /* 011B2C 00011B2C 00000000 */  .word 0x00000000
 endlabel game_uso_func_00011A94

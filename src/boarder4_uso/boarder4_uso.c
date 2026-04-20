@@ -16,16 +16,12 @@ void boarder4_uso_func_0000003C(Quad4 *dst) {
     *dst = buf;
 }
 
-#ifdef NON_MATCHING
-/* 80.0%: composite "int reader + Quad4 reader at dst+0x10" body matches; 3 trailing alignment nops IDO doesn't emit from C. */
 void boarder4_uso_func_00000094(char *dst) {
     int tmp;
     boarder4_uso_func_00000000(&tmp);
     boarder4_uso_func_0000003C((Quad4*)(dst + 0x10));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/boarder4_uso/boarder4_uso", boarder4_uso_func_00000094);
-#endif
+#pragma GLOBAL_ASM("asm/nonmatchings/boarder4_uso/boarder4_uso/boarder4_uso_func_00000094_pad.s")
 
 void boarder4_uso_func_000000D0(int *dst) {
     int buf[2];
@@ -39,14 +35,10 @@ void boarder4_uso_func_0000010C(Quad4 *dst) {
     *dst = buf;
 }
 
-#ifdef NON_MATCHING
-/* 92.3%: composite "int + Quad4 at dst+0x10" reader body matches; 1 trailing alignment nop IDO doesn't emit from C. */
 void boarder4_uso_func_00000164(char *dst) {
     int tmp;
     boarder4_uso_func_000000D0(&tmp);
     boarder4_uso_func_0000010C((Quad4*)(dst + 0x10));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/boarder4_uso/boarder4_uso", boarder4_uso_func_00000164);
-#endif
+#pragma GLOBAL_ASM("asm/nonmatchings/boarder4_uso/boarder4_uso/boarder4_uso_func_00000164_pad.s")
 

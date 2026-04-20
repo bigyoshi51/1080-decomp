@@ -196,6 +196,7 @@ void game_uso_func_000039F8(char *dst) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003A28);
+#pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00003A28_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
 
@@ -349,6 +350,7 @@ void game_uso_func_0000AC48(char *dst) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AC78);
+#pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000AC78_pad.s")
 
 void game_uso_func_0000AD10(float *dst) {
     float buf[2];
@@ -440,17 +442,12 @@ void game_uso_func_0000C08C(char *dst) {
     game_uso_func_0000ADE0((int*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
-/* 92.3%: composite reader (int + Quad4 at dst+0x10). Target has trailing nop padding
- * (13 instructions; body is 12). See feedback_function_trailing_nop_padding.md. */
 void game_uso_func_0000C0BC(char *dst) {
     int tmp;
     game_uso_func_0000AD4C(&tmp);
     game_uso_func_0000AD88((Quad4*)(dst + 0x10));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C0BC);
-#endif
+#pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000C0BC_pad.s")
 
 void game_uso_func_0000C0F0(int *dst) {
     int buf[2];
@@ -723,4 +720,5 @@ void game_uso_func_00011A64(char *dst) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A94);
+#pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00011A94_pad.s")
 
