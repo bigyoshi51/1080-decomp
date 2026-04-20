@@ -425,6 +425,32 @@ void game_uso_func_0000751C(char *a0) {
     *(float*)(t + 0x10) = *(float*)(a0 + 0x354) * *(float*)(a0 + 0x4C8);
 }
 
+/* game_uso_func_00007538: 0x560 (344 insns) — largest residue of the split-up
+ * 0x7424 bundle (was bundled with 7424/7448/74D8/751C/7A98/7ABC, now alone).
+ * Likely the "real" per-frame compute function per game_uso_map.md's heuristic.
+ *
+ * FIRST-PASS DECODE (insns 1-15 @ 0x7538-0x7574):
+ *   f16 = 0.0f (mtc1 zero, f16)
+ *   counter = a0[0x50]
+ *   saved_a1 = a1 (copied to a3)
+ *   retLo = 0 (v0); retHi = 0 (v1)
+ *   f0 = 0.0f, f2 = 0.0f  (via mov.s from f16)
+ *   if (counter > 0) {
+ *       counter--;
+ *       a0[0x50] = counter;
+ *   }
+ *   flags = a0[0x48]
+ *   if (flags & 0x10) {
+ *       flags--;
+ *       a0[0x48] = flags;
+ *   }
+ *   flag2 = a0[0x6C]
+ *   if (flag2 == 0) goto far_forward (skips most of body)  ; bnel +0x72
+ *
+ * REMAINING ~320 insns: dispatches further on bit 0 of a0[0x6C] and does
+ * extensive float math (many mul.s/add.s/sub.s sequences with constants
+ * 0xBF80 = -1.0f, 0x3F80 = 1.0f, etc.). Float-heavy enough that a single
+ * /decompile run won't match it; defer body decode to future passes. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
