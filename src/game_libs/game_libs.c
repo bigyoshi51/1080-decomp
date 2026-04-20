@@ -248,8 +248,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000076F0);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007FF4);
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: temp uses t6 not v0 */
-#ifdef NON_MATCHING
 /* NON_MATCHING: temp uses t6 instead of v0 (inline deref uses v0 for
  * multi-use; this single-compare pattern picks t-reg). */
 extern int gl_func_00000000();
@@ -261,21 +259,6 @@ void gl_func_0000836C(int a0, int *a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000836C);
-#endif
-#else
-#ifdef NON_MATCHING
-/* NON_MATCHING: temp uses t6 instead of v0 (inline deref uses v0 for
- * multi-use; this single-compare pattern picks t-reg). */
-extern int gl_func_00000000();
-void gl_func_0000836C(int a0, int *a1) {
-    if (*a1 == 9) {
-        gl_func_00000000(a0, a1);
-    }
-    gl_func_00000000(a0, a1);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000836C);
-#endif
 #endif
 
 extern int gl_func_00000000();
