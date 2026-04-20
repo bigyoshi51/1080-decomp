@@ -1,8 +1,37 @@
 #include "common.h"
 
-/* Run 10 members (now covers 0x128AC..0x12BF8). */
+/* Run 10 members (now covers 0x12818..0x12BF8). */
 
 extern int func_00000000();
+extern int D_00000000;
+extern int D_A0000200;
+
+#ifdef NON_MATCHING
+/* 99.73 % match (1 insn diff). IDO at -O0 picks `lw t5, %lo(D)(t5)` (reuse base
+ * as destination) for `if (D_A0000200 == CONST)`, while the target wants
+ * `lw t6, %lo(D)(t5)` with a fresh temp. Tried: extern int, extern volatile int,
+ * extern int [], extern struct{int;}, pointer locals, register locals, bit casts,
+ * arithmetic identities — none reproduce fresh-temp allocation without adding
+ * extra insns. Likely needs a construct that forces IDO's -O0 allocator into a
+ * separate use-chain; candidate for decomp-permuter. */
+void func_00012818(char *a0, char *a1) {
+    int i;
+    register int *unused;
+
+    i = 0;
+    do {
+        (*(char**)(a0 + 0x154))[i + 6] = a1[i];
+    } while (++i < 8);
+
+    unused = &D_00000000;
+
+    if (D_A0000200 == 0xAC290000) {
+        func_00000000(a0);
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012818);
+#endif
 
 void func_000128AC(char *a0, char *a1, char *a2) {
     if (a2 != 0) {

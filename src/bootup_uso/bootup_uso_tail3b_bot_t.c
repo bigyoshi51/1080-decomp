@@ -10,8 +10,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000126EC);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000127CC);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012818);
-
 
 
 
