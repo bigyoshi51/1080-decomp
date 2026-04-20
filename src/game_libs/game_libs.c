@@ -3948,7 +3948,11 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067AC8);
+extern int gl_func_00067AC8_inner(float, float);
+
+void gl_func_00067AC8(float a) {
+    gl_func_00067AC8_inner(a, a);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067AE8);
 
