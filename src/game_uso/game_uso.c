@@ -352,7 +352,36 @@ void game_uso_func_00007424(void *a0) {
     gl_func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
+/* First pass: leaf, reads 4 float fields from table entries pointed to by
+ * a0->0x30, mirrors them into a0->0x4C8..0x4D4, then scales 3 of them by
+ * a0->0x33C or a0->0x36C and writes back into the table. Three mul.s ops.
+ * Remaining gaps: instruction scheduling (IDO interleaves loads/stores
+ * aggressively) and one unfinished trailing load (last .s insn reads
+ * table+0x4D8 via addiu a2; that insn sequence looks like it belongs to a
+ * NEXT function splat didn't separate — re-check with split-fragments). */
+void game_uso_func_00007448(void *a0) {
+    char *table = *(char**)((char*)a0 + 0x30);
+    float sx = *(float*)((char*)a0 + 0x33C);
+    float sy = *(float*)((char*)a0 + 0x36C);
+    float v1, v2, v3, v4;
+
+    v1 = *(float*)(table + 0x758 + 0x10);
+    *(float*)((char*)a0 + 0x4C8) = v1;
+    v2 = *(float*)(table + 0x6F8 + 0x10);
+    *(float*)((char*)a0 + 0x4CC) = v2;
+    v3 = *(float*)(table + 0x6E0 + 0x10);
+    *(float*)((char*)a0 + 0x4D0) = v3;
+    v4 = *(float*)(table + 0x498 + 0x10);
+    *(float*)((char*)a0 + 0x4D4) = v4;
+
+    *(float*)((char*)a0 + 0xAC4) = *(float*)((char*)a0 + 0x4C8) * sx;
+    *(float*)(table + 0x6F8 + 0x10) = *(float*)((char*)a0 + 0x4CC) * sy;
+    *(float*)(table + 0x6E0 + 0x10) = *(float*)((char*)a0 + 0x4D0) * sx;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007448);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000074D8);
 
