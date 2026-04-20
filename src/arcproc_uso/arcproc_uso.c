@@ -99,7 +99,16 @@ void arcproc_uso_func_00001488(void) {
     arcproc_uso_func_00000000();
 }
 
+#ifdef NON_MATCHING
+/* 80%: body = `gl_func_00000000()`, 8 insns. Declared size 0x28 includes 2
+ * stray insns (lui at,0x3F80; mtc1 at,$f0) past jr ra nop — unreachable dead
+ * code C can't emit. See feedback_uso_stray_trailing_insns.md. */
+void arcproc_uso_func_000014A8(void) {
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000014A8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000014D0);
 
