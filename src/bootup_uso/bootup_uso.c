@@ -699,7 +699,16 @@ void func_00008664(char *a0, int *a1) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000086C0);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008744);
+extern char D_func_00008744_arg1;
+extern char D_func_00008744_arg2;
+void func_00008744(char *a0) {
+    int arg = *(int*)(a0 + 0xC);
+    func_00000000(&D_func_00008744_arg1, arg, 0);
+    func_00000000(a0 + 0x4C, 0);
+    func_00000000(a0 + 0x5C);
+    func_00000000(&D_func_00008744_arg2);
+    func_00000000(a0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000087A4);
 
