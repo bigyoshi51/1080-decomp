@@ -64,7 +64,22 @@ void gui_func_000026D8(char *a0) {
     *(int*)(a0 + 0x10) = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000271C);
+extern int gl_func_00000000();
+void gui_func_0000271C(char *a0) {
+    int saved;
+    int v0;
+    int v1;
+    if (*(int*)(a0 + 0x14) == -1) {
+        *(int*)(a0 + 0x14) = 0;
+    }
+    saved = gl_func_00000000(7);
+    v0 = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));
+    v1 = *(int*)(a0 + 0x10);
+    if (v1 == 0 || v0 != v1) {
+        *(int*)(a0 + 0x10) = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));
+    }
+    gl_func_00000000(saved);
+}
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
 
