@@ -668,7 +668,14 @@ void func_00008474(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000084A0);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008664);
+void func_00008664(char *a0, int *a1) {
+    func_00000000(a0);
+    if (*a1 == 7 || *a1 == 19) {
+        *(float*)(a0 + 0xA0) = *(float*)(a0 + 0x5C);
+        *(float*)(a0 + 0xA4) = *(float*)(a0 + 0x60);
+        *(float*)(a0 + 0xA8) = *(float*)(a0 + 0x64);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000086C0);
 
