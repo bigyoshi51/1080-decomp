@@ -28,13 +28,20 @@ LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map 
 
 # Per-file optimization overrides (O1 libultra functions, O0 empty stubs)
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: OPT_FLAGS := -O0
-# Truncate bootup_uso.c.o .text to exact end-of-last-function so the next .o
-# (bootup_uso_o0_F7F4.c.o) links at the correct non-16-aligned offset.
+build/src/bootup_uso/bootup_uso_o0_1024C.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_10310.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: OPT_FLAGS := -O0
+# Trim .text sizes + reduce sh_addralign to 4 so split .o files link at the
+# exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
 build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF7F4
-# Reduce .text alignment and trim padding on the -O0 stubs and tail so they
-# land right at 0xF7F4 / 0xF81C rather than the next 16-aligned offset.
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: TRUNCATE_TEXT := 0x28
-build/src/bootup_uso/bootup_uso_tail.c.o: TRUNCATE_TEXT := 0x4E30
+build/src/bootup_uso/bootup_uso_tail1.c.o: TRUNCATE_TEXT := 0xA30
+build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x14
+build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0xB0
+build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
+build/src/bootup_uso/bootup_uso_tail3.c.o: TRUNCATE_TEXT := 0x2A80
+build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: TRUNCATE_TEXT := 0x14
+build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1894
 build/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1

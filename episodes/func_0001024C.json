@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0001024C",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T00:46:04.003105+00:00",
+  "end_time": "2026-04-20T00:46:04.003127+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T00:46:04.003120+00:00",
+      "assistant_text": "Empty body void f(int a0) {} at -O0. Scattered single stub split into own .c file with TRUNCATE_TEXT + sh_addralign=4 ELF post-process. See feedback_ido_o0_empty_stub.md, feedback_non_aligned_o_split.md.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 5,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 empty stub; see feedback_ido_o0_empty_stub.md + feedback_non_aligned_o_split.md. */\n\nvoid func_0001024C(int a0) {}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_1024C.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0001024C.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff report; fuzzy_match_percent=100.0."
+  }
+}

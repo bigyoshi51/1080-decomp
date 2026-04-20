@@ -1177,7 +1177,13 @@ SECTIONS
         bootup_uso_TEXT_START = .;
         build/src/bootup_uso/bootup_uso.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_F7F4.c.o(.text);
-        build/src/bootup_uso/bootup_uso_tail.c.o(.text);
+        build/src/bootup_uso/bootup_uso_tail1.c.o(.text);
+        build/src/bootup_uso/bootup_uso_o0_1024C.c.o(.text);
+        build/src/bootup_uso/bootup_uso_tail2.c.o(.text);
+        build/src/bootup_uso/bootup_uso_o0_10310.c.o(.text);
+        build/src/bootup_uso/bootup_uso_tail3.c.o(.text);
+        build/src/bootup_uso/bootup_uso_o0_12DA4.c.o(.text);
+        build/src/bootup_uso/bootup_uso_tail4.c.o(.text);
         bootup_uso_TEXT_END = .;
         bootup_uso_TEXT_SIZE = ABSOLUTE(bootup_uso_TEXT_END - bootup_uso_TEXT_START);
     }

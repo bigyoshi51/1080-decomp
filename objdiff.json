@@ -938,20 +938,53 @@
       }
     },
     {
-      "name": "src/bootup_uso/bootup_uso_tail",
-      "target_path": "expected/src/bootup_uso/bootup_uso_tail.c.o",
-      "base_path": "build/src/bootup_uso/bootup_uso_tail.c.o",
-      "metadata": {
-        "source_path": "src/bootup_uso/bootup_uso_tail.c",
-        "progress_categories": [
-          "bootup_uso"
-        ]
-      },
-      "scratch": {
-        "platform": "n64",
-        "compiler": "ido7.1",
-        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
-      }
+      "name": "src/bootup_uso/bootup_uso_tail1",
+      "target_path": "expected/src/bootup_uso/bootup_uso_tail1.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_tail1.c.o",
+      "metadata": { "source_path": "src/bootup_uso/bootup_uso_tail1.c", "progress_categories": ["bootup_uso"] },
+      "scratch": { "platform": "n64", "compiler": "ido7.1", "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul" }
+    },
+    {
+      "name": "src/bootup_uso/bootup_uso_o0_1024C",
+      "target_path": "expected/src/bootup_uso/bootup_uso_o0_1024C.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_o0_1024C.c.o",
+      "metadata": { "source_path": "src/bootup_uso/bootup_uso_o0_1024C.c", "progress_categories": ["bootup_uso"] },
+      "scratch": { "platform": "n64", "compiler": "ido7.1", "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul" }
+    },
+    {
+      "name": "src/bootup_uso/bootup_uso_tail2",
+      "target_path": "expected/src/bootup_uso/bootup_uso_tail2.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_tail2.c.o",
+      "metadata": { "source_path": "src/bootup_uso/bootup_uso_tail2.c", "progress_categories": ["bootup_uso"] },
+      "scratch": { "platform": "n64", "compiler": "ido7.1", "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul" }
+    },
+    {
+      "name": "src/bootup_uso/bootup_uso_o0_10310",
+      "target_path": "expected/src/bootup_uso/bootup_uso_o0_10310.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_o0_10310.c.o",
+      "metadata": { "source_path": "src/bootup_uso/bootup_uso_o0_10310.c", "progress_categories": ["bootup_uso"] },
+      "scratch": { "platform": "n64", "compiler": "ido7.1", "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul" }
+    },
+    {
+      "name": "src/bootup_uso/bootup_uso_tail3",
+      "target_path": "expected/src/bootup_uso/bootup_uso_tail3.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_tail3.c.o",
+      "metadata": { "source_path": "src/bootup_uso/bootup_uso_tail3.c", "progress_categories": ["bootup_uso"] },
+      "scratch": { "platform": "n64", "compiler": "ido7.1", "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul" }
+    },
+    {
+      "name": "src/bootup_uso/bootup_uso_o0_12DA4",
+      "target_path": "expected/src/bootup_uso/bootup_uso_o0_12DA4.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_o0_12DA4.c.o",
+      "metadata": { "source_path": "src/bootup_uso/bootup_uso_o0_12DA4.c", "progress_categories": ["bootup_uso"] },
+      "scratch": { "platform": "n64", "compiler": "ido7.1", "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul" }
+    },
+    {
+      "name": "src/bootup_uso/bootup_uso_tail4",
+      "target_path": "expected/src/bootup_uso/bootup_uso_tail4.c.o",
+      "base_path": "build/src/bootup_uso/bootup_uso_tail4.c.o",
+      "metadata": { "source_path": "src/bootup_uso/bootup_uso_tail4.c", "progress_categories": ["bootup_uso"] },
+      "scratch": { "platform": "n64", "compiler": "ido7.1", "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul" }
     },
     {
       "name": "src/game_libs/game_libs",
