@@ -303,6 +303,8 @@ void game_uso_func_00006E88(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006ECC);
 
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F28);
+
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F40);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006FA8);
@@ -350,6 +352,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7F8);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AB98);
 
 void game_uso_func_0000ABB8(char *dst) {
     int tmp;
@@ -524,6 +528,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D210);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D418);
 
+#ifdef NON_MATCHING
+/* 97.5%: all logic correct; IDO allocates t6 before t7 but target has t7
+ * before t6 for the two paired reads. Register-order tiebreaker we can't flip. */
+void game_uso_func_0000D438(void *a0) {
+    *(s32*)((char*)a0 + 0x64) = -1000;
+    *(s32*)((char*)a0 + 0x68) = -1000;
+    *(s32*)((char*)a0 + 0xC8) = *(s32*)((char*)a0 + 0xC0);
+    *(s32*)((char*)a0 + 0xCC) = *(s32*)((char*)a0 + 0xC4);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D438);
+#endif
+
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
@@ -553,6 +570,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE30);
+
+void game_uso_func_0000EE74(void *a0) {
+    *(s32*)((char*)*(s32**)((char*)a0 + 0xB4) + 0x960) = 100;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE84);
 
@@ -697,6 +718,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011460);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000114FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011564);
+
+void game_uso_func_000115DC(void *a0) {
+    *(s32*)((char*)*(s32**)((char*)a0 + 0xB4) + 0x960) = 100;
+}
 
 void game_uso_func_000115EC(int *a0, int a1) {
     *(int*)((char*)a0 + 0x108) = a1;
