@@ -272,6 +272,28 @@ void game_uso_func_000044C8(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000044F4);
 
+void game_uso_func_00005728(void *a0) {
+    *(s32*)((char*)a0 + 0x34) = 0;
+    *(s32*)((char*)a0 + 0x44) = 0;
+    *(s32*)((char*)a0 + 0x48) = 0;
+    *(s32*)((char*)a0 + 0x4C) = 0;
+    *(s32*)((char*)a0 + 0x50) = 0;
+    *(s32*)((char*)a0 + 0x54) = 0;
+    *(s32*)((char*)a0 + 0x58) = 0;
+    *(s32*)((char*)a0 + 0x40) = 0;
+    *(s32*)((char*)a0 + 0x64) = 0;
+    *(s32*)((char*)a0 + 0x70) = 0;
+    *(s32*)((char*)a0 + 0x68) = 0;
+    *(s32*)((char*)a0 + 0x6C) = 0;
+    *(s32*)((char*)a0 + 0x74) = 0;
+    *(s32*)((char*)a0 + 0x78) = 0;
+    *(s32*)((char*)a0 + 0xA4) = 0;
+    *(s32*)((char*)a0 + 0x4C4) = 0;
+    *(s32*)((char*)a0 + 0x4D8) = 1;
+    *(f32*)((char*)a0 + 0x38) = 0.0f;
+    *(f32*)((char*)a0 + 0x3C) = 0.0f;
+}
+
 void game_uso_func_00005780(int *a0, int a1) {
     if (a0 == 0) return;
     *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
