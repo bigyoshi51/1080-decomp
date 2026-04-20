@@ -5,7 +5,20 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 
+#ifdef NON_MATCHING
+/* Array-indexing utility: return a0 + a0->field_7C * 0x28 + 0x84.
+ * Target has 8 insns with `addiu v0,v0,0x84; jr ra; nop` (unfilled delay slot).
+ * IDO -O2 fills the delay slot with the addiu, producing 7 insns instead.
+ * Also addu operand order differs (a0,t7 vs t6,a0) and $v1 vs $t6 for the
+ * index temp. Same unfilled-delay class as feedback_ido_unfilled_store_return.md,
+ * compute/return variant. Likely needs -O0 or a sibling handwritten stub. */
+char *func_00010324(char *a0) {
+    int idx = *(int*)(a0 + 0x7C);
+    return a0 + idx * 0x28 + 0x84;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010324);
+#endif
 
 void func_00010344(void) {
 }
