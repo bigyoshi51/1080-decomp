@@ -90,7 +90,16 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011ED4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011FA8);
 
+#ifdef NON_MATCHING
+/* Unmatchable from C at -O2: `sw a1,0x128(a0); jr ra; nop` (unfilled
+ * delay slot). IDO -O2 schedules store into delay slot, dropping to 2
+ * insns. See feedback_ido_unfilled_store_return.md. */
+void func_0001207C(int *a0, int a1) {
+    *(int*)((char*)a0 + 0x128) = a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001207C);
+#endif
 
 void func_00012088(void) {
 }
