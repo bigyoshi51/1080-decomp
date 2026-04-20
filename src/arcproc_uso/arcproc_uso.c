@@ -72,7 +72,16 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000D70);
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000E58);
+void arcproc_uso_func_00000E58(char *a0) {
+    arcproc_uso_func_00000000(a0 + 0x6BC);
+    arcproc_uso_func_00000000(a0 + 0x6D4);
+    arcproc_uso_func_00000000(a0 + 0x6EC);
+    arcproc_uso_func_00000000(a0 + 0x71C);
+    arcproc_uso_func_00000000(a0 + 0x704);
+    arcproc_uso_func_00000000(a0 + 0x734);
+    arcproc_uso_func_00000000(a0 + 0x74C);
+    arcproc_uso_func_00000000(a0 + 0x764);
+}
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EBC);
 
