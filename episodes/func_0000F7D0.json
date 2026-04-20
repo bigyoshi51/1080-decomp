@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000F7D0",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-20T01:02:30.886405+00:00",
+  "end_time": "2026-04-20T01:02:30.886428+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-20T01:02:30.886421+00:00",
+      "assistant_text": "Phase A of Run 2 sweep. Stores function pointer into a USO data slot. Required adding D_00000030 = 0x30 to undefined_syms_auto.txt since splat referred to the slot as 'func_00000008 + 0x28' instead of a named data symbol.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 9,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 run: 0xF6C4..0xFBCB. These functions compile at -O0, not -O2.\n * See project_1080_bootup_uso_o0_runs.md + feedback_ido_o0_empty_stub.md. */\n\nextern int func_00000000();\nextern void *D_00000030;\n\nvoid func_0000F7D0(int a0) {\n    D_00000030 = (void*)func_00000000;\n}\n\nvoid func_0000F7F4(int a0) {}\n\nvoid func_0000F808(int a0) {}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_F7F4.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0000F7D0.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff; fuzzy_match_percent=100.0. -O0 leaf function storing &func_00000000 to a USO data global (D_00000030)."
+  }
+}
