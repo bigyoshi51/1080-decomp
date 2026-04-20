@@ -122,5 +122,21 @@ void h2hproc_uso_func_00001A3C(char *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A6C);
 
+#ifdef NON_MATCHING
+/* 92.3 %: standard composite-reader template (int + Vec3 at +0x10) but the two
+ * inner calls are USO-internal jal placeholders (target=0x4DC and 0x5AC, the
+ * trailing-nop area before the actual h2h reader funcs). Body matches; the two
+ * jal target bytes (0x0C000137 / 0x0C00016B vs our 0x0C000000+reloc) are
+ * unreachable from C without inline asm. */
+extern int h2hproc_uso_func_h2h_4DC();
+extern int h2hproc_uso_func_h2h_5AC();
+
+void h2hproc_uso_func_00001AFC(char *a0) {
+    int tmp;
+    h2hproc_uso_func_h2h_4DC(&tmp);
+    h2hproc_uso_func_h2h_5AC(a0 + 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001AFC);
+#endif
 
