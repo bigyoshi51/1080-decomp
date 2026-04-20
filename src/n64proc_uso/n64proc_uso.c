@@ -4,19 +4,26 @@ extern int gl_func_00000000();
 
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000000);
 
+extern char D_00000000;
 #ifdef NON_MATCHING
-/* 75 %: dispatcher loop on arg1 against D_00000000+0x40. Goto-flattened
- * control flow matches target's forward-branch dispatch. Remaining gap:
- * IDO assigns base/base10/arg0/one to $s2/$s5/$s4/$s3 (ours), target
- * wants $s3/$s4/$s5/$s2 — same set, different order. Also one extra
- * reload of base+0x40 gets hoisted. Try register-forcing or -O1 next. */
+/* 74.9 %: dispatcher loop on arg1 against D_00000000+0x40. Goto-flattened
+ * control flow matches target's forward-branch dispatch. Target s-reg
+ * assignment: s0=cur, s1=flag, s2=ONE(=1), s3=base, s4=base10, s5=arg0.
+ * IDO's global allocator doesn't reach the same priority order regardless
+ * of declaration order. Tried: (a) original order (base/base10/flag/cur/r/ONE)
+ * = 75 %, (b) reorder to flag/ONE/base/base10/cur/r = 74.9 %. Register-
+ * forcing via `register T x asm("$sN")` is GCC-only and rejected by IDO
+ * (feedback_ido_no_gcc_register_asm.md). Remaining structural gap is the
+ * 6 s-register allocno ordering; permuter may find it. Next pass: try
+ * bumping flag's ref count (multiple checks) or boosting base's uses to
+ * move them up in priority. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
+    int flag = 0;
+    int ONE = 1;
     char *base = &D_00000000;
     char *base10 = &D_00000000 + 0x10;
-    int flag = 0;
     int *cur;
     int r;
-    int ONE = 1;
 
 loop:
     if (arg1 == 0) goto do0;
