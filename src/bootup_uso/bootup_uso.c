@@ -214,7 +214,12 @@ void func_00000A94(int *a0, int a1) {
 #ifdef NON_MATCHING
 /* 97.8 %: IDO uses $v0 directly in the delay-slot `addiu v0, 8` for the 'n'
  * case; target uses $v1 and `or v0, v1, zero` at the shared return block.
- * Tried goto forms + named local — IDO always picks $v0 for the intermediate. */
+ * Tried: goto forms, named local, `register int r = 8` (ignored here since
+ * value flows to return), `||` fusion of n/s (produces bnel chains, worse),
+ * mid-function `r = 8; goto` splits. IDO's allocator always picks $v0 when
+ * the value flows to the return register. Same unflippable pattern class as
+ * feedback_ido_arg_save_reg_pick.md (IDO always $a1) and
+ * feedback_ido_o2_tiny_wrapper_unflippable.md. */
 int func_00000A9C(int a0, int a1) {
     if (a1 == 0)   goto L_AE4;
     if (a1 == 'e') goto L_AEC;
