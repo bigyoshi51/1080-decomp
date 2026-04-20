@@ -301,7 +301,20 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
 
 void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
+#ifdef NON_MATCHING
+/* 82%: matches up through 0x20C4. Last two indep instructions
+ * (sw t9 counter, addu t1 addr) reordered. Same swap-of-independent-stores
+ * scheduling issue as func_00002088 (similar pattern, opposite direction). */
+void func_000020AC(int *a0, int a1, int a2) {
+    int idx;
+    *(int*)((char*)a0 + *(int*)((char*)a0 + 0xC0) * 8 + 0xC8) = a2;
+    idx = *(int*)((char*)a0 + 0xC0);
+    *(int*)((char*)a0 + 0xC0) = idx + 1;
+    *(int*)((char*)a0 + idx * 8 + 0xC4) = a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020AC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020D8);
 
