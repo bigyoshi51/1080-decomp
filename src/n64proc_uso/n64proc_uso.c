@@ -7,44 +7,37 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000000
 extern char D_00000000;
 
 #ifdef NON_MATCHING
-/* 74.9 %: dispatcher loop on arg1 against D_00000000+0x40. Goto-based flow
- * (75 %) beats do-while/if-elif (33 %). Target compiles the dispatch as
- * 3 forward-only branches (beq+delay, beq+delay, b+delay-reload) — mine
- * inflates to 6 branches (bne+delay, b+delay, bne+delay, b+delay, b+delay)
- * because IDO doesn't short-circuit if-goto chains the way target was.
- * Likely only permuter can bridge the gap. Variants tried (2026-04-20):
- * (a) decl order flag/ONE/base/base10 = 74.9 %, (b) literal 1 instead of
- * ONE var = 33 %, (c) do-while+if-elif = 33 %. Keep goto version. */
+/* Dispatcher loop on arg1. Two previous semantic bug: do1's first call
+ * passed `base` as a0 but target has `a0 = 0` from the dispatch delay
+ * slot. Fixed. New structure: plain if-else instead of goto chain, which
+ * lets IDO emit the dispatch as `bne skip; <delay=setup>` rather than
+ * the goto-expanded `bne skip; b TARGET` pair — closer to target's 3
+ * forward branches. Still not exact (~?% TBD): target uses `beq` direct
+ * to labels (`beq $a1, $zero, do0`), mine uses `bne skip-forward` which
+ * is semantically identical but emits different bytes. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
-    int flag = 0;
-    int ONE = 1;
+    int flag;
     char *base = &D_00000000;
     char *base10 = &D_00000000 + 0x10;
     int *cur;
     int r;
 
+    flag = 0;
 loop:
-    if (arg1 == 0) goto do0;
-    if (arg1 == ONE) goto do1;
-    goto tail;
-
-do0:
-    gl_func_00000000(base, 1, 0, 0);
-    flag = 1;
-    r = gl_func_00000000(0);
-    gl_func_00000000(arg0, 1, r);
-    goto tail;
-
-do1:
-    cur = (int*)gl_func_00000000(base, 1, 0);
-    flag = 1;
-    gl_func_00000000(base10, cur);
-    if (*(int*)((char*)cur + 0x14) != 0) {
-        *(int*)((char*)cur + 0x4) = 1;
+    if (arg1 == 0) {
+        gl_func_00000000(base, 1, 0, 0);
+        flag = 1;
+        r = gl_func_00000000(0);
+        gl_func_00000000(arg0, 1, r);
+    } else if (arg1 == 1) {
+        cur = (int*)gl_func_00000000(0, 1, 0);
+        flag = 1;
+        gl_func_00000000(base10, cur);
+        if (*(int*)((char*)cur + 0x14) != 0) {
+            *(int*)((char*)cur + 0x4) = 1;
+        }
+        *(int*)((char*)cur + 0x14) = (int)base;
     }
-    *(int*)((char*)cur + 0x14) = (int)base;
-
-tail:
     arg1 = *(int*)((char*)base + 0x40);
     if (flag == 0) goto loop;
 }

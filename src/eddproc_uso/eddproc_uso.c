@@ -33,7 +33,19 @@ void eddproc_uso_func_000000D4(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+#ifdef NON_MATCHING
+/* 3-insn save-args-to-caller-shadow-space stub (sw a0,0(sp); jr ra;
+ * sw a1,4(sp)). No prologue, no body — stores to caller's a0/a1 O32
+ * shadow space. Semantically `void f(int, int) {}` but IDO -O2 won't
+ * produce these 3 insns (the stub doesn't even allocate a local frame).
+ * Documented in the split-fragments commit chain as a variant of
+ * feedback_ido_unfilled_store_return.md. */
+void eddproc_uso_func_00000144(int a0, int a1) {
+    (void)a0; (void)a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_00000144);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_00000150);
 
