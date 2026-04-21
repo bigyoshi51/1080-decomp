@@ -11,9 +11,13 @@ typedef struct { int a, b, c, d; } Quad4;
  *   (b) unfilled jal delay slot (`jal 0; nop`) — -O2 fills with `addiu a2, 4`
  *   (c) extra `b +1; nop` pair before epilogue (dead branch to next insn,
  *       characteristic -O0 basic-block boundary per feedback_ido_o0_empty_stub.md)
- * To match, split mgrproc_uso_func_00000000 into its own .c file with a
- * `build/src/mgrproc_uso/<file>.c.o: OPT_FLAGS := -O0` Makefile override
- * (same mechanism as bootup_uso_o0_*.c). Defer to infrastructure pass.
+ * BLOCKED 2026-04-21: mgrproc_uso is Yay0-compressed. A second `.o`
+ * (e.g., mgrproc_uso_o0_0.c.o) wouldn't land in ROM because the Makefile
+ * Yay0 rule consumes only mgrproc_uso.c.o. Per
+ * feedback_yay0_uso_blocks_file_split_recipe.md, the file-split recipe
+ * (which works for bootup_uso and arcproc_uso) does NOT apply here.
+ * Unblock path: add an `ld -r` pre-merge step before yay0 compression —
+ * infrastructure work, out of single-tick scope.
  * Body semantics per feedback_uso_accessor_template_reuse.md int reader. */
 void mgrproc_uso_func_00000000(int *dst) {
     volatile int buf[2];
