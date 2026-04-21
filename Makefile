@@ -51,6 +51,14 @@ build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: TRUNCATE_TEXT := 0x3E0
 build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: TRUNCATE_TEXT := 0x18
 build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: TRUNCATE_TEXT := 0x1E8
 build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
+# game_libs split around the 56 KB RSP microcode blob at 0xEBF8..0x1CA10.
+# Reduce sh_addralign to 4 so the three objects link back-to-back without
+# 16-byte padding between them. Size targets match the natural compiled
+# sizes (drift included) so no real code gets truncated; same accumulated
+# drift as main's pre-split game_libs.c.o. See feedback_non_aligned_o_split.md.
+build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0xEC00
+build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x588F0
+
 build/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1

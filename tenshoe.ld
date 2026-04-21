@@ -1228,13 +1228,17 @@ SECTIONS
 
     /* game_libs text: VRAM=0 (relocatable; all LUIs upper16=0, JALs target=0
        in ROM for unresolved refs, pre-resolved intra-segment calls have
-       small targets that re-resolve cleanly at VRAM=0). */
+       small targets that re-resolve cleanly at VRAM=0). A 56 KB RSP microcode
+       blob sits mid-text at VRAM 0xEBF8..0x1CA10 and is spliced back as a
+       raw .data bin so objdiff doesn't count it against code progress. */
     game_libs_ROM_START = __romPos;
     .game_libs 0x00000000 : AT(game_libs_ROM_START)
     {
         FILL(0x00000000);
         game_libs_TEXT_START = .;
         build/src/game_libs/game_libs.c.o(.text);
+        build/assets/game_libs_ucode.bin.o(.data);
+        build/src/game_libs/game_libs_post.c.o(.text);
         game_libs_TEXT_END = .;
         game_libs_TEXT_SIZE = ABSOLUTE(game_libs_TEXT_END - game_libs_TEXT_START);
     }

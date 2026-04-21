@@ -243,6 +243,11 @@ segments:
     vram: 0x00000000
     subsegments:
       - [0xDE50D8, c, game_libs/game_libs]
+      # 56 KB RSP microcode blob embedded mid-text — not CPU-disassemblable.
+      # See feedback_rsp_microcode_mistaken_for_code.md. Treated as raw data
+      # so objdiff doesn't count it against code progress.
+      - [0xDF3CD0, bin, game_libs_ucode]
+      - [0xE01AE8, c, game_libs/game_libs_post]
   - [0xE5A378, bin, game_libs_post]
   - [0xE5D0D4, bin, game_data]
   - [0x1000000]
