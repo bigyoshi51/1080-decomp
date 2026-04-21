@@ -51,6 +51,15 @@ void h2hproc_uso_func_0000045C(void) {
     gl_func_00000000(&D_00000000);
 }
 
+/* h2hproc_uso_func_0000049C: 2-insn fragment (0x8), NO jr ra (grep -c=0).
+ *   lui   a0, 0
+ *   lw    a0, 0(a0)        ; a0 = *D_00000000
+ * Falls through directly into func_000004A4 (real prologue at 0x4A4).
+ * Alternate entry point: callers `jal 0x49C` get a0 reset to
+ * *D_00000000 before the 4A4 body runs (callers don't supply a0).
+ * Not reachable from C (no standalone function signature for an
+ * alt-entry that falls through). Per feedback_split_fragments_unreachable_tail
+ * class — leave INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000049C);
 
 void h2hproc_uso_func_000004A4(char *a0) {
