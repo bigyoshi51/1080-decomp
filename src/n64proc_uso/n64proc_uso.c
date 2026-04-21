@@ -50,6 +50,13 @@ extern char D_00000000;
  * (5) TRIED 2026-04-21: extra `one = 1;` statement inside if branch to
  * boost ref count — no change in match %.
  *
+ * (6) TRIED 2026-04-21: decl reorder `cur, flag, one, base, base10`
+ * (matching target's $s0..$s5 order) — IDENTICAL allocation output.
+ * Confirms decl-source-order is decoupled from pseudo-number ordering
+ * in IDO's RTL build (first-encountered-pseudo tiebreaker doesn't
+ * correspond to C decl order). This rules out syntactic ordering as a
+ * knob for the s2/s3 tiebreak between `one` and `base`.
+ *
  * No remaining path reachable from C without inline-asm. NM-only. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
