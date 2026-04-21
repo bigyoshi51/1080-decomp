@@ -4,7 +4,28 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
+#ifdef NON_MATCHING
+/* Int-reader accessor variant (19 insns, 0x4C) — LIKELY -O0 compiled.
+ * Logic: *dst = *(int*)D_00000000 (standard int reader template).
+ *
+ * -O0 indicators vs the -O2 int-reader at func_0000083C (15 insns, 0x3C):
+ *   1. nop in jal delay slot (0x20) — -O2 fills with addiu.
+ *   2. Pointer-indirect reload `addiu t6, sp, 0x18; lw t7, 0(t6)` (0x24/0x28)
+ *      — -O2 uses direct `lw tN, 0x18(sp)`.
+ *   3. Trailing `b +1; nop` (0x34/0x38) before epilogue — -O0 explicit
+ *      jump-to-epilogue.
+ *
+ * Can't match at -O2 without per-function -O0 override (Makefile + linker
+ * ordering — see project_o1o2_split.md for the recipe). Deferred until a
+ * file-level -O0 split is set up for timproc_uso_b1. */
+void timproc_uso_b1_func_00000000(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000000);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_0000004C);
 
