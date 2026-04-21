@@ -1,0 +1,9 @@
+nonmatching gl_func_00012178, 0x14
+
+glabel gl_func_00012178
+    /* DF7250 00012178 400B3000 */  .word 0x400B3000
+    /* DF7254 0001217C 1560FFFE */  .word 0x1560FFFE
+    /* DF7258 00012180 00000000 */  .word 0x00000000
+    /* DF725C 00012184 03E00008 */  .word 0x03E00008
+    /* DF7260 00012188 00000000 */  .word 0x00000000
+endlabel gl_func_00012178

@@ -1,0 +1,9 @@
+nonmatching gl_func_0000EE34, 0x14
+
+glabel gl_func_0000EE34
+    /* DF3F0C 0000EE34 400B3000 */  .word 0x400B3000
+    /* DF3F10 0000EE38 1560FFFE */  .word 0x1560FFFE
+    /* DF3F14 0000EE3C 00000000 */  .word 0x00000000
+    /* DF3F18 0000EE40 03E00008 */  .word 0x03E00008
+    /* DF3F1C 0000EE44 00000000 */  .word 0x00000000
+endlabel gl_func_0000EE34

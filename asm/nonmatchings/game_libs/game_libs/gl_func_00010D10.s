@@ -1,0 +1,9 @@
+nonmatching gl_func_00010D10, 0x14
+
+glabel gl_func_00010D10
+    /* DF5DE8 00010D10 400B3000 */  .word 0x400B3000
+    /* DF5DEC 00010D14 1560FFFE */  .word 0x1560FFFE
+    /* DF5DF0 00010D18 00000000 */  .word 0x00000000
+    /* DF5DF4 00010D1C 03E00008 */  .word 0x03E00008
+    /* DF5DF8 00010D20 00008820 */  .word 0x00008820
+endlabel gl_func_00010D10
