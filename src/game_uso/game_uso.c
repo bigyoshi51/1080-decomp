@@ -1348,9 +1348,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
 
+#ifdef NON_MATCHING
 /* game_uso_func_0000D9CC: 0x830 (524 insns), 0x38-byte stack frame.
  * Strategy-memo spine: 2.0 KB, 26 cross-USO calls, "subsystem" subsystem.
  * Single function per grep -c 03E00008 (not a bundle).
+ *
+ * Partial C body: ~5-10 % match guess. Captures entry setup + 30.0f
+ * gate check + the sub-state at 0x1F0 (0x43FA/0x0A10/0x01F0 pattern).
+ * Body-proper (insns 30-524) still TODO-stubbed — state-machine over
+ * several float thresholds with 26 cross-USO calls.
  *
  * ENTRY DECODE (insns 1-16 @ 0xD9CC-0xDA0C):
  *   *(int*)(a0 + 0x108) = 0;     // clear state flag
@@ -1381,7 +1387,31 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
  * Left as INCLUDE_ASM until enough body is decoded to support a
  * compile-testable skeleton. The entry decode is the forward progress
  * for this pass per the skill's multi-run decomp convention. */
+void game_uso_func_0000D9CC(int *a0) {
+    int local_28 = 0, local_2C = 0, local_30 = 1;
+    int *inner;
+    (void)local_28; (void)local_2C; (void)local_30;
+
+    *(int*)((char*)a0 + 0x108) = 0;
+    inner = (int*)a0[0xB4/4];
+
+    if (*(float*)((char*)inner + 0x348) > 30.0f) {
+        /* TODO: main body @ 0xDA10 — starts with a halfword load from
+         * inner[0xA10], mask 0x01F0, branch on value, then a float
+         * compare against 500.0f. Multiple 0x43FA... constants appear
+         * (these are halfword masks or float bit patterns).
+         * 26 cross-USO calls follow with state-machine dispatch. */
+    } else {
+        /* TODO: 30.0f-fail path @ 0xDBDC (far forward) — loads
+         * constant 500.0f into $f0 at the branch's delay slot (via
+         * `lui $at, 0x43FA`). Likely a secondary threshold check. */
+    }
+    /* TODO: remaining ~490 insns of float scheduling with mtc1 zero,
+     * c.lt.s gates, and cross-USO dispatch. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
 
