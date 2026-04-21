@@ -40,6 +40,19 @@ void h2hproc_uso_func_00000274(int *a0) {
  *       kept alive across calls, so IDO re-materializes &D_0 via fresh
  *       lui+lw for each subsequent access. Total: 33 insns (worse than
  *       original 31; target is 22).
+ *   v6 (2026-04-20 extended): pass `p` to call 3 instead of `*&D_0` —
+ *       **first half MATCHES target byte-perfect** (lui a0; addiu a0, a0
+ *       DIRECT, no a3). But IDO then CSE's the `p = *&D_0` read with the
+ *       earlier, so it loads p into $a0 directly at 0x28 (lui a0; lw
+ *       a0, 0(a0)), SKIPPING the "base cached in $v0" pattern target
+ *       emits. Total 19 insns (3 fewer than target 22).
+ *   v8 (named `int *base = &D_0;` + base[16]=6 + pass base[0] to call 3):
+ *       first half matches, but v8 uses v0 as BOTH base AND loaded-ptr
+ *       (`v0 = *v0`), not target's t7 = *v0 pattern. Also 19 insns.
+ *   v9-v11 (volatile, cast tricks, register hints): no improvement
+ *       beyond v6/v8; cap holds at 97.95%. The target's "base cached in
+ *       $v0 + separate t7 for deref" pattern isn't reproducible because
+ *       IDO CSE's the two *&D_0 reads into one load-to-the-arg-reg.
  *
  * Fundamental issue: target keeps `v0 = &D_0` alive as a base pointer across
  * all of the second half (4 refs with only 22 insns). IDO-O2 declines to
@@ -81,7 +94,21 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002F
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000354);
 
+#ifdef NON_MATCHING
+/* 97.95%: sibling of 0x2A4 family (0x2A4=5, 0x2FC=2, 0x354=3); writes 4
+ * at D_0[0x40]. Same 3-call + 2-store shape; same a3-intermediate cap. */
+void h2hproc_uso_func_000003AC(void) {
+    int *p;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
+    *(int*)((char*)&D_00000000 + 0x40) = 4;
+    gl_func_00000000(&D_00000000);
+    p = *(int**)&D_00000000;
+    *(int*)((char*)p + 0x30) = 0;
+    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000003AC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000404);
 

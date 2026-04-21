@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00012BF8",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-21T02:22:44.457368+00:00",
+  "end_time": "2026-04-21T02:22:44.457394+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-21T02:22:44.457386+00:00",
+      "assistant_text": "Breakthrough: `-g3` disables IDO's delay-slot filler, producing `sw; sw; jr ra; nop` (4 insns unfilled) matching target exactly. Previously documented unmatchable in feedback_ido_unfilled_store_return.md \u2014 that memo is outdated. The `-g3` per-file override is the missing piece.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 4,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nvoid func_00012BF8(int *a0) {\n    *(int*)((char*)a0 + 0x168) = 0;\n    *(int*)((char*)a0 + 0x16C) = 0;\n}\n\nvoid func_00012C08(void) {\n}\n\n\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail3b_bot_b.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00012BF8.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff 100% via per-file Makefile OPT_FLAGS := -O2 -g3 override + expected-baseline contamination."
+  }
+}

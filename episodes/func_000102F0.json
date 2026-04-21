@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000102F0",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-21T02:32:56.356817+00:00",
+  "end_time": "2026-04-21T02:32:56.356843+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-21T02:32:56.356836+00:00",
+      "assistant_text": "Applied per-file -O2 -g3 OPT_FLAGS to bootup_uso_tail2.c Makefile rule. -g3 disables IDO reorg-pass delay-slot filler, letting swc1 variant of unfilled-delay-slot match. C body: *(float*)(a0 + 0x70) = (float)a1; Feedback memo: feedback_ido_g3_disables_delay_slot_fill.md.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 6,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010260);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000102A4);\n\nvoid func_000102E8(void) {\n}\n\nvoid func_000102F0(char *a0, int a1) {\n    *(float*)(a0 + 0x70) = (float)a1;\n}\n\nvoid func_00010308(void) {\n}\n\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail2.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_000102F0.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32",
+    "verification": "Verified with objdiff report.json \u2014 fuzzy_match_percent 100.0."
+  }
+}

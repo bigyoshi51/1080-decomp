@@ -27,6 +27,9 @@ CPPFLAGS := -I include -I src
 LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map --no-check-sections
 
 # Per-file optimization overrides (O1 libultra functions, O0 empty stubs)
+build/src/arcproc_uso/arcproc_uso_o0_50.c.o: OPT_FLAGS := -O0
+build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
+build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0x64
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: OPT_FLAGS := -O0
@@ -41,14 +44,17 @@ build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: TRUNCATE_TEXT := 0xB0
 build/src/bootup_uso/bootup_uso_tail1.c.o: TRUNCATE_TEXT := 0xA30
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x14
 build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0xB0
+build/src/bootup_uso/bootup_uso_tail2.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
 build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x1D84
+build/src/bootup_uso/bootup_uso_tail3a.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_120A8.c.o: TRUNCATE_TEXT := 0xE0
 build/src/bootup_uso/bootup_uso_tail3b_top.c.o: TRUNCATE_TEXT := 0x268
 build/src/bootup_uso/bootup_uso_o0_123F0.c.o: TRUNCATE_TEXT := 0x27C
 build/src/bootup_uso/bootup_uso_tail3b_bot_t.c.o: TRUNCATE_TEXT := 0x1AC
 build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: TRUNCATE_TEXT := 0x3E0
 build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: TRUNCATE_TEXT := 0x18
+build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: TRUNCATE_TEXT := 0x1E8
 build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 # game_libs split around the 56 KB RSP microcode blob at 0xEBF8..0x1CA10.

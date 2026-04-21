@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0001207C",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-21T02:26:50.006056+00:00",
+  "end_time": "2026-04-21T02:26:50.006091+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-21T02:26:50.006078+00:00",
+      "assistant_text": "Promoted from NM wrap via the -g3 breakthrough (commit ee1085f). 3rd/4th/5th function in the unfilled-store-return class. Pure C sw; jr; nop matches at -O2 -g3.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 3,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n\n#ifdef NON_MATCHING\n/* Array-indexing utility: return a0 + a0->field_7C * 0x28 + 0x84.\n * Target has 8 insns with `addiu v0,v0,0x84; jr ra; nop` (unfilled delay slot).\n * IDO -O2 fills the delay slot with the addiu, producing 7 insns instead.\n * Also addu operand order differs (a0,t7 vs t6,a0) and $v1 vs $t6 for the\n * index temp. Same unfilled-delay class as feedback_ido_unfilled_store_return.md,\n * compute/return variant. Likely needs -O0 or a sibling handwritten stub. */\nchar *func_00010324(char *a0) {\n    int idx = *(int*)(a0 + 0x7C);\n    return a0 + idx * 0x28 + 0x84;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010324);\n#endif\n\nvoid func_00010344(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001034C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010540);\n\nvoid func_00010A9C(int *a0) {\n    *(int*)((char*)a0 + 0x78) = 0;\n}\n\nvoid func_00010AA8(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010AB0);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010B6C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010C8C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010FEC);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000116C8);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000117FC);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000118E4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001195C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011A34);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011AB4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011B5C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011BF0);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011C70);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011CA4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011CD8);\n\n#ifdef NON_MATCHING\n/* Structure matches but IDO emits beql with duplicated lw in epilogue rather than\n * target's beq+or v0,zero path. Common IDO -O2 -> O1-style unfilled-slot mismatch. */\nint func_00011D40(int *a0, int a1) {\n    if (*(int*)((char*)a0 + 0x120) < a1) return 0;\n    return *(int*)((char*)a0 + a1 * 4 + 0xDC);\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011D40);\n#endif\n\nvoid func_00011D70(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011D78);\n\nvoid func_00011DB4(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011DBC);\n\nvoid func_00011DF8(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011E00);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011ED4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011FA8);\n\nvoid func_0001207C(int *a0, int a1) {\n    *(int*)((char*)a0 + 0x128) = a1;\n}\n\nvoid func_00012088(void) {\n}\n\nvoid func_00012090(int *a0) {\n    *(int*)((char*)a0 + 0x128) = -1;\n}\n\nvoid func_000120A0(void) {\n}\n\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail3a.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0001207C.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff 100% via tail3a.c -O2 -g3 override (feedback_ido_g3_disables_delay_slot_fill.md)."
+  }
+}

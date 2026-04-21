@@ -981,8 +981,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
+#ifdef NON_MATCHING
 /* game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Strategy-memo candidate for "per-frame compute" (1.4 KB, 11 cross-calls).
+ *
+ * Partial C body: ~10 % match guess. Captures entry (panic-on-a2-null
+ * + 2 cross-call dispatches with sp+0x190 and sp+0xDC Vec3 locals) +
+ * body-part-1 Vec3 copy (a2->0x30 XZ-projection). Body-part-2 (insns
+ * 50-344) still `/* TODO */` — it's 300 insns of float scheduling
+ * around a quaternion/matrix slot at sp+0x12C.
  *
  * ENTRY DECODE (insns 1-15 @ 0x9B88-0x9BC4):
  *   args: (a0, a1, a2).  All three spilled to caller-slot (sp+0x1A8/AC/B0)
@@ -1021,7 +1028,47 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *   strongly suggests this is a coordinate-transform function: takes
  *   (context, anchor, src-Vec3) and produces a transformed Vec3 written to
  *   one of several local slots for downstream cross-USO dispatch. */
+void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
+    float local_190[3];   /* sp+0x190: 3-float buffer, written at entry */
+    float local_DC[3];    /* sp+0xDC:  second 3-float buffer for scaled src */
+    int *v0, *v1;
+    float src_x, src_z;
+
+    if (a2 == 0) {
+        /* Assert: line 0x623 (1571) — panic message at &D+0x7BC / &D+0x7C8 */
+        gl_func_00000000(&D_00000000 + 0x7BC, &D_00000000 + 0x7C8, 0x623);
+    }
+
+    /* Dispatch 1: first cross-call with &local_190 as arg2 */
+    v1 = local_190;
+    if (v1 == 0) {  /* trivially false — v1 is stack addr */
+        /* dead path */
+    } else {
+        v0 = (int*)gl_func_00000000(a2, 0xC);  /* 2nd cross-call, size=12 */
+        if (v0 != 0) {
+            /* Vec3 XZ-projection: copy a2->0x30.{x,z}, zero out Y */
+            src_x = *(float*)((char*)a2 + 0x30);
+            src_z = *(float*)((char*)a2 + 0x38);
+            *(float*)((char*)v0 + 0x4) = src_z;
+            *(float*)((char*)v0 + 0x8) = 0.0f;  /* wait — target has E4620008/E4600000 */
+            *(float*)((char*)v0 + 0x0) = 0.0f;  /* actually stores look like idx 0,4,8 */
+            /* TODO: exact layout — target has */
+            /*   swc1 f2, 0x4(v0); swc1 f2, 0x8(v0); swc1 f0, 0x0(v0) */
+            /*   where f0 was loaded from a2+0x30 and f2 from a2+0x38 */
+        }
+    }
+
+    /* Dispatch 2: second 3-float buffer at local_DC (sp+0xDC) — math-heavy */
+    /* TODO: insns 0x9BF4-0x9C50 — produces a scaled/offset Vec3 from a1+0x30,
+     * a1+0x38 against a2+0x30. Uses mtc1/mul.s/sub.s on $f8/$f10. */
+
+    /* TODO: body-part-2 @ 0x9C54-0x10E8 — 300 insns of float math +
+     * ~9 more cross-USO calls. Likely matrix/quaternion transform with
+     * scale 250.0f and offset 50.0f constants. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
 
@@ -1466,7 +1513,35 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
 
+#ifdef NON_MATCHING
+/* 82.2%: 2-call wrapper. First call `gl_func_00000000(a0)`; second call
+ * `gl_func_00000000(a0, *(D+0xF50), *(D+0xF54), 1)`. Target has pre-call
+ * arg-spill pattern between the two jals:
+ *   sw $a1, 4($sp)  pre-2nd-jal  (a1-slot spill)
+ *   sw $a2, 8($sp)  in 2nd jal delay slot (a2-slot spill)
+ * Also uses $t6 as shared base for the two adjacent loads (0(t6), 4(t6))
+ * with addiu $t6, $t6, 0xF50 — rather than direct-offset loads.
+ *
+ * Variants tested 2026-04-20:
+ *   - base via `*(int*)((char*)&D_0 + 0xF50)` direct: v0 + 0xF50 offset (no split)
+ *   - base via named local `int *base = ...; base[0], base[1]`: IDO folds offset back
+ *   - base via `struct { int f0, f4; } D_11124_pair` mapped to 0xF50: splits to
+ *     `lui v0; addiu v0, 0; lw a1, 0(v0); lw a2, 4(v0)` — reloc-equivalent to
+ *     target's `lui t6; addiu t6, 0xF50; lw a1, 0(t6); lw a2, 4(t6)`. But still
+ *     uses $v0 not $t6, and missing the a1/a2 stack spills (pre-call arg spill
+ *     class — see feedback_ido_precall_arg_spill_unreachable.md).
+ *   - Unique extern `gl_func_00011124_b()` for 2nd call: no spill emitted either.
+ *
+ * Same class as game_uso_func_0000A374 (also 86.7% cap, precall arg spill).
+ * Also has unfilled jr-ra delay slot (could be -g3 but orthogonal to arg spill). */
+void game_uso_func_00011124(int *a0) {
+    gl_func_00000000(a0);
+    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF50),
+                          *(int*)((char*)&D_00000000 + 0xF54), 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011124);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
 

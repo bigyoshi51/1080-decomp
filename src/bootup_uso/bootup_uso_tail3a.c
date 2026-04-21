@@ -27,18 +27,9 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001034C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010540);
 
-#ifdef NON_MATCHING
-/* Unmatchable from C at -O2: target has `sw zero,0x78(a0); jr ra; nop`
- * (unfilled delay slot, 3 insns) but IDO -O2 schedules the store into the
- * delay slot producing `jr ra; sw zero,0x78(a0)` (2 insns). Different size.
- * See feedback_ido_unfilled_store_return.md. Kept as INCLUDE_ASM; wrapping
- * C here just documents the semantic content. */
 void func_00010A9C(int *a0) {
     *(int*)((char*)a0 + 0x78) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010A9C);
-#endif
 
 void func_00010AA8(void) {
 }
@@ -103,32 +94,16 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011ED4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011FA8);
 
-#ifdef NON_MATCHING
-/* Unmatchable from C at -O2: `sw a1,0x128(a0); jr ra; nop` (unfilled
- * delay slot). IDO -O2 schedules store into delay slot, dropping to 2
- * insns. See feedback_ido_unfilled_store_return.md. */
 void func_0001207C(int *a0, int a1) {
     *(int*)((char*)a0 + 0x128) = a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001207C);
-#endif
 
 void func_00012088(void) {
 }
 
-#ifdef NON_MATCHING
-/* Unmatchable from C at -O2: `addiu t6,-1; sw t6,0x128(a0); jr ra; nop`
- * (unfilled delay slot, 4 insns) but IDO -O2 schedules the store into the
- * delay slot producing `addiu t6,-1; jr ra; sw t6,0x128(a0)` (3 insns).
- * Listed explicitly in feedback_ido_unfilled_store_return.md.
- * Wrap documents: field_128 = -1 (sentinel clear). */
 void func_00012090(int *a0) {
     *(int*)((char*)a0 + 0x128) = -1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012090);
-#endif
 
 void func_000120A0(void) {
 }

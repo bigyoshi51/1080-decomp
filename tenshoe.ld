@@ -730,6 +730,8 @@ SECTIONS
         FILL(0x00000000);
         arcproc_uso_TEXT_START = .;
         build/src/arcproc_uso/arcproc_uso.c.o(.text);
+        build/src/arcproc_uso/arcproc_uso_o0_50.c.o(.text);
+        build/src/arcproc_uso/arcproc_uso_tail1.c.o(.text);
         arcproc_uso_TEXT_END = .;
         arcproc_uso_TEXT_SIZE = ABSOLUTE(arcproc_uso_TEXT_END - arcproc_uso_TEXT_START);
     }
