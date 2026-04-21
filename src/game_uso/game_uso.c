@@ -513,28 +513,38 @@ void game_uso_func_0000751C(char *a0) {
  * 0x7424 bundle (was bundled with 7424/7448/74D8/751C/7A98/7ABC, now alone).
  * Likely the "real" per-frame compute function per game_uso_map.md's heuristic.
  *
- * FIRST-PASS DECODE (insns 1-15 @ 0x7538-0x7574):
- *   f16 = 0.0f (mtc1 zero, f16)
- *   counter = a0[0x50]
- *   saved_a1 = a1 (copied to a3)
- *   retLo = 0 (v0); retHi = 0 (v1)
- *   f0 = 0.0f, f2 = 0.0f  (via mov.s from f16)
- *   if (counter > 0) {
- *       counter--;
- *       a0[0x50] = counter;
- *   }
- *   flags = a0[0x48]
- *   if (flags & 0x10) {
- *       flags--;
- *       a0[0x48] = flags;
- *   }
- *   flag2 = a0[0x6C]
- *   if (flag2 == 0) goto far_forward (skips most of body)  ; bnel +0x72
+ * DECODE (insns 1-40 @ 0x7538-0x75D4):
+ *   Setup:
+ *     f16 = 0.0f; f0 = 0.0f; f2 = 0.0f; v0 = v1 = 0 (retLo/retHi)
+ *     a3 = saved_arg1 (=a1)
+ *     counter = a0[0x50]; if (counter > 0) a0[0x50]--;
+ *     flags   = a0[0x48]; if (flags   > 0) a0[0x48]--;
+ *     mask10 = arg1 & 0x10;
+ *     flag2   = a0[0x6C];
+ *   Dispatch (bnel branch-likely at 0x40):
+ *     if (flag2 != 0) goto tail_case (at 0x20C, with t1 = flag2 & 1 in delay)
+ *   Fallthrough (flag2 == 0):
+ *     if ((arg1 & 0x10) == 0) goto dispatch_next (0xA0, with t1 = arg1 & 1 in delay)
+ *     // case: flag2==0 AND (arg1 & 0x10):
+ *     t9 = a0[0x30]; t0 = t9[0x938/4];
+ *     if (t0 == 0) goto tail_case (beql at 0x58, with t1 = a1 & 1 in delay)
+ *     // case: t0 != 0 (inner): float sign-of check
+ *     f4 = *(float*)&a0[0x38];
+ *     if (f4 >= 0.0f) { a0[0x3C] = 1.0f; } else { a0[0x3C] = -1.0f; }
+ *     goto dispatch_next (0xA0, reloads a1 = a0[0x6C])
  *
- * REMAINING ~320 insns: dispatches further on bit 0 of a0[0x6C] and does
- * extensive float math (many mul.s/add.s/sub.s sequences with constants
- * 0xBF80 = -1.0f, 0x3F80 = 1.0f, etc.). Float-heavy enough that a single
- * /decompile run won't match it; defer body decode to future passes. */
+ * CHARACTERISTICS:
+ *  - Uses 0xBF80 = -1.0f and 0x3F80 = 1.0f as magic constants (sign-setter)
+ *  - Multiple beql/bnel branch-likely ops — tight scheduling with delay slot
+ *    side-effects (reloading a1, setting up a2 args, etc.)
+ *  - State machine: a0->field_6C holds a flag mask; arg1 holds event bits
+ *  - a0->field_30 is an outer struct pointer (->field_938 is another flag)
+ *
+ * REMAINING ~300 insns at 0xA0-0x560: multi-case dispatch on low 7 bits
+ * of arg1 (from 0x30ED0040 mask at 0xA4 + many branches), each case does
+ * a small state update on a0 fields (0x44, 0x50, 0x6C). Still float-heavy
+ * near the tail. Multi-run decomp: next pass should extend to insns
+ * 40-80 focusing on the 0xA0 dispatch_next block and its sub-cases. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 
 #ifdef NON_MATCHING
