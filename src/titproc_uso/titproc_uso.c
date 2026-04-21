@@ -22,27 +22,19 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000002E
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000334);
 
-#ifdef NON_MATCHING
-/* 98.3%: logic + offsets correct, one structural diff. Target uses:
- *   addiu \$v1, 1
- *   sw \$v1, 0x34(\$v0) / 0x40(\$v0) / 0x44(\$v0)
- * i.e. \$v0 holds a copy of \$a0 as the base for 3 stores, while \$v1 holds
- * the constant 1. My build:
- *   addiu \$v0, 1
- *   sw \$v0, 0x34(\$a0) / 0x40(\$a0) / 0x44(\$a0)
- * Mine uses \$a0 directly and puts the constant in \$v0. Tried `int *p=a0;`,
- * `char *p=a0;` — both optimized away. Target's register assignment appears
- * driven by some IDO heuristic we can't trigger. Cap at 98.3%. */
-void titproc_uso_func_00000388(int *a0) {
-    *(int*)((char*)a0 + 0x34) = 1;
-    *(int*)((char*)a0 + 0x40) = 1;
-    *(int*)((char*)a0 + 0x44) = 2;
+extern char D_00000380_A;
+
+/* Reverse-merge boundary fix: real function starts at 0x380 (splat put
+ * the `lui $v0; addiu $v0` prologue 8 bytes earlier and attributed it to
+ * 0x334's trailing bytes). Per feedback_splat_prologue_stolen_by_predecessor.md.
+ * Signature is `void f(void)` — no args; $v0 = &D_00000000 via prologue. */
+void titproc_uso_func_00000380(void) {
+    *(int*)((char*)&D_00000000 + 0x34) = 1;
+    *(int*)((char*)&D_00000000 + 0x40) = 1;
+    *(int*)((char*)&D_00000000 + 0x44) = 2;
     gl_func_00000000(9);
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0xA8), -1, 0);
+    gl_func_00000000(*(int*)((char*)&D_00000380_A + 0xA8), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000388);
-#endif
 
 extern char D_000003D0_A;
 
