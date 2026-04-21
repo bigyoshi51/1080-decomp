@@ -1,4 +1,4 @@
-nonmatching timproc_uso_b5_func_0000E5AC, 0x2C
+nonmatching timproc_uso_b5_func_0000E5AC, 0x24
 
 glabel timproc_uso_b5_func_0000E5AC
     /* 00E5AC 0000E5AC 27BDFFE8 */  .word 0x27BDFFE8
@@ -10,6 +10,4 @@ glabel timproc_uso_b5_func_0000E5AC
     /* 00E5C4 0000E5C4 27BD0018 */  .word 0x27BD0018
     /* 00E5C8 0000E5C8 03E00008 */  .word 0x03E00008
     /* 00E5CC 0000E5CC 00000000 */  .word 0x00000000
-    /* 00E5D0 0000E5D0 3C020000 */  .word 0x3C020000
-    /* 00E5D4 0000E5D4 8C420000 */  .word 0x8C420000
 endlabel timproc_uso_b5_func_0000E5AC
