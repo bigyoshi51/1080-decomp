@@ -1,9 +1,0 @@
-nonmatching gl_func_0001B6B8, 0x14
-
-glabel gl_func_0001B6B8
-    /* E00790 0001B6B8 400B3000 */  .word 0x400B3000
-    /* E00794 0001B6BC 1560FFFE */  .word 0x1560FFFE
-    /* E00798 0001B6C0 00000000 */  .word 0x00000000
-    /* E0079C 0001B6C4 03E00008 */  .word 0x03E00008
-    /* E007A0 0001B6C8 00000000 */  .word 0x00000000
-endlabel gl_func_0001B6B8

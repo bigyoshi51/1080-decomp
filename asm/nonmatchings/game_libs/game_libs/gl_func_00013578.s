@@ -1,9 +1,0 @@
-nonmatching gl_func_00013578, 0x14
-
-glabel gl_func_00013578
-    /* DF8650 00013578 400B3000 */  .word 0x400B3000
-    /* DF8654 0001357C 1560FFFE */  .word 0x1560FFFE
-    /* DF8658 00013580 00000000 */  .word 0x00000000
-    /* DF865C 00013584 03E00008 */  .word 0x03E00008
-    /* DF8660 00013588 00000000 */  .word 0x00000000
-endlabel gl_func_00013578

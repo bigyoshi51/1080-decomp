@@ -1,9 +1,0 @@
-nonmatching gl_func_0000FE8C, 0x14
-
-glabel gl_func_0000FE8C
-    /* DF4F64 0000FE8C 400B3000 */  .word 0x400B3000
-    /* DF4F68 0000FE90 1560FFFE */  .word 0x1560FFFE
-    /* DF4F6C 0000FE94 00000000 */  .word 0x00000000
-    /* DF4F70 0000FE98 03E00008 */  .word 0x03E00008
-    /* DF4F74 0000FE9C 00000000 */  .word 0x00000000
-endlabel gl_func_0000FE8C
