@@ -85,6 +85,21 @@ void game_uso_func_000005B8(Vec3 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000608);
 
+#ifdef NON_MATCHING
+/* 90% match. Prior commit 764b62d landed this as "100%" but that was
+ * expected-baseline contamination — subsequent refresh-expected-baseline
+ * run reset expected/ to pure baserom bytes and revealed the real diff.
+ *
+ * Real remaining diffs at -O2 (2026-04-20):
+ *   (1) `cnt` in $v1 (mine) vs $v0 (target). Reordering decls is a no-op
+ *       per feedback_ido_sreg_order_not_decl_driven.md.
+ *   (2) In-loop scheduling: target has `or a0,v0,0; jal; sw v0,0x38(s0)` —
+ *       sw in jal2's delay slot. Mine has `sw v0,0x38(s0); jal; or a0,v0,0`.
+ *       Tried swapping store/call order (regressed via extra $s0 alloc).
+ *   (3) Operand order `addu v0,t7,s2` vs target `addu v1,s2,t7` — partially
+ *       fixable via `int off = cnt*4`, but cascaded reg diff from (1) remains.
+ *
+ * Further work: inline cnt at its uses; try permuter; or accept as 90% cap. */
 void game_uso_func_00000724(char *a0) {
     int i;
     int cnt;
@@ -115,6 +130,9 @@ void game_uso_func_00000724(char *a0) {
     *(int*)(a0 + 0x38) = *(int*)(a0 + 0x3C);
     *(int*)(a0 + cnt * 4 + 0x3C) = *(int*)(a0 + cnt * 4 + 0x38);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000724);
+#endif
 
 void game_uso_func_000007E0(int *a0) {
     a0[9] = 0;
