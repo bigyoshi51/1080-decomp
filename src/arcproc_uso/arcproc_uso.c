@@ -6,7 +6,25 @@ typedef struct { int a, b, c, d; } Quad4;
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000000);
 
+#ifdef NON_MATCHING
+/* Quad4 reader template — -O0 variant (per feedback_uso_accessor_o0_variant.md).
+ * Three -O0 signals present:
+ *   (1) unfilled jal delay slot (nop after jal 0 at 0x6C/0x70)
+ *   (2) pointer-indirect buf reload: `addiu t7, sp, 0x18; lw t9, 0(t7)`
+ *       (NOT direct `lw t9, 0x18(sp)`)
+ *   (3) trailing `b +1; nop` before epilogue (at 0x9C/0xA0)
+ * Not matchable at -O2. Promotion to exact requires per-file -O0 override:
+ * split into src/arcproc_uso/arcproc_uso_o0_50.c with
+ *   `build/.../arcproc_uso_o0_50.c.o: OPT_FLAGS := -O0`
+ * and linker script entry. Same template as bootup_uso_o0_* accessors. */
+void arcproc_uso_func_00000050(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000050);
+#endif
 
 void arcproc_uso_func_00001B88(int *a0) {
     int *t;
