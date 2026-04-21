@@ -8,7 +8,16 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000000
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000002C);
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000020C);
+void h2hproc_uso_func_0000020C(int *a0) {
+    int saved = gl_func_00000000(2);
+    a0[2] = gl_func_00000000(8);
+    gl_func_00000000(saved);
+    *a0 = 0;
+    *(int*)((char*)&D_00000000 + 0x14C) = 0;
+    *(int*)a0[2] = 0;
+    *(int*)(a0[2] + 4) = 0;
+    *(int*)((char*)&D_00000000 + 0x68) = 0;
+}
 
 void h2hproc_uso_func_00000274(int *a0) {
     gl_func_00000000((int*)a0[2]);
