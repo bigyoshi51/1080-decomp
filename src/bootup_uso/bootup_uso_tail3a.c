@@ -117,7 +117,18 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001207C);
 void func_00012088(void) {
 }
 
+#ifdef NON_MATCHING
+/* Unmatchable from C at -O2: `addiu t6,-1; sw t6,0x128(a0); jr ra; nop`
+ * (unfilled delay slot, 4 insns) but IDO -O2 schedules the store into the
+ * delay slot producing `addiu t6,-1; jr ra; sw t6,0x128(a0)` (3 insns).
+ * Listed explicitly in feedback_ido_unfilled_store_return.md.
+ * Wrap documents: field_128 = -1 (sentinel clear). */
+void func_00012090(int *a0) {
+    *(int*)((char*)a0 + 0x128) = -1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012090);
+#endif
 
 void func_000120A0(void) {
 }
