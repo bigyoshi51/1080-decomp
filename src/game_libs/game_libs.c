@@ -1399,19 +1399,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003190C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031A74);
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 97.8% — target's `sw a1, 0($at)` at entry uses $at from previous function's trailing `lui $at`; splat boundary artifact */
-extern int gl_func_00000000();
-extern int gl_data_00000000;
-
-void gl_func_00031D7C(int *a0, int a1, int a2) {
-    *a0 = a1;
-    gl_data_00000000 = a2;
-    gl_func_00000000();
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031D7C);
-#endif
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031D78);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031DA4);
 
