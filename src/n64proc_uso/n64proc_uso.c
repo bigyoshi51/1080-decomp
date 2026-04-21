@@ -7,14 +7,32 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000000
 extern char D_00000000;
 
 #ifdef NON_MATCHING
-/* Dispatcher loop on arg1. Two previous semantic bug: do1's first call
- * passed `base` as a0 but target has `a0 = 0` from the dispatch delay
- * slot. Fixed. New structure: plain if-else instead of goto chain, which
- * lets IDO emit the dispatch as `bne skip; <delay=setup>` rather than
- * the goto-expanded `bne skip; b TARGET` pair — closer to target's 3
- * forward branches. Still not exact (~?% TBD): target uses `beq` direct
- * to labels (`beq $a1, $zero, do0`), mine uses `bne skip-forward` which
- * is semantically identical but emits different bytes. */
+/* 33.7% promoted (2026-04-20). Semantic logic is correct:
+ *  - Dispatch loop on arg1
+ *  - arg1==0: call gl_func_00000000(base, 1, 0, 0); then gl_func_00000000(0)→r; then
+ *             gl_func_00000000(arg0, 1, r). Set flag=1.
+ *  - arg1==1: cur = gl_func_00000000(0, 1, 0). set flag=1. gl_func_00000000(base10, cur).
+ *             Branch-likely pattern: if cur[0x14] != 0 then cur[0x04]=1; always cur[0x14]=base.
+ *             Asm uses `beql t6, zero, merge; sw s3, 0x14(s0)` (delay-slot store ON taken) +
+ *             `sw s2, 0x04(s0)` (fall-through) + `sw s3, 0x14(s0)` (at merge). Net effect:
+ *             always store base to 0x14; additionally store 1 to 0x04 when prev value was nonzero.
+ *  - else (fallthrough): no body, just loop-tail.
+ *  - arg1 = base[0x40]. Loop until flag != 0.
+ *
+ * Structural diffs keeping it at 33%:
+ *  1) Target uses $s0-$s5 for: base ($s3), base10 ($s4), arg0-save ($s5), flag ($s1),
+ *     cur ($s0), one=1 ($s2). My build likely uses $t-registers and reloads.
+ *     Need register hints or live-range extension to get IDO to pick $s regs.
+ *  2) Target dispatches via `beq $a1, $zero, do0; or $a0, $s3, $zero (delay)`; `beq $a1,
+ *     $s2, do1; or $a0, $zero, $zero (delay)`; `b loop_tail; or $a0, $zero, $zero`.
+ *     The delay slots carry the a0-setup for the branches. My current if/else-if chain
+ *     won't produce this layout — need a different control-flow shape (maybe a switch
+ *     or explicit goto's with pre-computed a0 values).
+ *  3) Second gl_func_00000000 call in arg1==0 path has a0 = base (from earlier delay
+ *     slot `or a0, s3, zero` at 0x54). My current C may pass different args.
+ *
+ * Next pass: rework dispatch with explicit gotos to pre-position args in delay slots,
+ * and force `register int *cur asm("")` style hints to pin the $s-regs. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     int flag;
     char *base = &D_00000000;
