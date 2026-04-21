@@ -70,25 +70,25 @@ void n64proc_uso_func_00000230(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000268);
 
 #ifdef NON_MATCHING
-/* Dual-branch sub-struct dispatcher (49 insns, 0xC4).
- * Logic: switch on a0[0x50]:
- *   key == 0: operate on sub-struct at a0+0x58
- *   key == 1: operate on sub-struct at a0+0x70
- *   default:  no-op (epilogue)
- * Each branch does 3 gl_func calls with a pre-zeroed 4-float out-buffer
- * at sp+0x34..0x40 passed as the 3rd arg of the first call.
+/* Dual-branch sub-struct dispatcher (51 insns, 0xCC after prologue-stolen fix).
+ * Prior "MYSTERY" (swc1 $f0 without preceding mtc1) resolved 2026-04-20:
+ * splat had mis-attributed the function's base-pointer prologue
+ * `lui $at, 0x3F80; mtc1 $at, $f0` to the predecessor (func_00000268)'s
+ * trailing bytes. Reverse-merged so this function now starts at 0x35C
+ * with $f0 = 1.0f initialized up-front, then stored to buf[4] at sp+0x34.
+ * See feedback_splat_prologue_stolen_by_predecessor.md.
  *
- * MYSTERY: target has `swc1 $f0, 0x34..0x40(sp)` x4 at entry WITHOUT
- * a preceding `mtc1 $0, $f0` — meaning $f0 is inherited uninitialized
- * from caller, yet the 4 stores still happen. Any C that explicitly
- * zeros the buffer will emit the extra mtc1. Likely unreachable without
- * caller-coordinated $f0=0.0f or a specific IDO idiom I don't know yet.
- * Keep NM — compiled path remains INCLUDE_ASM. */
-void n64proc_uso_func_00000364(char *a0) {
-    float buf[4];  /* sp+0x34..0x40 — out-buffer for first gl_func call */
-    int key = *(int*)(a0 + 0x50);
+ * The pre-prologue `lui+mtc1` pattern is not reproducible from standard C
+ * — IDO emits the mtc1 AFTER the addiu sp, not before. Keep NM. */
+void n64proc_uso_func_0000035C(char *a0) {
+    float buf[4];
+    int key;
     int val;
-
+    buf[0] = 1.0f;
+    buf[1] = 1.0f;
+    buf[2] = 1.0f;
+    buf[3] = 1.0f;
+    key = *(int*)(a0 + 0x50);
     if (key == 0) {
         val = *(int*)(a0 + 0x54);
         gl_func_00000000(&D_00000000, val, buf);
@@ -102,7 +102,7 @@ void n64proc_uso_func_00000364(char *a0) {
     }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000364);
+INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000035C);
 #endif
-#pragma GLOBAL_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso/n64proc_uso_func_00000364_pad.s")
+#pragma GLOBAL_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso/n64proc_uso_func_0000035C_pad.s")
 

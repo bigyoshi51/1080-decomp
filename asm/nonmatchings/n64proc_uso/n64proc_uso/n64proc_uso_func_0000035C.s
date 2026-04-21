@@ -1,6 +1,8 @@
-nonmatching n64proc_uso_func_00000364, 0xC4
+nonmatching n64proc_uso_func_0000035C, 0xCC
 
-glabel n64proc_uso_func_00000364
+glabel n64proc_uso_func_0000035C
+    /* 594DB0 0000035C 3C013F80 */  .word 0x3C013F80
+    /* 594DB4 00000360 44810000 */  .word 0x44810000
     /* 594DB8 00000364 27BDFFB8 */  .word 0x27BDFFB8
     /* 594DBC 00000368 AFBF0014 */  .word 0xAFBF0014
     /* 594DC0 0000036C E7A00034 */  .word 0xE7A00034
@@ -50,4 +52,4 @@ glabel n64proc_uso_func_00000364
     /* 594E70 0000041C 27BD0048 */  .word 0x27BD0048
     /* 594E74 00000420 03E00008 */  .word 0x03E00008
     /* 594E78 00000424 00000000 */  .word 0x00000000
-endlabel n64proc_uso_func_00000364
+endlabel n64proc_uso_func_0000035C
