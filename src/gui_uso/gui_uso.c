@@ -68,7 +68,16 @@ int gui_func_000015BC(int a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000015F4);
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000267C);
+extern int gl_func_00000000();
+extern int gui_ref_00000150;
+
+void gui_func_0000267C(char *a0, int a1) {
+    int saved;
+    *(int*)(a0 + 0x14) = a1;
+    saved = gl_func_00000000(7);
+    *(int*)(a0 + 0x10) = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));
+    gl_func_00000000(saved);
+}
 
 void gui_func_000026CC(int *a0, int a1) {
     a0[5] = a1;

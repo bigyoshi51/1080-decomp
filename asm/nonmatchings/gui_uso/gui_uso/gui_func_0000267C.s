@@ -1,4 +1,4 @@
-nonmatching gui_func_0000267C, 0x5C
+nonmatching gui_func_0000267C, 0x50
 
 glabel gui_func_0000267C
     /* 58FBAC 0000267C 27BDFFE0 */  .word 0x27BDFFE0
@@ -21,7 +21,4 @@ glabel gui_func_0000267C
     /* 58FBF0 000026C0 27BD0020 */  .word 0x27BD0020
     /* 58FBF4 000026C4 03E00008 */  .word 0x03E00008
     /* 58FBF8 000026C8 00000000 */  .word 0x00000000
-    /* 58FBFC 000026CC AC850014 */  .word 0xAC850014
-    /* 58FC00 000026D0 03E00008 */  .word 0x03E00008
-    /* 58FC04 000026D4 AC800010 */  .word 0xAC800010
 endlabel gui_func_0000267C
