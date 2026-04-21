@@ -6,7 +6,8 @@ typedef struct { int a, b, c, d; } Quad4;
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000000);
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000000C);
+void h2hproc_uso_func_0000000C(void) {
+}
 
 void h2hproc_uso_func_00000014(int *a0, int a1) {
     a0[a1]++;
