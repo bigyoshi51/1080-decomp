@@ -675,10 +675,58 @@ void game_uso_func_0000751C(char *a0) {
  *   arg1 & 0x08 (guarded by outer->0x938 == 0): set f2 = -1.0f, goto merge;
  *                 otherwise (outer->0x938 != 0) different path
  *
- * REMAINING ~220 insns at 0x7708-0x7A98: arg1 & 0x02 arm, the merge block
- * at 0x7740 (which reads back flag_mask, does final state computation and
- * returns), and the flag2!=0 tail_case at 0x20C (that I first saw at
- * bnel @0x40). Next pass: arg1 & 0x02 arm + merge block body. */
+ * DECODE (insns 116-160 @ 0x7708-0x77B8): arg1 & 0x02 arm + flag-decrement
+ * merge trunk.
+ *
+ * arg1 & 0x02 arm (0x7708-0x773C):
+ *   if (arm_02_fires) {                         // t5 carried from prev arm
+ *       int out_flag = outer->field_938;
+ *       if (out_flag == 0) {
+ *           // branch-likely skip; flow falls back into mask update below
+ *       } else {
+ *           retLo = 0x400;                      // or into return low word
+ *           if (arg1 & 0x100) {
+ *               a0->field_6C = (a1 | 0x100);    // set BOTH bits 0x02 AND 0x100
+ *               a0->field_44 = 0x68;            // animation counter = 104
+ *           }
+ *       }
+ *       a1 = a0->field_6C;                      // reload mask for merge
+ *   }
+ *
+ * FLAG-DECREMENT TRUNK (merge at 0x7740, per-bit-and-counter cleanup):
+ *   // For each bit still set in the active mask (a1 = a0->field_6C), the
+ *   // function decrements its associated countdown timer at a0->field_44
+ *   // and clears the bit when the timer reaches zero.
+ *   //
+ *   // Pattern per bit:
+ *   //   if ((a1 & BIT) != 0) {
+ *   //       retLo |= RET_BITS_FOR_THIS_BIT;
+ *   //       a1 = a0->field_44 - 1;
+ *   //       a0->field_44 = a1;
+ *   //       if (a1 == 0) {
+ *   //           a0->field_6C &= ~MASK_FOR_THIS_BIT;
+ *   //           goto ret;  // short-circuit — don't process lower bits
+ *   //       }
+ *   //   }
+ *   //   // fall through to next bit
+ *   //
+ *   // Decoded per-bit entries so far:
+ *   //   bit 0x01: retLo |= 0x500; clear-mask = ~0xA1 (clears 0x80|0x20|0x01)
+ *   //   bit 0x40: retLo |= 0x100; clear-mask = ~0x40
+ *   //   bit 0x20: (cascades into another outer->0x938 check, continues)
+ *   //
+ *   // Multi-bit clear on bit-0x01 hit suggests bit 0x01 is a "master event"
+ *   // — when its timer expires, three related event bits all reset together.
+ *
+ * REMAINING ~185 insns at 0x77B8-0x7A98: continued flag-decrement trunk for
+ * bits 0x20, 0x80, 0x100, 0x08, 0x04, 0x10; the merge/ret block; the
+ * flag2!=0 tail_case at 0x20C that we first saw at bnel @0x40. Return
+ * packs (retHi, retLo) into (v1, v0) = 64-bit "which-events-fired" word.
+ *
+ * Not ready to write full C yet — too many intermediate branches with
+ * delay-slot-scheduled state mutations (each arm's delay slot does part of
+ * the next arm's setup). Next pass: decode 0x77B8-0x7880 (bits 0x20, 0x80,
+ * 0x100) and the merge block proper. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 
 #ifdef NON_MATCHING
