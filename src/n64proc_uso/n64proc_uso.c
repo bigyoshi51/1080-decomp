@@ -29,7 +29,15 @@ extern char D_00000000;
  * allocation. Allocator's refs-weight gives `one` to $s3, target gives
  * it to $s2 — decl-order is a no-op per sreg_order_not_decl_driven memo.
  *
- * Remaining path: (1) permuter-only. */
+ * (1) TRIED 2026-04-21: permuter random-mode, 3 minutes, ~12k iterations.
+ * Best score 1030 — per the skill's score-band rubric, "1000+ means
+ * structural issues remain." Best output just hoisted `base+0x40` into
+ * a `new_var` local, didn't flip any $s-reg assignments. This confirms
+ * the register-renumber is not reachable from random C-level variation;
+ * the target was likely compiled under a slightly different IDO version
+ * or flag, or with manual `register T x asm("$N")` which IDO rejects.
+ *
+ * No remaining path reachable from C without inline-asm. NM-only. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
