@@ -21,9 +21,24 @@ void h2hproc_uso_func_00000274(int *a0) {
  *   call 1: gl_func_00000000(*(int*)(&D_00000000 + 4))
  *   (*(int*)(&D_00000000 + 0x40)) = 5; call 2: gl_func_00000000(&D_00000000)
  *   (*(int**)&D_00000000)->0x30 = 0; call 3: gl_func_00000000(*(int*)&D_00000000, -1, 0)
- * Offsets and call sequence match target. Register allocation differs on the
- * middle block: target reuses \$a0 as the base pointer for the +0x40 store;
- * my build uses \$a3 (different temp). Semantics correct; cap at 97.95%. */
+ *
+ * Variants tested 2026-04-20 (none improved match, some REGRESSED):
+ *   v2: `int *d = (int*)&D_0; d[0x10] = 5; gl_func(d)` — same output as
+ *       original (31 insns). Using a named `d` local doesn't affect codegen.
+ *   v3: `register char *base = &D_0;` + use `base` throughout — FIXES the
+ *       delay-slot `sw t6, 0x40(a0)` pattern (lui+addiu directly into a0,
+ *       matches target first half). But second half EXPANDS: base isn't
+ *       kept alive across calls, so IDO re-materializes &D_0 via fresh
+ *       lui+lw for each subsequent access. Total: 33 insns (worse than
+ *       original 31; target is 22).
+ *
+ * Fundamental issue: target keeps `v0 = &D_0` alive as a base pointer across
+ * all of the second half (4 refs with only 22 insns). IDO-O2 declines to
+ * hold `&D_0` in a register past call 2 because the spill-vs-rematerialize
+ * cost is close. `register` hint + 5+ refs still doesn't persuade it.
+ *
+ * Cap at 97.95%. Real fix would be permuter-only or a compile-time hint
+ * IDO doesn't expose. Committing this comment IS the forward progress. */
 void h2hproc_uso_func_000002A4(void) {
     int *p;
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
