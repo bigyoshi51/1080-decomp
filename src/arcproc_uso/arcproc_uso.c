@@ -103,6 +103,23 @@ void arcproc_uso_func_000014A8(void) {
     gl_func_00000000();
 }
 
+/* arcproc_uso_func_000014C8: 0x13C (79 insns, 6 gl_func calls) — float-heavy
+ * per-frame update. ENTRY (first 2 insns are PRE-PROLOGUE):
+ *   lui $at, 0x3F80; mtc1 $at, $f0     ; f0 = 1.0f (loaded before sp-dec)
+ *   addiu $sp, $sp, -0x58                ; prologue begins
+ *   sw ra, 0x1C(sp); sw s0, 0x18(sp)
+ *   swc1 f0, 0x48..0x54(sp)             ; zero 4 local floats... wait, f0=1.0 not 0
+ *   lw t6, 0x500(a0)                    ; t6 = a0->field_500
+ *   or s0, a0, zero                     ; s0 = a0 (saved)
+ *   lui $at, %hi(D_XX); beql t6, zero, +0x3E (epilogue)
+ *   ...(76 more insns: 6 gl_func calls, float comparisons c.lt.s/c.eq.s,
+ *   conditional bc1t/bc1f dispatch, probably lerp/clamp patterns)
+ *
+ * Note: the f0=1.0 is HOISTED above the stack-decrement — unusual. The
+ * zero-stores at 0x14DC-0x14E8 write f0 (containing 1.0) to sp+0x48..0x54 —
+ * but semantically those are "zero" slots that get overwritten. Either f0
+ * isn't 1.0 there (re-loaded), or the function uses 1.0 as a fence value.
+ * Multi-run decomp territory. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000014C8);
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001604);
