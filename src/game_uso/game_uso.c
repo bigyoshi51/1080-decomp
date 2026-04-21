@@ -942,7 +942,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 float game_uso_func_00007A98(char *a0) {
     char *table = *(char**)(a0 + 0x30);
     char *v1 = *(char**)(table + 0x908);
-    if (v1 == NULL) return 0.0f;
+    if (v1 == 0) return 0.0f;
     return *(float*)(v1 + 0xBC) - *(float*)(table + 0xBC);
 }
 #else
@@ -1058,7 +1058,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  * Partial C body: ~10 % match guess. Captures entry (panic-on-a2-null
  * + 2 cross-call dispatches with sp+0x190 and sp+0xDC Vec3 locals) +
  * body-part-1 Vec3 copy (a2->0x30 XZ-projection). Body-part-2 (insns
- * 50-344) still `/* TODO */` — it's 300 insns of float scheduling
+ * 50-344) still TODO -- its 300 insns of float scheduling
  * around a quaternion/matrix slot at sp+0x12C.
  *
  * ENTRY DECODE (insns 1-15 @ 0x9B88-0x9BC4):
