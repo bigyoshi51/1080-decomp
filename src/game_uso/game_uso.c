@@ -72,6 +72,8 @@ void game_uso_func_0000039C(Quad4 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
 
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000052C);
+
 void game_uso_func_000005B8(Vec3 *a0) {
     game_uso_func_000001D4(a0);
     game_uso_func_000001D4((Vec3*)((char*)a0 + 0xC));
