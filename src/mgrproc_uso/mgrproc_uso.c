@@ -26,7 +26,30 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000000
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000004C);
 
+#ifdef NON_MATCHING
+/* Refcount-increment wrapper (18 insns, 0x48). -O0 style matching
+ * mgrproc_uso_func_00000000 (int reader at -O0).
+ *
+ * Body: increment a0->field_04 (as int), then call gl_func_00000000(a0).
+ *
+ * -O0 tells in target:
+ *   (a) shadow-space save of a0 at sp+0x28, then reload into $s0 at 0xC0
+ *       (`lw s0, 0x28(sp)`) AND ANOTHER reload into $a0 at 0xD0
+ *       (`lw a0, 0x28(sp)`) — -O0 never shares the reload
+ *   (b) unfilled jal delay slot (`jal 0; nop`)
+ *   (c) dead `b +1; nop` immediately before epilogue (basic-block boundary
+ *       marker per feedback_ido_o0_empty_stub.md)
+ *
+ * To match exact: split mgrproc_uso_func_000000B0 into its own .c with a
+ * `build/src/mgrproc_uso/<file>.c.o: OPT_FLAGS := -O0` override (same infra
+ * as mgrproc_uso_func_00000000 plan and bootup_uso_o0_*.c files). Defer. */
+void mgrproc_uso_func_000000B0(int *a0) {
+    a0[1]++;
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000B0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F8);
 
