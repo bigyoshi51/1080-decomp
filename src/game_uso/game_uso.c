@@ -963,6 +963,39 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
 
+/* game_uso_func_0000D9CC: 0x830 (524 insns), 0x38-byte stack frame.
+ * Strategy-memo spine: 2.0 KB, 26 cross-USO calls, "subsystem" subsystem.
+ * Single function per grep -c 03E00008 (not a bundle).
+ *
+ * ENTRY DECODE (insns 1-16 @ 0xD9CC-0xDA0C):
+ *   *(int*)(a0 + 0x108) = 0;     // clear state flag
+ *   // 3 stack-local zeroes spilled at sp+0x28/0x2C and `1` at sp+0x30
+ *   local_30 = 1; local_2C = 0; local_28 = 0;
+ *   v1 = *(int*)(a0 + 0xB4);      // inner-struct pointer
+ *   s0 = a0;                      // saved copy
+ *   a3 = 0;                       // arg4 accumulator
+ *   if (*(f32*)(v1 + 0x348) > 30.0f) {
+ *       // fallthrough into main body @ 0xDA10
+ *   } else {
+ *       // skip to @ 0xDBDC (far forward) — load 500.0f at delay slot
+ *   }
+ *
+ * Main body is float-heavy with a likely state-machine/dispatch over
+ * several threshold checks (30.0f, 500.0f constants suggest physics
+ * timers or speed thresholds). Uses `mtc1 zero, $fN` + `c.lt.s` gate
+ * pattern repeatedly. 26 cross-USO `jal 0` calls per the spine memo.
+ *
+ * Stack frame is SMALL (0x38 bytes) — this function keeps almost
+ * everything in regs / passes args directly rather than storing locals.
+ * Suggests it's tightly-scheduled compute, NOT an orchestrator.
+ *
+ * NEXT PASS: decode the 30.0f-gate body (0xDA10 onward) — it does
+ * another float load, c.lt.s against 500.0f (via lui 0x43FA), and
+ * branches to 0xDA60 or 0xDA4C based on result. State-machine-like.
+ *
+ * Left as INCLUDE_ASM until enough body is decoded to support a
+ * compile-testable skeleton. The entry decode is the forward progress
+ * for this pass per the skill's multi-run decomp convention. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
