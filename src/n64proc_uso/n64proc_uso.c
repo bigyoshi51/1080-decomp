@@ -57,6 +57,20 @@ extern char D_00000000;
  * correspond to C decl order). This rules out syntactic ordering as a
  * knob for the s2/s3 tiebreak between `one` and `base`.
  *
+ * (7) TRIED 2026-04-21: `flag = 1;` (literal) instead of `flag = one;`
+ * at both sites — to reduce `one`'s ref count so the allocator might
+ * demote it past `base` in the $s-reg priority queue. No change:
+ * both the original `flag = one` body AND the `flag = 1` body now
+ * compile to 33% match, not the ~95% that the earlier (1)-(6) notes
+ * claim. Verified via objdump -M no-aliases of build/.o with
+ * `CPPFLAGS=-DNON_MATCHING`: current output has TWO $s-reg swaps
+ * vs target, not just one — (s2/s3: base/one) AND (s4/s5: base10/
+ * arg0-save). The historical "register keyword promotes to ~95%"
+ * claim no longer reproduces; the 6-local $s-reg allocation is no
+ * longer happening even with `register` everywhere. Something in
+ * IDO/asm-processor/flags changed since (1)-(6) were measured.
+ * Target 7th attempt is correct in logic but can't flip either swap.
+ *
  * No remaining path reachable from C without inline-asm. NM-only. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
