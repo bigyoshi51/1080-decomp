@@ -689,7 +689,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D7B8);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: temp uses a1 not a3 */
+/* 98.64%: null-check + 1-arg call, logic correct. Target uses \$a3 as the
+ * temp for `*(a0+0x6C)`; my build uses \$a1. 3 insns differ only in reg
+ * number (\$a3 vs \$a1):
+ *   lw \$aN, 0x6C(\$a0)
+ *   beql \$aN, \$zero, epilogue
+ *   or \$a0, \$aN, \$zero
+ * Caller-save \$a-class reg choice isn't controllable via register hints
+ * (feedback_ido_no_gcc_register_asm.md, feedback_ido_register_promotes_class_not_number.md).
+ * IDO picks \$a1 (first free arg slot); target has \$a3 (forced by unknown
+ * caller-context pressure). Cap at 98.64%. */
 extern int gl_func_00000000();
 void gl_func_0000D9B8(int *a0) {
     int *p = (int*)a0[0x1B];
