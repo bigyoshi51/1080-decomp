@@ -1,0 +1,33 @@
+{
+  "function_name": "eddproc_uso_func_00000324",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-04-21T17:54:15.580767+00:00",
+  "end_time": "2026-04-21T17:54:15.580814+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-21T17:54:15.580798+00:00",
+      "assistant_text": "Save-arg sentinel split off from 0000025C's splat-bundled tail. jr ra; sw a0,0(sp) = void f(int) {}.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 2,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\ntypedef struct { int a, b, c; } Tri3i;\ntypedef struct { float x, y, z; } Vec3;\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_00000000);\n\nvoid eddproc_uso_func_00000040(float *dst) {\n    float buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid eddproc_uso_func_0000007C(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\nvoid eddproc_uso_func_000000D4(Vec3 *dst) {\n    int pad_top[1];\n    Tri3i raw;\n    int pad_mid[2];\n    Tri3i tmp;\n    int pad_bot[2];\n    gl_func_00000000(&D_00000000, &raw, 12);\n    tmp = raw;\n    dst->x = *(float*)&tmp.a;\n    dst->y = *(float*)&tmp.b;\n    dst->z = *(float*)&tmp.c;\n}\n\nvoid eddproc_uso_func_00000144(int a0, int a1) {\n}\n\nvoid eddproc_uso_func_00000150(int a0, int a1) {\n}\n\nextern int D_00000004;\n\nvoid eddproc_uso_func_0000015C(char *a0) {\n    *(char**)(a0 + 0xC) = &D_00000000 + 0x220;\n    gl_func_00000000(a0);\n    gl_func_00000000(a0, 0xD6, 0x13, *(char**)(a0 + 0x44) + 0x10);\n    gl_func_00000000(a0, 0x6C, 0x11, (char*)a0 + 0xA0);\n    *(int*)(a0 + 0xA0) = 0x2328;\n    *(int*)(a0 + 0xA4) = 0;\n    *(int*)&D_00000000 = gl_func_00000000(0x3E80);\n    D_00000004 = 0;\n    gl_func_00000000(a0);\n}\n\nvoid eddproc_uso_func_000001E8(char *a0) {\n    if (*(int*)(&D_00000000 + 0x74) == 0) {\n        gl_func_00000000();\n        gl_func_00000000(a0);\n        if ((*(int*)(a0 + 0xA0) -= 0xA) < 0) {\n            *(int*)(a0 + 0xA0) = 0;\n        }\n    }\n    gl_func_00000000(a0);\n    gl_func_00000000(*(int*)(a0 + 0x84), *(int*)(a0 + 0xA0), 1);\n    gl_func_00000000(a0);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_0000025C);\n\nvoid eddproc_uso_func_00000324(int a0) {\n}\n\nvoid eddproc_uso_func_0000032C(char *dst) {\n    int tmp;\n    gl_func_00000000(&tmp);\n    gl_func_00000000(dst + 0x10);\n}\n\nvoid eddproc_uso_func_0000035C(char *dst) {\n    int tmp;\n    gl_func_00000000(&tmp);\n    eddproc_uso_func_00000040((float*)(dst + 0x10));\n}\n\nvoid eddproc_uso_func_0000038C(char *dst) {\n    int tmp;\n    gl_func_00000000(&tmp);\n    eddproc_uso_func_0000007C((Quad4*)(dst + 0x10));\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso\", eddproc_uso_func_000003BC);\n\nvoid eddproc_uso_func_0000044C(char *dst) {\n    int tmp;\n    gl_func_00000000(&tmp);\n    eddproc_uso_func_000000D4((Vec3*)(dst + 0x10));\n}\n#pragma GLOBAL_ASM(\"asm/nonmatchings/eddproc_uso/eddproc_uso/eddproc_uso_func_0000044C_pad.s\")\n\n",
+  "metadata": {
+    "source_path": "src/eddproc_uso/eddproc_uso.c",
+    "asm_path": "asm/nonmatchings/eddproc_uso/eddproc_uso/eddproc_uso_func_00000324.s",
+    "segment": "eddproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff report.json: fuzzy_match_percent=100.0, size=8 bytes (2 insns)."
+  }
+}

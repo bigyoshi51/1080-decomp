@@ -68,6 +68,9 @@ void eddproc_uso_func_000001E8(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000025C);
 
+void eddproc_uso_func_00000324(int a0) {
+}
+
 void eddproc_uso_func_0000032C(char *dst) {
     int tmp;
     gl_func_00000000(&tmp);

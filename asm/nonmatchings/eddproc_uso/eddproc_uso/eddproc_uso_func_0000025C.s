@@ -1,4 +1,4 @@
-nonmatching eddproc_uso_func_0000025C, 0xD0
+nonmatching eddproc_uso_func_0000025C, 0xC8
 
 glabel eddproc_uso_func_0000025C
     /* 59F6DC 0000025C 27BDFFE0 */  .word 0x27BDFFE0
@@ -51,6 +51,4 @@ glabel eddproc_uso_func_0000025C
     /* 59F798 00000318 00C01025 */  .word 0x00C01025
     /* 59F79C 0000031C 03E00008 */  .word 0x03E00008
     /* 59F7A0 00000320 00000000 */  .word 0x00000000
-    /* 59F7A4 00000324 03E00008 */  .word 0x03E00008
-    /* 59F7A8 00000328 AFA40000 */  .word 0xAFA40000
 endlabel eddproc_uso_func_0000025C
