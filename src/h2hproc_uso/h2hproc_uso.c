@@ -16,7 +16,26 @@ void h2hproc_uso_func_00000274(int *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00000274_pad.s")
 
+#ifdef NON_MATCHING
+/* 97.95%: 3-call orchestrator with 2 side-effect stores.
+ *   call 1: gl_func_00000000(*(int*)(&D_00000000 + 4))
+ *   (*(int*)(&D_00000000 + 0x40)) = 5; call 2: gl_func_00000000(&D_00000000)
+ *   (*(int**)&D_00000000)->0x30 = 0; call 3: gl_func_00000000(*(int*)&D_00000000, -1, 0)
+ * Offsets and call sequence match target. Register allocation differs on the
+ * middle block: target reuses \$a0 as the base pointer for the +0x40 store;
+ * my build uses \$a3 (different temp). Semantics correct; cap at 97.95%. */
+void h2hproc_uso_func_000002A4(void) {
+    int *p;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
+    *(int*)((char*)&D_00000000 + 0x40) = 5;
+    gl_func_00000000(&D_00000000);
+    p = *(int**)&D_00000000;
+    *(int*)((char*)p + 0x30) = 0;
+    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002A4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002FC);
 
