@@ -1,6 +1,8 @@
-nonmatching eddproc_uso_func_000001F0, 0x6C
+nonmatching eddproc_uso_func_000001E8, 0x74
 
-glabel eddproc_uso_func_000001F0
+glabel eddproc_uso_func_000001E8
+    /* 59F668 000001E8 3C0E0000 */  .word 0x3C0E0000
+    /* 59F66C 000001EC 8DCE0074 */  .word 0x8DCE0074
     /* 59F670 000001F0 27BDFFE0 */  .word 0x27BDFFE0
     /* 59F674 000001F4 AFB00018 */  .word 0xAFB00018
     /* 59F678 000001F8 00808025 */  .word 0x00808025
@@ -28,4 +30,4 @@ glabel eddproc_uso_func_000001F0
     /* 59F6D0 00000250 27BD0020 */  .word 0x27BD0020
     /* 59F6D4 00000254 03E00008 */  .word 0x03E00008
     /* 59F6D8 00000258 00000000 */  .word 0x00000000
-endlabel eddproc_uso_func_000001F0
+endlabel eddproc_uso_func_000001E8

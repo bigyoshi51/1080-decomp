@@ -49,17 +49,8 @@ INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000014
 
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_00000150);
 
-#ifdef NON_MATCHING
-/* 5-call orchestrator with saved $s0=a0. Sets up 0xA0/0xA4 struct fields
- * plus two data-symbol stores (D_<eddproc>_B = retval of 4th call; +4 = 0).
- * 31 "real" insns + 2 stray `lui+lw` at 0x1E8/0x1EC past jr-ra (inside
- * declared size 0x94 — see feedback_uso_stray_trailing_insns.md: caps
- * match %, pad-sidecar may help). This pass: structure only — needs unique
- * D_eddproc_N extern symbols per call site (feedback_uso_multi_placeholder_wrapper.md)
- * and a base data symbol for the +0x220 pointer. Using standard D_00000000
- * + offset for the pointer store (same convention as other USO wrappers);
- * the per-site function extern would be unique `gl_func_00000000_N` names
- * each mapped to 0x0 in undefined_syms_auto.txt (deferred to next pass). */
+extern int D_00000004;
+
 void eddproc_uso_func_0000015C(char *a0) {
     *(char**)(a0 + 0xC) = &D_00000000 + 0x220;
     gl_func_00000000(a0);
@@ -68,14 +59,11 @@ void eddproc_uso_func_0000015C(char *a0) {
     *(int*)(a0 + 0xA0) = 0x2328;
     *(int*)(a0 + 0xA4) = 0;
     *(int*)&D_00000000 = gl_func_00000000(0x3E80);
-    *((int*)&D_00000000 + 1) = 0;
+    D_00000004 = 0;
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000015C);
-#endif
 
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000001F0);
+INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000001E8);
 
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000025C);
 
