@@ -64,6 +64,40 @@ void n64proc_uso_func_00000230(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000268);
 
+#ifdef NON_MATCHING
+/* Dual-branch sub-struct dispatcher (49 insns, 0xC4).
+ * Logic: switch on a0[0x50]:
+ *   key == 0: operate on sub-struct at a0+0x58
+ *   key == 1: operate on sub-struct at a0+0x70
+ *   default:  no-op (epilogue)
+ * Each branch does 3 gl_func calls with a pre-zeroed 4-float out-buffer
+ * at sp+0x34..0x40 passed as the 3rd arg of the first call.
+ *
+ * MYSTERY: target has `swc1 $f0, 0x34..0x40(sp)` x4 at entry WITHOUT
+ * a preceding `mtc1 $0, $f0` — meaning $f0 is inherited uninitialized
+ * from caller, yet the 4 stores still happen. Any C that explicitly
+ * zeros the buffer will emit the extra mtc1. Likely unreachable without
+ * caller-coordinated $f0=0.0f or a specific IDO idiom I don't know yet.
+ * Keep NM — compiled path remains INCLUDE_ASM. */
+void n64proc_uso_func_00000364(char *a0) {
+    float buf[4];  /* sp+0x34..0x40 — out-buffer for first gl_func call */
+    int key = *(int*)(a0 + 0x50);
+    int val;
+
+    if (key == 0) {
+        val = *(int*)(a0 + 0x54);
+        gl_func_00000000(&D_00000000, val, buf);
+        gl_func_00000000(a0 + 0x58);
+        gl_func_00000000(a0 + 0x58, 0xA0, 0x78, 3);
+    } else if (key == 1) {
+        val = *(int*)(a0 + 0x54);
+        gl_func_00000000(&D_00000000, val, buf);
+        gl_func_00000000(a0 + 0x70);
+        gl_func_00000000(a0 + 0x70, 0xA0, 0x78, 3);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000364);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso/n64proc_uso_func_00000364_pad.s")
 
