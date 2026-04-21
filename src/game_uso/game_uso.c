@@ -472,33 +472,47 @@ void game_uso_func_000057B8(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
 
-/* game_uso_func_00005924: 0x110C (1100 insns, 4.3 KB) — strategy-memo spine
+/* game_uso_func_0000591C: 0x1114 (1102 insns, 4.3 KB) — strategy-memo spine
  * candidate #2 (~29 cross-USO calls).  0x1D0-byte stack frame.
  *
- * ENTRY PROLOGUE (insns 1-5 @ 0x5924-0x5934):
+ * Boundary-fixed 2026-04-20: splat originally put the glabel at 0x5924,
+ * but the preceding `game_uso_func_000057D8` had 2 trailing `.word`
+ * instructions (`lui $t6, 0; lw $t6, 0x78($t6)`) that semantically
+ * belong to this function as its $t6 setup — without them, the `bne
+ * $t6, zero, epilogue` at 0x5930 reads an uninitialized register. Per
+ * feedback_splat_prologue_stolen_by_predecessor.md, reverse-merged:
+ * trimmed 57D8 from 0x14C → 0x144 and prepended the 2 insns to this
+ * function, renaming its glabel from 5924 → 591C.
+ *
+ * ENTRY PROLOGUE (insns 1-7 @ 0x591C-0x5934):
+ *   lui   t6, 0
+ *   lw    t6, 0x78(t6)          ; t6 = *(int*)(&D_0 + 0x78) = global flag
  *   addiu sp, -0x1D0
  *   sw    s0, 0x20(sp)
- *   or    s0, a0, 0          ; spill $a0 to $s0 (used throughout)
- *   bne   t6, zero, 0x6A1C   ; <-- ODDITY: $t6 is uninitialized here!
- *   sw    ra, 0x24(sp)         ; (bne delay slot)
+ *   or    s0, a0, 0              ; s0 = a0 (spilled)
+ *   bne   t6, zero, 0x6A1C       ; if global_flag != 0 goto epilogue
+ *   sw    ra, 0x24(sp)            ; (bne delay slot)
  *
- * The bne reads $t6 before anything in this function writes it. Target
- * 0x6A1C is the epilogue (lw ra; lw s0; addiu sp,+0x1D0; jr ra; nop).
- * Possibilities: (a) original source declared `register int x asm("$t6")`
- * in a caller context; (b) caller leaked $t6 with a compile-time known
- * value; (c) this is a splat cross-function-code-sharing artifact where
- * most callers enter at a LATER address than 0x5924. Leave INCLUDE_ASM;
- * fix requires understanding the calling convention first.
+ * Then:
+ *   lui   t7, 0; lw t7, 0(t7)    ; t7 = *(&D_0)
+ *   beql  t7, zero, 0x6A1C       ; if *&D_0 == 0 goto epilogue (reload ra in delay)
+ *   lw    v0, 0x68(a0)           ; v0 = a0->field_68 (flag byte)
+ *   andi  t8, v0, 0x1
+ *   beq   t8, zero, +5           ; if !(v0 & 1) skip call-0x1 block
+ *   andi  t9, v0, 0x2            ; delay: t9 = v0 & 2
+ *   jal   0                      ; gl_func_0()  (no args, side effect)
+ *    nop                          ; delay (unfilled)
+ *   b     0x6A1C                 ; goto epilogue
  *
- * BODY STRUCTURE (rough): multiple `andi` mask extracts on a0[0x68] flag
- * byte (bit 0, bit 1, bit 2, bit 3 each gate a separate code block), then
- * falls through to a large per-frame update loop with cross-USO calls and
- * float math on a0+0x148..0x1C4 sub-buffers.
+ * BODY STRUCTURE (rough): per-bit dispatch on a0[0x68] (bits 1, 2, 4, ...),
+ * each bit handler does a short gl_func call and returns; fall-through to
+ * a large per-frame update loop with cross-USO calls and float math on
+ * a0+0x148..0x1C4 sub-buffers.
  *
- * Deferred: full decode requires typed struct for the 0x4E0-byte main
- * object (same struct constructed by game_uso_func_000044F4). Multi-run
- * decomp expected. */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00005924);
+ * Full decode deferred — 1100 insns and requires typed struct for the
+ * 0x4E0-byte main object (same struct constructed by
+ * game_uso_func_000044F4). Multi-run decomp expected. */
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
 
