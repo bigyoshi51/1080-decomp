@@ -6,7 +6,9 @@ typedef struct { int a, b, c, d; } Quad4;
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000000);
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000098);
+void titproc_uso_func_00000098(void) {
+    gl_func_00000000(&D_00000000 + 0x60, 1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000000C0);
 
