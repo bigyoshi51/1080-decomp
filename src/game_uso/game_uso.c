@@ -153,12 +153,28 @@ void game_uso_func_00001DC4(void *a0) {
  *   //   into both t6[0x60..0x68] and back into v1[0xA0..0xA8]
  *   // (routine mirrors a Vec3 then writes it back, same 3 floats)
  *   goto late_label (b +0x15A from 0x1E58) — skip ~350 insns of other cases
- * REMAINING 350+ insns: multiple dispatch cases (key=1, 2, 4, 5, ...? unknown
- * yet) each doing Vec3 math / struct copies, converging on the final_exit.
- * NEXT PASS: decode branch_at_88 (the non-3 fallthrough), then the other
- * dispatch cases. The frame is 0x180 bytes so there are ~3 Vec3-worth of
- * local spills for intermediate math. Likely a per-subsystem update driven
- * by an enum/tag at a0[0x40].
+ *
+ * CASE key != 3 (branch_at_88 @ 0x1E60, ~25 insns decoded 2026-04-20):
+ *   t7 = a2->0x14                ; (a2 = entity ptr, same as a0 via $a2 reuse)
+ *   scratch_a = sp+0xFC          ; local sub-struct arg
+ *   spill t7 at sp+0x12C for reload
+ *   Copy Vec3 from t7+0xA0..0xA8 to sp+0x13C  (referenced sub-obj Vec3)
+ *   v1 = a2->0x38                ; another sub-obj ptr
+ *   Copy Vec3 from v1+0xA0..0xA8 to sp+0x130  (IDO-style: increments v1
+ *     by 0x70 between reads so v1[0xA4] becomes (v1+0x70)[0x34])
+ *   spill a2 at sp+0x180
+ *   call gl_func_00000000(scratch_a, a2)  ; returns Vec3* in v0
+ *   Copy 3 words from *v0 to sp+0x154    ; callee-result Vec3
+ *   Element-wise add: sp+0x130[i] += sp+0x154[i] (for i=0,1,2)
+ *     → adjusts sub-obj Vec3 by callee-supplied delta
+ *   mtc1 zero, f14               ; f14 = 0.0f (used later)
+ *   (continues with more float math at 0x1F00+)
+ *
+ * REMAINING 300+ insns: more dispatch cases plus the late_label
+ * convergence point and final_exit. The key=3 path is short; the non-3
+ * path is where the real work happens.
+ * NEXT PASS: decode 0x1F00-0x2050 (continuation of non-3 case), identify
+ * call signatures of gl_func_00000000 invocations.
  * Leaving as INCLUDE_ASM until the next pass produces enough decoded body
  * to be worth wrapping. Committing this comment IS the forward progress
  * per the skill's "NM wrap with whatever partial C you get" rule — a stub
