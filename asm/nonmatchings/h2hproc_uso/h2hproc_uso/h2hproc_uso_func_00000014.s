@@ -1,0 +1,10 @@
+nonmatching h2hproc_uso_func_00000014, 0x18
+
+glabel h2hproc_uso_func_00000014
+    /* 5AB6C4 00000014 00057080 */  .word 0x00057080
+    /* 5AB6C8 00000018 008E1021 */  .word 0x008E1021
+    /* 5AB6CC 0000001C 8C4F0000 */  .word 0x8C4F0000
+    /* 5AB6D0 00000020 25F80001 */  .word 0x25F80001
+    /* 5AB6D4 00000024 03E00008 */  .word 0x03E00008
+    /* 5AB6D8 00000028 AC580000 */  .word 0xAC580000
+endlabel h2hproc_uso_func_00000014
