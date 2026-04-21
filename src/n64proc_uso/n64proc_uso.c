@@ -23,8 +23,13 @@ extern char D_00000000;
  * base. This is IDO's scheduler folding the load into the beq delay slot
  * rematerialization path. No straightforward C rewrite reproduces it.
  *
- * Next passes: (1) permuter to hit the $s-reg renumber, (2) eliminate `one`
- * local and use literal 1s to change weight distribution. */
+ * (2) TRIED 2026-04-20: eliminating `one` local and using literal 1s made
+ * the diff worse (regressed to 5+ register-renumber mismatches vs the
+ * current 4). `one` as a named local IS needed to keep its $s-reg
+ * allocation. Allocator's refs-weight gives `one` to $s3, target gives
+ * it to $s2 — decl-order is a no-op per sreg_order_not_decl_driven memo.
+ *
+ * Remaining path: (1) permuter-only. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
