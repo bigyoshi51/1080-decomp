@@ -604,9 +604,15 @@ void game_uso_func_0000751C(char *a0) {
     *(float*)(t + 0x10) = *(float*)(a0 + 0x354) * *(float*)(a0 + 0x4C8);
 }
 
+#ifdef NON_MATCHING
 /* game_uso_func_00007538: 0x560 (344 insns) — largest residue of the split-up
- * 0x7424 bundle (was bundled with 7424/7448/74D8/751C/7A98/7ABC, now alone).
- * Likely the "real" per-frame compute function per game_uso_map.md's heuristic.
+ * 0x7424 bundle. Per-frame event dispatcher + per-bit timer decrementer.
+ *
+ * Partial C body below: ~20 % match guess. Captures prelude + dispatch
+ * outline + epilogue; many arm bodies are TODO-stubbed with correct
+ * control-flow targets but no per-bit state mutations yet. Next pass
+ * should compare objdiff output per-arm and fill in the TODO placeholders
+ * embedded in each arm.
  *
  * DECODE (insns 1-40 @ 0x7538-0x75D4):
  *   Setup:
@@ -733,7 +739,121 @@ void game_uso_func_0000751C(char *a0) {
  * delay-slot-scheduled state mutations (each arm's delay slot does part of
  * the next arm's setup). Next pass: decode 0x77B8-0x7880 (bits 0x20, 0x80,
  * 0x100) and the merge block proper. */
+void game_uso_func_00007538(int *a0, int a1) {
+    int ret_lo = 0;
+    int a1_saved = a1;
+    int counter, flags, flag2;
+    int *outer;
+    float f0 = 0.0f, f2 = 0.0f, f_tmp;
+
+    counter = a0[0x50 / 4];
+    if (counter > 0) a0[0x50 / 4] = counter - 1;
+    flags = a0[0x48 / 4];
+    if ((flags & 0x10) == 0) a0[0x48 / 4] = flags - 1;
+
+    flag2 = a0[0x6C / 4];
+    if (flag2 != 0) goto trunk;
+
+    /* ==== DISPATCH CASCADE (flag2 == 0) ==== */
+    if (a1 & 0x10) {
+        outer = (int*)a0[0x30 / 4];
+        if (outer[0x938 / 4] != 0) {
+            f_tmp = *(float*)&a0[0x38 / 4];
+            *(float*)&a0[0x3C / 4] = (f_tmp >= 0.0f) ? 1.0f : -1.0f;
+        }
+    }
+    a1 = a0[0x6C / 4];
+
+    if (a1 & 0x01) {
+        if (flags != 0) goto check_40;
+        a0[0x6C / 4] = a1 | 0x01;
+        a0[0x44 / 4] = 91;
+        goto trunk;
+    }
+check_40:
+    if (a1 & 0x04) {
+        a0[0x6C / 4] = a1 | 0x40;
+        a0[0x44 / 4] = 13;
+        goto trunk;
+    }
+    if (a1 & 0x20) {
+        if (counter != 0) goto check_80;
+        /* arg1 & 0x04 arm: reset counter + set f2 = 1.0f, retHi = 1 */
+        a0[0x50 / 4] = 8;
+        f2 = 1.0f;
+        /* retHi handling omitted — stored to v1 path */
+        goto trunk;
+    }
+check_80:
+    if (a1 & 0x80) {
+        /* arg1 & 0x20 arm body: fabs(outer->0xB4) % 9 */
+        outer = (int*)a0[0x30 / 4];
+        f_tmp = *(float*)&outer[0xB4 / 4];
+        if (f_tmp < 0.0f) f_tmp = -f_tmp;
+        a0[0x44 / 4] = 60;
+        a0[0x58 / 4] = (int)f_tmp % 9;
+        goto trunk;
+    }
+    if (a1 & 0x100) {
+        /* arg1 & 0x80 arm body */
+        a0[0x6C / 4] = a1 | 0x80;
+        a0[0x4C / 4] = 0;
+        a0[0x44 / 4] = 2;
+        goto trunk;
+    }
+    if (a1 & 0x08) {
+        outer = (int*)a0[0x30 / 4];
+        if (outer[0x938 / 4] == 0) {
+            f2 = -1.0f;
+            goto trunk;
+        }
+        /* else: outer->0x938 != 0 — different path — TODO */
+    }
+    if (a1 & 0x02) {
+        outer = (int*)a0[0x30 / 4];
+        if (outer[0x938 / 4] != 0) {
+            ret_lo |= 0x400;
+            if (a1 & 0x100) {
+                a0[0x6C / 4] = a1_saved | 0x100;
+                a0[0x44 / 4] = 0x68;
+            }
+        }
+        a1 = a0[0x6C / 4];
+    }
+
+trunk:
+    /* ==== FLAG-DECREMENT TRUNK (0x7744-0x7A??) ==== */
+    /* Per-bit: if (a1 & BIT), decrement a0[0x44], OR ret_lo bits, and on
+     * zero clear the bit in a0[0x6C]. Currently only bits 0x01 / 0x40 / 0x20
+     * are decoded; 0x80 / 0x100 / 0x08 / 0x04 / 0x10 are TODO. */
+    if (a1 & 0x01) {
+        ret_lo |= 0x500;
+        counter = a0[0x44 / 4] - 1;
+        a0[0x44 / 4] = counter;
+        if (counter == 0) {
+            a0[0x6C / 4] &= ~0xA1;  /* clears 0x80|0x20|0x01 together */
+            goto ret;
+        }
+    }
+    if (a1 & 0x40) {
+        ret_lo |= 0x100;
+        counter = a0[0x44 / 4] - 1;
+        a0[0x44 / 4] = counter;
+        if (counter == 0) {
+            a0[0x6C / 4] &= ~0x40;
+            goto ret;
+        }
+    }
+    /* TODO: bits 0x20, 0x80, 0x100, 0x08, 0x04, 0x10 — see asm 0x77A0-0x7A08 */
+
+ret:
+    /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94) */
+    outer = (int*)a0[0x30 / 4];
+    ((int*)outer[0x800 / 4])[0x40 / 4] = ret_lo;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
+#endif
 
 #ifdef NON_MATCHING
 /* 9 insns. Decoded semantics:
