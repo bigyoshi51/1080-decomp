@@ -1,0 +1,33 @@
+{
+  "function_name": "arcproc_uso_func_00000050",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-04-21T02:41:36.566144+00:00",
+  "end_time": "2026-04-21T02:41:36.566186+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-04-21T02:41:36.566173+00:00",
+      "assistant_text": "Quad4 reader accessor template, -O0 variant per feedback_uso_accessor_o0_variant.md. Split arcproc_uso.c into three files: arcproc_uso.c (0x0-0x50 INCLUDE_ASM func_00000000), arcproc_uso_o0_50.c (0x50-0xB4 this accessor at -O0), and arcproc_uso_tail1.c (0xB4+). Same pattern as bootup_uso_o0_* files.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 25,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 run at 0x50: Quad4 reader accessor template. See\n * feedback_uso_accessor_o0_variant.md. */\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nvoid arcproc_uso_func_00000050(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n",
+  "metadata": {
+    "source_path": "src/arcproc_uso/arcproc_uso_o0_50.c",
+    "asm_path": "asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_00000050.s",
+    "segment": "arcproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff \u2014 arcproc_uso_o0_50 unit at 100%."
+  }
+}

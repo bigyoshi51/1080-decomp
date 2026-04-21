@@ -27,6 +27,9 @@ CPPFLAGS := -I include -I src
 LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map --no-check-sections
 
 # Per-file optimization overrides (O1 libultra functions, O0 empty stubs)
+build/src/arcproc_uso/arcproc_uso_o0_50.c.o: OPT_FLAGS := -O0
+build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
+build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0x64
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: OPT_FLAGS := -O0

@@ -1226,6 +1226,38 @@
       }
     },
     {
+      "name": "src/arcproc_uso/arcproc_uso_o0_50",
+      "target_path": "expected/src/arcproc_uso/arcproc_uso_o0_50.c.o",
+      "base_path": "build/src/arcproc_uso/arcproc_uso_o0_50.c.o",
+      "metadata": {
+        "source_path": "src/arcproc_uso/arcproc_uso_o0_50.c",
+        "progress_categories": [
+          "arcproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/arcproc_uso/arcproc_uso_tail1",
+      "target_path": "expected/src/arcproc_uso/arcproc_uso_tail1.c.o",
+      "base_path": "build/src/arcproc_uso/arcproc_uso_tail1.c.o",
+      "metadata": {
+        "source_path": "src/arcproc_uso/arcproc_uso_tail1.c",
+        "progress_categories": [
+          "arcproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
       "name": "src/h2hproc_uso/h2hproc_uso",
       "target_path": "expected/src/h2hproc_uso/h2hproc_uso.c.o",
       "base_path": "build/src/h2hproc_uso/h2hproc_uso.c.o",
