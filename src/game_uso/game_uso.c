@@ -622,14 +622,32 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *   // is trivially true (stack addr nonzero) — suggests compiler generated
  *   // null-guard around a pointer obtained from `local.field` indirection.
  *
- * BODY (insns 15-344 @ 0x9BC4-0x10E8): heavy float math (many lwc1/mul.s/
- *   add.s/sub.s on sp+0x12C..sp+0x148, a quaternion or matrix slot), multiple
- *   cross-USO calls (`jal 0` placeholders — 11 per memo), several struct
- *   stores to sp+0x0C4..sp+0x144 (local buffer region).
+ * BODY PART 1 (insns 15-50 @ 0x9BC4-0x9C54): dual Vec3-copy + math.
+ *   local1 = sp+0x190:  // 3 floats
+ *     local1[0] = a2[0x30].x; local1[1] = 0.0f; local1[2] = a2[0x30].z;
+ *   local2 = sp+0xDC:  // another 3-float struct, guarded by bne
+ *     local2[0] = a1[0x30].x ± a2-src; local2[1] = a1[0x38] mul ...;
+ *     (math: 0x9C28 mtc1/mul.s, 0x9C38 sub.s on $f8/$f10 — scale/offset
+ *      of the Vec3 from a2+0x30 against something from a1+0x30/0x38)
+ *   local3 = sp+0xEC:  // 3-word int-style struct
+ *     local3[0..8] = a1[0x30..0x38].intbits  // raw word copy (8C/AC pattern)
+ *   local4 = sp+0x9C, local5 = sp+0x144:  more 3-word copies from a1 and
+ *     stored to multiple slots — function is building a per-frame working
+ *     set of transformed coordinates from the per-object anchor (a1+0x30).
+ *
+ * BODY PART 2 (insns 50-344 @ 0x9C54-0x10E8): heavy float math (many
+ *   lwc1/mul.s/add.s/sub.s on sp+0x12C..sp+0x148, a quaternion or matrix
+ *   slot), multiple cross-USO calls (`jal 0` placeholders — 11 per memo),
+ *   several struct stores to sp+0x0C4..sp+0x144 (local buffer region).
+ *   Scale constant 0xC7A ≈ 250.0f at 0x9D0C, offset 0x4248 ≈ 50.0f at 0x9D1C
+ *   — suggests coordinate/angle scaling.
  *
  * Deferred to future passes: full body decode is ~300 insns of float sched;
- *   one /decompile run reads the prologue — subsequent runs will tighten
- *   the dispatch logic and body math. */
+ *   one /decompile run expands prologue + body-part-1 — subsequent runs will
+ *   tighten the dispatch logic and body math. The dual Vec3-copy entry
+ *   strongly suggests this is a coordinate-transform function: takes
+ *   (context, anchor, src-Vec3) and produces a transformed Vec3 written to
+ *   one of several local slots for downstream cross-USO dispatch. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
