@@ -4276,7 +4276,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F160);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F38C);
 
+#ifdef NON_MATCHING
+/* return (a0 & 3) != 0 ? 1 : 0
+ * 9 insns target with UNUSUAL forced stack frame (addiu sp, -8 /+8)
+ * and explicit `b` to epilogue — IDO -O0/-O1/-O2 all emit leafy
+ * output without the stack frame (tested 3 opt levels + local decl
+ * + &a0-take). Probably compiled with per-file override or
+ * hand-written. Semantics correct. */
+int gl_func_0006F3BC(int a0) {
+    if ((a0 & 3) == 0) return 0;
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3BC);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F3BC_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3E4);
