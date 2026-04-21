@@ -580,7 +580,8 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002DA4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002F90);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031B8);
+void func_000031B8(int a0) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
 
