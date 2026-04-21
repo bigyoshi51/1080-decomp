@@ -6,55 +6,36 @@ typedef struct { int a, b, c, d; } Quad4;
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000000);
 
-void timproc_uso_b5_func_00000040(void) {
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000040);
 
-void timproc_uso_b5_func_00000048(void) {
-}
 
-void timproc_uso_b5_func_00000050(void) {
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000048);
+
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000050);
+
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000024C);
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000024C_pad.s")
 
-void timproc_uso_b5_func_00000330(int *dst) {
-    int buf[2];
-    gl_func_00000000(&D_00000000, buf, 4);
-    *dst = buf[0];
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000330);
 
-void timproc_uso_b5_func_0000036C(float *dst) {
-    float buf[2];
-    gl_func_00000000(&D_00000000, buf, 4);
-    *dst = buf[0];
-}
 
-void timproc_uso_b5_func_000003A8(Quad4 *dst) {
-    Quad4 buf;
-    gl_func_00000000(&D_00000000, &buf, 16);
-    *dst = buf;
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000036C);
+
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000003A8);
+
 
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
-void timproc_uso_b5_func_00000400(Vec3 *dst) {
-    int pad_top[1];
-    Tri3i raw;
-    int pad_mid[2];
-    Tri3i tmp;
-    int pad_bot[2];
-    gl_func_00000000(&D_00000000, &raw, 12);
-    tmp = raw;
-    dst->x = *(float*)&tmp.a;
-    dst->y = *(float*)&tmp.b;
-    dst->z = *(float*)&tmp.c;
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000400);
 
-void timproc_uso_b5_func_00000470(void) {
-}
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000470);
+
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000478);
 
@@ -64,10 +45,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 void timproc_uso_b5_func_00000000();
 
-void timproc_uso_b5_func_0000115C(int *a0) {
-    *(int*)((char*)a0 + 0x34) = 0;
-    timproc_uso_b5_func_00000000(a0);
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000115C);
+
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000117C);
 
@@ -163,10 +142,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
 
-int timproc_uso_b5_func_00008F98(int *a0) {
-    int *p = (int*)((int*)a0[0x2C/4])[0x28/4];
-    return ((int(*)(int))p[0x5C/4])((int)(int*)a0[0x2C/4] + *(short*)((char*)p + 0x58));
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008F98);
+
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
 
@@ -174,47 +151,36 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A9EC);
 
-void timproc_uso_b5_func_0000AA5C(char *dst) {
-    int tmp;
-    timproc_uso_b5_func_00000330(&tmp);
-    timproc_uso_b5_func_00000330((int*)(dst + 0x10));
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AA5C);
 
-void timproc_uso_b5_func_0000AA8C(char *dst) {
-    int tmp;
-    timproc_uso_b5_func_00000330(&tmp);
-    timproc_uso_b5_func_0000036C((float*)(dst + 0x10));
-}
 
-void timproc_uso_b5_func_0000AABC(char *dst) {
-    int tmp;
-    timproc_uso_b5_func_00000330(&tmp);
-    timproc_uso_b5_func_000003A8((Quad4*)(dst + 0x10));
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AA8C);
 
-void timproc_uso_b5_func_0000AAEC(int a0) {
-}
 
-void timproc_uso_b5_func_0000AAF4(char *dst) {
-    int tmp;
-    timproc_uso_b5_func_00000330(&tmp);
-    timproc_uso_b5_func_00000400((Vec3*)(dst + 0x10));
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AABC);
+
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AAEC);
+
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AAF4);
+
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AB24);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000ABB4);
 
-void timproc_uso_b5_func_0000ABC8(int a0, int a1) {
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000ABC8);
 
-void timproc_uso_b5_func_0000ABD4(int a0, int a1) {
-}
 
-void timproc_uso_b5_func_0000ABE0(int a0, int a1, int a2, int a3) {
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000ABD4);
+
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000ABE0);
+
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000ABF4);
+
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AC04);
 
@@ -278,10 +244,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000DF14);
 
-void timproc_uso_b5_func_0000E5AC(void) {
-    *(int*)&D_00000000 = 0;
-    gl_func_00000000();
-}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000E5AC);
+
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000E5AC_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000E5D8);
