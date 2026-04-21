@@ -570,9 +570,26 @@ void game_uso_func_0000751C(char *a0) {
  * targets for animations. a0[0x44], a0[0x4C], a0[0x50] are state timers.
  * a0[0x6C] is the active-events mask.
  *
- * REMAINING ~260 insns at 0x7670-0x7A98: 3 more dispatch arms + the
- * flag2!=0 early-exit path at 0x20C (tail_case) + final merge at 0x7740.
- * Next pass: decode arms for arg1 & 0x80, 0x02, 0x08 + the tail_case. */
+ * DECODE (insns 80-120 @ 0x7670-0x7708):
+ * The arg1 & 0x20 arm's BODY (started at 0x765C) is longer than the
+ * simpler arms — it does a floating-point abs+mod9 computation:
+ *   f12 = outer_ptr->0xB4           // load float
+ *   f14 = (f12 < 0) ? -f12 : f12    // fabs via bc1fl + neg.s
+ *                                    // NB: dead `mov.s f14, f12` at 0x768C
+ *                                    //   (unreachable, both arms branch to merge)
+ *   a0[0x44] = 60
+ *   a0[0x58] = (int)f14 % 9         // trunc.w.s + divu + mfhi
+ *   goto merge
+ *
+ * Two more arms decoded:
+ *   arg1 & 0x80 (no guard): a0[0x6C] |= 0x80; a0[0x4C] = 0; a0[0x44] = 2
+ *   arg1 & 0x08 (guarded by outer->0x938 == 0): set f2 = -1.0f, goto merge;
+ *                 otherwise (outer->0x938 != 0) different path
+ *
+ * REMAINING ~220 insns at 0x7708-0x7A98: arg1 & 0x02 arm, the merge block
+ * at 0x7740 (which reads back flag_mask, does final state computation and
+ * returns), and the flag2!=0 tail_case at 0x20C (that I first saw at
+ * bnel @0x40). Next pass: arg1 & 0x02 arm + merge block body. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 
 #ifdef NON_MATCHING
