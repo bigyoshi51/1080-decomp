@@ -2396,22 +2396,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F82C);
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 99.83% — local at sp+0x1C vs target sp+0x18; couldn't force 8-byte pad between saved_a1 and local without growing frame */
+/* 99.92% — target has `sw \$a1, 0x24(\$sp)` (local slot), mine has
+ * `sw \$a1, 0xBC(\$sp)` (caller's arg-save slot). 1 insn off. Tried:
+ *  (a) `int saved_a1; (void)saved_a1;` — IDO spills to caller slot
+ *  (b) `int saved_a1; int *p = &saved_a1;` — grows frame by 8 bytes
+ *      (taking address alters alloc)
+ * Target's `sw \$a1, 0x24` isn't reproducible from C at -O2 here —
+ * IDO picks caller slot when the local is never read. Cap at 99.92%. */
 extern int gl_func_00000000();
 
 void gl_func_0003F880(int a0, int a1) {
     char buf[0x90];
     int saved_a1;
-    int pad;
+    int pad[2];
     int local;
-    int *p;
     saved_a1 = a1;
-    p = &saved_a1;
     local = 0x2A;
     gl_func_00000000(&local);
-    (void)p;
     (void)buf;
     (void)pad;
+    (void)saved_a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F880);
