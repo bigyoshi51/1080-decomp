@@ -675,6 +675,37 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  *
  * Deferred: 1071 insns will not match in one tick. Multi-run tightening
  * expected. Body structure TBD in next pass. */
+/* game_uso_func_00007C1C: 0x10BC (1083 insns, 4.3 KB) — strategy-memo spine
+ * candidate #3 (~25 cross-USO calls).  0x3B0-byte (944 byte) stack frame.
+ *
+ * ENTRY PROLOGUE (insns 1-20 @ 0x7C1C-0x7C6C, 2026-04-20):
+ *   addiu sp, -0x3B0        ; huge frame
+ *   sw    s0, 0x38(sp)
+ *   lw    s0, 0x3C4(sp)     ; s0 = caller's 5th arg (arg4, from caller slot
+ *                             at sp+944+20 = 0x3C4)
+ *   sw    s2, 0x40(sp)
+ *   or    s2, a2, 0         ; s2 = a2 (3rd arg saved)
+ *   sw    ra, 0x44(sp)
+ *   sw    s1, 0x3C(sp)
+ *   sdc1  $f24, 0x30(sp)    ; save callee-saved double regs
+ *   sdc1  $f22, 0x28(sp)
+ *   sdc1  $f20, 0x20(sp)
+ *   sw    a0, 0x3B0(sp)     ; spill args to caller slots
+ *   sw    a1, 0x3B4(sp)
+ *   beq   s0, zero, +4 (→0x7C60)   ; if 5th arg is NULL, skip init
+ *   sw    a3, 0x3BC(sp)      ; DELAY: also spill a3
+ *   mtc1  zero, $f24         ; f24 = 0.0
+ *   nop
+ *   sdc1  $f24, 0(s0)        ; *(double*)s0 = 0.0
+ *   ...
+ *
+ * Calling convention: takes 5 args (a0, a1, a2, a3, arg4-at-sp+0x3C4).
+ * Uses callee-saved double regs $f20/$f22/$f24 — arithmetic-heavy.
+ * 0x3C4 arg slot pattern suggests this is a per-frame transform function
+ * receiving a destination buffer (arg4) for output.
+ *
+ * Deferred: full decode requires typed struct understanding. 1083 insns
+ * with double-precision math and many cross-USO calls. Multi-run decomp. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
 
 /* game_uso_func_00008CD8: 0xB14 (709 insns), 0x210-byte stack frame.
