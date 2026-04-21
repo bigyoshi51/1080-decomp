@@ -12,7 +12,41 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000F04);
 
+#ifdef NON_MATCHING
+/* Text-width accumulator with glyph-table lookup (51 insns, 0xCC).
+ *   a0 = font-info struct: +0x08 = space-width, +0x20 = glyph-table ptr
+ *   a1 = string
+ * For each char up to gl_func_00000000(a1) length:
+ *   if ' ': total += a0[2] (space-width at +0x8)
+ *   else:   key = gl_func_00000000(c);
+ *           total += *(int*)(glyph_table + key*20 + 8)
+ * Glyph stride = 20 bytes. Same do-while+bnel-delay-slot-reload shape as
+ * gui_func_00001514 (previously NM-wrapped text-width helper). */
+int gui_func_000013E8(char *a0, unsigned char *a1) {
+    int total = 0;
+    int i = 0;
+    unsigned char *p = a1;
+    unsigned char c;
+    int key;
+
+    if (gl_func_00000000(a1) != 0) {
+        do {
+            c = *p;
+            if (c == 0x20) {
+                total += *(int*)(a0 + 0x8);
+            } else {
+                key = gl_func_00000000(c);
+                total += *(int*)(*(char**)(a0 + 0x20) + key * 20 + 8);
+            }
+            p++;
+            i++;
+        } while (i < gl_func_00000000(a1));
+    }
+    return total;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000013E8);
+#endif
 
 extern int gui_func_00000000();
 
@@ -26,20 +60,11 @@ int gui_func_000014EC(int a0, int a1, int a2) {
     return a1 - gl_func_00000000(a0, a2);
 }
 
-#ifdef NON_MATCHING
-/* Text-width accumulator (~42 insns, 0xA8): given font-info struct a0 and
- * string a1, sum per-char widths with branch-likely reload pattern.
- *   a0[2] = space-width  (field 0x8)
- *   a0[3] = non-space char-width (field 0xC)
- * Calls gl_func_00000000(a1) at entry (skip if 0) and again per iter as
- * the loop termination length. bnel delay slot reloads the next char.
- * Kept NM: the do-while with bnel+delay-slot reload pattern at -O2 is
- * tricky to reproduce exactly; logic is correct but codegen drifts. */
 extern int gl_func_00000000();
 int gui_func_00001514(int *a0, unsigned char *a1) {
     int total = 0;
-    int i = 0;
     unsigned char *p = a1;
+    unsigned int i = 0;
     unsigned char c;
 
     if (gl_func_00000000(a1) != 0) {
@@ -47,18 +72,15 @@ int gui_func_00001514(int *a0, unsigned char *a1) {
             c = *p;
             p++;
             i++;
-            if (c == 0x20) {
-                total += a0[2];
-            } else {
+            if (c != 0x20) {
                 total += a0[3];
+            } else {
+                total += a0[2];
             }
-        } while (i < gl_func_00000000(a1));
+        } while (i < (unsigned int)gl_func_00000000(a1));
     }
     return total;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00001514);
-#endif
 
 extern int gui_func_00000000();
 
