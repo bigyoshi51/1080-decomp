@@ -15,9 +15,16 @@ typedef struct { int a, b, c, d; } Quad4;
  *   3. Trailing `b +1; nop` (0x34/0x38) before epilogue — -O0 explicit
  *      jump-to-epilogue.
  *
- * Can't match at -O2 without per-function -O0 override (Makefile + linker
- * ordering — see project_o1o2_split.md for the recipe). Deferred until a
- * file-level -O0 split is set up for timproc_uso_b1. */
+ * Can't match at -O2 without per-function -O0 override. BLOCKED by Yay0
+ * compression pipeline: timproc_uso_b1.c.o is objcopy'd to .text.bin then
+ * yay0-compressed into timproc_uso_block1_yay0.bin — the linker consumes
+ * the compressed blob, not individual .o files. So the file-split recipe
+ * (see feedback_uso_accessor_o0_file_split_recipe.md) doesn't apply here:
+ * splitting into timproc_uso_b1_o0_0.c.o produces TWO .o files, but the
+ * Yay0 extractor only reads ONE. To unblock, would need a pre-yay0 .o
+ * merge step (`ld -r`) or to run the accessor through a separate pipeline.
+ * Same blocker applies to mgrproc_uso, game_uso, timproc_uso_b3/b5, and
+ * map4_data_uso_b2 (all Yay0-compressed USOs). Deferred. */
 void timproc_uso_b1_func_00000000(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
