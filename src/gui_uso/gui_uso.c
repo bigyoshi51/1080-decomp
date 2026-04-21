@@ -70,6 +70,11 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000015F4);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000267C);
 
+void gui_func_000026CC(int *a0, int a1) {
+    a0[5] = a1;
+    a0[4] = 0;
+}
+
 extern int gui_func_00000000();
 extern int gui_ref_00000150;
 
