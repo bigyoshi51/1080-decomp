@@ -698,7 +698,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
  * Caller-save \$a-class reg choice isn't controllable via register hints
  * (feedback_ido_no_gcc_register_asm.md, feedback_ido_register_promotes_class_not_number.md).
  * IDO picks \$a1 (first free arg slot); target has \$a3 (forced by unknown
- * caller-context pressure). Cap at 98.64%. */
+ * caller-context pressure). Cap at 98.64%.
+ *
+ * 2026-04-21: Ran permuter random-mode for 3 minutes (~1000+ iterations).
+ * Base score 20; best stayed at 20. Confirmed in
+ * feedback_permuter_1000_plus_structural.md that $a-reg-pick diffs
+ * also don't crack under random mode, not just $s-reg-renumber. Cap is
+ * permanent unless someone writes a manual PERM_GENERAL trying specific
+ * caller-pressure tricks, or the upstream IDO version changes. */
 extern int gl_func_00000000();
 void gl_func_0000D9B8(int *a0) {
     int *p = (int*)a0[0x1B];
