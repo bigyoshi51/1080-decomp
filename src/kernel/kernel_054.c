@@ -139,7 +139,24 @@ extern void func_800091F0(s32);
  *  - jal delay slot loads $a0 (redundant) instead of $s0
  *  - hdr stack offset differs by 4 bytes (0x28 vs 0x24)
  * All are pure scheduler/frame-layout choices; logic and size match.
- * Permuter ran 14k iterations, best score 15 (target 0). */
+ * Permuter ran 14k iterations, best score 15 (target 0).
+ *
+ * Variants tested 2026-04-20 (none promoted to 100%):
+ *   v2: `register s32 *p = msg;` at decl → emits extra `lw t6; move s0, t6`
+ *       (2 insns worse, frame grows)
+ *   v3: drop `p` entirely, use `msg` directly → IDO doesn't promote to $s0
+ *       (frame shrinks to 0x30, loop reloads from spill each iter — much worse)
+ *   v4: `p = msg;` AFTER first jal → adds `lw s0, 0x38(sp)` at early-return
+ *       join point (1 insn worse) but delay-slot reload still goes to $a0
+ *
+ * Root cause: target's `lw s0, 0x38(sp)` in the jal-0 delay slot is IDO's
+ * exact scheduling for the pattern "spill a0; jal; next-block reads s0".
+ * Our IDO version fills the delay slot with `lw a0, 0x38(sp)` (benign but
+ * wasted) because `p` is declared-but-unassigned — from IDO's POV nothing
+ * forces s0 to hold msg at that point. Any C that tries to force s0=msg
+ * adds an extra instruction somewhere else. Fundamentally a scheduler
+ * decision that our C source can't reach; leave for decomp-permuter's
+ * next run. */
 #ifdef NON_MATCHING
 s32 func_8000969C(s32* msg) {
     register s32* p;
