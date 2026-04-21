@@ -903,7 +903,8 @@ void func_000089FC(short *dst) {
     *dst = buf[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008A38);
+void func_00008A38(int a0) {
+}
 
 void func_00008A40(float *dst) {
     float buf[2];
