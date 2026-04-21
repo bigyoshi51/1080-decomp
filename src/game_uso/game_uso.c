@@ -170,6 +170,48 @@ void game_uso_func_000008FC(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000940);
 
+/* game_uso_func_00000B3C: 0xB08 (706 insns, 2.8 KB) — strategy-memo spine
+ * candidate #6 (~22 cross-USO calls). 0x150-byte stack frame.
+ *
+ * ENTRY DECODE (insns 1-30 @ 0xB3C-0xBB0, 2026-04-20):
+ *   addiu sp, -0x150
+ *   sw ra, 0x24(sp); sw s0, 0x20(sp)
+ *   v1 = a0[0xF4]                ; cache v1 at sp+0x134
+ *   s0 = a0                      ; save base
+ *
+ *   // ID-change detect (beql at 0xB60):
+ *   t6 = a0[0x150]               ; ptr to current-frame list
+ *   t7 = a0[0x264]               ; saved id from previous tick
+ *   v0 = t6[0xA54]               ; current id inside that list
+ *   if (v0 != t7) {              ; id changed: reinit via cross-USO call
+ *       jal gl_func_00000000(a0)
+ *       a0[0x264] = v0           ; (delay: update cached-id)
+ *   }
+ *   t8 = a0[0x250]               ; primary-array index
+ *
+ *   // 3-level LUT navigation (s0-relative):
+ *   t2 = s0[0x158 + t8*4]        ; primary array[idx] → ptr
+ *   sp+0x130 = t2                ; spill
+ *   t4 = a0[0x254]; v0 = a0[0x25C]
+ *   v1 = t2[0x4 + t4*4]          ; secondary array element = derived-id
+ *   a0[0x258] = v1               ; writeback derived-id
+ *   a3 = s0[0x1D4 + v1*4]        ; tertiary lookup — target ptr
+ *   ... a3[v0*4] = ...           ; (continues)
+ *
+ * STRUCT FIELDS IDENTIFIED (so far):
+ *   a0[0xF4]  — per-frame spill slot
+ *   a0[0x150] — ptr to current-frame list
+ *   a0[0x158 + N*4] — primary LUT (ptrs)
+ *   a0[0x1D4 + N*4] — tertiary LUT (ptrs)
+ *   a0[0x250] — primary index
+ *   a0[0x254] — secondary index
+ *   a0[0x258] — derived-id writeback
+ *   a0[0x25C] — tertiary index
+ *   a0[0x264] — cached-id (id-change detector)
+ *
+ * This is a 3-level indexed-table navigator — likely per-frame "look up
+ * current animation/state from nested LUTs". Continues for ~660 more
+ * insns with float math and cross-USO calls. Multi-run decomp expected. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000B3C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001644);
