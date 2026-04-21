@@ -781,13 +781,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
 
 #ifdef NON_MATCHING
-/* 86.7%: body+control flow match; target has 2 extra a1 spills (to sp+0x1C and sp+0x4)
- * that appear when callee is varargs — unique-extern varargs trick not applied here because
- * callee is the shared placeholder gl_func_00000000. */
+/* 86.7%: body+control flow match; target has 2 pre-jal a1 spills:
+ *   sw \$a1, 0x1C(\$sp) before 1st jal
+ *   sw \$a1, 0x4(\$sp)  IN 1st jal delay slot
+ * My IDO -O2 build doesn't emit either spill. Variants tested 2026-04-20:
+ *   (a) `extern int gl_func_00000000_va();` (K&R alias) — no spill
+ *   (b) `extern int gl_func_00000000_va(int, ...);` (varargs) — no spill
+ * Same class as feedback_ido_precall_arg_spill_unreachable.md. Cap 86.7%. */
+extern int gl_func_00000000_va();
+
 int game_uso_func_0000A374(int a0, int a1, int a2) {
-    int r = gl_func_00000000(*(int*)&D_00000000, a1);
+    int r = gl_func_00000000_va(*(int*)&D_00000000, a1);
     if (r == 0) return 0;
-    return gl_func_00000000(r, a2, 0);
+    return gl_func_00000000_va(r, a2, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
