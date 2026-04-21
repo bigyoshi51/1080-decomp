@@ -540,11 +540,39 @@ void game_uso_func_0000751C(char *a0) {
  *  - State machine: a0->field_6C holds a flag mask; arg1 holds event bits
  *  - a0->field_30 is an outer struct pointer (->field_938 is another flag)
  *
- * REMAINING ~300 insns at 0xA0-0x560: multi-case dispatch on low 7 bits
- * of arg1 (from 0x30ED0040 mask at 0xA4 + many branches), each case does
- * a small state update on a0 fields (0x44, 0x50, 0x6C). Still float-heavy
- * near the tail. Multi-run decomp: next pass should extend to insns
- * 40-80 focusing on the 0xA0 dispatch_next block and its sub-cases. */
+ * DECODE (insns 40-80 @ 0x75D4-0x766C): dispatch_next cascade
+ * Starting at 0x75D4 (a1 reloaded from a0[0x6C]), a chain of per-bit
+ * tests on arg1, each firing a short event-handler arm that flips a
+ * flag in a0[0x6C], sets one or two state fields, and branches to a
+ * common merge point at ~0x7740.
+ *
+ * The arm template:
+ *   if (arg1 & BIT) {
+ *       // optional guard on counter/flags
+ *       if (guard != 0) goto next_arm;
+ *       a0[0x6C] |= BIT;
+ *       a0[FIELD] = CONST;   // field/const varies per arm
+ *       [optional: side effect — float const, counter reset, etc.]
+ *       goto merge;
+ *   }
+ *   next_arm:
+ *
+ * Decoded arms (first 5 of ~8):
+ *   arg1 & 0x01  (guarded by flags == 0):  a0[0x6C] |= 1;    a0[0x44] = 91
+ *   arg1 & 0x40  (no guard):                a0[0x6C] |= 0x40; a0[0x44] = 13
+ *   arg1 & 0x04  (guarded by counter == 0): a0[0x6C] |= ?;    a0[0x50] = 8;
+ *                                           f2 = 1.0f; retHi = 1
+ *   arg1 & 0x20  (no guard, yet):           a0[0x6C] |= 0x20; a0[0x4C] = 38
+ *   arg1 & 0x80  (pending):                 a0[0x6C] |= ?;    ...
+ *
+ * This is an animation/state-event dispatcher. Each bit in arg1 maps to
+ * a specific transition; the 91/13/38 constants are likely frame-count
+ * targets for animations. a0[0x44], a0[0x4C], a0[0x50] are state timers.
+ * a0[0x6C] is the active-events mask.
+ *
+ * REMAINING ~260 insns at 0x7670-0x7A98: 3 more dispatch arms + the
+ * flag2!=0 early-exit path at 0x20C (tail_case) + final merge at 0x7740.
+ * Next pass: decode arms for arg1 & 0x80, 0x02, 0x08 + the tail_case. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 
 #ifdef NON_MATCHING
