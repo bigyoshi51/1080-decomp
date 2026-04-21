@@ -53,7 +53,18 @@ void eddproc_uso_func_0000015C(char *a0) {
     gl_func_00000000(a0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000001E8);
+void eddproc_uso_func_000001E8(char *a0) {
+    if (*(int*)(&D_00000000 + 0x74) == 0) {
+        gl_func_00000000();
+        gl_func_00000000(a0);
+        if ((*(int*)(a0 + 0xA0) -= 0xA) < 0) {
+            *(int*)(a0 + 0xA0) = 0;
+        }
+    }
+    gl_func_00000000(a0);
+    gl_func_00000000(*(int*)(a0 + 0x84), *(int*)(a0 + 0xA0), 1);
+    gl_func_00000000(a0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000025C);
 
