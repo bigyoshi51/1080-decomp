@@ -26,7 +26,39 @@ int gui_func_000014EC(int a0, int a1, int a2) {
     return a1 - gl_func_00000000(a0, a2);
 }
 
+#ifdef NON_MATCHING
+/* Text-width accumulator (~42 insns, 0xA8): given font-info struct a0 and
+ * string a1, sum per-char widths with branch-likely reload pattern.
+ *   a0[2] = space-width  (field 0x8)
+ *   a0[3] = non-space char-width (field 0xC)
+ * Calls gl_func_00000000(a1) at entry (skip if 0) and again per iter as
+ * the loop termination length. bnel delay slot reloads the next char.
+ * Kept NM: the do-while with bnel+delay-slot reload pattern at -O2 is
+ * tricky to reproduce exactly; logic is correct but codegen drifts. */
+extern int gl_func_00000000();
+int gui_func_00001514(int *a0, unsigned char *a1) {
+    int total = 0;
+    int i = 0;
+    unsigned char *p = a1;
+    unsigned char c;
+
+    if (gl_func_00000000(a1) != 0) {
+        do {
+            c = *p;
+            p++;
+            i++;
+            if (c == 0x20) {
+                total += a0[2];
+            } else {
+                total += a0[3];
+            }
+        } while (i < gl_func_00000000(a1));
+    }
+    return total;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00001514);
+#endif
 
 extern int gui_func_00000000();
 
