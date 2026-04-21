@@ -106,8 +106,20 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
  * with $f0 = 1.0f initialized up-front, then stored to buf[4] at sp+0x34.
  * See feedback_splat_prologue_stolen_by_predecessor.md.
  *
- * The pre-prologue `lui+mtc1` pattern is not reproducible from standard C
- * — IDO emits the mtc1 AFTER the addiu sp, not before. Keep NM. */
+ * UPDATE 2026-04-21: the "lui+mtc1 not reproducible" claim was WRONG.
+ * With this NM body (`buf[0] = buf[1] = buf[2] = buf[3] = 1.0f`), IDO
+ * emits `lui $at, 0x3F80; mtc1 $at, $f0` BEFORE `addiu sp` — matching
+ * target's pre-prologue pattern. The actual blockers are:
+ *   1. Stack frame size: target 0x48, mine 0x38 (fixed w/ `char pad[16]`
+ *      brings frame to 0x48 but shifts other offsets).
+ *   2. Branch structure: target uses goto-style dispatch
+ *        `beq v0,0,tag0; beq v0,1,tag1; b epi; tag0: ... b epi; tag1: ... b epi; epi`
+ *      My natural `if (key==0) ... else if (key==1) ...` emits 2 branches
+ *      but with different fall-through and no explicit `b epi` between arms.
+ *   3. Spill pattern: target saves a3 (= a0) to 0x48(sp) before each jal;
+ *      mine puts the save at 0x1C(sp) with 0x38 frame.
+ * Try: rewrite with explicit `goto`s to k0_tag/k1_tag/end_tag + `char pad[16]`.
+ * Multi-variant grind still required; keep NM until promoted to exact. */
 void n64proc_uso_func_0000035C(char *a0) {
     float buf[4];
     int key;
