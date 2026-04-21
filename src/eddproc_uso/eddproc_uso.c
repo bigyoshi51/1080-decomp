@@ -87,5 +87,10 @@ void eddproc_uso_func_0000038C(char *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000003BC);
 
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000044C);
+void eddproc_uso_func_0000044C(char *dst) {
+    int tmp;
+    gl_func_00000000(&tmp);
+    eddproc_uso_func_000000D4((Vec3*)(dst + 0x10));
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso/eddproc_uso_func_0000044C_pad.s")
 
