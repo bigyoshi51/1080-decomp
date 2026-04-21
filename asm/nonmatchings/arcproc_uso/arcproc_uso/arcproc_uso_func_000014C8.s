@@ -1,6 +1,8 @@
-nonmatching arcproc_uso_func_000014D0, 0x134
+nonmatching arcproc_uso_func_000014C8, 0x13C
 
-glabel arcproc_uso_func_000014D0
+glabel arcproc_uso_func_000014C8
+    /* 5A7610 000014C8 3C013F80 */  .word 0x3C013F80
+    /* 5A7614 000014CC 44810000 */  .word 0x44810000
     /* 5A7618 000014D0 27BDFFA8 */  .word 0x27BDFFA8
     /* 5A761C 000014D4 AFBF001C */  .word 0xAFBF001C
     /* 5A7620 000014D8 AFB00018 */  .word 0xAFB00018
@@ -78,4 +80,4 @@ glabel arcproc_uso_func_000014D0
     /* 5A7740 000015F8 27BD0058 */  .word 0x27BD0058
     /* 5A7744 000015FC 03E00008 */  .word 0x03E00008
     /* 5A7748 00001600 00000000 */  .word 0x00000000
-endlabel arcproc_uso_func_000014D0
+endlabel arcproc_uso_func_000014C8
