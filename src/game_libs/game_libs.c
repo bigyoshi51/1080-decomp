@@ -855,16 +855,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FBD4);
 
-#ifdef NON_MATCHING
-/* 80%: body = gl_func_00000000(), 8 insns. Declared size 0x28 includes 2 stray
- * insns (lui t6; lw t6, 0x2178(t6)) past jr ra nop — next-function prologue
- * leaked into this symbol size. See feedback_uso_stray_trailing_insns.md. */
 void gl_func_0001FC50(void) {
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FC50);
-#endif
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0001FC50_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FC78);
 
