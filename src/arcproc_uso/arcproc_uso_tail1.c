@@ -15,7 +15,28 @@ void arcproc_uso_func_00001B88(int *a0) {
     arcproc_uso_func_00000000(t, 0x8C, *(int*)((char*)t + 0x6B0));
 }
 
+#ifdef NON_MATCHING
+/* -O0 ref-count/check-full pattern (tried 2026-04-20, cap 82.3%).
+ * Semantics decoded: gl_func_0(a0, a1); if (a0[1]+1 == a0[2]) return 1;
+ * else a0[1] += 1; return 0. Two blockers at -O0:
+ *   1. IDO loads a0[2] BEFORE a0[1] regardless of expression order —
+ *      tried `p[1]+1==p[2]`, `p[2]==p[1]+1`, both give `lw 8(t6); lw 4(t6)`.
+ *   2. `register int *p = a0` promotes to $s0 in second half (matches
+ *      target) but if-else-through-r-variable emits an extra sw/lw pair
+ *      for the return value vs target's direct-return pattern.
+ * Promotion attempt would require per-insn-order grinding — leaving at
+ * 82% cap as future-pass candidate. */
+int arcproc_uso_func_000000B4(int *a0, int a1) {
+    gl_func_00000000(a0, a1);
+    if (a0[1] + 1 == a0[2]) {
+        return 1;
+    }
+    a0[1] += 1;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000000B4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000012C);
 
