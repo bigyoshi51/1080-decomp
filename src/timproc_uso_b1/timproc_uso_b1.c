@@ -128,7 +128,11 @@ void timproc_uso_b1_func_00001EA4(char *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001ED4);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001F64);
+void timproc_uso_b1_func_00001F64(char *dst) {
+    int tmp;
+    timproc_uso_b1_func_0000083C(&tmp);
+    timproc_uso_b1_func_0000090C((Vec3*)(dst + 0x10));
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00001F64_pad.s")
 
 void timproc_uso_b1_func_00001FA0(void) {
