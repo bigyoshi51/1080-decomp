@@ -85,7 +85,59 @@ void game_uso_func_000005B8(Vec3 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000608);
 
+#ifdef NON_MATCHING
+/* 89.1% match. Reader-init + grow-array wrapper (47 insns).
+ *
+ * Body decoded: reads 6 typed accessors from D_00000000 into fields of
+ * a0 (Quad4 at +0x0, Quad4 at +0x10, Pair2 at +0x20, Pair2 at +0x28,
+ * int at +0x30, int at +0x34). Field +0x34 is a count. Then loops
+ * 1..cnt, each iteration: (1) gl_func(0x38) → stored at &p[14]
+ * (where p starts at a0+4 and increments by 4 per iter — i.e. a growable
+ * int[] list starting at a0+0x3C); (2) gl_func(p[14]); (3) gl_func(p[14]).
+ * Tail copies a0[0x3C] → a0[0x38] and shifts (a0+cnt*4)[+0x38] → [+0x3C].
+ *
+ * Remaining 11% gap:
+ *   - Target's cnt lives in $v0, mine in $v1 (fresh lw after jal retval
+ *     clobber — IDO's decision differs based on downstream usage)
+ *   - Target's `addu v1, s2, t7` vs mine `addu v0, t7, s2` (commutative
+ *     operand order at tail — triggered by the $v0/$v1 flip above)
+ *   - Target declares `s1=1` before `s0=a0+4`; mine emits them swapped
+ *     (statement-order vs allocation-order mismatch for $s-regs)
+ *
+ * These are IDO register-allocation details, not logic. Next-pass:
+ * permuter on this with a few PERM_GENERAL / PERM_LINESWAP variants. */
+void game_uso_func_00000724(char *a0) {
+    int i;
+    int cnt;
+    int *p;
+
+    game_uso_func_000002BC((Quad4*)a0);
+    game_uso_func_000002BC((Quad4*)(a0 + 0x10));
+    game_uso_func_00000314((Pair2*)(a0 + 0x20));
+    game_uso_func_00000314((Pair2*)(a0 + 0x28));
+    game_uso_func_0000035C((int*)(a0 + 0x30));
+    game_uso_func_00000280((int*)(a0 + 0x34));
+
+    cnt = *(int*)(a0 + 0x34);
+    p = (int*)(a0 + 4);
+    i = 1;
+    if (cnt > 0) {
+        do {
+            *(int*)((char*)p + 0x38) = gl_func_00000000(0x38);
+            gl_func_00000000(*(int*)((char*)p + 0x38));
+            gl_func_00000000(*(int*)((char*)p + 0x38));
+            cnt = *(int*)(a0 + 0x34);
+            i++;
+            p++;
+        } while (i <= cnt);
+    }
+
+    *(int*)(a0 + 0x38) = *(int*)(a0 + 0x3C);
+    *(int*)(a0 + cnt * 4 + 0x3C) = *(int*)(a0 + cnt * 4 + 0x38);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000724);
+#endif
 
 void game_uso_func_000007E0(int *a0) {
     a0[9] = 0;
