@@ -81,7 +81,21 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002F
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000354);
 
+#ifdef NON_MATCHING
+/* 97.95%: sibling of 0x2A4 family (0x2A4=5, 0x2FC=2, 0x354=3); writes 4
+ * at D_0[0x40]. Same 3-call + 2-store shape; same a3-intermediate cap. */
+void h2hproc_uso_func_000003AC(void) {
+    int *p;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
+    *(int*)((char*)&D_00000000 + 0x40) = 4;
+    gl_func_00000000(&D_00000000);
+    p = *(int**)&D_00000000;
+    *(int*)((char*)p + 0x30) = 0;
+    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000003AC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000404);
 
