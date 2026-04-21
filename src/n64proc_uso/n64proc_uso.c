@@ -29,13 +29,28 @@ extern char D_00000000;
  * allocation. Allocator's refs-weight gives `one` to $s3, target gives
  * it to $s2 — decl-order is a no-op per sreg_order_not_decl_driven memo.
  *
+ * (1) TRIED 2026-04-21 (parallel agent): permuter random-mode, 3 minutes,
+ * ~12k iterations. Best score 1030 — per the skill's score-band rubric,
+ * "1000+ means structural issues remain." Best output just hoisted
+ * `base+0x40` into a `new_var` local, didn't flip any $s-reg assignments.
+ * Confirms the register-renumber is not reachable from random C-level
+ * variation; target was likely compiled under a slightly different IDO
+ * version/flag, or with manual `register T x asm("$N")` which IDO rejects.
+ *
  * (3) TRIED 2026-04-21: removing the `register` keyword from all locals
  * (base, base10, cur, flag, one) regressed from ~95% to 33%. `register`
  * is ESSENTIAL for keeping these 6 pseudos in $s-regs vs stack-spilled.
  * The 33% cap matches IDO's default -O2 allocation where most of these
  * stay in stack slots. Don't remove the keyword.
  *
- * Remaining path: (1) permuter-only. */
+ * (4) TRIED 2026-04-21: `base10 = base + 0x10` (derive from base instead
+ * of `&D_0 + 0x10`) — regressed to 33%. base+0x10 forces computation at
+ * runtime instead of IDO's compile-time `addiu s4, s4, 0x10` pattern.
+ *
+ * (5) TRIED 2026-04-21: extra `one = 1;` statement inside if branch to
+ * boost ref count — no change in match %.
+ *
+ * No remaining path reachable from C without inline-asm. NM-only. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
