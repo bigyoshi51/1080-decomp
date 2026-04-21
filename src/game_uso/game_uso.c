@@ -452,7 +452,45 @@ void game_uso_func_000044C8(char *a0) {
     game_uso_func_00000000(a0 + 0x3C);
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_000044F4: 0x1234 (1165 insns, 4.6 KB) — spine candidate #1
+ * "main GameState constructor" per project_1080_game_uso_map.md.
+ * 0xE8-byte stack frame, 86 cross-USO calls (mostly alloc() and
+ * init_subobject()).
+ *
+ * DECODED ENTRY (first ~25 insns, 0x44F4-0x4564):
+ *   prologue:
+ *     addiu sp, -0xE8; sw ra,0x24; sw s0-s2,0x18-0x20
+ *     sw a0,0xE8(sp); sw a1,0xEC(sp); sw a2,0xF0(sp)  ; 3 args spilled
+ *   if (a0 == NULL) {               ; bne a0, zero, +5
+ *     self = gl_func_0(0x4E0);      ; alloc 1248-byte main obj
+ *     if (self == NULL) goto epi;   ; beq v0, zero, +0x47A (to ~0x5A4B)
+ *     a0_spill = self;              ; sw v0, 0xE8(sp)
+ *   }
+ *   gl_func_0(&D_0 + 0x6D0, a0);    ; init from template at D_06D0 (1st call)
+ *   a0->field_28 = &D_0;            ; 1st parent ptr
+ *
+ *   if (a0_spill != -0xE4) {         ; unusual address-as-signed-imm compare
+ *     s1 = a0_spill + 0xE4;          ; s1 = main + 0xE4 (sub-region)
+ *   } else {
+ *     s1 = alloc(0x3E0);             ; alloc 992-byte child obj
+ *     if (!s1) goto epi;
+ *   }
+ *   // ... 1140 more insns: allocates ~16 x 0x18-byte sub-objects,
+ *   //     initialized from templates, linked via a0[0x2C], a0[0x38], etc.
+ *
+ * Full decode is a multi-day effort. This tick captures entry pattern +
+ * struct-field offsets identified so far. Future ticks: decode the
+ * sub-object allocation loop, type the GameState struct, then refine. */
+void game_uso_func_000044F4(void *a0, int a1, int a2) {
+    (void)a0; (void)a1; (void)a2;
+    /* TODO: allocate 0x4E0 if a0 == NULL; init sub-objects from templates
+     * at &D_0+0x6D0, &D_0+0x6D8, &D_0+0x6E8, &D_0+0x3C8 (et al.);
+     * recursive child alloc at a0->field_28, a0->field_2C, etc. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000044F4);
+#endif
 
 void game_uso_func_00005728(void *a0) {
     *(s32*)((char*)a0 + 0x34) = 0;
