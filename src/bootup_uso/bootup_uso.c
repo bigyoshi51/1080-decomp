@@ -439,6 +439,14 @@ void func_000020D8(char *a0, int a1) {
     }
 }
 
+/* func_0000214C: 2 insns (0x8) — `jr $ra; sw $a0, 0($sp)` (DELAY).
+ * "Save-arg-to-stack and return" sentinel. The delay-slot store places
+ * the caller's $a0 into the callee's sp+0, which is the caller's return
+ * slot for $a0 in O32 — effectively a no-op-as-return that leaves $a0
+ * as caller sees it. Not expressible as C (no body can emit just a
+ * delay-slot sw without either a prologue or C-level side effect).
+ * Listed explicitly in feedback_ido_unfilled_store_return.md. Keep
+ * INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000214C);
 
 void func_00002154(char *a0) {
