@@ -166,7 +166,53 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AAF4);
 
 
+#ifdef NON_MATCHING
+/* 83% match (2026-04-21). Logic structurally correct:
+ *   p = gl_func_00000000(0x40);
+ *   if (p != 0) { gl_func_00000000(p); p->0x28 = &D_0; p->0x3C = 0; }
+ *   r = arg0->0x40;
+ *   if (r != 0) { q = gl_func_00000000(p+0x10, r);
+ *                 if (q->0x14 != 0) q->0x4 = 1;
+ *                 q->0x14 = p; }
+ *   return p;
+ *
+ * Remaining diffs vs target:
+ * - Stack frame 0x20 vs target 0x28 (missing 8 bytes of spill slots).
+ * - IDO allocates `p` to $a2 in our build, but target uses $v1. This
+ *   propagates through all uses: our final `or v0, a2, zero` vs target
+ *   `or v0, v1, zero`, our `sw a2, 0x14(v0)` vs target `sw v1, 0x14(a1)`,
+ *   etc. $v1 is normally only used for low-word of 64-bit returns — IDO
+ *   picked it here for reasons unclear.
+ * - Our second branch is `beql a1, zero, +lw ra` (branch-likely folds
+ *   the epilogue load into delay slot); target has separate `beq` +
+ *   `lw ra` after the merge point. Related: target spills v1→0x24,
+ *   v0→0x20 around the 2nd jal; we only spill a2→0x1C.
+ *
+ * Not yet tried: named `void *r = arg0->0x40` local (may force r into
+ * a $s-reg and change spill pattern), `char pad[8]` to coerce 0x28 frame,
+ * or if-rewrite to avoid branch-likely. Left for next pass. */
+void *timproc_uso_b5_func_0000AB24(void *arg0) {
+    void *p;
+    void *q;
+
+    p = (void*)gl_func_00000000(0x40);
+    if (p != 0) {
+        gl_func_00000000(p);
+        *(void**)((char*)p + 0x28) = (void*)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
+    }
+    if (*(void**)((char*)arg0 + 0x40) != 0) {
+        q = (void*)gl_func_00000000((char*)p + 0x10, *(void**)((char*)arg0 + 0x40));
+        if (*(int*)((char*)q + 0x14) != 0) {
+            *(int*)((char*)q + 0x4) = 1;
+        }
+        *(void**)((char*)q + 0x14) = p;
+    }
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AB24);
+#endif
 
 void timproc_uso_b5_func_0000ABB4(int *a0) {
     *(int*)((char*)a0 + 0xB0) = 1;
