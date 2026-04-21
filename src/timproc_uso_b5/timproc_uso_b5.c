@@ -163,7 +163,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008F98);
+int timproc_uso_b5_func_00008F98(int *a0) {
+    int *p = (int*)((int*)a0[0x2C/4])[0x28/4];
+    return ((int(*)(int))p[0x5C/4])((int)(int*)a0[0x2C/4] + *(short*)((char*)p + 0x58));
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
 
