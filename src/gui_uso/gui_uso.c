@@ -65,18 +65,16 @@ int gui_func_00001514(int *a0, unsigned char *a1) {
     int total = 0;
     unsigned char *p = a1;
     unsigned int i = 0;
-    unsigned char c;
 
     if (gl_func_00000000(a1) != 0) {
         do {
-            c = *p;
-            p++;
-            i++;
-            if (c != 0x20) {
+            if (*p != 0x20) {
                 total += a0[3];
             } else {
                 total += a0[2];
             }
+            p++;
+            i++;
         } while (i < (unsigned int)gl_func_00000000(a1));
     }
     return total;
