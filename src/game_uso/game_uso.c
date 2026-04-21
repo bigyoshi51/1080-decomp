@@ -567,8 +567,45 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  *
  * Full decode deferred — 1100 insns and requires typed struct for the
  * 0x4E0-byte main object (same struct constructed by
- * game_uso_func_000044F4). Multi-run decomp expected. */
+ * game_uso_func_000044F4). Multi-run decomp expected.
+ *
+ * 2026-04-21: started partial NM body capturing the 4-way dispatcher
+ * at the function head (insns 1-30 of 1102). First 3 dispatches handle
+ * a0[0x68] bits 1/2/4 — each calls gl_func_00000000 and returns early.
+ * Bit-0 handler takes no args; bits 1/2 pass `a0`. Body-proper starts
+ * at 0x5998 with Vec3 staging and hasn't been attempted yet. */
+#ifdef NON_MATCHING
+void game_uso_func_0000591C(int *a0) {
+    int v0;
+
+    /* Two early-out guards on globals. */
+    if (*(int*)((char*)&D_00000000 + 0x78) != 0) return;
+    if (*(int*)&D_00000000 == 0) return;
+
+    /* 4-way bit dispatch on a0->field_68 (flag byte).  Each handler
+     * makes one gl_func_00000000 call and returns. Fall-through goes
+     * to the per-frame body at 0x5998 — not yet decoded. */
+    v0 = *(int*)((char*)a0 + 0x68);
+    if (v0 & 1) {
+        gl_func_00000000();
+        return;
+    }
+    if (v0 & 2) {
+        gl_func_00000000(a0);
+        return;
+    }
+    if (v0 & 4) {
+        gl_func_00000000(a0);
+        return;
+    }
+
+    /* TODO: 1000+ insns of body-proper. Reads a0->0x30 (sub-struct
+     * pointer) and stages Vec3 fields 0xB4/0xB8/0xBC onto sp+0x1B8;
+     * large FPU-heavy update loop with cross-USO calls. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
 
