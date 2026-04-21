@@ -1,4 +1,4 @@
-nonmatching titproc_uso_func_000002E0, 0x54
+nonmatching titproc_uso_func_000002E0, 0x4C
 
 glabel titproc_uso_func_000002E0
     /* 599FAC 000002E0 27BDFFE8 */  .word 0x27BDFFE8
@@ -20,6 +20,4 @@ glabel titproc_uso_func_000002E0
     /* 599FEC 00000320 27BD0018 */  .word 0x27BD0018
     /* 599FF0 00000324 03E00008 */  .word 0x03E00008
     /* 599FF4 00000328 00000000 */  .word 0x00000000
-    /* 599FF8 0000032C 3C020000 */  .word 0x3C020000
-    /* 599FFC 00000330 24420000 */  .word 0x24420000
 endlabel titproc_uso_func_000002E0

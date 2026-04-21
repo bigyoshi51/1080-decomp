@@ -22,7 +22,18 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000028
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000002E0);
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000334);
+extern char D_0000032C_A;
+
+/* Reverse-merge boundary: real function starts at 0x32C (splat put the
+ * `lui $v0; addiu $v0` prologue 8 bytes earlier, attributed to 0x2E0's
+ * trailing bytes). Per feedback_splat_prologue_stolen_by_predecessor.md. */
+void titproc_uso_func_0000032C(void) {
+    *(int*)((char*)&D_00000000 + 0x34) = 7;
+    *(int*)((char*)&D_00000000 + 0x40) = 0;
+    *(int*)((char*)&D_00000000 + 0x13C) = 3;
+    gl_func_00000000(12, 5);
+    gl_func_00000000(*(int*)((char*)&D_0000032C_A + 0xA8), -1, 0);
+}
 
 extern char D_00000380_A;
 
