@@ -1443,10 +1443,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000333B4);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000333B4_pad.s")
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: sw ra scheduled wrong vs lui a0 */
-extern int gl_func_00000000();
+/* 80%: body is `gl_func_00000000(&D_00000000, a0)` but IDO -O2 schedules
+ * `sw ra, 0x14(sp)` before `lui a0, %hi(SYM)` — target has them swapped.
+ * Per feedback_ido_o2_tiny_wrapper_unflippable.md this is an IDO scheduler
+ * cap not reachable from C (tested 13+ variants on the sibling 0x62204);
+ * same class here. The prior wrap had `gl_func_00000000(gl_func_00000000, a0)`
+ * which was a typo — the &D_00000000 form is the correct body. */
 int gl_func_000333F4(int a0) {
-    return gl_func_00000000(gl_func_00000000, a0);
+    return gl_func_00000000(&D_00000000, a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000333F4);
