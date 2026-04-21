@@ -4278,14 +4278,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F38C);
 
 #ifdef NON_MATCHING
 /* return (a0 & 3) != 0 ? 1 : 0
- * 9 insns target with UNUSUAL forced stack frame (addiu sp, -8 /+8)
- * and explicit `b` to epilogue — IDO -O0/-O1/-O2 all emit leafy
- * output without the stack frame (tested 3 opt levels + local decl
- * + &a0-take). Probably compiled with per-file override or
- * hand-written. Semantics correct. */
+ * 9-insn target with forced `addiu sp, -8/+8` stack frame AND NO stack
+ * use, plus unfilled delay slot + explicit `b` to epilogue. IDO -O2
+ * compacts most C variants to leafy output without the frame.
+ *
+ * Variant below uses `volatile int x = a0 & 3` — this DOES force the
+ * sp=-8 frame AND produces `beqz` in the same direction as target,
+ * at the cost of 2 extra insns (sw+lw for volatile materialization,
+ * 11 insns total vs target's 9). Structurally closer to target than
+ * the plain leafy variant; still NM. See
+ * feedback_ido_sp_frame_without_stack_use.md — 30+ variants tested
+ * 2026-04-20, the target's idiom (sp=-8 with no sw/lw) isn't reachable
+ * from standard IDO -O2 C. Likely alloca/setjmp or per-file pragma. */
 int gl_func_0006F3BC(int a0) {
-    if ((a0 & 3) == 0) return 0;
-    return 1;
+    volatile int x = a0 & 3;
+    if (x != 0) return 1;
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3BC);
