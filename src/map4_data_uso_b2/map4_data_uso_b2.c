@@ -16,6 +16,10 @@ void map4_data_uso_b2_func_0000003C(Quad4 *dst) {
     *dst = buf;
 }
 
-INCLUDE_ASM("asm/nonmatchings/map4_data_uso_b2/map4_data_uso_b2", map4_data_uso_b2_func_00000094);
+void map4_data_uso_b2_func_00000094(char *dst) {
+    int tmp;
+    map4_data_uso_b2_func_00000000(&tmp);
+    map4_data_uso_b2_func_0000003C((Quad4*)(dst + 0x10));
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/map4_data_uso_b2/map4_data_uso_b2/map4_data_uso_b2_func_00000094_pad.s")
 
