@@ -122,6 +122,12 @@ void eddproc_uso_func_000001E8(char *a0) {
  *   - Ternary `(p1 != 0) ? call : 0` w/ goto chain: 52.02 % (added bne
  *     guards but wrong delay-slot fills)
  *   - Mutate a0 in-place vs `int *p1 = a0`: 60.44 % (no real diff)
+ *   - 2026-05-02: alloc-or-init goto pattern (per
+ *     feedback_alloc_or_init_goto_pattern.md) applied to all 3 stages:
+ *     58.92 % (regressed — pattern works for SINGLE alloc-then-init,
+ *     not for multi-stage with branched init blocks). Goto only on
+ *     stage 1 + if-else for stages 2-3: 60.44 %. The memo's recipe
+ *     is single-stage only.
  *
  * Target's structure has TWO defensive null checks (a2 != 0, v1 != 0)
  * that branch over the next jal — these are dead code in normal flow
