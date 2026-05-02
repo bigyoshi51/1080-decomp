@@ -198,7 +198,29 @@ void timproc_uso_b5_func_00003ED8(char *a0) {
     (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
 }
 
+#ifdef NON_MATCHING
+/* Sibling of timproc_uso_b5_func_00003ED8 — same vtable-call wrapper:
+ *   gl_func_00000000(a0 + 0x194);     // first call (offset 0x194 vs ED8's 0x2C)
+ *   v = a0->vtable;                    // a0+0x28
+ *   (*(v->fp))(a0 + v->off);          // dispatch
+ *
+ * BLOCKED: trailing `lw t8, 0x23C(a0)` at offset 0x40 is the stolen
+ * prologue for SUCCESSOR func_00003F5C. Standard pad-sidecar recipe
+ * (trim .s to 0x40 + emit 4-byte _pad.s with the lw) doesn't work here:
+ * asm-processor aligns the next function to 8 bytes, padding with an
+ * extra nop AFTER the 4-byte pad — shifts func_00003F5C from baserom's
+ * 0x3F5C to 0x3F60. Pad-sidecar mechanism naturally handles 8-byte
+ * (lui+addiu/lw) prologue prefixes but not 4-byte single insns. Keep
+ * INCLUDE_ASM until 00003F5C is decompiled with PROLOGUE_STEALS=4. */
+void timproc_uso_b5_func_00003F18(char *a0) {
+    char *v;
+    gl_func_00000000(a0 + 0x194);
+    v = *(char**)(a0 + 0x28);
+    (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F18);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F5C);
 
