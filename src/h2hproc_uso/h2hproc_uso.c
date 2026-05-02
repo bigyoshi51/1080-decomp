@@ -77,32 +77,17 @@ void h2hproc_uso_func_000002FC(void) {
     gl_func_00000000(D_h2h_2FC_c, -1, 0);
 }
 
-#ifdef NON_MATCHING
-/* 98.4 % match (2026-05-02, up from ~60 %). Logic-fix: prior wrap was
- * missing the middle `gl_func(&D)` call between the *(D+4) call and the
- * *(D+0x40) = 3 store. Per feedback_nm_wrap_post_jal_arg_vs_return.md:
- * old NM wraps can have wrong logic; verify against asm.
- *
- * Decoded asm has 3 jal calls (was decoded as 2 in old wrap):
- *   1. gl_func(*(D+4));                  ; arg via lui+lw delay-slot pair
- *   2. *(D+0x40) = 3; gl_func(&D);       ; store in delay slot of jal
- *   3. *(*D + 0x30) = 0; gl_func(*D, -1, 0); ; store before, delay-slot a0
- *
- * Remaining 1.6 % cap: mine uses $a3 as temp for the middle &D lui+addiu
- * pair (then `or a0, a3, zero` to set a0). Target uses $a0 directly for
- * the lui+addiu. Pure register-naming diff (still loads &D, just in a0
- * not a3 temp). Same 1-insn-class diff also on the *D deref's lui+addiu
- * register (mine $a3, target $v0). */
+extern char *D_h2h_354_a;       /* call 1 base, *(D+4) */
+extern char *D_h2h_354_b;       /* call 2 a0 + store +0x40 */
+extern int  *D_h2h_354_c;       /* call 3 base, *D->0x30 = 0 + delay-arg */
+
 void h2hproc_uso_func_00000354(void) {
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
-    *(int*)((char*)&D_00000000 + 0x40) = 3;
-    gl_func_00000000(&D_00000000);
-    *(int*)(*(int*)&D_00000000 + 0x30) = 0;
-    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+    gl_func_00000000(*(int*)((char*)&D_h2h_354_a + 4));
+    *(int*)((char*)&D_h2h_354_b + 0x40) = 3;
+    gl_func_00000000(&D_h2h_354_b);
+    *(int*)((char*)D_h2h_354_c + 0x30) = 0;
+    gl_func_00000000(D_h2h_354_c, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000354);
-#endif
 
 #ifdef NON_MATCHING
 /* 97.95%: sibling of 0x2A4 family (0x2A4=5, 0x2FC=2, 0x354=3); writes 4
