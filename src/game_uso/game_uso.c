@@ -373,7 +373,37 @@ void game_uso_func_000008FC(int *a0) {
     gl_func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
+/* 107-insn jump-table dispatcher (size 0x1AC after split-fragments
+ * separated 0xAEC). Structure:
+ *
+ *   t6 = a0->0x150;             // sub-struct
+ *   key = t6->0xA54;             // dispatch key (loaded from sub-struct)
+ *   if (key >= 7) goto end_no_op (epilogue);
+ *   else: jump-table dispatch on key (0..6)
+ *
+ * Each case (0..6) reads from various offsets of &D_00000000 and writes
+ * to offsets of a0 (the input struct). Cases 0/3/6 do similar work, with
+ * different field/value combos. Case 4 has a sub-branch on a0->X != 0.
+ *
+ * BLOCKED: target uses `lui $at; addu $at,$at,sll(key,2); lw t7, 0x4($at);
+ * jr t7` — a .rodata jump table at offset 0x4 (relative to D_jt_base).
+ * Per feedback_ido_switch_rodata_jumptable.md: 1080's linker discards
+ * .rodata, so a C `switch(key) { case 0..6: ...}` with 3+ cases would
+ * fail to link. Need if-goto chain to reach high % (target was probably
+ * compiled with the jump table active in some other linker config).
+ *
+ * Multi-tick decomp expected. Stub body so the wrap parses; default
+ * build INCLUDE_ASM matches. Decoded structure documented above for
+ * future ticks. */
+extern void game_uso_func_00000940_TODO(void);
+void game_uso_func_00000940(int *a0) {
+    (void)a0;
+    game_uso_func_00000940_TODO();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000940);
+#endif
 
 void game_uso_func_00000AEC(int *a0, int a1) {
     if (*(int*)((char*)*(int**)((char*)a0 + 0x158) + 0x24) > 0) {
