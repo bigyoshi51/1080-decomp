@@ -3776,6 +3776,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074EFC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007507C);
 
+#ifdef NON_MATCHING
+/* SP_PC_REG (uncached, 0xA4080000) conditional writer.
+ *   if ((flag & 1) != 0) { *(volatile u32*)0xA4080000 = pc; return 0; }
+ *   else { return -1; }
+ *
+ * 11-insn target with `addiu sp, -8` + matching `addiu sp, sp, 8` at the
+ * very end — fake stack frame even though no body uses it. Per
+ * feedback_ido_sp_frame_without_stack_use.md: IDO -O2 won't allocate a
+ * frame from standard C unless something actually touches the stack.
+ *   - With body alone: 9 insns, no frame (mismatch).
+ *   - With `volatile int x = 0;` to force a slot: 11 insns + frame BUT also
+ *     emits `sw zero, 4(sp)` in the delay slot AND shifts $tN registers up
+ *     by 1 (target uses t7/t8; mine t6/t7). Mismatch.
+ *
+ * Cap: ~85 % via the volatile-int form. Real fix needs a way to allocate
+ * frame without stack use — which IDO doesn't expose. */
+int gl_func_0007526C(unsigned int pc, int flag) {
+    volatile int x = 0;
+    if ((flag & 1) == 0) {
+        return -1;
+    }
+    *(volatile unsigned int*)0xA4080000 = pc;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007526C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0007526C_pad.s")
+#endif
 
