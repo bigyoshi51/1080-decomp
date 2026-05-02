@@ -176,7 +176,18 @@ void game_uso_func_000003F8(void *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000052C);
+void game_uso_func_0000052C(int unused, Vec3 *a1, Vec3 *a2, int *a3, Vec3 *p4) {
+    if (a3[4] == 2) {
+        a2->x += p4->x;
+        a2->y += p4->y;
+        a2->z += p4->z;
+    }
+    if (a3[0] == 2) {
+        a1->x += a2->x;
+        a1->y += a2->y;
+        a1->z += a2->z;
+    }
+}
 
 void game_uso_func_000005B8(Vec3 *a0) {
     game_uso_func_000001D4(a0);
