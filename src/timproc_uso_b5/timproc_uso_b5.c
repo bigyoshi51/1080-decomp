@@ -386,7 +386,33 @@ void timproc_uso_b5_func_0000A97C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A97C);
 #endif
 
+#ifdef NON_MATCHING
+/* Sibling of timproc_uso_b5_func_0000A97C — same 23-insn loop with branch-
+ * likely preload of v1 in bnezl delay slot. Different offsets:
+ *   A97C: fn_ptr at slot->0x28->0x4C, short_arg at slot->0x28->0x48
+ *   A9EC: fn_ptr at slot->0x28->0x64, short_arg at slot->0x28->0x60
+ * Same structural cap — branch-likely w/ off-loop-body delay slot preload
+ * not reachable from std do-while C. */
+void timproc_uso_b5_func_0000A9EC(char *a0) {
+    int i;
+    char *p;
+    int *v1;
+    int *v0;
+
+    if (*(int*)(a0 + 0x3C) <= 0) return;
+    p = a0;
+    i = 0;
+    do {
+        v1 = *(int**)(a0 + 0x40);
+        v0 = *(int**)((char*)v1 + 0x28);
+        (*(int(**)())((char*)v0 + 0x64))(*(short*)((char*)v0 + 0x60) + (int)v1);
+        i++;
+        p += 4;
+    } while (i < *(int*)(a0 + 0x3C));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A9EC);
+#endif
 
 void timproc_uso_b5_func_0000AA5C(char *a0) {
     int tmp;
