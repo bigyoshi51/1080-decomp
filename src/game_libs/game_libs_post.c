@@ -3461,8 +3461,52 @@ void gl_func_0006BEA8(void) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BEA8_pad.s")
 
+/*
+ * gl_func_0006BF34: 81-insn struct-init constructor.
+ *   Args: (T *self, int a1, int a2, int a3, int arg5, int arg6)
+ *     - arg5 / arg6 are stack-passed (sp+0x3C / sp+0x38 from caller).
+ *   Field writes (offsets relative to a0):
+ *     +0x00 = 0          +0x04 = arg5         +0x08 = 0
+ *     +0x0C = D_NNNN_a   +0x10 = (s16) 1      +0x12 = (s16) 0
+ *     +0x14 = a1         +0x18 = 0
+ *     +0x38/+0x3C = (long long) a3
+ *     +0xF0/+0xF4 = (long long)(arg6 - 16)
+ *     +0x100/+0x104 = (long long)(int) &D_NNNN
+ *     +0x118 = 0xFF03    +0x11C = a2
+ *     +0x128 = 0x3F      +0x12C = 0x01000800
+ *   Then: v0 = gl_func_00000000(); a0->0xC = D_NNNN_a; D_NNNN_b = a0;
+ *         gl_func_00000000(v0);
+ *   Open: the 0x3F at +0x128 is computed via spill+and+srl of constant
+ *   0x003FFF01 (lui 0x3F + ori 0xFF01); looks like a bit-field extract.
+ */
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0006BF34(int *a0, int a1, int a2, int a3, int arg5, int arg6) {
+    int v0_save;
+    int x = 0x3FFF01;
+    *(int*)((char*)a0 + 0x14) = a1;
+    *(int*)((char*)a0 + 0x4) = arg5;
+    *(int*)((char*)a0 + 0x0) = 0;
+    *(int*)((char*)a0 + 0x8) = 0;
+    *(int*)((char*)a0 + 0x11C) = a2;
+    *(long long*)((char*)a0 + 0x38) = (long long)a3;
+    *(long long*)((char*)a0 + 0xF0) = (long long)(arg6 - 16);
+    *(long long*)((char*)a0 + 0x100) = (long long)(int)&D_00000000;
+    *(int*)((char*)a0 + 0x118) = 0xFF03;
+    *(int*)((char*)a0 + 0x128) = (x & 0x3F0000) >> 16;
+    *(int*)((char*)a0 + 0x12C) = 0x01000800;
+    *(int*)((char*)a0 + 0x18) = 0;
+    *(short*)((char*)a0 + 0x10) = 1;
+    *(short*)((char*)a0 + 0x12) = 0;
+    v0_save = gl_func_00000000();
+    *(int*)((char*)a0 + 0xC) = D_00000000;
+    D_00000000 = (int)a0;
+    gl_func_00000000(v0_save);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BF34);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BF34_pad.s")
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C084);
 
