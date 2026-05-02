@@ -1478,63 +1478,48 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
 
-/* game_uso_func_00007C1C: 0x10BC (1071 insns, 4.3 KB) — strategy-memo spine #3.
- * 0x3B0-byte stack frame (944 bytes — huge local storage).
+#ifdef NON_MATCHING
+/* game_uso_func_00007C1C: 0x10BC (1075 insns, 4.3 KB) — strategy-memo spine
+ * candidate #3 (~25 cross-USO calls). 0x3B0-byte (944 byte) stack frame.
+ * Single function (grep -c 03E00008 = 1).
  *
- * SIGNATURE (5+ args): prologue spills $a0/$a1/$a3 back to caller slots at
- *   sp+0x3B0/0x3B4/0x3BC, and loads $s0 from sp+0x3C4 (= caller's arg-5
- *   stack slot, per O32 ABI). Saves $s0/$s1/$s2, $ra, and $f20/$f22/$f24
- *   (doubleword FP saves — heavy float math ahead).
+ * SIGNATURE: 5-arg function. The 5th arg arrives via the caller's stack slot
+ * at sp+0x3C4 (caller's sp + 0x14 per O32 ABI — caller stack region begins
+ * at our sp + 0x3B0 since we allocate 0x3B0; 0x3B0 + 0x14 = 0x3C4).
+ *   void f(int a0, int a1, int a2, int a3, double *arg5)
  *
- *   f(arg0, arg1, arg2_in_s2, arg3, ..., arg5_ptr_in_s0)
+ * Uses callee-saved double regs $f20/$f22/$f24 — arithmetic-heavy
+ * (sdc1 saves at sp+0x20/0x28/0x30).
  *
- * ENTRY LOGIC (insns 1-20 @ 0x7C1C-0x7C6C):
- *   s0 = arg5 (5th stack arg — a pointer)
- *   s2 = arg2
- *   if (s0 != 0) *s0 = 0.0f;   // zero the output accumulator through ptr
- *   (reload a3 into $t6)
- *   f24 = 0.0
- *   v1 = &local[0x38C]
- *   if (a3 != 0) branch to big block at +0x33*4 (another sub-check)
+ * ENTRY (insns 1-20 @ 0x7C1C-0x7C6C, decoded):
+ *   - Save s0/s1/s2/ra + f20/f22/f24 doubles
+ *   - Spill args back to caller slots (sp+0x3B0..0x3BC)
+ *   - Load arg5 ptr from caller slot sp+0x3C4 into s0
+ *   - if (arg5 != NULL) { *(double*)arg5 = 0.0; }   // zero output accumulator
  *
- * Float math throughout: lwc1/swc1 to sp+0x348 and sp+0x38C regions
- * (looks like two Vec3 / quaternion slots). Multiple `jal 0` cross-calls
- * interspersed.
+ * BODY (insns 20-1075): heavy float math on sp+0x348 and sp+0x38C regions
+ * (two Vec3 / quaternion slots), 25 cross-USO calls, conditional dispatch on a3.
+ * 0x3C4-arg-slot pattern with double-output suggests this is a per-frame
+ * transform function (e.g. matrix/quaternion -> displacement).
  *
- * Deferred: 1071 insns will not match in one tick. Multi-run tightening
- * expected. Body structure TBD in next pass. */
-/* game_uso_func_00007C1C: 0x10BC (1083 insns, 4.3 KB) — strategy-memo spine
- * candidate #3 (~25 cross-USO calls).  0x3B0-byte (944 byte) stack frame.
- *
- * ENTRY PROLOGUE (insns 1-20 @ 0x7C1C-0x7C6C, 2026-04-20):
- *   addiu sp, -0x3B0        ; huge frame
- *   sw    s0, 0x38(sp)
- *   lw    s0, 0x3C4(sp)     ; s0 = caller's 5th arg (arg4, from caller slot
- *                             at sp+944+20 = 0x3C4)
- *   sw    s2, 0x40(sp)
- *   or    s2, a2, 0         ; s2 = a2 (3rd arg saved)
- *   sw    ra, 0x44(sp)
- *   sw    s1, 0x3C(sp)
- *   sdc1  $f24, 0x30(sp)    ; save callee-saved double regs
- *   sdc1  $f22, 0x28(sp)
- *   sdc1  $f20, 0x20(sp)
- *   sw    a0, 0x3B0(sp)     ; spill args to caller slots
- *   sw    a1, 0x3B4(sp)
- *   beq   s0, zero, +4 (→0x7C60)   ; if 5th arg is NULL, skip init
- *   sw    a3, 0x3BC(sp)      ; DELAY: also spill a3
- *   mtc1  zero, $f24         ; f24 = 0.0
- *   nop
- *   sdc1  $f24, 0(s0)        ; *(double*)s0 = 0.0
- *   ...
- *
- * Calling convention: takes 5 args (a0, a1, a2, a3, arg4-at-sp+0x3C4).
- * Uses callee-saved double regs $f20/$f22/$f24 — arithmetic-heavy.
- * 0x3C4 arg slot pattern suggests this is a per-frame transform function
- * receiving a destination buffer (arg4) for output.
- *
- * Deferred: full decode requires typed struct understanding. 1083 insns
- * with double-precision math and many cross-USO calls. Multi-run decomp. */
+ * Multi-tick decomp; this commit captures the entry signature only. */
+extern int gl_func_00000000();
+void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
+    if (arg5 != 0) {
+        *arg5 = 0.0;
+    }
+    /* TODO: 1050+ insns of body — quaternion/matrix transform with cross-USO
+     * calls. Reads a3 conditionally and dispatches to two main sub-paths
+     * around sp+0x348 and sp+0x38C float buffers. */
+    (void)gl_func_00000000();
+    (void)a0;
+    (void)a1;
+    (void)a2;
+    (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
+#endif
 
 /* game_uso_func_00008CD8: 0xB14 (709 insns), 0x210-byte stack frame.
  * Strategy-memo spine: 2.8 KB, 16 cross-USO calls, "subsystem".
