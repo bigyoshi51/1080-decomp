@@ -236,17 +236,18 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
 
 #ifdef NON_MATCHING
-/* 12-insn indirect-call wrapper:
- *   v1 = a0->0x2C (ptr); v0 = v1->0x28 (ptr); call v0->0x5C(v0->0x58 + v1)
- * Logic correct (~75% match). Remaining diff: target assigns first deref
- * to $v1 and second to $v0 (reverse of IDO's "first-named-pseudo gets $v0"
- * rule per feedback_ido_v0_reuse_via_locals.md). The chain depends on
- * v1 being live across the call to compute `t6 + v1` for the arg, so
- * inlining doesn't help. Structural register-pair cap from C. */
-void timproc_uso_b5_func_00008F98(int *a0) {
-    int *v1 = *(int**)((char*)a0 + 0x2C);
-    int *v0 = *(int**)((char*)v1 + 0x28);
-    ((void(*)(int))*(int*)((char*)v0 + 0x5C))(*(short*)((char*)v0 + 0x58) + (int)v1);
+/* 97.5 % match. Indirect-call wrapper:
+ *   p1 = a0->0x2C; p2 = p1->0x28;
+ *   ((fn*)p2->0x5C)(p2->0x58_short + p1);
+ *
+ * Remaining 2.5 %: $v0/$v1 reg-swap on the p1/p2 named locals (mine
+ * v0=p1,v1=p2 vs target v1=p1,v0=p2). Inlining all derefs to remove the
+ * named locals regressed (97.08 %) due to extra reload of a0->0x2C.
+ * Pure regalloc swap; not C-controllable. */
+void timproc_uso_b5_func_00008F98(char *a0) {
+    int p1 = *(int*)(a0 + 0x2C);
+    int *p2 = *(int**)((char*)p1 + 0x28);
+    (*(int(**)())((char*)p2 + 0x5C))(*(short*)((char*)p2 + 0x58) + p1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008F98);
