@@ -16,7 +16,17 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000006B0);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000006FC);
+extern int D_b3_06FC_a;
+extern int D_b3_06FC_b;
+extern int D_b3_06FC_c;
+extern int D_b3_06FC_d;
+void timproc_uso_b3_func_000006FC(void) {
+    gl_func_00000000(D_b3_06FC_a);
+    gl_func_00000000(D_b3_06FC_b);
+    gl_func_00000000(&D_b3_06FC_c);
+    gl_func_00000000(D_b3_06FC_d);
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000006FC_pad.s")
 
 /* Chain sibling of 0x790, 0x7D4, 0x818 (state-store + 1-call wrapper,
  * prologue-stolen v0). t7=1 here. Same recipe as b1 chain 0x734-0x800. */
