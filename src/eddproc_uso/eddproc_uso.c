@@ -115,7 +115,21 @@ void eddproc_uso_func_000001E8(char *a0) {
  *
  * Multi-tick decomp: matching the exact branch nesting + 3 spill-slot
  * pattern requires careful arrangement of the 3 conditional alloc paths.
- * Stub body documented; default build INCLUDE_ASM matches. */
+ * Stub body documented; default build INCLUDE_ASM matches.
+ *
+ * (current: 61.26 %, 2026-05-02). Attempted variations:
+ *   - `int *` return: 59.66 % (added load+return overhead, regressed)
+ *   - Ternary `(p1 != 0) ? call : 0` w/ goto chain: 52.02 % (added bne
+ *     guards but wrong delay-slot fills)
+ *   - Mutate a0 in-place vs `int *p1 = a0`: 60.44 % (no real diff)
+ *
+ * Target's structure has TWO defensive null checks (a2 != 0, v1 != 0)
+ * that branch over the next jal — these are dead code in normal flow
+ * (a2 is provably non-zero at that point) but IDO emits them anyway.
+ * Probably came from `p2 = (p1 != 0) ? call(p1) : 0` style ternaries
+ * in the source, which IDO evaluates as bne+delay+call instead of just
+ * call. Frame size diff: target 0x20 (3 spill slots: 0x18/0x1C/0x20),
+ * mine 0x28 (over-allocates). Bigger structural rework likely required. */
 void eddproc_uso_func_0000025C(int *a0, int *a1) {
     int *p1 = a0;
     int *p2;
