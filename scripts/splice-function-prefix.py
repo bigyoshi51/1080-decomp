@@ -152,6 +152,19 @@ class ElfWriter:
             self.e_ehsize, self.e_phentsize, self.e_phnum,
             self.e_shentsize, self.e_shnum, self.e_shstrndx)
 
+    def shrink_section_symbol(self, section_idx: int, n_bytes: int):
+        """The section symbol (STT_SECTION, st_value=0, st_size=section size)
+        for the spliced section needs its st_size shrunk to match the new
+        section size. objdiff reads this to bound .text and rejects symbols
+        that extend past it."""
+        symtab_idx = self.find_section(".symtab")
+        for sym_idx, fields in self.get_symtab(symtab_idx):
+            # Section symbols have st_info type STT_SECTION (3) and shndx == section_idx.
+            if fields[5] == section_idx and (fields[3] & 0xF) == 3:
+                fields[2] -= n_bytes
+                self.write_symtab_entry(symtab_idx, sym_idx, fields)
+                return
+
     def shift_symbols(self, splice_addr: int, n_bytes: int, exempt_sym_idx: int):
         """Shift all symbols with st_value > splice_addr by -n_bytes
         (except the exempt sym, whose st_value stays put — its size shrunk
@@ -272,7 +285,11 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
     # 3. Shrink target sym size
     elf.fix_target_symbol_size(sym_idx, n_bytes, symtab_idx)
 
-    # 4. Fix .rel.text
+    # 4. Shrink .text section symbol's st_size — objdiff bounds-checks symbols
+    #    against this and rejects parsing if any sym extends past it.
+    elf.shrink_section_symbol(text_idx, n_bytes)
+
+    # 5. Fix .rel.text
     elf.fix_relocations(func_addr, n_bytes)
 
     o_path.write_bytes(bytes(elf.data))
