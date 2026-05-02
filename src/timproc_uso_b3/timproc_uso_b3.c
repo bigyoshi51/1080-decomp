@@ -24,7 +24,19 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000007D4);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000818);
+/* Prologue-stolen successor: predecessor func_000007D4's tail has lui+addiu
+ * setting v0 = &D_00000000 (offsets 0x810/0x814 in 7D4's .s). Build pipeline
+ * splices the redundant 8-byte prefix via PROLOGUE_STEALS in Makefile.
+ * Use unique extern `D_state_b3_818` (mapped to 0x0) for the gl_func arg
+ * to break IDO's &D-CSE -- target emits a fresh lui+lw at the call site
+ * rather than reusing v0. Per feedback_ido_cse_d_loads_unflippable.md +
+ * feedback_usoplaceholder_unique_extern.md. */
+extern int D_state_b3_818;
+void timproc_uso_b3_func_00000818(void) {
+    *(int*)((char*)&D_00000000 + 0x40) = 8;
+    *(int*)((char*)&D_00000000 + 0x44) = 0xD;
+    gl_func_00000000(D_state_b3_818, -1, 0);
+}
 
 void timproc_uso_b3_func_00000854(int *dst) {
     int buf[2];
