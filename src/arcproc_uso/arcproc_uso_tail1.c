@@ -118,7 +118,16 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001C7
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001D18);
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F0C);
+void arcproc_uso_func_00001F0C(char *a0) {
+    if (*(int*)((char*)&D_00000000 + 0x64) == 1) {
+        *(int*)(a0 + 0xA0) = 0xC350;
+    } else {
+        *(int*)(a0 + 0xA0) = 0x7530;
+    }
+    *(int*)(a0 + 0xA8) = *(int*)(*(int*)(a0 + 0xB8) + 0x34);
+    *(int*)(a0 + 0xA4) = 0;
+    gl_func_00000000(a0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F54);
 
