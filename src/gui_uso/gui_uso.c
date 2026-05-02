@@ -80,7 +80,11 @@ int gui_func_000015BC(int a0, int a1, int a2) {
     return a1 - (gui_func_00000000(a0, a2) / 2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000015F4);
+int gui_func_000015F4(int a0, int a1, int a2) {
+    return a1 - gl_func_00000000(a0, a2);
+}
+
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000161C);
 
 extern int gl_func_00000000();
 extern int gui_ref_00000150;
