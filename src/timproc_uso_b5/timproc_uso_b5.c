@@ -333,9 +333,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  *   ((fn*)p2->0x5C)(p2->0x58_short + p1);
  *
  * Remaining 2.5 %: $v0/$v1 reg-swap on the p1/p2 named locals (mine
- * v0=p1,v1=p2 vs target v1=p1,v0=p2). Inlining all derefs to remove the
- * named locals regressed (97.08 %) due to extra reload of a0->0x2C.
- * Pure regalloc swap; not C-controllable. */
+ * v0=p1,v1=p2 vs target v1=p1,v0=p2). Verified 2026-05-02:
+ *   - decl-order swap (p2 declared first) — no change, 97.5%
+ *   - full inlining — regresses to 97.08% with addu operand swap
+ *   p2 has 3 refs vs p1's 1 ref; p2 SHOULD have higher allocator priority
+ *   per global.c weight formula but IDO assigns first-seen to lower reg.
+ *   Per feedback_ido_sreg_order_not_decl_driven.md: source-decl reorder
+ *   doesn't flip $v swap. Pure regalloc cap; not C-controllable. */
 void timproc_uso_b5_func_00008F98(char *a0) {
     int p1 = *(int*)(a0 + 0x2C);
     int *p2 = *(int**)((char*)p1 + 0x28);
@@ -348,7 +352,39 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
 
+#ifdef NON_MATCHING
+/* 23-insn loop with branch-likely preload (bnezl at 0x50 with delay-slot
+ * `lw v1, 0x40(s2)` preloading v1 for next iteration's body at 0x2C).
+ *
+ * Logic: for i in [0, a0->0x3C): call (a0->0x40)->0x28->0x4C as fn ptr,
+ * arg = (signed short)(a0->0x40)->0x28->0x48 + (a0->0x40). Plus an
+ * unused $s1 pointer that increments by 4 per iteration (dead but live
+ * in IDO's view).
+ *
+ * Cap likely structural: the branch-likely with off-loop-body delay-slot
+ * preload isn't reachable from std do-while C. The loop body at 0x2C
+ * starts WITHOUT a lw v1 — it's pre-loaded by the previous iteration's
+ * branch-likely delay slot (or by the initial lw at 0x28). */
+void timproc_uso_b5_func_0000A97C(char *a0) {
+    int i;
+    char *p;
+    int *v1;
+    int *v0;
+
+    if (*(int*)(a0 + 0x3C) <= 0) return;
+    p = a0;
+    i = 0;
+    do {
+        v1 = *(int**)(a0 + 0x40);
+        v0 = *(int**)((char*)v1 + 0x28);
+        (*(int(**)())((char*)v0 + 0x4C))(*(short*)((char*)v0 + 0x48) + (int)v1);
+        i++;
+        p += 4;
+    } while (i < *(int*)(a0 + 0x3C));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A97C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A9EC);
 
