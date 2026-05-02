@@ -65,23 +65,17 @@ void h2hproc_uso_func_000002A4(void) {
     gl_func_00000000(D_h2h_2A4_c, -1, 0);
 }
 
-#ifdef NON_MATCHING
-/* 97.95%: sibling of func_000002A4 — same 3-call + 2-side-effect-store
- * structure but writes 2 (not 5) at D_0[0x40]. Same `lui a3; addiu a0, a3`
- * intermediate-register cap documented in func_000002A4's NM comment.
- * Cap at ~22-of-23 bytes match; the a3-intermediate is an IDO invariant. */
+extern char *D_h2h_2FC_a;       /* call 1 base, *(D+4) */
+extern char *D_h2h_2FC_b;       /* call 2 a0 + store +0x40 */
+extern int  *D_h2h_2FC_c;       /* call 3 base, *D->0x30 = 0 + delay-arg */
+
 void h2hproc_uso_func_000002FC(void) {
-    int *p;
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
-    *(int*)((char*)&D_00000000 + 0x40) = 2;
-    gl_func_00000000(&D_00000000);
-    p = *(int**)&D_00000000;
-    *(int*)((char*)p + 0x30) = 0;
-    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+    gl_func_00000000(*(int*)((char*)&D_h2h_2FC_a + 4));
+    *(int*)((char*)&D_h2h_2FC_b + 0x40) = 2;
+    gl_func_00000000(&D_h2h_2FC_b);
+    *(int*)((char*)D_h2h_2FC_c + 0x30) = 0;
+    gl_func_00000000(D_h2h_2FC_c, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002FC);
-#endif
 
 #ifdef NON_MATCHING
 /* 98.4 % match (2026-05-02, up from ~60 %). Logic-fix: prior wrap was
