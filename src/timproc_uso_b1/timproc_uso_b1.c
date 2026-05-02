@@ -52,7 +52,17 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000007BC);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000800);
+/* Byte-identical sibling of timproc_uso_b3_func_00000818. Same recipe:
+ * PROLOGUE_STEALS removes redundant 8-byte lui+addiu prefix; unique extern
+ * D_state_b1_800 (mapped 0x0) at the gl_func arg breaks &D-CSE so target's
+ * fresh lui+lw at the call site reproduces. See
+ * feedback_combine_prologue_steals_with_unique_extern.md. */
+extern int D_state_b1_800;
+void timproc_uso_b1_func_00000800(void) {
+    *(int*)((char*)&D_00000000 + 0x40) = 8;
+    *(int*)((char*)&D_00000000 + 0x44) = 0xD;
+    gl_func_00000000(D_state_b1_800, -1, 0);
+}
 
 void timproc_uso_b1_func_0000083C(int *dst) {
     int buf[2];
