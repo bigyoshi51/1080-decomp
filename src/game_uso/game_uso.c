@@ -1664,7 +1664,24 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FA54);
 
+#ifdef NON_MATCHING
+/* 18-insn 3-call wrapper. Body: gl_func(a0); gl_func(a0, *(D+0xE40),
+ * *(D+0xE44)); gl_func(a0).
+ *
+ * Match blocked by two IDO codegen patterns target uses:
+ * 1. Base-adjust on the address load (addiu $tN by 0xE40, then lw at
+ *    offsets 0 and 4) — see feedback_ido_base_adjust_for_clustered_offsets.md.
+ * 2. Variadic-style stack spill of $a1, $a2 to sp+4, sp+8 — IDO emits
+ *    this when the called function's signature is varargs, but our K&R
+ *    `extern int gl_func_00000000()` doesn't trigger it. */
+void game_uso_func_0000FABC(int a0) {
+    gl_func_00000000(a0);
+    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE40), *(int*)((char*)&D_00000000 + 0xE44));
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FABC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB04);
 
