@@ -28,7 +28,32 @@ void mgrproc_uso_func_00000000(int *dst) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000000);
 #endif
 
+#ifdef NON_MATCHING
+/* Quad4-reader template at -O0 (25 insns, 0x64) — sibling of
+ * mgrproc_uso_func_00000000 (int reader at -O0). Per
+ * feedback_uso_accessor_template_reuse.md, this is the standard 16-byte
+ * accessor compiled at -O0 vs -O2 (15 insns).
+ *
+ * -O0 markers in target:
+ *   (a) `sw ra` BEFORE `sw a0` in prologue (-O2 opposite)
+ *   (b) unfilled jal delay slot (`jal 0; nop`) — -O2 fills with `addiu a2,16`
+ *   (c) pointer-indirect reload (`lw t6,0x28(sp); addiu t7,sp,0x18`) instead
+ *       of -O2's direct `lw tN,0x18(sp)`
+ *   (d) trailing `b +1; nop` (dead branch to next insn) before epilogue
+ *
+ * BLOCKED: mgrproc_uso is Yay0-compressed (per feedback_uso_yay0_compressed.md);
+ * the file-split recipe for -O0 override (works for bootup_uso/arcproc_uso)
+ * doesn't apply because the Yay0 rule consumes only one .o. Same blocker as
+ * mgrproc_uso_func_00000000 (int-reader sibling). Unblock requires `ld -r`
+ * pre-merge step before yay0 compression — infrastructure work, deferred. */
+void mgrproc_uso_func_0000004C(Quad4 *dst) {
+    volatile Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *(Quad4*)dst = *(Quad4*)&buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000004C);
+#endif
 
 #ifdef NON_MATCHING
 /* Refcount-increment wrapper (18 insns, 0x48). -O0 style matching
