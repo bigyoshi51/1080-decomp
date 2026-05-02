@@ -1284,7 +1284,20 @@ void func_0000F3D4(int a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F3D4);
 #endif
 
+#ifdef NON_MATCHING
+/* Byte-identical sibling of func_0000F3D4 — same -O0 passthrough wrapper
+ * pattern (spill+reload, unfilled jal delay, trailing b+1). Logic is just
+ * `func_00000000(a0)`. See func_0000F3D4 above for the deferred file-split
+ * note. The 0xF3D4-0xF564 range has at least 5 likely -O0 wrappers
+ * (F3D4, F404, F434, F4CC, F564) — a single bootup_uso_o0_F3D4.c file
+ * covering this cluster would be worth the linker layout adjustment. */
+extern void func_00000000();
+void func_0000F404(int a0) {
+    func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F404);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F434);
 
