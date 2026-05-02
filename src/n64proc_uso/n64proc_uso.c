@@ -101,6 +101,12 @@ extern char D_00000000;
  * Adopted because it's strictly better and same logic. The 6-local
  * $s-reg allocation is still mis-numbered.
  *
+ * (10) TRIED 2026-05-02 (later session): split decl-init from inline-
+ * init (`register int one; ... one = 1;`). No change — confirms IDO's
+ * allocator priority is purely refs/live-length-based, decl-init vs
+ * later-init doesn't shift it. The s2/s3 swap is structurally fixed
+ * given current IDO flag set; no C-level lever remaining.
+ *
  * (9) TRIED 2026-05-02: eliminate `flag` entirely; restructure as
  * `while (arg1 != 0 && arg1 != one) { arg1 = base->0x40; } if (arg1==0)
  * branch1 else branch2; arg1 = base->0x40;` — REGRESSED to 18.5 %. The
