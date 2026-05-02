@@ -58,7 +58,28 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011B5C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011BF0);
 
+#ifdef NON_MATCHING
+/* append-to-array helper: a0->0x120 is the count, a0->0xE0[count] = a1.
+ * 13 insns / 0x34. -O0 indicators: empty `addiu sp,-8` frame with no spill,
+ * `b +1; nop` dead-branch BBL marker, leaf function. Verified 2026-05-02
+ * that BYTE-IDENTICAL at standalone -O0 with `register s32 idx; register
+ * s32 *p = a0;` decl order (idx FIRST so p gets $a3 = higher arg slot).
+ *
+ * BLOCKED: containing file bootup_uso_tail3a.c is built at -O2 -g3 (per
+ * Makefile line 52). To match, would need to split this function out into
+ * a new bootup_uso_o0_11C70.c with -O0 OPT_FLAGS, plus migrate ~20 other
+ * 0x11C70..0x120A8 functions and adjust tenshoe.ld + tail3a's
+ * TRUNCATE_TEXT. Infrastructure work, not single-tick scope. */
+void func_00011C70(s32 *a0, s32 a1) {
+    register s32 idx;
+    register s32 *p = a0;
+    idx = *(s32*)((char*)p + 0x120);
+    *(s32*)((char*)p + 0x120) = idx + 1;
+    *(s32*)((char*)a0 + idx*4 + 0xE0) = a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011C70);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CA4);
 
