@@ -190,7 +190,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003C8C);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003ED8);
+void timproc_uso_b5_func_00003ED8(char *a0) {
+    char *v;
+
+    gl_func_00000000(a0 + 0x2C);
+    v = *(char**)(a0 + 0x28);
+    (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F18);
 
