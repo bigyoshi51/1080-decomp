@@ -82,7 +82,62 @@ void eddproc_uso_func_000001E8(char *a0) {
     gl_func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
+/* Multi-stage allocator/initializer (50 insns, 0xC8). Pattern:
+ *
+ *   T* f(T *a0, T *a1) {
+ *       T *p1 = a0;
+ *       T *p2, *p3;
+ *
+ *       if (p1 == 0) {                     // a0 == 0: try first alloc
+ *           p1 = gl_func_00000000(0x54);
+ *           if (p1 == 0) return 0;         // alloc failed
+ *       }
+ *
+ *       p2 = gl_func_00000000(0x50, p1, a1);  // alloc+link second
+ *       if (p2 == 0) goto FINAL_P1;
+ *
+ *       p3 = gl_func_00000000(0x2C);       // alloc third
+ *       if (p3 != 0) {
+ *           gl_func_00000000(p3, &D_22C);  // init p3 from data table
+ *           p3->0x28 = &D_0;
+ *       }
+ *       p2->0x28 = &D_0;                   // (only when p3 alloc reached)
+ *
+ *   FINAL_P1:
+ *       p1->0x28 = &D_0;
+ *       return p1;
+ *   }
+ *
+ * Quirk: a1 is spilled to caller-arg-slot at sp+0x24 but never reloaded
+ * (dead spill — IDO preserves it via the convention without reading back).
+ * The 3 alloc stages each have an early-out branch.
+ *
+ * Multi-tick decomp: matching the exact branch nesting + 3 spill-slot
+ * pattern requires careful arrangement of the 3 conditional alloc paths.
+ * Stub body documented; default build INCLUDE_ASM matches. */
+void eddproc_uso_func_0000025C(int *a0, int *a1) {
+    int *p1 = a0;
+    int *p2;
+    int *p3;
+    if (p1 == 0) {
+        p1 = (int*)gl_func_00000000(0x54);
+        if (p1 == 0) return;
+    }
+    p2 = (int*)gl_func_00000000(0x50, p1, a1);
+    if (p2 != 0) {
+        p3 = (int*)gl_func_00000000(0x2C);
+        if (p3 != 0) {
+            gl_func_00000000(p3, (char*)&D_00000000 + 0x22C);
+            *(int*)((char*)p3 + 0x28) = (int)&D_00000000;
+        }
+        *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
+    }
+    *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000025C);
+#endif
 
 void eddproc_uso_func_00000324(int a0) {
 }
