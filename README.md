@@ -22,7 +22,7 @@ Nineteen segments are being decompiled. USO overlays ship as a custom relocatabl
 | `game_uso`     | 77 / 221    | 4.3 KB / 70.8 KB   | Main game loop (Yay0-decompressed)             |
 | `timproc_uso_b1,b3,b5` | 54 / 220 | 2.7 KB / 81.3 KB | Timer process variants (Yay0-decompressed)     |
 | `map4_data_uso_b2` | 3 / 3   | 0.2 KB / 0.2 KB    | Map-4 data block                               |
-| **Total**      | **758 / 2,663** | **45.5 KB / 748.6 KB (6.08%)** |                                |
+| **Total**      | **772 / 2,664** | **46.3 KB / 748.6 KB (6.18%)** |                                |
 
 Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
