@@ -18,7 +18,35 @@ void arcproc_uso_func_00001B88(int *a0) {
 
 /* arcproc_uso_func_0000012C and func_0000019C moved to arcproc_uso_o0_12C.c (-O0 file). */
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00000240: 0x388 (226 insns), 0x48 stack frame.
+ * Sibling of arcproc_uso_func_0000019C (-O2 here vs -O0 there). 11-way state
+ * machine dispatcher: switch (a1) where a1 ranges 0..10. Bound check first
+ * (`sltiu at, a1, 0xB; beq at, zero, epilogue`), then jump-table lookup
+ * via .rodata at D_xxx + a1*4.
+ *
+ * Cases 0..10 each do various combinations of:
+ *   - gl_func_00000000(a0, 1, 3, 1)    -- 4-arg helper called with constants
+ *   - gl_func_00000000(a0, 1, 3, ...)  -- variants
+ *   - sw constants 0x3, 0xA, 0x1 to *(0x44, 0x48, 0x40) under a single global
+ *   - branches to epilogue (sets local +0x40 = 1 to indicate state advance)
+ *
+ * Likely a "menu state advance" handler — given a key (button press category?)
+ * and target struct, dispatch to one of 11 state transitions, each calling
+ * the renderer/animator helper with different constants.
+ *
+ * Per feedback_ido_switch_rodata_jumptable.md: IDO -O2 emits a .rodata
+ * jumptable for switch w/ ≥4 dense cases. Without explicit .rodata
+ * preservation in the linker script for arcproc_uso, the function may be
+ * permanently INCLUDE_ASM (the jumptable address can't be reproduced).
+ *
+ * Multi-tick: full case decode + verification of jumptable matchability
+ * deferred. Default build INCLUDE_ASM remains exact. */
+void arcproc_uso_func_00000240(void) {
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000240);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000005C8);
 
