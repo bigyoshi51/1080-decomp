@@ -53,54 +53,17 @@ void h2hproc_uso_func_00000274(int *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00000274_pad.s")
 
-#ifdef NON_MATCHING
-/* 97.95%: 3-call orchestrator with 2 side-effect stores.
- *   call 1: gl_func_00000000(*(int*)(&D_00000000 + 4))
- *   (*(int*)(&D_00000000 + 0x40)) = 5; call 2: gl_func_00000000(&D_00000000)
- *   (*(int**)&D_00000000)->0x30 = 0; call 3: gl_func_00000000(*(int*)&D_00000000, -1, 0)
- *
- * Variants tested 2026-04-20 (none improved match, some REGRESSED):
- *   v2: `int *d = (int*)&D_0; d[0x10] = 5; gl_func(d)` — same output as
- *       original (31 insns). Using a named `d` local doesn't affect codegen.
- *   v3: `register char *base = &D_0;` + use `base` throughout — FIXES the
- *       delay-slot `sw t6, 0x40(a0)` pattern (lui+addiu directly into a0,
- *       matches target first half). But second half EXPANDS: base isn't
- *       kept alive across calls, so IDO re-materializes &D_0 via fresh
- *       lui+lw for each subsequent access. Total: 33 insns (worse than
- *       original 31; target is 22).
- *   v6 (2026-04-20 extended): pass `p` to call 3 instead of `*&D_0` —
- *       **first half MATCHES target byte-perfect** (lui a0; addiu a0, a0
- *       DIRECT, no a3). But IDO then CSE's the `p = *&D_0` read with the
- *       earlier, so it loads p into $a0 directly at 0x28 (lui a0; lw
- *       a0, 0(a0)), SKIPPING the "base cached in $v0" pattern target
- *       emits. Total 19 insns (3 fewer than target 22).
- *   v8 (named `int *base = &D_0;` + base[16]=6 + pass base[0] to call 3):
- *       first half matches, but v8 uses v0 as BOTH base AND loaded-ptr
- *       (`v0 = *v0`), not target's t7 = *v0 pattern. Also 19 insns.
- *   v9-v11 (volatile, cast tricks, register hints): no improvement
- *       beyond v6/v8; cap holds at 97.95%. The target's "base cached in
- *       $v0 + separate t7 for deref" pattern isn't reproducible because
- *       IDO CSE's the two *&D_0 reads into one load-to-the-arg-reg.
- *
- * Fundamental issue: target keeps `v0 = &D_0` alive as a base pointer across
- * all of the second half (4 refs with only 22 insns). IDO-O2 declines to
- * hold `&D_0` in a register past call 2 because the spill-vs-rematerialize
- * cost is close. `register` hint + 5+ refs still doesn't persuade it.
- *
- * Cap at 97.95%. Real fix would be permuter-only or a compile-time hint
- * IDO doesn't expose. Committing this comment IS the forward progress. */
+extern char *D_h2h_2A4_a;       /* call 1 base, *(D+4) */
+extern char *D_h2h_2A4_b;       /* call 2 a0 + store +0x40 */
+extern int  *D_h2h_2A4_c;       /* call 3 base, *D->0x30 = 0 + delay-arg */
+
 void h2hproc_uso_func_000002A4(void) {
-    int *p;
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
-    *(int*)((char*)&D_00000000 + 0x40) = 5;
-    gl_func_00000000(&D_00000000);
-    p = *(int**)&D_00000000;
-    *(int*)((char*)p + 0x30) = 0;
-    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+    gl_func_00000000(*(int*)((char*)&D_h2h_2A4_a + 4));
+    *(int*)((char*)&D_h2h_2A4_b + 0x40) = 5;
+    gl_func_00000000(&D_h2h_2A4_b);
+    *(int*)((char*)D_h2h_2A4_c + 0x30) = 0;
+    gl_func_00000000(D_h2h_2A4_c, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002A4);
-#endif
 
 #ifdef NON_MATCHING
 /* 97.95%: sibling of func_000002A4 — same 3-call + 2-side-effect-store
