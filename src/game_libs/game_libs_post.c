@@ -1650,16 +1650,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F82C);
 
-#ifdef NON_MATCHING
-/* 99.92% — target has `sw \$a1, 0x24(\$sp)` (local slot), mine has
- * `sw \$a1, 0xBC(\$sp)` (caller's arg-save slot). 1 insn off. Tried:
- *  (a) `int saved_a1; (void)saved_a1;` — IDO spills to caller slot
- *  (b) `int saved_a1; int *p = &saved_a1;` — grows frame by 8 bytes
- *      (taking address alters alloc)
- * Target's `sw \$a1, 0x24` isn't reproducible from C at -O2 here —
- * IDO picks caller slot when the local is never read. Cap at 99.92%. */
 extern int gl_func_00000000();
 
+/* 12-insn wrapper: stash a1 to a local, set local int = 0x2A, call gl_func(&local).
+ * The 0xB8-byte stack frame holds an unused 0x90-byte char buf (compiler
+ * still allocates space). `volatile int saved_a1` forces a1 spill to local
+ * sp+0x24 instead of caller arg slot. */
 void gl_func_0003F880(int a0, int a1) {
     char buf[0x90];
     volatile int saved_a1;
@@ -1671,9 +1667,6 @@ void gl_func_0003F880(int a0, int a1) {
     (void)buf;
     (void)pad;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F880);
-#endif
 
 extern int gl_func_00000000();
 
