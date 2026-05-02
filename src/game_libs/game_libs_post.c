@@ -2228,7 +2228,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E214);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
 
+#ifdef NON_MATCHING
+/* Append-to-array-with-bounds-check (28 insns, prologue-stolen).
+ * Predecessor gl_func_0004E244 tail loads a flag from &D + 0x1C4. If
+ * (flag & 1), skip body. Else: idx = a0[3]; if (idx >= a0[2]) call
+ * gl_func with format ptr + a1, reload idx; a0[3] = idx + 1;
+ * a0[0][idx] = a1.
+ *
+ * Match blocked: target uses 3-save pattern for original a0 (copy to $a2,
+ * spill, reload) which uses $v1 for idx. IDO -O2 picks $v0 for idx since
+ * the simpler 2-save pattern (spill $a0 directly) suffices. Reg-rename
+ * grind needed. */
+void gl_func_0004E384(int *a0, int a1) {
+    int v1;
+    if ((*(int*)((char*)&D_00000000 + 0x1C4) & 1) == 0) {
+        v1 = a0[3];
+        if (v1 >= a0[2]) {
+            gl_func_00000000((char*)&D_00000000 + 0x204D4, a1);
+            v1 = a0[3];
+        }
+        a0[3] = v1 + 1;
+        ((int**)a0)[0][v1] = a1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E384);
+#endif
 
 extern int gl_ref_000623D0();
 extern int gl_ref_0006240C();
