@@ -881,6 +881,17 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
 
 
 
+/* func_800047E4: 8-insn fragment, uses uninitialized $t2 and $t5 at entry.
+ * Splat-mis-split tail of func_800047B0 (predecessor falls through with no jr
+ * ra at 0x800047E0, ending with `sll t5, t4, 8`). Combined function reads 4
+ * bytes from a0[0..3] big-endian and returns an unaligned 32-bit word.
+ *
+ * BUT: 9+ callers `jal func_800047E4` directly (in func_80003E64, func_80004030
+ * × 8 sites, etc.). Each caller's pre-jal sequence happens to set $t2 (high-24
+ * bits assembled) and $t5 (byte-2 << 8) — a non-standard calling convention
+ * where the caller pre-loads scratch regs and the helper finishes the byte
+ * combine. This is the `feedback_uninit_tN_branch_at_entry.md` pattern: not
+ * matchable from C without inline-asm (IDO rejects). Keep INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800047E4);
 
 /* NON_MATCHING: stack data packing is correct, but IDO still chooses a
