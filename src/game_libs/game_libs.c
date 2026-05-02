@@ -864,3 +864,5 @@ int gl_func_0000EBC8(char *a0) {
     gl_ref_00020CB0(&scratch);
     return gl_ref_00020D80(a0 + 0x10);
 }
+
+
