@@ -102,32 +102,46 @@ void func_80000118(s32 a0, s32 a1) {
 }
 
 #ifdef NON_MATCHING
-/* +8 bytes bloat (built 124 vs baserom 116). String-compare-like func; C
- * structure produces extra cmp. Preserved as INCLUDE_ASM in default build
- * so kernel section size matches baserom. */
-s32 func_80000168(char* a0, char* a1) {
-    s32 nz;
+/* String-compare returning 0 if equal, 1 if different.
+ *
+ * UPDATE 2026-05-02: 124 → 120 bytes (target 116) via goto-based structure
+ * with `p1 = a0` saved across loop iter (mirrors target's `or v1, a0, zero`
+ * delay slot). 4 bytes closer to target.
+ *
+ * Remaining 4 bytes / 1-insn cap: target uses `beql v0, zero, end` with
+ * `sltu v1, zero, v0` in delay slot for entry/loop-tail v0==0 checks; mine
+ * emits `beq v0, zero` with nop-filled delay. To reach target, IDO needs to
+ * recognize the v0==0 branch's target as starting with the sltu pattern (so
+ * it can hoist into delay), but my tail uses `if (v0 != 0) return 1;` which
+ * compiles to a different shape. Tried (v4): explicit `v1 = v0 != 0; if(v1)
+ * return v1;` — compiles to 124 bytes (back to baseline, sltu emitted but
+ * with different surrounding structure). Cap is structural beql-emission
+ * not flippable from C. */
+s32 func_80000168(char *a0, char *a1) {
+    s32 v0;
+    s32 t7, t8;
+    char *vv;
+    char *p1;
 
-    if (*a0 != '\0') {
-        if (*a1 != '\0') {
-            do {
-                if (*a1 != *a0) {
-                    return 1;
-                }
-                a1++;
-                a0++;
-            } while (*a0 != '\0' && *a1 != '\0');
-        }
-        nz = *a0 != '\0';
-    } else {
-        nz = *a0 != '\0';
-    }
-
-    if (nz != 0) {
-        return nz;
-    }
-    nz = *a1 != '\0';
-    return nz;
+    v0 = (u8)*a0;
+    if (v0 == 0) goto tail;
+    if ((u8)*a1 == 0) goto tail;
+    p1 = a0;
+loop:
+    vv = a1;
+    t7 = (u8)*vv;
+    t8 = (u8)*p1;
+    a1++;
+    a0++;
+    if (t7 != t8) return 1;
+    v0 = (u8)*a0;
+    if (v0 == 0) goto tail;
+    if ((u8)*a1 == 0) goto tail;
+    p1 = a0;
+    goto loop;
+tail:
+    if (v0 != 0) return 1;
+    return (u8)*a1 != 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000168);
