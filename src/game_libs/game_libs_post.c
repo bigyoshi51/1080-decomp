@@ -46,7 +46,18 @@ void gl_func_0001FC50(void) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FC78);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FCD0);
+extern int gl_func_00000000();
+
+int gl_func_0001FCD0(int a0, int a1) {
+    int v1 = 0;
+    if (*(int*)((char*)&D_00000000 + 0x2178) != 0) {
+        v1 = gl_func_00000000((char*)&D_00000000 + 0x2178);
+    }
+    if (v1 == 0) {
+        v1 = gl_func_00000000(a0, a1);
+    }
+    return v1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD20);
 
