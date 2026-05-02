@@ -1078,20 +1078,28 @@ void game_uso_func_00006F28(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 41.5% NM wrap. 28-insn (0x70) prologue-stolen successor — predecessor
- * 6F28 ends with lui+lw setting t6 = *(D_00000000+0x548).
- *   v = (*D_0+0x548)[0]
- *   r = gl_func(a0, v, a0->0x30+0xB4, [arg3 spilled = v])
- *   if (r == 0) return 0
- *   if ((r->0x84 & 0x400) != 0) return 1
- *   p = r->0x2C
- *   if (p == 0) return 0
- *   return (p->0x84 & 0x400) != 0
+/* 41.5% NM wrap. 28-insn (0x70).
  *
- * Logic correct. Mine 28 insns w/ +8-byte prefix vs target 28 insns
- * (target's lui+lw is in predecessor's _pad.s). PROLOGUE_STEALS=8 +
- * unique-extern-vs-CSE recipe needed for next pass per
- * feedback_combine_prologue_steals_with_unique_extern.md. */
+ * UPDATE 2026-05-02: re-examined target asm. NOT prologue-stolen — the
+ * lui+lw prefix at offset 0 IS inside this function's own symbol (.s
+ * declares glabel game_uso_func_00006F38 covering all 28 insns).
+ * Tried PROLOGUE_STEALS=8 + unique-extern recipe: regressed to 17.71 %
+ * because splice removed bytes that genuinely belong to this function.
+ * Reverted both Makefile entry and undefined_syms_auto.txt addition.
+ *
+ * Target structure (28 insns, frame 0x40):
+ *   lui+lw t6, 0x548(D)         — load *(D+0x548) into t6 ($s-survives)
+ *   prologue (frame 0x40, save ra)
+ *   a1 = *t6
+ *   spill a1 to 0x3C(sp) AND 4(sp)  ← TWO dead spills, IDO bookkeeping
+ *   a2 = a0->0x30
+ *   jal gl_func(a0, v, a0->0x30+0xB4, [a3 garbage])
+ *   addiu a2, +0xB4 in delay
+ *   then sltu+beq+bnel chain to compute return = (v0!=0 && (v0->0x84&0x400 || (v0->0x2C && (v0->0x2C->0x84&0x400))))
+ *
+ * The 2 dead a1 spills are not reproducible from natural C — they're
+ * artifacts of how IDO scheduled the load BEFORE the jal. Body logic
+ * decoded; need a multi-stage variant tester or accept ~41% cap. */
 int game_uso_func_00006F38(int *a0) {
     int v = **(int**)((char*)&D_00000000 + 0x548);
     int *r = (int*)gl_func_00000000(a0, v, *(int*)((char*)a0 + 0x30) + 0xB4, v);
