@@ -228,7 +228,14 @@ end:
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000C54);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000FD0);
+void titproc_uso_func_00000FD0(int *a0, int *a1) {
+    int v = *a1;
+    if (v == 0x15) {
+        gl_func_00000000(a0);
+        gl_func_00000000(a0);
+    }
+    gl_func_00000000(a0, a1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000101C);
 
