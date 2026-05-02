@@ -3456,7 +3456,9 @@ void gl_func_0006BE6C(void) {
     gl_func_00000000(&D_00000000, &local, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BEA8);
+void gl_func_0006BEA8(void) {
+    gl_func_00000000(&D_00000000, 0, 0);
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BEA8_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BF34);
