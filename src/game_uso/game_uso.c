@@ -205,7 +205,22 @@ void *game_uso_func_00000608(void *a0) {
     return a0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000634);
+void game_uso_func_00000634(int *a0) {
+    a0[0] = 1;
+    a0[1] = 0;
+    a0[2] = 0;
+    a0[3] = 0;
+    a0[4] = 1;
+    a0[5] = 0;
+    a0[6] = 0;
+    a0[7] = 0;
+    a0[8] = 0;
+    a0[9] = 0;
+    a0[10] = 0;
+    a0[11] = 0;
+    a0[12] = 0;
+    a0[13] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000674);
 
