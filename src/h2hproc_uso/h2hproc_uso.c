@@ -120,7 +120,30 @@ void h2hproc_uso_func_000002FC(void) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002FC);
 #endif
 
+#ifdef NON_MATCHING
+/* 22-insn state-update routine. Decoded:
+ *   gl_func(*(D+4));                    ; arg via lui+lw straddling jal delay slot
+ *   *(D+0x40) = 3;
+ *   *(*(int*)D + 0x30) = 0;            ; deref D as int*, write to its target+0x30
+ *   gl_func(*(int*)D, -1, 0);
+ *
+ * Body is structurally correct. Cap (~60 %): IDO -O2 CSEs the &D loads into
+ * a single v0 register; target keeps `lui a0` fresh for each function-arg
+ * and uses v0 only for the t7 deref. The `*(*(int*)D + 0x30) = 0` writes
+ * via *D-as-pointer, which is what makes target keep v0 distinct from the
+ * a0-lui's. Per feedback_ido_v0_reuse_via_locals.md, naming a local boosts
+ * v0 use; here the issue is the OPPOSITE — IDO is too eager to CSE.
+ * No C-level knob to break the CSE without changing the source semantics.
+ * Wrap NM, keep partial decode. */
+void h2hproc_uso_func_00000354(void) {
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
+    *(int*)((char*)&D_00000000 + 0x40) = 3;
+    *(int*)(*(int*)&D_00000000 + 0x30) = 0;
+    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000354);
+#endif
 
 #ifdef NON_MATCHING
 /* 97.95%: sibling of 0x2A4 family (0x2A4=5, 0x2FC=2, 0x354=3); writes 4
