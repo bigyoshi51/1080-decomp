@@ -1,5 +1,5 @@
 
-nonmatching func_80009B60, 0xD0
+nonmatching func_80009B60, 0xE0
 
 glabel func_80009B60
     /* AB60 80009B60 908B0007 */  lbu        $t3, 0x7($a0)
@@ -61,4 +61,8 @@ glabel func_80009B60
     /* AC24 80009C24 3C01A000 */  lui        $at, (0xA0000000 >> 16)
     /* AC28 80009C28 27BD0010 */  addiu      $sp, $sp, 0x10
     /* AC2C 80009C2C 01856825 */  or         $t5, $t4, $a1
+    /* AC30 80009C30 01A15025 */  or         $t2, $t5, $at
+    /* AC34 80009C34 AD460000 */  sw         $a2, 0x0($t2)
+    /* AC38 80009C38 03E00008 */  jr         $ra
+    /* AC3C 80009C3C 00001025 */   or        $v0, $zero, $zero
 endlabel func_80009B60
