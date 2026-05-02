@@ -6,7 +6,23 @@ typedef struct { int a, b, c, d; } Quad4;
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000000);
 
+#ifdef NON_MATCHING
+/* Quad4-reader template at -O0 (25 insns, 0x64) — byte-identical asm to
+ * mgrproc_uso_func_0000004C and timproc_uso_b1_func_0000004C. Standard
+ * 16-byte accessor compiled at -O0 per
+ * feedback_uso_accessor_template_reuse.md.
+ *
+ * BLOCKED: timproc_uso_b3 is Yay0-compressed (per
+ * feedback_uso_yay0_compressed.md); the file-split recipe for -O0 override
+ * doesn't apply because the Yay0 rule consumes only one .o. */
+void timproc_uso_b3_func_0000004C(Quad4 *dst) {
+    volatile Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *(Quad4*)dst = *(Quad4*)&buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000004C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000000B0);
 
