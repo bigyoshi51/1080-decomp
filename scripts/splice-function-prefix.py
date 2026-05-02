@@ -258,19 +258,25 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
     func_size = sym_fields[2]
 
     if verify:
-        # Verify the first N bytes look like lui+addiu (or lui+lw)
+        # Detect-and-skip: when the function's first insn isn't LUI, we're
+        # most likely processing an INCLUDE_ASM-derived .o (e.g. during
+        # `make expected` via refresh-expected-baseline.py — the C body got
+        # swapped for INCLUDE_ASM, and the asm starts with `addiu sp` not
+        # `lui`). No prefix to splice → silent no-op so the same Makefile
+        # works for both C-emit builds and INCLUDE_ASM-emit builds.
         text_idx = elf.find_section(".text")
         text_off = elf.sections[text_idx][4] + func_addr
         first_word = struct.unpack(">I", bytes(elf.data[text_off:text_off + 4]))[0]
         second_word = struct.unpack(">I", bytes(elf.data[text_off + 4:text_off + 8]))[0]
         opcode1 = (first_word >> 26) & 0x3F
         opcode2 = (second_word >> 26) & 0x3F
-        if opcode1 != 0x0F:  # LUI
-            print(f"WARN: first insn at {func_name}+0 is not LUI "
-                  f"(opcode={opcode1:#x}, word={first_word:#010x})", file=sys.stderr)
-            sys.exit(1)
+        if opcode1 != 0x0F:  # not LUI — this .o was built from INCLUDE_ASM
+            print(f"splice-skip: {func_name} doesn't start with LUI "
+                  f"(word={first_word:#010x}); leaving as-is "
+                  f"(probably an INCLUDE_ASM build path)", file=sys.stderr)
+            return
         if opcode2 not in (0x09, 0x23, 0x25, 0x21):  # ADDIU, LW, LHU, ADDU
-            print(f"WARN: second insn at {func_name}+4 is not ADDIU/LW "
+            print(f"WARN: {func_name}+4 is not ADDIU/LW "
                   f"(opcode={opcode2:#x}, word={second_word:#010x})", file=sys.stderr)
             sys.exit(1)
         print(f"verify: {func_name} starts with "
@@ -288,9 +294,11 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
     # 3. Shrink target sym size
     elf.fix_target_symbol_size(sym_idx, n_bytes, symtab_idx)
 
-    # 4. Sync .text section symbol's st_size with current sh_size — objdiff
-    #    bounds-checks function symbols against this.
-    elf.sync_section_symbol(text_idx)
+    # 4. (Section symbol untouched.) Pre-splice .o has section symbol st_size
+    #    >= sh_size (asm-processor's alignment truncation shrinks sh_size but
+    #    leaves the section symbol at its original logical extent). Preserving
+    #    that relationship lets the section symbol cover function symbols that
+    #    extend past sh_size into alignment-pad bytes.
 
     # 5. Fix .rel.text
     elf.fix_relocations(func_addr, n_bytes)
