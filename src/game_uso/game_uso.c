@@ -892,7 +892,34 @@ void game_uso_func_00006F28(int *a0) {
     *(int*)((char*)a0 + 0x70) = 0;
 }
 
+#ifdef NON_MATCHING
+/* 41.5% NM wrap. 28-insn (0x70) prologue-stolen successor — predecessor
+ * 6F28 ends with lui+lw setting t6 = *(D_00000000+0x548).
+ *   v = (*D_0+0x548)[0]
+ *   r = gl_func(a0, v, a0->0x30+0xB4, [arg3 spilled = v])
+ *   if (r == 0) return 0
+ *   if ((r->0x84 & 0x400) != 0) return 1
+ *   p = r->0x2C
+ *   if (p == 0) return 0
+ *   return (p->0x84 & 0x400) != 0
+ *
+ * Logic correct. Mine 28 insns w/ +8-byte prefix vs target 28 insns
+ * (target's lui+lw is in predecessor's _pad.s). PROLOGUE_STEALS=8 +
+ * unique-extern-vs-CSE recipe needed for next pass per
+ * feedback_combine_prologue_steals_with_unique_extern.md. */
+int game_uso_func_00006F38(int *a0) {
+    int v = **(int**)((char*)&D_00000000 + 0x548);
+    int *r = (int*)gl_func_00000000(a0, v, *(int*)((char*)a0 + 0x30) + 0xB4, v);
+    int *p;
+    if (r == 0) return 0;
+    if ((*(int*)((char*)r + 0x84) & 0x400) != 0) return 1;
+    p = (int*)*(int*)((char*)r + 0x2C);
+    if (p == 0) return 0;
+    return (*(int*)((char*)p + 0x84) & 0x400) != 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006FA8);
 
