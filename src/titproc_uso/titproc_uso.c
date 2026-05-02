@@ -135,7 +135,98 @@ void titproc_uso_func_00000C0C(int *a0) {
     *(int*)((char*)&D_00000000 + 0x168) = 0;
 }
 
+#ifdef NON_MATCHING
+/* Constructor / orchestrator (223 insns, 0x37C). Allocates root object
+ * (0x78 bytes) via gl_alloc(0x78), then:
+ *   - sub-object 0x50: alloc(0x50) -> s0; alloc(0x2C) -> a0;
+ *     calls a setup with &D_000004A8 as second arg (likely string label).
+ *   - Sets s1->0x28 = D_NNNN (two D_ refs); s0->0x28 = D_NNNN.
+ *   - Sets s1->0x28 again (overwrite or different field) + s1->0xC = D_NNNN+0x4B0.
+ *   - jal_0(); s1->0x50 = v0; D_00000138 = v0.
+ *   - Then a series of "alloc then bind" patterns for fields 0x54, 0x58,
+ *     0x60, 0x64, 0x5C: alloc -> s0; if (s0->0x14 == 0) s0->0x4 = 1;
+ *     s0->0x14 = s1; s1->fieldN = s0.
+ *   - Indirect call: jalr t9 (vtable-style); arg0 = s0->0x58 + return.
+ *   - Mid-function 0x40/0x3C setup with conditional check D_NNNN+0x88 != 0:
+ *     uses arg1 (saved at sp+0x44) for some "rate" calc.
+ *   - Final D_00000088 = 0; jal at end with arg0 = D_NNNN+0x000.
+ *   - Returns s1.
+ *
+ * No exact match expected this pass — too many cross-USO calls + D_
+ * placeholder relocations. NM wrap captures structure for future passes.
+ * Documented field offsets: 0xC, 0x14, 0x28, 0x2C, 0x30, 0x38, 0x3C, 0x40,
+ * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74. */
+void titproc_uso_func_00000C54(int *a0, int a1) {
+    int *root;
+    int *sub;
+    int *child;
+    int t;
+
+    if (a0 != 0) {
+        root = a0;
+    } else {
+        root = (int*)gl_func_00000000(0x78);
+        if (root == 0) goto end;
+    }
+    if (root != 0) {
+        sub = (int*)gl_func_00000000(0x50);
+        if (sub != 0) {
+            child = (int*)gl_func_00000000(0x2C);
+            if (child != 0) {
+                gl_func_00000000(child, (char*)&D_00000000 + 0x4A8);
+            }
+            *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+        }
+        *(int*)((char*)root + 0x28) = (int)&D_00000000;
+    }
+    *(int*)((char*)root + 0x28) = (int)&D_00000000;
+    gl_func_00000000();
+    *(int*)((char*)root + 0x0C) = (int)((char*)&D_00000000 + 0x4B0);
+    gl_func_00000000(0);
+    *(int*)((char*)root + 0x50) = 0; /* v0 of last call */
+    *(int*)((char*)&D_00000000 + 0x138) = 0; /* same v0 */
+    {
+        int *s0;
+        s0 = (int*)gl_func_00000000(*(int*)((char*)root + 0x50), root);
+        t = *(int*)((char*)s0 + 0x14);
+        if (t == 0) *(int*)((char*)s0 + 0x4) = 1;
+        *(int*)((char*)s0 + 0x14) = (int)root;
+        *(int*)((char*)root + 0x54) = (int)s0;
+    }
+    /* Pattern repeats for fields 0x58, 0x60, 0x64, 0x5C — each:
+     *   gl_func_00000000(prev_s0_or_arg) -> new s0;
+     *   if (s0->0x14 == 0) s0->0x4 = 1; s0->0x14 = root;
+     *   root->fieldN = s0;
+     * Indirect call inside via jalr t9. */
+    {
+        int *s0;
+        int *v0;
+        s0 = (int*)gl_func_00000000();
+        if (s0 != 0) {
+            v0 = (int*)*(int*)((char*)root + 0x54);
+            v0 = (int*)*(int*)((char*)v0 + 0x28);
+            ((void(*)(int))*(int*)((char*)v0 + 0x5C))(*(short*)((char*)v0 + 0x58));
+        }
+        gl_func_00000000(0);
+        *(int*)((char*)root + 0x58) = 0;
+    }
+    /* ... (remaining 4 alloc-bind iterations for 0x60, 0x64, 0x5C and final
+     * float setup with f4=17.0f — D_4188 = 0x41880000 = 17.0f). */
+    *(int*)((char*)root + 0x40) = 0;
+    *(int*)((char*)root + 0x3C) = 0;
+    *(int*)((char*)root + 0x68) = 0;
+    *(int*)((char*)&D_00000000 + 0x88) = 0;
+    gl_func_00000000(&D_00000000, 0);
+    *(int*)((char*)root + 0x2C) = 0;
+    *(int*)((char*)root + 0x48) = 0;
+    (void)a1;
+end:
+    return;
+    /* return root; */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000C54);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000FD0);
 
