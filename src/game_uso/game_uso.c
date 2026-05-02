@@ -228,7 +228,43 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000174C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000018FC);
 
+#ifdef NON_MATCHING
+/* 95.9 %: 4-arg constructor-or-init for 0x124-byte object. Decoded structure:
+ *   if (a0 == NULL) p = alloc(0x124); if (!p) return NULL;
+ *   gl_func_00000000(p, &D + 0x340);   ; some init call
+ *   p[0x28] = &D_00000000;
+ *   gl_func_00000000(p + 0x44);        ; init sub-region
+ *   if (a3 != 0) gl_func_00000000(p, 1, a3);  ; conditional with branch-likely
+ *   p[0x38] = a1; p[0x3C] = a2;
+ *   return p;
+ *
+ * Body matches byte-for-byte. The remaining 4 % is one prologue-scheduling
+ * diff: target emits `move s0,a0` BEFORE the `sw ra/a1/a2` chain (filling
+ * the gap between `sw s0` and `sw ra`); IDO schedules ours into the bne
+ * delay slot at 0x1d28 instead. Both are valid placements; per
+ * feedback_ido_arg_save_reg_pick.md, this kind of arg-spill scheduling is
+ * typically unflippable from C — `register` hint and decl-vs-assignment
+ * variants both kept it in the bne delay slot. Wrapped NM. */
+char *game_uso_func_00001D30(char *a0, int a1, int a2, int a3) {
+    register char *p = a0;
+    if (p == 0) {
+        p = (char*)gl_func_00000000(0x124);
+        if (p == 0) goto end;
+    }
+    gl_func_00000000(p, &D_00000000 + 0x340);
+    *(int*)(p + 0x28) = (int)&D_00000000;
+    gl_func_00000000(p + 0x44);
+    if (a3 != 0) {
+        gl_func_00000000(p, 1, a3);
+    }
+    *(int*)(p + 0x38) = a1;
+    *(int*)(p + 0x3C) = a2;
+end:
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001D30);
+#endif
 
 void game_uso_func_00001DC4(void *a0) {
     *(s32*)((char*)a0 + 0x40) = 0;
