@@ -16,28 +16,7 @@ void arcproc_uso_func_00001B88(int *a0) {
     arcproc_uso_func_00000000(t, 0x8C, *(int*)((char*)t + 0x6B0));
 }
 
-#ifdef NON_MATCHING
-/* -O0 refcount-decrement-and-check (28 insns, 0x70). 2-arg variant of the
- * pattern in mgrproc_uso_func_000000B0 (1-arg increment): calls
- * func_00000000(a0, a1), decrements *a0, returns 1 if it hit zero else 0.
- * Three -O0 markers: a0/a1 spill+reload before jal, unfilled jal delay,
- * trailing dead `b +1; nop` past second branch.
- *
- * Default build (-O0 file is arcproc_uso_o0_50.c, ends at 0x12C — exactly
- * where this function starts). To match exact, extend that file or create
- * arcproc_uso_o0_12C.c following feedback_uso_accessor_o0_file_split_recipe.md
- * but adapted for non-accessor body. Defer until other -O0 funcs in the
- * 0x12C..next-O2-boundary range can bundle. */
-extern void func_00000000();
-int arcproc_uso_func_0000012C(int *a0, int a1) {
-    func_00000000(a0, a1);
-    *a0 -= 1;
-    if (*a0 == 0) return 1;
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000012C);
-#endif
+/* arcproc_uso_func_0000012C moved to arcproc_uso_o0_12C.c (-O0 file). */
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000019C);
 

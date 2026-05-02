@@ -1,5 +1,5 @@
 
-nonmatching func_80009DF0, 0x60
+nonmatching func_80009DF0, 0x70
 
 glabel func_80009DF0
     /* ADF0 80009DF0 8F18A420 */  lw         $t8, -0x5BE0($t8)
@@ -28,4 +28,8 @@ glabel func_80009DF0
     /* AE44 80009E44 0C0019B4 */  jal        func_800066D0
     /* AE48 80009E48 02002025 */   or        $a0, $s0, $zero
     /* AE4C 80009E4C 8FBF001C */  lw         $ra, 0x1C($sp)
+    /* AE50 80009E50 8FB00014 */  lw         $s0, 0x14($sp)
+    /* AE54 80009E54 8FB10018 */  lw         $s1, 0x18($sp)
+    /* AE58 80009E58 03E00008 */  jr         $ra
+    /* AE5C 80009E5C 27BD0028 */   addiu     $sp, $sp, 0x28
 endlabel func_80009DF0

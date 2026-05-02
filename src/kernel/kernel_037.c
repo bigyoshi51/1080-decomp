@@ -47,4 +47,7 @@ void func_80009D10(Thread* t) {
     func_800066D0(saveMask);
 }
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009E50);
+/* func_80009E50 (4-insn `lw s0,0x14(sp); lw s1,0x18(sp); jr ra; addiu sp,+0x28`)
+ * merged into predecessor func_80009DF0 (size 0x60 → 0x70). func_80009E50 was
+ * the natural shared-tail epilogue. Address re-exported via undefined_syms_auto.txt
+ * for cross-jal callers (func_80005F10 etc.). */
