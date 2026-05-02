@@ -134,21 +134,25 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
  * with $f0 = 1.0f initialized up-front, then stored to buf[4] at sp+0x34.
  * See feedback_splat_prologue_stolen_by_predecessor.md.
  *
- * UPDATE 2026-04-21: the "lui+mtc1 not reproducible" claim was WRONG.
- * With this NM body (`buf[0] = buf[1] = buf[2] = buf[3] = 1.0f`), IDO
- * emits `lui $at, 0x3F80; mtc1 $at, $f0` BEFORE `addiu sp` — matching
- * target's pre-prologue pattern. The actual blockers are:
- *   1. Stack frame size: target 0x48, mine 0x38 (fixed w/ `char pad[16]`
- *      brings frame to 0x48 but shifts other offsets).
- *   2. Branch structure: target uses goto-style dispatch
- *        `beq v0,0,tag0; beq v0,1,tag1; b epi; tag0: ... b epi; tag1: ... b epi; epi`
- *      My natural `if (key==0) ... else if (key==1) ...` emits 2 branches
- *      but with different fall-through and no explicit `b epi` between arms.
- *   3. Spill pattern: target saves a3 (= a0) to 0x48(sp) before each jal;
- *      mine puts the save at 0x1C(sp) with 0x38 frame.
- * Try: rewrite with explicit `goto`s to k0_tag/k1_tag/end_tag + `char pad[16]`.
- * Multi-variant grind still required; keep NM until promoted to exact. */
+ * UPDATE 2026-05-02: 80.3 % -> 99.88 % via `switch (key) { case 0: ... case 1: ... }`
+ * + `char pad[16]`. The switch produces the target's 3-branch dispatch
+ * `beq v0,0,k0; beq v0,1,k1; b end` (vs the if-else's inverted `bne` form);
+ * `char pad[16]` brings frame to 0x48 with caller-arg-slot a3 spill at
+ * sp+0x48. ALL the structural diffs are gone — only buf offset remains.
+ *
+ * Remaining 0.12 % cap: `float buf[4]` lands at sp+0x28 in mine vs sp+0x34
+ * in target. Diff is 12 bytes / 1-instruction-class pattern (3 places: 4
+ * swc1 init stores + 2 `addiu a2, sp, OFFSET` to pass buf to gl_func).
+ *
+ * Tried (2026-05-02): pad[20], pad[24], pad[28], int pad[N], buf-decl-first,
+ * pad-decl-first w/ split pad before+after buf, int buf[4] cast-to-float —
+ * none of these placed buf at exactly sp+0x34 with frame=0x48. IDO's local
+ * allocator picks 8-byte-aligned slots for `float[4]` (sp+0x28 or sp+0x38),
+ * never sp+0x34 (which is 4-aligned but not 8-aligned). Target probably had
+ * a non-aligned reason — maybe an earlier-decl variable that's now optimized
+ * away but reserved its slot. Unreproducible from C w/o asm tricks. */
 void n64proc_uso_func_0000035C(char *a0) {
+    char pad[16];
     float buf[4];
     int key;
     int val;
@@ -157,16 +161,19 @@ void n64proc_uso_func_0000035C(char *a0) {
     buf[2] = 1.0f;
     buf[3] = 1.0f;
     key = *(int*)(a0 + 0x50);
-    if (key == 0) {
+    switch (key) {
+    case 0:
         val = *(int*)(a0 + 0x54);
         gl_func_00000000(&D_00000000, val, buf);
         gl_func_00000000(a0 + 0x58);
         gl_func_00000000(a0 + 0x58, 0xA0, 0x78, 3);
-    } else if (key == 1) {
+        break;
+    case 1:
         val = *(int*)(a0 + 0x54);
         gl_func_00000000(&D_00000000, val, buf);
         gl_func_00000000(a0 + 0x70);
         gl_func_00000000(a0 + 0x70, 0xA0, 0x78, 3);
+        break;
     }
 }
 #else
