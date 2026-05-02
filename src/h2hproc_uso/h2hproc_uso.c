@@ -121,23 +121,25 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000002F
 #endif
 
 #ifdef NON_MATCHING
-/* 22-insn state-update routine. Decoded:
- *   gl_func(*(D+4));                    ; arg via lui+lw straddling jal delay slot
- *   *(D+0x40) = 3;
- *   *(*(int*)D + 0x30) = 0;            ; deref D as int*, write to its target+0x30
- *   gl_func(*(int*)D, -1, 0);
+/* 98.4 % match (2026-05-02, up from ~60 %). Logic-fix: prior wrap was
+ * missing the middle `gl_func(&D)` call between the *(D+4) call and the
+ * *(D+0x40) = 3 store. Per feedback_nm_wrap_post_jal_arg_vs_return.md:
+ * old NM wraps can have wrong logic; verify against asm.
  *
- * Body is structurally correct. Cap (~60 %): IDO -O2 CSEs the &D loads into
- * a single v0 register; target keeps `lui a0` fresh for each function-arg
- * and uses v0 only for the t7 deref. The `*(*(int*)D + 0x30) = 0` writes
- * via *D-as-pointer, which is what makes target keep v0 distinct from the
- * a0-lui's. Per feedback_ido_v0_reuse_via_locals.md, naming a local boosts
- * v0 use; here the issue is the OPPOSITE — IDO is too eager to CSE.
- * No C-level knob to break the CSE without changing the source semantics.
- * Wrap NM, keep partial decode. */
+ * Decoded asm has 3 jal calls (was decoded as 2 in old wrap):
+ *   1. gl_func(*(D+4));                  ; arg via lui+lw delay-slot pair
+ *   2. *(D+0x40) = 3; gl_func(&D);       ; store in delay slot of jal
+ *   3. *(*D + 0x30) = 0; gl_func(*D, -1, 0); ; store before, delay-slot a0
+ *
+ * Remaining 1.6 % cap: mine uses $a3 as temp for the middle &D lui+addiu
+ * pair (then `or a0, a3, zero` to set a0). Target uses $a0 directly for
+ * the lui+addiu. Pure register-naming diff (still loads &D, just in a0
+ * not a3 temp). Same 1-insn-class diff also on the *D deref's lui+addiu
+ * register (mine $a3, target $v0). */
 void h2hproc_uso_func_00000354(void) {
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
     *(int*)((char*)&D_00000000 + 0x40) = 3;
+    gl_func_00000000(&D_00000000);
     *(int*)(*(int*)&D_00000000 + 0x30) = 0;
     gl_func_00000000(*(int*)&D_00000000, -1, 0);
 }
