@@ -123,7 +123,52 @@ void n64proc_uso_func_00000230(char *a0) {
     gl_func_00000000(a0 + 0x70, 3);
 }
 
+#ifdef NON_MATCHING
+/* State machine on a0->0x50:
+ *   case 0: decrement a0->0x3C; if dropped below 16, decay a0->0x54 by 16
+ *           (clamp >= 0); when a0->0x3C hits 0, transition to mode 1
+ *           (a0->0x50 = 1) and reset a0->0x3C = 100.
+ *   case 1: ramp a0->0x54 by 8 (clamp <= 255); decrement a0->0x3C; on 0,
+ *           OR if (a0->0x3C < 0x55 AND gl_func(&D, 0x40100) != 0), set
+ *           D[0x40] = 1 and call gl_func(a0, 0, 0).
+ *
+ * Cap: NM body emits std bne if-else (59 insns); target uses 3-arm beql
+ * dispatch with delay-slot pre-loads + a dead `lw t6` at offset 0x294
+ * (61 insns). Switch is rejected (1080 discards .rodata jumptables per
+ * feedback_ido_switch_rodata_jumptable.md), so beql dispatch is unreachable
+ * from C. Logic confirmed equivalent. */
+void n64proc_uso_func_00000268(int *a0) {
+    int v;
+    int t;
+
+    v = a0[0x50/4];
+    if (v == 0) {
+        t = a0[0x3C/4] - 1;
+        a0[0x3C/4] = t;
+        if (t < 0x10) {
+            t = a0[0x54/4] - 0x10;
+            a0[0x54/4] = t;
+            if (t < 0) a0[0x54/4] = 0;
+            if (a0[0x3C/4] == 0) {
+                a0[0x50/4] = 1;
+                a0[0x3C/4] = 0x64;
+            }
+        }
+    } else if (v == 1) {
+        t = a0[0x54/4] + 8;
+        a0[0x54/4] = t;
+        if (t >= 0x100) a0[0x54/4] = 0xFF;
+        t = a0[0x3C/4] - 1;
+        a0[0x3C/4] = t;
+        if (t == 0 || (t < 0x55 && gl_func_00000000(&D_00000000, 0x40100) != 0)) {
+            *(int*)((char*)&D_00000000 + 0x40) = 1;
+            gl_func_00000000(a0, 0, 0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000268);
+#endif
 
 #ifdef NON_MATCHING
 /* Dual-branch sub-struct dispatcher (51 insns, 0xCC after prologue-stolen fix).
