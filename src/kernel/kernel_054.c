@@ -172,7 +172,20 @@ extern void func_800091F0(s32);
  * The target's pattern requires IDO to discover the delay-slot fill on
  * its own — which it only does when p is referenced AFTER the call but
  * neither defined nor live before. Reachable only via permuter mutations
- * to surrounding statements (e.g., loop init, hdr field order). */
+ * to surrounding statements (e.g., loop init, hdr field order).
+ *
+ *   v12 (2026-05-02): hdr field-store reorder (flags→type→field_0C). Result:
+ *     79.59 % match (regression). The reorder shifted the tail's stack
+ *     offsets by 4 bytes and propagated mismatches at +0x88..+0xA8.
+ *   v13 (2026-05-02): decl reorder `register s32 *p; register s32 i; hdr` (i
+ *     before hdr). Result: 85.71 % match (regression). Putting i before hdr
+ *     pushed hdr's stack slot up 4 bytes — frame stayed 0x28 but hdr moved
+ *     from sp+0x24 to sp+0x20, breaking all hdr-relative addressing.
+ *     Confirms RmonHdr16 stack slot is anchored to its decl-order position.
+ *
+ * Both v12 and v13 confirm: prologue-store-order is decoupled from C-level
+ * decl/use order at -O1. The s0/s1 store order is set by IDO's allocno-id
+ * tiebreaker, which we can't influence from C. Permuter only. */
 #ifdef NON_MATCHING
 s32 func_8000969C(s32* msg) {
     register s32* p;
