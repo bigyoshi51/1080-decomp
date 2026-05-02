@@ -235,7 +235,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
 
+#ifdef NON_MATCHING
+/* 12-insn indirect-call wrapper:
+ *   v1 = a0->0x2C (ptr); v0 = v1->0x28 (ptr); call v0->0x5C(v0->0x58 + v1)
+ * Logic correct (~75% match). Remaining diff: target assigns first deref
+ * to $v1 and second to $v0 (reverse of IDO's "first-named-pseudo gets $v0"
+ * rule per feedback_ido_v0_reuse_via_locals.md). The chain depends on
+ * v1 being live across the call to compute `t6 + v1` for the arg, so
+ * inlining doesn't help. Structural register-pair cap from C. */
+void timproc_uso_b5_func_00008F98(int *a0) {
+    int *v1 = *(int**)((char*)a0 + 0x2C);
+    int *v0 = *(int**)((char*)v1 + 0x28);
+    ((void(*)(int))*(int*)((char*)v0 + 0x5C))(*(short*)((char*)v0 + 0x58) + (int)v1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008F98);
+#endif
 
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
