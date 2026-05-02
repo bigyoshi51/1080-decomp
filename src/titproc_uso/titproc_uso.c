@@ -250,7 +250,35 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C6
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001D7C);
 
+#ifdef NON_MATCHING
+/* 28-insn function. Reads a0->0x3C as a count/index, clamps to <0x100,
+ * dispatches based on whether it's zero. Two-call orchestrator with
+ * heavy stack-arg setup for the second call (6 args).
+ *
+ * Logic:
+ *   v = a0->0x3C
+ *   if (v >= 0x100) v = 0xFF      // clamp
+ *   if (v == 0) return             // early-out (beql tail-merge to epilogue)
+ *   func_00000000(&D_0, v, a0+0x2C)             // first call
+ *   func_00000000(&D_0, 0, 0, 0x13F, 0xEF, 0x10001)  // second call (6 args)
+ *
+ * The 0x10001 = (1<<16)|1, 0xEF, 0x13F constants suggest some kind of
+ * error/log/event-emit. The early-return pattern uses IDO's beql
+ * tail-merge — `lw ra, 0x1C(sp)` in the beql delay slot (annulled if
+ * not-taken) shares the epilogue reload. Caps from C are the same beql
+ * tail-merge family (per feedback_ido_bnel_tail_merge_register_restore.md). */
+extern int gl_func_00000000();
+extern char D_00000000;
+void titproc_uso_func_00001E2C(char *a0) {
+    int v = *(int*)(a0 + 0x3C);
+    if (v >= 0x100) v = 0xFF;
+    if (v == 0) return;
+    gl_func_00000000(&D_00000000, v, a0 + 0x2C);
+    gl_func_00000000(&D_00000000, 0, 0, 0x13F, 0xEF, 0x10001);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001E2C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001E9C);
 
