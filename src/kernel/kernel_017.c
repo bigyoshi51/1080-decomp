@@ -71,4 +71,38 @@ void __osResetGlobalIntMask(s32 arg0, s32 arg1) {
 }
 
 
+/* func_80006698 is a 21-insn (0x54 byte) function that splat split into 3
+ * fragments: func_80006698 (0x18, has prologue + addr-range start), 0x800066B0
+ * (0x20, range-end check + jal func_80008FB0), 0x800066D0 (0x1C, return-merge
+ * + epilogue). The 0x800066B0 fragment starts with `bnez $at, ...` using the
+ * $at set by the predecessor's tail `sltu $at, $t6, $at` — classic
+ * splat-fragment-via-register-flow pattern (per
+ * feedback_splat_fragment_via_register_flow.md).
+ *
+ * Merging is non-trivial here: callers in kernel_003/017/019.c reference
+ * `func_800066B0` and `func_800066D0` as if they were standalone (probably
+ * a misidentified __osDisableInt/__osRestoreInt pair). After merge, those
+ * callers would jal into the middle of the merged function with
+ * uninitialized $at/$t6 — undefined behavior. ROM-bytes-wise the calls work
+ * because asm-processor pastes the 3 INCLUDE_ASMs contiguously, but the
+ * "function" semantics at 0x800066B0 are not what the callers think.
+ *
+ * Merging also requires linker layout adjustment: kernel_017.c.o would grow
+ * 0x3C bytes (0x18 → 0x54) which shifts kernel_018.c.o's start. Since the 3
+ * fragments currently live in kernel_018.c, removing them shrinks kernel_018
+ * by the same 0x3C — but the per-file .text positioning needs verification
+ * before the merge can land.
+ *
+ * Documented decode (NOT compiled in default build):
+ *
+ *   s32 func_80006698(s32 a0) {
+ *       s32 local;
+ *       if (a0 < 0x04000000 || a0 >= 0x05000000) return 0;
+ *       func_80008FB0(a0, &local);
+ *       return local;
+ *   }
+ *
+ * Reads MMIO from the 0x04000000-0x05000000 range (SP DMEM/IMEM + RCP
+ * register space) via func_80008FB0 (likely __osPiRawReadIo or similar).
+ * Returns 0 if address is out of range. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80006698);
