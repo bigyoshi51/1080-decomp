@@ -114,6 +114,13 @@ build/src/kernel/kernel_056.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_056.c.o: MIPSISET := -mips3 -32
 build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sys.argv[1],'r+b');f.seek(0x24);f.write(bytes.fromhex('10000001'));f.close()" $@
 
+# Prologue-stolen successors: splice the duplicate lui+addiu prefix that
+# C-emit naturally produces but expected/.o doesn't include in the symbol.
+# Format: <func_name>=<bytes_to_remove>. Multiple entries separated by spaces.
+# See scripts/splice-function-prefix.py and
+# feedback_prologue_stolen_successor_no_recipe.md for context.
+build/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_000001E4=8
+
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null)
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
@@ -161,6 +168,11 @@ build/src/%.c.o: src/%.c
 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
 	@if [ -n "$(TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(TRUNCATE_TEXT); fi
+	@if [ -n "$(PROLOGUE_STEALS)" ]; then for spec in $(PROLOGUE_STEALS); do \
+		fn=$$(echo $$spec | cut -d= -f1); \
+		nb=$$(echo $$spec | cut -d= -f2); \
+		python3 scripts/splice-function-prefix.py $@ $$fn -n $$nb; \
+	done; fi
 endif
 
 # Standalone assembly

@@ -15,38 +15,15 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000000C
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000194);
 
-#ifdef NON_MATCHING
-/* State-setter wrapper sibling of titproc_uso_func_00000230/2D8/32C/380/3D0
- * (size 0x4C in expected, 19 insns). PROLOGUE-STOLEN: expected's symbol
- * starts at 0x1E4 with `addiu sp` and the predecessor func_00000194's
- * trailing 2 insns (`lui v0; addiu v0` at 0x1DC-0x1E0) are the implicit
- * &D_00000000 setup for this function — splat attributed them to the
- * predecessor's symbol.
- *
- * Standard pad-sidecar recipe in feedback_prologue_stolen_pad_sidecar_alternative.md
- * doesn't apply here directly: it shrinks the predecessor when predecessor
- * is being decompiled to C. Here predecessor is still INCLUDE_ASM (0x50
- * including the stolen-by-next pair) and expected matches that. The successor
- * (this function, 0x4C) needs to be emitted WITHOUT a leading lui+addiu —
- * but C that accesses `&D + offset` always emits them inline.
- *
- * IDO has no mechanism to use $v0 as if pre-set (no GCC inline asm,
- * `register T x asm("$v0")` rejected per feedback_ido_no_gcc_register_asm.md).
- * The asm-processor `_prefix.s` analog hits the symbol-collision wall
- * (feedback_prefix_sidecar_symbol_collision.md, boarder5_uso_func_00000000).
- *
- * Logic decoded for future tightening (sets fields, calls 2 gl_funcs): */
+extern char D_000001E4_A;
+
 void titproc_uso_func_000001E4(void) {
-    /* *(int*)(&D + 0x34) = 4;
-     * *(int*)(&D + 0x40) = 0;
-     * *(int*)(&D + 0x13C) = 3;
-     * gl_func_00000000(12, 1);
-     * gl_func_00000000(*(int*)(&D + 0xA8), -1, 0);  // a2 = 0 in delay slot
-     */
+    *(int*)((char*)&D_00000000 + 0x34) = 4;
+    *(int*)((char*)&D_00000000 + 0x40) = 0;
+    *(int*)((char*)&D_00000000 + 0x13C) = 3;
+    gl_func_00000000(12, 1);
+    gl_func_00000000(*(int*)((char*)&D_000001E4_A + 0xA8), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000001E4);
-#endif
 
 extern char D_00000230_A;
 
