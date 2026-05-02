@@ -491,7 +491,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DDF4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DE24);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DEA4);
+/* gl_func_0002DEA4: prologue-stolen successor (predecessor 0x2DE24's tail
+ * has the lui+lw of *(D+0x2E60) into t6). PROLOGUE_STEALS=8 splices the
+ * 8-byte lui+lw prefix off the post-cc emit. */
+void gl_func_0002DEA4(void) {
+    if ((unsigned int)*(int*)((char*)&D_00000000 + 0x2E60) >> 31) {
+        gl_func_00000000(0x83010000, 0);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DED0);
 
