@@ -663,28 +663,41 @@ void game_uso_func_00001DC4(void *a0) {
  * a floating block-comment above an INCLUDE_ASM. Default build still uses
  * INCLUDE_ASM. */
 #ifdef NON_MATCHING
-extern void *gl_func_TODO_00001DDC(void);
+extern void *gl_func_TODO_00001DDC(int *scratch, int *a2);
 void *game_uso_func_00001DDC(int *a0) {
     int key = a0[0x40 / 4];
     if (key == 0) goto end;
     if (key != 3) goto branch_88;
-    /* key == 3: short Vec3 mirror path (see comment above). Returns to late_label. */
+    /* key == 3: short Vec3 copy from v1+0xA0..0xA8 to t6+0x60..0x68. */
     {
         int *t6 = (int*)a0[0x14 / 4];
         int *v1 = (int*)a0[0x3C / 4];
-        /* Mirror Vec3 from v1+0xA0..0xA8 to both t6+0x60..0x68 and v1+0xA0..0xA8. */
         *(float*)((char*)t6 + 0x60) = *(float*)((char*)v1 + 0xA0);
         *(float*)((char*)t6 + 0x64) = *(float*)((char*)v1 + 0xA4);
         *(float*)((char*)t6 + 0x68) = *(float*)((char*)v1 + 0xA8);
-        *(float*)((char*)v1 + 0xA0) = *(float*)((char*)v1 + 0xA0);
-        *(float*)((char*)v1 + 0xA4) = *(float*)((char*)v1 + 0xA4);
-        *(float*)((char*)v1 + 0xA8) = *(float*)((char*)v1 + 0xA8);
         goto late_label;
     }
 branch_88:
-    /* key != 0 and key != 3: ~350 insns of float math + multiple gl_func_00000000
-     * calls. Decode in next pass. Stub returns TODO. */
-    (void)gl_func_TODO_00001DDC();
+    /* key != 0 and key != 3: ~350 insns of Vec3 math + multiple gl_func_00000000
+     * calls. Partial decode of the entry sub-block (~30 insns at 0x1E60-0x1F00):
+     *   t7 = a0->0x14;
+     *   Vec3 copy: a0->0x14->0xA0..0xA8 → sp+0x13C  (referenced sub-obj Vec3)
+     *   v1 = a0->0x38;
+     *   Vec3 copy: v1->0xA0..0xA8 → sp+0x130  (uses IDO addiu base-shift trick:
+     *     `addiu v1, v1, 0x70` then reads v1[0x34/0x38] to alias original
+     *     v1+0xA4/0xA8 — same byte sequence as direct read of original offsets)
+     *   v0 = gl_func(scratch=sp+0xFC, a0);   ; returns a Vec3* result
+     *   Vec3 copy: *v0 → sp+0x154
+     *   Element-wise add: sp+0x130[i] += sp+0x154[i] (i=0..2)  — accumulate
+     *
+     * Then ~300 more insns: another gl_func call with sp+0x110/sp+0x130 args,
+     * 3x3 matrix transform via more cvt/mul/add.s on different sp+offsets,
+     * stores to a0->0x60..0x68 (resulting Vec3), nested call to scale/normalize.
+     * Stub returns TODO marker. */
+    {
+        int *scratch = 0;  /* sp+0xFC scratch sub-struct, address-taken local */
+        (void)gl_func_TODO_00001DDC(scratch, a0);
+    }
 late_label:
     /* convergence point — final exit setup */
 end:
