@@ -219,7 +219,12 @@ void func_00000A94(int *a0, int a1) {
  * mid-function `r = 8; goto` splits. IDO's allocator always picks $v0 when
  * the value flows to the return register. Same unflippable pattern class as
  * feedback_ido_arg_save_reg_pick.md (IDO always $a1) and
- * feedback_ido_o2_tiny_wrapper_unflippable.md. */
+ * feedback_ido_o2_tiny_wrapper_unflippable.md.
+ *
+ * Re-verified 2026-05-02: tried `int v = 8` set BEFORE the n/s checks then
+ * `return v` at L_B0C — IDO still folds to direct `li v0, 8` since v is
+ * compile-time constant. Tried `volatile int x = 8; return x` — adds frame
+ * + sw t6 + bnel chains (regresses to ~50 %). The 97.8 % cap is real.  */
 int func_00000A9C(int a0, int a1) {
     if (a1 == 0)   goto L_AE4;
     if (a1 == 'e') goto L_AEC;
