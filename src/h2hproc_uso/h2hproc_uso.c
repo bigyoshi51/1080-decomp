@@ -233,9 +233,46 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000620);
 
+#ifdef NON_MATCHING
+/* 0x8EC + 0x944 are BYTE-IDENTICAL sibling functions (verified). Decoded:
+ *   void f(char *a0, int a1) {
+ *     a0->0x6B8 = a1;
+ *     gl_func_X(a0->0x6A8);                  ; first call - shared
+ *     if (a1 != 0) gl_func_T(a0);            ; true path
+ *     else         gl_func_F(a0);            ; false path
+ *   }
+ *
+ * The two branches call DIFFERENT real functions at runtime via USO loader's
+ * placeholder relocation table. Both jal targets are 0x0C000000 (= jal 0)
+ * but the relocation entries differ. IDO can only emit this if-else if the
+ * two callees are distinct symbols (per feedback_usoplaceholder_unique_extern.md);
+ * with a single shared `gl_func_00000000` decl, IDO will collapse the
+ * identical-body if-else and emit only one jal.
+ *
+ * NM body uses simple shared-call form (loses the branch). Cap ~70% (single
+ * jal in body where target has bne+two jals). Promotion path: declare
+ * gl_func_h2hproc_8EC_t / gl_func_h2hproc_8EC_f as unique externs in
+ * undefined_syms_auto.txt, then call them distinctly in the if/else arms. */
+void h2hproc_uso_func_000008EC(char *a0, int a1) {
+    *(int*)(a0 + 0x6B8) = a1;
+    gl_func_00000000(*(int*)(a0 + 0x6A8));
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000008EC);
+#endif
 
+#ifdef NON_MATCHING
+/* Sibling of h2hproc_uso_func_000008EC -- byte-identical asm. Same NM cap.
+ * See full notes on 0x8EC. */
+void h2hproc_uso_func_00000944(char *a0, int a1) {
+    *(int*)(a0 + 0x6B8) = a1;
+    gl_func_00000000(*(int*)(a0 + 0x6A8));
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000944);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000099C);
 
