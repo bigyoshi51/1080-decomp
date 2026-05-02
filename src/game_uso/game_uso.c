@@ -1958,7 +1958,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
 
+#ifdef NON_MATCHING
+/* 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
+ * bit afterward, dispatch a0->0xFC to one of two flag values. The
+ * post-call test uses IDO's beql tail-merge — a redundant `sw t2`
+ * trailing the merged epilogue, unreachable via both branch targets
+ * (per feedback_ido_bnel_tail_merge_register_restore.md, this caps
+ * matching from C). Wrap is for grep discoverability + decode source.
+ * NM-build verification blocked by the file's pre-existing
+ * `extern float D_00000000` vs `extern char D_00000000` conflict
+ * (per feedback_nm_body_cpp_errors_silent.md). */
+void game_uso_func_0000D6E4(char *a0) {
+    *(int*)(*(char**)(a0 + 0xB4) + 0xA58) ^= 0x40;
+    gl_func_00000000(*(char**)(a0 + 0xB4), a0);
+    if ((*(int*)(*(char**)(a0 + 0xB4) + 0xA58) & 0x40) == 0) {
+        *(int*)(a0 + 0xFC) = 0x00010000;
+    } else {
+        *(int*)(a0 + 0xFC) = 0x00050000;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D6E4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
 
