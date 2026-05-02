@@ -198,7 +198,16 @@ void game_uso_func_000005B8(Vec3 *a0) {
     game_uso_func_000001D4((Vec3*)((char*)a0 + 0x2C));
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000608);
+void *game_uso_func_00000608(void *a0) {
+    if (a0 == 0) {
+        a0 = (void*)gl_func_00000000(0x7C);
+    }
+    return a0;
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000634);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000674);
 
 #ifdef NON_MATCHING
 /* 90% match. Prior commit 764b62d landed this as "100%" but that was
