@@ -10,7 +10,79 @@ void titproc_uso_func_00000098(void) {
     gl_func_00000000(&D_00000000 + 0x60, 1);
 }
 
+#ifdef NON_MATCHING
+/* 51-insn / 0xCC titproc state-machine driver.
+ *
+ * Decoded structure:
+ *   counter = D[0x6C/4] + 1;
+ *   if (counter < 5) D[0x6C/4] = counter;
+ *   else { D[0x6C/4] = 0; counter = 0; }
+ *
+ *   if (counter == 0) {                          // first sub-state
+ *     v = gl_func(D[0x148/4] + 4);
+ *     if (v != 2) D[0x6C/4] += 1;
+ *     counter = D[0x6C/4];
+ *   }
+ *   if (counter == 1) {                          // second sub-state
+ *     v = gl_func(D[0x148/4] + 4);
+ *     if (v != 1) D[0x6C/4] += 1;
+ *     counter = D[0x6C/4];
+ *   }
+ *   t2 = 4;                                       // delay-slot constant from
+ *                                                ; bnel false-path
+ *   D[0x40/4] = t2;                              // a fixed-flag store
+ *   D[0x44/4] = D_table_a[counter];              // counter-indexed lookup
+ *   return D_table_b[counter];                   // return value also indexed
+ *
+ * IDO scheduler hoists the initial `lui a1, 0; addiu a1, 0; lw t6, 0x6C(a1)`
+ * BEFORE the prologue (offsets 0xC0..0xC8) — characteristic of -O2 aggressive
+ * scheduling. Two indexed lookups at the tail use distinct table bases (t3
+ * and v0 luis at 0x160 / 0x174).
+ *
+ * Logic-correct first-pass decode. Default build uses INCLUDE_ASM. Per
+ * feedback_unique_extern_must_match_target_base_sharing.md, byte-match would
+ * need 4-5 unique externs (one for the &D_0 reused as a1; two for the indexed
+ * table bases; plus the call target). Deferred to next pass. */
+extern char *D_titproc_C0_a;       /* a1 base (D[0x6C], D[0x148], D[0x40], D[0x44]) */
+extern int D_titproc_C0_table_a[]; /* t3-base table */
+extern int D_titproc_C0_table_b[]; /* v0-base table (return value) */
+
+int titproc_uso_func_000000C0(void) {
+    int counter;
+    int v;
+
+    counter = *(int*)((char*)&D_titproc_C0_a + 0x6C) + 1;
+    if (counter < 5) {
+        *(int*)((char*)&D_titproc_C0_a + 0x6C) = counter;
+    } else {
+        *(int*)((char*)&D_titproc_C0_a + 0x6C) = 0;
+        counter = 0;
+    }
+
+    if (counter == 0) {
+        v = gl_func_00000000(*(int*)((char*)&D_titproc_C0_a + 0x148) + 4);
+        if (v != 2) {
+            *(int*)((char*)&D_titproc_C0_a + 0x6C) =
+                *(int*)((char*)&D_titproc_C0_a + 0x6C) + 1;
+        }
+        counter = *(int*)((char*)&D_titproc_C0_a + 0x6C);
+    }
+    if (counter == 1) {
+        v = gl_func_00000000(*(int*)((char*)&D_titproc_C0_a + 0x148) + 4);
+        if (v != 1) {
+            *(int*)((char*)&D_titproc_C0_a + 0x6C) =
+                *(int*)((char*)&D_titproc_C0_a + 0x6C) + 1;
+        }
+        counter = *(int*)((char*)&D_titproc_C0_a + 0x6C);
+    }
+
+    *(int*)((char*)&D_titproc_C0_a + 0x40) = 4;
+    *(int*)((char*)&D_titproc_C0_a + 0x44) = D_titproc_C0_table_a[counter];
+    return D_titproc_C0_table_b[counter];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000000C0);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000000C0_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000194);
