@@ -254,6 +254,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  *   - target then uses $v1 for the constant `1` (since $v0 is taken for cur)
  *   - mine uses $a0 for that constant
  * Tried: removing the local capture of gl_func return value -- no change.
+ * Tried (2026-05-02): adding explicit `int rc = gl_func(...); if (rc != 0)`
+ * — REGRESSED to 0% because prologue-stolen splice mismatched (the explicit
+ * capture changed IDO's prologue emit so PROLOGUE_STEALS=8 cut the wrong
+ * 8 bytes). Confirms the inline-test-in-if form is load-bearing for the
+ * prologue-stolen recipe; capture must happen INSIDE the if-test parens.
  * Sibling: byte-identical to timproc_uso_b1_func_00002030. */
 extern int D_state_b3_2240;            /* 0x148 */
 extern int D_call_b3_2240_a;           /* 0x208 */
