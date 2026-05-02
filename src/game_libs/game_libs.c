@@ -338,7 +338,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000092F4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000093DC);
 
+#ifdef NON_MATCHING
+/* Sibling family of 4 -O0 scratch+offset wrappers (0x949C, 0x94DC, 0x951C,
+ * 0x955C; all 0x40 bytes / 16 insns / 2 jals to specific gl_refs).
+ * Logic for 0x949C:
+ *   void f(char *a0) {
+ *     int scratch;
+ *     gl_ref_0001CFB0(&scratch);
+ *     gl_ref_0001CFFC(a0 + 0x10);
+ *   }
+ * Same shape as the matched gl_func_0000405C/0000408C (0x30 / 12 insns
+ * at -O2) but compiled at -O0:
+ *   - nop in BOTH jal delay slots (instead of useful work / arg setup)
+ *   - trailing `b +1; nop` before epilogue (-O0 explicit jump-to-epi)
+ * Net: -O0 emit is 4 instructions longer than -O2 for the same logic.
+ *
+ * Promotion path: file-split into src/game_libs/game_libs_949C_o0.c
+ * holding all 4 sibling functions with a `-O0` Makefile override (game_libs
+ * is NOT Yay0-compressed so the file-split recipe applies; see
+ * feedback_uso_accessor_o0_file_split_recipe.md). Worth doing as a single
+ * future tick: 4 mass-matches in one go. */
+extern int gl_ref_0001CFB0();
+extern int gl_ref_0001CFFC();
+void gl_func_0000949C(char *a0) {
+    int scratch;
+    gl_ref_0001CFB0(&scratch);
+    gl_ref_0001CFFC(a0 + 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000949C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000094DC);
 
