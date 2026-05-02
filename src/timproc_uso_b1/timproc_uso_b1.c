@@ -51,7 +51,15 @@ void timproc_uso_b1_func_000006B0(void) {
     gl_func_00000000(&D_b1_06B0_c);
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000006F0);
+extern int D_b1_06F0_a;
+extern int D_b1_06F0_b;
+extern int D_b1_06F0_c;
+void timproc_uso_b1_func_000006F0(void) {
+    gl_func_00000000(D_b1_06F0_a);
+    gl_func_00000000(&D_b1_06F0_b);
+    gl_func_00000000(D_b1_06F0_c);
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_000006F0_pad.s")
 
 /* Chain sibling of 0x778, 0x7BC, 0x800. Same recipe: PROLOGUE_STEALS for
  * stolen prefix; unique extern at gl_func arg; trailing pad sidecar emits
