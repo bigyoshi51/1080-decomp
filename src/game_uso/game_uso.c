@@ -1956,9 +1956,53 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
  *
  * The C body below is a compile-only placeholder so the wrap parses;
  * default build uses INCLUDE_ASM and matches. */
-extern void *game_uso_func_0000C48C_TODO(void);
-void *game_uso_func_0000C48C(void *a0, int a1) {
-    return game_uso_func_0000C48C_TODO();
+extern void *game_uso_func_0000C48C_TODO(void *parent, int sub_idx, int chunk_addr);
+void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
+    void *p;
+    int *chunk;
+    int *sub;
+    void *parent;
+
+    /* Entry: alloc main object if a0 == 0. */
+    p = a0;
+    if (p == 0) {
+        p = (void*)gl_func_00000000(0x444);
+        if (p == 0) goto end;
+    }
+    gl_func_00000000(p, a1);   /* gl_init(p, a1) — main-object init */
+    *(int*)((char*)p + 0x28) = (int)&D_00000000;  /* main template ptr */
+
+    /* First sub-region: alloc 0x308 if cached chunk addr ≠ s1+0x13C
+     * (bump-allocator dispatch). Subsequent iterations reuse parent+offset. */
+    parent = p;
+    if (a2 != 0) {
+        /* a2 was passed by caller as pre-existing chunk; use if matches */
+        chunk = (int*)a2;
+    } else {
+        chunk = (int*)gl_func_00000000(0x308);
+        if (chunk == 0) goto end;
+    }
+
+    /* Sub-init #0: alloc 0x18 sub, bind to chunk+0x8, then gl_init_sub. */
+    sub = (int*)gl_func_00000000(0x18);
+    if (sub != 0) {
+        chunk[0] = (int)((char*)&D_00000000 + 0x1224);  /* TEMPLATE_TYPE_PTR_1 */
+        chunk[1] = 0;
+        gl_func_00000000(sub, parent, 1);              /* gl_init_sub */
+        sub[3] = (int)((char*)&D_00000000 + 0xF78);    /* sub->0xC = TEMPLATE_PTR_2 */
+        sub[5] = 0;                                     /* sub->0x14 = 0 */
+        /* sub->0x10 from float template (lwc1 $f4, gl_data+0x1EC); copied via $f4 */
+        *(float*)((char*)sub + 0x10) = *(float*)((char*)&D_00000000 + 0x1EC);
+    }
+
+    /* TODO: ~14 more sub-region iterations follow same pattern with different
+     * (offset, template_addr, size_field) tuples.  Per feedback_partial_decode_with_stub_body.md,
+     * call out to TODO stub for the remaining ~600 insns of sub-allocator
+     * iterations. Default build matches via INCLUDE_ASM. */
+    return game_uso_func_0000C48C_TODO(parent, /*sub_idx*/1, /*chunk_addr*/(int)chunk);
+
+end:
+    return p;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
