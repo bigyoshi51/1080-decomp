@@ -521,7 +521,59 @@ void game_uso_func_00001714(int a0, int *a1) {
     }
 }
 
+#ifdef NON_MATCHING
+/* 95 % (104/108). 16-case dispatch on a1 (cases 3..18). For a1 == 3 the
+ * body is special (extra `a0->0x268 = 1` after the call); for cases 4..18
+ * the body is a single `gl_func_00000000(a0, a1 + 11)` call. Implemented as
+ * `if (a1 == N) goto cN;` chain because:
+ *   - `switch` with 3+ cases emits a .rodata jump table (linker discards
+ *     .rodata in this segment, breaks the link). 49 % at if-else, 69 % at
+ *     switch, 95 % at goto chain.
+ *   - The goto chain matches IDO's "compares first, bodies after" layout.
+ * Last-comparison cap: IDO uses `bnel` for the LAST `if` (folding `lw ra`
+ * into the BL delay), where target uses plain `beq + nop` then `b end`
+ * with `lw ra` in `b`'s delay. Tried `if (a1 != 18) goto end; <body>` and
+ * `goto end;` vs `return;` — both regressed to ~92 %. May need permuter. */
+void game_uso_func_0000174C(int *a0, int a1, int a2) {
+    *(int*)((char*)a0 + 0x268) = 0;
+    if (a1 == 3)  goto c3;
+    if (a1 == 4)  goto c4;
+    if (a1 == 5)  goto c5;
+    if (a1 == 6)  goto c6;
+    if (a1 == 7)  goto c7;
+    if (a1 == 8)  goto c8;
+    if (a1 == 9)  goto c9;
+    if (a1 == 10) goto c10;
+    if (a1 == 11) goto c11;
+    if (a1 == 12) goto c12;
+    if (a1 == 13) goto c13;
+    if (a1 == 14) goto c14;
+    if (a1 == 15) goto c15;
+    if (a1 == 16) goto c16;
+    if (a1 == 17) goto c17;
+    if (a1 == 18) goto c18;
+    goto end;
+c3:  gl_func_00000000(a0, 1); *(int*)((char*)a0 + 0x268) = 1; goto end;
+c4:  gl_func_00000000(a0, 15); goto end;
+c5:  gl_func_00000000(a0, 16); goto end;
+c6:  gl_func_00000000(a0, 17); goto end;
+c7:  gl_func_00000000(a0, 18); goto end;
+c8:  gl_func_00000000(a0, 19); goto end;
+c9:  gl_func_00000000(a0, 20); goto end;
+c10: gl_func_00000000(a0, 21); goto end;
+c11: gl_func_00000000(a0, 22); goto end;
+c12: gl_func_00000000(a0, 23); goto end;
+c13: gl_func_00000000(a0, 24); goto end;
+c14: gl_func_00000000(a0, 25); goto end;
+c15: gl_func_00000000(a0, 26); goto end;
+c16: gl_func_00000000(a0, 27); goto end;
+c17: gl_func_00000000(a0, 28); goto end;
+c18: gl_func_00000000(a0, 29);
+end: ;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000174C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000018FC);
 
