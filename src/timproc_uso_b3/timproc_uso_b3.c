@@ -203,7 +203,36 @@ void timproc_uso_b3_func_000021B0(void) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021F4);
 
+#ifdef NON_MATCHING
+/* 97.58 % cap (2026-05-02). Prologue-stolen successor: predecessor
+ * func_000021F4 ends with lui+lw setting a0 = *(D+0x148). Body is a
+ * dual-branch state setter (logic correct, tried with int*+volatile +
+ * unique externs at 0x208/0x20C + PROLOGUE_STEALS=8). Remaining diffs
+ * are register choice only:
+ *   - target uses $v0 for the cur-pointer base setup (lui+addiu+lw)
+ *   - mine uses $v1 (because $v0 is dead after gl_func and IDO picks $v1)
+ *   - target then uses $v1 for the constant `1` (since $v0 is taken for cur)
+ *   - mine uses $a0 for that constant
+ * Tried: removing the local capture of gl_func return value -- no change.
+ * Sibling: byte-identical to timproc_uso_b1_func_00002030. */
+extern int D_state_b3_2240;            /* 0x148 */
+extern int D_call_b3_2240_a;           /* 0x208 */
+extern int D_call_b3_2240_b;           /* 0x208 (separate symbol, breaks CSE) */
+extern int * volatile D_cur_b3_2240;   /* 0x20C */
+void timproc_uso_b3_func_00002240(void) {
+    if (gl_func_00000000(((char*)D_state_b3_2240) + 4) != 0) {
+        gl_func_00000000(D_call_b3_2240_a);
+        D_cur_b3_2240[0x14] = 2;
+        D_cur_b3_2240[0x16] = 1;
+    } else {
+        gl_func_00000000(D_call_b3_2240_b);
+        D_cur_b3_2240[0x14] = 1;
+        D_cur_b3_2240[0x16] = 1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002240);
+#endif
 
 void timproc_uso_b3_func_000022BC(void) {
     gl_func_00000000(gl_ref_00000208);
