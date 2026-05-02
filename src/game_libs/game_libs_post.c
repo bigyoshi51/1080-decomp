@@ -473,7 +473,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DC7C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DCF8);
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 92.5% — missing `or a2, a0, zero` copy before andi */
+/* NON_MATCHING: 92.5% — missing `or a2, a0, zero` copy before andi.
+ *
+ * Target prologue:
+ *   sw   a0, 0x18(sp)        ; caller-slot spill (matches our `int *p = &a0`)
+ *   or   a2, a0, zero        ; ← extra copy a0->a2
+ *   andi a0, a2, 0xFF        ; ← uses a2 as source (we use a0)
+ *
+ * Variants tested 2026-05-02 (all stay at 92.5%):
+ *   v1: int saved = a0; ...((saved & 0xFF) << 8)... — saved inlined to a0
+ *   v2: int b = a0; b used in expr — same, b inlined
+ *   v3: gl_func_00000000(..., 0x3E8, a0) — got `or a2,a0,zero` BUT also
+ *       extra `sw a2, 0x18(sp)` (worse — IDO spills 3rd arg)
+ *   v4: volatile int saved = a0 — frame grew to 0x20, full reshuffle
+ *   v5: prototype `extern int gl_func_00000000(int, int)` — no change
+ *
+ * Root cause: target's `or a2, a0, zero` looks like a dead arg-preserve copy
+ * (a2 is computed but only used as andi source, no callee uses a2). IDO -O2
+ * never emits dead copies from C — would need explicit `register int x asm("$a2")`
+ * which IDO rejects (per feedback_ido_no_gcc_register_asm.md). NM-only. */
 extern int gl_func_00000000();
 
 void gl_func_0002DD58(int a0) {
