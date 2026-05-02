@@ -663,7 +663,12 @@ void game_uso_func_00001DC4(void *a0) {
  * a floating block-comment above an INCLUDE_ASM. Default build still uses
  * INCLUDE_ASM. */
 #ifdef NON_MATCHING
+/* extended partial decode 2026-05-02: entry sub-block of branch_88 promoted
+ * from comment to real C statements (Vec3 copies + first gl_func + element-
+ * wise add). Body is ~380 insns; this run extends decode from ~30 insns to
+ * ~50 insns. ~300 insns remain stubbed via gl_func_TODO_00001DDC. */
 extern void *gl_func_TODO_00001DDC(int *scratch, int *a2);
+typedef struct { float x, y, z; } Vec3f;
 void *game_uso_func_00001DDC(int *a0) {
     int key = a0[0x40 / 4];
     if (key == 0) goto end;
@@ -677,27 +682,33 @@ void *game_uso_func_00001DDC(int *a0) {
         *(float*)((char*)t6 + 0x68) = *(float*)((char*)v1 + 0xA8);
         goto late_label;
     }
-branch_88:
-    /* key != 0 and key != 3: ~350 insns of Vec3 math + multiple gl_func_00000000
-     * calls. Partial decode of the entry sub-block (~30 insns at 0x1E60-0x1F00):
-     *   t7 = a0->0x14;
-     *   Vec3 copy: a0->0x14->0xA0..0xA8 → sp+0x13C  (referenced sub-obj Vec3)
-     *   v1 = a0->0x38;
-     *   Vec3 copy: v1->0xA0..0xA8 → sp+0x130  (uses IDO addiu base-shift trick:
-     *     `addiu v1, v1, 0x70` then reads v1[0x34/0x38] to alias original
-     *     v1+0xA4/0xA8 — same byte sequence as direct read of original offsets)
-     *   v0 = gl_func(scratch=sp+0xFC, a0);   ; returns a Vec3* result
-     *   Vec3 copy: *v0 → sp+0x154
-     *   Element-wise add: sp+0x130[i] += sp+0x154[i] (i=0..2)  — accumulate
-     *
-     * Then ~300 more insns: another gl_func call with sp+0x110/sp+0x130 args,
-     * 3x3 matrix transform via more cvt/mul/add.s on different sp+offsets,
-     * stores to a0->0x60..0x68 (resulting Vec3), nested call to scale/normalize.
-     * Stub returns TODO marker. */
-    {
-        int *scratch = 0;  /* sp+0xFC scratch sub-struct, address-taken local */
-        (void)gl_func_TODO_00001DDC(scratch, a0);
-    }
+branch_88: {
+    /* Decoded sub-block at 0x1E60-0x1F00:
+     *   - copy a0->0x14->Vec3@0xA0 into local "ref_v"
+     *   - copy a0->0x38->Vec3@0xA0 into local "self_v" (using base-shift trick)
+     *   - call gl_func(&scratch, a0) -> returns Vec3* delta
+     *   - copy *delta into local "delta_v"
+     *   - element-wise add: self_v[i] += delta_v[i]
+     * After this, ~300 more insns remain stubbed. */
+    char scratch[0x18];           /* sp+0xFC scratch sub-struct (address-taken) */
+    Vec3f ref_v;                  /* sp+0x13C — referenced sub-obj position */
+    Vec3f self_v;                 /* sp+0x130 — own position copy (accumulator) */
+    Vec3f delta_v;                /* sp+0x154 — gl_func returned offset */
+    Vec3f *t7 = (Vec3f*)((char*)a0[0x14 / 4] + 0xA0);
+    Vec3f *v1 = (Vec3f*)((char*)a0[0x38 / 4] + 0xA0);
+    Vec3f *delta;
+    ref_v = *t7;
+    self_v = *v1;
+    delta = (Vec3f*)gl_func_00000000((int*)scratch, (int)a0);
+    delta_v = *delta;
+    self_v.x += delta_v.x;
+    self_v.y += delta_v.y;
+    self_v.z += delta_v.z;
+    /* TODO: ~300 more insns — second gl_func with sp+0x110/sp+0x130 args, 3x3
+     * matrix transform via cvt/mul/add.s on different sp+offsets, stores to
+     * a0->0x60..0x68 (resulting Vec3), nested call to scale/normalize. */
+    (void)gl_func_TODO_00001DDC((int*)scratch, a0);
+}
 late_label:
     /* convergence point — final exit setup */
 end:
