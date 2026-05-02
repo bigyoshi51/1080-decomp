@@ -1,0 +1,33 @@
+{
+  "function_name": "gui_func_000013E8",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-02T19:38:20.562569+00:00",
+  "end_time": "2026-05-02T19:38:20.562599+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-02T19:38:20.562593+00:00",
+      "assistant_text": "Promoted from 91.7% NM wrap by (a) flipping if/else from goto-based to clean if(c!=0x20)/else; (b) inlining the 'delta' local \u2014 IDO assigned v1 to the named local; inlining lets the load chain end in t9 matching target. Final swap-back of arms (c==0x20 first) regressed to 86%, confirming arm order matters.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 51,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000000);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000148);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000918);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000B58);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000D04);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00000F04);\n\n/* Text-width accumulator with glyph-table lookup.\n *   a0 = font-info struct: +0x08 = space-width, +0x20 = glyph-table ptr\n *   a1 = string\n * For each char up to gl_func_00000000(a1) length:\n *   if ' ': total += a0[2] (space-width at +0x8)\n *   else:   key = gl_func_00000000(c);\n *           total += *(int*)(glyph_table + key*20 + 8)  (stride 20). */\nint gui_func_000013E8(char *a0, unsigned char *a1) {\n    int total = 0;\n    unsigned char *p = a1;\n    unsigned int i = 0;\n    unsigned char c;\n    int key;\n\n    if (gl_func_00000000(a1) != 0) {\n        do {\n            c = *p;\n            if (c != 0x20) {\n                key = gl_func_00000000(c);\n                total += *(int*)(*(char**)(a0 + 0x20) + key * 20 + 8);\n            } else {\n                total += *(int*)(a0 + 0x8);\n            }\n            p++;\n            i++;\n        } while (i < gl_func_00000000(a1));\n    }\n    return total;\n}\n\nextern int gui_func_00000000();\n\nint gui_func_000014B4(int a0, int a1, int a2) {\n    return a1 - (gui_func_00000000(a0, a2) / 2);\n}\n\nextern int gl_func_00000000();\n\nint gui_func_000014EC(int a0, int a1, int a2) {\n    return a1 - gl_func_00000000(a0, a2);\n}\n\nextern int gl_func_00000000();\nint gui_func_00001514(int *a0, unsigned char *a1) {\n    int total = 0;\n    unsigned char *p = a1;\n    unsigned int i = 0;\n\n    if (gl_func_00000000(a1) != 0) {\n        do {\n            if (*p != 0x20) {\n                total += a0[3];\n            } else {\n                total += a0[2];\n            }\n            p++;\n            i++;\n        } while (i < (unsigned int)gl_func_00000000(a1));\n    }\n    return total;\n}\n\nextern int gui_func_00000000();\n\nint gui_func_000015BC(int a0, int a1, int a2) {\n    return a1 - (gui_func_00000000(a0, a2) / 2);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_000015F4);\n\nextern int gl_func_00000000();\nextern int gui_ref_00000150;\n\nvoid gui_func_0000267C(char *a0, int a1) {\n    int saved;\n    *(int*)(a0 + 0x14) = a1;\n    saved = gl_func_00000000(7);\n    *(int*)(a0 + 0x10) = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));\n    gl_func_00000000(saved);\n}\n\nvoid gui_func_000026CC(int *a0, int a1) {\n    a0[5] = a1;\n    a0[4] = 0;\n}\n\nextern int gui_func_00000000();\nextern int gui_ref_00000150;\n\nvoid gui_func_000026D8(char *a0) {\n    if (*(int*)(a0 + 0x10) != 0) {\n        gui_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14), a0);\n    }\n    *(int*)(a0 + 0x10) = 0;\n}\n\nextern int gl_func_00000000();\nvoid gui_func_0000271C(char *a0) {\n    int saved;\n    int v0;\n    int v1;\n    if (*(int*)(a0 + 0x14) == -1) {\n        *(int*)(a0 + 0x14) = 0;\n    }\n    saved = gl_func_00000000(7);\n    v0 = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));\n    v1 = *(int*)(a0 + 0x10);\n    if (v1 == 0 || v0 != v1) {\n        *(int*)(a0 + 0x10) = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));\n    }\n    gl_func_00000000(saved);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_000027A0);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00002BB0);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00002DE0);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_0000329C);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00003714);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00003B80);\n\nINCLUDE_ASM(\"asm/nonmatchings/gui_uso/gui_uso\", gui_func_00004568);\n\n",
+  "metadata": {
+    "source_path": "src/gui_uso/gui_uso.c",
+    "asm_path": "asm/nonmatchings/gui_uso/gui_uso/gui_func_000013E8.s",
+    "segment": "gui_uso",
+    "compiler": "ido 7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32",
+    "verification": "objdiff: 100% / objdump no-aliases byte-exact"
+  }
+}
