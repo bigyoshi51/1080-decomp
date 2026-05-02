@@ -212,7 +212,28 @@ void timproc_uso_b1_func_00001FA0(void) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001FE4);
 
+#ifdef NON_MATCHING
+/* 97.58 % cap (sibling of timproc_uso_b3_func_00002240, byte-identical).
+ * Dual-branch state setter, prologue-stolen successor. Same recipe and
+ * register-allocator cap. See b3_2240 for full notes. */
+extern int D_state_b1_2030;
+extern int D_call_b1_2030_a;
+extern int D_call_b1_2030_b;
+extern int * volatile D_cur_b1_2030;
+void timproc_uso_b1_func_00002030(void) {
+    if (gl_func_00000000(((char*)D_state_b1_2030) + 4) != 0) {
+        gl_func_00000000(D_call_b1_2030_a);
+        D_cur_b1_2030[0x14] = 2;
+        D_cur_b1_2030[0x16] = 1;
+    } else {
+        gl_func_00000000(D_call_b1_2030_b);
+        D_cur_b1_2030[0x14] = 1;
+        D_cur_b1_2030[0x16] = 1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002030);
+#endif
 
 void timproc_uso_b1_func_000020AC(void) {
     gl_func_00000000(gl_ref_00000208);
