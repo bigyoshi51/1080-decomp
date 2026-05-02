@@ -89,21 +89,17 @@ void h2hproc_uso_func_00000354(void) {
     gl_func_00000000(D_h2h_354_c, -1, 0);
 }
 
-#ifdef NON_MATCHING
-/* 97.95%: sibling of 0x2A4 family (0x2A4=5, 0x2FC=2, 0x354=3); writes 4
- * at D_0[0x40]. Same 3-call + 2-store shape; same a3-intermediate cap. */
+extern char *D_h2h_3AC_a;       /* call 1 base, *(D+4) */
+extern char *D_h2h_3AC_b;       /* call 2 a0 + store +0x40 */
+extern int  *D_h2h_3AC_c;       /* call 3 base, *D->0x30 = 0 + delay-arg */
+
 void h2hproc_uso_func_000003AC(void) {
-    int *p;
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
-    *(int*)((char*)&D_00000000 + 0x40) = 4;
-    gl_func_00000000(&D_00000000);
-    p = *(int**)&D_00000000;
-    *(int*)((char*)p + 0x30) = 0;
-    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+    gl_func_00000000(*(int*)((char*)&D_h2h_3AC_a + 4));
+    *(int*)((char*)&D_h2h_3AC_b + 0x40) = 4;
+    gl_func_00000000(&D_h2h_3AC_b);
+    *(int*)((char*)D_h2h_3AC_c + 0x30) = 0;
+    gl_func_00000000(D_h2h_3AC_c, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000003AC);
-#endif
 
 #ifdef NON_MATCHING
 /* Sibling of h2hproc_uso_func_00000354 (byte-identical asm except t6=6 vs t6=3
