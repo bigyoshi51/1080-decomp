@@ -1617,7 +1617,7 @@ extern int gl_func_00000000();
 
 void gl_func_0003F880(int a0, int a1) {
     char buf[0x90];
-    int saved_a1;
+    volatile int saved_a1;
     int pad[2];
     int local;
     saved_a1 = a1;
@@ -1625,7 +1625,6 @@ void gl_func_0003F880(int a0, int a1) {
     gl_func_00000000(&local);
     (void)buf;
     (void)pad;
-    (void)saved_a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F880);
