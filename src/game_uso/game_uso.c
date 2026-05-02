@@ -2212,7 +2212,34 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001056C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000105DC);
 
+#ifdef NON_MATCHING
+/* 68 % NM wrap. Function uses $f4 directly without setting it — caller-set
+ * float convention not reproducible from standard C signature `f(int, float)`,
+ * which puts float arg in $a1 → mtc1 $a1, $f12 → swc1 $f12 (target uses $f4).
+ *
+ * Body structure: store caller's $f4 to a0+0x11C, then call gl_func_00000000
+ * twice. Target's first call passes a0, *(D+0xDF8), *(D+0xDFC) — extracted
+ * via `addiu base,&D,0xDF8; lw a1,0(base); lw a2,4(base)` (named base
+ * pointer pattern, see feedback_ido_named_base_forces_addiu_split.md).
+ * Target also spills a1/a2 to sp+0x4/sp+0x8 (likely callsite-arg-slots for
+ * variadic or wider call signature).
+ *
+ * THIS IS THE ORIGIN CASE for feedback_uso_float_in_f4_callee.md (intra-USO
+ * non-O32 float-in-$f4 convention). IDO has no C-level mechanism to receive
+ * a float in $f4 directly — `register float f asm("$f4")` is GCC-only and
+ * IDO's cfe rejects it (per feedback_ido_no_gcc_register_asm.md). Cap holds.
+ */
+void game_uso_func_00010650(void *a0, float arg1) {
+    int x, y;
+    *(float*)((char*)a0 + 0x11C) = arg1;
+    x = *(int*)((char*)&D_00000000 + 0xDF8);
+    y = *(int*)((char*)&D_00000000 + 0xDFC);
+    gl_func_00000000(a0, x, y);
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010650);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
 
