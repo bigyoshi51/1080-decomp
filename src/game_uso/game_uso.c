@@ -137,7 +137,44 @@ void game_uso_func_0000039C(Quad4 *dst) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000039C_pad.s")
 
+#ifdef NON_MATCHING
+/* Camera/view init function. Initializes a 0x38-byte struct at $a0:
+ *   a0+0x00..0x08 = Vec3(0, 0, 0)        ; eye position
+ *   a0+0x0C..0x14 = Vec3(0, 0, -1000)    ; target / look-at (z = -1000)
+ *   a0+0x18..0x20 = Vec3(0, 1, 0)        ; up vector (Y-up)
+ *   a0+0x24       = 85.0f                ; FOV (degrees)
+ *   a0+0x28       = 15 (int)             ; mode/flags
+ *   a0+0x2C..0x34 = Vec3(0, 0, 0)        ; offset
+ *
+ * 77-insn FPU/stack-init function (size 0x134, no jal).
+ *
+ * Quirk: $f0 is read at entry as the source for "0.0f" stores. $f0 is the
+ * float-return register, not a standard arg. The caller must arrange for
+ * $f0 to hold 0.0f at the call site (e.g. tail-called after a function
+ * that returns 0.0, or compiler-arranged via inline expansion). Plain C
+ * `0.0f` literals would emit `mtc1 $zero, $fX` instead.
+ *
+ * Codegen pattern per Vec3 assignment (4 Vec3 writes total): build literal
+ * on stack scratch (sp+0x54 / 0x48 / 0x3C / 0x30), memcpy via int regs to
+ * sp+0xC, then load floats from sp+0xC and store to a0+offset. This
+ * double-copy is what IDO emits for `*p = (Vec3){...}` struct-literal
+ * assignment. Multi-tick decomp: matching the FPU/scheduling exactly is
+ * a register-renaming grind on top of the $f0 quirk. Stub body so the wrap
+ * parses; default build uses INCLUDE_ASM. */
+void game_uso_func_000003F8(void *a0) {
+    Vec3 zero = {0.0f, 0.0f, 0.0f};
+    Vec3 fwd  = {0.0f, 0.0f, -1000.0f};
+    Vec3 up   = {0.0f, 1.0f, 0.0f};
+    *(Vec3 *)((char *)a0 + 0x00) = zero;
+    *(Vec3 *)((char *)a0 + 0x0C) = fwd;
+    *(Vec3 *)((char *)a0 + 0x18) = up;
+    *(float *)((char *)a0 + 0x24) = 85.0f;
+    *(int *)((char *)a0 + 0x28) = 15;
+    *(Vec3 *)((char *)a0 + 0x2C) = zero;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000052C);
 
