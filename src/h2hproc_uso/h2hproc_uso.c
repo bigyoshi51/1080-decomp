@@ -161,7 +161,19 @@ void h2hproc_uso_func_000003AC(void) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000003AC);
 #endif
 
+#ifdef NON_MATCHING
+/* Sibling of h2hproc_uso_func_00000354 (byte-identical asm except t6=6 vs t6=3
+ * at offset 0x14). Same ~60% match cap from feedback_ido_cse_d_loads_unflippable.md
+ * — IDO -O2 CSEs &D into v0, target keeps fresh `lui aN` per call. */
+void h2hproc_uso_func_00000404(void) {
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4));
+    *(int*)((char*)&D_00000000 + 0x40) = 6;
+    *(int*)(*(int*)&D_00000000 + 0x30) = 0;
+    gl_func_00000000(*(int*)&D_00000000, -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000404);
+#endif
 
 void h2hproc_uso_func_0000045C(void) {
     gl_func_00000000(*(int*)&D_00000000);
