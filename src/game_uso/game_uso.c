@@ -317,7 +317,53 @@ void game_uso_func_000007EC(int *arg0) {
     }
 }
 
+#ifdef NON_MATCHING
+/* 67.4 % match. 8-arg constructor/initializer (4 reg + 4 stack args).
+ *   void *f(T *a0,    // dst, alloc 0x27C if NULL
+ *           int a1,   // -> a0->0x150 post-init
+ *           int a2,   // -> 1st gl_func arg
+ *           int a3,   // -> 2nd gl_func arg
+ *           int arg4, // -> 3rd gl_func arg
+ *           float arg5,  // -> 4th gl_func arg (FLOAT!)
+ *           int arg6, // -> a0->0x274 post-init
+ *           int arg7) // flag: if !=0, gl_func(a0, 1) midway
+ *
+ * Logic + writes done; the remaining 32 % cap is two structural issues:
+ *   1. arg5 is a stack-passed float. Target uses lwc1+swc1 (4-byte float
+ *      pass-through). My int-bits workaround uses lw+sw (same bytes BUT
+ *      different opcodes). Declaring arg5 as `float` triggers K&R
+ *      promote-to-double via cvt.d.s+sdc1 (8-byte stack store) which is
+ *      WORSE. Per feedback_ido_knr_float_call.md: K&R-declared
+ *      gl_func_00000000 can't accept float without promotion.
+ *   2. Branch order: my `if (a0 != 0) skip; alloc; if (alloc fail) skip
+ *      to end; else continue` emits 2 separate bne+beq pairs vs target's
+ *      single beq-to-end-after-alloc-fail.
+ *
+ * Need a unique-extern variant of gl_func_00000000 with explicit
+ * (int*, int, int, int, float) prototype to break K&R promotion (per
+ * feedback_usoplaceholder_unique_extern.md technique). */
+int *game_uso_func_00000858(int *a0, int arg1, int arg2, int arg3, int arg4, int arg5_bits, int arg6, int arg7) {
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00000000(0x27C);
+        if (a0 == 0) return a0;
+    }
+    gl_func_00000000(a0, arg2, arg3, arg4, arg5_bits);
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)a0 + 0x1D0) = 0;
+    *(int*)((char*)a0 + 0x24C) = 0;
+    if (arg7 != 0) {
+        gl_func_00000000(a0, 1);
+    }
+    *(int*)((char*)a0 + 0x150) = arg1;
+    *(int*)((char*)a0 + 0x26C) = 0;
+    *(int*)((char*)a0 + 0x270) = 0;
+    *(int*)((char*)a0 + 0x268) = 0;
+    *(int*)((char*)a0 + 0x274) = arg6;
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000858);
+#endif
 
 void game_uso_func_000008FC(int *a0) {
     int *v0 = (int*)*(int*)((char*)a0 + 0xF4);
