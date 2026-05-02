@@ -14,7 +14,16 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000065C);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000006B0);
+extern int D_b3_06B0_a;
+extern int *D_b3_06B0_b;     /* pointer-typed: 2nd call passes (*D_b3_06B0_b)[0x6A8/4] */
+extern int D_b3_06B0_c;
+extern int D_b3_06B0_d;
+void timproc_uso_b3_func_000006B0(void) {
+    gl_func_00000000(D_b3_06B0_a);
+    gl_func_00000000(D_b3_06B0_b[0x6A8/4]);
+    gl_func_00000000(D_b3_06B0_c);
+    gl_func_00000000(&D_b3_06B0_d);
+}
 
 extern int D_b3_06FC_a;
 extern int D_b3_06FC_b;
