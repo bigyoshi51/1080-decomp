@@ -71,6 +71,19 @@ extern char D_00000000;
  * IDO/asm-processor/flags changed since (1)-(6) were measured.
  * Target 7th attempt is correct in logic but can't flip either swap.
  *
+ * (8) TRIED 2026-05-02: `while (1) { ... if (flag != 0) break; }` form
+ * (no do-while). Marginal: 33.07 % -> 33.69 %. Different loop-back
+ * branch encoding accounts for the small gain (1 extra insn aligned).
+ * Adopted because it's strictly better and same logic. The 6-local
+ * $s-reg allocation is still mis-numbered.
+ *
+ * (9) TRIED 2026-05-02: eliminate `flag` entirely; restructure as
+ * `while (arg1 != 0 && arg1 != one) { arg1 = base->0x40; } if (arg1==0)
+ * branch1 else branch2; arg1 = base->0x40;` — REGRESSED to 18.5 %. The
+ * structural change pushes IDO too far from target's do-while-with-
+ * dispatch shape. The do-while + flag pattern IS load-bearing for the
+ * register allocator's priority calc.
+ *
  * No remaining path reachable from C without inline-asm. NM-only. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
@@ -80,7 +93,7 @@ void n64proc_uso_func_00000014(int arg0, int arg1) {
     register int one = 1;
     int r;
 
-    do {
+    while (1) {
         if (arg1 == 0) {
             gl_func_00000000(base, one, 0, 0);
             flag = one;
@@ -96,7 +109,8 @@ void n64proc_uso_func_00000014(int arg0, int arg1) {
             *(int*)((char*)cur + 0x14) = (int)base;
         }
         arg1 = *(int*)((char*)base + 0x40);
-    } while (flag == 0);
+        if (flag != 0) break;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000014);
