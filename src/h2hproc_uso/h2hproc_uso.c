@@ -398,7 +398,56 @@ void h2hproc_uso_func_00000C18(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C18);
 #endif
 
+#ifdef NON_MATCHING
+/* 43-insn / 0xAC h2h dual-side update routine. Sibling-by-offset of
+ * func_00000C18 (also touches D->0x134's 0xC4/0xCC sub-pointers).
+ *
+ * Decoded:
+ *   gl_func(a0, a1);                       // passthrough call (delay-slot saves)
+ *   slotC4 = D->0x134->0xC4;
+ *   slotC4->0x8DC = D->0x134->0x108;        // bind 0x108 onto C4's 0x8DC slot
+ *   r1 = slotC4->0x800;
+ *   gl_func(r1);                            // setup
+ *   gl_func(r1, D->0x168, D->0x170);        // configure with x/y
+ *   slotCC = D->0x134->0xCC;
+ *   slotCC->0x8DC = D->0x134->0x108;        // same bind for CC side
+ *   r2 = slotCC->0x800;
+ *   gl_func(r2);                            // setup
+ *   gl_func(r2, D->0x16C, D->0x174);        // configure
+ *   gl_func(a0);                            // post-update call on root arg
+ *   a0->0x4F4 = a1 & 0xFFFF;                // store low-16 of a1 into flag word
+ *
+ * Same 0xC4/0xCC pair structure as func_00000C18; D->0x168/0x170 paired
+ * with D->0x16C/0x174 (likely (x0,y0) for left side, (x1,y1) for right).
+ *
+ * First-pass decode; not byte-matched. Default build INCLUDE_ASM unchanged. */
+void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
+    int *root;
+    int *slotC4, *slotCC;
+    int *r1, *r2;
+
+    gl_func_00000000(a0, a1);
+
+    root = *(int**)((char*)&D_00000000 + 0x134);
+    slotC4 = *(int**)((char*)root + 0xC4);
+    *(int*)((char*)slotC4 + 0x8DC) = *(int*)((char*)root + 0x108);
+    r1 = *(int**)((char*)slotC4 + 0x800);
+    gl_func_00000000(r1);
+    gl_func_00000000(r1, *(int*)((char*)root + 0x168), *(int*)((char*)root + 0x170));
+
+    root = *(int**)((char*)&D_00000000 + 0x134);
+    slotCC = *(int**)((char*)root + 0xCC);
+    *(int*)((char*)slotCC + 0x8DC) = *(int*)((char*)root + 0x108);
+    r2 = *(int**)((char*)slotCC + 0x800);
+    gl_func_00000000(r2);
+    gl_func_00000000(r2, *(int*)((char*)root + 0x16C), *(int*)((char*)root + 0x174));
+
+    gl_func_00000000(a0);
+    *(unsigned int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000E04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000EB0);
 
