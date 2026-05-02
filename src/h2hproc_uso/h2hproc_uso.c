@@ -301,7 +301,102 @@ void h2hproc_uso_func_00000BAC(int *a0) {
     gl_func_00000000(a0, v0 + 0x26000F);
 }
 
+#ifdef NON_MATCHING
+/* 123-insn / 0x1EC orchestrator for h2h player setup.
+ * Sibling of func_00000BAC by offset (immediately follows).
+ *
+ * Entry dispatch:
+ *   v1 = a0->0x6B8;   // h2h slot index, or -1 for default
+ *   if (v1 == -1):
+ *       s2 = D->0x134->0xC4;
+ *   else:
+ *       s2 = (D->0x134 + v1*8)->0xC4;        // indexed slot
+ *
+ * Then runs a fixed setup sequence:
+ *  1. (D->0x134->0xC4)[0xA58/4] |= 0x8000
+ *  2. (D->0x134->0xCC->0xA58 region) |= 0x8000  (writes to v1+0xA58 base)
+ *  3. tmp1 = gl_func(D->0x134, 0, D->0x134->0x80, s2, s2->0x800)
+ *  4. tmp2 = gl_func(D->0x134, 1, D->0x134->0x80, s2, s2->0x800)
+ *  5. a0->0x520 = D->0x134->0x108                             // pointer copy
+ *  6. (a0->0x520 + 0x18) field &= 0xFFFFFFF7                  // clear bit 3
+ *  7. (a0->0x520 + 0x18) field &= 0xFFFFFFFB                  // clear bit 2
+ *  8. (D->0x134->0x10C + 0x18) field &= ~(0x8 | 0x4)
+ *  9. gl_func(D->0x134, &D2 + 0x1C, tmp1)
+ * 10. a0->0x51C = result; D->0x134->0x108 = result
+ * 11. a0->0x520 = gl_func(D->0x134, 0x80) -- but only if a0->0x520->0x14 == 0?
+ *     followed by *->0x4 = 1 / *->0x14 = D->0x134
+ * 12. gl_func(D->0x134, a0, D->0x134->0x84+0x10, ...)
+ * 13. a0->0x4F0 &= 0xFEFFFFFF                                  // clear bit 24
+ *
+ * Many cross-USO calls (jal 0 + delay-slot spill of t4/t5/etc into stack args).
+ * Extensive use of unique D_-base addrs for D->0x134, D->0x108, D->0x10C, etc.
+ *
+ * First-pass decode; structure preserved without byte-match attempt this run.
+ * Default build still uses INCLUDE_ASM. Multi-pass refinement expected. */
+void h2hproc_uso_func_00000C18(int *a0) {
+    int *slot;
+    int idx;
+    int *root;
+    int *s518_ret;
+    int *bound;
+    int v;
+
+    idx = *(int*)((char*)a0 + 0x6B8);
+    root = *(int**)((char*)&D_00000000 + 0x134);
+    if (idx == -1) {
+        slot = *(int**)((char*)root + 0xC4);
+    } else {
+        slot = *(int**)((char*)((char*)root + idx * 8) + 0xC4);
+    }
+
+    /* Set 0x8000 flag on slot's 0xA58 region (root->0xC4 + 0xA58). */
+    *(int*)((char*)slot + 0xA58) = *(int*)((char*)slot + 0xA58) | 0x8000;
+    /* Same for root->0xCC's 0xA58 region. */
+    {
+        int *r2 = *(int**)((char*)root + 0xCC);
+        *(int*)((char*)r2 + 0xA58) = *(int*)((char*)r2 + 0xA58) | 0x8000;
+    }
+
+    /* Two parallel gl_func calls — likely "make per-side data" paired. */
+    s518_ret = (int*)gl_func_00000000(root, 0, *(int*)((char*)root + 0x80), slot, *(int*)((char*)slot + 0x800));
+    bound    = (int*)gl_func_00000000(root, 1, *(int*)((char*)root + 0x80), slot, *(int*)((char*)slot + 0x800));
+
+    /* Mask off bits 3/2 on the 0x108-pointed struct's 0x18 field. */
+    {
+        int *p108 = *(int**)((char*)root + 0x108);
+        *(int*)((char*)a0 + 0x520) = (int)p108;
+        *(int*)((char*)p108 + 0x18) = *(int*)((char*)p108 + 0x18) & ~0x8;
+        *(int*)((char*)p108 + 0x18) = *(int*)((char*)p108 + 0x18) & ~0x4;
+    }
+    /* Mask off bits 3/2 on 0x10C-pointed struct's 0x18 field (combined). */
+    {
+        int *p10C = *(int**)((char*)root + 0x10C);
+        v = *(int*)((char*)p10C + 0x18) & ~0x8;
+        *(int*)((char*)p10C + 0x18) = v;
+        *(int*)((char*)p10C + 0x18) = v & ~0x4;
+    }
+
+    /* Bind retval, post-setup calls. */
+    {
+        int *retbind = (int*)gl_func_00000000(root, &D_00000000 + 0x1C, s518_ret);
+        *(int*)((char*)a0 + 0x51C) = (int)retbind;
+        *(int*)((char*)root + 0x108) = (int)retbind;
+
+        if (*(int*)((char*)retbind + 0x14) == 0) {
+            int *alloc2 = (int*)gl_func_00000000(root, 0x80);
+            *(int*)((char*)retbind + 0x14) = (int)alloc2;
+            *(int*)((char*)alloc2 + 0x4) = 1;
+            *(int*)((char*)alloc2 + 0x14) = (int)retbind;
+        }
+        gl_func_00000000(root, a0, *(int*)((char*)root + 0x84) + 0x10);
+    }
+
+    /* Final flag clear. */
+    *(int*)((char*)a0 + 0x4F0) = *(int*)((char*)a0 + 0x4F0) & 0xFEFFFFFF;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C18);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000E04);
 
