@@ -401,7 +401,14 @@ void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
  * `addu t8,a0,t7`; target has addu first, sw count second. Same
  * scheduler-reorder pattern as func_000020AC (the sibling 8-byte-pair
  * variant). See feedback_ido_sw_before_addu_unreachable.md — two
- * independent instructions' ordering not reachable from C at -O2. */
+ * independent instructions' ordering not reachable from C at -O2.
+ *
+ * 2026-05-02 ATTEMPTED single-expression form `p[0x108/4 + p[0x104/4]++] = a1`
+ * (after fixing DNM build by changing `extern void func_00000000()` to
+ * `extern int func_00000000()` at lines 1289/1304 to resolve return-type
+ * conflict with implicit decl at line 15). Result: regressed to 52.6%
+ * — IDO emits the increment in v0 chain instead of t6, breaking the
+ * scheduling. Original named-local form remains best at 85.7%. */
 void func_00002088(char *a0, int a1) {
     int idx = *(int*)(a0 + 0x104);
     *(int*)(a0 + 0x104) = idx + 1;
@@ -1281,7 +1288,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F390);
  * boundaries). Deferred — single 12-insn wrapper isn't worth the 3-way
  * source-file split alone; bundle with neighbors when other -O0 wrappers
  * appear in the 0xF3D4-0xF7F4 range. */
-extern void func_00000000();
+extern int func_00000000();
 void func_0000F3D4(int a0) {
     func_00000000(a0);
 }
@@ -1296,7 +1303,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F3D4);
  * note. The 0xF3D4-0xF564 range has at least 5 likely -O0 wrappers
  * (F3D4, F404, F434, F4CC, F564) — a single bootup_uso_o0_F3D4.c file
  * covering this cluster would be worth the linker layout adjustment. */
-extern void func_00000000();
+extern int func_00000000();
 void func_0000F404(int a0) {
     func_00000000(a0);
 }
