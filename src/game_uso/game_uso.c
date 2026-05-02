@@ -1415,7 +1415,75 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C2D4);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
 
+#ifdef NON_MATCHING
+/* SPINE constructor (game_uso_func_0000C48C, 0xD84 = 865 insns, 3.4 KB)
+ * Per project_1080_game_uso_map.md the 4th-largest game.uso function and
+ * an "INIT/SETUP" orchestrator (69 cross-USO calls). Sibling pattern to
+ * game_uso_func_000044F4 (the other documented constructor; allocates
+ * main object + child + ~16 sub-objects of 0x18 bytes each).
+ *
+ * Decoded structure (first 200 insns, ~25 % of body):
+ *
+ *   void *func(void *a0, int a1, int a2, int a3) {
+ *     void *p = a0;
+ *     if (!p) {
+ *       p = alloc(0x444);                      ; 1092-byte main object
+ *       if (!p) goto end;
+ *     }
+ *     gl_init(p, a1);                          ; main-object init w/ a1
+ *     p->0x28 = &TEMPLATE_BASE;                ; main template ptr
+ *
+ *     // Sub-object inner allocator — repeated ~16 times with different
+ *     // (offset, template_addr, size_field) tuples:
+ *     {
+ *       parent = p;
+ *       q = (caller passed pre-allocated chunk, or alloc(0x308)?);
+ *       if (q != p+0xN) q = alloc(0x308);      ; first chunk: bigger
+ *       else q = p+0xN_THIS_CHUNK;             ; subsequent: bump-allocator
+ *       if (!q) goto skip_init;
+ *       chunk = q+0x8;
+ *       if (cached_template_idx != -8) chunk = alloc(0x18);
+ *       if (!chunk) goto next_iter;
+ *       chunk->0    = TEMPLATE_TYPE_PTR_1;    ; usually `gl_data + 0x1224`
+ *       chunk->4    = 0;
+ *       template_idx = template_table[N];     ; lw from gl_data + 0x122C+
+ *       chunk2 = sp+0xC0;                     ; sub-template scratch
+ *       chunk2_inner = chunk+0x8;
+ *       *(sp+0xC0) = template_idx;
+ *       sub = *(int*)chunk2;
+ *       if (cached != -8) sub = alloc(0x18);
+ *       gl_init_sub(sub, parent, 1);
+ *       sub->0xC = TEMPLATE_PTR_2;             ; usually `gl_data + 0xfc0`
+ *       sub->0x10 = SIZE_HINT;                 ; e.g. 20, 60, 5
+ *       sub->0x14 = 0;
+ *       // NOTE: some iterations also set sub->0x10 from a float
+ *       // template (lwc1 $f4/$f6 from at + 0x1ec/0x1f0), suggesting
+ *       // either type-tagged sub-objects or interleaved init kinds.
+ *     }
+ *     // ... loop continues for ~14 more sub-objects ...
+ *
+ *   end:
+ *     // epilogue: lw ra, 36; lw s2,32; lw s1,28; lw s0,24; addiu sp, 200; jr ra
+ *   }
+ *
+ * Frame: -200 (0xC8). Saves: ra,s0,s1,s2 + spills a0,a1,a2 to top.
+ *
+ * Multi-tick decomp expected. Next pass: extract the per-iteration
+ * template-table layout (gl_data + 0x122C, 0x1230, 0x1234, 0x1238...)
+ * and figure out the allocation chunk-size pattern (some iterations
+ * use 0x308 sub-allocs, others use 0x18). Constructor of unknown
+ * struct -- offsets at 0x28 (main template), 0x44 (sub-region start?),
+ * 0xC (template ptr), 0x10 (size-hint).
+ *
+ * The C body below is a compile-only placeholder so the wrap parses;
+ * default build uses INCLUDE_ASM and matches. */
+extern void *game_uso_func_0000C48C_TODO(void);
+void *game_uso_func_0000C48C(void *a0, int a1) {
+    return game_uso_func_0000C48C_TODO();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D210);
 
