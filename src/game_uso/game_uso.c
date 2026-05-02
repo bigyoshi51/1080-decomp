@@ -722,7 +722,31 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
 
+#ifdef NON_MATCHING
+/* Mirror of game_uso_func_00001D30: alloc(0x64) instead of alloc(0x124),
+ * dispatch table at &D_0+0x360 instead of +0x340. Same alloc-or-init
+ * pattern + ConditionalCall + 2-field-set + return p. Likely caps ~96%
+ * with the same arg-spill scheduling diff as 1D30. */
+char *game_uso_func_00002814(char *a0, int a1, int a2, int a3) {
+    register char *p = a0;
+    if (p == 0) {
+        p = (char*)gl_func_00000000(0x64);
+        if (p == 0) goto end;
+    }
+    gl_func_00000000(p, &D_00000000 + 0x360);
+    *(int*)(p + 0x28) = (int)&D_00000000;
+    gl_func_00000000(p + 0x44);
+    if (a3 != 0) {
+        gl_func_00000000(p, 1, a3);
+    }
+    *(int*)(p + 0x38) = a1;
+    *(int*)(p + 0x3C) = a2;
+end:
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002814);
+#endif
 
 void game_uso_func_000028A8(void *a0) {
     *(s32*)((char*)a0 + 0x40) = 0;
