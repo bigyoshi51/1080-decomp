@@ -162,39 +162,49 @@ void n64proc_uso_func_00000230(char *a0) {
  *           OR if (a0->0x3C < 0x55 AND gl_func(&D, 0x40100) != 0), set
  *           D[0x40] = 1 and call gl_func(a0, 0, 0).
  *
- * Cap: NM body emits std bne if-else (59 insns); target uses 3-arm beql
- * dispatch with delay-slot pre-loads + a dead `lw t6` at offset 0x294
- * (61 insns). Switch is rejected (1080 discards .rodata jumptables per
- * feedback_ido_switch_rodata_jumptable.md), so beql dispatch is unreachable
- * from C. Logic confirmed equivalent. */
+ * 2026-05-02: applied goto-chain dispatch per
+ * feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md.
+ * Match jumped from 85.25% (if-else-if form) to 93.57%.
+ *
+ * Remaining 6.4% diff: target uses beql v0,zero,+N with delay-slot
+ * `lw t6, 0x3C(a3)` pre-loading the case-0 body's first read; mine
+ * uses beql with `lw ra` (dead) in delay slot. The body-start preload
+ * via beql delay slot isn't reachable from goto-chain — IDO doesn't
+ * coalesce the case-body's first lw into the dispatch branch's delay.
+ * Per feedback_ido_sparse_switch_beql_preload_unreachable.md. */
 void n64proc_uso_func_00000268(int *a0) {
     int v;
     int t;
 
     v = a0[0x50/4];
-    if (v == 0) {
-        t = a0[0x3C/4] - 1;
-        a0[0x3C/4] = t;
-        if (t < 0x10) {
-            t = a0[0x54/4] - 0x10;
-            a0[0x54/4] = t;
-            if (t < 0) a0[0x54/4] = 0;
-            if (a0[0x3C/4] == 0) {
-                a0[0x50/4] = 1;
-                a0[0x3C/4] = 0x64;
-            }
-        }
-    } else if (v == 1) {
-        t = a0[0x54/4] + 8;
+    if (v == 0) goto c0;
+    if (v == 1) goto c1;
+    goto end;
+c0:
+    t = a0[0x3C/4] - 1;
+    a0[0x3C/4] = t;
+    if (t < 0x10) {
+        t = a0[0x54/4] - 0x10;
         a0[0x54/4] = t;
-        if (t >= 0x100) a0[0x54/4] = 0xFF;
-        t = a0[0x3C/4] - 1;
-        a0[0x3C/4] = t;
-        if (t == 0 || (t < 0x55 && gl_func_00000000(&D_00000000, 0x40100) != 0)) {
-            *(int*)((char*)&D_00000000 + 0x40) = 1;
-            gl_func_00000000(a0, 0, 0);
+        if (t < 0) a0[0x54/4] = 0;
+        if (a0[0x3C/4] == 0) {
+            a0[0x50/4] = 1;
+            a0[0x3C/4] = 0x64;
         }
     }
+    goto end;
+c1:
+    t = a0[0x54/4] + 8;
+    a0[0x54/4] = t;
+    if (t >= 0x100) a0[0x54/4] = 0xFF;
+    t = a0[0x3C/4] - 1;
+    a0[0x3C/4] = t;
+    if (t == 0 || (t < 0x55 && gl_func_00000000(&D_00000000, 0x40100) != 0)) {
+        *(int*)((char*)&D_00000000 + 0x40) = 1;
+        gl_func_00000000(a0, 0, 0);
+    }
+end:
+    ;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000268);
