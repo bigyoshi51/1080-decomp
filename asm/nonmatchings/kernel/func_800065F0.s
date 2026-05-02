@@ -1,5 +1,5 @@
 
-nonmatching func_800065F0, 0x50
+nonmatching func_800065F0, 0x5C
 
 glabel func_800065F0
     /* 75F0 800065F0 00194080 */  sll        $t0, $t9, 2
@@ -24,4 +24,7 @@ glabel func_800065F0
     /* 7638 80006638 8FA20024 */  lw         $v0, 0x24($sp)
   .L8000663C:
     /* 763C 8000663C 8FBF0014 */  lw         $ra, 0x14($sp)
+    /* 7640 80006640 27BD0028 */  addiu      $sp, $sp, 0x28
+    /* 7644 80006644 03E00008 */  jr         $ra
+    /* 7648 80006648 00000000 */   nop
 endlabel func_800065F0
