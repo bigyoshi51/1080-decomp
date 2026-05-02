@@ -540,7 +540,16 @@ void timproc_uso_b5_func_0000B9F0(int *a0) {
     *(int*)((char*)(int*)a0[0x2B8/4] + 0x144) = 0x10;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BA60);
+void timproc_uso_b5_func_0000BA60(int *a0) {
+    int *p = (int*)a0[0x2B8/4];
+    gl_func_00000000(*(int*)((char*)p + 0x10C), *(int*)((char*)p + 0x140), 0, 2, 2, 1);
+    *(int*)((char*)*(int*)((char*)(int*)a0[0x2B8/4] + 0x10C) + 0xB0) = 0;
+    *(int*)((char*)*(int*)((char*)(int*)a0[0x2B8/4] + 0x10C) + 0x64) = -1000;
+    *(int*)((char*)(int*)a0[0x2B8/4] + 0x138) = 1;
+    *(int*)((char*)(int*)a0[0x2B8/4] + 0x144) = 0;
+    *(int*)((char*)a0 + 0x2BC) = 0;
+    *(int*)((char*)a0 + 0x2C0) = 2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BAE8);
 
