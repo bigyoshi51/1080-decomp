@@ -1521,9 +1521,14 @@ void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
 #endif
 
+#ifdef NON_MATCHING
 /* game_uso_func_00008CD8: 0xB14 (709 insns), 0x210-byte stack frame.
- * Strategy-memo spine: 2.8 KB, 16 cross-USO calls, "subsystem".
- * Single function per grep -c 03E00008 (not a bundle).
+ * Strategy-memo spine: 2.8 KB, 16 cross-USO calls, "subsystem" (1080 snow
+ * physics — XZ-projection / ground-plane mapping).
+ *
+ * Per feedback_partial_decode_with_stub_body.md: NM-wrap with placeholder
+ * stub so the decode comment is a tracked NM wrap rather than a floating
+ * block-comment. Default build still uses INCLUDE_ASM.
  *
  * ENTRY DECODE (insns 1-26 @ 0x8CD8-0x8D3C):
  *   void f(a0, a1, a2, a3, arg4)  // 5-arg (arg4 from caller's shadow +0x220)
@@ -1536,16 +1541,33 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  *   // Copy 3 floats from (arg3+0x30, +0x34=0.0f, +0x38) into retval+0/4/8
  *   //   i.e. retval->x = arg3->[0x30]; retval->y = 0.0f; retval->z = arg3->[0x38]
  *
- * (The entry dispatch reads a Vec3 from the caller's arg3 and stamps it
- * into a freshly-allocated/returned slot with Y-zeroed. Canonical
- * "project onto ground plane" / XZ-only position pattern used by 1080's
- * snow physics. 709 insns of alternating float math + 16 cross-USO
- * calls — this is the "subsystem" heart.)
- *
- * Deferred — needs multi-pass decomp with incremental struct typing.
- * This commit is the entry-dispatch doc per the skill's multi-run
- * convention. */
+ * REMAINING ~683 insns: 16 cross-USO calls, alternating float math with
+ * the XZ-projected position. Multi-tick decomp expected. */
+extern int gl_func_00000000();
+extern char D_00000000;
+typedef struct { float x, y, z; } Vec3_8CD8;
+void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
+    Vec3_8CD8 local_1F8;
+    int *retval;
+    if (arg4 == 0) goto far_exit;
+    gl_func_00000000(&local_1F8, a1, 12);
+    retval = (int*)gl_func_00000000();  /* placeholder for the saved retval */
+    if (retval == 0) goto body_continues;
+    *(float*)((char*)retval + 0x0) = *(float*)((char*)a3 + 0x30);
+    *(float*)((char*)retval + 0x4) = 0.0f;
+    *(float*)((char*)retval + 0x8) = *(float*)((char*)a3 + 0x38);
+body_continues:
+    /* TODO: ~680 insns of float math + 15 more cross-USO calls. Decode in
+     * subsequent passes. */
+    (void)gl_func_00000000();
+    (void)a0;
+    (void)a2;
+far_exit:
+    return;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
