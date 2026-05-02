@@ -120,7 +120,7 @@ build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sy
 # See scripts/splice-function-prefix.py and
 # feedback_prologue_stolen_successor_no_recipe.md for context.
 build/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_000001E4=8
-build/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8
+build/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null)
