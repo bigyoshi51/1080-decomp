@@ -509,8 +509,10 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000085C);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800008F0);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800009D8);
-
+/* func_800009D8 (5-insn shared-tail epilogue: lw s1/s2/s3, jr ra, addiu sp,+0x28)
+ * merged into predecessor func_8000098C (size 0x4C → 0x60). Address re-exported
+ * via undefined_syms_auto.txt for the many cross-jal callers (kernel_000.c
+ * line 383, 389, 409, etc.). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800009EC);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000A88);
