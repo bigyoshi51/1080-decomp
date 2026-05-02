@@ -375,6 +375,15 @@ void game_uso_func_000008FC(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000940);
 
+void game_uso_func_00000AEC(int *a0, int a1) {
+    if (*(int*)((char*)*(int**)((char*)a0 + 0x158) + 0x24) > 0) {
+        *(int*)((char*)a0 + 0x250) = a1;
+    }
+    *(int*)((char*)a0 + 0x254) = 0;
+    *(int*)((char*)a0 + 0x25C) = 1;
+    *(int*)((char*)a0 + 0x260) = 0;
+}
+
 #ifdef NON_MATCHING
 /* game_uso_func_00000B3C: 0xB08 (706 insns, 2.8 KB) — spine candidate #6.
  * 22 cross-USO calls, 0x150-byte frame. Contains a jump-table switch at
