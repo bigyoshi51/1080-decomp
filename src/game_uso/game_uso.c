@@ -2,6 +2,24 @@
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
 
+#ifdef NON_MATCHING
+/* 4-element dot product `a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3]`
+ * (note last term swapped: matches target's load order b[3] then a[3]).
+ * 16-insn leaf, returns float in $f0. ~94 % cap (15/16 insns match).
+ * Remaining 1-insn diff: target's final add.s emits `add.s f0,f8,f10`
+ * (last-product on left); IDO from natural source order produces
+ * `add.s f0,f10,f8`. Tried `float r = ...; return b[3]*a[3] + r;` to
+ * force ordering -- changed register allocation completely (worse).
+ * Same arithmetic, different operand order on final reduction add. */
+float game_uso_func_000000A0(float *a, float *b) {
+    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000A0);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000E0);
+
 extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c; } Tri3i;
