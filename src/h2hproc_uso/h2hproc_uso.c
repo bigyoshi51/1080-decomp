@@ -307,7 +307,17 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000E0
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000EB0);
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000F60);
+/* Cross-USO template: byte-identical to titproc_uso_func_00001E2C. Same C body
+ * matches both per feedback_uso_accessor_template_reuse.md. Logic:
+ *   v = a0->0x3C; if (v >= 0x100) v = 0xFF; if (v == 0) return;
+ *   gl_func(&D_0, v, a0+0x2C); gl_func(&D_0, 0, 0, 0x13F, 0xEF, 0x10001); */
+void h2hproc_uso_func_00000F60(char *a0) {
+    int v = *(int*)(a0 + 0x3C);
+    if (v >= 0x100) v = 0xFF;
+    if (v == 0) return;
+    gl_func_00000000(&D_00000000, v, a0 + 0x2C);
+    gl_func_00000000(&D_00000000, 0, 0, 0x13F, 0xEF, 0x10001);
+}
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD0);
 
