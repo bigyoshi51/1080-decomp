@@ -333,7 +333,15 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A6
  * inner calls are USO-internal jal placeholders (target=0x4DC and 0x5AC, the
  * trailing-nop area before the actual h2h reader funcs). Body matches; the two
  * jal target bytes (0x0C000137 / 0x0C00016B vs our 0x0C000000+reloc) are
- * unreachable from C without inline asm. */
+ * unreachable from C without inline asm.
+ *
+ * Tried 2026-05-02: adding `h2hproc_uso_func_h2h_4DC = 0x000004DC;` and
+ * `h2hproc_uso_func_h2h_5AC = 0x000005AC;` to undefined_syms_auto.txt. NO
+ * EFFECT on the .o-level diff — the linker script is link-time only, and
+ * jal-to-undefined-extern is encoded as `jal 0` + reloc at assembly time.
+ * The relocation gets resolved to 0x4DC/0x5AC at LINK time, but objdiff
+ * compares pre-link .o text bytes which still show 0x0C000000.
+ * The 8 jal-target bytes are fundamentally only reachable via inline asm. */
 extern int h2hproc_uso_func_h2h_4DC();
 extern int h2hproc_uso_func_h2h_5AC();
 
