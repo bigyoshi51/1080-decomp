@@ -318,7 +318,7 @@ void game_uso_func_000007EC(int *arg0) {
 }
 
 #ifdef NON_MATCHING
-/* 67.4 % match. 8-arg constructor/initializer (4 reg + 4 stack args).
+/* 8-arg constructor/initializer (4 reg + 4 stack args).
  *   void *f(T *a0,    // dst, alloc 0x27C if NULL
  *           int a1,   // -> a0->0x150 post-init
  *           int a2,   // -> 1st gl_func arg
@@ -328,31 +328,32 @@ void game_uso_func_000007EC(int *arg0) {
  *           int arg6, // -> a0->0x274 post-init
  *           int arg7) // flag: if !=0, gl_func(a0, 1) midway
  *
- * Logic + writes done; the remaining 32 % cap is two structural issues:
- *   1. arg5 is a stack-passed float. Target uses lwc1+swc1 (4-byte float
- *      pass-through). My int-bits workaround uses lw+sw (same bytes BUT
- *      different opcodes). Declaring arg5 as `float` triggers K&R
- *      promote-to-double via cvt.d.s+sdc1 (8-byte stack store) which is
- *      WORSE. Per feedback_ido_knr_float_call.md: K&R-declared
- *      gl_func_00000000 can't accept float without promotion.
- *   2. Branch order: my `if (a0 != 0) skip; alloc; if (alloc fail) skip
- *      to end; else continue` emits 2 separate bne+beq pairs vs target's
- *      single beq-to-end-after-alloc-fail.
+ * Applied unique-extern fix (2026-05-02): per the previous tick's TODO,
+ * declared gl_alloc_858/gl_init_858/gl_setflag_858 as separate prototyped
+ * externs (all bind to address 0 in undefined_syms_auto.txt). gl_init_858
+ * has explicit `(int*, int, int, int, float)` prototype to break IDO's
+ * K&R-default float promotion to double (per feedback_ido_knr_float_call.md).
  *
- * Need a unique-extern variant of gl_func_00000000 with explicit
- * (int*, int, int, int, float) prototype to break K&R promotion (per
- * feedback_usoplaceholder_unique_extern.md technique). */
-int *game_uso_func_00000858(int *a0, int arg1, int arg2, int arg3, int arg4, int arg5_bits, int arg6, int arg7) {
+ * NM-body verification still blocked by the pre-existing D_00000000
+ * redeclaration error in this file under -DNON_MATCHING (per
+ * feedback_nm_body_cpp_errors_silent.md). Default build uses INCLUDE_ASM
+ * and remains exact — match% needs cleanup of the extern-D collisions
+ * across the file before measuring. */
+extern int *gl_alloc_858(int size);
+extern void gl_init_858(int *dst, int a, int b, int c, float f);
+extern void gl_setflag_858(int *dst, int flag);
+
+int *game_uso_func_00000858(int *a0, int arg1, int arg2, int arg3, int arg4, float arg5, int arg6, int arg7) {
     if (a0 == 0) {
-        a0 = (int*)gl_func_00000000(0x27C);
+        a0 = gl_alloc_858(0x27C);
         if (a0 == 0) return a0;
     }
-    gl_func_00000000(a0, arg2, arg3, arg4, arg5_bits);
+    gl_init_858(a0, arg2, arg3, arg4, arg5);
     *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
     *(int*)((char*)a0 + 0x1D0) = 0;
     *(int*)((char*)a0 + 0x24C) = 0;
     if (arg7 != 0) {
-        gl_func_00000000(a0, 1);
+        gl_setflag_858(a0, 1);
     }
     *(int*)((char*)a0 + 0x150) = arg1;
     *(int*)((char*)a0 + 0x26C) = 0;
