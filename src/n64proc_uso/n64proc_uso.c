@@ -4,6 +4,9 @@ extern int gl_func_00000000();
 
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000000);
 
+void n64proc_uso_func_0000000C(void) {
+}
+
 extern char D_00000000;
 
 #ifdef NON_MATCHING
