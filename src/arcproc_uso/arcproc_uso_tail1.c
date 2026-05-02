@@ -35,7 +35,31 @@ void arcproc_uso_func_000007B4(void) {
     gl_func_00000000(&D_00000000);
 }
 
+#ifdef NON_MATCHING
+/* 69 % match: same orchestrator pattern as 7B4 (4 calls bracketed by D_0
+ * accesses + a if/else dispatch on call-2's return). Logic decoded
+ * correctly. Remaining diffs are IDO's CSE folding all `*&D_00000000`
+ * accesses through one cached $v1 base, while target uses fresh
+ * `lui a0,0; lw a0,0(a0)` per access. CSE-defeat would need either
+ * multiple unique-named externs aliased to the same address (complex
+ * undefined_syms_auto.txt setup) or `volatile` accessors. Leaving as
+ * NM wrap for now — promotion is mechanical from here. */
+void arcproc_uso_func_00000800(void) {
+    int v;
+    gl_func_00000000(*(int*)&D_00000000);
+    v = gl_func_00000000(*(int*)((char*)*(int**)((char*)*(int**)&D_00000000 + 0x6AC) + 0x4C));
+    if (v != 0) {
+        *(int*)((char*)&D_00000000 + 0x40) = 7;
+        *(int*)((char*)&D_00000000 + 0x44) = 4;
+    } else {
+        *(int*)((char*)&D_00000000 + 0x40) = 4;
+    }
+    gl_func_00000000(*(int*)&D_00000000, 4,
+        *(int*)((char*)*(int**)((char*)*(int**)&D_00000000 + 0x6A8) + 0xC));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000800);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000880);
 
