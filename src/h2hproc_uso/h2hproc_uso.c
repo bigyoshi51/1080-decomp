@@ -288,7 +288,18 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000009F
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A88);
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000BAC);
+void h2hproc_uso_func_00000BAC(int *a0) {
+    int v0, v1;
+
+    if (*(int*)((char*)*(int**)((char*)*(int**)((char*)a0 + 0x6AC) + 0x34) + 0x3C) < 0xFF) {
+        *(int*)((char*)a0 + 0x4F4) = 1;
+        return;
+    }
+    v0 = *(int*)((char*)&D_00000000 + 0x170);
+    v1 = *(int*)((char*)&D_00000000 + 0x174);
+    if ((unsigned)v1 < (unsigned)v0) v0 = v1;
+    gl_func_00000000(a0, v0 + 0x26000F);
+}
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C18);
 
