@@ -1,6 +1,30 @@
 #include "common.h"
 
+#ifdef NON_MATCHING
+/* Cubic B-spline basis evaluator. Computes 4 weights for parameter t
+ * (passed in $a1, moved to $f12), writes to out[0..3]. D_00000000 = 1/6.
+ *   out[0] = D * (1-t)^3              ; B0(t)
+ *   out[1] = D * (3t^3 - 6t^2 + 4)    ; B1(t)
+ *   out[2] = D * (-3t^3 + 3t^2 + 3t + 1) ; B2(t)
+ *   out[3] = D * t^3                  ; B3(t)
+ *
+ * 39-insn FPU leaf with constants loaded via lui+mtc1 (1.0f, 3.0f, 4.0f,
+ * 6.0f). Many nops in delay slots (CPU-FPU dependency stalls). Exact
+ * matching this is a multi-tick FPU register/scheduling grind; logic is
+ * documented for next pass. */
+extern float D_00000000;
+void game_uso_func_00000000(float *out, float t) {
+    float omt = 1.0f - t;
+    float t2 = t * t;
+    float t3 = t2 * t;
+    out[0] = D_00000000 * omt * omt * omt;
+    out[1] = D_00000000 * (3.0f*t3 - 6.0f*t2 + 4.0f);
+    out[2] = D_00000000 * (-3.0f*t3 + 3.0f*t2 + 3.0f*t + 1.0f);
+    out[3] = D_00000000 * t3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
+#endif
 
 #ifdef NON_MATCHING
 /* 4-element dot product `a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3]`
