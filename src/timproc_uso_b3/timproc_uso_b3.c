@@ -201,7 +201,28 @@ void timproc_uso_b3_func_000021B0(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
+#ifdef NON_MATCHING
+/* 88.6 % NM wrap. Mirror of sibling timproc_uso_b3_func_000021B0:
+ *   gl_func(gl_ref_00000208); gl_ref_00000040 = 6; gl_func(gl_ref_020C, -1, 0)
+ * Logic correct. Body emit matches first 17 insns of target's 19-insn
+ * symbol (size 0x4C). The trailing 8 bytes (`lui $a0, 0; lw $a0, 0x148($a0)`)
+ * are the stolen prologue for successor func_00002240, captured in the
+ * accompanying _pad.s but not folded into 21F4's symbol size. To reach
+ * exact, need either (a) symbol-grow recipe to extend 21F4's st_size by
+ * 8 bytes (mirror of TRUNCATE_TEXT), or (b) move the pad to 22240's
+ * decomp side via PROLOGUE_STEALS.
+ *
+ * Remaining 11 % is reloc-name diff: target uses split symbols
+ * D_00000208 / D_0000020C / D_00000040; mine uses gl_ref_* aliases that
+ * resolve to the same addresses — bytes match post-link. */
+void timproc_uso_b3_func_000021F4(void) {
+    gl_func_00000000(gl_ref_00000208);
+    gl_ref_00000040 = 6;
+    gl_func_00000000(gl_ref_0000020C, -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021F4);
+#endif
 
 #ifdef NON_MATCHING
 /* 97.58 % cap (2026-05-02). Prologue-stolen successor: predecessor
