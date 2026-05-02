@@ -42,7 +42,32 @@ float game_uso_func_000000A0(float *a, float *b) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000A0);
 #endif
 
+#ifdef NON_MATCHING
+/* Cubic B-spline weighted point evaluator (61 insns, FPU-only).
+ * Input:  out (Vec3*),  ctrl (Vec3*[4]: 4 control point pointers),
+ *         weights (float[4]: B0..B3 from game_uso_func_00000000)
+ * Output: out[i] = sum over k=0..3 of (*ctrl[k])[i] * weights[k]
+ *
+ * Computes one Vec3 component triple as a 4-control-point weighted sum.
+ * Three identical 14-insn dot-product blocks (one per x/y/z), each
+ * loading 4 control-pointer dereferences + 4 weight loads, then 4 muls
+ * and 3 adds. Followed by swc1 to out[0], out[4], out[8].
+ *
+ * Used together with game_uso_func_00000000 (basis evaluator producing
+ * the weights) to compute a point on a uniform cubic B-spline curve in
+ * 3D — likely camera path / track / skater limb interpolation. */
+typedef struct { float x, y, z; } Vec3;
+void game_uso_func_000000E0(Vec3 *out, Vec3 **ctrl, float *weights) {
+    out->x = ctrl[0]->x * weights[0] + ctrl[1]->x * weights[1]
+           + ctrl[2]->x * weights[2] + ctrl[3]->x * weights[3];
+    out->y = ctrl[0]->y * weights[0] + ctrl[1]->y * weights[1]
+           + ctrl[2]->y * weights[2] + ctrl[3]->y * weights[3];
+    out->z = ctrl[0]->z * weights[0] + ctrl[1]->z * weights[1]
+           + ctrl[2]->z * weights[2] + ctrl[3]->z * weights[3];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000E0);
+#endif
 
 extern int gl_func_00000000();
 extern char D_00000000;
