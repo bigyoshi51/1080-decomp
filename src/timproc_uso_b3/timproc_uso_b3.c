@@ -18,11 +18,33 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000006FC);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000074C);
+/* Chain sibling of 0x790, 0x7D4, 0x818 (state-store + 1-call wrapper,
+ * prologue-stolen v0). t7=1 here. Same recipe as b1 chain 0x734-0x800. */
+extern int D_state_b3_74C;
+void timproc_uso_b3_func_0000074C(void) {
+    *(int*)((char*)&D_00000000 + 0x40) = 8;
+    *(int*)((char*)&D_00000000 + 0x44) = 1;
+    gl_func_00000000(D_state_b3_74C, -1, 0);
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_0000074C_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000790);
+/* Chain sibling: t7=2. */
+extern int D_state_b3_790;
+void timproc_uso_b3_func_00000790(void) {
+    *(int*)((char*)&D_00000000 + 0x40) = 8;
+    *(int*)((char*)&D_00000000 + 0x44) = 2;
+    gl_func_00000000(D_state_b3_790, -1, 0);
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00000790_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000007D4);
+/* Chain sibling: t7=3. */
+extern int D_state_b3_7D4;
+void timproc_uso_b3_func_000007D4(void) {
+    *(int*)((char*)&D_00000000 + 0x40) = 8;
+    *(int*)((char*)&D_00000000 + 0x44) = 3;
+    gl_func_00000000(D_state_b3_7D4, -1, 0);
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000007D4_pad.s")
 
 /* Prologue-stolen successor: predecessor func_000007D4's tail has lui+addiu
  * setting v0 = &D_00000000 (offsets 0x810/0x814 in 7D4's .s). Build pipeline

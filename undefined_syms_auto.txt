@@ -703,3 +703,6 @@ D_b3_1C28_state = 0x00000064;
 D_state_b1_734 = 0x00000000;
 D_state_b1_778 = 0x00000000;
 D_state_b1_7BC = 0x00000000;
+D_state_b3_74C = 0x00000000;
+D_state_b3_790 = 0x00000000;
+D_state_b3_7D4 = 0x00000000;
