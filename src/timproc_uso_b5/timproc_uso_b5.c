@@ -59,7 +59,89 @@ void timproc_uso_b5_func_0000115C(int *a0) {
 }
 
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000117C — 104 insns / 0x1A0.
+ * State-toggle / dual-side flag operation. a0 has a counter at 0x34
+ * indexing two slots at 0x38 and 0x3C (a0[0x34] selects active side,
+ * `^1` toggles to other). Each slot stores a struct ptr; the struct
+ * has flags at +0x40C->0x38+0x18 (bit 4 = side-active mask).
+ *
+ * Pattern (decoded from 0x117C-0x1318):
+ *   1. Call gl_func_00000000(a0->0x38[count])     — call A on active side
+ *   2. Call gl_func_00000000(a0->0x38[count])     — call B (same arg again)
+ *   3. mask = 1 << count
+ *   4. flag = active_side->0x41C->0x50
+ *   5. if (flag & mask):
+ *        if (a0->0x2C != 0): clear bit 4 on OTHER side; OR-4 active side
+ *        else:                 clear bit 4 on active side; clear bit 4 on other
+ *        gl_func_00000000(a0)                     — call C
+ *   6. else: OR-4 on active side; clear bit 4 on other side
+ *   7. count++; a0->0x34 = count;
+ *
+ * Field offsets identified (for future struct typing):
+ *   a0->0x2C: dispatch-mode flag (controls clear-vs-set behavior)
+ *   a0->0x34: side counter (0 or 1; flips by ^1)
+ *   a0->0x38, 0x3C: slot pointers (two struct refs)
+ *   slot->0x40C: child struct pointer
+ *   child->0x38: another struct
+ *   that_struct[6] (offset 0x18): flags word (bit 2 = OR-4 mask)
+ *   slot->0x41C->0x50: flag table indexed by `1 << count`
+ *
+ * Logic decoded but not byte-matched this pass — needs typed struct
+ * to clean up the *(int*)((char*)+offset) chains. */
+void timproc_uso_b5_func_0000117C(int *a0) {
+    int v;
+    int *slot;
+    int *other;
+    int *child;
+    int *flags;
+
+    v = *(int*)((char*)a0 + 0x34);
+    gl_func_00000000(*(int*)((char*)a0 + v*4 + 0x38));
+    v = *(int*)((char*)a0 + 0x34);
+    gl_func_00000000(*(int*)((char*)a0 + v*4 + 0x38));
+    v = *(int*)((char*)a0 + 0x34);
+    slot = *(int**)((char*)a0 + v*4 + 0x38);
+    if ((*(int*)(*(int*)((char*)slot + 0x41C) + 0x50) & (1 << v)) != 0) {
+        if (*(int*)((char*)a0 + 0x2C) != 0) {
+            child = *(int**)((char*)slot + 0x40C);
+            flags = (int*)((char*)*(int**)((char*)child + 0x38) + 0x18);
+            *flags = *flags | 4;
+            other = *(int**)((char*)a0 + (v ^ 1)*4 + 0x38);
+            if (other != 0) {
+                child = *(int**)((char*)other + 0x40C);
+                flags = (int*)((char*)*(int**)((char*)child + 0x38) + 0x18);
+                *flags = *flags & -5;
+            }
+        } else {
+            child = *(int**)((char*)slot + 0x40C);
+            flags = (int*)((char*)*(int**)((char*)child + 0x38) + 0x18);
+            *flags = *flags & -5;
+            other = *(int**)((char*)a0 + (v ^ 1)*4 + 0x38);
+            if (other != 0) {
+                child = *(int**)((char*)other + 0x40C);
+                flags = (int*)((char*)*(int**)((char*)child + 0x38) + 0x18);
+                *flags = *flags & -5;
+            }
+        }
+        gl_func_00000000(a0);
+    } else {
+        child = *(int**)((char*)slot + 0x40C);
+        flags = (int*)((char*)*(int**)((char*)child + 0x38) + 0x18);
+        *flags = *flags | 4;
+        v = *(int*)((char*)a0 + 0x34);
+        other = *(int**)((char*)a0 + (v ^ 1)*4 + 0x38);
+        if (other != 0) {
+            child = *(int**)((char*)other + 0x40C);
+            flags = (int*)((char*)*(int**)((char*)child + 0x38) + 0x18);
+            *flags = *flags & -5;
+        }
+    }
+    *(int*)((char*)a0 + 0x34) = *(int*)((char*)a0 + 0x34) + 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000117C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000131C);
 
