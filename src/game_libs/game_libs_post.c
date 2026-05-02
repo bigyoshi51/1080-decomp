@@ -67,7 +67,13 @@ int gl_func_0001FD20(int a0, int a1) {
     return v;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD5C);
+int gl_func_0001FD5C(int a0, int a1) {
+    int v = gl_func_00000000(a0);
+    if (v != 0) {
+        gl_func_00000000(v, a1);
+    }
+    return v;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD98);
 
