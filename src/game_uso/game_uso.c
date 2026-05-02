@@ -657,11 +657,41 @@ void game_uso_func_00001DC4(void *a0) {
  * path is where the real work happens.
  * NEXT PASS: decode 0x1F00-0x2050 (continuation of non-3 case), identify
  * call signatures of gl_func_00000000 invocations.
- * Leaving as INCLUDE_ASM until the next pass produces enough decoded body
- * to be worth wrapping. Committing this comment IS the forward progress
- * per the skill's "NM wrap with whatever partial C you get" rule — a stub
- * void function would report ~0 % match and not compile-test meaningfully. */
+ * 2026-05-02: per feedback_partial_decode_with_stub_body.md, wrapping with
+ * placeholder stub so the decode comment is a tracked NM wrap rather than
+ * a floating block-comment above an INCLUDE_ASM. Default build still uses
+ * INCLUDE_ASM. */
+#ifdef NON_MATCHING
+extern void *gl_func_TODO_00001DDC(void);
+void *game_uso_func_00001DDC(int *a0) {
+    int key = a0[0x40 / 4];
+    if (key == 0) goto end;
+    if (key != 3) goto branch_88;
+    /* key == 3: short Vec3 mirror path (see comment above). Returns to late_label. */
+    {
+        int *t6 = (int*)a0[0x14 / 4];
+        int *v1 = (int*)a0[0x3C / 4];
+        /* Mirror Vec3 from v1+0xA0..0xA8 to both t6+0x60..0x68 and v1+0xA0..0xA8. */
+        *(float*)((char*)t6 + 0x60) = *(float*)((char*)v1 + 0xA0);
+        *(float*)((char*)t6 + 0x64) = *(float*)((char*)v1 + 0xA4);
+        *(float*)((char*)t6 + 0x68) = *(float*)((char*)v1 + 0xA8);
+        *(float*)((char*)v1 + 0xA0) = *(float*)((char*)v1 + 0xA0);
+        *(float*)((char*)v1 + 0xA4) = *(float*)((char*)v1 + 0xA4);
+        *(float*)((char*)v1 + 0xA8) = *(float*)((char*)v1 + 0xA8);
+        goto late_label;
+    }
+branch_88:
+    /* key != 0 and key != 3: ~350 insns of float math + multiple gl_func_00000000
+     * calls. Decode in next pass. Stub returns TODO. */
+    (void)gl_func_TODO_00001DDC();
+late_label:
+    /* convergence point — final exit setup */
+end:
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
+#endif
 
 #ifdef NON_MATCHING
 /* 54% match. 3x3 matrix-vector multiply: dst = M * v, where M is at
