@@ -1557,7 +1557,38 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
 
+#ifdef NON_MATCHING
+/* 29-insn FPU helper. Init local Vec3 buffer at sp+0x24..0x2C with 3
+ * floats (first 2 from f0 = uninit/0?, third from D_0+0x140), call
+ * gl_func(D_0+0x11C, &buf28, &buf2C, a0); call again gl_func(a0,
+ * &buf24, &buf2C, D_0+0x104); writes 3 float results from buf24/28/2C
+ * into a0+0x60/0x64/0x68.
+ *
+ * Likely a "lerp Vec3 toward target with timestep" kind of helper.
+ * NM-wrap captures structure for next pass; FPU sched is fragile. */
+extern float D_b424_140;  /* &D_0 + 0x140 */
+extern float D_b424_11C;  /* &D_0 + 0x11C */
+extern float D_b424_104;  /* &D_0 + 0x104 */
+void game_uso_func_0000B424(int *a0) {
+    float buf[3];
+    float zero;
+    /* Init buf */
+    zero = 0.0f;
+    buf[0] = zero;            /* sp+0x24 */
+    buf[1] = zero;            /* sp+0x28 */
+    buf[2] = D_b424_140;      /* sp+0x2C */
+    /* Call 1 */
+    gl_func_00000000(D_b424_11C, &buf[1], &buf[2]);
+    /* Call 2 */
+    gl_func_00000000(D_b424_104, &buf[0], &buf[2]);
+    /* Write back to a0 */
+    *(float*)((char*)a0 + 0x60) = buf[0];
+    *(float*)((char*)a0 + 0x64) = buf[1];
+    *(float*)((char*)a0 + 0x68) = buf[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B424);
+#endif
 
 void game_uso_func_0000B498(char *a0) {
     game_uso_func_00000000(a0 + 0xEC);
