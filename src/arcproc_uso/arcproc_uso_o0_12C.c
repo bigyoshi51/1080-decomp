@@ -34,3 +34,33 @@ int arcproc_uso_func_0000012C(int *a0, int a1) {
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000012C);
 #endif
+
+#ifdef NON_MATCHING
+/* arcproc_uso_func_0000019C: -O0 size allocator-state update (41 insns, 0xA4).
+ * Adds a new allocation of size `a1` to the slab at `a0`:
+ *   - If a0[1] (count) == 0: a0[8] = a1; return.
+ *   - Else: sum the existing allocations a0[8..8+count], then place the new
+ *     allocation at index `count` with value `a1 - sum` (so that the cumulative
+ *     sum stays at a1). Also a0[13] = a1 (cached "current total").
+ *
+ * -O0 markers: addiu sp,-8 (tiny frame for 2 stack-resident locals i/j at
+ * sp+0x4/sp+0x0), all loads/stores of locals via $sp, trailing dead `b +1;
+ * nop` before epilogue. Sibling-of arcproc_uso_func_0000012C in this file. */
+void arcproc_uso_func_0000019C(int *a0, int a1) {
+    int i, j;
+    if (a0[1] != 0) {
+        i = 0;
+        j = 0;
+        while (j < a0[1]) {
+            i += a0[8 + j];
+            j++;
+        }
+        a0[8 + a0[1]] = a1 - i;
+        a0[13] = a1;
+    } else {
+        a0[8] = a1;
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000019C);
+#endif
