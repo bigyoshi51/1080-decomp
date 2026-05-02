@@ -70,19 +70,15 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008498);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800084AC);
 
+/* func_800084D0 (size 0xBC, was 0xAC): merged in former func_8000857C
+ * fragment (4-insn epilogue at 0x8000857C — `lw $s0,0x14(sp); lw $s1,0x18(sp);
+ * jr $ra; addiu $sp,+0x48`). func_8000857C was the natural tail of
+ * func_800084D0 (its body ends at 0x80008578 with `lw $ra, 0x1C(sp)`).
+ * Several callers — func_80008A08 etc — `jal 0x8000857C` directly to reuse
+ * the restore-saved-regs+sp-pop+return sequence (cross-function shared-tail
+ * entry, same pattern as func_80006640 → func_800065F0). The address is
+ * re-exported via undefined_syms_auto.txt for those callers. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800084D0);
-
-/* func_8000857C: 4-insn epilogue-only stub (`lw $s0,0x14(sp); lw $s1,0x18(sp);
- * jr $ra; addiu $sp,+0x48`) with no prologue. Same cross-function tail-entry
- * pattern as func_80006640 (see feedback_cross_function_epilogue_entry.md):
- * physically contiguous with the predecessor func_800084D0 (declared end
- * 0x8000857C matches this function's start), which itself is missing its
- * epilogue (last insn `lw $ra, 0x1C(sp)` at 0x80008578). Callers — e.g.
- * func_80008A08 at kernel_022.c:101 — jal 0x8000857C directly to reuse the
- * restore-saved-regs+sp-pop+return sequence. Not matchable standalone from
- * IDO C (no entry that starts with `lw` from positive sp offsets); keep
- * INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000857C);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000858C);
 
