@@ -1262,7 +1262,27 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F2EC);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F390);
 
+#ifdef NON_MATCHING
+/* -O0 passthrough wrapper at offset 0xF3D4. Three -O0 markers in the asm:
+ *   (a) `sw a0,0x18(sp); lw a0,0x18(sp)` spill-then-reload pattern
+ *   (b) Unfilled jal delay slot (`nop` after `jal func_00000000`)
+ *   (c) Trailing `b .+1; nop` before epilogue
+ * Default build (O2) compiles to 5 insns (jal + spill); target has 12 insns.
+ *
+ * Logic: just calls the cross-USO callee with a0 pass-through. To match,
+ * file-split per feedback_uso_accessor_o0_file_split_recipe.md (would need
+ * a new bootup_uso_o0_F3D4.c with OPT_FLAGS:=-O0 inserted into the linker
+ * script BEFORE bootup_uso_o0_F7F4 — split bootup_uso.c at 0xF3D4 + 0xF400
+ * boundaries). Deferred — single 12-insn wrapper isn't worth the 3-way
+ * source-file split alone; bundle with neighbors when other -O0 wrappers
+ * appear in the 0xF3D4-0xF7F4 range. */
+extern void func_00000000();
+void func_0000F3D4(int a0) {
+    func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F3D4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F404);
 
