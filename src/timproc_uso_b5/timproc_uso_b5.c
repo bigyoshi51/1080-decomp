@@ -37,7 +37,11 @@ void timproc_uso_b5_func_0000036C(float *dst) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000003A8);
+void timproc_uso_b5_func_000003A8(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
 
 
 typedef struct { int a, b, c; } Tri3i;
@@ -278,7 +282,11 @@ void timproc_uso_b5_func_0000AA8C(char *a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AABC);
+void timproc_uso_b5_func_0000AABC(char *a0) {
+    int tmp;
+    timproc_uso_b5_func_00000330(&tmp);
+    timproc_uso_b5_func_000003A8((Quad4*)(a0 + 0x10));
+}
 
 
 void timproc_uso_b5_func_0000AAEC(int a0) {
