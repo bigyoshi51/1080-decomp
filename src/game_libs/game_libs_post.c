@@ -2129,7 +2129,9 @@ void gl_func_0004D05C(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D05C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D084);
+void gl_func_0004D084(int *a0) {
+    (*(int(**)())((char*)a0 + 0x4))(*(int*)((char*)a0 + 0x8), a0);
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0004D084_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D0B4);
