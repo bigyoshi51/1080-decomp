@@ -176,33 +176,33 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 
 #ifdef NON_MATCHING
-/* 83% match (2026-04-21). Logic structurally correct:
- *   p = gl_func_00000000(0x40);
- *   if (p != 0) { gl_func_00000000(p); p->0x28 = &D_0; p->0x3C = 0; }
- *   r = arg0->0x40;
- *   if (r != 0) { q = gl_func_00000000(p+0x10, r);
- *                 if (q->0x14 != 0) q->0x4 = 1;
- *                 q->0x14 = p; }
- *   return p;
+/* 89.3 % match (2026-05-02, up from 83 %). Logic-fix: prior wrap read/wrote
+ * through `q` (the 2nd jal's return), but the asm uses $a1 = r
+ * (= arg0->0x40) for the post-jal stores. The 2nd gl_func_00000000 return
+ * value is unused. Adding `char pad[8]` coerces frame 0x20 -> 0x28
+ * (target spills a0 to caller's outgoing slot at sp+0x28).
  *
- * Remaining diffs vs target:
- * - Stack frame 0x20 vs target 0x28 (missing 8 bytes of spill slots).
- * - IDO allocates `p` to $a2 in our build, but target uses $v1. This
- *   propagates through all uses: our final `or v0, a2, zero` vs target
- *   `or v0, v1, zero`, our `sw a2, 0x14(v0)` vs target `sw v1, 0x14(a1)`,
- *   etc. $v1 is normally only used for low-word of 64-bit returns — IDO
- *   picked it here for reasons unclear.
- * - Our second branch is `beql a1, zero, +lw ra` (branch-likely folds
- *   the epilogue load into delay slot); target has separate `beq` +
- *   `lw ra` after the merge point. Related: target spills v1→0x24,
- *   v0→0x20 around the 2nd jal; we only spill a2→0x1C.
+ * Remaining diffs (register-allocation flip):
+ * - Target uses $a0 throughout the 1st init block (no scratch copy), then
+ *   explicitly `or v1, a0, zero` to move p to $v1 right before the 2nd jal.
+ *   Our build pre-allocates p to $a2 right after the 1st jal returns
+ *   (extra `or a2, v0, zero` insertion + uses $a2 throughout). $v1 home
+ *   for cross-jal preservation isn't reachable from C — IDO won't pick the
+ *   v0/return-low register as a long-lived hold reg.
+ * - Spill slot offsets: target 0x1C/0x20/0x24, ours 0x1C/0x18 (only 2
+ *   distinct slots; not enough variables to need 3).
+ * - Final beq vs beql: target `beq v0,zero,+0xC` then `or a1,v0,zero`
+ *   delay-slot; ours `beql a1,zero,...` with epilogue-load delay-fill
+ *   (because we named `r` as a local, IDO promotes it to a1 early).
  *
- * Not yet tried: named `void *r = arg0->0x40` local (may force r into
- * a $s-reg and change spill pattern), `char pad[8]` to coerce 0x28 frame,
- * or if-rewrite to avoid branch-likely. Left for next pass. */
+ * These are all knock-on from the same root: IDO's register allocator
+ * picks $a2 instead of $a0/$v1 for p's hold-across-2nd-jal slot. Same
+ * structural cap as `feedback_ido_arg_save_reg_pick.md` — the choice of
+ * arg/scratch reg for cross-jal preserve isn't C-controllable. */
 void *timproc_uso_b5_func_0000AB24(void *arg0) {
+    char pad[8];
     void *p;
-    void *q;
+    void *r;
 
     p = (void*)gl_func_00000000(0x40);
     if (p != 0) {
@@ -210,12 +210,13 @@ void *timproc_uso_b5_func_0000AB24(void *arg0) {
         *(void**)((char*)p + 0x28) = (void*)&D_00000000;
         *(int*)((char*)p + 0x3C) = 0;
     }
-    if (*(void**)((char*)arg0 + 0x40) != 0) {
-        q = (void*)gl_func_00000000((char*)p + 0x10, *(void**)((char*)arg0 + 0x40));
-        if (*(int*)((char*)q + 0x14) != 0) {
-            *(int*)((char*)q + 0x4) = 1;
+    r = *(void**)((char*)arg0 + 0x40);
+    if (r != 0) {
+        gl_func_00000000((char*)p + 0x10, r);
+        if (*(int*)((char*)r + 0x14) != 0) {
+            *(int*)((char*)r + 0x4) = 1;
         }
-        *(void**)((char*)q + 0x14) = p;
+        *(void**)((char*)r + 0x14) = p;
     }
     return p;
 }
