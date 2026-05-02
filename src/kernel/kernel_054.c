@@ -156,7 +156,23 @@ extern void func_800091F0(s32);
  * forces s0 to hold msg at that point. Any C that tries to force s0=msg
  * adds an extra instruction somewhere else. Fundamentally a scheduler
  * decision that our C source can't reach; leave for decomp-permuter's
- * next run. */
+ * next run.
+ *
+ *   v10 (2026-05-02): `func_80008430(p = msg)` — assign in call arg.
+ *     Result: 2.04 % match. IDO loads s0 BEFORE jal (`lw s0,0x38(sp)`)
+ *     and uses delay slot for `move a0, s0`. Logic correct but the entire
+ *     prologue is reshuffled — far worse than the 99.7 % baseline.
+ *   v11 (2026-05-02): `p = msg;` as separate first statement.
+ *     Result: 4.08 % match. Adds explicit `lw t6,0x38(sp); move s0,t6`
+ *     before the call (matches v2's "2 insns worse" finding) — also a
+ *     full-function shift that wrecks the rest of the diff.
+ *
+ * BOTH v10/v11 confirm: any C-level path that forces s0=msg before the
+ * call ALSO commits IDO to scheduling the load EARLY (not in delay slot).
+ * The target's pattern requires IDO to discover the delay-slot fill on
+ * its own — which it only does when p is referenced AFTER the call but
+ * neither defined nor live before. Reachable only via permuter mutations
+ * to surrounding statements (e.g., loop init, hdr field order). */
 #ifdef NON_MATCHING
 s32 func_8000969C(s32* msg) {
     register s32* p;
