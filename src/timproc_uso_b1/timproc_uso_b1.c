@@ -46,7 +46,16 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000006F0);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000734);
+/* Chain sibling of 0x778, 0x7BC, 0x800. Same recipe: PROLOGUE_STEALS for
+ * stolen prefix; unique extern at gl_func arg; trailing pad sidecar emits
+ * the stolen prologue for the NEXT function (0x778). */
+extern int D_state_b1_734;
+void timproc_uso_b1_func_00000734(void) {
+    *(int*)((char*)&D_00000000 + 0x40) = 8;
+    *(int*)((char*)&D_00000000 + 0x44) = 1;
+    gl_func_00000000(D_state_b1_734, -1, 0);
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00000734_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000778);
 
