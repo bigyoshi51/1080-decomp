@@ -319,6 +319,13 @@ void func_80000480(Struct00480Dst* dst, Struct00480Src* src) {
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800004B8);
 
+/* func_80000568: shared-epilogue-return-0 stub (`nop; or v0,zero,zero;
+ * lw ra/s0/s1/s2/s3; jr ra; addiu sp,+0x28`). 4 callers `jal func_80000568`
+ * (in func_800004B8, func_800008F0, func_80000A98, uso_find_file) — each
+ * uses this as a shared "pop my 0x28 frame and return 0" sequence after
+ * setting up matching stack/saves at their own prologue. Per
+ * feedback_cross_function_epilogue_entry.md: cross-function epilogue share,
+ * not reproducible from standard C. INCLUDE_ASM stays. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000568);
 
 /* uso_stub_ret0 */
