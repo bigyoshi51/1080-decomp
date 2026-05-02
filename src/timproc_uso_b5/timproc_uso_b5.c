@@ -30,7 +30,11 @@ void timproc_uso_b5_func_00000330(int *dst) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000036C);
+void timproc_uso_b5_func_0000036C(float *dst) {
+    float buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000003A8);
@@ -267,7 +271,11 @@ void timproc_uso_b5_func_0000AA5C(char *a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AA8C);
+void timproc_uso_b5_func_0000AA8C(char *a0) {
+    int tmp;
+    timproc_uso_b5_func_00000330(&tmp);
+    timproc_uso_b5_func_0000036C((float*)(a0 + 0x10));
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AABC);
