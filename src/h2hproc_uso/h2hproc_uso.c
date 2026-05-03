@@ -297,11 +297,22 @@ extern int gl_func_h2hproc_8EC_f();
  * `int is_zero = (a1==0)` flag-precompute, explicit `int loaded =
  * *(a0+0x6A8)` early load, `register int a1`. All produce same shape:
  * `sw a1, 0x1c(sp)` at insn 2 (early), `sw a2, 0x18(sp)` in delay slot,
- * reload `lw t7, 0x1c(sp)` instead of $a1. is_zero variant also added a
- * `sltiu+beqz` pair (worse). Variants confirm `feedback_ido_arg_save_reg_pick.md`
- * extends to reload-side: IDO's spill+reload register pair is structurally
- * locked — neither side flips from C. 11+ total variants now. */
+ * reload `lw t7, 0x1c(sp)` instead of $a1.
+ *
+ * 2026-05-03 BREAKTHROUGH: `volatile int saved_a1 = a1;` lifts to 94.0%
+ * (+4.5pp). The volatile forces IDO to emit a stack-spill of $a1 at
+ * function entry, which changes register allocation downstream so that
+ * the post-jal RELOAD goes into $a1 (matching target) instead of $t7.
+ * Plain `int saved_a1 = a1;` (without volatile) reverts to 89.5% — IDO
+ * eliminates the unused local. The volatile semantics keep the spill alive.
+ *
+ * Remaining 6% gap: the volatile spill ADDS 8 bytes to frame (-0x18→-0x20)
+ * and an extra `sw a1, 0x1c(sp)` at insn 3. The reload register $a1 IS now
+ * correct, but the surrounding scheduling is shifted by the extra spill slot.
+ * Cap improved 89.5%→94.0%. Next pass: investigate if the volatile slot can
+ * be made into a usefully-consumed value to eliminate the dead spill. */
 void h2hproc_uso_func_000008EC(char *a0, int a1) {
+    volatile int saved_a1 = a1;
     *(int*)(a0 + 0x6B8) = a1;
     gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8));
     if (a1 == 0) {
