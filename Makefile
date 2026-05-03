@@ -130,7 +130,7 @@ build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sy
 # Format: <func_name>=<bytes_to_remove>. Multiple entries separated by spaces.
 # See scripts/splice-function-prefix.py and
 # feedback_prologue_stolen_successor_no_recipe.md for context.
-build/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_000001E4=8
+build/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_000001E4=8 titproc_uso_func_0000028C=8
 build/src/timproc_uso_b3/timproc_uso_b3.c.o: PROLOGUE_STEALS := timproc_uso_b3_func_00000818=8 timproc_uso_b3_func_00001C28=8 timproc_uso_b3_func_0000074C=8 timproc_uso_b3_func_00000790=8 timproc_uso_b3_func_000007D4=8
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: PROLOGUE_STEALS := timproc_uso_b1_func_00000800=8 timproc_uso_b1_func_00000734=8 timproc_uso_b1_func_00000778=8 timproc_uso_b1_func_000007BC=8
 build/src/arcproc_uso/arcproc_uso_tail1.c.o: PROLOGUE_STEALS := arcproc_uso_func_00001F0C=8
