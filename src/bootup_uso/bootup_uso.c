@@ -408,7 +408,17 @@ void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
  * `extern int func_00000000()` at lines 1289/1304 to resolve return-type
  * conflict with implicit decl at line 15). Result: regressed to 52.6%
  * — IDO emits the increment in v0 chain instead of t6, breaking the
- * scheduling. Original named-local form remains best at 85.7%. */
+ * scheduling. Original named-local form remains best at 85.7%.
+ *
+ * 2026-05-03 ATTEMPTED 3 more variants: (14) entry-store-first source
+ * order; (15) `char *entry_p = a0 + idx*4 + 0x108` precomputed local;
+ * (16) `int *count_p` count-pointer with entry-store first. All three
+ * regressed worse: variant 14/16 swapped which store goes in delay slot
+ * (entry-store in delay vs count-store in delay), and variant 15 added
+ * an extra addu-operand-order diff. The scheduling decision for the
+ * 4-byte-stride sibling (this one) confirms the same lock as the
+ * 8-byte-stride sibling's 13+ variants. Don't grind further on the 4B
+ * variant either. */
 void func_00002088(char *a0, int a1) {
     int idx = *(int*)(a0 + 0x104);
     *(int*)(a0 + 0x104) = idx + 1;
