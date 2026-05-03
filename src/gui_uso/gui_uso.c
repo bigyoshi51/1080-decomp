@@ -13,8 +13,13 @@
  *   - Default: return c & 0xFF.
  *
  * Two structural blockers vs target:
- *   1. Leading 4-byte trampoline (would need PREFIX_BYTES injection per
- *      feedback_prefix_byte_inject_unblocks_uso_trampoline.md).
+ *   1. Leading 4-byte trampoline (PREFIX_BYTES injection unavailable —
+ *      tried 2026-05-03; inject-prefix-bytes.py refuses with "first insn
+ *      is 0x308400ff, expected addiu sp prologue ... or jr ra ... refusing
+ *      to patch". The script only handles functions with a recognized
+ *      prologue shape; leaf functions starting with arithmetic (here
+ *      `andi a0, a0, 0xFF`) aren't a supported pattern. Would need the
+ *      script to relax the prologue check, or a different mechanism.).
  *   2. bnel-chain emit with `li at, NEXT_X` in each delay slot — IDO needs
  *      a specific if-chain pattern (likely goto-chain with shared epilogue
  *      per feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md) to
