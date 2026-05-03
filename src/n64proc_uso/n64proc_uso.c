@@ -230,7 +230,10 @@ void n64proc_uso_func_00000230(char *a0) {
  *
  * Per feedback_ido_sparse_switch_beql_preload_unreachable.md (and the
  * 4 attempts above), no further C-level lever flips IDO's bnel/beql
- * choice on the second dispatch. Stays at 93.57 %. */
+ * choice on the second dispatch. Stays at 93.57 %.
+ *
+ * 2026-05-03 re-measure: 93.34 % (slight drift from parallel-agent commits
+ * affecting siblings; nothing structural). */
 void n64proc_uso_func_00000268(int *a0) {
     int v;
     int t;
@@ -284,9 +287,10 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
  * target's pre-prologue pattern.
  *
  * UPDATE 2026-05-03: re-measured at 95.51 % (was 94.86 %); small drift from
- * unrelated source changes. Tried `char *spill_a0 = a0 + 0x58;` named-local
- * variant inside both k0/k1 blocks to force a0 spill location — REGRESSED
- * to 95.27 %. The named local pulls computation forward into a slot that
+ * unrelated source changes. Re-measure 2026-05-03 (later): 94.86 % again
+ * (drifted back). Tried `char *spill_a0 = a0 + 0x58;` named-local variant
+ * inside both k0/k1 blocks to force a0 spill location — REGRESSED to
+ * 95.27 %. The named local pulls computation forward into a slot that
  * conflicts with IDO's natural a0 reuse, breaking 1 byte but unlocking 0.
  *
  * UPDATE 2026-05-02: applied the suggested fix (explicit `goto k0/k1/end`
