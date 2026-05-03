@@ -662,7 +662,22 @@ void func_0000502C(int *dst) {
     *dst = buf[0];
 }
 
+#ifdef NON_MATCHING
+/* 14-insn / 0x38: 2-call wrapper — calls func(D_7D94) (likely a printf-fmt
+ * string) then func(0, a0). 13/14 insns match; target has an extra
+ * `sw a1, 0x4(sp)` in the 2nd jal's delay slot (a1-spill to local slot,
+ * not outgoing-arg area). IDO -O2 won't emit this dead spill from std C
+ * since a1 isn't reused after the jal. May be a varargs-style ABI quirk
+ * in the callee's expected calling convention; the K&R declaration of
+ * func_00000000 doesn't trigger it. Stays NM-wrapped. */
+extern char D_00007D94;
+void func_00005068(int a0) {
+    func_00000000(&D_00007D94);
+    func_00000000(0, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005068);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
 
