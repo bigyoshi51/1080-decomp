@@ -1227,9 +1227,20 @@ void game_uso_func_0000591C(int *a0) {
         return;
     }
 
-    /* TODO: 1000+ insns of body-proper. Reads a0->0x30 (sub-struct
-     * pointer) and stages Vec3 fields 0xB4/0xB8/0xBC onto sp+0x1B8;
-     * large FPU-heavy update loop with cross-USO calls. */
+    /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
+     *   t2 = a0->0x30;                                  // sub-struct ptr
+     *   *(int*)(sp+0x1B8) = t2->[0xB4];                  // stage Vec3 ints
+     *   *(int*)(sp+0x1BC) = t2->[0xB8];
+     *   *(int*)(sp+0x1C0) = t2->[0xBC];
+     *   v0 = a0->0x30;                                   // reload
+     *   f12 = a0->[0xA8];                                // scalar
+     *   f4 = v0->[0x318]; f6 = v0->[0x31C]; f8 = v0->[0x320];
+     *   *(float*)(sp+0x148) = f4 * f12;                  // scaled outputs
+     *   ... more scaled stores into sp+0x148.. region.
+     * Multiple stack buffers staged: sp+0x148, sp+0x158, sp+0x1A8/AC,
+     * sp+0x1B8/BC/C0/C4 — scratch space for upcoming gl_func call(s).
+     *
+     * TODO: 1080+ remaining insns — main update loop + cross-USO calls. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
