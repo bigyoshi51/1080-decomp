@@ -66,7 +66,62 @@ void arcproc_uso_func_000005C8(int *a0) {
     D_arc5C8_68 = 0;
 }
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00000688: -O0-compiled init function (48 insns, 0xC0).
+ * Initializes 8 fields of a0->8 and zeros a 5-int array at offset 0x20.
+ *
+ * -O0 indicators in target asm:
+ *   - Tiny frame (addiu sp, -8) with no callee-save use
+ *   - Re-loads `a0[2]` (= a0->8 ptr) for EACH field write (no caching)
+ *   - Sets up loop counter `i` on stack (sw zero, 4(sp))
+ *   - Trailing dead `b +1; nop` before epilogue (-O0 BBL marker)
+ *
+ * Decoded body:
+ *   void f(int *a0) {
+ *       int i;
+ *       int *p = (int*)a0[2];        // a0->8
+ *       p[0] = 1;
+ *       p[1] = 0;
+ *       p[2] = 5;
+ *       p[3] = 2;
+ *       p[4] = 0;
+ *       p[5] = 3;
+ *       p[6] = 1;
+ *       p[7] = 4;
+ *       p[0xD] = 0;                  // skip-write at 0x34
+ *       for (i = 0; i < p[2]; i++)   // p[2] = 5 (loop bound)
+ *           p[8 + i] = 0;            // zero array @ 0x20..0x33
+ *   }
+ *
+ * 1080's arcproc_uso_tail1.c.o is built at -O2 default, so a C body
+ * here would compile to wrong bytes (cached `p` reload, no dead b+1).
+ * To match, would need file-split into arcproc_uso_o0_688.c with
+ * `OPT_FLAGS := -O0` (per project_o1o2_split.md) — multi-tick
+ * infrastructure work. Default build INCLUDE_ASM remains exact.
+ *
+ * Pattern fingerprint: looks like a state-machine table init for an
+ * arcade-mode timer/scoring object. The constants 1/0/5/2/0/3/1/4
+ * could be (state_id, count, total, mode_a, mode_b, mode_c, ..., flag)
+ * — typed struct emerging once arcproc subsystem is fully decoded. */
+void arcproc_uso_func_00000688(int *a0) {
+    int i;
+    int *p = (int*)a0[2];
+    p[0] = 1;
+    p[1] = 0;
+    p[2] = 5;
+    p[3] = 2;
+    p[4] = 0;
+    p[5] = 3;
+    p[6] = 1;
+    p[7] = 4;
+    p[0xD] = 0;
+    for (i = 0; i < p[2]; i++) {
+        p[8 + i] = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000688);
+#endif
 
 #ifdef NON_MATCHING
 /* 27-insn cleanup wrapper. Calls gl_func twice (a0->8, a0->0); zeroes
