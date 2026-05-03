@@ -7,30 +7,32 @@ typedef struct { int a, b, c, d; } Quad4;
 
 #ifdef NON_MATCHING
 /* Array-indexing utility: return a0 + a0->field_7C * 0x28 + 0x84.
- * 8-insn target with unfilled jr-ra delay slot. tail3a.c builds at -O2 -g3,
- * which already produces unfilled delay slots. Single named local `p` form
- * (below) gets the 4 shift/addu insns matching target's register choice
- * (t6, t7) — only the final `addu+addiu` register/operand order differs:
- *   target: addu v0, a0, t7; addiu v0, v0, 0x84  (a0 first, dest v0)
- *   mine:   addu v1, t7, a0; addiu v0, v1, 132   (t7 first, dest v1, intermediate v1)
+ * 8-insn target with unfilled jr-ra delay slot.
  *
- * 2026-05-02: tested 6 named-local arrangements (idx-only, p-only, idx+scaled+p,
- * register int idx, (char*)((int)a0+...) cast, declaration-order swap). All
- * trade between matching the t6/t7 registers OR matching the operand order;
- * none reach both simultaneously. The final addu naming the result `p` forces
- * v1 dest (because IDO assigns named-local `p` to v1) AND inverts the operand
- * order (t7 first because t7 was just-defined). Inline form gets a0-first but
- * loses the t6/t7 register identification.
- * Per feedback_ido_addu_operand_order.md: split-named-offset CAN flip operand
- * order, but here it costs the register-identity that the inline form already
- * gives. Likely needs permuter or -O0 split (the immediately-preceding offset
- * 0x10310 already has its own -O0 file `bootup_uso_o0_10310.c`, so a 0x10324
- * append is mechanically straightforward but breaks tail3a's TRUNCATE_TEXT
- * + linker layout). */
+ * 2026-05-03 IMPROVEMENT: pure inline single-expression form (no named
+ * locals) now reaches 7/8 insns matching — only the final `addu` operand
+ * order differs:
+ *   target: addu v0, a0, t7; addiu v0, v0, 0x84  (a0 first)
+ *   mine:   addu v0, t7, a0; addiu v0, v0, 0x84  (t7 first)
+ * Dest register v0 NOW MATCHES (was v1 in the older `p`-named form). This
+ * is a strict improvement over the prior form which had TWO wrong insns
+ * (both addu and addiu used $v1 chain). Saved feedback_ido_inline_keeps_t_regs.md.
+ *
+ * Tradeoff confirmed (2026-05-02 + 2026-05-03 = 11+ variants total):
+ *   - Inline: matches t6/t7 register identity AND v0 dest, BUT addu operand
+ *     order has t7 first (computed value first), not a0 first.
+ *   - Named `off`/`register int off`: matches addu operand order (a0 first),
+ *     BUT loses t6/t7 → at/v1 register identity.
+ * IDO's operand-order decision: when both inputs are register-stable
+ * (named locals, args), it picks the lexically-first source operand. When
+ * one input is freshly-computed inline, it picks the freshly-computed reg
+ * first. Cannot get both simultaneously without permuter or -O0 split.
+ *
+ * -O0 split was considered (preceding offset 0x10310 already has its own
+ * -O0 file) but breaks tail3a's TRUNCATE_TEXT + linker layout. Cap at 7/8
+ * with the inline form. */
 char *func_00010324(char *a0) {
-    char *p;
-    p = a0 + *(int*)(a0 + 0x7C) * 0x28;
-    return p + 0x84;
+    return a0 + *(int*)(a0 + 0x7C) * 0x28 + 0x84;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010324);
