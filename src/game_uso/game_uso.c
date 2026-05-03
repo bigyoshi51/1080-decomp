@@ -1,5 +1,15 @@
 #include "common.h"
 
+/* File-top canonical decls (hoisted out of #ifdef NON_MATCHING blocks
+ * so DNM build doesn't see redecls — see
+ * feedback_game_uso_dnm_typedef_inside_ifdef.md). */
+extern int gl_func_00000000();
+extern char D_00000000;
+typedef struct { float x, y, z; } Vec3;
+typedef struct { int a, b, c; } Tri3i;
+typedef struct { int a, b, c, d; } Quad4;
+typedef struct { int a, b; } Pair2;
+
 #ifdef NON_MATCHING
 /* Cubic B-spline basis evaluator. Computes 4 weights for parameter t
  * (passed in $a1, moved to $f12), writes to out[0..3]. D_00000000 = 1/6.
@@ -12,15 +22,22 @@
  * 6.0f). Many nops in delay slots (CPU-FPU dependency stalls). Exact
  * matching this is a multi-tick FPU register/scheduling grind; logic is
  * documented for next pass. */
-extern float D_00000000;
-void game_uso_func_00000000(float *out, float t) {
+/* K&R-style def: function name is also used as a placeholder for cross-
+ * USO/intra-USO unresolved jals elsewhere in the file (with various arg
+ * counts). K&R `()` decl from those callers + K&R def here = no sig
+ * conflict under DNM. See feedback_ido_implicit_decl_extern_conflict.md. */
+void game_uso_func_00000000(out, t)
+    float *out;
+    float t;
+{
+    float D = *(float*)&D_00000000;
     float omt = 1.0f - t;
     float t2 = t * t;
     float t3 = t2 * t;
-    out[0] = D_00000000 * omt * omt * omt;
-    out[1] = D_00000000 * (3.0f*t3 - 6.0f*t2 + 4.0f);
-    out[2] = D_00000000 * (-3.0f*t3 + 3.0f*t2 + 3.0f*t + 1.0f);
-    out[3] = D_00000000 * t3;
+    out[0] = D * omt * omt * omt;
+    out[1] = D * (3.0f*t3 - 6.0f*t2 + 4.0f);
+    out[2] = D * (-3.0f*t3 + 3.0f*t2 + 3.0f*t + 1.0f);
+    out[3] = D * t3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
@@ -56,7 +73,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000A0);
  * Used together with game_uso_func_00000000 (basis evaluator producing
  * the weights) to compute a point on a uniform cubic B-spline curve in
  * 3D — likely camera path / track / skater limb interpolation. */
-typedef struct { float x, y, z; } Vec3;
 void game_uso_func_000000E0(Vec3 *out, Vec3 **ctrl, float *weights) {
     out->x = ctrl[0]->x * weights[0] + ctrl[1]->x * weights[1]
            + ctrl[2]->x * weights[2] + ctrl[3]->x * weights[3];
@@ -69,10 +85,6 @@ void game_uso_func_000000E0(Vec3 *out, Vec3 **ctrl, float *weights) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000E0);
 #endif
 
-extern int gl_func_00000000();
-extern char D_00000000;
-typedef struct { int a, b, c; } Tri3i;
-typedef struct { float x, y, z; } Vec3;
 void game_uso_func_000001D4(Vec3 *dst) {
     int pad_top[1];
     Tri3i raw;
@@ -86,30 +98,24 @@ void game_uso_func_000001D4(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-extern int gl_func_00000000();
-extern char D_00000000;
 void game_uso_func_00000244(float *dst) {
     float buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-extern int gl_func_00000000();
-extern char D_00000000;
 void game_uso_func_00000280(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-typedef struct { int a, b, c, d; } Quad4;
 void game_uso_func_000002BC(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
 }
 
-typedef struct { int a, b; } Pair2;
 void game_uso_func_00000314(Pair2 *dst) {
     Pair2 buf;
     gl_func_00000000(&D_00000000, &buf, 8);
@@ -481,7 +487,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000B3C);
  *       Tried separating `i = 0; jal; p = a0;` — IDO still hoists p=a0 above
  *       the jal because there's no data dependency. Likely needs a do-while
  *       restructure or permuter to defer the assignment. */
-extern int gl_func_00000000();
 void game_uso_func_00001644(int *a0) {
     int i;
     int *p;
@@ -577,8 +582,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000174C);
 #endif
 
 #ifdef NON_MATCHING
-/* 0% NM (stub body — game_uso DNM build blocked, see
- * feedback_game_uso_dnm_typedef_inside_ifdef.md). 269-insn / 0x434 size,
+/* 3.83% NM (stub body, alloc-or-passthrough only). 269-insn / 0x434 size,
  * frame ~0xE0 with 4 saved $s-regs. Single-arg constructor.
  *
  * First-pass structural decode (top ~30 insns):
@@ -1572,7 +1576,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * transform function (e.g. matrix/quaternion -> displacement).
  *
  * Multi-tick decomp; this commit captures the entry signature only. */
-extern int gl_func_00000000();
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
@@ -1612,8 +1615,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  *
  * REMAINING ~683 insns: 16 cross-USO calls, alternating float math with
  * the XZ-projected position. Multi-tick decomp expected. */
-extern int gl_func_00000000();
-extern char D_00000000;
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
@@ -2090,24 +2091,21 @@ void game_uso_func_0000D418(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 97.5%: all logic correct; IDO allocates t6 before t7 for the two paired
+/* 97.5% NM. All logic correct; IDO allocates t6 before t7 for the two paired
  * reads (0xC0→0xC8 via $t6, 0xC4→0xCC via $t7), but target has t7 for the
  * 0xC0→0xC8 copy and t6 for the 0xC4→0xCC copy — registers SWAPPED.
  * Variants tried (2026-04-20, all produce t6/t7 in IDO-default order):
  *   (a) swap store order (0xCC first, then 0xC8): still t6 first-seen
  *   (b) 0xC8 copy BEFORE the -1000 stores, 0xCC copy AFTER: still t6 first
  *   (c) named locals `s32 a, b`: forces $v0/$v1 (wrong register class)
+ *   (d) 2026-05-02 (DNM build now unblocked): `register s32 c4_val=...;
+ *       register s32 c0_val=...` w/ reversed load order — REGRESSED to
+ *       95.13% (t6/t7 still in default order, but the named-locals add
+ *       extra moves elsewhere). Original form remains best at 97.5%.
  * IDO's first-seen-gets-lowest-number rule is invariant to the stmt shapes
  * we can write from C. Target was likely compiled from source using
  * `register int x asm("$t7")` (GCC-only; IDO rejects per feedback_ido_no_gcc_register_asm.md).
- * Cap at 97.5 %, no further C-level fix known.
- *
- * 2026-05-02 NOTE: tried `register s32 c4_val = ...; register s32 c0_val = ...`
- * with reversed load order to flip first-seen — couldn't verify because
- * game_uso DNM build is blocked by Vec3 typedef inside an early NM-wrap
- * block (per feedback_game_uso_dnm_typedef_inside_ifdef.md). To unblock
- * testing this and other game_uso wraps, hoist Vec3/Tri3i typedefs and
- * D_00000000 extern OUT of that wrap block to file-top. Multi-line cleanup. */
+ * Cap at 97.5 %, no further C-level fix known. */
 void game_uso_func_0000D438(void *a0) {
     *(s32*)((char*)a0 + 0x64) = -1000;
     *(s32*)((char*)a0 + 0x68) = -1000;
@@ -2484,8 +2482,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011124);
 #endif
 
 #ifdef NON_MATCHING
-/* 0% NM (stub body — game_uso DNM build blocked, see
- * feedback_game_uso_dnm_typedef_inside_ifdef.md). 60-insn dispatcher,
+/* 12.33% NM (stub body, single pre-call). 60-insn dispatcher,
  * 0xF0 size, frame 0x18. First-pass structural decode:
  *
  *   gl_func_00000000(a0);                       // unconditional pre-call
