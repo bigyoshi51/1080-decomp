@@ -243,15 +243,16 @@ void game_uso_func_00000634(int *a0) {
  *   a0[8]==1, a0[10]==2, a0[12]==2
  *
  * IDO emits each `==` test as `xor; sltiu` (boolean compute) rather than
- * direct branch — this is the natural emit for a single-expression
- * boolean return chain. Using `if (cond) return 1;` chain regressed to
- * 20 % (multiple jr-ra epilogues, completely different shape).
+ * direct branch — natural for single-expression boolean return chain.
+ * Variants tested:
+ *   - `if (cond) return 1;` chain — regressed to 20% (multi-epilogue)
+ *   - 2026-05-02: named-locals `int x0=a0[0]; int x4=a0[4]; ...` —
+ *     REGRESSED to 82.6% (locals shift expression-tree walker order)
  *
- * Remaining 6 % cap: $v0 vs $v1 register flip throughout. Mine loads
- * a0[0] into $v1, computes boolean result in $v0. Target loads into $v0,
- * computes boolean in $v1. Same arithmetic, swapped register naming.
- * Likely not C-flippable without inline-asm; IDO's v0/v1 choice for
- * load-target vs result-target is fixed by the expression-tree walker. */
+ * Cap: $v0 vs $v1 register flip. Mine loads a0[0] into $v1, computes
+ * boolean in $v0. Target loads into $v0, computes in $v1. Same arith,
+ * swapped naming. Not C-flippable; IDO's v0/v1 choice for load-target
+ * vs result-target is fixed by expression-tree walker. */
 int game_uso_func_00000674(int *a0) {
     return ((a0[0] == 2 || a0[0] == 3) && a0[1] == 1)
         || ((a0[4] == 2 || a0[4] == 3) && a0[5] == 1)
