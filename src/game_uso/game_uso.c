@@ -1804,8 +1804,25 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      *   first FPU-arith block. Constant 0xC7A8 ≈ 250.0f, 0x4248 ≈ 50.0f at
      *   0x9D08/9D14 area suggests this is a screen-space transform.
      *
-     * TODO: body-part-2 tail @ 0x9CD0-0x10E8 — 280 insns of float math +
-     * ~9 more cross-USO calls. */
+     * Body-part-2 tail extension @ 0x9CD0-0x9DC4 (~36 more insns decoded
+     * 2026-05-03):
+     *   - reads sp+0x144/0x148/0x14C (the Vec3 stored at body-part-2 entry)
+     *   - applies more FPU arith via mul.s/sub.s/add.s on $f0/$f6/$f8
+     *   - constants confirmed: 0x437A8000 = 250.5f at 0x9D0C (mtc1 to $f2),
+     *     0x42480000 = 50.0f at 0x9D1C (mtc1 to $f10) — stored to t9[+0/+4/+8]
+     *     where t9 = sp+0x12C (the accumulator block)
+     *   - reads (a2 -> 0x18 -> +0x54) Vec3 chain — transformed-position
+     *     lookup against a different sub-object
+     *   - writes back to sp+0x12C..sp+0x140 (a 6-float / 2-Vec3 block;
+     *     possibly orientation + delta)
+     *   - 4th cross-call gl_func_00000000(...) at 0x9DCC
+     *
+     * The 250.5/50.0 constants confirm a screen-space coordinate transform:
+     * 250.5 likely a viewport-scale factor (half screen + 0.5 for pixel
+     * center), 50.0 likely a vertical zero-point or offset.
+     *
+     * TODO: body-part-2 final @ 0x9DC4-0x10E8 — 240+ insns + ~8 more
+     * cross-USO calls. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
