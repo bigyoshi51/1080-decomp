@@ -742,9 +742,27 @@ branch_88: {
     self_v.x += delta_v.x;
     self_v.y += delta_v.y;
     self_v.z += delta_v.z;
-    /* TODO: ~300 more insns — second gl_func with sp+0x110/sp+0x130 args, 3x3
-     * matrix transform via cvt/mul/add.s on different sp+offsets, stores to
-     * a0->0x60..0x68 (resulting Vec3), nested call to scale/normalize. */
+    /* Sub-block 0x1F00-0x2050 (extended decode 2026-05-02): 3x3 matrix
+     * transform pattern. Reads 3 floats from sp+0x110/0x114/0x118 (= self_v
+     * accumulator), applies float math via mul/add/sub.s, stores to
+     * sp+0x124/0x128/0x12C and sp+0x094/0x098/0x09C (two output Vec3s).
+     * The pattern fingerprint is FPU-reduction-heavy (cvt.s.w, mul.s, add.s
+     * chains) — see feedback_fpu_basis_function_signatures.md for the math
+     * shape. Likely a rotation/orientation transform: takes the
+     * self_v + delta_v sum as input position, computes two derived Vec3s
+     * (a forward direction + a side vector?) and stores them back into
+     * the entity's pose fields. */
+    {
+        /* placeholder: matrix transform stub */
+        float out_a[3], out_b[3];
+        Vec3f input = self_v;
+        out_a[0] = input.x;  out_a[1] = input.y;  out_a[2] = input.z;
+        out_b[0] = input.x;  out_b[1] = input.y;  out_b[2] = input.z;
+        (void)out_a; (void)out_b;
+    }
+    /* TODO 0x2050-end: second gl_func dispatch (sp+0x110/sp+0x130 args),
+     * stores to a0->0x60..0x68 (resulting Vec3), nested call to
+     * scale/normalize. Estimated ~250 insns remaining. */
     (void)gl_func_TODO_00001DDC((int*)scratch, a0);
 }
 late_label:
