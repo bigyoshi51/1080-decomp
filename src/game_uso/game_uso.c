@@ -2447,7 +2447,34 @@ void game_uso_func_00011124(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011124);
 #endif
 
+#ifdef NON_MATCHING
+/* 0% NM (stub body — game_uso DNM build blocked, see
+ * feedback_game_uso_dnm_typedef_inside_ifdef.md). 60-insn dispatcher,
+ * 0xF0 size, frame 0x18. First-pass structural decode:
+ *
+ *   gl_func_00000000(a0);                       // unconditional pre-call
+ *   t7 = a0->0xB4->0xA54;                       // dispatch flag
+ *   if (t7 == 1) { ... 4-arg gl_func with D[0xF40][0..1] + 1 }
+ *   else if (t7 == 2) { ... 4-arg gl_func with D[0xF38][0..1] + 1 }
+ *   else if (t7 == 0) { ... 4-arg gl_func with t8->0x64+0..1 + 1 }   // t8 = D[0x7C]
+ *   else { ... 4-arg gl_func with D[0xF40][0..1] + 1 }                // default
+ *   return;
+ *
+ * Each branch sets up a base pointer (D+0xF40, D+0xF38, t8+0x64) then
+ * loads a1=*(base+0), a2=*(base+4), a3=1, calls gl_func_00000000.
+ * Inner spills (sw a1,4(sp); sw a2,8(sp)) suggest pre-call arg-spill
+ * pattern (per feedback_ido_precall_arg_spill_unreachable.md).
+ *
+ * Multi-tick decomp expected. Stub body keeps wrap parsable; default
+ * build still matches via INCLUDE_ASM. Apply goto-chain dispatch
+ * (feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md) once
+ * DNM build is verifiable. */
+void game_uso_func_00011168(int *a0) {
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
 
