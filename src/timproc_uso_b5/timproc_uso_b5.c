@@ -451,11 +451,12 @@ void timproc_uso_b5_func_0000AAF4(char *a0) {
 
 
 #ifdef NON_MATCHING
-/* 89.3 % match (2026-05-02, up from 83 %). Logic-fix: prior wrap read/wrote
- * through `q` (the 2nd jal's return), but the asm uses $a1 = r
- * (= arg0->0x40) for the post-jal stores. The 2nd gl_func_00000000 return
- * value is unused. Adding `char pad[8]` coerces frame 0x20 -> 0x28
- * (target spills a0 to caller's outgoing slot at sp+0x28).
+/* 89.3 % match. Previously NOTE was inverted: re-decoded 2026-05-02 the
+ * post-jal stores DO use the 2nd jal's return value (call result spilled
+ * to sp+0x20, reloaded as $a1 then used for q->0x14 / q->0x4 / q->0x14
+ * stores). r (= arg0->0x40) is only used as the 2nd jal's a1-arg.
+ * Adding `char pad[8]` coerces frame 0x20 -> 0x28 (target spills a0 to
+ * caller's outgoing slot at sp+0x28).
  *
  * Remaining diffs (register-allocation flip):
  * - Target uses $a0 throughout the 1st init block (no scratch copy), then
@@ -478,6 +479,7 @@ void *timproc_uso_b5_func_0000AB24(void *arg0) {
     char pad[8];
     void *p;
     void *r;
+    void *q;
 
     p = (void*)gl_func_00000000(0x40);
     if (p != 0) {
@@ -487,11 +489,11 @@ void *timproc_uso_b5_func_0000AB24(void *arg0) {
     }
     r = *(void**)((char*)arg0 + 0x40);
     if (r != 0) {
-        gl_func_00000000((char*)p + 0x10, r);
-        if (*(int*)((char*)r + 0x14) != 0) {
-            *(int*)((char*)r + 0x4) = 1;
+        q = (void*)gl_func_00000000((char*)p + 0x10, r);
+        if (*(int*)((char*)q + 0x14) != 0) {
+            *(int*)((char*)q + 0x4) = 1;
         }
-        *(void**)((char*)r + 0x14) = p;
+        *(void**)((char*)q + 0x14) = p;
     }
     return p;
 }
