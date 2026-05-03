@@ -2143,7 +2143,51 @@ void game_uso_func_0000C0F0(int *dst) {
     *dst = buf[0];
 }
 
+#ifdef NON_MATCHING
+/* Loads 64 bytes via gl_func_00000000(&D_0, buf, 0x40), then copies
+ * 16 ints from buf to a0 with a 3-elements-per-iter unrolled loop:
+ *   for (src=buf, end=buf+15, dst=a0; src!=end; src+=3, dst+=3) {
+ *       dst[0]=src[0]; dst[1]=src[1]; dst[2]=src[2];
+ *   }
+ *   *dst = *src;  // final 16th int
+ *
+ * Tried 4 variants (2026-05-03):
+ *   (a) Named src/dst/end locals: IDO spills 3 named locals to stack,
+ *       frame grows to 104 bytes vs target 88.
+ *   (b) Inline a0 increment + named src/end: still 104 bytes.
+ *   (c) Index-based with i+3 iter: IDO unrolls with sll+addu indexed
+ *       access, completely different shape (96 byte frame, no neg-offset).
+ *   (d) for-i loop unrolled by 4 (using a0[i]=buf[i] x 16): IDO emits a
+ *       4-elem-per-iter loop, target wants 3.
+ *
+ * Cap: target compiled with NO named locals — uses `buf`, `a0`, and
+ * pure $t-regs (t6 dst, t7 src, t8/t9 vals, t0 end). Per
+ * feedback_ido_v0_reuse_via_locals.md, named locals get $v-regs or stack;
+ * inline derefs get $t-regs. But here we need 4+ pointers in $t-regs
+ * simultaneously and the loop body must use neg-offset (-0xC, -0x8, -0x4)
+ * after src/dst increment. No C form found that triggers all of:
+ *   1. NO named-local stack spill (frame must be 88 not 104)
+ *   2. dst/src increment BEFORE the stores (giving neg offsets after)
+ *   3. unroll-by-3 not unroll-by-4
+ *
+ * First-pass logic decode complete; reg-allocation shape blocked. */
+void game_uso_func_0000C12C(int *a0) {
+    int buf[16];
+    int i;
+    gl_func_00000000(&D_00000000, buf, 0x40);
+    i = 0;
+    do {
+        a0[0] = buf[i];
+        a0[1] = buf[i + 1];
+        a0[2] = buf[i + 2];
+        i += 3;
+        a0 += 3;
+    } while (i != 15);
+    *a0 = buf[15];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C12C);
+#endif
 
 void game_uso_func_0000C194(int *dst) {
     int buf[2];
