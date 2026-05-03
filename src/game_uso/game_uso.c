@@ -701,10 +701,35 @@ void game_uso_func_00001DC4(void *a0) {
  * a floating block-comment above an INCLUDE_ASM. Default build still uses
  * INCLUDE_ASM. */
 #ifdef NON_MATCHING
-/* 15.41% NM. extended partial decode 2026-05-02: entry sub-block of branch_88 promoted
- * from comment to real C statements (Vec3 copies + first gl_func + element-
- * wise add). Body is ~380 insns; this run extends decode from ~30 insns to
- * ~50 insns. ~300 insns remain stubbed via gl_func_TODO_00001DDC. */
+/* 18.73% NM (re-measured 2026-05-03, up from 15.41% — parallel-agent commits
+ * affecting siblings drifted the baseline UP +3.3pp without source changes
+ * here, per feedback_nm_wrap_doc_pct_drifts.md). Extended partial decode
+ * 2026-05-02: entry sub-block of branch_88 promoted from comment to real C
+ * statements (Vec3 copies + first gl_func + element-wise add). Body is ~380
+ * insns; cumulative decode now covers ~50 insns. ~300 insns remain stubbed
+ * via gl_func_TODO_00001DDC.
+ *
+ * 2026-05-03 STRUCTURAL DECODE of two more sub-blocks (no C added yet, regs
+ * lack source-tracing context but pattern is clear):
+ *   - 0x1FB0-0x1FD4 (10 insns): TWO-DESTINATION Vec3-copy pattern. Reads 3
+ *     words from $t1 and stores to BOTH $a3 and $v1 (`lw t3,0(t1); sw t3,0(a3);
+ *     ... ; sw t3,0(v1); ...`). Likely "set entity sub-struct position
+ *     PLUS write the same value into a parent's mirror field" — common in
+ *     1080's pose-update path where an entity has both a "logical" and a
+ *     "rendered" position field that must agree.
+ *   - 0x2030-0x205C (12 insns): chained Vec3-copy through a temp. Reads 3
+ *     words from $t6 to $a3, then immediately reads them back from $a3 to
+ *     $t9 (`lw t8,0(t6); sw t8,0(a3); lw t1,0(a3); sw t1,0(t9); ...`). The
+ *     re-read forces the store-to-load forwarding that an in-place SSA copy
+ *     would skip. Suggests $a3 is a sub-struct field shared by two parent
+ *     pointers ($t6 = src, $t9 = downstream consumer needing to see the
+ *     updated value through memory not register).
+ * Both blocks are int-typed (.word lw/sw) but operate on Vec3-sized chunks
+ * (3 words / 12 bytes), confirming the 3x3 transform's IO is Vec3-stride.
+ *
+ * Next pass: trace $t1/$t6/$t9/$a3 source-loads earlier in the function
+ * (likely from a0->0x14, a0->0x38, sub-obj struct fields) to write the
+ * sub-blocks as real C. */
 extern void *gl_func_TODO_00001DDC(int *scratch, int *a2);
 typedef struct { float x, y, z; } Vec3f;
 void *game_uso_func_00001DDC(int *a0) {
