@@ -1,0 +1,28 @@
+{
+  "function_name": "arcproc_uso_func_00000000",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-03T04:17:57.866780+00:00",
+  "end_time": "2026-05-03T04:17:57.866799+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-03T04:17:57.866793+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\n\n/* USO entry-0: leading `beq zero,zero,+0x6F00` trampoline (loader-patched\n * at runtime) followed by the standard int-reader template body at -O0.\n * The 4-byte trampoline is injected post-cc by scripts/inject-prefix-bytes.py\n * (per PREFIX_BYTES Makefile var); the body is compiled at -O0 via the\n * arcproc_uso.c.o OPT_FLAGS override. The script inserts the bytes at the\n * function's start, shifts subsequent symbols, and grows the function symbol\n * to cover the full 0x50-byte target extent. */\nvoid arcproc_uso_func_00000000(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n",
+  "metadata": {
+    "source_path": "src/arcproc_uso/arcproc_uso.c"
+  }
+}

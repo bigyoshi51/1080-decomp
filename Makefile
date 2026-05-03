@@ -28,7 +28,9 @@ LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map 
 
 # Per-file optimization overrides (O1 libultra functions, O0 empty stubs)
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: OPT_FLAGS := -O0
+build/src/arcproc_uso/arcproc_uso.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
+build/src/arcproc_uso/arcproc_uso.c.o: PREFIX_BYTES := arcproc_uso_func_00000000=0x10006F00
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0xDC
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: TRUNCATE_TEXT := 0x114
@@ -181,6 +183,11 @@ build/src/%.c.o: src/%.c
 		fn=$$(echo $$spec | cut -d= -f1); \
 		nb=$$(echo $$spec | cut -d= -f2); \
 		python3 scripts/splice-function-prefix.py $@ $$fn -n $$nb; \
+	done; fi
+	@if [ -n "$(PREFIX_BYTES)" ]; then for spec in $(PREFIX_BYTES); do \
+		fn=$$(echo $$spec | cut -d= -f1); \
+		words=$$(echo $$spec | cut -d= -f2); \
+		python3 scripts/inject-prefix-bytes.py $@ $$fn $$words; \
 	done; fi
 endif
 
