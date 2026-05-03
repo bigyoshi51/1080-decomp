@@ -133,7 +133,7 @@ build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sy
 # feedback_prologue_stolen_successor_no_recipe.md for context.
 build/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_00000194=8 titproc_uso_func_000001E4=8 titproc_uso_func_0000028C=8
 build/src/titproc_uso/titproc_uso.c.o: SUFFIX_BYTES := titproc_uso_func_00000194=0x3C020000,0x24420000
-build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0004,0x8DCEC160 gl_func_0006BA48=0x3C0EA460,0x8DC60010 gl_func_0005FDCC=0x3C030000,0x8C630000
+build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0004,0x8DCEC160 gl_func_0006BA48=0x3C0EA460,0x8DC60010 gl_func_0005FDCC=0x3C030000,0x8C630000 gl_func_0002DF00=0x3C0E0000,0x8DCE2D00
 build/src/timproc_uso_b3/timproc_uso_b3.c.o: PROLOGUE_STEALS := timproc_uso_b3_func_00000818=8 timproc_uso_b3_func_00001C28=8 timproc_uso_b3_func_0000074C=8 timproc_uso_b3_func_00000790=8 timproc_uso_b3_func_000007D4=8
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: PROLOGUE_STEALS := timproc_uso_b1_func_00000800=8 timproc_uso_b1_func_00000734=8 timproc_uso_b1_func_00000778=8 timproc_uso_b1_func_000007BC=8
 build/src/arcproc_uso/arcproc_uso_tail1.c.o: PROLOGUE_STEALS := arcproc_uso_func_00001F0C=8

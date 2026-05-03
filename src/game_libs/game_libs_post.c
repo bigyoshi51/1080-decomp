@@ -567,7 +567,16 @@ void gl_func_0002DEA4(void) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DED0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF00);
+/* 10-insn body single-call wrapper, sibling of gl_func_0002DF68 (same
+ * 0xTTTT0000 | ((a0 & 0xFF) << 8) bit-packing pattern but without the
+ * mfc1 issue — args are pure int). Tag = 0x82020000.
+ *
+ * Declared size 0x38 includes 2 trailing dead insns (lui t6, 0; lw t6,
+ * 0x2D00(t6)) — stolen prologue setup for the successor. Closed via
+ * SUFFIX_BYTES. */
+void gl_func_0002DF00(int a0) {
+    gl_func_00000000(0x82020000 | ((a0 & 0xFF) << 8), 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF38);
 
