@@ -1179,6 +1179,8 @@ SECTIONS
         FILL(0x00000000);
         bootup_uso_TEXT_START = .;
         build/src/bootup_uso/bootup_uso.c.o(.text);
+        build/src/bootup_uso/bootup_uso_o0_F390.c.o(.text);
+        build/src/bootup_uso/bootup_uso_F434.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_F7F4.c.o(.text);
         build/src/bootup_uso/bootup_uso_tail1.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_1024C.c.o(.text);

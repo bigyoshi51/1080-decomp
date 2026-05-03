@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000F404",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-03T02:56:26.389285+00:00",
+  "end_time": "2026-05-03T02:56:26.389328+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-03T02:56:26.389317+00:00",
+      "assistant_text": "Split out of bootup_uso.c (which builds at -O2) into bootup_uso_o0_F390.c (-O0). func_0000F390 uses register char *p = &D_00000000 to force the s0-saved-frame pattern + cross-function data ref D_0000C574 added to undefined_syms_auto.txt. F3D4/F404 are -O0 1-arg passthrough wrappers with spill+reload + b+1 patterns.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 12,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 cluster at offsets 0xF390..0xF430. Three -O0 wrappers split out of\n * bootup_uso.c so they can build at -O0 (matching the originals' frame +\n * spill+reload + b-+1 patterns). See feedback_ido_o0_register_and_inline.md\n * and project_1080_bootup_uso_o0_runs.md. */\n\nextern int func_00000000();\nextern char D_00000000;\nextern char D_0000C574;\n\nvoid func_0000F390(void) {\n    register char *p = &D_00000000;\n    func_00000000(p, &D_0000C574);\n}\n\nvoid func_0000F3D4(int a0) {\n    func_00000000(a0);\n}\n\nvoid func_0000F404(int a0) {\n    func_00000000(a0);\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_F390.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0000F404.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff: func_0000F404 = 100% in new -O0 file split."
+  }
+}

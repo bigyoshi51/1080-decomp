@@ -32,6 +32,7 @@ build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0xDC
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: TRUNCATE_TEXT := 0x114
+build/src/bootup_uso/bootup_uso_o0_F390.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: OPT_FLAGS := -O0
@@ -41,7 +42,9 @@ build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: OPT_FLAGS := -O0
 # Trim .text sizes + reduce sh_addralign to 4 so split .o files link at the
 # exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
-build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF76C
+build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF390
+build/src/bootup_uso/bootup_uso_o0_F390.c.o: TRUNCATE_TEXT := 0xA4
+build/src/bootup_uso/bootup_uso_F434.c.o: TRUNCATE_TEXT := 0x338
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: TRUNCATE_TEXT := 0xB0
 build/src/bootup_uso/bootup_uso_tail1.c.o: TRUNCATE_TEXT := 0xA30
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x14
