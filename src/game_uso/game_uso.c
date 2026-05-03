@@ -1940,10 +1940,19 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      * Tried 2026-05-03 to add this block as concrete C — REGRESSED 17.92→8%.
      * Adding a SECOND `if (out != 0) { writes }` block confuses IDO about the
      * dataflow on `out` (it shares the named local with the prior block's
-     * writes, breaking register allocation across the transition). Will need
-     * either a separate named local for the rotated-result buffer, OR the
-     * full body-part-2 dispatch decoded together so the 5+ alloc results
-     * have distinct names. Keep documented for next pass.
+     * writes, breaking register allocation across the transition).
+     *
+     * Tried 2026-05-03 (second pass): SCOPED `int *out3 = ...; if (out3) {...}`
+     * + `int *out4 = ...; if (out4) {...}` per the prior pass's hypothesis.
+     * Result: REGRESSED FURTHER to 8.47% (worse than prior 8% regression).
+     * Even distinct names + block-scoping don't fix it: the issue is that
+     * IDO sees TWO calls to gl_func_00000000(0xC) in the same flow region
+     * and CSE-collapses them, OR the second `if(out!=0){writes}` shifts
+     * register allocation backward across the prior writes. Either way,
+     * the body-part-2 block CANNOT be added incrementally — must wait for
+     * the FULL ~300-insn body-part-2 to be decoded together so IDO sees
+     * the complete dataflow at once. Per feedback_partial_decode_with_stub_body.md,
+     * keep this stub body and defer the full add to a multi-insn-decode pass.
      *
      * @ 0x9CD0-0x9DC4: word-copy `out` Vec3 into local_138/EC, 4th cross-call,
      * word-copy local_138 → local_12C, then screen-space transform with
