@@ -414,6 +414,31 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA
  * refresh-expected attempt. Default INCLUDE_ASM build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001170);
 
+/* arcproc_uso_func_0000125C: 139-insn (0x22C) FPU-heavy state-update.
+ * Single function (1 jr ra). Frame -0x70 with s0/ra saved.
+ *
+ * ENTRY DECODE (insns 0-15 @ 0x125C-0x1294):
+ *   t6 = a0->0x4F0                          ; state flags
+ *   s0 = a0                                  ; saved ptr
+ *   if ((t6 & 0x10000) == 0) goto far_exit   ; bit-16 gate (bgez (t6<<15))
+ *   /* bit-16 set path: *\/
+ *   sp[0x50/54/58/5C] = 1.0f, 1.0f, 1.0f, 1.0f  ; init 4-element float
+ *                                                ; accumulator buffer
+ *
+ * Continues with float comparisons against a0->0x4E4 (count?), conditional
+ * loads of constants from D[0x77C] and D[0x30/0x34] (likely a Vec3 of
+ * float thresholds at 0x30/0x34/0x38), and chained c.lt.s + bc1fl gates.
+ *
+ * Body structure (insns 15-130): float-clamp/scale loop with ~3 cross-USO
+ * calls. The 1.0f-initialized buffer at sp+0x50..0x5C is updated based on
+ * comparisons against thresholds and stored back to D[0x77C] (per-element).
+ *
+ * EPILOGUE (insns 130-139): standard frame teardown with pre-loaded ra
+ * (loaded in 1st bgez delay slot — common -O2 trick).
+ *
+ * Multi-tick refinement target — doc-only this tick. Default INCLUDE_ASM
+ * build remains exact. Likely a "physics gate clamp on per-stage float
+ * accumulator" for the arcade-mode stage scoring system. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000125C);
 
 int arcproc_uso_func_00000000();
