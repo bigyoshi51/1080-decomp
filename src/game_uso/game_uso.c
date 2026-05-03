@@ -44,14 +44,22 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
 #endif
 
 #ifdef NON_MATCHING
-/* 4-element dot product `a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3]`
- * (note last term swapped: matches target's load order b[3] then a[3]).
- * 16-insn leaf, returns float in $f0. ~94 % cap (15/16 insns match).
- * Remaining 1-insn diff: target's final add.s emits `add.s f0,f8,f10`
- * (last-product on left); IDO from natural source order produces
- * `add.s f0,f10,f8`. Tried `float r = ...; return b[3]*a[3] + r;` to
- * force ordering -- changed register allocation completely (worse).
- * Same arithmetic, different operand order on final reduction add. */
+/* 99.38% NM. 4-element dot product. 15/16 insns match.
+ *
+ * Remaining 1-insn diff is the FINAL add.s operand order:
+ *   mine:   add.s $f0, $f10, $f8   (last_mul left, sum right)
+ *   target: add.s $f0, $f8,  $f10  (sum left, last_mul right)
+ *
+ * Both compile-orders semantically identical; IDO picks operand order
+ * based on FPU pipeline forwarding, not C source. Variants tested
+ * 2026-05-02 (DNM build now unblocked):
+ *   - `(a[0]*b[0]+a[1]*b[1]+a[2]*b[2]) + p3` (named last_mul): 68.4% (regressed)
+ *   - `(a[0]*b[0]+a[1]*b[1]) + (a[2]*b[2]+b[3]*a[3])` (tree): 84.2%
+ *   - `... + a[3]*b[3]` (natural a-first order): 98.75% (slight regress)
+ *   - Original `... + b[3]*a[3]` (b-first): **99.38% (best)**
+ *
+ * Per feedback_ido_fpu_reduction_operand_order.md: 1-insn cap on FPU
+ * reductions is structural in IDO -O2. Don't grind further. */
 float game_uso_func_000000A0(float *a, float *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
 }
