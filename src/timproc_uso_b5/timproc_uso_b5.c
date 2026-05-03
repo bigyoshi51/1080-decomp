@@ -357,7 +357,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
 
 #ifdef NON_MATCHING
-/* 23-insn loop with branch-likely preload (bnezl at 0x50 with delay-slot
+/* 72.21% NM. 23-insn loop with branch-likely preload (bnezl at 0x50 with delay-slot
  * `lw v1, 0x40(s2)` preloading v1 for next iteration's body at 0x2C).
  *
  * Logic: for i in [0, a0->0x3C): call (a0->0x40)->0x28->0x4C as fn ptr,
@@ -391,7 +391,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #endif
 
 #ifdef NON_MATCHING
-/* Sibling of timproc_uso_b5_func_0000A97C — same 23-insn loop with branch-
+/* 72.21% NM. Sibling of timproc_uso_b5_func_0000A97C — same 23-insn loop with branch-
  * likely preload of v1 in bnezl delay slot. Different offsets:
  *   A97C: fn_ptr at slot->0x28->0x4C, short_arg at slot->0x28->0x48
  *   A9EC: fn_ptr at slot->0x28->0x64, short_arg at slot->0x28->0x60
@@ -642,7 +642,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CEB4);
 
 #ifdef NON_MATCHING
-/* Sibling of A97C/A9EC family — same 23-insn loop with branch-likely
+/* 72.21% NM. Sibling of A97C/A9EC family — same 23-insn loop with branch-likely
  * preload structural cap. Different outer offsets (this variant):
  *   count: a0->0x6C (was a0->0x3C in A97C)
  *   slot ptr: a0->0x3C (was a0->0x40 in A97C)
@@ -670,7 +670,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #endif
 
 #ifdef NON_MATCHING
-/* Sibling of A97C/A9EC/D06C — same 23-insn loop with branch-likely
+/* 72.21% NM. Sibling of A97C/A9EC/D06C — same 23-insn loop with branch-likely
  * preload cap. Outer offsets same as D06C (count=a0->0x6C, slot=a0->0x3C);
  * inner offsets fn ptr=slot->0x28->0xE4, short arg=slot->0x28->0xE0
  * (vs D06C's 0x4C/0x48). */
