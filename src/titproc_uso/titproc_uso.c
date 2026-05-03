@@ -398,7 +398,41 @@ void titproc_uso_func_00001E2C(char *a0) {
     gl_func_00000000(&D_00000000, 0, 0, 0x13F, 0xEF, 0x10001);
 }
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00001E9C: 245-insn (0x3D4) titproc constructor.
+ * Frame: -0x40 (0x40 stack frame). 3-arg constructor (a0, a1, a2)
+ * spilled to caller slots at +0x44/+0x48/+0x4C.
+ *
+ * ENTRY DECODE (first ~10 insns @ 0x1E9C-0x1EC8):
+ *   prologue: addiu sp,-0x40; sw ra,0x24; sw s0/s1,0x1C/0x20
+ *   spill s1 = a0
+ *   spill a1/a2/a3 to caller slots
+ *   if (a0 == NULL) {
+ *     a0 = alloc(0x6C8);             // bne a0,zero skips this
+ *     if (a0 == NULL) goto end;      // beq v0,zero,+0xE3 (very far)
+ *     s1 = v0;                        // s1 = alloc result
+ *   }
+ *   if (a1 != NULL) {                 // bne s1, zero, +5
+ *     a1 = a1;
+ *   } else {
+ *     a1 = alloc(0x6A8);
+ *     if (a1 == NULL) goto end;
+ *     s0 = v0;
+ *   }
+ *   ...
+ *
+ * Multi-iter sub-allocator follows (~200+ insns of nested alloc+init).
+ * Per project_1080_strategy.md: defer big constructors until structs
+ * are typed. Multi-tick decomp expected. Stub body so wrap parses;
+ * default build INCLUDE_ASM matches. */
+void titproc_uso_func_00001E9C(void *a0, void *a1, void *a2) {
+    /* TODO: 3-stage alloc-or-use entry (0x6C8 main, 0x6A8 child, ...);
+     * ~200 insns of sub-alloc loop with template inits. */
+    (void)a0; (void)a1; (void)a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001E9C);
+#endif
 
 void titproc_uso_func_00002270(int a0, int *a1) {
     int v = *a1;
