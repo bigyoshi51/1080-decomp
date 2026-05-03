@@ -1601,9 +1601,16 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
  *
  * Tried (2026-04-20, 13+ variants): literal, local, volatile, negate, cast,
  * union punning, arg-ignore. Tried (2026-05-02): leading-% backfill per
- * feedback_nm_wrap_must_include_pct.md. Real fix likely requires either a
- * permuter run or restructuring 7A98 to absorb 7ABC's tail (also blocked
- * per 7A98's wrap). Structurally locked — accept as cap. */
+ * feedback_nm_wrap_must_include_pct.md.
+ *
+ * Tried (2026-05-03, 4 more): `volatile float zero` produces stack roundtrip
+ * (sw + lwc1, wrong shape); `extern float gl_zero` produces lui+lwc1 (wrong
+ * shape); `0.0f * 0.0f` and `float a=0; float b=a;` both fold to single
+ * `mtc1 zero,$f0` (target shape requires $f2 intermediate); union FI {f,i}
+ * produces stack roundtrip. ALL 17 variants confirm the cap — IDO -O2 has
+ * no C-level path to a free-standing `mtc1 $0,$f2 / mov.s $f0,$f2` (the
+ * intermediate $f2 only appears as a result of cross-function tail-share
+ * with 7A98, which is itself blocked). Structurally locked. */
 float game_uso_func_00007ABC(void) {
     return 0.0f;
 }
