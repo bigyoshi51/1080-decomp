@@ -237,19 +237,25 @@ void timproc_uso_b3_func_000021B0(void) {
 }
 
 #ifdef NON_MATCHING
-/* 88.6 % NM wrap. Mirror of sibling timproc_uso_b3_func_000021B0:
+/* 89.47 % NM wrap (verified clean unwrapped build 2026-05-02 with land
+ * script's report.json, NOT the prior 88.6% comment which was stale).
+ * Mirror of sibling timproc_uso_b3_func_000021B0:
  *   gl_func(gl_ref_00000208); gl_ref_00000040 = 6; gl_func(gl_ref_020C, -1, 0)
- * Logic correct. Body emit matches first 17 insns of target's 19-insn
- * symbol (size 0x4C). The trailing 8 bytes (`lui $a0, 0; lw $a0, 0x148($a0)`)
- * are the stolen prologue for successor func_00002240, captured in the
- * accompanying _pad.s but not folded into 21F4's symbol size. To reach
- * exact, need either (a) symbol-grow recipe to extend 21F4's st_size by
- * 8 bytes (mirror of TRUNCATE_TEXT), or (b) move the pad to 22240's
- * decomp side via PROLOGUE_STEALS.
  *
- * Remaining 11 % is reloc-name diff: target uses split symbols
- * D_00000208 / D_0000020C / D_00000040; mine uses gl_ref_* aliases that
- * resolve to the same addresses — bytes match post-link. */
+ * Pre-link diff: my `gl_ref_00000208` symbol resolves to absolute 0x208
+ * via undefined_syms_auto.txt, so the `lw a0, 0(a0)` instruction has
+ * offset=0 baked + R_MIPS_LO16 reloc that computes 0x208 at link time.
+ * Target's `lw a0, 0x208(a0)` has offset=0x208 baked + reloc to
+ * D_00000000 directly. POST-LINK bytes are identical, but objdiff
+ * compares pre-link .o bytes and DOES NOT tolerate this offset-in-symbol
+ * vs offset-in-immediate distinction (only tolerates same-address
+ * symbol-name diffs, per feedback_objdiff_reloc_tolerance.md).
+ *
+ * 2026-05-02 TRIED `*(int*)((char*)&D_00000000 + 0x208)` form — that
+ * makes IDO CSE the &D base into $v0 (lui+addiu+sw t6,0x40(v0); lw a0,
+ * 0x20C(v0)) which target doesn't do. Regressed to <89%. Cap stands.
+ * Trailing 8 bytes (lui a0; lw a0, 0x148(a0)) are stolen prologue for
+ * successor func_00002240 (already PROLOGUE_STEALS=8 in Makefile). */
 void timproc_uso_b3_func_000021F4(void) {
     gl_func_00000000(gl_ref_00000208);
     gl_ref_00000040 = 6;
