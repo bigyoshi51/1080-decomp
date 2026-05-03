@@ -332,14 +332,18 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  *   p1 = a0->0x2C; p2 = p1->0x28;
  *   ((fn*)p2->0x5C)(p2->0x58_short + p1);
  *
- * Remaining 2.5 %: $v0/$v1 reg-swap on the p1/p2 named locals (mine
- * v0=p1,v1=p2 vs target v1=p1,v0=p2). Verified 2026-05-02:
- *   - decl-order swap (p2 declared first) — no change, 97.5%
- *   - full inlining — regresses to 97.08% with addu operand swap
- *   p2 has 3 refs vs p1's 1 ref; p2 SHOULD have higher allocator priority
- *   per global.c weight formula but IDO assigns first-seen to lower reg.
- *   Per feedback_ido_sreg_order_not_decl_driven.md: source-decl reorder
- *   doesn't flip $v swap. Pure regalloc cap; not C-controllable. */
+ * Re-verified 2026-05-02 with clean unwrapped build (exit=0, fresh .o
+ * mtime — see feedback_dnonmatching_with_wrap_intact_false_match.md):
+ *   built: lw v0,0x2C(a0); lw v1,0x28(v0); lw t9,0x5C(v1); lh t6,0x58(v1); ...
+ *   target: lw v1,0x2C(a0); lw v0,0x28(v1); lw t9,0x5C(v0); lh t6,0x58(v0); ...
+ * Pure $v0/$v1 swap on (p1, p2). p1 is first-loaded → IDO assigns $v0
+ * (lowest free $v); target assigns it $v1. The swap can't be flipped
+ * from C because:
+ *   - p1 must be computed before p2 (p2 = p1->0x28, data dependency)
+ *   - first-loaded value gets the lowest free register
+ *   - decl-order reorder is a no-op (per feedback_ido_sreg_order_not_decl_driven.md)
+ *   - inlining one of them regresses (97.08 % w/ addu operand swap)
+ * Pure regalloc cap; not C-controllable. */
 void timproc_uso_b5_func_00008F98(char *a0) {
     int p1 = *(int*)(a0 + 0x2C);
     int *p2 = *(int**)((char*)p1 + 0x28);
