@@ -244,7 +244,53 @@ void arcproc_uso_func_000009CC(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+/* arcproc_uso_func_00000A3C: 205-insn (0x334) constructor — dual
+ * alloc-or-passthrough + main initialization body.
+ *
+ * ENTRY DECODE (insns 0-15 @ 0xA3C-0xA84):
+ *   Frame -0x40, saves s0/s1/ra, spills a1/a2/a3 to caller-arg slots.
+ *   s1 = a0 ? a0 : alloc(0x780)            ; if alloc fails, return (far jump)
+ *   s0 = a1 ? a1 : alloc(0x6A8)            ; if alloc fails, recover at +0x1F
+ *
+ * Both alloc-or-passthrough patterns per
+ * feedback_ido_alloc_or_passthrough_ternary.md but using s-regs (not v1)
+ * because the values survive across many calls in the body.
+ *
+ * BODY (~190 insns @ 0xA88+): chained gl_func dispatch on the constructed
+ * objects, multiple field initializations with constant pointers loaded
+ * via lui+addiu chains (likely D_arcA3C_a/b/c globals = unique externs
+ * needed). Returns the bigger struct (0x780 bytes) at s1.
+ *
+ * Multi-tick decomp expected. Default INCLUDE_ASM build remains exact.
+ * NM build will be partial until full body decode + unique-extern
+ * setup. Stub body documents the alloc-or-passthrough entry only. */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int gl_func_TODO_arcA3C_body();
+void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3) {
+    int *s1 = a0;
+    int *s0;
+    if (s1 == 0) {
+        s1 = (int*)gl_func_00000000(0x780);
+        if (s1 == 0) return 0;
+    }
+    s0 = (int*)a1;
+    if (s0 == 0) {
+        s0 = (int*)gl_func_00000000(0x6A8);
+        if (s0 == 0) {
+            /* TODO: alloc-2 fail recovery path */
+            return s1;
+        }
+    }
+    /* TODO: ~190 insns of body — chained gl_func dispatch on s0/s1 with
+     * field initializations from D_arcA3C globals. */
+    (void)a2; (void)a3;
+    gl_func_TODO_arcA3C_body();
+    return s1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000D70);
 
