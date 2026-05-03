@@ -669,7 +669,31 @@ void timproc_uso_b5_func_0000D06C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D06C);
 #endif
 
+#ifdef NON_MATCHING
+/* Sibling of A97C/A9EC/D06C — same 23-insn loop with branch-likely
+ * preload cap. Outer offsets same as D06C (count=a0->0x6C, slot=a0->0x3C);
+ * inner offsets fn ptr=slot->0x28->0xE4, short arg=slot->0x28->0xE0
+ * (vs D06C's 0x4C/0x48). */
+void timproc_uso_b5_func_0000D0DC(char *a0) {
+    int i;
+    char *p;
+    int *v1;
+    int *v0;
+
+    if (*(int*)(a0 + 0x6C) <= 0) return;
+    p = a0;
+    i = 0;
+    do {
+        v1 = *(int**)(a0 + 0x3C);
+        v0 = *(int**)((char*)v1 + 0x28);
+        (*(int(**)())((char*)v0 + 0xE4))(*(short*)((char*)v0 + 0xE0) + (int)v1);
+        i++;
+        p += 4;
+    } while (i < *(int*)(a0 + 0x6C));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D0DC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D14C);
 
