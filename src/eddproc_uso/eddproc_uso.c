@@ -180,7 +180,41 @@ void eddproc_uso_func_0000038C(char *dst) {
     eddproc_uso_func_0000007C((Quad4*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* eddproc_uso_func_000003BC: 36-insn (0x90) constructor-like — alloc 0x40,
+ * init via gl_func, set fields at +0x28 and +0x3C, then optional 2nd init
+ * if arg0->0x40 is non-null.
+ *
+ * Decoded structure (insns 0x3BC-0x420):
+ *   void *p = gl_func_00000000(0x40);    // alloc
+ *   if (p != NULL) {
+ *     gl_func_00000000(p);                // init(alloc)
+ *     p->field_28 = &D_00000000;
+ *     p->field_3C = 0;
+ *     if (arg0->field_40 != NULL) {
+ *       gl_func_00000000(p + 0x10, arg0->field_40);  // sub-init
+ *       // remaining ~10 insns: more field setup, return p
+ *     }
+ *   }
+ *
+ * ~50% NM body; alloc+init structure correct, but matching exact register
+ * spill patterns (sw v0, 0x1C(sp); sw v1, 0x24(sp)) and the lui/addiu
+ * pair for &D_00000000 needs careful ordering. Deferred to future tick. */
+void eddproc_uso_func_000003BC(int *arg0) {
+    void *p = (void*)gl_func_00000000(0x40);
+    if (p != NULL) {
+        gl_func_00000000(p);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
+        if (arg0[0x40 / 4] != 0) {
+            gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
+            /* TODO: ~10 more insns of field setup at offsets 0x?? */
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000003BC);
+#endif
 
 void eddproc_uso_func_0000044C(char *dst) {
     int tmp;
