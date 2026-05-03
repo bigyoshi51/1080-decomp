@@ -709,8 +709,22 @@ void game_uso_func_00001DC4(void *a0) {
  * insns; cumulative decode now covers ~50 insns. ~300 insns remain stubbed
  * via gl_func_TODO_00001DDC.
  *
- * 2026-05-03 STRUCTURAL DECODE of two more sub-blocks (no C added yet, regs
- * lack source-tracing context but pattern is clear):
+ * 2026-05-03 EXTENDED DECODE of 0x1F00-0x1FAC (45 insns): NORMALIZE-WITH-CLAMP
+ * pattern. Computes squared distance from (self_v + delta_v) at sp+0x110/4/8
+ * to sp+0x130/4/8 (the "ref_v"), passes (dx²+dy²+dz²) as f12 to a gl_func
+ * (likely fsqrt or fmin), saves result at sp+0x10C, reloads as f16 = magnitude.
+ * Then `c.lt.s f16, a2->0x7C` (compare to entity's "max distance" field at
+ * +0x7C) and bc1fl to choose between (mag - max) and (mag - mag) — the
+ * branch-likely form is a CLAMPING idiom: if magnitude > max, scale by
+ * (magnitude - max)/magnitude (overshoot correction); else by 0.
+ * Result is multiplied into each component of self_v (sp+0x110/4/8) and
+ * stored at sp+0xDC/0xE0/0xE4 — the "corrected position offset" Vec3.
+ * Fingerprint matches `feedback_fpu_basis_function_signatures.md` "spring
+ * with clamped overshoot" idiom (common in 1080's physics layer for
+ * tethered-snowboarder-to-track or AI-following-leader behaviors).
+ *
+ * 2026-05-03 ADDITIONAL STRUCTURAL DECODE of two more sub-blocks (no C added
+ * yet, regs lack source-tracing context but pattern is clear):
  *   - 0x1FB0-0x1FD4 (10 insns): TWO-DESTINATION Vec3-copy pattern. Reads 3
  *     words from $t1 and stores to BOTH $a3 and $v1 (`lw t3,0(t1); sw t3,0(a3);
  *     ... ; sw t3,0(v1); ...`). Likely "set entity sub-struct position
