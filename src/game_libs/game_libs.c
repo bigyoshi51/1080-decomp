@@ -13,7 +13,38 @@ int gl_func_00000308(char *a0) {
     return gl_func_00000000(a0 + 0x124);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00000338: 50-insn time/value formatter. Two divs (a1 / 60000,
+ * remainder / 1000), each guarded by IDO -O2's standard div-by-zero +
+ * INT_MIN-overflow trap insns (`teq zero, 0x7000` and `teq zero, 0x6000`).
+ * Then calls a sprintf-like callee with format string at &D_8000_0xCB08
+ * and args (a2 = quotient1, ?, ?).
+ *
+ * Decoded structure (semantics partially uncertain — the second use of
+ * `subu` looks like ms - quotient_minutes, which doesn't cleanly map to
+ * ms→MM:SS:hh; may be a different formula like a base/offset transform):
+ *
+ *   void f(char *out, unsigned a1) {
+ *       unsigned mins = a1 / 60000;     // 0xEA60 = 60000
+ *       unsigned rem = a1 - mins;       // not %, literal subtraction
+ *       unsigned secs = rem / 1000;     // 0x3E8 = 1000
+ *       unsigned ms_part = rem - secs * 10;  // some scaling
+ *       sprintf(out + 0xE4, FORMAT_8000_CB08, mins, secs, ms_part);
+ *   }
+ *
+ * Multi-tick decompile; this captures structural decode for future
+ * pass to refine formula + match the format-arg passthrough. */
+extern int gl_func_00000000();
+void gl_func_00000338(char *a0, unsigned a1) {
+    unsigned mins = a1 / 60000;
+    unsigned rem = a1 - mins;
+    unsigned secs = rem / 1000;
+    unsigned ms_part = rem - secs * 10;
+    gl_func_00000000(a0 + 0xE4, (char*)&D_00000000 + 0xCB08, mins, secs, ms_part);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000338);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000400);
 
