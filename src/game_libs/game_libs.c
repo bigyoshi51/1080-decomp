@@ -854,7 +854,37 @@ void gl_func_0000DDE0(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
 }
 
+#ifdef NON_MATCHING
+/* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0 / gl_func_0003CB2C).
+ * Same shape as DDE0; only the immediate `local` differs (0x3EA vs 0x3EB).
+ *
+ * 90.85 % NM 2026-05-03. Two structural diffs vs original ROM:
+ *   (a) Frame size 0x28 (mine) vs 0x38 (target) — IDO allocates only what's
+ *       needed; target has 16 unused bytes. `int pad[2]` lifts to 0x30 (still
+ *       short by 8). `int pad[4]` may land 0x38 — untried this pass.
+ *   (b) IDO emits `sw a1, 0x2C(sp)` (caller arg-spill) early; target doesn't
+ *       spill a1 at all (it's overwritten by `addiu a1, sp, ...` before any
+ *       jal). Plus reg pattern differs: mine has p in $v0 / inner in $t0 /
+ *       adj in $a2; target has p in $v1 / inner in $v0 / adj in $t0, with
+ *       `addu a0, t0, v1` (target) vs `addu a0, v0, a2` (mine).
+ *
+ * NOTE: the previously-landed gl_func_0000DDE0 has these SAME diffs vs its
+ * original ROM, but its expected/.o was refresh-expected'd to the C-emit form,
+ * landing it as "exact" against an INCORRECT baseline. Per
+ * feedback_refresh_expected_for_extern_reloc_match.md, refresh-expected is
+ * only valid for reloc-form diffs (extern symbol naming) — not for actual
+ * instruction-byte diffs like this. NM-wrap here preserves the partial C
+ * without propagating the bad-baseline pattern. */
+void gl_func_0000DE30(int **a0, int a1) {
+    int local = 0x3EB;
+    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
+    int *p = *base;
+    short adj = *(short*)((char*)p[0x28/4] + 0x28);
+    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
 
