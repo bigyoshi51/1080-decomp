@@ -80,7 +80,49 @@ void mgrproc_uso_func_000000B0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000B0);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_000000F8: 5-function BUNDLE (0xA4 / 41 insns total).
+ * Splat couldn't separate sub-functions (no inter-function relocs in
+ * Yay0-compressed mgrproc_uso). 5 distinct jr-ra sequences inside the
+ * declared symbol size:
+ *
+ *   F1 @ 0xF8-0x13C: 16 insns / 0x44 — main body. Decrement a0[0], then
+ *      call gl_func_00000000(a0). -O0 emit (frame -0x28, sw a0 to caller
+ *      slot at +0x28, reload via s0 then again into a0, unfilled jal
+ *      delay, dead `b +1; nop` BBL marker). Same -O0 cap class as
+ *      mgrproc_uso_func_000000B0 sibling (both are "mutate-and-call"
+ *      shapes at -O0).
+ *
+ *   F2 @ 0x140-0x164: 9 insns / 0x28 — leaf function returning
+ *      (a0[1] == a0[2]) ? 1 : 0. NO prologue (leaf). bne t6,t7,+4 form.
+ *
+ *   F3 @ 0x168-0x16C: 2 insns / 0x8 — empty `void f(void) {}`.
+ *
+ *   F4 @ 0x170-0x190: 9 insns / 0x24 — leaf returning (a0[0] == 0) ? 1 : 0.
+ *      NO prologue. bne t6,0,+4 form. Sibling of F2 with one fewer load.
+ *
+ *   F5 @ 0x194-0x198: 2 insns / 0x8 — empty `void f(void) {}` trailer.
+ *
+ * BLOCKED for split: mgrproc_uso is Yay0-compressed (per
+ * feedback_uso_yay0_compressed.md). Per
+ * feedback_uso_split_fragments_breaks_expected_match.md, running
+ * split-fragments.py on a USO function makes the build emit new symbols
+ * but expected/.o keeps the OLD bundled symbol — match drops to 0%
+ * across affected symbols even though .text bytes are identical. SAFE
+ * SUFFIX_BYTES recipe (per feedback_suffix_bytes_for_bundled_empty_trailers.md)
+ * applies only to bundles where ALL trailers are empty `jr ra; nop` — F2/F4
+ * are non-empty 9-insn leafs, so this bundle can't use that recipe.
+ *
+ * Default INCLUDE_ASM build keeps ALL 5 functions matching via the bundled
+ * symbol. Wrap captures F1 body (the only non-leaf, non-empty content) for
+ * grep discoverability and as a sibling of mgrproc_uso_func_000000B0. */
+void mgrproc_uso_func_000000F8(int *a0) {
+    a0[0]--;
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000019C);
 
