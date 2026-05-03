@@ -902,7 +902,20 @@ void gl_func_0000DE80(int **a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
 #endif
 
+#ifdef NON_MATCHING
+/* Sibling of gl_func_0000DDE0/DE30/DE80/0003CB2C (20-insn indirect dispatcher).
+ * local = 0x3E9; otherwise byte-identical structure. Same 90.85% NM cap as
+ * DE30/DE80 — see DE30 wrap notes. */
+void gl_func_0000DED0(int **a0, int a1) {
+    int local = 0x3E9;
+    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
+    int *p = *base;
+    short adj = *(short*)((char*)p[0x28/4] + 0x28);
+    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DED0);
+#endif
 
 int gl_func_0000DF20_inner(int a0, int a1);
 
