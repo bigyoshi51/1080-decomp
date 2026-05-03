@@ -1868,22 +1868,28 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
         ((float*)out)[2] = local_144[2];
     }
 
-    /* @ 0x9CB4-0x9CD0: first FPU block — neg.s on local_144[0]:
-     *   mtc1 zero, f4; lwc1 f0, 0x144(sp); lwc1 (f2 from 0x14C);
-     *   neg.s f2, f0; swc1 f0/f2/f4 to v1.
-     * Skipped: depends on `v1` from earlier alloc result. */
-
-    /* @ 0x9CD0-0x9DC4: ~58 insns including 4th cross-call at 0x9CFC and
-     *   the screen-space transform: local_12C[0..2] = (loaded 250.5f, 50.0f
-     *   scale/offset constants from 0x9D0C/0x9D1C) applied to a Vec3 from
-     *   (a2 -> 0x18 -> +0x54) chain (transformed-position lookup against
-     *   a sub-object). Result stored to sp+0x12C..sp+0x140 — 6-float/2-Vec3
-     *   block, likely orientation + delta. Not yet C-decoded.
+    /* @ 0x9CB4-0x9CCC: first FPU block — populates the just-allocated `out`
+     * with a rotated/negated Vec3 from local_144 (XZ-swap + X-negation,
+     * effectively rot-90 around Y):
+     *   out[0] = local_144[2];     // x = z-input
+     *   out[1] = 0;                // y zero
+     *   out[2] = -local_144[0];    // z = -x-input
+     *
+     * Tried 2026-05-03 to add this block as concrete C — REGRESSED 17.92→8%.
+     * Adding a SECOND `if (out != 0) { writes }` block confuses IDO about the
+     * dataflow on `out` (it shares the named local with the prior block's
+     * writes, breaking register allocation across the transition). Will need
+     * either a separate named local for the rotated-result buffer, OR the
+     * full body-part-2 dispatch decoded together so the 5+ alloc results
+     * have distinct names. Keep documented for next pass.
+     *
+     * @ 0x9CD0-0x9DC4: word-copy `out` Vec3 into local_138/EC, 4th cross-call,
+     * word-copy local_138 → local_12C, then screen-space transform with
+     * 250.5f/50.0f constants applied to a Vec3 from (a2->0x18->+0x54).
+     * Result stored to sp+0x12C..sp+0x140 (6-float / 2-Vec3 block).
      *
      * @ 0x9DC4-0x10E8: body-part-2 final, 240+ insns + ~8 cross-USO calls.
-     *   TODO: future passes will decompose the per-block math chains.
-     *   The 250.5/50.0 constants confirm screen-space coordinate transform
-     *   (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset). */
+     *   TODO: future passes will decompose the per-block math chains. */
     (void)local_12C;
     (void)local_19C;  /* suppress unused warnings until body-part-2 done */
     (void)local_EC;
