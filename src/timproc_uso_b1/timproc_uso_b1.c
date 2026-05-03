@@ -225,7 +225,33 @@ void timproc_uso_b1_func_00001EA4(char *dst) {
     timproc_uso_b1_func_000008B4((Quad4*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_00001ED4: 36-insn (0x90) constructor — BYTE-IDENTICAL
+ * mirror of eddproc_uso_func_000003BC (sig=f167638a8a, 4th clone of this
+ * family). Same alloc + init + list-add structure with beql speculative
+ * double-store. ~60% NM cap inherited. Multi-tick decomp.
+ *
+ * Find via: scripts/find-byte-identical-clones.py */
+void timproc_uso_b1_func_00001ED4(int *arg0) {
+    void *p = (void*)gl_func_00000000(0x40);
+    if (p != NULL) {
+        gl_func_00000000(p);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
+        if (arg0[0x40 / 4] != 0) {
+            int rv = gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
+            if (rv != 0) {
+                int **slot = (int**)((char*)arg0[0x40 / 4] + 0x14);
+                *slot = (int*)p;
+                *(int*)((char*)p + 0x4) = 1;
+                *slot = (int*)p;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001ED4);
+#endif
 
 void timproc_uso_b1_func_00001F64(char *dst) {
     int tmp;
