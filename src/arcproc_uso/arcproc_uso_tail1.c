@@ -364,6 +364,34 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EB
  * INCLUDE_ASM build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F50);
 
+/* arcproc_uso_func_00000FA8: 114-insn (0x1C8) state-machine dispatcher.
+ * 3-way switch on a0->0x504 (state code) with cases 0, 1, 4 + default.
+ *
+ * ENTRY DECODE (insns 0-15 @ 0xFA8-0xFE4):
+ *   Frame -0x30, saves s0/s1/ra
+ *   s0 = a0->0x504                     ; state code
+ *   s1 = a0                            ; saved input
+ *   if (s0 == 0) goto case_0           ; delay-likely loads a0->0x6AC
+ *   if (s0 == 1) goto case_1           ; @ +0x2A
+ *   if (s0 == 4) goto case_4           ; @ +0x59 delay-likely loads a0->0x6A8
+ *   default: b far_end                 ; no-op return path
+ *
+ * CASE 0 BODY (insns ~16-30 @ 0xFE8-0x1024): updates a0->0x6B0/B4/B8 from
+ * a0->0x6AC's nested fields (0x44/0x14/0x40), increments a counter at
+ * 0x6B4 and copies the value to 0x4D8.
+ *
+ * CASE 1 BODY (~insns 30-65 @ 0x1028-0x10B0): chained gl_func calls and
+ * field updates on a0->0x6AC subtree. Includes a `jal 0` with arg5=7 and
+ * post-call processing.
+ *
+ * CASE 4 BODY (~insns 65-100): deferred decode.
+ *
+ * EPILOGUE (insns ~100-114 @ 0x1180-0x116C): convergence point loading
+ * ra/s0/s1 + addiu sp, jr ra.
+ *
+ * Multi-tick refinement target — entry decode is forward progress
+ * documenting the dispatch structure. Default INCLUDE_ASM build remains
+ * exact. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA8);
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001170);
