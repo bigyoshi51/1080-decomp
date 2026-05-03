@@ -88,7 +88,25 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000005C
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000688);
 
+#ifdef NON_MATCHING
+/* 27-insn cleanup wrapper. Calls gl_func twice (a0->8, a0->0); zeroes
+ * a0->8, a0->0, and D[0x14C]. -O0 indicators in target asm: unfilled
+ * jal delay slots (0x20, 0x80) + `b +1; nop` BBL marker at 0x98. The
+ * standard -O2 form below produces the right logic but mismatches on
+ * delay-slot fill + missing BBL marker (~50% cap). Per the bootup_uso
+ * O0-runs pattern (see project_1080_bootup_uso_o0_runs.md), this would
+ * need per-function -O0 override + file split. Keep wrap for grep
+ * discoverability + reference. Mirror of h2hproc_uso_func_00000274. */
+void arcproc_uso_func_00000748(int *a0) {
+    gl_func_00000000((int*)a0[2]);
+    a0[2] = 0;
+    gl_func_00000000((int*)a0[0], 3);
+    a0[0] = 0;
+    *(int*)((char*)&D_00000000 + 0x14C) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000748);
+#endif
 
 void arcproc_uso_func_000007B4(void) {
     gl_func_00000000(*(int*)&D_00000000);
