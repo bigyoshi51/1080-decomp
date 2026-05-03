@@ -55,7 +55,25 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000005A4);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_0000065C: byte-identical mirror of
+ * timproc_uso_b3_func_0000065C (sig=a72e6305e1). Same -O0-cap class.
+ * BLOCKED by Yay0 pipeline (timproc_uso_b1 is also compressed; file-split
+ * recipe doesn't apply). Default build INCLUDE_ASM matches; wrap is for
+ * grep discoverability per the established -O0-cap pattern.
+ *
+ *   gl_func_00000000((int*)a0[0], 3);
+ *   a0[0] = 0;
+ *   *(int*)((char*)&D_00000000 + 0x14C) = 0;
+ */
+void timproc_uso_b1_func_0000065C(int *a0) {
+    gl_func_00000000((int*)a0[0], 3);
+    a0[0] = 0;
+    *(int*)((char*)&D_00000000 + 0x14C) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_0000065C);
+#endif
 
 extern int D_b1_06B0_a;
 extern char *D_b1_06B0_b;
