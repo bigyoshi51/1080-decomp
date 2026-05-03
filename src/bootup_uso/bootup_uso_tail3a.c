@@ -169,7 +169,29 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011D78);
 void func_00011DB4(void) {
 }
 
+#ifdef NON_MATCHING
+/* Sibling of func_00011D78 — byte-identical structure, reads p[1] (.y)
+ * instead of p[0] (.x). Same -O0 cluster blocker (3 separate jr ra exits,
+ * no shared epilogue). 15 insns / 0x3C.
+ *
+ * Structure:
+ *   if (a0->0x18C != 0) return 0.0f;
+ *   idx = a0->0x128;
+ *   p = (float*)a0[+0xE0 + idx*4];   // pointer-array + index
+ *   return p[1];                     // .y component
+ *
+ * Same O0-split-blocked cluster as adjacent func_00011C70/CA4/D78. */
+float func_00011DBC(int *a0) {
+    int idx;
+    float *p;
+    if (*(int*)((char*)a0 + 0x18C) != 0) return 0.0f;
+    idx = *(int*)((char*)a0 + 0x128);
+    p = *(float**)((char*)a0 + idx * 4 + 0xE0);
+    return p[1];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011DBC);
+#endif
 
 void func_00011DF8(void) {
 }
