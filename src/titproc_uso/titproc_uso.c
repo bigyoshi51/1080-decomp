@@ -4,7 +4,18 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000000);
+/* K&R-style def: function name doubles as placeholder for unresolved
+ * intra-USO jals elsewhere in the file (called with 1-arg sig at func_26D0).
+ * K&R `()` decl + K&R def = no sig conflict. */
+void titproc_uso_func_00000000()
+{
+    gl_func_00000000(&D_00000000, 4);
+    gl_func_00000000(&D_00000000 + 0x18, 5);
+    gl_func_00000000(&D_00000000 + 0x78, 2);
+    gl_func_00000000(&D_00000000 + 0x90, 0);
+    gl_func_00000000(&D_00000000 + 0x30, ((*(int*)&D_00000000 + 0x31) << 16) | 9);
+    gl_func_00000000(&D_00000000 + 0x48, ((*(int*)&D_00000000 + 0x31) << 16) | 0xA);
+}
 
 void titproc_uso_func_00000098(void) {
     gl_func_00000000(&D_00000000 + 0x60, 1);

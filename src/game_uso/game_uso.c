@@ -1,6 +1,6 @@
 #include "common.h"
 
-/* File-top canonical decls (hoisted out of #ifdef NON_MATCHING blocks
+/* File-top canonical decls (hoisted out of NM-wrap blocks
  * so DNM build doesn't see redecls — see
  * feedback_game_uso_dnm_typedef_inside_ifdef.md). */
 extern int gl_func_00000000();
