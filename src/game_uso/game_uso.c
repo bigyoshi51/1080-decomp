@@ -1607,9 +1607,20 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
  * (sw + lwc1, wrong shape); `extern float gl_zero` produces lui+lwc1 (wrong
  * shape); `0.0f * 0.0f` and `float a=0; float b=a;` both fold to single
  * `mtc1 zero,$f0` (target shape requires $f2 intermediate); union FI {f,i}
- * produces stack roundtrip. ALL 17 variants confirm the cap — IDO -O2 has
- * no C-level path to a free-standing `mtc1 $0,$f2 / mov.s $f0,$f2` (the
- * intermediate $f2 only appears as a result of cross-function tail-share
+ * produces stack roundtrip.
+ *
+ * Tried (2026-05-03, 5 more): pointer-deref-of-local
+ * `f32 a; f32 *p=&a; *p=0.0f; return *p;` is the closest yet — emits
+ * `mtc1 zero,$f2; jr ra; mov.s $f0,$f2` (3 of 4 target insns IN ORDER, but
+ * missing the nop between mtc1 and jr ra). Adding `volatile` to local /
+ * pointer / store all introduce a stack roundtrip (sw+lwc1) that breaks the
+ * shape entirely. The missing nop is reorg.c filling the delay slot with
+ * mov.s; no C-level lever to suppress the fill. Even with the closer shape,
+ * size shrinks to 0xC vs target 0x10, breaking layout.
+ *
+ * ALL 22 variants confirm the cap — IDO -O2 has no C-level path to a
+ * free-standing `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` (the nop in pos 1
+ * is a delay-slot non-fill that only happens via cross-function tail-share
  * with 7A98, which is itself blocked). Structurally locked. */
 float game_uso_func_00007ABC(void) {
     return 0.0f;
