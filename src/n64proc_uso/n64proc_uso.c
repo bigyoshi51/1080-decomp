@@ -130,7 +130,20 @@ extern char D_00000000;
  * (14) TRIED 2026-05-03: `register int *baseAt40 = (int*)(base + 0x40)` as
  * a separate $s-reg holding the precomputed pointer — same 74.49 %, IDO
  * either constant-folds baseAt40 (since base is constant) OR allocates it
- * to its own $s-reg without changing the loop_tail load shape. */
+ * to its own $s-reg without changing the loop_tail load shape.
+ *
+ * (15) TRIED 2026-05-03: `if ((int)base == 0) flag = 0;` no-op use of base
+ * inserted at body1 tail to keep base live to loop_tail — REGRESSED to
+ * 66.97 %. Adds a beq branch that throws off the dispatch arrangement.
+ *
+ * (16) CONFIRMED 2026-05-03: `__asm__ volatile(...)` inline asm REJECTED
+ * by IDO cfe with "Syntax Error" — IDO does not parse the GCC inline-asm
+ * extension at any form. Cannot use inline asm to force the loop_tail
+ * load shape. Documented in feedback_ido_no_asm_barrier.md (existing) +
+ * feedback_ido_constant_address_load_fold_inevitable.md (new this session).
+ *
+ * 16 variants total. Cap is structural per IDO -O2 constant-fold pass on
+ * fixed-extern-derived pointer addresses. NM-only — accept. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
