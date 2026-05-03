@@ -240,7 +240,24 @@ void timproc_uso_b1_func_00001FA0(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
+#ifdef NON_MATCHING
+/* Mirror of timproc_uso_b3_func_000021F4 — byte-identical asm.
+ * Same shape, same 89.47% NM cap (reloc-form distinction objdiff doesn't
+ * tolerate: my reloc points to gl_ref_00000208/40/20C symbols at 0x208/0x40/0x20C,
+ * target points to D_00000000+0x208/0x40/0x20C — same post-link bytes).
+ *
+ * 22 variants tested on the b3 sibling — see b3_21F4 wrap doc for the
+ * full IDO &D-CSE / SUFFIX_BYTES-incompat analysis. Default build
+ * INCLUDE_ASM matches; this wrap captures the body for grep
+ * discoverability via the mirror pattern. */
+void timproc_uso_b1_func_00001FE4(void) {
+    gl_func_00000000(gl_ref_00000208);
+    gl_ref_00000040 = 6;
+    gl_func_00000000(gl_ref_0000020C, -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001FE4);
+#endif
 
 #ifdef NON_MATCHING
 /* 97.58 % cap (sibling of timproc_uso_b3_func_00002240, byte-identical).
