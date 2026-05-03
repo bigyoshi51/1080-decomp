@@ -2064,7 +2064,14 @@ void game_uso_func_0000D418(char *a0) {
  * IDO's first-seen-gets-lowest-number rule is invariant to the stmt shapes
  * we can write from C. Target was likely compiled from source using
  * `register int x asm("$t7")` (GCC-only; IDO rejects per feedback_ido_no_gcc_register_asm.md).
- * Cap at 97.5 %, no further C-level fix known. */
+ * Cap at 97.5 %, no further C-level fix known.
+ *
+ * 2026-05-02 NOTE: tried `register s32 c4_val = ...; register s32 c0_val = ...`
+ * with reversed load order to flip first-seen — couldn't verify because
+ * game_uso DNM build is blocked by Vec3 typedef inside #ifdef NON_MATCHING
+ * (per feedback_game_uso_dnm_typedef_inside_ifdef.md). To unblock testing
+ * this and other game_uso wraps, hoist Vec3/Tri3i typedefs and D_00000000
+ * extern OUT of the early #ifdef block to file-top. Multi-line cleanup. */
 void game_uso_func_0000D438(void *a0) {
     *(s32*)((char*)a0 + 0x64) = -1000;
     *(s32*)((char*)a0 + 0x68) = -1000;
