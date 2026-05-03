@@ -173,36 +173,44 @@ void eddproc_uso_func_0000038C(char *dst) {
 }
 
 #ifdef NON_MATCHING
-/* eddproc_uso_func_000003BC: 36-insn (0x90) constructor-like — alloc 0x40,
- * init via gl_func, set fields at +0x28 and +0x3C, then optional 2nd init
- * if arg0->0x40 is non-null.
+/* eddproc_uso_func_000003BC: 36-insn (0x90) constructor: alloc 0x40, init
+ * via gl_func, fields at +0x28 / +0x3C, optional 2nd init if arg0->0x40
+ * non-null with bnel-shared-store-in-delay pattern at end (per
+ * feedback_ido_beql_speculative_store_double_emit.md).
  *
- * Decoded structure (insns 0x3BC-0x420):
- *   void *p = gl_func_00000000(0x40);    // alloc
- *   if (p != NULL) {
- *     gl_func_00000000(p);                // init(alloc)
- *     p->field_28 = &D_00000000;
- *     p->field_3C = 0;
- *     if (arg0->field_40 != NULL) {
- *       gl_func_00000000(p + 0x10, arg0->field_40);  // sub-init
- *       // remaining ~10 insns: more field setup, return p
- *     }
- *   }
+ * Returns int* (the allocated p1). The bnel pattern at end:
+ *   if (p_field40->field_14 != 0) p_field40->field_4 = 1;
+ *   p_field40->field_14 = p1;
+ * compiles to `beqzl t8, epi / sw v1,0x14(a1) [delay-likely] / sw t9,0x4(a1)
+ * / sw v1,0x14(a1)` — the delay-likely + fall-through duplicate pattern.
  *
- * ~50% NM body; alloc+init structure correct, but matching exact register
- * spill patterns (sw v0, 0x1C(sp); sw v1, 0x24(sp)) and the lui/addiu
- * pair for &D_00000000 needs careful ordering. Deferred to future tick. */
-void eddproc_uso_func_000003BC(int *arg0) {
-    void *p = (void*)gl_func_00000000(0x40);
-    if (p != NULL) {
-        gl_func_00000000(p);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p + 0x3C) = 0;
-        if (arg0[0x40 / 4] != 0) {
-            gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
-            /* TODO: ~10 more insns of field setup at offsets 0x?? */
+ * The CONSOLIDATED if-form `if(cond){se;} common_store;` is critical here:
+ * the equivalent nested form `if(==0){store} else {se;store}` regresses to
+ * 36% via different bnezl+b-skip layout (verified). Don't refactor.
+ *
+ * Current 88.6% NM (was 52% before structural decode 2026-05-03). Residual
+ * cap is frame-size 0x28 vs mine 0x20 — target spills p1 to a separate
+ * 0x24 slot across the second jal where mine reuses 0x1C, plus reg alloc
+ * (target uses v1 to hold p1, mine uses a2). These are coupled to the
+ * frame size and likely structurally locked from C alone. */
+int *eddproc_uso_func_000003BC(int *arg0) {
+    int *p1;
+    int *p_field40;
+    p1 = (int*)gl_func_00000000(0x40);
+    if (p1 != 0) {
+        gl_func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
+        p_field40 = *(int**)((char*)arg0 + 0x40);
+        if (p_field40 != 0) {
+            gl_func_00000000((char*)p1 + 0x10, p_field40);
+            if (*(int*)((char*)p_field40 + 0x14) != 0) {
+                *(int*)((char*)p_field40 + 0x4) = 1;
+            }
+            *(int*)((char*)p_field40 + 0x14) = (int)p1;
         }
     }
+    return p1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000003BC);
