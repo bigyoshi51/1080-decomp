@@ -322,7 +322,27 @@ void h2hproc_uso_func_0000099C(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 83.00% NM. 36-insn / 0x90 indirect-table dispatcher with double-method-call
+/* 83.00% NM (cap: IDO &D base-register form). Logic verified correct by
+ * walking the asm: target's `beql t9,zero,end; lw ra (delay); sw v1,0(at)`
+ * → if (method_ptr != 0) { D[0]=a0; call(); } else early-out. Same as mine.
+ *
+ * Concrete diff (2026-05-02, after measure):
+ *   target: `lui at,0; lw v0,0x48(at); ...; sw v1,0(at)` — &D held in $at
+ *           with offset folded into lw/sw immediate (single hi-only setup,
+ *           reused for both load D[0x48] and store D[0]).
+ *   mine:   `lui t0,0; addiu t0,t0,0; lw a1,0x48(t0); ...; sw a0,0(t0)` —
+ *           &D fully computed (lui+addiu) into $t0, then offset added.
+ *
+ * Tried (this run): unique-extern aliases for D+0x190, D+0x48, D+0x0
+ * (per feedback_combine_prologue_steals_with_unique_extern.md). Regressed
+ * to 82.75% — IDO emits separate hi/lo pairs for each unique extern,
+ * losing target's single-hi-shared-base form.
+ *
+ * The hi-only-with-offset address form is IDO's choice when the base is
+ * used in narrow scope; the hi+addiu form kicks in for wider liveness.
+ * Not C-flippable for this 6-use mix. Permuter or accept cap.
+ *
+ * 36-insn / 0x90 indirect-table dispatcher with double-method-call
  * pattern. Per /decompile run: structural decode, % to be measured.
  *
  * Decoded structure:
