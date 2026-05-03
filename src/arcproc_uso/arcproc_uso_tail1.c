@@ -394,6 +394,24 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F5
  * exact. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA8);
 
+/* arcproc_uso_func_00001170: 3-FUNCTION BUNDLE (0xEC / 59 insns).
+ * Splat-bundled, can't be split per
+ * feedback_uso_split_fragments_breaks_expected_match.md.
+ *
+ * Sub-function layout (boundary = jr $ra + delay slot):
+ *   F1 @ 0x1170-0x11EC: 32 insns. Frame -0x18, dispatcher with one
+ *     gl_func call (insn 4 @ 0x1184) + conditional indirect call via jalr
+ *     (insn 23 @ 0x11D8). Pattern: load D global at lui+lw, dispatch
+ *     based on returned v0, conditional callback via t9 indexed by
+ *     ((v0+0x28) << 2) (table at *D[0x190]+0x90).
+ *
+ *   F2 @ 0x11F0-0x1224: 14 insns. Smaller dispatcher.
+ *
+ *   F3 @ 0x1228-0x1258: 14 insns. Another small dispatcher.
+ *
+ * Total bytes 0xEC (59 insns) matches declared size (rounding to
+ * alignment). All 3 sub-bodies documented for future split-with-
+ * refresh-expected attempt. Default INCLUDE_ASM build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001170);
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000125C);
