@@ -2935,7 +2935,53 @@ char *gl_func_0005FE1C(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE1C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0005FE7C: 0x98 (38 insns) — sibling of gl_func_0005FDCC (just-landed),
+ * gl_func_0005FCC4 (97% NM), gl_func_0005FD20 (92.5% NM). 0x90-byte stack frame.
+ *
+ * Decoded structure (resource-load / sprintf+open style):
+ *   1. helper1(a0+0x24, a1)               — strcpy or similar w/ a0+0x24 buffer
+ *   2. helper2(&D + 0x21C50)              — fmt/log call with format string
+ *   3. v0 = helper3(a1, &local_buf[0])    — read/parse, returns bool
+ *   4. if (v0 != 0) helper4(a0+0x24, &local_buf[0])  — conditional copy
+ *   5. if (*(int*)&D == 0) helper5(&D + 0x21C68)     — log error if global=0
+ *   6. s0[0x18/4] = 0; s0[0x14/4] = 0; s0[0x1C/4] = 0
+ *   7. helper6() — likely Yay0 or compression-related
+ *   8. s0[0x8/4] = 0
+ *   9. s0[0x10/4] = helper7() — final result store (probably handle/ptr)
+ *
+ * The bnel-with-shared-store at insn 24 (`bnel t6,zero,+4; sw zero,0x18(s0) [delay-likely]`)
+ * matches the IDO emit for `if (*ptr == 0) helper(); s0[6] = 0;`
+ * — the store at 0x18(s0) happens on BOTH paths (delay-likely on the
+ * branch-taken path, fall-through after helper on branch-not-taken).
+ *
+ * Per feedback_partial_alloc_block_add_irreversible.md, partial body adds
+ * to multi-call functions risk regression. Started with full body decoded
+ * together. Multiple `gl_func_00000000` calls with distinct args — plausible
+ * 80%+ first try, similar to gl_func_0005FD20 sibling. */
+extern int gl_func_00000000();
+void gl_func_0005FE7C(int *a0, int a1) {
+    int v0;
+    int local_buf[26];   /* sp+0x2C..sp+0x94 area, ~0x68 bytes */
+    gl_func_00000000((char*)a0 + 0x24, a1);
+    gl_func_00000000((char*)&D_00000000 + 0x21C50);
+    v0 = gl_func_00000000(a1, &local_buf[0]);
+    if (v0 != 0) {
+        gl_func_00000000((char*)a0 + 0x24, &local_buf[0]);
+    }
+    if (*(int*)&D_00000000 == 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x21C68);
+    }
+    *(int*)((char*)a0 + 0x18) = 0;
+    *(int*)((char*)a0 + 0x14) = 0;
+    *(int*)((char*)a0 + 0x1C) = 0;
+    gl_func_00000000();
+    *(int*)((char*)a0 + 0x8) = 0;
+    *(int*)((char*)a0 + 0x10) = gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE7C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FF14);
 
