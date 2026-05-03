@@ -378,7 +378,24 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
  * notes in DECOMPILED_FUNCTIONS.md in sync when this lane moves. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800005DC);
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000060C);
+
+#ifdef NON_MATCHING
+/* func_80000660: 10-insn (0x28) tail fragment of func_800005DC.
+ * Reads $a3 from sp+0x2C (caller's spill from predecessor's frame), $a2
+ * from sp+0x1C (also predecessor-set). Decoded:
+ *   .L80000660: t2 = a3->4 + a2; a3->4 = t2; v0 = a2;
+ *   .L80000678: epilogue (lw ra, addiu sp, jr ra)
+ * Branch target .L8000066C and .L80000678 are jumped to from func_800005DC's
+ * body. NOT a callable function — uninitialized $a2/$a3/$a7 at entry, no
+ * prologue. Cannot be matched as standalone C. Wrap is for grep
+ * discoverability per feedback_orphan_include_asm_after_split_function_decomp.md. */
+void func_80000660(void) {
+    /* see func_800005DC — this is its tail-merge + epilogue, called
+     * via `b .L80000660` or fall-through from func_8000060C. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000660);
+#endif
 
 /* uso_advance_position */
 void func_80000688(s32* file, s32 offset) {
