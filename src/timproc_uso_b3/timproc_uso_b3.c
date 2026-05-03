@@ -28,7 +28,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000005A4);
 
+#ifdef NON_MATCHING
+/* 21-insn -O0 cleanup wrapper. Single gl_func + zero a0[0] + zero D[0x14C].
+ * -O0 indicators: unfilled jal delay + `b +1; nop` BBL marker.
+ *
+ * Same -O0-cap class as arcproc_uso_func_00000748 / mgrproc_uso_func_000009A8.
+ * BLOCKED by Yay0 pipeline (timproc_uso_b3 is compressed; file-split recipe
+ * doesn't apply). Default build INCLUDE_ASM matches; wrap is for grep
+ * discoverability per the established -O0-cap pattern. */
+void timproc_uso_b3_func_0000065C(int *a0) {
+    gl_func_00000000((int*)a0[0], 3);
+    a0[0] = 0;
+    *(int*)((char*)&D_00000000 + 0x14C) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000065C);
+#endif
 
 extern int D_b3_06B0_a;
 extern int *D_b3_06B0_b;     /* pointer-typed: 2nd call passes (*D_b3_06B0_b)[0x6A8/4] */
