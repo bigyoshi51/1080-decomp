@@ -1023,7 +1023,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037540);
 
+#ifdef NON_MATCHING
+/* ~16% NM (3/16 insns identical). Builds (0,arg0->float_2C,0) Vec3 on
+ * stack, calls gl_func_00000000(arg0->field_14 + 0x30, &vec).
+ *
+ * Logic verified — but target asm has unusual layout: frame -0x48 (32
+ * bytes more than IDO's natural -0x28), with a DEAD spill `sw t6, 0x44(sp)`
+ * after the lw t6, 0x14(a0). The vec3 is at sp+0x2C..0x34 (high-address
+ * end of frame), matching IDO's typical "args first" layout with a giant
+ * gap before the locals.
+ *
+ * Tried 5 variants:
+ *   - inline `*(int*)((char*)a0+0x14)+0x30` arg - no spill, frame -0x28
+ *   - named `int p = a0[5]` local - no spill, frame -0x28
+ *   - `volatile int p = ...` - reload-after-spill but frame still -0x28
+ *   - `register int p = ...` - same as plain
+ *   - `int pad[5]` to bump frame - bumps to -0x40 not -0x48; vec3 ends up
+ *     at sp+0x34 not sp+0x2C
+ *
+ * The dead spill at sp+0x44 + frame -0x48 strongly suggests the original
+ * source had additional dead locals OR a `register` decl that IDO chose
+ * to home at sp+0x44. None of the simple C shapes reproduce this. Defer
+ * to later pass with type info on arg0's struct (likely a Boarder-state
+ * struct given Vec3 build pattern). */
+void gl_func_0003783C(int *a0) {
+    Vec3 buf;
+    buf.x = 0.0f;
+    buf.y = *(float*)((char*)a0 + 0x2C);
+    buf.z = 0.0f;
+    gl_func_00000000(*(int*)((char*)a0 + 0x14) + 0x30, &buf);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003783C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003787C);
 
