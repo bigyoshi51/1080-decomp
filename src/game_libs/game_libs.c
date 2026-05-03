@@ -161,7 +161,34 @@ void gl_func_000040BC(char *a0) {
     gl_ref_00013CE8(a0 + 0x10);
 }
 
+#ifdef NON_MATCHING
+/* Body matches at 4/6 insns. Returns `1 << (a0 + 4)`. The function symbol
+ * actually contains 2 LEADING nops at 0x40EC/0x40F0 (alignment artifact
+ * between gl_func_000040BC's epilogue and the real code at 0x40F4). C-emit
+ * produces just the 4 real insns:
+ *   addiu t6, a0, 4
+ *   addiu t7, zero, 1
+ *   jr ra
+ *   sllv v0, t7, t6
+ * but the symbol expects 8 leading bytes (2 nops) before that.
+ *
+ * This is the inverse of feedback_prologue_stolen_successor_no_recipe.md —
+ * here we'd need to ADD 8 bytes of leading nops, not REMOVE them. No clean
+ * recipe (PROLOGUE_STEALS only removes; pad-sidecar only appends trailing).
+ *
+ * Boundary note: the 2 leading nops were INCLUDED in this symbol when
+ * scripts/split-fragments.py split it off from gl_func_000040BC last tick
+ * (the script's split-point finder returns i+2 after a jr-ra, picking the
+ * first position past the delay slot — but it doesn't skip pure-nop runs
+ * before the next non-nop instruction). A future improvement to
+ * split-fragments.py could skip leading nops; for this one function, the
+ * NM wrap with the body documents the structure for grep/discovery. */
+int game_libs_func_000040EC(int a0) {
+    return 1 << (a0 + 4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000040EC);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00004104(int *dst) {
