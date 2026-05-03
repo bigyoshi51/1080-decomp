@@ -49,6 +49,36 @@ int c;
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
 #endif
 
+/* gui_func_00000148: BUNDLED splat symbol (0x7D0 total / 500 insns).
+ * splat could not separate sub-functions (no inter-function relocs).
+ * Per feedback_uso_split_fragments_breaks_expected_match.md, splitting
+ * USO funcs is risky — expected/.o keeps the bundled symbol. Bundled.
+ *
+ * Sub-function layout (boundary = jr $ra + delay slot):
+ *   F1 @ 0x148-0x558: 0x410 / 260 insns. addiu sp,-0x80 prologue, saves
+ *     12 callee-saves (s0-s5+s6+s7+fp+s3+s4). HEAVY div idiom
+ *     (multiple div+break-on-zero pairs at 0x1A4/0x1D0/0x20C). Alloc
+ *     sub-object via gl_func_00000000(0x28) at insn 9. Stores results
+ *     to s2->{0x4, 0xC, 0x0, 0x10, 0x14, 0x18, 0x1C}. Likely
+ *     GLYPH-LAYOUT-MEASURE function: divides string-width / glyph-count
+ *     to produce kerning/spacing fields.
+ *   F2 @ 0x55C-0x6B4: 0x158 / 87 insns. Smaller helper.
+ *   F3 @ 0x6B8-0x8BC: 0x204 / 129 insns. Mid-size.
+ *   ORPHAN @ 0x8C0-0x914: 22 insns with NO jr $ra. Starts `lw v0,
+ *     0x24(a0)`. Loads from $a0 + setup of 0xB900031D / 0x4242240
+ *     constants (RDP DPC commands?). Either dead code or a tail-call
+ *     site that doesn't return through the standard jr-ra path.
+ *     gui_func_00000918 (next splat symbol) starts at 0x918 with its
+ *     own addiu-sp prologue, so the 22 orphan insns DO NOT logically
+ *     continue there. Verified 2026-05-03 via boundary recheck (0x918
+ *     has 1 jr ra at 0xB50, single coherent function).
+ *
+ * Total cost to NM-wrap: would need to write 3 sub-bodies + an orphan
+ * tail as one ~500-insn C function with goto-chains, which IDO won't
+ * reproduce. Best path forward: type the GUI struct (sub-object @ 0x28
+ * from gl_func) first via siblings, then attempt a
+ * split-with-refresh-expected later.
+ */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000918);
