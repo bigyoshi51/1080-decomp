@@ -576,7 +576,43 @@ end: ;
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000174C);
 #endif
 
+#ifdef NON_MATCHING
+/* 0% NM (stub body — game_uso DNM build blocked, see
+ * feedback_game_uso_dnm_typedef_inside_ifdef.md). 269-insn / 0x434 size,
+ * frame ~0xE0 with 4 saved $s-regs. Single-arg constructor.
+ *
+ * First-pass structural decode (top ~30 insns):
+ *   p = a0;
+ *   if (p == NULL) {
+ *       p = gl_func_00000000(0xD0);          // alloc 208 bytes
+ *       if (p == NULL) return NULL;
+ *   }
+ *   q = gl_func_00000000(8);                  // alloc 8-byte node
+ *   if (q == NULL) {
+ *       *(int*)((char*)&D_00000000 + 0x318) = p;  // ?? store p, then continue init
+ *       *(int*)((char*)&D_00000000 + 0x31C) = 0;
+ *   }
+ *   // Stack buffer setup: floats at sp+0xC8..0xD4 = (1.0, 0.0, -1000.0, 64.0)
+ *   //                     ints at sp+0xBC..0xC4 = (0, 0, 0)
+ *   // Pointer link table at sp+0x44..0x64 (4 entries, each = sp+OFF):
+ *   //   ptr[0] = sp+0x64; ptr[1] = sp+0x54; ptr[2] = sp+0x44; ptr[3] = sp+0x34
+ *   // Source data table at *(D+0x320) — 8-byte entries, copied 6+ times into
+ *   // the stack buffer at +0/+4 of each copy.
+ *
+ * Likely a graphics/transform constructor — sets up a 0xD0-byte graphics
+ * primitive object (allocates if not provided, builds a 4-element vertex
+ * buffer + transform matrix, copies template data from D[0x320]). Spine
+ * function in the call-graph (multiple game_uso entries reach here).
+ *
+ * Multi-tick decomp expected. Stub body keeps wrap parsable; default
+ * INCLUDE_ASM build matches. */
+void *game_uso_func_000018FC(void *a0) {
+    if (a0 == 0) return gl_func_00000000(0xD0);
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000018FC);
+#endif
 
 #ifdef NON_MATCHING
 /* 95.9 %: 4-arg constructor-or-init for 0x124-byte object. Decoded structure:
