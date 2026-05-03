@@ -166,12 +166,39 @@ void n64proc_uso_func_00000230(char *a0) {
  * feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md.
  * Match jumped from 85.25% (if-else-if form) to 93.57%.
  *
- * Remaining 6.4% diff: target uses beql v0,zero,+N with delay-slot
- * `lw t6, 0x3C(a3)` pre-loading the case-0 body's first read; mine
- * uses beql with `lw ra` (dead) in delay slot. The body-start preload
- * via beql delay slot isn't reachable from goto-chain — IDO doesn't
- * coalesce the case-body's first lw into the dispatch branch's delay.
- * Per feedback_ido_sparse_switch_beql_preload_unreachable.md. */
+ * Remaining 6.4% diff (verified 2026-05-02 via objdump -M no-aliases):
+ *   1. First dispatch beql preload IS reached: mine `beql v0,zero,c0_body`
+ *      + delay-slot `lw v0, 60(a3)` matches target's beql + lw t6, 60(a3)
+ *      shape; only the destination register differs ($v0 vs $t6).
+ *   2. Second dispatch IDO picks bnel-skip-to-end (with `lw ra` epilogue
+ *      restore in delay slot) where target picks beql-jump-to-c1-body
+ *      (with `lw t5, 0x54(a3)` body-preload). Both arms have valid
+ *      delay-slot fillers so IDO chooses based on internal heuristic
+ *      (likely "early-return is hotter than body").
+ *   3. The body-register cascade: target uses fresh $t6/$t7/$t9/$t3/$t4/
+ *      $t0/$t2/$t5/$t8 throughout each body. Mine reuses $v0 because the
+ *      dispatch loaded into $v0 (single-use of `t = a0[0x3C/4] - 1` as one
+ *      expression collapses both load + subtract into $v0).
+ *
+ * 2026-05-02: tried 4 more variants. None promote.
+ *   (a) Split `t = a0[0x3C/4] - 1` into `int load = ...; int decr = load - 1;`
+ *       — IDO picked $v1+$v0 (not $t6+$t7) for the named locals; promoted
+ *       a couple constants to $t-regs but lost the $t-reg promotion for
+ *       the body's primary load. Net: regressed body register choice.
+ *   (b) Replace `goto end` with `return` — byte-identical output. Same
+ *       early-return optimization either way.
+ *   (c) Reorder bodies (c1 before c0 in source) — case-1 body becomes the
+ *       fall-through after dispatch chain, but second dispatch STILL emits
+ *       bnel-skip-to-end. The body-block placement doesn't influence the
+ *       branch-likely arm choice.
+ *   (d) Clean if-else-if (no goto): `if (v==0){...} else if (v==1){...}`
+ *       — fully regressed; IDO loses the beql + body-preload pattern
+ *       entirely, emits plain `bne v0,zero,+X`. Goto-chain is strictly
+ *       better for this shape.
+ *
+ * Per feedback_ido_sparse_switch_beql_preload_unreachable.md (and the
+ * 4 attempts above), no further C-level lever flips IDO's bnel/beql
+ * choice on the second dispatch. Stays at 93.57 %. */
 void n64proc_uso_func_00000268(int *a0) {
     int v;
     int t;
