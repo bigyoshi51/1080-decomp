@@ -977,11 +977,50 @@ void game_uso_func_000044C8(char *a0) {
  * Full decode is a multi-day effort. This tick captures entry pattern +
  * struct-field offsets identified so far. Future ticks: decode the
  * sub-object allocation loop, type the GameState struct, then refine. */
-void game_uso_func_000044F4(void *a0, int a1, int a2) {
-    (void)a0; (void)a1; (void)a2;
-    /* TODO: allocate 0x4E0 if a0 == NULL; init sub-objects from templates
-     * at &D_0+0x6D0, &D_0+0x6D8, &D_0+0x6E8, &D_0+0x3C8 (et al.);
-     * recursive child alloc at a0->field_28, a0->field_2C, etc. */
+void *game_uso_func_000044F4(char *a0, int a1, int a2) {
+    char *self;
+    char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
+    char *s0;       /* loop pointer for sub-object init */
+
+    /* Stage 1: allocate main object if not provided */
+    if (a0 == NULL) {
+        self = (char*)gl_func_00000000(0x4E0);
+        if (self == NULL) goto epi;
+        a0 = self;
+    }
+
+    /* Stage 2: init main from template at D[0x6D0]; set parent ptr */
+    gl_func_00000000((char*)&D_00000000 + 0x6D0, a0);
+    *(char**)(a0 + 0x28) = &D_00000000;
+
+    /* Stage 3: sub-region — branch is always-true (a0+0xE4 != 0xFFFFFF1C);
+     * IDO's `addiu at, zero, -0xE4; bne s1, at, +5` form. Else-arm
+     * allocates 0x3E0 if the sub-region pointer is NULL. */
+    if ((int)(a0 + 0xE4) != -0xE4) {
+        s1 = a0 + 0xE4;
+    } else {
+        s1 = (char*)gl_func_00000000(0x3E0);
+        if (s1 == NULL) goto epi;
+    }
+
+    /* Stage 4: write sub-region back-pointer; init sub-region from
+     * template; loop-init sub-object table at a0+0x2C with stride 8.
+     * Decoded ~25 insns at 0x4564-0x45D8:
+     *   *(int*)(s1) = 0;            // s1->0 = NULL
+     *   *(int*)(s1 + 4) = 0;        // s1->4 = NULL
+     *   gl_func_00000000(s1, 8);    // small init call
+     *   for (s0 = a0 + 0x2C; ...) {
+     *     ptr = (a0+0xE0)->...;     // load template entry
+     *     *(int*)s0 = ptr;
+     *     gl_func_00000000(s0, 0x18);  // init sub-obj of size 0x18
+     *     s0 += 8;
+     *   }
+     */
+    /* TODO: ~1100 remaining insns — sub-object alloc loop, recursive
+     * init via cross-USO calls, child link setup at a0->field_38, etc. */
+    (void)s0; (void)a1; (void)a2;
+epi:
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000044F4);
