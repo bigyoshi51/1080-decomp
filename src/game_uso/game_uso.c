@@ -152,7 +152,7 @@ void game_uso_func_0000039C(Quad4 *dst) {
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000039C_pad.s")
 
 #ifdef NON_MATCHING
-/* Camera/view init function. Initializes a 0x38-byte struct at $a0:
+/* 21.32% NM. Camera/view init function. Initializes a 0x38-byte struct at $a0:
  *   a0+0x00..0x08 = Vec3(0, 0, 0)        ; eye position
  *   a0+0x0C..0x14 = Vec3(0, 0, -1000)    ; target / look-at (z = -1000)
  *   a0+0x18..0x20 = Vec3(0, 1, 0)        ; up vector (Y-up)
@@ -237,7 +237,7 @@ void game_uso_func_00000634(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 93.86 % match. State-check function: returns 1 if any of:
+/* 93.86% NM. 93.86 % match. State-check function: returns 1 if any of:
  *   (a0[0]==2 || a0[0]==3) && a0[1]==1
  *   (a0[4]==2 || a0[4]==3) && a0[5]==1
  *   a0[8]==1, a0[10]==2, a0[12]==2
@@ -390,7 +390,7 @@ void game_uso_func_000008FC(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 107-insn jump-table dispatcher (size 0x1AC after split-fragments
+/* 6.92% NM. 107-insn jump-table dispatcher (size 0x1AC after split-fragments
  * separated 0xAEC). Structure:
  *
  *   t6 = a0->0x150;             // sub-struct
@@ -431,7 +431,7 @@ void game_uso_func_00000AEC(int *a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-/* game_uso_func_00000B3C: 0xB08 (706 insns, 2.8 KB) — spine candidate #6.
+/* 3.37% NM. game_uso_func_00000B3C: 0xB08 (706 insns, 2.8 KB) — spine candidate #6.
  * 22 cross-USO calls, 0x150-byte frame. Contains a jump-table switch at
  * 0xDB8 (`jr $t1` after `lw $t1, 0x50($at)`) — per
  * feedback_ido_switch_rodata_jumptable.md that .rodata path is discarded
@@ -701,7 +701,7 @@ void game_uso_func_00001DC4(void *a0) {
  * a floating block-comment above an INCLUDE_ASM. Default build still uses
  * INCLUDE_ASM. */
 #ifdef NON_MATCHING
-/* extended partial decode 2026-05-02: entry sub-block of branch_88 promoted
+/* 15.41% NM. extended partial decode 2026-05-02: entry sub-block of branch_88 promoted
  * from comment to real C statements (Vec3 copies + first gl_func + element-
  * wise add). Body is ~380 insns; this run extends decode from ~30 insns to
  * ~50 insns. ~300 insns remain stubbed via gl_func_TODO_00001DDC. */
@@ -775,7 +775,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
 #endif
 
 #ifdef NON_MATCHING
-/* 54% match. 3x3 matrix-vector multiply: dst = M * v, where M is at
+/* 54.14% NM. 54% match. 3x3 matrix-vector multiply: dst = M * v, where M is at
  * (*(a1+0x38))+0x70 with row stride 0x10 (Mat4 top-left 3x3), v is at
  * a1+0x5C..0x68. Result stored to *a0; returns a0.
  *
@@ -834,7 +834,7 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
 
 #ifdef NON_MATCHING
-/* Mirror of game_uso_func_00001D30: alloc(0x64) instead of alloc(0x124),
+/* 92.97% NM. Mirror of game_uso_func_00001D30: alloc(0x64) instead of alloc(0x124),
  * dispatch table at &D_0+0x360 instead of +0x340. Same alloc-or-init
  * pattern + ConditionalCall + 2-field-set + return p. Likely caps ~96%
  * with the same arg-spill scheduling diff as 1D30. */
@@ -1252,7 +1252,7 @@ void game_uso_func_00007424(void *a0) {
 }
 
 #ifdef NON_MATCHING
-/* Inverse of game_uso_func_000074D8: pulls 4 floats from table (+0x30 deref)
+/* 70.97% NM. Inverse of game_uso_func_000074D8: pulls 4 floats from table (+0x30 deref)
  * at offsets 0x768/0x708/0x6F0/0x4A8, mirrors them into a0+0x4C8..0x4D4,
  * scales 3 of them in-place back into the table (by a0+0x33C=sx for the
  * first, a0+0x36C=sy for the other two), then does one unscaled intra-table
@@ -1567,7 +1567,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 #endif
 
 #ifdef NON_MATCHING
-/* 9 insns. Decoded semantics:
+/* 52.22% NM. 9 insns. Decoded semantics:
  *   table = a0->0x30
  *   v1 = table[0x908]
  *   if (v1 != NULL) return v1[0xBC] - table[0xBC]
@@ -1614,7 +1614,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
 
 #ifdef NON_MATCHING
-/* game_uso_func_00007C1C: 0x10BC (1075 insns, 4.3 KB) — strategy-memo spine
+/* 1.48% NM. game_uso_func_00007C1C: 0x10BC (1075 insns, 4.3 KB) — strategy-memo spine
  * candidate #3 (~25 cross-USO calls). 0x3B0-byte (944 byte) stack frame.
  * Single function (grep -c 03E00008 = 1).
  *
@@ -1704,7 +1704,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
+/* 7.98% NM. game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Strategy-memo candidate for "per-frame compute" (1.4 KB, 11 cross-calls).
  *
  * Partial C body: ~10 % match guess. Captures entry (panic-on-a2-null
@@ -1802,7 +1802,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
 
 #ifdef NON_MATCHING
-/* 86.7%: body+control flow match; target has 2 pre-jal a1 spills:
+/* 86.70% NM. 86.7%: body+control flow match; target has 2 pre-jal a1 spills:
  *   sw \$a1, 0x1C(\$sp) before 1st jal
  *   sw \$a1, 0x4(\$sp)  IN 1st jal delay slot
  * My IDO -O2 build doesn't emit either spill. Variants tested 2026-04-20:
@@ -1888,7 +1888,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
 
 #ifdef NON_MATCHING
-/* 29-insn FPU helper. Init local Vec3 buffer at sp+0x24..0x2C with 3
+/* 53.10% NM. 29-insn FPU helper. Init local Vec3 buffer at sp+0x24..0x2C with 3
  * floats (first 2 from f0 = uninit/0?, third from D_0+0x140), call
  * gl_func(D_0+0x11C, &buf28, &buf2C, a0); call again gl_func(a0,
  * &buf24, &buf2C, D_0+0x104); writes 3 float results from buf24/28/2C
@@ -1942,7 +1942,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
 
 #ifdef NON_MATCHING
-/* 90.2%: `char *base = a0` forces $s2 = arg0 reuse for 0x168 limit (target
+/* 90.21% NM. 90.2%: `char *base = a0` forces $s2 = arg0 reuse for 0x168 limit (target
  * trick). Still stuck: $s0/$s1 pair — target has counter→s0, ptr→s1; ours
  * has ptr→s0, counter→s1. Swapping `p += 0x24; i += 0x24;` order did NOT
  * flip allocation here (unlike what I thought when contaminated baseline
@@ -2033,7 +2033,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C2D4);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
 
 #ifdef NON_MATCHING
-/* SPINE constructor (game_uso_func_0000C48C, 0xD84 = 865 insns, 3.4 KB)
+/* 2.46% NM. SPINE constructor (game_uso_func_0000C48C, 0xD84 = 865 insns, 3.4 KB)
  * Per project_1080_game_uso_map.md the 4th-largest game.uso function and
  * an "INIT/SETUP" orchestrator (69 cross-USO calls). Sibling pattern to
  * game_uso_func_000044F4 (the other documented constructor; allocates
@@ -2206,7 +2206,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
 
 #ifdef NON_MATCHING
-/* 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
+/* 93.73% NM. 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
  * bit afterward, dispatch a0->0xFC to one of two flag values. The
  * post-call test uses IDO's beql tail-merge — a redundant `sw t2`
  * trailing the merged epilogue, unreachable via both branch targets
@@ -2255,7 +2255,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8A8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
 
 #ifdef NON_MATCHING
-/* game_uso_func_0000D9CC: 0x830 (524 insns), 0x38-byte stack frame.
+/* 0.27% NM. game_uso_func_0000D9CC: 0x830 (524 insns), 0x38-byte stack frame.
  * Strategy-memo spine: 2.0 KB, 26 cross-USO calls, "subsystem" subsystem.
  * Single function per grep -c 03E00008 (not a bundle).
  *
@@ -2344,7 +2344,7 @@ void game_uso_func_0000EE74(void *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE84);
 
 #ifdef NON_MATCHING
-/* 4-call wrapper. Logic: call gl_func(a0); call gl_func(a0, D_E40, D_E44);
+/* 82.20% NM. 4-call wrapper. Logic: call gl_func(a0); call gl_func(a0, D_E40, D_E44);
  * call gl_func(a0); call gl_func(a0). Hits precall arg-spill cap per
  * feedback_ido_precall_arg_spill_unreachable.md — target spills a1/a2 to
  * sp+4/sp+8 around the second jal (sw a1,4(sp); sw a2,8(sp)) but IDO -O2
@@ -2384,7 +2384,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F664);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F6D4);
 
 #ifdef NON_MATCHING
-/* 24-insn 2-call wrapper. Body: gl_func(a0, a0->0xFC, 0, 0, 0x100, 5);
+/* 85.17% NM. 24-insn 2-call wrapper. Body: gl_func(a0, a0->0xFC, 0, 0, 0x100, 5);
  * gl_func(a0, D_E50, D_E54, -1). Same precall-arg-spill structural cap
  * as game_uso_func_0000EF20 — IDO -O2 with K&R gl_func_00000000 won't
  * emit the sw a1,4(sp); sw a2,8(sp) spills target has around the second
