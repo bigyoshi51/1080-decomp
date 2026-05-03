@@ -788,3 +788,5 @@ gl_func_h2hproc_8EC_pre = 0x00000000;
 gl_func_h2hproc_8EC_t = 0x00000000;
 gl_func_h2hproc_8EC_f = 0x00000000;
 D_00000194_A = 0x00000000;
+gl_data_BE14_b = 0x00000000;
+gl_data_BE14_c = 0x00000000;

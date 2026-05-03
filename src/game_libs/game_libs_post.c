@@ -3586,7 +3586,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BC4C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BD14);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BD14_pad.s")
 
+#ifdef NON_MATCHING
+/* 19/20-insn match. 18-insn 2-call init wrapper, sibling of
+ * gl_func_0006B9B4 (same 2-call shape, but with DIFFERENT data-symbol arg
+ * per call — target's asm has TWO independent `lui a0, 0; addiu a0, a0, 0`
+ * pairs, confirmed via decoded asm). Per
+ * feedback_usoplaceholder_unique_extern.md, 2 unique externs mapped to 0x0
+ * break IDO's potential CSE and emit the 2 separate lui+addiu pairs.
+ *
+ * Stores 1 to D_00000000 (uses $at), then calls
+ * gl_func(<sym_b>, 0x42800, 1) followed by gl_func(<sym_c>, 0, 0).
+ *
+ * Remaining 1-insn cap: target encodes 0x42800 as `lui 0x4; addiu 0x2800`;
+ * mine emits `lui 0x4; ori 0x2800`. IDO picks ori for unsigned-fitting
+ * literals; addiu (signed) requires a different source form per
+ * feedback_ido_split_or_constant.md (no inverse — the cast tricks make
+ * IDO emit OR for both signed and unsigned hex literals). Same cap as
+ * gl_func_0006B9B4 sibling.
+ *
+ * Declared size 0x58 includes 2 trailing dead insns (lui t6, 0; lw t6,
+ * 0(t6)) — stolen prologue setup for the successor. SUFFIX_BYTES would
+ * close that 8-byte gap in DNM build but per
+ * feedback_suffix_bytes_breaks_include_asm_build.md it would break the
+ * default INCLUDE_ASM path's verify check (tail-1 isn't jr ra). So
+ * SUFFIX_BYTES is OMITTED here; default build uses INCLUDE_ASM and gets
+ * full 22 insns; DNM build gets 18 insns (1 insn off + 8-byte short
+ * tail). */
+extern char gl_data_BE14_b;
+extern char gl_data_BE14_c;
+void gl_func_0006BE14(void) {
+    *(int*)&D_00000000 = 1;
+    gl_func_00000000(&gl_data_BE14_b, 0x42800, 1);
+    gl_func_00000000(&gl_data_BE14_c, 0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BE14);
+#endif
 
 void gl_func_0006BE6C(void) {
     int local;
