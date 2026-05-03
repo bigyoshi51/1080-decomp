@@ -1126,6 +1126,30 @@ void func_0000E9FC(void) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E9FC);
 #endif
 
+/* func_0000EA2C: 51-insn (0xCC) init function with 7 cross-USO calls
+ * + 1 conditional branch.
+ *
+ * Decoded structure:
+ *   a0->0xC = &D_00008D70        ; install handler/callback ptr
+ *   gl_func(a0->0xC, &D_00008D7C); ; register
+ *   v0 = gl_func(0)              ; allocate something (saved at sp+0x18)
+ *   gl_func(0, &D_00008D8C, 0x20, 0xC);  ; install another, result -> D_00000000
+ *   gl_func(saved_v0, &D_00008D9C);
+ *   gl_func(...)                 ; with global D refs
+ *   v0 = gl_func(...)            ; flag check
+ *   if (v0 == 0) {
+ *       gl_func(D_X, 0, 0);      ; "false" path
+ *   } else {
+ *       gl_func(D_Y, 1, 0);      ; "true" path
+ *   }
+ *
+ * 5 distinct D_00008D70/7C/8C/9C globals are LOCAL data within bootup_uso
+ * (relative offsets), not the cross-USO D_00000000 placeholder. They're
+ * accessed via standard %hi/%lo of resolved local symbols.
+ *
+ * Multi-tick refinement target — this is an init function for some
+ * bootup subsystem (likely callback registration). Doc-only this tick.
+ * Default INCLUDE_ASM build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EA2C);
 
 extern int D_00000190;
