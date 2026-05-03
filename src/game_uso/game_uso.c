@@ -924,7 +924,30 @@ void game_uso_func_00000B14(void *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000034A4);
+extern int D_3A0;
+int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
+    int *s = a0;
+    if (a0 == 0) {
+        s = (int*)gl_func_00000000(0x138);
+        if (s == 0) return 0;
+    }
+    gl_func_00000000(s, &D_3A0);
+    *(int*)((char*)s + 0x28) = (int)&D_00000000;
+    gl_func_00000000((int*)((char*)s + 0x50));
+    if (a3 != 0) {
+        gl_func_00000000(s, 1, a3);
+    }
+    *(int*)((char*)s + 0x48) = a1;
+    *(int*)((char*)s + 0x2C) = 0;
+    *(float*)((char*)s + 0x38) = 0.0f;
+    *(float*)((char*)s + 0x34) = 0.0f;
+    *(float*)((char*)s + 0x30) = 0.0f;
+    *(float*)((char*)s + 0x44) = 0.0f;
+    *(float*)((char*)s + 0x40) = 0.0f;
+    *(float*)((char*)s + 0x3C) = 0.0f;
+    *(int*)((char*)s + 0x4C) = a2;
+    return s;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003558);
 
