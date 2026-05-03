@@ -2009,7 +2009,29 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  *
  * The Vec3-triple-copy pattern strongly confirms 0x8CD8 is per-frame
  * physics setup that broadcasts a Vec3 to multiple downstream consumers
- * (XZ-projected ground position passed to 3+ submodules). */
+ * (XZ-projected ground position passed to 3+ submodules).
+ *
+ * 2026-05-03 EXTENDED DECODE @ 0x8DE0-0x8E2C (insns 50-72): SECOND
+ * Vec3-XZ-projection block. Same XZ-strip pattern as the first block
+ * but at offset a1->0x30+0xB4 (sub-struct field, Vec3 stride 0xB4):
+ *   /* compute (a1->0x30 + 0xB4) — sub-struct's per-frame Vec3 *\/
+ *   v1 = a1->0x30 + 0xB4
+ *   gl_func_X(v1, sp+0x174, 12)             ; second cross-call (Vec3 reader)
+ *   v0 = result
+ *   if (v0 != 0) {
+ *       v0->x = (a1->0x30+0xB4)->x          ; copy X
+ *       v0->z = (a1->0x30+0xB4)->z          ; copy Z
+ *       v0->y = 0.0f                        ; zero Y (XZ-projection)
+ *   }
+ * The XZ-projection (Y=0.0f) confirms ground-plane mapping interpretation
+ * — the snowboard's "world-grounded" position is computed from the
+ * sub-struct's transform Vec3 with Y stripped.
+ *
+ * Pattern repeats THREE times across the function: first at 0x8D90-D8DD
+ * (input Vec3 stage), second at 0x8DE0-0x8E2C (sub-struct Vec3, this
+ * block), third at 0x8E60+ (likely a third source). All write to
+ * different stack slots (sp+0x174, sp+0x14C, sp+0x1E0...) for downstream
+ * consumers. NM remains 3.5% (doc-only). */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
