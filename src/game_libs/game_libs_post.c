@@ -2799,7 +2799,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FCC4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FD20);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FDCC);
+/* 18-insn 2-call wrapper with early-return guard. Declared size 0x50 includes
+ * 2 trailing dead insns (lui v1, 0; lw v1, 0(v1)) — stolen prologue setup
+ * for the successor. Closed via SUFFIX_BYTES. */
+int gl_func_0005FDCC(int a0, int a1, int a2) {
+    if (a2 != 0) {
+        gl_func_00000000(a1, a2);
+        gl_func_00000000(a1, a0);
+        return 1;
+    }
+    return 0;
+}
 
 #ifdef NON_MATCHING
 /* Append-and-return-slot wrapper (24 insns, prologue-stolen).
