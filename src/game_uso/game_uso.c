@@ -520,9 +520,9 @@ void game_uso_func_00001714(int a0, int *a1) {
 }
 
 #ifdef NON_MATCHING
-/* 95 % (104/108). 16-case dispatch on a1 (cases 3..18). For a1 == 3 the
- * body is special (extra `a0->0x268 = 1` after the call); for cases 4..18
- * the body is a single `gl_func_00000000(a0, a1 + 11)` call. Implemented as
+/* 95.74% NM. 16-case dispatch on a1 (cases 3..18). For a1 == 3 the body
+ * is special (extra `a0->0x268 = 1` after the call); for cases 4..18 the
+ * body is a single `gl_func_00000000(a0, a1 + 11)` call. Implemented as
  * `if (a1 == N) goto cN;` chain because:
  *   - `switch` with 3+ cases emits a .rodata jump table (linker discards
  *     .rodata in this segment, breaks the link). 49 % at if-else, 69 % at
@@ -530,8 +530,14 @@ void game_uso_func_00001714(int a0, int *a1) {
  *   - The goto chain matches IDO's "compares first, bodies after" layout.
  * Last-comparison cap: IDO uses `bnel` for the LAST `if` (folding `lw ra`
  * into the BL delay), where target uses plain `beq + nop` then `b end`
- * with `lw ra` in `b`'s delay. Tried `if (a1 != 18) goto end; <body>` and
- * `goto end;` vs `return;` — both regressed to ~92 %. May need permuter. */
+ * with `lw ra` in `b`'s delay.
+ * Tried (this run, 2026-05-02): inline c18's body into the dispatch
+ * (`if (a1 == 18) gl_func_00000000(a0, 29);`) — regressed to 92.56 %,
+ * same as `if (a1 != 18) goto end; <body>` from prior pass. Inlining the
+ * last case puts the body in the dispatch chain proper, which changes
+ * the bnel/beq pattern but introduces a worse mismatch.
+ * Tried previously: `goto end;` vs `return;` — both 95 %.
+ * Permuter remains the next-step recommendation. */
 void game_uso_func_0000174C(int *a0, int a1, int a2) {
     *(int*)((char*)a0 + 0x268) = 0;
     if (a1 == 3)  goto c3;
