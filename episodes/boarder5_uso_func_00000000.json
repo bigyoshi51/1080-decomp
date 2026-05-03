@@ -1,0 +1,29 @@
+{
+  "function_name": "boarder5_uso_func_00000000",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-03T04:22:41.702549+00:00",
+  "end_time": "2026-05-03T04:22:41.702568+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-03T04:22:41.702562+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n/* USO entry-0: leading `beq zero,zero,+0x736F` trampoline (loader-patched\n * at runtime) followed by the standard -O2 int-reader template body. The\n * trampoline word is injected post-cc via PREFIX_BYTES (see Makefile +\n * scripts/inject-prefix-bytes.py). */\nvoid boarder5_uso_func_00000000(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid boarder5_uso_func_00000040(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\nvoid boarder5_uso_func_00000098(char *dst) {\n    int tmp;\n    gl_func_00000000(&tmp);\n    boarder5_uso_func_00000040((Quad4*)(dst + 0x10));\n}\n#pragma GLOBAL_ASM(\"asm/nonmatchings/boarder5_uso/boarder5_uso/boarder5_uso_func_00000098_pad.s\")\n\nvoid boarder5_uso_func_000000D4(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid boarder5_uso_func_00000110(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\nvoid boarder5_uso_func_00000168(char *dst) {\n    int tmp;\n    boarder5_uso_func_000000D4(&tmp);\n    boarder5_uso_func_00000110((Quad4*)(dst + 0x10));\n}\n",
+  "metadata": {
+    "source_path": "src/boarder5_uso/boarder5_uso.c",
+    "asm_path": "asm/nonmatchings/boarder5_uso/boarder5_uso/boarder5_uso_func_00000000.s"
+  }
+}
