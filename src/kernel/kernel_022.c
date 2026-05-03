@@ -173,7 +173,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80009584);
 /* __osSetFpcCsr — hand-written assembly in libultra (cfc1 $v0,$31; ctc1 $a0,$31;
  * jr $ra; nop). Matches libreultra/src/os/setfpccsr.s exactly. IDO doesn't
  * parse GCC inline asm, so there's no C form; INCLUDE_ASM is correct. */
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009840);
+INCLUDE_ASM("asm/nonmatchings/kernel", __osSetFpcCsr);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009850);
 
