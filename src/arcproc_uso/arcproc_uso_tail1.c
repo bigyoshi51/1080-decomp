@@ -292,6 +292,36 @@ void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3C);
 #endif
 
+/* arcproc_uso_func_00000D70: 58-insn (0xE8) registration function.
+ * Calls gl_func ~10 times with (s0+offsetN, encoded_id) pairs to
+ * register sub-objects. s0 = a0 (input struct) saved to s-reg.
+ *
+ * Decoded structure:
+ *   gl_func_00000000(s0+0x6BC, *D_X1[0x64] | 0xA0000)
+ *   gl_func_00000000(s0+0x6D4, 0x210000)
+ *   v0 = s0->0x6A8                                // sub-obj ptr
+ *   v1 = v0->4
+ *   t6 = v0->8
+ *   if (t6 == v1+1):
+ *       gl_func_00000000(s0+0x6EC, 0x210001)      // sequential case
+ *   else:
+ *       gl_func_00000000(s0+0x6EC, (v1+2) | 0x210000)  // gap case
+ *   gl_func_00000000(s0+0x71C, *D_X2[0x4C])
+ *   gl_func_00000000(s0+0x704, *D_X3[0x54])
+ *   gl_func_00000000(s0+0x734, 0x21000B)
+ *   gl_func_00000000(s0+0x74C, 0x21000D)
+ *   gl_func_00000000(s0+0x764, 0x210009)
+ *
+ * Pattern: each gl_func gets a different sub-obj address
+ * (s0+0x6BC..0x764, stride 0x18) and a 32-bit "type code" with the high
+ * 16 bits encoding a category (0xA, 0x21, 0x1D, 0x1E) and low bits a
+ * sub-id. Likely a sub-object initialization sweep — this constructor's
+ * job is to register 10 distinct elements with the framework.
+ *
+ * Multi-tick refinement target — would need 3 unique-extern aliases
+ * (D_arcD70_X1/X2/X3) per feedback_unique_extern_with_offset_cast_breaks_cse.md
+ * + careful ordering of the v1+1/v1+2 branch. Default INCLUDE_ASM build
+ * remains exact. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000D70);
 
 void arcproc_uso_func_00000E58(char *a0) {
