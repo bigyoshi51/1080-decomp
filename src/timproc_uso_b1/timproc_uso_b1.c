@@ -51,7 +51,41 @@ void timproc_uso_b1_func_0000004C(Quad4 *dst) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_0000004C);
 #endif
 
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_000000B0: 0x4F4 (317 insns), 0x40-byte stack frame.
+ * Untouched until 2026-05-03. Single function (grep -c 03E00008 = 1).
+ *
+ * 14-CASE SWITCH DISPATCH on a1 (insns 1-12):
+ *   if ((u32)a1 >= 14) goto default_case;          ; sltiu+beqz
+ *   t6 = jumptable[a1*4];                           ; jr t6
+ *
+ * Per feedback_ido_switch_rodata_jumptable.md, 1080's linker DISCARDS the
+ * .rodata jumptable; matching requires if-else or if-goto chain rewrite
+ * instead of the C `switch` statement. Same structural cap as the spine
+ * function game_uso_func_00000B3C.
+ *
+ * CASE 0 (insns 13-22 @ 0xFC-0x120, decoded):
+ *   gl_func_X(a0, 1, 7, 1)                          ; some 4-arg helper
+ *   *(int*)(sp+0x44) = 4                            ; param? next-state?
+ *   *(int*)(sp+0x48) = 0xD                          ; another param/const
+ *
+ * BODY (insns 23-317, ~290 insns remaining): per-case bodies for cases
+ * 0..13. Each case dispatches to gl_func_00000000 with case-specific args
+ * and returns. Heavy use of sp+0x44/0x48 as scratch params.
+ *
+ * Per feedback_partial_alloc_block_add_irreversible.md, NOT writing partial
+ * body — the switch dispatch needs the FULL case-chain decoded together to
+ * have any chance of matching the if-else rewrite. Default INCLUDE_ASM
+ * matches via original asm. Multi-tick decompile expected. */
+void timproc_uso_b1_func_000000B0(int *a0, int a1) {
+    /* TODO: full 14-case if-else chain dispatching on a1 */
+    if ((unsigned int)a1 >= 14) return;
+    (void)gl_func_00000000();
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000000B0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000005A4);
 
