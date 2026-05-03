@@ -178,7 +178,88 @@ loop_tail:
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000014);
 #endif
 
+#ifdef NON_MATCHING
+/* n64proc_uso_func_00000100: 76-insn dual-alloc-or-passthrough constructor.
+ * 0x130 size, 0x28 frame.
+ *
+ * Decoded structure:
+ *   p = a0 ? a0 : alloc(0x88);   if (!p) goto end
+ *   q = a0 ? a0 : alloc(0x50);   // wait — actually q is from p, not a0
+ *
+ * Re-read: the second alloc-or-passthrough uses s0 (= p) as the initial value
+ * (always non-zero so always-taken-branch). So target's bnez+jal pair after
+ * the first alloc is actually a NO-OP test that compiles from the source's
+ * `if (a0 == 0) helper(); a0 = something;` pattern.
+ *
+ *   p = a0 ? a0 : alloc(0x88); if (!p) goto end;
+ *   q = alloc(0x50); if (!q) goto cleanup;
+ *   r = q ? q : alloc(0x2C); (always q here, non-zero)  // dead alloc arm
+ *   helper(r, &D + 0xB0);
+ *   r[0x28] = &D;
+ *   q[0x28] = &D;
+ *   p[0x28] = &D + 0x18;
+ *   p[0xC]  = &D + 0xB8;
+ *   helper(p);
+ *   p[0x50] = 0;
+ *   p[0x3C] = 0x64;
+ *   p[0x54] = 0xFF;
+ *   z = *(int*)(&D + 0x190);
+ *   helper(p + 0x10, z);
+ *   if ((z[0x14]) != 0) z[4] = 1;  // also z[0x14] = p both paths
+ *   z[0x14] = p;
+ *   helper(z[0x190]);   // load fresh global, call
+ *   helper(0xA3);
+ *   p[0x48] = 0; p[0x30] = 0; p[0x2C] = 0;
+ *   end: return p;
+ *
+ * Same alloc-or-passthrough family as titproc_uso_func_00001B10 just-touched
+ * (73.5%), but with 3 nested alloc patterns + more init writes + bnel-shared-
+ * store (per feedback_ido_bnel_shared_store_after_helper.md). */
+extern int gl_func_00000000();
+void *n64proc_uso_func_00000100(void *a0) {
+    void *p;
+    void *q;
+    void *r;
+    int *z;
+    int t2;
+
+    p = a0;
+    if (p == 0) {
+        p = (void*)gl_func_00000000(0x88);
+        if (p == 0) goto end;
+    }
+    q = (void*)gl_func_00000000(0x50);
+    if (q == 0) goto end;
+    r = q;
+    if (r == 0) r = (void*)gl_func_00000000(0x2C);  /* dead arm */
+    if (r == 0) goto end;
+    gl_func_00000000(r, (char*)&D_00000000 + 0xB0);
+    *(int*)((char*)r + 0x28) = (int)&D_00000000;
+    *(int*)((char*)q + 0x28) = (int)&D_00000000;
+    *(int*)((char*)p + 0x28) = (int)&D_00000000 + 0x18;
+    *(int*)((char*)p + 0xC)  = (int)&D_00000000 + 0xB8;
+    gl_func_00000000(p);
+
+    *(int*)((char*)p + 0x50) = 0;
+    *(int*)((char*)p + 0x3C) = 0x64;
+    *(int*)((char*)p + 0x54) = 0xFF;
+    z = *(int**)((char*)&D_00000000 + 0x190);
+    gl_func_00000000((char*)p + 0x10, z);
+
+    t2 = z[0x14 / 4];
+    if (t2 != 0) z[1] = 1;
+    z[0x14 / 4] = (int)p;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190));
+    gl_func_00000000(0xA3);
+    *(int*)((char*)p + 0x48) = 0;
+    *(int*)((char*)p + 0x30) = 0;
+    *(int*)((char*)p + 0x2C) = 0;
+end:
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000100);
+#endif
 
 void n64proc_uso_func_00000230(char *a0) {
     gl_func_00000000(a0 + 0x58, 6);
