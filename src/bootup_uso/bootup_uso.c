@@ -1287,7 +1287,21 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F288);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F2EC);
 
+#ifdef NON_MATCHING
+/* 60.65% NM. 17-insn / 0x44 -O0 wrapper. Calls func_00000000(&D_00000000, &.L0000C574)
+ * where .L0000C574 is a data symbol reference (per
+ * feedback_splat_func_plus_offset_data.md). -O0 indicators: trailing
+ * `b +1; nop` dead-branch, no spill-reload, has $s0-saved-frame.
+ *
+ * Per /decompile run: structural decode, % to be measured. Same -O0-cap
+ * class as adjacent func_0000F3D4. */
+extern char D_for_C574;  /* approximate; actual address is .L0000C574 cross-fn ref */
+void func_0000F390(void) {
+    func_00000000(&D_00000000, &D_for_C574);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F390);
+#endif
 
 #ifdef NON_MATCHING
 /* -O0 passthrough wrapper at offset 0xF3D4. Three -O0 markers in the asm:
