@@ -109,13 +109,12 @@ extern char D_00000000;
  *       fresh `lui v1, %hi(D); lw v1, 0x40(v1)` because both ends are
  *       compile-time-constant addresses. Even though base is `register`-
  *       declared, IDO prefers a fresh constant-address load over the
- *       indexed-via-$s form. No C-level workaround found. */
+ *       indexed-via-$s form. No C-level workaround found.
  *
  * (9) TRIED 2026-05-02: eliminate `flag` entirely; restructure as
- * `while (arg1 != 0 && arg1 != one) { arg1 = base->0x40; } if (arg1==0)
- * branch1 else branch2; arg1 = base->0x40;` — REGRESSED to 18.5 %. The
- * structural change pushes IDO too far from target's do-while-with-
- * dispatch shape. The do-while + flag pattern IS load-bearing for the
+ * `while (arg1 != 0 && arg1 != one) { arg1 = base->0x40; }` — REGRESSED to
+ * 18.5 %. The structural change pushes IDO too far from target's do-while-
+ * with-dispatch shape. The do-while + flag pattern IS load-bearing for the
  * register allocator's priority calc.
  *
  * Now at 74.49 % (variant 11). Remaining structural — see (11) note. */
