@@ -390,7 +390,49 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000184
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00001B10: 42-insn alloc-or-passthrough constructor with
+ * secondary alloc + init pattern (0xA8 size, 0x20 frame).
+ *
+ * Decoded structure:
+ *   p = a0 ? a0 : alloc(0x40);
+ *   if (!p) goto end;
+ *   q = alloc(0x2C);   // secondary alloc
+ *   if (!q) goto end;
+ *   helper(q, &D + 0x4EC);
+ *   q[0x28/4] = &D;
+ *   p[0x28/4] = &D;
+ *   p[0xC/4] = &D + 0x4F4;
+ *   helper(p);
+ *   p[0x3C/4] = 0;
+ *  end:
+ *   return p;
+ *
+ * Same shape as gl_func_0005FCC4 (97% NM via the if-else+goto-end form per
+ * feedback_ido_alloc_or_passthrough_ternary.md decision rule for bnez form). */
+extern int gl_func_00000000();
+void *titproc_uso_func_00001B10(void *a0) {
+    void *p;
+    void *q;
+    p = a0;
+    if (p == 0) {
+        p = (void*)gl_func_00000000(0x40);
+        if (p == 0) goto end;
+    }
+    q = (void*)gl_func_00000000(0x2C);
+    if (q == 0) goto end;
+    gl_func_00000000(q, (char*)&D_00000000 + 0x4EC);
+    *(int*)((char*)q + 0x28) = (int)&D_00000000;
+    *(int*)((char*)p + 0x28) = (int)&D_00000000;
+    *(int*)((char*)p + 0xC) = (int)&D_00000000 + 0x4F4;
+    gl_func_00000000(p);
+    *(int*)((char*)p + 0x3C) = 0;
+end:
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001BB8);
 
