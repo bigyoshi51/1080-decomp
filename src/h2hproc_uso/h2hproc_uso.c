@@ -552,7 +552,56 @@ void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000E04);
 #endif
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00000EB0: 44-insn (0xB0) constructor with optional alloc.
+ *
+ * Two-tier alloc pattern: takes a0 (preallocated ptr or NULL), if NULL
+ * alloc(0x40). Then a SECOND defensive `if (a2 == 0) alloc(0x2C)` which
+ * static analysis shows is unreachable (a2 always non-NULL after the first
+ * alloc-or-arg-check) — IDO emits the dead-code branch anyway because it
+ * can't prove a2 != 0 without inter-block analysis. The dead code is the
+ * 7 insns at 0xED4-0xEEC.
+ *
+ * Init phase (post-alloc):
+ *   gl_func_00000000(a0, &D_00000000+0x3E0);    // template init
+ *   p->field_28 = &D_00000000;
+ *   q->field_28 = &D_00000000_y;                 // q is some second ptr
+ *   q->field_C  = &D_00000000+0x3E8;
+ *   q->field_3C = 0;
+ *   q->field_2C..0x38 = 1.0f * 4;                // 4 floats all 1.0f
+ *
+ * Returns a2 (= the q pointer, NOT the alloc'd p). The relationship between
+ * p and q is unclear without seeing the caller — q is set somewhere I
+ * haven't decoded yet. Likely q is field-of-p or arg-from-caller.
+ *
+ * First-pass decode; not byte-matched. Multi-pass expected — register
+ * allocation around p/q reuse + 4-float-1.0 store sequence needs
+ * register-keyword tweaking. */
+extern int D_3E0;
+int *h2hproc_uso_func_00000EB0(int *a0, int *q) {
+    int *p = a0;
+    if (p == 0) {
+        p = (int*)gl_func_00000000(0x40);
+        if (p == 0) return 0;
+    }
+    if (q == 0) {
+        q = (int*)gl_func_00000000(0x2C);
+        if (q == 0) return 0;
+    }
+    gl_func_00000000(p, (char*)&D_00000000 + 0x3E0);
+    *(int*)((char*)p + 0x28) = (int)&D_00000000;
+    *(int*)((char*)q + 0x28) = (int)&D_00000000;
+    *(int*)((char*)q + 0xC) = (int)((char*)&D_00000000 + 0x3E8);
+    *(int*)((char*)q + 0x3C) = 0;
+    *(float*)((char*)q + 0x2C) = 1.0f;
+    *(float*)((char*)q + 0x30) = 1.0f;
+    *(float*)((char*)q + 0x34) = 1.0f;
+    *(float*)((char*)q + 0x38) = 1.0f;
+    return q;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000EB0);
+#endif
 
 /* Cross-USO template: byte-identical to titproc_uso_func_00001E2C. Same C body
  * matches both per feedback_uso_accessor_template_reuse.md. Logic:
