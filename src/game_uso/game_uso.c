@@ -2526,17 +2526,37 @@ void game_uso_func_0000D9CC(int *a0) {
     inner = (int*)a0[0xB4/4];
 
     if (*(float*)((char*)inner + 0x348) > 30.0f) {
-        /* TODO: main body @ 0xDA10 — starts with a halfword load from
-         * inner[0xA10], mask 0x01F0, branch on value, then a float
-         * compare against 500.0f. Multiple 0x43FA... constants appear
-         * (these are halfword masks or float bit patterns).
-         * 26 cross-USO calls follow with state-machine dispatch. */
+        /* MAIN BODY @ 0xDA10-0xDA60 (decoded 2026-05-03):
+         *   t7 = halfword at inner[0xA10]
+         *   t8 = t7 & 0x01F0  (state-bit mask)
+         *   if (t8 == 0) goto skip_block;  // branch to 0xDBD8 (far)
+         *   f2 = inner[0xA1C/4]              // float field
+         *   abs_f2 = f2 < 0 ? -f2 : f2      // abs(f2) via bc1fl + neg.s
+         *   f8 = s0[0x244/4]                 // threshold from outer struct
+         *   if (abs_f2 >= f8) goto skip;    // bc1fl threshold gate
+         *   // taken: inner[0xB4] ptr load, jal helper, ...
+         *
+         * The 500.0f constant in the lui (0x43FA0000) is loaded but only
+         * used in the SKIP path's delay slot (bc1fl). The inner[0xA10]
+         * halfword mask 0x01F0 = 8 contiguous bits at positions 4..11 —
+         * could be 16 sub-state values (5 bits = 32 but masked to 16).
+         *
+         * Pattern (gated-physics-update on abs(field) < threshold) is
+         * recurrent across 1080's per-frame compute layer (similar to
+         * 0x44F4 spine constructor's per-sub-obj gates). Suggests this
+         * IS the per-frame physics-update spine for a specific entity
+         * type. 26 cross-USO calls below this gate run the actual update.
+         *
+         * NEXT PASS (~470 insns @ 0xDA60+): decode the post-gate jal
+         * sequence + state-bit-N dispatch into the per-state branch
+         * bodies. */
     } else {
-        /* TODO: 30.0f-fail path @ 0xDBDC (far forward) — loads
-         * constant 500.0f into $f0 at the branch's delay slot (via
-         * `lui $at, 0x43FA`). Likely a secondary threshold check. */
+        /* 30.0f-fail path @ 0xDBDC (far forward, ~280 insns from entry).
+         * Decoded skeleton: loads 500.0f into $f0 at delay slot, then
+         * runs alternate FPU/cross-USO sequence. Probably a "reset"
+         * or "default-physics" path when the primary threshold fails. */
     }
-    /* TODO: remaining ~490 insns of float scheduling with mtc1 zero,
+    /* TODO: remaining ~470 insns of float scheduling with mtc1 zero,
      * c.lt.s gates, and cross-USO dispatch. */
 }
 #else
