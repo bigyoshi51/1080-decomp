@@ -251,6 +251,12 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
  * emits `lui $at, 0x3F80; mtc1 $at, $f0` BEFORE `addiu sp` — matching
  * target's pre-prologue pattern.
  *
+ * UPDATE 2026-05-03: re-measured at 95.51 % (was 94.86 %); small drift from
+ * unrelated source changes. Tried `char *spill_a0 = a0 + 0x58;` named-local
+ * variant inside both k0/k1 blocks to force a0 spill location — REGRESSED
+ * to 95.27 %. The named local pulls computation forward into a slot that
+ * conflicts with IDO's natural a0 reuse, breaking 1 byte but unlocking 0.
+ *
  * UPDATE 2026-05-02: applied the suggested fix (explicit `goto k0/k1/end`
  * + split pad layout). Match jumped 79.7 % → 94.86 %.
  *   - `char pad1[4]` BEFORE buf[4] + `char pad2[12]` AFTER all locals
