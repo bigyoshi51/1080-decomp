@@ -1840,7 +1840,31 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  *   //   i.e. retval->x = arg3->[0x30]; retval->y = 0.0f; retval->z = arg3->[0x38]
  *
  * REMAINING ~683 insns: 16 cross-USO calls, alternating float math with
- * the XZ-projected position. Multi-tick decomp expected. */
+ * the XZ-projected position. Multi-tick decomp expected.
+ *
+ * 2026-05-03 RE-MEASURE: 3.5% NM (up from prior baseline ~2.5%, parallel
+ * agent commits drifted upward per feedback_nm_wrap_doc_pct_drifts.md).
+ *
+ * EXTENDED DECODE @ 0x8D90-0x8DD8 (insns 27-50, decoded but NOT added to C
+ * per feedback_partial_alloc_block_add_irreversible.md):
+ *   // After the 1st cross-call's Vec3 fill block:
+ *   // SECOND Vec3 stage: copy a3->0x30..0x38 region into THREE local buffers
+ *   //   (sp+0x174, sp+0x204, and the saved retval block — all at +0/+4/+8)
+ *   //   This matches the 1080 per-frame Vec3-stage template documented in
+ *   //   feedback_game_uso_per_frame_vec3_stage_template.md, but here it
+ *   //   triple-copies (3 destinations from 1 source) using interleaved
+ *   //   lw+sw chains for IDO load-batching.
+ *   //
+ *   // THIRD cross-call: gl_func_X(retval2, sp+0x174) at 0x8DD4
+ *   //   retval2 spilled to sp+0x214 (overwriting prior retval slot)
+ *
+ *   // Then check at 0x8DE0: a3+0x30 != 0xB4? branch on relative offset
+ *   //   (lw a3,0x30(a1); bnez +0xA, addiu v1,v1,+0xB4 in delay)
+ *   //   This is "if (a1->0x30 == 0) skip alternate path"
+ *
+ * The Vec3-triple-copy pattern strongly confirms 0x8CD8 is per-frame
+ * physics setup that broadcasts a Vec3 to multiple downstream consumers
+ * (XZ-projected ground position passed to 3+ submodules). */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
