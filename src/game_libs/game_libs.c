@@ -369,11 +369,54 @@ void gl_func_0000949C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000949C);
 #endif
 
+#ifdef NON_MATCHING
+/* Sibling of gl_func_0000949C (-O0 2-call wrapper). 16 insns / 0x40.
+ * Both jals target gl_ref_0001CFB0 (calls same helper twice — first
+ * with &scratch, then with a0+0x10).
+ *
+ * NM-build for game_libs.c is already broken upstream (existing 949C wrap
+ * shrinks .text past TRUNCATE_TEXT=0xEC00); these new sibling wraps add
+ * 0x30 more bytes shrinkage — default build is unaffected (INCLUDE_ASM
+ * path emits the full 16-insn target bytes).
+ *
+ * O0-blocked NM cap; promotion path is the file-split recipe per
+ * feedback_uso_accessor_o0_file_split_recipe.md (move all 4 siblings
+ * into game_libs_949C_o0.c with -O0 OPT_FLAGS). */
+extern int gl_ref_0001CFB0();
+void gl_func_000094DC(char *a0) {
+    int scratch;
+    gl_ref_0001CFB0(&scratch);
+    gl_ref_0001CFB0(a0 + 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000094DC);
+#endif
 
+#ifdef NON_MATCHING
+/* Sibling of gl_func_0000949C. f1=gl_ref_0001CFB0, f2=gl_ref_0001D060.
+ * Same 0x40 / 16 insns / O0-blocked structure. */
+extern int gl_ref_0001D060();
+void gl_func_0000951C(char *a0) {
+    int scratch;
+    gl_ref_0001CFB0(&scratch);
+    gl_ref_0001D060(a0 + 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000951C);
+#endif
 
+#ifdef NON_MATCHING
+/* Sibling of gl_func_0000949C. f1=gl_ref_0001CFB0, f2=gl_ref_0001D0AC.
+ * Same 0x40 / 16 insns / O0-blocked structure. */
+extern int gl_ref_0001D0AC();
+void gl_func_0000955C(char *a0) {
+    int scratch;
+    gl_ref_0001CFB0(&scratch);
+    gl_ref_0001D0AC(a0 + 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000955C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000959C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000959C_pad.s")
