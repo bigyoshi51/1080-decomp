@@ -1097,8 +1097,21 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *     s0 += 8;
      *   }
      */
-    /* TODO: ~1100 remaining insns — sub-object alloc loop, recursive
-     * init via cross-USO calls, child link setup at a0->field_38, etc. */
+    /* Stage 5 (extended 2026-05-03, ~25 insns 0x45D8-0x4640):
+     * After init-sub-obj jal, set 3 more fields per sub-obj from data
+     * templates at &D + various offsets:
+     *
+     *   gl_func_00000000(s0, 0x18);
+     *   *(int*)(s0 + 0xC)  = (int)((char*)&D_00000000 + 0x3C8);
+     *   *(int*)(s0 + 0x14) = 0;
+     *   *(float*)(s0 + 0x10) = *(float*)((char*)&D_00000000 + 0x9C);
+     *   t8 = *(int*)((char*)&D_00000000 + 0x6EC);  // list head
+     *   ... (continues with more loads + 2 more cross-USO calls
+     *   at 0x4620 and 0x4640, decoding pending) */
+
+    /* TODO: ~1075 remaining insns — sub-object alloc loop continuation,
+     * recursive init via cross-USO calls, child link setup at
+     * a0->field_38, etc. */
     (void)s0; (void)a1; (void)a2;
 epi:
     return a0;
