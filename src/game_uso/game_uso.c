@@ -479,22 +479,6 @@ void game_uso_func_00000B3C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000B3C);
 #endif
 
-#ifdef NON_MATCHING
-/* 96 % (75/78). Two parallel loops over the parent struct's int-arrays:
- *   loop A: count at +0x24C, slot at +0x1D4, alloc-arg = 0
- *   loop B: count at +0x1D0, slot at +0x158, alloc-arg = 40
- * Each iter: v = alloc(N); slot = v; init(v); deinit(v);
- *
- * Diffs (3 per objdiff at 96 %):
- *   (1) jal target — `R_MIPS_26 game_uso_func_00000280` reloc vs target's
- *       pre-resolved `0c0000a0`. Linker resolves identically; objdiff still
- *       counts it.
- *   (2) blez offset — downstream of (3).
- *   (3) IDO schedules my `move s0, s2` BEFORE the second `jal func_00000280`.
- *       Target schedules it AFTER (between the lw count and the blezl skip).
- *       Tried separating `i = 0; jal; p = a0;` — IDO still hoists p=a0 above
- *       the jal because there's no data dependency. Likely needs a do-while
- *       restructure or permuter to defer the assignment. */
 void game_uso_func_00001644(int *a0) {
     int i;
     int *p;
@@ -514,19 +498,18 @@ void game_uso_func_00001644(int *a0) {
 
     i = 0;
     game_uso_func_00000280((int*)((char*)a0 + 0x1D0));
-    p = a0;
-    while (i < *(int*)((char*)a0 + 0x1D0)) {
-        v = gl_func_00000000(40);
-        *(int*)((char*)p + 0x158) = v;
-        gl_func_00000000(v);
-        gl_func_00000000(*(int*)((char*)p + 0x158));
-        i++;
-        p++;
+    if (*(int*)((char*)a0 + 0x1D0) > 0) {
+        p = a0;
+        do {
+            v = gl_func_00000000(40);
+            *(int*)((char*)p + 0x158) = v;
+            gl_func_00000000(v);
+            gl_func_00000000(*(int*)((char*)p + 0x158));
+            i++;
+            p++;
+        } while (i < *(int*)((char*)a0 + 0x1D0));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001644);
-#endif
 
 void game_uso_func_00001714(int a0, int *a1) {
     int v = *a1;
