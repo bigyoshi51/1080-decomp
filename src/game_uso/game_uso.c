@@ -1618,7 +1618,49 @@ float game_uso_func_00007ABC(void) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00007ACC: 0x150 (84 insns). Function-table dispatcher with
+ * bounds check and (likely) assertion call.
+ *
+ * Decoded prelude (insns 1-15 @ 0x7ACC-0x7B08):
+ *   void f(T *a0, int *a1, int idx, int x_unused, int arg5) {
+ *       *a1 = 0;                                       // sw zero,0(a1)
+ *       int v = idx;                                    // reload from caller arg slot
+ *       T *p = a0;                                      // s0 saved
+ *       if (v < 0 || v >= 12) {
+ *           gl_func_00000000(&D + 0x78C, &D + 0x7B0, 0x609);  // assert(file, msg, line)
+ *       }
+ *       // function table at &D + idx*4 + 0x548 — fn pointer
+ *       int idx4 = v << 2;
+ *       void (*fn)() = *(void(**)())(&D + idx4 + 0x548);
+ *       int arg6 = arg5;          // re-read caller arg from sp+0x40
+ *       int *p_ref = *(int**)((char*)p + 0x40);
+ *       int sub_arg0 = *p_ref;
+ *       fn(p, sub_arg0, ...);     // dispatched call
+ *       // ... rest of the body uses the call's return value
+ *   }
+ *
+ * Identifies as the GAME-EVENT DISPATCHER for 12 cases (idx 0..11). The
+ * &D + 0x548 table is a 12-entry function-pointer array. Parallel to
+ * game_uso_func_00000174C (the 16-case if-goto chain at 95.74%) but uses
+ * a real jump table — different dispatch shape.
+ *
+ * Multi-pass: 0% match for now (stub). Body wrap captures the structure
+ * + the &D function-table location for future passes. Default build
+ * INCLUDE_ASM matches. */
+void game_uso_func_00007ACC(void *a0, int *a1, int idx) {
+    *a1 = 0;
+    if (idx < 0 || idx >= 12) {
+        gl_func_00000000((char*)&D_00000000 + 0x78C,
+                         (char*)&D_00000000 + 0x7B0, 0x609);
+    }
+    /* TODO: dispatch to (*(void(**)())(&D + idx*4 + 0x548))(...) and
+     * the post-call body — see asm at offsets 0x7B30+. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
+#endif
 
 #ifdef NON_MATCHING
 /* 1.48% NM. game_uso_func_00007C1C: 0x10BC (1075 insns, 4.3 KB) — strategy-memo spine
