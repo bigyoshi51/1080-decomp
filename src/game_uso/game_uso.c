@@ -1567,12 +1567,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
 #endif
 
 #ifdef NON_MATCHING
-/* ~50%: returns 0.0f via $f2 intermediate (mtc1 $0,$f2; mov.s $f0,$f2) —
- * IDO -O2 always folds `return 0.0f` / `float x=0; return x;` etc. to direct
- * mtc1 $0,$f0. The extra `nop` between mtc1 and jr suggests a pipeline stall
- * or source idiom that isn't recoverable from any tested 4-insn C body
- * (2026-04-20: tested 13+ variants: literal, local, volatile, negate, cast,
- *  union punning, arg-ignore). Likely permuter-only. */
+/* 58.75% NM. 4-insn body: `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2`.
+ * Returns 0.0f via $f2 intermediate. IDO -O2 folds standalone `return 0.0f`
+ * to 2 insns (`jr ra; mtc1 $0,$f0`); target's 4-insn shape with $f2
+ * intermediate is the SHARED TAIL with game_uso_func_00007A98 (which
+ * branches into 7ABC+4 via `beql v1,zero,+7` per its wrap doc). Standalone
+ * 7ABC has no C source path to the cross-function tail-shared shape — IDO
+ * generates each function's epilogue independently.
+ *
+ * Tried (2026-04-20, 13+ variants): literal, local, volatile, negate, cast,
+ * union punning, arg-ignore. Tried (2026-05-02): leading-% backfill per
+ * feedback_nm_wrap_must_include_pct.md. Real fix likely requires either a
+ * permuter run or restructuring 7A98 to absorb 7ABC's tail (also blocked
+ * per 7A98's wrap). Structurally locked — accept as cap. */
 float game_uso_func_00007ABC(void) {
     return 0.0f;
 }
