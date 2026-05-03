@@ -1791,9 +1791,21 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
     /* TODO: insns 0x9BF4-0x9C50 — produces a scaled/offset Vec3 from a1+0x30,
      * a1+0x38 against a2+0x30. Uses mtc1/mul.s/sub.s on $f8/$f10. */
 
-    /* TODO: body-part-2 @ 0x9C54-0x10E8 — 300 insns of float math +
-     * ~9 more cross-USO calls. Likely matrix/quaternion transform with
-     * scale 250.0f and offset 50.0f constants. */
+    /* Body-part-2 entry @ 0x9C54-0x9CD0 (extended decode 2026-05-03):
+     *   - reads a2[0..0xC] (Vec3 from a2 + 0) into sp+0x144 via raw-word lw/sw
+     *   - reads a2[0..0xC] AGAIN into sp+0x19C (different intermediate slot)
+     *   - reads a2[0..0xC] into sp+0xEC
+     *   - 4-word raw copy: a1[0..0xC] → sp+0xC4
+     *   - call gl_func_00000000(arg=sp+0x144, size=0xC) — 3rd cross-call,
+     *     allocs another 12-byte Vec3 result
+     *   - if v0 != 0: load Vec3 from sp+0x144 into v0[0..0xC]
+     * Then 0x9CB4-0x9CD0: reads sp+0x144 + sp+0x14C, mtc1 zero $f4,
+     *   neg.s $f2, $f0 + cvt arithmetic, stores f0/f2/f4 to v1[0..0xC] —
+     *   first FPU-arith block. Constant 0xC7A8 ≈ 250.0f, 0x4248 ≈ 50.0f at
+     *   0x9D08/9D14 area suggests this is a screen-space transform.
+     *
+     * TODO: body-part-2 tail @ 0x9CD0-0x10E8 — 280 insns of float math +
+     * ~9 more cross-USO calls. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
