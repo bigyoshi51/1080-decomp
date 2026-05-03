@@ -1704,7 +1704,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 7.98% NM. game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
+/* 17.92% NM. game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Strategy-memo candidate for "per-frame compute" (1.4 KB, 11 cross-calls).
  *
  * Partial C body: ~10 % match guess. Captures entry (panic-on-a2-null
@@ -1751,78 +1751,94 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *   (context, anchor, src-Vec3) and produces a transformed Vec3 written to
  *   one of several local slots for downstream cross-USO dispatch. */
 void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
-    float local_190[3];   /* sp+0x190: 3-float buffer, written at entry */
-    float local_DC[3];    /* sp+0xDC:  second 3-float buffer for scaled src */
-    int *v0, *v1;
-    float src_x, src_z;
+    float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
+    float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
+    int   local_EC[3];    /* sp+0xEC:  raw-word copy of local_DC */
+    int   local_C4[3];    /* sp+0xC4:  raw-word copy of local_DC */
+    int   local_19C[3];   /* sp+0x19C: raw-word copy of local_DC */
+    float local_144[3];   /* sp+0x144: Vec3 — passed to alloc-or-fill helper */
+    float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
+    int *out;
+    float src_x, src_z, dx, dz;
 
     if (a2 == 0) {
-        /* Assert: line 0x623 (1571) — panic message at &D+0x7BC / &D+0x7C8 */
+        /* Assert: line 0x623 (1571) — message at &D+0x7BC / &D+0x7C8 */
         gl_func_00000000(&D_00000000 + 0x7BC, &D_00000000 + 0x7C8, 0x623);
     }
 
-    /* Dispatch 1: alloc 12-byte Vec3 result, populate from a2->0x30/0x38.
-     * Target asm at 0x9BD8-0x9BF0 (verified 2026-05-02):
-     *   mtc1 zero, f4               ; f4 = 0.0
-     *   addiu v0, v0, 0x30          ; v0 = a2 + 0x30
-     *   lwc1 f2, 0x8(v0)            ; f2 = a2->0x38
-     *   lwc1 f0, 0x0(v0)            ; f0 = a2->0x30
-     *   swc1 f4, 0x4(v1)            ; v1->y = 0
-     *   swc1 f2, 0x8(v1)            ; v1->z = a2->0x38
-     *   swc1 f0, 0x0(v1)            ; v1->x = a2->0x30
-     * Note store order: y, z, x — IDO interleaves loads (f4 const, f2/f0
-     * from a2-base) with stores (using register-pair availability). */
-    v1 = local_190;
-    if (v1 == 0) {  /* trivially false — v1 is stack addr */
-        /* dead path */
-    } else {
-        v0 = (int*)gl_func_00000000(a2, 0xC);  /* 2nd cross-call, size=12 */
-        if (v0 != 0) {
-            /* Vec3 XZ-projection (Y zeroed) — exact decode of target */
-            src_x = *(float*)((char*)a2 + 0x30);
-            src_z = *(float*)((char*)a2 + 0x38);
-            *(float*)((char*)v0 + 0x4) = 0.0f;     /* y */
-            *(float*)((char*)v0 + 0x8) = src_z;    /* z */
-            *(float*)((char*)v0 + 0x0) = src_x;    /* x */
-        }
+    /* Dispatch 1: write Vec3 XZ-projection to local_190 (sp+0x190).
+     * IDO emits as `out = ptr ? ptr : alloc(12)` ternary via bnel; both
+     * arms eventually write the same body. ptr=stack-addr → bnel always
+     * taken → alloc path is dead. Stores order: y, z, x (IDO interleaving). */
+    out = (int*)local_190;
+    if (out == 0) {  /* dead arm */
+        out = (int*)gl_func_00000000(0xC);
+    }
+    if (out != 0) {
+        src_x = *(float*)((char*)a2 + 0x30);
+        src_z = *(float*)((char*)a2 + 0x38);
+        *(float*)((char*)out + 0x4) = 0.0f;     /* y */
+        *(float*)((char*)out + 0x8) = src_z;    /* z */
+        *(float*)((char*)out + 0x0) = src_x;    /* x */
     }
 
-    /* Dispatch 2: second 3-float buffer at local_DC (sp+0xDC) — math-heavy */
-    /* TODO: insns 0x9BF4-0x9C50 — produces a scaled/offset Vec3 from a1+0x30,
-     * a1+0x38 against a2+0x30. Uses mtc1/mul.s/sub.s on $f8/$f10. */
+    /* Dispatch 2: write Vec3 (a2->XZ - a1->XZ delta) to local_DC.
+     * Same ternary shape; uses local_190 (just-written) for src_x/src_z. */
+    out = (int*)local_DC;
+    if (out == 0) {  /* dead arm */
+        out = (int*)gl_func_00000000(0xC);
+    }
+    if (out != 0) {
+        dx = local_190[0] - *(float*)((char*)a1 + 0x30);
+        dz = local_190[2] - *(float*)((char*)a1 + 0x38);
+        *(float*)((char*)out + 0x4) = 0.0f;     /* y */
+        *(float*)((char*)out + 0x8) = dz;       /* z */
+        *(float*)((char*)out + 0x0) = dx;       /* x */
+    }
 
-    /* Body-part-2 entry @ 0x9C54-0x9CD0 (extended decode 2026-05-03):
-     *   - reads a2[0..0xC] (Vec3 from a2 + 0) into sp+0x144 via raw-word lw/sw
-     *   - reads a2[0..0xC] AGAIN into sp+0x19C (different intermediate slot)
-     *   - reads a2[0..0xC] into sp+0xEC
-     *   - 4-word raw copy: a1[0..0xC] → sp+0xC4
-     *   - call gl_func_00000000(arg=sp+0x144, size=0xC) — 3rd cross-call,
-     *     allocs another 12-byte Vec3 result
-     *   - if v0 != 0: load Vec3 from sp+0x144 into v0[0..0xC]
-     * Then 0x9CB4-0x9CD0: reads sp+0x144 + sp+0x14C, mtc1 zero $f4,
-     *   neg.s $f2, $f0 + cvt arithmetic, stores f0/f2/f4 to v1[0..0xC] —
-     *   first FPU-arith block. Constant 0xC7A8 ≈ 250.0f, 0x4248 ≈ 50.0f at
-     *   0x9D08/9D14 area suggests this is a screen-space transform.
+    /* Body-part-2 entry @ 0x9C44-0x9C50: word-copy local_DC -> local_EC */
+    local_EC[0] = ((int*)local_DC)[0];
+    local_EC[1] = ((int*)local_DC)[1];
+    /* (interleaved with next-block setup; word-copy continues) */
+
+    /* @ 0x9C54-0x9C7C: word-copy a1[0..0xC] into local_19C and local_144 */
+    local_19C[0] = a1[0]; local_19C[1] = a1[1]; local_19C[2] = a1[2];
+    local_144[0] = *(float*)&a1[0];
+    local_144[1] = *(float*)&a1[1];
+    local_144[2] = *(float*)&a1[2];
+
+    /* @ 0x9C84-0x9C98: word-copy a1[0..0xC] into local_C4 */
+    local_C4[0] = a1[0]; local_C4[1] = a1[1]; local_C4[2] = a1[2];
+
+    /* @ 0x9C9C-0x9CB0: 3rd cross-call alloc(12), if non-null copy local_144
+     * Vec3 into the result buffer. */
+    out = (int*)gl_func_00000000(0xC);
+    if (out != 0) {
+        ((float*)out)[0] = local_144[0];
+        ((float*)out)[1] = local_144[1];
+        ((float*)out)[2] = local_144[2];
+    }
+
+    /* @ 0x9CB4-0x9CD0: first FPU block — neg.s on local_144[0]:
+     *   mtc1 zero, f4; lwc1 f0, 0x144(sp); lwc1 (f2 from 0x14C);
+     *   neg.s f2, f0; swc1 f0/f2/f4 to v1.
+     * Skipped: depends on `v1` from earlier alloc result. */
+
+    /* @ 0x9CD0-0x9DC4: ~58 insns including 4th cross-call at 0x9CFC and
+     *   the screen-space transform: local_12C[0..2] = (loaded 250.5f, 50.0f
+     *   scale/offset constants from 0x9D0C/0x9D1C) applied to a Vec3 from
+     *   (a2 -> 0x18 -> +0x54) chain (transformed-position lookup against
+     *   a sub-object). Result stored to sp+0x12C..sp+0x140 — 6-float/2-Vec3
+     *   block, likely orientation + delta. Not yet C-decoded.
      *
-     * Body-part-2 tail extension @ 0x9CD0-0x9DC4 (~36 more insns decoded
-     * 2026-05-03):
-     *   - reads sp+0x144/0x148/0x14C (the Vec3 stored at body-part-2 entry)
-     *   - applies more FPU arith via mul.s/sub.s/add.s on $f0/$f6/$f8
-     *   - constants confirmed: 0x437A8000 = 250.5f at 0x9D0C (mtc1 to $f2),
-     *     0x42480000 = 50.0f at 0x9D1C (mtc1 to $f10) — stored to t9[+0/+4/+8]
-     *     where t9 = sp+0x12C (the accumulator block)
-     *   - reads (a2 -> 0x18 -> +0x54) Vec3 chain — transformed-position
-     *     lookup against a different sub-object
-     *   - writes back to sp+0x12C..sp+0x140 (a 6-float / 2-Vec3 block;
-     *     possibly orientation + delta)
-     *   - 4th cross-call gl_func_00000000(...) at 0x9DCC
-     *
-     * The 250.5/50.0 constants confirm a screen-space coordinate transform:
-     * 250.5 likely a viewport-scale factor (half screen + 0.5 for pixel
-     * center), 50.0 likely a vertical zero-point or offset.
-     *
-     * TODO: body-part-2 final @ 0x9DC4-0x10E8 — 240+ insns + ~8 more
-     * cross-USO calls. */
+     * @ 0x9DC4-0x10E8: body-part-2 final, 240+ insns + ~8 cross-USO calls.
+     *   TODO: future passes will decompose the per-block math chains.
+     *   The 250.5/50.0 constants confirm screen-space coordinate transform
+     *   (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset). */
+    (void)local_12C;
+    (void)local_19C;  /* suppress unused warnings until body-part-2 done */
+    (void)local_EC;
+    (void)local_C4;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
