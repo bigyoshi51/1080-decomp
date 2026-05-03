@@ -643,7 +643,50 @@ void h2hproc_uso_func_00001A3C(char *dst) {
     h2hproc_uso_func_00000558((Quad4*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00001A6C: 36-insn (0x90) constructor — BYTE-IDENTICAL
+ * mirror of eddproc_uso_func_000003BC (verified 2026-05-03 via .word diff).
+ * Same alloc + init + list-add structure with beql speculative double-store.
+ *
+ *   void *p = gl_func_00000000(0x40);    // alloc
+ *   if (p != NULL) {
+ *     gl_func_00000000(p);                // init
+ *     p->field_28 = &D_00000000;
+ *     p->field_3C = 0;
+ *     if (arg0->field_40 != NULL) {
+ *       int rv = gl_func_00000000(p + 0x10, arg0->field_40);
+ *       if (rv != 0) {
+ *         arg0->field_40->[0x14] = p;
+ *         p->[0x04] = 1;
+ *         arg0->field_40->[0x14] = p;     // beql double-store
+ *       }
+ *     }
+ *   }
+ *   return p;
+ *
+ * ~60% NM cap inherited from eddproc sibling — register allocation
+ * differs ($v0/$v1 chain vs target's $t-regs) and frame layout is 0x28
+ * vs ~0x20. Multi-tick decomp; mirror of eddproc wrap. */
+void h2hproc_uso_func_00001A6C(int *arg0) {
+    void *p = (void*)gl_func_00000000(0x40);
+    if (p != NULL) {
+        gl_func_00000000(p);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
+        if (arg0[0x40 / 4] != 0) {
+            int rv = gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
+            if (rv != 0) {
+                int **slot = (int**)((char*)arg0[0x40 / 4] + 0x14);
+                *slot = (int*)p;
+                *(int*)((char*)p + 0x4) = 1;
+                *slot = (int*)p;   /* redundant double-store; matches beql */
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A6C);
+#endif
 
 extern int h2hproc_uso_func_h2h_4DC();
 extern int h2hproc_uso_func_h2h_5AC();
