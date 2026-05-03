@@ -3496,7 +3496,12 @@ void gl_func_0006BA0C(void) {
     gl_func_00000000(&D_00000000, &local, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BA48);
+/* 11-insn passthrough wrapper. Declared size 0x34 includes 2 trailing dead
+ * insns (lui t6, 0xA460; lw a2, 0x10(t6) — N64 PI hardware register access)
+ * — stolen prologue setup for the successor. Closed via SUFFIX_BYTES. */
+void gl_func_0006BA48(void) {
+    gl_func_00000000(&D_00000000, 0, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BA7C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BA7C_pad.s")
