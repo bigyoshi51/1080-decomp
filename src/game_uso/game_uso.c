@@ -1116,7 +1116,13 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *   ... (continues with more loads + 2 more cross-USO calls
      *   at 0x4620 and 0x4640, decoding pending) */
 
-    /* Stage 6 (extended 2026-05-03 run 13, ~16 insns 0x4630-0x4680):
+    /* Stage 7 confirmation (2026-05-03 run): the 0x44F4-0x47F4 region is a
+     * LOOP over sub-objects — Stages 4-6 are the per-iteration body, repeated
+     * with rotating template offsets D[0x6EC], D[0x6F4], etc. (gap 8 bytes per
+     * iter = next-template ptr). Estimated 16 iters total before the loop exits
+     * to the outer constructor's link-setup phase at ~0x47F4.
+     *
+     * Stage 6 (extended 2026-05-03 run 13, ~16 insns 0x4630-0x4680):
      *   gl_func_00000000(s0, s1, *(int*)s2, 1);   // 4-arg sub-init call
      *   s0->[0xC] = (int)((char*)&D_00000000 + 0x3C8);  // template ptr (same as stage 5)
      *   s0->[0x14] = 0;
