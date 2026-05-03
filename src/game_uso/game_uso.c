@@ -131,7 +131,7 @@ void game_uso_func_00000314(Pair2 *dst) {
 }
 
 #ifdef NON_MATCHING
-/* 98.1%: int-reader with pointer-indirect load (volatile int buf[2] trick).
+/* 98.12% NM. Int-reader with pointer-indirect load (volatile int buf[2] trick).
  * Remaining 2 %: register choice. Target uses t7/t9/t6 (skipping t8);
  * ours allocates t6/t7/t8 sequentially. 7+ variants can't flip allocator
  * to skip t8. See feedback_ido_volatile_buf_pointer_indirect.md. */
@@ -265,7 +265,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000674);
 #endif
 
 #ifdef NON_MATCHING
-/* 90% match. Prior commit 764b62d landed this as "100%" but that was
+/* 89.96% NM. Prior commit 764b62d landed this as "100%" but that was
  * expected-baseline contamination — subsequent refresh-expected-baseline
  * run reset expected/ to pure baserom bytes and revealed the real diff.
  *
@@ -333,7 +333,7 @@ void game_uso_func_000007EC(int *arg0) {
 }
 
 #ifdef NON_MATCHING
-/* 8-arg constructor/initializer (4 reg + 4 stack args).
+/* 71.12% NM. 8-arg constructor/initializer (4 reg + 4 stack args).
  *   void *f(T *a0,    // dst, alloc 0x27C if NULL
  *           int a1,   // -> a0->0x150 post-init
  *           int a2,   // -> 1st gl_func arg
