@@ -1844,7 +1844,32 @@ void gl_func_00041278(void) {
     gl_func_00000000();
 }
 
+#ifdef NON_MATCHING
+/* Sibling/successor of gl_func_00041278 (which uses SUFFIX_BYTES to
+ * absorb the `lui t6, 4; lw t6, 0xC160(t6)` setup that this function
+ * needs at entry). 412A0's body uses the pre-loaded t6 value:
+ *   if (D[0x4C160] != 0) f(0x1F5B8, a0);
+ *   f(&D, a0);
+ *
+ * Cap: IDO can't be told that t6 is pre-loaded from the predecessor's
+ * SUFFIX; my C-emit will do its own `lui t0, 4; lw t0, 0xC160(t0)`
+ * AFTER the prologue, adding 2 extra insns vs target. PROLOGUE_STEALS
+ * doesn't help here — the dead bytes are mid-function, not at the start.
+ * The `inject-suffix-bytes.py` recipe is for the predecessor side only.
+ *
+ * Trailing 2 insns (jr ra; nop at 0x412E0/E4) are an empty stub function
+ * splat lumped into 412A0 — would need splat re-run to break out, but
+ * USO splits break expected/.o per feedback_uso_split_fragments_breaks_expected_match.md. */
+extern int gl_func_00000000();
+void gl_func_000412A0(int a0) {
+    if (*(int*)((char*)&D_00000000 + 0x4C160) != 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x1F5B8, a0);
+    }
+    gl_func_00000000(&D_00000000, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412A0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412E8);
 
