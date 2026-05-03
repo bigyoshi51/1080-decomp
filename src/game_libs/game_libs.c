@@ -639,7 +639,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B450);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B4A4);
 
+#ifdef NON_MATCHING
+/* 14-insn 2-call wrapper at 0xB560-0xB594. C body below covers the active
+ * 14 insns; the 4 trailing bytes at 0xB59C-0xB5A8 (`sll/subu/addiu/divu`
+ * computing (a1*3)/5) are SUFFIX_BYTES belonging to successor gl_func_0000B5AC
+ * — same recipe class as gl_func_00041278/000412A0 (predecessor absorbs
+ * successor's prologue setup). Without SUFFIX_BYTES added to Makefile, this
+ * wrap won't include the trailing 4 insns; default INCLUDE_ASM matches. */
+extern int gl_func_00000000();
+void gl_func_0000B560(int *p) {
+    gl_func_00000000(p[4], p[0]);
+    gl_func_00000000(p[4], p[1]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B560);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B5AC);
 
