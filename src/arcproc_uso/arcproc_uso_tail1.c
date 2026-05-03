@@ -451,6 +451,30 @@ void arcproc_uso_func_000014A8(void) {
     gl_func_00000000();
 }
 
+/* arcproc_uso_func_000014C8: 79-insn (0x13C) FPU-driven scoring update.
+ * Frame -0x58, FPU-heavy with c.lt.s/bc1fl gate chain.
+ *
+ * ENTRY DECODE (insns 0-12):
+ *   f0 = 1.0f                            ; constant init at fn entry
+ *   sp[0x48/4C/50/54] = 0.0f x 4         ; init scratch 4-float buffer
+ *   t6 = a0->0x500                       ; load state field
+ *   s0 = a0                              ; saved
+ *   if (t6 == 0) goto far_exit @ 0x15F0  ; bnel-likely (delay-likely lw ra)
+ *
+ * BODY structure (insns 12-79):
+ *   - Load D[0x77C] (current scoring float)
+ *   - c.lt.s f4, f6 (compare scoring vs threshold)
+ *   - Branch +0x37 (~13 insns to early-exit)
+ *   - Multi-stage scoring update with chained c.lt.s gates
+ *   - Increment counter at a0->0x508 via (lw t8, lw a0[0x528], addiu, sw)
+ *   - Cross-USO call (jal func_00000000) with state-update args
+ *   - Branch +0x1F to convergence
+ *
+ * Pattern fingerprint: per-frame scoring update with float-threshold gates
+ * and a counter-driven cross-USO callback. Same -O2 form as
+ * arcproc_uso_func_0000125C (sibling FPU-state functions).
+ *
+ * Multi-tick refinement target. Default INCLUDE_ASM build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000014C8);
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001604);
