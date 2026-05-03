@@ -554,7 +554,64 @@ void gl_func_0002DF68(int a0, float a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF68);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002DF98: 53-insn struct-init constructor.
+ * Sibling of just-landed gl_func_0002DF00 (10-insn bit-pack wrapper).
+ *
+ * Initializes a ~0x64-byte struct at a0 with default values:
+ * - Many byte fields (a0[0x14..0x34] etc.) → 0 or 1 or 0x40
+ * - 7 float fields zeroed: a0+0x0/4/8/0xC/0x10/0x44/0x50
+ * - 3 float fields = 1.0f: a0+0x54/0x58/0x5C
+ * - a0[0x21] = a1 (caller-supplied byte)
+ * - a0[0x28] = 0x40, a0[0x20]/a0[0x14]/a0[0x15]/a0[0x23]/a0[0x2C] = 1
+ * - if (*(int*)&D_0 != 0) gl_func(a1 & 0xFF) — log/notify if global set
+ *
+ * No prologue-stolen complications. Sibling of 0002DF00 in
+ * sibling-chain context (source 2 of /decompile). */
+extern int gl_func_00000000();
+void gl_func_0002DF98(unsigned char *a0, int a1) {
+    a0[0x21] = a1;
+    a0[0x14] = 1;
+    a0[0x15] = 1;
+    a0[0x16] = 0;
+    *(short*)(a0 + 0x1A) = 0;
+    a0[0x17] = 0;
+    a0[0x1D] = 0;
+    a0[0x34] = 0;
+    a0[0x1E] = 0;
+    a0[0x20] = 1;
+    a0[0x26] = 0;
+    a0[0x23] = 1;
+    a0[0x2C] = 1;
+    *(int*)(a0 + 0x48) = 0;
+    *(int*)(a0 + 0x38) = 0;
+    a0[0x2D] = 0;
+    a0[0x29] = 0;
+    a0[0x18] = 0;
+    a0[0x28] = 0x40;
+    a0[0x32] = 0;
+    a0[0x33] = 0;
+    a0[0x1F] = 0;
+    a0[0x60] = 0;
+    a0[0x61] = 0;
+    a0[0x62] = 0;
+    *(float*)a0 = 0.0f;
+    *(float*)(a0 + 0x50) = 0.0f;
+    *(float*)(a0 + 0x4) = 0.0f;
+    *(float*)(a0 + 0x8) = 0.0f;
+    *(float*)(a0 + 0xC) = 0.0f;
+    *(float*)(a0 + 0x44) = 0.0f;
+    *(float*)(a0 + 0x10) = 0.0f;
+    *(float*)(a0 + 0x54) = 1.0f;
+    *(float*)(a0 + 0x58) = 1.0f;
+    *(float*)(a0 + 0x5C) = 1.0f;
+    if (*(int*)&D_00000000 != 0) {
+        gl_func_00000000(a1 & 0xFF);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF98);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E06C);
 
