@@ -190,7 +190,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000016F8);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001860);
+void timproc_uso_b1_func_00001860(int *a0) {
+    if (gl_func_00000000(*(int*)(&D_00000000 + 0x190)) == 0) return;
+    if (gl_func_00000000(&D_00000000, 0x40100) == 0) return;
+    if (gl_func_00000000(a0[0x50/4]) != 0) {
+        a0[0x60/4] = 1;
+    } else {
+        gl_func_00000000(a0, -1, 0);
+    }
+}
 
 void timproc_uso_b1_func_000018D4(char *a0) {
     char *p;
