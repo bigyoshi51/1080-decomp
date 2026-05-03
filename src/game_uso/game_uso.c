@@ -871,6 +871,34 @@ int* game_uso_func_000023D4(int *a0, char *a1) {
     return a0;
 }
 #else
+/* game_uso_func_000023D4: 50-insn (0xC8) Vec3 transform helper.
+ * Frame -0x20, leaf-style FPU function (no jal calls).
+ *
+ * Decoded structure:
+ *   /* Stage Vec3 from a1->0x5C/0x60/0x64 onto sp+0x14..0x1C *\/
+ *   sp[0x14] = a1->0x5C (.x)
+ *   sp[0x18] = a1->0x60 (.y)
+ *   sp[0x1C] = a1->0x64 (.z)
+ *
+ *   /* 3x3 matrix-vector multiply against a1->0x38->0x70 (3x3 matrix
+ *    * with stride 0x10) using f4/f10/etc. Result accumulated into
+ *    * sp+0x14..0x1C (transformed Vec3 in-place). *\/
+ *   v0 = a1->0x38                               ; sub-obj ptr (matrix base)
+ *   transformed.x = M[0][0]*v.x + M[0][1]*v.y + M[0][2]*v.z + ...
+ *   transformed.y = M[1][0]*v.x + M[1][1]*v.y + M[1][2]*v.z + ...
+ *   transformed.z = M[2][0]*v.x + M[2][1]*v.y + M[2][2]*v.z + ...
+ *
+ *   /* Vec3-copy 3 ints from a1+0x?? to a0 (caller's output) *\/
+ *   a0[0] = (something)[0]
+ *   a0[1] = (something)[1]
+ *   a0[2] = (something)[2]
+ *
+ * 5 args at offsets 0x5C/0x60/0x64 (Vec3 input) + 0x38 (sub-obj/matrix
+ * ptr). Output via a0. Likely the per-frame transform helper used by the
+ * spine functions that have Vec3-stage entries.
+ *
+ * Multi-tick refinement target — doc-only this tick. Default INCLUDE_ASM
+ * build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000023D4);
 #endif
 
