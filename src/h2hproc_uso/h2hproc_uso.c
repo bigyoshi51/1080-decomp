@@ -4,28 +4,13 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
-#ifdef NON_MATCHING
-/* USO inter-segment branch trampoline. Target asm is:
- *   beq $zero, $zero, +0x1BC00  (always-taken branch to offset 0x1BC04,
- *                                past h2hproc_uso's end at 0x1AFC+ —
- *                                must be a USO relocation pointing to
- *                                another segment's function)
- *   jr $ra                      (delay slot: actually return)
- *   nop                         (jr's delay slot)
- *
- * The beq branch target is shadowed by jr $ra in its delay slot, so
- * functionally this is `void f(void) {}`. But the opcode bytes include
- * the 32-bit beq placeholder that the USO loader patches at runtime.
- *
- * IDO C `void f(void) {}` emits 2 insns (jr ra; nop) — no path from C
- * source to emit the leading beq, and IDO rejects __asm__ (per
- * feedback_ido_no_asm_barrier.md). Stays INCLUDE_ASM; wrap is for
- * grep discoverability. */
+/* USO entry-0: leading `beq zero,zero,+0x1BC00` trampoline (loader-patched
+ * at runtime) followed by an empty void body. The 4-byte trampoline is
+ * injected post-cc via PREFIX_BYTES (Makefile + scripts/inject-prefix-bytes.py).
+ * The body is just jr ra + nop (8 bytes); after injection the function
+ * symbol covers the full 12 bytes target wants. */
 void h2hproc_uso_func_00000000(void) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000000);
-#endif
 
 void h2hproc_uso_func_0000000C(void) {
 }
