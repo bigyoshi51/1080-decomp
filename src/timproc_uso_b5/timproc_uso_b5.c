@@ -4,28 +4,13 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
-#ifdef NON_MATCHING
-/* 16-insn / 0x40 wrapper. Reads pointer from D_a[0], copies its 0x7C field
- * into D_b[0x64], then calls gl_func(D_c[1], -1, 0).
- *
- * Three distinct USO data placeholders (`lui+addiu/lw` with offset 0):
- *   D_a (load source for t6)
- *   D_b (store target for D_b+0x64 = t7)
- *   D_c (load source for a0)
- *
- * Single &D_00000000 symbol can't disambiguate. Per
- * feedback_usoplaceholder_unique_extern.md, would need 3 unique extern
- * aliases all mapped to 0x0 to break IDO's CSE/dedup. First-pass logic
- * decode only; not byte-matched. */
+extern char D_b5_0_a;
+extern char D_b5_0_b;
+extern char D_b5_0_c;
 void timproc_uso_b5_func_00000000(void) {
-    int *p = *(int**)&D_00000000;
-    int *arg = *(int**)((char*)&D_00000000 + 0x4);
-    *(int*)((char*)&D_00000000 + 0x64) = *(int*)((char*)p + 0x7C);
-    gl_func_00000000(arg, -1, 0);
+    *(int*)((char*)&D_b5_0_b + 0x64) = (*(int**)&D_b5_0_a)[0x1F];
+    gl_func_00000000(*(int*)((char*)&D_b5_0_c + 0x4), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000000);
-#endif
 
 void timproc_uso_b5_func_00000040(void) {
 }
