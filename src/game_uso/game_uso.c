@@ -617,7 +617,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000018FC);
 #endif
 
 #ifdef NON_MATCHING
-/* 95.9 %: 4-arg constructor-or-init for 0x124-byte object. Decoded structure:
+/* 92.97% NM. 4-arg constructor-or-init for 0x124-byte object. Decoded structure:
  *   if (a0 == NULL) p = alloc(0x124); if (!p) return NULL;
  *   gl_func_00000000(p, &D + 0x340);   ; some init call
  *   p[0x28] = &D_00000000;
