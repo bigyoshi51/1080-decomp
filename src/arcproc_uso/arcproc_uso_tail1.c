@@ -168,7 +168,48 @@ void arcproc_uso_func_00000800(void) {
         *(int*)((char*)*(int**)((char*)D_arc800_a + 0x6A8) + 0xC));
 }
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00000880: 31-insn (0x7C) state-conditional update.
+ * 3 cross-USO calls + chained indirection through 3 distinct globals.
+ *
+ * Decoded body:
+ *   1. gl_func_00000000(*D_X)
+ *   2. v0 = gl_func_00000000(*(int*)((char*)*(int**)((char*)D_Y + 0x6AC) + 0x4C))
+ *      (chain through D_Y indirection inlined to avoid named local p,
+ *       which would shift IDO's reg alloc from t7 to v1)
+ *   3. if (v0 != 0): D_Z[0x40] = 7; D_Z[0x44] = 9
+ *      else:         D_Z[0x40] = 9
+ *   4. gl_func_00000000(*D_X, 0, 0)
+ *
+ * 3 unique extern aliases (D_arc880_X/_Y/_Z all mapped to 0x0) per
+ * feedback_unique_extern_with_offset_cast_breaks_cse.md to avoid IDO
+ * &D-CSE collapsing them into one base. The named local `int *p`
+ * regressed by allocating to v1; INLINING the chain expression into
+ * the gl_func arg keeps it in t7 (matches target). 97.9% -> 99.2%.
+ *
+ * 99.19% NM. Remaining diffs are pure reloc-form (jal sym vs literal,
+ * lui/lw %hi/%lo vs immediate). Refresh-expected would lift to 100%
+ * but is blocked: 3 sibling NM-wraps in same .o (0x240/0x688/0x748)
+ * would be falsely promoted to 100% by blanket `make expected`. To
+ * land 100%, surgical per-function expected refresh required. */
+extern int D_arc880_X;       /* 1st-jal arg + 4th-jal arg base */
+extern char *D_arc880_Y;     /* indirection chain root */
+extern char D_arc880_Z[];    /* output struct base (+0x40, +0x44) */
+void arcproc_uso_func_00000880(void) {
+    int v0;
+    gl_func_00000000(D_arc880_X);
+    v0 = gl_func_00000000(*(int*)((char*)*(int**)((char*)D_arc880_Y + 0x6AC) + 0x4C));
+    if (v0 != 0) {
+        *(int*)(D_arc880_Z + 0x40) = 7;
+        *(int*)(D_arc880_Z + 0x44) = 9;
+    } else {
+        *(int*)(D_arc880_Z + 0x40) = 9;
+    }
+    gl_func_00000000(D_arc880_X, 0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000880);
+#endif
 
 void arcproc_uso_func_000008FC(int *dst) {
     int buf[2];
