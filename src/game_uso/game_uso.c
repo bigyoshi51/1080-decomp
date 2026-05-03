@@ -1782,9 +1782,17 @@ void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
     }
-    /* TODO: 1050+ insns of body — quaternion/matrix transform with cross-USO
-     * calls. Reads a3 conditionally and dispatches to two main sub-paths
-     * around sp+0x348 and sp+0x38C float buffers. */
+    /* Body-proper start at 0x7C60 (extended 2026-05-03, ~25 insns 0x7C60-0x7CD0):
+     *   - bnel-dispatch on a3:  if a3 != 0 use sp+0x328 staging buf, else sp+0x38C
+     *   - alloc + init via gl_func(0xC, ...) twice — populating two different
+     *     Vec3 sub-objects (s2->0x30 and sp+0x348)
+     *   - After both setups: load arg4 (sp+0x3C0 = caller a4 slot) into v0
+     *     and read sp+0x38C/0x394 + 0(v0) + 0x8(v0) as 4 doubles for math.
+     * Heavy branch-likely (bnel) usage suggests IDO's speculative-store
+     * scheduling.
+     *
+     * TODO: 1025+ insns remaining — main FPU computation + 23 more cross-USO
+     * calls + final quaternion/matrix output to *arg5. */
     (void)gl_func_00000000();
     (void)a0;
     (void)a1;
