@@ -257,7 +257,6 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000620);
 
-#ifdef NON_MATCHING
 /* 0x8EC + 0x944 are BYTE-IDENTICAL sibling functions (verified). Decoded:
  *   void f(char *a0, int a1) {
  *     a0->0x6B8 = a1;
@@ -277,22 +276,46 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000062
  * jal in body where target has bne+two jals). Promotion path: declare
  * gl_func_h2hproc_8EC_t / gl_func_h2hproc_8EC_f as unique externs in
  * undefined_syms_auto.txt, then call them distinctly in the if/else arms. */
+#ifdef NON_MATCHING
+extern int gl_func_h2hproc_8EC_pre();
+extern int gl_func_h2hproc_8EC_t();
+extern int gl_func_h2hproc_8EC_f();
+/* 89.5% NM (was 70% with shared gl_func_00000000). Applied unique-extern
+ * promotion per feedback_usoplaceholder_unique_extern.md: split the 3 jal
+ * sites (PRE/T/F) into distinct extern-mapped-to-0 symbols so IDO emits
+ * the bne+two-jal dispatch pattern instead of collapsing to a single jal.
+ * Arms ordered as `if (a1==0) F() else T()` (NOT a1!=0) so IDO emits
+ * `bne a1, zero, +5` with F-arm fall-through (matches target).
+ *
+ * Remaining diff: target reloads spilled a1 into $a1 (own caller-arg
+ * register); mine reloads into $t7. Two byte-pos swaps (sw a1 / sw a2
+ * order around the jal). Both structural — IDO's reload-register pick
+ * isn't C-level controllable here (per feedback_ido_arg_save_reg_pick.md
+ * and friends). Cap ~89.5%. Default build INCLUDE_ASM matches. */
 void h2hproc_uso_func_000008EC(char *a0, int a1) {
     *(int*)(a0 + 0x6B8) = a1;
-    gl_func_00000000(*(int*)(a0 + 0x6A8));
-    gl_func_00000000(a0);
+    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8));
+    if (a1 == 0) {
+        gl_func_h2hproc_8EC_f(a0);
+    } else {
+        gl_func_h2hproc_8EC_t(a0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000008EC);
 #endif
 
 #ifdef NON_MATCHING
-/* Sibling of h2hproc_uso_func_000008EC -- byte-identical asm. Same NM cap.
- * See full notes on 0x8EC. */
+/* Sibling of h2hproc_uso_func_000008EC — byte-identical asm. Same recipe,
+ * same 89.5% cap. */
 void h2hproc_uso_func_00000944(char *a0, int a1) {
     *(int*)(a0 + 0x6B8) = a1;
-    gl_func_00000000(*(int*)(a0 + 0x6A8));
-    gl_func_00000000(a0);
+    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8));
+    if (a1 == 0) {
+        gl_func_h2hproc_8EC_f(a0);
+    } else {
+        gl_func_h2hproc_8EC_t(a0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000944);

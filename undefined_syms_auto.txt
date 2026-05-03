@@ -784,3 +784,6 @@ D_t_arg5_101C = 0x00000000;
 D_t_arg6_101C = 0x00000000;
 .L800007A8 = 0x800007A8;
 D_0000C574 = 0x0000C574;
+gl_func_h2hproc_8EC_pre = 0x00000000;
+gl_func_h2hproc_8EC_t = 0x00000000;
+gl_func_h2hproc_8EC_f = 0x00000000;
