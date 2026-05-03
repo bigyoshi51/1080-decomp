@@ -6,7 +6,56 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000918);
 
+extern int gl_func_00000000();
+#ifdef NON_MATCHING
+/* gui rendering loop — iterates over a3-derived count, indexes via a0[5]
+ * scaled by 0x14 (s8 = 20-byte stride; same stride as the glyph table in
+ * gui_func_000013E8). 107 instructions / 0x1AC.
+ *
+ * Decoded entry stage:
+ *   1. Save 9 $s-regs + ra (frame -0x58)
+ *   2. Save a2 to caller arg slot (sp+0x60), a3 to sp+0x64
+ *   3. s1 = a0; s2 = a1; s3 = a0[5]; s6 = a3; s7 = 0 (outer counter)
+ *   4. v0 = gl_func_00000000(a3); if v0 == 0 goto end (early exit)
+ *   5. s8 = 0x14 (loop-stride constant)
+ *
+ * Inner loop body (88 insns) — heavy multi-jal iteration over the s7 counter:
+ *   - reads from (a0[?] + s7 * 20) using s8 as the stride
+ *   - dispatches via 4 separate jals (jal gl_func_00000000 placeholders)
+ *   - clamps signed values via `seq -1, neq -1` pattern, sign-extension via
+ *     `sll, sra` for byte/short reads
+ *   - termination: `s7++; if (s7 < v0) loop;` (sltu + bnel branch likely)
+ *
+ * Multi-tick decompile; this commit captures structural decode + entry/exit
+ * stages. Loop body C TODO. Default build still matches via INCLUDE_ASM. */
+void gui_func_00000B58(int *a0, int a1, int a2, int a3) {
+    int v0;
+    int counter;
+    int saved_a2 = a2;
+    int saved_a3 = a3;
+    int *base = a0;
+    int len = a0[5];        /* a0->0x14: stored item count or string length */
+    int width = a1;
+    int handle = a3;
+
+    v0 = gl_func_00000000(a3);
+    if (v0 == 0) return;
+
+    /* TODO: decode 80+ insn loop body. Iterates s7 = 0..v0-1, each iter:
+     *   - read base[5+s7*5] (stride-20 indexed via s8=0x14)
+     *   - 4× jal gl_func_00000000 dispatching on glyph/key data
+     *   - signed-byte sign-extend via sll/sra
+     *   - clamp to -1 via slti/seq
+     */
+    counter = 0;
+    do {
+        /* TODO: loop body */
+        counter++;
+    } while (counter < v0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000B58);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
 
