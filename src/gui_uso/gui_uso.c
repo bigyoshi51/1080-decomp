@@ -1,6 +1,48 @@
 #include "common.h"
 
+#ifdef NON_MATCHING
+/* USO entry-0: character-to-glyph-index converter (82 insns / 0x148).
+ * Leading 0x1000736F trampoline (loader-patched) + a bnel-chain dispatch
+ * mapping ASCII chars to glyph indices.
+ *
+ * Decoded structure:
+ *   - First test uses `bne` (not bnel): if c == 0x21 return 0x27.
+ *   - Then a chain of bnel cases for special punctuation glyphs.
+ *   - Then 3 range checks for 'a'..'z', 'A'..'Z', '0'..'9' (hex-style
+ *     remapping with offsets -0x57, -0x37, -0x30).
+ *   - Default: return c & 0xFF.
+ *
+ * Two structural blockers vs target:
+ *   1. Leading 4-byte trampoline (would need PREFIX_BYTES injection per
+ *      feedback_prefix_byte_inject_unblocks_uso_trampoline.md).
+ *   2. bnel-chain emit with `li at, NEXT_X` in each delay slot — IDO needs
+ *      a specific if-chain pattern (likely goto-chain with shared epilogue
+ *      per feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md) to
+ *      reproduce. Plain `if (c==X) return Y;` chain doesn't trigger bnel.
+ *
+ * Multi-pass decomp; default build INCLUDE_ASM matches. C body recorded
+ * here for reference and as a starting point for the bnel-chain match. */
+int gui_func_00000000(c)
+int c;
+{
+    c &= 0xFF;
+    if (c == 0x21) return 0x27;
+    if (c == 0x2C) return 0x28;
+    if (c == 0x2F) return 0x29;
+    if (c == 0x5B) return 0x26;
+    if (c == 0x5D) return 0x27;
+    if (c == 0x2B) return 0x24;
+    if (c == 0x5F) return 0x25;
+    if (c == 0x2E) return 0x25;
+    if (c == 0x2D) return 0x25;
+    if (c >= 0x61 && c < 0x7B) return (c - 0x57) & 0xFF;
+    if (c >= 0x41 && c < 0x5B) return (c - 0x37) & 0xFF;
+    if (c >= 0x30 && c < 0x3A) return (c - 0x30) & 0xFF;
+    return c;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
 
