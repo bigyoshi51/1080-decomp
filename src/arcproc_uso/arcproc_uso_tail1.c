@@ -48,23 +48,6 @@ void arcproc_uso_func_00000240(void) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000240);
 #endif
 
-#ifdef NON_MATCHING
-/* arcproc_uso_func_000005C8: 0xC0 (48 insns), 0x28 stack frame.
- * Sibling of arcproc_uso_func_00000240 (also in this tail1.c). 7-call init
- * sequence, likely "create arcade-mode scene":
- *   saved1 = gl(2)              ; acquire some resource (audio handle?)
- *   a0[8] = gl(0x38)             ; alloc 0x38-byte sub-object, attach
- *   gl(saved1)                   ; release/free saved1
- *   saved2 = gl(2)              ; second acquire
- *   s0 = gl(0, *D_148, -1, -1)  ; create something w/ 4 args
- *   a0[0] = s0; D_14C = s0       ; store in entity + global cache
- *   gl(saved2)                   ; release saved2
- *   a0[0]->0x14 = 4              ; configure created sub
- *   D_68 = 0                     ; reset another global
- *
- * Three cross-USO data refs (D_148 read, D_14C/D_68 written) — needs unique
- * externs per feedback_usoplaceholder_unique_extern.md to avoid IDO &D-CSE
- * mis-merging the lui+addiu pairs. Default INCLUDE_ASM remains exact. */
 extern int *D_arc5C8_148;
 extern int D_arc5C8_14C;
 extern int D_arc5C8_68;
@@ -82,9 +65,6 @@ void arcproc_uso_func_000005C8(int *a0) {
     *(int*)((char*)a0[0] + 0x14) = 4;
     D_arc5C8_68 = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000005C8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000688);
 
