@@ -34,7 +34,108 @@ void h2hproc_uso_func_00000014(int *a0, int a1) {
     a0[a1]++;
 }
 
+#ifdef NON_MATCHING
+/* 71.88 % NM. 120-insn / 0x1E0 do-while loop wrapping a 7-case switch
+ * dispatcher (jumptable form, IDO -O2 with .rodata).
+ *
+ * Loop shape:
+ *   do {
+ *       flag = 0;
+ *       switch (a1) {  // jumptable, cases 0-6
+ *           case N: setup(); jal_chain(); flag = 1; break;
+ *           default: special_path();  // doesn't set flag
+ *       }
+ *       common_alloc_link();
+ *       a1 = D[+0x40];                // re-read for next iter
+ *   } while (flag == 0);
+ *
+ * Per case sets: s3=1 (success flag), D[+0x44]=5, D[+0x48]=6.
+ * Default (a1>=7) does extra alloc work, doesn't set flag → loop iterates.
+ *
+ * Common cleanup chain: alloc(0,1,0) → r1; alloc(&D+0x10, r1) → r2;
+ *   if (r2->0x14) r2->0x4 = 1; r2->0x14 = &D.
+ *
+ * IDO -O2 emits this switch as .rodata jumptable
+ * (feedback_ido_switch_rodata_jumptable.md). 1080 discards .rodata, so
+ * target's `lui at, 0; addu at,t6; lw t6, 0(at); jr t6` dispatch is
+ * unreproducible from a C `switch` (would emit different bytes plus the
+ * jumptable in a discarded section).
+ *
+ * Per feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md, for
+ * compares-grouped-at-top dispatchers we'd use the goto-chain idiom — but
+ * THIS asm uses true jumptable (lui+lw+jr), not chained beq. Goto-chain
+ * won't reproduce the jumptable bytes either; expected match cap likely
+ * 40-60 % regardless of dispatch form.
+ *
+ * Body is structural skeleton only — does NOT execute correctly (the
+ * switch cases call gl_func_00000000 with various small-int args, but
+ * the actual data flow needs more decode work. Keep INCLUDE_ASM as the
+ * default-build path; wrap is reference for next pass). */
+void h2hproc_uso_func_0000002C(int *a0, int a1) {
+    int *s0;
+    int flag;
+    int prev;
+
+    do {
+        flag = 0;
+        switch (a1) {
+            case 0:
+                gl_func_00000000(a0);
+                *(int*)((char*)&D_00000000 + 0x40) = 1;
+                goto cleanup;
+            case 1:
+                gl_func_00000000(a0, 2, 7, 1);
+                flag = 1;
+                *(int*)((char*)&D_00000000 + 0x44) = 5;
+                *(int*)((char*)&D_00000000 + 0x48) = 6;
+                break;
+            case 2:
+                gl_func_00000000(a0, 2, 7, 1);
+                flag = 1;
+                *(int*)((char*)&D_00000000 + 0x44) = 5;
+                *(int*)((char*)&D_00000000 + 0x48) = 6;
+                break;
+            case 3:
+                gl_func_00000000(a0, 2, 7, 2);
+                flag = 1;
+                *(int*)((char*)&D_00000000 + 0x44) = 5;
+                *(int*)((char*)&D_00000000 + 0x48) = 6;
+                break;
+            case 4:
+                gl_func_00000000(a0, 2, 7, 4);
+                flag = 1;
+                *(int*)((char*)&D_00000000 + 0x44) = 5;
+                *(int*)((char*)&D_00000000 + 0x48) = 6;
+                break;
+            case 5:
+                gl_func_00000000(&D_00000000, 4,
+                                 *(int*)((char*)&D_00000000 + 0x64), 4);
+                flag = 1;
+                gl_func_00000000(a0, *a0);
+                prev = gl_func_00000000(0, 0x01450000, 0);
+                gl_func_00000000(a0, 0, prev, *(int*)((char*)a0 + 8));
+                break;
+            case 6:
+                gl_func_00000000(a0);
+                flag = 1;
+                break;
+            default:
+                break;
+        }
+cleanup:
+        s0 = (int*)gl_func_00000000(0, 1, 0);
+        s0 = (int*)gl_func_00000000(&D_00000000 + 0x10, s0);
+        if (*(int*)((char*)s0 + 0x14) == 0) {
+            *(int*)((char*)s0 + 0x14) = (int)&D_00000000;
+        }
+        *(int*)((char*)s0 + 0x4) = 1;
+        *(int*)((char*)s0 + 0x14) = (int)&D_00000000;
+        a1 = *(int*)((char*)&D_00000000 + 0x40);
+    } while (flag == 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000002C);
+#endif
 
 void h2hproc_uso_func_0000020C(int *a0) {
     int saved = gl_func_00000000(2);
