@@ -409,7 +409,37 @@ void titproc_uso_func_00002270(int a0, int *a1) {
     gl_func_00000000(a0, a1);
 }
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_000022BC: 84-insn (0x150) per-frame init orchestrator.
+ * Structural decode: ~7 iterations of setup-and-call pattern, each calling
+ * gl_func(D[0x6C0], packed-a1, a2=N, a3=base) for N=0..6.
+ *
+ * Per-iter shape (decoded from 0x22D0-0x2310):
+ *   a0 = D[0x6C0];
+ *   s1 = &D + offset; a1 = *s1;
+ *   a3 = &D + constant;
+ *   a1 = ((a1+1) << 16) | low_bits;       // pack (count, flag)
+ *   gl_func(a0_reload, a1, a2=N, a3);
+ *
+ * Tail (0x23E0-0x23F4):
+ *   a0 = D[0xC4];
+ *   if (a0 != 0) D[0x6C0]->0x128 = 0;     // bnel-likely + delay-slot store
+ *
+ * Likely a per-frame "submit N display lists, then reset slot 0x128".
+ * Multi-tick decomp expected. Stub body so wrap parses; default build
+ * matches via INCLUDE_ASM. */
+void titproc_uso_func_000022BC(int a0) {
+    int i;
+    /* TODO: decode 7 iterations of indexed cross-USO call setup +
+     * tail bnel-likely conditional store. */
+    for (i = 0; i < 7; i++) {
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x6C0));
+    }
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000022BC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000240C);
 
