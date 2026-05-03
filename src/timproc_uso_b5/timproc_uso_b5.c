@@ -612,6 +612,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * locals in declaration-order to f0/f2/f12/f14 and that can't be flipped
  * from C without `register T x asm("$fN")` (GCC-only, IDO rejects).
  *
+ * 2026-05-02 verified clean unwrapped build: inline-deref variant (no
+ * named float locals) regresses — interleaves load/store ($f4/$f6/$f8/$f10
+ * one-load-one-store) instead of all-loads-first. Confirms named locals
+ * are load-bearing for the load-batching pattern.
+ *
  * Trailing 8 bytes (lui $at, 0x3F80; mtc1 $at, $f2 — float constant 1.0f)
  * are the prologue-stolen prefix for SUCCESSOR func_0000CEB4. Pad sidecar
  * + INCLUDE_ASM-with-pragma baseline refresh in place. */
