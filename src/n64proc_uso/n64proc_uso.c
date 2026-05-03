@@ -92,6 +92,25 @@ extern char D_00000000;
  * later-init doesn't shift it. The s2/s3 swap is structurally fixed
  * given current IDO flag set; no C-level lever remaining.
  *
+ * (11) TRIED 2026-05-02: goto-chain dispatch (per
+ * feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md, applied
+ * to func_00000268 with 85→93 % gain). MASSIVE jump: 33.37 % → 74.49 %.
+ * The goto-chain replaces if/else-if with explicit `if (==X) goto bodyN`
+ * which lets IDO emit the target's 3-way beq dispatch with shared-arg
+ * delay-slot setup (target shape `beq a1,zero,body0; or a0,base; beq
+ * a1,one,body1; or a0,zero; beq zero,zero,end; lw a1,0x40(s3)`).
+ *
+ * Remaining 25 % is two structural diffs:
+ *   (a) Same s2/s3 (one/base) and s4/s5 (base10/arg0-save) renumber as
+ *       before — register allocation issue from variants (3)-(7), no
+ *       reachable C-level lever per existing memos.
+ *   (b) Loop-tail reload `arg1 = base[0x40]` — target uses indexed
+ *       load `lw a1, 64(s3)` via base reg directly. IDO instead emits
+ *       fresh `lui v1, %hi(D); lw v1, 0x40(v1)` because both ends are
+ *       compile-time-constant addresses. Even though base is `register`-
+ *       declared, IDO prefers a fresh constant-address load over the
+ *       indexed-via-$s form. No C-level workaround found. */
+ *
  * (9) TRIED 2026-05-02: eliminate `flag` entirely; restructure as
  * `while (arg1 != 0 && arg1 != one) { arg1 = base->0x40; } if (arg1==0)
  * branch1 else branch2; arg1 = base->0x40;` — REGRESSED to 18.5 %. The
@@ -99,7 +118,7 @@ extern char D_00000000;
  * dispatch shape. The do-while + flag pattern IS load-bearing for the
  * register allocator's priority calc.
  *
- * No remaining path reachable from C without inline-asm. NM-only. */
+ * Now at 74.49 % (variant 11). Remaining structural — see (11) note. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
@@ -108,24 +127,27 @@ void n64proc_uso_func_00000014(int arg0, int arg1) {
     register int one = 1;
     int r;
 
-    while (1) {
-        if (arg1 == 0) {
-            gl_func_00000000(base, one, 0, 0);
-            flag = one;
-            r = gl_func_00000000(0);
-            gl_func_00000000(arg0, one, r);
-        } else if (arg1 == one) {
-            cur = (int*)gl_func_00000000(0, one, 0);
-            flag = one;
-            gl_func_00000000(base10, cur);
-            if (*(int*)((char*)cur + 0x14) != 0) {
-                *(int*)((char*)cur + 0x4) = one;
-            }
-            *(int*)((char*)cur + 0x14) = (int)base;
-        }
-        arg1 = *(int*)((char*)base + 0x40);
-        if (flag != 0) break;
+loop_top:
+    if (arg1 == 0) goto body0;
+    if (arg1 == one) goto body1;
+    goto loop_tail;
+body0:
+    gl_func_00000000(base, one, 0, 0);
+    flag = one;
+    r = gl_func_00000000(0);
+    gl_func_00000000(arg0, one, r);
+    goto loop_tail;
+body1:
+    cur = (int*)gl_func_00000000(0, one, 0);
+    flag = one;
+    gl_func_00000000(base10, cur);
+    if (*(int*)((char*)cur + 0x14) != 0) {
+        *(int*)((char*)cur + 0x4) = one;
     }
+    *(int*)((char*)cur + 0x14) = (int)base;
+loop_tail:
+    arg1 = *(int*)((char*)base + 0x40);
+    if (flag == 0) goto loop_top;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000014);
