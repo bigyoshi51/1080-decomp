@@ -195,7 +195,40 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001B0
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001BBC);
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00001C74: 41-insn (0xA4) counter+conditional-scale wrapper.
+ *
+ * BYTE-IDENTICAL with timproc_uso_b1_func_000019C0 and timproc_uso_b3_func_00001928
+ * (sig=739fd8d1d3) — none of these are wrapped yet. This is the canonical decode.
+ *
+ * STRUCTURE (insns 1-15 decoded):
+ *   addiu sp, -0x58; sw ra, sw s0; ...
+ *   *(float*)(sp+0x48..0x54) = 0.0 (4 zero floats — accumulator buf)
+ *   t6 = a0->[0x68];                  // counter
+ *   s0 = a0;                          // saved arg
+ *   a0->[0x68] = t6 + 1;              // incr counter
+ *   gl_func_00000000(a0->[0x50]);     // call with field
+ *   if (v0 != 0) {
+ *     f4 = 255.0f;
+ *     f6 = s0->[0x108];               // some float field
+ *     f8 = 255.0 * f6;                // scale to 0..255
+ *     i_val = (int)truncf(f8);
+ *     gl_func_00000000(&D, sp+0x48 buf, ...);  // pass buf+scaled int
+ *     ...
+ *   }
+ *
+ * REMAINING: ~26 insns of conditional body — likely the buf-fill +
+ * gl_func call + epilogue. First-pass decode only; multi-tick.
+ *
+ * Per scripts/find-byte-identical-clones.py — sig=739fd8d1d3 has 3 plain
+ * clones (this + b1_19C0 + b3_1928). Future runs can mirror this wrap. */
+void arcproc_uso_func_00001C74(int *a0) {
+    /* Stub — see decoded structure in comment above. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001C74);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001D18);
 
