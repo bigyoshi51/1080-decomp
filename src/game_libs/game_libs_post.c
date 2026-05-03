@@ -578,7 +578,22 @@ void gl_func_0002DF00(int a0) {
     gl_func_00000000(0x82020000 | ((a0 & 0xFF) << 8), 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF38);
+/* gl_func_0002DF38: 11-insn (0x30) signed-test guard wrapper. Mid-chain in
+ * the 0x2DF00 stolen-prologue chain:
+ *   - PREDECESSOR (gl_func_0002DF00) tail sets $t6 = D[0x2D00] (already
+ *     handled via DF00's SUFFIX_BYTES recipe)
+ *   - This function reads $t6 implicitly, branches on sign, conditionally
+ *     calls gl_func(0x83000000, 0)
+ *   - SUCCESSOR (gl_func_0002DF68) needs $f12 set up via mtc1; this
+ *     function's trailing 4 bytes (mtc1 a1, $f12) are that setup.
+ *
+ * PROLOGUE_STEALS=8 + SUFFIX_BYTES=4 (single word) recipe — first time
+ * applying SUFFIX_BYTES with a single word vs the typical 2-word lui+lw. */
+void gl_func_0002DF38(void) {
+    if ((unsigned int)*(int*)((char*)&D_00000000 + 0x2D00) >> 31) {
+        gl_func_00000000(0x83000000, 0);
+    }
+}
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: IDO cannot emit direct mfc1 from C; stack roundtrip instead */
