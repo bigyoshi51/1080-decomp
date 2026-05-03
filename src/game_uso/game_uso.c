@@ -440,6 +440,24 @@ void game_uso_func_00000AEC(int *a0, int a1) {
  * Partial C below captures decoded entry (~first 30 insns): id-change
  * detect + 3-level LUT navigation. Remaining ~670 insns TODO.
  *
+ * 2026-05-03 EXTENDED DECODE 0xBB0-0xC30 (~85 insns): post-LUT dispatch:
+ *   - Loads target->0x38 (a function-ptr or sub-obj?), saved at sp+0x128
+ *   - Compares t0 vs v0, branches +0x138 (far skip — likely the "no-change"
+ *     fast path)
+ *   - If a0->0x260 != 0 AND a0->0x268 != 0: enter the Vec3-zero-init block:
+ *     stores 0.0f to sp+0xD8/DC/E0, copies through sp+0xB4..0xBC, writes
+ *     to a0->0x134/0x138/0x13C (= a0->vec_134 zeroed via scratch round-trip).
+ *     This is the IDO-emit of a zero-Vec3 assignment with the scratch chain
+ *     forcing two store-loads — likely matching `Vec3f tmp = {0,0,0};
+ *     a0->vec_134 = tmp;` rather than direct field zeroing.
+ *   - Branch `b +5` skips the `lw $t9, 0x30(...)` reload, indicating the
+ *     0xC30+ path is the alternate (cached) reload path.
+ * Same Vec3-stage template fingerprint as 0x591C/0x6A30/0x7C1C (per
+ * feedback_game_uso_per_frame_vec3_stage_template.md), but with a third
+ * field offset 0x134 instead of 0xB4/0xB8/0xBC. So a0+0x134 is a NEW
+ * Vec3 stage in this constructor's struct layout — adds Vec3 fields at
+ * 0x134/0x138/0x13C to the inferred GameState struct.
+ *
  * Struct fields identified:
  *   a0[0xF4]  — per-frame scratch (cached at sp+0x134)
  *   a0[0x150] — dispatch-list ptr
