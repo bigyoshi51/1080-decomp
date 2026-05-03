@@ -78,6 +78,23 @@ void titproc_uso_func_00000194(void) {
     gl_func_00000000(*(int*)((char*)&D_00000194_A + 0xA8), -1, 0);
 }
 
+/* State-allocator sibling family at offsets 1E4/230/28C/2D8/32C/380.
+ * Same 19-insn body shape — only state-N constant + alloc-arg + unique
+ * D_NNN_A extern differ. All 6 share PROLOGUE_STEALS=8 in Makefile (the
+ * predecessor's trailing `lui v0; addiu v0` belongs to the successor's
+ * prologue per feedback_prologue_stolen_successor_no_recipe.md). The
+ * unique D_NNN_A extern at +0xA8 is required to defeat IDO's CSE on
+ * &D_00000000 across siblings (per feedback_unique_extern_breaks_shared_base.md
+ * + feedback_combine_prologue_steals_with_unique_extern.md).
+ *
+ *   1E4: state=4, alloc(12,1)
+ *   230: state=6, alloc(12,2)
+ *   28C: state=5, alloc(12,3)
+ *   2D8: state=2, alloc(12,4)
+ *   32C: state=7, alloc(12,5)
+ *   380, 3D0: variants — different field offsets/no-first-call
+ *
+ * Whole family memo: feedback_titproc_state_allocator_sibling_family.md */
 extern char D_000001E4_A;
 
 void titproc_uso_func_000001E4(void) {
