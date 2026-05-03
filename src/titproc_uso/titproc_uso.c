@@ -61,28 +61,42 @@ int titproc_uso_func_000000C0(void) {
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000000C0_pad.s")
 
 #ifdef NON_MATCHING
-/* titproc_uso_func_00000194: 18-insn (0x48) state-setter taking arg pointer.
- * Sibling of 000001E4/00000230 (which use &D directly) but writes through
- * the a0 arg instead. Trailing 8 bytes (lui v0; addiu v0) at offset 0x1DC..
- * 0x1E0 inside this symbol are the stolen-prologue prefix for SUCCESSOR
- * func_000001E4 (which already has PROLOGUE_STEALS=8 in Makefile).
+extern char D_00000194_A;
+/* titproc_uso_func_00000194: 18-insn (0x48) state-setter sibling of
+ * 000001E4/00000230/0000028C. ALL three siblings rely on $v0 = &D set by
+ * the predecessor's pad-sidecar (0xC0_pad.s emits `lui v0,0; addiu v0,v0,0`
+ * after 0xC0's body, before 0x194 starts).
  *
- * To promote to exact match: write the 18-insn C body below + add
- * `titproc_uso_func_00000194_pad.s` containing the trailing 2 prologue
- * bytes (`lui v0, 0; addiu v0, v0, 0`) for 0x1E4, plus
- * `#pragma GLOBAL_ASM(...)` after this function. Per
- * feedback_pad_sidecar_unblocks_trailing_nops.md +
- * feedback_prologue_stolen_pad_sidecar_alternative.md.
+ * Symbol layout in expected (0x194 spans 0x194..0x1E4, size 0x50 = 20 insns):
+ *   - insns 0-17: 18-insn body (uses $v0 inherited from 0xC0_pad)
+ *   - insns 18-19: TRAILING `lui v0,0; addiu v0,v0,0` — dead code AFTER jr ra,
+ *     these 8 bytes are the stolen prologue setup that the SUCCESSOR
+ *     (titproc_uso_func_000001E4, which has PROLOGUE_STEALS=8) inherits.
  *
- * Default build uses INCLUDE_ASM which preserves the trailing 8 bytes that
- * 0x1E4's PROLOGUE_STEALS=8 expects to find at 0x1DC/0x1E0. */
-void titproc_uso_func_00000194(int *a0) {
-    int v1 = 3;
-    *(int*)((char*)a0 + 0x34) = v1;
-    *(int*)((char*)a0 + 0x40) = 0;
-    *(int*)((char*)a0 + 0x13C) = v1;
+ * Two structural blockers preventing C-emit match (verified 2026-05-03,
+ * 89.4% peak with PROLOGUE_STEALS=8 + D_00000194_A unique extern):
+ *   1. IDO can't know $v0 = &D from upstream pad — it emits its own
+ *      lui+addiu prologue at the START. With PROLOGUE_STEALS=8, the
+ *      prologue gets spliced; symbol size becomes 0x48 (vs expected 0x50).
+ *   2. To match expected's 0x50 size, the body bytes need to be at the
+ *      START with prologue setup at the END. IDO emits the opposite —
+ *      no C rewrite produces "body first, prologue at tail."
+ *
+ * Would need an `inject-suffix-bytes.py` infrastructure script to grow
+ * 0x194's st_size by +8 AFTER PROLOGUE_STEALS removes the prefix, and
+ * insert the dead `lui v0; addiu v0` bytes at the new tail. Out of single-
+ * tick scope. Default build INCLUDE_ASM matches.
+ *
+ * Captures the decoded C body for reference + the structural analysis
+ * of why 0x1E4/0x230/0x28C can match (their body uses &D loads followed
+ * by spliced-prefix; 0x194 has the same shape but differs in the trailing
+ * dead-code bytes which are TARGET's encoding choice, not a C-emit choice). */
+void titproc_uso_func_00000194(void) {
+    *(int*)((char*)&D_00000000 + 0x34) = 3;
+    *(int*)((char*)&D_00000000 + 0x40) = 0;
+    *(int*)((char*)&D_00000000 + 0x13C) = 3;
     gl_func_00000000(0xC, 0);
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0xA8), -1, 0);
+    gl_func_00000000(*(int*)((char*)&D_00000194_A + 0xA8), -1, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000194);
