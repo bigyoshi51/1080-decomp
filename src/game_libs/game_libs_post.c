@@ -1935,7 +1935,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042338);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000423D8);
 
+#ifdef NON_MATCHING
+/* gl_func_00042440: 17-insn (0x44) single-call wrapper with PROLOGUE-STEALS-PREDECESSOR
+ * pattern. Predecessor gl_func_000423D8's tail sets `$v0 = *(D + 0x240)` via
+ * `lui v0, 0; lw v0, 0x240(v0)` — those 2 insns logically belong to this
+ * function's prologue. Trailing 8 bytes (lui v1, 0; lw v1, 0x240(v1)) form
+ * the STOLEN-PROLOGUE-PREDECESSOR pattern for this function's successor too.
+ *
+ * Decoded body:
+ *   p = (int*)D[0x240]        ; from predecessor's tail (implicit $v0 entry)
+ *   sub = (int*)p[0x148/4]
+ *   gl_func_00000000(&gl_data_42440_arg, 0x110, sub[0xF0/4],
+ *                    p[0xB8/4], p[0xBC/4])
+ *
+ * Full match would require:
+ *   (a) PROLOGUE_STEALS=8 to splice off C-emit's leading lui+lw for `p`
+ *   (b) SUFFIX_BYTES with the trailing stolen-prologue setup
+ *   (c) unique-extern alias for the gl_func_00000000 first arg
+ *
+ * NOT yet wired up — requires the predecessor (gl_func_000423D8) to also be
+ * decompiled or kept INCLUDE_ASM-stable, AND careful coordination of the
+ * dual stolen-prologue chain. Future-pass work. NM wrap captures the
+ * structural decode for grep discoverability per
+ * feedback_partial_decode_with_stub_body.md. */
+extern int *D_state_0042440;
+extern char gl_data_42440_arg;
+void gl_func_00042440(void) {
+    int *p = D_state_0042440;
+    int *sub = (int*)p[0x148 / 4];
+    gl_func_00000000(&gl_data_42440_arg, 0x110, sub[0xF0 / 4],
+                     p[0xB8 / 4], p[0xBC / 4]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042440);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042484);
 

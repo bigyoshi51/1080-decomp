@@ -790,3 +790,5 @@ gl_func_h2hproc_8EC_f = 0x00000000;
 D_00000194_A = 0x00000000;
 gl_data_BE14_b = 0x00000000;
 gl_data_BE14_c = 0x00000000;
+D_state_0042440 = 0x00000000;
+gl_data_42440_arg = 0x00000000;
