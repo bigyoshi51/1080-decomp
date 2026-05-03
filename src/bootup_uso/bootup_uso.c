@@ -1279,11 +1279,49 @@ void func_0000F1B4(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F1B4);
 #endif
 
+#ifdef NON_MATCHING
+/* Standard -O0 int reader accessor template (per
+ * feedback_uso_accessor_template_reuse.md). 19 insns / 0x4C.
+ * O0 signals: nop in jal delay slot, addiu+lw indirect buf reload,
+ * trailing `b +1; nop` before epilogue.
+ *
+ * O0-blocked NM cap; promotion path is the file-split recipe per
+ * feedback_uso_accessor_o0_file_split_recipe.md (move F1F0/F23C/F288/F2EC
+ * to bootup_uso_o0_F1F0.c with -O0 OPT_FLAGS, parallel to the existing
+ * bootup_uso_o0_F390.c cluster). See parent file's TRUNCATE_TEXT=0xF390. */
+void func_0000F1F0(int *a0) {
+    int buf;
+    func_00000000(&D_00000000, &buf, 4);
+    *a0 = buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F1F0);
+#endif
 
+#ifdef NON_MATCHING
+/* Standard -O0 float reader accessor template. Same shape as F1F0 but
+ * with lwc1/swc1 for the buf-to-dst copy. 19 insns / 0x4C. Same
+ * O0-blocked cluster; same file-split promotion path. */
+void func_0000F23C(float *a0) {
+    float buf;
+    func_00000000(&D_00000000, &buf, 4);
+    *a0 = buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F23C);
+#endif
 
+#ifdef NON_MATCHING
+/* Standard -O0 Quad4 (16-byte) reader accessor template. 25 insns / 0x64.
+ * Same O0-blocked cluster; same file-split promotion path. */
+void func_0000F288(Quad4 *a0) {
+    Quad4 buf;
+    func_00000000(&D_00000000, &buf, 16);
+    *a0 = buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F288);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F2EC);
 
