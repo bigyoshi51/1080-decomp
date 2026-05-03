@@ -710,7 +710,21 @@ int gl_func_000333F4(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000333F4);
 #endif
 
+#ifdef NON_MATCHING
+/* 82.83% NM with SUFFIX_BYTES applied for the trailing dead bytes
+ * (lui t6, 0; lw t6, 0x20C(t6) — stolen prologue for successor).
+ * Remaining diff: IDO schedules `sw ra, 0x14(sp)` BEFORE `lui a0, 0` in
+ * mine, target has them in opposite order. Both insns independent
+ * (no data dep) — same IDO scheduler-ordering cap class as
+ * feedback_ido_sw_before_addu_unreachable.md. SUFFIX_BYTES + body
+ * structure are correct; just the 2-insn swap is unflippable from C.
+ * Default INCLUDE_ASM build matches. */
+void gl_func_0003341C(int a0) {
+    gl_func_00000000(&D_00000000, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003341C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003344C);
 
