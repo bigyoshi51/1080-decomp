@@ -117,7 +117,20 @@ extern char D_00000000;
  * with-dispatch shape. The do-while + flag pattern IS load-bearing for the
  * register allocator's priority calc.
  *
- * Now at 74.49 % (variant 11). Remaining structural — see (11) note. */
+ * Now at 74.49 % (variant 11). Remaining structural — see (11) note.
+ *
+ * (12) TRIED 2026-05-03: `register int *base = (int*)&D_00000000` + indexed
+ * `arg1 = base[0x10]` — same 74.49 %, IDO still constant-folds the indexed
+ * load through a fresh lui+lw rather than reusing the $s-reg holding base.
+ *
+ * (13) TRIED 2026-05-03: `arg1 = *(volatile int*)((char*)base + 0x40)` —
+ * REGRESSED slightly to 74.24 %. Volatile defeats CSE on the load address
+ * but introduces an extra $t-reg shuffle before the lw.
+ *
+ * (14) TRIED 2026-05-03: `register int *baseAt40 = (int*)(base + 0x40)` as
+ * a separate $s-reg holding the precomputed pointer — same 74.49 %, IDO
+ * either constant-folds baseAt40 (since base is constant) OR allocates it
+ * to its own $s-reg without changing the loop_tail load shape. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
