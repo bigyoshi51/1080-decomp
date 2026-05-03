@@ -4,7 +4,28 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
+#ifdef NON_MATCHING
+/* int-reader template at -O0 (19 insns, 0x4C). Standard 4-byte accessor.
+ * -O0 indicators: frame -0x20, sw a0 to caller slot at +0x20 (then reload
+ * via lw t8, 0x20(sp)), unfilled jal delay slot, addiu t6 reload of buf
+ * pointer instead of direct sw, trailing dead `b +1; nop` BBL marker.
+ *
+ * Same template family as the boarder*_uso int-readers (16 insns, -O2)
+ * and arcproc_uso accessor variants. Sibling of 0x4C below (Quad4 reader,
+ * same -O0 emit pattern at size 16).
+ *
+ * BLOCKED for byte match: file-split-to-O0 recipe doesn't apply because
+ * timproc_uso_b3 is Yay0-compressed (per feedback_uso_yay0_compressed.md);
+ * the Yay0 rule consumes only one .o. Default INCLUDE_ASM build remains
+ * exact; wrap is for grep discoverability of the template family. */
+void timproc_uso_b3_func_00000000(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000000);
+#endif
 
 #ifdef NON_MATCHING
 /* Quad4-reader template at -O0 (25 insns, 0x64) — byte-identical asm to
