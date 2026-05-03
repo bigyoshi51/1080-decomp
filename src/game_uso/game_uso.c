@@ -2335,6 +2335,17 @@ void game_uso_func_0000D418(char *a0) {
  *       register s32 c0_val=...` w/ reversed load order — REGRESSED to
  *       95.13% (t6/t7 still in default order, but the named-locals add
  *       extra moves elsewhere). Original form remains best at 97.5%.
+ *
+ * 2026-05-03 4 more variants tested (all confirm cap):
+ *   (e) `register s32 neg = -1000;` to nudge -1000 out of $v0 — IDO still
+ *       puts neg in $v0 (register hint ignored for short-lived const).
+ *   (f) Reverse C-source order (CC first, then C8) — produces correct
+ *       VALUE-to-register mapping (c0→t7, c4→t6) but reverses LOAD ORDER
+ *       too (lw t6,0xC4 before lw t7,0xC0). 4/8 byte differ vs target's 2/8.
+ *   (g) `register s32 t6_val asm("$t6");` — IDO cfe Syntax Error (rejects
+ *       GCC `register asm`, per feedback_ido_no_gcc_register_asm.md).
+ *   (h) Pointer indexing `a0[0xC8/4] = a0[0xC0/4]` — same as direct cast,
+ *       same t6/t7 order.
  * IDO's first-seen-gets-lowest-number rule is invariant to the stmt shapes
  * we can write from C. Target was likely compiled from source using
  * `register int x asm("$t7")` (GCC-only; IDO rejects per feedback_ido_no_gcc_register_asm.md).
