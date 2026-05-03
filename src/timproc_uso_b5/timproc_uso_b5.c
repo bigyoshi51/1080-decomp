@@ -641,7 +641,33 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CEB4);
 
+#ifdef NON_MATCHING
+/* Sibling of A97C/A9EC family — same 23-insn loop with branch-likely
+ * preload structural cap. Different outer offsets (this variant):
+ *   count: a0->0x6C (was a0->0x3C in A97C)
+ *   slot ptr: a0->0x3C (was a0->0x40 in A97C)
+ *   fn ptr at slot->0x28->0x4C, short arg at slot->0x28->0x48 (same as A97C)
+ * Same do-while + branch-likely-preload cap. */
+void timproc_uso_b5_func_0000D06C(char *a0) {
+    int i;
+    char *p;
+    int *v1;
+    int *v0;
+
+    if (*(int*)(a0 + 0x6C) <= 0) return;
+    p = a0;
+    i = 0;
+    do {
+        v1 = *(int**)(a0 + 0x3C);
+        v0 = *(int**)((char*)v1 + 0x28);
+        (*(int(**)())((char*)v0 + 0x4C))(*(short*)((char*)v0 + 0x48) + (int)v1);
+        i++;
+        p += 4;
+    } while (i < *(int*)(a0 + 0x6C));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D06C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D0DC);
 

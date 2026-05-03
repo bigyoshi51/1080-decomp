@@ -2068,10 +2068,10 @@ void game_uso_func_0000D418(char *a0) {
  *
  * 2026-05-02 NOTE: tried `register s32 c4_val = ...; register s32 c0_val = ...`
  * with reversed load order to flip first-seen — couldn't verify because
- * game_uso DNM build is blocked by Vec3 typedef inside #ifdef NON_MATCHING
- * (per feedback_game_uso_dnm_typedef_inside_ifdef.md). To unblock testing
- * this and other game_uso wraps, hoist Vec3/Tri3i typedefs and D_00000000
- * extern OUT of the early #ifdef block to file-top. Multi-line cleanup. */
+ * game_uso DNM build is blocked by Vec3 typedef inside an early NM-wrap
+ * block (per feedback_game_uso_dnm_typedef_inside_ifdef.md). To unblock
+ * testing this and other game_uso wraps, hoist Vec3/Tri3i typedefs and
+ * D_00000000 extern OUT of that wrap block to file-top. Multi-line cleanup. */
 void game_uso_func_0000D438(void *a0) {
     *(s32*)((char*)a0 + 0x64) = -1000;
     *(s32*)((char*)a0 + 0x68) = -1000;
