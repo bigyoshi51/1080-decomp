@@ -3536,7 +3536,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B880);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B974);
 
+#ifdef NON_MATCHING
+/* 20-insn 2-call init wrapper. Stores 1 to D_00000000 (via separate $at
+ * temp), then calls gl_func(&D, 0x42750, 1) followed by gl_func(&D, 0, 0).
+ * Declared size 0x58 includes 2 trailing dead insns (lui t6, 0; lw t6, 0(t6))
+ * — stolen prologue setup for the successor.
+ *
+ * Two structural diffs from C-emit:
+ * 1. Target loads &D into BOTH $at (for the sw 1) and $a0 (for the call).
+ *    IDO's CSE makes mine reuse $a0 for both. Unique-extern alias not yet
+ *    tried — could promote.
+ * 2. Target encodes 0x42750 as `lui 0x4; addiu 0x2750`; mine encodes as
+ *    `lui 0x4; ori 0x2750`. IDO picks ori for unsigned literals; addiu
+ *    requires signed encoding. Castings tried: no flip from C.
+ *
+ * Default INCLUDE_ASM build matches. */
+void gl_func_0006B9B4(void) {
+    *(int*)&D_00000000 = 1;
+    gl_func_00000000(&D_00000000, (void*)0x42750, 1);
+    gl_func_00000000(&D_00000000, 0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B9B4);
+#endif
 
 void gl_func_0006BA0C(void) {
     int local;
