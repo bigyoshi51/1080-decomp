@@ -84,7 +84,33 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000019C);
 
+#ifdef NON_MATCHING
+/* 51-insn allocator+init wrapper. 4 cross-USO calls + branch on D[0] sentinel.
+ *   v1 = gl_func(2);
+ *   v2 = gl_func(0x3C);  a0[2] = v2;
+ *   v3 = gl_func(0, D[0x148], -1, -1);  a0[0] = v3;  D[0x14C] = v3;
+ *   gl_func(v1);
+ *   if (D[0] == 0x17D7) (a0->0)->0x14 = 1; else (a0->0)->0x14 = 0;
+ * BLOCKED: mgrproc_uso is Yay0-compressed; default build INCLUDE_ASM
+ * matches via the Yay0 packing. The wrap captures the structural decode. */
+void mgrproc_uso_func_00000504(int *a0) {
+    int v1 = gl_func_00000000(2);
+    int v2 = gl_func_00000000(0x3C);
+    int v3;
+    a0[2] = v2;
+    v3 = gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), -1, -1);
+    a0[0] = v3;
+    *(int*)((char*)&D_00000000 + 0x14C) = v3;
+    gl_func_00000000(v1);
+    if (*(int*)&D_00000000 == 0x17D7) {
+        *(int*)((char*)a0[0] + 0x14) = 1;
+    } else {
+        *(int*)((char*)a0[0] + 0x14) = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000504);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D0);
 
