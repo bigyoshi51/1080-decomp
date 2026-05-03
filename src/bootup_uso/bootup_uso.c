@@ -691,7 +691,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
 
+#ifdef NON_MATCHING
+/* Sibling of func_00005068 (byte-identical body shape, different data
+ * symbol). Same dead-a1-spill cap (target spills $a1 to sp+0x4 in delay
+ * slot of jal even though a1 isn't reused after; IDO -O2 omits the spill
+ * since std C doesn't request it). See func_00005068's wrap notes. */
+extern char D_00007E10;
+void func_000054A0(int a0) {
+    func_00000000(&D_00007E10);
+    func_00000000(0, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054A0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054D8);
 
