@@ -2659,9 +2659,38 @@ void game_uso_func_0000D9CC(int *a0) {
          * IS the per-frame physics-update spine for a specific entity
          * type. 26 cross-USO calls below this gate run the actual update.
          *
-         * NEXT PASS (~470 insns @ 0xDA60+): decode the post-gate jal
-         * sequence + state-bit-N dispatch into the per-state branch
-         * bodies. */
+         * 2026-05-03 EXTENDED DECODE @ 0xDA60-0xDB70 (~70 insns):
+         * The post-gate flow is a state-bit dispatcher.
+         *   c.lt.s f2, f16            ; abs-test residual
+         *   gl_func_00000000(...)     ; helper call (saves sp+0x28/0x30)
+         *   t0 = inner ptr (reload after jal)
+         *   f18 = inner->0xA1C        ; another float field
+         *   if (0.0 < f18) {
+         *       /* "positive residual" path *\/
+         *       s0->0x108 = s0->0xFC | 0x16;     ; state |= 0x16
+         *       local_2C = 1;                     ; mode-flag = 1
+         *   } else {
+         *       /* "non-positive residual" path *\/
+         *       s0->0x108 = s0->0xFC | 0x17;     ; state |= 0x17
+         *       local_2C = 3;                     ; mode-flag = 3
+         *       goto far_path_at_+0x46;
+         *   }
+         *   /* fall-through: another c.lt.s f0, f6 + bc1fl chain at
+         *    * 0xDAE4-0xDB30, then a 500.0f-bracket compare at 0xDB30+
+         *    * (D420 = lh; halfword load at inner+0x1F8) leading into
+         *    * a third state-update with OR-mask 0xE setting s0->0x108
+         *    * = s0->0xFC | 0x0E. *\/
+         * Pattern: chained c.lt.s residual checks, each setting an
+         * OR-mask on s0->0x108 (state byte) plus a `local_2C` mode
+         * indicator (1, 3, ...). The OR-masks accumulate state bits
+         * — the state byte at 0x108 encodes which physics conditions
+         * were detected this frame. The `local_2C` mode indicator
+         * later drives the gl_func dispatch (probably the actual
+         * physics-state callbacks).
+         * Frame layout firmed up: sp+0x28 = saved t9 (callee return),
+         * sp+0x2C = mode indicator, sp+0x30 = scratch (cleared each
+         * call). NEXT PASS (~400 insns @ 0xDB80+): decode the third
+         * residual chain and the gl_func dispatch on local_2C. */
     } else {
         /* 30.0f-fail path @ 0xDBDC (far forward, ~280 insns from entry).
          * Decoded skeleton: loads 500.0f into $f0 at delay slot, then
