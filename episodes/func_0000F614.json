@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000F614",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-03T03:10:47.682224+00:00",
+  "end_time": "2026-05-03T03:10:47.682246+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-03T03:10:47.682240+00:00",
+      "assistant_text": "Bit set/clear template at -O0. Source has 4 register locals (p1, p2, set, t) \u2014 matches IDO's a1/a2/a3 + reload-into-t0 pattern. The 'set' constant determines the dispatched arm; both arms are emitted as dead code per -O0 conventions. Per feedback_o0_cluster_split_with_layout_shim.md.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 cluster at offsets 0xF390..0xF6C3. -O0 wrappers split out of\n * bootup_uso.c so they build at -O0 (matching the originals' frame +\n * spill+reload + b-+1 patterns). See feedback_ido_o0_register_and_inline.md,\n * project_1080_bootup_uso_o0_runs.md, and\n * feedback_o0_cluster_split_with_layout_shim.md. */\n\nextern int func_00000000();\nextern char D_00000000;\nextern char D_0000C574;\n\nvoid func_0000F390(void) {\n    register char *p = &D_00000000;\n    func_00000000(p, &D_0000C574);\n}\n\nvoid func_0000F3D4(int a0) {\n    func_00000000(a0);\n}\n\nvoid func_0000F404(int a0) {\n    func_00000000(a0);\n}\n\n/* Two-block bit set/clear \u2014 set=1, masks 4 then 8. */\nvoid func_0000F434(int *a0) {\n    register int *p1, *p2;\n    register int set;\n    register int *t;\n    p1 = (int*)((char*)a0 + 0x18);\n    p2 = p1;\n    set = 1;\n    if (set) { t = p2; *t = *t | 4; }\n    else     { t = p2; *t = *t & ~4; }\n\n    p1 = (int*)((char*)a0 + 0x18);\n    p2 = p1;\n    set = 1;\n    if (set) { t = p2; *t = *t | 8; }\n    else     { t = p2; *t = *t & ~8; }\n}\n\n/* Two-block bit set/clear \u2014 set=0, masks 4 then 8. */\nvoid func_0000F4CC(int *a0) {\n    register int *p1, *p2;\n    register int set;\n    register int *t;\n    p1 = (int*)((char*)a0 + 0x18);\n    p2 = p1;\n    set = 0;\n    if (set) { t = p2; *t = *t | 4; }\n    else     { t = p2; *t = *t & ~4; }\n\n    p1 = (int*)((char*)a0 + 0x18);\n    p2 = p1;\n    set = 0;\n    if (set) { t = p2; *t = *t | 8; }\n    else     { t = p2; *t = *t & ~8; }\n}\n\n/* Single-block bit set/clear \u2014 set=0, mask=8. */\nvoid func_0000F564(int *a0) {\n    register int *p1, *p2;\n    register int set;\n    register int *t;\n    p1 = (int*)((char*)a0 + 0x18);\n    p2 = p1;\n    set = 0;\n    if (set) { t = p2; *t = *t | 8; }\n    else     { t = p2; *t = *t & ~8; }\n}\n\n/* Single-block bit set/clear \u2014 set=1, mask=8. */\nvoid func_0000F5BC(int *a0) {\n    register int *p1, *p2;\n    register int set;\n    register int *t;\n    p1 = (int*)((char*)a0 + 0x18);\n    p2 = p1;\n    set = 1;\n    if (set) { t = p2; *t = *t | 8; }\n    else     { t = p2; *t = *t & ~8; }\n}\n\n/* Single-block bit set/clear \u2014 set=0, mask=4. */\nvoid func_0000F614(int *a0) {\n    register int *p1, *p2;\n    register int set;\n    register int *t;\n    p1 = (int*)((char*)a0 + 0x18);\n    p2 = p1;\n    set = 0;\n    if (set) { t = p2; *t = *t | 4; }\n    else     { t = p2; *t = *t & ~4; }\n}\n\n/* Single-block bit set/clear \u2014 set=1, mask=4. */\nvoid func_0000F66C(int *a0) {\n    register int *p1, *p2;\n    register int set;\n    register int *t;\n    p1 = (int*)((char*)a0 + 0x18);\n    p2 = p1;\n    set = 1;\n    if (set) { t = p2; *t = *t | 4; }\n    else     { t = p2; *t = *t & ~4; }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_F390.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0000F614.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with objdiff: func_0000F614 = 100% in -O0 cluster file."
+  }
+}
