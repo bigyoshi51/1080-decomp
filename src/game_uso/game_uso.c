@@ -2115,11 +2115,34 @@ void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
         *(float*)((char*)sub + 0x10) = *(float*)((char*)&D_00000000 + 0x1EC);
     }
 
-    /* TODO: ~14 more sub-region iterations follow same pattern with different
-     * (offset, template_addr, size_field) tuples.  Per feedback_partial_decode_with_stub_body.md,
-     * call out to TODO stub for the remaining ~600 insns of sub-allocator
-     * iterations. Default build matches via INCLUDE_ASM. */
-    return game_uso_func_0000C48C_TODO(parent, /*sub_idx*/1, /*chunk_addr*/(int)chunk);
+    /* Sub-init #1: same pattern, different template offsets.
+     * Decoded asm pattern at ~0xC5xx range:
+     *   chunk1 = parent + 0x44 + 0x308 (or similar bump-offset)
+     *   sub1 = alloc(0x18); chunk1[0] = D+0x1228 (TEMPLATE_TYPE_PTR_2);
+     *   gl_init_sub(sub1, parent, 2); sub1[3] = D+0xF80; sub1[5] = 0;
+     *   sub1->0x10 = D->0x1F0 float
+     * Per memo's per-iteration table: each sub uses different
+     * (template_type_ptr at chunk[0], sub-template at sub[3], size at sub[0x10]).
+     * Iteration index N controls table base offsets:
+     *   chunk[0] = D + 0x1224 + N*4   (table of TEMPLATE_TYPE_PTRs)
+     *   sub[3]   = D + 0xF78 + N*8    (table of sub-template ptrs)
+     *   sub[0x10] = D->(0x1EC + N*4) (float-template table) */
+    chunk = (int*)((char*)parent + 0x44 + 0x308);  /* approximate bump offset */
+    sub = (int*)gl_func_00000000(0x18);
+    if (sub != 0) {
+        chunk[0] = (int)((char*)&D_00000000 + 0x1228);
+        chunk[1] = 0;
+        gl_func_00000000(sub, parent, 2);
+        sub[3] = (int)((char*)&D_00000000 + 0xF80);
+        sub[5] = 0;
+        *(float*)((char*)sub + 0x10) = *(float*)((char*)&D_00000000 + 0x1F0);
+    }
+
+    /* TODO: ~13 more sub-region iterations follow same pattern with different
+     * (template_idx, sub_idx) tuples. Per feedback_partial_decode_with_stub_body.md,
+     * call out to TODO stub for the remaining ~550 insns. Default build
+     * matches via INCLUDE_ASM. */
+    return game_uso_func_0000C48C_TODO(parent, /*sub_idx*/2, /*chunk_addr*/(int)chunk);
 
 end:
     return p;
