@@ -2388,7 +2388,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F6D4);
  * gl_func(a0, D_E50, D_E54, -1). Same precall-arg-spill structural cap
  * as game_uso_func_0000EF20 — IDO -O2 with K&R gl_func_00000000 won't
  * emit the sw a1,4(sp); sw a2,8(sp) spills target has around the second
- * jal. Mine 19 insns / 0x4C vs target 24 insns / 0x60. Logic correct. */
+ * jal. Mine 19 insns / 0x4C vs target 24 insns / 0x60. Logic correct.
+ * 2026-05-02: tried typed varargs extern (gl_func_F8E8(int,int,int,int,...))
+ * to trigger spill — no change, still 85.17%. Spills are not just
+ * varargs-driven; they look like callee-side defensive spill area that
+ * IDO doesn't emit unless the prototype has a specific shape. */
 void game_uso_func_0000F8E8(int *a0) {
     int *p = (int*)((char*)&D_00000000 + 0xE50);
     gl_func_00000000(a0, *(int*)((char*)a0 + 0xFC), 0, 0, 0x100, 5);
