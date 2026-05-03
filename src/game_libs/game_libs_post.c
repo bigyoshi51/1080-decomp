@@ -3613,7 +3613,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B7A0);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B880);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006B880_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_0006B974: 16-insn (0x40) 3-call wrapper that returns call-2's
+ * value. Frame 0x28 includes $s0 spill (target uses $s0 for rv across the
+ * 3 calls; mine uses sp+0x1C stack spill).
+ *
+ * Decoded structure:
+ *   gl_func_00000000(a0, a1)         ; call 1 — args inherited from caller
+ *   rv = gl_func_00000000(a0, a1)    ; call 2 — return saved
+ *   gl_func_00000000(a0, a1)         ; call 3
+ *   return rv                         ; return value of call 2
+ *
+ * Cap: target uses $s0 to hold rv across all 3 calls; mine uses stack
+ * spill (sp+0x1C). Tried `register int rv` hint — IDO ignores for
+ * single-use vars (only 1 ref + return). Other variants (more refs)
+ * would need to introduce dummy uses, which would add insns. Net wash.
+ *
+ * Uncertain: target's call 3 has $a0 stale (clobbered by call 2, no
+ * explicit reload) — suggesting the original C might have had a different
+ * arg pattern. The (a0, a1) form here passes both args to all calls
+ * (~equivalent semantics, different codegen).
+ *
+ * Default INCLUDE_ASM build matches; wrap is for grep + future-pass seed. */
+int gl_func_0006B974(int a0, int a1) {
+    int rv;
+    gl_func_00000000(a0, a1);
+    rv = gl_func_00000000(a0, a1);
+    gl_func_00000000(a0, a1);
+    return rv;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B974);
+#endif
 
 #ifdef NON_MATCHING
 /* 20-insn 2-call init wrapper. Stores 1 to D_00000000 (via separate $at
