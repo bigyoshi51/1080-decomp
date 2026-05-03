@@ -97,7 +97,30 @@ void func_00011C70(s32 *a0, s32 a1) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011C70);
 #endif
 
+#ifdef NON_MATCHING
+/* 44.62% NM at -O2 (target -O0). Append-to-array helper at offsets 0x124
+ * (count) + 0x100 (4-byte entries).
+ * 13 insns / 0x34. -O0 indicators: minimal `addiu sp,-8` frame with no spill,
+ * `b +1; nop` dead-branch BB-ender, leaf function, `or a3, a0, zero` arg copy
+ * to high register. Same structure as adjacent func_00011C70 which is also
+ * documented as O0-split-blocked.
+ *
+ * BLOCKED: this is part of the ~20-function 0x11C70..0x120A8 -O0 cluster
+ * inside bootup_uso_tail3a.c (which builds at -O2 -g3). To match, would need
+ * to split this function (and the rest of the cluster) into a new
+ * bootup_uso_o0_11C70.c with -O0 OPT_FLAGS, plus adjust tail3a's
+ * TRUNCATE_TEXT and the linker script. Same infrastructure scope as
+ * func_00011C70's wrap doc.
+ *
+ * Body inferred (default -O2 emit will diverge — kept here for reference): */
+void func_00011CA4(int *a0, int a1) {
+    int idx = *(int*)((char*)a0 + 0x124);
+    *(int*)((char*)a0 + 0x124) = idx + 1;
+    *(int*)((char*)a0 + idx * 4 + 0x100) = a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CA4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CD8);
 
