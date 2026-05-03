@@ -408,7 +408,18 @@ void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
  * `extern int func_00000000()` at lines 1289/1304 to resolve return-type
  * conflict with implicit decl at line 15). Result: regressed to 52.6%
  * — IDO emits the increment in v0 chain instead of t6, breaking the
- * scheduling. Original named-local form remains best at 85.7%. */
+ * scheduling. Original named-local form remains best at 85.7%.
+ *
+ * 2026-05-03 3 more variants tested:
+ *   (a) `int *slot = (int*)(a0 + idx*4 + 0x108)` precomputed before increment
+ *       — same sw-before-addu cap, plus addu operand order flips to t7,a0
+ *       (target a0,t7) — net WORSE by 1 insn.
+ *   (b) `int *base108 = (int*)(a0 + 0x108); base108[idx] = a1` — same
+ *       sw-before-addu cap; same 6/7 = 85.7%.
+ *   (c) Reverse statement order (write a1 BEFORE updating count) — 2/7 match,
+ *       ~28%; reorders the entire scheduling.
+ * The 1-insn cap is structural per feedback_ido_sw_before_addu_unreachable.md;
+ * 5 distinct C variants confirm. */
 void func_00002088(char *a0, int a1) {
     int idx = *(int*)(a0 + 0x104);
     *(int*)(a0 + 0x104) = idx + 1;
