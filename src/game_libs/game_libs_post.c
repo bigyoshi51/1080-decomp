@@ -1756,7 +1756,44 @@ int gl_func_0003F8B0(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8E8);
 
+#ifdef NON_MATCHING
+/* gl_func_0003F96C: 22-insn (0x58) two-call wrapper with stack buffer.
+ *
+ * 184-byte frame (sp+0x18 buf area used). Decoded structure:
+ *   a0/a1/a2 spilled to caller-arg slots (sp+0xB8/BC/C0)
+ *   buf[0] = 31  (= sp+0x18)
+ *   sp+0x64 = a2  (also stored — purpose unclear; possibly stack arg for call 1)
+ *   gl_func_00000000(&buf, ...)        ; call 1, signature TODO
+ *   a1/a2 reloaded from spills
+ *   gl_func_00000000(&extern_sym, a1, a2)  ; call 2 with 3 args
+ *   return a2
+ *
+ * The 0xB8 stack frame is much larger than needed for the spills + 31-int
+ * buf, suggesting a substantial output buffer that call 1 may write into
+ * (e.g., string format or RDP cmd build). Without disassembled callee
+ * targets, the body's full semantics need cross-USO call resolution to
+ * verify.
+ *
+ * Trailing 8 bytes (lui t6, 0; lw t6, 0(t6)) — stolen-prologue tail for
+ * successor. Adding SUFFIX_BYTES would close the byte gap but a) the call
+ * 1 signature uncertainty makes the C body speculative and b) wrap-only
+ * runs preserve INCLUDE_ASM bytes already.
+ *
+ * NM wrap is for grep discoverability + multi-tick decomp seed. Partial
+ * body documents the alloc/init/call structure. */
+extern int gl_func_00000000();
+extern char D_03F96C_extern;
+int gl_func_0003F96C(int a0, int a1, int a2) {
+    char buf[0xA0];
+    *(int*)&buf[0] = 31;
+    *(int*)&buf[0x4C] = a2;
+    gl_func_00000000(&buf);
+    gl_func_00000000(&D_03F96C_extern, a1, a2);
+    return a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F96C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F9C4);
 
