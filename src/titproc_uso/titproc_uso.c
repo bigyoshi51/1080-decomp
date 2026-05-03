@@ -157,7 +157,49 @@ void titproc_uso_func_000003D0(void) {
     gl_func_00000000(*(int*)((char*)&D_000003D0_A + 0xA8), -1, 0);
 }
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00000418: 33-insn (0x84) bit-counting + scaled-call wrapper.
+ *
+ * STARTS WITH PROLOGUE-STOLEN-PREDECESSOR pattern: first 2 insns
+ * (`lui $t6, 0; lw $t6, 0x154($t6)`) are the predecessor's "tail" that
+ * splat attributed to our symbol. They load $t6 = *(int*)(&D + 0x154).
+ * Per feedback_prologue_stolen_predecessor_no_recipe.md — the recipe
+ * needs SUFFIX_BYTES to grow the predecessor + PROLOGUE_STEALS=8 to
+ * splice our own emit's first 8 bytes.
+ *
+ * STRUCTURE (insns 3-33):
+ *   addiu sp, -0x20
+ *   sw ra, 0x14(sp)
+ *   a1 = *(int*)(sp+0x18);    // reads UNINIT local — strange (caller-set?)
+ *   v0 = 0; a0 = 8;            // loop counter and limit
+ *   v1 = *(short*)t6;          // load 16-bit bitfield from D->[0x154]
+ *   t7 = 1;
+ *   for (v0 = 0; v0 < 8; v0++) {
+ *     if (v1 & (1 << v0)) {
+ *       a1++;                   // count set bits
+ *     }
+ *   }
+ *   a1 -= 2;
+ *   *(int*)(sp+0x18) = a1;
+ *   f0 = gl_func_00000000(...); // returns float
+ *   a1 = *(int*)(sp+0x18);      // reload
+ *   f10 = 8.0f; f4 = (int)a1; f6 = (float)f4;
+ *   return (int)trunc(f0 * f6 / 8.0f);
+ *
+ * UNRESOLVED: the `lw a1, 0x18(sp)` BEFORE any sw to that slot reads
+ * uninit local. Either non-standard ABI or stolen-prologue effect.
+ *
+ * First-pass decode; wrap captures structure for grep discoverability.
+ * Match attempt deferred — needs prologue-stolen-predecessor recipe
+ * (SUFFIX_BYTES on predecessor + PROLOGUE_STEALS=8 here) plus resolution
+ * of the uninit a1 read. */
+void titproc_uso_func_00000418(int a0) {
+    /* Stub — see decoded structure in comment above. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
+#endif
 
 void titproc_uso_func_0000049C(int *dst) {
     int buf[2];
