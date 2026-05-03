@@ -270,7 +270,23 @@ void timproc_uso_b3_func_000021B0(void) {
  * makes IDO CSE the &D base into $v0 (lui+addiu+sw t6,0x40(v0); lw a0,
  * 0x20C(v0)) which target doesn't do. Regressed to <89%. Cap stands.
  * Trailing 8 bytes (lui a0; lw a0, 0x148(a0)) are stolen prologue for
- * successor func_00002240 (already PROLOGUE_STEALS=8 in Makefile). */
+ * successor func_00002240 (already PROLOGUE_STEALS=8 in Makefile).
+ *
+ * 2026-05-03 RECONFIRMED: switching ALL THREE refs (0x208/0x40/0x20C) to
+ * `*(int*)((char*)&D_00000000 + N)` form (not just one) still triggers
+ * IDO's &D-CSE — emits `lui v0; addiu v0,v0,0; sw t6,0x40(v0); lw a0,
+ * 0x20C(v0)`, target uses 3 separate luis. ~12/17 insns match (~70%).
+ * The 3-way unique-extern split (per feedback_combine_prologue_steals_with_unique_extern.md)
+ * would be the next thing to try — but per feedback_unique_extern_breaks_shared_base.md
+ * the unique-extern trick can REGRESS when target reuses one base across
+ * multiple lw/sw with folded offsets. Target here DOES reuse `lui a0,0`
+ * for both 0x208 read and 0x20C read (but with intervening li t6/lui at/sw
+ * sequence). Mixed pattern; unlikely to yield clean improvement. Cap stands.
+ *
+ * SUFFIX_BYTES would not help: the trailing 2 bytes are already in the
+ * INCLUDE_ASM build via the .s file's full 19-insn body. Adding SUFFIX_BYTES
+ * to inject 8 bytes for DNM build would trip the verify check on the
+ * INCLUDE_ASM path (per feedback_suffix_bytes_breaks_include_asm_build.md). */
 void timproc_uso_b3_func_000021F4(void) {
     gl_func_00000000(gl_ref_00000208);
     gl_ref_00000040 = 6;
