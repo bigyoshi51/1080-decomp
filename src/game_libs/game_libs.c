@@ -240,7 +240,48 @@ void gl_func_000041D4(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00004244: 2479-insn (0x26BC) constructor / setup orchestrator.
+ * Stack frame 0x748 (1864 bytes — many local accumulators + working buffers).
+ * Single function (grep -c 03E00008 = 1).
+ *
+ * Entry decode (insns 1-12 @ 0x4244-0x4274):
+ *   sp -= 0x748                    ; massive frame
+ *   save s0..s2, ra, f20, f22 (FPU regs preserved)
+ *   s0 = a0                        ; saved arg
+ *   if (a0 == 0) {                 ; alloc-or-passthrough ternary
+ *       a0 = alloc(0x488);         ; 1160-byte primary buffer
+ *       if (a0 == 0) goto epilogue ; alloc fail early-exit (jump +0x99A insns)
+ *       s0 = a0;
+ *   }
+ *
+ * Body (~2470 insns): main initialization. Sets a chain of D[+CF80] fields
+ * to floats (1.0 via lui $at,0x3F80; mtc1), zero-inits 4-byte and 8-byte
+ * regions, copies bytes in/out of accumulator regions at sp+0x718..738
+ * (looks like a 12-float matrix init), then dispatches multiple cross-USO
+ * calls (jal placeholders).
+ *
+ * Multi-tick decompile in scope; this captures structural decode + entry
+ * stage for future passes to extend. Constructor pattern per
+ * project_1080_strategy.md: not a skip reason — partial C IS the struct-
+ * typing work for D+CF80 (a global state struct) and the a0 +0x488-byte
+ * primary instance.
+ *
+ * Decoded entry stub for grep/discoverability; default build INCLUDE_ASM
+ * matches via the original asm. */
+extern int gl_func_00000000();
+void gl_func_00004244(int *a0) {
+    int *p = a0;
+    if (p == 0) {
+        p = (int*)gl_func_00000000(0x488);
+        if (p == 0) return;
+    }
+    /* TODO: ~2470 insns of init + dispatch math + cross-USO calls */
+    (void)p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00004244);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006900);
 
