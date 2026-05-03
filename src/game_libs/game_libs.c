@@ -842,7 +842,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DD44);
 
+#ifdef NON_MATCHING
+/* 20-insn indirect dispatcher (sibling of gl_func_0003CB2C). Indexes
+ * into a0->0x44 array of 96-byte structs, derefs entry, calls function
+ * pointer at struct +0x2C with (struct + halfword_offset) arg.
+ *
+ * local = 1002 (specific constant for this sibling — others use different
+ * values: DE30/DE80/DED0 likely use 0x3EB/0x3EC/0x3ED). Constant is on
+ * stack at sp+0x2C and passed as a1 to the indirect call. */
+void gl_func_0000DDE0(int **a0, int a1) {
+    int local = 0x3EA;
+    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
+    int *p = *base;
+    short adj = *(short*)((char*)p[0x28/4] + 0x28);
+    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DDE0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
 
