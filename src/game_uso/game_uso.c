@@ -1889,7 +1889,36 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * add the alloc-or-passthrough blocks to C — the function is at 1.48% and a
  * single bad add will drop to 0%. Future passes should decode 50+ insns at
  * once with full register flow. Multi-tick decomp; this commit extends only
- * structural decode comment (no C body change). */
+ * structural decode comment (no C body change).
+ *
+ * 2026-05-03 EXTENDED DECODE 0x7CB8-0x7D34 (~31 insns, post-alloc Vec3
+ * delta-store + first far jump):
+ *   /* alloc-result branch: v1 = alloc(0xC) result, init Vec3 with delta *\/
+ *   if (alloc_v0 == 0) goto skip_init;     ; beq v0, $0, +0xB
+ *   v1 = v0;                                ; (delay)
+ *   /* compute Vec3 delta = stage[i] - arg5[i] for x and z components *\/
+ *   v0 = arg5;                              ; reload caller arg5 ptr
+ *   f4, f8 = stage[x], stage[z]            ; from sp+0x38C, sp+0x394
+ *   f6, f10 = arg5[x], arg5[z]             ; from arg5+0, arg5+8
+ *   v1[y_swap] = f24 (saved-callee-double) ; v1[1] = f24
+ *   v1[x] = stage[x] - arg5[x]
+ *   v1[z] = stage[z] - arg5[z]
+ *   /* Vec3-int-copy through s0/s1 chain to caller arg-slot *\/
+ *   sp[0x3A8] = sp[0x3A4] = sp[0x3AC] = stored doubles f24/f18/f16
+ *
+ *   /* FAR JUMP: b +0x3D7 (~980 insns forward to epilogue convergence) *\/
+ *   This is the "fast-path early return" — if alloc-result was non-NULL
+ *   AND certain prior conditions held, skip the rest of the body.
+ *
+ * Then the alternate path (jumped to from far far away when fast-path NOT
+ * taken) re-enters at 0x7D38 with another alloc-or-passthrough Vec3
+ * dispatch (sp+0x328 buffer at delay-slot insn 0x7D38).
+ *
+ * BODY structure clearer now: this is a Vec3-DELTA computation function
+ * that returns the difference between current stage Vec3 and arg5's Vec3,
+ * with the result written through a freshly-allocated Vec3 (or one passed
+ * via stack at sp+0x328). The fast-path skips ~980 insns of additional
+ * processing (matrix transforms?) and exits early. */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
