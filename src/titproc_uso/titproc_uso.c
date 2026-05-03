@@ -211,7 +211,45 @@ void titproc_uso_func_0000056C(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000005DC);
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00000B6C: 40-insn save-restore-state + alloc + sub-struct writes.
+ * 0xA0 size, 0x20 frame.
+ *
+ * Decoded structure:
+ *   saved = helper1(2);                 // save current state, set new state=2
+ *   *a0 = helper2(0, *(int*)(&D + 0x148), a1, -1);  // alloc/init returning ptr
+ *   *(int*)(&D + 0x14C) = (above);     // mirror to global slot
+ *   helper3(saved);                      // restore state
+ *
+ *   (*a0)[0x14] = 0;                    // zero a field on the new struct
+ *   if (a1 != -1) {
+ *       (&D)[0x168] = (*a0)[2][2];      // store from sub-sub-struct
+ *       (&D)[0x170] = (*a0)[2][1];
+ *   }
+ *
+ * Pattern: state-bracketed allocator that returns object pointer, with
+ * conditional sub-struct mirror to globals when a1 indicates "not-default". */
+extern int gl_func_00000000();
+void titproc_uso_func_00000B6C(int **a0, int a1) {
+    int saved;
+    int *p;
+    saved = gl_func_00000000(2);
+    *a0 = (int*)gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), a1, -1);
+    *(int*)((char*)&D_00000000 + 0x14C) = (int)*a0;
+    gl_func_00000000(saved);
+
+    p = *a0;
+    p[0x14 / 4] = 0;
+    if (a1 != -1) {
+        p = *a0;
+        *(int*)((char*)&D_00000000 + 0x168) = ((int**)p)[2][2];
+        p = *a0;
+        *(int*)((char*)&D_00000000 + 0x170) = ((int**)p)[2][1];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000B6C);
+#endif
 
 void titproc_uso_func_00000C0C(int *a0) {
     int v = *a0;
