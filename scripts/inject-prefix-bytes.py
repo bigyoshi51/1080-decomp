@@ -215,11 +215,13 @@ def inject_prefix(o_path: Path, func_name: str, prefix_words: list[int],
                   f"{first:#010x} (likely an INCLUDE_ASM build); no-op",
                   file=sys.stderr)
             return
-        # Body should start with a real prologue insn (addiu sp, sp, -N).
-        # 0x27bd is addiu sp,sp,...
-        if (first >> 16) != 0x27BD:
+        # Body should start with a real prologue insn — either:
+        #   - addiu sp,sp,-N  (0x27BDxxxx) — normal function with stack frame
+        #   - jr ra           (0x03E00008) — empty void function (no prologue)
+        if (first >> 16) != 0x27BD and first != 0x03E00008:
             print(f"WARN: {func_name} first insn is {first:#010x}, expected "
-                  f"addiu sp prologue (0x27BDxxxx); refusing to patch",
+                  f"addiu sp prologue (0x27BDxxxx) or jr ra (0x03E00008); "
+                  f"refusing to patch",
                   file=sys.stderr)
             sys.exit(1)
 
