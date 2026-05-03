@@ -192,7 +192,16 @@ void eddproc_uso_func_0000038C(char *dst) {
  * cap is frame-size 0x28 vs mine 0x20 — target spills p1 to a separate
  * 0x24 slot across the second jal where mine reuses 0x1C, plus reg alloc
  * (target uses v1 to hold p1, mine uses a2). These are coupled to the
- * frame size and likely structurally locked from C alone. */
+ * frame size and likely structurally locked from C alone.
+ *
+ * 2026-05-03 ADDITIONAL VARIANTS TRIED (all regressed or no-op):
+ *   - `volatile int saved_p1 = (int)p1;` between p_field40 read and inner
+ *     gl_func: 88.6 -> 77.6% (volatile slot mis-shaped reg-alloc downstream)
+ *   - `char pad[4]` to push frame: 88.6% (IDO optimized away)
+ *   - `volatile int pad_a, pad_b;` to force 8 extra bytes: 88.6 -> 83.0%
+ *     (frame did grow but regs allocated differently — net regression)
+ *   - `register int *p1`: 88.6% (no change; IDO ignores hint here)
+ * Cap accepted as structurally locked. */
 int *eddproc_uso_func_000003BC(int *arg0) {
     int *p1;
     int *p_field40;
