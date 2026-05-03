@@ -291,7 +291,16 @@ extern int gl_func_h2hproc_8EC_f();
  * register); mine reloads into $t7. Two byte-pos swaps (sw a1 / sw a2
  * order around the jal). Both structural — IDO's reload-register pick
  * isn't C-level controllable here (per feedback_ido_arg_save_reg_pick.md
- * and friends). Cap ~89.5%. Default build INCLUDE_ASM matches. */
+ * and friends). Cap ~89.5%. Default build INCLUDE_ASM matches.
+ *
+ * Tried (2026-05-03, 4 more variants): explicit `char *saved=a0` local,
+ * `int is_zero = (a1==0)` flag-precompute, explicit `int loaded =
+ * *(a0+0x6A8)` early load, `register int a1`. All produce same shape:
+ * `sw a1, 0x1c(sp)` at insn 2 (early), `sw a2, 0x18(sp)` in delay slot,
+ * reload `lw t7, 0x1c(sp)` instead of $a1. is_zero variant also added a
+ * `sltiu+beqz` pair (worse). Variants confirm `feedback_ido_arg_save_reg_pick.md`
+ * extends to reload-side: IDO's spill+reload register pair is structurally
+ * locked — neither side flips from C. 11+ total variants now. */
 void h2hproc_uso_func_000008EC(char *a0, int a1) {
     *(int*)(a0 + 0x6B8) = a1;
     gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8));
