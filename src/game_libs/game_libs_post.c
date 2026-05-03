@@ -44,7 +44,34 @@ void gl_func_0001FC50(void) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0001FC50_pad.s")
 
+#ifdef NON_MATCHING
+/* 22-insn 2-call wrapper. Predecessor (gl_func_0001FC50) has pad-sidecar
+ * setting $t6 = *(D + 0x2178) before this function runs; the body reads
+ * $t6 directly without re-loading. C-emit can't express "use upstream
+ * $t6 directly" — IDO will emit its own lui+lw load, adding 2 insns
+ * mid-body that target lacks. Same class as the gl_func_0001FCD0 family
+ * which use PROLOGUE_STEALS=8 (Makefile) but for SUCCESSORS — here the
+ * "stolen" register is read mid-body, not at the prologue start.
+ *
+ * Decoded body (mid-body $t6 read can't be elided from C):
+ *   int t6 = *(D + 0x2178);  // upstream-set, mid-body read
+ *   if (t6 == 0) return 0;
+ *   v1 = gl_func_00000000(&D + 0x2178, a1);
+ *   if (v1 == 0) v1 = gl_func_00000000(a0);
+ *   return v1; */
+int gl_func_0001FC78(int *a0, int a1) {
+    int v1;
+    int t6 = *(int*)((char*)&D_00000000 + 0x2178);
+    if (t6 == 0) return 0;
+    v1 = gl_func_00000000((char*)&D_00000000 + 0x2178, a1);
+    if (v1 == 0) {
+        v1 = gl_func_00000000(a0);
+    }
+    return v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FC78);
+#endif
 
 extern int gl_func_00000000();
 
