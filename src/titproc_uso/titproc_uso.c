@@ -399,36 +399,137 @@ void titproc_uso_func_00001E2C(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* titproc_uso_func_00001E9C: 245-insn (0x3D4) titproc constructor.
- * Frame: -0x40 (0x40 stack frame). 3-arg constructor (a0, a1, a2)
- * spilled to caller slots at +0x44/+0x48/+0x4C.
+/* titproc_uso_func_00001E9C: 245-insn titproc constructor for ~0x6C8-byte object.
  *
- * ENTRY DECODE (first ~10 insns @ 0x1E9C-0x1EC8):
- *   prologue: addiu sp,-0x40; sw ra,0x24; sw s0/s1,0x1C/0x20
- *   spill s1 = a0
- *   spill a1/a2/a3 to caller slots
- *   if (a0 == NULL) {
- *     a0 = alloc(0x6C8);             // bne a0,zero skips this
- *     if (a0 == NULL) goto end;      // beq v0,zero,+0xE3 (very far)
- *     s1 = v0;                        // s1 = alloc result
- *   }
- *   if (a1 != NULL) {                 // bne s1, zero, +5
- *     a1 = a1;
- *   } else {
- *     a1 = alloc(0x6A8);
- *     if (a1 == NULL) goto end;
- *     s0 = v0;
- *   }
- *   ...
+ * Frame: -0x40, saves ra/s0/s1, spills a1/a2/a3 to caller slots at +0x44/+0x48/+0x4C.
  *
- * Multi-iter sub-allocator follows (~200+ insns of nested alloc+init).
- * Per project_1080_strategy.md: defer big constructors until structs
- * are typed. Multi-tick decomp expected. Stub body so wrap parses;
- * default build INCLUDE_ASM matches. */
-void titproc_uso_func_00001E9C(void *a0, void *a1, void *a2) {
-    /* TODO: 3-stage alloc-or-use entry (0x6C8 main, 0x6A8 child, ...);
-     * ~200 insns of sub-alloc loop with template inits. */
-    (void)a0; (void)a1; (void)a2;
+ * STRUCTURE (decoded ~120/245 insns):
+ *
+ *   p = a0 ?: alloc(0x6C8); if (!p) goto end;            // s1 = p
+ *   q = p;  if (!q) { q = alloc(0x6A8); if (!q) goto end; }  // s0 = q (dead alloc path)
+ *   r = q;  if (!r) { r = alloc(0x50);  if (!r) goto end; }  // v1 = r (dead alloc path)
+ *   sub = alloc(0x2C);                                    // sp+0x38
+ *   if (sub != NULL) {
+ *     gl_func_00000000(sub, &D + 0x514);                  // init sub at template
+ *     spill_v1 = sub  (sp+0x34)
+ *     p->0x28 = &D_00000000;
+ *     ((void*)p)->0x28 = &D + 0;                          // p[10] = &D
+ *     p->0x28 = sub;                                      // overrides — multi-write
+ *     gl_func_00000000(p + 0x50);                         // init p+0x50
+ *     p->0x28 = &D + 0;
+ *     p->0x568 = 0;
+ *     gl_func_00000000(&D + 0x51C, *(int*)(sp+0x44)=a1, *(int*)(sp+0x48)=a2, p);
+ *     p->0x528 = (gl_func ret);
+ *     gl_func_00000000(&D + 0x530, 0);                    // 2nd cross-call
+ *     gl_func_00000000(&D + 0,    0);                     // 3rd
+ *     gl_func_00000000(0);                                // 4th
+ *     p->0x6AC = (last gl_func ret val from sub-call set);
+ *     D[0x138] = p->0x6AC;                                // global flag
+ *     gl_func_00000000(p->0x6AC);
+ *
+ *     // SUB-LOOP (insns ~0x1FD8-0x2018, ~16 insns):
+ *     spill_a4 = p->0x6AC + 0x10  (sp+0x2C)
+ *     do {
+ *       gl_func_00000000(p->0x6AC + 0x10, p);
+ *       cnt = sub->0x14;
+ *       if (cnt == 0) sub->0x4 = 1;                       // first-time flag
+ *       sub->0x14 = s1 (= p);                             // back-pointer
+ *       gl_func_00000000(*(int*)(sp+0x44)=a1);
+ *       p->0x48 = a1_save;                                // 2 stores for outgoing arg
+ *       p->0x4F4 = (a1 & 0xFFFF);                         // low-half of a1
+ *       a1_high = (a1 >> 16) << 7                         // sll-srl shuffle
+ *       if (a1_high < ?) p->0x6B4 = ?
+ *       gl_func_00000000(0);
+ *       p->0x6B0 = (gl_func ret val);
+ *       sub2 = p->0x6B0->0x28;
+ *       fn  = sub2->0x5C;
+ *       arg = (int)(p->0x6B0) + (short)sub2->0x58;        // signed-short adjust
+ *       fn(arg);
+ *       sub3 = p->0x6B0;                                  // reload after call
+ *       gl_func_00000000(p->0x6AC + 0x10, p);             // 2nd subobj init
+ *       cnt = sub->0x14;
+ *       if (cnt == 0) sub->0x4 = 1;
+ *       sub->0x14 = p;
+ *     } while (...);                                       // (TODO: terminator unclear)
+ *
+ *   // EPILOGUE (0x225C-0x226C):
+ *   end:
+ *     return s1;                                           // returns p
+ *   }
+ *
+ * Quirks:
+ *   - Multi-write to p->0x28: 3 distinct &D-derived addresses overwrite each
+ *     other (looks like compiler initializing same field at different decoder
+ *     stages — possibly union or struct-fill via `*(int*)(p+0x28) = ...`).
+ *   - Sub-loop has 2 alloc-or-init blocks (sub at +0x10 and at base) — looks
+ *     like double-buffering setup.
+ *   - "(a1 & 0xFFFF) | shifted-bits-stored-at-+0x4F4" pattern is per-frame
+ *     coordinate packing (sll/srl shuffle on a1 at insns 0x2010-0x202C).
+ *
+ * Identified field offsets (for future struct-typing):
+ *   p->0x28: parent template ptr (multi-write)
+ *   p->0x48: saved a1 ptr (caller-supplied parent)
+ *   p->0x4F4: packed low-half of caller-arg
+ *   p->0x528: gl_func return (sub-init-A)
+ *   p->0x568: zeroed flag
+ *   p->0x6AC: gl_func return (sub-init-B; primary inner pointer)
+ *   p->0x6B0: gl_func return (sub-init-C; secondary inner pointer)
+ *   p->0x6B4: conditional value
+ *   p->0x6B8/0x6BC/0x6C0/0x6C4: more inner ptrs from later jal returns
+ *
+ * Default build INCLUDE_ASM matches. C body below covers the ~50% of insns
+ * with the highest structural confidence; remaining ~120 insns of the
+ * sub-loop tail are stubbed as TODO. */
+extern void *titproc_uso_func_00001E9C_TODO_loop(void *p, void *sub, void *a1, void *a2, void *a3);
+void *titproc_uso_func_00001E9C(void *a0, void *a1, void *a2, void *a3) {
+    void *p, *q, *r, *sub;
+
+    /* Stage 1: alloc main 0x6C8 if a0 == NULL */
+    p = a0;
+    if (p == NULL) {
+        p = (void*)gl_func_00000000(0x6C8);
+        if (p == NULL) goto end;
+    }
+
+    /* Stage 2 (dead-path alloc compiled in source): if (q == NULL) alloc(0x6A8) */
+    q = p;
+    if (q == NULL) {
+        q = (void*)gl_func_00000000(0x6A8);
+        if (q == NULL) goto end;
+    }
+
+    /* Stage 3 (dead-path): if (r == NULL) alloc(0x50) */
+    r = q;
+    if (r == NULL) {
+        r = (void*)gl_func_00000000(0x50);
+        if (r == NULL) goto end;
+    }
+
+    /* Sub-init stage: alloc 0x2C sub-struct */
+    sub = (void*)gl_func_00000000(0x2C);
+    if (sub != NULL) {
+        gl_func_00000000(sub, (char*)&D_00000000 + 0x514);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x28) = (int)((char*)&D_00000000 + 0);  /* multi-write */
+        *(int*)((char*)p + 0x28) = (int)sub;
+        gl_func_00000000((char*)p + 0x50);
+
+        /* Cross-USO init chain — produces ptrs stored at p->0x528/0x6AC */
+        *(int*)((char*)p + 0x528) = gl_func_00000000(
+            (char*)&D_00000000 + 0x51C, a1, a2, p);
+        gl_func_00000000((char*)&D_00000000 + 0x530, 0);
+        gl_func_00000000(&D_00000000, 0);
+        gl_func_00000000(0);
+        *(int*)((char*)p + 0x6AC) = (int)q;       /* p->0x6AC = inner ptr */
+        *(int*)((char*)&D_00000000 + 0x138) = (int)q;  /* global flag */
+
+        /* Sub-loop: 2 sub-init blocks for objects at +0x10 and at base.
+         * ~120 more insns of sub-init, double-buffered with back-pointer
+         * patching at sub->0x4 / sub->0x14. Deferred to TODO. */
+        return titproc_uso_func_00001E9C_TODO_loop(p, sub, a1, a2, a3);
+    }
+end:
+    return p;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001E9C);
