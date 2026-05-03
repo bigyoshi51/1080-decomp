@@ -1737,18 +1737,42 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * Uses callee-saved double regs $f20/$f22/$f24 — arithmetic-heavy
  * (sdc1 saves at sp+0x20/0x28/0x30).
  *
- * ENTRY (insns 1-20 @ 0x7C1C-0x7C6C, decoded):
- *   - Save s0/s1/s2/ra + f20/f22/f24 doubles
- *   - Spill args back to caller slots (sp+0x3B0..0x3BC)
+ * ENTRY (insns 1-15 @ 0x7C1C-0x7C5C, decoded):
+ *   - addiu sp,sp,-0x3B0 (prologue)
+ *   - Save s0/s1/s2/ra + f20/f22/f24 doubles (sp+0x20..0x44)
+ *   - Spill a0/a1/a3 to caller slots (sp+0x3B0/0x3B4/0x3BC)
+ *   - s2 = a2 (saved for body-wide use)
  *   - Load arg5 ptr from caller slot sp+0x3C4 into s0
  *   - if (arg5 != NULL) { *(double*)arg5 = 0.0; }   // zero output accumulator
  *
- * BODY (insns 20-1075): heavy float math on sp+0x348 and sp+0x38C regions
- * (two Vec3 / quaternion slots), 25 cross-USO calls, conditional dispatch on a3.
- * 0x3C4-arg-slot pattern with double-output suggests this is a per-frame
- * transform function (e.g. matrix/quaternion -> displacement).
+ * EXTENDED ENTRY (insns 16-30 @ 0x7C60-0x7CB8, decoded 2026-05-03):
+ *   t6 = (reloaded a3 from sp+0x3BC) ; reload to test
+ *   if (a3 != 0) goto far_path ; bnel t6,zero,+0x33 (delay-likely)
+ *     v1 = sp+0x328 (delay slot taken: alternate Vec3 buffer ptr)
+ *   else:
+ *     v1 = sp+0x38C (Vec3 buffer ptr)
+ *     // alloc-or-passthrough Vec3 dispatch (3 in a row)
+ *     // Each: v1 = stack_addr ? stack_addr : alloc(12);
+ *     //       if (v1) { v1[0]=src.x; v1[1]=src.y; v1[2]=src.z; }
+ *     // 1st (insns 18-23): src = s2->0x30..0x38 ; dst = sp+0x348
+ *     // 2nd (insns 24-29): src = same  ; dst = sp+0x354 (after addu+add float math)
+ *     // The dispatch pattern matches feedback_ido_alloc_or_passthrough_ternary.md
+ *     //   `out = ptr ? ptr : alloc(N)` emits 4-insn `bnel ptr,$0,+6 / move v1,ptr [delay-likely] / jal alloc / addiu a0,$0,N`
+ *     // Here ptr = stack_addr = always non-zero, so alloc path is dead.
  *
- * Multi-tick decomp; this commit captures the entry signature only. */
+ * BODY (insns 30-1075, ~1045 insns remaining): heavy float math on sp+0x348
+ * and sp+0x38C regions (two Vec3 / quaternion slots), ~25 cross-USO calls,
+ * conditional dispatch on a3. The 0x3C4-arg-slot pattern with double-output
+ * + s2-preserved-context + dual-buffer dispatch suggests this is a
+ * per-frame transform function (e.g. matrix/quaternion -> displacement
+ * accumulator). The double-init at entry (`*arg5 = 0.0`) means arg5 is an
+ * accumulator the body adds into.
+ *
+ * Per feedback_partial_alloc_block_add_irreversible.md: do NOT incrementally
+ * add the alloc-or-passthrough blocks to C — the function is at 1.48% and a
+ * single bad add will drop to 0%. Future passes should decode 50+ insns at
+ * once with full register flow. Multi-tick decomp; this commit extends only
+ * structural decode comment (no C body change). */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
