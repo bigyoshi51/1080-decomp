@@ -1109,7 +1109,17 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *   ... (continues with more loads + 2 more cross-USO calls
      *   at 0x4620 and 0x4640, decoding pending) */
 
-    /* TODO: ~1075 remaining insns — sub-object alloc loop continuation,
+    /* Stage 6 (extended 2026-05-03 run 13, ~16 insns 0x4630-0x4680):
+     *   gl_func_00000000(s0, s1, *(int*)s2, 1);   // 4-arg sub-init call
+     *   s0->[0xC] = (int)((char*)&D_00000000 + 0x3C8);  // template ptr (same as stage 5)
+     *   s0->[0x14] = 0;
+     *   s0->[0x10] = *(float*)((char*)&D_00000000 + 0xA0);  // float scalar
+     *   if (s1 != (char*)-0x38) { ... }            // unusual addr-as-imm cmp
+     *
+     * The 4-arg call here mirrors the structure of Stage 4's gl_func call
+     * but with explicit (a0, a1, a2, a3) — different sub-init shape.
+     *
+     * TODO: ~1050 remaining insns — sub-object alloc loop continuation,
      * recursive init via cross-USO calls, child link setup at
      * a0->field_38, etc. */
     (void)s0; (void)a1; (void)a2;
