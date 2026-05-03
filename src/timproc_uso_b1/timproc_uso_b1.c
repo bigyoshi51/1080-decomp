@@ -227,7 +227,20 @@ void timproc_uso_b1_func_000018D4(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001908);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_000019C0: byte-identical mirror of
+ * arcproc_uso_func_00001C74 (sig=739fd8d1d3, 41-insn 0xA4 counter+
+ * conditional-scale wrapper). Same structure, partial decode pending.
+ *
+ * Per scripts/find-byte-identical-clones.py — see arcproc_uso_func_00001C74's
+ * wrap doc for full structural decode. */
+void timproc_uso_b1_func_000019C0(int *a0) {
+    /* Stub — see canonical decode in arcproc_uso_func_00001C74 wrap. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000019C0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001A64);
 
