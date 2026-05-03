@@ -840,15 +840,33 @@ void gl_func_0000DDE0(int **a0, int a1) {
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0 / gl_func_0003CB2C).
  * Same shape as DDE0; only the immediate `local` differs (0x3EA vs 0x3EB).
  *
- * 90.85 % NM 2026-05-03. Two structural diffs vs original ROM:
- *   (a) Frame size 0x28 (mine) vs 0x38 (target) — IDO allocates only what's
- *       needed; target has 16 unused bytes. `int pad[2]` lifts to 0x30 (still
- *       short by 8). `int pad[4]` may land 0x38 — untried this pass.
- *   (b) IDO emits `sw a1, 0x2C(sp)` (caller arg-spill) early; target doesn't
- *       spill a1 at all (it's overwritten by `addiu a1, sp, ...` before any
- *       jal). Plus reg pattern differs: mine has p in $v0 / inner in $t0 /
- *       adj in $a2; target has p in $v1 / inner in $v0 / adj in $t0, with
- *       `addu a0, t0, v1` (target) vs `addu a0, v0, a2` (mine).
+ * Improved 2026-05-03 (v2). Now ~16/20 insns match (was 13/20 → 90.85%).
+ *
+ * Two changes from the prior body:
+ *   (1) **Inline base/p computation** in the function-pointer call expression
+ *       — eliminates the `sw a1, 0x3C(sp)` arg-spill that target lacks. With
+ *       a named `int **base = ...; int *p = *base;` pre-decl, IDO's allocator
+ *       conservatively spills a1 because the named locals extend its live
+ *       range past the spill-defeating `addiu a1, sp, ...`. Inline form keeps
+ *       a1 dead at the right point.
+ *   (2) **`pad_top[2] + local + pad_bot[4]`** sets frame to 0x38 AND lands
+ *       `local` at sp+0x2C (matching target). `int pad[N]` alone (N=4) makes
+ *       frame 0x38 but leaves local at sp+0x24. Target wants local 8 bytes
+ *       below frame top; only the split-pad recipe lands it there per
+ *       feedback_ido_split_pad_for_buf_offset.md.
+ *   Bonus: inline form ALSO flips the multiplication chain from $t9 to $t8
+ *   (matches target's `sll t8, a1, 2; subu t8, t8, a1; sll t8, t8, 5`).
+ *
+ * Remaining 4-insn diff: register-shift in the deref/jal block. Mine uses
+ * v0/t0/t1 where target uses v1/v0/t0:
+ *   mine:    lw v0,0(t9); lw t0,0x28(v0); lw t9,0x2C(v0); lh t1,0x28(t0); jalr; addu a0,t1,v0
+ *   target:  lw v1,0(t9); lw v0,0x28(v1); lw t9,0x2C(v1); lh t0,0x28(v0); jalr; addu a0,t0,v1
+ * Same semantics, every register shifted by one slot. IDO picks v0 first for
+ * the result of `lw v0,0(t9)`; target picks v1 first. Tried: typedef'd Fn ptr,
+ * named `*p = *base`, `int **base; int *p`, separate `Fn fn = ...`, two-step
+ * indexing — all leave the v0/t0/t1 allocation. Likely needs upstream callee
+ * with a specific live range to displace v0; no C-level lever from inside
+ * this function reproduces target's allocation.
  *
  * NOTE: the previously-landed gl_func_0000DDE0 has these SAME diffs vs its
  * original ROM, but its expected/.o was refresh-expected'd to the C-emit form,
@@ -858,11 +876,12 @@ void gl_func_0000DDE0(int **a0, int a1) {
  * instruction-byte diffs like this. NM-wrap here preserves the partial C
  * without propagating the bad-baseline pattern. */
 void gl_func_0000DE30(int **a0, int a1) {
+    int pad_top[2];
     int local = 0x3EB;
-    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
-    int *p = *base;
-    short adj = *(short*)((char*)p[0x28/4] + 0x28);
-    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+    int pad_bot[4];
+    int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
+    ((void(*)(int, int*))p[0x2C/4])(
+        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
@@ -870,15 +889,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
 
 #ifdef NON_MATCHING
 /* Sibling of gl_func_0000DDE0/0000DE30/0003CB2C (20-insn indirect dispatcher).
- * local = 0x3EC; otherwise byte-identical structure. Same 90.85% NM cap as
- * DE30 (frame 0x28 vs target 0x38, plus IDO `sw a1, 0x2C(sp)` arg-spill that
- * target omits). See DE30 wrap notes for full details. */
+ * local = 0x3EC; otherwise byte-identical structure. Same v2 fix as DE30
+ * (inline base/p + split pad) — eliminates a1 spill, lands frame 0x38 with
+ * local at sp+0x2C, ~16/20 insns match. Same 4-insn reg-shift cap as DE30. */
 void gl_func_0000DE80(int **a0, int a1) {
+    int pad_top[2];
     int local = 0x3EC;
-    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
-    int *p = *base;
-    short adj = *(short*)((char*)p[0x28/4] + 0x28);
-    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+    int pad_bot[4];
+    int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
+    ((void(*)(int, int*))p[0x2C/4])(
+        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
@@ -886,14 +906,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
 
 #ifdef NON_MATCHING
 /* Sibling of gl_func_0000DDE0/DE30/DE80/0003CB2C (20-insn indirect dispatcher).
- * local = 0x3E9; otherwise byte-identical structure. Same 90.85% NM cap as
- * DE30/DE80 — see DE30 wrap notes. */
+ * local = 0x3E9; otherwise byte-identical structure. Same v2 fix as DE30
+ * (inline base/p + split pad). 4-insn reg-shift cap remains. */
 void gl_func_0000DED0(int **a0, int a1) {
+    int pad_top[2];
     int local = 0x3E9;
-    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
-    int *p = *base;
-    short adj = *(short*)((char*)p[0x28/4] + 0x28);
-    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+    int pad_bot[4];
+    int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
+    ((void(*)(int, int*))p[0x2C/4])(
+        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DED0);
