@@ -477,6 +477,48 @@ void arcproc_uso_func_000014A8(void) {
  * Multi-tick refinement target. Default INCLUDE_ASM build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000014C8);
 
+/* arcproc_uso_func_00001604: 60-insn (0xF0) state-machine update with
+ * two-stage gate (a0->0x4FC entry, a0->0x4F8 path-select), three outcomes
+ * (rv=0/1/2), and two distinct multi-arg JAL shapes.
+ *
+ * STRUCTURE:
+ *   if (a0->0x4FC != 0) return;              ; bnel-likely entry gate (already done)
+ *   v1 = 0;
+ *   if (a0->0x4F8 == 0) {                    ; PATH A
+ *       p = a0->0x6AC; q = p->0x44;
+ *       rv_a = jal(a0->0x6A8, q->0x14);      ; first stage (varargs a1/a2/...)
+ *       if (rv_a == 0) {
+ *           a0->0x6B8 = 1;                   ; mark-stage-A-done
+ *           v1 = 0;                          ; (no further work)
+ *       } else {
+ *           v1 = 1;                          ; signal "do v1==1 work after"
+ *       }
+ *   } else {                                 ; PATH B
+ *       p = a0->0x6AC; q = p->0x44;
+ *       rv_b = jal(a0->0x6A8, q->0x14);      ; same shape, possibly different callee
+ *       if (rv_b != 0) v1 = 2; else v1 = sp_24 (still 0)
+ *       a0->0x6B8 = 1;                       ; mark-stage-B-done
+ *   }
+ *   ; merge: 3-way switch on v1
+ *   if (v1 == 0) goto end;                   ; nothing more
+ *   if (v1 == 1) {
+ *       p = a0->0x6A8;
+ *       jal(a0->0x6AC, p+0x20, p->0x8);      ; v1==1 callback shape
+ *   } else { // v1 == 2
+ *       p = a0->0x6A8;
+ *       jal(a0->0x6AC, p+0x20, p->0x4 + 1);  ; v1==2 callback (incremented arg)
+ *   }
+ *   a0->0x4FC = 1;                           ; mark whole function done
+ *   end:
+ *
+ * Sibling of recently-doc'd arcproc_uso_func_000014C8 (FPU scoring update);
+ * both are per-frame state-driver functions with bnel-likely entry gates and
+ * cross-USO callback dispatch. Default INCLUDE_ASM build remains exact.
+ *
+ * Multi-tick refinement target — the bnel-likely + delay-slot v1 setup +
+ * 3-way switch with shared 0x4FC store is a known IDO-O2 pattern stack
+ * (see feedback_ido_beql_speculative_store_double_emit.md and
+ * feedback_unique_extern_breaks_shared_base.md). */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001604);
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F4);
