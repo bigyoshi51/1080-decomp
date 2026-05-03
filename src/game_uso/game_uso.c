@@ -1157,7 +1157,36 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  * at the function head (insns 1-30 of 1102). First 3 dispatches handle
  * a0[0x68] bits 1/2/4 — each calls gl_func_00000000 and returns early.
  * Bit-0 handler takes no args; bits 1/2 pass `a0`. Body-proper starts
- * at 0x5998 with Vec3 staging and hasn't been attempted yet. */
+ * at 0x5998 with Vec3 staging and hasn't been attempted yet.
+ *
+ * 2026-05-03 re-measured: 2.72% NM (current build). Doc % was unmeasured;
+ * baseline confirmed via objdiff. STRUCTURAL DECODE of body-proper entry
+ * (insns 30-50 @ 0x5998-0x59CC, NOT added as C per
+ * feedback_partial_alloc_block_add_irreversible.md):
+ *
+ *   /* Vec3 stage from sub_struct (a0->0x30) into sp+0x1B8 *\/
+ *   t2 = a0->0x30                       ; sub-struct pointer (a0 saved as s0)
+ *   a2 = sp + 0x1B8                      ; output Vec3 ptr
+ *   t5 = sp + 0x148                      ; secondary Vec3 ptr (later writes)
+ *   t8 = sp + 0x1C4                      ; tertiary Vec3 ptr
+ *   a0 = s0                              ; restore a0 for downstream call
+ *   sp[0x1B8] = t2->0xB4                 ; Vec3.x
+ *   a1 = sp + 0x1AC                      ; arg slot for downstream
+ *   a3 = sp + 0x1A8                      ; arg slot for downstream
+ *   sp[0x1BC] = t2->0xB8                 ; Vec3.y
+ *   sp[0x1C0] = t2->0xBC                 ; Vec3.z
+ *
+ * This Vec3-stage shape is IDENTICAL to game_uso_func_00006A30 (per
+ * its own NM-wrap doc — both stage a0->0x30->{0xB4,0xB8,0xBC} into a
+ * local Vec3 buffer at sp+0x9C resp. sp+0x1B8). Both are per-frame
+ * compute functions that work on the same sub-struct family. Suggests
+ * a shared "anchor + offset" pattern used across several spine entries.
+ *
+ * Following insns (50+): FPU-heavy quaternion/matrix math against
+ * (a2->0x18->+0x318) Mat4-like region — same structural fingerprint as
+ * game_uso_func_00007C1C (sp+0x348/0x38C dual-buffer). Likely THIS
+ * function and 6A30/7C1C all build the same per-frame transform output
+ * but from different entry contexts (boarder physics, AI, replay?). */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int v0;
