@@ -6,23 +6,15 @@ typedef struct { int a, b, c, d; } Quad4;
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
 
-#ifdef NON_MATCHING
-/* USO loader-patched branch trampoline at offset 0 (word 0x10006F00 =
- * `beq zero, zero, +0x6F00`) followed by a standard -O2 int-reader
- * template body. Same pattern as boarder5_uso_func_00000000 and
- * arcproc_uso_func_00000000. The leading 4-byte trampoline is unmatchable
- * from C alone (per feedback_uso_branch_placeholder_trampoline.md). The
- * body is the standard int-reader template (delay slots filled, direct lw
- * for buf reload -- so -O2, not -O0). Body without trampoline matches the
- * other USOs' int-readers. */
+/* USO entry-0: leading `beq zero,zero,+0x6F00` trampoline (loader-patched
+ * at runtime) followed by the standard -O2 int-reader template body. The
+ * trampoline word is injected post-cc via PREFIX_BYTES (see Makefile +
+ * scripts/inject-prefix-bytes.py). */
 void eddproc_uso_func_00000000(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_00000000);
-#endif
 
 void eddproc_uso_func_00000040(float *dst) {
     float buf[2];
