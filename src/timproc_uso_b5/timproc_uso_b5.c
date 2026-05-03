@@ -343,7 +343,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  *   - first-loaded value gets the lowest free register
  *   - decl-order reorder is a no-op (per feedback_ido_sreg_order_not_decl_driven.md)
  *   - inlining one of them regresses (97.08 % w/ addu operand swap)
- * Pure regalloc cap; not C-controllable. */
+ *   - 2026-05-03: changing p1 type from `int` to `char*` — same 97.5%, the
+ *     ptr-vs-int distinction doesn't shift IDO's $v-reg pick for first-loaded
+ * Pure regalloc cap; not C-controllable. Confirmed 97.5% baseline (no drift). */
 void timproc_uso_b5_func_00008F98(char *a0) {
     int p1 = *(int*)(a0 + 0x2C);
     int *p2 = *(int**)((char*)p1 + 0x28);
