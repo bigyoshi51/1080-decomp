@@ -1026,7 +1026,41 @@ void game_uso_func_000044C8(char *a0) {
  *
  * Full decode is a multi-day effort. This tick captures entry pattern +
  * struct-field offsets identified so far. Future ticks: decode the
- * sub-object allocation loop, type the GameState struct, then refine. */
+ * sub-object allocation loop, type the GameState struct, then refine.
+ *
+ * 2026-05-03 RE-MEASURE: 2.44% NM (consistent with prior baseline; no
+ * upward drift this round despite parallel-agent activity elsewhere).
+ *
+ * EXTENDED DECODE @ 0x4580-0x45F8 (insns 25-50, sub-object init loop):
+ *   // After s1 setup (s1 = main+0xE4 sub-region or alloc(0x3E0)):
+ *   t0 = &D + 0x6D8;             // sub-region template ptr
+ *   *(int*)s1 = t0;
+ *   *(int*)(s1+4) = 0;
+ *   count = *(int*)(&D + 0x6E8); // sub-object count
+ *   *(int*)(sp+0xE0) = count;     // spill loop counter
+ *   s2 = a0 + 0x2C;               // loop pointer base (sub-obj table)
+ *   // Loop body (per-iteration, ~25 insns):
+ *   for (s0 = a0+0x2C; ...; s0 += 8) {
+ *     int t4 = *(int*)(sp+0xE0);  // reload counter
+ *     if (t4 != -8) {              // -8 sentinel = bump-allocator slot
+ *       sub = alloc(0x18);
+ *     } else {
+ *       sub = (s0 cached val);
+ *     }
+ *     if (!sub) break;
+ *     init_sub(sub, s1, *(int*)s2, 1);  // 4-arg init
+ *     sub[0xC/4] = &D + 0x3C8;    // template2 ptr
+ *     sub[0x14/4] = 0;
+ *     *(float*)(sub+0x10) = D[0x9C];  // float constant
+ *     // ... loop continues with more init writes
+ *   }
+ *
+ * The -8 sentinel is the "use cached/bump-allocator chunk vs alloc fresh"
+ * branch. Each sub-object is 0x18 bytes, indexed via s0 += 8 (so s0 is
+ * a TABLE-of-pointers stride, not the object stride).
+ *
+ * NEXT PASS: decode the sub-object loop's tail (set-and-link to parent's
+ * 0x38 chain), and the second template-table iteration (~16 sub-objects). */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
