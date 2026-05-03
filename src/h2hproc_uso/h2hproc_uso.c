@@ -409,7 +409,46 @@ void h2hproc_uso_func_000009F8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000009F8);
 #endif
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00000A88: 73-insn state-machine dispatch on a0[0x504].
+ * 0x124 size, 0x30 frame.
+ *
+ * Decoded entry shape (insns 1-22):
+ *   v1 = a0[0x504/4];                  // current state
+ *   if (v1 == 0) {                      // CASE 0: init path
+ *     helper(*(int*)(&D + 0x190), 1);   // some helper with global+1
+ *     a0[0x504/4] = 1;                  // advance state to 1
+ *     helper(7, 0, 0);                  // another helper with const args
+ *     ... (more state-0-specific work)
+ *   } else if (v1 == 1) {               // CASE 1: another path (~0xE insns ahead)
+ *     ... TODO
+ *   } else {                            // DEFAULT: goto end
+ *     return;
+ *   }
+ *
+ * The state-0 init path increments state to 1 and runs first-time setup
+ * with cross-USO calls. State-1 path runs steady-state. State !=0,1 is
+ * a no-op (early-out). Pattern matches "first-call vs subsequent-call"
+ * lazy-init common in 1080 subsystem entry points.
+ *
+ * Stub body for now — remaining ~50 insns of state-0 init + ~30 insns
+ * of state-1 path need decode in next pass. */
+extern int gl_func_00000000();
+void h2hproc_uso_func_00000A88(int *a0) {
+    int state = a0[0x504 / 4];
+    if (state == 0) {
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1);
+        a0[0x504 / 4] = 1;
+        gl_func_00000000(7, 0, 0);
+        /* TODO: ~50 more insns of state-0 init */
+    } else if (state == 1) {
+        /* TODO: ~30 insns of state-1 steady-state */
+    }
+    /* default: early-out */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A88);
+#endif
 
 void h2hproc_uso_func_00000BAC(int *a0) {
     int v0, v1;
