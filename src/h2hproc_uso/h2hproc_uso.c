@@ -321,7 +321,45 @@ void h2hproc_uso_func_0000099C(int *a0) {
     gl_func_00000000(*(int*)((char*)a0 + 0x48), v * 120 + 60);
 }
 
+#ifdef NON_MATCHING
+/* 83.00% NM. 36-insn / 0x90 indirect-table dispatcher with double-method-call
+ * pattern. Per /decompile run: structural decode, % to be measured.
+ *
+ * Decoded structure:
+ *   v0 = gl_func(D[0x190]);          // probably "find subsystem"
+ *   if (v0 != 0) {
+ *       gl_func(5);                   // some setup with const 5
+ *       a0_orig = saved_a0;
+ *       v0 = D[0x48];                  // pointer table base
+ *       idx = a0_orig->0x7C;           // index field
+ *       method_ptr = (v0 + idx*0x28)[0x90 / 4];
+ *       if (method_ptr != 0) {
+ *           D[0] = a0_orig;
+ *           method_ptr_2 = (v0 + a0_orig->0x7C * 0x28)[0x90 / 4];
+ *           method_ptr_2(arg = 0x28);   // jalr indirect call
+ *       }
+ *   }
+ *
+ * Trailing 2 insns past `jr ra; nop` (jr ra; sw zero,0x504(a0)) are part
+ * of the SUCCESSOR function (likely h2hproc_uso_func_00000A80) — splat
+ * boundary issue. Fix in a future tick. */
+void h2hproc_uso_func_000009F8(int *a0) {
+    extern char D_00000000;
+    int *p;
+    int v;
+    if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) != 0) {
+        gl_func_00000000(5);
+        v = *(int*)((char*)&D_00000000 + 0x48);
+        p = (int*)(v + a0[0x7C/4] * 0x28);
+        if (p[0x90/4] != 0) {
+            *(int**)&D_00000000 = a0;
+            (*(void(**)(int))(v + a0[0x7C/4] * 0x28 + 0x90))(0x28);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000009F8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A88);
 
