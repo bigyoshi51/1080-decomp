@@ -2537,6 +2537,24 @@ void game_uso_func_0000D438(void *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D438);
 #endif
 
+/* game_uso_func_0000D458: 5-FUNCTION BUNDLE (0x1E4 total / 121 insns).
+ * Splat could not separate. Per
+ * feedback_uso_split_fragments_breaks_expected_match.md, splitting
+ * USO funcs is risky — keeping bundled.
+ *
+ * Sub-function layout (boundary = jr $ra + delay slot):
+ *   F1 @ 0xD458-0xD5B8: 88 insns. Big function with frame -0x48
+ *     (addiu sp,-0x48). Lots of body — likely a per-frame update or
+ *     state-transition function.
+ *   F2 @ 0xD5BC-0xD5D8: 7 insns. Tiny accessor or wrapper.
+ *   F3 @ 0xD5DC-0xD5F4: 6 insns. Tiny accessor.
+ *   F4 @ 0xD5F8-0xD630: 15 insns. Small helper.
+ *   F5 @ 0xD634-0xD638: 2 insns (jr ra + nop). Empty void.
+ *
+ * Decoding all 5 sub-bodies as one C function with goto-chains is
+ * not feasible from C source. Future split-with-refresh-expected
+ * recipe (see feedback_uso_split_fragments_breaks_expected_match.md
+ * for the unblock path) needed before any decomp attempt. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
