@@ -1821,16 +1821,14 @@ int gl_func_00041258() {
     return gl_func_00000000();
 }
 
-#ifdef NON_MATCHING
-/* 80%: body = gl_func_00000000(), 8 insns. Declared size 0x28 includes 2 stray
- * insns (lui t6, 0x4; lw t6, 0xC160(t6)) past jr ra nop — next-function prologue
- * leaked into this symbol size. See feedback_uso_stray_trailing_insns.md. */
+/* 8-insn passthrough wrapper. Declared size 0x28 includes 2 trailing dead
+ * insns (lui t6, 0x4; lw t6, 0xC160(t6)) — the stolen prologue setup for
+ * the SUCCESSOR. Closed via SUFFIX_BYTES (per
+ * feedback_prologue_stolen_predecessor_no_recipe.md): grows the symbol's
+ * st_size by 8 bytes and appends the dead bytes at the new tail. */
 void gl_func_00041278(void) {
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041278);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412A0);
 
