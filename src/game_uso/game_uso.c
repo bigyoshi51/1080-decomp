@@ -1662,22 +1662,29 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
         gl_func_00000000(&D_00000000 + 0x7BC, &D_00000000 + 0x7C8, 0x623);
     }
 
-    /* Dispatch 1: first cross-call with &local_190 as arg2 */
+    /* Dispatch 1: alloc 12-byte Vec3 result, populate from a2->0x30/0x38.
+     * Target asm at 0x9BD8-0x9BF0 (verified 2026-05-02):
+     *   mtc1 zero, f4               ; f4 = 0.0
+     *   addiu v0, v0, 0x30          ; v0 = a2 + 0x30
+     *   lwc1 f2, 0x8(v0)            ; f2 = a2->0x38
+     *   lwc1 f0, 0x0(v0)            ; f0 = a2->0x30
+     *   swc1 f4, 0x4(v1)            ; v1->y = 0
+     *   swc1 f2, 0x8(v1)            ; v1->z = a2->0x38
+     *   swc1 f0, 0x0(v1)            ; v1->x = a2->0x30
+     * Note store order: y, z, x — IDO interleaves loads (f4 const, f2/f0
+     * from a2-base) with stores (using register-pair availability). */
     v1 = local_190;
     if (v1 == 0) {  /* trivially false — v1 is stack addr */
         /* dead path */
     } else {
         v0 = (int*)gl_func_00000000(a2, 0xC);  /* 2nd cross-call, size=12 */
         if (v0 != 0) {
-            /* Vec3 XZ-projection: copy a2->0x30.{x,z}, zero out Y */
+            /* Vec3 XZ-projection (Y zeroed) — exact decode of target */
             src_x = *(float*)((char*)a2 + 0x30);
             src_z = *(float*)((char*)a2 + 0x38);
-            *(float*)((char*)v0 + 0x4) = src_z;
-            *(float*)((char*)v0 + 0x8) = 0.0f;  /* wait — target has E4620008/E4600000 */
-            *(float*)((char*)v0 + 0x0) = 0.0f;  /* actually stores look like idx 0,4,8 */
-            /* TODO: exact layout — target has */
-            /*   swc1 f2, 0x4(v0); swc1 f2, 0x8(v0); swc1 f0, 0x0(v0) */
-            /*   where f0 was loaded from a2+0x30 and f2 from a2+0x38 */
+            *(float*)((char*)v0 + 0x4) = 0.0f;     /* y */
+            *(float*)((char*)v0 + 0x8) = src_z;    /* z */
+            *(float*)((char*)v0 + 0x0) = src_x;    /* x */
         }
     }
 
