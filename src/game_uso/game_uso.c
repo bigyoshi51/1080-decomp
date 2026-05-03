@@ -1903,26 +1903,36 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
     /* @ 0x9C84-0x9C98: word-copy a1[0..0xC] into local_C4 */
     local_C4[0] = a1[0]; local_C4[1] = a1[1]; local_C4[2] = a1[2];
 
-    /* @ 0x9C9C-0x9CB0: 3rd cross-call alloc(12), if non-null copy local_144
-     * Vec3 into the result buffer. */
+    /* @ 0x9C9C-0x9CB0: 3rd cross-call alloc(12). Result in a1.
+     * If alloc succeeded, store XZ-rotated Vec3:
+     *   a1->[0] = local_144[2]    ; new x = old z
+     *   a1->[4] = 0.0f            ; y stays zero
+     *   a1->[8] = -local_144[0]   ; new z = -old x
+     * (= 90° clockwise rotation of local_144's XZ plane, Y=0). */
     out = (int*)gl_func_00000000(0xC);
     if (out != 0) {
-        ((float*)out)[0] = local_144[0];
-        ((float*)out)[1] = local_144[1];
-        ((float*)out)[2] = local_144[2];
+        ((float*)out)[0] = local_144[2];   /* x = old z */
+        ((float*)out)[1] = 0.0f;
+        ((float*)out)[2] = -local_144[0];  /* z = -old x */
     }
 
-    /* @ 0x9CB4-0x9CD0: first FPU block — neg.s on local_144[0]:
-     *   mtc1 zero, f4; lwc1 f0, 0x144(sp); lwc1 (f2 from 0x14C);
-     *   neg.s f2, f0; swc1 f0/f2/f4 to v1.
-     * Skipped: depends on `v1` from earlier alloc result. */
-
-    /* @ 0x9CD0-0x9DC4: ~58 insns including 4th cross-call at 0x9CFC and
-     *   the screen-space transform: local_12C[0..2] = (loaded 250.5f, 50.0f
-     *   scale/offset constants from 0x9D0C/0x9D1C) applied to a Vec3 from
-     *   (a2 -> 0x18 -> +0x54) chain (transformed-position lookup against
-     *   a sub-object). Result stored to sp+0x12C..sp+0x140 — 6-float/2-Vec3
-     *   block, likely orientation + delta. Not yet C-decoded.
+    /* @ 0x9CD0-0x9CFC (extended decode 2026-05-03): 3-way Vec3 fan-out from
+     * local_C4 to local_EC and a new sp+0x138 buffer:
+     *   local_EC = local_C4    (word copy: sw t5,0; sw t4,4; sw t5,8)
+     *   sp+0x138 = local_C4    (same 3-word copy, interleaved)
+     * Then calls gl_func_00000000(sp+0x138, a1?, sp+0xEC) — likely a 3-Vec3
+     * accumulator (passing rotated, original, and delta to a single helper).
+     *
+     * @ 0x9D00-0x9D34: screen-space transform setup.
+     *   t9 = sp+0x138, t8 = sp+0x12C
+     *   sp+0x12C = sp+0x138   (word copy: 3 lw/sw pairs interleaved)
+     *   f2 = 250.5f (lui $at, 0x437A; mtc1 $at, $f2)   ; viewport-half scale
+     *   f10 = 50.0f (lui $at, 0x4248; mtc1 $at, $f10)  ; vertical offset
+     *   v1 = sp+0x184  (another working buffer)
+     *   t2 = arg from caller-slot (sp+0x1AC = a3 spill)
+     *
+     * (Math chain continues 0x9D34-0x9DC4 — multiplies sp+0x12C entries by
+     * 250.5f scale + 50.0f offset for screen-coord transform; not yet decoded.)
      *
      * @ 0x9DC4-0x10E8: body-part-2 final, 240+ insns + ~8 cross-USO calls.
      *   TODO: future passes will decompose the per-block math chains.
