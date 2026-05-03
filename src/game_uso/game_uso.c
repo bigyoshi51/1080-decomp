@@ -1252,7 +1252,29 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  * (a2->0x18->+0x318) Mat4-like region — same structural fingerprint as
  * game_uso_func_00007C1C (sp+0x348/0x38C dual-buffer). Likely THIS
  * function and 6A30/7C1C all build the same per-frame transform output
- * but from different entry contexts (boarder physics, AI, replay?). */
+ * but from different entry contexts (boarder physics, AI, replay?).
+ *
+ * 2026-05-03 EXTENDED DECODE 0x59CC-0x5A30 (~25 insns): SCALE-AND-COPY
+ * Vec3 transform.
+ *   v0 = sub_struct                            ; reload from a0->0x30
+ *   f12 = sub_struct->0xA8                     ; scale factor (likely
+ *                                                wheel-radius / unit length)
+ *   f4 = sub_struct->0x318                     ; Mat4[0] (axis vec X)
+ *   f6 = sub_struct->0x31C                     ; Mat4[1] (axis vec Y)
+ *   f8 = sub_struct->0x320                     ; Mat4[2] (axis vec Z)
+ *   sp[0x148] = f4 * f12                       ; scaled axis * scale
+ *   sp[0x14C] = f6 * f12
+ *   sp[0x150] = f8 * f12
+ *   /* IDO emits a "dead" addiu v0, v0, 0x318 immediately overwritten by
+ *    * addiu v0, sp, 0x15C — likely loop-prep that IDO scheduled out of
+ *    * scope; harmless. *\/
+ *   /* Vec3 copy through pointer chain: sp[0x148..0x150] -> mem[v0..v0+8]
+ *    * via 3 lw/sw pairs through t5 (= sp+0x148) and t9 (= sp+0x148 alias).
+ *    * Net effect: ANOTHER copy of the scaled axis to a downstream output
+ *    * buffer (probably to feed the matrix-vec multiply at 0x5A34+). *\/
+ * The fingerprint matches a per-frame "rotate-scale a body axis by an
+ * orientation matrix" idiom — common in 1080's boarder pose update where
+ * the snowboard's "up" vector gets transformed into world space. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int v0;
