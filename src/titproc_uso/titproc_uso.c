@@ -85,7 +85,33 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000000C
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000000C0_pad.s")
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00000194: 18-insn (0x48) state-setter taking arg pointer.
+ * Sibling of 000001E4/00000230 (which use &D directly) but writes through
+ * the a0 arg instead. Trailing 8 bytes (lui v0; addiu v0) at offset 0x1DC..
+ * 0x1E0 inside this symbol are the stolen-prologue prefix for SUCCESSOR
+ * func_000001E4 (which already has PROLOGUE_STEALS=8 in Makefile).
+ *
+ * To promote to exact match: write the 18-insn C body below + add
+ * `titproc_uso_func_00000194_pad.s` containing the trailing 2 prologue
+ * bytes (`lui v0, 0; addiu v0, v0, 0`) for 0x1E4, plus
+ * `#pragma GLOBAL_ASM(...)` after this function. Per
+ * feedback_pad_sidecar_unblocks_trailing_nops.md +
+ * feedback_prologue_stolen_pad_sidecar_alternative.md.
+ *
+ * Default build uses INCLUDE_ASM which preserves the trailing 8 bytes that
+ * 0x1E4's PROLOGUE_STEALS=8 expects to find at 0x1DC/0x1E0. */
+void titproc_uso_func_00000194(int *a0) {
+    int v1 = 3;
+    *(int*)((char*)a0 + 0x34) = v1;
+    *(int*)((char*)a0 + 0x40) = 0;
+    *(int*)((char*)a0 + 0x13C) = v1;
+    gl_func_00000000(0xC, 0);
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0xA8), -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000194);
+#endif
 
 extern char D_000001E4_A;
 
