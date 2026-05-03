@@ -701,11 +701,39 @@ void game_uso_func_00001DC4(void *a0) {
  * a floating block-comment above an INCLUDE_ASM. Default build still uses
  * INCLUDE_ASM. */
 #ifdef NON_MATCHING
-/* 15.41% NM. extended partial decode 2026-05-02: entry sub-block of branch_88 promoted
- * from comment to real C statements (Vec3 copies + first gl_func + element-
- * wise add). Body is ~380 insns; this run extends decode from ~30 insns to
- * ~50 insns. ~300 insns remain stubbed via gl_func_TODO_00001DDC. */
+/* extended partial decode 2026-05-03: 0x1F00-0x1FA0 region decoded as a 2D
+ * vector-distance + length + normalize pattern (likely AI homing / soft
+ * target-following). Net body grew from ~50 to ~75 insns of decoded C. ~300
+ * insns still stubbed via gl_func_TODO_00001DDC.
+ *
+ * Decoded semantics for 0x1F00-0x1FA0 sub-block:
+ *   diff_x = self_v.x - ref_v.x
+ *   diff_z = self_v.z - ref_v.z       (treats Y as up — 2D distance in XZ plane)
+ *   speed = a2->0x94                   (some scalar from entity)
+ *   sqrlen = diff_x*diff_x + 0 + diff_z*diff_z
+ *   length = sqrt(sqrlen)              (first jal — IDO-emit `mul.s; add.s` then
+ *                                        jal in delay slot of f12-set; canonical
+ *                                        sqrt-via-extern-helper shape)
+ *   normalize_into_local(&local[delta_x, 0, delta_z, speed], ...)
+ *                                        (second jal — likely normalizes the
+ *                                         delta vector in-place)
+ *   threshold = a2->0x7C
+ *   if (length >= threshold) excess = length - threshold; else excess = length - speed
+ *   scale delta by excess (compute three scaled-output Vec3s)
+ *
+ * The two `jal 0` placeholders at 0x1F44 and 0x1F50 are cross-USO calls;
+ * likely candidates per gl_func_00000000 placeholder convention:
+ *   - First: `float sqrt(float)` or `float vec_sqrlen_to_len(float)` — single
+ *     float arg in $f12, float return in $f0.
+ *   - Second: `void normalize3(Vec3*)` or similar in-place transform on the
+ *     local sp+0x110 array.
+ *
+ * The bc1fl at 0x1F74 is branch-likely; takes the THEN arm for "length ≥
+ * threshold" (likely the homing-toward case); ELSE arm for "too close"
+ * (likely the soft-stop case). */
 extern void *gl_func_TODO_00001DDC(int *scratch, int *a2);
+extern float gl_func_sqrt(float);
+extern void gl_func_normalize3(int *vec);
 typedef struct { float x, y, z; } Vec3f;
 void *game_uso_func_00001DDC(int *a0) {
     int key = a0[0x40 / 4];
@@ -727,14 +755,20 @@ branch_88: {
      *   - call gl_func(&scratch, a0) -> returns Vec3* delta
      *   - copy *delta into local "delta_v"
      *   - element-wise add: self_v[i] += delta_v[i]
+     * Then sub-block 0x1F00-0x1FA0 (extended 2026-05-03):
+     *   - 2D distance (XZ plane) between self_v and ref_v
+     *   - sqrt(sum-of-squares) gives length; normalize delta vector
+     *   - clamped excess scaling for AI homing
      * After this, ~300 more insns remain stubbed. */
     char scratch[0x18];           /* sp+0xFC scratch sub-struct (address-taken) */
     Vec3f ref_v;                  /* sp+0x13C — referenced sub-obj position */
     Vec3f self_v;                 /* sp+0x130 — own position copy (accumulator) */
     Vec3f delta_v;                /* sp+0x154 — gl_func returned offset */
+    float local_xz[4];            /* sp+0x110..0x11C: [diff_x, 0, diff_z, speed] */
     Vec3f *t7 = (Vec3f*)((char*)a0[0x14 / 4] + 0xA0);
     Vec3f *v1 = (Vec3f*)((char*)a0[0x38 / 4] + 0xA0);
     Vec3f *delta;
+    float length, excess, threshold, speed, sqrlen;
     ref_v = *t7;
     self_v = *v1;
     delta = (Vec3f*)gl_func_00000000((int*)scratch, (int)a0);
@@ -742,27 +776,26 @@ branch_88: {
     self_v.x += delta_v.x;
     self_v.y += delta_v.y;
     self_v.z += delta_v.z;
-    /* Sub-block 0x1F00-0x2050 (extended decode 2026-05-02): 3x3 matrix
-     * transform pattern. Reads 3 floats from sp+0x110/0x114/0x118 (= self_v
-     * accumulator), applies float math via mul/add/sub.s, stores to
-     * sp+0x124/0x128/0x12C and sp+0x094/0x098/0x09C (two output Vec3s).
-     * The pattern fingerprint is FPU-reduction-heavy (cvt.s.w, mul.s, add.s
-     * chains) — see feedback_fpu_basis_function_signatures.md for the math
-     * shape. Likely a rotation/orientation transform: takes the
-     * self_v + delta_v sum as input position, computes two derived Vec3s
-     * (a forward direction + a side vector?) and stores them back into
-     * the entity's pose fields. */
-    {
-        /* placeholder: matrix transform stub */
-        float out_a[3], out_b[3];
-        Vec3f input = self_v;
-        out_a[0] = input.x;  out_a[1] = input.y;  out_a[2] = input.z;
-        out_b[0] = input.x;  out_b[1] = input.y;  out_b[2] = input.z;
-        (void)out_a; (void)out_b;
+    /* 2D distance + sqrt + normalize block (0x1F00-0x1FA0) */
+    speed = *(float*)((char*)a0 + 0x94);
+    local_xz[0] = self_v.x - ref_v.x;
+    local_xz[1] = 0.0f;
+    local_xz[2] = self_v.z - ref_v.z;
+    local_xz[3] = speed;
+    sqrlen = local_xz[0]*local_xz[0] + 0.0f*0.0f + local_xz[2]*local_xz[2];
+    length = gl_func_sqrt(sqrlen);
+    gl_func_normalize3((int*)local_xz);
+    threshold = *(float*)((char*)a0 + 0x7C);
+    if (length < threshold) {
+        excess = length - speed;
+    } else {
+        excess = length - threshold;
     }
-    /* TODO 0x2050-end: second gl_func dispatch (sp+0x110/sp+0x130 args),
-     * stores to a0->0x60..0x68 (resulting Vec3), nested call to
-     * scale/normalize. Estimated ~250 insns remaining. */
+    /* TODO 0x1FA0-end: scale delta by excess, store into 3 output Vec3s,
+     * second gl_func dispatch (sp+0x110/sp+0x130 args), stores to
+     * a0->0x60..0x68 (resulting Vec3), nested call to scale/normalize.
+     * Estimated ~250 insns remaining. */
+    (void)excess;
     (void)gl_func_TODO_00001DDC((int*)scratch, a0);
 }
 late_label:
