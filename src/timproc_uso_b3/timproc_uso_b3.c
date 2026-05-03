@@ -325,7 +325,11 @@ void timproc_uso_b3_func_00002344(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002388);
+void timproc_uso_b3_func_00002388(void) {
+    gl_func_00000000(gl_ref_00000208);
+    gl_ref_00000040 = 0xD;
+    gl_func_00000000(gl_ref_0000020C, -1, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
 
