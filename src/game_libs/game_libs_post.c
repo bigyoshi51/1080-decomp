@@ -1136,7 +1136,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CAA0);
 
+#ifdef NON_MATCHING
+/* 16-insn indirect dispatcher. Reads *a0 as a struct, takes its
+ * field 0x2C as a function pointer (jalr $t9), passes (offset + this)
+ * as the first arg where offset = halfword at p[0x28/4]+0x28.
+ *
+ * Estimated structural decode below — match % unknown until tested.
+ * Sets local int = 0x14 on stack as scratch buf passed to the indirect
+ * call's a1. */
+void gl_func_0003CB2C(int **a0, int a1) {
+    int local = 0x14;
+    int saved_a1 = a1;
+    int *p = *a0;
+    short adj = *(short*)((char*)p[0x28/4] + 0x28);
+    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+    (void)saved_a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CB2C);
+#endif
 
 extern int gl_func_00000000();
 
