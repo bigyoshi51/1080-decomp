@@ -153,7 +153,15 @@ int gl_func_0000408C(char *a0) {
     return gl_ref_00013CAC(a0 + 0x10);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000040BC);
+extern int gl_ref_00013C70();
+extern int gl_ref_00013CE8();
+void gl_func_000040BC(char *a0) {
+    int scratch;
+    gl_ref_00013C70(&scratch);
+    gl_ref_00013CE8(a0 + 0x10);
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000040EC);
 
 extern int gl_func_00000000();
 void gl_func_00004104(int *dst) {
