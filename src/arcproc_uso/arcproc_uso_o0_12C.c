@@ -7,22 +7,33 @@ extern int gl_func_00000000();
  * pattern in mgrproc_uso_func_000000B0: calls gl_func_00000000(a0, a1),
  * decrements *a0, returns 1 if it hit zero else 0.
  *
- * Match: 85.71% (24/28 insns). All four arg-spill+reload, jal-with-unfilled-
- * delay, s0-via-register-keyword, decrement-via-t6/t7/t8, bne+arm-layout
- * MATCH. Sole diff: target's epilogue starts at offset 0x5C with no extra
- * dead branch; mine emits a trailing `b +1; nop` at 0x5C-0x60 then puts the
- * epilogue at 0x64. The extra `b zero, zero, +1` is IDO -O0's implicit "end-
- * of-function falls through to epilogue" goto when the last statement is
- * `return 0;` after an `if (...) return 1;`.
+ * Match: 92.68% (re-measured 2026-05-03; was 85.71% at original wrap).
+ * Drift is benign per feedback_nm_wrap_doc_pct_drifts.md — parallel-agent
+ * commits affecting reloc/scheduling shifted match% upward without source
+ * change here.
+ *
+ * Sole structural diff: trailing dead `b +1; nop` at end of function (target
+ * skips this since the natural fall-through reaches epilogue with no jump).
+ * IDO -O0 emits `b epilogue` after BOTH return paths; the second one is
+ * dead since PC+4 IS the epilogue. C-side cannot eliminate this without
+ * shrinking the function past TRUNCATE_TEXT (verified — `return *a0 == 0;`
+ * single-return form makes the function 4 bytes smaller, breaking the
+ * truncate baseline).
  *
  * Tried (2026-05-02):
- *   - Plain `if (==) return 1; return 0;` → 85.71% (extra b at 0x5C)
- *   - `if (!=) return 0; return 1;` (swap arms) → SAME 85.71% (still extra b)
- *   - Explicit `if (==) {return 1;} else {return 0;}` → REGRESSED to ~82%
+ *   - Plain `if (==) return 1; return 0;` → 92.68% (current; 1 trailing diff)
+ *   - `if (!=) return 0; return 1;` (swap arms) → SAME (still extra b)
+ *   - Explicit `if (==) {return 1;} else {return 0;}` → REGRESSED
  *     (added one more `b` from else-branch jump)
  *
- * The 24/28 cap matches the same -O0 epilogue-extra-jump pattern documented
- * in arcproc_uso_func_000000B4 (sibling, ~85% with same shape). */
+ * Tried (2026-05-03):
+ *   - `if (==) { rv=1; goto end; } rv=0; end: return rv;` (named local +
+ *     goto-end) → REGRESSED to 78.04% (added 4 insns of stack-spill for rv)
+ *   - `return *a0 == 0;` (single return ternary) → BREAKS BUILD (smaller
+ *     than TRUNCATE_TEXT 0x114 expects). Would match more if not blocked.
+ *
+ * Cap stands at 92.68% (1-insn dead-branch trailing). Same -O0 epilogue
+ * pattern as arcproc_uso_func_000000B4 sibling. */
 int arcproc_uso_func_0000012C(int *a0, int a1) {
     register int *p;
     gl_func_00000000(a0, a1);
