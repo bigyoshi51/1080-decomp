@@ -60,37 +60,16 @@ int titproc_uso_func_000000C0(void) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000000C0_pad.s")
 
-#ifdef NON_MATCHING
 extern char D_00000194_A;
-/* titproc_uso_func_00000194: 18-insn (0x48) state-setter sibling of
- * 000001E4/00000230/0000028C. ALL three siblings rely on $v0 = &D set by
- * the predecessor's pad-sidecar (0xC0_pad.s emits `lui v0,0; addiu v0,v0,0`
- * after 0xC0's body, before 0x194 starts).
- *
- * Symbol layout in expected (0x194 spans 0x194..0x1E4, size 0x50 = 20 insns):
- *   - insns 0-17: 18-insn body (uses $v0 inherited from 0xC0_pad)
- *   - insns 18-19: TRAILING `lui v0,0; addiu v0,v0,0` — dead code AFTER jr ra,
- *     these 8 bytes are the stolen prologue setup that the SUCCESSOR
- *     (titproc_uso_func_000001E4, which has PROLOGUE_STEALS=8) inherits.
- *
- * Two structural blockers preventing C-emit match (verified 2026-05-03,
- * 89.4% peak with PROLOGUE_STEALS=8 + D_00000194_A unique extern):
- *   1. IDO can't know $v0 = &D from upstream pad — it emits its own
- *      lui+addiu prologue at the START. With PROLOGUE_STEALS=8, the
- *      prologue gets spliced; symbol size becomes 0x48 (vs expected 0x50).
- *   2. To match expected's 0x50 size, the body bytes need to be at the
- *      START with prologue setup at the END. IDO emits the opposite —
- *      no C rewrite produces "body first, prologue at tail."
- *
- * Would need an `inject-suffix-bytes.py` infrastructure script to grow
- * 0x194's st_size by +8 AFTER PROLOGUE_STEALS removes the prefix, and
- * insert the dead `lui v0; addiu v0` bytes at the new tail. Out of single-
- * tick scope. Default build INCLUDE_ASM matches.
- *
- * Captures the decoded C body for reference + the structural analysis
- * of why 0x1E4/0x230/0x28C can match (their body uses &D loads followed
- * by spliced-prefix; 0x194 has the same shape but differs in the trailing
- * dead-code bytes which are TARGET's encoding choice, not a C-emit choice). */
+/* State-setter sibling of 000001E4/00000230/0000028C. Combines:
+ *   - PROLOGUE_STEALS=8: splice IDO's auto-emitted &D prologue from the
+ *     start (the &D setup actually lives in 0xC0_pad.s, emitted by
+ *     predecessor 0xC0).
+ *   - SUFFIX_BYTES: append the 8 dead `lui v0; addiu v0` bytes at the tail
+ *     (these belong to 0x194's symbol but act as the stolen prologue setup
+ *     that successor 0x1E4 inherits).
+ * Per feedback_prologue_stolen_predecessor_no_recipe.md (the recipe this
+ * tick built scripts/inject-suffix-bytes.py for). */
 void titproc_uso_func_00000194(void) {
     *(int*)((char*)&D_00000000 + 0x34) = 3;
     *(int*)((char*)&D_00000000 + 0x40) = 0;
@@ -98,9 +77,6 @@ void titproc_uso_func_00000194(void) {
     gl_func_00000000(0xC, 0);
     gl_func_00000000(*(int*)((char*)&D_00000194_A + 0xA8), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000194);
-#endif
 
 extern char D_000001E4_A;
 
