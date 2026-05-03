@@ -90,7 +90,25 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000700);
 
+#ifdef NON_MATCHING
+/* 27-insn -O0 cleanup wrapper. Mirror of arcproc_uso_func_00000748:
+ * gl_func(a0->8); a0->8 = 0; gl_func(a0->0, 3); a0->0 = 0; D[0x14C] = 0.
+ * -O0 indicators in target: unfilled jal delays + `b +1; nop` BBL marker.
+ *
+ * BLOCKED by Yay0 pipeline: mgrproc_uso is Yay0-compressed, so the -O0
+ * file-split recipe doesn't apply (Yay0 rule consumes one .o). Default
+ * build INCLUDE_ASM matches; wrap is for grep discoverability per the
+ * established -O0-cap pattern. */
+void mgrproc_uso_func_000009A8(int *a0) {
+    gl_func_00000000((int*)a0[2]);
+    a0[2] = 0;
+    gl_func_00000000((int*)a0[0], 3);
+    a0[0] = 0;
+    *(int*)((char*)&D_00000000 + 0x14C) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000009A8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000A14);
 #pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00000A14_pad.s")
