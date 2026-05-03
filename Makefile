@@ -74,6 +74,7 @@ build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 # sizes (drift included) so no real code gets truncated; same accumulated
 # drift as main's pre-split game_libs.c.o. See feedback_non_aligned_o_split.md.
 build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0xEC00
+build/src/game_libs/game_libs.c.o: PREFIX_BYTES := game_libs_func_000040EC=0x00000000,0x00000000
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x588F0
 
 build/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
