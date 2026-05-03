@@ -4,7 +4,20 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_00000000: byte-identical mirror of
+ * timproc_uso_b1_func_00000000 (sig=c98ad3f0ab). Standard 4-byte int
+ * reader template wrapped in a `b +1` epilogue branch (composite -O0
+ * shape). Same Yay0-compressed segment blocker — wrap is for grep
+ * discoverability per the established pattern. */
+void timproc_uso_b3_func_00000000(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000000);
+#endif
 
 #ifdef NON_MATCHING
 /* Quad4-reader template at -O0 (25 insns, 0x64) — byte-identical asm to
