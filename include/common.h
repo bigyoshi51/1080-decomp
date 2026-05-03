@@ -14,4 +14,8 @@ typedef signed long long s64;
 typedef float f32;
 typedef double f64;
 
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
+
 #endif /* COMMON_H */

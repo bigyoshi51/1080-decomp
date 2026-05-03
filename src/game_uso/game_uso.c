@@ -2402,7 +2402,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FF48);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FFB8);
 
+#ifdef NON_MATCHING
+/* 84.05% NM. 19-insn / 0x4C. Three gl_func_00000000 calls bracketing
+ * a 2-int load from D+0xDD0/0xDD4. Body inferred from asm:
+ *   a0->0xF4 = 0;
+ *   gl_func(a0);
+ *   gl_func(a0, *(D+0xDD0), *(D+0xDD4));   // 3-arg w/ stack-slot spills
+ *   gl_func(a0);
+ * Stack-slot spills (sw a1,4(sp); sw a2,8(sp)) are O32 caller-side spill
+ * area for the 3-arg middle call — emitted automatically by IDO when the
+ * callee is K&R-declared. */
+void game_uso_func_0001001C(int *a0) {
+    int *p;
+    *(int*)((char*)a0 + 0xF4) = 0;
+    gl_func_00000000(a0);
+    p = (int*)((char*)&D_00000000 + 0xDD0);
+    gl_func_00000000(a0, p[0], p[1]);
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001001C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010068);
 
