@@ -69,4 +69,31 @@ s32 func_80008424(s32 arg0) {
 }
 
 
+#ifdef NON_MATCHING
+/* func_80008430: 9-insn prologue fragment of a larger __rmon function
+ * splat-split into 3 pieces:
+ *   - func_80008430 (this, 0x24 / 9 insns) — prologue + first slti+bnez
+ *   - func_80008454 (kernel_018? 0x44 / 17 insns) — branch arms + rmonbrk_bss lookup
+ *   - func_80008498 (further fragment(s) past .L80008578)
+ *
+ * Decoded entry semantics:
+ *   s32 f(MsgPtr *a0) {
+ *     SaveState *s0 = (SaveState*)a0;          // s0 spilled+reloaded from sp
+ *     int idx = s0->field_0x10;
+ *     if (idx >= 0x10) return -2;              // bnez at→fall-through to "b end; v0=-2"
+ *     if (a0->byte_0x9 != 1) goto skip;        // bne t8, 1, .L800084D8
+ *     // ...rmonbrk_bss_0088[idx] table lookup, more nested checks...
+ *   }
+ *
+ * Likely __rmonSetBrkpt or __rmonGetBrkPC (sets/gets a hardware breakpoint).
+ * Cannot match as standalone C — fragment boundary cuts mid-function and the
+ * splat-merge recipe is non-trivial here (3 .o files, layout shifts). Same
+ * class as func_80006698. Stub body documents the fragment relationship for
+ * grep discoverability per feedback_orphan_include_asm_after_split_function_decomp.md. */
+void func_80008430(void) {
+    /* see func_80008454 + func_80008498 for the rest of this function;
+     * merge requires linker-layout adjustment across kernel_018-021.c. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008430);
+#endif
