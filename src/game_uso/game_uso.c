@@ -65,6 +65,21 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * Confirms: ANY named float local in this function shifts IDO's FPU
  * scheduling globally; only the all-inline form preserves the 99.38% cap.
  *
+ * 2026-05-03 2 more parens-grouping variants tested:
+ *   - `b[3]*a[3] + (a[0]*b[0]+a[1]*b[1]+a[2]*b[2])` — sum on RIGHT of final
+ *     `+` to flip the operand order: REGRESSED to 68.75%. The 4 mul
+ *     operands' load offsets shifted (8(a1)/8(a0) swapped, 12(a0)/12(a1)
+ *     swapped) — the parens group changed BOTH the load schedule AND the
+ *     final-add operand order, but produced wrong shape on net.
+ *   - `a[0]*b[0] + (a[1]*b[1] + (a[2]*b[2] + b[3]*a[3]))` — right-associate
+ *     forces evaluation from RHS first: loaded a[3]/b[3] FIRST, a[0]/b[0]
+ *     LAST. Completely reverses load order, regressed harder.
+ *
+ * No further C-side parenthesization helps. The 99.38% cap is
+ * **structurally** the operand-order of the last add.s; IDO chose
+ * `add.s f8, f16, f4` based on which physical reg holds the last-computed
+ * partial sum, not on C source.
+ *
  * Per feedback_ido_fpu_reduction_operand_order.md: 1-insn cap on FPU
  * reductions is structural in IDO -O2. Don't grind further. */
 float game_uso_func_000000A0(float *a, float *b) {
