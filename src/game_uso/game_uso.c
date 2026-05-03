@@ -1166,7 +1166,44 @@ void game_uso_func_0000591C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00006A30: 176-insn (0x2C0) per-frame FPU-heavy update.
+ * 0xB8-byte stack frame with multiple Vec3 / matrix locals at sp+0x58,
+ * sp+0x94, sp+0x9C, sp+0xA8, sp+0xB4 (clear-flag).
+ *
+ * ENTRY STAGE (insns 1-15 @ 0x6A30-0x6A7C):
+ *   sp -= 0xB8; save ra, s0
+ *   *(sp+0xB4) = 0          ; clear flag
+ *   if (a0->0x80 == 0) goto end (early exit; reload a0->0x6C in delay)
+ *   sub = a0->0x30
+ *   sp+0x9C[0..2] = sub->{0xB4,0xB8,0xBC}  ; stage Vec3 from sub-struct
+ *
+ * BODY (insns 16-170): FPU-heavy update — multiplies Vec3 fields by
+ * scalar a0->0xA8, accumulates into local Mat4-like region at
+ * sp+0x318 (relative to sub-struct), multiple cross-USO calls.
+ *
+ * EPILOGUE: standard ra/s0 restore + addiu sp + jr ra.
+ *
+ * Multi-tick decompile in scope; this captures structural decode of the
+ * entry + Vec3 staging stage. Default INCLUDE_ASM matches via the asm. */
+extern int gl_func_00000000();
+void game_uso_func_00006A30(int *a0) {
+    int *sub;
+    int local_9C[3];
+    int flag = 0;
+    if (a0[0x80/4] == 0) goto end;
+    sub = (int*)a0[0x30/4];
+    local_9C[0] = sub[0xB4/4];
+    local_9C[1] = sub[0xB8/4];
+    local_9C[2] = sub[0xBC/4];
+    /* TODO: ~155 insns of FPU math + cross-USO calls */
+    (void)local_9C;
+end:
+    (void)flag;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006CF0);
 
