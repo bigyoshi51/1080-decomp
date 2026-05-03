@@ -245,7 +245,20 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 #ifdef NON_MATCHING
 /* 97.58 % cap (sibling of timproc_uso_b3_func_00002240, byte-identical).
  * Dual-branch state setter, prologue-stolen successor. Same recipe and
- * register-allocator cap. See b3_2240 for full notes. */
+ * register-allocator cap. See b3_2240 for full notes.
+ *
+ * (added 2026-05-02) TRIED inverting branch direction (test == 0 + arms
+ * swapped). Initial test with wrap intact + -DNON_MATCHING build appeared
+ * to match — but that was a false positive per
+ * feedback_dnonmatching_with_wrap_intact_false_match.md (the .o read was
+ * from the INCLUDE_ASM path, not from the C body, because the build
+ * actually fell through to INCLUDE_ASM after a CPP error). After removing
+ * the wrap and rebuilding, the inverted form still produces the same
+ * register-renumber diff as the natural form. The cap stands at 97.58 %.
+ *
+ * Lesson: when verifying via -DNON_MATCHING build, ALWAYS remove the
+ * NM-wrap first (or check that the build actually produced bytes from
+ * the C body, not from the INCLUDE_ASM fallback). */
 extern int D_state_b1_2030;
 extern int D_call_b1_2030_a;
 extern int D_call_b1_2030_b;
