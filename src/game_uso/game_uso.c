@@ -58,6 +58,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  *   - `... + a[3]*b[3]` (natural a-first order): 98.75% (slight regress)
  *   - Original `... + b[3]*a[3]` (b-first): **99.38% (best)**
  *
+ * 2026-05-03 1 more variant tested: `float dot3 = a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+ * return dot3 + b[3]*a[3];` (named dot3 instead of last_mul) — REGRESSED
+ * to ~50%, completely different shape (extra named local restructures
+ * mul.s operand order across all 4 muls + final-add register choice).
+ * Confirms: ANY named float local in this function shifts IDO's FPU
+ * scheduling globally; only the all-inline form preserves the 99.38% cap.
+ *
  * Per feedback_ido_fpu_reduction_operand_order.md: 1-insn cap on FPU
  * reductions is structural in IDO -O2. Don't grind further. */
 float game_uso_func_000000A0(float *a, float *b) {
