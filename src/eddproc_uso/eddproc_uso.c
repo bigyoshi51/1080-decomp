@@ -173,25 +173,39 @@ void eddproc_uso_func_0000038C(char *dst) {
 }
 
 #ifdef NON_MATCHING
-/* eddproc_uso_func_000003BC: 36-insn (0x90) constructor-like — alloc 0x40,
- * init via gl_func, set fields at +0x28 and +0x3C, then optional 2nd init
- * if arg0->0x40 is non-null.
+/* eddproc_uso_func_000003BC: 36-insn (0x90) constructor — alloc 0x40,
+ * init via 2 gl_func calls, set fields at +0x28 and +0x3C, then optional
+ * sub-init if arg0->0x40 is non-null AND that result is non-null.
  *
- * Decoded structure (insns 0x3BC-0x420):
+ * Full decoded structure (extended 2026-05-03):
  *   void *p = gl_func_00000000(0x40);    // alloc
  *   if (p != NULL) {
  *     gl_func_00000000(p);                // init(alloc)
  *     p->field_28 = &D_00000000;
  *     p->field_3C = 0;
  *     if (arg0->field_40 != NULL) {
- *       gl_func_00000000(p + 0x10, arg0->field_40);  // sub-init
- *       // remaining ~10 insns: more field setup, return p
+ *       int rv = gl_func_00000000(p + 0x10, arg0->field_40);  // sub-init
+ *       if (rv != 0) {
+ *         arg0->field_40->[0x14] = p;
+ *         p->[0x04] = 1;
+ *         arg0->field_40->[0x14] = p;     // double-store (beql delay slot
+ *                                          // + fall-through redundantly
+ *                                          // emit the same SW)
+ *       }
  *     }
  *   }
+ *   return p;
  *
- * ~50% NM body; alloc+init structure correct, but matching exact register
- * spill patterns (sw v0, 0x1C(sp); sw v1, 0x24(sp)) and the lui/addiu
- * pair for &D_00000000 needs careful ordering. Deferred to future tick. */
+ * Note the trailing redundant store: target uses a `beql v0, 0, end` with
+ * `sw v1, 0x14(a1)` in the (annulled-on-taken) delay slot, then ALSO emits
+ * the same store at the fall-through path. IDO produces this from
+ * `if (rv != 0) { dst->...=p; ...; }` — beql + delay-slot pre-computes the
+ * "first store of the if-body" speculatively.
+ *
+ * ~60% NM body; alloc+init structure now fully decoded. Remaining diffs
+ * are register-allocation (mine: $v0/$v1 chain; target: more $t-regs) and
+ * the exact frame layout (target 0x20 with 3 spill slots vs my 0x28).
+ * Multi-tick decomp expected — next pass will tighten reg allocation. */
 void eddproc_uso_func_000003BC(int *arg0) {
     void *p = (void*)gl_func_00000000(0x40);
     if (p != NULL) {
@@ -199,8 +213,13 @@ void eddproc_uso_func_000003BC(int *arg0) {
         *(int*)((char*)p + 0x28) = (int)&D_00000000;
         *(int*)((char*)p + 0x3C) = 0;
         if (arg0[0x40 / 4] != 0) {
-            gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
-            /* TODO: ~10 more insns of field setup at offsets 0x?? */
+            int rv = gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
+            if (rv != 0) {
+                int **slot = (int**)((char*)arg0[0x40 / 4] + 0x14);
+                *slot = (int*)p;
+                *(int*)((char*)p + 0x4) = 1;
+                *slot = (int*)p;   /* redundant double-store; matches beql */
+            }
         }
     }
 }
