@@ -296,7 +296,14 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * capture changed IDO's prologue emit so PROLOGUE_STEALS=8 cut the wrong
  * 8 bytes). Confirms the inline-test-in-if form is load-bearing for the
  * prologue-stolen recipe; capture must happen INSIDE the if-test parens.
- * Sibling: byte-identical to timproc_uso_b1_func_00002030. */
+ * Sibling: byte-identical to timproc_uso_b1_func_00002030.
+ *
+ * (2026-05-03 re-measure) baseline drifted from 97.58% to 90.39% over
+ * unrelated parallel-agent commits. TRIED `int *cur = (int*)D_cur_*;
+ * cur[N] = ...` local-capture inside both branches to force $v0 alloc
+ * — REGRESSED to 76.48%. The local-capture introduces an extra `or` move
+ * after the lui+lw setup, displacing the target's tight inline-store form.
+ * Cap stands at 90.39%; the v0/v1 register-pick is structural per IDO. */
 extern int D_state_b3_2240;            /* 0x148 */
 extern int D_call_b3_2240_a;           /* 0x208 */
 extern int D_call_b3_2240_b;           /* 0x208 (separate symbol, breaks CSE) */
