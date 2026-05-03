@@ -25,7 +25,12 @@ typedef struct { int a, b, c, d; } Quad4;
  * merge step (`ld -r`) or to run the accessor through a separate pipeline.
  * Same blocker applies to mgrproc_uso, game_uso, timproc_uso_b3/b5, and
  * map4_data_uso_b2 (all Yay0-compressed USOs). Deferred. */
-void timproc_uso_b1_func_00000000(int *dst) {
+/* K&R def per feedback_knr_def_for_inconsistent_arg_callers.md — caller at
+ * line 207 (timproc_uso_b1_func_000010DC) passes 2 args while the natural
+ * accessor signature is 1 arg. K&R-style def keeps NM-build linking. */
+void timproc_uso_b1_func_00000000(dst)
+int *dst;
+{
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
@@ -277,19 +282,27 @@ void timproc_uso_b1_func_00001FA0(void) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001FE4);
 
 #ifdef NON_MATCHING
-/* 97.58 % cap (sibling of timproc_uso_b3_func_00002240, byte-identical).
- * Dual-branch state setter, prologue-stolen successor. Same recipe and
- * register-allocator cap. See b3_2240 for full notes.
+/* 96.84 % (re-measured 2026-05-03; was 97.58 % per drift, then dropped
+ * to 90.39 % at start of this tick before PROLOGUE_STEALS=8 was added,
+ * which lifted to 96.84 %).
+ *
+ * Sibling of timproc_uso_b3_func_00002240, byte-identical. Dual-branch
+ * state setter, prologue-stolen successor. The predecessor (0x1FE4) tail
+ * has `lui $a0, 0; lw $a0, 0x148($a0)` at 0x2028-0x202C — these 8 bytes
+ * belong logically to 0x2030's prologue but are inside 0x1FE4's symbol.
+ * Makefile recipe `PROLOGUE_STEALS := timproc_uso_b1_func_00002030=8`
+ * splices off the redundant 8-byte prefix the C emit naturally produces.
+ *
+ * Residual ~3pp cap is reloc-form (jal=0+reloc vs immediate, lui=0+reloc
+ * vs immediate) — would need refresh-expected to flip. Blocked because
+ * 3 sibling NM-wraps in this .c (0x00000000/0x4C/0xB0) are NOT in
+ * matched form, so blanket `make expected` would corrupt their baselines.
+ * Surgical per-function expected refresh deferred.
  *
  * (added 2026-05-02) TRIED inverting branch direction (test == 0 + arms
  * swapped). Initial test with wrap intact + -DNON_MATCHING build appeared
  * to match — but that was a false positive per
- * feedback_dnonmatching_with_wrap_intact_false_match.md (the .o read was
- * from the INCLUDE_ASM path, not from the C body, because the build
- * actually fell through to INCLUDE_ASM after a CPP error). After removing
- * the wrap and rebuilding, the inverted form still produces the same
- * register-renumber diff as the natural form. The cap stands at 97.58 %.
- *
+ * feedback_dnonmatching_with_wrap_intact_false_match.md.
  * Lesson: when verifying via -DNON_MATCHING build, ALWAYS remove the
  * NM-wrap first (or check that the build actually produced bytes from
  * the C body, not from the INCLUDE_ASM fallback). */
