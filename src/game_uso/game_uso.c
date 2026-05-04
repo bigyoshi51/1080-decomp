@@ -1714,7 +1714,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
  * ALL 22 variants confirm the cap — IDO -O2 has no C-level path to a
  * free-standing `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` (the nop in pos 1
  * is a delay-slot non-fill that only happens via cross-function tail-share
- * with 7A98, which is itself blocked). Structurally locked. */
+ * with 7A98, which is itself blocked). Structurally locked.
+ *
+ * VERIFIED 2026-05-04: re-walked the cross-function-jump arithmetic.
+ * 7A98 has `beql v1, $0, +7` at 0x7AA0; target = (0x7AA0 + 4) + 7*4 =
+ * 0x7AC0, which is EXACTLY 7ABC + 4 (the nop position). The nop is
+ * deliberate: it's the landing pad where 7A98's null-guard branches in
+ * to share 7ABC's `jr ra; mov.s f0, f2` epilogue. 7ABC offset +0
+ * (the mtc1) IS reachable for direct callers of 7ABC (sets f2=0 standalone
+ * before falling through the nop into the shared epilogue). This matches
+ * the documented pattern in feedback_cross_function_tail_share_unmatchable_standalone.md.
+ * No promotion path from C; the only fix is to recognize 7A98+7ABC as
+ * one logical function (merge-fragments), which requires expected/.o
+ * refresh on this Yay0-compressed segment. */
 float game_uso_func_00007ABC(void) {
     return 0.0f;
 }
