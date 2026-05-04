@@ -2499,7 +2499,56 @@ void gl_func_0004E584(char *a0, char *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E584);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0004E600: 74-insn / 0x128 chained-alloc constructor.
+ *
+ * Decoded structure:
+ *   if (a0 == 0) {
+ *       a0 = alloc(0x144);
+ *       if (!a0) return 0;
+ *   }
+ *   gl_func(a0, &D + 0x205CC);          // init main from template at +0x205CC
+ *   a0->0x28 = &D_00000000;              // parent ptr
+ *
+ *   // Chain of "alloc small + zero-init" sub-objects at fixed offsets:
+ *   // Each sub-region uses an alloc-or-passthrough-from-fixed-offset pattern:
+ *   //   if (a0 != BASE_at_NEG_OFFSET) p = a0 + OFFSET; else p = alloc(SIZE);
+ *   //   if (p) zero-init p
+ *
+ *   // Sub-region 1: alloc(4) at a0+0x78, sentinel -0x78
+ *   // Sub-region 2: alloc(4) at a0+0x78+0x88 (fallback), nested alloc(4)
+ *   // Sub-region 3: alloc(8) at a0+0x100, sentinel -0x100
+ *   // Sub-region 4: alloc(4) at a0+0x114, sentinel -0x114
+ *   // Sub-region 5: alloc(4) at a0+0x118, sentinel -0x118 (encoded as -0x114 ?)
+ *
+ *   gl_func_00000000(a0);                // final init/finalize
+ *   return a0;
+ *
+ * Field offsets identified (for future struct typing):
+ *   a0->0x28: parent ptr (always &D_00000000)
+ *   a0->0x78: sub-region 1 (4-byte ptr slot)
+ *   a0->0x100: sub-region 3 (8-byte ptr slot)
+ *   a0->0x114, a0->0x118: sub-region 4/5 (4-byte ptr slots)
+ *
+ * The sentinel-vs-passthrough pattern (compare a0 against -OFFSET, branch
+ * to a0+OFFSET fallback) is the same idiom seen in gl_func_0004E584 and
+ * timproc_uso_b3_func_00001660. Initial wrap; not byte-matched yet —
+ * structural decode only. */
+extern int gl_func_00000000();
+int *gl_func_0004E600(int *a0) {
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00000000(0x144);
+        if (a0 == 0) return 0;
+    }
+    gl_func_00000000(a0, (char*)&D_00000000 + 0x205CC);
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    /* TODO: 5 sub-region init calls (decode pending). */
+    gl_func_00000000(a0);
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E600);
+#endif
 
 extern int gl_func_00000000();
 
