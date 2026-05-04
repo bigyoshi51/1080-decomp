@@ -457,8 +457,33 @@ void game_uso_func_00000B3C(int *a0) {
     target = (int*)*(int*)((char*)a0 + 0x1D4 + derived_id * 4);
 
     (void)target;  /* silence unused — body TODO */
-    /* TODO(next pass): decode 0xBB0-0xD00 Vec3 math + switch-arm
-     * addresses at 0xDC0/0xDF0/... Arm offsets live in rodata at
+    /* Extended characterization 2026-05-04 (0xBB0-0xC38, ~30 insns):
+     * Post-LUT, the function reads a fourth-level field via combined
+     * indices, then enters a state-dispatch on a0->0x260 and a0->0x268:
+     *   t1 = &(a0->0x158_LUT) + (idx*4 << shift)   (combined index)
+     *   t2 = t1->[0x38]      ; sp+0x128 cached
+     *   if (t0 != v0) goto far_skip (~0xCF8 epilogue branch)
+     *   if (a0->0x260 != 0) goto +0x4C (delay-likely sub-block)
+     *   if (a0->0x268 == 0) {
+     *       // Vec3-zero staging path:
+     *       a0->0x130 = t0
+     *       Vec3 zero_buf at sp+0xD8 = {0, 0, 0}
+     *       memcpy sp+0xD8 -> sp+0xB4 (3-word copy via t6/t5)
+     *       float-store sp+0xB4..0xBC into s2->0x134..0x13C   (Vec3 write)
+     *   } else {
+     *       // a3->0x30 path: load t9 = a3->0x30, slt against 1
+     *       a0->0x130 = (a3->0x30 < 1) ? 1 : 0
+     *   }
+     *
+     * The Vec3-zero staging via two stack buffers (sp+0xD8 → sp+0xB4 → s2)
+     * matches the same triple-buffer dance seen in other game_uso spine
+     * functions (8CD8, 591C). Likely a Vec3 reinitializer for a per-frame
+     * scratch slot in s2 (= some 0x140-byte sub-object).
+     *
+     * Cumulative ~60/706 insns characterized.
+     *
+     * TODO(next pass): decode 0xC38-0xD00 (next ~50 insns of the chain),
+     * then 0xDC0/0xDF0/... switch-arm addresses live in rodata at
      * %hi/%lo($at) — need to read them from baserom's rodata. */
 }
 #else
