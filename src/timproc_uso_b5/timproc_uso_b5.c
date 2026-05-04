@@ -322,33 +322,16 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
 
-#ifdef NON_MATCHING
-/* 97.5 % match. Indirect-call wrapper:
- *   p1 = a0->0x2C; p2 = p1->0x28;
- *   ((fn*)p2->0x5C)(p2->0x58_short + p1);
- *
- * Re-verified 2026-05-02 with clean unwrapped build (exit=0, fresh .o
- * mtime — see feedback_dnonmatching_with_wrap_intact_false_match.md):
- *   built: lw v0,0x2C(a0); lw v1,0x28(v0); lw t9,0x5C(v1); lh t6,0x58(v1); ...
- *   target: lw v1,0x2C(a0); lw v0,0x28(v1); lw t9,0x5C(v0); lh t6,0x58(v0); ...
- * Pure $v0/$v1 swap on (p1, p2). p1 is first-loaded → IDO assigns $v0
- * (lowest free $v); target assigns it $v1. The swap can't be flipped
- * from C because:
- *   - p1 must be computed before p2 (p2 = p1->0x28, data dependency)
- *   - first-loaded value gets the lowest free register
- *   - decl-order reorder is a no-op (per feedback_ido_sreg_order_not_decl_driven.md)
- *   - inlining one of them regresses (97.08 % w/ addu operand swap)
- *   - 2026-05-03: changing p1 type from `int` to `char*` — same 97.5%, the
- *     ptr-vs-int distinction doesn't shift IDO's $v-reg pick for first-loaded
- * Pure regalloc cap; not C-controllable. Confirmed 97.5% baseline (no drift). */
+/* Indirect-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
+ * declare p2 FIRST with the full deref chain inline (including p1's load),
+ * then declare p1 with the same `a0->0x2C` load — IDO CSE's the duplicated
+ * load and assigns $v1 to p1 + $v0 to p2 (target's reg layout). Writing
+ * p1 first (the natural order) gives the swap. */
 void timproc_uso_b5_func_00008F98(char *a0) {
+    int *p2 = *(int**)((char*)*(int*)(a0 + 0x2C) + 0x28);
     int p1 = *(int*)(a0 + 0x2C);
-    int *p2 = *(int**)((char*)p1 + 0x28);
     (*(int(**)())((char*)p2 + 0x5C))(*(short*)((char*)p2 + 0x58) + p1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008F98);
-#endif
 
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
