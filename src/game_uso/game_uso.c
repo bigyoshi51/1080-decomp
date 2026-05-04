@@ -308,7 +308,7 @@ void game_uso_func_000007EC(int *arg0) {
 }
 
 #ifdef NON_MATCHING
-/* 71.12% NM. 8-arg constructor/initializer (4 reg + 4 stack args).
+/* 80.88% NM (up from 71.12% with goto-out fix). 8-arg constructor/initializer.
  *   void *f(T *a0,    // dst, alloc 0x27C if NULL
  *           int a1,   // -> a0->0x150 post-init
  *           int a2,   // -> 1st gl_func arg
@@ -318,17 +318,15 @@ void game_uso_func_000007EC(int *arg0) {
  *           int arg6, // -> a0->0x274 post-init
  *           int arg7) // flag: if !=0, gl_func(a0, 1) midway
  *
- * Applied unique-extern fix (2026-05-02): per the previous tick's TODO,
- * declared gl_alloc_858/gl_init_858/gl_setflag_858 as separate prototyped
- * externs (all bind to address 0 in undefined_syms_auto.txt). gl_init_858
- * has explicit `(int*, int, int, int, float)` prototype to break IDO's
- * K&R-default float promotion to double (per feedback_ido_knr_float_call.md).
- *
- * NM-body verification still blocked by the pre-existing D_00000000
- * redeclaration error in this file under -DNON_MATCHING (per
- * feedback_nm_body_cpp_errors_silent.md). Default build uses INCLUDE_ASM
- * and remains exact — match% needs cleanup of the extern-D collisions
- * across the file before measuring. */
+ * 2026-05-04 grind: replaced inner `return a0` with `goto out` to land the
+ * single-epilogue shape (saved 3 insns). Remaining cap is the if-arg7 block:
+ * IDO emits `beql t7, zero, +5` with 24C-store duplicated across both paths
+ * (delay-likely + post-fall-through), 1 insn larger than expected `beq a2,
+ * zero, +5; sw zero, 0x24C(a0) [in delay slot]`. Built/expected size delta
+ * = +4 bytes (42 vs 41 insns). Tried: store ordering, register hint, if-curly
+ * vs if-no-curly, goto-skip — all produced beql. INSN_PATCH blocked by size
+ * delta per feedback_insn_patch_size_diff_blocked.md. Promotion-path is to
+ * find a C lever that flips IDO to `beq` (puts arg7 in $a2). */
 extern int *gl_alloc_858(int size);
 extern void gl_init_858(int *dst, int a, int b, int c, float f);
 extern void gl_setflag_858(int *dst, int flag);
@@ -336,20 +334,19 @@ extern void gl_setflag_858(int *dst, int flag);
 int *game_uso_func_00000858(int *a0, int arg1, int arg2, int arg3, int arg4, float arg5, int arg6, int arg7) {
     if (a0 == 0) {
         a0 = gl_alloc_858(0x27C);
-        if (a0 == 0) return a0;
+        if (a0 == 0) goto out;
     }
     gl_init_858(a0, arg2, arg3, arg4, arg5);
     *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
     *(int*)((char*)a0 + 0x1D0) = 0;
+    if (arg7 != 0) gl_setflag_858(a0, 1);
     *(int*)((char*)a0 + 0x24C) = 0;
-    if (arg7 != 0) {
-        gl_setflag_858(a0, 1);
-    }
     *(int*)((char*)a0 + 0x150) = arg1;
     *(int*)((char*)a0 + 0x26C) = 0;
     *(int*)((char*)a0 + 0x270) = 0;
     *(int*)((char*)a0 + 0x268) = 0;
     *(int*)((char*)a0 + 0x274) = arg6;
+out:
     return a0;
 }
 #else
