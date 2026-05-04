@@ -2050,8 +2050,35 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      *
      * Cumulative ~167/344 insns characterized.
      *
-     * @ 0x9F50-0x10E8: body-part-2 final, 150+ insns + ~5 more cross-USO calls.
-     *   TODO: future passes will decompose the per-block math chains.
+     * Extended characterization 2026-05-04 (0x9F50-0xA0A0, ~84 insns):
+     *   Same "alloc(0xC) + fill Vec3 + struct-copy fan-out" pattern continues
+     *   for two more iterations. Each follows the recipe:
+     *     1. word-copy a1[0..0xC] → sp+0xNN buffer (3 lw/sw pairs)
+     *     2. word-copy a2[0..0xC] → sp+0xMM buffer (3 lw/sw pairs)
+     *     3. addiu v1, sp, 0xKK; bne v1, $0, skip_alloc (always skipped)
+     *     4. jal 0 (gl_func_00000000) ; addiu a0, $0, 0xC  (dead alloc)
+     *     5. beqz v0, +0xB ; or v1, v0, $0 (also dead — v1 = stack addr)
+     *     6. lwc1 4 floats from sp+0x12C/0x138/0x140/0x14C tables
+     *     7. mul.s + (mtc1 $0,zero) + sub.s combo
+     *     8. swc1 results to v1[0/4/8] (Vec3 result)
+     *
+     *   The destination sp-offsets in this chunk: sp+0x6C, sp+0x94, sp+0x16C,
+     *   sp+0x160, sp+0x44, sp+0x154 — all distinct working buffer slots being
+     *   populated. Each iteration consumes (table_a, table_b) at different
+     *   sp-offsets and produces a Vec3.
+     *
+     *   This is the REPEATED unrolled pattern noted earlier. Likely an unrolled
+     *   loop over per-vertex / per-corner buffer slots for a 4-corner billboard
+     *   or trail mesh — the screen-space transform builds 4-6 transformed
+     *   Vec3s in adjacent stack slots, all fed to a single downstream
+     *   draw-helper at the function tail.
+     *
+     * Cumulative ~251/344 insns characterized (~73%).
+     *
+     * @ 0xA0A0-0x10E8: body-part-2 final ~95 insns + remaining cross-USO calls.
+     *   TODO: future passes characterize the function tail (likely the dispatch
+     *   to the downstream draw-helper passing all 4-6 transformed Vec3s, plus
+     *   epilogue restore of $sN saved regs).
      *   The 250.5/50.0 constants confirm screen-space coordinate transform
      *   (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset). */
     (void)local_12C;
