@@ -203,7 +203,73 @@ void arcproc_uso_func_000009CC(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00000A3C: 205 insns (0x334) — 4-stage allocator/initializer
+ * constructor. Sibling of 0x880 family in arcproc_uso_tail1.c.
+ *
+ * ENTRY DECODE (0xA3C-0xB04, ~50 insns characterized 2026-05-04):
+ *   - Frame: addiu sp,-0x40; saves s0/s1/ra at 0x1C/0x20/0x24; spills
+ *     a1/a2/a3 at 0x44/0x48/0x4C (caller-preserved args).
+ *   - Stage 1: if a0 == 0, alloc 0x780 → s1; else s1 = a0.
+ *   - Stage 2: if s1 != 0, alloc 0x6A8 → s0 (linked under s1); on success
+ *     stores &D_alloc_link at *(s0+0x28).
+ *   - Stage 3: if s0 != 0, alloc 0x50 → spill@sp+0x38; on success calls
+ *     gl_func(spilled, &D_arc_table_3B8) to init.
+ *   - Stage 4: if (alloc_3 != 0), alloc 0x2C → another sub-obj; calls
+ *     gl_func(sub_obj, &D_arc_table_3B8); writes &D_E to *(sub+0x28).
+ *
+ * KEY OFFSETS WRITTEN:
+ *   - *(s1+0x28) = &D_arc_link_E       ; canonical "vtable/parent" slot
+ *   - *(s0+0x28) = &D_arc_link_E
+ *   - *(s0+0x568) = 0                   ; sub-obj clear
+ *   - *(s0+0x6B8) = 0
+ *   - *(s0+0x6A8), *(s0+0x6AC), *(s0+0x528) = sub-obj pointers (linked)
+ *   - *(s0+0x77C) = lwc1 result (initial float, likely from alloc_3 init)
+ *
+ * REMAINING ~155 insns (0xB04-0xD6C): more sub-allocator stages, fan-out
+ * stores, conditional sub-init via gl_func dispatch table at &D_arc_table_3D0,
+ * final epilogue restoring s0/s1/ra and returning s1 in v0.
+ *
+ * This is a CONSTRUCTOR with cross-USO alloc dependency — multi-tick decomp.
+ * Stub C body documents the 4-stage alloc skeleton for grep discoverability;
+ * does NOT match (default INCLUDE_ASM build is correct). */
+extern int gl_func_arc_alloc();
+extern char D_arc_table_3B8[];
+extern char D_arc_table_3D0[];
+extern char D_arc_link_E;
+void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3) {
+    int *s1 = a0;
+    int *s0;
+    void *alloc3;
+    void *alloc4;
+    if (s1 == 0) {
+        s1 = (int*)gl_func_00000000(0x780);
+        if (s1 == 0) goto end;
+    }
+    s0 = (int*)gl_func_00000000(0x6A8);
+    if (s0 == 0) goto end;
+    alloc3 = (void*)gl_func_00000000(0x50);
+    if (alloc3 != 0) {
+        gl_func_00000000(alloc3, &D_arc_table_3B8);
+        *(int*)((char*)alloc3 + 0x28) = (int)&D_arc_link_E;
+    }
+    alloc4 = (void*)gl_func_00000000(0x2C);
+    if (alloc4 != 0) {
+        gl_func_00000000(alloc4, &D_arc_table_3B8);
+        *(int*)((char*)alloc4 + 0x28) = (int)&D_arc_link_E;
+    }
+    /* TODO: ~150 more insns (0xB04-0xD6C) — sub-allocator stages, fan-out
+     * stores at offsets 0x528/0x568/0x6A8/0x6AC/0x77C, dispatch via
+     * D_arc_table_3D0 with conditional init, final s1 return. Multi-tick. */
+    *(int*)((char*)s0 + 0x28) = (int)&D_arc_link_E;
+    *(int*)((char*)s1 + 0x28) = (int)&D_arc_link_E;
+end:
+    return s1;
+    (void)a1; (void)a2; (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000D70);
 
