@@ -462,7 +462,15 @@ void timproc_uso_b5_func_0000AAF4(char *a0) {
  * delay slot variants. Net: still 32+ insns vs target 36, p still in $a2
  * not $v1. Inlining `r` actually drops the q-spill (target HAS the q-spill
  * at sp+0x20 — which mine doesn't), so this regresses, not improves. The
- * named-`r` form is closer to target's full structure. Reverted. */
+ * named-`r` form is closer to target's full structure. Reverted.
+ *
+ * 2026-05-04 TRIED (later session): `register void *p` keyword hint — IDO
+ * IGNORES register hint here, same emit as plain `void *p`. p still in $a2
+ * (not $v1 as target wants). Confirms IDO's regalloc for caller-saved
+ * "preserve-across-jal" slots is purely weight-driven and doesn't honor
+ * register hints (vs. its strong honoring for $s-regs in interrupt-bracket
+ * patterns). Different from the GCC `register T x asm("$N")` strong-hint
+ * trick that's GCC-only. */
 void *timproc_uso_b5_func_0000AB24(void *arg0) {
     char pad[8];
     void *p;
