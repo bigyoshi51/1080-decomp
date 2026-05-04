@@ -454,7 +454,15 @@ void timproc_uso_b5_func_0000AAF4(char *a0) {
  * These are all knock-on from the same root: IDO's register allocator
  * picks $a2 instead of $a0/$v1 for p's hold-across-2nd-jal slot. Same
  * structural cap as `feedback_ido_arg_save_reg_pick.md` — the choice of
- * arg/scratch reg for cross-jal preserve isn't C-controllable. */
+ * arg/scratch reg for cross-jal preserve isn't C-controllable.
+ *
+ * 2026-05-04 TRIED: inline `r` (no named local — use `*(void**)(arg0+0x40)`
+ * directly twice in the if-test and the call arg). Result: same ~89% shape,
+ * but emit changed to use v0-directly-as-q (no q-spill+reload), beql in
+ * delay slot variants. Net: still 32+ insns vs target 36, p still in $a2
+ * not $v1. Inlining `r` actually drops the q-spill (target HAS the q-spill
+ * at sp+0x20 — which mine doesn't), so this regresses, not improves. The
+ * named-`r` form is closer to target's full structure. Reverted. */
 void *timproc_uso_b5_func_0000AB24(void *arg0) {
     char pad[8];
     void *p;
