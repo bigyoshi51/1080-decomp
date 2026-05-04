@@ -2587,7 +2587,12 @@ void game_uso_func_0000D438(void *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5BC);
+void game_uso_func_0000D5BC(char *a0, int a1, int a2) {
+    volatile int *p;
+    p = &a1;
+    *(int*)(a0 + 0xC8) = p[0];
+    *(int*)(a0 + 0xCC) = p[1];
+}
 
 void game_uso_func_0000D5DC(char *a0) {
     *(int*)(a0 + 0xC8) = *(int*)((char*)&D_00000000 + 0xDC8);
