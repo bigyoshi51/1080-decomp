@@ -180,7 +180,14 @@ void timproc_uso_b1_func_00000DA0(char *a0) {
     gl_func_00000000(a0 + 0x6E4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000DEC);
+int timproc_uso_b1_func_00000DEC(char *a0) {
+    if (*(int*)(a0 + 0x4FC) == 0) {
+        gl_func_00000000(*(int*)(a0 + 0x6A8), 0, 1, a0);
+        gl_func_00000000(*(int*)(a0 + 0x6A8));
+        *(int*)(a0 + 0x4FC) = 1;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000E40);
 
