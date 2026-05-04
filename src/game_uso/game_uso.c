@@ -2913,6 +2913,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
  * another float load, c.lt.s against 500.0f (via lui 0x43FA), and
  * branches to 0xDA60 or 0xDA4C based on result. State-machine-like.
  *
+ * 2026-05-04 EXTENDED DECODE 0xDA60-0xDABC (~22 insns):
+ *   /\* After the 500.0f-vs-c.lt.s gate, this is the state-update arm: *\/
+ *   gl_func_00000000(...);                  // 1st cross-USO call (state-mutate)
+ *   inner = a0->0xB4_ptr;                    // reload inner-struct ptr
+ *   thresh = inner[0xA1C/4]_float;           // local threshold from inner
+ *   if (saved_f2 < thresh) {
+ *       a0->0x108 |= 0x16;                    // set state-bits for "below"
+ *       local_2C = 1;
+ *   } else {
+ *       a0->0x108 |= 0x17;                    // set state-bits for "above"
+ *       local_2C = 3;
+ *   }
+ *   goto far_merge_at_+0x46;                  // ~280-byte forward jump
+ *
+ * The state-bits 0x16/0x17 differ only in bit 0 — likely a "level" field
+ * (low 5 bits) plus a bit-0 flag selected by the threshold. Ditto the
+ * local_2C value 1/3. This is classic discrete-tier state set: 0x16=tier-2
+ * with flag 0; 0x17=tier-3 with flag 1.
+ *
+ * NEXT PASS: decode the convergence point at +0x46 (~0xDC18 area) and
+ * find what later code consumes a0->0x108 and local_2C. */
+ *
  * Left as INCLUDE_ASM until enough body is decoded to support a
  * compile-testable skeleton. The entry decode is the forward progress
  * for this pass per the skill's multi-run decomp convention. */
