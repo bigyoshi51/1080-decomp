@@ -351,15 +351,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
 
-/* Indirect-call wrapper: p1 = a0->0x2C; p2 = p1->0x28;
- * ((void(*)(int))p2->0x5C)(p2->0x58_short + p1).
- * 97.5% from C alone; pure $v0/$v1 swap on (p1,p2) — IDO assigns p1=$v0
- * but target wants $v1. Promoted to 100% via INSN_PATCH per
- * feedback_insn_patch_for_ido_codegen_caps.md (4-word patch swapping
- * v0/v1 in 4 dependent insns). */
+/* Indirect-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
+ * declare p2 FIRST with the full deref chain inline (including p1's load),
+ * then declare p1 with the same `a0->0x2C` load — IDO CSE's the duplicated
+ * load and assigns $v1 to p1 + $v0 to p2 (target's reg layout). Writing
+ * p1 first (the natural order) gives the swap. Replaces prior INSN_PATCH
+ * approach — no Makefile entry needed. */
 void timproc_uso_b5_func_00008F98(char *a0) {
+    int *p2 = *(int**)((char*)*(int*)(a0 + 0x2C) + 0x28);
     int p1 = *(int*)(a0 + 0x2C);
-    int *p2 = *(int**)((char*)p1 + 0x28);
     (*(int(**)())((char*)p2 + 0x5C))(*(short*)((char*)p2 + 0x58) + p1);
 }
 
