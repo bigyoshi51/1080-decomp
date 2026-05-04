@@ -2424,16 +2424,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DF90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 97.5% — v0/v1 swapped for p1/p2 pointers */
+/* gl_func_0004E150: 97.5%->100% via INSN_PATCH (5 reg-rename diffs at
+ * offsets 0x08/0x0C/0x10/0x14/0x1C). IDO emits $v0 for p1; target uses
+ * $v1. Pure $v0/$v1 swap pattern, same as gl_func_0000D9B8 family. */
 void gl_func_0004E150(char *a0) {
     char *p1 = *(char**)(a0 + 0x134);
     char *p2 = *(char**)(p1 + 0x14);
     (*(int(**)(char*))(p2 + 0xC))(p1 + *(short*)(p2 + 0x8));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E150);
-#endif
 
 #ifdef NON_MATCHING
 /* 93%: a0 spill offset differs. Target: ra=sp+0x14, a0-spill=sp+0x1C
