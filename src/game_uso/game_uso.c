@@ -822,7 +822,25 @@ branch_88: {
      * a 12-byte struct copy and followed by a duplicate copy. Likely
      * "delta_scaled = excess * normalized_delta; copy delta_scaled to two
      * downstream Vec3 fields". Decoding C body deferred — current stub
-     * captures structure without breaking build. */
+     * captures structure without breaking build.
+     *
+     * Extended scan 2026-05-04 (0x2050-0x20F0, +30 insns characterized):
+     *   - 0x2050-0x205C: continue 12-byte struct copy a3+0x4/0x8 → t9+0x4/0x8.
+     *   - 0x2060-0x208C: SECOND Vec3 scale computation. Reads 3 floats from
+     *     sp+0xB0/0xB4/0xB8 (input vec) and 1 scalar from a2+0xAC (a2-derived
+     *     scaler). Computes mul.s f2/f12/f14 = vec[i] * scaler. Stores
+     *     results to sp+0x94/0x98/0x9C. Pattern is `out_vec3 = scaler * in_vec3`.
+     *   - 0x2090-0x20BC: Triple-fanout 12-byte struct copy. Reads from t2+0/4/8;
+     *     writes to BOTH v1+0/4/8 (the canonical dest) AND t5+0/4/8 (a second
+     *     dest captured BEFORE overwrite via `lw t7, 0(v1); sw t7, 0(t5)`
+     *     interleaved with the writes — so t5 gets v1's PRE-COPY value).
+     *     Likely a "save old value, overwrite with new" idiom for an undo
+     *     buffer or an alternate-frame slot.
+     *   - 0x20C0-0x20EC: Forward 3-float copy sp+0x74..0x7C → sp+0x120..0x128
+     *     (loads f4/f6/f8 in reverse, stores in forward order). Then
+     *     lw v0, 0x12C(sp) reloads earlier spill, addiu a1, sp, 0x120 sets
+     *     up arg1 = &copied-Vec3. addiu a0, v0+0x30 in jal delay slot — second
+     *     gl_func dispatch with new args. ~290 insns remain stubbed past 0x20F0. */
     (void)excess;
     (void)gl_func_TODO_00001DDC((int*)scratch, a0);
 }
