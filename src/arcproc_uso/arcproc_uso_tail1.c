@@ -113,7 +113,26 @@ void arcproc_uso_func_00000800(void) {
         *(int*)((char*)*(int**)((char*)D_arc800_a + 0x6A8) + 0xC));
 }
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000880);
+/* arcproc_uso_func_00000880: 31-insn (0x7C) state-conditional update.
+ * 3 unique extern aliases (D_arc880_X/_Y/_Z) avoid IDO &D-CSE collapse
+ * per feedback_unique_extern_with_offset_cast_breaks_cse.md. Inlining
+ * the D_Y indirection chain into the gl_func arg keeps it in $t7
+ * (vs $v1 with a named local). */
+extern int D_arc880_X;
+extern char *D_arc880_Y;
+extern char D_arc880_Z[];
+void arcproc_uso_func_00000880(void) {
+    int v0;
+    gl_func_00000000(D_arc880_X);
+    v0 = gl_func_00000000(*(int*)((char*)*(int**)((char*)D_arc880_Y + 0x6AC) + 0x4C));
+    if (v0 != 0) {
+        *(int*)(D_arc880_Z + 0x40) = 7;
+        *(int*)(D_arc880_Z + 0x44) = 9;
+    } else {
+        *(int*)(D_arc880_Z + 0x40) = 9;
+    }
+    gl_func_00000000(D_arc880_X, 0, 0);
+}
 
 void arcproc_uso_func_000008FC(int *dst) {
     int buf[2];
