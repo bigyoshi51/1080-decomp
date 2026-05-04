@@ -174,6 +174,35 @@ void titproc_uso_func_000003D0(void) {
     gl_func_00000000(*(int*)((char*)&D_000003D0_A + 0xA8), -1, 0);
 }
 
+/* titproc_uso_func_00000418: 33-insn (0x84) bit-counting function.
+ *
+ * DECODED STRUCTURE:
+ *   1. Loads a u16 bitmap from D[0x154] (lui+lw t6,0x154; lhu v1,0(t6))
+ *   2. Reads counter `a1` from sp+0x18 — UNUSUAL: no preceding sw to that
+ *      slot. Either:
+ *      (a) caller stores a1 to sp+0x18 BEFORE jal (caller's frame, then
+ *          callee's `addiu sp,-0x20` puts the same memory at sp+0x18 AFTER
+ *          stack-rebase — only works if callee's frame is exactly 0 above
+ *          caller's sp+0x18 minus 0x20 = caller_sp - 0x8 — invalid red zone)
+ *      (b) the callee ALWAYS gets called immediately after a setup function
+ *          that put a value at the SHARED stack slot (continuation-style
+ *          call convention)
+ *      Most likely: this is a tail-continuation from a specific predecessor
+ *      that set up sp+0x18 before its `j titproc_uso_func_00000418` (if
+ *      jr-based tail call rather than jal).
+ *   3. Loop (insns 8-15): for (v0=0; v0<8; v0++) {
+ *        if ((bitmap & (1 << v0)) != 0) v0_counter++;  // beql delay slot
+ *        a1++;  // unconditional, every iter
+ *      }
+ *   4. After loop: a1 -= 2; jal gl_func_00000000(...); a1 spilled+reloaded
+ *   5. FPU ops: f10 = 2.0 (lui at,0x4000; mtc1 at,$f10);
+ *      f4 = (float)a1; f8 = f4 / 2.0; f16 = (int)f8 truncated;
+ *      v0 = mfc1(f18 = trunc.w.s f16). Returns counter / 2 as int.
+ *
+ * Stack-passed-arg quirk + FPU pipeline + unsigned 16-bit bitmap with
+ * div-by-2 makes this a multi-tick decode. Default INCLUDE_ASM build
+ * remains exact; this doc captures the algorithm shape so the next pass
+ * can decide on the calling-convention question and write a body. */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
 
 void titproc_uso_func_0000049C(int *dst) {
