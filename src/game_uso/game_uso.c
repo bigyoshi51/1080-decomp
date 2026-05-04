@@ -333,7 +333,13 @@ void game_uso_func_000007EC(int *arg0) {
  * = +4 bytes (42 vs 41 insns). Tried: store ordering, register hint, if-curly
  * vs if-no-curly, goto-skip — all produced beql. INSN_PATCH blocked by size
  * delta per feedback_insn_patch_size_diff_blocked.md. Promotion-path is to
- * find a C lever that flips IDO to `beq` (puts arg7 in $a2). */
+ * find a C lever that flips IDO to `beq` (puts arg7 in $a2).
+ *
+ * 2026-05-04 retry: tried `int flag = arg7; int slot1 = arg1; int slot6 = arg6;`
+ * captured-early-locals to raise arg7's register-allocation priority — same
+ * 80.88%, no register-class shift. The arg7 → $t7 (vs target's $a2) choice
+ * is structural to IDO -O2's allocator weight calculation (refs × live_length)
+ * and isn't reachable via local-declaration tricks. */
 extern int *gl_alloc_858(int size);
 extern void gl_init_858(int *dst, int a, int b, int c, float f);
 extern void gl_setflag_858(int *dst, int flag);
