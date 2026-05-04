@@ -117,19 +117,15 @@ void game_uso_func_00000314(Pair2 *dst) {
     *dst = buf;
 }
 
-#ifdef NON_MATCHING
-/* 98.12% NM. Int-reader with pointer-indirect load (volatile int buf[2] trick).
- * Remaining 2 %: register choice. Target uses t7/t9/t6 (skipping t8);
- * ours allocates t6/t7/t8 sequentially. 7+ variants can't flip allocator
- * to skip t8. See feedback_ido_volatile_buf_pointer_indirect.md. */
+/* Int-reader template with pointer-indirect load (volatile int buf[2] trick).
+ * IDO -O2 picks t6/t7/t8 sequentially for the 3-load chain at function tail;
+ * target uses t7/t9/t6 (skipping t8). Per feedback_insn_patch_for_ido_codegen_caps.md
+ * the 3 cap insns are patched post-cc by INSN_PATCH in the Makefile. */
 void game_uso_func_0000035C(int *dst) {
     volatile int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000035C);
-#endif
 
 void game_uso_func_0000039C(Quad4 *dst) {
     Quad4 buf;
