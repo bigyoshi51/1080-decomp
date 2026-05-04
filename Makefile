@@ -54,6 +54,7 @@ build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: OPT_FLAGS := -O0
 # Trim .text sizes + reduce sh_addralign to 4 so split .o files link at the
 # exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
 build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF390
+build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH := func_00006204=0x4:0x3c040000,0x8:0xafbf0014
 build/src/bootup_uso/bootup_uso_o0_F390.c.o: TRUNCATE_TEXT := 0x334
 build/src/bootup_uso/bootup_uso_F434.c.o: TRUNCATE_TEXT := 0xA8
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: TRUNCATE_TEXT := 0xB0
