@@ -1153,6 +1153,25 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * The 4-arg call here mirrors the structure of Stage 4's gl_func call
      * but with explicit (a0, a1, a2, a3) — different sub-init shape.
      *
+     * Stage 7 (extended 2026-05-04, ~30 insns 0x4680-0x4734):
+     * Confirms the loop is UNROLLED — each iteration:
+     *   1. Compute s0 = s1 + N*0x50 (N=0,1,2,...; sub-obj slot in s1[])
+     *   2. Load next template ptr from D[0x6F4 + N*4]
+     *   3. alloc(0x18) → s0 (24-byte sub-obj)
+     *   4. gl_func(s0, s1, *(int*)s2, 1)   ; 4-arg sub-init
+     *   5. s0->[0xC] = (int)((char*)&D + 0x3C8)  ; template ptr (constant)
+     *   6. s0->[0x14] = 0
+     *   7. s0->[0x10] = D[0xA0..]    ; float scalar (varies per iter:
+     *      D[0xA4]=val_iter1, -800.0f=iter2 via lui 0xC448, etc.)
+     *
+     * Stride: s0 advances by 0x50 (80 bytes) per iteration. The s1 buffer
+     * is 0x3E0 = 992 bytes total, fitting ~12 sub-obj slots before exhaust.
+     * The float scalars at s0->0x10 are likely physics constants (acceleration,
+     * gravity, max-speed) loaded from a per-sub-obj table at &D + 0xA0..
+     *
+     * Cumulative ~80/1165 insns characterized. Loop continues for ~10 more
+     * iterations before exiting to the parent constructor's link-setup phase.
+     *
      * TODO: ~1050 remaining insns — sub-object alloc loop continuation,
      * recursive init via cross-USO calls, child link setup at
      * a0->field_38, etc. */
