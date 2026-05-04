@@ -276,7 +276,6 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000062
  * jal in body where target has bne+two jals). Promotion path: declare
  * gl_func_h2hproc_8EC_t / gl_func_h2hproc_8EC_f as unique externs in
  * undefined_syms_auto.txt, then call them distinctly in the if/else arms. */
-#ifdef NON_MATCHING
 extern int gl_func_h2hproc_8EC_pre();
 extern int gl_func_h2hproc_8EC_t();
 extern int gl_func_h2hproc_8EC_f();
@@ -301,9 +300,6 @@ void h2hproc_uso_func_000008EC(char *a0, int a1) {
         gl_func_h2hproc_8EC_t(a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000008EC);
-#endif
 
 #ifdef NON_MATCHING
 /* Sibling of h2hproc_uso_func_000008EC — byte-identical asm. Same recipe,
