@@ -601,23 +601,21 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
 
 #ifdef NON_MATCHING
-/* 97.2 % wrap. Loads 4 floats from a0+0x25C..0x294 into v0=a0->0x2B8 at
- * offsets 0x10C..0x118, then jal placeholder. With named float locals,
- * IDO loads all 4 BEFORE storing (matches target's structure). The 8-insn
- * cap is register renumbering: target uses $f14/$f12/$f2/$f0 for the
- * a/b/c/d values; mine uses $f0/$f2/$f12/$f14. Tried decl-reorder and
- * load-order-reverse — both regressed or no-change. IDO assigns float
- * locals in declaration-order to f0/f2/f12/f14 and that can't be flipped
- * from C without `register T x asm("$fN")` (GCC-only, IDO rejects).
- *
- * 2026-05-02 verified clean unwrapped build: inline-deref variant (no
- * named float locals) regresses — interleaves load/store ($f4/$f6/$f8/$f10
- * one-load-one-store) instead of all-loads-first. Confirms named locals
- * are load-bearing for the load-batching pattern.
+/* 97.5 % wrap (re-confirmed 2026-05-04 via unwrap-and-rebuild test per
+ * feedback_nm_wrap_99pct_may_be_silently_exact.md — cap is REAL, not
+ * stale; current emit still 97.5%). Loads 4 floats from a0+0x25C..0x294
+ * into v0=a0->0x2B8 at offsets 0x10C..0x118, then jal placeholder.
+ * With named float locals, IDO loads all 4 BEFORE storing (matches
+ * target's structure). The 8-insn cap is register renumbering: target
+ * uses $f14/$f12/$f2/$f0 for the a/b/c/d values; mine uses
+ * $f0/$f2/$f12/$f14. IDO assigns float locals in declaration-order
+ * to f0/f2/f12/f14 and that can't be flipped from C without
+ * `register T x asm("$fN")` (GCC-only, IDO rejects).
  *
  * Trailing 8 bytes (lui $at, 0x3F80; mtc1 $at, $f2 — float constant 1.0f)
  * are the prologue-stolen prefix for SUCCESSOR func_0000CEB4. Pad sidecar
- * + INCLUDE_ASM-with-pragma baseline refresh in place. */
+ * + INCLUDE_ASM-with-pragma baseline refresh in place. Main worktree has
+ * INSN_PATCH=8-words to promote to 100%; agent-a lacks INSN_PATCH infra. */
 void timproc_uso_b5_func_0000CE6C(char *a0) {
     char *v;
     float a, b, c, d;
