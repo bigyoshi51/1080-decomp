@@ -1,4 +1,6 @@
 
+nonmatching func_80007FC8, 0x20
+
 glabel func_80007FC8
     /* 8FC8 80007FC8 1000FFFF */  b          func_80007FC8
     /* 8FCC 80007FCC 00000000 */   nop

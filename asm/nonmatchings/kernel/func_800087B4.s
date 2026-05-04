@@ -1,4 +1,6 @@
 
+nonmatching func_800087B4, 0x94
+
 glabel func_800087B4
     /* 97B4 800087B4 00042E82 */  srl        $a1, $a0, 26
     /* 97B8 800087B8 30AE003F */  andi       $t6, $a1, 0x3F

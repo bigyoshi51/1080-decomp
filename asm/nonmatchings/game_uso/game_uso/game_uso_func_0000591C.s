@@ -1,3 +1,5 @@
+nonmatching game_uso_func_0000591C, 0x1114
+
 glabel game_uso_func_0000591C
     /* 00591C 0000591C 3C0E0000 */  .word 0x3C0E0000
     /* 005920 00005920 8DCE0078 */  .word 0x8DCE0078

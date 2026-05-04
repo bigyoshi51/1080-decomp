@@ -1,3 +1,5 @@
+nonmatching gui_func_00000000, 0x148
+
 glabel gui_func_00000000
     /* 58D530 00000000 1000736F */  .word 0x1000736F
     /* 58D534 00000004 AFA40000 */  .word 0xAFA40000

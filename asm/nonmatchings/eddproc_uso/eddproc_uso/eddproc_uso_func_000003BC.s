@@ -1,3 +1,5 @@
+nonmatching eddproc_uso_func_000003BC, 0x90
+
 glabel eddproc_uso_func_000003BC
     /* 59F83C 000003BC 27BDFFD8 */  .word 0x27BDFFD8
     /* 59F840 000003C0 AFBF0014 */  .word 0xAFBF0014

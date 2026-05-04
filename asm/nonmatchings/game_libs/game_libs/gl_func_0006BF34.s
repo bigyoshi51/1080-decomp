@@ -1,3 +1,5 @@
+nonmatching gl_func_0006BF34, 0x144
+
 glabel gl_func_0006BF34
     /* E5100C 0006BF34 27BDFFD8 */  .word 0x27BDFFD8
     /* E51010 0006BF38 AFA40028 */  .word 0xAFA40028

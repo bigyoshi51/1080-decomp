@@ -1,3 +1,5 @@
+nonmatching func_00000A9C, 0x78
+
 glabel func_00000A9C
     /* DD1508 00000A9C 10A00011 */  beqz       $a1, .L00000AE4
     /* DD150C 00000AA0 AFA40000 */   sw        $a0, 0x0($sp)

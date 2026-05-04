@@ -1,3 +1,5 @@
+nonmatching timproc_uso_b3_func_000021F4, 0x4C
+
 glabel timproc_uso_b3_func_000021F4
     /* 0021F4 000021F4 27BDFFE8 */  .word 0x27BDFFE8
     /* 0021F8 000021F8 AFBF0014 */  .word 0xAFBF0014

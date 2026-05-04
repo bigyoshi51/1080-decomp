@@ -1,4 +1,6 @@
 
+nonmatching func_8000060C, 0x54
+
 glabel func_8000060C
     /* 160C 8000060C 8CE4001C */  lw         $a0, 0x1C($a3)
     /* 1610 80000610 00B90019 */  multu      $a1, $t9

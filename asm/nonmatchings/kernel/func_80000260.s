@@ -1,4 +1,6 @@
 
+nonmatching func_80000260, 0x148
+
 glabel func_80000260
     /* 1260 80000260 27BDFF78 */  addiu      $sp, $sp, -0x88
     /* 1264 80000264 AFBF001C */  sw         $ra, 0x1C($sp)

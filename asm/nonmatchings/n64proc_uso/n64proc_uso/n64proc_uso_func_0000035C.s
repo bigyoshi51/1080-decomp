@@ -1,3 +1,5 @@
+nonmatching n64proc_uso_func_0000035C, 0xCC
+
 glabel n64proc_uso_func_0000035C
     /* 594DB0 0000035C 3C013F80 */  .word 0x3C013F80
     /* 594DB4 00000360 44810000 */  .word 0x44810000

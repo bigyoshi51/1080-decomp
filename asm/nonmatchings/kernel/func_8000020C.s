@@ -1,4 +1,6 @@
 
+nonmatching func_8000020C, 0x54
+
 glabel func_8000020C
     /* 120C 8000020C 908E0000 */  lbu        $t6, 0x0($a0)
     /* 1210 80000210 00001825 */  or         $v1, $zero, $zero

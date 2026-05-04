@@ -1,3 +1,5 @@
+nonmatching timproc_uso_b5_func_0000D0DC, 0x70
+
 glabel timproc_uso_b5_func_0000D0DC
     /* 00D0DC 0000D0DC 27BDFFD8 */  .word 0x27BDFFD8
     /* 00D0E0 0000D0E0 AFBF0024 */  .word 0xAFBF0024

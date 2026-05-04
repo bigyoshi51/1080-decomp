@@ -1,3 +1,5 @@
+nonmatching titproc_uso_func_00000C54, 0x37C
+
 glabel titproc_uso_func_00000C54
     /* 59A920 00000C54 27BDFFC0 */  .word 0x27BDFFC0
     /* 59A924 00000C58 AFB10020 */  .word 0xAFB10020
