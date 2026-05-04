@@ -2006,6 +2006,24 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      * (Math chain continues 0x9D34-0x9DC4 — multiplies sp+0x12C entries by
      * 250.5f scale + 50.0f offset for screen-coord transform; not yet decoded.)
      *
+     * Extended characterization 2026-05-04 (0x9D34-0x9DC4, ~37 insns):
+     *   - 0x9D34-0x9D58: load 3 floats from sp+0x12C/130/134, mul.s with
+     *     250.5f and a fresh load from t2->0x54 (struct field arg). Result
+     *     stays in $f0..$f4.
+     *   - 0x9D5C-0x9D74: load sp+0x134, more mul.s on $f4/$f6/$f8/$f10/$f12,
+     *     swc1 BACK to sp+0x12C and sp+0x130 (in-place scaling of first 2 of 3
+     *     Vec3 components — pattern is `vec[i] = vec[i] * 250.5f * t2->0x54`).
+     *   - 0x9D7C-0x9DBC: another lwc1 chain from sp+0x138/13C/140 into
+     *     $f6/$f10, mul.s with same scale, swc1 back to sp+0x138/0x13C/0x140
+     *     (second Vec3 in-place scale, same pattern).
+     *   - 0x9DC0: lw t5, 0x30(t4) — load yet another struct's Vec3 source.
+     *   - 0x9DC4-0x9DD0: bne+jal sequence — 4th cross-USO dispatch with
+     *     scratch_a (sp+0xEC) and t5+0xB4 args.
+     *
+     * Net: 0x9D34-0x9DC4 is "scale 2 Vec3s in place by 250.5f * t2->0x54,
+     * load 3rd Vec3 source, dispatch helper". Confirms screen-space transform
+     * hypothesis. Body-part-2 still has ~200 insns past 0x9DD0.
+     *
      * @ 0x9DC4-0x10E8: body-part-2 final, 240+ insns + ~8 cross-USO calls.
      *   TODO: future passes will decompose the per-block math chains.
      *   The 250.5/50.0 constants confirm screen-space coordinate transform
