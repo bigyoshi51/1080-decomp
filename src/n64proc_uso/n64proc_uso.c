@@ -314,7 +314,22 @@ void n64proc_uso_func_00000230(char *a0) {
  * choice on the second dispatch. Stays at 93.57 %.
  *
  * 2026-05-03 re-measure: 93.34 % (slight drift from parallel-agent commits
- * affecting siblings; nothing structural). */
+ * affecting siblings; nothing structural).
+ *
+ * 2026-05-04: re-measure 93.57 % (back to original). Two more variants
+ * tried, both no-op:
+ *   (e) `register int t` qualifier on the body's working local — no
+ *       effect on body cascade $t-reg picks. IDO already promotes `t`
+ *       past stack; the `register` hint is redundant. % unchanged.
+ *   (f) Inline dispatch reads `if (a0[0x50/4] == 0) goto c0;` (no named
+ *       `v` local) — IDO still picks the same bnel-skip-to-end at the
+ *       second dispatch. The named-vs-inline distinction (per
+ *       feedback_ido_inline_deref_v0.md / feedback_ido_v0_reuse_via_locals.md)
+ *       affects $v0/$t-reg destination, not the dispatch arm choice.
+ *       % unchanged at 93.57 %.
+ *
+ * Six C-form variants tried total ((a)-(f)). Cap stands at 93.57 %.
+ * No further single-/decompile-run lever to flip. */
 void n64proc_uso_func_00000268(int *a0) {
     int v;
     int t;
