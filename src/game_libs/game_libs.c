@@ -353,7 +353,82 @@ int gl_func_000083AC(char *a0) {
     return gl_func_00000000(a0 + 0x50);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_000083CC: 79-insn 5-call dispatcher + 2 trailing prologue-stolen
+ * words for gl_func_00008510 (the next function). Reads global state at
+ * D_00000000+0x134, calls gl_func_00000000 5 times with state-derived args,
+ * mutates state flags between calls.
+ *
+ * Structural decode (2026-05-04 partial):
+ *   state = D[0x134]                 ; global state pointer
+ *   t6 = state->0x108                ; sub-pointer
+ *   a3 = state->0xC4                 ; sub-pointer
+ *   t7 = t6->0x70                    ; saved at sp+0x44
+ *   v0 = a3->0x800                   ; passed as 5th arg in 1st call
+ *   a2 = state->0x80                 ; passed as 3rd arg in 1st call
+ *   gl_func(state, 1, state->0x80, state->0xC4, a3->0x800);  /\* CALL 1 *\/
+ *
+ *   t9 = state->0x108                ; reload (state may have changed)
+ *   s0->0x520 = t9                   ; spill to caller obj
+ *   t9->0x18 &= ~8                   ; clear flag bit 3
+ *   v1 = s0->0x520                   ; reload
+ *   v1->0x18 &= ~4                   ; clear flag bit 2 — at &v1[0x18+0x18]
+ *   gl_func(state, 0x70, t6->0x70);  /\* CALL 2 *\/
+ *
+ *   s0->0x51C = result_of_call2
+ *   state->0x108 = result_of_call3   ; call3 first
+ *   gl_func(0x80);                   /\* CALL 3 *\/
+ *   if (call3_result != 0) {
+ *       gl_func(call3_result, 1);    /\* CALL 4 *\/
+ *   }
+ *   gl_func(0, call3_result, state->0xC4, s0->0x51C, t7, call1_result);
+ *                                    /\* CALL 5 — 6 args *\/
+ *
+ * NEXT-FUNCTION PROLOGUE-STEALS: trailing 2 words at 0x8508-0x850C
+ * (`lui v1, 0; lw v1, 0x134(v1)`) belong to gl_func_00008510 logically.
+ * To match gl_func_00008510 exact, will need
+ * `build/src/game_libs/game_libs.c.o: PROLOGUE_STEALS := gl_func_00008510=8`.
+ *
+ * NEXT PASS: tighten the call-arg signatures, identify what callbacks
+ * gl_func_00000000 resolves to at runtime (likely "spawn entity" /
+ * "register handler" / "register" sequence given 5-call init pattern). */
+extern int gl_func_00000000();
+extern char D_00000000;
+void gl_func_000083CC(int *a0) {
+    int *state = *(int**)((char*)&D_00000000 + 0x134);
+    int *t6 = *(int**)((char*)state + 0x108);
+    int *a3 = *(int**)((char*)state + 0xC4);
+    int t7 = *(int*)((char*)t6 + 0x70);
+    int v0_call1 = gl_func_00000000(state, 1,
+                                    *(int*)((char*)state + 0x80),
+                                    a3,
+                                    *(int*)((char*)a3 + 0x800));
+    int *t9 = *(int**)((char*)state + 0x108);
+    *(int**)((char*)a0 + 0x520) = t9;
+    *(int*)((char*)t9 + 0x18) &= ~8;
+    {
+        int *v1 = *(int**)((char*)a0 + 0x520);
+        *(int*)((char*)v1 + 0x18 + 0x18) = *(int*)((char*)v1 + 0x18) & ~4;
+    }
+    {
+        int v0_call2 = gl_func_00000000(state, 0x70, t7);
+        *(int*)((char*)a0 + 0x51C) = v0_call2;
+    }
+    {
+        int v0_call3 = gl_func_00000000(0x80);
+        *(int*)((char*)state + 0x108) = v0_call3;
+        if (v0_call3 != 0) {
+            gl_func_00000000(v0_call3, 1);
+        }
+        gl_func_00000000(0, v0_call3,
+                         *(int*)((char*)state + 0xC4),
+                         *(int*)((char*)a0 + 0x51C),
+                         t7, v0_call1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000083CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008510);
 
