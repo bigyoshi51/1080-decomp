@@ -19,10 +19,10 @@ Nineteen segments are being decompiled. USO overlays ship as a custom relocatabl
 | `n64proc_uso`  | 3 / 7       | 0.1 KB / 1.0 KB    | N64-specific process                           |
 | `boarder1..5_uso` | 30 / 30  | 1.9 KB / 1.9 KB    | Per-character snowboarder USOs — 100 % matched |
 | `mgrproc_uso`  | 12 / 50     | 0.7 KB / 13.0 KB   | Manager process (Yay0-decompressed)            |
-| `game_uso`     | 79 / 222    | 4.5 KB / 70.8 KB   | Main game loop (Yay0-decompressed)             |
+| `game_uso`     | 82 / 222    | 4.8 KB / 70.8 KB   | Main game loop (Yay0-decompressed)             |
 | `timproc_uso_b1,b3,b5` | 77 / 224 | 4.1 KB / 81.3 KB | Timer process variants (Yay0-decompressed)     |
 | `map4_data_uso_b2` | 3 / 3   | 0.2 KB / 0.2 KB    | Map-4 data block                               |
-| **Total**      | **848 / 2,665** | **52.4 KB / 748.6 KB (7.01%)** |                                |
+| **Total**      | **850 / 2,665** | **52.6 KB / 748.6 KB (7.02%)** |                                |
 
 Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
