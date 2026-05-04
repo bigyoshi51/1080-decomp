@@ -591,7 +591,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BBDC);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BDA0);
+extern char D_b5_BDA0_table;
+void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
+    (void)a1; (void)a2; (void)a3;
+    gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], (char*)&D_b5_BDA0_table + a0[0x1AC/4] * 24);
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BDEC);
 
