@@ -358,6 +358,34 @@ void arcproc_uso_func_00000E58(char *a0) {
     arcproc_uso_func_00000000(a0 + 0x764);
 }
 
+/* arcproc_uso_func_00000EBC: 6-FUNCTION BUNDLE (0x94 / 37 insns).
+ * Splat-bundled — splitting risks .o layout shift; documented per
+ * feedback_uso_split_fragments_breaks_expected_match.md (similar cap to
+ * 0xF50/3-bundle below).
+ *
+ * Sub-function layout (boundaries = jr ra + delay slot):
+ *   F1 @ 0xEBC-0xEE8: 11 insns / 0x30. Conditional gl_func call:
+ *     if (a0->0x4F0 & 0x10000) gl_func();  // bgezl on (t6 << 15)
+ *   F2 @ 0xEEC-0xF0C: 9 insns / 0x24. Triple-deref non-null check:
+ *     return (a0->0x6AC && a0->0x6AC->0x6C && a0->0x6AC->0x6C->0xEC) ? 1 : 0;
+ *     Uses two beql + delay-likely zero-return shortcuts for the null cases.
+ *   F3 @ 0xF10-0xF18: 3 insns / 0xC. `return 0;` stub.
+ *   F4 @ 0xF1C-0xF30: 5 insns / 0x14. Conditional flag setter:
+ *     a0->0x504 = (a0->0x6B8 != 0) ? 4 : 0;
+ *     Uses bnel + delay-likely for the non-zero-set, fall-through for zero.
+ *   F5 @ 0xF34-0xF3C: 3 insns / 0xC. Likely dead/unreachable; 0xF34 is
+ *     `sw t7, 0x504(a0)` with t7 uninitialized — possibly splat artifact
+ *     of F4's bnel target landing pattern.
+ *   F6 @ 0xF40-0xF44: 2 insns / 0x8. `return; arg0->0x504 = 0;` (jr ra +
+ *     delay-slot store).
+ *   Trailing 8 bytes (`lui a1, 0; lw a1, 0x170(a1)`) are stolen prologue
+ *   prefix for SUCCESSOR func_00000F50 (PROLOGUE_STEALS=8 candidate).
+ *
+ * To split: would need split-fragments.py recursively + manual move of
+ * INCLUDE_ASM lines from arcproc_uso.c (where the script appends) to
+ * tail1.c (the correct file), plus TRUNCATE_TEXT adjustment. Defer
+ * until typing the GameState struct (the +0x4F0/+0x504/+0x6AC/+0x6B8
+ * fields are clearly sub-states). */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EBC);
 
 /* arcproc_uso_func_00000F50: 3-FUNCTION BUNDLE (0x58 / 22 insns).
