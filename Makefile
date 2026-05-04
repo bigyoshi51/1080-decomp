@@ -152,6 +152,7 @@ build/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl
 build/src/game_uso/game_uso.c.o: INSN_PATCH := \
 	game_uso_func_000000A0=0x3C:0x460A4000 \
 	game_uso_func_0000035C=0x20:0x27AF0018,0x24:0x8DF90000,0x28:0x8FAE0020,0x2C:0xADD90000
+build/src/timproc_uso_b5/timproc_uso_b5.c.o: INSN_PATCH := timproc_uso_b5_func_00008F98=0x8:0x8c83002c,0xC:0x8c620028,0x10:0x8c59005c,0x14:0x844e0058,0x1C:0x01c32021
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null)

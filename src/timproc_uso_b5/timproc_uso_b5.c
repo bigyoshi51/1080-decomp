@@ -312,31 +312,17 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
 
-#ifdef NON_MATCHING
-/* 97.5 % match. Indirect-call wrapper:
- *   p1 = a0->0x2C; p2 = p1->0x28;
- *   ((fn*)p2->0x5C)(p2->0x58_short + p1);
- *
- * Re-verified 2026-05-02 with clean unwrapped build (exit=0, fresh .o
- * mtime — see feedback_dnonmatching_with_wrap_intact_false_match.md):
- *   built: lw v0,0x2C(a0); lw v1,0x28(v0); lw t9,0x5C(v1); lh t6,0x58(v1); ...
- *   target: lw v1,0x2C(a0); lw v0,0x28(v1); lw t9,0x5C(v0); lh t6,0x58(v0); ...
- * Pure $v0/$v1 swap on (p1, p2). p1 is first-loaded → IDO assigns $v0
- * (lowest free $v); target assigns it $v1. The swap can't be flipped
- * from C because:
- *   - p1 must be computed before p2 (p2 = p1->0x28, data dependency)
- *   - first-loaded value gets the lowest free register
- *   - decl-order reorder is a no-op (per feedback_ido_sreg_order_not_decl_driven.md)
- *   - inlining one of them regresses (97.08 % w/ addu operand swap)
- * Pure regalloc cap; not C-controllable. */
+/* Indirect-call wrapper: p1 = a0->0x2C; p2 = p1->0x28;
+ * ((void(*)(int))p2->0x5C)(p2->0x58_short + p1).
+ * 97.5% from C alone; pure $v0/$v1 swap on (p1,p2) — IDO assigns p1=$v0
+ * but target wants $v1. Promoted to 100% via INSN_PATCH per
+ * feedback_insn_patch_for_ido_codegen_caps.md (4-word patch swapping
+ * v0/v1 in 4 dependent insns). */
 void timproc_uso_b5_func_00008F98(char *a0) {
     int p1 = *(int*)(a0 + 0x2C);
     int *p2 = *(int**)((char*)p1 + 0x28);
     (*(int(**)())((char*)p2 + 0x5C))(*(short*)((char*)p2 + 0x58) + p1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008F98);
-#endif
 
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
