@@ -425,11 +425,32 @@ s32 uso_file_open(FileState* file, u32* arg1) {
     return 1;
 }
 
-/* uso_skip_to_end: reads USO section headers until End (type 11) */
-/* uso_skip_to_end: reads USO section headers until End (type 11) */
-/* NON_MATCHING: file offset handling is now correct via `((s32*)file)[1]`,
- * but IDO still flips the 8/11 compare operand order (`beq s2,t6` and
- * `bnel s3,t0`) instead of the target's `beq t6,s2` / `bnel t0,s3`. */
+/* uso_skip_to_end: reads USO section headers until End (type 11).
+ *
+ * NON_MATCHING at 99.4 % (re-measured 2026-05-04). Body is structurally
+ * exact; cap is exactly 2 instructions due to IDO `beq` operand order:
+ *
+ *   func+0x50 (built 0x980, expected 0x780):
+ *     mine:    124E0004  beq  $s2, $t6, +4   (s-first)
+ *     target:  11D20004  beq  $t6, $s2, +4   (t-first)
+ *   func+0x68 (built 0x998, expected 0x798):
+ *     mine:    5668FFF0  bnel $s3, $t0, -4   (s-first)
+ *     target:  5513FFF0  bnel $t0, $s3, -4   (t-first)
+ *
+ * Both are SEMANTICALLY identical (beq/bnel are symmetric); only the
+ * encoding's operand order differs. IDO 7.1 -O2 normalizes to "$s
+ * register first". Target was compiled with a slightly different IDO
+ * version/path that picked "$t register first". Per
+ * feedback_ido_register.md, this is a known cosmetic-only cap that's
+ * not reachable from C-level levers (verified across 6 NM-cap funcs of
+ * this same shape).
+ *
+ * INSN_PATCH-eligible per feedback_insn_patch_for_ido_codegen_caps.md:
+ * 2 words at func+0x50 and func+0x68 to overwrite with target bytes
+ * (0x11D20004 and 0x5513FFF0). Recipe blocked here: scripts/patch-insn-bytes.py
+ * + INSN_PATCH Makefile var don't exist on agent-a or origin/main yet
+ * (memory references the recipe but the infra hasn't landed). When the
+ * infra lands, this function is a clean 99.4→100 candidate. */
 #ifdef NON_MATCHING
 s32 uso_skip_to_end(FileState* file) {
     s32 pad;
