@@ -2507,7 +2507,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5BC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5DC);
+void game_uso_func_0000D5DC(char *a0) {
+    *(int*)(a0 + 0xC8) = *(int*)((char*)&D_00000000 + 0xDC8);
+    *(int*)(a0 + 0xCC) = *(int*)((char*)&D_00000000 + 0xDCC);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5F8);
 
