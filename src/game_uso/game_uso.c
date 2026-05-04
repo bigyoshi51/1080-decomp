@@ -2890,7 +2890,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001094C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010A0C);
 
+#ifdef NON_MATCHING
+/* 89.18% NM. 6th member of precall-arg-spill family
+ * (F664/F8E8/EF20/FF48/1056C/10AC8). Built 26 vs expected 28 insns
+ * — missing `sw a1,4(sp); sw a2,8(sp)` defensive spills around the
+ * 3rd jal. Logic decoded:
+ *   gl_func_00000000(a0);  // initial call (no extra args)
+ *   v0 = a0->0xFC;
+ *   gl_func_00000000(a0, v0|2, v0|3, a0->0xB4->0x970, 0x100, 10);
+ *   gl_func_00000000(a0, D_E40, D_E44, -1);  // precall-spill cap site
+ *
+ * INSN_PATCH ineligible (size diff). Same blocker as the family
+ * per feedback_uso_3unique_extern_inline_store_before_jal_combo.md. */
+void game_uso_func_00010AC8(char *a0) {
+    int v0;
+    gl_func_00000000(a0);
+    v0 = *(int*)(a0 + 0xFC);
+    gl_func_00000000(a0, v0 | 2, v0 | 3, *(int*)(*(char**)(a0 + 0xB4) + 0x970), 0x100, 10);
+    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE40), *(int*)((char*)&D_00000000 + 0xE44), -1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010AC8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010B38);
 
