@@ -1,5 +1,3 @@
-nonmatching game_uso_func_000000A0, 0x40
-
 glabel game_uso_func_000000A0
     /* 0000A0 000000A0 C4840000 */  .word 0xC4840000
     /* 0000A4 000000A4 C4A60000 */  .word 0xC4A60000

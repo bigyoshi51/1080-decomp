@@ -1,5 +1,3 @@
-nonmatching timproc_uso_b5_func_00008F98, 0x30
-
 glabel timproc_uso_b5_func_00008F98
     /* 008F98 00008F98 27BDFFE8 */  .word 0x27BDFFE8
     /* 008F9C 00008F9C AFBF0014 */  .word 0xAFBF0014

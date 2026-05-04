@@ -1,5 +1,3 @@
-nonmatching arcproc_uso_func_00000A3C, 0x334
-
 glabel arcproc_uso_func_00000A3C
     /* 5A6B84 00000A3C 27BDFFC0 */  .word 0x27BDFFC0
     /* 5A6B88 00000A40 AFB10020 */  .word 0xAFB10020
