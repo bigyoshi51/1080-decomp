@@ -1054,7 +1054,47 @@ void gl_func_0000DB34(int a0, int a1, int a2) {
         *(short*)((char*)v0 + 0x30) + (int)&D_00000000, &local);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000DB80: 68-insn function-pointer dispatcher with table lookup
+ * + 3-way switch on entity state (a2->0x48).
+ *
+ * Structural decode (2026-05-04 first-pass):
+ *   Prologue: spill 1000 (0x3E8) at sp+0x44 to use as a base.
+ *   Lookup: t = *(sp+0x44 + a1*96)  — 96-byte stride table at offset
+ *           +1000 from some base. (96 = 24 ints = likely a struct).
+ *   First call: ((fnptr)t->0x2C)(t->0x28+t, &sp[0x44])  — vtable call,
+ *           passes (struct ptr offset by signed half) and pointer to
+ *           the spilled-1000 slot (now repurposed as out-arg).
+ *
+ *   Switch on (a2->0x48 - 2):  // a2 = original a0 saved at sp+0x50
+ *     case 2 (a2->0x48 == 2): bnel branches to epilogue (skip body)
+ *     case 3 (a2->0x48 == 3): take 0x3E9-stride table:
+ *         t = *(sp+0x2C + a1*96 + a0->0x44)  // diff stride table
+ *         ((fnptr)t->0x2C)(t->0x28+t, t_lookup)
+ *         goto epilogue
+ *     default (else):         take 0x3E8-stride table:
+ *         t = *(sp+0x20 + a1*96 + a0->0x44)
+ *         ((fnptr)t->0x2C)(t->0x28+t, t_lookup_h)  // signed-half load arg
+ *
+ *   The 3 jal sites all dispatch through `t->0x2C` function pointer with
+ *   `t->0x28` (signed half) added to t as the first arg. Different
+ *   tables are consulted based on a2->0x48's value.
+ *
+ * NEXT PASS: identify the global struct at offset +0x3E8/+0x3E9 (likely a
+ * "render dispatch" or "AI behavior" table); type the struct's vtable +
+ * data layout. Likely a "process entity by type-code" pattern. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void gl_func_0000DB80(int *a0, int a1) {
+    /* Partial decode: 3-way switch on a2->0x48 (original a0->0x48), each
+     * branch loads a different table-of-vtables and calls *t->0x2C(t->0x28+t, ...).
+     * Default build uses INCLUDE_ASM. */
+    (void)a0;
+    (void)a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
 
