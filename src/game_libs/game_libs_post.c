@@ -2413,12 +2413,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DF90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
-/* gl_func_0004E150: 97.5%->100% via INSN_PATCH (5 reg-rename diffs at
- * offsets 0x08/0x0C/0x10/0x14/0x1C). IDO emits $v0 for p1; target uses
- * $v1. Pure $v0/$v1 swap pattern, same as gl_func_0000D9B8 family. */
+/* Vtable-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
+ * declare p2 FIRST with p1's load inlined; IDO CSE's the duplicated
+ * `a0->0x134` load and assigns $v1 to p1, $v0 to p2 (target's regalloc).
+ * Same pattern as timproc_uso_b5_func_00008F98. Replaces prior INSN_PATCH
+ * approach — no Makefile entry needed. */
 void gl_func_0004E150(char *a0) {
+    char *p2 = *(char**)(*(char**)(a0 + 0x134) + 0x14);
     char *p1 = *(char**)(a0 + 0x134);
-    char *p2 = *(char**)(p1 + 0x14);
     (*(int(**)(char*))(p2 + 0xC))(p1 + *(short*)(p2 + 0x8));
 }
 
