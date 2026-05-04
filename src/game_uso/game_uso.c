@@ -1317,7 +1317,24 @@ void game_uso_func_000044C8(char *a0) {
  * of init loop: 0x188 = 392 bytes, approaching the ~0x3E0 child obj
  * boundary.
  *
- * NEXT PASS: continue from 0x4C78; expect 9 more groups before finalize. */
+ * NEXT PASS: continue from 0x4C78; expect 9 more groups before finalize.
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x4C7C-0x4D80 (groups 19-21, ~70 insns):
+ *   Group 19 @ 0x4C7C-0x4CE0: stride=0x1A0, sentinel=-0x1A0, tlist=D+0x72C,
+ *     float=D+0xD4 (D-table form).
+ *   Group 20 @ 0x4CE4-0x4D48: stride=0x1B8, sentinel=-0x1B8, tlist=D+0x730.
+ *     PATTERN SHIFT (return of inline-float): float is INLINE literal
+ *     (`lui at,0x4496; mtc1 at,$f4`) = 1200.0f (0x44960000 bit pattern).
+ *   Group 21 @ 0x4D4C-0x4D80+: stride=0x1D0, sentinel=-0x1D0, tlist=D+0x734.
+ *
+ * 22 of ~28 groups decoded. Strides 0x1A0, 0x1B8, 0x1D0 (stable +0x18).
+ * Tlists D+0x72C, +0x730, +0x734. Cumulative stride: 464 bytes.
+ * Inline-float pattern returns at group 20 (1200.0f) — second occurrence
+ * after groups 8-9 (-4000.0f, -8000.0f). Suggests inline floats correspond
+ * to specific velocity/threshold sub-objects that aren't D-table indexed.
+ *
+ * NEXT PASS: continue from 0x4D80; expect ~6 more groups before
+ * linkage/finalize phase. */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
