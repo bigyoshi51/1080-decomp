@@ -715,7 +715,45 @@ void func_000054A0(int a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054A0);
 #endif
 
+extern char D_000078D8;
+
+#ifdef NON_MATCHING
+/* func_000054D8: 25-insn alloc-and-init wrapper (0x64). Allocates a 0x58-byte
+ * struct, initializes via gl_func with 5 args, sets vtable-style pointer at
+ * +0x28, returns the new pointer (or 0 on alloc fail).
+ *
+ * Decoded structure:
+ *   p = func_00000000(0x58);                     // alloc
+ *   if (p == 0) return 0;
+ *   func_00000000(p, arg0, *D_a, &D_b, arg0);    // init (5-arg, varargs spill)
+ *   p->0x28 = &D_000078D8;                       // vtable
+ *   return p;
+ *
+ * -O2 indicators: filled jal delay slots (sw a1,4(sp) in delay slot of init
+ * call — varargs 5th arg spilled), `or v0,a0,zero` epilogue setting return
+ * value from $a0 (since both alloc-success and alloc-fail paths converge to
+ * `return p`).
+ *
+ * Two D_00000000 references at 0x4FC/0x500 (lui+lw, lui+addiu) — distinct
+ * USO data placeholders. Per
+ * feedback_unique_extern_with_offset_cast_breaks_cse.md, need 2 unique
+ * externs all mapped to 0x0 to break IDO &D-CSE between them. Plus
+ * D_000078D8 is a real (non-zero offset) intra-USO data symbol at 0x78D8.
+ *
+ * Multi-tick refinement: byte match needs 2 unique-extern aliases for the
+ * D references + arg0-reload-after-alloc shape. NM-wrap keeps default
+ * INCLUDE_ASM build exact while documenting the alloc+init structure for
+ * the next pass. */
+int* func_000054D8(int arg0) {
+    int *p = (int*)func_00000000(0x58);
+    if (p == 0) return 0;
+    func_00000000(p, arg0, *(int*)&D_00000000, &D_00000000, arg0);
+    p[10] = (int)&D_000078D8;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054D8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
 
