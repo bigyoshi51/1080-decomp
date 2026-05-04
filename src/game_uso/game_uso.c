@@ -2474,7 +2474,26 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5DC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5F8);
 
+#ifdef NON_MATCHING
+/* 2-insn split-off (unwrapped from the 0xD458 bundle). Body:
+ *   jr ra
+ *   sw a0, 0(sp)        (delay slot — store a0 to caller's a0 slot)
+ *
+ * No prologue, no epilogue. The `sw a0, 0(sp)` writes to the CALLER's
+ * a0 caller-slot. This is unmatchable from standalone C: a void leaf
+ * returns `jr ra; nop` (no spill), and an arg-spill at exit isn't
+ * something IDO -O2 emits without a frame.
+ *
+ * Likely a continuation-style helper called by a sibling function that
+ * pre-positions sp such that `0(sp)` is the right slot. Standalone
+ * matching unreachable per feedback_lw_arg_from_stack_no_preceding_sw.md
+ * (sibling pattern: lw without preceding sw is also continuation-style). */
+void game_uso_func_0000D634(int a0) {
+    (void)a0;  /* sw a0, 0(sp) in delay slot — not C-emit-able */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D634);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
 
