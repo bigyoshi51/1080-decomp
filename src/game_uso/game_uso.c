@@ -777,7 +777,25 @@ branch_88: {
     /* TODO 0x1FA0-end: scale delta by excess, store into 3 output Vec3s,
      * second gl_func dispatch (sp+0x110/sp+0x130 args), stores to
      * a0->0x60..0x68 (resulting Vec3), nested call to scale/normalize.
-     * Estimated ~250 insns remaining. */
+     * Estimated ~250 insns remaining.
+     *
+     * Extended scan 2026-05-04 (0x1FA0-0x2050, ~30 more insns characterized):
+     *   - 0x1FB0-0x1FD4: triple `lw t9/lw tA/sw t9/sw tA` pairs FROM t6+0/4/8
+     *     INTO TWO destinations (e.g. ACEB/AC6A registers = a3+0x0..8 AND
+     *     v1+0x0..8). Pattern is "struct copy 12 bytes, fanned out to 2 dst".
+     *   - 0x1FD8-0x1FF0: load sp+0xC4/0xC8/0xCC (3 floats), store into
+     *     sp+0x120/0x124/0x128 (Vec3 reposition).
+     *   - 0x1FF4: `mul.s f0, f16, f1` — scalar*vec scale (excess * something).
+     *   - 0x2004: `mul.s f12, f8, f0` — second mul (continuation of scale).
+     *   - 0x2010-0x201C: `mul.s f2, f10, f0` triple-mul completing 3-component
+     *     vector scale.
+     *   - 0x2030-0x2050: another t6 → t7+0/4/8 struct copy (similar to first).
+     *
+     * So 0x1FA0-0x2050 is "Vec3 = scale * other_vec3" (3 mul.s), preceded by
+     * a 12-byte struct copy and followed by a duplicate copy. Likely
+     * "delta_scaled = excess * normalized_delta; copy delta_scaled to two
+     * downstream Vec3 fields". Decoding C body deferred — current stub
+     * captures structure without breaking build. */
     (void)excess;
     (void)gl_func_TODO_00001DDC((int*)scratch, a0);
 }
