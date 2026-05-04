@@ -349,7 +349,72 @@ void h2hproc_uso_func_00000A80(int *a0) {
     *(int*)((char*)a0 + 0x504) = 0;
 }
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00000A88: 73-insn / 0x124 state-machine dispatcher on
+ * a0->0x504 (player slot/state).
+ *
+ * 3-way switch on `a0->0x504`:
+ *   Case 0:
+ *     gl_func(D[0x190], 3, 1)            ; "register player at slot 3"?
+ *     a0->0x504 = 1
+ *     gl_func(7, 0, 0)                    ; "kind=7"?
+ *     return
+ *   Case 1:
+ *     v0 = gl_func(D[0x190], 3)           ; lookup player at slot 3
+ *     if (v0 == 0) return
+ *     gl_func(7, 0, 0)
+ *     gl_func(a0)
+ *     diff_a = D[0x170]
+ *     diff_b = D[0x174]
+ *     min = (diff_b < diff_a) ? diff_b : diff_a   ; sltu pattern
+ *     gl_func(a0, min + 0x26000F)
+ *     p = gl_func(0, a0)                  ; alloc/setup, returns ptr
+ *     a0->0x6AC = p
+ *     a3 = a0->0x56C
+ *     gl_func(a3 + 0x10, p, p->0?, ...)   ; deref-call
+ *     if (p->0x14 != 0) p->0x4 = 1
+ *     p->0x14 = a3
+ *     gl_func(D[0x190], 1, 1)
+ *     return
+ *   Default (other v1):
+ *     return (just epilogue restore)
+ *
+ * Logic-level decode only. Match% will be measured in a later run after
+ * cleaning up signatures + register allocation. Stub with INCLUDE_ASM
+ * default so default build is exact. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void h2hproc_uso_func_00000A88(int *a0) {
+    int v1 = *(int*)((char*)a0 + 0x504);
+    if (v1 == 0) {
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3, 1);
+        *(int*)((char*)a0 + 0x504) = 1;
+        gl_func_00000000(7, 0, 0);
+    } else if (v1 == 1) {
+        int *p;
+        int a3;
+        unsigned diff_a, diff_b, min;
+        if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3) == 0) return;
+        gl_func_00000000(7, 0, 0);
+        gl_func_00000000(a0);
+        diff_a = *(unsigned*)((char*)&D_00000000 + 0x170);
+        diff_b = *(unsigned*)((char*)&D_00000000 + 0x174);
+        min = (diff_b < diff_a) ? diff_b : diff_a;
+        gl_func_00000000(a0, min + 0x26000F);
+        p = (int*)gl_func_00000000(0, a0);
+        a3 = *(int*)((char*)a0 + 0x56C);
+        *(int**)((char*)a0 + 0x6AC) = p;
+        gl_func_00000000(a3 + 0x10, p, 1);
+        if (*(int*)((char*)p + 0x14) != 0) {
+            *(int*)((char*)p + 0x4) = 1;
+        }
+        *(int*)((char*)p + 0x14) = a3;
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A88);
+#endif
 
 void h2hproc_uso_func_00000BAC(int *a0) {
     int v0, v1;
