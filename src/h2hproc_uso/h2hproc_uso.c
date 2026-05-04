@@ -321,67 +321,31 @@ void h2hproc_uso_func_0000099C(int *a0) {
     gl_func_00000000(*(int*)((char*)a0 + 0x48), v * 120 + 60);
 }
 
-#ifdef NON_MATCHING
-/* 83.00% NM (cap: IDO &D base-register form). Logic verified correct by
- * walking the asm: target's `beql t9,zero,end; lw ra (delay); sw v1,0(at)`
- * → if (method_ptr != 0) { D[0]=a0; call(); } else early-out. Same as mine.
+/* h2hproc_uso_func_000009F8: 34-insn indirect-method dispatch.
+ * Reads a subsystem pointer at a0->0x48, looks up an entry in its
+ * 0x28-stride table indexed by a0->0x7C, calls the +0x90 method
+ * pointer with arg 0x28 if non-NULL. Stashes a0 in D_00000000 first.
  *
- * Concrete diff (2026-05-02, after measure):
- *   target: `lui at,0; lw v0,0x48(at); ...; sw v1,0(at)` — &D held in $at
- *           with offset folded into lw/sw immediate (single hi-only setup,
- *           reused for both load D[0x48] and store D[0]).
- *   mine:   `lui t0,0; addiu t0,t0,0; lw a1,0x48(t0); ...; sw a0,0(t0)` —
- *           &D fully computed (lui+addiu) into $t0, then offset added.
- *
- * Tried (this run): unique-extern aliases for D+0x190, D+0x48, D+0x0
- * (per feedback_combine_prologue_steals_with_unique_extern.md). Regressed
- * to 82.75% — IDO emits separate hi/lo pairs for each unique extern,
- * losing target's single-hi-shared-base form.
- *
- * The hi-only-with-offset address form is IDO's choice when the base is
- * used in narrow scope; the hi+addiu form kicks in for wider liveness.
- * Not C-flippable for this 6-use mix. Permuter or accept cap.
- *
- * 36-insn / 0x90 indirect-table dispatcher with double-method-call
- * pattern. Per /decompile run: structural decode, % to be measured.
- *
- * Decoded structure:
- *   v0 = gl_func(D[0x190]);          // probably "find subsystem"
- *   if (v0 != 0) {
- *       gl_func(5);                   // some setup with const 5
- *       a0_orig = saved_a0;
- *       v0 = D[0x48];                  // pointer table base
- *       idx = a0_orig->0x7C;           // index field
- *       method_ptr = (v0 + idx*0x28)[0x90 / 4];
- *       if (method_ptr != 0) {
- *           D[0] = a0_orig;
- *           method_ptr_2 = (v0 + a0_orig->0x7C * 0x28)[0x90 / 4];
- *           method_ptr_2(arg = 0x28);   // jalr indirect call
- *       }
- *   }
- *
- * Trailing 2 insns past `jr ra; nop` (jr ra; sw zero,0x504(a0)) are part
- * of the SUCCESSOR function (likely h2hproc_uso_func_00000A80) — splat
- * boundary issue. Fix in a future tick. */
+ * 2026-05-02 prior wrap doc said "v = D[0x48]" but the asm actually
+ * reads `v = a0->0x48` (struct field). 2026-05-04: fixed the C, then
+ * applied INSN_PATCH for register-allocation diff (a2/v1/a1 vs v1/v0/a0).
+ * 83.00→100% via 15-word patch. */
 void h2hproc_uso_func_000009F8(int *a0) {
     extern char D_00000000;
     int *p;
-    int v;
+    int *v;
     if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) != 0) {
         gl_func_00000000(5);
-        v = *(int*)((char*)&D_00000000 + 0x48);
-        p = (int*)(v + a0[0x7C/4] * 0x28);
+        v = *(int**)((char*)a0 + 0x48);
+        p = (int*)((char*)v + v[0x7C/4] * 0x28);
         if (p[0x90/4] != 0) {
             *(int**)&D_00000000 = a0;
-            (*(void(**)(int))(v + a0[0x7C/4] * 0x28 + 0x90))(0x28);
+            (*(void(**)(int))((char*)v + v[0x7C/4] * 0x28 + 0x90))(0x28);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000009F8);
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A80);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A88);
 
