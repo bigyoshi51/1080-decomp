@@ -213,9 +213,19 @@ extern void func_80006A50(u32 addr, u32 val);
 extern void func_80009030(s32, s32);
 
 /* NON_MATCHING: same IDO -O1 prologue scheduling diffs as func_8000969C
- * (sw s0/s1 order, jal delay slot), plus the 0xFFF mask being emitted
- * as a delay-slot `andi` rather than target's `andi t8,...;` before jal
- * with `or a1,t8,0` in delay. All logic correct, bytes differ. */
+ * (sw s0/s1 order, jal delay slot), PLUS the 0xFFF mask emitted as a
+ * delay-slot `andi a1,a1,0xFFF` instead of target's pre-jal `andi t8,
+ * t9,0xFFF` with `move a1,t8` in delay. The mask placement causes a
+ * 2-insn structural deficit (67 vs 69 insns) that INSN_PATCH alone
+ * can't fix — the function size differs.
+ *
+ * Tried 2026-05-04: `u32 masked = ((u32*)p)[0x27] & 0xFFF;` block-local
+ * — IDO spills masked to stack (+1 sw), bumps frame -0x38→-0x40, adds
+ * extra reload — net WORSE (34 diffs in 69 insns).
+ *
+ * Promotion path: needs a C shape that splits the andi off the call
+ * arg without adding spills, OR permuter discovery. The 3 prologue
+ * caps can be INSN_PATCH'd once size matches. Deferred. */
 #ifdef NON_MATCHING
 s32 func_80009474(s32* msg) {
     register s32* p;
