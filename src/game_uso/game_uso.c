@@ -1120,7 +1120,59 @@ void game_uso_func_000044C8(char *a0) {
  * a TABLE-of-pointers stride, not the object stride).
  *
  * NEXT PASS: decode the sub-object loop's tail (set-and-link to parent's
- * 0x38 chain), and the second template-table iteration (~16 sub-objects). */
+ * 0x38 chain), and the second template-table iteration (~16 sub-objects).
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x45E0-0x4710 (insns 50-128, 4 iterations of
+ * the sub-object init group). The body is NOT a simple loop — it's an
+ * UNROLLED chain of per-template-entry init groups. Each group is ~30
+ * insns and follows this pattern (group 1 @ 0x45E0-0x4604 reproduced for
+ * 0x4640-0x4664, 0x46A8-0x46CC, 0x4710-0x... — 4 occurrences seen):
+ *
+ *   load_template_ptr:
+ *     t0 = D[0x6E8 + group_idx*4]    ; template-list ptr (group-specific)
+ *     sp[0xE0/0xDC/0xD8/0xD4] = t0    ; spill to per-group local
+ *     at = -0xN0                       ; sentinel for cached-vs-alloc
+ *   load_or_alloc_sub:
+ *     s0 += STRIDE                     ; STRIDE = 0x20, 0x38, 0x50, ... (varies)
+ *     entry = t0[0]                    ; first entry of template-list
+ *     if (entry != sentinel) {
+ *       *s0 = entry                    ; cached val, store back
+ *       jal alloc(0x18)                ; alloc 24-byte sub-object
+ *     } else {
+ *       sub = entry                    ; bump-allocator path
+ *     }
+ *     sp[8] = sub                      ; (varargs slot 5 for next call)
+ *   if (sub == 0) goto epi
+ *   init_sub:
+ *     a1=parent_obj; a2=parent_obj; a3=1
+ *     a0=0x18 (size hint?)
+ *     jal init_sub_obj(0x18, parent, parent, 1)  ; (varargs in sp[8] = sub)
+ *     sub[0xC] = D + 0x3C8             ; type-tag pointer (constant)
+ *     sub[0x14] = 0                    ; flag/state
+ *     sub[0x10] = D[0x9C, 0xA0, 0xA4, 0xA8, ...]  ; per-group float constant
+ *     ; stride to next group
+ *
+ * Per-group constants (from disassembly):
+ *   group 0: stride=0x08, sentinel=-0x08 (0xFFFFFFF8), float@D+0x9C, tlist@D+0x6E8
+ *   group 1: stride=0x20, sentinel=-0xE0 (0xFFFFFF20), float@D+0xA0, tlist@D+0x6EC
+ *   group 2: stride=0x38, sentinel=-0xC8 (0xFFFFFFB0), float@D+0xA4, tlist@D+0x6F0
+ *   group 3: stride=0x50, sentinel=-0xB0 (0xFFFFFF50), float@D+0xA8, tlist@D+0x6F4
+ *
+ * The strides are CUMULATIVE (s0 += STRIDE each group, not absolute).
+ * tlist offset increases by 4 each group (D+0x6E8, +0x6EC, +0x6F0, +0x6F4).
+ * Float constants step by 4 (D+0x9C through 0xA8). Sentinel stride pattern
+ * is irregular: -8, -0xE0, -0xC8, -0xB0 — implies negative offsets in the
+ * struct layout (sub-objects placed BEFORE the parent's a0 in memory layout?
+ * or sentinel = (-base+offset) form for the 'use cached if existing' check).
+ *
+ * Total of ~16 such groups suggested by the original spine analysis. Linear
+ * extrapolation: 16 groups × 30 insns = 480 insns of sub-object init.
+ * The remaining ~600 insns are likely sub-object linkage to a0[0x38] chain,
+ * second-pass init (validation/finalize), and the alloc-fail epilogue
+ * cleanup path.
+ *
+ * NEXT PASS: continue from 0x4710 (group 4 onwards); confirm if all 16
+ * groups follow this pattern or if some have FPU-heavy variants. */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
