@@ -759,9 +759,48 @@ void game_uso_func_00001DC4(void *a0) {
  * Both blocks are int-typed (.word lw/sw) but operate on Vec3-sized chunks
  * (3 words / 12 bytes), confirming the 3x3 transform's IO is Vec3-stride.
  *
+ * 2026-05-04 EXTENDED DECODE 0x1FB0-0x2060 (~44 insns): the two earlier
+ * stub'd sub-blocks expanded into a unified clamp-arm convergence.
+ *
+ *   /\* 0x1FB0-0x1FD4: chained Vec3 mirror — 3 ints from t1 land in BOTH
+ *      a3 and v1 via a memory-chained sequence (a3=t1, then v1=a3, NOT
+ *      v1=t1 directly). The re-read of a3 between writes is what forces
+ *      the chain; this is IDO's natural emit for *a3 = *t1; *v1 = *a3;
+ *      where t1, a3, v1 are all sub-struct field pointers in the same
+ *      entity. *\/
+ *
+ *   /\* 0x1FD8-0x1FF0: ELSE-ARM convergence point. Loads 3 floats from
+ *      sp+0xC4/8/CC (these are the OVERSHOOT-CASE spillover from earlier
+ *      clamp-or-zero compute), stores them to sp+0x120/4/8 (the convergence
+ *      slot for both clamp arms), then takes far branch +0xE8 to 0x2078.
+ *      This ends the "magnitude > max" arm without scaling self_v. *\/
+ *
+ *   /\* 0x1FF4-0x202C: THEN-ARM (the "magnitude <= max" path):
+ *        scale = f16 - f18           ; (mag - max) — but in this arm
+ *                                     ; mag <= max so scale is computed
+ *                                     ; symbolically (likely 0 via cmp)
+ *        self_v.x *= scale           ; mul.s f12, sp+0x110 * scale
+ *        self_v.y *= scale           ; mul.s f2,  sp+0x114 * scale
+ *        self_v.z *= scale           ; mul.s f14, sp+0x118 * scale
+ *        sp+0xA4..0xAC = scaled_self_v   ; the clamp-delta-velocity
+ *        Set up 4 stack-base pointers (the function has many sub-struct
+ *        scratch areas):  t6=sp+0xA4 (scaled_self_v), t9=sp+0xB0,
+ *        t2=sp+0x94, v1=sp+0xC4, t5=sp+0x74. *\/
+ *
+ *   /\* 0x2030-0x205C: chained Vec3 mirror (same pattern as 0x1FB0):
+ *        copies sp+0xA4..AC (scaled_self_v) to a3, then mirrors a3 to
+ *        sp+0xB0..B8 (t9). The chained store-then-reread is IDO emit
+ *        for `*a3 = scaled_self_v; *t9_slot = *a3;` *\/
+ *
+ *   /\* 0x2060+: continues with another FPU block (sp+0xB0/4/8 reload,
+ *      mul.s with sp+0xAC, fpu-reduce sequence). The downstream block
+ *      computes a length/normalize on scaled_self_v, calls a gl_func at
+ *      0x20E8 with sp+0x12C/0x120 args. *\/
+ *
  * Next pass: trace $t1/$t6/$t9/$a3 source-loads earlier in the function
  * (likely from a0->0x14, a0->0x38, sub-obj struct fields) to write the
- * sub-blocks as real C. */
+ * sub-blocks as real C, plus continue from 0x2060 into the
+ * gl_func_00002030 call site (probably a normalize helper). */
 extern void *gl_func_TODO_00001DDC(int *scratch, int *a2);
 typedef struct { float x, y, z; } Vec3f;
 void *game_uso_func_00001DDC(int *a0) {
