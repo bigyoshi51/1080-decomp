@@ -1234,7 +1234,33 @@ void game_uso_func_000044C8(char *a0) {
  * (+0x4 each: 6E8, 6EC, 6F0, 6F4, 6F8, 6FC).
  *
  * NEXT-NEXT PASS: continue from 0x47B0; expect 10+ more groups before
- * reaching the linkage/finalize phase (~insn 600+). */
+ * reaching the linkage/finalize phase (~insn 600+).
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x47B0-0x48F8 (groups 7-10, ~80 insns):
+ *   Group 7 @ 0x47B0-0x4800: stride=0x80, sentinel=-0x80, tlist=D+0x6FC,
+ *     float=D+0xAC. Standard pattern.
+ *   Group 8 @ 0x4804-0x4868: stride=0x98, sentinel=-0x98, tlist=D+0x700.
+ *     PATTERN SHIFT: float is an INLINE literal (`lui at,0xC57A; mtc1 at,$f4`)
+ *     = -4000.0f, NOT a D-table lookup. This changes IDO's codegen pattern
+ *     for the float store (mtc1+swc1 pair instead of lwc1+swc1).
+ *   Group 9 @ 0x486C-0x48D0: stride=0xB0, sentinel=-0xB0, tlist=D+0x704.
+ *     INLINE float = -8000.0f (`lui at,0xC5FA; mtc1 at,$f6`).
+ *   Group 10 @ 0x48D4-0x48F8: stride=0xC8, sentinel=-0xC8, tlist=D+0x708.
+ *     Pattern continues with inline floats.
+ *
+ * Stride progression: 0x08, 0x20, 0x38, 0x50, 0x68, 0x68, 0x68, 0x80, 0x98,
+ * 0xB0, 0xC8 — arithmetic +0x18 per group with anomaly at groups 4-6 (all
+ * 0x68). Tlist offsets D+0x6E8..D+0x708 (+4 per group, sequential).
+ *
+ * KEY FINDING: groups 0-7 use D-table float lookups; groups 8+ use INLINE
+ * float literals. The pattern shift means future C decode needs separate
+ * group templates for "table-float" vs "literal-float" sub-groups. The
+ * literal floats are fall-rate constants for pumice/wind sub-objects
+ * (-4000, -8000 magnitudes suggest distance thresholds in fixed-point).
+ *
+ * NEXT PASS: continue from 0x48F8; ~14+ more groups expected before
+ * the linkage/finalize phase (~insn 600). The literal-float groups are
+ * the harder ones to match — multiple lui/mtc1 emit forms IDO can pick. */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
