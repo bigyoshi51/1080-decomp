@@ -168,7 +168,18 @@ void n64proc_uso_func_00000230(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* State machine on a0->0x50:
+/* (e) TRIED 2026-05-04: INSN_PATCH eligibility check — built 60 insns vs
+ * expected 61 (+1 insn delta), and 52 of 60 insns differ due to register
+ * cascade. The +1 delta comes from the second dispatch: built picks
+ * `bnel v0,at,end` with `lw ra,20(sp)` epilogue-prep in delay slot;
+ * expected picks `beql v0,at,c1` with `lw t5,84(a3)` c1-body-preload in
+ * delay slot. Same branch target, opposite polarity. The body-preload
+ * cascades through register choices (expected uses t6/t5/t8 throughout
+ * c1 body where built uses v0/t9/etc). INSN_PATCH can't repair: size
+ * differs AND each subsequent insn has different opcode bits (not just
+ * register renames at fixed offsets). Stays at 93.57%.
+ *
+ * State machine on a0->0x50:
  *   case 0: decrement a0->0x3C; if dropped below 16, decay a0->0x54 by 16
  *           (clamp >= 0); when a0->0x3C hits 0, transition to mode 1
  *           (a0->0x50 = 1) and reset a0->0x3C = 100.
