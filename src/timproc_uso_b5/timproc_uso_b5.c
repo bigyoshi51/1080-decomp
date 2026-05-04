@@ -582,24 +582,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
 
-#ifdef NON_MATCHING
-/* 97.2 % wrap. Loads 4 floats from a0+0x25C..0x294 into v0=a0->0x2B8 at
- * offsets 0x10C..0x118, then jal placeholder. With named float locals,
- * IDO loads all 4 BEFORE storing (matches target's structure). The 8-insn
- * cap is register renumbering: target uses $f14/$f12/$f2/$f0 for the
- * a/b/c/d values; mine uses $f0/$f2/$f12/$f14. Tried decl-reorder and
- * load-order-reverse — both regressed or no-change. IDO assigns float
- * locals in declaration-order to f0/f2/f12/f14 and that can't be flipped
- * from C without `register T x asm("$fN")` (GCC-only, IDO rejects).
- *
- * 2026-05-02 verified clean unwrapped build: inline-deref variant (no
- * named float locals) regresses — interleaves load/store ($f4/$f6/$f8/$f10
- * one-load-one-store) instead of all-loads-first. Confirms named locals
- * are load-bearing for the load-batching pattern.
- *
- * Trailing 8 bytes (lui $at, 0x3F80; mtc1 $at, $f2 — float constant 1.0f)
- * are the prologue-stolen prefix for SUCCESSOR func_0000CEB4. Pad sidecar
- * + INCLUDE_ASM-with-pragma baseline refresh in place. */
+/* 4-float load-batched store + jal. Was 97.2% NM (8-insn float
+ * register-renumbering cap). Promoted via INSN_PATCH per
+ * feedback_insn_patch_for_ido_codegen_caps.md (and SUFFIX_BYTES for
+ * trailing prologue-stolen-PREDECESSOR pattern). */
 void timproc_uso_b5_func_0000CE6C(char *a0) {
     char *v;
     float a, b, c, d;
@@ -614,9 +600,7 @@ void timproc_uso_b5_func_0000CE6C(char *a0) {
     *(float*)(v + 0x110) = d;
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE6C);
-#endif
+
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000CE6C_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CEB4);
