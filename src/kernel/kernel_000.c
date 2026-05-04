@@ -636,9 +636,16 @@ extern s32 D_80012D5C;
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: IDO auto-unrolls a simple pointer-walk loop with a runtime
- * subu+andi guard, producing different prologue code than target. 4 structural
- * variants tried (do-while, for(i<8), explicit end pointer, 8-way unroll);
- * none match. Target uses a fixed 2-iter loop with no zero-guard. */
+ * subu+andi guard, producing different prologue code than target. 5 structural
+ * variants tried (do-while, for(i<8), explicit end pointer, 8-way unroll,
+ * same-array `end = D_80012D3C + 8`); none match. Target uses a fixed 2-iter
+ * loop with no zero-guard.
+ *
+ * 2026-05-04: 5th variant attempt was `end = D_80012D3C + 8` to make the
+ * end-bound a same-array compile-time-known-multiple-of-16 offset. IDO
+ * STILL emits the duplicate-loop + guard. Confirms the auto-unroll +
+ * guard isn't keyed on whether bounds are extern-vs-array-derived; it's
+ * purely the loop-shape that triggers it. Cap unchanged. */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
