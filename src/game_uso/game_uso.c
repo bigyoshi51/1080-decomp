@@ -2774,7 +2774,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010408);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000104A4);
 
+#ifdef NON_MATCHING
+/* 89.18% NM. 5th confirmed member of precall-arg-spill family
+ * (F664/F8E8/EF20/FF48/1056C). Built 26 vs expected 28 insns: target emits
+ * `sw a1,4(sp); sw a2,8(sp)` defensive spills around the second jal that
+ * IDO -O2 K&R extern doesn't reproduce. INSN_PATCH ineligible (size diff
+ * blocks it per feedback_insn_patch_size_diff_blocked.md).
+ *
+ * Logic:
+ *   gl_func_00000000(a0, 0x10025, 0, 0, 0x100, 5);
+ *   gl_func_00000000(a0, *(int*)(D + 0xE08), *(int*)(D + 0xE0C), -1);
+ *   *(float*)(a0 + 0x11C) = *(float*)(a0 + 0x154);
+ *
+ * Note this variant has a final FLOAT COPY tail not seen in the others. */
+void game_uso_func_0001056C(char *a0) {
+    gl_func_00000000(a0, 0x10025, 0, 0, 0x100, 5);
+    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE08), *(int*)((char*)&D_00000000 + 0xE0C), -1);
+    *(float*)(a0 + 0x11C) = *(float*)(a0 + 0x154);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001056C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000105DC);
 
