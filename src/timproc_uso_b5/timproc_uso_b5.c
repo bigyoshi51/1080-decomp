@@ -242,7 +242,31 @@ void timproc_uso_b5_func_00003F18(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F18);
 #endif
 
+#ifdef NON_MATCHING
+/* 19-insn (0x4C) function — main body 17 insns + 8-byte bundled trailer.
+ *
+ * Main body (offsets 0..0x44): structured Vec3-or-buf copy.
+ *   - Loads a0->_29C → v0; offsets to v += 0xDC
+ *   - Stores 3 t-regs at sp+0xC..0x14 (forms a stack buf)
+ *   - Reloads as floats (lwc1 f4/f6/f8) and stores at v+0..v+8 (3 floats)
+ *   - jr ra with swc1 f8 in delay slot
+ *   The first `sw t8, 0(t6)` at insn 4 stores $t8 BEFORE the function
+ *   loads $t8 (insn 8 lw t8, 0x244(a0)) — IDO has scheduled the store
+ *   to fill the load-delay slot, but the source $t8 is the CALLER's
+ *   pre-call value, not the soon-to-be-loaded value. Hard to express
+ *   from C without extracting the source pattern.
+ *
+ * Bundled trailer (offsets 0x44/0x48): `jr ra; sw a0, 0(sp)` — trampoline
+ * leaf that saves a0 to caller-slot then returns. Not analyzable here.
+ *
+ * Promotion path: needs SUFFIX_BYTES = 0x03e00008,0xafa40000 + a clean
+ * C body for the main function. The t8-uninitialized issue may resolve
+ * via a different parameter shape (function takes (a0, a1=t8?) directly).
+ * Defer — multi-tick decomp. */
+void timproc_uso_b5_func_00003F5C(int *a0);
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F5C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003FA8);
 
