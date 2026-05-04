@@ -2492,7 +2492,16 @@ void gl_func_0004E4E8(int *dst) {
     *dst = scratch;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E524);
+/* Quad4 reader template — same as the 4 standard accessor templates in
+ * every USO. Trailing 2 insns (`lui a1,0; addiu a1,a1,0` -> a1=&D) are the
+ * stolen prologue prefix for the SUCCESSOR gl_func_0004E584; injected via
+ * SUFFIX_BYTES so they end up inside this function's symbol per the
+ * baseline. */
+void gl_func_0004E524(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E584);
 
