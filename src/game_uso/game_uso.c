@@ -1334,6 +1334,22 @@ void game_uso_func_000044C8(char *a0) {
  * to specific velocity/threshold sub-objects that aren't D-table indexed.
  *
  * NEXT PASS: continue from 0x4D80; expect ~6 more groups before
+ * linkage/finalize phase.
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x4D80-0x4E80 (groups 22-23, ~70 insns):
+ *   Group 21 (completing) @ 0x4D98: float = INLINE 1200.0f (lui 0x4496+mtc1).
+ *   Group 22 @ 0x4DB4-0x4E18: stride=0x1E8, sentinel=-0x1E8, tlist=D+0x738,
+ *     float = INLINE 1200.0f (same as 21).
+ *   Group 23 @ 0x4E1C-0x4E80: stride=0x200, sentinel=-0x200, tlist=D+0x73C,
+ *     float = INLINE 60.0f (lui 0x4270+mtc1).
+ *
+ * 24 of ~28 groups decoded. Strides 0x1D0, 0x1E8, 0x200 (stable +0x18).
+ * Tlists D+0x738, +0x73C. INLINE floats are: 1200.0f (groups 20-22) and
+ * 60.0f (group 23). The 1200.0f triplet suggests these are correlated
+ * sub-objects (3 sequential at same drop-rate), and 60.0f is a
+ * frame-rate-related constant.
+ *
+ * NEXT PASS: continue from 0x4E80; expect ~4 more groups before
  * linkage/finalize phase. */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
