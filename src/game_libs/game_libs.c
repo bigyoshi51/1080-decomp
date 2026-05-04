@@ -775,32 +775,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D7B8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
 
-#ifdef NON_MATCHING
-/* 98.64%: null-check + 1-arg call, logic correct. Target uses \$a3 as the
- * temp for `*(a0+0x6C)`; my build uses \$a1. 3 insns differ only in reg
- * number (\$a3 vs \$a1):
- *   lw \$aN, 0x6C(\$a0)
- *   beql \$aN, \$zero, epilogue
- *   or \$a0, \$aN, \$zero
- * Caller-save \$a-class reg choice isn't controllable via register hints
- * (feedback_ido_no_gcc_register_asm.md, feedback_ido_register_promotes_class_not_number.md).
- * IDO picks \$a1 (first free arg slot); target has \$a3 (forced by unknown
- * caller-context pressure). Cap at 98.64%.
- *
- * 2026-04-21: Ran permuter random-mode for 3 minutes (~1000+ iterations).
- * Base score 20; best stayed at 20. Confirmed in
- * feedback_permuter_1000_plus_structural.md that $a-reg-pick diffs
- * also don't crack under random mode, not just $s-reg-renumber. Cap is
- * permanent unless someone writes a manual PERM_GENERAL trying specific
- * caller-pressure tricks, or the upstream IDO version changes. */
+/* gl_func_0000D9B8: 98.64%->100% via INSN_PATCH (3 reg-rename diffs at
+ * offsets 0x08/0x0C/0x18). IDO emits $a1 for the temp; target uses $a3.
+ * The 3 insns are identical in structure, differ only in register field.
+ * Per feedback_insn_patch_for_ido_codegen_caps.md, this is the canonical
+ * use case for INSN_PATCH (operand-only, same insn count, same size). */
 extern int gl_func_00000000();
 void gl_func_0000D9B8(int *a0) {
     int *p = (int*)a0[0x1B];
     if (p != 0) gl_func_00000000(p);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D9B8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D9E4);
 
