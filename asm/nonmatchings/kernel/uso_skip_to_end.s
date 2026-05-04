@@ -1,6 +1,4 @@
 
-nonmatching uso_skip_to_end, 0x90
-
 glabel uso_skip_to_end
     /* 1734 80000734 27BDFFC0 */  addiu      $sp, $sp, -0x40
     /* 1738 80000738 AFB30020 */  sw         $s3, 0x20($sp)

@@ -1,6 +1,4 @@
 
-nonmatching func_80000A88, 0x10
-
 glabel func_80000A88
     /* 1A88 80000A88 3C018001 */  lui        $at, %hi(D_8000A2D8)
     /* 1A8C 80000A8C 3C118001 */  lui        $s1, (0x80010000 >> 16)

@@ -1,6 +1,4 @@
 
-nonmatching func_800073DC, 0x1C
-
 glabel func_800073DC
     /* 83DC 800073DC 27BDFFD8 */  addiu      $sp, $sp, -0x28
     /* 83E0 800073E0 AFBF001C */  sw         $ra, 0x1C($sp)

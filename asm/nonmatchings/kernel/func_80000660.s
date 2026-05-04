@@ -1,6 +1,4 @@
 
-nonmatching func_80000660, 0x28
-
 glabel func_80000660
     /* 1660 80000660 8FA7002C */  lw         $a3, 0x2C($sp)
     /* 1664 80000664 8FA6001C */  lw         $a2, 0x1C($sp)

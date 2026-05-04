@@ -1,6 +1,4 @@
 
-nonmatching func_800017BC, 0xEC
-
 glabel func_800017BC
     /* 27BC 800017BC 3C0E8001 */  lui        $t6, %hi(D_80013138)
     /* 27C0 800017C0 91CE3138 */  lbu        $t6, %lo(D_80013138)($t6)
