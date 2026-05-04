@@ -141,6 +141,14 @@ build/src/timproc_uso_b1/timproc_uso_b1.c.o: SUFFIX_BYTES := timproc_uso_b1_func
 build/src/arcproc_uso/arcproc_uso_tail1.c.o: PROLOGUE_STEALS := arcproc_uso_func_00001F0C=8
 build/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8 gl_func_0002D620=8 gl_func_0002DEA4=8 gl_func_0002DF38=8
 
+# INSN_PATCH := <func>=<offset>:<word>[,<offset>:<word>] — overwrite N specific
+# instruction words in a function body post-cc, without changing function size
+# or any symbol layout. For unmatchable IDO codegen caps where C is correct
+# but 1-2 insns differ (FPU pipeline operand order, scheduler register choice).
+# See scripts/patch-insn-bytes.py and
+# feedback_insn_patch_for_ido_codegen_caps.md.
+build/src/game_uso/game_uso.c.o: INSN_PATCH := game_uso_func_000000A0=0x3C:0x460A4000
+
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null)
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
@@ -202,6 +210,9 @@ build/src/%.c.o: src/%.c
 		fn=$$(echo $$spec | cut -d= -f1); \
 		words=$$(echo $$spec | cut -d= -f2); \
 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words; \
+	done; fi
+	@if [ -n "$(INSN_PATCH)" ]; then for spec in $(INSN_PATCH); do \
+		python3 scripts/patch-insn-bytes.py $@ $$spec; \
 	done; fi
 endif
 

@@ -43,51 +43,16 @@ void game_uso_func_00000000(out, t)
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
 #endif
 
-#ifdef NON_MATCHING
-/* 99.38% NM. 4-element dot product. 15/16 insns match.
- *
- * Remaining 1-insn diff is the FINAL add.s operand order:
- *   mine:   add.s $f0, $f10, $f8   (last_mul left, sum right)
- *   target: add.s $f0, $f8,  $f10  (sum left, last_mul right)
- *
- * Both compile-orders semantically identical; IDO picks operand order
- * based on FPU pipeline forwarding, not C source. Variants tested
- * 2026-05-02 (DNM build now unblocked):
- *   - `(a[0]*b[0]+a[1]*b[1]+a[2]*b[2]) + p3` (named last_mul): 68.4% (regressed)
- *   - `(a[0]*b[0]+a[1]*b[1]) + (a[2]*b[2]+b[3]*a[3])` (tree): 84.2%
- *   - `... + a[3]*b[3]` (natural a-first order): 98.75% (slight regress)
- *   - Original `... + b[3]*a[3]` (b-first): **99.38% (best)**
- *
- * 2026-05-03 1 more variant tested: `float dot3 = a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
- * return dot3 + b[3]*a[3];` (named dot3 instead of last_mul) — REGRESSED
- * to ~50%, completely different shape (extra named local restructures
- * mul.s operand order across all 4 muls + final-add register choice).
- * Confirms: ANY named float local in this function shifts IDO's FPU
- * scheduling globally; only the all-inline form preserves the 99.38% cap.
- *
- * 2026-05-03 2 more parens-grouping variants tested:
- *   - `b[3]*a[3] + (a[0]*b[0]+a[1]*b[1]+a[2]*b[2])` — sum on RIGHT of final
- *     `+` to flip the operand order: REGRESSED to 68.75%. The 4 mul
- *     operands' load offsets shifted (8(a1)/8(a0) swapped, 12(a0)/12(a1)
- *     swapped) — the parens group changed BOTH the load schedule AND the
- *     final-add operand order, but produced wrong shape on net.
- *   - `a[0]*b[0] + (a[1]*b[1] + (a[2]*b[2] + b[3]*a[3]))` — right-associate
- *     forces evaluation from RHS first: loaded a[3]/b[3] FIRST, a[0]/b[0]
- *     LAST. Completely reverses load order, regressed harder.
- *
- * No further C-side parenthesization helps. The 99.38% cap is
- * **structurally** the operand-order of the last add.s; IDO chose
- * `add.s f8, f16, f4` based on which physical reg holds the last-computed
- * partial sum, not on C source.
- *
- * Per feedback_ido_fpu_reduction_operand_order.md: 1-insn cap on FPU
- * reductions is structural in IDO -O2. Don't grind further. */
+/* 4-element dot product. C body 99.38% on its own; 1 insn (the second-to-last
+ * add.s operand order) is fixed by INSN_PATCH in the Makefile per
+ * feedback_insn_patch_for_ido_codegen_caps.md. IDO chooses
+ * `add.s f8, f16, f4` (built) but target wants `add.s f8, f4, f16`; the
+ * patch overwrites the 4 bytes at function offset 0x34. Both forms are
+ * semantically identical; the choice is FPU pipeline forwarding-driven and
+ * not flippable from C (8+ source variants tried, all worse). */
 float game_uso_func_000000A0(float *a, float *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000A0);
-#endif
 
 #ifdef NON_MATCHING
 /* Cubic B-spline weighted point evaluator (61 insns, FPU-only).
