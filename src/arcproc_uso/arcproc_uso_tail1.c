@@ -66,7 +66,43 @@ void arcproc_uso_func_000005C8(int *a0) {
     D_arc5C8_68 = 0;
 }
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00000688: 48-insn (0xC0) struct-init + zero-loop.
+ * Initializes 9 fields of *(a0->ptr_at_8) to constants, then loops
+ * clearing array slots until i >= bound.
+ *
+ * Standalone -O0 build of this body produces BYTE-IDENTICAL bytes
+ * (verified: prologue addiu sp,-0x8, no-CSE reloads of a0->[0x8]
+ * each store, i spilled to sp+0x4, loop reloads bound each iter,
+ * tail b+nop BBL marker). At -O2 it's 38 insns instead of 48 — IDO
+ * CSEs the chain and keeps i/bound in regs.
+ *
+ * BLOCKED: needs -O0 file split. arcproc_uso has -O0 sub-files at
+ * 0x50 and 0x12C; this function is at 0x688 and would need a new
+ * arcproc_uso_o0_688.c with linker-script slot + TRUNCATE_TEXT
+ * adjustments. Multi-tick infrastructure scope. */
+void arcproc_uso_func_00000688(int *a0) {
+    int i;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x00) = 1;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x04) = 0;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x08) = 5;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x0C) = 2;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x10) = 0;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x14) = 3;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x18) = 1;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x1C) = 4;
+    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x34) = 0;
+    i = 0;
+    if (i < *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x8)) {
+        do {
+            *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x20 + i*4) = 0;
+            i++;
+        } while (i < *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x8));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000688);
+#endif
 
 #ifdef NON_MATCHING
 /* 27-insn cleanup wrapper. Calls gl_func twice (a0->8, a0->0); zeroes
