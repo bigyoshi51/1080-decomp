@@ -369,7 +369,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000093DC);
  * holding all 4 sibling functions with a `-O0` Makefile override (game_libs
  * is NOT Yay0-compressed so the file-split recipe applies; see
  * feedback_uso_accessor_o0_file_split_recipe.md). Worth doing as a single
- * future tick: 4 mass-matches in one go. */
+ * future tick: 4 mass-matches in one go.
+ *
+ * 2026-05-04 cluster verification: confirmed all 4 functions are 0x40 bytes
+ * each (0x949C/0x94DC/0x951C/0x955C), each 16 insns, each calling the
+ * standard scratch+offset 2-jal pattern. Combined cluster is exactly 0x100
+ * bytes contiguous (0x949C..0x959C with 0x959C being the next INCLUDE_ASM).
+ * The file-split would need 3 .c files: game_libs.c truncated at 0x949C,
+ * game_libs_o0_949C.c containing all 4 funcs (0x100 bytes -O0), and
+ * game_libs_tail.c continuing from 0x959C. Linker script + objdiff.json
+ * need parallel updates. Single-cron-run risky; multi-pass setup. */
 extern int gl_ref_0001CFB0();
 extern int gl_ref_0001CFFC();
 void gl_func_0000949C(char *a0) {
