@@ -301,9 +301,8 @@ void h2hproc_uso_func_000008EC(char *a0, int a1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* Sibling of h2hproc_uso_func_000008EC — byte-identical asm. Same recipe,
- * same 89.5% cap. */
+/* Sibling of h2hproc_uso_func_000008EC — byte-identical asm. Same INSN_PATCH
+ * spec applies (same 7 offsets/words). */
 void h2hproc_uso_func_00000944(char *a0, int a1) {
     *(int*)(a0 + 0x6B8) = a1;
     gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8));
@@ -313,9 +312,6 @@ void h2hproc_uso_func_00000944(char *a0, int a1) {
         gl_func_h2hproc_8EC_t(a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000944);
-#endif
 
 void h2hproc_uso_func_0000099C(int *a0) {
     int v;
