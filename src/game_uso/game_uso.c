@@ -2599,7 +2599,17 @@ void game_uso_func_0000D5DC(char *a0) {
     *(int*)(a0 + 0xCC) = *(int*)((char*)&D_00000000 + 0xDCC);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5F8);
+void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
+    volatile int *p;
+    p = &a1;
+    if (a3 == -1) {
+        *(int*)(a0 + 0x68) = a3;
+    } else {
+        *(int*)(a0 + 0x64) = p[2];
+    }
+    *(int*)(a0 + 0xC0) = p[0];
+    *(int*)(a0 + 0xC4) = p[1];
+}
 
 #ifdef NON_MATCHING
 /* 2-insn split-off (unwrapped from the 0xD458 bundle). Body:
