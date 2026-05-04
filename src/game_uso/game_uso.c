@@ -2042,7 +2042,26 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      * multiple per-displayed-object buffer slots, with various deltas
      * against the reference position from a3".
      *
-     * @ 0x9E80-0x10E8: body-part-2 final, 200+ insns + ~6 cross-USO calls.
+     * Extended characterization 2026-05-04 (0x9E80-0x9F50, ~52 insns):
+     *   Continues the same alloc(0xC) + Vec3 sub.s pattern observed in
+     *   0x9DD0-0x9E80, but for additional buffer destinations:
+     *   - 0x9E80-0x9E8C: tail of previous struct copy (sw t9, 8(t6))
+     *   - 0x9E90-0x9EC8: 6th cross-USO call alloc(12) for sp+0xA0 dst.
+     *     Post-alloc: 3-float (sp+0x144, sp+0x138, sp+0x14C, sp+0x140)
+     *     mul.s + sub.s combination, store result Vec3 at v1[0..8].
+     *   - 0x9ED0-0x9F00: 12-byte struct copy (sp+0xA0 → sp+0x178/v1).
+     *   - 0x9F10-0x9F50: 7th cross-USO call alloc(12) for sp+0x88 dst.
+     *     Same shape: load 3 floats from sp+0x120/0x12C/0x128/0x134,
+     *     mul/sub, store to alloc'd Vec3.
+     *
+     * Theme is now clearly: REPEATED "compute one Vec3 = math(table_a,
+     * table_b)" + "store to alloc'd buffer" + "fan out to multiple
+     * downstream slots". Each iteration uses different sp-offset table
+     * pairs, building per-displayed-object screen-projected data.
+     *
+     * Cumulative ~167/344 insns characterized.
+     *
+     * @ 0x9F50-0x10E8: body-part-2 final, 150+ insns + ~5 more cross-USO calls.
      *   TODO: future passes will decompose the per-block math chains.
      *   The 250.5/50.0 constants confirm screen-space coordinate transform
      *   (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset). */
