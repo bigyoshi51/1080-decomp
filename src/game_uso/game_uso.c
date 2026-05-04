@@ -1300,7 +1300,24 @@ void game_uso_func_000044C8(char *a0) {
  * coverage of ~0x3E0-byte child obj).
  *
  * NEXT PASS: continue from 0x4B40; expect ~13 more groups before
- * reaching the linkage/finalize phase. */
+ * reaching the linkage/finalize phase.
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x4B40-0x4C78 (groups 16-18, ~80 insns):
+ *   Group 15 (completing) @ 0x4B3C: float=D+0xC4.
+ *   Group 16 @ 0x4B44-0x4BA8: stride=0x158, sentinel=-0x158, tlist=D+0x720,
+ *     float=D+0xC8.
+ *   Group 17 @ 0x4BAC-0x4C10: stride=0x170, sentinel=-0x170, tlist=D+0x724,
+ *     float=D+0xCC.
+ *   Group 18 @ 0x4C14-0x4C78: stride=0x188, sentinel=-0x188, tlist=D+0x728,
+ *     float=D+0xD0 (TBD next read).
+ *
+ * 19 of ~28 groups decoded. Strides 0x140, 0x158, 0x170, 0x188 (stable
+ * +0x18). Tlists D+0x720, +0x724, +0x728 (still sequential). Floats
+ * D+0xC4, +0xC8, +0xCC (still sequential). Cumulative stride from start
+ * of init loop: 0x188 = 392 bytes, approaching the ~0x3E0 child obj
+ * boundary.
+ *
+ * NEXT PASS: continue from 0x4C78; expect 9 more groups before finalize. */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
