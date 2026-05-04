@@ -16,7 +16,14 @@ void n64proc_uso_func_0000000C(void) {
 extern char D_00000000;
 
 #ifdef NON_MATCHING
-/* Promoted to $s-reg allocation via `register` hints (2026-04-20).
+/* (12) TRIED 2026-05-04: INSN_PATCH eligibility check — built emits 67 insns
+ * vs expected 59 (+8 insn delta from per-iteration `lui v1,0; lw v1,0x40(v1)`
+ * fresh-lui+lo reload at loop_tail vs target's single `lw a1, 0x40(s3)`
+ * indexed-via-$s form). Size mismatch blocks INSN_PATCH per
+ * feedback_insn_patch_size_diff_blocked.md. Would need a recipe that GROWS
+ * st_size + shifts symbols/relocs (not currently available). Stays at 74.49 %.
+ *
+ * Promoted to $s-reg allocation via `register` hints (2026-04-20).
  * Logic confirmed correct; structure matches target's do-while shape.
  *
  * Register allocation NOW (all 6 in $s-regs, just with different numbers):
