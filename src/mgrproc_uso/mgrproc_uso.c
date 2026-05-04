@@ -124,6 +124,83 @@ void mgrproc_uso_func_000000F8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F8);
 #endif
 
+/* mgrproc_uso_func_0000019C: 218-insn (0x368) state-machine orchestrator.
+ *
+ * Per-state init dispatcher: 9-way jump-table on a1 (state index), each case
+ * does its own `gl_func_00000000(a0, ...)` call + sets a flag word at D[0x40]
+ * or D[0x44]/0x48, optionally stores `1` to sp[0x48] (loop-continue marker).
+ *
+ * Frame: -0x50, save ra/s0/s1/s2 (4 callee-saves), spill a0 to sp+0x50,
+ * a1 to sp+0x54 (caller-slot save).
+ *
+ * ENTRY DECODE (insns 0-7, 0x19C-0x1B8):
+ *   addiu sp,-0x50; sw ra,0x2C; sw a0,0x50(caller); sw a1,0x54(caller);
+ *   sw s2,0x28; sw s1,0x24; sw s0,0x20; sw $0,0x48(sp)  ; loop-continue=0
+ *
+ * JUMP-TABLE DISPATCH (0x1BC-0x1E0, 9 insns):
+ *   t6 = a1
+ *   if (t6 >= 9) goto epilogue                  ; bgeu via slti+bnez (0x1C0/0x1C4)
+ *   t6 *= 8                                     ; sll t6,t6,3
+ *   at = lui+addu(jumptbl + t6)                 ; jump-table base lui (rel'd)
+ *   t6 = jumptbl[a1]                            ; lw t6,0(at)
+ *   jr t6                                        ; indirect jump to case
+ *
+ * 9 CASE BODIES, all in one big switch-emit (each ends `b epilogue; nop` to
+ * 0x4E8):
+ *
+ *   Case 0 @ 0x1E4 (15 insns): a0=sp[0x50]; gl_func(a0,1,0xB,8);
+ *     D[0x44]=2; D[0x48]=8; sp[0x48]=1
+ *   Case 1 @ 0x224 (15 insns): a0=sp[0x50]; gl_func(a0,1,7,4);
+ *     D[0x44]=2; D[0x48]=8; sp[0x48]=1
+ *   Case 2 @ 0x264 (4 insns): a0=sp[0x50]; gl_func(a0); D[0x40]=3
+ *   Case 3 @ 0x284 (8 insns): a0=sp[0x50]; a1=D[0x68];
+ *     gl_func(a0,a1); D[0x40]=4
+ *   Case 4 @ 0x2AC (28 insns, BIGGEST): pulls 3 globals (D_a/D_b/D_c),
+ *     looks like multi-pointer struct init. Loads sp[0x50]; deref +8 ->
+ *     +4 -> indexed by sp[0x18]<<2; stores results to D[0x64]/D[0x80] (with
+ *     bit-set: D[0x80] |= 1). Stores byte to D[0x17D] / +0x90 dispatch.
+ *     Ends D[0x40]=4
+ *   Case 5 @ 0x37C (5 insns): a0=sp[0x50]+1*0; a1=*(int*)(sp[0x50]);
+ *     gl_func(a0,a1)... actually `a0=sp[0x50]+0; a1=load[a0]; jal gl_func(1)`
+ *   Case 6 @ 0x38C (8 insns): saves v0 to sp[0x4C]; sp+0x4C addr; mixed args
+ *     incl. immediate 0x45000000. Reads sp[0x50]->8->0 chain; stores into
+ *     sp[0x10]; calls gl_func.
+ *   Case 7 @ 0x3B4 (5 insns): s0=v0; a0=sp[0x50]; a1=0; a2=s0; gl_func.
+ *     sp[0x48]=1.
+ *   Case 8 @ 0x3DC (~25 insns): sp+0x44 base buf; calls gl_func(a0=sp[0x50],
+ *     a1=&sp[0x44]); reads sp[0x44]; OR with 0x2000; calls gl_func with
+ *     ASCII a0 immediate (0x24840000 reloc); a1=sp[0x40]; stores result.
+ *     sp[0x48]=1.
+ *
+ * After each case `b 0x4E8` skip the others (no fall-through).
+ *
+ * LOOP-BACK GUARD (0x4D4-0x4DC):
+ *   t9 = sp[0x48]
+ *   if (t9 != 0) goto entry+0x48 (the dispatch — adds 1 to a1, repeats)
+ *   ... actually back-branch target is offset -200/4 = -50, so goes back to
+ *   the entry-dispatch zone. This implements a "state++; if marker set,
+ *   re-dispatch" loop.
+ *
+ * EPILOGUE @ 0x4E8 (5 insns): lw s0/s1/s2/ra; addiu sp,+0x50; jr ra
+ *
+ * Pattern fingerprint: classic IDO -O2 jump-table dispatch with per-case
+ * gl_func_00000000() trampoline calls. State 4 is the heavy multi-struct
+ * init; states 0/1/7/8 set the loop-continue marker (sp[0x48]=1) so they
+ * iterate; states 2/3/5/6 are terminal (no marker set).
+ *
+ * BLOCKED for byte match: jump-table emit from C requires `switch (a1) {
+ * case 0: ...; }` form, but IDO's exact emit also needs:
+ *   - The data-table entries to be linked at offset 0 (USO placeholder)
+ *   - 9 unique jal-0 relocs (one per case's gl_func call)
+ *   - Multiple D_NN_x unique-extern aliases for case 4's struct accesses
+ *   - PROLOGUE_STEALS for the entry's `lui at` if it gets stolen
+ * Each of those is a known recipe (`feedback_unique_extern_with_offset_cast_breaks_cse.md`,
+ * `feedback_pattern_mass_match.md` for the table emit), but combining 9 cases
+ * + struct externs + jump-table reloc in one tick is single-/decompile-run
+ * overscope. Documented as multi-tick spine pick.
+ *
+ * Default INCLUDE_ASM build remains exact. Wrap captures the 9-case dispatch
+ * skeleton + per-case fingerprints for the next tick to refine. */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000019C);
 
 #ifdef NON_MATCHING
