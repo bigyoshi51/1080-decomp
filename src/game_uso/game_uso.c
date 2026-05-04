@@ -1377,7 +1377,37 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  *    * buffer (probably to feed the matrix-vec multiply at 0x5A34+). *\/
  * The fingerprint matches a per-frame "rotate-scale a body axis by an
  * orientation matrix" idiom — common in 1080's boarder pose update where
- * the snowboard's "up" vector gets transformed into world space. */
+ * the snowboard's "up" vector gets transformed into world space.
+ *
+ * 2026-05-04 EXTENDED DECODE 0x5A34-0x5A78 (~17 insns): Vec3 component-
+ * wise multiply + jal + spill setup.
+ *
+ *   /* component-wise multiply staged Vec3 by another Vec3 *\/
+ *   f10 = sp[0x1B8]               ; (post-stage Vec3.x — was the scaled axis)
+ *   f18 = sp[0x1C4]
+ *   f6  = sp[0x1BC]
+ *   f8  = sp[0x1C8]
+ *   f4  = f10 * f18               ; sp[0x1B8] = (axis.x * other.x)
+ *   f18 = sp[0x1C0]               ; reload f18 from .z (overwrite previous)
+ *   sp[0x1B4] = 0                 ; clear spill slot
+ *   f10 = f6 * f8                 ; sp[0x1BC] = (axis.y * other.y)
+ *   sp[0x1B8] = f4                ; commit x*x
+ *   f4  = sp[0x1CC]
+ *   sp[0x1BC] = f10               ; commit y*y
+ *   f6  = f4 * f4                 ; f6 = f4 * f4   (squared)
+ *   jal gl_func_00000000(...)     ; cross-USO call (probably normalize/length helper)
+ *   sp[0x1C0] = f6                ; (delay) commit z*z (or w*w?)
+ *   if (v0 == 0) goto far +0x3EB  ; bail-out if helper returned 0
+ *   sp[0x1B0] = v0                ; spill helper return for later
+ *   t2 = sp[0x1A8]                ; reload some pointer
+ *   v1 = t2->0x84                 ; load field 0x84 from sub-struct
+ *
+ * This block computes a per-axis squared length / dot product on the
+ * staged Vec3 (sp+0x1B8 hosts {f4,f10,f6} = {x*ox, y*oy, z*oz} which
+ * after the jal becomes a 4-component vector if helper does normalize-
+ * with-w-component). Then takes a guard branch on helper's return.
+ * NEXT PASS: continue from 0x5A78; far-branch target 0x69E8 is the
+ * epilogue/cleanup arm (function tail). */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int v0;
