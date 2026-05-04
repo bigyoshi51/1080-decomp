@@ -582,7 +582,29 @@ int gl_func_0000A9F4(int a0, int a1) {
     return 0;
 }
 
+#ifdef NON_MATCHING
+/* 93.43% NM. Two-stage validation: call once, check result == a1; call
+ * again, check result == a2; return 1 only if both match. Diff vs target:
+ *   - Mine: spill a2 BEFORE jal, a1 IN jal delay-slot, then redundant
+ *     `lw a1` reload before bnel (1 extra insn = +4 bytes).
+ *   - Target: spill a1 BEFORE jal, a2 IN delay-slot, NO redundant reload
+ *     (uses t6 for the 1st bnel reload, t7 for the 2nd).
+ * Tried (3 variants): inline `r != a1`, named `int r = ...`, named
+ * `int s_a1 = a1` — all produce same 93.4%. The redundant-reload looks
+ * like an IDO scheduling choice: it spills a1 in jal delay slot rather
+ * than the prologue, then must reload from the slot before bnel. Target's
+ * IDO put a1's spill in the prologue (no delay-slot use needed). Cap is
+ * an instruction-scheduler decision not reachable from C-level levers. */
+int gl_func_0000AA28(int a0, int a1, int a2) {
+    if (gl_func_00000000(a0, a1, a2) != a1) goto fail;
+    if (gl_func_00000000(a0, a1, a2) != a2) goto fail;
+    return 1;
+fail:
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AA28);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AA7C);
 
