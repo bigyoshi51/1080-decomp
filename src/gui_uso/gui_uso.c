@@ -167,6 +167,33 @@ void gui_func_00000D04(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
 #endif
 
+/* gui_func_00000F04: 314-insn / 0x4E4 FPU-heavy coordinate transform.
+ * Big stack frame (-0x108), saves s0-s7+fp+ra, lots of saved FP regs
+ * (f20/f22/f24/f26/f28/f30 spilled to sp+0x30..0x48 — 6 doubles spilled).
+ *
+ * Function entry pattern (first 30 insns):
+ *   - prologue: alloc 0x108, save 14 saved-regs (s0-s7+s7+fp+ra) + 6 dbl
+ *     FP regs (f20..f30) — total of 20 callee-saves
+ *   - lwc1/swc1 of $f12 to sp+offset (FP ARG passed in!) — caller passes
+ *     1 float arg in $f12 + 2 int args in a0/a1
+ *   - 16-bit constants: 0xBB00 (loaded with lui), 0x80008000 (lui+ori for
+ *     bit-rotate or sign-extend mask)
+ *   - dispatch table read: a0->0x14 (= struct ptr s6),
+ *     a0->0x14->0xC (= ptr a3, table of glyph entries)
+ *   - update count at a0->0x14->0x4: ++a0->0x14->0x4 — append new entry
+ *   - allocates one entry of (a0->0x14->0xC[N]) — N is shifted by 12
+ *     (0x0003C8C0 = sll v1, v1, 3 — index by stride 8?)
+ *   - jal cross-USO callee with a1 = sp+0x11C (caller-arg slot)
+ *
+ * Structure inferred: this is likely a glyph-emit / draw-call recorder
+ * function. Takes (a0=context, a1=str-or-glyph-ptr, $f12=float, ...) and
+ * appends an entry to a draw-call buffer at a0->0x14, with FPU
+ * coordinate transformation to derive the entry's data.
+ *
+ * Multi-tick decomp target. Strategy: type the draw-call buffer struct
+ * first (the +0x4 count, +0xC ptr, +0x10 cap fields are visible across
+ * 5+ gui_uso functions). Initial INCLUDE_ASM-only commit; structural
+ * decode comment added for next pass. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000F04);
 
 /* Text-width accumulator with glyph-table lookup.
