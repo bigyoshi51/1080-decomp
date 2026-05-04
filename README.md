@@ -8,7 +8,7 @@ Nineteen segments are being decompiled. USO overlays ship as a custom relocatabl
 
 | Segment        | Functions   | Code matched       | Notes                                          |
 |----------------|-------------|--------------------|------------------------------------------------|
-| `kernel`       | 95 / 226    | 9.1 KB / 39.4 KB   | libultra + USO loader + audio (`0x80000000`)   |
+| `kernel`       | 96 / 226    | 9.3 KB / 39.5 KB   | libultra + USO loader + audio (`0x80000000`)   |
 | `bootup_uso`   | 197 / 359   | 11.2 KB / 81.6 KB  | Giles Goddard's libgdl engine                  |
 | `game_libs`    | 245 / 1,373 | 12.6 KB / 412.4 KB | Support libraries — wrapper mass-match         |
 | `gui_uso`      | 10 / 24     | 0.8 KB / 18.1 KB   | GUI/menu helpers                               |
@@ -22,7 +22,7 @@ Nineteen segments are being decompiled. USO overlays ship as a custom relocatabl
 | `game_uso`     | 82 / 222    | 4.8 KB / 70.8 KB   | Main game loop (Yay0-decompressed)             |
 | `timproc_uso_b1,b3,b5` | 77 / 224 | 4.1 KB / 81.3 KB | Timer process variants (Yay0-decompressed)     |
 | `map4_data_uso_b2` | 3 / 3   | 0.2 KB / 0.2 KB    | Map-4 data block                               |
-| **Total**      | **850 / 2,665** | **52.6 KB / 748.6 KB (7.02%)** |                                |
+| **Total**      | **851 / 2,665** | **52.8 KB / 748.6 KB (7.05%)** |                                |
 
 Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
