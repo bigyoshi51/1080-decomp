@@ -1,5 +1,3 @@
-nonmatching func_00006204, 0x24
-
 glabel func_00006204
     /* DD6C70 00006204 27BDFFE8 */  addiu      $sp, $sp, -0x18
     /* DD6C74 00006208 3C040000 */  lui        $a0, (0x0 >> 16)

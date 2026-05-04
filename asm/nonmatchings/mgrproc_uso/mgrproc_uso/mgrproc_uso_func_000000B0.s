@@ -1,5 +1,3 @@
-nonmatching mgrproc_uso_func_000000B0, 0x48
-
 glabel mgrproc_uso_func_000000B0
     /* 0000B0 000000B0 27BDFFD8 */  .word 0x27BDFFD8
     /* 0000B4 000000B4 AFBF001C */  .word 0xAFBF001C

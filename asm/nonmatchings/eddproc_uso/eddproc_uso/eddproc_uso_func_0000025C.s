@@ -1,5 +1,3 @@
-nonmatching eddproc_uso_func_0000025C, 0xC8
-
 glabel eddproc_uso_func_0000025C
     /* 59F6DC 0000025C 27BDFFE0 */  .word 0x27BDFFE0
     /* 59F6E0 00000260 AFBF0014 */  .word 0xAFBF0014

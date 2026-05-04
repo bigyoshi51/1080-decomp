@@ -1,5 +1,3 @@
-nonmatching gl_func_0000DED0, 0x50
-
 glabel gl_func_0000DED0
     /* DF2FA8 0000DED0 27BDFFC8 */  .word 0x27BDFFC8
     /* DF2FAC 0000DED4 240E03E9 */  .word 0x240E03E9
