@@ -1282,7 +1282,25 @@ void game_uso_func_000044C8(char *a0) {
  * objects share a single class/dispatch type — only the float-rate and
  * tlist entry vary by group.
  *
- * NEXT PASS: continue from 0x4A0C; ~10 more groups expected. */
+ * NEXT PASS: continue from 0x4A0C; ~10 more groups expected.
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x4A0C-0x4B40 (groups 13-15, ~75 insns):
+ *   Group 13 @ 0x4A0C-0x4A70: stride=0x110, sentinel=-0x110, tlist=D+0x714,
+ *     float=D+0xBC. Standard pattern.
+ *   Group 14 @ 0x4A74-0x4AD8: stride=0x128, sentinel=-0x128, tlist=D+0x718,
+ *     float=D+0xC0.
+ *   Group 15 @ 0x4ADC-0x4B40: stride=0x140, sentinel=-0x140, tlist=D+0x71C
+ *     (float TBD next read).
+ *
+ * Stride continues +0x18 progression (0x110, 0x128, 0x140). Tlists
+ * sequential D+0x714, +0x718, +0x71C. Floats D+0xBC, +0xC0.
+ *
+ * Total groups decoded so far: 0-15 (16 of estimated ~28 total).
+ * Cumulative stride from start: 0x140 = 320 bytes (vs s1's expected
+ * coverage of ~0x3E0-byte child obj).
+ *
+ * NEXT PASS: continue from 0x4B40; expect ~13 more groups before
+ * reaching the linkage/finalize phase. */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
