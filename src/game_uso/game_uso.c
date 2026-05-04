@@ -219,7 +219,6 @@ void game_uso_func_00000634(int *a0) {
     a0[13] = 0;
 }
 
-#ifdef NON_MATCHING
 /* 93.86% NM. 93.86 % match. State-check function: returns 1 if any of:
  *   (a0[0]==2 || a0[0]==3) && a0[1]==1
  *   (a0[4]==2 || a0[4]==3) && a0[5]==1
@@ -243,9 +242,6 @@ int game_uso_func_00000674(int *a0) {
         || a0[10] == 2
         || a0[12] == 2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000674);
-#endif
 
 #ifdef NON_MATCHING
 /* 89.96% NM. Prior commit 764b62d landed this as "100%" but that was
