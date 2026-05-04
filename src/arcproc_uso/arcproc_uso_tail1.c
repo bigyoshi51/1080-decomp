@@ -131,7 +131,18 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000068
  * delay-slot fill + missing BBL marker (~50% cap). Per the bootup_uso
  * O0-runs pattern (see project_1080_bootup_uso_o0_runs.md), this would
  * need per-function -O0 override + file split. Keep wrap for grep
- * discoverability + reference. Mirror of h2hproc_uso_func_00000274. */
+ * discoverability + reference. Mirror of h2hproc_uso_func_00000274.
+ *
+ * 2026-05-04: arcproc_uso ALREADY has -O0 file split infrastructure
+ * (arcproc_uso_o0_50.c, arcproc_uso_o0_12C.c with OPT_FLAGS := -O0 in
+ * Makefile). Adding arcproc_uso_o0_748.c is feasible — would need:
+ *   1. Move this function to new file with -O0 override
+ *   2. Add `build/src/arcproc_uso/arcproc_uso_o0_748.c.o: OPT_FLAGS := -O0`
+ *      and TRUNCATE_TEXT for layout
+ *   3. Insert into tenshoe.ld between arcproc_uso_o0_12C and tail1
+ *   4. Trim tail1's TRUNCATE_TEXT to exclude 0x748+
+ * Defer to a layout-budgeted tick — this tick's budget is reading not
+ * restructuring. */
 void arcproc_uso_func_00000748(int *a0) {
     gl_func_00000000((int*)a0[2]);
     a0[2] = 0;
