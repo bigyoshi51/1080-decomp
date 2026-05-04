@@ -310,7 +310,18 @@ extern int gl_func_h2hproc_8EC_f();
  * and an extra `sw a1, 0x1c(sp)` at insn 3. The reload register $a1 IS now
  * correct, but the surrounding scheduling is shifted by the extra spill slot.
  * Cap improved 89.5%→94.0%. Next pass: investigate if the volatile slot can
- * be made into a usefully-consumed value to eliminate the dead spill. */
+ * be made into a usefully-consumed value to eliminate the dead spill.
+ *
+ * 2026-05-04: re-measure 94.66%. Two more variants tried, both regressed:
+ *   - drop `volatile`, use `saved_a1` in `if (saved_a1==0)` condition →
+ *     90.18% (volatile WAS the load-bearing element; without it, IDO
+ *     eliminates the local entirely and we lose the spill-shaping)
+ *   - keep `volatile`, use `saved_a1` in condition → 89.55% (worse than
+ *     drop-volatile case; volatile + extra use forces 2-spill cycle)
+ * The volatile must remain UNCONSUMED for the 94% emit. The dead-spill
+ * elimination idea is unreachable from C — IDO either keeps the volatile's
+ * spill (what we want, 94%) or eliminates the local entirely (89.5%).
+ * No middle ground. */
 void h2hproc_uso_func_000008EC(char *a0, int a1) {
     volatile int saved_a1 = a1;
     *(int*)(a0 + 0x6B8) = a1;
