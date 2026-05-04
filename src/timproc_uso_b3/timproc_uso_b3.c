@@ -197,7 +197,59 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000013B8);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_00001660: 90-insn (0x168) 3-stage chained
+ * allocator/constructor. Same pattern as eddproc_uso_func_0000025C —
+ * gets/allocs 3 differently-sized objects (0x10C, 0xD4, 0x50 here), each
+ * with a vtable-pointer set at +0x28 from a unique-extern. Defensive
+ * null-checks at every stage create the documented frame-size cap (~60%).
+ *
+ * Structure (sketch, args inferred):
+ *   void f(int *a0, int a1, int a2) {
+ *       int *p1 = a0 ? a0 : alloc(0x10C);   if (!p1) return;
+ *       int *p2 = (alloc passthrough) ? : alloc(0xD4);
+ *       if (p2) {
+ *           int *p3 = alloc(0x50);
+ *           if (p3) {
+ *               gl_func(p3, &D_NNN_3_template);
+ *               p3->0x28 = (vtable_3);
+ *           }
+ *           p2->0x28 = (vtable_2);
+ *       }
+ *       p1->0x28 = (vtable_1);
+ *   }
+ *
+ * Per feedback_eddproc_uso_constructor_frame_cap.md (eddproc 0x025C wrap),
+ * this is a known structural cap class: defensive null-checks generate
+ * dead-code branches that target's IDO-emit doesn't have, plus 8-byte
+ * frame-size diff (target 0x20 vs C-emit 0x28). INSN_PATCH-blocked per
+ * size mismatch.
+ *
+ * Default INCLUDE_ASM build matches; this wrap is for grep/discoverability. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void timproc_uso_b3_func_00001660(int *a0, int a1, int a2) {
+    int *p1 = a0;
+    int *p2;
+    int *p3;
+    if (p1 == 0) {
+        p1 = (int*)gl_func_00000000(0x10C);
+        if (p1 == 0) return;
+    }
+    p2 = (int*)gl_func_00000000(0xD4, p1, a1);
+    if (p2 != 0) {
+        p3 = (int*)gl_func_00000000(0x50);
+        if (p3 != 0) {
+            gl_func_00000000(p3, (char*)&D_00000000 + 0x3DC);
+            *(int*)((char*)p3 + 0x28) = (int)&D_00000000;
+        }
+        *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
+    }
+    *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001660);
+#endif
 
 void timproc_uso_b3_func_000017C8(int *a0) {
     if (gl_func_00000000(*(int*)(&D_00000000 + 0x190)) == 0) return;
