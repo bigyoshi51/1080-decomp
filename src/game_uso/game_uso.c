@@ -1259,6 +1259,27 @@ void game_uso_func_0000591C(int *a0) {
      * Multiple stack buffers staged: sp+0x148, sp+0x158, sp+0x1A8/AC,
      * sp+0x1B8/BC/C0/C4 — scratch space for upcoming gl_func call(s).
      *
+     * Extended characterization 2026-05-04 (0x59F8-0x5AC0, ~50 insns):
+     *   - Float stores: sp+0x148/0x14C/0x150 get f14/f2/f0 (the scaled
+     *     Vec3 from above's mul.s chain).
+     *   - 3-word memcpy block (0x5A04-0x5A30): t5 → v0 buffer + t2 → t8
+     *     buffer, INTERLEAVED (8 lw/sw pairs total). t5/t2 are the two
+     *     Vec3 sources (likely a0->0x30 and a0->0x148 or similar).
+     *   - 0x5A34-0x5A68: element-wise Vec3 multiply:
+     *       sp+0x1B8 *= sp+0x1C4    (x *= mul.x)
+     *       sp+0x1BC *= sp+0x1C8    (y *= mul.y)
+     *       sp+0x1C0 *= sp+0x1CC    (z *= mul.z)
+     *     Plus `sp+0x1B4 = 0` (clear scalar slot). Then jal cross-USO
+     *     with delay-slot store of last result.
+     *   - 0x5A6C-0x5AC0: post-call dispatch. `if (call_result == 0) goto
+     *     far_epilogue`. Otherwise reload a0->0x1A8 prior-saved ptr,
+     *     read its 0x84 field, branch on (a0->0x74 == 1) — likely a
+     *     state field — and either continue the per-frame body or
+     *     branch to mid-function alt-path.
+     *
+     * Cumulative ~80/1102 insns characterized. Body-proper has ~1020
+     * remaining insns + ~28 more cross-USO calls.
+     *
      * TODO: 1080+ remaining insns — main update loop + cross-USO calls. */
 }
 #else
