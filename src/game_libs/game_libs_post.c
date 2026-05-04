@@ -2442,7 +2442,62 @@ void gl_func_0004E524(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0004E584: 31-insn / 0x7C 3-stage chained alloc-or-passthrough.
+ *
+ * Pred gl_func_0004E524 (Quad4 reader) leaves a1=&D_00000000 in its tail
+ * (that's the SUFFIX_BYTES recipe). Here a1 is the 2nd arg, but the function
+ * compares a1 against -0x28 (0xFFFFFFD8) as a sentinel, suggesting either
+ * (a) a fall-through chain pattern where a1 is preset by predecessor, OR
+ * (b) cross-USO call-site that varies a1.
+ *
+ * Decoded structure (partial):
+ *   v1 = a1
+ *   if (a1 == 0) {                             // a1==0: alloc default
+ *       v1 = alloc(8)
+ *       a1 = &D_00000000                       // sets a1 to extern base
+ *       if (v1 != 0) {
+ *           v1->0x0 = 0
+ *           v1->0x4 = 0
+ *       }
+ *   }
+ *   v1 = &D_00000000 + 0x28                    // ?? unused?
+ *   if (a1 == -0x28) {                          // sentinel check
+ *       p = alloc(4)
+ *       if (p != 0) {
+ *           q = alloc(4)
+ *           if (q != 0) {
+ *               *q = 0
+ *           }
+ *       }
+ *   }
+ *
+ * Initial wrap; baseline % to be measured next pass. Not byte-matched —
+ * structural decode only. */
+extern int gl_func_00000000();
+void gl_func_0004E584(char *a0, char *a1) {
+    char *v1 = a1;
+    if (a1 == 0) {
+        v1 = (char*)gl_func_00000000(8);
+        a1 = (char*)&D_00000000;
+        if (v1 != 0) {
+            *(int*)(v1 + 0x4) = 0;
+            *(int*)(v1 + 0x0) = 0;
+        }
+    }
+    if (a1 == (char*)-0x28) {
+        char *p = (char*)gl_func_00000000(4);
+        if (p != 0) {
+            char *q = (char*)gl_func_00000000(4);
+            if (q != 0) {
+                *(int*)(q + 0x0) = 0;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E584);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E600);
 
