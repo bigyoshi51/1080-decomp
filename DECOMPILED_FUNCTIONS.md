@@ -99,3 +99,4 @@ splat, ensure these are NOT treated as separate function boundaries.
 | func_80008BB0 | func_80008BB4 | 4-byte prologue fragment |
 | func_80008D48 | func_80008D4C | 4-byte prologue fragment |
 | func_80009144 | func_80009148 | 4-byte prologue fragment |
+| func_800066D0 | func_800066B0 | tail/epilogue continuation; same .c file (kernel_018.c). Note: full 3-way merge with prologue parent func_80006698 in kernel_017.c blocked by cross-file linker layout shift. |

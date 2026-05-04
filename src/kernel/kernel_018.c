@@ -66,8 +66,6 @@ extern OSEventState __osEventStateTab[];
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800066B0);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800066D0);
-
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800066EC);
 
 /* func_800066F0 split out to kernel_048.c (-O1) */
