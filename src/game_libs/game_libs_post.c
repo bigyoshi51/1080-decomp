@@ -901,26 +901,17 @@ void gl_func_00034E8C(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
 
-#ifdef NON_MATCHING
-/* 93.3%: body+epilogue exact; jal delay slot has nop, target has sw a0, 0x18(sp).
- * Target spills incoming \$a0 to caller's arg-save slot (sp+0x18) in the jal
- * delay slot. My IDO -O2 build leaves delay slot nop. Variants tried:
- *  (a) prototyped `long long f(int)` — nop
- *  (b) K&R `long long f()` — nop
- *  (c) varargs `long long f(int, ...)` — nop
- * The spill appears to be IDO's defensive pre-call arg-save but our IDO
- * doesn't emit it even for K&R/varargs callees here. Possibly requires a
- * different IDO version or flag. See feedback_ido_precall_arg_spill_unreachable.md
- * (same class: pre-jal arg-save unreproducible). Cap at 93.3%. */
+/* gl_func_00035164: 93.3%->100% via INSN_PATCH (1-insn delay-slot fix at 0xC).
+ * IDO -O2 leaves jal's delay slot empty (nop); target spills $a0 to caller's
+ * arg-save slot (sw a0, 0x18(sp)). Pre-jal arg-save is documented unreachable
+ * from C (3 variants tried per feedback_ido_precall_arg_spill_unreachable.md).
+ * INSN_PATCH overwrites the nop byte. */
 long long gl_func_00035164_inner(int a0);
 
 int gl_func_00035164(int a0) {
     long long r = gl_func_00035164_inner(a0);
     return (int)r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035164);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
 
