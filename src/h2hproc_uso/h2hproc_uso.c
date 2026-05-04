@@ -345,7 +345,9 @@ void h2hproc_uso_func_000009F8(int *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A80);
+void h2hproc_uso_func_00000A80(int *a0) {
+    *(int*)((char*)a0 + 0x504) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A88);
 
