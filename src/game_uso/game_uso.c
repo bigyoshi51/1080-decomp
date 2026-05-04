@@ -1816,6 +1816,26 @@ void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
      * Heavy branch-likely (bnel) usage suggests IDO's speculative-store
      * scheduling.
      *
+     * Extended characterization 2026-05-04 (0x7CD0-0x7D34, ~25 insns):
+     * The post-setup body computes a Vec3-delta into v1 (alloc'd buffer
+     * from prior chunk):
+     *   v1->[0] = f4 - f6   (x-delta)
+     *   v1->[4] = 0.0f      (y always zero)
+     *   v1->[8] = f8 - f10  (z-delta)
+     * This is a XZ-plane Vec3 difference with Y zeroed (consistent with
+     * 1080's snow-physics ground-projection pattern).
+     *
+     * Next: copy s0->Vec3 (at offset 0) through staging sp+0x354 to
+     * sp+0x398 (3-word memcpy). Then the cleaned XZ-projected version
+     * is written to sp+0x3A4..0x3AC: (x, 0, z) using $f16/$f18 + zeroed
+     * $f24. A far forward `b +0x3D7` jumps to 0x8C90 (near function tail
+     * — about 992 bytes ahead). This branch likely takes the early-out
+     * path when arg5 != NULL (we've zeroed *arg5 at entry; the rest is
+     * just buffer prep for downstream).
+     *
+     * Cumulative ~50/1075 insns characterized. Body-proper still has
+     * ~1000 insns + 22 more cross-USO calls past 0x7D34.
+     *
      * TODO: 1025+ insns remaining — main FPU computation + 23 more cross-USO
      * calls + final quaternion/matrix output to *arg5. */
     (void)gl_func_00000000();
