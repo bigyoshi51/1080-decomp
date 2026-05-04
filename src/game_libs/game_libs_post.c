@@ -2560,7 +2560,79 @@ void gl_func_0004E728(char *a0, int a1) {
     }
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0004E760: 74-insn / 0x128 struct initializer.
+ *
+ * Sets bit 0x80 in arg0->0x8, then bulk-copies fields from extern data
+ * tables (D+0x10, +0x28, +0x30, +0x1B70..0x1B80) to arg0 at fixed offsets,
+ * with one literal float (0x46990000 = 19660800.0f) at arg0->0x90, then
+ * calls a vtable function via D[0x28]->fnptr at +0x5C with arg0+offset.
+ *
+ * Decoded structure:
+ *   arg0->0x8 |= 0x80;
+ *   // copy 4 ints from D+0x30..0x3C
+ *   arg0->0xDC = D[0x30/4]; arg0->0xE0 = D[0x34/4];
+ *   arg0->0xE4 = D[0x38/4]; arg0->0xE8 = D[0x3C/4];
+ *   // copy 5 ints from D+0x8, 0xC, 0x10, 0x14, 0x2C
+ *   arg0->0xB8 = D[0x8/4]; arg0->0xBC = D[0xC/4];
+ *   arg0->0xC0 = D[0x10/4]; arg0->0xC4 = D[0x14/4];
+ *   arg0->0x7C = D[0x2C/4];
+ *   // copy 2 floats from D+0x18, 0x1C
+ *   arg0->0xAC = D_f[0x18/4]; arg0->0xB0 = D_f[0x1C/4];
+ *   // zero, then copy from D+0x28
+ *   arg0->0x70 = 0; arg0->0x78 = D[0x28/4];
+ *   // copy 2 ints from D+0, 0x4
+ *   arg0->0x100 = D[0/4]; arg0->0x104 = D[0x4/4];
+ *   // copy 5 floats from D+0x1B70..0x1B80, plus literal at 0x90
+ *   arg0->0x84 = D_f[0x1B70/4]; arg0->0x88 = D_f[0x1B74/4];
+ *   arg0->0x8C = D_f[0x1B78/4]; arg0->0x90 = (float)19660800.0f;
+ *   arg0->0x94 = D_f[0x1B7C/4]; arg0->0x80 = D_f[0x1B80/4];
+ *   // call vtable fnptr from D[0x28]:
+ *   p = *(void**)(D + 0x28);
+ *   ((fnptr)p->0x5C)(arg0 + p->0x58_short);
+ *   arg0->0x108 = 1;
+ *   arg0->0xFC = 0;
+ *
+ * Initial wrap; baseline % to be measured. The literal float at 0x90 may
+ * cap match% — IDO typically emits lwc1 from rodata for float literals,
+ * but the asm shows lui+mtc1 form (because lower 16 bits are 0 — IDO's
+ * float-as-int trick triggers). */
+extern int gl_func_00000000();
+void gl_func_0004E760(char *a0) {
+    char *base = (char*)&D_00000000;
+    char *p;
+    union { int i; float f; } lit;
+    lit.i = 0x46990000;
+    *(int*)(a0 + 0x8) |= 0x80;
+    *(int*)(a0 + 0xDC) = *(int*)(base + 0x30);
+    *(int*)(a0 + 0xE0) = *(int*)(base + 0x34);
+    *(int*)(a0 + 0xE4) = *(int*)(base + 0x38);
+    *(int*)(a0 + 0xE8) = *(int*)(base + 0x3C);
+    *(int*)(a0 + 0xC0) = *(int*)(base + 0x10);
+    *(int*)(a0 + 0xC4) = *(int*)(base + 0x14);
+    *(int*)(a0 + 0xB8) = *(int*)(base + 0x8);
+    *(int*)(a0 + 0xBC) = *(int*)(base + 0xC);
+    *(int*)(a0 + 0x7C) = *(int*)(base + 0x2C);
+    *(float*)(a0 + 0xAC) = *(float*)(base + 0x18);
+    *(float*)(a0 + 0xB0) = *(float*)(base + 0x1C);
+    *(int*)(a0 + 0x70) = 0;
+    *(int*)(a0 + 0x78) = *(int*)(base + 0x28);
+    *(int*)(a0 + 0x100) = *(int*)(base + 0x0);
+    *(int*)(a0 + 0x104) = *(int*)(base + 0x4);
+    *(float*)(a0 + 0x84) = *(float*)(base + 0x1B70);
+    *(float*)(a0 + 0x88) = *(float*)(base + 0x1B74);
+    *(float*)(a0 + 0x8C) = *(float*)(base + 0x1B78);
+    *(float*)(a0 + 0x90) = lit.f;
+    *(float*)(a0 + 0x94) = *(float*)(base + 0x1B7C);
+    *(float*)(a0 + 0x80) = *(float*)(base + 0x1B80);
+    p = *(char**)(base + 0x28);
+    (*(int(**)(int))(p + 0x5C))((int)a0 + *(short*)(p + 0x58));
+    *(int*)(a0 + 0x108) = 1;
+    *(int*)(a0 + 0xFC) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E760);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E888);
 
