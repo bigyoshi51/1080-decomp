@@ -134,7 +134,38 @@ void gui_func_00000B58(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000B58);
 #endif
 
+#ifdef NON_MATCHING
+/* gui_func_00000D04: 128-insn (0x200) state-machine function with 5
+ * cross-USO calls and many $s register save (s0-s7+s8+ra). 0x58 frame.
+ *
+ * Structural decode (2026-05-04 first-pass):
+ *   Prologue: save s0..s7+s8+ra at sp+0x30..0x54, frame=0x58, spill a2 at sp+0x60.
+ *   t6 = a0->0x24, s4 = a0->0x14 (loaded for use in body — s4 is per-item stride).
+ *   t2 = 0xBB000000 (lui only — RDRAM-direct address mask?)
+ *   v1 = a0->0xC, t3 = 0x80008000 (lui+ori — sign-extension constant)
+ *   t0 = v1->0x4, t2 |= 1 (= 0xBB000001)
+ *   s1 = a0 (saved-base pointer)
+ *   t6 = t6 + 1 (adjustment counter?)
+ *   ... continues with state-machine on $s registers + 5 jal sites
+ *
+ * Likely a "render glyph batch" or "texture upload command list" function
+ * given the 0xBB000001 constant (segment ID 0xBB | flag bit 1 in N64
+ * cartridge address conventions). Calls gl_func_00000000 5 times — likely
+ * RSP DMA / display list builder operations.
+ *
+ * NEXT PASS: decode the 5 jal sites + their args (likely a sequence:
+ * setup → DMA-start → wait → cleanup → return). 0% NM partial; default
+ * INCLUDE_ASM build correct. */
+extern int gl_func_00000000();
+void gui_func_00000D04(int *a0, int a1, int a2, int a3) {
+    /* TODO: 128-insn state machine. Reads a0->0x24/0xC/0x14, uses 0xBB000001
+     * constant (RSP address?), 5 cross-USO calls. */
+    (void)a0; (void)a1; (void)a2; (void)a3;
+    (void)gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000F04);
 
