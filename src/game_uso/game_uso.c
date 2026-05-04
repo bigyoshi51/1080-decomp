@@ -2645,6 +2645,42 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
  * another float load, c.lt.s against 500.0f (via lui 0x43FA), and
  * branches to 0xDA60 or 0xDA4C based on result. State-machine-like.
  *
+ * EXTENDED CHARACTERIZATION 2026-05-04 (insns 16-60 @ 0xDA10-0xDABC):
+ *   30.0f-gate body opens with:
+ *     state_bits = inner->0xA10 & 0x1F0  (halfword bitmask test)
+ *     if (state_bits == 0) goto far_jump_DBD8
+ *     ; otherwise:
+ *     v = inner->0xA1C (float)            ; secondary float field
+ *     if (v < 0) v = -v                   ; abs.s effectively
+ *     ; v stays in $f2 for downstream comparisons
+ *
+ *     w = a0->0x244 (float)               ; tertiary float field
+ *     if (w >= 0) goto skip_block_DAC8    ; bc1f over the next block
+ *     ; (else fall through to "negative-w" handler @ 0xDA60)
+ *     sp+0x28 = 2                         ; arg stash
+ *     sp+0x30 = 0                         ; flag stash (overwrites entry's 1)
+ *     gl_func_00000000(...)               ; FIRST cross-USO call (delay slot
+ *                                          ; stores t9=2 to sp+0x28)
+ *
+ *     inner = a0->0xB4 (reload)           ; clobbered by call
+ *     vv = inner->0xA1C                   ; reload (may have been written)
+ *     if (vv < 0) {
+ *         old_state = a0->0xFC            ; old state field
+ *         a0->0x108 = old_state | 0x16    ; OR new state bits
+ *         sp+0x2C = 1
+ *     } else {
+ *         old_state = a0->0xFC
+ *         a0->0x108 = old_state | 0x17    ; alternative state bits
+ *         sp+0x2C = 3
+ *     }
+ *     goto far_jump_DBD8                  ; both arms converge to far_DBD8
+ *
+ *   The 0x16 vs 0x17 OR-mask difference and the sp+0x2C 1 vs 3 store
+ *   suggest the function tracks a per-frame state value derived from
+ *   the sign of inner->0xA1C (a velocity or rate?). The "state_bits
+ *   & 0x1F0" gate suggests `state` has a 5-bit subfield at bits 4-8
+ *   that selects a sub-mode.
+ *
  * Left as INCLUDE_ASM until enough body is decoded to support a
  * compile-testable skeleton. The entry decode is the forward progress
  * for this pass per the skill's multi-run decomp convention. */
