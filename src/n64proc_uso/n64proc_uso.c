@@ -263,7 +263,13 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
 #endif
 
 #ifdef NON_MATCHING
-/* Dual-branch sub-struct dispatcher (51 insns, 0xCC after prologue-stolen fix).
+/* (NEW 2026-05-04) INSN_PATCH eligibility check: built 50 insns vs expected
+ * 51 (+1 delta) + 21 differing insns. Size mismatch blocks INSN_PATCH per
+ * feedback_insn_patch_size_diff_blocked.md. The IDO k0/k1 block-reorder is
+ * a structural shift, not a per-offset rename. Wrap doc's "~98% via unique
+ * externs (mechanical)" path remains the only forward move. Stays at 95.51%.
+ *
+ * Dual-branch sub-struct dispatcher (51 insns, 0xCC after prologue-stolen fix).
  * Prior "MYSTERY" (swc1 $f0 without preceding mtc1) resolved 2026-04-20:
  * splat had mis-attributed the function's base-pointer prologue
  * `lui $at, 0x3F80; mtc1 $at, $f0` to the predecessor (func_00000268)'s
