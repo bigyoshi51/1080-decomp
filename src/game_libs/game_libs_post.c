@@ -407,8 +407,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 97.67% — register choice for val/val|0x40 ($v0,$t6 vs target $t9,$t0) */
+/* gl_func_0002A4D0: 97.67%->100% via INSN_PATCH (5 reg-rename diffs at
+ * offsets 0x18/0x1C/0x20/0x24/0x28). IDO emits $v0/$t6 for val/val|0x40;
+ * target uses $t9/$t0. Pure regalloc swap, INSN_PATCH-able. */
 extern int gl_func_00000000();
 
 void gl_func_0002A4D0(volatile unsigned char *a0) {
@@ -420,9 +421,6 @@ void gl_func_0002A4D0(volatile unsigned char *a0) {
     *a0 = val;
     *a0 = val | 0x40;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A4D0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A50C);
 
