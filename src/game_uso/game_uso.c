@@ -2718,7 +2718,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FDCC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FEC8);
 
+#ifdef NON_MATCHING
+/* 89.18% NM. Built 26 vs expected 28 insns (size 0x68 vs 0x70). 2-call gated
+ * dispatcher (sibling of game_uso_func_0000F664/F8E8/EF20):
+ *   if (a0->0xB4->0x938 != 0) {
+ *     gl_func(a0, 0x30001, 6, 1, 1, 1);
+ *     gl_func(a0, D_E10, D_E14, 1);
+ *   }
+ * Same precall-arg-spill cap: target emits `sw a1,4(sp); sw a2,8(sp)` defensive
+ * spills before the second jal that IDO -O2 with K&R extern doesn't reproduce.
+ * Documented in feedback_uso_3unique_extern_inline_store_before_jal_combo.md
+ * and feedback_ido_varargs_extern_doesnt_force_caller_spill.md. Size diff
+ * blocks INSN_PATCH per feedback_insn_patch_size_diff_blocked.md. */
+void game_uso_func_0000FF48(char *a0) {
+    if (*(int*)(*(int**)(a0 + 0xB4) + 0x938 / 4) != 0) {
+        gl_func_00000000(a0, 0x30001, 6, 1, 1, 1);
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10), *(int*)((char*)&D_00000000 + 0xE14), 1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FF48);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FFB8);
 
