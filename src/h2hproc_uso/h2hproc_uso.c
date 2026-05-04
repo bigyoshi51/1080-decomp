@@ -255,6 +255,29 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+/* h2hproc_uso_func_00000620: 178-insn / 0x2CC orchestrator constructor.
+ * Two `jr ra` in the .s — possibly bundled with a small trailing function
+ * or has an early-return path through an inner `jr ra` (rare).
+ *
+ * Decoded entry pattern (first ~40 insns, 0x620-0x6C0):
+ *   prologue: addiu sp,-0x38; sw s0,0x18; or s0,a0,$0; sw ra,0x1C
+ *   3 args spilled: a1 -> sp+0x3C, a2 -> sp+0x40, a3 -> sp+0x44
+ *   if (a0 == 0): alloc(0x6BC); if !alloc, goto end (5C-byte tail)
+ *   t6 = s0 = (alloc result or arg0); s0->0x28 = ?, s0->0x14 = ?
+ *   if (a1 == 0): alloc(0x6A8); if !alloc, goto end
+ *   ... alternating null-check-then-alloc chain
+ *   inner blocks call gl_func with various offsets relative to s0+
+ *   (template setups for sub-objects of size 0x6BC)
+ *
+ * Field offsets identified for future struct typing:
+ *   a0->0x28: parent ptr at +0x28 (standard gl_lib pattern)
+ *   a0->0x14: vtable ptr
+ *   a0->0x6BC: alloc-size constant for main object
+ *   a0->0x6A8: alloc-size constant for sub-object 1
+ *
+ * Multi-tick decompile target. Same constructor pattern as
+ * eddproc_uso_func_0000025C, timproc_uso_b3_func_00001660 (3-stage
+ * alloc-or-passthrough chain). Default INCLUDE_ASM build matches. */
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000620);
 
 /* 0x8EC + 0x944 are BYTE-IDENTICAL sibling functions (verified). Decoded:
