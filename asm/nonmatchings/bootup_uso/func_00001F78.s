@@ -1,3 +1,5 @@
+nonmatching func_00001F78, 0x50
+
 glabel func_00001F78
     /* DD29E4 00001F78 27BDFFE8 */  addiu      $sp, $sp, -0x18
     /* DD29E8 00001F7C AFBF0014 */  sw         $ra, 0x14($sp)

@@ -1,4 +1,6 @@
 
+nonmatching func_800007D4, 0x88
+
 glabel func_800007D4
     /* 17D4 800007D4 27BDFFD8 */  addiu      $sp, $sp, -0x28
     /* 17D8 800007D8 AFB30020 */  sw         $s3, 0x20($sp)

@@ -1,3 +1,5 @@
+nonmatching titproc_uso_func_000022BC, 0x150
+
 glabel titproc_uso_func_000022BC
     /* 59BF88 000022BC 27BDFFE0 */  .word 0x27BDFFE0
     /* 59BF8C 000022C0 AFB00014 */  .word 0xAFB00014

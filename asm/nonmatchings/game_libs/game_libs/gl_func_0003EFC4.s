@@ -1,3 +1,5 @@
+nonmatching gl_func_0003EFC4, 0x44
+
 glabel gl_func_0003EFC4
     /* E2409C 0003EFC4 27BDFF48 */  .word 0x27BDFF48
     /* E240A0 0003EFC8 AFBF0014 */  .word 0xAFBF0014

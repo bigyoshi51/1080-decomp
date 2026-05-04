@@ -1,3 +1,5 @@
+nonmatching gl_func_00004244, 0x26BC
+
 glabel gl_func_00004244
     /* DE931C 00004244 27BDF8B8 */  .word 0x27BDF8B8
     /* DE9320 00004248 AFB00028 */  .word 0xAFB00028

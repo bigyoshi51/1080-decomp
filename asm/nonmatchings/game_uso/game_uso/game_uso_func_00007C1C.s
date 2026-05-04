@@ -1,3 +1,5 @@
+nonmatching game_uso_func_00007C1C, 0x10BC
+
 glabel game_uso_func_00007C1C
     /* 007C1C 00007C1C 27BDFC50 */  .word 0x27BDFC50
     /* 007C20 00007C20 AFB00038 */  .word 0xAFB00038

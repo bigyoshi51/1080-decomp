@@ -1,3 +1,5 @@
+nonmatching func_80004E50, 0x100
+
 glabel func_80004E50
     /* 5E50 80004E50 240E0002 */  addiu      $t6, $zero, 0x2
     /* 5E54 80004E54 3C018002 */  lui        $at, %hi(D_800195D4)

@@ -1,3 +1,5 @@
+nonmatching gl_func_000333F4, 0x28
+
 glabel gl_func_000333F4
     /* E184CC 000333F4 27BDFFE8 */  .word 0x27BDFFE8
     /* E184D0 000333F8 00802825 */  .word 0x00802825

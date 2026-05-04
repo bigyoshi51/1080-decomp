@@ -1,4 +1,6 @@
 
+nonmatching func_80000598, 0x40
+
 glabel func_80000598
     /* 1598 80000598 00C03825 */  or         $a3, $a2, $zero
     /* 159C 8000059C 00801025 */  or         $v0, $a0, $zero

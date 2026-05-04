@@ -1,3 +1,5 @@
+nonmatching game_uso_func_000000E0, 0xF4
+
 glabel game_uso_func_000000E0
     /* 0000E0 000000E0 8CAE0000 */  .word 0x8CAE0000
     /* 0000E4 000000E4 C4C60000 */  .word 0xC4C60000

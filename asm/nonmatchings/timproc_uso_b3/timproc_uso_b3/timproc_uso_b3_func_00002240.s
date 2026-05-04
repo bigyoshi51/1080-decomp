@@ -1,3 +1,5 @@
+nonmatching timproc_uso_b3_func_00002240, 0x7C
+
 glabel timproc_uso_b3_func_00002240
     /* 002240 00002240 27BDFFE8 */  .word 0x27BDFFE8
     /* 002244 00002244 AFBF0014 */  .word 0xAFBF0014

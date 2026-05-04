@@ -1849,17 +1849,6 @@ float game_uso_func_00007A98(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
 #endif
 
-/* 100% MATCH (2026-05-04) via .s `nonmatching` macro removal — the
- * `.NON_MATCHING` data alias was confusing objdiff's scoring per
- * feedback_objdiff_skips_nonmatching_alias.md. Built and expected bytes
- * have always been identical (verified via objdump -d); the cap was
- * scoring-only. The cross-function tail-share with 7A98 means there's
- * no C-level path to produce these 4 insns — but INCLUDE_ASM (via the
- * .s with `glabel`-only header, no `nonmatching` macro) emits them
- * verbatim, and now objdiff scores it as 100%. NM wrap retained for
- * documentation; episode NOT logged (function is INCLUDE_ASM-served,
- * not C-decompiled).
- */
 #ifdef NON_MATCHING
 /* 58.75% NM. 4-insn body: `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2`.
  * Returns 0.0f via $f2 intermediate. IDO -O2 folds standalone `return 0.0f`

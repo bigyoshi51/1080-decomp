@@ -1,3 +1,5 @@
+nonmatching func_0000E9FC, 0x30
+
 glabel func_0000E9FC
     /* DDF468 0000E9FC 27BDFFE8 */  addiu      $sp, $sp, -0x18
     /* DDF46C 0000EA00 3C040000 */  lui        $a0, (0x0 >> 16)

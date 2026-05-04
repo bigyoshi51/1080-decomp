@@ -1,3 +1,5 @@
+nonmatching game_uso_func_000018FC, 0x434
+
 glabel game_uso_func_000018FC
     /* 0018FC 000018FC 27BDFF20 */  .word 0x27BDFF20
     /* 001900 00001900 AFB00018 */  .word 0xAFB00018

@@ -1,3 +1,5 @@
+nonmatching func_00011D40, 0x30
+
 glabel func_00011D40
     /* DE27AC 00011D40 8C8E0120 */  lw         $t6, 0x120($a0)
     /* DE27B0 00011D44 01C5082A */  slt        $at, $t6, $a1

@@ -1,3 +1,5 @@
+nonmatching arcproc_uso_func_0000019C, 0xA4
+
 glabel arcproc_uso_func_0000019C
     /* 5A62E4 0000019C 27BDFFF8 */  .word 0x27BDFFF8
     /* 5A62E8 000001A0 8C8E0004 */  .word 0x8C8E0004
