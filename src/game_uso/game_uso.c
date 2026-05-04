@@ -1260,7 +1260,29 @@ void game_uso_func_000044C8(char *a0) {
  *
  * NEXT PASS: continue from 0x48F8; ~14+ more groups expected before
  * the linkage/finalize phase (~insn 600). The literal-float groups are
- * the harder ones to match — multiple lui/mtc1 emit forms IDO can pick. */
+ * the harder ones to match — multiple lui/mtc1 emit forms IDO can pick.
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x48F8-0x4A0C (groups 10-12, ~70 insns):
+ *   Group 10 (continuing) @ 0x48EC-0x4934: stride=0xC8, sentinel=-0xC8,
+ *     tlist=D+0x708, float=D+0xB0 (back to D-table lookup form).
+ *   Group 11 @ 0x493C-0x49A0: stride=0xE0, sentinel=-0xE0, tlist=D+0x70C,
+ *     float=D+0xB4.
+ *   Group 12 @ 0x49A4-0x4A08: stride=0xF8, sentinel=-0xF8, tlist=D+0x710,
+ *     float=D+0xB8.
+ *
+ * Pattern correction: groups 8-9 inline-float was a transient — groups
+ * 10+ revert to D-table lookup form. The inline-float at groups 8-9 may
+ * have been special-case constants for sub-objects with non-D-table
+ * fall-rates. Stride progression now stable +0x18 (0xC8, 0xE0, 0xF8).
+ * Tlist offsets continuing sequentially (+4 per group: D+0x708, +0x70C,
+ * +0x710). Float-table offsets +0x4 (+0xB0, +0xB4, +0xB8).
+ *
+ * Type tag is constant across all groups: D+0x3C8 (template-type ptr).
+ * Same value used for sub->0xC in every group, suggesting all sub-
+ * objects share a single class/dispatch type — only the float-rate and
+ * tlist entry vary by group.
+ *
+ * NEXT PASS: continue from 0x4A0C; ~10 more groups expected. */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
