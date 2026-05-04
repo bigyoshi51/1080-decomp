@@ -2107,7 +2107,36 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * that returns the difference between current stage Vec3 and arg5's Vec3,
  * with the result written through a freshly-allocated Vec3 (or one passed
  * via stack at sp+0x328). The fast-path skips ~980 insns of additional
- * processing (matrix transforms?) and exits early. */
+ * processing (matrix transforms?) and exits early.
+ *
+ * 2026-05-04 EXTENDED DECODE 0x7D38-0x7DB8 (~32 insns) — alternate path
+ * (slow path, NOT fast-return). Two sequential alloc-or-passthrough
+ * blocks, each producing a Vec3:
+ *
+ *   /\* Block 1: v1 = sp+0x328 (or alloc 12); fill from a3 *\/
+ *   v1 = sp + 0x328;       // always stack-resident, alloc path dead
+ *   v1[0] = a3->0x30;      // (lwc1 f12 from a3+0x30)
+ *   v1[1] = f24;           // saved-callee-double (mid-component)
+ *   v1[2] = a3->0x38;      // (lwc1 f0 from a3+0x38)
+ *   sp[0x318] = 0;         // clear flag
+ *
+ *   /\* Block 2: a1 = sp+0x2B4 (or alloc 12); fill with v1 - a2-Vec3 *\/
+ *   a1 = sp + 0x2B4;       // always stack-resident
+ *   a1[0] = sp[0x328] - a2->0x30;   // delta.x = v1.x - a2.x
+ *   a1[1] = f24;                     // mid-component (no subtract)
+ *   a1[2] = sp[0x330] - a2->0x38;   // delta.z = v1.z - a2.z
+ *
+ *   s1 = sp + 0x354;       // next-block buffer
+ *
+ * SEMANTIC: computes a "relative position vector from a2 to a3" using
+ * stage's xz-coords + saved-double y. The y-component (f24) is preserved
+ * from earlier in the function — likely a precomputed height delta. The
+ * xz-only subtract suggests this is a 2D collision/proximity computation
+ * with separate y handling.
+ *
+ * NEXT PASS: continue decode from 0x7DBC. Likely follow with a length
+ * computation (sqrt of sum-of-squares) and clamp/normalize using s1's
+ * buffer. ~960 insns remaining in this slow path. */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
