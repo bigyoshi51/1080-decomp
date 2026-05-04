@@ -1172,7 +1172,30 @@ void game_uso_func_000044C8(char *a0) {
  * cleanup path.
  *
  * NEXT PASS: continue from 0x4710 (group 4 onwards); confirm if all 16
- * groups follow this pattern or if some have FPU-heavy variants. */
+ * groups follow this pattern or if some have FPU-heavy variants.
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x4710-0x47B0 (groups 4-6):
+ *   Group 4 @ 0x4710-0x4738: stride=0x68, sentinel=-0x68, tlist=D+0x6F8,
+ *     float=D+0xA8 — same template pattern as groups 0-3.
+ *   Group 5 @ 0x4718 has a SPECIAL `lui at, 0xC448 / mtc1 at, $f10`
+ *     emit interleaved with the standard init: f10 = -800.0f
+ *     (bit pattern 0xC4480000 → -800.0f). This float is loaded but its
+ *     consumer is later in the function — likely a per-group threshold
+ *     or scale factor for the sub-object's FPU state, NOT consumed by
+ *     gl_func_00000000(...) directly.
+ *   Group 6 @ 0x473C-0x47B0: stride=0x68, sentinel=-0x80, tlist=D+0x6FC,
+ *     float=D+0xA8 (same as group 4? or 5? the asm is dense). Standard
+ *     init pattern resumes.
+ *
+ * Group strides observed so far: 0x08, 0x20, 0x38, 0x50, 0x68, 0x68 —
+ * the stride pattern is roughly arithmetic progression +0x18 then
+ * stable at 0x68. Suggests the sub-objects are 0x18 bytes each and
+ * groups 0-3 are partial groups (smaller sub-region) while groups 4+
+ * are full-size groups. tlist offsets are sequential
+ * (+0x4 each: 6E8, 6EC, 6F0, 6F4, 6F8, 6FC).
+ *
+ * NEXT-NEXT PASS: continue from 0x47B0; expect 10+ more groups before
+ * reaching the linkage/finalize phase (~insn 600+). */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
