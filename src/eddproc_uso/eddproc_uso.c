@@ -127,7 +127,16 @@ void eddproc_uso_func_000001E8(char *a0) {
  * Probably came from `p2 = (p1 != 0) ? call(p1) : 0` style ternaries
  * in the source, which IDO evaluates as bne+delay+call instead of just
  * call. Frame size diff: target 0x20 (3 spill slots: 0x18/0x1C/0x20),
- * mine 0x28 (over-allocates). Bigger structural rework likely required. */
+ * mine 0x28 (over-allocates).
+ *
+ * 2026-05-04: re-confirmed cap. The 8-byte frame-size diff (0x28 vs 0x20)
+ * is a structural blocker that INSN_PATCH cannot fix (per
+ * feedback_insn_patch_size_diff_blocked.md — INSN_PATCH only patches
+ * operand bytes, not insn count or stack frame). To match would require:
+ * (a) source restructure to eliminate one spill slot, OR
+ * (b) prefix-bytes tooling that grows/shrinks the frame addiu while
+ *     preserving downstream relocs (no such tool exists yet).
+ * Defer to permuter random-mode or sibling-found-pattern. */
 void eddproc_uso_func_0000025C(int *a0, int *a1) {
     int *p1 = a0;
     int *p2;
