@@ -1388,7 +1388,47 @@ void game_uso_func_000044C8(char *a0) {
  *     a0+0xB8 (config slots in main object)
  *   - Final return path: ret = a0
  *
- * NEXT PASS: decode the linkage phase fully (~50 insns at 0x563C-end). */
+ * NEXT PASS: decode the linkage phase fully (~50 insns at 0x563C-end).
+ *
+ * 2026-05-04 LINKAGE/FINALIZE PHASE FULLY DECODED @ 0x563C-0x5724
+ * (~57 insns). All initializers identified:
+ *
+ *   v0 = arg0;                      // reload from sp+0xE8
+ *   t8 = arg1;                      // reload from sp+0xEC
+ *   t9 = arg2;                      // reload from sp+0xF0
+ *   arg0->0x30 = arg1;
+ *   arg0->0x2C = arg2;
+ *   arg0->0xA8 = 0.0f;
+ *   arg0->0xAC = D[0xE8];           // float from D-table
+ *   arg0->0xB0 = 500.0f;            // (lui 0x43FA)
+ *   arg0->0xB4 = 70.0f;             // (lui 0x428C)
+ *   arg0->0xB8 = 230.0f;            // (lui 0x4366)
+ *   arg0->0xBC = D[0xEC];
+ *   arg0->0xC0 = 12.0f;             // (lui 0x4140)
+ *   arg0->0xC4 = D[0xF0];
+ *   arg0->0xC8 = 2.0f;              // (lui 0x4000)
+ *   arg0->0xCC = 50.0f;             // (lui 0x4248)
+ *   arg0->0xD0 = 20.0f;             // (lui 0x41A0)
+ *   arg0->0xD4 = 500.0f;            // ($f0 carried — same as 0xB0)
+ *   arg0->0xDC = 15.0f;             // (lui 0x4170)
+ *   arg0->0xE0 = D[0xF4];
+ *   arg0->0xD8 = D[0xF8];
+ *   arg0->0xA0 = 1000.0f;           // (lui 0x447A)
+ *   arg0->0x4DC = 3;                // int constant
+ *   epilogue: lw ra; lw v0=arg0; lw s0/s1/s2; jr ra; addiu sp +0xE8
+ *
+ * FUNCTION FULLY DECODED. Total: prologue (entry + 1st alloc + sub-region
+ * setup) + 38-group unrolled init chain (groups 0-37, ~1071 insns) +
+ * linkage/finalize phase (~57 insns + epilogue).
+ *
+ * Combined init phase config slots span:
+ *   arg0->0x2C, 0x30: arg pointers (entity refs)
+ *   arg0->0xA0..0xDC: ~16 float constants (gameplay tunables)
+ *   arg0->0x4DC: counter/state init = 3
+ *
+ * Multi-tick refinement target — the C body would be ~150 lines of
+ * sequential field assignments. Large-but-tractable for next decomp
+ * pass. Default INCLUDE_ASM build matches the (yay0-compressed) ROM. */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
