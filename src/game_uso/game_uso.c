@@ -243,7 +243,6 @@ int game_uso_func_00000674(int *a0) {
         || a0[12] == 2;
 }
 
-#ifdef NON_MATCHING
 /* 89.96% NM. Prior commit 764b62d landed this as "100%" but that was
  * expected-baseline contamination — subsequent refresh-expected-baseline
  * run reset expected/ to pure baserom bytes and revealed the real diff.
@@ -288,9 +287,6 @@ void game_uso_func_00000724(char *a0) {
     *(int*)(a0 + 0x38) = *(int*)(a0 + 0x3C);
     *(int*)(a0 + cnt * 4 + 0x3C) = *(int*)(a0 + cnt * 4 + 0x38);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000724);
-#endif
 
 void game_uso_func_000007E0(int *a0) {
     a0[9] = 0;
