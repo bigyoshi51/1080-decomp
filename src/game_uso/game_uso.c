@@ -2024,7 +2024,25 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      * load 3rd Vec3 source, dispatch helper". Confirms screen-space transform
      * hypothesis. Body-part-2 still has ~200 insns past 0x9DD0.
      *
-     * @ 0x9DC4-0x10E8: body-part-2 final, 240+ insns + ~8 cross-USO calls.
+     * Extended characterization 2026-05-04 (0x9DD0-0x9E80, ~44 insns):
+     *   - 0x9DD8-0x9DF8: post-cross-call result handling. If callee
+     *     returned non-NULL ptr `v0`, store Vec3(a1[0], 0, a1[2]) to *v0
+     *     — i.e. zero-Y projection of the just-loaded Vec3.
+     *   - 0x9DFC-0x9E0C: 5th cross-USO dispatch — alloc(0xC) for a new
+     *     Vec3 buffer.
+     *   - 0x9E20-0x9E4C: post-alloc, fill the new Vec3 with delta from
+     *     (sp+0x184/0x18C) and a3->0x30/0x38: Vec3(diff_x, 0, diff_z).
+     *     a3 = the FOURTH function arg (caller-slot at sp+0x1AC) — a
+     *     position struct providing the reference XZ subtract origin.
+     *   - 0x9E50-0x9E80: another 12-byte struct copy (a1 → a2, then
+     *     a1 → sp+0x120; final destination tracking gets convoluted).
+     *
+     * Cumulative: ~115 insns characterized of the 344. Body-part-2's
+     * theme is clearly "fan out the player's screen-projected XZ to
+     * multiple per-displayed-object buffer slots, with various deltas
+     * against the reference position from a3".
+     *
+     * @ 0x9E80-0x10E8: body-part-2 final, 200+ insns + ~6 cross-USO calls.
      *   TODO: future passes will decompose the per-block math chains.
      *   The 250.5/50.0 constants confirm screen-space coordinate transform
      *   (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset). */
