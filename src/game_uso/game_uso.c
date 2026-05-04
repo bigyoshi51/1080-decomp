@@ -2421,42 +2421,14 @@ void game_uso_func_0000D418(char *a0) {
     gl_func_00000000(a0 + 0x13C);
 }
 
-#ifdef NON_MATCHING
-/* 97.5% NM. All logic correct; IDO allocates t6 before t7 for the two paired
- * reads (0xC0→0xC8 via $t6, 0xC4→0xCC via $t7), but target has t7 for the
- * 0xC0→0xC8 copy and t6 for the 0xC4→0xCC copy — registers SWAPPED.
- * Variants tried (2026-04-20, all produce t6/t7 in IDO-default order):
- *   (a) swap store order (0xCC first, then 0xC8): still t6 first-seen
- *   (b) 0xC8 copy BEFORE the -1000 stores, 0xCC copy AFTER: still t6 first
- *   (c) named locals `s32 a, b`: forces $v0/$v1 (wrong register class)
- *   (d) 2026-05-02 (DNM build now unblocked): `register s32 c4_val=...;
- *       register s32 c0_val=...` w/ reversed load order — REGRESSED to
- *       95.13% (t6/t7 still in default order, but the named-locals add
- *       extra moves elsewhere). Original form remains best at 97.5%.
- *
- * 2026-05-03 4 more variants tested (all confirm cap):
- *   (e) `register s32 neg = -1000;` to nudge -1000 out of $v0 — IDO still
- *       puts neg in $v0 (register hint ignored for short-lived const).
- *   (f) Reverse C-source order (CC first, then C8) — produces correct
- *       VALUE-to-register mapping (c0→t7, c4→t6) but reverses LOAD ORDER
- *       too (lw t6,0xC4 before lw t7,0xC0). 4/8 byte differ vs target's 2/8.
- *   (g) `register s32 t6_val asm("$t6");` — IDO cfe Syntax Error (rejects
- *       GCC `register asm`, per feedback_ido_no_gcc_register_asm.md).
- *   (h) Pointer indexing `a0[0xC8/4] = a0[0xC0/4]` — same as direct cast,
- *       same t6/t7 order.
- * IDO's first-seen-gets-lowest-number rule is invariant to the stmt shapes
- * we can write from C. Target was likely compiled from source using
- * `register int x asm("$t7")` (GCC-only; IDO rejects per feedback_ido_no_gcc_register_asm.md).
- * Cap at 97.5 %, no further C-level fix known. */
+/* IDO allocates t6 before t7; target has t7/t6 swapped. INSN_PATCH (2 words)
+ * fixes the register-rename diff per feedback_insn_patch_for_ido_codegen_caps.md. */
 void game_uso_func_0000D438(void *a0) {
     *(s32*)((char*)a0 + 0x64) = -1000;
     *(s32*)((char*)a0 + 0x68) = -1000;
     *(s32*)((char*)a0 + 0xC8) = *(s32*)((char*)a0 + 0xC0);
     *(s32*)((char*)a0 + 0xCC) = *(s32*)((char*)a0 + 0xC4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D438);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
