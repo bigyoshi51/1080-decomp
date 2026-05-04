@@ -127,8 +127,25 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CA4);
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CD8);
 
 #ifdef NON_MATCHING
-/* Structure matches but IDO emits beql with duplicated lw in epilogue rather than
- * target's beq+or v0,zero path. Common IDO -O2 -> O1-style unfilled-slot mismatch. */
+/* Structure matches but IDO -O2 emits beqzl with the body's lw in delay slot,
+ * while target has beqz + nop + or v0,zero + jr ra (separate exit paths,
+ * UNFILLED delay slots).
+ *
+ * 2026-05-04 standalone tests (-O0, -O1, -O1 -g, -O2 -- 8 C variants per level):
+ *   -O2: ALL variants → beqzl + delay-slot lw (filled, ~17 insns)
+ *   -O1 (no -g): beqz + FILLED jr ra delay (`move v0, zero` in slot)
+ *   -O1 -g: same as -O1 — IDO does NOT use -g for delay-slot suppression
+ *           (unlike KMC GCC where -g IS the delay-slot lever)
+ *   -O0: bnez (wrong direction) + extra dead-code `b +4; nop` pair, jr ra
+ *        delays UNFILLED — closer in delay-slot fill but wrong branch + extra
+ *        code
+ *
+ * No standard IDO -O level produces target's exact shape (beqz + nop + or v0
+ * + jr ra + nop). Target may have been compiled with a non-standard flag combo
+ * or post-processed. INSN_PATCH could fix the 5-byte diff between our -O2
+ * emit and target, but the size/insn-count mismatch (target 12 insns vs
+ * -O2 emit's variable count) blocks INSN_PATCH per
+ * feedback_insn_patch_size_diff_blocked.md. Defer. */
 int func_00011D40(int *a0, int a1) {
     if (*(int*)((char*)a0 + 0x120) < a1) return 0;
     return *(int*)((char*)a0 + a1 * 4 + 0xDC);
