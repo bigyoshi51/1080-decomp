@@ -835,9 +835,12 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001DD0);
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
 
 
+/* func_800021A4 absorbed func_800021D0 fragment via merge-fragments
+ * (splat split at 0x800021D0 — fragment had no prologue, used $t1/$t2/$a1
+ * set by the prologue at 0x800021A4). Combined: 43 insns / 0xAC. The
+ * function walks an entry list of 12-byte records, dispatching on a
+ * type field (a3 = halfword[0] & 7). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800021A4);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800021D0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
 
