@@ -702,7 +702,20 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
 
+#ifdef NON_MATCHING
+/* Byte-identical sibling of func_00005068: same 14-insn / 0x38 2-call
+ * wrapper, only the data symbol address differs (D_7E10 vs D_7D94).
+ * Same matching cap — 13/14 insns match; target has extra `sw a1, 0x4(sp)`
+ * in the 2nd jal's delay slot that IDO -O2 won't emit from std C.
+ * See func_00005068's wrap doc above. */
+extern char D_00007E10;
+void func_000054A0(int a0) {
+    func_00000000(&D_00007E10);
+    func_00000000(0, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054A0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054D8);
 
