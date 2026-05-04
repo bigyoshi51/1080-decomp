@@ -1961,7 +1961,24 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
  * produces stack roundtrip. ALL 17 variants confirm the cap — IDO -O2 has
  * no C-level path to a free-standing `mtc1 $0,$f2 / mov.s $f0,$f2` (the
  * intermediate $f2 only appears as a result of cross-function tail-share
- * with 7A98, which is itself blocked). Structurally locked. */
+ * with 7A98, which is itself blocked). Structurally locked.
+ *
+ * Tried (2026-05-04, variants 18-21): standalone IDO emit verified on
+ * /tmp/test_7abc.c with -O2 -mips2:
+ *   - `double f(void){return 0;}` → mtc1 zero,$f1 / mtc1 zero,$f0 / jr ra
+ *     / nop. Matches 4-insn COUNT but uses $f1 (not $f2), and emits
+ *     mtc1+mtc1 instead of mtc1+nop+mov.s. Wrong shape.
+ *   - `float f(float dummy){return 0;}` → mtc1+jr+swc1(arg-spill in delay).
+ *     Arg-spill, not mov.s.
+ *   - `float f(int unused){return 0;}` → mtc1+jr+sw(arg-spill in delay).
+ *     Arg-spill, not mov.s.
+ *   - `float f(void){return (float)(double)0;}` → 3-insn standard form.
+ *     Constant-folded.
+ *   - `float f(void){static float zero=0; return zero;}` → lui+jr+lwc1.
+ *     Static-data load, wrong shape.
+ * NONE of these reach $f2 + mov.s. Confirms 21-variant cap; the $f2 +
+ * mov.s shape is unreachable from any standalone C signature for a
+ * void→float function. Structural lock holds. */
 float game_uso_func_00007ABC(void) {
     return 0.0f;
 }
