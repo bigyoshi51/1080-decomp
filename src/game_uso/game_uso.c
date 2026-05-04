@@ -1350,7 +1350,45 @@ void game_uso_func_000044C8(char *a0) {
  * frame-rate-related constant.
  *
  * NEXT PASS: continue from 0x4E80; expect ~4 more groups before
- * linkage/finalize phase. */
+ * linkage/finalize phase.
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x4E80-0x5638 (groups 24-37, ~140 insns).
+ * Found end-of-loop boundary: linkage/finalize phase begins at 0x563C.
+ *
+ *   Group 24 @ 0x4E84-0x4EE8: stride=0x218, sentinel=-0x218, tlist=D+0x740,
+ *     float = INLINE 60.0f.
+ *   Group 25 @ 0x4EEC-0x4F50: stride=0x230, tlist=D+0x744, float=INLINE 60.0f.
+ *   Group 26 @ 0x4F54-0x4FB8: stride=0x248, tlist=D+0x748, float=INLINE 1.5f
+ *     (lui 0x3FC0).
+ *   Group 27 @ 0x4FBC-0x5020: stride=0x260, tlist=D+0x74C, float=D+0xD8
+ *     (D-table form returns).
+ *   Group 28 @ 0x5024-0x5088: stride=0x278, tlist=D+0x750, float=INLINE 1.5f.
+ *   Group 29 @ 0x508C-0x50F0: stride=0x290, tlist=D+0x754, float=INLINE
+ *     2000.0f (lui 0x44FA).
+ *   Group 30 @ 0x50F4-0x5158: stride=0x2A8, tlist=D+0x758, float=INLINE 2000.0f.
+ *   Group 31 @ 0x515C-0x51C0: stride=0x2C0, tlist=D+0x75C, float=INLINE 2000.0f.
+ *   Group 32 @ 0x51C4-0x5228: stride=0x2D8, tlist=D+0x760, float=D+0xDC.
+ *   Group 33 @ 0x522C-0x5290: stride=0x2F0, tlist=D+0x764, float=D+0xE0.
+ *   Group 34 @ 0x5294-0x52F8: stride=0x308, tlist=D+0x768, float=D+0xE4.
+ *   Group 35 @ 0x52FC-...: stride=0x320, tlist=D+0x76C.
+ *   ...
+ *   Group 37 @ ...0x5638: stride=0x3C8, tlist=D+0x788, ends with INLINE
+ *     `lui 0x4370+mtc1` (240.0f) and final swc1.
+ *
+ * 38 of 38 groups decoded! Loop ends at 0x563C. The unrolled chain spans
+ * 0x4580-0x563C (~1071 insns / 4280 bytes). Strides progress arithmetically
+ * +0x18 from 0x08 (group 0) to 0x3C8 (group 37). Tlists D+0x6E8..0x788
+ * (sequential +4). Type tag D+0x3C8 constant across all 38 groups.
+ *
+ * LINKAGE/FINALIZE PHASE @ 0x563C-end (~50 insns):
+ *   - Reload spilled values from caller-arg slots (sp+0xE8, +0xEC, +0xF0)
+ *   - Multiple FPU constant loads (lui 0x43FA, lui 0x428C, lui 0x4366,
+ *     lui 0x4370 — 500.0f, 70.0f, 230.0f, 240.0f)
+ *   - Stores to a0+0x2C, a0+0x30, a0+0xA8, a0+0xAC, a0+0xB0, a0+0xB4,
+ *     a0+0xB8 (config slots in main object)
+ *   - Final return path: ret = a0
+ *
+ * NEXT PASS: decode the linkage phase fully (~50 insns at 0x563C-end). */
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
