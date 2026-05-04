@@ -2432,6 +2432,14 @@ void game_uso_func_0000D438(void *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5BC);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5DC);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5F8);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D634);
+
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
 
 #ifdef NON_MATCHING
