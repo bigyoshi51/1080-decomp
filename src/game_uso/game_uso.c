@@ -145,6 +145,13 @@ void game_uso_func_0000039C(Quad4 *dst) {
  *
  * 77-insn FPU/stack-init function (size 0x134, no jal).
  *
+ * 2026-05-04 attempt: tried `float f(void *a0) { ...; return 0.0f; }` to anchor
+ * $f0 = 0.0f for in-body 0.0f stores. Result: IDO switched to RODATA-based
+ * struct-literal init (lui+addiu from globals + 3-word memcpy each), shrunk
+ * function 308→240 bytes — totally different shape. The `swc1 $f0, ...` body
+ * pattern in expected requires $f0 = 0.0 at ENTRY (caller-arranged), not a
+ * float-return. Reverted to void return.
+ *
  * Quirk: $f0 is read at entry as the source for "0.0f" stores. $f0 is the
  * float-return register, not a standard arg. The caller must arrange for
  * $f0 to hold 0.0f at the call site (e.g. tail-called after a function
