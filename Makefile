@@ -118,6 +118,7 @@ build/src/kernel/kernel_051.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_052.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_053.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_054.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_054.c.o: INSN_PATCH := func_8000969C=0xC:0xafb00014,0x10:0xafb10018,0x18:0x8fb00038
 build/src/kernel/kernel_055.c.o: OPT_FLAGS := -O1
 # kernel_056: 64-bit libgcc-style helpers; -mips3 so IDO inlines d-arithmetic.
 # Post-compile, rewrite e_flags from mips3 (0x20000000) to mips2+noreorder
