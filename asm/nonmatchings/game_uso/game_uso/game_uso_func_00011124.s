@@ -1,5 +1,3 @@
-nonmatching game_uso_func_00011124, 0x44
-
 glabel game_uso_func_00011124
     /* 011124 00011124 27BDFFE8 */  .word 0x27BDFFE8
     /* 011128 00011128 AFBF0014 */  .word 0xAFBF0014

@@ -1,5 +1,3 @@
-nonmatching h2hproc_uso_func_000008EC, 0x58
-
 glabel h2hproc_uso_func_000008EC
     /* 5ABF9C 000008EC 27BDFFE8 */  .word 0x27BDFFE8
     /* 5ABFA0 000008F0 AFBF0014 */  .word 0xAFBF0014

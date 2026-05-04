@@ -1,5 +1,3 @@
-nonmatching func_000127CC, 0x4C
-
 glabel func_000127CC
     /* DE3238 000127CC 27BDFFF8 */  addiu      $sp, $sp, -0x8
     /* DE323C 000127D0 AFA00004 */  sw         $zero, 0x4($sp)

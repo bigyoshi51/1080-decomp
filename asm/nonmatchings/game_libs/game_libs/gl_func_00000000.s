@@ -1,5 +1,3 @@
-nonmatching gl_func_00000000, 0x1CC
-
 glabel gl_func_00000000
     /* DE50D8 00000000 27BDFF90 */  .word 0x27BDFF90
     /* DE50DC 00000004 AFBF0024 */  .word 0xAFBF0024

@@ -1,5 +1,3 @@
-nonmatching arcproc_uso_func_00001C74, 0xA4
-
 glabel arcproc_uso_func_00001C74
     /* 5A7DBC 00001C74 27BDFFA8 */  .word 0x27BDFFA8
     /* 5A7DC0 00001C78 AFBF001C */  .word 0xAFBF001C

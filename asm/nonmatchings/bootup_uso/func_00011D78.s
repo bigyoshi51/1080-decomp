@@ -1,5 +1,3 @@
-nonmatching func_00011D78, 0x3C
-
 glabel func_00011D78
     /* DE27E4 00011D78 8C8E018C */  lw         $t6, 0x18C($a0)
     /* DE27E8 00011D7C 15C0000A */  bnez       $t6, .L00011DA8

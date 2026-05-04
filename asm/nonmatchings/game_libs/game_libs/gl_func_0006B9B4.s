@@ -1,5 +1,3 @@
-nonmatching gl_func_0006B9B4, 0x58
-
 glabel gl_func_0006B9B4
     /* E50A8C 0006B9B4 27BDFFE8 */  .word 0x27BDFFE8
     /* E50A90 0006B9B8 AFBF0014 */  .word 0xAFBF0014

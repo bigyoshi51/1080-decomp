@@ -1,5 +1,3 @@
-nonmatching timproc_uso_b1_func_0000065C, 0x54
-
 glabel timproc_uso_b1_func_0000065C
     /* 00065C 0000065C 27BDFFD8 */  .word 0x27BDFFD8
     /* 000660 00000660 AFBF001C */  .word 0xAFBF001C

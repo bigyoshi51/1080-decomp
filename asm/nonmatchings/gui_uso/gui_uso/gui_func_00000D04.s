@@ -1,5 +1,3 @@
-nonmatching gui_func_00000D04, 0x200
-
 glabel gui_func_00000D04
     /* 58E234 00000D04 27BDFFA8 */  .word 0x27BDFFA8
     /* 58E238 00000D08 AFBF0054 */  .word 0xAFBF0054

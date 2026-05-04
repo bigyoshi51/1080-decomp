@@ -1,5 +1,3 @@
-nonmatching gl_func_0000DE30, 0x50
-
 glabel gl_func_0000DE30
     /* DF2F08 0000DE30 27BDFFC8 */  .word 0x27BDFFC8
     /* DF2F0C 0000DE34 240E03EB */  .word 0x240E03EB

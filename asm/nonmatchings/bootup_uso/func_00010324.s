@@ -1,5 +1,3 @@
-nonmatching func_00010324, 0x20
-
 glabel func_00010324
     /* DE0D90 00010324 8C8E007C */  lw         $t6, 0x7C($a0)
     /* DE0D94 00010328 000E7880 */  sll        $t7, $t6, 2
