@@ -445,7 +445,14 @@ void timproc_uso_b5_func_0000AAF4(char *a0) {
  * These are all knock-on from the same root: IDO's register allocator
  * picks $a2 instead of $a0/$v1 for p's hold-across-2nd-jal slot. Same
  * structural cap as `feedback_ido_arg_save_reg_pick.md` — the choice of
- * arg/scratch reg for cross-jal preserve isn't C-controllable. */
+ * arg/scratch reg for cross-jal preserve isn't C-controllable.
+ *
+ * 2026-05-04: re-tested for INSN_PATCH eligibility. Built emits 34 insns,
+ * expected has 36 — a 2-insn deficit (built lacks the `or v1, a0, zero`
+ * + an extra spill-store). Per feedback_insn_patch_size_diff_blocked.md
+ * INSN_PATCH alone can't fix this. Promotion needs a sibling
+ * inject-insn-at.py recipe OR a different C shape that emits the extra
+ * `or v1,a0` move. Deferred. */
 void *timproc_uso_b5_func_0000AB24(void *arg0) {
     char pad[8];
     void *p;
