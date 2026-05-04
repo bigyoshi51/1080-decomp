@@ -268,7 +268,12 @@ void timproc_uso_b5_func_00003F5C(int *a0);
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F5C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003FA8);
+void timproc_uso_b5_func_00003FA8(int a0, int a1, int a2, int a3) {
+    (void)a0;
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000(a3);
+    gl_func_00000000(a3, a1, a2, 0);
+}
 
 void timproc_uso_b5_func_00003FF8(int arg1, int arg2, int arg3, int arg4, int arg5) {
     float buf[4];
