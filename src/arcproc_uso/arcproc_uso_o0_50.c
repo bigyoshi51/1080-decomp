@@ -17,7 +17,6 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  * Was 82.3 % cap when compiled at -O2; this file's -O0 override should
  * make the IDO load order (a0[1] before a0[2], spill+reload at every use,
  * trailing `b +1; nop`) match. */
-#ifdef NON_MATCHING
 /* 93.33 % NM (28/30 insns identical, 2026-05-03 tightened from 82.3 %).
  *
  * Load-order fix: writing `a0[2] == a0[1] + 1` (target on LEFT of `==`)
@@ -53,6 +52,3 @@ int arcproc_uso_func_000000B4(int *a0, int a1) {
     p[1] += 1;
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000000B4);
-#endif

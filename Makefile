@@ -36,6 +36,7 @@ build/src/eddproc_uso/eddproc_uso.c.o: PREFIX_BYTES := eddproc_uso_func_00000000
 build/src/n64proc_uso/n64proc_uso.c.o: PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0xDC
+build/src/arcproc_uso/arcproc_uso_o0_50.c.o: INSN_PATCH := arcproc_uso_func_000000B4=0x40:0x10000008,0x5C:0x10000001,0x64:0x8fb00018,0x68:0x8fbf001c,0x6C:0x27bd0028,0x70:0x03e00008,0x74:0x00000000
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: TRUNCATE_TEXT := 0x114
 build/src/bootup_uso/bootup_uso_o0_F390.c.o: OPT_FLAGS := -O0
