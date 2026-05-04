@@ -2353,16 +2353,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DF90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 97.5% — v0/v1 swapped for p1/p2 pointers */
+/* Vtable-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
+ * declare p2 FIRST with p1's load inlined; IDO CSE's the duplicated
+ * `a0->0x134` load and assigns $v1 to p1, $v0 to p2 (target's regalloc).
+ * Same pattern as timproc_uso_b5_func_00008F98. */
 void gl_func_0004E150(char *a0) {
+    char *p2 = *(char**)(*(char**)(a0 + 0x134) + 0x14);
     char *p1 = *(char**)(a0 + 0x134);
-    char *p2 = *(char**)(p1 + 0x14);
     (*(int(**)(char*))(p2 + 0xC))(p1 + *(short*)(p2 + 0x8));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E150);
-#endif
 
 #ifdef NON_MATCHING
 /* 93%: a0 spill offset differs. Target: ra=sp+0x14, a0-spill=sp+0x1C
