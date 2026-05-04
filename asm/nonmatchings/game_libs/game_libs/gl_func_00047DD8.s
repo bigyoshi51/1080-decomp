@@ -1,5 +1,3 @@
-nonmatching gl_func_00047DD8, 0x28
-
 glabel gl_func_00047DD8
     /* E2CEB0 00047DD8 27BDFFE8 */  .word 0x27BDFFE8
     /* E2CEB4 00047DDC 00803025 */  .word 0x00803025

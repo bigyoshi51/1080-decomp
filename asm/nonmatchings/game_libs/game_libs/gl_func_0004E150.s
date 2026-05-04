@@ -1,5 +1,3 @@
-nonmatching gl_func_0004E150, 0x30
-
 glabel gl_func_0004E150
     /* E33228 0004E150 27BDFFE8 */  .word 0x27BDFFE8
     /* E3322C 0004E154 AFBF0014 */  .word 0xAFBF0014
