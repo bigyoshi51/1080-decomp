@@ -172,47 +172,30 @@ void eddproc_uso_func_0000038C(char *dst) {
     eddproc_uso_func_0000007C((Quad4*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
-/* 89.08% NM (up from ~60% with logic fix). 36-insn / 0x90 constructor:
- * alloc 0x40, init via gl_func, then conditional list-insert into
- * arg0->field_40.
- *
- * 2026-05-04 grind:
- *   - Prior wrap had `if (rv != 0)` checking the cross-USO call's return.
- *     Asm actually checks `head->0x14 != 0`. Fixed.
- *   - Moved the head-insert OUT of the `if (p != 0)` block (asm continues
- *     to head-insert even when alloc fails — uses bad p pointer).
- *
- * Remaining diff: built frame 0x20 vs expected 0x28 (+8 bytes), and
- * different register-class choice ($a2 vs $a0 for alloc result, beql vs
- * beq for the head check). Tried `char pad[4]` and named locals — IDO
- * optimizes them away when unused. The 8-byte frame difference suggests
- * target has 2 more spill slots that IDO emits when more pseudos cross
- * the gl_func calls.
- *
- * 2026-05-04 update: the diff direction is OPPOSITE of what the prior note
- * said — built was 0x20, expected is 0x28. Walking the expected asm:
- *   `sw a0, 0x20(sp)` at entry (caller-slot spill of arg0, NOT spill of
- *   a saved-reg s0). Later `lw t7, 0x20(sp); lw a1, 0x40(t7)` reloads
- *   arg0 → loads head LATE (after the alloc init). Plus 3 stack spills
- *   for head/p/ra: sp+0x18, 0x1C, 0x14. The shape is the documented
- *   volatile-ptr-to-arg pattern (per
- *   feedback_volatile_ptr_to_arg_forces_caller_slot_spill.md), with
- *   `head` deferred until AFTER the init call. Tried `head = arg0[0x10]`
- *   loaded early (saves to $s0 across calls) — produces a SHORTER frame
- *   0x28 with $s0 spill instead of caller-slot spill, regressed match%
- *   to 74%. Need: keep `head` load LATE while spilling arg0 to its
- *   caller-slot via the volatile trick. */
+/* 36-insn / 0x90 constructor: alloc 0x40, init via gl_func, conditional
+ * list-insert into arg0->field_40 if non-NULL. Required two layered
+ * matching tricks:
+ *   1. Logic fix (2026-05-04 prior pass): post-call check is on
+ *      `head->0x14 != 0`, not the call's return value. Moved head-insert
+ *      OUT of the `if (p != 0)` block (asm runs it unconditionally).
+ *   2. Frame-spill fix (2026-05-04 this pass): use the volatile-ptr-to-arg
+ *      pattern (`volatile int **p_arg0 = (volatile int**)&arg0`) to force
+ *      IDO to spill arg0 to its caller-slot at entry. Reload `head` LATE
+ *      via `((int*)*p_arg0)[0x10]`. Per
+ *      feedback_volatile_ptr_to_arg_forces_caller_slot_spill.md +
+ *      feedback_arg_load_early_vs_late_swaps_frame_shape.md. */
 void *eddproc_uso_func_000003BC(int *arg0) {
     int *p;
     int *head;
+    volatile int **p_arg0;
+    p_arg0 = (volatile int**)&arg0;
     p = (int*)gl_func_00000000(0x40);
     if (p != 0) {
         gl_func_00000000(p);
         *(int*)((char*)p + 0x28) = (int)&D_00000000;
         *(int*)((char*)p + 0x3C) = 0;
     }
-    head = (int*)arg0[0x40 / 4];
+    head = (int*)((int*)*p_arg0)[0x10];
     if (head != 0) {
         gl_func_00000000((char*)p + 0x10, head);
         if (*(int*)((char*)head + 0x14) != 0) {
@@ -222,9 +205,6 @@ void *eddproc_uso_func_000003BC(int *arg0) {
     }
     return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000003BC);
-#endif
 
 void eddproc_uso_func_0000044C(char *dst) {
     int tmp;
