@@ -3793,6 +3793,21 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *
  * ~120 insns remain stubbed past 0x9E50.
  *
+ * BODY-PART-2 THIRD-CHUNK SCAN (2026-05-05, 0x9E50-0x9F00 = +44 insns):
+ *   - 0x9E50-0x9E80: 12-byte triple-fanout struct copy. Reads a1+0/4/8
+ *     (yet-another src Vec3), writes t9+0/4/8 (a4-context buf) AND
+ *     t6+0/4/8 (sp+0xA0 staging). Same save-old + write-new idiom.
+ *   - 0x9E84-0x9E94: bne-guarded jal sequence with a0=0xC, a2=sp+0xEC
+ *     setup. Pre-call abs.s on f8.
+ *   - 0x9E98-0x9EC8: post-call FPU 3-component scale. Loads sp+0x144/
+ *     0x138/0x14C/0x140 (4 floats from saved-result buffers), `mul.s
+ *     f0, f6, f8` triple, mtc1 zero, swc1 to v1+0/4/8 — "scale-by-
+ *     callee-result + clear" pattern.
+ *   - 0x9ECC-0x9EFC: ANOTHER 12-byte fanout copy with save-old idiom.
+ *     Reads a1+0/4/8, writes t3+0/4/8 (sp+0x178) AND t1+0/4/8 (a3-buf).
+ *   - 0x9F00+: continues with another bne-guarded jal at 0x9F08+. ~80
+ *     insns remain stubbed past 0x9F00.
+ *
  * Deferred to future passes: full body decode is ~300 insns of float sched;
  *   one /decompile run expands prologue + body-part-1 — subsequent runs will
  *   tighten the dispatch logic and body math. The dual Vec3-copy entry
