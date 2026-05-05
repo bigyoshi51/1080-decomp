@@ -423,7 +423,61 @@ void titproc_uso_func_00001BB8(int a0) {
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001BB8);
 #endif
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00001C68: 69-insn (0x114) dual-dispatch FPU helper.
+ * Sibling of 0x1BB8 (which provides the stolen-prologue $f0 = 1.0f).
+ *
+ * Body shape:
+ *   buf[0..3] = 1.0f (4x swc1 $f0 from predecessor's stolen-prologue setup)
+ *   a0->0x3C -= 0x10                   ; decrement state
+ *   gl_func(&D + 0x30)                  ; call A
+ *   if (D[0] != 0) gl_func(&D+0x30, 0x80, &buf, 0xFF)
+ *   else           gl_func(&D+0x30, a0->0x3C, &buf, 0xFF)
+ *   gl_func(&D + 0x30, 0x5A, 0x7E, 3)
+ *   gl_func(&D + 0x48)
+ *   if (D[0] == 0) gl_func(&D+0x48, 0x80, &buf, 0xFF)   ; opposite arm vs first
+ *   else           gl_func(&D+0x48, a0->0x3C, &buf, 0xFF)
+ *   gl_func(&D + 0x48, 0xDC, 0x7E, 3)
+ *
+ * Asymmetric inner gates (first dispatch enters body when D==0; second when
+ * D!=0) — same save/restore-state pattern as 0x1BB8.
+ *
+ * 10+ &D-relative lui+addiu pairs; target uses fresh load each site (no CSE).
+ * IDO CSE will collapse to single $s-base unless unique externs are used —
+ * deferred this pass per multi-pass decomp norm. Wraps captures structure;
+ * next /decompile run can wire up unique externs to bust CSE per
+ * feedback_unique_extern_with_offset_cast_breaks_cse.md. */
+extern int gl_func_00000000();
+void titproc_uso_func_00001C68(int *a0) {
+    float buf[4];
+    char pad[24];
+    int t8;
+    buf[0] = 1.0f;
+    buf[1] = 1.0f;
+    buf[2] = 1.0f;
+    buf[3] = 1.0f;
+    a0[0x3C / 4] -= 0x10;
+    gl_func_00000000(&D_00000000 + 0x30);
+    t8 = *(int*)&D_00000000;
+    if (t8 != 0) {
+        gl_func_00000000(&D_00000000 + 0x30, 0x80, &buf, 0xFF);
+    } else {
+        gl_func_00000000(&D_00000000 + 0x30, a0[0x3C / 4], &buf, 0xFF);
+    }
+    gl_func_00000000(&D_00000000 + 0x30, 0x5A, 0x7E, 3);
+    gl_func_00000000(&D_00000000 + 0x48);
+    t8 = *(int*)&D_00000000;
+    if (t8 == 0) {
+        gl_func_00000000(&D_00000000 + 0x48, 0x80, &buf, 0xFF);
+    } else {
+        gl_func_00000000(&D_00000000 + 0x48, a0[0x3C / 4], &buf, 0xFF);
+    }
+    gl_func_00000000(&D_00000000 + 0x48, 0xDC, 0x7E, 3);
+    (void)pad;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C68);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001D7C);
 
