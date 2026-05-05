@@ -241,7 +241,20 @@ extern char D_00000000;
  * skill's "preserve partial C" principle, keep the existing wrap. Combo
  * applicability window observed so far: ≤9 insns, where decoded C is
  * uninteresting (trampolines, infinite-loop stubs, cross-function tail-
- * shares). 59-insn loops are out of scope. */
+ * shares). 59-insn loops are out of scope.
+ *
+ * (23) TRIED 2026-05-05: block-scope `base10` to shorten its live range.
+ * Hypothesis: if priority = refs / live_length × ..., scoping `base10`
+ * to body1's block (its only use site) shortens live_length, which
+ * SHOULD increase its priority and shift it from $s5 → lower $s.
+ * Body wrapped: `body1: { register char *base10 = &D_00000000 + 0x10;
+ * ... gl_func_00000000(base10, cur); }`. Result: NO CHANGE — register
+ * dispositions identical to function-top decl form ($s0=cur, $s1=flag,
+ * $s2=base, $s3=one, $s4=arg0-save, $s5=base10). IDO's allocator either
+ * computes live_length on RTL pseudo-extent (not C lexical scope) OR
+ * the lexical scope reduction is too narrow to flip the priority queue.
+ * Confirms variant 6's finding (decl-source-order is decoupled from
+ * pseudo-allocno-numbering); also true for lexical scope. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
