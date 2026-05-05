@@ -505,23 +505,15 @@ void timproc_uso_b1_func_00002CE0(int a0, int a1, int a2) {
     gl_func_00000000(entry, 0xA0, a2, 3);
 }
 
-#ifdef NON_MATCHING
-/* timproc_uso_b1_func_00002D48: 0x108 (66 insns) — sibling of just-matched
- * 00002CE0. Two-batch UI/render dispatcher: each batch initializes a
- * Quad4-of-1.0 (only the FIRST batch does this), calls a base init,
- * then a conditional call selected by a0->0x58, then a secondary call.
- *
- * The conditional arms are mirror-swapped between the two batches:
- *   batch1 (D+0x190): a0->0x58 != 0  → constant 0x40
- *                     a0->0x58 == 0  → a0->0x5C (variable)
- *   batch2 (D+0x1A8): a0->0x58 != 0  → a0->0x5C (variable)
- *                     a0->0x58 == 0  → constant 0x40
- *
- * Frame 0x48; a0/a1 spilled to caller arg slots at sp+0x48/0x4C.
- * Initial decode 2026-05-05 — first-pass NM. */
+/* timproc_uso_b1_func_00002D48: 0x108 (66 insns). Two-batch UI/render
+ * dispatcher: each batch sets a Quad4-of-1.0 (only the first batch
+ * stores it), calls a base init, then a mirror-swapped conditional
+ * call selected by a0->0x58, then a secondary call. Frame 0x48; quad4
+ * lands at sp+0x38 because it's declared FIRST (highest sp slot).
+ * Adding `char pad[32]` AFTER quad4 holds the frame at -0x48. */
 void timproc_uso_b1_func_00002D48(int *a0, int a1) {
-    char pad[32];
     float quad4[4];
+    char pad[32];
     (void)pad;
 
     quad4[0] = 1.0f;
@@ -544,9 +536,6 @@ void timproc_uso_b1_func_00002D48(int *a0, int a1) {
     }
     gl_func_00000000((char*)&D_00000000 + 0x1A8, 0xC8, a1, 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002D48);
-#endif
 
 /* 34-insn 3-jal UI/render dispatcher, sibling of 00002D48. Two Quad4 args:
  * quad_a = {1,1,1,1} (sp+0x48), quad_b = {1,0,1,1} (sp+0x38). The 0.0 at
