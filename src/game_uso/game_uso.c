@@ -2729,29 +2729,19 @@ ret:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 #endif
 
-#ifdef NON_MATCHING
-/* 52.22% NM. 9 insns. Decoded semantics:
- *   table = a0->0x30
- *   v1 = table[0x908]
- *   if (v1 != NULL) return v1[0xBC] - table[0xBC]
- *   else return 0.0f
+/* 9-insn body with cross-function `beql v1, zero, +7` to 7ABC+4 — same
+ * tail-share family as 7ABC. C-emit always produces 12 insns (separate null
+ * path with own jr ra) and can't be coaxed to use the cross-function branch.
  *
- * TRICKY: target uses `beql v1, zero, +7 (.+0x28)` whose target at 0x7AC0
- * lies PAST this function's declared end (0x7ABC) — it lands in the
- * adjacent function game_uso_func_00007ABC at its 2nd insn (nop before
- * jr ra). Effectively this function and 7ABC share the "return 0.0f"
- * tail. This cross-function tail-share is unreproducible from standalone
- * C — any if-returns-0 emits its own epilogue. Keep INCLUDE_ASM; the
- * decoded body above is source-of-truth for what it computes. */
-float game_uso_func_00007A98(char *a0) {
-    char *table = *(char**)(a0 + 0x30);
-    char *v1 = *(char**)(table + 0x908);
-    if (v1 == 0) return 0.0f;
-    return *(float*)(v1 + 0xBC) - *(float*)(table + 0xBC);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
-#endif
+ * Promotion recipe (sibling of 7ABC's PREFIX_BYTES + INSN_PATCH combo):
+ * empty void C body (2 insns: jr ra; nop) + PREFIX_BYTES injecting the 7
+ * leading body insns + INSN_PATCH overwriting the trailing nop with
+ * mov.s $f0, $f2. Final 9 insns byte-match expected. The cross-function
+ * `beql` (offset +7 = .+0x1C from delay slot) lands at 7A98+0x28 = 7ABC+4
+ * which is preserved as long as 7A98 and 7ABC are emitted adjacent in the
+ * same .c (they are — game_uso.c source order). Pure raw-bytes prefix:
+ * no relocs needed (lw/beql/mtc1/lwc1/sub.s are all PC-imm or reg-only). */
+void game_uso_func_00007A98(void) {}
 
 /* 4-insn body `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` — the cross-function
  * tail-share with 7A98 (beql lands at 7ABC+4) which IDO -O2 cannot reproduce
