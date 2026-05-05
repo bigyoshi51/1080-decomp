@@ -137,7 +137,18 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CD8);
  * or post-processed. INSN_PATCH could fix the 5-byte diff between our -O2
  * emit and target, but the size/insn-count mismatch (target 12 insns vs
  * -O2 emit's variable count) blocks INSN_PATCH per
- * feedback_insn_patch_size_diff_blocked.md. Defer. */
+ * feedback_insn_patch_size_diff_blocked.md. Defer.
+ *
+ * 2026-05-05 RE-DIAGNOSED: built/non_matching emits 11 insns / 0x2C, target
+ * has 12 insns / 0x30. The 1-insn shrinkage is from IDO -O2 consolidating
+ * the two return paths via `beql + lw $v0,0xdc(t8) [delay-likely]` (opcode
+ * 0x50200004) — branch-likely with the lw cancelled when not taken. Target
+ * uses an explicit if/else with two distinct jr-ra blocks (0xc additional
+ * bytes for the second jr+epilogue). Promotion path: SUFFIX_BYTES=0x4
+ * (add trailing nop) + INSN_PATCH on most insns to reorder into target's
+ * shape — but that's effectively rewriting most bytes, defeating the
+ * purpose. Real fix is suppressing branch-likely consolidation at C level,
+ * which 8 source variants at 4 -O levels failed to do. */
 int func_00011D40(int *a0, int a1) {
     if (*(int*)((char*)a0 + 0x120) < a1) return 0;
     return *(int*)((char*)a0 + a1 * 4 + 0xDC);
