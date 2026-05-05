@@ -1239,18 +1239,30 @@ void game_uso_func_00000B14(void *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
 
 extern int D_3A0;
-/* Build/.o emits 48 insns vs expected/.o's 45 (12-byte / 3-insn upstream
- * bloat). The first divergence is at insn 3 of the prologue: expected
- * places `or s0,a0,zero` (s = a0) BEFORE the sw spills, build defers it
- * into the bne delay slot for the alloc check.
+#ifdef NON_MATCHING
+/* 77.64% NM. 45-insn alloc-or-passthrough constructor + post-init.
  *
- * Tried (2026-05-05): `register int *s = a0;` (no help — IDO still
- * defers the move to the delay slot). The fix probably needs either an
- * earlier USE of `s` (force IDO to anchor s0 by reading s before the
- * if-check) or a permuter run targeting the prologue scheduling. Caps
- * the function at fuzzy ~70% in build/non_matching/.o while expected/.o
- * is byte-exact via INCLUDE_ASM. Episode-eligible by the byte-verify
- * gate but blocked from logging by the .o-size delta. */
+ * Diff is structural-scheduling: IDO defers `or s0, a0, zero` into bne
+ * delay slot; target emits it at insn 3 (BEFORE arg-spill sw a1/a2/a3).
+ * Cascades through ~20 byte diffs:
+ *   1. Prologue ordering: target has `or s0,a0,zero` between sw s0 and
+ *      sw ra; build has it as bne delay-slot filler.
+ *   2. Branch offsets: target's bne is `+5` (skip 5 insns); build's is
+ *      `+4` (skip 4 — different spill insn count).
+ *   3. Mid-function mtc1 + lw t8 swapped: target schedules
+ *      `lw t8 (delay-likely); jal; or a2,t7; lw t8; mtc1` — build emits
+ *      `mtc1 (delay-likely); jal; or a2,t7; mtc1; lw t8` (mtc1 promoted).
+ *
+ * Variants tried (2026-05-05):
+ *   (a) `register int *s = a0;` — no-op; IDO still defers move
+ *   (b) Test `if (a0 == 0)` instead of `if (s == 0)` — no-op
+ *   (c) Goto-form (`if (s==0) goto end; ...; end: return s;`) — no-op
+ *
+ * Cap is IDO instruction-scheduler choice not reachable from C source-form
+ * variation. INSN_PATCH would need ~15 words; structural shift means most
+ * insns at differing offsets. Permuter or scheduler-targeted work needed.
+ *
+ * Body semantics validated and stable; preserve as NM for future passes. */
 int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     int *s = a0;
     if (s == 0) {
@@ -1275,6 +1287,9 @@ int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     }
     return s;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000034A4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003558);
 
