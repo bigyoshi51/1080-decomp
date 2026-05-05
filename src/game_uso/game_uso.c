@@ -1630,9 +1630,45 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * at 0x48E0 with iter I (predicted slot 0xE0, arg_slot 0xBC,
      * tmpl_off 0x70C, sentinel -0x20).
      *
-     * TODO: ~925 remaining insns — sub-object alloc loop continuation,
-     * recursive init via cross-USO calls, child link setup at
-     * a0->field_38, etc. */
+     * Stage 10 (~280 insns covering 0x48E0-0x4DC0): iters I through T
+     * verified by reading the tmpl_off lw imm and float-scalar lwc1/
+     * mtc1 at each iter's footer. Pattern continues unbroken through
+     * iter T at slot 0x1E8 (= s1 + 0x20 + 16 * 0x18). Per-iter:
+     *
+     *   iter | tmpl_off | float_scalar
+     *   -----+----------+------------------
+     *     I  |  0x70C   | (?)
+     *     J  |  0x710   | D + 0xB4
+     *     K  |  0x714   | D + 0xB8
+     *     L  |  0x718   | D + 0xBC
+     *     M  |  0x71C   | D + 0xC0
+     *     N  |  0x720   | (?)
+     *     O  |  0x724   | (?)
+     *     P  |  0x728   | D + 0xCC
+     *     Q  |  0x72C   | D + 0xD0
+     *     R  |  0x730   | D + 0xD4
+     *     S  |  0x734   | literal +1200.0f (lui 0x4496)
+     *     T  |  0x738   | literal +1200.0f (lui 0x4496)
+     *
+     * The literal-pattern at iters S/T (lui 0x4496 → mtc1 from $at →
+     * swc1) reuses the SAME constant +1200.0f for both. The earlier
+     * literal iters (G/H lui 0xC57A/0xC5FA, C lui 0xC448) used
+     * DIFFERENT constants per iter.
+     *
+     * arg_slot continues to decrease by 4: 0xCC, 0xC8, 0xC4, 0xC0, 0xBC,
+     * 0xB8, 0xB4, 0xB0, 0xAC, 0xA8, 0xA4, 0xA0, 0x9C, 0x98, 0x94, 0x90,
+     * 0x8C — runs out of frame at iter ~17, suggesting the loop body
+     * exits or transitions before then. arg_slot 0x8C - 4 = 0x88 puts
+     * us close to the s0/s1/s2 spill area (sp+0x18 region of the
+     * 0xE8-byte frame), so the unroll likely ends around iter 17-20.
+     *
+     * Cumulative ~520/1165 insns characterized (~45%). Stage 11 starts
+     * at 0x4DC0 with iter U+. The 0x4DC0+ region has another ~5-6 iters
+     * before hitting the loop exit / link-setup phase at ~0x4F00.
+     *
+     * TODO: ~645 remaining insns — final iters of the unrolled loop,
+     * loop-exit cleanup, recursive init via cross-USO calls, child link
+     * setup at a0->field_38, etc. */
     (void)s0; (void)a1; (void)a2;
 epi:
     return a0;
