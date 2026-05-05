@@ -1141,4 +1141,51 @@ void func_800048E8(char *arg0, s32 arg1) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800048E8);
 #endif
 
+#ifdef NON_MATCHING
+/* func_800049B8: 64-insn rmon/kdebugserver packet parser. Receives 24
+ * bits per call (high 3 bytes of arg0); appends them to packet buffer
+ * kdebugserver_bss_01B0[] at write-position D_8000A430. After append:
+ *   - if buf[0] == 2: send a fixed-size packet (0x190 bytes from
+ *     D_8000A420+0x20 via func_80004CE8); reset position
+ *   - else if pos < 9: return (need more data)
+ *   - else if buf[0] == 1: parse two u32s (BE) at buf[1] and buf[5]
+ *     via func_80004BB0; pass to func_80004CE8; reset position
+ *   - else: return (other tag — discard)
+ *
+ * Cap: -O0 hallmarks (load D_8000A430 / kdebugserver_bss_01B0 base /
+ * sp+0x24 i-counter TWICE per loop iter, no register caching). My -O2
+ * emit caches addresses in $a-regs and runs in 54 insns vs target 64.
+ * Same -O2/-O0 mismatch class as sibling func_800048E8. Promotion:
+ * file split into a -O0 sub-file. */
+extern u32 D_8000A430;
+extern u8 kdebugserver_bss_01B0[];
+extern void func_80004CE8(u32 a, u32 b);
+extern u32 func_80004BB0(u8 *p);
+void func_800049B8(u32 arg0) {
+    s32 i;
+    u32 pos;
+    u32 X, Y;
+
+    i = 0;
+    do {
+        pos = D_8000A430;
+        kdebugserver_bss_01B0[pos] = ((u8*)&arg0)[1 + i];
+        D_8000A430 = pos + 1;
+        i++;
+    } while ((u32)i < 3);
+
+    if (kdebugserver_bss_01B0[0] == 2) {
+        func_80004CE8((u32)((u8*)D_8000A420 + 0x20), 0x190);
+        D_8000A430 = 0;
+    } else if (D_8000A430 >= 9) {
+        if (kdebugserver_bss_01B0[0] == 1) {
+            X = func_80004BB0(&kdebugserver_bss_01B0[1]);
+            Y = func_80004BB0(&kdebugserver_bss_01B0[5]);
+            func_80004CE8(X, Y);
+            D_8000A430 = 0;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800049B8);
+#endif
