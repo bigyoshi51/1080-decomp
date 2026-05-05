@@ -47,6 +47,23 @@ ROM-derived binary extracts (`assets/*.bin`) are not committed — they are rege
 
 The build uses IDO 7.1 with per-file optimization overrides: most libultra functions compile at `-O1`, game code at `-O2`.
 
+### Optional: Ghidra integration
+
+A persistent Ghidra project at `build/ghidra-project/tenshoe.gpr` complements `m2c` for struct-recovery, xref discovery, and type-decorated decomp output. Setup (one-time, ~7 min):
+
+```bash
+# Tools (downloaded into ../tools/, gitignored):
+#   - JDK 21 (Adoptium portable)
+#   - Ghidra 12.x (NSA release)
+#   - pyghidra-mcp (uv tool install pyghidra-mcp)
+# See ~/.claude/projects/.../memory/feedback_pyghidra_mcp_setup_for_n64_decomp.md
+
+bash scripts/setup-ghidra.sh           # build project + import 2,000+ symbols
+bash scripts/ghidra-decompile-func.sh func_80008430   # one-shot decomp
+```
+
+Use Ghidra by trigger only (struct shape unknown, function family >3, stuck <50% fuzzy with structural unknowns) — m2c remains the default. See the `/decompile` skill for the trigger list.
+
 ## References
 
 - **[libreultra](https://github.com/n64decomp/libreultra)** — libultra decomp reference; matching functions, structs, `register` keyword usage
