@@ -375,7 +375,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007344);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000076F0);
 
+#ifdef NON_MATCHING
+/* gl_func_00007FF4: 222-insn (0x378) game_libs subsystem dispatcher.
+ * Frame 0x90, saves ra+s0 at sp+0x24/0x20.
+ *
+ * Entry structure (decoded 2026-05-05, first 28 insns):
+ *
+ *   s0 = a0;                         // save struct ptr to s-reg (long-lived)
+ *   t6 = a0->[0x4F0];                // load flags/state field
+ *   t7 = t6 << 7;                    // shift bit 24 to sign position
+ *   if (t7 < 0) {                    // bgez +0x17 → bit 24 is set, skip 23 insns
+ *       // bit-set arm (~23 insns, 0x800C-0x8068):
+ *       //   t0 = s0->[0x30];        // sub-obj ptr
+ *       //   mtc1 $zero, $f0         // f0 = 0.0
+ *       //   lui+addiu &D            // a1 = &D + N
+ *       //   a3 = 0xFF
+ *       //   addiu a2, sp, 0x58      // local Quad4 buf
+ *       //   swc1 $f0, 0x58/0x5C/0x60/0x64(sp)  // 4 zero floats
+ *       //   jal gl_func(&D, ..., quad4, 0xFF)
+ *       //   t8 = 0x10001            // bit-flag tag stored to sp+0x10
+ *       //   ... continues with second jal, more sub-arg setup ...
+ *   }
+ *   // bit-clear arm (fall-through, target of bgez):
+ *   //   ... TBD: ~190 insns of subsystem update / FPU math ...
+ *   epi: lw ra, ...; lw s0, ...; addiu sp, 0x90; jr ra
+ *
+ * First-pass NM stub — captures only the entry guard structure for grep
+ * discoverability. Multi-pass decomp expected (this is comparable size to
+ * 1080's larger spine functions). Default build INCLUDE_ASM matches; this
+ * doc provides reference for the next agent. */
+extern int gl_func_00000000();
+void gl_func_00007FF4(int *a0) {
+    int flags;
+    flags = a0[0x4F0 / 4];
+    if ((flags & 0x01000000) != 0) {
+        /* bit-24 arm: alloc Quad4-of-zeros, dispatch first jal — TBD */
+        (void)a0[0x30 / 4];
+        (void)gl_func_00000000;
+    }
+    /* bit-24-clear arm (~190 insns, FPU math + subsystem update) — TBD */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007FF4);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0000836C(int a0, int *a1) {
