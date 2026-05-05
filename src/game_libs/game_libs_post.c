@@ -4181,7 +4181,11 @@ int gl_func_00069C38(char *a0) {
     return gl_func_00000000(a0 + 0x48);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069C58);
+void gl_func_00069C58(char *a0) {
+    int local;
+    gl_func_00000000(&local);
+    gl_func_00000000(a0 + 0x10);
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00069C58_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069C94);
