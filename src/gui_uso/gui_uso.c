@@ -81,6 +81,28 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
  */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
 
+/* gui_func_00000918: 144-insn display-list builder for GUI primitives.
+ * .word-only encoded (USO relocations). Hand-decoded structure:
+ *
+ *   ctx_t *ctx = a0;                          // GUI render context
+ *   ctx->cursor++;  // a0[0x4] = cursor of current DL slot
+ *   void *dl_buf = ctx->dl_buf;  // a0[0xC]
+ *   int slot = (cursor << 3);    // 8-byte slots
+ *   void *p = dl_buf + slot;
+ *   *(u32*)p = 0xFA000000;       // G_SETPRIMCOLOR-ish opcode (RDP/F3DEX2)
+ *   *(u32*)(p + 4) = some_value;
+ *   *(f32*)(sp+0) = ... (zero-fill 16 bytes of stack scratch)
+ *   ... (~120 more insns: more DL writes + float math via $f0=255.0,
+ *        $at=4F000000 (max-int-as-float), neg.s, mul.s sequences)
+ *   ... ends with frame teardown + jr ra
+ *
+ * High-level guess: builds 5-10 DL commands per call (color/vertex/light
+ * setup) for a single GUI primitive. The 0xFA opcode + dual-counter
+ * pattern (fields 0x4 and 0xC) suggests a context-driven DL writer.
+ *
+ * Won't be byte-matchable in one tick — too many implicit register-shuffle
+ * patterns + uncertain struct shape. Default INCLUDE_ASM keeps ROM correct;
+ * this is structural reference for the next pass. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000918);
 
 extern int gl_func_00000000();
