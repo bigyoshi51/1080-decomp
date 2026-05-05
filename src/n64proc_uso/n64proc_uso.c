@@ -273,7 +273,6 @@ void *n64proc_uso_func_00000100(void *a0) {
     void *q;
     void *r;
     int *z;
-    int t2;
 
     p = a0;
     if (p == 0) {
@@ -298,8 +297,7 @@ void *n64proc_uso_func_00000100(void *a0) {
     z = *(int**)((char*)&D_00000000 + 0x190);
     gl_func_00000000((char*)p + 0x10, z);
 
-    t2 = z[0x14 / 4];
-    if (t2 != 0) z[1] = 1;
+    if (z[0x14 / 4] != 0) z[1] = 1;
     z[0x14 / 4] = (int)p;
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190));
     gl_func_00000000(0xA3);
