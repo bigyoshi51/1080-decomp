@@ -4366,7 +4366,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
  *   - Unique extern `gl_func_00011124_b()` for 2nd call: no spill emitted either.
  *
  * Same class as game_uso_func_0000A374 (also 86.7% cap, precall arg spill).
- * Also has unfilled jr-ra delay slot (could be -g3 but orthogonal to arg spill). */
+ * Also has unfilled jr-ra delay slot (could be -g3 but orthogonal to arg spill).
+ *
+ * 2026-05-05 5th variant tried: `volatile int a1, a2` named locals to force
+ * IDO to materialize and spill. Result: REGRESSED to 15/17 diffs (size grew
+ * to 0x4C, 19 insns vs target 17). Volatile spilled to wrong slots and
+ * added an extra reload+ldelay pair. Confirms target's spills aren't
+ * volatile-driven; they're IDO's older-version pre-call spill convention
+ * that the current IDO 7.1 build doesn't reproduce. Cap at 82.18% holds. */
 void game_uso_func_00011124(int *a0) {
     gl_func_00000000(a0);
     gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF50),
