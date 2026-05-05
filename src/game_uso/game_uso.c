@@ -2636,7 +2636,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
  * the documented pattern in feedback_cross_function_tail_share_unmatchable_standalone.md.
  * No promotion path from C; the only fix is to recognize 7A98+7ABC as
  * one logical function (merge-fragments), which requires expected/.o
- * refresh on this Yay0-compressed segment. */
+ * refresh on this Yay0-compressed segment.
+ *
+ * VERIFIED 2026-05-05: tested the merge-fragments path standalone. Wrote
+ * the combined body for 7A98 (`if (v1==NULL) return 0.0f; else return ...`)
+ * in a sandbox .c at -O2 -mips2 -32. IDO emits 12 insns, NOT 13:
+ *   lw v0,0x30(a0); lw v1,0x908(v0)
+ *   bnel v1,zero,+5; lwc1 $f4,0xBC(v1)  ; likely-branch + delay
+ *   mtc1 zero,$f0; jr ra; nop            ; null path (3 insns)
+ *   lwc1 $f4,0xBC(v1); lwc1 $f6,0xBC(v0); sub.s $f0,$f4,$f6; jr ra; nop
+ * Two distinct return sites, both via $f0 directly, NO $f2 intermediate,
+ * NO cross-jump into a sibling. IDO's tail-merge optimizer prefers
+ * fall-through `bnel` over `beql`-into-other-function-body. So the
+ * merge path is ALSO dead — collapsing the two functions into one C body
+ * does NOT reproduce the target's beql-cross-jump pattern.
+ *
+ * Conclusion: this pair (7A98+7ABC) is unmatchable from C at any
+ * granularity. The target's pattern was emitted by IDO from a source
+ * arrangement we can't reach (possibly hand-tuned asm in the original,
+ * or a rare optimizer-state coincidence). The only remaining promotion
+ * path is full INSN_PATCH (3 of 4 insns at offsets 0x0/0x4/0xC), which
+ * is over the spirit of the recipe (>50% of function bytes patched).
+ * Mark as permanently locked at 58.75%. */
 float game_uso_func_00007ABC(void) {
     return 0.0f;
 }
