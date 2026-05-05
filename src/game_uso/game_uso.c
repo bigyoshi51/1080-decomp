@@ -4631,28 +4631,74 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011124);
 #endif
 
 #ifdef NON_MATCHING
-/* 12.33% NM (stub body, single pre-call). 60-insn dispatcher,
- * 0xF0 size, frame 0x18. First-pass structural decode:
+/* game_uso_func_00011168: 60-insn 4-way dispatcher, 0xF0 size, frame 0x18.
+ * 61.23% NM (up from 12.33% stub). Re-decoded 2026-05-05 — prior wrap doc
+ * had 2 errors:
+ *   - "t7 == 0" branch used `t8->0x64` (wrong); asm reads `D[0x64]` directly.
+ *   - "t7 == 2" branch claimed D[0xF38]; actually D[0x64] threshold gates
+ *     between D[0xF30] and D[0xF38] (under flag==1 && D[0x7C]==0).
  *
- *   gl_func_00000000(a0);                       // unconditional pre-call
- *   t7 = a0->0xB4->0xA54;                       // dispatch flag
- *   if (t7 == 1) { ... 4-arg gl_func with D[0xF40][0..1] + 1 }
- *   else if (t7 == 2) { ... 4-arg gl_func with D[0xF38][0..1] + 1 }
- *   else if (t7 == 0) { ... 4-arg gl_func with t8->0x64+0..1 + 1 }   // t8 = D[0x7C]
- *   else { ... 4-arg gl_func with D[0xF40][0..1] + 1 }                // default
- *   return;
+ * Remaining ~39pp gap is precall-arg-spill class (per
+ * `feedback_ido_precall_arg_spill_unreachable.md`): expected emits
+ * `sw a1, 4(sp); sw a2, 8(sp)` outgoing-arg-slot stores around each of the
+ * 4 jals (8 extra insns), AND uses a single t9 base register set up via
+ * `lui+addiu` for both `a1=base[0]` and `a2=base[1]` loads. Build folds
+ * to per-load lui+lw immediate. BNEL vs BNE for the flag check is also
+ * a related codegen-shape diff. Same class as game_uso_func_00011124
+ * (sibling at 82.17% cap).
  *
- * Each branch sets up a base pointer (D+0xF40, D+0xF38, t8+0x64) then
- * loads a1=*(base+0), a2=*(base+4), a3=1, calls gl_func_00000000.
- * Inner spills (sw a1,4(sp); sw a2,8(sp)) suggest pre-call arg-spill
- * pattern (per feedback_ido_precall_arg_spill_unreachable.md).
+ * Corrected dispatch (asm 0x11168-0x11254):
  *
- * Multi-tick decomp expected. Stub body keeps wrap parsable; default
- * build still matches via INCLUDE_ASM. Apply goto-chain dispatch
- * (feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md) once
- * DNM build is verifiable. */
+ *   gl_func_00000000(a0);                            // unconditional pre-call
+ *   flag = a0->0xB4->0xA54;
+ *   if (flag != 1) {
+ *       gl_func_00000000(a0, D[0xF40+0], D[0xF40+4], 1);  // default
+ *       return;
+ *   }
+ *   t8 = D[0x7C];
+ *   if (t8 != 0) {
+ *       gl_func_00000000(a0, D[0xF28+0], D[0xF28+4], 1);
+ *       return;
+ *   }
+ *   t2 = D[0x64];
+ *   if (t2 < 2) {
+ *       gl_func_00000000(a0, D[0xF30+0], D[0xF30+4], 1);
+ *   } else {
+ *       gl_func_00000000(a0, D[0xF38+0], D[0xF38+4], 1);
+ *   }
+ *
+ * The 4 inner calls share signature (a0, scalar, scalar, 1). Each call's
+ * arg-load pattern emits `sw a1,4(sp); sw a2,8(sp)` outgoing-arg-slot
+ * stores (precall-arg-spill — see feedback_ido_precall_arg_spill_unreachable.md
+ * for context). */
 void game_uso_func_00011168(int *a0) {
+    int flag, t2;
+    int t8;
+    int *def_base = (int*)((char*)&D_00000000 + 0xF40);
+
     gl_func_00000000(a0);
+    flag = ((int*)a0[0xB4 / 4])[0xA54 / 4];
+
+    if (flag == 1) {
+        t8 = *(int*)((char*)&D_00000000 + 0x7C);
+        if (t8 != 0) {
+            int *b = (int*)((char*)&D_00000000 + 0xF28);
+            gl_func_00000000(a0, b[0], b[1], 1);
+            return;
+        }
+        t2 = *(int*)((char*)&D_00000000 + 0x64);
+        if (t2 < 2) {
+            int *b = (int*)((char*)&D_00000000 + 0xF30);
+            gl_func_00000000(a0, b[0], b[1], 1);
+        } else {
+            int *b = (int*)((char*)&D_00000000 + 0xF38);
+            gl_func_00000000(a0, b[0], b[1], 1);
+        }
+        return;
+    }
+    /* flag != 1: default path. Placed last so IDO emits BNEL-skip-to-here
+     * with delay-load (matching asm 0x11198 bnel t7,at,+0x26). */
+    gl_func_00000000(a0, def_base[0], def_base[1], 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
