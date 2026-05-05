@@ -18,7 +18,25 @@ extern int gl_func_00000000();
  * shrinking the function past TRUNCATE_TEXT.
  *
  * Cap stands at 92.86% (1-insn dead-branch trailing). Same -O0 epilogue
- * pattern as arcproc_uso_func_000000B4 sibling. */
+ * pattern as arcproc_uso_func_000000B4 sibling.
+ *
+ * 2026-05-05: tested 4 more variant shapes hoping to eliminate the extra
+ * 8 bytes (2 insns: the join-point `b end; nop` between the if-arm and
+ * else-arm exits):
+ *   (a) Explicit `else { return 0; }` — 4 dead branches (worse).
+ *   (b) `register int rv; if(...) rv=1; else rv=0; return rv;` — uses $s1
+ *       successfully but adds a join-point, still 3 branches (same).
+ *   (c) `if (*a0 != 0) goto zero_path; return 1; zero_path: return 0;` —
+ *       extra `b zero_path` from the else fall-through (worse).
+ *   (d) `register int rv; rv = 0; if (...) rv = 1; return rv;` — 2 trailers
+ *       (same shape as current).
+ * Confirms cap is structural — IDO -O0 emits a join-point branch after
+ * any if/else chain that has explicit early return inside the if-arm,
+ * regardless of how the else-arm is written. The expected shape (NO
+ * join-point, both arms branch directly to epilogue) requires dataflow
+ * normalization that IDO -O0 doesn't perform. INSN_PATCH-blocked: would
+ * need to grow expected/.o by +8 bytes, which post-cc tooling can't do
+ * (only shrink via PROLOGUE_STEALS or overwrite via INSN_PATCH). */
 int arcproc_uso_func_0000012C(int *a0, int a1) {
     register int *p;
     gl_func_00000000(a0, a1);
