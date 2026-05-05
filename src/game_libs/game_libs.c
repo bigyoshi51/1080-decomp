@@ -97,6 +97,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000007BC);
  * caller's struct shape is known. Default INCLUDE_ASM keeps ROM correct. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000009B4);
 
+/* gl_func_00000A8C: 72-insn nested-alloc-and-init function (0x120).
+ * .word-only encoded. Hand-decoded prologue:
+ *   - Frame -0x28, saves s0/ra
+ *   - s0 = arg0 (early s0 anchor)
+ *   - if (arg0 == 0) { s0 = alloc(0xD4); }   (212-byte allocation)
+ *   - if (s0 == 0) goto epilog;
+ *   - a2 = s0; alloc'd_inner = alloc(0xC4); (196-byte sub-object)
+ *   - if (alloc'd_inner == 0) skip rest of init
+ *   - a1 = 0x10000 + (-0x347C) = 0xCB84  (intra-USO data ref;
+ *     looks like the splat-fold-into-nearest pattern — there should
+ *     be a proper D_0000CB84 rodata symbol but splat fold the offset)
+ *   - jal init(arg2_or_alloc'd_outer, &D_0000CB84, ...)
+ *   - ... (more init)
+ *
+ * Two-level alloc constructor: outer 0xD4-byte struct + inner
+ * 0xC4-byte sub-object. The 0xCB84 reference suggests a rodata
+ * config table.
+ *
+ * Multi-pass decomp candidate. Default INCLUDE_ASM keeps ROM correct;
+ * this comment is structural context for the next agent. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000A8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000BAC);
