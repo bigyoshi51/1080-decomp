@@ -250,7 +250,7 @@ segments:
       # strings — it's static graphics data (vertex caches + draw commands),
       # not microcode. The actual RSP ucodes live in bootup_uso_pre at ROM
       # 0xDB3FF0..0xDB9FF0 (4 F3DEX 1.23 gfx + ~7 aspMain audio variants); see
-      # GitHub issue #5. Either way: not CPU-disassemblable, raw data.
+      # GitHub issue #6. Either way: not CPU-disassemblable, raw data.
       - [0xDF3CD0, bin, game_libs_dl_data]
       - [0xE01AE8, c, game_libs/game_libs_post]
   - [0xE5A378, bin, game_libs_post]
