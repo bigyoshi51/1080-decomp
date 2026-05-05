@@ -236,15 +236,16 @@ void timproc_uso_b5_func_00003ED8(char *a0) {
     (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
 }
 
-/* Sibling of timproc_uso_b5_func_00003ED8 — same vtable-call wrapper:
- *   gl_func_00000000(a0 + 0x194);
- *   v = a0->vtable;                    // a0+0x28
- *   (*(v->fp))(a0 + v->off);           // dispatch
- *
- * Trailing `lw t8, 0x23C(a0)` (4 bytes) at offset 0x40 is the stolen
- * prologue for SUCCESSOR func_00003F5C — appended via SUFFIX_BYTES so
- * st_size grows to 0x44 without inserting alignment padding.
- * Per memo feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md. */
+/* Sibling of timproc_uso_b5_func_00003ED8 — same vtable-call wrapper.
+ * Promoted from 94.12% NM via SUFFIX_BYTES=0x8C98023C (the trailing
+ * `lw t8, 0x23C(a0)` at offset 0x40 is the stolen prologue for SUCCESSOR
+ * func_00003F5C; pad-sidecar didn't work because asm-processor aligns the
+ * next symbol to 8 bytes, but SUFFIX_BYTES grows our st_size by 4 instead
+ * of inserting padding). Default build still INCLUDE_ASMs (which already
+ * includes the trailing word), and the non_matching build C-emits 16
+ * insns at 94.12% — neither path needs SUFFIX_BYTES applied
+ * (inject-suffix-skip detects existing trailing bytes; non_matching skips
+ * the recipe by design). byte_verify passes. */
 void timproc_uso_b5_func_00003F18(char *a0) {
     char *v;
     gl_func_00000000(a0 + 0x194);
