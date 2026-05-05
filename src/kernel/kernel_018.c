@@ -119,7 +119,35 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800071C0);
 
 
 
+#ifdef NON_MATCHING
+/* func_800073F8 is the body fragment of the original 31-insn function
+ * at ROM 0x800073DC, which splat split into:
+ *   - func_800073DC (kernel_036.c orphan stub, 7 insns / 0x1C — prologue + first jal)
+ *   - func_800073F8 (this file, 25 insns / 0x64 — body + epilogue)
+ *
+ * The full decompiled body lives in kernel_036.c as `__rmonSendHeader`
+ * (matched 100% per report.json) — that is the canonical source-of-truth
+ * for these bytes. The INCLUDE_ASM below is residual dead duplicate code
+ * emitted at a separate .o offset; removing it would shift downstream .o
+ * layout so it stays for now.
+ *
+ * Stub body documents the fragment relationship for grep discoverability;
+ * not a real decode. See feedback_orphan_include_asm_after_split_function_decomp.md.
+ *
+ * EXTERNAL CALLERS BEWARE: kernel_015.c / kernel_018.c / kernel_029.c /
+ * kernel_032.c declare `extern void func_800073F8(void*, s32, s32)` and
+ * call it as a 3-arg function. At link time those resolve to address
+ * 0x800073F8 (THIS orphan stub's address), NOT to __rmonSendHeader's
+ * unified body. So the runtime semantics are: caller's args land in
+ * $a0/$a1/$a2, but THIS body uses $t6 from the predecessor's tail
+ * (which external callers don't set). Likely an in-the-original
+ * "shared-tail entry point" that the decomp can't represent cleanly. */
+void func_800073F8(void) {
+    /* see __rmonSendHeader in kernel_036.c — this fragment is its body */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800073F8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000745C);
 
