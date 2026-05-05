@@ -25,7 +25,9 @@ typedef struct { int a, b, c, d; } Quad4;
  * merge step (`ld -r`) or to run the accessor through a separate pipeline.
  * Same blocker applies to mgrproc_uso, game_uso, timproc_uso_b3/b5, and
  * map4_data_uso_b2 (all Yay0-compressed USOs). Deferred. */
-void timproc_uso_b1_func_00000000(int *dst) {
+/* K&R def so same-TU callers passing varying arg counts type-check in
+ * NON_MATCHING build. See feedback_knr_def_for_inconsistent_arg_callers.md. */
+void timproc_uso_b1_func_00000000(dst) int *dst; {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];

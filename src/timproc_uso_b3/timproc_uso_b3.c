@@ -10,7 +10,9 @@ typedef struct { int a, b, c, d; } Quad4;
  * reader template wrapped in a `b +1` epilogue branch (composite -O0
  * shape). Same Yay0-compressed segment blocker — wrap is for grep
  * discoverability per the established pattern. */
-void timproc_uso_b3_func_00000000(int *dst) {
+/* K&R def so same-TU callers passing varying arg counts type-check in
+ * NON_MATCHING build. See feedback_knr_def_for_inconsistent_arg_callers.md. */
+void timproc_uso_b3_func_00000000(dst) int *dst; {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
