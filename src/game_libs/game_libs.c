@@ -908,6 +908,40 @@ void gl_func_0000B560(int *p) {
     gl_func_00000000(p[4], p[1]);
 }
 
+/* gl_func_0000B5AC: 25-insn function that INHERITS $hi and $v0 from caller +
+ * predecessor's SUFFIX_BYTES. Sibling of gl_func_0000B560 (just-landed) — B560
+ * was extended with SUFFIX_BYTES `sll v0,a1,2; subu v0,v0,a1; addiu at,$0,5;
+ * div $0,v0,at` that compute (a1*3)/5. Those 4 insns belong logically to
+ * B5AC's prologue, leaving (a1*3)/5 quotient in $lo and remainder in $hi.
+ * B5AC's first interesting insn is `mfhi a1` reading the remainder.
+ *
+ * Additional inherited reg: $v0 (used by `bgez v0` and `andi a2,v0,0x7`) —
+ * caller-side flag. NOT standalone-callable from prototype-based C; reached
+ * only via fall-through from gl_func_0000B560+SUFFIX_BYTES.
+ *
+ * Decoded control flow:
+ *   ; entry inherits $hi = (a1*3)%5, $v0 = caller flag
+ *   t8 = a1; t9 = 3*a1; save args; t7 = *a0;
+ *   t0 = 9*a1; t1 = 36*a1; t9 = 48*a1;
+ *   a1 = $hi (= prior remainder);
+ *   a3 = t1 + 0xD268 = 36*a1 + 0xD268;     ; lookup-table address
+ *   a0 = *a0 + 48*a1;                       ; struct-array entry
+ *   if (v0 < 0 || (v0 & 7) == 0) goto call;
+ *   a2 = (v0 & 7) - 8;
+ * call:
+ *   func_00000000();   ; first jal
+ *   func_00000000();   ; second jal (a0 reloaded in delay slot)
+ *   return;
+ *
+ * The trailing 4 insns at B5AC+0x70..0x80 are B5AC's tail-SUFFIX_BYTES for
+ * its OWN successor B638 (`sll v0,a1,2; subu v0,v0,a1; addiu at,$0,5; div`)
+ * — same chained pattern as B560->B5AC. B638 will need a parallel decode
+ * to capture the chain.
+ *
+ * BLOCKED for prototype-based C: inherited $v0 is caller-specific (varies
+ * per call site), can't be captured as a function arg without breaking
+ * existing callers. PREFIX_BYTES on B5AC would have to bake a specific $v0
+ * per call site — not a uniform recipe. Stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B5AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B638);
