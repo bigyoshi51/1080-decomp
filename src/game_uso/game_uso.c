@@ -2957,8 +2957,40 @@ trunk:
      * tiered list lookup. cnt<8/cnt<16/cnt<24 boundaries match a 3-tier
      * 8-entry-each list (max 24 sub-objects).
      *
-     * Full bit-0x80 body (0x7848-0x7990) still deferred — multi-pass decomp;
-     * current per-bit dispatcher is at ~31% fuzzy. */
+     * BIT-0x80 FAST-PATH BODY DECODED 2026-05-05 (asm 0x787C-0x7900, 33 insns):
+     *   stride = list_base * 2;                    // 2x stride for 3rd tier
+     *   if (sub_cnt < stride + 16) goto tier_lo;
+     *     // tier_hi (sub_cnt >= stride+16):
+     *     a0[0x58] = sub_cnt - stride - 16;
+     *     if (sub_cnt < stride + 21) goto epilogue_7914;
+     *     if (stride + 23 < sub_cnt) {
+     *         t2 = a0[0x58];                      // reload, used at 0x7918
+     *         goto epilogue_7918;
+     *     }
+     *     ret_lo |= 0x1600;                       // tier-hi mid OR-flag
+     *     goto epilogue_7914;
+     *   tier_lo:
+     *     if (sub_cnt < list_base + 8) goto tier_low;
+     *       // tier_mid (list_base+8 ≤ sub_cnt < stride+16):
+     *       a0[0x58] = sub_cnt - list_base - 8;
+     *       if (sub_cnt < list_base + 13) goto epilogue_7914;
+     *       if (list_base + 15 < sub_cnt) {
+     *           t2 = a0[0x58]; goto epilogue_7918;
+     *       }
+     *       ret_lo |= 0x1200;                     // tier-mid OR-flag
+     *       goto epilogue_7914;
+     *   tier_low:
+     *     if (sub_cnt < 5) goto epilogue_7914;
+     *     // (continues at 0x7900+, not yet decoded — likely tier_low body)
+     *
+     * Net structure: 3-tier range classifier on sub_cnt, with a0[0x58] set
+     * to the within-tier offset and ret_lo OR'd with tier-specific flag bits
+     * (0x1200 for mid tier, 0x1600 for high tier). The boundary constants
+     * (8, 13, 16, 21, 23) suggest a 5-zone subdivision per 8-stride unit,
+     * possibly matching anim/state-frame ranges.
+     *
+     * Cumulative bit-0x80 body decoded: 33/~80 insns. Remaining 0x7900-0x7990
+     * deferred for next pass. */
 
 ret:
     /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94),
