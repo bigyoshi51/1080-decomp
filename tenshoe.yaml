@@ -243,10 +243,15 @@ segments:
     vram: 0x00000000
     subsegments:
       - [0xDE50D8, c, game_libs/game_libs]
-      # 56 KB RSP microcode blob embedded mid-text — not CPU-disassemblable.
-      # See feedback_rsp_microcode_mistaken_for_code.md. Treated as raw data
-      # so objdiff doesn't count it against code progress.
-      - [0xDF3CD0, bin, game_libs_ucode]
+      # 56 KB blob embedded mid-text. INITIALLY misidentified as RSP microcode
+      # (per feedback_rsp_microcode_mistaken_for_code.md). Fingerprinting
+      # 2026-05-04 showed 234 recognized GFX display-list commands (gsSPVertex
+      # / gsSP1Triangle / gsSP2Triangles / gsDPTileSync) and zero ucode ID
+      # strings — it's static graphics data (vertex caches + draw commands),
+      # not microcode. The actual RSP ucodes live in bootup_uso_pre at ROM
+      # 0xDB3FF0..0xDB9FF0 (4 F3DEX 1.23 gfx + ~7 aspMain audio variants); see
+      # GitHub issue #5. Either way: not CPU-disassemblable, raw data.
+      - [0xDF3CD0, bin, game_libs_dl_data]
       - [0xE01AE8, c, game_libs/game_libs_post]
   - [0xE5A378, bin, game_libs_post]
   - [0xE5D0D4, bin, game_data]
