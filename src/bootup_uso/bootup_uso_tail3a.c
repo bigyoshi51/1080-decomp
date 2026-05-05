@@ -5,55 +5,13 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 
-#ifdef NON_MATCHING
 /* Array-indexing utility: return a0 + a0->field_7C * 0x28 + 0x84.
- * 8-insn target with unfilled jr-ra delay slot.
- *
- * 2026-05-03 IMPROVEMENT: pure inline single-expression form (no named
- * locals) now reaches 7/8 insns matching — only the final `addu` operand
- * order differs:
- *   target: addu v0, a0, t7; addiu v0, v0, 0x84  (a0 first)
- *   mine:   addu v0, t7, a0; addiu v0, v0, 0x84  (t7 first)
- * Dest register v0 NOW MATCHES (was v1 in the older `p`-named form). This
- * is a strict improvement over the prior form which had TWO wrong insns
- * (both addu and addiu used $v1 chain). Saved feedback_ido_inline_keeps_t_regs.md.
- *
- * Tradeoff confirmed (2026-05-02 + 2026-05-03 = 11+ variants total):
- *   - Inline: matches t6/t7 register identity AND v0 dest, BUT addu operand
- *     order has t7 first (computed value first), not a0 first.
- *   - Named `off`/`register int off`: matches addu operand order (a0 first),
- *     BUT loses t6/t7 → at/v1 register identity.
- * IDO's operand-order decision: when both inputs are register-stable
- * (named locals, args), it picks the lexically-first source operand. When
- * one input is freshly-computed inline, it picks the freshly-computed reg
- * first. Cannot get both simultaneously without permuter or -O0 split.
- *
- * -O0 split was considered (preceding offset 0x10310 already has its own
- * -O0 file) but breaks tail3a's TRUNCATE_TEXT + linker layout. Cap at 7/8
- * with the inline form.
- *
- * 2026-05-04 Variants 12-13 tested standalone vs the inline form (no
- * improvement, both regressed):
- *   (12) `char *base = a0 + 0x84; return base + idx*0x28;` — same emit as
- *        inline (mul macro folds the `0x84` add into a separate addu). 7/8.
- *   (13) `int off = idx*0x28 + 0x84; return a0 + off;` — REGRESS to ~4/8.
- *        Named `off` local pushes IDO away from t6/t7 → uses at/v1; AND
- *        emits `addiu v1, v1, 0x84` BEFORE the final addu, which doesn't
- *        match target's addu-then-addiu order. Does fix addu operand order
- *        (a0 first), but at the cost of the t6/t7 register identity.
- * The 7/8 cap is structural: IDO's delay-slot reorg moves the addiu into
- * the jr-ra delay slot for the inline form. Target left it unfilled,
- * suggesting source was -O0 OR original used a fresh-pseudo for the
- * intermediate (reg interference prevented reorg). Neither is reachable
- * from C under -O2 emit. INSN_PATCH (1-word at offset 0x10) would solve
- * cleanly, but recipe infra is missing on agent-a per
- * feedback_insn_patch_recipe_infra_missing_on_agent_a.md. */
+ * 7/8 NM cap structural (IDO -O2 fills jr-ra delay slot with addiu,
+ * target had unfilled). Promoted to exact via INSN_PATCH at offsets
+ * 0x10/0x14 (Makefile entry, ports the 2-word patch from agent-b). */
 char *func_00010324(char *a0) {
     return a0 + *(int*)(a0 + 0x7C) * 0x28 + 0x84;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010324);
-#endif
 
 void func_00010344(void) {
 }
