@@ -1280,14 +1280,11 @@ void gl_func_0000DDE0(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
 }
 
-/* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0 / gl_func_0003CB2C).
+/* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0/0003CB2C).
  * 16/20 insns match from C emit; remaining 4-insn diff is a register-shift
- * (v0/t0/t1 ↔ v1/v0/t0) that no C-level lever inside this function reproduces.
- * Recipe: INSN_PATCH on the 4 reg-shift insns @0x24/0x2C/0x34/0x3C — applied
- * post-cc by patch-insn-bytes.py to make build/.o byte-equal to expected/.o
- * (which is the .s assembly form sourced from ROM). See
- * feedback_uso_entry0_trampoline_95pct_cap_class.md for the structural cap
- * class. */
+ * (v0/t0/t1 ↔ v1/v0/t0) that no C-level lever inside this function
+ * reproduces. INSN_PATCH on the 4 reg-shift insns @0x24/0x2C/0x34/0x3C
+ * makes build/.o byte-equal to expected/.o post-cc. */
 void gl_func_0000DE30(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3EB;
