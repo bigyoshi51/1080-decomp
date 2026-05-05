@@ -1043,7 +1043,22 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
  * bits assembled) and $t5 (byte-2 << 8) — a non-standard calling convention
  * where the caller pre-loads scratch regs and the helper finishes the byte
  * combine. This is the `feedback_uninit_tN_branch_at_entry.md` pattern: not
- * matchable from C without inline-asm (IDO rejects). Keep INCLUDE_ASM. */
+ * matchable from C without inline-asm (IDO rejects). Keep INCLUDE_ASM.
+ *
+ * 2026-05-05 follow-up: confirmed cross-file merge with 47B0 is blocked.
+ * 47B0 lives in src/kernel/kernel_027.c; 47E4 lives here in kernel_000.c.
+ * Per `feedback_merge_fragments_blocked_across_o_files.md`, cross-.o
+ * merges shift downstream linker layout and break every later .o boundary.
+ * To match: would need to MOVE 47E4's INCLUDE_ASM into kernel_027.c near
+ * 47B0, adjust kernel_027's TRUNCATE_TEXT, then merge-fragments inside that
+ * .c. Same-file merge IS safe per `feedback_merge_fragments_partial_safe_subset.md`
+ * but the move-then-merge sequence is multi-tick infrastructure work.
+ * Defer until a kernel_027 cluster pass is on the agenda.
+ *
+ * 47B0 itself reads bytes 0..2 of a0 via lbu/sll/or chain (no jr ra at end
+ * — falls through to 47E4 which reads byte 3 and returns the assembled
+ * 32-bit big-endian word). Once both fragments are in the same .c, they
+ * can be unified as `u32 unaligned_load_be(u8 *a0)` body. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800047E4);
 
 /* NON_MATCHING: stack data packing is correct, but IDO still chooses a
