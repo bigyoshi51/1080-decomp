@@ -263,7 +263,17 @@ extern char D_00000000;
  * of compile-time-folded extern, and register layout is $s0=base,
  * $s1=base10, $s2=cur, $s3=flag, $s4=one (no $s5 used; arg0 spilled).
  * Worse than -O2's 75 % and structurally further from target. -O1 is
- * not the right opt level for this function. */
+ * not the right opt level for this function.
+ *
+ * (25) TRIED 2026-05-05: narrow-type `register short one = 1;` (instead
+ * of `register int one = 1;`) — hoping the smaller-storage hint might
+ * shift `one`'s priority in IDO's allocator. Result: IDENTICAL register
+ * layout ($s0=cur, $s1=flag, $s2=base, $s3=one, $s4=arg0, $s5=base10).
+ * IDO promotes `short` to int width for the comparison/branch shape; the
+ * pseudo's storage-class is determined by USAGE not declared type. The
+ * `short` keyword is a no-op for $s allocation when the value is used as
+ * int everywhere downstream (which it is — compare, store, pass-as-arg
+ * all promote). Confirms: type narrowing isn't a lever for $s priority. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
