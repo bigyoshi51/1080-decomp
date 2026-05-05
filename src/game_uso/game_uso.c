@@ -2989,8 +2989,42 @@ trunk:
      * (8, 13, 16, 21, 23) suggest a 5-zone subdivision per 8-stride unit,
      * possibly matching anim/state-frame ranges.
      *
-     * Cumulative bit-0x80 body decoded: 33/~80 insns. Remaining 0x7900-0x7990
-     * deferred for next pass. */
+     * Cumulative bit-0x80 body decoded: 33/~80 insns.
+     *
+     * BIT-0x80 TIER_LOW + LIMIT-CHECK BODY DECODED 2026-05-05 (asm
+     * 0x7900-0x7990, +36 insns):
+     *   // tier_low completion (came here when sub_cnt >= 5):
+     *   a0[0x58] = sub_cnt;
+     *   if (sub_cnt < 8) {
+     *       ret_lo |= 0x1000;                      // tier_low OR-flag
+     *   }
+     *   // shared table lookup for all 3 tiers:
+     *   {
+     *       Vec2 *table = (Vec2*)((char*)&D_00000000 + 0x638);
+     *       f0 = table[sub_cnt].x;                  // 8-byte stride lookup
+     *       f2 = table[sub_cnt].y;
+     *   }
+     *   // post-lookup state transition:
+     *   main_cnt = a0[0x44];
+     *   new_sub_cnt = sub_cnt + 1;
+     *   a0[0x4C] = new_sub_cnt;                     // commit new sub_cnt
+     *   if (main_cnt == 0)         limit = 8;
+     *   else if (main_cnt == 1)    limit = a0[0x4DC] + 16;  // list_base+16
+     *   else                       limit = a0[0x4DC]*2 + 24; // 2*list_base+24
+     *   if (new_sub_cnt >= limit) {
+     *       a0[0x6C] &= ~0x80;                      // clear bit-0x80 (done)
+     *   }
+     *
+     * The 3-tier limit (8 / list_base+16 / 2*list_base+24) confirms the
+     * earlier hypothesis: list_base*2 stride is for tier 3 (high), list_base
+     * stride for tier 2 (mid), constant 8 for tier 1 (low). Each tier has
+     * 8 entries, max 24 sub-objects. The Vec2 table at D[0x638] is shared
+     * — the per-tier code paths just compute a different a0[0x58] index
+     * into it. The OR-flags (0x1000/0x1200/0x1600) signal the calling
+     * dispatcher which tier was hit so it can drive different rendering.
+     *
+     * Cumulative bit-0x80 body decoded: 69/~80 insns (~86%). Remaining
+     * ~10 insns at 0x7990+ (likely final return/ret_lo finalize). */
 
 ret:
     /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94),
