@@ -85,20 +85,27 @@ def byte_verify(name):
                 continue
             parts = line.split()
             # symbol-table line format: ADDR FLAGS SECTION SIZE NAME
+            # The trailing field is the symbol name. Match exactly to skip
+            # `.NON_MATCHING` (and other suffixed) aliases, which would
+            # otherwise get picked first and confuse downstream extraction.
+            if not parts or parts[-1] != name:
+                continue
             try:
                 addr = int(parts[0], 16)
             except (ValueError, IndexError):
                 continue
-            # find the size field — last hex token before the name
+            # find the size field — objdump emits sizes as zero-padded
+            # 8-hex-digit words. Restrict to that exact shape so the
+            # single-letter type column ('F'/'O' = 15/24) doesn't get
+            # picked first and truncate the byte slice.
             size = None
             for p in parts[2:]:
-                try:
-                    s = int(p, 16)
-                    if 0 < s < 0x100000:
-                        size = s
-                        break
-                except ValueError:
-                    pass
+                if len(p) != 8 or not all(c in "0123456789abcdef" for c in p):
+                    continue
+                s = int(p, 16)
+                if 0 < s < 0x100000:
+                    size = s
+                    break
             if size is None:
                 continue
             try:
