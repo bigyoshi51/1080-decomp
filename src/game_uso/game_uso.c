@@ -2415,7 +2415,82 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  * (input Vec3 stage), second at 0x8DE0-0x8E2C (sub-struct Vec3, this
  * block), third at 0x8E60+ (likely a third source). All write to
  * different stack slots (sp+0x174, sp+0x14C, sp+0x1E0...) for downstream
- * consumers. NM remains 3.5% (doc-only). */
+ * consumers. NM remains 3.5% (doc-only).
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x8E30-0x8F98 (insns 73-152, ~80 more):
+ * THREE more functional blocks confirming the per-frame Vec3-broadcast
+ * interpretation:
+ *
+ *   (A) 0x8E30-0x8E58: THIRD cross-USO call with local_14C/local_174 as
+ *       both src and dst buffers. Same `gl_func(retval, &local_174,
+ *       &local_14C, 12)` Vec3-reader shape. The `bnez a3, +9` insn at
+ *       0x8E34 is IDO's defensive `if (buf != 0)` codegen for the
+ *       stack-local pointer (always non-NULL) — the IF-body (0x8E3C-58
+ *       cross-call) is therefore dead in practice, but emitted because
+ *       IDO -O2 doesn't constant-fold sp-relative addresses to non-zero.
+ *
+ *   (B) 0x8E5C-0x8E88: Vec3 XZ-DIFFERENCE compute (NOT a copy):
+ *         v0 = sp[0x218]                         // saved arg pointer
+ *         v1 = retval                            // result buffer
+ *         f12 = sp[0x1E0] - v0->[0x30]           // X delta
+ *         f0  = sp[0x1E8] - v0->[0x38]           // Z delta
+ *         v1->[0x0] = X-delta                    // store to result.x
+ *         v1->[0x4] = 0.0                        // Y zeroed
+ *         v1->[0x8] = Z-delta                    // store to result.z
+ *       This is "computed XZ vector from current to v0->offset30" —
+ *       likely the snowboard's velocity-direction-from-ground-target.
+ *
+ *   (C) 0x8E8C-0x8EC4: TRIPLE-DEST Vec3 copy. Reads 12 bytes from a3
+ *       (= &local_14C) and stores SIMULTANEOUSLY to a2 (= &local_174)
+ *       AND t5 (= &local_1EC). 8-insn interleaved lw/sw chain (IDO
+ *       load-batched). Same broadcast pattern as the prior block but
+ *       fanout +1 (3 destinations vs 2).
+ *
+ *   (D) 0x8EC8-0x8EE4: FPU magnitude check via `bc1f`:
+ *         f8 = sp[0x1EC] * sp[0x1B0]
+ *         f6 = sp[0x1B8] * sp[0x1F4]
+ *         c.le.s f8, f6                          // f8 <= f6 ?
+ *         bc1f +0xB (=0x8EE8)                    // skip ELSE-arm
+ *         add.s $f16, f6 (delay)                 // f16 = f6 (when taken)
+ *       This is "if (proj_a > proj_b) use f6 else use sum" — distance
+ *       comparison probably picking nearest collision target.
+ *
+ *   (E) 0x8EE8-0x8F2C: FOURTH cross-USO call. Same Vec3-reader shape
+ *       (a0=12, a2=&sp+0x174, then deref retval and write XZ-projection):
+ *         retval->[0x0] = sp[0x218]+0x30  ->[0x0]
+ *         retval->[0x4] = 0.0
+ *         retval->[0x8] = sp[0x218]+0x30  ->[0x8]
+ *       Stores spilled f16 (the if-result from block D) to sp[0x1AC]
+ *       around the call.
+ *
+ *   (F) 0x8F30-0x8F4C: SECOND triple-dest Vec3 copy: v1 (= &local_1D4)
+ *       fanout to v2 (= &local_11C). Same 8-insn pattern as block C
+ *       but with a 0x40000000 lui (constant 2.0f load) interleaved —
+ *       likely 0x8F50+ multiplies by 2.0.
+ *
+ *   (G) 0x8F50-0x8F98: a1->[0x90..0x98] WRITE-BACK Vec3 commit:
+ *         a1->[0x90] = sp[0x174]                 // X from main XZ buffer
+ *         a1->[0x94] = sp[0x178]                 // Y
+ *         a1->[0x98] = sp[0x17C]                 // Z
+ *         (sp+0x108)->[0..8] = a1->[0x90..0x98]  // cache to local stack
+ *         a1->[0x84] = sp[0x11C]                 // additional float at 0x84
+ *       This is the FIRST WRITE-BACK to the a1 (subsystem) struct —
+ *       confirms a1->[0x90..0x98] is the per-frame "world-grounded
+ *       position" Vec3 field. The cache-back to sp+0x108 retains the
+ *       pre-write value for further-downstream comparisons.
+ *
+ * INTERPRETATION (now stronger): 0x8CD8 is the "compute and broadcast
+ * world-grounded XZ-projected position" per-frame routine for a
+ * snowboard physics object. It computes the XZ position from the
+ * sub-struct's transform Vec3 (a1->0x30), runs distance-checks via
+ * cross-USO Vec3 readers, picks nearest, then commits the result to
+ * a1->[0x90..0x98] AND replicates to multiple downstream stack buffers
+ * (sp+0x174 main, sp+0x14C, sp+0x1EC, sp+0x1D4, sp+0x11C, sp+0x108).
+ *
+ * Decoded so far: insns 1-152 of 709 (~21%). Remaining ~557 insns
+ * (16 more cross-calls expected) likely repeat the (cross-call, Vec3-
+ * compute, write-back) micro-pattern for additional sub-systems
+ * (collision, terrain follow, AI state). Multi-tick continuation. */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
