@@ -756,23 +756,20 @@ void timproc_uso_b5_func_0000E5AC(int a0) {
 
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000E5AC_pad.s")
 
-#ifdef NON_MATCHING
 /* Prologue-stolen successor (per E5AC's _pad.s): the 2-insn `lui v0;
  * lw v0, 0(v0)` preceding E5D8 sets v0 = *D_00000000 (a state pointer).
- * Body chains: copies 3 floats from `(*D_0)->0x70`'s fields (0xBC, 0xCC,
- * 0xDC) into D_0+0/+4/+8, then calls gl_func_00000000(a0).
- *
- * IDO emit produces 2 extra setup insns (lui+lw to load *D_0) at the
- * start of E5D8 which the stolen prologue already provides. Standard
- * PROLOGUE_STEALS=8 recipe applies but needs Makefile entry — deferring.
- * NM wrap captures the structure for next pass. */
+ * Body copies 3 floats from `(*D_0)->0x70`'s fields (0xBC/0xCC/0xDC)
+ * into D_0+0/+4/+8, then calls gl_func_00000000(a0). C-emit duplicates
+ * the lui+lw at start; PROLOGUE_STEALS=8 strips the redundant 8-byte
+ * prefix post-cc per feedback_prologue_stolen_successor_no_recipe.md.
+ * Per feedback_prologue_steals_with_dangling_register_use.md, the inner
+ * deref uses a typed-as-int* alias `D_E5D8_state` so IDO emits `lui+lw`
+ * (matching the stolen-prologue shape) instead of `lui+addiu+lw`. */
+extern int *D_E5D8_state;
 void timproc_uso_b5_func_0000E5D8(int a0) {
-    *(float*)((char*)&D_00000000 + 0) = *(float*)((char*)*(int**)((char*)*(int**)&D_00000000 + 0x70) + 0xBC);
-    *(float*)((char*)&D_00000000 + 4) = *(float*)((char*)*(int**)((char*)*(int**)&D_00000000 + 0x70) + 0xCC);
-    *(float*)((char*)&D_00000000 + 8) = *(float*)((char*)*(int**)((char*)*(int**)&D_00000000 + 0x70) + 0xDC);
+    *(float*)((char*)&D_00000000 + 0) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xBC);
+    *(float*)((char*)&D_00000000 + 4) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xCC);
+    *(float*)((char*)&D_00000000 + 8) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xDC);
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000E5D8);
-#endif
 

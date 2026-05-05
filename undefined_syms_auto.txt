@@ -921,3 +921,4 @@ gl_func_h2hproc_8EC_t = 0x00000000;
 gl_func_h2hproc_8EC_f = 0x00000000;
 D_00000194_A = 0x00000000;
 func_800066D0 = 0x800066D0;
+D_E5D8_state = 0x00000000;
