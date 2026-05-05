@@ -427,7 +427,47 @@ void gui_func_0000271C(char *a0) {
     gl_func_00000000(saved);
 }
 
+#ifdef NON_MATCHING
+/* gui_func_000027A0: 260-insn / 0x410 multi-flag dispatcher. Likely a text/glyph
+ * positioning helper given its location in gui_uso (similar shape to nearby
+ * text-rendering functions).
+ *
+ * ENTRY DECODE (0x27A0-0x2820, ~24 insns):
+ *   Args: (a0=widget?, a1=x, a2=*, a3=flags)
+ *   Saves s0-s7, s8 (8 saved regs); 0x78-byte frame.
+ *   s0 = a0; s8 = a1 (x position cached)
+ *   if (a3 & 4) {
+ *       v0 = a0[4];                      // a0->field_10
+ *       a1 = (s16)v0[0x10];               // signed-half load
+ *       s8 -= a1;                          // shift x position
+ *       goto common;
+ *   }
+ *   if (!(a3 & 1)) {
+ *       // a3 lacks bit-1: alternative arm (continues at 0x281C+)
+ *   } else {
+ *       v0 = s0[4];
+ *       a1 = (s16)v0[0x10];
+ *       // ... continues
+ *   }
+ * common:
+ *   ... (large body, decoded in future passes)
+ *
+ * Saves & frame layout (sp+0x78):
+ *   ra:   sp+0x54
+ *   s8:   sp+0x50
+ *   s7-s0: sp+0x4C..0x30 (decreasing offsets in declared order)
+ *   a2 spill: sp+0x80 (caller-arg-save slot)
+ *
+ * 256+ insns of body decode deferred — multi-pass NM. Default build still
+ * uses INCLUDE_ASM via #else; this wrap captures the entry signature and
+ * the bit-4/bit-1/bit-2 flag-dispatch shape for next pass. */
+void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
+    /* TODO: full body decode. Stub just captures arg signature. */
+    (void)a0; (void)a1; (void)a2; (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
 
