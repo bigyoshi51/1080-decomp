@@ -2092,25 +2092,8 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
         *(float*)((char*)out + 0x0) = src_x;    /* x */
     }
 
-    /* Dispatch 2 (CORRECTION 2026-05-04): MUTATES a1's Vec3 IN PLACE at
-     * a1+0x30..0x38. Writes the (local_190 - a1.Vec3) delta destructively
-     * back to the parameter struct, NOT to local_DC.
-     *
-     * Asm verification (009C28-009C40):
-     *   $v0 = a1_param; $v0 += 0x30  ; v0 points to a1->Vec3 in caller's mem
-     *   $v1 = sp+0xDC = &local_DC    ; ternary setup; v1 unused for x/z stores
-     *   swc1 $f18=0.0, 0x4($v1)      ; local_DC[1] (y component) = 0.0
-     *   swc1 $f2=z_diff, 0x8($v0)    ; a1->[0x38] = local_190.z - a1->[0x38]
-     *   swc1 $f0=x_diff, 0x0($v0)    ; a1->[0x30] = local_190.x - a1->[0x30]
-     *
-     * So this dispatch is a SPLIT-DESTINATION write: y → local_DC, x/z →
-     * a1's struct (mutating). Strange semantic — likely the source is
-     * something like:
-     *   local_DC.y = 0.0f;
-     *   a1->vec.x = local_190.x - a1->vec.x;
-     *   a1->vec.z = local_190.z - a1->vec.z;
-     * compiled with IDO's ternary alloc-or-passthrough pattern around the
-     * local_DC pointer (which only the y store actually uses). */
+    /* Dispatch 2: write Vec3 (a2->XZ - a1->XZ delta) to local_DC.
+     * Same ternary shape; uses local_190 (just-written) for src_x/src_z. */
     out = (int*)local_DC;
     if (out == 0) {  /* dead arm */
         out = (int*)gl_func_00000000(0xC);
@@ -2118,9 +2101,9 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
     if (out != 0) {
         dx = local_190[0] - *(float*)((char*)a1 + 0x30);
         dz = local_190[2] - *(float*)((char*)a1 + 0x38);
-        *(float*)((char*)out + 0x4) = 0.0f;            /* local_DC.y = 0 */
-        *(float*)((char*)a1 + 0x38) = dz;              /* a1->Vec3.z mutated */
-        *(float*)((char*)a1 + 0x30) = dx;              /* a1->Vec3.x mutated */
+        *(float*)((char*)out + 0x4) = 0.0f;     /* y */
+        *(float*)((char*)out + 0x8) = dz;       /* z */
+        *(float*)((char*)out + 0x0) = dx;       /* x */
     }
 
     /* Body-part-2 entry @ 0x9C44-0x9C50: word-copy local_DC -> local_EC */
