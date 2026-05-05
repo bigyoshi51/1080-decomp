@@ -393,7 +393,6 @@ int gl_func_000083AC(char *a0) {
  * gl_func_00000000 resolves to at runtime (likely "spawn entity" /
  * "register handler" / "register" sequence given 5-call init pattern). */
 extern int gl_func_00000000();
-extern char D_00000000;
 void gl_func_000083CC(int *a0) {
     int *state = *(int**)((char*)&D_00000000 + 0x134);
     int *t6 = *(int**)((char*)state + 0x108);
@@ -1174,7 +1173,6 @@ void gl_func_0000DB34(int a0, int a1, int a2) {
  * "render dispatch" or "AI behavior" table); type the struct's vtable +
  * data layout. Likely a "process entity by type-code" pattern. */
 extern int gl_func_00000000();
-extern char D_00000000;
 void gl_func_0000DB80(int *a0, int a1) {
     /* Partial decode: 3-way switch on a2->0x48 (original a0->0x48), each
      * branch loads a different table-of-vtables and calls *t->0x2C(t->0x28+t, ...).
