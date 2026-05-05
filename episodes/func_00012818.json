@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00012818",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-05-05T00:45:07.477649+00:00",
+  "end_time": "2026-05-05T00:45:07.477681+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-05T00:45:07.477671+00:00",
+      "assistant_text": "37-insn -O0 helper that copies 8 bytes a1[0..7] -> a0->[0x154][6..13] then conditionally calls func(a0). 99.73% NM cap was IDO -O0 fresh-temp allocator (lw t6 vs t5). 2-word patch promotes to exact. 3rd port from agent-b's INSN_PATCH set.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 37,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Run 10 members (now covers 0x12818..0x12BF8). */\n\nextern int func_00000000();\nextern int D_00000000;\nextern int D_A0000200;\n\n/* 99.73% NM cap (IDO -O0 fresh-temp allocator can't be flipped from C).\n * Promoted to exact via INSN_PATCH at offsets 0x5C/0x64 \u2014 Makefile entry\n * ports 2-word patch from agent-b. */\nvoid func_00012818(char *a0, char *a1) {\n    int i;\n    register int *unused;\n\n    i = 0;\n    do {\n        (*(char**)(a0 + 0x154))[i + 6] = a1[i];\n    } while (++i < 8);\n\n    unused = &D_00000000;\n\n    if (D_A0000200 == 0xAC290000) {\n        func_00000000(a0);\n    }\n}\n\nvoid func_000128AC(char *a0, char *a1, char *a2) {\n    if (a2 != 0) {\n        *(int*)(a2 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a2,\n            ((int**)(*(char**)(a0 + 0x14C) + 0x8))[0][2],\n            ((int**)(*(char**)(a0 + 0x14C) + 0x8))[0][1]);\n    }\n    if (a1 != 0) {\n        if (*(int*)(a0 + 0x168) == 0) {\n            *(int*)(a0 + 0x168) = *(int*)(a0 + 0x160);\n        }\n        *(char*)(a0 + 0x178) = (char)*(int*)(a0 + 0x64);\n        *(char*)(a0 + 0x179) = (char)*(int*)(a0 + 0x4C);\n        *(char*)(a0 + 0x17A) = (char)*(int*)(a0 + 0x50);\n        *(char*)(a0 + 0x17B) = (char)*(int*)(a0 + 0x54);\n        *(int*)(a1 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a1, *(int*)(a0 + 0x168), *(int*)(a0 + 0x164), a0 + 0x170);\n        *(int*)(a0 + 0x184) = 0;\n    }\n}\n\nvoid func_000129A0(char *a0, char *a1, char *a2) {\n    if (a1 != 0) {\n        if (*(int*)(a0 + 0x168) == 0) {\n            *(int*)(a0 + 0x168) = *(int*)(a0 + 0x160);\n        }\n        *(char*)(a0 + 0x178) = (char)*(int*)(a0 + 0x64);\n        *(char*)(a0 + 0x179) = (char)*(int*)(a0 + 0x4C);\n        *(char*)(a0 + 0x17A) = (char)*(int*)(a0 + 0x50);\n        *(char*)(a0 + 0x17B) = (char)*(int*)(a0 + 0x54);\n        *(int*)(a1 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a1, *(int*)(a0 + 0x168), *(int*)(a0 + 0x164), a0 + 0x170);\n        *(int*)(a0 + 0x184) = 0;\n    }\n    if (a2 != 0) {\n        if (*(int*)(a0 + 0x16C) == 0) {\n            *(int*)(a0 + 0x16C) = func_00000000(*(int*)(a0 + 0x164) << 2);\n        }\n        *(int*)(a2 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a2, *(int*)(a0 + 0x16C), *(int*)(a0 + 0x164), a0 + 0x174);\n        *(int*)(a0 + 0x184) = 0;\n    }\n}\n\nvoid func_00012AC4(char *a0, char *a1, int a2) {\n    if (a1 != 0) {\n        if (*(int*)(a0 + 0x168) == 0) {\n            *(int*)(a0 + 0x168) = *(int*)(a0 + 0x160);\n        }\n        *(char*)(a0 + 0x178) = (char)*(int*)(a0 + 0x64);\n        *(char*)(a0 + 0x179) = (char)*(int*)(a0 + 0x4C);\n        *(char*)(a0 + 0x17A) = (char)*(int*)(a0 + 0x50);\n        *(char*)(a0 + 0x17B) = (char)*(int*)(a0 + 0x54);\n        *(int*)(a1 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a1, *(int*)(a0 + 0x168), *(int*)(a0 + 0x164), a0 + 0x170);\n        *(int*)(a0 + 0x184) = 0;\n    }\n}\n\nvoid func_00012B7C(char *a0, int a1, int a2) {\n    if (a1 != 0) {\n        func_00000000(a1, *(int*)(a0 + 0x168), *(int*)(a0 + 0x170));\n    }\n    if (a2 != 0) {\n        func_00000000(a2, ((int**)(*(char**)(a0 + 0x14C) + 0x8))[0][2], ((int**)(*(char**)(a0 + 0x14C) + 0x8))[0][1]);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_12B7C.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00012818.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified via objdiff: 0 word diffs vs expected/.o after INSN_PATCH at 0x5C/0x64."
+  }
+}
