@@ -1931,12 +1931,25 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *
      * REMAINING CAP: target saves 3 $s-regs (s0/s1/s2/ra at sp+0x18/
      * 0x1C/0x20/0x24), mine saves only 2 (s0/s1/ra at sp+0x14/0x18/
-     * 0x1C). My s2 is a stack-pointer not $s-promoted. To get $s2
-     * usage, need a long-lived $s-eligible local (likely a sub-object
-     * or template ptr held across all 41 iters).
+     * 0x1C). My s2 is a stack-pointer not $s-promoted.
+     *
+     * 2026-05-05 (later): tried hoisting `s2` from inner block scope
+     * to function scope (longer live range). Did NOT trigger $s2
+     * promotion — frame size shrank to 0xE0 instead of growing,
+     * fuzzy unchanged at 69.79%. The IDO global allocator picked
+     * different priorities; my s2 still went to $tN.
+     *
+     * Target's s2 is `addiu s2, sp, 0x2C` set ONCE at 0x45A0 and
+     * used across ~0x1180 bytes of function body (live until 0x5720
+     * epilogue). To trigger $s2 promotion in IDO, need a value with
+     * similarly long live range AND high ref count. The candidates
+     * are limited — the marshalling-buffer base ptr is the obvious
+     * one, but my macro structure already references it via s2.
      *
      * Promotion paths (multi-tick):
-     *   - Find a value that should live in $s2 across the iter loop
+     *   - Move s2's `(char*)&_s2_buf` setup to LATER in the function
+     *     so its live range starts after a few jal calls (could
+     *     trick IDO into picking $s2 over $t).
      *   - decomp-permuter with PERM_RANDOMIZE around the macros
      *   - Accept 69.79% as the C-decomp ceiling. */
     (void)s0;
