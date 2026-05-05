@@ -125,32 +125,64 @@ extern int gl_func_00000000();
  *     `sll, sra` for byte/short reads
  *   - termination: `s7++; if (s7 < v0) loop;` (sltu + bnel branch likely)
  *
- * Multi-tick decompile; this commit captures structural decode + entry/exit
- * stages. Loop body C TODO. Default build still matches via INCLUDE_ASM. */
+ * Multi-tick decompile; 36.12% NM (up from 13.9% with stub).
+ *
+ * Loop body decoded 2026-05-05 (from asm 0xBB0-0xCD0):
+ *   for each char in string (s6 advances, s7 = 0..v0-1):
+ *     if (*s6 == ' '):
+ *       s2 += s1[8]          ; space-width advance
+ *     else:
+ *       glyph_idx = gl_func(c)
+ *       glyph = (int*)(s1[0x20] + glyph_idx * 0x14)
+ *       s4 = glyph[2] & 0xFF
+ *       gl_func(s1[0x24], s1[4], s1[0x18], s1[0x1C], glyph[0..2], s3, 0)
+ *           ; emit RDP cmd 1 (5+ args via outgoing slots)
+ *       gl_func(s1[0x24], s2, saved_a2, glyph[2], s3, 1024, 1024)
+ *           ; emit RDP cmd 2 (glyph render)
+ *       s2 += *(s1[0x20] + (s4/0x14)*4 + 8)  ; glyph-width advance
+ *     s6++; s7++; gl_func(saved_a3)  ; per-char callback
+ *
+ * Remaining ~64pp gap is multi-arg gl_func's outgoing-slot stores (sp+0x10..
+ * sp+0x20) and FP-reg + divu+mflo patterns from `t6 = s3<<10; t6/s3 = 1024`
+ * (always-1024 dead-code from the s3*1024 division). IDO -O2 may strength-
+ * reduce s3<<10/s3 to constant 1024 (eliminating the divu+mflo+break trap),
+ * but expected has the FULL division emit. Forcing the literal division to
+ * survive: try `volatile int s5 = (s3 << 10) / s3;` — TODO next pass.
+ *
+ * Default build still matches via INCLUDE_ASM. */
 void gui_func_00000B58(int *a0, int a1, int a2, int a3) {
     int v0;
-    int counter;
-    int saved_a2 = a2;
-    int saved_a3 = a3;
-    int *base = a0;
-    int len = a0[5];        /* a0->0x14: stored item count or string length */
-    int width = a1;
-    int handle = a3;
+    int s7;
+    char *s6 = (char*)a3;       /* string pointer */
+    int *s1 = a0;               /* base struct */
+    int s2 = a1;                /* x position (advances per char) */
+    int s3 = a0[0x14 / 4];      /* glyph height/scale */
+    int s8 = 0x14;              /* glyph-table stride (20 bytes per entry) */
 
-    v0 = gl_func_00000000(a3);
+    v0 = gl_func_00000000(a3);  /* string length */
     if (v0 == 0) return;
-
-    /* TODO: decode 80+ insn loop body. Iterates s7 = 0..v0-1, each iter:
-     *   - read base[5+s7*5] (stride-20 indexed via s8=0x14)
-     *   - 4× jal gl_func_00000000 dispatching on glyph/key data
-     *   - signed-byte sign-extend via sll/sra
-     *   - clamp to -1 via slti/seq
-     */
-    counter = 0;
+    s7 = 0;
     do {
-        /* TODO: loop body */
-        counter++;
-    } while (counter < v0);
+        unsigned char c = *s6;
+        if (c == ' ') {
+            s2 += s1[8 / 4];     /* space-width advance */
+        } else {
+            int glyph_idx = gl_func_00000000(c);
+            int *glyph = (int*)((char*)s1[0x20 / 4] + glyph_idx * s8);
+            int g0 = glyph[0], g1 = glyph[1], g2 = glyph[2];
+            int s4 = g2 & 0xFF;  /* low-byte of glyph[2] */
+            /* RDP cmd 1: 6-arg gl_func (s4 in args, s3, plus 2 stack slots) */
+            gl_func_00000000(s1[0x24 / 4], s1[4 / 4], s1[0x18 / 4], s1[0x1C / 4],
+                             /* sp+0x10 */ g0, g1, g2, s3, 0);
+            /* RDP cmd 2: glyph render — s2/saved_a2 with s5=1024 scaling */
+            gl_func_00000000(s1[0x24 / 4], s2, a2, g2,
+                             /* sp+0x10 */ s3, /*s5=*/1024, /*1024=*/1024);
+            s2 += *(int*)((char*)s1[0x20 / 4] + (s4 / s8) * 4 + 8);  /* glyph width advance */
+        }
+        s6++;
+        s7++;
+        gl_func_00000000(a3);    /* per-char callback (handle) */
+    } while (s7 < v0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000B58);
