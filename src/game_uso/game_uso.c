@@ -981,7 +981,26 @@ branch_88: {
              *     COORDINATE-SCALE phase. Likely "scale Vec3 by 50.0f for
              *     world->camera projection" prelude.
              *   0x22F0+: continues with mul.s/swc1 chain — TODO. ~155 insns
-             *   remain stubbed past 0x2300. */
+             *   remain stubbed past 0x2300.
+             *
+             * Extended scan 2026-05-05 (0x2300-0x2350, +24 insns characterized):
+             *   0x2300-0x2310: lwc1 sp+0x74/0x78/0x7C (load 3 floats from yet
+             *     ANOTHER local Vec3 buffer), swc1 sp+0x120/0x124/0x128. This
+             *     is the classic "stage Vec3 in slot N, advance to slot M"
+             *     pattern — 4th replication of a transformed Vec3 across stack
+             *     locals (the function maintains many simultaneous Vec3 working
+             *     buffers).
+             *   0x2314-0x2328: lw spilled-context-arg from sp+0x12C; sw t6 to
+             *     sp+0x180 (entity ref); swc1 f18 to sp+0x108 (sets up FPU
+             *     value into a stack slot for use across upcoming jal). Then
+             *     `jal 0` (cross-USO call) with a0 = sp+0x30 (delayed-set in
+             *     jal delay slot). Pre-call args setup spans ~6 insns.
+             *   0x232C-0x2350: post-call: lwc1 sp+0x108 reload (the FPU value
+             *     pre-spilled), lwc1 sp+0x110/0x114/0x118 (re-load Vec3),
+             *     mul.s f10 = f10 * f18 (scale by the spilled scalar from
+             *     0x108). a0 next-jal-arg = sp+0x24, a2 = sp+0xFC (yet another
+             *     local), a1 = sp+0xC4. Multiple call-arg setups in flight.
+             *   ~130 insns remain stubbed past 0x2350. */
             (void)scaled_y;
         }
         (void)delta_scaled;
