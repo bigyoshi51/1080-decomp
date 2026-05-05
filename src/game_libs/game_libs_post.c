@@ -525,7 +525,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD58);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD90);
 
+#ifdef NON_MATCHING
+/* gl_func_0002DDF4: 12-insn (0x30) byte+float side-effect helper.
+ * Stack frame 0x18, spills a0 to caller arg slot at sp+0x18.
+ *
+ * Decoded body:
+ *   void f(u32 a0) {
+ *       *(float*)&D_00000000 = $f4_caller;     // swc1 in jal delay slot
+ *       gl_func_00042490(a0 & 0xFF, 0);        // jal target (low byte arg)
+ *   }
+ *
+ * UNUSUAL: this function reads $f4 implicitly from the caller (no
+ * standard C parameter lands in $f4). Likely the caller is also asm or
+ * a tail-call from a function that left its $f4 alive. Cannot express
+ * the implicit-$f4-as-input convention from C — IDO -O2 won't read $f4
+ * unless explicitly named via float arg ($f12/$f14 are normal). So the
+ * swc1 in the delay slot has no C-source equivalent; from C, the
+ * delay-slot store would be reordered to before/after the jal as a
+ * separate insn against an explicit float local.
+ *
+ * Documented decode only. INCLUDE_ASM remains the build path. */
+void gl_func_0002DDF4(u32 a0) {
+    /* Logical: store caller's $f4 to D_00000000, then gl_func(a0&0xFF, 0). */
+    /* Cannot match from C — the implicit-$f4-as-input is non-expressible. */
+    extern int gl_func_00042490();
+    gl_func_00042490(a0 & 0xFF, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DDF4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DE24);
 
