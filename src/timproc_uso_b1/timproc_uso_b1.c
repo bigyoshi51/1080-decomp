@@ -548,6 +548,28 @@ void timproc_uso_b1_func_00002D48(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002D48);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002E50);
+/* 34-insn 3-jal UI/render dispatcher, sibling of 00002D48. Two Quad4 args:
+ * quad_a = {1,1,1,1} (sp+0x48), quad_b = {1,0,1,1} (sp+0x38). The 0.0 at
+ * quad_b[1] lands in the first-jal delay slot. char pad[32] grows the
+ * frame from 0x38 to 0x58 to match target's stack layout. */
+void timproc_uso_b1_func_00002E50(int *a0, int a1) {
+    float quad_a[4];
+    float quad_b[4];
+    char pad[32];
+    (void)pad;
+    (void)a0;
+
+    quad_a[0] = 1.0f;
+    quad_a[1] = 1.0f;
+    quad_a[2] = 1.0f;
+    quad_a[3] = 1.0f;
+    quad_b[0] = 1.0f;
+    quad_b[1] = 0.0f;
+    quad_b[2] = 1.0f;
+    quad_b[3] = 1.0f;
+    gl_func_00000000(&D_00000000, 0xFF, quad_a, quad_b);
+    gl_func_00000000((char*)&D_00000000 + 0x130);
+    gl_func_00000000((char*)&D_00000000 + 0x130, 0xA0, a1, 3);
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00002E50_pad.s")
 
