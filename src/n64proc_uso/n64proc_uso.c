@@ -250,11 +250,20 @@ extern char D_00000000;
  * Body wrapped: `body1: { register char *base10 = &D_00000000 + 0x10;
  * ... gl_func_00000000(base10, cur); }`. Result: NO CHANGE — register
  * dispositions identical to function-top decl form ($s0=cur, $s1=flag,
- * $s2=base, $s3=one, $s4=arg0-save, $s5=base10). IDO's allocator either
- * computes live_length on RTL pseudo-extent (not C lexical scope) OR
- * the lexical scope reduction is too narrow to flip the priority queue.
- * Confirms variant 6's finding (decl-source-order is decoupled from
- * pseudo-allocno-numbering); also true for lexical scope. */
+ * $s2=base, $s3=one, $s4=arg0-save, $s5=base10). IDO computes
+ * live_length from RTL pseudo extent, not C lexical scope.
+ * Lever-not-applicable now documented in `docs/IDO_CODEGEN.md`'s
+ * "confirmed-not-a-lever variants" list under the $s allocator section.
+ *
+ * (24) TRIED 2026-05-05: -O1 opt level (variant 20 tested -O3 = -O2
+ * byte-identical; -O1 was untested). Standalone build with -O1 produces
+ * DRAMATICALLY DIFFERENT shape: function frame jumps from 0x28 → 0x48
+ * (arg0/arg1 always-spilled at sp+0x48/0x4C with stack reloads on every
+ * dispatch branch), `base10 = base + 0x10` becomes runtime addiu instead
+ * of compile-time-folded extern, and register layout is $s0=base,
+ * $s1=base10, $s2=cur, $s3=flag, $s4=one (no $s5 used; arg0 spilled).
+ * Worse than -O2's 75 % and structurally further from target. -O1 is
+ * not the right opt level for this function. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
