@@ -1752,7 +1752,7 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
                 gl_func_00000000(s0, s1, *(char**)s2, 1); \
                 *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
                 *(int*)(s0 + 0x14) = 0; \
-                *(float*)(s0 + 0x10) = *(float*)((char*)&F_SYM + (FLOAT_OFF)); \
+                *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
             } \
         } while (0)
             INIT_ITER(0xB0,  0x704, -8000.0f,                                D_44F4_iterG);  /* G (lui 0xC5FA) */
