@@ -136,7 +136,22 @@ void eddproc_uso_func_000001E8(char *a0) {
  * (a) source restructure to eliminate one spill slot, OR
  * (b) prefix-bytes tooling that grows/shrinks the frame addiu while
  *     preserving downstream relocs (no such tool exists yet).
- * Defer to permuter random-mode or sibling-found-pattern. */
+ * Defer to permuter random-mode or sibling-found-pattern.
+ *
+ * 2026-05-05: tested two more variants to attempt $s-reg promotion of
+ * p1/p2/p3 (target uses s0/s1/s2 saved at 0x18/0x1C/0x20, frame 0x20):
+ *   (a) `register int *p1 = a0;` — IDO ignores the hint; emits same
+ *       0x28 frame with p1 spill at sp+0x24. The register keyword
+ *       doesn't promote a pseudo whose first def is a relabel of an
+ *       arg-reg.
+ *   (b) split init: `register int *p1; if (a0 == 0) p1 = alloc; else
+ *       p1 = a0;` — gives p1 a fresh definition, but still emits 0x28
+ *       frame with p1 spilled to sp+0x24. The allocator's weight calc
+ *       sees p1's live range as too short / refs too low to claim $s.
+ * Confirms (per docs/IDO_CODEGEN.md "$s allocator") that for this
+ * function shape, $s-reg promotion needs more refs/longer live range
+ * than the natural 3-stage alloc dispatch provides. The cap is
+ * structural at 61.26 %; INSN_PATCH-blocked by frame-size mismatch. */
 void eddproc_uso_func_0000025C(int *a0, int *a1) {
     int *p1 = a0;
     int *p2;
