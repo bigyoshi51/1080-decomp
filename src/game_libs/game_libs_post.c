@@ -547,7 +547,17 @@ void gl_func_0002D8A8(void) {
     gl_func_00000000(0x41000000, D_2D870_Y[(int)D_2D870_X]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D8D8);
+/* gl_func_0002D8D8: 14-insn sibling of 0002D838/0002D870/0002D8A8.
+ * Stolen prologue (lui t6, 0; lw t6, 0(t6)) lives INSIDE this symbol's
+ * range (first 2 insns), unlike 0002D838 family which has it in the
+ * predecessor's SUFFIX_BYTES — so no PROLOGUE_STEALS here.
+ *
+ * Calls gl_func_00000000(0x41020000, D_2D8D8_Y[D_2D8D8_X]) — float bits 8.125f. */
+extern int *D_2D8D8_X;
+extern int D_2D8D8_Y[];
+void gl_func_0002D8D8(void) {
+    gl_func_00000000(0x41020000, D_2D8D8_Y[(int)D_2D8D8_X]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D910);
 
