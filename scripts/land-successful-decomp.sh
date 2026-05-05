@@ -67,32 +67,63 @@ for unit in data.get("units", []):
 
 def byte_verify(name):
     """Return True if build/<seg>/<seg>.c.o and expected/<seg>/<seg>.c.o
-    have byte-identical .text for this function."""
+    have byte-identical .text for this function — using the symbol-table
+    address+size to extract the function's bytes directly (address-
+    agnostic; tolerates different upstream offsets in build vs expected
+    when adjacent functions have different sizes)."""
+    def func_bytes(o):
+        # symbol table to find addr + size
+        try:
+            tab = subprocess.run(
+                ["mips-linux-gnu-objdump", "-t", o],
+                capture_output=True, text=True, check=True,
+            ).stdout
+        except subprocess.CalledProcessError:
+            return None
+        for line in tab.split("\n"):
+            if name not in line:
+                continue
+            parts = line.split()
+            # symbol-table line format: ADDR FLAGS SECTION SIZE NAME
+            try:
+                addr = int(parts[0], 16)
+            except (ValueError, IndexError):
+                continue
+            # find the size field — last hex token before the name
+            size = None
+            for p in parts[2:]:
+                try:
+                    s = int(p, 16)
+                    if 0 < s < 0x100000:
+                        size = s
+                        break
+                except ValueError:
+                    pass
+            if size is None:
+                continue
+            try:
+                text = subprocess.check_output(
+                    ["mips-linux-gnu-objcopy", "-O", "binary",
+                     "--only-section=.text", o, "/dev/stdout"]
+                )
+            except subprocess.CalledProcessError:
+                return None
+            return text[addr:addr + size]
+        return None
+
     # Search for the .o pair by symbol name.
     for base_o in glob.glob("build/src/**/*.c.o", recursive=True):
         rel = os.path.relpath(base_o, "build")
         exp_o = os.path.join("expected", rel)
         if not os.path.exists(exp_o):
             continue
-        try:
-            b = subprocess.run(
-                ["mips-linux-gnu-objdump", "-d", "-M", "no-aliases", base_o],
-                capture_output=True, text=True, check=True,
-            ).stdout
-            if f"<{name}>:" not in b:
-                continue
-            e = subprocess.run(
-                ["mips-linux-gnu-objdump", "-d", "-M", "no-aliases", exp_o],
-                capture_output=True, text=True, check=True,
-            ).stdout
-            # Extract the function's disasm block from both.
-            def block(txt):
-                idx = txt.index(f"<{name}>:")
-                end = txt.find("\n\n", idx)
-                return txt[idx:end if end > 0 else None]
-            return block(b) == block(e)
-        except (subprocess.CalledProcessError, ValueError):
+        ba = func_bytes(base_o)
+        if ba is None:
             continue
+        ea = func_bytes(exp_o)
+        if ea is None:
+            continue
+        return ba == ea
     return False
 
 errors = []
