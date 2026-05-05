@@ -456,7 +456,44 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002DF0);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_00002EF0: 22-insn (0x58) prologue-stolen successor.
+ *
+ * Predecessor func_00002DF0 has a TRAILING `sll t6, a1, 2` (0x00057080) at
+ * offset 0xFC of its declared 0x100 size — AFTER its epilogue (jr ra at
+ * 0x002EE4, addiu sp at 0x002EE8). That trailing sll sets t6 = a1*4 BEFORE
+ * fall-through to 2EF0, which then does `subu t6, t6, a1` (= a1*3) and
+ * `sll t6, t6, 3` (= a1*24). Final t6 is the byte-offset for indexing into
+ * a +0x70 table from &D_00000000.
+ *
+ * Decoded as 3-call wrapper indexed by a1:
+ *   T *entry = (T*)((char*)&D + 0x70 + a1*24);
+ *   gl_func(entry);
+ *   gl_func(entry);
+ *   gl_func(entry, 0xA0, a2, 3);
+ *
+ * Promotion path:
+ *   (a) SUFFIX_BYTES on func_00002DF0 with 0x00057080 + decoded C body
+ *       for the predecessor (predecessor is unmatched 0x100/64 insns).
+ *       Cleanest per feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md
+ *       but blocked on predecessor decode.
+ *   (b) PROLOGUE_STEALS=4 on func_00002EF0 with C that emits a redundant
+ *       `sll, a1, 2` at start (recipe strips it). Single-function fix.
+ *
+ * Doc-wrap with decoded C body for now. Default INCLUDE_ASM build matches
+ * via the .s file's bytes (including the predecessor's trailing sll). */
+void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
+    int spill;
+    char *entry = (char*)&D_00000000 + 0x70 + a1 * 24;
+    (void)a0;
+    spill = (int)entry;
+    gl_func_00000000(entry);
+    gl_func_00000000((char*)spill);
+    gl_func_00000000((char*)spill, 0xA0, a2, 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002EF0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002F48);
 
