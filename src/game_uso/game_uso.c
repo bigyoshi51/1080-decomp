@@ -2298,11 +2298,25 @@ void game_uso_func_0000751C(char *a0) {
 /* game_uso_func_00007538: 0x560 (344 insns) — largest residue of the split-up
  * 0x7424 bundle. Per-frame event dispatcher + per-bit timer decrementer.
  *
- * Partial C body below: ~20 % match guess. Captures prelude + dispatch
- * outline + epilogue; many arm bodies are TODO-stubbed with correct
- * control-flow targets but no per-bit state mutations yet. Next pass
- * should compare objdiff output per-arm and fill in the TODO placeholders
- * embedded in each arm.
+ * Partial C body below: 36.89% (was 31.62% pre-fix-2026-05-05). Captures
+ * prelude + dispatch outline + epilogue; many arm bodies are TODO-stubbed
+ * with correct control-flow targets but no per-bit state mutations yet.
+ *
+ * 2026-05-05 BUG FIXES (+5.3pp):
+ *   (1) Prelude `if ((flags & 0x10) == 0)` was wrong — should be
+ *       `if (flags > 0)`. The asm computes `t8 = a3 & 0x10` separately
+ *       (later used as the `arg1 & 0x10` dispatch test); the decrement
+ *       guard is `blez a1` which is `flags <= 0`. The two computations
+ *       were conflated.
+ *   (2) Dispatch arms were testing `a1` (which is the running-mask state
+ *       built up by ORs into a0[0x6C], starts at 0 = flag2 in the
+ *       flag2==0 path) instead of `a1_saved` (the input arg). With the
+ *       running mask starting at 0, NONE of the arm bodies could fire.
+ *       The bit tests are on `a1_saved` (= a3 in asm), the running mask
+ *       gets ORed bits stored back into a0[0x6C].
+ *
+ * Next pass should compare objdiff output per-arm and fill in the TODO
+ * placeholders embedded in each arm.
  *
  * DECODE (insns 1-40 @ 0x7538-0x75D4):
  *   Setup:
@@ -2439,43 +2453,50 @@ void game_uso_func_00007538(int *a0, int a1) {
     counter = a0[0x50 / 4];
     if (counter > 0) a0[0x50 / 4] = counter - 1;
     flags = a0[0x48 / 4];
-    if ((flags & 0x10) == 0) a0[0x48 / 4] = flags - 1;
+    if (flags > 0) a0[0x48 / 4] = flags - 1;
 
     flag2 = a0[0x6C / 4];
     if (flag2 != 0) goto trunk;
 
     /* ==== DISPATCH CASCADE (flag2 == 0) ==== */
-    if (a1 & 0x10) {
+    /* Bit tests are on a1_saved (the input arg); the running mask `a1`
+     * starts at 0 (= flag2) and gets ORed bits stored into a0[0x6C]. */
+    a1 = flag2;  /* explicit: running mask starts at 0 */
+
+    if (a1_saved & 0x10) {
         outer = (int*)a0[0x30 / 4];
         if (outer[0x938 / 4] != 0) {
             f_tmp = *(float*)&a0[0x38 / 4];
             *(float*)&a0[0x3C / 4] = (f_tmp >= 0.0f) ? 1.0f : -1.0f;
         }
+        a1 = a0[0x6C / 4];
+        goto trunk;
     }
-    a1 = a0[0x6C / 4];
 
-    if (a1 & 0x01) {
+    if (a1_saved & 0x01) {
+        flags = a0[0x48 / 4];  /* reload — asm reads at 0x75E0 */
         if (flags != 0) goto check_40;
         a0[0x6C / 4] = a1 | 0x01;
         a0[0x44 / 4] = 91;
+        a1 = a1 | 0x01;
         goto trunk;
     }
 check_40:
-    if (a1 & 0x04) {
+    if (a1_saved & 0x40) {
         a0[0x6C / 4] = a1 | 0x40;
         a0[0x44 / 4] = 13;
+        a1 = a1 | 0x40;
         goto trunk;
     }
-    if (a1 & 0x20) {
-        if (counter != 0) goto check_80;
-        /* arg1 & 0x04 arm: reset counter + set f2 = 1.0f, retHi = 1 */
+    if (a1_saved & 0x04) {
+        if (counter != 0) goto check_20;
+        /* arg1 & 0x04 arm: reset counter + set f2 = 1.0f */
         a0[0x50 / 4] = 8;
         f2 = 1.0f;
-        /* retHi handling omitted — stored to v1 path */
         goto trunk;
     }
-check_80:
-    if (a1 & 0x80) {
+check_20:
+    if (a1_saved & 0x20) {
         /* arg1 & 0x20 arm body: fabs(outer->0xB4) % 9 */
         outer = (int*)a0[0x30 / 4];
         f_tmp = *(float*)&outer[0xB4 / 4];
@@ -2484,14 +2505,15 @@ check_80:
         a0[0x58 / 4] = (int)f_tmp % 9;
         goto trunk;
     }
-    if (a1 & 0x100) {
+    if (a1_saved & 0x80) {
         /* arg1 & 0x80 arm body */
         a0[0x6C / 4] = a1 | 0x80;
         a0[0x4C / 4] = 0;
         a0[0x44 / 4] = 2;
+        a1 = a1 | 0x80;
         goto trunk;
     }
-    if (a1 & 0x08) {
+    if (a1_saved & 0x08) {
         outer = (int*)a0[0x30 / 4];
         if (outer[0x938 / 4] == 0) {
             f2 = -1.0f;
@@ -2499,11 +2521,11 @@ check_80:
         }
         /* else: outer->0x938 != 0 — different path — TODO */
     }
-    if (a1 & 0x02) {
+    if (a1_saved & 0x02) {
         outer = (int*)a0[0x30 / 4];
         if (outer[0x938 / 4] != 0) {
             ret_lo |= 0x400;
-            if (a1 & 0x100) {
+            if (a1_saved & 0x100) {
                 a0[0x6C / 4] = a1_saved | 0x100;
                 a0[0x44 / 4] = 0x68;
             }
