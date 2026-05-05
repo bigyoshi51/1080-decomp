@@ -577,7 +577,35 @@ void gl_func_0002DED0(void) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF00);
 
+#ifdef NON_MATCHING
+/* gl_func_0002DF38: 11-insn (0x30) MSB-test wrapper with prologue-stolen
+ * predecessor + bundled trailer. Reads $t6 uninitialized at entry — set
+ * by gl_func_0002DF00's tail (lui $t6, 0; lw $t6, 0x2D00($t6)) past its
+ * jr-ra. Per feedback_prologue_stolen_predecessor_no_recipe.md.
+ *
+ * Decoded:
+ *   t6 = *(int*)((char*)&D_00000000 + 0x2D00);   // set by predecessor's tail
+ *   if ((u32)t6 >> 31) {                          // MSB set → t6 < 0 signed
+ *       gl_func_00000000(0x83000000, 0);
+ *   }
+ *   // Trailing mtc1 a1, $f12 at 0x2C is bundled (likely stolen prologue
+ *   // for the NEXT function gl_func_0002DF68 which presumably reads $f12).
+ *
+ * RECIPE FOR NEXT TICK (full match needs 3 entries):
+ *   1. SUFFIX_BYTES on gl_func_0002DF00 = 0x3C0E0000,0x8DCE2D00
+ *      (injects the stolen prologue at end of predecessor)
+ *   2. PROLOGUE_STEALS on gl_func_0002DF38 = 8
+ *      (removes the C-body's emitted lui+lw prefix; my body re-emits it)
+ *   3. SUFFIX_BYTES on gl_func_0002DF38 = 0x44856000
+ *      (the trailing mtc1 a1, $f12 — bundled from successor)
+ * Plus: write the C body (deferred this tick).
+ *
+ * This is a multi-recipe combo; applying without verifying each step
+ * separately is risky. Multi-tick decompile target. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF38);
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF38);
+#endif
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: IDO cannot emit direct mfc1 from C; stack roundtrip instead */
