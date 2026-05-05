@@ -1815,18 +1815,39 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *   - Final field init: ~80 insns (Stage 12) — needs body
      *   - Epilogue: ~8 insns (Stage 13) — auto-emitted by IDO
      *
-     * Path to landing: write a C macro INIT_SUBOBJ(slot, tmpl_off,
-     * float_src) that expands to ~22 insns matching the per-iter
-     * template, then invoke the macro 32 times with the per-iter
-     * parameter table from Stages 8-11. If the macro reliably
-     * matches, the entire main loop matches in one shot. Final
-     * field init in Stage 12 is a sequence of straight stores —
-     * easier to write linearly. Epilogue is auto-emitted.
+     * 2026-05-05 STATUS: macro INIT_ITER(SLOT, TMPL_OFF, FLOAT_EXPR)
+     * implemented with all 41 iters expanded, plus Stage 12 finalize
+     * phase as straight C stores. Achieved 61.61% fuzzy (from 2.46%
+     * baseline this session). This appears to be the structural cap
+     * for the macro-only approach.
      *
-     * Estimated time-to-100% from current state: 4-6 focused ticks
-     * (1 to write the macro + iters 0/A as proof, 2 to debug
-     * cascading register-allocation drift, 2-3 to handle final-init
-     * stage and final fuzzy push). */
+     * RESIDUAL 38pp gap analysis:
+     *   - Mine: 921 insns. Expected: 1165 insns. Delta: 244 insns short.
+     *   - Per-iter delta: ~6 insns (mine 21/iter, expected 25/iter).
+     *   - Missing per-iter: (a) per-iter `lui $at, hi(D+0xN)` reload of
+     *     D base for the float scalar (mine CSE's D base into $s3 once);
+     *     (b) per-iter sp-relative arg-buffer spill pattern (mine uses
+     *     local _t var that IDO keeps in $tN, no stack spill).
+     *   - Frame size mismatch: mine -0x28, expected -0xE8 — directly
+     *     caused by missing per-iter spill slots.
+     *
+     * Failed experiments (both regressed slightly):
+     *   - `char *_arg_buf; char **_arg_ptr = &_arg_buf;` indirect
+     *     pattern in macro: IDO optimized away the indirection; -1.6pp
+     *   - `volatile char pad[200]; pad[0]=0;` to force frame size:
+     *     IDO allocated 0x1B0 frame (TOO big), shifted everything;
+     *     -0.6pp
+     *
+     * Promotion path requires breaking IDO's `&D_00000000` CSE
+     * across iters. Possible angles for future ticks:
+     *   - decomp-permuter with PERM_RANDOMIZE around the macro
+     *   - per-macro-invocation `volatile char *_d_base = &D_00000000;`
+     *     (variant of arg_ptr trick but on D ref instead)
+     *   - Switch float scalar source from compile-time constant to
+     *     runtime-built address (hard without changing semantics)
+     *   - Accept the 61.61% as the C-decomp ceiling; rely on byte-
+     *     correct ROM via INCLUDE_ASM until the permuter finds a
+     *     better shape. */
     (void)s0;
 
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
