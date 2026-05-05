@@ -3534,7 +3534,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE1C);
  * Per feedback_partial_alloc_block_add_irreversible.md, partial body adds
  * to multi-call functions risk regression. Started with full body decoded
  * together. Multiple `gl_func_00000000` calls with distinct args — plausible
- * 80%+ first try, similar to gl_func_0005FD20 sibling. */
+ * 80%+ first try, similar to gl_func_0005FD20 sibling.
+ *
+ * 2026-05-05 91.87% NM diff analysis: target frame 0x90, build frame 0x90
+ * (same total). The cap is local_buf placement: target uses sp+0x2C, build
+ * uses sp+0x24. 8-byte hole at sp+0x24..0x2B in target's layout — purpose
+ * unclear (NOT for arg-spill since a1 spills to caller's sp+0x94 outside
+ * frame). Could be reserved outgoing-arg shadow or aligned-struct slot.
+ *
+ * Variants tried 2026-05-05 (none promote — IDO collapses unused locals):
+ *   (a) `char pad[8]` BEFORE local_buf[24]: pad eliminated, buf at sp+0x24
+ *   (b) `char pad[8]` AFTER local_buf[24]: same, buf at sp+0x24
+ *   (c) `struct { int top_pad[2]; int data[24]; } buf;`: struct top_pad
+ *       eliminated by IDO, buf.data at sp+0x24
+ *
+ * The 8-byte offset cascades through the rest of the diff — every
+ * `addiu a1, sp, 0x2C` in target becomes `addiu a1, sp, 0x24` in build.
+ * Plus 2 trailing-jal delay-slot-fillers (target has nop+sw, build has
+ * sw+sw merged). All structural-scheduling caps.
+ *
+ * Promotion likely needs: (1) a way to FORCE 8 bytes of unused stack
+ * reserve (IDO doesn't honor `volatile` for this), or (2) INSN_PATCH
+ * on ~6 sp-offset insns (each addiu/lw with sp+0x24 → sp+0x2C). */
 extern int gl_func_00000000();
 void gl_func_0005FE7C(int *a0, int a1) {
     int v0;
