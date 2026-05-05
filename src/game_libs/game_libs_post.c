@@ -3429,27 +3429,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F5F0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F984);
 
-#ifdef NON_MATCHING
-/* 97.17% NM. 23-insn alloc-or-passthrough + 2-call init, 0x5C declared.
- * Sibling of gl_func_0005FDCC (just-landed 18-insn 2-call wrapper).
- *
- * Big jump from 0% (pure INCLUDE_ASM) to 97.17% via two key decisions:
- *   1. `goto end` to shared epilogue (NOT `return 0;` — see
- *      feedback_ido_goto_epilogue.md). This makes IDO emit `beqz v0, end`
- *      jumping directly to the epilogue's `or v0, p, zero; jr ra` where
- *      p = NULL = 0, achieving the implicit `return 0` shape without an
- *      extra `b` branch + `or v0, zero, zero`.
- *   2. `if (p == 0) { p = alloc(...); }` (NOT ternary `p = a0 ? a0 : alloc(...)`)
- *      — ternary regressed to 51% via extra branches. The doc-recommended
- *      `feedback_ido_alloc_or_passthrough_ternary.md` shape (bnel+delay-likely)
- *      doesn't apply here because target uses bnez+inline if/else.
- *
- * Remaining 2 insns differ:
- *   - Frame size: target -0x18, mine -0x20 (8-byte over-allocation by IDO)
- *   - Persistent "p" register: target $a1, mine $v1 (so spill at sp+0x18 vs sp+0x1C)
- * Both downstream of IDO's $v1 vs $a1 choice. Per feedback_ido_arg_save_reg_pick.md,
- * IDO's spill-register pick isn't C-controllable. Tried `register int *p`
- * hint — no effect. Cap at 97.17%. */
+/* 23-insn alloc-or-passthrough + 2-call init wrapper. Sibling of
+ * gl_func_0005FDCC. C body produces target shape EXCEPT for IDO's
+ * register choice ($v1 instead of target's $a1) for the persistent `p`
+ * variable, which cascades into 8-byte frame over-allocation (-0x20 vs
+ * target's -0x18) and shifted spill offsets. Promoted via 11-word
+ * INSN_PATCH covering frame-addiu words + the 4 stack-offset accesses +
+ * the 5 register-rename insns. Per docs/POST_CC_RECIPES.md
+ * #feedback-insn-patch-for-ido-codegen-caps "Frame-size + stack-offset
+ * + reg-rename combos" (recipe added 2026-05-05). */
 int gl_func_0005FCC4(int *a0) {
     int *p;
     p = a0;
@@ -3464,9 +3452,6 @@ int gl_func_0005FCC4(int *a0) {
 end:
     return (int)p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FCC4);
-#endif
 
 #ifdef NON_MATCHING
 /* 92.53% NM. gl_func_0005FD20: 0xAC (43 insns) — 3-call printf-style debug logger.
