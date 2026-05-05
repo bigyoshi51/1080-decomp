@@ -206,7 +206,24 @@ extern char D_00000000;
  * inter-module"), which doesn't apply to a single-function compile. So
  * the file-split-with-OPT_FLAGS technique that worked for func_80008030
  * (-O1→-O2) doesn't help here — we're already at the ceiling for this
- * codegen problem within IDO's single-file optimization. */
+ * codegen problem within IDO's single-file optimization.
+ *
+ * (21) TRIED 2026-05-05 RE-RETEST: variant 7's `flag = 1;` literal
+ * (instead of `flag = one;`) was tested AT 33% (pre-goto-chain). With
+ * variant 11's goto-chain dispatch in place (current 75.02% baseline),
+ * retested to see if the literal vs $s-reg-via-`one` distinction
+ * matters for the post-dispatch flag store. Result: build/.o BYTES ARE
+ * IDENTICAL between the two C forms (cmp = 0). Reason: `register int
+ * one = 1;` IS a compile-time constant; IDO's constant-fold pass
+ * propagates it through `flag = one;` and emits the same literal
+ * `addiu s1, zero, 1` regardless of which C form is used. The
+ * `register` keyword does NOT prevent constant folding when the
+ * register's value is a known immediate. Variant doesn't help; the
+ * current shape is what IDO produces in both cases.
+ *
+ * Score drift: doc previously said 74.49%; current build is 75.02%
+ * (+0.5pp from upstream parallel-agent activity reshuffling expected/.o
+ * baselines). Cap behavior unchanged. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
