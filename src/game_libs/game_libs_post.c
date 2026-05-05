@@ -2061,7 +2061,17 @@ void gl_func_0003FB0C(int a0) {
     gl_func_00000000(&scratch);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FB38);
+/* Sibling of gl_func_0003FAE0/0x3FB0C — same `char pad[0x98]; int pad2,
+ * scratch; scratch = N; gl_func(&scratch);` template with scratch = 0x21.
+ * Trailing 2 insns (andi t7, a1, 0xFF; multu t7, a3) are stolen-prologue
+ * for successor gl_func_0003FB6C (which uses mflo at its start) — added
+ * via SUFFIX_BYTES. */
+void gl_func_0003FB38(int a0) {
+    char pad[0x98];
+    int pad2, scratch;
+    scratch = 0x21;
+    gl_func_00000000(&scratch);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FB6C);
 
