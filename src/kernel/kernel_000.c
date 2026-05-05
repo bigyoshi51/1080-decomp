@@ -1091,6 +1091,54 @@ void func_8000487C(void) {
     }
 }
 
+#ifdef NON_MATCHING
+/* func_800048E8: 52-insn chunked-write driver. Borrows hardware (init via
+ * func_80004C7C if D_8000A490 was clear), processes arg1 bytes from arg0
+ * in chunks of <=3 via func_80004C08, then conditionally re-invokes
+ * func_80004C7C if D_8000A490 was already set on entry.
+ *
+ * Cap: target asm has -O0 hallmarks (every local in stack spill slots
+ * sp+0x1C..0x2C, no $s register caching across jals). My -O2 emit
+ * promotes offset/wasInit/chunkSize/arg0 to $s0-$s3 — 42 insns vs
+ * target 52, ~30-40% fuzzy. Promotion path: split into a new -O0
+ * sub-file (kernel_NNN.c) per the per-file OPT_FLAGS recipe (see
+ * project_o1o2_split.md) — the surrounding functions func_80004808 and
+ * func_8000487C also have -O0/-O2-mismatch caps in this file, so the
+ * split would benefit all three.
+ *
+ * Logic confirmed against asm; no struct types needed (uses plain
+ * char/int args + 1 D_ global). */
+extern s32 D_8000A490;
+extern void func_80004C7C(void);
+extern void func_80004C08(char *p, s32 n);
+void func_800048E8(char *arg0, s32 arg1) {
+    s32 wasInit;
+    s32 chunkSize;
+    s32 offset;
+
+    offset = 0;
+    if (D_8000A490 != 0) {
+        wasInit = 1;
+    } else {
+        func_80004C7C();
+        wasInit = 0;
+    }
+
+    if (arg1 != 0) {
+        do {
+            chunkSize = (arg1 < 3) ? arg1 : 3;
+            func_80004C08(arg0 + offset, chunkSize);
+            arg1 -= chunkSize;
+            offset += chunkSize;
+        } while (arg1 != 0);
+    }
+
+    if (wasInit != 0) {
+        func_80004C7C();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800048E8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800049B8);
