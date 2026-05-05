@@ -273,7 +273,21 @@ extern char D_00000000;
  * pseudo's storage-class is determined by USAGE not declared type. The
  * `short` keyword is a no-op for $s allocation when the value is used as
  * int everywhere downstream (which it is — compare, store, pass-as-arg
- * all promote). Confirms: type narrowing isn't a lever for $s priority. */
+ * all promote). Confirms: type narrowing isn't a lever for $s priority.
+ *
+ * (26) TRIED 2026-05-05: -g flag variants. Tested -g0 (no debug), -g2
+ * (debug, IDO uopt warns "file not optimized; use -g3"), and -g3 (debug
+ * + optimize). Results:
+ *   - `-g0`: byte-identical to default-no-flag (0x6FC bytes). Confirms
+ *     IDO's default has no debug info.
+ *   - `-g2`: DIFFERS but emits 2228 bytes (vs 1788 default) and the
+ *     uopt warning means optimization is DISABLED — produces -O0-style
+ *     stack-spilled code. Worse than -O2 default; not a viable path.
+ *   - `-g3`: DIFFERS by symbol-table/.mdebug section size (2260 vs 1788),
+ *     but .text register allocation is IDENTICAL to default
+ *     ($s0=cur, $s1=flag, $s2=base, $s3=one, $s4=arg0, $s5=base10).
+ *     The diff is purely debug-info section content; code unchanged.
+ * Confirms -g flags don't shift $s allocation in IDO -O2. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
