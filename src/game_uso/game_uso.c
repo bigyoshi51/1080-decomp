@@ -3660,7 +3660,31 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *     two helpers in sequence each consuming a Vec3 transform result.
  *   - 0x9D00+: switch to FPU — lwc1 sp+0x138/+4/+8 + lui 0x437A (=250.0f).
  *     Next chunk (0x9D04-...) is float scaling against the 250.0f constant.
- *   ~270 insns remain stubbed past 0x9D00.
+ *
+ * BODY-PART-2 MID-SCAN (2026-05-05, 0x9D00-0x9DC0 = +49 insns):
+ *   - 0x9D00-0x9D2C: build TWO local Vec3 buffers at sp+0x12C and sp+0x138
+ *     by storing `a1->0x14C/0x150/0x158` arg vals into them, with constants
+ *     0x437A0000 (= 250.0f) and 0x42480000 (= 50.0f) materialized via lui+at
+ *     to specific slots. The 250.0f goes to one slot, 50.0f to another —
+ *     looks like a "near-clip / far-clip" pair for projection or LOD.
+ *   - 0x9D34-0x9D60: lw sp+0x1AC/0x1B0/0x1A8 (re-load some context arg
+ *     pointers spilled at entry), then lwc1 sp+0x12C/0x130, lwc1 0x54(t2)
+ *     — read transformed-coord result from a per-object slot, plus a
+ *     stored-context float. Compute `f4 = f0 * f6` (scale).
+ *   - 0x9D50-0x9D58: build the next-call args: a2 = sp+0xEC (ref to one
+ *     of the local Vec3 bufs), a0 = 0xC (12-byte length) — call sig
+ *     matches a copy/transform stub. abs.s on f8 sets the f-register up
+ *     for the call.
+ *   - 0x9D5C-0x9DA8: 3-component scale `out.x = a*x; out.y = b*y; out.z = c*z`
+ *     where the input Vec3 is stored at sp+0x138/0x130/0x12C and the
+ *     scaling factor floats live at 0x54(arg-context-ptr) — this is the
+ *     "coord-scale by per-object factor" pass per memo's "scale 250.0f
+ *     suggests coordinate scaling" guess.
+ *   - 0x9DAC-0x9DC0: store the scaled Vec3 results to sp+0x138/+4/+8,
+ *     then start another lw from a1->0x30 (per-object anchor) — the
+ *     compute will continue with another stage on the just-stored results.
+ *
+ * ~225 insns remain stubbed past 0x9DC4.
  *
  * Deferred to future passes: full body decode is ~300 insns of float sched;
  *   one /decompile run expands prologue + body-part-1 — subsequent runs will
