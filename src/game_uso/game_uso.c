@@ -1737,7 +1737,31 @@ trunk:
             goto ret;
         }
     }
-    /* TODO: bits 0x20, 0x80, 0x100, 0x08, 0x04, 0x10 — see asm 0x77A0-0x7A08 */
+    if (a1 & 0x80) {
+        /* 0x77A8-0x7820: bit-0x80 trunk arm. ret_lo |= 0x100 unconditionally,
+         * then guarded by outer->[0x938]: if zero, also |= 0x200 and use
+         * a0->[0x4C] as counter (decremented). When counter < 31, indexes
+         * into a float table at (&D + 0x638 + a0->[0x58]*8) loading 2 floats
+         * (f0,f2) — likely a (x,y) lookup keyed by sub-state index 0x58.
+         * Counter expiration zero-clears bit 0x80 in a0->[0x6C] and stores
+         * a fixed value to a0->[0x44]. */
+        ret_lo |= 0x100;
+        outer = (int*)a0[0x30 / 4];
+        if (outer[0x938 / 4] != 0) {
+            int cnt = a0[0x4C / 4];
+            ret_lo |= 0x200;
+            if (cnt < 31) {
+                /* float table lookup at (D_base + 0x638)[a0->0x58] */
+                /* f0 = entry[0]; f2 = entry[1]; */
+            }
+            a0[0x4C / 4] = cnt - 1;
+            if (a0[0x4C / 4] == 0) {
+                a0[0x6C / 4] &= ~0x80;
+                a0[0x44 / 4] = /* stored constant — TODO 0x7810 */ 0;
+            }
+        }
+    }
+    /* TODO: bits 0x20, 0x100, 0x08, 0x04, 0x10 — see asm 0x7820-0x7A08 */
 
 ret:
     /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94) */
