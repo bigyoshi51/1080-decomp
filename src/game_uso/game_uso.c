@@ -892,8 +892,56 @@ branch_88: {
         delta_scaled.x = excess * local_xz[0];
         delta_scaled.y = excess * local_xz[1];
         delta_scaled.z = excess * local_xz[2];
-        /* TODO 0x2050-0x20F0: 12-byte struct fanout copy + second vec3 scale
-         * (sp+0xB0..0xB8 * a0[0xAC] -> sp+0x94..0x9C); ~290 insns remain. */
+        /* Decoded 2026-05-05 (asm 0x20F0-0x21F4, +66 insns): apply XZ-scaled
+         * delta + Y-axis homing.
+         *
+         * 0x20F0-0x2130: re-multiply (`excess * local_xz[i]`) into sp+0x60..0x68.
+         *   The whole excess*local_xz triple is recomputed here even though it
+         *   was already in `delta_scaled` above — IDO emits the muls inline at
+         *   each use site rather than spilling.
+         * 0x2134-0x2158: 12-byte fanout copy. sp+0x60..0x68 (the just-stored
+         *   scaled vec) replicated into BOTH sp+0xFC..0x108 (scratch) and
+         *   sp+0xC4..0xCC (v1 base). The interleaved ld/st pattern (a3+0 read
+         *   AFTER first sw to a3, then sw to v1+0) is IDO's load-delay-slot
+         *   scheduler shuffling, not a meaningful order dependence — both
+         *   destinations end up with identical scaled.xyz.
+         * 0x215C-0x2178: store sp+0xC4..0xCC (= scaled.xyz) to a0[0x2C..0x34].
+         *   This commits the XZ-plane translation to the entity's pos field.
+         * 0x2174 branch: `if (a0[0x40] == 2)` pick scalar a0[0xF4] (case-2
+         *   threshold), else a0[0xDC] (default threshold).
+         * 0x2188-0x21C4: SECOND-pass homing on Y axis.
+         *   Resets local_xz to (0, 1, 0) — pure Y unit vector.
+         *   y_diff = ref_v.y - self_v.y                  ; vertical distance
+         *   threshold_y = a0[0xC4]
+         *   if (y_diff < threshold_y)
+         *       y_excess = threshold_y - y_diff          ; pull upward
+         *   else
+         *       y_excess = scalar - y_diff               ; clamp down (bc1fl)
+         * 0x21C8-0x21F0: scaled_y = (0, y_excess, 0); store to sp+0x54..0x5C.
+         *   Same delta_scaled pattern as XZ but along Y. */
+        {
+            Vec3f scaled_y;
+            float y_diff, threshold_y, y_scalar, y_excess;
+            *(float*)((char*)a0 + 0x2C) = delta_scaled.x;
+            *(float*)((char*)a0 + 0x30) = delta_scaled.y;
+            *(float*)((char*)a0 + 0x34) = delta_scaled.z;
+            y_scalar = (a0[0x40 / 4] == 2)
+                ? *(float*)((char*)a0 + 0xF4)
+                : *(float*)((char*)a0 + 0xDC);
+            y_diff = ref_v.y - self_v.y;
+            threshold_y = *(float*)((char*)a0 + 0xC4);
+            if (y_diff < threshold_y) {
+                y_excess = threshold_y - y_diff;
+            } else {
+                y_excess = y_scalar - y_diff;
+            }
+            scaled_y.x = 0.0f * y_excess;
+            scaled_y.y = 1.0f * y_excess;
+            scaled_y.z = 0.0f * y_excess;
+            /* TODO 0x21F4-end: continued Y-homing apply + final-exit convergence.
+             * ~225 insns remain stubbed. */
+            (void)scaled_y;
+        }
         (void)delta_scaled;
     }
     (void)excess;
