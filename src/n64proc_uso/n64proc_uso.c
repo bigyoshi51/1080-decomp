@@ -360,7 +360,26 @@ void n64proc_uso_func_00000230(char *a0) {
  *       % unchanged at 93.57 %.
  *
  * Six C-form variants tried total ((a)-(f)). Cap stands at 93.57 %.
- * No further single-/decompile-run lever to flip. */
+ *
+ * 2026-05-04 (NEW): four more variants tried, all 52/61 word diffs (no
+ * promotion). Cap reconfirmed:
+ *   (g) Goto-form for c1 inner (`if (t == 0) goto fire;` + early-out
+ *       gotos for the && short-circuit condition) instead of compound
+ *       `||`/`&&` form — same diff count.
+ *   (m) Unique externs (D_n64proc_268_a / _b at 0x0) for the &D loads
+ *       to break possible CSE — no effect; the bottleneck isn't &D-CSE
+ *       (only 2 sites total; CSE wasn't happening to begin with).
+ *   (n) Inline dispatch (no `v` local; `if (a0[0x50/4]==0) goto c0;`
+ *       repeated) — per memo `feedback_ido_inline_deref_v0.md` should
+ *       affect $v0/$t-reg destination but didn't here. Same 52 diffs.
+ *   (o) `char pad[4]` to grow stack frame — IDO optimized it away
+ *       (unused). Frame stays at 0x18.
+ *
+ * Total: 10 variants tried ((a)-(f) + (g)/(m)/(n)/(o)). Cap holds at
+ * 93.57 %. The first-instruction divergence at 0x18 is `lw $t6` (target)
+ * vs `lw $v0` (build) — IDO's allocator reuses the dispatch register
+ * for the body's first load, where target uses a fresh $t-reg. No
+ * C-level lever found to force the fresh-$t allocation. */
 void n64proc_uso_func_00000268(int *a0) {
     int v;
     int t;
