@@ -939,7 +939,27 @@ branch_88: {
             scaled_y.y = 1.0f * y_excess;
             scaled_y.z = 0.0f * y_excess;
             /* TODO 0x21F4-end: continued Y-homing apply + final-exit convergence.
-             * ~225 insns remain stubbed. */
+             * ~225 insns remain stubbed.
+             *
+             * Extended scan 2026-05-05 (0x21F4-0x227C, +34 insns characterized):
+             *   0x21F4-0x2218: ANOTHER 12-byte struct fanout copy. Reads a3+0/4/8
+             *     (= scaled_y) writes t6+0/4/8 AND t8+0/4/8 (interleaved with
+             *     pre-overwrite reads from t8 — IDO's load-delay shuffle of the
+             *     "save-old + write-new" idiom seen at 0x2090-0x20BC earlier).
+             *     Likely commits scaled_y into the entity's Y-axis vel/pos field
+             *     pair (e.g. a0+0x40 and a0+0x44, vs the XZ commit at 0x2C/0x30
+             *     above).
+             *   0x221C-0x2230: lwc1 sp+0xCC, sp+0xC8 (re-load XZ delta_scaled),
+             *     mtc1 zero / lui constant 0x3F800000 (= 1.0f) — sets up an
+             *     identity float for the next computation.
+             *   0x2234-0x2260: re-multiply excess * (0,1,0) trio (mirror of the
+             *     scaled_y compute earlier; IDO emits the muls inline at each
+             *     reuse). Stores to sp+0x110/0x114/0x118 (third copy of scaled
+             *     Y-vec).
+             *   0x2264-0x227C: lwc1 sp+0x114 / sp+0x118; abs.s f0 (idiom for
+             *     `fabs(y_excess)`); compares against a constant. Looks like the
+             *     CLAMP step "if (|y_excess| < some_threshold) ...". ~190 insns
+             *     remain stubbed past 0x227C. */
             (void)scaled_y;
         }
         (void)delta_scaled;
