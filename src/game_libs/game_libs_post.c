@@ -550,7 +550,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD58);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD90);
 
+#ifdef NON_MATCHING
+/* gl_func_0002DDF4: 12-insn float-store + tail-call wrapper. Caller pre-sets
+ * $f4 (non-standard convention — $f4 is a temp reg, not an arg slot in o32),
+ * function stores it to a D-symbol then tail-calls a different function with
+ * (a0&0xFF, 0).
+ *
+ * Body:
+ *   D_X = (float bits in $f4)
+ *   func_00042490(a0 & 0xFF, 0)
+ *
+ * Match cap: writing as `void f(int a0, float fval)` IDO emits
+ * `mtc1 $a1, $f12` to copy fval → $f12, then `swc1 $f12, 0(at)`. Target
+ * uses `swc1 $f4` directly (no mtc1) — proves caller pre-loaded $f4.
+ * Per feedback_lw_arg_from_stack_no_preceding_sw.md class. Stays
+ * INCLUDE_ASM.
+ *
+ * Doc-only stub for grep discoverability. */
+extern int func_00042490();
+extern int D_DDF4_X;
+void gl_func_0002DDF4(int a0, int fval_bits) {
+    D_DDF4_X = fval_bits;
+    func_00042490(a0 & 0xFF, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DDF4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DE24);
 
