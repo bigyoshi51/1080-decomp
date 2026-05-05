@@ -469,7 +469,38 @@ void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
 #endif
 
+#ifdef NON_MATCHING
+/* gui_func_00002BB0: 140-insn / 0x230 RDP/RSP display-list builder.
+ * Constructs graphics commands into a display-list buffer at *(D_xxx)[0]
+ * — likely setting up scissor/viewport/texture for a GUI quad.
+ *
+ * ENTRY DECODE (0x2BB0-0x2C30, ~32 insns):
+ *   ctx = *(int**)&D_GUI_CTX;        // s7 = &D_xxx; s2 = ctx (s7[0])
+ *   ctx[12]->[4] += 1;               // bump display-list counter
+ *   v1_old = pre-bump value
+ *   t2 = 0x80008000                  // RDRAM segment-0 base marker
+ *   t9 = v1_old << 3                 // 8-byte stride per RDP command
+ *   t8 = ctx[12][0]                  // display-list base ptr
+ *   t0 = t8 + t9                     // dl_ptr = base + index*8
+ *   s5 = a1 (saved arg);  s4 = a3 (saved arg)
+ *   s6 = sp[128] (5th stack arg)
+ *   sp[120] = a2 (caller arg-spill)
+ *   ... (continues writing RDP commands at dl_ptr; opcode 0xBB00_0001
+ *        observed = G_SETSCISSOR or similar; full sequence ~100 more
+ *        insns of dl_ptr[N] = (cmd<<24) | data assignments)
+ *
+ * 9 saved regs (s0-s7, s8) + ra in 0x70 frame. 5+ args (a0-a3 + at least
+ * one stack arg via sp+0x80 = caller-arg slot 5).
+ *
+ * 100+ insns of body deferred — multi-pass NM. Default build INCLUDE_ASM. */
+void gui_func_00002BB0(int a0, int a1, int a2, int a3) {
+    /* TODO: full body decode — 4-arg-plus + display-list emit. Stub
+     * captures arg signature + RDP-builder identity. */
+    (void)a0; (void)a1; (void)a2; (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
 
