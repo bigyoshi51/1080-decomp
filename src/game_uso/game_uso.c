@@ -2888,21 +2888,28 @@ trunk:
      *   if (a1 & 0x80) {
      *       sub_cnt = a0[0x4C];                 // same sub-counter as bit-0x20
      *       if (sub_cnt < 8) {
-     *           list_base = a0[0x137];          // a0[0x4DC] — list-base ptr
-     *           ... bit-0x80 fast-path (TBD, ~50 insns at 0x7848-0x7900) ...
+     *           list_base = a0[0x4DC];          // SHARED-PATH: load list-base
+     *           ... fast-path body (0x787C-0x7900) ...
      *       } else {
-     *           list_base = a0[0x137];
-     *           ... bit-0x80 slow-path (TBD, ~30 insns at 0x7900-0x7990) ...
+     *           list_base = a0[0x4DC];          // (delay-slot load — same)
+     *           ... slow-path body (0x7848-0x787C) ...
      *       }
      *   }
      *
-     * Both arms use a0[0x4DC] as a list-base pointer (lw $a2, 0x4DC($a0)
-     * appears in both fall-through delay slots), and operate on entries
-     * with stride 0x10 bytes (addiu offsets +8/+10 dot the asm). Likely
-     * iterating a stride-16 record array; cnt<8 guard suggests a max-8
-     * inline-cache or small-list optimization.
+     * Slow-path (sub_cnt >= 8, 0x7848-0x787C, decoded 2026-05-05 next pass):
+     *   t8 = list_base + 8;
+     *   if (sub_cnt < t8) goto small_path;       // bnez +3
+     *   t9 = list_base + 0x10;
+     *   if (sub_cnt < t9) goto med_path;          // bnez +5
+     *   t0 = list_base + list_base;               // 2*list_base (stride calc)
+     *   t9 = list_base + 0x10;
+     *   if (sub_cnt < t9) ... else goto +0x30 (epilogue?)
      *
-     * Full bit-0x80 body (0x7848-0x7990) deferred — multi-pass decomp;
+     * The `t0 = list_base * 2` is a stride-doubling calc — likely for a
+     * tiered list lookup. cnt<8/cnt<16/cnt<24 boundaries match a 3-tier
+     * 8-entry-each list (max 24 sub-objects).
+     *
+     * Full bit-0x80 body (0x7848-0x7990) still deferred — multi-pass decomp;
      * current per-bit dispatcher is at ~31% fuzzy. */
 
 ret:
