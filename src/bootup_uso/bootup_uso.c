@@ -648,7 +648,14 @@ void func_0000502C(int *dst) {
  * not outgoing-arg area). IDO -O2 won't emit this dead spill from std C
  * since a1 isn't reused after the jal. May be a varargs-style ABI quirk
  * in the callee's expected calling convention; the K&R declaration of
- * func_00000000 doesn't trigger it. Stays NM-wrapped. */
+ * func_00000000 doesn't trigger it. Stays NM-wrapped.
+ *
+ * 2026-05-05: tried `void func(int a0, int a1) { (void)a1; ... }` —
+ * (void)a1 DCE'd by IDO, no extra spill emitted. Same diff. Cap class:
+ * IDO -O2 delay-slot scheduler chose `lw a1, 0x18(sp)` (the reload-for-
+ * return) over `sw a1, 0x4(sp)` (target's dead-spill). The dead-spill
+ * isn't reachable from natural C — would need INSN_PATCH on the 2 insns
+ * at 0x80/0x84 (insn-shift) plus SUFFIX of 1 insn. Defer. */
 extern char D_00007D94;
 void func_00005068(int a0) {
     func_00000000(&D_00007D94);
