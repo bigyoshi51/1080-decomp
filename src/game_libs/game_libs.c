@@ -705,7 +705,25 @@ void gl_func_0000C46C(int a0) {
     gl_func_00000000(a0, &scratch);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000C49C: 21-insn 3-call wrapper.
+ *   v_first = gl_func(a0)
+ *   a0[1] = a0[0]
+ *   if (a0[2] != 0) gl_func(a0[2], v_first)
+ *   gl_func(v_first, v_first)
+ * Logic correct; reg allocation differs (mine uses $a0 reload + $a2 named
+ * spill; target uses $t6 base reg). */
+void gl_func_0000C49C(int *a0) {
+    int v_first = gl_func_00000000(a0);
+    a0[1] = a0[0];
+    if (a0[2] != 0) {
+        gl_func_00000000(a0[2], v_first);
+    }
+    gl_func_00000000(v_first, v_first);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C49C);
+#endif
 
 extern int gl_ref_0001DCE0();
 extern int gl_ref_0001DD1C();
