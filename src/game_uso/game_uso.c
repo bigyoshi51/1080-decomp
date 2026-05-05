@@ -55,19 +55,23 @@ float game_uso_func_000000A0(float *a, float *b) {
 }
 
 #ifdef NON_MATCHING
-/* Cubic B-spline weighted point evaluator (61 insns, FPU-only).
+/* Cubic B-spline weighted point evaluator (61 insns, FPU-only). 96.95% NM.
  * Input:  out (Vec3*),  ctrl (Vec3*[4]: 4 control point pointers),
  *         weights (float[4]: B0..B3 from game_uso_func_00000000)
  * Output: out[i] = sum over k=0..3 of (*ctrl[k])[i] * weights[k]
  *
- * Computes one Vec3 component triple as a 4-control-point weighted sum.
- * Three identical 14-insn dot-product blocks (one per x/y/z), each
- * loading 4 control-pointer dereferences + 4 weight loads, then 4 muls
- * and 3 adds. Followed by swc1 to out[0], out[4], out[8].
+ * Used with game_uso_func_00000000 (basis evaluator) to compute a point
+ * on a uniform cubic B-spline curve in 3D — camera path / track / skater
+ * limb interpolation.
  *
- * Used together with game_uso_func_00000000 (basis evaluator producing
- * the weights) to compute a point on a uniform cubic B-spline curve in
- * 3D — likely camera path / track / skater limb interpolation. */
+ * Cap at 96.95% (27 FPU register-allocation diffs across the 3 dot-product
+ * blocks). Variants tried (all regressed):
+ *   - Swapping operand order (weights[k] * ctrl[k]->x): 27 → 32 diffs.
+ *   - Pre-loading ctrl[0..3] into named locals: 27 → 44 diffs.
+ * Build chooses $t9 as base for some weight loads where expected uses $a2
+ * directly + offset 0xC. FPU pipeline forwarding + base-register choice are
+ * not flippable from C alone — needs decomp-permuter to find a matching
+ * variant. */
 void game_uso_func_000000E0(Vec3 *out, Vec3 **ctrl, float *weights) {
     out->x = ctrl[0]->x * weights[0] + ctrl[1]->x * weights[1]
            + ctrl[2]->x * weights[2] + ctrl[3]->x * weights[3];
