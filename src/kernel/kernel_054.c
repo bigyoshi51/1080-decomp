@@ -223,6 +223,11 @@ extern void func_80009030(s32, s32);
  * — IDO spills masked to stack (+1 sw), bumps frame -0x38→-0x40, adds
  * extra reload — net WORSE (34 diffs in 69 insns).
  *
+ * 2026-05-05 RE-VERIFIED: build now 67 insns vs expected 68 (only 1-insn
+ * deficit, not 2). 29 word-diffs remain. The mask placement (pre-jal vs
+ * delay-slot) accounts for the 1-insn size delta; remaining 28 diffs are
+ * cascade register-renumber from the position shift.
+ *
  * Promotion path: needs a C shape that splits the andi off the call
  * arg without adding spills, OR permuter discovery. The 3 prologue
  * caps can be INSN_PATCH'd once size matches. Deferred. */
