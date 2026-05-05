@@ -158,44 +158,53 @@ void titproc_uso_func_000003D0(void) {
 }
 
 #ifdef NON_MATCHING
-/* titproc_uso_func_00000418: 33-insn (0x84) bit-counting + scaled-call wrapper.
+/* titproc_uso_func_00000418: 33-insn (0x84) bit-count + FPU-scaled-call.
  *
  * STARTS WITH PROLOGUE-STOLEN-PREDECESSOR pattern: first 2 insns
- * (`lui $t6, 0; lw $t6, 0x154($t6)`) are the predecessor's "tail" that
- * splat attributed to our symbol. They load $t6 = *(int*)(&D + 0x154).
- * Per feedback_prologue_stolen_predecessor_no_recipe.md — the recipe
- * needs SUFFIX_BYTES to grow the predecessor + PROLOGUE_STEALS=8 to
- * splice our own emit's first 8 bytes.
+ * (`lui $t6, 0; lw $t6, 0x154($t6)`) load *(int*)(&D + 0x154) into $t6
+ * BEFORE the prologue. Per feedback_prologue_stolen_predecessor_no_recipe.md
+ * — recipe needs SUFFIX_BYTES on predecessor + PROLOGUE_STEALS=8 here.
  *
- * STRUCTURE (insns 3-33):
- *   addiu sp, -0x20
- *   sw ra, 0x14(sp)
- *   a1 = *(int*)(sp+0x18);    // reads UNINIT local — strange (caller-set?)
- *   v0 = 0; a0 = 8;            // loop counter and limit
- *   v1 = *(short*)t6;          // load 16-bit bitfield from D->[0x154]
- *   t7 = 1;
- *   for (v0 = 0; v0 < 8; v0++) {
- *     if (v1 & (1 << v0)) {
- *       a1++;                   // count set bits
- *     }
- *   }
- *   a1 -= 2;
- *   *(int*)(sp+0x18) = a1;
- *   f0 = gl_func_00000000(...); // returns float
- *   a1 = *(int*)(sp+0x18);      // reload
- *   f10 = 8.0f; f4 = (int)a1; f6 = (float)f4;
- *   return (int)trunc(f0 * f6 / 8.0f);
+ * Body (insns 3-33, manually decoded post-stolen-prologue):
+ *   - count the set bits among the low 8 bits of *(short*)(*D[0x154])
+ *     (a1 starts UNINIT — sp+0x18 is an unwritten frame slot; either
+ *     non-standard ABI passing it via stack OR sentinel C wants
+ *     `int count;` (uninit-on-purpose to pick up garbage))
+ *   - subtract 2 from the count (yields garbage+set_bits-2)
+ *   - call gl_func_00000000() — returns f0 (float, gl-side semantics)
+ *   - return (int)trunc(f0 * (float)count + 2.0f)
  *
- * UNRESOLVED: the `lw a1, 0x18(sp)` BEFORE any sw to that slot reads
- * uninit local. Either non-standard ABI or stolen-prologue effect.
+ * Final FPU sequence (insn-decoded 2026-05-05):
+ *   mtc1 at(=2.0f), $f10
+ *   mtc1 a1, $f4; cvt.s.w $f6, $f4    ; $f6 = (float)count
+ *   mul.s  $f8, $f0, $f6              ; $f8 = $f0 * count
+ *   add.s  $f16, $f8, $f10            ; $f16 = $f0*count + 2.0f
+ *   trunc.w.s $f18, $f16; mfc1 v0
  *
- * First-pass decode; wrap captures structure for grep discoverability.
- * Match attempt deferred — needs prologue-stolen-predecessor recipe
- * (SUFFIX_BYTES on predecessor + PROLOGUE_STEALS=8 here) plus resolution
- * of the uninit a1 read. */
-void titproc_uso_func_00000418(int a0) {
-    /* Stub — see decoded structure in comment above. */
-    (void)a0;
+ * (The doc previously said `/8.0f`; that was wrong — re-decode confirms
+ *  the constant is 2.0f and the op is add, not div.)
+ *
+ * Body is mostly understood; full match attempt blocked on:
+ *   1. Stolen-prologue-predecessor recipe (SUFFIX_BYTES + PROLOGUE_STEALS=8)
+ *   2. Forcing C-emit to leave a1 uninit at sp+0x18 (IDO -O2 normally
+ *      promotes locals to regs; `volatile` defeats this but produces
+ *      stack roundtrips that don't match target's shape)
+ *   3. Reproducing the lui+lw-before-prologue scheduling (may need
+ *      manual asm-prelude or stronger PROLOGUE_STEALS variant)
+ *
+ * Multi-tick. C body below captures the bit-count + FPU formula even
+ * though it won't byte-match without the recipe + uninit-a1 fix. */
+int titproc_uso_func_00000418(int a0) {
+    int count;  /* deliberately uninit to mirror target's `lw a1, 0x18(sp)` */
+    short bits = *(short*)((char*)&D_00000000 + 0x154);
+    int i;
+    float f;
+    for (i = 0; i < 8; i++) {
+        if (bits & (1 << i)) count++;
+    }
+    count -= 2;
+    f = (float)gl_func_00000000(a0);
+    return (int)(f * (float)count + 2.0f);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
