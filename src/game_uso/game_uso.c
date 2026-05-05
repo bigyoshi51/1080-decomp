@@ -3291,7 +3291,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 17.92% NM. game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
+/* 11.20% NM (corrected from outdated 17.92% comment 2026-05-05).
+ * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Inferred from the final cross-product sign test + screen-space transform
  * constants: this is a billboard-visibility / 2D point-on-line predicate
  * applied to per-frame screen-projected anchor coordinates, returning a
@@ -3341,7 +3342,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *   strongly suggests this is a coordinate-transform function: takes
  *   (context, anchor, src-Vec3) and produces a transformed Vec3 written to
  *   one of several local slots for downstream cross-USO dispatch. */
-void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
+int game_uso_func_00009B88(int *a0, int *a1, int *a2) {
     float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
     float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
     int   local_EC[3];    /* sp+0xEC:  raw-word copy of local_DC */
@@ -3541,10 +3542,19 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      * (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset).
      * Combined with the cross-product sign test, this is likely a
      * billboard-visibility / point-in-frustum check after screen projection. */
+    /* TODO @ 0x9D00-0x9DC4: 3-word copy local_12C = sp+0x138 buffer + Vec3
+     * in-place scaling by 250.5f * a3->[0x54] on both local_12C and the
+     * sp+0x138 buffer. Needs a sp+0x138 named local first; deferred. */
+
     (void)local_12C;
     (void)local_19C;  /* suppress unused warnings until body-part-2 done */
     (void)local_EC;
     (void)local_C4;
+    /* @ 0xA0A0-0xA0E4: 2D cross-product sign test predicate. Returns 1 when
+     * cross_z < 0 (point on negative side of a directed line / counter-CW
+     * winding), else 0 (or whatever was set by an earlier dispatch arm).
+     * Full register state needs body-part-2 decoded first. */
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
