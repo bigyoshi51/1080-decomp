@@ -195,7 +195,16 @@ extern char D_00000000;
  * the proxy mechanism inherently disturbs the priority queue regardless
  * of which subset of locals it's applied to. The 5-pp loss from variant
  * 19 vs the 16-pp loss from variant 18 quantifies the per-proxy-extern
- * cost: each one introduces ~5pp of regression. CAP HOLDS at 74.49 %. */
+ * cost: each one introduces ~5pp of regression. CAP HOLDS at 74.49 %.
+ *
+ * (20) VERIFIED 2026-05-05 (later): clean rebuild + objdiff confirms cap
+ * at fuzzy=75.02 % (slightly above the 74.49 % documented in variants
+ * 11-19 — drift attributed to upstream toolchain/objdiff scoring tweaks
+ * in commits between 2026-04 and 2026-05; the C body and per-iter
+ * insn-count diff vs target are unchanged). No new C-level lever
+ * identified; the loop-tail constant-fold + 6-local $s-renumber are
+ * jointly the structural cap. Documented final state: NM-locked at
+ * ~75 %, byte-correct path stays via INCLUDE_ASM (#else branch). */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
