@@ -282,32 +282,39 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000001
  *   p[0x48] = 0; p[0x30] = 0; p[0x2C] = 0;
  *   end: return p;
  *
- * 2026-05-05 PROMOTION: 73.33% -> 77.97% (+4.64pp). The previous wrap had
- * `q = alloc(0x50)` direct (no `q = p` dead-test) and `r = q; if(!r) r=alloc()`
- * (dead-test only on r). Target has 3 cascading alloc-or-passthrough patterns
- * AND tests bnez s0 right after the first alloc (this maps to `q = p; if(!q)`).
- * Verified by reading target asm 0x24-0x40: bnez s0, +5; move a3, s0 in BD;
- * jal alloc(0x50); ... merge at 0x3C; bnez a3, +7; etc. Both dead arms emit.
+ * 2026-05-05 BIG PROMOTION: 73.33% -> 88.04% (+14.71pp) via THREE fixes:
  *
- * Remaining 22% diff (verified 2026-05-05 via objdump comparison):
+ *   FIX 1 (+4.64pp): Triple alloc-cascade. Previous wrap had only 2 cascade
+ *   steps (`p = a0; q = alloc(0x50); r = q`). Target has 3: each step is
+ *   `x = prev; if (!x) { x = alloc(N); if (!x) goto end; }`. The 2nd and 3rd
+ *   bnez tests are dead-arm guards but IDO emits them. See
+ *   feedback_alloc_or_passthrough_cascade_includes_dead_arms.md.
+ *
+ *   FIX 2 (+3.30pp): Defeat IDO -O2 CSE on &D base. Target emits 4 fresh
+ *   `lui+addiu` pairs for the &D-derived stores (r[0x28]=&D, q[0x28]=&D,
+ *   p[0x28]=&D+0x18, p[0xC]=&D+0xB8); inline `&D_00000000` form CSEs the
+ *   base into v1. Recipe per feedback_unique_extern_with_offset_cast_breaks_cse.md:
+ *   declare 5 unique externs (D_n64_100_a..e) all mapped to 0x0 in
+ *   undefined_syms_auto.txt, write each access as `(char*)&D_n64_100_X + N`.
+ *   IDO sees them as different symbols → no CSE.
+ *
+ *   FIX 3 (+6.78pp): Missing args on the post-conditional helper call. Target
+ *   prepares `li a1, 2; move a2, zero` BEFORE the beqzl-and-store, then uses
+ *   them in the jal at 0xFC. The C had `gl_func(*(int*)(&D + 0x190))` (1 arg);
+ *   should be `gl_func(*(int*)(&D + 0x190), 2, 0)` (3 args).
+ *
+ * Remaining 12% diff (verified 2026-05-05 via objdump):
  *   1. Frame size: 0x30 (build) vs 0x28 (target) — build has 5 spill slots,
- *      target has 4. Build can't share the q-spill slot with the later z-spill
- *      (live ranges overlap in build but not in target).
- *   2. Register choice for `r` passthrough copy: target uses a0 (`move a0, a3`),
- *      build uses a2 (`move a2, a3`). Cascade renumbers across all subsequent
- *      uses of r.
- *   3. CSE on &D base: build CSEs the &D address into v1 and emits
- *      `addiu t6, v1, 0x18` for the +0x18 derived address. Target emits a
- *      fresh `lui+addiu` per use (no CSE). Same root cause family as
- *      func_00000014 variant 18 — IDO's CSE choice is influenced by
- *      live-range structure, not directly C-source-controllable.
+ *      target has 4. Build can't share q-spill slot with z-spill (live ranges
+ *      overlap in build's allocation, not in target's).
+ *   2. Register choice for q/r passthroughs: target uses a3 for q + a0 for r;
+ *      build uses v1 for q + a2 for r. Cascades through ~15 insns of register-
+ *      rename diff. `register` hint on q/r had no effect (88.04% identical).
+ *   3. Spill ordering at first jal helper(r, &D+0xB0) — target's spill of a3
+ *      to sp+0x24 in BD slot vs build's spill of a2 to sp+0x24 BEFORE jal.
  *
- * Possible next-pass levers:
- *   - Force r-passthrough into a0: try inserting an explicit `(void*)r` cast
- *     or a dummy use that boosts r's $a0 priority.
- *   - Defeat &D CSE: try `register int *base = (int*)&D_00000000;` + indexed
- *     accesses, OR proxy-zero extern (variant 18 of func_00000014 — but
- *     that variant regressed there due to register-renumber penalty). */
+ * All three remaining caps are IDO regalloc-priority choices not reachable
+ * from C-source modifications. */
 extern int gl_func_00000000();
 void *n64proc_uso_func_00000100(void *a0) {
     void *p;
@@ -330,22 +337,31 @@ void *n64proc_uso_func_00000100(void *a0) {
         r = (void*)gl_func_00000000(0x2C);
         if (r == 0) goto end;
     }
-    gl_func_00000000(r, (char*)&D_00000000 + 0xB0);
-    *(int*)((char*)r + 0x28) = (int)&D_00000000;
-    *(int*)((char*)q + 0x28) = (int)&D_00000000;
-    *(int*)((char*)p + 0x28) = (int)&D_00000000 + 0x18;
-    *(int*)((char*)p + 0xC)  = (int)&D_00000000 + 0xB8;
+    {
+        extern char D_n64_100_a, D_n64_100_b, D_n64_100_c, D_n64_100_d, D_n64_100_e;
+        gl_func_00000000(r, (char*)&D_n64_100_a + 0xB0);
+        *(int*)((char*)r + 0x28) = (int)&D_n64_100_b;
+        *(int*)((char*)q + 0x28) = (int)&D_n64_100_c;
+        *(int*)((char*)p + 0x28) = (int)((char*)&D_n64_100_d + 0x18);
+        *(int*)((char*)p + 0xC)  = (int)((char*)&D_n64_100_e + 0xB8);
+    }
     gl_func_00000000(p);
 
     *(int*)((char*)p + 0x50) = 0;
     *(int*)((char*)p + 0x3C) = 0x64;
     *(int*)((char*)p + 0x54) = 0xFF;
-    z = *(int**)((char*)&D_00000000 + 0x190);
+    {
+        extern char D_n64_100_f;
+        z = *(int**)((char*)&D_n64_100_f + 0x190);
+    }
     gl_func_00000000((char*)p + 0x10, z);
 
     if (z[0x14 / 4] != 0) z[1] = 1;
     z[0x14 / 4] = (int)p;
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190));
+    {
+        extern char D_n64_100_f;
+        gl_func_00000000(*(int*)((char*)&D_n64_100_f + 0x190), 2, 0);
+    }
     gl_func_00000000(0xA3);
     *(int*)((char*)p + 0x48) = 0;
     *(int*)((char*)p + 0x30) = 0;
