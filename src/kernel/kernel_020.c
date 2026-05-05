@@ -24,7 +24,15 @@
  * solves the size half — the byte at offset 0x18 still differs (target has
  * `jr $ra` = 0x03E00008, build has `nop` = 0x00000000).
  *
- * Likely an `__osPanic` / `__halt` style stub. Stays INCLUDE_ASM. */
+ * Likely an `__osPanic` / `__halt` style stub. Stays INCLUDE_ASM.
+ *
+ * 2026-05-05 RE-EVALUATED: searched libreultra (no `__halt`/`__osPanic`
+ * matches in asm/ or src/). Tried `register volatile int dummy = 0;
+ * while (dummy == 0) {}` — produces +12-byte stack-frame variant (worse
+ * than baseline). INSN_PATCH-ineligible per insn-count delta (10 vs 8).
+ * Cap is intrinsic to IDO -O2's pre-epilogue alignment-nop emit;
+ * confirmed STUCK. Don't re-grind. Already landed via byte-correct
+ * INCLUDE_ASM path (commit 27200e7); fuzzy stays at 75%. */
 void func_80007FC8(void) {
     while (1) {}
 }
