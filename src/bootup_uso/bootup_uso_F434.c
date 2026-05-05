@@ -17,12 +17,22 @@ extern int func_00000188();
  * (vtable[0x64], h_60) gated by both state-nonzero AND a global-flag
  * predicate read from `func_00000188 + 0x198`.
  *
- * Cap: 1 extra `lw a0_spill` per indirect-call arm. Expected reuses the
- * a0-load (in $t8) that fed the m-deref to also feed the addu; my -O0
- * emit reissues the load. Net 2 extra insns vs expected (44 vs 42).
- * Shift cascades through the file giving fuzzy ~63%. The lui+addiu+lw
- * (3 insns) for `&func_00000188+0x198` vs expected lui+lw direct (2)
- * adds 1 more diff per arm; baked into the 63% as well. */
+ * 2026-05-05: 63 % → 91.31 % via `register char *m;` (single register hint
+ * on the vtable-base local — IDO -O0 saves s0 for it, matching target).
+ * Earlier mistake: also added `register char *r = a0;` which forced 2
+ * s-saves and over-cached a0 (target reloads a0 fresh each use). Removing
+ * the `r` cache (target's pattern) recovered 5pp; keeping `m` as register
+ * is the load-bearing piece.
+ *
+ * Remaining 9 % cap: 1-insn scheduling diff in the indirect-call arg
+ * computation. Target reuses $t9 for both the `m+0x6C` deref load AND
+ * the addu computation (single $t9 fed both); build does them sequentially
+ * with an extra lw a0_spill in between. C-level expression-order tweaks
+ * can't reach target's interleaved schedule at -O0.
+ *
+ * Earlier note retained: `&func_00000188+0x198` lui+addiu+lw (3 insns)
+ * vs expected lui+lw direct (2) — 1 extra insn per arm, baked into the
+ * remaining 9 %. */
 void func_0000F6C4(char *a0) {
     register char *m;
     if (*(int*)(a0 + 0x2C) == 0) {
