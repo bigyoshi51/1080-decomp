@@ -54,7 +54,6 @@ build/src/bootup_uso/bootup_uso_o0_12DA4.c.o build/non_matching/src/bootup_uso/b
 # Trim .text sizes + reduce sh_addralign to 4 so split .o files link at the
 # exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
 build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF390
-build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH := func_00006204=0x4:0x3c040000,0x8:0xafbf0014
 build/src/bootup_uso/bootup_uso_o0_F390.c.o: TRUNCATE_TEXT := 0x334
 build/src/bootup_uso/bootup_uso_F434.c.o build/non_matching/src/bootup_uso/bootup_uso_F434.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_F434.c.o: TRUNCATE_TEXT := 0xA8
@@ -153,7 +152,9 @@ build/src/timproc_uso_b3/timproc_uso_b3.c.o: SUFFIX_BYTES := timproc_uso_b3_func
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: PROLOGUE_STEALS := timproc_uso_b1_func_00000800=8 timproc_uso_b1_func_00000734=8 timproc_uso_b1_func_00000778=8 timproc_uso_b1_func_000007BC=8 timproc_uso_b1_func_00002030=8
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: SUFFIX_BYTES := timproc_uso_b1_func_00001FE4=0x3C040000,0x8C840148 timproc_uso_b1_func_00002178=0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000
 build/src/arcproc_uso/arcproc_uso_tail1.c.o: PROLOGUE_STEALS := arcproc_uso_func_00001F0C=8
-build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH := func_00006204=0x4:0x3c040000,0x8:0xafbf0014
+build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH := \
+	func_00006204=0x4:0x3c040000,0x8:0xafbf0014 \
+	func_000020AC=0x1C:0x00884821,0x20:0xac9900c0
 build/src/bootup_uso/bootup_uso_tail3a.c.o: INSN_PATCH := func_00010324=0x10:0x008f1021,0x14:0x24420084
 build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: INSN_PATCH := func_00012818=0x5C:0x8DAE0000,0x64:0x15C10004
 build/src/kernel/kernel_000.c.o: INSN_PATCH := \

@@ -441,12 +441,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
 
 void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
-#ifdef NON_MATCHING
-/* append-pair to a count+entries list at offset 0xC0 (count) + 0xC4 (pairs of 8).
- * 10/11 insns match — only diff is IDO schedules `sw t9,0xC0(a0)` BEFORE
- * `addu t1,a0,t0`; target has addu first. Swap of two independent
- * instructions not reachable from C. See feedback_ido_sw_before_addu_unreachable.md
- * for the 10+ variants tried and the scheduler-priority explanation. */
+/* append-pair to a count+entries list at offset 0xC0 (count) + 0xC4 (pairs
+ * of 8). C body produces 10/11 insns match (~91% fuzzy). The 1-insn
+ * structural cap (IDO -O2 schedules `sw t9,0xC0(a0)` before `addu t1,a0,t0`
+ * but target has the swapped order) is documented in
+ * feedback_ido_sw_before_addu_unreachable.md (10+ C variants tried). Bridged
+ * to byte-correct via INSN_PATCH (Makefile: 2 swapped words at 0x1C/0x20).
+ * The C body is the sole definition; no INCLUDE_ASM fallback. */
 void func_000020AC(int *a0, int a1, int a2) {
     int idx;
     *(int*)((char*)a0 + *(int*)((char*)a0 + 0xC0) * 8 + 0xC8) = a2;
@@ -454,9 +455,6 @@ void func_000020AC(int *a0, int a1, int a2) {
     *(int*)((char*)a0 + 0xC0) = idx + 1;
     *(int*)((char*)a0 + idx * 8 + 0xC4) = a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020AC);
-#endif
 
 void func_000020D8(char *a0, int a1) {
     int i;
