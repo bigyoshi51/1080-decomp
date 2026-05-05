@@ -35,6 +35,7 @@ build/src/boarder5_uso/boarder5_uso.c.o: PREFIX_BYTES := boarder5_uso_func_00000
 build/src/eddproc_uso/eddproc_uso.c.o: PREFIX_BYTES := eddproc_uso_func_00000000=0x10006F00
 build/src/n64proc_uso/n64proc_uso.c.o: PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
+build/src/h2hproc_uso/h2hproc_uso.c.o: INSN_PATCH := h2hproc_uso_func_000008EC=0x8:0x00803025,0xc:0xac8506b8,0x10:0x8c8406a8,0x14:0xafa60018,0x1c:0xafa5001c,0x20:0x8fa5001c,0x28:0x14a00005
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0xDC
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: TRUNCATE_TEXT := 0x114
