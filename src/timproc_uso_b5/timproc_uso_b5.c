@@ -761,6 +761,47 @@ void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], (char*)&D_b5_BDA0_table + a0[0x1AC/4] * 24);
 }
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000BDEC: 242-insn FPU-heavy color-transform helper.
+ * 0x3C8 size starting at 0xBDEC, ending at 0xC1B4.
+ *
+ * BUNDLED structure: 13 jr ra in the .s file. Splat couldn't separate the
+ * tail leafs in this Yay0-compressed segment. Tail jr ra positions:
+ *   0xC03C  — main body's mid-return (FPU early-exit path)
+ *   0xC0CC  — main body's secondary return
+ *   0xC100  — main body's terminal return
+ *   0xC108, 0xC110, 0xC118 — three 2-insn leaf trailers (jr ra; <set v0>)
+ *   0xC148, 0xC15C, 0xC168 — short leaf returns
+ *   0xC178, 0xC188, 0xC19C, 0xC1AC — more 2-insn leaf trailers
+ * Per feedback_uso_split_fragments_breaks_expected_match.md, splitting on
+ * Yay0 USO breaks expected/.o until refresh — leave bundled.
+ *
+ * Main function decoded (0xBDEC-0xC03C, 36 insns):
+ *   register f32 c255 = 255.0f;  // $f20-bound via lui+mtc1
+ *   f32 a = a1->0x4A0;           // s0 = a1, s0->0x4A0
+ *   ptr = a1->0x414;             // t6 = a1[0x414/4] (table?)
+ *   ptr2 = ptr->0xC;             // t7 = ptr[3]
+ *   stride = ptr2->0xC4;         // s2 = ptr2->0xC4 (table base)
+ *   a1ptr = a1->0x8C;            // a1 = a1->0x8C (sub-pointer)
+ *   off = a1->0xA4;              // t8 = a1->0xA4 (offset)
+ *   addr = stride + off;         // a2 = s2 + t8
+ *   v = trunc(c255 * a);         // f6 = c255*a; t0 = trunc(f6)
+ *   gl_func_00000000(s1=arg0, addr, ?, &D + 0x6E8, v);
+ *   ...
+ *
+ * State decode (0xBDEC-0xBE7C, ~36 insns):
+ *   - $f20 = 255.0f (constant for FP→int conversion scale)
+ *   - sequence: load a, multiply by 255, trunc to int, pass to helper
+ *   - bgezl branch on (a1->0x2B4 << 14) sign-bit (bit 17) — case dispatch
+ *   - if bit set: compute via $f0 = 96.0/255.0, $f2 = 192.0/255.0
+ *
+ * Open: jump-table at &D + 0x700 indexed by upper bits of a1->0x2B4.
+ * Multi-pass decompile target; first pass too-many unknowns to write a
+ * useful C body without first analyzing the dispatch table.
+ *
+ * Initial wrap is doc-only (no C body) until table dispatch is decoded.
+ * Default INCLUDE_ASM build matches via the bundled symbol. */
+#endif
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BDEC);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1B4);
