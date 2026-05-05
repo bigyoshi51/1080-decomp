@@ -183,11 +183,16 @@ def main():
                 total += n
         print(f"refresh-baseline: swapped {total} decomp bodies → INCLUDE_ASM")
 
+        # Use the `objects` Makefile target (C objects only — no link, no
+        # Yay0 repack, no md5sum). This sidesteps the Yay0 ROM-checksum
+        # nondeterminism that would abort `make` parallel-builds before
+        # all USO .c.o files are produced.
         print("refresh-baseline: make clean")
         subprocess.check_call(["make", "clean"], stdout=subprocess.DEVNULL)
-        print("refresh-baseline: make RUN_CC_CHECK=0 (baseline build)")
+        print("refresh-baseline: make objects (C objects only, baseline build)")
         subprocess.check_call(
-            ["make", "-j", "4", "RUN_CC_CHECK=0"], stdout=subprocess.DEVNULL
+            ["make", "-j", "4", "objects", "RUN_CC_CHECK=0"],
+            stdout=subprocess.DEVNULL,
         )
         print("refresh-baseline: make expected")
         subprocess.check_call(
@@ -197,8 +202,11 @@ def main():
         for p, txt in backup.items():
             Path(p).write_text(txt)
 
-    print("refresh-baseline: make (restore build with decomp C)")
-    subprocess.check_call(["make", "-j", "4", "RUN_CC_CHECK=0"], stdout=subprocess.DEVNULL)
+    print("refresh-baseline: make objects (restore build with decomp C)")
+    subprocess.check_call(
+        ["make", "-j", "4", "objects", "RUN_CC_CHECK=0"],
+        stdout=subprocess.DEVNULL,
+    )
     print("refresh-baseline: done; expected/*.o now reflects pure-asm baseline")
 
 
