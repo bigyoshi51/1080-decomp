@@ -3154,17 +3154,10 @@ void gl_func_00055AB8(Quad4 *dst) {
     *dst = scratch;
 }
 
-/* gl_func_00055B10: 12-insn 2-call wrapper, mirror of gl_func_0004F9AC.
- * Mid-function aliases gl_func_0006A0E8 (= gl_func_00069F64 + 0x184) and
- * gl_func_0006A124 (+ 0x1C0) added to undefined_syms_auto.txt so byte-correct
- * build links cleanly. Per memo
- * feedback_mid_function_jal_targets_block_byte_correct_link.md option 2. */
-extern int gl_func_0006A0E8();
-extern int gl_func_0006A124();
 void gl_func_00055B10(char *a0) {
     int local;
-    gl_func_0006A0E8(&local);
-    gl_func_0006A124(a0 + 0x10);
+    gl_func_00000000(&local);
+    gl_func_00000000(a0 + 0x10);
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055B10_pad.s")
 
