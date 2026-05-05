@@ -378,13 +378,33 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000001
  *      to sp+0x24 in BD slot vs build's spill of a2 to sp+0x24 BEFORE jal.
  *
  * All three remaining caps are IDO regalloc-priority choices not reachable
- * from C-source modifications. */
+ * from C-source modifications.
+ *
+ * (4) TRIED 2026-05-05: two more variants, both byte-identical to baseline
+ * (88.04 %, no shift in spill slots or register cascade):
+ *   (a) Block-scope `z` (declared inside the inner block instead of top of
+ *       function). Hypothesis: shorten z's RTL live range so it doesn't
+ *       conflict with q/r spill slots in IDO's allocator (was hoping to
+ *       collapse build's 5 spill slots → 4 like target). Result: zero
+ *       byte diff. C lexical scope doesn't influence IDO's RTL pseudo
+ *       extent; live range is data-flow derived. Confirms doc on variant
+ *       (23) for n64proc_uso_func_00000014 (block-scope is a no-op).
+ *       Kept the change for code clarity (no regression).
+ *   (b) Ternary alloc-cascade form `p = a0 ? a0 : alloc(0x88);` instead
+ *       of `if (p == 0) { p = alloc(0x88); ... }`. Same logic, different
+ *       textual shape. Result: zero byte diff. IDO normalizes both forms
+ *       to identical RTL post-front-end. Reverted to if-form because the
+ *       existing doc references "x = prev; if (!x) { ... }" pattern with
+ *       dead arms and other agents will look for that form.
+ *
+ * Both confirm the cap is at IDO's RTL allocator level, not at the C
+ * source-form level. No further C-textual variant will shift register
+ * allocation for this function. */
 extern int gl_func_00000000();
 void *n64proc_uso_func_00000100(void *a0) {
     void *p;
     void *q;
     void *r;
-    int *z;
 
     p = a0;
     if (p == 0) {
@@ -416,14 +436,10 @@ void *n64proc_uso_func_00000100(void *a0) {
     *(int*)((char*)p + 0x54) = 0xFF;
     {
         extern char D_n64_100_f;
-        z = *(int**)((char*)&D_n64_100_f + 0x190);
-    }
-    gl_func_00000000((char*)p + 0x10, z);
-
-    if (z[0x14 / 4] != 0) z[1] = 1;
-    z[0x14 / 4] = (int)p;
-    {
-        extern char D_n64_100_f;
+        int *z = *(int**)((char*)&D_n64_100_f + 0x190);
+        gl_func_00000000((char*)p + 0x10, z);
+        if (z[0x14 / 4] != 0) z[1] = 1;
+        z[0x14 / 4] = (int)p;
         gl_func_00000000(*(int*)((char*)&D_n64_100_f + 0x190), 2, 0);
     }
     gl_func_00000000(0xA3);
