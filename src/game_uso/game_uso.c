@@ -2733,8 +2733,13 @@ trunk:
             ret_hi = 1;  /* 2026-05-05: addiu v1,zero,1 at 0x77C4 */
             ret_lo |= 0x200;
             if (cnt < 31) {
-                /* float table lookup at (D_base + 0x638)[a0->0x58] */
-                /* f0 = entry[0]; f2 = entry[1]; */
+                /* float table lookup: 2-entry float pair at D+0x638+idx*8.
+                 * Verified 2026-05-05 from asm 0x77D8-0x77F0:
+                 *   t0 = a0[0x58]; t2 = &D + 0x638; t1 = t0 << 3;
+                 *   a1 = t1 + t2; f0 = *a1; f2 = *(a1+4) */
+                int sub_idx = a0[0x58 / 4];
+                f0 = *(float*)((char*)&D_00000000 + 0x638 + sub_idx * 8);
+                f2 = *(float*)((char*)&D_00000000 + 0x638 + sub_idx * 8 + 4);
             }
             a0[0x4C / 4] = cnt - 1;
             if (a0[0x4C / 4] == 0) {
