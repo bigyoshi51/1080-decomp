@@ -858,10 +858,10 @@ int func_800021A4(int *a0) {
     int a3, t8, t9, t3, t4, t7, t5, t6;
     v0 = (int*)a0[0x3C / 4];
     if (v0 == 0) return 0;
-    a1 = a0[0x4 / 4];
     v1 = 0;
+    a1 = a0[0x4 / 4];
     a2 = (short*)v0;
-    if (a1 <= 0) return 0;
+    if (a1 <= 0) goto end;
     do {
         type_word = a2[0];
         v1++;
@@ -877,28 +877,28 @@ int func_800021A4(int *a0) {
             goto do_store;
         }
         if (a3 == 3) {
-            *a2 = (short)t8;
+            *a2 = (short)(type_word | 0x8);
             a1 = a0[0x4 / 4];
             goto next;
         }
-        a1 = a0[0x4 / 4];
-        goto end_check;
+        goto next;
     store_lookup:
     do_store: {
-            int *t3 = (int*)((char*)a0 + t9);
-            t4 = t3[0x38 / 4];
+            int *tp = (int*)((char*)a0 + t9);
+            t4 = tp[0x38 / 4];
             t7 = ((int*)a2)[0x4 / 4];
             t6 = type_word | 0x8;
             *a2 = (short)t6;
             t5 = t7 + t4;
             ((int*)a2)[0x4 / 4] = t5;
-            (void)t6;  /* avoid unused */
+            a1 = a0[0x4 / 4];
         }
     next:
-    end_check:
         a2 = (short*)((char*)a2 + 0xC);
     } while (v1 < a1);
+end:
     return 0;
+    (void)t3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800021A4);
