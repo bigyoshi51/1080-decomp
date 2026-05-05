@@ -1171,19 +1171,89 @@ SECTIONS
     bootup_uso_pre_head_ROM_END = __romPos;
     bootup_uso_pre_head_VRAM_END = .;
 
-    bootup_uso_ucodes_ROM_START = __romPos;
-    bootup_uso_ucodes_VRAM = ADDR(.bootup_uso_ucodes);
-    .bootup_uso_ucodes : AT(bootup_uso_ucodes_ROM_START)
+    bootup_uso_ucodes_head_ROM_START = __romPos;
+    bootup_uso_ucodes_head_VRAM = ADDR(.bootup_uso_ucodes_head);
+    .bootup_uso_ucodes_head : AT(bootup_uso_ucodes_head_ROM_START)
     {
         FILL(0x00000000);
-        bootup_uso_ucodes_DATA_START = .;
-        build/assets/bootup_uso_ucodes.bin.o(.data);
-        bootup_uso_ucodes_DATA_END = .;
-        bootup_uso_ucodes_DATA_SIZE = ABSOLUTE(bootup_uso_ucodes_DATA_END - bootup_uso_ucodes_DATA_START);
+        bootup_uso_ucodes_head_DATA_START = .;
+        build/assets/bootup_uso_ucodes_head.bin.o(.data);
+        bootup_uso_ucodes_head_DATA_END = .;
+        bootup_uso_ucodes_head_DATA_SIZE = ABSOLUTE(bootup_uso_ucodes_head_DATA_END - bootup_uso_ucodes_head_DATA_START);
     }
-    __romPos += SIZEOF(.bootup_uso_ucodes);
-    bootup_uso_ucodes_ROM_END = __romPos;
-    bootup_uso_ucodes_VRAM_END = .;
+    __romPos += SIZEOF(.bootup_uso_ucodes_head);
+    bootup_uso_ucodes_head_ROM_END = __romPos;
+    bootup_uso_ucodes_head_VRAM_END = .;
+
+    bootup_uso_ucodes_F3DEX_NoN_data_ROM_START = __romPos;
+    bootup_uso_ucodes_F3DEX_NoN_data_VRAM = ADDR(.bootup_uso_ucodes_F3DEX_NoN_data);
+    .bootup_uso_ucodes_F3DEX_NoN_data : AT(bootup_uso_ucodes_F3DEX_NoN_data_ROM_START)
+    {
+        FILL(0x00000000);
+        bootup_uso_ucodes_F3DEX_NoN_data_DATA_START = .;
+        build/assets/bootup_uso_ucodes_F3DEX_NoN_data.bin.o(.data);
+        bootup_uso_ucodes_F3DEX_NoN_data_DATA_END = .;
+        bootup_uso_ucodes_F3DEX_NoN_data_DATA_SIZE = ABSOLUTE(bootup_uso_ucodes_F3DEX_NoN_data_DATA_END - bootup_uso_ucodes_F3DEX_NoN_data_DATA_START);
+    }
+    __romPos += SIZEOF(.bootup_uso_ucodes_F3DEX_NoN_data);
+    bootup_uso_ucodes_F3DEX_NoN_data_ROM_END = __romPos;
+    bootup_uso_ucodes_F3DEX_NoN_data_VRAM_END = .;
+
+    bootup_uso_ucodes_F3DEX_data_ROM_START = __romPos;
+    bootup_uso_ucodes_F3DEX_data_VRAM = ADDR(.bootup_uso_ucodes_F3DEX_data);
+    .bootup_uso_ucodes_F3DEX_data : AT(bootup_uso_ucodes_F3DEX_data_ROM_START)
+    {
+        FILL(0x00000000);
+        bootup_uso_ucodes_F3DEX_data_DATA_START = .;
+        build/assets/bootup_uso_ucodes_F3DEX_data.bin.o(.data);
+        bootup_uso_ucodes_F3DEX_data_DATA_END = .;
+        bootup_uso_ucodes_F3DEX_data_DATA_SIZE = ABSOLUTE(bootup_uso_ucodes_F3DEX_data_DATA_END - bootup_uso_ucodes_F3DEX_data_DATA_START);
+    }
+    __romPos += SIZEOF(.bootup_uso_ucodes_F3DEX_data);
+    bootup_uso_ucodes_F3DEX_data_ROM_END = __romPos;
+    bootup_uso_ucodes_F3DEX_data_VRAM_END = .;
+
+    bootup_uso_ucodes_mid_ROM_START = __romPos;
+    bootup_uso_ucodes_mid_VRAM = ADDR(.bootup_uso_ucodes_mid);
+    .bootup_uso_ucodes_mid : AT(bootup_uso_ucodes_mid_ROM_START)
+    {
+        FILL(0x00000000);
+        bootup_uso_ucodes_mid_DATA_START = .;
+        build/assets/bootup_uso_ucodes_mid.bin.o(.data);
+        bootup_uso_ucodes_mid_DATA_END = .;
+        bootup_uso_ucodes_mid_DATA_SIZE = ABSOLUTE(bootup_uso_ucodes_mid_DATA_END - bootup_uso_ucodes_mid_DATA_START);
+    }
+    __romPos += SIZEOF(.bootup_uso_ucodes_mid);
+    bootup_uso_ucodes_mid_ROM_END = __romPos;
+    bootup_uso_ucodes_mid_VRAM_END = .;
+
+    bootup_uso_ucodes_F3DLX_Rej_data_ROM_START = __romPos;
+    bootup_uso_ucodes_F3DLX_Rej_data_VRAM = ADDR(.bootup_uso_ucodes_F3DLX_Rej_data);
+    .bootup_uso_ucodes_F3DLX_Rej_data : AT(bootup_uso_ucodes_F3DLX_Rej_data_ROM_START)
+    {
+        FILL(0x00000000);
+        bootup_uso_ucodes_F3DLX_Rej_data_DATA_START = .;
+        build/assets/bootup_uso_ucodes_F3DLX_Rej_data.bin.o(.data);
+        bootup_uso_ucodes_F3DLX_Rej_data_DATA_END = .;
+        bootup_uso_ucodes_F3DLX_Rej_data_DATA_SIZE = ABSOLUTE(bootup_uso_ucodes_F3DLX_Rej_data_DATA_END - bootup_uso_ucodes_F3DLX_Rej_data_DATA_START);
+    }
+    __romPos += SIZEOF(.bootup_uso_ucodes_F3DLX_Rej_data);
+    bootup_uso_ucodes_F3DLX_Rej_data_ROM_END = __romPos;
+    bootup_uso_ucodes_F3DLX_Rej_data_VRAM_END = .;
+
+    bootup_uso_ucodes_tail_ROM_START = __romPos;
+    bootup_uso_ucodes_tail_VRAM = ADDR(.bootup_uso_ucodes_tail);
+    .bootup_uso_ucodes_tail : AT(bootup_uso_ucodes_tail_ROM_START)
+    {
+        FILL(0x00000000);
+        bootup_uso_ucodes_tail_DATA_START = .;
+        build/assets/bootup_uso_ucodes_tail.bin.o(.data);
+        bootup_uso_ucodes_tail_DATA_END = .;
+        bootup_uso_ucodes_tail_DATA_SIZE = ABSOLUTE(bootup_uso_ucodes_tail_DATA_END - bootup_uso_ucodes_tail_DATA_START);
+    }
+    __romPos += SIZEOF(.bootup_uso_ucodes_tail);
+    bootup_uso_ucodes_tail_ROM_END = __romPos;
+    bootup_uso_ucodes_tail_VRAM_END = .;
 
     bootup_uso_pre_tail_ROM_START = __romPos;
     bootup_uso_pre_tail_VRAM = ADDR(.bootup_uso_pre_tail);

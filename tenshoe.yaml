@@ -232,7 +232,18 @@ segments:
   # USO metadata and the tail rodata/reloc tables. Code sections live
   # before each ID string; data sections (0x800 each) end at the string.
   - [0xD9FE28, bin, bootup_uso_pre_head]
-  - [0xDB0000, bin, bootup_uso_ucodes]
+  # bootup_uso_ucodes carved further: three of the gfx DMEM data sections
+  # (0x800 each) byte-match Nintendo SDK F3DEX 1.23 stock builds shipped in
+  # n64decomp/sm64 lib/PR/f3dex/*_data.bin (issue #6 fingerprint comment).
+  # Naming them as separate bins documents the boundaries; remaining
+  # opaque regions hold gfx IMEM + 7 aspMain ucode entries (audio data
+  # sections at id-string-end pattern; aspMain has no public byte ref).
+  - [0xDB0000, bin, bootup_uso_ucodes_head]
+  - [0xDB7140, bin, bootup_uso_ucodes_F3DEX_NoN_data]
+  - [0xDB7940, bin, bootup_uso_ucodes_F3DEX_data]
+  - [0xDB8140, bin, bootup_uso_ucodes_mid]
+  - [0xDB9140, bin, bootup_uso_ucodes_F3DLX_Rej_data]
+  - [0xDB9940, bin, bootup_uso_ucodes_tail]
   - [0xDBA000, bin, bootup_uso_pre_tail]
   - name: bootup_uso
     type: code
