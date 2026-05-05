@@ -618,7 +618,11 @@ void arcproc_uso_func_00002438(void) {
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000247C);
+void arcproc_uso_func_0000247C(void) {
+    gl_func_00000000(gl_ref_00000070);
+    gl_ref_00000040 = 2;
+    gl_func_00000000(gl_ref_00000074, -1, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000024C0);
 
