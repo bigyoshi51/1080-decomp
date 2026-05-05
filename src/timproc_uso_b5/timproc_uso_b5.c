@@ -235,25 +235,44 @@ void timproc_uso_b5_func_00003F18(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. PARTIAL — needs PROLOGUE_STEALS=4
- * + SUFFIX_BYTES for promotion. Predecessor 00003F18 is now byte-correct
- * (SUFFIX_BYTES recipe re-applied), so this function's position is stable.
+/* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. fuzzy 70.26%. Multi-knob
+ * promotion needed — analysis 2026-05-05 (post E5D8 sibling land):
  *
- * Decode:
- *   v0 = a0->_29C; v0 += 0xDC;       // Vec3 dst pointer
- *   buf[0] = a0->_23C;                // ← supplied by predecessor's stolen tail (lw t8, 0x23C)
- *   buf[1] = a0->_240;
- *   buf[2] = a0->_244;
- *   v0[0] = (float)buf[0];            // type-pun via lwc1+swc1
- *   v0[1] = (float)buf[1];
- *   v0[2] = (float)buf[2];
+ * Bytewise diff (post-PROLOGUE_STEALS=4 + SUFFIX_BYTES, before frame fix):
+ *   Build C-emit (18 insns, frame 0x10):
+ *     +00: lw t6, 0x23C(a0)   <- gets spliced by PROLOGUE_STEALS=4
+ *     +04: lw v0, 0x29C(a0)
+ *     +08: addiu sp, -0x10    <- prologue at insn 3 (after early load)
+ *     +0C: sw t6, 4(sp)
+ *     [scratch buf at sp+4..0xC, lwc1 from sp+4..0xC]
+ *     +44: jr ra; +48: nop
+ *   Expected (19 insns, frame 0x28):
+ *     +00: addiu sp, -0x28    <- prologue FIRST
+ *     +04: lw v0, 0x29C(a0)
+ *     +08: addiu t6, sp, 0xC  <- $t6 = scratch base register
+ *     +0C: sw t8, 0(t6)       <- $t8 INHERITED from 3F18 stolen tail
+ *     [scratch buf at sp+0xC..0x14 via $t6]
+ *     +3C: jr ra; +40: swc1 (delay)
+ *     +44: jr ra; +48: sw a0, 0(sp)  <- trailing 8 bytes (alt-entry?)
  *
- * Bundled trailer (offsets 0x44/0x48): `jr ra; sw a0, 0(sp)` — appended via
- * SUFFIX_BYTES = 0x03E00008,0xAFA40000.
+ * Three structural diffs that combine multiplicatively:
+ *   (A) frame size 0x10 -> 0x28 (need char pad[24] or similar)
+ *   (B) prologue-then-load order (target has prologue first; build
+ *       hoists `lw v0` ahead of prologue — IDO scheduler -O2 unflippable)
+ *   (C) scratch addressing via $t6 (= sp+0xC) vs sp-direct (= sp+4)
+ *       — target's `addiu t6, sp, 0xC; sw $tN, 0/4/8(t6)` shape vs
+ *       build's `sw $tN, 4/8/C(sp)` shape. Per
+ *       feedback_typed_stack_struct_for_direct_sp_stores.md (inverse)
+ *       — typed-struct picks sp-direct; we want register-based.
  *
- * Promotion: PROLOGUE_STEALS=4 (splice off C-emit's lw t8 prefix since
- * predecessor provides it) + SUFFIX_BYTES for trailer + clean C body using
- * Tri3i→Vec3 pun pattern from feedback_uso_accessor_template_reuse.md. */
+ * Recipe sketch (DEFER — requires drop-wrap + frame-fix + reg-base):
+ *   Makefile:
+ *     PROLOGUE_STEALS += timproc_uso_b5_func_00003F5C=4
+ *     SUFFIX_BYTES += timproc_uso_b5_func_00003F5C=0x03E00008,0xAFA40000
+ *   C body restructure to force frame=0x28 + $t6 scratch base.
+ *
+ * Predecessor 00003F18 is byte-correct (SUFFIX_BYTES applied), so 3F5C's
+ * position is stable for next-pass attempt. */
 typedef struct { int a, b, c; } Tri3i_F5C;
 typedef struct { float x, y, z; } Vec3_F5C;
 void timproc_uso_b5_func_00003F5C(int *a0) {
