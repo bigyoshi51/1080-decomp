@@ -752,6 +752,19 @@ int *func_0000553C(int *arg0) {
     }
     return p;
 }
+/* 2026-05-05 GRIND: 84.20% NM, 22-vs-25 insn delta. Target's diff list:
+ *   1. Frame -0x28 vs built -0x20 (+8 bytes pad with explicit stores)
+ *   2. Double-save a0 at sp+0x28 AND sp+0x1C (target redundant)
+ *   3. Spill slot swap: target a0@0x1C/v0@0x20; built a0@0x20/v0@0x1C
+ *   4. Delay slot of 2nd jal: target sw a1,0x4(sp); built sw v0,0x1C(sp)
+ *   5. T-reg: target t8 vs built t6 (post-cc INSN_PATCH territory)
+ * Variants tried: int pad[2] (no-op, optimized away), volatile int pad[2]
+ * (no-op), volatile pad with explicit stores (regressed to 44%; added
+ * dead pad-zero-stores that target doesn't have). The double-save
+ * pattern at sp+0x28+sp+0x1C is unusual — likely came from a different
+ * IDO build flag or volatile-arg semantics. Future-pass: try
+ * `volatile int *_arg = arg0` to force the spill duplication; if that
+ * works, INSN_PATCH the residual t-reg/spill-slot diffs. */
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
 #endif
