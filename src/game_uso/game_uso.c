@@ -2882,10 +2882,28 @@ trunk:
             goto ret;
         }
     }
-    /* TODO: bits 0x80, 0x100, 0x08, 0x04, 0x10 — see asm 0x7828-0x7A08.
-     * bit-0x80 (0x7828-0x7994) is the most complex: cnt < 8 guard, list
-     * iteration via a0[0x4DC] base + per-step increment, multiple ret_lo
-     * accumulations. Decode in next pass. */
+    /* TODO: bits 0x80, 0x100, 0x08, 0x04, 0x10 — see asm 0x7828-0x7A08. */
+
+    /* bit-0x80 entry (0x7828-0x7848, decoded 2026-05-05):
+     *   if (a1 & 0x80) {
+     *       sub_cnt = a0[0x4C];                 // same sub-counter as bit-0x20
+     *       if (sub_cnt < 8) {
+     *           list_base = a0[0x137];          // a0[0x4DC] — list-base ptr
+     *           ... bit-0x80 fast-path (TBD, ~50 insns at 0x7848-0x7900) ...
+     *       } else {
+     *           list_base = a0[0x137];
+     *           ... bit-0x80 slow-path (TBD, ~30 insns at 0x7900-0x7990) ...
+     *       }
+     *   }
+     *
+     * Both arms use a0[0x4DC] as a list-base pointer (lw $a2, 0x4DC($a0)
+     * appears in both fall-through delay slots), and operate on entries
+     * with stride 0x10 bytes (addiu offsets +8/+10 dot the asm). Likely
+     * iterating a stride-16 record array; cnt<8 guard suggests a max-8
+     * inline-cache or small-list optimization.
+     *
+     * Full bit-0x80 body (0x7848-0x7990) deferred — multi-pass decomp;
+     * current per-bit dispatcher is at ~31% fuzzy. */
 
 ret:
     /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94),
