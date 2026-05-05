@@ -757,7 +757,26 @@ void gl_func_00030564(void) {
     gl_func_00000000(0x06000801, 1);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00030598: gate function — calls gl_func_00000000 if both
+ * D_X[8] and D_X[0xC] are zero. The function's first 3 insns
+ * (lui v0; addiu v0; lw t6, 0x8(v0)) are STOLEN PROLOGUE supplied by
+ * predecessor gl_func_00030564's SUFFIX_BYTES trailer. Uses bnel
+ * (branch likely) with epilogue's lw ra in delay slot.
+ *
+ * Promotion: needs PROLOGUE_STEALS=12 + the bnel-via-`if (cond) return;`
+ * IDO pattern (untested for IDO 7.1; GCC's bnel emit may not apply).
+ * Defer — multi-tick decomp. */
+extern int D_00000000;
+void gl_func_00030598(void) {
+    int *p = (int*)&D_00000000;
+    if (p[2] != 0) return;
+    if (p[3] != 0) return;
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000305CC);
 
