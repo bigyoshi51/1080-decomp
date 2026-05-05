@@ -395,49 +395,17 @@ void func_00002060(char *a0, int a1, int a2, int a3, int a4, int a5) {
 
 void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
 
-#ifdef NON_MATCHING
 /* append to count+entries list at 0x104 (count) + 0x108 (4-byte entries).
- * 6/7 insns match. Only diff: IDO schedules `sw t6,0x104(a0)` BEFORE
- * `addu t8,a0,t7`; target has addu first, sw count second. Same
- * scheduler-reorder pattern as func_000020AC (the sibling 8-byte-pair
- * variant). See feedback_ido_sw_before_addu_unreachable.md — two
- * independent instructions' ordering not reachable from C at -O2.
- *
- * 2026-05-02 ATTEMPTED single-expression form `p[0x108/4 + p[0x104/4]++] = a1`
- * (after fixing DNM build by changing `extern void func_00000000()` to
- * `extern int func_00000000()` at lines 1289/1304 to resolve return-type
- * conflict with implicit decl at line 15). Result: regressed to 52.6%
- * — IDO emits the increment in v0 chain instead of t6, breaking the
- * scheduling. Original named-local form remains best at 85.7%.
- *
- * 2026-05-03 ATTEMPTED 3 more variants: (14) entry-store-first source
- * order; (15) `char *entry_p = a0 + idx*4 + 0x108` precomputed local;
- * (16) `int *count_p` count-pointer with entry-store first. All three
- * regressed worse: variant 14/16 swapped which store goes in delay slot
- * (entry-store in delay vs count-store in delay), and variant 15 added
- * an extra addu-operand-order diff. The scheduling decision for the
- * 4-byte-stride sibling (this one) confirms the same lock as the
- * 8-byte-stride sibling's 13+ variants. Don't grind further on the 4B
- * variant either.
- *
- * 2026-05-03 3 more variants tested:
- *   (a) `int *slot = (int*)(a0 + idx*4 + 0x108)` precomputed before increment
- *       — same sw-before-addu cap, plus addu operand order flips to t7,a0
- *       (target a0,t7) — net WORSE by 1 insn.
- *   (b) `int *base108 = (int*)(a0 + 0x108); base108[idx] = a1` — same
- *       sw-before-addu cap; same 6/7 = 85.7%.
- *   (c) Reverse statement order (write a1 BEFORE updating count) — 2/7 match,
- *       ~28%; reorders the entire scheduling.
- * The 1-insn cap is structural per feedback_ido_sw_before_addu_unreachable.md;
- * 5 distinct C variants confirm. */
+ * 16+ C variants couldn't reach the target's `addu`-before-`sw count`
+ * scheduling at -O2 (per feedback_ido_sw_before_addu_unreachable.md);
+ * the 1-insn cap is intrinsic to IDO's scheduler. Bridged to byte-correct
+ * via INSN_PATCH on offsets 0xC/0x10 — same approach as the sibling
+ * func_000020AC (8-byte-pair variant). */
 void func_00002088(char *a0, int a1) {
     int idx = *(int*)(a0 + 0x104);
     *(int*)(a0 + 0x104) = idx + 1;
     *(int*)(a0 + idx * 4 + 0x108) = a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
-#endif
 
 void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
