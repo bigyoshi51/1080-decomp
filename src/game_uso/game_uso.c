@@ -2318,6 +2318,34 @@ void game_uso_func_0000751C(char *a0) {
  * Next pass should compare objdiff output per-arm and fill in the TODO
  * placeholders embedded in each arm.
  *
+ * 2026-05-05 ASM TRACE NOTES (no code change this pass):
+ *   - Branch at 0x75D8 is `beq t1,zero,+0xA` (opcode 4 = BEQ), NOT BNEL.
+ *     Initial mis-decode as bnel led to a regression-tested invert attempt
+ *     (36.89% -> 36.74%, reverted). The dispatch arm is normal-direction:
+ *     bit 0x01 set → body at 0x75E0 fires (raises bit 0x01 in a0[0x6C]).
+ *
+ *   - bit 0x04 arm's full asm body (0x7628-0x7650) does MORE than the
+ *     current C captures:
+ *       a1 was loaded as t9 = a0[0x50] (counter check)
+ *       at = 0x3F800000 (1.0f)
+ *       t0 = 8
+ *       if (t9 != 0) skip 6 insns (don't fire body)
+ *       f2 = 1.0f                            ← current C has this
+ *       v1 = 1                               ← MISSING (retHi)
+ *       a0[0x50] = 8                         ← current C has this
+ *       a1 = a0[0x6C] (reload, in delay slot of b)
+ *     Adding `retHi=1` requires returning a 64-bit (v0,v1) pair; the
+ *     current C body returns void via implicit dropped-value. Function
+ *     signature needs update to int64_t (or u64) before the bit-0x04
+ *     and bit-0x80 arm bodies (which both set retHi) can match.
+ *
+ *   - Function epilogue stores ret_lo to `outer[0x800]->[0x40]`; the
+ *     return value (v0,v1) packs ret_lo,ret_hi for the caller too. Both
+ *     paths must be correct for a full match.
+ *
+ *   Next pass: change signature to `s64 game_uso_func_00007538(int*, int)`
+ *   then add `retHi` field updates. Likely +5-10pp gain. */
+ *
  * DECODE (insns 1-40 @ 0x7538-0x75D4):
  *   Setup:
  *     f16 = 0.0f; f0 = 0.0f; f2 = 0.0f; v0 = v1 = 0 (retLo/retHi)
