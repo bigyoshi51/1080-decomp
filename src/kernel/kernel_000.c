@@ -330,7 +330,91 @@ void func_80000480(Struct00480Dst* dst, Struct00480Src* src) {
     dst->unk18 = src->unk10;
 }
 
+#ifdef NON_MATCHING
+/* func_800004B8: 44-insn handler-table iterator. Walks function table at
+ * D_8000A2E0, calling func_80000568(entry, a1_saved) for each entry; on
+ * first handler returning 0, calls func_80000880(saved_a0, entry) and
+ * returns ptr to D_80012C70[s1].
+ *
+ * STRUCTURE WITH CROSS-FUNCTION BRANCHES (asm 0x4B8-0x568):
+ *   table_base = D_8000A2E0;      // global function table head ptr
+ *   v0 = *table_base;             // first table entry
+ *   s1 = 0; saved_a0 = a0; saved_a1 = s3 = a1;
+ *   if (v0 == NULL) {
+ *       s1 = 0; v0 = 0;
+ *       goto func_80000568+.L80000570;  // shared epilogue, no s1 update
+ *   }
+ *   if (v0[0] == NULL) {          // entries[0].first_func == NULL?
+ *       s0 = s1 * 20;
+ *       goto func_80000568+.L8000056C; // shared epilogue, s1 cleared
+ *   }
+ *   for (;;) {
+ *       a0 = v0[s1*5];            // fetch entry[s1].handler
+ *       ret = func_80000568(a0, saved_a1);   // CALL shared trampoline
+ *       if (ret != 0) {
+ *           s1++; s0 += 20;
+ *           a0 = (*table_base)[s1*5];  // next entry handler
+ *           if (a0 != 0) continue;     // loop back
+ *           // fall through to "no more handlers" exit
+ *       }
+ *       // ret == 0 (handler signaled stop) or no more entries:
+ *       func_80000880(saved_a0, *table_base + s0);  // followup call
+ *       v0 = (s32*)((char*)&D_80012C70 + s1*20);    // compute ret ptr
+ *       goto func_80000568+.L80000570;  // shared epilogue with v0 set
+ *   }
+ *
+ * SHAPE NOTES:
+ *   - 3 cross-function `b/beqz` branches into func_80000568's PREFIX-injected
+ *     body: .L80000570 lands at 0x14 (lw ra,0x24(sp)), .L8000056C lands
+ *     at 0x10 (or v0,zero,zero). Both resolve correctly post-link because
+ *     func_80000568 is in the same .o at known offset.
+ *   - The cross-function jump uses `b/beqz <abs_label>` which IDO C-emit
+ *     won't reproduce — would need PREFIX_BYTES or asm-processor's
+ *     `__asm__("b .Lext")` (IDO rejects per feedback_ido_no_asm_barrier.md).
+ *   - 4 saved regs: s0 (s1*20 byte offset), s1 (entry index), s2 (table
+ *     base ptr cache), s3 (saved a1). Plus 3 caller-arg spills at
+ *     sp+0x28/0x2C/0x30 (a0, a1 dead, a2 dead).
+ *
+ * Cap: ~40-50% structural — control-flow shape can't be reproduced from
+ * standard C due to cross-function branches. Could potentially use the
+ * PREFIX_BYTES + INSN_PATCH combo if .L8000056C / .L80000570 land on
+ * fixed offsets and the C body's natural emit can be "wrapped" with
+ * leading prefix that handles the 0x4F0/0x4F4/0x504/0x548 branches
+ * directly. Deferred — current structure documents the algorithm. */
+extern s32 D_80012C70[];
+extern int func_80000880();
+extern void func_80000568(void);
+
+s32 *func_800004B8(s32 a0, s32 a1, s32 a2) {
+    s32 s1 = 0;
+    s32 *v0;
+    s32 *entry;
+    (void)a2;  /* spilled at sp+0x30 but never reloaded — dead spill */
+
+    v0 = (s32*)D_8000A2E0;
+    if (v0 == NULL) {
+        return NULL;
+    }
+    entry = (s32*)v0[0];
+    if (entry == NULL) {
+        return NULL;
+    }
+    {
+        s32 (*shared_epilogue)(s32, s32) = (s32(*)(s32,s32))func_80000568;
+        do {
+            s32 ret = shared_epilogue(entry[s1*5], a1);
+            if (ret == 0) {
+                func_80000880(a0, &(((s32*)D_8000A2E0)[s1*5]));
+                return &D_80012C70[s1*5];
+            }
+            s1++;
+        } while (((s32*)D_8000A2E0)[s1*5] != 0);
+    }
+    return NULL;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800004B8);
+#endif
 
 /* Cross-function shared-epilogue-return-0 stub. 9 insns:
  *   nop; or v0,zero,zero; lw ra,0x24(sp); lw s0,0x14(sp); lw s1,0x18(sp);
