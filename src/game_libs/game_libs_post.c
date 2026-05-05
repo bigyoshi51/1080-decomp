@@ -2027,13 +2027,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040E90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041008);
 
-#ifdef NON_MATCHING
-/* gl_func_000410AC: 12-insn 2-call wrapper. Verified 100% fuzzy
- * (build/non_matching) BUT byte-correct build can't resolve the jal
- * targets — they're mid-function aliases (jal goes 0x84 bytes into
- * gl_func_000545BC and 0x1C bytes into gl_func_00054668). Defining
- * external aliases would require undefined_syms_auto.txt entries naming
- * the inner addresses. INCLUDE_ASM stays for the byte-correct build. */
+/* gl_func_000410AC: 12-insn 2-call wrapper. Mid-function aliases
+ * gl_func_00054648 (= gl_func_000545BC + 0x8C) and gl_func_00054684
+ * (= gl_func_00054668 + 0x1C) added to undefined_syms_auto.txt so the
+ * byte-correct build links cleanly. Per memo
+ * feedback_mid_function_jal_targets_block_byte_correct_link.md option 2. */
 extern int gl_func_00054648();
 extern int gl_func_00054684();
 void gl_func_000410AC(char *a0) {
@@ -2041,9 +2039,6 @@ void gl_func_000410AC(char *a0) {
     gl_func_00054648(&local_buf);
     gl_func_00054684(a0 + 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000410AC);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000410AC_pad.s")
 
 extern int gl_func_00000000();
