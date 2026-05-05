@@ -405,7 +405,65 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F5
  * Multi-tick refinement target — entry decode is forward progress
  * documenting the dispatch structure. Default INCLUDE_ASM build remains
  * exact. */
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00000FA8: 114-insn (0x1C8) state-machine dispatcher
+ * on a0->[0x504]. Frame 0x30, saves ra/s1/s0.
+ *
+ * Decoded entry (insns 1-13):
+ *   s0 = a0->[0x504];                       // state field
+ *   s1 = a0;
+ *   if (s0 == 0) { v0 = a0->[0x6AC]; goto case_0; }   // beql shortcut
+ *   if (s0 == 1) goto case_1;                          // beq +0x2A
+ *   if (s0 == 4) { v0 = a0->[0x6A8]; goto case_4; }   // beql shortcut
+ *   goto end;
+ *
+ * Case 0 (~22 insns @ 0xFEC-0x103C): state-0 list management.
+ *   - Read a0->[0x6AC]->[0x44] (= sub-obj+0x44) and a0->[0x6AC]->[0x14]
+ *     (= sub-sub+0x14). Decrement a0->[0x6B4] counter. Loop on
+ *     comparison (count != 1) — likely "advance through a list".
+ *
+ * Case 1 (~13 insns @ 0x1058-0x108C): state-1 transition.
+ *   - a0->[0x504] = 1; gl_func calls with arg 3, then 0, 1.
+ *   - Sets a0->[0x6AC] (or similar) and falls through to `end`.
+ *
+ * Case 4 (~50 insns @ 0x1078+0x59*4 = 0x11BC area): state-4 setup.
+ *   - Reads a0->[0x190] table addresses, builds sp+0x20 buf, makes
+ *     several gl_func calls with sequence numbers. Likely "initialize
+ *     buffered playback / arc-process state machine".
+ *
+ * Default exit (insns 0xFE0-0xFE4): jump to epilogue.
+ *
+ * Initial decode 2026-05-05 — first-pass NM. ~80 insns of body (cases
+ * 0/1/4) sketched as TODO; full decode requires multiple passes. */
+extern int gl_func_00000000();
+void arcproc_uso_func_00000FA8(int *a0) {
+    int s0 = a0[0x504 / 4];
+    int *p;
+    if (s0 == 0) {
+        /* case 0: list-advance loop on a0->[0x6AC]->[0x44]
+         * (~22 insns, TBD) */
+        (void)a0[0x6AC / 4];
+        return;
+    }
+    if (s0 == 1) {
+        /* case 1: state-1 transition (~13 insns)
+         * a0->[0x504] = 1; gl_func calls; TBD */
+        gl_func_00000000(a0[0x190 / 4]);
+        a0[0x504 / 4] = 1;
+        return;
+    }
+    if (s0 == 4) {
+        /* case 4: state-4 setup with sp+0x20 buf, multiple gl_func calls
+         * (~50 insns, TBD) */
+        p = (int*)a0[0x6A8 / 4];
+        (void)p;
+        return;
+    }
+    /* default: fall through to end */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA8);
+#endif
 
 /* arcproc_uso_func_00001170: 3-FUNCTION BUNDLE (0xEC / 59 insns).
  * Splat-bundled, can't be split per
