@@ -132,7 +132,20 @@ void timproc_uso_b5_func_0000115C(int *a0) {
  *   slot->0x41C->0x50: flag table indexed by `1 << count`
  *
  * Logic decoded but not byte-matched this pass — needs typed struct
- * to clean up the *(int*)((char*)+offset) chains. */
+ * to clean up the *(int*)((char*)+offset) chains.
+ *
+ * 2026-05-05 status: 71.13% fuzzy. Build emits 99 insns (396 bytes) vs
+ * target 104 (416 bytes); 5-insn delta, likely from $s-register usage
+ * difference (target probably saves more $s-regs than our 5 named locals
+ * trigger). Next-pass ideas:
+ *   - Extract `slot->0x40C->0x38 + 0x18` into a helper macro/inline
+ *     function call to reduce the 6 repeated chain expressions to 6
+ *     calls. May change ref counts enough to bump $s-allocation.
+ *   - Try `register int *flags_ptr = ...` to force one specific local
+ *     into $s.
+ *   - Type slot/child/flags as struct pointers (define a minimal struct
+ *     with the relevant fields) to let IDO see field accesses as
+ *     direct loads vs char-cast deref. */
 void timproc_uso_b5_func_0000117C(int *a0) {
     int v;
     int *slot;
