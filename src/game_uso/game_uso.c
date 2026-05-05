@@ -4214,7 +4214,43 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
  *
  * Left as INCLUDE_ASM until enough body is decoded to support a
  * compile-testable skeleton. The entry decode is the forward progress
- * for this pass per the skill's multi-run decomp convention. */
+ * for this pass per the skill's multi-run decomp convention.
+ *
+ * EXTENDED CHARACTERIZATION 2026-05-05 (insns 60-100 @ 0xDABC-0xDB50):
+ *   The two arms (sp+0x2C = 1 vs 3, OR-mask 0x16 vs 0x17) converge at
+ *   0xDABC via `b +0x46` (unconditional) → 0xDBD8 (far merge point).
+ *   Delay slot reloads inner = a0->0xB4 (prepping for downstream).
+ *
+ *   skip_block_DAC8 (the "w >= 0" path, taken when the bc1f at 0xDAB4
+ *   skipped the negative-w block):
+ *     a0_arg = s0 (=a0)                ; setup for upcoming jal
+ *     a1 = 4                            ; arg count? scaled?
+ *     bc1tl + neg.s f0, f0 (delay)      ; if FCC1 set, negate f0
+ *     b +2 + neg.s f0, f0 (delay)       ; abs.s pattern (sets f0 = |f0|)
+ *     ; then loads a0->[0x22C] (lwc1 f4, 0x22C(s0))
+ *     ; cvt.s.d f0, f0 (Single-precision mode)
+ *     ; bc1fl over jal: if f4 < some threshold, skip the jal
+ *     jal gl_func_00000000              ; SECOND cross-USO call
+ *     sw zero, 0x30(sp)                 ; delay - clear flag
+ *
+ *   Next sub-block 0xDB00-0xDB50: similar pattern with different fields.
+ *     reload inner = a0->0xB4
+ *     mtc1 zero, f6                     ; f6 = 0.0
+ *     a3 = 2                            ; alt arg
+ *     lwc1 f2, 0x970(v1)                ; load inner->[0x970] (probably big f-table)
+ *     lui at, 0  (reloc start for double-constant load)
+ *     c.lt.s f6, f2                     ; 0 < f2 ?
+ *     bc1fl + neg.s f0, f0              ; abs-like guard
+ *     ldc1 f8, 0x1F8(at)                ; load DOUBLE constant from D+0x1F8
+ *     cvt.s.d f5, f0                    ; cast to single
+ *     c.lt.d f8, f10                    ; double-precision compare
+ *     bc1fl + mtc1 zero, f4 (delay)     ; conditional float reset
+ *
+ *   Cumulative ~100/524 insns characterized (~19%). The function's
+ *   theme is now clearer: per-frame state machine with multiple
+ *   FPU thresholds (30.0f gate at entry, 500.0f mentioned earlier,
+ *   plus a double-precision threshold from D+0x1F8 here). Each
+ *   FPU comparison can flip the per-frame state field at a0->0x108. */
 void game_uso_func_0000D9CC(int *a0) {
     int local_28 = 0, local_2C = 0, local_30 = 1;
     int *inner;
