@@ -2298,7 +2298,7 @@ void game_uso_func_0000751C(char *a0) {
 /* game_uso_func_00007538: 0x560 (344 insns) — largest residue of the split-up
  * 0x7424 bundle. Per-frame event dispatcher + per-bit timer decrementer.
  *
- * Partial C body below: 36.89% (was 31.62% pre-fix-2026-05-05). Captures
+ * Partial C body below: 37.51% (was 36.89% pre-s64-2026-05-05). Captures
  * prelude + dispatch outline + epilogue; many arm bodies are TODO-stubbed
  * with correct control-flow targets but no per-bit state mutations yet.
  *
@@ -2471,8 +2471,9 @@ void game_uso_func_0000751C(char *a0) {
  * delay-slot-scheduled state mutations (each arm's delay slot does part of
  * the next arm's setup). Next pass: decode 0x77B8-0x7880 (bits 0x20, 0x80,
  * 0x100) and the merge block proper. */
-void game_uso_func_00007538(int *a0, int a1) {
+long long game_uso_func_00007538(int *a0, int a1) {
     int ret_lo = 0;
+    int ret_hi = 0;
     int a1_saved = a1;
     int counter, flags, flag2;
     int *outer;
@@ -2518,9 +2519,10 @@ check_40:
     }
     if (a1_saved & 0x04) {
         if (counter != 0) goto check_20;
-        /* arg1 & 0x04 arm: reset counter + set f2 = 1.0f */
+        /* arg1 & 0x04 arm: reset counter + set f2 = 1.0f, ret_hi = 1 */
         a0[0x50 / 4] = 8;
         f2 = 1.0f;
+        ret_hi = 1;
         goto trunk;
     }
 check_20:
@@ -2611,9 +2613,11 @@ trunk:
     /* TODO: bits 0x20, 0x100, 0x08, 0x04, 0x10 — see asm 0x7820-0x7A08 */
 
 ret:
-    /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94) */
+    /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94),
+     * then return packed (ret_hi, ret_lo) as 64-bit (v0, v1) per asm. */
     outer = (int*)a0[0x30 / 4];
     ((int*)outer[0x800 / 4])[0x40 / 4] = ret_lo;
+    return ((long long)ret_hi << 32) | (unsigned int)ret_lo;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
