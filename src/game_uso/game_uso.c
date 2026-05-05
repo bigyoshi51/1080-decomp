@@ -3285,7 +3285,20 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  * Remaining ~492 insns expected to continue: third FPU stage, more
  * cross-USO calls (~14 of the 16 total still ahead), and the closing
  * write-back to multiple a1->[N] fields (the snowboard's final
- * per-frame state). NM-doc only (3.5%). */
+ * per-frame state). NM-doc only (3.5%).
+ *
+ * Struct fields identified for the snowboard physics struct (a1):
+ *   a1->[0x30]   — sub-struct transform Vec3 base ptr
+ *   a1->[0x84]   — per-frame scalar (multiplied each iter, possibly speed)
+ *   a1->[0x88..0x8C] — per-frame Vec3 component cache (revised twice)
+ *   a1->[0x90..0x98] — world-grounded XZ-projected position (FINAL output)
+ *   a1->[0xDC]   — multiplier source for a1->[0x8C] update
+ *
+ * And for arg3:
+ *   arg3->[0x30..0x38] — primary Vec3 (XZ-projection source)
+ *   arg3->[0x348] — single-precision float promoted to double (sub-pixel
+ *                   accumulator base)
+ */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
