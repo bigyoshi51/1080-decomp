@@ -1040,7 +1040,34 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E014);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E124);
 
+#ifdef NON_MATCHING
+/* 24-insn wrapper that calls a sibling twice with computed-offset args.
+ * Logic:
+ *   ratio = *(f32*)((char*)&func_0000098C + 0xC) / arg1;
+ *   func_00000000(arg0 + 0xCC, arg0 + 0x3B0, ratio);
+ *   func_00000000(arg0 + 0xF4, arg0 + 0x3B0, ratio);
+ *
+ * Suspicious: `&func_0000098C + 0xC` reads bytes inside that function's body
+ * (insn `lw $a1, 0x8($a0)` at offset 0x998 — `8C 85 00 08` interpreted as
+ * f32 = -8.13e-32-ish). Likely splat misnamed the relocation target — there
+ * may be a real D_00000998 rodata float symbol that splat folded into the
+ * nearest preceding function. func_0000D900.s also references
+ * `func_0000098C + 0x4` with the same pattern (LUI/LWC1 pair). Investigation
+ * needed: scan asm for `func_0000098C + N` references and replace with a
+ * proper rodata symbol once found.
+ *
+ * Default INCLUDE_ASM keeps ROM correct; this wrap is a structural pass for
+ * the next iteration. Likely won't byte-match without proper symbol naming
+ * + the typed-extern trick to bake the offset into lui/lwc1. */
+extern int func_0000098C;
+void func_0000E270(char *arg0, float arg1) {
+    float ratio = *(float*)((char*)&func_0000098C + 0xC) / arg1;
+    func_00000000((arg0 + 0xCC), (arg0 + 0x3B0), ratio);
+    func_00000000((arg0 + 0xF4), (arg0 + 0x3B0), ratio);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E270);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E2D0);
 
