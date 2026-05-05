@@ -345,7 +345,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008944);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008990);
 
+#ifdef NON_MATCHING
+/* gl_func_000089F4: 19-insn (0x4C) -O0 float reader template — float-typed
+ * counterpart of gl_func_00008944's int-reader. Verified BYTE-IDENTICAL
+ * standalone at -O0 (lwc1 $f4 / swc1 $f4 in place of lw/sw).
+ *
+ * BLOCKED: same -O0 file split as gl_func_00008944. See feedback memo
+ * feedback_o0_int_reader_template_variant.md (extends to float variant). */
+void gl_func_000089F4(float *dst) {
+    float buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000089F4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008A40);
 
