@@ -2344,7 +2344,7 @@ void game_uso_func_0000751C(char *a0) {
  *     paths must be correct for a full match.
  *
  *   Next pass: change signature to `s64 game_uso_func_00007538(int*, int)`
- *   then add `retHi` field updates. Likely +5-10pp gain. */
+ *   then add `retHi` field updates. Likely +5-10pp gain.
  *
  * DECODE (insns 1-40 @ 0x7538-0x75D4):
  *   Setup:
