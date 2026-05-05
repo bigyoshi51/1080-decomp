@@ -2490,7 +2490,67 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  * Decoded so far: insns 1-152 of 709 (~21%). Remaining ~557 insns
  * (16 more cross-calls expected) likely repeat the (cross-call, Vec3-
  * compute, write-back) micro-pattern for additional sub-systems
- * (collision, terrain follow, AI state). Multi-tick continuation. */
+ * (collision, terrain follow, AI state). Multi-tick continuation.
+ *
+ * 2026-05-04 EXTENDED DECODE @ 0x8F98-0x9088 (insns 153-217, ~64 more):
+ * SECOND iteration of the per-frame Vec3 broadcast cycle, this time
+ * with FPU cvt.d.s / cvt.s.d casts intermixed (single→double→single
+ * conversion pattern, characteristic of MIPS double-precision math
+ * needed for sub-pixel position accumulation):
+ *
+ *   (H) 0x8F98-0x8FAC: a1->[0x84..0x8C] write-back No.1.
+ *         a1->[0x84] = $f10 (carryover from prior block)
+ *         a1->[0x88] = sp[0x120]
+ *         a1->[0x8C] = sp[0x124]
+ *       Continues "snowboard physics writes its current XZ output to
+ *       the subsystem struct" theme. Reads sp[0x120/0x124] (newly-
+ *       computed deltas?) and stores to a1->[0x88/0x8C].
+ *
+ *   (I) 0x8FB0-0x8FE8: FPU DOUBLE-PROMOTION block. Loads f6 from
+ *       (t2+0x348) — t2 is `sp[0x218]` (the saved arg3 base):
+ *         f6 = arg3->[0x348]                        // single
+ *         f4 = double(f6)
+ *         f8 = double(f4)                           // chained?
+ *         f0 = double($f16) and f14 = double(f0)    // f16 from blk D
+ *         f12 = single(f0)                          // re-collapse
+ *         sp[0x108..0x110] = f14, f2, f12           // store DOUBLE-
+ *                                                      precision triple
+ *       This double-promote-then-collapse is IDO's idiom for "compute
+ *       expression in double precision then cast back to float"
+ *       (typical for fused-multiply-add or magnitude-square forms
+ *       where intermediate precision matters).
+ *
+ *   (J) 0x8FEC-0x901C: POINTER-CHAIN COPY. t3 = a1->0x30 (sub-struct
+ *       transform Vec3); copy 12 bytes from *t3 to a2 (= sp+0x174)
+ *       AND to t4 (= sp+0x1BC). Same triple-dest pattern as block C
+ *       but with one dest being an indirect pointer (t3->[0..8]):
+ *         t4 = sp + 0x1BC
+ *         *t4 = a2[0..8] = *t3                       // 12-byte copy
+ *
+ *   (K) 0x9020-0x9054: a1->[0x84..0x8C] write-back No.2 (overwrites
+ *       block H's writes — meaning blocks I/J computed REVISED values):
+ *         a1->[0x84] = sp[0x1C8] * a1->[0x84]_prev   // mul.s
+ *         a1->[0x88] = sp[0x1CC] * a1->[0x8C]_prev   // mul.s
+ *         a1->[0x8C] = sp[0x1D0] * a1->[0xDC]        // mul.s
+ *       Three FPU multiplies that scale the previously-stored Vec3 by
+ *       sp[0x1C8..0x1D0] — a per-frame scaling factor (likely
+ *       delta-time or velocity coefficient).
+ *
+ *   (L) 0x9058-0x9088: SECOND double-promotion FPU sub-block. Loads
+ *       f6 from (t9+0x348) — t9 is some pointer derived from a1+0x30
+ *       likely. Same double-up/collapse-down pattern as (I) but with a
+ *       different operand source. Writes results to sp[0x0FC..0x110]
+ *       (different stack slots — these are the "double-precision
+ *       intermediate" cache for the next FPU pass).
+ *
+ * Decoded so far: insns 1-217 of 709 (~31%). Confirms the function is
+ * a per-frame XZ-position broadcast + double-precision sub-pixel-
+ * accumulator with TWO scaling stages (raw → multiplied → final).
+ *
+ * Remaining ~492 insns expected to continue: third FPU stage, more
+ * cross-USO calls (~14 of the 16 total still ahead), and the closing
+ * write-back to multiple a1->[N] fields (the snowboard's final
+ * per-frame state). NM-doc only (3.5%). */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
