@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80006698",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-05-05T04:26:39.704599+00:00",
+  "end_time": "2026-05-05T04:26:39.704619+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-05T04:26:39.704614+00:00",
+      "assistant_text": "21-insn MMIO read-with-range-check helper. 3-fragment merge: splat split into func_80006698 (head, 6 insns) + func_800066B0 (middle, 15 insns) + func_800066D0 (tail, merged into 800066B0 in commit 387cf2f). Step 1 (yesterday's tick): MOVE func_800066B0 INCLUDE_ASM from kernel_018.c into kernel_017.c (per feedback_cross_file_fragment_unblock_via_move_then_merge.md). Step 2 (this tick): same-file merge, replacing both INCLUDE_ASMs with a single C body at -O1. Key matching trick: write the if-else with the VALID-RANGE arm as the inline body and the return-0 arm at the end (NOT vice versa) \u2014 produces target's branch direction (bnez/beqz to invalid path) and layout. Also: u32 cast on the address comparison (a0 is signed s32 but addresses are unsigned).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 6,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Forward declarations */\nextern s32 __osPiAccessQueue;\nextern s32 D_8000A480;\nextern s32 D_80013004;\nextern void func_80005DC0(s32*, s32, s32);\nextern void func_80005C00(void);\nextern void func_80004FE0(s32*, s32*, s32);\nextern void func_800053D0(s32*, s32*, s32);\nextern s32 D_8000A3E0;\nextern s32 func_800066B0(void);\nextern void func_800066D0(s32);\nextern void func_80003D0C(s32*);\nextern void* D_8000A420;\nextern s32 D_8000A418;\nextern s32 siacs_bss_0000;\nextern s32 func_800009D8(void*, s32, s32, void*);\nextern void func_80003FF0(s32, void*);\nextern void* func_80003E54(void*);\nextern void func_8000A110(void*);\nextern void func_8000857C(void);\nextern void func_8000785C(s32);\nextern void func_80008ED0(void);\nextern void func_80007760(void);\ntypedef void (*FuncPtr2)(void*, void*);\nextern FuncPtr2 D_80012C44;\nextern s32 D_8000A32C;\nextern s32 D_8000A340;\nextern s32 D_80012BC0;\nextern s32 D_8000A2E0;\nextern s32 D_8000A41C;\nextern s32 func_80002890(s32);\nextern void func_8000A0E0(void);\nextern void func_80005350(s32, s32);\nextern void func_80005400(s32, s32);\nextern s32 func_80008430(s32);\nextern void func_80009148(s32);\nextern void func_80009030(s32, s32);\nextern void func_80008498(void);\nextern s32 func_80006A98(s32);\nextern void func_800091F0(s32);\ntypedef struct { s32 pad[3]; s32 position; } FileState;\n\ntypedef struct {\n    void* mtqueue;\n    void* fullqueue;\n    s32 validCount;\n    s32 first;\n    s32 msgCount;\n    s32** msg;\n} OSMesgQueue;\n\ntypedef struct Thread {\n    s32 field0;\n    s32 pri;\n    s32 queue;\n    s32 pad0C;\n    u16 state;\n} Thread;\n\ntypedef struct { s32 queue; s32 msg; } OSEventState;\nextern OSEventState __osEventStateTab[];\n\n\nvoid __osResetGlobalIntMask(s32 arg0, s32 arg1) {\n    if (func_8000A090(arg0, arg1) != 0) {\n        do {\n        } while (func_8000A090(arg0, arg1) != 0);\n    }\n}\n\n\n/* func_80006698 is a 21-insn (0x54 byte) function that splat split into 3\n * fragments: func_80006698 (0x18, has prologue + addr-range start), 0x800066B0\n * (0x20, range-end check + jal func_80008FB0), 0x800066D0 (0x1C, return-merge\n * + epilogue). The 0x800066B0 fragment starts with `bnez $at, ...` using the\n * $at set by the predecessor's tail `sltu $at, $t6, $at` \u2014 classic\n * splat-fragment-via-register-flow pattern (per\n * feedback_splat_fragment_via_register_flow.md).\n *\n * Merging is non-trivial here: callers in kernel_003/017/019.c reference\n * `func_800066B0` and `func_800066D0` as if they were standalone (probably\n * a misidentified __osDisableInt/__osRestoreInt pair). After merge, those\n * callers would jal into the middle of the merged function with\n * uninitialized $at/$t6 \u2014 undefined behavior. ROM-bytes-wise the calls work\n * because asm-processor pastes the 3 INCLUDE_ASMs contiguously, but the\n * \"function\" semantics at 0x800066B0 are not what the callers think.\n *\n * Merging also requires linker layout adjustment: kernel_017.c.o would grow\n * 0x3C bytes (0x18 \u2192 0x54) which shifts kernel_018.c.o's start. Since the 3\n * fragments currently live in kernel_018.c, removing them shrinks kernel_018\n * by the same 0x3C \u2014 but the per-file .text positioning needs verification\n * before the merge can land.\n *\n * Documented decode (NOT compiled in default build):\n *\n *   s32 func_80006698(s32 a0) {\n *       s32 local;\n *       if (a0 < 0x04000000 || a0 >= 0x05000000) return 0;\n *       func_80008FB0(a0, &local);\n *       return local;\n *   }\n *\n * Reads MMIO from the 0x04000000-0x05000000 range (SP DMEM/IMEM + RCP\n * register space) via func_80008FB0 (likely __osPiRawReadIo or similar).\n * Returns 0 if address is out of range.\n *\n * 2026-05-05: 800066B0 (which previously absorbed 800066D0 via same-file\n * merge in kernel_018.c) MOVED here from kernel_018.c so all 3 fragments\n * now live in this -O1 .c file. Layout-neutral move (kernel_017.c.o grows\n * +0x3C, kernel_018.c.o shrinks -0x3C; both .o's are in adjacent slots in\n * tenshoe.ld). Next pass: same-file merge 80006698 + 800066B0 into a\n * single u32 helper. Per\n * feedback_cross_file_fragment_unblock_via_move_then_merge.md. */\nextern void func_80008FB0(s32, s32*);\ns32 func_80006698(s32 a0) {\n    s32 local;\n    if ((u32)a0 >= 0x04000000U && (u32)a0 < 0x05000000U) {\n        func_80008FB0(a0, &local);\n        return local;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_017.c",
+    "asm_path": "asm/nonmatchings/kernel/func_80006698.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G0 -mips2 -32",
+    "verification": "Verified byte-exact (0/21 word diffs) build/.o vs expected/.o; report.json fuzzy=100."
+  }
+}

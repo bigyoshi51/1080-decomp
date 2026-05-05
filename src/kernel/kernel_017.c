@@ -113,8 +113,12 @@ void __osResetGlobalIntMask(s32 arg0, s32 arg1) {
  * tenshoe.ld). Next pass: same-file merge 80006698 + 800066B0 into a
  * single u32 helper. Per
  * feedback_cross_file_fragment_unblock_via_move_then_merge.md. */
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80006698);
-
-/* Continuation of func_80006698. See above wrap doc for the merged-body
- * decode (range check + jal func_80008FB0 + return). */
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800066B0);
+extern void func_80008FB0(s32, s32*);
+s32 func_80006698(s32 a0) {
+    s32 local;
+    if ((u32)a0 >= 0x04000000U && (u32)a0 < 0x05000000U) {
+        func_80008FB0(a0, &local);
+        return local;
+    }
+    return 0;
+}
