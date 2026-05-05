@@ -615,7 +615,19 @@ void timproc_uso_b5_func_0000BB78(int *a0, int unused) {
     *(int*)((char*)(int*)a0[0x2B8/4] + 0x13C) = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BB88);
+/* 16-insn float-quad copy: v0 = a0->_2B8; copies 4 floats from
+ * a0->{_25C,_260,_264,_294} into v0->{_114,_118,_110,_11C}, then calls
+ * gl_func_00000000. Bundled-leaf trailer split off as 0000BBC8. */
+void timproc_uso_b5_func_0000BB88(int *a0) {
+    int *v0 = *(int**)((char*)a0 + 0x2B8);
+    *(float*)((char*)v0 + 0x11C) = *(float*)((char*)a0 + 0x294);
+    *(float*)((char*)v0 + 0x110) = *(float*)((char*)a0 + 0x264);
+    *(float*)((char*)v0 + 0x118) = *(float*)((char*)a0 + 0x260);
+    *(float*)((char*)v0 + 0x114) = *(float*)((char*)a0 + 0x25C);
+    gl_func_00000000();
+}
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BBC8);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BBDC);
 
