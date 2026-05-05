@@ -255,30 +255,106 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+#ifdef NON_MATCHING
 /* h2hproc_uso_func_00000620: 178-insn / 0x2CC orchestrator constructor.
- * Two `jr ra` in the .s — possibly bundled with a small trailing function
- * or has an early-return path through an inner `jr ra` (rare).
+ * Initial decode pass — 46.04% fuzzy. Applies the triple alloc-cascade
+ * recipe from feedback_alloc_or_passthrough_cascade_includes_dead_arms.md
+ * (verified +4.64pp on n64proc_uso_func_00000100 sibling).
  *
- * Decoded entry pattern (first ~40 insns, 0x620-0x6C0):
- *   prologue: addiu sp,-0x38; sw s0,0x18; or s0,a0,$0; sw ra,0x1C
- *   3 args spilled: a1 -> sp+0x3C, a2 -> sp+0x40, a3 -> sp+0x44
- *   if (a0 == 0): alloc(0x6BC); if !alloc, goto end (5C-byte tail)
- *   t6 = s0 = (alloc result or arg0); s0->0x28 = ?, s0->0x14 = ?
- *   if (a1 == 0): alloc(0x6A8); if !alloc, goto end
- *   ... alternating null-check-then-alloc chain
- *   inner blocks call gl_func with various offsets relative to s0+
- *   (template setups for sub-objects of size 0x6BC)
+ * Frame -0x38, saves s0+ra (2 callee-saves), spills 3 args (a1→0x3C,
+ * a2→0x40, a3→0x44). 5C-byte epilogue tail at 0x2B0+.
  *
- * Field offsets identified for future struct typing:
- *   a0->0x28: parent ptr at +0x28 (standard gl_lib pattern)
+ * The .s file contains 2 jr ra — the second (0x2C4) is a 2-insn trailer
+ * (`jr ra; sw a0, 0(sp)`) that splat couldn't separate. split-fragments.py
+ * works locally but breaks expected/.o on Yay0 USOs (per
+ * feedback_uso_split_fragments_breaks_expected_match.md). Leave bundled.
+ *
+ * Field offsets identified:
+ *   a0->0x28: parent ptr (standard gl_lib pattern)
  *   a0->0x14: vtable ptr
+ *   a0->0x48: child-pointer slot (allocated 0xF0, written here)
+ *   a0->0x528, 0x568, 0x6A8, 0x6B0: state fields
  *   a0->0x6BC: alloc-size constant for main object
- *   a0->0x6A8: alloc-size constant for sub-object 1
  *
- * Multi-tick decompile target. Same constructor pattern as
- * eddproc_uso_func_0000025C, timproc_uso_b3_func_00001660 (3-stage
- * alloc-or-passthrough chain). Default INCLUDE_ASM build matches. */
+ * Cascade pattern: a0/a1/a2 each go through `x = arg; if (!x) x = alloc(N);
+ * if (!x) goto end;`. This commits the 3-cascade form even if the asm's
+ * exact register choices may differ.
+ *
+ * Open: 8+ gl_func helper calls with various arg counts; field-store order
+ * needs verification; secondary alloc(0xF0) and inner alloc(0x50)/(0x2C)
+ * branches need decode confirmation. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
+    void *p, *q, *r, *child;
+    int *z;
+
+    p = a0;
+    if (p == 0) {
+        p = (void*)gl_func_00000000(0x6BC);
+        if (p == 0) return p;
+    }
+    q = p;
+    if (q == 0) {
+        q = (void*)gl_func_00000000(0x6A8);
+        if (q == 0) return p;
+    }
+    r = q;
+    if (r == 0) {
+        r = (void*)gl_func_00000000(0x50);
+        if (r == 0) return p;
+    }
+    child = r;
+    if (child == 0) {
+        child = (void*)gl_func_00000000(0x2C);
+        if (child == 0) return p;
+    }
+    gl_func_00000000(child, (char*)&D_00000000 + 0x3C0);
+    *(int*)((char*)child + 0x28) = (int)&D_00000000;
+    *(int*)((char*)r + 0x28)     = (int)&D_00000000;
+    *(int*)((char*)q + 0x28)     = (int)&D_00000000;
+    *(int*)((char*)p + 0x28)     = (int)&D_00000000;
+    *(int*)((char*)p + 0x568)    = 0;
+
+    gl_func_00000000(p, (char*)&D_00000000 + 0x3C8, a1, a3);
+    *(int*)((char*)p + 0x528) = 0;
+    gl_func_00000000(p, a2);
+    *(int*)((char*)p + 0x6A8) = a2;
+    gl_func_00000000((char*)&D_00000000 + 0x3D8, 0);
+    {
+        void *grandchild = (void*)gl_func_00000000(0xF0);
+        if (grandchild != 0) {
+            gl_func_00000000(grandchild);
+            *(int*)((char*)grandchild + 0x28) = (int)&D_00000000;
+        }
+        *(int*)((char*)p + 0x6B0) = (int)grandchild;
+        *(int*)((char*)&D_00000000 + 0x138) = (int)grandchild;
+    }
+    gl_func_00000000(*(int*)((char*)p + 0x6B0), p,
+                     *(int*)((char*)p + 0x568));
+    /* virtual call via vtable: vtable[0x5C] applied to vtable[0x58] + retval */
+    {
+        int *vt = *(int**)((char*)*(int**)((char*)p + 0x6B0) + 0x28);
+        ((void(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58));
+    }
+    gl_func_00000000((char*)p + 0x10, *(int*)((char*)p + 0x6B0));
+    z = *(int**)((char*)p + 0x6B0);
+    if (z[0x14/4] != 0) z[1] = 1;
+    z[0x14/4] = (int)p;
+    gl_func_00000000(0, p);
+    *(int*)((char*)p + 0x48) = (int)gl_func_00000000(0);
+
+    /* z = D[0x190]; helper(p+0x10, z); if (z[0x14]) z[1]=1; z[0x14]=p; */
+    gl_func_00000000((char*)p + 0x10, *(int*)((char*)&D_00000000 + 0x190));
+    z = *(int**)((char*)&D_00000000 + 0x190);
+    if (z[0x14/4] != 0) z[1] = 1;
+    z[0x14/4] = (int)p;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000620);
+#endif
 
 /* 0x8EC + 0x944 are BYTE-IDENTICAL sibling functions (verified). Decoded:
  *   void f(char *a0, int a1) {
