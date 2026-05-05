@@ -723,7 +723,36 @@ int* func_000054D8(int arg0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054D8);
 #endif
 
+#ifdef NON_MATCHING
+/* 25-insn constructor wrapper: alloc 0x58 bytes, init via runtime-patched
+ * callee, set field 0x28 to &D_000079C8 (data-table address).
+ *
+ * Decoded:
+ *   p = gl_func_00000000(0x58);  // alloc
+ *   if (p != 0) {
+ *       gl_func_00000000(p, arg0, *D_X, &D_Y);  // init
+ *       p->field_28 = &D_000079C8;
+ *   }
+ *   return p;
+ *
+ * Where D_X and D_Y are runtime-patched extern symbols (lui+addiu /
+ * lui+lw both with 0-fill — USO relocatable). Without proper symbol
+ * names, K&R extern decl is the closest we can get.
+ *
+ * Won't byte-match without typed structs for arg0/p and proper extern
+ * names for D_X/D_Y. Default INCLUDE_ASM keeps ROM correct. */
+extern char D_000079C8;
+int *func_0000553C(int *arg0) {
+    int *p = (int*)func_00000000(0x58);
+    if (p != 0) {
+        func_00000000(p, arg0, *(int*)&D_00000000, &D_00000000);
+        p[10] = (int)&D_000079C8;
+    }
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000055A0);
 
