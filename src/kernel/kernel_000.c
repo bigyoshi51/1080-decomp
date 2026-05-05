@@ -490,10 +490,27 @@ extern s32 D_80012F7C;
  * each non-NULL entry, dispatch a callback at D_80012BC0 + 0x84 with the
  * entry's data + a length pair derived from fields 0x4C and 0x14.
  *
- * Remaining 17pp gap: state isn't getting $s-promoted (build inlines
- * `lui+lw` per iter; expected uses `lw 0x84(s2)` with s2=state). Tried
- * `register` hint — IDO ignores. Plus the addu operand order on the
- * length-pair add is swapped (s-vs-t register-pick cap). */
+ * Per feedback_ido_o0_register_count_matches_target_s_saves_exactly.md
+ * applied to -O1: target saves 4 s-regs (s0/s1/s2/s3) for the 4
+ * `register T x` decls (p, end, arg0, state). My C has the matching
+ * count BUT IDO's allocator picks 3 s-saves (s0/s1/s2) and computes
+ * `end` as `addiu sN, p, 0x21C` runtime-folded — see disasm at offset
+ * 0x9d0 onward (3 lui's, no s3-save). The CSE between p (D_80012D60)
+ * and end (D_80012F7C = D_80012D60+0x21C) is what IDO collapses; both
+ * being known constants triggers strength-reduction.
+ *
+ * Promotion path tried (2026-05-05):
+ *   - Split decl-init from later assignment: same 83%, no change.
+ *   - `register` hint already present on all 4 — IDO ignores for the
+ *     CSE-foldable end.
+ *   - Proxy-zero on `end` per feedback_proxy_extern_at_0_breaks_constant_fold:
+ *     known to renumber other $s allocations (regression class).
+ *
+ * Remaining caps: state isn't getting $s-promoted in the path I expect
+ * (build inlines `lui+lw` per iter; target uses `lw 0x84(s2)` with s2=state);
+ * end is collapsed into computed-from-p (3 s-saves vs 4); addu operand
+ * order on the length-pair add is swapped. All IDO -O1 codegen-choice
+ * caps not C-source-reachable. */
 void func_800007D4(void) {
     register UsoEntry74 **p = (UsoEntry74**)&D_80012D60;
     register UsoEntry74 **end = (UsoEntry74**)&D_80012F7C;
