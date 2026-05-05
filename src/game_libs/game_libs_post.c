@@ -859,7 +859,11 @@ void gl_func_00031D78(int a0, int a1, int a2) {
     gl_func_00000000(a0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031DA4);
+int gl_func_00031DA4(void) {
+    int v = gl_func_00000000();
+    if (v == 0) return 0;
+    return v;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031DD8);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00031DD8_pad.s")
