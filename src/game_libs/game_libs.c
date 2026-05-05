@@ -324,7 +324,24 @@ int gl_func_00008884(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
 
+#ifdef NON_MATCHING
+/* gl_func_00008944: 19-insn (0x4C) -O0 int reader template — same body as
+ * the standard accessor template but compiled at -O0 (vs the file's default
+ * -O2). Verified BYTE-IDENTICAL standalone at -O0 (unfilled jal delay slot,
+ * `addiu t6, sp, 0x18; lw t7, 0(t6)` chained-deref of buf[0], dead BB-marker
+ * `b +1; nop` before epilogue).
+ *
+ * BLOCKED: needs -O0 file split. game_libs has no -O0 sub-files yet;
+ * promoting requires src/game_libs/game_libs_o0_8944.c + linker-script slot
+ * + per-file `OPT_FLAGS := -O0` Makefile entry. Multi-tick infrastructure. */
+void gl_func_00008944(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008944);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008990);
 
