@@ -99,7 +99,24 @@ void func_00011CA4(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CA4);
 #endif
 
+#ifdef NON_MATCHING
+/* func_00011CD8: 46.35%, 26-insn flag-setter. Target is -O0-shape (full
+ * arg-spill at entry, every var reloaded from stack, dead `b .L+1` BB
+ * markers). bootup_uso_tail3a is -O2 -g3 which produces 19 insns — 7
+ * insn deficit reproduces the logic but won't byte-match. Promotion
+ * needs file split to -O0 (per project_1080_bootup_uso_o0_runs memo). */
+void func_00011CD8(int *a0, int a1) {
+    if (a1 != 0) {
+        func_00000000(a0);
+        *(int*)((char*)a0 + 0x188) = 0;
+    } else {
+        func_00000000(a0);
+        *(int*)((char*)a0 + 0x188) = 1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011CD8);
+#endif
 
 #ifdef NON_MATCHING
 /* Structure matches but IDO -O2 emits beqzl with the body's lw in delay slot,
