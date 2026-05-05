@@ -228,9 +228,18 @@ extern void func_80009030(s32, s32);
  * delay-slot) accounts for the 1-insn size delta; remaining 28 diffs are
  * cascade register-renumber from the position shift.
  *
- * Promotion path: needs a C shape that splits the andi off the call
- * arg without adding spills, OR permuter discovery. The 3 prologue
- * caps can be INSN_PATCH'd once size matches. Deferred. */
+ * 2026-05-05 v14 TRIED: `register u32 masked = ((u32*)p)[0x27]; __asm__("");
+ * masked &= 0xFFF; func_80006A50(0x04080000, masked);` — explicit 3-step
+ * compute with scheduling barrier between load and andi, hoping IDO would
+ * emit `lw t8; andi t8; move a1, t8` (matching target). Result: REGRESSION
+ * 94.97 % → 87.94 %. The barrier broke other delay-slot fills upstream;
+ * register hint didn't prevent the move into a1 directly. Net negative.
+ * Reverted.
+ *
+ * Promotion path remains: needs a C shape that splits the andi off the
+ * call arg WITHOUT introducing scheduler perturbations elsewhere, OR
+ * permuter discovery. The 3 prologue caps can be INSN_PATCH'd once size
+ * matches. Deferred. */
 #ifdef NON_MATCHING
 s32 func_80009474(s32* msg) {
     register s32* p;
