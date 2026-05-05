@@ -77,6 +77,24 @@ int gl_func_00000790(char *a0, int arg1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000007BC);
 
+/* gl_func_000009B4: 54-insn render-setup-style function (0xD8). .word-only
+ * encoded; hand-decoded structure:
+ *   - Frame -0x48, saves s0/ra
+ *   - s0 = arg0 (context struct)
+ *   - 5+ field accesses: arg0->0xA8/0xA4/0xAC/0xB0/0xB4/0xBC/0xB0/0x44/
+ *     0x5C/0x74/0x8C
+ *   - Float ops: cvt.s.w (int-to-float), neg.s, mul.s, c.lt.s
+ *     (compare-less-than-single)
+ *   - 2 unique `&D_X` extern refs (lui+lwc1 from address 0)
+ *   - 4+ jal calls to runtime-patched callees with mixed int/float args
+ *
+ * Likely converts world-coord values to NDC/screen-coords or some
+ * per-frame transform. The c.lt.s + cvt.s.w pattern suggests a
+ * camera-frustum-culling or scaling check.
+ *
+ * Multi-pass decomp candidate. .word encoding requires byte-by-byte
+ * decoding which is tedious for 54 insns; defer to a tick where the
+ * caller's struct shape is known. Default INCLUDE_ASM keeps ROM correct. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000009B4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000A8C);
