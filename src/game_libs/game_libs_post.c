@@ -2446,7 +2446,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E180);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E1BC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E214);
+/* gl_func_0004E214: 8-insn wrapper that calls gl_func_00000000(a0 + 0x18C).
+ * Splat bundles 2 trailing 2-insn leaves into the symbol's nonmatching SIZE
+ * (gl_func_0004E234 = setter at +0x190, gl_func_0004E23C = getter at +0x190).
+ * Expected treats them as part of this symbol; SUFFIX_BYTES appends the
+ * 4 literal trailing words to byte-match. */
+void gl_func_0004E214(char *a0) {
+    gl_func_00000000(a0 + 0x18C);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
 

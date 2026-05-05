@@ -79,7 +79,7 @@ build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 # drift as main's pre-split game_libs.c.o. See feedback_non_aligned_o_split.md.
 build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0xEC00
 build/src/game_libs/game_libs.c.o: PREFIX_BYTES := game_libs_func_000040EC=0x00000000,0x00000000
-build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x588F0
+build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x588EC
 
 build/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
@@ -137,7 +137,7 @@ build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sy
 # feedback_prologue_stolen_successor_no_recipe.md for context.
 build/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_00000194=8 titproc_uso_func_000001E4=8 titproc_uso_func_0000028C=8
 build/src/titproc_uso/titproc_uso.c.o: SUFFIX_BYTES := titproc_uso_func_00000194=0x3C020000,0x24420000
-build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0004,0x8DCEC160 gl_func_0006BA48=0x3C0EA460,0x8DC60010 gl_func_0005FDCC=0x3C030000,0x8C630000 gl_func_0004E524=0x3C050000,0x24A50000 gl_func_0002DED0=0x000470C0,0x01C52021,0x2484001A
+build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0004,0x8DCEC160 gl_func_0006BA48=0x3C0EA460,0x8DC60010 gl_func_0005FDCC=0x3C030000,0x8C630000 gl_func_0004E524=0x3C050000,0x24A50000 gl_func_0002DED0=0x000470C0,0x01C52021,0x2484001A gl_func_0004E214=0x03E00008,0xAC850190,0x03E00008,0x8C820190
 build/src/timproc_uso_b3/timproc_uso_b3.c.o: PROLOGUE_STEALS := timproc_uso_b3_func_00000818=8 timproc_uso_b3_func_00001C28=8 timproc_uso_b3_func_0000074C=8 timproc_uso_b3_func_00000790=8 timproc_uso_b3_func_000007D4=8
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: PROLOGUE_STEALS := timproc_uso_b1_func_00000800=8 timproc_uso_b1_func_00000734=8 timproc_uso_b1_func_00000778=8 timproc_uso_b1_func_000007BC=8 timproc_uso_b1_func_00002030=8
 build/src/arcproc_uso/arcproc_uso_tail1.c.o: PROLOGUE_STEALS := arcproc_uso_func_00001F0C=8
@@ -193,7 +193,6 @@ build/src/%.c.o: src/%.c
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ \
 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
-	@if [ -n "$(TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(TRUNCATE_TEXT); fi
 	@if [ -n "$(PROLOGUE_STEALS)" ]; then for spec in $(PROLOGUE_STEALS); do \
 		fn=$$(echo $$spec | cut -d= -f1); \
 		nb=$$(echo $$spec | cut -d= -f2); \
@@ -212,6 +211,7 @@ build/src/%.c.o: src/%.c
 	@if [ -n "$(INSN_PATCH)" ]; then for spec in $(INSN_PATCH); do \
 		python3 scripts/patch-insn-bytes.py $@ $$spec; \
 	done; fi
+	@if [ -n "$(TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(TRUNCATE_TEXT); fi
 endif
 
 # Standalone assembly
