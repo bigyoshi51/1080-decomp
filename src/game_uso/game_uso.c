@@ -2203,10 +2203,37 @@ void game_uso_func_0000591C(int *a0) {
      *     state field — and either continue the per-frame body or
      *     branch to mid-function alt-path.
      *
-     * Cumulative ~80/1102 insns characterized. Body-proper has ~1020
-     * remaining insns + ~28 more cross-USO calls.
+     * Extended 2026-05-05 (0x5AC0-0x5B4C, ~36 more insns):
+     *   - Float compare branch (0x5ACC `c.le.s $f0, $f8`): if $f0 (zero
+     *     constant from earlier) > $f8 (= a0->0xD8) goto +0x12 (likely
+     *     skips a sub-block that runs only when a0->0xD8 >= 0).
+     *   - Three nested null-checks at 0x5ADC/0x5AE4/0x5AF0:
+     *       if (t3 [= prior sp+0x1A4 saved ptr] != 0) skip;
+     *       t4 = sp+0x1AC; if (t4 == 0) skip;
+     *       t5 = t4->0x84; if (t5 != 0) skip;  (some "active" flag)
+     *   - When all 3 null-checks pass: another float compare at 0x5B04
+     *     `c.le.s $f18, $f10` where $f18 = a0->0xB4 (sub-Vec3.x prior),
+     *     $f10 = a0->0x30->0x348 (deep field of sub-struct).
+     *   - 0x5B20: `b +0x24` to a far merge point with delay slot
+     *     `or v0, v1, zero` (return v0 = v1) — appears to be the
+     *     "fall-through with side-result" path of the dispatch.
+     *   - 0x5B28: lw v0, 0x2C(s0) (= a0->0x2C, another sub-state ptr)
+     *   - 0x5B2C: addiu at, zero, 3 (= constant 3 — likely a state code)
+     *   - 0x5B40: lwc1 $f12, 0x3FC(s0) (= a0->0x3FC float)
+     *   - 0x5B44: addiu at, zero, 2 (state code 2)
+     *   - 0x5B48: bnel at,zero,+0x4; lwc1 $f14, 0x3CC(s0) (delay)
      *
-     * TODO: 1080+ remaining insns — main update loop + cross-USO calls. */
+     * Pattern emerging: this is a STATE-MACHINE-DRIVEN per-frame update.
+     * a0 has multiple fields treated as state codes (0x2C, 0x68, 0x74),
+     * float positions (0xB4-0xC0 Vec3, 0xD8 scalar), and sub-struct
+     * pointer (0x30 → 0x148-region floats + 0x318-region floats +
+     * 0x348-region floats). Multiple per-state branches dispatch to
+     * different sub-bodies, each making 1+ cross-USO calls.
+     *
+     * Cumulative ~115/1102 insns characterized (up from 80). Body-proper
+     * has ~985 remaining insns + ~28 more cross-USO calls.
+     *
+     * TODO: 985+ remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
