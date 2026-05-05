@@ -27,6 +27,11 @@ void timproc_uso_b5_func_00000050(void) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000024C);
+
+/* Empty body, K&R-style 1-arg signature emits `jr ra; sw a0, 0(sp)` —
+ * IDO -O2 keeps the K&R arg-save in the jr delay slot even when unused.
+ * Split off from timproc_uso_b5_func_0000024C bundle (2026-05-05). */
+void timproc_uso_b5_func_000002F4(a0) int a0; {}
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000024C_pad.s")
 
 void timproc_uso_b5_func_00000330(int *dst) {
