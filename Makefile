@@ -27,8 +27,8 @@ CPPFLAGS := -I include -I src
 LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map --no-check-sections
 
 # Per-file optimization overrides (O1 libultra functions, O0 empty stubs)
-build/src/arcproc_uso/arcproc_uso_o0_50.c.o: OPT_FLAGS := -O0
-build/src/arcproc_uso/arcproc_uso.c.o: OPT_FLAGS := -O0
+build/src/arcproc_uso/arcproc_uso_o0_50.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_50.c.o: OPT_FLAGS := -O0
+build/src/arcproc_uso/arcproc_uso.c.o build/non_matching/src/arcproc_uso/arcproc_uso.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
 build/src/arcproc_uso/arcproc_uso.c.o: PREFIX_BYTES := arcproc_uso_func_00000000=0x10006F00
 build/src/boarder5_uso/boarder5_uso.c.o: PREFIX_BYTES := boarder5_uso_func_00000000=0x1000736F
@@ -41,16 +41,16 @@ build/src/h2hproc_uso/h2hproc_uso.c.o: INSN_PATCH := \
 	h2hproc_uso_func_000009F8=0x28:0x8fa30018,0x2c:0x24040028,0x34:0x8c620048,0x38:0x8c4e007c,0x3c:0x01c40019,0x44:0x004fc021,0x48:0x8f190090,0x4c:0x5320000b,0x54:0xac230000,0x58:0x8c620048,0x5c:0x8c48007c,0x60:0x01040019,0x64:0x00004812,0x68:0x00495021,0x6c:0x8d590090
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0xDC
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: INSN_PATCH := arcproc_uso_func_000000B4=0x40:0x10000008,0x5C:0x10000001,0x64:0x8fb00018,0x68:0x8fbf001c,0x6C:0x27bd0028,0x70:0x03e00008,0x74:0x00000000
-build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: OPT_FLAGS := -O0
+build/src/arcproc_uso/arcproc_uso_o0_12C.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_12C.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: TRUNCATE_TEXT := 0x114
-build/src/bootup_uso/bootup_uso_o0_F390.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_1024C.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_10310.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_120A8.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_123F0.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_F390.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_F390.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_F7F4.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_F7F4.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_1024C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_1024C.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_10310.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_10310.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_120A8.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_120A8.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_123F0.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_123F0.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_12B7C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_12B7C.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_12DA4.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_12DA4.c.o: OPT_FLAGS := -O0
 # Trim .text sizes + reduce sh_addralign to 4 so split .o files link at the
 # exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
 build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF390
@@ -61,10 +61,10 @@ build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: TRUNCATE_TEXT := 0xB0
 build/src/bootup_uso/bootup_uso_tail1.c.o: TRUNCATE_TEXT := 0xA30
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x58
 build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0x6C
-build/src/bootup_uso/bootup_uso_tail2.c.o: OPT_FLAGS := -O2 -g3
+build/src/bootup_uso/bootup_uso_tail2.c.o build/non_matching/src/bootup_uso/bootup_uso_tail2.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
 build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x1D84
-build/src/bootup_uso/bootup_uso_tail3a.c.o: OPT_FLAGS := -O2 -g3
+build/src/bootup_uso/bootup_uso_tail3a.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_tail3a.c.o: INSN_PATCH := func_00010324=0x10:0x008f1021,0x14:0x24420084
 build/src/bootup_uso/bootup_uso_o0_120A8.c.o: TRUNCATE_TEXT := 0xE0
 build/src/bootup_uso/bootup_uso_tail3b_top.c.o: TRUNCATE_TEXT := 0x268
@@ -73,7 +73,7 @@ build/src/bootup_uso/bootup_uso_tail3b_bot_t.c.o: TRUNCATE_TEXT := 0x1AC
 build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: TRUNCATE_TEXT := 0x3E0
 build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: INSN_PATCH := func_00012818=0x5C:0x8DAE0000,0x64:0x15C10004
 build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: TRUNCATE_TEXT := 0x18
-build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: OPT_FLAGS := -O2 -g3
+build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: TRUNCATE_TEXT := 0x1E8
 build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 # game_libs split around the 56 KB RSP microcode blob at 0xEBF8..0x1CA10.
@@ -89,55 +89,55 @@ build/src/game_libs/game_libs_post.c.o: INSN_PATCH := \
 	gl_func_0002A4D0=0x18:0x908E0000,0x1C:0x31D9FF7F,0x20:0x37280040,0x24:0xA0990000,0x28:0xA0880000 \
 	gl_func_00035164=0xC:0xAFA40018
 
-build/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_007.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_009.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_011.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_013.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_015.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_017.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_019.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_021.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_023.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_025.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_027.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_028.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_029.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_030.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_031.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_032.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_033.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_034.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_035.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_036.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_037.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_038.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_039.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_040.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_041.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_042.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_043.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_044.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_045.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_046.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_047.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_048.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_049.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_050.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_051.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_052.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_053.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_054.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_005.c.o build/non_matching/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_007.c.o build/non_matching/src/kernel/kernel_007.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_009.c.o build/non_matching/src/kernel/kernel_009.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_011.c.o build/non_matching/src/kernel/kernel_011.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_013.c.o build/non_matching/src/kernel/kernel_013.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_015.c.o build/non_matching/src/kernel/kernel_015.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_017.c.o build/non_matching/src/kernel/kernel_017.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_019.c.o build/non_matching/src/kernel/kernel_019.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_021.c.o build/non_matching/src/kernel/kernel_021.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_023.c.o build/non_matching/src/kernel/kernel_023.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_025.c.o build/non_matching/src/kernel/kernel_025.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_027.c.o build/non_matching/src/kernel/kernel_027.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_028.c.o build/non_matching/src/kernel/kernel_028.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_029.c.o build/non_matching/src/kernel/kernel_029.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_030.c.o build/non_matching/src/kernel/kernel_030.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_031.c.o build/non_matching/src/kernel/kernel_031.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_032.c.o build/non_matching/src/kernel/kernel_032.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_033.c.o build/non_matching/src/kernel/kernel_033.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_034.c.o build/non_matching/src/kernel/kernel_034.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_035.c.o build/non_matching/src/kernel/kernel_035.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_036.c.o build/non_matching/src/kernel/kernel_036.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_037.c.o build/non_matching/src/kernel/kernel_037.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_038.c.o build/non_matching/src/kernel/kernel_038.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_039.c.o build/non_matching/src/kernel/kernel_039.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_041.c.o build/non_matching/src/kernel/kernel_041.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_042.c.o build/non_matching/src/kernel/kernel_042.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_043.c.o build/non_matching/src/kernel/kernel_043.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_044.c.o build/non_matching/src/kernel/kernel_044.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_045.c.o build/non_matching/src/kernel/kernel_045.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_046.c.o build/non_matching/src/kernel/kernel_046.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_047.c.o build/non_matching/src/kernel/kernel_047.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_048.c.o build/non_matching/src/kernel/kernel_048.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_049.c.o build/non_matching/src/kernel/kernel_049.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_050.c.o build/non_matching/src/kernel/kernel_050.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_051.c.o build/non_matching/src/kernel/kernel_051.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_052.c.o build/non_matching/src/kernel/kernel_052.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_053.c.o build/non_matching/src/kernel/kernel_053.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_054.c.o build/non_matching/src/kernel/kernel_054.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_054.c.o: INSN_PATCH := func_8000969C=0xC:0xafb00014,0x10:0xafb10018,0x18:0x8fb00038
-build/src/kernel/kernel_055.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_055.c.o build/non_matching/src/kernel/kernel_055.c.o: OPT_FLAGS := -O1
 # kernel_056: 64-bit libgcc-style helpers; -mips3 so IDO inlines d-arithmetic.
 # Post-compile, rewrite e_flags from mips3 (0x20000000) to mips2+noreorder
 # (0x10000001) so the linker will merge it with the rest of the kernel (mips2).
-build/src/kernel/kernel_056.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_056.c.o: MIPSISET := -mips3 -32
-build/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sys.argv[1],'r+b');f.seek(0x24);f.write(bytes.fromhex('10000001'));f.close()" $@
+build/src/kernel/kernel_056.c.o build/non_matching/src/kernel/kernel_056.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_056.c.o build/non_matching/src/kernel/kernel_056.c.o: MIPSISET := -mips3 -32
+build/src/kernel/kernel_056.c.o build/non_matching/src/kernel/kernel_056.c.o: POST_COMPILE = python3 -c "import sys;f=open(sys.argv[1],'r+b');f.seek(0x24);f.write(bytes.fromhex('10000001'));f.close()" $@
 
 # Prologue-stolen successors: splice the duplicate lui+addiu prefix that
 # C-emit naturally produces but expected/.o doesn't include in the symbol.
@@ -185,6 +185,13 @@ C_O_FILES   := $(patsubst src/%.c,build/src/%.c.o,$(C_FILES))
 ASM_O_FILES := $(patsubst asm/%.s,build/asm/%.s.o,$(ASM_FILES))
 BIN_O_FILES := $(patsubst assets/%.bin,build/assets/%.bin.o,$(BIN_FILES))
 
+# Non-matching objects: parallel build tree under build/non_matching/ that
+# compiles every .c with -DNON_MATCHING. Used by objdiff to compute fuzzy
+# match percentages on NM-wrapped functions (whose default-build path is
+# the INCLUDE_ASM stub, byte-exact and so untracked by fuzzy scoring).
+# See feedback_non_matching_build_for_fuzzy_scoring.md.
+C_O_FILES_NM := $(patsubst src/%.c,build/non_matching/src/%.c.o,$(C_FILES))
+
 # Yay0-recompressed blocks (built from C, not extracted from baserom)
 YAY0_O_FILES := build/assets/mgrproc_uso_block1_yay0.bin.o \
                 build/assets/game_uso_block1_yay0.bin.o \
@@ -200,6 +207,10 @@ all: verify
 
 # C objects only — used by CI for objdiff reports (no baserom required).
 objects: $(C_O_FILES)
+
+# Non-matching C objects only — used by objdiff for fuzzy scoring of
+# NM-wrapped functions. See comment on C_O_FILES_NM.
+non_matching_objects: $(C_O_FILES_NM)
 
 # Build ROM
 $(ROM): $(ELF)
@@ -240,6 +251,21 @@ build/src/%.c.o: src/%.c
 	@if [ -n "$(INSN_PATCH)" ]; then for spec in $(INSN_PATCH); do \
 		python3 scripts/patch-insn-bytes.py $@ $$spec; \
 	done; fi
+endif
+
+# Non-matching C build: same compile pipeline as the byte-exact rule above
+# but with -DNON_MATCHING so #ifdef NON_MATCHING wraps emit C bodies instead
+# of INCLUDE_ASM stubs. Skips post-cc recipes (TRUNCATE/PREFIX/SUFFIX/
+# INSN_PATCH/PROLOGUE_STEALS) — those exist to make C-emit byte-match
+# expected/, which we explicitly DON'T want here (the diffs are the metric).
+ifndef PERMUTER
+build/non_matching/src/%.c.o: src/%.c
+	@mkdir -p $(dir $@) build/non_matching/$(<D)
+	$(ASM_PROC) $(OPT_FLAGS) $< > build/non_matching/$<
+	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(MIPSISET) $(CPPFLAGS) -DNON_MATCHING -o $@ build/non_matching/$<
+	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ \
+		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
+	$(POST_COMPILE)
 endif
 
 # Standalone assembly

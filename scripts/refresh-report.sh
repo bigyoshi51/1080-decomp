@@ -21,6 +21,10 @@ fi
 
 jobs="$(getconf _NPROCESSORS_ONLN 2>/dev/null || nproc 2>/dev/null || echo 8)"
 make -j"$jobs" objects >/dev/null
+# Also build the non_matching tree — objdiff.json's base_path points there
+# so NM-wrapped functions get real fuzzy_match_percent values instead of
+# trivially 100% via INCLUDE_ASM=INCLUDE_ASM tautology.
+make -j"$jobs" non_matching_objects >/dev/null
 
 objdiff-cli report generate > report.json
 
