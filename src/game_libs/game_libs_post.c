@@ -4188,7 +4188,25 @@ void gl_func_00069C58(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00069C58_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_00069C94: 9-insn function-pointer indirect call (a0->[1] is the
+ * fn ptr). Symbol is 0x3C bytes (15 insns) due to a 6-insn trailer that's
+ * the stolen prologue for SUCCESSOR gl_func_00069CD0:
+ *   3 nops (alignment)
+ *   lui at, 0       (D-section reloc — stays as `lui at, 0`)
+ *   ldc1 f4, 0x2268(at)  (load double constant from D+0x2268)
+ *   cvt.d.s f0, f12  -- wait this is cvt.d.s setting up f0 for 0x69CD0's
+ *                       opening `c.lt.d f0, f0`
+ * Promotion path: (a) decompile gl_func_00069CD0 with PROLOGUE_STEALS=12 +
+ * matching predecessor SUFFIX_BYTES=12 here, OR (b) leave INCLUDE_ASM
+ * until 0x69CD0 is tackled. Multi-function recipe deferred. */
+void gl_func_00069C94(int *a0) {
+    void (*fn)(void) = (void (*)(void))a0[1];
+    fn();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069C94);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069CD0);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00069CD0_pad.s")
