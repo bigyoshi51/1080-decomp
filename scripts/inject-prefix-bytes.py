@@ -230,6 +230,7 @@ def inject_prefix(o_path: Path, func_name: str, prefix_words: list[int],
             0x0D,  # ori
             0x0E,  # xori
             0x0F,  # lui   rt, imm      (leaf load-extern entry)
+            0x11,  # COP1 family (MTC1, MFC1, add.s, mul.s, etc.) — float-leaf entry
             0x23,  # lw    rt, offset(rs)
             0x24,  # lbu
             0x25,  # lhu

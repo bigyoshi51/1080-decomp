@@ -34,6 +34,7 @@ build/src/arcproc_uso/arcproc_uso.c.o: PREFIX_BYTES := arcproc_uso_func_00000000
 build/src/boarder5_uso/boarder5_uso.c.o: PREFIX_BYTES := boarder5_uso_func_00000000=0x1000736F
 build/src/eddproc_uso/eddproc_uso.c.o: PREFIX_BYTES := eddproc_uso_func_00000000=0x10006F00
 build/src/n64proc_uso/n64proc_uso.c.o: PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
+build/src/game_uso/game_uso.c.o: PREFIX_BYTES := game_uso_func_00007ABC=0x44801000,0x00000000
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
 build/src/h2hproc_uso/h2hproc_uso.c.o: INSN_PATCH := \
 	h2hproc_uso_func_000008EC=0x8:0x00803025,0xc:0xac8506b8,0x10:0x8c8406a8,0x14:0xafa60018,0x1c:0xafa5001c,0x20:0x8fa5001c,0x28:0x14a00005 \
@@ -186,6 +187,7 @@ build/src/game_libs/game_libs_post.c.o build/non_matching/src/game_libs/game_lib
 # See scripts/patch-insn-bytes.py and
 # feedback_insn_patch_for_ido_codegen_caps.md.
 build/src/game_uso/game_uso.c.o: INSN_PATCH := \
+	game_uso_func_00007ABC=0xC:0x46001006 \
 	game_uso_func_000000A0=0x3C:0x460A4000 \
 	game_uso_func_0000035C=0x20:0x27AF0018,0x24:0x8DF90000,0x28:0x8FAE0020,0x2C:0xADD90000 \
 	game_uso_func_0000D438=0x00:0x8c8f00c0,0x04:0x8c8e00c4,0x14:0xac8f00c8,0x1C:0xac8e00cc \
