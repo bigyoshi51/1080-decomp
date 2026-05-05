@@ -3752,7 +3752,39 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2) {
     /* @ 0xA0A0-0xA0E4: 2D cross-product sign test predicate. Returns 1 when
      * cross_z < 0 (point on negative side of a directed line / counter-CW
      * winding), else 0 (or whatever was set by an earlier dispatch arm).
-     * Full register state needs body-part-2 decoded first. */
+     *
+     * Sketch (2026-05-05) — register state from body-part-2 abstracted:
+     * the four operands (call them ax/ay/bx/by) are screen-projected XZ
+     * coordinates from sp+0x178, sp+0x180, sp+0x174 and a register state
+     * surviving body-part-2's mul.s chain. Cross-product sign test
+     * computes (ax*by - bx*ay) and returns 1 when the result is negative.
+     *
+     * Pseudocode the asm performs:
+     *   cross_z = (vec_a.x * vec_b.y) - (vec_b.x * vec_a.y);
+     *   diff_a  = sp[0x148] - vec_a.x * vec_b.x;       (loaded earlier)
+     *   final   = cross_z * diff_a;
+     *   return (final < 0.0f) ? 1 : prior_v0;
+     *
+     * Full operand identification requires body-part-2 decoded into named
+     * C locals first. */
+    {
+        float vec_ax = *(float*)((char*)&local_19C[0] + 0xDC);  /* sp+0x178 */
+        float vec_ay = *(float*)((char*)&local_19C[0] + 0xE4);  /* sp+0x180 */
+        float diff_acc = *(float*)((char*)&local_19C[0] + 0xD8); /* sp+0x174 */
+        float cross_z;
+        float final;
+        (void)vec_ax;
+        (void)vec_ay;
+        (void)diff_acc;
+        /* The two missing operands (vec_b.x, vec_b.y) survive in $f4/$f18
+         * from body-part-2's last mul.s/sub.s chain. Without those locals
+         * the sign test C is incomplete. Documented for next pass. */
+        cross_z = 0.0f;
+        final = cross_z * diff_acc;
+        if (final < 0.0f) {
+            return 1;
+        }
+    }
     return 0;
 }
 #else
