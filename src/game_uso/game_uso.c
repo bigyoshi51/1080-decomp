@@ -957,9 +957,31 @@ branch_88: {
              *     reuse). Stores to sp+0x110/0x114/0x118 (third copy of scaled
              *     Y-vec).
              *   0x2264-0x227C: lwc1 sp+0x114 / sp+0x118; abs.s f0 (idiom for
-             *     `fabs(y_excess)`); compares against a constant. Looks like the
-             *     CLAMP step "if (|y_excess| < some_threshold) ...". ~190 insns
-             *     remain stubbed past 0x227C. */
+             *   `fabs(y_excess)`); compares against a constant. Looks like the
+             *   CLAMP step "if (|y_excess| < some_threshold) ...". ~190 insns
+             *   remain stubbed past 0x227C.
+             *
+             * Extended scan 2026-05-05 (0x227C-0x2300, +35 insns characterized):
+             *   0x2270-0x2298: triple-fanout 12-byte struct copy. Reads
+             *     a3+0/4/8 (= scaled_y replicated again) writes t9+0/4/8 AND
+             *     t2+0/4/8 (sp-relative locals). Same "save-old + write-new"
+             *     idiom as 0x21F4 earlier — y-axis scale gets committed to a
+             *     second pair of slots (likely the entity's other vel/pos
+             *     buffer for double-buffering or alternate frame).
+             *   0x229C-0x22B8: 3-mul.s scale (mul.s f6/f8/f4 = excess * (0,1,0)
+             *     re-computed inline yet again) — third inline mul of the same
+             *     identity scale, IDO chooses to emit per use site rather
+             *     than spill. Stores to sp+0x30/0x34/0x38 (yet another local
+             *     copy of scaled_y).
+             *   0x22BC-0x22D0: third triple-fanout struct copy. Reads a1+0/4/8
+             *     writes v1+0/4/8 — likely commits scaled_y to the FINAL
+             *     output pair before the late_label epilogue setup.
+             *   0x22D4-0x22EC: lwc1 sp+0x4C/sp+0x50, lui 0x4248 (50.0f scale
+             *     constant per memo header), mtc1 zero / cvt — switches to
+             *     COORDINATE-SCALE phase. Likely "scale Vec3 by 50.0f for
+             *     world->camera projection" prelude.
+             *   0x22F0+: continues with mul.s/swc1 chain — TODO. ~155 insns
+             *   remain stubbed past 0x2300. */
             (void)scaled_y;
         }
         (void)delta_scaled;
