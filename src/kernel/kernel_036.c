@@ -18,16 +18,24 @@ void __rmonSendHeader(void) {
 #ifdef NON_MATCHING
 /* func_800073DC is the prologue fragment of the original 31-insn function
  * at ROM 0x800073DC, which splat split into:
- *   - func_800073DC (this file, 7 insns / 0x1C — prologue + first jal)
- *   - func_800073F8 (kernel_018.c INCLUDE_ASM, 25 insns / 0x64 — body + epilogue)
+ *   - func_800073DC (this file, 7 insns / 0x1C — prologue + first jal,
+ *     no jr ra — falls through to next function in linker layout)
+ *   - func_800073F8 (kernel_018.c INCLUDE_ASM, 25 insns / 0x64 — body)
  *
  * The full decompiled body lives above as `__rmonSendHeader` (matched 100%
- * per report.json) — that is the canonical source-of-truth for these bytes.
- * The INCLUDE_ASM below is residual dead duplicate code emitted at a separate
- * .o offset; removing it would shift downstream .o layout so it stays for now.
+ * per report.json). The INCLUDE_ASM below is residual dead duplicate code
+ * emitted at a separate .o offset; removing it would shift downstream .o
+ * layout so it stays for now.
  *
- * Stub body documents the fragment relationship for grep discoverability;
- * not a real decode (the actual semantics are in __rmonSendHeader). */
+ * 2026-05-05 — evaluated PREFIX_BYTES + INSN_PATCH promotion (per
+ * feedback_prefix_bytes_plus_insn_patch_breaks_documented_caps.md):
+ * BLOCKED. The function's `jal func_80009C30` insn must carry an
+ * R_MIPS_26 relocation in the .o, but raw PREFIX_BYTES are reloc-less.
+ * Putting the jal in the C body produces a reloc'd jal but emits the
+ * full 8-insn prologue+epilogue (0x20), which can't shrink to target's
+ * 7-insn (0x1C) "no-epilogue, falls-through" shape. No recipe combines
+ * "function with .o reloc on jal" + "no jr ra epilogue." Stays
+ * INCLUDE_ASM. */
 void func_800073DC(void) {
     /* see __rmonSendHeader above — this fragment is its prologue */
 }
