@@ -2905,7 +2905,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F85C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F9AC);
+/* gl_func_0004F9AC: 12-insn 2-call wrapper, mirror of gl_func_000410AC.
+ * Mid-function aliases gl_func_00062B54 (= gl_func_00062A2C + 0x128) and
+ * gl_func_00062B90 (+ 0x164) added to undefined_syms_auto.txt so byte-correct
+ * build links cleanly. Per memo
+ * feedback_mid_function_jal_targets_block_byte_correct_link.md option 2. */
+extern int gl_func_00062B54();
+extern int gl_func_00062B90();
+void gl_func_0004F9AC(char *a0) {
+    int local;
+    gl_func_00062B54(&local);
+    gl_func_00062B90(a0 + 0x10);
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0004F9AC_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F9E4);
