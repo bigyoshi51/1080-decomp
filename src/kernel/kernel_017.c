@@ -104,5 +104,17 @@ void __osResetGlobalIntMask(s32 arg0, s32 arg1) {
  *
  * Reads MMIO from the 0x04000000-0x05000000 range (SP DMEM/IMEM + RCP
  * register space) via func_80008FB0 (likely __osPiRawReadIo or similar).
- * Returns 0 if address is out of range. */
+ * Returns 0 if address is out of range.
+ *
+ * 2026-05-05: 800066B0 (which previously absorbed 800066D0 via same-file
+ * merge in kernel_018.c) MOVED here from kernel_018.c so all 3 fragments
+ * now live in this -O1 .c file. Layout-neutral move (kernel_017.c.o grows
+ * +0x3C, kernel_018.c.o shrinks -0x3C; both .o's are in adjacent slots in
+ * tenshoe.ld). Next pass: same-file merge 80006698 + 800066B0 into a
+ * single u32 helper. Per
+ * feedback_cross_file_fragment_unblock_via_move_then_merge.md. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80006698);
+
+/* Continuation of func_80006698. See above wrap doc for the merged-body
+ * decode (range check + jal func_80008FB0 + return). */
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800066B0);
