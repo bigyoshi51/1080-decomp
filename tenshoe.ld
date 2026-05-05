@@ -1341,7 +1341,13 @@ SECTIONS
         FILL(0x00000000);
         game_libs_TEXT_START = .;
         build/src/game_libs/game_libs.c.o(.text);
-        build/assets/game_libs_dl_data.bin.o(.data);
+        build/assets/game_libs_text2_pre.bin.o(.data);
+        build/assets/game_libs_text2_F3DEX_NoN_imem.bin.o(.data);
+        build/assets/game_libs_text2_F3DEX_imem.bin.o(.data);
+        build/assets/game_libs_text2_F3DLP_Rej_imem.bin.o(.data);
+        build/assets/game_libs_text2_mid.bin.o(.data);
+        build/assets/game_libs_text2_F3DLX_Rej_imem.bin.o(.data);
+        build/assets/game_libs_text2_tail.bin.o(.data);
         build/src/game_libs/game_libs_post.c.o(.text);
         game_libs_TEXT_END = .;
         game_libs_TEXT_SIZE = ABSOLUTE(game_libs_TEXT_END - game_libs_TEXT_START);

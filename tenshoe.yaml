@@ -262,15 +262,25 @@ segments:
     vram: 0x00000000
     subsegments:
       - [0xDE50D8, c, game_libs/game_libs]
-      # 56 KB blob embedded mid-text. INITIALLY misidentified as RSP microcode
-      # (per feedback_rsp_microcode_mistaken_for_code.md). Fingerprinting
-      # 2026-05-04 showed 234 recognized GFX display-list commands (gsSPVertex
-      # / gsSP1Triangle / gsSP2Triangles / gsDPTileSync) and zero ucode ID
-      # strings — it's static graphics data (vertex caches + draw commands),
-      # not microcode. The actual RSP ucodes live in bootup_uso_pre at ROM
-      # 0xDB3FF0..0xDB9FF0 (4 F3DEX 1.23 gfx + ~7 aspMain audio variants); see
-      # GitHub issue #6. Either way: not CPU-disassemblable, raw data.
-      - [0xDF3CD0, bin, game_libs_dl_data]
+      # 56 KB mixed blob embedded mid-text. Forensics history:
+      # - Initially misidentified as RSP microcode (feedback memo).
+      # - Then re-fingerprinted 2026-05-04 as DL data (234 GFX opcodes; the
+      #   GFX-opcode-count discriminator was wrong — it gave a false negative
+      #   on the IMEM portion, see updated feedback memo).
+      # - Then re-fingerprinted 2026-05-05 (issue #6 path-C work) and found:
+      #   the blob is HALF CPU code, HALF F3DEX 1.23 RSP IMEM. sm64's
+      #   lib/PR/f3dex/{F3DEX_NoN,F3DEX,F3DLX_Rej}.bin all byte-match exactly
+      #   inside this region. Carved into per-IMEM sub-bins below.
+      # The DMEM data tables (paired with these IMEMs) live in
+      # bootup_uso_ucodes at 0xDB7140/7940/9140 (F3DLP_Rej_data only at
+      # 0xDB8940 — no public ref).
+      - [0xDF3CD0, bin, game_libs_text2_pre]
+      - [0xDFA43C, bin, game_libs_text2_F3DEX_NoN_imem]
+      - [0xDFB86C, bin, game_libs_text2_F3DEX_imem]
+      - [0xDFCC9C, bin, game_libs_text2_F3DLP_Rej_imem]
+      - [0xDFE0CC, bin, game_libs_text2_mid]
+      - [0xDFF2DC, bin, game_libs_text2_F3DLX_Rej_imem]
+      - [0xE006AC, bin, game_libs_text2_tail]
       - [0xE01AE8, c, game_libs/game_libs_post]
   - [0xE5A378, bin, game_libs_post]
   - [0xE5D0D4, bin, game_data]
