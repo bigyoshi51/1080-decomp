@@ -37,7 +37,35 @@ void func_0000F288(Quad4 *a0) {
 }
 
 /* func_0000F2EC: Vec3 reader at -O0 (41 insns / 0xA4). Target uses 4
- * callee-saved s-regs (s0-s3) which our C body doesn't reach via -O0
- * codegen (no register promotion at -O0; need explicit s-reg-typed
- * register locals). Deferred — leave INCLUDE_ASM. */
+ * callee-saved s-regs (s0-s3). 4-`register` C body produces s-saves but
+ * frame is +0x10 (0x68 vs target 0x58) — IDO -O0 reserves backup stack
+ * slots for register-typed locals (4 × 4 bytes = 16 byte overhead) that
+ * target doesn't have. Possibly target was compiled with a different
+ * IDO -O0 variant or had non-register stack-only locals that got
+ * promoted by a later pass.
+ *
+ * Fuzzy and structure are MUCH closer than INCLUDE_ASM; tmp/raw stack
+ * layouts match (sp+0x34/sp+0x48). All 4 s-saves emit. Cap is the +0x10
+ * frame overhead. Partial wrap kept for future-pass continuation. */
+#ifdef NON_MATCHING
+void func_0000F2EC(Vec3 *dst) {
+    register Vec3 *p1 = dst;
+    register Vec3 *p2 = p1;
+    register Vec3 *q;
+    int pad_top[1];
+    Tri3i raw;
+    int pad_mid[2];
+    Tri3i tmp;
+    int pad_bot[3];
+    register float *src = (float*)&tmp;
+    func_00000000(&D_00000000, &raw, 12);
+    tmp = raw;
+    p2->x = src[0];
+    p2->y = src[1];
+    p2->z = src[2];
+    q = p1;
+    (void)q;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F2EC);
+#endif
