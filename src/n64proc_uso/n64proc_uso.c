@@ -143,7 +143,20 @@ extern char D_00000000;
  * feedback_ido_constant_address_load_fold_inevitable.md (new this session).
  *
  * 16 variants total. Cap is structural per IDO -O2 constant-fold pass on
- * fixed-extern-derived pointer addresses. NM-only — accept. */
+ * fixed-extern-derived pointer addresses. NM-only — accept.
+ *
+ * (17) 2026-05-04 RE-EVALUATED post-INSN_PATCH-infra: now that
+ * scripts/patch-insn-bytes.py is wired, checked if the 74.49% fuzzy cap
+ * could be patched to 100%. NO. Word-diff against expected/.o (NM build):
+ * 57 of 59 instructions differ — fuzzy_match_percent overestimates
+ * exactness; the actual byte-level shape diverges fundamentally from
+ * insn 0x18 onward (different basic-block-fill, different jal call
+ * order, even epilogue is partially shifted). INSN_PATCH is for ≤10
+ * specific words, NOT structural rewrites. Confirmed cap holds.
+ *
+ * Other agents (b, c, e) checked: same C body, no INSN_PATCH attempt —
+ * they hit the same wall. Genuine structural cap from IDO -O2 + the
+ * 6-local register-allocation interaction that can't be flipped from C. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
