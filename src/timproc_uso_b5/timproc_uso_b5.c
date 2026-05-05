@@ -218,52 +218,54 @@ void timproc_uso_b5_func_00003ED8(char *a0) {
     (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
 }
 
-#ifdef NON_MATCHING
 /* Sibling of timproc_uso_b5_func_00003ED8 — same vtable-call wrapper:
- *   gl_func_00000000(a0 + 0x194);     // first call (offset 0x194 vs ED8's 0x2C)
+ *   gl_func_00000000(a0 + 0x194);
  *   v = a0->vtable;                    // a0+0x28
- *   (*(v->fp))(a0 + v->off);          // dispatch
+ *   (*(v->fp))(a0 + v->off);           // dispatch
  *
- * BLOCKED: trailing `lw t8, 0x23C(a0)` at offset 0x40 is the stolen
- * prologue for SUCCESSOR func_00003F5C. Standard pad-sidecar recipe
- * (trim .s to 0x40 + emit 4-byte _pad.s with the lw) doesn't work here:
- * asm-processor aligns the next function to 8 bytes, padding with an
- * extra nop AFTER the 4-byte pad — shifts func_00003F5C from baserom's
- * 0x3F5C to 0x3F60. Pad-sidecar mechanism naturally handles 8-byte
- * (lui+addiu/lw) prologue prefixes but not 4-byte single insns. Keep
- * INCLUDE_ASM until 00003F5C is decompiled with PROLOGUE_STEALS=4. */
+ * Trailing `lw t8, 0x23C(a0)` (4 bytes) at offset 0x40 is the stolen
+ * prologue for SUCCESSOR func_00003F5C — appended via SUFFIX_BYTES so
+ * st_size grows to 0x44 without inserting alignment padding.
+ * Per memo feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md. */
 void timproc_uso_b5_func_00003F18(char *a0) {
     char *v;
     gl_func_00000000(a0 + 0x194);
     v = *(char**)(a0 + 0x28);
     (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F18);
-#endif
 
 #ifdef NON_MATCHING
-/* 19-insn (0x4C) function — main body 17 insns + 8-byte bundled trailer.
+/* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. PARTIAL — needs PROLOGUE_STEALS=4
+ * + SUFFIX_BYTES for promotion. Predecessor 00003F18 is now byte-correct
+ * (SUFFIX_BYTES recipe re-applied), so this function's position is stable.
  *
- * Main body (offsets 0..0x44): structured Vec3-or-buf copy.
- *   - Loads a0->_29C → v0; offsets to v += 0xDC
- *   - Stores 3 t-regs at sp+0xC..0x14 (forms a stack buf)
- *   - Reloads as floats (lwc1 f4/f6/f8) and stores at v+0..v+8 (3 floats)
- *   - jr ra with swc1 f8 in delay slot
- *   The first `sw t8, 0(t6)` at insn 4 stores $t8 BEFORE the function
- *   loads $t8 (insn 8 lw t8, 0x244(a0)) — IDO has scheduled the store
- *   to fill the load-delay slot, but the source $t8 is the CALLER's
- *   pre-call value, not the soon-to-be-loaded value. Hard to express
- *   from C without extracting the source pattern.
+ * Decode:
+ *   v0 = a0->_29C; v0 += 0xDC;       // Vec3 dst pointer
+ *   buf[0] = a0->_23C;                // ← supplied by predecessor's stolen tail (lw t8, 0x23C)
+ *   buf[1] = a0->_240;
+ *   buf[2] = a0->_244;
+ *   v0[0] = (float)buf[0];            // type-pun via lwc1+swc1
+ *   v0[1] = (float)buf[1];
+ *   v0[2] = (float)buf[2];
  *
- * Bundled trailer (offsets 0x44/0x48): `jr ra; sw a0, 0(sp)` — trampoline
- * leaf that saves a0 to caller-slot then returns. Not analyzable here.
+ * Bundled trailer (offsets 0x44/0x48): `jr ra; sw a0, 0(sp)` — appended via
+ * SUFFIX_BYTES = 0x03E00008,0xAFA40000.
  *
- * Promotion path: needs SUFFIX_BYTES = 0x03e00008,0xafa40000 + a clean
- * C body for the main function. The t8-uninitialized issue may resolve
- * via a different parameter shape (function takes (a0, a1=t8?) directly).
- * Defer — multi-tick decomp. */
-void timproc_uso_b5_func_00003F5C(int *a0);
+ * Promotion: PROLOGUE_STEALS=4 (splice off C-emit's lw t8 prefix since
+ * predecessor provides it) + SUFFIX_BYTES for trailer + clean C body using
+ * Tri3i→Vec3 pun pattern from feedback_uso_accessor_template_reuse.md. */
+typedef struct { int a, b, c; } Tri3i_F5C;
+typedef struct { float x, y, z; } Vec3_F5C;
+void timproc_uso_b5_func_00003F5C(int *a0) {
+    Tri3i_F5C raw;
+    Vec3_F5C *v = (Vec3_F5C*)((char*)*(int**)((char*)a0 + 0x29C) + 0xDC);
+    raw.a = *(int*)((char*)a0 + 0x23C);
+    raw.b = *(int*)((char*)a0 + 0x240);
+    raw.c = *(int*)((char*)a0 + 0x244);
+    v->x = *(float*)&raw.a;
+    v->y = *(float*)&raw.b;
+    v->z = *(float*)&raw.c;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F5C);
 #endif
