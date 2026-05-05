@@ -184,7 +184,18 @@ extern char D_00000000;
  * the proxy's addu introduces a new pseudo-source for $s1, perturbing
  * the priority queue. Variant 18 is therefore a documented dead-end:
  * the indexed-load fix CANNOT be combined with target's $s-numbering
- * via this proxy formulation. Stays at 74.49 %. */
+ * via this proxy formulation. Stays at 74.49 %.
+ *
+ * (19) TRIED 2026-05-05: Proxy on `base` ONLY (not also `base10`) —
+ * apply variant 18's link-time-0 trick to just the one local that needs
+ * the indexed-load preservation, hoping the reduced perturbation (3 extra
+ * insns vs 5) leaves enough register-allocation latitude for target's
+ * $s-numbering. Result: 74.49 % → 69.02 %. Smaller regression than
+ * variant 18 (which went to 58.68 %), but still net negative. Confirms
+ * the proxy mechanism inherently disturbs the priority queue regardless
+ * of which subset of locals it's applied to. The 5-pp loss from variant
+ * 19 vs the 16-pp loss from variant 18 quantifies the per-proxy-extern
+ * cost: each one introduces ~5pp of regression. CAP HOLDS at 74.49 %. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
