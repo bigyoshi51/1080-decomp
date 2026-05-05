@@ -1487,6 +1487,7 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
     char *s0;       /* loop pointer for sub-object init */
+    char *_t_buf[1];  /* per-iter sp+0xE0 store-load scratch */
 
     /* Stage 1: allocate main object if not provided */
     if (a0 == NULL) {
@@ -1515,7 +1516,8 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     {
         char *v1;
         char *tmpl0;
-        char *s2 = a0 + 0x2C;
+        char *_s2_buf;       /* stack temp at sp+0x2C, target uses for marshalling */
+        char *s2 = (char*)&_s2_buf;
         if (s1 != NULL) {
             v1 = s1;
         } else {
@@ -1547,9 +1549,9 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
          * CSE the three different bases, so it emits per-iter lui+lw/lwc1
          * pairs matching the target's pattern. */
 #define INIT_ITER_U(SLOT, TMPL_OFF, FLOAT_OFF, T_SYM, F_SYM, P_SYM) do { \
-            char *_t = *(char**)((char*)&T_SYM + (TMPL_OFF)); \
+            _t_buf[0] = *(char**)((char*)&T_SYM + (TMPL_OFF)); \
             s0 = s1 + (SLOT); \
-            *(char**)s2 = _t; \
+            *(char**)s2 = _t_buf[0]; \
             if (s1 != (char*)((SLOT) - 0x100)) { \
                 s0 = (char*)gl_func_00000000(0x18); \
                 if (s0 == NULL) goto epi; \
@@ -1561,9 +1563,9 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
         } while (0)
 
 #define INIT_ITER_UC(SLOT, TMPL_OFF, FLOAT_LIT, T_SYM, P_SYM) do { \
-            char *_t = *(char**)((char*)&T_SYM + (TMPL_OFF)); \
+            _t_buf[0] = *(char**)((char*)&T_SYM + (TMPL_OFF)); \
             s0 = s1 + (SLOT); \
-            *(char**)s2 = _t; \
+            *(char**)s2 = _t_buf[0]; \
             if (s1 != (char*)((SLOT) - 0x100)) { \
                 s0 = (char*)gl_func_00000000(0x18); \
                 if (s0 == NULL) goto epi; \
@@ -1913,14 +1915,24 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * macro body — added 59 insns (3700 → 3936 bytes) but at wrong
      * positions; fuzzy unchanged at 63.33%.
      *
+     * 2026-05-05 (later): TWO structural fixes that worked:
+     *   1. `char *_t_buf[1];` local + macro `_t_buf[0] = *(char**)(...)`
+     *      → IDO emits per-iter store-then-load through stack at sp+N,
+     *      matching target's sp+0xE0 pattern. (+6.11pp)
+     *   2. Changed s2 from `a0 + 0x2C` (struct member) to a stack-temp
+     *      via `char *_s2_buf; char *s2 = (char*)&_s2_buf;`. Target
+     *      had `addiu s2, sp, 0x2C` not `addiu s2, a0, 0x2C`. (+0.35pp)
+     *
+     * Result: 63.33% → 69.79%. Still ~30pp short — the entry-time
+     * a0/a1/a2 spill at sp+0xE8/0xEC/0xF0 (target frame is 0xE8 vs
+     * mine 0x38) needs more locals to grow the frame.
+     *
      * Remaining promotion paths (multi-tick):
-     *   - Refactor the macro to introduce per-iter `char *_t_buf[1]`
-     *     local + write-then-read pattern matching the sp+0xE0 store-load
-     *   - Take address of args (`&a0`, `&a1`, `&a2`) somewhere in the
-     *     prologue to force the entry-time spill at sp+0xE8/0xEC/0xF0
+     *   - Add ~176 bytes of additional locals (volatile char pad[200]?)
+     *     to grow frame from 0x38 to 0xE8, putting _t_buf at sp+0xE0
+     *   - Take address of args (`&a0`, `&a1`, `&a2`) to force entry-spill
      *   - decomp-permuter with PERM_RANDOMIZE around the macros
-     *   - Accept 63.33% as the C-decomp ceiling; rely on byte-correct
-     *     ROM via INCLUDE_ASM. */
+     *   - Accept 69.79% as the C-decomp ceiling. */
     (void)s0;
 
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
