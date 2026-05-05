@@ -271,7 +271,44 @@ end:
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3C);
 #endif
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00000D70: 58-insn (0xE8) sub-object register sequence —
+ * sibling of 0x880 family. Calls gl_func_00000000 with 8 (a0+offset, id)
+ * pairs — likely "register sub-objects with their parent IDs". The id is
+ * a 32-bit packed field: high 16 bits = type code, low 16 bits = data
+ * (loaded from D extern OR a constant). One conditional branch on
+ * a0->[0x6A8]->[0x4]+1 == a0->[0x6A8]->[0x8] determines whether the 0x6EC
+ * call uses 0x210001 or (counter+2) | 0x210000.
+ *
+ * D extern offsets: 0x64 (used twice) and 0x4C, 0x54.
+ *
+ * Stub C body — won't match exactly without per-offset unique externs +
+ * IDO-CSE-busting casts (per feedback_unique_extern_with_offset_cast_breaks_cse.md).
+ * Documents structure for next pass. */
+extern int D_arc_D70_64;
+extern int D_arc_D70_4C;
+extern int D_arc_D70_54;
+void arcproc_uso_func_00000D70(char *a0) {
+    int *p;
+    int v1;
+    gl_func_00000000(a0 + 0x6BC, D_arc_D70_64 | 0xA0000);
+    gl_func_00000000(a0 + 0x6D4, 0x210000);
+    p = *(int**)(a0 + 0x6A8);
+    v1 = p[1];
+    if (p[2] == v1 + 1) {
+        gl_func_00000000(a0 + 0x6EC, 0x210001);
+    } else {
+        gl_func_00000000(a0 + 0x6EC, (v1 + 2) | 0x210000);
+    }
+    gl_func_00000000(a0 + 0x71C, D_arc_D70_4C | 0x1D0000);
+    gl_func_00000000(a0 + 0x704, D_arc_D70_54 | 0x1E0000);
+    gl_func_00000000(a0 + 0x734, 0x21000B);
+    gl_func_00000000(a0 + 0x74C, 0x21000D);
+    gl_func_00000000(a0 + 0x764, 0x210009);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000D70);
+#endif
 
 void arcproc_uso_func_00000E58(char *a0) {
     arcproc_uso_func_00000000(a0 + 0x6BC);
