@@ -285,13 +285,11 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3
  * Stub C body — won't match exactly without per-offset unique externs +
  * IDO-CSE-busting casts (per feedback_unique_extern_with_offset_cast_breaks_cse.md).
  * Documents structure for next pass. */
-extern int D_arc_D70_64;
-extern int D_arc_D70_4C;
-extern int D_arc_D70_54;
+extern char D_arc_D70_base;
 void arcproc_uso_func_00000D70(char *a0) {
     int *p;
     int v1;
-    gl_func_00000000(a0 + 0x6BC, D_arc_D70_64 | 0xA0000);
+    gl_func_00000000(a0 + 0x6BC, *(int*)(&D_arc_D70_base + 0x64) | 0xA0000);
     gl_func_00000000(a0 + 0x6D4, 0x210000);
     p = *(int**)(a0 + 0x6A8);
     v1 = p[1];
@@ -300,8 +298,8 @@ void arcproc_uso_func_00000D70(char *a0) {
     } else {
         gl_func_00000000(a0 + 0x6EC, (v1 + 2) | 0x210000);
     }
-    gl_func_00000000(a0 + 0x71C, D_arc_D70_4C | 0x1D0000);
-    gl_func_00000000(a0 + 0x704, D_arc_D70_54 | 0x1E0000);
+    gl_func_00000000(a0 + 0x71C, *(int*)(&D_arc_D70_base + 0x4C) | 0x1D0000);
+    gl_func_00000000(a0 + 0x704, *(int*)(&D_arc_D70_base + 0x54) | 0x1E0000);
     gl_func_00000000(a0 + 0x734, 0x21000B);
     gl_func_00000000(a0 + 0x74C, 0x21000D);
     gl_func_00000000(a0 + 0x764, 0x210009);
