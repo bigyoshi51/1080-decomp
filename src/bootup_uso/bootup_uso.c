@@ -793,17 +793,12 @@ void func_00006194(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-#ifdef NON_MATCHING
-/* 77%: tiny `f(void) { func_00000000(&D_0); }` wrapper. Target insn
- * order `lui a0; sw ra; jal` — IDO emits `sw ra; lui a0; jal`
- * (insn 4 and 8 swapped). Documented as unreachable-from-C ceiling
- * in feedback_ido_o2_tiny_wrapper_unflippable.md. */
+/* 77% NM cap (target insn order `lui a0; sw ra; jal` vs IDO emit
+ * `sw ra; lui a0; jal`). Promoted to exact via INSN_PATCH at offsets
+ * 0x4/0x8 — Makefile entry, ports 2-word patch from agent-b. */
 void func_00006204(void) {
     func_00000000(&D_00000000);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006204);
-#endif
 
 void func_00006228(char *a0) {
     func_0000502C((int*)(a0 + 0x3C));
