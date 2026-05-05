@@ -1309,10 +1309,11 @@ void gl_func_0000DE80(int **a0, int a1) {
         (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
 
-#ifdef NON_MATCHING
 /* Sibling of gl_func_0000DDE0/DE30/DE80/0003CB2C (20-insn indirect dispatcher).
- * local = 0x3E9; otherwise byte-identical structure. Same v2 fix as DE30
- * (inline base/p + split pad). 4-insn reg-shift cap remains. */
+ * local = 0x3E9; otherwise byte-identical to DE30/DE80. Same INSN_PATCH recipe:
+ * 4 reg-rename diffs at offsets 0x24/0x2C/0x34/0x3C are post-cc patched to
+ * match expected. (See DE80 for the byte-identical-bytes-different-semantics
+ * mechanism at offset 0x30.) */
 void gl_func_0000DED0(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3E9;
@@ -1321,9 +1322,6 @@ void gl_func_0000DED0(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])(
         (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DED0);
-#endif
 
 int gl_func_0000DF20_inner(int a0, int a1);
 
