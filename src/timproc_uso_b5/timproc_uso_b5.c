@@ -680,7 +680,80 @@ void timproc_uso_b5_func_0000BBC8(int *a0, float a1) {
     *(float*)((char*)*(int**)((char*)a0 + 0x2B8) + 0x120) = a1;
 }
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000BBDC: 113-insn unrolled loop over 5 channels.
+ * Initial decode — 57.77% fuzzy. Structure understood, dual-arm bnel
+ * dispatch unbridged.
+ *
+ * Logic:
+ *   if (a0->0x2BC < 10 && --a0->0x2C0 < 0) {
+ *       a0->0x2C0 = 1;
+ *       a0->0x2BC += 2;
+ *   }
+ *   for (i = 0; i < 5; i++) {
+ *       int v = a0->0x2BC;
+ *       int cap = (&a0->0x1C4)[i*6];           // stride 0x18 per iter
+ *       int v1 = (v < cap) ? v : cap;          // clamp
+ *       int stride = a1->0x74;
+ *       int *idx_ptr = (int*)a1 + 0x134/4 + i*9;  // stride 0x24 per iter
+ *       gl_func_00000000(
+ *           a0,
+ *           a0->0xA4,
+ *           (char*)a0->0xBC + i * stride,
+ *           (char*)&D_00000000 + 0x40 + i * 0x18,
+ *           *idx_ptr, a1+0x230, a1, v1
+ *       );
+ *   }
+ *
+ * Target emits two structurally-identical loop-body arms via `bnel
+ * fp(=1), s2->0x3BC, +0x13` — branch-likely with `lw t8, 0x74(s2)` in
+ * delay slot. Both arms call the same function with the same args; the
+ * dispatch is IDO's branch-likely scheduling, not a real C-level if/else.
+ * No straightforward C produces this shape (a `if (t2 == 1)` with both
+ * arms identical optimizes to a single arm; an unconditional call also
+ * emits a single arm). DEFERRED — needs sibling channel-loop match for
+ * template shape, OR explicit branch-likely scheduling lever.
+ *
+ * Open: 8-arg call signature, arg-spill order, exact stride decode for
+ * stack_a1_array (offsets 0x134/0x158/0x17C/0x1A0/0x1C4 imply +0x24
+ * stride). */
+void timproc_uso_b5_func_0000BBDC(int *a0, int *a1) {
+    int i;
+    int v;
+    int cap;
+    int v1;
+    int stride;
+    int *idx_arr;
+
+    if (*(int*)((char*)a0 + 0x2BC) < 10) {
+        int c = *(int*)((char*)a0 + 0x2C0) - 1;
+        *(int*)((char*)a0 + 0x2C0) = c;
+        if (c < 0) {
+            *(int*)((char*)a0 + 0x2C0) = 1;
+            *(int*)((char*)a0 + 0x2BC) = *(int*)((char*)a0 + 0x2BC) + 2;
+        }
+    }
+    idx_arr = (int*)((char*)a1 + 0x134);
+    for (i = 0; i < 5; i++) {
+        v = *(int*)((char*)a0 + 0x2BC);
+        cap = ((int*)((char*)a0 + 0x1C4))[i * 6];
+        v1 = (v < cap) ? v : cap;
+        stride = *(int*)((char*)a1 + 0x74);
+        gl_func_00000000(
+            a0,
+            *(int**)((char*)a0 + 0xA4),
+            (char*)*(int**)((char*)a0 + 0xBC) + i * stride,
+            (char*)&D_00000000 + 0x40 + i * 0x18,
+            idx_arr[i * 9],
+            (char*)a1 + 0x230,
+            a1,
+            v1
+        );
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BBDC);
+#endif
 
 extern char D_b5_BDA0_table;
 void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
