@@ -180,14 +180,7 @@ build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: INSN_PATCH := func_00012818=0x5C:0
 build/src/kernel/kernel_000.c.o: INSN_PATCH := \
 	func_8000487C=0x14:0x15C00006,0x18:0x00000000,0x40:0x13200006,0x44:0x00000000 \
 	func_800012BC=0x40:0x27A40018,0x70:0x8FAE001C,0x74:0x006E7821 \
-	uso_skip_to_end=0x50:0x11D20004,0x68:0x5513FFF0 \
-	func_80000568=0x20:0x27BD0028 \
-	func_800047E4=0x20:0x01001025
-build/src/kernel/kernel_000.c.o: PREFIX_BYTES := \
-	func_80000568=0x00000000,0x00001025,0x8FBF0024,0x8FB00014,0x8FB10018,0x8FB2001C,0x8FB30020 \
-	func_800047E4=0x014D7025,0xAFAE0004,0x908F0003,0x31F900FF,0x01D94025,0xAFA80004,0x27BD0008
-build/src/kernel/kernel_020.c.o: PREFIX_BYTES := \
-	func_80007FC8=0x1000FFFF,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000
+	uso_skip_to_end=0x50:0x11D20004,0x68:0x5513FFF0
 build/src/game_libs/game_libs_post.c.o build/non_matching/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8 gl_func_0002D620=8 gl_func_0002DEA4=8 gl_func_0002DF38=8 gl_func_0002D8A8=8
 
 # INSN_PATCH := <func>=<offset>:<word>[,<offset>:<word>] — overwrite N specific

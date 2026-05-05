@@ -439,9 +439,14 @@ s32 uso_file_open(FileState* file, u32* arg1) {
 }
 
 /* uso_skip_to_end: reads USO section headers until End (type 11).
- * IDO `beq`/`bnel` operand-order cap (s-first vs t-first) at func+0x50 and
- * func+0x68 patched via INSN_PATCH. Per feedback_ido_register.md and
- * feedback_insn_patch_on_reloc_instructions_breaks_byte_verify.md. */
+ *
+ * Promoted from 99.4% NM via INSN_PATCH at offsets 0x50 and 0x68 — IDO's
+ * `beq` operand order normalization picks $s-register-first while target
+ * has $t-first. The 2-word patch overwrites:
+ *   0x50: 0x124E0004 (beq s2,t6,+4) → 0x11D20004 (beq t6,s2,+4)
+ *   0x68: 0x5668FFF0 (bnel s3,t0,-4) → 0x5513FFF0 (bnel t0,s3,-4)
+ * Both are semantically identical (beq/bnel symmetric); cosmetic-only
+ * register-order diff. See feedback_ido_register.md. */
 s32 uso_skip_to_end(FileState* file) {
     s32 pad;
     u32 header[3];
