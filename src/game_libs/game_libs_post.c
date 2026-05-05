@@ -3161,7 +3161,50 @@ void gl_func_00055B10(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055B10_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_00055B44: 60-insn nested-loop "row × 16-col grid emit" function.
+ * Frame -0x40, saves s0-s8+ra. Setup call + outer-loop (arg3 iters) wrapping
+ * inner 0x10-iter byte-emit loop:
+ *   gl_func(D+0x215B8, arg1, arg2);    // setup (3-arg call)
+ *   if (!arg2) return;                  // empty grid
+ *   byte_idx = 0;
+ *   if (arg3 <= 0) return;              // no rows
+ *   for (row = 0; row < arg3; row++) {
+ *     gl_func(D+0x215D8, byte_idx);    // open-row (with current byte index)
+ *     for (col = 0; col < 0x10; col++) {
+ *       gl_func(D+0x215E0, arg2[byte_idx]);  // emit cell byte
+ *       byte_idx++;
+ *     }
+ *     gl_func(D+0x215E8);              // close-row
+ *   }
+ * Likely a memory hex-dump or per-row table renderer. The 0x215B8/D8/E0/E8
+ * constants are relocated game_libs data section addresses. */
+extern int gl_data_00000000;
+void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
+    int row;
+    int col;
+    int byte_idx;
+
+    gl_func_00000000((char*)&gl_data_00000000 + 0x215B8, arg0, byte_array);
+    if (byte_array == 0) return;
+    byte_idx = 0;
+    if (outer_count <= 0) return;
+    row = 0;
+    do {
+        gl_func_00000000((char*)&gl_data_00000000 + 0x215D8, byte_idx);
+        col = 0;
+        do {
+            gl_func_00000000((char*)&gl_data_00000000 + 0x215E0, byte_array[byte_idx]);
+            byte_idx++;
+            col++;
+        } while (col != 0x10);
+        gl_func_00000000((char*)&gl_data_00000000 + 0x215E8);
+        row++;
+    } while (row != outer_count);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055B44);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055C34);
 
