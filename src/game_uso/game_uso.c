@@ -1856,15 +1856,35 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *     -0.6pp
      *
      * Promotion path requires breaking IDO's `&D_00000000` CSE
-     * across iters. Possible angles for future ticks:
+     * across iters. The most-promising recipe (per
+     * feedback_unique_extern_with_offset_cast_breaks_cse.md, verified to
+     * crack a sibling 89.47% cap on timproc_uso_b3_func_000021F4):
+     *
+     *   1. Declare ~120 unique externs in undefined_syms_auto.txt all
+     *      at 0x0, one per D-reference site (3 per iter × 41 iters):
+     *        D_44F4_iter0_t = 0x00000000;   // template ptr base
+     *        D_44F4_iter0_f = 0x00000000;   // float scalar base
+     *        D_44F4_iter0_p = 0x00000000;   // s0+0xC ptr base
+     *        ... × 41 iters
+     *   2. Replace each `(char*)&D_00000000 + OFFSET` in INIT_ITER and
+     *      its call sites with `(char*)&D_44F4_iterN_X + OFFSET`.
+     *   3. IDO sees N different bases → can't CSE → emits per-iter lui.
+     *
+     * The recipe lifts the per-iter delta from -6 insns/iter to 0,
+     * recovering ~123 of the 244 insns gap. Still leaves ~121 insns
+     * unaccounted for — likely the per-iter sp-relative arg-buffer
+     * spill pattern (separate cap), which would need a similar
+     * unique-pseudo trick.
+     *
+     * Estimated effort: 1-2 ticks of careful refactoring (adding the
+     * 41-iter symbol table to undefined_syms_auto.txt + replacing all
+     * 123 D references in the macro/iter table). High-confidence per
+     * the verified sibling case, but mechanical bulk.
+     *
+     * Other angles for future ticks (lower-confidence):
      *   - decomp-permuter with PERM_RANDOMIZE around the macro
-     *   - per-macro-invocation `volatile char *_d_base = &D_00000000;`
-     *     (variant of arg_ptr trick but on D ref instead)
-     *   - Switch float scalar source from compile-time constant to
-     *     runtime-built address (hard without changing semantics)
-     *   - Accept the 61.61% as the C-decomp ceiling; rely on byte-
-     *     correct ROM via INCLUDE_ASM until the permuter finds a
-     *     better shape. */
+     *   - Accept 61.61% as the C-decomp ceiling; rely on byte-correct
+     *     ROM via INCLUDE_ASM. */
     (void)s0;
 
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
