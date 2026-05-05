@@ -1666,9 +1666,78 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * at 0x4DC0 with iter U+. The 0x4DC0+ region has another ~5-6 iters
      * before hitting the loop exit / link-setup phase at ~0x4F00.
      *
-     * TODO: ~645 remaining insns — final iters of the unrolled loop,
-     * loop-exit cleanup, recursive init via cross-USO calls, child link
-     * setup at a0->field_38, etc. */
+     * Stage 11 (~480 insns covering 0x4DC0-0x563C): iters U through Z+
+     * — the unrolled loop continues to slot 0x3C8 (= 0x1E8 + 0x1E0,
+     * which is +20 more iters from iter T). Total unrolled iter count
+     * is ~32, NOT the previously-estimated 17-20. The arg_slot
+     * decreases past the spill-slots boundary because the spill chain
+     * reuses the same 0xE0-byte frame down to ~0x40 — fits up to 32
+     * iters. Float scalars in this region are dominated by hardcoded
+     * literal constants (0x4496=+1200, 0x4370=+240, 0x44FA=+2000,
+     * 0x4140=+12, 0x43FA=+500, 0x4366=+230, 0x428C=+70, 0x41A0=+20,
+     * 0x4170=+15, 0x4248=+50, 0x4000=+2.0, 0x3FC0=+1.5, 0x447A=+1000).
+     * Some iters store the SAME literal to multiple sub-objs in a
+     * row — likely setting batched physics constants per sub-obj group.
+     *
+     * Stage 12 (~80 insns covering 0x563C-0x5710): FINAL FIELD-INIT
+     * phase after the unrolled loop exits. Pattern shifts from "alloc
+     * + init sub-obj" to "store fixed values into a0's main struct
+     * fields":
+     *
+     *   v0 = a0 (reload from sp+0xE8)
+     *   t8 = a1 (reload from sp+0xEC)
+     *   f18 = 0.0
+     *   *(int*)(v0 + 0x30) = t8                ; a0->0x30 = a1
+     *   t9 = a2 (reload from sp+0xF0)
+     *   f0  = +500.0f literal (lui 0x43FA)
+     *   *(float*)(v0 + 0xA8) = f18              ; a0->0xA8 = 0.0
+     *   *(int*)(v0 + 0x2C) = t9                  ; a0->0x2C = a2
+     *   f4 = D[0xE8] (float)
+     *   f6 = +70.0f literal (lui 0x428C)
+     *   f8 = +230.0f literal (lui 0x4366)
+     *   *(float*)(v0 + 0xB0) = f0
+     *   *(float*)(v0 + 0xAC) = f4
+     *   *(float*)(v0 + 0xB4) = f6
+     *   *(float*)(v0 + 0xB8) = f8
+     *   fA = D[0xEC]
+     *   fC = +12.0f literal (lui 0x4140)
+     *   *(float*)(v0 + 0xBC) = fA
+     *   ... (continues for 0xC0..0xE0 fields with mix of D-loads and
+     *   literals: +2.0 lui 0x4000, +50.0 lui 0x4248, +20.0 lui 0x41A0,
+     *   +15.0 lui 0x4170)
+     *   *(int*)(v0 + 0x4DC) = const               ; final field
+     *
+     * Stage 13 (~8 insns 0x5710-0x5728): EPILOGUE.
+     *   v0 = a0 (already loaded from sp+0xE8 above; carries through)
+     *   $s0 = lw 0x18(sp)
+     *   $s1 = lw 0x1C(sp)
+     *   $s2 = lw 0x20(sp)
+     *   jr  $ra
+     *   addiu $sp, $sp, 0xE8
+     *
+     * Cumulative 1165/1165 insns characterized (~100%). The full
+     * function structure is now mapped. C-body decomp work ahead:
+     *
+     *   - Prologue: ~28 insns (Stages 1-3) — partially written in body
+     *   - Iter 0 init + sub-region setup: ~40 insns (Stage 4) — partial
+     *   - Unrolled main loop: ~700 insns (Stages 5-11, 32 iters of
+     *     ~22 insns each) — only Stages 5-7 (3 iters) currently in
+     *     body; needs explicit unrolled writeout
+     *   - Final field init: ~80 insns (Stage 12) — needs body
+     *   - Epilogue: ~8 insns (Stage 13) — auto-emitted by IDO
+     *
+     * Path to landing: write a C macro INIT_SUBOBJ(slot, tmpl_off,
+     * float_src) that expands to ~22 insns matching the per-iter
+     * template, then invoke the macro 32 times with the per-iter
+     * parameter table from Stages 8-11. If the macro reliably
+     * matches, the entire main loop matches in one shot. Final
+     * field init in Stage 12 is a sequence of straight stores —
+     * easier to write linearly. Epilogue is auto-emitted.
+     *
+     * Estimated time-to-100% from current state: 4-6 focused ticks
+     * (1 to write the macro + iters 0/A as proof, 2 to debug
+     * cascading register-allocation drift, 2-3 to handle final-init
+     * stage and final fuzzy push). */
     (void)s0; (void)a1; (void)a2;
 epi:
     return a0;
