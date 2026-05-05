@@ -64,9 +64,14 @@ extern OSEventState __osEventStateTab[];
 
 
 
+/* func_800066B0+func_800066D0 merged: 800066D0 had no prologue and reads
+ * $v0 from sp+0x1C set by 800066B0's preceding `jal func_80008FB0` (which
+ * writes to *(sp+0x1C)). Same-file subset merge is safe (per
+ * feedback_merge_fragments_partial_safe_subset.md): kernel_018.c.o .text
+ * size unchanged. Caller symbol preserved via undefined_syms_auto.txt at
+ * 0x800066D0. The full 3-way merge with parent func_80006698 (kernel_017.c)
+ * stays blocked by cross-.o linker-layout shift. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800066B0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800066D0);
 
 /* func_800066EC: 1-insn (`or $a3, $a2, $0`) alias entry point that falls
  * through into func_800066F0 (split out to kernel_048.c, -O1). Callers

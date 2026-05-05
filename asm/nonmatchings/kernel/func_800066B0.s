@@ -1,5 +1,5 @@
 
-nonmatching func_800066B0, 0x20
+nonmatching func_800066B0, 0x3C
 
 glabel func_800066B0
     /* 76B0 800066B0 14200009 */  bnez       $at, .L800066D8
@@ -10,4 +10,13 @@ glabel func_800066B0
     /* 76C4 800066C4 01C02025 */  or         $a0, $t6, $zero
     /* 76C8 800066C8 0C0023EC */  jal        func_80008FB0
     /* 76CC 800066CC 27A5001C */   addiu     $a1, $sp, 0x1C
+    /* 76D0 800066D0 10000002 */  b          .L800066DC
+    /* 76D4 800066D4 8FA2001C */   lw        $v0, 0x1C($sp)
+  .L800066D8:
+    /* 76D8 800066D8 00001025 */  or         $v0, $zero, $zero
+  .L800066DC:
+    /* 76DC 800066DC 8FBF0014 */  lw         $ra, 0x14($sp)
+    /* 76E0 800066E0 27BD0020 */  addiu      $sp, $sp, 0x20
+    /* 76E4 800066E4 03E00008 */  jr         $ra
+    /* 76E8 800066E8 00000000 */   nop
 endlabel func_800066B0
