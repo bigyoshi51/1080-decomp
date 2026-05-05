@@ -1479,7 +1479,59 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
         if (s1 == NULL) goto epi;
     }
 
-    /* Stage 4: write sub-region back-pointer; init sub-region from
+    /* Stage 4 (v1 setup + iter 0): v1 = (s1 != NULL) ? s1 : alloc(8).
+     * Then write template head at v1[0] / 0 at v1[4]. Iter 0 inits
+     * the first sub-obj at slot 8 from D[0x6E8] template. */
+    {
+        char *v1;
+        char *tmpl0;
+        char *s2 = a0 + 0x2C;
+        if (s1 != NULL) {
+            v1 = s1;
+        } else {
+            v1 = (char*)gl_func_00000000(8);
+            if (v1 == NULL) goto epi;
+        }
+        *(char**)v1 = (char*)&D_00000000 + 0x6D8;
+        *(int*)(v1 + 4) = 0;
+
+        tmpl0 = *(char**)((char*)&D_00000000 + 0x6E8);
+        s0 = s1 + 8;
+        *(char**)s2 = tmpl0;
+        if (s1 != (char*)-8) {
+            s0 = (char*)gl_func_00000000(0x18);
+            if (s0 == NULL) goto epi;
+            gl_func_00000000(s0, s1, *(char**)s2, 1);
+            *(char**)(s0 + 0xC) = (char*)&D_00000000 + 0x3C8;
+            *(int*)(s0 + 0x14) = 0;
+            *(float*)(s0 + 0x10) = *(float*)((char*)&D_00000000 + 0x9C);
+        }
+
+        /* Unrolled iters A-D (slots 0x20, 0x38, 0x50, 0x68; tmpl_off
+         * 0x6EC, 0x6F0, 0x6F4, 0x6F8; sentinel = slot - 0x100). */
+#define INIT_ITER(SLOT, TMPL_OFF, FLOAT_EXPR) do { \
+            char *_t = *(char**)((char*)&D_00000000 + (TMPL_OFF)); \
+            s0 = s1 + (SLOT); \
+            *(char**)s2 = _t; \
+            if (s1 != (char*)((SLOT) - 0x100)) { \
+                s0 = (char*)gl_func_00000000(0x18); \
+                if (s0 == NULL) goto epi; \
+                gl_func_00000000(s0, s1, *(char**)s2, 1); \
+                *(char**)(s0 + 0xC) = (char*)&D_00000000 + 0x3C8; \
+                *(int*)(s0 + 0x14) = 0; \
+                *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
+            } \
+        } while (0)
+
+        INIT_ITER(0x20, 0x6EC, *(float*)((char*)&D_00000000 + 0xA0));
+        INIT_ITER(0x38, 0x6F0, *(float*)((char*)&D_00000000 + 0xA4));
+        INIT_ITER(0x50, 0x6F4, -800.0f);
+        INIT_ITER(0x68, 0x6F8, *(float*)((char*)&D_00000000 + 0xA8));
+        (void)s2;
+    }
+
+    /* Stage 5+ (deprecated doc — see Stages 8-11 for full per-iter
+     * unrolled loop characterization; all 38 iters TBD as C body): write sub-region back-pointer; init sub-region from
      * template; loop-init sub-object table at a0+0x2C with stride 8.
      * Decoded ~25 insns at 0x4564-0x45D8:
      *   *(int*)(s1) = 0;            // s1->0 = NULL
