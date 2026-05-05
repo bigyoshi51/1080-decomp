@@ -1006,24 +1006,25 @@ void func_80004808(u8* arg0, u32 arg1) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80004808);
 #endif
 
-/* NON_MATCHING: control flow is correct, but IDO still emits branch-likely
- * forms (`bnezl` / `beqzl`) for the two status polls instead of the target's
- * plain `bnez` / `beqz` layout. */
-#ifdef NON_MATCHING
+/* RSP status-bit poller. Two loops wait for SP_STATUS bit 0x2000 to be
+ * SET then CLEAR around a write to 0xC000000C. The do-while form with the
+ * func call in the BODY (not the while-condition) gets IDO to emit plain
+ * bnez/beqz instead of branch-likely (which the empty-body form caused). */
 void func_8000487C(void) {
-    if ((func_80009EA0() & 0x2000) == 0) {
+    s32 r = func_80009EA0();
+    if ((r & 0x2000) == 0) {
         do {
-        } while ((func_80009EA0() & 0x2000) == 0);
+            r = func_80009EA0();
+        } while ((r & 0x2000) == 0);
     }
     *(volatile u32*)0xC000000C = 0;
-    if (func_80009EA0() & 0x2000) {
+    r = func_80009EA0();
+    if (r & 0x2000) {
         do {
-        } while (func_80009EA0() & 0x2000);
+            r = func_80009EA0();
+        } while (r & 0x2000);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000487C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800048E8);
 
