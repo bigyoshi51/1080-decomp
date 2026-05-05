@@ -3621,6 +3621,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *   Scale constant 0xC7A ≈ 250.0f at 0x9D0C, offset 0x4248 ≈ 50.0f at 0x9D1C
  *   — suggests coordinate/angle scaling.
  *
+ * BODY-PART-2 FRONT-HALF SCAN (2026-05-05, 0x9C54-0x9D00 = +43 insns):
+ *   - 0x9C54-0x9C7C: TWO triple-fanout 12-byte struct copies. First reads
+ *     a3+0/4/8 (= prior body-part-1 result) and writes BOTH t6+0/4/8 and
+ *     v1+0/4/8 (sp+0x19C and sp+0x144). Second reads t1+0/4/8 and writes
+ *     v0+0/4/8 (sp+0x144 again, possibly fanout to two captures).
+ *   - 0x9C80-0x9C9C: bne v1, $zero, +7 — guarded cross-USO call
+ *     `jal 0` with a0 = &local at sp+0xC4, a1 = &local at sp+0xEC,
+ *     a2 = 0xC (likely byte length = 12). Pattern: copy/transform Vec3s
+ *     between two stack slots via a stub helper.
+ *   - 0x9CA0-0x9CCC: post-call results: lwc1 sp+0x144, lwc1 sp+0x14C,
+ *     mtc1 zero, abs.s. Likely "abs(magnitude)" of the just-computed
+ *     transformed Vec3 component. Stores to a1+0..8 (out-buffer).
+ *   - 0x9CD0-0x9CFC: ANOTHER triple-fanout struct copy + jal 0 with
+ *     a0 = sp+0x138 setup. Same 12-byte struct-pair pattern as before;
+ *     two helpers in sequence each consuming a Vec3 transform result.
+ *   - 0x9D00+: switch to FPU — lwc1 sp+0x138/+4/+8 + lui 0x437A (=250.0f).
+ *     Next chunk (0x9D04-...) is float scaling against the 250.0f constant.
+ *   ~270 insns remain stubbed past 0x9D00.
+ *
  * Deferred to future passes: full body decode is ~300 insns of float sched;
  *   one /decompile run expands prologue + body-part-1 — subsequent runs will
  *   tighten the dispatch logic and body math. The dual Vec3-copy entry
