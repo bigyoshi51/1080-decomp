@@ -2421,7 +2421,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000478FC);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047B40);
 
 /* IDO picked $a3 not $a2 for the temp at offset 0x4/0x14 — INSN_PATCH overrides
- * those 2 words. Per feedback_insn_patch_for_ido_codegen_caps.md. */
+ * those 2 words in the Makefile. */
 extern int gl_func_00000000();
 int gl_func_00047DD8(int *a0, int a1) {
     return gl_func_00000000(a1, a0[0x38]);
