@@ -46,6 +46,7 @@ build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0xDC
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: INSN_PATCH := arcproc_uso_func_000000B4=0x40:0x10000008,0x5C:0x10000001,0x64:0x8fb00018,0x68:0x8fbf001c,0x6C:0x27bd0028,0x70:0x03e00008,0x74:0x00000000
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_12C.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: TRUNCATE_TEXT := 0x114
+build/src/bootup_uso/bootup_uso_o0_F1F0.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_F1F0.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_F390.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_F390.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_F7F4.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_1024C.c.o: OPT_FLAGS := -O0
@@ -56,7 +57,8 @@ build/src/bootup_uso/bootup_uso_o0_12B7C.c.o build/non_matching/src/bootup_uso/b
 build/src/bootup_uso/bootup_uso_o0_12DA4.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_12DA4.c.o: OPT_FLAGS := -O0
 # Trim .text sizes + reduce sh_addralign to 4 so split .o files link at the
 # exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
-build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF390
+build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF1F0
+build/src/bootup_uso/bootup_uso_o0_F1F0.c.o: TRUNCATE_TEXT := 0x1A0
 build/src/bootup_uso/bootup_uso_o0_F390.c.o: TRUNCATE_TEXT := 0x334
 build/src/bootup_uso/bootup_uso_F434.c.o build/non_matching/src/bootup_uso/bootup_uso_F434.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_F434.c.o: TRUNCATE_TEXT := 0xA8
