@@ -1059,9 +1059,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E124);
  * Default INCLUDE_ASM keeps ROM correct; this wrap is a structural pass for
  * the next iteration. Likely won't byte-match without proper symbol naming
  * + the typed-extern trick to bake the offset into lui/lwc1. */
-extern int func_0000098C;
 void func_0000E270(char *arg0, float arg1) {
-    float ratio = *(float*)((char*)&func_0000098C + 0xC) / arg1;
+    /* func_0000098C is defined as a function above (line 173); cast its address
+     * to char* and read the float at +0xC. This is the suspicious pattern flagged
+     * in the wrap comment — likely an unresolved D_00000998 rodata symbol that
+     * splat folded into the nearest preceding function. */
+    float ratio = *(float*)((char*)((void*)func_0000098C) + 0xC) / arg1;
     func_00000000((arg0 + 0xCC), (arg0 + 0x3B0), ratio);
     func_00000000((arg0 + 0xF4), (arg0 + 0x3B0), ratio);
 }
