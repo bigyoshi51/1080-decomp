@@ -4314,8 +4314,9 @@ void game_uso_func_0000D5BC(char *a0, int a1, int a2) {
 }
 
 void game_uso_func_0000D5DC(char *a0) {
-    *(int*)(a0 + 0xC8) = *(int*)((char*)&D_00000000 + 0xDC8);
-    *(int*)(a0 + 0xCC) = *(int*)((char*)&D_00000000 + 0xDCC);
+    int *p = (int*)((char*)&D_00000000 + 0xDC8);
+    *(int*)(a0 + 0xC8) = p[0];
+    *(int*)(a0 + 0xCC) = p[1];
 }
 
 void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
