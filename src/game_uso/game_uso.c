@@ -2298,9 +2298,10 @@ void game_uso_func_0000751C(char *a0) {
 /* game_uso_func_00007538: 0x560 (344 insns) — largest residue of the split-up
  * 0x7424 bundle. Per-frame event dispatcher + per-bit timer decrementer.
  *
- * Partial C body below: 37.51% (was 36.89% pre-s64-2026-05-05). Captures
- * prelude + dispatch outline + epilogue; many arm bodies are TODO-stubbed
- * with correct control-flow targets but no per-bit state mutations yet.
+ * Partial C body below: 38.83% (was 37.51% pre-bit-0x80-fix-2026-05-05).
+ * Captures prelude + dispatch outline + epilogue + bit-0x80 trunk arm.
+ * Many arm bodies are TODO-stubbed with correct control-flow targets but
+ * no per-bit state mutations yet.
  *
  * 2026-05-05 BUG FIXES (+5.3pp):
  *   (1) Prelude `if ((flags & 0x10) == 0)` was wrong — should be
@@ -2596,8 +2597,9 @@ trunk:
          * a fixed value to a0->[0x44]. */
         ret_lo |= 0x100;
         outer = (int*)a0[0x30 / 4];
-        if (outer[0x938 / 4] != 0) {
+        if (outer[0x938 / 4] == 0) {  /* fixed 2026-05-05: was != 0 (inverted); asm bnel at 0x77B8 branches AWAY when nonzero */
             int cnt = a0[0x4C / 4];
+            ret_hi = 1;  /* 2026-05-05: addiu v1,zero,1 at 0x77C4 */
             ret_lo |= 0x200;
             if (cnt < 31) {
                 /* float table lookup at (D_base + 0x638)[a0->0x58] */
