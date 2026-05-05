@@ -2806,44 +2806,93 @@ void game_uso_func_00007A98(void) {}
 void game_uso_func_00007ABC(void) {}
 
 #ifdef NON_MATCHING
-/* game_uso_func_00007ACC: 0x150 (84 insns). Function-table dispatcher with
- * bounds check and (likely) assertion call.
+/* game_uso_func_00007ACC: 0x150 (84 insns). Function-table dispatcher.
+ * 90.08% fuzzy (up from 16.37% stub). Remaining ~10pp diff is purely
+ * frame-layout: expected has 0x38 frame using caller-arg slots
+ * (sp+0x3C/0x40/0x44) for incoming-arg spill, build has 0x28 frame
+ * using local slots. Two extra emits in expected: a dead `sw a1, 0x34(sp)`
+ * before the dispatch jal, and a `sw a1, 4(sp)` (outgoing-a1-slot save)
+ * in the jal delay. Both result from IDO's spill-slot heuristic — neither
+ * forced from C-level via local-variable ordering, char-pad locals, or
+ * volatile decls (all attempted, all collapsed to no-op). Logic is correct,
+ * codegen-cap remaining.
  *
- * Decoded prelude (insns 1-15 @ 0x7ACC-0x7B08):
- *   void f(T *a0, int *a1, int idx, int x_unused, int arg5) {
- *       *a1 = 0;                                       // sw zero,0(a1)
- *       int v = idx;                                    // reload from caller arg slot
- *       T *p = a0;                                      // s0 saved
- *       if (v < 0 || v >= 12) {
- *           gl_func_00000000(&D + 0x78C, &D + 0x7B0, 0x609);  // assert(file, msg, line)
- *       }
- *       // function table at &D + idx*4 + 0x548 — fn pointer
- *       int idx4 = v << 2;
- *       void (*fn)() = *(void(**)())(&D + idx4 + 0x548);
- *       int arg6 = arg5;          // re-read caller arg from sp+0x40
- *       int *p_ref = *(int**)((char*)p + 0x40);
- *       int sub_arg0 = *p_ref;
- *       fn(p, sub_arg0, ...);     // dispatched call
- *       // ... rest of the body uses the call's return value
- *   }
+ * Signature: 4 register args (NOT idx — that comes from a0[0x40]):
+ *   a0 = struct ptr (saved as s0 throughout)
+ *   a1 = output int* (write r->[0x2C] here)
+ *   a2 = arg3 (passed through to dispatch callee)
+ *   a3 = arg4 — int* output flag (1 if r changed, 0 if same)
  *
- * Identifies as the GAME-EVENT DISPATCHER for 12 cases (idx 0..11). The
- * &D + 0x548 table is a 12-entry function-pointer array. Parallel to
- * game_uso_func_00000174C (the 16-case if-goto chain at 95.74%) but uses
- * a real jump table — different dispatch shape.
+ * Body (decoded 2026-05-05 from asm 0x7ACC-0x7C18):
+ *   *a1 = 0;
+ *   v = a0[0x40];
+ *   if (v < 0 || v >= 12) ASSERT(...);
+ *   // Indirect-then-deref through D-table:
+ *   //   first: tab[v] = *(int**)(&D + 0x548 + v*4)
+ *   //   then:  *tab[v] is loaded as the dispatched-call's a1 arg
+ *   r = gl_func_00000000(a0, *(int*)D[0x548 + v*4], arg3, arg4);
+ *   if (!r) return 0;
+ *   if (r != a0[0x78]) { if (arg4) *arg4=1; a0[0x78]=r; }
+ *   else                { if (arg4) *arg4=0; }
+ *   *a1 = r->0x2C;
+ *   tbl = a0->0x30;
+ *   tbl->0x954 = r;
+ *   tbl->0x958 = r->0x2C;
+ *   if (tbl->0x958 == 0) return r;  // beql at 0x7BB4 jumps to epilogue with v0=t0=r
+ *   // Float math (a2 != 0 = inner ptr exists):
+ *   tbl->0x9B8f = tbl->0xB4f - inner->0x30f;
+ *   tbl->0x9BCf = 0.0f;
+ *   tbl->0x9C0f = tbl->0xBCf - inner->0x38f;
+ *   gl_func_00000000(&tbl->0x9B8);
+ *   return r;
  *
- * Multi-pass: 0% match for now (stub). Body wrap captures the structure
- * + the &D function-table location for future passes. Default build
- * INCLUDE_ASM matches. */
-void game_uso_func_00007ACC(void *a0, int *a1, int idx) {
+ * Identifies as a GAME-EVENT DISPATCHER for 12 cases (a0[0x40] = case idx).
+ * The &D + 0x548 table is a 12-entry struct-pointer array. Each struct's
+ * first word is some kind of context value passed to the dispatch callee.
+ *
+ * Multi-pass — initial body, expect ~30-50% on first build. Reloads from
+ * s0->0x30 in asm aren't cached (each access re-reads), which the compiler
+ * will reproduce when expressed as direct field accesses below. */
+int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
+    int v;
+    int *r;
+    int *inner;
+
     *a1 = 0;
-    if (idx < 0 || idx >= 12) {
+    v = a0[0x40 / 4];
+    if (v < 0 || v >= 12) {
         gl_func_00000000((char*)&D_00000000 + 0x78C,
                          (char*)&D_00000000 + 0x7B0, 0x609);
     }
-    /* TODO: dispatch to (*(void(**)())(&D + idx*4 + 0x548))(...) and
-     * the post-call body — see asm at offsets 0x7B30+. */
-    (void)a0;
+    /* Re-load v from a0[0x40] for the table-lookup — matches asm 0x7B1C
+     * which has an independent lw v0,0x40(s0) after the assertion jal. */
+    r = (int*)gl_func_00000000(a0,
+                               *(int*)(*(int*)((char*)&D_00000000 + 0x548 + a0[0x40 / 4] * 4)),
+                               arg3, arg4);
+    if (r == 0) return 0;
+
+    if (r != (int*)a0[0x78 / 4]) {
+        if (arg4 != 0) *arg4 = 1;
+        a0[0x78 / 4] = (int)r;
+    } else {
+        if (arg4 != 0) *arg4 = 0;
+    }
+
+    *a1 = r[0x2C / 4];
+    *(int*)((char*)a0[0x30 / 4] + 0x954) = (int)r;
+    *(int*)((char*)a0[0x30 / 4] + 0x958) = r[0x2C / 4];
+
+    inner = (int*)*(int*)((char*)a0[0x30 / 4] + 0x958);
+    if (inner == 0) return (int)r;
+
+    *(float*)((char*)a0[0x30 / 4] + 0x9B8) =
+        *(float*)((char*)a0[0x30 / 4] + 0xB4) - *(float*)((char*)inner + 0x30);
+    *(float*)((char*)a0[0x30 / 4] + 0x9BC) = 0.0f;
+    *(float*)((char*)a0[0x30 / 4] + 0x9C0) =
+        *(float*)((char*)a0[0x30 / 4] + 0xBC)
+        - *(float*)((char*)*(int*)((char*)a0[0x30 / 4] + 0x958) + 0x38);
+    gl_func_00000000((char*)a0[0x30 / 4] + 0x9B8);
+    return (int)r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
