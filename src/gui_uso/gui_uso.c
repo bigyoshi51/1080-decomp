@@ -2,31 +2,25 @@
 
 #ifdef NON_MATCHING
 /* USO entry-0: character-to-glyph-index converter (82 insns / 0x148).
- * Leading 0x1000736F trampoline (loader-patched) + a bnel-chain dispatch
- * mapping ASCII chars to glyph indices.
+ * Leading 0x1000736F trampoline (loader-patched) + a bnel-chain dispatch.
  *
- * Decoded structure:
- *   - First test uses `bne` (not bnel): if c == 0x21 return 0x27.
- *   - Then a chain of bnel cases for special punctuation glyphs.
- *   - Then 3 range checks for 'a'..'z', 'A'..'Z', '0'..'9' (hex-style
- *     remapping with offsets -0x57, -0x37, -0x30).
- *   - Default: return c & 0xFF.
+ * 2026-05-05 retry: PREFIX_BYTES injection now WORKS (script's
+ * VALID_ENTRY_OPCODES list accepts opcode 0x0C `andi`, the previous
+ * blocker comment was outdated). Added Makefile entry:
+ *   build/src/gui_uso/gui_uso.c.o: PREFIX_BYTES := gui_func_00000000=0x1000736F
  *
- * Two structural blockers vs target:
- *   1. Leading 4-byte trampoline (PREFIX_BYTES injection unavailable —
- *      tried 2026-05-03; inject-prefix-bytes.py refuses with "first insn
- *      is 0x308400ff, expected addiu sp prologue ... or jr ra ... refusing
- *      to patch". The script only handles functions with a recognized
- *      prologue shape; leaf functions starting with arithmetic (here
- *      `andi a0, a0, 0xFF`) aren't a supported pattern. Would need the
- *      script to relax the prologue check, or a different mechanism.).
- *   2. bnel-chain emit with `li at, NEXT_X` in each delay slot — IDO needs
- *      a specific if-chain pattern (likely goto-chain with shared epilogue
- *      per feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md) to
- *      reproduce. Plain `if (c==X) return Y;` chain doesn't trigger bnel.
+ * Remaining structural blocker: target's entry has `sw a0, 0(sp)` in the
+ * trampoline's delay slot (caller arg-save area at sp+0). IDO -O2 elides
+ * this from the K&R-form C body since `c` isn't address-taken inside the
+ * function body. Tried standard prototype `int gui_func_00000000(int c)`
+ * — breaks 2-arg callers (gui_func_000013E8 et al pass 2 args). Tried
+ * `int tmp = c;` — folded by IDO. Need the K&R form to preserve K&R-arg-
+ * save BUT also keep the var-args call sites compatible. May require
+ * `int gui_func_00000000(int c, ...)` with stdarg or similar.
  *
- * Multi-pass decomp; default build INCLUDE_ASM matches. C body recorded
- * here for reference and as a starting point for the bnel-chain match. */
+ * Stub C body decoded but NM wrap stays — default build INCLUDE_ASM is
+ * correct bytes via the .s file. Multi-pass decomp; the bnel-chain emit
+ * for the special-char branches is the last-mile blocker. */
 int gui_func_00000000(c)
 int c;
 {
