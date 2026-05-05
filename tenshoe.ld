@@ -1341,7 +1341,7 @@ SECTIONS
         FILL(0x00000000);
         game_libs_TEXT_START = .;
         build/src/game_libs/game_libs.c.o(.text);
-        build/assets/game_libs_ucode.bin.o(.data);
+        build/assets/game_libs_dl_data.bin.o(.data);
         build/src/game_libs/game_libs_post.c.o(.text);
         game_libs_TEXT_END = .;
         game_libs_TEXT_SIZE = ABSOLUTE(game_libs_TEXT_END - game_libs_TEXT_START);
