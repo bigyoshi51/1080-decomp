@@ -374,7 +374,14 @@ void h2hproc_uso_func_0000099C(int *a0) {
     gl_func_00000000(*(int*)((char*)a0 + 0x48), v * 120 + 60);
 }
 
-#ifdef NON_MATCHING
+/* 83% -> 100% NM via wrong-deref fix + 15-word INSN_PATCH (ports
+ * agent-b). Original wrap had `v = D[0x48]; p = v + a0->[0x7C]*0x28`
+ * (v as int + a0's index) but asm reads `v = a0->[0x48]; p = v +
+ * v->[0x7C]*0x28` (v as ptr + v's own index — see
+ * feedback_wrap_doc_codegen_cap_may_mask_logic_bug.md). The 15-word
+ * patch then fixes residual base-register form (single-hi-shared-base
+ * vs lui+addiu fully-computed). */
+#if 0  /* historical 83% wrap notes preserved as commented-out block */
 /* 83.00% NM (cap: IDO &D base-register form). Logic verified correct by
  * walking the asm: target's `beql t9,zero,end; lw ra (delay); sw v1,0(at)`
  * → if (method_ptr != 0) { D[0]=a0; call(); } else early-out. Same as mine.
@@ -416,23 +423,27 @@ void h2hproc_uso_func_0000099C(int *a0) {
  * Trailing 2 insns past `jr ra; nop` (jr ra; sw zero,0x504(a0)) are part
  * of the SUCCESSOR function (likely h2hproc_uso_func_00000A80) — splat
  * boundary issue. Fix in a future tick. */
+#endif  /* end of historical-wrap-doc commented-out block */
 void h2hproc_uso_func_000009F8(int *a0) {
     extern char D_00000000;
     int *p;
-    int v;
+    int *v;
     if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) != 0) {
         gl_func_00000000(5);
-        v = *(int*)((char*)&D_00000000 + 0x48);
-        p = (int*)(v + a0[0x7C/4] * 0x28);
+        v = *(int**)((char*)a0 + 0x48);
+        p = (int*)((char*)v + v[0x7C/4] * 0x28);
         if (p[0x90/4] != 0) {
             *(int**)&D_00000000 = a0;
-            (*(void(**)(int))(v + a0[0x7C/4] * 0x28 + 0x90))(0x28);
+            (*(void(**)(int))((char*)v + v[0x7C/4] * 0x28 + 0x90))(0x28);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000009F8);
-#endif
+
+/* func_00000A80: 2-insn leaf bundled into 9F8's nonmatching SIZE by splat.
+ * Simple `a0->[0x504] = 0` setter. */
+void h2hproc_uso_func_00000A80(int *a0) {
+    *(int*)((char*)a0 + 0x504) = 0;
+}
 
 #ifdef NON_MATCHING
 /* h2hproc_uso_func_00000A88: 73-insn state-machine dispatch on a0[0x504].
