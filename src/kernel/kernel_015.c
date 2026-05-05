@@ -69,4 +69,36 @@ s32 func_800065B0(s32 arg0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800065BC);
+/* func_800065BC + func_800065F0 (cross-file fragment merge from kernel_016.c).
+ * Combined size 0x90 (36 insns). Function-pointer dispatch with bounds
+ * check + error-packet send on negative result.
+ *
+ * Cross-file unblock per
+ * feedback_cross_file_fragment_unblock_via_move_then_merge.md:
+ * 800065F0 INCLUDE_ASM moved here from kernel_016.c step 1; this commit
+ * is steps 2+3 (same-file merge into single C body at -O1).
+ * 80006640 cross-function shared-tail entry preserved via
+ * undefined_syms_auto.txt. */
+extern s32 (*D_8000A4A0[])(u8 *);
+extern void func_800073F8(void *buf, s32 size, s32 flag);
+typedef struct {
+    char pad0[4];
+    char idx;
+    char pad5;
+    s16 result;
+    char pad8[4];
+} ErrPkt;
+s32 func_800065BC(u8 *a0) {
+    s32 v0;
+    ErrPkt pkt;
+    if (a0[4] >= 0x35) {
+        return -1;
+    }
+    v0 = D_8000A4A0[a0[4]](a0);
+    if (v0 < 0) {
+        pkt.idx = a0[4];
+        pkt.result = (s16)v0;
+        func_800073F8(&pkt, 0xC, 1);
+    }
+    return v0;
+}
