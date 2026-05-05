@@ -1,10 +1,12 @@
 #include "common.h"
 
 /* func_00000000 is splat's synthetic symbol for unrelocated JAL target 0x0.
- * Its raw bytes are `jr $ra; nop` — keep as INCLUDE_ASM to preserve that
- * without IDO emitting a return-value or masking by the return type. Every
- * caller supplies their own forward decl with the return type they need. */
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000000);
+ * Raw bytes are `jr $ra; nop`. IDO -O2 emits exactly that for an empty
+ * function with implicit int return (per docs/IDO_CODEGEN.md#feedback-ido-
+ * empty-void-matchable). K&R empty arg list + implicit int keeps every
+ * same-TU caller compatible (some use return value, some discard). */
+func_00000000() {
+}
 
 /* File-scope K&R decl, int return. Void-discarding callers just ignore
  * the value; value-using callers get it directly. Same underlying symbol. */
