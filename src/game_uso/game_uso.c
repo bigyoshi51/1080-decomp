@@ -3718,6 +3718,23 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *
  * ~225 insns remain stubbed past 0x9DC4.
  *
+ * BODY-PART-2 SECOND-HALF SCAN (2026-05-05, 0x9DC4-0x9E50 = +35 insns):
+ *   - 0x9DC4-0x9DD0: bne a3, $zero, +7 — guarded jal with a1=sp+0xB4
+ *     setup. Cross-USO helper call, result spilled to sp+0x114.
+ *   - 0x9DD4-0x9DF8: post-call XZ-projection store. lwc1 sp+0x114
+ *     (callee result), lwc1 a1+0/8 (post-call dest), mtc1 zero into
+ *     f6 (= 0.0f), swc1 to 0/4/8 — Vec3 = (callee.x, 0, callee.z).
+ *   - 0x9DFC-0x9E08: another bne-guarded jal with a1=sp+0xB8, a0=0xC
+ *     (12-byte size arg). Helper transforms a Vec3 between stack slots.
+ *   - 0x9E0C-0x9E48: post-call FPU-heavy block. lwc1 sp+0x184/0x18C
+ *     (saved entity refs), lwc1 a2-context's 0x30/0x38, neg.s f2,f18
+ *     (sign-flip). addiu v0, v0, 0x30 (advance struct ptr by 48). 3
+ *     swc1 commits to v0+0/4/8. "transform via context, commit to
+ *     per-object slot" pattern.
+ *   - 0x9E50+: lw chains feeding another fanout copy + jal — TODO.
+ *
+ * ~120 insns remain stubbed past 0x9E50.
+ *
  * Deferred to future passes: full body decode is ~300 insns of float sched;
  *   one /decompile run expands prologue + body-part-1 — subsequent runs will
  *   tighten the dispatch logic and body math. The dual Vec3-copy entry
