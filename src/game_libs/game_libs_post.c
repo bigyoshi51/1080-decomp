@@ -748,7 +748,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FB74);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030504);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030564);
+/* gl_func_00030564: 1-call wrapper. Trailing 12 bytes (lui v0; addiu v0;
+ * lw t6, 0x8(v0)) are stolen prologue for SUCCESSOR gl_func_00030598 —
+ * appended via SUFFIX_BYTES so st_size matches expected (0x34).
+ * Per memo feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md
+ * (extended to 12-byte case). */
+void gl_func_00030564(void) {
+    gl_func_00000000(0x06000801, 1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
 
