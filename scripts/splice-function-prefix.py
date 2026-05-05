@@ -275,8 +275,12 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
                   f"(word={first_word:#010x}); leaving as-is "
                   f"(probably an INCLUDE_ASM build path)", file=sys.stderr)
             return
-        if opcode2 not in (0x09, 0x23, 0x25, 0x21):  # ADDIU, LW, LHU, ADDU
-            print(f"WARN: {func_name}+4 is not ADDIU/LW "
+        # 0x09=ADDIU, 0x23=LW, 0x25=LHU, 0x21=ADDU (general &D-base setup)
+        # 0x11=COP1 (MTC1) for the float-constant materialization pattern
+        # (e.g. `lui $at, 0x3F80; mtc1 $at, $f0` = $f0 = 1.0f used as
+        # stolen-prologue float-constant setup).
+        if opcode2 not in (0x09, 0x23, 0x25, 0x21, 0x11):
+            print(f"WARN: {func_name}+4 is not ADDIU/LW/MTC1 "
                   f"(opcode={opcode2:#x}, word={second_word:#010x})", file=sys.stderr)
             sys.exit(1)
         print(f"verify: {func_name} starts with "

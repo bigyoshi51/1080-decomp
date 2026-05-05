@@ -1,5 +1,3 @@
-nonmatching titproc_uso_func_00001C68, 0x114
-
 glabel titproc_uso_func_00001C68
     /* 59B934 00001C68 27BDFFC0 */  .word 0x27BDFFC0
     /* 59B938 00001C6C AFBF0014 */  .word 0xAFBF0014

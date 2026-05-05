@@ -144,7 +144,7 @@ build/src/kernel/kernel_056.c.o build/non_matching/src/kernel/kernel_056.c.o: PO
 # Format: <func_name>=<bytes_to_remove>. Multiple entries separated by spaces.
 # See scripts/splice-function-prefix.py and
 # feedback_prologue_stolen_successor_no_recipe.md for context.
-build/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_00000194=8 titproc_uso_func_000001E4=8 titproc_uso_func_0000028C=8
+build/src/titproc_uso/titproc_uso.c.o build/non_matching/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_00000194=8 titproc_uso_func_000001E4=8 titproc_uso_func_0000028C=8 titproc_uso_func_00001C68=8
 build/src/titproc_uso/titproc_uso.c.o: SUFFIX_BYTES := titproc_uso_func_00000194=0x3C020000,0x24420000 titproc_uso_func_00001BB8=0x3C013F80,0x44810000
 build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0004,0x8DCEC160 gl_func_0006BA48=0x3C0EA460,0x8DC60010 gl_func_0005FDCC=0x3C030000,0x8C630000 gl_func_0002DED0=0x000470C0,0x01C52021,0x2484001A gl_func_0002DF00=0x3C0E0000,0x8DCE2D00 gl_func_0002DF38=0x44856000 gl_func_0004E524=0x3C050000,0x24A50000 gl_func_0004E214=0x03E00008,0xAC850190,0x03E00008,0x8C820190
 build/src/timproc_uso_b3/timproc_uso_b3.c.o: PROLOGUE_STEALS := timproc_uso_b3_func_00000818=8 timproc_uso_b3_func_00001C28=8 timproc_uso_b3_func_0000074C=8 timproc_uso_b3_func_00000790=8 timproc_uso_b3_func_000007D4=8
@@ -261,9 +261,17 @@ endif
 
 # Non-matching C build: same compile pipeline as the byte-exact rule above
 # but with -DNON_MATCHING so #ifdef NON_MATCHING wraps emit C bodies instead
-# of INCLUDE_ASM stubs. Skips post-cc recipes (TRUNCATE/PREFIX/SUFFIX/
-# INSN_PATCH/PROLOGUE_STEALS) — those exist to make C-emit byte-match
-# expected/, which we explicitly DON'T want here (the diffs are the metric).
+# of INCLUDE_ASM stubs. Skips MOST post-cc recipes (TRUNCATE/PREFIX/SUFFIX/
+# INSN_PATCH) — those exist to make C-emit byte-match expected/, which we
+# explicitly DON'T want here (the diffs are the metric).
+#
+# EXCEPTION: PROLOGUE_STEALS DOES run here. Unlike the others, it isn't
+# cheating the metric — it corrects for unavoidable C-emit artifacts
+# (e.g. IDO MUST emit `lui $at; mtc1 $at, $f0` to materialize 1.0f from C
+# when the predecessor's stolen prologue would have set $f0). Without
+# PROLOGUE_STEALS on non_matching, prologue-stolen-successor functions
+# always score 80-97% fuzzy even when build/.o is byte-exact, blocking
+# the land script's exact-match check.
 ifndef PERMUTER
 build/non_matching/src/%.c.o: src/%.c
 	@mkdir -p $(dir $@) build/non_matching/$(<D)
@@ -272,6 +280,11 @@ build/non_matching/src/%.c.o: src/%.c
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ \
 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
+	@if [ -n "$(PROLOGUE_STEALS)" ]; then for spec in $(PROLOGUE_STEALS); do \
+		fn=$$(echo $$spec | cut -d= -f1); \
+		nb=$$(echo $$spec | cut -d= -f2); \
+		python3 scripts/splice-function-prefix.py $@ $$fn -n $$nb; \
+	done; fi
 endif
 
 # Standalone assembly
