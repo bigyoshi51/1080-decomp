@@ -1189,7 +1189,21 @@ void func_0000E9A4(Quad4 *dst) {
 #ifdef NON_MATCHING
 /* 83 %: structure correct. Target has `lui a0, 0x0` before `sw ra, 20(sp)`
  * in the prologue; IDO puts `sw ra` first. Same scheduling blocker as
- * feedback_ido_o2_tiny_wrapper_unflippable. */
+ * feedback_ido_o2_tiny_wrapper_unflippable.
+ *
+ * 2026-05-05: tried `*(int*)((char*)&func_00000008 + 0x20) = ...` to fix
+ * the +0x24 splat-fold imm diff (target stores via `%lo(func_00000008+0x20)`
+ * instead of `%lo(D_00000028)`). That variant emits 2 luis + 2 addius for
+ * the func_00000008-base computation (vs target's 1 lui + 1 addiu via
+ * splat-fold), growing the function from 12 → 13 insns and worsening the
+ * diff count from 3 → 9. The splat-folded `func_00000008+0x20` reloc form
+ * is only producible from a `D_00000028` extern that splat then folds at
+ * splat time, OR from accessing into `func_00000008` directly — but IDO
+ * emits a normal full-reloc-pair sequence for the latter. No C-level
+ * lever produces the splat-folded compact form. Reverted.
+ *
+ * Cap class: NM-86 (2 reloc-form scheduling-flips + 1 splat-fold) per
+ * feedback_ido_o2_tiny_wrapper_unflippable.md. */
 extern char D_func_0000E9FC_arg1;
 extern char D_func_0000E9FC_arg2;
 extern int D_00000028;
