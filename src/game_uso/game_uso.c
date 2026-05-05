@@ -863,6 +863,17 @@ branch_88: {
      *     lw v0, 0x12C(sp) reloads earlier spill, addiu a1, sp, 0x120 sets
      *     up arg1 = &copied-Vec3. addiu a0, v0+0x30 in jal delay slot — second
      *     gl_func dispatch with new args. ~290 insns remain stubbed past 0x20F0. */
+    /* Decoded 2026-05-05 (asm 0x1FA0-0x2050): scale normalized delta by excess.
+     * Mirrors: scaled.x = excess * delta_v.x; .y = excess * delta_v.y; .z = ... */
+    {
+        Vec3f delta_scaled;
+        delta_scaled.x = excess * local_xz[0];
+        delta_scaled.y = excess * local_xz[1];
+        delta_scaled.z = excess * local_xz[2];
+        /* TODO 0x2050-0x20F0: 12-byte struct fanout copy + second vec3 scale
+         * (sp+0xB0..0xB8 * a0[0xAC] -> sp+0x94..0x9C); ~290 insns remain. */
+        (void)delta_scaled;
+    }
     (void)excess;
     (void)gl_func_TODO_00001DDC((int*)scratch, a0);
 }
