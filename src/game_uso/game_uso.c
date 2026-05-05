@@ -4147,7 +4147,44 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F284);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F360);
 
+#ifdef NON_MATCHING
+/* 30-insn USO function (0xF424, size 0x78). Decoded from .word-only asm:
+ *   p_b4 = a0->field_B4 (loaded as int*)
+ *   p_b4->field_A18 = 0       (clear an int slot)
+ *   a0->field_114  = 1        (set a flag-byte/word)
+ *   p_b4 reloaded; flag = p_b4->field_9A8
+ *   if ((flag & 1) == 0) {
+ *       float a = *(f32*)((char*)p_b4 + 0x180);   // 0x170 + 0x10
+ *       float b = *(f32*)((char*)p_b4 + 0x6A8);   // 0x698 + 0x10
+ *       *(f32*)((char*)p_b4 + 0x31C) += -a * b;   // accumulate -a*b
+ *   }
+ *   gl_func_00000000(a0);                          // first runtime-patched callee
+ *   gl_func_00000000(a0, 0);                       // second with arg2=0
+ *
+ * Will not byte-match without typed structs + careful regalloc — IDO -O2
+ * picks its own intermediate float regs + the bnez shape depends on the
+ * compile-time order of `flag = p_b4->field_9A8` and the &1 mask.
+ * Documented for the next pass; default INCLUDE_ASM keeps ROM correct. */
+void game_uso_func_0000F424(int *a0) {
+    int *p_b4;
+    int flag;
+
+    p_b4 = (int*)a0[0xB4 / 4];
+    p_b4[0xA18 / 4] = 0;
+    a0[0x114 / 4] = 1;
+    p_b4 = (int*)a0[0xB4 / 4];
+    flag = ((int*)p_b4)[0x9A8 / 4];
+    if ((flag & 1) == 0) {
+        float a = *(float*)((char*)p_b4 + 0x180);
+        float b = *(float*)((char*)p_b4 + 0x6A8);
+        *(float*)((char*)p_b4 + 0x31C) += -a * b;
+    }
+    gl_func_00000000(a0);
+    gl_func_00000000(a0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F49C);
 
