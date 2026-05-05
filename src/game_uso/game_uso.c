@@ -1000,7 +1000,50 @@ branch_88: {
              *     mul.s f10 = f10 * f18 (scale by the spilled scalar from
              *     0x108). a0 next-jal-arg = sp+0x24, a2 = sp+0xFC (yet another
              *     local), a1 = sp+0xC4. Multiple call-arg setups in flight.
-             *   ~130 insns remain stubbed past 0x2350. */
+             *
+             * Extended scan 2026-05-05 (0x2350-0x23D0, FINAL 32 insns — function tail):
+             *   0x2350-0x2360: completion of mul-trio (f0/f12/f2 = scaled output).
+             *     `addiu t4, sp, 0x148` sets up t4 = pointer to spill-area Vec3.
+             *     `mul.s f2, f6, f18` is the third scale mul.
+             *     `swc1 f0/f12/f2 → sp+0x24/0x28/0x2C` writes the scaled vec to
+             *     yet-another local Vec3 slot (the post-jal output staging area).
+             *   0x2364-0x2390: triple-fanout 12-byte struct copy with save-old-
+             *     value idiom. Reads t1+0/4/8 (a Vec3 src), writes a3+0/4/8
+             *     (canonical dest), and ALSO writes the PRE-overwrite a3+0/4/8
+             *     value to t4+0/4/8 (the just-computed pointer above). Same
+             *     "save old vec to undo buffer, write new vec" pattern as 0x2090
+             *     and 0x21F4 earlier — third instance in this function.
+             *   0x2394-0x23C0: element-wise subtract `a3[+0x2C..0x34] -= sp[+0x148..0x150]`.
+             *     Loads sp+0x148/0x14C/0x150 (the saved-old Vec3 from the t4 dest
+             *     above), reads a3+0x2C/0x30/0x34, computes `sub.s` per-component,
+             *     stores back to a3+0x2C/0x30/0x34. This is "delta = new - old"
+             *     written into the entity's Vec3 field — the canonical
+             *     "increment by delta" idiom but expressed as `field -= old_value`
+             *     post-write.
+             *   0x23C4-0x23D0: epilogue (`lw ra, 0x14(sp); addiu sp, +0x180; jr ra; nop`).
+             *
+             * FUNCTION DECODE COMPLETE: 383 insns characterized end-to-end.
+             * Net story: dispatch on a0[0x40] (key); for key=3, simple Vec3
+             * mirror; for key!=3, complex 2D-XZ homing + Y-axis homing combine
+             * with multiple intermediate Vec3 working buffers (the function
+             * maintains 8+ simultaneous Vec3 stack locals).
+             *
+             * Open work for future-pass byte-matching (this function will need
+             * a multi-pass grind):
+             *   1. Decompile the asm-level scaffolding into proper C (currently
+             *      stubbed via gl_func_TODO_00001DDC and the long block-comment
+             *      annotations). The critical pieces: the 3-component scale
+             *      `excess * delta_v` (XZ), the 3-component Y-axis scale
+             *      (0,1,0)*y_excess, and the multiple Vec3 fanout copies.
+             *   2. Identify the two `jal 0` call signatures (sqrt-helper at
+             *      0x1F44, normalize3 at 0x1F50, then the late jal at 0x2320
+             *      that takes `(sp+0x30, sp+0xC4, sp+0xFC)` args).
+             *   3. Match the entity-field commit chain `a0[0x2C..0x34]`,
+             *      `a0[0x44..0x4C]` (Y-vel pair?), and the `a0+0x60..0x68`
+             *      target. Likely a Vec3+Vec3 (pos + vel) pair OR pos + accum.
+             *   4. Lay out stack locals to match IDO's 0x1A8 frame: sp+0xFC scratch
+             *      sub-struct, sp+0x110-0x148 multi-Vec3 working buffers,
+             *      sp+0x148-0x150 saved-prev-pos triplet, sp+0x180 entity ref. */
             (void)scaled_y;
         }
         (void)delta_scaled;
