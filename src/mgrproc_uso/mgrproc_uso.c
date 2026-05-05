@@ -335,7 +335,60 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F4);
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00001594: 32-insn (0x80) check-then-vtable-call helper.
+ *
+ * Logic outline:
+ *   if (gl_func(D[0x190], a0) == 0) return;
+ *   // a0 was saved in $a1; reload after call
+ *   int *t = (a0)[0x48 / 4];
+ *   int idx = D[0x7C/4];
+ *   int *entry = t + (idx * 0x28 + 0x90);  // byte offset
+ *   if (*entry != 0) {
+ *       // entry's pointer is non-null: store and return
+ *       D[0x30/4] = a0;
+ *   } else {
+ *       // recompute (target uses different t-regs in this branch)
+ *       int *t2 = (a0)[0x48 / 4];
+ *       void (*fn)() = (void(*)())t2[idx * 0xA + 0x24];
+ *       fn();
+ *   }
+ *
+ * Wait — actually re-reading the asm: bnezl t9 (branch likely if t9 != 0),
+ * delay slot is `sw a1, 0x30(at)`. Branch-likely's delay only executes if
+ * branch IS taken, so `sw a1, 0x30(at)` runs ONLY when t9 != 0.
+ * The fall-through case (t9 == 0) does the SECOND vtable lookup +
+ * jalr — which is the actual call path.
+ *
+ * Re-corrected logic:
+ *   if (entry[0] != 0) {
+ *       D[0x30/4] = a0;
+ *       return;
+ *   }
+ *   // recompute and call
+ *   t2 = a0[0x48/4]; entry2 = t2 + idx*0x28 + 0x90;
+ *   ((void(*)())entry2[0])();
+ *
+ * Initial fresh decode — multi-pass refinement expected. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_00001594(int *a0) {
+    int *t;
+    int idx;
+    void (*fn)();
+    if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), a0) == 0) return;
+    t = (int*)a0[0x48 / 4];
+    idx = *(int*)((char*)&D_00000000 + 0x7C);
+    if (*(int*)((char*)t + idx * 0x28 + 0x90) != 0) {
+        *(int*)((char*)&D_00000000 + 0x30) = (int)a0;
+        return;
+    }
+    t = (int*)a0[0x48 / 4];
+    fn = (void(*)())*(int*)((char*)t + idx * 0x28 + 0x90);
+    fn();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001594);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001614);
 
