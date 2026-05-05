@@ -333,25 +333,26 @@ void func_80000480(Struct00480Dst* dst, Struct00480Src* src) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800004B8);
 
 /* Cross-function shared-epilogue-return-0 stub. 9 insns:
- *   nop; or v0,zero,zero; lw ra/s0/s1/s2/s3 from CALLER's frame;
- *   jr ra; addiu sp,+0x28
- * Function literally lacks its own prologue — walks the CALLER's saved
- * s0-s3/ra slots at sp+0x14..0x24, then tears down the caller's 0x28
- * frame on its own jr ra. 4 callers (func_800004B8, func_800008F0,
- * func_80000A98, uso_find_file) jal this after their own prologue + matching
- * stack/saves to share the unified frame teardown.
+ *   nop; or v0,zero,zero; lw ra,0x24(sp); lw s0,0x14(sp); lw s1,0x18(sp);
+ *   lw s2,0x1C(sp); lw s3,0x20(sp); jr ra; addiu sp,+0x28
  *
- * Promotion via PREFIX_BYTES + INSN_PATCH (per feedback_prefix_bytes_plus_
- * insn_patch_breaks_documented_caps.md): empty `void f(void) {}` C body
- * emits 2 insns (jr ra; nop = 8 bytes). PREFIX_BYTES injects 7 leading
- * raw insns (nop; or v0,zero,zero; lw ra,0x24(sp); lw s0..s3 from sp+0x14
- * to sp+0x20) = 28 bytes. INSN_PATCH @0x20 overwrites trailing nop with
- * `addiu sp, sp, 0x28` (0x27BD0028). Final 9-insn body byte-matches expected.
+ * 4 callers (`func_800004B8`, `func_800008F0`, `func_80000A98`,
+ * `uso_find_file`) `jal func_80000568` to share this "pop my 0x28 frame
+ * and return 0" sequence. The function lacks a prologue and walks the
+ * CALLER's saved s0-s3/ra slots — unreproducible from standard C since
+ * any function definition emits its own prologue.
  *
- * The C body's `void` signature is harmless: the post-cc bytes set $v0 = 0
- * via the `or v0, zero, zero` in PREFIX. Callers declare
- * `s32 func_80000568(s32 a0, s32 a1)` and get 0 in $v0 at runtime.
- * The "args ignored" semantics are preserved (PREFIX doesn't touch a0/a1). */
+ * Promotion via PREFIX_BYTES + INSN_PATCH combo (3rd application after
+ * 7ABC and 7A98). Empty `void f(void) {}` C body emits 2 insns
+ * (jr ra; nop = 8 bytes), then PREFIX_BYTES injects the 7 leading insns
+ * (nop; or v0,zero,zero; lw ra/s0/s1/s2/s3 reloads), and INSN_PATCH @0x20
+ * overwrites the trailing nop with `addiu sp,sp,+0x28`. 9 insns / 36
+ * bytes byte-match expected.
+ *
+ * Type signature is `void` here but callers declare/expect
+ * `s32 func(s32, s32)` — runtime $v0=0 from PREFIX's `or v0,zero,zero` is
+ * the actual return value. Args ignored. Per `docs/POST_CC_RECIPES.md`
+ * PREFIX+INSN_PATCH combo entry. */
 void func_80000568(void) {}
 
 /* uso_stub_ret0 */
