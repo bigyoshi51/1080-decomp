@@ -1017,6 +1017,18 @@ void game_uso_func_00000B14(void *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
 
 extern int D_3A0;
+/* Build/.o emits 48 insns vs expected/.o's 45 (12-byte / 3-insn upstream
+ * bloat). The first divergence is at insn 3 of the prologue: expected
+ * places `or s0,a0,zero` (s = a0) BEFORE the sw spills, build defers it
+ * into the bne delay slot for the alloc check.
+ *
+ * Tried (2026-05-05): `register int *s = a0;` (no help — IDO still
+ * defers the move to the delay slot). The fix probably needs either an
+ * earlier USE of `s` (force IDO to anchor s0 by reading s before the
+ * if-check) or a permuter run targeting the prologue scheduling. Caps
+ * the function at fuzzy ~70% in build/non_matching/.o while expected/.o
+ * is byte-exact via INCLUDE_ASM. Episode-eligible by the byte-verify
+ * gate but blocked from logging by the .o-size delta. */
 int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     int *s = a0;
     if (a0 == 0) {
