@@ -2106,18 +2106,20 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
         *(float*)((char*)out + 0x0) = dx;       /* x */
     }
 
-    /* Body-part-2 entry @ 0x9C44-0x9C50: word-copy local_DC -> local_EC */
+    /* Body-part-2 entry @ 0x9C44-0x9C98 (CORRECTED 2026-05-04 via byte-decode):
+     * 1-to-4 fanout copy. local_DC's 3 words get distributed to local_EC,
+     * local_19C, local_144 — interleaved IDO -O2 codegen with shared loads. */
     local_EC[0] = ((int*)local_DC)[0];
+    local_19C[0] = local_EC[0];
     local_EC[1] = ((int*)local_DC)[1];
-    /* (interleaved with next-block setup; word-copy continues) */
+    local_EC[2] = ((int*)local_DC)[2];
+    local_19C[1] = ((int*)local_DC)[1];
+    local_19C[2] = ((int*)local_DC)[2];
+    local_144[0] = *(float*)&local_19C[0];
+    local_144[1] = *(float*)&local_19C[1];
+    local_144[2] = *(float*)&local_19C[2];
 
-    /* @ 0x9C54-0x9C7C: word-copy a1[0..0xC] into local_19C and local_144 */
-    local_19C[0] = a1[0]; local_19C[1] = a1[1]; local_19C[2] = a1[2];
-    local_144[0] = *(float*)&a1[0];
-    local_144[1] = *(float*)&a1[1];
-    local_144[2] = *(float*)&a1[2];
-
-    /* @ 0x9C84-0x9C98: word-copy a1[0..0xC] into local_C4 */
+    /* @ 0x9C84-0x9C98: word-copy local_C4 setup */
     local_C4[0] = a1[0]; local_C4[1] = a1[1]; local_C4[2] = a1[2];
 
     /* @ 0x9C9C-0x9CB0: 3rd cross-call alloc(12). Result in a1.
