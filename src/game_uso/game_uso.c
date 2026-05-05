@@ -2710,45 +2710,58 @@ trunk:
         }
     }
     if (a1 & 0x40) {
-        ret_lo |= 0x100;
+        /* 0x7774-0x77A4: bit-0x40 arm. Both paths goto a shared post-trunk
+         * region (NOT the function epilogue — it's the bit-0x100/inner-state
+         * processing at 0x79F8). asm uses bnel to skip the bit-clear when
+         * counter != 0, which annuls the bit-clear store; fall-through stores
+         * cleared bit. ret_lo |= 0x100 is the delay slot of the counter!=0
+         * goto, so it ONLY happens on counter!=0. counter==0 path stores the
+         * cleared bit then jumps without OR. */
         counter = a0[0x44 / 4] - 1;
-        a0[0x44 / 4] = counter;
-        if (counter == 0) {
-            a0[0x6C / 4] &= ~0x40;
+        if (counter != 0) {
+            a0[0x44 / 4] = counter;
+            ret_lo |= 0x100;
             goto ret;
         }
+        a0[0x6C / 4] &= ~0x40;
+        goto ret;
     }
-    if (a1 & 0x80) {
-        /* 0x77A8-0x7820: bit-0x80 trunk arm. ret_lo |= 0x100 unconditionally,
-         * then guarded by outer->[0x938]: if zero, also |= 0x200 and use
-         * a0->[0x4C] as counter (decremented). When counter < 31, indexes
-         * into a float table at (&D + 0x638 + a0->[0x58]*8) loading 2 floats
-         * (f0,f2) — likely a (x,y) lookup keyed by sub-state index 0x58.
-         * Counter expiration zero-clears bit 0x80 in a0->[0x6C] and stores
-         * a fixed value to a0->[0x44]. */
-        ret_lo |= 0x100;
+    if (a1 & 0x20) {
+        /* 0x77A8-0x7824: bit-0x20 trunk arm. Guarded by outer->[0x938] == 0;
+         * decrements a0[0x4C] (sub-counter). When sub-counter < 31 (slti at
+         * 0x77CC), also reads 2-float (x,y) pair from D+0x638+a0[0x58]*8 into
+         * f0/f2. When sub-counter expires (== 0 after decrement), clear bit
+         * 0x20 directly. While sub-counter still ticks, also decrement
+         * a0[0x44] (main duration counter); when THAT hits zero, also clear
+         * bit 0x20. ret_lo |= 0x200 unconditionally inside outer-zero arm. */
         outer = (int*)a0[0x30 / 4];
-        if (outer[0x938 / 4] == 0) {  /* fixed 2026-05-05: was != 0 (inverted); asm bnel at 0x77B8 branches AWAY when nonzero */
+        if (outer[0x938 / 4] == 0) {
             int cnt = a0[0x4C / 4];
-            ret_hi = 1;  /* 2026-05-05: addiu v1,zero,1 at 0x77C4 */
+            ret_hi = 1;
             ret_lo |= 0x200;
             if (cnt < 31) {
-                /* float table lookup: 2-entry float pair at D+0x638+idx*8.
-                 * Verified 2026-05-05 from asm 0x77D8-0x77F0:
-                 *   t0 = a0[0x58]; t2 = &D + 0x638; t1 = t0 << 3;
-                 *   a1 = t1 + t2; f0 = *a1; f2 = *(a1+4) */
                 int sub_idx = a0[0x58 / 4];
                 f0 = *(float*)((char*)&D_00000000 + 0x638 + sub_idx * 8);
                 f2 = *(float*)((char*)&D_00000000 + 0x638 + sub_idx * 8 + 4);
             }
             a0[0x4C / 4] = cnt - 1;
-            if (a0[0x4C / 4] == 0) {
-                a0[0x6C / 4] &= ~0x80;
-                a0[0x44 / 4] = /* stored constant — TODO 0x7810 */ 0;
+            if (a0[0x4C / 4] != 0) {
+                /* sub-counter still ticking: also decrement main counter */
+                counter = a0[0x44 / 4] - 1;
+                if (counter != 0) {
+                    a0[0x44 / 4] = counter;
+                    goto ret;
+                }
             }
+            /* sub-counter expired OR main counter expired: clear bit */
+            a0[0x6C / 4] &= ~0x20;
+            goto ret;
         }
     }
-    /* TODO: bits 0x20, 0x100, 0x08, 0x04, 0x10 — see asm 0x7820-0x7A08 */
+    /* TODO: bits 0x80, 0x100, 0x08, 0x04, 0x10 — see asm 0x7828-0x7A08.
+     * bit-0x80 (0x7828-0x7994) is the most complex: cnt < 8 guard, list
+     * iteration via a0[0x4DC] base + per-step increment, multiple ret_lo
+     * accumulations. Decode in next pass. */
 
 ret:
     /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94),
