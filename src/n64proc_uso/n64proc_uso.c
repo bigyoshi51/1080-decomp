@@ -223,7 +223,25 @@ extern char D_00000000;
  *
  * Score drift: doc previously said 74.49%; current build is 75.02%
  * (+0.5pp from upstream parallel-agent activity reshuffling expected/.o
- * baselines). Cap behavior unchanged. */
+ * baselines). Cap behavior unchanged.
+ *
+ * (22) NOT-APPLICABLE 2026-05-05: post-discovery of the PREFIX_BYTES +
+ * INSN_PATCH combo (per `docs/POST_CC_RECIPES.md` and
+ * feedback_prefix_bytes_plus_insn_patch_breaks_documented_caps.md, which
+ * landed func_80007FC8 / 7ABC / 7A98 / func_80000568 with 4-16 byte
+ * combos). Re-evaluated whether the combo could byte-correct THIS function.
+ * Diagnosis: the combo fits when target shape is
+ *   `<K leading byte-fixed insns>` + `<jr_ra_or_minimal_C>` +
+ *   `<≤4 trailing patched insns>`.
+ * This function is 59 insns of loop-with-dispatch; NO short minimal-C body
+ * fits anywhere in the middle. Empty-void + 57-word PREFIX_BYTES + 2-word
+ * INSN_PATCH would technically byte-match, but the C body becomes a pure
+ * placeholder providing zero training-data information about what the
+ * function does (vs the current 75 %-fuzzy meaningful decoded body). Per
+ * skill's "preserve partial C" principle, keep the existing wrap. Combo
+ * applicability window observed so far: ≤9 insns, where decoded C is
+ * uninteresting (trampolines, infinite-loop stubs, cross-function tail-
+ * shares). 59-insn loops are out of scope. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
