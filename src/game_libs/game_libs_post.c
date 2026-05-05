@@ -1229,7 +1229,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039624);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000396FC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039960);
+/* gl_func_00039960: 10-insn 2-arg-add wrapper. Calls
+ * gl_func(a1+0xD0, a0+0x30). Splat bundles a 2-insn alt-entry leaf
+ * (jr ra; addiu $v0, $a0, 0x70 — returns a0+0x70) at the tail; both
+ * sit inside the declared 0x30 symbol. Bundled trailer handled via
+ * SUFFIX_BYTES = 0x03E00008,0x24820070. */
+extern int gl_func_00000000();
+void gl_func_00039960(char *a0, char *a1) {
+    gl_func_00000000(a1 + 0xD0, a0 + 0x30);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039990);
 
