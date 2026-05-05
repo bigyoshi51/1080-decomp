@@ -1598,7 +1598,39 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * phase. The repeating 22-insn structure means Stage 9-12 should
      * each be a fast scan-and-document pass.
      *
-     * TODO: ~1050 remaining insns — sub-object alloc loop continuation,
+     * Stage 9 correction (2026-05-04 run): the formula in Stage 8 should
+     * read `sentinel == slot - 0x100` (sign-extended), where MAGIC is
+     * `(char*)0xFFFFFF00`. Verified iters A-D: -0xE0=0x20-0x100,
+     * -0xC8=0x38-0x100, -0xB0=0x50-0x100, -0x98=0x68-0x100. The C test
+     * IDO rewrites is `(s1 + slot) != (char*)0xFFFFFF00`, regrouped as
+     * `s1 != (char*)0xFFFFFF00 - slot` so the addiu imm fits 16-bit
+     * signed.
+     *
+     * Stage 9 (~70 insns covering 0x47B0-0x48E0): iters E, F, G, H
+     * observed:
+     *
+     *   iter | tmpl_off | arg_slot | sentinel-expected | slot | float_scalar
+     *   -----+----------+----------+-------------------+------+--------------
+     *     E  |  0x6FC   |  0xCC    |  -0x80            | 0x80 | literal
+     *     F  |  0x700   |  0xC8    |  -0x68            | 0x98 | D + 0xAC
+     *     G  |  0x704   |  0xC4    |  -0x50            | 0xB0 | literal -800
+     *                                                          (lui 0xC57A)
+     *     H  |  0x708   |  0xC0    |  -0x38            | 0xC8 | literal
+     *                                                          (lui 0xC5FA)
+     *
+     * Pattern continues to hold: tmpl_off advances +4, arg_slot
+     * decreases -4, slot advances +0x18 per iter. Float scalars
+     * alternate between D-table loads (0xA0..0xAC) and literal
+     * constants (mtc1 from lui-built immediate). The literal pattern
+     * (lui 0xC57A → mtc1 → swc1) at iters G/H suggests these specific
+     * sub-objs have hardcoded physics parameters not stored in the
+     * D-template-table.
+     *
+     * Cumulative ~240/1165 insns characterized (~21%). Stage 10 starts
+     * at 0x48E0 with iter I (predicted slot 0xE0, arg_slot 0xBC,
+     * tmpl_off 0x70C, sentinel -0x20).
+     *
+     * TODO: ~925 remaining insns — sub-object alloc loop continuation,
      * recursive init via cross-USO calls, child link setup at
      * a0->field_38, etc. */
     (void)s0; (void)a1; (void)a2;
