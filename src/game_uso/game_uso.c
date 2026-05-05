@@ -1531,13 +1531,72 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *   7. s0->[0x10] = D[0xA0..]    ; float scalar (varies per iter:
      *      D[0xA4]=val_iter1, -800.0f=iter2 via lui 0xC448, etc.)
      *
-     * Stride: s0 advances by 0x50 (80 bytes) per iteration. The s1 buffer
-     * is 0x3E0 = 992 bytes total, fitting ~12 sub-obj slots before exhaust.
-     * The float scalars at s0->0x10 are likely physics constants (acceleration,
-     * gravity, max-speed) loaded from a per-sub-obj table at &D + 0xA0..
+     * Stride: s0 advances by 0x18 (24 bytes) per iteration — the sub-obj
+     * size, NOT 0x50 (Stage 7's earlier read was wrong; the 0x50 was a
+     * one-off iter that didn't establish the stride). The s1 buffer is
+     * 0x3E0 = 992 bytes total, fitting ~40 sub-obj slots if dense, but
+     * the structure is sparser — only the slots at +0x20, +0x38, +0x50,
+     * +0x68 are confirmed unrolled iters.
      *
-     * Cumulative ~80/1165 insns characterized. Loop continues for ~10 more
-     * iterations before exiting to the parent constructor's link-setup phase.
+     * Stage 8 (extended /decompile run, 2026-05-04, ~88 insns 0x4600-0x47C8):
+     * 4 fully-characterized iterations of the unrolled-loop body. Each
+     * iter is 22 insns / 0x58 bytes following this exact template:
+     *
+     *   1. lui+lw $tN, %hi/lo(D + tmpl_off_N)        ; template-N ptr
+     *   2. addiu $tM, $sp, arg_slot_N                ; arg slot ptr (sp-relative)
+     *   3. addiu $at, $zero, sentinel_N              ; sentinel constant
+     *   4. sw $tN, arg_slot_N(sp)                    ; spill tmpl ptr to arg slot
+     *   5. lw $tK, 0($tM)                            ; reload via arg slot
+     *   6. addiu $s0, $s1, slot_off_N                ; s0 = s1 + slot offset N
+     *   7. bne $s1, $at, +5                          ; sentinel check on s1
+     *   8. sw $tK, 0($s2)                            ; (delay) init s2[0]
+     *   9. jal gl_func_00000000                      ; alloc(0x18)
+     *   10. addiu $a0, $zero, 0x18                   ; (delay)
+     *   11. beqz $v0, epi                            ; bail on alloc fail
+     *   12. or $s0, $v0, $zero                       ; (delay) s0 = alloc result
+     *   13. lw $a2, 0($s2)                           ; reload tmpl ptr arg
+     *   14. or $a0, $s0, $zero                       ; a0 = s0
+     *   15. or $a1, $s1, $zero                       ; a1 = s1
+     *   16. addiu $a3, $zero, 1                      ; a3 = 1
+     *   17. jal gl_func_00000000                     ; 4-arg sub-init
+     *   18. sw $a2, 0x8(sp)                          ; (delay) caller arg slot
+     *   19. lui+addiu $tQ, %hi/lo(D + 0x3C8)         ; constant template ptr
+     *   20. sw $tQ, 0xC(s0)                          ; s0->[0xC] = D+0x3C8
+     *   21. sw $zero, 0x14(s0)                       ; s0->[0x14] = 0
+     *   22. lui+lwc1+swc1 $fK, ... 0x10(s0)          ; s0->[0x10] = float scalar
+     *
+     * Per-iteration parameter table (4 iters: A B C D, with iter 0 being
+     * the kick-off block at 0x45D8-0x4640 already documented in Stages 5-7):
+     *
+     *   iter | tmpl_off | arg_slot | sentinel | slot_off |  float_scalar
+     *   -----+----------+----------+----------+----------+--------------
+     *     A  |  0x6EC   |  0xDC    |  -0xE0   |  0x20    |  D + 0xA0
+     *     B  |  0x6F0   |  0xD8    |  -0xC8   |  0x38    |  D + 0xA4
+     *     C  |  0x6F4   |  0xD4    |  -0xB0   |  0x50    |  -800.0f literal
+     *                                                       (lui 0xC448)
+     *     D  |  0x6F8   |  0xD0    |  -0x98   |  0x68    |  D + 0xA8
+     *
+     * Patterns confirmed:
+     *  - tmpl_off advances +4 per iter (D's table of template ptrs is dense)
+     *  - arg_slot decreases by 4 per iter (stack spills grow downward
+     *    as live ranges of earlier tmpl ptrs end)
+     *  - sentinel = slot_off - 0x100 (sign-extended low half) — IDO
+     *    rewrites `s1 + slot != magic_addr` as `s1 != magic_addr - slot`
+     *    to fit the comparison constant in 16-bit imm
+     *  - slot_off advances +0x18 (sub-obj size) per iter — sub-objs are
+     *    laid out CONTIGUOUSLY in s1[]; offsets 0x20, 0x38, 0x50, 0x68
+     *    are slot starts at indices 0, 1, 2, 3 within s1's sub-obj array
+     *  - float scalar varies per iter: D+0xA0..0xA8 table OR literal
+     *    constants (e.g. -800.0f at iter C). Suggests these are physics
+     *    parameters (init pos? init velocity? gravity scale?) per sub-obj
+     *
+     * Stage 9 starts at 0x47C8 (5th unrolled iter, slot_off ~0x80,
+     * tmpl_off 0x6FC, sentinel -0x80, arg_slot 0xCC). Pending decode.
+     *
+     * Cumulative ~170/1165 insns characterized (~15%). Loop has at least
+     * 6+ more iters before exiting to parent constructor's link-setup
+     * phase. The repeating 22-insn structure means Stage 9-12 should
+     * each be a fast scan-and-document pass.
      *
      * TODO: ~1050 remaining insns — sub-object alloc loop continuation,
      * recursive init via cross-USO calls, child link setup at
