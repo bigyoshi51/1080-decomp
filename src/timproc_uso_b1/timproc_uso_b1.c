@@ -425,7 +425,34 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002BE4);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_00002CE0: 26-insn (0x68) 3-call wrapper indexed by a1.
+ *
+ * Logic:
+ *   gl_func(&D);                                  // cleanup/notify call
+ *   entry = &D + 0x70 + a1*24;                    // table index
+ *   gl_func(entry);
+ *   gl_func(entry, 0xA0, a2, 3);
+ *
+ * a1*24 computed via `sll t7, a1, 2; subu t7, t7, a1; sll t7, t7, 3`
+ * (= a1*4 - a1 = a1*3, then *8 = a1*24). All inline (NOT stolen-prologue
+ * unlike sibling timproc_uso_b3_func_00002EF0).
+ *
+ * Initial decode — first-pass NM. */
+extern int gl_func_00000000();
+void timproc_uso_b1_func_00002CE0(int a0, int a1, int a2) {
+    char *entry;
+    char pad[8];
+    (void)a0;
+    (void)pad;
+    gl_func_00000000(&D_00000000);
+    entry = (char*)&D_00000000 + 0x70 + a1 * 24;
+    gl_func_00000000(entry);
+    gl_func_00000000(entry, 0xA0, a2, 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002CE0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002D48);
 
