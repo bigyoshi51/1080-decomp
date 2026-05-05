@@ -30,7 +30,24 @@ typedef struct { int a, b, c, d; } Quad4;
  *
  * -O0 split was considered (preceding offset 0x10310 already has its own
  * -O0 file) but breaks tail3a's TRUNCATE_TEXT + linker layout. Cap at 7/8
- * with the inline form. */
+ * with the inline form.
+ *
+ * 2026-05-04 Variants 12-13 tested standalone vs the inline form (no
+ * improvement, both regressed):
+ *   (12) `char *base = a0 + 0x84; return base + idx*0x28;` — same emit as
+ *        inline (mul macro folds the `0x84` add into a separate addu). 7/8.
+ *   (13) `int off = idx*0x28 + 0x84; return a0 + off;` — REGRESS to ~4/8.
+ *        Named `off` local pushes IDO away from t6/t7 → uses at/v1; AND
+ *        emits `addiu v1, v1, 0x84` BEFORE the final addu, which doesn't
+ *        match target's addu-then-addiu order. Does fix addu operand order
+ *        (a0 first), but at the cost of the t6/t7 register identity.
+ * The 7/8 cap is structural: IDO's delay-slot reorg moves the addiu into
+ * the jr-ra delay slot for the inline form. Target left it unfilled,
+ * suggesting source was -O0 OR original used a fresh-pseudo for the
+ * intermediate (reg interference prevented reorg). Neither is reachable
+ * from C under -O2 emit. INSN_PATCH (1-word at offset 0x10) would solve
+ * cleanly, but recipe infra is missing on agent-a per
+ * feedback_insn_patch_recipe_infra_missing_on_agent_a.md. */
 char *func_00010324(char *a0) {
     return a0 + *(int*)(a0 + 0x7C) * 0x28 + 0x84;
 }
