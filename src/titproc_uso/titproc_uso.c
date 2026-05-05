@@ -463,7 +463,49 @@ end:
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
 #endif
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00001BB8: 42-insn dual-state-bracket helper. Two
+ * gl_func dispatches with asymmetric inner-D[0] gates.
+ *
+ * Trailing bundled bytes 0xA8-0xAF are the SUCCESSOR (0x1C68) stolen
+ * prologue: `lui $at, 0x3F80; mtc1 $at, $f0` ($f0=1.0f setup that 0x1C68
+ * stores via `swc1 $f0, 0x30(sp)` immediately after its prologue). Handled
+ * via SUFFIX_BYTES + scripts/inject-suffix-bytes.py.
+ *
+ * Each lui+addiu/lw pair in the target is a distinct R_MIPS_HI16/LO16
+ * reloc — 8 fresh loads of `&D_*` rather than CSE through $s0. To match,
+ * 8 distinct externs (`D_titproc_BB8_a..h`) all aliased to 0 in
+ * undefined_syms_auto.txt. Per
+ * feedback_unique_extern_with_offset_cast_breaks_cse.md.
+ *
+ * Quirks vs natural C-emit:
+ *   - First inner runs when D[0] != 0, second runs when D[0] == 0
+ *     (asymmetric — likely save/restore state pattern).
+ *   - Second inner uses bnel-to-epilog with annulled lw ra in the delay
+ *     slot (early-return-likely pattern). Naturally falls out of
+ *     `if (cond) { body; }` followed by epilogue.
+ *   - a0 is unused but saved to caller-arg slot at sp+0x18 — declared
+ *     with int param to keep the sw a0 emit. */
+extern int gl_func_00000000();
+extern char D_titproc_BB8_a, D_titproc_BB8_b, D_titproc_BB8_c, D_titproc_BB8_d;
+extern char D_titproc_BB8_e, D_titproc_BB8_f, D_titproc_BB8_g, D_titproc_BB8_h;
+void titproc_uso_func_00001BB8(int a0) {
+    if (gl_func_00000000(&D_titproc_BB8_a, 0x10001) != 0) {
+        if (*(int*)&D_titproc_BB8_b != 0) {
+            gl_func_00000000(1);
+            gl_func_00000000(&D_titproc_BB8_d, *(int*)&D_titproc_BB8_c ^ 1);
+        }
+    }
+    if (gl_func_00000000(&D_titproc_BB8_e, 0x4002) != 0) {
+        if (*(int*)&D_titproc_BB8_f == 0) {
+            gl_func_00000000(1);
+            gl_func_00000000(&D_titproc_BB8_h, *(int*)&D_titproc_BB8_g ^ 1);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001BB8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C68);
 
