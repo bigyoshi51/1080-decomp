@@ -547,7 +547,15 @@ void timproc_uso_b5_func_0000AAF4(char *a0) {
  * + an extra spill-store). Per feedback_insn_patch_size_diff_blocked.md
  * INSN_PATCH alone can't fix this. Promotion needs a sibling
  * inject-insn-at.py recipe OR a different C shape that emits the extra
- * `or v1,a0` move. Deferred. */
+ * `or v1,a0` move. Deferred.
+ *
+ * 2026-05-05 TRIED: pass arg0 as 3rd arg to gl_func_00000000(p+0x10, r,
+ * arg0) — hoping the extra K&R-arg pass would force a0 preservation /
+ * register reshuffle. REGRESSED 83.25% → 82.56% (the unused 3rd arg
+ * forced an extra `sw a2, 8(sp)` outgoing-arg-slot store that target
+ * doesn't have). Reverted. The cap class IS purely the v1-vs-a2
+ * register pick for the cross-jal-preserve slot of `p`, not reachable
+ * via K&R arg-list manipulation. */
 void *timproc_uso_b5_func_0000AB24(void *arg0) {
     char pad[8];
     void *p;
