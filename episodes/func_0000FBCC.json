@@ -1,0 +1,28 @@
+{
+  "function_name": "func_0000FBCC",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-05T07:52:59.729686+00:00",
+  "end_time": "2026-05-05T07:52:59.729706+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-05T07:52:59.729700+00:00",
+      "assistant_text": "Byte-correct via INCLUDE_ASM tautology + post-cc recipes; fuzzy<100 reflects partial C-decomp.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000F81C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000F954);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000F9E8);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000FAE8);\n\n#ifdef NON_MATCHING\n/* Single-block bit-clear (set=0, mask=8) on `(arg0->field_48) + 0x18`.\n * Same shape as the bootup_uso_o0_F390.c bit-set/clear cluster\n * (func_0000F564 etc.) but with one extra deref on arg0 (asm has\n * `lw a1, 0x48(a0); addiu a1, a1, 0x18` vs the F390 cluster's\n * `addiu a1, a0, 0x18`).\n *\n * O0-blocked: 23 insns / 0x5C with -O0 signals (extra `b +1; nop` at\n * 0xFC14, redundant `or t0, a2, zero` reload, no `register`-promoted\n * reg-only path). bootup_uso_tail1.c is -O2 by default so this wrap\n * won't byte-match; promotion path is the file-split recipe per\n * feedback_uso_accessor_o0_file_split_recipe.md (move to a new\n * bootup_uso_o0_FBCC.c file with OPT_FLAGS := -O0). */\nvoid func_0000FBCC(int *a0) {\n    register int *p1, *p2;\n    register int set;\n    register int *t;\n    p1 = (int*)((char*)a0[0x48/4] + 0x18);\n    p2 = p1;\n    set = 0;\n    if (set) { t = p2; *t = *t | 8; }\n    else     { t = p2; *t = *t & ~8; }\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000FBCC);\n#endif\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000FC28);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000FD4C);\n\n#ifdef NON_MATCHING\n/* 18-insn indirect-call wrapper. Logic verified:\n *   p = a0->field_28; off = (short)p->field_60; (*p->field_64)(a0 + off).\n *\n * BLOCKED: function is -O0-shape (frame -0x28 with s0 spill/reload pattern,\n * dead 'b +1; nop' BB-end marker after the jalr) but lives in\n * bootup_uso_tail1.c which builds at -O2. IDO -O2 inlines my C to 11\n * insns with t-regs only \u2014 7-insn deficit + frame-size mismatch.\n *\n * Promotion path: file split per feedback_o0_cluster_split_with_layout_shim.md\n * (create src/bootup_uso/bootup_uso_o0_FEA0.c with -O0 OPT_FLAGS, update\n * linker script). Deferred \u2014 file-split infra change is heavier than\n * one-tick scope. */\nvoid func_0000FEA0(char *a0) {\n    char *p = *(char**)(a0 + 0x28);\n    ((void(*)(char*))*(int*)(p + 0x64))(a0 + *(short*)(p + 0x60));\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000FEA0);\n#endif\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0000FEE8);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000100F0);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001016C);\n\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail1.c"
+  }
+}

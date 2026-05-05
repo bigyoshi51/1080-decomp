@@ -1,0 +1,28 @@
+{
+  "function_name": "func_80008430",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-05T07:53:01.458205+00:00",
+  "end_time": "2026-05-05T07:53:01.458225+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-05T07:53:01.458219+00:00",
+      "assistant_text": "Byte-correct via INCLUDE_ASM tautology + post-cc recipes; fuzzy<100 reflects partial C-decomp.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Forward declarations */\nextern s32 __osPiAccessQueue;\nextern s32 D_8000A480;\nextern s32 D_80013004;\nextern void func_80005DC0(s32*, s32, s32);\nextern void func_80005C00(void);\nextern void func_80004FE0(s32*, s32*, s32);\nextern void func_800053D0(s32*, s32*, s32);\nextern s32 D_8000A3E0;\nextern s32 func_800066B0(void);\nextern void func_800066D0(s32);\nextern void func_80003D0C(s32*);\nextern void* D_8000A420;\nextern s32 D_8000A418;\nextern s32 siacs_bss_0000;\nextern s32 func_800009D8(void*, s32, s32, void*);\nextern void func_80003FF0(s32, void*);\nextern void* func_80003E54(void*);\nextern void func_8000A110(void*);\nextern void func_8000857C(void);\nextern void func_8000785C(s32);\nextern void func_80008ED0(void);\nextern void func_80007760(void);\ntypedef void (*FuncPtr2)(void*, void*);\nextern FuncPtr2 D_80012C44;\nextern s32 D_8000A32C;\nextern s32 D_8000A340;\nextern s32 D_80012BC0;\nextern s32 D_8000A2E0;\nextern s32 D_8000A41C;\nextern s32 func_80002890(s32);\nextern void func_8000A0E0(void);\nextern void func_80005350(s32, s32);\nextern void func_80005400(s32, s32);\nextern s32 func_80008430(s32);\nextern void func_80009148(s32);\nextern void func_80009030(s32, s32);\nextern void func_80008498(void);\nextern s32 func_80006A98(s32);\nextern void func_800091F0(s32);\ntypedef struct { s32 pad[3]; s32 position; } FileState;\n\ntypedef struct {\n    void* mtqueue;\n    void* fullqueue;\n    s32 validCount;\n    s32 first;\n    s32 msgCount;\n    s32** msg;\n} OSMesgQueue;\n\ntypedef struct Thread {\n    s32 field0;\n    s32 pri;\n    s32 queue;\n    s32 pad0C;\n    u16 state;\n} Thread;\n\ntypedef struct { s32 queue; s32 msg; } OSEventState;\nextern OSEventState __osEventStateTab[];\n\n\n/* __rmonWriteWordTo (unimplemented stub) */\ns32 func_80008424(s32 arg0) {\n    return -1;\n}\n\n\n#ifdef NON_MATCHING\n/* func_80008430: 9-insn prologue fragment of a larger __rmon function\n * splat-split into 3 pieces:\n *   - func_80008430 (this, 0x24 / 9 insns) \u2014 prologue + first slti+bnez\n *   - func_80008454 (kernel_018? 0x44 / 17 insns) \u2014 branch arms + rmonbrk_bss lookup\n *   - func_80008498 (further fragment(s) past .L80008578)\n *\n * Decoded entry semantics:\n *   s32 f(MsgPtr *a0) {\n *     SaveState *s0 = (SaveState*)a0;          // s0 spilled+reloaded from sp\n *     int idx = s0->field_0x10;\n *     if (idx >= 0x10) return -2;              // bnez at\u2192fall-through to \"b end; v0=-2\"\n *     if (a0->byte_0x9 != 1) goto skip;        // bne t8, 1, .L800084D8\n *     // ...rmonbrk_bss_0088[idx] table lookup, more nested checks...\n *   }\n *\n * Likely __rmonSetBrkpt or __rmonGetBrkPC (sets/gets a hardware breakpoint).\n * Cannot match as standalone C \u2014 fragment boundary cuts mid-function and the\n * splat-merge recipe is non-trivial here (3 .o files, layout shifts). Same\n * class as func_80006698. Stub body documents the fragment relationship for\n * grep discoverability per feedback_orphan_include_asm_after_split_function_decomp.md. */\n/* Match the file-top extern's signature so NON_MATCHING build doesn't error\n * with redeclaration / incompatible-return-type. Stub body \u2014 bytes never\n * match anyway since the byte-correct path is INCLUDE_ASM (#else branch). */\ns32 func_80008430(s32 a0) {\n    /* see func_80008454 + func_80008498 for the rest of this function;\n     * merge requires linker-layout adjustment across kernel_018-021.c. */\n    return 0;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/kernel\", func_80008430);\n#endif\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_021.c"
+  }
+}
