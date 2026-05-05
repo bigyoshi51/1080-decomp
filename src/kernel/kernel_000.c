@@ -1002,33 +1002,30 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
 
 
 
-/* func_800047E4: 8-insn fragment, uses uninitialized $t2 and $t5 at entry.
- * Splat-mis-split tail of func_800047B0 (predecessor falls through with no jr
- * ra at 0x800047E0, ending with `sll t5, t4, 8`). Combined function reads 4
- * bytes from a0[0..3] big-endian and returns an unaligned 32-bit word.
+/* func_800047E4: 9-insn (0x24) fragment of an unaligned-big-endian-load
+ * helper. Uses uninitialized $t2 and $t5 at entry — caller's pre-jal
+ * sequence sets t2 (high-24-bits assembled), t5 (byte-2 << 8). Function
+ * reads byte 3 from a0, ORs it in, modifies CALLER's stack frame
+ * (sp+0x4) and consumes the caller's 0x8-byte stack adjustment.
  *
- * BUT: 9+ callers `jal func_800047E4` directly (in func_80003E64, func_80004030
- * × 8 sites, etc.). Each caller's pre-jal sequence happens to set $t2 (high-24
- * bits assembled) and $t5 (byte-2 << 8) — a non-standard calling convention
- * where the caller pre-loads scratch regs and the helper finishes the byte
- * combine. This is the `feedback_uninit_tN_branch_at_entry.md` pattern: not
- * matchable from C without inline-asm (IDO rejects). Keep INCLUDE_ASM.
+ * 9+ callers (func_80003E64, func_80004030 × 8 sites, etc.) jal this
+ * directly. Non-standard calling convention: NOT matchable from
+ * C without inline-asm (IDO rejects).
  *
- * 2026-05-05 follow-up: confirmed cross-file merge with 47B0 is blocked.
- * 47B0 lives in src/kernel/kernel_027.c; 47E4 lives here in kernel_000.c.
- * Per `feedback_merge_fragments_blocked_across_o_files.md`, cross-.o
- * merges shift downstream linker layout and break every later .o boundary.
- * To match: would need to MOVE 47E4's INCLUDE_ASM into kernel_027.c near
- * 47B0, adjust kernel_027's TRUNCATE_TEXT, then merge-fragments inside that
- * .c. Same-file merge IS safe per `feedback_merge_fragments_partial_safe_subset.md`
- * but the move-then-merge sequence is multi-tick infrastructure work.
- * Defer until a kernel_027 cluster pass is on the agenda.
+ * Promotion via PREFIX_BYTES + INSN_PATCH (5th application of the
+ * combo, per feedback_prefix_bytes_plus_insn_patch_breaks_documented_caps.md):
+ *   - C body: `void f(void) {}` emits jr_ra+nop at offsets 0x1C, 0x20
+ *   - PREFIX_BYTES: 7 leading reg-only / sp-rel insns
+ *     (or t6,t2,t5; sw t6,0x4(sp); lbu t7,0x3(a0); andi t9,t7,0xFF;
+ *      or t0,t6,t9; sw t0,0x4(sp); addiu sp,sp,0x8)
+ *   - INSN_PATCH @0x20: overwrite trailing nop with `or v0, t0, zero`
+ *     (0x01001025) — the actual return-value-setup delay slot
  *
- * 47B0 itself reads bytes 0..2 of a0 via lbu/sll/or chain (no jr ra at end
- * — falls through to 47E4 which reads byte 3 and returns the assembled
- * 32-bit big-endian word). Once both fragments are in the same .c, they
- * can be unified as `u32 unaligned_load_be(u8 *a0)` body. */
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800047E4);
+ * Zero relocations in the leading-7 insns (all reg-only or sp/a0-imm),
+ * so raw PREFIX_BYTES is safe. The C body's `void` declaration is
+ * harmless: callers expect u32 return in $v0; the recipe sets $v0 via
+ * the patched delay-slot insn at runtime. */
+void func_800047E4(void) {}
 
 /* NON_MATCHING: stack data packing is correct, but IDO still chooses a
  * different local layout (`-0x10` frame with `lwl/lwr`) instead of the
