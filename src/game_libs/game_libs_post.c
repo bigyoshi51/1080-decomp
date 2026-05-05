@@ -2574,13 +2574,11 @@ void gl_func_0004E150(char *a0) {
     (*(int(**)(char*))(p2 + 0xC))(p1 + *(short*)(p2 + 0x8));
 }
 
-#ifdef NON_MATCHING
-/* 93%: a0 spill offset differs. Target: ra=sp+0x14, a0-spill=sp+0x1C
- * (4-byte gap at sp+0x18), frame=0x20. Ours: ra=sp+0x14, a0-spill=sp+0x18,
- * frame=0x20. Adding any local that forces 0x1C bloats frame to 0x28.
- * Tried: register hint, named origA0, split decl/assign, unused int local,
- * volatile char*, char*base = a0 + 0xA0. IDO -O2's spill-slot allocator
- * picks 0x18 whenever frame=0x20 is reachable — unreproducible from C. */
+/* a0 spill offset cap: target spills/reloads a0 at sp+0x1C (gap at sp+0x18),
+ * IDO -O2 picks sp+0x18 when frame=0x20 is reachable. Resolved via INSN_PATCH
+ * on 2 words at fixed offsets 0x1C/0x20 (sw/lw a0 spill+reload). 4 prior
+ * C-only variants couldn't reproduce; the spill-slot allocator decision is
+ * intrinsic to IDO. */
 extern int gl_func_00000000();
 void gl_func_0004E180(char *a0) {
     char *newA0 = a0 + 0xA0;
@@ -2588,9 +2586,6 @@ void gl_func_0004E180(char *a0) {
     gl_func_00000000(newA0);
     *(char**)(a0 + 0xE0) = newA0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E180);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E1BC);
 

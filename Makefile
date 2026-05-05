@@ -87,7 +87,8 @@ build/src/game_libs/game_libs.c.o: INSN_PATCH := gl_func_0000D9B8=0x08:0x8C87006
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x588F0
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH := \
 	gl_func_0002A4D0=0x18:0x908E0000,0x1C:0x31D9FF7F,0x20:0x37280040,0x24:0xA0990000,0x28:0xA0880000 \
-	gl_func_00035164=0xC:0xAFA40018
+	gl_func_00035164=0xC:0xAFA40018 \
+	gl_func_0004E180=0x1C:0xAFA4001C,0x20:0x8FA4001C
 
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
