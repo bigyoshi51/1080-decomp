@@ -1523,12 +1523,49 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
             } \
         } while (0)
 
-        INIT_ITER(0x20, 0x6EC, *(float*)((char*)&D_00000000 + 0xA0));
-        INIT_ITER(0x38, 0x6F0, *(float*)((char*)&D_00000000 + 0xA4));
-        INIT_ITER(0x50, 0x6F4, -800.0f);
-        INIT_ITER(0x68, 0x6F8, *(float*)((char*)&D_00000000 + 0xA8));
+        INIT_ITER(0x20,  0x6EC, *(float*)((char*)&D_00000000 + 0xA0));   /* A */
+        INIT_ITER(0x38,  0x6F0, *(float*)((char*)&D_00000000 + 0xA4));   /* B */
+        INIT_ITER(0x50,  0x6F4, -800.0f);                                /* C */
+        INIT_ITER(0x68,  0x6F8, *(float*)((char*)&D_00000000 + 0xA8));   /* D */
+        INIT_ITER(0x80,  0x6FC, *(float*)((char*)&D_00000000 + 0xAC));   /* E */
+        INIT_ITER(0x98,  0x700, -4000.0f);                               /* F (lui 0xC57A) */
+        INIT_ITER(0xB0,  0x704, -8000.0f);                               /* G (lui 0xC5FA) */
+        INIT_ITER(0xC8,  0x708, *(float*)((char*)&D_00000000 + 0xB0));   /* H */
+        INIT_ITER(0xE0,  0x70C, *(float*)((char*)&D_00000000 + 0xB4));   /* I */
+        INIT_ITER(0xF8,  0x710, *(float*)((char*)&D_00000000 + 0xB8));   /* J */
+        INIT_ITER(0x110, 0x714, *(float*)((char*)&D_00000000 + 0xBC));   /* K */
+        INIT_ITER(0x128, 0x718, *(float*)((char*)&D_00000000 + 0xC0));   /* L */
+        INIT_ITER(0x140, 0x71C, *(float*)((char*)&D_00000000 + 0xC4));   /* M */
+        INIT_ITER(0x158, 0x720, *(float*)((char*)&D_00000000 + 0xC8));   /* N */
+        INIT_ITER(0x170, 0x724, *(float*)((char*)&D_00000000 + 0xCC));   /* O */
+        INIT_ITER(0x188, 0x728, *(float*)((char*)&D_00000000 + 0xD0));   /* P */
+        INIT_ITER(0x1A0, 0x72C, *(float*)((char*)&D_00000000 + 0xD4));   /* Q */
+        INIT_ITER(0x1B8, 0x730, 1200.0f);                                /* R (lui 0x4496) */
+        INIT_ITER(0x1D0, 0x734, 1200.0f);                                /* S */
+        INIT_ITER(0x1E8, 0x738, 1200.0f);                                /* T */
+        INIT_ITER(0x200, 0x73C, 60.0f);                                  /* U (lui 0x4270) */
+        INIT_ITER(0x218, 0x740, 60.0f);                                  /* V */
+        INIT_ITER(0x230, 0x744, 60.0f);                                  /* W */
+        INIT_ITER(0x248, 0x748, 1.5f);                                   /* X (lui 0x3FC0) */
+        INIT_ITER(0x260, 0x74C, *(float*)((char*)&D_00000000 + 0xD8));   /* Y */
+        INIT_ITER(0x278, 0x750, 1.5f);                                   /* Z */
+        INIT_ITER(0x290, 0x754, 2000.0f);                                /* AA (lui 0x44FA) */
+        INIT_ITER(0x2A8, 0x758, 2000.0f);                                /* BB */
+        INIT_ITER(0x2C0, 0x75C, 2000.0f);                                /* CC */
+        INIT_ITER(0x2D8, 0x760, *(float*)((char*)&D_00000000 + 0xDC));   /* DD */
+        INIT_ITER(0x2F0, 0x764, *(float*)((char*)&D_00000000 + 0xE0));   /* EE */
+        INIT_ITER(0x308, 0x768, *(float*)((char*)&D_00000000 + 0xE4));   /* FF */
+        INIT_ITER(0x320, 0x76C, 240.0f);                                 /* GG (lui 0x4370) */
+        INIT_ITER(0x338, 0x770, 240.0f);                                 /* HH */
+        INIT_ITER(0x350, 0x774, 240.0f);                                 /* II */
+        INIT_ITER(0x368, 0x778, 240.0f);                                 /* JJ */
+        INIT_ITER(0x380, 0x77C, 240.0f);                                 /* KK */
+        INIT_ITER(0x398, 0x780, 240.0f);                                 /* LL */
+        INIT_ITER(0x3B0, 0x784, 240.0f);                                 /* MM */
+        INIT_ITER(0x3C8, 0x788, 240.0f);                                 /* NN (final iter, slot 0x3C8) */
         (void)s2;
     }
+#undef INIT_ITER
 
     /* Stage 5+ (deprecated doc — see Stages 8-11 for full per-iter
      * unrolled loop characterization; all 38 iters TBD as C body): write sub-region back-pointer; init sub-region from
