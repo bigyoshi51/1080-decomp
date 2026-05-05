@@ -2011,6 +2011,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
 /* 17.92% NM. game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
+ * Inferred from the final cross-product sign test + screen-space transform
+ * constants: this is a billboard-visibility / 2D point-on-line predicate
+ * applied to per-frame screen-projected anchor coordinates, returning a
+ * boolean result via $v0.
  * Strategy-memo candidate for "per-frame compute" (1.4 KB, 11 cross-calls).
  *
  * Partial C body: ~10 % match guess. Captures entry (panic-on-a2-null
@@ -2227,12 +2231,33 @@ void game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      *
      * Cumulative ~251/344 insns characterized (~73%).
      *
-     * @ 0xA0A0-0x10E8: body-part-2 final ~95 insns + remaining cross-USO calls.
-     *   TODO: future passes characterize the function tail (likely the dispatch
-     *   to the downstream draw-helper passing all 4-6 transformed Vec3s, plus
-     *   epilogue restore of $sN saved regs).
-     *   The 250.5/50.0 constants confirm screen-space coordinate transform
-     *   (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset). */
+     * CORRECTION 2026-05-04: function actually ENDS at 0xA0E4 (size 0x560 from
+     * 0x9B88 = end 0xA0E8). The earlier "@ 0xA0A0-0x10E8" range was wrong —
+     * confused with absolute ROM offset. Only ~12 insns remain past 0xA0A0.
+     *
+     * Final tail @ 0xA0A0-0xA0E4 (~12 insns): sign-of-cross-product check.
+     *   - 0xA0A0-0xA0BC: lwc1 four floats from sp+0x178/0x180/0x174, plus
+     *     existing $f4/$f16/$f18 register state. Compute:
+     *       $f0  = sp+0x148_value - $f4 * $f6      (subtract product from acc)
+     *       $f10 = $f4_new * $f18 - $f6_new * $f18_new   (2nd diff product)
+     *   - 0xA0C8: $f16 = $f10 * $f0                (final product)
+     *   - 0xA0CC: c.lt.s $f16, 0.0                 (sign test)
+     *   - 0xA0D4: bc1f +2 — if NOT (f16 < 0), skip; jump to epilogue (v0
+     *     remains as set earlier)
+     *   - 0xA0DC: v0 = 1                           (only when f16 < 0)
+     *   - 0xA0E0-0xA0E4: jr ra; addiu sp, +0x1A8
+     *
+     * This tail is a 2D cross-product sign test — likely "is point on positive
+     * side of line" / "is winding clockwise" / similar geometric predicate.
+     * Final return value is 1 if product < 0, else 0 (or whatever was set
+     * by the omitted earlier dispatch's skip-arm).
+     *
+     * Cumulative 263/344 insns characterized (~76%).
+     *
+     * The 250.5/50.0 constants confirm screen-space coordinate transform
+     * (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset).
+     * Combined with the cross-product sign test, this is likely a
+     * billboard-visibility / point-in-frustum check after screen projection. */
     (void)local_12C;
     (void)local_19C;  /* suppress unused warnings until body-part-2 done */
     (void)local_EC;
