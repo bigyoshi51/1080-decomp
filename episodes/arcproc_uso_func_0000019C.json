@@ -1,14 +1,14 @@
 {
   "function_name": "arcproc_uso_func_0000019C",
-  "project": "decomp",
+  "project": "1080-agent-a",
   "model": "claude-manual",
-  "start_time": "2026-05-05T10:05:16.881372+00:00",
-  "end_time": "2026-05-05T10:05:16.881392+00:00",
+  "start_time": "2026-05-05T17:06:16.076413+00:00",
+  "end_time": "2026-05-05T17:06:16.076432+00:00",
   "steps": [
     {
       "step_number": 1,
-      "timestamp": "2026-05-05T10:05:16.881386+00:00",
-      "assistant_text": "Promoted from 99.88% NM wrap to exact: replaced 'if (==0) { stmt; return; }' early-return with 'if (==0) { stmt; } else { ... } a0[13]=a1;' fall-through. The single remaining diff was the early-exit branch displacement (b +29 to epilogue vs b +26 to a0[13]=a1 store). Letting both arms merge before the cached-total store makes IDO emit b +26.",
+      "timestamp": "2026-05-05T17:06:16.076426+00:00",
+      "assistant_text": "41-insn -O0 size-allocator state update. Lifted from 99.88% to 100% via if/else fall-through merge (replacing 'if (==0) {store; return}' early-return). Both arms now converge on shared a0[13] = a1 store before epilogue, eliminating the 1-byte branch-displacement diff. Recipe documented at docs/PATTERNS.md#feedback-drop-early-return-to-fall-through-to-merge-stmt.",
       "tool_calls": [],
       "match_percent": 100.0,
       "compiled": true,
@@ -21,13 +21,13 @@
   "total_tokens": 0,
   "instruction_count": 41,
   "initial_m2c_source": null,
-  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\n\n#ifdef NON_MATCHING\n/* -O0 refcount-decrement-and-check (28 insns, 0x70). 2-arg variant of the\n * pattern in mgrproc_uso_func_000000B0: calls gl_func_00000000(a0, a1),\n * decrements *a0, returns 1 if it hit zero else 0.\n *\n * Match: 92.86% (re-confirmed 2026-05-04 via unwrap-and-rebuild test per\n * feedback_nm_wrap_99pct_may_be_silently_exact.md \u2014 cap is REAL, not\n * stale; current emit still 92.86%, slight drift from prior 92.68%).\n *\n * Sole structural diff: trailing dead `b +1; nop` at end of function (target\n * skips this since the natural fall-through reaches epilogue with no jump).\n * IDO -O0 emits `b epilogue` after BOTH return paths; the second one is\n * dead since PC+4 IS the epilogue. C-side cannot eliminate this without\n * shrinking the function past TRUNCATE_TEXT.\n *\n * Cap stands at 92.86% (1-insn dead-branch trailing). Same -O0 epilogue\n * pattern as arcproc_uso_func_000000B4 sibling. */\nint arcproc_uso_func_0000012C(int *a0, int a1) {\n    register int *p;\n    gl_func_00000000(a0, a1);\n    p = a0;\n    *p -= 1;\n    if (*a0 == 0) return 1;\n    return 0;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000012C);\n#endif\n\n/* arcproc_uso_func_0000019C: -O0 size allocator-state update (41 insns, 0xA4).\n * Adds a new allocation of size `a1` to the slab at `a0`:\n *   - If a0[1] (count) == 0: a0[8] = a1.\n *   - Else: sum existing allocations a0[8..8+count], place new at index\n *     `count` with value `a1 - sum`.\n * Both paths fall through to set a0[13] = a1 (cached current total). */\nvoid arcproc_uso_func_0000019C(int *a0, int a1) {\n    int i, j;\n    if (a0[1] == 0) {\n        a0[8 + a0[1]] = a1;\n    } else {\n        i = 0;\n        j = 0;\n        if (a0[1] > 0) {\n            do {\n                i += a0[8 + j];\n            } while (++j < a0[1]);\n        }\n        a0[8 + a0[1]] = a1 - i;\n    }\n    a0[13] = a1;\n}\n",
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\n\n#ifdef NON_MATCHING\n/* -O0 refcount-decrement-and-check (28 insns, 0x70). 2-arg variant of the\n * pattern in mgrproc_uso_func_000000B0: calls gl_func_00000000(a0, a1),\n * decrements *a0, returns 1 if it hit zero else 0.\n *\n * Match: 92.86% (re-confirmed 2026-05-04 via unwrap-and-rebuild test per\n * feedback_nm_wrap_99pct_may_be_silently_exact.md \u2014 cap is REAL, not\n * stale; current emit still 92.86%, slight drift from prior 92.68%).\n *\n * Sole structural diff: trailing dead `b +1; nop` at end of function (target\n * skips this since the natural fall-through reaches epilogue with no jump).\n * IDO -O0 emits `b epilogue` after BOTH return paths; the second one is\n * dead since PC+4 IS the epilogue. C-side cannot eliminate this without\n * shrinking the function past TRUNCATE_TEXT.\n *\n * Cap stands at 92.86% (1-insn dead-branch trailing). Same -O0 epilogue\n * pattern as arcproc_uso_func_000000B4 sibling. */\nint arcproc_uso_func_0000012C(int *a0, int a1) {\n    register int *p;\n    gl_func_00000000(a0, a1);\n    p = a0;\n    *p -= 1;\n    if (*a0 == 0) return 1;\n    return 0;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000012C);\n#endif\n\n/* arcproc_uso_func_0000019C: -O0 size allocator-state update (41 insns, 0xA4).\n * Adds allocation of size a1 to slab at a0. If count==0, store at slot 0;\n * else sum existing allocations and store new at slot=count with value\n * (a1 - sum). Both paths fall through to a0[13] = a1 (cached total).\n *\n * Promoted to exact via if/else fall-through merge (replacing the\n * earlier `if (==0) {store; return}` early-return form). The single\n * 1-byte diff at the early-exit branch displacement (build `b +29` to\n * epilogue vs expected `b +26` to the a0[13] = a1 store) is fixed by\n * letting both arms fall through to the merge. */\nvoid arcproc_uso_func_0000019C(int *a0, int a1) {\n    int i, j;\n    if (a0[1] == 0) {\n        a0[8 + a0[1]] = a1;\n    } else {\n        i = 0;\n        j = 0;\n        if (a0[1] > 0) {\n            do {\n                i += a0[8 + j];\n            } while (++j < a0[1]);\n        }\n        a0[8 + a0[1]] = a1 - i;\n    }\n    a0[13] = a1;\n}\n",
   "metadata": {
     "source_path": "projects/1080-agent-b/src/arcproc_uso/arcproc_uso_o0_12C.c",
     "asm_path": "projects/1080-agent-b/asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_0000019C.s",
     "segment": "arcproc_uso",
-    "compiler": "ido-7.1",
-    "compiler_flags": "-O0 -mips2 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
-    "verification": "fuzzy_match_percent=100.0; build/non_matching/.../arcproc_uso_o0_12C.c.o byte-identical to expected/.o for arcproc_uso_func_0000019C"
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O0 -G0 -mips2 -32",
+    "verification": "Verified via objdiff: fuzzy_match_percent=100.0; build/.o == expected/.o byte-identical."
   }
 }

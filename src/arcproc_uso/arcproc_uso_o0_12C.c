@@ -32,11 +32,15 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000012
 #endif
 
 /* arcproc_uso_func_0000019C: -O0 size allocator-state update (41 insns, 0xA4).
- * Adds a new allocation of size `a1` to the slab at `a0`:
- *   - If a0[1] (count) == 0: a0[8] = a1.
- *   - Else: sum existing allocations a0[8..8+count], place new at index
- *     `count` with value `a1 - sum`.
- * Both paths fall through to set a0[13] = a1 (cached current total). */
+ * Adds allocation of size a1 to slab at a0. If count==0, store at slot 0;
+ * else sum existing allocations and store new at slot=count with value
+ * (a1 - sum). Both paths fall through to a0[13] = a1 (cached total).
+ *
+ * Promoted to exact via if/else fall-through merge (replacing the
+ * earlier `if (==0) {store; return}` early-return form). The single
+ * 1-byte diff at the early-exit branch displacement (build `b +29` to
+ * epilogue vs expected `b +26` to the a0[13] = a1 store) is fixed by
+ * letting both arms fall through to the merge. */
 void arcproc_uso_func_0000019C(int *a0, int a1) {
     int i, j;
     if (a0[1] == 0) {
