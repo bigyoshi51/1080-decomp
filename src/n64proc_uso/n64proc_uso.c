@@ -163,7 +163,28 @@ extern char D_00000000;
  *
  * Other agents (b, c, e) checked: same C body, no INSN_PATCH attempt —
  * they hit the same wall. Genuine structural cap from IDO -O2 + the
- * 6-local register-allocation interaction that can't be flipped from C. */
+ * 6-local register-allocation interaction that can't be flipped from C.
+ *
+ * (18) TRIED 2026-05-05: link-time-0 proxy extern hack to defeat
+ * IDO -O2's constant-fold of base[0x40] back to fresh lui+lw. Approach:
+ *   extern char D_n64proc_zero;  // mapped to 0x0 in undefined_syms_auto
+ *   register char *base = &D_00000000 + (int)&D_n64proc_zero;
+ *   register char *base10 = &D_00000000 + 0x10 + (int)&D_n64proc_zero;
+ * Standalone .s confirms the structural fix WORKS: all 3 loop_tail
+ * loads now emit as `lw a1, 0x40(s_base)` indexed-via-$s form — closes
+ * the 8-insn delta to 5-insn (recovers 3 of 5 caps in residual diff (b)).
+ * BUT: the proxy machinery (2 luis + 1 addu = 3 insns at function start)
+ * shifts register allocation: base lands in $s1 instead of $s3, base10
+ * in $s2 instead of $s4, etc. Net regression: 74.49 % -> 58.68 %.
+ * Indexed-load gain (~5 insns) was outweighed by 6-way $s-reg renumber
+ * (which scores far more diffs in objdiff).
+ *
+ * The proxy approach is the correct mechanism for the loop_tail load
+ * but cannot be applied without paying a register-renumber penalty —
+ * the proxy's addu introduces a new pseudo-source for $s1, perturbing
+ * the priority queue. Variant 18 is therefore a documented dead-end:
+ * the indexed-load fix CANNOT be combined with target's $s-numbering
+ * via this proxy formulation. Stays at 74.49 %. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
