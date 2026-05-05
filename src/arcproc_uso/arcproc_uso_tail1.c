@@ -287,7 +287,9 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3
  * Calls gl_func_00000000 with 8 (a0+offset, id) pairs — registers sub-objects
  * with their parent IDs. The id is a 32-bit packed field: high 16 bits = type
  * code, low 16 bits = data. Branch on a0->[0x6A8]->[0x4]+1 == a0->[0x6A8]->[0x8]
- * picks 0x210001 or (p[1]+2)|0x210000 for the 0x6EC call. */
+ * picks 0x210001 or (p[1]+2)|0x210000 for the 0x6EC call. Inlining p[1] reads
+ * (vs holding in a `v1` named local) flips IDO's $t6/$t7 allocation order
+ * to match target. */
 extern char D_arc_D70_base;
 void arcproc_uso_func_00000D70(char *a0) {
     int *p;
