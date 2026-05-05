@@ -3453,33 +3453,18 @@ end:
     return (int)p;
 }
 
-#ifdef NON_MATCHING
-/* 92.53% NM. gl_func_0005FD20: 0xAC (43 insns) — 3-call printf-style debug logger.
- * Sibling of gl_func_0005FDCC (just-landed) and gl_func_0005FCC4.
+/* 3-call printf-style debug logger logging two Vec3s as 6 floats.
+ * Format strings at offsets 0x21B6C/0x21B88/0x21BA4 (28 bytes apart).
+ * Declared 0xAC (43 insns) including 3 trailing dead insns
+ * (nop; lui a2, 0; lw a2, 0(a2)) — stolen prologue setup for successor
+ * gl_func_0005FDCC which uses $a2 as a base register without setting it.
+ * Closed via SUFFIX_BYTES (same recipe class as FDCC's $v1 stolen prologue).
  *
- * BIG WIN: 0% → 92.53% on first try. The 3 printf-style calls with
- * (fmt, a1, (double)a1[i], (double)a1[i+3]) emit byte-exact for insns 0-39.
- * String offsets 28 bytes apart: 0x21B6C, 0x21B88, 0x21BA4 — likely
- * "v0.x = %f  v1.x = %f\n" / "v0.y..." / "v0.z..." format strings logging
- * two Vec3s.
- *
- * REMAINING 12-BYTE CAP: target's last 3 insns are `nop; lui a2, 0; lw a2, 0(a2)`
- * — that's the STOLEN PROLOGUE setup for the successor gl_func_0005FDCC,
- * which uses $a2 as a base register without setting it. SUFFIX_BYTES recipe
- * (`gl_func_0005FD20=0x00000000,0x3C060000,0x8CC60000`) would close this
- * but BREAKS the default INCLUDE_ASM build (per
- * feedback_suffix_bytes_breaks_include_asm_build.md — INCLUDE_ASM already
- * has full 43 insns; SUFFIX_BYTES would extend to 55 and overlap successor).
- *
- * Cap accepted at 92.53%. To reach 100%, would need either:
- *   (a) Decompile gl_func_0005FDCC's predecessor-stolen prologue handling
- *       differently (e.g. apply the suffix to FDCC instead via existing
- *       SUFFIX_BYTES), or
- *   (b) Land both FD20 and FDCC together as exact + episode the chain
- *       via shared SUFFIX_BYTES infrastructure. */
+ * Per docs/POST_CC_RECIPES.md SUFFIX_BYTES recipe — the prior NM-wrap doc
+ * worried this would "break INCLUDE_ASM build", but unwrapping (always C)
+ * + SUFFIX recipe is exactly how FDCC works (just-landed sibling). */
 extern int gl_func_00000000();
 void gl_func_0005FD20(float *a0) {
-    /* TODO: 3 printf-style calls with (fmt, a0, (double)a0[i], (double)a0[i+3]) */
     (void)gl_func_00000000((char*)&D_00000000 + 0x21B6C, a0,
         (double)a0[0], (double)a0[3]);
     (void)gl_func_00000000((char*)&D_00000000 + 0x21B88, a0,
@@ -3487,9 +3472,6 @@ void gl_func_0005FD20(float *a0) {
     (void)gl_func_00000000((char*)&D_00000000 + 0x21BA4, a0,
         (double)a0[2], (double)a0[5]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FD20);
-#endif
 
 /* 18-insn 2-call wrapper with early-return guard. Declared size 0x50 includes
  * 2 trailing dead insns (lui v1, 0; lw v1, 0(v1)) — stolen prologue setup
