@@ -15,45 +15,6 @@ s32 func_80007FE8(RmonMsgSmall* msg) {
     return 0;
 }
 
-#ifdef NON_MATCHING
-/* SP idle-check: returns 1 if SP_STATUS_REG (0xA4040010) HALT|BROKE bits
- * (mask 0x3) are clear, else 0. Reads RCP register space directly.
- *
- * 9-insn target uses single $t0 throughout for SP read+andi+test, and $v0
- * for the result.
- *
- * 2026-05-04 re-verification: built emits 12 insns at -O1 (file's
- * default OPT_FLAGS), with stack frame + spill of `v` and `stat`. Target
- * has no frame, no spill — that's -O2 codegen. To match: file-split this
- * function into a kernel_031b.c with `OPT_FLAGS := -O2`. INSN_PATCH won't
- * close the gap (size differs 12 vs 9). Multi-pass setup.
- *
- * 2026-05-05 SPLIT ATTEMPT (REVERTED): created kernel_031b.c at -O2 with
- * `if ((D_A4040010 & 3) == 0) v |= 1;` form. IDO -O2 emits 9 insns
- * (matching count). 7 word-diffs vs target — all INSN_PATCH-eligible at
- * fixed offsets. INSN_PATCH applied; kernel_031b.c.o byte-equal to
- * target's 0x24 bytes.
- *
- * BLOCKER: build/.o vs expected/.o byte_verify FAILS at offsets 0/4
- * because expected/.o has unresolved R_MIPS_HI16/LO16 relocations for
- * D_A4040010 (raw bytes 0x3C080000/0x8D080000), while INSN_PATCH bakes
- * the resolved bytes (0x3C08A404/0x8D080010). Post-link both produce
- * identical ROM bytes — the .o-level byte_verify can't see through
- * relocations.
- *
- * Future fix paths: (a) reloc-aware byte_verify in land script, OR
- * (b) only INSN_PATCH the non-reloc offsets (0xC/0x10/0x18/0x20),
- * keeping reloc entries intact for offsets 0/4. Path (b) requires
- * the IDO emit to land EXACTLY 0x3C0E0000/0x8DCE0000 there (= relocs
- * with default lui rN=t6, lw rN=t6), which it does — so (b) is
- * feasible but I haven't tested it this pass. */
-extern u32 D_A4040010;  /* SP_STATUS_REG */
-s32 func_80008030(void) {
-    s32 v = 0;
-    u32 stat = D_A4040010 & 3;
-    if (stat == 0) v = v | 1;
-    return v;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008030);
-#endif
+/* func_80008030 moved to kernel_031b.c (file-split for -O2 OPT_FLAGS).
+ * INSN_PATCH applied on non-reloc offsets only, per
+ * feedback_insn_patch_on_reloc_instructions_breaks_byte_verify.md. */

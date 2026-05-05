@@ -108,6 +108,15 @@ build/src/kernel/kernel_028.c.o build/non_matching/src/kernel/kernel_028.c.o: OP
 build/src/kernel/kernel_029.c.o build/non_matching/src/kernel/kernel_029.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_030.c.o build/non_matching/src/kernel/kernel_030.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_031.c.o build/non_matching/src/kernel/kernel_031.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_031.c.o: TRUNCATE_TEXT := 0x44
+# kernel_031b: file-split holding func_80008030 (compiled at -O2). Per
+# feedback_insn_patch_on_reloc_instructions_breaks_byte_verify.md: skip
+# patching offsets 0x0/0x4 (R_MIPS_HI16/LO16 for D_A4040010); only patch
+# non-reloc offsets 0xC/0x10/0x18/0x20.
+build/src/kernel/kernel_031b.c.o build/non_matching/src/kernel/kernel_031b.c.o: OPT_FLAGS := -O2
+build/src/kernel/kernel_031b.c.o: TRUNCATE_TEXT := 0x2C
+build/src/kernel/kernel_031b.c.o: INSN_PATCH := \
+	func_80008030=0x0:0x3C080000,0x4:0x8D080000,0x8:0x00001025,0xC:0x31080003,0x10:0x15000002,0x18:0x34420001,0x20:0x00000000
 build/src/kernel/kernel_032.c.o build/non_matching/src/kernel/kernel_032.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_033.c.o build/non_matching/src/kernel/kernel_033.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_034.c.o build/non_matching/src/kernel/kernel_034.c.o: OPT_FLAGS := -O1
