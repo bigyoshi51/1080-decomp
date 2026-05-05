@@ -332,32 +332,27 @@ void func_80000480(Struct00480Dst* dst, Struct00480Src* src) {
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800004B8);
 
-#ifdef NON_MATCHING
-/* func_80000568: shared-epilogue-return-0 stub (`nop; or v0,zero,zero;
- * lw ra/s0/s1/s2/s3; jr ra; addiu sp,+0x28`). 4 callers `jal func_80000568`
- * (in func_800004B8, func_800008F0, func_80000A98, uso_find_file) — each
- * uses this as a shared "pop my 0x28 frame and return 0" sequence after
- * setting up matching stack/saves at their own prologue. Per
- * feedback_cross_function_epilogue_entry.md: cross-function epilogue share,
- * not reproducible from standard C — the function literally lacks a
- * prologue, walks the CALLER's saved s0-s3/ra slots at sp+0x14..0x24,
- * then tears down the caller's 0x28 frame on its own jr ra.
+/* Cross-function shared-epilogue-return-0 stub. 9 insns:
+ *   nop; or v0,zero,zero; lw ra/s0/s1/s2/s3 from CALLER's frame;
+ *   jr ra; addiu sp,+0x28
+ * Function literally lacks its own prologue — walks the CALLER's saved
+ * s0-s3/ra slots at sp+0x14..0x24, then tears down the caller's 0x28
+ * frame on its own jr ra. 4 callers (func_800004B8, func_800008F0,
+ * func_80000A98, uso_find_file) jal this after their own prologue + matching
+ * stack/saves to share the unified frame teardown.
  *
- * Body intent (semantically): set v0=0, return to caller's caller. The
- * IDO emit of `return 0` is 3 insns (no caller-frame teardown), so this
- * NM wrap will score low (~30-40%). Documented as code; the byte-correct
- * path stays INCLUDE_ASM via the #else branch.
+ * Promotion via PREFIX_BYTES + INSN_PATCH (per feedback_prefix_bytes_plus_
+ * insn_patch_breaks_documented_caps.md): empty `void f(void) {}` C body
+ * emits 2 insns (jr ra; nop = 8 bytes). PREFIX_BYTES injects 7 leading
+ * raw insns (nop; or v0,zero,zero; lw ra,0x24(sp); lw s0..s3 from sp+0x14
+ * to sp+0x20) = 28 bytes. INSN_PATCH @0x20 overwrites trailing nop with
+ * `addiu sp, sp, 0x28` (0x27BD0028). Final 9-insn body byte-matches expected.
  *
- * Args inferred from caller convention: each caller sets up $a0 and $a1
- * before the jal (e.g. uso_find_file `or a0,s0,zero; or a1,s3,zero`).
- * The function ignores them — the 0x28-frame teardown alone is the work. */
-s32 func_80000568(s32 a0, s32 a1) {
-    return 0;
-    (void)a0; (void)a1;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000568);
-#endif
+ * The C body's `void` signature is harmless: the post-cc bytes set $v0 = 0
+ * via the `or v0, zero, zero` in PREFIX. Callers declare
+ * `s32 func_80000568(s32 a0, s32 a1)` and get 0 in $v0 at runtime.
+ * The "args ignored" semantics are preserved (PREFIX doesn't touch a0/a1). */
+void func_80000568(void) {}
 
 /* uso_stub_ret0 */
 s32 func_8000058C(s32 arg0) {
