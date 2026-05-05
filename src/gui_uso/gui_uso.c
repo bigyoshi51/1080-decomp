@@ -502,7 +502,38 @@ void gui_func_00002BB0(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
 #endif
 
+#ifdef NON_MATCHING
+/* gui_func_00002DE0: 303-insn / 0x4BC RDP/RSP display-list builder.
+ * Same family as gui_func_00002BB0 (just NM-wrapped sibling) — both
+ * load ctx from `&D_GUI_CTX`, bump the display-list write counter, and
+ * emit a G_SETSCISSOR (0xBB00_0001) command at ctx[12][0] + count*8.
+ *
+ * ENTRY DECODE (0x2DE0-0x2E40, ~24 insns):
+ *   ctx = *(int**)&D_GUI_CTX;        // s0 = ctx (global ptr deref)
+ *   ctx[12]->[4] += 1;               // bump display-list counter
+ *   v1_old = pre-bump value
+ *   at = 0x408                        // some constant (1032 = 0x408 lookup)
+ *   t4 = 0xBB00_0001                  // RDP G_SETSCISSOR opcode
+ *   t5 = 0x80008000                   // RDRAM segment-0 base marker
+ *   a3 = ctx[12][0] + (v1_old << 3)  // dl_ptr at base + index*8
+ *   *a3 = t4                          // RDP cmd word 1
+ *   *(a3+4) = t5                      // RDP cmd word 2
+ *   t0 = a0[4]                        // (continues — likely viewport/scissor
+ *                                       params from arg0 widget struct)
+ *
+ * 4 args saved to caller-arg-spill at sp+0x6C..0x74 (a1, a2, a3 stack).
+ * 1 saved reg (s0) + ra. 0x68-byte frame (smaller than 0x2BB0's 0x70).
+ * 280+ insns of body deferred — multi-pass NM-decomp. The 0x408
+ * literal (1032) is suspicious — possibly a viewport/scissor scale
+ * factor (240*4 = 960; 1024+8 = 1032). Default build INCLUDE_ASM. */
+void gui_func_00002DE0(int *a0, int a1, int a2, int a3) {
+    /* TODO: full body decode. Stub captures arg signature + RDP-builder
+     * identity (sibling of gui_func_00002BB0). */
+    (void)a0; (void)a1; (void)a2; (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
 
