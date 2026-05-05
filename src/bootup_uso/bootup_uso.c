@@ -1400,37 +1400,22 @@ void func_0000F15C(Quad4 *dst) {
     *dst = buf;
 }
 
-#ifdef NON_MATCHING
-/* 80 %: structurally exact composite (int reader + Quad4 reader) per the
- * cross-USO template memo. Body is 12 insns (0x30) and matches expected
- * byte-for-byte; FUNC st_size in expected is 60 (0x3C) because 3 trailing
- * alignment nops at 0xF1E4-0xF1EC fall WITHIN the symbol's reach (next
- * function func_0000F1F0 is 16-byte aligned at 0xF1F0).
+/* func_0000F1B4: composite int+Quad4 reader (cross-USO template).
+ * Body is 12 insns (0x30); FUNC st_size in expected is 60 (0x3C) because
+ * 3 trailing alignment nops at 0xF1E4-0xF1EC are PART of the symbol's reach
+ * (next function func_0000F1F0 is 16-byte aligned).
  *
- * 2026-05-04 verified blockers:
- *   - `trim-trailing-nops.py bootup_uso` reports "nothing to trim" because
- *     the 3 nops are AFTER endlabel, not inside the body. The script only
- *     handles in-body trailing zeros.
- *   - Removing the NM gate (using C body unconditionally) shifts func_0000F1F0
- *     and ALL downstream symbols by 0xC bytes — breaks file layout. Verified
- *     via readelf: built FUNC st_size drops from 60 to 48; func_0000F1F0
- *     lands at 0xF1E4 instead of 0xF1F0.
- *   - Built and expected bytes for the 12-insn body are byte-identical
- *     (verified via objdump -d -r); diff is purely the symbol's st_size.
- *
- * Stays NM-wrapped at 80 %. Default INCLUDE_ASM build keeps layout correct
- * via the .s file's `nonmatching SIZE` macro. To unblock, would need a
- * pad-sidecar variant that targets ALIGNMENT-only padding (after endlabel,
- * not inside body) — extending `trim-trailing-nops.py` to detect this case
- * is infrastructure work. */
+ * SUFFIX_BYTES recipe (Makefile) appends 3 nops post-cc, growing the
+ * symbol from 0x30 to 0x3C in place. Drops the prior NM wrap.
+ * Verified 2026-05-05: build/.o byte-correct via byte_verify (st_size=0x3C
+ * matches expected; trailing nops match). Per
+ * feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md (multi-insn
+ * extension). */
 void func_0000F1B4(char *a0) {
     int scratch;
     func_0000F120(&scratch);
     func_0000F15C((Quad4*)(a0 + 0x10));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F1B4);
-#endif
 
 #ifdef NON_MATCHING
 /* Standard -O0 int reader accessor template (per
