@@ -1268,16 +1268,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DD44);
 
-/* 20-insn indirect dispatcher (sibling of gl_func_0003CB2C). Indexes
- * into a0->0x44 array of 96-byte structs, derefs entry, calls function
- * pointer at struct +0x2C with (struct + halfword_offset) arg.
- * local = 1002. */
+/* 20-insn indirect dispatcher (sibling of gl_func_0000DE30/DE80/DED0/0003CB2C).
+ * Same shape as DE30 form (inlined dispatch + pad_top[2]/pad_bot[4] frame
+ * sizing), local = 0x3EA. INSN_PATCH on the same 4 reg-rename insns at
+ * 0x24/0x2C/0x34/0x3C makes build/.o byte-equal to expected/.o post-cc. */
 void gl_func_0000DDE0(int **a0, int a1) {
+    int pad_top[2];
     int local = 0x3EA;
-    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
-    int *p = *base;
-    short adj = *(short*)((char*)p[0x28/4] + 0x28);
-    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+    int pad_bot[4];
+    int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
+    ((void(*)(int, int*))p[0x2C/4])(
+        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
 
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0/0003CB2C).
