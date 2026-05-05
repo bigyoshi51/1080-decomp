@@ -1902,10 +1902,23 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * need unique-pseudo or volatile-ptr-to-arg trick — see
      * feedback_volatile_ptr_to_arg_forces_caller_slot_spill.md).
      *
-     * Remaining promotion paths:
+     * Remaining cap is structural: target uses extra stack slots
+     * (sp+0xE0 per-iter scratch, sp+0xE8/0xEC/0xF0 for a0/a1/a2 spill
+     * at entry) that mine doesn't emit. Each iter has a store-then-load
+     * pattern at sp+0xE0 — `sw t1, 0xE0(sp); lw t4, 0(t2)` where
+     * `t2 = sp+0xE0`. Looks like a varargs marshalling buffer or
+     * deliberate CSE-defeating spill in original source.
+     *
+     * Tried 2026-05-05: `volatile char *_t = *(char**)(...)` in the
+     * macro body — added 59 insns (3700 → 3936 bytes) but at wrong
+     * positions; fuzzy unchanged at 63.33%.
+     *
+     * Remaining promotion paths (multi-tick):
+     *   - Refactor the macro to introduce per-iter `char *_t_buf[1]`
+     *     local + write-then-read pattern matching the sp+0xE0 store-load
+     *   - Take address of args (`&a0`, `&a1`, `&a2`) somewhere in the
+     *     prologue to force the entry-time spill at sp+0xE8/0xEC/0xF0
      *   - decomp-permuter with PERM_RANDOMIZE around the macros
-     *   - Apply volatile-ptr-to-arg trick to force caller-slot spill
-     *     in the macro body (a1/a2 args spill at sp+4/sp+8)
      *   - Accept 63.33% as the C-decomp ceiling; rely on byte-correct
      *     ROM via INCLUDE_ASM. */
     (void)s0;
