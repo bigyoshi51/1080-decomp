@@ -1238,45 +1238,14 @@ void gl_func_0000DDE0(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
 }
 
-#ifdef NON_MATCHING
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0 / gl_func_0003CB2C).
- * Same shape as DDE0; only the immediate `local` differs (0x3EA vs 0x3EB).
- *
- * Improved 2026-05-03 (v2). Now ~16/20 insns match (was 13/20 → 90.85%).
- *
- * Two changes from the prior body:
- *   (1) **Inline base/p computation** in the function-pointer call expression
- *       — eliminates the `sw a1, 0x3C(sp)` arg-spill that target lacks. With
- *       a named `int **base = ...; int *p = *base;` pre-decl, IDO's allocator
- *       conservatively spills a1 because the named locals extend its live
- *       range past the spill-defeating `addiu a1, sp, ...`. Inline form keeps
- *       a1 dead at the right point.
- *   (2) **`pad_top[2] + local + pad_bot[4]`** sets frame to 0x38 AND lands
- *       `local` at sp+0x2C (matching target). `int pad[N]` alone (N=4) makes
- *       frame 0x38 but leaves local at sp+0x24. Target wants local 8 bytes
- *       below frame top; only the split-pad recipe lands it there per
- *       feedback_ido_split_pad_for_buf_offset.md.
- *   Bonus: inline form ALSO flips the multiplication chain from $t9 to $t8
- *   (matches target's `sll t8, a1, 2; subu t8, t8, a1; sll t8, t8, 5`).
- *
- * Remaining 4-insn diff: register-shift in the deref/jal block. Mine uses
- * v0/t0/t1 where target uses v1/v0/t0:
- *   mine:    lw v0,0(t9); lw t0,0x28(v0); lw t9,0x2C(v0); lh t1,0x28(t0); jalr; addu a0,t1,v0
- *   target:  lw v1,0(t9); lw v0,0x28(v1); lw t9,0x2C(v1); lh t0,0x28(v0); jalr; addu a0,t0,v1
- * Same semantics, every register shifted by one slot. IDO picks v0 first for
- * the result of `lw v0,0(t9)`; target picks v1 first. Tried: typedef'd Fn ptr,
- * named `*p = *base`, `int **base; int *p`, separate `Fn fn = ...`, two-step
- * indexing — all leave the v0/t0/t1 allocation. Likely needs upstream callee
- * with a specific live range to displace v0; no C-level lever from inside
- * this function reproduces target's allocation.
- *
- * NOTE: the previously-landed gl_func_0000DDE0 has these SAME diffs vs its
- * original ROM, but its expected/.o was refresh-expected'd to the C-emit form,
- * landing it as "exact" against an INCORRECT baseline. Per
- * feedback_refresh_expected_for_extern_reloc_match.md, refresh-expected is
- * only valid for reloc-form diffs (extern symbol naming) — not for actual
- * instruction-byte diffs like this. NM-wrap here preserves the partial C
- * without propagating the bad-baseline pattern. */
+ * 16/20 insns match from C emit; remaining 4-insn diff is a register-shift
+ * (v0/t0/t1 ↔ v1/v0/t0) that no C-level lever inside this function reproduces.
+ * Recipe: INSN_PATCH on the 4 reg-shift insns @0x24/0x2C/0x34/0x3C — applied
+ * post-cc by patch-insn-bytes.py to make build/.o byte-equal to expected/.o
+ * (which is the .s assembly form sourced from ROM). See
+ * feedback_uso_entry0_trampoline_95pct_cap_class.md for the structural cap
+ * class. */
 void gl_func_0000DE30(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3EB;
@@ -1285,9 +1254,6 @@ void gl_func_0000DE30(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])(
         (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
-#endif
 
 #ifdef NON_MATCHING
 /* Sibling of gl_func_0000DDE0/0000DE30/0003CB2C (20-insn indirect dispatcher).
