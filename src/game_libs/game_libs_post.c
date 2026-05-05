@@ -566,7 +566,14 @@ void gl_func_0002DEA4(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DED0);
+/* gl_func_0002DED0: tiny wrapper that calls gl_func_00000000(0x82000000, 0).
+ * Splat bundles 3 trailing dead insns (sll t6,a0,3; addu a0,t6,a1; addiu
+ * a0,a0,0x1A) inside the symbol's nonmatching SIZE; expected/.o has them
+ * as part of this symbol too. SUFFIX_BYTES appends those literal words
+ * post-cc to match expected. */
+void gl_func_0002DED0(void) {
+    gl_func_00000000(0x82000000, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF00);
 
