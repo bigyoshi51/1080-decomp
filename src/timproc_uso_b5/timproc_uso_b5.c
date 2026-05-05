@@ -24,7 +24,48 @@ void timproc_uso_b5_func_00000050(void) {
 }
 
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00000058: 125-insn / 0x1F4 3-stage allocator + init.
+ * Sibling shape to eddproc_uso_func_0000025C and other "alloc-cascade"
+ * dispatch functions (per docs/PATTERNS.md alloc-cascade entry).
+ *
+ * ENTRY DECODE (0x58-0xCC, ~30 insns):
+ *   if (a0 == 0) {
+ *       s3 = alloc(0x50);
+ *       if (s3 == 0) return 0;     // tail-fail at 0x228
+ *   } else {
+ *       s3 = a0;
+ *   }
+ *   if (s3 == 0) {                   // post-alloc-1 null check
+ *       s0 = alloc(0x50);
+ *       if (s0 == 0) goto skip_init; // jump to 0xE4
+ *   } else {
+ *       s0 = s3;
+ *   }
+ *   if (s0 == 0) {                   // post-alloc-2 null check
+ *       s1 = alloc(0x2C);
+ *       if (s1 == 0) goto skip_more; // jump to 0xD8
+ *   } else {
+ *       s1 = s0;
+ *   }
+ *   gl_func_00000000(s1, &D_00000000 + 0x98);  // initialize s1 from
+ *                                                 // table at D[0x98]
+ *   ... (continues: more init via the s1 result + writes to s3/s0
+ *        slots, ~95 more insns, deferred for next pass).
+ *
+ * Saved regs: s0-s4, ra (6 saves) in 0x38 frame. Cap class similar to
+ * eddproc_uso_func_0000025C (~61 % structural ceiling — multi-stage
+ * alloc cascade with branched init blocks).
+ *
+ * Multi-pass NM-decomp; default build INCLUDE_ASM. */
+void timproc_uso_b5_func_00000058(int *a0) {
+    /* TODO: full body decode + struct typing on s1's init target.
+     * Stub captures the 3-stage alloc-cascade entry signature. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000024C: 42-insn dispatch wrapper. Sibling of
