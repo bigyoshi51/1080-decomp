@@ -423,7 +423,68 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002A8C);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_00002BE4: 0xFC (63 insns) — sibling of the just-matched
+ * 00002CE0; preceding it in the .text segment.
+ *
+ * Saves 8 s-regs (s0..s7) — heavy long-lived-locals function. Frame 0x68.
+ *
+ * Structure (decoded 2026-05-05 first pass):
+ *
+ *   1. Copy 5 ints from D[0x4D0..0x4E0] to local Vec4-like buf at sp+0x54
+ *      (5-int copy via t6 base ptr, interleaved lw/sw).
+ *   2. jal gl_func_00000000(&D_00000000)   ; cleanup/notify call
+ *   3. Outer loop:  for (s3 = 0x10; s3 != 0xF0; s3 += 0x20) { ... }    7 iters
+ *   4. Inner loop: for (s0 = 0;     s0 != 0x140; s0 += 0x40) { ... }   5 iters
+ *      Inner body:
+ *        s1 = vec4;                       ; reset on outer iter
+ *        ...
+ *        s2 = (char*)&D + 0x10 + s0*24    ; mult s0, 24; addu s2, s4, t1
+ *        gl_func_00000000(s2);            ; first per-iter call
+ *        gl_func_00000000(s2, s0, s3, 0); ; second per-iter call (4-arg)
+ *        s1 += 4;                         ; advance vec4 ptr (int*)
+ *      Inner-end: s0 += 0x40
+ *      Outer-end: s3 += 0x20, s1 = &sp+0x54 reset (delay slot)
+ *   5. Restore s0..s7, ra; addiu sp, sp, 0x68; jr ra.
+ *
+ * Total inner iters: 7 outer * 5 inner = 35 dispatches. Likely a per-tile
+ * (or per-sub-region) init loop indexing into a 0x600-byte-stride array
+ * at &D_00000000 + 0x10.
+ *
+ * First-pass NM — captures outer/inner structure and per-iter call shape.
+ * Register allocation across the 8 s-regs is sensitive to declaration
+ * order; this body is not yet tuned for fuzzy. Fuzzy expected ~10-25%. */
+extern int gl_func_00000000();
+void timproc_uso_b1_func_00002BE4(int *a0) {
+    int vec4[5];
+    int *base = (int*)((char*)&D_00000000 + 0x4D0);
+    int *s4 = (int*)((char*)&D_00000000 + 0x10);
+    int *s1;
+    int *s2;
+    int s0, s3;
+    (void)a0;
+
+    vec4[0] = base[0];
+    vec4[1] = base[1];
+    vec4[2] = base[2];
+    vec4[3] = base[3];
+    vec4[4] = base[4];
+    gl_func_00000000(&D_00000000);
+
+    for (s3 = 0x10; s3 != 0xF0; s3 += 0x20) {
+        s1 = vec4;
+        for (s0 = 0; s0 != 0x140; s0 += 0x40) {
+            (void)*s1;  /* lw t0, 0(s1) — read vec4 entry (purpose TBD) */
+            s2 = (int*)((char*)s4 + s0 * 24);
+            gl_func_00000000(s2);
+            gl_func_00000000(s2, s0, s3, 0);
+            s1 += 1;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002BE4);
+#endif
 
 /* timproc_uso_b1_func_00002CE0: 26-insn (0x68) 3-call wrapper indexed by a1.
  * Promoted 95.12% → 100% via two levers:
