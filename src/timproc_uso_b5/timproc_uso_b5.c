@@ -627,7 +627,12 @@ void timproc_uso_b5_func_0000BB88(int *a0) {
     gl_func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BBC8);
+/* 5-insn float store: stores a1 to a0->_2A0 and (a0->_2B8)->_120.
+ * Float arg passed in $a1 (int reg), so IDO emits mtc1 to FPU first. */
+void timproc_uso_b5_func_0000BBC8(int *a0, float a1) {
+    *(float*)((char*)a0 + 0x2A0) = a1;
+    *(float*)((char*)*(int**)((char*)a0 + 0x2B8) + 0x120) = a1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BBDC);
 
