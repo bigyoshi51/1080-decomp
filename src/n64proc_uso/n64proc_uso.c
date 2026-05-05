@@ -16,7 +16,14 @@ void n64proc_uso_func_0000000C(void) {
 extern char D_00000000;
 
 #ifdef NON_MATCHING
-/* Promoted to $s-reg allocation via `register` hints (2026-04-20).
+/* (12) TRIED 2026-05-04: INSN_PATCH eligibility check — built emits 67 insns
+ * vs expected 59 (+8 insn delta from per-iteration `lui v1,0; lw v1,0x40(v1)`
+ * fresh-lui+lo reload at loop_tail vs target's single `lw a1, 0x40(s3)`
+ * indexed-via-$s form). Size mismatch blocks INSN_PATCH per
+ * feedback_insn_patch_size_diff_blocked.md. Would need a recipe that GROWS
+ * st_size + shifts symbols/relocs (not currently available). Stays at 74.49 %.
+ *
+ * Promoted to $s-reg allocation via `register` hints (2026-04-20).
  * Logic confirmed correct; structure matches target's do-while shape.
  *
  * Register allocation NOW (all 6 in $s-regs, just with different numbers):
@@ -280,7 +287,18 @@ void n64proc_uso_func_00000230(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* State machine on a0->0x50:
+/* (e) TRIED 2026-05-04: INSN_PATCH eligibility check — built 60 insns vs
+ * expected 61 (+1 insn delta), and 52 of 60 insns differ due to register
+ * cascade. The +1 delta comes from the second dispatch: built picks
+ * `bnel v0,at,end` with `lw ra,20(sp)` epilogue-prep in delay slot;
+ * expected picks `beql v0,at,c1` with `lw t5,84(a3)` c1-body-preload in
+ * delay slot. Same branch target, opposite polarity. The body-preload
+ * cascades through register choices (expected uses t6/t5/t8 throughout
+ * c1 body where built uses v0/t9/etc). INSN_PATCH can't repair: size
+ * differs AND each subsequent insn has different opcode bits (not just
+ * register renames at fixed offsets). Stays at 93.57%.
+ *
+ * State machine on a0->0x50:
  *   case 0: decrement a0->0x3C; if dropped below 16, decay a0->0x54 by 16
  *           (clamp >= 0); when a0->0x3C hits 0, transition to mode 1
  *           (a0->0x50 = 1) and reset a0->0x3C = 100.
@@ -382,7 +400,13 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
 #endif
 
 #ifdef NON_MATCHING
-/* Dual-branch sub-struct dispatcher (51 insns, 0xCC after prologue-stolen fix).
+/* (NEW 2026-05-04) INSN_PATCH eligibility check: built 50 insns vs expected
+ * 51 (+1 delta) + 21 differing insns. Size mismatch blocks INSN_PATCH per
+ * feedback_insn_patch_size_diff_blocked.md. The IDO k0/k1 block-reorder is
+ * a structural shift, not a per-offset rename. Wrap doc's "~98% via unique
+ * externs (mechanical)" path remains the only forward move. Stays at 95.51%.
+ *
+ * Dual-branch sub-struct dispatcher (51 insns, 0xCC after prologue-stolen fix).
  * Prior "MYSTERY" (swc1 $f0 without preceding mtc1) resolved 2026-04-20:
  * splat had mis-attributed the function's base-pointer prologue
  * `lui $at, 0x3F80; mtc1 $at, $f0` to the predecessor (func_00000268)'s

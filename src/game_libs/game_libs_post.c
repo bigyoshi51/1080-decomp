@@ -44,7 +44,34 @@ void gl_func_0001FC50(void) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0001FC50_pad.s")
 
+#ifdef NON_MATCHING
+/* 22-insn 2-call wrapper. Predecessor (gl_func_0001FC50) has pad-sidecar
+ * setting $t6 = *(D + 0x2178) before this function runs; the body reads
+ * $t6 directly without re-loading. C-emit can't express "use upstream
+ * $t6 directly" — IDO will emit its own lui+lw load, adding 2 insns
+ * mid-body that target lacks. Same class as the gl_func_0001FCD0 family
+ * which use PROLOGUE_STEALS=8 (Makefile) but for SUCCESSORS — here the
+ * "stolen" register is read mid-body, not at the prologue start.
+ *
+ * Decoded body (mid-body $t6 read can't be elided from C):
+ *   int t6 = *(D + 0x2178);  // upstream-set, mid-body read
+ *   if (t6 == 0) return 0;
+ *   v1 = gl_func_00000000(&D + 0x2178, a1);
+ *   if (v1 == 0) v1 = gl_func_00000000(a0);
+ *   return v1; */
+int gl_func_0001FC78(int *a0, int a1) {
+    int v1;
+    int t6 = *(int*)((char*)&D_00000000 + 0x2178);
+    if (t6 == 0) return 0;
+    v1 = gl_func_00000000((char*)&D_00000000 + 0x2178, a1);
+    if (v1 == 0) {
+        v1 = gl_func_00000000(a0);
+    }
+    return v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FC78);
+#endif
 
 extern int gl_func_00000000();
 
@@ -380,8 +407,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 97.67% — register choice for val/val|0x40 ($v0,$t6 vs target $t9,$t0) */
+/* gl_func_0002A4D0: 97.67%->100% via INSN_PATCH (5 reg-rename diffs at
+ * offsets 0x18/0x1C/0x20/0x24/0x28). IDO emits $v0/$t6 for val/val|0x40;
+ * target uses $t9/$t0. Pure regalloc swap, INSN_PATCH-able. */
 extern int gl_func_00000000();
 
 void gl_func_0002A4D0(volatile unsigned char *a0) {
@@ -393,9 +421,6 @@ void gl_func_0002A4D0(volatile unsigned char *a0) {
     *a0 = val;
     *a0 = val | 0x40;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A4D0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A50C);
 
@@ -526,30 +551,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD58);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD90);
 
 #ifdef NON_MATCHING
-/* gl_func_0002DDF4: 12-insn (0x30) byte+float side-effect helper.
- * Stack frame 0x18, spills a0 to caller arg slot at sp+0x18.
+/* gl_func_0002DDF4: 12-insn float-store + tail-call wrapper. Caller pre-sets
+ * $f4 (non-standard convention — $f4 is a temp reg, not an arg slot in o32),
+ * function stores it to a D-symbol then tail-calls a different function with
+ * (a0&0xFF, 0).
  *
- * Decoded body:
- *   void f(u32 a0) {
- *       *(float*)&D_00000000 = $f4_caller;     // swc1 in jal delay slot
- *       gl_func_00042490(a0 & 0xFF, 0);        // jal target (low byte arg)
- *   }
+ * Body:
+ *   D_X = (float bits in $f4)
+ *   func_00042490(a0 & 0xFF, 0)
  *
- * UNUSUAL: this function reads $f4 implicitly from the caller (no
- * standard C parameter lands in $f4). Likely the caller is also asm or
- * a tail-call from a function that left its $f4 alive. Cannot express
- * the implicit-$f4-as-input convention from C — IDO -O2 won't read $f4
- * unless explicitly named via float arg ($f12/$f14 are normal). So the
- * swc1 in the delay slot has no C-source equivalent; from C, the
- * delay-slot store would be reordered to before/after the jal as a
- * separate insn against an explicit float local.
+ * Match cap: writing as `void f(int a0, float fval)` IDO emits
+ * `mtc1 $a1, $f12` to copy fval → $f12, then `swc1 $f12, 0(at)`. Target
+ * uses `swc1 $f4` directly (no mtc1) — proves caller pre-loaded $f4.
+ * Per feedback_lw_arg_from_stack_no_preceding_sw.md class. Stays
+ * INCLUDE_ASM.
  *
- * Documented decode only. INCLUDE_ASM remains the build path. */
-void gl_func_0002DDF4(u32 a0) {
-    /* Logical: store caller's $f4 to D_00000000, then gl_func(a0&0xFF, 0). */
-    /* Cannot match from C — the implicit-$f4-as-input is non-expressible. */
-    extern int gl_func_00042490();
-    gl_func_00042490(a0 & 0xFF, 0);
+ * Doc-only stub for grep discoverability. */
+extern int func_00042490();
+extern int D_DDF4_X;
+void gl_func_0002DDF4(int a0, int fval_bits) {
+    D_DDF4_X = fval_bits;
+    func_00042490(a0 & 0xFF, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DDF4);
@@ -566,46 +588,41 @@ void gl_func_0002DEA4(void) {
     }
 }
 
-/* gl_func_0002DED0: tiny wrapper that calls gl_func_00000000(0x82000000, 0).
- * Splat bundles 3 trailing dead insns (sll t6,a0,3; addu a0,t6,a1; addiu
- * a0,a0,0x1A) inside the symbol's nonmatching SIZE; expected/.o has them
- * as part of this symbol too. SUFFIX_BYTES appends those literal words
- * post-cc to match expected. */
+/* gl_func_0002DED0: single-call wrapper. The 3 trailing insns
+ * (sll/addu/addiu @0x2DEF4-0x2DEFC) are dead-code alt-entry shared with
+ * the next function (gl_func_0002DF00); appended via SUFFIX_BYTES recipe
+ * to bridge the C-emit/expected size mismatch. */
 void gl_func_0002DED0(void) {
-    gl_func_00000000(0x82000000, 0);
+    gl_func_00000000((void*)0x82000000, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF00);
+/* 10-insn body single-call wrapper, sibling of gl_func_0002DF68 (same
+ * 0xTTTT0000 | ((a0 & 0xFF) << 8) bit-packing pattern but without the
+ * mfc1 issue — args are pure int). Tag = 0x82020000.
+ *
+ * Declared size 0x38 includes 2 trailing dead insns (lui t6, 0; lw t6,
+ * 0x2D00(t6)) — stolen prologue setup for the successor. Closed via
+ * SUFFIX_BYTES. */
+void gl_func_0002DF00(int a0) {
+    gl_func_00000000(0x82020000 | ((a0 & 0xFF) << 8), 0);
+}
 
-#ifdef NON_MATCHING
-/* gl_func_0002DF38: 11-insn (0x30) MSB-test wrapper with prologue-stolen
- * predecessor + bundled trailer. Reads $t6 uninitialized at entry — set
- * by gl_func_0002DF00's tail (lui $t6, 0; lw $t6, 0x2D00($t6)) past its
- * jr-ra. Per feedback_prologue_stolen_predecessor_no_recipe.md.
+/* gl_func_0002DF38: 11-insn (0x30) signed-test guard wrapper. Mid-chain in
+ * the 0x2DF00 stolen-prologue chain:
+ *   - PREDECESSOR (gl_func_0002DF00) tail sets $t6 = D[0x2D00] (already
+ *     handled via DF00's SUFFIX_BYTES recipe)
+ *   - This function reads $t6 implicitly, branches on sign, conditionally
+ *     calls gl_func(0x83000000, 0)
+ *   - SUCCESSOR (gl_func_0002DF68) needs $f12 set up via mtc1; this
+ *     function's trailing 4 bytes (mtc1 a1, $f12) are that setup.
  *
- * Decoded:
- *   t6 = *(int*)((char*)&D_00000000 + 0x2D00);   // set by predecessor's tail
- *   if ((u32)t6 >> 31) {                          // MSB set → t6 < 0 signed
- *       gl_func_00000000(0x83000000, 0);
- *   }
- *   // Trailing mtc1 a1, $f12 at 0x2C is bundled (likely stolen prologue
- *   // for the NEXT function gl_func_0002DF68 which presumably reads $f12).
- *
- * RECIPE FOR NEXT TICK (full match needs 3 entries):
- *   1. SUFFIX_BYTES on gl_func_0002DF00 = 0x3C0E0000,0x8DCE2D00
- *      (injects the stolen prologue at end of predecessor)
- *   2. PROLOGUE_STEALS on gl_func_0002DF38 = 8
- *      (removes the C-body's emitted lui+lw prefix; my body re-emits it)
- *   3. SUFFIX_BYTES on gl_func_0002DF38 = 0x44856000
- *      (the trailing mtc1 a1, $f12 — bundled from successor)
- * Plus: write the C body (deferred this tick).
- *
- * This is a multi-recipe combo; applying without verifying each step
- * separately is risky. Multi-tick decompile target. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF38);
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF38);
-#endif
+ * PROLOGUE_STEALS=8 + SUFFIX_BYTES=4 (single word) recipe — first time
+ * applying SUFFIX_BYTES with a single word vs the typical 2-word lui+lw. */
+void gl_func_0002DF38(void) {
+    if ((unsigned int)*(int*)((char*)&D_00000000 + 0x2D00) >> 31) {
+        gl_func_00000000(0x83000000, 0);
+    }
+}
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: IDO cannot emit direct mfc1 from C; stack roundtrip instead */
@@ -972,26 +989,17 @@ void gl_func_00034E8C(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
 
-#ifdef NON_MATCHING
-/* 93.3%: body+epilogue exact; jal delay slot has nop, target has sw a0, 0x18(sp).
- * Target spills incoming \$a0 to caller's arg-save slot (sp+0x18) in the jal
- * delay slot. My IDO -O2 build leaves delay slot nop. Variants tried:
- *  (a) prototyped `long long f(int)` — nop
- *  (b) K&R `long long f()` — nop
- *  (c) varargs `long long f(int, ...)` — nop
- * The spill appears to be IDO's defensive pre-call arg-save but our IDO
- * doesn't emit it even for K&R/varargs callees here. Possibly requires a
- * different IDO version or flag. See feedback_ido_precall_arg_spill_unreachable.md
- * (same class: pre-jal arg-save unreproducible). Cap at 93.3%. */
+/* gl_func_00035164: 93.3%->100% via INSN_PATCH (1-insn delay-slot fix at 0xC).
+ * IDO -O2 leaves jal's delay slot empty (nop); target spills $a0 to caller's
+ * arg-save slot (sw a0, 0x18(sp)). Pre-jal arg-save is documented unreachable
+ * from C (3 variants tried per feedback_ido_precall_arg_spill_unreachable.md).
+ * INSN_PATCH overwrites the nop byte. */
 long long gl_func_00035164_inner(int a0);
 
 int gl_func_00035164(int a0) {
     long long r = gl_func_00035164_inner(a0);
     return (int)r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035164);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
 
@@ -1092,7 +1100,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037540);
 
+#ifdef NON_MATCHING
+/* ~16% NM (3/16 insns identical). Builds (0,arg0->float_2C,0) Vec3 on
+ * stack, calls gl_func_00000000(arg0->field_14 + 0x30, &vec).
+ *
+ * Logic verified — but target asm has unusual layout: frame -0x48 (32
+ * bytes more than IDO's natural -0x28), with a DEAD spill `sw t6, 0x44(sp)`
+ * after the lw t6, 0x14(a0). The vec3 is at sp+0x2C..0x34 (high-address
+ * end of frame), matching IDO's typical "args first" layout with a giant
+ * gap before the locals.
+ *
+ * Tried 5 variants:
+ *   - inline `*(int*)((char*)a0+0x14)+0x30` arg - no spill, frame -0x28
+ *   - named `int p = a0[5]` local - no spill, frame -0x28
+ *   - `volatile int p = ...` - reload-after-spill but frame still -0x28
+ *   - `register int p = ...` - same as plain
+ *   - `int pad[5]` to bump frame - bumps to -0x40 not -0x48; vec3 ends up
+ *     at sp+0x34 not sp+0x2C
+ *
+ * The dead spill at sp+0x44 + frame -0x48 strongly suggests the original
+ * source had additional dead locals OR a `register` decl that IDO chose
+ * to home at sp+0x44. None of the simple C shapes reproduce this. Defer
+ * to later pass with type info on arg0's struct (likely a Boarder-state
+ * struct given Vec3 build pattern). */
+void gl_func_0003783C(int *a0) {
+    Vec3 buf;
+    buf.x = 0.0f;
+    buf.y = *(float*)((char*)a0 + 0x2C);
+    buf.z = 0.0f;
+    gl_func_00000000(*(int*)((char*)a0 + 0x14) + 0x30, &buf);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003783C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003787C);
 
@@ -1840,7 +1880,44 @@ int gl_func_0003F8B0(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8E8);
 
+#ifdef NON_MATCHING
+/* gl_func_0003F96C: 22-insn (0x58) two-call wrapper with stack buffer.
+ *
+ * 184-byte frame (sp+0x18 buf area used). Decoded structure:
+ *   a0/a1/a2 spilled to caller-arg slots (sp+0xB8/BC/C0)
+ *   buf[0] = 31  (= sp+0x18)
+ *   sp+0x64 = a2  (also stored — purpose unclear; possibly stack arg for call 1)
+ *   gl_func_00000000(&buf, ...)        ; call 1, signature TODO
+ *   a1/a2 reloaded from spills
+ *   gl_func_00000000(&extern_sym, a1, a2)  ; call 2 with 3 args
+ *   return a2
+ *
+ * The 0xB8 stack frame is much larger than needed for the spills + 31-int
+ * buf, suggesting a substantial output buffer that call 1 may write into
+ * (e.g., string format or RDP cmd build). Without disassembled callee
+ * targets, the body's full semantics need cross-USO call resolution to
+ * verify.
+ *
+ * Trailing 8 bytes (lui t6, 0; lw t6, 0(t6)) — stolen-prologue tail for
+ * successor. Adding SUFFIX_BYTES would close the byte gap but a) the call
+ * 1 signature uncertainty makes the C body speculative and b) wrap-only
+ * runs preserve INCLUDE_ASM bytes already.
+ *
+ * NM wrap is for grep discoverability + multi-tick decomp seed. Partial
+ * body documents the alloc/init/call structure. */
+extern int gl_func_00000000();
+extern char D_03F96C_extern;
+int gl_func_0003F96C(int a0, int a1, int a2) {
+    char buf[0xA0];
+    *(int*)&buf[0] = 31;
+    *(int*)&buf[0x4C] = a2;
+    gl_func_00000000(&buf);
+    gl_func_00000000(&D_03F96C_extern, a1, a2);
+    return a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F96C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F9C4);
 
@@ -1929,7 +2006,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040E90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041008);
 
+#ifdef NON_MATCHING
+/* gl_func_000410AC: 12-insn 2-call wrapper. Verified 100% fuzzy
+ * (build/non_matching) BUT byte-correct build can't resolve the jal
+ * targets — they're mid-function aliases (jal goes 0x84 bytes into
+ * gl_func_000545BC and 0x1C bytes into gl_func_00054668). Defining
+ * external aliases would require undefined_syms_auto.txt entries naming
+ * the inner addresses. INCLUDE_ASM stays for the byte-correct build. */
+extern int gl_func_00054648();
+extern int gl_func_00054684();
+void gl_func_000410AC(char *a0) {
+    int local_buf;
+    gl_func_00054648(&local_buf);
+    gl_func_00054684(a0 + 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000410AC);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000410AC_pad.s")
 
 extern int gl_func_00000000();
@@ -2044,7 +2137,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042338);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000423D8);
 
+#ifdef NON_MATCHING
+/* gl_func_00042440: 17-insn (0x44) single-call wrapper with PROLOGUE-STEALS-PREDECESSOR
+ * pattern. Predecessor gl_func_000423D8's tail sets `$v0 = *(D + 0x240)` via
+ * `lui v0, 0; lw v0, 0x240(v0)` — those 2 insns logically belong to this
+ * function's prologue. Trailing 8 bytes (lui v1, 0; lw v1, 0x240(v1)) form
+ * the STOLEN-PROLOGUE-PREDECESSOR pattern for this function's successor too.
+ *
+ * Decoded body:
+ *   p = (int*)D[0x240]        ; from predecessor's tail (implicit $v0 entry)
+ *   sub = (int*)p[0x148/4]
+ *   gl_func_00000000(&gl_data_42440_arg, 0x110, sub[0xF0/4],
+ *                    p[0xB8/4], p[0xBC/4])
+ *
+ * Full match would require:
+ *   (a) PROLOGUE_STEALS=8 to splice off C-emit's leading lui+lw for `p`
+ *   (b) SUFFIX_BYTES with the trailing stolen-prologue setup
+ *   (c) unique-extern alias for the gl_func_00000000 first arg
+ *
+ * NOT yet wired up — requires the predecessor (gl_func_000423D8) to also be
+ * decompiled or kept INCLUDE_ASM-stable, AND careful coordination of the
+ * dual stolen-prologue chain. Future-pass work. NM wrap captures the
+ * structural decode for grep discoverability per
+ * feedback_partial_decode_with_stub_body.md. */
+extern int *D_state_0042440;
+extern char gl_data_42440_arg;
+void gl_func_00042440(void) {
+    int *p = D_state_0042440;
+    int *sub = (int*)p[0x148 / 4];
+    gl_func_00000000(&gl_data_42440_arg, 0x110, sub[0xF0 / 4],
+                     p[0xB8 / 4], p[0xBC / 4]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042440);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042484);
 
@@ -2419,7 +2545,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 /* Vtable-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
  * declare p2 FIRST with p1's load inlined; IDO CSE's the duplicated
  * `a0->0x134` load and assigns $v1 to p1, $v0 to p2 (target's regalloc).
- * Same pattern as timproc_uso_b5_func_00008F98. */
+ * Same pattern as timproc_uso_b5_func_00008F98. Replaces prior INSN_PATCH
+ * approach — no Makefile entry needed. */
 void gl_func_0004E150(char *a0) {
     char *p2 = *(char**)(*(char**)(a0 + 0x134) + 0x14);
     char *p1 = *(char**)(a0 + 0x134);
@@ -3995,9 +4122,62 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B7A0);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B880);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006B880_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_0006B974: 16-insn (0x40) 3-call wrapper that returns call-2's
+ * value. Frame 0x28 includes $s0 spill (target uses $s0 for rv across the
+ * 3 calls; mine uses sp+0x1C stack spill).
+ *
+ * Decoded structure:
+ *   gl_func_00000000(a0, a1)         ; call 1 — args inherited from caller
+ *   rv = gl_func_00000000(a0, a1)    ; call 2 — return saved
+ *   gl_func_00000000(a0, a1)         ; call 3
+ *   return rv                         ; return value of call 2
+ *
+ * Cap: target uses $s0 to hold rv across all 3 calls; mine uses stack
+ * spill (sp+0x1C). Tried `register int rv` hint — IDO ignores for
+ * single-use vars (only 1 ref + return). Other variants (more refs)
+ * would need to introduce dummy uses, which would add insns. Net wash.
+ *
+ * Uncertain: target's call 3 has $a0 stale (clobbered by call 2, no
+ * explicit reload) — suggesting the original C might have had a different
+ * arg pattern. The (a0, a1) form here passes both args to all calls
+ * (~equivalent semantics, different codegen).
+ *
+ * Default INCLUDE_ASM build matches; wrap is for grep + future-pass seed. */
+int gl_func_0006B974(int a0, int a1) {
+    int rv;
+    gl_func_00000000(a0, a1);
+    rv = gl_func_00000000(a0, a1);
+    gl_func_00000000(a0, a1);
+    return rv;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B974);
+#endif
 
+#ifdef NON_MATCHING
+/* 20-insn 2-call init wrapper. Stores 1 to D_00000000 (via separate $at
+ * temp), then calls gl_func(&D, 0x42750, 1) followed by gl_func(&D, 0, 0).
+ * Declared size 0x58 includes 2 trailing dead insns (lui t6, 0; lw t6, 0(t6))
+ * — stolen prologue setup for the successor.
+ *
+ * Two structural diffs from C-emit:
+ * 1. Target loads &D into BOTH $at (for the sw 1) and $a0 (for the call).
+ *    IDO's CSE makes mine reuse $a0 for both. Unique-extern alias not yet
+ *    tried — could promote.
+ * 2. Target encodes 0x42750 as `lui 0x4; addiu 0x2750`; mine encodes as
+ *    `lui 0x4; ori 0x2750`. IDO picks ori for unsigned literals; addiu
+ *    requires signed encoding. Castings tried: no flip from C.
+ *
+ * Default INCLUDE_ASM build matches. */
+void gl_func_0006B9B4(void) {
+    *(int*)&D_00000000 = 1;
+    gl_func_00000000(&D_00000000, (void*)0x42750, 1);
+    gl_func_00000000(&D_00000000, 0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B9B4);
+#endif
 
 void gl_func_0006BA0C(void) {
     int local;
@@ -4025,7 +4205,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BC4C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BD14);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BD14_pad.s")
 
+#ifdef NON_MATCHING
+/* 19/20-insn match. 18-insn 2-call init wrapper, sibling of
+ * gl_func_0006B9B4 (same 2-call shape, but with DIFFERENT data-symbol arg
+ * per call — target's asm has TWO independent `lui a0, 0; addiu a0, a0, 0`
+ * pairs, confirmed via decoded asm). Per
+ * feedback_usoplaceholder_unique_extern.md, 2 unique externs mapped to 0x0
+ * break IDO's potential CSE and emit the 2 separate lui+addiu pairs.
+ *
+ * Stores 1 to D_00000000 (uses $at), then calls
+ * gl_func(<sym_b>, 0x42800, 1) followed by gl_func(<sym_c>, 0, 0).
+ *
+ * Remaining 1-insn cap: target encodes 0x42800 as `lui 0x4; addiu 0x2800`;
+ * mine emits `lui 0x4; ori 0x2800`. IDO picks ori for unsigned-fitting
+ * literals; addiu (signed) requires a different source form per
+ * feedback_ido_split_or_constant.md (no inverse — the cast tricks make
+ * IDO emit OR for both signed and unsigned hex literals). Same cap as
+ * gl_func_0006B9B4 sibling.
+ *
+ * Declared size 0x58 includes 2 trailing dead insns (lui t6, 0; lw t6,
+ * 0(t6)) — stolen prologue setup for the successor. SUFFIX_BYTES would
+ * close that 8-byte gap in DNM build but per
+ * feedback_suffix_bytes_breaks_include_asm_build.md it would break the
+ * default INCLUDE_ASM path's verify check (tail-1 isn't jr ra). So
+ * SUFFIX_BYTES is OMITTED here; default build uses INCLUDE_ASM and gets
+ * full 22 insns; DNM build gets 18 insns (1 insn off + 8-byte short
+ * tail). */
+extern char gl_data_BE14_b;
+extern char gl_data_BE14_c;
+void gl_func_0006BE14(void) {
+    *(int*)&D_00000000 = 1;
+    gl_func_00000000(&gl_data_BE14_b, 0x42800, 1);
+    gl_func_00000000(&gl_data_BE14_c, 0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BE14);
+#endif
 
 void gl_func_0006BE6C(void) {
     int local;

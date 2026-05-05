@@ -68,6 +68,11 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800066B0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800066D0);
 
+/* func_800066EC: 1-insn (`or $a3, $a2, $0`) alias entry point that falls
+ * through into func_800066F0 (split out to kernel_048.c, -O1). Callers
+ * either jal func_800066EC (which copies a2→a3 then enters 66F0's body)
+ * or jal func_800066F0 (which uses $a3 directly). Cross-function alias
+ * entry — not reproducible from standalone C; INCLUDE_ASM stays. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800066EC);
 
 /* func_800066F0 split out to kernel_048.c (-O1) */

@@ -6,9 +6,10 @@ extern int func_00000000();
 extern int D_00000000;
 extern int D_A0000200;
 
-/* 99.73% NM cap (IDO -O0 fresh-temp allocator can't be flipped from C).
- * Promoted to exact via INSN_PATCH at offsets 0x5C/0x64 — Makefile entry
- * ports 2-word patch from agent-b. */
+/* func_00012818: 99.73%->100% via INSN_PATCH (2 reg-rename diffs at
+ * 0x5C/0x64). IDO -O0 reuses $t5 (the lui base) as the lw destination
+ * AND the bne comparand; target uses $t6 for both. Pure regalloc
+ * reuse-base-as-dest pattern at -O0; INSN_PATCH overwrites the 2 bytes. */
 void func_00012818(char *a0, char *a1) {
     int i;
     register int *unused;

@@ -181,58 +181,39 @@ void eddproc_uso_func_0000038C(char *dst) {
     eddproc_uso_func_0000007C((Quad4*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
-/* eddproc_uso_func_000003BC: 36-insn (0x90) constructor: alloc 0x40, init
- * via gl_func, fields at +0x28 / +0x3C, optional 2nd init if arg0->0x40
- * non-null with bnel-shared-store-in-delay pattern at end (per
- * feedback_ido_beql_speculative_store_double_emit.md).
- *
- * Returns int* (the allocated p1). The bnel pattern at end:
- *   if (p_field40->field_14 != 0) p_field40->field_4 = 1;
- *   p_field40->field_14 = p1;
- * compiles to `beqzl t8, epi / sw v1,0x14(a1) [delay-likely] / sw t9,0x4(a1)
- * / sw v1,0x14(a1)` — the delay-likely + fall-through duplicate pattern.
- *
- * The CONSOLIDATED if-form `if(cond){se;} common_store;` is critical here:
- * the equivalent nested form `if(==0){store} else {se;store}` regresses to
- * 36% via different bnezl+b-skip layout (verified). Don't refactor.
- *
- * Current 88.6% NM (was 52% before structural decode 2026-05-03). Residual
- * cap is frame-size 0x28 vs mine 0x20 — target spills p1 to a separate
- * 0x24 slot across the second jal where mine reuses 0x1C, plus reg alloc
- * (target uses v1 to hold p1, mine uses a2). These are coupled to the
- * frame size and likely structurally locked from C alone.
- *
- * 2026-05-03 ADDITIONAL VARIANTS TRIED (all regressed or no-op):
- *   - `volatile int saved_p1 = (int)p1;` between p_field40 read and inner
- *     gl_func: 88.6 -> 77.6% (volatile slot mis-shaped reg-alloc downstream)
- *   - `char pad[4]` to push frame: 88.6% (IDO optimized away)
- *   - `volatile int pad_a, pad_b;` to force 8 extra bytes: 88.6 -> 83.0%
- *     (frame did grow but regs allocated differently — net regression)
- *   - `register int *p1`: 88.6% (no change; IDO ignores hint here)
- * Cap accepted as structurally locked. */
-int *eddproc_uso_func_000003BC(int *arg0) {
-    int *p1;
-    int *p_field40;
-    p1 = (int*)gl_func_00000000(0x40);
-    if (p1 != 0) {
-        gl_func_00000000(p1);
-        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p1 + 0x3C) = 0;
-        p_field40 = *(int**)((char*)arg0 + 0x40);
-        if (p_field40 != 0) {
-            gl_func_00000000((char*)p1 + 0x10, p_field40);
-            if (*(int*)((char*)p_field40 + 0x14) != 0) {
-                *(int*)((char*)p_field40 + 0x4) = 1;
-            }
-            *(int*)((char*)p_field40 + 0x14) = (int)p1;
-        }
+/* 36-insn / 0x90 constructor: alloc 0x40, init via gl_func, conditional
+ * list-insert into arg0->field_40 if non-NULL. Required two layered
+ * matching tricks:
+ *   1. Logic fix (2026-05-04 prior pass): post-call check is on
+ *      `head->0x14 != 0`, not the call's return value. Moved head-insert
+ *      OUT of the `if (p != 0)` block (asm runs it unconditionally).
+ *   2. Frame-spill fix (2026-05-04 this pass): use the volatile-ptr-to-arg
+ *      pattern (`volatile int **p_arg0 = (volatile int**)&arg0`) to force
+ *      IDO to spill arg0 to its caller-slot at entry. Reload `head` LATE
+ *      via `((int*)*p_arg0)[0x10]`. Per
+ *      feedback_volatile_ptr_to_arg_forces_caller_slot_spill.md +
+ *      feedback_arg_load_early_vs_late_swaps_frame_shape.md. */
+void *eddproc_uso_func_000003BC(int *arg0) {
+    int *p;
+    int *head;
+    volatile int **p_arg0;
+    p_arg0 = (volatile int**)&arg0;
+    p = (int*)gl_func_00000000(0x40);
+    if (p != 0) {
+        gl_func_00000000(p);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
     }
-    return p1;
+    head = (int*)((int*)*p_arg0)[0x10];
+    if (head != 0) {
+        gl_func_00000000((char*)p + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)p + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p;
+    }
+    return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000003BC);
-#endif
 
 void eddproc_uso_func_0000044C(char *dst) {
     int tmp;

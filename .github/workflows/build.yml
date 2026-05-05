@@ -26,6 +26,9 @@ jobs:
       - name: Build C objects (no baserom required)
         run: make RUN_CC_CHECK=0 -j$(nproc) objects
 
+      - name: Build non_matching C objects (with -DNON_MATCHING for fuzzy scoring)
+        run: make RUN_CC_CHECK=0 -j$(nproc) non_matching_objects
+
       - name: Generate progress report
         run: |
           curl -sL https://github.com/encounter/objdiff/releases/latest/download/objdiff-cli-linux-x86_64 -o objdiff-cli

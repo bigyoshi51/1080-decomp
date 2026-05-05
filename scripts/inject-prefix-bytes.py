@@ -215,17 +215,38 @@ def inject_prefix(o_path: Path, func_name: str, prefix_words: list[int],
                   f"{first:#010x} (likely an INCLUDE_ASM build); no-op",
                   file=sys.stderr)
             return
-        # Body should start with a recognizable insn — accept either:
-        #   - addiu sp,sp,-N  (0x27BDxxxx) — normal function with stack frame
-        #   - jr ra           (0x03E00008) — empty void function (no prologue)
-        #   - any addiu       (opcode 0x09 = high 6 bits 0b001001) — leaf
-        #     functions whose body starts with `addiu rN, rM, imm` (e.g.
-        #     `int f(int a){return 1<<(a+4);}` starts with `addiu t6, a0, 4`).
+        # Body should start with a recognizable MIPS insn. Accept the common
+        # function-entry forms — stack-frame prologues, bare jr ra, or any of
+        # the leaf-entry arithmetic/logical immediates that an entry insn can
+        # legitimately be. This list is intentionally broad: we're guarding
+        # against accidentally patching garbage (data misidentified as code),
+        # not against legal but unusual entry insns.
+        VALID_ENTRY_OPCODES = {
+            0x08,  # addi  rt, rs, imm
+            0x09,  # addiu rt, rs, imm  (most common leaf entry)
+            0x0A,  # slti
+            0x0B,  # sltiu
+            0x0C,  # andi  rt, rs, imm  (leaf masks: andi a0, a0, 0xFF)
+            0x0D,  # ori
+            0x0E,  # xori
+            0x0F,  # lui   rt, imm      (leaf load-extern entry)
+            0x23,  # lw    rt, offset(rs)
+            0x24,  # lbu
+            0x25,  # lhu
+            0x30,  # ll  (rare but valid)
+        }
         opcode_high6 = (first >> 26) & 0x3F
-        if (first >> 16) != 0x27BD and first != 0x03E00008 and opcode_high6 != 0x09:
-            print(f"WARN: {func_name} first insn is {first:#010x}, expected "
-                  f"addiu sp prologue (0x27BDxxxx), jr ra (0x03E00008), or "
-                  f"any addiu (opcode 0x09); refusing to patch",
+        is_addiu_sp = (first >> 16) == 0x27BD             # addiu sp,sp,-N
+        is_jr_ra    = first == 0x03E00008                  # jr ra (empty fn)
+        is_known_leaf_entry = opcode_high6 in VALID_ENTRY_OPCODES
+        # SPECIAL (opcode 0) covers register-only ops like `or rd,rs,rt` (move),
+        # `addu`, `sll` etc.; common as the first insn of a leaf function.
+        is_special_reg_op = opcode_high6 == 0x00
+        if not (is_addiu_sp or is_jr_ra or is_known_leaf_entry or is_special_reg_op):
+            print(f"WARN: {func_name} first insn is {first:#010x} "
+                  f"(opcode 0x{opcode_high6:02x}); not on the recognized "
+                  f"entry-insn list. Refusing to patch — if this is genuinely "
+                  f"valid MIPS code, add the opcode to VALID_ENTRY_OPCODES.",
                   file=sys.stderr)
             sys.exit(1)
 

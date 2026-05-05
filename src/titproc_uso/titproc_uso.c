@@ -78,23 +78,6 @@ void titproc_uso_func_00000194(void) {
     gl_func_00000000(*(int*)((char*)&D_00000194_A + 0xA8), -1, 0);
 }
 
-/* State-allocator sibling family at offsets 1E4/230/28C/2D8/32C/380.
- * Same 19-insn body shape — only state-N constant + alloc-arg + unique
- * D_NNN_A extern differ. All 6 share PROLOGUE_STEALS=8 in Makefile (the
- * predecessor's trailing `lui v0; addiu v0` belongs to the successor's
- * prologue per feedback_prologue_stolen_successor_no_recipe.md). The
- * unique D_NNN_A extern at +0xA8 is required to defeat IDO's CSE on
- * &D_00000000 across siblings (per feedback_unique_extern_breaks_shared_base.md
- * + feedback_combine_prologue_steals_with_unique_extern.md).
- *
- *   1E4: state=4, alloc(12,1)
- *   230: state=6, alloc(12,2)
- *   28C: state=5, alloc(12,3)
- *   2D8: state=2, alloc(12,4)
- *   32C: state=7, alloc(12,5)
- *   380, 3D0: variants — different field offsets/no-first-call
- *
- * Whole family memo: feedback_titproc_state_allocator_sibling_family.md */
 extern char D_000001E4_A;
 
 void titproc_uso_func_000001E4(void) {
@@ -174,36 +157,49 @@ void titproc_uso_func_000003D0(void) {
     gl_func_00000000(*(int*)((char*)&D_000003D0_A + 0xA8), -1, 0);
 }
 
-/* titproc_uso_func_00000418: 33-insn (0x84) bit-counting function.
+#ifdef NON_MATCHING
+/* titproc_uso_func_00000418: 33-insn (0x84) bit-counting + scaled-call wrapper.
  *
- * DECODED STRUCTURE:
- *   1. Loads a u16 bitmap from D[0x154] (lui+lw t6,0x154; lhu v1,0(t6))
- *   2. Reads counter `a1` from sp+0x18 — UNUSUAL: no preceding sw to that
- *      slot. Either:
- *      (a) caller stores a1 to sp+0x18 BEFORE jal (caller's frame, then
- *          callee's `addiu sp,-0x20` puts the same memory at sp+0x18 AFTER
- *          stack-rebase — only works if callee's frame is exactly 0 above
- *          caller's sp+0x18 minus 0x20 = caller_sp - 0x8 — invalid red zone)
- *      (b) the callee ALWAYS gets called immediately after a setup function
- *          that put a value at the SHARED stack slot (continuation-style
- *          call convention)
- *      Most likely: this is a tail-continuation from a specific predecessor
- *      that set up sp+0x18 before its `j titproc_uso_func_00000418` (if
- *      jr-based tail call rather than jal).
- *   3. Loop (insns 8-15): for (v0=0; v0<8; v0++) {
- *        if ((bitmap & (1 << v0)) != 0) v0_counter++;  // beql delay slot
- *        a1++;  // unconditional, every iter
- *      }
- *   4. After loop: a1 -= 2; jal gl_func_00000000(...); a1 spilled+reloaded
- *   5. FPU ops: f10 = 2.0 (lui at,0x4000; mtc1 at,$f10);
- *      f4 = (float)a1; f8 = f4 / 2.0; f16 = (int)f8 truncated;
- *      v0 = mfc1(f18 = trunc.w.s f16). Returns counter / 2 as int.
+ * STARTS WITH PROLOGUE-STOLEN-PREDECESSOR pattern: first 2 insns
+ * (`lui $t6, 0; lw $t6, 0x154($t6)`) are the predecessor's "tail" that
+ * splat attributed to our symbol. They load $t6 = *(int*)(&D + 0x154).
+ * Per feedback_prologue_stolen_predecessor_no_recipe.md — the recipe
+ * needs SUFFIX_BYTES to grow the predecessor + PROLOGUE_STEALS=8 to
+ * splice our own emit's first 8 bytes.
  *
- * Stack-passed-arg quirk + FPU pipeline + unsigned 16-bit bitmap with
- * div-by-2 makes this a multi-tick decode. Default INCLUDE_ASM build
- * remains exact; this doc captures the algorithm shape so the next pass
- * can decide on the calling-convention question and write a body. */
+ * STRUCTURE (insns 3-33):
+ *   addiu sp, -0x20
+ *   sw ra, 0x14(sp)
+ *   a1 = *(int*)(sp+0x18);    // reads UNINIT local — strange (caller-set?)
+ *   v0 = 0; a0 = 8;            // loop counter and limit
+ *   v1 = *(short*)t6;          // load 16-bit bitfield from D->[0x154]
+ *   t7 = 1;
+ *   for (v0 = 0; v0 < 8; v0++) {
+ *     if (v1 & (1 << v0)) {
+ *       a1++;                   // count set bits
+ *     }
+ *   }
+ *   a1 -= 2;
+ *   *(int*)(sp+0x18) = a1;
+ *   f0 = gl_func_00000000(...); // returns float
+ *   a1 = *(int*)(sp+0x18);      // reload
+ *   f10 = 8.0f; f4 = (int)a1; f6 = (float)f4;
+ *   return (int)trunc(f0 * f6 / 8.0f);
+ *
+ * UNRESOLVED: the `lw a1, 0x18(sp)` BEFORE any sw to that slot reads
+ * uninit local. Either non-standard ABI or stolen-prologue effect.
+ *
+ * First-pass decode; wrap captures structure for grep discoverability.
+ * Match attempt deferred — needs prologue-stolen-predecessor recipe
+ * (SUFFIX_BYTES on predecessor + PROLOGUE_STEALS=8 here) plus resolution
+ * of the uninit a1 read. */
+void titproc_uso_func_00000418(int a0) {
+    /* Stub — see decoded structure in comment above. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
+#endif
 
 void titproc_uso_func_0000049C(int *dst) {
     int buf[2];
@@ -240,45 +236,7 @@ void titproc_uso_func_0000056C(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000005DC);
 
-#ifdef NON_MATCHING
-/* titproc_uso_func_00000B6C: 40-insn save-restore-state + alloc + sub-struct writes.
- * 0xA0 size, 0x20 frame.
- *
- * Decoded structure:
- *   saved = helper1(2);                 // save current state, set new state=2
- *   *a0 = helper2(0, *(int*)(&D + 0x148), a1, -1);  // alloc/init returning ptr
- *   *(int*)(&D + 0x14C) = (above);     // mirror to global slot
- *   helper3(saved);                      // restore state
- *
- *   (*a0)[0x14] = 0;                    // zero a field on the new struct
- *   if (a1 != -1) {
- *       (&D)[0x168] = (*a0)[2][2];      // store from sub-sub-struct
- *       (&D)[0x170] = (*a0)[2][1];
- *   }
- *
- * Pattern: state-bracketed allocator that returns object pointer, with
- * conditional sub-struct mirror to globals when a1 indicates "not-default". */
-extern int gl_func_00000000();
-void titproc_uso_func_00000B6C(int **a0, int a1) {
-    int saved;
-    int *p;
-    saved = gl_func_00000000(2);
-    *a0 = (int*)gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), a1, -1);
-    *(int*)((char*)&D_00000000 + 0x14C) = (int)*a0;
-    gl_func_00000000(saved);
-
-    p = *a0;
-    p[0x14 / 4] = 0;
-    if (a1 != -1) {
-        p = *a0;
-        *(int*)((char*)&D_00000000 + 0x168) = ((int**)p)[2][2];
-        p = *a0;
-        *(int*)((char*)&D_00000000 + 0x170) = ((int**)p)[2][1];
-    }
-}
-#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000B6C);
-#endif
 
 void titproc_uso_func_00000C0C(int *a0) {
     int v = *a0;
@@ -419,49 +377,7 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000184
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
 
-#ifdef NON_MATCHING
-/* titproc_uso_func_00001B10: 42-insn alloc-or-passthrough constructor with
- * secondary alloc + init pattern (0xA8 size, 0x20 frame).
- *
- * Decoded structure:
- *   p = a0 ? a0 : alloc(0x40);
- *   if (!p) goto end;
- *   q = alloc(0x2C);   // secondary alloc
- *   if (!q) goto end;
- *   helper(q, &D + 0x4EC);
- *   q[0x28/4] = &D;
- *   p[0x28/4] = &D;
- *   p[0xC/4] = &D + 0x4F4;
- *   helper(p);
- *   p[0x3C/4] = 0;
- *  end:
- *   return p;
- *
- * Same shape as gl_func_0005FCC4 (97% NM via the if-else+goto-end form per
- * feedback_ido_alloc_or_passthrough_ternary.md decision rule for bnez form). */
-extern int gl_func_00000000();
-void *titproc_uso_func_00001B10(void *a0) {
-    void *p;
-    void *q;
-    p = a0;
-    if (p == 0) {
-        p = (void*)gl_func_00000000(0x40);
-        if (p == 0) goto end;
-    }
-    q = (void*)gl_func_00000000(0x2C);
-    if (q == 0) goto end;
-    gl_func_00000000(q, (char*)&D_00000000 + 0x4EC);
-    *(int*)((char*)q + 0x28) = (int)&D_00000000;
-    *(int*)((char*)p + 0x28) = (int)&D_00000000;
-    *(int*)((char*)p + 0xC) = (int)&D_00000000 + 0x4F4;
-    gl_func_00000000(p);
-    *(int*)((char*)p + 0x3C) = 0;
-end:
-    return p;
-}
-#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
-#endif
 
 #ifdef NON_MATCHING
 /* titproc_uso_func_00001BB8: 42-insn dual-state-bracket helper. Two

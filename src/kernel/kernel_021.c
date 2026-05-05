@@ -90,9 +90,13 @@ s32 func_80008424(s32 arg0) {
  * splat-merge recipe is non-trivial here (3 .o files, layout shifts). Same
  * class as func_80006698. Stub body documents the fragment relationship for
  * grep discoverability per feedback_orphan_include_asm_after_split_function_decomp.md. */
-void func_80008430(void) {
+/* Match the file-top extern's signature so NON_MATCHING build doesn't error
+ * with redeclaration / incompatible-return-type. Stub body — bytes never
+ * match anyway since the byte-correct path is INCLUDE_ASM (#else branch). */
+s32 func_80008430(s32 a0) {
     /* see func_80008454 + func_80008498 for the rest of this function;
      * merge requires linker-layout adjustment across kernel_018-021.c. */
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008430);

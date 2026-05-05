@@ -685,7 +685,7 @@ extern s32 func_800015D0(void*, void*);
 void* func_800012BC(void* arg0) {
     void* file;
     s32 header[3];
-    char pad[4];
+    char pad[4];  /* +8 bytes frame padding (skill rule) */
 
     file = D_80012BF4(0x28, 8);
     if (func_800015D0(arg0, file) < 0) {
@@ -695,8 +695,9 @@ void* func_800012BC(void* arg0) {
         return 0;
     }
     ((s32*)file)[8] = ((s32*)file)[1];
-    ((s32*)file)[7] = ((s32*)file)[1] + header[1];
+    ((s32*)file)[7] = header[1] + ((s32*)file)[1];
     return file;
+    (void)pad;
 }
 
 extern void func_80000A88(void*, s32);
@@ -862,7 +863,74 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001DD0);
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
 
 
+#ifdef NON_MATCHING
+/* func_800021A4: absorbed func_800021D0 fragment via merge-fragments
+ * (splat split at 0x800021D0 — fragment had no prologue, used $t1/$t2/$a1
+ * set by the prologue at 0x800021A4). Combined 43 insns / 0xAC.
+ *
+ * Entry-list walker: dispatches on a type field (entry.halfword[0] & 7)
+ * for each 12-byte record. Skips entries with the 0x8 "processed" flag.
+ * type == 2: shifted offset into a0[0x38]+t8*4 lookup, accumulate into entry+0x4
+ * type == 4: same offset, no lookup
+ * type == 3: write t8 (= v0 << 4 >> 4 = sign-extended sub-field) to entry[0]
+ *
+ * Initial decode 2026-05-04 — first C body for this merged function.
+ * Default build INCLUDE_ASM matches; this is reference structure for
+ * future grinding. */
+int func_800021A4(int *a0) {
+    int *v0;
+    int v1;
+    short *a2;
+    int a1;
+    short type_word;
+    int a3, t8, t9, t3, t4, t7, t5, t6;
+    v0 = (int*)a0[0x3C / 4];
+    if (v0 == 0) return 0;
+    v1 = 0;
+    a1 = a0[0x4 / 4];
+    a2 = (short*)v0;
+    if (a1 <= 0) goto end;
+    do {
+        type_word = a2[0];
+        v1++;
+        if (type_word & 0x8) goto next;
+        a3 = type_word & 0x7;
+        t8 = type_word >> 4;
+        if (a3 == 2) {
+            t9 = t8 << 2;
+            goto store_lookup;
+        }
+        if (a3 == 4) {
+            t9 = t8 << 2;
+            goto do_store;
+        }
+        if (a3 == 3) {
+            *a2 = (short)(type_word | 0x8);
+            a1 = a0[0x4 / 4];
+            goto next;
+        }
+        goto next;
+    store_lookup:
+    do_store: {
+            int *tp = (int*)((char*)a0 + t9);
+            t4 = tp[0x38 / 4];
+            t7 = ((int*)a2)[0x4 / 4];
+            t6 = type_word | 0x8;
+            *a2 = (short)t6;
+            t5 = t7 + t4;
+            ((int*)a2)[0x4 / 4] = t5;
+            a1 = a0[0x4 / 4];
+        }
+    next:
+        a2 = (short*)((char*)a2 + 0xC);
+    } while (v1 < a1);
+end:
+    return 0;
+    (void)t3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800021A4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800021D0);
 

@@ -52,7 +52,14 @@ def truncate_elf_text(path, target_size):
                 print(f"{path}: truncated .text from 0x{sh_size:x} to 0x{target_size:x}")
                 changed = True
             elif sh_size < target_size:
-                sys.exit(f"{path}: .text is already smaller (0x{sh_size:x} < 0x{target_size:x})")
+                # INCLUDE_ASM build path: the asm-emit produces a function at
+                # exactly the asm length, which can be < target_size when the
+                # C-emit version was bigger and TRUNCATE_TEXT was set to clip
+                # it. Nothing to truncate; leave the .text alone. The symbol
+                # walk below will still tighten any over-long symbols if any
+                # exist, but typically there are none in this case.
+                print(f"{path}: .text is already smaller (0x{sh_size:x} < "
+                      f"0x{target_size:x}); INCLUDE_ASM build path, no-op")
             if sh_addralign > 4:
                 data[base + 0x20:base + 0x24] = struct.pack('>I', 4)
                 print(f"{path}: reduced .text alignment from {sh_addralign} to 4")

@@ -418,7 +418,18 @@ void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
  * an extra addu-operand-order diff. The scheduling decision for the
  * 4-byte-stride sibling (this one) confirms the same lock as the
  * 8-byte-stride sibling's 13+ variants. Don't grind further on the 4B
- * variant either. */
+ * variant either.
+ *
+ * 2026-05-03 3 more variants tested:
+ *   (a) `int *slot = (int*)(a0 + idx*4 + 0x108)` precomputed before increment
+ *       — same sw-before-addu cap, plus addu operand order flips to t7,a0
+ *       (target a0,t7) — net WORSE by 1 insn.
+ *   (b) `int *base108 = (int*)(a0 + 0x108); base108[idx] = a1` — same
+ *       sw-before-addu cap; same 6/7 = 85.7%.
+ *   (c) Reverse statement order (write a1 BEFORE updating count) — 2/7 match,
+ *       ~28%; reorders the entire scheduling.
+ * The 1-insn cap is structural per feedback_ido_sw_before_addu_unreachable.md;
+ * 5 distinct C variants confirm. */
 void func_00002088(char *a0, int a1) {
     int idx = *(int*)(a0 + 0x104);
     *(int*)(a0 + 0x104) = idx + 1;
@@ -702,10 +713,11 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
 
 #ifdef NON_MATCHING
-/* Sibling of func_00005068 (byte-identical body shape, different data
- * symbol). Same dead-a1-spill cap (target spills $a1 to sp+0x4 in delay
- * slot of jal even though a1 isn't reused after; IDO -O2 omits the spill
- * since std C doesn't request it). See func_00005068's wrap notes. */
+/* Byte-identical sibling of func_00005068: same 14-insn / 0x38 2-call
+ * wrapper, only the data symbol address differs (D_7E10 vs D_7D94).
+ * Same matching cap — 13/14 insns match; target has extra `sw a1, 0x4(sp)`
+ * in the 2nd jal's delay slot that IDO -O2 won't emit from std C.
+ * See func_00005068's wrap doc above. */
 extern char D_00007E10;
 void func_000054A0(int a0) {
     func_00000000(&D_00007E10);

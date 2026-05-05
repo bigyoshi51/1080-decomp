@@ -19,7 +19,9 @@ typedef struct { int a, b, c, d; } Quad4;
  * Unblock path: add an `ld -r` pre-merge step before yay0 compression —
  * infrastructure work, out of single-tick scope.
  * Body semantics per feedback_uso_accessor_template_reuse.md int reader. */
-void mgrproc_uso_func_00000000(int *dst) {
+/* K&R def so same-TU callers passing varying arg counts type-check in
+ * NON_MATCHING build. See feedback_knr_def_for_inconsistent_arg_callers.md. */
+void mgrproc_uso_func_00000000(dst) int *dst; {
     volatile int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
@@ -313,9 +315,15 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000E0
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000011A4);
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000012AC);
+void mgrproc_uso_func_000012AC(char *a0) {
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000(a0 + 0x6B0);
+    gl_func_00000000(a0 + 0x6C8);
+    gl_func_00000000(a0 + 0x6E0);
+    gl_func_00000000(a0 + 0x6F8);
+}
 
-void mgrproc_uso_func_00000000(void);
+void mgrproc_uso_func_00000000();  /* K&R-style: matches the K&R def above */
 
 void mgrproc_uso_func_00001304(void) {
     mgrproc_uso_func_00000000();

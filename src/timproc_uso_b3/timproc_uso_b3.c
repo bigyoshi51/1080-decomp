@@ -5,20 +5,14 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 #ifdef NON_MATCHING
-/* int-reader template at -O0 (19 insns, 0x4C). Standard 4-byte accessor.
- * -O0 indicators: frame -0x20, sw a0 to caller slot at +0x20 (then reload
- * via lw t8, 0x20(sp)), unfilled jal delay slot, addiu t6 reload of buf
- * pointer instead of direct sw, trailing dead `b +1; nop` BBL marker.
- *
- * Same template family as the boarder*_uso int-readers (16 insns, -O2)
- * and arcproc_uso accessor variants. Sibling of 0x4C below (Quad4 reader,
- * same -O0 emit pattern at size 16).
- *
- * BLOCKED for byte match: file-split-to-O0 recipe doesn't apply because
- * timproc_uso_b3 is Yay0-compressed (per feedback_uso_yay0_compressed.md);
- * the Yay0 rule consumes only one .o. Default INCLUDE_ASM build remains
- * exact; wrap is for grep discoverability of the template family. */
-void timproc_uso_b3_func_00000000(int *dst) {
+/* timproc_uso_b3_func_00000000: byte-identical mirror of
+ * timproc_uso_b1_func_00000000 (sig=c98ad3f0ab). Standard 4-byte int
+ * reader template wrapped in a `b +1` epilogue branch (composite -O0
+ * shape). Same Yay0-compressed segment blocker — wrap is for grep
+ * discoverability per the established pattern. */
+/* K&R def so same-TU callers passing varying arg counts type-check in
+ * NON_MATCHING build. See feedback_knr_def_for_inconsistent_arg_callers.md. */
+void timproc_uso_b3_func_00000000(dst) int *dst; {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
@@ -270,7 +264,20 @@ void timproc_uso_b3_func_0000183C(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001870);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_00001928: byte-identical mirror of
+ * arcproc_uso_func_00001C74 (sig=739fd8d1d3, 41-insn 0xA4 counter+
+ * conditional-scale wrapper).
+ *
+ * Per scripts/find-byte-identical-clones.py — see arcproc_uso_func_00001C74's
+ * wrap for canonical decode. Stub here for grep discoverability. */
+void timproc_uso_b3_func_00001928(int *a0) {
+    /* Stub — see canonical decode in arcproc_uso_func_00001C74 wrap. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001928);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000019CC);
 
@@ -309,7 +316,33 @@ void timproc_uso_b3_func_000020BC(char *dst) {
     timproc_uso_b3_func_000008CC((Quad4*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_000020EC: 36-insn (0x90) constructor — BYTE-IDENTICAL
+ * mirror of eddproc_uso_func_000003BC (sig=f167638a8a, 5th clone of family).
+ * Same alloc + init + list-add structure with beql speculative double-store.
+ * ~60% NM cap inherited. Multi-tick decomp.
+ *
+ * Find via: scripts/find-byte-identical-clones.py */
+void timproc_uso_b3_func_000020EC(int *arg0) {
+    void *p = (void*)gl_func_00000000(0x40);
+    if (p != NULL) {
+        gl_func_00000000(p);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
+        if (arg0[0x40 / 4] != 0) {
+            int rv = gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
+            if (rv != 0) {
+                int **slot = (int**)((char*)arg0[0x40 / 4] + 0x14);
+                *slot = (int*)p;
+                *(int*)((char*)p + 0x4) = 1;
+                *slot = (int*)p;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000020EC);
+#endif
 
 void timproc_uso_b3_func_0000217C(char *dst) {
     int tmp;
@@ -324,34 +357,19 @@ void timproc_uso_b3_func_000021B0(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
-#ifdef NON_MATCHING
-/* 89.47 % NM wrap (verified clean unwrapped build 2026-05-02 with land
- * script's report.json, NOT the prior 88.6% comment which was stale).
- * Mirror of sibling timproc_uso_b3_func_000021B0:
- *   gl_func(gl_ref_00000208); gl_ref_00000040 = 6; gl_func(gl_ref_020C, -1, 0)
- *
- * Pre-link diff: my `gl_ref_00000208` symbol resolves to absolute 0x208
- * via undefined_syms_auto.txt, so the `lw a0, 0(a0)` instruction has
- * offset=0 baked + R_MIPS_LO16 reloc that computes 0x208 at link time.
- * Target's `lw a0, 0x208(a0)` has offset=0x208 baked + reloc to
- * D_00000000 directly. POST-LINK bytes are identical, but objdiff
- * compares pre-link .o bytes and DOES NOT tolerate this offset-in-symbol
- * vs offset-in-immediate distinction (only tolerates same-address
- * symbol-name diffs, per feedback_objdiff_reloc_tolerance.md).
- *
- * 2026-05-02 TRIED `*(int*)((char*)&D_00000000 + 0x208)` form — that
- * makes IDO CSE the &D base into $v0 (lui+addiu+sw t6,0x40(v0); lw a0,
- * 0x20C(v0)) which target doesn't do. Regressed to <89%. Cap stands.
- * Trailing 8 bytes (lui a0; lw a0, 0x148(a0)) are stolen prologue for
- * successor func_00002240 (already PROLOGUE_STEALS=8 in Makefile). */
+/* EXACT 2026-05-03. Recipe: 3 unique externs (D_b3_21F4_a/b/c) all mapped
+ * to 0x0 in undefined_syms_auto.txt + offset cast in C — produces target's
+ * 3-separate-lui shape (vs CSE'd shared-base form). Plus SUFFIX_BYTES=8 for
+ * the trailing stolen-prologue tail (lui a0; lw a0, 0x148(a0)) for the
+ * successor func_00002240. */
+extern char D_b3_21F4_a;
+extern char D_b3_21F4_b;
+extern char D_b3_21F4_c;
 void timproc_uso_b3_func_000021F4(void) {
-    gl_func_00000000(gl_ref_00000208);
-    gl_ref_00000040 = 6;
-    gl_func_00000000(gl_ref_0000020C, -1, 0);
+    gl_func_00000000(*(int*)((char*)&D_b3_21F4_a + 0x208));
+    *(int*)((char*)&D_b3_21F4_b + 0x40) = 6;
+    gl_func_00000000(*(int*)((char*)&D_b3_21F4_c + 0x20C), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021F4);
-#endif
 
 #ifdef NON_MATCHING
 /* 97.58 % cap (2026-05-02). Prologue-stolen successor: predecessor
@@ -420,7 +438,11 @@ void timproc_uso_b3_func_00002344(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002388);
+void timproc_uso_b3_func_00002388(void) {
+    gl_func_00000000(gl_ref_00000208);
+    gl_ref_00000040 = 0xD;
+    gl_func_00000000(gl_ref_0000020C, -1, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
 

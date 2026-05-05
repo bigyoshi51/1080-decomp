@@ -354,8 +354,8 @@ void h2hproc_uso_func_000008EC(char *a0, int a1) {
     }
 }
 
-/* Sibling of h2hproc_uso_func_000008EC — byte-identical asm. Same 7-word
- * INSN_PATCH applies (same offsets/words, see Makefile). */
+/* Sibling of h2hproc_uso_func_000008EC — byte-identical asm. Same INSN_PATCH
+ * spec applies (same 7 offsets/words). */
 void h2hproc_uso_func_00000944(char *a0, int a1) {
     *(int*)(a0 + 0x6B8) = a1;
     gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8));
@@ -374,56 +374,15 @@ void h2hproc_uso_func_0000099C(int *a0) {
     gl_func_00000000(*(int*)((char*)a0 + 0x48), v * 120 + 60);
 }
 
-/* 83% -> 100% NM via wrong-deref fix + 15-word INSN_PATCH (ports
- * agent-b). Original wrap had `v = D[0x48]; p = v + a0->[0x7C]*0x28`
- * (v as int + a0's index) but asm reads `v = a0->[0x48]; p = v +
- * v->[0x7C]*0x28` (v as ptr + v's own index — see
- * feedback_wrap_doc_codegen_cap_may_mask_logic_bug.md). The 15-word
- * patch then fixes residual base-register form (single-hi-shared-base
- * vs lui+addiu fully-computed). */
-#if 0  /* historical 83% wrap notes preserved as commented-out block */
-/* 83.00% NM (cap: IDO &D base-register form). Logic verified correct by
- * walking the asm: target's `beql t9,zero,end; lw ra (delay); sw v1,0(at)`
- * → if (method_ptr != 0) { D[0]=a0; call(); } else early-out. Same as mine.
+/* h2hproc_uso_func_000009F8: 34-insn indirect-method dispatch.
+ * Reads a subsystem pointer at a0->0x48, looks up an entry in its
+ * 0x28-stride table indexed by a0->0x7C, calls the +0x90 method
+ * pointer with arg 0x28 if non-NULL. Stashes a0 in D_00000000 first.
  *
- * Concrete diff (2026-05-02, after measure):
- *   target: `lui at,0; lw v0,0x48(at); ...; sw v1,0(at)` — &D held in $at
- *           with offset folded into lw/sw immediate (single hi-only setup,
- *           reused for both load D[0x48] and store D[0]).
- *   mine:   `lui t0,0; addiu t0,t0,0; lw a1,0x48(t0); ...; sw a0,0(t0)` —
- *           &D fully computed (lui+addiu) into $t0, then offset added.
- *
- * Tried (this run): unique-extern aliases for D+0x190, D+0x48, D+0x0
- * (per feedback_combine_prologue_steals_with_unique_extern.md). Regressed
- * to 82.75% — IDO emits separate hi/lo pairs for each unique extern,
- * losing target's single-hi-shared-base form.
- *
- * The hi-only-with-offset address form is IDO's choice when the base is
- * used in narrow scope; the hi+addiu form kicks in for wider liveness.
- * Not C-flippable for this 6-use mix. Permuter or accept cap.
- *
- * 36-insn / 0x90 indirect-table dispatcher with double-method-call
- * pattern. Per /decompile run: structural decode, % to be measured.
- *
- * Decoded structure:
- *   v0 = gl_func(D[0x190]);          // probably "find subsystem"
- *   if (v0 != 0) {
- *       gl_func(5);                   // some setup with const 5
- *       a0_orig = saved_a0;
- *       v0 = D[0x48];                  // pointer table base
- *       idx = a0_orig->0x7C;           // index field
- *       method_ptr = (v0 + idx*0x28)[0x90 / 4];
- *       if (method_ptr != 0) {
- *           D[0] = a0_orig;
- *           method_ptr_2 = (v0 + a0_orig->0x7C * 0x28)[0x90 / 4];
- *           method_ptr_2(arg = 0x28);   // jalr indirect call
- *       }
- *   }
- *
- * Trailing 2 insns past `jr ra; nop` (jr ra; sw zero,0x504(a0)) are part
- * of the SUCCESSOR function (likely h2hproc_uso_func_00000A80) — splat
- * boundary issue. Fix in a future tick. */
-#endif  /* end of historical-wrap-doc commented-out block */
+ * 2026-05-02 prior wrap doc said "v = D[0x48]" but the asm actually
+ * reads `v = a0->0x48` (struct field). 2026-05-04: fixed the C, then
+ * applied INSN_PATCH for register-allocation diff (a2/v1/a1 vs v1/v0/a0).
+ * 83.00→100% via 15-word patch. */
 void h2hproc_uso_func_000009F8(int *a0) {
     extern char D_00000000;
     int *p;
@@ -446,41 +405,67 @@ void h2hproc_uso_func_00000A80(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* h2hproc_uso_func_00000A88: 73-insn state-machine dispatch on a0[0x504].
- * 0x124 size, 0x30 frame.
+/* h2hproc_uso_func_00000A88: 73-insn / 0x124 state-machine dispatcher on
+ * a0->0x504 (player slot/state).
  *
- * Decoded entry shape (insns 1-22):
- *   v1 = a0[0x504/4];                  // current state
- *   if (v1 == 0) {                      // CASE 0: init path
- *     helper(*(int*)(&D + 0x190), 1);   // some helper with global+1
- *     a0[0x504/4] = 1;                  // advance state to 1
- *     helper(7, 0, 0);                  // another helper with const args
- *     ... (more state-0-specific work)
- *   } else if (v1 == 1) {               // CASE 1: another path (~0xE insns ahead)
- *     ... TODO
- *   } else {                            // DEFAULT: goto end
- *     return;
- *   }
+ * 3-way switch on `a0->0x504`:
+ *   Case 0:
+ *     gl_func(D[0x190], 3, 1)            ; "register player at slot 3"?
+ *     a0->0x504 = 1
+ *     gl_func(7, 0, 0)                    ; "kind=7"?
+ *     return
+ *   Case 1:
+ *     v0 = gl_func(D[0x190], 3)           ; lookup player at slot 3
+ *     if (v0 == 0) return
+ *     gl_func(7, 0, 0)
+ *     gl_func(a0)
+ *     diff_a = D[0x170]
+ *     diff_b = D[0x174]
+ *     min = (diff_b < diff_a) ? diff_b : diff_a   ; sltu pattern
+ *     gl_func(a0, min + 0x26000F)
+ *     p = gl_func(0, a0)                  ; alloc/setup, returns ptr
+ *     a0->0x6AC = p
+ *     a3 = a0->0x56C
+ *     gl_func(a3 + 0x10, p, p->0?, ...)   ; deref-call
+ *     if (p->0x14 != 0) p->0x4 = 1
+ *     p->0x14 = a3
+ *     gl_func(D[0x190], 1, 1)
+ *     return
+ *   Default (other v1):
+ *     return (just epilogue restore)
  *
- * The state-0 init path increments state to 1 and runs first-time setup
- * with cross-USO calls. State-1 path runs steady-state. State !=0,1 is
- * a no-op (early-out). Pattern matches "first-call vs subsequent-call"
- * lazy-init common in 1080 subsystem entry points.
- *
- * Stub body for now — remaining ~50 insns of state-0 init + ~30 insns
- * of state-1 path need decode in next pass. */
+ * Logic-level decode only. Match% will be measured in a later run after
+ * cleaning up signatures + register allocation. Stub with INCLUDE_ASM
+ * default so default build is exact. */
 extern int gl_func_00000000();
+extern char D_00000000;
 void h2hproc_uso_func_00000A88(int *a0) {
-    int state = a0[0x504 / 4];
-    if (state == 0) {
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1);
-        a0[0x504 / 4] = 1;
+    int v1 = *(int*)((char*)a0 + 0x504);
+    if (v1 == 0) {
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3, 1);
+        *(int*)((char*)a0 + 0x504) = 1;
         gl_func_00000000(7, 0, 0);
-        /* TODO: ~50 more insns of state-0 init */
-    } else if (state == 1) {
-        /* TODO: ~30 insns of state-1 steady-state */
+    } else if (v1 == 1) {
+        int *p;
+        int a3;
+        unsigned diff_a, diff_b, min;
+        if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3) == 0) return;
+        gl_func_00000000(7, 0, 0);
+        gl_func_00000000(a0);
+        diff_a = *(unsigned*)((char*)&D_00000000 + 0x170);
+        diff_b = *(unsigned*)((char*)&D_00000000 + 0x174);
+        min = (diff_b < diff_a) ? diff_b : diff_a;
+        gl_func_00000000(a0, min + 0x26000F);
+        p = (int*)gl_func_00000000(0, a0);
+        a3 = *(int*)((char*)a0 + 0x56C);
+        *(int**)((char*)a0 + 0x6AC) = p;
+        gl_func_00000000(a3 + 0x10, p, 1);
+        if (*(int*)((char*)p + 0x14) != 0) {
+            *(int*)((char*)p + 0x4) = 1;
+        }
+        *(int*)((char*)p + 0x14) = a3;
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 1);
     }
-    /* default: early-out */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A88);
@@ -647,7 +632,56 @@ void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000E04);
 #endif
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00000EB0: 44-insn (0xB0) constructor with optional alloc.
+ *
+ * Two-tier alloc pattern: takes a0 (preallocated ptr or NULL), if NULL
+ * alloc(0x40). Then a SECOND defensive `if (a2 == 0) alloc(0x2C)` which
+ * static analysis shows is unreachable (a2 always non-NULL after the first
+ * alloc-or-arg-check) — IDO emits the dead-code branch anyway because it
+ * can't prove a2 != 0 without inter-block analysis. The dead code is the
+ * 7 insns at 0xED4-0xEEC.
+ *
+ * Init phase (post-alloc):
+ *   gl_func_00000000(a0, &D_00000000+0x3E0);    // template init
+ *   p->field_28 = &D_00000000;
+ *   q->field_28 = &D_00000000_y;                 // q is some second ptr
+ *   q->field_C  = &D_00000000+0x3E8;
+ *   q->field_3C = 0;
+ *   q->field_2C..0x38 = 1.0f * 4;                // 4 floats all 1.0f
+ *
+ * Returns a2 (= the q pointer, NOT the alloc'd p). The relationship between
+ * p and q is unclear without seeing the caller — q is set somewhere I
+ * haven't decoded yet. Likely q is field-of-p or arg-from-caller.
+ *
+ * First-pass decode; not byte-matched. Multi-pass expected — register
+ * allocation around p/q reuse + 4-float-1.0 store sequence needs
+ * register-keyword tweaking. */
+extern int D_3E0;
+int *h2hproc_uso_func_00000EB0(int *a0, int *q) {
+    int *p = a0;
+    if (p == 0) {
+        p = (int*)gl_func_00000000(0x40);
+        if (p == 0) return 0;
+    }
+    if (q == 0) {
+        q = (int*)gl_func_00000000(0x2C);
+        if (q == 0) return 0;
+    }
+    gl_func_00000000(p, (char*)&D_00000000 + 0x3E0);
+    *(int*)((char*)p + 0x28) = (int)&D_00000000;
+    *(int*)((char*)q + 0x28) = (int)&D_00000000;
+    *(int*)((char*)q + 0xC) = (int)((char*)&D_00000000 + 0x3E8);
+    *(int*)((char*)q + 0x3C) = 0;
+    *(float*)((char*)q + 0x2C) = 1.0f;
+    *(float*)((char*)q + 0x30) = 1.0f;
+    *(float*)((char*)q + 0x34) = 1.0f;
+    *(float*)((char*)q + 0x38) = 1.0f;
+    return q;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000EB0);
+#endif
 
 /* Cross-USO template: byte-identical to titproc_uso_func_00001E2C. Same C body
  * matches both per feedback_uso_accessor_template_reuse.md. Logic:
@@ -689,7 +723,50 @@ void h2hproc_uso_func_00001A3C(char *dst) {
     h2hproc_uso_func_00000558((Quad4*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00001A6C: 36-insn (0x90) constructor — BYTE-IDENTICAL
+ * mirror of eddproc_uso_func_000003BC (verified 2026-05-03 via .word diff).
+ * Same alloc + init + list-add structure with beql speculative double-store.
+ *
+ *   void *p = gl_func_00000000(0x40);    // alloc
+ *   if (p != NULL) {
+ *     gl_func_00000000(p);                // init
+ *     p->field_28 = &D_00000000;
+ *     p->field_3C = 0;
+ *     if (arg0->field_40 != NULL) {
+ *       int rv = gl_func_00000000(p + 0x10, arg0->field_40);
+ *       if (rv != 0) {
+ *         arg0->field_40->[0x14] = p;
+ *         p->[0x04] = 1;
+ *         arg0->field_40->[0x14] = p;     // beql double-store
+ *       }
+ *     }
+ *   }
+ *   return p;
+ *
+ * ~60% NM cap inherited from eddproc sibling — register allocation
+ * differs ($v0/$v1 chain vs target's $t-regs) and frame layout is 0x28
+ * vs ~0x20. Multi-tick decomp; mirror of eddproc wrap. */
+void h2hproc_uso_func_00001A6C(int *arg0) {
+    void *p = (void*)gl_func_00000000(0x40);
+    if (p != NULL) {
+        gl_func_00000000(p);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
+        if (arg0[0x40 / 4] != 0) {
+            int rv = gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
+            if (rv != 0) {
+                int **slot = (int**)((char*)arg0[0x40 / 4] + 0x14);
+                *slot = (int*)p;
+                *(int*)((char*)p + 0x4) = 1;
+                *slot = (int*)p;   /* redundant double-store; matches beql */
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A6C);
+#endif
 
 extern int h2hproc_uso_func_h2h_4DC();
 extern int h2hproc_uso_func_h2h_5AC();

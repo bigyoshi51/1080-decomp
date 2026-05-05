@@ -4,13 +4,12 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
-extern char D_timb5_0_a;
-extern char D_timb5_0_b;
-extern char D_timb5_0_c;
-
+extern char D_b5_0_a;
+extern char D_b5_0_b;
+extern char D_b5_0_c;
 void timproc_uso_b5_func_00000000(void) {
-    *(int*)((char*)&D_timb5_0_b + 0x64) = *(int*)((char*)(*(int**)&D_timb5_0_a) + 0x7C);
-    gl_func_00000000(*(int*)((char*)&D_timb5_0_c + 0x4), -1, 0);
+    *(int*)((char*)&D_b5_0_b + 0x64) = (*(int**)&D_b5_0_a)[0x1F];
+    gl_func_00000000(*(int*)((char*)&D_b5_0_c + 0x4), -1, 0);
 }
 
 void timproc_uso_b5_func_00000040(void) {
@@ -243,9 +242,38 @@ void timproc_uso_b5_func_00003F18(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F18);
 #endif
 
+#ifdef NON_MATCHING
+/* 19-insn (0x4C) function — main body 17 insns + 8-byte bundled trailer.
+ *
+ * Main body (offsets 0..0x44): structured Vec3-or-buf copy.
+ *   - Loads a0->_29C → v0; offsets to v += 0xDC
+ *   - Stores 3 t-regs at sp+0xC..0x14 (forms a stack buf)
+ *   - Reloads as floats (lwc1 f4/f6/f8) and stores at v+0..v+8 (3 floats)
+ *   - jr ra with swc1 f8 in delay slot
+ *   The first `sw t8, 0(t6)` at insn 4 stores $t8 BEFORE the function
+ *   loads $t8 (insn 8 lw t8, 0x244(a0)) — IDO has scheduled the store
+ *   to fill the load-delay slot, but the source $t8 is the CALLER's
+ *   pre-call value, not the soon-to-be-loaded value. Hard to express
+ *   from C without extracting the source pattern.
+ *
+ * Bundled trailer (offsets 0x44/0x48): `jr ra; sw a0, 0(sp)` — trampoline
+ * leaf that saves a0 to caller-slot then returns. Not analyzable here.
+ *
+ * Promotion path: needs SUFFIX_BYTES = 0x03e00008,0xafa40000 + a clean
+ * C body for the main function. The t8-uninitialized issue may resolve
+ * via a different parameter shape (function takes (a0, a1=t8?) directly).
+ * Defer — multi-tick decomp. */
+void timproc_uso_b5_func_00003F5C(int *a0);
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F5C);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003FA8);
+void timproc_uso_b5_func_00003FA8(int a0, int a1, int a2, int a3) {
+    (void)a0;
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000(a3);
+    gl_func_00000000(a3, a1, a2, 0);
+}
 
 void timproc_uso_b5_func_00003FF8(int arg1, int arg2, int arg3, int arg4, int arg5) {
     float buf[4];
@@ -259,10 +287,11 @@ void timproc_uso_b5_func_00003FF8(int arg1, int arg2, int arg3, int arg4, int ar
     gl_func_00000000(arg4, arg2, arg3, 3);
 }
 
-void timproc_uso_b5_func_00004068(int a0, int a1, int a2, int a3, int arg4, int arg5) {
-    gl_func_00000000(&D_00000000, arg5, a3);
-    gl_func_00000000(arg4);
-    gl_func_00000000(arg4, a1, a2, 3);
+void timproc_uso_b5_func_00004068(int a0, int a1, int a2, int a3, int arg5, int arg6) {
+    (void)a0;
+    gl_func_00000000(&D_00000000, arg6, a3);
+    gl_func_00000000(arg5);
+    gl_func_00000000(arg5, a1, a2, 3);
 }
 
 void timproc_uso_b5_func_000040BC(int a0, int a1, int a2, int a3, int arg5, int arg6, int arg7) {
@@ -326,7 +355,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * declare p2 FIRST with the full deref chain inline (including p1's load),
  * then declare p1 with the same `a0->0x2C` load — IDO CSE's the duplicated
  * load and assigns $v1 to p1 + $v0 to p2 (target's reg layout). Writing
- * p1 first (the natural order) gives the swap. */
+ * p1 first (the natural order) gives the swap. Replaces prior INSN_PATCH
+ * approach — no Makefile entry needed. */
 void timproc_uso_b5_func_00008F98(char *a0) {
     int *p2 = *(int**)((char*)*(int*)(a0 + 0x2C) + 0x28);
     int p1 = *(int*)(a0 + 0x2C);
@@ -470,7 +500,14 @@ void timproc_uso_b5_func_0000AAF4(char *a0) {
  * "preserve-across-jal" slots is purely weight-driven and doesn't honor
  * register hints (vs. its strong honoring for $s-regs in interrupt-bracket
  * patterns). Different from the GCC `register T x asm("$N")` strong-hint
- * trick that's GCC-only. */
+ * trick that's GCC-only.
+ *
+ * 2026-05-04: re-tested for INSN_PATCH eligibility. Built emits 34 insns,
+ * expected has 36 — a 2-insn deficit (built lacks the `or v1, a0, zero`
+ * + an extra spill-store). Per feedback_insn_patch_size_diff_blocked.md
+ * INSN_PATCH alone can't fix this. Promotion needs a sibling
+ * inject-insn-at.py recipe OR a different C shape that emits the extra
+ * `or v1,a0` move. Deferred. */
 void *timproc_uso_b5_func_0000AB24(void *arg0) {
     char pad[8];
     void *p;
@@ -580,7 +617,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BBDC);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BDA0);
+extern char D_b5_BDA0_table;
+void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
+    (void)a1; (void)a2; (void)a3;
+    gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], (char*)&D_b5_BDA0_table + a0[0x1AC/4] * 24);
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BDEC);
 
@@ -588,7 +629,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C208);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C2C0);
+extern char D_b5_C2C0_table;
+void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
+    (void)a1;
+    gl_func_00000000(a0, a0[0x104/4], a0[0x11C/4], (char*)&D_b5_C2C0_table + a2 * 24, 0xFF);
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C310);
 
@@ -600,22 +645,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
 
-#ifdef NON_MATCHING
-/* 97.5 % wrap (re-confirmed 2026-05-04 via unwrap-and-rebuild test per
- * feedback_nm_wrap_99pct_may_be_silently_exact.md — cap is REAL, not
- * stale; current emit still 97.5%). Loads 4 floats from a0+0x25C..0x294
- * into v0=a0->0x2B8 at offsets 0x10C..0x118, then jal placeholder.
- * With named float locals, IDO loads all 4 BEFORE storing (matches
- * target's structure). The 8-insn cap is register renumbering: target
- * uses $f14/$f12/$f2/$f0 for the a/b/c/d values; mine uses
- * $f0/$f2/$f12/$f14. IDO assigns float locals in declaration-order
- * to f0/f2/f12/f14 and that can't be flipped from C without
- * `register T x asm("$fN")` (GCC-only, IDO rejects).
- *
- * Trailing 8 bytes (lui $at, 0x3F80; mtc1 $at, $f2 — float constant 1.0f)
- * are the prologue-stolen prefix for SUCCESSOR func_0000CEB4. Pad sidecar
- * + INCLUDE_ASM-with-pragma baseline refresh in place. Main worktree has
- * INSN_PATCH=8-words to promote to 100%; agent-a lacks INSN_PATCH infra. */
+/* 4-float load-batched store + jal. Was 97.2% NM (8-insn float
+ * register-renumbering cap). Promoted via INSN_PATCH per
+ * feedback_insn_patch_for_ido_codegen_caps.md (and SUFFIX_BYTES for
+ * trailing prologue-stolen-PREDECESSOR pattern). */
 void timproc_uso_b5_func_0000CE6C(char *a0) {
     char *v;
     float a, b, c, d;
@@ -630,9 +663,7 @@ void timproc_uso_b5_func_0000CE6C(char *a0) {
     *(float*)(v + 0x110) = d;
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE6C);
-#endif
+
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000CE6C_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CEB4);

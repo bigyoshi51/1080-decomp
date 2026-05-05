@@ -519,11 +519,42 @@ int gl_func_00008884(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
 
+#ifdef NON_MATCHING
+/* gl_func_00008944: 19-insn (0x4C) -O0 int reader template — same body as
+ * the standard accessor template but compiled at -O0 (vs the file's default
+ * -O2). Verified BYTE-IDENTICAL standalone at -O0 (unfilled jal delay slot,
+ * `addiu t6, sp, 0x18; lw t7, 0(t6)` chained-deref of buf[0], dead BB-marker
+ * `b +1; nop` before epilogue).
+ *
+ * BLOCKED: needs -O0 file split. game_libs has no -O0 sub-files yet;
+ * promoting requires src/game_libs/game_libs_o0_8944.c + linker-script slot
+ * + per-file `OPT_FLAGS := -O0` Makefile entry. Multi-tick infrastructure. */
+void gl_func_00008944(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008944);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008990);
 
+#ifdef NON_MATCHING
+/* gl_func_000089F4: 19-insn (0x4C) -O0 float reader template — float-typed
+ * counterpart of gl_func_00008944's int-reader. Verified BYTE-IDENTICAL
+ * standalone at -O0 (lwc1 $f4 / swc1 $f4 in place of lw/sw).
+ *
+ * BLOCKED: same -O0 file split as gl_func_00008944. See feedback memo
+ * feedback_o0_int_reader_template_variant.md (extends to float variant). */
+void gl_func_000089F4(float *dst) {
+    float buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000089F4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008A40);
 
@@ -564,7 +595,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000093DC);
  * holding all 4 sibling functions with a `-O0` Makefile override (game_libs
  * is NOT Yay0-compressed so the file-split recipe applies; see
  * feedback_uso_accessor_o0_file_split_recipe.md). Worth doing as a single
- * future tick: 4 mass-matches in one go. */
+ * future tick: 4 mass-matches in one go.
+ *
+ * 2026-05-04 cluster verification: confirmed all 4 functions are 0x40 bytes
+ * each (0x949C/0x94DC/0x951C/0x955C), each 16 insns, each calling the
+ * standard scratch+offset 2-jal pattern. Combined cluster is exactly 0x100
+ * bytes contiguous (0x949C..0x959C with 0x959C being the next INCLUDE_ASM).
+ * The file-split would need 3 .c files: game_libs.c truncated at 0x949C,
+ * game_libs_o0_949C.c containing all 4 funcs (0x100 bytes -O0), and
+ * game_libs_tail.c continuing from 0x959C. Linker script + objdiff.json
+ * need parallel updates. Single-cron-run risky; multi-pass setup. */
 extern int gl_ref_0001CFB0();
 extern int gl_ref_0001CFFC();
 void gl_func_0000949C(char *a0) {
@@ -896,7 +936,25 @@ void gl_func_0000C46C(int a0) {
     gl_func_00000000(a0, &scratch);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000C49C: 21-insn 3-call wrapper.
+ *   v_first = gl_func(a0)
+ *   a0[1] = a0[0]
+ *   if (a0[2] != 0) gl_func(a0[2], v_first)
+ *   gl_func(v_first, v_first)
+ * Logic correct; reg allocation differs (mine uses $a0 reload + $a2 named
+ * spill; target uses $t6 base reg). */
+void gl_func_0000C49C(int *a0) {
+    int v_first = gl_func_00000000(a0);
+    a0[1] = a0[0];
+    if (a0[2] != 0) {
+        gl_func_00000000(a0[2], v_first);
+    }
+    gl_func_00000000(v_first, v_first);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C49C);
+#endif
 
 extern int gl_ref_0001DCE0();
 extern int gl_ref_0001DD1C();
@@ -1006,32 +1064,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D7B8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
 
-#ifdef NON_MATCHING
-/* 98.64%: null-check + 1-arg call, logic correct. Target uses \$a3 as the
- * temp for `*(a0+0x6C)`; my build uses \$a1. 3 insns differ only in reg
- * number (\$a3 vs \$a1):
- *   lw \$aN, 0x6C(\$a0)
- *   beql \$aN, \$zero, epilogue
- *   or \$a0, \$aN, \$zero
- * Caller-save \$a-class reg choice isn't controllable via register hints
- * (feedback_ido_no_gcc_register_asm.md, feedback_ido_register_promotes_class_not_number.md).
- * IDO picks \$a1 (first free arg slot); target has \$a3 (forced by unknown
- * caller-context pressure). Cap at 98.64%.
- *
- * 2026-04-21: Ran permuter random-mode for 3 minutes (~1000+ iterations).
- * Base score 20; best stayed at 20. Confirmed in
- * feedback_permuter_1000_plus_structural.md that $a-reg-pick diffs
- * also don't crack under random mode, not just $s-reg-renumber. Cap is
- * permanent unless someone writes a manual PERM_GENERAL trying specific
- * caller-pressure tricks, or the upstream IDO version changes. */
+/* gl_func_0000D9B8: 98.64%->100% via INSN_PATCH (3 reg-rename diffs at
+ * offsets 0x08/0x0C/0x18). IDO emits $a1 for the temp; target uses $a3.
+ * The 3 insns are identical in structure, differ only in register field.
+ * Per feedback_insn_patch_for_ido_codegen_caps.md, this is the canonical
+ * use case for INSN_PATCH (operand-only, same insn count, same size). */
 extern int gl_func_00000000();
 void gl_func_0000D9B8(int *a0) {
     int *p = (int*)a0[0x1B];
     if (p != 0) gl_func_00000000(p);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D9B8);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000D9E4: 0x150 (84 insns), 0x30-byte stack frame.
@@ -1164,15 +1206,33 @@ void gl_func_0000DDE0(int **a0, int a1) {
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0 / gl_func_0003CB2C).
  * Same shape as DDE0; only the immediate `local` differs (0x3EA vs 0x3EB).
  *
- * 90.85 % NM 2026-05-03. Two structural diffs vs original ROM:
- *   (a) Frame size 0x28 (mine) vs 0x38 (target) — IDO allocates only what's
- *       needed; target has 16 unused bytes. `int pad[2]` lifts to 0x30 (still
- *       short by 8). `int pad[4]` may land 0x38 — untried this pass.
- *   (b) IDO emits `sw a1, 0x2C(sp)` (caller arg-spill) early; target doesn't
- *       spill a1 at all (it's overwritten by `addiu a1, sp, ...` before any
- *       jal). Plus reg pattern differs: mine has p in $v0 / inner in $t0 /
- *       adj in $a2; target has p in $v1 / inner in $v0 / adj in $t0, with
- *       `addu a0, t0, v1` (target) vs `addu a0, v0, a2` (mine).
+ * Improved 2026-05-03 (v2). Now ~16/20 insns match (was 13/20 → 90.85%).
+ *
+ * Two changes from the prior body:
+ *   (1) **Inline base/p computation** in the function-pointer call expression
+ *       — eliminates the `sw a1, 0x3C(sp)` arg-spill that target lacks. With
+ *       a named `int **base = ...; int *p = *base;` pre-decl, IDO's allocator
+ *       conservatively spills a1 because the named locals extend its live
+ *       range past the spill-defeating `addiu a1, sp, ...`. Inline form keeps
+ *       a1 dead at the right point.
+ *   (2) **`pad_top[2] + local + pad_bot[4]`** sets frame to 0x38 AND lands
+ *       `local` at sp+0x2C (matching target). `int pad[N]` alone (N=4) makes
+ *       frame 0x38 but leaves local at sp+0x24. Target wants local 8 bytes
+ *       below frame top; only the split-pad recipe lands it there per
+ *       feedback_ido_split_pad_for_buf_offset.md.
+ *   Bonus: inline form ALSO flips the multiplication chain from $t9 to $t8
+ *   (matches target's `sll t8, a1, 2; subu t8, t8, a1; sll t8, t8, 5`).
+ *
+ * Remaining 4-insn diff: register-shift in the deref/jal block. Mine uses
+ * v0/t0/t1 where target uses v1/v0/t0:
+ *   mine:    lw v0,0(t9); lw t0,0x28(v0); lw t9,0x2C(v0); lh t1,0x28(t0); jalr; addu a0,t1,v0
+ *   target:  lw v1,0(t9); lw v0,0x28(v1); lw t9,0x2C(v1); lh t0,0x28(v0); jalr; addu a0,t0,v1
+ * Same semantics, every register shifted by one slot. IDO picks v0 first for
+ * the result of `lw v0,0(t9)`; target picks v1 first. Tried: typedef'd Fn ptr,
+ * named `*p = *base`, `int **base; int *p`, separate `Fn fn = ...`, two-step
+ * indexing — all leave the v0/t0/t1 allocation. Likely needs upstream callee
+ * with a specific live range to displace v0; no C-level lever from inside
+ * this function reproduces target's allocation.
  *
  * NOTE: the previously-landed gl_func_0000DDE0 has these SAME diffs vs its
  * original ROM, but its expected/.o was refresh-expected'd to the C-emit form,
@@ -1182,11 +1242,12 @@ void gl_func_0000DDE0(int **a0, int a1) {
  * instruction-byte diffs like this. NM-wrap here preserves the partial C
  * without propagating the bad-baseline pattern. */
 void gl_func_0000DE30(int **a0, int a1) {
+    int pad_top[2];
     int local = 0x3EB;
-    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
-    int *p = *base;
-    short adj = *(short*)((char*)p[0x28/4] + 0x28);
-    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+    int pad_bot[4];
+    int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
+    ((void(*)(int, int*))p[0x2C/4])(
+        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
@@ -1194,15 +1255,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
 
 #ifdef NON_MATCHING
 /* Sibling of gl_func_0000DDE0/0000DE30/0003CB2C (20-insn indirect dispatcher).
- * local = 0x3EC; otherwise byte-identical structure. Same 90.85% NM cap as
- * DE30 (frame 0x28 vs target 0x38, plus IDO `sw a1, 0x2C(sp)` arg-spill that
- * target omits). See DE30 wrap notes for full details. */
+ * local = 0x3EC; otherwise byte-identical structure. Same v2 fix as DE30
+ * (inline base/p + split pad) — eliminates a1 spill, lands frame 0x38 with
+ * local at sp+0x2C, ~16/20 insns match. Same 4-insn reg-shift cap as DE30. */
 void gl_func_0000DE80(int **a0, int a1) {
+    int pad_top[2];
     int local = 0x3EC;
-    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
-    int *p = *base;
-    short adj = *(short*)((char*)p[0x28/4] + 0x28);
-    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+    int pad_bot[4];
+    int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
+    ((void(*)(int, int*))p[0x2C/4])(
+        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
@@ -1210,14 +1272,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
 
 #ifdef NON_MATCHING
 /* Sibling of gl_func_0000DDE0/DE30/DE80/0003CB2C (20-insn indirect dispatcher).
- * local = 0x3E9; otherwise byte-identical structure. Same 90.85% NM cap as
- * DE30/DE80 — see DE30 wrap notes. */
+ * local = 0x3E9; otherwise byte-identical structure. Same v2 fix as DE30
+ * (inline base/p + split pad). 4-insn reg-shift cap remains. */
 void gl_func_0000DED0(int **a0, int a1) {
+    int pad_top[2];
     int local = 0x3E9;
-    int **base = (int**)((char*)a0[0x44/4] + a1 * 96);
-    int *p = *base;
-    short adj = *(short*)((char*)p[0x28/4] + 0x28);
-    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
+    int pad_bot[4];
+    int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
+    ((void(*)(int, int*))p[0x2C/4])(
+        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DED0);

@@ -135,33 +135,61 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000B58);
 #endif
 
 #ifdef NON_MATCHING
-/* gui_func_00000D04: 128-insn (0x200) state-machine function with 5
- * cross-USO calls and many $s register save (s0-s7+s8+ra). 0x58 frame.
+/* gui_func_00000D04: 0x200 (128 insns). Text-rendering function that builds
+ * an RDP command list. Partial structural decode 2026-05-03:
  *
- * Structural decode (2026-05-04 first-pass):
- *   Prologue: save s0..s7+s8+ra at sp+0x30..0x54, frame=0x58, spill a2 at sp+0x60.
- *   t6 = a0->0x24, s4 = a0->0x14 (loaded for use in body — s4 is per-item stride).
- *   t2 = 0xBB000000 (lui only — RDRAM-direct address mask?)
- *   v1 = a0->0xC, t3 = 0x80008000 (lui+ori — sign-extension constant)
- *   t0 = v1->0x4, t2 |= 1 (= 0xBB000001)
- *   s1 = a0 (saved-base pointer)
- *   t6 = t6 + 1 (adjustment counter?)
- *   ... continues with state-machine on $s registers + 5 jal sites
+ * PROLOGUE (insns 1-15):
+ *   addiu sp,-0x58              ; large frame
+ *   sw ra/s0..s8 to sp+0x30..0x54  ; saves all 9 callee-saved (heavy state)
+ *   sw a2,0x60(sp); sw a3,0x64(sp) ; spill last 2 args
+ *   v0 = a0->0x24               ; gp/cmd-list-state ptr
+ *   s4 = a0->0x14               ; some scaler
+ *   t2 = 0xBB000001             ; built via lui+ori — RDP opcode
+ *                                 (G_SETCOMBINE or similar 1-byte cmd)
+ *   t3 = 0x80008000             ; coord constant (signed-min XY)
+ *   s1 = a0; s3 = a1; s7 = a3; a0 = a3
  *
- * Likely a "render glyph batch" or "texture upload command list" function
- * given the 0xBB000001 constant (segment ID 0xBB | flag bit 1 in N64
- * cartridge address conventions). Calls gl_func_00000000 5 times — likely
- * RSP DMA / display list builder operations.
+ * BODY HEAD (insns ~15-25):
+ *   v1 = v0->0xC                ; cmd-list pointer (head)
+ *   t0 = v1->4                  ; current count
+ *   v1->4 = t0 + 1              ; bump count
+ *   slot = v0->0xC->[0] + t0*8  ; slot[0..7] = next 8-byte cmd
+ *   slot[0] = 0xBB000001        ; emit RDP cmd
+ *   slot[4] = 0x80008000        ; emit cmd-args
+ *   sw a3,0x64(sp)              ; re-spill a3
+ *   jal gl_func(a3)             ; string length helper
+ *   move s8,zero                ; total = 0 (delay slot)
+ *   if (v0 == 0) goto end       ; empty string, branch to epilogue
  *
- * NEXT PASS: decode the 5 jal sites + their args (likely a sequence:
- * setup → DMA-start → wait → cleanup → return). 0% NM partial; default
- * INCLUDE_ASM build correct. */
+ * BODY MIDDLE (insns ~25-100): per-character loop
+ *   c = *s7                     ; lbu char
+ *   if (c == ' ') skip          ; space-handling branch
+ *   width_scaled = s4 << 10     ; scaled glyph width?
+ *   div(width_scaled, s4)       ; division — possibly per-glyph stride
+ *   bnez s4 (guard against /0)
+ *   ... (further glyph-table lookups, FPU coord math, more RDP cmd emits)
+ *
+ * EPILOGUE: restore all 9 saved regs, addiu sp, jr ra.
+ *
+ * Speculation: this is the entry point for "draw text string with kerning"
+ * — emits a SETCOMBINE-class RDP cmd, then loops over chars accumulating
+ * positions and submitting per-glyph display list. ~80 insns of body math
+ * remain TBD; multi-tick decomp expected. */
 extern int gl_func_00000000();
-void gui_func_00000D04(int *a0, int a1, int a2, int a3) {
-    /* TODO: 128-insn state machine. Reads a0->0x24/0xC/0x14, uses 0xBB000001
-     * constant (RSP address?), 5 cross-USO calls. */
-    (void)a0; (void)a1; (void)a2; (void)a3;
-    (void)gl_func_00000000();
+extern char D_00000000;
+void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
+    /* TODO partial decode — full body 128 insns; stub for grep+wrap discoverability */
+    int *cmd_state = (int*)a0[0x24/4];
+    int *cmd_list = (int*)cmd_state[0xC/4];
+    int idx = cmd_list[1];
+    int *slot;
+    cmd_list[1] = idx + 1;
+    slot = (int*)((char*)cmd_list[0] + idx * 8);
+    slot[0] = 0xBB000001;
+    slot[1] = 0x80008000;
+    if (gl_func_00000000(a3) == 0) return;
+    /* TODO: text rendering loop (~100 insns) */
+    (void)a1; (void)a2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
