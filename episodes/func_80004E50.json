@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80004E50",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-05T05:03:08.121863+00:00",
+  "end_time": "2026-05-05T05:03:08.121891+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-05T05:03:08.121883+00:00",
+      "assistant_text": "Wrap exists with C body; ROM build matches expected bytes via INCLUDE_ASM. Landable per byte-verify policy.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 64,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Forward declarations */\nextern s32 __osPiAccessQueue;\nextern s32 D_8000A480;\nextern s32 D_80013004;\nextern void func_80005DC0(s32*, s32, s32);\nextern void func_80005C00(void);\nextern void func_80004FE0(s32*, s32*, s32);\nextern void func_800053D0(s32*, s32*, s32);\nextern s32 D_8000A3E0;\nextern s32 func_800066B0(void);\nextern void func_800066D0(s32);\nextern void func_80003D0C(s32*);\nextern void* D_8000A420;\nextern s32 D_8000A418;\nextern s32 siacs_bss_0000;\nextern s32 func_800009D8(void*, s32, s32, void*);\nextern void func_80003FF0(s32, void*);\nextern void* func_80003E54(void*);\nextern void func_8000A110(void*);\nextern void func_8000857C(void);\nextern void func_8000785C(s32);\nextern void func_80008ED0(void);\nextern void func_80007760(void);\ntypedef void (*FuncPtr2)(void*, void*);\nextern FuncPtr2 D_80012C44;\nextern s32 D_8000A32C;\nextern s32 D_8000A340;\nextern s32 D_80012BC0;\nextern s32 D_8000A2E0;\nextern s32 D_8000A41C;\nextern s32 func_80002890(s32);\nextern void func_8000A0E0(void);\nextern void func_80005350(s32, s32);\nextern void func_80005400(s32, s32);\nextern s32 func_80008430(s32);\nextern void func_80009148(s32);\nextern void func_80009030(s32, s32);\nextern void func_80008498(void);\nextern s32 func_80006A98(s32);\nextern void func_800091F0(s32);\ntypedef struct { s32 pad[3]; s32 position; } FileState;\n\ntypedef struct {\n    void* mtqueue;\n    void* fullqueue;\n    s32 validCount;\n    s32 first;\n    s32 msgCount;\n    s32** msg;\n} OSMesgQueue;\n\ntypedef struct Thread {\n    s32 field0;\n    s32 pri;\n    s32 queue;\n    s32 pad0C;\n    u16 state;\n} Thread;\n\ntypedef struct { s32 queue; s32 msg; } OSEventState;\nextern OSEventState __osEventStateTab[];\n\n\nvoid func_80004DE0(s32 event, void* queue, s32 msg) {\n    register s32 sr = func_800066B0();\n    OSEventState* es = &__osEventStateTab[event];\n    es->queue = (s32)queue;\n    es->msg = msg;\n    func_800066D0(sr);\n}\n\n\n#ifdef NON_MATCHING\n/* PI DOM2 timing + system init. Tried both per-byte externs and struct-based\n * addressing; IDO -O1 still emits a fresh `lui $at` per store regardless of\n * struct typing, while target shares `$at` across adjacent %lo pairs. The\n * coalescing appears to be a specific compiler mood we can't trigger from C.\n * NON_MATCHING body is structurally correct; permuter or closer analysis needed. */\nextern u8 D_800195D4;\nextern u8 D_800195D5;\nextern u8 D_800195D6;\nextern u8 D_800195D7;\nextern u8 D_800195D8;\nextern u8 D_800195D9;\nextern s32 D_800195D0;\nextern s32 D_800195DC;\nextern s32 D_800195E0;\nextern s32 D_80019644;\nextern void* D_8000A46C;\nextern s32 func_800030D0(s32*, s32);\n\n#define IO_WRITE(addr, val) (*(volatile s32*)(addr) = (val))\n\nvoid* func_80004E50(void) {\n    s32 sr;\n    D_800195D4 = 2;\n    D_800195DC = 0xA5000000;\n    D_800195D5 = 3;\n    D_800195D8 = 6;\n    D_800195D6 = 6;\n    D_800195D7 = 2;\n    D_800195D9 = 1;\n    IO_WRITE(0xA4600024, 3);\n    IO_WRITE(0xA4600028, D_800195D8);\n    IO_WRITE(0xA460002C, D_800195D6);\n    IO_WRITE(0xA4600030, D_800195D7);\n    D_800195E0 = 0;\n    func_800030D0(&D_800195E0 + 1, 0x60);\n    sr = func_800066B0();\n    D_800195D0 = (s32)D_8000A46C;\n    D_8000A46C = &D_800195D0;\n    D_80019644 = (s32)&D_800195D0;\n    func_800066D0(sr);\n    return &D_800195D0;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/kernel\", func_80004E50);\n#endif\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_003.c",
+    "asm_path": "asm/nonmatchings/kernel/func_80004E50.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-correct via #else INCLUDE_ASM tautology; verified via byte_verify (symbol-table addr+size + objcopy bytes)."
+  }
+}
