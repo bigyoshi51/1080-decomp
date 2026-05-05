@@ -39,7 +39,9 @@ build/src/game_uso/game_uso.c.o: PREFIX_BYTES := \
 	game_uso_func_00007A98=0x8C820030,0x8C430908,0x50600007,0x44801000,0xC46400BC,0xC44600BC,0x46062081
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
 build/src/gui_uso/gui_uso.c.o: PREFIX_BYTES := gui_func_00000000=0x1000736F
-build/src/game_uso/game_uso.c.o: PREFIX_BYTES := game_uso_func_00007ABC=0x44801000,0x00000000
+build/src/game_uso/game_uso.c.o: PREFIX_BYTES := \
+	game_uso_func_00007ABC=0x44801000,0x00000000 \
+	game_uso_func_00007A98=0x8C820030,0x8C430908,0x50600007,0x44801000,0xC46400BC,0xC44600BC,0x46062081
 build/src/kernel/kernel_020.c.o: PREFIX_BYTES := \
 	func_80007FC8=0x1000FFFF,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000
 build/src/h2hproc_uso/h2hproc_uso.c.o: INSN_PATCH := \
@@ -197,6 +199,7 @@ build/src/game_libs/game_libs_post.c.o build/non_matching/src/game_libs/game_lib
 # feedback_insn_patch_for_ido_codegen_caps.md.
 build/src/game_uso/game_uso.c.o: INSN_PATCH := \
 	game_uso_func_00007ABC=0xC:0x46001006 \
+	game_uso_func_00007A98=0x20:0x46001006 \
 	game_uso_func_000000A0=0x3C:0x460A4000 \
 	game_uso_func_0000035C=0x20:0x27AF0018,0x24:0x8DF90000,0x28:0x8FAE0020,0x2C:0xADD90000 \
 	game_uso_func_0000D438=0x00:0x8c8f00c0,0x04:0x8c8e00c4,0x14:0xac8f00c8,0x1C:0xac8e00cc \
