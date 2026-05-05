@@ -4387,8 +4387,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
  * stack spills (sw a1,4(sp); sw a2,8(sp)) which IDO -O2 doesn't produce
  * for this call shape with K&R-declared gl_func_00000000. Also register
  * chain differs (target: t6/t8/t7 via pointer-indirect; mine: v0/t6/v0).
- * Likely needs explicit call prototype + per-callsite spilling — close
- * cousin of feedback_ido_unspecified_args.md. */
+ * Documented unreachable cap: see IDO_CODEGEN.md
+ * #feedback-ido-precall-arg-spill-unreachable. Variants tried (none reach
+ * target): 2026-04-20 (5 variants), 2026-05-02 (7 variants), 2026-05-05
+ * (volatile locals; p declared before-if — both regress). */
 extern char D_00000E70;
 void game_uso_func_0000D8A8(char *a0) {
     int *t6 = *(int**)(a0 + 0xB4);
