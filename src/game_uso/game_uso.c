@@ -1738,7 +1738,31 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * (1 to write the macro + iters 0/A as proof, 2 to debug
      * cascading register-allocation drift, 2-3 to handle final-init
      * stage and final fuzzy push). */
-    (void)s0; (void)a1; (void)a2;
+    (void)s0;
+
+    /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
+     * struct fields (offsets 0x2C, 0x30, 0xA0, 0xA8..0xE0, 0x4DC).
+     * Mix of arg pass-through, zero-stores, D-table loads, and float
+     * literals. ~57 insns. */
+    *(int*)(a0 + 0x30) = a1;
+    *(int*)(a0 + 0x2C) = a2;
+    *(float*)(a0 + 0xA8) = 0.0f;
+    *(float*)(a0 + 0xAC) = *(float*)((char*)&D_00000000 + 0xE8);
+    *(float*)(a0 + 0xB0) = 500.0f;
+    *(float*)(a0 + 0xB4) = 70.0f;
+    *(float*)(a0 + 0xB8) = 230.0f;
+    *(float*)(a0 + 0xBC) = *(float*)((char*)&D_00000000 + 0xEC);
+    *(float*)(a0 + 0xC0) = 12.0f;
+    *(float*)(a0 + 0xC4) = *(float*)((char*)&D_00000000 + 0xF0);
+    *(float*)(a0 + 0xC8) = 2.0f;
+    *(float*)(a0 + 0xCC) = 50.0f;
+    *(float*)(a0 + 0xD0) = 20.0f;
+    *(float*)(a0 + 0xD4) = 500.0f;
+    *(float*)(a0 + 0xDC) = 15.0f;
+    *(float*)(a0 + 0xE0) = *(float*)((char*)&D_00000000 + 0xF4);
+    *(float*)(a0 + 0xD8) = *(float*)((char*)&D_00000000 + 0xF8);
+    *(float*)(a0 + 0xA0) = 1000.0f;
+    *(int*)(a0 + 0x4DC) = 3;
 epi:
     return a0;
 }
