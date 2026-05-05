@@ -283,7 +283,25 @@ void titproc_uso_func_0000056C(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000005DC);
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000B6C);
+/* titproc_uso_func_00000B6C: 40-insn (0xA0) 3-call alloc-and-link wrapper.
+ * 1st cross-USO call allocates context (kept across calls), 2nd registers
+ * via globals, 3rd cleans up the temporary. Inlining (*a0) twice in the
+ * if-block (vs caching to a local p) is what commits IDO to keeping the
+ * int** in $v1 — the cached form let IDO pick $t0 instead. */
+void titproc_uso_func_00000B6C(int **a0, int a1) {
+    int *r1;
+    int *r2;
+    r1 = gl_func_00000000(2);
+    r2 = gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), a1, -1);
+    *a0 = r2;
+    *(int**)((char*)&D_00000000 + 0x14C) = r2;
+    gl_func_00000000(r1);
+    (*a0)[5] = 0;
+    if (a1 != -1) {
+        *(int*)((char*)&D_00000000 + 0x168) = ((int*)((*a0)[2]))[2];
+        *(int*)((char*)&D_00000000 + 0x170) = ((int*)((*a0)[2]))[1];
+    }
+}
 
 void titproc_uso_func_00000C0C(int *a0) {
     int v = *a0;
