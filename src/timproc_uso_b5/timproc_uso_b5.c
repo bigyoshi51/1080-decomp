@@ -26,7 +26,56 @@ void timproc_uso_b5_func_00000050(void) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000024C: 42-insn dispatch wrapper. Sibling of
+ * the recently-decoded func_000002F4 split-off (this is the parent
+ * function — bundled together prior to split).
+ *
+ * Decoded semantics:
+ *   1. Try first dispatch: gl_func_00000000(&D, 0x300)
+ *   2. If 0, try fallback: gl_func_00000000(&D, 0x40000)
+ *      If that's also 0, skip-to-epilogue.
+ *   3. Either way: gl_func_00000000(&D + 0xB4)  [commit dispatch]
+ *   4. Look up vtable callable:
+ *        v0 = arg0[0x48];          // sub-context
+ *        idx = v0[0x7C];            // current state index
+ *        fn = *(v0 + idx*0x28 + 0x90);
+ *      If fn == NULL: skip-to-epilogue (via beqzl).
+ *      Else: store v0/arg0 to globals D_b5_24C_save_*; RE-FETCH fn
+ *            (asm clobbers v0 over the stores); call fn().
+ *
+ * Asm RE-LOADS fn after the two global stores because $v0 was clobbered
+ * by the second `sw v0, 0(at)`. The recompute is structural, not redundant.
+ *
+ * Multi-pass NM — full byte match needs typed-struct fields + spill-slot
+ * choices to match IDO -O2's t-reg cascade in the multu/mflo/addu chain. */
+extern int D_b5_24C_save_v0;
+extern int D_b5_24C_save_v1;
+void timproc_uso_b5_func_0000024C(int *a0) {
+    int *v0;
+    int idx;
+    void (*fn)(void);
+
+    if (gl_func_00000000(&D_00000000, 0x300) == 0) {
+        if (gl_func_00000000(&D_00000000, 0x40000) == 0) {
+            return;
+        }
+    }
+    gl_func_00000000((char*)&D_00000000 + 0xB4);
+    v0 = (int*)a0[0x48 / 4];
+    idx = v0[0x7C / 4];
+    fn = *(void(**)(void))((char*)v0 + idx * 0x28 + 0x90);
+    if (fn == 0) return;
+    D_b5_24C_save_v0 = (int)v0;
+    D_b5_24C_save_v1 = (int)a0;
+    v0 = (int*)a0[0x48 / 4];
+    idx = v0[0x7C / 4];
+    fn = *(void(**)(void))((char*)v0 + idx * 0x28 + 0x90);
+    fn();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000024C);
+#endif
 
 /* Empty body, K&R-style 1-arg signature emits `jr ra; sw a0, 0(sp)` —
  * IDO -O2 keeps the K&R arg-save in the jr delay slot even when unused.
