@@ -483,31 +483,31 @@ typedef struct {
 extern s32 D_8000A2E4;
 extern s32 D_80012F7C;
 
-/* NON_MATCHING: callback dispatch structure is right, but the final
- * `field_84` argument pair still compiles to the wrong pointer/add order. */
 #ifdef NON_MATCHING
+/* 83% NM (up from 43.91% by removing the cross-iteration `temp_v0` local —
+ * that 5th $s register was forcing a +0x30 frame instead of +0x28). Iterate
+ * through a fixed table of entry pointers (D_80012D60 .. D_80012F7C); for
+ * each non-NULL entry, dispatch a callback at D_80012BC0 + 0x84 with the
+ * entry's data + a length pair derived from fields 0x4C and 0x14.
+ *
+ * Remaining 17pp gap: state isn't getting $s-promoted (build inlines
+ * `lui+lw` per iter; expected uses `lw 0x84(s2)` with s2=state). Tried
+ * `register` hint — IDO ignores. Plus the addu operand order on the
+ * length-pair add is swapped (s-vs-t register-pick cap). */
 void func_800007D4(void) {
-    UsoEntry74** var_s0;
-    void* arg0;
-    UsoCallbacks84* state;
-    UsoEntry74** end;
-    UsoEntry74* temp_v0;
+    register UsoEntry74 **p = (UsoEntry74**)&D_80012D60;
+    register UsoEntry74 **end = (UsoEntry74**)&D_80012F7C;
+    register void *arg0 = &D_8000A2E4;
+    register UsoCallbacks84 *state = (UsoCallbacks84*)&D_80012BC0;
 
-    var_s0 = (UsoEntry74**)&D_80012D60;
-    arg0 = &D_8000A2E4;
-    state = (UsoCallbacks84*)&D_80012BC0;
-    end = (UsoEntry74**)&D_80012F7C;
-    temp_v0 = *var_s0;
     do {
-        if (temp_v0 != 0) {
-            s32 temp_a2 = temp_v0->field_4C;
-            state->field_84(arg0, (char*)temp_v0 + 0x72, temp_a2, temp_a2 + temp_v0->field_14);
+        UsoEntry74 *e = *p;
+        if (e != 0) {
+            s32 off = e->field_4C;
+            state->field_84(arg0, (char*)e + 0x72, off, off + e->field_14);
         }
-        var_s0++;
-        if (var_s0 != end) {
-            temp_v0 = *var_s0;
-        }
-    } while (var_s0 != end);
+        p++;
+    } while (p != end);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800007D4);
