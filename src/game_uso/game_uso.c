@@ -5007,7 +5007,37 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
 
+#ifdef NON_MATCHING
+/* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000
+ * with constant args + a 2-int read from `&D + 0xE40`.
+ *
+ * Family: game_uso_func_00010E2C / 00011368 / 000113C8 share this exact
+ * shape. They differ only in (a) the 0x74-field-load present (or not) for
+ * a1, (b) the small-int constants for a2/a3, (c) the D-offset (0xE40 /
+ * 0xF08 / 0xF10) used to look up a 2-int payload for the second call.
+ *
+ * Structural decode (initial pass):
+ *   void f(int a0) {
+ *       int *t = (int*)((char*)&D_00000000 + 0xE40);
+ *       game_uso_func_00000000(a0, 0, 0, 1, 1, 1);     // 6-arg
+ *       game_uso_func_00000000(a0, t[0], t[1], 1);     // 4-arg + sp shadows
+ *   }
+ *
+ * Caps below 100% on first pass: split-offset access to &D+0xN is the
+ * known IDO codegen split — needs unique-extern technique
+ * (docs/PATTERNS.md#feedback-uso-multi-placeholder-wrapper) for each call.
+ * Plus the second call's 5th/6th-arg setup at sp+0x10/0x14 is implicitly
+ * reused from the first call's stack; reaching that from C would
+ * require sharing locals across both calls — known IDO scheduler/
+ * frame-shape question. Initial wrap; multi-pass refinement expected. */
+void game_uso_func_00010E2C(int a0) {
+    int *t = (int*)((char*)&D_00000000 + 0xE40);
+    game_uso_func_00000000(a0, 0, 0, 1, 1, 1);
+    game_uso_func_00000000(a0, t[0], t[1], 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010E2C);
+#endif
 
 void game_uso_func_00010E8C(int a0) {
     game_uso_func_00000000(a0, 0x70005, 0, 1, 1, 1);
