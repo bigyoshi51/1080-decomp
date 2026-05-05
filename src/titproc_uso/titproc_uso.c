@@ -207,7 +207,45 @@ int titproc_uso_func_00000418(int a0) {
     return (int)(f * (float)count + 2.0f);
 }
 #else
+#ifdef NON_MATCHING
+/* titproc_uso_func_00000418: 33-insn FP function with popcount + scaled return.
+ *
+ * Reads a u16 bitmask from D[0x154], then loops 8 times. For each set bit
+ * in the low 8 bits, increments a1 by 1 (= a1 + popcount8(D[0x154])).
+ * Then a1 -= 2, calls gl_func_00000000(a1) which returns float in $f0.
+ * Returns (int)trunc.w.s((f0 * (float)a1_post) + 2.0f).
+ *
+ * STRUCTURAL ODDITY (asm 0x428): `lw a1, 0x18(sp)` reads from the callee's
+ * stack BEFORE any sw to that offset. This is either:
+ *   (a) varargs convention where caller pre-spills a1 into the callee's
+ *       frame at a known offset, or
+ *   (b) IDO spilling a1 here due to a K&R-style signature where a1 came
+ *       in via the spill mechanism rather than register-only path.
+ * The matching C signature is unclear without finding callers; this wrap
+ * captures the decoded body for next pass.
+ *
+ * The leading `lui t6, 0; lw t6, 0x154(t6)` BEFORE the prologue is the
+ * cross-USO data load for the bitmask. `D[0x154]` is a u16. */
+int titproc_uso_func_00000418(int a0, int a1) {
+    extern unsigned short *D_titproc_154;  /* (u16*)(&D_00000000 + 0x154) */
+    int v0 = 0;
+    (void)a0;
+    do {
+        if ((*D_titproc_154 & (1 << v0)) != 0) {
+            a1++;
+        }
+        v0++;
+    } while (v0 != 8);
+    a1 -= 2;
+    {
+        float (*func)(int) = (float (*)(int))gl_func_00000000;
+        float result = func(a1);
+        return (int)((result * (float)a1) + 2.0f);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
+#endif
 #endif
 
 void titproc_uso_func_0000049C(int *dst) {
