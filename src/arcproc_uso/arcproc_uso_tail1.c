@@ -319,6 +319,16 @@ void arcproc_uso_func_00000E58(char *a0) {
     arcproc_uso_func_00000000(a0 + 0x764);
 }
 
+/* arcproc_uso_func_00000EBC: 37-insn (0x94) declared bundle of 7 distinct
+ * functions that splat couldn't separate (`grep -c 03E00008` = 6, plus
+ * trailing alignment). Tried split-fragments.py recursively (succeeded:
+ * EBC/EEC/F10/F1C/F34/F40/F48 split); but split-script appended new
+ * INCLUDE_ASMs to wrong .c file (arcproc_uso.c, which is -O0 / TRUNCATE
+ * 0x50, vs the right home arcproc_uso_tail1.c) and per
+ * feedback_uso_split_fragments_breaks_expected_match.md USO splits also
+ * break expected/.o. Reverted; bundle stays as-is until the split-script
+ * is fixed to write into the right .c, OR a new .c file is added to host
+ * the split-off symbols with proper linker-script slots. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EBC);
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F50);
