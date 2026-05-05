@@ -160,7 +160,7 @@ build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: INSN_PATCH := func_00012818=0x5C:0
 build/src/kernel/kernel_000.c.o: INSN_PATCH := \
 	func_8000487C=0x14:0x15C00006,0x18:0x00000000,0x40:0x13200006,0x44:0x00000000 \
 	func_800012BC=0x40:0x27A40018,0x70:0x8FAE001C,0x74:0x006E7821
-build/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8 gl_func_0002D620=8 gl_func_0002DEA4=8 gl_func_0002DF38=8
+build/src/game_libs/game_libs_post.c.o build/non_matching/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8 gl_func_0002D620=8 gl_func_0002DEA4=8 gl_func_0002DF38=8 gl_func_0002D8A8=8
 
 # INSN_PATCH := <func>=<offset>:<word>[,<offset>:<word>] — overwrite N specific
 # instruction words in a function body post-cc, without changing function size

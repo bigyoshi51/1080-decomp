@@ -507,7 +507,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D838);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D870);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D8A8);
+/* gl_func_0002D8A8: 12-insn prologue-stolen-successor of gl_func_0002D870.
+ * Predecessor's tail (`lui $t6, 0; lw $t6, 0(t6)`) loads $t6=*(int*)D_2D870_X
+ * and 0x2D8A8 immediately uses $t6 as an array index. C body emits the same
+ * lui+lw pair which PROLOGUE_STEALS=8 splices off, leaving the remaining
+ * body byte-identical (the runtime $t6 from predecessor's tail is what
+ * the indexed-load actually uses).
+ *
+ * Calls gl_func_00000000(0x41000000, D_2D870_Y[D_2D870_X[0]]) — passes the
+ * float bits of 8.0f as a0 and an indexed table value as a1. */
+extern int *D_2D870_X;        /* index source — set by predecessor's stolen tail */
+extern int D_2D870_Y[];        /* table indexed by D_2D870_X[0] */
+void gl_func_0002D8A8(void) {
+    gl_func_00000000(0x41000000, D_2D870_Y[(int)D_2D870_X]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D8D8);
 
