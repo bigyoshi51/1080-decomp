@@ -563,7 +563,13 @@ void gl_func_0002DEA4(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DED0);
+/* gl_func_0002DED0: single-call wrapper. The 3 trailing insns
+ * (sll/addu/addiu @0x2DEF4-0x2DEFC) are dead-code alt-entry shared with
+ * the next function (gl_func_0002DF00); appended via SUFFIX_BYTES recipe
+ * to bridge the C-emit/expected size mismatch. */
+void gl_func_0002DED0(void) {
+    gl_func_00000000((void*)0x82000000, 0);
+}
 
 /* 10-insn body single-call wrapper, sibling of gl_func_0002DF68 (same
  * 0xTTTT0000 | ((a0 & 0xFF) << 8) bit-packing pattern but without the
