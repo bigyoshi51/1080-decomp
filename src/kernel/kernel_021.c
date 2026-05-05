@@ -71,10 +71,24 @@ s32 func_80008424(s32 arg0) {
 
 #ifdef NON_MATCHING
 /* func_80008430: 9-insn prologue fragment of a larger __rmon function
- * splat-split into 3 pieces:
+ * splat-split into a 4+ fragment chain (verified 2026-05-05 via asm/.s
+ * cross-reference):
+ *
  *   - func_80008430 (this, 0x24 / 9 insns) — prologue + first slti+bnez
- *   - func_80008454 (kernel_018? 0x44 / 17 insns) — branch arms + rmonbrk_bss lookup
- *   - func_80008498 (further fragment(s) past .L80008578)
+ *     to .L80008460 (inside func_80008454). Frame -0x48, saves s0/s1/ra.
+ *   - func_80008454 (0x44 / 17 insns) — body + dispatch:
+ *       0x80008454+0: nop (delay slot of 80008430's bnez)
+ *       0x80008458: b .L80008578 (far branch, target inside next fragment)
+ *       0x800084??: .L80008460 — `lw t7, 0x48(sp); bnez t8 != 1, .L800084D8`
+ *       0x8000848C: bnez t2, .L8000849C (inside func_80008498)
+ *       0x80008494: b .L80008578 (far branch, target past 80008498)
+ *   - func_80008498 (0x14 / 5 insns) — `.L8000849C: jal func_80006A98(...)`
+ *     fragment for the `t2 != 0` arm. Externally-callable (extern void
+ *     func_80008498(void) in kernel_054.c).
+ *   - func_800084AC, func_800084D0 (further fragments) — `.L800084D8` target
+ *     is in 800084D0+; `.L80008578` is also in this range.
+ *   - func_8000857C (next standalone function, externally callable from
+ *     kernel_000.c) — boundary; 80008430's chain ends just before.
  *
  * Decoded entry semantics:
  *   s32 f(MsgPtr *a0) {
@@ -82,14 +96,21 @@ s32 func_80008424(s32 arg0) {
  *     int idx = s0->field_0x10;
  *     if (idx >= 0x10) return -2;              // bnez at→fall-through to "b end; v0=-2"
  *     if (a0->byte_0x9 != 1) goto skip;        // bne t8, 1, .L800084D8
- *     // ...rmonbrk_bss_0088[idx] table lookup, more nested checks...
+ *     int *entry = rmonbrk_bss_0088 + idx*8;
+ *     if (entry[0] != 0) goto skip2;            // .L8000849C
+ *     // ...continued in fragments past 80008498...
  *   }
  *
  * Likely __rmonSetBrkpt or __rmonGetBrkPC (sets/gets a hardware breakpoint).
- * Cannot match as standalone C — fragment boundary cuts mid-function and the
- * splat-merge recipe is non-trivial here (3 .o files, layout shifts). Same
- * class as func_80006698. Stub body documents the fragment relationship for
- * grep discoverability per feedback_orphan_include_asm_after_split_function_decomp.md. */
+ * MERGE BLOCKED: func_80008498 is externally-callable (alt-entry pattern,
+ * not pure fragment) per `extern void func_80008498(void)` in kernel_054.c.
+ * Standard merge-fragments removes the alt-entry symbol and breaks callers.
+ * Resolution path: keep INCLUDE_ASM with no merge; document the chain for
+ * future Ghidra-assisted decode (the rmon family has full struct types in
+ * Ghidra). Same class as func_80006698 / func_800047E4 cross-file blockers.
+ *
+ * Stub body documents the fragment relationship for grep discoverability per
+ * feedback_orphan_include_asm_after_split_function_decomp.md. */
 /* Match the file-top extern's signature so NON_MATCHING build doesn't error
  * with redeclaration / incompatible-return-type. Stub body — bytes never
  * match anyway since the byte-correct path is INCLUDE_ASM (#else branch). */
