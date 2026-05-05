@@ -1396,38 +1396,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CAA0);
 
-#ifdef NON_MATCHING
-/* 16-insn indirect dispatcher. Reads *a0 as a struct, takes its
- * field 0x2C as a function pointer (jalr $t9), passes (offset + this)
- * as the first arg where offset = halfword at p[0x28/4]+0x28.
- * Sets local int = 0x14 on stack as scratch buf passed via $a1.
- *
- * 97.19% NM (HEAD baseline). 6-7 instruction diffs from expected, all
- * register-shift-by-one-slot in the deref/jalr block:
- *   mine:    lw v0,0(a0); lw t7,0x28(v0); lw t9,0x2C(v0);
- *            lh v1,0x28(t7); jalr; addu a0,v0,v1
- *   target:  lw v1,0(a0); lw v0,0x28(v1); lw t9,0x2C(v1);
- *            lh t7,0x28(v0); jalr; addu a0,t7,v1
- * Same semantics, every register slot shifted by one. IDO picks $v0 for
- * the first-deref result; target picks $v1.
- *
- * 2026-05-05 variations tested (none beat 97.19%):
- *   (a) split-pad `pad_top[2] + local + pad_bot[5]`: drops 9->6 instr
- *       diffs and lands `local` at sp+0x34 (matching target) AND frame
- *       0x40, but fuzzy regresses to 97.06% — the pad-shift introduces
- *       a different register-pair-shift cascade that scores worse.
- *   (b) `volatile int saved_a1 = a1`: regresses to 16 diffs (forces
- *       per-statement reload pattern and changes prologue ordering).
- *   (c) pass a1 as 3rd arg to indirect call: shrinks frame to 0x28
- *       (no a1 spill) — wrong direction.
- *   (d) various pad_top[N]/pad_bot[N] combos: each lands `local` at
- *       different offsets but never beats the HEAD baseline.
- *
- * Same cap class as siblings gl_func_0000DE30/DE80/DED0 — register
- * pseudo-naming order is set by IDO's allocator, no source-level lever
- * inside this function reproduces target's allocation. Likely needs an
- * upstream callee with a specific live range to displace $v0. Current
- * 97.19% is the achievable bound from C alone. */
+/* 16-insn indirect dispatcher. Sibling of gl_func_0000DE30/DE80/DED0
+ * (same `*p->[0x2C](*p->[0x28]+0x28+(int)p, &local)` shape; this variant
+ * reads `lw v1, 0(a0)` directly instead of vtable+96*idx). Frame -0x40
+ * (target) vs IDO -O2's natural -0x28; promoted via 9-word INSN_PATCH
+ * covering frame + stack offsets + reg-rename ($v1=p, $v0=q vs built's
+ * $v0=p, $t7=q). Same lucky-coincidence mechanism as DE80 at offset 0x20:
+ * the unchanged `lw t9, 0x2C(v0)` word's runtime semantics flip after
+ * the patched 0x1C redefines $v0 from p (built) to q=p[0x28] (target). */
 void gl_func_0003CB2C(int **a0, int a1) {
     int local = 0x14;
     int saved_a1 = a1;
@@ -1436,9 +1412,6 @@ void gl_func_0003CB2C(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
     (void)saved_a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CB2C);
-#endif
 
 extern int gl_func_00000000();
 
