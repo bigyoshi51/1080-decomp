@@ -449,6 +449,8 @@ void game_uso_func_00000AEC(int *a0, int a1) {
  *
  * Struct fields identified:
  *   a0[0xF4]  — per-frame scratch (cached at sp+0x134)
+ *   a0[0x130] — t0 writeback (state-dispatch result)
+ *   a0[0x134..0x13C] — secondary Vec3 stage (zeroed via scratch round-trip)
  *   a0[0x150] — dispatch-list ptr
  *   a0[0x158 + N*4] — primary LUT of sub-obj ptrs
  *   a0[0x1D4 + N*4] — tertiary LUT of target ptrs
@@ -456,8 +458,28 @@ void game_uso_func_00000AEC(int *a0, int a1) {
  *   a0[0x254] — secondary index
  *   a0[0x258] — derived-id writeback
  *   a0[0x25C] — tertiary index
+ *   a0[0x260] — bool flag (gates Vec3-zero vs alt-path)
  *   a0[0x264] — cached-id (change detector)
+ *   a0[0x268] — bool flag (gates a3->0x30 alt-arm in zero block)
  *   (dispatch_list + 0xA54) — current id
+ *
+ * 2026-05-05 ASM RE-CHECK 0xC38-0xD00 (~50 insns post-Vec3-zero block):
+ *   - 0xC38-0xC44: post-zero merge — load t0 = a0->0x134 reload, save to sp+0x118
+ *   - 0xC48: addiu t1, t0, 0x100 (probably a flag-mask offset)
+ *   - 0xC4C-0xC5C: 4-arg gl_func dispatch (gl_func(s2,...,...,...)
+ *     — prepares scratch buffer at sp+0x118 for callee fill, target's
+ *     internal "advance state" cross-USO call.
+ *   - 0xC60-0xCA0: post-call ack loop — repeatedly checks v0 return,
+ *     conditional store-back to a0->0x150 dispatch list. Looks like
+ *     "wait for sub-system ready" polling pattern.
+ *   - 0xCA4-0xD00: float-comp for a different field, jal cross-USO with
+ *     5+ args (heavy outgoing-arg-slot stores at sp+0x10..0x20).
+ *
+ * NEXT PASS: decode 0xCA4-0xDB8 — the rodata jump-table dispatch starts
+ * around 0xDB8 (`jr $t1`). Per
+ * feedback_ido_switch_rodata_jumptable.md, the jump-table itself can't
+ * be matched (rodata gets discarded by linker); need if-else chain
+ * rewrite. Decode the jump-table arms first to know the cases.
  */
 void game_uso_func_00000B3C(int *a0) {
     int *sub;
