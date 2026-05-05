@@ -1361,10 +1361,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CAA0);
 /* 16-insn indirect dispatcher. Reads *a0 as a struct, takes its
  * field 0x2C as a function pointer (jalr $t9), passes (offset + this)
  * as the first arg where offset = halfword at p[0x28/4]+0x28.
+ * Sets local int = 0x14 on stack as scratch buf passed via $a1.
  *
- * Estimated structural decode below — match % unknown until tested.
- * Sets local int = 0x14 on stack as scratch buf passed to the indirect
- * call's a1. */
+ * 97.19% NM (HEAD baseline). 6-7 instruction diffs from expected, all
+ * register-shift-by-one-slot in the deref/jalr block:
+ *   mine:    lw v0,0(a0); lw t7,0x28(v0); lw t9,0x2C(v0);
+ *            lh v1,0x28(t7); jalr; addu a0,v0,v1
+ *   target:  lw v1,0(a0); lw v0,0x28(v1); lw t9,0x2C(v1);
+ *            lh t7,0x28(v0); jalr; addu a0,t7,v1
+ * Same semantics, every register slot shifted by one. IDO picks $v0 for
+ * the first-deref result; target picks $v1.
+ *
+ * 2026-05-05 variations tested (none beat 97.19%):
+ *   (a) split-pad `pad_top[2] + local + pad_bot[5]`: drops 9->6 instr
+ *       diffs and lands `local` at sp+0x34 (matching target) AND frame
+ *       0x40, but fuzzy regresses to 97.06% — the pad-shift introduces
+ *       a different register-pair-shift cascade that scores worse.
+ *   (b) `volatile int saved_a1 = a1`: regresses to 16 diffs (forces
+ *       per-statement reload pattern and changes prologue ordering).
+ *   (c) pass a1 as 3rd arg to indirect call: shrinks frame to 0x28
+ *       (no a1 spill) — wrong direction.
+ *   (d) various pad_top[N]/pad_bot[N] combos: each lands `local` at
+ *       different offsets but never beats the HEAD baseline.
+ *
+ * Same cap class as siblings gl_func_0000DE30/DE80/DED0 — register
+ * pseudo-naming order is set by IDO's allocator, no source-level lever
+ * inside this function reproduces target's allocation. Likely needs an
+ * upstream callee with a specific live range to displace $v0. Current
+ * 97.19% is the achievable bound from C alone. */
 void gl_func_0003CB2C(int **a0, int a1) {
     int local = 0x14;
     int saved_a1 = a1;
