@@ -1157,19 +1157,47 @@ SECTIONS
     rom_fs_ROM_END = __romPos;
     rom_fs_VRAM_END = .;
 
-    bootup_uso_pre_ROM_START = __romPos;
-    bootup_uso_pre_VRAM = ADDR(.bootup_uso_pre);
-    .bootup_uso_pre : AT(bootup_uso_pre_ROM_START)
+    bootup_uso_pre_head_ROM_START = __romPos;
+    bootup_uso_pre_head_VRAM = ADDR(.bootup_uso_pre_head);
+    .bootup_uso_pre_head : AT(bootup_uso_pre_head_ROM_START)
     {
         FILL(0x00000000);
-        bootup_uso_pre_DATA_START = .;
-        build/assets/bootup_uso_pre.bin.o(.data);
-        bootup_uso_pre_DATA_END = .;
-        bootup_uso_pre_DATA_SIZE = ABSOLUTE(bootup_uso_pre_DATA_END - bootup_uso_pre_DATA_START);
+        bootup_uso_pre_head_DATA_START = .;
+        build/assets/bootup_uso_pre_head.bin.o(.data);
+        bootup_uso_pre_head_DATA_END = .;
+        bootup_uso_pre_head_DATA_SIZE = ABSOLUTE(bootup_uso_pre_head_DATA_END - bootup_uso_pre_head_DATA_START);
     }
-    __romPos += SIZEOF(.bootup_uso_pre);
-    bootup_uso_pre_ROM_END = __romPos;
-    bootup_uso_pre_VRAM_END = .;
+    __romPos += SIZEOF(.bootup_uso_pre_head);
+    bootup_uso_pre_head_ROM_END = __romPos;
+    bootup_uso_pre_head_VRAM_END = .;
+
+    bootup_uso_ucodes_ROM_START = __romPos;
+    bootup_uso_ucodes_VRAM = ADDR(.bootup_uso_ucodes);
+    .bootup_uso_ucodes : AT(bootup_uso_ucodes_ROM_START)
+    {
+        FILL(0x00000000);
+        bootup_uso_ucodes_DATA_START = .;
+        build/assets/bootup_uso_ucodes.bin.o(.data);
+        bootup_uso_ucodes_DATA_END = .;
+        bootup_uso_ucodes_DATA_SIZE = ABSOLUTE(bootup_uso_ucodes_DATA_END - bootup_uso_ucodes_DATA_START);
+    }
+    __romPos += SIZEOF(.bootup_uso_ucodes);
+    bootup_uso_ucodes_ROM_END = __romPos;
+    bootup_uso_ucodes_VRAM_END = .;
+
+    bootup_uso_pre_tail_ROM_START = __romPos;
+    bootup_uso_pre_tail_VRAM = ADDR(.bootup_uso_pre_tail);
+    .bootup_uso_pre_tail : AT(bootup_uso_pre_tail_ROM_START)
+    {
+        FILL(0x00000000);
+        bootup_uso_pre_tail_DATA_START = .;
+        build/assets/bootup_uso_pre_tail.bin.o(.data);
+        bootup_uso_pre_tail_DATA_END = .;
+        bootup_uso_pre_tail_DATA_SIZE = ABSOLUTE(bootup_uso_pre_tail_DATA_END - bootup_uso_pre_tail_DATA_START);
+    }
+    __romPos += SIZEOF(.bootup_uso_pre_tail);
+    bootup_uso_pre_tail_ROM_END = __romPos;
+    bootup_uso_pre_tail_VRAM_END = .;
 
     /* bootup_uso text: loaded at VRAM 0 (code is unrelocated; LUIs store
      * upper16=0x0000 as placeholders, patched by the USO loader at runtime).

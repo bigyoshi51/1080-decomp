@@ -225,7 +225,15 @@ segments:
   # with upper16=0x0000), and post-text padding. The text VRAM=0 is a
   # synthetic address — this code actually gets loaded to a dynamic VRAM
   # at runtime by the USO loader; we match pre-relocation text bytes.
-  - [0xD9FE28, bin, bootup_uso_pre]
+  #
+  # bootup_uso_pre carved into three sub-bins (issue #6) to isolate the
+  # embedded RSP ucode region (0xDB0000..0xDBA000): 11 ucode payloads
+  # (4 F3DEX 1.x gfx + 7 aspMain audio variants) sit between the head
+  # USO metadata and the tail rodata/reloc tables. Code sections live
+  # before each ID string; data sections (0x800 each) end at the string.
+  - [0xD9FE28, bin, bootup_uso_pre_head]
+  - [0xDB0000, bin, bootup_uso_ucodes]
+  - [0xDBA000, bin, bootup_uso_pre_tail]
   - name: bootup_uso
     type: code
     start: 0xDD0A6C
