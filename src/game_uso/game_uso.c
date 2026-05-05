@@ -985,7 +985,83 @@ void game_uso_func_0000249C(char *a0) {
     game_uso_func_00000000(a0 + 0x44);
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_000024BC: 0x258 (150 insns) — sibling of game_uso_func_00001DDC.
+ * Same 3-way dispatch pattern on a0[0x10] (key field):
+ *
+ *   key = a0[0x10];
+ *   if (key == 0) return a0;
+ *   if (key == 3) {
+ *       v1 = a0[0xF];                        // sub-obj
+ *       (a0[5])->Vec3@0xA0 = v1->Vec3@0xA0;  // 3-float copy to t6's child
+ *       a0->Vec3@0x60 = v1->Vec3@0xA0;       // and to self+0x60
+ *       goto end;
+ *   }
+ *   else: {
+ *       v1 = a0[0xE];
+ *       ref_v = v1->Vec3@0xA0;               // copy to local sp+0x60
+ *       delta = *(Vec3*)gl_func(&scratch_3C, a0);
+ *       self.x = ref_v.x + delta.x;
+ *       self.y = ref_v.y + delta.y;
+ *       self.z = ref_v.z + delta.z;
+ *       sp+0x54 = (a1.x, 0, a1.z);           // zero-Y projection of arg1
+ *       gl_func(&sp+0x54, ... );             // second dispatch
+ *       ... ~120 insns of FPU math and stores remain TBD ...
+ *   }
+ *   end: return a0;
+ *
+ * First-pass NM — covers the dispatch + key==3 leaf path. The else-arm is
+ * the bulk of the function (ref_v/delta/self vector math + 2 cross-USO
+ * calls + final stores to a0->0x60..0x68 and t6's child) and is sketched
+ * as TODO. Initial decode 2026-05-05. */
+extern int gl_func_00000000();
+void *game_uso_func_000024BC(int *a0, int *a1) {
+    int *t6;
+    int key;
+    int *v1;
+    char scratch[0x18];
+    float ref_x, ref_y, ref_z;
+    float delta_x, delta_y, delta_z;
+    int *delta;
+
+    t6 = (int*)a0[0x14 / 4];
+    key = a0[0x40 / 4];
+    if (key == 0) goto end;
+    if (key != 3) goto branch_else;
+
+    /* key == 3: dual Vec3 copy from sub-obj@0xA0 to (self+0x60) AND (t6+0xA0). */
+    v1 = (int*)a0[0x3C / 4];
+    *(float*)((char*)a0 + 0x60) = *(float*)((char*)v1 + 0xA0);
+    *(float*)((char*)a0 + 0x64) = *(float*)((char*)v1 + 0xA4);
+    *(float*)((char*)a0 + 0x68) = *(float*)((char*)v1 + 0xA8);
+    *(float*)((char*)t6 + 0xA0) = *(float*)((char*)v1 + 0xA0);
+    *(float*)((char*)t6 + 0xA4) = *(float*)((char*)v1 + 0xA4);
+    *(float*)((char*)t6 + 0xA8) = *(float*)((char*)v1 + 0xA8);
+    goto end;
+
+branch_else:
+    /* else-arm: build ref_v from a0[0xE]+0xA0, alloc delta via gl_func,
+     * compute self_v = ref_v + delta_v, then second gl_func dispatch.
+     * ~120 insns of further math/stores TBD. */
+    v1 = (int*)a0[0x38 / 4];
+    ref_x = *(float*)((char*)v1 + 0xA0);
+    ref_y = *(float*)((char*)v1 + 0xA4);
+    ref_z = *(float*)((char*)v1 + 0xA8);
+    delta = (int*)gl_func_00000000(scratch, a0);
+    delta_x = *(float*)&delta[0];
+    delta_y = *(float*)&delta[1];
+    delta_z = *(float*)&delta[2];
+    (void)ref_x; (void)ref_y; (void)ref_z;
+    (void)delta_x; (void)delta_y; (void)delta_z;
+    (void)a1;
+    /* TODO: self = ref + delta; sp+0x54 setup; second jal; final stores. */
+
+end:
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000024BC);
+#endif
 
 void game_uso_func_00002714(int *a0, int a1, int a2) {
     if (*(int*)((char*)a0 + 0x40) == a1) return;
