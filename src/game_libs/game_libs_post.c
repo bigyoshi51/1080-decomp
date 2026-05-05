@@ -518,7 +518,19 @@ void gl_func_0002D838(void) {
     gl_func_00000000(0x41030000, D_2D838_Y[(int)D_2D838_X]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D870);
+/* gl_func_0002D870: 12-insn prologue-stolen-successor (sibling of 0002D838,
+ * 0002D8A8). Predecessor's tail loads $t6 = *(int*)D_2D870_X; this function
+ * uses $t6 as index into D_2D870_Y. PROLOGUE_STEALS=8 splices the duplicate
+ * `lui t6, 0; lw t6, 0(t6)` IDO emits at start. SUFFIX_BYTES appends the
+ * same 2-insn pair as stolen-prologue for successor 0002D8A8.
+ *
+ * Calls gl_func_00000000(0x41010000, D_2D870_Y[D_2D870_X]) — passes float
+ * bits 8.0625f as a0 and indexed table value as a1. */
+extern int *D_2D870_X;
+extern int D_2D870_Y[];
+void gl_func_0002D870(void) {
+    gl_func_00000000(0x41010000, D_2D870_Y[(int)D_2D870_X]);
+}
 
 /* gl_func_0002D8A8: 12-insn prologue-stolen-successor of gl_func_0002D870.
  * Predecessor's tail (`lui $t6, 0; lw $t6, 0(t6)`) loads $t6=*(int*)D_2D870_X
