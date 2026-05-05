@@ -1470,6 +1470,19 @@ void game_uso_func_000044C8(char *a0) {
  * Multi-tick refinement target — the C body would be ~150 lines of
  * sequential field assignments. Large-but-tractable for next decomp
  * pass. Default INCLUDE_ASM build matches the (yay0-compressed) ROM. */
+extern char D_44F4_iterA_t, D_44F4_iterA_p, D_44F4_iterA_f, D_44F4_iterB_t, D_44F4_iterB_p, D_44F4_iterB_f, D_44F4_iterC_t, D_44F4_iterC_p;
+extern char D_44F4_iterD_t, D_44F4_iterD_p, D_44F4_iterD_f, D_44F4_iterE_t, D_44F4_iterE_p, D_44F4_iterE_f, D_44F4_iterF_t, D_44F4_iterF_p;
+extern char D_44F4_iterG_t, D_44F4_iterG_p, D_44F4_iterH_t, D_44F4_iterH_p, D_44F4_iterH_f, D_44F4_iterI_t, D_44F4_iterI_p, D_44F4_iterI_f;
+extern char D_44F4_iterJ_t, D_44F4_iterJ_p, D_44F4_iterJ_f, D_44F4_iterK_t, D_44F4_iterK_p, D_44F4_iterK_f, D_44F4_iterL_t, D_44F4_iterL_p;
+extern char D_44F4_iterL_f, D_44F4_iterM_t, D_44F4_iterM_p, D_44F4_iterM_f, D_44F4_iterN_t, D_44F4_iterN_p, D_44F4_iterN_f, D_44F4_iterO_t;
+extern char D_44F4_iterO_p, D_44F4_iterO_f, D_44F4_iterP_t, D_44F4_iterP_p, D_44F4_iterP_f, D_44F4_iterQ_t, D_44F4_iterQ_p, D_44F4_iterQ_f;
+extern char D_44F4_iterR_t, D_44F4_iterR_p, D_44F4_iterS_t, D_44F4_iterS_p, D_44F4_iterT_t, D_44F4_iterT_p, D_44F4_iterU_t, D_44F4_iterU_p;
+extern char D_44F4_iterV_t, D_44F4_iterV_p, D_44F4_iterW_t, D_44F4_iterW_p, D_44F4_iterX_t, D_44F4_iterX_p, D_44F4_iterY_t, D_44F4_iterY_p;
+extern char D_44F4_iterY_f, D_44F4_iterZ_t, D_44F4_iterZ_p, D_44F4_iterAA_t, D_44F4_iterAA_p, D_44F4_iterBB_t, D_44F4_iterBB_p, D_44F4_iterCC_t;
+extern char D_44F4_iterCC_p, D_44F4_iterDD_t, D_44F4_iterDD_p, D_44F4_iterDD_f, D_44F4_iterEE_t, D_44F4_iterEE_p, D_44F4_iterEE_f, D_44F4_iterFF_t;
+extern char D_44F4_iterFF_p, D_44F4_iterFF_f, D_44F4_iterGG_t, D_44F4_iterGG_p, D_44F4_iterHH_t, D_44F4_iterHH_p, D_44F4_iterII_t, D_44F4_iterII_p;
+extern char D_44F4_iterJJ_t, D_44F4_iterJJ_p, D_44F4_iterKK_t, D_44F4_iterKK_p, D_44F4_iterLL_t, D_44F4_iterLL_p, D_44F4_iterMM_t, D_44F4_iterMM_p;
+extern char D_44F4_iterNN_t, D_44F4_iterNN_p;
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
@@ -1525,64 +1538,86 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
         }
 
         /* Unrolled iters A-D (slots 0x20, 0x38, 0x50, 0x68; tmpl_off
-         * 0x6EC, 0x6F0, 0x6F4, 0x6F8; sentinel = slot - 0x100). */
-#define INIT_ITER(SLOT, TMPL_OFF, FLOAT_EXPR) do { \
-            char *_t = *(char**)((char*)&D_00000000 + (TMPL_OFF)); \
+         * 0x6EC, 0x6F0, 0x6F4, 0x6F8; sentinel = slot - 0x100).
+         *
+         * INIT_ITER_U: unique-extern variant used for iters A & B as a
+         * feasibility test of feedback_unique_extern_with_offset_cast_
+         * breaks_cse.md. Each call passes 3 unique externs (T_SYM, F_SYM,
+         * P_SYM) all defined as 0x0 in undefined_syms_auto.txt. IDO can't
+         * CSE the three different bases, so it emits per-iter lui+lw/lwc1
+         * pairs matching the target's pattern. */
+#define INIT_ITER_U(SLOT, TMPL_OFF, FLOAT_OFF, T_SYM, F_SYM, P_SYM) do { \
+            char *_t = *(char**)((char*)&T_SYM + (TMPL_OFF)); \
             s0 = s1 + (SLOT); \
             *(char**)s2 = _t; \
             if (s1 != (char*)((SLOT) - 0x100)) { \
                 s0 = (char*)gl_func_00000000(0x18); \
                 if (s0 == NULL) goto epi; \
                 gl_func_00000000(s0, s1, *(char**)s2, 1); \
-                *(char**)(s0 + 0xC) = (char*)&D_00000000 + 0x3C8; \
+                *(char**)(s0 + 0xC) = (char*)&P_SYM + 0x3C8; \
                 *(int*)(s0 + 0x14) = 0; \
-                *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
+                *(float*)(s0 + 0x10) = *(float*)((char*)&F_SYM + (FLOAT_OFF)); \
             } \
         } while (0)
 
-        INIT_ITER(0x20,  0x6EC, *(float*)((char*)&D_00000000 + 0xA0));   /* A */
-        INIT_ITER(0x38,  0x6F0, *(float*)((char*)&D_00000000 + 0xA4));   /* B */
-        INIT_ITER(0x50,  0x6F4, -800.0f);                                /* C */
-        INIT_ITER(0x68,  0x6F8, *(float*)((char*)&D_00000000 + 0xA8));   /* D */
-        INIT_ITER(0x80,  0x6FC, *(float*)((char*)&D_00000000 + 0xAC));   /* E */
-        INIT_ITER(0x98,  0x700, -4000.0f);                               /* F (lui 0xC57A) */
-        INIT_ITER(0xB0,  0x704, -8000.0f);                               /* G (lui 0xC5FA) */
-        INIT_ITER(0xC8,  0x708, *(float*)((char*)&D_00000000 + 0xB0));   /* H */
-        INIT_ITER(0xE0,  0x70C, *(float*)((char*)&D_00000000 + 0xB4));   /* I */
-        INIT_ITER(0xF8,  0x710, *(float*)((char*)&D_00000000 + 0xB8));   /* J */
-        INIT_ITER(0x110, 0x714, *(float*)((char*)&D_00000000 + 0xBC));   /* K */
-        INIT_ITER(0x128, 0x718, *(float*)((char*)&D_00000000 + 0xC0));   /* L */
-        INIT_ITER(0x140, 0x71C, *(float*)((char*)&D_00000000 + 0xC4));   /* M */
-        INIT_ITER(0x158, 0x720, *(float*)((char*)&D_00000000 + 0xC8));   /* N */
-        INIT_ITER(0x170, 0x724, *(float*)((char*)&D_00000000 + 0xCC));   /* O */
-        INIT_ITER(0x188, 0x728, *(float*)((char*)&D_00000000 + 0xD0));   /* P */
-        INIT_ITER(0x1A0, 0x72C, *(float*)((char*)&D_00000000 + 0xD4));   /* Q */
-        INIT_ITER(0x1B8, 0x730, 1200.0f);                                /* R (lui 0x4496) */
-        INIT_ITER(0x1D0, 0x734, 1200.0f);                                /* S */
-        INIT_ITER(0x1E8, 0x738, 1200.0f);                                /* T */
-        INIT_ITER(0x200, 0x73C, 60.0f);                                  /* U (lui 0x4270) */
-        INIT_ITER(0x218, 0x740, 60.0f);                                  /* V */
-        INIT_ITER(0x230, 0x744, 60.0f);                                  /* W */
-        INIT_ITER(0x248, 0x748, 1.5f);                                   /* X (lui 0x3FC0) */
-        INIT_ITER(0x260, 0x74C, *(float*)((char*)&D_00000000 + 0xD8));   /* Y */
-        INIT_ITER(0x278, 0x750, 1.5f);                                   /* Z */
-        INIT_ITER(0x290, 0x754, 2000.0f);                                /* AA (lui 0x44FA) */
-        INIT_ITER(0x2A8, 0x758, 2000.0f);                                /* BB */
-        INIT_ITER(0x2C0, 0x75C, 2000.0f);                                /* CC */
-        INIT_ITER(0x2D8, 0x760, *(float*)((char*)&D_00000000 + 0xDC));   /* DD */
-        INIT_ITER(0x2F0, 0x764, *(float*)((char*)&D_00000000 + 0xE0));   /* EE */
-        INIT_ITER(0x308, 0x768, *(float*)((char*)&D_00000000 + 0xE4));   /* FF */
-        INIT_ITER(0x320, 0x76C, 240.0f);                                 /* GG (lui 0x4370) */
-        INIT_ITER(0x338, 0x770, 240.0f);                                 /* HH */
-        INIT_ITER(0x350, 0x774, 240.0f);                                 /* II */
-        INIT_ITER(0x368, 0x778, 240.0f);                                 /* JJ */
-        INIT_ITER(0x380, 0x77C, 240.0f);                                 /* KK */
-        INIT_ITER(0x398, 0x780, 240.0f);                                 /* LL */
-        INIT_ITER(0x3B0, 0x784, 240.0f);                                 /* MM */
-        INIT_ITER(0x3C8, 0x788, 240.0f);                                 /* NN (final iter, slot 0x3C8) */
+#define INIT_ITER_UC(SLOT, TMPL_OFF, FLOAT_LIT, T_SYM, P_SYM) do { \
+            char *_t = *(char**)((char*)&T_SYM + (TMPL_OFF)); \
+            s0 = s1 + (SLOT); \
+            *(char**)s2 = _t; \
+            if (s1 != (char*)((SLOT) - 0x100)) { \
+                s0 = (char*)gl_func_00000000(0x18); \
+                if (s0 == NULL) goto epi; \
+                gl_func_00000000(s0, s1, *(char**)s2, 1); \
+                *(char**)(s0 + 0xC) = (char*)&P_SYM + 0x3C8; \
+                *(int*)(s0 + 0x14) = 0; \
+                *(float*)(s0 + 0x10) = (FLOAT_LIT); \
+            } \
+        } while (0)
+
+        INIT_ITER_U(0x20, 0x6EC, 0xA0, D_44F4_iterA_t, D_44F4_iterA_f, D_44F4_iterA_p);  /* A */
+        INIT_ITER_U(0x38, 0x6F0, 0xA4, D_44F4_iterB_t, D_44F4_iterB_f, D_44F4_iterB_p);  /* B */
+        INIT_ITER_UC(0x50, 0x6F4, -800.0f, D_44F4_iterC_t, D_44F4_iterC_p);  /* C */
+        INIT_ITER_U(0x68, 0x6F8, 0xA8, D_44F4_iterD_t, D_44F4_iterD_f, D_44F4_iterD_p);  /* D */
+        INIT_ITER_U(0x80, 0x6FC, 0xAC, D_44F4_iterE_t, D_44F4_iterE_f, D_44F4_iterE_p);  /* E */
+        INIT_ITER_UC(0x98, 0x700, -4000.0f, D_44F4_iterF_t, D_44F4_iterF_p);  /* F */
+        INIT_ITER_UC(0xB0, 0x704, -8000.0f, D_44F4_iterG_t, D_44F4_iterG_p);  /* G */
+        INIT_ITER_U(0xC8, 0x708, 0xB0, D_44F4_iterH_t, D_44F4_iterH_f, D_44F4_iterH_p);  /* H */
+        INIT_ITER_U(0xE0, 0x70C, 0xB4, D_44F4_iterI_t, D_44F4_iterI_f, D_44F4_iterI_p);  /* I */
+        INIT_ITER_U(0xF8, 0x710, 0xB8, D_44F4_iterJ_t, D_44F4_iterJ_f, D_44F4_iterJ_p);  /* J */
+        INIT_ITER_U(0x110, 0x714, 0xBC, D_44F4_iterK_t, D_44F4_iterK_f, D_44F4_iterK_p);  /* K */
+        INIT_ITER_U(0x128, 0x718, 0xC0, D_44F4_iterL_t, D_44F4_iterL_f, D_44F4_iterL_p);  /* L */
+        INIT_ITER_U(0x140, 0x71C, 0xC4, D_44F4_iterM_t, D_44F4_iterM_f, D_44F4_iterM_p);  /* M */
+        INIT_ITER_U(0x158, 0x720, 0xC8, D_44F4_iterN_t, D_44F4_iterN_f, D_44F4_iterN_p);  /* N */
+        INIT_ITER_U(0x170, 0x724, 0xCC, D_44F4_iterO_t, D_44F4_iterO_f, D_44F4_iterO_p);  /* O */
+        INIT_ITER_U(0x188, 0x728, 0xD0, D_44F4_iterP_t, D_44F4_iterP_f, D_44F4_iterP_p);  /* P */
+        INIT_ITER_U(0x1A0, 0x72C, 0xD4, D_44F4_iterQ_t, D_44F4_iterQ_f, D_44F4_iterQ_p);  /* Q */
+        INIT_ITER_UC(0x1B8, 0x730, 1200.0f, D_44F4_iterR_t, D_44F4_iterR_p);  /* R */
+        INIT_ITER_UC(0x1D0, 0x734, 1200.0f, D_44F4_iterS_t, D_44F4_iterS_p);  /* S */
+        INIT_ITER_UC(0x1E8, 0x738, 1200.0f, D_44F4_iterT_t, D_44F4_iterT_p);  /* T */
+        INIT_ITER_UC(0x200, 0x73C, 60.0f, D_44F4_iterU_t, D_44F4_iterU_p);  /* U */
+        INIT_ITER_UC(0x218, 0x740, 60.0f, D_44F4_iterV_t, D_44F4_iterV_p);  /* V */
+        INIT_ITER_UC(0x230, 0x744, 60.0f, D_44F4_iterW_t, D_44F4_iterW_p);  /* W */
+        INIT_ITER_UC(0x248, 0x748, 1.5f, D_44F4_iterX_t, D_44F4_iterX_p);  /* X */
+        INIT_ITER_U(0x260, 0x74C, 0xD8, D_44F4_iterY_t, D_44F4_iterY_f, D_44F4_iterY_p);  /* Y */
+        INIT_ITER_UC(0x278, 0x750, 1.5f, D_44F4_iterZ_t, D_44F4_iterZ_p);  /* Z */
+        INIT_ITER_UC(0x290, 0x754, 2000.0f, D_44F4_iterAA_t, D_44F4_iterAA_p);  /* AA */
+        INIT_ITER_UC(0x2A8, 0x758, 2000.0f, D_44F4_iterBB_t, D_44F4_iterBB_p);  /* BB */
+        INIT_ITER_UC(0x2C0, 0x75C, 2000.0f, D_44F4_iterCC_t, D_44F4_iterCC_p);  /* CC */
+        INIT_ITER_U(0x2D8, 0x760, 0xDC, D_44F4_iterDD_t, D_44F4_iterDD_f, D_44F4_iterDD_p);  /* DD */
+        INIT_ITER_U(0x2F0, 0x764, 0xE0, D_44F4_iterEE_t, D_44F4_iterEE_f, D_44F4_iterEE_p);  /* EE */
+        INIT_ITER_U(0x308, 0x768, 0xE4, D_44F4_iterFF_t, D_44F4_iterFF_f, D_44F4_iterFF_p);  /* FF */
+        INIT_ITER_UC(0x320, 0x76C, 240.0f, D_44F4_iterGG_t, D_44F4_iterGG_p);  /* GG */
+        INIT_ITER_UC(0x338, 0x770, 240.0f, D_44F4_iterHH_t, D_44F4_iterHH_p);  /* HH */
+        INIT_ITER_UC(0x350, 0x774, 240.0f, D_44F4_iterII_t, D_44F4_iterII_p);  /* II */
+        INIT_ITER_UC(0x368, 0x778, 240.0f, D_44F4_iterJJ_t, D_44F4_iterJJ_p);  /* JJ */
+        INIT_ITER_UC(0x380, 0x77C, 240.0f, D_44F4_iterKK_t, D_44F4_iterKK_p);  /* KK */
+        INIT_ITER_UC(0x398, 0x780, 240.0f, D_44F4_iterLL_t, D_44F4_iterLL_p);  /* LL */
+        INIT_ITER_UC(0x3B0, 0x784, 240.0f, D_44F4_iterMM_t, D_44F4_iterMM_p);  /* MM */
+        INIT_ITER_UC(0x3C8, 0x788, 240.0f, D_44F4_iterNN_t, D_44F4_iterNN_p);  /* NN */
         (void)s2;
     }
-#undef INIT_ITER
+#undef INIT_ITER_U
+#undef INIT_ITER_UC
 
     /* Stage 5+ (deprecated doc — see Stages 8-11 for full per-iter
      * unrolled loop characterization; all 38 iters TBD as C body): write sub-region back-pointer; init sub-region from
@@ -1855,35 +1890,23 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *     IDO allocated 0x1B0 frame (TOO big), shifted everything;
      *     -0.6pp
      *
-     * Promotion path requires breaking IDO's `&D_00000000` CSE
-     * across iters. The most-promising recipe (per
-     * feedback_unique_extern_with_offset_cast_breaks_cse.md, verified to
-     * crack a sibling 89.47% cap on timproc_uso_b3_func_000021F4):
+     * 2026-05-05 UPDATE: applied feedback_unique_extern_with_offset_cast_
+     * breaks_cse.md recipe — declared 99 unique externs in
+     * undefined_syms_auto.txt (D_44F4_iterX_{t,f,p}, all at 0x0),
+     * replaced INIT_ITER with INIT_ITER_U (D-source iters) and
+     * INIT_ITER_UC (const-float iters). Result: 61.61% → 63.33% (+1.72pp).
      *
-     *   1. Declare ~120 unique externs in undefined_syms_auto.txt all
-     *      at 0x0, one per D-reference site (3 per iter × 41 iters):
-     *        D_44F4_iter0_t = 0x00000000;   // template ptr base
-     *        D_44F4_iter0_f = 0x00000000;   // float scalar base
-     *        D_44F4_iter0_p = 0x00000000;   // s0+0xC ptr base
-     *        ... × 41 iters
-     *   2. Replace each `(char*)&D_00000000 + OFFSET` in INIT_ITER and
-     *      its call sites with `(char*)&D_44F4_iterN_X + OFFSET`.
-     *   3. IDO sees N different bases → can't CSE → emits per-iter lui.
+     * Per-iter gain measured smaller than projected (~0.04pp/iter vs
+     * predicted ~0.07pp/iter). Most of the residual gap is the per-iter
+     * sp-relative arg-buffer spill pattern (separate cap class, would
+     * need unique-pseudo or volatile-ptr-to-arg trick — see
+     * feedback_volatile_ptr_to_arg_forces_caller_slot_spill.md).
      *
-     * The recipe lifts the per-iter delta from -6 insns/iter to 0,
-     * recovering ~123 of the 244 insns gap. Still leaves ~121 insns
-     * unaccounted for — likely the per-iter sp-relative arg-buffer
-     * spill pattern (separate cap), which would need a similar
-     * unique-pseudo trick.
-     *
-     * Estimated effort: 1-2 ticks of careful refactoring (adding the
-     * 41-iter symbol table to undefined_syms_auto.txt + replacing all
-     * 123 D references in the macro/iter table). High-confidence per
-     * the verified sibling case, but mechanical bulk.
-     *
-     * Other angles for future ticks (lower-confidence):
-     *   - decomp-permuter with PERM_RANDOMIZE around the macro
-     *   - Accept 61.61% as the C-decomp ceiling; rely on byte-correct
+     * Remaining promotion paths:
+     *   - decomp-permuter with PERM_RANDOMIZE around the macros
+     *   - Apply volatile-ptr-to-arg trick to force caller-slot spill
+     *     in the macro body (a1/a2 args spill at sp+4/sp+8)
+     *   - Accept 63.33% as the C-decomp ceiling; rely on byte-correct
      *     ROM via INCLUDE_ASM. */
     (void)s0;
 
