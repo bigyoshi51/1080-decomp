@@ -754,6 +754,21 @@ int *func_0000553C(int *arg0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
 #endif
 
+/* func_000055A0: 598-insn (0x958) heavy compute function — frame -0x180,
+ * dozens of f-reg slots at sp+0x154..0x180, global-state read via
+ * `func_0000057C + 0x1C` (the splat-fold-into-nearest-func pattern per
+ * feedback_splat_folds_unknown_reloc_into_nearest_func_symbol.md — there
+ * should be a proper D_<addr> rodata symbol there).
+ *
+ * Float constants used: 1.0f (0x3F800000), 0.5f (0x3F000000), and an
+ * unusual 0xAA002 stored as int. The 1.0/0.5 weights suggest interpolation
+ * or weighted-sum math; combined with the global-state OR-ed with 0x8
+ * (`ori t7, t6, 0x8`) and the 0x10|a2 mask, this looks like a per-frame
+ * world/camera/object state update with stat machine bit-flips.
+ *
+ * Too big to decode in one tick (~10 mins). Multi-pass decomp candidate;
+ * the next /decompile run can pick up here. Default INCLUDE_ASM keeps
+ * ROM correct; this comment is the starting context. */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000055A0);
 
 void func_00005EF8(int *dst) {
