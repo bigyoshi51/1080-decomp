@@ -213,15 +213,30 @@ def inject_suffix(o_path: Path, func_name: str, suffix_words: list[int],
     text_off = elf.sections[text_idx][4]
 
     if verify:
-        # If the bytes at the tail position already match the suffix words,
-        # we've already injected (e.g. running again or INCLUDE_ASM build path).
+        # Skip path 1: bytes AT the tail (post-st_size) already match the
+        # suffix. Happens when running the script twice in a row.
         existing = bytes(elf.data[text_off + tail_addr:
                                    text_off + tail_addr + n_bytes])
         if existing == payload:
             print(f"inject-suffix-skip: {func_name} already has suffix bytes "
-                  f"at tail (likely INCLUDE_ASM build path); no-op",
+                  f"at tail (likely re-run); no-op",
                   file=sys.stderr)
             return
+        # Skip path 2: the function's TRAILING n_bytes (inside st_size) already
+        # match the suffix payload. This is the INCLUDE_ASM build path: the .s
+        # file's symbol declaration encompasses the suffix bytes (e.g. when
+        # the suffix is the stolen-prologue of the next function), so the
+        # baseline build naturally produces a function with the suffix already
+        # baked in. C-emit builds produce a shorter function and rely on this
+        # script to extend it.
+        if func_size >= n_bytes:
+            in_func_tail = bytes(elf.data[text_off + tail_addr - n_bytes:
+                                           text_off + tail_addr])
+            if in_func_tail == payload:
+                print(f"inject-suffix-skip: {func_name} already ends with "
+                      f"suffix bytes inside st_size (INCLUDE_ASM build path); "
+                      f"no-op", file=sys.stderr)
+                return
         # Verify the function's last insn is `nop` (delay slot of jr ra) — the
         # standard end of a function before any trailing dead/stolen-prologue
         # bytes. The tail-1 insn should be `jr ra` (0x03E00008).
