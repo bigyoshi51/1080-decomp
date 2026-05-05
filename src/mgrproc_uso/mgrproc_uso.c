@@ -416,7 +416,56 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000285
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002940);
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00002AFC: 32-insn (0x80) FP step-and-clamp helper.
+ *
+ * Two-stage value adjustment on a0->0x168 (float field):
+ *   gl_func(a0);                                  // notify call
+ *   v = a0->0x168;
+ *   if (0.0f < v) {                               // c.lt.s $f2, $f0
+ *       v -= D[0x614];                            // step decrement
+ *       a0->0x168 = v;
+ *   }
+ *   v = a0->0x168;
+ *   if (0.0f < v) {                               // re-check
+ *       a0->0x168 = 0.0f;                         // clamp to zero
+ *   }
+ *   v = a0->0x168;
+ *   if (0.0f < v) {
+ *       a0->0x168 = 0.0f;                         // clamp again (?)
+ *   }
+ *   gl_func();                                    // 2nd notify call
+ *
+ * The 3-iteration clamp pattern is unusual — possibly a single statement
+ * in source like `while (a0->0x168 > 0) a0->0x168 = 0;` that IDO
+ * partially-unrolled, or an intentional triple-check (rare). Each `bc1f`
+ * has a `c.le.s $f2, $f0` in its delay slot — IDO emits this pattern
+ * for FP comparisons even though c.le.s isn't strictly needed.
+ *
+ * Initial fresh decode — multi-pass refinement expected. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void mgrproc_uso_func_00002AFC(int *a0) {
+    float v;
+    gl_func_00000000(a0);
+    v = *(float*)((char*)a0 + 0x168);
+    if (0.0f < v) {
+        v -= *(float*)((char*)&D_00000000 + 0x614);
+        *(float*)((char*)a0 + 0x168) = v;
+    }
+    v = *(float*)((char*)a0 + 0x168);
+    if (0.0f < v) {
+        *(float*)((char*)a0 + 0x168) = 0.0f;
+    }
+    v = *(float*)((char*)a0 + 0x168);
+    if (0.0f < v) {
+        *(float*)((char*)a0 + 0x168) = 0.0f;
+    }
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002AFC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7C);
 
