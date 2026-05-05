@@ -835,12 +835,74 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001DD0);
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
 
 
-/* func_800021A4 absorbed func_800021D0 fragment via merge-fragments
+#ifdef NON_MATCHING
+/* func_800021A4: absorbed func_800021D0 fragment via merge-fragments
  * (splat split at 0x800021D0 — fragment had no prologue, used $t1/$t2/$a1
- * set by the prologue at 0x800021A4). Combined: 43 insns / 0xAC. The
- * function walks an entry list of 12-byte records, dispatching on a
- * type field (a3 = halfword[0] & 7). */
+ * set by the prologue at 0x800021A4). Combined 43 insns / 0xAC.
+ *
+ * Entry-list walker: dispatches on a type field (entry.halfword[0] & 7)
+ * for each 12-byte record. Skips entries with the 0x8 "processed" flag.
+ * type == 2: shifted offset into a0[0x38]+t8*4 lookup, accumulate into entry+0x4
+ * type == 4: same offset, no lookup
+ * type == 3: write t8 (= v0 << 4 >> 4 = sign-extended sub-field) to entry[0]
+ *
+ * Initial decode 2026-05-04 — first C body for this merged function.
+ * Default build INCLUDE_ASM matches; this is reference structure for
+ * future grinding. */
+int func_800021A4(int *a0) {
+    int *v0;
+    int v1;
+    short *a2;
+    int a1;
+    short type_word;
+    int a3, t8, t9, t3, t4, t7, t5, t6;
+    v0 = (int*)a0[0x3C / 4];
+    if (v0 == 0) return 0;
+    a1 = a0[0x4 / 4];
+    v1 = 0;
+    a2 = (short*)v0;
+    if (a1 <= 0) return 0;
+    do {
+        type_word = a2[0];
+        v1++;
+        if (type_word & 0x8) goto next;
+        a3 = type_word & 0x7;
+        t8 = type_word >> 4;
+        if (a3 == 2) {
+            t9 = t8 << 2;
+            goto store_lookup;
+        }
+        if (a3 == 4) {
+            t9 = t8 << 2;
+            goto do_store;
+        }
+        if (a3 == 3) {
+            *a2 = (short)t8;
+            a1 = a0[0x4 / 4];
+            goto next;
+        }
+        a1 = a0[0x4 / 4];
+        goto end_check;
+    store_lookup:
+    do_store: {
+            int *t3 = (int*)((char*)a0 + t9);
+            t4 = t3[0x38 / 4];
+            t7 = ((int*)a2)[0x4 / 4];
+            t6 = type_word | 0x8;
+            *a2 = (short)t6;
+            t5 = t7 + t4;
+            ((int*)a2)[0x4 / 4] = t5;
+            (void)t6;  /* avoid unused */
+        }
+    next:
+    end_check:
+        a2 = (short*)((char*)a2 + 0xC);
+    } while (v1 < a1);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800021A4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
 
