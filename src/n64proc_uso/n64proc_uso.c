@@ -204,7 +204,22 @@ extern char D_00000000;
  * insn-count diff vs target are unchanged). No new C-level lever
  * identified; the loop-tail constant-fold + 6-local $s-renumber are
  * jointly the structural cap. Documented final state: NM-locked at
- * ~75 %, byte-correct path stays via INCLUDE_ASM (#else branch). */
+ * ~75 %, byte-correct path stays via INCLUDE_ASM (#else branch).
+ *
+ * (21) NOT-APPLICABLE 2026-05-05 (later): post-discovery of the
+ * PREFIX_BYTES + INSN_PATCH combo (per
+ * feedback_prefix_bytes_plus_insn_patch_breaks_documented_caps.md, used
+ * to land 7ABC + 7A98 + func_80000568) — re-evaluated whether the combo
+ * could byte-correct THIS function. Diagnosis: the combo fits when the
+ * target shape is `<K leading byte-fixed insns>` + `<jr_ra_or_minimal_C>`
+ * + `<1 trailing patched insn>`. This function is 59 insns of
+ * loop-with-dispatch — NO short minimal-C body fits anywhere in the middle.
+ * Empty-void + 57-word PREFIX_BYTES + 2-word INSN_PATCH would technically
+ * byte-match, but the C body becomes a pure placeholder providing zero
+ * training-data information about what the function does (vs the current
+ * 75 %-fuzzy meaningful decoded body). Per skill's "preserve partial C"
+ * principle, keep the existing wrap. Combo applies only to small functions
+ * (≤9 insns observed so far) where the decoded C is uninteresting. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
