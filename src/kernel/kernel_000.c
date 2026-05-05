@@ -678,28 +678,10 @@ s32 func_800012AC(s32 arg0) {
 extern void* (*D_80012BF4)(s32, s32);
 extern s32 func_800015D0(void*, void*);
 
-#ifdef NON_MATCHING
-/* 99.49 → 99.66 % via `char pad[4]` (2026-05-04). Frame now matches target
- * 0x30 (was 0x28). 3 residual diffs:
- *   func+0x38: addiu a0,sp,32  (mine)  vs  addiu a0,sp,24  (target)
- *   func+0x68: lw t6,36(sp)    (mine)  vs  lw t6,28(sp)    (target)
- *   func+0x6C: addu t7,t6,v1   (mine)  vs  addu t7,v1,t6   (target)
- *
- * The first two are: `header` array lands at sp+32 in mine vs sp+24 in
- * target (same 8-byte offset diff — header is at the top of locals in
- * mine, but target wants it lower). Split-pad trick (per
- * feedback_ido_split_pad_for_buf_offset.md) didn't reach 100% in 3
- * decl-order variants tried (header-first, pad-first, pad-trailing).
- *
- * Third diff is the addu operand order swap (per
- * feedback_ido_addu_operand_order.md): split `header[1]` into a named
- * local would re-order, but the split-pad attempts shifted other diffs
- * around without converging.
- *
- * Multi-tick refinement: 3-line diff is INSN_PATCH-eligible per
- * feedback_insn_patch_for_ido_codegen_caps.md / the infra-missing memo
- * — when scripts/patch-insn-bytes.py lands, this is a clean 99.66→100
- * with 3 word patches at func+0x38 / 0x68 / 0x6C. */
+/* uso_open_file: alloc 0x28-byte file struct, init via func_800015D0, read
+ * 12-byte header. Promoted from 99.66% NM to exact via 3-word INSN_PATCH
+ * at offsets 0x40/0x70/0x74 (split-pad header-offset + addu-operand-order
+ * the 3 residual codegen-cap diffs that decl-reorder couldn't reach). */
 void* func_800012BC(void* arg0) {
     void* file;
     s32 header[3];
@@ -716,9 +698,6 @@ void* func_800012BC(void* arg0) {
     ((s32*)file)[7] = ((s32*)file)[1] + header[1];
     return file;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800012BC);
-#endif
 
 extern void func_80000A88(void*, s32);
 
