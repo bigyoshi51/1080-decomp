@@ -364,23 +364,27 @@ s32 func_8000058C(s32 arg0) {
  * shorter, possibly word-aligned. Preserved as INCLUDE_ASM in default
  * build so kernel section size matches baserom. */
 void func_80000598(u8* src, u8* dst, s32 count) {
-    s32 remaining;
-    u8* dstCurr;
-    u8* srcCurr;
-    u8 byte;
-
-    srcCurr = src;
-    dstCurr = dst;
-    remaining = count - 1;
-    if (count != 0) {
-        do {
-            byte = *srcCurr;
-            *dstCurr = byte;
-            dstCurr++;
-            srcCurr++;
-            remaining--;
-        } while (remaining != 0);
-    }
+    u8* sp;
+    u8* dp;
+    s32 cp;
+    u8* p;
+    u8* q;
+    s32 rem;
+    cp = count;
+    sp = src;
+    dp = dst;
+    if (count == 0) return;
+    cp--;
+    do {
+        p = sp;
+        rem = cp;
+        q = dp;
+        dp++;
+        sp++;
+        *q = *p;
+        cp--;
+    } while (rem != 0);
+    (void)rem;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
