@@ -88,7 +88,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEE8);
  * cluster to a new bootup_uso_o0_<offset>.c with -O0 OPT_FLAGS, update
  * linker script). Deferred — file-split infra change is heavier than
  * one-tick scope. */
-extern void func_00000000(int *);
 void func_000100F0(int *a0, int a1) {
     int *p;
     short adj;
