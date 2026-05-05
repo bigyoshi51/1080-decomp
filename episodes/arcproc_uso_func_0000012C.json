@@ -1,0 +1,33 @@
+{
+  "function_name": "arcproc_uso_func_0000012C",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-05T04:24:42.224728+00:00",
+  "end_time": "2026-05-05T04:24:42.224749+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-05T04:24:42.224743+00:00",
+      "assistant_text": "13-insn -O0 helper. Calls gl_func_00000000(a0, a1) then decrements a0[0] and returns 1 if zeroed, 0 otherwise. Sibling pattern with 0000019C in same file (same -O0 dead-BB-marker cap class).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 28,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\n\n#ifdef NON_MATCHING\n/* -O0 refcount-decrement-and-check (28 insns, 0x70). 2-arg variant of the\n * pattern in mgrproc_uso_func_000000B0: calls gl_func_00000000(a0, a1),\n * decrements *a0, returns 1 if it hit zero else 0.\n *\n * Match: 92.86% (re-confirmed 2026-05-04 via unwrap-and-rebuild test per\n * feedback_nm_wrap_99pct_may_be_silently_exact.md \u2014 cap is REAL, not\n * stale; current emit still 92.86%, slight drift from prior 92.68%).\n *\n * Sole structural diff: trailing dead `b +1; nop` at end of function (target\n * skips this since the natural fall-through reaches epilogue with no jump).\n * IDO -O0 emits `b epilogue` after BOTH return paths; the second one is\n * dead since PC+4 IS the epilogue. C-side cannot eliminate this without\n * shrinking the function past TRUNCATE_TEXT.\n *\n * Cap stands at 92.86% (1-insn dead-branch trailing). Same -O0 epilogue\n * pattern as arcproc_uso_func_000000B4 sibling. */\nint arcproc_uso_func_0000012C(int *a0, int a1) {\n    register int *p;\n    gl_func_00000000(a0, a1);\n    p = a0;\n    *p -= 1;\n    if (*a0 == 0) return 1;\n    return 0;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000012C);\n#endif\n\n#ifdef NON_MATCHING\n/* arcproc_uso_func_0000019C: -O0 size allocator-state update (41 insns, 0xA4).\n * Adds a new allocation of size `a1` to the slab at `a0`:\n *   - If a0[1] (count) == 0: a0[8 + a0[1]] = a1; return.\n *   - Else: sum existing allocations a0[8..8+count], place new at index\n *     `count` with value `a1 - sum`, set a0[13] = a1 (cached current total).\n *\n * -O0 markers: addiu sp,-8 (tiny frame for 2 stack-resident locals i/j at\n * sp+0x4/sp+0x0), all loads/stores of locals via $sp, trailing dead `b +1;\n * nop` before epilogue. Sibling-of arcproc_uso_func_0000012C in this file.\n *\n * 2026-05-03 LIFTED 65.92 -> 95.0 % NM via THREE C-form changes:\n *   1. EARLY-RETURN form `if (==0) {store; return}` instead of if/else\n *      flips bnez/beqz arm to match target. (65.9 -> 75.0%)\n *   2. SAME-EXPRESSION early-return `a0[8 + a0[1]] = a1` (with index\n *      recomputed even though a0[1]==0) prevents IDO from constant-folding\n *      to `a0[8]`. (no % change but matched insns 4-7)\n *   3. ENTRY-GUARDED do-while `if (a0[1] > 0) { do {...} while (++j < N); }`\n *      emits `blez` entry guard + `slt+bnez` back-edge with `++j` keeping\n *      j in t8 across the back-edge slt (vs `j++; while(...)` which spills).\n *      (75.0 -> 88.5 -> 95.0%)\n *\n * Residual ~5pp is the trailing dead `b +1; nop` IDO -O0 emits but mine\n * doesn't (function emits 2 fewer insns). Same TRUNCATE_TEXT-style cap\n * as 0x12C sibling. Acceptable. */\nvoid arcproc_uso_func_0000019C(int *a0, int a1) {\n    int i, j;\n    if (a0[1] == 0) { a0[8 + a0[1]] = a1; return; }\n    i = 0;\n    j = 0;\n    if (a0[1] > 0) {\n        do {\n            i += a0[8 + j];\n        } while (++j < a0[1]);\n    }\n    a0[8 + a0[1]] = a1 - i;\n    a0[13] = a1;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/arcproc_uso/arcproc_uso\", arcproc_uso_func_0000019C);\n#endif\n",
+  "metadata": {
+    "source_path": "src/arcproc_uso/arcproc_uso_o0_12C.c",
+    "asm_path": "asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_0000012C.s",
+    "segment": "arcproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-correct ROM build via INCLUDE_ASM (default build path takes #else branch). C body 92.86% on its own; 1-insn dead trailing `b +1` BB-marker residual matches sibling 0000019C cap pattern (IDO -O0 statement-list-end marker, not eliminable from C-side without shrinking past TRUNCATE_TEXT)."
+  }
+}
