@@ -944,6 +944,33 @@ void gl_func_0000B560(int *p) {
  * per call site — not a uniform recipe. Stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B5AC);
 
+/* gl_func_0000B638: 29-insn function in the B560/B5AC/B638 dispatcher chain.
+ * Like B5AC, INHERITS $hi (from B5AC's tail-SUFFIX_BYTES `sll v0,a1,2; subu;
+ * addiu at,$0,5; div`) AND $v0 (caller-side flag). Same uninterruptible
+ * mfhi-then-bgez pattern as B5AC.
+ *
+ * Decoded structure (cross-checked with B5AC analysis above):
+ *   ; entry inherits $hi = (a1*3)%5, $v0 = caller flag
+ *   t8 = a1; t9 = 3*a1; save args; t7 = *a0;
+ *   t1 = 0xD388;                       ; lookup-table base (B5AC used 0xD268, +0x120 here)
+ *   a1 = $hi;                           ; inherited remainder
+ *   t9 = 48*a1;
+ *   t0 = 4*v0;                          ; index by INHERITED v0 with 4-byte stride
+ *                                       ;   (B5AC indexed by 36*a1 — different stride)
+ *   a3 = t0 + t1 = 4*v0 + 0xD388;       ; per-flag table lookup
+ *   a0 = *a0 + 48*a1;                   ; per-a1 struct entry
+ *   if (v0 < 0 || (v0 & 7) == 0) goto call;
+ *   a2 = (v0 & 7) - 8;
+ * call:
+ *   func_00000000();   ; first jal
+ *   func_00000000();   ; second jal (a0 reloaded in delay slot)
+ *   return;
+ *
+ * BLOCKED for prototype-based C — same class as B5AC. Inherited $v0
+ * varies per call site; no uniform PREFIX_BYTES recipe. Stays INCLUDE_ASM
+ * for now. Per docs/POST_CC_RECIPES.md
+ * #feedback-insn-patch-for-ido-codegen-caps "HI/LO register inheritance
+ * (chained-SUFFIX-div pattern, 2026-05-05)" — same recognition pattern. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B638);
 
 extern int gl_func_00000000();
