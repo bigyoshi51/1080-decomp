@@ -1,0 +1,18 @@
+{
+  "_comment": "Per-project MCP server config for 1080 decomp. Currently exposes pyghidra-mcp against the cached Ghidra project at build/ghidra-project/tenshoe. Reproducible via scripts/setup-ghidra.sh (one-time ~7 min auto-analysis + symbol import). See feedback_pyghidra_mcp_setup_for_n64_decomp.md.",
+  "mcpServers": {
+    "pyghidra": {
+      "command": "/home/dan/.local/share/uv/tools/pyghidra-mcp/bin/pyghidra-mcp",
+      "args": [
+        "--transport", "stdio",
+        "--project-path", "/home/dan/Documents/code/decomp/projects/1080-agent-e/build/ghidra-project/tenshoe.gpr",
+        "--wait-for-analysis"
+      ],
+      "env": {
+        "JAVA_HOME": "/home/dan/Documents/code/decomp/tools/jdk-21.0.5",
+        "GHIDRA_INSTALL_DIR": "/home/dan/Documents/code/decomp/tools/ghidra-12.0.4",
+        "PATH": "/home/dan/Documents/code/decomp/tools/jdk-21.0.5/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      }
+    }
+  }
+}
