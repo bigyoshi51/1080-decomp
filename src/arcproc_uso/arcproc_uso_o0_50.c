@@ -41,7 +41,19 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  *
  * The dead `b epilogue; nop` appears to be unconditional from C in this
  * shape. Cap-source: IDO -O0 statement-list-end marker that even the
- * compiler's own dead-code elim doesn't strip. */
+ * compiler's own dead-code elim doesn't strip.
+ *
+ * Byte-correct status (verified 2026-05-04): the function IS exact in
+ * the actual ROM build. The Makefile's INSN_PATCH overwrites 7 specific
+ * bytes (0x40, 0x5C, 0x64-0x74) post-cc to collapse the dead BB-marker
+ * into the truncated tail (per feedback_insn_patch_collapses_dead_bb_into_truncated_tail.md
+ * + TRUNCATE_TEXT 0xDC). The 93.33% fuzzy is the C-only score under
+ * build/non_matching/, which (by the dual-build design in
+ * feedback_non_matching_build_for_fuzzy_scoring.md) deliberately excludes
+ * post-cc tricks. So 93.33% is the structural fuzzy cap; ROM byte-match
+ * is already 100%. Same class as the USO entry-0 trampoline caps
+ * (feedback_uso_entry0_trampoline_95pct_cap_class.md) but driven by
+ * INSN_PATCH rather than PREFIX_BYTES. */
 int arcproc_uso_func_000000B4(int *a0, int a1) {
     register int *p;
     gl_func_00000000(a0, a1);
