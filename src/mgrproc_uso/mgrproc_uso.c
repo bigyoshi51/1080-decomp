@@ -205,8 +205,68 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F
  * overscope. Documented as multi-tick spine pick.
  *
  * Default INCLUDE_ASM build remains exact. Wrap captures the 9-case dispatch
- * skeleton + per-case fingerprints for the next tick to refine. */
+ * skeleton + per-case fingerprints for the next tick to refine.
+ *
+ * 2026-05-06: initial NM wrap added with switch skeleton. Cases 0-5 captured
+ * structurally; cases 6/7/8 left as TODO (more complex arg-spill + indirect
+ * pointer chains). Will not byte-match — all 9 cases need IDO jump-table
+ * emit + 9 unique gl_func relocs + multi-extern aliases for case 4. */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void mgrproc_uso_func_0000019C(char *a0, int a1) {
+    int loop_continue;
+    do {
+        loop_continue = 0;
+        if ((unsigned)a1 >= 9) break;
+        switch (a1) {
+            case 0:
+                gl_func_00000000(a0, 1, 0xB, 8);
+                *(int*)((char*)&D_00000000 + 0x44) = 2;
+                *(int*)((char*)&D_00000000 + 0x48) = 8;
+                loop_continue = 1;
+                break;
+            case 1:
+                gl_func_00000000(a0, 1, 7, 4);
+                *(int*)((char*)&D_00000000 + 0x44) = 2;
+                *(int*)((char*)&D_00000000 + 0x48) = 8;
+                loop_continue = 1;
+                break;
+            case 2:
+                gl_func_00000000(a0);
+                *(int*)((char*)&D_00000000 + 0x40) = 3;
+                break;
+            case 3:
+                gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0x68));
+                *(int*)((char*)&D_00000000 + 0x40) = 4;
+                break;
+            case 4:
+                /* TODO: 28-insn multi-struct init (D_a/D_b/D_c access chain,
+                 * sp[0x50]->8->4 indexed by sp[0x18]<<2, D[0x80] |= 1) */
+                *(int*)((char*)&D_00000000 + 0x40) = 4;
+                break;
+            case 5:
+                /* a0 = sp[0x50]; a1 = *(int*)a0; gl_func(a0, a1) */
+                gl_func_00000000(a0, *(int*)a0);
+                break;
+            case 6:
+                /* TODO: 8-insn pre-call sp scratch buf + ASCII imm
+                 * + struct chain a0->8->0 + 0x45000000 const */
+                break;
+            case 7:
+                /* TODO: 5-insn — saves v0 from prior call, then gl_func(a0,0,s0_v0) */
+                loop_continue = 1;
+                break;
+            case 8:
+                /* TODO: ~25-insn sp scratch + buf-OR-0x2000 + ASCII reloc */
+                loop_continue = 1;
+                break;
+        }
+        a1++;
+    } while (loop_continue);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000019C);
+#endif
 
 #ifdef NON_MATCHING
 /* 51-insn allocator+init wrapper. 4 cross-USO calls + branch on D[0] sentinel.
