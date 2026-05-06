@@ -3019,6 +3019,37 @@ void gl_func_000515C0(int *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000515FC);
 
+/* gl_func_0005165C: 14-insn function INHERITS $v1 from predecessor
+ * gl_func_000515FC's trailing SUFFIX_BYTES. Predecessor's last 2 insns
+ * (0x58/0x5C in its .s, after jr ra+nop epilogue) are
+ * `lui v0, 0; addiu v1, v0, 0` — they fall-through into 5165C, leaving
+ * v1 = &SOME_GLOBAL.
+ *
+ * Decoded body uses inherited $v1 as the alloc-or-passthrough flag:
+ *   if (v1 == 0):
+ *     p = func_00000000(4)        ; alloc 4 bytes
+ *     if (p == 0) goto end
+ *     v1 = p
+ *   *v1 = 0
+ * end:
+ *   D_global[1] = 0
+ *   D_global[0] = 0
+ *   return
+ *
+ * This is the same chained-SUFFIX inheritance pattern as gl_func_0000B5AC/
+ * B638 (per docs/POST_CC_RECIPES.md
+ * #feedback-insn-patch-for-ido-codegen-caps "HI/LO register inheritance"
+ * recipe family — extended here to GP-register inheritance via lui+addiu).
+ *
+ * BLOCKED for prototype-based C: $v1 from predecessor's SUFFIX is uniform
+ * (always &SAME_GLOBAL) so PREFIX_BYTES could in principle capture it.
+ * But the C body's `if (v1 == 0)` test is also constant-true since
+ * &globals are always non-zero — meaning the alloc arm is dead in practice.
+ * Either the asm has unreachable defensive code, or the inherited $v1 is
+ * SOMETHING ELSE (e.g., loaded value rather than address). Defer.
+ *
+ * Predecessor gl_func_000515FC is a standard Quad4-reader
+ * (alloc+gl_func(0x10)+copy 16 bytes). The SUFFIX is for THIS successor only. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005165C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051694);
