@@ -329,7 +329,41 @@ void mgrproc_uso_func_00001304(void) {
     mgrproc_uso_func_00000000();
 }
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00001324: 41-insn lazy-init guard. Pattern: idempotent
+ * "ensure-initialized" check on arg0->[0x4FC] flag. If unset, runs init
+ * cascade calling sub-init via arg0[0x6AC] then arg0[0x6A8]
+ * (state-machine-like dispatch on arg0[0x4F8]), with optional sub-sub-init
+ * via (*arg0[0x6AC])->[0x4C]. Sets arg0[0x4FC]=1 (guard) and
+ * arg0[0x7D0]=arg0[0x4F8] (cached state). Returns 1.
+ *
+ * The early-out "if guard==0" + always-return-1 makes this a standard-
+ * shape 1-shot init function. Field offsets suggest a struct around
+ * 0x800 bytes with fields at 0x4EC, 0x4F8, 0x4FC, 0x6A8, 0x6AC, 0x7D0 —
+ * likely a per-process state struct (mgrproc).
+ *
+ * Yay0-compressed segment; default INCLUDE_ASM build remains exact.
+ * Initial decode 2026-05-05; multi-tick refinement target. */
+int mgrproc_uso_func_00001324(char *arg0) {
+    int v;
+    if (*(int*)(arg0 + 0x4FC) == 0) {
+        gl_func_00000000(*(int*)(arg0 + 0x6AC), 0, 1);
+        v = *(int*)(arg0 + 0x4F8);
+        if (v != 2) {
+            gl_func_00000000(*(int*)(arg0 + 0x6A8));
+        }
+        if (gl_func_00000000(*(int*)(arg0 + 0x6A8)) != 0 &&
+            gl_func_00000000(*(int*)(*(int*)(arg0 + 0x6AC) + 0x4C)) != 0) {
+            *(int*)(arg0 + 0x4EC) = -0x258;
+        }
+        *(int*)(arg0 + 0x4FC) = 1;
+        *(int*)(arg0 + 0x7D0) = *(int*)(arg0 + 0x4F8);
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001324);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C8);
 
