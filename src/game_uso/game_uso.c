@@ -5634,7 +5634,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
  *
  * Remaining ~12% is the same family cap as 10E2C: shared-base shape
  * almost matches, plus 2 missing varargs shadow stores
- * (sw a1, 0x4(sp); sw a2, 0x8(sp)) before the 2nd jal. */
+ * (sw a1, 0x4(sp); sw a2, 0x8(sp)) before the 2nd jal.
+ *
+ * 2026-05-06 retry: tried `volatile int * volatile *base_pp` indirection
+ * (the same trick that promoted 131C from 69→82%). No-op here — IDO
+ * still emits v0-base + offset-baked-into-lw because there are only 2
+ * adjacent loads (vs 131C's 3 non-adjacent), so IDO's fold collapses
+ * them regardless of volatile attribution on the address-holder. The
+ * volatile-pp trick requires N≥3 reads to lock the base register.
+ * Confirms the family cap; no C-level lever for 2-read case. */
 void game_uso_func_00010DC8(int a0) {
     register int *t;
     int v1, v2;
