@@ -989,7 +989,56 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
     *(int*)((char*)a0[0x2B8/4] + 0x138) = 0;
 }
 
+#ifdef NON_MATCHING
+/* 51-insn / 0xCC float clamp + copy. Pattern:
+ *   v1 = a0->[0x2B8];
+ *   if (v1->[0x134] != 0) {        ; increment branch
+ *       v1->[0x128] += D[0x374];
+ *       if (v1->[0x128] > 1.0f)
+ *           v1->[0x128] = 1.0f;
+ *   } else {                          ; decrement branch
+ *       v1->[0x128] -= D[0x378];
+ *       if (v1->[0x128] < 0.0f)
+ *           v1->[0x128] = 0.0f;
+ *   }
+ *   v1 = a0->[0x2B8];                 ; reload (target reloads here)
+ *   v1->[0x10C] = a0->[0x264];        ; out-of-source-order field copy
+ *   v1->[0x110] = a0->[0x25C];
+ *   v1->[0x114] = a0->[0x260];
+ *   v1->[0x118] = a0->[0x294];
+ *   gl_func_00000000();               ; tail call (no args)
+ *
+ * Initial decode — multi-pass refinement expected. The bc1fl + delay-likely
+ * pattern + reload-of-v1 across the fork are likely structural cap drivers.
+ * The 4-store epilogue order (0x10C, 0x110, 0x114, 0x118 in target asm —
+ * NOT in source-order 0x10C/0x110/0x114) suggests IDO scheduler interleave
+ * of the lwc1's and swc1's. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void timproc_uso_b5_func_0000C8AC(int *a0) {
+    int *v1;
+    v1 = (int*)a0[0x2B8 / 4];
+    if (*(int*)((char*)v1 + 0x134) != 0) {
+        *(float*)((char*)v1 + 0x128) += *(float*)((char*)&D_00000000 + 0x374);
+        if (*(float*)((char*)v1 + 0x128) > 1.0f) {
+            *(float*)((char*)v1 + 0x128) = 1.0f;
+        }
+    } else {
+        *(float*)((char*)v1 + 0x128) -= *(float*)((char*)&D_00000000 + 0x378);
+        if (*(float*)((char*)v1 + 0x128) < 0.0f) {
+            *(float*)((char*)v1 + 0x128) = 0.0f;
+        }
+    }
+    v1 = (int*)a0[0x2B8 / 4];
+    *(float*)((char*)v1 + 0x10C) = *(float*)((char*)a0 + 0x264);
+    *(float*)((char*)v1 + 0x110) = *(float*)((char*)a0 + 0x25C);
+    *(float*)((char*)v1 + 0x114) = *(float*)((char*)a0 + 0x260);
+    *(float*)((char*)v1 + 0x118) = *(float*)((char*)a0 + 0x294);
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C8AC);
+#endif
 
 #ifdef NON_MATCHING
 /* 5-insn / 0x14 float-storer. Split off from timproc_uso_b5_func_0000C8AC's
