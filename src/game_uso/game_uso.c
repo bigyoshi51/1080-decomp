@@ -5394,8 +5394,48 @@ void game_uso_func_0000D9CC(int *a0) {
          * physics-state callbacks).
          * Frame layout firmed up: sp+0x28 = saved t9 (callee return),
          * sp+0x2C = mode indicator, sp+0x30 = scratch (cleared each
-         * call). NEXT PASS (~400 insns @ 0xDB80+): decode the third
-         * residual chain and the gl_func dispatch on local_2C. */
+         * call).
+         *
+         * EXTENDED CHARACTERIZATION 2026-05-06 (insns 100-125 @ 0xDB50-0xDB90):
+         *   /* third c.le.s residual check on f2/f18 *\/
+         *   if (f2 <= f18) {            ; bc1fl skips fall-through if cc=0
+         *       state = s0->0xFC;
+         *       s0->0x108 = state | 0x0E;
+         *       sp+0x2C = 3;
+         *       goto far_merge_DBD4;    ; b 0xDBD4
+         *   } else {                    ; bc1fl-taken, t0 already loaded
+         *       state = t0;             ; (delay-slot reload of s0->0xFC)
+         *       s0->0x108 = state | 0x0F;
+         *       sp+0x2C = 1;
+         *       goto far_merge_DBD4;
+         *   }
+         *
+         * (Note: this is the THIRD chained residual-check writing 0x108.
+         * Earlier chains at 0xDA60+ wrote OR-masks 0x16/0x17 (mode 1/3),
+         * here 0x0E/0x0F (mode 3/1). The 4-bit nibble varies; the state
+         * byte at 0x108 accumulates all condition flags this frame.)
+         *
+         * START OF FOURTH CHAIN @ 0xDB90 (insns ~125-130):
+         *   f4 = 0.0f;
+         *   f6 = v1->[0xA1C] (inner field, same as f18 above);
+         *   if (0.0 < f6) {             ; c.lt.s f4, f6 + bc1fl
+         *       state = s0->0xFC;
+         *       s0->0x108 = state | 0x0C;  ; partial — body continues to 0xDBC4
+         *       /* sp+0x2C = 1; *\/
+         *   } else {
+         *       /* (decoded next pass — branch target 0xDBC4) *\/
+         *   }
+         *
+         * Cumulative ~125/524 insns characterized (~24%). The per-frame
+         * state-machine theme is now confirmed: chained c.lt.s / c.le.s
+         * gates each set a different OR-mask on s0->0x108 (state byte)
+         * plus a mode-indicator local_2C value. These are 4-5 chained
+         * checks, each on a different physics float field, accumulating
+         * the per-frame state that downstream gl_func calls dispatch on.
+         *
+         * NEXT PASS (~400 insns remaining): decode the fourth chain's
+         * else-branch at 0xDBC4+ and the merge at 0xDBD4 (where the
+         * accumulated state finally drives the cross-USO dispatch). */
     } else {
         /* 30.0f-fail path @ 0xDBDC (far forward, ~280 insns from entry).
          * Decoded skeleton: loads 500.0f into $f0 at delay slot, then
