@@ -54,7 +54,18 @@ void func_0000F288(Quad4 *a0) {
  * suggesting it's NOT the register-backup-slot theory — it's likely raw
  * + tmp + src each getting redundant slot reservations from IDO -O0's
  * naive stack-allocator. Remove `register` to test (likely regresses).
- * Reverting to 4-register-var form for stable baseline. */
+ * Reverting to 4-register-var form for stable baseline.
+ *
+ * 2026-05-06 retry (no-register-vars): dropped all 4 `register` qualifiers
+ * + replaced p1/p2/q with direct `dst` accesses. Frame shrank from -0x68
+ * to -0x50 (-0x18 below target -0x58!). Match 84.61% → 60.00% (regression
+ * 24.6pp). Without register hints, IDO -O0 doesn't allocate s-regs, so
+ * no s-reg saves emit and frame collapses past target's layout.
+ * Confirms target uses register-typed locals (4 of them, hence 0x10 of
+ * s-reg backup) but with -0x10 less stack frame than C produces. The
+ * remaining gap is IDO -O0 producing extra slot reservations that target
+ * doesn't have — possibly from a non-IDO toolchain pass on the original
+ * ROM, or a subtle -O0 sub-flag (e.g., -O0 -fno-something). */
 void func_0000F2EC(Vec3 *dst) {
     register Vec3 *p1 = dst;
     register Vec3 *p2 = p1;
