@@ -1109,7 +1109,47 @@ int gl_func_0000BFDC(int a0) {
     return tmp;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000C01C: 52-insn (0xD0) cross-USO orchestrator. Frame -0x88,
+ * saves s0/ra. Pattern: copy 0x60-byte buffer from arg1 to local stack,
+ * then make 7 cross-USO calls passing the buffer + various offsets.
+ *
+ * Decoded:
+ *   1. unrolled-by-3 loop copies 0x60 bytes from arg1 to sp[0x28]
+ *      (8 iterations of 0xC-byte chunks).
+ *   2. gl_func(sp[0x28], arg1, arg2_from_caller, arg3_from_caller)
+ *   3. gl_func(arg0, 0x190, sp[0x28], 0x60)
+ *   4. gl_func(sp[0x20], sp[0x28], 0x60, 0xDEADBBAD)
+ *   5. gl_func(arg0, 0x1F0, sp[0x20], 8)
+ *   6. gl_func(arg0, 0x7F60, sp[0x28], 0x60)
+ *   7. gl_func(arg0, 0x7FC0, sp[0x20], 8)
+ *   8. gl_func(arg0)
+ *
+ * Constants suggest framebuffer/segmented-memory ops: 0x190/0x1F0 are
+ * NTSC viewport-related, 0x7F60/0x7FC0 are top-of-RDRAM offsets, 0x60
+ * is element size, 0xDEADBBAD is poison. Likely a swap-buffers /
+ * commit-frame helper. Multi-tick refinement target. */
+extern int gl_func_C01C_callee();
+void gl_func_0000C01C(void *arg0, int *arg1, int arg2, int arg3) {
+    int buf60[24];   /* 0x60 bytes at sp+0x28 */
+    int buf08[2];    /* 8 bytes at sp+0x20 */
+    int i;
+    for (i = 0; i < 24; i += 3) {
+        buf60[i+0] = arg1[i+0];
+        buf60[i+1] = arg1[i+1];
+        buf60[i+2] = arg1[i+2];
+    }
+    gl_func_C01C_callee(buf60, arg1, arg2, arg3);
+    gl_func_C01C_callee(arg0, 0x190, buf60, 0x60);
+    gl_func_C01C_callee(buf08, buf60, 0x60, 0xDEADBBAD);
+    gl_func_C01C_callee(arg0, 0x1F0, buf08, 8);
+    gl_func_C01C_callee(arg0, 0x7F60, buf60, 0x60);
+    gl_func_C01C_callee(arg0, 0x7FC0, buf08, 8);
+    gl_func_C01C_callee(arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C01C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C0EC);
 
