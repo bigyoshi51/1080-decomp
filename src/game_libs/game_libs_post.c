@@ -3022,7 +3022,15 @@ void gl_func_000515C0(int *dst) {
     *dst = scratch;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000515FC);
+/* Standard Quad4 reader with pointer-indirect (volatile) idiom. 22 body
+ * insns (0x58) + 2 trailing SUFFIX bytes (0x60 declared total). The 2
+ * trailing insns (lui v0, 0; addiu v1, v0, 0) are stolen-prologue setup
+ * for successor gl_func_0005165C (which inherits $v1 from this fn's tail). */
+void gl_func_000515FC(Quad4 *dst) {
+    volatile Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 16);
+    *dst = *(Quad4*)&buf;
+}
 
 /* gl_func_0005165C: 14-insn function INHERITS $v1 from predecessor
  * gl_func_000515FC's trailing SUFFIX_BYTES. Predecessor's last 2 insns
