@@ -995,3 +995,5 @@ D_CD80_t1 = 0x0;
 D_CD80_t2 = 0x0;
 gl_func_returns_float = 0x00000000;
 gl_ref_00040E10 = 0x00040E10;
+gl_ref_00022038 = 0x00022038;
+gl_ref_0003F020 = 0x0003F020;

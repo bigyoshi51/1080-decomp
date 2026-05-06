@@ -4156,7 +4156,30 @@ void gl_func_00061E1C(int *dst) {
     *dst = scratch;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00061E58: 17-insn (0x44) "split arg into halfwords + tail-call".
+ *   gl_func_00000000(&gl_ref_0003F020, &gl_ref_00022038,
+ *                    (arg0 >> 16) & 0xFFFF, arg0 & 0xFFFF);
+ *   return (int)&gl_ref_0003F020;
+ *
+ * Encoding cap: target's lui+addiu pairs use sign-extending negative
+ * offsets (lui 0x4; addiu -0xFE0 → 0x3F020) whereas IDO emits lui+ori
+ * for literal `(int*)0x3F020` (lui 0x3; ori 0xF020) AND emits HI16/LO16
+ * relocations for `&gl_ref_0003F020` extern symbols. The expected/.o
+ * has NO relocations — bytes inline lui 0x4 + addiu -0xFE0 directly.
+ * Neither C form reaches that exact byte encoding; the literal form
+ * picks ori, the extern form picks addiu but produces relocations.
+ * Source 3 size-sort. NM cap structural per IDO encoding choice. */
+extern int gl_ref_0003F020;
+extern int gl_ref_00022038;
+int gl_func_00061E58(int arg0) {
+    gl_func_00000000(&gl_ref_0003F020, &gl_ref_00022038,
+                     (arg0 >> 16) & 0xFFFF, arg0 & 0xFFFF);
+    return (int)&gl_ref_0003F020;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061E58);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061E9C);
 
