@@ -3222,6 +3222,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053A2C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
 
+/* gl_func_00054228: 15-insn function INHERITS $t9 and $t1 from predecessor
+ * gl_func_00053C04's tail. The predecessor's last 2 insns (at 0x54220 /
+ * 0x54224) are `addu $t9, $t7, $t8; lw $t1, 0($t9)` — setting $t9 = base
+ * pointer and $t1 = first word.
+ *
+ * Body uses inherited $t1 + reads $t9[1] / $t9[2] for additional words,
+ * spills 3 ints onto sp+0xC..0x14 (stack scratch), then loads back as
+ * floats and stores via *a1 / *(a1+4) / *(a1+8). The pattern is a
+ * generic int-to-float marshaller for a Vec3 source.
+ *
+ * BLOCKED for clean C: chained-SUFFIX inheritance pattern, same class as
+ * gl_func_0005165C and the gl_func_0000B5AC/B638 family
+ * (docs/POST_CC_RECIPES.md "HI/LO register inheritance" → extended to GP-
+ * register inheritance). External `jal gl_func_00054228` callers would
+ * see uninitialized $t9, but the predecessor-fallthrough flow has $t9 set.
+ * Default INCLUDE_ASM matches; can't be standalone-decompiled. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054228);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054264);
