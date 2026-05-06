@@ -442,7 +442,35 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000184
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00001B10: 42-insn (0xA8) 3-stage chained alloc-cascade.
+ * Same shape as eddproc_uso_func_0000025C and timproc_uso_b5_func_00000058
+ * — gets/allocs primary obj (size 0x40), then init-call into +0x4EC
+ * sub-block, then stores D_X pointers at +0x28 / +0xC / +0x3C of stages.
+ *
+ * Initial structural decode (multi-tick — this class caps at ~60% from
+ * frame-size mismatch per the eddproc/0x25C documented blocker).
+ * Default INCLUDE_ASM matches; wrap captures structure for grep + typing. */
+void *titproc_uso_func_00001B10(void *a0, void *a1) {
+    void *p1;
+    void *p2;
+    p1 = a0;
+    if (p1 == 0) p1 = (void*)gl_func_00000000(0x40);
+    if (p1 == 0) return 0;
+    p2 = a1;
+    if (p2 == 0) p2 = (void*)gl_func_00000000(0x2C, p1);
+    if (p2 == 0) return 0;
+    gl_func_00000000(p2, (char*)&D_00000000 + 0x4EC);
+    *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)p1 + 0x28) = (int)((char*)&D_00000000 + 0x4F4);
+    *(int*)((char*)p1 + 0xC)  = (int)((char*)&D_00000000 + 0x4F4);
+    gl_func_00000000(p1, p2);
+    *(int*)((char*)p1 + 0x3C) = 0;
+    return p1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
+#endif
 
 #ifdef NON_MATCHING
 /* titproc_uso_func_00001BB8: 42-insn dual-state-bracket helper. Two
