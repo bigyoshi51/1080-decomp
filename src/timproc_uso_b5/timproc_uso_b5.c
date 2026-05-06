@@ -1025,11 +1025,14 @@ void timproc_uso_b5_func_0000C7E8(char *a0, char *a1) {
 void timproc_uso_b5_func_0000C82C(int a0) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C834);
+void timproc_uso_b5_func_0000C834(int a0) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C83C);
+void timproc_uso_b5_func_0000C83C(int a0) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C844);
+void timproc_uso_b5_func_0000C844(int a0) {
+}
 
 void timproc_uso_b5_func_0000C84C(int *a0) {
     *(int*)((char*)a0[0x2B8/4] + 0x130) = 1;
