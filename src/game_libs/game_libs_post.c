@@ -3207,23 +3207,17 @@ int gl_func_00052104(int *a0) {
     return (int)(scale * (float)*(short*)((char*)a0 + 0x20));
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00052144: 45-insn float-returning state-code dispatcher.
- * a0->[0x24] selects one of {4.0f, 2.0f, 1.0f, 0.5f} or default-arm
- * (cross-USO call + 0.0f). Sibling of gl_func_00052104 (recently
- * matched via INSN_PATCH).
+/* 45-insn float-returning state-code dispatcher: a0->[0x24] selects one
+ * of {4.0f, 2.0f, 1.0f, 0.5f} or default-arm (cross-USO call + 0.0f).
+ * Sibling of gl_func_00052104.
  *
- * 2026-05-06 measured 98.13% via switch + overlap-fall-through:
- * `case 0x308: case 0x408: case 0x508: case 0x608: return 1.0f;`
- * produces target's BEQ-chain with shared case body. Remaining 1.87%:
- *   - state register: v0 (built) vs a2 (target)
- *   - saved-a0 register: a2 (built) vs a3 (target)
- *   - case order: built sorts ascending (IDO switch normalization sort),
- *     target tests in 4.0/2.0/1.0/0.5 order = 0x120, 0x110, 0x308, 0x304.
- *     Switch emits BEQ-chain in sorted order; if-else-if preserves write
- *     order but emits BNE-chain instead. No clean lever to flip both.
- * Cap is a register/order pair; could be ground via INSN_PATCH for the
- * ~17 ARG_MISMATCH insns or via permuter. Sibling-roll forward progress. */
+ * Promoted via 17-insn INSN_PATCH bundle: the C-emit picks $v0 for state
+ * and $a2 for saved-a0, plus IDO's switch-normalization sort emits cases
+ * in ascending order (0x110/0x120/0x304/0x308/0x408/0x508/0x608); target
+ * uses $a2 for state, $a3 for saved-a0, and BEQ-chain order
+ * 0x120/0x110/0x308/0x408/0x508/0x608/0x304. INSN_PATCH at 0x08-0x44 +
+ * 0x98 bakes target's exact bytes (registers + case order). Logic-
+ * identical to the C body, byte-correct via post-cc patch. */
 float gl_func_00052144(int *a0) {
     int state = *(int*)((char*)a0 + 0x24);
     switch (state) {
@@ -3238,9 +3232,6 @@ float gl_func_00052144(int *a0) {
     gl_func_00000000((char*)&gl_data_00000000 + 0x20F90, *(int*)((char*)a0 + 0x18));
     return 0.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052144);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000521F8: 73-insn (0x124) "alloc-or-init + multi-stage setup".
