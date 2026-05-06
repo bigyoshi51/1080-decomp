@@ -1607,8 +1607,13 @@ void game_uso_func_000044C8(char *a0) {
  * struct-field offsets identified so far. Future ticks: decode the
  * sub-object allocation loop, type the GameState struct, then refine.
  *
- * 2026-05-03 RE-MEASURE: 2.44% NM (consistent with prior baseline; no
- * upward drift this round despite parallel-agent activity elsewhere).
+ * 2026-05-06 RE-MEASURE: 62.05% NM (significant promotion since 2026-05-03
+ * baseline of 2.44%). Built emits 1020 insns / 0xFF0 vs target 1165 insns /
+ * 0x1234 — gap of 145 missing insns (~12% of function). Comment stages
+ * below describe the per-section work-in-progress. Remaining gap is
+ * primarily un-decoded sub-object init blocks between the tail-stage
+ * (0x5658-0x5724, mostly written) and the early-stage stub-list
+ * (0x4564-0x4710, partially written). Multi-pass refinement continues.
  *
  * EXTENDED DECODE @ 0x4580-0x45F8 (insns 25-50, sub-object init loop):
  *   // After s1 setup (s1 = main+0xE4 sub-region or alloc(0x3E0)):
