@@ -5793,6 +5793,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
  *     needs N>=3 reads to actually reshape emit." This 2-load family
  *     member is below that threshold; N>=3 trick doesn't transfer. Same
  *     on 10DC8/11368/113C8/114FC. Family cap is genuinely terminal.
+ *   - `volatile int off = 0xE40; t = &D + off;` — defeats the constant
+ *     fold but introduces a stack spill/reload of `off` AND an extra
+ *     `addu v0, base, off` insn, growing the frame and producing a
+ *     completely different shape (worse, not better). The volatile offset
+ *     trick can't satisfy IDO's "addiu literal then lw at 0" form because
+ *     it produces a runtime-computed base, not a constant base.
  * INSN_PATCH ineligible (size diff, target +2 insns). */
 void game_uso_func_00010E2C(int a0) {
     register int *t;
