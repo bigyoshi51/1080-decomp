@@ -484,7 +484,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002CF70);
 
+#ifdef NON_MATCHING
+/* gl_func_0002D014: 18-insn (0x50) "drain counter" loop with cross-function
+ * jal landing INSIDE gl_func_00040DE8's body (jal target 0x040E10, which
+ * is 0x28 bytes into gl_func_00040DE8). This is a cross-function alt-entry
+ * pattern — gl_func_00040DE8 has an alternate entry point at offset+0x28
+ * that this function jumps to. C cannot express a jal-into-mid-function
+ * directly (the symbol gl_func_at_40E10 doesn't exist as a C-callable).
+ *
+ * Decoded body:
+ *   if (a0->[0xDC] != 0) return;
+ *   do {
+ *       gl_func_at_40E10(a0);  // alt-entry into gl_func_00040DE8
+ *       gl_func_00000000(a0);
+ *       a0->[0xDC] -= 1;
+ *   } while (a0->[0xDC] > 0);
+ *
+ * BLOCKED for clean C: cross-function-jal-into-mid-body. Source 1
+ * candidate (sibling of recently-promoted 0x2D6C8). Wrap captures
+ * decoded semantics for future-pass refinement; default INCLUDE_ASM
+ * keeps bytes correct via the asm splice. */
+extern int gl_func_at_40E10();
+void gl_func_0002D014(int *a0) {
+    register int *s0 = a0;
+    int n;
+    if (*(int*)((char*)s0 + 0xDC) == 0) {
+        do {
+            gl_func_at_40E10(s0);
+            gl_func_00000000(s0);
+            n = *(int*)((char*)s0 + 0xDC) - 1;
+            *(int*)((char*)s0 + 0xDC) = n;
+        } while (n > 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D014);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D064);
 
