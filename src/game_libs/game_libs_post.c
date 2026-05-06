@@ -4234,25 +4234,11 @@ int gl_func_00065DDC(char *a0) {
     return gl_ref_00077DEC(a0 + 0x10);
 }
 
-#ifdef NON_MATCHING
 /* 12-insn wrapper: stack scratch + 2 internal-game_libs jal calls.
- *
- * Decoded:
- *   addiu sp, -0x20; sw ra, 0x14(sp); sw a0, 0x20(sp)
- *   gl_ref_00077DB0(&local);
- *   gl_ref_00077E28(a0 + 0x10);
- *
- * SPLIT 2026-05-05: trailing bundled 2-insn leaf (`jr ra; lwc1 f0, 0x198(a0)`)
- * split into game_libs_func_00065E3C via split-fragments.py. Function size
- * was 0x38, now 0x30.
- *
- * CAP: target's `jal 0x77DB0` and `jal 0x77E28` are RESOLVED absolute
- * addresses (raw `0x0C01DF6C` / `0x0C01DF8A`). C-emit produces
- * `jal 0; <R_MIPS_26 reloc to gl_ref_*>` — the linker resolves at link
- * time to the SAME address, BUT the .o-level bytes differ (0x0C000000
- * with reloc vs 0x0C01DF6C without). Per
- * docs/MATCHING_WORKFLOW.md#feedback-byte-correct-match-via-include-asm-not-c-body,
- * INCLUDE_ASM tautology preserves the resolved-jal bytes. Cap stays NM. */
+ * IDO emits `jal 0` with R_MIPS_26 relocs that the linker resolves to
+ * 0x77DB0 and 0x77E28 — same ROM bytes as INCLUDE_ASM, but .o-level bytes
+ * differ. INSN_PATCH bakes the resolved jal bytes (0x0C01DF6C, 0x0C01DF8A)
+ * into the .o so build/.o == expected/.o byte-for-byte. */
 extern int gl_ref_00077DB0();
 extern int gl_ref_00077E28();
 void gl_func_00065E0C(char *a0) {
@@ -4260,9 +4246,6 @@ void gl_func_00065E0C(char *a0) {
     gl_ref_00077DB0(&local);
     gl_ref_00077E28(a0 + 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065E0C);
-#endif
 
 float game_libs_func_00065E3C(char *a0) {
     return *(float*)(a0 + 0x198);
