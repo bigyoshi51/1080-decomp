@@ -5548,7 +5548,32 @@ void game_uso_func_0001056C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001056C);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_000105DC: 27-insn 3-call function + 2-insn trailing alt-entry
+ * stub (`lui at, 0x3F80; mtc1 at, $f4` — sets $f4 = 1.0f for the next
+ * function to inherit).
+ *
+ * Decoded body (sibling of 10E2C 2-call family, extended to 3 calls):
+ *   call 1: gl_func(a0, 0x10025, 0, 1, 1, 1)   ; 6-arg, lui+ori for 0x10025
+ *   call 2: gl_func(a0, D[0xE00], D[0xE04], 1) ; 4-arg with varargs spills
+ *   call 3: gl_func(a0)                        ; 1-arg (delay reload)
+ *
+ * Same family cap (~85%) as the 10E2C / 11368 / FA54 group + a fall-through
+ * 2-insn $f4=1.0f setup stub at the tail (alt-entry for the predecessor's
+ * caller-flow inheritance pattern). Source 1 (sibling cluster). */
+void game_uso_func_000105DC(int *a0) {
+    register int *t;
+    int v1, v2;
+    game_uso_func_00000000(a0, 0x10025, 0, 1, 1, 1);
+    t = (int*)((char*)&D_00000000 + 0xE00);
+    v1 = t[0];
+    v2 = t[1];
+    game_uso_func_00000000(a0, v1, v2, 1);
+    game_uso_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000105DC);
+#endif
 
 #ifdef NON_MATCHING
 /* 68 % NM wrap. Function uses $f4 directly without setting it — caller-set
