@@ -3228,7 +3228,58 @@ float gl_func_00052144(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052144);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_000521F8: 73-insn (0x124) "alloc-or-init + multi-stage setup".
+ * Sibling-roll source 2 candidate (post gl_func_00052144 at 98.13%).
+ *
+ * Entry shape (insns 1-7):
+ *   addiu sp, -0x28; sw ra, 0x14(sp); sw a1, 0x2C(sp)  ; save arg1
+ *   if (a0 != 0) goto have_obj
+ *   v0 = gl_func_00000000(0x40);                          ; alloc 64 bytes
+ *   if (v0 == 0) goto skip_rest;                          ; alloc-fail bail
+ *   a2 = v0;
+ *
+ * Init stages (insns 8-65):
+ *   gl_func_00000000(a2, a1);                              ; init call
+ *   a2->0x28 = &D_t6_reloc;                                ; pointer field
+ *   v1 = a2 + 0x30;
+ *   if (a2 != (int*)0xFFFFFFD0) {
+ *       gl_func_00000000(0x4); a2->0x30 = ret;             ; sub-alloc 1
+ *   }
+ *   v1 = a2 + 0x34;
+ *   if (a2 != (int*)0xFFFFFFCC) {
+ *       gl_func_00000000(0x8); a2->0x34 = ret;             ; sub-alloc 2
+ *       /* extra init: read+copy 8 bytes from D_<reloc> *\/
+ *   }
+ *   /* final block: copy fields between sub-allocs, set defaults *\/
+ *
+ * Tail: return v0 = a2 (the object pointer).
+ *
+ * The signed-sentinel check (`bne a2, at, +N` where at = -0x30 etc) is
+ * unusual — likely a "skip if a2 is a special tag value" guard that
+ * never triggers in practice since a2 is a real pointer. May be a
+ * bnel-emit artifact for the compiler's CFG.
+ *
+ * Stub C body — 30-40% match expected, deferred to next iteration for
+ * full struct typing. Multi-pass per skill guidance. */
+extern int gl_data_00000000;
+int *gl_func_000521F8(int *a0, int a1) {
+    int *obj;
+    if (a0 == 0) {
+        obj = (int*)gl_func_00000000(0x40);
+        if (obj == 0) return 0;
+    } else {
+        obj = a0;
+    }
+    gl_func_00000000(obj, a1);
+    obj[0xA] = (int)((char*)&gl_data_00000000 + 0x0);
+    obj[0xC] = (int)gl_func_00000000(0x4);
+    obj[0xD] = (int)gl_func_00000000(0x8);
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000521F8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
 
