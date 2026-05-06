@@ -225,7 +225,23 @@ int timproc_uso_b1_func_00000DEC(char *a0) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000E40);
+/* 32-insn dispatcher: lookup-call gates state set on D[0x40]/D[0x44]
+ * then ALWAYS runs the t9 check (a0->[0x4F8] -> store-or-call).
+ * v0!=0: D[0x40]=12, D[0x44]=9; v0==0: D[0x40]=9 (no D[0x44] write). */
+void timproc_uso_b1_func_00000E40(int *a0) {
+    int v0 = gl_func_00000000(*(int*)((char*)a0 + 0x528));
+    if (v0 != 0) {
+        *(int*)((char*)&D_00000000 + 0x40) = 0xC;
+        *(int*)((char*)&D_00000000 + 0x44) = 9;
+    } else {
+        *(int*)((char*)&D_00000000 + 0x40) = 9;
+    }
+    if (*(int*)((char*)a0 + 0x4F8) == 0) {
+        *(int*)((char*)a0 + 0x504) = 0;
+    } else {
+        gl_func_00000000(a0, -1, 0);
+    }
+}
 
 void timproc_uso_b1_func_00000EC0(int a0) {
     gl_func_00000000(&D_00000000 + 0x3D8);
