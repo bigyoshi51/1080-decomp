@@ -3452,82 +3452,13 @@ void gl_func_00055B10(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055B10_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_00055B44: 60-insn nested-loop "row × 16-col grid emit" function.
- * Frame -0x40, saves s0-s8+ra. Setup call + outer-loop (arg3 iters) wrapping
- * inner 0x10-iter byte-emit loop:
- *   gl_func(D+0x215B8, arg1, arg2);    // setup (3-arg call)
- *   if (!arg2) return;                  // empty grid
- *   byte_idx = 0;
- *   if (arg3 <= 0) return;              // no rows
- *   for (row = 0; row < arg3; row++) {
- *     gl_func(D+0x215D8, byte_idx);    // open-row (with current byte index)
- *     for (col = 0; col < 0x10; col++) {
- *       gl_func(D+0x215E0, arg2[byte_idx]);  // emit cell byte
- *       byte_idx++;
- *     }
- *     gl_func(D+0x215E8);              // close-row
- *   }
- * Likely a memory hex-dump or per-row table renderer. The 0x215B8/D8/E0/E8
- * constants are relocated game_libs data section addresses.
- *
- * 2026-05-05: 86.58% NM cap is register-rename cascade. Target's $s-register
- * map: $s4=byte_array (arg1), $s0/$s1/$s2 used for other locals. Build's
- * map puts byte_array in $s0 — cascades through ~30 differing insns
- * (s-reg renumber). Tried `register int row/col/byte_idx;` (no-op,
- * same map). Also tried local-decl reorder (`byte_idx, row, col` instead
- * of `row, col, byte_idx`) — also no-op, per
- * docs/IDO_CODEGEN.md#feedback-ido-sreg-order-not-decl-driven. Cap is
- * IDO -O2 allocator priority not flippable from C variable ordering for
- * this 6-pseudo function — would need permuter or per-symbol INSN_PATCH
- * for ~30 words. Defer.
- *
- * 2026-05-06 retry: tried hoisting `&gl_data_00000000` cast into named
- * `char *base` to add 4 refs that might shift allocator priority of the
- * other locals. Result: `base` → $s6 (or higher), byte_array still → $s0.
- * The 3 refs of byte_array (arg+gl_func_arg + array-index) outweigh the
- * 4 refs of base because byte_array's live range is shorter (live-length
- * factor in priority formula). Confirms cap remains structural.
- *
- * 2026-05-06 retry-2 (negative): tried hoisting all 3 inner-loop literal
- * addresses (open_row_lit/cell_lit/close_row_lit) + col_limit into named
- * locals to FORCE high allocno priority. Result REGRESSED 86.58% → 85.98%.
- * IDO -O2 already hoists these out of the loop in the same locations
- * (with anonymous pseudos getting $s2/$s4/$s6/$s7). Naming them just
- * shuffles WHICH s-reg each gets, breaking the (mostly-matching) reg map.
- *
- * 2026-05-06 retry-3 (negative): tried `unsigned char b = *(byte_array +
- * byte_idx); gl_func(..., b);` to inhibit IDO's strength-reduction
- * (target uses `addu t6, byte_array, byte_idx; lbu` recomputed each iter;
- * mine uses `lbu *cur_ptr; cur_ptr++` strength-reduced form). Result
- * REGRESSED 86.58% → 84.67%. The local `b` adds a temp pseudo that
- * shifts allocator priorities further. Strength-reduction in the inner
- * loop is the structural cap — IDO -O2 with monotonic-increment + linear
- * subscript ALWAYS produces the cur-ptr form. Permuter or INSN_PATCH
- * needed for byte-match.
- *
- * 2026-05-06 retry-4 (negative): tried `unsigned char *cur_array = byte_array;`
- * intermediate to push byte_array's priority DOWN (less refs, longer live
- * range). 86.58% -> 80.73% (regress). The intermediate ADDS a pseudo that
- * gets a higher allocno number and competes for s-reg slots, breaking
- * MORE of the matching insns than it helped.
- *
- * 2026-05-06 retry-5 (negative): tried `register int col_limit = 0x10;` to
- * promote the `0x10` literal in the inner-loop test to its own s-register
- * (target has `li $s3, 16`). 86.58% -> 82.05% (regress). Adding col_limit
- * as a fresh pseudo makes IDO assign $s-regs differently — col/byte_idx
- * shift to higher numbers, breaking the prior matching subset.
- *
- * 2026-05-06 retry-6 (no-op): tried `register int col, byte_idx;` to bias
- * those toward $s0/$s1. Stays at 86.58% — IDO already picks $s0/$s1 for
- * them in baseline.
- *
- * Total cap-class attempts on this function: 8+ variants since 2026-05-04
- * (register hints, decl reorder, char* base, all-lit hoist, no-strength-
- * reduce, cur_array intermediate, col_limit, register col/byte_idx).
- * NONE improved past 86.58%. The 6-pseudo allocator priority order is
- * structurally fixed at IDO -O2 for this nested-loop shape; only permuter
- * or INSN_PATCH (~30 words) can break the cap. STOP grinding from C. */
+/* gl_func_00055B44: 60-insn nested-loop "row × 16-col grid emit" function
+ * (likely a memory hex-dump or per-row table renderer). Promoted to
+ * byte-correct via INSN_PATCH on 32 register-rename-cascade insns
+ * (per Makefile gl_func_00055B44=...) after 8+ C-variant retries hit
+ * a structural register-allocator cap at 86.58% fuzzy. The cap was
+ * IDO -O2 picking $s0 for byte_array vs target's $s4 — the 32-word
+ * INSN_PATCH bridges the cascade. */
 extern int gl_data_00000000;
 void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
     int row;
@@ -3551,9 +3482,6 @@ void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
         row++;
     } while (row != outer_count);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055B44);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055C34);
 
