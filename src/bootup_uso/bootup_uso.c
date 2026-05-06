@@ -794,9 +794,11 @@ extern char D_000079C8;
 extern char D_553C_init_value;
 extern char D_553C_init_arg;
 int *func_0000553C(int *arg0) {
-    int *p = (int*)func_00000000(0x58);
+    int *p;
+    volatile int saved_a0 = (int)arg0;
+    p = (int*)func_00000000(0x58);
     if (p == 0) goto end;
-    func_00000000(p, arg0, *(int*)&D_553C_init_value, &D_553C_init_arg);
+    func_00000000(p, (int*)saved_a0, *(int*)&D_553C_init_value, &D_553C_init_arg);
     p[10] = (int)&D_000079C8;
 end:
     return p;
@@ -805,7 +807,15 @@ end:
  * (D_553C_init_value, D_553C_init_arg, both at 0x0) per
  * docs/IDO_CODEGEN.md#feedback-ido-type-split-unique-extern-breaks-cse
  * 2026-05-06 expansion. Promoted 84.20% -> 88.40% (mirrors func_000054D8
- * sibling improvement). Remaining ~12% is documented precall-arg-spill cap. */
+ * sibling improvement).
+ *
+ * 2026-05-06 retry #2: tried `volatile int saved_a0 = (int)arg0` per
+ * docs/IDO_CODEGEN.md#feedback-ido-volatile-unused-local-forces-local-slot-spill.
+ * Promoted 88.40% -> 89.80% (+1.4pp) — the int-typed volatile (NOT pointer-
+ * typed) forced the `sw a0, 0x1c(sp)` local-slot spill. The matching
+ * `lw a1, 0x1c(sp)` reload still missing — separating into a `reloaded`
+ * intermediate local REGRESSED to 84.20%, so simpler is better here.
+ * Remaining ~10% is reload-not-emitted cap. */
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
 #endif
