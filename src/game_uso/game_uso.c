@@ -3808,6 +3808,26 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *   - 0x9F00+: continues with another bne-guarded jal at 0x9F08+. ~80
  *     insns remain stubbed past 0x9F00.
  *
+ * BODY-PART-2 FOURTH-CHUNK SCAN (2026-05-05, 0x9F00-0x9FE8 = +58 insns):
+ *   - 0x9F00-0x9F18: post-call FPU 3-component scale. lwc1 sp+0x120/
+ *     0x12C/0x128/0x134, sub.s f0,f4,f6 (delta), mtc1 zero (= 0.0f),
+ *     mul.s f2,f10,f0 — "scale by callee-result delta" pattern.
+ *   - 0x9F1C-0x9F28: 3 swc1 stores to v1+0/4/8 (commit scaled vec).
+ *   - 0x9F2C-0x9F50: another 12-byte triple-fanout copy. Reads a1+0/4/8,
+ *     writes t7+0/4/8 (sp+0x16C) AND t1+0/4/8 (sp+0x94 area). Same
+ *     save-old + write-new idiom.
+ *   - 0x9F54-0x9F70: bne-guarded jal with a0=0xC, a2=sp+0x6C (yet
+ *     another local Vec3 buffer dest).
+ *   - 0x9F74-0x9F80: post-call branch test on v0 (`beq v0,$0,+0xB`).
+ *   - 0x9F84-0x9FA8: post-call FPU scale block (mirror of 0x9F00 above).
+ *     lwc1 sp+0x144/0x138/0x14C/0x140, sub.s + mul.s + zero-fill — same
+ *     "scale by callee delta" template applied to a different slot pair.
+ *   - 0x9FAC-0x9FE0: third triple-fanout struct copy (a1+0/4/8 -> t9+0/4/8
+ *     with t1+0/4/8 backup). The function maintains MANY Vec3 working
+ *     buffers and does many fanout-with-backup copies.
+ *
+ * ~25 insns remain stubbed past 0x9FE8.
+ *
  * Deferred to future passes: full body decode is ~300 insns of float sched;
  *   one /decompile run expands prologue + body-part-1 — subsequent runs will
  *   tighten the dispatch logic and body math. The dual Vec3-copy entry
