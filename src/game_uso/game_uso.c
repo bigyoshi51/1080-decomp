@@ -1503,6 +1503,12 @@ void game_uso_func_000039F8(char *dst) {
  * frame 0x28 vs ours 0x20). Cap class: $v0/$v1 vs $a1/$a2 register-pick
  * not C-controllable.
  *
+ * 2026-05-06 retry: tried `char pad[8]` to grow frame to 0x28 — IDO
+ * optimized away the unused local; frame stayed at 0x20. The
+ * pad-alone-grows-frame trick from func_0000553C requires a paired
+ * `volatile int saved_aN` to keep the spill live; here there's no
+ * obvious arg to spill, so the trick doesn't transfer.
+ *
  * Tail-merge `beqzl` IS reproduced by writing the inner if/store as
  * `if (cond) X = 1; ALWAYS_STORE = obj;` form. The outer `beqzl` (mine)
  * vs `beqz` (target) on `other != 0` test is the secondary diff. */
