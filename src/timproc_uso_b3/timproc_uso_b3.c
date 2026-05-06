@@ -516,7 +516,16 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  *       Cleanest per feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md
  *       but blocked on predecessor decode.
  *   (b) PROLOGUE_STEALS=4 on func_00002EF0 with C that emits a redundant
- *       `sll, a1, 2` at start (recipe strips it). Single-function fix.
+ *       `sll, a1, 2` at start (recipe strips it). Verified 2026-05-06:
+ *       IDO -O2 DOES emit `sll t6, a1, 2` as the FIRST insn (before
+ *       prologue) when the C uses `a1 * 24` strength-reduced-via-sub
+ *       — but PROLOGUE_STEALS=4 alone doesn't suffice: even after
+ *       stripping that one insn, got is 25 insns vs exp 22 (3 extra),
+ *       AND the order of remaining setup insns differs (subu/addiu-sp/
+ *       sll vs addiu-sp/subu/lui/etc. — interleaved differently). Plus
+ *       missing the splice-script SLL-opcode acceptance (need the same
+ *       type of script extension I did for LW on 2026-05-06 splice
+ *       function-prefix LW addition). Multi-blocker; defer to (a).
  *
  * Doc-wrap with decoded C body for now. Default INCLUDE_ASM build matches
  * via the .s file's bytes (including the predecessor's trailing sll). */
