@@ -741,6 +741,24 @@ void arcproc_uso_func_0000247C(void) {
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
 
+/* arcproc_uso_func_000024C0: 4-FUNCTION BUNDLE (0x5C / 23 insns).
+ * Splat-bundled, can't be split per
+ * feedback_uso_split_fragments_breaks_expected_match.md.
+ *
+ * Sub-function layout:
+ *   F1 @ 0x24C0-0x2500: 16 insns. Sibling of 23F4/2438/247C (state-set
+ *     menu helpers). Same shape as `void f(void) { gl_func(gl_ref_70);
+ *     gl_ref_40 = N; gl_func(gl_ref_74, -1, 0); }` with N=9 here (vs
+ *     N=4/1/2 for the 3 already-decomp'd siblings).
+ *   F2 @ 0x2504-0x2508: 2 insns. Empty stub (`jr ra; nop`).
+ *   F3 @ 0x250C-0x2510: 2 insns. Empty stub (`jr ra; nop`).
+ *   F4 @ 0x2514-0x2518: 2 insns. Empty stub (`jr ra; nop`).
+ *
+ * The 3 trailing empty stubs (0x2504/250C/2514) have no references in
+ * src/ or undefined_syms_auto.txt — they're dead code in the ROM that
+ * splat happened to name. Splitting the bundle to decomp F1 alone
+ * (mirroring the 23F4/2438/247C siblings) breaks the expected/.o byte
+ * layout per the documented USO-split caveat. INCLUDE_ASM remains. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000024C0);
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251C);
