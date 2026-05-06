@@ -360,8 +360,21 @@ void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
     *(int*)(self + 0x14) = (int)sub;
     /* Terminal init: call(self) */
     gl_func_00000000(self);
-    /* TODO 0x1400-end: global-zero pair + 2nd alloc + sub2-link + final call.
-     * ~30 more insns. */
+    /* 0x1400-0x145C: global-zero pair + second-sub link + final call.
+     * `second_sub = *D_00000000` (some global pointer), then zero 2 other
+     * globals, then `gl_func(self+0x10, second_sub)` to register self as
+     * sub2-child, then branch-likely tail-merge for second_sub->[0x14] = self
+     * (with conditional second_sub->[0x4] = 1 if previous was non-null).
+     * Finally tail call(*D) returning to caller via jr $ra. */
+    {
+        char *second_sub = *(char**)&D_00000000;
+        *(int*)&D_00000000 = 0;
+        *(int*)&D_00000000 = 0;
+        gl_func_00000000(self + 0x10, second_sub);
+        if (*(int*)(second_sub + 0x14) != 0) *(int*)(second_sub + 0x4) = 1;
+        *(int*)(second_sub + 0x14) = (int)self;
+        gl_func_00000000(*(int*)&D_00000000);
+    }
     (void)a1;
     return self;
 }
