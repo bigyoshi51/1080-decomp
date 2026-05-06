@@ -1086,12 +1086,16 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
  *
  * 2026-05-05: caching `float *p128` lifted 75.47% → 80.41% (+4.94pp). The
  * cached pointer matches target's `addiu v0, v1, 0x128` (v0 holds the
- * +0x128 offset address). Remaining 20% cap: target has v1 reloads
- * BETWEEN the `*p128 += D[X]` add and the subsequent `*p128 > 1.0f`
- * comparison clamp (i.e. `lw v1, 0x2B8(a0); lwc1 f10, 0x128(v1)`). My
- * code uses cached *p128 there and skips the reload. Promotion path:
- * write the comparison via inline-deref (`*(float*)((char*)a0[0x2B8/4]
- * + 0x128) > 1.0f`) to force the v1 reload — multi-tick. */
+ * +0x128 offset address). Then inline-deref of the post-add comparison
+ * (`*(float*)((char*)a0[0x2B8/4] + 0x128) > 1.0f`) forced the v1 reload
+ * + recomputed +0x128 offset, lifting 80.41% → 86.37% (+5.96pp).
+ *
+ * Remaining 14% cap: $v0 vs $v1 first-register choice (built uses $v0,
+ * target $v1) cascades through ~19 of 51 insns. IDO allocates $v0 for
+ * the first general-pseudo since the function returns void — to flip,
+ * would need a different first-defined pseudo or a return-value (which
+ * would change semantics). Sizes now match (204/204 bytes). Final
+ * ~14% is register-rename territory (permuter or INSN_PATCH). */
 extern int gl_func_00000000();
 extern char D_00000000;
 void timproc_uso_b5_func_0000C8AC(int *a0) {
@@ -1101,13 +1105,13 @@ void timproc_uso_b5_func_0000C8AC(int *a0) {
     p128 = (float*)((char*)v1 + 0x128);
     if (*(int*)((char*)v1 + 0x134) != 0) {
         *p128 += *(float*)((char*)&D_00000000 + 0x374);
-        if (*p128 > 1.0f) {
-            *p128 = 1.0f;
+        if (*(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) > 1.0f) {
+            *(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) = 1.0f;
         }
     } else {
         *p128 -= *(float*)((char*)&D_00000000 + 0x378);
-        if (*p128 < 0.0f) {
-            *p128 = 0.0f;
+        if (*(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) < 0.0f) {
+            *(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) = 0.0f;
         }
     }
     v1 = (int*)a0[0x2B8 / 4];
