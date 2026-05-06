@@ -587,6 +587,14 @@ void gl_func_0002D6C8(int a0) {
  *   (strip the lui+addiu) AND ensure C body doesn't reload (would need
  *   typed extern + dangling-register-use recipe), OR write the C such
  *   that IDO emits the inline-$at form (untested how).
+ *
+ * 2026-05-06: tried `*(volatile int*)&D_00000000 = a0;` to break CSE on
+ * the &D_00000000 references — DID NOT split the two luis. Volatile
+ * forces the store to not be eliminated but doesn't prevent IDO's
+ * upfront `lui v0; addiu v0, 0` consolidation. Worse: volatile cast
+ * also forced an extra `or a3, a0, 0` (a0 saved across volatile store).
+ * Reverted.
+ *
  * Multi-tick. Default INCLUDE_ASM keeps ROM byte-correct. */
 void gl_func_0002D710(int a0, int a1_unused, int a2) {
     D_00000000 = a0;
