@@ -795,11 +795,13 @@ extern char D_553C_init_value;
 extern char D_553C_init_arg;
 int *func_0000553C(int *arg0) {
     int *p;
+    char pad[8];
     volatile int saved_a0 = (int)arg0;
     p = (int*)func_00000000(0x58);
     if (p == 0) goto end;
     func_00000000(p, (int*)saved_a0, *(int*)&D_553C_init_value, &D_553C_init_arg);
     p[10] = (int)&D_000079C8;
+    (void)pad;
 end:
     return p;
 }
@@ -815,7 +817,14 @@ end:
  * typed) forced the `sw a0, 0x1c(sp)` local-slot spill. The matching
  * `lw a1, 0x1c(sp)` reload still missing — separating into a `reloaded`
  * intermediate local REGRESSED to 84.20%, so simpler is better here.
- * Remaining ~10% is reload-not-emitted cap. */
+ *
+ * 2026-05-06 retry #3: added `char pad[8]` to grow frame from -0x20 to
+ * -0x28 (matching target). Promoted 89.80% -> 89.88% — the larger frame
+ * decouples the explicit local save from the implicit caller-arg-slot
+ * save, so both writes emit. Remaining ~10% is the `sw a1, 0x4(sp)`
+ * shadow store before the 2nd jal (varargs caller-side spill not
+ * reachable from C without varargs prototype, which would change call
+ * resolution to jalr indirect — see game_uso_func_00010E2C cap notes). */
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
 #endif
