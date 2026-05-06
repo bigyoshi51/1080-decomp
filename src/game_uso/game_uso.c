@@ -1046,13 +1046,29 @@ branch_88: {
              *     value to t4+0/4/8 (the just-computed pointer above). Same
              *     "save old vec to undo buffer, write new vec" pattern as 0x2090
              *     and 0x21F4 earlier — third instance in this function.
-             *   0x2394-0x23C0: element-wise subtract `a3[+0x2C..0x34] -= sp[+0x148..0x150]`.
+             *   0x2394-0x23C0: element-wise subtract `a2[+0x2C..0x34] -= sp[+0x148..0x150]`.
+             *     a2 was reloaded from sp+0x180 spill at 0x2108 (context-arg passed
+             *     in via the original $a1 spilled then reloaded into $a2 here —
+             *     this function takes a SECOND arg used only as the late-stage
+             *     delta-output target; the explicit re-load suggests a register-
+             *     pressure crunch in the middle, not a separate variable.)
              *     Loads sp+0x148/0x14C/0x150 (the saved-old Vec3 from the t4 dest
-             *     above), reads a3+0x2C/0x30/0x34, computes `sub.s` per-component,
-             *     stores back to a3+0x2C/0x30/0x34. This is "delta = new - old"
-             *     written into the entity's Vec3 field — the canonical
-             *     "increment by delta" idiom but expressed as `field -= old_value`
-             *     post-write.
+             *     above), reads a2+0x2C/0x30/0x34, computes `sub.s` per-component,
+             *     stores back to a2+0x2C/0x30/0x34. C shape (decoded 2026-05-05):
+             *         a2->vec.x -= saved_old.x;
+             *         a2->vec.y -= saved_old.y;
+             *         a2->vec.z -= saved_old.z;
+             *     where saved_old = Vec3 captured pre-overwrite by the t4-fanout
+             *     idiom at 0x2364-0x2390. This commits "delta_to_caller = new_pos
+             *     - prior_pos" semantics — the function returns the Vec3 delta
+             *     applied this frame.
+             *
+             *     Implication for byte-matching: function signature is
+             *         void *game_uso_func_00001DDC(int *a0, struct *out_delta_ctx)
+             *     not `void *game_uso_func_00001DDC(int *a0)` as currently typed
+             *     (single-arg). The second arg currently appears as `arg1` only
+             *     in the spill-load pattern; needs to become an explicit `a1`
+             *     parameter for the byte-match grind.
              *   0x23C4-0x23D0: epilogue (`lw ra, 0x14(sp); addiu sp, +0x180; jr ra; nop`).
              *
              * FUNCTION DECODE COMPLETE: 383 insns characterized end-to-end.
