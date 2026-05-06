@@ -130,7 +130,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021D84);
 
+#ifdef NON_MATCHING
+/* gl_func_00021E08: 20-insn alloc-via-jal-alt-entry + 3-field-set wrapper.
+ *
+ * Decoded:
+ *   void* f(int a0, char a1, int a2, char a3) {
+ *       void* v0 = jal(0x365AC, a0);  // ALT-ENTRY into gl_func_00036224
+ *       if (v0 == 0) return 0;
+ *       *(char*)(v0 + 2)  = a1;
+ *       *(int*)(v0 + 12)  = a2;
+ *       *(char*)(v0 + 1)  = a3;
+ *       return *(void**)(v0 + 8);
+ *   }
+ *
+ * BLOCKED on alt-entry-jal: the callee at 0x365AC is INSIDE gl_func_00036224
+ * (which spans 0x36224..0x36690). 0x365AC has no symbol entry in
+ * undefined_syms_auto.txt or symbol_addrs.txt — it's a mid-function entry
+ * point that the original code jumps into. C-level emit can't reproduce
+ * `jal 0x365AC` without:
+ *   (a) Adding `gl_func_000365AC = 0x365AC;` to undefined_syms_auto.txt
+ *       AND ensuring gl_func_00036224's content is laid out so 0x365AC
+ *       coincides with that symbol post-link, OR
+ *   (b) Splitting gl_func_00036224 into two functions at 0x365AC
+ *       (blocked per feedback_uso_split_fragments_breaks_expected_match.md
+ *       since it's still INCLUDE_ASM and splitting would require
+ *       refresh-expected machinery).
+ *
+ * Default INCLUDE_ASM build matches via raw bytes. Doc-wrap with the decode
+ * for grep discoverability + future alt-entry-symbol promotion. */
+void gl_func_00021E08(int a0, char a1, int a2, char a3);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021E08);
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021E08);
+#endif
 
 #ifdef NON_MATCHING
 /* 20-insn helper: alloc-via-callee gl_ref_00036A48 + 3-field-set + return
