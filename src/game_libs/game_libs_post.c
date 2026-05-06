@@ -4077,7 +4077,9 @@ void gl_func_00065E0C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065E0C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00065E3C);
+float game_libs_func_00065E3C(char *a0) {
+    return *(float*)(a0 + 0x198);
+}
 
 extern int gl_func_00000000();
 int gl_func_00065E44(char *a0) {
