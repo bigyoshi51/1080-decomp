@@ -5819,7 +5819,26 @@ void game_uso_func_00011368(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011368);
 #endif
 
+#ifdef NON_MATCHING
+/* Family sibling of game_uso_func_00010E2C / 00010DC8 / 00011368 — same
+ * 24-insn 2-call shape with the varargs-shadow-store cap. Identical to
+ * 11368 except: 1st-call a2=3 (vs 2), a3=4 (vs 3); 2nd-call uses D-offset
+ * 0xF10 (vs 0xF08); 2nd-call a3=4 (vs 3). Caps at ~88% — same alloc
+ * pattern as the rest of the family ($v0 base, offset-baked-into-lw,
+ * no varargs spills). Per docs/IDO_CODEGEN.md
+ * feedback-ido-precall-arg-spill-unreachable. */
+void game_uso_func_000113C8(int *a0) {
+    register int *t;
+    int v1, v2;
+    game_uso_func_00000000(a0, *(int*)((char*)a0 + 0x74), 3, 4, 1, 1);
+    t = (int*)((char*)&D_00000000 + 0xF10);
+    v1 = t[0];
+    v2 = t[1];
+    game_uso_func_00000000(a0, v1, v2, 4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000113C8);
+#endif
 
 void game_uso_func_00011428(int *a0) {
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0x74), 4, 1, 1, 1);
