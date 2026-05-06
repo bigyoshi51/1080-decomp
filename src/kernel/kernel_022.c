@@ -130,6 +130,39 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
 
 
 
+/* func_80008E98 / _EA0 / _ED0 / _FB0: 86-insn alt-entry rmon packet
+ * builder spanning 0x80008E98-0x80008FF0 (size 0x158). Splat split into 4
+ * .s files because of the alt-entry symbol at 0x80008EA0 (called by
+ * func_800071C0 via `jal 0x80008EA0`). The 0x80008E98 entry adds 2-insn
+ * prelude (addiu $sp, -0xD8; sw $a0, 0xD8($sp)) before falling into the
+ * shared body at 0x80008EA0; the 0x80008EA0 entry expects the caller to
+ * have done the frame setup itself (caller `func_800071C0` does so).
+ *
+ * Body shape (rmon packet builder pattern, see docs/IDO_CODEGEN.md for
+ * "rmon packet builder pattern" and CLAUDE.md notes):
+ *   s0 = (RmonMsg*)msg                  // reloaded from sp+0xD8 spill
+ *   pkt[0xC] = s0->[0xC]                // dword field copy
+ *   pkt[0x36] = (short)0
+ *   pkt[0x34] = s0->[0x4]               // byte field
+ *   if (s0->[0x9] != 0) goto .L80008FC4  // skip-call path
+ *   ...continues in func_80008ED0 with jal func_800077DC + branch logic
+ *   ...continues in func_80008FB0 with sub-packet field copy from
+ *      caller's stack frame at sp+0x2C
+ *   ...ends at jr $ra at 0x80008FEC, frame teardown at 0x80008FE0-FE8
+ *
+ * Multi-tick decomp target (alt-entry + 4-fragment + likely -O1
+ * file-split). File currently has no per-file OPT override (default -O2),
+ * but rmon functions are typically -O1 per kernel_021/023/025/...
+ * convention. Decoding requires:
+ *   1. Type a RmonMsg / RmonHdr struct pair
+ *   2. File-split into kernel_NNN.c with -O1 OPT_FLAGS override + linker
+ *      script slot insertion
+ *   3. Match the alt-entry by ensuring caller `func_800071C0` jal target
+ *      lands inside the merged body (post-cc PROLOGUE_STEALS-style splice
+ *      may be needed, since plain C-only emit always produces full
+ *      prologue+epilogue at every entry)
+ *
+ * Documented 2026-05-05; default INCLUDE_ASM build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008E98);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008ED0);
