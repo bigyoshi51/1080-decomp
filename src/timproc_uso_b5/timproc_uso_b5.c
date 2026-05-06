@@ -963,7 +963,9 @@ void timproc_uso_b5_func_0000C878(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C888);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C89C);
+void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
+    *(int*)((char*)a0[0x2B8/4] + 0x138) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C8AC);
 
