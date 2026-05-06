@@ -2293,7 +2293,12 @@ int gl_func_00042540(int a0) {
     return gl_func_00000000(&gl_ref_0001FCBC, a0, gl_ref_0001FB14);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042570);
+/* Quad4 writer: copy a 16-byte Quad4 from *a0 onto stack buf, call
+ * gl_func(&D, &buf, 16). Writer counterpart of the int-reader template. */
+void gl_func_00042570(Quad4 *src) {
+    Quad4 buf = *src;
+    gl_func_00000000(&D_00000000, &buf, 16);
+}
 
 extern int gl_func_00000000();
 void gl_func_000425BC(int *a0) {
