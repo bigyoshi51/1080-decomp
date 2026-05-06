@@ -4525,7 +4525,30 @@ void gl_func_000671E4(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000671E4);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00067220: 17-insn (0x44) busy-wait loop on a0->[0x13E8].
+ *   if (a0->[0x13E8] != 0) return;
+ *   do { gl_func_00000000(); } while (a0->[0x13E8] == 0);
+ *
+ * 76.5 % byte-exact (13/17). Cap is the prologue-schedule order:
+ * target emits `sw s0; move s0, a0; sw ra; lw t6, 0x13E8(s0)`,
+ * built emits `sw ra; sw s0; lw t6, 0x13E8(a0); move s0, a0` —
+ * IDO scheduler picks lw-via-a0 first then move; target picks
+ * move-then-lw-via-s0. Tried plain `int *a0`, `register int *s0`,
+ * and `int v = ...` named-local — all stay at 76.5 % or regress
+ * (58.8 %). Cap class: IDO scheduler choice not C-controllable. */
+void gl_func_00067220(int *a0) {
+    register int *s0 = a0;
+    if (s0[0x13E8 / 4] != 0) {
+        return;
+    }
+    do {
+        gl_func_00000000();
+    } while (s0[0x13E8 / 4] == 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067220);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067264);
 
