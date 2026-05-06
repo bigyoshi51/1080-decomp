@@ -3360,9 +3360,12 @@ void gl_func_00055B10(char *a0) {
  * map: $s4=byte_array (arg1), $s0/$s1/$s2 used for other locals. Build's
  * map puts byte_array in $s0 — cascades through ~30 differing insns
  * (s-reg renumber). Tried `register int row/col/byte_idx;` (no-op,
- * same map). Cap is IDO -O2 allocator priority not flippable from C
- * variable ordering for this 6-pseudo function — would need permuter
- * or per-symbol INSN_PATCH for ~30 words. Defer. */
+ * same map). Also tried local-decl reorder (`byte_idx, row, col` instead
+ * of `row, col, byte_idx`) — also no-op, per
+ * docs/IDO_CODEGEN.md#feedback-ido-sreg-order-not-decl-driven. Cap is
+ * IDO -O2 allocator priority not flippable from C variable ordering for
+ * this 6-pseudo function — would need permuter or per-symbol INSN_PATCH
+ * for ~30 words. Defer. */
 extern int gl_data_00000000;
 void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
     int row;
