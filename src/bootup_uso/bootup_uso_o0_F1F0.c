@@ -78,11 +78,9 @@ void func_0000F2EC(Vec3 *dst) {
     register Vec3 *p1 = dst;
     register Vec3 *p2 = p1;
     register Vec3 *q;
-    int pad_top[1];
     Tri3i raw;
     int pad_mid[2];
     Tri3i tmp;
-    int pad_bot[3];
     register float *src = (float*)&tmp;
     func_00000000(&D_00000000, &raw, 12);
     tmp = raw;
