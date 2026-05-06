@@ -458,7 +458,7 @@ void *titproc_uso_func_00001B10(void *a0, void *a1) {
     if (p1 == 0) p1 = (void*)gl_func_00000000(0x40);
     if (p1 == 0) return 0;
     p2 = a1;
-    if (p2 == 0) p2 = (void*)gl_func_00000000(0x2C, p1);
+    if (p2 == 0) p2 = (void*)gl_func_00000000(0x2C);
     if (p2 == 0) return 0;
     gl_func_00000000(p2, (char*)&D_00000000 + 0x4EC);
     *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
