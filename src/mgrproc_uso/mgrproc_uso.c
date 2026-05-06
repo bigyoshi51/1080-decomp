@@ -71,9 +71,12 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000004
  *   (c) dead `b +1; nop` immediately before epilogue (basic-block boundary
  *       marker per feedback_ido_o0_empty_stub.md)
  *
- * To match exact: split mgrproc_uso_func_000000B0 into its own .c with a
- * `build/src/mgrproc_uso/<file>.c.o: OPT_FLAGS := -O0` override (same infra
- * as mgrproc_uso_func_00000000 plan and bootup_uso_o0_*.c files). Defer. */
+ * BLOCKED PERMANENTLY by Yay0 pipeline: mgrproc_uso is Yay0-compressed
+ * (one .o → one compressed block), so the -O0 file-split recipe used by
+ * bootup_uso/arcproc_uso/n64proc_uso doesn't apply here. Same blocker as
+ * mgrproc_uso_func_000009A8 sibling (line ~245). Default INCLUDE_ASM
+ * matches; the C wrap is for grep discoverability + future-PC-port
+ * reference, not for promotion. Don't re-attempt the split. */
 void mgrproc_uso_func_000000B0(int *a0) {
     a0[1]++;
     gl_func_00000000(a0);
