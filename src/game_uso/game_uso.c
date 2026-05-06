@@ -5685,7 +5685,16 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
  *     to jalr indirect call, frame -0x28; bytes diverge significantly.
  *   - `register volatile int *t` — same emit as register int *t (volatile
  *     ignored for non-memory-access pointer init).
- * INSN_PATCH ineligible (size diff, target +2 insns). */
+ * INSN_PATCH ineligible (size diff, target +2 insns).
+ *
+ * 2026-05-06 retry: tried `volatile int * volatile *base_pp` indirection
+ * (the trick that promoted timproc_uso_b5_func_0000131C). No-op — IDO
+ * collapses the 2 adjacent loads regardless of volatile attribution on
+ * the address-holder. Per docs/IDO_CODEGEN.md
+ * feedback-ido-volatile-pp-forces-n-fold-pointer-reload "Precondition:
+ * needs N>=3 reads to actually reshape emit." This 2-load family member
+ * is structurally below that threshold; the N>=3 trick doesn't transfer.
+ * Same on 10DC8/11368/113C8/114FC. Family cap is genuinely terminal. */
 void game_uso_func_00010E2C(int a0) {
     register int *t;
     int v1, v2;
