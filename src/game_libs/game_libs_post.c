@@ -132,7 +132,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021D84);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021E08);
 
+#ifdef NON_MATCHING
+/* 20-insn helper: alloc-via-callee gl_ref_00036A48 + 3-field-set + return
+ * v0[2]. Logic decoded; instruction count matches (20 insns) but ~12 word-
+ * level diffs remain. Caps:
+ *   - Target uses v0 as both predicate and store-base; IDO splits into
+ *     v1=ret/v0=base via the `int *ret = 0; if (v0 != 0) { ... ret = ... }`
+ *     pattern. The clean `if-return; stores; return v0[2]` form gives a v1
+ *     intro instead.
+ *   - Target uses `lb t8, 0x27(sp)` (sign-extended byte from spill) for the
+ *     a3-low-byte read; IDO emits `lw t8, 0x24(sp); sb t8, 1(v0)` (full int
+ *     load + byte store). `(char)a3` doesn't trigger lb-from-spill.
+ *
+ * Structural decode is correct; remaining diffs are register-allocation +
+ * byte-load form choices not flippable from C without scheduler hints. */
+extern int gl_ref_00036A48();
+int *gl_func_00021E58(int a0, int a1, int a2, int a3) {
+    int *v0 = (int*)gl_ref_00036A48(a0, a1, a2, a3);
+    int *ret = 0;
+    if (v0 != 0) {
+        *(char*)((char*)v0 + 2) = (char)a1;
+        *(int*)((char*)v0 + 0xC) = a2;
+        *(char*)((char*)v0 + 1) = (char)a3;
+        ret = *(int**)((char*)v0 + 0x8);
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021E58);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021EA8);
 
