@@ -362,7 +362,37 @@ int mgrproc_uso_func_00001324(char *arg0) {
     return 1;
 }
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_000013C8: 75-insn (0x12C) post-init dispatcher.
+ *
+ * Sibling of mgrproc_uso_func_00001324 (the lazy-init guard at +0x4FC),
+ * runs AFTER guard is set. Reads a0[0x4F8] (state idx); if non-zero,
+ * runs early-return. Otherwise calls a0[0x6A8] init, checks v0 (alloc
+ * result); if 0 returns. On success, sets D[0x44]=7, then probes
+ * 0xA0000200 (likely RDP MI hardware reg or memory signature) against
+ * 0xAC290000 — if equals, takes one branch (D[0x40]=7 + clears state),
+ * else other branch (loads D[0x68], decrements arg, calls func_0).
+ * Continues into a 3-stage check ladder calling a0[0x6A8] / a0[0x6AC]
+ * / a0[0x6AC]+0x4C with conditional state writes to D[0x40]/D[0x44]
+ * and a0[0x504]/a0[0x7D8].
+ *
+ * Hardware register read at 0xA0000200 is the SI (Serial Interface)
+ * SI_DRAM_ADDR_REG per references/indexes/hw_registers.h — likely a
+ * controller-pak / EEPROM probe sequence. Comparison constant
+ * 0xAC290000 is SI command bytes (RAM-write opcode upper).
+ *
+ * 75 insns is multi-tick decomp. Initial structural NM. Default build
+ * INCLUDE_ASM keeps ROM byte-correct. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_000013C8(int *a0) {
+    /* TODO: full body decode + struct typing on a0[0x504]/a0[0x7D8].
+     * Stub captures the function's role as the post-init dispatcher
+     * called after the lazy-init-guard. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F4);
 
