@@ -1864,6 +1864,7 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
 #define INIT_ITER(SLOT, TMPL_OFF, FLOAT_EXPR, DB) do { \
             char *_t = *(char**)((char*)&DB + (TMPL_OFF)); \
             s0 = s1 + (SLOT); \
+            _t_buf[0] = _t; \
             *(char**)s2 = _t_buf[0]; \
             if (s1 != (char*)((SLOT) - 0x100)) { \
                 s0 = (char*)gl_func_00000000(0x18); \
@@ -2250,7 +2251,13 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *     Conclusion: IDO's `register` hint is too weak to override
      *     the global allocator's priority calc here.
      *   - decomp-permuter with PERM_RANDOMIZE around the macros
-     *   - Accept 62-70% as the C-decomp ceiling for this function. */
+     *
+     * 2026-05-05 (later): FIXED iter-G-NN macro bug. The macro at
+     * line 1864 had `*(char**)s2 = _t_buf[0]` but never wrote `_t_buf[0]`
+     * — so the load was reading uninitialized stack. Adding the missing
+     * `_t_buf[0] = _t;` store before the read promoted iters G-NN's
+     * codegen by ~32 SW instructions (one per iter). Net effect:
+     * 62.05% → 69.48% (+7.43pp). 604 bytes / 151 insns deficit remain. */
     (void)s0;
 
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
