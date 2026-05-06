@@ -338,38 +338,37 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00001594: 32-insn (0x80) check-then-vtable-call helper.
  *
- * Logic outline:
+ * 2026-05-05 LOGIC CORRECTION: prior "Re-corrected" comment misread `5320000B`
+ * as `bnezl t9` — the encoding is `beql t9, zero, +0xB` (opcode 0x53 = beql,
+ * branch-on-equal-likely). So target: `if (t9 == 0) skip-to-epilogue` (early
+ * return). The fall-through path (t9 != 0) stores D[0x30]=a0, recomputes the
+ * vtable index in fresh t-regs, then jalrs the function pointer.
+ *
+ * Corrected logic:
  *   if (gl_func(D[0x190], a0) == 0) return;
- *   // a0 was saved in $a1; reload after call
- *   int *t = (a0)[0x48 / 4];
- *   int idx = D[0x7C/4];
- *   int *entry = t + (idx * 0x28 + 0x90);  // byte offset
- *   if (*entry != 0) {
- *       // entry's pointer is non-null: store and return
- *       D[0x30/4] = a0;
- *   } else {
- *       // recompute (target uses different t-regs in this branch)
- *       int *t2 = (a0)[0x48 / 4];
- *       void (*fn)() = (void(*)())t2[idx * 0xA + 0x24];
- *       fn();
- *   }
+ *   t = a0[0x48/4];
+ *   idx = D[0x7C/4];
+ *   if (t[idx*0xA + 0x24] == 0) return;  // entry == 0 → return
+ *   D[0x30/4] = a0;
+ *   t = a0[0x48/4];                        // recompute (fresh regs)
+ *   ((void(*)())t[idx*0xA + 0x24])();      // call
  *
- * Wait — actually re-reading the asm: bnezl t9 (branch likely if t9 != 0),
- * delay slot is `sw a1, 0x30(at)`. Branch-likely's delay only executes if
- * branch IS taken, so `sw a1, 0x30(at)` runs ONLY when t9 != 0.
- * The fall-through case (t9 == 0) does the SECOND vtable lookup +
- * jalr — which is the actual call path.
+ * 2026-05-05 cap measure: 23.33% (7/30 words match). C-only emit shape:
+ *   - 30 insns vs target's 32 (-2 insns / -8 bytes)
+ *   - IDO global-CSEs `&D_00000000` into a single $a2 register (lui+addiu
+ *     prologue), then offsets via `lw rN, 0xNN(a2)`. Target reloads fresh
+ *     `lui at, 0; lw rN, 0xNN(at)` for each access (3 separate D-offset
+ *     reads: 0x190, 0x7C, 0x7C, 0x30) — saves the addiu but adds 2 lui's.
+ *     Net: target +2 insns from the no-cache pattern.
+ *   - GCC-style strength-reduction `idx*0x28 = (idx<<5)+(idx<<3)` shows
+ *     `sll+sll+addu` triple at 0x34-0x40. Target uses `multu+mflo+addu`
+ *     (also 3 insns). Bytes still differ.
  *
- * Re-corrected logic:
- *   if (entry[0] != 0) {
- *       D[0x30/4] = a0;
- *       return;
- *   }
- *   // recompute and call
- *   t2 = a0[0x48/4]; entry2 = t2 + idx*0x28 + 0x90;
- *   ((void(*)())entry2[0])();
- *
- * Initial fresh decode — multi-pass refinement expected. */
+ * Promotion path attempts pending: extern alias decls (D_190, D_7C, D_30)
+ * to suppress IDO's CSE so each access is fresh lui+lw — needs
+ * undefined_syms_auto.txt entries per feedback_usoplaceholder_unique_extern.md.
+ * Without that, the +8 byte size delta blocks INSN_PATCH per
+ * feedback_insn_patch_size_diff_blocked.md. */
 extern int gl_func_00000000();
 void mgrproc_uso_func_00001594(int *a0) {
     int *t;
@@ -378,10 +377,8 @@ void mgrproc_uso_func_00001594(int *a0) {
     if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), a0) == 0) return;
     t = (int*)a0[0x48 / 4];
     idx = *(int*)((char*)&D_00000000 + 0x7C);
-    if (*(int*)((char*)t + idx * 0x28 + 0x90) != 0) {
-        *(int*)((char*)&D_00000000 + 0x30) = (int)a0;
-        return;
-    }
+    if (*(int*)((char*)t + idx * 0x28 + 0x90) == 0) return;
+    *(int*)((char*)&D_00000000 + 0x30) = (int)a0;
     t = (int*)a0[0x48 / 4];
     fn = (void(*)())*(int*)((char*)t + idx * 0x28 + 0x90);
     fn();
