@@ -446,31 +446,54 @@ s32 func_8000058C(s32 arg0) {
 }
 
 #ifdef NON_MATCHING
-/* +52 bytes bloat (built 120 vs baserom 68). Byte-copy loop; original was
- * shorter, possibly word-aligned. Preserved as INCLUDE_ASM in default
- * build so kernel section size matches baserom. */
+/* Byte-copy loop, 16 insns / 0x40 in target. Tightened wrap (14 insns / 0x38,
+ * verified standalone IDO -O2) — was previously 30 insns / 0x78 (+52 bytes
+ * bloat). Body now matches target's structure (post-decrement do-while with
+ * `bnez count, loop; addiu count, -1` epilogue) — still 2 insns short of
+ * target's 16:
+ *   - missing `or $a3, $a2, $zero` snapshot at top (count snapshot, dead —
+ *     a3 is overwritten in loop). Standard `register s32 cp = count;` doesn't
+ *     emit it because IDO sees no use post-loop.
+ *   - missing `or $a0, $v0, $zero; lbu t, 0(a0)` 2-insn snapshot+load (target
+ *     pattern). My emit folds to `lbu a0, 0(v0)` (1-insn direct).
+ * Also target uses (a3=dst-snap, a1=count-snap dead); my emit picks
+ * (a1=dst-snap, a3=rem-snap). Register-pick diff inside the snapshots.
+ *
+ * 2026-05-06 retry: tried explicit `register` qualifiers on every local
+ * (sp/dp/cp/p/q/rem/c) + `do { ... rem = count--; } while (rem != 0)`
+ * post-decrement form to shape the loop epilogue. Got correct loop tail
+ * (bnez+addiu in delay slot) but couldn't restore the dead snapshots —
+ * IDO's DCE removes any local that isn't read post-assignment, even with
+ * `register` and `(void)` casts.
+ *
+ * Cap class likely INSN_PATCH (target +2 dead ors over my body) or shaped
+ * by a different inlining/calling convention not reproducible from std C.
+ * The 2 dead `or` insns suggest the original was a hand-written byte-copy
+ * (CRT/libc-style) where the dead ARGV-passthrough ors are remnants of
+ * an inline-tail-call ABI dance. Stays NM. */
 void func_80000598(u8* src, u8* dst, s32 count) {
-    u8* sp;
-    u8* dp;
-    s32 cp;
-    u8* p;
-    u8* q;
-    s32 rem;
+    register u8* sp;
+    register u8* dp;
+    register s32 cp;
+    register u8* p, *q;
+    register s32 rem;
+    register u8 c;
     cp = count;
     sp = src;
     dp = dst;
+    (void)cp;
     if (count == 0) return;
-    cp--;
+    count--;
     do {
         p = sp;
-        rem = cp;
+        c = *p;
         q = dp;
+        rem = count;
         dp++;
         sp++;
-        *q = *p;
-        cp--;
+        *q = c;
+        rem = count--;
     } while (rem != 0);
-    (void)rem;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
