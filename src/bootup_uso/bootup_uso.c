@@ -791,29 +791,21 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054D8);
  * Won't byte-match without typed structs for arg0/p and proper extern
  * names for D_X/D_Y. Default INCLUDE_ASM keeps ROM correct. */
 extern char D_000079C8;
+extern char D_553C_init_value;
+extern char D_553C_init_arg;
 int *func_0000553C(int *arg0) {
     int *p = (int*)func_00000000(0x58);
-    if (p != 0) {
-        func_00000000(p, arg0, *(int*)&D_00000000, &D_00000000);
-        p[10] = (int)&D_000079C8;
-    }
+    if (p == 0) goto end;
+    func_00000000(p, arg0, *(int*)&D_553C_init_value, &D_553C_init_arg);
+    p[10] = (int)&D_000079C8;
+end:
     return p;
 }
-/* 2026-05-05 GRIND: 84.20% NM, 22-vs-25 insn delta. Target's diff list:
- *   1. Frame -0x28 vs built -0x20 (+8 bytes pad with explicit stores)
- *   2. Double-save a0 at sp+0x28 AND sp+0x1C (target redundant)
- *   3. Spill slot swap: target a0@0x1C/v0@0x20; built a0@0x20/v0@0x1C
- *   4. Delay slot of 2nd jal: target sw a1,0x4(sp); built sw v0,0x1C(sp)
- *   5. T-reg: target t8 vs built t6 (post-cc INSN_PATCH territory)
- * Variants tried: int pad[2] (no-op, optimized away), volatile int pad[2]
- * (no-op), volatile pad with explicit stores (regressed to 44%; added
- * dead pad-zero-stores that target doesn't have), `volatile int *_arg
- * = arg0; (void)_arg;` (no-op, IDO drops the unused volatile). The
- * double-save pattern at sp+0x28+sp+0x1C is unreachable from -O2 IDO
- * regardless of volatile/pad/cast tricks. Likely a per-file pragma or
- * different opt level. Real fix: file-split this function into its own
- * .c file with a non-O2 flag combo (untested), or accept the cap and
- * try post-cc INSN_PATCH on a SUFFIX_BYTES-extended frame. */
+/* 2026-05-06 update: applied goto-end + 2 same-type unique-extern aliases
+ * (D_553C_init_value, D_553C_init_arg, both at 0x0) per
+ * docs/IDO_CODEGEN.md#feedback-ido-type-split-unique-extern-breaks-cse
+ * 2026-05-06 expansion. Promoted 84.20% -> 88.40% (mirrors func_000054D8
+ * sibling improvement). Remaining ~12% is documented precall-arg-spill cap. */
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
 #endif

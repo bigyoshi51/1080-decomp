@@ -985,3 +985,5 @@ D_8F18_vtable = 0x0;
 D_8F18_call_arg = 0x0;
 D_54D8_init_value = 0x0;
 D_54D8_init_arg = 0x0;
+D_553C_init_value = 0x0;
+D_553C_init_arg = 0x0;
