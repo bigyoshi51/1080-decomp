@@ -844,12 +844,13 @@ void gl_func_00030564(void) {
  *   3. Same as (2) for the second-arm reload.
  * Promotion path: introduce `extern int *gl_d_30598_v0;` mapped to 0,
  * use it for the D[3] access, +PROLOGUE_STEALS=8. Multi-tick. */
-extern int D_00000000;
+extern int *gl_d_30598_v0;  /* unique-extern alias mapped to 0x0; CSE-break */
 void gl_func_00030598(void) {
-    int *p = (int*)&D_00000000;
-    if (p[2] != 0) return;
-    if (p[3] != 0) return;
+    if (gl_d_30598_v0[2] != 0) goto end;
+    if (gl_d_30598_v0[3] != 0) goto end;
     gl_func_00000000();
+end:
+    return;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
