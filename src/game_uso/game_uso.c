@@ -2250,18 +2250,20 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * Mix of arg pass-through, zero-stores, D-table loads, and float
      * literals. ~57 insns.
      *
-     * NEXT-PASS OBSERVATION (2026-05-05): this stage has 5 shared-base
-     * float loads at &D + {0xE8, 0xEC, 0xF0, 0xF4, 0xF8} — exactly the
-     * shape that benefits from the unique-extern CSE-break recipe
-     * (docs/PATTERNS.md#feedback-uso-multi-placeholder-wrapper). The
-     * earlier "scale unique-extern CSE-break to all 38 iters" commit
-     * (49ef0bd3) covered the sub-object init LOOP, not this finalize
-     * stage. If target asm at the corresponding offsets uses per-load
-     * lui+addiu (instead of CSE'd shared base reg), splitting these 5
-     * into D_proxy_E8/EC/F0/F4/F8 (each mapped to 0x0) would emit a
-     * fresh lui+addiu per access — same recipe class. Verify against
-     * asm before applying: if target shares base, unique-extern would
-     * REGRESS. */
+     * NEXT-PASS OBSERVATION (2026-05-05): this stage has 5 float loads
+     * at &D + {0xE8, 0xEC, 0xF0, 0xF4, 0xF8}, and target asm at
+     * 0x5658-0x56F4 DOES use per-access `lui $at, 0` reloads (5 distinct
+     * base loads, not CSE'd). Tried unique-extern CSE-break with 5
+     * unique externs (D_44F4_st12_E8/EC/F0/F4/F8) — confirmed via
+     * objdump that build emits 5 separate `lui $at, 0` reloads as
+     * intended, BUT report.json fuzzy stayed flat at 62.048927% (no
+     * delta either way). Conclusion: the CSE-break is byte-equivalent
+     * to the shared-&D form for this exact emit shape because IDO's
+     * existing emit ALREADY uses 5 separate base loads at this point
+     * in the function (likely because the live range of the cached
+     * base is broken by intervening lui-for-fp-constant instructions:
+     * 0x428C, 0x4366, 0x4140, 0x4248, 0x41A0, 0x4170 all clobber $at).
+     * NOT a useful knob here — leave shared &D form. */
     *(int*)(a0 + 0x30) = a1;
     *(int*)(a0 + 0x2C) = a2;
     *(float*)(a0 + 0xA8) = 0.0f;
