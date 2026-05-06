@@ -1233,7 +1233,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CB9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CBFC);
 
+#ifdef NON_MATCHING
+/* gl_func_0000CD80: 23-insn (0x5C) "any-of-three-thresholds undercut" gate.
+ *
+ * Calls gl_func_00000000() iff $f0 < $f4 OR $f0 < D[sym1] OR $f0 < D[sym2].
+ * Effectively a 3-way OR-gate over float threshold tests. The function
+ * takes 2 float caller-args ($f0 and $f4 — non-standard ABI) and reads
+ * 2 globals into $f6/$f8. If any threshold is exceeded, dispatch the
+ * cross-USO callback.
+ *
+ * Arguments are received in $f0 and $f4 (NOT the standard $f12/$f14),
+ * suggesting this is called from an asm-emitted call-site that explicitly
+ * sets up these registers. Standard C signature `(float, float)` won't
+ * map cleanly to $f0/$f4 — IDO uses $f12/$f14 for normal float args.
+ *
+ * Initial structural wrap; bytes likely won't match without an inline-asm
+ * shim or an explicit-register declaration. Documented for future passes. */
+extern int gl_func_00000000();
+void gl_func_0000CD80(float a0, float a1) {
+    extern char D_CD80_t1;
+    extern char D_CD80_t2;
+    float t1 = *(float*)&D_CD80_t1;
+    float t2 = *(float*)&D_CD80_t2;
+    if (a0 < a1 || a0 < t1 || a0 < t2) {
+        gl_func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CD80);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CDDC);
 
