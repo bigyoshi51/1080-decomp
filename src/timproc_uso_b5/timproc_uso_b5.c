@@ -462,8 +462,17 @@ void timproc_uso_b5_func_00003F18(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. fuzzy 70.26%. Multi-knob
- * promotion needed — analysis 2026-05-05 (post E5D8 sibling land):
+/* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. Byte-correct via 3-knob recipe
+ * unblocked by the 2026-05-06 splice-function-prefix.py LW-opcode extension:
+ *   PROLOGUE_STEALS += timproc_uso_b5_func_00003F5C=4
+ *     strips the leading `lw t6, 0x23C(a0)` (that insn lives in predecessor
+ *     0x3F18's symbol via SUFFIX_BYTES). The splice fires because my
+ *     C-emit's first insn is LW (opcode 0x23), now in the accepted set.
+ *   SUFFIX_BYTES += timproc_uso_b5_func_00003F5C=0x03E00008,0xAFA40000
+ *     appends the trailing alt-entry stub `jr ra; sw a0, 0(sp)`.
+ *   `char pad[24]` bumps frame from 0x10 → 0x28 to match target.
+ *
+ * Original cap notes (before unblock) preserved below for posterity:
  *
  * Bytewise diff (post-PROLOGUE_STEALS=4 + SUFFIX_BYTES, before frame fix):
  *   Build C-emit (18 insns, frame 0x10):
@@ -514,8 +523,10 @@ void timproc_uso_b5_func_00003F18(char *a0) {
 typedef struct { int a, b, c; } Tri3i_F5C;
 typedef struct { float x, y, z; } Vec3_F5C;
 void timproc_uso_b5_func_00003F5C(int *a0) {
+    char pad[24];   /* bump frame from 0x10 → 0x28 to match target */
     Tri3i_F5C raw;
     Vec3_F5C *v = (Vec3_F5C*)((char*)*(int**)((char*)a0 + 0x29C) + 0xDC);
+    (void)pad;
     raw.a = *(int*)((char*)a0 + 0x23C);
     raw.b = *(int*)((char*)a0 + 0x240);
     raw.c = *(int*)((char*)a0 + 0x244);

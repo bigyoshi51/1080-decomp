@@ -189,7 +189,7 @@ build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0
 build/src/timproc_uso_b3/timproc_uso_b3.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3.c.o: PROLOGUE_STEALS := timproc_uso_b3_func_00000818=8 timproc_uso_b3_func_00001C28=8 timproc_uso_b3_func_0000074C=8 timproc_uso_b3_func_00000790=8 timproc_uso_b3_func_000007D4=8 timproc_uso_b3_func_00002240=8
 build/src/timproc_uso_b3/timproc_uso_b3.c.o: SUFFIX_BYTES := timproc_uso_b3_func_000021F4=0x3C040000,0x8C840148 timproc_uso_b3_func_00002388=0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000
 build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1.c.o: PROLOGUE_STEALS := timproc_uso_b1_func_00000800=8 timproc_uso_b1_func_00000734=8 timproc_uso_b1_func_00000778=8 timproc_uso_b1_func_000007BC=8 timproc_uso_b1_func_00002030=8
-build/src/timproc_uso_b5/timproc_uso_b5.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: PROLOGUE_STEALS := timproc_uso_b5_func_0000E5D8=8
+build/src/timproc_uso_b5/timproc_uso_b5.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: PROLOGUE_STEALS := timproc_uso_b5_func_0000E5D8=8 timproc_uso_b5_func_00003F5C=4
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: SUFFIX_BYTES := timproc_uso_b1_func_00001FE4=0x3C040000,0x8C840148 timproc_uso_b1_func_00002178=0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000
 build/src/arcproc_uso/arcproc_uso_tail1.c.o build/non_matching/src/arcproc_uso/arcproc_uso_tail1.c.o: PROLOGUE_STEALS := arcproc_uso_func_00001F0C=8
 build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH := \
@@ -234,6 +234,7 @@ build/src/timproc_uso_b5/timproc_uso_b5.c.o: INSN_PATCH := \
 	timproc_uso_b5_func_0000CC74=0xC:0xC48E0294,0x10:0xC48C0264,0x14:0xC4820260,0x18:0xC480025C,0x1C:0xE44E0118,0x20:0xE44C010C,0x24:0xE4420114,0x2C:0xE4400110
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: SUFFIX_BYTES := \
 	timproc_uso_b5_func_00003F18=0x8C98023C \
+	timproc_uso_b5_func_00003F5C=0x03E00008,0xAFA40000 \
 	timproc_uso_b5_func_0000C1B4=0x44856000,0x8C8E02B8,0xE48C02A0,0x03E00008,0xE5CC0120 \
 	timproc_uso_b5_func_0000CC74=0x44856000,0x8C8E02B8,0xE48C02A0,0x03E00008,0xE5CC011C
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x00000000,0x00000000
