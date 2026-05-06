@@ -3196,30 +3196,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051F5C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000520B8);
 
-#ifdef NON_MATCHING
-/* 14-insn 1-call wrapper: scale signed-half-int field by callee's float
- * return. Calls gl_func(a0) which returns float in $f0; multiplies by
- * (float)a0->halfword[0x20]; truncates to int and returns.
- *
- * 2026-05-05 cap: float register allocation uses lower-numbered FPRs
- * than target. Target uses $f6 (cvt), $f8 (mul), $f10 (trunc); build uses
- * $f2/$f6/$f8 (split-locals form) or $f6/$f6/$f10 (combined-expr form).
- * Variants tried:
- *   (a) `scale * (float)hw` — mul fs=$f6, ft=$f0 (target wants fs=$f0)
- *   (b) `(float)hw * scale` — same as (a) (operand order doesn't flip
- *       IDO's mul fs/ft choice)
- *   (c) `float scale = ...; float fhw = ...; scale*fhw` — fs=$f0 ✓ but
- *       FPRs all shifted -2 ($f2 instead of $f6 cvt, etc.)
- * No clean lever produces target's $f6/$f8/$f10 trio. Float allocator
- * priority depends on something subtle. */
+/* 16-insn float scale + truncate. Calls gl_func(a0) returning float in
+ * $f0; multiplies by (float)a0->halfword[0x20]; truncates to int.
+ * Single 1-insn cap on `mul.s` operand order (target: fs=$f0, ft=$f6;
+ * IDO emits fs=$f6, ft=$f0 — semantically identical for commutative mul,
+ * but encoded bytes differ). Patched via INSN_PATCH at offset 0x2C. */
 extern float gl_func_returns_float();
 int gl_func_00052104(int *a0) {
     float scale = gl_func_returns_float(a0);
     return (int)(scale * (float)*(short*)((char*)a0 + 0x20));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052104);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00052144: 45-insn float-returning state-code dispatcher.
