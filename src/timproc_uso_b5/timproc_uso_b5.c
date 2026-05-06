@@ -343,11 +343,25 @@ void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
     *(int*)(self + 0x2C) = *(int*)(base + 0x84);
     *(int*)(self + 0x30) = *(int*)(base + 0x80);
     *(int*)(self + 0x34) = *(int*)(base + 0x8C);
-    /* TODO: continue with sub-object alloc + link; ~50 more insns of body. */
     sub = (char*)gl_func_00000000(0);
     *(int*)(self + 0x5C) = (int)sub;
-    /* ... rest of body still TODO ... */
-    (void)sub;
+    /* Register sub as a child of entity_field (= self->[0x2C]):
+     *   call(entity+0x10, sub); if (sub->[0x14]) sub->[0x4]=1; sub->[0x14]=entity */
+    {
+        char *entity = *(char**)(self + 0x2C);
+        gl_func_00000000(entity + 0x10, sub);
+        if (*(int*)(sub + 0x14) != 0) *(int*)(sub + 0x4) = 1;
+        *(int*)(sub + 0x14) = (int)entity;
+    }
+    /* Register self as child of sub (saved at self->[0x5C]):
+     *   call(sub+0x10, self); if (self->[0x14]) self->[0x4]=1; self->[0x14]=sub */
+    gl_func_00000000(sub + 0x10, self);
+    if (*(int*)(self + 0x14) != 0) *(int*)(self + 0x4) = 1;
+    *(int*)(self + 0x14) = (int)sub;
+    /* Terminal init: call(self) */
+    gl_func_00000000(self);
+    /* TODO 0x1400-end: global-zero pair + 2nd alloc + sub2-link + final call.
+     * ~30 more insns. */
     (void)a1;
     return self;
 }
