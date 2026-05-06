@@ -2731,7 +2731,69 @@ void game_uso_func_0000591C(int *a0) {
      * Cumulative ~115/1102 insns characterized (up from 80). Body-proper
      * has ~985 remaining insns + ~28 more cross-USO calls.
      *
-     * TODO: 985+ remaining insns — continue per-state-branch decoding. */
+     * 2026-05-06 EXTENDED DECODE 0x5B4C-0x5BC4 (~30 more insns):
+     * STATE-CODE FLOAT COMPARE + 3-LEVEL POINTER NULL-CHECK + V1 DISPATCH.
+     *
+     *   /* state-code dispatch on (sp+0x1A4 saved state, after the v0!=2
+     *    * bnel at 0x5B48): two arms select different a0 floats *\/
+     *   /* arm 1: state==2 fall-through reads f12 = a0->0x3FC
+     *    *        otherwise bnel-arm reads f14 = a0->0x3CC then jumps
+     *    *        ahead via b +3 to 0x5B5C *\/
+     *   f14 = (state == 2) ? a0->0x3E4 : a0->0x3CC;
+     *   f12 = f14;
+     *
+     *   /* float-compare guarded clean-state block.
+     *    * If f0 (= 0.0f scratch) > f12 (= picked float), branch likely
+     *    * to 0x5BB0 (skip clean-state, go to v0 dispatch). *\/
+     *   if (f12 >= 0.0f) {
+     *       a0->0x74 = 0;                  /* delay-likely store *\/
+     *       /* 3-level pointer-chain null-check: t8 != 0 OR
+     *        * t9 = sp[0x1AC] != 0 OR t9->0x84 != 0 — any non-null
+     *        * branches to the v0 dispatch (skips deeper compare). *\/
+     *       if (t8 != 0) goto v0_dispatch;
+     *       t9 = sp[0x1AC];
+     *       if (t9 != 0) {
+     *           a0->0x74 = 0;
+     *           t1 = t9->0x84;
+     *           if (t1 != 0) {
+     *               a0->0x74 = 0;
+     *               /* deepest level: float-compare a0->0xB4 vs
+     *                * a0->0x30->0x348 (sub-struct deep field) *\/
+     *               t2 = a0->0x30;
+     *               f6 = a0->0xB4;
+     *               f4 = t2->0x348;
+     *               if (f6 <= f4) {
+     *                   v0 = v1;            /* delay-likely *\/
+     *               } else {
+     *                   a0->0x74 = 0;
+     *                   v1 = 0;
+     *               }
+     *           }
+     *       }
+     *   }
+     *
+     *   v0_dispatch:
+     *   v0 = v1;
+     *   /* dispatch on v0: 0 → fall through to 0x5BD0 path,
+     *    *                 1 → beql goto 0x5C4C ALSO with sp+0x15C arg setup,
+     *    *                 other → fall through with sp+0x15C arg setup *\/
+     *   if (v0 == 0) goto path_5BD0;       /* a0 = sp+0x15C in delay *\/
+     *   if (v0 == 1) goto path_5C4C;       /* beql; same a0=sp+0x15C delay *\/
+     *
+     * Pattern: this whole block (0x5AB4-0x5BC4) is a STATE-MACHINE-AS-
+     * VALIDATION of a0->0x74 (state code) + a0->0x30 (sub-struct ptr) +
+     * the saved-pointer-chain at sp+0x1A4/sp+0x1AC. The 3-level null-check
+     * idiom (parent → child → grandchild) is common in 1080's scene graph
+     * traversal — likely walking a "current target" pointer. The float
+     * compare at 0x5B98 (a0->0xB4 vs sub->0x348) is comparing per-frame
+     * Vec3.x against a deep sub-struct float — possibly distance / range
+     * threshold.
+     *
+     * Cumulative ~145/1102 insns characterized (up from 115). ~960
+     * remaining + ~25 cross-USO calls. NEXT PASS: 0x5BC8 onwards (the
+     * sp+0x15C arg-setup path that splits via v0 dispatch).
+     *
+     * TODO: 957+ remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
