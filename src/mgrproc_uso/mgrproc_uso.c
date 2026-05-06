@@ -395,11 +395,16 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F
  *     `sll+sll+addu` triple at 0x34-0x40. Target uses `multu+mflo+addu`
  *     (also 3 insns). Bytes still differ.
  *
- * Promotion path attempts pending: extern alias decls (D_190, D_7C, D_30)
- * to suppress IDO's CSE so each access is fresh lui+lw — needs
- * undefined_syms_auto.txt entries per feedback_usoplaceholder_unique_extern.md.
- * Without that, the +8 byte size delta blocks INSN_PATCH per
- * feedback_insn_patch_size_diff_blocked.md. */
+ * 2026-05-05 attempts (no progress beyond 23.33%):
+ *   - `volatile` cast on D-accesses: regressed to 6.5% (volatile suppresses
+ *     CSE for the FIRST access but IDO still caches downstream accesses,
+ *     and the volatile shape adds extra emit shape divergence).
+ *   - Unique-extern aliases (D_mgr_1594_d190 etc.): risky for USO runtime
+ *     relocation — aliases at non-zero offsets aren't in the loader's
+ *     symbol table, would break runtime patching. Skipped.
+ *
+ * Cap stays structural at 23.33%. The +8 byte size delta blocks INSN_PATCH
+ * per feedback_insn_patch_size_diff_blocked.md. Multi-tick. */
 extern int gl_func_00000000();
 void mgrproc_uso_func_00001594(int *a0) {
     int *t;
