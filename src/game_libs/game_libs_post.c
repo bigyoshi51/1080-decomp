@@ -4546,7 +4546,26 @@ void gl_func_0006F144(int a0, ...) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F160);
 
+#ifdef NON_MATCHING
+/* Sibling of gl_func_0006F3BC — same `(a0 & MASK) != 0 ? 1 : 0` shape with
+ * forced sp=-8 frame + unfilled delay slots. Mask = 0x1C here vs 0x3 there.
+ * Same documented cap as 6F3BC: target idiom (sp=-8 with no sw/lw) not
+ * reachable from standard IDO -O2 C — `volatile int x = a0 & MASK` adds
+ * sw+lw spills target doesn't have (built 14 insn vs target 9 insn body).
+ * Likely original was alloca/setjmp or per-file pragma.
+ *
+ * Splat bundled 3 trailing insns (nop + lui t6,0xA480 + lw a0,0x18(t6) —
+ * SI status preload for the next function); SUFFIX_BYTES setup IS in
+ * Makefile, applies if the body ever reaches byte-correct. Until then,
+ * default INCLUDE_ASM keeps ROM correct. */
+int gl_func_0006F38C(int a0) {
+    volatile int x = a0 & 0x1C;
+    if (x != 0) return 1;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F38C);
+#endif
 
 #ifdef NON_MATCHING
 /* return (a0 & 3) != 0 ? 1 : 0
