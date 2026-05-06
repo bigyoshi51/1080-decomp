@@ -1914,7 +1914,8 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
 #define INIT_ITER(SLOT, TMPL_OFF, FLOAT_EXPR, DB) do { \
             char *_t = *(char**)((char*)&DB + (TMPL_OFF)); \
             s0 = s1 + (SLOT); \
-            *(char**)s2 = _t; \
+            _t_buf[0] = _t; \
+            *(char**)s2 = _t_buf[0]; \
             if (s1 != (char*)((SLOT) - 0x100)) { \
                 s0 = (char*)gl_func_00000000(0x18); \
                 if (s0 == NULL) goto epi; \
@@ -2344,7 +2345,18 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * — so the load was reading uninitialized stack. Adding the missing
      * `_t_buf[0] = _t;` store before the read promoted iters G-NN's
      * codegen by ~32 SW instructions (one per iter). Net effect:
-     * 62.05% → 69.48% (+7.43pp). 604 bytes / 151 insns deficit remain. */
+     * 62.05% → 69.48% (+7.43pp). 604 bytes / 151 insns deficit remain.
+     *
+     * 2026-05-05 (next run): Extended the marshalling-buffer pattern
+     * to iters A-F (the FIRST INIT_ITER macro at line 1827) — also
+     * needs `_t_buf[0] = _t; *(char**)s2 = _t_buf[0];` for the per-
+     * iter store-then-load through sp+0xE0. +0.32pp (69.48 → 69.80).
+     *
+     * 2026-05-05 (negative): Tried the same fix on Stage 4's iter-0
+     * setup (`tmpl0 = ...; *(char**)s2 = tmpl0;` at line 1811) — it
+     * REGRESSED (-0.05pp). Iter-0 is special; target uses direct store
+     * for iter 0 but marshalling for iters A onward. Don't extend the
+     * pattern there. */
     (void)s0;
 
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
