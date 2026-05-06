@@ -5389,7 +5389,20 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010C4C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
 
+#ifdef NON_MATCHING
+/* 25-insn sibling of the game_uso_func_00010E2C family. Same 2-call
+ * shape with volatile pointer-cache + shadow-store cap. Variations:
+ * first call's a1 = a0->[0xFC] | 0x9 (vs E2C's `0`); D-offset 0xE10
+ * (vs E2C's 0xE40). Same family-cap (~50% pre-INSN_PATCH; documented
+ * shadow-store blocker per game_uso_func_0001056C). */
+void game_uso_func_00010DC8(int a0) {
+    volatile int *t = (volatile int*)((char*)&D_00000000 + 0xE10);
+    game_uso_func_00000000(a0, *(int*)((char*)a0 + 0xFC) | 0x9, 0, 1, 1, 1);
+    game_uso_func_00000000(a0, t[0], t[1], 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000
