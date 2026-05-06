@@ -537,7 +537,40 @@ void mgrproc_uso_func_0000179C(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001824);
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00001AD0: 34-insn (0x88) 5-call orchestrator.
+ *
+ * Decoded:
+ *   gl_func(a0, a1);                                  // call 1
+ *   v0 = D[0x134];
+ *   n0 = v0->[0xC4]->[0x800];
+ *   n1 = v0->[0xCC]->[0x800];
+ *   gl_func(n0, 0);                                   // call 2
+ *   gl_func(n0, D[0x168], D[0x170]);                  // call 3
+ *   gl_func(n1, n1->[0x34]);                          // call 4
+ *   gl_func(a0);                                      // call 5
+ *   a0->[0x4F4] = a1 & 0xFFFF;
+ *
+ * Initial decode; structure correct, byte-match TBD (multi-call-arg
+ * scheduling around v0/v1/a2 interplay needs refinement). Default
+ * INCLUDE_ASM keeps ROM correct. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_00001AD0(int *a0, int a1) {
+    int *v0;
+    int n0, n1;
+    gl_func_00000000(a0, a1);
+    v0 = *(int**)((char*)&D_00000000 + 0x134);
+    n0 = *(int*)((char*)((int*)v0[0xC4 / 4]) + 0x800);
+    n1 = *(int*)((char*)((int*)v0[0xCC / 4]) + 0x800);
+    gl_func_00000000(n0, 0);
+    gl_func_00000000(n0, *(int*)((char*)&D_00000000 + 0x168), *(int*)((char*)&D_00000000 + 0x170));
+    gl_func_00000000(n1, *(int*)((char*)n1 + 0x34));
+    gl_func_00000000(a0);
+    *(int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001AD0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
 
