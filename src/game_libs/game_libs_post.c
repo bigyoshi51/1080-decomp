@@ -3396,7 +3396,14 @@ void gl_func_00055B10(char *a0) {
  * docs/IDO_CODEGEN.md#feedback-ido-sreg-order-not-decl-driven. Cap is
  * IDO -O2 allocator priority not flippable from C variable ordering for
  * this 6-pseudo function — would need permuter or per-symbol INSN_PATCH
- * for ~30 words. Defer. */
+ * for ~30 words. Defer.
+ *
+ * 2026-05-06 retry: tried hoisting `&gl_data_00000000` cast into named
+ * `char *base` to add 4 refs that might shift allocator priority of the
+ * other locals. Result: `base` → $s6 (or higher), byte_array still → $s0.
+ * The 3 refs of byte_array (arg+gl_func_arg + array-index) outweigh the
+ * 4 refs of base because byte_array's live range is shorter (live-length
+ * factor in priority formula). Confirms cap remains structural. */
 extern int gl_data_00000000;
 void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
     int row;
