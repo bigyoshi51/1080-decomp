@@ -5587,40 +5587,43 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
 #endif
 
 #ifdef NON_MATCHING
-/* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000
- * with constant args + a 2-int read from `&D + 0xE40`.
+/* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000.
+ * Family: 00010E2C / 00011368 / 000113C8 share this shape (they differ
+ * only in the D-offset used for the 2nd call's 2-int payload — 0xE40 /
+ * 0xF08 / 0xF10 — and small-int constant variations).
  *
- * Family: game_uso_func_00010E2C / 00011368 / 000113C8 share this exact
- * shape. They differ only in (a) the 0x74-field-load present (or not) for
- * a1, (b) the small-int constants for a2/a3, (c) the D-offset (0xE40 /
- * 0xF08 / 0xF10) used to look up a 2-int payload for the second call.
- *
- * Structural decode (initial pass):
+ * Decoded:
  *   void f(int a0) {
- *       int *t = (int*)((char*)&D_00000000 + 0xE40);
- *       game_uso_func_00000000(a0, 0, 0, 1, 1, 1);     // 6-arg
- *       game_uso_func_00000000(a0, t[0], t[1], 1);     // 4-arg + sp shadows
+ *       game_uso_func_00000000(a0, 0, 0, 1, 1, 1);       // 6-arg
+ *       int *t = &D_00000000 + 0xE40;
+ *       game_uso_func_00000000(a0, t[0], t[1], 1);       // 4-arg
  *   }
  *
- * Caps below 100% on first pass: split-offset access to &D+0xN is the
- * known IDO codegen split — needs unique-extern technique
- * (docs/PATTERNS.md#feedback-uso-multi-placeholder-wrapper) for each call.
- * Plus the second call's 5th/6th-arg setup at sp+0x10/0x14 is implicitly
- * reused from the first call's stack; reaching that from C would
- * require sharing locals across both calls — known IDO scheduler/
- * frame-shape question. Initial wrap; multi-pass refinement expected.
+ * 2026-05-06: improved 85.17% → 87.38% via the `register int *t`
+ * + intermediate `v1, v2` locals pattern. This makes IDO materialize
+ * the base address in a single register ($v0 here) shared between
+ * both lw insns, matching target's `lui t8; addiu t8; lw a1, 0(t8);
+ * lw a2, 4(t8)` shape (vs the previous 2-lui per-load form).
  *
- * 2026-05-05 attempts (no-op, both stayed at 85.17%):
- *   - Unique-extern per call site (game_uso_call_10E2C_a/b) — same %.
- *   - ANSI prototype (`extern int f(int,int,int,int,int,int)`) to
- *     suppress K&R defensive arg-spill — same %.
- * The remaining 15% is pre-spill of $a1/$a2 to OUR sp+0x4/0x8 BEFORE the
- * 2nd jal — these are the called function's shadow slots being pre-set
- * by the caller. Not reproducible from C with ANSI/K&R/unique-extern. */
+ * Remaining ~12% is pre-spill of $a1/$a2 to OUR sp+0x4/0x8 BEFORE the
+ * 2nd jal — varargs-style caller-side shadow stores that target emits
+ * but built (22 insns vs target 24) does not. Not reproducible from C
+ * with K&R / ANSI / varargs-cast (varargs cast forces jalr indirect).
+ *
+ * Failed attempts (this session):
+ *   - `((int(*)(int,...))game_uso_func_00000000)(...)` — degenerates
+ *     to jalr indirect call, frame -0x28; bytes diverge significantly.
+ *   - `register volatile int *t` — same emit as register int *t (volatile
+ *     ignored for non-memory-access pointer init).
+ * INSN_PATCH ineligible (size diff, target +2 insns). */
 void game_uso_func_00010E2C(int a0) {
-    int *t = (int*)((char*)&D_00000000 + 0xE40);
+    register int *t;
+    int v1, v2;
     game_uso_func_00000000(a0, 0, 0, 1, 1, 1);
-    game_uso_func_00000000(a0, t[0], t[1], 1);
+    t = (int*)((char*)&D_00000000 + 0xE40);
+    v1 = t[0];
+    v2 = t[1];
+    game_uso_func_00000000(a0, v1, v2, 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010E2C);
