@@ -793,15 +793,23 @@ void gl_func_00030564(void) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_00030598: gate function — calls gl_func_00000000 if both
- * D_X[8] and D_X[0xC] are zero. The function's first 3 insns
- * (lui v0; addiu v0; lw t6, 0x8(v0)) are STOLEN PROLOGUE supplied by
- * predecessor gl_func_00030564's SUFFIX_BYTES trailer. Uses bnel
- * (branch likely) with epilogue's lw ra in delay slot.
- *
- * Promotion: needs PROLOGUE_STEALS=12 + the bnel-via-`if (cond) return;`
- * IDO pattern (untested for IDO 7.1; GCC's bnel emit may not apply).
- * Defer — multi-tick decomp. */
+/* Gate function — calls gl_func_00000000 if both D[8] and D[0xC] zero.
+ * Predecessor's SUFFIX_BYTES emits `lui v0; addiu v0,&D; lw t6,0x8(v0)`
+ * just before our prologue, supplying v0=&D and t6=*(D+8). With
+ * PROLOGUE_STEALS=8 + this C body: 10/13 words match (size 0x34 OK).
+ * Remaining 3 diffs:
+ *   1. Built emits `bne` (15c00006); target uses `bnel` (55c00007).
+ *      IDO -O2 doesn't recognize the early-return-restore-ra-via-likely
+ *      pattern from `if (cond) return;`. Sibling of recipes that promote
+ *      bne→bnel via `goto` to shared epilogue + delay-likely lw ra.
+ *   2. Built does fresh `lui+lw` for D[3] access; target reuses v0
+ *      from stolen prologue (`lw t7, 0xC(v0)`). Needs unique-extern-
+ *      typed-as-int* recipe (feedback-prologue-steals-with-dangling-
+ *      register-use), which conflicts with file's existing
+ *      `extern int D_00000000` decl — needs renamed alias symbol.
+ *   3. Same as (2) for the second-arm reload.
+ * Promotion path: introduce `extern int *gl_d_30598_v0;` mapped to 0,
+ * use it for the D[3] access, +PROLOGUE_STEALS=8. Multi-tick. */
 extern int D_00000000;
 void gl_func_00030598(void) {
     int *p = (int*)&D_00000000;
