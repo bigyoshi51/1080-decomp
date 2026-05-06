@@ -993,7 +993,25 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C98C);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CC74);
+/* Sibling of timproc_uso_b5_func_0000C1B4 (4-float copy + cross-USO call + 5-insn
+ * alt-entry tail). Same shape, different store offsets:
+ *   C1B4: stores at p+0x11C/0x110/0x118/0x114
+ *   CC74: stores at p+0x118/0x10C/0x114/0x110
+ *
+ * Recipe: same as C1B4 — INSN_PATCH 8 float-reg-rename words +
+ * SUFFIX_BYTES 5 alt-entry tail words. Both in Makefile. */
+void timproc_uso_b5_func_0000CC74(int *a0) {
+    int *p = (int*)a0[0x2B8 / 4];
+    float a = *(float*)((char*)a0 + 0x294);
+    float b = *(float*)((char*)a0 + 0x264);
+    float c = *(float*)((char*)a0 + 0x260);
+    float d = *(float*)((char*)a0 + 0x25C);
+    *(float*)((char*)p + 0x118) = a;
+    *(float*)((char*)p + 0x10C) = b;
+    *(float*)((char*)p + 0x114) = c;
+    *(float*)((char*)p + 0x110) = d;
+    func_00000000();
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
 
