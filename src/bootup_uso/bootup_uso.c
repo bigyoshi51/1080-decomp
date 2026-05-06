@@ -1449,7 +1449,33 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);
 
+#ifdef NON_MATCHING
+/* func_0000B49C: 33-insn (0x84) clamped-index dispatcher.
+ *
+ * Decoded:
+ *   if (idx >= 10) idx = 9;                              // clamp
+ *   v = ((int*)&D_00000000)[idx];                        // table lookup
+ *   if (gl_func(v) == 0) {                                // probe
+ *       gl_func(&D_00000000, v);                          // fallback init
+ *   }
+ *   gl_func(0, (char*)func_00008A40 + 0x18, v, 0);        // dispatch
+ *
+ * The dispatched function ptr is `func_00008A40 + 0x18` — a code address
+ * inside an existing function (alt-entry). Likely a callback/handler
+ * table reference. Multi-pass refinement expected. */
+extern void func_00008A40();
+void func_0000B49C(int idx) {
+    int v;
+    if (idx >= 10) idx = 9;
+    v = ((int*)&D_00000000)[idx];
+    if (gl_func_00000000(v) == 0) {
+        gl_func_00000000(&D_00000000, v);
+    }
+    gl_func_00000000(0, (char*)func_00008A40 + 0x18, v, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B49C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
 
