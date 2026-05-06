@@ -747,21 +747,25 @@ extern char D_000078D8;
  * value from $a0 (since both alloc-success and alloc-fail paths converge to
  * `return p`).
  *
- * Two D_00000000 references at 0x4FC/0x500 (lui+lw, lui+addiu) — distinct
- * USO data placeholders. Per
- * feedback_unique_extern_with_offset_cast_breaks_cse.md, need 2 unique
- * externs all mapped to 0x0 to break IDO &D-CSE between them. Plus
- * D_000078D8 is a real (non-zero offset) intra-USO data symbol at 0x78D8.
+ * Two D_00000000 references at 0x4FC/0x500 (lui+lw, lui+addiu) - distinct
+ * USO data placeholders.
  *
- * Multi-tick refinement: byte match needs 2 unique-extern aliases for the
- * D references + arg0-reload-after-alloc shape. NM-wrap keeps default
- * INCLUDE_ASM build exact while documenting the alloc+init structure for
- * the next pass. */
+ * 2026-05-06 update: applied goto-end + same-type unique-extern aliases
+ * (D_54D8_init_value, D_54D8_init_arg, both at 0x0) per docs/IDO_CODEGEN.md
+ * #feedback-ido-type-split-unique-extern-breaks-cse 2026-05-06 expansion.
+ * Promoted 84.20% -> 88.40%. Remaining ~12% diff is the documented
+ * pre-call arg-spill cap (sw a1, 0x4(sp) in jal delay slot) per
+ * feedback-ido-precall-arg-spill-unreachable; that ~2-insn diff cascades
+ * to the frame-size delta (0x20 mine vs 0x28 target) since target reserves
+ * an extra spill slot for arg0. Permuter-only further. */
+extern char D_54D8_init_value;
+extern char D_54D8_init_arg;
 int* func_000054D8(int arg0) {
     int *p = (int*)func_00000000(0x58);
-    if (p == 0) return 0;
-    func_00000000(p, arg0, *(int*)&D_00000000, &D_00000000, arg0);
+    if (p == 0) goto end;
+    func_00000000(p, arg0, *(int*)&D_54D8_init_value, &D_54D8_init_arg);
     p[10] = (int)&D_000078D8;
+end:
     return p;
 }
 #else
