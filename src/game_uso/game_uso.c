@@ -2828,10 +2828,53 @@ void game_uso_func_0000591C(int *a0) {
      * idiom common in 1080 (per docs/PATTERNS.md USO callee patterns).
      *
      * Cumulative ~177/1102 insns characterized (up from 145). ~925
-     * remaining. NEXT PASS: 0x5C48 onwards (alt-path with `lw a0,
-     * 0x15C(sp)` arg setup, also branching to 0x5CB4 merge).
+     * remaining.
      *
-     * TODO: 925+ remaining insns — continue per-state-branch decoding. */
+     * 2026-05-06 EXTENDED DECODE 0x5C48-0x5CB0 (~26 insns): ALT-PATH
+     * MIRROR OF PRIOR Vec3-MEMCPY BLOCK + MERGE.
+     *
+     *   /* alt path (other arm of v0 dispatch from earlier 0x5BB0) *\/
+     *   /* same 4-arg + 2-stack-arg gl_func call but a0 = sp+0x15C
+     *    * instead of a0->0x30 (different source for the transformed Vec3) *\/
+     *   a0 = sp + 0x15C;
+     *   a1 = s0;
+     *   a2 = sp[0x1B0];
+     *   a3 = sp[0x1AC];
+     *   /* sp[0x10] = sp[0x148]? — t0 from earlier prep *\/
+     *   t9 = gl_func(...);
+     *
+     *   /* same 12-byte Vec3 copy chain: t9 → sp+0x108 → sp+0xFC *\/
+     *   v1 = sp + 0x108; t3 = sp + 0xFC;
+     *   *(int*)(v1 + 0/4/8) = *(int*)(t9 + 0/4/8);
+     *   *(int*)(t3 + 0/4/8) = *(int*)(v1 + 0/4/8);
+     *
+     *   /* same 3-float load+store: sp+0xFC..0x104 -> sp+0x190..0x198 *\/
+     *
+     *   b 0x5CB4   ; merge to continuation (same target as prior path)
+     *
+     * MERGE BLOCK 0x5CB4-0x5CB0 (5 insns visible):
+     *   /* both paths arrive here with a0 reloaded from s0->0x30 *\/
+     *   a0 = s0->0x30;
+     *   a3 = sp + 0x178;
+     *   a1 = a3;
+     *   if (a3 != 0) {        // (effectively always true — sentinel guard)
+     *       v1 = a0 + 0x3C8;
+     *       /* fall through to next block at 0x5CE0 *\/
+     *   } else {
+     *       a0 = 0xC; gl_func(...); sp[0x144] = v1;
+     *       /* alloc/init then reload v1 *\/
+     *   }
+     *
+     * Pattern: alt-path duplicates the Vec3-memcpy structure with sp+0x15C
+     * as alternative source (vs sp+0x1B8 in prior path). Both feed into
+     * the same merge block at 0x5CB4 which prepares a Vec3-related
+     * comparison with sp+0x178 (likely accumulated transform output).
+     *
+     * Cumulative ~205/1102 insns characterized (up from 177). ~895
+     * remaining. NEXT PASS: 0x5CB4 merge-block continuation (the v1 =
+     * a0+0x3C8 + sp+0x178 comparison/copy block).
+     *
+     * TODO: 895+ remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
