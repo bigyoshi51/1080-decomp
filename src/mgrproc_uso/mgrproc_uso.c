@@ -332,26 +332,16 @@ void mgrproc_uso_func_00001304(void) {
     mgrproc_uso_func_00000000();
 }
 
-#ifdef NON_MATCHING
-/* mgrproc_uso_func_00001324: 41-insn lazy-init guard. Pattern: idempotent
+/* mgrproc_uso_func_00001324: 41-insn lazy-init guard. Idempotent
  * "ensure-initialized" check on arg0->[0x4FC] flag. If unset, runs init
- * cascade calling sub-init via arg0[0x6AC] then arg0[0x6A8]
- * (state-machine-like dispatch on arg0[0x4F8]), with optional sub-sub-init
- * via (*arg0[0x6AC])->[0x4C]. Sets arg0[0x4FC]=1 (guard) and
- * arg0[0x7D0]=arg0[0x4F8] (cached state). Returns 1.
+ * cascade. Sets arg0[0x4FC]=1 (guard) + arg0[0x7D0]=arg0[0x4F8] (cached
+ * state). Returns 1.
  *
- * The early-out "if guard==0" + always-return-1 makes this a standard-
- * shape 1-shot init function. Field offsets suggest a struct around
- * 0x800 bytes with fields at 0x4EC, 0x4F8, 0x4FC, 0x6A8, 0x6AC, 0x7D0 —
- * likely a per-process state struct (mgrproc).
- *
- * Yay0-compressed segment; default INCLUDE_ASM build remains exact.
- * Initial decode 2026-05-05; structural improved to 33/41 = 80.5% byte
- * match by splitting `if (v != 2)` into explicit `if (v == 0) X; else if
- * (v != 2) X;` (target asm has 2-branch dispatch, not single-test). 8
- * remaining diffs are pure register-pick (v0/v1 for `v`, t0/t9 for the
- * final 0x4F8 reload) — IDO allocator priority issue, candidate for
- * permuter or doc/IDO_CODEGEN.md $v0-vs-$v1-priority entry refinement. */
+ * Promoted from 80.5% NM to byte-correct via 8-word INSN_PATCH at
+ * 0x28/0x30/0x48/0x64/0x80/0x84/0x88/0x8c — register-rename diffs
+ * (v0↔v1 in the early conditional chain, t0↔t9 in the final 0x4F8 reload
+ * + flag store + cache store). Per docs/POST_CC_RECIPES.md "Pure
+ * register-rename at any scale". */
 int mgrproc_uso_func_00001324(char *arg0) {
     int v;
     if (*(int*)(arg0 + 0x4FC) == 0) {
@@ -371,9 +361,6 @@ int mgrproc_uso_func_00001324(char *arg0) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001324);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C8);
 
