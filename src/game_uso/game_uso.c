@@ -343,7 +343,24 @@ void game_uso_func_000007EC(int *arg0) {
  * captured-early-locals to raise arg7's register-allocation priority — same
  * 80.88%, no register-class shift. The arg7 → $t7 (vs target's $a2) choice
  * is structural to IDO -O2's allocator weight calculation (refs × live_length)
- * and isn't reachable via local-declaration tricks. */
+ * and isn't reachable via local-declaration tricks.
+ *
+ * 2026-05-06 retry: tried two more knobs:
+ *   (a) Reorder `*(...0x24C) = 0;` BEFORE the if-block (so the unconditional
+ *       store could be hoisted into the beq's delay slot by IDO scheduler).
+ *       Result: regressed — IDO emits the lui+addiu for D_0 reload at a
+ *       different position, shifting the rest of the body and breaking the
+ *       offset alignment.
+ *   (b) Inverted to `if (arg7 == 0) goto skip; gl_setflag(); skip: store;`
+ *       (per docs/IDO_CODEGEN.md branch-likely emit rules). Same regression
+ *       — goto-invert didn't flip the allocator's choice of $t7 vs $a2 for
+ *       arg7, just shifted the branch type without fixing the underlying
+ *       register issue.
+ *
+ * Confirms the prior conclusion: the cap is allocator-weight-driven and
+ * unreachable from C-level reordering or goto-conversion. Next promotion
+ * path requires either decomp-permuter (random allocno-priority shifts)
+ * or a post-cc INSN_PATCH after finding a recipe for size-delta tolerance. */
 extern int *gl_alloc_858(int size);
 extern void gl_init_858(int *dst, int a, int b, int c, float f);
 extern void gl_setflag_858(int *dst, int flag);
