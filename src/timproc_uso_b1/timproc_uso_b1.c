@@ -89,7 +89,49 @@ void timproc_uso_b1_func_000000B0(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000000B0);
 #endif
 
+#ifdef NON_MATCHING
+/* 46-insn allocator-wrapper (0xB8). Logic decoded; LIKELY -O0 compiled.
+ *
+ * Logic:
+ *   handle = gl_func(2);
+ *   new = gl_func(0, D[0x148], 1, arg2);
+ *   *arg0 = new;
+ *   D[0x14C] = new;
+ *   gl_func(handle);
+ *   if (arg1 != 0) (*arg0)->[0x14] = 1; else (*arg0)->[0x14] = 0;
+ *   D[0x68] = 0;
+ *
+ * -O0 indicators (matching sibling func_00000000 BLOCKED note):
+ *   1. Unfilled jal delay slots (0x5C4/0x5E4/0x604 are nops) — -O2 fills.
+ *   2. `move s0, v0` for new_obj despite live range not crossing any call
+ *      — -O0 conservatively saves return values.
+ *   3. Redundant `b epilogue; nop` at 0x640-0x644 immediately before the
+ *      epilogue at 0x648 — -O0 explicit-jump pattern.
+ *   4. Frame -0x28 with s0 save despite single short-lived use — -O0 reserves
+ *      callee-save space upfront.
+ *
+ * BLOCKED: timproc_uso_b1 is Yay0-compressed (per feedback_uso_yay0_compressed.md);
+ * per-file -O0 override breaks the segment Yay0 packing. Same blocker as
+ * timproc_uso_b1_func_00000000. Best -O2 attempt produces 37-insn body using
+ * v0 directly across both stores, beql for the if-else, filled delay slots —
+ * structurally 10 insns shorter than expected. NOT INSN_PATCH-able (too many
+ * structural diffs). Default INCLUDE_ASM matches via original asm. */
+void timproc_uso_b1_func_000005A4(int **arg0, int arg1, int arg2) {
+    int handle = gl_func_00000000(2);
+    int new_obj = gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), 1, arg2);
+    *arg0 = (int*)new_obj;
+    *(int*)((char*)&D_00000000 + 0x14C) = new_obj;
+    gl_func_00000000(handle);
+    if (arg1 != 0) {
+        *(int*)((char*)*arg0 + 0x14) = 1;
+    } else {
+        *(int*)((char*)*arg0 + 0x14) = 0;
+    }
+    *(int*)((char*)&D_00000000 + 0x68) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000005A4);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b1_func_0000065C: byte-identical mirror of
