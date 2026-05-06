@@ -526,9 +526,42 @@ void game_uso_func_00000B3C(int *a0) {
      *
      * Cumulative ~60/706 insns characterized.
      *
-     * TODO(next pass): decode 0xC38-0xD00 (next ~50 insns of the chain),
-     * then 0xDC0/0xDF0/... switch-arm addresses live in rodata at
-     * %hi/%lo($at) — need to read them from baserom's rodata. */
+     * 2026-05-05 EXTENDED DECODE 0xCA4-0xD68 (~50 more insns, ~110/706 total):
+     *   0xCA4-0xCAC: spill a3 to sp+0x12C, jal cross-USO with a2+=0x318
+     *     (callee adjusts a flag-mask base address by 0x318)
+     *   0xCB0-0xCC8: post-call merge — `b +7; lw a3, 0x12C(sp)` skips
+     *     the re-call path. Else branch reloads `a2 = a0->0x150` (dispatch
+     *     list), `a0 = t6->0xB4`, spills a3 again, makes another jal with
+     *     same a2+=0x318. Two-arm jal pattern (probably "init mask vs
+     *     update mask").
+     *   0xCCC-0xCD8: post-merge cleanup. `a0->0x270 = 0; a0->0x26C = 0`
+     *     (clear two flag/state fields).
+     *   0xCDC-0xCEC: dispatch-list flag clear:
+     *     `list[0xA58] &= ~0x2000` (clears bit 13 of a 32-bit flag word).
+     *   0xCF0-0xCF8: `v1 = &list[0xA58]; t9 = *v1; bnel t8, t9, +0x7F`
+     *     — re-read post-mask check; if mask bit re-set by another thread,
+     *     skip far forward (this is a race-detection guard).
+     *   0xCFC-0xD18: state-test chain on a0->0x260 (sp+0xCFC reload).
+     *     `if (a0->0x260 != 0)` evaluates the same flag tested earlier —
+     *     this is a different branch arm of the gate.
+     *   0xD1C-0xD2C: load `a0->0x274` field, mask with 0x80, branch on bit.
+     *     Likely tests "is bit 7 of flag word set?".
+     *   0xD30-0xD40: pseudo-COW: `a0->0x26C = a0->0x270` (was 0 from earlier),
+     *     branches `b +0x15` to merge point (skips alt-set path).
+     *   0xD44-0xD68: alt-set path — checks `a0->0x274 with 0x80` again,
+     *     and if 3-state match, sets `a0->0x270 = 4 (or similar);
+     *     a0->0x26C = 3 (= constant)`. Both paths converge at +0xB merge.
+     *
+     * Pattern recognition: this is a state-machine update where two flag
+     * fields (0x270/0x26C) are reset to (0,0) on entry, then conditionally
+     * re-set based on (0x274 & 0x80) state. Looks like an "active state ID
+     * cache" being cleared and either re-validated or marked-dirty.
+     *
+     * TODO(next pass): decode 0xD68-0xDB8 (the entry to the rodata
+     * jump-table dispatch). Then 0xDB8 jr $t1 + 0x80-byte rodata
+     * jumptable in baserom. Per
+     * feedback_ido_switch_rodata_jumptable.md the rodata path is
+     * discarded by 1080's linker; if-else chain rewrite needed. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000B3C);
