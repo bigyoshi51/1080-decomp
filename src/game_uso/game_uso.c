@@ -5584,14 +5584,29 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
 
 #ifdef NON_MATCHING
 /* 25-insn sibling of the game_uso_func_00010E2C family. Same 2-call
- * shape with volatile pointer-cache + shadow-store cap. Variations:
- * first call's a1 = a0->[0xFC] | 0x9 (vs E2C's `0`); D-offset 0xE10
- * (vs E2C's 0xE40). Same family-cap (~50% pre-INSN_PATCH; documented
- * shadow-store blocker per game_uso_func_0001056C). */
+ * shape; D-offset 0xE10 (vs E2C's 0xE40).
+ *
+ * 2026-05-06: applied `register int *t` + intermediate v1/v2 named
+ * locals per docs/IDO_CODEGEN.md#feedback-ido-shared-base-via-deferred-assign-and-named-locals
+ * — gives shared-base structure ($v0 holds the base address) but IDO
+ * bakes the +0xE10/+0xE14 offsets into the lw insns (target wants
+ * `addiu t8, t8, 0xE10; lw 0(t8); lw 4(t8)`). Per
+ * docs/IDO_CODEGEN.md#feedback-ido-constant-address-load-fold-inevitable
+ * this fold is structural — the `&D + 0xE10` constant address gets
+ * collapsed at constant-fold time. Tried `char *base` form too — same
+ * emit. Cap stays at 88.6%.
+ *
+ * Remaining ~12% is the same family cap as 10E2C: shared-base shape
+ * almost matches, plus 2 missing varargs shadow stores
+ * (sw a1, 0x4(sp); sw a2, 0x8(sp)) before the 2nd jal. */
 void game_uso_func_00010DC8(int a0) {
-    volatile int *t = (volatile int*)((char*)&D_00000000 + 0xE10);
+    register int *t;
+    int v1, v2;
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0xFC) | 0x9, 0, 1, 1, 1);
-    game_uso_func_00000000(a0, t[0], t[1], 1);
+    t = (int*)((char*)&D_00000000 + 0xE10);
+    v1 = t[0];
+    v2 = t[1];
+    game_uso_func_00000000(a0, v1, v2, 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
