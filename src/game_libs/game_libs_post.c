@@ -4360,7 +4360,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A420);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
 
+#ifdef NON_MATCHING
+/* 14-insn linked-list traversal. Searches for `a1` in a list rooted at `a3`
+ * (linked via *p == next). When found, copies *a1 to *a2 and returns.
+ * a0 unused (discarded). Initial structural decode; not yet byte-verified. */
+void gl_func_0006AF0C(int unused_a0, int *a1, int **a2, int *a3) {
+    if (a3 == 0) return;
+    while (a3 != (int*)a1) {
+        a2 = (int**)a3;
+        a3 = *(int**)a3;
+        if (a3 == 0) return;
+    }
+    *a2 = (int*)*a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF0C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
 
