@@ -993,3 +993,4 @@ D_timb5_131C_c = 0x0;
 D_timb5_131C_d = 0x0;
 D_CD80_t1 = 0x0;
 D_CD80_t2 = 0x0;
+gl_func_returns_float = 0x00000000;
