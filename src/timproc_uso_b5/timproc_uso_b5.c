@@ -1082,21 +1082,32 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
  * pattern + reload-of-v1 across the fork are likely structural cap drivers.
  * The 4-store epilogue order (0x10C, 0x110, 0x114, 0x118 in target asm —
  * NOT in source-order 0x10C/0x110/0x114) suggests IDO scheduler interleave
- * of the lwc1's and swc1's. */
+ * of the lwc1's and swc1's.
+ *
+ * 2026-05-05: caching `float *p128` lifted 75.47% → 80.41% (+4.94pp). The
+ * cached pointer matches target's `addiu v0, v1, 0x128` (v0 holds the
+ * +0x128 offset address). Remaining 20% cap: target has v1 reloads
+ * BETWEEN the `*p128 += D[X]` add and the subsequent `*p128 > 1.0f`
+ * comparison clamp (i.e. `lw v1, 0x2B8(a0); lwc1 f10, 0x128(v1)`). My
+ * code uses cached *p128 there and skips the reload. Promotion path:
+ * write the comparison via inline-deref (`*(float*)((char*)a0[0x2B8/4]
+ * + 0x128) > 1.0f`) to force the v1 reload — multi-tick. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void timproc_uso_b5_func_0000C8AC(int *a0) {
     int *v1;
+    float *p128;
     v1 = (int*)a0[0x2B8 / 4];
+    p128 = (float*)((char*)v1 + 0x128);
     if (*(int*)((char*)v1 + 0x134) != 0) {
-        *(float*)((char*)v1 + 0x128) += *(float*)((char*)&D_00000000 + 0x374);
-        if (*(float*)((char*)v1 + 0x128) > 1.0f) {
-            *(float*)((char*)v1 + 0x128) = 1.0f;
+        *p128 += *(float*)((char*)&D_00000000 + 0x374);
+        if (*p128 > 1.0f) {
+            *p128 = 1.0f;
         }
     } else {
-        *(float*)((char*)v1 + 0x128) -= *(float*)((char*)&D_00000000 + 0x378);
-        if (*(float*)((char*)v1 + 0x128) < 0.0f) {
-            *(float*)((char*)v1 + 0x128) = 0.0f;
+        *p128 -= *(float*)((char*)&D_00000000 + 0x378);
+        if (*p128 < 0.0f) {
+            *p128 = 0.0f;
         }
     }
     v1 = (int*)a0[0x2B8 / 4];
