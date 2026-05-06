@@ -767,11 +767,13 @@ int *func_0000553C(int *arg0) {
  *   5. T-reg: target t8 vs built t6 (post-cc INSN_PATCH territory)
  * Variants tried: int pad[2] (no-op, optimized away), volatile int pad[2]
  * (no-op), volatile pad with explicit stores (regressed to 44%; added
- * dead pad-zero-stores that target doesn't have). The double-save
- * pattern at sp+0x28+sp+0x1C is unusual — likely came from a different
- * IDO build flag or volatile-arg semantics. Future-pass: try
- * `volatile int *_arg = arg0` to force the spill duplication; if that
- * works, INSN_PATCH the residual t-reg/spill-slot diffs. */
+ * dead pad-zero-stores that target doesn't have), `volatile int *_arg
+ * = arg0; (void)_arg;` (no-op, IDO drops the unused volatile). The
+ * double-save pattern at sp+0x28+sp+0x1C is unreachable from -O2 IDO
+ * regardless of volatile/pad/cast tricks. Likely a per-file pragma or
+ * different opt level. Real fix: file-split this function into its own
+ * .c file with a non-O2 flag combo (untested), or accept the cap and
+ * try post-cc INSN_PATCH on a SUFFIX_BYTES-extended frame. */
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
 #endif
