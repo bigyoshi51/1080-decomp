@@ -2240,9 +2240,17 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * Promotion paths (multi-tick):
      *   - Move s2's `(char*)&_s2_buf` setup to LATER in the function
      *     so its live range starts after a few jal calls (could
-     *     trick IDO into picking $s2 over $t).
+     *     trick IDO into picking $s2 over $t). NOT YET TRIED — s2 is
+     *     used in inner Stage 4 block at line 1811, can't easily move
+     *     past first use without restructuring.
+     *   - `register char *s2 = ...` keyword hint. TRIED 2026-05-05:
+     *     IDO accepted the syntax (no error like the asm("$N") form),
+     *     but did NOT change allocation — still goes to $tN. Confirmed
+     *     via objdump: prologue still saves only s0/s1/ra, no s2.
+     *     Conclusion: IDO's `register` hint is too weak to override
+     *     the global allocator's priority calc here.
      *   - decomp-permuter with PERM_RANDOMIZE around the macros
-     *   - Accept 69.79% as the C-decomp ceiling. */
+     *   - Accept 62-70% as the C-decomp ceiling for this function. */
     (void)s0;
 
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
