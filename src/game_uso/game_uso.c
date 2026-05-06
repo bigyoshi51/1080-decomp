@@ -5970,6 +5970,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
  *     completely different shape (worse, not better). The volatile offset
  *     trick can't satisfy IDO's "addiu literal then lw at 0" form because
  *     it produces a runtime-computed base, not a constant base.
+ *   - 2026-05-06: block-scope `extern int va_callee(int, ...);` aliased
+ *     to the same address as game_uso_func_00000000 — IDO compiles the
+ *     varargs proto but DOES NOT emit caller-side shadow stores at the
+ *     call site (no `sw a1, 0x4(sp); sw a2, 0x8(sp)`). MIPS O32 doesn't
+ *     mandate caller argv-save for varargs in IDO's emit; the shadow
+ *     stores are an artifact of the original compiler version's stricter
+ *     ABI conformance. Same 22 insns as base attempt.
+ *   - 2026-05-06: explicit shadow-locals
+ *     `register int dummy_argv0,1,2; dummy_argvN = vN;` then call —
+ *     IDO DCEs them (no register pressure), no extra spills emitted.
+ *     Same 22 insns.
+ * Underlying root cause: target loads via `lui t8 + addiu t8 0xE40 + lw 0(t8) + lw 4(t8)`
+ * (4-insn base+ofs form) which leaves t8 holding the base across the 2nd jal,
+ * letting the assembler interleave `sw a1, 0x4(sp); sw a2, 0x8(sp)` in the
+ * shadow slots. IDO -O2 always folds to `lw a1, 0xE40(v0); lw a2, 0xE44(v0)`
+ * (2-insn direct form) because the offsets fit in 16-bit signed immediates
+ * — strength reducer collapses the addiu into the lw. To prevent the fold,
+ * the offset would need to NOT fit in 16 bits (e.g., > 0x7FFF), but 0xE40
+ * does fit. Per `docs/IDO_CODEGEN.md feedback-ido-constant-address-load-fold-inevitable`.
  * INSN_PATCH ineligible (size diff, target +2 insns). */
 void game_uso_func_00010E2C(int a0) {
     register int *t;
