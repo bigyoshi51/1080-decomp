@@ -1753,13 +1753,26 @@ void game_uso_func_000044C8(char *a0) {
  * struct-field offsets identified so far. Future ticks: decode the
  * sub-object allocation loop, type the GameState struct, then refine.
  *
- * 2026-05-06 RE-MEASURE: 62.05% NM (significant promotion since 2026-05-03
- * baseline of 2.44%). Built emits 1020 insns / 0xFF0 vs target 1165 insns /
- * 0x1234 — gap of 145 missing insns (~12% of function). Comment stages
- * below describe the per-section work-in-progress. Remaining gap is
- * primarily un-decoded sub-object init blocks between the tail-stage
- * (0x5658-0x5724, mostly written) and the early-stage stub-list
- * (0x4564-0x4710, partially written). Multi-pass refinement continues.
+ * 2026-05-06 RE-MEASURE: 62.05% NM (objdiff fuzzy score on the
+ * #ifdef-NM-aliased OBJECT symbol). Built emits 1020 insns / 0xFF0 vs
+ * target 1165 insns / 0x1234 — gap of 145 missing insns (~12% of
+ * function) IN THE C-EMIT PATH. The DEFAULT INCLUDE_ASM (#else) path
+ * is BYTE-IDENTICAL to expected/.o (verified 2026-05-06: `cmp` shows
+ * identical .text section, no-aliases objdump diff is empty). An
+ * episode is logged at episodes/game_uso_func_000044F4.json — the
+ * function is BYTE-CORRECT in ROM via the INCLUDE_ASM path per
+ * docs/MATCHING_WORKFLOW.md feedback-byte-correct-match-via-include-asm-not-c-body.
+ * The 62% score is the .NON_MATCHING-alias scoring quirk on the C-body
+ * emit, which is documentation-only.
+ *
+ * Remaining work for full C-emit byte-equivalence (low-priority since
+ * ROM is already exact): un-decoded sub-object init blocks between the
+ * tail-stage (0x5658-0x5724, mostly written) and the early-stage
+ * stub-list (0x4564-0x4710, partially written). The new
+ * feedback-ido-cse-bust-via-distinct-externs technique
+ * (docs/IDO_CODEGEN.md) may help if any of the remaining ~145-insn gap
+ * stems from CSE-folded `&D_00000000` accesses. Multi-pass continuation
+ * is research-only — primary decomp goal already met.
  *
  * EXTENDED DECODE @ 0x4580-0x45F8 (insns 25-50, sub-object init loop):
  *   // After s1 setup (s1 = main+0xE4 sub-region or alloc(0x3E0)):
