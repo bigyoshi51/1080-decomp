@@ -3429,7 +3429,63 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055470);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000558A0);
 
+#ifdef NON_MATCHING
+/* gl_func_0005591C: 88-insn (0x160) varargs-style printf-like dispatcher
+ * with circular-buffer link-list maintenance. Sibling-roll pick post
+ * recently-matched gl_func_00055B44 (grid emitter). Frame -0xB0 (176B)
+ * with full a0-a3 caller-arg-save (varargs signature shape).
+ *
+ * Decoded shape (initial pass, ~30/88 insns):
+ *   gl_func_00055B44-style printf-fmt + ~5 D-base global clears at
+ *   D[0], D[4], D[8], D[C], plus 1 reload from sp+0xB0 saved-a0:
+ *     gl_func_00000000(D+0x211B8);                  // setup call
+ *     *(int*)(D+offN) = 0; (4 globals)
+ *     if (saved_a0 == 0) {
+ *         v0 = 0;
+ *     } else {
+ *         v0 = 1;
+ *         if (*(int*)saved_a0 == 0x3E8) goto skip;
+ *         gl_func_00000000(D+0x211C8);
+ *     }
+ *   skip:
+ *     // ~50 insns of circular-buffer link-list walk:
+ *     // (cur->prev = cur+0xC, cur->next = next->next, etc.) — Vec3-of-
+ *     // pointers manipulation across sp+0x48..0x6C range
+ *     gl_func_00000000(...);   // final 4-arg call with sp+0/4/8/C
+ *     gl_func_00000000();      // empty trailing call
+ *     return 1;
+ *
+ * Initial structural NM ~30-40% expected. Multi-pass refinement for the
+ * circular-buffer middle section (offsets sp+0x48, 0x60, 0x6C, 0xFFF4-FFFC)
+ * which uses negative-offset addressing relative to running pointers. */
+extern int gl_data_00000000;
+int gl_func_0005591C(int *a0, int a1, int a2, int a3) {
+    int v0;
+    /* Setup call: printf-like fmt at D+0x211B8 */
+    gl_func_00000000((char*)&gl_data_00000000 + 0x211B8);
+    /* Clear 4 D-base globals at offsets 0/4/8/0xC (different relocs, hence
+     * the 4 separate `lui at; sw zero` pairs in target asm) */
+    *(int*)((char*)&gl_data_00000000 + 0x0) = 0;
+    *(int*)((char*)&gl_data_00000000 + 0x0) = 0;  /* second slot via different reloc */
+    *(int*)((char*)&gl_data_00000000 + 0x4) = 0;
+    *(int*)((char*)&gl_data_00000000 + 0x8) = 0;
+    *(int*)((char*)&gl_data_00000000 + 0xC) = 0;
+    if (a0 == 0) {
+        v0 = 0;
+    } else {
+        v0 = 1;
+        if (*a0 != 0x3E8) {
+            gl_func_00000000((char*)&gl_data_00000000 + 0x211C8);
+        }
+    }
+    /* TODO: 50-insn circular-buffer middle section */
+    gl_func_00000000(a0, a1, a2, a3);
+    gl_func_00000000();
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005591C);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00055A7C(int *dst) {
