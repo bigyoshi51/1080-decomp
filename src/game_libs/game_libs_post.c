@@ -3985,7 +3985,22 @@ void gl_func_000663D0(int *a0) {
     gl_func_00000000(gl_func_00000000, &scratch, 4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066404);
+/* Standard int-reader accessor template (15 insns / 0x3C). Split out of
+ * splat-bundled gl_func_00066404 (was 32 insns / 0x80 with 3 jr-ra) into
+ * separate symbols via split-fragments.py: gl_func_00066404 (this clean
+ * int-reader), game_libs_func_00066440 (8-insn fragment), and
+ * game_libs_func_00066460 (9-insn fragment, predecessor-state-dependent).
+ * The 2 split-off fragments stay INCLUDE_ASM (chain-state, no clean C). */
+extern int gl_func_00000000();
+void gl_func_00066404(int *dst) {
+    int buf[2];
+    gl_func_00000000(&D_00000000, buf, 4);
+    *dst = buf[0];
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066440);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066460);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066484);
 
