@@ -258,31 +258,49 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
     func_size = sym_fields[2]
 
     if verify:
-        # Detect-and-skip: when the function's first insn isn't LUI, we're
-        # most likely processing an INCLUDE_ASM-derived .o (e.g. during
-        # `make expected` via refresh-expected-baseline.py — the C body got
-        # swapped for INCLUDE_ASM, and the asm starts with `addiu sp` not
-        # `lui`). No prefix to splice → silent no-op so the same Makefile
+        # Detect-and-skip: when the function's first insn isn't a known
+        # C-emit prefix opcode, we're most likely processing an
+        # INCLUDE_ASM-derived .o (e.g. during `make expected` via
+        # refresh-expected-baseline.py — the C body got swapped for
+        # INCLUDE_ASM, and the asm starts with `addiu sp` not the C-emit
+        # prefix). No prefix to splice → silent no-op so the same Makefile
         # works for both C-emit builds and INCLUDE_ASM-emit builds.
+        #
+        # C-emit-prefix first-insn opcodes:
+        #   0x0F = LUI: 2-insn `lui rN; addiu/lw rN, ...` for &D global setup
+        #               (PROLOGUE_STEALS=8)
+        #   0x23 = LW:  1-insn `lw rN, OFF(a0)` standalone arg-field-load
+        #               (PROLOGUE_STEALS=4 — verified 2026-05-06 on
+        #               timproc_uso_b5_func_00003F5C, where the stolen-
+        #               prologue insn is `lw t6, 0x23C($a0)`)
+        # INCLUDE_ASM .o first insn is the asm prologue (typically
+        # 0x09=ADDIU `addiu sp, sp, -N`), which doesn't match either, so
+        # the skip fires correctly.
         text_idx = elf.find_section(".text")
         text_off = elf.sections[text_idx][4] + func_addr
         first_word = struct.unpack(">I", bytes(elf.data[text_off:text_off + 4]))[0]
         second_word = struct.unpack(">I", bytes(elf.data[text_off + 4:text_off + 8]))[0]
         opcode1 = (first_word >> 26) & 0x3F
         opcode2 = (second_word >> 26) & 0x3F
-        if opcode1 != 0x0F:  # not LUI — this .o was built from INCLUDE_ASM
-            print(f"splice-skip: {func_name} doesn't start with LUI "
+        if opcode1 not in (0x0F, 0x23):  # not LUI or LW — likely INCLUDE_ASM-built
+            print(f"splice-skip: {func_name} doesn't start with LUI/LW "
                   f"(word={first_word:#010x}); leaving as-is "
                   f"(probably an INCLUDE_ASM build path)", file=sys.stderr)
             return
-        # 0x09=ADDIU, 0x23=LW, 0x25=LHU, 0x21=ADDU (general &D-base setup)
-        # 0x11=COP1 (MTC1) for the float-constant materialization pattern
-        # (e.g. `lui $at, 0x3F80; mtc1 $at, $f0` = $f0 = 1.0f used as
-        # stolen-prologue float-constant setup).
-        if opcode2 not in (0x09, 0x23, 0x25, 0x21, 0x11):
-            print(f"WARN: {func_name}+4 is not ADDIU/LW/MTC1 "
-                  f"(opcode={opcode2:#x}, word={second_word:#010x})", file=sys.stderr)
-            sys.exit(1)
+        # For LUI-prefixed (PROLOGUE_STEALS=8 case), verify second-insn opcode.
+        # For LW-prefixed (PROLOGUE_STEALS=4 case), the prefix is just one
+        # insn; the second insn is the start of the actual function body
+        # (typically the prologue `addiu sp, sp, -N` = opcode 0x09) and we
+        # don't gate on it.
+        if opcode1 == 0x0F:
+            # 0x09=ADDIU, 0x23=LW, 0x25=LHU, 0x21=ADDU (general &D-base setup)
+            # 0x11=COP1 (MTC1) for the float-constant materialization pattern
+            # (e.g. `lui $at, 0x3F80; mtc1 $at, $f0` = $f0 = 1.0f used as
+            # stolen-prologue float-constant setup).
+            if opcode2 not in (0x09, 0x23, 0x25, 0x21, 0x11):
+                print(f"WARN: {func_name}+4 is not ADDIU/LW/MTC1 "
+                      f"(opcode={opcode2:#x}, word={second_word:#010x})", file=sys.stderr)
+                sys.exit(1)
         print(f"verify: {func_name} starts with "
               f"opcode {opcode1:#x}+{opcode2:#x} ({first_word:#010x} {second_word:#010x})",
               file=sys.stderr)
