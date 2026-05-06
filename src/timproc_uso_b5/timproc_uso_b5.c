@@ -477,6 +477,21 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Default INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038D0);
 
+/* timproc_uso_b5_func_0000398C: 47-insn bundled symbol, sibling of
+ * timproc_uso_b5_func_000038D0. F1 @ 0x398C-0x3A24 (39 insns) is
+ * BYTE-IDENTICAL TEMPLATE to 38D0's F1 except for two field-offset
+ * differences (0x18C vs 0x16C, a0->[0x29C]/[0x2A0] vs the equivalent
+ * in 38D0). Same NON-O32 float-in-$fN-callee convention cap class:
+ * uses $f6/$f8/$f10/$f12 from caller, not standard $f12/$f14 ABI
+ * registers. Per feedback_uso_float_in_f4_callee.md and
+ * feedback_ido_no_gcc_register_asm.md, IDO has no C-level mechanism
+ * to receive a float in $f6/$f8.
+ *
+ * F2 @ 0x3A28-0x3A48 (8 insns) is the prologue-stolen prefix of next
+ * function timproc_uso_b5_func_00003A4C (loads a0->[0xDC/0xE0/0xE4],
+ * stores to a1->[0x60/0x64/0x68], integer field at 0x29C).
+ *
+ * Default INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000398C);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003A4C);
