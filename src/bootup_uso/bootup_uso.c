@@ -1290,7 +1290,71 @@ end:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008F18);
 #endif
 
+#ifdef NON_MATCHING
+/* func_00008FA8: 73-insn (0x124) "scatter-bitcast-int-to-float-vec3-fields"
+ * + counter decrement + global-table update. Sibling of recently-matched
+ * func_00008F18 (alloc + multi-call init).
+ *
+ * Structural shape (decoded):
+ *   1. 4-stage Vec3 scatter via stack int-to-float bit-cast:
+ *      read 3 ints from self->[0xB4..0xBC], write as floats to self->[0xDC..0xE4]
+ *      read 3 ints from self->[0xC0..0xC8], write as floats to self->[0xE8..0xF0]
+ *      read 3 ints from self->[0xCC..0xD4], write as floats to self->[0xF4..0xFC]
+ *      read 1 float from self->[0xD8], write to self->[0x100]
+ *      Each int-to-float goes through stack scratch sp+0x2C; bit-pattern
+ *      preserved (no conversion).
+ *   2. Cross-USO call gl_func_00000000(self) at 0x904C.
+ *   3. Counter decrement (self->[0x3D4]) + global-table append on
+ *      counter zero-cross. Table at *(D_00000000) with [0x8]=max [0xC]=count.
+ *      Realloc-via-call when count >= max, then append self.
+ *
+ * Initial structural NM ~30-40% expected. The FPU int-via-stack-bitcast
+ * is the natural-C idiom; the table-append tail needs more decoding for
+ * the exact stride/index math. */
+extern char D_00008714;
+void *func_00008FA8(int *self) {
+    int scratch[3];
+    scratch[0] = self[0xB4/4];
+    scratch[1] = self[0xB8/4];
+    scratch[2] = self[0xBC/4];
+    *(float*)((char*)self + 0xDC) = *(float*)&scratch[0];
+    *(float*)((char*)self + 0xE0) = *(float*)&scratch[1];
+    *(float*)((char*)self + 0xE4) = *(float*)&scratch[2];
+    scratch[0] = self[0xC0/4];
+    scratch[1] = self[0xC4/4];
+    scratch[2] = self[0xC8/4];
+    *(float*)((char*)self + 0xE8) = *(float*)&scratch[0];
+    *(float*)((char*)self + 0xEC) = *(float*)&scratch[1];
+    *(float*)((char*)self + 0xF0) = *(float*)&scratch[2];
+    scratch[0] = self[0xCC/4];
+    scratch[1] = self[0xD0/4];
+    scratch[2] = self[0xD4/4];
+    *(float*)((char*)self + 0xF4) = *(float*)&scratch[0];
+    *(float*)((char*)self + 0xF8) = *(float*)&scratch[1];
+    *(float*)((char*)self + 0xFC) = *(float*)&scratch[2];
+    *(float*)((char*)self + 0x100) = *(float*)((char*)self + 0xD8);
+    func_00000000(self);
+    {
+        int counter = self[0x3D4/4];
+        self[0x3D4/4] = counter - 1;
+        if (counter <= 0) {
+            int *tbl = *(int**)&D_00000000;
+            int capacity = tbl[3];
+            int max = tbl[2];
+            if (capacity >= max) {
+                func_00000000(0, &D_00008714);
+                tbl = *(int**)&D_00000000;
+                capacity = tbl[3];
+            }
+            tbl[3] = capacity + 1;
+            tbl[0] = (int)self;
+        }
+    }
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008FA8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 
