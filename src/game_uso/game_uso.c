@@ -5303,7 +5303,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
  * Plus the second call's 5th/6th-arg setup at sp+0x10/0x14 is implicitly
  * reused from the first call's stack; reaching that from C would
  * require sharing locals across both calls — known IDO scheduler/
- * frame-shape question. Initial wrap; multi-pass refinement expected. */
+ * frame-shape question. Initial wrap; multi-pass refinement expected.
+ *
+ * 2026-05-05 attempts (no-op, both stayed at 85.17%):
+ *   - Unique-extern per call site (game_uso_call_10E2C_a/b) — same %.
+ *   - ANSI prototype (`extern int f(int,int,int,int,int,int)`) to
+ *     suppress K&R defensive arg-spill — same %.
+ * The remaining 15% is pre-spill of $a1/$a2 to OUR sp+0x4/0x8 BEFORE the
+ * 2nd jal — these are the called function's shadow slots being pre-set
+ * by the caller. Not reproducible from C with ANSI/K&R/unique-extern. */
 void game_uso_func_00010E2C(int a0) {
     int *t = (int*)((char*)&D_00000000 + 0xE40);
     game_uso_func_00000000(a0, 0, 0, 1, 1, 1);
