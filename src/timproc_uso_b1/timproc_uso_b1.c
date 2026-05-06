@@ -206,7 +206,18 @@ void timproc_uso_b1_func_0000090C(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_0000097C);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000D1C);
+/* 33-insn 5-call dispatcher: each call passes a different a0+offset and
+ * a packed (high16|low16) constant. First two calls OR in the high half
+ * with values loaded from D[0x4C]/D[0x54]; last three use pure constants
+ * (0x0021000A / 0x0021000D / 0x00210009). */
+extern int gl_func_00000000();
+void timproc_uso_b1_func_00000D1C(char *a0) {
+    gl_func_00000000(a0 + 0x6B4, *(int*)((char*)&D_00000000 + 0x4C) | 0x001D0000);
+    gl_func_00000000(a0 + 0x6CC, *(int*)((char*)&D_00000000 + 0x54) | 0x001E0000);
+    gl_func_00000000(a0 + 0x6FC, 0x0021000A);
+    gl_func_00000000(a0 + 0x714, 0x0021000D);
+    gl_func_00000000(a0 + 0x6E4, 0x00210009);
+}
 
 void timproc_uso_b1_func_00000DA0(char *a0) {
     gl_func_00000000(a0 + 0x6B4);
