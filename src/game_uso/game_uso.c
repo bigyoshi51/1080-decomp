@@ -1343,11 +1343,12 @@ void *game_uso_func_00002744(void *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
 #endif
 
-#ifdef NON_MATCHING
-/* 92.97% NM. Mirror of game_uso_func_00001D30: alloc(0x64) instead of alloc(0x124),
- * dispatch table at &D_0+0x360 instead of +0x340. Same alloc-or-init
- * pattern + ConditionalCall + 2-field-set + return p. Likely caps ~96%
- * with the same arg-spill scheduling diff as 1D30. */
+/* Mirror of game_uso_func_00001D30 (alloc(0x64) variant; dispatch table at
+ * &D_0+0x360). 5-insn arg-spill scheduling permutation patched via INSN_PATCH
+ * in Makefile (offsets 0x08/0x0C/0x10/0x14/0x1C) — IDO chooses to put
+ * `or s0, a0, zero` in the bnez delay slot and spill a3 before bnez; expected
+ * has the move first and a3 in the delay slot. Logic-identical, byte-correct
+ * via post-cc patch. See docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps. */
 char *game_uso_func_00002814(char *a0, int a1, int a2, int a3) {
     register char *p = a0;
     if (p == 0) {
@@ -1365,9 +1366,6 @@ char *game_uso_func_00002814(char *a0, int a1, int a2, int a3) {
 end:
     return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002814);
-#endif
 
 void game_uso_func_000028A8(void *a0) {
     *(s32*)((char*)a0 + 0x40) = 0;
