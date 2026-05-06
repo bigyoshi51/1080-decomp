@@ -1102,20 +1102,21 @@ void gl_func_0000C46C(int a0) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_0000C49C: 21-insn 3-call wrapper.
- *   v_first = gl_func(a0)
- *   a0[1] = a0[0]
- *   if (a0[2] != 0) gl_func(a0[2], v_first)
- *   gl_func(v_first, v_first)
- * Logic correct; reg allocation differs (mine uses $a0 reload + $a2 named
- * spill; target uses $t6 base reg). */
+/* gl_func_0000C49C: 21-insn 3-call wrapper. SEMANTIC FIX 2026-05-06:
+ * target reads from RETURN VALUE as pointer (r[0], r[2]), NOT from a0.
+ * Prior wrap incorrectly used `a0[1] = a0[0]`. Asm clearly shows
+ * `lw $t8, 0($v0)` (= r[0]) and `lw $t9, 0x8($v0)` (= r[2]).
+ *   r = (int*)gl_func(a0);              // returns pointer
+ *   a0[1] = r[0];                        // copy r[0] into a0[1]
+ *   if (r[2] != 0) gl_func(r[2], r);
+ *   gl_func(r, r); */
 void gl_func_0000C49C(int *a0) {
-    int v_first = gl_func_00000000(a0);
-    a0[1] = a0[0];
-    if (a0[2] != 0) {
-        gl_func_00000000(a0[2], v_first);
+    int *r = (int*)gl_func_00000000(a0);
+    a0[1] = r[0];
+    if (r[2] != 0) {
+        gl_func_00000000(r[2], r);
     }
-    gl_func_00000000(v_first, v_first);
+    gl_func_00000000(r, r);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C49C);
