@@ -3194,7 +3194,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051ED8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051F5C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000520B8);
+/* gl_func_000520B8: 19-insn float-mul wrapper. Sibling of recently-matched
+ * gl_func_00052104 — same shape but multiplies by (a0->[0x20] * a0->[0x22])
+ * (two halfwords combined as int product) instead of just one halfword. */
+extern float gl_func_returns_float();
+int gl_func_000520B8(int *a0) {
+    float scale = gl_func_returns_float(a0);
+    return (int)(scale * (float)(*(short*)((char*)a0 + 0x20) * *(short*)((char*)a0 + 0x22)));
+}
 
 /* 16-insn float scale + truncate. Calls gl_func(a0) returning float in
  * $f0; multiplies by (float)a0->halfword[0x20]; truncates to int.
