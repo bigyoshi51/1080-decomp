@@ -1254,7 +1254,63 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
     game_uso_func_00000000(a0, a2);
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_00002744: 52-insn (0xD0) lazy-init/sub-allocator wrapper.
+ * Pattern: take optional pre-existing pointer; if NULL, alloc(0x20). Then if
+ * matched a sentinel constraint (a1 == -8), alloc(0x18) for an inner object
+ * and chain-init via gl_func_00000000(.., .., handle, 1).
+ *
+ * Loads two data refs: &D_0+0x354 (stored at p[0]) and *(int*)(&D_0+0x35C)
+ * (spilled to stack but dead-store — the inner-init load that never gets
+ * stored to a useful field). The dead-load pattern suggests this is one arm
+ * of a larger wrapper class where other variants DO use the 0x35C value.
+ *
+ * Sentinel `a1 == -8` check (bne $a1, $at where $at = -8) is unusual — likely
+ * a tagged-pointer convention or an enum-as-pointer trick from the original
+ * source. m2c rendered it literally as `var_a1 == (void *)-8`. Documented
+ * as-is; semantic interpretation deferred until siblings emerge.
+ *
+ * Initial decode 2026-05-05; multi-tick refinement target. */
+extern void *gl_func_00000000();
+extern char D_00000000;
+void *game_uso_func_00002744(void *arg0) {
+    void *p1;
+    void *p2;
+    void *p3;
+    int dead_load;
+
+    p1 = arg0;
+    if (p1 == NULL) {
+        p1 = gl_func_00000000(0x20, p1);
+        if (p1 == NULL) return NULL;
+    }
+
+    p2 = p1;
+    if (p2 == NULL) {
+        p2 = gl_func_00000000(8, p1);
+        if (p2 != NULL) {
+            ((int*)p2)[0] = (int)((char*)&D_00000000 + 0x354);
+            ((int*)p2)[1] = 0;
+        }
+    }
+
+    dead_load = *(int*)((char*)&D_00000000 + 0x35C);
+    (void)dead_load;
+
+    if (p1 == (void*)-8) {
+        p3 = gl_func_00000000(0x18, p1);
+        if (p3 != NULL) {
+            gl_func_00000000(p3, p1, dead_load, 1);
+            ((int*)p3)[3] = (int)((char*)&D_00000000 + 0x18);
+            ((float*)p3)[4] = 0.0f;
+            ((int*)p3)[5] = 0;
+        }
+    }
+    return p1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
+#endif
 
 #ifdef NON_MATCHING
 /* 92.97% NM. Mirror of game_uso_func_00001D30: alloc(0x64) instead of alloc(0x124),
