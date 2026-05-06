@@ -1036,7 +1036,90 @@ void func_000080EC(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
 
+#ifdef NON_MATCHING
+/* func_000082F8: 54-insn (0xD8) FP-gated 3-call dispatch. Sibling of the
+ * adjacent func_000083D0 family (cross-USO call orchestrators in bootup_uso).
+ *
+ * Decoded shape:
+ *   /* shared loads at entry *\/
+ *   t6 = *(int**)(&D_00000000 + 0x254);   /* pointer at D[0x254] *\/
+ *   f0 = *(float*)(&D_00000000 + 0x130);  /* float scale constant *\/
+ *   s0 = a0;                                /* spilled across calls *\/
+ *
+ *   /* gate-1 (0x8330-0x8338): FP compare — guard call-1 *\/
+ *   f12 = *(float*)(a0 + 0x38) * f0;
+ *   f2  = *(float*)(t6 + 0xA8) * f0;
+ *   if (f12 < f2) {
+ *       /* gate-2 (0x834C-0x8354): refine — only call if range-bounded *\/
+ *       f10 = *(float*)(a0 + 0x54) + f12;
+ *       if (f10 > f2) {
+ *           /* call-1 (2-arg): D[0]-loaded ptr + a0->0x6C *\/
+ *           func_00000000(*(int*)&D_00000000, *(int*)((char*)a0 + 0x6C));
+ *       }
+ *   }
+ *
+ *   /* gate-3 (0x8380): integer compare on a "func_00000008+0x2C" data
+ *    * field (mixed code/data alias for a global state byte). *\/
+ *   t8 = *(int*)((char*)&func_00000008 + 0x2C);
+ *   if (t8 == 8) {
+ *       /* call-2: 7-arg call (4 register + 3 stack) *\/
+ *       v0 = func_00000000(D[0x254/4], 3, a0->0x30, a0->0x34,
+ *                          a0->0x38_as_float, 0_as_int, 0.0f);
+ *       if (v0 != 0) {
+ *           /* call-3 (1-arg): a0 *\/
+ *           func_00000000(a0);
+ *       }
+ *   }
+ *
+ * 2026-05-06 measured 75.52% via two iterations:
+ *   v1: 73.18% — direct float args + `func_00000008+0x2C` extern. K&R
+ *     varargs promoted floats to doubles: built `cvt.d.s; sdc1` pairs,
+ *     pushed frame to 0x38 (vs target 0x30).
+ *   v2: 75.52% — bit-cast floats to int (`*(int*)(a0+0x38)` + 0 int)
+ *     to bypass K&R double-promotion; rewrote `func_00000008+0x2C` as
+ *     `&D_00000000+0x34` for single lui+lw fold. Frame back to 0x30,
+ *     no cvt.d.s. Remaining diffs: target uses lwc1+swc1 (single FP
+ *     loads/stores) for the `f16=a0->0x38` and `f18=0.0f` stack args,
+ *     built uses lw+sw (int). Same bytes per-slot but different opcodes.
+ *
+ * Documented cap: per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call,
+ * K&R-extern `func_00000000()` cannot accept float args without forcing
+ * either double-promotion (K&R semantics) OR a `jalr`-via-fnptr-cast.
+ * Direct `jal` + lwc1/swc1 stack-store pattern requires a non-K&R
+ * prototype which conflicts with the file-level `func_00000000() {}`
+ * K&R definition. Capped at ~75%; bytes for slots match but opcodes
+ * differ. Future grind needs a different func_00000000 declaration
+ * convention or per-call cast that IDO accepts. */
+void func_000082F8(int *a0) {
+    int *t6 = *(int**)((char*)&D_00000000 + 0x254);
+    float f0 = *(float*)((char*)&D_00000000 + 0x130);
+    float f12 = *(float*)((char*)a0 + 0x38) * f0;
+    float f2 = *(float*)((char*)t6 + 0xA8) * f0;
+
+    if (f12 < f2) {
+        float f10 = *(float*)((char*)a0 + 0x54) + f12;
+        if (f10 > f2) {
+            func_00000000(*(int*)&D_00000000, *(int*)((char*)a0 + 0x6C));
+        }
+    }
+
+    if (*(int*)((char*)&D_00000000 + 0x34) == 8) {
+        int v0 = func_00000000(
+            *(int*)((char*)&D_00000000 + 0x254),
+            3,
+            *(int*)((char*)a0 + 0x30),
+            *(int*)((char*)a0 + 0x34),
+            *(int*)((char*)a0 + 0x38),  /* float bits as int — avoid K&R double-promote */
+            0,
+            0);
+        if (v0 != 0) {
+            func_00000000(a0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000082F8);
+#endif
 
 #ifdef NON_MATCHING
 /* func_000083D0: 30-insn (0x78) 5-call init/dispatch wrapper. Callee
