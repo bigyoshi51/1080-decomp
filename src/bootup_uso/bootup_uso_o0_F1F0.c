@@ -48,6 +48,13 @@ void func_0000F288(Quad4 *a0) {
  * layouts match (sp+0x34/sp+0x48). All 4 s-saves emit. Cap is the +0x10
  * frame overhead. Partial wrap kept for future-pass continuation. */
 #ifdef NON_MATCHING
+/* 2026-05-05: tried dropping unused p1/q register-locals (4→2 register
+ * vars). Frame stayed at -0x68 vs target -0x58, +0x10 overhead unchanged.
+ * The 16-byte frame overhead persists regardless of register-local count,
+ * suggesting it's NOT the register-backup-slot theory — it's likely raw
+ * + tmp + src each getting redundant slot reservations from IDO -O0's
+ * naive stack-allocator. Remove `register` to test (likely regresses).
+ * Reverting to 4-register-var form for stable baseline. */
 void func_0000F2EC(Vec3 *dst) {
     register Vec3 *p1 = dst;
     register Vec3 *p2 = p1;
