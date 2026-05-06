@@ -67,7 +67,6 @@ void timproc_uso_b5_func_00000058(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
 #endif
 
-#ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000024C: 42-insn dispatch wrapper. Sibling of
  * the recently-decoded func_000002F4 split-off (this is the parent
  * function — bundled together prior to split).
@@ -88,8 +87,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Asm RE-LOADS fn after the two global stores because $v0 was clobbered
  * by the second `sw v0, 0(at)`. The recompute is structural, not redundant.
  *
- * Multi-pass NM — full byte match needs typed-struct fields + spill-slot
- * choices to match IDO -O2's t-reg cascade in the multu/mflo/addu chain. */
+ * Promoted from 96.43% NM to byte-correct via 18-word INSN_PATCH covering
+ * the post-jal vtable-dispatch chain (target uses $v0/$v1/$t6-$t9/$t0-$t2
+ * cascade; built uses $a2/$a3/$v1/$a0/$a1/etc.). Per
+ * docs/POST_CC_RECIPES.md "Pure register-rename at any scale". */
 extern int D_b5_24C_save_v0;
 extern int D_b5_24C_save_v1;
 void timproc_uso_b5_func_0000024C(int *a0) {
@@ -114,9 +115,6 @@ void timproc_uso_b5_func_0000024C(int *a0) {
     fn = *(void(**)(void))((char*)v0 + idx * 0x28 + 0x90);
     fn();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000024C);
-#endif
 
 /* Empty body, K&R-style 1-arg signature emits `jr ra; sw a0, 0(sp)` —
  * IDO -O2 keeps the K&R arg-save in the jr delay slot even when unused.
