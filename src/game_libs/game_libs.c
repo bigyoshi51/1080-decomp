@@ -373,7 +373,19 @@ void gl_func_00006F60(int a0) {
     p[45] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006F90);
+/* Sibling of gl_func_00006EE0 (just-landed): same 32-insn 4-call init
+ * shape but with different field offsets and 1-arg jal at end. */
+void gl_func_00006F90(int *a0) {
+    int *p;
+    gl_func_00000000(a0, 0xF0, 4);
+    *(int*)((char*)a0 + 0x544) = 0;
+    *(float*)((char*)a0 + 0x554) = 120.0f;
+    p = *(int**)((char*)&D_00000000 + 0x138);
+    *(int*)((char*)p + 0xB4) = 0;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
+    gl_func_00000000(6, 0, 0);
+    gl_func_00000000(&D_00000000, 6, 0, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007010);
 
