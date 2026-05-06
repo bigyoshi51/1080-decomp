@@ -982,7 +982,32 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000082F8);
 
+#ifdef NON_MATCHING
+/* func_000083D0: 30-insn (0x78) 5-call init/dispatch wrapper. Callee
+ * func_00000000 is the K&R cross-USO placeholder.
+ *
+ * Decoded: single int* arg, makes 5 sequential calls, no return:
+ *   call(&D, &D_00007FD4, 0)
+ *   call(&D, &D_00007FDC, (int)a0+0x6C, 1)
+ *   call((int)a0+0x3C, 0)
+ *   call(&D)
+ *   call(a0)
+ *
+ * Pattern: $a0 saved at +0x18(sp) (= caller's a0 slot above this 0x18-byte
+ * frame) at function entry, reloaded at every call that needs it (calls
+ * 2/3/5). All delay slots are filled with addiu/move/lw arg setup. */
+extern char D_00007FD4;
+extern char D_00007FDC;
+void func_000083D0(int *a0) {
+    func_00000000(&D_00000000, &D_00007FD4, 0);
+    func_00000000(&D_00000000, &D_00007FDC, (int)a0 + 0x6C, 1);
+    func_00000000((int)a0 + 0x3C, 0);
+    func_00000000(&D_00000000);
+    func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000083D0);
+#endif
 
 void func_00008448(char *a0) {
     func_00000000((int*)(a0 + 0x3C));
