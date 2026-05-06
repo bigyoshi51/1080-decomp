@@ -3420,7 +3420,30 @@ void gl_func_00055B10(char *a0) {
  * shifts allocator priorities further. Strength-reduction in the inner
  * loop is the structural cap — IDO -O2 with monotonic-increment + linear
  * subscript ALWAYS produces the cur-ptr form. Permuter or INSN_PATCH
- * needed for byte-match. */
+ * needed for byte-match.
+ *
+ * 2026-05-06 retry-4 (negative): tried `unsigned char *cur_array = byte_array;`
+ * intermediate to push byte_array's priority DOWN (less refs, longer live
+ * range). 86.58% -> 80.73% (regress). The intermediate ADDS a pseudo that
+ * gets a higher allocno number and competes for s-reg slots, breaking
+ * MORE of the matching insns than it helped.
+ *
+ * 2026-05-06 retry-5 (negative): tried `register int col_limit = 0x10;` to
+ * promote the `0x10` literal in the inner-loop test to its own s-register
+ * (target has `li $s3, 16`). 86.58% -> 82.05% (regress). Adding col_limit
+ * as a fresh pseudo makes IDO assign $s-regs differently — col/byte_idx
+ * shift to higher numbers, breaking the prior matching subset.
+ *
+ * 2026-05-06 retry-6 (no-op): tried `register int col, byte_idx;` to bias
+ * those toward $s0/$s1. Stays at 86.58% — IDO already picks $s0/$s1 for
+ * them in baseline.
+ *
+ * Total cap-class attempts on this function: 8+ variants since 2026-05-04
+ * (register hints, decl reorder, char* base, all-lit hoist, no-strength-
+ * reduce, cur_array intermediate, col_limit, register col/byte_idx).
+ * NONE improved past 86.58%. The 6-pseudo allocator priority order is
+ * structurally fixed at IDO -O2 for this nested-loop shape; only permuter
+ * or INSN_PATCH (~30 words) can break the cap. STOP grinding from C. */
 extern int gl_data_00000000;
 void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
     int row;
