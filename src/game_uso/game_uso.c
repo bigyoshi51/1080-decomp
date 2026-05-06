@@ -5796,7 +5796,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000112E0);
 
+#ifdef NON_MATCHING
+/* Family sibling of game_uso_func_00010E2C / 00010DC8 — same 2-call shape
+ * with the varargs-shadow-store cap. 24 insns / 0x60. Differences from
+ * 10E2C: 1st-call passes a0->0x74 as a1, a2=2, a3=3; 2nd-call uses
+ * D-offset 0xF08 (vs 0xE40); 2nd-call a3=3.
+ *
+ * Same cap class: ~88% from `register int *t` + named locals making the
+ * shared-base lui+addiu form materialize, but missing the 2 pre-spill
+ * shadow-stores `sw a1, 0x4(sp); sw a2, 0x8(sp)` before the 2nd jal.
+ * Per docs/IDO_CODEGEN.md feedback-ido-precall-arg-spill-unreachable. */
+void game_uso_func_00011368(int *a0) {
+    register int *t;
+    int v1, v2;
+    game_uso_func_00000000(a0, *(int*)((char*)a0 + 0x74), 2, 3, 1, 1);
+    t = (int*)((char*)&D_00000000 + 0xF08);
+    v1 = t[0];
+    v2 = t[1];
+    game_uso_func_00000000(a0, v1, v2, 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011368);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000113C8);
 
