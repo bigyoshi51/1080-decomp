@@ -203,6 +203,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000020C);
 
 extern s32 func_800005DC();
 extern s32 func_8000060C();
+extern void func_80000660();
 
 #ifdef NON_MATCHING
 /* +472 bytes bloat (built 800 vs baserom 328). Unrolled byte-copy loops

@@ -160,7 +160,17 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000994);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000D60);
+/* timproc_uso_b3_func_00000D60: 33-insn (0x84) 5-call gl_func_00000000
+ * dispatcher with computed (s0+offset, immediate-or-globalload) args.
+ * First 2 calls use D[0x4C/0x54] OR'd with high-half flags 0x001D/0x001E;
+ * latter 3 use precomputed 32-bit constants 0x0021_xxxx. */
+void timproc_uso_b3_func_00000D60(char *a0) {
+    gl_func_00000000(a0 + 0x6B4, *(int*)((char*)&D_00000000 + 0x4C) | 0x001D0000);
+    gl_func_00000000(a0 + 0x6CC, *(int*)((char*)&D_00000000 + 0x54) | 0x001E0000);
+    gl_func_00000000(a0 + 0x6FC, 0x0021000B);
+    gl_func_00000000(a0 + 0x714, 0x0021000D);
+    gl_func_00000000(a0 + 0x6E4, 0x00210009);
+}
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00000DE4: 3-FUNCTION BUNDLE (0x7C / 31 insns).
