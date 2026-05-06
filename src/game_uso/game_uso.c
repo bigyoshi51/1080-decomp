@@ -1258,9 +1258,31 @@ void *game_uso_func_000024BC(int *a0, int *a1) {
     goto end;
 
 branch_else:
-    /* else-arm: build ref_v from a0[0xE]+0xA0, alloc delta via gl_func,
-     * compute self_v = ref_v + delta_v, then second gl_func dispatch.
-     * ~120 insns of further math/stores TBD. */
+    /* Else-arm decoded through ~70 of ~120 insns:
+     *
+     * Stage 1 (insns 0x88-0xb8): load ref_v from a0[0xE]@+0xA0, spill scratch
+     *   v1 = a0[0x38/4]                       // a0->[0x38]
+     *   sp[0x60..0x68] = v1->Vec3@0xA0        // ref_v
+     *
+     * Stage 2 (0xb4-0xe0): first jal — alloc/compute delta vector
+     *   spill a2,a3 to sp+0x98/0x9C
+     *   v0 = gl_func(sp+0x3C, a2)             // returns Vec3* (or 3-word struct ptr)
+     *   reload a2,a3
+     *   sp[0x6C..0x74] = *(int[3]*)v0         // copy delta (3 words)
+     *
+     * Stage 3 (0xe4-0x114): self_v = ref_v + delta_v
+     *   sp[0x60..0x68] = ref_v + delta_v       (3 add.s ops)
+     *
+     * Stage 4 (0x118-0x134): zero-Y projection of a3 → sp[0x54..0x5C]
+     *   sp[0x54] = a3->x; sp[0x58] = 0.0; sp[0x5C] = a3->z
+     *
+     * Stage 5 (0x130): second jal — gl_func(sp+0x54, ...)
+     *
+     * Stage 6 (0x138+, ~50 insns remaining TBD): post-jal math using
+     *   sp[0x54..0x5C], a2->[0x94] (likely scale/bounds clamp), then
+     *   final stores into a0->Vec3@0x60, a0[0xE]'s Vec3, and t6's child.
+     *
+     * Initial decode 2026-05-05; extended decode 2026-05-06. */
     v1 = (int*)a0[0x38 / 4];
     ref_x = *(float*)((char*)v1 + 0xA0);
     ref_y = *(float*)((char*)v1 + 0xA4);
@@ -1269,10 +1291,21 @@ branch_else:
     delta_x = *(float*)&delta[0];
     delta_y = *(float*)&delta[1];
     delta_z = *(float*)&delta[2];
-    (void)ref_x; (void)ref_y; (void)ref_z;
-    (void)delta_x; (void)delta_y; (void)delta_z;
-    (void)a1;
-    /* TODO: self = ref + delta; sp+0x54 setup; second jal; final stores. */
+    /* self_v = ref_v + delta_v stored to sp[0x60..0x68] */
+    (void)(ref_x + delta_x);
+    (void)(ref_y + delta_y);
+    (void)(ref_z + delta_z);
+    /* Zero-Y projection of a1 then second gl_func call. */
+    {
+        float a1_proj[3];
+        a1_proj[0] = *(float*)&a1[0];      /* a3.x */
+        a1_proj[1] = 0.0f;
+        a1_proj[2] = *(float*)&a1[2];      /* a3.z */
+        gl_func_00000000(a1_proj, a0);
+        (void)a1_proj;
+    }
+    /* TODO Stage 6: ~50 insns post-jal — read a2->[0x94] scale, multiply,
+     * write back to a0->Vec3@0x60 and t6's Vec3@0xA0. */
 
 end:
     return a0;
