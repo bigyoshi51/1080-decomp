@@ -3972,7 +3972,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065F08);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006612C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000661D8);
+/* 10-insn 1-arg call wrapper that spills caller's a0 to local frame
+ * before discarding it; calls gl_func_00000000((int*)0x2246C). The spill
+ * suggests function takes 1 arg even though it's discarded. Splat bundled
+ * 2 trailing save-arg sentinels at func+0x28/0x30; SUFFIX_BYTES absorbs. */
+extern int gl_func_00000000();
+void gl_func_000661D8(int a0_unused) {
+    gl_func_00000000((int*)0x2246C);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066210);
 

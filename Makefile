@@ -109,7 +109,8 @@ build/src/game_libs/game_libs_post.c.o: INSN_PATCH := \
 	gl_func_0004E180=0x1C:0xAFA4001C,0x20:0x8FA4001C \
 	gl_func_00047DD8=0x4:0x00803025,0x14:0x8CC500E0 \
 	gl_func_0003CB2C=0x00:0x27BDFFC0,0x0C:0xAFAE0034,0x10:0xAFA50038,0x14:0x8C830000,0x18:0x27A50034,0x1C:0x8C620028,0x24:0x844F0028,0x2C:0x01E32021,0x34:0x27BD0040 \
-	gl_func_0005FCC4=0x00:0x27BDFFE8,0x0C:0x00802825,0x1C:0x00402825,0x28:0xAFA50018,0x2C:0x8FA50018,0x34:0xACA20000,0x3C:0xACA20004,0x40:0x8FA50018,0x44:0xACA00008,0x4C:0x27BD0018,0x50:0x00A01025
+	gl_func_0005FCC4=0x00:0x27BDFFE8,0x0C:0x00802825,0x1C:0x00402825,0x28:0xAFA50018,0x2C:0x8FA50018,0x34:0xACA20000,0x3C:0xACA20004,0x40:0x8FA50018,0x44:0xACA00008,0x4C:0x27BD0018,0x50:0x00A01025 \
+	gl_func_000661D8=0x14:0x2484246C
 
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
@@ -177,7 +178,7 @@ build/src/kernel/kernel_056.c.o build/non_matching/src/kernel/kernel_056.c.o: PO
 # feedback_prologue_stolen_successor_no_recipe.md for context.
 build/src/titproc_uso/titproc_uso.c.o build/non_matching/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_00000194=8 titproc_uso_func_000001E4=8 titproc_uso_func_0000028C=8 titproc_uso_func_00001C68=8
 build/src/titproc_uso/titproc_uso.c.o: SUFFIX_BYTES := titproc_uso_func_00000194=0x3C020000,0x24420000 titproc_uso_func_00001BB8=0x3C013F80,0x44810000
-build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0004,0x8DCEC160 gl_func_0006BA48=0x3C0EA460,0x8DC60010 gl_func_0005FDCC=0x3C030000,0x8C630000 gl_func_0005FD20=0x00000000,0x3C060000,0x8CC60000 gl_func_0002DED0=0x000470C0,0x01C52021,0x2484001A gl_func_0002DF00=0x3C0E0000,0x8DCE2D00 gl_func_0002DF38=0x44856000 gl_func_0004E524=0x3C050000,0x24A50000 gl_func_0004E214=0x03E00008,0xAC850190,0x03E00008,0x8C820190 gl_func_00039960=0x03E00008,0x24820070 gl_func_00030564=0x3C020000,0x24420000,0x8C4E0008 gl_func_0002D838=0x3C0E0000,0x8DCE0000 gl_func_0002D870=0x3C0E0000,0x8DCE0000 gl_func_00035338=0x3C020000,0xAFA40000,0x03E00008,0x8C420000 gl_func_0003FB38=0x30AF00FF,0x01E70019
+build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0004,0x8DCEC160 gl_func_0006BA48=0x3C0EA460,0x8DC60010 gl_func_0005FDCC=0x3C030000,0x8C630000 gl_func_0005FD20=0x00000000,0x3C060000,0x8CC60000 gl_func_0002DED0=0x000470C0,0x01C52021,0x2484001A gl_func_0002DF00=0x3C0E0000,0x8DCE2D00 gl_func_0002DF38=0x44856000 gl_func_0004E524=0x3C050000,0x24A50000 gl_func_0004E214=0x03E00008,0xAC850190,0x03E00008,0x8C820190 gl_func_00039960=0x03E00008,0x24820070 gl_func_00030564=0x3C020000,0x24420000,0x8C4E0008 gl_func_0002D838=0x3C0E0000,0x8DCE0000 gl_func_0002D870=0x3C0E0000,0x8DCE0000 gl_func_00035338=0x3C020000,0xAFA40000,0x03E00008,0x8C420000 gl_func_0003FB38=0x30AF00FF,0x01E70019 gl_func_000661D8=0x03E00008,0xAFA40000,0x03E00008,0xAFA40000
 build/src/timproc_uso_b3/timproc_uso_b3.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3.c.o: PROLOGUE_STEALS := timproc_uso_b3_func_00000818=8 timproc_uso_b3_func_00001C28=8 timproc_uso_b3_func_0000074C=8 timproc_uso_b3_func_00000790=8 timproc_uso_b3_func_000007D4=8 timproc_uso_b3_func_00002240=8
 build/src/timproc_uso_b3/timproc_uso_b3.c.o: SUFFIX_BYTES := timproc_uso_b3_func_000021F4=0x3C040000,0x8C840148 timproc_uso_b3_func_00002388=0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000
 build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1.c.o: PROLOGUE_STEALS := timproc_uso_b1_func_00000800=8 timproc_uso_b1_func_00000734=8 timproc_uso_b1_func_00000778=8 timproc_uso_b1_func_000007BC=8 timproc_uso_b1_func_00002030=8
