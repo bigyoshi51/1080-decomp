@@ -3423,7 +3423,56 @@ void gl_func_0005532C(void) {
     gl_func_00000000(buf);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0005534C: 73-insn (0x124) function-pointer iterator + small leaf.
+ *
+ * BUNDLE NOTE: 2 functions, 38 + 35 insns. Splat couldn't separate (no
+ * prologue on the 2nd; per feedback_uso_split_fragments_breaks_expected_match.md
+ * USO splits break expected/.o). The C body below ONLY captures function 1
+ * (insns 0-38, 0x5534C-0x553E4); the trailing leaf at 0x553E8-0x5546C stays
+ * inside the bundled INCLUDE_ASM via the #else path.
+ *
+ * Structural decode of fn1 (0x5534C-0x553E4):
+ *   void f(int **a0, int a1, int a2, int a3) {
+ *       int (*fp)();
+ *       // 1st iter: directly call the first fn ptr via jalr
+ *       fp = (*a0)[0];          // load first fnptr
+ *       (*a0)++;                // advance the iterator
+ *       fp(&caller_args);       // jalr — direct call with stack-arg-frame
+ *       // Subsequent iters: load fnptr, mask low16, call shared dispatcher
+ *       while ((fp = (*a0)[0]) != 0) {
+ *           (*a0)++;
+ *           int idx = fp & 0xFFFF;     // store the low-16 to stack arg
+ *           gl_func_00000000(&caller_args);  // shared dispatcher
+ *       }
+ *   }
+ *
+ * Behavior summary: a0 is a pointer-to-pointer-to-fnptr-table, the function
+ * walks the table calling each entry. First entry called directly, others
+ * dispatched via gl_func_00000000 with the entry's low-16 bits as a hint.
+ *
+ * Initial wrap, 0% measured fuzzy expected — 38-insn structural body in C
+ * vs 73-insn target (target includes the trailing leaf). Subsequent runs
+ * tighten + the splat-bundle issue may need to be unblocked. */
+void gl_func_0005534C(int **a0, int a1, int a2, int a3) {
+    int (*fp)();
+    int caller_args[4];
+
+    caller_args[0] = a1;
+    caller_args[1] = a2;
+    caller_args[2] = a3;
+    fp = (int(*)())(*a0)[0];
+    (*a0)++;
+    fp(caller_args);
+    while ((fp = (int(*)())(*a0)[0]) != 0) {
+        (*a0)++;
+        (void)((int)fp & 0xFFFF);
+        gl_func_00000000(caller_args);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005534C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055470);
 
