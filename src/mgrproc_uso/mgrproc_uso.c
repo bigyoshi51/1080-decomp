@@ -455,7 +455,33 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000159
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001614);
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_0000179C: 30-insn (0x78) gated state-set + 2 trailing
+ * 2-insn alt-entry stubs (mgrproc_uso_func_00001814 / 0000181C, each
+ * `jr ra; sw a0, 0(sp)`). Total bundled symbol size 0x88.
+ *
+ * Decoded:
+ *   if (a0->[0x7E4] != 1) return;
+ *   if (a0->[0x7E8] >= 0x2EE) return;        // 750
+ *   if (gl_func(&D, 0x40100, a0) == 0) return;
+ *   if (gl_func(*(int*)(&D + 0x190)) == 0) return;
+ *   a0->[0x7D4] = 1;
+ *
+ * NOT split (per feedback_uso_split_fragments_breaks_expected_match.md):
+ * splitting in mgrproc_uso would break expected/.o layout. The C body
+ * compiles to 30 insns; bundled symbol's full 0x88 includes the two
+ * trailing alt-entry stubs which can't be C-emitted from this function.
+ * Default INCLUDE_ASM keeps the full 0x88 byte-correct. */
+void mgrproc_uso_func_0000179C(int *a0) {
+    if (*(int*)((char*)a0 + 0x7E4) != 1) return;
+    if (*(int*)((char*)a0 + 0x7E8) >= 0x2EE) return;
+    if (gl_func_00000000(&D_00000000, 0x40100, a0) == 0) return;
+    if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) == 0) return;
+    *(int*)((char*)a0 + 0x7D4) = 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000179C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001824);
 
