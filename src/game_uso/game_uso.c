@@ -5415,7 +5415,16 @@ void game_uso_func_0000FFB8(int *a0) {
  *   gl_func(a0);
  * Stack-slot spills (sw a1,4(sp); sw a2,8(sp)) are O32 caller-side spill
  * area for the 3-arg middle call — emitted automatically by IDO when the
- * callee is K&R-declared. */
+ * callee is K&R-declared.
+ *
+ * 2026-05-06 retry (negative): tried unique-extern at distinct offsets
+ * (D_1001C_arg1 = 0xDD0, D_1001C_arg2 = 0xDD4) per
+ * docs/IDO_CODEGEN.md#feedback-ido-type-split-unique-extern-breaks-cse
+ * 2026-05-06 expansion. Result REGRESSED 84.05% → 81.26%. Reason: target
+ * uses ONE base reg + offsets (cluster-load pattern); unique-externs at
+ * different addresses force TWO separate lui+addiu pairs, breaking the
+ * cluster. The cap is the precall-arg-spill itself, not symbol CSE — so
+ * unique-extern doesn't apply. */
 void game_uso_func_0001001C(int *a0) {
     int *p;
     *(int*)((char*)a0 + 0xF4) = 0;
