@@ -71,48 +71,17 @@ void __osResetGlobalIntMask(s32 arg0, s32 arg1) {
 }
 
 
-/* func_80006698 is a 21-insn (0x54 byte) function that splat split into 3
- * fragments: func_80006698 (0x18, has prologue + addr-range start), 0x800066B0
- * (0x20, range-end check + jal func_80008FB0), 0x800066D0 (0x1C, return-merge
- * + epilogue). The 0x800066B0 fragment starts with `bnez $at, ...` using the
- * $at set by the predecessor's tail `sltu $at, $t6, $at` — classic
- * splat-fragment-via-register-flow pattern (per
- * feedback_splat_fragment_via_register_flow.md).
+/* func_80006698: 21-insn MMIO read-with-range-check helper covering bytes
+ * 0x80006698-0x800066EC (0x54). Splat originally split this into 3
+ * fragments at 0x80006698 / 0x800066B0 / 0x800066D0; .s files merged 2026-05-05
+ * (see DECOMPILED_FUNCTIONS.md "Fragment Merges Performed").
  *
- * Merging is non-trivial here: callers in kernel_003/017/019.c reference
- * `func_800066B0` and `func_800066D0` as if they were standalone (probably
- * a misidentified __osDisableInt/__osRestoreInt pair). After merge, those
- * callers would jal into the middle of the merged function with
- * uninitialized $at/$t6 — undefined behavior. ROM-bytes-wise the calls work
- * because asm-processor pastes the 3 INCLUDE_ASMs contiguously, but the
- * "function" semantics at 0x800066B0 are not what the callers think.
- *
- * Merging also requires linker layout adjustment: kernel_017.c.o would grow
- * 0x3C bytes (0x18 → 0x54) which shifts kernel_018.c.o's start. Since the 3
- * fragments currently live in kernel_018.c, removing them shrinks kernel_018
- * by the same 0x3C — but the per-file .text positioning needs verification
- * before the merge can land.
- *
- * Documented decode (NOT compiled in default build):
- *
- *   s32 func_80006698(s32 a0) {
- *       s32 local;
- *       if (a0 < 0x04000000 || a0 >= 0x05000000) return 0;
- *       func_80008FB0(a0, &local);
- *       return local;
- *   }
- *
- * Reads MMIO from the 0x04000000-0x05000000 range (SP DMEM/IMEM + RCP
- * register space) via func_80008FB0 (likely __osPiRawReadIo or similar).
- * Returns 0 if address is out of range.
- *
- * 2026-05-05: 800066B0 (which previously absorbed 800066D0 via same-file
- * merge in kernel_018.c) MOVED here from kernel_018.c so all 3 fragments
- * now live in this -O1 .c file. Layout-neutral move (kernel_017.c.o grows
- * +0x3C, kernel_018.c.o shrinks -0x3C; both .o's are in adjacent slots in
- * tenshoe.ld). Next pass: same-file merge 80006698 + 800066B0 into a
- * single u32 helper. Per
- * feedback_cross_file_fragment_unblock_via_move_then_merge.md. */
+ * Reads MMIO from 0x04000000-0x05000000 (SP DMEM/IMEM + RCP regs) via
+ * func_80008FB0 (likely __osPiRawReadIo). Callers jal into 0x800066B0 and
+ * 0x800066D0 as if standalone — those addresses remain in
+ * undefined_syms_auto.txt as labels into this body (the call sites work
+ * because the ROM bytes are correct; "function" semantics at the inner
+ * entries are misleading but byte-stable). */
 extern void func_80008FB0(s32, s32*);
 s32 func_80006698(s32 a0) {
     s32 local;

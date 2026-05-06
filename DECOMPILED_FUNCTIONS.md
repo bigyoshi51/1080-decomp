@@ -99,5 +99,6 @@ splat, ensure these are NOT treated as separate function boundaries.
 | func_80008BB0 | func_80008BB4 | 4-byte prologue fragment |
 | func_80008D48 | func_80008D4C | 4-byte prologue fragment |
 | func_80009144 | func_80009148 | 4-byte prologue fragment |
-| func_800066D0 | func_800066B0 | tail/epilogue continuation; same .c file (kernel_018.c). Note: full 3-way merge with prologue parent func_80006698 in kernel_017.c blocked by cross-file linker layout shift. |
+| func_800066D0 | func_800066B0 | tail/epilogue continuation; same .c file (kernel_018.c). |
+| func_800066B0 | func_80006698 | full 3-way .s merge: 0x80006698 (0x18) + 0x800066B0 (0x3C) → 0x54 (21 insns). Byte-merge already produced by func_80006698 C body in kernel_017.c (episodes/func_80006698.json, 100% exact). undefined_syms_auto.txt keeps func_800066B0/func_800066D0 as labels for callers that jal into the merged body. |
 | func_800021D0 | func_800021A4 | body continuation; same .c file (kernel_000.c). Combined 0xAC = 43 insns. Fragment had no prologue, used `$t1`/`$t2`/`$a1` set by parent's prologue at 0x800021A4. |
