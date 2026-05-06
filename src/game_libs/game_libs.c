@@ -150,7 +150,31 @@ int gl_func_00001114(char *a0) {
     return gl_func_00000000(a0 + 0x10C);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00001134: 28-insn (0x70) 3-way value formatter dispatcher.
+ * Picks one of 3 format-string variants from gl_data based on a1's
+ * magnitude:
+ *   a1 < 10   → format at &gl_data + 0xCC10  (with a2 = a1)
+ *   a1 < 100  → format at &gl_data + 0xCC18  (3-arg)
+ *   else      → format at &gl_data + 0xCC1C  (likely 4-digit / large)
+ *
+ * Likely a digit-count-driven number-to-text formatter — pads or
+ * positions output based on how many digits a1 needs. Each arm calls
+ * gl_func_00000000 (cross-USO printf-like) with (a0 + 0xE4) as the
+ * destination buffer. */
+extern int gl_data_00000000;
+void gl_func_00001134(char *a0, int a1) {
+    if (a1 < 10) {
+        gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC10, a1);
+    } else if (a1 < 100) {
+        gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC18, a0 + 0xE4);
+    } else {
+        gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC1C);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001134);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000011A4);
 
