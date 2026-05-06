@@ -544,26 +544,14 @@ s32 func_800005DC(void *buf, u32 count, u32 chunkSize, FileStateRdr *file) {
     return total;
 }
 #else
+/* 3-fragment merge complete: func_800005DC + func_8000060C + func_80000660
+ * -> single 0xB0 (44-insn) function with 2 alabels (60C at offset 0x34,
+ * 660 at offset 0x88) preserving cross-callers.
+ *
+ * Branches that previously crossed fragment boundaries (b .L80000678 from
+ * 5DC and 60C, beqz .L8000066C from 60C) now land in the single merged
+ * file's .L labels. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800005DC);
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000060C);
-#endif
-
-#ifdef NON_MATCHING
-/* func_80000660: 10-insn (0x28) tail fragment of func_800005DC.
- * Reads $a3 from sp+0x2C (caller's spill from predecessor's frame), $a2
- * from sp+0x1C (also predecessor-set). Decoded:
- *   .L80000660: t2 = a3->4 + a2; a3->4 = t2; v0 = a2;
- *   .L80000678: epilogue (lw ra, addiu sp, jr ra)
- * Branch target .L8000066C and .L80000678 are jumped to from func_800005DC's
- * body. NOT a callable function — uninitialized $a2/$a3/$a7 at entry, no
- * prologue. Cannot be matched as standalone C. Wrap is for grep
- * discoverability per feedback_orphan_include_asm_after_split_function_decomp.md. */
-void func_80000660(void) {
-    /* see func_800005DC — this is its tail-merge + epilogue, called
-     * via `b .L80000660` or fall-through from func_8000060C. */
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000660);
 #endif
 
 /* uso_advance_position */
