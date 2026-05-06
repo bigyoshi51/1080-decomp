@@ -697,7 +697,64 @@ void timproc_uso_b5_func_0000AC10(int a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AC20);
 
+/* timproc_uso_b5_func_0000B154: 133-insn (0x214) AI-update orchestrator.
+ * Frame 0xA8, $s0/$s1 saves. Coarse structure decoded 2026-05-05:
+ *
+ *   1. Vec3 baseline + delta compute (0xB154-0xB1A8): loads 3 floats from
+ *      &D_0+0xDC and 3 floats from sp+0x68 area; computes pairwise sub.s
+ *      (delta_v = ref_v - cur_v) and stores to sp+0x68/0x6C/0x70.
+ *
+ *   2. 12-byte struct copy with fanout (0xB1AC-0xB1D4): reads t6+0/4/8
+ *      writes a2+0/4/8 AND a4+0/4/8 (the canonical "save-old + write-new"
+ *      idiom — same shape as game_uso_func_00001DDC tail, see that
+ *      function's notes). Followed by jal cross-USO call.
+ *
+ *   3. Four sequential 3-float scale + jal blocks (0xB1D8-0xB28C): each
+ *      block reads s0+0x110/0x10C/0x114/0x118 (a per-axis scaling
+ *      coefficient table on s0), multiplies by 1.0 (mtc1 zero, mtc1 0x3F80),
+ *      stores to sp+0x48/0x38/0x2C/0x98 (output buffers), then jal.
+ *      Pattern: 4-axis state-machine update.
+ *
+ *   4. Final scale + cross-call (0xB290-0xB2D4): reads s0+0x108 (sub-obj
+ *      ptr), 3 floats from s0+0x128/0x12C/0x11C; computes
+ *      mul.s + sub.s of 0.5 (lui 0x3F00 = 0.5f), then jal.
+ *
+ *   5. Tail: bit-flag toggle on s0+0x144 (frame counter or state bit),
+ *      conditional vtable-index increment+wrap on s0+0x140 vs s0+0x13C
+ *      array length, then bit-set/bit-clear on s0+0x148-derived sub-obj's
+ *      [0x18] field (`AND 0xFFFFFFFB` and `OR 0x4`).
+ *
+ * Key field offsets (s0 struct, ~0x150+ bytes):
+ *   [0x108] sub-obj ptr (used as $a0 to multiple jals)
+ *   [0x10C], [0x110], [0x114], [0x118] axis scale coefficients (4 floats)
+ *   [0x11C], [0x128], [0x12C] coefficient floats
+ *   [0x13C] array length
+ *   [0x140] index into s0+0x148 array
+ *   [0x144] frame-counter / state bit
+ *   [0x148] sub-obj-array base ptr
+ *
+ * Logic looks like a per-frame AI/state update that:
+ *   - computes 3D delta from reference position
+ *   - cross-calls 6 separate per-axis processors
+ *   - advances a circular index with wraparound
+ *   - toggles a state bit on each call
+ *
+ * Yay0-compressed segment; default INCLUDE_ASM build remains exact.
+ * Multi-tick decomp target — ~7 cross-USO calls, struct typing required.
+ * Initial structural pass 2026-05-05. */
+#ifdef NON_MATCHING
+/* Skeleton C — captures structure only; no byte-match attempt yet. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void timproc_uso_b5_func_0000B154(int *a0) {
+    (void)a0;
+    /* TODO: full body decode. See block-comment above for the 5-section
+     * structure. Each section has 1-2 jals to gl_func_00000000 with
+     * args from per-axis stack-local Vec3 scratch buffers. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B154);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B368);
 
