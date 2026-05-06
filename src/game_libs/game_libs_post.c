@@ -521,7 +521,29 @@ void gl_func_0002D6A0() {
     D_00000000 = 0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0002D6C8: 17-insn 2-call function with 1 trailing dead-code
+ * `move a2, a0` (expected 18 insns total = 0x48).
+ *
+ * Decoded:
+ *   gl_func_00000000(0xF0000000, a0);
+ *   if (a0 >= 2) a0 = 3;
+ *   gl_func_00000000(0xF0000000, a0);
+ *
+ * 94.4% NM (17/18 mnemonic-equiv). Built via in-place mutate of `a0` matches
+ * 17 insns exactly; only diff is the 1 trailing `move a2, a0` (`0x00803025`)
+ * at sp+0x48 — IDO residual tail-merge dead-code that doesn't reach. Same
+ * cap class as gl_func_00067510 + game_uso_func_00010E2C-family residuals. */
+void gl_func_0002D6C8(int a0) {
+    gl_func_00000000(0xF0000000, a0);
+    if (a0 >= 2) {
+        a0 = 3;
+    }
+    gl_func_00000000(0xF0000000, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D6C8);
+#endif
 
 #ifdef NON_MATCHING
 /* 13-insn 1-call wrapper. Stores a0 to D_00000000, then calls
