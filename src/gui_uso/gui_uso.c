@@ -14,9 +14,15 @@
  * this from the K&R-form C body since `c` isn't address-taken inside the
  * function body. Tried standard prototype `int gui_func_00000000(int c)`
  * — breaks 2-arg callers (gui_func_000013E8 et al pass 2 args). Tried
- * `int tmp = c;` — folded by IDO. Need the K&R form to preserve K&R-arg-
- * save BUT also keep the var-args call sites compatible. May require
- * `int gui_func_00000000(int c, ...)` with stdarg or similar.
+ * `int tmp = c;` — folded by IDO.
+ *
+ * 2026-05-05: tested `int gui_func_00000000(int c, ...)` (varargs) at
+ * both def and all 3 extern decl sites (305/337/403). Build succeeded
+ * but match dropped from K&R baseline to 4.1% (built 0x128 vs expected
+ * 0x148, -8 insns). The varargs form makes IDO's calling convention
+ * for `c` change in a way that REGRESSES on the bnel-chain emit, not
+ * helps. Don't re-attempt — neither standard prototype, K&R nudge, nor
+ * varargs solves the trampoline-`sw a0, 0(sp)` blocker.
  *
  * Stub C body decoded but NM wrap stays — default build INCLUDE_ASM is
  * correct bytes via the .s file. Multi-pass decomp; the bnel-chain emit
