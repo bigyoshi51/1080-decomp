@@ -583,7 +583,39 @@ void gl_func_0002D74C(int a0, int a1_unused, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D74C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002D788: 14-insn main body + 4-insn trailing alt-entry
+ * (`li v0, 8; lui at, 0; sw v0, 0(at); lui at, 0`) — declared size 0x48
+ * (18 insns). Same MERGE-BLOCKED post-epilogue alt-entry class as
+ * gl_func_00062298 (per existing in-source doc).
+ *
+ * Main body decodes:
+ *   *(int*)&D_a = a0;
+ *   gl_func_00000000(0x41020000, ((int*)&D_b)[a2]);
+ *
+ * Two distinct globals (D_a and D_b) need separate externs to break
+ * IDO CSE on the placeholder D_00000000 address.
+ *
+ * Source 2 (sibling): in the same offset region as recently-wrapped
+ * gl_func_0002D6C8 (94.4% in-place mutate) and the 0x2D838/0x2D870
+ * prologue-stolen-successor family. Wrap captures the main body decode
+ * for permuter / future-pass refinement; alt-entry stays in INCLUDE_ASM. */
+extern int D_2D788_a;
+extern int D_2D788_b;
+/* Skipping unused middle arg ($a1) via K&R: declare prototype with 3 args
+ * but use only a0 and a2 — IDO -O2 still spills unused $a1 (per
+ * docs/IDO_CODEGEN.md feedback-ido-unused-arg-save). The wrap caps at
+ * ~85 % via that one extra `sw a1, 0x1C(sp)` insn that natural C cannot
+ * elide; target was likely built with $a1 actually used or with a flag
+ * variant. */
+void gl_func_0002D788(int a0, int unused_a1, int a2) {
+    D_2D788_a = a0;
+    gl_func_00000000(0x41020000, (&D_2D788_b)[a2]);
+    (void)unused_a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D7D0);
 
