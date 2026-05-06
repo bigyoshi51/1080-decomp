@@ -1511,7 +1511,23 @@ void game_uso_func_000039F8(char *dst) {
  *
  * Tail-merge `beqzl` IS reproduced by writing the inner if/store as
  * `if (cond) X = 1; ALWAYS_STORE = obj;` form. The outer `beqzl` (mine)
- * vs `beqz` (target) on `other != 0` test is the secondary diff. */
+ * vs `beqz` (target) on `other != 0` test is the secondary diff.
+ *
+ * 2026-05-06 retry batch (all no-ops at the asm level — built bytes
+ * unchanged from baseline; the byte-exact metric stays at 30.6% since
+ * the fuzzy 89.22% is mnemonic-equiv, not register-equiv):
+ *   (a) `if ((other = arg0[16]) != 0)` assign-in-condition — no asm change
+ *       (IDO already inlined the load).
+ *   (b) `volatile int saved_arg = (int)arg0;` then read via saved_arg —
+ *       changed only to add a stack store of arg0; emit pattern shifted
+ *       by 1 insn but still cap-class same.
+ *   (c) `register int *obj` — IDO IGNORED the register hint here (no
+ *       prologue change, no $s-reg promotion); built bytes byte-identical
+ *       to baseline. Confirms IDO's caller-saved-hold register pick (the
+ *       v0/v1 vs a1/a2 cap) is purely weight-driven and not bias-able
+ *       via `register`.
+ * None of these promote — same cap class via the structural register-pick
+ * that isn't C-controllable. */
 int *game_uso_func_00003A28(int *arg0) {
     int *obj;
     int *other;
