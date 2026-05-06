@@ -3882,7 +3882,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062194);
 
+#ifdef NON_MATCHING
+/* gl_func_00062298: 16-insn 2-path init/clear with unusual leaky-sp
+ * fast path.
+ *
+ * Decoded:
+ *   if (a1 == -1) {                  ; .L8 fast path (a1 == -1 sentinel)
+ *       a0[1] = 0;
+ *       a0[0] = 0;
+ *       a0[2] = a1;                  ; = -1
+ *       return;                      ; jr ra WITHOUT addiu sp,+0x18 (!)
+ *   } else {
+ *       gl_func_00000000(&D + 0);    ; constant-arg call
+ *       return;                      ; normal epilogue with sp restore
+ *   }
+ *
+ * BLOCKED: target's .L8 fast path emits `jr ra; sw a1, 0x8(a0)` (store
+ * in delay) but DOES NOT restore $sp before the return. The function
+ * does `addiu sp, -0x18` at entry, so the .L8 path leaves sp offset
+ * by -0x18 on return — non-standard ABI, likely a hand-written-asm or
+ * unique compiler-quirk artifact. C-emit always restores sp on every
+ * return path. Default INCLUDE_ASM keeps ROM correct; not promotable
+ * to standalone-C. */
+void gl_func_00062298(int *a0, int a1) {
+    if (a1 == -1) {
+        a0[1] = 0;
+        a0[0] = 0;
+        a0[2] = a1;
+        return;
+    }
+    gl_func_00000000(&D_00000000);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062298);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000622D8);
 
