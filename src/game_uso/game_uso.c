@@ -1484,8 +1484,53 @@ void game_uso_func_000039F8(char *dst) {
     game_uso_func_00000280((int*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_00003A28: 36-insn (0x90) alloc + conditional-init +
+ * registry-link wrapper with branch-likely tail-merge.
+ *
+ * Decoded:
+ *   obj = gl_func(0x40);
+ *   if (obj) { gl_func(obj); obj->[0x28] = &D; obj->[0x3C] = 0; }
+ *   other = arg0->[0x40];
+ *   if (other) {
+ *     gl_func(obj+0x10, other);   // return discarded
+ *     if (other->[0x14]) other->[0x4] = 1;
+ *     other->[0x14] = (int)obj;    // always — branch-likely tail-merge
+ *   }
+ *   return obj;
+ *
+ * 89.22% NM (2026-05-06). Remaining diffs are register-alloc choices —
+ * IDO picks $a2 for obj and $a1 for other; target uses $v1 for obj and
+ * $v0→$a1 for other (with extra spill of $v1 + $v0 around 2nd jal,
+ * frame 0x28 vs ours 0x20). Cap class: $v0/$v1 vs $a1/$a2 register-pick
+ * not C-controllable.
+ *
+ * Tail-merge `beqzl` IS reproduced by writing the inner if/store as
+ * `if (cond) X = 1; ALWAYS_STORE = obj;` form. The outer `beqzl` (mine)
+ * vs `beqz` (target) on `other != 0` test is the secondary diff. */
+int *game_uso_func_00003A28(int *arg0) {
+    int *obj;
+    int *other;
+    obj = (int*)gl_func_00000000(0x40);
+    if (obj != 0) {
+        gl_func_00000000(obj);
+        *(int*)((char*)obj + 0x28) = (int)&D_00000000;
+        *(int*)((char*)obj + 0x3C) = 0;
+    }
+    other = (int*)arg0[0x40 / 4];
+    if (other != 0) {
+        gl_func_00000000((char*)obj + 0x10, other);
+        if (other[0x14 / 4] != 0) {
+            other[0x4 / 4] = 1;
+        }
+        other[0x14 / 4] = (int)obj;
+    }
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003A28);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00003A28_pad.s")
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
 
