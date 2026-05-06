@@ -943,7 +943,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Combined size 0xD8 = 54 insns. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C710);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C7E8);
+void timproc_uso_b5_func_0000C7E8(char *a0, char *a1) {
+    *(float*)(*(int*)(a1 + 0x2B8) + 0x128) = *(float*)(*(int*)(a0 + 0x2B8) + 0x128);
+    *(float*)(*(int*)(a1 + 0x2B8) + 0x124) = *(float*)(*(int*)(a0 + 0x2B8) + 0x124);
+    *(int*)(*(int*)(a1 + 0x2B8) + 0x130) = *(int*)(*(int*)(a0 + 0x2B8) + 0x130);
+    *(int*)(*(int*)(a1 + 0x2B8) + 0x13C) = *(int*)(*(int*)(a0 + 0x2B8) + 0x13C);
+}
 
 void timproc_uso_b5_func_0000C82C(int a0) {
 }
