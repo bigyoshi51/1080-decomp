@@ -3996,34 +3996,32 @@ int gl_func_00065DDC(char *a0) {
  *
  * Decoded:
  *   addiu sp, -0x20; sw ra, 0x14(sp); sw a0, 0x20(sp)
- *   jal 0x77DB0    <unknown internal symbol>
- *    addiu a0, sp, 0x1C  ; (delay) a0 = &local
- *   lw a0, 0x20(sp)      ; reload original a0
- *   jal 0x77E28    <unknown internal symbol>
- *    addiu a0, a0, 0x10  ; (delay) a0 = orig + 0x10
- *   lw ra, 0x14(sp); addiu sp, +0x20; jr ra; nop
+ *   gl_ref_00077DB0(&local);
+ *   gl_ref_00077E28(a0 + 0x10);
  *
- * Splat couldn't symbolize the 2 jal targets (0x77DB0/0x77E28) — they
- * point past the visible game_libs.s end (0x7526C). Likely game_libs
- * internal calls or splat-fold-into-nearest pattern. Without proper
- * extern symbol names, the C body would emit `lui+addiu` placeholders
- * (jal 0) instead of target's hardcoded jal addresses. Default
- * INCLUDE_ASM keeps ROM byte-correct.
+ * SPLIT 2026-05-05: trailing bundled 2-insn leaf (`jr ra; lwc1 f0, 0x198(a0)`)
+ * split into game_libs_func_00065E3C via split-fragments.py. Function size
+ * was 0x38, now 0x30.
  *
- * Splat ALSO bundled trailing 2 insns (`jr ra; lwc1 f0, 0x198(a0)` =
- * float-reader getter for offset 0x198) inside this function's declared
- * size (0x38 vs real 0x30). Future fix: split the trailing 2-insn
- * leaf into its own gl_func_00065E3C symbol via split-fragments. */
-extern int gl_func_unk1();  /* TODO: name resolves to 0x77DB0 */
-extern int gl_func_unk2();  /* TODO: name resolves to 0x77E28 */
+ * CAP: target's `jal 0x77DB0` and `jal 0x77E28` are RESOLVED absolute
+ * addresses (raw `0x0C01DF6C` / `0x0C01DF8A`). C-emit produces
+ * `jal 0; <R_MIPS_26 reloc to gl_ref_*>` — the linker resolves at link
+ * time to the SAME address, BUT the .o-level bytes differ (0x0C000000
+ * with reloc vs 0x0C01DF6C without). Per
+ * docs/MATCHING_WORKFLOW.md#feedback-byte-correct-match-via-include-asm-not-c-body,
+ * INCLUDE_ASM tautology preserves the resolved-jal bytes. Cap stays NM. */
+extern int gl_ref_00077DB0();
+extern int gl_ref_00077E28();
 void gl_func_00065E0C(char *a0) {
     int local;
-    gl_func_unk1(&local);
-    gl_func_unk2(a0 + 0x10);
+    gl_ref_00077DB0(&local);
+    gl_ref_00077E28(a0 + 0x10);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065E0C);
 #endif
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00065E3C);
 
 extern int gl_func_00000000();
 int gl_func_00065E44(char *a0) {
