@@ -39,8 +39,15 @@ void __rmonSendHeader(void) {
  *      target's 7-insn (0x1C) "no-epilogue, falls-through" shape.
  * No recipe combines "function with .o reloc on jal" + "no jr ra
  * epilogue." Combo applicability window narrowed: leading-N insns of
- * any prefix must contain zero reloc'd jal or lui-extern-pair. Stays
- * INCLUDE_ASM-tautology (build/.o byte-correct via #else branch). */
+ * any prefix must contain zero reloc'd jal or lui-extern-pair.
+ *
+ * 2026-05-06: tested __attribute__((noreturn)) to strip the epilogue —
+ * IDO cfe rejects with "Syntax Error" on the attribute syntax (the
+ * GNU __attribute__ extension is not supported by IDO 7.1). Confirmed
+ * structural cap; no C-level path can produce 7-insn body with reloc'd
+ * jal AND no jr ra epilogue.
+ *
+ * Stays INCLUDE_ASM-tautology (build/.o byte-correct via #else branch). */
 void func_800073DC(void) {
     /* see __rmonSendHeader above — this fragment is its prologue */
 }
