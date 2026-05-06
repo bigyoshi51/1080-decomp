@@ -933,7 +933,58 @@ void func_00007BC8(char *a0) {
     func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
+/* func_00007BF4: 32-insn (0x80) command-dispatcher. 79.8% NM (fresh decode 2026-05-06).
+ *
+ * Reads a Cmd struct (field_0, base @ 0x4, flag @ 0x8, idx @ 0xA, fallback @ 0xC):
+ *   a1 = base + flag
+ *   if (idx < 0) fp = fallback (a1 = base + flag stays as call arg)
+ *   else:
+ *     a0_val = fallback;
+ *     if (a0_val == 0 && flag == 0) a0_val = 0x28;
+ *     table_ptr = *(int**)(a1 + a0_val)
+ *     entry     = table_ptr + idx*8 (struct of {short, _, int (*)(int)})
+ *     a1 += entry[0] as short
+ *     fp = entry+4 as int(*)(int)
+ *   return fp(a1);
+ *
+ * Used `short *p8 = (short*)((char*)arg + 8)` intermediate to force
+ * IDO to emit `addiu v1, a0, 8` base register matching target.
+ *
+ * Remaining ~20% diffs: register picks ($a2/$a3 mine vs $a1/$a2 target),
+ * branch-likely (bnezl in mine for inner if-AND, bnez in target — regular
+ * branch with `move a0, v0` in delay slot) — register-alloc territory. */
+typedef struct {
+    int field_0;
+    int base;
+    short flag;
+    short idx;
+    int fallback;
+} Cmd00007BF4;
+
+int func_00007BF4(Cmd00007BF4 *arg) {
+    short *p8 = (short*)((char*)arg + 0x8);  /* base for clustered access */
+    int a1 = arg->base + p8[0];               /* p8[0] = flag */
+    int (*fp)(int);
+    if (p8[1] < 0) {                           /* p8[1] = idx */
+        fp = (int(*)(int))*(int*)((char*)p8 + 0x4);  /* p8+4 = fallback */
+    } else {
+        int a0_val = *(int*)((char*)p8 + 0x4);  /* fallback (or 0) */
+        int *table_ptr;
+        int *entry;
+        if (a0_val == 0 && p8[0] == 0) {
+            a0_val = 0x28;
+        }
+        table_ptr = *(int**)(a1 + a0_val);
+        entry = (int*)((char*)table_ptr + p8[1] * 8);
+        a1 += *(short*)entry;
+        fp = *(int(**)(int))((char*)entry + 4);
+    }
+    return fp(a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007C74);
 
