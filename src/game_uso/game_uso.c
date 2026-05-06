@@ -1445,6 +1445,31 @@ void game_uso_func_00000B14(void *a0) {
     game_uso_func_00000000(a0);
 }
 
+/* game_uso_func_00003018: 291-insn (0x48C) constructor. Frame -0xE8.
+ * Same family as spine constructor game_uso_func_000044F4. Initial decode:
+ *
+ * Stage 1 @ 0x3018-0x303C (alloc-cascade): alloc(0xE8) if arg0 == NULL;
+ *   alloc(8) if s0 == NULL (defensive null-check against alloc failure).
+ *
+ * Stage 2 @ 0x3054-0x305C (template init): v1[0] = &D + 0x374; v1[1] = 0.
+ *
+ * Stage 3 @ 0x3064-0x30A8 (Vec3 buffer init x3 on stack):
+ *   sp[0xDC..0xE8] = (0.0, 0.0, 0.0)         ; clear Vec3
+ *   sp[0xD0..0xDC] = (-1000.0, -1000.0, -1000.0) ; min bounds
+ *   sp[0xC0]       = D[0x37C]                  ; loaded counter
+ *   sp[0xC4..0xCC] = (1000.0, 1000.0, 1000.0) ; max bounds
+ *
+ * Stage 4 @ 0x30AC-..: copy 3 Vec3s from sp[0xDC]/sp[0xD0]/sp[0xC4] to
+ *   sp[0x64]/sp[0x54]/sp[0x44]. Looks like initializing 3 named Vec3s
+ *   in the new struct's stack-prep area before final commit.
+ *
+ * Remaining ~240 insns TBD: likely struct-field assignments to s0
+ * (the alloc'd 0xE8-byte object) using the prepared stack Vec3s, plus
+ * cross-USO calls to register/init sub-objects.
+ *
+ * Picked under source 5 (strategy memo, exported-but-not-intra-called
+ * size-descending). Multi-tick decomp; structural wrap only this tick.
+ * INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
 
 extern int D_3A0;
