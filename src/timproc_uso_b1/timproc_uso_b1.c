@@ -248,6 +248,32 @@ void timproc_uso_b1_func_00000EC0(int a0) {
     (void)a0;
 }
 
+/* timproc_uso_b1_func_00000EE8: 2-FUNCTION BUNDLE (0x1F4 / 125 insns).
+ * Splat-bundled (USO segment); cannot be cleanly split per
+ * feedback_uso_split_fragments_breaks_expected_match.md.
+ *
+ * F1 @ 0x0EE8-0x10BC: ~117 insns — heavy state-update orchestrator.
+ *   Reads a0->[0x504] (t9), spills s0=a0, t9=1.
+ *   if (t9 == 1) early-exit-with-store branch
+ *   else: a0->[0x6A8] is the work pointer:
+ *     - if work->[0x30] (lw t9) == s3=1 goto cleanup-with-jal-chain
+ *     - main loop subu s2,s2,-1: iterate 0x10..0x70 over 0x10-stride
+ *       struct fields, calling cross-USO funcs per element
+ *     - 3 char-byte equality-test ladder at 0x0FA4-0x0FE0 (a3->[5/6/7]
+ *       vs s7->[5/6/7]) — hash/sequence compare
+ *     - on full match: a0->[0x4D8] = 1; gl_func(a0->[0x190], 3); commit
+ *     - else: increment s0, sub s4 -1, branch back to loop head
+ *   Tail: 5 cross-USO gl_func calls with shuffled args; jr ra at 0x10B8.
+ *
+ * F2 @ 0x10C0-0x10D0: 5 insns — `D[0x40] = 9; sw t6 (delay)`. Mini-stub
+ *   that sets the dispatcher state field.
+ *
+ * Trailing 4 insns @ 0x10D4-0x10D8: `lui a1, 0; lw a1, 0x170(a1)` —
+ * incomplete, likely a prologue-stolen prefix for F3 (next function).
+ *
+ * Multi-day decomp; this comment captures structural fingerprints for
+ * future passes. Sibling of timproc_uso_b1_func_00000E40 (E40 sets the
+ * D[0x40]/D[0x44] state, EE8 reads work-state and runs the orchestrator). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000EE8);
 
 void timproc_uso_b1_func_00000000();
