@@ -596,7 +596,40 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000199C);
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00001B04: 33-insn / 0x84 conditional-init dispatcher.
+ *
+ * Calls gl_func_00000000(&D_00000000, 0x40100) — likely an alloc/init with
+ * a magic flag value. If non-zero, then makes a second call passing
+ * arg->[0x50] as input. The second call's return splits into two arms:
+ *   v0 != 0: arg->[0x60] = 1; D[0x40] = 8; D[0x44] = 6
+ *   v0 == 0: D[0x40] = 6; gl_func_00000000(arg, 7, 0)
+ *
+ * Initial wrap; bytes likely won't match without unique-extern aliases for
+ * the 2 distinct &D references (0x1B14+0x1B20 and 0x1B34+0x1B3C). */
+extern int gl_func_00000000();
+extern char D_00000000;
+void arcproc_uso_func_00001B04(int *arg) {
+    int v0;
+    int *something;
+    int *D;
+    v0 = gl_func_00000000(&D_00000000, 0x40100);
+    if (v0 == 0) return;
+    something = (int*)*(int*)((char*)arg + 0x50);
+    v0 = gl_func_00000000(something);
+    D = (int*)&D_00000000;
+    if (v0 != 0) {
+        *(int*)((char*)arg + 0x60) = 1;
+        *(int*)((char*)D + 0x40) = 8;
+        *(int*)((char*)D + 0x44) = 6;
+    } else {
+        *(int*)((char*)D + 0x40) = 6;
+        gl_func_00000000(arg, 7, 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001B04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001BBC);
 
