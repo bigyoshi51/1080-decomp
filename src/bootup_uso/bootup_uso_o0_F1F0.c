@@ -65,7 +65,15 @@ void func_0000F288(Quad4 *a0) {
  * s-reg backup) but with -0x10 less stack frame than C produces. The
  * remaining gap is IDO -O0 producing extra slot reservations that target
  * doesn't have — possibly from a non-IDO toolchain pass on the original
- * ROM, or a subtle -O0 sub-flag (e.g., -O0 -fno-something). */
+ * ROM, or a subtle -O0 sub-flag (e.g., -O0 -fno-something).
+ *
+ * 2026-05-06 retry: tried minimal-locals (drop pads, init all post-jal
+ * via `p1 = dst; tmp = raw; src = ...; q = p1; p2 = q;`) — regressed
+ * to 68.3 % (the post-jal init pattern doesn't reach target's exact
+ * `lw s1, 0x58(sp)` placement; introduces extra `move s2, s1` shuffle).
+ * Also tried no-register variant — collapsed to 14.6 % (no s-reg saves
+ * emit). The baseline 4-register-var + 3-pad-array form remains the
+ * tightest reachable; cap is structural per IDO -O0 frame-slot reservation. */
 void func_0000F2EC(Vec3 *dst) {
     register Vec3 *p1 = dst;
     register Vec3 *p2 = p1;
