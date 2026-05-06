@@ -810,35 +810,53 @@ void h2hproc_uso_func_00001A3C(char *dst) {
  *     p->field_28 = &D_00000000;
  *     p->field_3C = 0;
  *     if (arg0->field_40 != NULL) {
- *       int rv = gl_func_00000000(p + 0x10, arg0->field_40);
- *       if (rv != 0) {
- *         arg0->field_40->[0x14] = p;
- *         p->[0x04] = 1;
- *         arg0->field_40->[0x14] = p;     // beql double-store
+ *       gl_func_00000000(p + 0x10, arg0->field_40);
+ *       if (arg0->field_40->[0x14] != 0) {
+ *         arg0->field_40->[0x04] = 1;
  *       }
+ *       arg0->field_40->[0x14] = p;
  *     }
  *   }
  *   return p;
  *
- * ~60% NM cap inherited from eddproc sibling — register allocation
- * differs ($v0/$v1 chain vs target's $t-regs) and frame layout is 0x28
- * vs ~0x20. Multi-tick decomp; mirror of eddproc wrap. */
-void h2hproc_uso_func_00001A6C(int *arg0) {
-    void *p = (void*)gl_func_00000000(0x40);
+ * 2026-05-05: TWO fixes promoted from 60% → 89.19%:
+ *   1. Return type `int *` (not `void`) — target's epilogue has
+ *      `or v0, v1, zero` (return p), which `void` can't emit. Just
+ *      changing the signature lifted to 77.83%.
+ *   2. `char _pad[8]` to grow frame from 0x20 → 0x28 (matches target's
+ *      sw a0, 0x28(sp)). Lifted to 89.19%.
+ *
+ * Note: prior docstring incorrectly said the inner if-test was on the
+ * 3rd jal's return value (`rv`); actual asm tests `next->field_14`
+ * (the `arg0->field_40` ptr's field, not the call's result). The
+ * 3rd call is `gl_func(p+0x10, next)` with NO check on its return.
+ *
+ * Remaining ~10% gap: register allocation. Mine uses $a2 to hold p
+ * across 1st jal; target uses $a0 directly + $v1 later. To get the
+ * exact emit shape, p needs to live in $v1 across the 1st-call gap.
+ * Possible knob: variable scope, refs count. Defer to permuter or
+ * mirror eddproc_uso_func_000003BC's exact source pattern (currently
+ * also uncapped). */
+int *h2hproc_uso_func_00001A6C(int *arg0) {
+    char _pad[8];  /* grow frame from 0x20 to 0x28 to match target */
+    int *p = (int*)gl_func_00000000(0x40);
+    (void)_pad;
     if (p != NULL) {
         gl_func_00000000(p);
         *(int*)((char*)p + 0x28) = (int)&D_00000000;
         *(int*)((char*)p + 0x3C) = 0;
-        if (arg0[0x40 / 4] != 0) {
-            int rv = gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
-            if (rv != 0) {
-                int **slot = (int**)((char*)arg0[0x40 / 4] + 0x14);
-                *slot = (int*)p;
-                *(int*)((char*)p + 0x4) = 1;
-                *slot = (int*)p;   /* redundant double-store; matches beql */
+        {
+            int *next = (int*)arg0[0x40 / 4];
+            if (next != NULL) {
+                gl_func_00000000((char*)p + 0x10, next);
+                if (next[0x14 / 4] != 0) {
+                    next[0x4 / 4] = 1;
+                }
+                next[0x14 / 4] = (int)p;
             }
         }
     }
+    return p;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A6C);
