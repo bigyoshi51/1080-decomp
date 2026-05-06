@@ -773,7 +773,57 @@ void h2hproc_uso_func_00000F60(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD0);
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00001204: 87-insn (0x15C) state-machine + indirect call.
+ * Two-path counter update on a0->[0x34]->[0x3C] gated by
+ * a0->[0x2C]->[0x4F4] < 2:
+ *   path INCR: clamp [0x3C] to 0xFF, +=0x10, then re-clamp to 0x100->0x2D0;
+ *   path DECR: when [0x3C] > 0, -=0x10, then clamp negative -> 0.
+ * Then a 3-call gate cascade (gl_func_X, gl_func_X(D[0x190]),
+ * gl_func_X(5)), each early-out on zero return; finally a function-pointer
+ * call at v0->[0x7C]*0x28 + 0x90 with a final wrapper call(a0).
+ *
+ * Multi-tick decompile — needs struct typing and indirect-call signature
+ * to tighten beyond partial wrap. */
+void h2hproc_uso_func_00001204(char *a0) {
+    char *p1;
+    char *v0;
+    int t9;
+
+    if (*(int*)(*(char**)(a0 + 0x2C) + 0x4F4) < 2) {
+        v0 = *(char**)(a0 + 0x34);
+        if (*(int*)(v0 + 0x3C) < 0xFF) {
+            *(int*)(v0 + 0x3C) += 0x10;
+        }
+        v0 = *(char**)(a0 + 0x34);
+        if (*(int*)(v0 + 0x3C) >= 0x100) {
+            *(int*)(v0 + 0x3C) = 0x2D0;
+        }
+    } else {
+        v0 = *(char**)(a0 + 0x34);
+        if (*(int*)(v0 + 0x3C) > 0) {
+            *(int*)(v0 + 0x3C) -= 0x10;
+        }
+        v0 = *(char**)(a0 + 0x34);
+        if (*(int*)(v0 + 0x3C) < 0) {
+            *(int*)(v0 + 0x3C) = 0;
+        }
+    }
+    if (gl_func_00000000(&D_00000000, 0x40100) == 0) return;
+    if (gl_func_00000000(*(int*)(&D_00000000 + 0x190)) == 0) return;
+    p1 = *(char**)(a0 + 0x30);
+    if (*(int*)(p1 + *(int*)(p1 + 0x7C) * 0x28 + 0x90) == 0) return;
+    gl_func_00000000(5);
+    *(int*)((char*)&D_00000000 + 0x4) = *(int*)(a0 + 0x30);
+    *(int*)((char*)&D_00000000 + 0x0) = *(int*)(a0 + 0x2C);
+    p1 = *(char**)(a0 + 0x30);
+    t9 = *(int*)(p1 + *(int*)(p1 + 0x7C) * 0x28 + 0x90);
+    ((void(*)(void))t9)();
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001204);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001360);
 
