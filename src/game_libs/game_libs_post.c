@@ -654,13 +654,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
 /* gl_func_0002D74C: byte-for-byte SIBLING of gl_func_0002D710 (above)
  * with one differing constant — `lui $a0, 0x4100` (= 8.0f) instead of
  * 0x4101 (= 8.0625f). Same structure, same trailing SUFFIX
- * `or $a2, $a0, $zero` stolen-prologue for next fn, same cap.
- * Cap diagnosis: 1/15 word match (target's inline `lui $at, 0` for
- * the global store vs build's prologue lui+addiu split). Defer same
- * as sibling. */
-void gl_func_0002D74C(int a0, int a1_unused, int a2) {
-    D_00000000 = a0;
-    gl_func_00000000(0x41000000, ((int*)&D_00000000)[a2], a2);
+ * `or $a2, $a0, $zero` stolen-prologue for next fn.
+ *
+ * 2026-05-06: applied feedback-ido-cse-bust-via-distinct-externs
+ * (docs/IDO_CODEGEN.md) — promoted from 1/15 to 14/15 word match by
+ * splitting D_00000000 into D_2D74C_store + D_2D74C_load (both
+ * aliased to 0x0 in undefined_syms_auto.txt). 1-insn cap remains: the
+ * unused-a1 spill at offset 0x4 (`sw a1, 0x1C(sp)` per
+ * docs/IDO_CODEGEN.md feedback-ido-unused-arg-save). Same cap class
+ * as sibling 0x2D710. */
+extern int D_2D74C_store;
+extern int D_2D74C_load;
+void gl_func_0002D74C(int a0, int unused_a1, int a2) {
+    D_2D74C_store = a0;
+    gl_func_00000000(0x41000000, ((int*)&D_2D74C_load)[a2], a2);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D74C);
