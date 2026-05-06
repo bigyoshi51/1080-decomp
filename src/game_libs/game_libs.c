@@ -894,7 +894,17 @@ fail:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AA28);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AA7C);
+/* 28-insn / 0x70 5-call wrapper followed by 2-field commit. Each call passes
+ * the same a0 plus a different arg as a1; result of last call is ignored. */
+void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int arg7, int arg8) {
+    gl_func_00000000(a0, a1);
+    gl_func_00000000(a0, a3);
+    gl_func_00000000(a0, arg5);
+    gl_func_00000000(a0, arg6);
+    gl_func_00000000(a0, a2);
+    a0[1] = arg8;
+    a0[2] = arg7;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AAEC);
 
