@@ -3019,11 +3019,51 @@ void game_uso_func_0000591C(int *a0) {
      * the same merge block at 0x5CB4 which prepares a Vec3-related
      * comparison with sp+0x178 (likely accumulated transform output).
      *
-     * Cumulative ~205/1102 insns characterized (up from 177). ~895
-     * remaining. NEXT PASS: 0x5CB4 merge-block continuation (the v1 =
-     * a0+0x3C8 + sp+0x178 comparison/copy block).
+     * MERGE-BLOCK CONTINUATION 0x5CB4-0x5D08 (~21 insns, decoded 2026-05-06):
+     *   /* setup: a3 = &sp[0x178]; a1 = a3; v1 = a0 + 0x3C8 *\/
+     *   a3 = sp + 0x178;
+     *   a1 = a3;                         // (cosmetic shadow — both used)
+     *   v1 = a0 + 0x3C8;                 // pointer into sub-struct
+     *   /* cross-USO size-12 op (Vec3 alloc/copy?) — saves+reloads v1 *\/
+     *   a0 = 0xC;                        // 12 = sizeof(Vec3) constant
+     *   sp[0x144] = v1;
+     *   v0 = gl_func(0xC, ...);          // jal placeholder, args via sp/regs
+     *   v1 = sp[0x144];                  // reload after call
+     *   a3 = sp + 0x178;                 // re-setup post-call
+     *   if (v0 == 0) goto skip_xz_copy;  // beq v0,zero,.+0x1C
+     *   a1 = v0;                         // result pointer (delay slot)
      *
-     * TODO: 895+ remaining insns — continue per-state-branch decoding. */
+     *   /* XZ-only Vec3 copy: a1.x = v1.x; a1.y = 0; a1.z = v1.z *\/
+     *   a1[0]   = v1[0];                 // x  (lwc1 f12; swc1 to a1)
+     *   a1[2/4] = v1[2];                 // z  (offset 8 from base)
+     *   a1[1/4] = 0.0f;                  // y  zeroed via mtc1 $zero
+     *
+     * skip_xz_copy:                      // 0x5CF8
+     *   /* second Vec3-math call: f(sp+0x178, sp+0x190, sp+0x184) *\/
+     *   a0 = sp + 0x178;                 // accum-Vec3 base (= a3)
+     *   a1 = sp + 0x190;
+     *   a2 = sp + 0x184;
+     *   gl_func(a0, a1, a2);             // jal placeholder (Vec3 op, dest sp+0x184/0x190)
+     *
+     * COMPARISON BLOCK 0x5D08-0x5D34 (~12 insns FPU compare/clamp):
+     *   /* float saturate-style compare on result-Vec3 with bc1tl branches *\/
+     *   f16 = 0.0f;
+     *   if (f0 < 0)  /* saturate one component to negation pair *\/
+     *       /* abs/neg sequence (neg.s + bc1tl + neg-or-abs) *\/
+     *   /* result then stored to sp+0x170 (post-saturate scalar) *\/
+     *   sp[0x170] = saturated_value;
+     *
+     * Pattern overall: this merge block stages an XZ-Vec3 transform
+     * (Y-zeroed) into sp+0x178 buffer, then computes a derived scalar
+     * (likely magnitude/length squared via the cross-USO call), saturates
+     * its sign, and stores to sp+0x170. Continues into a delta-blend at
+     * 0x5D38+ with a0->0xB0 / a0->0xAC fields (likely physics-vel state).
+     *
+     * Cumulative ~226/1102 insns characterized (up from 205). ~876
+     * remaining. NEXT PASS: 0x5D38+ delta-blend block (a0->0xB0/0xAC
+     * field accesses + the late `sp[0x16C]` and `sp[0x3C]` write chain).
+     *
+     * TODO: 876+ remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
