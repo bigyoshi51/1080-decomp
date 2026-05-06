@@ -1336,7 +1336,22 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
  * source. m2c rendered it literally as `var_a1 == (void *)-8`. Documented
  * as-is; semantic interpretation deferred until siblings emerge.
  *
- * Initial decode 2026-05-05; multi-tick refinement target. */
+ * Initial decode 2026-05-05; refined 2026-05-06: re-traced asm flow and
+ * found the "p2 == NULL ? alloc(8)" branch is DEAD CODE in the reachable
+ * paths. At 0x20 (`bne a1, zero, +7`), a1 is guaranteed non-zero on every
+ * reachable entry (a1 = arg0 if non-null, OR a1 = alloc(0x20) result if
+ * we got here without taking the early-exit branch at 0x18). The bne is
+ * always taken, jumping past 0x28 alloc(8) to 0x40 template-init.
+ *
+ * The asm STILL contains the alloc(8) call as physical insns — IDO -O2
+ * couldn't prove a1 != 0 across the cross-USO call to gl_func at 0x10
+ * (jal might have side-effects on a1 from caller's perspective, even
+ * though the spill at 0x30/reload at 0x34 makes it concrete). So the
+ * compiled C source likely had an explicit redundant null-check that
+ * IDO preserved.
+ *
+ * Cap at 57.63% as of 2026-05-06. Multi-tick refinement target — needs
+ * exact insn-by-insn trace + register-allocation match for promotion. */
 void *game_uso_func_00002744(void *arg0) {
     void *p1;
     void *p2;
