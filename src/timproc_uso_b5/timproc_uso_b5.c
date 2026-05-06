@@ -892,7 +892,25 @@ void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
 #endif
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BDEC);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1B4);
+/* timproc_uso_b5_func_0000C1B4: 16-insn 4-float copy + cross-USO call,
+ * plus a 5-insn alt-entry tail at sp+0x40..0x50 (different `(a0, a1)` arg
+ * shape, used by separate caller via jal directly into the post-epilogue
+ * region) injected post-cc via SUFFIX_BYTES. C body covers main entry only;
+ * the alt-entry's 5 insns are byte-for-byte SUFFIX (mtc1 a1,f12; lw t6;
+ * swc1 f12,0x2A0(a0); jr ra; swc1 f12,0x120(t6)). */
+extern int func_00000000();
+void timproc_uso_b5_func_0000C1B4(int *a0) {
+    int *p = (int*)a0[0x2B8 / 4];
+    float a = *(float*)((char*)a0 + 0x294);
+    float b = *(float*)((char*)a0 + 0x264);
+    float c = *(float*)((char*)a0 + 0x260);
+    float d = *(float*)((char*)a0 + 0x25C);
+    *(float*)((char*)p + 0x11C) = a;
+    *(float*)((char*)p + 0x110) = b;
+    *(float*)((char*)p + 0x118) = c;
+    *(float*)((char*)p + 0x114) = d;
+    func_00000000();
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C208);
 
