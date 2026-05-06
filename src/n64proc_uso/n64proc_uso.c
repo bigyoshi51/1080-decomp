@@ -647,7 +647,15 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
  * No further C-level structural variation will flip IDO's k0/k1 block
  * reorder — that's reorg.c-equivalent post-RTL behavior. Marginal gains
  * may come from per-call unique externs (mechanical), bringing it to ~98 %.
- * Keep NM. */
+ * Keep NM.
+ *
+ * 2026-05-06: tested per-call unique externs (6 gl_func_n64_035C_k{0,1}_{a,b,c}
+ * + 2 D_n64_035C_k{0,1}, all mapped to 0x0). Result: 95.51% UNCHANGED.
+ * The remaining diffs are NOT reloc-related; they're structural (k0/k1
+ * block reorder + spill slot location). The doc-claimed "marginal gains
+ * via unique externs" hypothesis was wrong — unique externs help when
+ * IDO CSEs same-symbol accesses; here each call/access is in a different
+ * basic block so no CSE happens regardless of symbol identity. */
 void n64proc_uso_func_0000035C(char *a0) {
     char pad1[4];
     float buf[4];
