@@ -991,6 +991,36 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C8AC);
 
+#ifdef NON_MATCHING
+/* 5-insn / 0x14 float-storer. Split off from timproc_uso_b5_func_0000C8AC's
+ * tail in 2026-05-05's split-fragments pass.
+ *
+ * Target asm:
+ *   mtc1 $a1, $f12       ; move int-reg bits to FPU reg
+ *   lw   $t6, 0x2B8($a0)
+ *   swc1 $f12, 0x2A0($a0)
+ *   jr   $ra
+ *   swc1 $f12, 0x11C($t6) ; delay
+ *
+ * Body sets *(float*)(a0+0x2A0) = a1_as_float AND
+ *           *((*(a0+0x2B8))+0x11C) = a1_as_float.
+ *
+ * Cap diagnosis: the int-bits-to-float conversion via `*(float*)&a1`
+ * forces IDO to spill $a1 to stack then `lwc1 $f0, 4($sp)` (per
+ * feedback_ido_mfc1_from_c.md). Direct `mtc1 $a1, $f12` is unreachable
+ * from natural C — the caller passes float bits in $a1 (K&R / variadic
+ * promotion) but the callee can't bit-cast a register without going
+ * through memory. Multi-tick: needs unique-extern-with-float-arg recipe
+ * or asm intrinsic (which IDO doesn't accept). */
+void timproc_uso_b5_func_0000C978(int *a0, int a1) {
+    float fv = *(float*)&a1;
+    *(float*)((char*)a0 + 0x2A0) = fv;
+    *(float*)((char*)a0[0x2B8/4] + 0x11C) = fv;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C978);
+#endif
+
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C98C);
 
 /* Sibling of timproc_uso_b5_func_0000C1B4 (4-float copy + cross-USO call + 5-insn
