@@ -13,31 +13,31 @@
  * trampoline's delay slot (caller arg-save area at sp+0). IDO -O2 elides
  * this from the K&R-form C body since `c` isn't address-taken inside the
  * function body. Tried standard prototype `int gui_func_00000000(int c)`
- * — breaks 2-arg callers (gui_func_000013E8 et al pass 2 args). Tried
- * `int tmp = c;` — folded by IDO.
+ * - breaks 2-arg callers (gui_func_000013E8 et al pass 2 args). Tried
+ * `int tmp = c;` - folded by IDO.
  *
  * 2026-05-05: tested `int gui_func_00000000(int c, ...)` (varargs) at
  * both def and all 3 extern decl sites (305/337/403). Build succeeded
  * but match dropped from K&R baseline to 4.1% (built 0x128 vs expected
  * 0x148, -8 insns). The varargs form makes IDO's calling convention
  * for `c` change in a way that REGRESSES on the bnel-chain emit, not
- * helps. Don't re-attempt — neither standard prototype, K&R nudge, nor
+ * helps. Don't re-attempt - neither standard prototype, K&R nudge, nor
  * varargs solves the trampoline-`sw a0, 0(sp)` blocker.
  *
  * 2026-05-06: tested 8-byte PREFIX_BYTES (extending to include the
  * `sw a0, 0(sp)` delay slot at 0xAFA40000): no help for objdiff scoring.
  * Reason: the inject runs on `build/src/` only (where INCLUDE_ASM path
  * already supplies these bytes via the .s file). objdiff compares
- * `build/non_matching/.o` to `expected/.o`; non_matching builds DON'T
- * receive PREFIX_BYTES injection. The C body's bnel-chain emits 71
- * insns (0x11C) vs target's 82 (0x148) — the structural cap is the
+ * `build/non_matching/.o` to `expected/.o`; non_matching builds DONT
+ * receive PREFIX_BYTES injection. The C body bnel-chain emits 71
+ * insns (0x11C) vs target 82 (0x148) - the structural cap is the
  * 11-insn delta, not the 2-insn prefix. Reverted Makefile to single-word
  * PREFIX_BYTES (the 4-byte trampoline alone). The function IS byte-exact
- * in the actual ROM build via INCLUDE_ASM tautology; objdiff's 4.1%
+ * in the actual ROM build via INCLUDE_ASM tautology; objdiff 4.1%
  * score is the documented .NON_MATCHING-build scoring quirk per
- * docs/MATCHING_WORKFLOW.md#feedback-byte-correct-match-via-include-asm-not-c-body. */
+ * docs/MATCHING_WORKFLOW.md#feedback-byte-correct-match-via-include-asm-not-c-body.
  *
- * Stub C body decoded but NM wrap stays — default build INCLUDE_ASM is
+ * Stub C body decoded but NM wrap stays - default build INCLUDE_ASM is
  * correct bytes via the .s file. Multi-pass decomp; the bnel-chain emit
  * for the special-char branches is the last-mile blocker. */
 int gui_func_00000000(c)
@@ -65,7 +65,7 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
 /* gui_func_00000148: BUNDLED splat symbol (0x7D0 total / 500 insns).
  * splat could not separate sub-functions (no inter-function relocs).
  * Per feedback_uso_split_fragments_breaks_expected_match.md, splitting
- * USO funcs is risky — expected/.o keeps the bundled symbol. Bundled.
+ * USO funcs is risky - expected/.o keeps the bundled symbol. Bundled.
  *
  * Sub-function layout (boundary = jr $ra + delay slot):
  *   F1 @ 0x148-0x558: 0x410 / 260 insns. addiu sp,-0x80 prologue, saves
@@ -113,14 +113,14 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
  * setup) for a single GUI primitive. The 0xFA opcode + dual-counter
  * pattern (fields 0x4 and 0xC) suggests a context-driven DL writer.
  *
- * Won't be byte-matchable in one tick — too many implicit register-shuffle
+ * Won't be byte-matchable in one tick - too many implicit register-shuffle
  * patterns + uncertain struct shape. Default INCLUDE_ASM keeps ROM correct;
  * this is structural reference for the next pass. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000918);
 
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
-/* gui rendering loop — iterates over a3-derived count, indexes via a0[5]
+/* gui rendering loop - iterates over a3-derived count, indexes via a0[5]
  * scaled by 0x14 (s8 = 20-byte stride; same stride as the glyph table in
  * gui_func_000013E8). 107 instructions / 0x1AC.
  *
@@ -131,7 +131,7 @@ extern int gl_func_00000000();
  *   4. v0 = gl_func_00000000(a3); if v0 == 0 goto end (early exit)
  *   5. s8 = 0x14 (loop-stride constant)
  *
- * Inner loop body (88 insns) — heavy multi-jal iteration over the s7 counter:
+ * Inner loop body (88 insns) - heavy multi-jal iteration over the s7 counter:
  *   - reads from (a0[?] + s7 * 20) using s8 as the stride
  *   - dispatches via 4 separate jals (jal gl_func_00000000 placeholders)
  *   - clamps signed values via `seq -1, neq -1` pattern, sign-extension via
@@ -160,7 +160,7 @@ extern int gl_func_00000000();
  * (always-1024 dead-code from the s3*1024 division). IDO -O2 may strength-
  * reduce s3<<10/s3 to constant 1024 (eliminating the divu+mflo+break trap),
  * but expected has the FULL division emit. Forcing the literal division to
- * survive: try `volatile int s5 = (s3 << 10) / s3;` — TODO next pass.
+ * survive: try `volatile int s5 = (s3 << 10) / s3;` - TODO next pass.
  *
  * Default build still matches via INCLUDE_ASM. */
 void gui_func_00000B58(int *a0, int a1, int a2, int a3) {
@@ -187,7 +187,7 @@ void gui_func_00000B58(int *a0, int a1, int a2, int a3) {
             /* RDP cmd 1: 6-arg gl_func (s4 in args, s3, plus 2 stack slots) */
             gl_func_00000000(s1[0x24 / 4], s1[4 / 4], s1[0x18 / 4], s1[0x1C / 4],
                              /* sp+0x10 */ g0, g1, g2, s3, 0);
-            /* RDP cmd 2: glyph render — s2/saved_a2 with s5=1024 scaling */
+            /* RDP cmd 2: glyph render - s2/saved_a2 with s5=1024 scaling */
             gl_func_00000000(s1[0x24 / 4], s2, a2, g2,
                              /* sp+0x10 */ s3, /*s5=*/1024, /*1024=*/1024);
             s2 += *(int*)((char*)s1[0x20 / 4] + (s4 / s8) * 4 + 8);  /* glyph width advance */
@@ -211,7 +211,7 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000B58);
  *   sw a2,0x60(sp); sw a3,0x64(sp) ; spill last 2 args
  *   v0 = a0->0x24               ; gp/cmd-list-state ptr
  *   s4 = a0->0x14               ; some scaler
- *   t2 = 0xBB000001             ; built via lui+ori — RDP opcode
+ *   t2 = 0xBB000001             ; built via lui+ori - RDP opcode
  *                                 (G_SETCOMBINE or similar 1-byte cmd)
  *   t3 = 0x80008000             ; coord constant (signed-min XY)
  *   s1 = a0; s3 = a1; s7 = a3; a0 = a3
@@ -232,20 +232,20 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000B58);
  *   c = *s7                     ; lbu char
  *   if (c == ' ') skip          ; space-handling branch
  *   width_scaled = s4 << 10     ; scaled glyph width?
- *   div(width_scaled, s4)       ; division — possibly per-glyph stride
+ *   div(width_scaled, s4)       ; division - possibly per-glyph stride
  *   bnez s4 (guard against /0)
  *   ... (further glyph-table lookups, FPU coord math, more RDP cmd emits)
  *
  * EPILOGUE: restore all 9 saved regs, addiu sp, jr ra.
  *
  * Speculation: this is the entry point for "draw text string with kerning"
- * — emits a SETCOMBINE-class RDP cmd, then loops over chars accumulating
+ * - emits a SETCOMBINE-class RDP cmd, then loops over chars accumulating
  * positions and submitting per-glyph display list. ~80 insns of body math
  * remain TBD; multi-tick decomp expected. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
-    /* TODO partial decode — full body 128 insns; stub for grep+wrap discoverability */
+    /* TODO partial decode - full body 128 insns; stub for grep+wrap discoverability */
     int *cmd_state = (int*)a0[0x24/4];
     int *cmd_list = (int*)cmd_state[0xC/4];
     int idx = cmd_list[1];
@@ -264,20 +264,20 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
 
 /* gui_func_00000F04: 314-insn / 0x4E4 FPU-heavy coordinate transform.
  * Big stack frame (-0x108), saves s0-s7+fp+ra, lots of saved FP regs
- * (f20/f22/f24/f26/f28/f30 spilled to sp+0x30..0x48 — 6 doubles spilled).
+ * (f20/f22/f24/f26/f28/f30 spilled to sp+0x30..0x48 - 6 doubles spilled).
  *
  * Function entry pattern (first 30 insns):
  *   - prologue: alloc 0x108, save 14 saved-regs (s0-s7+s7+fp+ra) + 6 dbl
- *     FP regs (f20..f30) — total of 20 callee-saves
- *   - lwc1/swc1 of $f12 to sp+offset (FP ARG passed in!) — caller passes
+ *     FP regs (f20..f30) - total of 20 callee-saves
+ *   - lwc1/swc1 of $f12 to sp+offset (FP ARG passed in!) - caller passes
  *     1 float arg in $f12 + 2 int args in a0/a1
  *   - 16-bit constants: 0xBB00 (loaded with lui), 0x80008000 (lui+ori for
  *     bit-rotate or sign-extend mask)
  *   - dispatch table read: a0->0x14 (= struct ptr s6),
  *     a0->0x14->0xC (= ptr a3, table of glyph entries)
- *   - update count at a0->0x14->0x4: ++a0->0x14->0x4 — append new entry
- *   - allocates one entry of (a0->0x14->0xC[N]) — N is shifted by 12
- *     (0x0003C8C0 = sll v1, v1, 3 — index by stride 8?)
+ *   - update count at a0->0x14->0x4: ++a0->0x14->0x4 - append new entry
+ *   - allocates one entry of (a0->0x14->0xC[N]) - N is shifted by 12
+ *     (0x0003C8C0 = sll v1, v1, 3 - index by stride 8?)
  *   - jal cross-USO callee with a1 = sp+0x11C (caller-arg slot)
  *
  * Structure inferred: this is likely a glyph-emit / draw-call recorder
@@ -368,9 +368,9 @@ int gui_func_000015F4(int a0, int a1, int a2) {
  * dispatcher operating on caller's stack frame). Split off from the splat-
  * bundled gui_func_000015F4 in a prior tick (the original symbol included
  * a 10-insn wrapper at 0x15F4 plus this whole 4 KB block; split-fragments.py
- * separated them). 11 internal `jr ra` early-exits — single LOGICAL function
+ * separated them). 11 internal `jr ra` early-exits - single LOGICAL function
  * with multi-path dispatch (per feedback_split_fragments_overswallow_internal_jr_ra.md,
- * recursive splitting was rejected — these are not separate functions).
+ * recursive splitting was rejected - these are not separate functions).
  *
  * ENTRY (insns 1-21 @ 0x161C-0x166C, decoded 2026-05-02):
  *   void f0(int *a0, int unused_a1, int delta) {
@@ -387,7 +387,7 @@ int gui_func_000015F4(int a0, int a1, int a2) {
  *     }
  *     a0[3] += delta;                                  // a0+0xC += delta
  *   }
- *   This is "shift-all-glyph-table-entries by delta" — likely a kerning or
+ *   This is "shift-all-glyph-table-entries by delta" - likely a kerning or
  *   advance-width adjustment after a font/text setting change. Returns at
  *   0x1668 jr ra.
  *
@@ -477,7 +477,7 @@ void gui_func_0000271C(char *a0) {
  *   s7-s0: sp+0x4C..0x30 (decreasing offsets in declared order)
  *   a2 spill: sp+0x80 (caller-arg-save slot)
  *
- * 256+ insns of body decode deferred — multi-pass NM. Default build still
+ * 256+ insns of body decode deferred - multi-pass NM. Default build still
  * uses INCLUDE_ASM via #else; this wrap captures the entry signature and
  * the bit-4/bit-1/bit-2 flag-dispatch shape for next pass. */
 void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
@@ -491,7 +491,7 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
 #ifdef NON_MATCHING
 /* gui_func_00002BB0: 140-insn / 0x230 RDP/RSP display-list builder.
  * Constructs graphics commands into a display-list buffer at *(D_xxx)[0]
- * — likely setting up scissor/viewport/texture for a GUI quad.
+ * - likely setting up scissor/viewport/texture for a GUI quad.
  *
  * ENTRY DECODE (0x2BB0-0x2C30, ~32 insns):
  *   ctx = *(int**)&D_GUI_CTX;        // s7 = &D_xxx; s2 = ctx (s7[0])
@@ -511,9 +511,9 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
  * 9 saved regs (s0-s7, s8) + ra in 0x70 frame. 5+ args (a0-a3 + at least
  * one stack arg via sp+0x80 = caller-arg slot 5).
  *
- * 100+ insns of body deferred — multi-pass NM. Default build INCLUDE_ASM. */
+ * 100+ insns of body deferred - multi-pass NM. Default build INCLUDE_ASM. */
 void gui_func_00002BB0(int a0, int a1, int a2, int a3) {
-    /* TODO: full body decode — 4-arg-plus + display-list emit. Stub
+    /* TODO: full body decode - 4-arg-plus + display-list emit. Stub
      * captures arg signature + RDP-builder identity. */
     (void)a0; (void)a1; (void)a2; (void)a3;
 }
@@ -523,7 +523,7 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
 
 #ifdef NON_MATCHING
 /* gui_func_00002DE0: 303-insn / 0x4BC RDP/RSP display-list builder.
- * Same family as gui_func_00002BB0 (just NM-wrapped sibling) — both
+ * Same family as gui_func_00002BB0 (just NM-wrapped sibling) - both
  * load ctx from `&D_GUI_CTX`, bump the display-list write counter, and
  * emit a G_SETSCISSOR (0xBB00_0001) command at ctx[12][0] + count*8.
  *
@@ -537,13 +537,13 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
  *   a3 = ctx[12][0] + (v1_old << 3)  // dl_ptr at base + index*8
  *   *a3 = t4                          // RDP cmd word 1
  *   *(a3+4) = t5                      // RDP cmd word 2
- *   t0 = a0[4]                        // (continues — likely viewport/scissor
+ *   t0 = a0[4]                        // (continues - likely viewport/scissor
  *                                       params from arg0 widget struct)
  *
  * 4 args saved to caller-arg-spill at sp+0x6C..0x74 (a1, a2, a3 stack).
  * 1 saved reg (s0) + ra. 0x68-byte frame (smaller than 0x2BB0's 0x70).
- * 280+ insns of body deferred — multi-pass NM-decomp. The 0x408
- * literal (1032) is suspicious — possibly a viewport/scissor scale
+ * 280+ insns of body deferred - multi-pass NM-decomp. The 0x408
+ * literal (1032) is suspicious - possibly a viewport/scissor scale
  * factor (240*4 = 960; 1024+8 = 1032). Default build INCLUDE_ASM. */
 void gui_func_00002DE0(int *a0, int a1, int a2, int a3) {
     /* TODO: full body decode. Stub captures arg signature + RDP-builder
