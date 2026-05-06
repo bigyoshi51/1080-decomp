@@ -1271,8 +1271,6 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
  * as-is; semantic interpretation deferred until siblings emerge.
  *
  * Initial decode 2026-05-05; multi-tick refinement target. */
-extern void *gl_func_00000000();
-extern char D_00000000;
 void *game_uso_func_00002744(void *arg0) {
     void *p1;
     void *p2;
@@ -1281,13 +1279,13 @@ void *game_uso_func_00002744(void *arg0) {
 
     p1 = arg0;
     if (p1 == NULL) {
-        p1 = gl_func_00000000(0x20, p1);
+        p1 = (void*)gl_func_00000000(0x20, p1);
         if (p1 == NULL) return NULL;
     }
 
     p2 = p1;
     if (p2 == NULL) {
-        p2 = gl_func_00000000(8, p1);
+        p2 = (void*)gl_func_00000000(8, p1);
         if (p2 != NULL) {
             ((int*)p2)[0] = (int)((char*)&D_00000000 + 0x354);
             ((int*)p2)[1] = 0;
@@ -1298,7 +1296,7 @@ void *game_uso_func_00002744(void *arg0) {
     (void)dead_load;
 
     if (p1 == (void*)-8) {
-        p3 = gl_func_00000000(0x18, p1);
+        p3 = (void*)gl_func_00000000(0x18, p1);
         if (p3 != NULL) {
             gl_func_00000000(p3, p1, dead_load, 1);
             ((int*)p3)[3] = (int)((char*)&D_00000000 + 0x18);
