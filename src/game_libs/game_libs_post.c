@@ -4561,7 +4561,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
 #ifdef NON_MATCHING
 /* 14-insn linked-list traversal. Searches for `a1` in a list rooted at `a3`
  * (linked via *p == next). When found, copies *a1 to *a2 and returns.
- * a0 unused (discarded). Initial structural decode; not yet byte-verified. */
+ * a0 unused (discarded).
+ *
+ * 2026-05-06 measure: 7.1% match (13/14 word diffs). Built lacks the
+ * target's `addiu sp, -8` frame. `char pad[4]` doesn't help — IDO -O2
+ * DCE's the unused local. Target's control-flow shape (beq + nop + bne
+ * + nop + lw form) differs from built's loop emit. Multi-tick: needs
+ * structural rewrite + frame-forcing trick. */
 void gl_func_0006AF0C(int unused_a0, int *a1, int **a2, int *a3) {
     if (a3 == 0) return;
     while (a3 != (int*)a1) {
