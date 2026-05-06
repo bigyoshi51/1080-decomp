@@ -873,7 +873,14 @@ extern s32 D_80012D5C;
  * end-bound a same-array compile-time-known-multiple-of-16 offset. IDO
  * STILL emits the duplicate-loop + guard. Confirms the auto-unroll +
  * guard isn't keyed on whether bounds are extern-vs-array-derived; it's
- * purely the loop-shape that triggers it. Cap unchanged. */
+ * purely the loop-shape that triggers it. Cap unchanged.
+ *
+ * 2026-05-06: 6th variant attempt added an unused iteration counter `i`
+ * (incremented inside the loop body) to add another phi-target that might
+ * change the loop-shape detection. No effect on auto-unroll — same cap.
+ * The auto-unroll trigger is more fundamental than the loop's variable
+ * count; likely tied to detecting a constant trip count from the
+ * extern-pointer bounds, which IDO sees through. */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
