@@ -1167,7 +1167,10 @@ end:
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800021A4);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800021D0);
+/* func_800021D0 is now an alabel inside func_800021A4 (merged via splat
+ * fragment-merge — the original split-at-0x800021D0 was a splat boundary
+ * artifact since 0x800021D0 has no prologue and uses registers set up
+ * by the 0x800021A4 prologue). */
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
 
