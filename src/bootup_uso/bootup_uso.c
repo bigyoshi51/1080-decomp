@@ -1356,7 +1356,100 @@ void *func_00008FA8(int *self) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008FA8);
 #endif
 
+#ifdef NON_MATCHING
+/* func_000090CC: 2106-insn (0x20E8) alloc-cascade constructor.
+ * Sibling of recently-matched func_00008F18 (alloc + multi-call init,
+ * 36 insns) — much larger version with ~10+ alloc-or-use cascades.
+ *
+ * Strategy-memo spine class: bigger constructor with many sub-object
+ * allocs. This is a multi-pass-decomp candidate; expect 30-50% NM on
+ * initial pass, refining per-block over multiple iterations.
+ *
+ * Frame -0x178 (376 bytes). Saves s0/s1/s2/ra. Args saved to caller
+ * slots at sp+0x17C/0x180/0x184 (a1/a2/a3).
+ *
+ * Initial decoded structure (first ~30 of 2106 insns):
+ *   if (self == 0) {
+ *       self = func(0xA8C);              // alloc 2700 bytes
+ *       if (!self) return 0;
+ *   }
+ *   func(self, &D_00008730);              // init self
+ *   self->[0x28] = &D_<reloc>;            // vtable
+ *
+ *   // cascade sub1: at self+0x3EC if self exists, else alloc 0x154
+ *   if (self != (int*)0xFFFFFC14) {
+ *       sub1 = self + 0x3EC;
+ *   } else {
+ *       sub1 = func(0x154);
+ *       if (!sub1) return 0;
+ *   }
+ *   func(sub1, &D_00008738);
+ *   sub1->[0x28] = &func_000080EC + 0x1C; // child vtable
+ *
+ *   // cascade sub2: at sub1+0x2C if sub1 exists, else alloc 0x128
+ *   if (sub1 != (int*)0xFFFFFFD4) {
+ *       sub2 = sub1 + 0x2C;
+ *   } else {
+ *       sub2 = func(0x128);
+ *       if (!sub2) return 0;
+ *   }
+ *
+ *   // cascade sub3: alloc 8 if sub2 exists; init sub2 fields
+ *   if (sub2 != 0) {
+ *       sub3 = func(8);
+ *       if (sub3) {
+ *           sub3->[0] = &D_00008740;
+ *           sub3->[4] = 0;
+ *       }
+ *   }
+ *
+ *   ... (~2000 more instructions of similar cascade-and-init patterns) ...
+ *
+ *   end:
+ *       return self;
+ *
+ * Stub C body — 30-50% structural match expected. Multi-pass NM. */
+extern char D_00008730;
+extern char D_00008738;
+extern char D_00008740;
+void *func_000090CC(int *self, int a1, int a2, int a3) {
+    int *sub1, *sub2, *sub3;
+    if (self == 0) {
+        self = (int*)func_00000000(0xA8C);
+        if (self == 0) return 0;
+    }
+    func_00000000(self, &D_00008730);
+    self[0xA] = (int)&D_00000000;  /* self->[0x28] vtable */
+
+    if (self != (int*)0xFFFFFC14) {
+        sub1 = (int*)((char*)self + 0x3EC);
+    } else {
+        sub1 = (int*)func_00000000(0x154);
+        if (sub1 == 0) return 0;
+    }
+    func_00000000(sub1, &D_00008738);
+    sub1[0xA] = (int)((char*)func_000080EC + 0x1C);
+
+    if (sub1 != (int*)0xFFFFFFD4) {
+        sub2 = (int*)((char*)sub1 + 0x2C);
+    } else {
+        sub2 = (int*)func_00000000(0x128);
+        if (sub2 == 0) return 0;
+    }
+
+    if (sub2 != 0) {
+        sub3 = (int*)func_00000000(8);
+        if (sub3 != 0) {
+            sub3[0] = (int)&D_00008740;
+            sub3[1] = 0;
+        }
+    }
+    /* TODO: ~2000 more insns of cascade-and-init patterns */
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);
 
