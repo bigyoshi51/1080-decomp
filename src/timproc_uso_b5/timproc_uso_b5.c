@@ -428,6 +428,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
 
+/* timproc_uso_b5_func_000038D0: 47-insn FPU-heavy function with NON-O32
+ * float-in-$fN-callee convention. Uses $f6/$f8/$f10/$f12 from caller — not
+ * the standard $f12/$f14 ABI registers. Per
+ * feedback_uso_float_in_f4_callee.md (sibling cap class to game_uso_func_
+ * 00010650), IDO has no C-level mechanism to receive a float in $f6/$f8
+ * — `register float f asm("$f6")` is GCC-only and IDO's cfe rejects it
+ * (per feedback_ido_no_gcc_register_asm.md).
+ *
+ * Default INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038D0);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000398C);
