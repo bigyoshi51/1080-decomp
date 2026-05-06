@@ -713,7 +713,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
  * wrapper, only the data symbol address differs (D_7E10 vs D_7D94).
  * Same matching cap — 13/14 insns match; target has extra `sw a1, 0x4(sp)`
  * in the 2nd jal's delay slot that IDO -O2 won't emit from std C.
- * See func_00005068's wrap doc above. */
+ * See func_00005068's wrap doc above.
+ *
+ * 2026-05-06 attempt: `volatile int saved_a0 = a0` lifted size to 0x38
+ * (matching target) but with a different stack layout (frame -0x20 vs
+ * target's -0x18) — 50% match, 7 word diffs. The volatile forces a
+ * spill but at the wrong offset. Don't repeat this variant. */
 extern char D_00007E10;
 void func_000054A0(int a0) {
     func_00000000(&D_00007E10);
