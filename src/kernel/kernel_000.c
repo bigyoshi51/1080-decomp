@@ -475,11 +475,78 @@ void func_80000598(u8* src, u8* dst, s32 count) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
 #endif
 
-/* NOTE: `func_8000060C` and `func_80000660` are continuation fragments of
- * `func_800005DC`, not standalone ABI-safe helpers. Keep the fragment-merge
- * notes in DECOMPILED_FUNCTIONS.md in sync when this lane moves. */
+/* func_800005DC: 44-insn (0xB0) DMA-aligned bounded read helper.
+ * Splat-split into 3 fragments: 800005DC (0x34, 13 insns) + 8000060C
+ * (0x54, 21 insns) + 80000660 (0x28, 10 insns). All three share one
+ * stack frame (addiu sp,-0x20 at 800005D8 prologue + lw ra,addiu sp at
+ * 80000678 epilogue inside the third fragment).
+ *
+ * Decoded body (initial structural pass 2026-05-05):
+ *
+ *   s32 fread_aligned(void *buf, u32 count, u32 chunkSize, FileState *file) {
+ *       s32 total;
+ *       if ((u32)buf & 7) {
+ *           D_80013004 = -0x1C;       // misaligned destination → set errno-style
+ *           return 0;
+ *       }
+ *       total = count * chunkSize;     // multu $a1, $a2
+ *       if (file->[0x1C] < file->[0x4] + total) {
+ *           total = file->[0x1C] - file->[0x4];   // clamp to remaining
+ *       }
+ *       if (total < 0) return 0;        // bgez $a2 path
+ *       if (total != 0) {
+ *           D_80012C40(buf, count, file->[0xC] + file->[0x4]);  // indirect read fn
+ *       }
+ *       file->[0x4] += total;          // advance pos
+ *       return total;
+ *   }
+ *
+ * Field interpretation (FileState ~0x20+ bytes):
+ *   [0x4]  s32 pos          (current read position)
+ *   [0xC]  void *buf        (file's data buffer base)
+ *   [0x1C] s32 capacity     (max bytes accessible)
+ *
+ * Globals:
+ *   D_80013004: errno-style status word
+ *   D_80012C40: indirect-call read function pointer (DMA-style)
+ *
+ * Cross-fragment merge BLOCKED on the same .s-file split as
+ * func_80006698 / func_80008430 (linker layout shift if .s files are
+ * concatenated). Wrap is for grep discoverability + structural seed; the
+ * default INCLUDE_ASM build remains exact. Multi-tick refinement target. */
+#ifdef NON_MATCHING
+extern s32 D_80013004;
+typedef s32 (*ReadFunc)(void *, u32, void *);
+extern ReadFunc D_80012C40;
+typedef struct {
+    s32 pad0;
+    s32 pos;     /* +0x4 */
+    s32 pad8;
+    void *buf;   /* +0xC */
+    s32 padN[3];
+    s32 capacity; /* +0x1C */
+} FileStateRdr;
+s32 func_800005DC(void *buf, u32 count, u32 chunkSize, FileStateRdr *file) {
+    s32 total;
+    if (((u32)buf & 7) != 0) {
+        D_80013004 = -0x1C;
+        return 0;
+    }
+    total = (s32)(count * chunkSize);
+    if (file->capacity < (s32)(file->pos + total)) {
+        total = file->capacity - file->pos;
+    }
+    if (total < 0) return 0;
+    if (total != 0) {
+        D_80012C40(buf, count, (char*)file->buf + file->pos);
+    }
+    file->pos += total;
+    return total;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800005DC);
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000060C);
+#endif
 
 #ifdef NON_MATCHING
 /* func_80000660: 10-insn (0x28) tail fragment of func_800005DC.
