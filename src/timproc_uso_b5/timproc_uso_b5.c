@@ -372,11 +372,22 @@ void timproc_uso_b5_func_00003F18(char *a0) {
  *       feedback_typed_stack_struct_for_direct_sp_stores.md (inverse)
  *       — typed-struct picks sp-direct; we want register-based.
  *
- * Recipe sketch (DEFER — requires drop-wrap + frame-fix + reg-base):
+ * Recipe sketch (DEFER — multi-blocker):
  *   Makefile:
  *     PROLOGUE_STEALS += timproc_uso_b5_func_00003F5C=4
  *     SUFFIX_BYTES += timproc_uso_b5_func_00003F5C=0x03E00008,0xAFA40000
  *   C body restructure to force frame=0x28 + $t6 scratch base.
+ *
+ * 2026-05-06: PROLOGUE_STEALS=4 PATH IS BLOCKED. Per
+ * docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-only-splice-restriction,
+ * scripts/splice-function-prefix.py only fires when the function's first
+ * insn is LUI. This function starts with `addiu sp, -0x28` (opcode 0x09),
+ * so the PROLOGUE_STEALS=4 line would silently no-op. To unblock either
+ * (a) extend the splice-script verify to accept opcode 0x09, OR (b) drop
+ * PROLOGUE_STEALS entirely and do the full SUFFIX-on-predecessor route
+ * (currently blocked by predecessor 0x3F18 already using SUFFIX_BYTES for
+ * its own purpose). 11.1% measured match (built 0x48 / 18 insns vs target
+ * 0x4C / 19 insns).
  *
  * Predecessor 00003F18 is byte-correct (SUFFIX_BYTES applied), so 3F5C's
  * position is stable for next-pass attempt. */
