@@ -102,3 +102,4 @@ splat, ensure these are NOT treated as separate function boundaries.
 | func_800066D0 | func_800066B0 | tail/epilogue continuation; same .c file (kernel_018.c). |
 | func_800066B0 | func_80006698 | full 3-way .s merge: 0x80006698 (0x18) + 0x800066B0 (0x3C) → 0x54 (21 insns). Byte-merge already produced by func_80006698 C body in kernel_017.c (episodes/func_80006698.json, 100% exact). undefined_syms_auto.txt keeps func_800066B0/func_800066D0 as labels for callers that jal into the merged body. |
 | func_800021D0 | func_800021A4 | body continuation; same .c file (kernel_000.c). Combined 0xAC = 43 insns. Fragment had no prologue, used `$t1`/`$t2`/`$a1` set by parent's prologue at 0x800021A4. |
+| timproc_uso_b5_func_0000C7B4 | timproc_uso_b5_func_0000C710 | tail continuation; bc1f at C710+0x94 branches PAST own declared 0xA4 size into C7B4's body; C7B4 has no prologue + uses caller-set $v1/$at. Combined 0xD8 = 54 insns. |

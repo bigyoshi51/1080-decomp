@@ -932,9 +932,11 @@ void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C310);
 
+/* 0000C710 absorbs 0000C7B4: bc1f at offset 0x94 of C710 branches PAST
+ * the original 0xA4 declared size into C7B4's body; C7B4 has no prologue
+ * and uses caller-set $v1/$at. Splat-bundled fragment merge 2026-05-05.
+ * Combined size 0xD8 = 54 insns. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C710);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C7B4);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C7E8);
 
