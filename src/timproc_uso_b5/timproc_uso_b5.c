@@ -288,7 +288,72 @@ void timproc_uso_b5_func_0000117C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000117C);
 #endif
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000131C: 81-insn (0x144) optional-alloc + multi-link
+ * constructor.
+ *
+ * Decoded entry (insns 1-10):
+ *   if (self == NULL) { self = gl_func(0x60); if (!self) return NULL; }
+ *   gl_func(self, &D + 0x1084);          // probably init/format
+ *   base = *(char**)(&D + 0x134);         // global config table
+ *
+ * Init from base (insns 11-15):
+ *   self->[0x2C] = base->[0x84];
+ *   self->[0x30] = base->[0x80];
+ *   self->[0x34] = base->[0x8C];
+ *
+ * Sub-object construction (insns 16-30):
+ *   sub = gl_func(0);                     // alloc/init helper, no args
+ *   self->[0x5C] = sub;
+ *   v3 = self->[0x2C];
+ *   gl_func(v3 + 0x10, sub);              // link sub into entity at +0x2C
+ *   if (entity_field[0x14] != 0) entity[0x4] = 1;
+ *   entity_field[0x14] = v3;              // saved-old + write-new pattern
+ *
+ * Sibling sub-object (insns 31-45):
+ *   sub2 = gl_func(self->[0x5C] + 0x10, self);
+ *   if (self->[0x14] != 0) self->[0x4] = 1;
+ *   self->[0x14] = sub2;
+ *   gl_func(self);                         // tail-init
+ *
+ * Tail (insns 46-81): more global zero-stores + final link/return.
+ *   *(int*)&D_X = 0; *(int*)&D_Y = 0;
+ *   gl_func(self + 0x10, ...); (...)
+ *   return self;
+ *
+ * Initial NM wrap — multi-pass refinement expected. Many gl_func_00000000
+ * calls; the 0x134/0x84/0x80/0x8C offsets suggest a graphics-context
+ * struct (e.g., a render-state config table at &D + 0x134 with sub-ptr
+ * to glyph/texture pool fields). */
+extern char D_00000000;
+void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
+    char *self;
+    char *base;
+    char *sub;
+    if (a0 == 0) {
+        self = (char*)gl_func_00000000(0x60);
+        if (self == 0) {
+            return 0;
+        }
+    } else {
+        self = (char*)a0;
+    }
+    gl_func_00000000(self, (char*)&D_00000000 + 0x1084);
+    base = *(char**)((char*)&D_00000000 + 0x134);
+    *(int*)(self + 0x2C) = *(int*)(base + 0x84);
+    *(int*)(self + 0x30) = *(int*)(base + 0x80);
+    *(int*)(self + 0x34) = *(int*)(base + 0x8C);
+    /* TODO: continue with sub-object alloc + link; ~50 more insns of body. */
+    sub = (char*)gl_func_00000000(0);
+    *(int*)(self + 0x5C) = (int)sub;
+    /* ... rest of body still TODO ... */
+    (void)sub;
+    (void)a1;
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000131C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001460);
 
