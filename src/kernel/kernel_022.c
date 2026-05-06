@@ -150,19 +150,26 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
  *      caller's stack frame at sp+0x2C
  *   ...ends at jr $ra at 0x80008FEC, frame teardown at 0x80008FE0-FE8
  *
- * Multi-tick decomp target (alt-entry + 4-fragment + likely -O1
- * file-split). File currently has no per-file OPT override (default -O2),
- * but rmon functions are typically -O1 per kernel_021/023/025/...
- * convention. Decoding requires:
+ * Multi-tick decomp target (alt-entry + likely -O1 file-split).
+ *
+ * 2026-05-06 PROGRESS: 4-fragment merge applied. The previous 4 .s files
+ * (E98/EA0/ED0/FB0) are now consolidated into one 0x15C func_80008E98.s
+ * with three `alabel`s (EA0 at offset 0x8, ED0 at 0x38, FB0 at 0x118)
+ * preserving cross-callers' jal targets. expected/.o regenerated.
+ * The merge unblocks future C decode — splat-boundary issues no longer
+ * apply, and the function can be NM-wrapped or matched normally now.
+ *
+ * Remaining work:
  *   1. Type a RmonMsg / RmonHdr struct pair
  *   2. File-split into kernel_NNN.c with -O1 OPT_FLAGS override + linker
  *      script slot insertion
- *   3. Match the alt-entry by ensuring caller `func_800071C0` jal target
- *      lands inside the merged body (post-cc PROLOGUE_STEALS-style splice
- *      may be needed, since plain C-only emit always produces full
- *      prologue+epilogue at every entry)
+ *   3. Write C body using rmon packet builder pattern from
+ *      docs/IDO_CODEGEN.md
+ *   4. Optional: PROLOGUE_STEALS for the EA0 alt-entry (caller
+ *      `func_800071C0` jumps into +0x8 expecting frame already set up;
+ *      C-only emit duplicates the prologue at the symbol address)
  *
- * Documented 2026-05-05; default INCLUDE_ASM build remains exact. */
+ * Default INCLUDE_ASM build remains byte-exact. */
 /* 4-fragment merge complete: func_80008E98 + func_80008EA0 (alt-entry at +8)
  * + func_80008ED0 + func_80008FB0 -> single 0x15C (87-insn) function.
  * func_80008EA0 is preserved as `alabel` inside the merged .s, keeping the
