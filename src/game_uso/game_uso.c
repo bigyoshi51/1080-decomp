@@ -1525,6 +1525,28 @@ int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000034A4);
 #endif
 
+/* game_uso_func_00003558: 252-insn (0x3F0) heavy state-builder. Frame -0x100,
+ * saves s0/ra and double-FPU $f20/$f21 (sdc1 at 0x18). Sibling of
+ * game_uso_func_00003A4C (also frame-0xB0+ data-init).
+ *
+ * Stage 1 @ 0x3558-0x3578 (prologue + a0->[0x14] spill at 0xFC):
+ *   t8 = arg0->[0x14]
+ *   s0 = arg0; (saved across calls)
+ *   a0 = sp+0x8C (stack scratch buffer)
+ *
+ * Stage 2 @ 0x3578-0x35C0 (3 Vec3-copy operations):
+ *   sp[0xF0..0xF8] = t8->Vec3@0xA0       ; arg0->[0x14]'s Vec3
+ *   sp[0xE4..0xEC] = s0->[0x48]->Vec3@0xA0 ; arg0->[0x48]'s Vec3
+ *   sp[0x8C..0x94] = s0->Tri3i@0x68      ; 3 ints from arg0+0x68
+ *
+ * Stage 3 @ 0x35C4-0x35E8 (re-copy as floats):
+ *   sp[0xC0..0xC8] = sp[0x8C..0x94]      ; treats Tri3i as Vec3
+ *
+ * Stage 4+: ~210 insns remaining — likely transforms, gl_func dispatches,
+ * and writes back to arg0's struct fields. Multi-tick decomp.
+ *
+ * Picked under source 5 (strategy memo, exported-but-not-intra-called
+ * size-descending). INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003558);
 
 void game_uso_func_00003948(char *a0) {
