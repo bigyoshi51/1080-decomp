@@ -987,3 +987,7 @@ D_54D8_init_value = 0x0;
 D_54D8_init_arg = 0x0;
 D_553C_init_value = 0x0;
 D_553C_init_arg = 0x0;
+D_timb5_131C_a = 0x0;
+D_timb5_131C_b = 0x0;
+D_timb5_131C_c = 0x0;
+D_timb5_131C_d = 0x0;

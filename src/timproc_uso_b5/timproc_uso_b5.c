@@ -290,7 +290,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000131C: 81-insn (0x144) optional-alloc + multi-link
- * constructor.
+ * constructor. Currently 81.80% NM (was 69.43%).
+ *
+ * 2026-05-06 +12pp via two combined fixes:
+ *   (1) goto-end for unified exit: changed `if (alloc fail) return 0` to
+ *       `if (alloc fail) goto end` with a single shared epilogue. Asm uses
+ *       `beq v0, $0, .epilogue` to jump to the function tail, NOT a separate
+ *       early-return. Documented in docs/PATTERNS.md#feedback-goto-end-unified-exit.
+ *   (2) 4 unique-externs (D_timb5_131C_a/b/c/d) for the tail's 4 distinct
+ *       global accesses. Without these, IDO CSEs all `&D_00000000` references
+ *       to one lui+addiu and the 4 separate global addresses can't be emitted.
+ *
+ * Remaining ~18pp cap: (a) entry `or s0, a0, zero` reordering vs my init-at-decl,
+ *   (b) the 3-fold reload of `base = *(char**)(SYM+0x134)` in the body — target
+ *   reloads through the same v1 base 3 times (no CSE), but my C declares `base`
+ *   once and IDO CSEs the read. Needs volatile or function-call clobber to force
+ *   3 separate emits. Deferred — register-rename grind territory.
  *
  * Decoded entry (insns 1-10):
  *   if (self == NULL) { self = gl_func(0x60); if (!self) return NULL; }
@@ -327,16 +342,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * to glyph/texture pool fields). */
 extern char D_00000000;
 void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
-    char *self;
+    char *self = (char*)a0;
     char *base;
     char *sub;
     if (a0 == 0) {
         self = (char*)gl_func_00000000(0x60);
-        if (self == 0) {
-            return 0;
-        }
-    } else {
-        self = (char*)a0;
+        if (self == 0) goto end;
     }
     gl_func_00000000(self, (char*)&D_00000000 + 0x1084);
     base = *(char**)((char*)&D_00000000 + 0x134);
@@ -361,21 +372,26 @@ void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
     /* Terminal init: call(self) */
     gl_func_00000000(self);
     /* 0x1400-0x145C: global-zero pair + second-sub link + final call.
-     * `second_sub = *D_00000000` (some global pointer), then zero 2 other
-     * globals, then `gl_func(self+0x10, second_sub)` to register self as
-     * sub2-child, then branch-likely tail-merge for second_sub->[0x14] = self
-     * (with conditional second_sub->[0x4] = 1 if previous was non-null).
-     * Finally tail call(*D) returning to caller via jr $ra. */
+     * Four DISTINCT globals (each lui+addiu/lw is a separate placeholder
+     * relocation in the asm at 0x1400/0x1404/0x1410/0x142C). All four are
+     * named with unique externs to break IDO CSE — the placeholder address
+     * 0 is shared but the symbol names are distinct so the compiler emits
+     * 4 separate lui+addiu pairs as the target asm requires. */
     {
-        char *second_sub = *(char**)&D_00000000;
-        *(int*)&D_00000000 = 0;
-        *(int*)&D_00000000 = 0;
+        extern char D_timb5_131C_a;
+        extern char D_timb5_131C_b;
+        extern char D_timb5_131C_c;
+        extern char D_timb5_131C_d;
+        char *second_sub = *(char**)&D_timb5_131C_a;
+        *(int*)&D_timb5_131C_b = 0;
+        *(int*)&D_timb5_131C_c = 0;
         gl_func_00000000(self + 0x10, second_sub);
         if (*(int*)(second_sub + 0x14) != 0) *(int*)(second_sub + 0x4) = 1;
         *(int*)(second_sub + 0x14) = (int)self;
-        gl_func_00000000(*(int*)&D_00000000);
+        gl_func_00000000(*(int*)&D_timb5_131C_d);
     }
     (void)a1;
+end:
     return self;
 }
 #else
