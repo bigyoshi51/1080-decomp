@@ -4071,7 +4071,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066B64);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066BD4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066C30);
+/* 8-insn: stores arg to D_00000000, calls gl_func_00000000(0).
+ * Splat bundled 2 trailing empty (jr ra; nop) leaves at func+0x28/0x30 —
+ * absorbed via SUFFIX_BYTES (4 words). */
+extern int D_00000000;
+void gl_func_00066C30(int a0) {
+    D_00000000 = a0;
+    gl_func_00000000(0);
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00066C30_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066C74);
