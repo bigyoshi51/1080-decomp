@@ -3403,7 +3403,24 @@ void gl_func_00055B10(char *a0) {
  * other locals. Result: `base` → $s6 (or higher), byte_array still → $s0.
  * The 3 refs of byte_array (arg+gl_func_arg + array-index) outweigh the
  * 4 refs of base because byte_array's live range is shorter (live-length
- * factor in priority formula). Confirms cap remains structural. */
+ * factor in priority formula). Confirms cap remains structural.
+ *
+ * 2026-05-06 retry-2 (negative): tried hoisting all 3 inner-loop literal
+ * addresses (open_row_lit/cell_lit/close_row_lit) + col_limit into named
+ * locals to FORCE high allocno priority. Result REGRESSED 86.58% → 85.98%.
+ * IDO -O2 already hoists these out of the loop in the same locations
+ * (with anonymous pseudos getting $s2/$s4/$s6/$s7). Naming them just
+ * shuffles WHICH s-reg each gets, breaking the (mostly-matching) reg map.
+ *
+ * 2026-05-06 retry-3 (negative): tried `unsigned char b = *(byte_array +
+ * byte_idx); gl_func(..., b);` to inhibit IDO's strength-reduction
+ * (target uses `addu t6, byte_array, byte_idx; lbu` recomputed each iter;
+ * mine uses `lbu *cur_ptr; cur_ptr++` strength-reduced form). Result
+ * REGRESSED 86.58% → 84.67%. The local `b` adds a temp pseudo that
+ * shifts allocator priorities further. Strength-reduction in the inner
+ * loop is the structural cap — IDO -O2 with monotonic-increment + linear
+ * subscript ALWAYS produces the cur-ptr form. Permuter or INSN_PATCH
+ * needed for byte-match. */
 extern int gl_data_00000000;
 void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
     int row;
