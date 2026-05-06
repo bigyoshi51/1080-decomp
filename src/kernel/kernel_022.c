@@ -163,11 +163,11 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
  *      prologue+epilogue at every entry)
  *
  * Documented 2026-05-05; default INCLUDE_ASM build remains exact. */
+/* 4-fragment merge complete: func_80008E98 + func_80008EA0 (alt-entry at +8)
+ * + func_80008ED0 + func_80008FB0 -> single 0x15C (87-insn) function.
+ * func_80008EA0 is preserved as `alabel` inside the merged .s, keeping the
+ * alt-entry callable from func_800071C0. ED0 and FB0 .s files deleted. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008E98);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008ED0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008FB0);
 
 /* func_80008FF4 absorbed the former func_80009000 + func_80009030
  * (splat mis-split: 8FF4 was prologue-only, 9000 and 9030 shared the
