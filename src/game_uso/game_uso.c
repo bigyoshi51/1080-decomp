@@ -3958,7 +3958,40 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *     with t1+0/4/8 backup). The function maintains MANY Vec3 working
  *     buffers and does many fanout-with-backup copies.
  *
- * ~25 insns remain stubbed past 0x9FE8.
+ * BODY-PART-2 FINAL-CHUNK SCAN (2026-05-05, 0x9FE8-0xA0E8 = +64 insns,
+ * function tail):
+ *   - 0x9FE8-0xA00C: 2 sequential lw/sw triples that finish a working-set
+ *     copy (a4-buf + 1-byte advance + delta-add into v1+0/4/8).
+ *   - 0xA010-0xA01C: branch test on a1 (`beq a1, $0, +0xB`) — early-exit
+ *     when input is null. Sets v1 = a0 (passthrough) on the early arm.
+ *   - 0xA020-0xA050: 4-element FPU sum. lwc1 sp+0x120/0x12C/0x128/0x134
+ *     (4 floats from staging buffers); add.s f0,f18,f0; mtc1 zero (= 0);
+ *     add.s f0,f6,f0 — accumulates 3 floats into one Vec3 stored to
+ *     v1+0/4/8.
+ *   - 0xA050-0xA088: 12-byte triple-fanout copy + zero-fill. Reads
+ *     a1+0/4/8, writes v1+0/4/8 AND a3+0/4/8 (mirror Vec3 to two
+ *     destinations); zero-fills v0+0/4/8 as a third destination.
+ *
+ *   - 0xA088-0xA0CC: TWO 2D cross products (the function's ACTUAL
+ *     PURPOSE — same-side-of-line-pair test). Decoded:
+ *
+ *       cross1 = sp[0x168] * sp[0x154] - sp[0x160] * sp[0x15C];
+ *       cross2 = sp[0x180] * sp[0x16C] - sp[0x178] * sp[0x174];
+ *       sign_product = cross1 * cross2;
+ *
+ *   - 0xA0CC-0xA0DC: c.lt.s sign_product, 0.0f; bc1f branch-on-fail to
+ *     "return 0" path. If TAKEN (sign_product < 0): set v0 = 1 in delay.
+ *   - 0xA0E0-0xA0E4: epilogue (jr ra; addiu sp, +0x1A8 in delay).
+ *
+ *   Final return: 1 IFF the 2D anchor is BETWEEN the two reference
+ *   lines (cross products with opposite signs ⇒ different sides ⇒
+ *   anchor is inside the wedge). Confirms billboard-visibility /
+ *   point-in-wedge semantics from the function's lead comment.
+ *
+ *   The 8 sp slot pairs (0x154/0x158/..., 0x160/0x164/..., 0x168/0x16C/...,
+ *   0x174/0x178/..., 0x180+) are the per-line endpoint x/y components from
+ *   the body-part-2 staging compute — 4 lines (each a 2D Vec2 with 2 floats)
+ *   form the 2 reference edges that bound the visibility wedge.
  *
  * Deferred to future passes: full body decode is ~300 insns of float sched;
  *   one /decompile run expands prologue + body-part-1 — subsequent runs will
