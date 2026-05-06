@@ -5695,7 +5695,33 @@ void game_uso_func_00010F7C(int a0) {
     game_uso_func_00000000(a0, 0x70004, 0, 1, 1, 1);
 }
 
+#ifdef NON_MATCHING
+/* 27-insn 2-call function with mid-body field stores. Distinct from the
+ * 10E2C 2-call family — adds two field stores between calls and a 3-arg
+ * 2nd call (a3 left uninitialised). 1st call args are
+ * gl_func(a0, 0x70000, 0, 1, 1, 1); between calls writes
+ *   a0->field_114 = 0;
+ *   a0->field_B4->field_960 = 100;
+ * 2nd call is gl_func(a0, D[0xF58], D[0xF5C]) (3 args; a3 garbage).
+ *
+ * Same family alloc-class cap (~75-85%): IDO reload-and-base-form
+ * differs from the target's $t0 base setup, missing varargs pre-spill
+ * cap as in the 10E2C family. Per docs/IDO_CODEGEN.md
+ * feedback-ido-precall-arg-spill-unreachable. */
+void game_uso_func_00010FB8(int *a0) {
+    register int *t;
+    int v1, v2;
+    game_uso_func_00000000(a0, 0x70000, 0, 1, 1, 1);
+    *(int*)((char*)a0 + 0x114) = 0;
+    *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0x960) = 100;
+    t = (int*)((char*)&D_00000000 + 0xF58);
+    v1 = t[0];
+    v2 = t[1];
+    game_uso_func_00000000(a0, v1, v2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010FB8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
 
