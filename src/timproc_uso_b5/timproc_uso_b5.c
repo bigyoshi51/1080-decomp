@@ -441,13 +441,11 @@ void timproc_uso_b5_func_0000685C(char *a0) {
     gl_func_00000000(a0 + 0x2C);
 }
 
+/* func_0000687C absorbs _00006890+_000068A8+_000068EC: 33-insn (0x84)
+ * function with loop-back from _000068EC's bgez into _000068A8's body
+ * (offset -10). Splat split at 4 jr-ra exits but they're all part of one
+ * multi-exit table-search loop. Combined post-merge 2026-05-06. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000687C);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006890);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000068A8);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000068EC);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006900);
 
