@@ -609,30 +609,42 @@ void gl_func_0002D6C8(int a0) {
 }
 
 #ifdef NON_MATCHING
-/* 13-insn 1-call wrapper. Stores a0 to D_00000000, then calls
- * gl_func_00000000(0x41010000, D[a2], a2). 0x41010000 loaded via
- * `lui $a0, 0x4101` in jal delay slot. Splat bundled 1 trailing insn
- * (`or $a2, $a0, zero` — stolen prologue for next fn); SUFFIX_BYTES set.
+/* 14-insn main body + 1-insn SUFFIX (`or $a2, $a0, $zero` = stolen
+ * prologue for next fn) — declared size 0x3C / 15 words.
  *
- * Cap diagnosis (1/15 words match):
- * - Target uses inline `lui $at, 0` for the D store (1 insn, $at reg).
- * - Built emits lui+addiu UPFRONT into $v0 (2 insns, prologue-style).
- * - Net +1 insn / +4 bytes. To reach byte-correct: either PROLOGUE_STEALS=8
- *   (strip the lui+addiu) AND ensure C body doesn't reload (would need
- *   typed extern + dangling-register-use recipe), OR write the C such
- *   that IDO emits the inline-$at form (untested how).
+ * Decoded:
+ *   void f(int a0, int unused_a1, int a2) {
+ *       D_store = a0;
+ *       gl_func_00000000(0x41010000, ((int*)&D_load)[a2], a2);
+ *   }
  *
- * 2026-05-06: tried `*(volatile int*)&D_00000000 = a0;` to break CSE on
- * the &D_00000000 references — DID NOT split the two luis. Volatile
- * forces the store to not be eliminated but doesn't prevent IDO's
- * upfront `lui v0; addiu v0, 0` consolidation. Worse: volatile cast
- * also forced an extra `or a3, a0, 0` (a0 saved across volatile store).
- * Reverted.
+ * 2026-05-06: BREAKTHROUGH — promoted from 1/15 to 14/15 word match by
+ * splitting the cross-USO placeholder into TWO distinct externs
+ * (`D_2D710_store` for the write, `D_2D710_load` for the array read).
+ * Both alias to 0x00000000 in undefined_syms_auto.txt; both runtime-
+ * relocate identically. Declaring them as DISTINCT C externs forces
+ * IDO -O2 to emit 2 separate `lui` instructions (one into $at for the
+ * store base, one into $a1 for the array base) instead of CSE-folding
+ * them into a shared `lui v0; addiu v0, 0` pair. Matches target's
+ * `lui $at, 0; sll t6; lui $a1, 0; ...` schedule exactly.
  *
- * Multi-tick. Default INCLUDE_ASM keeps ROM byte-correct. */
-void gl_func_0002D710(int a0, int a1_unused, int a2) {
-    D_00000000 = a0;
-    gl_func_00000000(0x41010000, ((int*)&D_00000000)[a2], a2);
+ * Remaining 1-insn diff: target has no `sw a1, 0x1C(sp)` (unused-arg
+ * spill) at offset 0x4. IDO -O2 always spills incoming arg regs even
+ * when unused (per docs/IDO_CODEGEN.md feedback-ido-unused-arg-save).
+ * Cannot elide from C without dropping the a1 parameter, which would
+ * change ABI (a2 would shift into $a1 reg). The 1-insn cap is the
+ * unused-arg-save residual.
+ *
+ * Promotion path to byte-correct: SUFFIX_BYTES injection of
+ * `0x00803025` at offset 0x38 + INSN_PATCH at offset 0x4 to overwrite
+ * the spill with `lui $at, 0` (= 0x3C010000) — but that creates two
+ * luis at 0x4 and 0x8 to $at, breaking the second's value. Untrivial.
+ * Defer to next pass; current wrap captures the structural fix. */
+extern int D_2D710_store;
+extern int D_2D710_load;
+void gl_func_0002D710(int a0, int unused_a1, int a2) {
+    D_2D710_store = a0;
+    gl_func_00000000(0x41010000, ((int*)&D_2D710_load)[a2], a2);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
