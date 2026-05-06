@@ -495,7 +495,27 @@ void gl_func_0002D6A0() {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D6C8);
 
+#ifdef NON_MATCHING
+/* 13-insn 1-call wrapper. Stores a0 to D_00000000, then calls
+ * gl_func_00000000(0x41010000, D[a2], a2). 0x41010000 loaded via
+ * `lui $a0, 0x4101` in jal delay slot. Splat bundled 1 trailing insn
+ * (`or $a2, $a0, zero` — stolen prologue for next fn); SUFFIX_BYTES set.
+ *
+ * Cap diagnosis (1/15 words match):
+ * - Target uses inline `lui $at, 0` for the D store (1 insn, $at reg).
+ * - Built emits lui+addiu UPFRONT into $v0 (2 insns, prologue-style).
+ * - Net +1 insn / +4 bytes. To reach byte-correct: either PROLOGUE_STEALS=8
+ *   (strip the lui+addiu) AND ensure C body doesn't reload (would need
+ *   typed extern + dangling-register-use recipe), OR write the C such
+ *   that IDO emits the inline-$at form (untested how).
+ * Multi-tick. Default INCLUDE_ASM keeps ROM byte-correct. */
+void gl_func_0002D710(int a0, int a1_unused, int a2) {
+    D_00000000 = a0;
+    gl_func_00000000(0x41010000, ((int*)&D_00000000)[a2], a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D74C);
 
