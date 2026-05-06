@@ -583,11 +583,68 @@ void timproc_uso_b5_func_0000685C(char *a0) {
     gl_func_00000000(a0 + 0x2C);
 }
 
+#ifdef NON_MATCHING
 /* func_0000687C absorbs _00006890+_000068A8+_000068EC: 33-insn (0x84)
- * function with loop-back from _000068EC's bgez into _000068A8's body
- * (offset -10). Splat split at 4 jr-ra exits but they're all part of one
- * multi-exit table-search loop. Combined post-merge 2026-05-06. */
+ * multi-exit table-search loop with 4 early-return paths.
+ *
+ * Decoded structure:
+ *   int v0 = a0->[0x3C4];                   // outer index
+ *   if (v0 == 0) return 1;                   // early-return path 1
+ *
+ *   int *base = (int*)((char*)a0 + v0*4);
+ *   int idx = base->[0x3D0];                  // = a0->[0x3D0 + v0*4]
+ *   if (idx == 0) return 0;                   // early-return path 2
+ *   idx -= 1;
+ *
+ *   if (idx < 0) return 0;                    // early-return path 3
+ *
+ *   // Loop: for (i = idx; i >= 0; i--) { check item; if (positive) return 1; }
+ *   int *table = a0->[0x40C];
+ *   int *outer = (int*)((char*)table + v0*4);
+ *   int byte_off = idx*4;
+ *   do {
+ *     int *inner = outer->[0x40];
+ *     int *item = (int*)inner->[byte_off + 0x3C];
+ *     float val = *(float*)((char*)item + 0x2A4);
+ *     if (val > 0.0f) return 1;
+ *     byte_off -= 4;
+ *   } while (--idx >= 0);
+ *   return 0;
+ *
+ * Initial decode 2026-05-06; multi-pass refinement expected. The float
+ * comparison `c.lt.s $f0, $f4` with $f0=0.0 followed by `bc1f` means
+ * "branch if NOT (0 < f4)" = "branch if f4 <= 0" — so the success path
+ * is f4 > 0. */
+extern int gl_func_00000000();
+int timproc_uso_b5_func_0000687C(int *a0) {
+    int v0 = *(int*)((char*)a0 + 0x3C4);
+    int idx;
+    int *table;
+    int *outer;
+    int byte_off;
+    if (v0 == 0) return 1;
+
+    idx = *(int*)((char*)a0 + 0x3D0 + v0 * 4);
+    if (idx == 0) return 0;
+    idx -= 1;
+
+    if (idx < 0) return 0;
+
+    table = *(int**)((char*)a0 + 0x40C);
+    outer = (int*)((char*)table + v0 * 4);
+    byte_off = idx * 4;
+    do {
+        int *inner = (int*)*(int*)((char*)outer + 0x40);
+        int *item = (int*)*(int*)((char*)inner + byte_off + 0x3C);
+        if (*(float*)((char*)item + 0x2A4) > 0.0f) return 1;
+        byte_off -= 4;
+        idx--;
+    } while (idx >= 0);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000687C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006900);
 
