@@ -2790,10 +2790,48 @@ void game_uso_func_0000591C(int *a0) {
      * threshold.
      *
      * Cumulative ~145/1102 insns characterized (up from 115). ~960
-     * remaining + ~25 cross-USO calls. NEXT PASS: 0x5BC8 onwards (the
-     * sp+0x15C arg-setup path that splits via v0 dispatch).
+     * remaining + ~25 cross-USO calls.
      *
-     * TODO: 957+ remaining insns — continue per-state-branch decoding. */
+     * 2026-05-06 EXTENDED DECODE 0x5BC8-0x5C44 (~32 insns): 4-ARG CROSS-
+     * USO CALL + DUAL VEC3 MEMCPY CHAIN.
+     *
+     *   /* default-fall-through path (v0 == 0 from earlier dispatch) *\/
+     *   /* arg setup for cross-USO call: 4 register + 2 stack args *\/
+     *   a0 = a0->0x30;                                  ; sub-struct ptr
+     *   a1 = s0;                                         ; original a0 (saved)
+     *   a2 = sp[0x1B0];                                  ; helper-return v0 saved earlier
+     *   a3 = sp[0x1AC];                                  ; saved ptr
+     *   sp[0x10] = sp+0x1B8;                             ; out Vec3 ptr 1
+     *   sp[0x14] = sp+0x188;                             ; out Vec3 ptr 2
+     *   t9 = gl_func(...);
+     *
+     *   /* 12-byte Vec3 copy chain: v0 → sp+0x114 → sp+0xFC *\/
+     *   v1 = sp + 0x114; t7 = sp + 0xFC;
+     *   *(int*)(v1 + 0) = *(int*)(t9 + 0);
+     *   *(int*)(v1 + 4) = *(int*)(t9 + 4);
+     *   *(int*)(v1 + 8) = *(int*)(t9 + 8);
+     *   *(int*)(t7 + 0) = *(int*)(v1 + 0);
+     *   *(int*)(t7 + 4) = *(int*)(v1 + 4);
+     *   *(int*)(t7 + 8) = *(int*)(v1 + 8);
+     *
+     *   /* float-load + store: 3 floats from sp+0xFC..0x104 to sp+0x190..0x198 *\/
+     *   *(float*)(sp+0x190) = *(float*)(sp+0xFC);
+     *   *(float*)(sp+0x194) = *(float*)(sp+0x100);
+     *   *(float*)(sp+0x198) = *(float*)(sp+0x104);
+     *
+     *   b 0x5CB4   ; merge to continuation
+     *
+     * Pattern: helper returns a Vec3 ptr; double-buffer copy (likely
+     * write-protect or transformation pipeline) into stack scratch
+     * regions sp+0x114, sp+0xFC, sp+0x190. The 4-arg cross-USO call
+     * with 2 stack-args at sp+0x10/0x14 is a "transform-and-output"
+     * idiom common in 1080 (per docs/PATTERNS.md USO callee patterns).
+     *
+     * Cumulative ~177/1102 insns characterized (up from 145). ~925
+     * remaining. NEXT PASS: 0x5C48 onwards (alt-path with `lw a0,
+     * 0x15C(sp)` arg setup, also branching to 0x5CB4 merge).
+     *
+     * TODO: 925+ remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
