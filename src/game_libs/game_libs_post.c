@@ -3360,8 +3360,27 @@ float gl_func_00052144(int *a0) {
  * never triggers in practice since a2 is a real pointer. May be a
  * bnel-emit artifact for the compiler's CFG.
  *
- * Stub C body — 30-40% match expected, deferred to next iteration for
- * full struct typing. Multi-pass per skill guidance. */
+ * Stub C body — currently ~3% byte-exact / ~30% mnemonic. Deferred
+ * to next iteration for full struct typing.
+ *
+ * 2026-05-06 deeper decode (kept as a TODO map for the next pass):
+ *   sub-alloc 1 (insns 22-30): after `gl_func_00000000(0x4)`, target stores
+ *     `sw zero, 4(v1); sw zero, 0(v1)` — initialises the 4-byte alloc
+ *     plus 4 trailing bytes (alloc may have padding/metadata; structurally
+ *     it writes 8 bytes). Add `if (p != 0) { p[0] = 0; p[1] = 0; }`.
+ *   sub-alloc 2 (insns 31-50): after `gl_func_00000000(0x8)`, copies 8
+ *     bytes from a global table (lui+addiu+lw 0(t8); lw 4(t8); sw to q).
+ *     The global is referenced by 2 distinct lui+addiu pairs (likely
+ *     different relocations, similar to 131C's volatile-pp pattern).
+ *   final block (insns 51-65): writes obj[0xB]=arg1, obj[0xF]=q (cross-link),
+ *     plus a zero store. Pattern looks like "register child sub-alloc
+ *     with parent obj". Same 0x14/0x4 offsets as the 0x10E2C-family
+ *     functions, suggesting they share this struct shape.
+ *
+ * For the typed-struct work: 5+ functions access offsets 0x28, 0x30,
+ * 0x34, 0x3C (this fn + the 0x10E2C family). Threshold met for typing
+ * per project_1080_strategy.md "type just-in-time when 5+ functions
+ * access them". Future pass: decode struct first, then re-wrap. */
 extern int gl_data_00000000;
 int *gl_func_000521F8(int *a0, int a1) {
     int *obj;
