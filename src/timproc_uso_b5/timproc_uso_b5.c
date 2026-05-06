@@ -912,7 +912,17 @@ void timproc_uso_b5_func_0000C1B4(int *a0) {
     func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C208);
+extern char D_b5_C208_table0;
+extern char D_b5_C208_table1;
+void timproc_uso_b5_func_0000C208(int *a0, int a1, int a2, int a3) {
+    (void)a1;
+    gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, a3,
+                     (char*)&D_b5_C208_table0 + a0[0x1AC/4] * 24, 0xFF);
+    if (*(int*)&D_00000000 != 0) {
+        gl_func_00000000(a0, a0[0x74/4] + a0[0x44/4], a0[0x8C/4] + a0[0x5C/4],
+                         (char*)&D_b5_C208_table1 + a0[0x1AC/4] * 24, 0xFF);
+    }
+}
 
 extern char D_b5_C2C0_table;
 void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
