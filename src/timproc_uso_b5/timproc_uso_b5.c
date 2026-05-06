@@ -494,6 +494,26 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Default INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000398C);
 
+/* timproc_uso_b5_func_00003A4C: 144-insn (0x240) heavy data-init function.
+ * Frame -0xB0, saves s0/s1/s2/ra. Sibling of recently-matched
+ * timproc_uso_b5_func_00003F5C in the same "FPU-heavy data-driven init"
+ * family. Initial structural decode:
+ *
+ * Stage 1 @ 0x3A50-0x3AAC (~24 insns): unrolled-by-3 12-byte copy loop.
+ *   Reads &D_00000000 + 0x11B0..0x11D4 (0x24 bytes) into sp[0x84..0xA8].
+ *   Plus 8 more bytes from D[0x11D4..0x11DC] into sp[0xA8..0xB0].
+ *
+ * Stage 2 @ 0x3AAC-0x3B00 (~21 insns): second similar copy loop.
+ *   Reads D[0x11DC..0x1200] into sp[0x58..0x7C], plus 8 bytes from
+ *   D[0x1200..0x1208] into sp[0x80..0x84].
+ *
+ * Stage 3 @ 0x3B00+: ~99 insns of remaining body. TBD — likely uses
+ * the two 0x2C-byte stack buffers (sp+0x58 and sp+0x84) as "before
+ * and after" interpolation states or as displacement vectors fed to
+ * gl_func calls.
+ *
+ * Multi-tick decomp; structural wrap only this tick. INCLUDE_ASM keeps
+ * ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003A4C);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003C8C);
