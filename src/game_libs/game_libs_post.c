@@ -602,7 +602,12 @@ extern int D_2D788_b;
  * docs/IDO_CODEGEN.md feedback-ido-unused-arg-save). The wrap caps at
  * ~85 % via that one extra `sw a1, 0x1C(sp)` insn that natural C cannot
  * elide; target was likely built with $a1 actually used or with a flag
- * variant. */
+ * variant.
+ *
+ * 2026-05-06 retry: tried `register int unused_a1` — confirmed no-op
+ * (IDO -O2 still emits the spill regardless of `register` hint on the
+ * unused arg). Cap class is genuinely structural per the existing
+ * feedback-ido-unused-arg-save doc; no C-level lever found for elision. */
 void gl_func_0002D788(int a0, int unused_a1, int a2) {
     D_2D788_a = a0;
     gl_func_00000000(0x41020000, (&D_2D788_b)[a2]);
