@@ -350,10 +350,22 @@ void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
         if (self == 0) goto end;
     }
     gl_func_00000000(self, (char*)&D_00000000 + 0x1084);
-    base = *(char**)((char*)&D_00000000 + 0x134);
-    *(int*)(self + 0x2C) = *(int*)(base + 0x84);
-    *(int*)(self + 0x30) = *(int*)(base + 0x80);
-    *(int*)(self + 0x34) = *(int*)(base + 0x8C);
+    {
+        /* 3-fold reload of `base` via a volatile pointer-pointer. Target has
+         * `lui v1; addiu v1, 0; lw t?, 0x134(v1)` with v1 holding the symbol
+         * address materialized once and 3 separate lw reloads (no CSE).
+         * Without volatile, IDO -O2 collapses to one load. Per
+         * docs/IDO_CODEGEN.md "Pointer-based access for address computation". */
+        volatile char **base_pp = (volatile char**)((char*)&D_00000000 + 0x134);
+        char *b1, *b2, *b3;
+        b1 = (char*)*base_pp;
+        *(int*)(self + 0x2C) = *(int*)(b1 + 0x84);
+        b2 = (char*)*base_pp;
+        *(int*)(self + 0x30) = *(int*)(b2 + 0x80);
+        b3 = (char*)*base_pp;
+        *(int*)(self + 0x34) = *(int*)(b3 + 0x8C);
+        (void)base;
+    }
     sub = (char*)gl_func_00000000(0);
     *(int*)(self + 0x5C) = (int)sub;
     /* Register sub as a child of entity_field (= self->[0x2C]):
