@@ -3399,6 +3399,38 @@ trunk:
     }
     /* TODO: bits 0x80, 0x100, 0x08, 0x04, 0x10 — see asm 0x7828-0x7A08. */
 
+    if (a1 & 0x80) {
+        /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
+         * shared Vec2 table lookup at D[0x638] and post-lookup limit check.
+         * Initial wire-up of documented decode (above comments capture the
+         * full tier breakdown; this body covers the shared/limit portion). */
+        int sub_cnt = a0[0x4C / 4];
+        int list_base = a0[0x4DC / 4];
+        int main_cnt;
+        int new_sub_cnt;
+        int limit;
+        a0[0x58 / 4] = sub_cnt;
+        if (sub_cnt < 8) {
+            ret_lo |= 0x1000;
+        }
+        f0 = *(float*)((char*)&D_00000000 + 0x638 + sub_cnt * 8);
+        f2 = *(float*)((char*)&D_00000000 + 0x638 + sub_cnt * 8 + 4);
+        main_cnt = a0[0x44 / 4];
+        new_sub_cnt = sub_cnt + 1;
+        a0[0x4C / 4] = new_sub_cnt;
+        if (main_cnt == 0) {
+            limit = 8;
+        } else if (main_cnt == 1) {
+            limit = list_base + 16;
+        } else {
+            limit = list_base * 2 + 24;
+        }
+        if (new_sub_cnt >= limit) {
+            a0[0x6C / 4] &= ~0x80;
+        }
+        goto ret;
+    }
+
     /* bit-0x80 entry (0x7828-0x7848, decoded 2026-05-05):
      *   if (a1 & 0x80) {
      *       sub_cnt = a0[0x4C];                 // same sub-counter as bit-0x20
