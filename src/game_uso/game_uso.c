@@ -5380,7 +5380,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F8E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
 
+#ifdef NON_MATCHING
+/* 26-insn 3-call wrapper. Distinct call-shape from the 10E2C family:
+ *   call 1: gl_func(a0, a0->FC, 2, 1, 1, 1)   — 6-arg
+ *   call 2: gl_func(a0)                       — 1-arg (uninit a1/a2/a3)
+ *   call 3: gl_func(a0, D[0xE40], D[0xE44], 1) — 4-arg
+ * Same-class cap as 11368/FABC: shared-base lui+addiu form materialises
+ * via `register int *t` + named v1/v2 locals, with the varargs-style
+ * pre-spill of a1/a2 to sp+0x4/sp+0x8 before the 3rd jal. */
+void game_uso_func_0000FA54(int *a0) {
+    register int *t;
+    int v1, v2;
+    game_uso_func_00000000(a0, *(int*)((char*)a0 + 0xFC), 2, 1, 1, 1);
+    game_uso_func_00000000(a0);
+    t = (int*)((char*)&D_00000000 + 0xE40);
+    v1 = t[0];
+    v2 = t[1];
+    game_uso_func_00000000(a0, v1, v2, 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FA54);
+#endif
 
 #ifdef NON_MATCHING
 /* 18-insn 3-call wrapper. Body: gl_func(a0); gl_func(a0, *(D+0xE40),
