@@ -24,6 +24,19 @@
  * helps. Don't re-attempt — neither standard prototype, K&R nudge, nor
  * varargs solves the trampoline-`sw a0, 0(sp)` blocker.
  *
+ * 2026-05-06: tested 8-byte PREFIX_BYTES (extending to include the
+ * `sw a0, 0(sp)` delay slot at 0xAFA40000): no help for objdiff scoring.
+ * Reason: the inject runs on `build/src/` only (where INCLUDE_ASM path
+ * already supplies these bytes via the .s file). objdiff compares
+ * `build/non_matching/.o` to `expected/.o`; non_matching builds DON'T
+ * receive PREFIX_BYTES injection. The C body's bnel-chain emits 71
+ * insns (0x11C) vs target's 82 (0x148) — the structural cap is the
+ * 11-insn delta, not the 2-insn prefix. Reverted Makefile to single-word
+ * PREFIX_BYTES (the 4-byte trampoline alone). The function IS byte-exact
+ * in the actual ROM build via INCLUDE_ASM tautology; objdiff's 4.1%
+ * score is the documented .NON_MATCHING-build scoring quirk per
+ * docs/MATCHING_WORKFLOW.md#feedback-byte-correct-match-via-include-asm-not-c-body. */
+ *
  * Stub C body decoded but NM wrap stays — default build INCLUDE_ASM is
  * correct bytes via the .s file. Multi-pass decomp; the bnel-chain emit
  * for the special-char branches is the last-mile blocker. */
