@@ -346,13 +346,20 @@ void mgrproc_uso_func_00001304(void) {
  * likely a per-process state struct (mgrproc).
  *
  * Yay0-compressed segment; default INCLUDE_ASM build remains exact.
- * Initial decode 2026-05-05; multi-tick refinement target. */
+ * Initial decode 2026-05-05; structural improved to 33/41 = 80.5% byte
+ * match by splitting `if (v != 2)` into explicit `if (v == 0) X; else if
+ * (v != 2) X;` (target asm has 2-branch dispatch, not single-test). 8
+ * remaining diffs are pure register-pick (v0/v1 for `v`, t0/t9 for the
+ * final 0x4F8 reload) — IDO allocator priority issue, candidate for
+ * permuter or doc/IDO_CODEGEN.md $v0-vs-$v1-priority entry refinement. */
 int mgrproc_uso_func_00001324(char *arg0) {
     int v;
     if (*(int*)(arg0 + 0x4FC) == 0) {
         gl_func_00000000(*(int*)(arg0 + 0x6AC), 0, 1);
         v = *(int*)(arg0 + 0x4F8);
-        if (v != 2) {
+        if (v == 0) {
+            gl_func_00000000(*(int*)(arg0 + 0x6A8));
+        } else if (v != 2) {
             gl_func_00000000(*(int*)(arg0 + 0x6A8));
         }
         if (gl_func_00000000(*(int*)(arg0 + 0x6A8)) != 0 &&
