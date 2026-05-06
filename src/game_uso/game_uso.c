@@ -5004,7 +5004,16 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E35C);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E564);
+void game_uso_func_0000E564(int *a0) {
+    int v0 = ((int*)a0[0xF4/4])[0x2C/4];
+    if (v0 & 0xC000) {
+        gl_func_00000000((char*)a0[0xB4/4] + 0x808);
+        v0 = ((int*)a0[0xF4/4])[0x2C/4];
+    }
+    if (v0 & 0x3000) {
+        gl_func_00000000((char*)a0[0xB4/4] + 0x808);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
 
