@@ -665,7 +665,38 @@ void func_00005068(int a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005068);
 #endif
 
+#ifdef NON_MATCHING
+/* 33-insn / 0x84 init+alloc+populate.
+ *   func_00000000(&D_00007DA4);       ; init call
+ *   buf[4] = {0.0f, 0.0f, 0.0f, 0.0f}  ; 16-byte stack-local cleared via mtc1+swc1
+ *   p = func_00000000(0x58);           ; alloc 0x58 bytes
+ *   if (p == 0) return 0;
+ *   func_00000000(p, a0, D[0], &buf);  ; init call (populates p from a0+template)
+ *   p->[0x28] = (int)&D_00000000;      ; store data ptr at offset 0x28
+ *   return p;
+ *
+ * Initial decode — multi-pass refinement expected. The two `lui+addiu` pairs
+ * at 0x48/0x4C and 0x64/0x68 (loading &D_00000000 + offset) are USO
+ * runtime-patched relocations; structural shape may diverge from C-only emit
+ * per docs/PATTERNS.md uso-multi-placeholder-wrapper. */
+extern char D_00007DA4;
+int func_000050A0(int a0) {
+    float buf[4];
+    int *p;
+    buf[0] = 0.0f;
+    buf[1] = 0.0f;
+    buf[2] = 0.0f;
+    buf[3] = 0.0f;
+    func_00000000(&D_00007DA4);
+    p = (int*)func_00000000(0x58);
+    if (p == 0) return 0;
+    func_00000000(p, a0, *(int*)&D_00000000, &buf);
+    *(int*)((char*)p + 0x28) = (int)&D_00000000;
+    return (int)p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
 
