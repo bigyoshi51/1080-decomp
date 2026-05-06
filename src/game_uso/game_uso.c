@@ -1625,6 +1625,35 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003A28);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00003A28_pad.s")
 #endif
 
+/* game_uso_func_00003AC0: 261-insn (0x414) constructor. Frame -0x70.
+ * Same family as game_uso_func_00003018 + game_uso_func_000044F4 spine
+ * (alloc-cascade + init pattern). Initial structural decode:
+ *
+ * Stage 1 @ 0x3AC0-0x3AE8: load D[0x680], alloc(0x58), null-check
+ *   t6 = D[0x680]                        (template-list pointer)
+ *   s0 = alloc(0x58)                     ; alloc 88-byte object
+ *   if (s0 == NULL) goto epi
+ *
+ * Stage 2 @ 0x3AF0-0x3B08: init from D[0x680] template
+ *   init(s0, D[0x680], 0, 0)              ; gl_func init call
+ *   s0->[0x28] = &D                       ; install parent ptr
+ *
+ * Stage 3 @ 0x3B14-0x3B20: register with arg0
+ *   register_func(arg0, s0, -1)            ; gl_func register
+ *
+ * Stage 4 @ 0x3B24-0x3B40: load D[0x684], alloc(0x58), null-check
+ *   t0 = D[0x684]                        (second template-list ptr)
+ *   s0 = alloc(0x58)                     ; second alloc
+ *   if (s0 == NULL) goto ...
+ *
+ * Stage 5+: similar init chain on second object, plus more (~210
+ * remaining insns). Likely a paired-allocator pattern:
+ * "alloc + init from template_a + alloc + init from template_b + ...
+ * link both to arg0".
+ *
+ * Picked under source 5 (strategy memo, exported-but-not-intra-called
+ * size-descending). Multi-tick decomp; structural wrap only this tick.
+ * INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
