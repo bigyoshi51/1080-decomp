@@ -426,7 +426,45 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00002B74);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_000032C8: bundled symbol (0x608, 386 insns total).
+ * Splat couldn't separate sub-functions in this Yay0-compressed segment.
+ * Structure (per asm boundary scan: 2x jr-ra inside declared size):
+ *
+ *   F1 @ 0x32C8-0x388C: ~370 insns / 0x5C4. 0x128-byte stack frame, saves
+ *     s0/ra. Constructor-style alloc-cascade similar to spine
+ *     game_uso_func_000044F4:
+ *       - if (a0 == 0) self = gl_func(0x108) else self = a0; null-check
+ *       - sub_obj_8 = (s0 != 0) ? s0 : gl_func(8); init head=&D[0x1178], next=0
+ *       - 0x1188 D-global cached at sp+0xA4 / sp+0x124 (work pointer)
+ *       - many gl_func init calls + sub-object linking
+ *       - tail: sw zero/swc1 zero stores to a0->[0x2B4/0x164/0x168/0x16C]
+ *       - returns a0 (move v0, s0 at 0x3880)
+ *
+ *   F2 @ 0x3890-0x38AC: 7 insns. Pure leaf clear:
+ *       a0->[0x2B4] = 0; a0->[0x164] = 0.0; a0->[0x168] = 0.0;
+ *       a0->[0x16C] = 0.0; a0->[0x2A0] = 0.0; return.
+ *
+ *   F3 @ 0x38B0-0x38CC+: ~10+ insns, FPU-heavy. Reads/writes a0->[0x2A0],
+ *     [0x164], [0x29C], [0x168], [0xDC]. 1.0f constant load (3C013F80).
+ *     Likely a per-frame update of accumulator state. Trailing instructions
+ *     extend beyond visible end — full decode pending.
+ *
+ * Multi-tick decomp: F1 is the bulk, similar shape to other documented
+ * spine constructors. F2 + F3 are trivial leaves bundled in by splat (per
+ * feedback_uso_split_fragments_breaks_expected_match.md, splitting risks
+ * expected/.o desync, so kept bundled).
+ *
+ * Sibling of recently-matched timproc_uso_b5_func_00003F5C (per source 2
+ * pick rule). Initial structural decode — body TBD. */
+void timproc_uso_b5_func_000032C8(void *a0) {
+    /* TODO: F1 alloc-cascade body (~370 insns); F2 + F3 are bundled
+     * trailers per splat boundary — see comment above. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
+#endif
 
 /* timproc_uso_b5_func_000038D0: 47-insn FPU-heavy function with NON-O32
  * float-in-$fN-callee convention. Uses $f6/$f8/$f10/$f12 from caller — not
