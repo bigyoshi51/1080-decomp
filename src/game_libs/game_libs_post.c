@@ -3267,7 +3267,15 @@ void gl_func_00055B10(char *a0) {
  *     gl_func(D+0x215E8);              // close-row
  *   }
  * Likely a memory hex-dump or per-row table renderer. The 0x215B8/D8/E0/E8
- * constants are relocated game_libs data section addresses. */
+ * constants are relocated game_libs data section addresses.
+ *
+ * 2026-05-05: 86.58% NM cap is register-rename cascade. Target's $s-register
+ * map: $s4=byte_array (arg1), $s0/$s1/$s2 used for other locals. Build's
+ * map puts byte_array in $s0 — cascades through ~30 differing insns
+ * (s-reg renumber). Tried `register int row/col/byte_idx;` (no-op,
+ * same map). Cap is IDO -O2 allocator priority not flippable from C
+ * variable ordering for this 6-pseudo function — would need permuter
+ * or per-symbol INSN_PATCH for ~30 words. Defer. */
 extern int gl_data_00000000;
 void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
     int row;
