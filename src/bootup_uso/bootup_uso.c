@@ -1161,7 +1161,46 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008B44);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008BD4);
 
+#ifdef NON_MATCHING
+/* func_00008F18: 36-insn (0x90) optional-alloc + multi-call init.
+ *
+ * Decoded:
+ *   if (self == 0) {
+ *     self = func_00000000(0x3D8);     // alloc
+ *     if (!self) return 0;
+ *   }
+ *   func_00000000(self, &D_00008708);  // setup with config
+ *   self->[0x28] = &D_00000000;         // vtable
+ *   handle = func_00000000(0, &D_00008710, &D_00000000, 0);  // 4-arg lookup
+ *   func_00000000(self, handle);        // link
+ *   self->[0x3D4] = 100;                // int field
+ *   self->[0x260] = 50.0f;              // float field
+ *   return self;
+ *
+ * Initial NM wrap. Uses $s0 for self (callee-save). Multi-pass refinement
+ * if needed for final byte-match. */
+extern char D_00008708;
+extern char D_00008710;
+extern char D_8F18_vtable;
+extern char D_8F18_call_arg;
+char *func_00008F18(char *self) {
+    int handle;
+    if (self == 0) {
+        self = (char*)func_00000000(0x3D8);
+        if (self == 0) goto end;
+    }
+    func_00000000(self, &D_00008708);
+    *(char**)(self + 0x28) = &D_8F18_vtable;
+    handle = func_00000000(0, &D_00008710, &D_8F18_call_arg, 0);
+    func_00000000(self, handle);
+    *(int*)(self + 0x3D4) = 100;
+    *(float*)(self + 0x260) = 50.0f;
+end:
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008F18);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008FA8);
 
