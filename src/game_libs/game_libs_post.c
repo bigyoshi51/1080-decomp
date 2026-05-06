@@ -4490,7 +4490,38 @@ void gl_func_00066404(int *dst) {
     *dst = buf[0];
 }
 
+#ifdef NON_MATCHING
+/* game_libs_func_00066440: 8-insn fragment (0x20). NO prologue, NO frame
+ * (jr ra at 0x18 with 'move v0, zero' delay slot). Reads a0/v1/a1 as
+ * pre-set registers from the predecessor (chain-state fragment).
+ *
+ * Body decoded:
+ *   v1 = a0[1]; a1 = a0[0];
+ *   if (v1 != a1) { a1[1] = v1; }    ; bnel-style annulled delay-slot store
+ *   if (a0 != a1) { a1[1] = v1; }    ; same store, different cond
+ *   return 0;                         ; move v0, zero in jr-ra delay
+ *
+ * STRUCTURAL BLOCKER: Without a prologue/epilogue, no standalone C function
+ * can compile to these 8 raw insns — IDO always emits at minimum
+ * `addiu sp, -N; sw ra; ...; lw ra; addiu sp, N; jr ra` for any non-empty
+ * function. Per feedback_splat_fragment_via_register_flow.md, fragments
+ * without prologue should be MERGED back into the predecessor (here:
+ * gl_func_00066404). But the predecessor is a clean 15-insn int-reader
+ * that doesn't have these 8 trailing insns as part of its C body.
+ *
+ * The original 32-insn splat-bundled symbol gl_func_00066404 contained
+ * [int-reader 15 insns] + [these 8 insns] + [game_libs_func_00066460's 9 insns]
+ * as data, with cross-fragment register flow that no IDO -O2 C compilation
+ * can reproduce. Per feedback_uso_split_fragments_breaks_expected_match.md,
+ * splitting was the expedient choice; matching the fragment exactly is
+ * unreachable from C. INCLUDE_ASM-tautology stays. */
+void game_libs_func_00066440(void) {
+    /* see gl_func_00066404 above — this is a chain-state fragment of the
+     * original 32-insn splat-bundled symbol. No standalone C reproduces it. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066440);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066460);
 
