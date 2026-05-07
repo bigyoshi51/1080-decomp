@@ -194,7 +194,28 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000E60);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000FF4);
+/* timproc_uso_b3_func_00000FF4: F1 (32-insn 0x80) gate-then-update wrapper
+ * + SUFFIX bundle (5-insn D[0x40]=9 stub at 0x1074 + 2-insn fragment at
+ * 0x1088, latter is the start of the next function whose first 2 words got
+ * pulled into this .s by splat). Promoted via SUFFIX_BYTES recipe (7 words /
+ * 0x1C bytes) — sibling family of timproc_uso_b3_func_00000DE4 /
+ * arcproc_uso_func_00000EBC.
+ *
+ * F1: gate=gl_func(a0->0x528). If non-zero set D[0x40]=0xC,D[0x44]=9.
+ *     Else set D[0x40]=9. Tail: if(a0->0x4F8) gl_func(a0,-1,0); else a0->0x504=0. */
+void timproc_uso_b3_func_00000FF4(char *a0) {
+    if (gl_func_00000000(*(char**)(a0 + 0x528)) != 0) {
+        *(int*)((char*)&D_00000000 + 0x40) = 0xC;
+        *(int*)((char*)&D_00000000 + 0x44) = 9;
+    } else {
+        *(int*)((char*)&D_00000000 + 0x40) = 9;
+    }
+    if (*(int*)(a0 + 0x4F8) == 0) {
+        *(int*)(a0 + 0x504) = 0;
+    } else {
+        gl_func_00000000(a0, -1, 0);
+    }
+}
 
 void timproc_uso_b3_func_00000000();
 
