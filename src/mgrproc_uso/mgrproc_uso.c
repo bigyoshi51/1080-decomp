@@ -343,7 +343,52 @@ void mgrproc_uso_func_00000504(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000504);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_000005D0: 76-insn (0x130) random-unique-ID assignment.
+ * Fills 4 entries at &(a0->8)->[idx*4 + 0x24] for idx=0..3 with 4 unique
+ * random IDs picked from {0..4}.
+ *
+ * Per-iteration logic:
+ *   1. Generate candidate = ((int)(gl_func() * D[0x24]) + D[0x4C] + 1) % 5
+ *      (gl_func() returns float; D[0x24] is float scale, D[0x4C] is int offset)
+ *   2. Linear-scan existing arr[0..count-1] for collision; if any hit,
+ *      reject candidate and re-roll
+ *   3. On no-collision: arr[count].field_24 = candidate; count++
+ *   4. Loop until count == 4
+ *
+ * Initial structural NM wrap. Float math (mul.s/trunc.w.s/mfc1) not yet
+ * representable through the K&R `gl_func_00000000()` declaration which is
+ * already int-returning in this TU. Float-typed local-extern variant blocked
+ * by IDO 7.1 lacking __attribute__((alias)) — see
+ * docs/IDO_CODEGEN.md#feedback-ido-no-gcc-register-asm. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_000005D0(char *a0) {
+    int count = 0;
+    int result = -1;
+    int candidate;
+    int idx;
+    int *arr;
+
+    while (count < 4) {
+        while (result == -1) {
+            candidate = (gl_func_00000000() + *(int*)((char*)&D_00000000 + 0x4C) + 1) % 5;
+            arr = *(int**)(a0 + 8);
+            for (idx = 0; idx < count; idx++) {
+                if (*(int*)((char*)arr + idx * 4 + 0x24) == candidate) break;
+            }
+            if (idx == count) {
+                result = candidate;
+            }
+        }
+        arr = *(int**)(a0 + 8);
+        *(int*)((char*)arr + count * 4 + 0x24) = result;
+        count++;
+        result = -1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000700);
 
