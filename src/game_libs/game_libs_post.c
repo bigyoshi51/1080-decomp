@@ -2726,7 +2726,21 @@ void gl_func_00044CC4(int a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044CE8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044D94);
+/* gl_func_00044D94: 12-insn array-indexed forwarding wrapper. Post-split
+ * from a 3-function bundle (originally 0x50, now 0x30). Loads the entry
+ * a0[a1 + 0xAB] (= *(int*)((char*)a0 + a1*4 + 0x2AC)) and forwards it as
+ * the 1st arg to a cross-USO call along with a2 as the 2nd arg. The
+ * argsave-spill of a1 at sp+0x1C is the IDO unused-arg-save artifact
+ * (per docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save — IDO -O2
+ * defensively spills register args when the body contains a jal). */
+extern int gl_func_00000000();
+void gl_func_00044D94(int *a0, int a1, int a2) {
+    gl_func_00000000(a0[a1 + 0xAB], a2);
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044DC4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044DD4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
 
