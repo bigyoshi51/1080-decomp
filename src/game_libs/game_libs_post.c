@@ -4540,6 +4540,30 @@ void gl_func_00061F18(Quad4 *dst) {
     *dst = buf;
 }
 
+/* 7-insn leaf — zero 6 specific fields + write `a1` to a0->field_0x18.
+ * Field layout: f00/f02 (halfwords), f08/f0C/f18/f1C (words). Split off
+ * from the 0x61F18 Quad4 reader bundle; legitimate leaf (no calls,
+ * caller-set a0/a1). */
+typedef struct {
+    short f00;
+    short f02;
+    int pad04;
+    int f08;
+    int f0C;
+    int pad10;
+    int pad14;
+    int f18;
+    int f1C;
+} GlFunc61F70Struct;
+void game_libs_func_00061F70(GlFunc61F70Struct *a0, int a1) {
+    a0->f1C = 0;
+    a0->f00 = 0;
+    a0->f02 = 0;
+    a0->f08 = 0;
+    a0->f0C = 0;
+    a0->f18 = a1;
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062194);

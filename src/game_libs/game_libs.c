@@ -756,7 +756,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 
-/* Fragments 00037E98, 00037F10, 00037F40 moved to game_libs_post.c on 2026-05-07
- * (correct file for VRAM 0x37*** range; game_libs.c is TRUNCATE_TEXT=0x8944). */
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061F70);
+/* Fragments 00037E98, 00037F10, 00037F40, 0003AA40, 0003AA5C, 00061F70
+ * moved to game_libs_post.c (correct file for VRAM past 0x8944 cap of
+ * game_libs.c). */
