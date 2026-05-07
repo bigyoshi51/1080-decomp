@@ -1439,7 +1439,7 @@ void timproc_uso_b5_func_0000CC0C(int a0) {}
 
 void timproc_uso_b5_func_0000CC14(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CC1C);
+void timproc_uso_b5_func_0000CC1C(int a0) {}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CC24);
 
