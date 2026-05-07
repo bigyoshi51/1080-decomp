@@ -300,13 +300,24 @@ extern char D_00000000;
  * 75 % — the loop_tail `lw a1, 64($s_base)` indexed-load form still
  * blocked by the constant-fold pass. Confirms: any C expression that
  * could-resolve to a symbol+offset is folded; `base` register hint
- * doesn't propagate through arithmetic. CAP HOLDS. */
+ * doesn't propagate through arithmetic. CAP HOLDS.
+ *
+ * (28) TRIED 2026-05-07: removed `register` keyword in 5 separate
+ * configurations: just `one`, just `flag`, just `cur`, just `base10`,
+ * just `base`, and ALL FIVE simultaneously. Result: ALL SIX configs
+ * produce IDENTICAL build/.o bytes (cmp = 0) and identical 75.01695 %
+ * fuzzy. The `register` keyword on this function is COMPLETELY
+ * REDUNDANT — IDO's weight-based allocator (refs/live_length × ...)
+ * promotes all 5 pseudos to $s0..$s5 regardless. Variant 3's claim
+ * (regressed to 33 %) was true PRE-goto-chain (pre-variant-11) but is
+ * NO LONGER REPRODUCIBLE in the current shape. Removed all `register`
+ * keywords — they were noise. The s2/s3 + s4/s5 swap caps remain. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
-    register char *base = &D_00000000;
-    register char *base10 = &D_00000000 + 0x10;
-    register int *cur;
-    register int flag = 0;
-    register int one = 1;
+    char *base = &D_00000000;
+    char *base10 = &D_00000000 + 0x10;
+    int *cur;
+    int flag = 0;
+    int one = 1;
     int r;
 
 loop_top:
