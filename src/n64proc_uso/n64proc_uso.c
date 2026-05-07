@@ -655,7 +655,18 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
  * block reorder + spill slot location). The doc-claimed "marginal gains
  * via unique externs" hypothesis was wrong — unique externs help when
  * IDO CSEs same-symbol accesses; here each call/access is in a different
- * basic block so no CSE happens regardless of symbol identity. */
+ * basic block so no CSE happens regardless of symbol identity.
+ *
+ * (5) TRIED 2026-05-07: swap k0/k1 BLOCK ORDER in source (write k1 body
+ * BEFORE k0 body) to test whether IDO's reorder is "always-flip-source"
+ * (in which case swapped source → emit-k0-first matching target) or
+ * "always-emit-k1-first" (independent of source). Result: emit was
+ * k1-first regardless of source order. Confirms IDO's reorder is
+ * destination-order-driven (heuristic prefers k1's specific shape),
+ * NOT source-order-flippable. Both source-orderings produce identical
+ * output structure with k1 emitted first. Reverted to source-order
+ * matching target (k0 first) for code clarity since output is identical.
+ * Rules out source-reorder as a lever for the k0/k1 block-emit cap. */
 void n64proc_uso_func_0000035C(char *a0) {
     char pad1[4];
     float buf[4];
