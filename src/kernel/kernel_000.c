@@ -1215,7 +1215,7 @@ void func_800029A0(void) {
 
 /* func_80002B78 split out to kernel_056.c (-O2 -mips3) */
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002BA8);
+/* func_80002BA8 split out to kernel_056.c (-O1 -mips3, d-arithmetic helper) */
 
 /* func_80002C08 split out to kernel_056.c (-O2 -mips3) */
 

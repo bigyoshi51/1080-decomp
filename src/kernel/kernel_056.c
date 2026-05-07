@@ -13,6 +13,13 @@ u64 func_80002AB4(u64 a, u64 b) { return a << b; }  /* __ll_lshift */
 u64 func_80002AE0(u64 a, u64 b) { return a % b; }   /* duplicate of A3C */
 s64 func_80002B1C(s64 a, s64 b) { return a / b; }   /* __ll_div */
 s64 func_80002B78(s64 a, s64 b) { return a * b; }   /* __ll_mul */
+/* 64-bit-by-short divmod. Outputs *quot and *rem of (val / d) and
+ * (val % d). At -O1 -mips3 IDO emits 2 sequential ddivu (no CSE),
+ * each with break-on-zero check. */
+void func_80002BA8(u64 *quot, u64 *rem, u64 val, u16 d) {
+    *quot = val / d;
+    *rem = val % d;
+}
 s64 func_80002C08(s64 a, s64 b) {                   /* Euclidean mod */
     s64 r = a % b;
     if ((r < 0 && b > 0) || (r > 0 && b < 0)) r += b;

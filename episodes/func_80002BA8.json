@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80002BA8",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-07T11:27:25.651403+00:00",
+  "end_time": "2026-05-07T11:27:25.651424+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-07T11:27:25.651418+00:00",
+      "assistant_text": "64-bit-by-short divmod helper. Moved from kernel_000.c (which builds at -O2 -mips2) into kernel_056.c (-O1 -mips3) so IDO inlines ddivu (MIPS3 instruction). Body is the natural 'void f(u64*quot, u64*rem, u64 val, u16 d) { *quot = val/d; *rem = val%d; }' \u2014 at -O1 IDO does not CSE the two divisions, producing 2 sequential ddivu insns matching target.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 24,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* 64-bit libgcc-style helpers. Compile at -O2 -mips3 so that IDO inlines the\n * d-arithmetic instructions (dsrlv/dsllv/ddivu/dmultu/...) instead of\n * emitting `jal __ull_rshift` back to themselves.\n *\n * Warning \"should not be used for ucode 32-bit compiles\" is expected. */\n\nu64 func_80002A10(u64 a, u64 b) { return a >> b; }  /* __ull_rshift */\nu64 func_80002A3C(u64 a, u64 b) { return a % b; }   /* __ull_rem */\nu64 func_80002A78(u64 a, u64 b) { return a / b; }   /* __ull_div */\nu64 func_80002AB4(u64 a, u64 b) { return a << b; }  /* __ll_lshift */\nu64 func_80002AE0(u64 a, u64 b) { return a % b; }   /* duplicate of A3C */\ns64 func_80002B1C(s64 a, s64 b) { return a / b; }   /* __ll_div */\ns64 func_80002B78(s64 a, s64 b) { return a * b; }   /* __ll_mul */\n/* 64-bit-by-short divmod. Outputs *quot and *rem of (val / d) and\n * (val % d). At -O1 -mips3 IDO emits 2 sequential ddivu (no CSE),\n * each with break-on-zero check. */\nvoid func_80002BA8(u64 *quot, u64 *rem, u64 val, u16 d) {\n    *quot = val / d;\n    *rem = val % d;\n}\ns64 func_80002C08(s64 a, s64 b) {                   /* Euclidean mod */\n    s64 r = a % b;\n    if ((r < 0 && b > 0) || (r > 0 && b < 0)) r += b;\n    return r;\n}\ns64 func_80002CA4(s64 a, s64 b) { return a >> b; }  /* __ll_rshift */\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_056.c",
+    "asm_path": "asm/nonmatchings/kernel/func_80002BA8.s",
+    "segment": "kernel",
+    "compiler": "ido-7.1",
+    "compiler_flags": "-O1 -G 0 -mips3 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified byte-identical against expected/.o (cmp clean) after refreshing expected/ for the file-split move."
+  }
+}
