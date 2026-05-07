@@ -780,7 +780,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  * $at from the predecessor's tail and $v0 also from the predecessor.
  * Both are non-standard C carryovers. Wrapping the 4 calls only gives
  * a partial body; the leading stores would need PROLOGUE_STEALS=4 to
- * splice off the redundant lui+sw IDO emits. */
+ * splice off the redundant lui+sw IDO emits.
+ *
+ * 2026-05-07 follow-up: the trailing 2 words at offsets 0x60-0x64 in
+ * this function's symbol are `lui t6, 0; lw t6, 0(t6)` — the stolen-
+ * prologue donation to SUCCESSOR gl_func_0002D838 (whose comment at
+ * line 795 confirms PROLOGUE_STEALS=8 expects `lui t6; lw t6, 0(t6)`
+ * pair as predecessor tail). Full promotion recipe is therefore:
+ *   build/src/game_libs/game_libs_post.c.o:
+ *     PROLOGUE_STEALS := gl_func_0002D7D0=4 \
+ *     SUFFIX_BYTES := gl_func_0002D7D0=0x3C0E0000,0x8DCE0000
+ * (Note: SUFFIX target is `lui t6, %hi(D_2D838_X); lw t6, %lo(D_2D838_X)(t6)`;
+ * actual emitted bytes use 0x0000 for the relocated symbol, runtime-
+ * resolved by USO loader — same convention as the gl_ref_*=0 placeholder.)
+ * Combo recipe is in scope per
+ * docs/POST_CC_RECIPES.md#feedback-prefix-bytes-plus-insn-patch-breaks-documented-caps. */
 extern int D_2D7D0_arr;
 void gl_func_0002D7D0(void) {
     gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[8]);
