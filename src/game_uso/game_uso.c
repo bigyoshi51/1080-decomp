@@ -6204,9 +6204,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F8E8);
  * shifted t1=sp+0x48 correctly to match target's first addiu but added
  * extra moves elsewhere that broke the copy chain. The pad-stuffing
  * approach is a dead-end here; offsets DO move, but the surrounding
- * code structure changes too. Reverted. Likely needs permuter or a
- * fundamentally different C abstraction (e.g. function-result-temp
- * chain via inline pseudo-helpers). */
+ * code structure changes too. Reverted.
+ *
+ * 2026-05-07 attempt 4: REVERSE order WITHOUT pads (vc; volatile vb;
+ * volatile a). Same regression to 77.52%. Reverse-declaration alone
+ * doesn't help; baseline-state has drifted from the doc's quoted 85.19%
+ * to a current 77.52% even with the original C body unchanged. Built NM
+ * is 248 bytes (62 insns) vs expected 268 bytes (67 insns) — IDO is now
+ * eliminating one of the 3 Vec3 copies despite volatile. The exact
+ * fuzzy% on this function is sensitive to expected/.o baseline state.
+ *
+ * Conclusion: F948 NM-cap is NOT promotable via C-shape variations alone.
+ * Permuter or INSN_PATCH are the only remaining options. Multi-tick
+ * deferred. */
 extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { float x, y, z; } F948_Vec3;
