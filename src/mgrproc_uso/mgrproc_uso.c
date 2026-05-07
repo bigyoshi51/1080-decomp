@@ -459,54 +459,61 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00001594: 32-insn (0x80) check-then-vtable-call helper.
  *
- * 2026-05-05 LOGIC CORRECTION: prior "Re-corrected" comment misread `5320000B`
- * as `bnezl t9` — the encoding is `beql t9, zero, +0xB` (opcode 0x53 = beql,
- * branch-on-equal-likely). So target: `if (t9 == 0) skip-to-epilogue` (early
- * return). The fall-through path (t9 != 0) stores D[0x30]=a0, recomputes the
- * vtable index in fresh t-regs, then jalrs the function pointer.
+ * 2026-05-07 LOGIC RE-CORRECTION + SPLIT-EXTERN PROMOTION:
  *
- * Corrected logic:
- *   if (gl_func(D[0x190], a0) == 0) return;
- *   t = a0[0x48/4];
- *   idx = D[0x7C/4];
- *   if (t[idx*0xA + 0x24] == 0) return;  // entry == 0 → return
- *   D[0x30/4] = a0;
- *   t = a0[0x48/4];                        // recompute (fresh regs)
- *   ((void(*)())t[idx*0xA + 0x24])();      // call
+ * Prior comment misread the `lw v1, 0x7C(v0)` insn as a load from D+0x7C
+ * (global). Re-decoded: it's `lw t6, 0x7C(v0)` where v0 = a1[0x48] — i.e.,
+ * `idx = p[0x7C]` from the inner struct, not from D. The `D[0x7C]` reading
+ * was a misread of register usage. Corrected logic:
  *
- * 2026-05-05 cap measure: 23.33% (7/30 words match). C-only emit shape:
- *   - 30 insns vs target's 32 (-2 insns / -8 bytes)
- *   - IDO global-CSEs `&D_00000000` into a single $a2 register (lui+addiu
- *     prologue), then offsets via `lw rN, 0xNN(a2)`. Target reloads fresh
- *     `lui at, 0; lw rN, 0xNN(at)` for each access (3 separate D-offset
- *     reads: 0x190, 0x7C, 0x7C, 0x30) — saves the addiu but adds 2 lui's.
- *     Net: target +2 insns from the no-cache pattern.
- *   - GCC-style strength-reduction `idx*0x28 = (idx<<5)+(idx<<3)` shows
- *     `sll+sll+addu` triple at 0x34-0x40. Target uses `multu+mflo+addu`
- *     (also 3 insns). Bytes still differ.
+ *   void f(int *a0) {
+ *       if (gl_func_0(D[0x190], a0) == 0) return;
+ *       int *p = (int*)a0[0x48/4];
+ *       int idx = p[0x7C/4];
+ *       if (p[idx*0xA + 0x24] == 0) return;
+ *       D[0x30/4] = (int)a0;
+ *       p = (int*)a0[0x48/4];   // RELOAD (fresh regs)
+ *       idx = p[0x7C/4];
+ *       ((void(*)())p[idx*0xA + 0x24])();
+ *   }
  *
- * 2026-05-05 attempts (no progress beyond 23.33%):
- *   - `volatile` cast on D-accesses: regressed to 6.5% (volatile suppresses
- *     CSE for the FIRST access but IDO still caches downstream accesses,
- *     and the volatile shape adds extra emit shape divergence).
- *   - Unique-extern aliases (D_mgr_1594_d190 etc.): risky for USO runtime
- *     relocation — aliases at non-zero offsets aren't in the loader's
- *     symbol table, would break runtime patching. Skipped.
+ * Applied feedback-ido-cse-bust-via-distinct-externs (docs/IDO_CODEGEN.md):
+ * split D_00000000 into D_mgr_1594_a (for the 0x190-offset gl_func arg) and
+ * D_mgr_1594_c (for the 0x30-offset store target). Both alias to 0x0 in
+ * undefined_syms_auto.txt; runtime relocation collapses identically. With
+ * the split, IDO emits 2 separate `lui rN, 0` + `lw rN, OFFSET(rN)` (one
+ * per use site) instead of caching `&D` in $a2 across both. Result: 32-insn
+ * size match (was 30); promoted from 23.33% → ~56% (18/32 word match).
  *
- * Cap stays structural at 23.33%. The +8 byte size delta blocks INSN_PATCH
- * per feedback_insn_patch_size_diff_blocked.md. Multi-tick. */
+ * Remaining cap: register-allocation post-jal. Target uses {v1, t6, t7,
+ * t8, t9} for the constant-40 / idx-load / multu chain; my emit uses
+ * {a2, v1, t6, t7, t8} (shifted by one slot). All 14 mismatches are pure
+ * register renaming; bytes differ but logic is identical. IDO -O2 prefers
+ * $a2 for the first call-clobbered free reg post-jal; target preferred $v1.
+ * No C-level lever flips this allocation (named-local, register, separate-
+ * temp tried — all stayed on $a2). Structurally the same `feedback_ido_
+ * register_allocation_cap.md` class as game_uso_func_00010E2C family.
+ *
+ * Promotion path: register-pinning via inline asm (IDO rejects per
+ * feedback-ido-no-gcc-register-asm) or a permuter run looking for $a2/$v1
+ * swap. Multi-tick. */
 extern int gl_func_00000000();
+extern int D_mgr_1594_a, D_mgr_1594_c;
 void mgrproc_uso_func_00001594(int *a0) {
-    int *t;
+    int *p;
     int idx;
+    int *q;
     void (*fn)();
-    if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), a0) == 0) return;
-    t = (int*)a0[0x48 / 4];
-    idx = *(int*)((char*)&D_00000000 + 0x7C);
-    if (*(int*)((char*)t + idx * 0x28 + 0x90) == 0) return;
-    *(int*)((char*)&D_00000000 + 0x30) = (int)a0;
-    t = (int*)a0[0x48 / 4];
-    fn = (void(*)())*(int*)((char*)t + idx * 0x28 + 0x90);
+    if (gl_func_00000000(*(int*)((char*)&D_mgr_1594_a + 0x190), a0) == 0) return;
+    p = (int*)a0[0x48 / 4];
+    idx = *(int*)((char*)p + 0x7C);
+    q = (int*)((char*)p + idx * 0x28);
+    if (q[0x90 / 4] == 0) return;
+    *(int*)((char*)&D_mgr_1594_c + 0x30) = (int)a0;
+    p = (int*)a0[0x48 / 4];
+    idx = *(int*)((char*)p + 0x7C);
+    q = (int*)((char*)p + idx * 0x28);
+    fn = (void(*)())q[0x90 / 4];
     fn();
 }
 #else
