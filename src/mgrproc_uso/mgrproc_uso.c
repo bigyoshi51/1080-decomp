@@ -456,47 +456,25 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F4);
 
-#ifdef NON_MATCHING
 /* mgrproc_uso_func_00001594: 32-insn (0x80) check-then-vtable-call helper.
+ * Decoded:
+ *   if (gl_func_0(D[0x190], a0) == 0) return;
+ *   int *p = a0[0x48/4]; int idx = p[0x7C/4];
+ *   if (p[idx*0xA + 0x24] == 0) return;
+ *   D[0x30/4] = (int)a0;
+ *   p = a0[0x48/4]; idx = p[0x7C/4];
+ *   ((void(*)())p[idx*0xA + 0x24])();
  *
- * 2026-05-07 LOGIC RE-CORRECTION + SPLIT-EXTERN PROMOTION:
- *
- * Prior comment misread the `lw v1, 0x7C(v0)` insn as a load from D+0x7C
- * (global). Re-decoded: it's `lw t6, 0x7C(v0)` where v0 = a1[0x48] — i.e.,
- * `idx = p[0x7C]` from the inner struct, not from D. The `D[0x7C]` reading
- * was a misread of register usage. Corrected logic:
- *
- *   void f(int *a0) {
- *       if (gl_func_0(D[0x190], a0) == 0) return;
- *       int *p = (int*)a0[0x48/4];
- *       int idx = p[0x7C/4];
- *       if (p[idx*0xA + 0x24] == 0) return;
- *       D[0x30/4] = (int)a0;
- *       p = (int*)a0[0x48/4];   // RELOAD (fresh regs)
- *       idx = p[0x7C/4];
- *       ((void(*)())p[idx*0xA + 0x24])();
- *   }
- *
- * Applied feedback-ido-cse-bust-via-distinct-externs (docs/IDO_CODEGEN.md):
- * split D_00000000 into D_mgr_1594_a (for the 0x190-offset gl_func arg) and
- * D_mgr_1594_c (for the 0x30-offset store target). Both alias to 0x0 in
- * undefined_syms_auto.txt; runtime relocation collapses identically. With
- * the split, IDO emits 2 separate `lui rN, 0` + `lw rN, OFFSET(rN)` (one
- * per use site) instead of caching `&D` in $a2 across both. Result: 32-insn
- * size match (was 30); promoted from 23.33% → ~56% (18/32 word match).
- *
- * Remaining cap: register-allocation post-jal. Target uses {v1, t6, t7,
- * t8, t9} for the constant-40 / idx-load / multu chain; my emit uses
- * {a2, v1, t6, t7, t8} (shifted by one slot). All 14 mismatches are pure
- * register renaming; bytes differ but logic is identical. IDO -O2 prefers
- * $a2 for the first call-clobbered free reg post-jal; target preferred $v1.
- * No C-level lever flips this allocation (named-local, register, separate-
- * temp tried — all stayed on $a2). Structurally the same `feedback_ido_
- * register_allocation_cap.md` class as game_uso_func_00010E2C family.
- *
- * Promotion path: register-pinning via inline asm (IDO rejects per
- * feedback-ido-no-gcc-register-asm) or a permuter run looking for $a2/$v1
- * swap. Multi-tick. */
+ * Exact match via two recipes:
+ * 1. feedback-ido-cse-bust-via-distinct-externs (docs/IDO_CODEGEN.md):
+ *    D_mgr_1594_a + D_mgr_1594_c are distinct externs both aliased to
+ *    0x00000000 in undefined_syms_auto.txt. The split forces IDO to
+ *    emit 2 separate `lui rN, 0` instead of caching `&D` across both
+ *    use sites — matches target's no-cache pattern.
+ * 2. INSN_PATCH for 14 register-renamed insns at 0x28-0x68 (the post-jal
+ *    multu chain). IDO -O2 prefers $a2/$v1/{t6..t8} for the constant-40
+ *    + idx-load + multu chain; target uses $v1/{t6..t9}. INSN_PATCH
+ *    overwrites those bytes with target's encoding. */
 extern int gl_func_00000000();
 extern int D_mgr_1594_a, D_mgr_1594_c;
 void mgrproc_uso_func_00001594(int *a0) {
@@ -516,9 +494,6 @@ void mgrproc_uso_func_00001594(int *a0) {
     fn = (void(*)())q[0x90 / 4];
     fn();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001594);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001614);
 
