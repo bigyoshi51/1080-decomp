@@ -207,14 +207,25 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F
  * Default INCLUDE_ASM build remains exact. Wrap captures the 9-case dispatch
  * skeleton + per-case fingerprints for the next tick to refine.
  *
- * 2026-05-06: initial NM wrap added with switch skeleton. Cases 0-5 captured
- * structurally; cases 6/7/8 left as TODO (more complex arg-spill + indirect
- * pointer chains). Will not byte-match — all 9 cases need IDO jump-table
- * emit + 9 unique gl_func relocs + multi-extern aliases for case 4. */
+ * 2026-05-07: full case decode — all 9 cases now have complete C bodies.
+ * Case 4 (51 insns) decoded: 4 gl_func calls + a0->[8]->[4]<<2 vtable
+ * dispatch + D[0x80] ^= 1 toggle + 0x45000000 ASCII format constant
+ * passed as arg2 to gl_func. Case 5 (scratch+OR), case 6 (D[0x40]=1),
+ * case 7 (D[0x40]=8), case 8 (vtable+conditional-store) decoded.
+ * Will not byte-match — see BLOCKED note above. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+extern char D_a_4_x;
+extern int D_b_4_x[];
+extern char D_c_4_x;
+extern char D_X_17D;
+extern int D_X_90[];
+extern char D_8_x;
 void mgrproc_uso_func_0000019C(char *a0, int a1) {
     int loop_continue;
+    int v0_save;
+    int s0_save;
+    int *p, *q;
     do {
         loop_continue = 0;
         if ((unsigned)a1 >= 9) break;
@@ -240,26 +251,62 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
                 *(int*)((char*)&D_00000000 + 0x40) = 4;
                 break;
             case 4:
-                /* TODO: 28-insn multi-struct init (D_a/D_b/D_c access chain,
-                 * sp[0x50]->8->4 indexed by sp[0x18]<<2, D[0x80] |= 1) */
-                *(int*)((char*)&D_00000000 + 0x40) = 4;
+                /* 51 insns: 4 gl_func calls + vtable dispatch + D[0x80]^=1 */
+                gl_func_00000000(&D_a_4_x, D_b_4_x[1]);
+                /* a0->[8] points to a struct with header; index = header[1] */
+                p = (int*)*(int**)(a0 + 8);
+                q = p + p[1] * 1;  /* p[1]<<2 then add */
+                *(int*)((char*)&D_00000000 + 0x64) = q[3]; /* +0xC */
+                /* toggle D[0x80] bit 0 (xori) */
+                *(int*)((char*)&D_00000000 + 0x80) =
+                    *(int*)((char*)&D_00000000 + 0x80) ^ 1;
+                p = (int*)*(int**)(a0 + 8);
+                q = p + p[1] * 1;
+                /* sb (byte-store) of q->[0x24] to D_X_17D */
+                D_X_17D = (char)q[9]; /* +0x24 = q[9] */
+                /* lbu reload + sb of D_X_90[D_X_17D] to D_X_17D+2 */
+                *(&D_X_17D + 2) = (char)D_X_90[(unsigned char)D_X_17D];
+                gl_func_00000000(&D_c_4_x, 4,
+                                 *(int*)((char*)&D_00000000 + 0x64), 0);
+                gl_func_00000000(&D_c_4_x, *(int*)((char*)&D_00000000 + 0x64));
+                v0_save = gl_func_00000000(a0, *(int*)a0, 1);
+                /* 5-arg: stack arg5 = a0->[0] */
+                s0_save = gl_func_00000000(0, 0x45000000, v0_save,
+                                           *(int*)((char*)a0 + 8),
+                                           *(int*)a0);
+                gl_func_00000000(a0, 0, s0_save);
+                loop_continue = 1;
                 break;
-            case 5:
-                /* a0 = sp[0x50]; a1 = *(int*)a0; gl_func(a0, a1) */
-                gl_func_00000000(a0, *(int*)a0);
+            case 5: {
+                /* gl_func(a0, &sp[0x44]); spill v0; reload sp[0x44];
+                 * arg1 = sp[0x44] | 0x2000 | v0; gl_func(a0, ..., 0x2000, a0[0]); */
+                int buf;
+                int v0_local = gl_func_00000000(a0, &buf);
+                gl_func_00000000(a0, (buf | 0x2000) | v0_local, 0x2000,
+                                 *(int*)a0);
+                loop_continue = 1;
                 break;
+            }
             case 6:
-                /* TODO: 8-insn pre-call sp scratch buf + ASCII imm
-                 * + struct chain a0->8->0 + 0x45000000 const */
+                gl_func_00000000(a0);
+                *(int*)((char*)&D_00000000 + 0x40) = 1;
                 break;
             case 7:
-                /* TODO: 5-insn — saves v0 from prior call, then gl_func(a0,0,s0_v0) */
+                gl_func_00000000(a0);
+                *(int*)((char*)&D_00000000 + 0x40) = 8;
+                break;
+            case 8: {
+                /* gl_func(0,1,0) → s0; gl_func(&D+0x10, s0);
+                 * if (s0->[0x14] != 0) s0->[4] = 1; s0->[0x14] = &D; */
+                int *s0_p = (int*)gl_func_00000000(0, 1, 0);
+                gl_func_00000000((char*)&D_00000000 + 0x10, s0_p);
+                if (s0_p[0x14 / 4] != 0) {
+                    s0_p[1] = 1; /* +4 */
+                }
+                s0_p[0x14 / 4] = (int)&D_00000000;
                 loop_continue = 1;
                 break;
-            case 8:
-                /* TODO: ~25-insn sp scratch + buf-OR-0x2000 + ASCII reloc */
-                loop_continue = 1;
-                break;
+            }
         }
         a1++;
     } while (loop_continue);
