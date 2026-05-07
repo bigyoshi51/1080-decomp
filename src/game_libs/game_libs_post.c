@@ -641,7 +641,16 @@ extern int D_2D788_b;
  * 2026-05-06 retry: tried `register int unused_a1` — confirmed no-op
  * (IDO -O2 still emits the spill regardless of `register` hint on the
  * unused arg). Cap class is genuinely structural per the existing
- * feedback-ido-unused-arg-save doc; no C-level lever found for elision. */
+ * feedback-ido-unused-arg-save doc; no C-level lever found for elision.
+ *
+ * 2026-05-07 retry: confirmed two-extern split (D_2D788_a, D_2D788_b
+ * both at addr 0x0 in undefined_syms_auto.txt) does NOT promote — the
+ * blocking diff is the `sw a1, 0x1C(sp)` unused-arg spill that target
+ * lacks. Same shape as gl_func_0002D710 / 0002D74C siblings. Adding
+ * symbols just keeps emit identical at 11.1% byte-exact (target reorders
+ * sll/lui sequence which built can't reach, plus the spill diff). The
+ * actual cap is the unused-arg-save not the &D shared-base — splitting
+ * the externs solves the wrong problem here. */
 void gl_func_0002D788(int a0, int unused_a1, int a2) {
     D_2D788_a = a0;
     gl_func_00000000(0x41020000, (&D_2D788_b)[a2]);
