@@ -1536,17 +1536,25 @@ void timproc_uso_b5_func_0000CE0C(int a0) {}
 
 void timproc_uso_b5_func_0000CE14(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE1C);
+void timproc_uso_b5_func_0000CE1C(int *a0) {
+    *(int*)((char*)a0[0x2B8/4] + 0x130) = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE2C);
+void timproc_uso_b5_func_0000CE2C(int *a0) {
+    *(int*)((char*)a0[0x2B8/4] + 0x130) = 0;
+}
 
 void timproc_uso_b5_func_0000CE38(int a0) {}
 
 void timproc_uso_b5_func_0000CE40(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE48);
+void timproc_uso_b5_func_0000CE48(int *a0, int a1) {
+    *(int*)((char*)a0[0x2B8/4] + 0x138) = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE5C);
+void timproc_uso_b5_func_0000CE5C(int *a0, int a1) {
+    *(int*)((char*)a0[0x2B8/4] + 0x138) = 0;
+}
 
 /* 4-float load-batched store + jal. Was 97.2% NM (8-insn float
  * register-renumbering cap). Promoted via INSN_PATCH per
