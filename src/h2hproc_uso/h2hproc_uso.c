@@ -790,28 +790,44 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD
  * wrong as `if (... == 0) return;` early-exits — target's branches all
  * land at a SHARED tail that ALWAYS calls `gl_func_00000000(a0)`. So
  * the right shape is nested `if (... != 0) { ... }` with the wrapper
- * call after. Remaining ~12pp from the +0x10 increment block: target
- * uses `addiu v1, v0, 60` to compute &(v0->0x3C) and accesses via
- * `lw/sw 0(v1)`; built does direct `lw/sw 60(v0)`. Needs explicit
- * pointer-to-field idiom (per `feedback_ido_local_ordering`). */
+ * call after.
+ *
+ * 2026-05-07 fix #2 (87.62% -> 90.86%, +3.24pp): pointer-to-field idiom
+ * applied to the +0x10/-0x10 increment block. Declared `char *fp_a/b`
+ * + `int snapshot_a/b` separately so target's `addiu v1, v0, 60` /
+ * `lw t8, 60(v0)` two-step (vs built's direct `60(v0)`) emits
+ * correctly. Used by both incr (a) and decr (b) arms.
+ *
+ * Remaining ~9pp gap is `addiu t1, $0, 720` hoisting (built loads 0x2D0
+ * BEFORE the comparison; target loads it INSIDE the body branch) and
+ * v1 reuse for both snapshot+addr (built uses v1 for value, target uses
+ * t8). Both are IDO scheduler decisions; no clear C-level lever. */
 void h2hproc_uso_func_00001204(char *a0) {
     char *p1;
     char *v0;
     int t9;
 
     if (*(int*)(*(char**)(a0 + 0x2C) + 0x4F4) < 2) {
+        char *fp_a;
+        int snapshot_a;
         v0 = *(char**)(a0 + 0x34);
-        if (*(int*)(v0 + 0x3C) < 0xFF) {
-            *(int*)(v0 + 0x3C) += 0x10;
+        snapshot_a = *(int*)(v0 + 0x3C);
+        fp_a = v0 + 0x3C;
+        if (snapshot_a < 0xFF) {
+            *(int*)fp_a += 0x10;
         }
         v0 = *(char**)(a0 + 0x34);
         if (*(int*)(v0 + 0x3C) >= 0x100) {
             *(int*)(v0 + 0x3C) = 0x2D0;
         }
     } else {
+        char *fp_b;
+        int snapshot_b;
         v0 = *(char**)(a0 + 0x34);
-        if (*(int*)(v0 + 0x3C) > 0) {
-            *(int*)(v0 + 0x3C) -= 0x10;
+        snapshot_b = *(int*)(v0 + 0x3C);
+        fp_b = v0 + 0x3C;
+        if (snapshot_b > 0) {
+            *(int*)fp_b -= 0x10;
         }
         v0 = *(char**)(a0 + 0x34);
         if (*(int*)(v0 + 0x3C) < 0) {
