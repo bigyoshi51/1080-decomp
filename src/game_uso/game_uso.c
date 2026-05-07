@@ -6104,31 +6104,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010C4C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
 
-#ifdef NON_MATCHING
-/* 25-insn sibling of the game_uso_func_00010E2C family. Same 2-call
- * shape; D-offset 0xE10 (vs E2C's 0xE40).
- *
- * 2026-05-06: applied `register int *t` + intermediate v1/v2 named
- * locals per docs/IDO_CODEGEN.md#feedback-ido-shared-base-via-deferred-assign-and-named-locals
- * — gives shared-base structure ($v0 holds the base address) but IDO
- * bakes the +0xE10/+0xE14 offsets into the lw insns (target wants
- * `addiu t8, t8, 0xE10; lw 0(t8); lw 4(t8)`). Per
- * docs/IDO_CODEGEN.md#feedback-ido-constant-address-load-fold-inevitable
- * this fold is structural — the `&D + 0xE10` constant address gets
- * collapsed at constant-fold time. Tried `char *base` form too — same
- * emit. Cap stays at 88.6%.
- *
- * Remaining ~12% is the same family cap as 10E2C: shared-base shape
- * almost matches, plus 2 missing varargs shadow stores
- * (sw a1, 0x4(sp); sw a2, 0x8(sp)) before the 2nd jal.
- *
- * 2026-05-06 retry: tried `volatile int * volatile *base_pp` indirection
- * (the same trick that promoted 131C from 69→82%). No-op here — IDO
- * still emits v0-base + offset-baked-into-lw because there are only 2
- * adjacent loads (vs 131C's 3 non-adjacent), so IDO's fold collapses
- * them regardless of volatile attribution on the address-holder. The
- * volatile-pp trick requires N≥3 reads to lock the base register.
- * Confirms the family cap; no C-level lever for 2-read case. */
+/* Family sibling of game_uso_func_00010E2C / 000114FC: same SUFFIX_BYTES
+ * + 12-word INSN_PATCH recipe (per docs/POST_CC_RECIPES.md
+ * #feedback-suffix-plus-insn-patch-grows-and-reshapes), but 25-insn
+ * shape (vs 24-insn for E2C/14FC) so divergence point is +0x30 (one
+ * insn later — the additional `move a2, zero` keeps the prologue 12
+ * insns long). D-offset 0xE10. */
 void game_uso_func_00010DC8(int a0) {
     register int *t;
     int v1, v2;
@@ -6138,9 +6119,6 @@ void game_uso_func_00010DC8(int a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
-#endif
 
 /* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000.
  * Promoted to byte-correct via SUFFIX_BYTES (8 trailing nop bytes) +
