@@ -721,7 +721,45 @@ void gl_func_0002D788(int a0, int unused_a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002D7D0: 24-insn 4-call wrapper that does a leading store to
+ * D_0 (size 8, set up by predecessor 0x2D788's tail) then 4 sequential
+ * gl_func calls each loading a different float-encoded constant
+ * (0x4101=8.0625f, 0x4100=8.0f, 0x4102=8.125f, 0xF000=cross-USO marker)
+ * with a shared `*(int*)&D_array[0x20]` payload.
+ *
+ * Decoded:
+ *   D_0 = D_pred_size8;             // predecessor's stolen-tail set 8 here
+ *                                    // (sw $v0, 0($at) using predecessor's
+ *                                    // trailing `addiu v0,zero,8; lui at,0`)
+ *   D_0 = ...;                       // 2nd store same target via fresh lui
+ *   gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[0x8], ...);
+ *   gl_func_00000000(0x41000000, ((int*)&D_2D7D0_arr)[0x8], ...);
+ *   gl_func_00000000(0x41020000, ((int*)&D_2D7D0_arr)[0x8], ...);
+ *   gl_func_00000000(0xF0000000, 0);
+ *
+ * Cap class: PROLOGUE-STOLEN-SUCCESSOR (per docs/MATCHING_WORKFLOW.md
+ * feedback-prologue-stolen-successor-no-recipe). Predecessor 0x2D788
+ * has a 4-insn alt-entry stub at its tail (`addiu v0, zero, 8;
+ * lui at, 0; sw v0, 0(at); lui at, 0`) where the LAST insn `lui at, 0`
+ * sets $at for the successor's first `sw v0, 0($at)`. C-only emit will
+ * produce a redundant `lui $at, 0` at the start of the successor,
+ * +4 bytes vs expected.
+ *
+ * Promotion path: write C body with the leading store form
+ * (`D_2D7D0_target = D_2D7D0_value;`) and add
+ * `build/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0002D7D0=4`
+ * to the Makefile. Defer to multi-tick — needs sibling identification to
+ * confirm value tracked in the predecessor's stolen tail.
+ *
+ * Also potential beneficiary of feedback-ido-cse-bust-via-distinct-externs
+ * (docs/IDO_CODEGEN.md) since the target uses 4 separate luis for the
+ * float constants and the array reads — already separate-symbol via the
+ * 0xF000 constant, but the array reads might benefit from 4-extern split. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D7D0);
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D7D0);
+#endif
 
 /* gl_func_0002D838: 12-insn prologue-stolen-successor (sibling of 0002D8A8,
  * 0002D870). Predecessor's tail (`lui $t6, 0; lw $t6, 0(t6)`) loads
