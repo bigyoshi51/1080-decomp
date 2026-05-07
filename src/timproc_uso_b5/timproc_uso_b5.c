@@ -1431,7 +1431,34 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CB40);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000CBD0: 13-insn (0x34) fragment from C98C 13-fn
+ * split bundle. NO PROLOGUE — uses uninitialized $v1 (store base) and
+ * $at (D-relative load base) at entry. Predecessor CB40's tail must set
+ * these; this is a prologue-stolen-successor or shared-tail-entry pattern.
+ *
+ * Decoded body (assuming inherited $v1 = some store ptr, $at = &D high):
+ *   f4 = *a0;                          ; lwc1 f4, 0(a0)
+ *   f6 = D[0x380];                     ; lwc1 f6, 0x380(at)
+ *   f8 = f4 - f6;                      ; sub.s f8, f4, f6
+ *   *v1 = f8;                          ; swc1 f8, 0(v1)
+ *   v0 = a0->[0x2B8];
+ *   f10 = v0->[0x124];
+ *   if (f0 < f10) v0->[0x124] = f0;    ; c.lt.s + bc1f + swc1 (clamp)
+ *
+ * Likely an "if (current < threshold) clamp current" pattern entered from
+ * CB40's tail with f0/at/v1 pre-set. C-only emit cannot reproduce the
+ * uninitialized-reg entry — needs PROLOGUE_STEALS or merge-back into CB40.
+ * Multi-tick recipe-application required; default INCLUDE_ASM matches. */
+extern int gl_func_00000000();
+void timproc_uso_b5_func_0000CBD0(int *a0) {
+    /* See structural decode in comment. Cannot encode without resolving
+     * uninherited $v1/$at registers. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CBD0);
+#endif
 
 void timproc_uso_b5_func_0000CC04(int a0) {}
 
