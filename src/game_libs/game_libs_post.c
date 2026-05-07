@@ -5051,7 +5051,17 @@ void gl_func_000681F4(int *dst) {
     *dst = scratch;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068230);
+/* Vec3 (Tri3i) reader template — 20 insns / 0x50. Same shape as Quad4
+ * reader but with size 12 / 3 lw-sw pairs. Requires `int pad` before buf
+ * to push buf to sp+0x18 (matches target's stack layout vs IDO's natural
+ * sp+0x1C). */
+void gl_func_00068230(Tri3i *dst) {
+    int pad;
+    Tri3i buf;
+    gl_func_00000000(&D_00000000, &buf, 0xC);
+    *dst = buf;
+    (void)pad;
+}
 
 extern int gl_func_00000000();
 void gl_func_00068280(int *dst) {
