@@ -454,7 +454,34 @@ void mgrproc_uso_func_000013C8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C8);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F4);
+/* mgrproc_uso_func_000014F4: 40-insn 3-way switch on a0->[0x4D8] (v):
+ *   v == 2: gl_func_0(D[0x190], 3, 1, a0); a0->[0x7D4] = 1;
+ *   v == 1 || v == 3: gl_func_0(a0, D[0x170] + 0x26000F);
+ *   else: skip
+ *
+ * Always-call gl_func_0(D + 0x628, a0->[0x4D8]) at entry.
+ *
+ * Exact match via 3-extern split (D_mgr_14F4_a/b/c, all aliased to 0x0)
+ * + 4-insn INSN_PATCH at 0x4C/0x50/0x54/0x58 for the third equality
+ * test's branch-likely-vs-beq+goto-epilogue diff (target's
+ * `beq v0, at(=3), case_13; nop; b end; lw ra, 0x14(sp) (delay)` form
+ * vs IDO's `bnel v0, at, end; lw ra (delay); b case_13; nop`). */
+extern int D_mgr_14F4_a, D_mgr_14F4_b, D_mgr_14F4_c;
+void mgrproc_uso_func_000014F4(int *a0) {
+    int v;
+    gl_func_00000000((char*)&D_mgr_14F4_a + 0x628, *(int*)((char*)a0 + 0x4D8));
+    v = *(int*)((char*)a0 + 0x4D8);
+    if (v == 2) goto case_2;
+    if (v == 1) goto case_13;
+    if (v == 3) goto case_13;
+    return;
+case_2:
+    gl_func_00000000(*(int*)((char*)&D_mgr_14F4_b + 0x190), 3, 1, a0);
+    *(int*)((char*)a0 + 0x7D4) = 1;
+    return;
+case_13:
+    gl_func_00000000(a0, *(int*)((char*)&D_mgr_14F4_c + 0x170) + 0x26000F);
+}
 
 /* mgrproc_uso_func_00001594: 32-insn (0x80) check-then-vtable-call helper.
  * Decoded:
