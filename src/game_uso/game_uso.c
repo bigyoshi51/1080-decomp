@@ -4078,11 +4078,50 @@ trunk:
      * Cumulative bit-0x80 body decoded: 69/~80 insns (~86%). Remaining
      * ~10 insns at 0x7990+ (likely final return/ret_lo finalize). */
 
+    /* common float-state update tail @ 0x79F8-0x7A94 (decoded 2026-05-07,
+     * 26 insns). Triggered after any trunk-arm completes:
+     *   if (ret_hi != 0) {
+     *       float f12 = a0[0x3C];
+     *       if      (f12 >  0.0)  a0[0x3C] = 1.0f;        // path A
+     *       else if (f12 <  0.0)  a0[0x3C] = -1.0f;       // path B-b
+     *       // f12 == 0: no change                          (path B-a)
+     *       a0[0x38] = a0[0x3C];                            // commit sign
+     *       f0 = a0[0x3C];                                  // for store @ 0x44(v1)
+     *   } else {
+     *       a0[0x38] = f16;                                 // f16 = 0.0f initial
+     *       f0 = ?;                                         // f0 used at 0x7A80
+     *   }
+     *   ((float*)((int*)a0[0x30])->[0x800])->[0x44] = f0;
+     *   ((float*)((int*)a0[0x30])->[0x800])->[0x48] = f2;
+     *   ((int*)((int*)a0[0x30])->[0x800])->[0x40] = ret_lo;
+     *
+     * Wired below as the function's epilogue-with-FPU section. The
+     * `f0 = ?` for ret_hi==0 path is unclear; target falls through the
+     * mov.s f0,f12 at 0x7A74 in path A and uses f12 from the 0x3C reload
+     * — whether ret_hi==0 path also goes through it (with f12 = a0[0x38]
+     * after the swc1 f16,0x38 store) is the unresolved bit. */
+    if (ret_hi != 0) {
+        f_tmp = *(float*)&a0[0x3C / 4];
+        if (f_tmp > 0.0f)        *(float*)&a0[0x3C / 4] = 1.0f;
+        else if (f_tmp < 0.0f)   *(float*)&a0[0x3C / 4] = -1.0f;
+        /* f_tmp == 0: leave as-is */
+        *(float*)&a0[0x38 / 4] = *(float*)&a0[0x3C / 4];
+    } else {
+        *(float*)&a0[0x38 / 4] = 0.0f;  /* f16 was 0.0f initial */
+    }
+    /* fall through to ret */
+
 ret:
     /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94),
      * then return packed (ret_hi, ret_lo) as 64-bit (v0, v1) per asm. */
     outer = (int*)a0[0x30 / 4];
     ((int*)outer[0x800 / 4])[0x40 / 4] = ret_lo;
+    /* Two trailing FPU stores at 0x7A80/0x7A84 (sw f0, 0x44; sw f2, 0x48):
+     * outer->[0x800]->[0x44] = f0; outer->[0x800]->[0x48] = f2; — these
+     * happen UNCONDITIONALLY in target as part of the common tail. Wired
+     * partially: the f2 store is captured here; f0 store needs the
+     * if-ret_hi-path's f12 reload threaded through. */
+    *(float*)&((int*)outer[0x800 / 4])[0x48 / 4] = f2;
     return ((long long)ret_hi << 32) | (unsigned int)ret_lo;
 }
 #else
