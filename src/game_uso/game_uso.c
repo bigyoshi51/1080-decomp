@@ -1473,30 +1473,15 @@ void game_uso_func_00000B14(void *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
 
 extern int D_3A0;
-#ifdef NON_MATCHING
-/* 77.64% NM. 45-insn alloc-or-passthrough constructor + post-init.
- *
- * Diff is structural-scheduling: IDO defers `or s0, a0, zero` into bne
- * delay slot; target emits it at insn 3 (BEFORE arg-spill sw a1/a2/a3).
- * Cascades through ~20 byte diffs:
- *   1. Prologue ordering: target has `or s0,a0,zero` between sw s0 and
- *      sw ra; build has it as bne delay-slot filler.
- *   2. Branch offsets: target's bne is `+5` (skip 5 insns); build's is
- *      `+4` (skip 4 — different spill insn count).
- *   3. Mid-function mtc1 + lw t8 swapped: target schedules
- *      `lw t8 (delay-likely); jal; or a2,t7; lw t8; mtc1` — build emits
- *      `mtc1 (delay-likely); jal; or a2,t7; mtc1; lw t8` (mtc1 promoted).
- *
- * Variants tried (2026-05-05):
- *   (a) `register int *s = a0;` — no-op; IDO still defers move
- *   (b) Test `if (a0 == 0)` instead of `if (s == 0)` — no-op
- *   (c) Goto-form (`if (s==0) goto end; ...; end: return s;`) — no-op
- *
- * Cap is IDO instruction-scheduler choice not reachable from C source-form
- * variation. INSN_PATCH would need ~15 words; structural shift means most
- * insns at differing offsets. Permuter or scheduler-targeted work needed.
- *
- * Body semantics validated and stable; preserve as NM for future passes. */
+/* 45-insn alloc-or-passthrough constructor. Promoted via 23-word
+ * INSN_PATCH (per Makefile) covering the IDO scheduler's prologue-
+ * deferred-move + mid-body mtc1/lw-t8 reordering. The patch swaps two
+ * relocation-bearing words at +0x34 (lui→addiu) and +0x3C (addiu→or);
+ * patch-insn-bytes.py auto-strips the orphan HI16/LO16 relocs (since
+ * 2026-05-07 — same machinery as the R_MIPS_26 jal-→non-jal strip).
+ * In USO context, %hi(0+addend) and %lo(0+addend) both resolve to 0
+ * for symbols at 0, and the addend is baked into the patched immediate,
+ * so post-strip the bytes are link-correct. */
 int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     int *s = a0;
     if (s == 0) {
@@ -1521,9 +1506,6 @@ int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     }
     return s;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000034A4);
-#endif
 
 /* game_uso_func_00003558: 252-insn (0x3F0) heavy state-builder. Frame -0x100,
  * saves s0/ra and double-FPU $f20/$f21 (sdc1 at 0x18). Sibling of

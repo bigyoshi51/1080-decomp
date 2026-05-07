@@ -45,11 +45,35 @@ SYM_FMT = ">IIIBBH"
 REL_FMT = ">II"  # Elf32_Rel: r_offset, r_info
 
 R_MIPS_26 = 4
+R_MIPS_HI16 = 5
+R_MIPS_LO16 = 6
+
+# MIPS opcodes that participate in HI16/LO16 paired relocations:
+# - lui (0x0F): receives R_MIPS_HI16
+# - addiu (0x09), lw (0x23), sw (0x2B), lhu (0x25), lh (0x21), lb (0x20),
+#   lbu (0x24), sh (0x29), sb (0x28), lwc1 (0x31), swc1 (0x39),
+#   ldc1 (0x35), sdc1 (0x3D): receive R_MIPS_LO16 (immediate-form)
+_LO16_OPCODES = frozenset(
+    {0x09, 0x20, 0x21, 0x23, 0x24, 0x25, 0x28, 0x29, 0x2B, 0x31, 0x35, 0x39, 0x3D}
+)
+
+
+def _opcode(word):
+    return (word >> 26) & 0x3F
+
 
 # A MIPS jal/j has opcode 0b00001x (top 6 bits = 0x02 or 0x03).
 def _is_jump_opcode(word):
-    op = (word >> 26) & 0x3F
+    op = _opcode(word)
     return op == 0x02 or op == 0x03
+
+
+def _is_lui_opcode(word):
+    return _opcode(word) == 0x0F
+
+
+def _is_lo16_opcode(word):
+    return _opcode(word) in _LO16_OPCODES
 
 
 def find_text_and_sym(data, func_name):
@@ -136,6 +160,42 @@ def strip_orphan_jal_relocs(data, func_addr, orphan_offsets):
     return stripped
 
 
+def strip_orphan_hilo_relocs(data, hi_offsets, lo_offsets):
+    """Zero out R_MIPS_HI16 / R_MIPS_LO16 relocs at orphan offsets.
+
+    Counterpart to strip_orphan_jal_relocs for HI16/LO16 paired relocs.
+    Triggers when INSN_PATCH replaces a `lui rD, %hi(SYM)` with a non-lui
+    instruction (HI16 reloc would be re-applied to bits 15..0 of the new
+    word, which for non-lui opcodes are the immediate field — wrong) or
+    replaces an `addiu/lw/sw rD,rS,%lo(SYM)` with an opcode outside the
+    LO16-bearing set (LO16 reloc would corrupt bits 15..0 of the new
+    word).
+
+    Safe under USO context where every cross-USO symbol resolves to 0 at
+    link time and the post-patch word already encodes the correct
+    immediate (since `%hi(0+addend)` and `%lo(0+addend)` both resolve to
+    addend's bits, which the patch caller has baked into the instruction).
+    """
+    if not hi_offsets and not lo_offsets:
+        return 0
+    rel = find_rel_text(data)
+    if rel is None:
+        return 0
+    rel_off, rel_size, rel_ent = rel
+    stripped = 0
+    for i in range(rel_size // rel_ent):
+        e_off = rel_off + i * rel_ent
+        r_offset, r_info = struct.unpack(REL_FMT, data[e_off:e_off + rel_ent])
+        r_type = r_info & 0xFF
+        if r_type == R_MIPS_HI16 and r_offset in hi_offsets:
+            data[e_off:e_off + rel_ent] = struct.pack(REL_FMT, 0, 0)
+            stripped += 1
+        elif r_type == R_MIPS_LO16 and r_offset in lo_offsets:
+            data[e_off:e_off + rel_ent] = struct.pack(REL_FMT, 0, 0)
+            stripped += 1
+    return stripped
+
+
 def patch_one(data, func_name, patches):
     text_file_off, func_addr, func_size = find_text_and_sym(data, func_name)
     if text_file_off is None:
@@ -144,6 +204,8 @@ def patch_one(data, func_name, patches):
     skipped = 0
     applied = 0
     orphan_jal_offsets = set()
+    orphan_hi_offsets = set()
+    orphan_lo_offsets = set()
     for insn_off, word in patches:
         if not (0 <= insn_off < func_size):
             raise ValueError(
@@ -157,19 +219,32 @@ def patch_one(data, func_name, patches):
         if existing == word:
             skipped += 1
             continue
+        rel_offset = func_addr + insn_off
         # If we're overwriting a jal/j with a non-jump opcode, remember the
         # .text-relative offset so we can neutralize the (now-orphan)
         # R_MIPS_26 relocation that was emitted for the original jal.
         if _is_jump_opcode(existing) and not _is_jump_opcode(word):
-            orphan_jal_offsets.add(func_addr + insn_off)
+            orphan_jal_offsets.add(rel_offset)
+        # Same for HI16/LO16: if the existing word's opcode bears that
+        # reloc but the new word's doesn't, the reloc is now an orphan
+        # that would corrupt the new instruction's immediate field.
+        if _is_lui_opcode(existing) and not _is_lui_opcode(word):
+            orphan_hi_offsets.add(rel_offset)
+        if _is_lo16_opcode(existing) and not _is_lo16_opcode(word):
+            orphan_lo_offsets.add(rel_offset)
         data[abs_off:abs_off + 4] = struct.pack(">I", word)
         applied += 1
 
-    stripped = 0
+    jal_stripped = 0
+    hilo_stripped = 0
     if orphan_jal_offsets:
-        stripped = strip_orphan_jal_relocs(data, func_addr, orphan_jal_offsets)
+        jal_stripped = strip_orphan_jal_relocs(
+            data, func_addr, orphan_jal_offsets)
+    if orphan_hi_offsets or orphan_lo_offsets:
+        hilo_stripped = strip_orphan_hilo_relocs(
+            data, orphan_hi_offsets, orphan_lo_offsets)
 
-    return applied, skipped, stripped
+    return applied, skipped, jal_stripped, hilo_stripped
 
 
 def parse_spec(spec):
@@ -191,16 +266,22 @@ def main():
 
     raw = bytearray(args.o_file.read_bytes())
     func_name, patches = parse_spec(args.spec)
-    applied, skipped, stripped = patch_one(raw, func_name, patches)
+    applied, skipped, jal_stripped, hilo_stripped = patch_one(
+        raw, func_name, patches)
     args.o_file.write_bytes(bytes(raw))
 
     if applied:
         words = ", ".join(f"@{o:#x}={w:#010x}" for o, w in patches)
         print(f"patch-insn: {func_name} patched {applied}/{len(patches)} "
               f"insns ({words})", file=sys.stderr)
-    if stripped:
-        print(f"patch-insn: {func_name} stripped {stripped} orphan R_MIPS_26 "
-              f"reloc(s) at jal-→non-jal offsets", file=sys.stderr)
+    if jal_stripped:
+        print(f"patch-insn: {func_name} stripped {jal_stripped} orphan "
+              f"R_MIPS_26 reloc(s) at jal-→non-jal offsets",
+              file=sys.stderr)
+    if hilo_stripped:
+        print(f"patch-insn: {func_name} stripped {hilo_stripped} orphan "
+              f"R_MIPS_HI16/LO16 reloc(s) at lui/addiu-→other-opcode offsets",
+              file=sys.stderr)
     if skipped == len(patches):
         print(f"patch-insn-skip: {func_name} all {skipped} bytes already "
               f"match (likely INCLUDE_ASM build path); no-op",
