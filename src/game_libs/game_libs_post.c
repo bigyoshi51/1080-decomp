@@ -4508,7 +4508,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061E58);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061E9C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F18);
+/* Quad4 reader template — 4th in this loop's mass-match pass after
+ * 0003A9E8/0000975C/00037E40. Standard 22-insn body. */
+void gl_func_00061F18(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 0x10);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F8C);
 
