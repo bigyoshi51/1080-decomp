@@ -5299,15 +5299,27 @@ void game_uso_func_0000ADE0(int *dst) {
  * Stage 3 @ 0xAE5C-0xAE68 (init sub-obj with table @ &D + 0xD50):
  *   init_sub(s0, &D[0xD50])
  *
- * Stage 4 @ 0xAE6C-0xAE7C (vtable-pointer set + bne sentinel check):
- *   sentinel @ -0x2C; if (s0 + 0x2C != 0) skip alloc; *(s0 + 0x28) = &D
+ * Stage 4 @ 0xAE6C-0xAE7C (vtable-pointer set + dead-code alloc-cascade):
+ *   *(s0 + 0x28) = &D
+ *   sentinel-bne pattern at -0x2C/-0xDC/etc — IDO emits dead alloc(4)
+ *   block (same family as 00003018 Stage 6's "always-true bne" cap).
  *
- * Remaining ~250 insns TBD: more alloc-cascade stages + struct-field
- * fills + cross-USO init calls. Same family pattern as 00003018.
+ * Stage 5 @ 0xAEAC-0xAED4 (Vec3-zero init + sub-obj alloc(0x30)):
+ *   sp[0x84..0x8C] = (0.0f, 0.0f, 0.0f)
+ *   t0 (orig arg0) -> [0x28] = &D
  *
- * Picked source 5 (strategy memo size-descending). Initial structural
- * skeleton — partial decode of stages 1-3 (~25/278 insns). Multi-run
- * refinement expected. */
+ * Stage 6 @ 0xAEDC-0xAEFC (sentinel(-DC)+alloc(0x10) bundle): same shape,
+ *   different alloc size + sentinel.
+ *
+ * Stage 7 @ 0xAF00-0xAF60: more alloc(0x10)+(0x4)+sub-obj-init chain
+ *   with cross-USO `init_with_table_at_D[0x848]/[0x840]`.
+ *
+ * Remaining ~200 insns TBD: more alloc-cascade stages + struct-field
+ * fills. Same family pattern as 00003018.
+ *
+ * Picked source 5 (strategy memo size-descending). Structural skeleton
+ * with stages 1-7 partially decoded (~70/278 insns covered in doc;
+ * encoded body covers stages 1-4). Multi-run refinement expected. */
 void* game_uso_func_0000AE1C(void* arg0) {
     void *s0;
     void *sub;
@@ -5324,7 +5336,8 @@ void* game_uso_func_0000AE1C(void* arg0) {
     }
     gl_func_00000000(sub, (char*)&D_00000000 + 0xD50);
 skip_init:
-    /* Remaining ~250 insns TBD: cross-USO inits + struct fills */
+    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    /* Remaining ~200 insns TBD: stages 5-N — cross-USO inits + struct fills */
     return s0;
 }
 #else
