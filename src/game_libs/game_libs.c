@@ -751,9 +751,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
  * game_libs_tail.c. */
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA40);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA5C);
+/* Fragments 0003AA40, 0003AA5C moved to game_libs_post.c on 2026-05-07
+ * (correct file for VRAM 0x3*** range). */
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 

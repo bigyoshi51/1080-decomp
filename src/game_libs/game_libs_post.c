@@ -1744,6 +1744,16 @@ void gl_func_0003A9E8(Quad4 *dst) {
     *dst = buf;
 }
 
+/* 7-insn leaf — zero out 4 floats at dst[0..3] (split off from 3A9E8 bundle). */
+void game_libs_func_0003AA40(float *dst) {
+    dst[3] = 0.0f;
+    dst[0] = 0.0f;
+    dst[1] = 0.0f;
+    dst[2] = 0.0f;
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA5C);
+
 #ifdef NON_MATCHING
 /* gl_func_0003AC5C: 127-insn (0x1FC) constructor + token-stream loop.
  * Sibling of gl_func_0003AE58 (next func, similar alloc-init pattern).
