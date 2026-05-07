@@ -852,25 +852,35 @@ void arcproc_uso_func_0000247C(void) {
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
 
-/* arcproc_uso_func_000024C0: 4-FUNCTION BUNDLE (0x5C / 23 insns).
- * Splat-bundled, can't be split per
- * feedback_uso_split_fragments_breaks_expected_match.md.
+#ifdef NON_MATCHING
+/* arcproc_uso_func_000024C0: F1 + 3 trailing empty stubs (0x5C total).
+ * Sibling of 23F4/2438/247C (state-set menu helpers, plain-C exact at
+ * -O2). Same shape with N=9 here (vs N=4/1/2 for the others).
  *
- * Sub-function layout:
- *   F1 @ 0x24C0-0x2500: 16 insns. Sibling of 23F4/2438/247C (state-set
- *     menu helpers). Same shape as `void f(void) { gl_func(gl_ref_70);
- *     gl_ref_40 = N; gl_func(gl_ref_74, -1, 0); }` with N=9 here (vs
- *     N=4/1/2 for the 3 already-decomp'd siblings).
- *   F2 @ 0x2504-0x2508: 2 insns. Empty stub (`jr ra; nop`).
- *   F3 @ 0x250C-0x2510: 2 insns. Empty stub (`jr ra; nop`).
- *   F4 @ 0x2514-0x2518: 2 insns. Empty stub (`jr ra; nop`).
+ * F1 @ 0x24C0-0x2500: 16-insn body — the "real" function.
+ * F2/F3/F4 @ 0x2504/0x250C/0x2514: 2-insn `jr ra; nop` empty stubs
+ * with no callers in src/ or undefined_syms_auto.txt (dead splat-
+ * bundled stubs).
  *
- * The 3 trailing empty stubs (0x2504/250C/2514) have no references in
- * src/ or undefined_syms_auto.txt — they're dead code in the ROM that
- * splat happened to name. Splitting the bundle to decomp F1 alone
- * (mirroring the 23F4/2438/247C siblings) breaks the expected/.o byte
- * layout per the documented USO-split caveat. INCLUDE_ASM remains. */
+ * Promotion path tried 2026-05-07: plain-C F1 body + SUFFIX_BYTES
+ * (6-word `jr ra; nop` triple) produces correct 0x5C bytes, but the
+ * cross-USO data refs (gl_ref_00000040/70/74) hit the reloc-encoding-
+ * pin issue (built emits `lw a0, 0(a0)` + R_MIPS_LO16; expected has
+ * `lw a0, 0x70(a0)` baked). Fuzzy = None.
+ *
+ * Per docs/MATCHING_WORKFLOW.md
+ * #reloc-encoding-pinning-structurally-identical-c-body-still-scores-65
+ * — keep INCLUDE_ASM as default; C body in NM-wrap for reference. */
+extern int gl_func_00000000();
+extern int gl_ref_00000040, gl_ref_00000070, gl_ref_00000074;
+void arcproc_uso_func_000024C0(void) {
+    gl_func_00000000(gl_ref_00000070);
+    gl_ref_00000040 = 9;
+    gl_func_00000000(gl_ref_00000074, -1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000024C0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251C);
 
