@@ -560,25 +560,51 @@ void arcproc_uso_func_00000FA8(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA8);
 #endif
 
-/* arcproc_uso_func_00001170: 3-FUNCTION BUNDLE (0xEC / 59 insns).
- * Splat-bundled, can't be split per
- * feedback_uso_split_fragments_breaks_expected_match.md.
+/* arcproc_uso_func_00001170: F1 (32-insn dispatcher + indirect call) +
+ * F2 + F3 splat-bundled sub-functions (0xEC total).
  *
- * Sub-function layout (boundary = jr $ra + delay slot):
- *   F1 @ 0x1170-0x11EC: 32 insns. Frame -0x18, dispatcher with one
- *     gl_func call (insn 4 @ 0x1184) + conditional indirect call via jalr
- *     (insn 23 @ 0x11D8). Pattern: load D global at lui+lw, dispatch
- *     based on returned v0, conditional callback via t9 indexed by
- *     ((v0+0x28) << 2) (table at *D[0x190]+0x90).
+ * 2026-05-07: promoted via SUFFIX_BYTES recipe (28 words / 0x70 bytes
+ * absorbing F2 + F3) — sibling family of arcproc_uso_func_00000EBC,
+ * gl_func_000070A0, timproc_uso_b3_func_00000DE4.
  *
- *   F2 @ 0x11F0-0x1224: 14 insns. Smaller dispatcher.
+ * F1 @ 0x1170-0x11EC: gate + indirect callback via vtable.
+ *   if (gl_func(D[0x190], a0)) {
+ *       p = a0->[0x48]; idx = p->[0x7C];
+ *       target = p + idx*0x28;
+ *       if (target->[0x90]) {
+ *           D[0x0] = a0;
+ *           p = a0->[0x48]; idx = p->[0x7C];
+ *           target = p + idx*0x28;
+ *           ((void(*)())target->[0x90])();
+ *       }
+ *   }
  *
- *   F3 @ 0x1228-0x1258: 14 insns. Another small dispatcher.
+ * F2 @ 0x11F0-0x1224: clear bit-0x04 in two field locations:
+ *   *(a0->[0x6AC]->[0x6C] + 0x18) &= ~0x04;
+ *   *(a0->[0x6AC]->[0x94] + 0x18) &= ~0x04;
  *
- * Total bytes 0xEC (59 insns) matches declared size (rounding to
- * alignment). All 3 sub-bodies documented for future split-with-
- * refresh-expected attempt. Default INCLUDE_ASM build remains exact. */
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001170);
+ * F3 @ 0x1228-0x1258: same as F2 but |= 0x04 (set bit). */
+extern int gl_func_00000000();
+extern char D_00000000;
+void arcproc_uso_func_00001170(int *a0) {
+    int *table_root = *(int**)((char*)&D_00000000 + 0x190);
+    int *p;
+    int idx;
+    int *target;
+    void (*fn)();
+
+    if (gl_func_00000000(table_root, a0) == 0) return;
+    p = (int*)a0[0x48 / 4];
+    idx = *(int*)((char*)p + 0x7C);
+    target = (int*)((char*)p + idx * 0x28);
+    if (target[0x90 / 4] == 0) return;
+    *(int*)&D_00000000 = (int)a0;
+    p = (int*)a0[0x48 / 4];
+    idx = *(int*)((char*)p + 0x7C);
+    target = (int*)((char*)p + idx * 0x28);
+    fn = (void(*)())target[0x90 / 4];
+    fn();
+}
 
 /* arcproc_uso_func_0000125C: 139-insn (0x22C) FPU-heavy state-update.
  * Single function (1 jr ra). Frame -0x70 with s0/ra saved.
