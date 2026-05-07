@@ -5635,7 +5635,42 @@ void game_uso_func_00010AC8(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010AC8);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00010B38: 29-insn (0x74) "init + 3-call orchestrator".
+ *
+ * Decoded body:
+ *   gl_func_00000000(a0);                       ; first call (1-arg, init)
+ *   p = a0->[0xB4];
+ *   gl_func_00000000(a0,
+ *                    0x20003,         ; lui 2; ori 3 → 0x20003
+ *                    0x20002,         ; lui 2; ori 2 → 0x20002
+ *                    0x100,            ; ($t7 = 0x100)
+ *                    5);               ; ($t8 = 5)
+ *   p->[0x970] = 0x100 stored via stack? Actually:
+ *      sw t8 (5), 0x14(sp)  ; outgoing-arg slot
+ *      sw t7 (0x100), 0x10(sp)  ; outgoing-arg slot
+ *   t = (int*)((char*)&D + 0xE60);
+ *   gl_func_00000000(a0, t[0], t[1], -1);       ; 4-arg with varargs spills
+ *
+ * Family-cap class (~85%): same shape as 10E2C / 11368 / 105DC — varargs
+ * pre-spills to caller arg slots before the 3rd jal. Source 5 strategy
+ * memo (game_uso) — fell through to size-sort. */
+void game_uso_func_00010B38(int *a0) {
+    register int *t;
+    int v1, v2;
+    int *p;
+    gl_func_00000000(a0);
+    p = (int*)a0[0xB4 / 4];
+    gl_func_00000000(a0, 0x20003, 0x20002, 0x100, 5);
+    (void)p;
+    t = (int*)((char*)&D_00000000 + 0xE60);
+    v1 = t[0];
+    v2 = t[1];
+    gl_func_00000000(a0, v1, v2, -1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010B38);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010BAC);
 
