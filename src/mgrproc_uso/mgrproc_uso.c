@@ -356,12 +356,15 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000050
  *   3. On no-collision: arr[count].field_24 = candidate; count++
  *   4. Loop until count == 4
  *
- * Initial structural NM wrap. Float math (mul.s/trunc.w.s/mfc1) not yet
- * representable through the K&R `gl_func_00000000()` declaration which is
- * already int-returning in this TU. Float-typed local-extern variant blocked
- * by IDO 7.1 lacking __attribute__((alias)) — see
- * docs/IDO_CODEGEN.md#feedback-ido-no-gcc-register-asm. */
+ * 2026-05-07: float math now wired via function-pointer cast through the
+ * existing int-returning K&R extern. The cast `((FloatFn)gl_func_00000000)()`
+ * resolves to the SAME placeholder symbol (jal 0) but lets C treat the
+ * return as float so `mul.s` is emitted before `trunc.w.s`. Asm chain:
+ *   jal gl_func; lwc1 f4, 0x24(at); mul.s f6, f0, f4; trunc.w.s f8, f6;
+ *   mfc1 t9, f8; lw t0, 0x4C(at); addu t1, t9, t0; addiu t2, t1, 1;
+ *   div t2, 5; mfhi t3 → candidate. */
 extern int gl_func_00000000();
+typedef float (*FloatFn)(void);
 void mgrproc_uso_func_000005D0(char *a0) {
     int count = 0;
     int result = -1;
@@ -371,7 +374,9 @@ void mgrproc_uso_func_000005D0(char *a0) {
 
     while (count < 4) {
         while (result == -1) {
-            candidate = (gl_func_00000000() + *(int*)((char*)&D_00000000 + 0x4C) + 1) % 5;
+            candidate = ((int)(((FloatFn)gl_func_00000000)() *
+                               *(float*)((char*)&D_00000000 + 0x24))
+                         + *(int*)((char*)&D_00000000 + 0x4C) + 1) % 5;
             arr = *(int**)(a0 + 8);
             for (idx = 0; idx < count; idx++) {
                 if (*(int*)((char*)arr + idx * 4 + 0x24) == candidate) break;
