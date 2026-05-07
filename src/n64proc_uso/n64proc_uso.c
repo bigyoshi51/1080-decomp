@@ -287,7 +287,20 @@ extern char D_00000000;
  *     but .text register allocation is IDENTICAL to default
  *     ($s0=cur, $s1=flag, $s2=base, $s3=one, $s4=arg0, $s5=base10).
  *     The diff is purely debug-info section content; code unchanged.
- * Confirms -g flags don't shift $s allocation in IDO -O2. */
+ * Confirms -g flags don't shift $s allocation in IDO -O2.
+ *
+ * (27) TRIED 2026-05-07: re-test of variant 4 (`base10 = base + 0x10`
+ * derived form) in current goto-chain context (variant 21's strategy of
+ * retesting old levers post-baseline-shift). Standalone .o disassembly:
+ * IDO emits `lui s5, 0; addiu s5, s5, 16` (TWO insns at 0x1C+0x38),
+ * IDENTICAL to `&D_00000000 + 0x10` form. The C-level expression
+ * `base + 0x10` is constant-folded into a symbol+offset relocation pair
+ * BEFORE register allocation, so it never sees `addu s5, s2, imm` form.
+ * Variants 4 and 27 are byte-equivalent in IDO -O2 emit. Cap stays at
+ * 75 % — the loop_tail `lw a1, 64($s_base)` indexed-load form still
+ * blocked by the constant-fold pass. Confirms: any C expression that
+ * could-resolve to a symbol+offset is folded; `base` register hint
+ * doesn't propagate through arithmetic. CAP HOLDS. */
 void n64proc_uso_func_00000014(int arg0, int arg1) {
     register char *base = &D_00000000;
     register char *base10 = &D_00000000 + 0x10;
