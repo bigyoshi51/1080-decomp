@@ -505,9 +505,58 @@ void gui_func_0000271C(char *a0) {
  * 256+ insns of body decode deferred - multi-pass NM. Default build still
  * uses INCLUDE_ASM via #else; this wrap captures the entry signature and
  * the bit-4/bit-1/bit-2 flag-dispatch shape for next pass. */
+/* 2026-05-07: entry-stage decode (insns 0-40 / 0x00-0xA8).
+ *
+ * The bit-4/bit-1/bit-2 dispatch resolves x/y adjustments BEFORE the
+ * shared body. The signed-half-load + bgtz-or-add-then-sra pattern is
+ * "x - rounded_half" — taking a0->field_10's halfword field and
+ * subtracting (val + (val<0 ? 1 : 0)) >> 1 from x_pos:
+ *
+ *   if (a3 & 4) {
+ *       a1_h = (s16)a0->[0x10]->[0x20];
+ *       x_pos -= a1_h;                    // FULL value subtracted
+ *       goto common;
+ *   }
+ *   if (a3 & 1) {
+ *       a1_h = (s16)a0->[0x10]->[0x20];
+ *       x_pos -= (a1_h + (a1_h <= 0 ? 1 : 0)) >> 1;  // HALF (rounded)
+ *   }
+ *   if (a3 & 2) {
+ *       a1_h = (s16)a0->[0x10]->[0x22];
+ *       a2 -= (a1_h + (a1_h <= 0 ? 1 : 0)) >> 1;  // HALF (rounded)
+ *   }
+ *  common:
+ *   ... 220 more insns of body ...
+ *
+ * The "bgtz + add 1 + sra 1" is the standard signed-int divide-by-2
+ * with round-to-nearest-toward-zero correction. Confirms a1_h is
+ * signed (lh, not lhu).
+ *
+ * 220+ insns of body still TODO. Default INCLUDE_ASM keeps ROM exact. */
 void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
-    /* TODO: full body decode. Stub just captures arg signature. */
-    (void)a0; (void)a1; (void)a2; (void)a3;
+    int *p;
+    int a1_h;
+    if (a3 & 4) {
+        p = (int*)a0[0x10 / 4];
+        a1_h = *(short*)((char*)p + 0x20);
+        a1 -= a1_h;
+    } else {
+        if (a3 & 1) {
+            p = (int*)a0[0x10 / 4];
+            a1_h = *(short*)((char*)p + 0x20);
+            if (a1_h <= 0) a1_h += 1;
+            a1 -= a1_h >> 1;
+        }
+        if (a3 & 2) {
+            p = (int*)a0[0x10 / 4];
+            a1_h = *(short*)((char*)p + 0x22);
+            if (a1_h <= 0) a1_h += 1;
+            a2 -= a1_h >> 1;
+        }
+    }
+    /* TODO: 220-insn body — display-list builder for the adjusted
+     * (a1, a2) coordinates, using a0->[0x10]->[various] glyph metrics. */
+    (void)a0; (void)a1; (void)a2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
