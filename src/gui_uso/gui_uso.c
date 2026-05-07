@@ -94,29 +94,54 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
  */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
 
+#ifdef NON_MATCHING
 /* gui_func_00000918: 144-insn display-list builder for GUI primitives.
- * .word-only encoded (USO relocations). Hand-decoded structure:
  *
- *   ctx_t *ctx = a0;                          // GUI render context
- *   ctx->cursor++;  // a0[0x4] = cursor of current DL slot
- *   void *dl_buf = ctx->dl_buf;  // a0[0xC]
- *   int slot = (cursor << 3);    // 8-byte slots
- *   void *p = dl_buf + slot;
- *   *(u32*)p = 0xFA000000;       // G_SETPRIMCOLOR-ish opcode (RDP/F3DEX2)
- *   *(u32*)(p + 4) = some_value;
- *   *(f32*)(sp+0) = ... (zero-fill 16 bytes of stack scratch)
- *   ... (~120 more insns: more DL writes + float math via $f0=255.0,
- *        $at=4F000000 (max-int-as-float), neg.s, mul.s sequences)
- *   ... ends with frame teardown + jr ra
+ * 2026-05-07 first-pass decode: this function takes its primary state
+ * pointer in $v0 (NOT $a0) — the entry insns 0x04, 0x18 read
+ * `lw v1, 0xC(v0)` and `lw t3, 0xC(v0)` BEFORE any code that sets v0.
+ * Insn 0x44 `lw v0, 0x24(a0)` finally sets v0 from a0->[0x24], but the
+ * prior 17 insns assumed v0 was pre-set. This is a non-standard
+ * calling convention — the caller (likely gui_func_00000148 or similar)
+ * leaves a state pointer in v0 (or v0 holds a0->[0x24] pre-call via
+ * caller's setup). Documented so future passes know to investigate.
  *
- * High-level guess: builds 5-10 DL commands per call (color/vertex/light
- * setup) for a single GUI primitive. The 0xFA opcode + dual-counter
- * pattern (fields 0x4 and 0xC) suggests a context-driven DL writer.
+ * Body shape: emits 2 G_SETPRIMCOLOR-ish DL commands, each:
+ *   ctx->cursor++ (at a0->[0xC]->[0x4])
+ *   dl_buf = ctx->dl_buf->[0]
+ *   slot = (old_cursor << 3)
+ *   *(u32*)(dl_buf + slot)     = 0xFA000000
+ *   *(u32*)(dl_buf + slot + 4) = color_word
+ * After the 2 DL writes, performs 3-channel R/G/B float→int conversion
+ * with FCSR-overflow clamping (the cfc1/ctc1 pattern, andi 0x78 mask
+ * checks the V|Z|U|I exception flags). Each channel:
+ *   1. Load color_float from sp scratch
+ *   2. Multiply by 0x4F000000 (= 2^31, max-int-as-float)
+ *   3. cvt.w.s, then check FCSR for overflow
+ *   4. If overflow: clamp to 0 (negative) or 0xFF (positive)
+ *   5. Mask result to 0xFF
+ *   6. Shift to byte position (0/8/16) and OR into accumulator
+ * Final OR'd 24-bit color is stored to dl_buf+slot+4 of the second
+ * DL command.
  *
- * Won't be byte-matchable in one tick - too many implicit register-shuffle
- * patterns + uncertain struct shape. Default INCLUDE_ASM keeps ROM correct;
- * this is structural reference for the next pass. */
+ * Won't byte-match in one tick (144 insns of float scheduling +
+ * implicit v0-input convention). Wrap captures structure for the next
+ * pass. Default INCLUDE_ASM keeps ROM correct. */
+extern int gl_func_00000000();
+void gui_func_00000918(int *a0) {
+    /* Stub: structural decode of 144-insn float-color converter. The v0
+     * implicit-input convention prevents a clean standalone C body — the
+     * function would need to reach in via a global state register or
+     * factor through a wrapper that takes v0's role explicitly. Future
+     * passes: (a) identify the caller and inline-merge to hide the v0
+     * convention, OR (b) write the body assuming a hypothetical
+     * `state *s = (state*)v0_input_via_register` and accept the prologue
+     * shape mismatch. */
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000918);
+#endif
 
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
