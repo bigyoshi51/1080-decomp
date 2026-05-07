@@ -172,24 +172,17 @@ void timproc_uso_b3_func_00000D60(char *a0) {
     gl_func_00000000(a0 + 0x6E4, 0x00210009);
 }
 
-#ifdef NON_MATCHING
-/* timproc_uso_b3_func_00000DE4: 3-FUNCTION BUNDLE (0x7C / 31 insns).
- * Splat couldn't separate sub-functions; same constraint as
- * arcproc_uso_func_000024C0 (USO bundle splits break expected/.o byte
- * layout per feedback_uso_split_fragments_breaks_expected_match.md).
+/* timproc_uso_b3_func_00000DE4: F1 (19-insn 5-call wrapper) + F2 + F3
+ * splat-bundled sub-functions (0x7C total).
  *
- * Sub-function layout:
- *   F1 @ 0x0DE4-0x0E2C: 17 insns. 5-call wrapper:
- *       func(a0 + 0x6B4); func(a0 + 0x6CC); func(a0 + 0x6FC);
- *       func(a0 + 0x714); func(a0 + 0x6E4);
- *     Sibling shape of gl_func_0000AA7C (5-call passthrough wrapper).
- *   F2 @ 0x0E30-0x0E50: 9 insns. Returns 1 if a0[0x6A8]->[0x6C]
- *     resolves and that target's [0xEC] is non-zero; else 0.
- *   F3 @ 0x0E54-0x0E5C: 3 insns. `return 0;` stub (or v0,zero;
- *     jr ra; nop).
+ * 2026-05-07: promoted via SUFFIX_BYTES recipe (12 words / 0x30 bytes
+ * absorbing F2 + F3) — sibling family of arcproc_uso_func_00000EBC,
+ * gl_func_000070A0.
  *
- * Logic of F1 captured below for reference. F2/F3 are unwrapped.
- * Bundle stays INCLUDE_ASM. */
+ * F1 @ 0xDE4-0xE2C: 5-call passthrough wrapper.
+ * F2 @ 0xE30-0xE50: triple-deref non-null check (returns 0/1 on
+ *     a0->[0x6A8]->[0x6C]->[0xEC] != 0).
+ * F3 @ 0xE54-0xE5C: `return 0;` 3-insn stub. */
 extern int func_00000000();
 void timproc_uso_b3_func_00000DE4(char *a0) {
     func_00000000(a0 + 0x6B4);
@@ -198,9 +191,6 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
     func_00000000(a0 + 0x714);
     func_00000000(a0 + 0x6E4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000DE4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000E60);
 
