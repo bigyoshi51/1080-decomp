@@ -1608,7 +1608,14 @@ void gl_func_00037E04(int *dst) {
     *dst = scratch;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037E40);
+/* Quad4 reader template — sibling of gl_func_0003A9E8 / gl_func_0000975C.
+ * 22 insns. Required boundary fix (split-fragments) — original .s was a
+ * 4-function bundle. */
+void gl_func_00037E40(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 0x10);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037F58);
 
