@@ -6165,9 +6165,16 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F8E8);
  * stack offsets differ from target (built sp+0x44/0x38/0x2c vs target
  * sp+0x48/0x5C/0x74). Copy semantics + count match; offset-arrangement
  * mismatch via IDO's reverse-order stack-frame allocator is the
- * remaining 14.81% diff. Multi-tick — needs frame-padding via
- * `char pad[]` between the volatile blocks to shift offsets, OR a
- * different abstraction that produces the higher offset. */
+ * remaining 14.81% diff.
+ *
+ * 2026-05-07 attempt 3: declared in REVERSE order with explicit char-pad
+ * stuffing (vc; char[8]; vb; char[4]; a). REGRESSED to 77.52% — pad bytes
+ * shifted t1=sp+0x48 correctly to match target's first addiu but added
+ * extra moves elsewhere that broke the copy chain. The pad-stuffing
+ * approach is a dead-end here; offsets DO move, but the surrounding
+ * code structure changes too. Reverted. Likely needs permuter or a
+ * fundamentally different C abstraction (e.g. function-result-temp
+ * chain via inline pseudo-helpers). */
 extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { float x, y, z; } F948_Vec3;
