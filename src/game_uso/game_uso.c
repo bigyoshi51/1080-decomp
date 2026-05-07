@@ -3823,11 +3823,14 @@ check_20:
         goto trunk;
     }
     if (a1_saved & 0x80) {
-        /* arg1 & 0x80 arm body */
+        /* arg1 & 0x80 arm body. Per asm trace 0x7660-0x767C: ret_hi = 1 set
+         * here (line 3624-3627 doc). Without it, the bit-0x80 ARM-FIRE path
+         * was returning v1=0 instead of v1=1 to caller. */
         a0[0x6C / 4] = a1 | 0x80;
         a0[0x4C / 4] = 0;
         a0[0x44 / 4] = 2;
         a1 = a1 | 0x80;
+        ret_hi = 1;
         goto trunk;
     }
     if (a1_saved & 0x08) {
