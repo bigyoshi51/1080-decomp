@@ -105,15 +105,18 @@ build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 # 16-byte padding between them. Size targets match the natural compiled
 # sizes (drift included) so no real code gets truncated; same accumulated
 # drift as main's pre-split game_libs.c.o. See feedback_non_aligned_o_split.md.
-build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0xEC00
+build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0x949C
 build/src/game_libs/game_libs.c.o: PREFIX_BYTES := game_libs_func_000040EC=0x00000000,0x00000000
-build/src/game_libs/game_libs.c.o: INSN_PATCH := \
+build/src/game_libs/game_libs_o0_949C.c.o build/non_matching/src/game_libs/game_libs_o0_949C.c.o: OPT_FLAGS := -O0
+build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
+build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5664
+build/src/game_libs/game_libs_tail.c.o: INSN_PATCH := \
 	gl_func_0000D9B8=0x08:0x8C87006C,0x0C:0x50E00004,0x18:0x00E02025 \
 	gl_func_0000DDE0=0x24:0x8F230000,0x2C:0x8C620028,0x34:0x84480028,0x3C:0x01032021 \
 	gl_func_0000DE30=0x24:0x8F230000,0x2C:0x8C620028,0x34:0x84480028,0x3C:0x01032021 \
 	gl_func_0000DE80=0x24:0x8F230000,0x2C:0x8C620028,0x34:0x84480028,0x3C:0x01032021 \
 	gl_func_0000DED0=0x24:0x8F230000,0x2C:0x8C620028,0x34:0x84480028,0x3C:0x01032021
-build/src/game_libs/game_libs.c.o: SUFFIX_BYTES := gl_func_0000B560=0x00051080,0x00451023,0x24010005,0x0041001A
+build/src/game_libs/game_libs_tail.c.o: SUFFIX_BYTES := gl_func_0000B560=0x00051080,0x00451023,0x24010005,0x0041001A
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x588F0
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH := \
 	gl_func_0002A4D0=0x18:0x908E0000,0x1C:0x31D9FF7F,0x20:0x37280040,0x24:0xA0990000,0x28:0xA0880000 \
