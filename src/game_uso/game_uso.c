@@ -1012,10 +1012,17 @@ branch_88: {
              *     scaled_y compute earlier; IDO emits the muls inline at each
              *     reuse). Stores to sp+0x110/0x114/0x118 (third copy of scaled
              *     Y-vec).
-             *   0x2264-0x227C: lwc1 sp+0x114 / sp+0x118; abs.s f0 (idiom for
-             *   `fabs(y_excess)`); compares against a constant. Looks like the
-             *   CLAMP step "if (|y_excess| < some_threshold) ...". ~190 insns
-             *   remain stubbed past 0x227C.
+             *   0x2264-0x227C: lwc1 sp+0x114 / sp+0x118 (re-load Y components
+             *   from the Y-axis-scale staging slots), then begins a fanout copy
+             *   sequence (`lw t1, 0(t9); sw t1, 0(a3); lw t0, 4(t9); lw t4, 0(a3)`).
+             *   NOTE 2026-05-07: prior memo claimed `abs.s f0 (idiom for
+             *   fabs(y_excess))` at this offset, but a grep of the function's
+             *   raw bytes finds NO abs.s (funct=0x05) or neg.s (funct=0x07)
+             *   opcodes ANYWHERE — the abs claim is a decode error. The
+             *   y_excess ELSE-arm in C is `y_scalar - y_diff` (no fabs); IDO
+             *   emits two `mov.s` insns at 0x21AC/0x21B0 (funct=0x06) that
+             *   were the misread source. Don't add fabs() during the next grind.
+             *   ~190 insns still stubbed past 0x227C.
              *
              * Extended scan 2026-05-05 (0x227C-0x2300, +35 insns characterized):
              *   0x2270-0x2298: triple-fanout 12-byte struct copy. Reads
