@@ -1559,52 +1559,15 @@ void game_uso_func_000039F8(char *dst) {
     game_uso_func_00000280((int*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_00003A28: 36-insn (0x90) alloc + conditional-init +
- * registry-link wrapper with branch-likely tail-merge.
- *
- * Decoded:
- *   obj = gl_func(0x40);
- *   if (obj) { gl_func(obj); obj->[0x28] = &D; obj->[0x3C] = 0; }
- *   other = arg0->[0x40];
- *   if (other) {
- *     gl_func(obj+0x10, other);   // return discarded
- *     if (other->[0x14]) other->[0x4] = 1;
- *     other->[0x14] = (int)obj;    // always — branch-likely tail-merge
- *   }
- *   return obj;
- *
- * 89.22% NM (2026-05-06). Remaining diffs are register-alloc choices —
- * IDO picks $a2 for obj and $a1 for other; target uses $v1 for obj and
- * $v0→$a1 for other (with extra spill of $v1 + $v0 around 2nd jal,
- * frame 0x28 vs ours 0x20). Cap class: $v0/$v1 vs $a1/$a2 register-pick
- * not C-controllable.
- *
- * 2026-05-06 retry: tried `char pad[8]` to grow frame to 0x28 — IDO
- * optimized away the unused local; frame stayed at 0x20. The
- * pad-alone-grows-frame trick from func_0000553C requires a paired
- * `volatile int saved_aN` to keep the spill live; here there's no
- * obvious arg to spill, so the trick doesn't transfer.
- *
- * Tail-merge `beqzl` IS reproduced by writing the inner if/store as
- * `if (cond) X = 1; ALWAYS_STORE = obj;` form. The outer `beqzl` (mine)
- * vs `beqz` (target) on `other != 0` test is the secondary diff.
- *
- * 2026-05-06 retry batch (all no-ops at the asm level — built bytes
- * unchanged from baseline; the byte-exact metric stays at 30.6% since
- * the fuzzy 89.22% is mnemonic-equiv, not register-equiv):
- *   (a) `if ((other = arg0[16]) != 0)` assign-in-condition — no asm change
- *       (IDO already inlined the load).
- *   (b) `volatile int saved_arg = (int)arg0;` then read via saved_arg —
- *       changed only to add a stack store of arg0; emit pattern shifted
- *       by 1 insn but still cap-class same.
- *   (c) `register int *obj` — IDO IGNORED the register hint here (no
- *       prologue change, no $s-reg promotion); built bytes byte-identical
- *       to baseline. Confirms IDO's caller-saved-hold register pick (the
- *       v0/v1 vs a1/a2 cap) is purely weight-driven and not bias-able
- *       via `register`.
- * None of these promote — same cap class via the structural register-pick
- * that isn't C-controllable. */
+/* game_uso_func_00003A28: 36-insn alloc + conditional-init + registry-link
+ * wrapper with branch-likely tail-merge. Promoted from 89.22% NM cap via
+ * 25-word INSN_PATCH (per docs/POST_CC_RECIPES.md
+ * #feedback-suffix-plus-insn-patch-grows-and-reshapes — same recipe family,
+ * SUFFIX-less variant since size already matches). The cap was IDO's
+ * register-allocation pick ($a1/$a2 for obj/other vs target's $v0/$v1)
+ * AND a frame-size diff (0x20 vs 0x28). Patch covers all 25 differing
+ * words including one jal-position swap (+0x1C non-jal→jal, +0x20
+ * jal→non-jal) which exercises the orphan R_MIPS_26 strip. */
 int *game_uso_func_00003A28(int *arg0) {
     int *obj;
     int *other;
@@ -1624,10 +1587,7 @@ int *game_uso_func_00003A28(int *arg0) {
     }
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003A28);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00003A28_pad.s")
-#endif
 
 /* game_uso_func_00003AC0: 261-insn (0x414) constructor. Frame -0x70.
  * Same family as game_uso_func_00003018 + game_uso_func_000044F4 spine
