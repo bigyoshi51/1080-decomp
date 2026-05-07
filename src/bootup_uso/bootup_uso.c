@@ -669,7 +669,20 @@ void func_0000502C(int *dst) {
  * variadic callees") only fires when the CALLEE is variadic AND the args
  * are sourced from spilled registers. With 2-fixed-args + tail variadic
  * there's nothing to spill BACK out. No C-level path produces target's
- * dead-spill at this delay slot. */
+ * dead-spill at this delay slot.
+ *
+ * 2026-05-07 (later) — two more variants:
+ *   - `volatile int x; x = arg0;` after first call
+ *     → 14 insns (right count!), but frame 0x20 vs target 0x18, dead
+ *       spill at sp+0x1C vs target sp+0x4. IDO allocates volatile at
+ *       TOP of frame, growing it. Right shape, wrong offset.
+ *   - `char buf[8]; *(volatile int*)(buf+4) = arg0;`
+ *     → 15 insns, extra `addiu t6, sp, 0x18` to compute buf base.
+ *       Volatile-cast forces base register over direct sp-offset.
+ * Combination of "force a dead-store at sp+0x4" + "frame stays 0x18"
+ * is genuinely unreachable from C. The two requirements conflict:
+ * adding a volatile slot grows the frame; aliasing into existing slot
+ * via cast adds a base-register hop. Cap holds. */
 extern char D_00007D94;
 void func_00005068(int a0) {
     func_00000000(&D_00007D94);
