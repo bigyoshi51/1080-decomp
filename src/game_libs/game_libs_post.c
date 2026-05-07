@@ -3521,18 +3521,24 @@ float gl_func_00052144(int *a0) {
  * per project_1080_strategy.md "type just-in-time when 5+ functions
  * access them". Future pass: decode struct first, then re-wrap.
  *
- * 2026-05-07 forward step: 2.7% → 4.1% byte-exact via:
+ * 2026-05-07 forward step (round 1): 2.7% → 4.1% byte-exact via:
  *   - Added second sub-alloc (obj[0x34] = gl_func(0x8))
  *   - Added tag-check `if (obj != (int*)-0x30/-0x34)` guards (matches
  *     target's `bne a2, at, +N` with `at = -0x30/-0x34` literal sentinel
  *     pattern — the C produces these 2-insn lui+addiu prep + branch)
  *   - D_521F8_reloc symbol added to undefined_syms_auto.txt for the
  *     0x28-field pointer store
- * Built 152 bytes vs expected 292 — body still ~halfway done. Next pass
- * (multi-pass per skill): decode the 8-byte D-table copy after sub-alloc 2,
- * the final-block obj[0xB]=arg1 / obj[0xF]=child cross-links, and the
- * trailing zero stores. */
+ *
+ * 2026-05-07 forward step (round 2): added sub-alloc body init blocks
+ * (`*p4=0; p4[1]=0` and `*p8=D[0]; p8[1]=D[1]`) and final cross-link
+ * block (`obj[0xB]=arg1; obj[0xF]=p8; obj[0xC]=0`). D_521F8_table8
+ * symbol added. Built grows from 152 to 220 bytes (vs expected 292) —
+ * but byte-exact stays at 4.1%/73 because the new insns are emitted
+ * in different register-allocations than target. Structural progress
+ * but not byte-exact promotion; needs typed struct + register-hint
+ * grinding for a real promotion. */
 extern char D_521F8_reloc;        /* offset 0x28 store target */
+extern int D_521F8_table8[2];     /* 8-byte D-table copied into obj[2] sub-alloc */
 int *gl_func_000521F8(int *a0, int a1) {
     int *obj;
     int *p4, *p8;
@@ -3549,12 +3555,19 @@ int *gl_func_000521F8(int *a0, int a1) {
     p4 = (int*)((char*)obj + 0x30);
     if (obj != (int*)-0x30) {
         *p4 = (int)gl_func_00000000(0x4);
+        *(int*)*p4 = 0;
+        ((int*)*p4)[1] = 0;
     }
     p8 = (int*)((char*)obj + 0x34);
     if (obj != (int*)-0x34) {
         *p8 = (int)gl_func_00000000(0x8);
+        *(int*)*p8 = D_521F8_table8[0];
+        ((int*)*p8)[1] = D_521F8_table8[1];
     }
-    /* TODO: 8-byte copy from D-table + final field cross-links not yet decoded */
+    /* final cross-link block: obj[0xB] = arg1; obj[0xF] = p8; obj[0xB+0x4] = 0 */
+    obj[0xB] = a1;
+    obj[0xF] = (int)p8;
+    obj[0xC] = 0;
     return obj;
 }
 #else
