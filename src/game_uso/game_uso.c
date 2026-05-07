@@ -5846,7 +5846,86 @@ void game_uso_func_0000F8E8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F8E8);
 #endif
 
+#ifdef NON_MATCHING
+/* 67-insn function. Shape:
+ *
+ *   call 1 (6-arg, a2=0, a3=2):
+ *     gl_func(a0, a0->[0xFC], 0, 2, 1, 1)
+ *
+ *   call 2 (4-arg from D[0xE58/0xE5C], a3=2 — same family pattern as
+ *   game_uso_func_00010E2C / 00010DC8 / 000114FC, with the lui+addiu+lw
+ *   fold-inevitable cap and varargs shadow-spills):
+ *     gl_func(a0, D[0xE58], D[0xE5C], 2)
+ *
+ *   inline Vec3 scaled-and-add at a0->[0xB4]->[0x318..0x320]:
+ *     b = a0->[0xB4]
+ *     scale = a0->[0x1FC]
+ *     scaled.{x,y,z} = b->[0x3C8/3CC/3D0] * scale
+ *     # target spills `scaled` to sp+0x48, then COPIES that to sp+0x5C,
+ *     # then COPIES sp+0x5C to sp+0x74. Three 12-byte stack regions.
+ *     b->[0x318] += sp[0x74]    # which equals scaled.x via the chain
+ *     b->[0x31C] += sp[0x78]
+ *     b->[0x320] += sp[0x7C]
+ *
+ * Initial decode at 16.7% match (10/60 insns). Two structural diffs
+ * remain:
+ *
+ * 1. First 18 insns: same family fold-cap as 10E2C/10DC8/14FC. IDO
+ *    collapses `lui+addiu+lw` 4-insn target form to `lui+lw` 2-insn
+ *    direct form. SUFFIX+INSN_PATCH recipe should promote (per
+ *    docs/POST_CC_RECIPES.md#feedback-suffix-plus-insn-patch-grows-and-reshapes)
+ *    once the body structure matches.
+ *
+ * 2. Body: target has TWO intermediate stack copies of the scaled Vec3
+ *    (sp+0x48 → sp+0x5C → sp+0x74). My C "Vec3 a/b/c" with 3 separate
+ *    int[3] arrays compiles to 60 insns / 0xF0 vs target 67 insns / 0x10C
+ *    (7 insns short). IDO's optimizer is consolidating my redundant
+ *    copies. Target's pattern looks like a function-result-temp chain
+ *    where each call returns by-value Vec3 and the result is taken by
+ *    the next stage. May be `*sp_dest_a = vec3_scale(...); *sp_dest_b =
+ *    *sp_dest_a; *sp_dest_c = *sp_dest_b;` or similar pass-through.
+ *
+ * Multi-tick refinement expected. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void game_uso_func_0000F948(int *a0) {
+    int *b;
+    float scale;
+    float sx, sy, sz;
+    int tmp_a[3], tmp_b[3], tmp_c[3];
+    register int *t;
+    int v1, v2;
+
+    gl_func_00000000(a0, *(int*)((char*)a0 + 0xFC), 0, 2, 1, 1);
+    t = (int*)((char*)&D_00000000 + 0xE58);
+    v1 = t[0];
+    v2 = t[1];
+    gl_func_00000000(a0, v1, v2, 2);
+
+    b = (int*)a0[0xB4 / 4];
+    scale = *(float*)((char*)a0 + 0x1FC);
+    sx = *(float*)((char*)b + 0x3C8) * scale;
+    sy = *(float*)((char*)b + 0x3CC) * scale;
+    sz = *(float*)((char*)b + 0x3D0) * scale;
+
+    ((float*)tmp_a)[0] = sx;
+    ((float*)tmp_a)[1] = sy;
+    ((float*)tmp_a)[2] = sz;
+    tmp_b[0] = tmp_a[0];
+    tmp_b[1] = tmp_a[1];
+    tmp_b[2] = tmp_a[2];
+    tmp_c[0] = tmp_b[0];
+    tmp_c[1] = tmp_b[1];
+    tmp_c[2] = tmp_b[2];
+
+    b = (int*)a0[0xB4 / 4];
+    *(float*)((char*)b + 0x318) += ((float*)tmp_c)[0];
+    *(float*)((char*)b + 0x31C) += ((float*)tmp_c)[1];
+    *(float*)((char*)b + 0x320) += ((float*)tmp_c)[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
+#endif
 
 #ifdef NON_MATCHING
 /* 26-insn 3-call wrapper. Distinct call-shape from the 10E2C family:
