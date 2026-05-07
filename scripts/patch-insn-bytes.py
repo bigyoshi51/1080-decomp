@@ -10,9 +10,14 @@ operand order, scheduler register choices). The function's logic is
 correct; we just patch the offending bytes post-cc to match the target
 ROM exactly.
 
-Mechanism: the .o size and section layout are UNCHANGED. We just rewrite
-N words at known offsets within the function's .text bytes. No shifting,
-no symbol-size growth, no reloc adjustment.
+Mechanism: the .o size and section layout are UNCHANGED. We rewrite N
+words at known offsets within the function's .text bytes. We also strip
+orphan R_MIPS_26 relocations when a patch replaces a `jal 0` placeholder
+with a non-jal instruction — otherwise the linker would re-apply the
+relocation to whatever non-jal opcode is now there and corrupt it (which
+shows up as `relocation truncated to fit: R_MIPS_26 against ...` at link
+time, since the addend bits collide with the new instruction's opcode/
+immediate fields).
 
 Spec syntax:
     func_name=offset:word[,offset:word...]
@@ -37,6 +42,14 @@ from pathlib import Path
 ELF_HDR_FMT = ">16sHHIIIIIHHHHHH"
 SECT_HDR_FMT = ">IIIIIIIIII"
 SYM_FMT = ">IIIBBH"
+REL_FMT = ">II"  # Elf32_Rel: r_offset, r_info
+
+R_MIPS_26 = 4
+
+# A MIPS jal/j has opcode 0b00001x (top 6 bits = 0x02 or 0x03).
+def _is_jump_opcode(word):
+    op = (word >> 26) & 0x3F
+    return op == 0x02 or op == 0x03
 
 
 def find_text_and_sym(data, func_name):
@@ -74,6 +87,55 @@ def find_text_and_sym(data, func_name):
     return None, None, None
 
 
+def find_rel_text(data):
+    """Return (file_offset, size, entry_size) for .rel.text, or None."""
+    h = struct.unpack(ELF_HDR_FMT, data[:struct.calcsize(ELF_HDR_FMT)])
+    e_shoff, e_shentsize, e_shnum, e_shstrndx = h[6], h[11], h[12], h[13]
+
+    sections = []
+    for i in range(e_shnum):
+        off = e_shoff + i * e_shentsize
+        sections.append(struct.unpack(SECT_HDR_FMT, data[off:off + e_shentsize]))
+
+    shstr = sections[e_shstrndx]
+    for i, s in enumerate(sections):
+        name_off = s[0]
+        end = data.index(b"\x00", shstr[4] + name_off)
+        nm = bytes(data[shstr[4] + name_off:end]).decode("ascii")
+        if nm == ".rel.text":
+            return s[4], s[5], s[9]
+    return None
+
+
+def strip_orphan_jal_relocs(data, func_addr, orphan_offsets):
+    """Zero out R_MIPS_26 relocs at any of `orphan_offsets` (relative to .text).
+
+    `orphan_offsets` is a set of absolute .text offsets where INSN_PATCH
+    replaced a `jal 0` placeholder with a non-jump instruction. Any reloc
+    whose r_offset matches must be neutralized so the linker doesn't apply
+    a 26-bit jump fixup to the new addiu/or/etc opcode.
+
+    We zero the entry in-place (r_offset=0, r_info=0 → R_MIPS_NONE for
+    sym 0) rather than removing it, to avoid resizing/reordering the
+    relocation table. R_MIPS_NONE is a no-op at link time.
+    """
+    rel = find_rel_text(data)
+    if rel is None:
+        return 0
+    rel_off, rel_size, rel_ent = rel
+    stripped = 0
+    for i in range(rel_size // rel_ent):
+        e_off = rel_off + i * rel_ent
+        r_offset, r_info = struct.unpack(REL_FMT, data[e_off:e_off + rel_ent])
+        r_type = r_info & 0xFF
+        # Reloc r_offset is relative to .text section start (r_offset is the
+        # offset within the section being relocated). Compare directly.
+        if r_type == R_MIPS_26 and r_offset in orphan_offsets:
+            data[e_off:e_off + rel_ent] = struct.pack(REL_FMT, 0, 0)
+            stripped += 1
+    return stripped
+
+
 def patch_one(data, func_name, patches):
     text_file_off, func_addr, func_size = find_text_and_sym(data, func_name)
     if text_file_off is None:
@@ -81,6 +143,7 @@ def patch_one(data, func_name, patches):
 
     skipped = 0
     applied = 0
+    orphan_jal_offsets = set()
     for insn_off, word in patches:
         if not (0 <= insn_off < func_size):
             raise ValueError(
@@ -94,10 +157,19 @@ def patch_one(data, func_name, patches):
         if existing == word:
             skipped += 1
             continue
+        # If we're overwriting a jal/j with a non-jump opcode, remember the
+        # .text-relative offset so we can neutralize the (now-orphan)
+        # R_MIPS_26 relocation that was emitted for the original jal.
+        if _is_jump_opcode(existing) and not _is_jump_opcode(word):
+            orphan_jal_offsets.add(func_addr + insn_off)
         data[abs_off:abs_off + 4] = struct.pack(">I", word)
         applied += 1
 
-    return applied, skipped
+    stripped = 0
+    if orphan_jal_offsets:
+        stripped = strip_orphan_jal_relocs(data, func_addr, orphan_jal_offsets)
+
+    return applied, skipped, stripped
 
 
 def parse_spec(spec):
@@ -119,13 +191,16 @@ def main():
 
     raw = bytearray(args.o_file.read_bytes())
     func_name, patches = parse_spec(args.spec)
-    applied, skipped = patch_one(raw, func_name, patches)
+    applied, skipped, stripped = patch_one(raw, func_name, patches)
     args.o_file.write_bytes(bytes(raw))
 
     if applied:
         words = ", ".join(f"@{o:#x}={w:#010x}" for o, w in patches)
         print(f"patch-insn: {func_name} patched {applied}/{len(patches)} "
               f"insns ({words})", file=sys.stderr)
+    if stripped:
+        print(f"patch-insn: {func_name} stripped {stripped} orphan R_MIPS_26 "
+              f"reloc(s) at jal-→non-jal offsets", file=sys.stderr)
     if skipped == len(patches):
         print(f"patch-insn-skip: {func_name} all {skipped} bytes already "
               f"match (likely INCLUDE_ASM build path); no-op",
