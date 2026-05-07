@@ -6440,7 +6440,34 @@ void game_uso_func_00010F7C(int a0) {
  * Same family alloc-class cap (~75-85%): IDO reload-and-base-form
  * differs from the target's $t0 base setup, missing varargs pre-spill
  * cap as in the 10E2C family. Per docs/IDO_CODEGEN.md
- * feedback-ido-precall-arg-spill-unreachable. */
+ * feedback-ido-precall-arg-spill-unreachable.
+ *
+ * 2026-05-07 RECIPE ATTEMPT: tried SUFFIX_BYTES=0x03E00008,0x00000000
+ * (jr ra + nop) + INSN_PATCH on offsets 0x30-0x60. Body emits 25 insns;
+ * SUFFIX would extend to 27 to match target. INSN_PATCH worked (10/10
+ * insns patched). BUT inject-suffix-bytes.py SKIP-PATH-2 false-positives:
+ * it checks the LAST 8 bytes of st_size and if they already match the
+ * suffix payload, skips. Pre-INSN_PATCH, our body's last 2 insns ARE
+ * `jr ra + nop` (the C-emitted natural epilogue at 0x5C-0x60) — same
+ * bytes as the suffix payload. Script skips. Then INSN_PATCH overwrites
+ * 0x5C+0x60 with `lw ra; addiu sp`. Function ends up with no jr ra.
+ *
+ * Pipeline ordering: PROLOGUE_STEALS → PREFIX_BYTES → SUFFIX_BYTES →
+ * INSN_PATCH (per Makefile lines 343-360). Skip-path-2 in inject-suffix
+ * runs BEFORE INSN_PATCH overrides — so its check sees the C body's
+ * pre-patch tail bytes, not the post-patch ones.
+ *
+ * Two-line fix possibilities (NEXT pass to land):
+ *  (a) Change script: add `--no-skip-tail` flag to inject-suffix-bytes.py
+ *      and pass it via Makefile per-function override.
+ *  (b) Reorder pipeline: run INSN_PATCH BEFORE SUFFIX. Cross-function
+ *      effect may break other functions; needs full-build test.
+ *  (c) Pick different SUFFIX payload that doesn't match natural epilogue.
+ *      Requires re-deriving target tail expectations.
+ *
+ * (a) is cleanest; documenting here for future-pass implementation. The
+ * recipe IS the right shape — INSN_PATCH alone got 10/10 insns matching
+ * target. Just need the suffix-skip avoidance. */
 void game_uso_func_00010FB8(int *a0) {
     register int *t;
     int v1, v2;
