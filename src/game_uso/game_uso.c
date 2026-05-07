@@ -4860,9 +4860,11 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2) {
     int   local_C4[3];    /* sp+0xC4:  raw-word copy of local_DC */
     int   local_19C[3];   /* sp+0x19C: raw-word copy of local_DC */
     float local_144[3];   /* sp+0x144: Vec3 — passed to alloc-or-fill helper */
+    float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
     float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
     int *out;
     float src_x, src_z, dx, dz;
+    float scale;          /* screen-space transform scale: 250.5f * a3->[0x54] */
 
     if (a2 == 0) {
         /* Assert: line 0x623 (1571) — message at &D+0x7BC / &D+0x7C8 */
@@ -5053,14 +5055,29 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      * (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset).
      * Combined with the cross-product sign test, this is likely a
      * billboard-visibility / point-in-frustum check after screen projection. */
-    /* TODO @ 0x9D00-0x9DC4: 3-word copy local_12C = sp+0x138 buffer + Vec3
-     * in-place scaling by 250.5f * a3->[0x54] on both local_12C and the
-     * sp+0x138 buffer. Needs a sp+0x138 named local first; deferred. */
+    /* @ 0x9D00-0x9D34: 3-word copy local_12C = local_138 buffer (the 90°-rotated
+     * XZ Vec3 from the alloc-or-fill above). Both serve as input to the
+     * subsequent in-place scaling chain. */
+    *(int*)&local_12C[0] = *(int*)&local_138[0];
+    *(int*)&local_12C[1] = *(int*)&local_138[1];
+    *(int*)&local_12C[2] = *(int*)&local_138[2];
+
+    /* @ 0x9D34-0x9DBC: in-place screen-space scale (250.5f * a3->[0x54]).
+     * Both local_12C[0..2] and local_138[0..2] scale-multiplied in-place.
+     * `scale` survives in $f0 across the two scaling blocks per documented
+     * IDO-O2 register reuse pattern. The a3 source is the function's 4th
+     * arg (TODO: signature should be (int*,int*,int*,int*) — current
+     * 3-arg sig is incomplete; sp+0x1AC reload at 0x9D2C confirms a3 is
+     * passed but unnamed in the C decl). */
+    scale = 250.5f * 0.0f /* a3->[0x54] — a3 not yet in signature */;
+    local_12C[0] *= scale;  local_12C[1] *= scale;  /* local_12C[2] not scaled */
+    local_138[0] *= scale;  local_138[1] *= scale;  local_138[2] *= scale;
 
     (void)local_12C;
     (void)local_19C;  /* suppress unused warnings until body-part-2 done */
     (void)local_EC;
     (void)local_C4;
+    (void)scale;
     /* @ 0xA0A0-0xA0E4: 2D cross-product sign test predicate. Returns 1 when
      * cross_z < 0 (point on negative side of a directed line / counter-CW
      * winding), else 0 (or whatever was set by an earlier dispatch arm).
