@@ -109,6 +109,14 @@ build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0x949C
 build/src/game_libs/game_libs.c.o: PREFIX_BYTES := game_libs_func_000040EC=0x00000000,0x00000000
 build/src/game_libs/game_libs_o0_949C.c.o build/non_matching/src/game_libs/game_libs_o0_949C.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
+# Bake resolved jal targets to match expected/.o (which is INCLUDE_ASM-derived
+# with pre-baked jals). Without these, the .o has `jal 0` + R_MIPS_26 relocs;
+# byte-verify fails even though ROM ends up identical post-link.
+build/src/game_libs/game_libs_o0_949C.c.o: INSN_PATCH := \
+	gl_func_0000949C=0x10:0x0C0073EC,0x20:0x0C0073FF \
+	gl_func_000094DC=0x10:0x0C0073EC,0x20:0x0C0073EC \
+	gl_func_0000951C=0x10:0x0C0073EC,0x20:0x0C007418 \
+	gl_func_0000955C=0x10:0x0C0073EC,0x20:0x0C00742B
 build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5664
 build/src/game_libs/game_libs_tail.c.o: INSN_PATCH := \
 	gl_func_0000D9B8=0x08:0x8C87006C,0x0C:0x50E00004,0x18:0x00E02025 \
