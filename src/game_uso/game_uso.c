@@ -3897,12 +3897,17 @@ check_20:
         goto trunk;
     }
     if (a1_saved & 0x08) {
+        /* 2026-05-07 BUG FIX: prior C had the condition inverted.
+         * Asm 0x76F4 `beql t4, $0, +0x13` means: if outer->0x938 == 0,
+         * branch directly to trunk (annulled delay-slot, no f2 store).
+         * Else (outer->0x938 != 0): fall through to mtc1 -1.0f → f2,
+         * then b to trunk. Both arms reach trunk; only the non-zero
+         * arm sets f2 = -1.0f. */
         outer = (int*)a0[0x30 / 4];
-        if (outer[0x938 / 4] == 0) {
+        if (outer[0x938 / 4] != 0) {
             f2 = -1.0f;
-            goto trunk;
         }
-        /* else: outer->0x938 != 0 — different path — TODO */
+        goto trunk;
     }
     if (a1_saved & 0x02) {
         outer = (int*)a0[0x30 / 4];
