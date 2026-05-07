@@ -3968,9 +3968,34 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * xz-only subtract suggests this is a 2D collision/proximity computation
  * with separate y handling.
  *
- * NEXT PASS: continue decode from 0x7DBC. Likely follow with a length
- * computation (sqrt of sum-of-squares) and clamp/normalize using s1's
- * buffer. ~960 insns remaining in this slow path. */
+ * EXTENDED DECODE 0x7DBC-0x7E08 (~21 insns, decoded 2026-05-07):
+ *   /* 3-way Vec3 broadcast: s0 (src) -> s1, sp+0x334, sp+0x30C *\/
+ *   t2 = s0[4];                       // src.y
+ *   s1[0] = t3;                       // (t3 was loaded above as s0[0])
+ *   t5 = s1[0];                       // reload
+ *   t3 = s0[8];                       // src.z
+ *   v0 = sp + 0x334;
+ *   v0[0] = t5;                       // sp[0x334] = src.x
+ *   t8 = v0[0];                       // reload
+ *   t6 = sp + 0x30C;
+ *   v0[4] = t2;  s1[4] = t2;          // .y broadcast
+ *   v0[8] = t3;  s1[8] = t3;          // .z broadcast
+ *   t6[0] = t8;                       // sp[0x30C] = sp[0x334]
+ *   t7 = v0[4]; t6[4] = t7;           // sp[0x310] = sp[0x338]
+ *   t8 = v0[8]; t6[8] = t8;           // sp[0x314] = sp[0x33C]
+ *   /* Then load caller arg1 spill -> entity field at +0x30 -> +0x908 *\/
+ *   t9 = sp[0x3B4];                   // caller a1 reload
+ *   t0 = t9->[0x30];                  // entity ptr
+ *   t1 = t0->[0x908];                 // some long-offset field (likely a list head)
+ *
+ * Pattern: 3-way Vec3 broadcast (src in s0 staged into s1, sp+0x334, and
+ * sp+0x30C buffers) prepares 3 separate Vec3 inputs for downstream math
+ * callees. The load chain (a1->0x30->0x908) accesses an entity field for
+ * the upcoming list iteration.
+ *
+ * NEXT PASS: continue decode from 0x7E08. Likely a list-walk over
+ * a1->0x30->0x908 with collision/proximity checks against the staged
+ * Vec3s. ~940 insns remaining in this slow path. */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
