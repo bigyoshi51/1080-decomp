@@ -3488,20 +3488,42 @@ float gl_func_00052144(int *a0) {
  * For the typed-struct work: 5+ functions access offsets 0x28, 0x30,
  * 0x34, 0x3C (this fn + the 0x10E2C family). Threshold met for typing
  * per project_1080_strategy.md "type just-in-time when 5+ functions
- * access them". Future pass: decode struct first, then re-wrap. */
-extern int gl_data_00000000;
+ * access them". Future pass: decode struct first, then re-wrap.
+ *
+ * 2026-05-07 forward step: 2.7% → 4.1% byte-exact via:
+ *   - Added second sub-alloc (obj[0x34] = gl_func(0x8))
+ *   - Added tag-check `if (obj != (int*)-0x30/-0x34)` guards (matches
+ *     target's `bne a2, at, +N` with `at = -0x30/-0x34` literal sentinel
+ *     pattern — the C produces these 2-insn lui+addiu prep + branch)
+ *   - D_521F8_reloc symbol added to undefined_syms_auto.txt for the
+ *     0x28-field pointer store
+ * Built 152 bytes vs expected 292 — body still ~halfway done. Next pass
+ * (multi-pass per skill): decode the 8-byte D-table copy after sub-alloc 2,
+ * the final-block obj[0xB]=arg1 / obj[0xF]=child cross-links, and the
+ * trailing zero stores. */
+extern char D_521F8_reloc;        /* offset 0x28 store target */
 int *gl_func_000521F8(int *a0, int a1) {
     int *obj;
+    int *p4, *p8;
     if (a0 == 0) {
         obj = (int*)gl_func_00000000(0x40);
-        if (obj == 0) return 0;
+        if (obj == 0) {
+            return 0;
+        }
     } else {
         obj = a0;
     }
     gl_func_00000000(obj, a1);
-    obj[0xA] = (int)((char*)&gl_data_00000000 + 0x0);
-    obj[0xC] = (int)gl_func_00000000(0x4);
-    obj[0xD] = (int)gl_func_00000000(0x8);
+    *(int*)((char*)obj + 0x28) = (int)&D_521F8_reloc;
+    p4 = (int*)((char*)obj + 0x30);
+    if (obj != (int*)-0x30) {
+        *p4 = (int)gl_func_00000000(0x4);
+    }
+    p8 = (int*)((char*)obj + 0x34);
+    if (obj != (int*)-0x34) {
+        *p8 = (int)gl_func_00000000(0x8);
+    }
+    /* TODO: 8-byte copy from D-table + final field cross-links not yet decoded */
     return obj;
 }
 #else
