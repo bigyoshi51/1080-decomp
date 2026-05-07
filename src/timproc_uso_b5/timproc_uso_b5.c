@@ -1374,11 +1374,18 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
  * + recomputed +0x128 offset, lifting 80.41% → 86.37% (+5.96pp).
  *
  * Remaining 14% cap: $v0 vs $v1 first-register choice (built uses $v0,
- * target $v1) cascades through ~19 of 51 insns. IDO allocates $v0 for
- * the first general-pseudo since the function returns void — to flip,
- * would need a different first-defined pseudo or a return-value (which
- * would change semantics). Sizes now match (204/204 bytes). Final
- * ~14% is register-rename territory (permuter or INSN_PATCH). */
+ * target $v1) cascades through ~19 of 51 insns. Sizes now match
+ * (204/204 bytes). Final ~14% is register-rename territory (permuter
+ * or INSN_PATCH).
+ *
+ * 2026-05-07 attempted `int` return + `return gl_func_00000000()` to
+ * reserve $v0 for the return value (hypothesis: pushes first general
+ * pseudo to $v1). Result: NO CHANGE — still 86.37%. IDO's allocator
+ * isn't return-value-driven for the void→int transition; it picks $v0
+ * for the first-live pseudo regardless because the only use of $v0-as-
+ * return-value is the final jr ra delay slot, well after all other
+ * pseudo-allocations are settled. Reverted. The C-level register-flip
+ * lever isn't reachable here; this is permuter-territory. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void timproc_uso_b5_func_0000C8AC(int *a0) {
