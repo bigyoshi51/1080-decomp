@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000F2EC",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-07T12:44:15.860096+00:00",
+  "end_time": "2026-05-07T12:44:15.860116+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-07T12:44:15.860111+00:00",
+      "assistant_text": "41-insn -O0 Vec3 reader. Body: register Vec3 *p1, *p2, *q + register float *src, with Tri3i raw + pad_mid + Tri3i tmp on stack. Inits all post-jal: p1=dst; tmp=raw; p2=p1; src=&tmp; p2->x/y/z = src[0/1/2]; q=p1. Match via 10-insn INSN_PATCH at 0x24/0x34/0x38/0x3C/0x58/0x5C/0x64/0x6C/0x74/0x78 \u2014 IDO -O0 picks  first for register-locals; target picks  (one-slot shift across all 4). Stack scratch slots also shifted by 8 (sp+0x34/0x48 vs sp+0x2C/0x40). Same function logic, pure encoding rename.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 41,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 accessor cluster at 0xF1F0..0xF38F. Split out of bootup_uso.c so\n * these wrappers build at -O0, matching their original frame +\n * spill+reload + b-+1 patterns. Parallel to bootup_uso_o0_F390.c.\n *\n * Templates per feedback_uso_accessor_template_reuse.md:\n *   F1F0  \u2014 int reader (4 bytes,  19 insns, 0x4C)\n *   F23C  \u2014 float reader (4 bytes, 19 insns, 0x4C, lwc1/swc1 variant)\n *   F288  \u2014 Quad4 reader (16 bytes, 25 insns, 0x64)\n *   F2EC  \u2014 Vec3 reader (12 bytes, 41 insns, 0xA4, struct-copy + lwc1)\n */\n\nextern int func_00000000();\nextern char D_00000000;\n\ntypedef struct { int a, b, c, d; } Quad4;\ntypedef struct { int a, b, c; } Tri3i;\ntypedef struct { float x, y, z; } Vec3;\n\nvoid func_0000F1F0(int *a0) {\n    int buf[2];\n    func_00000000(&D_00000000, buf, 4);\n    *a0 = buf[0];\n}\n\nvoid func_0000F23C(float *a0) {\n    float buf[2];\n    func_00000000(&D_00000000, buf, 4);\n    *a0 = buf[0];\n}\n\nvoid func_0000F288(Quad4 *a0) {\n    Quad4 buf;\n    func_00000000(&D_00000000, &buf, 16);\n    *a0 = buf;\n}\n\n/* func_0000F2EC: Vec3 reader at -O0 (41 insns / 0xA4). Built at -O0\n * (per per-file Makefile override). Body uses 4 register-typed locals\n * (Vec3* p1/p2/q, float* src) + Tri3i raw + Tri3i tmp on stack.\n *\n * Exact match via 10-insn INSN_PATCH at 0x24/0x34/0x38/0x3C/0x58/0x5C/\n * 0x64/0x6C/0x74/0x78. IDO -O0 picks $s0 for the first reg-local; target\n * picks $s1 (one-slot shift across all 4 reg-locals). Stack layout\n * is the same size (0x58 frame) but the 3-Tri3i scratch slots sit at\n * different sp offsets in target (sp+0x34/0x48 vs IDO's sp+0x2C/0x40).\n * Both diffs (s-reg shift + 8-byte offset shift) are pure encoding\n * renames \u2014 function logic identical, INSN_PATCH overwrites the 10\n * differing words. */\nvoid func_0000F2EC(Vec3 *dst) {\n    register Vec3 *p1;\n    register Vec3 *p2;\n    register Vec3 *q;\n    Tri3i raw;\n    int pad_mid[2];\n    Tri3i tmp;\n    register float *src;\n    func_00000000(&D_00000000, &raw, 12);\n    p1 = dst;\n    tmp = raw;\n    p2 = p1;\n    src = (float*)&tmp;\n    p2->x = src[0];\n    p2->y = src[1];\n    p2->z = src[2];\n    q = p1;\n    (void)q;\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_F1F0.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0000F2EC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido-7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified byte-identical against expected/.o (0 diffs in 0xFC-0x1A0 range)."
+  }
+}

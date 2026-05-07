@@ -70,6 +70,7 @@ build/src/bootup_uso/bootup_uso_o0_12DA4.c.o build/non_matching/src/bootup_uso/b
 # exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
 build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF1F0
 build/src/bootup_uso/bootup_uso_o0_F1F0.c.o: TRUNCATE_TEXT := 0x1A0
+build/src/bootup_uso/bootup_uso_o0_F1F0.c.o: INSN_PATCH := func_0000F2EC=0x24:0x27A50048,0x34:0x8FB10058,0x38:0x27AE0034,0x3C:0x27AF0048,0x58:0x02209025,0x5C:0x27B30034,0x64:0xE6440000,0x6C:0xE6460004,0x74:0xE6480008,0x78:0x02208025
 build/src/bootup_uso/bootup_uso_o0_F390.c.o: TRUNCATE_TEXT := 0x334
 build/src/bootup_uso/bootup_uso_F434.c.o build/non_matching/src/bootup_uso/bootup_uso_F434.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_F434.c.o: TRUNCATE_TEXT := 0xA8

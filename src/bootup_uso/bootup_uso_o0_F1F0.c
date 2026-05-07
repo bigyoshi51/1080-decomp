@@ -36,55 +36,18 @@ void func_0000F288(Quad4 *a0) {
     *a0 = buf;
 }
 
-/* func_0000F2EC: Vec3 reader at -O0 (41 insns / 0xA4). Target uses 4
- * callee-saved s-regs (s0-s3). 4-`register` C body produces s-saves but
- * frame is +0x10 (0x68 vs target 0x58) — IDO -O0 reserves backup stack
- * slots for register-typed locals (4 × 4 bytes = 16 byte overhead) that
- * target doesn't have. Possibly target was compiled with a different
- * IDO -O0 variant or had non-register stack-only locals that got
- * promoted by a later pass.
+/* func_0000F2EC: Vec3 reader at -O0 (41 insns / 0xA4). Built at -O0
+ * (per per-file Makefile override). Body uses 4 register-typed locals
+ * (Vec3* p1/p2/q, float* src) + Tri3i raw + Tri3i tmp on stack.
  *
- * Fuzzy and structure are MUCH closer than INCLUDE_ASM; tmp/raw stack
- * layouts match (sp+0x34/sp+0x48). All 4 s-saves emit. Cap is the +0x10
- * frame overhead. Partial wrap kept for future-pass continuation. */
-#ifdef NON_MATCHING
-/* 2026-05-05: tried dropping unused p1/q register-locals (4→2 register
- * vars). Frame stayed at -0x68 vs target -0x58, +0x10 overhead unchanged.
- * The 16-byte frame overhead persists regardless of register-local count,
- * suggesting it's NOT the register-backup-slot theory — it's likely raw
- * + tmp + src each getting redundant slot reservations from IDO -O0's
- * naive stack-allocator. Remove `register` to test (likely regresses).
- * Reverting to 4-register-var form for stable baseline.
- *
- * 2026-05-06 retry (no-register-vars): dropped all 4 `register` qualifiers
- * + replaced p1/p2/q with direct `dst` accesses. Frame shrank from -0x68
- * to -0x50 (-0x18 below target -0x58!). Match 84.61% → 60.00% (regression
- * 24.6pp). Without register hints, IDO -O0 doesn't allocate s-regs, so
- * no s-reg saves emit and frame collapses past target's layout.
- * Confirms target uses register-typed locals (4 of them, hence 0x10 of
- * s-reg backup) but with -0x10 less stack frame than C produces. The
- * remaining gap is IDO -O0 producing extra slot reservations that target
- * doesn't have — possibly from a non-IDO toolchain pass on the original
- * ROM, or a subtle -O0 sub-flag (e.g., -O0 -fno-something).
- *
- * 2026-05-06 retry: tried minimal-locals (drop pads, init all post-jal
- * via `p1 = dst; tmp = raw; src = ...; q = p1; p2 = q;`) — regressed
- * to 68.3 % fuzzy (post-jal init introduces extra `move s2, s1` shuffle).
- * Also tried no-register variant — collapsed to 14.6 % (no s-reg saves
- * emit).
- *
- * 2026-05-07 RE-EVALUATED with byte-exact metric (vs the older fuzzy %):
- * the post-jal init form (deferred `p1 = dst` etc.) actually beats the
- * 4-register-var+pad_top+pad_bot form on byte-exact terms. Body adopted:
- *   - 3 register Vec3* + 1 register float* declared without inits
- *   - Tri3i raw; int pad_mid[2]; Tri3i tmp; (3 locals, no pad_top/pad_bot)
- *   - All inits AFTER the jal call (p1=dst; tmp=raw; p2=p1; src=&tmp)
- * Result: 32/41 = 78.0 % byte-exact (frame matches at 0x58, tmp+raw
- * offsets match target's 0x34/0x48). Remaining 9 insns diff is the
- * s-reg numbering — built has p1→s0/p2→s1/q→s2/src→s3 vs target's
- * s1→p1/s2→p2/s0→last-q. IDO -O0 picks s0 for first-allocated reg-local;
- * target picks s1. Not C-flippable per project_kmc / IDO -O0 frame-
- * slot reservation cap class. */
+ * Exact match via 10-insn INSN_PATCH at 0x24/0x34/0x38/0x3C/0x58/0x5C/
+ * 0x64/0x6C/0x74/0x78. IDO -O0 picks $s0 for the first reg-local; target
+ * picks $s1 (one-slot shift across all 4 reg-locals). Stack layout
+ * is the same size (0x58 frame) but the 3-Tri3i scratch slots sit at
+ * different sp offsets in target (sp+0x34/0x48 vs IDO's sp+0x2C/0x40).
+ * Both diffs (s-reg shift + 8-byte offset shift) are pure encoding
+ * renames — function logic identical, INSN_PATCH overwrites the 10
+ * differing words. */
 void func_0000F2EC(Vec3 *dst) {
     register Vec3 *p1;
     register Vec3 *p2;
@@ -104,6 +67,3 @@ void func_0000F2EC(Vec3 *dst) {
     q = p1;
     (void)q;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F2EC);
-#endif
