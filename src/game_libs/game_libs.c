@@ -680,3 +680,4 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
  * Mid 0x8A40..0x949C split out to game_libs_mid.c. Cluster 0x949C..
  * 0x959C (-O0) in game_libs_o0_949C.c. Tail (0x959C+) in
  * game_libs_tail.c. */
+

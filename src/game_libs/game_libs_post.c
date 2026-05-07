@@ -5365,17 +5365,28 @@ void gl_func_0006F144(int a0, ...) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F160);
 
 #ifdef NON_MATCHING
-/* Sibling of gl_func_0006F3BC — same `(a0 & MASK) != 0 ? 1 : 0` shape with
- * forced sp=-8 frame + unfilled delay slots. Mask = 0x1C here vs 0x3 there.
- * Same documented cap as 6F3BC: target idiom (sp=-8 with no sw/lw) not
- * reachable from standard IDO -O2 C — `volatile int x = a0 & MASK` adds
- * sw+lw spills target doesn't have (built 14 insn vs target 9 insn body).
- * Likely original was alloca/setjmp or per-file pragma.
+/* Sibling of gl_func_0006F3BC — same `(a0 & MASK) != 0 ? 1 : 0` shape
+ * with forced sp=-8 frame + unfilled delay slots. Mask = 0x1C here vs
+ * 0x3 there.
  *
- * Splat bundled 3 trailing insns (nop + lui t6,0xA480 + lw a0,0x18(t6) —
- * SI status preload for the next function); SUFFIX_BYTES setup IS in
- * Makefile, applies if the body ever reaches byte-correct. Until then,
- * default INCLUDE_ASM keeps ROM correct. */
+ * 2026-05-07 boundary fix: split off the 3 trailing insns
+ * (`nop; lui t6,0xA480; lw a0,0x18(t6)` — SI status preload for the
+ * next function) into game_libs_func_0006F3B0 via split-fragments.py.
+ * Symbol is now 9 insns (0x24) — matches target's body size exactly.
+ *
+ * Cap remaining: target's specific shape is `addiu sp,-8; andi; beqz;
+ * nop(delay); b; li v0,1(delay); move v0,zero; jr ra; addiu sp,8(delay)`.
+ * Closest C variants:
+ *   - plain `if (a0 & MASK) return 1; return 0;` at -O2: 7 insns, no frame
+ *   - same at -O1: 8 insns, frame in beqz delay slot (target wants
+ *     prologue insn 0 + nop in delay slot)
+ *   - -O1 -g2: 12 insns with 4 extra `b epilogue` jumps (no good)
+ * Target's 9-insn shape with prologue-first + nop-delay-slot doesn't
+ * reproduce from straight C source variation. Likely original used a
+ * per-file compile mode (-O1 -g3?) that I haven't tested, OR an
+ * inline-asm sequence that IDO accepted in 1998 but not in this build.
+ * Wrap stays NM at the volatile form (closest decoded body but bytes
+ * diverge by ~3 insns vs the new 9-insn target). */
 int gl_func_0006F38C(int a0) {
     volatile int x = a0 & 0x1C;
     if (x != 0) return 1;
@@ -5384,6 +5395,8 @@ int gl_func_0006F38C(int a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F38C);
 #endif
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F3B0);
 
 #ifdef NON_MATCHING
 /* return (a0 & 3) != 0 ? 1 : 0
