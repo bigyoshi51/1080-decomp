@@ -3375,7 +3375,68 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
 #endif
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00006FA8: 127-insn (0x1FC) heavy FPU + multi-call compute.
+ * Frame -0xC0. Sibling of 0x6CF0 (per-frame FPU update class).
+ *
+ * Structural decode (offsets in target asm):
+ *
+ *   ; Stage 1 (insns 1-7): prologue + first cross-USO call (callee=0).
+ *   self = a0; saved to s0.
+ *   gl_func_00000000(...);              ; first call (return float in f0)
+ *   sp[0xBC] = 0;                       ; clear local accumulator
+ *
+ *   ; Stage 2 (insns 8-13): early-out if f0 < 0.
+ *   if (f0 < 0.0f) goto end;
+ *
+ *   ; Stage 3 (insns 14-26): two consecutive cross-USO calls feeding
+ *   ; values from D[0x570] and D[0x574] into temp slots.
+ *   p1 = *(int**)(D + 0x570);
+ *   sp[0xB8] = *p1;                     ; spill (also passed as stack-arg5)
+ *   sp[0x4]  = sp[0xB8];                ; outgoing arg5
+ *   gl_func_00000000(self, sp[0xB8], self->[0x30] + 0xB4);
+ *
+ *   p2 = *(int**)(D + 0x574);
+ *   sp[0xB4] = *p2;
+ *   sp[0x4]  = sp[0xB4];
+ *   tmp = gl_func_00000000(self, sp[0xB4], self->[0x30] + 0xB4);
+ *   if (tmp == 0) goto end;             ; bnezl-pattern early-out
+ *
+ *   ; Stage 4 (insns 27-50): Vec3-arithmetic with pointer-chain copies.
+ *   ; Reads from self->[0x30] sub-object, copies 3 ints (Vec3-int) + computes
+ *   ; FPU products. Stores to sp[0x6C..0x74] AND sp[0x34..0x3C].
+ *
+ *   ; Stage 5 (insns 51-90): 5-FPU arithmetic chain
+ *   ; (mul.s f0,f1; mul.s f4,f1; mul.s f6,f0; sub.s f8,f0,f1; etc.) producing
+ *   ; new Vec3 values stored to sp[0x90..0x98] and sp[0x9C..0xA4].
+ *
+ *   ; Stage 6 (insns 91-110): Vec3-int copy cascade — 3 lw/sw pairs each
+ *   ; from sp+0x90..0x98 to caller-provided buffer at *(arg pointer) + 0x30.
+ *
+ *   ; Stage 7 (insns 111-127): final c.lt.s + branch-likely; conditional sw
+ *   ; based on FPU comparison; epilogue.
+ *
+ *   end: return;
+ *
+ * Spine context: per-frame compute in the 0x6XXX FPU-heavy cluster
+ * (siblings 0x6A30, 0x6CF0, 0x6F38). Reads self with sub at +0x30.
+ * Field offsets used: self->{0x30}, sub->{0xB4...}, plus globals at
+ * D+0x570, D+0x574.
+ *
+ * Multi-tick refinement target. Default INCLUDE_ASM build remains exact
+ * via the asm. Skeleton kept for grep discoverability of struct field
+ * offsets and the per-frame compute call-graph. */
+void game_uso_func_00006FA8(int *a0) {
+    /* Outline only — multi-tick decomp scope. The 7-stage compute (call,
+     * float gate, 2 staged calls, Vec3 stage, FPU chain, Vec3 copy, conditional
+     * tail) needs careful arg passing + register allocation to byte-match.
+     * Skeleton kept for the per-frame compute's struct-typing pass. */
+    int *sub = *(int**)((char*)a0 + 0x30);
+    (void)sub;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006FA8);
+#endif
 
 void game_uso_func_000071A4(int *a0) {
     *(int*)((char*)a0 + 0x64) = 1;
