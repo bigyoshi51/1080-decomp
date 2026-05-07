@@ -105,8 +105,11 @@ build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 # 16-byte padding between them. Size targets match the natural compiled
 # sizes (drift included) so no real code gets truncated; same accumulated
 # drift as main's pre-split game_libs.c.o. See feedback_non_aligned_o_split.md.
-build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0x949C
+build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0x8944
 build/src/game_libs/game_libs.c.o: PREFIX_BYTES := game_libs_func_000040EC=0x00000000,0x00000000
+build/src/game_libs/game_libs_o0_8944.c.o build/non_matching/src/game_libs/game_libs_o0_8944.c.o: OPT_FLAGS := -O0
+build/src/game_libs/game_libs_o0_8944.c.o: TRUNCATE_TEXT := 0xFC
+build/src/game_libs/game_libs_mid.c.o: TRUNCATE_TEXT := 0xB58
 build/src/game_libs/game_libs_o0_949C.c.o build/non_matching/src/game_libs/game_libs_o0_949C.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
 # Bake resolved jal targets to match expected/.o (which is INCLUDE_ASM-derived

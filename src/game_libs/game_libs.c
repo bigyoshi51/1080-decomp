@@ -675,66 +675,8 @@ int gl_func_00008884(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
 
-#ifdef NON_MATCHING
-/* gl_func_00008944: 19-insn (0x4C) -O0 int reader template — same body as
- * the standard accessor template but compiled at -O0 (vs the file's default
- * -O2). Verified BYTE-IDENTICAL standalone at -O0 (unfilled jal delay slot,
- * `addiu t6, sp, 0x18; lw t7, 0(t6)` chained-deref of buf[0], dead BB-marker
- * `b +1; nop` before epilogue).
- *
- * BLOCKED: needs -O0 file split. game_libs has no -O0 sub-files yet;
- * promoting requires src/game_libs/game_libs_o0_8944.c + linker-script slot
- * + per-file `OPT_FLAGS := -O0` Makefile entry. Multi-tick infrastructure. */
-void gl_func_00008944(int *dst) {
-    int buf[2];
-    gl_func_00000000(&D_00000000, buf, 4);
-    *dst = buf[0];
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008944);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008990);
-
-#ifdef NON_MATCHING
-/* gl_func_000089F4: 19-insn (0x4C) -O0 float reader template — float-typed
- * counterpart of gl_func_00008944's int-reader. Verified BYTE-IDENTICAL
- * standalone at -O0 (lwc1 $f4 / swc1 $f4 in place of lw/sw).
- *
- * BLOCKED: same -O0 file split as gl_func_00008944. See feedback memo
- * feedback_o0_int_reader_template_variant.md (extends to float variant). */
-void gl_func_000089F4(float *dst) {
-    float buf[2];
-    gl_func_00000000(&D_00000000, buf, 4);
-    *dst = buf[0];
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000089F4);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008A40);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008AE4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008C3C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008DAC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008FFC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009100);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009204);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000092F4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000093DC);
-
-
-/* Cluster 0x949C..0x959C (4 -O0 wrappers) split out to
- * game_libs_o0_949C.c on 2026-05-07. Tail (0x959C+) split out to
- * game_libs_tail.c. Both files build at their own opt levels per
- * Makefile overrides; linker re-assembles them into the original
- * .game_libs section in tenshoe.ld. */
+/* Cluster 0x8944..0x8A40 (-O0 reader templates + sandwich INCLUDE_ASM
+ * for 0x8990) split out to game_libs_o0_8944.c on 2026-05-07.
+ * Mid 0x8A40..0x949C split out to game_libs_mid.c. Cluster 0x949C..
+ * 0x959C (-O0) in game_libs_o0_949C.c. Tail (0x959C+) in
+ * game_libs_tail.c. */

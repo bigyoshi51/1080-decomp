@@ -37,11 +37,8 @@ extern char D_00000000;
  *   gl_func_00008944: 19 insns / 0x4C, byte-exact.
  *   gl_func_000089F4: 19 insns / 0x4C, byte-exact (lwc1/swc1 form). */
 
-/* Bodies bracketed with #if 0 to prevent duplicate-symbol link error
- * with game_libs.c's existing INCLUDE_ASM (which still emits the bytes
- * from .s for the default build). When step 1-6 of the migration land,
- * remove the `#if 0`/`#endif` here AND strip the wraps in game_libs.c. */
-#if 0
+/* Step-1 migration completed 2026-05-07: brackets removed, game_libs.c
+ * truncated at 0x8944, game_libs_mid.c handles 0x8A40..0x949C. */
 void gl_func_00008944(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
@@ -55,4 +52,3 @@ void gl_func_000089F4(float *dst) {
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
-#endif
