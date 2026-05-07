@@ -4060,8 +4060,8 @@ trunk:
             else              a0[0x6C / 4] &= ~0x100;
         }
         /* Falls through to common ret_hi-conditional float-state update
-         * @ 0x79F8-0x7A78 (TODO this pass): if ret_hi != 0, f16 absorbs
-         * either +1.0 or -1.0 depending on a0[0x3C], then stores back. */
+         * @ 0x79F8-0x7A78 (now wired below): if ret_hi != 0, f16 absorbs
+         * +1.0 or -1.0 depending on a0[0x3C], then stores back. */
     }
 
     /* bit-0x80 entry (0x7828-0x7848, decoded 2026-05-05):
