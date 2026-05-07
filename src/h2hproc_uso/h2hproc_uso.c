@@ -784,7 +784,16 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD
  * call at v0->[0x7C]*0x28 + 0x90 with a final wrapper call(a0).
  *
  * Multi-tick decompile — needs struct typing and indirect-call signature
- * to tighten beyond partial wrap. */
+ * to tighten beyond partial wrap.
+ *
+ * 2026-05-07 fix (82.67% -> 87.62%, +4.95pp): the 3 gl_func gates were
+ * wrong as `if (... == 0) return;` early-exits — target's branches all
+ * land at a SHARED tail that ALWAYS calls `gl_func_00000000(a0)`. So
+ * the right shape is nested `if (... != 0) { ... }` with the wrapper
+ * call after. Remaining ~12pp from the +0x10 increment block: target
+ * uses `addiu v1, v0, 60` to compute &(v0->0x3C) and accesses via
+ * `lw/sw 0(v1)`; built does direct `lw/sw 60(v0)`. Needs explicit
+ * pointer-to-field idiom (per `feedback_ido_local_ordering`). */
 void h2hproc_uso_func_00001204(char *a0) {
     char *p1;
     char *v0;
@@ -809,16 +818,23 @@ void h2hproc_uso_func_00001204(char *a0) {
             *(int*)(v0 + 0x3C) = 0;
         }
     }
-    if (gl_func_00000000(&D_00000000, 0x40100) == 0) return;
-    if (gl_func_00000000(*(int*)(&D_00000000 + 0x190)) == 0) return;
-    p1 = *(char**)(a0 + 0x30);
-    if (*(int*)(p1 + *(int*)(p1 + 0x7C) * 0x28 + 0x90) == 0) return;
-    gl_func_00000000(5);
-    *(int*)((char*)&D_00000000 + 0x4) = *(int*)(a0 + 0x30);
-    *(int*)((char*)&D_00000000 + 0x0) = *(int*)(a0 + 0x2C);
-    p1 = *(char**)(a0 + 0x30);
-    t9 = *(int*)(p1 + *(int*)(p1 + 0x7C) * 0x28 + 0x90);
-    ((void(*)(void))t9)();
+    /* Asm has 3 nested early-out gates that all converge at the SHARED
+     * tail `gl_func_00000000(a0)` (target's branches @ 0x12B4 / 0x12CC /
+     * 0x12F4 all land at 0x1348 — the final jal). NOT plain `return`
+     * exits — the wrapper call always runs. */
+    if (gl_func_00000000(&D_00000000, 0x40100) != 0) {
+        if (gl_func_00000000(*(int*)(&D_00000000 + 0x190)) != 0) {
+            p1 = *(char**)(a0 + 0x30);
+            if (*(int*)(p1 + *(int*)(p1 + 0x7C) * 0x28 + 0x90) != 0) {
+                gl_func_00000000(5);
+                *(int*)((char*)&D_00000000 + 0x4) = *(int*)(a0 + 0x30);
+                *(int*)((char*)&D_00000000 + 0x0) = *(int*)(a0 + 0x2C);
+                p1 = *(char**)(a0 + 0x30);
+                t9 = *(int*)(p1 + *(int*)(p1 + 0x7C) * 0x28 + 0x90);
+                ((void(*)(void))t9)();
+            }
+        }
+    }
     gl_func_00000000(a0);
 }
 #else
