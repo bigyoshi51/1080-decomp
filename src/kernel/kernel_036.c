@@ -47,6 +47,13 @@ void __rmonSendHeader(void) {
  * structural cap; no C-level path can produce 7-insn body with reloc'd
  * jal AND no jr ra epilogue.
  *
+ * 2026-05-07: tested `for(;;);` infinite-loop sentinel after jal to
+ * mark fall-through as unreachable. IDO -O2 still emits full epilogue
+ * (lw ra; addiu sp; jr ra; nop) AT the function tail, after a 4-insn
+ * nop-padded unreachable region. Net 13 insns (vs 7-insn target).
+ * Loop infiniteness is not propagated to reorg.c's epilogue-emission
+ * logic. Same cap holds.
+ *
  * Stays INCLUDE_ASM-tautology (build/.o byte-correct via #else branch). */
 void func_800073DC(void) {
     /* see __rmonSendHeader above — this fragment is its prologue */
