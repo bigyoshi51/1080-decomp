@@ -195,7 +195,7 @@ class ElfPatcher:
 
 
 def inject_suffix(o_path: Path, func_name: str, suffix_words: list[int],
-                  verify: bool):
+                  verify: bool, allow_natural_epilogue: bool = False):
     n_bytes = 4 * len(suffix_words)
     payload = b"".join(struct.pack(">I", w) for w in suffix_words)
 
@@ -228,8 +228,16 @@ def inject_suffix(o_path: Path, func_name: str, suffix_words: list[int],
         # the suffix is the stolen-prologue of the next function), so the
         # baseline build naturally produces a function with the suffix already
         # baked in. C-emit builds produce a shorter function and rely on this
+        # (FALSE-POSITIVE GUARD): when the C body's natural epilogue happens
+        # to be `jr ra; nop` AND the suffix payload is also `jr ra; nop`
+        # (because target's actual tail has those bytes appended after a
+        # body that ends in `lw ra; addiu sp`), this check would skip even
+        # though injection is required. Pass --allow-natural-epilogue to
+        # bypass skip-path-2 for these known false-positive cases. See
+        # docs/POST_CC_RECIPES.md
+        # #feedback-suffix-skip-path-2-false-positive-on-natural-epilogue.
         # script to extend it.
-        if func_size >= n_bytes:
+        if func_size >= n_bytes and not allow_natural_epilogue:
             in_func_tail = bytes(elf.data[text_off + tail_addr - n_bytes:
                                            text_off + tail_addr])
             if in_func_tail == payload:
@@ -293,9 +301,16 @@ def main():
     ap.add_argument("suffix",
                     help="comma-separated hex words, e.g. 0x3C020000,0x24420000")
     ap.add_argument("--no-verify", action="store_true")
+    ap.add_argument("--allow-natural-epilogue", action="store_true",
+                    help="Bypass skip-path-2 (the INCLUDE_ASM-build false-"
+                         "positive on natural-jr-ra-nop epilogue C bodies). "
+                         "Use when SUFFIX_BYTES + INSN_PATCH together overwrite "
+                         "the body's last 2 insns. See "
+                         "docs/POST_CC_RECIPES.md.")
     args = ap.parse_args()
     inject_suffix(args.o_file, args.func_name, parse_words(args.suffix),
-                  verify=not args.no_verify)
+                  verify=not args.no_verify,
+                  allow_natural_epilogue=args.allow_natural_epilogue)
 
 
 if __name__ == "__main__":

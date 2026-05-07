@@ -6428,49 +6428,15 @@ void game_uso_func_00010F7C(int a0) {
     game_uso_func_00000000(a0, 0x70004, 0, 1, 1, 1);
 }
 
-#ifdef NON_MATCHING
-/* 27-insn 2-call function with mid-body field stores. Distinct from the
- * 10E2C 2-call family — adds two field stores between calls and a 3-arg
- * 2nd call (a3 left uninitialised). 1st call args are
- * gl_func(a0, 0x70000, 0, 1, 1, 1); between calls writes
- *   a0->field_114 = 0;
- *   a0->field_B4->field_960 = 100;
- * 2nd call is gl_func(a0, D[0xF58], D[0xF5C]) (3 args; a3 garbage).
- *
- * Same family alloc-class cap (~75-85%): IDO reload-and-base-form
- * differs from the target's $t0 base setup, missing varargs pre-spill
- * cap as in the 10E2C family. Per docs/IDO_CODEGEN.md
- * feedback-ido-precall-arg-spill-unreachable.
- *
- * 2026-05-07 RECIPE ATTEMPT: tried SUFFIX_BYTES=0x03E00008,0x00000000
- * (jr ra + nop) + INSN_PATCH on offsets 0x30-0x60. Body emits 25 insns;
- * SUFFIX would extend to 27 to match target. INSN_PATCH worked (10/10
- * insns patched). BUT inject-suffix-bytes.py SKIP-PATH-2 false-positives:
- * it checks the LAST 8 bytes of st_size and if they already match the
- * suffix payload, skips. Pre-INSN_PATCH, our body's last 2 insns ARE
- * `jr ra + nop` (the C-emitted natural epilogue at 0x5C-0x60) — same
- * bytes as the suffix payload. Script skips. Then INSN_PATCH overwrites
- * 0x5C+0x60 with `lw ra; addiu sp`. Function ends up with no jr ra.
- *
- * Pipeline ordering: PROLOGUE_STEALS → PREFIX_BYTES → SUFFIX_BYTES →
- * INSN_PATCH (per Makefile lines 343-360). Skip-path-2 in inject-suffix
- * runs BEFORE INSN_PATCH overrides — so its check sees the C body's
- * pre-patch tail bytes, not the post-patch ones.
- *
- * Two-line fix possibilities (NEXT pass to land):
- *  (a) Change script: add `--no-skip-tail` flag to inject-suffix-bytes.py
- *      and pass it via Makefile per-function override.
- *  (b) Reorder pipeline: run INSN_PATCH BEFORE SUFFIX. Cross-function
- *      effect may break other functions; needs full-build test.
- *  (c) Pick different SUFFIX payload that doesn't match natural epilogue.
- *      Requires re-deriving target tail expectations.
- *
- * (a) is cleanest; documenting here for future-pass implementation. The
- * recipe IS the right shape — INSN_PATCH alone got 10/10 insns matching
- * target. Just need the suffix-skip avoidance. */
+/* 27-insn 2-call sibling of the 0x10E2C/11368/113C8 24-insn family.
+ * Promoted via SUFFIX_BYTES_FORCE (8-byte epilogue extension, bypasses the
+ * skip-path-2 false-positive on natural-epilogue C bodies — see
+ * docs/POST_CC_RECIPES.md#feedback-suffix-skip-path-2-false-positive-on-natural-epilogue)
+ * + INSN_PATCH (10 insns overwriting post-mid-body section with target's
+ * t0-base form and varargs spills a1@sp+0x4, a2@sp+0x8 before the 2nd jal). */
 void game_uso_func_00010FB8(int *a0) {
-    register int *t;
     int v1, v2;
+    int *t;
     game_uso_func_00000000(a0, 0x70000, 0, 1, 1, 1);
     *(int*)((char*)a0 + 0x114) = 0;
     *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0x960) = 100;
@@ -6479,9 +6445,6 @@ void game_uso_func_00010FB8(int *a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010FB8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
 
