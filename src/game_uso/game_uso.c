@@ -5307,22 +5307,32 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
 
 #ifdef NON_MATCHING
-/* 90.21% NM. 90.2%: `char *base = a0` forces $s2 = arg0 reuse for 0x168 limit (target
- * trick). Still stuck: $s0/$s1 pair — target has counter→s0, ptr→s1; ours
- * has ptr→s0, counter→s1. Swapping `p += 0x24; i += 0x24;` order did NOT
- * flip allocation here (unlike what I thought when contaminated baseline
- * gave a false 100 %). See feedback_ido_loop_body_stmt_order_flips_allocno
- * — that memo's premise was wrong and should be retired. */
+/* 2026-05-07: $s0/$s1 swap FIXED via init-statement order (17 diffs → 3).
+ * Previously `p = base + 0xB8; i = 0;` made p the first-defined pseudo,
+ * allocating s0=p, s1=i. Reversed to `i = 0; p = base + 0xB8;` flips
+ * allocation to target: s0=i, s1=p. Retires the previous "stmt order
+ * doesn't flip allocno" claim — for IDO -O2, INIT-STATEMENT order in
+ * the function body DOES affect allocation (priority queue ties broken
+ * by first-RTL-pseudo-emit, which follows assignment order, not declaration
+ * order).
+ *
+ * Remaining 3 diffs:
+ *   1× linker-symbol baseline diff (jal-to-ADE0 resolved in expected/.o
+ *      but not in NM-build/.o — capture-bloat artifact)
+ *   2× schedule swap in loop pre-header — target emits
+ *      `li s2, 0x168; move s0, $0`, ours emits the reverse. Both insns
+ *      are independent in the dataflow graph; IDO's scheduler picks
+ *      register-numerical order (s0 before s2) while target picks
+ *      use-order (s2 used in bne, s0 used in delay-slot). No C-level
+ *      lever found to swap these. */
 void game_uso_func_0000BF7C(char *a0) {
+    char *base = a0;
     int i;
     char *p;
-    char *base;
-
-    base = a0;
     game_uso_func_00000000(base + 0x224);
     game_uso_func_0000ADE0((int*)(base + 0x274));
-    p = base + 0xB8;
     i = 0;
+    p = base + 0xB8;
     do {
         game_uso_func_00000000(p);
         p += 0x24;
