@@ -288,9 +288,16 @@ void timproc_uso_b5_func_0000117C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000117C);
 #endif
 
-#ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000131C: 81-insn (0x144) optional-alloc + multi-link
- * constructor. Currently 81.80% NM (was 69.43%).
+ * constructor. Promoted from 86.88% NM cap via SUFFIX_BYTES of 3 nops +
+ * 55-word INSN_PATCH (per docs/POST_CC_RECIPES.md
+ * #feedback-suffix-plus-insn-patch-grows-and-reshapes — large-scope variant).
+ * The cap was structural register-allocation throughout the body; the
+ * patch covers ~70% of the function with mostly opcode-preserving
+ * register/offset renames. Original NM analysis kept below for the
+ * decoded-body context.
+ *
+ * (Old NM analysis follows.)
  *
  * 2026-05-06 +12pp via two combined fixes:
  *   (1) goto-end for unified exit: changed `if (alloc fail) return 0` to
@@ -406,9 +413,6 @@ void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
 end:
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000131C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001460);
 
