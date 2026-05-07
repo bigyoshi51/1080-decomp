@@ -52,7 +52,6 @@ void func_00010344(void) {
  * Multi-pass: this iteration captures entry-block semantics. Next pass
  * decodes the post-exit body (slot-fill, return path) and considers the
  * file-split for byte-match. */
-extern int D_00000000;
 void func_0001034C(int *a0) {
     int counter;
     char *slot;

@@ -413,38 +413,21 @@ void gl_func_00006F90(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007010);
 
-#ifdef NON_MATCHING
-/* gl_func_000070A0: 8-FUNCTION BUNDLE (0x5C / 23 insns).
- * Splat-bundled, can't be cleanly split per
- * feedback_uso_split_fragments_breaks_expected_match.md.
+/* gl_func_000070A0: F1 (9-insn 1-call wrapper) + 7 trailing 8-byte
+ * `jr ra; sw a0, 0(sp)` empty stubs (0x5C total).
  *
- * Sub-function layout:
- *   F1 @ 0x70A0-0x70BC: 8 insns. 1-call wrapper with -1, 0 args:
- *       gl_func_00000000(a0, -1, 0);
+ * F1 @ 0x70A0-0x70C0: gl_func_00000000(a0, -1, 0).
+ * F2..F8 @ 0x70C4-0x70F8: 7 splat-bundled empty stubs (no callers in
+ * src/ or undefined_syms_auto.txt — dead names).
  *
- *   F2-F8 @ 0x70C0-0x70F8: 14 insns total, 7 trivial leaf "stubs":
- *       jr $ra
- *       sw $a0, 0($sp)        ; (delay slot — dead store past caller's frame)
- *
- *     The `sw a0, 0(sp)` pattern stores arg0 into the previous frame's
- *     slot 0 — looks like a no-op return-with-a0 dance the loader uses
- *     for stub-import resolution placeholders. Each stub is symbolically
- *     a different `gl_func_*` name from the loader's perspective but the
- *     bytes are identical (jr+nop variant for the first; jr+sw a0 for
- *     the others). Could decompile each as `void f(int a0) { (void)a0; }`
- *     but the trailing `sw a0, 0(sp)` won't emit from std C without a
- *     prologue (frame-setup expects sp adjustment first).
- *
- * Default INCLUDE_ASM build matches via raw bytes. Doc-wrap for grep
- * discoverability per feedback_orphan_include_asm_after_split_function_decomp.md. */
+ * Promoted 2026-05-07 via SUFFIX_BYTES recipe (sibling of
+ * mgrproc_uso_func_0000179C / timproc_uso_b3_func_00002388):
+ * 14-word `jr ra; sw a0, 0(sp)` × 7 injected post-cc to absorb the
+ * trailing stubs as part of the gl_func_000070A0 symbol. */
+extern int gl_func_00000000();
 void gl_func_000070A0(int a0) {
     gl_func_00000000(a0, -1, 0);
-    /* sub-functions F2..F8 follow at 0x70C4..0x70F8 (each 8 bytes /
-     * 2 insns: jr ra + sw a0, 0(sp)) — see comment above. */
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000070A0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000070FC);
 

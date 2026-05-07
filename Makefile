@@ -109,6 +109,7 @@ build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 # drift as main's pre-split game_libs.c.o. See feedback_non_aligned_o_split.md.
 build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0x8944
 build/src/game_libs/game_libs.c.o: PREFIX_BYTES := game_libs_func_000040EC=0x00000000,0x00000000
+build/src/game_libs/game_libs.c.o: SUFFIX_BYTES := gl_func_000070A0=0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000
 build/src/game_libs/game_libs_o0_8944.c.o build/non_matching/src/game_libs/game_libs_o0_8944.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_8944.c.o: TRUNCATE_TEXT := 0xFC
 build/src/game_libs/game_libs_mid.c.o: TRUNCATE_TEXT := 0xB58
