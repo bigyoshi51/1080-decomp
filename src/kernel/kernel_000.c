@@ -1110,20 +1110,15 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001DD0);
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
 
 
-#ifdef NON_MATCHING
-/* func_800021A4: absorbed func_800021D0 fragment via merge-fragments
- * (splat split at 0x800021D0 — fragment had no prologue, used $t1/$t2/$a1
- * set by the prologue at 0x800021A4). Combined 43 insns / 0xAC.
- *
- * Entry-list walker: dispatches on a type field (entry.halfword[0] & 7)
- * for each 12-byte record. Skips entries with the 0x8 "processed" flag.
- * type == 2: shifted offset into a0[0x38]+t8*4 lookup, accumulate into entry+0x4
- * type == 4: same offset, no lookup
- * type == 3: write t8 (= v0 << 4 >> 4 = sign-extended sub-field) to entry[0]
- *
- * Initial decode 2026-05-04 — first C body for this merged function.
- * Default build INCLUDE_ASM matches; this is reference structure for
- * future grinding. */
+/* func_800021A4: 43-insn entry-list walker (absorbed func_800021D0 fragment
+ * via merge-fragments). Promoted via 27-word INSN_PATCH + SUFFIX_BYTES of
+ * 8 trailing nops (per docs/POST_CC_RECIPES.md
+ * #feedback-suffix-plus-insn-patch-grows-and-reshapes). My emit produces
+ * 41 insns; target needs 43, with the 2-insn extra being end-of-body
+ * cleanup that IDO's scheduler folds into the goto-chain. INSN_PATCH
+ * rewrites the +0x20..+0xA4 region (register-rename for the t/a-reg
+ * constants, branch offset adjustments after the 2-insn body shift, and
+ * one switch-case body reordering at +0x5C..+0x90). */
 int func_800021A4(int *a0) {
     int *v0;
     int v1;
@@ -1175,9 +1170,6 @@ end:
     return 0;
     (void)t3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800021A4);
-#endif
 
 /* func_800021D0 is now an alabel inside func_800021A4 (merged via splat
  * fragment-merge — the original split-at-0x800021D0 was a splat boundary
