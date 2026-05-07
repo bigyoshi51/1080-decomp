@@ -3233,7 +3233,51 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00006CF0: 102-insn (0x198) per-frame FPU update with
+ * conditional dispatch. Frame -0x88, single arg a0.
+ *
+ * Structural decode (offsets in target asm):
+ *
+ *   sub = a0->[0x30];                          ; sub-object pointer
+ *
+ *   ; Stage 1: copy 3 ints (Vec3-int) from sub->{0xB4,B8,BC} to sp[0x70..0x78]
+ *   sp[0x70] = sub->[0xB4];
+ *   sp[0x74] = sub->[0xB8];
+ *   sp[0x78] = sub->[0xBC];
+ *
+ *   ; Stage 2: scale Vec3 (sub->{0x318,31C,320}) by a0->[0xA8] (negated for
+ *   ; the .x component) and store to sp[0x48..0x50]
+ *   scale = a0->[0xA8];
+ *   sp[0x48] = -scale;
+ *   sp[0x4C] = sub->[0x31C] * scale;
+ *   sp[0x50] = sub->[0x320] * scale;
+ *
+ *   ; Stage 3: Vec3 copy 3 ints from sub_a (= some pointer) to t1 (= sp+0x7C),
+ *   ; then 3 ints from t2 to t3 — pointer-walking copy pair (asm 0x60-0x90)
+ *
+ *   ; Stage 4: FPU ops on staged Vec3 + conditional branches based on
+ *   ; sub->[0x6C] and sub->[0x70]
+ *   if (sub->[0x6C] == 0) ...
+ *   if (a0->[0x70] < 0x3C) ...
+ *
+ *   ; Stage 5: 2-3 cross-USO calls with sub->0x840 (function ptr)
+ *   gl_func_00000000(sub->0x840, a1, a2);
+ *
+ * Spine context: per-frame compute (FPU-heavy update). Reads ONE input
+ * struct (a0 with sub at +0x30) and writes scaled Vec3s into local stack
+ * frame for downstream. Field offsets used: a0->{0x30,0x70,0xA8}, sub->{
+ * 0xB4,0xB8,0xBC, 0x318,0x31C,0x320, 0x6C, 0x70, 0x840, 0x938, 0xA54}.
+ *
+ * Multi-tick refinement target. Default INCLUDE_ASM build remains exact.
+ * Skeleton kept for grep discoverability of struct field offsets. */
+void game_uso_func_00006CF0(int *a0) {
+    int *sub = *(int**)((char*)a0 + 0x30);
+    (void)sub;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006CF0);
+#endif
 
 void game_uso_func_00006E88(int *a0) {
     int r;
