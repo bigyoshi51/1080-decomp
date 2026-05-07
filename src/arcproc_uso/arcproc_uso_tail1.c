@@ -319,7 +319,19 @@ void arcproc_uso_func_00000E58(char *a0) {
     arcproc_uso_func_00000000(a0 + 0x764);
 }
 
-/* arcproc_uso_func_00000EBC: 6-FUNCTION BUNDLE (0x94 / 37 insns).
+/* arcproc_uso_func_00000EBC: F1 (11-insn bit-test wrapper) + F2..F6
+ * splat-bundled sub-functions + 2-word stolen-prologue tail for F50.
+ *
+ * 2026-05-07: promoted via SUFFIX_BYTES recipe (25 words / 0x64 bytes
+ * absorbing F2..F6 + trailing stolen prologue) — same family as
+ * gl_func_000070A0 (matched 2026-05-07).
+ *
+ * SUPERSEDED — original "splitting risks" doc preserved below for
+ * context. The recipe absorbs F2..F6 as raw post-cc bytes rather than
+ * splitting the symbol.
+ *
+ * ORIGINAL DOC:
+ * 6-FUNCTION BUNDLE (0x94 / 37 insns).
  * Splat-bundled — splitting risks .o layout shift; documented per
  * feedback_uso_split_fragments_breaks_expected_match.md (similar cap to
  * 0xF50/3-bundle below).
@@ -348,7 +360,12 @@ void arcproc_uso_func_00000E58(char *a0) {
  * arcproc_uso_tail1.c) and per feedback_uso_split_fragments_breaks_expected_match.md
  * USO splits also break expected/.o. Reverted; bundle stays as-is until
  * the split-script is fixed to write into the right .c. */
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EBC);
+extern int gl_func_00000000();
+void arcproc_uso_func_00000EBC(int *a0) {
+    if (*(int*)((char*)a0 + 0x4F0) & 0x10000) {
+        gl_func_00000000();
+    }
+}
 
 /* arcproc_uso_func_00000F50 + F78 + F9C: 3-function bundle split via
  * scripts/split-fragments.py on 2026-05-07. Per

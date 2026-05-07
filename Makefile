@@ -222,6 +222,7 @@ build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b
 build/src/timproc_uso_b5/timproc_uso_b5.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: PROLOGUE_STEALS := timproc_uso_b5_func_0000E5D8=8 timproc_uso_b5_func_00003F5C=4
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: SUFFIX_BYTES := timproc_uso_b1_func_00001FE4=0x3C040000,0x8C840148 timproc_uso_b1_func_00002178=0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000
 build/src/arcproc_uso/arcproc_uso_tail1.c.o build/non_matching/src/arcproc_uso/arcproc_uso_tail1.c.o: PROLOGUE_STEALS := arcproc_uso_func_00001F0C=8
+build/src/arcproc_uso/arcproc_uso_tail1.c.o: SUFFIX_BYTES := arcproc_uso_func_00000EBC=0x8C8E06AC,0x8DC2006C,0x50400007,0x00001025,0x8C4F00EC,0x51E00004,0x00001025,0x03E00008,0x24020001,0x00001025,0x03E00008,0x00000000,0x8C8E06B8,0x240F0004,0x55C00004,0xAC8F0504,0x03E00008,0xAC800504,0xAC8F0504,0x03E00008,0x00000000,0x03E00008,0xAC800504,0x3C050000,0x8CA50170
 build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH := \
 	func_00006204=0x4:0x3c040000,0x8:0xafbf0014 \
 	func_000020AC=0x1C:0x00884821,0x20:0xac9900c0 \

@@ -463,7 +463,6 @@ void gl_func_000070A0(int a0) {
  * Multi-pass: this iteration decodes entry (~10% of body). Default build
  * INCLUDE_ASM keeps ROM correct. */
 extern int gl_func_00000000();
-extern char D_00000000;
 void gl_func_000070FC(int *a0) {
     int *next;
     int v;
