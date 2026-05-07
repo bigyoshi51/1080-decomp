@@ -131,45 +131,112 @@ def find_rel_text(data):
     return None
 
 
-def strip_orphan_jal_relocs(data, func_addr, orphan_offsets):
-    """Zero out R_MIPS_26 relocs at any of `orphan_offsets` (relative to .text).
+def _remove_relocs(data, predicate):
+    """Remove .rel.text entries matching `predicate(r_offset, r_type)`.
 
-    `orphan_offsets` is a set of absolute .text offsets where INSN_PATCH
-    replaced a `jal 0` placeholder with a non-jump instruction. Any reloc
-    whose r_offset matches must be neutralized so the linker doesn't apply
-    a 26-bit jump fixup to the new addiu/or/etc opcode.
+    Rebuilds .rel.text in place: surviving entries are packed back into
+    the section's existing space, and the section's sh_size is shrunk
+    by `removed * rel_ent` bytes. Any sections after .rel.text in the
+    file have their sh_offset shifted back by the same amount, and the
+    ELF header's e_shoff is adjusted if the section header table sat
+    after .rel.text.
 
-    We zero the entry in-place (r_offset=0, r_info=0 → R_MIPS_NONE for
-    sym 0) rather than removing it, to avoid resizing/reordering the
-    relocation table. R_MIPS_NONE is a no-op at link time.
+    Why removal (not r_info=0 zeroing): R_MIPS_NONE entries are
+    technically valid for the linker (no-op at link time) but objdiff-
+    cli's MIPS reloc parser rejects them with "Unsupported MIPS implicit
+    relocation 0", which breaks `objdiff-cli report generate` in the
+    land script. Removing the entry produces a fully clean .o that all
+    downstream tooling accepts.
     """
-    rel = find_rel_text(data)
-    if rel is None:
+    h = struct.unpack(ELF_HDR_FMT, data[:struct.calcsize(ELF_HDR_FMT)])
+    e_shoff, e_shentsize, e_shnum, e_shstrndx = h[6], h[11], h[12], h[13]
+
+    sections = []
+    for i in range(e_shnum):
+        off = e_shoff + i * e_shentsize
+        sections.append(struct.unpack(SECT_HDR_FMT, data[off:off + e_shentsize]))
+
+    shstr = sections[e_shstrndx]
+    rel_idx = None
+    for i, s in enumerate(sections):
+        name_off = s[0]
+        end = data.index(b"\x00", shstr[4] + name_off)
+        nm = bytes(data[shstr[4] + name_off:end]).decode("ascii")
+        if nm == ".rel.text":
+            rel_idx = i
+            break
+    if rel_idx is None:
         return 0
-    rel_off, rel_size, rel_ent = rel
-    stripped = 0
-    for i in range(rel_size // rel_ent):
+
+    rel_off = sections[rel_idx][4]
+    rel_size = sections[rel_idx][5]
+    rel_ent = sections[rel_idx][9]
+    n_entries = rel_size // rel_ent
+
+    # Walk and partition into kept vs removed.
+    kept = []
+    removed_count = 0
+    for i in range(n_entries):
         e_off = rel_off + i * rel_ent
         r_offset, r_info = struct.unpack(REL_FMT, data[e_off:e_off + rel_ent])
         r_type = r_info & 0xFF
-        # Reloc r_offset is relative to .text section start (r_offset is the
-        # offset within the section being relocated). Compare directly.
-        if r_type == R_MIPS_26 and r_offset in orphan_offsets:
-            data[e_off:e_off + rel_ent] = struct.pack(REL_FMT, 0, 0)
-            stripped += 1
-    return stripped
+        if predicate(r_offset, r_type):
+            removed_count += 1
+            continue
+        kept.append((r_offset, r_info))
+
+    if removed_count == 0:
+        return 0
+
+    # Repack kept entries at the section's existing offset, then
+    # zero-fill the trailing slots (so the file size doesn't shrink
+    # mid-section — we'll shrink the section header's sh_size separately
+    # to logically truncate). Subsequent sections in the file ALREADY sit
+    # at offsets > rel_off + rel_size; we won't touch their offsets, just
+    # shrink the .rel.text logical size. This works because the kept
+    # bytes are repacked at the same start, and the trailing slack is
+    # preserved as in-file padding (harmless: no section claims it).
+    for j, (r_offset, r_info) in enumerate(kept):
+        e_off = rel_off + j * rel_ent
+        data[e_off:e_off + rel_ent] = struct.pack(REL_FMT, r_offset, r_info)
+    # Zero the freed trailing slots (purely cosmetic — they're outside
+    # the new sh_size, so no tool reads them, but cleanliness helps if
+    # someone hexdumps).
+    new_size = len(kept) * rel_ent
+    for j in range(len(kept), n_entries):
+        e_off = rel_off + j * rel_ent
+        data[e_off:e_off + rel_ent] = b"\x00" * rel_ent
+
+    # Update the .rel.text section header's sh_size in place.
+    sec_hdr_off = e_shoff + rel_idx * e_shentsize
+    fields = list(sections[rel_idx])
+    fields[5] = new_size  # sh_size
+    data[sec_hdr_off:sec_hdr_off + e_shentsize] = struct.pack(SECT_HDR_FMT, *fields)
+
+    return removed_count
+
+
+def strip_orphan_jal_relocs(data, func_addr, orphan_offsets):
+    """Remove R_MIPS_26 relocs at any of `orphan_offsets` (relative to .text).
+
+    Triggers when INSN_PATCH replaces a `jal 0` placeholder with a
+    non-jump instruction. Removes the entry from .rel.text rather than
+    zeroing it (R_MIPS_NONE causes objdiff-cli to fail with
+    "Unsupported MIPS implicit relocation 0").
+    """
+    return _remove_relocs(
+        data,
+        lambda r_offset, r_type: (
+            r_type == R_MIPS_26 and r_offset in orphan_offsets),
+    )
 
 
 def strip_orphan_hilo_relocs(data, hi_offsets, lo_offsets):
-    """Zero out R_MIPS_HI16 / R_MIPS_LO16 relocs at orphan offsets.
+    """Remove orphan R_MIPS_HI16 / R_MIPS_LO16 relocs.
 
-    Counterpart to strip_orphan_jal_relocs for HI16/LO16 paired relocs.
     Triggers when INSN_PATCH replaces a `lui rD, %hi(SYM)` with a non-lui
-    instruction (HI16 reloc would be re-applied to bits 15..0 of the new
-    word, which for non-lui opcodes are the immediate field — wrong) or
-    replaces an `addiu/lw/sw rD,rS,%lo(SYM)` with an opcode outside the
-    LO16-bearing set (LO16 reloc would corrupt bits 15..0 of the new
-    word).
+    instruction or replaces an `addiu/lw/sw rD,rS,%lo(SYM)` with an
+    opcode outside the LO16-bearing set.
 
     Safe under USO context where every cross-USO symbol resolves to 0 at
     link time and the post-patch word already encodes the correct
@@ -178,22 +245,12 @@ def strip_orphan_hilo_relocs(data, hi_offsets, lo_offsets):
     """
     if not hi_offsets and not lo_offsets:
         return 0
-    rel = find_rel_text(data)
-    if rel is None:
-        return 0
-    rel_off, rel_size, rel_ent = rel
-    stripped = 0
-    for i in range(rel_size // rel_ent):
-        e_off = rel_off + i * rel_ent
-        r_offset, r_info = struct.unpack(REL_FMT, data[e_off:e_off + rel_ent])
-        r_type = r_info & 0xFF
-        if r_type == R_MIPS_HI16 and r_offset in hi_offsets:
-            data[e_off:e_off + rel_ent] = struct.pack(REL_FMT, 0, 0)
-            stripped += 1
-        elif r_type == R_MIPS_LO16 and r_offset in lo_offsets:
-            data[e_off:e_off + rel_ent] = struct.pack(REL_FMT, 0, 0)
-            stripped += 1
-    return stripped
+    return _remove_relocs(
+        data,
+        lambda r_offset, r_type: (
+            (r_type == R_MIPS_HI16 and r_offset in hi_offsets) or
+            (r_type == R_MIPS_LO16 and r_offset in lo_offsets)),
+    )
 
 
 def patch_one(data, func_name, patches):
