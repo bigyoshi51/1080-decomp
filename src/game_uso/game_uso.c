@@ -1483,9 +1483,30 @@ void game_uso_func_00000B14(void *a0) {
  * Stage 5 @ 0x30AC-..: copy 3 Vec3s sp[0xDC]/sp[0xD0]/sp[0xC4] to
  *   sp[0x64]/sp[0x54]/sp[0x44] — ENT-Vec3 prep area.
  *
+ * Stage 6 @ 0x3110-0x33A8 (5x repeated "alloc-and-register sub-object"):
+ *   for k in [0..4]:
+ *     v = D[0x384 + k*4];
+ *     dst_off = struct_offset[k];     # 0x40, 0x58, 0x70, 0x88, ...
+ *     at_const = at_table[k];         # -0x40, -0x58, -0x70, -0x88, ...
+ *     spill v at sp+offset_per_k;
+ *     if (s0 != at_const) {
+ *       spill v at sp+0x3C;
+ *       p = alloc(0x18);
+ *       if (p) {
+ *         init_helper(p, s0, v, 1);   # cross-USO callee
+ *         p->[0xC] = (k+1) << 24 | 0x18;  # encoded ID
+ *         p->[0x14] = 0;
+ *         p->[0x10] = 0.0f;
+ *       }
+ *     }
+ *
+ *   The k=0..4 stages cover &s0->[0x40..0xA0] in 0x18-byte slots,
+ *   each registering a sub-object created by alloc + init_helper.
+ *
  * Picked source 5 (strategy memo). Initial structural body — partial decode
- * of stages 1-5 (~50/291 insns). Remaining ~240 insns are cross-USO inits +
- * struct-field assignments; multi-run refinement expected. */
+ * of stages 1-5 (~50/291 insns). Stage 6 is documented but not yet
+ * encoded in C. Remaining ~190 insns include the 5-stage register loop +
+ * tail. Multi-run refinement expected. */
 void* game_uso_func_00003018(void* arg0) {
     void *s0;
     void *v1;
