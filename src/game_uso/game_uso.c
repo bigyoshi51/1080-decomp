@@ -3913,7 +3913,8 @@ trunk:
             goto ret;
         }
     }
-    /* TODO: bits 0x80, 0x100, 0x08, 0x04, 0x10 — see asm 0x7828-0x7A08. */
+    /* TODO: bits 0x08, 0x04, 0x10 — see asm 0x7828-0x7A08.
+     * bit-0x80 wired below; bit-0x100 wired after bit-0x80 (2026-05-07). */
 
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
@@ -3945,6 +3946,42 @@ trunk:
             a0[0x6C / 4] &= ~0x80;
         }
         goto ret;
+    }
+
+    if (a1 & 0x100) {
+        /* bit-0x100 trunk arm @ 0x7990-0x79F4 (3-tier main_cnt classifier):
+         *   main_cnt = a0[0x44];
+         *   if (main_cnt >= 93)        f2 = 1.0f, ret_hi = 1; (path A)
+         *   else if (main_cnt >= 73)   ret_hi = 1; skip bnez check (path B)
+         *   else if (main_cnt >= 61)   ret_lo |= 0x100;  (path D)
+         *   else                       (no flag set)     (path C)
+         *
+         *   Merge @ 0x79E0:
+         *     new_cnt = main_cnt - 1;
+         *     if (new_cnt != 0) a0[0x44] = new_cnt;
+         *     else              a0[0x6C] &= ~0x100;
+         *
+         * Path B (main_cnt >= 73) bypasses the bnez merge: it stores
+         * (main_cnt - 1) directly to a0[0x44] in the delay slot of an
+         * unconditional jump to the post-merge ret-finalize at 0x79F8. */
+        int main_cnt = a0[0x44 / 4];
+        int new_cnt = main_cnt - 1;
+        if (main_cnt >= 93) {
+            f2 = 1.0f;
+            ret_hi = 1;
+            if (new_cnt != 0) a0[0x44 / 4] = new_cnt;
+            else              a0[0x6C / 4] &= ~0x100;
+        } else if (main_cnt >= 73) {
+            ret_hi = 1;
+            a0[0x44 / 4] = new_cnt;
+        } else {
+            if (main_cnt >= 61) ret_lo |= 0x100;
+            if (new_cnt != 0) a0[0x44 / 4] = new_cnt;
+            else              a0[0x6C / 4] &= ~0x100;
+        }
+        /* Falls through to common ret_hi-conditional float-state update
+         * @ 0x79F8-0x7A78 (TODO this pass): if ret_hi != 0, f16 absorbs
+         * either +1.0 or -1.0 depending on a0[0x3C], then stores back. */
     }
 
     /* bit-0x80 entry (0x7828-0x7848, decoded 2026-05-05):
