@@ -750,3 +750,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
  * 0x959C (-O0) in game_libs_o0_949C.c. Tail (0x959C+) in
  * game_libs_tail.c. */
 
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA40);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA5C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AC50);

@@ -1714,7 +1714,14 @@ void gl_func_0003A9AC(int *dst) {
     *dst = scratch;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A9E8);
+/* Quad4 reader template (16-byte struct copy via gl_func_00000000(&D_0, &buf, 16)
+ * + element-wise unrolled copy to dst). 22 insns, exact at -O2. Matches the
+ * Quad4-reader signature in feedback_uso_accessor_template_reuse.md. */
+void gl_func_0003A9E8(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 0x10);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003AC5C);
 
