@@ -467,15 +467,62 @@ extern char D_00000000;
 void gl_func_000070FC(int *a0) {
     int *next;
     int v;
+    int mode;
+    int sub_state;
     if (*(int*)((char*)a0 + 0x510) != 0) return;
     next = *(int**)((char*)a0 + 0x528);
     if (next == 0) return;
     v = gl_func_00000000(next);
     if (v == 0) return;
-    /* TODO body part 2 (130+ insns at 0x712C-0x7320): more dispatches +
-     * trailing alt-entry pattern. */
+    /* @ 0x712C-0x7148 (decoded 2026-05-07):
+     * 3 cross-USO setup calls before the main switch:
+     *   call(D[0x138], 0)  // setup 1, a1=0
+     *   call(5, 0)         // setup 2, a0=5 a1=0
+     *   call(0, 0)         // setup 3, a0=0 a1=0 (or zeroed via or a2,0,0)
+     */
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
-    gl_func_00000000(5);
+    gl_func_00000000(5, 0);
+    gl_func_00000000(0, 0);
+
+    /* @ 0x714C-0x71B8 (decoded 2026-05-07): MODE-SWITCH on D[0x34].
+     *   if (D[0x34] == 5) goto case_5;
+     *   if (D[0x34] == 4) goto case_4;
+     *   if (D[0x34] != 6) goto default_branch;
+     *   case_6: a1 = 5; t8 = D[0x7C];
+     *           if (t8 != 1) {
+     *               a1 = 5; a2 = 1;          // not-1: pass (5, 1, 1)
+     *               call(5, 1, 1);
+     *           } else {
+     *               a1 = 5; a2 = 2;          // is-1: pass (5, 1, 2)
+     *               call(5, 1, 2);
+     *           }
+     *           goto common_after; (b +0x5C, target ~0x7320)
+     *
+     * The 4/5 cases (TODO @ 0x71B0+) follow a similar shape: load D[0x34]/etc,
+     * dispatch a parameterized call(a1, a2, a3), then b common_after. */
+    mode = *(int*)((char*)&D_00000000 + 0x34);
+    if (mode == 6) {
+        sub_state = *(int*)((char*)&D_00000000 + 0x7C);
+        if (sub_state != 1) {
+            gl_func_00000000(5, 1, 1);
+        } else {
+            gl_func_00000000(5, 1, 2);
+        }
+        goto common_after;
+    }
+    /* TODO @ 0x71B0-0x7320 (~85 insns): mode==4 / mode==5 / default arms +
+     * common_after merge block + 4 trailing 2-insn alt-entry stubs (which
+     * are absorbed into the function symbol via SUFFIX_BYTES — see header). */
+    if (mode == 5) {
+        /* TODO arm body */
+    } else if (mode == 4) {
+        /* TODO arm body */
+    } else {
+        /* TODO default branch */
+    }
+common_after:
+    /* TODO common merge block + epilogue */
+    return;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000070FC);
