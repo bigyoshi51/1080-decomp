@@ -1503,6 +1503,16 @@ void game_uso_func_00000B14(void *a0) {
  *   The k=0..4 stages cover &s0->[0x40..0xA0] in 0x18-byte slots,
  *   each registering a sub-object created by alloc + init_helper.
  *
+ *   2026-05-07 closer-read of one stage's bne: `bne $s0, $at(-0x40), +5`
+ *   ALWAYS branches taken (s0 is a non-NULL struct ptr, can't equal -0x40),
+ *   which would skip the alloc as dead code. But the asm shape is too
+ *   well-formed to be a compiler bug, so the actual C structure is likely
+ *   `if ((int)s0 == sentinel) { alloc(0x18); ... }` where IDO can't prove
+ *   the sentinel is unreachable at this point — i.e., a defensive
+ *   programmer-written check on a global that happens to alias s0's
+ *   pointer-cast comparison. IDO emits both arms because it can't fold
+ *   the constant. Investigate before encoding.
+ *
  * Picked source 5 (strategy memo). Initial structural body — partial decode
  * of stages 1-5 (~50/291 insns). Stage 6 is documented but not yet
  * encoded in C. Remaining ~190 insns include the 5-stage register loop +
