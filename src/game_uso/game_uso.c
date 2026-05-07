@@ -3183,7 +3183,40 @@ int game_uso_func_00006F38(int *a0) {
     return (*(int*)((char*)p + 0x84) & 0x400) != 0;
 }
 #else
+#ifdef NON_MATCHING
+/* game_uso_func_00006F38: 28-insn (0x70) flag-test wrapper. Reads a global
+ * pointer from D[0x548], dereferences to get a chain pointer, calls a
+ * cross-USO callee with (chain, a0->0x30+0xB4), then tests the 0x400 bit
+ * on the result and (optionally) on a sub-pointer at +0x2C.
+ *
+ * Anomaly: target emits the `lui t6, 0; lw t6, 0x548(t6)` pair BEFORE
+ * its `addiu sp, -0x40; sw ra` prologue (insns 0/1 vs 2/3). C emit puts
+ * prologue first, lui+lw second. This 2-insn schedule cap is unflippable
+ * from straightforward C (IDO -O2 always emits sp-adjust first).
+ *
+ * Also target has 2 dead spills of `*t6` to sp+0x4 + sp+0x3C — neither
+ * is reloaded post-call. Suggests original C had two locals (e.g.
+ * `int v = *t6; int v2 = v;`) that GCC IDO regalloc spilled unnecessarily.
+ *
+ * Frame size differs (target -0x40 vs C-emit -0x18), driven by the dead
+ * spills + larger local block. Multi-tick refinement target — partial
+ * structural decode below; default INCLUDE_ASM remains exact. */
+int game_uso_func_00006F38(int *a0) {
+    int *p1 = *(int**)((char*)&D_00000000 + 0x548);
+    int *p2;
+    int *p3;
+
+    p2 = (int*)gl_func_00000000(*p1, *(int*)((char*)a0 + 0x30) + 0xB4);
+    if (p2 == 0) return 0;
+    if ((*(int*)((char*)p2 + 0x84) & 0x400) != 0) return 1;
+
+    p3 = *(int**)((char*)p2 + 0x2C);
+    if (p3 == 0) return 0;
+    return (*(int*)((char*)p3 + 0x84) & 0x400) != 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
+#endif
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006FA8);
