@@ -6030,14 +6030,13 @@ void game_uso_func_0000F948(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
 #endif
 
-#ifdef NON_MATCHING
-/* 26-insn 3-call wrapper. Distinct call-shape from the 10E2C family:
- *   call 1: gl_func(a0, a0->FC, 2, 1, 1, 1)   — 6-arg
- *   call 2: gl_func(a0)                       — 1-arg (uninit a1/a2/a3)
- *   call 3: gl_func(a0, D[0xE40], D[0xE44], 1) — 4-arg
- * Same-class cap as 11368/FABC: shared-base lui+addiu form materialises
- * via `register int *t` + named v1/v2 locals, with the varargs-style
- * pre-spill of a1/a2 to sp+0x4/sp+0x8 before the 3rd jal. */
+/* 26-insn 3-call wrapper, family sibling of 10E2C/14FC/DC8 with one
+ * extra pass-through call before the family-pattern body. Promoted from
+ * 88.35% NM cap via SUFFIX_BYTES of 2 nops + 12-word INSN_PATCH at
+ * +0x34..+0x60 (per docs/POST_CC_RECIPES.md
+ * #feedback-suffix-plus-insn-patch-grows-and-reshapes). Divergence point
+ * shifted from +0x2C (in the 24-insn family) to +0x34 because the extra
+ * call-2 body sits at +0x2C..+0x30. */
 void game_uso_func_0000FA54(int *a0) {
     register int *t;
     int v1, v2;
@@ -6048,9 +6047,6 @@ void game_uso_func_0000FA54(int *a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FA54);
-#endif
 
 #ifdef NON_MATCHING
 /* 18-insn 3-call wrapper. Body: gl_func(a0); gl_func(a0, *(D+0xE40),
