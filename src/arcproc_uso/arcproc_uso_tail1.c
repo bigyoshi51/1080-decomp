@@ -365,8 +365,50 @@ void arcproc_uso_func_00000F50(int a0, int a1) {
     gl_func_00000000(a0, a1 + 0x26000F);
 }
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00000F78: 9-insn 2-level NULL-check returning 1/0.
+ * Post-split (parent F50 + this F78 + tail F9C). Decoded:
+ *   int *t6 = a0->[0x6AC];
+ *   int *v0 = t6->[0x6C];
+ *   if (v0 == 0) return 0;
+ *   if (v0->[0xEC] == 0) return 0;
+ *   return 1;
+ *
+ * Cap class: alt-entry-jal-relative (per docs/MATCHING_WORKFLOW.md
+ * #feedback-strategy-memo-size-misleading variant). F78's beqzl branches
+ * encode `+7` and `+4` relative offsets, both landing at F78+0x28 = F9C+0x4
+ * (the `jr ra` inside F9C). The "early return 0" semantically goes to
+ * F9C's body — F78 has no embedded `move v0,zero` for early-exit.
+ *
+ * IDO -O2 cannot reproduce this from C: the standard `if (cond) return 0`
+ * idiom emits an embedded early-exit (`move v0,zero; jr ra` within the
+ * function), not a relative branch into a separate symbol. Closest C
+ * shapes (10-12 insns) keep the early-exit body inside F78 → byte-correct
+ * for the prefix but adds 3 dead-code insns at the end where target has
+ * the `jr ra; li v0, 1` default-path.
+ *
+ * Promotion would need a per-function shrinker (truncate function .o
+ * size) AND INSN_PATCH to rewrite branches with the right relative
+ * offsets pointing past F78's own end. Recipe doesn't exist yet for
+ * the shrink direction — defer until a TRUNCATE_FUNC sibling of
+ * SUFFIX_BYTES is built. */
+extern int arcproc_uso_func_00000F78_logic(int *a0);
+int arcproc_uso_func_00000F78(int *a0) {
+    int *t6 = *(int**)((char*)a0 + 0x6AC);
+    int *v0 = *(int**)((char*)t6 + 0x6C);
+    if (v0 == 0) return 0;
+    if (*(int*)((char*)v0 + 0xEC) == 0) return 0;
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F78);
+#endif
 
+/* arcproc_uso_func_00000F9C: 3-insn shared-tail leaf returning 0.
+ * Body: move v0, zero; jr ra; nop. Standalone callable AND target of
+ * F78's beqzl-relative branches (+7/+4 → F78+0x28 = F9C+0x4 = jr ra).
+ * No C shape produces a 3-insn no-prologue leaf at -O2; INCLUDE_ASM
+ * stays as the byte-correct path. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F9C);
 
 /* arcproc_uso_func_00000FA8: 114-insn (0x1C8) state-machine dispatcher.
