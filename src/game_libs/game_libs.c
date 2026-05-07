@@ -761,6 +761,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037E98);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037F10);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00037F40: 6-insn pointer-bump int reader.
+ *   void f(int **a0, int *a1) {
+ *       int *p = a0[1];      // a0->ptr
+ *       a0[1] = p + 1;       // advance ptr by 4 bytes
+ *       *a1 = *p;            // store read int to dest
+ *   }
+ *
+ * NM build verified byte-exact (0x8c820004 0x244e0004 0xac8e0004
+ * 0x8c4f0000 0x03e00008 0xacaf0000) at -O2.
+ *
+ * BLOCKED IN DEFAULT BUILD: this function's VRAM (0x37F40) lies past
+ * game_libs.c's TRUNCATE_TEXT=0x8944 cap. Default game_libs.c.o has
+ * .text only 0x8944 bytes; bytes for 37F40 must come from a later
+ * sibling. game_libs_post.c.o starts at vram 0x1CA10 and currently
+ * jumps from gl_func_00037E40 (ends 0x37E98) directly to
+ * gl_func_00037F58 — no INCLUDE_ASM/C-body for the 0x118 gap (covers
+ * 37E98, 37F10, 37F40).
+ *
+ * To promote: add 37E98+37F10+37F40 entries (with this C body for
+ * 37F40, INCLUDE_ASM for 37E98/37F10) to game_libs_post.c BETWEEN
+ * gl_func_00037E40 and gl_func_00037F58. Multi-tick — needs the gap-
+ * filling work as a separate boundary commit. */
+void game_libs_func_00037F40(int **a0, int *a1) {
+    int *p = a0[1];
+    a0[1] = p + 1;
+    *a1 = *p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037F40);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061F70);
