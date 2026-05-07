@@ -549,33 +549,61 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * First-pass NM — captures outer/inner structure and per-iter call shape.
  * Register allocation across the 8 s-regs is sensitive to declaration
  * order; this body is not yet tuned for fuzzy. Fuzzy expected ~10-25%. */
+/* (2) 2026-05-07: corrected inner-loop indexing — vec4[i]*24, not s0*24.
+ * Vec4 entries are indices into the &D+0x10 stride-24 array; s0 is the
+ * dispatch arg (0,0x40,0x80,0xC0,0x100), s3 is the outer arg (0x10..0xD0
+ * step 0x20). Outer terminates with bnel (do-while-while-likely shape via
+ * outer-end being s1 reset in delay slot).
+ *
+ * Promoted constants 0xF0/0x140/0x18 to register locals so they map to
+ * $s5/$s6/$s7. Logic now correct; structure still differs in 2 places:
+ *
+ *   (a) IDO frame -0x78 (10 saved-regs incl $s8/$fp) vs expected -0x68
+ *       (8 saved-regs s0..s7). The 9th saved-reg holds &vec4 cached as
+ *       `addiu s7, sp, 0x64` then `move s1, s7` for outer-loop reset.
+ *       Expected instead does `addiu s1, sp, 0x54` directly (no cache).
+ *       Tried: volatile vec4, separate v0..v4 + pointer array, neither
+ *       breaks IDO's CSE on the &vec4 base.
+ *   (b) Vec4 init: built does all-loads-then-all-stores via t6..t0;
+ *       expected interleaves `lw t9; lw t8; sw t9; sw t8; lw t9; sw t8;
+ *       ...` (two-temp-reg ping-pong). IDO scheduler hoists loads.
+ *
+ * Net: 59 of 63 insns differ at NM build (6.3%). Logic-correct; remaining
+ * diffs are IDO scheduler/CSE caps. Future passes: try forcing two-reg
+ * ping-pong via barrier'd struct copy, or examine whether vec4-as-stack-
+ * tail (offset 0x0) eliminates the cache. */
 extern int gl_func_00000000();
 void timproc_uso_b1_func_00002BE4(int *a0) {
     int vec4[5];
-    int *base = (int*)((char*)&D_00000000 + 0x4D0);
-    int *s4 = (int*)((char*)&D_00000000 + 0x10);
-    int *s1;
-    int *s2;
-    int s0, s3;
+    register char *s4 = (char*)&D_00000000 + 0x10;
+    register int s7 = 0xF0;
+    register int s6 = 0x140;
+    register int s5 = 0x18;
+    register int *s1;
+    register char *s2;
+    register int s0, s3;
     (void)a0;
 
-    vec4[0] = base[0];
-    vec4[1] = base[1];
-    vec4[2] = base[2];
-    vec4[3] = base[3];
-    vec4[4] = base[4];
+    vec4[0] = ((int*)((char*)&D_00000000 + 0x4D0))[0];
+    vec4[1] = ((int*)((char*)&D_00000000 + 0x4D0))[1];
+    vec4[2] = ((int*)((char*)&D_00000000 + 0x4D0))[2];
+    vec4[3] = ((int*)((char*)&D_00000000 + 0x4D0))[3];
+    vec4[4] = ((int*)((char*)&D_00000000 + 0x4D0))[4];
     gl_func_00000000(&D_00000000);
 
-    for (s3 = 0x10; s3 != 0xF0; s3 += 0x20) {
+    s3 = 0x10;
+    do {
         s1 = vec4;
-        for (s0 = 0; s0 != 0x140; s0 += 0x40) {
-            (void)*s1;  /* lw t0, 0(s1) — read vec4 entry (purpose TBD) */
-            s2 = (int*)((char*)s4 + s0 * 24);
+        s0 = 0;
+        do {
+            s2 = s4 + (*s1) * s5;
             gl_func_00000000(s2);
             gl_func_00000000(s2, s0, s3, 0);
+            s0 += 0x40;
             s1 += 1;
-        }
-    }
+        } while (s0 != s6);
+        s3 += 0x20;
+    } while (s3 != s7);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002BE4);
