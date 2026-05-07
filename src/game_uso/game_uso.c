@@ -3447,7 +3447,89 @@ void game_uso_func_000071A4(int *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_000071E0: 145-insn (0x244) multi-stage per-frame compute.
+ * Frame -0xB0. Sibling of 0x6FA8 / 0x6CF0 / 0x6A30 (FPU-heavy update class).
+ *
+ * Structural decode (offsets in target asm):
+ *
+ *   self = a0; saved to s0.
+ *   flag = self->[0x68];
+ *   if ((flag & 4) != 0) {                  ; bnezl-pattern early skip
+ *     gl_func_00000000(...);                ; if flag-bit-2 set, just call & return
+ *     goto end;
+ *   }
+ *
+ *   ; Stage 2: float-gate
+ *   sub = self->[0x30];
+ *   const = 30.0f                            ; lui at, 0x41F0
+ *   tmp_f = sub->[0x348];
+ *   if (tmp_f >= const) {                    ; c.lt.s f4, const ; bc1t
+ *     self->[0x54] = 0;
+ *     count = self->[0x54] + 1;              ; count++ (well, that's 0+1=1)
+ *     if (count >= 0x1E) {                   ; if count reaches 30
+ *       self->[0x64] = 0;                    ; reset
+ *       self->[0x54] = 0;
+ *     } else {
+ *       self->[0x54] = count;
+ *     }
+ *     ; ... continued ...
+ *     stage_idx = self->[0x64];
+ *     if (stage_idx != 3) goto end;
+ *
+ *     ; Stage 3: 4-Vec3 stage builder
+ *     sp[0x98] = 0;                           ; clear local
+ *     sub2 = self->[0x30];
+ *     sp[0x8C..0x94] = sub2->{0xB4,B8,BC};   ; Vec3-int copy
+ *     ...
+ *
+ *     ; Stage 4: cross-USO call returning into v0
+ *     v0 = gl_func_00000000(0, base, ...);
+ *     if (v0 == 0) goto end;
+ *
+ *     ; Stage 5: Vec3 store via pointer (3 lw/sw pairs from sp[0x6C..0x74]
+ *     ; into v0+0..0x8)
+ *
+ *     ; Stage 6: gl_func with stage-4 result + sp+0x84 buffer
+ *     gl_func_00000000(self->[0x30] + 0x3C8, self->[0x30] + 0x3C8, v0,
+ *                       sp[0x6C..]);
+ *
+ *     ; Stage 7: another conditional 0.0f init store
+ *     if (sub->[0x70] >= 0x100) sp[0x3C] = ...;  ; c.lt.s + bc1t
+ *
+ *     ; Stage 8: gl_func with sp+0x6C buffer + sp+0x78 buffer
+ *     gl_func_00000000(self, sp+0x6C, sp+0x78, ...);
+ *
+ *     ; Stage 9: c1.f8 add fixed bias 6.0f, store to sp+0x3C
+ *     sp[0x3C] = (sub->[0x6C] + 6.0f);
+ *
+ *     ; Stage 10: dispatch on sub->0x938
+ *     if (sub->[0x938] != 0x100) gl_func_00000000(self, sp[0x98]);
+ *   }
+ *
+ *   end: return;
+ *
+ * Spine context: per-frame compute reading self with sub at +0x30. Field
+ * offsets: self->{0x30, 0x54, 0x64, 0x68}, sub->{0x348, 0x6C, 0x70, 0x938,
+ * 0xB4, 0xB8, 0xBC, 0x318, 0x31C, 0x320, 0x3C8}.
+ *
+ * Multi-tick refinement target. Default INCLUDE_ASM build remains exact
+ * via the asm. Skeleton kept for grep discoverability of struct field
+ * offsets and the per-frame compute call-graph. */
+void game_uso_func_000071E0(int *a0) {
+    /* Outline only — multi-tick decomp scope. The 10-stage compute
+     * (flag-gate, float-gate, counter increment with reset, 4-Vec3 stage,
+     * 3 cross-USO calls, conditional Vec3 store) needs careful arg-passing
+     * + register-allocation reconstruction to byte-match. Documented for
+     * the per-frame compute's struct-typing pass. */
+    int *sub = *(int**)((char*)a0 + 0x30);
+    int flag = *(int*)((char*)a0 + 0x68);
+    (void)sub;
+    (void)flag;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000071E0);
+#endif
 
 void game_uso_func_00007424(void *a0) {
     *(int*)((char*)a0 + 0x64) = 3;
