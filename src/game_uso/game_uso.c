@@ -5471,9 +5471,30 @@ void game_uso_func_0000D9CC(int *a0) {
          * checks, each on a different physics float field, accumulating
          * the per-frame state that downstream gl_func calls dispatch on.
          *
-         * NEXT PASS (~400 insns remaining): decode the fourth chain's
-         * else-branch at 0xDBC4+ and the merge at 0xDBD4 (where the
-         * accumulated state finally drives the cross-USO dispatch). */
+         * EXTENDED 2026-05-07 (insns 125-137 @ 0xDBC0-0xDBEC):
+         *   /* fourth-chain else-arm (when 0 < f6 was false): *\/
+         *   state = s0->0xFC;
+         *   s0->0x108 = state | 0x0D;       ; OR-mask 0x0D (4th alt path)
+         *   sp+0x2C = 3;                     ; mode = 3
+         *
+         *   /* fifth chain entry @ 0xDBD4: *\/
+         *   v1 = s0->0xB4;                   ; reload inner ptr
+         *   f10 = 500.0f;                    ; threshold from lui 0x43FA
+         *   f8 = v1->[0x9D0];                ; load inner field (float)
+         *   f16 = 0.0f;
+         *   if (f8 < 500.0f) {               ; c.lt.s f8, f10 + bc1??
+         *       /* (decoded next pass — 5th chain body) *\/
+         *
+         * The fourth-chain merge here wraps the previous block (0 < f6 ==
+         * true → state | 0x0C, mode = 1; false → state | 0x0D, mode = 3).
+         * Both arms then converge at 0xDBD4 to start the FIFTH residual
+         * check on a NEW field (inner->0x9D0, threshold 500.0f). The
+         * 500.0f appears finally as an actual c.lt.s comparand here,
+         * confirming the early-comment hypothesis that 500.0f was a
+         * speed/timer threshold.
+         *
+         * Cumulative 137/524 insns (~26%). NEXT PASS: 5th chain body at
+         * 0xDBF0+ (the bc1?? + state-update arms for f8 < 500.0f gate). */
     } else {
         /* 30.0f-fail path @ 0xDBDC (far forward, ~280 insns from entry).
          * Decoded skeleton: loads 500.0f into $f0 at delay slot, then
