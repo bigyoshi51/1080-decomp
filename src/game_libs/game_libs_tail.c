@@ -42,7 +42,15 @@ void gl_func_000096EC(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000975C);
+/* Quad4 reader template — sibling of gl_func_0003A9E8 (matched last iteration).
+ * Standard 22-insn shape: gl_func_00000000(&D_0, &buf, 16); *dst = buf;
+ * Required boundary fix: original .s was a 36-function bundle (0x65C / 35
+ * jr-ra sequences), split via scripts/split-fragments.py. */
+void gl_func_0000975C(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 0x10);
+    *dst = buf;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009DB8);
 
