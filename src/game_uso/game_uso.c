@@ -1774,7 +1774,76 @@ void game_uso_func_00004168(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_000041C0: 137-insn (0x224) multi-level cascading constructor.
+ * Frame -0x48, single arg a0.
+ *
+ * Structural skeleton (decoded 2026-05-07; offsets in target asm):
+ *
+ *   p1 = alloc(0x8C);                 ; 0x0C: jal alloc(0x8C)
+ *   if (!p1) goto end;
+ *   gl_func_00000000(p1);             ; 0x1C: second call — likely template-copy
+ *   p1->[0x28] = &D_00000000;
+ *
+ *   ; First sub-alloc (cascade 1) — sentinel check `p1 == -0x3C` skips arm
+ *   if (p1 != (void*)-0x3C) {
+ *     p2 = alloc(0x50);               ; 0x44: jal alloc(0x50)
+ *     if (!p2) goto end;
+ *     ; Inner pointer-list cascade — `p3 = alloc(8); p3[0] = &D+0x6B0; p3[1] = 0;`
+ *     if (p2 == 0) {
+ *       p3 = alloc(8);
+ *       if (p3) {
+ *         p3->[0] = &D+0x6B0;
+ *         p3->[1] = 0;
+ *       }
+ *     }
+ *     t = *(int*)(&D+0x6C4);          ; 0x88: lw t0, 0x6C4(t0)
+ *
+ *     ; Three 0x18-byte sub-allocs guarded by sentinel checks against
+ *     ; (-0x8, -0x20, -0x38) values of a1. Each writes a fixed-template
+ *     ; pointer (&D + 0x3C8 or &D + 0x410) to the new sub-object,
+ *     ; sets sub->[0x14] = 0, and the FIRST also sets sub->[0x10] = 1.0f.
+ *
+ *   }
+ *
+ *   ; Tail: walk a chain via p1->0x40 looking for an empty slot
+ *   q = p1->[0x40];
+ *   r = q + 0x10;
+ *   if (q->[0x14] != 0) q->[0x4] = 1;
+ *   ...->0x14 = q;
+ *   return v1;  ; v1 holds the most-recent inner alloc result
+ *
+ * Cross-USO call placeholders throughout (gl_func_00000000). Per-call
+ * unique externs not wired. Function has the shape of a "subsystem-init
+ * that builds 5+ child objects from templates", aligning with the
+ * strategy memo's spine constructor class.
+ *
+ * Spine context: this is reached from game.uso constructors, NOT a
+ * per-frame compute. Decompile in struct-typing pass once 5+ accessors
+ * to the same struct are typed (offsets 0x28, 0x40, 0x14 used here).
+ *
+ * Initial structural decode 2026-05-07; default INCLUDE_ASM build matches
+ * via the asm. Multi-tick refinement target. */
+void game_uso_func_000041C0(int a0) {
+    /* Outline only — multi-tick decomp scope. The 5-level nested
+     * cascade (alloc 0x8C → alloc 0x50 → inner 8 → multiple 0x18s →
+     * tail-walk a1->0x40 chain) needs careful arg-passing reconstruction
+     * to byte-match. Skeleton kept for grep discoverability. */
+    int *p1, *p2;
+    p1 = (int*)gl_func_00000000(0x8C);
+    if (p1 == 0) return;
+    gl_func_00000000(p1);
+    *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+    if ((int)p1 == -0x3C) return;
+    p2 = (int*)gl_func_00000000(0x50);
+    if (p2 == 0) return;
+    /* ... 0x18-byte sub-allocs cascade ... */
+    (void)a0;
+    (void)p2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000041C0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000043E4);
 
