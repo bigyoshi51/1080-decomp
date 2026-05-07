@@ -1725,7 +1725,48 @@ void gl_func_0003A9E8(Quad4 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003AC5C);
 
+#ifdef NON_MATCHING
+/* gl_func_0003AE58: 95-insn (0x17C) constructor-like alloc + 2-init + loop.
+ * Sibling of gl_func_0003A9E8 (recently-matched Quad4 reader) by adjacency
+ * in 0x3A9E8-0x3B000. Initial decode 2026-05-07 — entry decoded; body
+ * still TBD.
+ *
+ * ENTRY (insns 0-22):
+ *   if (a0 == 0) {
+ *       a0 = alloc(0x90);
+ *       if (a0 == 0) return 0;
+ *   }
+ *   gl_func_00000000(a0, &gl_data_0001EE5C);    // init #1
+ *   gl_func_00000000(&gl_data_0001EE70, 0);     // init #2
+ *   a0->[0x84] = a1;                            // store input arg2
+ *   a0->[0x2C] = gl_func_00000000(a1->[0x44] * 12);  // alloc count*12 array
+ *
+ * LOOP BODY (insns 22-65 @ 0x3AED4-0x3AF80): iterates a1->[0x44] times.
+ * Per iter: FPU mul/sub patterns at 0x3AF1C-0x3AF6C (three lh + cvt.s.w +
+ * mul.s + swc1 unrolled lanes — short->float scaling for a vec3?),
+ * reading from a0->[0x68] sub-array indexed by [0x60]+i. Per-iter
+ * gl_func call with (a0->[0x84], a0->[0x2C]+i*0xC).
+ *
+ * EXIT: trailing gl_func_00000000() call (no args), then standard
+ * epilogue. Returns s3 (constructed/passed ptr). */
+extern int gl_func_00000000();
+extern char gl_data_0001EE5C, gl_data_0001EE70;
+int *gl_func_0003AE58(int *a0, int *a1) {
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00000000(0x90);
+        if (a0 == 0) return 0;
+    }
+    gl_func_00000000(a0, &gl_data_0001EE5C);
+    gl_func_00000000(&gl_data_0001EE70, 0);
+    *(int*)((char*)a0 + 0x84) = (int)a1;
+    *(int*)((char*)a0 + 0x2C) = gl_func_00000000(*(int*)((char*)a1 + 0x44) * 12);
+    /* loop body (43 insns @ 0x3AED4-0x3AF80) + tail (30 insns) TBD —
+     * inner FPU lane unroll + per-iter gl_func calls */
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003AE58);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_0001EE7C;
