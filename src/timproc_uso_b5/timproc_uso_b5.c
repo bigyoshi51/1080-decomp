@@ -1404,11 +1404,18 @@ void timproc_uso_b5_func_0000C8AC(int *a0) {
             *(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) = 0.0f;
         }
     }
-    v1 = (int*)a0[0x2B8 / 4];
-    *(float*)((char*)v1 + 0x10C) = *(float*)((char*)a0 + 0x264);
-    *(float*)((char*)v1 + 0x110) = *(float*)((char*)a0 + 0x25C);
-    *(float*)((char*)v1 + 0x114) = *(float*)((char*)a0 + 0x260);
-    *(float*)((char*)v1 + 0x118) = *(float*)((char*)a0 + 0x294);
+    {
+        float a, b, c, d;
+        v1 = (int*)a0[0x2B8 / 4];
+        a = *(float*)((char*)a0 + 0x25C);
+        b = *(float*)((char*)a0 + 0x260);
+        c = *(float*)((char*)a0 + 0x264);
+        d = *(float*)((char*)a0 + 0x294);
+        *(float*)((char*)v1 + 0x110) = a;
+        *(float*)((char*)v1 + 0x114) = b;
+        *(float*)((char*)v1 + 0x10C) = c;
+        *(float*)((char*)v1 + 0x118) = d;
+    }
     gl_func_00000000();
 }
 #else
