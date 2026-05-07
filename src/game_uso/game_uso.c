@@ -1465,32 +1465,64 @@ void game_uso_func_00000B14(void *a0) {
     game_uso_func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
 /* game_uso_func_00003018: 291-insn (0x48C) constructor. Frame -0xE8.
- * Same family as spine constructor game_uso_func_000044F4. Initial decode:
+ * Same family as spine constructor game_uso_func_000044F4.
  *
- * Stage 1 @ 0x3018-0x303C (alloc-cascade): alloc(0xE8) if arg0 == NULL;
- *   alloc(8) if s0 == NULL (defensive null-check against alloc failure).
+ * Stage 1 @ 0x3018-0x303C (alloc-or-passthrough): if (!arg0) arg0 = alloc(0xE8).
+ * Stage 2 @ 0x303C-0x3050 (alias-or-alloc-secondary): v1 = arg0 ?: alloc(8).
+ *   Defensive double-cascade — second alloc unreachable since stage 1 returns
+ *   on failure, but IDO emits both branches because s0 reload after alloc
+ *   forces re-check.
+ * Stage 3 @ 0x3054-0x3060 (template init): v1[0] = &D + 0x374; v1[1] = 0.
+ * Stage 4 @ 0x3064-0x30A8 (Vec3 buffer init x3 on stack):
+ *   sp[0xDC..0xE8] = (0.0, 0.0, 0.0)
+ *   sp[0xD0..0xDC] = (-1000.0, -1000.0, -1000.0)
+ *   sp[0xC0]       = D[0x37C]
+ *   sp[0xC4..0xCC] = (1000.0, 1000.0, 1000.0)
+ * Stage 5 @ 0x30AC-..: copy 3 Vec3s sp[0xDC]/sp[0xD0]/sp[0xC4] to
+ *   sp[0x64]/sp[0x54]/sp[0x44] — ENT-Vec3 prep area.
  *
- * Stage 2 @ 0x3054-0x305C (template init): v1[0] = &D + 0x374; v1[1] = 0.
- *
- * Stage 3 @ 0x3064-0x30A8 (Vec3 buffer init x3 on stack):
- *   sp[0xDC..0xE8] = (0.0, 0.0, 0.0)         ; clear Vec3
- *   sp[0xD0..0xDC] = (-1000.0, -1000.0, -1000.0) ; min bounds
- *   sp[0xC0]       = D[0x37C]                  ; loaded counter
- *   sp[0xC4..0xCC] = (1000.0, 1000.0, 1000.0) ; max bounds
- *
- * Stage 4 @ 0x30AC-..: copy 3 Vec3s from sp[0xDC]/sp[0xD0]/sp[0xC4] to
- *   sp[0x64]/sp[0x54]/sp[0x44]. Looks like initializing 3 named Vec3s
- *   in the new struct's stack-prep area before final commit.
- *
- * Remaining ~240 insns TBD: likely struct-field assignments to s0
- * (the alloc'd 0xE8-byte object) using the prepared stack Vec3s, plus
- * cross-USO calls to register/init sub-objects.
- *
- * Picked under source 5 (strategy memo, exported-but-not-intra-called
- * size-descending). Multi-tick decomp; structural wrap only this tick.
- * INCLUDE_ASM keeps ROM byte-correct. */
+ * Picked source 5 (strategy memo). Initial structural body — partial decode
+ * of stages 1-5 (~50/291 insns). Remaining ~240 insns are cross-USO inits +
+ * struct-field assignments; multi-run refinement expected. */
+void* game_uso_func_00003018(void* arg0) {
+    void *s0;
+    void *v1;
+    Vec3 zero_vec;
+    Vec3 min_vec;
+    Vec3 max_vec;
+    int counter;
+    Vec3 ent_a, ent_b, ent_c;
+
+    s0 = arg0;
+    if (s0 == NULL) {
+        s0 = (void*)gl_func_00000000(0xE8);
+        if (s0 == NULL) return NULL;
+    }
+    v1 = s0;
+    if (s0 == NULL) {
+        v1 = (void*)gl_func_00000000(8);
+        if (v1 == NULL) goto skip_template;
+    }
+    *(int*)((char*)v1 + 0) = (int)((char*)&D_00000000 + 0x374);
+    *(int*)((char*)v1 + 4) = 0;
+
+skip_template:
+    zero_vec.x = zero_vec.y = zero_vec.z = 0.0f;
+    min_vec.x = min_vec.y = min_vec.z = -1000.0f;
+    counter = *(int*)((char*)&D_00000000 + 0x37C);
+    max_vec.x = max_vec.y = max_vec.z = 1000.0f;
+    ent_a = zero_vec;
+    ent_b = min_vec;
+    ent_c = max_vec;
+    (void)counter;
+    /* Remaining ~240 insns TBD: cross-USO calls + struct fills */
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
+#endif
 
 extern int D_3A0;
 /* 45-insn alloc-or-passthrough constructor. Promoted via 23-word
