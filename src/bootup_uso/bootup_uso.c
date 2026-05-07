@@ -705,20 +705,48 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005068);
  * Initial decode — multi-pass refinement expected. The two `lui+addiu` pairs
  * at 0x48/0x4C and 0x64/0x68 (loading &D_00000000 + offset) are USO
  * runtime-patched relocations; structural shape may diverge from C-only emit
- * per docs/PATTERNS.md uso-multi-placeholder-wrapper. */
+ * per docs/PATTERNS.md uso-multi-placeholder-wrapper.
+ *
+ * 2026-05-07 progress (74.06% -> 77.33%, +3.27pp):
+ *   (a) Re-ordered statements: init-call FIRST, then buf-clear, matching
+ *       target asm's emit order.
+ *   (b) Added `char pad[24]` (declared AFTER buf) to bump frame to -0x48
+ *       AND place buf at 0x38(sp). Without pad: frame -0x30, buf at 0x20.
+ *   (c) Switched if-NULL-return-0 to if-not-NULL-populate-then-return.
+ *       Target's beqz-skip-populate-then-fallthrough-to-epilogue pattern
+ *       only emits when the populate branch is the if-true arm.
+ *
+ * Remaining cap (~22%): target inserts an extra `lw t6, 0x48(sp)` reload
+ * (a0 → t6) and spills t6 to in-frame 0x1C(sp) in the alloc-jal delay slot.
+ * Built omits this hop, placing swc1 f0,0x44 in that delay slot. Then for
+ * the 3rd-jal, target reloads a0 from in-frame 0x1C; built reads from
+ * out-of-frame 0x48 directly. Plus v0 spill at 0x30 (target) vs 0x1C
+ * (built). All three are IDO scheduler decisions; no obvious C-level
+ * trigger to force the hop. Likely a documented post-cc-recipe-grade cap. */
 extern char D_00007DA4;
 int func_000050A0(int a0) {
     float buf[4];
+    char pad[24];  /* declared AFTER buf so pad is at lower offset, buf at 0x38 */
     int *p;
+    /* Statement-order matters: target asm has init-call FIRST (0x10),
+     * THEN buf-clear (0x24-0x30), then alloc (0x34). Reordering the
+     * source to match avoids IDO -O2 hoisting the buf-clear above the
+     * first jal (which would change f0 setup placement).
+     *
+     * `pad[24]` adds 24 bytes of unused stack to bump the frame size
+     * from -0x30 to -0x48 — matches target's frame size, which shifts
+     * buf placement from 0x20 to 0x38. */
+    (void)pad;
+    func_00000000(&D_00007DA4);
     buf[0] = 0.0f;
     buf[1] = 0.0f;
     buf[2] = 0.0f;
     buf[3] = 0.0f;
-    func_00000000(&D_00007DA4);
     p = (int*)func_00000000(0x58);
-    if (p == 0) return 0;
-    func_00000000(p, a0, *(int*)&D_00000000, &buf);
-    *(int*)((char*)p + 0x28) = (int)&D_00000000;
+    if (p != 0) {
+        func_00000000(p, a0, *(int*)&D_00000000, &buf);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+    }
     return (int)p;
 }
 #else
