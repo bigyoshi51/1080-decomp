@@ -470,30 +470,74 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F9
  * Initial decode 2026-05-05 — first-pass NM. ~80 insns of body (cases
  * 0/1/4) sketched as TODO; full decode requires multiple passes. */
 extern int gl_func_00000000();
-void arcproc_uso_func_00000FA8(int *a0) {
-    int s0 = a0[0x504 / 4];
-    int *p;
+void arcproc_uso_func_00000FA8(char *a0) {
+    int s0 = *(int*)(a0 + 0x504);
+    char *s1 = a0;
+    int *list, *iter;
+    int count, i;
+
     if (s0 == 0) {
-        /* case 0: list-advance loop on a0->[0x6AC]->[0x44]
-         * (~22 insns, TBD) */
-        (void)a0[0x6AC / 4];
+        /* case 0 @ 0xFEC-0x1048 (24 insns): traverse list at
+         * a0->[0x6AC], looking for an entry whose [0x1C] matches
+         * a0->[0x528]. Loop counter starts at list->[0x44]->[0x40]-1.
+         *
+         * Decoded asm shape:
+         *   list = a0->[0x6AC];
+         *   a0->[0x6B0] = list->[0x44]->[0x14];
+         *   count = list->[0x44]->[0x40];
+         *   a0->[0x6B4] = count;
+         *   for (i = count - 1; i >= 0; i--) {
+         *       t0 = a0->[0x528];
+         *       gl_func_00000000(t0->[0x4], i, ...);  // cross-USO
+         *       p = a0->[0x6B0];
+         *       if (p->[0x1C] == t0) break;          // bnel exit
+         *       a0->[0x6B4] = a0->[0x6B4] - 1;
+         *   }
+         *   a0->[0x4D8] = 1;
+         *   goto end;
+         */
+        list = (int*)*(int**)(s1 + 0x6AC);
+        *(int*)(s1 + 0x6B0) = *(int*)(*(char**)((char*)list + 0x44) + 0x14);
+        count = *(int*)(*(char**)((char*)list + 0x44) + 0x40);
+        *(int*)(s1 + 0x6B4) = count;
+        for (i = count - 1; i >= 0; i--) {
+            char *t0 = *(char**)(s1 + 0x528);
+            gl_func_00000000(*(int*)(t0 + 0x4), i);
+            iter = *(int**)(s1 + 0x6B0);
+            if (*(int**)((char*)iter + 0x1C) == (int*)t0) break;
+            *(int*)(s1 + 0x6B4) = *(int*)(s1 + 0x6B4) - 1;
+        }
+        *(int*)(s1 + 0x4D8) = 1;
         return;
     }
     if (s0 == 1) {
-        /* case 1: state-1 transition (~13 insns)
-         * a0->[0x504] = 1; gl_func calls; TBD */
-        gl_func_00000000(a0[0x190 / 4]);
-        a0[0x504 / 4] = 1;
+        /* case 1 @ 0x1058-0x108C (14 insns): state-1 transition.
+         * Reads global D[0x190]->[0x190] (table base), calls
+         * gl_func_00000000 with args (D_table, 3, 1). Sets
+         * a0->[0x504] = 1 then falls through to end. */
+        int *table_root = *(int**)(*(char**)(0x190) + 0x190);  /* TBD: D-relative */
+        gl_func_00000000(table_root, 3, 1);
+        *(int*)(s1 + 0x504) = 1;
+        /* TBD: ~6 more insns (jal + post-call processing) */
         return;
     }
     if (s0 == 4) {
-        /* case 4: state-4 setup with sp+0x20 buf, multiple gl_func calls
-         * (~50 insns, TBD) */
-        p = (int*)a0[0x6A8 / 4];
+        /* case 4 @ 0x1078-0x115C (~57 insns): state-4 setup.
+         * Builds an sp+0x20 buffer, makes 6+ cross-USO calls
+         * (sequence numbers + table indices), updates a0->[0x504],
+         * a0->[0x524], and various sub-fields.
+         *
+         * Decoded entry:
+         *   v0 = a0->[0x6A8];   // delay-likely loaded shortcut
+         *   t8 = v0->[0x190];
+         *   if (t8 != 0) ...
+         *
+         * Full decode TBD — multi-tick refinement target. */
+        int *p = *(int**)(s1 + 0x6A8);
         (void)p;
         return;
     }
-    /* default: fall through to end */
+    /* default: no-op return */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA8);
