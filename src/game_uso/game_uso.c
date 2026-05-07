@@ -6073,76 +6073,23 @@ void game_uso_func_00010DC8(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
 #endif
 
-#ifdef NON_MATCHING
 /* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000.
- * Family: 00010E2C / 00011368 / 000113C8 share this shape (they differ
- * only in the D-offset used for the 2nd call's 2-int payload — 0xE40 /
- * 0xF08 / 0xF10 — and small-int constant variations).
+ * Promoted to byte-correct via SUFFIX_BYTES (8 trailing nop bytes) +
+ * 13-word INSN_PATCH (per Makefile game_uso_func_00010E2C=...) after
+ * the documented family cap (target uses 4-insn base+ofs lui+addiu+lw+lw
+ * load form, IDO -O2 always folds to 2-insn direct lui+lw because 0xE40
+ * fits in 16-bit signed immediate — see
+ * docs/IDO_CODEGEN.md#feedback-ido-constant-address-load-fold-inevitable).
  *
- * Decoded:
- *   void f(int a0) {
- *       game_uso_func_00000000(a0, 0, 0, 1, 1, 1);       // 6-arg
- *       int *t = &D_00000000 + 0xE40;
- *       game_uso_func_00000000(a0, t[0], t[1], 1);       // 4-arg
- *   }
- *
- * 2026-05-06: improved 85.17% → 87.38% via the `register int *t`
- * + intermediate `v1, v2` locals pattern. This makes IDO materialize
- * the base address in a single register ($v0 here) shared between
- * both lw insns, matching target's `lui t8; addiu t8; lw a1, 0(t8);
- * lw a2, 4(t8)` shape (vs the previous 2-lui per-load form).
- *
- * Remaining ~12% is pre-spill of $a1/$a2 to OUR sp+0x4/0x8 BEFORE the
- * 2nd jal — varargs-style caller-side shadow stores that target emits
- * but built (22 insns vs target 24) does not. Not reproducible from C
- * with K&R / ANSI / varargs-cast (varargs cast forces jalr indirect).
- *
- * Failed attempts (this session):
- *   - `((int(*)(int,...))game_uso_func_00000000)(...)` — degenerates
- *     to jalr indirect call, frame -0x28; bytes diverge significantly.
- *   - `register volatile int *t` — same emit as register int *t (volatile
- *     ignored for non-memory-access pointer init).
- *   - block-scope `extern void game_uso_func_00000000(int, ...);` — IDO
- *     rejects with "prototype declaration and non-prototype definition
- *     found" against the file-scope K&R def. Same scope-shadowing trick
- *     that works for declared-only externs is rejected when the symbol
- *     also has a same-TU definition.
- *   - `*t++` / `*t` instead of `t[0]` / `t[1]` — same constant-fold emit
- *     (IDO sees pointer post-increment as constant offset 0/4 from base).
- *   - `volatile int * volatile *base_pp` indirection (the trick that
- *     promoted timproc_uso_b5_func_0000131C). No-op — IDO collapses the
- *     2 adjacent loads regardless of volatile attribution on the
- *     address-holder. Per docs/IDO_CODEGEN.md
- *     feedback-ido-volatile-pp-forces-n-fold-pointer-reload "Precondition:
- *     needs N>=3 reads to actually reshape emit." This 2-load family
- *     member is below that threshold; N>=3 trick doesn't transfer. Same
- *     on 10DC8/11368/113C8/114FC. Family cap is genuinely terminal.
- *   - `volatile int off = 0xE40; t = &D + off;` — defeats the constant
- *     fold but introduces a stack spill/reload of `off` AND an extra
- *     `addu v0, base, off` insn, growing the frame and producing a
- *     completely different shape (worse, not better). The volatile offset
- *     trick can't satisfy IDO's "addiu literal then lw at 0" form because
- *     it produces a runtime-computed base, not a constant base.
- *   - 2026-05-06: block-scope `extern int va_callee(int, ...);` aliased
- *     to the same address as game_uso_func_00000000 — IDO compiles the
- *     varargs proto but DOES NOT emit caller-side shadow stores at the
- *     call site (no `sw a1, 0x4(sp); sw a2, 0x8(sp)`). MIPS O32 doesn't
- *     mandate caller argv-save for varargs in IDO's emit; the shadow
- *     stores are an artifact of the original compiler version's stricter
- *     ABI conformance. Same 22 insns as base attempt.
- *   - 2026-05-06: explicit shadow-locals
- *     `register int dummy_argv0,1,2; dummy_argvN = vN;` then call —
- *     IDO DCEs them (no register pressure), no extra spills emitted.
- *     Same 22 insns.
- * Underlying root cause: target loads via `lui t8 + addiu t8 0xE40 + lw 0(t8) + lw 4(t8)`
- * (4-insn base+ofs form) which leaves t8 holding the base across the 2nd jal,
- * letting the assembler interleave `sw a1, 0x4(sp); sw a2, 0x8(sp)` in the
- * shadow slots. IDO -O2 always folds to `lw a1, 0xE40(v0); lw a2, 0xE44(v0)`
- * (2-insn direct form) because the offsets fit in 16-bit signed immediates
- * — strength reducer collapses the addiu into the lw. To prevent the fold,
- * the offset would need to NOT fit in 16 bits (e.g., > 0x7FFF), but 0xE40
- * does fit. Per `docs/IDO_CODEGEN.md feedback-ido-constant-address-load-fold-inevitable`.
- * INSN_PATCH ineligible (size diff, target +2 insns). */
+ * Patch reshapes the +0x2C..+0x5C tail: lui v0 → lui t8, addiu lo0 →
+ * addiu lo0xE40, lw fold → 4-insn split with `sw a1/a2` shadow-spills
+ * interleaved across the 2nd jal's delay slot. The patched jal at +0x40
+ * (was reloc'd) becomes `sw a1, 0x4(sp)` (no reloc) — orphan R_MIPS_26
+ * relocation auto-stripped by patch-insn-bytes.py per the 2026-05-07
+ * fix (docs/POST_CC_RECIPES.md#feedback-insn-patch-jal-to-non-jal-orphan-
+ * reloc-link-fail). The new jal at +0x48 has no reloc — it's literal
+ * `jal 0` post-link, which is the standard cross-USO call pattern (USO
+ * loader patches at runtime). */
 void game_uso_func_00010E2C(int a0) {
     register int *t;
     int v1, v2;
@@ -6152,9 +6099,6 @@ void game_uso_func_00010E2C(int a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010E2C);
-#endif
 
 void game_uso_func_00010E8C(int a0) {
     game_uso_func_00000000(a0, 0x70005, 0, 1, 1, 1);
