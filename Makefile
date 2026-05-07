@@ -79,9 +79,11 @@ build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x58
 build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0x6C
 build/src/bootup_uso/bootup_uso_tail2.c.o build/non_matching/src/bootup_uso/bootup_uso_tail2.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
-build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x1A1C
+build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x194C
 build/src/bootup_uso/bootup_uso_tail3a.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_tail3a.c.o: INSN_PATCH := func_00010324=0x10:0x008f1021,0x14:0x24420084
+build/src/bootup_uso/bootup_uso_o0_11C70.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11C70.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_11C70.c.o: TRUNCATE_TEXT := 0xD0
 build/src/bootup_uso/bootup_uso_o0_11D40.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11D40.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_11D40.c.o: TRUNCATE_TEXT := 0x30
 build/src/bootup_uso/bootup_uso_tail3a_bot.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a_bot.c.o: OPT_FLAGS := -O2 -g3
