@@ -535,12 +535,87 @@ int mgrproc_uso_func_00001324(char *arg0) {
  *
  * 75 insns is multi-tick decomp. Initial structural NM. Default build
  * INCLUDE_ASM keeps ROM byte-correct. */
+/* 2026-05-07: full structural decode (was TODO stub).
+ *
+ * Logic (75 insns):
+ *   if (a0->[0x4F8] != 0) goto epilogue;     // state guard
+ *   if (gl_func(a0->[0x6A8]) == 0) goto epi; // init callback returns
+ *   spill_var = 1;
+ *   D[0x44] = 7;
+ *   if (*(int*)0xA0000200 != 0xAC290000) {
+ *       // SI register doesn't match expected: load D[0x68], decrement,
+ *       // call func_0(&D, D[0x68] - 1), then go to merge
+ *       gl_func(&D, D[0x68] - 1);
+ *       goto merge;  // skip 7C8 reset
+ *   } else {
+ *       // SI register matches: clear a0->[0x7C8], goto epilogue
+ *       a0->[0x7C8] = 0;
+ *       goto epi;
+ *   }
+ *  merge:
+ *   t4 = a0->[0x7C8];
+ *   if (gl_func(a0->[0x6A8]) == 0) {
+ *       D[0x40] = 7;
+ *       D[0x44] = a0->[0x44];  // re-load (likely just preserve)
+ *       spill_var = 1;
+ *   } else {
+ *       t4 = a0->[0x7C8];
+ *       if (gl_func(a0->[0x6AC]) == 0) {
+ *           t4 = a0->[0x6AC];
+ *           if (gl_func(t4 + 0x4C) != 0) {
+ *               D[0x40] = 5;
+ *               spill_var = 0;
+ *           } else {
+ *               D[0x40] = 7;
+ *           }
+ *           a0->[0x7D8] = 1;
+ *       }
+ *   }
+ *   if (spill_var == 4) a0->[0x504] = spill_var;
+ *   else                a0->[0x504] = 0;
+ *  epi: return;
+ *
+ * Hardware register read at 0xA0000200 = SI_DRAM_ADDR_REG; comparison
+ * 0xAC290000 likely an opcode pattern check (controller-pak / EEPROM
+ * probe). Multi-tick: structure captured, but byte match needs unique
+ * externs (D[0x40], D[0x44], D[0x68]), the SI-register pattern, and
+ * IDO's specific branch shape. Default INCLUDE_ASM remains exact. */
 extern int gl_func_00000000();
 void mgrproc_uso_func_000013C8(int *a0) {
-    /* TODO: full body decode + struct typing on a0[0x504]/a0[0x7D8].
-     * Stub captures the function's role as the post-init dispatcher
-     * called after the lazy-init-guard. */
-    (void)a0;
+    int spill_var = 0;
+    int t4;
+    if (a0[0x4F8 / 4] != 0) return;
+    if (gl_func_00000000(a0[0x6A8 / 4]) == 0) return;
+    spill_var = 1;
+    *(int*)((char*)&D_00000000 + 0x44) = 7;
+    if (*(volatile int*)0xA0000200 != (int)0xAC290000) {
+        gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000 + 0x68) - 1);
+        t4 = a0[0x7C8 / 4];
+    } else {
+        a0[0x7C8 / 4] = 0;
+        return;
+    }
+    if (gl_func_00000000(a0[0x6A8 / 4]) == 0) {
+        *(int*)((char*)&D_00000000 + 0x40) = 7;
+        *(int*)((char*)&D_00000000 + 0x44) = a0[0x44 / 4];
+        spill_var = 1;
+    } else {
+        if (gl_func_00000000(a0[0x6AC / 4]) == 0) {
+            t4 = a0[0x6AC / 4];
+            if (gl_func_00000000(t4 + 0x4C / 4) != 0) {
+                *(int*)((char*)&D_00000000 + 0x40) = 5;
+                spill_var = 0;
+            } else {
+                *(int*)((char*)&D_00000000 + 0x40) = 7;
+            }
+            a0[0x7D8 / 4] = 1;
+        }
+    }
+    if (spill_var == 4) {
+        a0[0x504 / 4] = spill_var;
+    } else {
+        a0[0x504 / 4] = 0;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C8);
