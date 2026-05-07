@@ -370,6 +370,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002737C);
 
+/* gl_func_00027548: 17-insn (0x44) F3DEX2-style display-list-word builder.
+ * Computes a packed 32-bit dlist word combining:
+ *   - inherited $t6 (high 16 bits) shifted left 16 → upper word
+ *   - 0xFA000000 (G_SETPRIMCOLOR-like Fast3D opcode) OR'd in
+ *   - (a1 & 0xFF) << 8 | (a2 & 0xFF) → low byte pair
+ * then tail-calls gl_func_00000000(packed_word, 1).
+ *
+ * BLOCKED for NM wrap: $t6 is read at offset 0x4 (`sll t7, t6, 0x10`)
+ * without being set in this function. It's a caller-context register —
+ * non-standard MIPS calling convention (the immediate caller's last
+ * jal-context $t6 carries through). C cannot model an implicitly-
+ * inherited caller-save register; even with `register int x asm("$t6")`
+ * GCC-style hint, IDO rejects the syntax.
+ *
+ * Default INCLUDE_ASM keeps bytes correct via the asm splice. Source 3
+ * size-sort. Same class as gl_func_00054228 ($t9 inheritance from
+ * predecessor's chained-SUFFIX) and gl_func_0002D7D0 ($at carryover). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027548);
 
 void gl_func_0002758C(void) {
