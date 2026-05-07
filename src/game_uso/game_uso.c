@@ -4106,22 +4106,24 @@ trunk:
         else if (f_tmp < 0.0f)   *(float*)&a0[0x3C / 4] = -1.0f;
         /* f_tmp == 0: leave as-is */
         *(float*)&a0[0x38 / 4] = *(float*)&a0[0x3C / 4];
+        f0 = *(float*)&a0[0x3C / 4];  /* f0 = sign-clamped value */
     } else {
         *(float*)&a0[0x38 / 4] = 0.0f;  /* f16 was 0.0f initial */
+        /* f0 unchanged: bit-0x80 trunk may have set it, otherwise 0.0f initial */
     }
     /* fall through to ret */
 
 ret:
-    /* epilogue: store ret_lo into outer->field_800->field_40 (0x7A88-0x7A94),
-     * then return packed (ret_hi, ret_lo) as 64-bit (v0, v1) per asm. */
+    /* Common epilogue (0x7A78-0x7A94, 7 insns): three stores to
+     * outer->[0x800] (= a0->[0x30]->[0x800]), then jr ra with sw delay.
+     * Two reloads of outer happen — at 0x7A78 and 0x7A88 (after the
+     * f0/f2 stores, before the ret_lo store). */
+    outer = (int*)a0[0x30 / 4];
+    *(float*)&((int*)outer[0x800 / 4])[0x44 / 4] = f0;
+    *(float*)&((int*)outer[0x800 / 4])[0x48 / 4] = f2;
+    /* Reload outer (target's 0x7A88-0x7A8C reload before jr ra+sw delay) */
     outer = (int*)a0[0x30 / 4];
     ((int*)outer[0x800 / 4])[0x40 / 4] = ret_lo;
-    /* Two trailing FPU stores at 0x7A80/0x7A84 (sw f0, 0x44; sw f2, 0x48):
-     * outer->[0x800]->[0x44] = f0; outer->[0x800]->[0x48] = f2; — these
-     * happen UNCONDITIONALLY in target as part of the common tail. Wired
-     * partially: the f2 store is captured here; f0 store needs the
-     * if-ret_hi-path's f12 reload threaded through. */
-    *(float*)&((int*)outer[0x800 / 4])[0x48 / 4] = f2;
     return ((long long)ret_hi << 32) | (unsigned int)ret_lo;
 }
 #else
