@@ -6084,14 +6084,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F8E8);
  *    the next stage. May be `*sp_dest_a = vec3_scale(...); *sp_dest_b =
  *    *sp_dest_a; *sp_dest_c = *sp_dest_b;` or similar pass-through.
  *
- * Multi-tick refinement expected. */
+ * 2026-05-07 attempt 2: switched to typed `F948_Vec3` struct + volatile
+ * annotations on `a` and `vb`. Goal was to defeat IDO -O2 dead-store-
+ * elim across the 3 stack-copies. Result: still 85.19% — same as
+ * non-volatile array-int[3] version. Volatile DOES preserve all 3
+ * copies (verified in -O2 emit: 9 lw/sw insns at 0x92a8-0x92d4) but
+ * stack offsets differ from target (built sp+0x44/0x38/0x2c vs target
+ * sp+0x48/0x5C/0x74). Copy semantics + count match; offset-arrangement
+ * mismatch via IDO's reverse-order stack-frame allocator is the
+ * remaining 14.81% diff. Multi-tick — needs frame-padding via
+ * `char pad[]` between the volatile blocks to shift offsets, OR a
+ * different abstraction that produces the higher offset. */
 extern int gl_func_00000000();
 extern char D_00000000;
+typedef struct { float x, y, z; } F948_Vec3;
 void game_uso_func_0000F948(int *a0) {
     int *b;
     float scale;
-    float sx, sy, sz;
-    int tmp_a[3], tmp_b[3], tmp_c[3];
+    volatile F948_Vec3 a, vb;
+    F948_Vec3 vc;
     register int *t;
     int v1, v2;
 
@@ -6103,24 +6114,19 @@ void game_uso_func_0000F948(int *a0) {
 
     b = (int*)a0[0xB4 / 4];
     scale = *(float*)((char*)a0 + 0x1FC);
-    sx = *(float*)((char*)b + 0x3C8) * scale;
-    sy = *(float*)((char*)b + 0x3CC) * scale;
-    sz = *(float*)((char*)b + 0x3D0) * scale;
-
-    ((float*)tmp_a)[0] = sx;
-    ((float*)tmp_a)[1] = sy;
-    ((float*)tmp_a)[2] = sz;
-    tmp_b[0] = tmp_a[0];
-    tmp_b[1] = tmp_a[1];
-    tmp_b[2] = tmp_a[2];
-    tmp_c[0] = tmp_b[0];
-    tmp_c[1] = tmp_b[1];
-    tmp_c[2] = tmp_b[2];
+    /* Build scaled Vec3 in `a`, then copy a→vb→vc as struct-by-value
+     * (IDO -O2 emits 3-lw/3-sw per copy without dead-store-elim across
+     * struct boundaries). */
+    a.x = *(float*)((char*)b + 0x3C8) * scale;
+    a.y = *(float*)((char*)b + 0x3CC) * scale;
+    a.z = *(float*)((char*)b + 0x3D0) * scale;
+    vb = a;
+    vc = vb;
 
     b = (int*)a0[0xB4 / 4];
-    *(float*)((char*)b + 0x318) += ((float*)tmp_c)[0];
-    *(float*)((char*)b + 0x31C) += ((float*)tmp_c)[1];
-    *(float*)((char*)b + 0x320) += ((float*)tmp_c)[2];
+    *(float*)((char*)b + 0x318) += vc.x;
+    *(float*)((char*)b + 0x31C) += vc.y;
+    *(float*)((char*)b + 0x320) += vc.z;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
