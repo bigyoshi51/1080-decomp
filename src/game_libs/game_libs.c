@@ -673,7 +673,76 @@ int gl_func_00008884(char *a0) {
     return gl_ref_00018840(a0 + 0x10);
 }
 
+#ifdef NON_MATCHING
+/* Constructor pattern: alloc 64 bytes, init two fields, link into orig->field_40
+ * list. 36 insns / 0x90 at -O2; 3 cross-USO jal calls, branch-likely on field
+ * presence test.
+ *
+ * Flow (decoded from asm 2026-05-07, sibling of 0x8944/0x949C cluster):
+ *   ptr = alloc(0x40);            // jal#1 with li a0, 0x40
+ *   if (ptr) {
+ *       init(ptr);                // jal#2 with a0=ptr
+ *       ptr->field_28 = &D_00000000;
+ *       ptr->field_3C = 0;
+ *   }
+ *   // following block runs unconditionally (alloc-fail path corrupts pointers
+ *   // but original code does this — typical 90s "alloc never fails" pattern):
+ *   existing = orig->field_40;
+ *   if (existing) {
+ *       link(ptr + 0x10, existing);   // jal#3 with a0=ptr+0x10, a1=existing
+ *       if (existing->field_14 != 0) {
+ *           existing->field_4 = 1;     // beql delay-likely emit pattern
+ *       }
+ *       existing->field_14 = ptr;
+ *   }
+ *   return ptr;
+ *
+ * Promotion to exact requires INSN_PATCH for the 3 jal targets (all encoded
+ * as 0x0C000000 placeholders, runtime-resolved by USO loader). Recipe:
+ * docs/POST_CC_RECIPES.md#feedback-jal-insn-patch-to-match-include-asm-derived-expected.
+ * Beql for `if (existing->field_14 != 0)` followed by `existing->field_14 = ptr`
+ * relies on the duplicate-store IDO emit pattern; the C body above triggers
+ * it (write same value in both branches → IDO speculates via delay-likely). */
+struct GlConstructed {
+    char pad[0x10];          /* embedded array passed to link() */
+    char pad2[0x10 - 4];
+    int *field_28;           /* set to &D_00000000 */
+    char pad3[0x14 - 4];
+    int field_3C;            /* set to 0 */
+};
+struct GlOrig {
+    char pad[0x40];
+    struct GlExisting *field_40;
+};
+struct GlExisting {
+    int field_0;
+    int field_4;
+    char pad8[0x14 - 8];
+    void *field_14;
+};
+extern int gl_func_00000000();
+struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
+    struct GlConstructed *ptr;
+    struct GlExisting *existing;
+    ptr = (struct GlConstructed *)gl_func_00000000(0x40);
+    if (ptr != 0) {
+        gl_func_00000000(ptr);
+        ptr->field_28 = (int *)&D_00000000;
+        ptr->field_3C = 0;
+    }
+    existing = orig->field_40;
+    if (existing != 0) {
+        gl_func_00000000((char *)ptr + 0x10, existing);
+        if (existing->field_14 != 0) {
+            existing->field_4 = 1;
+        }
+        existing->field_14 = ptr;
+    }
+    return ptr;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
+#endif
 
 /* Cluster 0x8944..0x8A40 (-O0 reader templates + sandwich INCLUDE_ASM
  * for 0x8990) split out to game_libs_o0_8944.c on 2026-05-07.
