@@ -429,7 +429,57 @@ void gl_func_000070A0(int a0) {
     gl_func_00000000(a0, -1, 0);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_000070FC: 0x248 = 146 insns total. Sibling of gl_func_000070A0
+ * (just above) — same SUFFIX_BYTES pattern with 4 trailing 2-insn
+ * `jr ra; sw a0, 0(sp)` alt-entry stubs at offsets 0x228/0x230/0x238/0x240
+ * absorbed into the function symbol. Body proper is 138 insns at
+ * 0x70FC..0x7320.
+ *
+ * IMPORTANT: do NOT run `split-fragments.py` on this — the trailing 2-insn
+ * stubs LOOK like separate functions (each has a jr ra) but are actually
+ * the SUFFIX_BYTES alt-entry pattern documented in the gl_func_000070A0
+ * comment. Recursive split-fragments produces 4 spurious fragments
+ * (game_libs_func_00007324/732C/7334/733C) — must be merge-fragments'd
+ * back. Verified 2026-05-07.
+ *
+ * ENTRY DECODE (insns 1-15 @ 0x70FC-0x7140):
+ *   void f(struct *a0) {
+ *       if (a0->field_510 != 0) return;        // bnel-likely early exit
+ *       struct *next = a0->field_528;
+ *       if (next == 0) return;
+ *       int v = func_call_1(next);
+ *       if (v == 0) return;
+ *       func_call_2(D[0x138], 0);
+ *       func_call_3(5, ...);                    // body continues 130+ insns
+ *
+ * Promotion path: write full body, add SUFFIX_BYTES recipe analogous to
+ * 0x70A0:
+ *   build/src/game_libs/game_libs.c.o: SUFFIX_BYTES :=
+ *     gl_func_000070FC=0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,
+ *                      0x03E00008,0xAFA40000,0x03E00008,0xAFA40000
+ * (8 words = 4 stubs × 2 insns each).
+ *
+ * Multi-pass: this iteration decodes entry (~10% of body). Default build
+ * INCLUDE_ASM keeps ROM correct. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void gl_func_000070FC(int *a0) {
+    int *next;
+    int v;
+    if (*(int*)((char*)a0 + 0x510) != 0) return;
+    next = *(int**)((char*)a0 + 0x528);
+    if (next == 0) return;
+    v = gl_func_00000000(next);
+    if (v == 0) return;
+    /* TODO body part 2 (130+ insns at 0x712C-0x7320): more dispatches +
+     * trailing alt-entry pattern. */
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
+    gl_func_00000000(5);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000070FC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007344);
 
