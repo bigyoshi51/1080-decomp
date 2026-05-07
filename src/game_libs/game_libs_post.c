@@ -2901,7 +2901,9 @@ void gl_func_00044D94(int *a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044DC4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044DD4);
+int game_libs_func_00044DD4(int *a0, int a1) {
+    return a0[a1 + 0xAB];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
 
