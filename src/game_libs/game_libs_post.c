@@ -755,8 +755,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  * Also potential beneficiary of feedback-ido-cse-bust-via-distinct-externs
  * (docs/IDO_CODEGEN.md) since the target uses 4 separate luis for the
  * float constants and the array reads — already separate-symbol via the
- * 0xF000 constant, but the array reads might benefit from 4-extern split. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D7D0);
+ * 0xF000 constant, but the array reads might benefit from 4-extern split.
+ *
+ * 2026-05-07 attempt: write C body matching the 4-call shape. The
+ * leading 2 stores to D_0 (one via predecessor's stolen-$at, one via
+ * fresh lui) cannot be written directly in C — the first store uses
+ * $at from the predecessor's tail and $v0 also from the predecessor.
+ * Both are non-standard C carryovers. Wrapping the 4 calls only gives
+ * a partial body; the leading stores would need PROLOGUE_STEALS=4 to
+ * splice off the redundant lui+sw IDO emits. */
+extern int D_2D7D0_arr;
+void gl_func_0002D7D0(void) {
+    gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[8]);
+    gl_func_00000000(0x41000000, ((int*)&D_2D7D0_arr)[8]);
+    gl_func_00000000(0x41020000, ((int*)&D_2D7D0_arr)[8]);
+    gl_func_00000000(0xF0000000, 0);
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D7D0);
 #endif
