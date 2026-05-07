@@ -634,5 +634,46 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003B80);
 
+#ifdef NON_MATCHING
+/* gui_func_00004568: 198-insn / 0x318 RDP TEXRECT display-list builder.
+ *
+ * 2026-05-07 first-pass structural decode. Frame -8 ($s0 + nothing else;
+ * $s0 = a0/ctx). 5-arg signature: a0=ctx, a1=x_lo (signed),
+ * a2=y_lo (signed), a3=x_hi, sp[0x18]=y_hi (5th arg via stack).
+ *
+ * Entry-stage decode (insns 0-3):
+ *   if (x_lo < 0) goto skip_first_dl;     // bltz a1
+ *   if (y_lo < 0) goto skip_second_dl;    // bltzl a2 (annulled delay)
+ *
+ * Body shape (0x18-0xA8, ~38 insns): emits 2 RDP TEXRECT commands.
+ *   Each DL command (8 bytes) is built from packed coordinate fields:
+ *     ctx->[0xC]->[0x4]++           ; bump cursor
+ *     dl_buf = ctx->[0xC]->[0]      ; DL base ptr
+ *     slot = (cursor << 3)          ; 8-byte stride
+ *     p = dl_buf + slot
+ *     p[0] = 0xE4000000 | ((x_lo+x_hi) << 14 & 0xFFF000)
+ *                       | (((y_lo+y_hi) << 2) & 0xFFF)
+ *     p[1] = ((x_lo << 14) & 0xFFF000) | ((y_lo << 2) & 0xFFF)
+ *     ; second DL: same shape but opcode 0xB4000000 (next-tile?)
+ *
+ * The 0xE4 opcode = G_TEXRECT (F3DEX2 RDP); 0xB4 = G_TEXRECTFLIP variant
+ * or coord-extension. Each rect uses 12-bit fixed-point coords (10.2
+ * format, mask 0xFFF = 0xFFC for 0x3FF.x maxes).
+ *
+ * REMAINING ~155 insns at 0xA8-0x318: continued DL writes + skip_first_dl
+ * + skip_second_dl convergence + frame teardown. Multi-tick decode.
+ *
+ * Default INCLUDE_ASM keeps ROM exact. Wrap captures entry signature
+ * and TEXRECT shape for the next pass. */
+extern int gl_func_00000000();
+void gui_func_00004568(int *a0, int a1, int a2, int a3, int y_hi) {
+    /* Stub: structural decode of 198-insn TEXRECT DL builder. The
+     * complex coord-packing + dual-cmd DL emit + 2 conditional skips
+     * need multi-pass decode; this NM wrap captures the 5-arg
+     * signature and entry guards as a first-pass anchor. */
+    (void)a0; (void)a1; (void)a2; (void)a3; (void)y_hi;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00004568);
+#endif
 
