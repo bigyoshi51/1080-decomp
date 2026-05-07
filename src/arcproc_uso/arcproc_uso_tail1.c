@@ -350,32 +350,24 @@ void arcproc_uso_func_00000E58(char *a0) {
  * the split-script is fixed to write into the right .c. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EBC);
 
-/* arcproc_uso_func_00000F50: 3-FUNCTION BUNDLE (0x58 / 22 insns).
- * Splat-bundled, can't be split per
- * feedback_uso_split_fragments_breaks_expected_match.md.
+/* arcproc_uso_func_00000F50 + F78 + F9C: 3-function bundle split via
+ * scripts/split-fragments.py on 2026-05-07. Per
+ * docs/MATCHING_WORKFLOW.md split-fragments.py wrong-file-placement
+ * gotcha, the new INCLUDE_ASMs were moved manually from
+ * arcproc_uso.c to arcproc_uso_tail1.c (where the parent F50 lives) so
+ * the linker keeps F50/F78/F9C contiguous in .text.
  *
- * Sub-function layout:
- *   F1 @ 0xF50-0xF74: 10 insns. Tiny gl_func wrapper that adjusts a1 by
- *     +0x26000F before the call. Pattern:
- *       gl_func_00000000(a0, a1 + 0x26000F)
- *
- *   F2 @ 0xF78-0xF98: 8 insns. 2-level NULL-check returning 1/0:
- *       lw t6, 0x6AC(a0)
- *       lw v0, 0x6C(t6)         ; t6 = a0->0x6AC->0x6C
- *       if (v0 == 0) return 0
- *       lw t7, 0xEC(v0)
- *       if (t7 == 0) return 0
- *       return 1
- *     Uses beql-likely with delay-slot `move v0, $0` for both NULL paths
- *     (per feedback_ido_beql_speculative_store_double_emit.md class).
- *
- *   F3 @ 0xF9C-0xFA4: 3 insns. Empty void returning 0:
- *       move v0, $0; jr ra; nop
- *
- * Total bytes 0x58 (22 insns) matches declared size. All 3 sub-bodies
- * documented for future split-with-refresh-expected attempt. Default
- * INCLUDE_ASM build remains exact. */
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F50);
+ * F50: 10-insn cross-USO wrapper that adds 0x26000F to a1 before
+ * forwarding. IDO -O2 emits `lui+ori+addu` for the 24-bit constant
+ * (since 0x26000F doesn't fit in a 16-bit signed immediate). */
+extern int gl_func_00000000();
+void arcproc_uso_func_00000F50(int a0, int a1) {
+    gl_func_00000000(a0, a1 + 0x26000F);
+}
+
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F78);
+
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F9C);
 
 /* arcproc_uso_func_00000FA8: 114-insn (0x1C8) state-machine dispatcher.
  * 3-way switch on a0->0x504 (state code) with cases 0, 1, 4 + default.

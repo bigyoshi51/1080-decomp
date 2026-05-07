@@ -27,3 +27,4 @@ void arcproc_uso_func_00000000(int *dst) {
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
+
