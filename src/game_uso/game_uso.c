@@ -5285,7 +5285,51 @@ void game_uso_func_0000ADE0(int *dst) {
     *dst = buf[0];
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000AE1C: 278-insn (0x458) constructor. Frame -0xA0.
+ * Same family as 00003018 / spine constructor 000044F4 (alloc-cascade
+ * + sub-object init).
+ *
+ * Stage 1 @ 0xAE1C-0xAE38 (alloc-or-passthrough for primary 0x178 buffer):
+ *   if (!a0) a0 = alloc(0x178);  if (!a0) return.
+ *
+ * Stage 2 @ 0xAE40-0xAE58 (alloc-or-passthrough for secondary 0xB4 sub-obj):
+ *   if (!s0) s0 = alloc(0xB4);  if (!s0) goto stage_4_skip.
+ *
+ * Stage 3 @ 0xAE5C-0xAE68 (init sub-obj with table @ &D + 0xD50):
+ *   init_sub(s0, &D[0xD50])
+ *
+ * Stage 4 @ 0xAE6C-0xAE7C (vtable-pointer set + bne sentinel check):
+ *   sentinel @ -0x2C; if (s0 + 0x2C != 0) skip alloc; *(s0 + 0x28) = &D
+ *
+ * Remaining ~250 insns TBD: more alloc-cascade stages + struct-field
+ * fills + cross-USO init calls. Same family pattern as 00003018.
+ *
+ * Picked source 5 (strategy memo size-descending). Initial structural
+ * skeleton — partial decode of stages 1-3 (~25/278 insns). Multi-run
+ * refinement expected. */
+void* game_uso_func_0000AE1C(void* arg0) {
+    void *s0;
+    void *sub;
+
+    s0 = arg0;
+    if (s0 == NULL) {
+        s0 = (void*)gl_func_00000000(0x178);
+        if (s0 == NULL) return NULL;
+    }
+    sub = s0;
+    if (s0 == NULL) {
+        sub = (void*)gl_func_00000000(0xB4);
+        if (sub == NULL) goto skip_init;
+    }
+    gl_func_00000000(sub, (char*)&D_00000000 + 0xD50);
+skip_init:
+    /* Remaining ~250 insns TBD: cross-USO inits + struct fills */
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
 
