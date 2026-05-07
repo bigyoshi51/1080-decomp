@@ -4928,7 +4928,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *   strongly suggests this is a coordinate-transform function: takes
  *   (context, anchor, src-Vec3) and produces a transformed Vec3 written to
  *   one of several local slots for downstream cross-USO dispatch. */
-int game_uso_func_00009B88(int *a0, int *a1, int *a2) {
+int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
     float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
     float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
     int   local_EC[3];    /* sp+0xEC:  raw-word copy of local_DC */
@@ -4940,6 +4940,7 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2) {
     int *out;
     float src_x, src_z, dx, dz;
     float scale;          /* screen-space transform scale: 250.5f * a3->[0x54] */
+    (void)a3;
 
     if (a2 == 0) {
         /* Assert: line 0x623 (1571) — message at &D+0x7BC / &D+0x7C8 */
@@ -5144,7 +5145,7 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2) {
      * arg (TODO: signature should be (int*,int*,int*,int*) — current
      * 3-arg sig is incomplete; sp+0x1AC reload at 0x9D2C confirms a3 is
      * passed but unnamed in the C decl). */
-    scale = 250.5f * 0.0f /* a3->[0x54] — a3 not yet in signature */;
+    scale = 250.5f * (*(float*)((char*)a3 + 0x54));
     local_12C[0] *= scale;  local_12C[1] *= scale;  /* local_12C[2] not scaled */
     local_138[0] *= scale;  local_138[1] *= scale;  local_138[2] *= scale;
 
