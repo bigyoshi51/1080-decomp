@@ -1620,6 +1620,11 @@ void timproc_uso_b5_func_0000CE6C(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CEB4);
 
+void timproc_uso_b5_func_0000D058(int *a0, float a1) {
+    *(float*)((char*)a0 + 0x2A0) = a1;
+    *(float*)((char*)*(int**)((char*)a0 + 0x2B8) + 0x11C) = a1;
+}
+
 #ifdef NON_MATCHING
 /* 72.21% NM. Sibling of A97C/A9EC family — same 23-insn loop with branch-likely
  * preload structural cap. Different outer offsets (this variant):
