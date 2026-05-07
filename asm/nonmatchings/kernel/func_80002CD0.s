@@ -1,4 +1,5 @@
 
+/* Handwritten function - libultra _bzero (libreultra bzero.s structural match) */
 nonmatching func_80002CD0, 0x9C
 
 glabel func_80002CD0
