@@ -1524,9 +1524,50 @@ void timproc_uso_b5_func_0000CC74(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000CD24: 54-insn (0xD8) approach-target-with-decay
+ * routine. Was previously split by splat into CD24 (0xA4) + CDC8 (0x34);
+ * merged because CD24 had forward branches (CD88 bc1fl +0x10 → CDCC,
+ * CDB8 bc1f +0xE → CDF4) into CDC8's range, with CD8C duplicating CDC8's
+ * leading lwc1 $f4,0($v1) — same branch-likely target-replication idiom
+ * as CB40+CBD0 (per docs/MATCHING_WORKFLOW.md
+ * #feedback-splat-fragment-via-register-flow USO `.word` variant).
+ *
+ * Same algorithm shape as CB40 but with target field offsets shifted:
+ * D[0x384]/D[0x388] decay rates and D[0x38C] secondary, presumably for
+ * a different parameter slot in the same struct family.
+ *
+ * NM body covers control flow; FP register allocation, branch-likely emit,
+ * and lui-pair constants need permuter to tighten. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void timproc_uso_b5_func_0000CD24(int *a0, float a1) {
+    int *v0;
+    float target;
+    if (*(float*)((char*)a0 + 0x2A4) != 0.0f) {
+        target = a1;
+    } else {
+        target = 0.0f;
+    }
+    v0 = *(int**)((char*)a0 + 0x2B8);
+    if (*(int*)((char*)v0 + 0x130) != 0) {
+        target = 1.0f;
+    }
+    if (*(float*)((char*)v0 + 0x124) < target) {
+        *(float*)((char*)v0 + 0x124) += *(float*)((char*)&D_00000000 + 0x388);
+        if (target < *(float*)((char*)v0 + 0x124)) {
+            *(float*)((char*)v0 + 0x124) = target;
+        }
+    } else {
+        *(float*)((char*)v0 + 0x124) -= *(float*)((char*)&D_00000000 + 0x38C);
+        if (*(float*)((char*)v0 + 0x124) < target) {
+            *(float*)((char*)v0 + 0x124) = target;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CD24);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CDC8);
+#endif
 
 void timproc_uso_b5_func_0000CDFC(int a0) {}
 
