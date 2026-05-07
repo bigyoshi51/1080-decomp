@@ -6386,19 +6386,10 @@ void game_uso_func_00011428(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011460);
 
-#ifdef NON_MATCHING
-/* Family sibling of game_uso_func_00010E2C / 00010DC8 / 00011368 / 000113C8.
- * 24-insn 2-call shape; differs only in: 1st-call a2=2/a3=1; 2nd-call uses
- * D-offset 0xDB8; 2nd-call a3=1. Same family cap (~88%): missing varargs
- * pre-spill of a1/a2 to sp+4/sp+8 before the 2nd jal.
- *
- * Boundary fix landed alongside this wrap: splat declared 114FC size 0x68,
- * but the trailing 2 insns (`lui $t6, 0; lw $t6, 0x78($t6)`) were a
- * fall-through prologue stub that callers can enter at 0x1155C to set
- * $t6 = D[0x78] before falling through to game_uso_func_00011564 (which
- * reads $t6 via `bnezl` without otherwise initialising it). Split-fragments
- * carved out a new 8-byte symbol game_uso_func_0001155C; 114FC now ends
- * cleanly at the jr/nop epilogue (0x60 = 24 insns) and bytes match. */
+/* Family sibling of game_uso_func_00010E2C: same SUFFIX_BYTES + 12-word
+ * INSN_PATCH recipe (per docs/POST_CC_RECIPES.md
+ * #feedback-suffix-plus-insn-patch-grows-and-reshapes), only D-offset
+ * differs (0xDB8 here vs 0xE40 there). Bytes match expected/.o. */
 void game_uso_func_000114FC(int *a0) {
     register int *t;
     int v1, v2;
@@ -6408,9 +6399,6 @@ void game_uso_func_000114FC(int *a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000114FC);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
 
