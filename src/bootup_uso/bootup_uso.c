@@ -655,7 +655,21 @@ void func_0000502C(int *dst) {
  * IDO -O2 delay-slot scheduler chose `lw a1, 0x18(sp)` (the reload-for-
  * return) over `sw a1, 0x4(sp)` (target's dead-spill). The dead-spill
  * isn't reachable from natural C — would need INSN_PATCH on the 2 insns
- * at 0x80/0x84 (insn-shift) plus SUFFIX of 1 insn. Defer. */
+ * at 0x80/0x84 (insn-shift) plus SUFFIX of 1 insn. Defer.
+ *
+ * 2026-05-07 — tried 4 variadic-decl variants to force outgoing-arg spill:
+ *   - `int func(int, ...)` + call func(0, a0)            → 13 insns, no spill
+ *   - `int func(int, ...)` + call func(0, a0, 0)         → 13 insns, a2=0
+ *   - K&R `int func()` (current)                          → 13 insns (baseline)
+ *   - `__asm__ volatile("sw $a1, 0x4($sp)")` after call  → CFE Syntax Error
+ *     (IDO 7.1's frontend rejects GCC inline-asm — confirms
+ *      `feedback_ido_no_gcc_register_asm.md`-style limitation extends to
+ *      plain `__asm__` blocks too, not just register-asm decls).
+ * IDO's outgoing-arg homing ("spill all 4 register args to sp+0..0xC for
+ * variadic callees") only fires when the CALLEE is variadic AND the args
+ * are sourced from spilled registers. With 2-fixed-args + tail variadic
+ * there's nothing to spill BACK out. No C-level path produces target's
+ * dead-spill at this delay slot. */
 extern char D_00007D94;
 void func_00005068(int a0) {
     func_00000000(&D_00007D94);
