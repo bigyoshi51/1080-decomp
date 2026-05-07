@@ -794,7 +794,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  * actual emitted bytes use 0x0000 for the relocated symbol, runtime-
  * resolved by USO loader — same convention as the gl_ref_*=0 placeholder.)
  * Combo recipe is in scope per
- * docs/POST_CC_RECIPES.md#feedback-prefix-bytes-plus-insn-patch-breaks-documented-caps. */
+ * docs/POST_CC_RECIPES.md#feedback-prefix-bytes-plus-insn-patch-breaks-documented-caps.
+ *
+ * 2026-05-07 attempt 2 — `volatile int *p = &D_2D7D0_target; *p = 8; *p = 8;`
+ * to defeat dead-store elim on the duplicate leading stores. Build emits 2
+ * stores correctly via volatile, BUT register-name mismatch:
+ *   - target: `sw $v0, 0($at)` (predecessor's stolen $v0=8, $at=&D)
+ *   - built:  `sw $v1, 0($v0)` (IDO chose $v1 for value, $v0 for address)
+ * PROLOGUE_STEALS=12 (=3 insns) would splice the lui/addiu/li-8 trio IDO
+ * emits up front, but the spliced .o then has `sw $v1, 0($v0)` accessing
+ * uninitialized $v1 at runtime (predecessor only sets $v0/$at). C-level
+ * register-pinning isn't possible (`register T x asm("$N")` rejected by
+ * IDO per feedback_ido_no_gcc_register_asm). Reverted; cap stands. */
 extern int D_2D7D0_arr;
 void gl_func_0002D7D0(void) {
     gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[8]);
