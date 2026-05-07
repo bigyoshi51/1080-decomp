@@ -3913,8 +3913,17 @@ trunk:
             goto ret;
         }
     }
-    /* TODO: bits 0x08, 0x04, 0x10 — see asm 0x7828-0x7A08.
-     * bit-0x80 wired below; bit-0x100 wired after bit-0x80 (2026-05-07). */
+    /* Trunk-arms wired: 0x01 / 0x40 / 0x20 / 0x80 / 0x100. Bits 0x02 /
+     * 0x04 / 0x08 / 0x10 are dispatch-cascade-only — verified
+     * 2026-05-07 by walking 0x7740-0x7990 of the asm.
+     *
+     * Status 2026-05-07: 48.59% (was 44.25% pre-f0-thread-through).
+     * Remaining 51% is structural: built saves $s0 (frame -0x28) where
+     * target uses no s-regs (frame -0x18). Built's `outer` /
+     * `register int *t` locals get promoted to $s0 because they survive
+     * cross-USO calls. To match target's no-saved-reg shape, restructure
+     * to reload `outer = a0->[0x30]` at each use AND inline `&D[0xE58]`
+     * per-call rather than caching. Multi-tick refinement target. */
 
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
