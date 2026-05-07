@@ -69,21 +69,35 @@ void func_0000F288(Quad4 *a0) {
  *
  * 2026-05-06 retry: tried minimal-locals (drop pads, init all post-jal
  * via `p1 = dst; tmp = raw; src = ...; q = p1; p2 = q;`) — regressed
- * to 68.3 % (the post-jal init pattern doesn't reach target's exact
- * `lw s1, 0x58(sp)` placement; introduces extra `move s2, s1` shuffle).
+ * to 68.3 % fuzzy (post-jal init introduces extra `move s2, s1` shuffle).
  * Also tried no-register variant — collapsed to 14.6 % (no s-reg saves
- * emit). The baseline 4-register-var + 3-pad-array form remains the
- * tightest reachable; cap is structural per IDO -O0 frame-slot reservation. */
+ * emit).
+ *
+ * 2026-05-07 RE-EVALUATED with byte-exact metric (vs the older fuzzy %):
+ * the post-jal init form (deferred `p1 = dst` etc.) actually beats the
+ * 4-register-var+pad_top+pad_bot form on byte-exact terms. Body adopted:
+ *   - 3 register Vec3* + 1 register float* declared without inits
+ *   - Tri3i raw; int pad_mid[2]; Tri3i tmp; (3 locals, no pad_top/pad_bot)
+ *   - All inits AFTER the jal call (p1=dst; tmp=raw; p2=p1; src=&tmp)
+ * Result: 32/41 = 78.0 % byte-exact (frame matches at 0x58, tmp+raw
+ * offsets match target's 0x34/0x48). Remaining 9 insns diff is the
+ * s-reg numbering — built has p1→s0/p2→s1/q→s2/src→s3 vs target's
+ * s1→p1/s2→p2/s0→last-q. IDO -O0 picks s0 for first-allocated reg-local;
+ * target picks s1. Not C-flippable per project_kmc / IDO -O0 frame-
+ * slot reservation cap class. */
 void func_0000F2EC(Vec3 *dst) {
-    register Vec3 *p1 = dst;
-    register Vec3 *p2 = p1;
+    register Vec3 *p1;
+    register Vec3 *p2;
     register Vec3 *q;
     Tri3i raw;
     int pad_mid[2];
     Tri3i tmp;
-    register float *src = (float*)&tmp;
+    register float *src;
     func_00000000(&D_00000000, &raw, 12);
+    p1 = dst;
     tmp = raw;
+    p2 = p1;
+    src = (float*)&tmp;
     p2->x = src[0];
     p2->y = src[1];
     p2->z = src[2];
