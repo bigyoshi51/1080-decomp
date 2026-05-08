@@ -6222,7 +6222,45 @@ void game_uso_func_0000C27C(Quad4 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C2D4);
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor.
+ * Body:
+ *   func_C0F0(&D_00000000);                    // intra-segment setup call
+ *   count = *(int*)&D_00000000;
+ *   ptr = gl_func(count << 6);                 // alloc(count * 64)
+ *   *(int**)&D_00000000_2 = ptr;               // store ptr at second D-base
+ *   if (count != 0) {
+ *       for (i = 0; i < count; i++) {
+ *           game_uso_func_0000C12C((char*)ptr + i*64);  // init each 64-byte chunk
+ *       }
+ *   }
+ *
+ * Two distinct lui+addiu pairs in target — likely two different D-base
+ * relocations (or two sites IDO didn't CSE). The first reloc reads count;
+ * the second writes the alloc'd pointer back. */
+extern void game_uso_func_0000C0F0();
+extern void game_uso_func_0000C12C();
+int **D_00000000_p2;  /* placeholder for second D-base */
+void game_uso_func_0000C3F8(int *a0) {
+    int count;
+    int *ptr;
+    int i;
+
+    game_uso_func_0000C0F0(&D_00000000);
+    count = *(int*)&D_00000000;
+    ptr = (int*)gl_func_00000000(count << 6);
+    *(int**)&D_00000000 = ptr;
+    if (count != 0) {
+        i = 0;
+        do {
+            game_uso_func_0000C12C((char*)*(int**)&D_00000000 + i * 0x40);
+            i++;
+        } while (i < *(int*)&D_00000000);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
+#endif
 
 #ifdef NON_MATCHING
 /* 2.46% NM. SPINE constructor (game_uso_func_0000C48C, 0xD84 = 865 insns, 3.4 KB)
