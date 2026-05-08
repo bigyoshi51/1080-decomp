@@ -5402,27 +5402,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068524);
  * checked-path collapses to byte-match, similar structure may apply to
  * other unmatched siblings (000683D4 / 000684AC / 00068524 in this region). */
 extern int gl_func_00000000();
-extern char D_00000000;
-void gl_func_000685C0(int *a0, int a1) {
-    unsigned int key_h = (unsigned int)(a1 >> 16) & 0xFFFF;
-    unsigned int key_l = (unsigned int)a1 & 0xFFFF;
+void gl_func_000685C0(int *a0, unsigned int a1) {
+    unsigned int key_h = (a1 >> 16) & 0xFFFF;
+    unsigned int key_l = a1 & 0xFFFF;
     int *row;
-    int *table_b;
     int *entry;
-    int count;
 
-    if (!(key_h < (unsigned int)a1)) {
+    if (!(key_h < a1)) {
         gl_func_00000000((int)((char*)&D_00000000 + 0x3B3C0), key_h, key_l);
     }
     row = (int*)((char*)a0[0x30/4] + key_h * 16);
-    count = row[2];
-    if (!(key_l < (unsigned int)count)) {
+    if (!(key_l < (unsigned int)row[2])) {
         gl_func_00000000((int)((char*)&D_00000000 + 0x3B3E4), key_h, key_l);
     }
-    /* re-load row + chase table_b + indexed entry */
     row = (int*)((char*)a0[0x30/4] + key_h * 16);
-    table_b = (int*)row[1];
-    entry = (int*)((char*)table_b + key_l * 4);
+    entry = (int*)((char*)row[1] + key_l * 4);
     if (entry[0x10/4] == 0) {
         gl_func_00000000((int)((char*)&D_00000000 + 0x3B404), key_h);
     }
