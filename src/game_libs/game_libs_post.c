@@ -360,7 +360,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024B28);
  * (just `jr ra; nop`). Stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024B8C);
 
+#ifdef NON_MATCHING
+/* gl_func_00024B94: 29-insn (0x74) lookup-and-copy. Sibling of 2495C, both
+ * call func_00039194 (intra-segment helper at fixed offset 0x39194 — alt-
+ * entry-jal pattern, jal target lands inside gl_func_00039094 which is
+ * size 0x324).
+ *
+ * Decoded structure:
+ *   if (a0->[0x24] == 0) return;
+ *   v0 = func_00039194(a0->[1] (lbu), a0->[2] (lbu));
+ *   if (v0 == 0) return;
+ *   a0->[0x20..0x2C] = v0->[0..0xC];        ; 16-byte struct copy
+ *   a0->[4] = a0->[0x10];                   ; field shuffle
+ *   *(char*)v0 &= 0xF3;                     ; clear bits 2,3 of header byte
+ *
+ * Caps:
+ * (a) jal func_00039194 — alt-entry-jal pattern (target inside another
+ *     function). Adding `func_00039194 = 0x00039194;` to undefined_syms
+ *     gives correct LINKED ROM bytes, but objdiff scoring at .o level
+ *     compares via R_MIPS_26 reloc which the C-emit produces against
+ *     `func_00039194` symbol while expected has the jal already resolved
+ *     to absolute target. Per docs/MATCHING_WORKFLOW.md
+ *     #reloc-encoding-pinning-structurally-identical-c-body-still-scores-65.
+ * (b) Register-name diffs in the struct-copy block (built uses t7/t8/t9
+ *     differently than target's t8/t9/t1). IDO scheduler ordering. */
+extern int func_00039194(int a, int b);
+void gl_func_00024B94(int *a0) {
+    int *v0;
+    if (a0[9] == 0) return;
+    v0 = (int*)func_00039194(((unsigned char*)a0)[1], ((unsigned char*)a0)[2]);
+    if (v0 == 0) return;
+    a0[8] = v0[0];
+    a0[9] = v0[1];
+    a0[10] = v0[2];
+    a0[11] = v0[3];
+    a0[1] = a0[4];
+    *(char*)v0 &= 0xF3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024B94);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024C08);
 
