@@ -6602,7 +6602,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072C88);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072E3C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00072E3C_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_00073034: 16-insn (0x40) double-call wrapper, returns 2nd call's
+ * value. Calls gl_func_0(a0, a1) twice; returns v0 of the second call.
+ *
+ * Trailing 2 insns (0x3C-0x40) are stolen-prologue donation to successor
+ * gl_func_00073078: `lui t6, 0xA460; lw a2, 0x10(t6)` reads PI_STATUS_REG
+ * (0xA4600010) into $a2 for the next function.
+ *
+ * Cap: target uses 0x28 frame + saves $s0 + does `s0 = v0; ...; v0 = s0`
+ * round-trip in the epilogue. Standalone IDO -O2 emits 12 insns / 0x18
+ * frame without the s0 save (~75% structural shape). The s0-via-v0
+ * round-trip pattern isn't reachable from natural C — IDO chose it
+ * because of some heuristic (maybe live-range across the lw ra in the
+ * epilogue, even though lw doesn't clobber v0). Multi-tick. */
+extern int gl_func_00000000();
+
+int gl_func_00073034(int a0, int a1) {
+    int v;
+    gl_func_00000000(a0, a1);
+    v = gl_func_00000000(a0, a1);
+    return v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073034);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
 
