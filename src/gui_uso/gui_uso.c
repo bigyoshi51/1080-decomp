@@ -642,10 +642,30 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
  * 280+ insns of body deferred - multi-pass NM-decomp. The 0x408
  * literal (1032) is suspicious - possibly a viewport/scissor scale
  * factor (240*4 = 960; 1024+8 = 1032). Default build INCLUDE_ASM. */
+/* 2026-05-08: entry-stage decode (insns 0-24 / 0x00-0x60). Replaces
+ * empty stub with the documented 4-arg signature + first DL command
+ * emit (RDP 0xBB000001 opcode at slot 0, sibling shape of gui_func_00002BB0).
+ *
+ * Frame -0x68 (saves s0 + ra). 4 arg signature with a1/a2/a3 spilled to
+ * caller-arg-save slots at sp+0x6C/0x70/0x74 (defensive). The 0x408
+ * (=1032) literal materialized at insn 0x4C is likely a viewport scale
+ * factor used in the per-vertex-emit loop (~280 insns deferred). */
 void gui_func_00002DE0(int *a0, int a1, int a2, int a3) {
-    /* TODO: full body decode. Stub captures arg signature + RDP-builder
-     * identity (sibling of gui_func_00002BB0). */
-    (void)a0; (void)a1; (void)a2; (void)a3;
+    int *ctx;
+    int *p;
+    int slot, idx;
+    (void)a1; (void)a2; (void)a3;
+    ctx = *(int**)((char*)&D_00000000);  /* s0 = D_GUI_CTX[0] */
+    idx = ctx[0xC / 4];                   /* dl-counter container */
+    slot = ((int*)idx)[1];                /* current cursor */
+    ((int*)idx)[1] = slot + 1;            /* bump */
+    p = (int*)((*(int**)idx)[0]) + (slot << 1);
+    p[0] = 0xBB000001;                    /* RDP G_SETSCISSOR opcode */
+    p[1] = (int)0x80008000;               /* RDRAM segment-0 marker */
+    /* TODO: ~280 more insns of body — likely scissor/viewport/vertex
+     * setup using a0 widget args + 0x408 (1032) scale factor.
+     * Multi-pass NM remains. */
+    (void)a0; (void)ctx;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
