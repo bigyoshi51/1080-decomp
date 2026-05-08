@@ -3448,7 +3448,57 @@ void game_uso_func_0000591C(int *a0) {
      * remaining. NEXT PASS: 0x5E20+ alternate state-flag path through
      * sp+0x1AC->0x84 bit checks and the sp+0xF0 Vec3 scratch block.
      *
-     * TODO: ~820 remaining insns — continue per-state-branch decoding. */
+     * 2026-05-08 EXTENDED DECODE 0x5E20-0x5E7C (~24 insns): SP+0x1AC PTR
+     * BIT-2 GUARD + ALT VEC3 ALLOC + XZ-Y0-COPY (mirror of 0x5CD0 block).
+     *
+     *   t9 = sp[0x1AC];                   ; reload saved-ptr (this is `sub`)
+     *   if (t9 == 0) goto state_tail_65F8;
+     *   t1 = t9->0x84;                     ; flag-byte (mirrors check earlier
+     *                                        in path 0x5AF0-0x5AFC, here re-tested)
+     *   v1 = sp + 0xF0;                    ; sp+0xF0 = next Vec3-scratch base
+     *   if (!(t1 & 2)) goto state_tail_65F8;
+     *
+     *   /* bnel-likely guard: t1 != 0 always since bit 1 was set —
+     *    * branch taken always; delay-slot reloads sp[0x1B0] = saved
+     *    * return-Vec3 ptr from prior cross-USO call. *\/
+     *   if (t1 != 0) {
+     *       v0 = sp[0x1B0];                 ; (delay)
+     *   } else {
+     *       v0 = gl_func(0xC);              ; alloc Vec3 (dead arm — t1 is bit-2,
+     *                                        non-zero by precondition)
+     *       f16 = 0.0f;
+     *       if (v0 == 0) goto skip_xz_copy; ; alloc-fail skip
+     *       v1 = v0;                         ; (delay) v1 = alloc result
+     *       v0 = sp[0x1B0];                  ; reload saved ptr
+     *   }
+     *
+     *   /* XZ-Y0 Vec3 copy — exact mirror of the earlier 0x5CD0 block,
+     *    * source is sp[0x1B0]+0x30 here (vs prior block's t9 helper-result):
+     *    *   v1[0] = source[0];   v1[1] = 0.0f;   v1[2] = source[2];   *\/
+     *   src = v0 + 0x30;
+     *   v1[0] = src[0];                     ; X
+     *   v1[1] = 0.0f;                       ; Y zeroed
+     *   v1[2] = src[2];                     ; Z   (source.y at +4 SKIPPED)
+     *
+     *   /* skip_xz_copy: a1 = sp[0x1AC]; a2 = sp+0xB4; ... falls through
+     *    * to a follow-up cross-USO call at 0x5E80+ with sp+0xB4 as a2. *\/
+     *   a1 = sp[0x1AC];                     ; reload sub for next call
+     *   a2 = sp + 0xB4;
+     *   /* (continues at 0x5E80+) *\/
+     *
+     * Pattern: this is the alt-source mirror of the earlier 0x5CD0 XZ-Y0
+     * Vec3 copy. Both write a Y-zeroed XZ-only Vec3 into a stack scratch,
+     * but they pull from different base ptrs (helper-return ptr vs
+     * sp[0x1B0]+0x30 = saved-ptr's sub-struct). The bit-2 (`t1 & 2`) gate
+     * + the bnel-always-true after a non-zero precondition is a defensive
+     * "abort if state changed mid-frame" + "if normal-path, skip alloc"
+     * pattern used elsewhere in the dispatch.
+     *
+     * Cumulative ~306/1102 insns characterized (up from 282). ~796
+     * remaining. NEXT PASS: 0x5E80+ second cross-USO call with sp+0xB4
+     * arg setup (likely Vec3-distance/op against accumulated transform).
+     *
+     * TODO: ~796 remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
