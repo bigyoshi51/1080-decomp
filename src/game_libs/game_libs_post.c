@@ -5582,7 +5582,27 @@ void gl_func_000683D4(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000683D4);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000684AC);
+/* gl_func_000684AC: 30-insn (0x78) alloc-or-passthrough constructor.
+ * If a0 is null, alloc 0x38 bytes; else use given a0. Init phase 1 calls
+ * helper(a0, a1), sets a0->[0x28] = &D_00000000, zeros a0->[0x30/0x34],
+ * and conditionally calls helper(a0, 1, a2) if a2 != 0. Returns a0
+ * (which may be 0 from a failed alloc — exits via shared epilogue
+ * `move v0, a0`, exploiting the a0=v0=0 chain post-failed-alloc). */
+int *gl_func_000684AC(int *a0, int a1, int a2) {
+    if (a0 == 0) {
+        a0 = (int *)gl_func_00000000(0x38);
+        if (a0 == 0) goto end;
+    }
+    gl_func_00000000(a0, a1);
+    a0[0xA] = (int)&D_00000000;
+    a0[0xD] = 0;
+    a0[0xC] = 0;
+    if (a2 != 0) {
+        gl_func_00000000(a0, 1, a2);
+    }
+end:
+    return a0;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_00068524: 39-insn (0x9C) alloc-and-init-loop. Sibling of
