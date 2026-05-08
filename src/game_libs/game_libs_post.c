@@ -614,7 +614,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028C6C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028E94);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028FCC);
+void gl_func_00028FCC(int *a0, int a1) {
+    volatile int **vp0 = (volatile int **)&a0;
+    volatile int *vp1 = (volatile int *)&a1;
+    gl_func_00000000(a0[0x44/4]);
+    a0[0x48/4] = a1;
+    (void)vp0;
+    (void)vp1;
+}
 
 #ifdef NON_MATCHING
 /* Split off from gl_func_00028FCC bundle 2026-05-08: 11-insn no-frame
