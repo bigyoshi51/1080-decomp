@@ -5456,7 +5456,78 @@ void game_uso_func_0000BF7C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BF7C);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000BFDC: 32-insn (0x80) sign-dispatched table-lookup wrapper
+ * + indirect jalr. Reads two signed shorts from a0+0x8/0xA and a ptr from
+ * a0+0x4; if a0->[0xA] < 0 takes a short path that reuses a0->[0xC] as the
+ * function pointer; else dispatches through a 2-level pointer table where
+ * a0->[0xA] indexes a (vtable_entry, fnptr) pair.
+ *
+ * Initial structural decode 2026-05-08; matching pass deferred — likely
+ * 30-50% on first build due to the multi-way control flow + indirect jalr.
+ * Open: identify the exact struct layout for a0 (probably a UI element or
+ * dispatch handle).
+ *
+ * Asm @ 0xBFDC..0xC058 decoded structurally:
+ *   short ka = a0->0xA  (signed half, dispatch key)
+ *   short kb = a0->0x8  (signed half, secondary)
+ *   int *base = (int*)a0->0x4  (table base ptr)
+ *   if (ka < 0) {
+ *       a1 = kb + base       (accum offset)
+ *       fnptr = (void(*)())a0->0xC
+ *       a0 = a1
+ *       goto jalr
+ *   } else {
+ *       int v = a0->0xC
+ *       if (v == 0) {
+ *           if (a0->0x8 != 0) {
+ *               // (offset value falls through)
+ *           } else {
+ *               v = 0x28
+ *           }
+ *       }
+ *       short d = a0->0xA          (reload)
+ *       int *table = *(int**)((char*)base + v)
+ *       int *entry = (int*)((char*)table + (d << 3))
+ *       short e = *(short*)entry
+ *       fnptr = (void(*)())entry[1]
+ *       a1 = e + (kb + base)
+ *       a0 = a1
+ *   }
+ *   return fnptr(a0)
+ *
+ * Skeleton C below — emits structurally similar control flow but is not
+ * byte-correct. Reserved for multi-pass tightening. */
+extern int gl_func_00000000();
+int game_uso_func_0000BFDC(int *a0) {
+    short ka = *(short*)((char*)a0 + 0xA);
+    short kb = *(short*)((char*)a0 + 0x8);
+    int *base = (int*)a0[1];
+    int (*fnptr)(int);
+    int arg;
+    if (ka < 0) {
+        fnptr = (int(*)(int))a0[3];
+        arg = (int)((char*)base + kb);
+    } else {
+        int v = a0[3];
+        if (v == 0) {
+            if (*(short*)((char*)a0 + 0x8) == 0) {
+                v = 0x28;
+            }
+        }
+        {
+            int *table = *(int**)((char*)base + v);
+            int *entry = (int*)((char*)table + (*(short*)((char*)a0 + 0xA) << 3));
+            short e = *(short*)entry;
+            fnptr = (int(*)(int))entry[1];
+            arg = (int)((char*)base + kb + e);
+        }
+    }
+    return fnptr(arg);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BFDC);
+#endif
 
 void game_uso_func_0000C05C(char *dst) {
     int tmp;
