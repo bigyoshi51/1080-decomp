@@ -1656,7 +1656,12 @@ void game_libs_func_00037F40(int **a0, int *a1) {
     *a1 = *p;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037F58);
+void gl_func_00037F58(int a0, char *a1) {
+    gl_func_00000000(a0, a1);
+    gl_func_00000000(a0, a1 + 4);
+    gl_func_00000000(a0, a1 + 8);
+    gl_func_00000000(a0, a1 + 0xC);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037FAC);
 
