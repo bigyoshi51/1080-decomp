@@ -973,7 +973,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  * which requires the volatile-store body to first reach the right
  * post-store shape — currently UNVERIFIED. INSN_PATCH+PROLOGUE_STEALS
  * combo precedent exists in feedback-prefix-bytes-plus-insn-patch-
- * breaks-documented-caps. */
+ * breaks-documented-caps.
+ *
+ * 2026-05-08 (later, after game_uso_func_00001DDC `0.0f*0.0f` → memory-load
+ * +0.73pp finding): no zero-term cite-applicable here — this function uses
+ * integer args (0x41010000 etc as int constants, not float-zero terms).
+ * Cap remains the prologue-stolen-successor pattern. Permuter or compiler
+ * update remain the only paths. */
 extern int D_2D7D0_arr;
 void gl_func_0002D7D0(void) {
     gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[8]);
