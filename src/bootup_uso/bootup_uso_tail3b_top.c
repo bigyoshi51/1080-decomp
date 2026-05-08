@@ -52,7 +52,36 @@ void func_00012188(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012188);
 #endif
 
+#ifdef NON_MATCHING
+/* func_00012244: 32-insn set-bit-and-call-if-not-set helper.
+ *   short *p = a0->field_154;
+ *   if ((*p & (1 << a1)) == 0) {
+ *       *p |= (1 << a1);
+ *       func_00000000(a0);
+ *   }
+ *
+ * 36% NM at -O2 -g3 (file's default). This function is in one of the
+ * scattered -O0 runs documented in project_1080_bootup_uso_o0_runs.md —
+ * target asm has both args spilled at entry (sw a0, 0x28(sp); sw a1,
+ * 0x2C(sp)) and every variable reloaded via stack at use sites, classic
+ * -O0 emit pattern (32 insns, frame 0x28). My -O2 emit collapses to 14
+ * insns with frame 0x18.
+ *
+ * To match: split this function into a separate .c file with OPT_FLAGS
+ * := -O0 per the -O0-cluster recipe in
+ * docs/IDO_CODEGEN.md#feedback-o0-cluster-split-with-layout-shim.
+ * Needs paired predecessor + successor layout shim. Multi-tick effort. */
+extern int func_00000000();
+void func_00012244(int *a0, int a1) {
+    unsigned short *p = (unsigned short*)a0[0x154/4];
+    if ((*p & (1 << a1)) == 0) {
+        *p = *p | (1 << a1);
+        func_00000000(a0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012244);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000122C4);
 
