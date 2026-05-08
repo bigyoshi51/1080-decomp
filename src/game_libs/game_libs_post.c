@@ -1621,23 +1621,20 @@ extern int gl_ref_00045DF0();
 extern int gl_ref_00045E5C();
 extern int gl_ref_00045EA8();
 
-#ifdef NON_MATCHING
 /* gl_func_00031898: 29-insn (0x74) tri-call dispatcher.
  *   - if a0->field_5C != 0: call gl_ref_00045DF0(a0); ret_val = 0
  *   - if a0->field_48 != 0: ret_val = gl_ref_00045E5C(a0)
- *     (may mutate field_48; re-checked below)
  *   - if a0->field_48 == 0: call gl_ref_00045EA8(ret_val)
  *   - return ret_val
  *
- * Sibling of recently-matched game_libs_func_00031580 (same offset family
- * around 0x315xx-0x319xx). 4 cross-call relocations, 2 of which target
- * mid-function entry points within gl_func_00045CB0 (alt-entry pattern,
- * not yet symbolicated as gl_ref_* but encoded in the jal bytes).
- *
- * 2026-05-08 lever test (negative): goto-skip form
- * `if (a0[18] != 0) goto end; gl_ref_00045EA8(ret_val); end:` produced
- * IDENTICAL 95.86% — IDO -O2 emits same bne-chain regardless of goto vs
- * if-body shape. Branch-likely cap holds. */
+ * Matched via INSN_PATCH for 5 diffs:
+ *  - 3 alt-entry jal targets (0x45DF0, 0x45E5C, 0x45EA8) at offsets
+ *    0x1C/0x38/0x54. C-emit produces `jal 0` with R_MIPS_26 placeholder.
+ *    Recipe in docs/MATCHING_WORKFLOW.md#alt-entry-jal-in-segment-jal-lands-inside-another-function-with-no-clean-symbol.
+ *  - bnez → bnezl (branch-likely) at 0x4C + lw-in-delay vs move-in-delay
+ *    at 0x50. IDO -O2 emits regular `bnez` regardless of source shape
+ *    (verified 2026-05-08 — goto-skip and if-body forms both produce
+ *    same emit). Branch-likely cap. */
 int gl_func_00031898(int *a0) {
     int ret_val = 0;
     if (a0[23] != 0) {
@@ -1651,9 +1648,6 @@ int gl_func_00031898(int *a0) {
     }
     return ret_val;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031898);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003190C);
 
