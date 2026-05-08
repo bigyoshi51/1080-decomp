@@ -30,9 +30,8 @@ int titproc_uso_func_000000C0(void) {
     int v;
 
     counter = *(int*)((char*)&D_titproc_C0_a + 0x6C) + 1;
-    if (counter < 5) {
-        *(int*)((char*)&D_titproc_C0_a + 0x6C) = counter;
-    } else {
+    *(int*)((char*)&D_titproc_C0_a + 0x6C) = counter;
+    if (counter >= 5) {
         *(int*)((char*)&D_titproc_C0_a + 0x6C) = 0;
         counter = 0;
     }
@@ -259,26 +258,13 @@ void titproc_uso_func_00000C0C(int *a0) {
  * 0x78-byte root object, initializes the template/vtable fields, chains
  * children through root+0x10, and stores the constructed root in v0.
  *
- * 2026-05-08 pass: 89.32287% after forcing root=a0 before allocation and
- * reusing `sub` for the D+0x190 child. Current blocker: IDO still emits a
- * 0x48-byte frame and reloads root+0x6C through v1 in the D+0x88 branch;
- * target keeps the frame at 0x40 and uses the live t3=5 constant for the
- * shift/sub multiply-by-30 sequence. Precomputing flag/count and pinning
- * count to $11 did not change codegen. Remaining diffs are mostly early
- * branch scheduling, link spill offset, and vtable callback temp registers.
+ * 2026-05-08 NM-cap detail: with predecessor C0 fixed to use unconditional-
+ * store-then-overwrite, C54 hovers at 90.03% as a real C body. Frame is
+ * 0x48 (built) vs 0x40 (target). Earlier doc-claims that the 86.58% was a
+ * pure address-shift artifact were wrong — the body itself does have ~22
+ * register-allocation diffs that need permuter or multi-tick grinding.
  * Documented field offsets: 0xC, 0x14, 0x28, 0x2C, 0x30, 0x38, 0x3C, 0x40,
- * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74, 0x7C.
- *
- * 2026-05-08 (later) v6: removed `int count;` local + inlined volatile
- * read directly into the if-body. Frame DID shrink 0x48 -> 0x40
- * (matches target!) BUT regressed 89.32% -> 5.02% (-84pp): removing the
- * count slot freed up an $s-reg slot which IDO then re-used for
- * different temps across the whole function, cascading register
- * reshuffles into ~208 instruction diffs. Same disruption-cascade as
- * documented in IDO_CODEGEN.md feedback-ido-volatile-const-bind-
- * catastrophic-regression. Frame-shrink-via-local-removal is too
- * structurally invasive for late-tier matching grinds; counts as a
- * confirmed dead-end for this cap. Reverted. */
+ * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74, 0x7C. */
 void *titproc_uso_func_00000C54(int *a0, int a1) {
     int *root;
     int *sub;
