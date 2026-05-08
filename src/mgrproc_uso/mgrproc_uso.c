@@ -753,7 +753,49 @@ void mgrproc_uso_func_00001AD0(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001AD0);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00001B58: 28-insn (0x70) main body + 4 trailing dead
+ * insns (= 0x8C declared size, 35 insns total — 4 trailing don't execute).
+ *
+ * Structure: 5-call cleanup helper that walks two D[0x134] sub-pointers
+ * and finalizes a flag in the input arg.
+ *
+ *   gl_func_00000000(a0);                      ; cleanup of input
+ *   p = D[0x134];
+ *   t6 = p->[0xC4]->[0x800];                   ; sub-A's child
+ *   t7 = p->[0xCC]->[0x800];                   ; sub-B's child
+ *   gl_func_00000000(a0, p->[0xCC]);           ; ?
+ *   gl_func_00000000(t6, 0);
+ *   gl_func_00000000(t7, 0);
+ *   gl_func_00000000(D[0x138], 0, 0);          ; cleanup global slot
+ *   a0->[0x4F4] = 0;                            ; clear flag in original
+ *
+ * Trailing dead-code at offsets 0x7C-0x88 (4 insns, never reached after
+ * jr ra at 0x74): or a2, a0; lui a0, 0; addiu a0, a0; lw v1, 0x64(a0).
+ * These look like an alt-entry-stub setup that splat included inside the
+ * symbol's declared size. Not reachable from the C body; needs a sibling
+ * _pad.s or symbol-shrink to drop. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void mgrproc_uso_func_00001B58(int *a0) {
+    volatile int **vparg = (volatile int **)&a0;
+    int **p;
+    int *t6;
+    int *t7;
+    gl_func_00000000(a0);
+    p = (int**)*(int**)((char*)&D_00000000 + 0x134);
+    t6 = (int*)((int*)p[0xC4/4])[0x800/4];
+    t7 = (int*)((int*)p[0xCC/4])[0x800/4];
+    gl_func_00000000(a0, p[0xCC/4]);
+    gl_func_00000000(t6, 0);
+    gl_func_00000000(t7, 0);
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0, 0);
+    a0[0x4F4/4] = 0;
+    (void)vparg;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BE4);
 
