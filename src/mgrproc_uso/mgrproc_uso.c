@@ -507,7 +507,15 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5
  * scoring artifact, not a real byte diff. Cap class: regalloc shifts
  * in the if-block (target uses \$v0/\$t0/\$t1 chain; mine cascades
  * \$t9/\$t1/\$t2/\$t8...), same family as gl_func_000687B8 (just-
- * landed via INSN_PATCH). Multi-pass NM. */
+ * landed via INSN_PATCH). Multi-pass NM.
+ *
+ * 2026-05-08 retest #2: confirmed 24-insn byte diff vs target. Most
+ * diffs are alias-symbol artifacts (built has D_C14_state with addend 0,
+ * target has D_00000000 with addend 0x30) — post-link bytes equivalent.
+ * The remaining ~10 diffs are register-allocation cascades in the
+ * if-block (target packs more uses into $v0/$t0/$t1; mine spreads
+ * across $t9/$t1/$t2/$t8). Promotion via INSN_PATCH would need ~10
+ * instruction overrides; heavy lift but feasible. Cap unchanged. */
 extern int gl_func_00000000();
 extern char D_00000000;
 extern int *D_C14_state; /* alias of D + 0x30 (state ptr) */
