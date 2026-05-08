@@ -772,17 +772,40 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001AD
  *
  * Trailing dead-code at offsets 0x7C-0x88 (4 insns, never reached after
  * jr ra at 0x74): or a2, a0; lui a0, 0; addiu a0, a0; lw v1, 0x64(a0).
- * These look like an alt-entry-stub setup that splat included inside the
- * symbol's declared size. Not reachable from the C body; needs a sibling
- * _pad.s or symbol-shrink to drop. */
+ * These ARE the chained-SUFFIX inheritance setup for predecessor
+ * mgrproc_uso_func_00001BE4 (this function falls through into BE4 and
+ * the trailing 4 insns set up \$a2/\$v1 for BE4's body). Once the body
+ * here is byte-correct, add SUFFIX_BYTES to provide them.
+ *
+ * Body cap (NM 86.5%, 6 insns + 2 sp-slot offsets diverge):
+ *   - target's chained `subA` intermediate gets \$v1 (return-reg priority);
+ *     mine cascades through \$t6/\$t7/\$t8 instead. Same regalloc family
+ *     as gl_func_000687B8 (just-landed via INSN_PATCH).
+ *   - target's a1-spill slot is sp+0x20; mine puts it at sp+0x1C.
+ *
+ * Tried 2026-05-08 (negative): split-into-named-locals (`subA = p[0xC4]`
+ * before deref) — IDO -O2 inlines back to a chained deref; same emit.
+ * Removed the volatile/vparg hack (no-op).
+ *
+ * Promotion path (multi-tick, ~8 INSN_PATCH + 4 SUFFIX_BYTES needed):
+ *   1. Drop the \`#ifdef NON_MATCHING\` wrap (per
+ *      docs/POST_CC_RECIPES.md#feedback-insn-patch-noop-under-include-asm-wrap).
+ *   2. INSN_PATCH 6 register-shift insns at offsets 0x1C/0x20/0x24/0x2C/0x34/
+ *      0x38/0x64/0x68 (all non-reloc — safe per
+ *      #feedback-insn-patch-on-reloc-instructions-breaks-byte-verify).
+ *   3. SUFFIX_BYTES 4 trailing insns: 0x00803025,0x3C040000,0x24840000,
+ *      0x8C830064. Last two carry HI16/LO16 relocs to D_00000000;
+ *      placeholder zeros are correct for USO segments (runtime relocator
+ *      patches at load time).
+ * Deferred to a follow-up tick when the regalloc lever is also fixed
+ * cleanly. */
 extern int gl_func_00000000();
 void mgrproc_uso_func_00001B58(int *a0) {
-    volatile int **vparg = (volatile int **)&a0;
-    int **p;
+    int *p;
     int *t6;
     int *t7;
     gl_func_00000000(a0);
-    p = (int**)*(int**)((char*)&D_00000000 + 0x134);
+    p = *(int**)((char*)&D_00000000 + 0x134);
     t6 = (int*)((int*)p[0xC4/4])[0x800/4];
     t7 = (int*)((int*)p[0xCC/4])[0x800/4];
     gl_func_00000000(a0, p[0xCC/4]);
@@ -790,7 +813,6 @@ void mgrproc_uso_func_00001B58(int *a0) {
     gl_func_00000000(t7, 0);
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0, 0);
     a0[0x4F4/4] = 0;
-    (void)vparg;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
