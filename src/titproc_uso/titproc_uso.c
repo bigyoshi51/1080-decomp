@@ -775,5 +775,56 @@ void titproc_uso_func_00002950(char *dst) {
     titproc_uso_func_0000056C((Vec3*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00002980: 43-insn (0xAC) alloc-and-link node helper
+ * with dead-code suffix. Sibling of mgrproc_uso_func_00003358 (39-insn
+ * version, currently NM 89.22% with documented frame/regalloc cap).
+ *
+ * Structure (decoded from asm 0x2980-0x2A14):
+ *   p = alloc(0x40)
+ *   if (p == 0) return 0
+ *   gl_func_00000000(p)                    ; init call (1 arg)
+ *   p[0x28] = &D_00000000
+ *   p[0x3C] = 0
+ *   q = a0->[0x40]                          ; original-a0 reloaded from
+ *                                             caller slot (sp+0x28)
+ *   if (q == 0) goto end
+ *   gl_func_00000000(p + 0x10, q)          ; link call (2 args)
+ *   if (q->[0x14] == 0) {
+ *       q->[0x14] = p
+ *   } else {
+ *       q->[0x4] = 1
+ *       q->[0x14] = p
+ *   }
+ *   end: return p
+ *
+ * Trailing dead-code at 0x2A10/14: `jr ra; sw a0, 0(sp)` (a phantom
+ * 2-insn alt-entry stub that's never branched to in this function but
+ * lives inside its symbol). Plus a 4-insn data block at 0x2A18-0x2A28
+ * (jump-table or constants — outside the 0xAC declared size?).
+ *
+ * Cap class likely matches mgrproc 33358's: frame-of-0x28 + extra
+ * spills around the second jal won't reproduce from natural C; needs
+ * INSN_PATCH or further refinement.
+ *
+ * Initial structural decode for grep + multi-tick refinement. */
+extern int gl_func_00000000();
+int *titproc_uso_func_00002980(int *a0) {
+    int *p = (int*)gl_func_00000000(0x40);
+    int *q;
+    if (p == 0) return 0;
+    gl_func_00000000(p);
+    p[0x28/4] = (int)&D_00000000;
+    p[0x3C/4] = 0;
+    q = (int*)a0[0x40/4];
+    if (q != 0) {
+        gl_func_00000000((char*)p + 0x10, q);
+        if (q[0x14/4] != 0) q[0x4/4] = 1;
+        q[0x14/4] = (int)p;
+    }
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002980);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_00002980_pad.s")
