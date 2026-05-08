@@ -3528,9 +3528,6 @@ void game_uso_func_0000591C(int *a0) {
      *   v1[0] = $f0;                        ; out.X = X-diff
      *   v1[2] = $f2;                        ; out.Z = Z-diff
      *
-     * skip_xz_diff: continues at 0x5ED0 with int-memcpy preface
-     * (t5 = *(int*)a2; t3 = t8 = sp+0x15C; t3[0] = t5).
-     *
      * Pattern: this XZ-difference Vec3 (saved.X - sub.X, 0, saved.Z - sub.Z) is
      * the displacement vector between the saved-frame position (captured earlier
      * at sp[0xF0..0xFC]) and the current sub-struct's position. Likely the
@@ -3539,10 +3536,43 @@ void game_uso_func_0000591C(int *a0) {
      * out-buffer (a2 != 0) OR get a fresh-allocated one (a2 == 0). The XZ-only
      * shape (Y zeroed) suggests ground-plane physics, NOT general 3D physics.
      *
-     * Cumulative ~326/1102 insns characterized (up from 306). ~776 remaining.
-     * NEXT PASS: 0x5ED0+ int-memcpy preface (sp+0xB4 → sp+0x15C; 12-byte copy).
+     * 0x5ED0-0x5F18 region (+18 insns):
+     * DOUBLE 12-BYTE INT-MEMCPY (a2 → sp+0x15C → sp+0xD8) + DEAD-BRANCH GATE.
      *
-     * TODO: ~776 remaining insns — continue per-state-branch decoding. */
+     *   /-- first 12-byte memcpy: a2 → sp+0x15C --/
+     *   t3 = sp + 0x15C;                ; staging buffer
+     *   t8 = sp + 0x15C;                ; (alias of t3)
+     *   *t3       = a2[0];               ; first int
+     *   t6 = sp + 0xD8;                  ; final destination
+     *   v1 = sp + 0xE4;                  ; out-Vec3 scratch (used at 0x5F38+)
+     *   *(t3 + 4) = a2[1];               ; second int
+     *   *(t3 + 8) = a2[2];               ; third int
+     *
+     *   /-- second 12-byte memcpy: sp+0x15C → sp+0xD8 --/
+     *   *t6       = *t8;                 ; sp[0xD8]   = sp[0x15C]
+     *   *(t6 + 4) = *(t8 + 4);           ; sp[0xDC]   = sp[0x160]
+     *   *(t6 + 8) = *(t8 + 8);           ; sp[0xE0]   = sp[0x164]
+     *   a1 = sub->[0x30];                ; sub = s0; a1 = sub-physics-block
+     *   if (v1 != 0) goto skip_alloc_2;  ; bnez v1, +7 → 0x5F38
+     *                                      ; (v1 = sp+0xE4 — ALWAYS non-zero;
+     *                                      ;  the fall-through alloc-fallback at
+     *                                      ;  0x5F20-0x5F34 is RUNTIME-DEAD code,
+     *                                      ;  emitted by IDO due to a runtime-only
+     *                                      ;  null-test the optimizer didn't fold.)
+     *   a1 += 0xB4;                      ; (delay-slot, dead path)
+     *
+     * Pattern: the algorithm uses two stack buffers (sp+0x15C as a staging
+     * scratch + sp+0xD8 as the working buffer) to hold a copy of the XZ-diff
+     * Vec3 just computed. The double-memcpy is wasteful but consistent with
+     * IDO's emit when the C body has TWO distinct typed-stack-struct copies
+     * back-to-back. The dead bnez-gated alloc fallback is the same shape as
+     * the 0x5DC0/0x5E80 blocks above — pre-allocated buffer always wins.
+     *
+     * Cumulative ~344/1102 insns characterized (up from 326). ~758 remaining.
+     * NEXT PASS: 0x5F38+ second cross-USO call with sp+0xE4 / sp+0xD8 args
+     * (likely Vec3 normalization or distance helper using both buffers).
+     *
+     * TODO: ~758 remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
