@@ -6690,7 +6690,23 @@ void game_uso_func_00010694(int *a0) {
     sub[0x960/4] = 0;
     gl_func_00000000(a0);
     gl_func_00000000(a0);
-    /* TODO 0x60-end: |f0| + cvt.d.s + double arithmetic + ~80 more insns. */
+    /* @ 0x60-0x88: |saved_f0| via bc1fl-likely abs (mov vs neg). Standard
+     * `f2 = fabsf(f0)` shape. */
+    {
+        float abs_f0 = (saved_f0 < 0.0f) ? -saved_f0 : saved_f0;
+        /* @ 0x88-0x9C: f20 (double) = D[0x250] - (double)abs_f0; passed
+         * implicitly to the next gl_func_0(a0) via $f12/$f14 double
+         * convention (or stored later). */
+        double diff = *(double*)((char*)&D_00000000 + 0x250) - (double)abs_f0;
+        gl_func_00000000(a0);
+        sub = (int*)a0[0xB4/4];
+        /* @ 0xA0-0xCC: comparison-and-branch chain on the diff result.
+         * Loop predicate compares against another sub field, multiple
+         * cross-calls. Still TODO past this point. */
+        (void)diff;
+    }
+    /* TODO 0xCC-0x1A8: ~50 more insns — comparison loop + final 2 cross-USO
+     * dispatches + epilogue. */
     (void)saved_f0;
 }
 #else
