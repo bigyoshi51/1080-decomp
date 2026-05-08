@@ -5788,7 +5788,26 @@ void gl_func_000687B8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000687B8);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068884);
+/* gl_func_00068884: 29-insn (0x74) alloc-or-passthrough constructor variant
+ * of gl_func_000684AC. Differences from 684AC: takes 2 args (not 3); first
+ * post-alloc init call uses fixed args (a0, &gl_ref_0002B420, 0) instead of
+ * (a0, orig_a1); only sets a0[0xA] (no zeroing of a0[0xC]/a0[0xD]); the
+ * orig a1 is forwarded to the second optional init call as its a2 arg. */
+extern char gl_ref_0002B420;
+
+int *gl_func_00068884(int *a0, int a1) {
+    if (a0 == 0) {
+        a0 = (int *)gl_func_00000000(0x38);
+        if (a0 == 0) goto end;
+    }
+    gl_func_00000000(a0, &gl_ref_0002B420, 0);
+    a0[0xA] = (int)&D_00000000;
+    if (a1 != 0) {
+        gl_func_00000000(a0, 1, a1);
+    }
+end:
+    return a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000688F8);
 
