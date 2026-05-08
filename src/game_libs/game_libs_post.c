@@ -6094,7 +6094,18 @@ end:
  *
  * — i.e. paranoid double-check of the alloc result with a fallback to a
  * smaller size that IDO emits but never reaches. Multi-tick byte-match
- * deferred; structural decode here for grep + permuter seed. */
+ * deferred; structural decode here for grep + permuter seed.
+ *
+ * 2026-05-08 cap measurements (objdiff 27/27 insns, 80.46% fuzzy):
+ *   - Frame: built -0x18 (24), expected -0x20 (32). 8-byte gap.
+ *   - Reg-alloc: built collapses q/p to single $v1, expected uses $a1 + $v1
+ *     for the SAME value with explicit spill+reload (`sw v0, 24(sp);
+ *     lw a1, 24(sp)`).
+ *   - Tried `char pad[8] + (void)pad`: 0pp (DCE'd, frame stays -0x18 — per
+ *     `feedback-ido-pad-array-dce` already documented).
+ *   - Tried intermediate `int *spill = alloc(0x20); p = spill; ...`:
+ *     -5pp (forced spill but wrong shape). Reverted.
+ *   - Likely needs permuter for the q/a1 register-split + frame growth. */
 extern int gl_func_00000000();
 
 int *gl_func_000688F8(int a0) {
