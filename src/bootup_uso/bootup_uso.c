@@ -1193,7 +1193,42 @@ int func_00007BF4(Cmd00007BF4 *arg) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);
 #endif
 
+extern float D_000005EC;
+#ifdef NON_MATCHING
+/* func_00007C74: 36-insn alloc/init/link helper, sibling of func_00007B08.
+ * Decoded behavior: alloc 0x88, optional init + field_28 vtable/zero store,
+ * seed field_80 from D_000005EC, init field_10 from a0->field_40, then link
+ * into that list node at offsets 0x04/0x14.
+ *
+ * Not exact yet: direct promotion keeps the right frame/control flow but IDO
+ * chooses $v1 for the object pointer where target keeps it in $a2; a more
+ * literal m2c-local shape grows the frame to 0x30. */
+void *func_00007C74(char *a0) {
+    char *ret;
+    char *var_a2;
+    int *link;
+
+    ret = (char*)func_00000000(0x88);
+    var_a2 = ret;
+    if (ret != 0) {
+        func_00000000(ret);
+        var_a2 = ret;
+        *(void**)(var_a2 + 0x28) = &D_00000000;
+    }
+
+    *(float*)(var_a2 + 0x80) = D_000005EC;
+    link = *(int**)(a0 + 0x40);
+    func_00000000(var_a2 + 0x10, link);
+    if (link[5] != 0) {
+        link[1] = 1;
+    }
+    link[5] = (int)var_a2;
+
+    return var_a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007C74);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007D04);
 
@@ -2054,4 +2089,3 @@ void func_0000F1B4(char *a0) {
  * func_0000F390, func_0000F3D4, func_0000F404 moved to bootup_uso_o0_F390.c
  * (-O0 file split, see Makefile + tenshoe.ld).
  * func_0000F434..func_0000F6C4 moved to bootup_uso_F434.c (layout shim). */
-
