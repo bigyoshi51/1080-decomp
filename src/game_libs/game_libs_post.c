@@ -5109,48 +5109,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D9EC);
 /* gl_func_0005DB0C: 19-insn (0x4C) FPU helper with NON-STANDARD calling
  * convention. The very first body insn at 0x08 is `div.s $f12, $f14, $f4`
  * — and $f4 is read WITHOUT being set anywhere in this function's body.
- * In MIPS O32 ABI, $f4 is a caller-save scratch register (NOT a standard
- * argument-passing register; only $f12 and $f14 are standard float-arg
- * regs). So this function inherits $f4's value from its caller.
+ * Predecessor gl_func_0005D9EC's tail at 0x5DB00..0x5DB08 sets up $f4 via:
+ *   lui  at, 0
+ *   mtc1 a2, $f14         (post-jr-ra dead code in predecessor's symbol)
+ *   lwc1 $f4, 0x2048(at)  (loads from D + 0x2048 — inherited divisor)
  *
  * Asm body (post-prologue at 0x08):
  *   $f12 = $f14 / $f4;                  // div.s — INHERITS f14 AND f4 from caller
- *   sp[0x28] = a0;                       // caller-slot spill of a0 (a0 is int arg)
+ *   sp[0x28] = a0;                       // caller-slot spill of a0
  *   sp[0x2C] = a1;                       // caller-slot spill of a1
- *   gl_func_00000000();                  // first cross-USO call
- *   sp[0x1C] = $f12;                     // (delay) save quotient to stack
+ *   jal_1();                             // (delay) sw f12, 0x1C(sp)
  *   $f12 = sp[0x1C];                     // reload quotient
- *   gl_func_00000000();                  // second cross-USO call
- *   sp[0x24] = $f0;                      // (delay) save first jal's $f0 result
- *   a3 = mfc1($f0);                      // bit-cast $f0 (second jal result) to a3
- *   a0 = sp[0x28]; a1 = sp[0x2C];        // reload original a0/a1
- *   gl_func_00000000(a0, a1, sp[0x24], a3); // third call
- *   return;
+ *   jal_2();                             // (delay) sw f0, 0x24(sp)
+ *   a3 = mfc1($f0);                      // bit-cast jal_2's f0 to a3
+ *   a0 = sp[0x28]; a1 = sp[0x2C];        // reload args
+ *   jal_3(a0, a1, sp[0x24], a3);         // (delay) lw a2, 0x24(sp)
  *
- * Cap class: NON-STANDARD INHERITED FPU REGS. The function expects $f4
- * pre-loaded by the caller, which can't be expressed in C — IDO -O2's C
- * frontend doesn't honor `register float x asm("$f4")` (per
- * feedback_ido_no_gcc_register_asm.md). Same shape as the chained-SUFFIX
- * register-inheritance class (gl_func_00054228 etc.) but for FPU regs.
+ * Cap class: NON-STANDARD INHERITED FPU REGS. Same family as
+ * gl_func_00054228 (chained-SUFFIX GP register inheritance) but for FPU.
+ * Standard PROLOGUE_STEALS recipe is gated to LUI-led prefixes per
+ * docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-only-splice-restriction
+ * — our function starts with addiu sp (opcode 0x09); silently no-ops.
+ * SUFFIX_BYTES on predecessor blocked because predecessor is INCLUDE_ASM.
  *
- * Default INCLUDE_ASM matches the bytes; can't be standalone-decompiled
- * without knowing the caller's shape and reproducing the inherited-FPU
- * convention. NM-wrap only; documented for grep + permuter discoverability.
- *
- * 2026-05-08: Verified $f4 is INHERITED via static analysis (no instructions
- * before the div.s set $f4; only addiu sp, sw ra precede it). */
+ * 2026-05-08: promoted from \`#if 0\` stub to compilable \`#ifdef NON_MATCHING\`
+ * body with extended signature taking f14_arg as a third float argument
+ * and recomputing the inherited f4 from the predecessor's `D[0x2048]`
+ * source. Default INCLUDE_ASM build remains byte-correct via the #else
+ * branch; the NM body is permuter-testable / grep-discoverable but does
+ * NOT byte-match in the standalone NM build (extra lwc1 at function
+ * start vs target's inherited f4). NO EPISODE — the C body relies on
+ * extended-signature semantics that diverge from fall-through caller
+ * convention. */
 extern int gl_func_00000000();
-#if 0
-/* Pseudo-C — uncompilable due to inherited $f4. */
-extern void gl_func_0005DB0C_unreachable(int a0, int a1) {
-    /* float quot;       inherited: f14 / f4
-     * float jal1_res, jal2_res;
-     * jal1_res = gl_func_00000000();   stack[0x1C] = quot
-     * gl_func_00000000(quot);          stack[0x24] = jal1_res
-     * gl_func_00000000(a0, a1, stack[0x24], (int)bits_of(jal2_res));
-     */
+extern float D_5DB0C_divisor; /* alias for D + 0x2048 inherited from predecessor */
+void gl_func_0005DB0C(int a0, int a1, float f14_arg) {
+    float quot = f14_arg / D_5DB0C_divisor;
+    float jal1_res, jal2_res;
+    jal1_res = gl_func_00000000();
+    jal2_res = gl_func_00000000(quot);
+    gl_func_00000000(a0, a1, jal1_res, *(int*)&jal2_res);
 }
-#endif
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB0C);
 #endif
