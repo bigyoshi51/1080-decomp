@@ -1089,7 +1089,13 @@ void func_00007BC8(char *a0) {
  *
  * Remaining ~20% diffs: register picks ($a2/$a3 mine vs $a1/$a2 target),
  * branch-likely (bnezl in mine for inner if-AND, bnez in target — regular
- * branch with `move a0, v0` in delay slot) — register-alloc territory. */
+ * branch with `move a0, v0` in delay slot) — register-alloc territory.
+ *
+ * 2026-05-08 retest: tried nested-if `if (a0_val == 0) { if (p8[0] == 0) ... }`
+ * to break the && short-circuit that produces bnezl. No change — IDO
+ * collapses nested-if back to combined branch. Same 79.81% fuzzy. The
+ * branch-likely is structurally locked at IDO's combined-conditional emit
+ * stage; can't be defeated by C-level if-restructure. */
 typedef struct {
     int field_0;
     int base;
