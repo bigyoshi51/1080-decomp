@@ -6731,7 +6731,23 @@ void game_uso_func_00010BAC(char *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010C4C);
+void game_uso_func_00010C4C(char *a0) {
+    char *sub;
+
+    sub = *(char**)(a0 + 0xB4);
+    gl_func_00000000(a0, 0x20007, 0x20006, *(int*)(sub + 0xA04), 0, 1);
+
+    if (*(int*)(a0 + 0xD8) == 0) {
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE48),
+                         *(int*)((char*)&D_00000000 + 0xE4C));
+    }
+
+    sub = *(char**)(a0 + 0xB4);
+    if (*(int*)(sub + 0x9CC) == 0) {
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10),
+                         *(int*)((char*)&D_00000000 + 0xE14));
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
 
