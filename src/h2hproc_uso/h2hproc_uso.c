@@ -811,6 +811,13 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD
  *       byte-identical 90.86% by score, but DROPS the addiu v1,v0,0x3C
  *       (fp_a never materialized as a live reg) — codegen regresses
  *       structurally even though % is unchanged. Reverted.
+ *   v5 [2026-05-08 LATER] volatile-int trick to defeat 0x2D0 hoist:
+ *       wrapped target write as `volatile int target = 0x2D0;
+ *       *(int*)(v0 + 0x3C) = target;` to force IDO not to hoist the
+ *       constant load. REGRESSED 90.86% -> 35.63% (-55pp): the volatile
+ *       added 2 stack-spill stores + 1 reload, plus shifted register
+ *       allocation across the whole function. Reverted. Volatile-int
+ *       constant-binding is too disruptive for late-tier matching grinds.
  * Cap holds at 90.86%; needs PROLOGUE_STEALS-style insn shuffling
  * (or permuter) to break further. */
 void h2hproc_uso_func_00001204(char *a0) {
