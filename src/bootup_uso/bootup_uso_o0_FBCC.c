@@ -53,7 +53,38 @@ void func_0000FBCC(int *a0) {
     else     { t = p2; *t = *t & ~8; }
 }
 
+#ifdef NON_MATCHING
+/* func_0000FC28: -O0 alloc-cascade constructor (73 insns, 0x124).
+ * Per docs/PATTERNS.md alloc-cascade: 3-arm allocation chain
+ *   if (a0 == 0) { a0 = alloc(0x50); if (!a0) goto end; }
+ *   if (s0 == 0) { s0 = alloc(0x50); if (!s0) goto skip0; }   // dead at -O0
+ *   if (s1 == 0) { s1 = alloc(0x2C); if (!s1) goto skip1; }   // dead at -O0
+ *   memcpy(s1, &D_0000C58C, ?); s1->[0x28] = &D_???;
+ *   ... s0->[0x28] = &D_???;
+ *   self->[0x28] = &D_???; self->[0xC] = &D_0000C594;
+ *   D_??? = init_call(self, 0);
+ *   bind_call(D_???, self);
+ *   return self;
+ *
+ * Multi-pass NM placeholder. Default INCLUDE_ASM keeps ROM exact. */
+extern int func_00000000();
+extern char D_00000000;
+extern char D_0000C58C;
+extern char D_0000C594;
+extern int D_C28_returned_handle;
+
+void *func_0000FC28(void *a0) {
+    void *self = a0;
+    if (self == 0) {
+        self = (void*)func_00000000(0x50);
+        if (self == 0) return 0;
+    }
+    /* TODO 0x40-0x124: 2 more alloc-cascade arms + memcpy + init bindings */
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FC28);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FD4C);
 
