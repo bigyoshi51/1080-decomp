@@ -850,11 +850,12 @@ void *game_uso_func_00001DDC(int *a0, int *out_delta) {
      * account for 16 bytes, so `char frame_pad[168];` preserves the target
      * frame — IDO -O2 keeps the stack space even when unused. Now first 3
      * prologue insns are byte-correct.
-     * Fuzzy% unchanged (17.15%) because body diffs offset the prologue
-     * gain, but this unblocks future grinding that depends on the right
-     * frame size. The actual Vec3 working buffers (per stack-layout note
-     * above) live in this region; future passes will replace `frame_pad`
-     * with typed locals as they're decoded. */
+     * Fuzzy% currently 17.52% (post 2026-05-08 dead-extern cleanup;
+     * was 17.15% pre-cleanup). The frame size is right, but body diffs
+     * offset the prologue gain. This unblocks future grinding that depends
+     * on the right frame size. The actual Vec3 working buffers (per
+     * stack-layout note above) live in this region; future passes will
+     * replace `frame_pad` with typed locals as they're decoded. */
     char frame_pad[168];
     int key;
     (void)frame_pad;
