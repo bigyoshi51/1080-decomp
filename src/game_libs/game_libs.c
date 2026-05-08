@@ -371,7 +371,19 @@ void gl_func_00006DC8(int a0) {
     p[45] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006DF8);
+/* Sibling of gl_func_00006EE0 (matched 2026-05-08): identical 32-insn
+ * template, only 4 constants differ (0xF0/4/6/6 → 0x168/3/5/5). */
+void gl_func_00006DF8(int *a0) {
+    int *p;
+    gl_func_00000000(a0, 0x168, 3);
+    *(int*)((char*)a0 + 0x544) = 0;
+    *(float*)((char*)a0 + 0x554) = 120.0f;
+    p = *(int**)((char*)&D_00000000 + 0x138);
+    *(int*)((char*)p + 0xB4) = 0;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
+    gl_func_00000000(5, 0, 0);
+    gl_func_00000000(&D_00000000, 5, 0, 0);
+}
 
 void gl_func_00006E78(int a0_passthrough) {
     int *p;
