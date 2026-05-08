@@ -6740,7 +6740,26 @@ void game_uso_func_0000FABC(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FABC);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000FB04: 30-insn dispatcher with conditional gate.
+ * gl_func_0(a0); if (a0->0x110 != 0) { gl_func_0(a0, a0->0x108, 2, 1, 1, 1);
+ * gl_func_0(a0, D[0xE40], D[0xE44], 1); }. Logic byte-correct, 28/30 insns.
+ * Missing 2 pre-call defensive arg-spills (sw a1, 4; sw a2, 8) before the
+ * 2nd gl_func_0 call — documented IDO cap per
+ * feedback_ido_precall_arg_spill_unreachable.md. Multi-pass NM. */
+void game_uso_func_0000FB04(int *a0) {
+    gl_func_00000000(a0);
+    if (a0[0x110/4] != 0) {
+        gl_func_00000000(a0, a0[0x108/4], 2, 1, 1, 1);
+        gl_func_00000000(a0,
+            *(int*)((char*)&D_00000000 + 0xE40),
+            *(int*)((char*)&D_00000000 + 0xE44),
+            1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB7C);
 
