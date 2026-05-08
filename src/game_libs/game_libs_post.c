@@ -4726,7 +4726,55 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D908);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D9EC);
 
+#ifdef NON_MATCHING
+/* gl_func_0005DB0C: 19-insn (0x4C) FPU helper with NON-STANDARD calling
+ * convention. The very first body insn at 0x08 is `div.s $f12, $f14, $f4`
+ * — and $f4 is read WITHOUT being set anywhere in this function's body.
+ * In MIPS O32 ABI, $f4 is a caller-save scratch register (NOT a standard
+ * argument-passing register; only $f12 and $f14 are standard float-arg
+ * regs). So this function inherits $f4's value from its caller.
+ *
+ * Asm body (post-prologue at 0x08):
+ *   $f12 = $f14 / $f4;                  // div.s — INHERITS f14 AND f4 from caller
+ *   sp[0x28] = a0;                       // caller-slot spill of a0 (a0 is int arg)
+ *   sp[0x2C] = a1;                       // caller-slot spill of a1
+ *   gl_func_00000000();                  // first cross-USO call
+ *   sp[0x1C] = $f12;                     // (delay) save quotient to stack
+ *   $f12 = sp[0x1C];                     // reload quotient
+ *   gl_func_00000000();                  // second cross-USO call
+ *   sp[0x24] = $f0;                      // (delay) save first jal's $f0 result
+ *   a3 = mfc1($f0);                      // bit-cast $f0 (second jal result) to a3
+ *   a0 = sp[0x28]; a1 = sp[0x2C];        // reload original a0/a1
+ *   gl_func_00000000(a0, a1, sp[0x24], a3); // third call
+ *   return;
+ *
+ * Cap class: NON-STANDARD INHERITED FPU REGS. The function expects $f4
+ * pre-loaded by the caller, which can't be expressed in C — IDO -O2's C
+ * frontend doesn't honor `register float x asm("$f4")` (per
+ * feedback_ido_no_gcc_register_asm.md). Same shape as the chained-SUFFIX
+ * register-inheritance class (gl_func_00054228 etc.) but for FPU regs.
+ *
+ * Default INCLUDE_ASM matches the bytes; can't be standalone-decompiled
+ * without knowing the caller's shape and reproducing the inherited-FPU
+ * convention. NM-wrap only; documented for grep + permuter discoverability.
+ *
+ * 2026-05-08: Verified $f4 is INHERITED via static analysis (no instructions
+ * before the div.s set $f4; only addiu sp, sw ra precede it). */
+extern int gl_func_00000000();
+#if 0
+/* Pseudo-C — uncompilable due to inherited $f4. */
+extern void gl_func_0005DB0C_unreachable(int a0, int a1) {
+    /* float quot;       inherited: f14 / f4
+     * float jal1_res, jal2_res;
+     * jal1_res = gl_func_00000000();   stack[0x1C] = quot
+     * gl_func_00000000(quot);          stack[0x24] = jal1_res
+     * gl_func_00000000(a0, a1, stack[0x24], (int)bits_of(jal2_res));
+     */
+}
+#endif
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB0C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB58);
 
