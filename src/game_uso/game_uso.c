@@ -6826,7 +6826,75 @@ void game_uso_func_0001001C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001001C);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00010068: 48-insn (0xC0) 6-call dispatcher.
+ *
+ * Frame -0x28; saves s0 (= input a0, struct ptr) and ra. 6 cross-USO calls,
+ * one guarded by a flag check on a0->0xB4->0x800->0x18 & 0x400.
+ *
+ * Call 1 (0x10094): 6-arg with 2 stack-passed ints
+ *   gl_func(a0, (a0->0xFC | 0x19), 0, 2, [sp+0x10]=0x100, [sp+0x14]=10)
+ *   The `ori a1, a1, 0x19` in the delay slot OR-merges 0x19 onto a0->0xFC
+ *   AFTER spilling t6/t7 to the stack arg-shadow slots.
+ *
+ * Call 2 (0x100B8): 4-arg with shadow spills
+ *   gl_func(s0, D[0xDD8], D[0xDDC], -1)
+ *   The sw a1,0x4(sp) and sw a2,0x8(sp) before/after the jal are O32
+ *   arg-shadow caller-saves, not extra args.
+ *
+ * Conditional check (0x100C0-0x100D8):
+ *   t1 = s0->0xB4;
+ *   t2 = ((int*)t1[0x800/4])[0x18/4];
+ *   if ((t2 & 0x400) != 0) { Call 3 } else { skip Call 3 }
+ *
+ * Call 3 (0x100F0, conditional): 3-arg with shadow spills
+ *   gl_func(s0, D[0xDE0], D[0xDE4])
+ *   ($a3 NOT set in this branch — callee ignores per arg count.)
+ *
+ * Call 4 (0x100F8): 1-arg
+ *   gl_func(s0)
+ *
+ * Call 5 (0x10104): 2-arg
+ *   gl_func(s0, 0)
+ *
+ * Call 6 (0x1010C): 1-arg
+ *   gl_func(s0)
+ *
+ * Multi-tick byte-matching pending. Default INCLUDE_ASM path keeps ROM
+ * matching while structural decode lives here for grep discoverability. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void game_uso_func_00010068(int *a0) {
+    int t1_field;
+    int *outer;
+    /* Call 1: 6-arg w/ 2 stack args */
+    gl_func_00000000(a0,
+                     *(int*)((char*)a0 + 0xFC) | 0x19,
+                     0, 2,
+                     0x100, 10);
+    /* Call 2: 4-arg with D[0xDD8/0xDDC] */
+    gl_func_00000000(a0,
+                     *(int*)((char*)&D_00000000 + 0xDD8),
+                     *(int*)((char*)&D_00000000 + 0xDDC),
+                     -1);
+    /* Conditional Call 3 */
+    outer = (int*)*(int**)((char*)a0 + 0xB4);
+    t1_field = ((int*)outer[0x800 / 4])[0x18 / 4];
+    if (t1_field & 0x400) {
+        gl_func_00000000(a0,
+                         *(int*)((char*)&D_00000000 + 0xDE0),
+                         *(int*)((char*)&D_00000000 + 0xDE4));
+    }
+    /* Call 4 */
+    gl_func_00000000(a0);
+    /* Call 5 */
+    gl_func_00000000(a0, 0);
+    /* Call 6 */
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010068);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
 
