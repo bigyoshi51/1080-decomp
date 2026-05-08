@@ -433,26 +433,31 @@ void gl_func_00024B94(int *a0) {
  *     state 1/2 then drains record[0x18] in 0x400-byte chunks through
  *     alt-entry helpers inside gl_func_00039094/gl_func_000393B8
  *
- * Cap remaining at 89.04 % (current):
+ * Cap remaining at 84.4 % (current; expected baseline shifted slightly
+ * after gl_func_00028FCC land — was 89% pre-shift):
  * 1. **Frame -64 vs target -56 (+8 bytes, +1 \$s save).** Mine spills $s0-$s8
  *    (9 saved regs); target spills $s0-$s7 (8). Extra reg is \$s8/$fp.
- * 2. **Target keeps constants 1/2/3 in \$s3/\$s4/\$s5** (li sN, K at prologue,
- *    then beql/sw uses sN). Mine doesn't promote literals. Tried 2026-05-08:
- *    `int one=1, two=2, three=3` named locals + `state==one`/`==two` uses —
- *    IDO -O2 folds them back to literals; emit byte-identical to without.
- *    `register int one = 1` would just trigger the same fold — `register`
- *    only matters for live-across-call values, and the constant load itself
- *    is a single-insn `li` that's smaller than \$s-save+restore overhead.
- *    IDO -O2 won't promote single-use literals to \$s-regs from C-source
- *    structure alone. Target's IDO must have had a different cost model or
- *    inlined caller context boosting ref counts.
- * 3. **Inlining \`end\` (loop bound `slot != &D + 0xC8`) into the for(...)
- *    expression** — no emit change. The bound is a compile-time-constant
- *    address that IDO loop-hoists either way.
+ * 2. **Constant `1` placement diverges.** Target puts `1` in \$s3 (early in
+ *    chain, alongside other heavily-used values). Mine puts it in \$s8
+ *    (the 9th save slot, last available \$s-reg). Both emit `li sN, 1` at
+ *    prologue and use it for `sb sN, 0(t7)` byte store later — but the
+ *    register number difference cascades because target's \$s3..\$s5 also
+ *    hold `2` and `3` whereas mine doesn't promote those literals at all.
+ * 3. **Tried 2026-05-08 (negative):** `int one/two/three` named-literal
+ *    locals + decl reorder (record before slot, etc) — both no-op. IDO
+ *    -O2 folds named-literal locals back to immediate; decl-source-order
+ *    is decoupled from pseudo-allocno-number ordering per
+ *    feedback-ido-sreg-order-not-decl-driven.
+ * 4. **Inlining \`end\` (loop bound `slot != &D + 0xC8`)** into the for(...)
+ *    expression — no emit change. Loop-invariant address is hoisted either
+ *    way.
  *
- * Permuter-territory cap. The +1 \$s-reg pressure likely needs a structural
- * refactor (e.g. fold `record` and `slot` into a single var via index
- * arithmetic) rather than a regalloc lever. */
+ * Permuter-territory cap. The +1 \$s pressure (\$s8 holding `1`) likely
+ * needs a refactor that increases the ref count of `1`/`2`/`3` enough to
+ * make them outweigh other locals' \$s priority — or a refactor that
+ * removes one of mine's locals (slot/record/remaining/state) so \$s3..\$s5
+ * become available for the constants. Pure C-source levers exhausted in
+ * this tick's grind; next pass: try permuter random-mode (3-5 min). */
 extern int func_00039200();
 extern int func_000393FC();
 extern int func_00039480();
