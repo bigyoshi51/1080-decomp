@@ -5459,7 +5459,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068340);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068348);
 
+#ifdef NON_MATCHING
+/* gl_func_00068350: 29-insn (0x74) vtable-dispatch + flag-gated init.
+ * Original splat-bundled with trailing 4-insn game_libs_func_000683C4
+ * (4-field setter, separated via split-fragments).
+ *
+ * Decoded body:
+ *   1. Vtable call: (*self->[0x1C]->[0xC])(self + (signed short)self->[8])
+ *      — uses lh on offset 8, so the offset is signed-short.
+ *   2. gl_func_X(self + 0x10) — fixed jal target 0x07C89C (cross-USO
+ *      relocated; byte placeholder differs from C-compile-time emit).
+ *   3. if (D[1] != 0) { self[1] = gl_func_0(&D, 1, 0); }
+ *      else { self[0] |= 1; }
+ *   — branch is bnez t7 + b unconditional join via shared epilogue.
+ *
+ * Two unmatched aspects on first attempt: (a) the fixed jal target
+ * 0x7C89C past game_libs segment end implies a specific symbol name
+ * not yet declared in undefined_syms_auto.txt, (b) IDO's choice of
+ * if/else arm order may flip vs target. Documented partial wrap; full
+ * match deferred.
+ *
+ * 4-insn split-off game_libs_func_000683C4 covers the post-bundle
+ * stub (sw a1, 0xC(a0); sw $0, 8(a0); sw $0, 4(a0); jr ra). */
+extern int gl_func_00000000();
+
+void gl_func_00068350(int *self) {
+    int (*method)(int *);
+    short offset = ((short *)self)[4];   /* (signed short) self->[8] */
+    int *vtable = (int *)self[7];        /* self->[0x1C] */
+    method = (int (*)(int *))vtable[3];  /* (vtable->[0xC]) */
+    method((int *)((char *)self + offset));
+    gl_func_00000000(self + 4);          /* self + 0x10 */
+    if (*(int *)((char *)&D_00000000 + 4) != 0) {
+        self[1] = gl_func_00000000(&D_00000000, 1, 0);
+    } else {
+        self[0] |= 1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068350);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000683C4);
 
 /* Split off from gl_func_00068350 bundle 2026-05-08: 4-insn field setter. */
 void game_libs_func_000683C4(int *a0, int a1) {
