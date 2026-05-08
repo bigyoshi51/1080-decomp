@@ -335,7 +335,7 @@ void game_libs_func_00024948(void) {
  * argument). Initial wrap stays light on body to avoid breaking build with
  * wrong type. */
 extern int gl_func_00000000();
-extern int func_00039194(void *a0);
+extern int func_00039194();  /* K&R unspec to allow both 1-arg and 2-arg call sites */
 void gl_func_0002495C(void *a0, void *a1, char *a2) {
     /* TODO: full decode. Fields touched:
      *   sub_a1 = ((char*)a1)[0x2F]                                ; tag byte
@@ -384,7 +384,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024B8C);
  *     #reloc-encoding-pinning-structurally-identical-c-body-still-scores-65.
  * (b) Register-name diffs in the struct-copy block (built uses t7/t8/t9
  *     differently than target's t8/t9/t1). IDO scheduler ordering. */
-extern int func_00039194(int a, int b);
+/* K&R `()` for compat with line 338's `extern int func_00039194(void *a0)`
+ * decl — both decls coexist at NM build (IDO rejects type-mismatch). */
 void gl_func_00024B94(int *a0) {
     int *v0;
     if (a0[9] == 0) return;
@@ -5146,7 +5147,21 @@ void gl_func_00067168(char *a0) {
     gl_func_00000000(a0 + 0x11B0, &gl_ref_000416D0, 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006719C);
+/* gl_func_0006719C was 18-insn 2-function bundle. Split via
+ * split-fragments.py 2026-05-08:
+ *   parent gl_func_0006719C (14 insns / 0x38, conditional+unconditional call)
+ *   game_libs_func_000671D4 (5 insns / 0x10, indexed short-array store) */
+extern int gl_func_00000000();
+void gl_func_0006719C(int *a0) {
+    if (*(int*)((char*)a0 + 0x13E8) == 0) {
+        gl_func_00000000(a0);
+    }
+    gl_func_00000000(a0);
+}
+
+void game_libs_func_000671D4(short *a0, int a1, int a2) {
+    *(short*)((char*)a0 + (a1 * 2) + 0x13E0) = a2;
+}
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: expected copies a0 to a3 via `or a3, a0, zero`; IDO does not
