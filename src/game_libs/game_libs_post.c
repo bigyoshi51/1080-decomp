@@ -4586,7 +4586,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060468);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000604D0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006052C);
+/* gl_func_0006052C was 21-insn 2-function bundle. Split via
+ * split-fragments.py 2026-05-08:
+ *   parent gl_func_0006052C (18 insns / 0x48, list-iter callback loop)
+ *   game_libs_func_00060574 (3 insns / 0xC, dual-zero setter) */
+extern int gl_func_00000000();
+typedef struct Node0006052C { char pad[0x14]; struct Node0006052C *next; } Node0006052C;
+void gl_func_0006052C(int *a0_arg, int a1_arg) {
+    Node0006052C *s0;
+    int s1 = a1_arg;
+    s0 = (Node0006052C*)((int*)a0_arg)[0x44/4];
+    if (s0 != 0) {
+        do {
+            gl_func_00000000(s0, s1);
+            s0 = s0->next;
+        } while (s0 != 0);
+    }
+}
+
+void game_libs_func_00060574(int *a0) {
+    *(int*)((char*)a0 + 0x40) = 0;
+    *(int*)((char*)a0 + 0x44) = 0;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006052C_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060584);
