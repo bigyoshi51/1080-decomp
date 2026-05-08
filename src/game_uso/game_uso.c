@@ -5996,7 +5996,7 @@ void game_uso_func_0000C0F0(int *dst) {
  *   }
  *   *dst = *src;  // final 16th int
  *
- * Tried 4 variants (2026-05-03):
+ * Tried 5 variants:
  *   (a) Named src/dst/end locals: IDO spills 3 named locals to stack,
  *       frame grows to 104 bytes vs target 88.
  *   (b) Inline a0 increment + named src/end: still 104 bytes.
@@ -6004,6 +6004,10 @@ void game_uso_func_0000C0F0(int *dst) {
  *       access, completely different shape (96 byte frame, no neg-offset).
  *   (d) for-i loop unrolled by 4 (using a0[i]=buf[i] x 16): IDO emits a
  *       4-elem-per-iter loop, target wants 3.
+ *   (e) register-directed pointer loop (`register int *src asm("$15")`,
+ *       `$8`, `$14`) tested 2026-05-08: IDO 7.1 rejects GCC register-asm
+ *       syntax outright, so the target t7/t0/t6 allocation can't be forced
+ *       this way in this project.
  *
  * Cap: target compiled with NO named locals — uses `buf`, `a0`, and
  * pure $t-regs (t6 dst, t7 src, t8/t9 vals, t0 end). Per
