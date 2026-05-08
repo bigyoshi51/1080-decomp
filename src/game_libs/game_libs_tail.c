@@ -78,7 +78,26 @@ void gl_func_00009FA8(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A00C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A0CC);
+/* gl_func_0000A0CC: 25-insn 3-iter loop calling gl_func_00000000 on
+ * a0[0], a0+8, a0+0x10. Returns count of non-zero return values. */
+extern int gl_func_00000000();
+int gl_func_0000A0CC(char *a0) {
+    char *p;
+    int count;
+    int i;
+    int limit;
+    count = 0;
+    i = 0;
+    p = a0;
+    limit = 0x18;
+    do {
+        int r = gl_func_00000000(p);
+        i += 8;
+        if (r != 0) count += 1;
+        p += 8;
+    } while (i != limit);
+    return count;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A130);
 
