@@ -1626,7 +1626,19 @@ void gl_func_00037E40(Quad4 *dst) {
     *dst = buf;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037E98);
+void game_libs_func_00037E98(int *a0, float *a1) {
+    float scale = *(float*)((char*)&D_00000000 + 0x1A14);
+    int *p;
+    p = (int*)a0[1];
+    a0[1] = (int)(p + 1);
+    a1[0] = (float)*p / scale;
+    p = (int*)a0[1];
+    a0[1] = (int)(p + 1);
+    a1[1] = (float)*p / scale;
+    p = (int*)a0[1];
+    a0[1] = (int)(p + 1);
+    a1[2] = (float)*p / scale;
+}
 
 void game_libs_func_00037F10(int *a0, float *a1) {
     int *p = (int*)a0[1];
