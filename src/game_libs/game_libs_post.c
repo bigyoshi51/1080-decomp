@@ -4618,29 +4618,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062194);
 
-/* gl_func_00062298: 16-insn 2-symbol bundle (NOT a 2-path function).
- *
- * Main entry @0x62298 (12 insns):
- *   if (a1 == -1) goto epilogue;      ; beq +4 jumps to the epilogue at 0x622B8
- *   gl_func_00000000(&D + 0);         ; constant-arg call (a1 != -1 path)
- *   epilogue;                         ; restore ra, sp, jr ra
- *
- * Embedded alt-entry @0x622C8 (4 insns), reachable only via direct
- * jal-into-bundle from other code:
- *   void f(int *a0, int a1) {
- *       a0[1] = 0;
- *       a0[0] = 0;
- *       a0[2] = a1;          ; delay-slot store
- *       return;              ; no prologue, no sp restore (no frame)
- *   }
- *
- * The alt-entry is unreachable from the main entry's control flow —
- * splat just bundled it inside the same 0x40-byte symbol. C-emit can't
- * produce a single function whose body has both a normal entry-point
- * AND a separate post-epilogue tail-as-entrypoint at offset 0x30. Same
- * MERGE-BLOCKED class as kernel_021 family + h2hproc_uso alt-entry
- * chains. Default INCLUDE_ASM keeps both entries' bytes correct. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062298);
+/* gl_func_00062298: was 16-insn bundle. Split via split-fragments.py
+ * 2026-05-08 into: parent gl_func_00062298 (12 insns / 0x30, conditional
+ * call) + game_libs_func_000622C8 (4 insns / 0x10, no-frame setter). */
+extern int gl_func_00000000();
+void gl_func_00062298(int a0, int a1) {
+    if (a1 != -1) {
+        gl_func_00000000(&D_00000000);
+    }
+}
+
+void game_libs_func_000622C8(int *a0, int a1) {
+    a0[1] = 0;
+    a0[0] = 0;
+    a0[2] = a1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000622D8);
 
