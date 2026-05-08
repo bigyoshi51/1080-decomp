@@ -8,12 +8,6 @@ extern void func_80005DC0(s32*, s32, s32);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005350);
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800053D0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80005400);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800054C0);
-
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005520);
 
 
