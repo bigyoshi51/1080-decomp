@@ -6912,7 +6912,111 @@ void game_uso_func_00010068(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010068);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00010128: 105-insn (0x1A4) complex dispatcher.
+ *
+ * Frame -0x28; saves s0 (= a0), ra. Multiple cross-USO calls dispatched
+ * via float-compare and bit-flag tests. Sibling of 0x10068 (the same
+ * "outer = a0->0xB4; if (outer->0x800->0x18 & 0x400) ..." pattern).
+ *
+ * Body shape (decoded 2026-05-08):
+ *
+ *   outer = a0->0xB4;
+ *   outer->0xA18 = 1;          // unconditional flag set at function entry
+ *   if (outer->0x800->0x18 & 0x400) {
+ *       gl_func(a0, D[0xDE0], D[0xDE4]);   // call A — w/ shadow spills
+ *   }
+ *   if (outer->0x9D0 < 1000.0f) {           // float-cmp via c.lt.s + bc1fl
+ *       if (outer->0x938 != 0) {
+ *           gl_func(a0, D[0xDE8], D[0xDEC]);   // call B
+ *       }
+ *       inner = a0->0xF4;
+ *       if (inner != 0) {
+ *           if (inner->0x38 & 1) {
+ *               gl_func(a0, (a0->0xFC|0x19), 0, 5, 5, 1, 1);  // call C-1
+ *           } else {
+ *               gl_func(a0, (a0->0xFC|0x19), 0, 5, 5, 0x100, 10);  // call C-2
+ *           }
+ *       } else {
+ *           gl_func(a0, (a0->0xFC|0x19), 0, 5, 5, ?, ?);  // call C-3 (uninit
+ *           // t3/t4 stack args — likely 0/0 default since regs not set in
+ *           // this branch)
+ *       }
+ *       gl_func(a0, D[0xDF0], D[0xDF4], 3);   // call D (after the 3-way
+ *                                                merge from C-1/C-2/C-3)
+ *       gl_func(a0);                          // call E
+ *       gl_func(a0, 0);                       // call F
+ *       gl_func(a0);                          // call G — returns v0
+ *       if (v0 == 0) {                        // bnel + delay-likely epilogue
+ *           gl_func(a0);                       // call H
+ *           gl_func(a0);                       // call I
+ *       }
+ *   }
+ *   // (no else for the float-compare — bc1fl annulled the bc1fl arm)
+ *
+ * Multi-tick byte-matching pending. Many tricky pieces:
+ *   - bc1fl branch-likely with delay slot annulment
+ *   - Multiple O32 shadow-arg spills (sw a1, 4(sp); sw a2, 8(sp))
+ *     between gl_func calls (matches sibling 0x10068's style)
+ *   - 6-arg stack-arg-spill calls (call C-1/C-2/C-3) with stack slots
+ *     at sp+0x10 and sp+0x14
+ *   - Branch-likely inside float-compare arm
+ *
+ * Default INCLUDE_ASM path keeps ROM matching while structural decode
+ * lives here for grep discoverability + multi-tick refinement. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void game_uso_func_00010128(int *a0) {
+    int *outer = (int*)a0[0xB4 / 4];
+    int *outer_ptr;
+    int *inner;
+    int v0;
+
+    outer[0xA18 / 4] = 1;
+    outer_ptr = (int*)outer[0x800 / 4];
+    if ((outer_ptr[0x18 / 4] & 0x400) != 0) {
+        gl_func_00000000(a0,
+                         *(int*)((char*)&D_00000000 + 0xDE0),
+                         *(int*)((char*)&D_00000000 + 0xDE4));
+    }
+    if (*(float*)((char*)outer + 0x9D0) < 1000.0f) {
+        if (outer[0x938 / 4] != 0) {
+            gl_func_00000000(a0,
+                             *(int*)((char*)&D_00000000 + 0xDE8),
+                             *(int*)((char*)&D_00000000 + 0xDEC));
+        }
+        inner = (int*)a0[0xF4 / 4];
+        if (inner != 0) {
+            if (inner[0x38 / 4] & 1) {
+                gl_func_00000000(a0,
+                                 *(int*)((char*)a0 + 0xFC) | 0x19,
+                                 0, 5, 5, 1, 1);
+            } else {
+                gl_func_00000000(a0,
+                                 *(int*)((char*)a0 + 0xFC) | 0x19,
+                                 0, 5, 5, 0x100, 10);
+            }
+        } else {
+            gl_func_00000000(a0,
+                             *(int*)((char*)a0 + 0xFC) | 0x19,
+                             0, 5, 5, 0, 0);
+        }
+        gl_func_00000000(a0,
+                         *(int*)((char*)&D_00000000 + 0xDF0),
+                         *(int*)((char*)&D_00000000 + 0xDF4),
+                         3);
+        gl_func_00000000(a0);
+        gl_func_00000000(a0, 0);
+        v0 = gl_func_00000000(a0);
+        if (v0 == 0) {
+            gl_func_00000000(a0);
+            gl_func_00000000(a0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000102CC);
 
