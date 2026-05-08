@@ -1406,12 +1406,18 @@ void gl_func_00031560(void) {
  * Trailing 2 insns at 0x315BC-0x315C0 are R-type stolen-prologue donation
  * to successor gl_func_000315C4 (`sll t7, a0, 2; subu t7, t7, a0` = a0*3).
  *
- * Cap: leaf function with no stack frame; standalone IDO -O2 emit may
- * use different register allocation for the bnel-end loop. Multi-tick. */
+ * 2026-05-08: switched `short i` → `int i` removes redundant sll+sra
+ * sign-extend pair after `i++` — +11.76pp (71.76→83.52%). Remaining cap:
+ *   1. v0/v1 swap — built has v0=base/v1=counter, expected has v1=base/
+ *      v0=counter. Decl-order swap doesn't flip (p has more refs/longer
+ *      live than i, so v0 wins). No `register` pin in IDO.
+ *   2. Missing 2 trailing stolen-prologue insns (`sll t7, a0, 2;
+ *      subu t7, t7, a0`) — needs SUFFIX_BYTES recipe, but only valid
+ *      after dropping the NM wrap. Combo cap. */
 extern char gl_ref_00000368;
 void game_libs_func_00031580(void) {
+    int i;
     char *p = (char *)&gl_ref_00000368;
-    short i;
     for (i = 0; i != 2; i++) {
         *(short *)(p + 0x62) = i;
         p += 0x64;
