@@ -6429,7 +6429,24 @@ end:
  * pointer) where the value is *written* and *read* through the volatile
  * lvalue — but per the prior `*(volatile int*)&q_alloc = q_alloc` attempt
  * that overshoots frame to 0x28. The narrow 0x20 frame target appears
- * unreachable with `volatile` levers. */
+ * unreachable with `volatile` levers.
+ *
+ * 2026-05-08 (later still): retried with the new declaration-order sub-rule
+ * (docs/IDO_CODEGEN.md#feedback-ido-arg-addr-via-volatile-ptr-forces-caller-spill).
+ * Variants tested:
+ *   (a) `volatile int spill; volatile int *vparg = &a0;` — frame=0x20, spill
+ *       slot at sp+0x1C, sw v0 at 0x1C(sp). Off by 4 from target's 0x18.
+ *   (b) `volatile int *vparg = &a0; volatile int spill;` — frame=0x30 (worse).
+ *       Volatile-arg + volatile-int-slot interaction makes IDO over-allocate.
+ *   (c) volatile-arg alone (no spill): frame=0x18, sw a0 at sp+0x18 (caller-
+ *       slot for THIS frame, but target wants frame=0x20 + sw a0 at sp+0x20).
+ * Conclusion: declaration-order sub-rule works for forcing slot offsets but
+ * the COMBINATION volatile-arg + volatile-int-spill cannot land at frame=0x20
+ * with spill at sp+0x18. The volatile-arg recipe relies on frame growing
+ * naturally (other locals); if the only lever to grow frame is the spill
+ * itself, the slot offset can't simultaneously be 0x18. Cap class confirmed:
+ * needs a NON-volatile mechanism to grow frame to 0x20 (e.g. a permuter find,
+ * an unused-arg sentinel that IDO honors, or compiler upgrade). */
 extern int gl_func_00000000();
 
 int *gl_func_000688F8(int a0) {
