@@ -880,16 +880,13 @@ void mgrproc_uso_func_00003328(char *dst) {
  *    delay; built uses beql (likely-with-delay-load) — same scheduler
  *    quirk seen on other functions where IDO hoists the next-iter
  *    value into the branch-likely delay slot. */
-extern int gl_func_00000000();
-
 int *mgrproc_uso_func_00003358(int *a0) {
     int *p = (int*)gl_func_00000000(0x40);
     int *q;
-    if (p != 0) {
-        gl_func_00000000(p);
-        p[0x28/4] = (int)&D_00000000;
-        p[0x3C/4] = 0;
-    }
+    if (p == 0) return 0;
+    gl_func_00000000(p);
+    p[0x28/4] = (int)&D_00000000;
+    p[0x3C/4] = 0;
     q = (int*)a0[0x40/4];
     if (q != 0) {
         gl_func_00000000((char*)p + 0x10, q);
