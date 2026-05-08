@@ -861,37 +861,40 @@ void mgrproc_uso_func_00003328(char *dst) {
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00003358: 39-insn (0x90) alloc-and-link node helper.
- * Sibling of just-matched mgrproc_uso_func_00003240 family.
+ * BYTE-IDENTICAL sibling of eddproc_uso_func_000003BC (matched 100%) and
+ * arcproc_uso_func_00002334 (89% NM). Same C body that matches eddproc
+ * lands at 89.08% here.
  *
- * Allocates a 0x40-byte object (p), initializes its [0x28]=&D and
- * [0x3C]=0, then if a0->[0x40] (q) is non-NULL, calls a third helper
- * with (p+0x10, q) and links: q->[0x14] gets p; if q->[0x14] was
- * already non-zero, also sets q->[0x4]=1.
+ * 2026-05-08 retest: applied eddproc lever (volatile int **p_arg0 = &arg0;
+ * + late head reload via `((int*)*p_arg0)[0x10]`). Result identical to
+ * arcproc sibling — 89% with frame-size diff (target 0x28, built 0x20).
+ * Same C body, same file-context-dependent regalloc cap as arcproc.
  *
- * Returns p (allocated obj OR 0 if alloc failed).
- *
- * Caps remaining at the byte level (current fuzzy 89.22%):
- * 1. Frame size: target -0x28, built -0x20 (8-byte diff). Target has
- *    spills at sp+0x20/0x24 around the third jal; built places them
- *    at sp+0x18/0x1C. Looks like extra locals push target's frame.
- * 2. Register: target uses $v1 for the p-result holding; built uses
- *    $a2. Off-by-3 in IDO's regalloc.
- * 3. beqz vs beql at 0x48: target uses beqz with `or a1, v0, $0`
- *    delay; built uses beql (likely-with-delay-load) — same scheduler
- *    quirk seen on other functions where IDO hoists the next-iter
- *    value into the branch-likely delay slot. */
-int *mgrproc_uso_func_00003358(int *a0) {
-    int *p = (int*)gl_func_00000000(0x40);
-    int *q;
-    if (p == 0) return 0;
-    gl_func_00000000(p);
-    p[0x28/4] = (int)&D_00000000;
-    p[0x3C/4] = 0;
-    q = (int*)a0[0x40/4];
-    if (q != 0) {
-        gl_func_00000000((char*)p + 0x10, q);
-        if (q[0x14/4] != 0) q[0x4/4] = 1;
-        q[0x14/4] = (int)p;
+ * Pattern: the 36-insn alloc-and-link constructor matches in eddproc_uso.c
+ * but not in mgrproc_uso.c or arcproc_uso_tail1.c, despite identical C
+ * source. Suspect file-level state (other functions' codegen perturbing
+ * IDO's allocator) since OPT_FLAGS are nominally same. Multi-tick decomp;
+ * cap inherited from arcproc sibling. */
+extern int gl_func_00000000();
+
+void *mgrproc_uso_func_00003358(int *arg0) {
+    int *p;
+    int *head;
+    volatile int **p_arg0;
+    p_arg0 = (volatile int**)&arg0;
+    p = (int*)gl_func_00000000(0x40);
+    if (p != 0) {
+        gl_func_00000000(p);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
+    }
+    head = (int*)((int*)*p_arg0)[0x10];
+    if (head != 0) {
+        gl_func_00000000((char*)p + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)p + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p;
     }
     return p;
 }
