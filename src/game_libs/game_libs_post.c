@@ -2652,6 +2652,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E904);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E968);
 
+/* Split off from gl_func_0003E968 bundle 2026-05-08: 2-insn no-frame setter.
+ * Stores a1 to a0->field_30. */
+void game_libs_func_0003E9C0(int *a0, int a1) {
+    *(int*)((char*)a0 + 0x30) = a1;
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E9C8);
 
 /* gl_func_0003EA98: linked-list lookup by key. Walks list at a0->[0x2C]
