@@ -1570,7 +1570,42 @@ void timproc_uso_b5_func_0000CC74(int *a0) {
     func_00000000();
 }
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000CCC8: 23-insn (0x5C) 6-arg cross-USO call
+ * builder. Computes &D[0x1C0] + idx*24 where idx = a0->[0x1AC] and
+ * passes it as the 5th arg, with 0xFF as the 6th. First 4 args are
+ * (a0, a0->[0x44], a0->[0x5C], a2).
+ *
+ * a1 and a3 are unused in body (caller-slot-spilled via natural IDO
+ * unused-arg-save); a2 is used briefly as the 4th-arg setup then
+ * overwritten.
+ *
+ * 96.3% fuzzy. Match keys applied:
+ * - Drop the `volatile int *p = &a1` etc. tricks; IDO -O2's natural
+ *   unused-arg-save handles a1/a2/a3 caller-slot spills since the
+ *   function has a jal.
+ * - Use `extern char D_timb5_1C0;` (declared at 0x1C0 in
+ *   undefined_syms_auto.txt) instead of `(char*)&D + 0x1C0` —
+ *   collapses target's two-addiu split (`addiu t8, t8, 0` + `addiu
+ *   t7, t6, 0x1C0`) into the single `addiu t8, t8, 0x1C0` form, with
+ *   R_MIPS_LO16 reloc folding the offset into the alias address.
+ *
+ * Cap remaining: idx register is v0 (built) vs t6 (target). IDO -O2
+ * picks v0 for a short-lived index value; target had it in t6.
+ * Possible reason: target's caller had v0/v1 live, forcing the
+ * function to skip them. From C-only emit, can't reproduce — would
+ * need a permuter run to find a non-obvious shape. */
+extern int gl_func_00000000();
+extern char D_timb5_1C0;
+
+void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
+    int idx = a0[0x1AC/4];
+    char *p = &D_timb5_1C0 + idx * 24;
+    gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, p, 0xFF);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000CD24: 54-insn (0xD8) approach-target-with-decay
