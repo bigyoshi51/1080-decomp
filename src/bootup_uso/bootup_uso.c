@@ -1018,7 +1018,35 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006808);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007150);
 
+#ifdef NON_MATCHING
+/* NON_MATCHING: decoded 35-insn alloc/link helper. The C shape is close to
+ * m2c, but IDO still emits a 0x28 frame instead of target 0x30 and keeps the
+ * allocated node in $a1 where target keeps it in $a2 for the final call. */
+void func_00007204(int a0, int a1, int a2) {
+    int *sp28;
+    int sp1C;
+    int *temp_v0;
+    int *temp_v0_2;
+    int *var_a2;
+    int *var_v1;
+
+    sp1C = a2;
+    temp_v0 = func_00000000(8);
+    var_a2 = temp_v0;
+    if (temp_v0 != 0) {
+        var_v1 = temp_v0 + 1;
+        if ((temp_v0 != (int *)-4) ||
+            (sp28 = temp_v0, temp_v0_2 = func_00000000(4), var_a2 = sp28, var_v1 = temp_v0_2, temp_v0_2 != 0)) {
+            *var_v1 = 0;
+        }
+        var_a2[0] = a1;
+        var_a2[1] = sp1C;
+    }
+    func_00000000(a0 + 0x2C, var_a2, var_a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007204);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
 
@@ -1989,5 +2017,4 @@ void func_0000F1B4(char *a0) {
  * func_0000F390, func_0000F3D4, func_0000F404 moved to bootup_uso_o0_F390.c
  * (-O0 file split, see Makefile + tenshoe.ld).
  * func_0000F434..func_0000F6C4 moved to bootup_uso_F434.c (layout shim). */
-
 
