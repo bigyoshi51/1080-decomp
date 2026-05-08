@@ -3890,7 +3890,14 @@ void gl_func_0004E8D4(int *a0, int *a1) {
     a1[5] = (int)a0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E920);
+/* gl_func_0004E920: byte-identical sibling of gl_func_0004E8D4. */
+void gl_func_0004E920(int *a0, int *a1) {
+    gl_func_00000000(a0 + 4, a1, a0);
+    if (a1[5] != 0) {
+        a1[1] = 1;
+    }
+    a1[5] = (int)a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E96C);
 
