@@ -4685,17 +4685,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061D1C);
  *   game_libs_func_00061DB0 (12 insns / 0x2C, sum-of-bytes loop) */
 void gl_func_00061D94(int a0, ...) {}
 
-#ifdef NON_MATCHING
-/* game_libs_func_00061DB0 — sum-of-bytes accumulator. 12 insns total
- * matching target count, same body shape (sltu compare, do-while loop).
- * Cap class: IDO scheduler swaps `or v1, a0, 0` (sum copy) and `beqz a2`
- * order; target has `or v1` first, mine puts it in beqz delay slot. No
- * C-level lever to force the order without breaking other instructions. */
 int game_libs_func_00061DB0(int sum, unsigned char *buf, unsigned int len) {
     int result = sum;
-    int i;
+    unsigned int i = 0;
     if (len != 0) {
-        i = 0;
         do {
             result += buf[i];
             i++;
@@ -4703,9 +4696,6 @@ int game_libs_func_00061DB0(int sum, unsigned char *buf, unsigned int len) {
     }
     return result;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061DB0);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_00061DE0(int *dst) {
