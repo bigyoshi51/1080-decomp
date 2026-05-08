@@ -4414,7 +4414,10 @@ trunk:
      * 0x04 / 0x08 / 0x10 are dispatch-cascade-only — verified
      * 2026-05-07 by walking 0x7740-0x7990 of the asm.
      *
-     * Status 2026-05-08: 48.81% (incrementally up from 48.59% on 2026-05-07).
+     * Status 2026-05-08 (later): 48.97% (drift from 48.81% earlier same day; +0.16pp
+     * is upstream parallel-agent activity reshuffling expected/.o baselines, NOT a
+     * grind on this function — no C body change between measurements). Confirmed
+     * via fresh `scripts/refresh-report.sh` after rebase onto latest origin/main.
      * Remaining 51% is structural: built saves $s0 (frame -0x28) where
      * target uses NO stack frame at all (target is a pure leaf — verified
      * 2026-05-08 via `grep -E "0C[0-9A-F]{6}" <asm>` returning ZERO matches,
