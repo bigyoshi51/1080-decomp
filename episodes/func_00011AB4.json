@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00011AB4",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-05-08T13:10:07.822912+00:00",
+  "end_time": "2026-05-08T13:10:07.822949+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-08T13:10:07.822937+00:00",
+      "assistant_text": "Manual exact match. Split func_00011AB4 into its own -O0 file, preserved the 11B5C..11C70 INCLUDE_ASM shim, and used ++i in the do/while condition to keep IDO's increment temp live for the slti.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 42,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\n\n/* Sibling in the 0x11A34 O0 cluster. Clears the small object lists/counts,\n * probes a0->0xC0 twice, and initializes each live child slot. */\nvoid func_00011AB4(char *a0) {\n    s32 i;\n\n    *(s32*)(a0 + 0x120) = 0;\n    *(s32*)(a0 + 0x124) = 0;\n    *(s32*)(a0 + 0x128) = -1;\n    i = 0;\n    do {\n        if (func_00000000(*(s32*)(a0 + 0xC0)) == 0) {\n            *(s32*)(a0 + 0x18C) = 1;\n        } else {\n            func_00000000(a0, *(s32*)(a0 + 0xC0 + (i * 4)));\n        }\n    } while (++i < 2);\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_11AB4.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/bootup_uso/func_00011AB4.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified build/src/bootup_uso/bootup_uso_o0_11AB4.c.o .text matches the asm-backed expected bytes byte-for-byte; shortened bootup_uso_tail3a_mid.c.o matches the remaining shim bytes."
+  }
+}
