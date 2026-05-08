@@ -776,7 +776,6 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001AD
  * symbol's declared size. Not reachable from the C body; needs a sibling
  * _pad.s or symbol-shrink to drop. */
 extern int gl_func_00000000();
-extern int D_00000000;
 void mgrproc_uso_func_00001B58(int *a0) {
     volatile int **vparg = (volatile int **)&a0;
     int **p;

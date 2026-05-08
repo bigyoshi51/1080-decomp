@@ -3615,6 +3615,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045E20);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045FF4);
 
+/* Split off from gl_func_00045FF4 bundle 2026-05-08: 2-insn empty void
+ * stub. The `sw a0, 0(sp)` is the IDO -O2 unused-arg-save sentinel
+ * pattern (per docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body). */
+void game_libs_func_00046048(int a0) {
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046050);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046790);
