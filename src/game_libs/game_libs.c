@@ -866,7 +866,21 @@ int gl_func_00008884(char *a0) {
  * compile at the target offsets, and split `ret` from `ptr` to grow the
  * C-body frame to 0x28 without an extra store. Remaining cap is the
  * ptr-in-a2 vs target ptr-in-v1 allocation plus a beqzl-vs-beqz layout in the
- * existing-link branch. Objdiff C-body score: 88.83%. */
+ * existing-link branch. Objdiff C-body score: 88.83%.
+ *
+ * 2026-05-08 (later): tried the sibling-port test with the matched
+ * titproc_uso_func_00002980 / mgrproc_uso_func_00003358 / arcproc_uso
+ * _func_00002334 verbatim C body (`if (p == 0) return 0; init;`).
+ * Result: fuzzy DROPPED 89.31% → 77.83%. Same C body that lands
+ * byte-exact in titproc/mgrproc/arcproc fails here because the file-
+ * context (game_libs.c is large, ~1500 functions) perturbs IDO's
+ * register allocator differently. Both the if-branch direction (target
+ * uses beq early-exit, mine emits bne+goto-init) and frame size
+ * (target -0x28 vs mine -0x20) diverge under game_libs.c's allocator
+ * state, despite identical C source. The sibling-port test recipe
+ * (docs/MATCHING_WORKFLOW.md#feedback-port-matched-sibling-c-before-
+ * trusting-frame-regalloc-cap-claim) has a SCALE LIMIT — it only works
+ * across files of similar size+complexity. Reverted. */
 struct GlConstructed {
     char pad[0x10];          /* embedded array passed to link() */
     char pad2[0x18];
