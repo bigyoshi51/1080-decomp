@@ -745,7 +745,12 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
  * Asm has TWO `lw $vN, 0xC($v0)` loads (one per scratch reg) — IDO scheduler
  * re-fetches dlp via a fresh register rather than CSE-ing. Cap class:
  * struct-typed C tends to CSE the dlp load, missing the 2-emit pattern.
- * Multi-tick refinement expected. */
+ *
+ * 2026-05-08 LEVER TEST (negative): tried adding `DLState *dlp2 =
+ * *(DLState**)((char*)gs + 0xC);` then `entry = dlp2->base + idx*2;` to
+ * force the second lw via an untyped access path. Regressed 98.89% →
+ * 96.11% (-2.78pp). The extra local promoted to $s and shifted regalloc.
+ * Don't try this lever again. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
