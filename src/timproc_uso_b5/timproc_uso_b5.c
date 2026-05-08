@@ -1592,15 +1592,31 @@ void timproc_uso_b5_func_0000CC74(int *a0) {
  *
  * Cap remaining: idx register is v0 (built) vs t6 (target). IDO -O2
  * picks v0 for a short-lived index value; target had it in t6.
- * Possible reason: target's caller had v0/v1 live, forcing the
- * function to skip them. From C-only emit, can't reproduce — would
- * need a permuter run to find a non-obvious shape. */
+ * Whole-chain shifts down by one register: target uses t6→t7→t8→t9,
+ * mine uses v0→t6→t7→t8.
+ *
+ * Tried 2026-05-08:
+ *   - Variants `int idx = ...; char *p = ...;` (named local) and `char *p
+ *     = &D + a0[N] * 24` (single-statement inline) and full-call-arg
+ *     inline `gl_func(... &D + a0[N]*24, 0xFF)` — all 3 produce
+ *     byte-identical emit with idx in $v0. Expression structure doesn't
+ *     change the load destination at IDO -O2.
+ *   - `register int idx = ...` — IDO ignores the hint here because the
+ *     value is short-lived (doesn't survive jal); $s-reg allocation only
+ *     kicks in when the value lives across calls. No emit change.
+ *
+ * The cap is genuine: IDO's REG_ALLOC_ORDER preference for $v0/$v1 on
+ * the first short-lived load can't be flipped by C-source choice when
+ * neither $v0 nor $v1 has a competing use. Target's IDO must have had a
+ * different scheduling state — possibly from a wider source-file context
+ * (other functions with $v0 live ranges) that we can't reproduce in
+ * isolation. Permuter-territory; consider running random-mode if the
+ * 4% remaining gap matters. */
 extern int gl_func_00000000();
 extern char D_timb5_1C0;
 
 void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
-    int idx = a0[0x1AC/4];
-    char *p = &D_timb5_1C0 + idx * 24;
+    char *p = &D_timb5_1C0 + a0[0x1AC/4] * 24;
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, p, 0xFF);
 }
 #else
