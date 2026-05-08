@@ -943,7 +943,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 
 /* game_libs_func_00060574 split off from gl_func_0006052C bundle on 2026-05-08; decompiled in game_libs_post.c. */
 
-/* game_libs_func_0006833{8,40,48} split off from gl_func_000682F8 bundle on 2026-05-08; INCLUDE_ASMs in game_libs_post.c.
- * game_libs_func_000683C4 split off from gl_func_00068350 bundle on 2026-05-08; INCLUDE_ASM moved to game_libs_post.c. */
+/* game_libs_func_0006833{8,40,48} split off from gl_func_000682F8 bundle on 2026-05-08; INCLUDE_ASMs in game_libs_post.c. */
+
+/* game_libs_func_000683C4 split off from gl_func_00068350 bundle on 2026-05-08; INCLUDE_ASM in game_libs_post.c. */
 
 /* game_libs_func_0004D014 split off from gl_func_0004CFD4 bundle on 2026-05-08; NM-wrapped in game_libs_post.c. */
