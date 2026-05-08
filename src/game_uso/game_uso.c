@@ -835,7 +835,6 @@ void game_uso_func_00001DC4(void *a0) {
  * The bc1fl at 0x1F74 is branch-likely; takes the THEN arm for "length ≥
  * threshold" (likely the homing-toward case); ELSE arm for "too close"
  * (likely the soft-stop case). */
-extern void *gl_func_TODO_00001DDC(int *scratch, int *a2);
 extern float gl_func_sqrt(float);
 extern void gl_func_normalize3(int *vec);
 typedef struct { float x, y, z; } Vec3f;
