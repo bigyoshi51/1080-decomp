@@ -3861,7 +3861,40 @@ int gl_func_0004D0B4(int a0) {
     return a0;
 }
 
+#ifdef NON_MATCHING
+/* game_libs_func_0004D0E4: 27-insn struct initializer (no prologue, leaf).
+ * Sets ~16 fields of a0 (refcount, head pointer at 0x6C, magic 0x3EB00,
+ * size limits 0x100/0x1000/0x800, type 0xC00, etc.) and finally writes
+ * the runtime-resolved D_00000000 value to a0[0x48].
+ *
+ * Caps at ~70% fuzzy:
+ *   - 0x3EB00 emit: built = lui+ori, target = lui+addiu (same value,
+ *     different encoding choice; IDO heuristic, no C-level lever found).
+ *   - The constant `1` is loaded TWICE in target (for a0[0x58]=1 and
+ *     a0[0x64]=1) but ONCE in built (CSE'd). Target's second `li 1`
+ *     comes after the D_00000000 lookup, suggesting register-pressure
+ *     forces re-materialization. IDO's CSE collapses both. */
+void game_libs_func_0004D0E4(int *a0, int a1) {
+    a0[0x58/4] = 1;
+    a0[0x6C/4] = a1;
+    a0[0x5C/4] = 0;
+    a0[0x70/4] = 0;
+    a0[0x74/4] = 0;
+    a0[0x10/4] = 1;
+    a0[0x14/4] = 0;
+    a0[0x18/4] = 0x3EB00;
+    a0[0x1C/4] = 0x100;
+    a0[0x24/4] = 0x1000;
+    a0[0x2C/4] = 0x800;
+    a0[0x38/4] = 0;
+    a0[0x3C/4] = 0;
+    a0[0x4C/4] = 0xC00;
+    a0[0x64/4] = 1;
+    a0[0x48/4] = D_00000000;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D0E4);
+#endif
 
 void game_libs_func_0004D150(int *a0, int a1, int a2, int a3) {
     a0[0x40/4] = a1;
