@@ -3948,6 +3948,8 @@ void game_libs_func_0004D338(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D354);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D39C);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D3E4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D468);
