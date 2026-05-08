@@ -3873,7 +3873,12 @@ int gl_func_0004D0B4(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D0E4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D150);
+void game_libs_func_0004D150(int *a0, int a1, int a2, int a3) {
+    a0[0x40/4] = a1;
+    a0[0x44/4] = a2 << 3;
+    a0[0x30/4] = a3;
+    a0[0x34/4] = 0x400;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D16C);
 
