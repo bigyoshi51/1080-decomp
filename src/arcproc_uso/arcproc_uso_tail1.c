@@ -846,22 +846,20 @@ void arcproc_uso_func_00002304(char *dst) {
  * ~60% NM cap inherited from sibling — register allocation differs
  * ($v0/$v1 chain vs target's $t-regs) and frame layout. Multi-tick
  * decomp; mirror of eddproc_03BC wrap. */
-void arcproc_uso_func_00002334(int *arg0) {
-    void *p = (void*)gl_func_00000000(0x40);
-    if (p != NULL) {
-        gl_func_00000000(p);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p + 0x3C) = 0;
-        if (arg0[0x40 / 4] != 0) {
-            int rv = gl_func_00000000((char*)p + 0x10, arg0[0x40 / 4]);
-            if (rv != 0) {
-                int **slot = (int**)((char*)arg0[0x40 / 4] + 0x14);
-                *slot = (int*)p;
-                *(int*)((char*)p + 0x4) = 1;
-                *slot = (int*)p;
-            }
-        }
+int *arcproc_uso_func_00002334(int *a0) {
+    int *p = (int*)gl_func_00000000(0x40);
+    int *q;
+    if (p == 0) return 0;
+    gl_func_00000000(p);
+    p[0x28/4] = (int)&D_00000000;
+    p[0x3C/4] = 0;
+    q = (int*)a0[0x40/4];
+    if (q != 0) {
+        gl_func_00000000((char*)p + 0x10, q);
+        if (q[0x14/4] != 0) q[0x4/4] = 1;
+        q[0x14/4] = (int)p;
     }
+    return p;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00002334);
