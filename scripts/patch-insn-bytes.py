@@ -13,11 +13,10 @@ ROM exactly.
 Mechanism: the .o size and section layout are UNCHANGED. We rewrite N
 words at known offsets within the function's .text bytes. We also strip
 orphan R_MIPS_26 relocations when a patch replaces a `jal 0` placeholder
-with a non-jal instruction — otherwise the linker would re-apply the
-relocation to whatever non-jal opcode is now there and corrupt it (which
-shows up as `relocation truncated to fit: R_MIPS_26 against ...` at link
-time, since the addend bits collide with the new instruction's opcode/
-immediate fields).
+with baked bytes — otherwise the linker would re-apply the relocation to
+the patched opcode and corrupt it. For non-jal replacements this often
+shows up as `relocation truncated to fit: R_MIPS_26 against ...`; for a
+baked concrete jal target it silently double-applies the target.
 
 Spec syntax:
     func_name=offset:word[,offset:word...]
@@ -277,10 +276,10 @@ def patch_one(data, func_name, patches):
             skipped += 1
             continue
         rel_offset = func_addr + insn_off
-        # If we're overwriting a jal/j with a non-jump opcode, remember the
-        # .text-relative offset so we can neutralize the (now-orphan)
-        # R_MIPS_26 relocation that was emitted for the original jal.
-        if _is_jump_opcode(existing) and not _is_jump_opcode(word):
+        # If we're overwriting a relocated jal/j, remember the .text-relative
+        # offset so we can neutralize the now-orphan R_MIPS_26 relocation.
+        # This applies both to jal->non-jal and jal 0->baked jal target.
+        if _is_jump_opcode(existing):
             orphan_jal_offsets.add(rel_offset)
         # Same for HI16/LO16: if the existing word's opcode bears that
         # reloc but the new word's doesn't, the reloc is now an orphan
