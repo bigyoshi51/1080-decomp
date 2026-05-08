@@ -857,9 +857,8 @@ void *game_uso_func_00001DDC(int *a0, int *out_delta) {
      * stack-layout note above) live in this region; future passes will
      * replace `frame_pad` with typed locals as they're decoded. */
     char frame_pad[168];
-    int key;
+    int key = a0[0x40 / 4];
     (void)frame_pad;
-    key = a0[0x40 / 4];
     if (key == 0) goto end;
     if (key != 3) goto branch_88;
     /* key == 3: short Vec3 copy from v1+0xA0..0xA8 to t6+0x60..0x68
