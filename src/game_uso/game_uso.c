@@ -895,11 +895,14 @@ branch_88: {
      *   - sqrt(sum-of-squares) gives length; normalize delta vector
      *   - clamped excess scaling for AI homing
      * After this, ~300 more insns remain stubbed. */
-    char scratch[0x18];           /* sp+0xFC scratch sub-struct (address-taken) */
+    /* IDO declaration order: first-declared = highest sp offset. Re-ordered
+     * 2026-05-08 to match documented stack layout: delta_v at 0x154 (highest),
+     * ref_v 0x13C, self_v 0x130, local_xz 0x110, scratch 0xFC (lowest). */
+    Vec3f delta_v;                /* sp+0x154 — gl_func returned offset */
     Vec3f ref_v;                  /* sp+0x13C — referenced sub-obj position */
     Vec3f self_v;                 /* sp+0x130 — own position copy (accumulator) */
-    Vec3f delta_v;                /* sp+0x154 — gl_func returned offset */
     float local_xz[4];            /* sp+0x110..0x11C: [diff_x, 0, diff_z, speed] */
+    char scratch[0x18];           /* sp+0xFC scratch sub-struct (address-taken) */
     Vec3f *t7 = (Vec3f*)((char*)a0[0x14 / 4] + 0xA0);
     Vec3f *v1 = (Vec3f*)((char*)a0[0x38 / 4] + 0xA0);
     Vec3f *delta;
