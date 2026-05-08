@@ -2524,7 +2524,47 @@ end_zero:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EAE0);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0003EB3C: 21-insn (0x54) nullable-double-deref helper.
+ * Boundary fix 2026-05-08: split off two trailing sentinels
+ * (game_libs_func_0003EB90 + _0003EB98) which were bundled into the
+ * original 0x70-byte symbol.
+ *
+ * Calls gl_func_00000000(a0,a1,a2); if non-NULL, reads result->[0x10]
+ * (a pointer); if non-NULL too, returns the int at *(result->[0x10]).
+ * Returns 0 in either NULL case.
+ *
+ * Sibling of just-matched gl_func_0003EA98 (volatile-ptr-to-arg
+ * caller-slot trick). Three caller-slot spills (a1@sp+0x1C,
+ * a2@sp+0x20) match via the trick.
+ *
+ * Caps remaining: target's `or v1, v0, $0` delay slot preserves the
+ * jal_result across a v0=0 clear; target reads r->[0x10] TWICE (once
+ * for null-check, once for deref) — IDO -O2 CSE's into one. Plus
+ * own-frame `sw a1, 0x4(sp)` spill needs a scoped `volatile int spill
+ * = a1` but adding it grows the frame to 0x28. */
+extern int gl_func_00000000();
+int gl_func_0003EB3C(int *a0, int a1, int a2) {
+    volatile int *p1 = &a1;
+    volatile int *p2 = &a2;
+    int *r = (int*)gl_func_00000000(a0, a1, a2);
+    if (r == 0) return 0;
+    {
+        int *q = (int*)r[0x10/4];
+        if (q == 0) return 0;
+        (void)p1; (void)p2;
+        return *q;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EB3C);
+#endif
+
+/* Sentinels split off from gl_func_0003EB3C bundle 2026-05-08.
+ * Both match via empty/return-0 bodies per
+ * docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body. */
+void game_libs_func_0003EB90(int a0) { }
+int game_libs_func_0003EB98(int a0, int a1, int a2) { return 0; }
 
 extern int gl_ref_00051744();
 extern int gl_ref_00051780();
