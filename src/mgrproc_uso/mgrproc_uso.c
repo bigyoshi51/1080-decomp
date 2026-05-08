@@ -830,8 +830,8 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B5
  * 00001B58 is itself NM-wrapped/INCLUDE_ASM.
  *
  * 2026-05-08: structural identification only; full standalone-compilable
- * body deferred (requires extending signature `(unused_a0, /*v1=*/int idx,
- * /*a2=*/State *state)` and recomputing v1 from D[0x64], same recipe as
+ * body deferred (requires extending signature with v1 (= int idx) and
+ * a2 (= State *state) as explicit args, recomputing v1 from D[0x64], same recipe as
  * gl_func_0005DB0C). Default INCLUDE_ASM build remains byte-correct. */
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BE4);
