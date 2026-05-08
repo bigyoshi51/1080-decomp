@@ -259,12 +259,13 @@ void titproc_uso_func_00000C0C(int *a0) {
  * 0x78-byte root object, initializes the template/vtable fields, chains
  * children through root+0x10, and stores the constructed root in v0.
  *
- * 2026-05-08 pass: 90.03139% after forcing root=a0 before allocation,
- * reusing `sub` for the D+0x190 child to keep the frame at 0x40, and using
- * a volatile reload of root+0x6C so the D+0x88 branch emits the shift/sub
- * multiply-by-30 shape instead of folding to 0x96. Remaining diffs are mostly
- * early branch scheduling, link spill offset, and vtable callback temp
- * registers.
+ * 2026-05-08 pass: 89.32287% after forcing root=a0 before allocation and
+ * reusing `sub` for the D+0x190 child. Current blocker: IDO still emits a
+ * 0x48-byte frame and reloads root+0x6C through v1 in the D+0x88 branch;
+ * target keeps the frame at 0x40 and uses the live t3=5 constant for the
+ * shift/sub multiply-by-30 sequence. Precomputing flag/count and pinning
+ * count to $11 did not change codegen. Remaining diffs are mostly early
+ * branch scheduling, link spill offset, and vtable callback temp registers.
  * Documented field offsets: 0xC, 0x14, 0x28, 0x2C, 0x30, 0x38, 0x3C, 0x40,
  * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74, 0x7C. */
 void *titproc_uso_func_00000C54(int *a0, int a1) {
