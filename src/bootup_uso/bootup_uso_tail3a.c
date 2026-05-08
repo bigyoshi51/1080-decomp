@@ -138,15 +138,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000118E4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001195C);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011A34);
-
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011AB4);
-
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011B5C);
-
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011BF0);
-
-/* func_00011C70 split out to bootup_uso_o0_11C70.c on 2026-05-07 (verified
+/* func_00011A34 split out to bootup_uso_o0_11A34.c on 2026-05-08
+ * (verified byte-exact at -O0). The following 11AB4..11C70 gap lives in
+ * bootup_uso_tail3a_mid.c as INCLUDE_ASM to keep the .text layout
+ * contiguous before the existing 11C70 split.
+ *
+ * func_00011C70 split out to bootup_uso_o0_11C70.c on 2026-05-07 (verified
  * byte-exact at -O0). func_00011CA4 + func_00011CD8 also moved into that
  * file as INCLUDE_ASM stubs (INCLUDE_ASM is opt-level-independent) so the
  * 11C70..11D40 .o region is contiguous; they migrate to C bodies in

@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00011A34",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-05-08T12:23:13.705482+00:00",
+  "end_time": "2026-05-08T12:23:13.705504+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-08T12:23:13.705497+00:00",
+      "assistant_text": "Manual exact match. Split func_00011A34 into an -O0 bootup subfile and kept the following 11AB4..11C70 gap as INCLUDE_ASM in a mid-tail file so layout remains contiguous. The assignment-in-condition form reproduces IDO -O0's branch-on-assigned-register shape.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\n\n/* -O0 linked-list clear/free helper split out of bootup_uso_tail3a.c.\n * Walks a0->0x130, notifies with node->0, frees each node, then clears the\n * head pointer. */\nvoid func_00011A34(char *a0) {\n    char *cur;\n    char *next;\n    if ((cur = *(char**)(a0 + 0x130)) != 0) {\n        do {\n            next = *(char**)(cur + 4);\n            func_00000000(&D_00000000, *(int*)cur);\n            func_00000000(cur);\n        } while ((cur = next) != 0);\n    }\n    *(int*)(a0 + 0x130) = 0;\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_11A34.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00011A34.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified build/src/bootup_uso/bootup_uso_o0_11A34.c.o .text matches expected/src/bootup_uso/bootup_uso_o0_11A34.c.o .text byte-for-byte; project refresh-report completed."
+  }
+}
