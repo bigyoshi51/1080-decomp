@@ -5,8 +5,9 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 #ifdef NON_MATCHING
-/* Int-reader (pointer-indirect via volatile buf) with -O0 artifacts: 0x4C
- * (19 insns) vs -O2 template's 15 insns. Three -O0 markers in target:
+/* 72.47% NM (reverified 2026-05-08). Int-reader (pointer-indirect via
+ * volatile buf) with -O0 artifacts: 0x4C (19 insns) vs -O2 template's
+ * 15 insns. Three -O0 markers in target:
  *   (a) `sw ra` BEFORE `sw a0` in prologue (-O2 opposite)
  *   (b) unfilled jal delay slot (`jal 0; nop`) — -O2 fills with `addiu a2, 4`
  *   (c) extra `b +1; nop` pair before epilogue (dead branch to next insn,
@@ -16,8 +17,10 @@ typedef struct { int a, b, c, d; } Quad4;
  * Yay0 rule consumes only mgrproc_uso.c.o. Per
  * feedback_yay0_uso_blocks_file_split_recipe.md, the file-split recipe
  * (which works for bootup_uso and arcproc_uso) does NOT apply here.
- * Unblock path: add an `ld -r` pre-merge step before yay0 compression —
- * infrastructure work, out of single-tick scope.
+ * Reverified 2026-05-08: current NON_MATCHING build still caps at 72.47%.
+ * Unblock path remains an `ld -r` pre-merge step before yay0 compression,
+ * plus objdiff/expected wiring for the split object — infrastructure work,
+ * out of single-function scope.
  * Body semantics per feedback_uso_accessor_template_reuse.md int reader. */
 /* K&R def so same-TU callers passing varying arg counts type-check in
  * NON_MATCHING build. See feedback_knr_def_for_inconsistent_arg_callers.md. */
@@ -1165,4 +1168,3 @@ void mgrproc_uso_func_000033E8(char *dst) {
     (void)p;
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_000033E8_pad.s")
-
