@@ -3875,7 +3875,12 @@ void game_libs_func_0004D16C(int *a0) {
     a0[0x28/4] = (int)&D_4D16C_b;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D188);
+extern int D_4D188_a;
+extern int D_4D188_b;
+void game_libs_func_0004D188(int *a0) {
+    a0[0x20/4] = (int)&D_4D188_a;
+    a0[0x28/4] = (int)&D_4D188_b;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D1A4);
 
