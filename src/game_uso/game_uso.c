@@ -7856,21 +7856,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
  *      goto-to-epilogue placement; standard if/else converge typically
  *      produces a single epilogue with no early-branch.
  *
+ * 2026-05-08: flipped the C to the target's flag-clear-first layout and added
+ * PROLOGUE_STEALS for non_matching scoring. Fuzzy improves 17.93% -> 51.10%.
+ * Remaining mismatch: C still emits a caller-slot spill/reload for a0 and
+ * keeps one duplicate `lw t6, 0x78(v1)` after the 8-byte steal; target keeps
+ * a0 live directly and has `addiu t1, 100` in the branch delay slot.
+ *
  * Default INCLUDE_ASM keeps ROM exact. Multi-pass — this captures the
  * structural decode for future refinement. */
 extern int gl_func_00000000();
 
 void game_uso_func_00011564(int *a0) {
     int *p;
-    if (*(int*)((char*)&D_00000000 + 0x78) != 0) {
-        p = (int*)a0[0xB4/4];
-        p[0x960/4] = 100;
-        gl_func_00000000(a0[0xFC/4] | 8, 0, 1, 6, 1);
-    } else {
+    if (*(int*)((char*)&D_00000000 + 0x78) == 0) {
         p = (int*)a0[0xB4/4];
         p[0x960/4] = 0;
         gl_func_00000000(*(int*)((char*)&D_00000000 + 0xE40),
                          *(int*)((char*)&D_00000000 + 0xE44));
+    } else {
+        p = (int*)a0[0xB4/4];
+        p[0x960/4] = 100;
+        gl_func_00000000(a0[0xFC/4] | 8, 0, 1, 6, 1);
     }
 }
 #else
