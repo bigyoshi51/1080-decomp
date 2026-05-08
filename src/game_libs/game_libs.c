@@ -781,7 +781,23 @@ int gl_func_00008884(char *a0) {
  * docs/POST_CC_RECIPES.md#feedback-jal-insn-patch-to-match-include-asm-derived-expected.
  * Beql for `if (existing->field_14 != 0)` followed by `existing->field_14 = ptr`
  * relies on the duplicate-store IDO emit pattern; the C body above triggers
- * it (write same value in both branches → IDO speculates via delay-likely). */
+ * it (write same value in both branches → IDO speculates via delay-likely).
+ *
+ * 2026-05-08 grind: tried to break the cap via frame-size lever.
+ *   Built emits sp -= 0x20 (32 bytes), target sp -= 0x28 (40 bytes).
+ *   v1) `char frame_pad[8]` — IDO optimized away, frame stayed 0x20.
+ *   v2) `volatile char frame_pad[8]` (no access) — also elided.
+ *   v3) `char frame_pad[16]` — also elided.
+ *   v4) `volatile int frame_pad; frame_pad = 0;` — frame grew to 0x28
+ *       BUT the added `sw zero, 28(sp)` insn doesn't match target → no
+ *       net fuzzy% gain.
+ * Confirms: bare-array frame-pad trick (works for 1DDC's 184-byte gap)
+ * does NOT work here for the 8-byte gap. Possibly because: (a) IDO's
+ * spill allocator already has 32 bytes of "slack" with the existing 4
+ * spill slots, so an 8-16 byte unused array fits without growing; OR
+ * (b) IDO's frame-rounding heuristic only kicks in for larger arrays.
+ * The ptr-in-a2 vs ptr-in-v1 reg-assign cap remains the dominant gap;
+ * regalloc or INSN_PATCH the only paths forward. Cap stays at 89.17%. */
 struct GlConstructed {
     char pad[0x10];          /* embedded array passed to link() */
     char pad2[0x10 - 4];
