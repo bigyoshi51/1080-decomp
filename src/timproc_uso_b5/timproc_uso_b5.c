@@ -1687,7 +1687,38 @@ void timproc_uso_b5_func_0000CE6C(char *a0) {
 
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000CE6C_pad.s")
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000CEB4: 105-insn (0x1A4) FPU/Vec4 transformation
+ * with conditional fallback path. Frame -0x50; saves $ra; uses sp+0x40-
+ * 0x4C as a Vec4 stack buffer.
+ *
+ * High-level structure (first ~30 insns decoded):
+ *   - Saves a1 to sp+0x54 (caller arg slot)
+ *   - Initializes sp+0x40, +0x44, +0x48, +0x4C to 0.0f (Vec4 zero)
+ *   - Reads a0->[0x2AC] flag; if non-zero, alt path:
+ *     - Sets sp+0x40 from D[0x394]
+ *     - Calls gl_func with a0->[0x44], a0->[0x5C], 0xFF, &Vec4 buf...
+ *   - Else (a0->[0x2AC] == 0) reads D[0x398] into f0 and continues
+ *
+ * Multi-tick decompile — full FPU control flow + Vec4 inits + conditional
+ * call patterns need multiple passes. Default INCLUDE_ASM build matches.
+ * This wrap captures the entry-point structure for grep discoverability. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void timproc_uso_b5_func_0000CEB4(int *a0, int a1) {
+    /* TODO: full decompile — first ~30 insns (Vec4 init + a0->2AC branch)
+     * decoded but the body has 4+ FPU branches, 3+ jal calls, and
+     * multi-arg cross-USO calls. Partial structure only. */
+    float vec_buf[4];
+    vec_buf[0] = vec_buf[1] = vec_buf[2] = vec_buf[3] = 0.0f;
+    if (*(int*)((char*)a0 + 0x2AC) != 0) {
+        gl_func_00000000(a0, a1);
+    }
+    (void)vec_buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CEB4);
+#endif
 
 void timproc_uso_b5_func_0000D058(int *a0, float a1) {
     *(float*)((char*)a0 + 0x2A0) = a1;
