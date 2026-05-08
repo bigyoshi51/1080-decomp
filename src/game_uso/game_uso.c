@@ -847,27 +847,35 @@ typedef struct { float x, y, z; } Vec3f;
  * stack-spill slot for the entry save of `a1`, blocking the byte-match grind. */
 void *game_uso_func_00001DDC(int *a0, int *out_delta) {
     /* Frame-padding fix 2026-05-08: built was emitting sp -= 0xC8 vs
-     * target sp -= 0x180 (184-byte gap). A bare `char frame_pad[184];`
-     * grows the frame to 0x180 — IDO -O2 keeps the stack space even
-     * when unused. Now first 3 prologue insns are byte-correct.
+     * target sp -= 0x180 (184-byte gap). The key==3 Vec3 temporaries now
+     * account for 16 bytes, so `char frame_pad[168];` preserves the target
+     * frame — IDO -O2 keeps the stack space even when unused. Now first 3
+     * prologue insns are byte-correct.
      * Fuzzy% unchanged (17.15%) because body diffs offset the prologue
      * gain, but this unblocks future grinding that depends on the right
      * frame size. The actual Vec3 working buffers (per stack-layout note
      * above) live in this region; future passes will replace `frame_pad`
      * with typed locals as they're decoded. */
-    char frame_pad[184];
+    char frame_pad[168];
     int key;
     (void)frame_pad;
     key = a0[0x40 / 4];
     if (key == 0) goto end;
     if (key != 3) goto branch_88;
-    /* key == 3: short Vec3 copy from v1+0xA0..0xA8 to t6+0x60..0x68. */
+    /* key == 3: short Vec3 copy from v1+0xA0..0xA8 to t6+0x60..0x68
+     * and t6+0xA0..0xA8. */
     {
         int *t6 = (int*)a0[0x14 / 4];
         int *v1 = (int*)a0[0x3C / 4];
-        *(float*)((char*)t6 + 0x60) = *(float*)((char*)v1 + 0xA0);
-        *(float*)((char*)t6 + 0x64) = *(float*)((char*)v1 + 0xA4);
-        *(float*)((char*)t6 + 0x68) = *(float*)((char*)v1 + 0xA8);
+        float x = *(float*)((char*)v1 + 0xA0);
+        float y = *(float*)((char*)v1 + 0xA4);
+        float z = *(float*)((char*)v1 + 0xA8);
+        *(float*)((char*)t6 + 0x60) = x;
+        *(float*)((char*)t6 + 0x64) = y;
+        *(float*)((char*)t6 + 0x68) = z;
+        *(float*)((char*)t6 + 0xA0) = x;
+        *(float*)((char*)t6 + 0xA4) = y;
+        *(float*)((char*)t6 + 0xA8) = z;
         goto late_label;
     }
 branch_88: {
