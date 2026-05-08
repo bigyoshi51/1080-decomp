@@ -947,7 +947,19 @@ extern s32 D_80012D5C;
  * stride; no effect, same guarded bulk-unroll as the s32* loop. 8th variant
  * changed the loop to an explicit label/goto; this is kept because it removes
  * the guard/unroll and matches the target size, leaving only the init-order
- * and v0/v1 allocation differences. */
+ * and v0/v1 allocation differences.
+ *
+ * 2026-05-08 (later) 9th variant: tried `extern int D_80012D30[2]` to merge
+ * D_80012D30 + D_80012D34 into a shared-base array. IDO emitted ONE shared
+ * `lui a0; addiu a0` for the array base instead of fresh lui per element
+ * — partial regression toward target shape — but TARGET uses `$at` as the
+ * shared base (`lui at; sw zero, %lo($at); sw zero, %lo+4($at)` — IDO's
+ * compact extern-store form), not `$a0`. Array form picks `$a0` because
+ * it's a regular C local; the at-form is the single-insn-store recipe IDO
+ * uses for naked `*(int*)&extern = 0` only when no addiu pre-add is
+ * required. To force at-form for adjacent-extern stores, write each as
+ * `(*(int*)&D_NAME) = 0` with NO array indexing. Reverted (no improvement
+ * over baseline). */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
