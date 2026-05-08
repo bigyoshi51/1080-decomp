@@ -4041,7 +4041,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054144);
  * (docs/POST_CC_RECIPES.md "HI/LO register inheritance" → extended to GP-
  * register inheritance). External `jal gl_func_00054228` callers would
  * see uninitialized $t9, but the predecessor-fallthrough flow has $t9 set.
- * Default INCLUDE_ASM matches; can't be standalone-decompiled. */
+ * Default INCLUDE_ASM matches; can't be standalone-decompiled.
+ *
+ * Body decode (post-stolen-prologue, t1 = *(a0->[0x54] + a2*60) inherited):
+ *   stack[0xC] = t1                ; sw inherited t1
+ *   stack[0x10] = *(t9 + 4)        ; t0 = *(t9+4); store at sp+0x10
+ *   stack[0x14] = *(t9 + 8)        ; t1 = *(t9+8); store at sp+0x14
+ *   *(float*)a1     = *(float*)stack[0xC]   ; reinterpret int bits as float
+ *   *(float*)(a1+4) = *(float*)stack[0x10]
+ *   *(float*)(a1+8) = *(float*)stack[0x14]
+ * Effectively: 3-word int-to-float reinterpret marshaller, copying a Vec3
+ * worth of int-encoded floats from a0->[0x54][a2 * 15] (12-byte stride
+ * within a 60-byte record) into *a1.
+ *
+ * 2026-05-08: upgraded bare INCLUDE_ASM to NM wrap (#if 0-bracketed) per
+ * Tick #10 "preserve partial C, don't delete it". The body can't compile
+ * (would reference uninitialized t1/t9 if standalone) so it stays under
+ * `#if 0` for grep + future-permuter discoverability rather than
+ * `#ifdef NON_MATCHING` (which would compile + crash). */
+#if 0
+/* Standalone-uncompilable — t1, t9 inherited from predecessor.
+ * Documented for grep-discoverability + structural-decode reference. */
+extern void gl_func_00054228_unreachable(int *a1) {
+    /* int t1 = inherited;            // from predecessor
+     * int *t9 = inherited_base;      // from predecessor
+     * int stack[3];
+     * stack[0] = t1;
+     * stack[1] = t9[1];
+     * stack[2] = t9[2];
+     * *(float*)a1     = *(float*)&stack[0];
+     * *(float*)(a1+1) = *(float*)&stack[1];
+     * *(float*)(a1+2) = *(float*)&stack[2];
+     */
+}
+#endif
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054228);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054264);
