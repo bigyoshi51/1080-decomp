@@ -2465,7 +2465,46 @@ void *gl_func_0003EA98(int *a0, int a1) {
     return 0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0003EAE0: 23-insn (0x5C) dispatch wrapper. Calls
+ * gl_func_00000000(a0, a1, a2, a3); if non-NULL, treats result as a
+ * struct r where r->[0x28] is an obj with a function-ptr at r->[0x28]->[0x6C]
+ * and a signed-short offset at r->[0x28]->[0x68]. Calls that fn-ptr
+ * with (r + offset, a2, a3) and returns its result. Returns 0 if first
+ * jal returned 0.
+ *
+ * Sibling of just-matched gl_func_0003EA98 (volatile-pointer-to-arg
+ * caller-slot trick + volatile own-frame spill).
+ *
+ * Caps remaining: target spills a1 to BOTH sp+0x1C (caller-slot,
+ * matched via 'volatile int *p = &a1') AND sp+0x4 (own-frame, matched
+ * naturally via 'volatile int spill = a1' in EA98 but introduces extra
+ * spill+reads here). Adding both volatiles grows frame to 0x20 (target
+ * 0x18) and shifts all sp offsets — net regression.
+ *
+ * Also missing: target's `goto end_zero` shape uses an extra
+ * pre-epilogue `lw ra; or v0, 0; lw ra` 3-insn block (target has 2
+ * lw ra at 0x44 and 0x48) — IDO's natural emit collapses this when v0
+ * is zero in the early branch. */
+extern int gl_func_00000000();
+
+int *gl_func_0003EAE0(int a0, int a1, int a2, int a3) {
+    volatile int *p = &a1;
+    int *r = (int*)gl_func_00000000(a0, a1, a2, a3);
+    if (r == 0) goto end_zero;
+    {
+        int *obj = (int*)r[0x28/4];
+        int (*fn)() = (int(*)())obj[0x6C/4];
+        (void)p;
+        return (int*)fn(((short*)obj)[0x68/2] + (int)r, a2, a3);
+    }
+end_zero:
+    (void)p;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EAE0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EB3C);
 
