@@ -287,8 +287,8 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
         second_word = struct.unpack(">I", bytes(elf.data[text_off + 4:text_off + 8]))[0]
         opcode1 = (first_word >> 26) & 0x3F
         opcode2 = (second_word >> 26) & 0x3F
-        if opcode1 not in (0x0F, 0x23, 0x0C):  # LUI / LW / ANDI — known prefix forms
-            print(f"splice-skip: {func_name} doesn't start with LUI/LW/ANDI "
+        if opcode1 not in (0x0F, 0x23, 0x0C, 0x00):  # LUI / LW / ANDI / R-type — known prefix forms
+            print(f"splice-skip: {func_name} doesn't start with LUI/LW/ANDI/R-type "
                   f"(word={first_word:#010x}); leaving as-is "
                   f"(probably an INCLUDE_ASM build path)", file=sys.stderr)
             return
@@ -297,7 +297,17 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
         # insn; the second insn is the start of the actual function body
         # (typically the prologue `addiu sp, sp, -N` = opcode 0x09) and we
         # don't gate on it.
-        if opcode1 == 0x0F:
+        if opcode1 == 0x00:
+            # R-type-prefixed PROLOGUE_STEALS=8 case: `sll rN, aN, K;
+            # subu/addu rN, rN, aN` strength-reduction stolen-prologue.
+            # Verified 2026-05-08 on gl_func_000315C4 (predecessor's tail
+            # `sll t7, a0, 2; subu t7, t7, a0` = `t7 = a0 * 3`). Gate the
+            # second insn to be R-type too (opcode 0) — same SR sequence.
+            if opcode2 != 0x00:
+                print(f"WARN: {func_name}+4 is not R-type "
+                      f"(opcode={opcode2:#x}, word={second_word:#010x})", file=sys.stderr)
+                sys.exit(1)
+        elif opcode1 == 0x0F:
             # 0x09=ADDIU, 0x23=LW, 0x25=LHU, 0x21=ADDU (general &D-base setup)
             # 0x11=COP1 (MTC1) for the float-constant materialization pattern
             # (e.g. `lui $at, 0x3F80; mtc1 $at, $f0` = $f0 = 1.0f used as
