@@ -6711,7 +6711,25 @@ void game_uso_func_00010B38(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010B38);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010BAC);
+void game_uso_func_00010BAC(char *a0) {
+    char *sub;
+    int state;
+
+    sub = *(char**)(a0 + 0xB4);
+    state = *(int*)(a0 + 0xFC);
+    gl_func_00000000(a0, state | 7, state | 6, *(int*)(sub + 0xA04), 0, 1);
+
+    if (*(int*)(a0 + 0xD8) == 0) {
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10),
+                         *(int*)((char*)&D_00000000 + 0xE14));
+    }
+
+    sub = *(char**)(a0 + 0xB4);
+    if (*(int*)(sub + 0x9CC) != 0) {
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE48),
+                         *(int*)((char*)&D_00000000 + 0xE4C));
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010C4C);
 
