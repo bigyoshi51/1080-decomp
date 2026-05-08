@@ -1,0 +1,10 @@
+nonmatching game_libs_func_0004D014, 0x18
+
+glabel game_libs_func_0004D014
+    /* E320EC 0004D014 8C8F0144 */  .word 0x8C8F0144
+    /* E320F0 0004D018 8C8E0148 */  .word 0x8C8E0148
+    /* E320F4 0004D01C 000FC080 */  .word 0x000FC080
+    /* E320F8 0004D020 01D8C821 */  .word 0x01D8C821
+    /* E320FC 0004D024 03E00008 */  .word 0x03E00008
+    /* E32100 0004D028 8F2200F4 */  .word 0x8F2200F4
+endlabel game_libs_func_0004D014
