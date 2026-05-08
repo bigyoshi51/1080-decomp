@@ -6761,7 +6761,27 @@ void game_uso_func_0000FB04(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB04);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000FB7C: 31-insn 3-call dispatcher in F49C/FB04 family.
+ * Sets a0->0x108 = a0->0xFC | 0xA; calls gl_func_0(a0, that, 0, 2, 1, 1);
+ * gl_func_0(a0, D[0xE88], D[0xE8C], 2); gl_func_0(a0); then a0->0x114 = 0.
+ * Logic byte-correct, 29/31 insns. Same precall-arg-spill cap as FB04 +
+ * F49C — missing 2 defensive `sw a1, 4(sp); sw a2, 8(sp)` before 2nd call.
+ * Multi-pass NM. */
+void game_uso_func_0000FB7C(int *a0) {
+    int v = a0[0xFC/4] | 0xA;
+    a0[0x108/4] = v;
+    gl_func_00000000(a0, v, 0, 2, 1, 1);
+    gl_func_00000000(a0,
+        *(int*)((char*)&D_00000000 + 0xE88),
+        *(int*)((char*)&D_00000000 + 0xE8C),
+        2);
+    gl_func_00000000(a0);
+    a0[0x114/4] = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB7C);
+#endif
 
 void game_uso_func_0000FBF8(int *a0) {
     int v = *(int*)((char*)a0 + 0xFC);
