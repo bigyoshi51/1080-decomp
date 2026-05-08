@@ -2607,7 +2607,14 @@ extern int D_00000000;
  * tries gated by `if ((char*)obj + 0x2C != NULL)` and a follow-up null check
  * — encodes "ensure obj->field_2C is non-null before storing 0 there." The
  * parameterized form below approximates this structure but the exact branch
- * flow is structural-only, not byte-correct. */
+ * flow is structural-only, not byte-correct.
+ *
+ * 2026-05-08 retest: tried `field2C = obj[0x2C/4]` (load value, not address)
+ * to fix the always-taken bne — REGRESSED 81.63% → 65.10%. The original
+ * `(char*)obj + 0x2C` (address-of) is correct for matching, even though
+ * the resulting branch is dead-always-taken at runtime. IDO's CSE relies
+ * on the addiu-vs-add-immediate distinction to encode the test, and
+ * loading the value instead changes the prologue+body shape. Reverted. */
 void* gl_func_0003E0F0(int *arg0) {
     int *obj;
     int *field2C;
