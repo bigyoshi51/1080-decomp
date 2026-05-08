@@ -4539,7 +4539,22 @@ trunk:
      *     fixes parameter registers). Built still emits prologue at
      *     offset 0 (-0x28 frame, sw $s0 at 0x18). The s0 promotion is
      *     driven by use-frequency of `a0` in the body, not by parameter
-     *     declaration. Confirms path-(b) is the only remaining lever. */
+     *     declaration.
+     *
+     * 2026-05-08 PATH-(b) TESTED, NEGATIVE RESULT (-1.69pp): converted
+     *     `goto trunk` cascade to mutually-exclusive `if/else if` chain
+     *     wrapped in `if (flag2 == 0) { ... } else { a1 = flag2; }`. Hoped
+     *     the per-arm scoping would defeat `outer = a0[0x30/4]` $s0
+     *     promotion. Result: 48.97% → 47.28%. Hypothesis fails.
+     *     Reverted. The `goto trunk` shape is closer to target's actual
+     *     control flow (target uses fall-through `b trunk` after each arm,
+     *     which corresponds 1-to-1 to source-level `goto trunk`). The
+     *     if/else-if structure introduces extra jumps to a join point AT
+     *     the end of the chain (single fall-out from the if-cascade), which
+     *     doesn't match target's per-arm-direct-to-trunk pattern. Both
+     *     paths (a) inlining and (b) if/else if are now confirmed
+     *     dead-ends; cap is structural, not C-level fixable.
+     *     Path-(c) (verify leaf shape after path-(b)) is moot. */
 
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
