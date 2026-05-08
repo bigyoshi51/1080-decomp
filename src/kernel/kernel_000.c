@@ -875,11 +875,16 @@ extern s32 D_80012D3C[];
 extern s32 D_80012D5C;
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: IDO auto-unrolls a simple pointer-walk loop with a runtime
- * subu+andi guard, producing different prologue code than target. 5 structural
- * variants tried (do-while, for(i<8), explicit end pointer, 8-way unroll,
- * same-array `end = D_80012D3C + 8`); none match. Target uses a fixed 2-iter
- * loop with no zero-guard.
+/* NON_MATCHING: target uses a fixed 2-iter pointer loop with no zero-guard.
+ * The current explicit-goto loop avoids IDO's bulk-unroll transform and emits
+ * the target-sized 0x4C body, but initialization scheduling/register selection
+ * still differs: IDO combines the D_80012D5C zero-store with the end pointer
+ * load, while target emits a direct $at store first and reloads the end later.
+ * Current score: 72.10526% (objdiff, 2026-05-08).
+ *
+ * Earlier structural variants tried: do-while, for(i<8), explicit end pointer,
+ * 8-way unroll, same-array `end = D_80012D3C + 8`; these produced IDO's
+ * subu+andi guard plus bulk-unrolled loop instead of the compact target loop.
  *
  * 2026-05-04: 5th variant attempt was `end = D_80012D3C + 8` to make the
  * end-bound a same-array compile-time-known-multiple-of-16 offset. IDO
@@ -892,7 +897,13 @@ extern s32 D_80012D5C;
  * change the loop-shape detection. No effect on auto-unroll — same cap.
  * The auto-unroll trigger is more fundamental than the loop's variable
  * count; likely tied to detecting a constant trip count from the
- * extern-pointer bounds, which IDO sees through. */
+ * extern-pointer bounds, which IDO sees through.
+ *
+ * 2026-05-08: 7th variant changed the loop to byte pointers with a 0x10
+ * stride; no effect, same guarded bulk-unroll as the s32* loop. 8th variant
+ * changed the loop to an explicit label/goto; this is kept because it removes
+ * the guard/unroll and matches the target size, leaving only the init-order
+ * and v0/v1 allocation differences. */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
@@ -903,13 +914,15 @@ void func_80001184(void) {
     D_80012D38 = 0;
     ptr = D_80012D3C;
     end = &D_80012D5C;
-    do {
-        ptr += 4;
-        ptr[-4] = 0;
-        ptr[-3] = 0;
-        ptr[-2] = 0;
-        ptr[-1] = 0;
-    } while (ptr != end);
+loop:
+    ptr += 4;
+    ptr[-4] = 0;
+    ptr[-3] = 0;
+    ptr[-2] = 0;
+    ptr[-1] = 0;
+    if (ptr != end) {
+        goto loop;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
