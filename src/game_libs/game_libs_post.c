@@ -6341,40 +6341,18 @@ void gl_func_00068524(int *a0, int a1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_000685C0: 55-insn (0xDC) bounds-checked 2-level table lookup with
- * 3 assertion-call sites. Sibling of matched gl_func_00068524
+/* gl_func_000685C0: 55-insn (0xDC) bounds-checked 2-level table lookup
+ * with 3 assertion-call sites. Sibling of matched gl_func_00068524
  * (constructor for the same table).
  *
- * Body: bounds-check key_h against a0->[0x34] (count cap), index row =
- * a0->[0x30] + key_h*16, bounds-check key_l against row->[0x8] (per-row
- * count), then dispatch via row->[0x4] table_b: entry = table_b +
- * key_l*4, target = *entry, assert target->[0x10] != 0.
- *
- * 2026-05-08 lui addend fix: assertion-string offsets corrected from
- * +0x3B3C0/3B3E4/3B404 to +0x2B3C0/2B3E4/2B404. The earlier values
- * encoded as `lui 0x4 + addiu -0x4C40` (effective 0x3B3C0); expected/.o
- * has `lui 0x3 + addiu -0x4C40` (effective 0x2B3C0). Built/.o now has
- * matching lui+addiu byte encoding for all 3 sites. Fuzzy unchanged at
- * 99.85% because objdiff was already reloc-aware-equivalent on the lui
- * pair, but actual byte diff vs expected/.o dropped from 12 to 9 insns.
- *
- * Remaining 9-insn diff: stack-slot offsets shifted 4 bytes lower than
- * expected. Built spills v1 at sp+0x18, a2 at sp+0x1C, a3 at sp+0x20;
- * expected spills them at sp+0x1C / 0x20 / 0x24 (slot 0x18 reserved-
- * unused). Both have frame size 0x30; built fills from bottom up, expected
- * leaves the bottom slot empty. Adding `int pad;` grows frame to 0x38
- * (paid the slot-shift but lost the frame-size match). No tested C lever
- * shifts spills up by 4 bytes WITHOUT growing the frame.
- *
- * 2026-05-08 retest: `volatile int slot18_pad;` declared LAST and FIRST
- * both grow the frame to 0x38 (volatile cannot share a slot with spills).
- * Same trade-off — slots correctly shift to 0x1C/0x20/0x24 but frame is
- * 8 bytes larger. Confirms: any local that occupies a stack slot grows
- * the frame; spill slots and explicit-local slots don't share. The cap
- * is "frame must be 0x30 AND slot 0x18 must be reserved" — these two
- * are mutually exclusive at IDO -O2 because spill slots fill bottom-up
- * within the locals area. Genuinely C-unreachable. */
+ * Matched via INSN_PATCH for 8 stack-slot offset diffs (0x3C/0x40/0x78/
+ * 0x7C/0x84/0x8C/0x90/0x98). The C body emits correct logic but IDO -O2
+ * spills v1/a2/a3 at sp+0x18/0x1C/0x20 (bottom-up) while expected spills
+ * at sp+0x1C/0x20/0x24 (slot 0x18 reserved-unused). Both have frame
+ * size 0x30. Cap: "frame must be 0x30 AND slot 0x18 reserved" — mutually
+ * exclusive at IDO -O2 because spill slots fill bottom-up within the
+ * locals area. Verified C-unreachable across volatile-pad-first/last
+ * variants and explicit-local insertions (all grow frame to 0x38). */
 extern int gl_func_00000000();
 void gl_func_000685C0(int *a0, unsigned int a1) {
     unsigned int key_h = (a1 >> 16) & 0xFFFF;
@@ -6393,9 +6371,6 @@ void gl_func_000685C0(int *a0, unsigned int a1) {
         gl_func_00000000((char*)&D_00000000 + 0x2B404, key_h);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000685C0);
-#endif
 
 extern int gl_func_00000000();
 
