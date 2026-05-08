@@ -6179,7 +6179,16 @@ void gl_func_00068524(int *a0, int a1) {
  * unused). Both have frame size 0x30; built fills from bottom up, expected
  * leaves the bottom slot empty. Adding `int pad;` grows frame to 0x38
  * (paid the slot-shift but lost the frame-size match). No tested C lever
- * shifts spills up by 4 bytes WITHOUT growing the frame. */
+ * shifts spills up by 4 bytes WITHOUT growing the frame.
+ *
+ * 2026-05-08 retest: `volatile int slot18_pad;` declared LAST and FIRST
+ * both grow the frame to 0x38 (volatile cannot share a slot with spills).
+ * Same trade-off — slots correctly shift to 0x1C/0x20/0x24 but frame is
+ * 8 bytes larger. Confirms: any local that occupies a stack slot grows
+ * the frame; spill slots and explicit-local slots don't share. The cap
+ * is "frame must be 0x30 AND slot 0x18 must be reserved" — these two
+ * are mutually exclusive at IDO -O2 because spill slots fill bottom-up
+ * within the locals area. Genuinely C-unreachable. */
 extern int gl_func_00000000();
 void gl_func_000685C0(int *a0, unsigned int a1) {
     unsigned int key_h = (a1 >> 16) & 0xFFFF;
