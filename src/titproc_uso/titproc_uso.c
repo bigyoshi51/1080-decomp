@@ -314,31 +314,21 @@ void titproc_uso_func_00000C0C(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* Constructor / orchestrator (223 insns, 0x37C). Allocates root object
- * (0x78 bytes) via gl_alloc(0x78), then:
- *   - sub-object 0x50: alloc(0x50) -> s0; alloc(0x2C) -> a0;
- *     calls a setup with &D_000004A8 as second arg (likely string label).
- *   - Sets s1->0x28 = D_NNNN (two D_ refs); s0->0x28 = D_NNNN.
- *   - Sets s1->0x28 again (overwrite or different field) + s1->0xC = D_NNNN+0x4B0.
- *   - jal_0(); s1->0x50 = v0; D_00000138 = v0.
- *   - Then a series of "alloc then bind" patterns for fields 0x54, 0x58,
- *     0x60, 0x64, 0x5C: alloc -> s0; if (s0->0x14 == 0) s0->0x4 = 1;
- *     s0->0x14 = s1; s1->fieldN = s0.
- *   - Indirect call: jalr t9 (vtable-style); arg0 = s0->0x58 + return.
- *   - Mid-function 0x40/0x3C setup with conditional check D_NNNN+0x88 != 0:
- *     uses arg1 (saved at sp+0x44) for some "rate" calc.
- *   - Final D_00000088 = 0; jal at end with arg0 = D_NNNN+0x000.
- *   - Returns s1.
+/* Constructor / orchestrator (223 insns, 0x37C). Allocates or accepts a
+ * 0x78-byte root object, initializes the template/vtable fields, chains
+ * children through root+0x10, and stores the constructed root in v0.
  *
- * No exact match expected this pass — too many cross-USO calls + D_
+ * No exact match expected this pass -- too many cross-USO calls + D_
  * placeholder relocations. NM wrap captures structure for future passes.
  * Documented field offsets: 0xC, 0x14, 0x28, 0x2C, 0x30, 0x38, 0x3C, 0x40,
- * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74. */
-void titproc_uso_func_00000C54(int *a0, int a1) {
+ * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74, 0x7C. */
+void *titproc_uso_func_00000C54(int *a0, int a1) {
     int *root;
     int *sub;
     int *child;
-    int t;
+    int *link;
+    int *global_child;
+    int *vtable;
 
     if (a0 != 0) {
         root = a0;
@@ -346,7 +336,7 @@ void titproc_uso_func_00000C54(int *a0, int a1) {
         root = (int*)gl_func_00000000(0x78);
         if (root == 0) goto end;
     }
-    if (root != 0) {
+    if (root == 0) {
         sub = (int*)gl_func_00000000(0x50);
         if (sub != 0) {
             child = (int*)gl_func_00000000(0x2C);
@@ -358,49 +348,101 @@ void titproc_uso_func_00000C54(int *a0, int a1) {
         *(int*)((char*)root + 0x28) = (int)&D_00000000;
     }
     *(int*)((char*)root + 0x28) = (int)&D_00000000;
-    gl_func_00000000();
     *(int*)((char*)root + 0x0C) = (int)((char*)&D_00000000 + 0x4B0);
-    gl_func_00000000(0);
-    *(int*)((char*)root + 0x50) = 0; /* v0 of last call */
-    *(int*)((char*)&D_00000000 + 0x138) = 0; /* same v0 */
-    {
-        int *s0;
-        s0 = (int*)gl_func_00000000(*(int*)((char*)root + 0x50), root);
-        t = *(int*)((char*)s0 + 0x14);
-        if (t == 0) *(int*)((char*)s0 + 0x4) = 1;
-        *(int*)((char*)s0 + 0x14) = (int)root;
-        *(int*)((char*)root + 0x54) = (int)s0;
+    gl_func_00000000();
+    gl_func_00000000();
+    *(int*)((char*)root + 0x50) = (int)gl_func_00000000(0);
+    *(int*)((char*)&D_00000000 + 0x138) = *(int*)((char*)root + 0x50);
+
+    gl_func_00000000(*(int*)((char*)root + 0x50));
+    link = (int*)((char*)root + 0x10);
+
+    sub = *(int**)((char*)root + 0x50);
+    gl_func_00000000(link, sub);
+    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
+    *(int*)((char*)sub + 0x14) = (int)root;
+    *(int*)((char*)root + 0x54) = (int)gl_func_00000000(0);
+
+    sub = *(int**)((char*)root + 0x54);
+    gl_func_00000000(link, sub);
+    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
+    *(int*)((char*)sub + 0x14) = (int)root;
+    if (*(int*)((char*)&D_00000000 + 0x18C) != 0) {
+        child = *(int**)((char*)root + 0x54);
+        vtable = *(int**)((char*)child + 0x28);
+        ((void(*)(int))*(int*)((char*)vtable + 0x5C))(
+            *(short*)((char*)vtable + 0x58) + (int)child);
     }
-    /* Pattern repeats for fields 0x58, 0x60, 0x64, 0x5C — each:
-     *   gl_func_00000000(prev_s0_or_arg) -> new s0;
-     *   if (s0->0x14 == 0) s0->0x4 = 1; s0->0x14 = root;
-     *   root->fieldN = s0;
-     * Indirect call inside via jalr t9. */
-    {
-        int *s0;
-        int *v0;
-        s0 = (int*)gl_func_00000000();
-        if (s0 != 0) {
-            v0 = (int*)*(int*)((char*)root + 0x54);
-            v0 = (int*)*(int*)((char*)v0 + 0x28);
-            ((void(*)(int))*(int*)((char*)v0 + 0x5C))(*(short*)((char*)v0 + 0x58));
-        }
-        gl_func_00000000(0);
-        *(int*)((char*)root + 0x58) = 0;
+    *(int*)((char*)root + 0x58) = (int)gl_func_00000000(0);
+
+    sub = *(int**)((char*)root + 0x58);
+    gl_func_00000000(link, sub);
+    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
+    *(int*)((char*)sub + 0x14) = (int)root;
+    *(int*)((char*)root + 0x60) = (int)gl_func_00000000(0);
+
+    sub = *(int**)((char*)root + 0x60);
+    gl_func_00000000(link, sub);
+    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
+    *(int*)((char*)sub + 0x14) = (int)root;
+    *(int*)((char*)root + 0x64) = (int)gl_func_00000000(0);
+
+    sub = *(int**)((char*)root + 0x64);
+    gl_func_00000000(link, sub);
+    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
+    *(int*)((char*)sub + 0x14) = (int)root;
+    *(int*)((char*)root + 0x5C) = (int)gl_func_00000000(0);
+
+    gl_func_00000000(*(int*)((char*)root + 0x5C), root);
+    gl_func_00000000(root);
+    *(int*)((char*)*(int**)((char*)root + 0x5C) + 0x30) =
+        gl_func_00000000(0, &D_00000000, 0x48, 0xDD, 3, 0xD);
+    *(float*)((char*)*(int**)((char*)root + 0x5C) + 0x74) = 17.0f;
+    gl_func_00000000(*(int*)((char*)root + 0x5C));
+    gl_func_00000000(*(int*)((char*)root + 0x5C));
+    *(int*)((char*)*(int**)((char*)root + 0x5C) + 0x7C) =
+        *(int*)((char*)&D_00000000 + 0x84);
+
+    sub = *(int**)((char*)root + 0x5C);
+    gl_func_00000000(link, sub);
+    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
+    *(int*)((char*)sub + 0x14) = (int)root;
+
+    global_child = *(int**)((char*)&D_00000000 + 0x190);
+    gl_func_00000000(link, global_child);
+    if (*(int*)((char*)global_child + 0x14) != 0) {
+        *(int*)((char*)global_child + 0x4) = 1;
     }
-    /* ... (remaining 4 alloc-bind iterations for 0x60, 0x64, 0x5C and final
-     * float setup with f4=17.0f — D_4188 = 0x41880000 = 17.0f). */
-    *(int*)((char*)root + 0x40) = 0;
-    *(int*)((char*)root + 0x3C) = 0;
-    *(int*)((char*)root + 0x68) = 0;
+    *(int*)((char*)global_child + 0x14) = (int)root;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
+
+    *(int*)((char*)root + 0x6C) = 5;
+    *(int*)((char*)root + 0x70) = 0x48;
+    *(int*)((char*)root + 0x74) = 15000;
+
+    if (*(int*)((char*)&D_00000000 + 0x88) != 0) {
+        *(int*)((char*)root + 0x40) = 0;
+        *(int*)((char*)root + 0x3C) = ((5 << 4) - 5) * 2;
+    } else {
+        *(int*)((char*)root + 0x40) = 1;
+        *(int*)((char*)root + 0x3C) =
+            ((*(int*)((char*)root + 0x70) << 4) - *(int*)((char*)root + 0x70)) * 2;
+        *(int*)((char*)root + 0x68) = 0;
+        *(int*)((char*)*(int**)((char*)root + 0x58) + 0x38) = 1;
+        *(int*)((char*)*(int**)((char*)root + 0x58) + 0x2C) = 0;
+        child = *(int**)((char*)root + 0x58);
+        vtable = *(int**)((char*)child + 0x28);
+        ((void(*)(int))*(int*)((char*)vtable + 0x5C))(
+            *(short*)((char*)vtable + 0x58) + (int)child);
+    }
+
     *(int*)((char*)&D_00000000 + 0x88) = 0;
     gl_func_00000000(&D_00000000, 0);
     *(int*)((char*)root + 0x2C) = 0;
     *(int*)((char*)root + 0x48) = 0;
     (void)a1;
 end:
-    return;
-    /* return root; */
+    return root;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000C54);
@@ -794,4 +836,3 @@ void titproc_uso_func_00002950(char *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002980);
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_00002980_pad.s")
-
