@@ -6483,7 +6483,44 @@ void gl_func_0006BA48(void) {
     gl_func_00000000(&D_00000000, 0, 0);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0006BA7C: 19-insn (0x4C) PI-DMA-wait + uncached-cart-read.
+ * Spin-waits while (a2 & 3) testing PI_STATUS_REG (0xA4600010) — bits 0
+ * and 1 are PI_STATUS_DMA_BUSY and PI_STATUS_IO_BUSY. Once PI is idle,
+ * reads the value at ((D_00000000 | a0) | 0xA0000000) — uncached KSEG1
+ * access — and stores it to *a1.
+ *
+ * D_00000000 here is the relocatable cartridge-segment base (gets
+ * resolved by the USO loader to e.g. 0x10000000+). The OR-with-a0
+ * computes a ROM-domain offset, OR-with-0xA0000000 puts it in KSEG1
+ * for cache-bypass read post-DMA.
+ *
+ * This is a direct-cart-read helper used after a PI DMA completes
+ * (caller passes a2 = previous PI_STATUS read; if non-busy already,
+ * skip the spin-wait).
+ *
+ * Caps at the byte level:
+ *   1. Stack frame: target has `addiu sp, -8` (leaf with no spills).
+ *      IDO -O2 from natural C produces no frame.
+ *   2. PI_STATUS_REG addressing: target uses `lui t8, 0xA460; lw a2,
+ *      0x10(t8)` (lui + signed-offset load). IDO emits `lui+ori; lw
+ *      0(p)` (full 32-bit materialization). Tried various constant-
+ *      fold tricks (raw, base+offset, ORed, extern-as-pointer): no
+ *      change. Likely needs a HW_REG-style macro or compiler flag.
+ *   3. bnez vs bnel: target spin-loop uses `bnez t9, -4; nop`. IDO
+ *      emits `bnel t7, $0, -2; lw a2(delay)` (branch-likely + delay-
+ *      load). Same scheduler quirk seen on EA98.
+ *
+ * NM-wrap with structural decode. Default INCLUDE_ASM matches bytes. */
+void gl_func_0006BA7C(int a0, int *a1, unsigned int a2) {
+    while (a2 & 3) {
+        a2 = *(volatile int*)0xA4600010;
+    }
+    *a1 = *(volatile int*)((((int)&D_00000000) | a0) | 0xA0000000);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BA7C);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BA7C_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BAD4);
