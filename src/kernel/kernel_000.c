@@ -866,7 +866,42 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800008F0);
  * line 383, 389, 409, etc.). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800009EC);
 
+#ifdef NON_MATCHING
+/* func_80000A88: 4-insn alt-entry preamble for func_80000A98.
+ *
+ * Body: `lui at, %hi(D_8000A2D8); lui s1, 0x8001; sw t6, %lo(D_8000A2D8)(at);
+ *        lw t7, 0x4(v0)` — NO prologue, NO jr ra, falls through into
+ * func_80000A98 (124-insn body). Caller's $ra survives to A98's epilogue.
+ *
+ * The asm reads $v0 and $t6 from the caller's state (carried over from
+ * `lw t6, 0(v0)` at the tail of func_800009EC) and primes $s1 with the
+ * high-half of 0x80010000 (used as a base reg in A98's body). Same cap
+ * class as `tail-fall-through alt-entry preamble` documented in
+ * docs/MATCHING_WORKFLOW.md#feedback-tail-fall-through-alt-entry-preamble.
+ *
+ * Caller (func_80001348) uses `func_80000A88(file, header[1])` 2-arg
+ * signature, but the asm body doesn't honor $a0/$a1 — those args flow
+ * into A98's body, not A88's preamble. This is a hidden alt-entry that
+ * also serves as a regular jal target (jal at func_800013D0).
+ *
+ * Cap: standard C cannot produce 4 insns with no jr ra that read
+ * caller's $v0/$t6 directly. Match paths:
+ *  - TRUNCATE_TEXT + INSN_PATCH writing the 4 insn words manually
+ *  - merge-fragments combining A88+A98 into a single 128-insn function
+ *    (would change A88's standalone-callable shape)
+ *  - inline asm at the call site triggering this preamble
+ *
+ * Default INCLUDE_ASM path produces correct bytes via the asm file. */
+void func_80000A88(void *p, s32 v) {
+    /* Decoded only as documentation — see comment above. The 4 insns
+     * cannot be expressed in standard C without altering the function's
+     * external-call signature or its no-jr-ra fall-through shape. */
+    (void)p;
+    (void)v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000A88);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000A98);
 
