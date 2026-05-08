@@ -2400,7 +2400,20 @@ void gl_func_0003E54C(int *a0, int a1) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E594);
+/* gl_func_0003E594: walks linked list a0->[0x2C].next... and for each node
+ * calls obj->fn(node + obj->off), where obj = node->[0x28], fn = obj->[0x64],
+ * off = obj->[0x60] (signed short). beql/bnel branch-likely loop. */
+typedef int (*gl_e594_fn_t)();
+void gl_func_0003E594(int *a0) {
+    int *node = (int*)*(int*)((char*)a0 + 0x2C);
+    if (node != 0) {
+        do {
+            int *obj = (int*)*(int*)((char*)node + 0x28);
+            ((gl_e594_fn_t)*(int*)((char*)obj + 0x64))(*(short*)((char*)obj + 0x60) + (char*)node);
+            node = (int*)*(int*)((char*)node + 0x30);
+        } while (node != 0);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E5E0);
 
