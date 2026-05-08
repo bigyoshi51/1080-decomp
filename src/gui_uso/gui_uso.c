@@ -768,7 +768,46 @@ void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003B80);
 #endif
 
+#ifdef NON_MATCHING
+/* gui_uso_func_00003F18: 137-insn / 0x224 prologue-less DL builder, sibling of
+ * gui_uso_func_00003B14 (the smaller 27-insn fillrect builder).
+ *
+ * STRUCTURAL CAP: function starts with 3 leading nops (0x3F18-0x3F20) AND
+ * has NO `addiu sp, -N` prologue / NO `addiu sp, +N` epilogue. Body uses
+ * sp+0xC..0x20 as scratch (caller's frame). C-emit always produces a
+ * frame even when empty, AND IDO never emits 3 leading nops from a void
+ * body, so plain C cannot match these structural shapes.
+ *
+ * Entry decode (post-leading-nops):
+ *   sw a3, 0xC(sp)              ; save a3 to caller's arg-save slot
+ *   v0 = a0->_C                 ; some DL state ptr
+ *   v1 = v0->_4                 ; current entry counter
+ *   v0->_4 = v1 + 1             ; bump
+ *   t6 = a3 & 0xFFF             ; arg masked to 12 bits
+ *   ... builds Gfx entry words from a1/a2/a3 + sp+0x10/0x14/0x18 ...
+ *   final entries store via t7 (= v0->_0 base + v1*8).
+ *
+ * Likely a G_TEXRECTFLIP or G_SETOTHERMODE-class command builder bundled
+ * with sibling 0x413C (which has the same body sans 3 leading nops) and
+ * 0x4354 (same again, sans nops). The 3-nop variant might be "shared
+ * backward-compatible entry that landed mid-cache-line" (alignment or
+ * cache-friendliness consideration).
+ *
+ * Recipe options for byte-match (none tried this tick):
+ *   1. Hand-written .s file in src/gui_uso/, removed from INCLUDE_ASM list,
+ *      compiled directly. Equivalent to keeping INCLUDE_ASM forever — no
+ *      C representation.
+ *   2. SUFFIX_BYTES on predecessor (gui_func_00003B80) injecting 3 nops
+ *      then this function emits without leading padding. Predecessor
+ *      already ends at 0x3F14, and 0x3F18 sits 4-byte aligned — adding
+ *      SUFFIX_BYTES of 3 nops to predecessor + matching successor's body
+ *      from its first non-nop insn could work. Untested.
+ *
+ * Stays INCLUDE_ASM until a recipe is verified. */
+void gui_uso_func_00003F18(int a0, int a1, int a2, int a3);
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000413C);
 
