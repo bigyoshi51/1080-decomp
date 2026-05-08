@@ -2281,7 +2281,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E968);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E9C8);
 
+#ifdef NON_MATCHING
+/* gl_func_0003EA98: 18-insn (0x48) linked-list lookup by key.
+ * Walks the list at a0->[0x2C] via 0x30 next-pointer; returns the first
+ * node whose [0x2C] field equals the search key (a1), or 0 if none.
+ *
+ * Standalone IDO -O2 of the natural body emits 16 insns (no stack frame
+ * needed — leaf, plenty of regs). Target has 18 insns + 0x10 frame +
+ * TWO sw a1 stores: one to sp+0x14 (caller's $a1 spill slot) and one to
+ * sp+4 (own frame), then loop reads of sp+4. This is unusual for a leaf
+ * function — suggests the original C had:
+ *   - `volatile int key` parameter (forces memory backing) — TRIED, gets
+ *     to 16 insns but missing the 0x10 frame + caller-slot store
+ *   - some struct-by-value param that occupies caller's a1 spill — TODO
+ *   - alt-entry that needs to preserve a1 across resume — possible
+ *
+ * Cap: 16-of-18-insn shape (= ~89%) achievable with `volatile int key`;
+ * remaining 2 insns + frame allocation requires reproducing the
+ * non-leaf-frame-allocation pattern. NM-wrap for grep + permuter seed. */
+void *gl_func_0003EA98(int *a0, int key) {
+    int *node;
+    node = (int*)a0[0x2C/4];
+    if (node == 0) return 0;
+    do {
+        if (node[0x2C/4] == key) return node;
+        node = (int*)node[0x30/4];
+    } while (node != 0);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EA98);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EAE0);
 
