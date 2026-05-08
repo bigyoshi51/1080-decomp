@@ -5391,7 +5391,13 @@ int gl_func_0006870C() {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068730);
+int gl_func_00068730(int *a0, int a1) {
+    gl_func_00000000(a0, a1);
+    {
+        int *row = (int*)((char*)a0[0x30/4] + (((unsigned int)a1 >> 16) << 4));
+        return ((int*)row[1])[a1 & 0xFFFF];
+    }
+}
 
 extern int gl_func_00000000();
 
