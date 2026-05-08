@@ -1021,17 +1021,24 @@ extern s32 D_80012D5C;
  * uses for naked `*(int*)&extern = 0` only when no addiu pre-add is
  * required. To force at-form for adjacent-extern stores, write each as
  * `(*(int*)&D_NAME) = 0` with NO array indexing. Reverted (no improvement
- * over baseline). */
+ * over baseline).
+ *
+ * 2026-05-08 (later2) 10th variant: explicit `*(s32*)&D_80012D5C = 0` casts
+ * + swapped end/ptr declaration order (end first). No effect — IDO still
+ * CSEs the &D_80012D5C between the naked-store and the `end = &...`
+ * assignment. Same 20-insn diff as 8th variant baseline. Cap holds.
+ * Kept anyway — the explicit-cast form is closer in style to target's
+ * naked-store pattern and may help future attempts read the diff. */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
 
-    D_80012D5C = 0;
-    D_80012D30 = 0;
-    D_80012D34 = 0;
-    D_80012D38 = 0;
-    ptr = D_80012D3C;
+    *(s32*)&D_80012D5C = 0;
+    *(s32*)&D_80012D30 = 0;
+    *(s32*)&D_80012D34 = 0;
+    *(s32*)&D_80012D38 = 0;
     end = &D_80012D5C;
+    ptr = D_80012D3C;
 loop:
     ptr += 4;
     ptr[-4] = 0;
