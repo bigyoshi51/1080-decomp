@@ -431,7 +431,21 @@ void gl_func_00006F90(int *a0) {
     gl_func_00000000(&D_00000000, 6, 0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007010);
+/* Sibling of gl_func_00006E78 (matched 2026-05-08): same 26-insn 4-call
+ * dispatch shape with different constants (0xF0/6/6/1 vs 0x140/2/5/3).
+ * Same named-local+inline-second-deref recipe from
+ * docs/IDO_CODEGEN.md#feedback-ido-v1-base-materialization-via-second-inline-deref. */
+void gl_func_00007010(int a0_passthrough) {
+    int *p;
+    gl_func_00000000(a0_passthrough, 0xF0, 6);
+    p = *(int**)((char*)&D_00000000 + 0x138);
+    p[0xB4/4] = 0;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
+    gl_func_00000000(6, 0, 0);
+    gl_func_00000000(&D_00000000, 6, 1, 0);
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00007078);
 
 /* gl_func_000070A0: F1 (9-insn 1-call wrapper) + 7 trailing 8-byte
  * `jr ra; sw a0, 0(sp)` empty stubs (0x5C total).
