@@ -708,7 +708,27 @@ void gui_func_0000329C(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
 #endif
 
+#ifdef NON_MATCHING
+/* gui_func_00003714: 256-insn / 0x400 RDP DL builder (originally bundled
+ * with a 27-insn trailing helper at 0x3B14, split-fragments output
+ * already INCLUDE_ASM-wired below).
+ *
+ * Same family entry shape as gui_func_0000329C / gui_func_00002DE0 /
+ * gui_func_00002BB0 — D_GUI_CTX deref, cursor bump on ctx[0xC]->[1],
+ * RDP 0xBB000001 + 0x80008000 segment-marker emit at slot 0.
+ *
+ * 4-arg signature, frame to be characterized in next pass. Multi-pass
+ * NM remains. Default INCLUDE_ASM keeps ROM exact. */
+void gui_func_00003714(int *a0, int a1, int a2, int a3) {
+    /* TODO: full body decode. Stub captures arg signature and
+     * RDP-builder family identity. Body has ~256 insns. */
+    (void)a0; (void)a1; (void)a2; (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003B14);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003B80);
 
