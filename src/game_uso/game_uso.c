@@ -6658,7 +6658,44 @@ void game_uso_func_00010650(void *a0, float arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010650);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00010694: 0x1AC (107 insns), 0x30-byte stack frame, saves
+ * s0+ra. Strategy-memo source-5 pick (game_uso, smallest fresh non-spine
+ * with no prior wrap). Per ~25-insn entry decode:
+ *   - Sets 3 fields in a0->0xB4 substruct (0xA18=1, 0x3DC=1, 0x960=0)
+ *   - Sets a0->0x114=2, a0->0x11C=1.0f
+ *   - Saves f0 = (a0->0xB4)->0x970 to sp+0x2C
+ *   - 3 cross-USO calls (gl_func_0(a0, ...) — first sets f0 arg via swc1
+ *     spill, second/third just pass a0)
+ *   - Then: |f0|; convert to double (cvt.d.s); load D-table double constant
+ *     at &D+0x250; double arithmetic with f2/f10 — likely sqrt/log/clamp
+ *   - ~80 more insns of double-prec math + cross-call sequence (still TODO)
+ *
+ * Entry pattern is "init substruct flags + cache float + dispatch + clamp".
+ * Likely a state-machine entry handler (key=2 from a0->0x114 = 2).
+ * Multi-pass NM, default INCLUDE_ASM keeps ROM exact. */
+extern int gl_func_00000000();
+void game_uso_func_00010694(int *a0) {
+    int *sub = (int*)a0[0xB4/4];
+    float saved_f0;
+    sub[0xA18/4] = 1;
+    a0[0x114/4] = 2;
+    sub = (int*)a0[0xB4/4];
+    sub[0x3DC/4] = 1;
+    sub = (int*)a0[0xB4/4];
+    *(float*)((char*)a0 + 0x11C) = 1.0f;
+    saved_f0 = *(float*)((char*)sub + 0x970);
+    gl_func_00000000(a0);
+    sub = (int*)a0[0xB4/4];
+    sub[0x960/4] = 0;
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+    /* TODO 0x60-end: |f0| + cvt.d.s + double arithmetic + ~80 more insns. */
+    (void)saved_f0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
 
