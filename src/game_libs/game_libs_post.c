@@ -2443,44 +2443,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E968);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E9C8);
 
-#ifdef NON_MATCHING
-/* gl_func_0003EA98: 18-insn (0x48) linked-list lookup by key.
- * Walks the list at a0->[0x2C] via 0x30 next-pointer; returns the first
- * node whose [0x2C] field equals the search key (a1), or 0 if none.
+/* gl_func_0003EA98: linked-list lookup by key. Walks list at a0->[0x2C]
+ * via 0x30 next-pointer; returns first node where node->[0x2C] == a1, or 0.
  *
- * Target has 18 insns + 0x10 frame + TWO sw a1 stores: one to sp+0x14
- * (caller's $a1 spill slot) and one to sp+4 (own frame), then loop reads
- * of sp+4. The first spill (caller-slot) and the early-exit's nop-delay
- * (vs IDO's natural bnel-likely with delay-load) are the remaining caps.
- *
- * Current: 82.89% fuzzy via `volatile int key + int pad1,pad2,pad3`
- * (frame 0x10 ✓, spill+reload of key from stack ✓). Remaining 2-3
- * instructions diverge:
- *   - target: beqz v1, +0xB; nop (delay)        early-exit
- *   - built:  bnel v1, $0, +4; lw t6, key(sp)   (delay-likely w/ reload)
- * IDO -O2's branch scheduler hoists the first iter's `lw key` into the
- * bnel-likely's delay slot. To match target's beqz+nop, would need to
- * either prevent that hoist OR force the loop entry to NOT be a likely-
- * delay-fillable shape.
- *
- * Also missing: target's leading `sw a1, 0x14(sp)` (caller-slot spill of
- * a1 itself, in addition to own-frame stack key). Looks like an unused-
- * arg-save-style emission, but a1 IS used as `key` here. Possible the
- * original had a varargs decl or some 3rd arg pattern that triggers it. */
+ * Match keys: (1) `volatile int *p = &a1;` forces a1 to be spilled at the
+ * caller's a1 slot (sp+0x14) — matches the leading `sw a1, 0x14(sp)`.
+ * (2) `volatile int key = a1;` declared INSIDE the if (node != 0) block
+ * pushes the own-frame spill AFTER the early-exit branch, so beqz+nop
+ * emits naturally instead of IDO's bnel-likely+delay-load. */
 void *gl_func_0003EA98(int *a0, int a1) {
-    int pad1, pad2, pad3;
-    volatile int key = a1;
+    volatile int *p = &a1;
     int *node = (int*)a0[0x2C/4];
-    if (node == 0) return 0;
-    do {
-        if (node[0x2C/4] == key) return node;
-        node = (int*)node[0x30/4];
-    } while (node != 0);
+    if (node != 0) {
+        volatile int key = a1;
+        do {
+            if (node[0x2C/4] == key) return node;
+            node = (int*)node[0x30/4];
+        } while (node != 0);
+    }
+    (void)p;
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EA98);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EAE0);
 
