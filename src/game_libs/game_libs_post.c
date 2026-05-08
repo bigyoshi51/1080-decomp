@@ -4095,6 +4095,21 @@ extern void gl_func_00054228_unreachable(int *a1) {
 #endif
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054228);
 
+/* gl_func_00054264: 214-insn (0x358) FPU-heavy Vec3-transform builder.
+ * Structural identification (2026-05-08, no C body decoded yet):
+ *   - Frame -0x78. Saves a0/a1/a2/a3 to sp+0x78..0x84 (preserving args
+ *     across the body's heavy FPU use). 2 jal's right at top via a 0x0
+ *     placeholder (cross-USO calls).
+ *   - Body builds three Vec3 outputs (`*a3+0`, `*a3+4`, `*a3+8`) from
+ *     three input Vec3s indexed by `a2 * stride` from `a0->_60` and
+ *     `a0->_68` arrays. Uses `c.lt.s` + `bc1tl` branch-likelies and
+ *     min/max-style FPU ops (`46801120/46801420/46802480` mul/add chains).
+ *   - Pattern resembles a "world-space Vec3 → normalized output" helper
+ *     for AI/physics. Multiple Vec3 stack temps (sp+0x40..0x60 region).
+ *
+ * Multi-tick decode pending. ~214 insns of dense FPU math; NM grind for
+ * register allocation likely needed once structure is mapped. Default
+ * INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054264);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000545BC);
