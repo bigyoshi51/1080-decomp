@@ -6559,17 +6559,17 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
  *   - register-name offset (mine v0/t7/t8, expected t7/t8/t9) on the bit-test
  *     chain. Multi-pass NM.
  *
- * 2026-05-08 LEVER TESTS (both negative):
+ * 2026-05-08 LEVER TESTS (all negative):
  *   (1) lift `int *sub = a0->0xB4;` BEFORE the if-block (per
  *       docs/IDO_CODEGEN.md "lift unconditional init"): 90.40% → 74.53%
  *       (-15.87pp). IDO promoted `sub` to a longer-lived value, shifting
  *       allocations.
  *   (2) duplicate `a0[0x114] = 2;` into both if/else arms: 90.40% → 76.57%
  *       (-13.83pp). Extra stores break the schedule.
- * Don't try either lever again on this function. The cap is the missing
- * shadow-arg spills `sw a1,0x4(sp); sw a2,0x8(sp)` before/in jal #2 —
- * documented unreachable from C without unspecified-arg or variadic
- * extern declaration changes (feedback_ido_precall_arg_spill_unreachable). */
+ *   (3) full unwrap (no #ifdef): scored 90.40% — same as wrapped (NOT an
+ *       objdiff alias artifact; cap is REAL, not the reloc-encoding class
+ *       that 21E58/61E58/32C8 had). Cap genuinely needs the shadow-arg-spill
+ *       lever which is unreachable from C. */
 void game_uso_func_0000F49C(int *a0) {
     int *flags_ptr = (int*)a0[0xF4/4];
     int *sub;
