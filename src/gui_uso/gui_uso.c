@@ -728,7 +728,45 @@ void gui_func_00003714(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
 #endif
 
+#ifdef NON_MATCHING
+/* gui_uso_func_00003B14: 27-insn / 0x6C RDP G_FILLRECT display-list builder.
+ * 0xF6 << 24 = G_FILLRECT command word (per F3DEX2 gbi.h).
+ *
+ * Structure (a0 unused, defensively saved at sp+0; a1=ulx, a2=uly, a3=lrx,
+ * arg5=lry):
+ *   GameState *gs = *(GameState**)&D_00000000;
+ *   DLState *dlp = gs->n0xC;     // ptr to DL state struct
+ *   int idx = dlp->n4;            // current entry index
+ *   dlp->n4 = idx + 1;            // bump counter
+ *   int *entry = dlp->n0 + idx*2; // 8-byte Gfx entry
+ *   entry[0] = 0xF6000000 | ((lrx & 0x3FF) << 14) | ((lry & 0x3FF) << 2);
+ *   entry[1] = ((ulx & 0x3FF) << 14) | ((uly & 0x3FF) << 2);
+ *
+ * Asm has TWO `lw $vN, 0xC($v0)` loads (one per scratch reg) — IDO scheduler
+ * re-fetches dlp via a fresh register rather than CSE-ing. Cap class:
+ * struct-typed C tends to CSE the dlp load, missing the 2-emit pattern.
+ * Multi-tick refinement expected. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
+    int *gs;
+    int *dlp;
+    int idx;
+    int *base;
+    int *entry;
+    (void)a0;
+    gs = *(int**)&D_00000000;
+    dlp = (int*)gs[3];
+    idx = dlp[1];
+    dlp[1] = idx + 1;
+    base = (int*)((int*)gs[3])[0];
+    entry = base + idx * 2;
+    entry[0] = 0xF6000000 | ((a3 & 0x3FF) << 14) | ((arg5 & 0x3FF) << 2);
+    entry[1] = ((a1 & 0x3FF) << 14) | ((a2 & 0x3FF) << 2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003B14);
+#endif
 
 #ifdef NON_MATCHING
 /* gui_func_00003B80: 230-insn / 0x398 RDP DL builder (originally bundled
