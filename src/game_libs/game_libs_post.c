@@ -448,7 +448,76 @@ void gl_func_00024B94(int *a0) {
     *(char*)v0 &= 0xF3;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00024C08: 98-insn two-slot state pump. Sibling of the recently
+ * matched 24B28/24B94 lookup helpers and continues the same D+0x157C record
+ * family.
+ *
+ * Decoded structure:
+ *   for two 0x64-byte records at D+0x157C and D+0x15E0:
+ *     state = record[0x14] via D+0x1590/0x15F4
+ *     state 2 optionally primes record+0x30, unless caller arg forces state 3
+ *     state 1/2 then drains record[0x18] in 0x400-byte chunks through
+ *     alt-entry helpers inside gl_func_00039094/gl_func_000393B8
+ *
+ * This first pass keeps the exact control-flow shape in readable C but does
+ * not try to solve the alt-entry calls or register allocation. */
+extern int func_00039200();
+extern int func_000393FC();
+extern int func_00039480();
+void gl_func_00024C08(int arg0) {
+    char *slot;
+    char *record;
+    char *end;
+    int remaining;
+    int state;
+
+    end = (char*)&D_00000000 + 0xC8;
+    for (slot = (char*)&D_00000000; slot != end; slot += 0x64) {
+        state = *(int*)(slot + 0x1590);
+        if (state == 1) {
+            record = slot + 0x157C;
+        } else if (state == 2) {
+            record = slot + 0x157C;
+            if (((unsigned char*)record)[0] != 1) {
+                gl_func_00000000(record + 0x30, 0, 1);
+            }
+            if (arg0 != 0) {
+                *(int*)(record + 0x14) = 3;
+                continue;
+            }
+        } else {
+            continue;
+        }
+
+        remaining = *(int*)(record + 0x18);
+        *(int*)(record + 0x14) = 2;
+        if (remaining == 0) {
+            func_00039200(record);
+            *(int*)(record + 0x14) = 3;
+            *(char*)(*(int*)(record + 0x1C)) = 1;
+        } else if (remaining < 0x400) {
+            if (((unsigned char*)record)[0] == 1) {
+                func_00039480(*(int*)(record + 8), *(int*)(record + 0xC), remaining, *(int*)(record + 4));
+            } else {
+                func_000393FC(record, remaining);
+            }
+            *(int*)(record + 0x18) = 0;
+        } else {
+            if (((unsigned char*)record)[0] == 1) {
+                func_00039480(*(int*)(record + 8), *(int*)(record + 0xC), 0x400, *(int*)(record + 4));
+            } else {
+                func_000393FC(record, 0x400);
+            }
+            *(int*)(record + 0x18) = remaining - 0x400;
+            *(int*)(record + 0xC) += 0x400;
+            *(int*)(record + 8) += 0x400;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024C08);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024D90);
 
