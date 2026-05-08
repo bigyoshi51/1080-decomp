@@ -928,7 +928,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  * the spliced bytes still wouldn't carry valid runtime semantics for the
  * non-$at base register IDO insists on. **Confirmed dead-end via current
  * IDO + asm-processor pipeline.** Leaving as-is for permuter / future
- * compiler-update revisit. */
+ * compiler-update revisit.
+ *
+ * 2026-05-08 agent-f iteration: retried the volatile store form
+ * (`volatile int *p = &D_00000000; *p = 8; *p = 8;`). It reaches the
+ * target's 0x68-byte size but emits the setup before the stack prologue:
+ *   lui v0; addiu v0; addiu v1,8; addiu sp; sw v1,0(v0) ...
+ * That is worse than the current body for promotion: PROLOGUE_STEALS=12
+ * leaves the second store in the wrong slot, while exacting it up would
+ * require rewriting most of the function body via INSN_PATCH. */
 extern int D_2D7D0_arr;
 void gl_func_0002D7D0(void) {
     gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[8]);
