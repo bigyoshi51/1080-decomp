@@ -113,7 +113,17 @@ extern s32 D_80012D5C;
  * pattern (5/26, regressed harder — IDO still lets new_top win $v0).
  * Both alternatives shorten the function further by combining the
  * preemptive set into the branch delay slot. No tested C shape forces
- * IDO to emit the +1-insn longer "preemptive set + nop delay" pattern. */
+ * IDO to emit the +1-insn longer "preemptive set + nop delay" pattern.
+ *
+ * 2026-05-08 — additional negative attempts:
+ *   (a) `if (new_top < D_8000A2DC) return result; return 0;` (flipped
+ *       condition with early-return success): 91.15% → 88.65% (-2.5pp).
+ *   (b) `ret = result; if (new_top >= D_8000A2DC) ret = 0; return ret;`
+ *       (explicit ret local to force preemptive set): 91.15% → 85.38%
+ *       (-5.8pp). IDO collapses `ret` into `result` and emits the same
+ *       shortened branch-delay pattern.
+ * Both retests confirm the shape cap. The 91.15% wrap is the local maximum
+ * for naturally-emitted IDO -O2 with current REG_ALLOC_ORDER constraints. */
 u32 func_800000B0(u32 size, u32 alignment) {
     u32 mask;
     u32 result;
