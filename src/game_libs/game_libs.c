@@ -445,7 +445,12 @@ void gl_func_00007010(int a0_passthrough) {
     gl_func_00000000(&D_00000000, 6, 1, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00007078);
+/* 4-function bundle 0x7078..0x709F split via split-fragments.py 2026-05-08:
+ * 2x save-arg sentinels + 2x return-1 stubs. */
+void game_libs_func_00007078(int a0) {}
+void game_libs_func_00007080(int a0) {}
+int  game_libs_func_00007088(int a0) { return 1; }
+int  game_libs_func_00007094(int a0) { return 1; }
 
 /* gl_func_000070A0: F1 (9-insn 1-call wrapper) + 7 trailing 8-byte
  * `jr ra; sw a0, 0(sp)` empty stubs (0x5C total).
