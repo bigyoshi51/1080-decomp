@@ -1745,20 +1745,35 @@ void func_0000E9A4(Quad4 *dst) {
  * instead of `%lo(D_00000028)`). That variant emits 2 luis + 2 addius for
  * the func_00000008-base computation (vs target's 1 lui + 1 addiu via
  * splat-fold), growing the function from 12 → 13 insns and worsening the
- * diff count from 3 → 9. The splat-folded `func_00000008+0x20` reloc form
- * is only producible from a `D_00000028` extern that splat then folds at
- * splat time, OR from accessing into `func_00000008` directly — but IDO
- * emits a normal full-reloc-pair sequence for the latter. No C-level
- * lever produces the splat-folded compact form. Reverted.
+ * diff count from 3 → 9.
  *
- * Cap class: NM-86 (2 reloc-form scheduling-flips + 1 splat-fold) per
+ * 2026-05-08 — UPDATE: the prior conclusion was wrong. The 13-insn variant
+ * came from `extern int func_00000008(void)` (function-decl). Re-tried with
+ * `extern char func_00000008;` (DATA-decl) + `*(int*)(&func_00000008+0x20)`,
+ * which DOES produce the splat-folded compact form: 12 insns, single
+ * `lui at, %hi(func_00000008); sw t6, 0x20(at)` pair, byte-equivalent to
+ * target's reloc form. Function-vs-data decl distinction matters because
+ * IDO treats function symbols as needing absolute address materialization
+ * (forces a separate %hi+%lo pair), while data symbols can fold the
+ * +constant offset into the %lo immediate.
+ *
+ * After the fix the only remaining diff is the prologue lui/sw scheduling
+ * (target: lui a0 then sw ra; built: sw ra then lui a0) — 2 swapped insns
+ * out of 12 = 83.33% fuzzy. The splat-fold cap is RESOLVED; 2 of 3 diffs
+ * remain.
+ *
+ * Cap class: NM-83 (2 prologue-scheduling swaps) per
  * feedback_ido_o2_tiny_wrapper_unflippable.md. */
 extern char D_func_0000E9FC_arg1;
 extern char D_func_0000E9FC_arg2;
-extern int D_00000028;
+extern char func_00000008;   /* declared as DATA (char), not function — see
+                                2026-05-08 finding below: char-decl produces
+                                inline-folded `lui at, %hi(func_00000008);
+                                sw t6, 0x20(at)` (12 insns); function-decl
+                                forces a separate %hi+%lo pair (14 insns). */
 void func_0000E9FC(void) {
     func_00000000(&D_func_0000E9FC_arg1);
-    D_00000028 = (int)&D_func_0000E9FC_arg2;
+    *(int*)(&func_00000008 + 0x20) = (int)&D_func_0000E9FC_arg2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E9FC);
