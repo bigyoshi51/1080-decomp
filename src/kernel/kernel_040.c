@@ -61,4 +61,30 @@ void func_800080D0(s32* arg0, s32* arg1) {
  *
  * Default INCLUDE_ASM build remains exact. Documented for future-pass
  * Ghidra-assisted decode + permuter exploration. */
+#ifdef NON_MATCHING
+void func_8000817C(void) {
+    s32 *saved_a = (s32 *)rmonbrk_bss_0000;
+
+    if (saved_a != NULL) {
+        if ((*saved_a & 0xFC00003F) == 0xD) {
+            *saved_a = *((s32 *)((char *)&rmonbrk_bss_0000 + 4));
+            func_800031F0((void *)rmonbrk_bss_0000, 4);
+            func_80005350((void *)rmonbrk_bss_0000, 4);
+        }
+        rmonbrk_bss_0000 = 0;
+    }
+
+    if (D_8001FEF0 != 0) {
+        s32 *saved_b = (s32 *)D_8001FEF0;
+
+        if ((*saved_b & 0xFC00003F) == 0xD) {
+            *saved_b = D_8001FEF4;
+            func_800031F0((void *)D_8001FEF0, 4);
+            func_80005350((void *)D_8001FEF0, 4);
+        }
+        D_8001FEF0 = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000817C);
+#endif
