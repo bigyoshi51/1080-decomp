@@ -4620,6 +4620,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054144);
 
+#ifdef NON_MATCHING
 /* gl_func_00054228: 15-insn function INHERITS $t9 and $t1 from predecessor
  * game_libs_func_00054144's tail (split off from gl_func_00053C04 bundle
  * 2026-05-08; the old comment referencing 53C04 is updated for the new
@@ -4634,46 +4635,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054144);
  * floats and stores via *a1 / *(a1+4) / *(a1+8). The pattern is a
  * generic int-to-float marshaller for a Vec3 source.
  *
- * BLOCKED for clean C: chained-SUFFIX inheritance pattern, same class as
- * gl_func_0005165C and the gl_func_0000B5AC/B638 family
- * (docs/POST_CC_RECIPES.md "HI/LO register inheritance" → extended to GP-
- * register inheritance). External `jal gl_func_00054228` callers would
- * see uninitialized $t9, but the predecessor-fallthrough flow has $t9 set.
- * Default INCLUDE_ASM matches; can't be standalone-decompiled.
+ * Cap class: chained-SUFFIX register inheritance — predecessor falls
+ * through into successor with $t9, $t1 set up from predecessor's
+ * computation. Same family as gl_func_0005165C and gl_func_0000B5AC/B638
+ * (docs/POST_CC_RECIPES.md "HI/LO register inheritance" → extended to
+ * GP-register inheritance).
  *
- * Body decode (post-stolen-prologue, t1 = *(a0->[0x54] + a2*60) inherited):
- *   stack[0xC] = t1                ; sw inherited t1
- *   stack[0x10] = *(t9 + 4)        ; t0 = *(t9+4); store at sp+0x10
- *   stack[0x14] = *(t9 + 8)        ; t1 = *(t9+8); store at sp+0x14
- *   *(float*)a1     = *(float*)stack[0xC]   ; reinterpret int bits as float
- *   *(float*)(a1+4) = *(float*)stack[0x10]
- *   *(float*)(a1+8) = *(float*)stack[0x14]
- * Effectively: 3-word int-to-float reinterpret marshaller, copying a Vec3
- * worth of int-encoded floats from a0->[0x54][a2 * 15] (12-byte stride
- * within a 60-byte record) into *a1.
+ * Why this isn't byte-exactable from C alone:
+ * - Standard PROLOGUE_STEALS recipe is gated to LUI-led prefixes (opcode
+ *   0x0F) per docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-only-
+ *   splice-restriction. Our function's first insn is `addiu sp, sp,
+ *   -0x20` (opcode 0x09) — splice silently no-ops.
+ * - SUFFIX_BYTES on predecessor is blocked because the predecessor
+ *   (game_libs_func_00054144) is itself INCLUDE_ASM, not C-emit; you
+ *   can't add SUFFIX_BYTES to a function whose bytes you don't own.
+ * - The standalone C below extends the signature `(int *a0, int *a1,
+ *   int a2)` so callers' a0/a2 land in arg-regs and the body recomputes
+ *   t9. This emits the predecessor's 6-insn tail INLINE inside the
+ *   successor — wrong for fall-through callers (now duplicated) but
+ *   correct for explicit jal callers.
  *
- * 2026-05-08: upgraded bare INCLUDE_ASM to NM wrap (#if 0-bracketed) per
- * Tick #10 "preserve partial C, don't delete it". The body can't compile
- * (would reference uninitialized t1/t9 if standalone) so it stays under
- * `#if 0` for grep + future-permuter discoverability rather than
- * `#ifdef NON_MATCHING` (which would compile + crash). */
-#if 0
-/* Standalone-uncompilable — t1, t9 inherited from predecessor.
- * Documented for grep-discoverability + structural-decode reference. */
-extern void gl_func_00054228_unreachable(int *a1) {
-    /* int t1 = inherited;            // from predecessor
-     * int *t9 = inherited_base;      // from predecessor
-     * int stack[3];
-     * stack[0] = t1;
-     * stack[1] = t9[1];
-     * stack[2] = t9[2];
-     * *(float*)a1     = *(float*)&stack[0];
-     * *(float*)(a1+1) = *(float*)&stack[1];
-     * *(float*)(a1+2) = *(float*)&stack[2];
-     */
+ * 2026-05-08 update: promoted from `#if 0`-skipped to `#ifdef NON_MATCHING`
+ * (per Tick #10 "preserve partial C") with the extended signature so the
+ * body compiles and is permuter-testable. Default INCLUDE_ASM build path
+ * remains byte-correct via the `#else` branch. The fuzzy reading on the
+ * NON_MATCHING build will be low (~30-40%) because the C body emits the
+ * redundant predecessor-tail recomputation, but the structural decode is
+ * preserved for future passes. */
+void gl_func_00054228(int *a0, int *a1, int a2) {
+    int *src = (int*)*(int*)((char*)a0 + 0x54) + a2 * 15;
+    int stack[3];
+    stack[0] = *src;
+    stack[1] = src[1];
+    stack[2] = src[2];
+    *(float*)a1     = *(float*)&stack[0];
+    *(float*)((char*)a1 + 4) = *(float*)&stack[1];
+    *(float*)((char*)a1 + 8) = *(float*)&stack[2];
 }
-#endif
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054228);
+#endif
 
 /* gl_func_00054264: 214-insn (0x358) FPU-heavy Vec3-transform builder.
  * Structural identification (2026-05-08, no C body decoded yet):
