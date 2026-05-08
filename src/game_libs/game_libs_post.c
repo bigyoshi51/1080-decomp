@@ -805,7 +805,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  * emits up front, but the spliced .o then has `sw $v1, 0($v0)` accessing
  * uninitialized $v1 at runtime (predecessor only sets $v0/$at). C-level
  * register-pinning isn't possible (`register T x asm("$N")` rejected by
- * IDO per feedback_ido_no_gcc_register_asm). Reverted; cap stands. */
+ * IDO per feedback_ido_no_gcc_register_asm). Reverted; cap stands.
+ *
+ * 2026-05-08 re-verify: diff unchanged from 2026-05-07. Built has 11 insns
+ * before the first jal (prologue + 4-arg-setup), target has 8 insns (prologue
+ * + 2 stolen-stores + 1 a1-load-via-fresh-lui-pair-CSE'd-from-leading-store).
+ * The 3-insn delta matches the 12-byte PROLOGUE_STEALS suggestion above, but
+ * the spliced bytes still wouldn't carry valid runtime semantics for the
+ * non-$at base register IDO insists on. **Confirmed dead-end via current
+ * IDO + asm-processor pipeline.** Leaving as-is for permuter / future
+ * compiler-update revisit. */
 extern int D_2D7D0_arr;
 void gl_func_0002D7D0(void) {
     gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[8]);
