@@ -4051,13 +4051,28 @@ trunk:
      * 0x04 / 0x08 / 0x10 are dispatch-cascade-only — verified
      * 2026-05-07 by walking 0x7740-0x7990 of the asm.
      *
-     * Status 2026-05-07: 48.59% (was 44.25% pre-f0-thread-through).
+     * Status 2026-05-08: 48.81% (incrementally up from 48.59% on 2026-05-07).
      * Remaining 51% is structural: built saves $s0 (frame -0x28) where
-     * target uses no s-regs (frame -0x18). Built's `outer` /
-     * `register int *t` locals get promoted to $s0 because they survive
-     * cross-USO calls. To match target's no-saved-reg shape, restructure
-     * to reload `outer = a0->[0x30]` at each use AND inline `&D[0xE58]`
-     * per-call rather than caching. Multi-tick refinement target. */
+     * target uses NO stack frame at all (target is a pure leaf — verified
+     * 2026-05-08 via `grep -E "0C[0-9A-F]{6}" <asm>` returning ZERO matches,
+     * i.e., no jal opcodes anywhere). Target compiles as a leaf using only
+     * caller-save regs ($a2/$a3/$v0/$v1/$t-regs) for the entire body.
+     *
+     * Built's `outer` / `register int *t` locals get promoted to $s0
+     * because their live ranges span the goto-cascade (multiple arms each
+     * `outer = (int*)a0[0x30/4]; ... goto trunk;`). Even with no jal calls,
+     * IDO -O2's allocator decides $s0 is the cheapest slot for a value
+     * referenced 5+ times across cascading basic blocks.
+     *
+     * Path to break the cap (multi-tick — destructive refactor):
+     * (a) Eliminate the `outer` named local entirely. Inline
+     *     `(int*)a0[0x30/4]` (or its `[0x938/4]` deref) at EACH use site.
+     *     This breaks IDO's CSE / common-allocno promotion path.
+     * (b) Replace `goto trunk` from each arm with explicit `if/else if`
+     *     control flow so the dispatch cascade has no shared join point
+     *     (each arm's life range becomes independent).
+     * (c) Verify the leaf-shape (no stack frame) emerges, then re-grind
+     *     per-arm body. Likely +30-50pp gain in one swoop. */
 
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
