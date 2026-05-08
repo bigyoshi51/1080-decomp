@@ -1870,7 +1870,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A04);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A9C);
 
+#ifdef NON_MATCHING
+/* gl_func_00039B0C: 19-insn float-Vec3-copy + 2 alt-entry jal dispatches.
+ *   Copies a0->{0x5C,0x60,0x64} to local sp+0x24..0x2F (Vec3 buf).
+ *   Calls gl_func_0004C3B4(&buf, a0_orig);
+ *   Calls gl_func_0004C414(a0_orig + 0x6C, a0_orig);
+ *
+ * Logic byte-correct, but the 2 jals target alt-entry offsets INSIDE
+ * gl_func_0004C300's body (0x4C3B4 = 0x4C300+0xB4; 0x4C414 = 0x4C300+0x114),
+ * which are NOT defined as separate symbols. Without adding entries to
+ * undefined_syms_auto.txt (intrusive shared-file edit) the jal relocations
+ * can't resolve, so this stays NM. Same alt-entry-jal blocker class as
+ * h2hproc 1204 etc.
+ *
+ * Multi-pass NM. */
+void gl_func_00039B0C(int *a0) {
+    float buf[3];
+    buf[0] = *(float*)((char*)a0 + 0x5C);
+    buf[1] = *(float*)((char*)a0 + 0x60);
+    buf[2] = *(float*)((char*)a0 + 0x64);
+    /* gl_func_0004C3B4(buf, a0); */
+    /* gl_func_0004C414((char*)a0 + 0x6C, a0); */
+    (void)buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B0C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B58);
 
