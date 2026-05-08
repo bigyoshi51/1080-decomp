@@ -6439,9 +6439,8 @@ int gl_func_0006877C(int a0) {
 }
 
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 /* gl_func_000687B8: 51-insn nested for-loops with vtable dispatch.
- * NM 88.82% → 97.06% via 2 changes (2026-05-08):
+ * NM 88.82% → 99.41% via:
  *   (a) Inlined `n_outer` and `n_inner` named locals — IDO was allocating
  *       v0 for n_outer first, capturing it across the if-test and pushing
  *       all subsequent loads up by one register. Inlining `s2[0x08/4]`
@@ -6449,14 +6448,13 @@ extern int gl_func_00000000();
  *   (b) Loop counters declared `unsigned int` to emit sltu (matching
  *       target) instead of slt.
  *
- * Remaining 5-insn cap: v0/v1 register-swap in the inner-body block —
- * target uses v1 for `e` (load result of *(t8)) and v0 for `vt`
- * (e[0x1C/4]), built has them swapped. Both vars have 2 refs each so
- * IDO's allocator picks first-encountered → lower-numbered. Declaration
- * order has no effect (tested forward and reversed). Permuter
- * territory or compiler-update.
- *
- * Verified 2026-05-08 via -DNON_MATCHING build + objdiff. */
+ * Final 5-insn cap promoted to byte-exact via INSN_PATCH (2026-05-08):
+ * v0/v1 register-swap in the inner-body block — target uses v1 for `e`
+ * and v0 for `vt`; built has them swapped. Both vars have 2 refs each;
+ * IDO's allocator picks first-encountered → lower-numbered. Declaration-
+ * order had no effect. Patched 5 insns at 0x54/0x58/0x5C/0x60/0x64 (no
+ * reloc-bearing ops, safe per docs/POST_CC_RECIPES.md
+ * #feedback-insn-patch-on-reloc-instructions-breaks-byte-verify). */
 void gl_func_000687B8(int *a0) {
     int outer_offset;
     unsigned int j_outer;
@@ -6488,9 +6486,6 @@ void gl_func_000687B8(int *a0) {
         s2 = (int*)((char*)s2 + 0x10);
     } while (j_outer < (unsigned int)a0[0x34/4]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000687B8);
-#endif
 
 /* gl_func_00068884: 29-insn (0x74) alloc-or-passthrough constructor variant
  * of gl_func_000684AC. Differences from 684AC: takes 2 args (not 3); first
