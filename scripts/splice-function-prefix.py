@@ -273,6 +273,11 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
         #               (PROLOGUE_STEALS=4 — verified 2026-05-06 on
         #               timproc_uso_b5_func_00003F5C, where the stolen-
         #               prologue insn is `lw t6, 0x23C($a0)`)
+        #   0x0C = ANDI: 1-insn `andi rN, aN, 0xFF` byte-mask-from-arg
+        #               (PROLOGUE_STEALS=4 — verified 2026-05-08 on
+        #               gl_func_00027548, where the stolen-prologue insn
+        #               is `andi t6, a0, 0xFF` and the successor packs
+        #               4 bytes into a Gfx-command word using t6).
         # INCLUDE_ASM .o first insn is the asm prologue (typically
         # 0x09=ADDIU `addiu sp, sp, -N`), which doesn't match either, so
         # the skip fires correctly.
@@ -282,8 +287,8 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
         second_word = struct.unpack(">I", bytes(elf.data[text_off + 4:text_off + 8]))[0]
         opcode1 = (first_word >> 26) & 0x3F
         opcode2 = (second_word >> 26) & 0x3F
-        if opcode1 not in (0x0F, 0x23):  # not LUI or LW — likely INCLUDE_ASM-built
-            print(f"splice-skip: {func_name} doesn't start with LUI/LW "
+        if opcode1 not in (0x0F, 0x23, 0x0C):  # LUI / LW / ANDI — known prefix forms
+            print(f"splice-skip: {func_name} doesn't start with LUI/LW/ANDI "
                   f"(word={first_word:#010x}); leaving as-is "
                   f"(probably an INCLUDE_ASM build path)", file=sys.stderr)
             return
