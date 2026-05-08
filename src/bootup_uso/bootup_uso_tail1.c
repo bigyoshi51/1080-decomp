@@ -57,10 +57,26 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FD4C);
  * still emits the same 11-insn t-reg-only shape (frame -0x18, no s0 spill,
  * no dead `b +1; nop` marker), so the -O0 file-split blocker remains.
  *
+ * 2026-05-08 (later): exhaustive -O0 standalone test of 4 C-body variants
+ * (register-p, register-a0, register-p+register-off named locals, typed
+ * struct accessor). All produce 19-insn frame-0x28 emit vs target's 18
+ * insns. Target form has SINGLE reload of a0 reused for both
+ * `lw s0, 0x28(t6)` and `addu a0, t7, t6`; my variants all emit a SECOND
+ * reload `lw t8, 0x28(sp)` before the addu. IDO -O0 doesn't peephole-
+ * combine adjacent uses of an already-loaded stack value — each source-
+ * level use of `a0` produces an independent reload.
+ *
+ * Closest variant (v2): `void func_0000FEA0(register char *a0) { register
+ * char *p = *(char**)(a0 + 0x28); ((void(*)(char*))*(int*)(p + 0x64))
+ * (a0 + *(short*)(p + 0x60)); }` — 19 insns, +4 bytes vs target. The
+ * extra `lw t8, 40(sp); addu a0, t7, t8` pair could be patched away via
+ * INSN_PATCH (replace the 2 insns with `nop; addu a0, t7, t6`) +
+ * SUFFIX_BYTES=-4 (shrink), but that requires a TRUNCATE_TEXT shim.
+ *
  * Promotion path: file split per feedback_o0_cluster_split_with_layout_shim.md
  * (create src/bootup_uso/bootup_uso_o0_FEA0.c with -O0 OPT_FLAGS, update
- * linker script). Deferred — file-split infra change is heavier than
- * one-tick scope. */
+ * linker script) PLUS a 2-insn INSN_PATCH to collapse the redundant
+ * a0-reload. Deferred — heavier than one-tick scope. */
 void func_0000FEA0(char *a0) {
     register char *self = a0;
     char *p = *(char**)(self + 0x28);
