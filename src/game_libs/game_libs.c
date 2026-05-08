@@ -816,13 +816,16 @@ int gl_func_00008884(char *a0) {
  * spill allocator already has 32 bytes of "slack" with the existing 4
  * spill slots, so an 8-16 byte unused array fits without growing; OR
  * (b) IDO's frame-rounding heuristic only kicks in for larger arrays.
- * The ptr-in-a2 vs ptr-in-v1 reg-assign cap remains the dominant gap;
- * regalloc or INSN_PATCH the only paths forward. Cap stays at 89.17%. */
+ * 2026-05-08 follow-up: fixed GlConstructed padding so field_28/field_3C
+ * compile at the target offsets, and split `ret` from `ptr` to grow the
+ * C-body frame to 0x28 without an extra store. Remaining cap is the
+ * ptr-in-a2 vs target ptr-in-v1 allocation plus a beqzl-vs-beqz layout in the
+ * existing-link branch. Objdiff C-body score: 88.83%. */
 struct GlConstructed {
     char pad[0x10];          /* embedded array passed to link() */
-    char pad2[0x10 - 4];
+    char pad2[0x18];
     int *field_28;           /* set to &D_00000000 */
-    char pad3[0x14 - 4];
+    char pad3[0x10];
     int field_3C;            /* set to 0 */
 };
 struct GlOrig {
@@ -838,6 +841,7 @@ struct GlExisting {
 extern int gl_func_00000000();
 struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
     struct GlConstructed *ptr;
+    struct GlConstructed *ret;
     struct GlExisting *existing;
     ptr = (struct GlConstructed *)gl_func_00000000(0x40);
     if (ptr != 0) {
@@ -845,15 +849,15 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
         ptr->field_28 = (int *)&D_00000000;
         ptr->field_3C = 0;
     }
-    existing = orig->field_40;
-    if (existing != 0) {
-        gl_func_00000000((char *)ptr + 0x10, existing);
+    ret = ptr;
+    if ((existing = orig->field_40) != 0) {
+        gl_func_00000000((char *)ret + 0x10, existing);
         if (existing->field_14 != 0) {
             existing->field_4 = 1;
         }
-        existing->field_14 = ptr;
+        existing->field_14 = ret;
     }
-    return ptr;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
