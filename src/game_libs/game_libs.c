@@ -880,7 +880,12 @@ int gl_func_00008884(char *a0) {
  * state, despite identical C source. The sibling-port test recipe
  * (docs/MATCHING_WORKFLOW.md#feedback-port-matched-sibling-c-before-
  * trusting-frame-regalloc-cap-claim) has a SCALE LIMIT — it only works
- * across files of similar size+complexity. Reverted. */
+ * across files of similar size+complexity. Reverted.
+ *
+ * 2026-05-08 Codex pass: tried `register struct GlConstructed *ret asm("$3")`
+ * to force the desired v1 return carrier. IDO ignored the hard-register hint
+ * for this local: build/non_matching emitted byte-identical code to the
+ * baseline (ptr still lives in a2, same beqzl early-exit). Reverted. */
 struct GlConstructed {
     char pad[0x10];          /* embedded array passed to link() */
     char pad2[0x18];
