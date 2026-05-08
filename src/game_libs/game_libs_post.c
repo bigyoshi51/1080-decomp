@@ -5500,8 +5500,6 @@ void gl_func_00068350(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068350);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000683C4);
-
 /* Split off from gl_func_00068350 bundle 2026-05-08: 4-insn field setter. */
 void game_libs_func_000683C4(int *a0, int a1) {
     *(int*)((char*)a0 + 0xC) = a1;
@@ -5509,7 +5507,74 @@ void game_libs_func_000683C4(int *a0, int a1) {
     *(int*)((char*)a0 + 0x4) = 0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_000683D4: 54-insn (0xD8) array-allocator + per-element vtable
+ * init constructor. Sibling of gl_func_00068350 (which sets up the
+ * single-instance form).
+ *
+ * Decoded body:
+ *   1. helper(self + 8)             — gl_func at jal target 0x07C860
+ *      (same fixed jal as 68350; both use this initializer for the
+ *      header at self+0x8).
+ *   2. self[1] = gl_func_0(self->[8] * 4)
+ *                                     — alloc(count * sizeof(ptr)) into
+ *                                     self->[4]. self->[8] is the count.
+ *   3. for (i = 0; i < self->[8]; i++) {
+ *        parent = self->[0xC]->[0x28];
+ *        instance = (*parent->[0x5C])(parent + (lh) parent->[0x58]);
+ *        self->[4][i] = instance;
+ *        instance->[0xC] = self->[0xC];   // back-link to owner
+ *        gl_func_0(instance);             // post-init / register hook
+ *        (*instance->[0x1C]->[0x2C])(instance->[0x1C] +
+ *                                    (lh) instance->[0x1C]->[0x28]);
+ *      }
+ *
+ * Two vtable hops per iteration (parent for instance creation, then
+ * instance's own [0x1C] for finalize). Both use signed-short field
+ * offsets — `lh` opcode pattern requires `short` not `unsigned short`.
+ *
+ * Loop tail uses `bnel $at, $0` with `lw v1, 0xC(s1)` in the delay
+ * slot (likely-annulled reload of self->[0xC] for the loop body's
+ * first use), so the C body should keep `parent_holder = self[3]`
+ * inside the loop, NOT hoisted outside.
+ *
+ * Multi-tick byte-matching pending. Default INCLUDE_ASM keeps ROM
+ * matching while the structural decode lives here for grep
+ * discoverability. */
+extern int gl_func_00000000();
+
+void gl_func_000683D4(int *self) {
+    int i;
+    int count;
+    int *parent;
+    int *instance;
+    int (*ctor)(int *);
+    int (*finalize)(int *);
+    short ctor_off;
+    short finalize_off;
+    int *finalize_vt;
+
+    gl_func_00000000(self + 2);                       /* self + 8 */
+    count = self[2];                                   /* self->[8] */
+    self[1] = gl_func_00000000(count * 4);            /* alloc */
+
+    for (i = 0; i < count; i++) {
+        parent = (int *)((int *)self[3])[10];          /* self->[0xC]->[0x28] */
+        ctor = (int (*)(int *))parent[23];             /* parent->[0x5C] */
+        ctor_off = ((short *)parent)[44];              /* (lh) parent->[0x58] */
+        instance = (int *)ctor((int *)((char *)parent + ctor_off));
+        ((int **)self[1])[i] = instance;
+        instance[3] = self[3];                         /* instance->[0xC] = owner */
+        gl_func_00000000(instance);                    /* post-init hook */
+        finalize_vt = (int *)instance[7];              /* instance->[0x1C] */
+        finalize = (int (*)(int *))finalize_vt[11];    /* vt->[0x2C] */
+        finalize_off = ((short *)finalize_vt)[20];     /* (lh) vt->[0x28] */
+        finalize((int *)((char *)finalize_vt + finalize_off));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000683D4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000684AC);
 
