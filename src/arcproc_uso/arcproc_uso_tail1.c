@@ -517,14 +517,13 @@ void arcproc_uso_func_00000FA8(char *a0) {
         return;
     }
     if (s0 == 1) {
-        /* case 1 @ 0x1058-0x108C (14 insns): state-1 transition.
-         * Reads global D[0x190]->[0x190] (table base), calls
-         * gl_func_00000000 with args (D_table, 3, 1). Sets
-         * a0->[0x504] = 1 then falls through to end. */
-        int *table_root = *(int**)(*(char**)(0x190) + 0x190);  /* TBD: D-relative */
-        gl_func_00000000(table_root, 3, 1);
+        /* case 1 @ 0x1058-0x1074 (8 insns): state-1 transition.
+         *   gl_func_00000000(D[0x190], 3, 1);
+         *   a0->[0x504] = 1;  (store in delay slot of `b end`)
+         *   goto end;
+         * Decoded 2026-05-08 from .s file. */
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3, 1);
         *(int*)(s1 + 0x504) = 1;
-        /* TBD: ~6 more insns (jal + post-call processing) */
         return;
     }
     if (s0 == 4) {
