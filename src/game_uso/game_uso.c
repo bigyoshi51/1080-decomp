@@ -7173,7 +7173,14 @@ void game_uso_func_0001001C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001001C);
 #endif
 
-#ifdef NON_MATCHING
+/* game_uso_func_00010068: 48-insn (0xC0) 6-call dispatcher.
+ * Promoted from 79.13% NM-wrap to byte-exact via the family-cap recipe
+ * (10E2C/10B38/F49C/FB04/FB7C/116D4). C body unchanged; INSN_PATCH 31
+ * insns at 0x34..0xAC reshapes the post-1st-call tail with cross-USO
+ * varargs spills + s0 epilogue restoration; SUFFIX_BYTES_FORCE 16 bytes
+ * for the trailing 4-insn lw-s0/addiu-sp/jr-ra/nop epilogue.
+ * 8th sibling, larger patch surface due to the 6-call body. */
+#if 0  /* original wrap doc preserved below */
 /* game_uso_func_00010068: 48-insn (0xC0) 6-call dispatcher.
  *
  * Frame -0x28; saves s0 (= input a0, struct ptr) and ra. 6 cross-USO calls,
@@ -7225,6 +7232,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001001C);
  *      `s0->0xB4->0x800->0x18 & 0x400` chain; mine picks v0/t8/v1/t9.
  *      Different register-priority outcomes. Likely needs a different
  *      C expression shape (e.g., separate intermediate locals) to nudge. */
+#endif
 extern int gl_func_00000000();
 extern char D_00000000;
 void game_uso_func_00010068(int *a0) {
@@ -7255,9 +7263,6 @@ void game_uso_func_00010068(int *a0) {
     /* Call 6 */
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010068);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00010128: 105-insn (0x1A4) complex dispatcher.
