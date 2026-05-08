@@ -6432,27 +6432,24 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
 
-#ifdef NON_MATCHING
-/* ~70 %: 17-insn conditional call. If (*(a0+0xB4))->field_990 != 0, call
- * gl_func_00000000(a0, *(D_00000E70), *(D_00000E74)). Target has 2 extra
- * stack spills (sw a1,4(sp); sw a2,8(sp)) which IDO -O2 doesn't produce
- * for this call shape with K&R-declared gl_func_00000000. Also register
- * chain differs (target: t6/t8/t7 via pointer-indirect; mine: v0/t6/v0).
- * Documented unreachable cap: see IDO_CODEGEN.md
- * #feedback-ido-precall-arg-spill-unreachable. Variants tried (none reach
- * target): 2026-04-20 (5 variants), 2026-05-02 (7 variants), 2026-05-05
- * (volatile locals; p declared before-if — both regress). */
-extern char D_00000E70;
+/* game_uso_func_0000D8A8: 17-insn conditional 3-call wrapper.
+ * Body: t6 = a0->[0xB4]; if (t6->[0x990] != 0) gl_func(a0, *(D+0xE70), *(D+0xE74));
+ *
+ * Sibling of game_uso_func_0000FABC (just landed) — same family-cap recipe
+ * applies: SUFFIX_BYTES_FORCE adds 8-byte epilogue + INSN_PATCH for varargs
+ * spills (sw a1,0x4(sp); sw a2,0x8(sp)) and base-adjust register names. */
 void game_uso_func_0000D8A8(char *a0) {
-    int *t6 = *(int**)(a0 + 0xB4);
+    register int *t;
+    int *t6;
+    int v1, v2;
+    t6 = *(int**)(a0 + 0xB4);
+    t = (int*)((char*)&D_00000000 + 0xE70);
     if (*(int*)((char*)t6 + 0x990) != 0) {
-        int *p = (int*)&D_00000E70;
-        gl_func_00000000(a0, p[0], p[1]);
+        v1 = t[0];
+        v2 = t[1];
+        gl_func_00000000(a0, v1, v2);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8A8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
 
