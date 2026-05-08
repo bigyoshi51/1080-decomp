@@ -841,7 +841,36 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C9
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001F30);
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00002294: 36-insn (0x90) FPU-gated state-update.
+ *
+ * Body:
+ *   if (a0->[0x500] == 0) return;
+ *   if (D[0] > 0.0f) return;                    // NB: weird gate — only proceeds when D[0] <= 0
+ *   if (a0->[0x7A0] < D[0x608])
+ *       a0->[0x7A0] += D[0x60C];
+ *   if (D[0x610] >= a0->[0x7A0])
+ *       gl_func_00000000();
+ *
+ * Initial wrap ~33/36 insns matched. Cap class: target uses `$at` register
+ * for the &D base (`lui at, 0; lwc1 fX, 0(at)` with %lo folded into the
+ * lwc1 immediate), C-emit uses `$v0` with separate lui+addiu+lwc1. This is
+ * an inverse of the extern-char-folds-%lo recipe and the at-vs-v0
+ * regalloc choice isn't reachable from natural C. Permuter or INSN_PATCH
+ * to reshape the at-base accesses. */
+void mgrproc_uso_func_00002294(int *a0) {
+    if (a0[0x500/4] == 0) return;
+    if (*(float*)&D_00000000 > 0.0f) return;
+    if (*(float*)((char*)a0 + 0x7A0) >= *(float*)((char*)&D_00000000 + 0x608)) goto check_max;
+    *(float*)((char*)a0 + 0x7A0) += *(float*)((char*)&D_00000000 + 0x60C);
+check_max:
+    if (*(float*)((char*)&D_00000000 + 0x610) >= *(float*)((char*)a0 + 0x7A0)) {
+        gl_func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002294);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002324);
 
