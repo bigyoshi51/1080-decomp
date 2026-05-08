@@ -617,6 +617,21 @@ extern char D_00000000;
 
 #ifdef NON_MATCHING
 /* func_000046EC: 36-insn (0x90) entry-list constructor.
+ *
+ * 2026-05-08 cap retest #4: tried `char pad[8]` and `volatile char pad[8]`
+ * to grow frame -0x20 -> -0x28 (target's frame). Neither pad form coerced
+ * the frame size; IDO -O2 still emits -0x20 because the pad isn't
+ * observably-aliased. Even with pad[0]=0 forcing a write, IDO sized the
+ * frame for the actually-spilled set (ra/v0/arg0 = 3 slots = 12 bytes
+ * + 8 align = 0x20). Target spills 5 slots (ra/v0/head/v1/arg0 = 0x28).
+ *
+ * The frame-size delta is a CONSEQUENCE of target's regalloc choosing $v1
+ * for node-holder (forced spill across jal2) instead of $a2 (single reg
+ * across both jals, no extra spills). Without forcing $v1, no extra
+ * spills happen, no extra frame growth. Same root cause as
+ * timproc_uso_b5_func_0000AB24 (`feedback_ido_arg_save_reg_pick`).
+ * Cap-confirmed at 89.2%; promotion needs the $v1-allocator-pick
+ * unreachable-from-C class. */
  *   - allocates a 0x40-byte node via cross-USO call (size=0x40)
  *   - if alloc succeeded, runs an initializer on it (single-arg call) then sets
  *     node->field_28 = &D_00000000 and node->field_3C = 0
