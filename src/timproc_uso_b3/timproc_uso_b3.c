@@ -39,7 +39,26 @@ void timproc_uso_b3_func_0000004C(Quad4 *dst) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000004C);
 #endif
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_000000B0: 0x4F4 (317 insns), 0x40-byte stack frame.
+ * Boundary-checked 2026-05-08: one jr ra, so this is one real function.
+ *
+ * Sibling of timproc_uso_b1_func_000000B0. The entry is a 14-case dispatch
+ * on a1 using a jump table, followed by per-case gl_func_00000000 calls and
+ * stores to D[0x40]/D[0x44]/D[0x48]. Matching will need the same full
+ * if/goto-chain rewrite as the b1 sibling because 1080's linker discards
+ * normal C jump-table rodata.
+ *
+ * This first pass preserves the decoded entry/default shape for future
+ * refinement while default builds continue to use the original asm. */
+void timproc_uso_b3_func_000000B0(int *a0, int a1) {
+    if ((unsigned int)a1 >= 14) return;
+    (void)gl_func_00000000();
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000000B0);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_000005A4: byte-identical mirror of
