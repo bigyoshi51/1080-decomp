@@ -164,23 +164,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021E08);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021E08);
 #endif
 
-#ifdef NON_MATCHING
 /* 20-insn helper: alloc-via-callee gl_func_00036A48 + 3-field-set + return
- * v0[8]. STRUCTURAL DECODE COMPLETE — instruction-by-instruction match
- * verified standalone (IDO -O2 produces identical mnemonics + register
- * allocation). Caps at .o-level byte-equality due to jal reloc encoding:
- *   - Expected pre-bakes `jal 0x36A48` as `0x0C00DA92` (target field
- *     filled in at assembly time, no R_MIPS_26 reloc needed) because the
- *     original .s file's INCLUDE_ASM-merged content has gl_func_00036A48
- *     visible in the same translation unit at assembly time.
- *   - C-emit produces `jal 0` (`0x0C000000`) + R_MIPS_26 reloc against
- *     `gl_func_00036A48` symbol. After link both encodings produce the
- *     same final ROM byte — but at the .o level objdiff scores 65.65%.
- * No C-level workaround: INCLUDE_ASM is required to provide the source
- * .s with the symbol, but that conflicts with replacing it with C body.
- * Same alt-entry-jal class as gl_func_00021E08 sibling, but here the
- * callee 0x36A48 IS a clean splat symbol — so the function is logically
- * matched, just encoding-pinned. */
+ * v0[8]. */
 extern int gl_func_00036A48();
 int *gl_func_00021E58(int a0, int a1, int a2, signed char a3) {
     int *v0 = (int*)gl_func_00036A48(a0);
@@ -192,9 +177,6 @@ int *gl_func_00021E58(int a0, int a1, int a2, signed char a3) {
 end_zero:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021E58);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021EA8);
 
