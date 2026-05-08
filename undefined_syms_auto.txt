@@ -1029,3 +1029,5 @@ D_mgr3240_b = 0x0;
 D_timb5_1C0 = 0x1C0;
 
 D_cc14_alias2 = 0x0;
+gl_ref_00045E5C = 0x00045E5C;
+gl_ref_00045EA8 = 0x00045EA8;
