@@ -7367,7 +7367,30 @@ void game_uso_func_00010408(int *arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000104A4);
+/* 50-insn sibling of game_uso_func_00010408/105DC family. Initializes
+ * a0->0xB4->0xA18, conditionally runs the 0x938-gated path, then emits
+ * the same t[0]/t[1] vararg-spill call shape used by nearby wrappers. */
+void game_uso_func_000104A4(char *a0) {
+    int *obj;
+    int *t;
+
+    gl_func_00000000(a0);
+    obj = *(int **)(a0 + 0xB4);
+    obj[0x286] = 1;
+    gl_func_00000000(a0, 0);
+
+    if (gl_func_00000000(a0) == 0) {
+        obj = *(int **)(a0 + 0xB4);
+        if (obj[0x24E] != 0) {
+            gl_func_00000000(a0, 1);
+            gl_func_00000000(a0);
+            gl_func_00000000(a0, *(int *)(a0 + 0xFC) | 0x19, 5, 1, 1, 1);
+            t = (int *)((char *)&D_00000000 + 0xE10);
+            gl_func_00000000(a0, t[0], t[1], 1);
+            gl_func_00000000(a0);
+        }
+    }
+}
 
 #ifdef NON_MATCHING
 /* 89.18% NM. 5th confirmed member of precall-arg-spill family
