@@ -6525,14 +6525,21 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
  * calls gl_func_0(a0) on flag bit 0 of a0->0xF4->0x38, then unconditional
  * 2 more gl_func_0 calls — second carries D[0xDF0]+D[0xDF4] as args).
  *
- * Logic byte-correct. Mine emits 28/30 insns matching at correct sp offsets:
+ * Logic byte-correct at 90.40%. Mine emits 28/30 insns matching at correct
+ * sp offsets:
  *   - missing 2 pre-call arg-spills (`sw a1, 0x4(sp)`, `sw a2, 0x8(sp)`)
  *     before the 2nd gl_func_0 call. Documented IDO cap from
  *     feedback_ido_precall_arg_spill_unreachable.md — IDO -O2 doesn't
  *     emit pre-call register-arg spills to outgoing-arg slots from C without
  *     unreachable invariants on the function pointer.
  *   - register-name offset (mine v0/t7/t8, expected t7/t8/t9) on the bit-test
- *     chain. Multi-pass NM. */
+ *     chain. Multi-pass NM.
+ *
+ * 2026-05-08 LEVER TEST (negative): tried docs/IDO_CODEGEN.md "lift
+ * unconditional init OUT of guarded block" — moved `int *sub = a0->0xB4;`
+ * BEFORE the if-block. Regressed from 90.40% to 74.53% (-15.87pp). IDO -O2
+ * promoted `sub` to a longer-lived value and shifted other allocations.
+ * Don't try this lever again on this function. */
 void game_uso_func_0000F49C(int *a0) {
     int *flags_ptr = (int*)a0[0xF4/4];
     int *sub;
