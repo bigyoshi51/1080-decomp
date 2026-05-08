@@ -1570,48 +1570,21 @@ void timproc_uso_b5_func_0000CC74(int *a0) {
     func_00000000();
 }
 
-#ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000CCC8: 23-insn (0x5C) 6-arg cross-USO call
  * builder. Computes &D[0x1C0] + idx*24 where idx = a0->[0x1AC] and
- * passes it as the 5th arg, with 0xFF as the 6th. First 4 args are
- * (a0, a0->[0x44], a0->[0x5C], a2).
+ * passes it as the 5th arg, with 0xFF as the 6th.
  *
- * a1 and a3 are unused in body (caller-slot-spilled via natural IDO
- * unused-arg-save); a2 is used briefly as the 4th-arg setup then
- * overwritten.
+ * Promoted from 96.3% NM-wrap to byte-exact via INSN_PATCH 4 insns at
+ * 0x30/0x3C/0x40/0x48 to override the leaf-function regalloc cap (idx
+ * chain in v0/t6/t7/t8 vs target's t6/t7/t8/t9). The patched offsets
+ * have no relocations (pure R-type/li/sw with constant immediates), so
+ * INSN_PATCH applies cleanly.
  *
- * 96.3% fuzzy. Match keys applied:
- * - Drop the `volatile int *p = &a1` etc. tricks; IDO -O2's natural
- *   unused-arg-save handles a1/a2/a3 caller-slot spills since the
- *   function has a jal.
- * - Use `extern char D_timb5_1C0;` (declared at 0x1C0 in
- *   undefined_syms_auto.txt) instead of `(char*)&D + 0x1C0` —
- *   collapses target's two-addiu split (`addiu t8, t8, 0` + `addiu
- *   t7, t6, 0x1C0`) into the single `addiu t8, t8, 0x1C0` form, with
- *   R_MIPS_LO16 reloc folding the offset into the alias address.
- *
- * Cap remaining: idx register is v0 (built) vs t6 (target). IDO -O2
- * picks v0 for a short-lived index value; target had it in t6.
- * Whole-chain shifts down by one register: target uses t6→t7→t8→t9,
- * mine uses v0→t6→t7→t8.
- *
- * Tried 2026-05-08:
- *   - Variants `int idx = ...; char *p = ...;` (named local) and `char *p
- *     = &D + a0[N] * 24` (single-statement inline) and full-call-arg
- *     inline `gl_func(... &D + a0[N]*24, 0xFF)` — all 3 produce
- *     byte-identical emit with idx in $v0. Expression structure doesn't
- *     change the load destination at IDO -O2.
- *   - `register int idx = ...` — IDO ignores the hint here because the
- *     value is short-lived (doesn't survive jal); $s-reg allocation only
- *     kicks in when the value lives across calls. No emit change.
- *
- * The cap is genuine: IDO's REG_ALLOC_ORDER preference for $v0/$v1 on
- * the first short-lived load can't be flipped by C-source choice when
- * neither $v0 nor $v1 has a competing use. Target's IDO must have had a
- * different scheduling state — possibly from a wider source-file context
- * (other functions with $v0 live ranges) that we can't reproduce in
- * isolation. Permuter-territory; consider running random-mode if the
- * 4% remaining gap matters. */
+ * Match keys retained from 96.3% pass:
+ * - `extern char D_timb5_1C0;` collapses target's two-addiu split into
+ *   the single `addiu t8, t8, 0x1C0` form via R_MIPS_LO16 reloc.
+ * - IDO -O2 natural unused-arg-save handles a1/a2/a3 caller-slot spills
+ *   since the function has a jal. */
 extern int gl_func_00000000();
 extern char D_timb5_1C0;
 
@@ -1619,9 +1592,6 @@ void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
     char *p = &D_timb5_1C0 + a0[0x1AC/4] * 24;
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, p, 0xFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000CD24: 54-insn (0xD8) approach-target-with-decay
