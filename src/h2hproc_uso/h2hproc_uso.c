@@ -801,15 +801,26 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD
  * Remaining ~9pp gap is `addiu t1, $0, 720` hoisting (built loads 0x2D0
  * BEFORE the comparison; target loads it INSIDE the body branch) and
  * v1 reuse for both snapshot+addr (built uses v1 for value, target uses
- * t8). Both are IDO scheduler decisions; no clear C-level lever. */
+ * t8). Both are IDO scheduler decisions; no clear C-level lever.
+ *
+ * 2026-05-08 grind (cap class confirmed):
+ *   v3) decl-order swap (`fp_a`/`snapshot_a` -> `snapshot_a`/`fp_a`):
+ *       byte-identical 90.86% — confirms IDO -O2 $s allocation isn't
+ *       decl-order driven (per docs/IDO_CODEGEN.md sreg-not-decl-driven).
+ *   v4) `*(int*)fp_a = snapshot_a + 0x10;` instead of `+= 0x10`: also
+ *       byte-identical 90.86% by score, but DROPS the addiu v1,v0,0x3C
+ *       (fp_a never materialized as a live reg) — codegen regresses
+ *       structurally even though % is unchanged. Reverted.
+ * Cap holds at 90.86%; needs PROLOGUE_STEALS-style insn shuffling
+ * (or permuter) to break further. */
 void h2hproc_uso_func_00001204(char *a0) {
     char *p1;
     char *v0;
     int t9;
 
     if (*(int*)(*(char**)(a0 + 0x2C) + 0x4F4) < 2) {
-        char *fp_a;
         int snapshot_a;
+        char *fp_a;
         v0 = *(char**)(a0 + 0x34);
         snapshot_a = *(int*)(v0 + 0x3C);
         fp_a = v0 + 0x3C;
@@ -821,8 +832,8 @@ void h2hproc_uso_func_00001204(char *a0) {
             *(int*)(v0 + 0x3C) = 0x2D0;
         }
     } else {
-        char *fp_b;
         int snapshot_b;
+        char *fp_b;
         v0 = *(char**)(a0 + 0x34);
         snapshot_b = *(int*)(v0 + 0x3C);
         fp_b = v0 + 0x3C;
