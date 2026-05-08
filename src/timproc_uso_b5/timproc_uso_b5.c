@@ -1727,7 +1727,138 @@ void timproc_uso_b5_func_0000D0DC(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D0DC);
 #endif
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000D14C: 257-insn / 0x404 constructor.
+ * First pass structural decode from word-only USO asm (m2c cannot parse it
+ * directly; decoded via assemble+objdump per docs/TOOLING_DECOMP.md).
+ *
+ * High-level shape:
+ *   - allocate/init a 0x2C4 root object, attaching it to a0->2B8 and a0->29C
+ *   - create/attach a 0x148 child at root->108 and optional 0x16C child at
+ *     root->108->108
+ *   - initialize render/state floats, vtable slots, a D_00000000 flag pair,
+ *     then store the root in a0->3C[a0->6C++].
+ *
+ * This is intentionally a NON_MATCHING skeleton: default build stays
+ * INCLUDE_ASM, but the major object offsets and side effects are now recorded
+ * for future constructor tightening / struct typing. */
+int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, int arg3,
+                                 float arg4, float arg5, float arg6) {
+    char *root;
+    char *maybe_child;
+    char *child;
+    char *grandchild;
+    int saved_flags;
+    int index;
+
+    root = (char*)gl_func_00000000(0x2C4);
+    if (root != 0) {
+        maybe_child = root;
+        if (maybe_child == 0) {
+            maybe_child = (char*)gl_func_00000000(0x2B8);
+            if (maybe_child != 0) {
+                gl_func_00000000(maybe_child, (char*)&D_00000000 + 0x15C0);
+                *(int*)(maybe_child + 0x28) = (int)&D_00000000;
+                gl_func_00000000(maybe_child + 0x2C);
+                gl_func_00000000(maybe_child + 0x194);
+            }
+        }
+        *(int*)(root + 0x28) = (int)((char*)&D_00000000 + 0x5E4);
+        *(int*)(root + 0x0C) = (int)((char*)&D_00000000 + 0x15C8);
+        gl_func_00000000(root);
+    }
+
+    gl_func_00000000(a0 + 0x10, root);
+    if (*(int*)(root + 0x14) != 0) {
+        *(int*)(root + 0x04) = 1;
+    }
+    *(int*)(root + 0x14) = (int)a0;
+    *(float*)(root + 0x2A4) = (float)arg1;
+    *(int*)(root + 0x2B0) = arg2 - 1;
+
+    child = (char*)gl_func_00000000(0x148);
+    if (child != 0) {
+        float zero = 0.0f;
+        gl_func_00000000(child, (char*)&D_00000000 + 0x15D8, zero, zero, zero);
+        *(int*)(child + 0x28) = (int)((char*)&D_00000000 + 0x57C);
+
+        grandchild = (char*)gl_func_00000000(0x16C);
+        if (grandchild != 0) {
+            gl_func_00000000(grandchild, (char*)&D_00000000 + 0x15E4,
+                             zero, zero, zero);
+            *(int*)(grandchild + 0x120) = 0xFFFF;
+            *(int*)(grandchild + 0x28) = (int)&D_00000000;
+            *(float*)(grandchild + 0x108) = *(float*)((char*)&D_00000000 + 0x3A0);
+            *(float*)(grandchild + 0x10C) = *(float*)((char*)&D_00000000 + 0x3A0);
+            *(float*)(grandchild + 0x110) = *(float*)((char*)&D_00000000 + 0x3A0);
+            *(float*)(grandchild + 0x124) = 1.0f;
+        }
+
+        *(int*)(child + 0x108) = (int)grandchild;
+        gl_func_00000000(child, grandchild);
+        *(float*)(grandchild + 0xB4) = 0.0f;
+        *(float*)(grandchild + 0xBC) = 0.0f;
+        *(float*)(grandchild + 0xB8) = 100.0f;
+        *(float*)(child + 0x130) = *(float*)((char*)&D_00000000 + 0x3A4);
+
+        gl_func_00000000(0xB4, *(int*)&D_00000000, grandchild + 0xB4);
+        maybe_child = (char*)gl_func_00000000(0xB4);
+        if (maybe_child != 0) {
+            gl_func_00000000(maybe_child, *(int*)&D_00000000);
+            *(int*)(maybe_child + 0x28) = (int)((char*)&D_00000000 + 0x248);
+            *(int*)(maybe_child + 0xB0) = 0;
+            gl_func_00000000(maybe_child);
+        }
+        *(int*)(child + 0x10C) = (int)maybe_child;
+        gl_func_00000000(child, maybe_child);
+
+        saved_flags = *(int*)((char*)&D_00000000 + 0x04) & 0x00080000;
+        *(int*)((char*)&D_00000000 + 0x04) =
+            (*(int*)((char*)&D_00000000 + 0x04) & 0xFFF7FFFF) | 0x22003;
+        *(int*)&D_00000000 &= ~8;
+
+        gl_func_00000000(arg3, 0, 0x201, grandchild, child);
+        *(int*)(child + 0x140) = *(int*)((char*)&D_00000000 + arg3 * 4);
+        gl_func_00000000(grandchild, *(int*)(child + 0x140), 0, 2, 2, 1);
+        {
+            char *vt = *(char**)(grandchild + 0x28);
+            (*(void(**)(void))(vt + 0x24))();
+        }
+
+        if (saved_flags != 0) {
+            *(int*)((char*)&D_00000000 + 0x04) |= 0x00080000;
+        } else {
+            *(int*)((char*)&D_00000000 + 0x04) &= 0xFFF7FFFF;
+        }
+
+        *(float*)(child + 0x110) = arg4;
+        *(float*)(child + 0x114) = arg5;
+        *(float*)(child + 0x118) = arg6;
+        *(float*)(child + 0x120) = 0.0f;
+        *(float*)(child + 0x124) = *(float*)((char*)&D_00000000 + 0x3A8);
+        *(float*)(child + 0x128) = *(float*)((char*)&D_00000000 + 0x3AC);
+        *(int*)(child + 0x144) = 1;
+        *(int*)(child + 0x138) = 0;
+        *(int*)(child + 0x134) = 0;
+    }
+
+    *(int*)(root + 0x2B8) = (int)child;
+    *(int*)(root + 0x29C) = (int)child;
+    *(float*)(root + 0x134) = *(float*)((char*)&D_00000000 + 0x3B0);
+    gl_func_00000000(*(char**)(a0 + 0x38) + 0x10, child);
+    if (*(int*)(child + 0x14) != 0) {
+        *(int*)(child + 0x04) = 1;
+    }
+    *(int*)(child + 0x14) = *(int*)(a0 + 0x38);
+
+    index = *(int*)(a0 + 0x6C);
+    *(int*)(a0 + 0x6C) = index + 1;
+    *(int*)(a0 + 0x3C + index * 4) = (int)root;
+    return (int)root;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D14C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D550);
 
@@ -1758,4 +1889,3 @@ void timproc_uso_b5_func_0000E5D8(int a0) {
     *(float*)((char*)&D_00000000 + 8) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xDC);
     gl_func_00000000(a0);
 }
-
