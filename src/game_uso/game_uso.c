@@ -851,10 +851,15 @@ void *game_uso_func_00001DDC(int *a0, int *out_delta) {
      * account for 16 bytes, so `char frame_pad[168];` preserves the target
      * frame — IDO -O2 keeps the stack space even when unused. Now first 3
      * prologue insns are byte-correct.
-     * Fuzzy% currently 17.52% (post 2026-05-08 dead-extern cleanup;
-     * was 17.15% pre-cleanup). The frame size is right, but body diffs
-     * offset the prologue gain. This unblocks future grinding that depends
-     * on the right frame size. The actual Vec3 working buffers (per
+     *
+     * 2026-05-08 (later) — objdiff confirms TARGET and BASE both 407 insns
+     * (insn-count match achieved). Fuzzy 17.52% means register allocation /
+     * operand ordering account for the ~83% of byte-mismatch — NOT
+     * structural mismatch. Ideal next-pass approach: permuter (manual mode
+     * with PERM_LINESWAP on the multi-Vec3 fanout copies and PERM_GENERAL
+     * on the inline-vs-spill scale-mul site). Single-tick C edits at this
+     * stage are bounded by which-register-gets-which-temp: hard to predict
+     * without the .greg dump. The actual Vec3 working buffers (per
      * stack-layout note above) live in this region; future passes will
      * replace `frame_pad` with typed locals as they're decoded. */
     char frame_pad[168];
