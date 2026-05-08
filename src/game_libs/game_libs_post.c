@@ -5884,62 +5884,31 @@ end:
     return a0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00068524: 39-insn (0x9C) alloc-and-init-loop. Sibling of
- * gl_func_000685C0 (the bounds-checker for the same table). Likely the
+ * gl_func_000685C0 (the bounds-checker for the same table). The
  * INITIALIZER/CONSTRUCTOR for the 2-level table that 685C0 / 68730 read.
  *
- * Body:
- *   s2 = a0;
- *   s2->0x2C = gl_func_00000000(&D_00000000, a1);     // alloc primary
- *   func_0007C860(&s2[0x34]);                         // compute count via
- *                                                     // absolute jal at
- *                                                     // ROM 0x7C860 (in-
- *                                                     // segment, in-game_libs)
- *   s2->0x30 = gl_func_00000000(s2->0x34 << 4);       // alloc count*16 buf
- *   for (s1 = 0, s0 = 0; s1 < s2->0x34; s1++, s0 += 16) {
- *       gl_func_00000000(s2->0x30 + s0, s2);          // init record
- *       gl_func_00000000(s2->0x30 + s0);              // init record (2nd call)
- *   }
- *
- * The in-segment absolute-jal to 0x7C860 is interesting — it's a direct
- * 26-bit jal with the target pre-resolved in the asm (vs the usual
- * `jal 0` + R_MIPS_26 placeholder for cross-USO calls). 0x7C860 is
- * inside game_libs's own .text, so the assembler resolved it directly.
- *
- * Multi-tick byte-matching pending. 88.72% fuzzy with current body.
- *
- * 2026-05-08 diff: 42-built vs 39-target insns (3 extra). Saved-reg
- * spill area shows mine using s0/s1/s2/s3/ra (5 saves) while target uses
- * only s0/s1/s2/ra (4 saves). The `for (s1=0, s0=0; ...; s0 += 16)` form
- * forces an extra $s pseudo for s0, giving IDO 5 distinct callee-save
- * regs to spill (vs target's 4). Next-pass shape candidate: collapse the
- * (s1, s0) pair into a single pointer increment:
- *   char *p = (char *)s2[0x30/4];
- *   for (s1 = 0; s1 < s2[0x34/4]; s1++) {
- *       gl_func_00000000(p, s2);
- *       gl_func_00000000(p);
- *       p += 16;
- *   }
- * This drops s0 entirely and may align the spill set with target's. */
+ * The in-segment absolute jal to 0x7C860 (= func_7C860 per
+ * undefined_funcs_auto.txt) is a 26-bit pre-resolved address (vs the
+ * usual `jal 0` + R_MIPS_26 placeholder for cross-USO calls). */
 extern int gl_func_00000000();
-extern int func_0007C860();
+extern int func_7C860();
 void gl_func_00068524(int *a0, int a1) {
-    int *s2 = a0;
     int s1, s0;
-
-    s2[0x2C/4] = gl_func_00000000(&D_00000000, a1);
-    func_0007C860((int)&s2[0x34/4]);
-    s2[0x30/4] = gl_func_00000000(s2[0x34/4] << 4);
-
-    for (s1 = 0, s0 = 0; s1 < s2[0x34/4]; s1++, s0 += 16) {
-        gl_func_00000000(s2[0x30/4] + s0, s2);
-        gl_func_00000000(s2[0x30/4] + s0);
+    a0[0x2C/4] = (int)gl_func_00000000(&D_00000000, a1);
+    func_7C860((int)&a0[0x34/4]);
+    a0[0x30/4] = (int)gl_func_00000000(a0[0x34/4] << 4);
+    if (a0[0x34/4] != 0) {
+        s1 = 0;
+        s0 = 0;
+        do {
+            gl_func_00000000(a0[0x30/4] + s0, a0);
+            gl_func_00000000(a0[0x30/4] + s0);
+            s1++;
+            s0 += 16;
+        } while ((unsigned int)s1 < (unsigned int)a0[0x34/4]);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068524);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000685C0: 55-insn (0xDC) bounds-checked 2-level table lookup with
