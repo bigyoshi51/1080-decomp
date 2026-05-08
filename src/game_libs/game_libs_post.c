@@ -1470,7 +1470,12 @@ extern int gl_ref_00045EA8();
  * Sibling of recently-matched game_libs_func_00031580 (same offset family
  * around 0x315xx-0x319xx). 4 cross-call relocations, 2 of which target
  * mid-function entry points within gl_func_00045CB0 (alt-entry pattern,
- * not yet symbolicated as gl_ref_* but encoded in the jal bytes). */
+ * not yet symbolicated as gl_ref_* but encoded in the jal bytes).
+ *
+ * 2026-05-08 lever test (negative): goto-skip form
+ * `if (a0[18] != 0) goto end; gl_ref_00045EA8(ret_val); end:` produced
+ * IDENTICAL 95.86% — IDO -O2 emits same bne-chain regardless of goto vs
+ * if-body shape. Branch-likely cap holds. */
 int gl_func_00031898(int *a0) {
     int ret_val = 0;
     if (a0[23] != 0) {
