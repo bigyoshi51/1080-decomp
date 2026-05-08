@@ -6861,7 +6861,23 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001001C);
  *   gl_func(s0)
  *
  * Multi-tick byte-matching pending. Default INCLUDE_ASM path keeps ROM
- * matching while structural decode lives here for grep discoverability. */
+ * matching while structural decode lives here for grep discoverability.
+ *
+ * Measured 2026-05-08: 79.13% with current C. Remaining diffs:
+ *   1. Target spills `sw a1,4(sp); sw a2,8(sp)` before/in delay-slot of
+ *      jal #2 (and again for jal #3 inside conditional). Mine doesn't.
+ *      Looks like O32 shadow-arg spills, suggests target's gl_func
+ *      signature is variadic-style with explicit a1/a2 spillage. K&R
+ *      empty-paren extern alone doesn't trigger this in IDO -O2.
+ *   2. Target uses base+offset-folded `addiu t8, t8, 0xDD8; lw a1, 0(t8)`
+ *      vs mine `addiu t0, t0, 0; lw a1, 0xDD8(t0)`. NAMED-LOCAL
+ *      `int *D_DD8 = &D[0xDD8]` regressed 5pp (74.17%) — IDO promoted
+ *      the local to $s and shifted other allocations. Don't try that
+ *      lever again.
+ *   3. Register allocation: target picks t1/v0/t4/t2/t3 for the
+ *      `s0->0xB4->0x800->0x18 & 0x400` chain; mine picks v0/t8/v1/t9.
+ *      Different register-priority outcomes. Likely needs a different
+ *      C expression shape (e.g., separate intermediate locals) to nudge. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void game_uso_func_00010068(int *a0) {
