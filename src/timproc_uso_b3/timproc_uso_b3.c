@@ -41,7 +41,33 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000000B0);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_000005A4: byte-identical mirror of
+ * timproc_uso_b1_func_000005A4 except the mode literal is 2 instead of 1.
+ *
+ * -O0 indicators match the b1 sibling: unfilled jal delay slots, saved s0 for
+ * a short-lived return value, redundant `b +1; nop`, and a conservative stack
+ * frame. Current -O2 NM build is 35.11% and 0x90 bytes vs target 0xB8, losing
+ * the unfilled delay slots and conservative stores. BLOCKED by the Yay0
+ * pipeline: timproc_uso_b3 is compressed, so the per-file -O0 split recipe
+ * does not apply. Default build stays INCLUDE_ASM; wrap preserves the decoded
+ * body for future tooling. */
+void timproc_uso_b3_func_000005A4(int **arg0, int arg1, int arg2) {
+    int handle = gl_func_00000000(2);
+    int new_obj = gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), 2, arg2);
+    *arg0 = (int*)new_obj;
+    *(int*)((char*)&D_00000000 + 0x14C) = new_obj;
+    gl_func_00000000(handle);
+    if (arg1 != 0) {
+        *(int*)((char*)*arg0 + 0x14) = 2;
+    } else {
+        *(int*)((char*)*arg0 + 0x14) = 0;
+    }
+    *(int*)((char*)&D_00000000 + 0x68) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000005A4);
+#endif
 
 #ifdef NON_MATCHING
 /* 21-insn -O0 cleanup wrapper. Single gl_func + zero a0[0] + zero D[0x14C].
@@ -613,4 +639,3 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00003050);
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00003050_pad.s")
-
