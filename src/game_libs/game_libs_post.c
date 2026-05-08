@@ -3897,7 +3897,15 @@ void gl_func_0004E888(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E888);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E8D4);
+/* gl_func_0004E8D4: 19-insn 1-call helper. Calls helper(a0+0x10, a1, a0) then
+ * sets a1[1]=1 if a1[5]!=0; always sets a1[5]=a0. */
+void gl_func_0004E8D4(int *a0, int *a1) {
+    gl_func_00000000(a0 + 4, a1, a0);
+    if (a1[5] != 0) {
+        a1[1] = 1;
+    }
+    a1[5] = (int)a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E920);
 
