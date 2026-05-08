@@ -7142,7 +7142,38 @@ int gl_func_0006F38C(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F38C);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_0006F3B0: 3-insn alt-entry/preamble fragment.
+ *
+ * Body: `nop; lui t6, 0xA480; lw a0, 0x18(t6)` — loads the word at
+ * 0xA4800018 (SI_STATUS register) into $a0 then falls through into
+ * gl_func_0006F3BC. NO prologue, NO jr ra, NO frame — caller's $ra
+ * survives through to gl_func_0006F3BC's epilogue.
+ *
+ * Was the trailing 3 insns of gl_func_0006F38C until split-fragments.py
+ * (2026-05-07) extracted it so gl_func_0006F38C could match its target
+ * 9-insn body size. Symbol was named `game_libs_func_*` (not gl_func_*)
+ * because splat had no clean callsite to attribute it to.
+ *
+ * Cap class: tail-fall-through alt-entry. Standard C `return *(int*)0xA4800018;`
+ * emits lui + lw + jr ra + nop = 4 insns with jr ra, not the 3-insn
+ * fall-through shape. IDO doesn't accept GCC's `register asm("$a0")`
+ * (per docs/IDO_CODEGEN.md feedback_ido_no_gcc_register_asm). The
+ * matching path requires either:
+ *  - Inline asm at the call site that triggers this preamble
+ *  - TRUNCATE_TEXT shrinking the C-emit + INSN_PATCH writing the 3
+ *    insn words manually
+ *  - merge-fragments back into gl_func_0006F3BC (would break that
+ *    function's standalone matching at the new offset)
+ *
+ * Default INCLUDE_ASM build path produces correct bytes via the asm
+ * file; this NM wrap exists only to document the cap. */
+int game_libs_func_0006F3B0(void) {
+    return *(volatile int*)0xA4800018;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F3B0);
+#endif
 
 #ifdef NON_MATCHING
 /* return (a0 & 3) != 0 ? 1 : 0
