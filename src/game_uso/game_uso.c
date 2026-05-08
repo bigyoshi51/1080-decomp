@@ -7157,10 +7157,20 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
  * keeps ROM exact. Multi-pass NM. */
 void game_uso_func_00010840(int *a0) {
     int *sub = (int*)a0[0xB4/4];
+    float saved_f0;
     sub[0x3DC/4] = 1;
     gl_func_00000000(a0);
     gl_func_00000000(a0);
-    /* TODO 0x28-0x10C: float-compare gate + ~10 cross-call dispatches. */
+    /* @ 0x28-0x54: reload sub, save f0=sub->0x970, c.lt.s f0,0; setup
+     * args for conditional dispatch (a1=0x00020008, a2=0, a3=1, t0=6). */
+    sub = (int*)a0[0xB4/4];
+    saved_f0 = *(float*)((char*)sub + 0x970);
+    if (saved_f0 < 0.0f) {
+        /* Path 1 — bc1f-not-taken arm: a1=0x00020008, a2=0, a3=1, t0=6. */
+        gl_func_00000000(a0, 0x00020008, 0, 1);
+    }
+    /* TODO 0x60-0x10C: ~40 more insns of bc1f-taken arm + final tail. */
+    (void)saved_f0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
