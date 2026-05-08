@@ -272,10 +272,14 @@ def patch_one(data, func_name, patches):
                 f"{func_name}: offset {insn_off:#x} not 4-byte aligned")
         abs_off = text_file_off + func_addr + insn_off
         existing = struct.unpack(">I", data[abs_off:abs_off + 4])[0]
+        rel_offset = func_addr + insn_off
         if existing == word:
+            # Same-word jump patches are still useful when C emitted a
+            # relocation for bytes that expected/.o carries as raw asm.
+            if _is_jump_opcode(existing):
+                orphan_jal_offsets.add(rel_offset)
             skipped += 1
             continue
-        rel_offset = func_addr + insn_off
         # If we're overwriting a relocated jal/j, remember the .text-relative
         # offset so we can neutralize the now-orphan R_MIPS_26 relocation.
         # This applies both to jal->non-jal and jal 0->baked jal target.
