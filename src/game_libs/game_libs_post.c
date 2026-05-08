@@ -6395,7 +6395,18 @@ end:
  * doesn't grow frame; forcing a stack-resident local for q_alloc grows
  * frame too much (extra address-take overhead). Likely permuter
  * territory or needs a fresh-shape rewrite that lands at frame=0x20 by
- * IDO's natural reservations rather than via volatile coercion. */
+ * IDO's natural reservations rather than via volatile coercion.
+ *
+ * 2026-05-08 (later): tried `volatile int *spill = (volatile int*)alloc(0x20);
+ * p = (int*)spill;` — pointer-cast variant of the value-spill trick. IDO
+ * optimizes the pointer-load away (volatile is on the POINTEE int, not on
+ * the local pointer var, so reading `p = (int*)spill` doesn't force a stack
+ * round-trip). Result: identical 24-insn frame-0x18 emit, 0pp. The actual
+ * mid-function spill needs a `volatile int slot;` (stack-resident, not
+ * pointer) where the value is *written* and *read* through the volatile
+ * lvalue — but per the prior `*(volatile int*)&q_alloc = q_alloc` attempt
+ * that overshoots frame to 0x28. The narrow 0x20 frame target appears
+ * unreachable with `volatile` levers. */
 extern int gl_func_00000000();
 
 int *gl_func_000688F8(int a0) {
