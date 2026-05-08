@@ -434,7 +434,57 @@ void mgrproc_uso_func_00000B20(void) {
     gl_func_00000000(&D_mgr_B20_2);
 }
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00000B5C: 46-insn (0xB8) state-update with cond branch.
+ * Sibling of mgrproc_uso_func_00000C14 — identical structure, different
+ * constants (state[0x4E0]=5 vs 7 in 00C14; otherD[0x40]=3 vs 5; FALSE arm
+ * passes 4 instead of 0 to gl_func).
+ *
+ * Decoded:
+ *   state = D[0x30];
+ *   gl_func(state);
+ *   v0 = gl_func(state->[0x6AC]->[0x4C]);
+ *   if (v0 != 0) {
+ *     state->[0x504] = 7;
+ *     state->[0x4E0] = 5;
+ *     otherD[0x40] = 3;
+ *     otherD[0x44] = 7;
+ *     state->[0x7D8] = 1;
+ *     gl_func(state);
+ *   } else {
+ *     otherD[0x40] = 3;
+ *     gl_func(state, state->[0x6A8]->[0xC], 4);
+ *   }
+ *
+ * Multi-pass NM. Default INCLUDE_ASM build remains byte-correct. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_00000B5C(void) {
+    int *state = *(int**)((char*)&D_00000000 + 0x30);
+    int *other = (int*)&D_00000000;
+    int v0;
+    gl_func_00000000(state);
+    v0 = gl_func_00000000(*(int*)((char*)*(int**)((int*)((char*)&D_00000000 + 0x30))[0x6AC/4] + 0x4C));
+    if (v0 != 0) {
+        int *s = *(int**)((char*)&D_00000000 + 0x30);
+        s[0x504/4] = 7;
+        s = *(int**)((char*)&D_00000000 + 0x30);
+        s[0x4E0/4] = 5;
+        other[0x40/4] = 3;
+        other[0x44/4] = 7;
+        s = *(int**)((char*)&D_00000000 + 0x30);
+        s[0x7D8/4] = 1;
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x30));
+    } else {
+        other[0x40/4] = 3;
+        gl_func_00000000(
+            *(int*)((char*)&D_00000000 + 0x30),
+            *(int*)((char*)*(int**)((char*)&D_00000000 + 0x30) + 0x6A8 + 0xC),
+            4);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5C);
+#endif
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00000C14: 44-insn (0xB0) state-update with conditional
