@@ -7243,7 +7243,40 @@ void game_uso_func_0000FBF8(int *a0) {
         *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0x970), 0, 1);
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000FC34: 52-insn (0xD0) FPU-heavy 3-jal orchestrator.
+ *
+ *   1. Load flag = a0->field_B4->field_800->field_10 & 0x100
+ *   2. If flag == 0:
+ *        f4 = a0->field_B4->field_780      (0x10 + 0x770 = 0x780)
+ *        f10 = (double)f4 * D_const_248    (a double at &D + 0x248)
+ *        a0->field_B4->field_31C += (double)f10  (cvt.d.s + add.d + cvt.s.d)
+ *        gl_func_0(a0, *D_E10, *D_E14)        (jal 1)
+ *   3. (Both paths converge) gl_func_0(a0, 0x30001, 2, 2, 0x100, 0xA)  (jal 2 — extra args spilled to sp+0x10/0x14)
+ *   4. gl_func_0(a0, *D_E20, *D_E24, -1)                              (jal 3)
+ *
+ * Multi-tick decompile: FPU double-precision math + bnel-likely + 3
+ * cross-USO calls with stack-spilled extra args. Initial wrap captures
+ * structure; tightening register allocation needs subsequent passes. */
+extern int gl_func_00000000();
+extern char D_00000000;
+extern int D_E10_a, D_E14_a;       /* CSE-defeat aliases */
+extern int D_E20_b, D_E24_b;
+void game_uso_func_0000FC34(int *a0) {
+    char *base = (char*)*(int**)((char*)a0 + 0xB4);
+    int *flag_loc = *(int**)(base + 0x800);
+    if ((flag_loc[0x10/4] & 0x100) == 0) {
+        float v = *(float*)(base + 0x780);
+        double dconst = *(double*)((char*)&D_00000000 + 0x248);
+        *(float*)(base + 0x31C) = (float)((double)*(float*)(base + 0x31C) + (double)v * dconst);
+        gl_func_00000000(a0, D_E10_a, D_E14_a);
+    }
+    gl_func_00000000(a0, 0x30001, 2, 2, 0x100, 0xA);
+    gl_func_00000000(a0, D_E20_b, D_E24_b, -1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FD04);
 
