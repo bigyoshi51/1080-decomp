@@ -7935,8 +7935,25 @@ void game_uso_func_000114FC(int *a0) {
 /* game_uso_func_0001155C: 8-byte stolen-prologue donor for game_uso_func_00011564.
  * Body is `lui t6, 0; lw t6, 0x78(t6)` — loads `t6 = *(int*)((char*)&D + 0x78)`
  * which the successor at 0x11564 reads via `bnez t6, +0xC` at its first insn.
- * Treat as fragment; NM C body would require PROLOGUE_STEALS plumbing to splice
- * the C-emit's natural lui+lw at successor entry. */
+ *
+ * Standalone-uncompilable: the function has NO prologue (no addiu sp), NO
+ * epilogue (no jr ra), and just 2 setup insns. Any C body would emit at
+ * minimum prologue+jr ra+nop = 4 insns (16 bytes), exceeding the 8-byte
+ * symbol size. Stays INCLUDE_ASM.
+ *
+ * Promotion path: drop this INCLUDE_ASM line entirely, then move the symbol
+ * boundary so game_uso_func_00011564 starts 8 bytes earlier (at 0x1155C).
+ * The successor's natural C-emit produces `lui t6, 0; lw t6, 0x78(t6)` as
+ * the first 8 bytes (since its body opens with the t6 read). Then
+ * PROLOGUE_STEALS is NOT needed — the successor's emit naturally covers
+ * both the predecessor's 8 bytes and its own. Requires:
+ *   1. Remove this INCLUDE_ASM line.
+ *   2. Update undefined_syms_auto.txt: `game_uso_func_0001155C = 0x1155C;`
+ *      (re-export for any external callers).
+ *   3. Update splat config so successor's symbol covers 0x1155C..0x115DC.
+ * Same family as the chained-SUFFIX inheritance recipe in
+ * docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-only-splice-restriction
+ * (5th finding) — but with predecessor symbol-rename instead of SUFFIX_BYTES. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
 
 #ifdef NON_MATCHING
