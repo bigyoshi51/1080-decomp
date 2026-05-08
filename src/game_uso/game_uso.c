@@ -3659,12 +3659,38 @@ void game_uso_func_0000591C(int *a0) {
      * collision/proximity portion of the state machine. The two-step
      * copy via sp+0x15C is a -O0 artifact within an otherwise -O2 function.
      *
-     * Cumulative ~398/1102 insns characterized (up from 361, +37 insns).
-     * ~704 remaining.
-     * NEXT PASS: 0x6024+ FCC-branch (likely bc1f/bc1t) → conditional state
-     * update or fall-through to next sub-block.
+     * 0x6024-0x6058 region (+14 insns) — FCC-branch + FP norm + final cmp:
+     *   if (dist² != f16_zero) {
+     *     f12 = neg.s(f0)              ; mov.s/neg.s on the diff?
+     *     f8  = f10 * f18               ; mul.s
+     *     f10 = f4 * f6                  ; (interleaved)
+     *     f0  = f8 + f10                ; add.s — sum of two products
+     *     f18 = f0 * f0                 ; mul.s — square of sum
+     *     f12 = f18 / f14               ; div.s — distance-ratio?
+     *     f4  = f2 * f2                 ; mul.s — square again
+     *     c.le.s f12, f4                ; compare
+     *     if (c.le.s f12 ≤ f4 false) skip large block (+0x167 = 359 insns)
+     *   }
      *
-     * TODO: ~704 remaining insns — continue per-state-branch decoding. */
+     * 0x605C-0x607C region (+8 insns) — fall-through state-update:
+     *   t1 = 0x14                     ; literal
+     *   t7 = s0->[0x6C]               ; load flag word
+     *   s0->[0x48] = t1               ; mark-as-set (= 0x14)
+     *   a0 = s0->[0x30]               ; sub object
+     *   t9 = t7 & ~1                  ; clear bit 0 (at = -2)
+     *   b +0x161 (skip into next state block, ~353 insns ahead)
+     *   s0->[0x6C] = t9               ; (delay) writeback cleared flag
+     *
+     * Pattern: 'if (distance test passes) clear sub-state-flag-bit-0,
+     * mark s0->0x48 = 0x14 (= 'distance-check-completed' code), then
+     * b to a far-skip into the next state-block'.
+     *
+     * Cumulative ~420/1102 insns characterized (up from 398, +22 insns).
+     * ~682 remaining.
+     * NEXT PASS: 0x6080+ FCC-block — beql t2, 0, +N; nested andi+beq
+     * state checks on s0->[various] flag bytes.
+     *
+     * TODO: ~682 remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
