@@ -1,14 +1,6 @@
-nonmatching game_libs_func_00007078, 0x28
+nonmatching game_libs_func_00007078, 0x8
 
 glabel game_libs_func_00007078
     /* DEC150 00007078 03E00008 */  .word 0x03E00008
     /* DEC154 0000707C AFA40000 */  .word 0xAFA40000
-    /* DEC158 00007080 03E00008 */  .word 0x03E00008
-    /* DEC15C 00007084 AFA40000 */  .word 0xAFA40000
-    /* DEC160 00007088 AFA40000 */  .word 0xAFA40000
-    /* DEC164 0000708C 03E00008 */  .word 0x03E00008
-    /* DEC168 00007090 24020001 */  .word 0x24020001
-    /* DEC16C 00007094 AFA40000 */  .word 0xAFA40000
-    /* DEC170 00007098 03E00008 */  .word 0x03E00008
-    /* DEC174 0000709C 24020001 */  .word 0x24020001
 endlabel game_libs_func_00007078
