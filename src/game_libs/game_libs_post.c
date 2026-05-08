@@ -1292,15 +1292,51 @@ int gl_func_00031540() {
     return gl_func_00000000();
 }
 
-/* gl_func_00031560: 8-insn 1-call void wrapper (split off from old bundle). */
+/* gl_func_00031560: 8-insn (0x20) bare wrapper — calls gl_func_0() with
+ * no args and no return-value use. Original splat bundle was 0x68 with
+ * 2 jr-ras + R-type stolen-prologue tail; split-fragments separated
+ * game_libs_func_00031580 (0x44 array-init loop, NM-wrapped below). */
 void gl_func_00031560(void) {
     gl_func_00000000();
 }
 
+#ifdef NON_MATCHING
+/* game_libs_func_00031580: 17-insn (0x44) array-init loop. Sets per-record
+ * fields in &gl_ref_00000368[0..1] (2 records of 0x64 stride):
+ *   for (i = 0; i != 2; i++) {
+ *       rec = &D + 0x368 + i * 0x64;
+ *       *(short*)(rec + 0x62) = i;
+ *       *(int*)(rec + 0x40) = 0;
+ *       *(int*)(rec + 0x44) = 0;
+ *       *(int*)(rec + 0x48) = 0;
+ *       *(int*)(rec + 0x4C) = 0;
+ *       *(int*)(rec + 0x5C) = 0;
+ *   }
+ * Trailing 2 insns at 0x315BC-0x315C0 are R-type stolen-prologue donation
+ * to successor gl_func_000315C4 (`sll t7, a0, 2; subu t7, t7, a0` = a0*3).
+ *
+ * Cap: leaf function with no stack frame; standalone IDO -O2 emit may
+ * use different register allocation for the bnel-end loop. Multi-tick. */
+extern char gl_ref_00000368;
+void game_libs_func_00031580(void) {
+    char *p = (char *)&gl_ref_00000368;
+    short i;
+    for (i = 0; i != 2; i++) {
+        *(short *)(p + 0x62) = i;
+        p += 0x64;
+        *(int *)(p - 0x24) = 0;
+        *(int *)(p - 0x20) = 0;
+        *(int *)(p - 0x1C) = 0;
+        *(int *)(p - 0x18) = 0;
+        *(int *)(p - 0x8) = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031580);
+#endif
 
 /* gl_func_000315C4: 17-insn (0x44) array-element-call helper.
- * Stolen-prologue successor — predecessor gl_func_00031560's tail at
+ * Stolen-prologue successor — predecessor game_libs_func_00031580's tail at
  * 0x315BC/0x315C0 has `sll t7, a0, 2; subu t7, t7, a0` (= a0 * 3) which
  * this function multiplies further to a0 * 100 (record stride) and uses
  * to index into &gl_ref_00000368 array, calling helper at 0x045DC0.
