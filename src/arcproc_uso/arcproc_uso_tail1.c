@@ -383,50 +383,39 @@ void arcproc_uso_func_00000F50(int a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-/* arcproc_uso_func_00000F78: 9-insn 2-level NULL-check returning 1/0.
- * Post-split (parent F50 + this F78 + tail F9C). Decoded:
- *   int *t6 = a0->[0x6AC];
- *   int *v0 = t6->[0x6C];
- *   if (v0 == 0) return 0;
- *   if (v0->[0xEC] == 0) return 0;
- *   return 1;
+/* arcproc_uso_func_00000F78: 12-insn 2-level NULL-check.
  *
- * Cap class: alt-entry-jal-relative (per docs/MATCHING_WORKFLOW.md
- * #feedback-strategy-memo-size-misleading variant). F78's beqzl branches
- * encode `+7` and `+4` relative offsets, both landing at F78+0x28 = F9C+0x4
- * (the `jr ra` inside F9C). The "early return 0" semantically goes to
- * F9C's body — F78 has no embedded `move v0,zero` for early-exit.
+ * BOUNDARY FIX 2026-05-08: was a 9-insn F78 + 3-insn F9C cross-function
+ * tail-share — F78's beqzl branches encoded `+7` and `+4` relative
+ * offsets both landing at F78+0x28 = F9C+0x4 (the `jr ra` inside F9C).
+ * F9C had no other callers (verified by grep). Merged F9C's 3 insns
+ * into F78's .s, deleted F9C.s, added `arcproc_uso_func_00000F9C =
+ * 0xF9C;` to undefined_syms_auto.txt.
  *
- * IDO -O2 cannot reproduce this from C: the standard `if (cond) return 0`
- * idiom emits an embedded early-exit (`move v0,zero; jr ra` within the
- * function), not a relative branch into a separate symbol. Closest C
- * shapes (10-12 insns) keep the early-exit body inside F78 → byte-correct
- * for the prefix but adds 3 dead-code insns at the end where target has
- * the `jr ra; li v0, 1` default-path.
+ * Decoded C body below produces 12 insns at IDO -O2 with the right SIZE
+ * but wrong SHAPE (28% fuzzy):
+ *   built  uses `move v0,zero; beqz v1; nop` (eager-init + beq)
+ *   target uses `beql v0,0,target / or v0,0,0 [delay-likely]` (lazy-init via beql delay)
  *
- * Promotion would need a per-function shrinker (truncate function .o
- * size) AND INSN_PATCH to rewrite branches with the right relative
- * offsets pointing past F78's own end. Recipe doesn't exist yet for
- * the shrink direction — defer until a TRUNCATE_FUNC sibling of
- * SUFFIX_BYTES is built. */
-extern int arcproc_uso_func_00000F78_logic(int *a0);
+ * IDO -O2 doesn't emit beql for early-out NULL checks at this shape;
+ * it prefers the eager-init form. Cap class: branch-likely-with-
+ * delay-likely-init. No tested C-level lever forces the beql shape
+ * for this 2-stage null-check pattern. Fix paths:
+ *   - INSN_PATCH for 10 insns (essentially rewriting the whole body)
+ *   - permuter random-search for an alternate C shape that emits beql
+ *
+ * Default INCLUDE_ASM path produces correct bytes (post-merge .s). */
 int arcproc_uso_func_00000F78(int *a0) {
     int *t6 = *(int**)((char*)a0 + 0x6AC);
     int *v0 = *(int**)((char*)t6 + 0x6C);
-    if (v0 == 0) return 0;
-    if (*(int*)((char*)v0 + 0xEC) == 0) return 0;
-    return 1;
+    if (v0 != 0 && *(int*)((char*)v0 + 0xEC) != 0) {
+        return 1;
+    }
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F78);
 #endif
-
-/* arcproc_uso_func_00000F9C: 3-insn shared-tail leaf returning 0.
- * Body: move v0, zero; jr ra; nop. Standalone callable AND target of
- * F78's beqzl-relative branches (+7/+4 → F78+0x28 = F9C+0x4 = jr ra).
- * No C shape produces a 3-insn no-prologue leaf at -O2; INCLUDE_ASM
- * stays as the byte-correct path. */
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F9C);
 
 /* arcproc_uso_func_00000FA8: 114-insn (0x1C8) state-machine dispatcher.
  * 3-way switch on a0->0x504 (state code) with cases 0, 1, 4 + default.
