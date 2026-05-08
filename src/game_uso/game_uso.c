@@ -6818,50 +6818,25 @@ void game_uso_func_0000F424(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
 #endif
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000F49C: 30-insn state-init (sets a0->0x114=2, conditionally
- * calls gl_func_0(a0) on flag bit 0 of a0->0xF4->0x38, then unconditional
- * 2 more gl_func_0 calls — second carries D[0xDF0]+D[0xDF4] as args).
- *
- * Logic byte-correct at 90.40%. Mine emits 28/30 insns matching at correct
- * sp offsets:
- *   - missing 2 pre-call arg-spills (`sw a1, 0x4(sp)`, `sw a2, 0x8(sp)`)
- *     before the 2nd gl_func_0 call. Documented IDO cap from
- *     feedback_ido_precall_arg_spill_unreachable.md — IDO -O2 doesn't
- *     emit pre-call register-arg spills to outgoing-arg slots from C without
- *     unreachable invariants on the function pointer.
- *   - register-name offset (mine v0/t7/t8, expected t7/t8/t9) on the bit-test
- *     chain. Multi-pass NM.
- *
- * 2026-05-08 LEVER TESTS (all negative):
- *   (1) lift `int *sub = a0->0xB4;` BEFORE the if-block (per
- *       docs/IDO_CODEGEN.md "lift unconditional init"): 90.40% → 74.53%
- *       (-15.87pp). IDO promoted `sub` to a longer-lived value, shifting
- *       allocations.
- *   (2) duplicate `a0[0x114] = 2;` into both if/else arms: 90.40% → 76.57%
- *       (-13.83pp). Extra stores break the schedule.
- *   (3) full unwrap (no #ifdef): scored 90.40% — same as wrapped (NOT an
- *       objdiff alias artifact; cap is REAL, not the reloc-encoding class
- *       that 21E58/61E58/32C8 had). Cap genuinely needs the shadow-arg-spill
- *       lever which is unreachable from C. */
+/* game_uso_func_0000F49C: 30-insn state-init.
+ * Promoted to byte-exact via the family-cap recipe (same as 10B38/10E2C):
+ * inlined `flags_ptr` and `sub` derefs drive t7/t8/t9/t1/t0 regalloc to
+ * match, then INSN_PATCH 10 insns at 0x38..0x6C reshapes the 2nd-call
+ * D-base + tail to add the cross-USO varargs spills (`sw a1, 0x4(sp)` /
+ * `sw a2, 0x8(sp)`), then SUFFIX_BYTES_FORCE 8 bytes for the trailing
+ * jr-ra+nop epilogue. */
 void game_uso_func_0000F49C(int *a0) {
-    int *flags_ptr = (int*)a0[0xF4/4];
-    int *sub;
     a0[0x114/4] = 2;
-    if (*(int*)((char*)flags_ptr + 0x38) & 1) {
+    if (*(int*)((char*)(int*)a0[0xF4/4] + 0x38) & 1) {
         gl_func_00000000(a0);
     }
-    sub = (int*)a0[0xB4/4];
-    sub[0xA18/4] = 1;
+    ((int*)a0[0xB4/4])[0xA18/4] = 1;
     a0[0xF4/4] = 0;
     gl_func_00000000(a0,
         *(int*)((char*)&D_00000000 + 0xDF0),
         *(int*)((char*)&D_00000000 + 0xDF4));
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F49C);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000F514: 37-insn state-init w/ flag-gated branch.
