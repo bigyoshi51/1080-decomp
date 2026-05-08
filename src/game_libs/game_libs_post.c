@@ -463,23 +463,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002737C);
 
 /* gl_func_00027548: 17-insn (0x44) F3DEX2-style display-list-word builder.
- * Computes a packed 32-bit dlist word combining:
- *   - inherited $t6 (high 16 bits) shifted left 16 → upper word
- *   - 0xFA000000 (G_SETPRIMCOLOR-like Fast3D opcode) OR'd in
- *   - (a1 & 0xFF) << 8 | (a2 & 0xFF) → low byte pair
- * then tail-calls gl_func_00000000(packed_word, 1).
+ * Computes a packed 32-bit dlist word:
+ *   packed = 0xFA000000 | ((a0 & 0xFF) << 16) | ((a1 & 0xFF) << 8) | (a2 & 0xFF)
+ * (G_SETPRIMCOLOR-like opcode 0xFA + 3 bytes) and calls gl_func_0(packed, 1).
  *
- * BLOCKED for NM wrap: $t6 is read at offset 0x4 (`sll t7, t6, 0x10`)
- * without being set in this function. It's a caller-context register —
- * non-standard MIPS calling convention (the immediate caller's last
- * jal-context $t6 carries through). C cannot model an implicitly-
- * inherited caller-save register; even with `register int x asm("$t6")`
- * GCC-style hint, IDO rejects the syntax.
+ * Stolen-prologue successor: predecessor gl_func_0002737C's tail at 0x27544
+ * has the `andi t6, a0, 0xFF` insn that sets up $t6 for this function's
+ * `sll t7, t6, 0x10` at 0x2754C. Per the standard PROLOGUE_STEALS recipe
+ * (docs/MATCHING_WORKFLOW.md feedback-prologue-stolen-successor-no-recipe),
+ * write the C with the natural `(a0 & 0xFF) << 16` access — IDO emits the
+ * andi at function start, and PROLOGUE_STEALS=4 splices off that
+ * redundant 4-byte prefix.
  *
- * Default INCLUDE_ASM keeps bytes correct via the asm splice. Source 3
- * size-sort. Same class as gl_func_00054228 ($t9 inheritance from
- * predecessor's chained-SUFFIX) and gl_func_0002D7D0 ($at carryover). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027548);
+ * Earlier comment (now resolved 2026-05-08): claimed this was UNFIXABLE
+ * "$t6 is caller-context inherited"; that diagnosis was wrong — the andi
+ * is the SUCCESSOR's prologue mis-attributed to the predecessor's symbol
+ * (a 4-byte version of the standard 8-byte stolen-prologue case). */
+extern int gl_func_00000000();
+
+void gl_func_00027548(int a0, int a1, int a2) {
+    int packed = 0xFA000000 | ((a0 & 0xFF) << 16) | ((a1 & 0xFF) << 8) | (a2 & 0xFF);
+    gl_func_00000000(packed, 1);
+}
 
 void gl_func_0002758C(void) {
     gl_func_00000000(0xFA000000, 0);
