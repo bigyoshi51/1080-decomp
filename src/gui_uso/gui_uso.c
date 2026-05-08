@@ -749,18 +749,15 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
 extern int gl_func_00000000();
 extern char D_00000000;
 void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
-    int *gs;
-    int *dlp;
-    int idx;
-    int *base;
+    typedef struct DLState { int *base; int idx; } DLState;
+    typedef struct GameState { char pad[0xC]; DLState *dlp; } GameState;
+    GameState *gs = *(GameState**)&D_00000000;
+    DLState *dlp = gs->dlp;
+    int idx = dlp->idx;
     int *entry;
     (void)a0;
-    gs = *(int**)&D_00000000;
-    dlp = (int*)gs[3];
-    idx = dlp[1];
-    dlp[1] = idx + 1;
-    base = (int*)((int*)gs[3])[0];
-    entry = base + idx * 2;
+    dlp->idx = idx + 1;
+    entry = gs->dlp->base + idx * 2;
     entry[0] = 0xF6000000 | ((a3 & 0x3FF) << 14) | ((arg5 & 0x3FF) << 2);
     entry[1] = ((a1 & 0x3FF) << 14) | ((a2 & 0x3FF) << 2);
 }
