@@ -6757,7 +6757,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FD04);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FDCC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FEC8);
+/* Same SUFFIX_BYTES + INSN_PATCH spill-tail recipe as the 0x10E2C family;
+ * target emits caller arg-slot spills before the conditional second call. */
+void game_uso_func_0000FEC8(char *a0) {
+    gl_func_00000000(a0, 0x30001, 4, 5, 2, 1);
+    if (*(float*)(*(char**)(a0 + 0xB4) + 0x9D0) < 1000.0f) {
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE38), *(int*)((char*)&D_00000000 + 0xE3C));
+    }
+}
 
 #ifdef NON_MATCHING
 /* 89.18% NM. Built 26 vs expected 28 insns (size 0x68 vs 0x70). 2-call gated
