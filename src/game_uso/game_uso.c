@@ -7070,7 +7070,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FABC);
  * gl_func_0(a0, D[0xE40], D[0xE44], 1); }. Logic byte-correct, 28/30 insns.
  * Missing 2 pre-call defensive arg-spills (sw a1, 4; sw a2, 8) before the
  * 2nd gl_func_0 call — documented IDO cap per
- * feedback_ido_precall_arg_spill_unreachable.md. Multi-pass NM. */
+ * feedback_ido_precall_arg_spill_unreachable.md.
+ *
+ * 2026-05-08 attempt: tried `int e40 = *(...); int e44 = *(...);` named-
+ * locals before the call to force defensive spill — no emit change (89.33%
+ * unchanged). IDO -O2 inlines the load expressions back into the call
+ * args regardless of intermediate var, and the missing spills are
+ * scheduled-out by the optimizer. Confirms the documented unreachable cap.
+ *
+ * Multi-pass NM. */
 void game_uso_func_0000FB04(int *a0) {
     gl_func_00000000(a0);
     if (a0[0x110/4] != 0) {
