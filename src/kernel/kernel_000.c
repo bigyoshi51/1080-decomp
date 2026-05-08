@@ -123,7 +123,13 @@ extern s32 D_80012D5C;
  *       (-5.8pp). IDO collapses `ret` into `result` and emits the same
  *       shortened branch-delay pattern.
  * Both retests confirm the shape cap. The 91.15% wrap is the local maximum
- * for naturally-emitted IDO -O2 with current REG_ALLOC_ORDER constraints. */
+ * for naturally-emitted IDO -O2 with current REG_ALLOC_ORDER constraints.
+ *
+ * 2026-05-08 retest #3 — `register u32 mask;` IDO register hint to coerce
+ *   $v0 allocation: emit unchanged ($v1 still selected for mask). IDO's
+ *   `register` honors strong reg-class hints but doesn't override the
+ *   priority-based $v0/$v1 split when $v0 is reserved for a longer-live
+ *   pseudo. Confirms cap is structural, not register-hint-fixable. */
 u32 func_800000B0(u32 size, u32 alignment) {
     u32 mask;
     u32 result;
