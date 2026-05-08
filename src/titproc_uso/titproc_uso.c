@@ -267,7 +267,18 @@ void titproc_uso_func_00000C0C(int *a0) {
  * count to $11 did not change codegen. Remaining diffs are mostly early
  * branch scheduling, link spill offset, and vtable callback temp registers.
  * Documented field offsets: 0xC, 0x14, 0x28, 0x2C, 0x30, 0x38, 0x3C, 0x40,
- * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74, 0x7C. */
+ * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74, 0x7C.
+ *
+ * 2026-05-08 (later) v6: removed `int count;` local + inlined volatile
+ * read directly into the if-body. Frame DID shrink 0x48 -> 0x40
+ * (matches target!) BUT regressed 89.32% -> 5.02% (-84pp): removing the
+ * count slot freed up an $s-reg slot which IDO then re-used for
+ * different temps across the whole function, cascading register
+ * reshuffles into ~208 instruction diffs. Same disruption-cascade as
+ * documented in IDO_CODEGEN.md feedback-ido-volatile-const-bind-
+ * catastrophic-regression. Frame-shrink-via-local-removal is too
+ * structurally invasive for late-tier matching grinds; counts as a
+ * confirmed dead-end for this cap. Reverted. */
 void *titproc_uso_func_00000C54(int *a0, int a1) {
     int *root;
     int *sub;
