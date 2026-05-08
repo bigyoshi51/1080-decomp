@@ -407,8 +407,8 @@ int gl_func_00024B28(int a0, int a1) {
 }
 
 /* 2-insn alt-entry stub split off from gl_func_00024B28 on 2026-05-08
- * (just `jr ra; nop`). Stays INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024B8C);
+ * (just `jr ra; nop`). */
+void game_libs_func_00024B8C(void) {}
 
 /* gl_func_00024B94: 29-insn (0x74) lookup-and-copy. Sibling of 2495C, both
  * call func_00039194 (intra-segment helper at fixed offset 0x39194 — alt-
