@@ -1495,6 +1495,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031898);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003190C);
 
+/* Split off from gl_func_0003190C bundle 2026-05-08: 4-insn setter.
+ * Clears the global at &D_00000000 + 0x1CAA8 to -1. */
+void game_libs_func_00031A64(void) {
+    *(int*)((char*)&D_00000000 + 0x1CAA8) = -1;
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031A74);
 
 extern int gl_data_00000000;
