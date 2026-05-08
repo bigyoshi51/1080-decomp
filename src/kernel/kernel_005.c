@@ -73,4 +73,57 @@ s32 func_800052C0(void) {
 }
 
 
+#ifdef NON_MATCHING
+/* func_800052F0: __osEPiRawStartDma — extended PI DMA setup with handle.
+ * 24-insn entry block (0x60). Falls through into func_80005350 (116 insns
+ * / 0x1D0) which contains the body + epilogue. Combined function is the
+ * full __osEPiRawStartDma per OoT reference (libultra/io/epirawdma.c).
+ *
+ * Decoded structure (covers BOTH halves):
+ *
+ *   s32 __osEPiRawStartDma(OSPiHandle* handle, s32 direction, u32 cartAddr,
+ *                          void* dramAddr, s32 size) {
+ *       u32 status;
+ *       OSPiHandle* curHandle;
+ *       status = IO_READ(PI_STATUS_REG);                    // 0xA4600010
+ *       while (status & 3) { status = IO_READ(PI_STATUS_REG); }
+ *
+ *       curHandle = __osPiTable[handle->domain];            // table at 0x8000A470
+ *       if (curHandle->type != handle->type) {
+ *           // Per-domain BSD register updates (DOM1: 0x14/1C/20/18, DOM2: 0x24/2C/30/28)
+ *           if (curHandle->latency    != handle->latency)    IO_WRITE(LAT_REG, ...);
+ *           if (curHandle->pageSize   != handle->pageSize)   IO_WRITE(PGS_REG, ...);
+ *           if (curHandle->relDuration!= handle->relDuration)IO_WRITE(RLS_REG, ...);
+ *           if (curHandle->pulse      != handle->pulse)      IO_WRITE(PWD_REG, ...);
+ *           __osPiTable[handle->domain] = handle;
+ *       }
+ *       IO_WRITE(PI_DRAM_ADDR_REG, osVirtualToPhysical(dramAddr));  // func_80004B30
+ *       IO_WRITE(PI_CART_ADDR_REG, (handle->baseAddress | cartAddr) & 0x1FFFFFFF);
+ *       if      (direction == 0) IO_WRITE(PI_WR_LEN_REG, size - 1);  // OS_READ
+ *       else if (direction == 1) IO_WRITE(PI_RD_LEN_REG, size - 1);  // OS_WRITE
+ *       else                     return -1;
+ *       return 0;
+ *   }
+ *
+ * Field offsets used: handle->{0x04 type, 0x05 latency, 0x06 pageSize,
+ * 0x07 relDuration, 0x08 pulse, 0x09 domain, 0x0C baseAddress}.
+ * Same OSPiHandle layout as OoT/libreultra (PI_BASE = 0xA4600000).
+ *
+ * MATCH BLOCKED: same alt-entry shared-tail pattern as func_800073DC /
+ * func_8000817C / func_80008430. External callers in kernel_000.c /
+ * kernel_001.c / kernel_003.c declare `extern void func_80005350(s32, s32)`
+ * and call it as a 2-arg function — those callers expect to enter mid-body
+ * (uses prologue's $sp frame + spilled $a0/$a3 args). Standard C-emit can't
+ * produce a function whose internal label is also a callable entry — IDO
+ * always emits prologue+epilogue at function boundary. See
+ * docs/MATCHING_WORKFLOW.md#feedback-cross-function-epilogue-entry.
+ *
+ * Default INCLUDE_ASM build remains exact. */
+void func_800052F0(void *handle, s32 direction, u32 cartAddr, void *dramAddr, s32 size) {
+    /* Stub — see decoded structure above. The full body lives in the
+     * INCLUDE_ASM bytes via func_800052F0.s + func_80005350.s. */
+    (void)handle; (void)direction; (void)cartAddr; (void)dramAddr; (void)size;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800052F0);
+#endif
