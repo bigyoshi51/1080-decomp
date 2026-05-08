@@ -870,7 +870,7 @@ void mgrproc_uso_func_00003328(char *dst) {
  *
  * Returns p (allocated obj OR 0 if alloc failed).
  *
- * Caps remaining at the byte level:
+ * Caps remaining at the byte level (current fuzzy 89.22%):
  * 1. Frame size: target -0x28, built -0x20 (8-byte diff). Target has
  *    spills at sp+0x20/0x24 around the third jal; built places them
  *    at sp+0x18/0x1C. Looks like extra locals push target's frame.
