@@ -56,7 +56,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009DB8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009EBC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009FA8);
+/* gl_func_00009FA8: 25-insn 3-iteration loop with 2 cross-USO calls per
+ * iter. Calls gl_func(a0+i) and gl_func(a0+0x18+i) for i = 0, 8, 0x10. */
+extern int gl_func_00000000();
+void gl_func_00009FA8(char *a0) {
+    int i;
+    char *p, *q;
+    int limit;
+    p = a0;
+    i = 0;
+    q = a0 + 0x18;
+    limit = 0x18;
+    do {
+        gl_func_00000000(p);
+        gl_func_00000000(q);
+        i += 8;
+        p += 8;
+        q += 8;
+    } while (i != limit);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A00C);
 
