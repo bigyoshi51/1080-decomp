@@ -259,8 +259,10 @@ void titproc_uso_func_00000C0C(int *a0) {
  * 0x78-byte root object, initializes the template/vtable fields, chains
  * children through root+0x10, and stores the constructed root in v0.
  *
- * No exact match expected this pass -- too many cross-USO calls + D_
- * placeholder relocations. NM wrap captures structure for future passes.
+ * 2026-05-08 pass: 89.18834% after forcing root=a0 before allocation and
+ * reusing `sub` for the D+0x190 child to keep the frame at 0x40. Remaining
+ * diffs are mostly early branch scheduling, link spill offset, and vtable
+ * callback temp registers.
  * Documented field offsets: 0xC, 0x14, 0x28, 0x2C, 0x30, 0x38, 0x3C, 0x40,
  * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74, 0x7C. */
 void *titproc_uso_func_00000C54(int *a0, int a1) {
@@ -268,12 +270,10 @@ void *titproc_uso_func_00000C54(int *a0, int a1) {
     int *sub;
     int *child;
     int *link;
-    int *global_child;
     int *vtable;
 
-    if (a0 != 0) {
-        root = a0;
-    } else {
+    root = a0;
+    if (root == 0) {
         root = (int*)gl_func_00000000(0x78);
         if (root == 0) goto end;
     }
@@ -349,12 +349,12 @@ void *titproc_uso_func_00000C54(int *a0, int a1) {
     if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
     *(int*)((char*)sub + 0x14) = (int)root;
 
-    global_child = *(int**)((char*)&D_00000000 + 0x190);
-    gl_func_00000000(link, global_child);
-    if (*(int*)((char*)global_child + 0x14) != 0) {
-        *(int*)((char*)global_child + 0x4) = 1;
+    sub = *(int**)((char*)&D_00000000 + 0x190);
+    gl_func_00000000(link, sub);
+    if (*(int*)((char*)sub + 0x14) != 0) {
+        *(int*)((char*)sub + 0x4) = 1;
     }
-    *(int*)((char*)global_child + 0x14) = (int)root;
+    *(int*)((char*)sub + 0x14) = (int)root;
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
 
     *(int*)((char*)root + 0x6C) = 5;
