@@ -217,43 +217,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023548);
 
 #ifdef NON_MATCHING
-/* gl_func_00023598: 19-insn slot writer with global gate.
+/* gl_func_00023598: 19-insn slot writer with global gate. UPDATED
+ * 2026-05-08 with two cap-resolutions and one remaining cap.
  *
- * Predecessor gl_func_00023548 ends with a stolen 12-byte prologue:
- *   lui v0, 0; addiu v0, v0, 0; lw t6, 0x215C(v0)
- * so this function inherits v0 = &D AND t6 = D[0x215C] (the gate flag).
+ * RESOLVED — 12-byte stolen prologue (was: cap claim "Splice script
+ *   only supports n={4,8}"). The splice script accepts arbitrary -n
+ *   values; the LUI opcode-check fires on the first insn regardless.
+ *   PROLOGUE_STEALS=12 in the Makefile splices the 12-byte prefix
+ *   (lui v0, 0; addiu v0, v0, 0; lw t6, 0x215C(v0)) that the
+ *   predecessor's tail emits.
  *
- * Body (with inherited regs):
- *   a3 = a2;                             (delay-slot of beqz)
- *   if (t6 != 0) { v0 = 0; goto end; }   (early-return 0)
- *   t7 = a0*4 - a0 = a0*3;               (strength-reduction multiply)
- *   t7 = t7*4 - a0 = a0*11;
- *   t7 = t7*32       = a0*352;
- *   t8 = v0 + t7;                        (= &D + a0*352, REUSES v0)
- *   *(int*)(t8 + 0x2DDC) = a3;           (= a2 — slot register)
- *   v0 = jal gl_func_00000000(a0,a1,0);  (a2 zeroed in delay slot)
- *   end: return v0;
+ * RESOLVED — IDO re-materializing &D inside the function (was: cap
+ *   claim "needs to keep &D in one register without re-materialization").
+ *   Uses `extern char D_23598_char;` (data-decl alias) instead of
+ *   `extern int D_00000000;` — char-decl makes IDO emit the lui+addiu
+ *   pair ONCE for &D and keep v0 = &D live across the strength-
+ *   reduction math, then reuse v0 in the `addu t8, v0, t7` for the
+ *   store. Matching recipe in
+ *   docs/IDO_CODEGEN.md#feedback-ido-extern-char-vs-extern-fn-folds-lo-offset.
  *
- * Cap: 12-byte stolen prologue (lui+addiu+lw triple). Splice script
- * currently supports PROLOGUE_STEALS={4,8} only. The =12 case is a new
- * precedent — predecessor pre-loads BOTH base ptr (v0 = &D) AND a value
- * (t6 = D[0x215C]). The body also reuses v0 = &D for the 0x2DDC store,
- * so plain C-emit re-materializes &D inside the function (extra
- * lui+addiu pair) instead of holding it in a single live register.
- * Promoting needs: (a) extend splice script to recognize lui+addiu+lw
- * triple at n=12, (b) force IDO to keep &D in one register across the
- * strength-reduction math without re-materialization. Defer until the
- * next pass establishes the =12 pattern.
+ * REMAINING CAP — alt-entry-jal: target's `jal 0x37C50` lands INSIDE
+ *   gl_func_00037BEC (size 0x84, at offset 0x64 within it). No clean
+ *   splat symbol for entry point 0x37C50. C-emit produces `jal 0 +
+ *   R_MIPS_26 gl_func_00000000` (the cross-USO placeholder) which
+ *   resolves to address 0 at link time, NOT 0x37C50. objdiff scores
+ *   84.21% (1 mismatched insn out of 19). See
+ *   docs/MATCHING_WORKFLOW.md#alt-entry-jal-in-segment-jal-lands-inside-another-function-with-no-clean-symbol.
  *
- * 2026-05-08 cap re-test: tried `register char *base = &D_00000000`
- * (docs/IDO_CODEGEN.md feedback-ido-constant-address-load-fold-inevitable
- * predicted this wouldn't work — and it didn't, 0pp). Confirmed cap. */
+ * Promoting this to 100% requires either: (a) splitting gl_func_00037BEC
+ * via merge-fragments at offset 0x64 to expose 0x37C50 as a named
+ * symbol, then point the C call there; (b) INSN_PATCH the jal at
+ * offset 0x10 (post-splice) with the pre-baked 0x0c00df14 bytes.
+ *
+ * 2026-05-08 parallel-agent attempt: `register char *base = &D_00000000`
+ * tried (per docs/IDO_CODEGEN.md feedback-ido-constant-address-load-fold-
+ * inevitable). 0pp — superseded by the extern-char data-decl recipe
+ * above which DOES work for the splat-fold and prefix shape. */
 extern int gl_func_00000000();
+extern char D_23598_char;       /* char-decl alias of D_00000000 for the
+                                   stolen-prologue 3-insn prefix emit
+                                   (resolves to 0 via undefined_syms_auto) */
 int gl_func_00023598(int a0, int a1, int a2) {
-    if (*(int*)((char*)&D_00000000 + 0x215C) != 0) {
+    if (*(int*)(&D_23598_char + 0x215C) != 0) {
         return 0;
     }
-    *(int*)((char*)&D_00000000 + 0x2DDC + a0 * 0x160) = a2;
+    *(int*)(&D_23598_char + 0x2DDC + a0 * 0x160) = a2;
     return gl_func_00000000(a0, a1, 0);
 }
 #else
