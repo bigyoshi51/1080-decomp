@@ -730,7 +730,28 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003B14);
 
+#ifdef NON_MATCHING
+/* gui_func_00003B80: 230-insn / 0x398 RDP DL builder (originally bundled
+ * 4-function 0x9E8; split-fragments output already INCLUDE_ASM-wired
+ * below for 3 trailing helpers).
+ *
+ * Same family entry shape as gui_func_0000329C / 0000_2DE0 / 0000_2BB0:
+ * D_GUI_CTX deref + cursor bump on ctx[0xC]->[1] + RDP 0xBB000001 +
+ * 0x80008000 segment-marker emit at slot 0. ~230 insns of body to
+ * decode in next pass. Multi-pass NM remains. */
+void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
+    /* TODO: full body decode. ~230 insns. */
+    (void)a0; (void)a1; (void)a2; (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003B80);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
+
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000413C);
+
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00004354);
 
 #ifdef NON_MATCHING
 /* gui_func_00004568: 198-insn / 0x318 RDP TEXRECT display-list builder.
