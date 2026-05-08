@@ -6372,39 +6372,53 @@ int gl_func_0006877C(int a0) {
 
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
+/* gl_func_000687B8: 51-insn nested for-loops with vtable dispatch.
+ * NM 88.82% → 97.06% via 2 changes (2026-05-08):
+ *   (a) Inlined `n_outer` and `n_inner` named locals — IDO was allocating
+ *       v0 for n_outer first, capturing it across the if-test and pushing
+ *       all subsequent loads up by one register. Inlining `s2[0x08/4]`
+ *       directly at each comparison frees v0 for the load result.
+ *   (b) Loop counters declared `unsigned int` to emit sltu (matching
+ *       target) instead of slt.
+ *
+ * Remaining 5-insn cap: v0/v1 register-swap in the inner-body block —
+ * target uses v1 for `e` (load result of *(t8)) and v0 for `vt`
+ * (e[0x1C/4]), built has them swapped. Both vars have 2 refs each so
+ * IDO's allocator picks first-encountered → lower-numbered. Declaration
+ * order has no effect (tested forward and reversed). Permuter
+ * territory or compiler-update.
+ *
+ * Verified 2026-05-08 via -DNON_MATCHING build + objdiff. */
 void gl_func_000687B8(int *a0) {
-    int n_outer = a0[0x34/4];
     int outer_offset;
-    int j_outer;
+    unsigned int j_outer;
     int *s2;
 
-    if (n_outer == 0) return;
+    if (a0[0x34/4] == 0) return;
 
     s2 = (int*)a0[0x30/4];
     outer_offset = 0;
     j_outer = 0;
     do {
-        int n_inner = s2[0x08/4];
-        int j;
+        unsigned int j;
         int inner_offset;
-        if (n_inner != 0) {
+        if (s2[0x08/4] != 0) {
             j = 0;
             inner_offset = 0;
             do {
-                int *arr = (int*)s2[0x04/4];
-                int *e = *(int**)((char*)arr + inner_offset);
-                int *vt = (int*)e[0x1C/4];
-                short t = *(short*)((char*)vt + 0x20);
-                ((void(*)(int*))vt[0x24/4])((int*)((char*)e + t));
+                int *vt;
+                int *e = *(int**)((char*)s2[0x04/4] + inner_offset);
+                vt = (int*)e[0x1C/4];
+                ((void(*)(int*))vt[0x24/4])((int*)((char*)e + *(short*)((char*)vt + 0x20)));
                 s2 = (int*)((char*)a0[0x30/4] + outer_offset);
                 j++;
                 inner_offset += 4;
-            } while (j < s2[0x08/4]);
+            } while (j < (unsigned int)s2[0x08/4]);
         }
         j_outer++;
         outer_offset += 0x10;
         s2 = (int*)((char*)s2 + 0x10);
-    } while (j_outer < a0[0x34/4]);
+    } while (j_outer < (unsigned int)a0[0x34/4]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000687B8);
