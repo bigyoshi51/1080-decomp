@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00011BF0",
+  "project": "1080 Snowboarding (USA)",
+  "model": "codex-gpt-5",
+  "start_time": "2026-05-08T17:40:05.135431+00:00",
+  "end_time": "2026-05-08T17:40:05.135451+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-08T17:40:05.135445+00:00",
+      "assistant_text": "Decoded the O0 loop wrapper: iterate a0->0x124 entries at a0+0x100, call func_00000000(entry, 0), then clear a0->0x188. Added -O0 OPT_FLAGS for the mid split unit; no-alias object disassembly matches expected.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\n\n/* Mid-tail assembly gap after func_00011AB4 was split to an -O0 file.\n * Holds 0x11B5C..0x11C70 so the following o0_11C70 split keeps its offset. */\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011B5C);\n\nvoid func_00011BF0(char *a0) {\n    s32 i;\n\n    i = 0;\n    if (*(s32*)(a0 + 0x124) > 0) {\n        do {\n            func_00000000(*(s32*)(a0 + 0x100 + i * 4), 0);\n        } while (++i < *(s32*)(a0 + 0x124));\n    }\n    *(s32*)(a0 + 0x188) = 0;\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail3a_mid.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00011BF0.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "make RUN_CC_CHECK=0; no-alias objdump build/src/bootup_uso/bootup_uso_tail3a_mid.c.o matches expected/src/bootup_uso/bootup_uso_tail3a_mid.c.o for func_00011BF0"
+  }
+}
