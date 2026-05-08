@@ -58,10 +58,36 @@ void timproc_uso_b5_func_00000050(void) {
  * alloc cascade with branched init blocks).
  *
  * Multi-pass NM-decomp; default build INCLUDE_ASM. */
+/* 2026-05-08: entry-stage decode (insns 0-30 / 0x00-0x6C). Replaces
+ * empty stub with the documented 3-stage alloc-cascade body — each
+ * stage either uses the input ptr or alloc()s a fresh struct, with
+ * goto exits when a later alloc fails. */
 void timproc_uso_b5_func_00000058(int *a0) {
-    /* TODO: full body decode + struct typing on s1's init target.
-     * Stub captures the 3-stage alloc-cascade entry signature. */
-    (void)a0;
+    int *s3, *s0, *s1;
+    if (a0 == 0) {
+        s3 = (int*)gl_func_00000000(0x50);
+        if (s3 == 0) return;
+    } else {
+        s3 = a0;
+    }
+    if (s3 == 0) {
+        s0 = (int*)gl_func_00000000(0x50);
+        if (s0 == 0) goto skip_init;
+    } else {
+        s0 = s3;
+    }
+    if (s0 == 0) {
+        s1 = (int*)gl_func_00000000(0x2C);
+        if (s1 == 0) goto skip_more;
+    } else {
+        s1 = s0;
+    }
+    gl_func_00000000(s1, (char*)&D_00000000 + 0x98);
+    /* TODO: ~95 insns of body — more init via s1 result + writes to s3/s0
+     * slots. Multi-pass NM remains. */
+skip_more:
+skip_init:
+    (void)s3; (void)s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
