@@ -1022,3 +1022,6 @@ gl_ref_0002B3B8 = 0x0002B3B8;
 game_libs_func_000683C4 = 0x683C4;
 gl_ref_0002B420 = 0x0002B420;
 gl_ref_00000368 = 0x00000368;
+
+D_mgr3240_a = 0x0;
+D_mgr3240_b = 0x0;

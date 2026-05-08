@@ -804,7 +804,25 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002F1
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003074);
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003240);
+/* mgrproc_uso_func_00003240: state-gated 3-call dispatch. Reads
+ * a0->[0xBC]->[0x4E0] (state field). If state in {0,1,2} OR either of two
+ * float globals D[0]/D2[0] is positive, fall through to a single tail-call.
+ * Otherwise run two leading cross-USO calls then fall through. The 4th
+ * jal at the merge label ends with `jr ra` so all paths converge. */
+extern char D_mgr3240_a;
+extern char D_mgr3240_b;
+void mgrproc_uso_func_00003240(int *a0) {
+    int v0 = ((int*)a0[0xBC/4])[0x4E0/4];
+    if (v0 == 0) goto end;
+    if (v0 == 1) goto end;
+    if (v0 == 2) goto end;
+    if (!(*(float*)&D_mgr3240_a <= 0.0f)) goto end;
+    if (!(*(float*)&D_mgr3240_b <= 0.0f)) goto end;
+    gl_func_00000000();
+    gl_func_00000000(a0);
+end:
+    gl_func_00000000(a0);
+}
 
 /* 4-sibling family (32C8, 32F8, 3328, 33E8): "skip-int + read-typed at +0x10"
  * accessor wrappers. Each does an int read into a discarded local (advances
