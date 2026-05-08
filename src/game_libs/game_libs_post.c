@@ -4020,10 +4020,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053A2C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054144);
+
 /* gl_func_00054228: 15-insn function INHERITS $t9 and $t1 from predecessor
- * gl_func_00053C04's tail. The predecessor's last 2 insns (at 0x54220 /
- * 0x54224) are `addu $t9, $t7, $t8; lw $t1, 0($t9)` — setting $t9 = base
- * pointer and $t1 = first word.
+ * game_libs_func_00054144's tail (split off from gl_func_00053C04 bundle
+ * 2026-05-08; the old comment referencing 53C04 is updated for the new
+ * split-fragments boundary). The predecessor's last 6 insns (at 0x54210..
+ * 0x54224) form the stolen-prologue setup:
+ *   lw t7, 0x54(a0); sll t8, a2, 2; subu t8, t8, a2; sll t8, t8, 2;
+ *   addu t9, t7, t8; lw t1, 0(t9)
+ * — i.e., t9 = a0->[0x54] + (a2 * 15 * 4) and t1 = *t9.
  *
  * Body uses inherited $t1 + reads $t9[1] / $t9[2] for additional words,
  * spills 3 ints onto sp+0xC..0x14 (stack scratch), then loads back as
