@@ -1276,7 +1276,12 @@ int gl_func_00031540() {
     return gl_func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031560);
+/* gl_func_00031560: 8-insn 1-call void wrapper (split off from old bundle). */
+void gl_func_00031560(void) {
+    gl_func_00000000();
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031580);
 
 /* gl_func_000315C4: 17-insn (0x44) array-element-call helper.
  * Stolen-prologue successor — predecessor gl_func_00031560's tail at

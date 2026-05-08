@@ -960,3 +960,5 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 /* game_libs_func_0004D014 split off from gl_func_0004CFD4 bundle on 2026-05-08; NM-wrapped in game_libs_post.c. */
 
 /* game_libs_func_00054144 split off from gl_func_00053C04 bundle on 2026-05-08; INCLUDE_ASM in game_libs_post.c. */
+
+/* game_libs_func_00031580 split off from gl_func_00031560 bundle on 2026-05-08; INCLUDE_ASM in game_libs_post.c. */
