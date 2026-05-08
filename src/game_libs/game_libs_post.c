@@ -5443,6 +5443,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067EFC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
 
+/* gl_func_00068048: 107-insn (0x1AC) FPU-heavy float clamp/range chain.
+ * Single function (1 jr ra). Stack frame -0x28 with sdc1 f22/f20 (callee-
+ * save FPU doubles spilled, suggests heavy FP register pressure).
+ *
+ * ENTRY DECODE (insns 0-22, 0x68048-0x680A4):
+ *   sp -= 0x28; sdc1 f22, 0x18(sp); sdc1 f20, 0x10(sp); sw ra, 0x24(sp)
+ *   f22 = f12 (= a2 float arg); f20 = f14 (= a3 float arg)
+ *   if (f0 <= f12)  // float compare
+ *     if (f0 <= f14)
+ *       call helper at jal 0x7C650 (fixed jal target, repeated multiple times)
+ *       passing f12, f14 in arg slots
+ *
+ * STRUCTURE: nested c.le.s branch chains (~10 of them) wrapping calls to
+ * the same fixed helper at 0x07C650 (likely sqrt or norm helper). Multiple
+ * `4500002A bc1f` / `45020013 bc1fl` branches with float-conditional-likely
+ * forms. Two int constants 0x4000_0000 (= 2.0f as int bits) and 0x8000_0000
+ * (= -0.0f as int bits) appear via `addiu` immediate loads — int-to-float
+ * cast pattern. The `34 0F 8000` pattern at 0x680F8 is `ori t7, $0, 0x8000`
+ * which is a 16-bit constant = 32768 (likely an angular wraparound mask).
+ *
+ * FAMILY: likely the float-arg clamp/wrap-or-norm helper for an angular
+ * (rotation) value. The fixed-jal pattern (0x7C650) matches a standalone
+ * scalar helper, with f12/f14 as a (value, threshold) pair the function
+ * range-checks across multiple breakpoints.
+ *
+ * Multi-tick decompile (FPU-heavy with extensive branch chains).
+ * Default INCLUDE_ASM keeps ROM exact. Capturing structural decode here
+ * for grep + future pass to refine the breakpoint logic + identify the
+ * helper signature. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068048);
 
 extern int gl_func_00000000();
