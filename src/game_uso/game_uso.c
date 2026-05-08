@@ -7347,7 +7347,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000102CC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010408);
+/* Small state-dispatch helper. C emits the correct control flow but IDO uses
+ * the direct D_00000000 load form and omits the late a1/a2 stack spills.
+ * Promoted with the same SUFFIX_BYTES + INSN_PATCH call-tail recipe used by
+ * nearby game_uso_func_000105DC and the 10E2C family. */
+void game_uso_func_00010408(int *arg0) {
+    int *spB4;
+
+    gl_func_00000000(arg0, *(int*)((char*)arg0 + 0xFC) | 0x19, 4, 5, 1, 1);
+    gl_func_00000000(arg0, 0);
+    if (gl_func_00000000(arg0) == 0) {
+        spB4 = *(int**)((char*)arg0 + 0xB4);
+        if (spB4[0x938 / 4] != 0) {
+            gl_func_00000000(arg0,
+                             *(int*)((char*)&D_00000000 + 0xDF8),
+                             *(int*)((char*)&D_00000000 + 0xDFC));
+            gl_func_00000000(arg0);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000104A4);
 
