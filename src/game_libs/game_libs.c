@@ -860,4 +860,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 
 /* game_libs_func_00024360 + game_libs_func_0002436C split off from
  * gl_func_00024330 bundle on 2026-05-08; decompiled to C bodies in
- * game_libs_post.c. */
+ * game_libs_post.c.
+ *
+ * game_libs_func_00024948 split off from gl_func_00024378 bundle on
+ * 2026-05-08; decompiled to C body in game_libs_post.c (correct file
+ * for VRAM > 0x8944 cap). */

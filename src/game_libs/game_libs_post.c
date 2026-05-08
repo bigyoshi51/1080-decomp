@@ -297,6 +297,11 @@ void game_libs_func_0002436C(int a0) { D_2436C_a = a0; }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024378);
 
+void game_libs_func_00024948(void) {
+    *(int*)((char*)&D_00000000 + 0x1590) = 0;
+    *(int*)((char*)&D_00000000 + 0x15F4) = 0;
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002495C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024B28);
