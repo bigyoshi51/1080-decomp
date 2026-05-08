@@ -3375,11 +3375,62 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
  * frame for downstream. Field offsets used: a0->{0x30,0x70,0xA8}, sub->{
  * 0xB4,0xB8,0xBC, 0x318,0x31C,0x320, 0x6C, 0x70, 0x840, 0x938, 0xA54}.
  *
- * Multi-tick refinement target. Default INCLUDE_ASM build remains exact.
- * Skeleton kept for grep discoverability of struct field offsets. */
+ * 2026-05-08 pass: decoded the full high-level flow through the terminal
+ * call. This body now captures the staged Vec3 copy, scaled Vec3 add, timer
+ * gate, optional dispatch via sub->0x840, and unconditional tail call.
+ * Still NM: stack layout / register allocation and copy scheduling are not
+ * byte-matched yet. Default INCLUDE_ASM build remains exact. */
 void game_uso_func_00006CF0(int *a0) {
-    int *sub = *(int**)((char*)a0 + 0x30);
-    (void)sub;
+    int *sub;
+    int base_vec[3];
+    int scaled_vec[3];
+    int tmp_vec[3];
+    int added_vec[3];
+    int dispatch_arg;
+    int timer;
+
+    sub = *(int**)((char*)a0 + 0x30);
+    base_vec[0] = *(int*)((char*)sub + 0xB4);
+    base_vec[1] = *(int*)((char*)sub + 0xB8);
+    base_vec[2] = *(int*)((char*)sub + 0xBC);
+
+    *(float*)&scaled_vec[0] = *(float*)((char*)sub + 0x318) * *(float*)((char*)a0 + 0xA8);
+    *(float*)&scaled_vec[1] = *(float*)((char*)sub + 0x31C) * *(float*)((char*)a0 + 0xA8);
+    *(float*)&scaled_vec[2] = *(float*)((char*)sub + 0x320) * *(float*)((char*)a0 + 0xA8);
+
+    tmp_vec[0] = scaled_vec[0];
+    tmp_vec[1] = scaled_vec[1];
+    tmp_vec[2] = scaled_vec[2];
+    added_vec[0] = tmp_vec[0];
+    added_vec[1] = tmp_vec[1];
+    added_vec[2] = tmp_vec[2];
+
+    *(float*)&base_vec[0] += *(float*)&added_vec[0];
+    *(float*)&base_vec[1] += *(float*)&added_vec[1];
+    *(float*)&base_vec[2] += *(float*)&added_vec[2];
+
+    dispatch_arg = 0;
+    if (*(int*)((char*)a0 + 0x6C) == 0) {
+        dispatch_arg = 0x10;
+    }
+
+    sub = *(int**)((char*)a0 + 0x30);
+    if (*(int*)((char*)sub + 0x938) != 0 && *(int*)((char*)sub + 0xA54) != 0) {
+        timer = *(int*)((char*)a0 + 0x70);
+        if (timer < 60) {
+            if (*(float*)((char*)sub + 0x348) <= 30.0f) {
+                gl_func_00000000(*(int*)((char*)sub + 0x840), dispatch_arg);
+                *(int*)((char*)a0 + 0x70) = 61;
+            } else {
+                *(int*)((char*)a0 + 0x70) = timer + 1;
+            }
+        } else if (timer == 60) {
+            gl_func_00000000(*(int*)((char*)sub + 0x840), dispatch_arg);
+            *(int*)((char*)a0 + 0x70) = 61;
+        }
+    }
+
+    gl_func_00000000(a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006CF0);
