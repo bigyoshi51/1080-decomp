@@ -5809,7 +5809,73 @@ end:
     return a0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_000688F8: 26-insn (0x68) double-alloc constructor with redundant
+ * post-test on alloc result. Sibling of gl_func_00068884 (single-alloc form).
+ *
+ * Asm structure decoded:
+ *   v = alloc(0x30)
+ *   if (v == 0) return 0           ; beqz v0, +0xF — early exit
+ *   a1 = v                          ; delay
+ *   if (v != 0) goto store_D       ; bnez v0, +7  — ALWAYS taken in
+ *                                                    practice (v != 0
+ *                                                    here), making the
+ *                                                    fallback below dead
+ *   v1 = v                          ; delay
+ *   /-- dead code begins --/
+ *   p = alloc(0x20)
+ *   *(sp+0x18) = p
+ *   a1 = *(sp+0x18)                 ; reloads p into a1 (overwrites first
+ *                                     alloc!)
+ *   if (p == 0) goto store_a1
+ *   v1 = p                          ; delay
+ *   /-- dead code ends --/
+ *   store_D:
+ *   v1->[0x1C] = &D                 ; via v1 register
+ *   store_a1:
+ *   a1->[0x1C] = &D                 ; via a1 register
+ *   return a1
+ *
+ * The redundant `bnez v0` after `beqz v0, ret` is a compiler artifact —
+ * IDO didn't fold the second test, leaving the alloc(0x20) fallback as
+ * unreachable but emitted code. Possible C origin:
+ *
+ *   int *p = alloc(0x30);
+ *   if (p == 0) return 0;
+ *   if (p == 0) {                          // tautological at runtime, but
+ *       p = alloc(0x20);                    // gets emitted anyway
+ *       if (p == 0) goto skip;
+ *   }
+ *   p[7] = &D;
+ * skip:
+ *   p[7] = &D;
+ *   return p;
+ *
+ * — i.e. paranoid double-check of the alloc result with a fallback to a
+ * smaller size that IDO emits but never reaches. Multi-tick byte-match
+ * deferred; structural decode here for grep + permuter seed. */
+extern int gl_func_00000000();
+
+int *gl_func_000688F8(int a0) {
+    int *p;
+    int *q;
+    p = (int *)gl_func_00000000(0x30);
+    if (p == 0) goto end;
+    q = p;
+    if (p != 0) goto store_D;          /* tautological — keeps fallback live */
+    p = (int *)gl_func_00000000(0x20);
+    if (p == 0) goto store_first;
+    q = p;
+store_D:
+    q[7] = (int)&D_00000000;           /* via v1 register */
+store_first:
+    p[7] = (int)&D_00000000;           /* via a1 register */
+end:
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000688F8);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00068960(char *a0) {
