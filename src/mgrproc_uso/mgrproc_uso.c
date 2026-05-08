@@ -902,14 +902,12 @@ int *mgrproc_uso_func_00003358(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003358);
 #endif
 
-#ifdef NON_MATCHING
 void mgrproc_uso_func_000033E8(char *dst) {
     int tmp;
+    volatile char **p = &dst;   /* forces sw a0, 0x20(sp) caller-slot spill, sibling of 32F8/3328 */
     mgrproc_uso_func_00000CC4(&tmp);
     mgrproc_uso_func_00000D94((Vec3*)(dst + 0x10));
+    (void)p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000033E8);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_000033E8_pad.s")
 
