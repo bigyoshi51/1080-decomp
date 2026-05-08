@@ -6552,7 +6552,35 @@ void game_uso_func_0000F49C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F49C);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000F514: 37-insn state-init w/ flag-gated branch.
+ * gl_func_0(a0); a0->0xB4->0xA68 = 1; check (a0->0xB4)->0x800->0x10 & 0x200:
+ *   if set:  gl_func_0(a0); gl_func_0(a0, 1, 1);
+ *   else:    gl_func_0(a0, D[0xED8], D[0xEDC]);
+ * gl_func_0(a0). Multi-pass NM. F49C-family — same precall-arg-spill cap. */
+void game_uso_func_0000F514(int *a0) {
+    int *sub;
+    int **subp;
+    int *p2;
+    gl_func_00000000(a0);
+    sub = (int*)a0[0xB4/4];
+    sub[0xA68/4] = 1;
+    sub = (int*)a0[0xB4/4];
+    subp = (int**)((char*)sub + 0x800);
+    p2 = *subp;
+    if (p2[0x10/4] & 0x200) {
+        gl_func_00000000(a0);
+        gl_func_00000000(a0, 1, 1);
+    } else {
+        gl_func_00000000(a0,
+            *(int*)((char*)&D_00000000 + 0xED8),
+            *(int*)((char*)&D_00000000 + 0xEDC));
+    }
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F514);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F5A8);
 
