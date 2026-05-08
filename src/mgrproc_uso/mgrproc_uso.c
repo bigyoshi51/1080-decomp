@@ -819,15 +819,11 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000324
  * Per docs/MATCHING_WORKFLOW.md
  * #reloc-encoding-pinning-structurally-identical-c-body-still-scores-65 —
  * no episode (fuzzy<100 cap), but ROM is exact. */
-#ifdef NON_MATCHING
 void mgrproc_uso_func_000032C8(char *dst) {
     int tmp;
     mgrproc_uso_func_00000CC4(&tmp);
     mgrproc_uso_func_00000CC4((int*)(dst + 0x10));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000032C8);
-#endif
 
 #ifdef NON_MATCHING
 void mgrproc_uso_func_000032F8(char *dst) {
