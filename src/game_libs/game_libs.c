@@ -363,7 +363,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006B80);
  * post-call: writes a0->{0x4EC=0, 0x518=0, 0x4E4=a1, 0x54C=120.0f, 0x550=0.0f,
  * 0x544=0xFF, 0x554=150.0f}; if (D[0x34]==2) overwrite 0x54C with 60.0f.
  *
- * Multi-pass NM placeholder. Default INCLUDE_ASM keeps ROM exact. */
+ * Cap class: instruction-scheduling. Body matches semantically (88.78%
+ * fuzzy), but IDO's post-call schedule differs from target's:
+ *   - Mine:   lui+mtc1 (120.0f); sw 0, 4EC; sw 0, 518; lw t8 (a1 reload);
+ *             lui t9 (D base); swc1 f4; sw t8 (a1 store); lw t9 (D[0x34])
+ *   - Target: lw t8 (a1) FIRST; lui+mtc1 (120.0f); lui t9 (D base);
+ *             sw 0, 4EC; sw 0, 518; sw t8; swc1 f4; lw t9 (D[0x34])
+ * Target hoists the a1 reload all the way before the FP setup, then fills
+ * load-delay slots with the zero stores. C-side `int dval = D[0x34]`
+ * pre-read attempt (2026-05-08) widened the diff to 8 insns by shifting
+ * t9→v0/t9→t0 register-name ripple. Cap stands; permuter / future IDO
+ * patch may unblock. */
 void gl_func_00006C38(int *a0, int a1, int a2) {
     a0[0x4F8/4] = a2;
     a0[0x4E0/4] = 3;
