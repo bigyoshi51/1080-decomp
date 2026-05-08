@@ -164,8 +164,14 @@ void titproc_uso_func_000003D0(void) {
  * set low bit, a1 becomes the 1-based bit index; after the loop it calls
  * gl_func_00000000(8), treats f0 as the float return, and scales by a1 - 2.
  *
- * Remaining mismatch is structural: plain C still emits the D[0x154] pointer
- * load after the prologue, while the target has it in the pre-prologue slot. */
+ * Remaining mismatch (~16 reg-alloc diffs): target uses $t6 for D[0x154]
+ * pointer + frame -0x20 + sp+0x18 spill slot; built uses $a0 + frame -0x28
+ * + sp+0x1C spill. NOT a pure address-shift artifact — the body has real
+ * register-allocation diffs that need permuter or specific temp/decl
+ * arrangement to coerce IDO into using $t6 first.
+ *
+ * 2026-05-08: NOT promoted by upstream C0 byte-shift fix — the diffs are
+ * intrinsic body diffs, not address-relative. */
 int titproc_uso_func_00000418(void) {
     unsigned short *mask_ptr = *(unsigned short**)((char*)&D_00000000 + 0x154);
     int index;
@@ -433,6 +439,8 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000195
  *
  * Initial structural decode (multi-tick — this class caps at ~60% from
  * frame-size mismatch per the eddproc/0x25C documented blocker).
+ * 2026-05-08: NOT promoted by upstream C0 byte-shift fix — body is
+ * structurally different (51.93% fuzzy, 44 reg-alloc diffs in built).
  * Default INCLUDE_ASM matches; wrap captures structure for grep + typing. */
 void *titproc_uso_func_00001B10(void *a0, void *a1) {
     void *p1;
@@ -499,7 +507,6 @@ void titproc_uso_func_00001BB8(int a0) {
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001BB8);
 #endif
 
-#ifdef NON_MATCHING
 /* titproc_uso_func_00001C68: 69-insn (0x114) dual-dispatch FPU helper.
  * Sibling of 0x1BB8 (which provides the stolen-prologue $f0 = 1.0f).
  *
@@ -509,7 +516,11 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001BB
  * Per feedback_unique_extern_with_offset_cast_breaks_cse.md.
  *
  * Asymmetric inner gates (first dispatch enters body when D==0; second when
- * D!=0) — same save/restore-state pattern as 0x1BB8. */
+ * D!=0) — same save/restore-state pattern as 0x1BB8.
+ *
+ * Promoted to exact 2026-05-08 once predecessor C0 was fixed (upstream
+ * byte-shift cascade). See docs/MATCHING_WORKFLOW.md
+ * #feedback-upstream-byte-shift-cascade. */
 extern int gl_func_00000000();
 extern char D_titproc_C68_A1, D_titproc_C68_A2, D_titproc_C68_A3, D_titproc_C68_A4;
 extern char D_titproc_C68_C1, D_titproc_C68_C2, D_titproc_C68_C3, D_titproc_C68_C4;
@@ -538,9 +549,6 @@ void titproc_uso_func_00001C68(int *a0) {
     gl_func_00000000(&D_titproc_C68_C4 + 0x48, 0xDC, 0x7E, 3);
     (void)pad;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C68);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001D7C);
 
