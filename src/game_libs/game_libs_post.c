@@ -1791,7 +1791,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038964);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038A28);
 
+#ifdef NON_MATCHING
+/* gl_func_00038BB8: 19-insn vtable-dispatch + stack-built request struct.
+ * Builds a 5-field req struct on stack (count=14, buf_ptr=&buf, return_slot=0,
+ * buf, a1_save) at sp+0x2C..0x3F, then dispatches via (*(a0->0x28)->0x34)
+ * passing a0+vtable->0x30 short and &req. Returns req.return_slot.
+ *
+ * Logic byte-correct. With ReqStruct + suffix_pad[8] for frame -0x40 layout
+ * gets 18/19 insns matching at correct sp offsets. ONE extra insn:
+ * `sw a1, 0x44(sp)` (caller-slot spill of a1) emitted by IDO before the
+ * `sh a1, 0x3C(sp)`. Expected omits this caller-slot spill — IDO -O2 always
+ * pre-spills caller-args even when only the local-slot store is needed.
+ * Same class as documented in feedback_ido_arg_save_reg_pick.md and the
+ * a1-spill cap on bootup_uso siblings. Multi-pass NM. */
+typedef struct {
+    int count;
+    int *buf_ptr;
+    int return_slot;
+    int buf;
+    short a1_save;
+    short pad;
+} ReqStruct_38BB8;
+
+int gl_func_00038BB8(int *a0, int a1) {
+    ReqStruct_38BB8 req;
+    char suffix_pad[8];
+    int *v0 = (int*)a0[0x28/4];
+    int (*fn)(int, ReqStruct_38BB8*) = (int(*)(int, ReqStruct_38BB8*))v0[0x34/4];
+    short t8 = *(short*)((char*)v0 + 0x30);
+    (void)suffix_pad;
+    req.count = 14;
+    req.buf_ptr = &req.buf;
+    req.return_slot = 0;
+    req.a1_save = a1;
+    fn(t8 + (int)a0, &req);
+    return req.return_slot;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038BB8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038C04);
 
