@@ -3775,7 +3775,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
  * call. This body now captures the staged Vec3 copy, scaled Vec3 add, timer
  * gate, optional dispatch via sub->0x840, and unconditional tail call.
  * Still NM: stack layout / register allocation and copy scheduling are not
- * byte-matched yet. Default INCLUDE_ASM build remains exact. */
+ * byte-matched yet. Default INCLUDE_ASM build remains exact.
+ *
+ * 2026-05-08 logic fix: the dispatch arm for the timer<60 branch was
+ * inverted. Asm at 0x120 reads `bc1f` after `c.lt.s f4(=30), f6(=sub[0x348])`,
+ * meaning the dispatch fires when `30 < sub[0x348]` (NOT when `sub[0x348]
+ * <= 30` as previously written). Flipped the C accordingly. No build effect
+ * (still NM-wrapped, default uses INCLUDE_ASM), but future tightening passes
+ * now have correct logic to grind from. */
 void game_uso_func_00006CF0(int *a0) {
     int *sub;
     int base_vec[3];
@@ -3814,7 +3821,7 @@ void game_uso_func_00006CF0(int *a0) {
     if (*(int*)((char*)sub + 0x938) != 0 && *(int*)((char*)sub + 0xA54) != 0) {
         timer = *(int*)((char*)a0 + 0x70);
         if (timer < 60) {
-            if (*(float*)((char*)sub + 0x348) <= 30.0f) {
+            if (30.0f < *(float*)((char*)sub + 0x348)) {
                 gl_func_00000000(*(int*)((char*)sub + 0x840), dispatch_arg);
                 *(int*)((char*)a0 + 0x70) = 61;
             } else {
