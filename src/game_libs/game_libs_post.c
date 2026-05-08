@@ -1225,7 +1225,54 @@ int gl_func_0002FB54(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FB74);
 
+#ifdef NON_MATCHING
+/* gl_func_00030504: 24-insn (0x60) Gfx-command DL emit dispatcher.
+ * Maps an input "key" (a0) to one of two F3DEX-style DL-call commands
+ * (opcode 0x06 — G_DL): 0x06000000 (relative) or 0x06000001 (absolute),
+ * with sign-extended byte args.
+ *
+ * Decoded structure:
+ *   key = (a0 < 0x101) ? a0 : (a0 & 0xFF);
+ *   if (key >= 0x80) {
+ *       /-- "absolute" path: opcode 0x06000001 --/
+ *       gl_func_0(0x06000001,
+ *                 (signed char)(key - 0x80),  // sign-ext byte arg
+ *                 key);
+ *   } else {
+ *       /-- "relative" path: opcode 0x06000000 --/
+ *       gl_func_0(0x06000000,
+ *                 (signed char)a1,            // caller-supplied byte
+ *                 key << 24);                 // shifted into MSB
+ *   }
+ *
+ * The two sign-ext sequences (sll 24; sra 24) are IDO's `signed char`
+ * promotion at the call site. Caller likely passes a1 as `signed char`
+ * (unused in the absolute path, where a1 is recomputed).
+ *
+ * Multi-tick byte-matching pending. Default INCLUDE_ASM keeps ROM matching;
+ * structural decode here for grep + future grind.
+ *
+ * The dual-opcode (0x06000000 vs 0x06000001) suggests this is a glyph
+ * dispatcher: keys < 0x80 emit one DL form, keys >= 0x80 (high-bit-set,
+ * extended chars) emit the other. */
+extern int gl_func_00000000();
+
+void gl_func_00030504(int a0, signed char a1) {
+    int key;
+    if (a0 < 0x101) {
+        key = a0;
+    } else {
+        key = a0 & 0xFF;
+    }
+    if (key >= 0x80) {
+        gl_func_00000000(0x06000001, (signed char)(key - 0x80), key);
+    } else {
+        gl_func_00000000(0x06000000, a1, key << 24);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030504);
+#endif
 
 /* gl_func_00030564: 1-call wrapper. Trailing 12 bytes (lui v0; addiu v0;
  * lw t6, 0x8(v0)) are stolen prologue for SUCCESSOR gl_func_00030598 —
