@@ -642,10 +642,16 @@ extern char D_00000000;
  *   - finally head->field_14 = node
  *   - returns the node ptr (or NULL if alloc failed)
  *
- * The `beql` branch-likely at 0x758 puts the unconditional `head->field_14 = node`
- * store in the delay slot, with the conditional `head->field_4 = 1` and
- * `head->field_14 = node` replay covering the field_14-was-nonzero case. */
+ * 2026-05-08 — `volatile int **vparg = (volatile int **)&arg0;` lever
+ * unblocks the frame-size match (0x20 → 0x28, +1pp 89.22% → 89.30%).
+ * 22 mismatches remain — heavy register-allocation cascade plus
+ * eager-spill-vs-delay-slot-spill for arg0. Target spills arg0 IN the
+ * jal's delay slot (lazy fill); built spills early due to the volatile
+ * lever. Structural cap: no C-level lever combines "force spill" with
+ * "delay slot of first jal". Path forward would be permuter random-search
+ * or 22-insn INSN_PATCH (heavy lift). */
 void *func_000046EC(int *arg0) {
+    volatile int **vparg = (volatile int **)&arg0;
     int *node;
     int *head;
 
@@ -663,6 +669,7 @@ void *func_000046EC(int *arg0) {
         }
         head[5] = (int)node;
     }
+    (void)vparg;
     return node;
 }
 #else
