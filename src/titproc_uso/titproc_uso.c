@@ -169,6 +169,10 @@ void titproc_uso_func_000003D0(void) {
  * + sp+0x1C spill. NOT a pure address-shift artifact — the body has real
  * register-allocation diffs that need permuter or specific temp/decl
  * arrangement to coerce IDO into using $t6 first.
+ * The target also consumes gl_func_00000000(8)'s float return directly from f0.
+ * Tested 2026-05-08: `((float (*)())gl_func_00000000)(8)` / typedef forms
+ * do use f0, but IDO lowers them to indirect jalr through t9, regressing the
+ * direct jal shape. The plain direct call keeps jal 0 but forces int->float.
  *
  * 2026-05-08: NOT promoted by upstream C0 byte-shift fix — the diffs are
  * intrinsic body diffs, not address-relative. */
