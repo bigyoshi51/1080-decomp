@@ -5983,25 +5983,13 @@ void gl_func_000674DC(int *a0) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00067510: 16-insn early-return + tail-call wrapper.
- *   if (a0->[0x34] == 0) return 0;
- *   return gl_func_00000000(&D_00000000, a0->[0x34] - 1);
- *
- * Asm has dead `move v0, $0` + duplicate `lw ra` between the b+3 (path 2
- * jumps over) and the beqzl target (path 1 enters at 2nd lw ra). Likely
- * residual tail-merge emit IDO didn't trim. Initial wrap — register-alloc
- * and dead-code preservation may need more variants for exact match. */
 int gl_func_00067510(int *a0) {
     int v = a0[0xD];
-    if (v == 0) {
-        return 0;
+    if (v != 0) {
+        return gl_func_00000000(&D_00000000, v - 1);
     }
-    return gl_func_00000000(&D_00000000, v - 1);
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067510);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067550);
 
