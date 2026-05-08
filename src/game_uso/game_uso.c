@@ -3885,11 +3885,15 @@ void game_uso_func_0000751C(char *a0) {
  * the next arm's setup). Next pass: decode 0x77B8-0x7880 (bits 0x20, 0x80,
  * 0x100) and the merge block proper. */
 long long game_uso_func_00007538(int *a0, int a1) {
+    /* 2026-05-08 destructive refactor: eliminate `outer` named local + reduce
+     * named-int locals. Goal: defeat IDO's $s0 promotion for the 5+-use
+     * cross-block value `(int*)a0[0x30/4]`, push function into leaf shape.
+     * Each use site now reads the field inline so allocator sees independent
+     * live ranges per arm. */
     int ret_lo = 0;
     int ret_hi = 0;
     int a1_saved = a1;
     int counter, flags, flag2;
-    int *outer;
     float f0 = 0.0f, f2 = 0.0f, f_tmp;
 
     counter = a0[0x50 / 4];
@@ -3906,8 +3910,7 @@ long long game_uso_func_00007538(int *a0, int a1) {
     a1 = flag2;  /* explicit: running mask starts at 0 */
 
     if (a1_saved & 0x10) {
-        outer = (int*)a0[0x30 / 4];
-        if (outer[0x938 / 4] != 0) {
+        if (((int*)a0[0x30 / 4])[0x938 / 4] != 0) {
             f_tmp = *(float*)&a0[0x38 / 4];
             *(float*)&a0[0x3C / 4] = (f_tmp >= 0.0f) ? 1.0f : -1.0f;
         }
@@ -3941,8 +3944,7 @@ check_40:
 check_20:
     if (a1_saved & 0x20) {
         /* arg1 & 0x20 arm body: fabs(outer->0xB4) % 9 */
-        outer = (int*)a0[0x30 / 4];
-        f_tmp = *(float*)&outer[0xB4 / 4];
+        f_tmp = *(float*)&((int*)a0[0x30 / 4])[0xB4 / 4];
         if (f_tmp < 0.0f) f_tmp = -f_tmp;
         a0[0x44 / 4] = 60;
         a0[0x58 / 4] = (int)f_tmp % 9;
@@ -3966,15 +3968,13 @@ check_20:
          * Else (outer->0x938 != 0): fall through to mtc1 -1.0f → f2,
          * then b to trunk. Both arms reach trunk; only the non-zero
          * arm sets f2 = -1.0f. */
-        outer = (int*)a0[0x30 / 4];
-        if (outer[0x938 / 4] != 0) {
+        if (((int*)a0[0x30 / 4])[0x938 / 4] != 0) {
             f2 = -1.0f;
         }
         goto trunk;
     }
     if (a1_saved & 0x02) {
-        outer = (int*)a0[0x30 / 4];
-        if (outer[0x938 / 4] != 0) {
+        if (((int*)a0[0x30 / 4])[0x938 / 4] != 0) {
             ret_lo |= 0x400;
             if (a1_saved & 0x100) {
                 a0[0x6C / 4] = a1_saved | 0x100;
@@ -4023,8 +4023,7 @@ trunk:
          * 0x20 directly. While sub-counter still ticks, also decrement
          * a0[0x44] (main duration counter); when THAT hits zero, also clear
          * bit 0x20. ret_lo |= 0x200 unconditionally inside outer-zero arm. */
-        outer = (int*)a0[0x30 / 4];
-        if (outer[0x938 / 4] == 0) {
+        if (((int*)a0[0x30 / 4])[0x938 / 4] == 0) {
             int cnt = a0[0x4C / 4];
             ret_hi = 1;
             ret_lo |= 0x200;
@@ -4065,14 +4064,22 @@ trunk:
      * referenced 5+ times across cascading basic blocks.
      *
      * Path to break the cap (multi-tick — destructive refactor):
-     * (a) Eliminate the `outer` named local entirely. Inline
-     *     `(int*)a0[0x30/4]` (or its `[0x938/4]` deref) at EACH use site.
-     *     This breaks IDO's CSE / common-allocno promotion path.
+     * (a) [TESTED 2026-05-08, NEGATIVE RESULT] Eliminate the `outer` named
+     *     local entirely. Inline `(int*)a0[0x30/4]` at EACH use site. Did
+     *     NOT move fuzzy% (48.81% → 48.81%). IDO -O2 hoists the repeated
+     *     `lw t,0x30(a0)` reads back into a single CSE'd $s0-held value
+     *     across the cascade — inlining alone is insufficient to break the
+     *     extern-base CSE pattern. (Confirms `docs/IDO_CODEGEN.md`'s
+     *     inverse-CSE caveat: extern-base loads with constant offsets are
+     *     non-defeatable via local-introduction.)
      * (b) Replace `goto trunk` from each arm with explicit `if/else if`
      *     control flow so the dispatch cascade has no shared join point
-     *     (each arm's life range becomes independent).
+     *     (each arm's life range becomes independent). UNTESTED — would
+     *     require reshaping ~9 dispatch arms; speculation is that without
+     *     the trunk-join, the running-mask state can stay in caller-save
+     *     regs since no two arms share a value at runtime.
      * (c) Verify the leaf-shape (no stack frame) emerges, then re-grind
-     *     per-arm body. Likely +30-50pp gain in one swoop. */
+     *     per-arm body. */
 
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
@@ -4276,12 +4283,10 @@ ret:
      * outer->[0x800] (= a0->[0x30]->[0x800]), then jr ra with sw delay.
      * Two reloads of outer happen — at 0x7A78 and 0x7A88 (after the
      * f0/f2 stores, before the ret_lo store). */
-    outer = (int*)a0[0x30 / 4];
-    *(float*)&((int*)outer[0x800 / 4])[0x44 / 4] = f0;
-    *(float*)&((int*)outer[0x800 / 4])[0x48 / 4] = f2;
+    *(float*)&((int*)((int*)a0[0x30 / 4])[0x800 / 4])[0x44 / 4] = f0;
+    *(float*)&((int*)((int*)a0[0x30 / 4])[0x800 / 4])[0x48 / 4] = f2;
     /* Reload outer (target's 0x7A88-0x7A8C reload before jr ra+sw delay) */
-    outer = (int*)a0[0x30 / 4];
-    ((int*)outer[0x800 / 4])[0x40 / 4] = ret_lo;
+    ((int*)((int*)a0[0x30 / 4])[0x800 / 4])[0x40 / 4] = ret_lo;
     return ((long long)ret_hi << 32) | (unsigned int)ret_lo;
 }
 #else
