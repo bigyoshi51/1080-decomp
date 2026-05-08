@@ -302,7 +302,57 @@ void game_libs_func_00024948(void) {
     *(int*)((char*)&D_00000000 + 0x15F4) = 0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0002495C: 115-insn (0x1CC) byte-string slot manager. Sibling of
+ * recently-matched gl_func_00024330 family (same VRAM neighborhood).
+ *
+ * Decoded structure (asm 0x2495C-0x24B24):
+ *   prologue: sp -= 0x28; save ra/s0; spill a0/a1 to sp+0x28/0x2C; s0 = a2
+ *   sub_a1 = (char)caller_a1[0x2F]   ; high byte of arg1 (probably a tag)
+ *   v0 = func_00039194(a0)            ; lookup or alloc
+ *   if (v0 == 0) {
+ *       *s0 = 0;                       ; clear slot
+ *       goto end;
+ *   }
+ *   tmp = (sub_a1 << 4) >> 6 << 2 + sub_a1 ... ; bit-extract index calc
+ *   t0 = v0[0]
+ *   t1 = (sub_a1 << 24) >> 28          ; nibble extract
+ *   if (t1 == 2) {                     ; tag dispatch
+ *       *s0 = (char)tmp;                ; write index
+ *       goto end;
+ *   }
+ *   ...continues with table indexing on D[0x1578]/D[0x1590]/D[0x157C], byte
+ *   packing into v0[0x14..0x2C], second func_00000000 call with a3=t8&...,
+ *   tag-2 dispatch + tag-3 dispatch, post-call byte writes to s0+0/1/2 ...
+ *
+ * 115 insns of bit-pack + table-lookup + dispatch. Structure-only first
+ * pass; per skill multi-run grind will tighten. The two `jal` calls are
+ * `func_00039194` (intra-segment helper at fixed offset, sibling) and
+ * `gl_func_00000000` placeholder (cross-USO).
+ *
+ * Signature inferred: returns void or int; takes (void *a0, int *a1, char *a2)
+ * — but a1 is read at +0x2F as byte (so probably a struct ptr cast as
+ * argument). Initial wrap stays light on body to avoid breaking build with
+ * wrong type. */
+extern int gl_func_00000000();
+extern int func_00039194(void *a0);
+void gl_func_0002495C(void *a0, void *a1, char *a2) {
+    /* TODO: full decode. Fields touched:
+     *   sub_a1 = ((char*)a1)[0x2F]                                ; tag byte
+     *   v0 = func_00039194(a0)                                    ; jal#1
+     *   if (v0 == 0) { *a2 = 0; return; }
+     *   ... 2-tier dispatch on (sub_a1>>4)&3:
+     *      case 2: a2[0] = packed_idx; (clear path)
+     *      case 3: a2[0] = packed_idx; jal gl_func_00000000(...)
+     *      else: writes to v0[0x14..0x2C], dispatch, clear path
+     *   ... table lookup via D[0x1578]/D[0x1590]/D[0x157C]
+     *   ... byte writes to a2+0/1/2 with caller's a1[0x2F]&0xFF
+     *   bumps D[0x1578] by 1. */
+    (void)a0; (void)a1; (void)a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002495C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024B28);
 
