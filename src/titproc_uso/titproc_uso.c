@@ -463,7 +463,6 @@ void *titproc_uso_func_00001B10(void *a0, void *a1) {
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
 #endif
 
-#ifdef NON_MATCHING
 /* titproc_uso_func_00001BB8: 42-insn dual-state-bracket helper. Two
  * gl_func dispatches with asymmetric inner-D[0] gates.
  *
@@ -478,14 +477,9 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B1
  * undefined_syms_auto.txt. Per
  * feedback_unique_extern_with_offset_cast_breaks_cse.md.
  *
- * Quirks vs natural C-emit:
- *   - First inner runs when D[0] != 0, second runs when D[0] == 0
- *     (asymmetric — likely save/restore state pattern).
- *   - Second inner uses bnel-to-epilog with annulled lw ra in the delay
- *     slot (early-return-likely pattern). Naturally falls out of
- *     `if (cond) { body; }` followed by epilogue.
- *   - a0 is unused but saved to caller-arg slot at sp+0x18 — declared
- *     with int param to keep the sw a0 emit. */
+ * Promoted to exact 2026-05-08 once predecessor C0 was fixed (upstream
+ * byte-shift cascade). See docs/MATCHING_WORKFLOW.md
+ * #feedback-upstream-byte-shift-cascade. */
 extern int gl_func_00000000();
 extern char D_titproc_BB8_a, D_titproc_BB8_b, D_titproc_BB8_c, D_titproc_BB8_d;
 extern char D_titproc_BB8_e, D_titproc_BB8_f, D_titproc_BB8_g, D_titproc_BB8_h;
@@ -503,9 +497,6 @@ void titproc_uso_func_00001BB8(int a0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001BB8);
-#endif
 
 /* titproc_uso_func_00001C68: 69-insn (0x114) dual-dispatch FPU helper.
  * Sibling of 0x1BB8 (which provides the stolen-prologue $f0 = 1.0f).
