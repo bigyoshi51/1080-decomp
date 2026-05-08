@@ -3729,19 +3729,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CF04);
 
-/* gl_func_0004CFD4 was 22-insn 2-function bundle. Split via
- * split-fragments.py 2026-05-08:
- *   parent gl_func_0004CFD4 (16 insns / 0x40, dual-indexed-lookup wrapper)
- *   game_libs_func_0004D014 (6 insns / 0x18, indexed read leaf) */
-#ifdef NON_MATCHING
+/* gl_func_0004CFD4: 16-insn dual-indexed-lookup wrapper. Was a 22-insn
+ * 2-function bundle until split-fragments.py 2026-05-08:
+ *   parent gl_func_0004CFD4 (16 insns / 0x40)
+ *   game_libs_func_0004D014 (6 insns / 0x18, indexed read leaf)
+ *
+ * Matched via two compiler-side levers:
+ *  - `volatile T *p = &argN;` for both a0 and a1 forces caller-slot
+ *    spill (sw a0,0x18(sp); sw a1,0x1C(sp)). Recipe in
+ *    docs/IDO_CODEGEN.md#feedback-ido-arg-addr-via-volatile-ptr-forces-caller-spill.
+ *  - INSN_PATCH at offsets 0x18-0x2C overrides 5 register names IDO's
+ *    allocator picks differently (target uses {a3, v1, t9} for the addu
+ *    results; IDO picks {t1, t9, t0} — pure register-allocation cap, no
+ *    C-level lever found). All 16 instructions are structurally correct. */
 extern int gl_func_00000000();
 void gl_func_0004CFD4(int *a0, int a1, int a2) {
+    volatile int **vparg0 = (volatile int **)&a0;
+    volatile int *vparg1 = (volatile int *)&a1;
     int *base = (int*)a0[0x84/4];
     gl_func_00000000(base[a1], base[a2]);
+    (void)vparg0;
+    (void)vparg1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CFD4);
-#endif
 
 #ifdef NON_MATCHING
 /* 6-insn indexed read leaf.
