@@ -814,7 +814,7 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B5
  *   *(int*)(a2 + 0x7E4) = D[v1*4 + 0x5F0]    ; load entry from table A
  *   *(int*)(a2 + 0x7EC) = 0
  *   *(int*)(a2 + 0x7E8) = D[v1*4 + 0x5FC]    ; load entry from table B
- *   gl_func_00000000(/*?*/);                  ; call 1 (a2 spilled)
+ *   gl_func_00000000(?);                      ; call 1 (a2 spilled)
  *   gl_func_00000000(saved_a2);               ; call 2 (a0 = saved a2)
  *   gl_func_00000000(saved_a2, 0xA0000, ...); ; call 3 — likely arg setup
  *   gl_func_00000000(0xB, 0, 0);              ; call 4
