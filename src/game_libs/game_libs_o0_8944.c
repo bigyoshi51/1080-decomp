@@ -2,6 +2,7 @@
 
 extern int gl_func_00000000();
 extern char D_00000000;
+typedef struct { int a, b, c, d; } Quad4;
 
 /* -O0 sub-file prep — sibling to game_libs_o0_949C.c. Holds the
  * 0x8944..0x8A40 region with verified -O0 bodies for the int-reader
@@ -45,7 +46,11 @@ void gl_func_00008944(int *dst) {
     *dst = buf[0];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008990);
+void gl_func_00008990(Quad4 *dst) {
+    Quad4 buf;
+    gl_func_00000000(&D_00000000, &buf, 0x10);
+    *dst = buf;
+}
 
 void gl_func_000089F4(float *dst) {
     float buf[2];
