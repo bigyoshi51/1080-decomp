@@ -1766,14 +1766,18 @@ void func_0000E9A4(Quad4 *dst) {
  * feedback_ido_o2_tiny_wrapper_unflippable.md. */
 extern char D_func_0000E9FC_arg1;
 extern char D_func_0000E9FC_arg2;
-extern char func_00000008;   /* declared as DATA (char), not function — see
-                                2026-05-08 finding below: char-decl produces
-                                inline-folded `lui at, %hi(func_00000008);
-                                sw t6, 0x20(at)` (12 insns); function-decl
-                                forces a separate %hi+%lo pair (14 insns). */
+extern char D_func_00000008_data;   /* alias of func_00000008 declared as
+                                       DATA (char), not function — see
+                                       2026-05-08 finding below: char-decl
+                                       produces inline-folded `lui at,
+                                       %hi; sw t6, 0x20(at)` (12 insns);
+                                       function-decl forces a separate
+                                       %hi+%lo pair (14 insns). Aliased
+                                       to func_00000008's address via
+                                       undefined_syms_auto.txt. */
 void func_0000E9FC(void) {
     func_00000000(&D_func_0000E9FC_arg1);
-    *(int*)(&func_00000008 + 0x20) = (int)&D_func_0000E9FC_arg2;
+    *(int*)(&D_func_00000008_data + 0x20) = (int)&D_func_0000E9FC_arg2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E9FC);

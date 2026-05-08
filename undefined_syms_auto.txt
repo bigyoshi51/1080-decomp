@@ -1032,3 +1032,4 @@ D_cc14_alias2 = 0x0;
 gl_ref_00045E5C = 0x00045E5C;
 gl_ref_00045EA8 = 0x00045EA8;
 func_7C860 = 0x7C860;
+D_func_00000008_data = 0x8;
