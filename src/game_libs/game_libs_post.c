@@ -6671,7 +6671,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CAD4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CB84);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CB84_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_0006CC14: 19-insn 2-call helper.
+ *   r = gl_func(a0);       (first call)
+ *   *a0 = D[0];            (copy global into *a0)
+ *   gl_func(r);            (second call)
+ *   D2 = a0;               (store original a0 to second global)
+ *   return 0;
+ *
+ * Use 'volatile int spill = (int)r;' to force the v0→stack→a0
+ * round-trip that target uses (r is spilled to sp+0x18 then reloaded
+ * as a0 of the second jal — without volatile, IDO uses 'or a0, v0, 0'
+ * direct passthrough).
+ *
+ * Caps remaining at the byte level:
+ * 1. Stack offset: target stores v0 at sp+0x1C; built at sp+0x18
+ *    (4-byte difference — built doesn't allocate a 4-byte pad slot).
+ * 2. Schedule: target splits 'lui at; sw t8, 0(at)' across the jal
+ *    (lui at scheduled BEFORE the *a0 store, sw t8 scheduled AFTER
+ *    the second jal's epilogue). Built keeps them adjacent. IDO's
+ *    natural scheduling doesn't split symbol stores across calls. */
+extern int D_cc14_alias2;
+int gl_func_0006CC14(int *a0) {
+    int *r = (int*)gl_func_00000000(a0);
+    volatile int spill = (int)r;
+    *a0 = *(int*)&D_00000000;
+    gl_func_00000000((int*)spill);
+    *(int**)&D_cc14_alias2 = a0;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC14);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CC14_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC64);
