@@ -586,10 +586,33 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
  * one stack arg via sp+0x80 = caller-arg slot 5).
  *
  * 100+ insns of body deferred - multi-pass NM. Default build INCLUDE_ASM. */
-void gui_func_00002BB0(int a0, int a1, int a2, int a3) {
-    /* TODO: full body decode - 4-arg-plus + display-list emit. Stub
-     * captures arg signature + RDP-builder identity. */
-    (void)a0; (void)a1; (void)a2; (void)a3;
+/* 2026-05-08: entry-stage decode (insns 0-32 / 0x00-0x80). Replaces
+ * empty stub with the documented 5-arg signature + first DL command
+ * emit (RDP 0xBB000001 opcode at slot 0).
+ *
+ * Frame -0x70 (saves s0-s7, s8 + ra). 5th arg `a4_stack` arrives via
+ * sp[0x80] (caller arg-save slot 5). a2 spilled to sp+0x78. */
+void gui_func_00002BB0(int *a0, int a1, int a2, int a3, int a4_stack) {
+    int *ctx;
+    int *p;
+    int slot, idx;
+    int sub_ctx_field;  /* a0->[0x10]->[0x20] (s16) */
+    (void)a3; (void)a4_stack; (void)a1;
+    /* DL-command emit: RDP 0xBB000001 + 0x80008000 (segment-0 marker) */
+    ctx = *(int**)((char*)&D_00000000);  /* s7 = &D_GUI_CTX; ctx = s7[0] */
+    idx = ctx[0xC / 4];  /* dl-counter container */
+    slot = ((int*)idx)[1];  /* current cursor */
+    ((int*)idx)[1] = slot + 1;  /* bump */
+    p = (int*)((*(int**)idx)[0]) + (slot << 1);
+    p[0] = 0xBB000001;
+    p[1] = (int)0x80008000;
+    /* Sub-context load + early exit on a4_stack == 0 */
+    sub_ctx_field = *(short*)((char*)a0[0x10 / 4] + 0x20);
+    (void)sub_ctx_field;
+    /* TODO: ~100 more insns of body — second DL command + per-iteration
+     * loop emitting tile/vertex/scissor commands using a4_stack as the
+     * tile count. Multi-pass NM remains. */
+    (void)ctx; (void)a2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
