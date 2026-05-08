@@ -919,7 +919,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  *   lui v0; addiu v0; addiu v1,8; addiu sp; sw v1,0(v0) ...
  * That is worse than the current body for promotion: PROLOGUE_STEALS=12
  * leaves the second store in the wrong slot, while exacting it up would
- * require rewriting most of the function body via INSN_PATCH. */
+ * require rewriting most of the function body via INSN_PATCH.
+ *
+ * 2026-05-08 agent-e re-eval: with the recent splice-script extensions
+ * (ANDI 4-byte / R-type 8-byte), neither directly applies — the leading
+ * stolen-state here is `sw v0, 0(at)` (opcode 0x2B / SW). To extend the
+ * splice script to accept SW would still leave the C-emit's pre-store
+ * register-name issue unresolved (IDO insists on $v0 for address, $v1
+ * for value, vs target's $at for address, $v0 for value).
+ *
+ * Possible next-pass approach (deferred): combine PROLOGUE_STEALS=12
+ * with INSN_PATCH at offsets 0x0/0x4 to overwrite the wrong-register
+ * lui+sw with the correct AC220000 bytes. The patch would need to
+ * coordinate with the rest of the function's emit being byte-correct,
+ * which requires the volatile-store body to first reach the right
+ * post-store shape — currently UNVERIFIED. INSN_PATCH+PROLOGUE_STEALS
+ * combo precedent exists in feedback-prefix-bytes-plus-insn-patch-
+ * breaks-documented-caps. */
 extern int D_2D7D0_arr;
 void gl_func_0002D7D0(void) {
     gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[8]);
