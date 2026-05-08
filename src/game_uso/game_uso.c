@@ -2435,6 +2435,8 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *s0;       /* loop pointer for sub-object init */
     char _pad[168]; /* grow frame to 0xE8 to match target's stack layout */
     char *_t_buf[1];  /* per-iter sp+0xE0 store-load scratch */
+    volatile int a1_sp = a1; /* force late finalizer args through stack locals */
+    volatile int a2_sp = a2;
 
     /* Stage 1: allocate main object if not provided */
     if (a0 == NULL) {
@@ -2939,7 +2941,13 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * setup (`tmpl0 = ...; *(char**)s2 = tmpl0;` at line 1811) — it
      * REGRESSED (-0.05pp). Iter-0 is special; target uses direct store
      * for iter 0 but marshalling for iters A onward. Don't extend the
-     * pattern there. */
+     * pattern there.
+     *
+     * 2026-05-08: Stage 12 arg-finalizer nudge. Plain locals for a1/a2
+     * did not change C emit, but volatile locals force late finalizer
+     * stores through stack-resident values. Fresh objdiff after rebuilding
+     * build/non_matching/src/game_uso/game_uso.c.o moved the C body from
+     * 69.311584% to 69.577680%. */
     (void)s0;
 
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
@@ -2961,8 +2969,8 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * base is broken by intervening lui-for-fp-constant instructions:
      * 0x428C, 0x4366, 0x4140, 0x4248, 0x41A0, 0x4170 all clobber $at).
      * NOT a useful knob here — leave shared &D form. */
-    *(int*)(a0 + 0x30) = a1;
-    *(int*)(a0 + 0x2C) = a2;
+    *(int*)(a0 + 0x30) = a1_sp;
+    *(int*)(a0 + 0x2C) = a2_sp;
     *(float*)(a0 + 0xA8) = 0.0f;
     *(float*)(a0 + 0xAC) = *(float*)((char*)&D_00000000 + 0xE8);
     *(float*)(a0 + 0xB0) = 500.0f;
