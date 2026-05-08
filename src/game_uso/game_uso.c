@@ -7146,7 +7146,25 @@ void game_uso_func_00010694(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00010840: 67-insn (0x10C) state-init + dispatch sibling of
+ * 10694 (just above). Entry: reads sub=a0->0xB4, sets sub->0x3DC=1,
+ * 2 cross-USO dispatches, float compare on (sub->0x970) vs 0.0,
+ * conditional dispatch with `bc1f` branch (a1=0x00020008, a2=0, a3=1, t0=6).
+ *
+ * Decoded ~12 entry insns. Body proper (0x50-0x10C, ~55 more insns) is a
+ * conditional-call chain on the float compare — TODO. Default INCLUDE_ASM
+ * keeps ROM exact. Multi-pass NM. */
+void game_uso_func_00010840(int *a0) {
+    int *sub = (int*)a0[0xB4/4];
+    sub[0x3DC/4] = 1;
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+    /* TODO 0x28-0x10C: float-compare gate + ~10 cross-call dispatches. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001094C);
 
