@@ -3249,7 +3249,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CF04);
 
+/* gl_func_0004CFD4 was 22-insn 2-function bundle. Split via
+ * split-fragments.py 2026-05-08:
+ *   parent gl_func_0004CFD4 (16 insns / 0x40, dual-indexed-lookup wrapper)
+ *   game_libs_func_0004D014 (6 insns / 0x18, indexed read leaf) */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0004CFD4(int *a0, int a1, int a2) {
+    int *base = (int*)a0[0x84/4];
+    gl_func_00000000(base[a1], base[a2]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CFD4);
+#endif
+
+#ifdef NON_MATCHING
+/* 6-insn indexed read leaf. Cap: register-rename ($v1/$a1 vs $t6/$t7). */
+int game_libs_func_0004D014(int *a0) {
+    return *(int*)((char*)((int*)a0[0x148/4]) + (a0[0x144/4]) * 4 + 0xF4);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D014);
+#endif
 
 extern int gl_ref_00056CB4();
 extern int gl_ref_00056C5C();
