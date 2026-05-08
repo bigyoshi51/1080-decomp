@@ -5378,6 +5378,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068348);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068350);
 
+/* Split off from gl_func_00068350 bundle 2026-05-08: 4-insn field setter. */
+void game_libs_func_000683C4(int *a0, int a1) {
+    *(int*)((char*)a0 + 0xC) = a1;
+    *(int*)((char*)a0 + 0x8) = 0;
+    *(int*)((char*)a0 + 0x4) = 0;
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000683D4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000684AC);
