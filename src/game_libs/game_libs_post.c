@@ -5449,22 +5449,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
 
 #ifdef NON_MATCHING
 /* 14-insn linked-list traversal. Searches for `a1` in a list rooted at `a3`
- * (linked via *p == next). When found, copies *a1 to *a2 and returns.
- * a0 unused (discarded).
+ * (linked via *p == next). When found, copies *a3 (= *a1) to *a2 and returns.
+ * a0 unused.
  *
- * 2026-05-06 measure: 7.1% match (13/14 word diffs). Built lacks the
- * target's `addiu sp, -8` frame. `char pad[4]` doesn't help — IDO -O2
- * DCE's the unused local. Target's control-flow shape (beq + nop + bne
- * + nop + lw form) differs from built's loop emit. Multi-tick: needs
- * structural rewrite + frame-forcing trick. */
-void gl_func_0006AF0C(int unused_a0, int *a1, int **a2, int *a3) {
+ * 2026-05-08 refined to do-while form (structural match closer to target):
+ *   do { if (a3 == a1) { *a2 = *a3; return; } a2 = a3; a3 = *a3; }
+ *   while (a3 != 0);
+ * Built emits 13 insns (mine) vs 14 (target). Differences:
+ * - Target has `addiu sp, -8/+8` frame; built has none (no spill).
+ * - Target uses `bne a3, a1, +4 ; nop` (regular branch); built uses
+ *   `bnel a3, a1, +5` (likely-branch with delay annulled).
+ * - Target has 1 jr-ra at end with shared epilogue; built has 2 jr-ras
+ *   (one mid-function for early-return on match).
+ *
+ * Cap class: structural match good but frame-of-8 with no spills is hard
+ * to force from C. `char pad[N]` DCE'd at IDO -O2. Multi-tick refinement
+ * to align register allocation + frame layout. */
+void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
     if (a3 == 0) return;
-    while (a3 != (int*)a1) {
-        a2 = (int**)a3;
+    do {
+        if (a3 == a1) {
+            *a2 = *a3;
+            return;
+        }
+        a2 = a3;
         a3 = *(int**)a3;
-        if (a3 == 0) return;
-    }
-    *a2 = (int*)*a1;
+    } while (a3 != 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF0C);
