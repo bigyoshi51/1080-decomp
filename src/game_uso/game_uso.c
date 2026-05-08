@@ -920,7 +920,7 @@ branch_88: {
     local_xz[1] = 0.0f;
     local_xz[2] = self_v.z - ref_v.z;
     local_xz[3] = speed;
-    sqrlen = local_xz[0]*local_xz[0] + 0.0f*0.0f + local_xz[2]*local_xz[2];
+    sqrlen = local_xz[0]*local_xz[0] + local_xz[1]*local_xz[1] + local_xz[2]*local_xz[2];
     length = gl_func_sqrt(sqrlen);
     gl_func_normalize3((int*)local_xz);
     threshold = *(float*)((char*)a0 + 0x7C);
