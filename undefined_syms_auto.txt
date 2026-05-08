@@ -1036,3 +1036,5 @@ func_7C860 = 0x7C860;
 D_func_00000008_data = 0x8;
 D_5DB0C_divisor = 0x2048;
 arcproc_uso_func_00000F9C = 0xF9C;
+D_4D16C_a = 0x0;
+D_4D16C_b = 0x0;
