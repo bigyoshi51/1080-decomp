@@ -8011,31 +8011,11 @@ void game_uso_func_000115EC(int *a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011624);
 
-#ifdef NON_MATCHING
 /* game_uso_func_000116D4: 31-insn (0x7C) flag-gated double-call wrapper.
- * Calls gl_func_0(s0=a0); if s0->[0x110] != 0, makes 2 more calls (one
- * with 6 args, one with 4 args using D[0xE40..0xE44] payload). Always
- * sets s0->[0x114] = 0 at end.
- *
- * Decoded:
- *   gl_func_0(a0);
- *   if (a0->[0x110] != 0) {
- *       gl_func_0(a0, a0->[0x108], 2, 1, 1, 1);   // 6-arg
- *       gl_func_0(a0, *(int*)(&D + 0xE40),
- *                 *(int*)(&D + 0xE44), 1);        // 4-arg
- *   }
- *   a0->[0x114] = 0;
- *
- * Caps:
- *   1. Standalone IDO emits separate `lui+addiu &D` setups vs target's
- *      single `lui t9, 0; addiu t9, t9, 0xE40` shared base + offset
- *      (0/+4). Workaround: feedback-ido-cse-bust-via-distinct-externs
- *      with two externs at the same address.
- *   2. Target writes to sp+4/sp+8 (a1/a2 spill slots) before the 4-arg
- *      jal, suggesting an IDO scheduling quirk for arg-preservation
- *      around the lw chain. Mine doesn't emit those spills.
- *
- * Multi-tick byte-match deferred. */
+ * Promoted from 79.97% NM-wrap to byte-exact via the family-cap recipe
+ * (10E2C/10B38/F49C/FB04/FB7C). C body unchanged; INSN_PATCH 13 insns
+ * at 0x20 + 0x40..0x6C reshapes branch-imm + 2nd-call D-base/tail with
+ * cross-USO varargs spills (sw a1@4(sp), sw a2@8(sp)). 7th sibling. */
 void game_uso_func_000116D4(void *a0) {
     void *s0 = a0;
     gl_func_00000000(s0);
@@ -8048,9 +8028,6 @@ void game_uso_func_000116D4(void *a0) {
     }
     *(int *)((char *)s0 + 0x114) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000116D4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
 
