@@ -5554,7 +5554,45 @@ int gl_func_0006877C(int a0) {
     return (int)r;
 }
 
+extern int gl_func_00000000();
+#ifdef NON_MATCHING
+void gl_func_000687B8(int *a0) {
+    int n_outer = a0[0x34/4];
+    int outer_offset;
+    int j_outer;
+    int *s2;
+
+    if (n_outer == 0) return;
+
+    s2 = (int*)a0[0x30/4];
+    outer_offset = 0;
+    j_outer = 0;
+    do {
+        int n_inner = s2[0x08/4];
+        int j;
+        int inner_offset;
+        if (n_inner != 0) {
+            j = 0;
+            inner_offset = 0;
+            do {
+                int *arr = (int*)s2[0x04/4];
+                int *e = *(int**)((char*)arr + inner_offset);
+                int *vt = (int*)e[0x1C/4];
+                short t = *(short*)((char*)vt + 0x20);
+                ((void(*)(int*))vt[0x24/4])((int*)((char*)e + t));
+                s2 = (int*)((char*)a0[0x30/4] + outer_offset);
+                j++;
+                inner_offset += 4;
+            } while (j < s2[0x08/4]);
+        }
+        j_outer++;
+        outer_offset += 0x10;
+        s2 = (int*)((char*)s2 + 0x10);
+    } while (j_outer < a0[0x34/4]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000687B8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068884);
 
