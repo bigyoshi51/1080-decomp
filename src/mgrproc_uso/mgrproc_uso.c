@@ -832,7 +832,29 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B5
  * 2026-05-08: structural identification only; full standalone-compilable
  * body deferred (requires extending signature with v1 (= int idx) and
  * a2 (= State *state) as explicit args, recomputing v1 from D[0x64], same recipe as
- * gl_func_0005DB0C). Default INCLUDE_ASM build remains byte-correct. */
+ * gl_func_0005DB0C). Default INCLUDE_ASM build remains byte-correct.
+ *
+ * 2026-05-08 (later) — first standalone-compilable C body. Recomputes v1
+ * from `D[0x64] - 5` (matches what predecessor's stolen-tail loads it as).
+ * Signature extended to take the inherited a2 explicitly. Will NOT match
+ * default ROM bytes from C alone (inheritance pattern requires
+ * predecessor-side modifications); kept for grep discoverability and
+ * permuter-baseline. */
+void mgrproc_uso_func_00001BE4(int *a2) {
+    int idx = *(int*)((char*)&D_00000000 + 0x64) - 5;
+    *(int*)((char*)a2 + 0x4D8) = 2;
+    *(int*)((char*)a2 + 0x7DC) = 0;
+    *(int*)((char*)a2 + 0x7E0) = 0;
+    *(int*)((char*)a2 + 0x7E4) = *(int*)((char*)&D_00000000 + idx * 4 + 0x5F0);
+    *(int*)((char*)a2 + 0x7EC) = 0;
+    *(int*)((char*)a2 + 0x7E8) = *(int*)((char*)&D_00000000 + idx * 4 + 0x5FC);
+    gl_func_00000000(a2);
+    gl_func_00000000(a2);
+    gl_func_00000000(a2, 0xA0000, 0, 0);
+    gl_func_00000000(0xB, 0, 0);
+    gl_func_00000000(0xB, *(int*)((char*)&D_00000000 + 0x64) - 5, 0);
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 1);
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BE4);
 #endif
