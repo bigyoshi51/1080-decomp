@@ -1084,7 +1084,44 @@ void func_00007AD8(char *a0) {
     func_00006194((int*)(a0 + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* func_00007B08: 36-insn alloc/init/link helper. Runtime behavior:
+ *   ret = alloc(0x40); if (ret) { init(ret); ret->field_28 = &D_00000000;
+ *   ret->field_3C = 0; } link = a0->field_40; if (link) {
+ *   init(ret + 0x10, link); if (link->field_14) link->field_04 = 1;
+ *   link->field_14 = ret; } return ret.
+ *
+ * NM status: closest O2 body matches the stack frame and broad block layout,
+ * but IDO keeps ret in $a2 while target uses $a0 through the first init and
+ * $v1 for the link/return tail. Direct m2c-shaped spill locals push the frame
+ * to 0x30, and IDO rejects fixed-register asm hints in this compiler path. */
+void *func_00007B08(char *a0) {
+    char *ret;
+    char *var_v1;
+    int *link;
+
+    ret = (char*)func_00000000(0x40);
+    if (ret != 0) {
+        func_00000000(ret);
+        *(char**)(ret + 0x28) = &D_00000000;
+        *(int*)(ret + 0x3C) = 0;
+    }
+    var_v1 = ret;
+
+    link = *(int**)(a0 + 0x40);
+    if (link != 0) {
+        func_00000000(ret + 0x10, link);
+        if (link[5] != 0) {
+            link[1] = 1;
+        }
+        link[5] = (int)var_v1;
+    }
+
+    return var_v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007B08);
+#endif
 
 void func_00007B98(char *a0) {
     int scratch;
