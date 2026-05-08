@@ -216,7 +216,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023548);
 
+#ifdef NON_MATCHING
+/* gl_func_00023598: 19-insn slot writer with global gate.
+ *
+ * Predecessor gl_func_00023548 ends with a stolen 12-byte prologue:
+ *   lui v0, 0; addiu v0, v0, 0; lw t6, 0x215C(v0)
+ * so this function inherits v0 = &D AND t6 = D[0x215C] (the gate flag).
+ *
+ * Body (with inherited regs):
+ *   a3 = a2;                             (delay-slot of beqz)
+ *   if (t6 != 0) { v0 = 0; goto end; }   (early-return 0)
+ *   t7 = a0*4 - a0 = a0*3;               (strength-reduction multiply)
+ *   t7 = t7*4 - a0 = a0*11;
+ *   t7 = t7*32       = a0*352;
+ *   t8 = v0 + t7;                        (= &D + a0*352, REUSES v0)
+ *   *(int*)(t8 + 0x2DDC) = a3;           (= a2 — slot register)
+ *   v0 = jal gl_func_00000000(a0,a1,0);  (a2 zeroed in delay slot)
+ *   end: return v0;
+ *
+ * Cap: 12-byte stolen prologue (lui+addiu+lw triple). Splice script
+ * currently supports PROLOGUE_STEALS={4,8} only. The =12 case is a new
+ * precedent — predecessor pre-loads BOTH base ptr (v0 = &D) AND a value
+ * (t6 = D[0x215C]). The body also reuses v0 = &D for the 0x2DDC store,
+ * so plain C-emit re-materializes &D inside the function (extra
+ * lui+addiu pair) instead of holding it in a single live register.
+ * Promoting needs: (a) extend splice script to recognize lui+addiu+lw
+ * triple at n=12, (b) force IDO to keep &D in one register across the
+ * strength-reduction math without re-materialization. Defer until the
+ * next pass establishes the =12 pattern. */
+extern int gl_func_00000000();
+int gl_func_00023598(int a0, int a1, int a2) {
+    if (*(int*)((char*)&D_00000000 + 0x215C) != 0) {
+        return 0;
+    }
+    *(int*)((char*)&D_00000000 + 0x2DDC + a0 * 0x160) = a2;
+    return gl_func_00000000(a0, a1, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023598);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000235E4);
 
