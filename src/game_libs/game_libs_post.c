@@ -5459,11 +5459,11 @@ void gl_func_000682F8(int *self) {
     self[2] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068338);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068340);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068348);
+/* Three save-arg-sentinel stubs split from gl_func_000682F8 bundle. Each
+ * is `jr ra; sw a0, 0(sp)` — `void f(int)` body produces exact bytes. */
+void game_libs_func_00068338(int a0) {}
+void game_libs_func_00068340(int a0) {}
+void game_libs_func_00068348(int a0) {}
 
 #ifdef NON_MATCHING
 /* gl_func_00068350: 29-insn (0x74) vtable-dispatch + flag-gated init.
