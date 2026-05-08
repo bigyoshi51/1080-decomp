@@ -3502,11 +3502,47 @@ void game_uso_func_0000591C(int *a0) {
      * "abort if state changed mid-frame" + "if normal-path, skip alloc"
      * pattern used elsewhere in the dispatch.
      *
-     * Cumulative ~306/1102 insns characterized (up from 282). ~796
-     * remaining. NEXT PASS: 0x5E80+ second cross-USO call with sp+0xB4
-     * arg setup (likely Vec3-distance/op against accumulated transform).
+     * 0x5E80-0x5ECC region (+20 insns):
+     * BNEZ-GATED ALLOC + VEC3 XZ-DIFFERENCE (saved-XZ minus a1+0x30 XZ).
      *
-     * TODO: ~796 remaining insns — continue per-state-branch decoding. */
+     *   v1 = a2;                          ; mirror a2 (will become out-Vec3 ptr)
+     *   a1 += 0x30;                       ; a1 = sub->[0x30] (Vec3 source pos)
+     *   if (a2 != 0) goto skip_alloc;     ; if caller passed a buffer, skip alloc
+     *   /-- a2==0 path: alloc fresh Vec3 --/
+     *   sp[0xC0] = a1;                    ; spill a1 across alloc
+     *   v0 = gl_func(0xC);                ; alloc 12-byte Vec3
+     *   $f16 = 0.0f;                       ; (delay) Y-zero const
+     *   a1 = sp[0xC0];                    ; reload a1
+     *   a2 = sp + 0xB4;                   ; reset a2 to default out-Vec3 base
+     *   if (v0 == 0) goto skip_xz_diff;   ; alloc-fail skip
+     *   v1 = v0;                           ; (delay) v1 = alloc result
+     *
+     * skip_alloc:
+     *   $f18 = sp[0xF0];                   ; $f18 = saved-Vec3.X (from 0x5DC0 block)
+     *   $f4  = a1[0];                      ; $f4  = sub->[0x30].X
+     *   $f8  = sp[0xF8];                   ; $f8  = saved-Vec3.Z
+     *   $f6  = a1[2];                      ; $f6  = sub->[0x30].Z
+     *   $f0  = $f18 - $f4;                 ; X-diff
+     *   v1[1] = 0.0f;                       ; out.Y = 0 (XZ-plane vec)
+     *   $f2  = $f8 - $f6;                  ; Z-diff
+     *   v1[0] = $f0;                        ; out.X = X-diff
+     *   v1[2] = $f2;                        ; out.Z = Z-diff
+     *
+     * skip_xz_diff: continues at 0x5ED0 with int-memcpy preface
+     * (t5 = *(int*)a2; t3 = t8 = sp+0x15C; t3[0] = t5).
+     *
+     * Pattern: this XZ-difference Vec3 (saved.X - sub.X, 0, saved.Z - sub.Z) is
+     * the displacement vector between the saved-frame position (captured earlier
+     * at sp[0xF0..0xFC]) and the current sub-struct's position. Likely the
+     * "movement-since-last-frame XZ-only" vector, used as input to the follow-up
+     * (~0x5ED0+) operation. The bnez-gated alloc lets callers pass in their own
+     * out-buffer (a2 != 0) OR get a fresh-allocated one (a2 == 0). The XZ-only
+     * shape (Y zeroed) suggests ground-plane physics, NOT general 3D physics.
+     *
+     * Cumulative ~326/1102 insns characterized (up from 306). ~776 remaining.
+     * NEXT PASS: 0x5ED0+ int-memcpy preface (sp+0xB4 → sp+0x15C; 12-byte copy).
+     *
+     * TODO: ~776 remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
