@@ -807,8 +807,9 @@ void game_uso_func_00001DC4(void *a0) {
 #ifdef NON_MATCHING
 /* extended partial decode 2026-05-03: 0x1F00-0x1FA0 region decoded as a 2D
  * vector-distance + length + normalize pattern (likely AI homing / soft
- * target-following). Net body grew from ~50 to ~75 insns of decoded C. ~300
- * insns still stubbed via gl_func_TODO_00001DDC.
+ * target-following). Net body grew from ~50 to ~75 insns of decoded C. ~250
+ * insns still stubbed in block-comment annotations (gl_func_TODO_00001DDC
+ * stub call removed 2026-05-07; remaining sub-blocks documented inline).
  *
  * Decoded semantics for 0x1F00-0x1FA0 sub-block:
  *   diff_x = self_v.x - ref_v.x
@@ -1129,8 +1130,9 @@ branch_88: {
              * Open work for future-pass byte-matching (this function will need
              * a multi-pass grind):
              *   1. Decompile the asm-level scaffolding into proper C (currently
-             *      stubbed via gl_func_TODO_00001DDC and the long block-comment
-             *      annotations). The critical pieces: the 3-component scale
+             *      stubbed in long block-comment annotations; the prior
+             *      gl_func_TODO_00001DDC stub call was removed 2026-05-07).
+             *      The critical pieces: the 3-component scale
              *      `excess * delta_v` (XZ), the 3-component Y-axis scale
              *      (0,1,0)*y_excess, and the multiple Vec3 fanout copies.
              *   2. Identify the two `jal 0` call signatures (sqrt-helper at
