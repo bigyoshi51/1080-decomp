@@ -1409,46 +1409,24 @@ void gl_func_00031560(void) {
     gl_func_00000000();
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_00031580: 17-insn (0x44) array-init loop. Sets per-record
- * fields in &gl_ref_00000368[0..1] (2 records of 0x64 stride):
- *   for (i = 0; i != 2; i++) {
- *       rec = &D + 0x368 + i * 0x64;
- *       *(short*)(rec + 0x62) = i;
- *       *(int*)(rec + 0x40) = 0;
- *       *(int*)(rec + 0x44) = 0;
- *       *(int*)(rec + 0x48) = 0;
- *       *(int*)(rec + 0x4C) = 0;
- *       *(int*)(rec + 0x5C) = 0;
- *   }
- * Trailing 2 insns at 0x315BC-0x315C0 are R-type stolen-prologue donation
- * to successor gl_func_000315C4 (`sll t7, a0, 2; subu t7, t7, a0` = a0*3).
- *
- * 2026-05-08: switched `short i` → `int i` removes redundant sll+sra
- * sign-extend pair after `i++` — +11.76pp (71.76→83.52%). Remaining cap:
- *   1. v0/v1 swap — built has v0=base/v1=counter, expected has v1=base/
- *      v0=counter. Decl-order swap doesn't flip (p has more refs/longer
- *      live than i, so v0 wins). No `register` pin in IDO.
- *   2. Missing 2 trailing stolen-prologue insns (`sll t7, a0, 2;
- *      subu t7, t7, a0`) — needs SUFFIX_BYTES recipe, but only valid
- *      after dropping the NM wrap. Combo cap. */
-extern char gl_ref_00000368;
+/* game_libs_func_00031580: 15-insn (+ 2-insn stolen-prologue tail = 17-insn /
+ * 0x44) array-init loop. Sets per-record fields in &D+0x368[0..1] (2 records
+ * of 0x64 stride). Trailing 2 insns at 0x315BC-0x315C0 are R-type stolen-
+ * prologue donation to successor gl_func_000315C4 (`sll t7, a0, 2;
+ * subu t7, t7, a0` = a0*3) — emitted via SUFFIX_BYTES recipe. */
 void game_libs_func_00031580(void) {
     int i;
-    char *p = (char *)&gl_ref_00000368;
+    char *base = (char *)&D_00000000 + 0x368;
     for (i = 0; i != 2; i++) {
-        *(short *)(p + 0x62) = i;
-        p += 0x64;
-        *(int *)(p - 0x24) = 0;
-        *(int *)(p - 0x20) = 0;
-        *(int *)(p - 0x1C) = 0;
-        *(int *)(p - 0x18) = 0;
-        *(int *)(p - 0x8) = 0;
+        char *rec = base + i * 0x64;
+        *(short *)(rec + 0x62) = i;
+        *(int *)(rec + 0x40) = 0;
+        *(int *)(rec + 0x44) = 0;
+        *(int *)(rec + 0x48) = 0;
+        *(int *)(rec + 0x4C) = 0;
+        *(int *)(rec + 0x5C) = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031580);
-#endif
 
 /* gl_func_000315C4: 17-insn (0x44) array-element-call helper.
  * Stolen-prologue successor — predecessor game_libs_func_00031580's tail at
