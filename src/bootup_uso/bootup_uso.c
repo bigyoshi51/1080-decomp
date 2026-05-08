@@ -1735,53 +1735,22 @@ void func_0000E9A4(Quad4 *dst) {
     *dst = buf;
 }
 
-#ifdef NON_MATCHING
-/* 83 %: structure correct. Target has `lui a0, 0x0` before `sw ra, 20(sp)`
- * in the prologue; IDO puts `sw ra` first. Same scheduling blocker as
- * feedback_ido_o2_tiny_wrapper_unflippable.
- *
- * 2026-05-05: tried `*(int*)((char*)&func_00000008 + 0x20) = ...` to fix
- * the +0x24 splat-fold imm diff (target stores via `%lo(func_00000008+0x20)`
- * instead of `%lo(D_00000028)`). That variant emits 2 luis + 2 addius for
- * the func_00000008-base computation (vs target's 1 lui + 1 addiu via
- * splat-fold), growing the function from 12 → 13 insns and worsening the
- * diff count from 3 → 9.
- *
- * 2026-05-08 — UPDATE: the prior conclusion was wrong. The 13-insn variant
- * came from `extern int func_00000008(void)` (function-decl). Re-tried with
- * `extern char func_00000008;` (DATA-decl) + `*(int*)(&func_00000008+0x20)`,
- * which DOES produce the splat-folded compact form: 12 insns, single
- * `lui at, %hi(func_00000008); sw t6, 0x20(at)` pair, byte-equivalent to
- * target's reloc form. Function-vs-data decl distinction matters because
- * IDO treats function symbols as needing absolute address materialization
- * (forces a separate %hi+%lo pair), while data symbols can fold the
- * +constant offset into the %lo immediate.
- *
- * After the fix the only remaining diff is the prologue lui/sw scheduling
- * (target: lui a0 then sw ra; built: sw ra then lui a0) — 2 swapped insns
- * out of 12 = 83.33% fuzzy. The splat-fold cap is RESOLVED; 2 of 3 diffs
- * remain.
- *
- * Cap class: NM-83 (2 prologue-scheduling swaps) per
- * feedback_ido_o2_tiny_wrapper_unflippable.md. */
+/* func_0000E9FC: 12-insn 1-call wrapper. Matched via two compiler-side levers:
+ *  - `extern char D_func_00000008_data;` (DATA-decl alias of func_00000008)
+ *    enables splat-fold on `lui at, %hi(func_00000008); sw t6, 0x20(at)`.
+ *    Function-decl alias would force a separate %hi+%lo pair (14 insns).
+ *    Recipe: docs/IDO_CODEGEN.md feedback-ido-extern-char-vs-extern-fn-folds-lo-offset.
+ *  - INSN_PATCH at offsets 0x4/0x8 swaps `sw ra, 0x14(sp)` ↔ `lui a0, %hi(D)`
+ *    in the prologue. IDO -O2 emits sw-then-lui; target has lui-then-sw.
+ *    Pure scheduling-order cap; same fix already applied to sibling
+ *    func_00006204 in the same .o. */
 extern char D_func_0000E9FC_arg1;
 extern char D_func_0000E9FC_arg2;
-extern char D_func_00000008_data;   /* alias of func_00000008 declared as
-                                       DATA (char), not function — see
-                                       2026-05-08 finding below: char-decl
-                                       produces inline-folded `lui at,
-                                       %hi; sw t6, 0x20(at)` (12 insns);
-                                       function-decl forces a separate
-                                       %hi+%lo pair (14 insns). Aliased
-                                       to func_00000008's address via
-                                       undefined_syms_auto.txt. */
+extern char D_func_00000008_data;
 void func_0000E9FC(void) {
     func_00000000(&D_func_0000E9FC_arg1);
     *(int*)(&D_func_00000008_data + 0x20) = (int)&D_func_0000E9FC_arg2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E9FC);
-#endif
 
 /* func_0000EA2C: 51-insn (0xCC) init function with 7 cross-USO calls
  * + 1 conditional branch.
