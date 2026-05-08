@@ -5366,7 +5366,70 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000684AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068524);
 
+#ifdef NON_MATCHING
+/* gl_func_000685C0: 55-insn (0xDC) bounds-checked 2-level table lookup with
+ * 3 assertion-call sites. Sibling of just-matched gl_func_00068730 (which
+ * is the unchecked variant — single assertion-call upfront).
+ *
+ * Decoded structure:
+ *   key_h = (a1 >> 16) & 0xFFFF;
+ *   key_l = a1 & 0xFFFF;
+ *
+ *   if (key_h >= a1) {                           // bounds-check assertion 1
+ *       gl_func_00000000(&D_0003B3C0, key_h, key_l);
+ *   }
+ *
+ *   row = (int*)(a0->[0x30] + key_h * 16);       // 16-byte stride
+ *   count = row[2];                              // row+0x8
+ *   if (key_l >= count) {                        // bounds-check assertion 2
+ *       gl_func_00000000(&D_0003B3E4, key_h, key_l, row+0x4);
+ *   }
+ *
+ *   // (re-load row data after the conditional call)
+ *   row = (int*)(a0->[0x30] + key_h * 16);
+ *   table_b = (int*)row[1];                      // row+0x4
+ *   entry = (int*)(table_b + key_l * 4);
+ *   if (entry->[0x10] == 0) {                    // bounds-check assertion 3
+ *       gl_func_00000000(&D_0003B404, key_h);
+ *   }
+ *   // (no return value — void)
+ *
+ * Multi-tick byte-matching pending. Default INCLUDE_ASM keeps ROM matching
+ * while structural decode lives here for grep discoverability and future
+ * single-tick refinement attempts.
+ *
+ * Same family as gl_func_00068730 (unchecked, 19-insn) — when 685C0's
+ * checked-path collapses to byte-match, similar structure may apply to
+ * other unmatched siblings (000683D4 / 000684AC / 00068524 in this region). */
+extern int gl_func_00000000();
+extern char D_00000000;
+void gl_func_000685C0(int *a0, int a1) {
+    unsigned int key_h = (unsigned int)(a1 >> 16) & 0xFFFF;
+    unsigned int key_l = (unsigned int)a1 & 0xFFFF;
+    int *row;
+    int *table_b;
+    int *entry;
+    int count;
+
+    if (!(key_h < (unsigned int)a1)) {
+        gl_func_00000000((int)((char*)&D_00000000 + 0x3B3C0), key_h, key_l);
+    }
+    row = (int*)((char*)a0[0x30/4] + key_h * 16);
+    count = row[2];
+    if (!(key_l < (unsigned int)count)) {
+        gl_func_00000000((int)((char*)&D_00000000 + 0x3B3E4), key_h, key_l);
+    }
+    /* re-load row + chase table_b + indexed entry */
+    row = (int*)((char*)a0[0x30/4] + key_h * 16);
+    table_b = (int*)row[1];
+    entry = (int*)((char*)table_b + key_l * 4);
+    if (entry[0x10/4] == 0) {
+        gl_func_00000000((int)((char*)&D_00000000 + 0x3B404), key_h);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000685C0);
+#endif
 
 extern int gl_func_00000000();
 
