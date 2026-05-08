@@ -864,4 +864,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
  *
  * game_libs_func_00024948 split off from gl_func_00024378 bundle on
  * 2026-05-08; decompiled to C body in game_libs_post.c (correct file
- * for VRAM > 0x8944 cap). */
+ * for VRAM > 0x8944 cap).
+ *
+ * game_libs_func_00024B8C split off from gl_func_00024B28 bundle on
+ * 2026-05-08; 2-insn `jr ra; nop` alt-entry stub. Stays INCLUDE_ASM in
+ * game_libs_post.c (no C-decompilable form per fall-through-prologue-stub
+ * doc — IDO empty void emit doesn't reproduce explicit nop in delay). */

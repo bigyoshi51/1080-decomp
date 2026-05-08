@@ -356,6 +356,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002495C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024B28);
 
+/* 2-insn alt-entry stub split off from gl_func_00024B28 on 2026-05-08
+ * (just `jr ra; nop`). Stays INCLUDE_ASM. */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024B8C);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024B94);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024C08);
