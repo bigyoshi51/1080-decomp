@@ -1531,8 +1531,8 @@ void game_uso_func_00000B14(void *a0) {
  * Stage 5 @ 0x30AC-..: copy 3 Vec3s sp[0xDC]/sp[0xD0]/sp[0xC4] to
  *   sp[0x64]/sp[0x54]/sp[0x44] — ENT-Vec3 prep area.
  *
- * Stage 6 @ 0x3110-0x33A8 (5x repeated "alloc-and-register sub-object"):
- *   for k in [0..4]:
+ * Stage 6 @ 0x3110-0x348C (9x repeated "alloc-and-register sub-object"):
+ *   for k in [0..8]:
  *     v = D[0x384 + k*4];
  *     dst_off = struct_offset[k];     # 0x40, 0x58, 0x70, 0x88, ...
  *     at_const = at_table[k];         # -0x40, -0x58, -0x70, -0x88, ...
@@ -1548,8 +1548,9 @@ void game_uso_func_00000B14(void *a0) {
  *       }
  *     }
  *
- *   The k=0..4 stages cover &s0->[0x40..0xA0] in 0x18-byte slots,
- *   each registering a sub-object created by alloc + init_helper.
+ *   The first stage is a 0x20-byte object at s0+0x08 with tag D+0x30 and
+ *   Vec3 zero copied to +0x10. The remaining 8 stages cover 0x18-byte slots
+ *   from s0+0x28 through s0+0xD0, each with tag D+0x18 and zero at +0x10.
  *
  *   2026-05-07 closer-read of one stage's bne: `bne $s0, $at(-0x40), +5`
  *   ALWAYS branches taken (s0 is a non-NULL struct ptr, can't equal -0x40),
@@ -1562,16 +1563,19 @@ void game_uso_func_00000B14(void *a0) {
  *   the constant. Investigate before encoding.
  *
  * Picked source 5 (strategy memo). Initial structural body — partial decode
- * of stages 1-5 (~50/291 insns). Stage 6 is documented but not yet
- * encoded in C. Remaining ~190 insns include the 5-stage register loop +
- * tail. Multi-run refinement expected. */
+ * of stages 1-5 (~50/291 insns). 2026-05-08: encoded the full repeated
+ * Stage 6 subobject setup through the tail; still NON_MATCHING due to
+ * stack/register allocation and unresolved cross-USO callee signatures.
+ * Multi-run refinement expected. */
 void* game_uso_func_00003018(void* arg0) {
     void *s0;
     void *v1;
+    void *sub;
     Vec3 zero_vec;
     Vec3 min_vec;
     Vec3 max_vec;
     int counter;
+    int tmpl;
     Vec3 ent_a, ent_b, ent_c;
 
     s0 = arg0;
@@ -1597,21 +1601,122 @@ skip_template:
     ent_c = max_vec;
     (void)counter;
 
-    /* Stage 6, sub-stage 0 (insns 0x3110-0x3198, ~35 insns):
-     *   if ((int)s0 == counter) {                        // sentinel check (target uses bne $s0, $t0)
-     *       sub = (void*)gl_func_00000000(0x20);          // alloc(0x20)
-     *       if (sub == NULL) goto next_substage;          // beqz delay
-     *   }
-     *   gl_func_00000000(sub, s0, ent_b, 1);              // init_helper
-     *   sub->[0xC] = (int)((char*)&D_00000000 + 0x30);    // type-tag pointer (D + 0x30)
-     *   sub->[0x1C] = 0;
-     *   ((Vec3*)((char*)sub + 0x10)) = ent_b;             // copy 3 floats from ent_b to sub+0x10
-     *
-     * Remaining: 4 more sub-stages (k=1..4) with similar shape; each
-     * consumes one of ent_a/ent_b/ent_c and a per-k offset/D-ptr.
-     * Pattern repeats at insns 0x319C, 0x3200, 0x3264, ... ending ~0x33A8. */
+    sub = (char*)s0 + 8;
+    if (s0 == (void*)-8) {
+        sub = (void*)gl_func_00000000(0x20);
+        if (sub != NULL) {
+            gl_func_00000000(sub, s0, counter, 1, counter);
+            *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x30);
+            *(int*)((char*)sub + 0x1C) = 0;
+            *(float*)((char*)sub + 0x10) = ent_a.x;
+            *(float*)((char*)sub + 0x14) = ent_a.y;
+            *(float*)((char*)sub + 0x18) = ent_a.z;
+        }
+    } else {
+        gl_func_00000000(sub, s0, counter, 1, counter);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x30);
+        *(int*)((char*)sub + 0x1C) = 0;
+        *(float*)((char*)sub + 0x10) = ent_a.x;
+        *(float*)((char*)sub + 0x14) = ent_a.y;
+        *(float*)((char*)sub + 0x18) = ent_a.z;
+    }
 
-    /* TBD: 5x sub-stage Stage 6 + tail. */
+    tmpl = *(int*)((char*)&D_00000000 + 0x380);
+    sub = (char*)s0 + 0x28;
+    if (s0 == (void*)-0x28) {
+        sub = (void*)gl_func_00000000(0x18);
+    }
+    if (sub != NULL) {
+        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
+        *(int*)((char*)sub + 0x14) = 0;
+        *(float*)((char*)sub + 0x10) = 0.0f;
+    }
+
+    tmpl = *(int*)((char*)&D_00000000 + 0x384);
+    sub = (char*)s0 + 0x40;
+    if (s0 == (void*)-0x40) {
+        sub = (void*)gl_func_00000000(0x18);
+    }
+    if (sub != NULL) {
+        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
+        *(int*)((char*)sub + 0x14) = 0;
+        *(float*)((char*)sub + 0x10) = 0.0f;
+    }
+
+    tmpl = *(int*)((char*)&D_00000000 + 0x388);
+    sub = (char*)s0 + 0x58;
+    if (s0 == (void*)-0x58) {
+        sub = (void*)gl_func_00000000(0x18);
+    }
+    if (sub != NULL) {
+        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
+        *(int*)((char*)sub + 0x14) = 0;
+        *(float*)((char*)sub + 0x10) = 0.0f;
+    }
+
+    tmpl = *(int*)((char*)&D_00000000 + 0x38C);
+    sub = (char*)s0 + 0x70;
+    if (s0 == (void*)-0x70) {
+        sub = (void*)gl_func_00000000(0x18);
+    }
+    if (sub != NULL) {
+        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
+        *(int*)((char*)sub + 0x14) = 0;
+        *(float*)((char*)sub + 0x10) = 0.0f;
+    }
+
+    tmpl = *(int*)((char*)&D_00000000 + 0x390);
+    sub = (char*)s0 + 0x88;
+    if (s0 == (void*)-0x88) {
+        sub = (void*)gl_func_00000000(0x18);
+    }
+    if (sub != NULL) {
+        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
+        *(int*)((char*)sub + 0x14) = 0;
+        *(float*)((char*)sub + 0x10) = 0.0f;
+    }
+
+    tmpl = *(int*)((char*)&D_00000000 + 0x394);
+    sub = (char*)s0 + 0xA0;
+    if (s0 == (void*)-0xA0) {
+        sub = (void*)gl_func_00000000(0x18);
+    }
+    if (sub != NULL) {
+        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
+        *(int*)((char*)sub + 0x14) = 0;
+        *(float*)((char*)sub + 0x10) = 0.0f;
+    }
+
+    tmpl = *(int*)((char*)&D_00000000 + 0x398);
+    sub = (char*)s0 + 0xB8;
+    if (s0 == (void*)-0xB8) {
+        sub = (void*)gl_func_00000000(0x18);
+    }
+    if (sub != NULL) {
+        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
+        *(int*)((char*)sub + 0x14) = 0;
+        *(float*)((char*)sub + 0x10) = 0.0f;
+    }
+
+    tmpl = *(int*)((char*)&D_00000000 + 0x39C);
+    sub = (char*)s0 + 0xD0;
+    if (s0 == (void*)-0xD0) {
+        sub = (void*)gl_func_00000000(0x18);
+    }
+    if (sub != NULL) {
+        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
+        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
+        *(int*)((char*)sub + 0x14) = 0;
+        *(float*)((char*)sub + 0x10) = 0.0f;
+    }
+
     return s0;
 }
 #else
