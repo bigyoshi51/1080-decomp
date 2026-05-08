@@ -6479,7 +6479,29 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F284);
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000F360: 49-insn float-compare-gated state update.
+ * Entry (~10 insns decoded):
+ *   v0 = a0->0xE4 (short)
+ *   if (v0 <= 0) { a0->0xE4 = 0; v0 = 0; }
+ *   f6 = (short)v0; sub = a0->0xB4; thresh = a0->0x1B4 (float)
+ *   t6 = sub->0x9CC (some flag)
+ *   if (sub->0x9CC == 0) goto skip
+ *   ... compares f4=thresh vs f8=(float)v0, branches based on c.le.s ...
+ *
+ * Body proper is float-comparison + neg.s sequences + 2 cross-USO calls +
+ * struct-store finalize. Multi-pass NM placeholder. */
+void game_uso_func_0000F360(int *a0) {
+    short v0 = *(short*)((char*)a0 + 0xE4);
+    if (v0 <= 0) {
+        *(short*)((char*)a0 + 0xE4) = 0;
+    }
+    /* TODO 0x24-0xC4: float compare + neg branch + 2 dispatches + final stores */
+    (void)v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F360);
+#endif
 
 #ifdef NON_MATCHING
 /* 30-insn USO function (0xF424, size 0x78). Decoded from .word-only asm:
