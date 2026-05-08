@@ -6984,6 +6984,13 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { float x, y, z; } F948_Vec3;
 void game_uso_func_0000F948(int *a0) {
+    /* 2026-05-08 frame_pad addition: built emitted -0x58, target -0x80;
+     * char[40] grows the frame to 0x80 without shifting $s allocation
+     * (per docs/IDO_CODEGEN.md feedback-ido-buf-array-alignment). Got +2
+     * insns matching (9/62 -> 11/62). Remaining diffs are family-cap
+     * pattern at 0x2C-0x4C (cross-USO call varargs spills, same as FB04
+     * family) + FPU body scheduling. */
+    char frame_pad[40];
     int *b;
     float scale;
     volatile F948_Vec3 a, vb;
