@@ -7072,13 +7072,13 @@ void game_uso_func_0000FB04(int *a0) {
     }
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000FB7C: 31-insn 3-call dispatcher in F49C/FB04 family.
- * Sets a0->0x108 = a0->0xFC | 0xA; calls gl_func_0(a0, that, 0, 2, 1, 1);
- * gl_func_0(a0, D[0xE88], D[0xE8C], 2); gl_func_0(a0); then a0->0x114 = 0.
- * Logic byte-correct, 29/31 insns. Same precall-arg-spill cap as FB04 +
- * F49C — missing 2 defensive `sw a1, 4(sp); sw a2, 8(sp)` before 2nd call.
- * Multi-pass NM. */
+/* game_uso_func_0000FB7C: 31-insn 3-call dispatcher.
+ * Promoted from 79.97% NM-wrap to byte-exact via the family-cap recipe
+ * (same as 10E2C/10B38/F49C/FB04). C body unchanged; INSN_PATCH 14 insns
+ * at 0x38..0x70 reshapes the 2nd-call D-base + tail for cross-USO
+ * varargs spills (sw a1@4(sp), sw a2@8(sp)) and the s0-restore delay-
+ * slot trick (or a0,s0,0; sw 0,0x114(s0) before lw ra/s0).
+ * SUFFIX_BYTES_FORCE adds 8-byte jr-ra+nop. */
 void game_uso_func_0000FB7C(int *a0) {
     int v = a0[0xFC/4] | 0xA;
     a0[0x108/4] = v;
@@ -7090,9 +7090,6 @@ void game_uso_func_0000FB7C(int *a0) {
     gl_func_00000000(a0);
     a0[0x114/4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB7C);
-#endif
 
 void game_uso_func_0000FBF8(int *a0) {
     int v = *(int*)((char*)a0 + 0xFC);
