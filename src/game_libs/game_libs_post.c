@@ -1278,7 +1278,20 @@ int gl_func_00031540() {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031560);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000315C4);
+/* gl_func_000315C4: 17-insn (0x44) array-element-call helper.
+ * Stolen-prologue successor — predecessor gl_func_00031560's tail at
+ * 0x315BC/0x315C0 has `sll t7, a0, 2; subu t7, t7, a0` (= a0 * 3) which
+ * this function multiplies further to a0 * 100 (record stride) and uses
+ * to index into &gl_ref_00000368 array, calling helper at 0x045DC0.
+ *
+ * R-type PROLOGUE_STEALS=8 variant per
+ * docs/POST_CC_RECIPES.md#second-extension. */
+extern int gl_ref_00045DC0();
+extern char gl_ref_00000368;
+
+void gl_func_000315C4(int a0, int a1) {
+    gl_ref_00045DC0(&gl_ref_00000368 + a0 * 100, 1, a1, 0x7F);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031608);
 
