@@ -433,20 +433,36 @@ void gl_func_00024B94(int *a0) {
  *     state 1/2 then drains record[0x18] in 0x400-byte chunks through
  *     alt-entry helpers inside gl_func_00039094/gl_func_000393B8
  *
- * This first pass keeps the exact control-flow shape in readable C but does
- * not try to solve the alt-entry calls or register allocation. */
+ * Cap remaining at 89.04 % (current):
+ * 1. **Frame -64 vs target -56 (+8 bytes, +1 \$s save).** Mine spills $s0-$s8
+ *    (9 saved regs); target spills $s0-$s7 (8). Extra reg is \$s8/$fp.
+ * 2. **Target keeps constants 1/2/3 in \$s3/\$s4/\$s5** (li sN, K at prologue,
+ *    then beql/sw uses sN). Mine doesn't promote literals. Tried 2026-05-08:
+ *    `int one=1, two=2, three=3` named locals + `state==one`/`==two` uses —
+ *    IDO -O2 folds them back to literals; emit byte-identical to without.
+ *    `register int one = 1` would just trigger the same fold — `register`
+ *    only matters for live-across-call values, and the constant load itself
+ *    is a single-insn `li` that's smaller than \$s-save+restore overhead.
+ *    IDO -O2 won't promote single-use literals to \$s-regs from C-source
+ *    structure alone. Target's IDO must have had a different cost model or
+ *    inlined caller context boosting ref counts.
+ * 3. **Inlining \`end\` (loop bound `slot != &D + 0xC8`) into the for(...)
+ *    expression** — no emit change. The bound is a compile-time-constant
+ *    address that IDO loop-hoists either way.
+ *
+ * Permuter-territory cap. The +1 \$s-reg pressure likely needs a structural
+ * refactor (e.g. fold `record` and `slot` into a single var via index
+ * arithmetic) rather than a regalloc lever. */
 extern int func_00039200();
 extern int func_000393FC();
 extern int func_00039480();
 void gl_func_00024C08(int arg0) {
     char *slot;
     char *record;
-    char *end;
     int remaining;
     int state;
 
-    end = (char*)&D_00000000 + 0xC8;
-    for (slot = (char*)&D_00000000; slot != end; slot += 0x64) {
+    for (slot = (char*)&D_00000000; slot != (char*)&D_00000000 + 0xC8; slot += 0x64) {
         state = *(int*)(slot + 0x1590);
         if (state == 1) {
             record = slot + 0x157C;
