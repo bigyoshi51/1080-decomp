@@ -278,7 +278,22 @@ int gl_func_00024080(int a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000240A0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024330);
+/* gl_func_00024330: was 18-insn 3-function bundle. Split via
+ * split-fragments.py 2026-05-08 into parent (12 insns / 0x30, 3-jal
+ * passthrough wrapper) + game_libs_func_00024360 + game_libs_func_0002436C
+ * (each 3 insns / 0xC, no-frame setter to D_*). */
+extern int gl_func_00000000();
+void gl_func_00024330(int a0) {
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+}
+
+extern int D_24360_a;
+void game_libs_func_00024360(int a0) { D_24360_a = a0; }
+
+extern int D_2436C_a;
+void game_libs_func_0002436C(int a0) { D_2436C_a = a0; }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024378);
 
