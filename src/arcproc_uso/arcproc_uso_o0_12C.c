@@ -36,7 +36,13 @@ extern int gl_func_00000000();
  * join-point, both arms branch directly to epilogue) requires dataflow
  * normalization that IDO -O0 doesn't perform. INSN_PATCH-blocked: would
  * need to grow expected/.o by +8 bytes, which post-cc tooling can't do
- * (only shrink via PROLOGUE_STEALS or overwrite via INSN_PATCH). */
+ * (only shrink via PROLOGUE_STEALS or overwrite via INSN_PATCH).
+ *
+ * 2026-05-08 5th variant: single-return shape `return *a0 == 0;` —
+ * REGRESSED 92.86% -> 77.68% (-15pp). The boolean cast emits extra
+ * sltu+xori sequence at -O0 (vs target's beq-conditional shape).
+ * Confirms 4-variant exhaustion was not exhaustive across the boolean-
+ * coercion family. Reverted. */
 int arcproc_uso_func_0000012C(int *a0, int a1) {
     register int *p;
     gl_func_00000000(a0, a1);
