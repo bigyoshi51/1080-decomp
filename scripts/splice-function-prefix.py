@@ -298,13 +298,19 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
         # (typically the prologue `addiu sp, sp, -N` = opcode 0x09) and we
         # don't gate on it.
         if opcode1 == 0x00:
-            # R-type-prefixed PROLOGUE_STEALS=8 case: `sll rN, aN, K;
-            # subu/addu rN, rN, aN` strength-reduction stolen-prologue.
-            # Verified 2026-05-08 on gl_func_000315C4 (predecessor's tail
-            # `sll t7, a0, 2; subu t7, t7, a0` = `t7 = a0 * 3`). Gate the
-            # second insn to be R-type too (opcode 0) — same SR sequence.
-            if opcode2 != 0x00:
-                print(f"WARN: {func_name}+4 is not R-type "
+            # R-type-prefixed splice case. Two sub-cases:
+            #  - PROLOGUE_STEALS=8: `sll rN, aN, K; subu/addu rN, rN, aN`
+            #    strength-reduction stolen-prologue (verified 2026-05-08
+            #    on gl_func_000315C4, predecessor's tail
+            #    `sll t7, a0, 2; subu t7, t7, a0` = `t7 = a0 * 3`).
+            #    Both insns must be R-type (opcode2 == 0x00).
+            #  - PROLOGUE_STEALS=4: single-insn SLL/SR prefix (e.g.,
+            #    `sll t6, a1, 2` alone), opcode2 is free to be anything
+            #    (typically the prologue `addiu sp, -N` = 0x09).
+            # Distinguish by n_bytes: PROLOGUE_STEALS=4 means 1 insn
+            # spliced, PROLOGUE_STEALS=8 means 2 insns spliced.
+            if n_bytes == 8 and opcode2 != 0x00:
+                print(f"WARN: {func_name}+4 is not R-type for 8-byte splice "
                       f"(opcode={opcode2:#x}, word={second_word:#010x})", file=sys.stderr)
                 sys.exit(1)
         elif opcode1 == 0x0F:
