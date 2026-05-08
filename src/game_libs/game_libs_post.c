@@ -1459,7 +1459,53 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_000305CC: 17-insn signed-clamp + 2-arg call wrapper.
+ *
+ * Body decode:
+ *   Clamps a0 to signed [0..0x7F] then calls func(0x03000800, (s8)clamped).
+ *   Target uses bgez+delay trick: `bgez a0, +8 / move a2, a0 [delay-always]
+ *   / move a2, zero [skipped if branch taken]` for the "lower clamp," then
+ *   `slti+bne` for the "upper clamp."
+ *
+ * Caps remaining (current fuzzy 51%):
+ * 1. **Regalloc: target uses $a2 for the temp; IDO -O2 picks $v0 for ours.**
+ *    Tried 3-arg signature with `a2` as a named parameter (so $a2 is "live"
+ *    at entry) — IDO still uses $v0 because the parameter value is dead
+ *    after the first overwrite, freeing $a2 for the allocator's normal
+ *    pick (which prefers $v0 when no return value is needed). Same family
+ *    as feedback-ido-arg-save-reg-pick: register choice unflippable from C.
+ *
+ * 2. **Control flow: target's bgez+delay-always emits 3 insns; my if-else
+ *    cascade emits ~5 insns with extra unconditional `b` branches.** IDO
+ *    -O2 doesn't recognize `t = a0; if (a0 < 0) t = 0;` as a candidate for
+ *    the bgez+delay-always idiom — it codegens a conventional branch over
+ *    the assign instead. Likely needs goto + manual label structure.
+ *
+ * 3. **Trailing 3-insn next-function-prologue-steal at offsets 0x44-0x4F**
+ *    (`lui v0, 0; addiu v0, 0; lw t6, 0(v0)`). Splat declared this symbol
+ *    as 0x50 instead of the natural 0x44, absorbing gl_func_0003061C's
+ *    $t6/$v0 setup. The successor uses $t6 immediately at entry (beq t6,
+ *    t6, ...) without setting it. asm-processor auto-pads the C body to
+ *    target size from the asm file's tail bytes, so this cap is masked
+ *    in the linked .o but produces a fuzzy<100 in the disasm-level diff.
+ *    Promotion path: SUFFIX_BYTES of the 3 stolen insns at offset 0x44 +
+ *    PROLOGUE_STEALS=12 on gl_func_0003061C — paired commit, not solo.
+ *
+ * The 3-arg signature is required so the call passes (0x03000800, (s8)t)
+ * with t in $a1 (since arg2 maps to $a1 in 2-arg C). Target's 2nd arg is
+ * loaded via `sll a1, a2, 0x18; sra a1, a1, 0x18` — sign-extend low byte
+ * of the temp into $a1. */
+extern int gl_func_00000000();
+void gl_func_000305CC(int a0, int unused_a1, int a2) {
+    a2 = a0;
+    if (a0 < 0) a2 = 0;
+    if (a2 >= 0x80) a2 = 0x7F;
+    gl_func_00000000(0x03000800, (s8)a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000305CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
 
