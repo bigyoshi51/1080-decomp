@@ -117,6 +117,7 @@ build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
 build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0x8944
 build/src/game_libs/game_libs.c.o: PREFIX_BYTES := game_libs_func_000040EC=0x00000000,0x00000000
 build/src/game_libs/game_libs.c.o: SUFFIX_BYTES := gl_func_000070A0=0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000
+build/src/game_libs/game_libs.c.o: INSN_PATCH := gl_func_00006C38=0x3C:0x8FB8001C,0x40:0x3C0142F0,0x44:0x44812000,0x48:0x3C190000,0x4C:0xACE004EC,0x50:0xACE00518,0x54:0xACF804E4,0x58:0xE4E4054C
 build/src/game_libs/game_libs_o0_8944.c.o build/non_matching/src/game_libs/game_libs_o0_8944.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_8944.c.o: TRUNCATE_TEXT := 0xFC
 build/src/game_libs/game_libs_mid.c.o: TRUNCATE_TEXT := 0xB58
