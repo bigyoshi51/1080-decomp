@@ -7278,7 +7278,32 @@ void game_uso_func_0000FC34(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000FD04: 50-insn sibling of game_uso_func_0000FC34.
+ * Direct C compile builds but reports fuzzy=None: call-argument spill ordering
+ * and the post-call Vec3-style reset block still differ. Default INCLUDE_ASM
+ * keeps the ROM exact while preserving the decoded gate/call/reset structure. */
+void game_uso_func_0000FD04(int *a0) {
+    int *base = *(int**)((char*)a0 + 0xB4);
+    int *flags = *(int**)((char*)base + 0x800);
+
+    if ((flags[0x10 / 4] & 0x100) == 0) {
+        gl_func_00000000(a0, 0x30001, 2, 3, 1, 1);
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE18), *(int*)((char*)&D_00000000 + 0xE1C), 3);
+        gl_func_00000000(a0);
+
+        base = *(int**)((char*)a0 + 0xB4);
+        *(float*)((char*)base + 0x31C) -= *(float*)((char*)base + 0x798);
+        base = *(int**)((char*)a0 + 0xB4);
+        *(float*)((char*)base + 0x308) = 1.0f;
+        *(float*)((char*)base + 0x304) = 0.0f;
+        *(float*)((char*)base + 0x300) = 0.0f;
+        *(float*)((char*)base + 0x2FC) = 0.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FD04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FDCC);
 
