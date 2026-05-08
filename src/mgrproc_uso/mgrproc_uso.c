@@ -436,7 +436,44 @@ void mgrproc_uso_func_00000B20(void) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5C);
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00000C14: 44-insn (0xB0) state-update with conditional
+ * branch. Reads (int*)&D[0x30] = global state ptr, queries via gl_func()
+ * the outer->[0x6AC]->[0x4C] sub-state, and based on result either:
+ *   - cond TRUE: clear state[0x504], state[0x4E0]=7, D[0x40]=5,
+ *                D[0x44]=7, state[0x7D8]=1, call gl_func(state)
+ *   - cond FALSE: D[0x40]=7, call gl_func(state, 0, 0)
+ *
+ * Multiple D[0x30] reloads in target asm (5 separate `lw rN, 0(v1)`)
+ * suggest IDO -O2 doesn't CSE the state-ptr load across the if-arm
+ * boundaries. Multi-pass NM — initial decode, register/scheduling
+ * tightening pending. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void mgrproc_uso_func_00000C14(void) {
+    int *state = *(int**)((char*)&D_00000000 + 0x30);
+    int *other = (int*)&D_00000000;
+    int v0;
+    gl_func_00000000(state);
+    v0 = gl_func_00000000(*(int*)((char*)*(int**)((int*)((char*)&D_00000000 + 0x30))[0x6AC/4] + 0x4C));
+    if (v0 != 0) {
+        int *s = *(int**)((char*)&D_00000000 + 0x30);
+        s[0x504/4] = 0;
+        s = *(int**)((char*)&D_00000000 + 0x30);
+        s[0x4E0/4] = 7;
+        other[0x40/4] = 5;
+        other[0x44/4] = 7;
+        s = *(int**)((char*)&D_00000000 + 0x30);
+        s[0x7D8/4] = 1;
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x30));
+    } else {
+        other[0x40/4] = 7;
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x30), 0, 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000C14);
+#endif
 
 void mgrproc_uso_func_00000CC4(int *dst) {
     int buf[2];
