@@ -604,8 +604,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028E94);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028FCC);
 
-extern int gl_func_00000000();
-extern int gl_ref_0003D414();
+#ifdef NON_MATCHING
+/* Split off from gl_func_00028FCC bundle 2026-05-08: 11-insn no-frame
+ * config setter. Stores a1 to a0->field_48, reads a0->field_50's child
+ * field_5 byte to a0->field_30, ORs bit 0x10 into a0->field_60, loads
+ * a float from D[0x2050] and stores it to a0->field_6C.
+ *
+ * 25.82% fuzzy. Cap: REG_ALLOC_ORDER picks $v0/$v1 before $t6+ in this
+ * 2-arg leaf (no return). Expected uses $t6/$t9/$t7/$t0; mine emits
+ * $v0/$v1/$t6/$t7. Same insn count, instruction order shuffled (sw a1
+ * gets hoisted by IDO scheduler to position 3 vs target's position 1).
+ * Per docs/IDO_CODEGEN.md#feedback-ido-t-register-swap-unreachable, no
+ * C-level lever forces IDO to skip $v0/$v1 in single-arg leaf context. */
+void game_libs_func_00029000(int *a0, int a1) {
+    a0[0x48/4] = a1;
+    {
+        int *sub = (int*)a0[0x50/4];
+        unsigned char flags = *((unsigned char*)a0 + 0x60);
+        *((char*)a0 + 0x30) = *((char*)sub + 0x5);
+        *((char*)a0 + 0x60) = flags | 0x10;
+    }
+    *(float*)((char*)a0 + 0x6C) = *(float*)((char*)&D_00000000 + 0x2050);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029000);
+#endif
 
 int gl_func_0002902C(char *a0, int a1) {
     int r = gl_func_00000000(a0, a1);
