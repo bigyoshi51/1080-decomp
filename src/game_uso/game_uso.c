@@ -6451,7 +6451,62 @@ void game_uso_func_0000D8A8(char *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+/* 56-insn dispatch + 3-call wrapper. Mixed control flow:
+ *   if (a0->[0xB4]->[0x938] == 0) {  ; v1->[0x938] gate
+ *       fall through to L_BC tail
+ *   } else if (*(int*)&D_00000000 == 0) {  ; ptr gate
+ *       a0->[0xE4]_h = 0; gl_func(a0); v1 = a0->[0xB4];
+ *   } else {  ; main path
+ *       int a1 = 0;
+ *       if (a0->[0x118] != 0) {
+ *           if (v1->[0x800]->[0x18] & 0x100) a1 = 1;
+ *       } else {
+ *           if (v1->[0x800]->[0x10] & 0x100) a1 = 1;
+ *       }
+ *       if (a1) {
+ *           gl_func(a0, *(D+0xEB8), *(D+0xEBC));  ; 3-arg varargs
+ *           a0->[0xE4]_h = 0; a0->[0x118] = 0;
+ *       }
+ *   }
+ *   L_BC: t6 = v1->[0x9D4]; if (t6 >= 11) gl_func(a0); */
+void game_uso_func_0000D8EC(int *a0) {
+    int *v1 = (int*)*(int*)((char*)a0 + 0xB4);
+    int *ptr;
+    int *v0;
+    int t8, a1;
+
+    if (*(int*)((char*)v1 + 0x938) == 0) goto L_BC;
+    ptr = *(int**)&D_00000000;
+    if (ptr == 0) {
+        *(short*)((char*)a0 + 0xE4) = 0;
+        gl_func_00000000(a0);
+        v1 = (int*)*(int*)((char*)a0 + 0xB4);
+        goto L_BC;
+    }
+    t8 = *(int*)((char*)a0 + 0x118);
+    a1 = 0;
+    if (t8 != 0) {
+        v0 = (int*)*(int*)((char*)v1 + 0x800);
+        if ((*(int*)((char*)v0 + 0x18) & 0x100) != 0) a1 = 1;
+    } else {
+        v0 = (int*)*(int*)((char*)v1 + 0x800);
+        if ((*(int*)((char*)v0 + 0x10) & 0x100) != 0) a1 = 1;
+    }
+    if (a1 != 0) {
+        register int *t = (int*)((char*)&D_00000000 + 0xEB8);
+        gl_func_00000000(a0, t[0], t[1]);
+        *(short*)((char*)a0 + 0xE4) = 0;
+        *(int*)((char*)a0 + 0x118) = 0;
+    }
+L_BC:
+    if (*(int*)((char*)v1 + 0x9D4) >= 11) {
+        gl_func_00000000(a0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
+#endif
 
 #ifdef NON_MATCHING
 /* 0.27% NM. game_uso_func_0000D9CC: 0x830 (524 insns), 0x38-byte stack frame.
