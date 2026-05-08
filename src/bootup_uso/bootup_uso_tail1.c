@@ -52,13 +52,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FD4C);
  * bootup_uso_tail1.c which builds at -O2. IDO -O2 inlines my C to 11
  * insns with t-regs only — 7-insn deficit + frame-size mismatch.
  *
+ * 2026-05-08: tested the narrow `register self = a0` alias suggested by
+ * the staged bootup_uso_o0_FBCC.c note. In the current -O2 tail1 unit it
+ * still emits the same 11-insn t-reg-only shape (frame -0x18, no s0 spill,
+ * no dead `b +1; nop` marker), so the -O0 file-split blocker remains.
+ *
  * Promotion path: file split per feedback_o0_cluster_split_with_layout_shim.md
  * (create src/bootup_uso/bootup_uso_o0_FEA0.c with -O0 OPT_FLAGS, update
  * linker script). Deferred — file-split infra change is heavier than
  * one-tick scope. */
 void func_0000FEA0(char *a0) {
-    char *p = *(char**)(a0 + 0x28);
-    ((void(*)(char*))*(int*)(p + 0x64))(a0 + *(short*)(p + 0x60));
+    register char *self = a0;
+    char *p = *(char**)(self + 0x28);
+    ((void(*)(char*))*(int*)(p + 0x64))(self + *(short*)(p + 0x60));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEA0);
@@ -106,4 +112,3 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000100F0);
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001016C);
-
