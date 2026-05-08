@@ -6857,17 +6857,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
  *
  * Cap class: structural match good but frame-of-8 with no spills is hard
  * to force from C. `char pad[N]` DCE'd at IDO -O2. Multi-tick refinement
- * to align register allocation + frame layout. */
+ * to align register allocation + frame layout.
+ *
+ * 2026-05-08 — `volatile int dummy` lever forces the addiu sp,-8 frame
+ * (70.71% → 79.28%, +8.57pp). Cost: dummy adds 2 unwanted insns (spill
+ * to sp+0x8 and trailing `lw zero, 0x4(sp)` use). Without dummy, frame
+ * is gone. Tried `int pad[1]` (no volatile) — DCE'd, no frame, 70.71%.
+ * Net: volatile-dummy wins +8.57pp at the cost of 2 dead insns.
+ * Remaining diffs are bnel-vs-bne branch-likely + register-name
+ * cascades — would need INSN_PATCH for ~6 insns to promote. */
 void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
-    if (a3 == 0) return;
+    volatile int dummy;
+    if (a3 == 0) goto out;
     do {
         if (a3 == a1) {
             *a2 = *a3;
-            return;
+            goto out;
         }
         a2 = a3;
         a3 = *(int**)a3;
     } while (a3 != 0);
+out:
+    (void)dummy;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF0C);
