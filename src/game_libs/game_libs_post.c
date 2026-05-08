@@ -4063,40 +4063,25 @@ void gl_func_0004E760(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E760);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0004E888: 19-insn / 0x4C link-back-pointer with double-emit beql.
- * Sibling of timproc_uso_b5_func_0000AB24's tail (same pattern).
+/* gl_func_0004E888: 19-insn / 0x4C link-back-pointer.
+ * Byte-identical sibling of gl_func_0004E8D4/gl_func_0004E920 (same body,
+ * different pointer-arith style — char* + 0x10 vs int* + 4).
  *
- *   gl_func(arg0+0x10, arg1);
+ *   gl_func(arg0+0x10, arg1, arg0);   // 3-arg call — arg3=arg0 lands in $a2
  *   if (arg1->0x14 != 0) arg1->0x4 = 1;
  *   arg1->0x14 = arg0;
  *
- * Decoded matches target's logic. Cap ~89%: target uses `or a2, a0; sw a2, sp`
- * pre-call (extra `or` insn), then reloads `a2` ONCE post-call and uses it
- * for both stores. Mine elides the `or` (direct `sw a0, sp`), then loads
- * arg0 to $t8 TWICE (once in delay-likely, once in fall-through). Net: my
- * emit is 1 insn shorter (18 vs 19) — the `or a2, a0` is the missing insn.
- *
- * Tried 2026-05-04:
- *   - `register int *p = a0` — IDO ignores hint, same emit.
- *   - Split `int *p; ... p = a0; ...` post-call reload — same emit (IDO
- *     re-fuses the reload with each use).
- * IDO's regalloc here decides "carry arg0 in $a2 vs reload from $sp+0x18"
- * based on its own weight calc; not C-controllable. Same family as
- * `feedback_ido_arg_save_reg_pick.md`.
- *
- * Default INCLUDE_ASM build matches. */
-extern int gl_func_00000000();
+ * The 3rd arg (arg0 itself) is what produces target's pre-call `or a2, a0`
+ * — it materialises $a2 as the call's third argument register. The earlier
+ * 2-arg decode missed this, mistaking the $a2 setup for an extra spill
+ * insn. With 3 args the body byte-matches; promoted from NM 80.26% → exact. */
 void gl_func_0004E888(int *a0, int *a1) {
-    gl_func_00000000((char*)a0 + 0x10, a1);
+    gl_func_00000000((char*)a0 + 0x10, a1, a0);
     if (*(int*)((char*)a1 + 0x14) != 0) {
         *(int*)((char*)a1 + 0x4) = 1;
     }
     *(int**)((char*)a1 + 0x14) = a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E888);
-#endif
 
 /* gl_func_0004E8D4: 19-insn 1-call helper. Calls helper(a0+0x10, a1, a0) then
  * sets a1[1]=1 if a1[5]!=0; always sets a1[5]=a0. */
