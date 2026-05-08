@@ -5356,7 +5356,25 @@ void gl_func_000682BC(int *dst) {
     *dst = scratch;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000682F8);
+/* gl_func_000682F8: 16-insn zero-init wrapper (0x40). Calls a 3-arg
+ * helper with (self+0x14, &gl_ref_0002B3B8, self) then zeros self[0,2,4].
+ * The bundle had 3 trailing 8-byte stubs (sw a0, 0(sp); jr ra) that
+ * split-fragments separated as game_libs_func_0006833{8,40,48} —
+ * those remain INCLUDE_ASM in this file (sandwich-ordered). */
+extern char gl_ref_0002B3B8;
+
+void gl_func_000682F8(int *self) {
+    gl_func_00000000(self + 5, &gl_ref_0002B3B8, self);
+    self[4] = 0;
+    self[0] = 0;
+    self[2] = 0;
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068338);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068340);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068348);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068350);
 
