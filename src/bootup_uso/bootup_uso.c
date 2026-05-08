@@ -631,7 +631,8 @@ extern char D_00000000;
  * spills happen, no extra frame growth. Same root cause as
  * timproc_uso_b5_func_0000AB24 (`feedback_ido_arg_save_reg_pick`).
  * Cap-confirmed at 89.2%; promotion needs the $v1-allocator-pick
- * unreachable-from-C class. */
+ * unreachable-from-C class.
+ *
  *   - allocates a 0x40-byte node via cross-USO call (size=0x40)
  *   - if alloc succeeded, runs an initializer on it (single-arg call) then sets
  *     node->field_28 = &D_00000000 and node->field_3C = 0
