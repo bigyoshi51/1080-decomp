@@ -1567,7 +1567,22 @@ skip_template:
     ent_b = min_vec;
     ent_c = max_vec;
     (void)counter;
-    /* Remaining ~240 insns TBD: cross-USO calls + struct fills */
+
+    /* Stage 6, sub-stage 0 (insns 0x3110-0x3198, ~35 insns):
+     *   if ((int)s0 == counter) {                        // sentinel check (target uses bne $s0, $t0)
+     *       sub = (void*)gl_func_00000000(0x20);          // alloc(0x20)
+     *       if (sub == NULL) goto next_substage;          // beqz delay
+     *   }
+     *   gl_func_00000000(sub, s0, ent_b, 1);              // init_helper
+     *   sub->[0xC] = (int)((char*)&D_00000000 + 0x30);    // type-tag pointer (D + 0x30)
+     *   sub->[0x1C] = 0;
+     *   ((Vec3*)((char*)sub + 0x10)) = ent_b;             // copy 3 floats from ent_b to sub+0x10
+     *
+     * Remaining: 4 more sub-stages (k=1..4) with similar shape; each
+     * consumes one of ent_a/ent_b/ent_c and a per-k offset/D-ptr.
+     * Pattern repeats at insns 0x319C, 0x3200, 0x3264, ... ending ~0x33A8. */
+
+    /* TBD: 5x sub-stage Stage 6 + tail. */
     return s0;
 }
 #else
