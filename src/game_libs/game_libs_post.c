@@ -3954,7 +3954,29 @@ void gl_func_0004D354(int *arg0) {
     arg0[0x64/4] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D39C);
+/* game_libs_func_0004D39C: doubly-linked-list insert-after-head.
+ * a0 is the new node, a1 is &head_ptr. If list is non-empty, insert
+ * a0 between *a1 and (*a1)->next. If list is empty, init a0 as a
+ * self-linked first node and set *a1 = a0.
+ *
+ * Inline-`*a1` deref form (no head local) defeats IDO -O2 CSE — each
+ * `*a1` produces a fresh `lw` instead of caching the first read in $v0.
+ * This matches target's "reload base 4×" emit and produces an extra
+ * `sw a0, 0x50(a0)` byte at 0x4D3D0 (else-body's first store, also
+ * appearing in the beql delay slot — IDO emits it in both places when
+ * the if-body uses fresh-load chains). 18/18 exact. */
+void game_libs_func_0004D39C(int *a0, int **a1) {
+    if (*a1 != 0) {
+        *(int*)((char*)a0 + 0x50) = (int)*a1;
+        *(int*)((char*)a0 + 0x54) = *(int*)((char*)*a1 + 0x54);
+        *(int*)((char*)*(int**)((char*)*a1 + 0x54) + 0x50) = (int)a0;
+        *(int*)((char*)*a1 + 0x54) = (int)a0;
+    } else {
+        *(int*)((char*)a0 + 0x50) = (int)a0;
+        *(int*)((char*)a0 + 0x54) = (int)a0;
+        *a1 = a0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D3E4);
 
