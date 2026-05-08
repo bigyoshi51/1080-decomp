@@ -1269,8 +1269,8 @@ void game_uso_func_0000249C(char *a0) {
  *
  * First-pass NM — covers the dispatch + key==3 leaf path. The else-arm is
  * the bulk of the function (ref_v/delta/self vector math + 2 cross-USO
- * calls + final stores to a0->0x60..0x68 and t6's child) and is sketched
- * as TODO. Initial decode 2026-05-05. */
+ * calls + final stores to a0->0x60..0x68 and t6's child). Initial decode
+ * 2026-05-05; tail writeback decoded 2026-05-08. */
 extern int gl_func_00000000();
 void *game_uso_func_000024BC(int *a0, int *a1) {
     int *t6;
@@ -1279,6 +1279,11 @@ void *game_uso_func_000024BC(int *a0, int *a1) {
     char scratch[0x18];
     float ref_x, ref_y, ref_z;
     float delta_x, delta_y, delta_z;
+    float self_x, self_y, self_z;
+    float proj_x, proj_y, proj_z;
+    float scale;
+    float denom_xz, denom_y;
+    float a1_proj[3];
     int *delta;
 
     t6 = (int*)a0[0x14 / 4];
@@ -1317,9 +1322,13 @@ branch_else:
      *
      * Stage 5 (0x130): second jal — gl_func(sp+0x54, ...)
      *
-     * Stage 6 (0x138+, ~50 insns remaining TBD): post-jal math using
-     *   sp[0x54..0x5C], a2->[0x94] (likely scale/bounds clamp), then
-     *   final stores into a0->Vec3@0x60, a0[0xE]'s Vec3, and t6's child.
+     * Stage 6 (0x138-0x250): post-jal vector adjustment + final writeback:
+     *   scaled_proj = sp[0x54..0x5C] * a0->0x94
+     *   self_v -= scaled_proj
+     *   self_v.y += (a0->0x40 == 2) ? a0->0xF4 : a0->0xDC
+     *   self_v -= { a1.x / a0->0xAC, a1.y / a0->0x10C, a1.z / a0->0xAC }
+     *   t6->Vec3@0x60 = self_v
+     *   t6->Vec3@0xA0 = self_v
      *
      * Initial decode 2026-05-05; extended decode 2026-05-06. */
     v1 = (int*)a0[0x38 / 4];
@@ -1330,21 +1339,41 @@ branch_else:
     delta_x = *(float*)&delta[0];
     delta_y = *(float*)&delta[1];
     delta_z = *(float*)&delta[2];
-    /* self_v = ref_v + delta_v stored to sp[0x60..0x68] */
-    (void)(ref_x + delta_x);
-    (void)(ref_y + delta_y);
-    (void)(ref_z + delta_z);
+    self_x = ref_x + delta_x;
+    self_y = ref_y + delta_y;
+    self_z = ref_z + delta_z;
     /* Zero-Y projection of a1 then second gl_func call. */
-    {
-        float a1_proj[3];
-        a1_proj[0] = *(float*)&a1[0];      /* a3.x */
-        a1_proj[1] = 0.0f;
-        a1_proj[2] = *(float*)&a1[2];      /* a3.z */
-        gl_func_00000000(a1_proj, a0);
-        (void)a1_proj;
+    a1_proj[0] = *(float*)&a1[0];      /* a3.x */
+    a1_proj[1] = 0.0f;
+    a1_proj[2] = *(float*)&a1[2];      /* a3.z */
+    gl_func_00000000(a1_proj, a0);
+
+    scale = *(float*)((char*)a0 + 0x94);
+    proj_x = a1_proj[0] * scale;
+    proj_y = a1_proj[1] * scale;
+    proj_z = a1_proj[2] * scale;
+    self_x -= proj_x;
+    self_y -= proj_y;
+    self_z -= proj_z;
+
+    if (key == 2) {
+        self_y += *(float*)((char*)a0 + 0xF4);
+    } else {
+        self_y += *(float*)((char*)a0 + 0xDC);
     }
-    /* TODO Stage 6: ~50 insns post-jal — read a2->[0x94] scale, multiply,
-     * write back to a0->Vec3@0x60 and t6's Vec3@0xA0. */
+
+    denom_xz = *(float*)((char*)a0 + 0xAC);
+    denom_y = *(float*)((char*)a0 + 0x10C);
+    self_x -= *(float*)&a1[0] / denom_xz;
+    self_y -= *(float*)&a1[1] / denom_y;
+    self_z -= *(float*)&a1[2] / denom_xz;
+
+    *(float*)((char*)t6 + 0x60) = self_x;
+    *(float*)((char*)t6 + 0x64) = self_y;
+    *(float*)((char*)t6 + 0x68) = self_z;
+    *(float*)((char*)t6 + 0xA0) = self_x;
+    *(float*)((char*)t6 + 0xA4) = self_y;
+    *(float*)((char*)t6 + 0xA8) = self_z;
 
 end:
     return a0;
@@ -6987,4 +7016,3 @@ void game_uso_func_00011A64(char *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A94);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00011A94_pad.s")
-
