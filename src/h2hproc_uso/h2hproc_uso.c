@@ -929,7 +929,18 @@ void h2hproc_uso_func_00001A3C(char *dst) {
  * exact emit shape, p needs to live in $v1 across the 1st-call gap.
  * Possible knob: variable scope, refs count. Defer to permuter or
  * mirror eddproc_uso_func_000003BC's exact source pattern (currently
- * also uncapped). */
+ * also uncapped).
+ *
+ * 2026-05-08: tested the sibling-port from titproc_uso_func_00002980 /
+ * mgrproc_uso_func_00003358 / arcproc_uso_func_00002334 (verbatim
+ * 'if (p == 0) return 0; init;' form). Result: REGRESSED 89.19% →
+ * 77.83% — same regression as on gl_func_000088B4 in game_libs.c.
+ * h2hproc_uso.c has only 35 c-funcs (similar to titproc/mgrproc/arcproc)
+ * but the port still fails. So the docs/MATCHING_WORKFLOW.md sibling-
+ * port scale-limit caveat is INCOMPLETE — it's not just about file
+ * function-count. The cap class (alloc-and-link-to-list) seems to
+ * legitimately need the `_pad[8]` + `if (p != NULL) {init}` form here,
+ * not the matched titproc/mgrproc form. Reverted; defer to permuter. */
 int *h2hproc_uso_func_00001A6C(int *arg0) {
     char _pad[8];  /* grow frame from 0x20 to 0x28 to match target */
     int *p = (int*)gl_func_00000000(0x40);
