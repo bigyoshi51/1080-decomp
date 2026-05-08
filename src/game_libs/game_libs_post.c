@@ -3940,6 +3940,17 @@ void gl_func_0004E920(int *a0, int *a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E96C);
 
+/* Split off from gl_func_0004E96C bundle 2026-05-08: 9-insn FPU int-to-float
+ * divide. a0->_B4 (float) = (float)a0->_B8 / (float)a0->_BC.
+ * Divisor declared first to get $v0 register (matches target's lw v0,0xBC). */
+void game_libs_func_0004EB28(int *a0) {
+    int divisor = a0[47];
+    *(float*)((char*)a0 + 0xB4) = (float)a0[46] / (float)divisor;
+}
+
+/* Split off from gl_func_0004E96C bundle 2026-05-08: 2-insn save-arg sentinel. */
+void game_libs_func_0004EB4C(int a0) {}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EB54);
 
 extern int gl_func_00000000();
