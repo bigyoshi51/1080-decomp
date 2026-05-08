@@ -374,7 +374,25 @@ void gl_func_0002495C(void *a0, void *a1, char *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002495C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024B28);
+int gl_func_00024B28(int a0, int a1) {
+    int v0;
+    int v1;
+    int a2 = a1;
+
+    if (a1 < 0x80) {
+        v0 = gl_func_00000000(a0, a1);
+        if (v0 == 0) {
+            return 0;
+        }
+        return v1 = *(int*)(v0 + 0x10);
+    }
+
+    v0 = gl_func_00000000(a0, a2 - 0x80);
+    if (v0 != 0) {
+        return v1 = *(int*)(v0 + 4);
+    }
+    return 0;
+}
 
 /* 2-insn alt-entry stub split off from gl_func_00024B28 on 2026-05-08
  * (just `jr ra; nop`). Stays INCLUDE_ASM. */
