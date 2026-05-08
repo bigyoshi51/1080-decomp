@@ -1619,7 +1619,11 @@ void gl_func_00037E40(Quad4 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037E98);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037F10);
+void game_libs_func_00037F10(int *a0, float *a1) {
+    int *p = (int*)a0[1];
+    a0[1] = (int)(p + 1);
+    *a1 = (float)*p / *(float*)((char*)&D_00000000 + 0x1A18);
+}
 
 /* 6-insn pointer-bump int reader (was previously NM-wrapped in game_libs.c
  * but blocked by that file's TRUNCATE_TEXT=0x8944 cap, since VRAM 0x37F40
