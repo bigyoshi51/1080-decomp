@@ -3595,7 +3595,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CFD4);
 #endif
 
 #ifdef NON_MATCHING
-/* 6-insn indexed read leaf. Cap: register-rename ($v1/$a1 vs $t6/$t7). */
+/* 6-insn indexed read leaf.
+ *   target: lw t7,0x144(a0); lw t6,0x148(a0); sll t8,t7,2; addu t9,t6,t8;
+ *           jr ra; lw v0,0xF4(t9)  -- uses $t6/$t7/$t8/$t9
+ *
+ * Cap: IDO's REG_ALLOC_ORDER picks $v1, $a1 (lowest-numbered caller-save
+ * non-$v0) before $t6+. With only $a0 used as arg, $a1..$a3 + $v1 are
+ * "free temps" that IDO grabs first. No C-level lever forces IDO to skip
+ * $v1/$a1/$a2/$a3 in a leaf-function context (per
+ * docs/IDO_CODEGEN.md $t-register-swap-unreachable entry).
+ *
+ * Tried 2026-05-08: named locals + reordered evaluation (idx then base) —
+ * regressed 95.83% → 93.33% (added 1 mov insn). Inline expression with
+ * $v1/$a1 mapping is the closest IDO emit gets to target. */
 int game_libs_func_0004D014(int *a0) {
     return *(int*)((char*)((int*)a0[0x148/4]) + (a0[0x144/4]) * 4 + 0xF4);
 }
