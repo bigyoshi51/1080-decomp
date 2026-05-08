@@ -3901,7 +3901,15 @@ void gl_func_0004D224(int a, int b, int c) {
     (void)a; (void)b; (void)c;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D254);
+extern int D_00000000_a[];
+extern int D_00000000_b[];
+void game_libs_func_0004D254(int *a0, int a1, int a2) {
+    a0[0x20/4] = (int)D_00000000_a;
+    a0[0x28/4] = (int)D_00000000_b;
+    a0[0x38/4] = a1;
+    a0[0x3C/4] = a1 + a2;
+    a0[0x68/4] = 2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D284);
 
