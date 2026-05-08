@@ -811,7 +811,67 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000413C);
 
+#ifdef NON_MATCHING
+/* gui_uso_func_00004354: 133-insn (0x214) Gfx-display-list builder.
+ * Leaf function (no stack frame, only caller-slot a3 spill at sp+0xC)
+ * that writes ~6 RDP commands into a display list buffer at a0->[0xC].
+ *
+ * Args (inferred from asm structure):
+ *   a0 — gui-state struct; a0->[0xC] is a Gfx-buffer descriptor:
+ *        - +0: dlist pointer (Gfx **) into the actual command buffer
+ *        - +4: command counter (advanced by 1 per command emitted)
+ *   a1 — image segment-address (used as second word of G_SETTIMG)
+ *   a2 — width minus 1 (asm pre-decrements: addiu t4, a2, -1)
+ *   a3 — saved at sp+0xC at function entry, never used in body
+ *   sp+0x10..0x20 — additional stack args (4..5 more ints)
+ *
+ * RDP command sequence (each emits a 64-bit Gfx command pair):
+ *   0xFD68 hi-word — G_SETTIMG (set texture image)
+ *   0xE600 hi-word — G_RDPLOADSYNC
+ *   0xF400 hi-word — G_LOADTILE
+ *   0x0700 hi-word — appears in tile-size cmd
+ *   0xE700 hi-word — G_RDPPIPESYNC
+ *   0xF200 hi-word — G_SETTILESIZE
+ *   0xF568 hi-word — variant of SETTIMG (8-bit format?)
+ *
+ * Pattern: classic "render textured quad" setup — set texture image,
+ * load the tile, set tile params, set tile size, draw a texture
+ * rectangle. Common in N64 GUI/HUD code.
+ *
+ * Structural cap: complex F3DEX2 / RDP gfx code with heavy bit-shifting
+ * (sll t9, v1, 3 = stride*8 for 64-bit Gfx) and packing
+ * (multiple `andi rN, 0xFFF` for 12-bit width/height fields). Multi-
+ * tick decomp; first pass documents the structure, future passes can
+ * decode each command into gsDPSetTextureImage / gsDPLoadTile /
+ * gsDPSetTile / gsDPSetTileSize / gsSPTextureRectangle macros (or
+ * their open-coded equivalents).
+ *
+ * 2026-05-08: structural NM-only first pass. The 0xC-byte addressing
+ * pattern (a0->[0xC] = Gfx-buffer descriptor with .dlist + .count
+ * fields) recurs across gui_uso_func_*413C, *4354, *4568, *4774 —
+ * worth typing as `GfxBuf { Gfx **dlist; int count; }` in a future
+ * pass once decoded for one of them. */
+#if 0
+/* Pseudo-shape for future ticks:
+ *   void gui_uso_func_00004354(GuiState *a0, u32 imgaddr, int w,
+ *                              int unused_a3, int p5, int p6, int p7,
+ *                              int p8) {
+ *       Gfx *dl = a0->gfxBuf->dlist;
+ *       int *count = &a0->gfxBuf->count;
+ *       (*count)++;
+ *       gDPPipeSync(dl);                       // 0xE700 hi
+ *       gDPSetTextureImage(dl++, ...);         // 0xFD68 hi
+ *       gDPLoadSync(dl++);                     // 0xE600 hi
+ *       gDPLoadTile(dl++, ...);                // 0xF400 hi
+ *       gDPSetTile(dl++, ...);
+ *       gDPSetTileSize(dl++, 0, 0, w-1, h-1);  // 0xF200 hi
+ *       gSPTextureRectangle(dl++, ...);
+ *   }
+ */
+#endif
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00004354);
+#endif
 
 #ifdef NON_MATCHING
 /* gui_func_00004568: 198-insn / 0x318 RDP TEXRECT display-list builder.
