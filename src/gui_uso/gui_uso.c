@@ -671,7 +671,42 @@ void gui_func_00002DE0(int *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
 #endif
 
+#ifdef NON_MATCHING
+/* gui_func_0000329C: 286-insn / 0x478 RDP DL builder.
+ *
+ * 2026-05-08 first-pass structural decode: byte-identical entry shape
+ * to gui_func_00002DE0 / gui_func_00002BB0 family — *(int**)&D_GUI_CTX
+ * deref, cursor bump on ctx[0xC]->[1], RDP 0xBB000001 + 0x80008000
+ * segment marker emit at slot 0. 0x408 (1032) literal at insn 0x4C
+ * is the same viewport-scale constant as 2DE0.
+ *
+ * Frame -0x58 (88 bytes — smaller than 2DE0's -0x68 since this fn
+ * has fewer body locals). Saves s0 + ra, defensive-spills a1/a2/a3
+ * at sp+0x5C/0x60/0x64.
+ *
+ * 4-arg signature with same shape as 2DE0/2BB0 family.
+ *
+ * ~270 insns of body deferred — likely scissor/viewport/DL setup
+ * sequence using 0x408 viewport scale + a0 widget args. Multi-pass
+ * NM remains. Default INCLUDE_ASM keeps ROM exact. */
+void gui_func_0000329C(int *a0, int a1, int a2, int a3) {
+    int *ctx;
+    int *p;
+    int slot, idx;
+    (void)a1; (void)a2; (void)a3;
+    ctx = *(int**)((char*)&D_00000000);
+    idx = ctx[0xC / 4];
+    slot = ((int*)idx)[1];
+    ((int*)idx)[1] = slot + 1;
+    p = (int*)((*(int**)idx)[0]) + (slot << 1);
+    p[0] = 0xBB000001;
+    p[1] = (int)0x80008000;
+    /* TODO: ~270 more insns of body. Multi-pass NM. */
+    (void)a0; (void)ctx;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
 
