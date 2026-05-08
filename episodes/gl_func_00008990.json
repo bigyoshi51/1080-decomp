@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00008990",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-08T13:36:04.592177+00:00",
+  "end_time": "2026-05-08T13:36:04.592212+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-08T13:36:04.592202+00:00",
+      "assistant_text": "Standard Quad4-reader template at -O0. Body: Quad4 buf; gl_func_0(&D, &buf, 0x10); *dst = buf. -O0 produces the dead 'b +1; nop' tail jump quirk that -O2 elides.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 25,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n/* -O0 sub-file prep \u2014 sibling to game_libs_o0_949C.c. Holds the\n * 0x8944..0x8A40 region with verified -O0 bodies for the int-reader\n * (gl_func_00008944) and float-reader (gl_func_000089F4) accessor\n * templates.\n *\n * STATUS \u2014 step 0 of multi-tick split. This commit creates the file\n * with verified C bodies. Full wiring still requires:\n *   1. Truncate game_libs.c TRUNCATE_TEXT 0x949C \u2192 0x8944.\n *   2. Create `src/game_libs/game_libs_mid.c` covering 0x8A40..0x949C\n *      (the section between this file's tail and the o0_949C cluster).\n *   3. Update Makefile: add this file with `OPT_FLAGS := -O0` +\n *      `TRUNCATE_TEXT := 0xFC` + INSN_PATCH for the 1 jal in each\n *      reader (gl_func_00008944=0x1c:0xJALTARGET, similarly for 89F4)\n *      + the INCLUDE_ASM-sandwich gl_func_00008990 (0x64) just emits\n *      from .s, no patches needed.\n *   4. Update tenshoe.ld: insert this .o + game_libs_mid.c.o between\n *      game_libs.c.o and game_libs_o0_949C.c.o.\n *   5. Strip the gl_func_00008944 + gl_func_000089F4 NM wraps from\n *      game_libs.c (they'll move to this file as C bodies; the\n *      gl_func_00008990 INCLUDE_ASM moves here as a sandwich stub).\n *   6. Add unit entry to objdiff.json (-O0 c_flags).\n *\n * Until step 1 lands, this file is dead-storage \u2014 not built, not linked.\n *\n * Recipe per docs/POST_CC_RECIPES.md\n * #feedback-jal-insn-patch-to-match-include-asm-derived-expected:\n * once wired, INSN_PATCH the jal targets to match expected/.o (which is\n * INCLUDE_ASM-derived). For gl_func_00000000 (callee=0), the resolved\n * jal target is 0x0C000000 itself, so no patch needed for those.\n *\n * Verified standalone at -O0 (2026-05-07):\n *   gl_func_00008944: 19 insns / 0x4C, byte-exact.\n *   gl_func_000089F4: 19 insns / 0x4C, byte-exact (lwc1/swc1 form). */\n\n/* Step-1 migration completed 2026-05-07: brackets removed, game_libs.c\n * truncated at 0x8944, game_libs_mid.c handles 0x8A40..0x949C. */\nvoid gl_func_00008944(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\nvoid gl_func_00008990(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 0x10);\n    *dst = buf;\n}\n\nvoid gl_func_000089F4(float *dst) {\n    float buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o0_8944.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00008990.s",
+    "segment": "game_libs",
+    "compiler": "ido71",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Built byte-equal to expected/.o (25/25 insns) at -O0."
+  }
+}
