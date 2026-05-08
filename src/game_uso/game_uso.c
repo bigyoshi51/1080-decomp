@@ -4527,9 +4527,19 @@ trunk:
      *     (each arm's life range becomes independent). UNTESTED — would
      *     require reshaping ~9 dispatch arms; speculation is that without
      *     the trunk-join, the running-mask state can stay in caller-save
-     *     regs since no two arms share a value at runtime.
+     *     regs since no two arms share a value at runtime. Multi-tick
+     *     destructive refactor; NOT a single-tick action.
      * (c) Verify the leaf-shape (no stack frame) emerges, then re-grind
-     *     per-arm body. */
+     *     per-arm body.
+     *
+     * 2026-05-08 cheap-test of `register int *a0, register int a1`
+     *     parameter hints: NEGATIVE (0pp). IDO ignores `register` on
+     *     function parameters (per `feedback_ido_register.md` — `register`
+     *     is honored for locals as a $s0 hint, but the calling convention
+     *     fixes parameter registers). Built still emits prologue at
+     *     offset 0 (-0x28 frame, sw $s0 at 0x18). The s0 promotion is
+     *     driven by use-frequency of `a0` in the body, not by parameter
+     *     declaration. Confirms path-(b) is the only remaining lever. */
 
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
