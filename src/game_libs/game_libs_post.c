@@ -243,7 +243,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023548);
  * Promoting needs: (a) extend splice script to recognize lui+addiu+lw
  * triple at n=12, (b) force IDO to keep &D in one register across the
  * strength-reduction math without re-materialization. Defer until the
- * next pass establishes the =12 pattern. */
+ * next pass establishes the =12 pattern.
+ *
+ * 2026-05-08 cap re-test: tried `register char *base = &D_00000000`
+ * (docs/IDO_CODEGEN.md feedback-ido-constant-address-load-fold-inevitable
+ * predicted this wouldn't work — and it didn't, 0pp). Confirmed cap. */
 extern int gl_func_00000000();
 int gl_func_00023598(int a0, int a1, int a2) {
     if (*(int*)((char*)&D_00000000 + 0x215C) != 0) {
