@@ -373,7 +373,15 @@ void gl_func_00006DC8(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006DF8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006E78);
+void gl_func_00006E78(int a0_passthrough) {
+    int *p;
+    gl_func_00000000(a0_passthrough, 0x140, 2);
+    p = *(int**)((char*)&D_00000000 + 0x138);
+    p[0xB4/4] = 0;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
+    gl_func_00000000(5, 0, 0);
+    gl_func_00000000(&D_00000000, 5, 3, 0);
+}
 
 /* Init function: zero-initialize a0 fields, store 120.0f at +0x554, clear
  * a child obj field, then 3 calls. Composite of int-reader-shape prologue
