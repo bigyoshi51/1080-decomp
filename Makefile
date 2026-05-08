@@ -39,6 +39,7 @@ build/src/game_uso/game_uso.c.o: PREFIX_BYTES := \
 	game_uso_func_00007A98=0x8C820030,0x8C430908,0x50600007,0x44801000,0xC46400BC,0xC44600BC,0x46062081
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
 build/src/gui_uso/gui_uso.c.o: PREFIX_BYTES := gui_func_00000000=0x1000736F,0xAFA40000
+build/src/gui_uso/gui_uso.c.o: INSN_PATCH := gui_uso_func_00003B14=0x58:0x032A6025,0x5C:0x016E7825
 build/src/game_uso/game_uso.c.o: PREFIX_BYTES := \
 	game_uso_func_00007ABC=0x44801000,0x00000000 \
 	game_uso_func_00007A98=0x8C820030,0x8C430908,0x50600007,0x44801000,0xC46400BC,0xC44600BC,0x46062081
