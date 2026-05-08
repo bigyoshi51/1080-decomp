@@ -2389,7 +2389,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DE4C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DF5C);
 
+extern char D_0002F2E4;
+extern int D_00000000;
+
+#ifdef NON_MATCHING
+/* gl_func_0003E0F0: 49-insn (0xC4) constructor.
+ *
+ * Allocates a 0xB4-byte struct, sets a name string from rodata, initializes
+ * field_28 to &D_00000000, conditionally allocates a 4-byte field_2C, calls
+ * an init helper, zero-inits a Vec3 at field_30, then finalizes via a callback
+ * loaded from arg0->field_40.
+ *
+ * Trailing-word artifact: the symbol size 0xC4 includes one unreachable word
+ * (`lw $t6, 0x10($a0)`) at offset 0xC0, after the jr/epilogue. Likely a splat
+ * boundary artifact — the next function (gl_func_0003E1B4) starts at 0xC4
+ * and uses $a0 as its input. Documented for tracking; not addressed here.
+ *
+ * Conditional alloc shape (offsets 0x40..0x70): two back-to-back alloc(4)
+ * tries gated by `if ((char*)obj + 0x2C != NULL)` and a follow-up null check
+ * — encodes "ensure obj->field_2C is non-null before storing 0 there." The
+ * parameterized form below approximates this structure but the exact branch
+ * flow is structural-only, not byte-correct. */
+void* gl_func_0003E0F0(int *arg0) {
+    int *obj;
+    int *field2C;
+    float local_vec3[3];
+
+    obj = (int*)gl_func_00000000(0xB4);
+    if (obj != 0) {
+        gl_func_00000000(obj, &D_0002F2E4);
+        obj[10] = (int)&D_00000000;
+        field2C = (int*)((char*)obj + 0x2C);
+        if (field2C == 0) {
+            field2C = (int*)gl_func_00000000(4);
+        }
+        if (field2C == 0) {
+            field2C = (int*)gl_func_00000000(4);
+        }
+        if (field2C != 0) {
+            *field2C = 0;
+        }
+        gl_func_00000000(obj);
+        local_vec3[0] = 0.0f;
+        local_vec3[1] = 0.0f;
+        local_vec3[2] = 0.0f;
+        gl_func_00000000((char*)obj + 0x30, local_vec3);
+    }
+    gl_func_00000000(obj, arg0[16]);
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E0F0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E1B4);
 
