@@ -357,7 +357,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006AAC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006B80);
 
+#ifdef NON_MATCHING
+/* gl_func_00006C38: 41-insn struct-init. Sets a0->{0x4F8,0x4E0,0x4DC} from
+ * args; calls gl_func_0(&D, 0, a2, orig_a0) (4 args, a3 = saved orig_a0);
+ * post-call: writes a0->{0x4EC=0, 0x518=0, 0x4E4=a1, 0x54C=120.0f, 0x550=0.0f,
+ * 0x544=0xFF, 0x554=150.0f}; if (D[0x34]==2) overwrite 0x54C with 60.0f.
+ *
+ * Multi-pass NM placeholder. Default INCLUDE_ASM keeps ROM exact. */
+void gl_func_00006C38(int *a0, int a1, int a2) {
+    a0[0x4F8/4] = a2;
+    a0[0x4E0/4] = 3;
+    a0[0x4DC/4] = 2;
+    gl_func_00000000(&D_00000000, 0, a2, a0);
+    a0[0x4EC/4] = 0;
+    a0[0x518/4] = 0;
+    a0[0x4E4/4] = a1;
+    *(float*)((char*)a0 + 0x54C) = 120.0f;
+    if (*(int*)((char*)&D_00000000 + 0x34) == 2) {
+        *(float*)((char*)a0 + 0x54C) = 60.0f;
+    }
+    *(float*)((char*)a0 + 0x550) = 0.0f;
+    a0[0x544/4] = 0xFF;
+    *(float*)((char*)a0 + 0x554) = 150.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006C38);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006CDC);
 
