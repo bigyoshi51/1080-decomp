@@ -613,7 +613,45 @@ void func_000046BC(char *a0) {
     func_000022E0((int*)(a0 + 0x10));
 }
 
+extern char D_00000000;
+
+#ifdef NON_MATCHING
+/* func_000046EC: 36-insn (0x90) entry-list constructor.
+ *   - allocates a 0x40-byte node via cross-USO call (size=0x40)
+ *   - if alloc succeeded, runs an initializer on it (single-arg call) then sets
+ *     node->field_28 = &D_00000000 and node->field_3C = 0
+ *   - then reads orig_arg0->field_40 (some other list head); if non-NULL,
+ *     calls a cross-USO insertion routine with (node+0x10, head)
+ *   - if the head's field_14 was non-zero (already linked), sets head->field_4 = 1
+ *   - finally head->field_14 = node
+ *   - returns the node ptr (or NULL if alloc failed)
+ *
+ * The `beql` branch-likely at 0x758 puts the unconditional `head->field_14 = node`
+ * store in the delay slot, with the conditional `head->field_4 = 1` and
+ * `head->field_14 = node` replay covering the field_14-was-nonzero case. */
+void *func_000046EC(int *arg0) {
+    int *node;
+    int *head;
+
+    node = (int*)func_00000000(0x40);
+    if (node != 0) {
+        func_00000000(node);
+        node[10] = (int)&D_00000000;
+        node[15] = 0;
+    }
+    head = (int*)arg0[16];
+    if (head != 0) {
+        func_00000000(node + 4, head);
+        if (head[5] != 0) {
+            head[1] = 1;
+        }
+        head[5] = (int)node;
+    }
+    return node;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000046EC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000477C);
 
