@@ -818,6 +818,12 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD
  *       added 2 stack-spill stores + 1 reload, plus shifted register
  *       allocation across the whole function. Reverted. Volatile-int
  *       constant-binding is too disruptive for late-tier matching grinds.
+ *   v6 [2026-05-08 LATER2] split the `*(int*)(v0+0x3C) >= 0x100` test
+ *       into `int snap2 = *(int*)(v0+0x3C); if (snap2 >= 0x100) {...}`
+ *       inside a block scope. Goal: force IDO to materialize 0x2D0
+ *       AFTER the comparison instead of hoisting before. Result:
+ *       byte-identical 90.86% — IDO collapses the temp into a direct
+ *       load anyway, no scheduling change. Reverted.
  * Cap holds at 90.86%; needs PROLOGUE_STEALS-style insn shuffling
  * (or permuter) to break further. */
 void h2hproc_uso_func_00001204(char *a0) {
