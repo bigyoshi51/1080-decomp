@@ -985,3 +985,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 
 /* gl_func_0004D224 bundle split 2026-05-08; children INCLUDE_ASM live in
  * game_libs_post.c next to the parent gl_func_0004D224. */
+
+/* gl_func_0004D2A0 bundle split 2026-05-08; children INCLUDE_ASM live in
+ * game_libs_post.c next to the parent gl_func_0004D2A0. */

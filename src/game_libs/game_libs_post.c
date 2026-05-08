@@ -3920,6 +3920,12 @@ void game_libs_func_0004D284(int *a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D2A0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D2D0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D304);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D338);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D354);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D3E4);
