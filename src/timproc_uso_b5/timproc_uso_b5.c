@@ -487,10 +487,32 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  *
  * Sibling of recently-matched timproc_uso_b5_func_00003F5C (per source 2
  * pick rule). Initial structural decode — body TBD. */
-void timproc_uso_b5_func_000032C8(void *a0) {
-    /* TODO: F1 alloc-cascade body (~370 insns); F2 + F3 are bundled
-     * trailers per splat boundary — see comment above. */
-    (void)a0;
+/* 2026-05-08: entry-stage decode (F1 ~30 insns / 0x32C8-0x3340 + tail).
+ * Replaces empty stub with the alloc-cascade entry + tail clearers
+ * per the documented body structure above. */
+void *timproc_uso_b5_func_000032C8(int *a0) {
+    int *self;
+    int *sub_obj_8;
+    if (a0 == 0) {
+        self = (int*)gl_func_00000000(0x108);
+        if (self == 0) return 0;
+    } else {
+        self = a0;
+    }
+    sub_obj_8 = (int*)gl_func_00000000(8);
+    if (sub_obj_8 != 0) {
+        sub_obj_8[0] = (int)((char*)&D_00000000 + 0x1178);  /* head */
+        sub_obj_8[1] = 0;                                    /* next */
+    }
+    /* TODO: ~340 more insns of init + sub-object linking (F1 body).
+     * Tail clears at a0->[0x2B4/0x164/0x168/0x16C] confirmed.
+     * F2 + F3 are bundled trailers per splat boundary — emitted as
+     * raw bytes in the assembled output via the parent symbol. */
+    *(int*)((char*)self + 0x2B4) = 0;
+    *(float*)((char*)self + 0x164) = 0.0f;
+    *(float*)((char*)self + 0x168) = 0.0f;
+    *(float*)((char*)self + 0x16C) = 0.0f;
+    return self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
