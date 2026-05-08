@@ -863,7 +863,48 @@ void mgrproc_uso_func_00003328(char *dst) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003328);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00003358: 39-insn (0x90) alloc-and-link node helper.
+ * Sibling of just-matched mgrproc_uso_func_00003240 family.
+ *
+ * Allocates a 0x40-byte object (p), initializes its [0x28]=&D and
+ * [0x3C]=0, then if a0->[0x40] (q) is non-NULL, calls a third helper
+ * with (p+0x10, q) and links: q->[0x14] gets p; if q->[0x14] was
+ * already non-zero, also sets q->[0x4]=1.
+ *
+ * Returns p (allocated obj OR 0 if alloc failed).
+ *
+ * Caps remaining at the byte level:
+ * 1. Frame size: target -0x28, built -0x20 (8-byte diff). Target has
+ *    spills at sp+0x20/0x24 around the third jal; built places them
+ *    at sp+0x18/0x1C. Looks like extra locals push target's frame.
+ * 2. Register: target uses $v1 for the p-result holding; built uses
+ *    $a2. Off-by-3 in IDO's regalloc.
+ * 3. beqz vs beql at 0x48: target uses beqz with `or a1, v0, $0`
+ *    delay; built uses beql (likely-with-delay-load) — same scheduler
+ *    quirk seen on other functions where IDO hoists the next-iter
+ *    value into the branch-likely delay slot. */
+extern int gl_func_00000000();
+
+int *mgrproc_uso_func_00003358(int *a0) {
+    int *p = (int*)gl_func_00000000(0x40);
+    int *q;
+    if (p != 0) {
+        gl_func_00000000(p);
+        p[0x28/4] = (int)&D_00000000;
+        p[0x3C/4] = 0;
+    }
+    q = (int*)a0[0x40/4];
+    if (q != 0) {
+        gl_func_00000000((char*)p + 0x10, q);
+        if (q[0x14/4] != 0) q[0x4/4] = 1;
+        q[0x14/4] = (int)p;
+    }
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003358);
+#endif
 
 #ifdef NON_MATCHING
 void mgrproc_uso_func_000033E8(char *dst) {
