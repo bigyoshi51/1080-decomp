@@ -90,7 +90,51 @@ extern UsoSlotGroup D_800182E4;
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000000);
 
+extern u32 D_8000A2D8;
+extern u32 D_8000A2DC;
+extern s32 D_80012D5C;
+
+#ifdef NON_MATCHING
+/* Bump allocator with alignment + bookkeeping.
+ *   D_8000A2D8 = current heap top (bumps on each call)
+ *   D_8000A2DC = heap end limit (returns NULL when exceeded)
+ *   D_80012D5C = running total of bytes allocated
+ *
+ * Current match: 15/26 insns (~58%). The 11 mismatches are register-allocation
+ * differences cascading from one root cause: the C body lets IDO put `new_top`
+ * in $v0 (the return register), which forces a delay-slot `or $v0, $v1, $0`
+ * to copy `result` (orig) into $v0 when the bounds-check branch is taken.
+ * The target instead preemptively emits `or $v0, $v1, $0` BEFORE the
+ * sltu/bnez (so the branch's delay slot is a NOP and the failure
+ * fall-through clears $v0), making the function 1 insn larger.
+ *
+ * Tried: condition-flip with goto-out (9/26, regressed), explicit
+ * `result = orig; if (oom) result = 0; return result;` early-set
+ * pattern (5/26, regressed harder — IDO still lets new_top win $v0).
+ * Both alternatives shorten the function further by combining the
+ * preemptive set into the branch delay slot. No tested C shape forces
+ * IDO to emit the +1-insn longer "preemptive set + nop delay" pattern. */
+u32 func_800000B0(u32 size, u32 alignment) {
+    u32 mask;
+    u32 result;
+    u32 new_top;
+
+    mask = alignment - 1;
+    if (size & mask) {
+        size = (size + alignment) & ~mask;
+    }
+    result = D_8000A2D8;
+    new_top = result + size;
+    D_8000A2D8 = new_top;
+    D_80012D5C += size;
+    if (new_top >= D_8000A2DC) {
+        return 0U;
+    }
+    return result;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800000B0);
+#endif
 
 /* Boot init */
 void func_80000118(s32 a0, s32 a1) {
