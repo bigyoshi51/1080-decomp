@@ -530,7 +530,18 @@ s32 func_8000058C(s32 arg0) {
  * by a different inlining/calling convention not reproducible from std C.
  * The 2 dead `or` insns suggest the original was a hand-written byte-copy
  * (CRT/libc-style) where the dead ARGV-passthrough ors are remnants of
- * an inline-tail-call ABI dance. Stays NM. */
+ * an inline-tail-call ABI dance. Stays NM.
+ *
+ * 2026-05-08 retry: INSN_PATCH won't help — it OVERWRITES existing words,
+ * not INSERTS new ones. Built has 14 body insns, target has 16. To reach
+ * 16, would need either: (a) a C variant that produces ≥16 insns with the
+ * right shape (none found across 6+ tested variants), OR (b) a hypothetical
+ * mid-function-insert recipe (TRUNCATE_TEXT + custom byte-reweaver) that
+ * doesn't exist. SUFFIX_BYTES adds at function end (dead post-jr_ra), not
+ * mid-body, so unusable here. The 2 dead `or` snapshots are at offsets
+ * 0x10/0x14 (entry zone), meaning "PREFIX_BYTES" is the only extension
+ * point and prefix can't carry reloc-pending operands. Genuinely capped
+ * at IDO -O2 emit; permuter random-search is the next-pass option. */
 void func_80000598(u8* src, u8* dst, s32 count) {
     register u8* sp;
     register u8* dp;
