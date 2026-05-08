@@ -7026,7 +7026,24 @@ void game_uso_func_00010C4C(char *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
+void game_uso_func_00010CF0(char *a0) {
+    char *sub;
+
+    sub = *(char**)(a0 + 0xB4);
+    if (*(int*)(sub + 0x9CC) != 0) {
+        gl_func_00000000(a0, 0x20004, 0x20005, *(int*)(sub + 0x970), 0x100, 10);
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE78),
+                         *(int*)((char*)&D_00000000 + 0xE7C), -1);
+    } else {
+        int state;
+
+        state = *(int*)(a0 + 0xFC);
+        gl_func_00000000(a0, state | 4, state | 5, *(int*)(sub + 0x970), 0x100, 10);
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE80),
+                         *(int*)((char*)&D_00000000 + 0xE84), -1);
+    }
+    gl_func_00000000(a0);
+}
 
 /* Family sibling of game_uso_func_00010E2C / 000114FC: same SUFFIX_BYTES
  * + 12-word INSN_PATCH recipe (per docs/POST_CC_RECIPES.md
