@@ -3779,8 +3779,37 @@ void gl_func_000515FC(Quad4 *dst) {
  * SOMETHING ELSE (e.g., loaded value rather than address). Defer.
  *
  * Predecessor gl_func_000515FC is a standard Quad4-reader
- * (alloc+gl_func(0x10)+copy 16 bytes). The SUFFIX is for THIS successor only. */
+ * (alloc+gl_func(0x10)+copy 16 bytes). The SUFFIX is for THIS successor only.
+ *
+ * 2026-05-08: standalone IDO -O2 of the decoded body (below) collapses the
+ * `if (v1 == 0)` arm — IDO sees `&D_00000000` as compile-time non-null and
+ * folds the conditional alloc to dead code, emitting only the trailing
+ * `D[0] = 0; D[4] = 0; *v1 = 0` block (7 insns, vs target's 14). The
+ * NM-wrap C body documents the original runtime semantics for grep
+ * discoverability + permuter-testable seed; INCLUDE_ASM remains the
+ * default-build path. */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+
+void gl_func_0005165C(void) {
+    /* v1 is inherited from predecessor's SUFFIX_BYTES (lui+addiu setting
+     * v1 = &SOME_GLOBAL). At runtime, cross-USO patcher may leave the
+     * symbol address as 0 if not yet bound, hence the null-check. */
+    int *v1 = (int*)&D_00000000;
+    if (v1 == 0) {
+        v1 = (int*)gl_func_00000000(4);
+        if (v1 != 0) {
+            *v1 = 0;
+        }
+    } else {
+        *v1 = 0;
+    }
+    *(int*)((char*)&D_00000000 + 4) = 0;
+    *(int*)&D_00000000 = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005165C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051694);
 
