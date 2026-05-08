@@ -6115,7 +6115,23 @@ end:
  *     `feedback-ido-pad-array-dce` already documented).
  *   - Tried intermediate `int *spill = alloc(0x20); p = spill; ...`:
  *     -5pp (forced spill but wrong shape). Reverted.
- *   - Likely needs permuter for the q/a1 register-split + frame growth. */
+ *
+ * 2026-05-08 (later): tried `volatile int *pp = (volatile int*)&a0` to
+ * force a0's caller-slot spill via the new
+ * `feedback-ido-arg-addr-via-volatile-ptr-forces-caller-spill` trick.
+ * This DOES emit `sw a0, 0x18(sp)` but at the wrong byte offset (sp+0x18
+ * with frame 0x18) — target's `sw a0, 0x20(sp)` requires frame 0x20.
+ * Without growing the frame independently, the spill insn doesn't byte-
+ * match. Combining the volatile-arg trick with `*(volatile int*)&q_alloc
+ * = q_alloc` (force a stack slot for the second alloc result) grows
+ * frame to 0x28 — overshoots by 8 bytes and adds extra spills (-pp).
+ *
+ * Cap class: needs simultaneous (a) frame=0x20 AND (b) sw v0, 0x18 mid-
+ * function spill of dead-code alloc result. The volatile-arg trick alone
+ * doesn't grow frame; forcing a stack-resident local for q_alloc grows
+ * frame too much (extra address-take overhead). Likely permuter
+ * territory or needs a fresh-shape rewrite that lands at frame=0x20 by
+ * IDO's natural reservations rather than via volatile coercion. */
 extern int gl_func_00000000();
 
 int *gl_func_000688F8(int a0) {
