@@ -5145,7 +5145,40 @@ void game_libs_func_00066440(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066440);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_00066460: 9-insn fragment (0x24). NO prologue, NO frame
+ * (jr ra at 0x1C with nop delay slot). Reads a0/v1/a1 as pre-set registers
+ * from the predecessor — chain-state fragment of the original 32-insn
+ * splat-bundled gl_func_00066404 (sibling of game_libs_func_00066440).
+ *
+ * Body decoded:
+ *   a1[1] = v1;            ; pre-set v1 + a1 from predecessor
+ *   t6 = a0[0]; t7 = a0[1];
+ *   t7[0] = t6;            ; *a0->[1] = a0->[0]    (data move via deref)
+ *   v0 = a0[0];            ; load result
+ *   a0[0] = a0;            ; self-link a0->[0] = a0
+ *   a0[1] = a0;            ; self-link a0->[1] = a0
+ *   return v0;             ; ($v0 holds a0[0] from line above)
+ *
+ * Looks like a doubly-linked-list "remove-and-reset" tail: the chain-state
+ * fragment removes the node by patching neighbours' links, then re-points
+ * the node's own next/prev to itself (free-state).
+ *
+ * STRUCTURAL BLOCKER: same as game_libs_func_00066440 above — no standalone
+ * C function can compile to raw insns without prologue/epilogue. INCLUDE_ASM
+ * stays. Documented for grep discoverability + future-recipe reference.
+ *
+ * Per feedback_uso_split_fragments_breaks_expected_match.md and
+ * docs/MATCHING_WORKFLOW.md fragment merge docs: a future merge that folds
+ * 66404 + 66440 + 66460 back into a single 32-insn function would be
+ * required to get a clean C match. Not pursued here. */
+void game_libs_func_00066460(void) {
+    /* see gl_func_00066404 above — this is a chain-state fragment of the
+     * original 32-insn splat-bundled symbol. No standalone C reproduces it. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066460);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066484);
 
