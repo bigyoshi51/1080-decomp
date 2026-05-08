@@ -496,29 +496,36 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5
  *
  * Multiple D[0x30] reloads in target asm (5 separate `lw rN, 0(v1)`)
  * suggest IDO -O2 doesn't CSE the state-ptr load across the if-arm
- * boundaries. Multi-pass NM — initial decode, register/scheduling
- * tightening pending. */
+ * boundaries.
+ *
+ * 2026-05-08: Switched to `extern int *D_C14_state` aliased to D+0x30
+ * for cleaner C (matches target's `addiu v1, v1, 48` base-form and
+ * `lw 0(v1)` reload pattern). Reloc-symbol differs (mine: D_C14_state /
+ * target: D_00000000), but post-link bytes are identical. NM fuzzy
+ * stays at 81.09 % because objdiff scores at the .o level with reloc-
+ * symbol-aware comparison; the alias-vs-base distinction remains a
+ * scoring artifact, not a real byte diff. Cap class: regalloc shifts
+ * in the if-block (target uses \$v0/\$t0/\$t1 chain; mine cascades
+ * \$t9/\$t1/\$t2/\$t8...), same family as gl_func_000687B8 (just-
+ * landed via INSN_PATCH). Multi-pass NM. */
 extern int gl_func_00000000();
 extern char D_00000000;
+extern int *D_C14_state; /* alias of D + 0x30 (state ptr) */
 void mgrproc_uso_func_00000C14(void) {
-    int *state = *(int**)((char*)&D_00000000 + 0x30);
     int *other = (int*)&D_00000000;
     int v0;
-    gl_func_00000000(state);
-    v0 = gl_func_00000000(*(int*)((char*)*(int**)((int*)((char*)&D_00000000 + 0x30))[0x6AC/4] + 0x4C));
+    gl_func_00000000(D_C14_state);
+    v0 = gl_func_00000000(*(int*)((char*)(D_C14_state)[0x6AC/4] + 0x4C));
     if (v0 != 0) {
-        int *s = *(int**)((char*)&D_00000000 + 0x30);
-        s[0x504/4] = 0;
-        s = *(int**)((char*)&D_00000000 + 0x30);
-        s[0x4E0/4] = 7;
+        D_C14_state[0x504/4] = 0;
+        D_C14_state[0x4E0/4] = 7;
         other[0x40/4] = 5;
         other[0x44/4] = 7;
-        s = *(int**)((char*)&D_00000000 + 0x30);
-        s[0x7D8/4] = 1;
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x30));
+        D_C14_state[0x7D8/4] = 1;
+        gl_func_00000000(D_C14_state);
     } else {
         other[0x40/4] = 7;
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x30), 0, 0);
+        gl_func_00000000(D_C14_state, 0, 0);
     }
 }
 #else
