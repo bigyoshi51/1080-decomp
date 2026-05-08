@@ -3614,11 +3614,57 @@ void game_uso_func_0000591C(int *a0) {
      * Each block follows the same shape: bnez-gated alloc (dead-runtime,
      * pre-allocated wins) + XZ-Y0 copy with optional source-difference.
      *
-     * Cumulative ~361/1102 insns characterized (up from 344). ~741 remaining.
-     * NEXT PASS: 0x5F80+ FPU diff/multiply block (lwc1 from sp+0xE4/0xEC,
-     * lwc1 from a1[0]/a1[2], sub.s, mul.s, swc1 to a2 [= sp+0x94]).
+     * 0x5F80-0x5FA4 region (+10 insns) — Vec3 XZ-difference store + two
+     * 12-byte struct memcpys:
+     *   f10 = scratch_xz0[0]              ; sp+0xE4 (sub->[0x30] xz-only)
+     *   f18 = a1[0]                       ; dest xz.x
+     *   f4  = scratch_xz0[2]              ; sp+0xEC (xz.z)
+     *   f8  = a1[2]                       ; dest xz.z
+     *   f0  = f10 - f18                   ; sub.s — diff in xz.x
+     *   *a1[1] = f16                      ; swc1 (f16 carried from prior block,
+     *                                       likely zeroed in 0x5F38-0x5F7C)
+     *   f2  = f4 - f8                     ; sub.s — diff in xz.z
+     *   *a1[0] = f0                       ; xz-diff stored back into a1
+     *   *a1[2] = f2                       ; (a1 IS the dest — 0x10-byte Vec3
+     *                                       at sp+0x...something)
+     *   t3  = a2[0]; t1 = sp+0x15C; t5 = sp+0x15C
      *
-     * TODO: ~758 remaining insns — continue per-state-branch decoding. */
+     * 0x5FA8-0x5FE4 region (+12 insns) — TWO 12-byte (Vec3) struct copies
+     * via stack scratches sp+0x15C and sp+0xCC, both from a2 (=sp+0x94):
+     *   sp[0x15C..0x167] = a2[0..2]        ; copy 1 (3-int load/store unrolled)
+     *   sp[0xCC..0xD7]   = sp[0x15C..0x167] ; copy 2 (alias-via-stack)
+     *   t1 = 0x14
+     *   at = -2
+     * The two-step copy through sp+0x15C is unusual — likely a dead intermediate
+     * scratch left over from a -O0 → -O2 compile where IDO didn't fully fold.
+     *
+     * 0x5FE8-0x6020 region (+15 insns) — FPU norm computation:
+     *   a0  = s0->[0x30]                  ; sub object
+     *   f10 = s0->[0xC0]                  ; field-loaded float
+     *   f18 = sp[0xD8]                    ; xz-diff.x (from earlier block)
+     *   f6  = a0->[0x348]                 ; sub_field_348 (likely radius?)
+     *   f8  = sp[0xE0]                    ; xz-diff.z
+     *   f2  = f6 * f10                    ; field_348 * field_C0 (= scaled?)
+     *   f10 = sp[0xD8]                    ; reload diff.x
+     *   f4  = f18 * f18                   ; diff.x²
+     *   f18 = sp[0xCC]                    ; reload xz-copy.x
+     *   f6  = f8 * f8                     ; diff.z²
+     *   f14 = f4 + f6                     ; diff.x² + diff.z² (= dist²)
+     *   f6  = sp[0xD4]
+     *   f4  = sp[0xE0]                    ; reload diff.z
+     *   c.eq.s f14, f16                   ; compare dist² == f16 (zero?)
+     * (followed by branch on FCC, decoded in next pass)
+     *
+     * Pattern: this is a 2D (XZ-plane) distance check in the per-frame
+     * collision/proximity portion of the state machine. The two-step
+     * copy via sp+0x15C is a -O0 artifact within an otherwise -O2 function.
+     *
+     * Cumulative ~398/1102 insns characterized (up from 361, +37 insns).
+     * ~704 remaining.
+     * NEXT PASS: 0x6024+ FCC-branch (likely bc1f/bc1t) → conditional state
+     * update or fall-through to next sub-block.
+     *
+     * TODO: ~704 remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
