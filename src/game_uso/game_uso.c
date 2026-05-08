@@ -5823,8 +5823,47 @@ void game_uso_func_0000AC48(char *dst) {
     game_uso_func_00004080((int*)(dst + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000AC78: 36-insn alloc-init constructor with conditional
+ * sub-init. Body:
+ *   ptr = gl_func(0x40);
+ *   if (ptr) { gl_func(ptr); ptr[0x28] = &D_00000000; ptr[0x3C] = 0; }
+ *   v0 = a0->[0x40];
+ *   if (v0) {
+ *       gl_func(ptr + 0x10, v0);  // some sub-init
+ *       if (v0->[0x14] != 0) v0->[0x4] = 1;
+ *       v0->[0x14] = ptr;
+ *   }
+ *   return ptr;
+ *
+ * Target uses beqzl with delay-likely v0->[0x14]=ptr — which IDO -O2
+ * emits naturally for `if (cond) { store; ... } common_store; return`.
+ * Initial commit produces decoded structure; register allocation may
+ * need tuning to byte-match. */
+int *game_uso_func_0000AC78(int *a0) {
+    int *ptr;
+    int *v0;
+
+    ptr = (int*)gl_func_00000000(0x40);
+    if (ptr != 0) {
+        gl_func_00000000(ptr);
+        ptr[10] = (int)&D_00000000;
+        ptr[15] = 0;
+    }
+    v0 = (int*)a0[16];
+    if (v0 != 0) {
+        gl_func_00000000(ptr + 4, v0);
+        if (v0[5] != 0) {
+            v0[1] = 1;
+        }
+        v0[5] = (int)ptr;
+    }
+    return ptr;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AC78);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000AC78_pad.s")
+#endif
 
 void game_uso_func_0000AD10(float *dst) {
     float buf[2];
