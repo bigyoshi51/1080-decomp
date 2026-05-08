@@ -3403,11 +3403,51 @@ void game_uso_func_0000591C(int *a0) {
      * its sign, and stores to sp+0x170. Continues into a delta-blend at
      * 0x5D38+ with a0->0xB0 / a0->0xAC fields (likely physics-vel state).
      *
-     * Cumulative ~226/1102 insns characterized (up from 205). ~876
-     * remaining. NEXT PASS: 0x5D38+ delta-blend block (a0->0xB0/0xAC
-     * field accesses + the late `sp[0x16C]` and `sp[0x3C]` write chain).
+     * 2026-05-08 EXTENDED DECODE 0x5D38-0x5E1C (~56 insns):
+     * NORMALIZED DELTA SCALAR + STATE/FLAG DISPATCH.
      *
-     * TODO: 876+ remaining insns — continue per-state-branch decoding. */
+     *   /* derive a scale from sub-struct axis/threshold fields *\/
+     *   sub = a0->0x30;
+     *   f14 = signed scalar from prior saturate block (abs/neg pair);
+     *   ratio = sub->0x348 / a0->0xB0;
+     *   factor = 1.0f + ratio;
+     *   denom = sub->0x708;              /* via sub + 0x6F8 + 0x10 *\/
+     *   a0->0x3C = (f14 * factor * a0->0xAC) / denom;
+     *
+     *   /* save absolute value of the derived scalar for later consumers *\/
+     *   sp[0x16C] = (a0->0x3C < 0.0f) ? -a0->0x3C : a0->0x3C;
+     *
+     *   /* state-gate before the large flag-dispatch body *\/
+     *   if (a0->0x74 != 0) {
+     *       if (a0->0x74 == 1) goto state_tail_6604;  /* v0=a0->0x2C delay *\/
+     *       goto state_tail_6604;
+     *   }
+     *   state_flags = a0->0x6C;
+     *   stack_flags = sp[0x1A0];
+     *   if (!(state_flags & 1)) goto path_6078;
+     *
+     *   /* when state bit 0 is set but stack bit0 is clear and bit1 is clear,
+     *    * clear state bit0 and seed a short timer/state code. *\/
+     *   if (!(stack_flags & 1) && !(stack_flags & 2)) {
+     *       a0->0x6C = state_flags & ~1;
+     *       a0->0x48 = 0x14;
+     *   }
+     *
+     *   /* stack flag 0x4 selects a 0x20 mode; otherwise 0x800 selects 0x80.
+     *    * Both store the mode at sp+0x1B4 and jump to the shared 0x65F8
+     *    * continuation with a0 reloaded from a0->0x30. *\/
+     *
+     * Pattern: this block converts the prior transform/saturate result into
+     * a normalized, positive scalar and immediately uses object state flags
+     * to choose the next update mode.  `a0->0x6C` behaves like a mutable
+     * per-frame bitfield, `a0->0x74` is a coarse state gate, and sp+0x1A0
+     * mirrors input/event flags that can clear bit0 and select a mode.
+     *
+     * Cumulative ~282/1102 insns characterized (up from 226). ~820
+     * remaining. NEXT PASS: 0x5E20+ alternate state-flag path through
+     * sp+0x1AC->0x84 bit checks and the sp+0xF0 Vec3 scratch block.
+     *
+     * TODO: ~820 remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
