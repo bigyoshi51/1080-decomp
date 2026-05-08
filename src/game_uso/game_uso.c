@@ -853,15 +853,18 @@ void *game_uso_func_00001DDC(int *a0, int *out_delta) {
      * prologue insns are byte-correct.
      *
      * 2026-05-08 (later) — objdiff confirms TARGET and BASE both 407 insns
-     * (insn-count match achieved). Fuzzy 17.52% means register allocation /
-     * operand ordering account for the ~83% of byte-mismatch — NOT
-     * structural mismatch. Ideal next-pass approach: permuter (manual mode
-     * with PERM_LINESWAP on the multi-Vec3 fanout copies and PERM_GENERAL
-     * on the inline-vs-spill scale-mul site). Single-tick C edits at this
-     * stage are bounded by which-register-gets-which-temp: hard to predict
-     * without the .greg dump. The actual Vec3 working buffers (per
-     * stack-layout note above) live in this region; future passes will
-     * replace `frame_pad` with typed locals as they're decoded. */
+     * (insn-count match achieved). Fuzzy 18.26% (after `local_xz[1]*[1]`
+     * +0.73pp tweak) means register allocation / operand ordering account
+     * for the ~82% of byte-mismatch — NOT structural mismatch. Tested the
+     * scaled_y block's `0.0f * y_excess` → `local_xz[1] * y_excess` swap
+     * (using the same memory-loaded-zero pattern) — 0pp (the y_excess
+     * scale is far enough from local_xz[1]'s init that IDO keeps the
+     * 0-mul folded). The block uses `mtc1 zero, fX` for its zero source,
+     * which can't be reproduced from C without a closer-in-scope memory
+     * 0.0f. Ideal next-pass approach remains: permuter (manual mode with
+     * PERM_LINESWAP on the multi-Vec3 fanout copies and PERM_GENERAL on
+     * the inline-vs-spill scale-mul site). Future passes will replace
+     * `frame_pad` with typed locals as they're decoded. */
     char frame_pad[168];
     int key = a0[0x40 / 4];
     (void)frame_pad;
