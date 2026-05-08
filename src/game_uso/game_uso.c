@@ -3568,9 +3568,44 @@ void game_uso_func_0000591C(int *a0) {
      * back-to-back. The dead bnez-gated alloc fallback is the same shape as
      * the 0x5DC0/0x5E80 blocks above — pre-allocated buffer always wins.
      *
-     * Cumulative ~344/1102 insns characterized (up from 326). ~758 remaining.
-     * NEXT PASS: 0x5F38+ second cross-USO call with sp+0xE4 / sp+0xD8 args
-     * (likely Vec3 normalization or distance helper using both buffers).
+     * 0x5F38-0x5F7C region (+17 insns):
+     * THIRD XZ-Y0 VEC3 COPY (sub->[0x30] → v1) + DEAD-BRANCH ALLOC FALLBACK.
+     *
+     *   $f12 = a1[0];                    ; a1 = sub->[0x30] (Vec3 source)
+     *   $f2  = a1[2];                    ;
+     *   v1[1] = $f16 (= 0.0);            ; out.Y = 0
+     *   v1[0] = $f12;                    ; out.X = source.X (no-diff this time!)
+     *   v1[2] = $f2;                     ; out.Z = source.Z (no-diff)
+     *
+     *   v1 = sp[0x1AC];                  ; reload sub-ptr from saved-stack slot
+     *   a2 = sp + 0x94;                  ; another out-Vec3 scratch base
+     *   a1 = a2;                          ; mirror a2 into a1
+     *   if (a2 != 0) goto skip_alloc_3;  ; bnez a2 — ALWAYS taken
+     *                                      ; (same dead-fallback as 0x5DC0/0x5E80/
+     *                                      ;  0x5F18: pre-allocated buffer wins)
+     *   v1 += 0x30;                      ; (delay-slot, dead path)
+     *   v0 = gl_func(0xC);                ; (dead alloc)
+     *   sp[0x120] = v1;                   ; (delay) save v1 across alloc
+     *   $f16 = 0.0f;                     ; re-init Y-zero const
+     *   v1 = sp[0x120];                  ; reload v1
+     *   a2 = sp + 0x94;                  ; reset a2
+     *   if (alloc == 0) goto skip;       ; alloc-fail
+     *   a1 = alloc;                      ; (delay)
+     *
+     * Pattern: this is the THIRD Vec3 XZ-Y0 copy in the function. Together
+     * with the earlier 0x5CD0 (helper-result source) and 0x5E80 (saved-XZ
+     * minus sub-XZ), this builds three XZ-only Vec3s into stack scratches:
+     *   sp+0xB4 — XZ-difference output (from 0x5E80 block)
+     *   sp+0xD8 — copy-of-XZ-difference (from 0x5ED0 double-memcpy)
+     *   sp+0xE4 — sub->[0x30] Vec3 with Y zeroed (from 0x5F38 block)
+     *   sp+0x94 — yet another output buffer (next pass)
+     *
+     * Each block follows the same shape: bnez-gated alloc (dead-runtime,
+     * pre-allocated wins) + XZ-Y0 copy with optional source-difference.
+     *
+     * Cumulative ~361/1102 insns characterized (up from 344). ~741 remaining.
+     * NEXT PASS: 0x5F80+ FPU diff/multiply block (lwc1 from sp+0xE4/0xEC,
+     * lwc1 from a1[0]/a1[2], sub.s, mul.s, swc1 to a2 [= sp+0x94]).
      *
      * TODO: ~758 remaining insns — continue per-state-branch decoding. */
 }
