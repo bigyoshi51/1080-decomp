@@ -2736,7 +2736,15 @@ void *gl_func_0003EA98(int *a0, int a1) {
  * Also missing: target's `goto end_zero` shape uses an extra
  * pre-epilogue `lw ra; or v0, 0; lw ra` 3-insn block (target has 2
  * lw ra at 0x44 and 0x48) — IDO's natural emit collapses this when v0
- * is zero in the early branch. */
+ * is zero in the early branch.
+ *
+ * 2026-05-08 retest #2: tried adding `(void)a1` after the alloc call (per
+ * docs/IDO_CODEGEN.md feedback-ido-void-cast-arg-spill recipe) — DCE'd
+ * by IDO, no extra spill emitted. Same 94.09%. Tried `volatile int
+ * saved_a1 = a1;` (per feedback-ido-volatile-unused-local-forces-local-
+ * slot-spill) — regressed to 75.95% (frame grew to 0x20, all sp offsets
+ * shifted). Cap holds: target's 1 missing dead-spill at sp+0x4 is
+ * structurally locked. */
 extern int gl_func_00000000();
 
 int *gl_func_0003EAE0(int a0, int a1, int a2, int a3) {
