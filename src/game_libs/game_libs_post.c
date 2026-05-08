@@ -5773,8 +5773,21 @@ end:
  * `jal 0` + R_MIPS_26 placeholder for cross-USO calls). 0x7C860 is
  * inside game_libs's own .text, so the assembler resolved it directly.
  *
- * Multi-tick byte-matching pending. Default INCLUDE_ASM keeps ROM matching;
- * structural decode lives here for grep discoverability and future grind. */
+ * Multi-tick byte-matching pending. 88.72% fuzzy with current body.
+ *
+ * 2026-05-08 diff: 42-built vs 39-target insns (3 extra). Saved-reg
+ * spill area shows mine using s0/s1/s2/s3/ra (5 saves) while target uses
+ * only s0/s1/s2/ra (4 saves). The `for (s1=0, s0=0; ...; s0 += 16)` form
+ * forces an extra $s pseudo for s0, giving IDO 5 distinct callee-save
+ * regs to spill (vs target's 4). Next-pass shape candidate: collapse the
+ * (s1, s0) pair into a single pointer increment:
+ *   char *p = (char *)s2[0x30/4];
+ *   for (s1 = 0; s1 < s2[0x34/4]; s1++) {
+ *       gl_func_00000000(p, s2);
+ *       gl_func_00000000(p);
+ *       p += 16;
+ *   }
+ * This drops s0 entirely and may align the spill set with target's. */
 extern int gl_func_00000000();
 extern int func_0007C860();
 void gl_func_00068524(int *a0, int a1) {
