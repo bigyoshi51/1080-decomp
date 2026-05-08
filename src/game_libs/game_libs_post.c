@@ -6120,7 +6120,23 @@ void gl_func_00068524(int *a0, int a1) {
  * Body: bounds-check key_h against a0->[0x34] (count cap), index row =
  * a0->[0x30] + key_h*16, bounds-check key_l against row->[0x8] (per-row
  * count), then dispatch via row->[0x4] table_b: entry = table_b +
- * key_l*4, target = *entry, assert target->[0x10] != 0. */
+ * key_l*4, target = *entry, assert target->[0x10] != 0.
+ *
+ * 2026-05-08 lui addend fix: assertion-string offsets corrected from
+ * +0x3B3C0/3B3E4/3B404 to +0x2B3C0/2B3E4/2B404. The earlier values
+ * encoded as `lui 0x4 + addiu -0x4C40` (effective 0x3B3C0); expected/.o
+ * has `lui 0x3 + addiu -0x4C40` (effective 0x2B3C0). Built/.o now has
+ * matching lui+addiu byte encoding for all 3 sites. Fuzzy unchanged at
+ * 99.85% because objdiff was already reloc-aware-equivalent on the lui
+ * pair, but actual byte diff vs expected/.o dropped from 12 to 9 insns.
+ *
+ * Remaining 9-insn diff: stack-slot offsets shifted 4 bytes lower than
+ * expected. Built spills v1 at sp+0x18, a2 at sp+0x1C, a3 at sp+0x20;
+ * expected spills them at sp+0x1C / 0x20 / 0x24 (slot 0x18 reserved-
+ * unused). Both have frame size 0x30; built fills from bottom up, expected
+ * leaves the bottom slot empty. Adding `int pad;` grows frame to 0x38
+ * (paid the slot-shift but lost the frame-size match). No tested C lever
+ * shifts spills up by 4 bytes WITHOUT growing the frame. */
 extern int gl_func_00000000();
 void gl_func_000685C0(int *a0, unsigned int a1) {
     unsigned int key_h = (a1 >> 16) & 0xFFFF;
@@ -6128,15 +6144,15 @@ void gl_func_000685C0(int *a0, unsigned int a1) {
     int *row;
 
     if (!(key_h < (unsigned int)a0[0x34/4])) {
-        gl_func_00000000((char*)&D_00000000 + 0x3B3C0, key_h, key_l);
+        gl_func_00000000((char*)&D_00000000 + 0x2B3C0, key_h, key_l);
     }
     row = (int*)((char*)a0[0x30/4] + key_h * 16);
     if (!(key_l < (unsigned int)row[2])) {
-        gl_func_00000000((char*)&D_00000000 + 0x3B3E4, key_h, key_l);
+        gl_func_00000000((char*)&D_00000000 + 0x2B3E4, key_h, key_l);
     }
     row = (int*)((char*)a0[0x30/4] + key_h * 16);
     if (((int*)((int*)((char*)row[1] + key_l * 4))[0])[0x10/4] == 0) {
-        gl_func_00000000((char*)&D_00000000 + 0x3B404, key_h);
+        gl_func_00000000((char*)&D_00000000 + 0x2B404, key_h);
     }
 }
 #else
