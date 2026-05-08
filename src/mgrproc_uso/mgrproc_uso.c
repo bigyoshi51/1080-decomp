@@ -796,7 +796,46 @@ void mgrproc_uso_func_00001B58(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00001BE4: 43-insn (0xAC) state-init + 6-call orchestrator.
+ *
+ * INHERITS \$v1 and \$a2 from predecessor mgrproc_uso_func_00001B58's tail
+ * (post-jr-ra dead code at 0x1BD4..0x1BE0):
+ *   or    a2, a0, \$0       # a2 = predecessor's a0
+ *   lui   a0, 0
+ *   addiu a0, a0, 0          # a0 = D + 0
+ *   lw    v1, 0x64(a0)       # v1 = *(D + 0x64) (some counter/index)
+ *
+ * Body decode (post-stolen-prologue, with v1 inherited and a2=arg-passthru):
+ *   v1 -= 5                                  ; addiu v1, v1, -5
+ *   *(int*)(a2 + 0x4D8) = 2                  ; init state field
+ *   *(int*)(a2 + 0x7DC) = 0                  ; clear counter A
+ *   *(int*)(a2 + 0x7E0) = 0                  ; clear counter B
+ *   *(int*)(a2 + 0x7E4) = D[v1*4 + 0x5F0]    ; load entry from table A
+ *   *(int*)(a2 + 0x7EC) = 0
+ *   *(int*)(a2 + 0x7E8) = D[v1*4 + 0x5FC]    ; load entry from table B
+ *   gl_func_00000000(/*?*/);                  ; call 1 (a2 spilled)
+ *   gl_func_00000000(saved_a2);               ; call 2 (a0 = saved a2)
+ *   gl_func_00000000(saved_a2, 0xA0000, ...); ; call 3 — likely arg setup
+ *   gl_func_00000000(0xB, 0, 0);              ; call 4
+ *   gl_func_00000000(0xB, *(D+0x64) - 5, 0);  ; call 5
+ *   gl_func_00000000(*(D+0x190), 1, 1);       ; call 6
+ *
+ * Cap class: chained-SUFFIX register inheritance — same family as
+ * gl_func_00054228, gl_func_0005DB0C. Standard PROLOGUE_STEALS recipe is
+ * gated to LUI-led prefixes (opcode 0x0F) per
+ * docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-only-splice-restriction
+ * — our function starts with addiu sp (opcode 0x09); silently no-ops.
+ * SUFFIX_BYTES on predecessor blocked since predecessor mgrproc_uso_func_
+ * 00001B58 is itself NM-wrapped/INCLUDE_ASM.
+ *
+ * 2026-05-08: structural identification only; full standalone-compilable
+ * body deferred (requires extending signature `(unused_a0, /*v1=*/int idx,
+ * /*a2=*/State *state)` and recomputing v1 from D[0x64], same recipe as
+ * gl_func_0005DB0C). Default INCLUDE_ASM build remains byte-correct. */
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BE4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C90);
 
