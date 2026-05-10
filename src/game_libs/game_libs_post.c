@@ -2751,7 +2751,14 @@ void *gl_func_0003EA98(int *a0, int a1) {
  * saved_a1 = a1;` (per feedback-ido-volatile-unused-local-forces-local-
  * slot-spill) — regressed to 75.95% (frame grew to 0x20, all sp offsets
  * shifted). Cap holds: target's 1 missing dead-spill at sp+0x4 is
- * structurally locked. */
+ * structurally locked.
+ *
+ * 2026-05-10 retest #4: tried switching K&R `extern int gl_func_00000000();`
+ * to explicit prototype `extern int gl_func_00000000(int, int, int, int);`
+ * thinking IDO's K&R-spill behavior might trigger the extra sp+0x4 dead
+ * spill. No-op: same 94.09%. K&R vs prototype on the alloc call does NOT
+ * affect own-frame spill emission for incoming args. Cap remains
+ * INSN_PATCH-locked. */
 extern int gl_func_00000000();
 
 int *gl_func_0003EAE0(int a0, int a1, int a2, int a3) {
