@@ -6505,7 +6505,37 @@ void game_uso_func_0000D6E4(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D6E4);
 #endif
 
+#ifdef NON_MATCHING
+/* First structural pass: conditional three-call state update. Default
+ * INCLUDE_ASM keeps bytes exact; this records the field offsets and side
+ * effects for later register/scheduling work. */
+int game_uso_func_0000D74C(char *a0) {
+    char *obj;
+    int arg;
+
+    obj = *(char**)(a0 + 0xB4);
+    if (*(int*)(obj + 0x938) == 0) {
+        return 0;
+    }
+
+    gl_func_00000000(a0, 1);
+    gl_func_00000000(a0, 2, 0);
+
+    obj = *(char**)(a0 + 0xB4);
+    arg = *(int*)(a0 + 0xFC) | 0xA;
+    if (*(int*)(obj + 0xA14) <= 0) {
+        arg = 0x0006000A;
+        *(int*)(obj + 0x960) = 0x64;
+    }
+
+    gl_func_00000000(a0, 3, 0, arg);
+    gl_func_00000000(a0, arg);
+    gl_func_00000000(a0, 0);
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
 
