@@ -1202,29 +1202,32 @@ extern float D_000005EC;
  *
  * Not exact yet: direct promotion keeps the right frame/control flow but IDO
  * chooses $v1 for the object pointer where target keeps it in $a2; a more
- * literal m2c-local shape grows the frame to 0x30. */
+ * literal m2c-local shape grows the frame to 0x30.
+ *
+ * 2026-05-10: cleaned up redundant `var_a2 = ret;` alias (the inner
+ * `var_a2 = ret;` after the alloc-call was a no-op since both equal `ret`).
+ * IDO -O2 was collapsing it anyway — byte-identical 92.89% after removal.
+ * The cap is genuinely register-allocator-driven ($v1 vs target's $a2),
+ * not alias-driven. */
 void *func_00007C74(char *a0) {
     char *ret;
-    char *var_a2;
     int *link;
 
     ret = (char*)func_00000000(0x88);
-    var_a2 = ret;
     if (ret != 0) {
         func_00000000(ret);
-        var_a2 = ret;
-        *(void**)(var_a2 + 0x28) = &D_00000000;
+        *(void**)(ret + 0x28) = &D_00000000;
     }
 
-    *(float*)(var_a2 + 0x80) = D_000005EC;
+    *(float*)(ret + 0x80) = D_000005EC;
     link = *(int**)(a0 + 0x40);
-    func_00000000(var_a2 + 0x10, link);
+    func_00000000(ret + 0x10, link);
     if (link[5] != 0) {
         link[1] = 1;
     }
-    link[5] = (int)var_a2;
+    link[5] = (int)ret;
 
-    return var_a2;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007C74);
