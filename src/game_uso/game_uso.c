@@ -7255,24 +7255,29 @@ void game_uso_func_0000FBF8(int *a0) {
  *   3. (Both paths converge) gl_func_0(a0, 0x30001, 2, 2, 0x100, 0xA)  (jal 2 — extra args spilled to sp+0x10/0x14)
  *   4. gl_func_0(a0, *D_E20, *D_E24, -1)                              (jal 3)
  *
- * Multi-tick decompile: FPU double-precision math + bnel-likely + 3
- * cross-USO calls with stack-spilled extra args. Initial wrap captures
- * structure; tightening register allocation needs subsequent passes. */
+ * 2026-05-10: tightened pointer-base flow so IDO now keeps a0->0xB4 in
+ * v1 and uses an explicit base+0x31C store pointer, raising the C-body
+ * report to 82.54% fuzzy. Remaining blockers: IDO still folds D+0xE10 /
+ * D+0xE20 into direct-offset loads instead of the target's addiu-base
+ * pairs, omits the a1/a2 outgoing-slot stores, and folds base+0x770+0x10
+ * into a direct lwc1 offset rather than materializing the a3 pointer. */
 extern int gl_func_00000000();
 extern char D_00000000;
-extern int D_E10_a, D_E14_a;       /* CSE-defeat aliases */
-extern int D_E20_b, D_E24_b;
 void game_uso_func_0000FC34(int *a0) {
     char *base = (char*)*(int**)((char*)a0 + 0xB4);
     int *flag_loc = *(int**)(base + 0x800);
+    char *field_770 = base + 0x770;
+    float *field_31C = (float*)(base + 0x31C);
+    int *pair_e10 = (int*)((char*)&D_00000000 + 0xE10);
+    int *pair_e20 = (int*)((char*)&D_00000000 + 0xE20);
     if ((flag_loc[0x10/4] & 0x100) == 0) {
-        float v = *(float*)(base + 0x780);
+        float v = *(float*)(field_770 + 0x10);
         double dconst = *(double*)((char*)&D_00000000 + 0x248);
-        *(float*)(base + 0x31C) = (float)((double)*(float*)(base + 0x31C) + (double)v * dconst);
-        gl_func_00000000(a0, D_E10_a, D_E14_a);
+        *field_31C = (float)((double)*field_31C + (double)v * dconst);
+        gl_func_00000000(a0, pair_e10[0], pair_e10[1]);
     }
     gl_func_00000000(a0, 0x30001, 2, 2, 0x100, 0xA);
-    gl_func_00000000(a0, D_E20_b, D_E24_b, -1);
+    gl_func_00000000(a0, pair_e20[0], pair_e20[1], -1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
