@@ -6252,7 +6252,6 @@ void *game_uso_func_0000C2D4(void *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C2D4);
 #endif
 
-#ifdef NON_MATCHING
 /* C344-C3CC: 7 accessor fragments for a table at *(int**)&D_00000000, each
  * entry 0x40 bytes. Indexed by arg1 << 6. Templates:
  *   C344: return &entry[a1];               (entry pointer)
@@ -6261,37 +6260,64 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C2D4);
  *   C394: return entry[a1].field_0x34;
  *   C3B0: return entry[a1].field_0x38;
  *   C3CC: return entry[a1].field_0x30;
- * Unused $a0 is spilled to caller home slot (K&R caller pattern).
- * First-pass NM wraps — IDO may or may not spill unused $a0 with prototyped sig. */
+ * Unused $a0 is spilled to caller home slot — confirms IDO -O2 leaf-no-jal
+ * variant of feedback-ido-unused-arg-save. */
+#ifdef NON_MATCHING
 int *game_uso_func_0000C344(int a0, int a1) {
     return (int*)((char*)(*(int**)&D_00000000) + (a1 << 6));
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C344);
+#endif
+
+#ifdef NON_MATCHING
 int *game_uso_func_0000C35C(int a0, int a1) {
     return (int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x10);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C35C);
+#endif
+
+#ifdef NON_MATCHING
 int game_uso_func_0000C378(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x2C);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C378);
+#endif
+
+#ifdef NON_MATCHING
 int game_uso_func_0000C394(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x34);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C394);
+#endif
+
+#ifdef NON_MATCHING
 int game_uso_func_0000C3B0(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x38);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3B0);
+#endif
+
+#ifdef NON_MATCHING
 int game_uso_func_0000C3CC(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x30);
 }
-/* C3E8: 4-insn simple global load with unused-$a0 spill. */
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3CC);
+#endif
+
+#ifdef NON_MATCHING
+/* C3E8: 4-insn simple global load with unused-$a0 spill. Delay-slot
+ * scheduling cap — target has lui/lw/jr/sw, built emits lui/sw/jr/lw.
+ * Bytes are wrong; kept as NM doc. */
 int game_uso_func_0000C3E8(int a0) {
     return *(int*)&D_00000000;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C344);
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C35C);
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C378);
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C394);
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3B0);
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3CC);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
 #endif
 
