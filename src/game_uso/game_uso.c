@@ -7394,7 +7394,42 @@ void game_uso_func_0000FD04(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FD04);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000FDCC: 63-insn sibling of game_uso_func_0000FD04 / FC34.
+ * Velocity-gated branch dispatcher. Outer gate fires only when
+ * base->0x31C (signed float) is below -1.0f; inner branch dispatches
+ * different call sequences based on whether base->0x9D0 is below 1000.0f.
+ *
+ * Outer-gate constants: lui $at, 0xBF80 → f6 = -1.0f; c.lt.s $f4, $f6 +
+ * bc1fl skips the body if (base->0x31C) >= -1.0f.
+ * Inner constants: lui $at, 0x447A → f10 = 1000.0f.
+ *
+ * Same K&R-spill pattern (sw $a1, 0x04($sp); sw $a2, 0x08($sp) caller-side
+ * spills before gl_func_00000000 6-arg calls) as the FC34/FD04 siblings;
+ * fuzzy scoring penalizes this even when ROM bytes are correct via
+ * INCLUDE_ASM. Default INCLUDE_ASM keeps the build exact. */
+void game_uso_func_0000FDCC(int *a0) {
+    int *base = *(int**)((char*)a0 + 0xB4);
+    if (*(float*)((char*)base + 0x31C) < -1.0f) {
+        if (*(float*)((char*)base + 0x9D0) < 1000.0f) {
+            gl_func_00000000(a0, 0x30001, 6, 6, 0x100, 0x14);
+            gl_func_00000000(a0,
+                             *(int*)((char*)&D_00000000 + 0xE28),
+                             *(int*)((char*)&D_00000000 + 0xE2C),
+                             -1);
+            gl_func_00000000(a0);
+        } else {
+            gl_func_00000000(a0, 0x30001, 3, 4, 1, 1);
+            gl_func_00000000(a0,
+                             *(int*)((char*)&D_00000000 + 0xE30),
+                             *(int*)((char*)&D_00000000 + 0xE34),
+                             4);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FDCC);
+#endif
 
 /* Same SUFFIX_BYTES + INSN_PATCH spill-tail recipe as the 0x10E2C family;
  * target emits caller arg-slot spills before the conditional second call. */
