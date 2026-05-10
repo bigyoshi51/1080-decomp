@@ -1,0 +1,11 @@
+nonmatching game_uso_func_0000C378, 0x1C
+
+glabel game_uso_func_0000C378
+    /* 00C378 0000C378 3C0E0000 */  .word 0x3C0E0000
+    /* 00C37C 0000C37C 8DCE0000 */  .word 0x8DCE0000
+    /* 00C380 0000C380 00057980 */  .word 0x00057980
+    /* 00C384 0000C384 AFA40000 */  .word 0xAFA40000
+    /* 00C388 0000C388 01CFC021 */  .word 0x01CFC021
+    /* 00C38C 0000C38C 03E00008 */  .word 0x03E00008
+    /* 00C390 0000C390 8F02002C */  .word 0x8F02002C
+endlabel game_uso_func_0000C378
