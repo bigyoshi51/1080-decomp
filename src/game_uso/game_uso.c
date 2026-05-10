@@ -3687,10 +3687,43 @@ void game_uso_func_0000591C(int *a0) {
      *
      * Cumulative ~420/1102 insns characterized (up from 398, +22 insns).
      * ~682 remaining.
-     * NEXT PASS: 0x6080+ FCC-block — beql t2, 0, +N; nested andi+beq
-     * state checks on s0->[various] flag bytes.
      *
-     * TODO: ~682 remaining insns — continue per-state-branch decoding. */
+     * 0x6080-0x6100 region (+30 insns) — particle-spawn on flags+altitude:
+     *   if (t2 != 0) {                  ; beql t2,0,+0x9E skips 158 insns
+     *     v0 = t2->[0x84];              ; flag byte
+     *     if (v0 & 1) {
+     *       if (v0 & 0x804) {           ; bits 2|11 both must be checked
+     *         t5 = a0->[0x908];         ; subtree pointer
+     *         f8 = sp[0x19C];           ; cached world-Y coord
+     *         if (t5 != 0) {
+     *           if (f8 <= -2000.0f) {   ; below floor threshold (lui 0xC4FA)
+     *             v1 = sp+0x80;         ; (computed but may be unused arm)
+     *             v3 = gl_func_0(0xC);  ; alloc 12-byte (Vec3-like) record
+     *             f16 = 0.0f;
+     *             if (v3 != 0) {
+     *               v0  = sp[0x1B0];    ; cached entity pointer
+     *               vec = v0 + 0x30;
+     *               v3[0] = vec[0];     ; .x
+     *               v3[1] = 0.0f;       ; .y (zero'd)
+     *               v3[2] = vec[2];     ; .z
+     *             }
+     *           }
+     *         }
+     *       }
+     *     }
+     *   }
+     *
+     * Pattern: when entity has 2 flag bits set (0 + 2|11) AND has subtree AND
+     * is below world-Y -2000 (= -2000.0f from lui 0xC4FA), allocate a 12-byte
+     * Vec3 (X,0,Z) particle-trail record. Likely the "below-the-stage death-
+     * trigger trail" used when player falls off the course.
+     *
+     * Cumulative ~450/1102 insns characterized (up from 420, +30 insns).
+     * ~652 remaining.
+     * NEXT PASS: 0x6104+ — continuation of the particle init (v1=sp+0x4C arg
+     * setup + cross-USO call) and post-particle state-flag updates.
+     *
+     * TODO: ~652 remaining insns — continue per-state-branch decoding. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
