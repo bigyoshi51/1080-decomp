@@ -6222,30 +6222,20 @@ void game_uso_func_0000C27C(Quad4 *dst) {
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000C2D4: 28-insn alloc-init constructor with optional 3-arg sub-init.
- * Sibling of game_uso_func_0000AC78 (alloc-init constructor family). Body:
- *   if (a0 == 0) {
- *       a0 = gl_func_00000000(0x2C);
- *       if (a0 == 0) return 0;
- *   }
- *   gl_func_00000000(a0, &D_00000000 + 0x121C);    // init from template
- *   a0[0x28] = &D_00000000_v3;                      // set function/data ptr
- *   if (a1 != 0) gl_func_00000000(a0, 1, a1);       // sub-init
- *   return a0;
- *
- * Won't byte-match first pass; needs separate D-base resolution and the
- * spill-of-a1-to-caller-home-slot pattern. */
+ * 2026-05-10 attempt 2: switched NULL-check to `goto end` + final `return a0`
+ * to match target's single-beqz-to-epilogue shape (prior `return 0` emitted
+ * `b end; or v0,zero,zero` — 2 extra insns vs target). */
 void *game_uso_func_0000C2D4(void *a0, int a1) {
     if (a0 == 0) {
         a0 = (void*)gl_func_00000000(0x2C);
-        if (a0 == 0) {
-            return 0;
-        }
+        if (a0 == 0) goto end;
     }
     gl_func_00000000(a0, (char*)&D_00000000 + 0x121C);
     *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
     if (a1 != 0) {
         gl_func_00000000(a0, 1, a1);
     }
+end:
     return a0;
 }
 #else
