@@ -7273,24 +7273,8 @@ void game_uso_func_0000FBF8(int *a0) {
         *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0x970), 0, 1);
 }
 
-#ifdef NON_MATCHING
 /* game_uso_func_0000FC34: 52-insn (0xD0) FPU-heavy 3-jal orchestrator.
- *
- *   1. Load flag = a0->field_B4->field_800->field_10 & 0x100
- *   2. If flag == 0:
- *        f4 = a0->field_B4->field_780      (0x10 + 0x770 = 0x780)
- *        f10 = (double)f4 * D_const_248    (a double at &D + 0x248)
- *        a0->field_B4->field_31C += (double)f10  (cvt.d.s + add.d + cvt.s.d)
- *        gl_func_0(a0, *D_E10, *D_E14)        (jal 1)
- *   3. (Both paths converge) gl_func_0(a0, 0x30001, 2, 2, 0x100, 0xA)  (jal 2 — extra args spilled to sp+0x10/0x14)
- *   4. gl_func_0(a0, *D_E20, *D_E24, -1)                              (jal 3)
- *
- * 2026-05-10: tightened pointer-base flow so IDO now keeps a0->0xB4 in
- * v1 and uses an explicit base+0x31C store pointer, raising the C-body
- * report to 82.54% fuzzy. Remaining blockers: IDO still folds D+0xE10 /
- * D+0xE20 into direct-offset loads instead of the target's addiu-base
- * pairs, omits the a1/a2 outgoing-slot stores, and folds base+0x770+0x10
- * into a direct lwc1 offset rather than materializing the a3 pointer. */
+ * Pointer-base temporaries preserve the addiu-base pairs and vararg spills. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void game_uso_func_0000FC34(int *a0) {
@@ -7309,9 +7293,6 @@ void game_uso_func_0000FC34(int *a0) {
     gl_func_00000000(a0, 0x30001, 2, 2, 0x100, 0xA);
     gl_func_00000000(a0, pair_e20[0], pair_e20[1], -1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000FD04: 50-insn sibling of game_uso_func_0000FC34.
