@@ -7443,7 +7443,6 @@ void game_uso_func_0000FD04(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FD04);
 #endif
 
-#ifdef NON_MATCHING
 /* game_uso_func_0000FDCC: 63-insn sibling of game_uso_func_0000FD04 / FC34.
  * Velocity-gated branch dispatcher. Outer gate fires only when
  * base->0x31C (signed float) is below -1.0f; inner branch dispatches
@@ -7454,9 +7453,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FD04);
  * Inner constants: lui $at, 0x447A → f10 = 1000.0f.
  *
  * Same K&R-spill pattern (sw $a1, 0x04($sp); sw $a2, 0x08($sp) caller-side
- * spills before gl_func_00000000 6-arg calls) as the FC34/FD04 siblings;
- * fuzzy scoring penalizes this even when ROM bytes are correct via
- * INCLUDE_ASM. Default INCLUDE_ASM keeps the build exact. */
+ * spills before gl_func_00000000 calls) as the FC34/FD04 siblings. The C
+ * body is promoted by the Makefile SUFFIX_BYTES + INSN_PATCH recipe. */
 void game_uso_func_0000FDCC(int *a0) {
     int *base = *(int**)((char*)a0 + 0xB4);
     if (*(float*)((char*)base + 0x31C) < -1.0f) {
@@ -7476,9 +7474,6 @@ void game_uso_func_0000FDCC(int *a0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FDCC);
-#endif
 
 /* Same SUFFIX_BYTES + INSN_PATCH spill-tail recipe as the 0x10E2C family;
  * target emits caller arg-slot spills before the conditional second call. */
