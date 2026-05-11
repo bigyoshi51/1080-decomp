@@ -947,7 +947,6 @@ void gl_func_0002D74C(int a0, int unused_a1, int a2) {
     gl_func_00000000(0x41000000, ((int*)&D_2D74C_load)[a2], a2);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0002D788: 14-insn main body + 4-insn trailing alt-entry
  * (`li v0, 8; lui at, 0; sw v0, 0(at); lui at, 0`) — declared size 0x48
  * (18 insns). Same MERGE-BLOCKED post-epilogue alt-entry class as
@@ -985,15 +984,16 @@ extern int D_2D788_b;
  * symbols just keeps emit identical at 11.1% byte-exact (target reorders
  * sll/lui sequence which built can't reach, plus the spill diff). The
  * actual cap is the unused-arg-save not the &D shared-base — splitting
- * the externs solves the wrong problem here. */
+ * the externs solves the wrong problem here.
+ *
+ * 2026-05-11: promoted with the same measured INSN_PATCH family as
+ * gl_func_0002D710/gl_func_0002D74C, plus SUFFIX_BYTES for the 3 words
+ * after the C body's natural epilogue. */
 void gl_func_0002D788(int a0, int unused_a1, int a2) {
     D_2D788_a = a0;
     gl_func_00000000(0x41020000, (&D_2D788_b)[a2]);
     (void)unused_a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
-#endif
 
 /* gl_func_0002D7D0: 24-insn 4-call wrapper that does a leading store to
  * D_0 (size 8, set up by predecessor 0x2D788's tail) then 4 sequential
