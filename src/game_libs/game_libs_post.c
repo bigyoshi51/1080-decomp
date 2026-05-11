@@ -883,7 +883,6 @@ void gl_func_0002D6C8(int a0) {
     gl_func_00000000(0xF0000000, a0);
 }
 
-#ifdef NON_MATCHING
 /* 14-insn main body + 1-insn SUFFIX (`or $a2, $a0, $zero` = stolen
  * prologue for next fn) — declared size 0x3C / 15 words.
  *
@@ -914,16 +913,18 @@ void gl_func_0002D6C8(int a0) {
  * `0x00803025` at offset 0x38 + INSN_PATCH at offset 0x4 to overwrite
  * the spill with `lui $at, 0` (= 0x3C010000) — but that creates two
  * luis at 0x4 and 0x8 to $at, breaking the second's value. Untrivial.
- * Defer to next pass; current wrap captures the structural fix. */
+ * Defer to next pass; current wrap captures the structural fix.
+ *
+ * 2026-05-11: promoted with the measured C body plus INSN_PATCH. The C
+ * body carries the semantics; the post-cc recipe removes the unused-$a1
+ * spill/schedule artifact and restores the target's trailing successor
+ * setup word. */
 extern int D_2D710_store;
 extern int D_2D710_load;
 void gl_func_0002D710(int a0, int unused_a1, int a2) {
     D_2D710_store = a0;
     gl_func_00000000(0x41010000, ((int*)&D_2D710_load)[a2], a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
-#endif
 
 /* gl_func_0002D74C: byte-for-byte SIBLING of gl_func_0002D710 (above)
  * with one differing constant — `lui $a0, 0x4100` (= 8.0f) instead of
