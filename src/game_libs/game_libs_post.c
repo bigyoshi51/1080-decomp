@@ -996,7 +996,6 @@ void gl_func_0002D788(int a0, int unused_a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0002D7D0: 24-insn 4-call wrapper that does a leading store to
  * D_0 (size 8, set up by predecessor 0x2D788's tail) then 4 sequential
  * gl_func calls each loading a different float-encoded constant
@@ -1101,8 +1100,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  * 2026-05-08 (later, after game_uso_func_00001DDC `0.0f*0.0f` → memory-load
  * +0.73pp finding): no zero-term cite-applicable here — this function uses
  * integer args (0x41010000 etc as int constants, not float-zero terms).
- * Cap remains the prologue-stolen-successor pattern. Permuter or compiler
- * update remain the only paths. */
+ * 2026-05-11: promoted with the measured C body plus
+ * SUFFIX_BYTES_FORCE + INSN_PATCH. The C emits the four-call body; the
+ * post-cc recipe covers the predecessor-stolen store and successor suffix. */
 extern int D_2D7D0_arr;
 void gl_func_0002D7D0(void) {
     gl_func_00000000(0x41010000, ((int*)&D_2D7D0_arr)[8]);
@@ -1110,9 +1110,6 @@ void gl_func_0002D7D0(void) {
     gl_func_00000000(0x41020000, ((int*)&D_2D7D0_arr)[8]);
     gl_func_00000000(0xF0000000, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D7D0);
-#endif
 
 /* gl_func_0002D838: 12-insn prologue-stolen-successor (sibling of 0002D8A8,
  * 0002D870). Predecessor's tail (`lui $t6, 0; lw $t6, 0(t6)`) loads
