@@ -289,12 +289,14 @@ def patch_one(data, func_name, patches):
         # This applies both to jal->non-jal and jal 0->baked jal target.
         if _is_jump_opcode(existing):
             orphan_jal_offsets.add(rel_offset)
-        # Same for HI16/LO16: if the existing word's opcode bears that
-        # reloc but the new word's doesn't, the reloc is now an orphan
-        # that would corrupt the new instruction's immediate field.
-        if _is_lui_opcode(existing) and not _is_lui_opcode(word):
+        # Same for HI16/LO16: INSN_PATCH supplies concrete words, so a
+        # changed relocated instruction must drop the old relocation even
+        # when the replacement is another immediate-form opcode. Otherwise
+        # the linker re-applies the stale symbol/addend and mutates bytes
+        # that already matched the expected object.
+        if _is_lui_opcode(existing):
             orphan_hi_offsets.add(rel_offset)
-        if _is_lo16_opcode(existing) and not _is_lo16_opcode(word):
+        if _is_lo16_opcode(existing):
             orphan_lo_offsets.add(rel_offset)
         data[abs_off:abs_off + 4] = struct.pack(">I", word)
         applied += 1

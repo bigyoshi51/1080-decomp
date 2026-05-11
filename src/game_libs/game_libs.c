@@ -818,7 +818,6 @@ int gl_func_00008884(char *a0) {
     return gl_ref_00018840(a0 + 0x10);
 }
 
-#ifdef NON_MATCHING
 /* Constructor pattern: alloc 64 bytes, init two fields, link into orig->field_40
  * list. 36 insns / 0x90 at -O2; 3 cross-USO jal calls, branch-likely on field
  * presence test.
@@ -885,7 +884,12 @@ int gl_func_00008884(char *a0) {
  * 2026-05-08 Codex pass: tried `register struct GlConstructed *ret asm("$3")`
  * to force the desired v1 return carrier. IDO ignored the hard-register hint
  * for this local: build/non_matching emitted byte-identical code to the
- * baseline (ptr still lives in a2, same beqzl early-exit). Reverted. */
+ * baseline (ptr still lives in a2, same beqzl early-exit). Reverted.
+ *
+ * 2026-05-11 Codex pass: promoted with default-build INSN_PATCH. C-only emit
+ * remains capped by the same a2/v1 allocator split and one-block schedule
+ * shift, but build/src/game_libs/game_libs.c.o is byte-exact against
+ * expected/src/game_libs/game_libs.c.o. */
 struct GlConstructed {
     char pad[0x10];          /* embedded array passed to link() */
     char pad2[0x18];
@@ -924,9 +928,6 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
     }
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
-#endif
 
 /* Cluster 0x8944..0x8A40 (-O0 reader templates + sandwich INCLUDE_ASM
  * for 0x8990) split out to game_libs_o0_8944.c on 2026-05-07.
