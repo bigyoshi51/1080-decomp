@@ -274,10 +274,14 @@ def patch_one(data, func_name, patches):
         existing = struct.unpack(">I", data[abs_off:abs_off + 4])[0]
         rel_offset = func_addr + insn_off
         if existing == word:
-            # Same-word jump patches are still useful when C emitted a
-            # relocation for bytes that expected/.o carries as raw asm.
+            # Same-word patches are still useful when C emitted a relocation
+            # for bytes that expected/.o carries as raw asm.
             if _is_jump_opcode(existing):
                 orphan_jal_offsets.add(rel_offset)
+            if _is_lui_opcode(existing):
+                orphan_hi_offsets.add(rel_offset)
+            if _is_lo16_opcode(existing):
+                orphan_lo_offsets.add(rel_offset)
             skipped += 1
             continue
         # If we're overwriting a relocated jal/j, remember the .text-relative

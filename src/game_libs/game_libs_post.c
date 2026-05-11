@@ -925,7 +925,6 @@ void gl_func_0002D710(int a0, int unused_a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0002D74C: byte-for-byte SIBLING of gl_func_0002D710 (above)
  * with one differing constant — `lui $a0, 0x4100` (= 8.0f) instead of
  * 0x4101 (= 8.0625f). Same structure, same trailing SUFFIX
@@ -937,16 +936,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
  * aliased to 0x0 in undefined_syms_auto.txt). 1-insn cap remains: the
  * unused-a1 spill at offset 0x4 (`sw a1, 0x1C(sp)` per
  * docs/IDO_CODEGEN.md feedback-ido-unused-arg-save). Same cap class
- * as sibling 0x2D710. */
+ * as sibling 0x2D710.
+ *
+ * 2026-05-11: promoted with the same measured INSN_PATCH class as sibling
+ * gl_func_0002D710, changing only the call constant to 0x41000000. */
 extern int D_2D74C_store;
 extern int D_2D74C_load;
 void gl_func_0002D74C(int a0, int unused_a1, int a2) {
     D_2D74C_store = a0;
     gl_func_00000000(0x41000000, ((int*)&D_2D74C_load)[a2], a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D74C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0002D788: 14-insn main body + 4-insn trailing alt-entry
