@@ -282,10 +282,13 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
  *
  * Open: 8+ gl_func helper calls with various arg counts; field-store order
  * needs verification; secondary alloc(0xF0) and inner alloc(0x50)/(0x2C)
- * branches need decode confirmation. */
-extern int gl_func_00000000();
-extern char D_00000000;
+ * branches need decode confirmation.
+ *
+ * 2026-05-14 (46.03% → 50.00%, +3.97pp): char-base hoist, removed
+ * redundant in-block externs, added missing q+0x50 helper-call between
+ * the 4 *->0x28 stores. */
 void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
+    char *base = &D_00000000;
     void *p, *q, *r, *child;
     int *z;
 
@@ -309,18 +312,19 @@ void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
         child = (void*)gl_func_00000000(0x2C);
         if (child == 0) return p;
     }
-    gl_func_00000000(child, (char*)&D_00000000 + 0x3C0);
-    *(int*)((char*)child + 0x28) = (int)&D_00000000;
-    *(int*)((char*)r + 0x28)     = (int)&D_00000000;
-    *(int*)((char*)q + 0x28)     = (int)&D_00000000;
-    *(int*)((char*)p + 0x28)     = (int)&D_00000000;
+    gl_func_00000000(child, base + 0x3C0);
+    *(int*)((char*)child + 0x28) = (int)base;
+    *(int*)((char*)r + 0x28)     = (int)base;
+    *(int*)((char*)q + 0x28)     = (int)base;
+    gl_func_00000000((char*)q + 0x50);
+    *(int*)((char*)p + 0x28)     = (int)base;
     *(int*)((char*)p + 0x568)    = 0;
 
-    gl_func_00000000(p, (char*)&D_00000000 + 0x3C8, a1, a3);
+    gl_func_00000000(p, base + 0x3C8, a1, a3);
     *(int*)((char*)p + 0x528) = 0;
     gl_func_00000000(p, a2);
     *(int*)((char*)p + 0x6A8) = a2;
-    gl_func_00000000((char*)&D_00000000 + 0x3D8, 0);
+    gl_func_00000000(base + 0x3D8, 0);
     {
         void *grandchild = (void*)gl_func_00000000(0xF0);
         if (grandchild != 0) {
