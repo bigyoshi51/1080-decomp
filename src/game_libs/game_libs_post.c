@@ -6461,7 +6461,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060370);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060468);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000604D0);
+/* gl_func_000604D0: 23-insn linked-list walk-and-call. Walks a2->[0x18]
+ * via [0x14] next-ptrs; calls gl_func(node, a1) on each; stops on first
+ * non-zero return. Returns the last call's result (or 0). */
+int gl_func_000604D0(int a0_unused, int a1, int *a2) {
+    int *p = (int*)a2[0x18/4];
+    int rc = 0;
+    while (p != 0) {
+        rc = gl_func_00000000(p, a1);
+        if (rc != 0) break;
+        p = (int*)p[0x14/4];
+    }
+    return rc;
+}
 
 /* gl_func_0006052C was 21-insn 2-function bundle. Split via
  * split-fragments.py 2026-05-08:
