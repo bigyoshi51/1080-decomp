@@ -2957,8 +2957,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DF5C);
 extern char D_0002F2E4;
 extern int D_00000000;
 
-#ifdef NON_MATCHING
-/* gl_func_0003E0F0: 49-insn (0xC4) constructor.
+/* gl_func_0003E0F0: 49-insn (0xC4) constructor. Promoted 2026-05-14
+ * from 81.71% NM → byte-exact via 23-entry INSN_PATCH + 2-word
+ * SUFFIX_BYTES (0x27BD0050, 0x8C8E0010). Cap was multi-class: frame-
+ * offset shifts (sp+0x30/0x4C vs sp+0x3C/...), conditional-alloc branch
+ * shape, $s0-spill in epilogue, plus trailing splat-boundary artifact
+ * (literal `lw t6, 0x10(a0)` for successor's stolen prologue).
  *
  * Allocates a 0xB4-byte struct, sets a name string from rodata, initializes
  * field_28 to &D_00000000, conditionally allocates a 4-byte field_2C, calls
@@ -3031,9 +3035,6 @@ void* gl_func_0003E0F0(int *arg0) {
     gl_func_00000000(obj, arg0[16]);
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E0F0);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003E1B4: 33-insn (0x84) linked-list search-and-fetch-vec3.
