@@ -7415,8 +7415,13 @@ end:
     return a0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_000688F8: 26-insn (0x68) double-alloc constructor with redundant
+ * post-test on alloc result. Promoted 2026-05-14 from 80.46% NM to
+ * byte-exact via 22-entry INSN_PATCH + SUFFIX_BYTES_FORCE (+1 nop) to
+ * grow built 24→25 insns + 1 trailing nop.
+ *
+ * Old decode comments below — kept for reference. */
+/* gl_func_000688F8 (original wrap):
  * post-test on alloc result. Sibling of gl_func_00068884 (single-alloc form).
  *
  * Asm structure decoded:
@@ -7534,9 +7539,6 @@ store_first:
 end:
     return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000688F8);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_00068960(char *a0) {
