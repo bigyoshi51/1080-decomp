@@ -7437,13 +7437,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C2D4);
  *   C3CC: return entry[a1].field_0x30;
  * Unused $a0 is spilled to caller home slot — confirms IDO -O2 leaf-no-jal
  * variant of feedback-ido-unused-arg-save. */
-#ifdef NON_MATCHING
 int *game_uso_func_0000C344(int a0, int a1) {
     return (int*)((char*)(*(int**)&D_00000000) + (a1 << 6));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C344);
-#endif
 
 #ifdef NON_MATCHING
 int *game_uso_func_0000C35C(int a0, int a1) {
