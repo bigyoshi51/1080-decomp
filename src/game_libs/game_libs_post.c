@@ -1819,24 +1819,6 @@ int gl_func_0002FB54(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FB74);
 
-#ifdef NON_MATCHING
-/* gl_func_00030504: 24-insn (0x60) Gfx-command DL emit dispatcher.
- * 2026-05-13 corrections:
- *   - Signature is 1-arg, not 2-arg (target doesn't read caller's $a1).
- *   - Both call paths pass (signed char)key as the 2nd arg, NOT caller's a1.
- *   - Switched if-else to `key=a0; if (a0 >= 0x101) key=a0&0xFF` to produce
- *     target's single-branch-with-delay-slot shape (saved 2 insns).
- *
- * Body: emits F3DEX G_DL opcode 0x06 with sign-extended byte arg.
- *   key = a0; if (a0 >= 0x101) key = a0 & 0xFF;
- *   if (key >= 0x80) gl_func(0x06000001, (signed char)(key - 0x80));
- *   else             gl_func(0x06000000, (signed char)key);
- *
- * Current 98.5% — remaining cap is IDO-regalloc: target keeps `key` in $a2,
- * built keeps in $v0. The 3-arg trick (declare unused $a2 param) regresses
- * to 95.4% via extra arg spills. `register int key asm("$a2")` rejected by
- * IDO per feedback-ido-no-gcc-register-asm. Likely permuter or INSN_PATCH
- * for the 5 affected register-name insns to promote. */
 extern int gl_func_00000000();
 
 void gl_func_00030504(int a0) {
@@ -1850,9 +1832,6 @@ void gl_func_00030504(int a0) {
         gl_func_00000000(0x06000000, (signed char)key);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030504);
-#endif
 
 /* gl_func_00030564: 1-call wrapper. Trailing 12 bytes (lui v0; addiu v0;
  * lw t6, 0x8(v0)) are stolen prologue for SUCCESSOR gl_func_00030598 —
