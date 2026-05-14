@@ -4917,8 +4917,25 @@ int gl_func_000546BC(char *a0) {
  *
  * Cumulative 54/203 insns characterized.
  *
- * TODO: decode insns 55-203 — looks like more per-field setups with
- * different sizes + Vec3 zero patterns, plus loop or unrolled tail. */
+ * Insns 55-84 (+30 insns) — repeated alloc-and-init pattern at
+ * different struct offsets:
+ *     // pattern repeats: at = -<offset>; if (s0 != at) sw spill;
+ *     v1 = gl_func_00000000(4); if (v1) *v1 = 0;  // 4-byte alloc at 2nd slot
+ *     v1 = gl_func_00000000(4); if (v1) *v1 = 0;  // 4-byte alloc at 3rd slot
+ *     s1 = s0 + 0x10C;                             // advance to 3rd-field base
+ *     gl_func_00000000(0x2C);                      // 44-byte alloc (larger)
+ *     // beq +0x5A skips ~90 insns if alloc=0 (fail-tail)
+ *     // Then nested 8-byte alloc inside the success branch
+ *
+ * The `bne s0, $at` (at = -0xC4, -0x10C, ...) pattern is curious —
+ * appears to be the compiler emitting always-taken pointer-vs-constant
+ * compares as part of pseudo-bounds-checks. May be a `__assume` / debug-
+ * assertion compiled in via macros. Decode interpretation uncertain.
+ *
+ * Cumulative 84/203 insns characterized, ~119 remaining.
+ *
+ * TODO: decode insns 85-203 — fail-tail (+0x5A) handler + main success
+ * block continuation. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
