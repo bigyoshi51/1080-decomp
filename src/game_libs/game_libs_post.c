@@ -1640,7 +1640,30 @@ void gl_func_0002DDF4(int a0, int fval_bits) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DDF4);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002DE24: 28-insn (0x80) F3DEX2-microcode setter.
+ *
+ *   D_0_global1 = a0 & 0xFF;
+ *   D_0_global2 = 0;
+ *   gl_func(0x4D010000, 0x3F800000);              ; SET_TEXTURE op + 1.0f bits
+ *   gl_func(((a0 & 0xFF) << 8) | 0x82010000, a1); ; SETTILESIZE w/ index
+ *   gl_func(0x90010000, 0xFFFF);                   ; SETCOMBINE simple
+ *   gl_func(0x0101FF00, D_0_global3);              ; SETOTHERMODE_L w/ depth
+ *
+ * Reads lowest byte of caller's a0 (via lbu sp+0x1B in big-endian a0 spill).
+ * Initial structural pass; alt-entry call shape caps expected. */
+void gl_func_0002DE24(int a0, int a1) {
+    char *base = &D_00000000;
+    *(int*)(base + 0) = a0 & 0xFF;
+    *(int*)(base + 0xC) = 0;
+    gl_func_00000000(0x4D010000, 0x3F800000);
+    gl_func_00000000(((a0 & 0xFF) << 8) | 0x82010000, a1);
+    gl_func_00000000(0x90010000, 0xFFFF);
+    gl_func_00000000(0x0101FF00, *(int*)base);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DE24);
+#endif
 
 /* gl_func_0002DEA4: prologue-stolen successor (predecessor 0x2DE24's tail
  * has the lui+lw of *(D+0x2E60) into t6). PROLOGUE_STEALS=8 splices the
