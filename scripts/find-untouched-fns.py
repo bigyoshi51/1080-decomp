@@ -40,6 +40,37 @@ def parse_asm_size(asm_path: str) -> int | None:
     return None
 
 
+def asm_shape_flags(asm_path: str) -> str:
+    """Return single-char flag:
+       'F' = full standalone (has addiu sp prologue + jr ra)
+       'X' = fragment-suspect (missing prologue or jr ra)
+       '?' = couldn't determine"""
+    try:
+        content = open(asm_path).read()
+    except (OSError, UnicodeDecodeError):
+        return "?"
+    # The .s file may use either `.word 0xWORDVAL` (fully .word) or
+    # mnemonic form. Look at instruction-bearing lines.
+    insns = [
+        l for l in content.splitlines()
+        if "/* " in l and ("*/" in l) and any(c in l for c in ("\t", "  "))
+    ]
+    # Filter out the glabel header line and endlabel
+    insn_lines = [l for l in insns if "glabel" not in l and "endlabel" not in l]
+    if not insn_lines:
+        return "?"
+    first = insn_lines[0]
+    # Two patterns: ".word 0x27BDFFE8" or "addiu $sp, $sp, -N"
+    has_prologue = (
+        "0x27BD" in first or "addiu" in first.lower() and "sp" in first.lower() and "-" in first
+    )
+    # jr ra ends with .word 0x03E00008, or mnemonic "jr   $ra"
+    has_jr_ra = "0x03E00008" in content or "jr         $ra" in content or "jr     $ra" in content or "jr\t$ra" in content
+    if has_prologue and has_jr_ra:
+        return "F"
+    return "X"
+
+
 def find_plain_include_asm() -> list[tuple[str, int, str]]:
     """Return [(function_name, size_bytes, source_file_path), ...] for
     plain `INCLUDE_ASM("...", FN);` lines that are NOT inside a
@@ -64,7 +95,8 @@ def find_plain_include_asm() -> list[tuple[str, int, str]]:
                 size = parse_asm_size(asm_path)
                 if size is None or size < 0:
                     continue  # handwritten or unreadable
-                results.append((fn, size, path))
+                shape = asm_shape_flags(asm_path)
+                results.append((fn, size, path, shape))
     return results
 
 
@@ -106,20 +138,22 @@ def main() -> int:
         print("error: run from a project worktree", file=sys.stderr)
         return 1
     cands = find_plain_include_asm()
-    sized = [(fn, sz, p) for fn, sz, p in cands if args.min_size <= sz <= args.max_size]
-    pcts = report_match_percents({fn for fn, _, _ in sized})
+    sized = [(fn, sz, p, sh) for fn, sz, p, sh in cands if args.min_size <= sz <= args.max_size]
+    pcts = report_match_percents({fn for fn, _, _, _ in sized})
     rows = []
-    for fn, sz, p in sized:
+    for fn, sz, p, sh in sized:
         mp = pcts.get(fn)
         if args.exclude_matched and mp == 100.0:
             continue
-        rows.append((fn, sz, p, mp))
+        rows.append((fn, sz, p, mp, sh))
     rows.sort(key=lambda r: (r[1], r[0]))
-    print(f"plain-INCLUDE_ASM in size band [{hex(args.min_size)}..{hex(args.max_size)}]: {len(rows)}")
-    for fn, sz, p, mp in rows[: args.limit]:
+    n_F = sum(1 for r in rows if r[4] == "F")
+    n_X = sum(1 for r in rows if r[4] == "X")
+    print(f"plain-INCLUDE_ASM in [{hex(args.min_size)}..{hex(args.max_size)}]: {len(rows)} (F={n_F} standalone, X={n_X} fragment-suspect)")
+    for fn, sz, p, mp, sh in rows[: args.limit]:
         mp_str = f"{mp:.1f}%" if mp is not None else "—"
         rel = os.path.relpath(p)
-        print(f"  {hex(sz):>6}  {mp_str:>6}  {fn}  ({rel})")
+        print(f"  {sh}  {hex(sz):>6}  {mp_str:>6}  {fn}  ({rel})")
     if len(rows) > args.limit:
         print(f"  ... {len(rows) - args.limit} more")
     return 0
