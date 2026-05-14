@@ -2932,7 +2932,6 @@ void *gl_func_0003EA98(int *a0, int a1) {
     return 0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0003EAE0: 23-insn (0x5C) dispatch wrapper. Calls
  * gl_func_00000000(a0, a1, a2, a3); if non-NULL, treats result as a
  * struct r where r->[0x28] is an obj with a function-ptr at r->[0x28]->[0x6C]
@@ -2984,9 +2983,6 @@ end_zero:
     (void)p;
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EAE0);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003EB3C: 21-insn (0x54) nullable-double-deref helper.
