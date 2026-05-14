@@ -8225,7 +8225,36 @@ int gl_func_00073034(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073034);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0007307C: 18-insn PI DMA-write helper. If (a2 & 3), spin-wait
+ * for PI not busy. Then write a1 to (D_0 | a0) via KSEG1 uncached.
+ * Returns 0.
+ *
+ * Symbol size 0x50 includes 2 trailing literal `.word` (lui+lw of
+ * PI_STATUS_REG) — splat-absorbed boundary, solo SUFFIX_BYTES can
+ * append (no relocs).
+ *
+ * 2026-05-14 C-only attempts:
+ *   - Plain `while (D_A4600010 & 3) {}` — 68 bytes, no prologue+epilogue
+ *     (IDO -O2 elides frame because no locals); 12 bytes short of target
+ *   - `volatile u32 status` local — 96 bytes (too many stack roundtrips)
+ *
+ * Target has small 8-byte frame (`addiu sp,-8` / `addiu sp,+8`) even
+ * without spillable locals — likely forced by the body's mid-function
+ * `addiu sp,+8` BEFORE the trailing stores. INSN_PATCH+SUFFIX_BYTES
+ * promotion path: ~17 entry INSN_PATCH + 2-word SUFFIX_BYTES for the
+ * literal trailing. Deferred for now. */
+int gl_func_0007307C(int a0, int a1, int a2) {
+    extern s32 D_A4600010;
+    if (a2 & 3) {
+        while (D_A4600010 & 3) {}
+    }
+    *(int*)((D_00000000 | a0) | 0xA0000000) = a1;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000730CC_pad.s")
