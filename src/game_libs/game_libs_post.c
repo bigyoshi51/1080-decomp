@@ -767,7 +767,23 @@ end:
     return r;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00029078: 20-insn cross-USO + alt-entry helper. Calls cross-USO
+ * gl_func(a0+0x10, a1), then if non-NULL calls alt-entry gl_func_0003D66C
+ * (inside gl_func_0003D620 at +0x4C), then cross-USO gl_func(a0+0x20, result).
+ * Returns the first call's result (or 0). */
+extern int gl_func_0003D66C();
+int gl_func_00029078(int a0, int a1) {
+    int v0 = gl_func_00000000(a0 + 0x10, a1);
+    if (v0 == 0) goto end;
+    gl_func_0003D66C(v0, a1);  /* a1 reloaded in jal's delay slot */
+    gl_func_00000000(a0 + 0x20, v0);
+end:
+    return v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029078);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
 
