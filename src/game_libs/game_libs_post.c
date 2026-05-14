@@ -1680,7 +1680,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
  *   / move a2, zero [skipped if branch taken]` for the "lower clamp," then
  *   `slti+bne` for the "upper clamp."
  *
- * Caps remaining (current fuzzy 51%):
+ * Caps remaining (current fuzzy 80.00% per 2026-05-14 build):
  * 1. **Regalloc: target uses $a2 for the temp; IDO -O2 picks $v0 for ours.**
  *    Tried 3-arg signature with `a2` as a named parameter (so $a2 is "live"
  *    at entry) — IDO still uses $v0 because the parameter value is dead
@@ -1707,7 +1707,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
  * The 3-arg signature is required so the call passes (0x03000800, (s8)t)
  * with t in $a1 (since arg2 maps to $a1 in 2-arg C). Target's 2nd arg is
  * loaded via `sll a1, a2, 0x18; sra a1, a1, 0x18` — sign-extend low byte
- * of the temp into $a1. */
+ * of the temp into $a1.
+ *
+ * 2026-05-14 a1-spill suppression attempts (all failed):
+ *   - `(void)unused_a1;` cast — DCE'd, spill still emitted at offset 0x8
+ *   - `int a1 = unused_a1;` local copy — DCE'd, same emit
+ *   - 1-arg signature (`void f(int a0)`) — drops spill BUT regalloc picks
+ *     $v0 for the temp instead of target's $a2
+ *   - `register int a2 = a0` (1-arg) — same $v0 result
+ *
+ * Target's NO-a1-spill emit suggests either: (a) original C had genuine
+ * use of a1 that DCE'd away post-optimization, leaving the slot but not
+ * the spill (unlikely — DCE removes both), (b) file-context affected
+ * the regalloc/spill decision (per feedback-ido-file-context-affects-
+ * frame-size precedent for frame size), or (c) different compiler/flags.
+ *
+ * Promotion plausibility: structurally the byte_verify probably fails
+ * regardless of the a1 spill (Cap 3's stolen prologue is the bigger
+ * issue — needs SUFFIX_BYTES on 305CC + PROLOGUE_STEALS=12 on 3061C
+ * paired commit). The a1-spill cap is ~80% → ~85% step at best. */
 extern int gl_func_00000000();
 void gl_func_000305CC(int a0, int unused_a1, int a2) {
     a2 = a0;
