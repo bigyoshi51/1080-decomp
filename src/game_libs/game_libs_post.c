@@ -992,7 +992,61 @@ void gl_func_0002D064(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D064);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002D130: 59-insn (0xF4) nested-loop per-frame init with
+ * alt-entry calls.
+ *
+ *   s3 = D_base + (a0 * 0x320);    ; array entry (0x320-byte stride)
+ *   for (j = 0; j < 64; j += 4) {
+ *       retval = gl_func(&D_2198, 228);    ; alt-entry call
+ *       s1->[0x38] = retval ?: &D_5280;
+ *       if (retval) {
+ *           retval->[0x4C] = (int)s3;
+ *           retval->[0x0] &= ~0x80;
+ *           // inner loop: 2 iters, write 4 fields each iter
+ *           do {
+ *               retval->[0x54] = 0; retval->[0x58] = 0;
+ *               retval->[0x5C] = 0;
+ *               retval += 16;
+ *               retval->[0x40] = 0;
+ *           } while (...);
+ *       }
+ *       gl_func_alt(s1->[0x38]);   ; alt-entry call
+ *       s1 += 4;
+ *   }
+ *
+ * Initial structural pass; cross-USO alt-entry call shape caps expected. */
+void gl_func_0002D130(int a0) {
+    char *base = &D_00000000;
+    int *s3 = (int*)(base + (a0 * 0x320) + 0x2D00);
+    int *s1 = s3;
+    int j;
+    for (j = 0; j < 64; j += 4) {
+        int *retval = (int*)gl_func_00000000(base + 0x2198, 228);
+        if (retval != 0) {
+            int *p;
+            int i;
+            *(int*)((char*)s1 + 0x38) = (int)retval;
+            *(int*)((char*)retval + 0x4C) = (int)s3;
+            *(char*)retval &= 0x7F;
+            p = retval;
+            for (i = 0; i < 8; i += 4) {
+                *(int*)((char*)p + 0x54) = 0;
+                *(int*)((char*)p + 0x58) = 0;
+                *(int*)((char*)p + 0x5C) = 0;
+                p = (int*)((char*)p + 16);
+                *(int*)((char*)p + 0x40) = 0;
+            }
+        } else {
+            *(int*)((char*)s1 + 0x38) = (int)(base + 0x5280);
+        }
+        gl_func_00000000(*(int*)((char*)s1 + 0x38));
+        s1 = (int*)((char*)s1 + 4);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D130);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D224);
 
