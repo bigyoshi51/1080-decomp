@@ -3887,7 +3887,37 @@ void game_uso_func_0000591C(int *a0) {
      *
      * Cumulative ~655/1102 insns characterized, ~447 remaining.
      *
-     * TODO: ~447 remaining insns. */
+     * 0x6424-0x6498 region (+30 insns) — state-dependent float lookup:
+     *     // First state-switch (s0->int_2C):
+     *     if (s0->state == 2) {
+     *         f14 = s0->float_2AC;
+     *     } else {
+     *         f14 = s0->float_2C4;
+     *     }
+     *     f12 = f14;
+     *     if (f4 < f12) {
+     *         gl_func_00000000(s0);
+     *         f16 = 0.0f;
+     *         // Second state-switch:
+     *         if (s0->state == 3) {
+     *             f12 = s0->float_324;
+     *         } else if (s0->state == 2) {
+     *             f14 = s0->float_30C;
+     *         } else {
+     *             f14 = s0->float_2F4;
+     *         }
+     *         f12 = f14;
+     *         t6 = (int)trunc(f12);          // trunc.w.s + mfc1
+     *         a0 = s0->ptr_30;
+     *         // b +0x57 — large skip (87 insns ahead)
+     *     }
+     *
+     * Pattern: per-state float-field LUT for s0->float_2AC/2C4/2F4/30C/324
+     * (likely physics constants for different player states 0/2/3).
+     *
+     * Cumulative ~685/1102 insns characterized, ~417 remaining.
+     *
+     * TODO: ~417 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
