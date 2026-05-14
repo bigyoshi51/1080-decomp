@@ -2257,7 +2257,17 @@ int gl_func_00035164(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000351EC);
+/* gl_func_000351EC: 20-insn vtable dispatch + error helper. Loads
+ * function pointer from (*(int**)&D_0)[0x11], calls it with arg1, and
+ * if result < 0 calls gl_func(error_string, arg1, rc). */
+void gl_func_000351EC(int a0, int a1) {
+    int *table = *(int**)&D_00000000;
+    int (*fn)(int) = (int(*)(int))table[0x44/4];
+    int rc = fn(a1);
+    if (rc < 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x1E534, a1, rc);
+    }
+}
 
 extern int gl_func_00000000();
 void gl_func_0003523C(int a0, int a1, int a2) {
