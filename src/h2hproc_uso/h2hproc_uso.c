@@ -993,7 +993,90 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000120
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001360);
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_000015F0: 108-insn (0x1B0) constructor with 3 sub-alloc
+ * "alloc + init + tag + bind to parent" iterations.
+ *
+ * Sets up vtable + 4 floats=1.0f, then if (a1->[0x4F0] bit 16 == 0)
+ * runs 3 sub-init iterations, each:
+ *   sub = alloc(0, size);
+ *   self->[OFFSET] = sub;
+ *   init(sub, src->[FIELD]);
+ *   tag(sub, TAG_ID, ...);
+ *   bind(self+0x10, sub);
+ *   if (sub->[0x14] != 0) sub->[0x4] = 1;
+ *   sub->[0x14] = self;
+ *
+ * 3 iterations:
+ *   sub1 @ self->[0xE8]: alloc(0,90); init(sub1, src->[0x28]); tag(sub1, 68, 21)
+ *   sub2 @ self->[0xEC]: alloc(0,90); init(sub2, src->[0x88]); tag(sub2, 68, 130)
+ *   sub3 @ self->[0x80]: alloc(0,35); bind(sub3, src->[0x30], src->[0x90]);
+ *                        init2(sub3, src->[0x8], src->[0xC], src->[0x68], src->[0x6C]);
+ *                        bind4(sub3, self->[0x38..0x40]);
+ *                        config(sub3, 285, 179);
+ *                        bind(self+0x10, sub3); ...
+ *
+ * src = self->[0x44] (parent ptr). Initial pass; partial-arg-shape on
+ * the bind/init helpers may need refinement. Default INCLUDE_ASM exact. */
+void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
+    char *base = &D_00000000;
+    int *self = a0;
+    int *src;
+    int *sub1, *sub2, *sub3;
+    char *self_p10;
+    *(int*)((char*)self + 0xC) = (int)(base + 0x41C);
+    *(int*)((char*)self + 0xB8) = (int)a1;
+    *(int*)((char*)self + 0xD4) = 0;
+    *(int*)((char*)self + 0x54) = a2;
+    *(int*)((char*)self + 0xCC) = 0xFF;
+    *(int*)((char*)self + 0xD0) = 0;
+    *(float*)((char*)self + 0xC8) = 1.0f;
+    *(float*)((char*)self + 0xC4) = 1.0f;
+    *(float*)((char*)self + 0xC0) = 1.0f;
+    *(float*)((char*)self + 0xBC) = 1.0f;
+    if (((unsigned)a1[0x4F0/4] << 15) >> 31) return;  /* bit 16 set, skip */
+    self_p10 = (char*)self + 0x10;
+    sub1 = (int*)gl_func_00000000(0, 90);
+    src = (int*)*(int*)((char*)self + 0x44);
+    *(int*)((char*)self + 0xE8) = (int)sub1;
+    gl_func_00000000(sub1, *(int*)((char*)src + 0x28));
+    gl_func_00000000(sub1, 68, 21);
+    sub1 = (int*)*(int*)((char*)self + 0xE8);
+    gl_func_00000000(self_p10, sub1);
+    if (*(int*)((char*)sub1 + 0x14) != 0) *(int*)((char*)sub1 + 0x4) = 1;
+    *(int*)((char*)sub1 + 0x14) = (int)self;
+
+    sub2 = (int*)gl_func_00000000(0, 90);
+    src = (int*)*(int*)((char*)self + 0x44);
+    *(int*)((char*)self + 0xEC) = (int)sub2;
+    gl_func_00000000(sub2, *(int*)((char*)src + 0x88));
+    gl_func_00000000(sub2, 68, 130);
+    sub2 = (int*)*(int*)((char*)self + 0xEC);
+    gl_func_00000000(self_p10, sub2);
+    if (*(int*)((char*)sub2 + 0x14) != 0) *(int*)((char*)sub2 + 0x4) = 1;
+    *(int*)((char*)sub2 + 0x14) = (int)self;
+
+    sub3 = (int*)gl_func_00000000(0, 35);
+    src = (int*)*(int*)((char*)self + 0x44);
+    *(int*)((char*)self + 0x80) = (int)sub3;
+    gl_func_00000000(sub3, *(int*)((char*)src + 0x30), *(int*)((char*)src + 0x90));
+    src = (int*)*(int*)((char*)self + 0x44);
+    sub3 = (int*)*(int*)((char*)self + 0x80);
+    gl_func_00000000(sub3, *(int*)((char*)src + 0x8), *(int*)((char*)src + 0xC),
+                     *(int*)((char*)src + 0x68), *(float*)((char*)src + 0x6C));
+    sub3 = (int*)*(int*)((char*)self + 0x80);
+    gl_func_00000000(sub3, *(int*)((char*)self + 0x38),
+                     *(int*)((char*)self + 0x3C), *(int*)((char*)self + 0x40));
+    sub3 = (int*)*(int*)((char*)self + 0x80);
+    gl_func_00000000(sub3, 285, 179);
+    sub3 = (int*)*(int*)((char*)self + 0x80);
+    gl_func_00000000(self_p10, sub3);
+    if (*(int*)((char*)sub3 + 0x14) != 0) *(int*)((char*)sub3 + 0x4) = 1;
+    *(int*)((char*)sub3 + 0x14) = (int)self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000015F0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000017A0);
 
