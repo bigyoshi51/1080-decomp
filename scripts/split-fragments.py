@@ -130,32 +130,54 @@ def write_split_file(path_dir, seg, new_addr, dropped):
 
 
 def update_c_file(seg_c_path, seg, original_name, new_name):
-    """Insert an INCLUDE_ASM for new_name right after the one for original_name."""
-    txt = seg_c_path.read_text()
-    # Pattern for original INCLUDE_ASM (may be inside #ifdef wrap, but locate the
-    # bare INCLUDE_ASM reference to the function we split).
+    """Insert an INCLUDE_ASM for new_name right after the one for original_name.
+
+    Functions can live in any src/{seg}/*.c file (e.g. {seg}_post.c, {seg}_mid.c,
+    {seg}_tail.c) — not just src/{seg}/{seg}.c. Search all sibling .c files for
+    the parent's INCLUDE_ASM so the new INCLUDE_ASM lands adjacent to the parent,
+    not appended to the wrong file.
+    """
     include_re = re.compile(
         r'(INCLUDE_ASM\(["\'][^"\']+["\'],\s*' + re.escape(original_name) + r'\);)'
     )
-    match = include_re.search(txt)
-    if not match:
-        # Might already have a NON_MATCHING wrap — still find the INCLUDE_ASM.
-        # Or the function is decompiled (no INCLUDE_ASM). In that case we just
-        # append at the end of the file.
+    target_path = None
+    target_txt = None
+    target_match = None
+    for c_path in sorted(seg_c_path.parent.glob("*.c")):
+        try:
+            txt = c_path.read_text()
+        except (OSError, UnicodeDecodeError):
+            continue
+        m = include_re.search(txt)
+        if m:
+            target_path = c_path
+            target_txt = txt
+            target_match = m
+            break
+
+    if target_match is None:
+        # No INCLUDE_ASM found anywhere in this segment. Fall back to the
+        # canonical {seg}.c with a warning so the user knows to move it.
         print(
-            f"  warn: INCLUDE_ASM for {original_name} not found in {seg_c_path}; appending",
+            f"  warn: INCLUDE_ASM for {original_name} not found in any src/{seg}/*.c; appending to {seg_c_path}",
             file=sys.stderr,
         )
         new_line = (
             f'\nINCLUDE_ASM("asm/nonmatchings/{seg}/{seg}", {new_name});\n'
         )
-        seg_c_path.write_text(txt + new_line)
+        existing = seg_c_path.read_text() if seg_c_path.exists() else ""
+        seg_c_path.write_text(existing + new_line)
         return
     new_include = (
-        match.group(1)
+        target_match.group(1)
         + f'\n\nINCLUDE_ASM("asm/nonmatchings/{seg}/{seg}", {new_name});'
     )
-    seg_c_path.write_text(include_re.sub(new_include, txt, count=1))
+    target_path.write_text(include_re.sub(new_include, target_txt, count=1))
+    if target_path != seg_c_path:
+        print(
+            f"  info: appended {new_name} to {target_path.name} (next to parent {original_name})",
+            file=sys.stderr,
+        )
 
 
 def split_one(asm_path, high_confidence_only=True):
