@@ -5024,6 +5024,34 @@ int gl_func_000546BC(char *a0) {
  * similar constructor. Currently kept as INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 
+/* gl_func_00054A14: 54-insn (0xD8) settings-registration sequence,
+ * sibling of gl_func_00054668 family. Calls gl_func_00000000 seven
+ * times to bind named settings to fields on s0 (= a0).
+ *
+ * Decoded structure (s0 = arg):
+ *   gl_func_00000000(&D_00000000+0,
+ *                    &D_00000000+0x21090,    0);              // name only
+ *   gl_func_00000000(&D_00000000+0,
+ *                    &D_00000000+0x2109C,    s0 + 0xC8, 0,
+ *                    8000.0f, 1);                              // float field
+ *   gl_func_00000000(&D_00000000+0,
+ *                    &D_00000000+0x210A4,    s0 + 0xCC, 0,
+ *                    1000.0f, 1);                              // float field
+ *   gl_func_00000000(&D_00000000+0,
+ *                    &D_00000000+0x210AC,    s0 + 0xD0, 0);   // int field
+ *   gl_func_00000000(s0 + 0x10C, 0);
+ *   gl_func_00000000(&D_00000000+0);
+ *   gl_func_00000000(s0);
+ *
+ * Pattern: per-call (name_table_root, name_offset_str, target_field_ptr,
+ * mode_flag, optional_max, optional_step). Sets up 4 settings on s0's
+ * config block (0xC8/0xCC/0xD0 = floats/int fields; 0x10C = sub-array
+ * pointer). Float constants 8000.0 (0x45FA0000) and 1000.0 (0x447A0000)
+ * are upper-bound clamps for sliders.
+ *
+ * Not NM-wrapped yet: K&R-style gl_func_00000000 calls with mixed
+ * int+float args need careful prototype handling
+ * (feedback_ido_knr_float_call.md) before compilable C exists. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054AEC);
