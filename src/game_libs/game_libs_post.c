@@ -6096,7 +6096,7 @@ void gl_func_0004ED0C(int *self) {
         int *v1 = (int*)iter[0x134/4];
         int *vtable = (int*)v1[0];
         int (*method)(int) = (int(*)(int))vtable[0xC/4];
-        method((short)vtable[0x8/4] + (int)v1);
+        method(*(short*)((char*)vtable + 0x8) + (int)v1);
         count = self[0x120/4];
         iter++;
     }
