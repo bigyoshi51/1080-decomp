@@ -142,7 +142,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
  *     slot[0x2542] = (s16)a1;
  *     slot[0x253C] = a2;
  *   }
- *   return v0; */
+ *   return v0;
+ *
+ * Caps tried 2026-05-14 (none moved fuzzy from 86%):
+ *  - inline-symbol-arith (drop `base` local): no change since the writes
+ *    are through `slot` (runtime-computed) not constant addresses
+ *  - split-epilogue `if (v0 == 0) goto end_zero; ... end_zero: return 0;`:
+ *    REGRESSED 86% → 61.8%. The slot-base computation + bnez delay slot
+ *    interaction doesn't match the gl_func_00021E08 split-epi pattern
+ *
+ * Remaining 14% diff is reloc-table cosmetic (lui+addiu vs %hi/%lo) plus
+ * 1-insn stack-offset diff (0x18 vs 0x1c). Both intrinsic to IDO -O2
+ * codegen; not C-level fixable. */
 extern int func_00000000();
 int gl_func_00021D84(int a0, int a1, int a2) {
     int count = *(int*)((char*)&D_00000000 + 0x2534);
