@@ -6766,7 +6766,25 @@ void gl_func_000661D8(int a0_unused) {
     gl_func_00000000((int*)0x2246C);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00066210: 21-insn 5-call sequence with buffer + chain helper.
+ * Cap (2026-05-14): target doesn't reset $a0 between calls 1 and 2
+ * (saving 1 insn) — IDO's typed extern infrastructure required to make
+ * this work doesn't exist for K&R `gl_func_00000000`. Built emits
+ * explicit `li a0, 1` for both calls = +1 insn = 88 vs 84 bytes. */
+int gl_func_00066210(int a0, int a1) {
+    int saved;
+    int buf;
+    gl_func_00000000(1);
+    saved = gl_func_00000000(1);
+    gl_func_00000000(&buf, 4);
+    gl_func_00000000(a1, &buf);
+    gl_func_00000000(saved);
+    return buf;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066210);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066264);
 
