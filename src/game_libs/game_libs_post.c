@@ -4974,8 +4974,30 @@ int gl_func_000546BC(char *a0) {
  *
  * Cumulative 144/203 insns characterized, ~59 remaining.
  *
- * TODO: decode insns 145-203 — final submit/finalize + cleanup +
- * epilogue. */
+ * Insns 145-174 (+30 insns) — finalize 0x24-byte alloc with vtable:
+ *     a0 = alloc_result_36;            // from previous block
+ *     if (a0 != NULL) {
+ *         gl_func_00000000(a0, s1, sp[0x24]=counter, 1); // init call
+ *         a0->vtable_at_0C = &D_00000000 + 0x20758;
+ *         a0->field_20 = 0;
+ *         // Copy 1.0f-Vec4 from sp[0x48..0x54] → a0->[0x10..0x1C]
+ *         memcpy(&a0->field_10, &sp[0x48], 16);
+ *         // Set bit 5 of s0->state_flags
+ *         t9 = s0->field_8;
+ *         s0->field_8 = t9 | 0x20;
+ *         f0 = 1.0f;                    // (lui 0x3F80) — for later use
+ *         s0->field_B8 = 0.0f;
+ *         s0->field_BC = 0.0f;
+ *     }
+ *
+ * Pattern: finalizing the 0x24-byte sub-object as a transform handle
+ * (vtable @ 0xC, identity scale @ 0x10, zero counter @ 0x20). Setting
+ * state bit 5 marks "transform configured."
+ *
+ * Cumulative 174/203 insns characterized, ~29 remaining.
+ *
+ * TODO: decode insns 175-203 — likely final s0 field updates and
+ * epilogue return. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
