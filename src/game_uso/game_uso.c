@@ -3766,9 +3766,32 @@ void game_uso_func_0000591C(int *a0) {
      * exact-match pass.
      *
      * Cumulative ~505/1102 insns characterized, ~597 remaining.
-     * NEXT PASS: 0x61DC+ — continuation of the particle/state update.
      *
-     * TODO: ~597 remaining insns. */
+     * 0x61DC-0x6250 region (+30 insns) — third Vec3 alloc + delta-XZ:
+     *     a2 = sp+0x40; a1 = a2;            // (always-taken bne fall-through)
+     *     v1 += 0x30;                        // (skipped: dead path)
+     *     v3 = gl_func_00000000(12);         // 3rd 12-byte Vec3 alloc
+     *     f16 = 0.0f;
+     *     v1 = sp[0x120];                    // reload entity ptr
+     *     if (v3 != NULL) {
+     *         f8  = sp[0x74]; f10 = v1[0];   // player vs entity X
+     *         f18 = sp[0x7C]; f4  = v1[2];   // player vs entity Z
+     *         v3->x = f8 - f10;              // delta-X
+     *         v3->y = 0.0f;
+     *         v3->z = f18 - f4;              // delta-Z
+     *     }
+     *     // 2nd memcpy stage at sp+0x15C ← sp+0x40 (3 lw/sw)
+     *     // and 0x4140 (12.0f) loaded — possibly upper-bound for next op
+     *
+     * Pattern: third delta-Vec3 spawn from cached player pos at sp[0x74]/
+     * sp[0x7C] minus reloaded entity pos. Third in a row of similar
+     * particle/spawn deltas. Pattern is consistent with multi-element
+     * trail/effect spawning.
+     *
+     * Cumulative ~535/1102 insns characterized, ~567 remaining.
+     * NEXT PASS: 0x6254+ — continuation of memcpy stage + 12.0f use.
+     *
+     * TODO: ~567 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
