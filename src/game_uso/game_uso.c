@@ -6260,7 +6260,79 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  *   arg3->[0x30..0x38] — primary Vec3 (XZ-projection source)
  *   arg3->[0x348] — single-precision float promoted to double (sub-pixel
  *                   accumulator base)
- */
+ *
+ * EXTENDED 2026-05-14 (insns 217-410 @ 0x908C-0x93A8, ~193 insns):
+ *
+ *   (M) 0x908C-0x90F8: a1->[0x90..0x9C] WRITE-BACK No.2 with FPU mul.s
+ *       chain. Reads sp[0x1BC..0x1C4] (revised Vec3 from prior block),
+ *       multiplies by sp[0x100..0x108] doubles (the precision-promoted
+ *       intermediate), stores to a1->[0x90..0x9C]. Closes with `b +0x191`
+ *       (long forward jump to ~0x9700) — the EARLY-EXIT path when FPU
+ *       distance check passed.
+ *
+ *   (N) 0x90FC-0x9120: FIFTH cross-USO Vec3-reader. dst=sp+0xE4, src=
+ *       a3->[0x30..0x38] zero-Y XZ-projected. Same shape as blocks A/B/C.
+ *
+ *   (O) 0x9124-0x913C: FPU dispatch — store sp+0xA8 zero-Vec3 (mtc1 zero
+ *       to f6, store to sp+0xA8/0xAC/0xB0). Stage for next call.
+ *
+ *   (P) 0x9140-0x9164: SIXTH cross-USO call: gl_func(sp+0xA8, ?, 12).
+ *       Same Vec3-reader shape; dst sp+0xA8 (the zero-Vec3 we just staged).
+ *       Then bnez retval check + writeback to retval Vec3.
+ *
+ *   (Q) 0x9168-0x91A4: FPU XZ-DELTA compute (block-B-pattern reprise):
+ *         f10 = sp[0xE4] - arg3->[0x30]            ; X delta
+ *         f6  = sp[0xEC] - arg3->[0x38]            ; Z delta
+ *         retval->[0x0] = f10; retval->[0x4] = 0; retval->[0x8] = f6
+ *         + sp[0x1A0] update (cache delta-magnitude squared)
+ *
+ *   (R) 0x91A8-0x91D0: TRIPLE-DEST Vec3 copy (block-C reprise) —
+ *       sp+0x174 and sp+0xCC both fanout from arg3->[0x30..0x38].
+ *
+ *   (S) 0x91D4-0x91FC: SEVENTH cross-USO call. Vec3-reader sp+0x9C dst,
+ *       sp+0xA8 src. Saves retval at sp+0x214 (the recurring callee-rv slot).
+ *
+ *   (T) 0x9200-0x923C: ANOTHER FPU XZ-DELTA + magnitude-square check:
+ *         f8 = sp[0xCC] * sp[0xCC]
+ *         f10 = (sp[0xCC] + sp[0xD4]) * 0.5f       ; midpoint
+ *         retval->[0x0] = midpoint; retval->[0x8] = (computed Z); etc.
+ *
+ *   (U) 0x9240-0x9274: ANOTHER triple-dest Vec3 copy — sp+0xD8, sp+0xC0
+ *       both fanout from same source. Different stack slots, same shape.
+ *
+ *   (V) 0x9278-0x9298: EIGHTH cross-USO call. Vec3-reader, dst=arg-derived
+ *       (sp+0x1A0 stored as alt scratch).
+ *
+ *   (W) 0x929C-0x92E4: NINTH cross-USO call (`gl_func(sp+0xC0, sp+0x174, 12)`)
+ *       with retval check — same shape as block S.
+ *
+ *   (X) 0x92E8-0x9314: 0.5f midpoint compute (block-T reprise) for the new
+ *       Vec3 pair sp+0xD8/sp+0xE0 → sp+0x90 dst.
+ *
+ *   (Y) 0x9318-0x9358: TWO triple-dest Vec3 broadcast iterations
+ *       (sp+0xCC+0xD4 fanout to sp+0xB4 and sp+0xA8 — yet another
+ *       per-frame stage replication).
+ *
+ *   (Z) 0x935C-0x9398: FINAL FPU magnitude-square via cvt.d.s + c.lt.d
+ *       chain. Compares sp[0xC0] vs sp[0xC8] doubles, and sp[0xB4] vs
+ *       sp[0xBC] doubles. bc1f-skip on result. This is the MAIN
+ *       distance-compare gate (snowboard collision/proximity detection).
+ *       `beql v0, $0, +0xE9` long-skip (~232 insns forward) marks the
+ *       "no-collision-found" early exit.
+ *
+ *   (AA) 0x939C-0x93A8: TENTH cross-USO call setup — load a3->[0x84..0x88]
+ *       (caller's nested Vec3-2), prepare for "collision-detected" path
+ *       processing.
+ *
+ * Cumulative ~410/709 insns characterized (~58%). Pattern stable: the
+ * function performs ~3 iterations of the (cross-USO Vec3-reader, FPU
+ * XZ-delta/midpoint, triple-dest broadcast, magnitude-square check)
+ * cycle, with a master distance-compare gate at 0x935C deciding whether
+ * to enter the "collision-found" subroutine vs the "no-collision" early
+ * exit at +0xE9 forward.
+ *
+ * NEXT PASS: continue from 0x93AC (collision-found subroutine, ~232
+ * insns until far-merge + ~70 insns of epilogue/cleanup). */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
