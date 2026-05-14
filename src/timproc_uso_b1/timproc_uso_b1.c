@@ -416,7 +416,42 @@ void timproc_uso_b1_func_000018D4(char *a0) {
     gl_func_00000000(p, 0x8C, *(int*)(p + 0x6AC));
 }
 
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_00001908: 43-insn (0xB8) decrement-and-fire helper.
+ *
+ *   gl_func(self);                           ; pre-call
+ *   sub = self->[0xD4];
+ *   if (sub->[0x72C] > 0.0f) {
+ *       sub->[0x72C] -= D[0x48];              ; decrement by constant
+ *       sub = self->[0xD4];                    ; reload (clobbered)
+ *       if (sub->[0x72C] < 0.0f) sub->[0x72C] = 0.0f;  ; clamp to 0
+ *       gl_func(self, 140, sub->[0x6AC]);     ; mid-call
+ *       sub = self->[0xD4];
+ *       if (sub->[0x72C] <= 0.0f) gl_func(self);  ; threshold-crossed call
+ *   }
+ *
+ * Initial structural pass; FP-compare polarity / regalloc caps expected. */
+void timproc_uso_b1_func_00001908(int *self) {
+    char *base = &D_00000000;
+    int *sub;
+    gl_func_00000000(self);
+    sub = (int*)self[0xD4/4];
+    if (*(float*)((char*)sub + 0x72C) > 0.0f) {
+        *(float*)((char*)sub + 0x72C) -= *(float*)(base + 0x48);
+        sub = (int*)self[0xD4/4];
+        if (*(float*)((char*)sub + 0x72C) < 0.0f) {
+            *(float*)((char*)sub + 0x72C) = 0.0f;
+        }
+        gl_func_00000000(self, 140, *(int*)((char*)sub + 0x6AC));
+        sub = (int*)self[0xD4/4];
+        if (*(float*)((char*)sub + 0x72C) <= 0.0f) {
+            gl_func_00000000(self);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001908);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b1_func_000019C0: byte-identical mirror of
