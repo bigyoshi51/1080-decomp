@@ -6332,7 +6332,81 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  * exit at +0xE9 forward.
  *
  * NEXT PASS: continue from 0x93AC (collision-found subroutine, ~232
- * insns until far-merge + ~70 insns of epilogue/cleanup). */
+ * insns until far-merge + ~70 insns of epilogue/cleanup).
+ *
+ * EXTENDED 2026-05-14 (insns 410-610 @ 0x93AC-0x96C4, ~200 insns):
+ *
+ * COLLISION-FOUND SUBROUTINE @ 0x93AC-0x9408:
+ *   /\* "use a3->[0x84..0x8C]" path: copy a3 collision-Vec3 to retval *\/
+ *   retval->[0x4..0x8] = a3->[0x88..0x8C];
+ *   retval->[0x90..0x98] = sp[0x174..0x17C];   ; commit to subsystem
+ *   /\* 11th cross-USO call: gl_func(retval, sp+0x54, ...) *\/
+ *   gl_func_0(retval, sp+0x54, ...);
+ *
+ * MIDPOINT VEC3 @ 0x940C-0x9430:
+ *   sp+0x60..0x68 = midpoint(sp+0xCC, sp+0xD4);   ; XZ-midpoint average
+ *   sp+0x60..0x68 + zero-Y           ; XZ-projected midpoint
+ *
+ * SHADOW BROADCAST @ 0x9434-0x9468 (~14 insns):
+ *   /\* triple-dest copy from src to sp+0x60 dst + retval->[0..0x8] +
+ *    *  sp+0x84 dst (3 destinations) *\/
+ *
+ * 12th CROSS-USO @ 0x946C-0x94A8: Vec3-reader, dst=sp+0x84, src=sp+0x174
+ *   followed by retval-XZ-projection write-back (zero-Y),
+ *   13th call setup
+ *
+ * 13th CROSS-USO @ 0x94AC-0x94EC: Vec3-reader, dst=sp+0x48, src=sp+0x174
+ *   then a1->[0x84..0x8C] = sp[0x174..0x17C] write-back
+ *
+ * MIDPOINT-2 + 14th CROSS-USO @ 0x94F0-0x9558:
+ *   /\* second midpoint compute: sp+0x90 = midpoint(arg3->[0x30], arg3->[0x38]) *\/
+ *   /\* triple-dest copy of midpoint to sp+0x6C/sp+0x3C/sp+0x11C (3 dsts) *\/
+ *   gl_func_0(sp+0x84, ...);                  ; 14th cross-USO
+ *
+ * MAIN COLLISION-COMPUTE BLOCK @ 0x955C-0x95C8 (~30 insns):
+ *   /\* 250.0f speed-clamp gate (lui $at, 0x437A — 250.0f constant)
+ *    *  + double-precision FPU compute on collision Vec3 + arg3->[0x348]
+ *    *  (the sub-pixel accumulator base): *\/
+ *   f4 = sp[0xCC]; f8 = sp[0x6C]; f6 = sp[0xD4]; f10 = sp[0x74];
+ *   f4 = f4 * f8;
+ *   f12 = sp[0xCC]; f16 = sp[0xD4];   ; reload (different reg pool)
+ *   f4 = f12 * f16;                     ; squared X-distance
+ *   f4 = (DOUBLE)f4 + (sub-pixel base from arg3+0x348);
+ *   f0 = ABS(...);                      ; signed magnitude → unsigned
+ *   ; result spilled to sp[0x3C]/[0x40]/[0x44]
+ *
+ * 4-WAY VEC3 BROADCAST @ 0x95CC-0x9608 (~16 insns):
+ *   /\* same triple-dest pattern as before but 4 dsts now:
+ *    *   sp+0x3C, sp+0x40, sp+0x44 (the just-computed magnitude)
+ *    *   AND a separate Vec3 src to t8/t9 chain → 3 more sp slots *\/
+ *
+ * FINAL FPU MUL CHAIN @ 0x960C-0x9670 (~25 insns):
+ *   /\* mul.s f10 = f6 * f4 ; etc — 4-instruction FPU chain that produces
+ *    *  the final Vec3 components written to a1->[0x84..0x8C] (revised
+ *    *  again — third write-back to the subsystem struct) *\/
+ *   a1->[0x84..0x8C] = (revised computation);
+ *   sp[0x60..0x68] = (intermediate cache);
+ *
+ * STATE-COUNTER + RODATA JUMP-TABLE @ 0x9674-0x96A4 (~13 insns):
+ *   /\* increment a0->[0x9C] state counter, mask to 2 bits, switch on it *\/
+ *   counter = a0->[0x9C];
+ *   counter = (counter + 1) & 0x3;
+ *   a0->[0x9C] = counter & 0x3;
+ *   if (counter >= 4) goto skip_dispatch;     ; bound check
+ *   t9 = jump_table[counter];                  ; rodata table lookup
+ *   jr $t9;                                    ; ANOTHER rodata jr-jt!
+ *   nop (delay)
+ *   /\* Same rodata-jump-table caveat as 0x000DB8 in B3C — needs if-else
+ *    *  chain rewrite for C-only emit (per
+ *    *  feedback_ido_switch_rodata_jumptable.md) *\/
+ *
+ * POST-DISPATCH @ 0x96A8-0x96C4 (~8 insns):
+ *   /\* Default arm: load sp+0x60 + sp+0x64 floats, FPU mul.s,
+ *    *  more 4-arm broadcast prep *\/
+ *
+ * Cumulative ~610/709 insns characterized (~86%). NEXT PASS: continue
+ * from 0x96C8 — remaining ~99 insns: jump-table arms (likely 4 cases) +
+ * final accumulator commit + epilogue. */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
