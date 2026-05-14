@@ -3789,9 +3789,33 @@ void game_uso_func_0000591C(int *a0) {
      * trail/effect spawning.
      *
      * Cumulative ~535/1102 insns characterized, ~567 remaining.
-     * NEXT PASS: 0x6254+ — continuation of memcpy stage + 12.0f use.
      *
-     * TODO: ~567 remaining insns. */
+     * 0x6254-0x62C4 region (+30 insns) — dist² check + scale:
+     *     // Finish 3-word memcpy at sp+0x15C → sp+0x5C
+     *     sp[0x5C..0x64] = sp[0x15C..0x164];
+     *     f6  = s0->float_C0;
+     *     a0  = s0->ptr_30;                 // entity pointer
+     *     f8  = 12.0f;                       // (from earlier lui 0x4140)
+     *     f10 = s0->C0 + 12.0f;              // scale factor
+     *     f18 = a0->[0x348];                 // entity scale
+     *     f2  = a0->[0x348] * (s0->C0 + 12.0f);
+     *     // Compute squared distance in XZ plane:
+     *     dist_sq = sp[0x68]*sp[0x68] + sp[0x70]*sp[0x70];
+     *     if (dist_sq == 0.0f) {
+     *         f12 = 0.0f;                    // (b +7 path)
+     *         // skip distance-normalization block
+     *     } else {
+     *         // dist-normalization continues at 0x62C4 next
+     *     }
+     *
+     * Pattern: prepare scale factor (entity_scale * (player_state.C0+12))
+     * for the upcoming normalized direction vector. Bail to f12=0.0 if
+     * the XZ distance is zero (player exactly at entity).
+     *
+     * Cumulative ~565/1102 insns characterized, ~537 remaining.
+     * NEXT PASS: 0x62C8+ — sqrt/inverse + scale apply.
+     *
+     * TODO: ~537 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
