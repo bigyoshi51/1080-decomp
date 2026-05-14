@@ -3873,20 +3873,20 @@ int gl_func_0004D0B4(int a0) {
 }
 
 #ifdef NON_MATCHING
-/* game_libs_func_0004D0E4: 27-insn struct initializer (no prologue, leaf).
- * Sets ~16 fields of a0 (refcount, head pointer at 0x6C, magic 0x3EB00,
- * size limits 0x100/0x1000/0x800, type 0xC00, etc.) and finally writes
- * the runtime-resolved D_00000000 value to a0[0x48].
+/* game_libs_func_0004D0E4: 27-insn struct initializer (3-arg, leaf).
+ * 2026-05-13 fix: previous C had only 2 args + wrote 1 at 0x58. Target asm
+ * actually stores $a2 (third arg) at 0x58. Signature is (a0, a1, a2):
+ *   a0 = struct base
+ *   a1 = value stored at 0x6C (head ptr / callback)
+ *   a2 = value stored at 0x58 (refcount or capacity)
+ * The `1` constant appears at 0x10 and 0x64 only.
  *
- * Caps at ~70% fuzzy:
- *   - 0x3EB00 emit: built = lui+ori, target = lui+addiu (same value,
- *     different encoding choice; IDO heuristic, no C-level lever found).
- *   - The constant `1` is loaded TWICE in target (for a0[0x58]=1 and
- *     a0[0x64]=1) but ONCE in built (CSE'd). Target's second `li 1`
- *     comes after the D_00000000 lookup, suggesting register-pressure
- *     forces re-materialization. IDO's CSE collapses both. */
-void game_libs_func_0004D0E4(int *a0, int a1) {
-    a0[0x58/4] = 1;
+ * Target sequence: setup all li/lui constants up front (a2, a1, t6=1, t7=0x3EB00,
+ * t8=0x100, t9=0x1000, t0=0x800), 13 stores, THEN load D_00000000, THEN load
+ * 0xC00 + re-li 1 (registers freed up after first 11 stores), THEN store
+ * 0xC00 at 0x4C and 1 at 0x64, finally jr ra with sw D at 0x48 in delay. */
+void game_libs_func_0004D0E4(int *a0, int a1, int a2) {
+    a0[0x58/4] = a2;
     a0[0x6C/4] = a1;
     a0[0x5C/4] = 0;
     a0[0x70/4] = 0;
