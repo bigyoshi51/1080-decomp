@@ -3173,7 +3173,45 @@ int *gl_func_00039A04(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A04);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00039A9C: 28-insn helper.
+ *   gl_ref_0004C2DC(&buf);              alt-entry into gl_func_0004C288
+ *   a0->[0x5C..0x64] = buf[0..2]         Vec3 copy
+ *   gl_ref_0004C34C(a0 + 0x6C);         alt-entry into gl_func_0004C300
+ *   vt = a0->[0x28];
+ *   (vt->[0x2C])((short)vt->[0x28] + a0, &sp_arg=19)
+ *
+ * Added gl_ref_0004C2DC = 0x0004C2DC; gl_ref_0004C34C = 0x0004C34C;
+ * to undefined_syms_auto.txt for the alt-entry call resolution.
+ *
+ * Caps:
+ *  - Stack layout: target frame -64 with buf at sp+0x28 / sp_arg at
+ *    sp+0x34 / a2-save at sp+0x40 (callee-arg-slot). My emit produces
+ *    -48 with everything shifted. Same alignment issue as 39A04.
+ *  - Jal-target byte-encoding: expected/.o pre-bakes the resolved jal
+ *    bytes (0x0C0130B7 / 0x0C0130D3). My C-emit leaves R_MIPS_26 +
+ *    `0c000000` since the .o-level diff is pre-link. Would need
+ *    INSN_PATCH at offsets 0x10, 0x34 to make .o byte-match. ROM
+ *    post-link is correct via the new undefined_syms entries. */
+extern int gl_ref_0004C2DC();
+extern int gl_ref_0004C34C();
+void gl_func_00039A9C(int *a0) {
+    float buf[3];
+    int sp_arg;
+    gl_ref_0004C2DC(buf);
+    *(float*)((char*)a0 + 0x5C) = buf[0];
+    *(float*)((char*)a0 + 0x60) = buf[1];
+    *(float*)((char*)a0 + 0x64) = buf[2];
+    gl_ref_0004C34C((char*)a0 + 0x6C);
+    sp_arg = 19;
+    {
+        int *vt = (int*)a0[0x28/4];
+        ((void(*)(int, int*))vt[0x2C/4])(*(short*)((char*)vt + 0x28) + (int)a0, &sp_arg);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A9C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00039B0C: 19-insn float-Vec3-copy + 2 alt-entry jal dispatches.
