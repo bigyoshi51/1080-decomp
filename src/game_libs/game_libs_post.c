@@ -3438,7 +3438,38 @@ int gl_func_00039EE4(int **head) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039EE4);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00039F7C: 38-insn standalone bundle-iterator (mask=0x8 variant).
+ * Identical to gl_func_00039EE4 but:
+ *   - guard is node->[0x18] & 0x8 (vs & 0x4)
+ *   - dispatch via vt->[0x24] / vt->[0x20] (vs 0x1C / 0x18)
+ *
+ * Cap: same as 39EE4 — target spills bundle ptrs to sp+0x18/sp+0x1C,
+ * built promotes to $s0. ~70% match. */
+int gl_func_00039F7C(int **head) {
+    int **bundle = (int**)head[0];
+    int **iter;
+    int *node = NULL;
+    if (bundle != NULL) {
+        iter = (int**)bundle[1];
+        node = (int*)bundle[0];
+    } else {
+        iter = NULL;
+    }
+    while (node != NULL) {
+        if (node[0x18/4] & 0x8) {
+            int *vt = (int*)node[0x28/4];
+            ((void(*)(int))vt[0x24/4])(*(short*)((char*)vt + 0x20) + (int)node);
+        }
+        if (iter == NULL) break;
+        node = (int*)iter[0];
+        iter = (int**)iter[1];
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039F7C);
+#endif
 
 extern int gl_ref_0004C470();
 extern int gl_ref_0004C4AC();
