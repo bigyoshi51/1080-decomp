@@ -4196,7 +4196,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045E20);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045FF4);
+/* gl_func_00045FF4: 21-insn busy-wait loop. Captures initial value of
+ * a0->[0x218]->[0x24] and spins gl_func() while the (possibly volatile)
+ * value remains unchanged. */
+void gl_func_00045FF4(int *a0) {
+    volatile int *v0 = (volatile int*)a0[0x218/4];
+    int initial = v0[0x24/4];
+    while (initial == v0[0x24/4]) {
+        gl_func_00000000();
+        v0 = (volatile int*)a0[0x218/4];
+    }
+}
 
 /* Split off from gl_func_00045FF4 bundle 2026-05-08: 2-insn empty void
  * stub. The `sw a0, 0(sp)` is the IDO -O2 unused-arg-save sentinel
