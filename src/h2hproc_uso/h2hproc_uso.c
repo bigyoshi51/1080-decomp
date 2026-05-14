@@ -295,22 +295,22 @@ void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
     p = a0;
     if (p == 0) {
         p = (void*)gl_func_00000000(0x6BC);
-        if (p == 0) return p;
+        if (p == 0) goto end;
     }
     q = p;
     if (q == 0) {
         q = (void*)gl_func_00000000(0x6A8);
-        if (q == 0) return p;
+        if (q == 0) goto end;
     }
     r = q;
     if (r == 0) {
         r = (void*)gl_func_00000000(0x50);
-        if (r == 0) return p;
+        if (r == 0) goto end;
     }
     child = r;
     if (child == 0) {
         child = (void*)gl_func_00000000(0x2C);
-        if (child == 0) return p;
+        if (child == 0) goto end;
     }
     gl_func_00000000(child, base + 0x3C0);
     *(int*)((char*)child + 0x28) = (int)base;
@@ -354,6 +354,7 @@ void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
     if (z[0x14/4] != 0) z[1] = 1;
     z[0x14/4] = (int)p;
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
+end:
     return p;
 }
 #else
