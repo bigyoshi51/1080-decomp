@@ -7431,7 +7431,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060260);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000602A8);
 
+#ifdef NON_MATCHING
+/* gl_func_00060318: 22-insn list-walk with conditional clear.
+ *   if (a1 == a0->[0x10]) a0->[0x8] = 0;
+ *   p = a0->[0x18];
+ *   while (p) { func(p, a1); p = p->[0x14]; } */
+void gl_func_00060318(int *a0, int a1) {
+    int *p = (int*)a0[0x18/4];
+    if (a1 == a0[0x10/4]) a0[0x8/4] = 0;
+    while (p != 0) {
+        func_00000000(p, a1);
+        p = (int*)p[0x14/4];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060318);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060370);
 
