@@ -1391,47 +1391,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FB74);
 
 #ifdef NON_MATCHING
 /* gl_func_00030504: 24-insn (0x60) Gfx-command DL emit dispatcher.
- * Maps an input "key" (a0) to one of two F3DEX-style DL-call commands
- * (opcode 0x06 — G_DL): 0x06000000 (relative) or 0x06000001 (absolute),
- * with sign-extended byte args.
+ * 2026-05-13 corrections:
+ *   - Signature is 1-arg, not 2-arg (target doesn't read caller's $a1).
+ *   - Both call paths pass (signed char)key as the 2nd arg, NOT caller's a1.
+ *   - Switched if-else to `key=a0; if (a0 >= 0x101) key=a0&0xFF` to produce
+ *     target's single-branch-with-delay-slot shape (saved 2 insns).
  *
- * Decoded structure:
- *   key = (a0 < 0x101) ? a0 : (a0 & 0xFF);
- *   if (key >= 0x80) {
- *       /-- "absolute" path: opcode 0x06000001 --/
- *       gl_func_0(0x06000001,
- *                 (signed char)(key - 0x80),  // sign-ext byte arg
- *                 key);
- *   } else {
- *       /-- "relative" path: opcode 0x06000000 --/
- *       gl_func_0(0x06000000,
- *                 (signed char)a1,            // caller-supplied byte
- *                 key << 24);                 // shifted into MSB
- *   }
+ * Body: emits F3DEX G_DL opcode 0x06 with sign-extended byte arg.
+ *   key = a0; if (a0 >= 0x101) key = a0 & 0xFF;
+ *   if (key >= 0x80) gl_func(0x06000001, (signed char)(key - 0x80));
+ *   else             gl_func(0x06000000, (signed char)key);
  *
- * The two sign-ext sequences (sll 24; sra 24) are IDO's `signed char`
- * promotion at the call site. Caller likely passes a1 as `signed char`
- * (unused in the absolute path, where a1 is recomputed).
- *
- * Multi-tick byte-matching pending. Default INCLUDE_ASM keeps ROM matching;
- * structural decode here for grep + future grind.
- *
- * The dual-opcode (0x06000000 vs 0x06000001) suggests this is a glyph
- * dispatcher: keys < 0x80 emit one DL form, keys >= 0x80 (high-bit-set,
- * extended chars) emit the other. */
+ * Current 98.5% — remaining cap is IDO-regalloc: target keeps `key` in $a2,
+ * built keeps in $v0. The 3-arg trick (declare unused $a2 param) regresses
+ * to 95.4% via extra arg spills. `register int key asm("$a2")` rejected by
+ * IDO per feedback-ido-no-gcc-register-asm. Likely permuter or INSN_PATCH
+ * for the 5 affected register-name insns to promote. */
 extern int gl_func_00000000();
 
-void gl_func_00030504(int a0, signed char a1) {
-    int key;
-    if (a0 < 0x101) {
-        key = a0;
-    } else {
+void gl_func_00030504(int a0) {
+    int key = a0;
+    if (a0 >= 0x101) {
         key = a0 & 0xFF;
     }
     if (key >= 0x80) {
-        gl_func_00000000(0x06000001, (signed char)(key - 0x80), key);
+        gl_func_00000000(0x06000001, (signed char)(key - 0x80));
     } else {
-        gl_func_00000000(0x06000000, a1, key << 24);
+        gl_func_00000000(0x06000000, (signed char)key);
     }
 }
 #else
