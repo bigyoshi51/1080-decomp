@@ -7453,13 +7453,9 @@ int game_uso_func_0000C394(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x34);
 }
 
-#ifdef NON_MATCHING
 int game_uso_func_0000C3B0(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x38);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3B0);
-#endif
 
 #ifdef NON_MATCHING
 int game_uso_func_0000C3CC(int a0, int a1) {
