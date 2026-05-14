@@ -3479,7 +3479,51 @@ int gl_func_0003A014(char *a0) {
     return gl_ref_0004C4AC(a0 + 0x10);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0003A044: 32-insn conditional table-dispatch.
+ *
+ *   base = a0->[0x4] + (short)a0->[0x8]
+ *   if ((short)a0->[0xA] < 0):
+ *     // short-circuit dispatch: a2 = a0->[0xC], a0 = base, call a2
+ *   else:
+ *     // table-indexed dispatch
+ *     if      (a0->[0xC] != 0): idx = a0->[0xC]
+ *     else if ((short)a0->[0x8] != 0): idx = 0
+ *     else:                            idx = 0x28
+ *     table = *(int*)((char*)base + idx)
+ *     entry = table + ((short)a0->[0xA] << 3)
+ *     adjust = (short)entry[0]
+ *     fn = entry[1]
+ *     fn(base + adjust)
+ *
+ * Initial NM wrap with structure decoded. Future passes tighten reg
+ * allocation + delay slots. */
+void gl_func_0003A044(int *a0) {
+    int adjusted_base = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
+    int (*fn)(int);
+    if (*(short*)((char*)a0 + 0xA) < 0) {
+        fn = (int(*)(int))a0[0xC/4];
+        fn(adjusted_base);
+    } else {
+        int idx;
+        int *table;
+        int *entry;
+        if (a0[0xC/4] != 0) {
+            idx = a0[0xC/4];
+        } else if (*(short*)((char*)a0 + 0x8) != 0) {
+            idx = 0;
+        } else {
+            idx = 0x28;
+        }
+        table = *(int**)((char*)adjusted_base + idx);
+        entry = table + ((*(short*)((char*)a0 + 0xA) << 3) >> 2);
+        fn = (int(*)(int))entry[1];
+        fn(adjusted_base + *(short*)entry);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A044);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A0C4);
 
