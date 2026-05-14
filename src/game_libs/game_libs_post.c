@@ -6803,7 +6803,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065B5C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065C54);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065D08);
+/* gl_func_00065D08: 23-insn 7-call cascade. First call passes a0->[0xC];
+ * subsequent 6 calls pass a0 itself. */
+void gl_func_00065D08(int *a0) {
+    gl_func_00000000(a0[0xC/4]);
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+    gl_func_00000000();
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065D64);
 
