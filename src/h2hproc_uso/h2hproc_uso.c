@@ -824,25 +824,56 @@ void h2hproc_uso_func_00000F60(char *a0) {
  *
  * EPILOGUE: return self;
  *
- * Initial pass: entry alloc-cascade + init-helper + first 2 helper
- * returns. Rest is TODO. Default INCLUDE_ASM keeps ROM exact. */
-extern void *h2hproc_uso_func_00000FD0_TODO(void *self, int saved_a1);
-
+ * 65.30% NM (2026-05-14). Full structural body now in C: alloc-cascade,
+ * init-helper, 5-pass register-handler with packed flag, 6-arg create,
+ * indirect call via nested->fnptr_5C, 5 member-inits with packed
+ * (lui_class << 16) flags. Remaining ~35pp gap is regalloc + 6-arg
+ * variadic spill shape (sp+0x10/0x14 outgoing-args). Default INCLUDE_ASM. */
 void *h2hproc_uso_func_00000FD0(void *a0, int *a1) {
+    char *base = &D_00000000;
     void *self = a0;
     int saved_a1 = (int)a1;
+    int *sub;
+    int packed;
+    int handle;
+
     if (self == 0) {
         self = (void*)gl_func_00000000(0x9C);
         if (self == 0) return 0;
     }
-    gl_func_00000000(self, (char*)&D_00000000 + 0x3F4);
-    *(int*)((char*)self + 0x28) = (int)&D_00000000;
+    gl_func_00000000(self, base + 0x3F4);
+    *(int*)((char*)self + 0x28) = (int)base;
     *(int*)((char*)self + 0x2C) = saved_a1;
     *(int*)((char*)self + 0x34) = gl_func_00000000(0);
     *(int*)((char*)self + 0x30) = gl_func_00000000(0);
-    /* TODO: ~110 more insns — 5-pass register-handler + 6-arg create +
-     * indirect call + 5 member inits. */
-    return h2hproc_uso_func_00000FD0_TODO(self, saved_a1);
+    sub = (int*)*(int*)((char*)self + 0x30);
+    gl_func_00000000(sub, saved_a1);
+    packed = (*(int*)base + 3) << 16;
+    gl_func_00000000(sub, packed | 0x1, -1, base);
+    gl_func_00000000(sub, packed | 0x4, -1, base);
+    gl_func_00000000(sub, packed | 0x3, -1, base);
+    gl_func_00000000(sub, packed | 0x2, -1, base);
+    gl_func_00000000(sub, packed | 0x5, -1, base);
+    handle = gl_func_00000000(0, base, 72, 221, 3, 13);
+    *(int*)((char*)sub + 0x30) = handle;
+    gl_func_00000000(sub);
+    gl_func_00000000(sub, 174);
+    {
+        int *nested = (int*)*(int*)((char*)sub + 0x28);
+        void (*fn)(int) = (void(*)(int))nested[0x5C / 4];
+        short off = *(short*)((char*)nested + 0x58);
+        fn(((int)sub) + off);
+    }
+    gl_func_00000000((char*)self + 0x10, sub);
+    if (*(int*)((char*)sub + 0x14) != 0) {
+        *(int*)((char*)sub + 0x4) = 1;
+    }
+    *(int*)((char*)sub + 0x14) = (int)self;
+    gl_func_00000000((char*)self + 0x10, *(int*)(base + 0x4C) | (0x1D << 16));
+    gl_func_00000000((char*)self + 0x50, *(int*)(base + 0x54) | (0x1E << 16));
+    gl_func_00000000((char*)self + 0x68, *(int*)(base + 0x58) | (0x1D << 16));
+    gl_func_00000000((char*)self + 0x80, *(int*)(base + 0x60) | (0x1E << 16));
+    return self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD0);
