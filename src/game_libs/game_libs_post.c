@@ -6356,58 +6356,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054228);
  * INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054264);
 
-#ifdef NON_MATCHING
-/* gl_func_000545BC: 43-insn (0xAC) alloc-init + conditional sub-alloc + 4-float-copy
- * varargs marshaller. 5-arg function (a0..a3 + 5th float via caller-stack at sp+0x28).
- *
- * Structure:
- *   if (a0 == 0) { a0 = alloc(0x3C); if (a0 == 0) return 0; }
- *   gl_func(a0, 0x2107C);          // init with flag constant
- *   a0->[0x28] = &D_00000000;
- *   v1 = a0 + 0x2C;
- *   if (a0 + 0x2C == 0) {           // a0 == -0x2C — sentinel check (rare path)
- *       v1 = alloc(0x10);
- *       if (v1 == 0) return 0;
- *   }
- *   v1[0] = caller_a1;              // 4 floats copied from caller's arg area
- *   v1[1] = caller_a2;              //   sp+0x1C..sp+0x28 (caller-slot reads)
- *   v1[2] = caller_a3;
- *   v1[3] = arg5;                   // 5th arg from caller's stack at sp+0x28
- *   return a0;
- *
- * The bne against -0x2C sentinel is unusual — likely a constructor pattern
- * where (a0 + 0x2C) == 0 indicates a special "fresh init" case requiring
- * separate sub-allocation. Or the comparison is artifact of `if (&a0->field28 == 0)`
- * with a0 + 0x2C being computed unconditionally for the float-copy path.
- *
- * 5th-arg varargs accessed at sp+0x28 (caller's home slot for arg index 4) —
- * function signature must be 5-arg float or use va_list. Initial NM wrap with
- * decoded structure; matching needs careful arg-spill recipe + sentinel-check
- * codegen tuning. */
+/* gl_func_000545BC: 43-insn alloc-init + conditional sub-alloc + 4-float-copy.
+ * Matched 2026-05-14 via goto-end unified-epilogue + symbol-ref-for-magic-const
+ * (gl_ref_0002107C). The goto-end form lets IDO use the natural v0=a2 epilogue
+ * compute (eliminating the explicit `return 0` plumbing), and the symbol ref
+ * forces lui+addiu for the 0x2107C constant (literal int → lui+ori). */
 extern int gl_func_00000000();
-extern float gl_data_000545BC_arg5;
+extern char gl_ref_0002107C;
 void *gl_func_000545BC(void *a0, float a1, float a2, float a3, float a4) {
     float *v1;
     if (a0 == 0) {
         a0 = (void*)gl_func_00000000(0x3C);
-        if (a0 == 0) return 0;
+        if (a0 == 0) goto end;
     }
-    gl_func_00000000(a0, 0x2107C);
+    gl_func_00000000(a0, &gl_ref_0002107C);
     *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
     v1 = (float*)((char*)a0 + 0x2C);
     if ((char*)a0 + 0x2C == 0) {
         v1 = (float*)gl_func_00000000(0x10);
-        if (v1 == 0) return 0;
+        if (v1 == 0) goto end;
     }
     v1[0] = a1;
     v1[1] = a2;
     v1[2] = a3;
     v1[3] = a4;
+end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000545BC);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00054668: 21-insn / 0x54 four-call wrapper.
