@@ -7657,7 +7657,60 @@ void game_uso_func_0000D9CC(int *a0) {
          * speed/timer threshold.
          *
          * Cumulative 137/524 insns (~26%). NEXT PASS: 5th chain body at
-         * 0xDBF0+ (the bc1?? + state-update arms for f8 < 500.0f gate). */
+         * 0xDBF0+ (the bc1?? + state-update arms for f8 < 500.0f gate).
+         *
+         * EXTENDED 2026-05-13 (insns 137-297 @ 0xDBF0-0xDE6C, ~160 insns):
+         *
+         * Body crystallizes into a CASCADE OF ~10 CHAINED RESIDUAL CHECKS,
+         * each with the same shape:
+         *
+         *   threshold_gate:        ; c.lt.s / c.le.s + bc1fl
+         *   alloc_or_passthrough:  ; helper-call with v1 dest buffer
+         *   accumulator_setup:     ; sw t9, 0x28(sp); sw zero, 0x30(sp)
+         *   cross_USO_call:        ; jal 0 + arg in delay slot
+         *   reload_inner:          ; lw v1, 0xB4(s0) — clobbered by call
+         *   state_dispatch:        ; ori state_bits, OR-mask, sw to s0->0x108
+         *   merge_branch:          ; b +long-offset to common DD-region tail
+         *
+         * 5th-10th chain offsets (insn count, field, OR-mask, branch dist):
+         *   5th @ 0xDBF0  ~25 insns  inner->0x9D0 / 0x09A8  state|=0x2A/2B  short
+         *   6th @ 0xDC4C  ~16 insns  inner->0x103CC          state|=0x2A/2B  ; helper at 0x528
+         *   7th @ 0xDC84  ~22 insns  inner->0xA1C/0xA20/0xA24+0xA58 state|=0x2A/2B/29
+         *                            (3-coord sum check — sum < threshold gate)
+         *   8th @ 0xDCDC  ~15 insns  s0->0x304 vs s0->0x10 (outer field)  state|=0x15
+         *                            b +0xC3 (to far merge ~0xE020)
+         *   9th @ 0xDD18  ~9 insns   s0->0x2EC vs s0->0x10                state|=0x15+offset
+         *                            b +0xB2
+         *  10th @ 0xDD38  ~9 insns   s0->0x2D4 vs s0->0x10                state|=0x2D
+         *                            b +0xA1
+         *  11th @ 0xDD58  ~9 insns   s0->0x2BC vs s0->0x10                state|=0x2C
+         *                            b +0x93
+         *  12th @ 0xDD78  ~9 insns   s0->0x2A4 vs s0->0x10                state|=0x15
+         *                            b +0x83
+         *  13th @ 0xDD9C  ~9 insns   s0->0x28C vs s0->0x10                state|=0x0B/4
+         *                            (different branch shape)
+         *  14th @ 0xDDB4  ~9 insns   s0->0x28C vs s0->0x10                state|=0x2C+something
+         *                            b +0x83
+         *  15th @ 0xDDDC  ~9 insns   s0->0x274 vs s0->0x10                state|=0x0A
+         *                            (different OR-mask)
+         *
+         * Each chain is a c.lt.s/c.le.s gate followed by a state-OR + jal
+         * + b-to-merge. The OR-masks vary (0x29/0x2A/0x2B/0x2C/0x2D/0x0A/
+         * 0x0B/0x15) — the state byte at s0->0x108 accumulates a unique
+         * bit pattern based on which physics conditions tripped this frame.
+         * The merge point at ~0xE020 (still TBD) gathers all paths and
+         * runs the per-frame finalization (~140 insns from there to end).
+         *
+         * Field offsets touched (per-frame physics-state floats on s0):
+         *   0x274, 0x28C, 0x2A4, 0x2BC, 0x2D4, 0x2EC, 0x304  — array of
+         *   7 floats at +0x18 stride; likely an N=7 per-axis residual array.
+         *   (s0+0x10 is the common comparator base — looks like a struct
+         *   ptr s0+0x10 with field offsets 0x10/0x28/... matching the
+         *   +0x18 stride pattern of residual_array[N].)
+         *
+         * Cumulative 297/524 insns characterized (~57%). ~227 insns
+         * remaining — likely the merge-finalization at ~0xE020 + the
+         * else-arm (30.0f-fail path) reset code. */
     } else {
         /* 30.0f-fail path @ 0xDBDC (far forward, ~280 insns from entry).
          * Decoded skeleton: loads 500.0f into $f0 at delay slot, then
