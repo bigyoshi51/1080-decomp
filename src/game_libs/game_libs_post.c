@@ -5222,7 +5222,22 @@ int gl_func_00047DD8(int *a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047E00);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047F48);
+/* gl_func_00047F48: 8-insn tail-call wrapper.
+ *   Loads *(int*)(a0 + 0xE0) and tail-calls a cross-segment function with
+ *   that value as the single arg. */
+extern int func_00000000();
+int gl_func_00047F48(int *a0) {
+    return func_00000000(*(int*)((char*)a0 + 0xE0));
+}
+
+/* game_libs_func_00047F68: 13-insn 3-arm dispatcher split off from
+ * gl_func_00047F48 bundle 2026-05-14. C draft below at 54.6% — below 80%
+ * threshold; kept as INCLUDE_ASM. Decoded structure for future grind:
+ *   a0->[0x188] = a1; then:
+ *     a1 == 0  → a0->[0x1E0] = 1
+ *     a1 == 1  → a0->[0x1E0] = 0
+ *     else     → leave 0x1E0 untouched */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F68);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047F9C);
 
