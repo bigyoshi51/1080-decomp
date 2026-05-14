@@ -6112,7 +6112,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C284);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C43C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C66C);
+/* gl_func_0005C66C: 22-insn 2-call helper. First gl_func(a0, vec),
+ * then printf-style gl_func(&D_0 + 0x21AFC, vec, double(vec[0]),
+ * double(vec[1]), double(vec[2])). K&R float→double promotion. */
+void gl_func_0005C66C(int a0, float *vec) {
+    gl_func_00000000(a0, vec);
+    gl_func_00000000((char*)&D_00000000 + 0x21AFC, vec,
+                     (double)vec[0], (double)vec[1], (double)vec[2]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C6C4);
 
