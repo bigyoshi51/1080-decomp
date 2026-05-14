@@ -3303,7 +3303,49 @@ void gl_func_00039B58(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B58);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00039C8C: 102-insn 12-call helper, "register float-bounded
+ * field" callback orchestrator.
+ *   gl_func(&D_0, "string", 0)             init
+ *   gl_func(&D_0, a0, 19)                  associate
+ *   gl_proto(&D_0, "speed",  a0+0x70, 0.01f,  100.0f, 1)
+ *   gl_proto(&D_0, "rotX",   a0+0x74, -180.0f, 180.0f, 1)
+ *   gl_proto(&D_0, "rotY",   a0+0x78, -180.0f, 180.0f, 1)
+ *   gl_proto(&D_0, "rotZ",   a0+0x7C, -180.0f, 180.0f, 1)
+ *   gl_proto(&D_0, "Z",      a0+0x6C, -500.0f, 500.0f, 1)
+ *   gl_proto(&D_0, "scale",  a0+0x80, 0.0f, *(float*)(&D_0+0x1A80), 1)
+ *   gl_func(&D_0, 0, 0)                    end-section
+ *   gl_func(&D_0, "...", a0+0x2C, 0)       associate transform
+ *   gl_func(&D_0)                          finalize
+ *   gl_func(a0)                            commit
+ *
+ * Uses named-typed-extern gl_proto_39C8C (per K&R-float-call workaround
+ * in docs/IDO_CODEGEN.md) for the bounded-float calls. Required symbol
+ * gl_proto_39C8C added to undefined_syms_auto.txt.
+ *
+ * Cap: target emits `lui at, 0; lwc1 f18, 0x1A80(at)` (no CSE of
+ * &D_00000000 into a saved reg for the lwc1), while my C reuses $s0
+ * (which is set to &D_00000000 at function entry). 1-insn delta per
+ * such load. ~30 insns differ out of 102 (~70% match). */
+extern int gl_func_00000000();
+void gl_func_00039C8C(int *a0) {
+    extern int gl_proto_39C8C(void*, void*, void*, float, float, int);
+    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x1ECFC, 0);
+    gl_func_00000000(&D_00000000, a0, 19);
+    gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED04, (char*)a0 + 0x70, 0.01f, 100.0f, 1);
+    gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED0C, (char*)a0 + 0x74, -180.0f, 180.0f, 1);
+    gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED14, (char*)a0 + 0x78, -180.0f, 180.0f, 1);
+    gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED1C, (char*)a0 + 0x7C, -180.0f, 180.0f, 1);
+    gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED24, (char*)a0 + 0x6C, -500.0f, 500.0f, 1);
+    gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED2C, (char*)a0 + 0x80, 0.0f, *(float*)((char*)&D_00000000 + 0x1A80), 1);
+    gl_func_00000000(&D_00000000, 0, 0);
+    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x1ED34, (char*)a0 + 0x2C, 0);
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039C8C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039E24);
 
