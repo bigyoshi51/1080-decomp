@@ -69,6 +69,15 @@ def report_match_percents(names: set[str]) -> dict[str, float | None]:
 
 
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--min", type=float, default=None,
+                    help="filter to entries with fuzzy_match_percent >= MIN (e.g. 80 for grindable)")
+    ap.add_argument("--max", type=float, default=None,
+                    help="filter to entries with fuzzy_match_percent <= MAX (e.g. 99.99 to exclude scored-100s)")
+    ap.add_argument("--limit", type=int, default=50, help="max rows to print (default 50)")
+    args = ap.parse_args()
+
     if not Path("src").is_dir():
         print("error: run from a project worktree (no src/ directory)", file=sys.stderr)
         return 1
@@ -78,15 +87,19 @@ def main() -> int:
     # Sort by percent desc — high first, None entries last (they're either
     # below-threshold NM wraps with no C body or scoring artifacts).
     annotated = [(fn, path, pcts.get(fn)) for fn, path in wraps]
+    if args.min is not None:
+        annotated = [a for a in annotated if a[2] is not None and a[2] >= args.min]
+    if args.max is not None:
+        annotated = [a for a in annotated if a[2] is not None and a[2] <= args.max]
     annotated.sort(key=lambda x: (x[2] is None, -(x[2] or 0), x[0]))
     n_with_pct = sum(1 for _, _, mp in annotated if mp is not None)
     print(f"  with fuzzy% in report: {n_with_pct}; with None: {len(annotated) - n_with_pct}")
-    for fn, path, mp in annotated[:50]:
+    for fn, path, mp in annotated[: args.limit]:
         mp_str = f"{mp:.1f}%" if mp is not None else "None"
         rel_path = os.path.relpath(path)
         print(f"  {mp_str:>6}  {fn}  ({rel_path})")
-    if len(annotated) > 50:
-        print(f"  ... {len(annotated) - 50} more")
+    if len(annotated) > args.limit:
+        print(f"  ... {len(annotated) - args.limit} more")
     return 0
 
 
