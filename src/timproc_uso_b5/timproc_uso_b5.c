@@ -462,8 +462,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Initial structural pass. Default INCLUDE_ASM keeps ROM exact. */
 void timproc_uso_b5_func_000027B0(int *self) {
     char *base = &D_00000000;
+    char pad[16];  /* grow frame by 16 bytes to match target sp -= 0x48 */
     float buf[4];
     int v;
+    (void)pad;
     gl_func_00000000(self);
     if (self[0x30/4] != 2) return;
     buf[0] = 0.0f;
