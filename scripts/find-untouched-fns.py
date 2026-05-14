@@ -71,13 +71,20 @@ def asm_shape_flags(asm_path: str) -> str:
     return "X"
 
 
-def find_plain_include_asm() -> list[tuple[str, int, str]]:
-    """Return [(function_name, size_bytes, source_file_path), ...] for
-    plain `INCLUDE_ASM("...", FN);` lines that are NOT inside a
-    #ifdef NON_MATCHING / #else / #endif wrap."""
+def find_plain_include_asm() -> list[tuple[str, int, str, str]]:
+    """Return [(function_name, size_bytes, source_file_path, shape), ...]
+    for plain `INCLUDE_ASM("...", FN);` lines that are NOT inside a
+    #ifdef NON_MATCHING / #else / #endif wrap and NOT shadowed by an
+    NM-wrap elsewhere in the file."""
     results = []
     plain_re = re.compile(
         r'^INCLUDE_ASM\("(?P<asm>[^"]+)",\s*(?P<fn>\w+)\);\s*$', re.MULTILINE
+    )
+    # NM-wrap pattern: #ifdef NON_MATCHING ... #else ... INCLUDE_ASM(...,FN); ... #endif
+    # Allow other directives (e.g. #pragma GLOBAL_ASM) between INCLUDE_ASM and #endif.
+    nm_wrap_re = re.compile(
+        r'#ifdef NON_MATCHING.*?#else.*?INCLUDE_ASM\("[^"]+",\s*(\w+)\);.*?#endif',
+        re.DOTALL,
     )
     for root, _, files in os.walk("src"):
         for f in files:
@@ -88,13 +95,16 @@ def find_plain_include_asm() -> list[tuple[str, int, str]]:
                 text = open(path).read()
             except (OSError, UnicodeDecodeError):
                 continue
+            wrapped = {m.group(1) for m in nm_wrap_re.finditer(text)}
             for m in plain_re.finditer(text):
                 fn = m.group("fn")
+                if fn in wrapped:
+                    continue  # this INCLUDE_ASM is inside an NM-wrap
                 asm_seg = m.group("asm")
                 asm_path = f"{asm_seg}/{fn}.s"
                 size = parse_asm_size(asm_path)
                 if size is None or size < 0:
-                    continue  # handwritten or unreadable
+                    continue
                 shape = asm_shape_flags(asm_path)
                 results.append((fn, size, path, shape))
     return results
