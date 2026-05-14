@@ -2324,7 +2324,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000358DC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003593C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000359C4);
+/* gl_func_000359C4: 21-insn 3-call dispatcher with permuted arg lists.
+ * Calls gl_func(a1, a3, a2), then gl_func(0, a2, a1), then
+ * gl_func(a1, a3) (2-arg). a0 unused. */
+void gl_func_000359C4(int a0, int a1, int a2, int a3) {
+    gl_func_00000000(a1, a3, a2);
+    gl_func_00000000(0, a2, a1);
+    gl_func_00000000(a1, a3, a1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035A18);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00035A18_pad.s")
