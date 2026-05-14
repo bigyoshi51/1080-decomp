@@ -1079,7 +1079,134 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000015F0);
 #endif
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_000017A0: 143-insn (0x23C) per-frame state-machine.
+ *
+ * Sibling of 000015F0 (init) — this is the per-frame UPDATE companion.
+ * Tail half (0x17F0-0x185C) re-runs the same 3-sub-init pattern (sub1
+ * tag 68/?, sub2 tag 68/?, sub3 5-arg init) gated on bit-16 of
+ * a1->[0x4F0] AND a helper-call returning non-zero.
+ *
+ * STRUCTURE:
+ *   parent = self->[0xB8];
+ *   if (((parent->[0x4F0] >> 16) & 1) && parent->[0x4DC] == 1)
+ *       self->[0x30] += 0x21;
+ *   gl_func(self);                         ; per-frame helper
+ *   parent = self->[0xB8];                  ; reload (clobbered by call)
+ *   if ((parent->[0x4F0] & 0x10000) == 0) goto tail;  ; bit-16 gate
+ *   if (parent->[0x4DC] != 1) goto tail;
+ *
+ *   v = self->[0x44]; v1 = v->[0x34];
+ *   if (v1 == 0) {
+ *       p148 = v->[0x148];
+ *       if (p148 == 0)
+ *           gl_func(parent, 0);
+ *       else
+ *           gl_func(parent);
+ *       parent_local = self->[0xB8];
+ *       parent_local->[0x6B8] = -1;
+ *       goto skip_pgr_branch;
+ *   }
+ *   p148 = v->[0x148];
+ *   ; if conditions on p148 / v1 ...
+ *
+ *   ; Counter inc with bound:
+ *   c = self->[0xD4] + 1;
+ *   if (c >= 51) c = 0;
+ *   self->[0xD4] = c;
+ *
+ *   ; 3 conditional gl_func calls based on sub-state of self->[0xE8]/[0xEC]:
+ *   if (self->[0xE8] && self->[0xE8]->[0xC4] >= 12 && self->[0xD4] == 0)
+ *       gl_func(309, 0);
+ *   if (self->[0xEC] && self->[0xEC]->[0xC4] >= 12 && self->[0xD4] == 0)
+ *       gl_func(309, 0);
+ *   if (self->[0xE8]->[0xC8] <= 0)  gl_func(parent, 1);
+ *   if (self->[0xEC]->[0xC8] <= 0)  gl_func(parent, 0);
+ *
+ *   ; Re-init when bit-16 still set:
+ *   if (parent->[0x4F0] & 0x10000) {
+ *       if (gl_func(self) != 0) {
+ *           v = self->[0x44]; gl_func(parent, ...);
+ *           gl_func(self);
+ *       }
+ *       v = self->[0x44];
+ *       gl_func(self->[0xE8], v->[0x28]);
+ *       gl_func(self->[0xEC], v->[0x88]);
+ *       v = self->[0x44]; gl_func(self->[0x80], v->[0x30], v->[0x90]);
+ *       v = self->[0x44]; gl_func(self->[0x80], v->[0x8], v->[0xC],
+ *                                  v->[0x68], v->[0x6C]);
+ *   }
+ *   gl_func(self);                         ; tail helper
+ *
+ * Initial structural pass; default INCLUDE_ASM keeps ROM exact.
+ * Repeated regalloc+structural caps expected (similar to 15F0's 94%). */
+void h2hproc_uso_func_000017A0(int *self) {
+    int *parent = (int*)*(int*)((char*)self + 0xB8);
+    int *v;
+    int counter;
+    if ((((unsigned)parent[0x4F0/4] << 15) >> 31) && parent[0x4DC/4] == 1) {
+        *(int*)((char*)self + 0x30) += 0x21;
+    }
+    gl_func_00000000(self);
+    parent = (int*)*(int*)((char*)self + 0xB8);
+    if ((parent[0x4F0/4] & 0x10000) == 0) goto tail;
+    if (parent[0x4DC/4] != 1) goto tail;
+
+    v = (int*)*(int*)((char*)self + 0x44);
+    if (v[0x34/4] == 0) {
+        if (v[0x148/4] == 0) {
+            gl_func_00000000(parent, 0);
+        } else {
+            gl_func_00000000(parent);
+        }
+        *(int*)((char*)self + 0xB8);  /* reload */
+        *(int*)(((char*)*(int*)((char*)self + 0xB8)) + 0x6B8) = -1;
+    }
+
+    counter = *(int*)((char*)self + 0xD4) + 1;
+    if (counter >= 51) counter = 0;
+    *(int*)((char*)self + 0xD4) = counter;
+
+    if (*(int*)((char*)self + 0xE8) != 0 &&
+        *(int*)((char*)*(int*)((char*)self + 0xE8) + 0xC4) >= 12 &&
+        *(int*)((char*)self + 0xD4) == 0) {
+        gl_func_00000000(309, 0);
+    }
+    if (*(int*)((char*)self + 0xEC) != 0 &&
+        *(int*)((char*)*(int*)((char*)self + 0xEC) + 0xC4) >= 12 &&
+        *(int*)((char*)self + 0xD4) == 0) {
+        gl_func_00000000(309, 0);
+    }
+    if (*(int*)((char*)*(int*)((char*)self + 0xE8) + 0xC8) <= 0) {
+        gl_func_00000000(*(int*)((char*)self + 0xB8));
+    }
+    if (*(int*)((char*)*(int*)((char*)self + 0xEC) + 0xC8) <= 0) {
+        gl_func_00000000(*(int*)((char*)self + 0xB8));
+    }
+
+    parent = (int*)*(int*)((char*)self + 0xB8);
+    if (parent[0x4F0/4] & 0x10000) {
+        if (gl_func_00000000(self) != 0) {
+            v = (int*)*(int*)((char*)self + 0x44);
+            gl_func_00000000(*(int*)((char*)self + 0xB8));
+            gl_func_00000000(self);
+            v = (int*)*(int*)((char*)self + 0x44);
+        }
+        v = (int*)*(int*)((char*)self + 0x44);
+        gl_func_00000000(*(int*)((char*)self + 0xE8), v[0x28/4]);
+        gl_func_00000000(*(int*)((char*)self + 0xEC), v[0x88/4]);
+        v = (int*)*(int*)((char*)self + 0x44);
+        gl_func_00000000(*(int*)((char*)self + 0x80), v[0x30/4], v[0x90/4]);
+        v = (int*)*(int*)((char*)self + 0x44);
+        gl_func_00000000(*(int*)((char*)self + 0x80), v[0x8/4], v[0xC/4],
+                         v[0x68/4], *(float*)((char*)v + 0x6C));
+    }
+tail:
+    gl_func_00000000(self);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000017A0);
+#endif
 
 void h2hproc_uso_func_000019DC(char *dst) {
     int tmp;
