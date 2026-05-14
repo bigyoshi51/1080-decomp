@@ -450,7 +450,33 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001F14);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_000027B0: 35-insn (0x8C) state==2 init helper.
+ *   gl_func(self);
+ *   if (self->[0x30] != 2) return;
+ *   Vec4 buf = {0,0,0,0};                     ; sp+0x38..0x44
+ *   gl_func(&D_0, 0xFF, &buf);                ; init helper
+ *   v = self->[0x44];
+ *   gl_func(&D_0, 0, v-1, 319, v, 0x10001);   ; 6-arg dispatch
+ *
+ * Initial structural pass. Default INCLUDE_ASM keeps ROM exact. */
+void timproc_uso_b5_func_000027B0(int *self) {
+    char *base = &D_00000000;
+    float buf[4];
+    int v;
+    gl_func_00000000(self);
+    if (self[0x30/4] != 2) return;
+    buf[0] = 0.0f;
+    buf[1] = 0.0f;
+    buf[2] = 0.0f;
+    buf[3] = 0.0f;
+    gl_func_00000000(base, 0xFF, buf);
+    v = self[0x44/4];
+    gl_func_00000000(base, 0, v - 1, 319, v, 0x10001);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000027B0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000283C);
 
