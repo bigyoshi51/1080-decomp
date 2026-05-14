@@ -606,20 +606,23 @@ void titproc_uso_func_00001C68(int *a0) {
  * Sibling of 1840: alloc(0x40) + dead-arm alloc(0x2C), init from
  * &D_0+0x500, vtable, 4 floats=1.0f at +0x2C..0x38, zero at +0x3C.
  *
- * Initial structural pass; default INCLUDE_ASM keeps ROM exact. */
+ * 2026-05-14: applied fall-through-with-null-guard form to the dead-arm
+ * second alloc (per docs/IDO_CODEGEN.md#feedback-ido-goto-epilogue) and
+ * fixed a typo (duplicate `*(self+0x28) = base` should have been `sub`
+ * vs `self`). Pushed 59.36% → 84.20% (+24.84pp). Remaining cap: frame
+ * size (-0x28 vs target -0x20) due to the extra `sub` local. */
 void *titproc_uso_func_00001D7C(void *a0) {
     char *base = &D_00000000;
     void *self = a0;
+    void *sub;
     if (self == 0) {
         self = (void*)gl_func_00000000(0x40);
-        if (self == 0) return self;
+        if (self == 0) goto end;
     }
-    if (self == 0) {  /* dead-arm passthrough cascade */
-        self = (void*)gl_func_00000000(0x2C);
-        if (self == 0) return self;
-    }
-    gl_func_00000000(self, base + 0x500);
-    *(int*)((char*)self + 0x28) = (int)base;
+    sub = self;
+    if (self == 0) sub = (void*)gl_func_00000000(0x2C);  /* dead-arm */
+    gl_func_00000000(sub, base + 0x500);
+    *(int*)((char*)sub + 0x28) = (int)base;
     *(int*)((char*)self + 0x28) = (int)base;
     *(int*)((char*)self + 0x0C) = (int)(base + 0x508);
     *(int*)((char*)self + 0x3C) = 0;
@@ -627,6 +630,7 @@ void *titproc_uso_func_00001D7C(void *a0) {
     *(float*)((char*)self + 0x30) = 1.0f;
     *(float*)((char*)self + 0x34) = 1.0f;
     *(float*)((char*)self + 0x38) = 1.0f;
+end:
     return self;
 }
 #else
