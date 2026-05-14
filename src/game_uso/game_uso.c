@@ -558,7 +558,68 @@ void game_uso_func_00000AEC(int *a0, int a1) {
  *   gl_func_0(s2, ...);                ; cross-USO call (a0 = sp+0xF4)
  *
  * Cumulative ~305/706 insns characterized (~43%). NEXT PASS: continue
- * from 0xF34 — post-FPU dispatch + remaining ~400 insns. */
+ * from 0xF34 — post-FPU dispatch + remaining ~400 insns.
+ *
+ * EXTENDED 2026-05-14 (insns 305-480 @ 0xF34-0x11F8, ~175 insns):
+ *
+ * SWITCH #1 @ 0xF34-0xF7C (~18 insns): switch on a3->[0x10]
+ *   case 1 (==1): jal target +0x7        ; gl_func dispatch
+ *   case 2 (==2): jal target +0xC        ; alt arm
+ *   case 3 (==3): jal target +0xB        ; another arm
+ *   default: load Vec3 from a3->[0xA0..0xA8], store to sp+0x110/0x114/0x118
+ *
+ * VEC3-VIA-SUB @ 0xF7C-0xFC0 (~17 insns): a3->[0x14] != 0 alt path
+ *   sub_obj = a3->[0xC];
+ *   sp+0xB4 = sub_obj->[0x0];
+ *   sp+0xB8 = sub_obj->[0x4];     ; (load chain through t9 reg)
+ *   sp+0xBC = sub_obj->[0x8];
+ *   /\* read back as floats and store to sp+0x110/0x114/0x118 *\/
+ *
+ * SUB-LUT INDEXING @ 0xFC4-0x1038 (~30 insns):
+ *   /\* a0->[0x25C] is used as a 3-element index into 3 parallel tables *\/
+ *   t6 = (a0->[0x25C]+1)*0x80;     ; (signal "next slot")
+ *   t8 = a3->[0x25C]+t6;            ; ptr
+ *   sp+0x98 = t8->[0x34];           ; per-axis offset 1
+ *   sp+0x9C = (t8+0xC)->[0x38];     ; per-axis offset 2
+ *   sp+0xA0 = (t8+0xC)->[0x3C];     ; per-axis offset 3
+ *   sp+0xA4 = (t8+0xC)->[0x40];     ; (jal cross-USO call here?)
+ *
+ * SWITCH #2 @ 0x1038-0x1088 (~16 insns): another switch on a3->[0x4]
+ *   case 1: a0_addr = a0->[0xF4]+0x70; sp+0x11C/0x120/0x124 ← a3->[0x34..0x3C]
+ *           (FPU adds with f10/f6/f12 chains)
+ *   case 2/3: similar shape with different offsets
+ *
+ * VEC3-VIA-T9 @ 0x108C-0x10D4 (~17 insns):
+ *   sp+0xB4/0xB8/0xBC ← t9->[0x0]/[0x4]/[0x8]     ; (chain through caller's t9)
+ *   /\* re-read as floats, store to sp+0x11C/0x120/0x124 (Vec3 secondary stage) *\/
+ *
+ * SUB-LUT #2 @ 0x10D4-0x1138 (~25 insns):
+ *   /\* (same LUT shape as #1 but for a different sp dest region) *\/
+ *   t10 = a0->[0x25C]<<7; t11 = a3->[0x25C]+t10;
+ *   sp+0x88 = t11->[0x34];
+ *   sp+0x8C = (t11+0xC)->[0x38];
+ *   sp+0x90 = (t11+0xC)->[0x3C];
+ *   sp+0x94 = (t11+0xC)->[0x40];   ; (jal here too)
+ *
+ * SWITCH #3 @ 0x1138-0x11A8 (~28 insns): switch on a3->[0x0]
+ *   case 1 (==1): mtc1 1.0f → f18; mtc1 0 → f10/f6;
+ *                  sp+0x7C/0x80/0x84 = (1.0, 0.0, 0.0);
+ *                  sub_obj = a3->[0x0]; sp+0xB4 = sub_obj->[0x0]; etc.
+ *                  re-read as floats → sp+0x104/0x108/0x10C (Vec3 tertiary stage)
+ *
+ * VEC3-VIA-A3-FIELD @ 0x11B0-0x11F4 (~17 insns):
+ *   /\* a3->[0x20] != 0 path *\/
+ *   sub2 = a3->[0x18];     ; or [0x1C]/[0x20] depending on arm
+ *   sp+0xB4/0xB8/0xBC ← sub2->[0x0]/[0x4]/[0x8];
+ *   re-read as floats → sp+0x104/0x108/0x10C
+ *
+ * Cumulative ~480/706 insns characterized (~68%). Pattern: SAME
+ * 3-arm-switch + Vec3-stage shape repeated 3+ times for different
+ * a3->[0x0]/[0x4]/[0x10] dispatch fields. Each switch handles 4 cases
+ * (default + 3 arms), each arm staging a Vec3 to a different sp slot.
+ *
+ * NEXT PASS: continue from 0x11F8 — likely 1-2 more switch+stage
+ * iterations + final convergence + epilogue (~226 insns to end). */
 void game_uso_func_00000B3C(int *a0) {
     int *sub;
     int derived_id;
