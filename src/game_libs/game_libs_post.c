@@ -2752,7 +2752,139 @@ void gl_func_00038FE0(char *a0) {
     gl_func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00039094: 201-insn switch-state-machine + linked-list iterator
+ * orchestrator. Driven by root->[0xB0] (state, 0..8). Each case 1..8 calls
+ * gl_func_00000000 with various arg-set patterns referencing globals at
+ * &D_00000000 + 0xE8 (with sub-offsets) plus root sub-fields.
+ *
+ * After the switch, iterates the bundle list at root->[0x10] (same
+ * {node*, next_bundle*} shape as gl_func_00038DC0). For each node:
+ *   - both checks: node->[0]->[0x18] & 0x4 must be set (twice — likely
+ *     re-load after potential global side effect)
+ *   - if root->[0x2C] & 2: D_00000000 = root; reload v1 = node->[0]
+ *   - call gl_func_00000000(); use ret v0
+ *   - if node->[0]->[0x20] & v0_ret: dispatch
+ *     (node->[0]->[0x28])->[0x1C](*(short*)((char*)... + 0x18) + (int)v1)
+ * After loop: final gl_func_00000000().
+ *
+ * Cap: 201 insns + jump table for 8-case dispatch + FPU vec3 mat-mul
+ * sequence in case 8 + nested re-load/re-check pattern in iterator. Too
+ * many caps in one function — initial wrap-only commit. Future ticks
+ * incrementally refine per-case bodies.
+ *
+ * 2026-05-14: started as INCLUDE_ASM-only; this commit upgrades to a
+ * decoded-skeleton NM wrap.
+ */
+extern int gl_func_00000000();
+int gl_func_00039094(int *root) {
+    int **bundle = (int**)root[0x10/4];
+    int **iter;
+    int *node = NULL;
+    int v0_state = root[0xB0/4];
+
+    gl_func_00000000(root[0xC/4]);
+
+    if (v0_state != 0 && (unsigned)v0_state < 9) {
+        switch (v0_state) {
+            case 1:
+                gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0xE8);
+                break;
+            case 2: {
+                int ret;
+                int *vt;
+                gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0xE8, &D_00000000);
+                vt = (int*)root[0x28/4];
+                ret = ((int(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58) + (int)root);
+                gl_func_00000000(&D_00000000, ret);
+                break;
+            }
+            case 3: {
+                int ret;
+                int *vt = (int*)root[0x28/4];
+                ret = ((int(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58) + (int)root);
+                gl_func_00000000(&D_00000000, ret);
+                break;
+            }
+            case 4: {
+                int ret;
+                int *vt = (int*)root[0x28/4];
+                ret = ((int(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58) + (int)root);
+                gl_func_00000000(&D_00000000, ret);
+                break;
+            }
+            case 5: case 6: {
+                /* Two-step dispatch via global root + own dispatch */
+                int *gr = *(int**)&D_00000000;
+                int *vt_gr;
+                int *vt_self;
+                int ret_gr, ret_self;
+                vt_gr = (int*)gr[0x28/4];
+                ret_gr = ((int(*)(int))vt_gr[0x5C/4])(*(short*)((char*)vt_gr + 0x58) + (int)gr);
+                gl_func_00000000(&D_00000000, ret_gr);
+                vt_self = (int*)root[0x28/4];
+                ret_self = ((int(*)(int))vt_self[0x5C/4])(*(short*)((char*)vt_self + 0x58) + (int)root);
+                gl_func_00000000(&D_00000000, ret_self);
+                break;
+            }
+            case 7:
+                gl_func_00000000(&D_00000000);
+                break;
+            case 8: {
+                float vec[19];   /* sp+0x48..0x90 region */
+                float *gvec = (float*)((char*)&D_00000000 + 0x128);
+                /* Copy 13 words from (&D_0 + 0xE8) into sp+0x48 */
+                {
+                    int *src = (int*)((char*)&D_00000000 + 0xE8);
+                    int *dst = (int*)((char*)vec - 0x48 + 0x48); /* placeholder */
+                    int i;
+                    for (i = 0; i < 13; i++) dst[i] = src[i];
+                }
+                vec[16] = *(float*)((char*)root + 0xA0) * gvec[0];
+                vec[17] = *(float*)((char*)root + 0xA4) * gvec[1];
+                vec[18] = *(float*)((char*)root + 0xA8) * gvec[2];
+                gl_func_00000000(&D_00000000, &vec[15]);
+                gl_func_00000000(&D_00000000, vec);
+                break;
+            }
+        }
+    }
+
+    /* Iterate bundle list */
+    if (bundle != NULL) {
+        iter = (int**)bundle[0x4/4];
+        node = (int*)bundle[0x0/4];
+    } else {
+        iter = NULL;
+    }
+    while (node != NULL) {
+        int *child = (int*)bundle[0x0/4]; /* current node */
+        if ((((int*)child[0])[0x18/4] & 0x4) && (((int*)child[0])[0x18/4] & 0x4)) {
+            int *cur = (int*)child[0];
+            int ret;
+            int *vt;
+            if (root[0x2C/4] & 0x2) {
+                *(int**)&D_00000000 = root;
+                cur = (int*)child[0];
+            }
+            ret = gl_func_00000000();
+            if (cur[0x20/4] & ret) {
+                vt = (int*)cur[0x28/4];
+                ((void(*)(int))vt[0x1C/4])(*(short*)((char*)vt + 0x18) + (int)cur);
+            }
+        }
+        if (iter == NULL) break;
+        bundle = iter;
+        node = (int*)iter[0];
+        iter = (int**)iter[1];
+    }
+
+    gl_func_00000000();
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039094);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000393B8);
 
