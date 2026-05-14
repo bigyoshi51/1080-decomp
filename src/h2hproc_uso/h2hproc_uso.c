@@ -992,7 +992,117 @@ void h2hproc_uso_func_00001204(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001204);
 #endif
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00001360: 164-insn (0x290) per-frame compound dispatcher.
+ *
+ * STRUCTURE:
+ *   self->[0x98]++;                                 ; counter inc
+ *   /\* indirect call via self->[0x34]->[0x28]->[0x1C] with arg
+ *    *  computed as self->[0x34] + (short)(self->[0x34]->[0x28])->[0x18] *\/
+ *   v = self->[0x34]; vt = v->[0x28];
+ *   ((void(*)(int))vt[0x1C/4])((int)v + (short)vt[0x18/2]);
+ *
+ *   gl_func(self->[0x2C]->[0x568]);                 ; 2 cross-USO helper calls
+ *   gl_func(self->[0x2C]->[0x568]);
+ *
+ *   ; First "gate body" iteration — gated by `(v0 & 0x10) != 0`
+ *   ; where v0 = 16 (always; the asm has a dead-bnezl/b construct):
+ *   ;   gl_func(sp+0x38, &D_0 + 0x3FC);             ; sp-local Vec3-style load 80 bytes
+ *   ;   gl_func(self->[0x2C]->[0x568], 80, sp+0x38, ...);
+ *   ;   v0 = ((self->[0x2C]->[0x6A8])->[0x0] == 1) ? 0 : 115;
+ *   ;   gl_func(self->[0x2C]->[0x568], v0, 80, sp+0x38, &D_0+0x400);
+ *   ;   gl_func(self->[0x2C]->[0x568], retval, 80, sp+0x38);
+ *
+ *   ; Second iteration — same shape but with sub-state 0x4 instead of 0x0,
+ *   ; constants 240 instead of 80, &D_0+0x40C instead of 0x3FC,
+ *   ; &D_0+0x410 instead of 0x400:
+ *   ;   gl_func(sp+0x38, &D_0 + 0x40C);
+ *   ;   gl_func(self->[0x2C]->[0x568], 240, sp+0x38);
+ *   ;   v0 = ((self->[0x2C]->[0x6A8])->[0x4] == 1) ? 0 : 115;
+ *   ;   gl_func(self->[0x2C]->[0x568], v0, 240, sp+0x38, &D_0+0x410);
+ *   ;   gl_func(self->[0x2C]->[0x568], retval, 240, sp+0x38);
+ *
+ *   ; Tail: 4 more sub-inits at self+0x38, self+0x50, self+0x68, self+0x80:
+ *   gl_func(&D_0);
+ *   gl_func(self+0x38, ...);
+ *   gl_func(self+0x50, 60, 64, 3);
+ *   gl_func(stored_self+0x50, (short)self->[0x48]->[0x20] + 68, 64, 3);
+ *   gl_func(self+0x68, 220, 64, 3);
+ *   gl_func(stored_self+0x68, (short)self->[0x78]->[0x20] + 228, 64, 3);
+ *   gl_func(self);                                  ; final
+ *
+ * Initial structural pass. Default INCLUDE_ASM keeps ROM exact. */
+void h2hproc_uso_func_00001360(int *self) {
+    char *base = &D_00000000;
+    int *vtable;
+    int *v_call;
+    int *helper;
+    char scratch[80];
+    int retval;
+    int *parent;
+    int *sub;
+
+    *(int*)((char*)self + 0x98) += 1;
+    v_call = (int*)*(int*)((char*)self + 0x34);
+    vtable = (int*)*(int*)((char*)v_call + 0x28);
+    ((void(*)(int))vtable[0x1C/4])((int)v_call + *(short*)((char*)vtable + 0x18));
+
+    gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
+    gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
+
+    /* First gate body */
+    gl_func_00000000(scratch, base + 0x3FC);
+    helper = (int*)*(int*)((char*)self + 0x2C);
+    retval = gl_func_00000000(helper[0x568/4], 80, scratch);
+    helper = (int*)*(int*)((char*)self + 0x2C);
+    parent = (int*)*(int*)((char*)helper + 0x6A8);
+    {
+        int id = (parent[0] == 1) ? 0 : 115;
+        gl_func_00000000(helper[0x568/4], retval, 30, scratch, base + 0x400);
+        retval = id;
+    }
+    helper = (int*)*(int*)((char*)self + 0x2C);
+    gl_func_00000000(helper[0x568/4], retval, 80, scratch);
+
+    /* Second gate body (mirror) */
+    gl_func_00000000(scratch, base + 0x40C);
+    helper = (int*)*(int*)((char*)self + 0x2C);
+    retval = gl_func_00000000(helper[0x568/4], 240, scratch);
+    helper = (int*)*(int*)((char*)self + 0x2C);
+    parent = (int*)*(int*)((char*)helper + 0x6A8);
+    {
+        int id = (parent[1] == 1) ? 0 : 115;
+        gl_func_00000000(helper[0x568/4], retval, 30, scratch, base + 0x410);
+        retval = id;
+    }
+    helper = (int*)*(int*)((char*)self + 0x2C);
+    gl_func_00000000(helper[0x568/4], retval, 80, scratch);
+
+    /* Tail */
+    gl_func_00000000(base);
+    sub = (int*)((char*)self + 0x38);
+    gl_func_00000000(sub);
+    gl_func_00000000(sub, 60, 64, 3);
+    {
+        int *seg = (int*)*(int*)((char*)self + 0x48);
+        sub = (int*)((char*)self + 0x50);
+        gl_func_00000000(sub);
+        gl_func_00000000(sub, *(short*)((char*)seg + 0x20) + 68, 64, 3);
+    }
+    sub = (int*)((char*)self + 0x68);
+    gl_func_00000000(sub);
+    gl_func_00000000(sub, 220, 64, 3);
+    {
+        int *seg = (int*)*(int*)((char*)self + 0x78);
+        sub = (int*)((char*)self + 0x80);
+        gl_func_00000000(sub);
+        gl_func_00000000(sub, *(short*)((char*)seg + 0x20) + 228, 64, 3);
+    }
+    gl_func_00000000(self);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001360);
+#endif
 
 #ifdef NON_MATCHING
 /* h2hproc_uso_func_000015F0: 108-insn (0x1B0) constructor with 3 sub-alloc
