@@ -2965,7 +2965,57 @@ int gl_func_000393B8(int *root) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000393B8);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00039624: 54-insn switch on a1[0] with 3 cases.
+ * case 6: gated on a0->[0x18] & 0x40; copy 3 ints from a1->[0x4]+0xEC..0xF4
+ *         into a 3-int stack scratch, then twice-call gl_func with
+ *         (a0+0x30, scratch) and (a0+0x70, scratch).
+ * case 7: copy 3 floats from a1->[0x4][0..2] into both a0+0xA0 and a0+0x60
+ *         (with a reload of a1[0x4] between the two writes).
+ * default: tail-call gl_func(a0, a1).
+ *
+ * Cap: scratch-array addressing differs: target uses `addiu a1, sp, 0x1C;
+ * sw t, 0(a1); sw t, 4(a1); sw t, 8(a1)` (pre-compute outgoing arg base
+ * and reuse it for the body stores), we emit `addiu a1, sp, 0x20; sw t,
+ * 0x20(sp); ...` (separate sp-direct stores + arg setup). Tried
+ * `(char*)scratch + N`, intermediate `int *p = scratch`, both produced
+ * sp-direct stores. The IDO optimization needs the outgoing-arg base
+ * pointer to be the same SSA value used inside the body — a "pass arg
+ * pointer to body" pattern that doesn't survive C-to-IDO mapping.
+ * 9 insns / 24 lines diff out of 54 (~82% byte match). */
+extern int gl_func_00000000();
+void gl_func_00039624(int *a0, int *a1) {
+    switch (a1[0]) {
+    case 6:
+        if (a0[0x18/4] & 0x40) {
+            int *src = (int*)a1[0x4/4];
+            int scratch[3];
+            scratch[0] = src[0xEC/4];
+            scratch[1] = src[0xF0/4];
+            scratch[2] = src[0xF4/4];
+            gl_func_00000000((char*)a0 + 0x30, scratch);
+            gl_func_00000000((char*)a0 + 0x70, scratch);
+        }
+        break;
+    case 7: {
+        float *src = (float*)a1[0x4/4];
+        *(float*)((char*)a0 + 0xA0) = src[0];
+        *(float*)((char*)a0 + 0xA4) = src[1];
+        *(float*)((char*)a0 + 0xA8) = src[2];
+        src = (float*)a1[0x4/4];
+        *(float*)((char*)a0 + 0x60) = src[0];
+        *(float*)((char*)a0 + 0x64) = src[1];
+        *(float*)((char*)a0 + 0x68) = src[2];
+        break;
+    }
+    default:
+        gl_func_00000000(a0, a1);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039624);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000396FC);
 
