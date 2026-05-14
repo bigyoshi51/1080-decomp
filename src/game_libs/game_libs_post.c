@@ -5499,7 +5499,18 @@ int gl_func_0004D0B4(int a0) {
  * Target sequence: setup all li/lui constants up front (a2, a1, t6=1, t7=0x3EB00,
  * t8=0x100, t9=0x1000, t0=0x800), 13 stores, THEN load D_00000000, THEN load
  * 0xC00 + re-li 1 (registers freed up after first 11 stores), THEN store
- * 0xC00 at 0x4C and 1 at 0x64, finally jr ra with sw D at 0x48 in delay. */
+ * 0xC00 at 0x4C and 1 at 0x64, finally jr ra with sw D at 0x48 in delay.
+ *
+ * 2026-05-14: applied magic-arg-via-symbol recipe for the 0x3EB00 constant:
+ * literal `0x3EB00` emitted lui+ori (0x35ceeb00) while target uses lui+addiu
+ * (0x25efeb00). Switched to `(int)&gl_ref_0003EB00` (symbol declared in
+ * undefined_syms_auto.txt) to force the addiu emit form. 70.37% → 72.44%
+ * (+2.07pp). Remaining cap: constant-load ordering (IDO hoists 0xC00/1
+ * loads EARLY, target places them in lw-load-delay-slot AFTER D_0 read)
+ * and CSE of the constant `1` (built reuses one $v0 across stores, target
+ * emits TWO separate addiu zero,1 into different registers $t6 and $t3).
+ * Both controlled by IDO's instruction scheduler / CSE — no clean C lever. */
+extern char gl_ref_0003EB00;
 void game_libs_func_0004D0E4(int *a0, int a1, int a2) {
     a0[0x58/4] = a2;
     a0[0x6C/4] = a1;
@@ -5508,7 +5519,7 @@ void game_libs_func_0004D0E4(int *a0, int a1, int a2) {
     a0[0x74/4] = 0;
     a0[0x10/4] = 1;
     a0[0x14/4] = 0;
-    a0[0x18/4] = 0x3EB00;
+    a0[0x18/4] = (int)&gl_ref_0003EB00;
     a0[0x1C/4] = 0x100;
     a0[0x24/4] = 0x1000;
     a0[0x2C/4] = 0x800;
