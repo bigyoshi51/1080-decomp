@@ -5463,7 +5463,85 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * physics ground-projection of a per-frame velocity vector.
  *
  * NEXT PASS: continue from 0x8170 — another likely matrix-multiply
- * pass and the final *arg5 write. */
+ * pass and the final *arg5 write.
+ *
+ * EXTENDED DECODE 0x8170-0x84DC (~135 insns, decoded 2026-05-13):
+ *
+ *   /\* (n) 0x8170-0x81C8: Vec3-broadcast pass — t8/t9-chain copies of
+ *    *      s0->Vec3 into sp+0x1F0, sp+0x250, a1->0..0x8 *\/
+ *   sp[0x1F0..1F8] = s0->[0..8];
+ *   sp[0x250..258] = s0->[0..8];
+ *   a1->[0..8] = s0->[0..8];
+ *   /\* 3-double FPU reduction: sp+0x244/0x248/0x24C += staged accumulator
+ *    * (add.s pairwise of sp[0x244]+f4, sp[0x248]+f10, sp[0x24C]+f0)
+ *    * written back to sp+0x1F0/0x1F4/0x1F8 *\/
+ *
+ *   /\* (o) 0x81C8-0x8200: 2-Vec3 broadcast chain (sp+0x1F0 -> 3 sibling
+ *    *      Vec3 buffers via t8/t7 staged) *\/
+ *
+ *   /\* (p) 0x8204-0x8234: ACCUMULATOR UPDATE #1 — fold sp+0x250 into
+ *    *      sp+0x3A4..0x3AC (caller-visible output stack region) *\/
+ *   sp[0x3A4] += sp[0x250];           ; add.s
+ *   sp[0x3A8] += sp[0x254];
+ *   sp[0x3AC] += sp[0x258];
+ *   goto post_arm_converge;            ; b +0x61 (~388 bytes forward)
+ *
+ *   /\* (q) 0x8238-0x82F0: STATE==2 ARM — alternative scaled-broadcast path
+ *    *      Triggered by bnel $a0, $at, +0x5E with $at=2 (state-dispatch).
+ *    *      Loads 250.0f (0x437A0000) and 0.5f (0x3F000000) as scalars,
+ *    *      multiplies into Vec3 reads from sp+0x300/0x304/0x308, writes
+ *    *      results to sp+0x1A8/0x1AC/0x1B0 then expands to sp+0x190/0x194/0x198.
+ *    *      Further Vec3 broadcast chain (4 sibling buffer fills) plus
+ *    *      a matrix-style 3-row commit. Closing block writes doubles
+ *    *      to sp+0x19C/0x1A0/0x1A4 (the "doubles-staged" output mirror
+ *    *      for this state arm). *\/
+ *
+ *   /\* (r) 0x82F4-0x8358: 3-way Vec3 stage copies via s0/t8 chain
+ *    *      (additional buffer broadcast for the state==2 path) *\/
+ *
+ *   /\* (s) 0x835C-0x8380: 4-way Vec3 copies through t7/t8 (probably a
+ *    *      multi-source matrix-row load for the upcoming reduction) *\/
+ *
+ *   /\* (t) 0x8384-0x83B4: ACCUMULATOR UPDATE #2 — fold sp+0x1CC/0x1D0/0x1D4
+ *    *      into sp+0x3A4..0x3AC (second accumulator update; this is the
+ *    *      state==2 arm's contribution to the caller-visible output) *\/
+ *
+ *   /\* (u) 0x83B4-0x83E0: speed-clamp #2 — load sp+0x2F4/0x2FC, scale by
+ *    *      0.5f, compare against 250.0f (same threshold as before).
+ *    *      Bc1f-guard around the actual transform call. *\/
+ *
+ *   /\* (v) 0x83E4-0x8420: cross-USO call gl_func_0(transform_scratch,
+ *    *      reload_caller_a3, ...) — likely the actual matrix/quaternion
+ *    *      apply call. Returns to v0; result stored at sp+0x2D0 (flag
+ *    *      slot). Following insns set sp[0x2D0] = 1 unconditionally. *\/
+ *
+ *   /\* (w) 0x8424-0x8430: load arg3->0x2C; if (0) goto epilogue
+ *    *      (b +0x1BF = ~440 insns forward to function end) *\/
+ *
+ *   /\* (x) 0x8434-0x8470: load sp[0x2D0] flag, dispatch on > 1 test
+ *    *      (sltu + addiu), branch around an alloc-or-passthrough block.
+ *    *      Result written to caller spill sp+0x50/0x54. *\/
+ *
+ *   /\* (y) 0x8474-0x84A8: alloc-or-passthrough block D — dst = sp+0x140,
+ *    *      src = s2->0x30..0x38 Vec3 (same pattern as block A) *\/
+ *
+ *   /\* (z) 0x84B0-0x84DC: alloc-or-passthrough block E — dst = sp+0x140
+ *    *      filled with delta sp[0x170]-a3->[0x30..0x38] Vec3 (same pattern
+ *    *      as block B; delta against caller a3 reloaded from sp+0x3BC).
+ *    *      Repeats the b -> delta sequence from earlier in the function
+ *    *      using a different stage buffer pair. *\/
+ *
+ * Cumulative ~335/1075 insns characterized. ~740 insns remaining.
+ *
+ * Pattern crystallizing further: function is dual-armed by a state value
+ * (0 vs 2 vs others) with the 250.0f speed-clamp + 0.5f scaling appearing
+ * in BOTH arms. State==2 arm uses sp+0x190 buffer family; default arm uses
+ * sp+0x1F0/0x250. Both arms fold into the same caller-visible accumulator
+ * at sp+0x3A4..0x3AC. The current decode hits the converge point at
+ * (post_arm_converge) and the cross-USO transform call is around 0x83E4.
+ *
+ * NEXT PASS: continue from 0x84E0 — likely another delta/transform pass
+ * and traversal of the body towards the final *arg5 write. */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
