@@ -935,7 +935,62 @@ void gl_func_0002D014(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D014);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002D064: 51-insn (0xCC) per-frame init with 16-iter call loop.
+ * Resets a structure pointed by a0 to default values and runs 16
+ * cross-USO calls (intra-segment alt-entry to gl_func_0005BD80+0x18,
+ * approximated as generic gl_func placeholder).
+ *
+ * Logic:
+ *   self = a0;
+ *   gl_func_0001CA10();                  ; intra-segment alt-entry call
+ *   self->[0] &= ~0x02;                  ; (lbu/andi 0xFFFD/sb)
+ *   self->[2] = 0;                       ; sb 0
+ *   self->[1] = 1;                       ; sb 1
+ *   self->[8] = 0x1680;                  ; sh 5760
+ *   self->[10] = self->[12] = self->[14] = self->[16] = self->[18] = self->[20] = 0;  ; clear shorts
+ *   self->[148] = &D_0; self->[152] = &D_0;
+ *   self->[224] = 0;
+ *   self->[28] = 1.0f; self->[32] = 0.0f; self->[36] = 0.0f; self->[40] = 0.5f;
+ *   p = self;
+ *   for (i = 0; i < 64; i += 4) {
+ *       gl_func(p->[56]);
+ *       p = (char*)p + 4;
+ *   }
+ *
+ * Initial structural pass. Cross-USO call shape (intra-segment alt-entry
+ * vs generic placeholder) and regalloc caps expected. */
+void gl_func_0002D064(char *a0) {
+    char *base = &D_00000000;
+    char *p;
+    int i;
+    gl_func_00000000();
+    *(char*)(a0 + 0) = *(char*)(a0 + 0) & 0xFD;
+    *(char*)(a0 + 1) = 1;
+    *(char*)(a0 + 2) = 0;
+    *(short*)(a0 + 8) = 0x1680;
+    *(short*)(a0 + 10) = 0;
+    *(short*)(a0 + 12) = 0;
+    *(short*)(a0 + 14) = 0;
+    *(short*)(a0 + 16) = 0;
+    *(short*)(a0 + 18) = 0;
+    *(short*)(a0 + 20) = 0;
+    *(int*)(a0 + 148) = (int)base;
+    *(int*)(a0 + 152) = (int)base;
+    *(int*)(a0 + 224) = 0;
+    *(float*)(a0 + 28) = 1.0f;
+    *(float*)(a0 + 32) = 0.0f;
+    *(float*)(a0 + 36) = 0.0f;
+    *(float*)(a0 + 40) = 0.5f;
+    p = a0;
+    for (i = 0; i < 64; i += 4) {
+        gl_func_00000000(*(int*)(p + 56));
+        p += 4;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D064);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D130);
 
