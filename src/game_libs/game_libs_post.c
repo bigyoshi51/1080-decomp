@@ -4757,7 +4757,19 @@ void gl_func_0004E180(char *a0) {
     *(char**)(a0 + 0xE0) = newA0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E1BC);
+/* gl_func_0004E1BC: 22-insn queue-append helper. If a0->[0x1C0] >= 10,
+ * flush via gl_func(a0, a1). Then push a1 to a0->[0x198 + count*4] and
+ * increment count at a0->[0x1C0]. */
+void gl_func_0004E1BC(int *a0, int a1) {
+    int *base = (int*)((char*)a0 + 0x198);
+    int count;
+    if (a0[0x1C0/4] >= 10) {
+        gl_func_00000000(a0, a1);
+    }
+    count = base[0x28/4];
+    base[0x28/4] = count + 1;
+    base[count] = a1;
+}
 
 /* gl_func_0004E214: 8-insn wrapper that calls gl_func_00000000(a0 + 0x18C).
  * Splat bundles 2 trailing 2-insn leaves into the symbol's nonmatching SIZE
