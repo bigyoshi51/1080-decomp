@@ -3242,7 +3242,66 @@ void gl_func_00039B0C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B0C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00039B58: 77-insn switch on a1[0] (states 7, 19, default).
+ *
+ * case 7: Vec3 copy a1->[4][0..2] into a0->[0x5C..0x64], then exit.
+ *
+ * case 19: elaborate FPU sequence:
+ *   gl_func(a0+0x2C, &sp[0x5C..0x68])     [Vec3 buf carrying a0->[0x5C..0x64]]
+ *   gl_func(a0+0x2C, &sp[0x3C..0x48])     [Vec3 buf carrying a0->[0x70] thrice]
+ *   gl_func(a0+0x2C, 2, a2=as-bits-from-f12=a0->[0x7C], 0)
+ *   gl_func(a0+0x2C, 0, a2=a0->[0x74], 0)
+ *   gl_func(a0+0x2C, 1, a2=a0->[0x78], 0)
+ *   gl_func(a0+0x2C, &D_00000000 + 0x128)
+ *   gl_func(a0+0x2C, &sp[0x5C])
+ *
+ * default: gl_func(a0).
+ *
+ * Caps:
+ *  - Dead `lwc1 f10, 0x5C(a2)` at offset 0x50 (unreachable from
+ *    normal flow — beql to 0x54 skips it). Likely IDO emitting a
+ *    fall-through alternative for the case-19 delay slot.
+ *  - Stack scratch layout (multiple Vec3 buffers + a2-save slot).
+ *  - 7 calls to placeholder gl_func_00000000 with varying signatures.
+ *
+ * Initial wrap with structure decoded. */
+extern int gl_func_00000000();
+void gl_func_00039B58(int *a0, int *a1) {
+    int state = a1[0];
+    if (state == 7) {
+        float *src = (float*)a1[1];
+        *(float*)((char*)a0 + 0x5C) = src[0];
+        *(float*)((char*)a0 + 0x60) = src[1];
+        *(float*)((char*)a0 + 0x64) = src[2];
+    } else if (state == 19) {
+        int *target = (int*)((char*)a0 + 0x2C);
+        float scratch_a[3];
+        float scratch_b[3];
+        float scratch_c[3];
+        scratch_a[0] = *(float*)((char*)a0 + 0x5C);
+        scratch_a[1] = *(float*)((char*)a0 + 0x60);
+        scratch_a[2] = *(float*)((char*)a0 + 0x64);
+        gl_func_00000000(target, scratch_a);
+        scratch_b[0] = *(float*)((char*)a0 + 0x70);
+        scratch_b[1] = *(float*)((char*)a0 + 0x70);
+        scratch_b[2] = *(float*)((char*)a0 + 0x70);
+        gl_func_00000000(target, scratch_b);
+        scratch_c[0] = *(float*)((char*)a0 + 0x74);
+        scratch_c[1] = *(float*)((char*)a0 + 0x78);
+        scratch_c[2] = *(float*)((char*)a0 + 0x7C);
+        gl_func_00000000(target, 2, scratch_c[2], 0);
+        gl_func_00000000(target, 0, scratch_c[0], 0);
+        gl_func_00000000(target, 1, scratch_c[1], 0);
+        gl_func_00000000(target, (char*)&D_00000000 + 0x128);
+        gl_func_00000000(target, scratch_a);
+    } else {
+        gl_func_00000000(a0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B58);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039C8C);
 
