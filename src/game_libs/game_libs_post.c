@@ -2877,7 +2877,59 @@ void* gl_func_0003E0F0(int *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E0F0);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0003E1B4: 33-insn (0x84) linked-list search-and-fetch-vec3.
+ *
+ * NON-STANDARD CALLING CONVENTION (cap class): the target asm reads
+ * head-pointer from $t6 at entry (offset 0x8: `sw $t6, 4($sp)`), not
+ * from $a0. This is the prologue-stolen-successor pattern paired with
+ * predecessor gl_func_0003E0F0, whose trailing `lw t6, 16(a0)` at
+ * offset 0xC0 (after its jr/epilogue) sets up $t6. Splat boundary
+ * likely incorrect — this function is really an alt-entry / continuation
+ * of the predecessor, not separately ABI-callable.
+ *
+ * Decoded body (assuming $t6=head, $a1=searchKey, $a2=outVec):
+ *   - if head != NULL: load first {data, next} pair from head
+ *   - walk linked list (current = head->next) checking each node's data
+ *   - on match: write out[0..2] = node->[A0..A8], return 1
+ *   - on end-of-list: return 0
+ *
+ * IDO can't put a regular C arg into $t6 (no register-asm in IDO per
+ * feedback_ido_no_gcc_register_asm.md). NM wrap below uses `int *head`
+ * as $a0; expected ~30-50% fuzzy due to register-class mismatch
+ * throughout. Path forward: hand-rolled inline asm OR splat-boundary
+ * fix (move the predecessor's trailing lw into a PROLOGUE_STEALS=4
+ * recipe). */
+void gl_func_0003E1B4(int *head, int *searchKey, float *outVec) {
+    int *current;
+    int *node;
+    int result = 0;
+
+    current = head;
+    if (head != 0) {
+        current = (int*)head[1];   /* head->next */
+        node = (int*)head[0];      /* head->data */
+        result = (int)node;
+    }
+    while (result != 0) {
+        if (node == searchKey) {
+            outVec[0] = *(float*)((char*)node + 0xA0);
+            outVec[1] = *(float*)((char*)node + 0xA4);
+            outVec[2] = *(float*)((char*)node + 0xA8);
+            return;  /* target returns 1 here */
+        }
+        if (current == 0) {
+            result = 0;
+            break;
+        }
+        node = (int*)current[0];   /* current->data */
+        current = (int*)current[1]; /* current->next */
+        result = (int)node;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E1B4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E238);
 
