@@ -785,6 +785,30 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029078);
 #endif
 
+/* gl_func_000290C8: 62-insn (0xF8) sibling of gl_func_00029078 (just
+ * landed 6b9ad3ee). 0x38-byte stack frame, calls gl_func_0003D480
+ * directly (jal target 0x3D480, not the cross-USO placeholder).
+ *
+ * Decoded entry:
+ *   t6 = 0x10; t7 = 0x10;             // const 16, stored as stack args
+ *   sp[0x28] = t6; sp[0x2C] = t7;     // arg5,arg6 for jal
+ *   t8 = a1->[0x50];                  // load field
+ *   s0 = a0; s1 = a1;                 // save args via or
+ *   gl_func_0003D480(a0+0x20, *(byte*)(sp+5), a1->[0x50], sp+0x24, 16, 16);
+ *   if (ret == 0) {
+ *     t9 = *(byte*)(s1 + 0x30);       // load tag byte
+ *     sp[0x2C] = t9;
+ *     // ... continues to second jal with similar pattern
+ *   }
+ *
+ * Pattern: config-record builder calling internal helper at 0x3D480
+ * twice with different fields (a1+0x50 first call, then a different
+ * field from a1+0x30 byte for second). Reads fields at a1->0x30 (byte)
+ * and a1->0x50 (int).
+ *
+ * Not NM-wrapped yet — call signature for gl_func_0003D480 needs
+ * verification + this is one of multiple internal-helper callers; an
+ * undefined_syms_auto.txt entry may be needed. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000291C0);
