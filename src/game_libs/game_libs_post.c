@@ -7073,7 +7073,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066AF0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066B64);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066BD4);
+/* gl_func_00066BD4: 23-insn 3-call chain with mixed-arg middle call. */
+void gl_func_00066BD4(int a0) {
+    gl_func_00000000(a0);
+    gl_func_00000000((char*)&D_00000000 + 0x41310, 1, &D_00000000, 0,
+                     (char*)&D_00000000 + 0x415C0, 1);
+    gl_func_00000000((char*)&D_00000000 + 0x41310);
+}
 
 /* 8-insn: stores arg to D_00000000, calls gl_func_00000000(0).
  * Splat bundled 2 trailing empty (jr ra; nop) leaves at func+0x28/0x30 —
