@@ -1109,7 +1109,38 @@ void gl_func_0002D224(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D224);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002D2F4: 32-insn (0x88) per-frame reset + 4-iter init loop.
+ *
+ *   gl_func_0001CA10_alt();                     ; alt-entry helper
+ *   for (p = &D_3280; p < &D_5280; p += 0x80) { ; iterate over 64 entries
+ *       *(char*)p &= ~0x80;                     ; clear flag bit at +0x0
+ *       *(int*)(p + 0x50) = 0;                  ; clear int field at +0x50
+ *   }
+ *   for (s0 = &D_2D00; s0 != &D_3280; s0 += 0x160) {  ; 4 iters
+ *       gl_func_0005EB4C_alt(s0);
+ *   }
+ *
+ * Initial structural pass; alt-entry call shape caps expected. */
+void gl_func_0002D2F4(void) {
+    char *base = &D_00000000;
+    char *p, *s0;
+    gl_func_00000000();
+    p = base + 0x3280;
+    while (p < base + 0x5280) {
+        *(char*)(p + 0x00) &= 0x7F;
+        *(int*)(p + 0x50) = 0;
+        p += 0x80;
+    }
+    s0 = base + 0x2D00;
+    while (s0 != base + 0x3280) {
+        gl_func_00000000(s0);
+        s0 += 0x160;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D2F4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D37C);
 
