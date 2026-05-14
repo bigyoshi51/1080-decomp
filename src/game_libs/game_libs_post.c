@@ -3179,16 +3179,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A04);
  *    `0c000000` since the .o-level diff is pre-link. Would need
  *    INSN_PATCH at offsets 0x10, 0x34 to make .o byte-match. ROM
  *    post-link is correct via the new undefined_syms entries. */
-extern int gl_ref_0004C2DC();
-extern int gl_ref_0004C34C();
+extern int func_0004C2DC();
+extern int func_0004C34C();
 void gl_func_00039A9C(int *a0) {
     float buf[3];
     int sp_arg;
-    gl_ref_0004C2DC(buf);
+    func_0004C2DC(buf);
     *(float*)((char*)a0 + 0x5C) = buf[0];
     *(float*)((char*)a0 + 0x60) = buf[1];
     *(float*)((char*)a0 + 0x64) = buf[2];
-    gl_ref_0004C34C((char*)a0 + 0x6C);
+    func_0004C34C((char*)a0 + 0x6C);
     sp_arg = 19;
     {
         int *vt = (int*)a0[0x28/4];
