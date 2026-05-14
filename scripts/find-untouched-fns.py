@@ -42,33 +42,38 @@ def parse_asm_size(asm_path: str) -> int | None:
 
 def asm_shape_flags(asm_path: str) -> str:
     """Return single-char flag:
-       'F' = full standalone (has addiu sp prologue + jr ra)
+       'F' = full standalone (has addiu sp prologue + jr ra at expected tail position)
+       'B' = bundle-suspect (jr ra present but >2 insns of code after it)
        'X' = fragment-suspect (missing prologue or jr ra)
        '?' = couldn't determine"""
     try:
         content = open(asm_path).read()
     except (OSError, UnicodeDecodeError):
         return "?"
-    # The .s file may use either `.word 0xWORDVAL` (fully .word) or
-    # mnemonic form. Look at instruction-bearing lines.
     insns = [
         l for l in content.splitlines()
         if "/* " in l and ("*/" in l) and any(c in l for c in ("\t", "  "))
     ]
-    # Filter out the glabel header line and endlabel
     insn_lines = [l for l in insns if "glabel" not in l and "endlabel" not in l]
     if not insn_lines:
         return "?"
     first = insn_lines[0]
-    # Two patterns: ".word 0x27BDFFE8" or "addiu $sp, $sp, -N"
     has_prologue = (
         "0x27BD" in first or "addiu" in first.lower() and "sp" in first.lower() and "-" in first
     )
-    # jr ra ends with .word 0x03E00008, or mnemonic "jr   $ra"
-    has_jr_ra = "0x03E00008" in content or "jr         $ra" in content or "jr     $ra" in content or "jr\t$ra" in content
-    if has_prologue and has_jr_ra:
-        return "F"
-    return "X"
+    # Find jr ra location
+    jr_idx = None
+    for i, l in enumerate(insn_lines):
+        if "0x03E00008" in l or "jr         $ra" in l or "jr     $ra" in l or "jr\t$ra" in l:
+            jr_idx = i
+            break
+    if not has_prologue or jr_idx is None:
+        return "X"
+    # Number of insns AFTER jr ra (its delay slot is +1, normal padding is up to +2 nops)
+    tail_count = len(insn_lines) - (jr_idx + 1)
+    if tail_count > 2:
+        return "B"  # bundle-suspect (alt-entry past return)
+    return "F"
 
 
 def find_plain_include_asm() -> list[tuple[str, int, str, str]]:
@@ -159,7 +164,8 @@ def main() -> int:
     rows.sort(key=lambda r: (r[1], r[0]))
     n_F = sum(1 for r in rows if r[4] == "F")
     n_X = sum(1 for r in rows if r[4] == "X")
-    print(f"plain-INCLUDE_ASM in [{hex(args.min_size)}..{hex(args.max_size)}]: {len(rows)} (F={n_F} standalone, X={n_X} fragment-suspect)")
+    n_B = sum(1 for r in rows if r[4] == "B")
+    print(f"plain-INCLUDE_ASM in [{hex(args.min_size)}..{hex(args.max_size)}]: {len(rows)} (F={n_F} standalone, B={n_B} bundle-suspect, X={n_X} fragment-suspect)")
     for fn, sz, p, mp, sh in rows[: args.limit]:
         mp_str = f"{mp:.1f}%" if mp is not None else "—"
         rel = os.path.relpath(p)
