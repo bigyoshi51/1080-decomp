@@ -128,7 +128,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 
+#ifdef NON_MATCHING
+/* gl_func_00021D84: 33-insn slot-register helper. Reads count from a global,
+ * calls a cross-segment placeholder, stores result + 3 args into a count-
+ * indexed slot in a table.
+ *
+ *   count = D[0x2534];
+ *   v0 = func(&D2[0x2528], a2);
+ *   slot = &D2[count * 12];
+ *   slot[0x2538] = v0;
+ *   if (v0 != 0) {
+ *     slot[0x2540] = (s16)a0;
+ *     slot[0x2542] = (s16)a1;
+ *     slot[0x253C] = a2;
+ *   }
+ *   return v0; */
+extern int func_00000000();
+int gl_func_00021D84(int a0, int a1, int a2) {
+    int count = *(int*)((char*)&D_00000000 + 0x2534);
+    char *base = (char*)&D_00000000;
+    int v0 = func_00000000(base + 0x2528, a2);
+    char *slot = base + count * 12;
+    *(int*)(slot + 0x2538) = v0;
+    if (v0 != 0) {
+        *(short*)(slot + 0x2540) = (short)a0;
+        *(short*)(slot + 0x2542) = (short)a1;
+        *(int*)(slot + 0x253C) = a2;
+    }
+    return v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021D84);
+#endif
 
 /* gl_func_00021E08: 20-insn alloc-via-jal-alt-entry + 3-field-set wrapper.
  * Matched 2026-05-14 via if-goto-end_zero (skip body) + explicit
