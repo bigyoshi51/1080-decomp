@@ -619,7 +619,66 @@ void game_uso_func_00000AEC(int *a0, int a1) {
  * (default + 3 arms), each arm staging a Vec3 to a different sp slot.
  *
  * NEXT PASS: continue from 0x11F8 — likely 1-2 more switch+stage
- * iterations + final convergence + epilogue (~226 insns to end). */
+ * iterations + final convergence + epilogue (~226 insns to end).
+ *
+ * EXTENDED 2026-05-14 (insns 480-680 @ 0x11F8-0x1514, ~200 insns):
+ *
+ * SUB-LUT WITH +0x18 STRIDE @ 0x11F8-0x1268 (~28 insns):
+ *   /\* Same shape as prior sub-LUTs but reads at +0x18 stride from t8 base *\/
+ *   sp+0x68 = t8->[0x34];
+ *   sp+0x6C = (t8+0x18)->[0x34];   ; second element with offset
+ *   sp+0x70 = (t8+0x18)->[0x3C];
+ *   sp+0x74 = (t8+0x18)->[0x40];   ; (jal cross-USO before next block)
+ *
+ * SWITCH #4 @ 0x126C-0x12B0 (~17 insns): switch on a3->[0x28]
+ *   case 1: f4 = a3->[0x24] (float); sp+0x14C = f4; b far_merge
+ *   case 2: 32-arm dispatch with LUT lookup
+ *   default: sp+0x58 = a3->[0x24] (float field stored)
+ *
+ * SUB-LUT @ 0x12B0-0x1310 (~25 insns):
+ *   /\* 4 parallel reads from sub-LUT base + stride for fields 0x34/0x38/
+ *    *  0x3C/0x40 (per-axis components) at indices 0/1/2/3 *\/
+ *   sp+0x58/0x5C/0x60/0x64 = lwc1 chains from sub-LUT
+ *   sp+0x14C = 0  ; clear flag
+ *
+ * SWITCH #5 @ 0x1314-0x1370 (~25 insns): switch on a3->[0x30]
+ *   case 1: Vec3 load from a3->[0x2C/0x30/0x34] into sp+0xB4-0xBC,
+ *           re-read as floats → sp+0x134/0x138/0x13C
+ *   case 2: alternate LUT indexing — sub-LUT base + stride
+ *
+ * BIG SUB-LUT @ 0x1374-0x13E8 (~30 insns):
+ *   /\* 4-element parallel load from t8 base + sub-LUT[0x34..0x40]
+ *    *  to sp+0x48/0x4C/0x50/0x54 *\/
+ *   /\* trailing jal cross-USO call (4-arg + spill at sp+0x54) *\/
+ *
+ * VEC3 SAVE @ 0x13F0-0x1418 (~10 insns):
+ *   sub3 = a0->[0x154];  ; saved-Vec3 base
+ *   sp+0xB4 = sub3->[0x0]; sp+0xB8 = sub3->[0x4]; sp+0xBC = sub3->[0x8];
+ *   ; pre-stage for final Vec3 commit pass
+ *
+ * FPU MATRIX ROW @ 0x141C-0x1468 (~22 insns):
+ *   /\* Loads 3 Vec3 buffers (sp+0x110/0x11C/0x138) into FPU regs,
+ *    *  cross-products them, writes to sp+0x144 (matrix-row dst) *\/
+ *   f8 = sp[0x140] * sp[0xBC];   ; etc — dot product
+ *   sp+0x144 = ...                 ; result
+ *
+ * VEC3 TRANSITIVE COPY @ 0x146C-0x14A4 (~14 insns):
+ *   /\* sub-obj at a0->[0x150] -> nested t8/t9 -> sp+0x10 spill +
+ *    *  Vec3 broadcast through three intermediate buffers *\/
+ *
+ * LIST-WALK LOOP @ 0x14A8-0x14EC (~12 insns):
+ *   /\* iterate list rooted at sp+0x11C/0x120 (loaded earlier);
+ *    *  each iteration writes nodes to sp+0x60/0x64/0x68 -
+ *    *  small loop with 8-elem stride (0x14EC: 154BFFF8 = bnel back -8) *\/
+ *
+ * MORE FPU @ 0x14F0-0x1514 (~10 insns):
+ *   /\* Continued list walk: load addr fields, write to sp+0x64/0x68/0x6C
+ *    *  with addiu-based ptr-arith *\/
+ *
+ * Cumulative ~680/706 insns characterized (~96%). ~26 insns remaining —
+ * final list-walk closure + epilogue.
+ *
+ * NEXT PASS: 0x1518-end (~26 insns) — list-walk completion + epilogue. */
 void game_uso_func_00000B3C(int *a0) {
     int *sub;
     int derived_id;
