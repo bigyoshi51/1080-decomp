@@ -7135,7 +7135,27 @@ void game_uso_func_0000C0F0(int *dst) {
  *      $v-regs; inline derefs get $t-regs).
  *
  * Prior 2026-05-08 attempts (a/b/c/d/e — see commit history) all stuck
- * at 0-50 %; this is a substantial multi-tick improvement. */
+ * at 0-50 %; this is a substantial multi-tick improvement.
+ *
+ * 2026-05-14 variants tested (all regressed or no improvement):
+ *   - `volatile int * const p = (volatile int*)&a0; (void)p;` — got
+ *     caller-slot spill at entry (matching target!), but loop reloads
+ *     a0 from caller-slot for EVERY use (volatile semantics force
+ *     reload). Severe regression in loop body.
+ *   - `int *dst = a0` local copy + use `dst` in loop — got `or v1, a0, 0`
+ *     rename + spill to local frame slot (sp+100), not caller-slot.
+ *     Same shape as baseline.
+ *   - Scoped `{ int *src, *end; ... }` inside braces — frame still 96.
+ *     Scoping doesn't shrink spill-slot allocation at -O2.
+ *   - `volatile int **p_a0 = (int**)&a0; (void)p_a0;` + `dst = a0` after
+ *     call — got caller-slot spill ✓ but frame grew to 104 (the
+ *     volatile local needs its own slot), loop uses v1 not t6.
+ *
+ * Confirms the cap class: per feedback-ido-file-context-affects-frame-size
+ * the 8-byte frame excess is likely file-level (game_uso.c context) and
+ * not closable from C alone. Plausible final paths: INSN_PATCH of the
+ * rename + frame-size adjust (heavy: 4-5 byte rewrites for prologue +
+ * post-call reload registers), or accept as documented NM cap. */
 void game_uso_func_0000C12C(int *a0) {
     int buf[16];
     int *src;
