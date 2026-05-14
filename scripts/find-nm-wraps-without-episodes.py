@@ -75,9 +75,12 @@ def main() -> int:
     wraps = find_nm_wraps_without_episodes()
     print(f"NM-wraps without episodes: {len(wraps)}")
     pcts = report_match_percents({fn for fn, _ in wraps})
-    # Sort by percent desc (high first)
+    # Sort by percent desc — high first, None entries last (they're either
+    # below-threshold NM wraps with no C body or scoring artifacts).
     annotated = [(fn, path, pcts.get(fn)) for fn, path in wraps]
-    annotated.sort(key=lambda x: (-(x[2] or 0), x[0]))
+    annotated.sort(key=lambda x: (x[2] is None, -(x[2] or 0), x[0]))
+    n_with_pct = sum(1 for _, _, mp in annotated if mp is not None)
+    print(f"  with fuzzy% in report: {n_with_pct}; with None: {len(annotated) - n_with_pct}")
     for fn, path, mp in annotated[:50]:
         mp_str = f"{mp:.1f}%" if mp is not None else "None"
         rel_path = os.path.relpath(path)
