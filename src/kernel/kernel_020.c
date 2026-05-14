@@ -25,6 +25,45 @@ void func_80007FC8(void) {}
 
 
 
+#ifdef NON_MATCHING
+/* func_80008054: 31-insn (0x7C) bundled libultra SP/MI helper. Contains THREE
+ * separately-callable entry points (similar alt-entry cap class as
+ * func_8000817C / func_800052F0 / func_80006698):
+ *
+ *   Entry 0 @ 0x80008054: __osSpDeviceBusy + status reset
+ *     while (*SP_DMA_BUSY_REG != 0) ;   // wait for DMA idle
+ *     *SP_STATUS_REG = 0x82;             // clear sig0 + broke
+ *     while ((*SP_STATUS_REG & 3) == 0) ;// wait for halt|broke set
+ *     return;
+ *
+ *   Entry 1 @ 0x80008098: alt-entry — set status 0xC5, then loop to entry-0's
+ *     wait-for-halt loop (.L80008078).
+ *     *SP_STATUS_REG = 0xC5;             // clear sig1+intr_break+dma_busy+halt
+ *     goto entry-0's wait-for-halt;
+ *
+ *   Entry 2 @ 0x800080AC: __osSpResetSp/init — final SP reset.
+ *     *MI_INTR_MASK_REG = 2;             // clear SP intr mask
+ *     *SP_STATUS_REG = 0x125;            // clear sig1+sig0+sstep+dma_busy+halt
+ *     return;
+ *
+ * MATCH BLOCKED: alt-entry pattern — standard C-emit can't produce one symbol
+ * with 3 separately-callable entry points. External callers in kernel_*.c
+ * likely call entries 1 and 2 directly via `extern void
+ * func_80008098(void)`/`func_800080AC(void)`. Same cap class as func_8000817C
+ * documented in src/kernel/kernel_040.c.
+ *
+ * SP_STATUS write bit decode (SP_STATUS write = SET/CLR bit pairs):
+ *   0x82  = 0x80 | 0x02 = set_sig0 + clr_broke
+ *   0xC5  = 0xC0 | 0x05 = set_sig1 + set_intr_break + clr_dma_busy + clr_halt
+ *   0x125 = 0x100|0x25 = clr_sig1 + clr_sstep + clr_dma_busy + clr_halt
+ *
+ * Default INCLUDE_ASM build remains exact. Documented for future Ghidra-assisted
+ * decode + permuter exploration. */
+void func_80008054(void) {
+    /* Stub — see decoded structure above. Full body lives in INCLUDE_ASM
+     * bytes via func_80008054.s. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008054);
 #endif
 
