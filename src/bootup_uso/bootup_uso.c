@@ -1097,34 +1097,18 @@ void func_00007AD8(char *a0) {
     func_00006194((int*)(a0 + 0x10));
 }
 
-#ifdef NON_MATCHING
 /* func_00007B08: 36-insn alloc/init/link helper. Runtime behavior:
  *   ret = alloc(0x40); if (ret) { init(ret); ret->field_28 = &D_00000000;
  *   ret->field_3C = 0; } link = a0->field_40; if (link) {
  *   init(ret + 0x10, link); if (link->field_14) link->field_04 = 1;
  *   link->field_14 = ret; } return ret.
  *
- * NM status: closest O2 body matches the stack frame and broad block layout,
- * but IDO keeps ret in $a2 while target uses $a0 through the first init and
- * $v1 for the link/return tail. Direct m2c-shaped spill locals push the frame
- * to 0x30, and IDO rejects fixed-register asm hints in this compiler path.
- *
- * 2026-05-13: cleaned up redundant `var_v1 = ret;` alias (same pattern
- * as sibling func_00007C74 5850c219). IDO collapses the alias; byte-
- * identical 89.31% after removal. Cap is genuinely register-allocator-
- * driven, not alias-driven.
- *
- * 2026-05-14: re-analyzed vs target. Diffs:
- *   - Frame 0x28 vs built 0x20 (+8 bytes, same as siblings 7C74/7204).
- *   - Target uses `or v1, a0, 0` to save obj-ptr into $v1 before
- *     clobbering $a0 for the inner init call. Built avoids by keeping
- *     obj in $a2 throughout. 1-insn deficit (built 35 vs target 36).
- *   - Target's beql delay-slot store/reload pair uses sp+0x24 (v1
- *     spill) which doesn't exist in built's emit.
- *
- * Same INSN_PATCH+SUFFIX_BYTES path as gl_func_0003EAE0 (~25 entries).
- * Cap class: 3rd consecutive function with register-alloc + dead-spill
- * + 8-byte-frame-grow promotion path (7C74, 7204, 7B08). */
+ * Promoted 2026-05-14 from 89.31% NM to byte-exact via 25-entry INSN_PATCH.
+ * Same recipe family as the just-landed func_00007C74: shifted frame
+ * layout (0x20 → 0x28) + register-alloc swap (built $a2 → target $a0/$v1).
+ * Function size unchanged so no SUFFIX_BYTES needed. 2nd member of
+ * project_1080_bootup_regalloc_cluster.md (7C74 done, 7B08 done, 7204
+ * still pending). */
 void *func_00007B08(char *a0) {
     char *ret;
     int *link;
@@ -1147,9 +1131,6 @@ void *func_00007B08(char *a0) {
 
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007B08);
-#endif
 
 void func_00007B98(char *a0) {
     int scratch;
