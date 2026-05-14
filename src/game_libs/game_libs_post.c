@@ -7039,7 +7039,16 @@ int gl_func_00067510(int *a0) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067550);
+/* gl_func_00067550: 21-insn bit-test helper. If a0->[0x34] != 0:
+ * call gl_func(&D_0, a0); v0 &= (1 << (a0->[0x34] + 31)). Return v0. */
+int gl_func_00067550(int *a0) {
+    int v0 = 0;
+    if (a0[0x34/4] != 0) {
+        v0 = gl_func_00000000(&D_00000000, a0);
+        v0 = v0 & (1 << (a0[0x34/4] + 31));
+    }
+    return v0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000675A4);
 
