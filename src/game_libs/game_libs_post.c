@@ -4494,6 +4494,11 @@ void gl_func_0003F008(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F008);
 #endif
 
+/* gl_func_0003F044: 24-insn stack-struct-build + 2-call wrapper.
+ * frame 184; calls func(sp+0x20), then builds a 4-float vector struct
+ * at sp+0x60..0x73 (sp+0x60=50, sp+0x64..0x73=*a2..*(a2+12) floats)
+ * and calls func(sp+0x18) which sees a larger struct. Stays as
+ * INCLUDE_ASM — struct shapes for the two sp-buffers not yet typed. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F044);
 
 #ifdef NON_MATCHING
