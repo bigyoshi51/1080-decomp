@@ -9429,8 +9429,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070194);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070244_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_00070634: 22-insn 2-call bit-mask helper.
+ *   v0 = func();                                          // (some setup call)
+ *   mask = ~(a0 & ~0x401);                                // clear bits 0,9 of a0, invert
+ *   *(D2) = *(D) & mask;                                  // mask bit-clear D into D2
+ *   func(v0);                                             // (cleanup call)
+ *
+ * Uses 2 distinct extern symbols (D_00000000 + gl_data_00000000) to bust
+ * IDO CSE per docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs. */
+extern int gl_data_00000000;
+void gl_func_00070634(int a0) {
+    int v0 = func_00000000();
+    int mask = ~(a0 & ~0x401);
+    *(int*)&gl_data_00000000 = (*(int*)&D_00000000) & mask;
+    func_00000000(v0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070634);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070634_pad.s")
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070694);
 
