@@ -4996,8 +4996,32 @@ int gl_func_000546BC(char *a0) {
  *
  * Cumulative 174/203 insns characterized, ~29 remaining.
  *
- * TODO: decode insns 175-203 — likely final s0 field updates and
- * epilogue return. */
+ * Insns 175-206 (+32 insns) — final s0 field-init + epilogue:
+ *     // Float field init on primary s0 object:
+ *     s0->float_B4 = 1.0f;             // (f0)
+ *     s0->float_C0 = 0.0f;             // (f2)
+ *     // Set bit 1 then bit 3 on sub-object at sp[0x20] (alloc'd earlier):
+ *     t1 = sp[0x20];   *t1 |= 0x2;
+ *     t4 = sp[0x20];   *t4 |= 0x8;
+ *     s0->float_C8 = 0.0f;
+ *     s0->float_CC = 0.0f;
+ *     s0->int_D0  = 0xFFFF;            // 16-bit-mask sentinel
+ *     s0->int_D4  = 0; s0->int_D8 = 0; s0->int_DC = 0;
+ *     s0->float_FC = 1.0f;
+ *     s0->float_100 = 0.0f; s0->float_104 = 0.0f; s0->float_108 = 0.0f;
+ *     s0->float_E4 = 0.0f; s0->float_E8 = f4_const; s0->float_EC = 0.0f;
+ *     return s0;
+ *
+ * The `f4_const` at s0->float_E8 comes from the very-early `lui $at, ?`
+ * that mtc1's $f4 — value not fully traced (likely 1.0f or related).
+ *
+ * Cumulative 206/203 = FULL function decoded (entry alloc-chain +
+ * field init + Vec3 deltas + transform setup + state flags + epilogue).
+ *
+ * NEXT PASS: build compilable C body from the structured decode and
+ * wrap NM. ~30 cross-USO calls + 3 alloc allocations + matrix-style
+ * transform record — function is a "spawn-death-trail-effect" or
+ * similar constructor. Currently kept as INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
