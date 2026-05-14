@@ -1020,3 +1020,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 
 /* gl_func_0004D354 bundle split 2026-05-08; children INCLUDE_ASM live in
  * game_libs_post.c next to the parent gl_func_0004D354. */
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A158);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A1F0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A278);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A2FC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A380);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A400);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A484);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A504);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A584);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AC50);
