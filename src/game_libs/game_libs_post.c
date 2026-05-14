@@ -9275,6 +9275,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071708);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000717CC);
 
+/* gl_func_00071864: 23-insn 16-bit byte-sum checksum.
+ *   accum = 0; for (i=0; i<n; i++) accum = (accum + p[i]) & 0xFFFF;
+ *   return (u16)accum;
+ *
+ * -O2 C body produces 5.4% match (vs target's stack-heavy loop). Asm
+ * spills p/accum/i to stack every iteration — strongly suggests -O0
+ * codegen. game_libs_post.c is shared -O2; matching would need file-split
+ * with per-function OPT_FLAGS=-O0 (deferred — heavier refactor than tick budget). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071864);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000718C0);
