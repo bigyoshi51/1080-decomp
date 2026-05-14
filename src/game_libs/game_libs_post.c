@@ -2873,7 +2873,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C43C);
 
+#ifdef NON_MATCHING
+/* gl_func_0003C814: 22-insn optional-alloc + init constructor. 92 bytes
+ * built vs 84 target. Cap: target emits single beqz-to-epilogue for the
+ * alloc-fail path; built emits bnez-skip + explicit b-to-epilogue (2
+ * insns vs 1). Goto/separate-check forms regressed. */
+int gl_func_0003C814(int *a0) {
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00000000(0x34);
+        if (a0 == 0) return 0;
+    }
+    gl_func_00000000(a0, (char*)&D_00000000 + 0x1EEAC);
+    a0[0x28/4] = (int)&D_00000000;
+    a0[0x2C/4] = 0;
+    a0[0x30/4] = 0;
+    return (int)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C814);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
 
