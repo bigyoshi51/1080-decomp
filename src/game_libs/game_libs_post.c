@@ -3700,7 +3700,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F730);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F82C);
+/* gl_func_0003F82C: 21-insn 3-call helper with large stack buffer. */
+int gl_func_0003F82C(int a0, int a1) {
+    char pad[156];
+    int marker;
+    char buf1[256];
+    (void)a0; (void)pad;
+    marker = 0x2F;
+    gl_func_00000000(&marker);
+    gl_func_00000000(buf1, a1);
+    gl_func_00000000(&D_00000000, buf1, 0x100);
+    return 1;
+}
 
 extern int gl_func_00000000();
 
