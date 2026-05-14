@@ -3263,7 +3263,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E868);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E904);
 
+#ifdef NON_MATCHING
+/* gl_func_0003E968: 22-insn indirect-dispatch + follow-up. Reads
+ * { *p, fn, arg3 } struct via a1, calls (*fn)(*p), then
+ * gl_func(a0, fn_ret, a1->arg3); returns fn_ret.
+ *
+ * Cap: target spills a0 to sp+0 (outgoing-arg slot) before jalr — IDO
+ * defensive spill for variadic. Neither prototyped fn nor variadic fn
+ * nor K&R fn variant produces this spill. Frame -0x28 vs built's
+ * -0x20. Permuter-territory. */
+int gl_func_0003E968(int a0, int **a1) {
+    int (*fn)(int, ...) = (int(*)(int, ...))((int*)a1)[1];
+    int v = fn(**a1);
+    gl_func_00000000(a0, v, ((int*)a1)[2]);
+    return v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E968);
+#endif
 
 /* Split off from gl_func_0003E968 bundle 2026-05-08: 2-insn no-frame setter.
  * Stores a1 to a0->field_30. */
