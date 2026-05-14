@@ -1210,7 +1210,17 @@ extern float D_000005EC;
  * `var_a2 = ret;` after the alloc-call was a no-op since both equal `ret`).
  * IDO -O2 was collapsing it anyway — byte-identical 92.89% after removal.
  * The cap is genuinely register-allocator-driven ($v1 vs target's $a2),
- * not alias-driven. */
+ * not alias-driven.
+ *
+ * 2026-05-14: re-analyzed the actual diff — target's frame is 0x28 (40),
+ * built 0x20 (32), 8-byte excess in target's local-frame area at sp+24
+ * (target's a1 spill is at sp+32; built's at sp+24). Tried `char pad[N]`
+ * and `volatile char pad[8]` — both either DCE'd (pad[N]) or added two
+ * extra insns (volatile read+write). Tried `volatile int spill_slot`
+ * — grew frame to 40 correctly but added init+read insns AND shifted
+ * a2 spill to sp+36 (target sp+28). Frame-fix that doesn't perturb the
+ * spill-slot allocator is the remaining cap. Possibly INSN_PATCH of
+ * the 2-3 specific diff insns is the last-mile path. */
 void *func_00007C74(char *a0) {
     char *ret;
     int *link;
