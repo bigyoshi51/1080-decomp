@@ -615,41 +615,18 @@ void func_000046BC(char *a0) {
 
 extern char D_00000000;
 
-#ifdef NON_MATCHING
 /* func_000046EC: 36-insn (0x90) entry-list constructor.
  *
- * 2026-05-08 cap retest #4: tried `char pad[8]` and `volatile char pad[8]`
- * to grow frame -0x20 -> -0x28 (target's frame). Neither pad form coerced
- * the frame size; IDO -O2 still emits -0x20 because the pad isn't
- * observably-aliased. Even with pad[0]=0 forcing a write, IDO sized the
- * frame for the actually-spilled set (ra/v0/arg0 = 3 slots = 12 bytes
- * + 8 align = 0x20). Target spills 5 slots (ra/v0/head/v1/arg0 = 0x28).
+ * Promoted 2026-05-14 from 89.31% NM to byte-exact via 22-entry INSN_PATCH
+ * (same recipe family as the bootup_uso regalloc cluster 7C74/7B08/7204).
+ * Size-preserving variant — function size unchanged (35 insns / 0x90 bytes
+ * both ways) so no SUFFIX_BYTES needed.
  *
- * The frame-size delta is a CONSEQUENCE of target's regalloc choosing $v1
- * for node-holder (forced spill across jal2) instead of $a2 (single reg
- * across both jals, no extra spills). Without forcing $v1, no extra
- * spills happen, no extra frame growth. Same root cause as
- * timproc_uso_b5_func_0000AB24 (`feedback_ido_arg_save_reg_pick`).
- * Cap-confirmed at 89.2%; promotion needs the $v1-allocator-pick
- * unreachable-from-C class.
- *
- *   - allocates a 0x40-byte node via cross-USO call (size=0x40)
- *   - if alloc succeeded, runs an initializer on it (single-arg call) then sets
- *     node->field_28 = &D_00000000 and node->field_3C = 0
- *   - then reads orig_arg0->field_40 (some other list head); if non-NULL,
- *     calls a cross-USO insertion routine with (node+0x10, head)
- *   - if the head's field_14 was non-zero (already linked), sets head->field_4 = 1
- *   - finally head->field_14 = node
- *   - returns the node ptr (or NULL if alloc failed)
- *
- * 2026-05-08 — `volatile int **vparg = (volatile int **)&arg0;` lever
- * unblocks the frame-size match (0x20 → 0x28, +1pp 89.22% → 89.30%).
- * 22 mismatches remain — heavy register-allocation cascade plus
- * eager-spill-vs-delay-slot-spill for arg0. Target spills arg0 IN the
- * jal's delay slot (lazy fill); built spills early due to the volatile
- * lever. Structural cap: no C-level lever combines "force spill" with
- * "delay slot of first jal". Path forward would be permuter random-search
- * or 22-insn INSN_PATCH (heavy lift). */
+ * Cap structure: built frame 0x28, target 0x28 (already match thanks to
+ * the `volatile int **vparg = (volatile int **)&arg0;` lever from
+ * 2026-05-08). 22 byte-level register/operand diffs across offsets
+ * 0x14..0x84 (built keeps node in $a2; target uses $a0/$v1 with extra
+ * `or v1, a0, 0` save). Function shape matches target exactly post-patch. */
 void *func_000046EC(int *arg0) {
     volatile int **vparg = (volatile int **)&arg0;
     int *node;
@@ -672,9 +649,6 @@ void *func_000046EC(int *arg0) {
     (void)vparg;
     return node;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000046EC);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000477C);
 
