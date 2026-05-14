@@ -6239,7 +6239,22 @@ int gl_func_00065E84(char *a0) {
     return gl_ref_00077E98(a0 + 0x10);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00065EB4: 12-insn 2-call wrapper. Both calls target cross-segment
+ * address 0x77DB0 (past game_libs end at 0x7526C). Call 1 with &stack_local
+ * (uninitialized — callee fills as out-param). Call 2 with a0+0x10.
+ *
+ * Trailing 9 insns are alt-entry-prologue donation to successor — load
+ * (lui+addiu+sw v0,0x28(at)) family for the next function. */
+extern void func_00077DB0();
+void gl_func_00065EB4(int a0) {
+    int local;
+    func_00077DB0(&local);
+    func_00077DB0(a0 + 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065EB4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065F08);
 
