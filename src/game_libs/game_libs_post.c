@@ -6062,7 +6062,37 @@ void gl_func_0004ECE4(int a0) {
     gl_func_00000000(&gl_ref_000205F0);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0004ED0C: 28-insn array-iter + vtable-dispatch loop.
+ *   count = self->[0x120];
+ *   if (count <= 0) return;
+ *   for (i = 0; i < count; i++) {
+ *     v1 = self[0x134 + i*4];        // 4-byte stride
+ *     vtable = v1[0];
+ *     method = vtable[0xC];
+ *     method((s16)vtable[0x8] + (int)v1);
+ *     count = self->[0x120];          // re-read (callee may have changed it)
+ *   }
+ *
+ * Iterates an array of pointers at self->[0x134..0x134+count*4], calling
+ * a vtable method on each. */
+void gl_func_0004ED0C(int *self) {
+    int *iter = self;
+    int i;
+    int count = self[0x120/4];
+    if (count <= 0) return;
+    for (i = 0; i < count; i++) {
+        int *v1 = (int*)iter[0x134/4];
+        int *vtable = (int*)v1[0];
+        int (*method)(int) = (int(*)(int))vtable[0xC/4];
+        method((short)vtable[0x8/4] + (int)v1);
+        count = self[0x120/4];
+        iter++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED0C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
 
