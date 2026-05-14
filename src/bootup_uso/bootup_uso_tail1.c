@@ -80,7 +80,65 @@ void func_0000F954(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F954);
 #endif
 
+#ifdef NON_MATCHING
+/* func_0000F9E8: 64-insn (0x100) init helper with dead-branch bit-clear.
+ *
+ * Decoded structure:
+ *   func_00000000();                          // bare call (likely __init or similar)
+ *   result = func_00000000(&D_00000000);      // alloc-ish, returns ptr
+ *   self->field_38 = result;
+ *   {
+ *     aux = self->field_48;
+ *     vt  = aux->field_28;
+ *     fn  = vt->field_5C;
+ *     off = (short)vt->field_58;
+ *     fn(off + (int)aux);                     // indirect call
+ *   }
+ *   self->field_48->field_7C = 0;
+ *   self->field_30 = 1;
+ *   self->field_34 = 0;
+ *   if (self->field_4C != 0) {
+ *     p = self->field_4C + 0x18;
+ *     *p &= ~8;                               // clear bit 3 (always — dead set-branch)
+ *   }
+ *
+ * O0 markers: asm has `or s2, zero, zero; beqz s2` which is always-taken at
+ * runtime (s2 starts 0, never modified before the branch) → the "set bit 8"
+ * arm is dead code emitted by -O0. Simplified to plain `*p &= ~8` here.
+ *
+ * Likely O0-blocked (same cap class as siblings FBCC/FEA0/100F0). Path
+ * forward: file-split. */
+extern int func_00000000();
+void func_0000F9E8(int *self) {
+    int *result;
+    int *aux;
+    int *vt;
+    int *p;
+    short off;
+    void (*fn)(int);
+
+    func_00000000();
+    result = (int*)func_00000000(&D_00000000);
+    self[0x38 / 4] = (int)result;
+
+    aux = (int*)self[0x48 / 4];
+    vt = (int*)aux[0x28 / 4];
+    off = *(short*)((char*)vt + 0x58);
+    fn = (void(*)(int))vt[0x5C / 4];
+    fn(off + (int)aux);
+
+    ((int*)self[0x48 / 4])[0x7C / 4] = 0;
+    self[0x30 / 4] = 1;
+    self[0x34 / 4] = 0;
+
+    if (self[0x4C / 4] != 0) {
+        p = (int*)((char*)self[0x4C / 4] + 0x18);
+        *p &= ~8;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F9E8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FAE8);
 
