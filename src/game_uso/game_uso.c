@@ -3856,7 +3856,38 @@ void game_uso_func_0000591C(int *a0) {
      *
      * Cumulative ~625/1102 insns characterized, ~477 remaining.
      *
-     * TODO: ~477 remaining insns. */
+     * 0x63B0-0x6420 region (+30 insns) — state-counter dispatch:
+     *     if (1.0f < ratio) sp[0x1B4] |= 0x8;
+     *     if (sp[0x1A4] & 0x8) {
+     *         if (s0->int_4C4 > 0) {
+     *             gl_func_00000000(s0);           // 1-arg call
+     *             s0->int_4C4 = 0;
+     *             // b +0x82 (skip ~130 insns ahead — fast path exit)
+     *         }
+     *         // else: fall-through (also reload a0 = s0->[0x30])
+     *     } else {
+     *         // (8 == 0 path)
+     *         if (s0->int_4C4 != 0x10000) {
+     *             // (skip large block via bne +0x27)
+     *         } else {
+     *             // (v0 == 0x10000 path)
+     *             if (s0->int_2C != 3) {
+     *                 at = 2;
+     *                 // (branch-likely)
+     *             } else {
+     *                 f12 = s0->float_2DC;
+     *                 // b +8 — continue to float work
+     *             }
+     *         }
+     *     }
+     *
+     * Pattern: state-counter dispatch on s0->int_4C4 (looks like
+     * frame-counter for a duration-gated state) and s0->int_2C
+     * (current state-machine state). The 0x10000 sentinel is a flag.
+     *
+     * Cumulative ~655/1102 insns characterized, ~447 remaining.
+     *
+     * TODO: ~447 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
