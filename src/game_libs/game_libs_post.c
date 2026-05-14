@@ -3400,7 +3400,43 @@ void gl_func_00039E24(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039E24);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00039EE4: 38-insn standalone bundle-iterator + vtable-dispatch.
+ *
+ * For each node in head[0] linked list (same {node*, next*} shape as
+ * gl_func_00038DC0 etc.):
+ *   if (node->[0x18] & 0x4):
+ *     vt = node->[0x28];
+ *     (vt->[0x1C])(*(short*)(vt+0x18) + (int)node);
+ *
+ * Cap: target spills bundle ptrs to sp+0x18/sp+0x1C (no callee-saved
+ * regs used), while my emit promotes to $s0 since it survives the
+ * single jalr. Frame -32 (-0x20) target vs -0x20+8 built. Standard
+ * sibling-of-38DC0 iterator decoded; ~70% match. */
+int gl_func_00039EE4(int **head) {
+    int **bundle = (int**)head[0];
+    int **iter;
+    int *node = NULL;
+    if (bundle != NULL) {
+        iter = (int**)bundle[1];
+        node = (int*)bundle[0];
+    } else {
+        iter = NULL;
+    }
+    while (node != NULL) {
+        if (node[0x18/4] & 0x4) {
+            int *vt = (int*)node[0x28/4];
+            ((void(*)(int))vt[0x1C/4])(*(short*)((char*)vt + 0x18) + (int)node);
+        }
+        if (iter == NULL) break;
+        node = (int*)iter[0];
+        iter = (int**)iter[1];
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039EE4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039F7C);
 
