@@ -3527,7 +3527,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A044);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A0C4);
 
+#ifdef NON_MATCHING
+/* gl_func_0003A58C: 264-insn FPU-heavy vec3 transform + multi-copy.
+ *
+ *   diff_AC = (Vec3)*a2 - (Vec3)*a0;     stored to sp+0xDC..0xE7
+ *   *(Vec3*)(sp+0xEC) = diff_AC;          int-copy round-trip
+ *   *(Vec3*)(sp+0x11C) = *(Vec3*)(sp+0xEC);
+ *   f20 = (float)a3;                       (mtc1 raw)
+ *
+ *   diff_AB = (Vec3)*a1 - (Vec3)*a0;     stored to sp+0xBC..0xC7
+ *   *(Vec3*)(sp+0xEC) = diff_AB;
+ *   ... [240+ insns of similar reshuffle / cross-product / dot-product
+ *        / matrix-vector construction; not fully traced this tick]
+ *
+ * Initial wrap-only commit (decoded prologue + 2 diff vectors).
+ * Future ticks tighten the FPU body. */
+extern int gl_func_00000000();
+int gl_func_0003A58C(float *a0, float *a1, float *a2, int a3) {
+    float diff_AC[3];
+    float diff_AB[3];
+    int scratch_EC[3];
+    int scratch_11C[3];
+    diff_AC[0] = a2[0] - a0[0];
+    diff_AC[1] = a2[1] - a0[1];
+    diff_AC[2] = a2[2] - a0[2];
+    scratch_EC[0] = ((int*)diff_AC)[0];
+    scratch_EC[1] = ((int*)diff_AC)[1];
+    scratch_EC[2] = ((int*)diff_AC)[2];
+    scratch_11C[0] = scratch_EC[0];
+    scratch_11C[1] = scratch_EC[1];
+    scratch_11C[2] = scratch_EC[2];
+    diff_AB[0] = a1[0] - a0[0];
+    diff_AB[1] = a1[1] - a0[1];
+    diff_AB[2] = a1[2] - a0[2];
+    /* + 240 insns of vec3 normalize / cross-product / outgoing
+     *   gl_func_00000000 calls; structural body intentionally omitted */
+    (void)a3;
+    (void)diff_AB;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A58C);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0003A9AC(int *dst) {
