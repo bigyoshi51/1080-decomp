@@ -6,6 +6,7 @@ typedef struct { int a, b, c, d; } Quad4;
 
 extern int func_00000008;       /* USO-base reloc (D_-style placeholder pointer) */
 extern int func_000000F0;       /* USO-base reloc */
+extern int func_00000188;       /* USO-base reloc */
 extern char D_0000C57C;
 
 #ifdef NON_MATCHING
@@ -48,7 +49,36 @@ void* func_0000F81C(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F81C);
 #endif
 
+#ifdef NON_MATCHING
+/* func_0000F954: 37-insn (0x94) -O0-shape init helper.
+ *
+ * Decoded structure:
+ *   if (a0->field_48 != 0) func_00000000(a0->field_48);  // cleanup old
+ *   func_00000000(&D_00000000);                            // gl-base call
+ *   tmp = *(int*)((char*)&func_00000188 + 0x190);
+ *   func_00000000(tmp, 3, 0);                              // 3-arg call
+ *   a0->field_2C = 1;
+ *   func_00000000(a1, a2, 0);                              // 3-arg call
+ *
+ * BLOCKED: -O0 shape (caller-arg spill at sp+0x18/1C/20, no register
+ * promotion, `b .L+1; nop` dead BB markers). bootup_uso_tail1.c is
+ * -O2 — wrap is documented-only. Promotion path: file split per
+ * feedback_o0_cluster_split_with_layout_shim.md (same as func_000100F0
+ * and func_000118E4 already done — bootup_uso_o0_F954.c). */
+void func_0000F954(int *a0, int a1, int a2) {
+    int tmp;
+    if (*(int*)((char*)a0 + 0x48) != 0) {
+        func_00000000(*(int*)((char*)a0 + 0x48));
+    }
+    func_00000000(&D_00000000);
+    tmp = *(int*)((char*)&func_00000188 + 0x190);
+    func_00000000(tmp, 3, 0);
+    *(int*)((char*)a0 + 0x2C) = 1;
+    func_00000000(a1, a2, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F954);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F9E8);
 
