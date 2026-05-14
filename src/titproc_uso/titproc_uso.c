@@ -438,20 +438,26 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000171
  * constants (255, 163, 154, 67, 44, 1, -57, 28, 17, -3, 33) at offsets
  * 0x2C..0x70, plus 4 floats (1.0f x3, 0.0f) at 0x3C..0x48.
  *
- * Initial structural pass; default INCLUDE_ASM keeps ROM exact. */
+ * 2026-05-14: applied fall-through-with-null-guard form (third sibling
+ * of 1B10/1D7C in this dual-alloc dead-arm family). Same fix: rename
+ * the dead-arm allocation result to `sub`, replace `if (X == 0) return X;`
+ * with `if (X == 0) sub = alloc(...);`, fix the `*(self+0x28)` typo to
+ * use `sub` then `self` for the two distinct stores. Pushed 76.87% →
+ * 84.26% (+7.39pp; smaller gain than 1B10/1D7C because the body is
+ * longer so proportional improvement is diluted). Remaining cap is
+ * frame size (-0x30 built vs -0x28 expected, +8 bytes for `sub` local). */
 void *titproc_uso_func_00001840(void *a0) {
     char *base = &D_00000000;
     void *self = a0;
+    void *sub;
     if (self == 0) {
         self = (void*)gl_func_00000000(0x74);
-        if (self == 0) return self;
+        if (self == 0) goto end;
     }
-    if (self == 0) {  /* dead-arm passthrough cascade */
-        self = (void*)gl_func_00000000(0x2C);
-        if (self == 0) return self;
-    }
-    gl_func_00000000(self, base + 0x4D8);
-    *(int*)((char*)self + 0x28) = (int)base;
+    sub = self;
+    if (self == 0) sub = (void*)gl_func_00000000(0x2C);  /* dead-arm */
+    gl_func_00000000(sub, base + 0x4D8);
+    *(int*)((char*)sub + 0x28) = (int)base;
     *(int*)((char*)self + 0x28) = (int)base;
     *(int*)((char*)self + 0x0C) = (int)(base + 0x4E0);
     *(int*)((char*)self + 0x4C) = 163;
@@ -472,6 +478,7 @@ void *titproc_uso_func_00001840(void *a0) {
     *(float*)((char*)self + 0x48) = 0.0f;
     gl_func_00000000(self);
     gl_func_00000000(self);
+end:
     return self;
 }
 #else
