@@ -1045,7 +1045,20 @@ extern s32 D_80012D5C;
  * (b) reg allocation swap — target uses $v1 for ptr (heavy-use) and $v0
  * for end (light-use), opposite of IDO's default priority order. Diff (b)
  * is the dominant cost — IDO's reg-priority formula (refs × loop_depth)
- * always favors ptr for the lower reg #. */
+ * always favors ptr for the lower reg #.
+ *
+ * 2026-05-14 12th variant: removed `#ifdef NON_MATCHING` to test the
+ * naked-store + post-decrement-loop body in DEFAULT build (vs prior
+ * NM-build measurements). Result: default-build emit is 80 bytes vs
+ * target 76 (+4 bytes, 14 diffs concentrated at offsets 0x10-0x48). The
+ * extra insn is a 4th `lui $at` for D_80012D38's store (target merges
+ * D_80012D30/34 under one $at; built emits four separate lui+sw pairs).
+ * INSN_PATCH can't shrink the function size; would need a C variant
+ * that forces shared-$at base on two of the four naked stores. The
+ * `extern int[2]` array trick picks $a0 (per 9th variant), not $at.
+ * No new naked-store form found that triggers $at-base reuse. Reverted.
+ * Cap still holds — needs permuter or hypothetical mid-function-shrink
+ * recipe. */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
