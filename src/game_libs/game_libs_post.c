@@ -2715,18 +2715,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038BB8);
  *   if (state[0] == 0) return;
  *   do {
  *     vtable = self->[0x28];
- *     method = vtable->[0x3C];
- *     method((s16)vtable->[0x38] + (int)self);
+ *     ((void(*)(int, int*))vtable->[0x3C])((s16)vtable->[0x38] + (int)self, self);
  *     p = state[1]; state[1] = p + 1;
- *     state[0] = *(u16*)p;
- *   } while (state[0] != 0); */
+ *     state[0] = *p & 0xFFFF;
+ *   } while (state[0] != 0);
+ *
+ * 2026-05-14 multi-fix chain: null → 95.92% → 96.30% → 99.81%:
+ *  1. `*(short*)((char*)vtable + 0x38)` instead of `(short)vtable[0x38/4]`
+ *     — direct halfword load at byte offset 0x38 (per
+ *     docs/IDO_CODEGEN.md#feedback-ido-short-of-int-vs-direct-short-load).
+ *  2. `*p & 0xFFFF` instead of `(unsigned short)*p` — emits `lw+andi`
+ *     not `lhu +2`. (Same recipe.)
+ *  3. Inline cast `((void(*)(...))vtable[0x3C/4])(...)` instead of named
+ *     `method` local — IDO uses $t9 for inline indirect-call ptrs (default
+ *     jalr-target reg) per docs/MATCHING_WORKFLOW pattern.
+ *  4. Pass `self` as 2nd arg — target's `or a1, s0, zero` (=self) before
+ *     the jalr revealed the method takes 2 args (offset+self, self), not 1
+ *     (per docs/IDO_CODEGEN.md#feedback-ido-bne-ds-preserves-result-for-next-arg
+ *     — same family-pattern, just applied to a vtable indirect call).
+ * Remaining cap (0.19%): $s0 vs $s1 for self vs state. Built has state in
+ * $s0, expected has self in $s0 — register-priority swap that natural C
+ * ordering doesn't flip. */
 void gl_func_00038C04(int *self, int **state) {
     int next_val;
     if (state[0] == 0) return;
     do {
         int *vtable = (int*)self[0x28/4];
-        int (*method)(int) = (int(*)(int))vtable[0x3C/4];
-        method(*(short*)((char*)vtable + 0x38) + (int)self);
+        ((void(*)(int, int*))vtable[0x3C/4])(*(short*)((char*)vtable + 0x38) + (int)self, self);
         {
             int *p = state[1];
             state[1] = (int*)((char*)p + 4);
