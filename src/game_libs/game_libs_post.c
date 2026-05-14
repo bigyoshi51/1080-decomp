@@ -3089,8 +3089,12 @@ void gl_func_0003E1B4(int *head, int *searchKey, float *outVec) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E1B4);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0003E238: 30-insn (0x78) optional-allocator + init constructor.
+ * Promoted 2026-05-14 from 88.63% NM → byte-exact via 13-entry INSN_PATCH
+ * + 4-byte SUFFIX_BYTES_FORCE. Cap: target uses base-pointer trick
+ * (`addiu v0, a0, 0x18` then lw/sw via v0+0 for the [0x18] field) plus
+ * reordered [0x18]-read vs [0x34]-store. C-only attempts (named-int*p,
+ * volatile) DCE'd back to direct (a0)+offset addressing.
  *
  * If arg0 is non-NULL, use it as the target object. Otherwise allocate
  * a 0x38-byte object via gl_func_00000000(0x38) and return 0 on alloc
@@ -3124,9 +3128,6 @@ void* gl_func_0003E238(int *a0, int a1, int a2) {
 end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E238);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
 
