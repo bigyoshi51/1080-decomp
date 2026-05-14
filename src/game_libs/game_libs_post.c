@@ -3135,7 +3135,43 @@ void gl_func_00039990(int *a0, int *a1) {
     }
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00039A04: 38-insn alloc + init helper. If a0 == NULL,
+ * alloc(0x88); if alloc fails, return 0. Init fields: [0x28] = &D_0,
+ * [0x84] = 0, [0x6C..0x80] = float-zero, [0x70] = 1.0f. Call gl_func
+ * variants with various arg combos. Return self.
+ *
+ * Caps: stack-frame size (40 vs 56) + scratch-pointer reuse. Tried
+ * `if (a0==NULL) alloc; if (self!=NULL) body; return self;` — gives
+ * `beq s0,zero` instead of target's `beq v0,zero` (move scheduling).
+ * Tried pad[12,16,20] in various positions — sp_arg keeps landing
+ * at sp+0x24 or sp+0x30 vs target's sp+0x2C. ~85% match. */
+extern int gl_func_00000000();
+int *gl_func_00039A04(int *a0) {
+    int *self = a0;
+    int sp_arg;
+    if (a0 == NULL) {
+        self = (int*)gl_func_00000000(0x88);
+    }
+    if (self != NULL) {
+        gl_func_00000000(self, (char*)&D_00000000 + 0x1ECEC);
+        self[0x28/4] = (int)&D_00000000;
+        self[0x84/4] = 0;
+        *(float*)((char*)self + 0x74) = 0.0f;
+        *(float*)((char*)self + 0x78) = 0.0f;
+        *(float*)((char*)self + 0x7C) = 0.0f;
+        *(float*)((char*)self + 0x80) = 0.0f;
+        *(float*)((char*)self + 0x6C) = 0.0f;
+        gl_func_00000000((char*)self + 0x2C);
+        *(float*)((char*)self + 0x70) = 1.0f;
+        sp_arg = 19;
+        gl_func_00000000(self, &sp_arg);
+    }
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A9C);
 
