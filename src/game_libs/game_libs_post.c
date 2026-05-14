@@ -2448,7 +2448,13 @@ void gl_func_0003783C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003783C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003787C);
+/* gl_func_0003787C: 21-insn 2-call helper. */
+extern int gl_proto_3787C(void*, void*, void*, int, float, int);
+void gl_func_0003787C(void *a0) {
+    gl_proto_3787C(&D_00000000, (char*)&D_00000000 + 0x1EA18,
+                   (char*)a0 + 0x2C, 0xC0C00000, 6.0f, 0);
+    gl_func_00000000(a0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000378D0);
 
