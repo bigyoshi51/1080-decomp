@@ -8,6 +8,8 @@ extern int func_00000008;       /* USO-base reloc (D_-style placeholder pointer)
 extern int func_000000F0;       /* USO-base reloc */
 extern int func_00000188;       /* USO-base reloc */
 extern char D_0000C57C;
+extern char D_0000C58C;
+extern char D_0000C594;
 
 #ifdef NON_MATCHING
 /* func_0000F81C: 78-insn (0x138) allocator + init helper.
@@ -208,7 +210,79 @@ void func_0000FBCC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FBCC);
 #endif
 
+#ifdef NON_MATCHING
+/* func_0000FC28: 73-insn (0x124) constructor + init chain.
+ *
+ * Decoded shape (a0 = optional preallocated buffer):
+ *   if (a0 == 0) {
+ *       a0 = alloc(0x50);
+ *       if (a0 == 0) goto end;
+ *   }
+ *   s0 = a0;
+ *   if (s0 == 0) {                        // dead branch (a0 known non-NULL)
+ *       s0 = alloc(0x50);
+ *       if (s0 == 0) goto skip_init1;
+ *   }
+ *   s1 = s0;
+ *   if (s1 == 0) {                        // dead branch
+ *       s1 = alloc(0x2C);
+ *       if (s1 == 0) goto skip_init2;
+ *   }
+ *   init(s1, &D_0000C58C);
+ *   s1->field_28 = &D_00000000;           // vtable
+ * skip_init2:
+ *   s0->field_28 = &D_00000000;           // vtable
+ * skip_init1:
+ *   a0->field_28 = &D_00000000;           // vtable
+ *   a0->field_C = &D_0000C594;
+ *   v0 = call(a0, 0);
+ *   *(int*)&D_00000000 = v0;
+ *   ptr = *(int*)&D_00000000;
+ *   call(ptr, a0);
+ * end:
+ *   return a0;
+ *
+ * Dead-branch pattern (`s0 = a0; if (s0 == 0) alloc()`) suggests -O0
+ * expansion of macros or inlined alloc-checks where the source had
+ * `if (!a) a = alloc()` repeated. -O2 would eliminate the redundant
+ * checks but -O0 keeps them.
+ *
+ * Likely O0-blocked like other tail1 wrappers; file-split deferred. */
+void* func_0000FC28(void *a0) {
+    void *s0, *s1;
+
+    if (a0 == 0) {
+        a0 = (void*)func_00000000(0x50);
+        if (a0 == 0) goto end;
+    }
+    s0 = a0;
+    if (s0 == 0) {
+        s0 = (void*)func_00000000(0x50);
+        if (s0 == 0) goto skip_init1;
+    }
+    s1 = s0;
+    if (s1 == 0) {
+        s1 = (void*)func_00000000(0x2C);
+        if (s1 == 0) goto skip_init2;
+    }
+    func_00000000(s1, &D_0000C58C);
+    *(int*)((char*)s1 + 0x28) = (int)&D_00000000;
+skip_init2:
+    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+skip_init1:
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)a0 + 0x0C) = (int)&D_0000C594;
+    {
+        int v = func_00000000(a0, 0);
+        *(int*)&D_00000000 = v;
+    }
+    func_00000000(*(int*)&D_00000000, a0);
+end:
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FC28);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FD4C);
 
