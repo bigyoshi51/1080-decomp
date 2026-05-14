@@ -3917,7 +3917,43 @@ void game_uso_func_0000591C(int *a0) {
      *
      * Cumulative ~685/1102 insns characterized, ~417 remaining.
      *
-     * TODO: ~417 remaining insns. */
+     * 0x6498-0x650C region (+30 insns) — counter-decrement + 2nd LUT:
+     *     s0->int_4C4 = (int)trunc(f12);
+     *     // ... b +0x57 over 0x158 bytes (large skip-ahead)
+     *
+     *     // Alt path (when 1.0 < ratio false): state-counter check
+     *     if (s0->int_4C4 > 0) {
+     *         state = s0->int_2C;
+     *         state -= 1;
+     *         if (state == 1) {
+     *             s0->int_4C4 = state;             // store decremented
+     *             gl_func_00000000(s0);
+     *             f16 = 0.0f;
+     *             a0 = s0->ptr_30;
+     *             // b +0x1B — skip
+     *         }
+     *     }
+     *
+     *     // Second state-switch (different offset table):
+     *     state = s0->int_2C;
+     *     f18 = sp[0x19C];
+     *     if (state == 0) { ... }            // (special-case head)
+     *     else if (state == 3) {
+     *         f12 = s0->float_3B4;
+     *     } else if (state == 2) {
+     *         f14 = s0->float_384;
+     *     } else {
+     *         f14 = s0->float_39C;
+     *     }
+     *     f12 = f14;
+     *
+     * Pattern: parallel frame-counter decrement + state-keyed
+     * float-field LUTs for a SECOND set of constants (0x384/0x39C/0x3B4),
+     * mirroring the earlier 0x2AC/0x2C4/0x2F4/0x30C/0x324 set.
+     *
+     * Cumulative ~715/1102 insns characterized, ~387 remaining.
+     *
+     * TODO: ~387 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
