@@ -196,7 +196,30 @@ end_zero:
     return 0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00021EA8: 38-insn 4-call gated cleanup pair.
+ *   Two parallel call pairs (one for a0, one for a1). Each pair:
+ *     if (func(&D[0x2198], arg) == 0) D[zero_field] = 0;
+ *     else                            func(&D[other_table], arg);
+ *   Then unconditional D[0x2948] = 0; D[0x2BDC] = 0; */
+extern int func_00000000();
+void gl_func_00021EA8(int a0, int a1) {
+    if (func_00000000((char*)&D_00000000 + 0x2198, a0) == 0) {
+        *(int*)((char*)&D_00000000 + 0x26C0) = 0;
+    } else {
+        func_00000000((char*)&D_00000000 + 0x26B8, a0);
+    }
+    if (func_00000000((char*)&D_00000000 + 0x2198, a1) == 0) {
+        *(int*)((char*)&D_00000000 + 0x2954) = 0;
+    } else {
+        func_00000000((char*)&D_00000000 + 0x294C, a1);
+    }
+    *(int*)((char*)&D_00000000 + 0x2948) = 0;
+    *(int*)((char*)&D_00000000 + 0x2BDC) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021EA8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
 
