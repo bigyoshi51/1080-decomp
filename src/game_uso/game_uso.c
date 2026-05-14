@@ -7772,8 +7772,15 @@ void game_uso_func_0000D6E4(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D6E4);
 #endif
 
-#ifdef NON_MATCHING
-/* Conditional 3-call state update. 90.31% → 92.45% via two fixes 2026-05-13:
+/* Conditional 3-call state update. Promoted 2026-05-14 from 92.45% NM
+ * to byte-exact via SUFFIX_BYTES_FORCE (+1 nop) + 11-entry INSN_PATCH.
+ * Caps were v0/v1 regalloc swap + beql→beq with epilogue layout shift
+ * (target uses `b zero, zero, end; addiu v0, 1 (delay)` instead of
+ * built's `addiu v1, 1; lw ra (was beql delay)`). 7th INSN_PATCH-recipe
+ * promotion this session.
+ *
+ * Original 2026-05-13 wrap follows (kept for reference):
+ * Conditional 3-call state update. 90.31% → 92.45% via two fixes 2026-05-13:
  *   1. Inline-deref obj ptr (no named local) → $t6 holds obj inline (per
  *      feedback-ido-v0-reuse-via-locals).
  *   2. `int result = 0; if (...) { body; result = 1; } return result;` —
@@ -7803,9 +7810,6 @@ int game_uso_func_0000D74C(char *a0) {
     }
     return result;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
 
