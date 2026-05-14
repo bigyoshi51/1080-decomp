@@ -4902,8 +4902,23 @@ int gl_func_000546BC(char *a0) {
  * The `bne s1, $at` where at=-0x2C is unusual — possibly a tag check
  * (s1+0x2C != 0?) decoded incorrectly. Needs second-pass refinement.
  *
- * TODO: decode insns 28-203 (field setups + 4-5 more cross-USO calls)
- * before wrapping NM. */
+ * Insns 28-54 (+27 insns) — chained 4-byte allocs + Vec3-zero call:
+ *     v1 = gl_func_00000000(4);
+ *     if (v1 != NULL) *v1 = 0;
+ *     // Second 4-byte alloc paired similarly
+ *     a4 = gl_func_00000000(4);
+ *     if (a4 != NULL) *a4 = 0;
+ *     gl_func_00000000(s1);             // init secondary again
+ *     // Zero Vec3 on stack at sp+0xC4
+ *     sp[0xC4] = 0.0f; sp[0xC8] = 0.0f; sp[0xCC] = 0.0f;
+ *     gl_func_00000000(s1 + 0x30, &sp[0xC4]); // pass zero Vec3
+ *     s0->[0x28] = &D_00000000;          // re-store data placeholder
+ *     s1 += 0xC4;                        // advance pointer for next block
+ *
+ * Cumulative 54/203 insns characterized.
+ *
+ * TODO: decode insns 55-203 — looks like more per-field setups with
+ * different sizes + Vec3 zero patterns, plus loop or unrolled tail. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
