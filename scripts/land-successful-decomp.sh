@@ -51,6 +51,7 @@ import subprocess
 import sys
 import os
 import glob
+import re
 
 report_path = sys.argv[1]
 want = sys.argv[2:]
@@ -118,9 +119,28 @@ def byte_verify(name):
             return text[addr:addr + size]
         return None
 
+    # Route to build/non_matching/.o when src has INCLUDE_ASM(name) for this
+    # function. Default build/.o uses the #else INCLUDE_ASM path which is
+    # trivially byte-equal to expected/.o (both come from the same .s file) —
+    # the circular tautology documented at
+    # docs/MATCHING_WORKFLOW.md#feedback-include-asm-tautology-trap.
+    # build/non_matching/.o defines -DNON_MATCHING=1 and actually compiles
+    # the C body, making the comparison meaningful. For post-cc-recipe paths
+    # (INSN_PATCH/SUFFIX_BYTES/PROLOGUE_STEALS) where no NM wrap exists, the
+    # default build/.o still holds.
+    pat = re.compile(rf'INCLUDE_ASM\([^)]*\b{re.escape(name)}\b')
+    has_include_asm = False
+    for src in glob.glob("src/**/*.c", recursive=True):
+        try:
+            if pat.search(open(src).read()):
+                has_include_asm = True
+                break
+        except (OSError, UnicodeDecodeError):
+            continue
+    build_root = "build/non_matching" if has_include_asm else "build"
     # Search for the .o pair by symbol name.
-    for base_o in glob.glob("build/src/**/*.c.o", recursive=True):
-        rel = os.path.relpath(base_o, "build")
+    for base_o in glob.glob(f"{build_root}/src/**/*.c.o", recursive=True):
+        rel = os.path.relpath(base_o, build_root)
         exp_o = os.path.join("expected", rel)
         if not os.path.exists(exp_o):
             continue
