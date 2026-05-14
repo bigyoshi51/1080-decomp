@@ -5354,7 +5354,116 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  *
  * NEXT PASS: continue decode from 0x7E08. Likely a list-walk over
  * a1->0x30->0x908 with collision/proximity checks against the staged
- * Vec3s. ~940 insns remaining in this slow path. */
+ * Vec3s. ~940 insns remaining in this slow path.
+ *
+ * EXTENDED DECODE 0x7E08-0x816C (~150 insns, decoded 2026-05-13, applies
+ * the 100-200-insns/tick chunk rule per
+ * docs/MATCHING_WORKFLOW.md#feedback-multitick-chunk-size-100to200-not-30):
+ *
+ *   /\* (a) 0x7E08-0x7E20: cross-USO call with list_head as arg *\/
+ *   t1 = (a1->0x30)->[0x908];        ; list_head load
+ *   if (t1 != 0) {                    ; beql-skip if NULL
+ *       a0 = t1;
+ *       s2 = sp + 0x268;              ; stage Vec3 buffer (delay slot)
+ *       gl_func_0(a0);                ; cross-USO process-list
+ *       a1 = sp[0x3B4];               ; reload caller a1
+ *   }
+ *
+ *   /\* (b) 0x7E20-0x7E50: float flag-test then conditional clear of a1->0xA4 *\/
+ *   if ((flag = a1->0xA4) == 0) {     ; bnel-skip path
+ *       f18 = a1->0xA0; f16 = a1->0xA0;
+ *       if (-(f18) >= 0.0f) {          ; neg.s + c.le.s
+ *           if (compare-result) a1->0xA4 = 0; ; bc1f-fall-through
+ *       } else {
+ *           a1->0xA4 = 1;
+ *       }
+ *   }
+ *
+ *   /\* (c) 0x7E50-0x7E70: abs-value of f18; second clear path *\/
+ *   f18 = abs(f18);                    ; abs.s
+ *   c.le.s 0.0, f18;                   ; (zero from $f4)
+ *   if (cmp-fail) a1->0xA4 = 0;
+ *   v0 = 0;                            ; zero accumulator
+ *
+ *   /\* (d) 0x7E70-0x7EC4: alloc-or-passthrough block A
+ *    *     dst = sp + 0x268; src = s0->[0x30..0x38] Vec3 *\/
+ *   if ($at != $v0) {                 ; sentinel-skip
+ *       v1 = sp + 0x268; t0 = a1->0x30;
+ *       s0 = (t0 + 0xB4);              ; mid-struct ptr
+ *       if (v1 == 0) v1 = alloc(0xC);  ; (always non-NULL on stack)
+ *       v1[0] = s0->0; v1[1] = f24; v1[2] = s0->8;
+ *   }
+ *
+ *   /\* (e) 0x7EC4-0x7F30: alloc-or-passthrough block B; result is a delta-Vec3
+ *    *     dst = sp + 0x274; src = block-A staged minus a3->[0x30..0x38] *\/
+ *   v1 = sp + 0x274;
+ *   if (v1 == 0) v1 = alloc(0xC);
+ *   { f10 = a1->0x30; f18 = a1->0x38;
+ *     f8 = sp[0x280]; f16 = sp[0x288]; ; from block-A
+ *     v1[0] = sp[0x280] - f10;         ; delta.x
+ *     v1[1] = f24;                     ; mid component
+ *     v1[2] = sp[0x288] - f18; }       ; delta.z
+ *   /\* 3-way Vec3 broadcast through s0 -> sp+0x28C -> a1+0 chain
+ *    * (parallel store v1 -> a1->[..0x4..0x8] AND -> sp+0x28C..0x294) *\/
+ *
+ *   /\* (f) 0x7F30-0x7F78: c.eq.s on the swap-component, write sp[0x318] flag *\/
+ *   f6 = sp[0x28C]; f4 = sp[0x314];    ; one shared component
+ *   f16 = sp[0x294]; f10 = sp[0x30C];
+ *   f4 = f6 * f4;                       ; mul.s
+ *   f18 = f16 * f10;
+ *   f0 = f4 + f18;                      ; cross/dot-product accumulator
+ *   if (f0 < 0.0f) sp[0x318] = -1;     ; bc1f-jump fallthrough
+ *   else           sp[0x318] = +1;
+ *
+ *   /\* (g) 0x7F7C-0x7FD8: alloc-or-passthrough block C; src s0 -> sp+0x268,
+ *    * then 3-way Vec3 broadcast s0 -> sp+0x300 + a1->0..8 *\/
+ *   v1 = sp + 0x268;
+ *   if (s2 != 0) {                     ; bnel-skip
+ *       a0 = s2;
+ *       gl_func_0(a0, 0xC);             ; alloc-call (cross-USO, ret in v0)
+ *   }
+ *   if (v0 != 0) { v0[0] = s0->0; v0[1] = f24; v0[2] = s0->8; }
+ *
+ *   /\* (h) 0x7FD8-0x803C: jal + alloc-or-passthrough sp+0x31C from caller a3 *\/
+ *   gl_func_0(a4_unused, sp[0x3BC_caller_a3]);
+ *   v1 = sp + 0x31C;
+ *   if (v1 == 0) v1 = alloc(0xC);
+ *   { f0 = (caller_a3)->0x38; f12 = (caller_a3)->0x30;
+ *     v1[0] = f12; v1[1] = f24; v1[2] = f0; }
+ *
+ *   /\* (i) 0x803C-0x809C: matrix-row commit; sp+0x300 / sp+0x318 reads
+ *    * + writes through a1->0x0..0x8 with FPU mul/add reductions *\/
+ *   /\* matrix-style: f4 = sp[0x31C]; f10 = sp[0x324];
+ *    *               v0[0] = f4; v0[2] = f10;
+ *    *               result-cell = f4*x + f10*z (2x2 row of a homogeneous mat) *\/
+ *
+ *   /\* (j) 0x809C-0x80B0: doubles staged to sp+0x3A4/0x3A8/0x3AC
+ *    *     (caller-visible scratch) *\/
+ *   sp[0x3A4]=f8; sp[0x3A8]=f18; sp[0x3AC]=f4;
+ *
+ *   /\* (k) 0x80B0-0x80F0: float-constant gates 250.0f and 0.5f
+ *    *     250.0f = 0x437A0000 ; 0.5f = 0x3F000000 (lui $at, ...)
+ *    *     Both used in c.lt.s tests against an accumulated dot-product
+ *    *     (likely speed-threshold or normalization clamp) *\/
+ *   if (acc < 250.0f) { ... mul by 0.5f path ... }
+ *   else              { ... commit unclamped path ... }
+ *
+ *   /\* (l) 0x80F0-0x813C: Vec3 commit chain — s0/sp+0x244/0x1F0 staging
+ *    * (looks like the final output Vec3 destined for *arg5 plus a sibling
+ *    *  per-axis flag at sp[0x244]+0x0) *\/
+ *
+ *   /\* (m) 0x813C-0x816C: load 4 doubles from caller-spilled offsets
+ *    * sp[0x238]/sp[0x23C]/sp[0x240] + s$24 base 0x54 offset (caller's
+ *    * struct), do matrix multiplies and write back to sp+0x210/0x214/0x218 *\/
+ *
+ * Cumulative ~200/1075 insns characterized. Body-proper now ~870 insns
+ * remaining. Pattern crystallizing: this function is a Vec3-delta + 2x2
+ * matrix transform on caller-supplied stage/dest positions with a
+ * speed-clamp gate (250.0f) and 0.5f scaling — consistent with snow-
+ * physics ground-projection of a per-frame velocity vector.
+ *
+ * NEXT PASS: continue from 0x8170 — another likely matrix-multiply
+ * pass and the final *arg5 write. */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
