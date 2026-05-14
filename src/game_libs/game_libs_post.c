@@ -2516,7 +2516,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037CE0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037D48);
 
+#ifdef NON_MATCHING
+/* gl_func_00037DA8: 23-insn copy-6-ints + send-buffer helper. Copies
+ * a0[0..5] into stack local then calls gl_func(&D_0, local, 24).
+ * Cap: target uses `addiu a1, sp, 0x18; sw via a1+off` pattern; IDO
+ * emits direct `sw via sp+off` (correct semantically; different bytes). */
+void gl_func_00037DA8(int *a0) {
+    int local[6];
+    local[0] = a0[0];
+    local[1] = a0[1];
+    local[2] = a0[2];
+    local[3] = a0[3];
+    local[4] = a0[4];
+    local[5] = a0[5];
+    gl_func_00000000(&D_00000000, local, 0x18);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037DA8);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00037E04(int *dst) {
