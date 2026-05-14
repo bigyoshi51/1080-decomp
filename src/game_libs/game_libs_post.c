@@ -6098,27 +6098,31 @@ void gl_func_0004ECE4(int a0) {
 #ifdef NON_MATCHING
 /* gl_func_0004ED0C: 28-insn array-iter + vtable-dispatch loop.
  *   count = self->[0x120];
- *   if (count <= 0) return;
  *   for (i = 0; i < count; i++) {
  *     v1 = self[0x134 + i*4];        // 4-byte stride
- *     vtable = v1[0];
- *     method = vtable[0xC];
- *     method((s16)vtable[0x8] + (int)v1);
+ *     ((void(*)(int))v1[0]->[0xC])((s16)v1[0]->[0x8] + (int)v1);
  *     count = self->[0x120];          // re-read (callee may have changed it)
  *   }
  *
  * Iterates an array of pointers at self->[0x134..0x134+count*4], calling
- * a vtable method on each. */
+ * a vtable method on each.
+ *
+ * 2026-05-14 multi-fix: 88.57% → 96.07%:
+ *  1. Direct halfword `*(short*)((char*)vtable + 0x8)` instead of
+ *     `(short)vtable[0x8/4]` — fixes the lh-offset trap.
+ *  2. Inline method-ptr cast (no named local) — IDO uses $t9 for jalr.
+ *  3. Drop the explicit `if (count <= 0) return;` — the for-loop's
+ *     initial test already handles it. The redundant check produced
+ *     blezl (likely) + extra blez at IDO -O2.
+ * Remaining cap is $s0/$s1 swap (i vs iter) — register-priority. */
 void gl_func_0004ED0C(int *self) {
     int *iter = self;
     int i;
     int count = self[0x120/4];
-    if (count <= 0) return;
     for (i = 0; i < count; i++) {
         int *v1 = (int*)iter[0x134/4];
         int *vtable = (int*)v1[0];
-        int (*method)(int) = (int(*)(int))vtable[0xC/4];
-        method(*(short*)((char*)vtable + 0x8) + (int)v1);
+        ((void(*)(int))vtable[0xC/4])(*(short*)((char*)vtable + 0x8) + (int)v1);
         count = self[0x120/4];
         iter++;
     }
