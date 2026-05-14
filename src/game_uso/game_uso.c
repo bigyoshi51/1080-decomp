@@ -678,7 +678,68 @@ void game_uso_func_00000AEC(int *a0, int a1) {
  * Cumulative ~680/706 insns characterized (~96%). ~26 insns remaining —
  * final list-walk closure + epilogue.
  *
- * NEXT PASS: 0x1518-end (~26 insns) — list-walk completion + epilogue. */
+ * NEXT PASS: 0x1518-end (~26 insns) — list-walk completion + epilogue.
+ *
+ * FINAL DECODE 2026-05-14 (insns 680-770 @ 0x1518-0x1640, ~74 insns):
+ *
+ * LIST-WALK LOOP BODY @ 0x1518-0x1568 (~21 insns):
+ *   /\* iterate while (node != head_terminator):
+ *    *   node->[0x64] = list_idx_field_0;
+ *    *   node->[0x68] = list_idx_field_1;
+ *    *   node->[0x6C] = list_idx_field_2;
+ *    *   node->[0x70] = list_idx_field_3;
+ *    *   node = node->[0x4]; ; via t8/t9/t11 chain
+ *    *   ; loop-back at 0x1560 (170AFFF8 = bne t8, t2, -8 with sw in delay) *\/
+ *
+ * POST-LOOP VEC3 BROADCAST @ 0x1570-0x158C (~7 insns):
+ *   /\* broadcast staged Vec3 from t9 chain to sp+0xB4..0xBC:
+ *    *   sp+0xB4 = t9->[0];
+ *    *   sp+0xB8 = t9->[4];
+ *    *   sp+0xBC = t9->[8];
+ *    * stages for final FPU work *\/
+ *
+ * FINAL FPU + COMMIT @ 0x1590-0x15B4 (~9 insns):
+ *   /\* load 3 doubles from sp+0xB4/0xB8/0xBC,
+ *    *   store to a3->[0x140]/[0x144]/[0x148] (Vec3 commit to entity) *\/
+ *
+ * GUARD CHECKS + COMMITS @ 0x15B8-0x1638 (~32 insns):
+ *   /\* if (a0->[0x130] < a3->[0x28]) {
+ *    *     if (D_BSS_FLAG == 1) { D_BSS_RES = gl_func_0(D_BSS_FLAG,...); }
+ *    *     ; conditional 0-or-1 increment on D_BSS_RES
+ *    * }
+ *    * if (a0->[0x130] < t6->[0x24]) goto skip_commits;
+ *    *   a0->[0x260] = a0->[0x254] + 1;
+ *    *   a0->[0x254] = a3-something;
+ *    *   a0->[0x25C] = stored_idx;
+ *    *
+ *    * The two ABS_LT comparisons gate the final state-counter updates. *\/
+ *
+ * EPILOGUE @ 0x1630-0x163C (~4 insns):
+ *   lw $ra, 0x24(sp); lw $s0, 0x20(sp); addiu sp, +0x150; jr ra; nop
+ *
+ * STRUCTURAL DECODE COMPLETE: 770/706 nominal (actually function is
+ * 0x1640-0xB3C = 0xB04 bytes = 705 insns total, my "706" estimate was
+ * close). All ~770 lines of asm processed.
+ *
+ * Final semantic picture: spine-#6 per-frame entity update.
+ * - Input: a0 = entity ptr (game-state struct).
+ * - Entry: id-change detect via a0->[0x150]->[0xA54], 3-level LUT
+ *   navigation (primary at a0->[0x158+N*4], tertiary at a0->[0x1D4+N*4]).
+ * - Body: ~7 nested switch+Vec3-stage iterations dispatching on
+ *   a3->[0x0/0x4/0x10/0x28/0x30] fields, each staging a Vec3 to a
+ *   different sp slot for downstream cross-USO calls. Plus the rodata
+ *   jump-table at 0xDB8 (4 cases) for state-mask updates to
+ *   list->[0xA58].
+ * - Tail: list-walk loop writes 4 fields per node, post-loop Vec3
+ *   broadcast + commit to a3->[0x140..0x148], then 2 ABS_LT gates
+ *   that conditionally update state-counter triple at a0->[0x254/
+ *   0x25C/0x260].
+ * - Returns nothing.
+ *
+ * Default emit remains INCLUDE_ASM until C-body grind reaches >=80%.
+ * Decode doc unblocks future single-tick C-write attempts; the ~7
+ * switch+stage iterations are highly repetitive and suitable for
+ * code-generation from a per-iteration template. */
 void game_uso_func_00000B3C(int *a0) {
     int *sub;
     int derived_id;
