@@ -1273,7 +1273,98 @@ void gl_func_0002D8D8(void) {
     gl_func_00000000(0x41020000, D_2D8D8_Y[(int)D_2D8D8_X]);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0002D910: 219-insn (0x36C) multi-armed input/state-machine
+ * handler. 0x18-byte stack frame, spills all 4 args (sw a0/a1/a2/a3 to
+ * caller slots sp+0x18/0x1C/0x20/0x24) — K&R signature.
+ *
+ * TOP-LEVEL DISPATCH:
+ *   t6 = *(int*)&D_00000000;        ; some "mode" global (loaded via lui/lw)
+ *   if (t6 != 10) goto alt_path;     ; bne t6, 10, +0xCC (~204 insns ahead)
+ *
+ * STATE==10 ARM (insns 12-160 @ 0x2D938-0x2DB80, 148 insns):
+ *   t7 = *(int*)&D_00000004;        ; "subsystem ready" flag
+ *   if (t7 != 1) return;             ; bnel (branch-likely with ra-reload in delay slot)
+ *
+ *   // Static counters/state at BSS offsets 0x2C1BC..0x2C1D4:
+ *   //   D_2C1BC = previous-key (input edge detector)
+ *   //   D_2C1C0 = secondary key state
+ *   //   D_2C1C4 = repeat counter (key-hold delay)
+ *   //   D_2C1C8 = step counter
+ *   //   D_2C1CC = repeat-flag (-1 = held, 0 = released)
+ *   //   D_2C1D0 = step direction
+ *   //   D_2C1D4 = sub-state value
+ *
+ *   if (D_2C1BC != a0) {
+ *       // edge: key value changed
+ *       if (D_2C1CC == 0 && a0 == 0) {
+ *           gl_func_0(0x06010F00, 2);     ; play_sound(EDGE_DOWN, 2)
+ *           D_2C1CC = -1;
+ *           goto conv1;
+ *       } else if (a0 == 1) {
+ *           gl_func_0(0x06010F00, 0);     ; play_sound(EDGE_UP, 0)
+ *           D_2C1CC = 0;
+ *           goto conv1;
+ *       }
+ *       // ... more dispatch on a0 ==/!=1
+ *   }
+ *
+ *   // Following blocks (0x2DA00-0x2DB80, ~96 insns):
+ *   //   - if (D_2C1C0 != a1) { ... similar edge logic for secondary key ... }
+ *   //   - step-counter update D_2C1C8: increment with bound D_2C1C4
+ *   //   - direction toggle D_2C1D0 based on sub-state D_2C1D4
+ *   //   - 3 more gl_func_0(0x06010F00 | flags, ...) calls
+ *   //   - 2 sl/srl pairs (sll/sra by 5 = *32 indexing into 32-byte struct)
+ *
+ * STATE!=10 ALT-PATH (insns 161-218 @ 0x2DB84-0x2DC74, 58 insns):
+ *   // Different dispatch arm — used when game in non-menu mode.
+ *   // Similar pattern with D_2C1D0 / D_2C1D4 updates, different play_sound args.
+ *
+ * EPILOGUE (insns 219-220 @ 0x2DC64-0x2DC70):
+ *   lw ra, 0x14(sp); addiu sp, 0x18; jr ra; nop
+ *
+ * Plus 2 trailing prefix-bytes for SUCCESSOR (0x2DC74/0x2DC78: `lui $t6, 0;
+ * lw $t6, 0($t6)`) — gl_func_0002DC7C inherits this $t6 setup. Already
+ * captured via SUFFIX_BYTES on 0002D910 in Makefile.
+ *
+ * Multi-tick decomp expected: 5+ arms × ~10 insns of dispatch each.
+ * Default INCLUDE_ASM keeps ROM exact; partial C body provides
+ * grep-discoverable structural skeleton + named BSS-offset constants
+ * for future tightening passes.
+ *
+ * Initial pass — entry dispatch + structural TODO only. Default emit
+ * remains INCLUDE_ASM. */
+extern int D_2C1BC, D_2C1CC;
+
+void gl_func_0002D910(int a0, int a1, int a2, int a3) {
+    int mode = *(int*)&D_00000000;
+    int subsys;
+    if (mode != 10) {
+        /* TODO: alt-path 0x2DB84-0x2DC60 (~58 insns) */
+        return;
+    }
+    subsys = *(int*)((char*)&D_00000000 + 4);
+    if (subsys != 1) {
+        return;
+    }
+    if (D_2C1BC != a0) {
+        if (D_2C1CC == 0 && a0 == 0) {
+            gl_func_00000000(0x06010F00, 2);
+            D_2C1CC = -1;
+        } else if (a0 == 1) {
+            gl_func_00000000(0x06010F00, 0);
+            D_2C1CC = 0;
+        }
+        /* TODO: rest of edge-detection arm */
+    }
+    /* TODO: secondary key (a1) edge-detection + step-counter logic +
+     * 3 more play_sound calls + sl/srl indexing into 32-byte struct */
+    (void)a2;
+    (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D910);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DC7C);
 
