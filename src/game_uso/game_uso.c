@@ -5610,7 +5610,82 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * receives 3 accumulator updates total across the function.
  *
  * NEXT PASS: continue from 0x8788 — likely another matrix-row pass
- * and traversal towards the function's *arg5 commit + epilogue. */
+ * and traversal towards the function's *arg5 commit + epilogue.
+ *
+ * EXTENDED DECODE 0x8788-0x8A54 (~180 insns, decoded 2026-05-13):
+ *
+ *   /\* (mm) 0x8788-0x87B0: ACCUMULATOR UPDATE #3 — sp+0x120/0x124 dbl-mul
+ *    *      with sp+0x2C4/0x2C8 (the staged accumulator pair), result stored
+ *    *      back to sp+0x2C0/0x2C4/0x2C8. b +0x59 long-skip to converge point
+ *    *      after this update commits. *\/
+ *
+ *   /\* (nn) 0x87B4-0x880C: STATE-DISPATCH (bne $a0, 2, +0x56) entering
+ *    *      yet another state arm. Loads sp+0x158/0x15C/0x160 doubles into
+ *    *      FPU, computes matrix-row products with sp+0x00AC/0x00B8 (constants
+ *    *      from caller scratch region). Writes results to sp+0x00B0/0x00B4. *\/
+ *
+ *   /\* (oo) 0x8810-0x8870: 4-way Vec3 broadcast chain — staged Vec3
+ *    *      propagated through t9/t8 to multiple sibling buffers including
+ *    *      a1->[0..8] mirror and sp+0x94 staging. *\/
+ *
+ *   /\* (pp) 0x8874-0x88B4: another FPU matrix-row commit — load sp+0x00C4/
+ *    *      0x00C8/0x00CC doubles, abs.d operations, store back to sp+0x00A0/
+ *    *      0x00A4/0x00A8 (a different sibling region, suggesting parallel
+ *    *      accumulation for a different state-arm output). *\/
+ *
+ *   /\* (qq) 0x88B4-0x88E0: 3-way Vec3 transitive copy through t9/t8/t7
+ *    *      (matrix commit pattern, same shape as prior section gg). *\/
+ *
+ *   /\* (rr) 0x88E4-0x8910: ACCUMULATOR UPDATE #4 — sp+0x00D0/0x00D4/0x00D8
+ *    *      added into sp+0x2C0/0x2C4/0x2C8 (the central accumulator pair).
+ *    *      Same shape as ACC #3 but with the state==2-arm-derived contribution. *\/
+ *
+ *   /\* (ss) 0x8914-0x8964: SENTINEL TEST — load $t8 = sp[0x50] (caller spill
+ *    *      from earlier flag-class bookkeeping), test sp[0x2D4] vs sp[0x2C0]
+ *    *      via c.le.s/c.lt.d cascade. bc1fl-guard around the alloc-or-passthrough
+ *    *      block H (sp+0x88 dst, sp+0x7C src), then a second guard around the
+ *    *      gl_func_0 transform call. *\/
+ *
+ *   /\* (tt) 0x8978-0x89A8: CROSS-USO TRANSFORM CALL #2 — gl_func_0(
+ *    *      transform_scratch_sp+0x88, sp+0x7C, sp+0x14C-Vec3, ...). This is
+ *    *      a 4+arg call with f0 (the accumulated dot-product) spilled to
+ *    *      sp+0x10 as a variadic arg. Following sp[0x2D0] = 1 sets the
+ *    *      "this state path completed" flag (mirrors the flag from earlier
+ *    *      transform-call site at 0x83E4). *\/
+ *
+ *   /\* (uu) 0x89AC-0x89C0: TAIL-FLAG GUARD — load $t1 = sp[0x54] (companion
+ *    *      to $t8 above), branch-skip whole post-commit block if $t1 == 0
+ *    *      (b +0x31 long-skip to converge point). *\/
+ *
+ *   /\* (vv) 0x89C4-0x8A20: POST-COMMIT BLOCK — load sp[0x2E8]/[0x2E0] +
+ *    *      sp+0x88/0x90 doubles, FPU add.d + c.le.d cascade. Then 3-way
+ *    *      Vec3 transitive copy (sp+0x88 -> sp+0x7C -> sp+0x14C). ACC
+ *    *      UPDATE #5: sp[0x354]/sp[0x358]/sp[0x35C] BACK INTO sp[0x2E0]/
+ *    *      [0x2E4]/[0x2E8] — this is the "shadow accumulator" update for
+ *    *      the alternate state branch (independent from the main sp+0x2C0
+ *    *      accumulator triple). *\/
+ *
+ *   /\* (ww) 0x8A24-0x8A48: secondary c.le.s gate on sp[0x2D4] vs sp[0x2DC]
+ *    *      (cross-accumulator comparison). bc1f-jump +0x27 skips next block
+ *    *      if the comparison fails. *\/
+ *
+ *   /\* (xx) 0x8A50-0x8A54: 3-word Vec3 broadcast prep — t6 = sp[0x0]
+ *    *      (loaded structure ptr), sp+0x2E0 = t6 (first word). Continues
+ *    *      into next pass. *\/
+ *
+ * Cumulative ~680/1075 insns characterized (~63.3% of function body).
+ * ~395 insns remaining.
+ *
+ * Pipeline now fully understood: function computes TWO independent
+ * Vec3 accumulators in parallel (sp+0x2C0/0x2C4/0x2C8 and sp+0x2E0/
+ * 0x2E4/0x2E8), each fed by state-armed delta+transform stages, with
+ * an indirect cross-USO call gated by speed-clamp + flag-counter tests
+ * at the end of each state arm. sp+0x3A4/0x3A8/0x3AC is the caller-
+ * visible output mirror that gets folded from both accumulators
+ * before the final *arg5 write at the epilogue.
+ *
+ * NEXT PASS: continue from 0x8A58 — Vec3 broadcasts + the final
+ * accumulator-fold + *arg5 commit + epilogue (~395 insns to end). */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
