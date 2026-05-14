@@ -510,37 +510,43 @@ void h2hproc_uso_func_00000A80(int *a0) {
  *   Default (other v1):
  *     return (just epilogue restore)
  *
- * Logic-level decode only. Match% will be measured in a later run after
- * cleaning up signatures + register allocation. Stub with INCLUDE_ASM
- * default so default build is exact. */
-extern int gl_func_00000000();
-extern char D_00000000;
+ * 77.38% NM (2026-05-14 cleanup pass: char-base hoist + if-min instead
+ * of ternary moved 76.87% → 77.38%, +0.51pp). Remaining cap is the
+ * regalloc choice (target loads state to $v1; mine to $v0) which
+ * cascades into 5+ register-name differences across the cases. Target
+ * also uses 3-arm dispatch (beqz + beq + b-default) where mine emits
+ * nested-if (bnez-skip + bne-skip). IDO -O2 doesn't synthesize 3-arm
+ * from nested-if at this size. Path forward: permuter random-search
+ * or accept the regalloc cap. */
 void h2hproc_uso_func_00000A88(int *a0) {
-    int v1 = *(int*)((char*)a0 + 0x504);
-    if (v1 == 0) {
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3, 1);
-        *(int*)((char*)a0 + 0x504) = 1;
+    int *s0 = a0;
+    int state = *(int*)((char*)s0 + 0x504);
+    char *base = &D_00000000;
+    if (state == 0) {
+        gl_func_00000000(*(int*)(base + 0x190), 3, 1);
+        *(int*)((char*)s0 + 0x504) = 1;
         gl_func_00000000(7, 0, 0);
-    } else if (v1 == 1) {
+    } else if (state == 1) {
         int *p;
         int a3;
         unsigned diff_a, diff_b, min;
-        if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3) == 0) return;
+        if (gl_func_00000000(*(int*)(base + 0x190), 3) == 0) return;
         gl_func_00000000(7, 0, 0);
-        gl_func_00000000(a0);
-        diff_a = *(unsigned*)((char*)&D_00000000 + 0x170);
-        diff_b = *(unsigned*)((char*)&D_00000000 + 0x174);
-        min = (diff_b < diff_a) ? diff_b : diff_a;
-        gl_func_00000000(a0, min + 0x26000F);
-        p = (int*)gl_func_00000000(0, a0);
-        a3 = *(int*)((char*)a0 + 0x56C);
-        *(int**)((char*)a0 + 0x6AC) = p;
+        gl_func_00000000(s0);
+        diff_a = *(unsigned*)(base + 0x170);
+        diff_b = *(unsigned*)(base + 0x174);
+        min = diff_a;
+        if (diff_b < diff_a) min = diff_b;
+        gl_func_00000000(s0, min + 0x26000F);
+        p = (int*)gl_func_00000000(0, s0);
+        a3 = *(int*)((char*)s0 + 0x56C);
+        *(int**)((char*)s0 + 0x6AC) = p;
         gl_func_00000000(a3 + 0x10, p, 1);
         if (*(int*)((char*)p + 0x14) != 0) {
             *(int*)((char*)p + 0x4) = 1;
         }
         *(int*)((char*)p + 0x14) = a3;
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 1);
+        gl_func_00000000(*(int*)(base + 0x190), 1, 1);
     }
 }
 #else
