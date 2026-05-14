@@ -102,41 +102,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000116C8);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000117FC);
 
-#ifdef NON_MATCHING
-/* func_000118E4: 30-insn linked-list-prepend allocator wrapper.
- * O0-compiled emit shape (lots of sp+0x1C/0x20/0x24 reload via stack,
- * out-of-frame caller-arg-slot saves of a0/a1, no register promotion).
- *
- * Decoded structure:
- *   void func_000118E4(int *head_holder, int data) {
- *       int *node = alloc(8);            // alloc 8 bytes (next, data)
- *       node[1] = head_holder->[0x130];  // node->next = old head
- *       head_holder->[0x130] = node;     // head = node
- *       node[0] = data;                  // node->data = data
- *       init(&D_00000000, node[0]);      // init/notify with data
- *   }
- *
- * The 4-byte alloc-result + a0/a1 spill-and-reload pattern (sp+0x1C =
- * v0, sp+0x20 = a0, sp+0x24 = a1, with 4 reloads of sp+0x1C across the
- * body) is unmistakable -O0 IDO emit.
- *
- * BLOCKED: tail3a.c.o is -O2 -g3. Promotion requires an -O0 file-split
- * (per kernel's project_o1o2_split.md model — create sibling .c with
- * -O0 OPT_FLAGS, move the function, update linker script). Multi-tick
- * infra change. */
-extern int func_00000000();
-void func_000118E4(int *head_holder, int data) {
-    int *node = (int*)func_00000000(8);
-    node[1] = head_holder[0x130 / 4];
-    head_holder[0x130 / 4] = (int)node;
-    node[0] = data;
-    func_00000000(&D_00000000, node[0]);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000118E4);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001195C);
+/* func_000118E4 + func_0001195C split out to bootup_uso_o0_118E4.c on
+ * 2026-05-14 for -O0 build (func_000118E4 was previously NM-wrapped at
+ * tail3a's -O2 -g3 OPT_FLAGS; the body's sp+0x1C/0x20/0x24 spill-and-
+ * reload shape is unmistakable -O0 IDO emit). */
 
 /* func_00011A34 split out to bootup_uso_o0_11A34.c on 2026-05-08
  * (verified byte-exact at -O0). The following 11AB4..11C70 gap lives in

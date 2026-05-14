@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000118E4",
+  "project": "1080-agent-i",
+  "model": "claude-manual",
+  "start_time": "2026-05-14T04:44:45.837489+00:00",
+  "end_time": "2026-05-14T04:44:45.837510+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-14T04:44:45.837504+00:00",
+      "assistant_text": "30-insn linked-list-prepend allocator wrapper. Promoted from -O2-blocked NM cap via file-split into bootup_uso_o0_118E4.c with -O0 OPT_FLAGS. The sp+0x1C/0x20/0x24 spill-and-reload pattern is unmistakable -O0 IDO emit (no register promotion). Migration model from kernel/o1o2_split.md applied to bootup_uso -O2/-O0 mix. Applied recipe from feedback_o0_file_split.md / project_o1o2_split.md.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 30,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\n\n/* -O0 sub-file split out of bootup_uso_tail3a.c on 2026-05-14. Holds the\n * 0x118E4..0x1195B -O0 cluster: 118E4 (linked-list-prepend allocator) +\n * 1195C (INCLUDE_ASM stub \u2014 opt-level-independent; migrates to C body in\n * future pass when verified at -O0).\n *\n * Pattern: minimal -O0 frame, sp+0x1C/0x20/0x24 spill-and-reload of\n * alloc-result + a0/a1, no register promotion. */\n\n/* func_000118E4: 30-insn linked-list-prepend allocator wrapper.\n * alloc(8); new->next = head_holder->[0x130]; head_holder->[0x130] = new;\n * new->data = arg1; notify(&D_0, new->data). */\nvoid func_000118E4(int *head_holder, int data) {\n    int *node = (int*)func_00000000(8);\n    node[1] = head_holder[0x130 / 4];\n    head_holder[0x130 / 4] = (int)node;\n    node[0] = data;\n    func_00000000(&D_00000000, node[0]);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001195C);\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_118E4.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_000118E4.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified via byte_verify: build/non_matching/.o byte-identical to expected/.o for symbol (size 0x78 = 120 bytes / 30 insns). Required -O0 file split out of bootup_uso_tail3a.c (which is -O2 -g3)."
+  }
+}
