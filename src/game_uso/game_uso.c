@@ -6406,7 +6406,60 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  *
  * Cumulative ~610/709 insns characterized (~86%). NEXT PASS: continue
  * from 0x96C8 — remaining ~99 insns: jump-table arms (likely 4 cases) +
- * final accumulator commit + epilogue. */
+ * final accumulator commit + epilogue.
+ *
+ * FINAL DECODE 2026-05-14 (insns 610-709 @ 0x96C8-0x97E4, ~99 insns):
+ *
+ * RODATA JUMP-TABLE ARMS @ 0x96C8-0x9708 (~16 insns, 3 cases):
+ *   case 0 (state-counter == 0): store sp[0x60-0x68] + add.s f4 = f4 + f6;
+ *                                 b +0xC to converge at 0x970C
+ *   case 1 (state-counter == 1): load -1.0f (lui at, 0xBF80), FPU sub
+ *                                 sp[0x60] -= sp[0x64]; sp[0x64] -= 1.0f;
+ *   case 2 (state-counter == 2): simple FPU add (mul.s f6, f6, f8)
+ *   case 3 (state-counter == 3): default-arm fall-through
+ *
+ * a1->[0x84..0x8C] WRITE-BACK No.4 @ 0x970C-0x9738:
+ *   a1->[0x84] += sp[0x60]; a1->[0x88] += sp[0x64]; a1->[0x8C] += sp[0x68];
+ *   ; (4th sub-pixel fold — accumulates state-counter result into output Vec3)
+ *
+ * 15th CROSS-USO CALL @ 0x973C-0x9760 (~10 insns):
+ *   gl_func_0(sp+0x24, sp+0x174, ...);  ; final processing call
+ *   ; saves retval at sp+0x214 (recurring slot), reload arg
+ *
+ * FPU MAGNITUDE CHECK + 16th CROSS-USO CALL @ 0x9764-0x97A0 (~16 insns):
+ *   /\* compute magnitude_sq = X*X + Z*Z (XZ-projected)
+ *    *  call gl_func_0(retval, sp+0x174, sp+0x84-deref Vec3) *\/
+ *   retval->[0x0] = sp[0x84-derived].x;
+ *   retval->[0x4] = sp[0x84-derived].y;
+ *   retval->[0x8] = sp[0x84-derived].z;
+ *
+ * FINAL VEC3 COMMIT @ 0x97A4-0x97D4:
+ *   /\* copy 12 bytes sp[0x174..0x17C] -> a1->[0x90..0x9C]
+ *    *  AND -> sp+0x210 (caller-spill ptr load) *\/
+ *   t8 = sp[0x210]; t8->[0x0..0x8] = sp[0x174..0x17C];
+ *
+ * EPILOGUE @ 0x97D8-0x97E4:
+ *   lw $ra, 0x14(sp); lw $v0, 0x210(sp);  ; return v0 = caller's a4
+ *   addiu sp, +0x210; jr ra; nop
+ *
+ * STRUCTURAL DECODE COMPLETE: 709/709 insns characterized (~100%).
+ *
+ * Final semantic picture: per-frame XZ-projected snowboard physics
+ * compute. Inputs: a0 (caller scratch), a1 (subsystem struct), a2,
+ * a3 (Vec3 sources), arg4 (terminator). Outputs:
+ *   - a1->[0x84..0x8C] (per-frame Vec3, accumulated 4 times via state-
+ *     counter dispatch — sub-pixel-precision output)
+ *   - a1->[0x90..0x9C] (final committed XZ-projected position)
+ *   - sp[0x210]->[0x0..0x8] (caller-supplied output Vec3)
+ * Returns sp[0x210] (caller's arg4 reload).
+ *
+ * Function performs: 16 cross-USO calls (Vec3 readers + transform helpers
+ * + finalization), 8 triple-dest Vec3 broadcasts, 3 magnitude-square
+ * compares (collision-detection gates), 2 rodata jump-tables (state-arm
+ * dispatch), and a state-counter mod-4 sub-pixel-fold loop.
+ *
+ * Default emit remains INCLUDE_ASM until C-body grind reaches >=80%.
+ * Decode doc unblocks future single-tick C-write attempts. */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
