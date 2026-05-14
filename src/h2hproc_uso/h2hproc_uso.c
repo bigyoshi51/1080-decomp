@@ -771,7 +771,76 @@ void h2hproc_uso_func_00000F60(char *a0) {
     gl_func_00000000(&D_00000000, 0, 0, 0x13F, 0xEF, 0x10001);
 }
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_00000FD0: 141-insn (0x234) alloc-cascade constructor.
+ * Allocates a 0x9C (156-byte) self-struct if caller didn't supply one,
+ * runs an init helper, populates 5 fields from helper-call returns, then
+ * does a 5-call register-handler sequence with packed-flag args followed
+ * by a 6-arg create + indirect call via sub->fnptr.
+ *
+ * STRUCT LAYOUT (inferred from offsets):
+ *   self+0x10 ... 4 child sub-objects at 0x10/0x38/0x50/0x68/0x80
+ *   self+0x28 ... ptr to &D_00000000 (data base)
+ *   self+0x2C ... caller-supplied a1 (config/parent ptr)
+ *   self+0x30 ... sub-handle from helper(0) call #2
+ *   self+0x34 ... sub-handle from helper(0) call #1
+ *
+ * ENTRY (insns 1-10):
+ *   if (a0 == 0) { self = alloc(0x9C); if (!self) return 0; }
+ *   gl_func_0(self, &D_0+0x3F4);    ; init self from template
+ *
+ * FIELD POPULATION (insns 11-25):
+ *   self->0x28 = &D_0;
+ *   self->0x2C = saved_a1;
+ *   self->0x34 = gl_func_0(0);
+ *   self->0x30 = gl_func_0(0);
+ *   gl_func_0(self->0x30, self->0x2C);
+ *
+ * 5-PASS REGISTER-HANDLER (insns 26-65):
+ *   packed_base = (*(int*)&D_0 + 3) << 16;
+ *   for (flag in [1, 4, 3, 2, 5]):
+ *     gl_func_0(self->0x30, packed_base | flag, -1, &D_0+0);
+ *
+ * 6-ARG CREATE + INDIRECT CALL (insns 66-100):
+ *   gl_func_0(0, &D_0, 72, 221, 3, 13);   ; 6-arg create
+ *   self->0x30->0x30 = v0;
+ *   gl_func_0(self->0x30);                  ; init helper
+ *   gl_func_0(self->0x30, 174);             ; tag/id setter
+ *   sub = self->0x30->0x28;                  ; load nested ptr
+ *   sub->fnptr_5C(self->0x30 + sub->halfword_58);   ; INDIRECT CALL
+ *
+ * 5 MEMBER INITS (insns 101-141, OR-flag pattern 0x1D/0x1E alternating):
+ *   gl_func_0(self+0x10, self->0x30);
+ *   if (self->0x30->[0x14] != 0) self->0x30->[0x4] = 1;
+ *   self->0x30->[0x14] = self;
+ *   // 4 more init calls at self+0x10/0x50/0x68/0x80 with packed
+ *   //   `(*(int*)(D_0 + 0x4C/0x54/0x58/0x60)) | (0x1D or 0x1E)<<16`
+ *
+ * EPILOGUE: return self;
+ *
+ * Initial pass: entry alloc-cascade + init-helper + first 2 helper
+ * returns. Rest is TODO. Default INCLUDE_ASM keeps ROM exact. */
+extern void *h2hproc_uso_func_00000FD0_TODO(void *self, int saved_a1);
+
+void *h2hproc_uso_func_00000FD0(void *a0, int *a1) {
+    void *self = a0;
+    int saved_a1 = (int)a1;
+    if (self == 0) {
+        self = (void*)gl_func_00000000(0x9C);
+        if (self == 0) return 0;
+    }
+    gl_func_00000000(self, (char*)&D_00000000 + 0x3F4);
+    *(int*)((char*)self + 0x28) = (int)&D_00000000;
+    *(int*)((char*)self + 0x2C) = saved_a1;
+    *(int*)((char*)self + 0x34) = gl_func_00000000(0);
+    *(int*)((char*)self + 0x30) = gl_func_00000000(0);
+    /* TODO: ~110 more insns — 5-pass register-handler + 6-arg create +
+     * indirect call + 5 member inits. */
+    return h2hproc_uso_func_00000FD0_TODO(self, saved_a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD0);
+#endif
 
 #ifdef NON_MATCHING
 /* h2hproc_uso_func_00001204: 87-insn (0x15C) state-machine + indirect call.
