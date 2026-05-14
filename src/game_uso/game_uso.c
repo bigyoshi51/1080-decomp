@@ -5685,7 +5685,79 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * before the final *arg5 write at the epilogue.
  *
  * NEXT PASS: continue from 0x8A58 — Vec3 broadcasts + the final
- * accumulator-fold + *arg5 commit + epilogue (~395 insns to end). */
+ * accumulator-fold + *arg5 commit + epilogue (~395 insns to end).
+ *
+ * FINAL DECODE 0x8A58-0x8CD4 (~160 insns, decoded 2026-05-13) —
+ * reaches end of function:
+ *
+ *   /\* (yy) 0x8A58-0x8AB4: trailing Vec3 broadcasts staged Vec3 -> caller
+ *    *      mirror sp+0x2E0/0x2E4/0x2E8 + ACC update #5
+ *    *      (sp[0x354..0x35C] -> sp[0x2E8]/[0x2E4]/[0x2E0]). *\/
+ *
+ *   /\* (zz) 0x8AB8-0x8AE4: ACC update #6 sp[0x354..0x35C] ->
+ *    *      sp[0x2DC]/[0x2D8]/[0x2D4] (shadow accumulator mirror snapshot). *\/
+ *
+ *   /\* (aaa) 0x8AE8-0x8B1C: FINAL ACCUMULATOR FOLD load sp+0x2C0 base,
+ *    *       Vec3 copy s0[0..8] -> sp[0x2C0..2C8], then
+ *    *       sp[0x354..0x35C] -> sp[0x3A4..0x3AC] (caller-visible output
+ *    *       mirror that gets returned via the *arg5 commit). *\/
+ *
+ *   /\* (bbb) 0x8B20-0x8B28: LOOP-BACK BRANCH `bne s0->int_2C, 0, -0x1BD`
+ *    *       jumps back to ~0x8434 (post-flag-set sentinel test in chunk x).
+ *    *       The state machine iterates while entity->int_2C state-counter
+ *    *       is non-zero, processing each arm's accumulator contribution. *\/
+ *
+ *   /\* (ccc) 0x8B2C-0x8B50: TRANSFORM CALL #3 `beql v0, 0, +0x59` skip-guard;
+ *    *       loads sp[0x3A4]/[0x3AC] caller-visible doubles, FPU mul.s/sub.s,
+ *    *       calls gl_func_0(scratch+0xCC, scratch+0x348, ...) the final
+ *    *       arg5 commit transform via a cross-USO helper. *\/
+ *
+ *   /\* (ddd) 0x8B54-0x8B94: alloc-or-passthrough chain sp+0x70 from sp+0x2C0
+ *    *       (main accumulator Vec3), sp+0x64 from sp+0x2E0 (shadow accumulator). *\/
+ *
+ *   /\* (eee) 0x8B98-0x8BDC: 2 more alloc-or-passthrough blocks sp+0x58 and
+ *    *       sp+0x64 stage buffers for interpolation inputs. *\/
+ *
+ *   /\* (fff) 0x8BE0-0x8C2C: INTERPOLATION CALL load sp+0x60/0x6C/0x70/0x78
+ *    *       doubles, FPU mul.s/sub.s sequence (lerp coefficient compute),
+ *    *       c.lt.s gate + bc1f skip, 2 jal cross-USO calls. This is the
+ *    *       "blend two accumulators" step that interpolates main vs shadow
+ *    *       Vec3 by the gated coefficient. *\/
+ *
+ *   /\* (ggg) 0x8C30-0x8C5C: ACC FOLD #2 sp[0x354..0x35C] ->
+ *    *       sp[0x3AC]/[0x3A8]/[0x3A4] (caller-visible output mirror),
+ *    *       `b +0xD` skip to converge point. *\/
+ *
+ *   /\* (hhh) 0x8C60-0x8C8C: ACC FOLD #2 ALT-ARM same writes to sp+0x3A4
+ *    *       triple but with a different intermediate buffer source. *\/
+ *
+ *   /\* (iii) 0x8C90-0x8CAC: CALLER-VISIBLE RESULT WRITE load sp[0x3B0]
+ *    *       (caller's a3 reload) into $t3, Vec3 transfer sp[0x3A4..0x3AC]
+ *    *       -> a1->[0..8]. Final commit back to entity at a1 pointer. *\/
+ *
+ *   /\* (jjj) 0x8CB0-0x8CD4: STANDARD EPILOGUE
+ *    *       lw $ra, 0x44(sp); lw $s2, 0x40(sp); lw $s1, 0x3C(sp);
+ *    *       lw $s0, 0x38(sp); ldc1 $f24/$f22/$f20;
+ *    *       lw $v0, 0x3B0(sp); jr $ra; addiu $sp, +0x3B0
+ *    *       Returns sp[0x3B0] (caller's a0 spill reload) — function
+ *    *       returns its `a0` parameter unchanged. *\/
+ *
+ * STRUCTURAL DECODE COMPLETE: 1071/1071 insns characterized (~100%).
+ *
+ * Final semantic picture: 5-arg per-frame physics update (snow-physics
+ * velocity/orientation transform). State-machine loops on entity->int_2C
+ * counter; each pass folds a Vec3 contribution from one of 8+ state-keyed
+ * float-LUT cascades into a dual-accumulator pair (main sp+0x2C0/0x2C4/0x2C8
+ * + shadow sp+0x2E0/0x2E4/0x2E8). After the loop, both accumulators
+ * interpolate via a c.lt.s-gated coefficient into caller-visible
+ * sp+0x3A4/0x3A8/0x3AC output mirror, which gets transformed (gl_func_0)
+ * and committed back to the entity at a1->[0..0x8] (and to caller-supplied
+ * arg5 if non-NULL the zero-init at function entry was prepping it).
+ * Returns a0 unchanged.
+ *
+ * Default emit remains INCLUDE_ASM until C-body grind reaches >=80%.
+ * Decode doc unblocks future single-tick C-write attempts (36 named
+ * blocks let a future pass write C piecemeal block-by-block). */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
