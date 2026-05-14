@@ -430,21 +430,30 @@ void timproc_uso_b1_func_000018D4(char *a0) {
  *       if (sub->[0x72C] <= 0.0f) gl_func(self);  ; threshold-crossed call
  *   }
  *
- * Initial structural pass; FP-compare polarity / regalloc caps expected. */
+ * 2026-05-14: applied named-pointer-to-field idiom (`float *fp = (float*)
+ * (sub + 0x72C);`) to match target's `addiu v0, a0, 1836` two-step
+ * addressing per docs/IDO_CODEGEN.md#feedback-ido-named-base-forces-addiu-split.
+ * Pushed 83.65% → 86.60% (+2.95pp). Remaining caps are register-name
+ * cascades (self in $a0 vs $a3, sub in $v0 vs $a0, $f0 vs $f2 for zero
+ * constant) — not C-controllable. */
 void timproc_uso_b1_func_00001908(int *self) {
     char *base = &D_00000000;
     int *sub;
+    float *fp;
     gl_func_00000000(self);
     sub = (int*)self[0xD4/4];
-    if (*(float*)((char*)sub + 0x72C) > 0.0f) {
-        *(float*)((char*)sub + 0x72C) -= *(float*)(base + 0x48);
+    fp = (float*)((char*)sub + 0x72C);
+    if (*fp > 0.0f) {
+        *fp -= *(float*)(base + 0x48);
         sub = (int*)self[0xD4/4];
-        if (*(float*)((char*)sub + 0x72C) < 0.0f) {
-            *(float*)((char*)sub + 0x72C) = 0.0f;
+        fp = (float*)((char*)sub + 0x72C);
+        if (*fp < 0.0f) {
+            *fp = 0.0f;
         }
         gl_func_00000000(self, 140, *(int*)((char*)sub + 0x6AC));
         sub = (int*)self[0xD4/4];
-        if (*(float*)((char*)sub + 0x72C) <= 0.0f) {
+        fp = (float*)((char*)sub + 0x72C);
+        if (*fp <= 0.0f) {
             gl_func_00000000(self);
         }
     }
