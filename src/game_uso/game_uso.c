@@ -7710,7 +7710,69 @@ void game_uso_func_0000D9CC(int *a0) {
          *
          * Cumulative 297/524 insns characterized (~57%). ~227 insns
          * remaining — likely the merge-finalization at ~0xE020 + the
-         * else-arm (30.0f-fail path) reset code. */
+         * else-arm (30.0f-fail path) reset code.
+         *
+         * EXTENDED 2026-05-14 (insns 297-490 @ 0xDE6C-0xE188, ~190 insns):
+         *
+         * 16th-20th chains @ 0xDE6C-0xDFA8 (5 more residual checks):
+         *   field offsets 0x334, 0x31C, 0x25C, 0x114-table, with state-OR
+         *   masks 0x2C/0x2D/0x16/0x14/0x13/0x12 — same dispatch shape as
+         *   prior chains, each falling through to far-merge via `b +long`.
+         *
+         * MAIN MERGE POINT @ 0xDFB0-0xE048 (~38 insns):
+         *   /* Final FPU math after all residual chains converge: *\/
+         *   f6 = inner->0x1098 (loaded as integer cast to float?);
+         *   d10 = some-double-constant 0x3FF0_0000 (1.0 as upper dword) ;
+         *   c.le.s f6, f6_self → bc1fl skip with f8 = inner->0x114-load;
+         *   inner->[0x09CC] table read + cross-USO call gated on 0;
+         *   /* SENTINEL UPDATE at 0xE020-0xE044: *\/
+         *   t9 = inner->[0x114];  ; reload current state-field
+         *   if (t9 != 1) self->[0x108] = 0;  ; force-reset state byte
+         *   ; otherwise keep accumulated state bits
+         *   t3 = self->[0x108];    ; reload
+         *   a1 = t3 | 0;            ; (delay) zero-OR for arg
+         *
+         * INDIRECT CALL DISPATCH @ 0xE04C-0xE070 (~10 insns):
+         *   beql v0, $0, +0x47 ; skip dispatch if v0 == 0
+         *     reload inner = s0->[0xB4]   ; (delay) reload
+         *   jal cross-USO with f18=1.0f spill + arg-reload
+         *   inner->[0x11C] = 1.0f;        ; mark "active"
+         *
+         * FINAL FPU COMMIT @ 0xE074-0xE0A8 (~14 insns):
+         *   inner = s0->[0xB4];
+         *   f18 = 1.0f; f4 = 0.0f; f6 = 0.0f; f8 = 0.0f;
+         *   inner->[0x308] = f10  ; output-Vec4 fold cell 3
+         *   inner->[0x2FC] = f4   ; output-Vec4 cell 0
+         *   inner->[0x300] = f6   ; output-Vec4 cell 1
+         *   inner->[0x304] = f8   ; output-Vec4 cell 2
+         *   a0 = s0; jal gl_func_0(s0, &inner->0x2FC);
+         *
+         * FLAG-DISPATCH @ 0xE0AC-0xE0F4 (~18 insns):
+         *   inner = s0->[0xB4];   ; reload
+         *   inner->[0x3DC] = 0;   ; clear ready-flag
+         *   if (sp[0x30] != 0) goto skip_arming  ; check sp30 sentinel
+         *     a0 = s0; jal gl_func_0(s0, 0, 1, 0, 1, 1)  ; 6-arg arm call
+         *   ; otherwise:
+         *   reload constants from 0xE88/0xE8C in BSS table:
+         *     a0=s0; jal gl_func_0(s0, 0, sp[0xE88], sp[0xE8C], 2)
+         *   b +0xE (skip past the alt-arm)
+         *
+         * ALT-FLAG-DISPATCH @ 0xE124-0xE160 (~14 insns):
+         *   t9 = self->[0x108]; sp[0x14] = t9; sp[0x10] = (some arg)
+         *   load constants from 0xE90/0xE94 BSS:
+         *   a0=s0; jal gl_func_0(s0, sp[0xE90], sp[0xE94], 1, t9, ...)
+         *   another tail-call gl_func_0(s0, 0) before list walk
+         *
+         * LIST-WALK SETUP @ 0xE164-0xE188 (~10 insns):
+         *   inner = s0->[0xB4];
+         *   t7 = inner->[0xA14]   ; list head ptr at +0xA14
+         *   beql + skip (if 0 head, skip past walk to epilogue prep)
+         *   sp[0x24] reload  ; ra pre-stage
+         *   state = self->[0x108]; self->[0x114] = state;  ; commit state
+         *   ; (continues into per-list-elem dispatch in next chunk)
+         *
+         * Cumulative 487/524 insns characterized (~93%). ~37 insns
+         * remaining — list-walk body + epilogue + the 30.0f-fail else-arm. */
     } else {
         /* 30.0f-fail path @ 0xDBDC (far forward, ~280 insns from entry).
          * Decoded skeleton: loads 500.0f into $f0 at delay slot, then
