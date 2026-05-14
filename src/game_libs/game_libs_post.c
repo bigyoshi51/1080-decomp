@@ -2460,7 +2460,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000378D0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037A9C);
+/* gl_func_00037A9C: 21-insn count-bounded loop. Calls
+ * gl_func(&D_0 + 0x1EBDC) `count` times if count > 0. */
+void gl_func_00037A9C(int count) {
+    int i = 0;
+    if (count > 0) {
+        do {
+            gl_func_00000000((char*)&D_00000000 + 0x1EBDC);
+            i++;
+        } while (i != count);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037AF0);
 
