@@ -1094,10 +1094,14 @@ void func_00007AD8(char *a0) {
  * NM status: closest O2 body matches the stack frame and broad block layout,
  * but IDO keeps ret in $a2 while target uses $a0 through the first init and
  * $v1 for the link/return tail. Direct m2c-shaped spill locals push the frame
- * to 0x30, and IDO rejects fixed-register asm hints in this compiler path. */
+ * to 0x30, and IDO rejects fixed-register asm hints in this compiler path.
+ *
+ * 2026-05-13: cleaned up redundant `var_v1 = ret;` alias (same pattern
+ * as sibling func_00007C74 5850c219). IDO collapses the alias; byte-
+ * identical 89.31% after removal. Cap is genuinely register-allocator-
+ * driven, not alias-driven. */
 void *func_00007B08(char *a0) {
     char *ret;
-    char *var_v1;
     int *link;
 
     ret = (char*)func_00000000(0x40);
@@ -1106,7 +1110,6 @@ void *func_00007B08(char *a0) {
         *(char**)(ret + 0x28) = &D_00000000;
         *(int*)(ret + 0x3C) = 0;
     }
-    var_v1 = ret;
 
     link = *(int**)(a0 + 0x40);
     if (link != 0) {
@@ -1114,10 +1117,10 @@ void *func_00007B08(char *a0) {
         if (link[5] != 0) {
             link[1] = 1;
         }
-        link[5] = (int)var_v1;
+        link[5] = (int)ret;
     }
 
-    return var_v1;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007B08);
