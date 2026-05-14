@@ -6456,7 +6456,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062484);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062540);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000625FC);
+/* gl_func_000625FC: 20-insn array-walk + conditional-call helper.
+ * Indexes into (*a0)[a1*5]; if entry[0x10] (signed halfword) != -1,
+ * calls gl_func(entry->[0x8], val). Returns *entry. */
+int gl_func_000625FC(int *a0, int a1) {
+    int *entry = (int*)((char*)*a0 + a1 * 20);
+    short val = *(short*)((char*)entry + 0x10);
+    if (val != -1) {
+        gl_func_00000000(*(int**)((char*)entry + 0x8), val);
+    }
+    return *entry;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006264C);
 
