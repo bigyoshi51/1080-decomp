@@ -2710,38 +2710,17 @@ int gl_func_00038BB8(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038BB8);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00038C04: 27-insn list-walk + vtable-dispatch loop.
- *   if (state[0] == 0) return;
- *   do {
- *     vtable = self->[0x28];
- *     ((void(*)(int, int*))vtable->[0x3C])((s16)vtable->[0x38] + (int)self, self);
- *     p = state[1]; state[1] = p + 1;
- *     state[0] = *p & 0xFFFF;
- *   } while (state[0] != 0);
- *
- * 2026-05-14 multi-fix chain: null → 95.92% → 96.30% → 99.81%:
- *  1. `*(short*)((char*)vtable + 0x38)` instead of `(short)vtable[0x38/4]`
- *     — direct halfword load at byte offset 0x38 (per
- *     docs/IDO_CODEGEN.md#feedback-ido-short-of-int-vs-direct-short-load).
- *  2. `*p & 0xFFFF` instead of `(unsigned short)*p` — emits `lw+andi`
- *     not `lhu +2`. (Same recipe.)
- *  3. Inline cast `((void(*)(...))vtable[0x3C/4])(...)` instead of named
- *     `method` local — IDO uses $t9 for inline indirect-call ptrs (default
- *     jalr-target reg) per docs/MATCHING_WORKFLOW pattern.
- *  4. Pass `self` as 2nd arg — target's `or a1, s0, zero` (=self) before
- *     the jalr revealed the method takes 2 args (offset+self, self), not 1
- *     (per docs/IDO_CODEGEN.md#feedback-ido-bne-ds-preserves-result-for-next-arg
- *     — same family-pattern, just applied to a vtable indirect call).
- * Remaining cap (0.19%): $s0 vs $s1 for self vs state. Built has state in
- * $s0, expected has self in $s0 — register-priority swap that natural C
- * ordering doesn't flip. */
+/* gl_func_00038C04: 27-insn list-walk + vtable-dispatch loop. Matched
+ * 2026-05-14 via 5-step refinement chain (see git log). The method takes
+ * 2 args (adjusted_addr, state) — IDO's `or a1, s0, zero` (where s0 =
+ * state) before the jalr is the diagnostic that revealed the 2nd arg is
+ * `state`, not `self` (which is in $s1). */
 void gl_func_00038C04(int *self, int **state) {
     int next_val;
     if (state[0] == 0) return;
     do {
         int *vtable = (int*)self[0x28/4];
-        ((void(*)(int, int*))vtable[0x3C/4])(*(short*)((char*)vtable + 0x38) + (int)self, self);
+        ((void(*)(int, int**))vtable[0x3C/4])(*(short*)((char*)vtable + 0x38) + (int)self, state);
         {
             int *p = state[1];
             state[1] = (int*)((char*)p + 4);
@@ -2750,9 +2729,6 @@ void gl_func_00038C04(int *self, int **state) {
         state[0] = (int*)next_val;
     } while (next_val != 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038C04);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_00038C70(int a0, int a1, int a2) {
