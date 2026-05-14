@@ -1024,13 +1024,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007150);
  * allocated node in $a1 where target keeps it in $a2 for the final call. */
 void func_00007204(int a0, int a1, int a2) {
     int *sp28;
-    int sp1C;
+    int sp1C = a2;
     int *temp_v0;
     int *temp_v0_2;
     int *var_a2;
     int *var_v1;
 
-    sp1C = a2;
     temp_v0 = func_00000000(8);
     var_a2 = temp_v0;
     if (temp_v0 != 0) {
@@ -1412,7 +1411,55 @@ void func_00008664(char *a0, int *a1) {
     }
 }
 
+#ifdef NON_MATCHING
+/* func_000086C0: 33-insn (0x84) two-init + linked-list dispatcher.
+ *
+ * Body:
+ *   func(&D_00000000, a0 + 0x4C);                          // init 1
+ *   func(a0 + 0x5C);                                       // init 2
+ *   node = a0->[0x34];                                     // list head
+ *   while (node) {
+ *       if (node->[0x18] & 4) {                            // flag check
+ *           obj = node->[0x28];
+ *           cb = obj->[0x1C];
+ *           cb(node + (s16)obj->[0x18]);                   // callback w/ offset
+ *       }
+ *       node = node->[0x84];                               // next
+ *   }
+ *   func(&func_0000027C + 0x18);                           // alt-entry tail call
+ *
+ * Caps:
+ *   - Tail call jumps to func_0000027C+0x18 (alt-entry, not a clean symbol);
+ *     the lui+addiu+jal placeholder bytes differ from C-compile-time emit.
+ *     Would need INSN_PATCH or a custom extern declaration at that offset.
+ *   - Loop has beql/bnel branch-likely shape — may need goto-restructure.
+ *   - The "delay slot moves $s0 = node->next BEFORE branch test" form is
+ *     IDO -O2's natural scheduling, but C source can't easily reproduce
+ *     the bnel-with-delay-reload-of-flags pattern without explicit goto. */
+extern int func_00000000();
+
+void func_000086C0(char *arg0) {
+    char *node;
+    int (*cb)(char *);
+    char *obj;
+
+    func_00000000(&D_00000000, arg0 + 0x4C);
+    func_00000000(arg0 + 0x5C);
+
+    node = *(char**)(arg0 + 0x34);
+    while (node != 0) {
+        if ((*(int*)(node + 0x18) & 4) != 0) {
+            obj = *(char**)(node + 0x28);
+            cb = (int(*)(char*))*(int*)(obj + 0x1C);
+            cb(node + *(short*)(obj + 0x18));
+        }
+        node = *(char**)(node + 0x84);
+    }
+    func_00000000((char*)func_0000027C + 0x18);  /* alt-entry tail call */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000086C0);
+#endif
 
 extern char D_func_00008744_arg1;
 extern char D_func_00008744_arg2;
