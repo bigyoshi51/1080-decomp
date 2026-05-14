@@ -6643,7 +6643,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D6E4);
 #ifdef NON_MATCHING
 /* First structural pass: conditional three-call state update. Default
  * INCLUDE_ASM keeps bytes exact; this records the field offsets and side
- * effects for later register/scheduling work. */
+ * effects for later register/scheduling work.
+ *
+ * 2026-05-13: tested OR-operand swap (`0xA | *(int*)(a0+0xFC)` vs
+ * `*(int*)(a0+0xFC) | 0xA`) — no-op, commutative folds identical at IDO
+ * -O2. Still 90.31%. The cap is regalloc/scheduling around the 5 K&R
+ * gl_func calls, not the OR-shape. Next angle: try `int *flagsp =
+ * (int*)(a0+0xFC); arg = *flagsp | 0xA;` to keep flagsp live across
+ * the inner if-branch. */
 int game_uso_func_0000D74C(char *a0) {
     char *obj;
     int arg;
