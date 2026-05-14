@@ -2665,7 +2665,16 @@ void gl_func_00038C70(int a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038C98);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038D64);
+/* gl_func_00038D64: 23-insn flag-bit-set init. */
+int *gl_func_00038D64(int *a0) {
+    gl_func_00000000((char*)a0 + 0x30);
+    gl_func_00000000((char*)a0 + 0x70);
+    a0[0x8/4] = a0[0x8/4] | 0x200;
+    a0[0x2C/4] = 0;
+    a0[0xB0/4] = 0;
+    a0[0x18/4] = a0[0x18/4] | 0x10;
+    return (int*)((char*)a0 + 0x18);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038DC0);
 
