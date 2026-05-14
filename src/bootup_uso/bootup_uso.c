@@ -1719,9 +1719,14 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);
  *   gl_func(0, (char*)func_00008A40 + 0x18, v, 0);        // dispatch
  *
  * The dispatched function ptr is `func_00008A40 + 0x18` — a code address
- * inside an existing function (alt-entry). Likely a callback/handler
- * table reference. Multi-pass refinement expected. */
+ * inside an existing function (alt-entry). 2026-05-14: applied
+ * magic-arg-via-symbol recipe (gl_ref_00008A58 in undefined_syms_auto.txt)
+ * for the alt-entry pointer, collapsing 3-insn (lui+addiu+addiu) to
+ * 2-insn (lui+addiu_with_offset). 65.58% → 68.48% (+2.90pp). Remaining
+ * caps are register-cascade in the table-lookup setup (v0/v1/t6 vs a0/t6)
+ * and arg-spill placement (sw v0 vs sw a0 to sp+0x1C). */
 extern void func_00008A40();
+extern char gl_ref_00008A58;
 void func_0000B49C(int idx) {
     int v;
     if (idx >= 10) idx = 9;
@@ -1729,7 +1734,7 @@ void func_0000B49C(int idx) {
     if (gl_func_00000000(v) == 0) {
         gl_func_00000000(&D_00000000, v);
     }
-    gl_func_00000000(0, (char*)func_00008A40 + 0x18, v, 0);
+    gl_func_00000000(0, &gl_ref_00008A58, v, 0);  /* alt-entry: func_00008A40 + 0x18 */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B49C);
