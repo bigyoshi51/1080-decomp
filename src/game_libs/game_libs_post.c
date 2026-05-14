@@ -3017,7 +3017,100 @@ void gl_func_00039624(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039624);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_000396FC: 153-insn dense switch on a1[0] (states 109..114).
+ *
+ * Switch dispatch: `if ((unsigned)(state-109) < 6) jmp_table[state-109]
+ * else default`. Cases:
+ *   109 (0x6D): two gl_func calls passing &sp[0x74] scratch
+ *   110 (0x6E): two gl_func calls passing &sp[0x80] scratch (different
+ *               offset only)
+ *   111 (0x6F): two gl_func calls passing &sp[0x8C] scratch
+ *   112 (0x70): "deque-pop + copy" — read v1 = a1->[0x4], advance
+ *               a1->[0x4] += 4, then copy 16 ints from *v1 into
+ *               a0+0x30..0x6C (unrolled 5-iter loop, +0xC stride)
+ *   113 (0x71): a0->[0x2C] |= 0x2 (set bit)
+ *   114 (0x72): large FPU block — read v0=*v1 (struct of 7+ shorts),
+ *               cvt.s.w + mul.s by D_0+0x1A10 / D_0+0x1A7C globals,
+ *               store as floats into sp+0x38..0x5C, jal gl_func with
+ *               (a0+0x30, sp+0x50), then 16-int copy into a0+0x64..0x70
+ *   default: tail-call gl_func(a0, a1)
+ *
+ * Cap: same scratch-pointer cap as 39624 + jump-table reloc needs
+ * .rodata. Initial wrap documents structure; future passes tighten. */
+extern int gl_func_00000000();
+void gl_func_000396FC(int *a0, int *a1) {
+    int state = a1[0];
+    if ((unsigned)(state - 109) >= 6) {
+        gl_func_00000000(a0, a1);
+        return;
+    }
+    switch (state) {
+    case 109: {
+        int scratch[3];
+        gl_func_00000000(a1, scratch);
+        gl_func_00000000((char*)a0 + 0x30, scratch);
+        break;
+    }
+    case 110: {
+        int scratch[3];
+        gl_func_00000000(a1, scratch);
+        gl_func_00000000((char*)a0 + 0x30, scratch);
+        break;
+    }
+    case 111: {
+        int scratch[3];
+        gl_func_00000000(a1, scratch);
+        gl_func_00000000((char*)a0 + 0x30, scratch);
+        break;
+    }
+    case 112: {
+        int *v1 = (int*)a1[0x4/4];
+        int *dst;
+        int i;
+        a1[0x4/4] = (int)(v1 + 1);
+        v1 = (int*)v1[0];
+        dst = (int*)((char*)a0 + 0x30);
+        for (i = 0; i < 16; i++) {
+            dst[i] = v1[i];
+        }
+        break;
+    }
+    case 113:
+        a0[0x2C/4] |= 0x2;
+        break;
+    case 114: {
+        /* FPU vec-cvt block + 2nd memcpy — too complex for skeleton */
+        short *v0;
+        float scratch[8];
+        int *dst;
+        int *v1 = (int*)a1[0x4/4];
+        float k1 = *(float*)((char*)&D_00000000 + 0x1A7C);
+        float k2 = *(float*)((char*)&D_00000000 + 0x1A10);
+        a1[0x4/4] = (int)(v1 + 1);
+        v0 = (short*)v1[0];
+        scratch[0] = (float)v0[3] * k1;
+        scratch[1] = (float)v0[4] * k1;
+        scratch[2] = (float)v0[5] * k1;
+        scratch[3] = (float)v0[6] * k1;
+        scratch[4] = (float)v0[0];
+        scratch[5] = (float)v0[1];
+        scratch[6] = (float)v0[2];
+        scratch[7] = (float)v0[7] * k2;
+        gl_func_00000000((char*)a0 + 0x30, &scratch[6]);
+        {
+            int *vv1 = (int*)a1[0x4/4];   /* re-read after potential side-effect */
+            int *ddst = (int*)((char*)a0 + 0x64);
+            int i;
+            for (i = 0; i < 4; i++) ddst[i*3] = vv1[i];  /* approximate */
+        }
+        break;
+    }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000396FC);
+#endif
 
 /* gl_func_00039960: 10-insn 2-arg-add wrapper. Calls
  * gl_func(a1+0xD0, a0+0x30). Splat bundles a 2-insn alt-entry leaf
