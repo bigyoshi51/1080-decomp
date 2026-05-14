@@ -1425,30 +1425,11 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
 
 
 
-/* func_800047E4: 9-insn (0x24) fragment of an unaligned-big-endian-load
- * helper. Uses uninitialized $t2 and $t5 at entry — caller's pre-jal
- * sequence sets t2 (high-24-bits assembled), t5 (byte-2 << 8). Function
- * reads byte 3 from a0, ORs it in, modifies CALLER's stack frame
- * (sp+0x4) and consumes the caller's 0x8-byte stack adjustment.
- *
- * 9+ callers (func_80003E64, func_80004030 × 8 sites, etc.) jal this
- * directly. Non-standard calling convention: NOT matchable from
- * C without inline-asm (IDO rejects).
- *
- * Promotion via PREFIX_BYTES + INSN_PATCH (5th application of the
- * combo, per feedback_prefix_bytes_plus_insn_patch_breaks_documented_caps.md):
- *   - C body: `void f(void) {}` emits jr_ra+nop at offsets 0x1C, 0x20
- *   - PREFIX_BYTES: 7 leading reg-only / sp-rel insns
- *     (or t6,t2,t5; sw t6,0x4(sp); lbu t7,0x3(a0); andi t9,t7,0xFF;
- *      or t0,t6,t9; sw t0,0x4(sp); addiu sp,sp,0x8)
- *   - INSN_PATCH @0x20: overwrite trailing nop with `or v0, t0, zero`
- *     (0x01001025) — the actual return-value-setup delay slot
- *
- * Zero relocations in the leading-7 insns (all reg-only or sp/a0-imm),
- * so raw PREFIX_BYTES is safe. The C body's `void` declaration is
- * harmless: callers expect u32 return in $v0; the recipe sets $v0 via
- * the patched delay-slot insn at runtime. */
-void func_800047E4(void) {}
+/* func_800047E4 merged into func_800047B0 — see kernel_027.c. The
+ * 9-insn body that USED $t2/$t5 from "predecessor" was actually the
+ * tail of a single 22-insn unaligned-big-endian-load function that
+ * splat mis-split at 0x800047E4. Symbol kept as alt-entry via
+ * undefined_syms_auto.txt for direct callers (jal func_800047E4). */
 
 /* NON_MATCHING: stack data packing is correct, but IDO still chooses a
  * different local layout (`-0x10` frame with `lwl/lwr`) instead of the
