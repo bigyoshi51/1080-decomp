@@ -2714,18 +2714,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038BB8);
  *     state[0] = *(u16*)p;
  *   } while (state[0] != 0); */
 void gl_func_00038C04(int *self, int **state) {
-    unsigned short next_val;
+    int next_val;
     if (state[0] == 0) return;
     do {
         int *vtable = (int*)self[0x28/4];
         int (*method)(int) = (int(*)(int))vtable[0x3C/4];
-        method((short)vtable[0x38/4] + (int)self);
+        method(*(short*)((char*)vtable + 0x38) + (int)self);
         {
             int *p = state[1];
             state[1] = (int*)((char*)p + 4);
-            next_val = (unsigned short)*p;
+            next_val = *p & 0xFFFF;
         }
-        state[0] = (int*)(int)next_val;
+        state[0] = (int*)next_val;
     } while (next_val != 0);
 }
 #else
