@@ -5541,7 +5541,76 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * (post_arm_converge) and the cross-USO transform call is around 0x83E4.
  *
  * NEXT PASS: continue from 0x84E0 — likely another delta/transform pass
- * and traversal of the body towards the final *arg5 write. */
+ * and traversal of the body towards the final *arg5 write.
+ *
+ * EXTENDED DECODE 0x84E0-0x8784 (~165 insns, decoded 2026-05-13):
+ *
+ *   /\* (aa) 0x84E0-0x8528: another Vec3 broadcast chain — s0 -> sp+0x158
+ *    *      with alloc-or-passthrough fallback at sp+0x158. Captures
+ *    *      another caller-supplied Vec3 into the staging region. *\/
+ *
+ *   /\* (bb) 0x852C-0x8570: alloc-or-passthrough block F — dst = sp+0x158,
+ *    *      filled with sp[0x17C..0x184] (relative position Vec3 from
+ *    *      block-D). Result stored at sp+0x158 + Vec3 broadcast to a1->[0..8]
+ *    *      and sp+0x158 mirror. *\/
+ *
+ *   /\* (cc) 0x8578-0x85A8: 2-Vec3 alloc-or-passthrough — sp+0x164 dst,
+ *    *      src = sp[0x158] (just-staged). Vec3 fields broadcast and copied
+ *    *      to sp+0x164/0x168/0x16C. *\/
+ *
+ *   /\* (dd) 0x85AC-0x85F0: ARG4 reload + alloc-or-passthrough block G —
+ *    *      dst = sp+0x128 (driven by reloaded caller-arg-4 from sp+0x3C0).
+ *    *      Initialized with Vec3 from arg4-pointed-struct minus an inline
+ *    *      base offset, then 3-comp broadcast to sp+0x128/0x12C/0x130.
+ *    *      Includes c.le.s gating against the pre-fold sp[0x35C]/[0x358]/[0x354]
+ *    *      (the "doubles staged" output mirror — feeds into a delta sub.s). *\/
+ *
+ *   /\* (ee) 0x85F4-0x8634: 3-way Vec3 transitive copy — sp+0x128 -> caller
+ *    *      reload (sp[0x318] flag-related arg) -> sp+0x14C buffer. Closing
+ *    *      with `addiu $at, 1` (state-counter setup) and write to a1->0x0
+ *    *      Vec3 fields. *\/
+ *
+ *   /\* (ff) 0x8638-0x8654: ACCUMULATOR-PREP — stores sp[0x35C]/[0x358]/[0x354]
+ *    *      doubles BACK to sp[0x2C8]/[0x2C4]/[0x2C0] (mirror update of
+ *    *      the "staged doubles" region — preparing for the next math pass).
+ *    *      bnel-skip on a sentinel test ($at=1 vs $a0) — skips next block
+ *    *      if state-counter == 1. *\/
+ *
+ *   /\* (gg) 0x8658-0x86A8: STATE!=1 ARM — load sp+0x158/0x15C/0x160 Vec3
+ *    *      into FPU (probably the just-staged delta Vec3), 3-way matrix-row
+ *    *      multiply by sp+0x100/0x104 (constants?), result written into
+ *    *      sp+0xF8/0xFC/0x100 (a sibling sp region). Then 4-way Vec3 broadcast
+ *    *      through t9/t8 chain. *\/
+ *
+ *   /\* (hh) 0x86AC-0x86E8: another Vec3-load + 2x2 matrix-row multiply,
+ *    *      result written to sp+0xEC/0xF0/0xF4. add.d (double-precision)
+ *    *      sum reduction. *\/
+ *
+ *   /\* (ii) 0x86EC-0x8720: another 3-way Vec3 broadcast — sp+0x11C -> a1->0..8
+ *    *      mirror + caller sp+0x158 spill update. *\/
+ *
+ *   /\* (jj) 0x8724-0x874C: matrix-row commit chain — load sp+0x110/0x114/0x118
+ *    *      doubles, abs.d operations, store back to sp+0xE0/0xE4/0xE8. *\/
+ *
+ *   /\* (kk) 0x8750-0x877C: 2-pair Vec3 transfer — t9/t8 chain copies Vec3
+ *    *      from sp+0x158 to caller-visible a1->[..] (the "result mirror"
+ *    *      that gets committed back to the calling context). *\/
+ *
+ *   /\* (ll) 0x8780-0x8784: setup for next pass — loads sp[0x2C0] (the
+ *    *      "doubles staged accumulator") and sp[0x11C] into FPU for the
+ *    *      next reduction. *\/
+ *
+ * Cumulative ~500/1075 insns characterized (46.5% of function body).
+ * ~575 insns remaining. Pattern stabilizing: this function performs a
+ * 3-stage transform pipeline. Stage 1 (0x7C1C-0x7D34) computed an
+ * initial Vec3 delta; stage 2 (0x7D38-0x84DC) computed cross-Vec3
+ * matrix multiplications with the speed-clamp gates; stage 3 (0x84E0+)
+ * is the matrix-row commit + caller-visible mirror updates. The
+ * "doubles-staged" region (sp+0x3A4..0x3AC + sp+0x2C0..0x2C8 mirror)
+ * receives 3 accumulator updates total across the function.
+ *
+ * NEXT PASS: continue from 0x8788 — likely another matrix-row pass
+ * and traversal towards the function's *arg5 commit + epilogue. */
 void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
