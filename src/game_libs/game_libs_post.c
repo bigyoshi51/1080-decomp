@@ -696,7 +696,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002888C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000289B0);
 
+#ifdef NON_MATCHING
+/* gl_func_00028A18: 20-insn 4-call init wrapper for 4 contiguous 0x10-byte
+ * blocks. Calls gl_func_0003D074 (alt-entry inside gl_func_0003D068 at +0xC)
+ * on each block, then sets each block's [0xC] field to self-reference (= a0). */
+extern void gl_func_0003D074();
+void gl_func_00028A18(char *a0) {
+    gl_func_0003D074(a0);
+    gl_func_0003D074(a0 + 0x10);
+    gl_func_0003D074(a0 + 0x20);
+    gl_func_0003D074(a0 + 0x30);
+    *(int*)(a0 + 0x0C) = (int)a0;
+    *(int*)(a0 + 0x1C) = (int)a0;
+    *(int*)(a0 + 0x2C) = (int)a0;
+    *(int*)(a0 + 0x3C) = (int)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A18);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A68);
 
