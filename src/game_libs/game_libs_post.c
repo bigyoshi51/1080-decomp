@@ -599,7 +599,27 @@ void gl_func_00026C6C(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C6C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00026C9C: 12-insn (0x30) helper — packs a1 into a stack-local
+ * (a1<<16, high-short-of-pair encoding) and tail-calls alt-entry
+ * gl_func_0003B244 (inside gl_func_0003B1AC at +0x98) with (a0, &local, a1).
+ *
+ * Trailing 9 insns at offsets 0x30-0x53 are alt-entry-prologue donation to
+ * successor gl_func_00026CD0: loads `v0=D[0x53B8]`, `a3=D[0x53B9]`, computes
+ * a0 = ((v0 - a3) + 0x100) & 0xFF. Successor uses these regs as entry state.
+ *
+ * 42 % NM: missing (a) `sw a1, 0x24(sp)` caller-slot spill (IDO DCE'd), (b)
+ * `or a2, a1, 0` explicit move before sll (IDO inlined as `sll t6, a1, 16`),
+ * (c) SUFFIX_BYTES for the 9 trailing alt-entry-prologue donation insns.
+ * Multi-tick promotion territory. */
+extern int gl_func_0003B244();
+int gl_func_00026C9C(int a0, int a1) {
+    int local = a1 << 16;
+    return gl_func_0003B244(a0, &local, a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C9C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026CF0);
 

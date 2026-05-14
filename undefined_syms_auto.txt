@@ -1048,3 +1048,4 @@ D_C14_state = 0x30;
 gl_func_000365AC = 0x000365AC;
 gl_func_0003D074 = 0x0003D074;
 gl_func_0003D66C = 0x0003D66C;
+gl_func_0003B244 = 0x0003B244;
