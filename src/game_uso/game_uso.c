@@ -3720,10 +3720,29 @@ void game_uso_func_0000591C(int *a0) {
      *
      * Cumulative ~450/1102 insns characterized (up from 420, +30 insns).
      * ~652 remaining.
-     * NEXT PASS: 0x6104+ — continuation of the particle init (v1=sp+0x4C arg
-     * setup + cross-USO call) and post-particle state-flag updates.
      *
-     * TODO: ~652 remaining insns — continue per-state-branch decoding. */
+     * 0x6104-0x6164 region (+25 insns) — delta-Vec3 between entity+player:
+     *     a1 = sp[0x1AC]; a1 += 0x30;        // entity position ptr
+     *     v3 = gl_func_00000000(12);          // alloc 12-byte Vec3
+     *     if (v3 != 0) {
+     *         f10 = sp[0x80]; f18 = a1->[0]; // entity.x
+     *         f4  = sp[0x88]; f6  = a1->[2]; // entity.z
+     *         v3->x = f10 - f18;             // delta-x
+     *         v3->y = 0.0f;                  // no Y component
+     *         v3->z = f4  - f6;              // delta-z
+     *     }
+     *     // followed by another sp+0x15C ptr setup (for a Quat dest?)
+     *
+     * Pattern: building the player→trigger 2D delta vector for the
+     * death-trail particle. Player world-pos cached at sp[0x80]/sp[0x88]
+     * (X,Z from entry block); subtracting trigger entity's pos gives the
+     * trail-launch direction.
+     *
+     * Cumulative ~475/1102 insns characterized, ~627 remaining.
+     * NEXT PASS: 0x6168+ — Quat/orientation setup at sp+0x15C +
+     * cross-USO submit call.
+     *
+     * TODO: ~627 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
