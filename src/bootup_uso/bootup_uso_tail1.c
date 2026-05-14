@@ -284,7 +284,62 @@ end:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FC28);
 #endif
 
+#ifdef NON_MATCHING
+/* func_0000FD4C: 85-insn (0x154) alloc-chain + multi-init helper.
+ *
+ * Larger sibling of func_0000FC28 (73-insn alloc-chain). Same nested
+ * alloc/null-check pattern (a0 -> s0 -> s1 with sizes 0x50/0x50/0x2C)
+ * plus additional state writes:
+ *   - a0->field_0C = &D_0000C5AC
+ *   - *(int*)(func_00000008 + 0x2C) = a1   // global a1 stash
+ *   - *(int*)(func_00000008 + 0x38) = a2   // global a2 stash
+ *   - a0->field_44 = 0
+ *   - a0->field_48 = 0
+ *   - call(a0, 0) -> store result at *&D_00000000
+ *   - call(*&D_00000000, a0)
+ *
+ * Same -O0 cap class as FC28. File-split deferred. */
+extern char D_0000C5A4;
+extern char D_0000C5AC;
+void func_0000FD4C(void *a0, int a1, int a2) {
+    void *s0, *s1;
+
+    if (a0 == 0) {
+        a0 = (void*)func_00000000(0x50);
+        if (a0 == 0) goto end;
+    }
+    s0 = a0;
+    if (s0 == 0) {
+        s0 = (void*)func_00000000(0x50);
+        if (s0 == 0) goto skip_init1;
+    }
+    s1 = s0;
+    if (s1 == 0) {
+        s1 = (void*)func_00000000(0x2C);
+        if (s1 == 0) goto skip_init2;
+    }
+    func_00000000(s1, &D_0000C5A4);
+    *(int*)((char*)s1 + 0x28) = (int)&D_00000000;
+skip_init2:
+    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+skip_init1:
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)a0 + 0x0C) = (int)&D_0000C5AC;
+    *(int*)((char*)&func_00000008 + 0x2C) = a1;
+    *(int*)((char*)&func_00000008 + 0x38) = a2;
+    *(int*)((char*)a0 + 0x44) = 0;
+    *(int*)((char*)a0 + 0x48) = 0;
+    {
+        int v = func_00000000(a0, 0);
+        *(int*)&D_00000000 = v;
+    }
+    func_00000000(*(int*)&D_00000000, a0);
+end:
+    return;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FD4C);
+#endif
 
 #ifdef NON_MATCHING
 /* 18-insn indirect-call wrapper. Logic verified:
