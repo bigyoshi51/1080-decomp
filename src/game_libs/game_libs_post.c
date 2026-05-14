@@ -4858,7 +4858,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000545BC);
  * cap. */
 extern int gl_func_00000000();
 void gl_func_00054668(int *a0_arg) {
-    gl_func_00000000(&D_00000000, a0_arg[3], 0);
+    int val = a0_arg[3];  /* pre-load to force read BEFORE a0 lui-clobber */
+    gl_func_00000000(&D_00000000, val, 0);
     gl_func_00000000((char*)a0_arg + 0x2C, 0);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0_arg);
