@@ -7194,7 +7194,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E030);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E0B4);
 
+#ifdef NON_MATCHING
+/* gl_func_0005E138: 22-insn 4x4 float matrix transpose + 1 call.
+ *   for i in 0..3: dst[i*4 + j] = src[i + j*4] for j in 0..3;
+ *   func(&dst);
+ *
+ * Target asm uses pointer-increment idiom (v0 += 16, v1 += 4 per iter)
+ * for the inner unrolled loop, with a single bne loop on the dst pointer
+ * reaching sp+0x68 (= dst + 16*4 bytes). */
+extern int func_00000000();
+void gl_func_0005E138(float *src) {
+    float dst[16];
+    float *p = dst;
+    do {
+        p[0] = src[0];
+        p[1] = src[4];
+        p[2] = src[8];
+        p[3] = src[12];
+        p += 4;
+        src += 1;
+    } while (p != dst + 16);
+    func_00000000(dst);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E190);
 
