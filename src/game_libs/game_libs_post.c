@@ -2823,11 +2823,31 @@ extern int D_00000000;
  * `(char*)obj + 0x2C` (address-of) is correct for matching, even though
  * the resulting branch is dead-always-taken at runtime. IDO's CSE relies
  * on the addiu-vs-add-immediate distinction to encode the test, and
- * loading the value instead changes the prologue+body shape. Reverted. */
+ * loading the value instead changes the prologue+body shape. Reverted.
+ *
+ * 2026-05-14: added `char pad[24];` local — grows frame from 0x38 (56) to
+ * 0x50 (80), matching target. Pad takes spill slots that target had
+ * reserved for the return-value mem-roundtrip + alignment. Fuzzy barely
+ * moves (81.63% → 81.71%) because the bigger diffs are structural:
+ *   - vec3 placement: built sp+60; target sp+48 (offset diff from pad
+ *     position in stack layout)
+ *   - conditional alloc branch shape: target uses `beq v0, zero` (test
+ *     alloc result directly) where built uses `bne v1, zero` (test
+ *     post-or stash); diff is 2-3 insns
+ *   - final jal delay slot: target has `sw a0, 76(sp)` (mem-roundtrip
+ *     of return value) where built has `lw a1, 64(t7)` (arg setup in
+ *     delay slot); the 76-sp spill + reload at `lw v0, 76(sp)` adds
+ *     2 insns to target. Function is 2-3 insns short of target.
+ *   - 12-byte trailing artifact (`lw t6, 16(a0)`) is splat-boundary
+ *     into next function's prologue.
+ * Remaining promotion: SUFFIX_BYTES + INSN_PATCH to add the 2-3 missing
+ * insns and rewrite the conditional alloc shape, similar to gl_func_0003EAE0
+ * 2026-05-14 promotion. Frame-size fix is a prerequisite. */
 void* gl_func_0003E0F0(int *arg0) {
     int *obj;
     int *field2C;
     float local_vec3[3];
+    char pad[24]; /* 2026-05-14: grows frame 0x38 -> 0x50 to match target */
 
     obj = (int*)gl_func_00000000(0xB4);
     if (obj != 0) {
@@ -2849,6 +2869,7 @@ void* gl_func_0003E0F0(int *arg0) {
         local_vec3[2] = 0.0f;
         gl_func_00000000((char*)obj + 0x30, local_vec3);
     }
+    (void)pad;
     gl_func_00000000(obj, arg0[16]);
     return obj;
 }
