@@ -140,7 +140,46 @@ void func_0000F9E8(int *self) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F9E8);
 #endif
 
+#ifdef NON_MATCHING
+/* func_0000FAE8: 57-insn (0xE4) reset+set-bit helper, sibling of func_0000F9E8.
+ *
+ * Decoded structure (very close to F9E8 but with opposite dead-branch
+ * resolution — F9E8 has s2=0 → clear bit 8; this has s2=1 → set bit 8):
+ *
+ *   func_00000000();                          // bare call
+ *   if (self->field_38 == 0) {
+ *     func_00000000(&D_00000000);             // optional init
+ *   }
+ *   func_00000000(self->field_48);            // cleanup-prev?
+ *   self->field_30 = 0;
+ *   self->field_34 = 0;
+ *   if (self->field_4C != 0) {
+ *     p = self->field_4C + 0x18;
+ *     *p |= 8;                                 // set bit 3 (always — dead clear-branch)
+ *   }
+ *
+ * O0 markers: `addiu s2, zero, 1; beqz s2` dead-always-false branch (the
+ * "clear bit 8" arm is dead code). Simplified to plain `*p |= 8`.
+ *
+ * Same -O0 cap class as F9E8. Promotion path: file-split. */
+void func_0000FAE8(int *self) {
+    int *p;
+
+    func_00000000();
+    if (self[0x38 / 4] == 0) {
+        func_00000000(&D_00000000);
+    }
+    func_00000000(self[0x48 / 4]);
+    self[0x30 / 4] = 0;
+    self[0x34 / 4] = 0;
+    if (self[0x4C / 4] != 0) {
+        p = (int*)((char*)self[0x4C / 4] + 0x18);
+        *p |= 8;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FAE8);
+#endif
 
 #ifdef NON_MATCHING
 /* Single-block bit-clear (set=0, mask=8) on `(arg0->field_48) + 0x18`.
