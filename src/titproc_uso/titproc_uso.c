@@ -490,22 +490,33 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000195
  * frame-size mismatch per the eddproc/0x25C documented blocker).
  * 2026-05-08: NOT promoted by upstream C0 byte-shift fix — body is
  * structurally different (51.93% fuzzy, 44 reg-alloc diffs in built).
- * Default INCLUDE_ASM matches; wrap captures structure for grep + typing. */
+ * Default INCLUDE_ASM matches; wrap captures structure for grep + typing.
+ *
+ * 2026-05-14: restructure — replaced `if (p2 == 0) return 0;` with
+ * `if (p2 != 0) { ... }` inner-guard (target falls through to body with
+ * p2 = 0 when p2-alloc fails; the body uses *p2 only inside the
+ * conditional). Combined with goto-end form for p1-alloc-fail. Pushed
+ * 51.93% → 73.40% (+21.47pp). Remaining caps: target has a redundant
+ * `bne a2, 0` check that suggests original C had `if (p1 != 0) { ... }`
+ * around the p2-init body, and p2 holds in $a3 (target) vs $a3/$a0
+ * cascade (built). */
 void *titproc_uso_func_00001B10(void *a0, void *a1) {
     void *p1;
     void *p2;
     p1 = a0;
     if (p1 == 0) p1 = (void*)gl_func_00000000(0x40);
-    if (p1 == 0) return 0;
+    if (p1 == 0) goto end;
     p2 = a1;
     if (p2 == 0) p2 = (void*)gl_func_00000000(0x2C);
-    if (p2 == 0) return 0;
-    gl_func_00000000(p2, (char*)&D_00000000 + 0x4EC);
-    *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
+    if (p2 != 0) {
+        gl_func_00000000(p2, (char*)&D_00000000 + 0x4EC);
+        *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
+    }
     *(int*)((char*)p1 + 0x28) = (int)((char*)&D_00000000 + 0x4F4);
     *(int*)((char*)p1 + 0xC)  = (int)((char*)&D_00000000 + 0x4F4);
     gl_func_00000000(p1, p2);
     *(int*)((char*)p1 + 0x3C) = 0;
+end:
     return p1;
 }
 #else
