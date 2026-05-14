@@ -6072,7 +6072,22 @@ void gl_func_0005B53C(int a0, int *a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B568);
 
+#ifdef NON_MATCHING
+/* gl_func_0005B68C: 22-insn sentinel-set helper. If a1->[0xC] !=
+ * 0x12345678, call gl_func(&D_0+0x21A0C, a0->[0x20], a1). Then write
+ * sentinel 0x87654321 to a1->[0xC].
+ *
+ * Cap: target spills a0 to sp+0x18 BEFORE the comparison branch; built
+ * keeps a0 in $a0 across the branch. 84 vs 88 bytes (1 insn short). */
+void gl_func_0005B68C(int *a0, int *a1) {
+    if (a1[0xC/4] != 0x12345678) {
+        gl_func_00000000((char*)&D_00000000 + 0x21A0C, a0[0x20/4], a1);
+    }
+    a1[0xC/4] = 0x87654321;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B68C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B6E4);
 
