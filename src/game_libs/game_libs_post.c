@@ -130,39 +130,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021D84);
 
-#ifdef NON_MATCHING
 /* gl_func_00021E08: 20-insn alloc-via-jal-alt-entry + 3-field-set wrapper.
- *
- * Decoded:
- *   void* f(int a0, int a1, int a2, signed char a3) {
- *       void* v0 = gl_func_000365AC(a0);     // ALT-ENTRY into gl_func_00036224
- *       if (v0 == 0) return 0;
- *       *(char*)(v0 + 2)  = (char)a1;
- *       *(int*)(v0 + 12)  = a2;
- *       *(char*)(v0 + 1)  = a3;
- *       return *(void**)(v0 + 8);
- *   }
- *
- * 2026-05-13: added `gl_func_000365AC = 0x000365AC;` to undefined_syms_auto.txt
- * to declare the alt-entry symbol (it lives inside gl_func_00036224 at
- * offset +0x388). The jal target now resolves correctly.
- *
- * Remaining at 35.2 % NM: structural arm-swap (IDO emits bnez-to-body,
- * target uses beqz-to-zero-case-fall-through). The pre-emptive `or v0, 0`
- * + arm-swap pattern is similar to the gl_func_00068350 cap class — needs
- * the if-else layout to match. Multi-tick refinement. */
+ * Matched 2026-05-14 via if-goto-end_zero (skip body) + explicit
+ * `return *(v0+8);` at success path + `return 0;` at end_zero label.
+ * The split-epilogue pattern (with `beq zero,zero,.epi` + lw-in-delay-slot
+ * + `or v0,zero,zero` at the zero-arm label) requires BOTH the goto-to-
+ * separate-zero-label AND the explicit return at each exit — combining
+ * with `goto end; ... end: return v0;` instead hoists the lw too early.
+ * Alt-entry resolved via gl_func_000365AC = 0x000365AC; in
+ * undefined_syms_auto.txt (added 2026-05-13). */
 extern void *gl_func_000365AC();
 void *gl_func_00021E08(int a0, int a1, int a2, signed char a3) {
     char *v0 = (char *)gl_func_000365AC(a0);
-    if (v0 == 0) return 0;
+    if (v0 == 0) goto end_zero;
     v0[2] = (char)a1;
     *(int*)(v0 + 0xC) = a2;
     v0[1] = a3;
     return *(void**)(v0 + 8);
+end_zero:
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021E08);
-#endif
 
 /* 20-insn helper: alloc-via-callee gl_func_00036A48 + 3-field-set + return
  * v0[8]. */
