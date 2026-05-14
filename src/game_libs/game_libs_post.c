@@ -7464,7 +7464,19 @@ void gl_func_00060260(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060260);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_000602A8: 28-insn double-printf-like call.
+ *   n = (unsigned)a0[2];
+ *   d = (double)((float)n / 1024.0f);
+ *   func(0x21CD8, &a0[0x24], d);  // doubleword passed in a2/a3 (mfc1) */
+void gl_func_000602A8(int *a0) {
+    unsigned int x = (unsigned int)a0[2];
+    double d = (double)((float)x / 1024.0f);
+    func_00000000((char*)0x21CD8, (char*)a0 + 0x24, d);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000602A8);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00060318: 22-insn list-walk with conditional clear.
