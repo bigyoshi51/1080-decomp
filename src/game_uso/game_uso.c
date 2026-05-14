@@ -6272,43 +6272,40 @@ void game_uso_func_0000C0F0(int *dst) {
  *   }
  *   *dst = *src;  // final 16th int
  *
- * Tried 5 variants:
- *   (a) Named src/dst/end locals: IDO spills 3 named locals to stack,
- *       frame grows to 104 bytes vs target 88.
- *   (b) Inline a0 increment + named src/end: still 104 bytes.
- *   (c) Index-based with i+3 iter: IDO unrolls with sll+addu indexed
- *       access, completely different shape (96 byte frame, no neg-offset).
- *   (d) for-i loop unrolled by 4 (using a0[i]=buf[i] x 16): IDO emits a
- *       4-elem-per-iter loop, target wants 3.
- *   (e) register-directed pointer loop (`register int *src asm("$15")`,
- *       `$8`, `$14`) tested 2026-05-08: IDO 7.1 rejects GCC register-asm
- *       syntax outright, so the target t7/t0/t6 allocation can't be forced
- *       this way in this project.
+ * 2026-05-13: init src/end AFTER the gl_func call (so they don't live
+ * across the call site) + use `*a0++ = *src++` pointer post-increment
+ * pattern → 81.27 % fuzzy (was 0 %). Confirms `feedback-ido-v0-reuse-via-locals`
+ * principle: locals that are dead-on-entry to a call don't get spilled to
+ * stack. Move their init AFTER the call to make this happen.
  *
- * Cap: target compiled with NO named locals — uses `buf`, `a0`, and
- * pure $t-regs (t6 dst, t7 src, t8/t9 vals, t0 end). Per
- * feedback_ido_v0_reuse_via_locals.md, named locals get $v-regs or stack;
- * inline derefs get $t-regs. But here we need 4+ pointers in $t-regs
- * simultaneously and the loop body must use neg-offset (-0xC, -0x8, -0x4)
- * after src/dst increment. No C form found that triggers all of:
- *   1. NO named-local stack spill (frame must be 88 not 104)
- *   2. dst/src increment BEFORE the stores (giving neg offsets after)
- *   3. unroll-by-3 not unroll-by-4
+ * Caps remaining at 81.27 %:
+ *   1. Frame: built 0x60 (96), target 0x58 (88). 8-byte excess. IDO adds
+ *      `or a3, a0, 0` (register-rename a0 → a3) before the call so a3
+ *      can be reloaded after; target writes a0 directly to caller-slot
+ *      and reloads as $t6. The rename+local-slot-spill costs 8 bytes
+ *      vs target's direct caller-slot use. `volatile int **p = &a0`
+ *      trick regresses to 63 % (introduces extra spill+address-take).
+ *   2. Register names: built uses $v0/$v1/$a3 for src/end/dst; target
+ *      uses $t7/$t0/$t6. Cap class: IDO regalloc choice for short-lived
+ *      locals (per feedback-ido-v0-reuse-via-locals — named locals get
+ *      $v-regs; inline derefs get $t-regs).
  *
- * First-pass logic decode complete; reg-allocation shape blocked. */
+ * Prior 2026-05-08 attempts (a/b/c/d/e — see commit history) all stuck
+ * at 0-50 %; this is a substantial multi-tick improvement. */
 void game_uso_func_0000C12C(int *a0) {
     int buf[16];
-    int i;
+    int *src;
+    int *end;
     gl_func_00000000(&D_00000000, buf, 0x40);
-    i = 0;
+    /* init src/end AFTER call — IDO doesn't spill them then */
+    src = buf;
+    end = buf + 15;
     do {
-        a0[0] = buf[i];
-        a0[1] = buf[i + 1];
-        a0[2] = buf[i + 2];
-        i += 3;
-        a0 += 3;
-    } while (i != 15);
-    *a0 = buf[15];
+        *a0++ = *src++;
+        *a0++ = *src++;
+        *a0++ = *src++;
+    } while (src != end);
+    *a0 = *src;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C12C);
