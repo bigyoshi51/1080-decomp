@@ -4209,7 +4209,12 @@ void gl_func_00043558(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043584);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000435FC);
+/* gl_func_000435FC: 22-insn 7-arg + 1-arg call chain. */
+int gl_func_000435FC(int *a0, int a1) {
+    int v = gl_func_00000000(0, (char*)&D_00000000 + 0x1FD14, 10, 0, 1, 0, 0);
+    a0[0x60/4] = v;
+    return gl_func_00000000(v);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043654);
 
