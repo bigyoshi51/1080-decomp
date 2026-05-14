@@ -634,7 +634,15 @@ int gl_func_00027160() {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027180);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000271D8);
+/* gl_func_000271D8: 21-insn do-while loop. Repeatedly calls
+ * gl_func(*(int*)&D_0+0x53C4, &scratch, 0) until result is -1. */
+void gl_func_000271D8(void) {
+    int scratch;
+    int val;
+    do {
+        val = gl_func_00000000(*(int*)((char*)&D_00000000 + 0x53C4), &scratch, 0);
+    } while (val != -1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002722C);
 
