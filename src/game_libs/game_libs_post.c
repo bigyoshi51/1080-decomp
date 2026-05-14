@@ -214,7 +214,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
 
+#ifdef NON_MATCHING
+/* gl_func_00023548: 16-insn body + 3-insn donated alt-entry-prologue tail.
+ *
+ * Predecessor gl_func_0002349C donates its tail (lui v0; addiu v0,0; lw t6,0x215C(v0))
+ * — sets $v0=&D_00000000 and $t6=D[0x215C] before fall-through. So this function
+ * reads $t6 and $v0 at entry without setting them.
+ *
+ * Decoded:
+ *   void gl_func_00023548(int a0) {
+ *       if (D[0x215C] != 0) return;
+ *       // a0*352 = a0*11*32 via sll/subu chain
+ *       *(int*)(&D + a0*352 + 0x2DDC) = 0;
+ *       gl_func_00037C50(a0);
+ *   }
+ *
+ * This function ALSO donates its tail (lui v0; addiu v0; lw t6,0x215C(v0)) to
+ * successor gl_func_00023598 — same 3-insn pattern as the predecessor.
+ *
+ * Cap class: chained PROLOGUE_STEALS=12 (absorb predecessor's tail) +
+ * SUFFIX_BYTES=12 (emit donation to successor). Both recipes apply; this is
+ * a permuter / multi-step recipe target. */
+extern int gl_func_00037C50();
+void gl_func_00023548(int a0) {
+    if (*(int*)((char*)&D_00000000 + 0x215C) != 0) return;
+    *(int*)((char*)&D_00000000 + a0 * 0x160 + 0x2DDC) = 0;
+    gl_func_00037C50(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023548);
+#endif
 
 /* gl_func_00023598: 19-insn slot writer with global gate. Matched
  * via three compiler-side levers:
