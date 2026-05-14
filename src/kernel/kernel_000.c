@@ -1028,7 +1028,21 @@ extern s32 D_80012D5C;
  * CSEs the &D_80012D5C between the naked-store and the `end = &...`
  * assignment. Same 20-insn diff as 8th variant baseline. Cap holds.
  * Kept anyway — the explicit-cast form is closer in style to target's
- * naked-store pattern and may help future attempts read the diff. */
+ * naked-store pattern and may help future attempts read the diff.
+ *
+ * 2026-05-13 11th variant: `end = D_80012D3C + 8` instead of `end = &D_80012D5C`.
+ * BIG WIN: 72.10% -> 81.58%. The pointer-arithmetic expression breaks IDO's
+ * CSE between the D_80012D5C naked-store and the end-pointer load, so the
+ * prologue now emits `lui at; sw 0(at)` (2 insns, matching target) instead
+ * of `lui v1; addiu v1; sw 0(v1)` (3 insns with $v1 CSE). The
+ * `end = D_80012D3C + 8` expression doesn't reference D_80012D5C
+ * syntactically, so no CSE opportunity — even though both addresses
+ * resolve to the same final VRAM. Remaining diffs: (a) target merges
+ * D_80012D30 + D_80012D34 stores under one `lui at` (single insn drop),
+ * (b) reg allocation swap — target uses $v1 for ptr (heavy-use) and $v0
+ * for end (light-use), opposite of IDO's default priority order. Diff (b)
+ * is the dominant cost — IDO's reg-priority formula (refs × loop_depth)
+ * always favors ptr for the lower reg #. */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
@@ -1037,8 +1051,8 @@ void func_80001184(void) {
     *(s32*)&D_80012D30 = 0;
     *(s32*)&D_80012D34 = 0;
     *(s32*)&D_80012D38 = 0;
-    end = &D_80012D5C;
     ptr = D_80012D3C;
+    end = D_80012D3C + 8;
 loop:
     ptr += 4;
     ptr[-4] = 0;
