@@ -1112,7 +1112,19 @@ void func_00007AD8(char *a0) {
  * 2026-05-13: cleaned up redundant `var_v1 = ret;` alias (same pattern
  * as sibling func_00007C74 5850c219). IDO collapses the alias; byte-
  * identical 89.31% after removal. Cap is genuinely register-allocator-
- * driven, not alias-driven. */
+ * driven, not alias-driven.
+ *
+ * 2026-05-14: re-analyzed vs target. Diffs:
+ *   - Frame 0x28 vs built 0x20 (+8 bytes, same as siblings 7C74/7204).
+ *   - Target uses `or v1, a0, 0` to save obj-ptr into $v1 before
+ *     clobbering $a0 for the inner init call. Built avoids by keeping
+ *     obj in $a2 throughout. 1-insn deficit (built 35 vs target 36).
+ *   - Target's beql delay-slot store/reload pair uses sp+0x24 (v1
+ *     spill) which doesn't exist in built's emit.
+ *
+ * Same INSN_PATCH+SUFFIX_BYTES path as gl_func_0003EAE0 (~25 entries).
+ * Cap class: 3rd consecutive function with register-alloc + dead-spill
+ * + 8-byte-frame-grow promotion path (7C74, 7204, 7B08). */
 void *func_00007B08(char *a0) {
     char *ret;
     int *link;
