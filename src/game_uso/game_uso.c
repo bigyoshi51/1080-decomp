@@ -7749,28 +7749,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D634);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
 
-#ifdef NON_MATCHING
-/* 93.73% NM. 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
- * bit afterward, dispatch a0->0xFC to one of two flag values. The
- * post-call test uses IDO's beql tail-merge — a redundant `sw t2`
- * trailing the merged epilogue, unreachable via both branch targets
- * (per feedback_ido_bnel_tail_merge_register_restore.md, this caps
- * matching from C). Wrap is for grep discoverability + decode source.
- * NM-build verification blocked by the file's pre-existing
- * `extern float D_00000000` vs `extern char D_00000000` conflict
- * (per feedback_nm_body_cpp_errors_silent.md). */
+/* 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
+ * bit afterward, dispatch a0->0xFC to one of two flag values. Promoted
+ * 2026-05-14 from 93.73% NM to byte-exact in C-only:
+ *   (a) `int *p = base + 0xA58` named local forces target's
+ *       `addiu v0, v0, 0xA58` (without it, IDO CSE-folds offset into
+ *       the lw/sw pair using the same base reg).
+ *   (b) Swap if/else arms + invert condition fixes both branch
+ *       direction (bnel → beql) AND lui register allocation order
+ *       (which value goes into t1 vs t2). */
 void game_uso_func_0000D6E4(char *a0) {
-    *(int*)(*(char**)(a0 + 0xB4) + 0xA58) ^= 0x40;
+    int *p = (int*)(*(char**)(a0 + 0xB4) + 0xA58);
+    *p ^= 0x40;
     gl_func_00000000(*(char**)(a0 + 0xB4), a0);
-    if ((*(int*)(*(char**)(a0 + 0xB4) + 0xA58) & 0x40) == 0) {
-        *(int*)(a0 + 0xFC) = 0x00010000;
-    } else {
+    if ((*(int*)(*(char**)(a0 + 0xB4) + 0xA58) & 0x40) != 0) {
         *(int*)(a0 + 0xFC) = 0x00050000;
+    } else {
+        *(int*)(a0 + 0xFC) = 0x00010000;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D6E4);
-#endif
 
 /* Conditional 3-call state update. Promoted 2026-05-14 from 92.45% NM
  * to byte-exact via SUFFIX_BYTES_FORCE (+1 nop) + 11-entry INSN_PATCH.
