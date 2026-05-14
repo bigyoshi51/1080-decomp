@@ -632,7 +632,18 @@ int gl_func_00027160() {
     return gl_func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027180);
+/* gl_func_00027180: 22-insn predicate. Loads via gl_func(&D_0+0x53C4,
+ * &local, 0); returns 0 if -1, else returns local == byte(&D_0+0x2CF1). */
+int gl_func_00027180(void) {
+    int v;
+    int local;
+    v = gl_func_00000000(*(int*)((char*)&D_00000000 + 0x53C4), &local, 0);
+    if (v == -1) return 0;
+    if (local != *(unsigned char*)((char*)&D_00000000 + 0x2CF1)) {
+        return 0;
+    }
+    return 1;
+}
 
 /* gl_func_000271D8: 21-insn do-while loop. Repeatedly calls
  * gl_func(*(int*)&D_0+0x53C4, &scratch, 0) until result is -1. */
