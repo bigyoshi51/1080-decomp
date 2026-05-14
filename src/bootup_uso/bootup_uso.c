@@ -1389,12 +1389,18 @@ void func_00008664(char *a0, int *a1) {
  * Caps:
  *   - Tail call jumps to func_0000027C+0x18 (alt-entry, not a clean symbol);
  *     the lui+addiu+jal placeholder bytes differ from C-compile-time emit.
- *     Would need INSN_PATCH or a custom extern declaration at that offset.
+ *     [RESOLVED 2026-05-14] Switched to &gl_ref_00000294 symbol-ref (declared
+ *     in undefined_syms_auto.txt as 0x00000294 = func_0000027C+0x18). IDO
+ *     now emits lui+jal+addiu(DS) — 3 insns matching target — vs the prior
+ *     lui+addiu+jal+addiu(DS) 4-insn form. +3.17pp (81.76% → 84.93%).
+ *     Applies the magic-arg-via-symbol recipe from
+ *     docs/IDO_CODEGEN.md#feedback-ido-magic-arg-via-symbol-not-literal.
  *   - Loop has beql/bnel branch-likely shape — may need goto-restructure.
- *   - The "delay slot moves $s0 = node->next BEFORE branch test" form is
- *     IDO -O2's natural scheduling, but C source can't easily reproduce
- *     the bnel-with-delay-reload-of-flags pattern without explicit goto. */
+ *   - Arg0 saved to caller-slot (sp+0x20) + reloaded; target preserves in
+ *     $s0 via callee-save. IDO heuristic doesn't allocate $s0 to arg0 even
+ *     with 3 cross-jal uses — known file-context cap. */
 extern int func_00000000();
+extern char gl_ref_00000294;
 
 void func_000086C0(char *arg0) {
     char *node;
@@ -1413,7 +1419,7 @@ void func_000086C0(char *arg0) {
         }
         node = *(char**)(node + 0x84);
     }
-    func_00000000((char*)func_0000027C + 0x18);  /* alt-entry tail call */
+    func_00000000(&gl_ref_00000294);  /* alt-entry tail call to func_0000027C+0x18 */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000086C0);
