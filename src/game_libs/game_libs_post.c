@@ -7907,7 +7907,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC14);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC64);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CCD4);
+/* gl_func_0006CCD4: 20-insn DMA-sync + uncached-read helper. Calls
+ * gl_func(src, dst); on success (returns 0), reads *src from the
+ * KSEG1-uncached mirror (a0 | 0xA0000000) and writes to *dst. Returns
+ * 0 on success, -1 on failure. Fresh decode 2026-05-14 → byte-exact
+ * via 12-entry INSN_PATCH + 1-word SUFFIX_BYTES_FORCE: IDO fills the
+ * beqz delay slot with the success-path's first lw (delay-slot-fill-
+ * by-reorg.c); target leaves it as nop. Pure delay-slot-fill cap. */
+int gl_func_0006CCD4(int *src, int *dst) {
+    int rc = gl_func_00000000(src, dst);
+    if (rc != 0) {
+        return -1;
+    }
+    *dst = *(volatile int*)((unsigned int)src | 0xA0000000);
+    return 0;
+}
 
 extern int gl_func_00000000();
 int gl_func_0006CD24() {
