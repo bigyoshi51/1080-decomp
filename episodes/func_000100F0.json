@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000100F0",
+  "project": "1080-agent-i",
+  "model": "claude-manual",
+  "start_time": "2026-05-14T04:51:48.705022+00:00",
+  "end_time": "2026-05-14T04:51:48.705043+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-14T04:51:48.705038+00:00",
+      "assistant_text": "37-insn init+dispatch wrapper. Promoted from -O2-blocked NM cap via file-split into bootup_uso_o0_100F0.c. Same recipe as bootup_uso_o0_118E4.c earlier today (2026-05-14). The K&R arg-save + per-statement reload pattern + dead 'b +1; nop' BB markers are unmistakable -O0 emit. Bundled func_0001016C as INCLUDE_ASM for layout contiguity (1016C migrates to C body in future pass).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 31,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\n\n/* -O0 sub-file split out of bootup_uso_tail1.c on 2026-05-14. Holds the\n * 0x100F0..0x1016B -O0 cluster: 100F0 (init+dispatch wrapper) + 1016C\n * (INCLUDE_ASM stub for layout contiguity; migrates to C body in future\n * pass when verified at -O0).\n *\n * Pattern: -O0 frame -0x28 with K&R-style arg-save (a0/a1 -> sp+0x28/0x2C)\n * and per-statement sp+0x1C reload of intermediate results. */\n\n/* func_000100F0: 31-insn init+dispatch wrapper. Sets two struct fields,\n * calls a cross-USO helper, dispatches through a struct vtable, then\n * writes a float constant.\n *\n *   a0->[0x2C] = a1;\n *   a0->[0x7C] = 0;\n *   func_00000000(a0);\n *   p = a0->[0x28];\n *   (*p->[0x64])(a0 + (short)p->[0x60]);\n *   *(float*)(a0->[0x74]) = 17.0f;\n *\n * Wait: the asm shows `*(float*)((char*)a0 + 0x74) = 17.0f`, not\n * `*(a0->[0x74]) = 17.0f`. Direct field write, not indirect. */\nvoid func_000100F0(int *a0, int a1) {\n    int *p;\n    short adj;\n    void (*fn)(int);\n    *(int*)((char*)a0 + 0x2C) = a1;\n    *(int*)((char*)a0 + 0x7C) = 0;\n    func_00000000(a0);\n    p = (int*)*(int*)((char*)a0 + 0x28);\n    adj = *(short*)((char*)p + 0x60);\n    fn = (void(*)(int))*(int*)((char*)p + 0x64);\n    fn((int)a0 + adj);\n    *(float*)((char*)a0 + 0x74) = 17.0f;\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001016C);\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_100F0.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_000100F0.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified via byte_verify: build/non_matching/.o byte-identical to expected/.o (size 0x94 = 148 bytes / 37 insns). Required -O0 file split out of bootup_uso_tail1.c (which is -O2)."
+  }
+}

@@ -88,43 +88,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEA0);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEE8);
 
-#ifdef NON_MATCHING
-/* 31-insn -O0-shape init+dispatch wrapper. Sets two struct fields, calls
- * an external init helper, dispatches through a struct vtable, then writes
- * a float constant. Logic verified:
- *   a0->field_2C = a1
- *   a0->field_7C = 0
- *   func_00000000(a0)              ; cross-USO call (jal placeholder)
- *   p = a0->field_28               ; struct ptr
- *   off = (short)p->field_60
- *   (*p->field_64)(a0 + off)       ; indirect call
- *   *(float*)(a0->field_74) = 17.0f
- *
- * BLOCKED: same -O0 cap as siblings func_0000FEA0/func_0000FBCC. Frame
- * -0x28 with lots of `lw <reg>, 0x28(sp)` arg reloads (K&R arg-save +
- * spill/reload across each statement) and the dead `b +1; nop` BB-end
- * marker after each call. IDO -O2 elides all of those — written this way
- * here just to capture the runtime semantics; default INCLUDE_ASM build
- * remains exact. Promotion path: file split per
- * feedback_o0_cluster_split_with_layout_shim.md (move FBCC/FEA0/100F0
- * cluster to a new bootup_uso_o0_<offset>.c with -O0 OPT_FLAGS, update
- * linker script). Deferred — file-split infra change is heavier than
- * one-tick scope. */
-void func_000100F0(int *a0, int a1) {
-    int *p;
-    short adj;
-    void (*fn)(int);
-    *(int*)((char*)a0 + 0x2C) = a1;
-    *(int*)((char*)a0 + 0x7C) = 0;
-    func_00000000(a0);
-    p = (int*)*(int*)((char*)a0 + 0x28);
-    adj = *(short*)((char*)p + 0x60);
-    fn = (void(*)(int))*(int*)((char*)p + 0x64);
-    fn((int)a0 + adj);
-    *(float*)((char*)a0 + 0x74) = 17.0f;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000100F0);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001016C);
+/* func_000100F0 + func_0001016C split out to bootup_uso_o0_100F0.c on
+ * 2026-05-14 for -O0 build (same recipe as func_000118E4 ->
+ * bootup_uso_o0_118E4.c earlier this date). */
