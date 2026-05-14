@@ -3739,10 +3739,36 @@ void game_uso_func_0000591C(int *a0) {
      * trail-launch direction.
      *
      * Cumulative ~475/1102 insns characterized, ~627 remaining.
-     * NEXT PASS: 0x6168+ — Quat/orientation setup at sp+0x15C +
-     * cross-USO submit call.
      *
-     * TODO: ~627 remaining insns. */
+     * 0x6168-0x61D8 region (+30 insns) — sp+0x15C stage + 2nd Vec3 alloc:
+     *     // Word-1 copy + self-stores at sp+0x15C (interpretation uncertain):
+     *     sp[0x15C] = sp[0x4C];          // single-word copy
+     *     sp[0x160] = sp[0x160];         // self-write (IDO emit oddity)
+     *     sp[0x164] = sp[0x164];         // self-write
+     *     // Vec3 memcpy from sp+0x15C → sp+0x68 (3 lw/sw pairs):
+     *     memcpy(&sp[0x68], &sp[0x15C], 12);
+     *
+     *     a1 = s0->[0x30] + 0xB4;        // entity offset field
+     *     v3 = gl_func_00000000(12);     // 2nd 12-byte Vec3 alloc
+     *     f16 = 0.0f;
+     *     if (v3 != NULL) {
+     *         // Vec3 from a1[0]/a1[2] (XZ-plane offset)
+     *         v3->x = a1[0];
+     *         v3->y = 0.0f;
+     *         v3->z = a1[2];
+     *     }
+     *     v1 = sp[0x1AC];                 // reload cached entity ptr
+     *
+     * Pattern: building a 2nd particle Vec3 from the entity's position
+     * field at offset 0x30+0xB4. The self-store sequence at sp+0x15C is
+     * likely from `*sp_15C_ptr = *sp_15C_ptr` C, possibly a volatile
+     * touch or a misanalyzed struct-self-assign. Worth flagging for the
+     * exact-match pass.
+     *
+     * Cumulative ~505/1102 insns characterized, ~597 remaining.
+     * NEXT PASS: 0x61DC+ — continuation of the particle/state update.
+     *
+     * TODO: ~597 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
