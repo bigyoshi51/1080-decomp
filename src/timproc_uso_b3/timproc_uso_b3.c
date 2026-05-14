@@ -553,7 +553,63 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002C98);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_00002DF0: 64-insn (0x100) grid-render setup.
+ *
+ * Structure:
+ *   1. Copy 5 ints from D[0x4A0..0x4B0] into a local stack buf[5]
+ *   2. Initial setup call: gl_func(&D + 0, <passthrough a1/a2/a3>)
+ *   3. Nested loop (7 outer × 5 inner = 35 calls per cell):
+ *      - Outer y: 0x10..0xF0 step 0x20
+ *      - Inner x: 0..0x140 step 0x40, indexed via buf[0..4]
+ *      - Each iter: idx = buf[i]; entry = &D + 0x10 + idx*0x18;
+ *                   gl_func(entry); gl_func(entry, x, y, 0);
+ *   4. Trailing `sll t6, a1, 2` at offset 0xFC sets t6 = a1*4 — this is
+ *      the prologue-stolen successor donation to func_00002EF0 (see its
+ *      wrap comment); it lives in 00002DF0's symbol footprint per
+ *      docs/POST_CC_RECIPES.md#feedback-suffix-bytes-unblocks-4byte-stolen-prologue.
+ *
+ * Match path (per 00002EF0 wrap path (a)): SUFFIX_BYTES on this function
+ * with 0x00057080 to put the trailing sll back after C-emit. C body
+ * matching first (any %), then SUFFIX_BYTES, then the successor matches
+ * naturally without needing PROLOGUE_STEALS.
+ *
+ * Inner-loop calls are placeholder `jal 0` relocations resolved at USO
+ * load time — both calls labeled gl_func_00000000 by convention. The
+ * 24-byte stride (s5 = 0x18) matches the 00002EF0 wrap's struct size.
+ * Likely a sprite-grid placement: 7 rows × 5 cols of tiles, each tile
+ * indexed by buf[col] selecting from a 24-byte struct table at &D+0x10. */
+void timproc_uso_b3_func_00002DF0(int a0, int a1, int a2, int a3) {
+    int buf[5];
+    int x, y;
+    int *p;
+    int idx;
+    char *entry;
+
+    (void)a0;  /* a0 spilled at entry, unused in body */
+
+    buf[0] = *(int*)((char*)&D_00000000 + 0x4A0);
+    buf[1] = *(int*)((char*)&D_00000000 + 0x4A4);
+    buf[2] = *(int*)((char*)&D_00000000 + 0x4A8);
+    buf[3] = *(int*)((char*)&D_00000000 + 0x4AC);
+    buf[4] = *(int*)((char*)&D_00000000 + 0x4B0);
+
+    gl_func_00000000(&D_00000000, a1, a2, a3);
+
+    for (y = 0x10; y != 0xF0; y += 0x20) {
+        p = buf;
+        for (x = 0; x != 0x140; x += 0x40) {
+            idx = *p;
+            entry = (char*)&D_00000000 + 0x10 + idx * 0x18;
+            gl_func_00000000(entry);
+            gl_func_00000000(entry, x, y, 0);
+            p++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002DF0);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00002EF0: 22-insn (0x58) prologue-stolen successor.
