@@ -991,11 +991,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D014);
  * Initial structural pass. Cross-USO call shape (intra-segment alt-entry
  * vs generic placeholder) and regalloc caps expected. */
 void gl_func_0002D064(char *a0) {
-    char *base = &D_00000000;
     char *p;
     int i;
     gl_func_00000000();
-    *(char*)(a0 + 0) = *(char*)(a0 + 0) & 0xFD;
+    *(char*)(a0 + 0) = *(char*)(a0 + 0) & ~2;
     *(char*)(a0 + 1) = 1;
     *(char*)(a0 + 2) = 0;
     *(short*)(a0 + 8) = 0x1680;
@@ -1005,8 +1004,8 @@ void gl_func_0002D064(char *a0) {
     *(short*)(a0 + 16) = 0;
     *(short*)(a0 + 18) = 0;
     *(short*)(a0 + 20) = 0;
-    *(int*)(a0 + 148) = (int)base;
-    *(int*)(a0 + 152) = (int)base;
+    *(int*)(a0 + 148) = (int)&D_00000000;
+    *(int*)(a0 + 152) = (int)&D_00000000;
     *(int*)(a0 + 224) = 0;
     *(float*)(a0 + 28) = 1.0f;
     *(float*)(a0 + 32) = 0.0f;
