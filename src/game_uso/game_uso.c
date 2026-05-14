@@ -497,7 +497,68 @@ void game_uso_func_00000AEC(int *a0, int a1) {
  * feedback_ido_switch_rodata_jumptable.md, the jump-table itself can't
  * be matched (rodata gets discarded by linker); need if-else chain
  * rewrite. Decode the jump-table arms first to know the cases.
- */
+ *
+ * EXTENDED 2026-05-14 (insns 165-305 @ 0xCA4-0xF30, ~140 insns):
+ *
+ * POST-DISPATCH @ 0xCA4-0xCB4: a3-arm gl_func dispatch
+ *   gl_func_0(a3, a3->[0xB4], ..., a3->[0x318]+spilled_arg);
+ *   ; spill at sp+0x12C; arg 5 = 1; merge `b +7` to 0xCD0 below
+ *
+ * POST-DISPATCH ALT @ 0xCB8-0xCCC: alternate-arm (when bne path taken)
+ *   ; same gl_func_0 dispatch shape but with v0 sourced from different
+ *   ; reload (post-Vec3-zero path's intermediate buffer)
+ *
+ * STATE BIT-FLAG RESET @ 0xCD0-0xCF0:
+ *   list = a0->[0x150];        ; dispatch list reload
+ *   a0->[0x270] = 0; a0->[0x26C] = 0;
+ *   cur_id = list->[0xA58];    ; current id
+ *   $at = 0xDFFF;              ; mask: ~0x2000
+ *   $t0 = 1;
+ *   list->[0xA58] = cur_id & 0xDFFF;  ; clear 0x2000 bit
+ *   ptr = list + 0xA58;         ; preserve ptr for later writes
+ *
+ * STATE-DECODE LOOP @ 0xCF0-0xDB4 (~50 insns):
+ *   /\* Iterates a0->[0x260] / a0->[0x268] / a0->[0x26C] / a0->[0x270]
+ *    *   tracking up to 4 "dispatch sub-arms" identified by bit-tests
+ *    *   on dispatch_list elem 0x10/0x18/...  *\/
+ *   v1 = list->[0x10]; if (v1 & 0x80) goto skip_arm1;
+ *   /\* arm1: a0->[0x270] = list->[0x10]; goto far_join *\/
+ *   ; check arm2: v1 = list->[0x18]; if (v1 & 0x80) goto skip_arm2;
+ *   /\* arm2: ... similar shape *\/
+ *   ; etc — 4 arms total culminating in `a0->[0x26C]` final write
+ *
+ * JUMP-TABLE BLOCK @ 0xDA0-0xDBC (~7 insns):
+ *   /\* jr $t1 dispatch via .rodata jump-table at sp+0x50 *\/
+ *   if (a0->[0x26C] >= 4) goto default_case;
+ *   t9 = a0->[0x26C] << 7;             ; *128 (per-elem size?)
+ *   t1 = at[*t1] from rodata 0xN+0x50;  ; load jump target
+ *   jr t1; nop;
+ *
+ * JUMP-TABLE ARMS @ 0xDC0-0xEEC (4 cases, each ~24 insns):
+ *   case 0 @ 0xDC0: list_id = ... & 0xDFFF + 0x1;    ; clear+set bit 0
+ *                    gl_func_0(list_owner, sp[0x12C], 1, ..., a0->[0xB4]);
+ *                    list->[0xA58] &= 0xDFFF;          ; (write masked id)
+ *                    b +0x3A → 0xEF4
+ *   case 1 @ 0xE10: gl_func_0 with arg5=2; list->[0xA58] |= 0x2000;
+ *                    b +0x26 → 0xEF4
+ *   case 2 @ 0xE60: gl_func_0 with arg5=3; list->[0xA58] |= 0x2000_0001;
+ *                    b +0x13 → 0xEF4
+ *   case 3 @ 0xEAC: gl_func_0 with arg5=3 (alt arm-path);
+ *                    list->[0xA58] |= 0x2000;          ; same mask as case 1
+ *
+ * MERGE @ 0xEF4-0xF30:
+ *   /\* All cases converge here for final FPU work *\/
+ *   t5 = a0->[0x260]; t6 = sp[0x128]; lui at, 0x3F80;
+ *   mtc1 t5, f16; mtc1 at, f17; lw t7, 0x28(t6);
+ *   mtc1 at, f10; mtc1 t7, f6;
+ *   cvt.s.w f8, f16; cvt.s.w f4, f6;
+ *   mul.s f12, f10, f8;                ; f12 = 1.0f * f8
+ *   abs.s f12, f12;
+ *   mfc1 a1, f16;
+ *   gl_func_0(s2, ...);                ; cross-USO call (a0 = sp+0xF4)
+ *
+ * Cumulative ~305/706 insns characterized (~43%). NEXT PASS: continue
+ * from 0xF34 — post-FPU dispatch + remaining ~400 insns. */
 void game_uso_func_00000B3C(int *a0) {
     int *sub;
     int derived_id;
