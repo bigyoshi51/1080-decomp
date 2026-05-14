@@ -3022,7 +3022,27 @@ void gl_func_0003D114(Quad4 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D16C);
 
+#ifdef NON_MATCHING
+/* gl_func_0003D228: 24-insn helper. Calls gl_func(a0+0x10, a1), sets
+ * a0->[0x4]=1 if a0->[0x14] was non-zero, then sets a0->[0x14]=a0
+ * (self-ref). Finally indirect-call via a0->[0x28]->[0x64].
+ * Cap: target uses beql-likely for the conditional; built emits regular
+ * beq. 88 vs 96 bytes. */
+void gl_func_0003D228(int *a0, int a1) {
+    int *v0;
+    int (*fn)(int*);
+    gl_func_00000000(a0 + 4, a1);
+    if (a0[0x14/4] != 0) {
+        a0[0x4/4] = 1;
+    }
+    a0[0x14/4] = (int)a0;
+    v0 = (int*)a0[0x28/4];
+    fn = (int(*)(int*))v0[0x64/4];
+    fn((int*)((char*)a0 + *(short*)((char*)v0 + 0x60)));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D228);
+#endif
 
 extern int gl_func_00000000();
 
