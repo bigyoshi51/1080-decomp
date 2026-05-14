@@ -1021,7 +1021,21 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007150);
 #ifdef NON_MATCHING
 /* NON_MATCHING: decoded 35-insn alloc/link helper. The C shape is close to
  * m2c, but IDO still emits a 0x28 frame instead of target 0x30 and keeps the
- * allocated node in $a1 where target keeps it in $a2 for the final call. */
+ * allocated node in $a1 where target keeps it in $a2 for the final call.
+ *
+ * 2026-05-14 re-analysis: target's diffs are:
+ *   - Frame 0x30 vs built 0x28 (8-byte excess via target's `sw a2, 28(sp)`
+ *     at jal-delay-slot — defensive caller-slot dead-spill of a2 even
+ *     though a2 isn't reloaded post-call; same dead-spill pattern as
+ *     gl_func_0003EAE0 which I promoted via SUFFIX_BYTES+INSN_PATCH).
+ *   - Reg-swap built $a1 vs target $a2 for the node pointer.
+ *   - Target reloads a2 via `addiu t8, sp, 28; lw t0, 0(t8)` base-pointer
+ *     form rather than direct `lw t7, 48(sp)`.
+ *
+ * Tried `volatile int *p = &a2; (void)p;` — DCE'd by IDO, no spill added.
+ * Promotion path: INSN_PATCH (~20 entries rewriting offset 0x14 onwards
+ * to shift everything by +4 and swap a1↔a2 registers) + SUFFIX_BYTES_FORCE
+ * for the trailing nop. Similar to gl_func_0003EAE0 promotion. */
 void func_00007204(int a0, int a1, int a2) {
     int *sp28;
     int sp1C = a2;
