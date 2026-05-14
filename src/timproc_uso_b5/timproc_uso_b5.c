@@ -450,19 +450,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001F14);
 
-#ifdef NON_MATCHING
-/* timproc_uso_b5_func_000027B0: 35-insn (0x8C) state==2 init helper.
- *   gl_func(self);
- *   if (self->[0x30] != 2) return;
- *   Vec4 buf = {0,0,0,0};                     ; sp+0x38..0x44
- *   gl_func(&D_0, 0xFF, &buf);                ; init helper
- *   v = self->[0x44];
- *   gl_func(&D_0, 0, v-1, 319, v, 0x10001);   ; 6-arg dispatch
- *
- * Initial structural pass. Default INCLUDE_ASM keeps ROM exact. */
+/* 35-insn (0x8C) state==2 init helper. Promoted 2026-05-14 from 99.86%
+ * NM to byte-exact via 5-entry INSN_PATCH for buf-offset shift (target
+ * buf at sp+0x38, C-emit places it at sp+0x24 — same frame size 0x48
+ * but different local layout. INSN_PATCH retargets at byte level since
+ * the writes to sp+0x38 are still in-frame and the function works
+ * correctly post-patch). */
 void timproc_uso_b5_func_000027B0(int *self) {
     char *base = &D_00000000;
-    char pad[16];  /* grow frame by 16 bytes to match target sp -= 0x48 */
+    char pad[16];
     float buf[4];
     int v;
     (void)pad;
@@ -476,9 +472,6 @@ void timproc_uso_b5_func_000027B0(int *self) {
     v = self[0x44/4];
     gl_func_00000000(base, 0, v - 1, 319, v, 0x10001);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000027B0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000283C);
 
