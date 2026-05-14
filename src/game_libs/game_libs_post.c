@@ -3347,7 +3347,58 @@ void gl_func_00039C8C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039C8C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00039E24: 48-insn helper with conditional FPU post-update.
+ *   v0 = gl_func(*(int*)(D_0+0x254), 3, a0->[0x5C], a0->[0x60],
+ *                a0->[0x64], 0, 0.0f)
+ *   if (v0 != 0) {
+ *     gl_func(&D_0, a0+0x2C);
+ *     // multiply D_0[0xD0,0xD4,0xD8] by D_0[0x128,0x12C,0x130],
+ *     // then D_0[0xD4] += a0->[0x6C]
+ *     gl_func(a0);
+ *   }
+ *
+ * First call has 7 args mixing float/int — needs prototyped extern to
+ * suppress K&R promotion. Float values 0x5C/0x60 passed as float-bits
+ * via $a2/$a3 (int regs); 0x64 passed via sp+0x10 (lwc1+swc1 pair).
+ * 0x0f at sp+0x18 is a literal 0.0f.
+ *
+ * The middle FPU block updates 3 fields in &D_0+0xA0 (offsets 0x30,
+ * 0x34, 0x38 → byte offsets 0xD0, 0xD4, 0xD8) using scaling factors at
+ * &D_0+0x128/0x12C/0x130 plus a0->[0x6C] additive bias on Y.
+ *
+ * Cap: NOT WRITTEN — complex 7-arg call with mixed prototype + FPU
+ * mid-update + conditional flow. Initial NM wrap with structural
+ * notes; future passes try named-typed-extern. */
+extern int gl_func_00000000();
+void gl_func_00039E24(int *a0) {
+    int v0;
+    /* 7-arg call: prototype needed (float at pos 3,4,5,7).
+     * v0 = gl_func(...); */
+    v0 = gl_func_00000000(
+        *(int*)((char*)&D_00000000 + 0x254),
+        3,
+        *(int*)((char*)a0 + 0x5C),
+        *(int*)((char*)a0 + 0x60),
+        *(int*)((char*)a0 + 0x64),
+        0,
+        0);
+    if (v0 != 0) {
+        gl_func_00000000(&D_00000000, (char*)a0 + 0x2C);
+        {
+            float *target = (float*)((char*)&D_00000000 + 0xA0 + 0x30);
+            float *scale = (float*)((char*)&D_00000000 + 0x128);
+            target[0] = target[0] * scale[0];
+            target[1] = target[1] * scale[1];
+            target[2] = target[2] * scale[2];
+            target[1] += *(float*)((char*)a0 + 0x6C);
+        }
+        gl_func_00000000(a0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039E24);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039EE4);
 
