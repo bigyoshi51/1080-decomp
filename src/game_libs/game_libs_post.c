@@ -4957,8 +4957,25 @@ int gl_func_000546BC(char *a0) {
  *
  * Cumulative 114/203 insns characterized, ~89 remaining.
  *
- * TODO: decode insns 115-203 — finish the stack-to-stack memcpy +
- * cross-USO submit/call. */
+ * Insns 115-144 (+30 insns) — three Vec4 stack memcpys + 0x24-alloc:
+ *     // Copy 3 Vec4s from initialized scratch area to packed layout:
+ *     memcpy(sp+0x48, sp+0xA4, 16);  // 4× 1.0f scale  → sp[0x48..0x54]
+ *     memcpy(sp+0x38, sp+0x94, 16);  // 4× 0.0f offset → sp[0x38..0x44]
+ *     memcpy(sp+0x28, sp+0x84, 16);  // 4× 1.0f       → sp[0x28..0x34]
+ *     // Manual 4× lw/sw lowering (matches asm's per-word copy):
+ *     sp[0x24] = sp[0x80];                  // global counter copy
+ *     // 36-byte alloc for next sub-object:
+ *     v0 = gl_func_00000000(0x24);
+ *     // (followed by null-check + init)
+ *
+ * Pattern: building a packed transform record at sp[0x28..0x54]
+ * (3× Vec4 = 0x30 bytes) which will be passed to the eventual final
+ * submit call (likely as &sp[0x28]).
+ *
+ * Cumulative 144/203 insns characterized, ~59 remaining.
+ *
+ * TODO: decode insns 145-203 — final submit/finalize + cleanup +
+ * epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
