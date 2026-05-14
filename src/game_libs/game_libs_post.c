@@ -2156,7 +2156,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000339B4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033A20);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033A8C);
+/* gl_func_00033A8C: 22-insn table-scan helper. Walks 9 records at
+ * &D_0 + 0x44 (stride 0x44); returns index of first record where
+ * field_0x3C == 0; if none, calls gl_func(&D_0 + 0x1E31C) and returns 0. */
+int gl_func_00033A8C(void) {
+    char *p = (char*)&D_00000000 + 0x44;
+    int i;
+    for (i = 1; i != 10; i++) {
+        if (*(int*)(p + 0x3C) == 0) return i;
+        p += 0x44;
+    }
+    gl_func_00000000((char*)&D_00000000 + 0x1E31C);
+    return 0;
+}
 
 extern int gl_func_00000000();
 int gl_func_00033AE4(int a0, int a1, int a2) {{
