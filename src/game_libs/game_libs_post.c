@@ -3786,7 +3786,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F96C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F9C4);
 
+#ifdef NON_MATCHING
+/* gl_func_0003FA54: 21-insn 2-call helper. Initializes buf[0]=0x33,
+ * sets result to 0 or 1 based on a1, calls gl_func twice, returns result.
+ *
+ * 2026-05-14 cap: built is 1 insn (4 bytes) SHORTER than target. Target
+ * has `sw a2, 0x64(sp)` in delay slot of first jal — a "dead spill" of
+ * caller a2 to a local slot. IDO won't emit this without making a2
+ * "live" past the call. Tried 4-arg sig — regressed to 20 diffs (too
+ * many regalloc shifts). Structural cap from "spill caller arg in delay
+ * slot when no other useful insn available" — unreachable from C. */
+int gl_func_0003FA54(int a0, int a1, int a2) {
+    char pad[76];
+    int result;
+    int buf[20];
+    (void)pad; (void)a0;
+    buf[0] = 0x33;
+    if (a1 == 0) {
+        result = 0;
+    }
+    if (a1 == 1) {
+        result = 1;
+    }
+    gl_func_00000000(buf, a1, a2);
+    gl_func_00000000(buf);
+    return result;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FA54);
+#endif
 
 extern int gl_func_00000000();
 
