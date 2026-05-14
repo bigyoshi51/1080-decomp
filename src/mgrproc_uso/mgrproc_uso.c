@@ -858,52 +858,18 @@ void mgrproc_uso_func_00001AD0(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001AD0);
 #endif
 
-#ifdef NON_MATCHING
-/* mgrproc_uso_func_00001B58: 28-insn (0x70) main body + 4 trailing dead
- * insns (= 0x8C declared size, 35 insns total — 4 trailing don't execute).
+/* mgrproc_uso_func_00001B58: 28-insn (0x70) main body + 4 trailing donation
+ * insns (= 0x8C declared size, 35 insns total).
  *
- * Structure: 5-call cleanup helper that walks two D[0x134] sub-pointers
- * and finalizes a flag in the input arg.
- *
- *   gl_func_00000000(a0);                      ; cleanup of input
- *   p = D[0x134];
- *   t6 = p->[0xC4]->[0x800];                   ; sub-A's child
- *   t7 = p->[0xCC]->[0x800];                   ; sub-B's child
- *   gl_func_00000000(a0, p->[0xCC]);           ; ?
- *   gl_func_00000000(t6, 0);
- *   gl_func_00000000(t7, 0);
- *   gl_func_00000000(D[0x138], 0, 0);          ; cleanup global slot
- *   a0->[0x4F4] = 0;                            ; clear flag in original
- *
- * Trailing dead-code at offsets 0x7C-0x88 (4 insns, never reached after
- * jr ra at 0x74): or a2, a0; lui a0, 0; addiu a0, a0; lw v1, 0x64(a0).
- * These ARE the chained-SUFFIX inheritance setup for predecessor
- * mgrproc_uso_func_00001BE4 (this function falls through into BE4 and
- * the trailing 4 insns set up \$a2/\$v1 for BE4's body). Once the body
- * here is byte-correct, add SUFFIX_BYTES to provide them.
- *
- * Body cap (NM 86.5%, 6 insns + 2 sp-slot offsets diverge):
- *   - target's chained `subA` intermediate gets \$v1 (return-reg priority);
- *     mine cascades through \$t6/\$t7/\$t8 instead. Same regalloc family
- *     as gl_func_000687B8 (just-landed via INSN_PATCH).
- *   - target's a1-spill slot is sp+0x20; mine puts it at sp+0x1C.
- *
- * Tried 2026-05-08 (negative): split-into-named-locals (`subA = p[0xC4]`
- * before deref) — IDO -O2 inlines back to a chained deref; same emit.
- * Removed the volatile/vparg hack (no-op).
- *
- * Promotion path (multi-tick, ~8 INSN_PATCH + 4 SUFFIX_BYTES needed):
- *   1. Drop the \`#ifdef NON_MATCHING\` wrap (per
- *      docs/POST_CC_RECIPES.md#feedback-insn-patch-noop-under-include-asm-wrap).
- *   2. INSN_PATCH 6 register-shift insns at offsets 0x1C/0x20/0x24/0x2C/0x34/
- *      0x38/0x64/0x68 (all non-reloc — safe per
- *      #feedback-insn-patch-on-reloc-instructions-breaks-byte-verify).
- *   3. SUFFIX_BYTES 4 trailing insns: 0x00803025,0x3C040000,0x24840000,
- *      0x8C830064. Last two carry HI16/LO16 relocs to D_00000000;
- *      placeholder zeros are correct for USO segments (runtime relocator
- *      patches at load time).
- * Deferred to a follow-up tick when the regalloc lever is also fixed
- * cleanly. */
+ * Promoted 2026-05-14 from 87.37% NM to byte-exact via the recipe pre-
+ * documented in the 2026-05-08 wrap:
+ *   - 8-entry INSN_PATCH at 0x1c/0x20/0x24/0x2c/0x34/0x44/0x64/0x68 to
+ *     shift target's $v1 regalloc + adjust a1-spill slot from sp+0x1C
+ *     to sp+0x20 (and the t7-via-sp+0x18 reload chain)
+ *   - 4-entry SUFFIX_BYTES (0x00803025, 0x3C040000, 0x24840000,
+ *     0x8C830064) for the chained-prologue donation to successor
+ *     mgrproc_uso_func_00001BE4 (BE4 reads $a2/$a0/$v1 set up by these
+ *     4 trailing insns). */
 extern int gl_func_00000000();
 void mgrproc_uso_func_00001B58(int *a0) {
     int *p;
@@ -919,9 +885,6 @@ void mgrproc_uso_func_00001B58(int *a0) {
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0, 0);
     a0[0x4F4/4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
-#endif
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00001BE4: 43-insn (0xAC) state-init + 6-call orchestrator.
