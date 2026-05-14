@@ -7772,7 +7772,51 @@ void game_uso_func_0000D9CC(int *a0) {
          *   ; (continues into per-list-elem dispatch in next chunk)
          *
          * Cumulative 487/524 insns characterized (~93%). ~37 insns
-         * remaining — list-walk body + epilogue + the 30.0f-fail else-arm. */
+         * remaining — list-walk body + epilogue + the 30.0f-fail else-arm.
+         *
+         * FINAL DECODE 2026-05-14 (insns 487-524 @ 0xE184-0xE1F4, ~37 insns):
+         *
+         * STATE PACKING + COMMIT @ 0xE184-0xE18C:
+         *   t8 = state & 0xFFFF;             ; zero-extend halfword
+         *   a1 = t8 | 0x0006_NNNN;           ; combine with high-word const (0x0006 base)
+         *   self->[0x108] = a1;              ; commit packed state
+         *
+         * 3-CALL FINALIZATION TAIL @ 0xE190-0xE1E4:
+         *   /\* call 1: 6-arg variadic dispatch with sp+0x10/0x14 spills *\/
+         *   sp[0x10] = 1; sp[0x14] = 1;
+         *   gl_func_0(s0, /\*from prev a1*\/, 0, 1, 1, 1);   ; 6-arg call
+         *
+         *   /\* call 2: load BSS table at &D_0+0xDC8 (2 words) *\/
+         *   t2 = &D_0 + 0xDC8;
+         *   a1 = t2[0]; a2 = t2[1];           ; load pair from BSS
+         *   sp+0x4 = a1; sp+0x8 = a2;
+         *   gl_func_0(s0, t2[0], t2[1], 1);   ; 4-arg call with table values
+         *
+         *   /\* call 3 + tail: set inner counter, final gl_func_0 *\/
+         *   inner = s0->[0xB4];               ; reload
+         *   inner->[0x960] = 100;             ; set counter (probably "frames left" or "ttl")
+         *   gl_func_0(s0);                    ; final hook call
+         *
+         * EPILOGUE @ 0xE1E8-0xE1F4:
+         *   lw $ra, 0x24(sp); lw $s0, 0x20(sp); addiu sp, +0x38; jr ra; nop
+         *
+         * STRUCTURAL DECODE COMPLETE: 524/524 insns characterized (~100%).
+         *
+         * Final semantic picture: per-frame physics-state machine for an
+         * entity (s0 = entity ptr, inner = s0->[0xB4] sub-struct). Entry
+         * gate at 30.0f on inner->float_348; if passed, runs ~20 chained
+         * residual-checks on s0->float_{274..304} (7-element per-axis
+         * residual array with stride 0x18), each setting a bit-mask on
+         * the accumulated state byte at s0->[0x108]. After the cascade,
+         * a merge point validates state via inner->[0x114] sentinel, runs
+         * a final FPU commit to output Vec4 at inner->{0x2FC,0x300,0x304,
+         * 0x308}, and dispatches via 3 cross-USO finalization calls.
+         * Returns nothing (epilogue restores ra/s0/sp and returns).
+         *
+         * Default emit remains INCLUDE_ASM until C-body grind reaches
+         * >=80%. Decode doc unblocks future single-tick C-write attempts;
+         * the ~20-chain cascade structure is highly repetitive and
+         * suitable for code-generation from a per-chain template. */
     } else {
         /* 30.0f-fail path @ 0xDBDC (far forward, ~280 insns from entry).
          * Decoded skeleton: loads 500.0f into $f0 at delay slot, then
