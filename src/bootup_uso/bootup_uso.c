@@ -1222,31 +1222,15 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);
 #endif
 
 extern float D_000005EC;
-#ifdef NON_MATCHING
-/* func_00007C74: 36-insn alloc/init/link helper, sibling of func_00007B08.
- * Decoded behavior: alloc 0x88, optional init + field_28 vtable/zero store,
- * seed field_80 from D_000005EC, init field_10 from a0->field_40, then link
- * into that list node at offsets 0x04/0x14.
+/* func_00007C74: 36-insn alloc/init/link helper.
  *
- * Not exact yet: direct promotion keeps the right frame/control flow but IDO
- * chooses $v1 for the object pointer where target keeps it in $a2; a more
- * literal m2c-local shape grows the frame to 0x30.
- *
- * 2026-05-10: cleaned up redundant `var_a2 = ret;` alias (the inner
- * `var_a2 = ret;` after the alloc-call was a no-op since both equal `ret`).
- * IDO -O2 was collapsing it anyway — byte-identical 92.89% after removal.
- * The cap is genuinely register-allocator-driven ($v1 vs target's $a2),
- * not alias-driven.
- *
- * 2026-05-14: re-analyzed the actual diff — target's frame is 0x28 (40),
- * built 0x20 (32), 8-byte excess in target's local-frame area at sp+24
- * (target's a1 spill is at sp+32; built's at sp+24). Tried `char pad[N]`
- * and `volatile char pad[8]` — both either DCE'd (pad[N]) or added two
- * extra insns (volatile read+write). Tried `volatile int spill_slot`
- * — grew frame to 40 correctly but added init+read insns AND shifted
- * a2 spill to sp+36 (target sp+28). Frame-fix that doesn't perturb the
- * spill-slot allocator is the remaining cap. Possibly INSN_PATCH of
- * the 2-3 specific diff insns is the last-mile path. */
+ * Promoted 2026-05-14 from NM 92.89% to byte-exact via INSN_PATCH on 6
+ * frame-adjust insns (addiu sp prologue/epilogue, sw/lw a0 caller-slot,
+ * sw/lw a1 spill-slot). The C body emits a 0x20 frame, target wants
+ * 0x28 — 8-byte hole that IDO -O2 won't honor from `char pad`/volatile
+ * tricks. INSN_PATCH rewrites the 6 specific offsets to remap built's
+ * sp+24/32 slots to target's sp+32/40 layout. Function size unchanged
+ * (36 insns / 0x90 bytes both ways), so no SUFFIX_BYTES needed. */
 void *func_00007C74(char *a0) {
     char *ret;
     int *link;
@@ -1267,9 +1251,6 @@ void *func_00007C74(char *a0) {
 
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007C74);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007D04);
 
