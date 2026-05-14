@@ -6768,10 +6768,14 @@ void gl_func_000661D8(int a0_unused) {
 
 #ifdef NON_MATCHING
 /* gl_func_00066210: 21-insn 5-call sequence with buffer + chain helper.
- * Cap (2026-05-14): target doesn't reset $a0 between calls 1 and 2
- * (saving 1 insn) — IDO's typed extern infrastructure required to make
- * this work doesn't exist for K&R `gl_func_00000000`. Built emits
- * explicit `li a0, 1` for both calls = +1 insn = 88 vs 84 bytes. */
+ * Cap (2026-05-14): target doesn't reset $a0 between calls 1 and 2.
+ * Built emits explicit `li a0, 1` for both = 88 vs 84 bytes.
+ *
+ * Typed extern (gl_proto_66210) attempted as workaround — different
+ * function name AND no arg-share-across-calls optimization. The K&R-
+ * float-call workaround doesn't extend to "share int arg between
+ * adjacent calls" because the typed extern still produces independent
+ * call sites with full arg setup. */
 int gl_func_00066210(int a0, int a1) {
     int saved;
     int buf;
