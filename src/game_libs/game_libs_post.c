@@ -2931,7 +2931,44 @@ void gl_func_0003E1B4(int *head, int *searchKey, float *outVec) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E1B4);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0003E238: 30-insn (0x78) optional-allocator + init constructor.
+ *
+ * If arg0 is non-NULL, use it as the target object. Otherwise allocate
+ * a 0x38-byte object via gl_func_00000000(0x38) and return 0 on alloc
+ * failure. Then init the object via gl_func_00000000(obj, arg1):
+ *   - obj->[0x28] = &D_00000000  (vtable/handler pointer slot)
+ *   - obj->[0x2C] = 0            (zero field)
+ *   - obj->[0x30] = 0            (zero field)
+ *   - obj->[0x34] = arg2         (callback/userdata)
+ *   - obj->[0x18] &= ~2          (clear bit 1 of flags word)
+ * Return obj.
+ *
+ * 2026-05-14: 88.63% NM via goto-end recipe (66.77% with else/return-0).
+ * Remaining diffs: target uses base-pointer form `addiu v0, a0, 24` for
+ * the [0x18] read-modify-write (1 extra insn), and the lw for [0x18]
+ * happens AFTER the [34] store in target, vs BEFORE in our emit. Tried
+ * `int *flags = (int*)((char*)a0 + 0x18); *flags &= ~2;` and the volatile
+ * variant — both DCE'd back to direct `24(a0)` addressing. INSN_PATCH
+ * promotion path: 14 entries rewriting 0x3c..0x6c + SUFFIX_BYTES +4 for
+ * the trailing nop. Similar shape to gl_func_0003EAE0 promotion. */
+void* gl_func_0003E238(int *a0, int a1, int a2) {
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00000000(0x38);
+        if (a0 == 0) goto end;
+    }
+    gl_func_00000000(a0, a1);
+    a0[10] = (int)&D_00000000;    /* [0x28] */
+    a0[12] = 0;                   /* [0x30] */
+    a0[11] = 0;                   /* [0x2C] */
+    a0[13] = a2;                  /* [0x34] */
+    a0[6] &= ~2;                  /* [0x18] = old & ~2 (clear bit 1) */
+end:
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E238);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
 
