@@ -2886,7 +2886,84 @@ int gl_func_00039094(int *root) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039094);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_000393B8: 155-insn variant of gl_func_00038DC0 with extra
+ * gating + D_00000000 publish step.
+ *
+ * Common skeleton:
+ *   gl_func_00000000(root[0xC/4]);
+ *   iterate root->[0x10] bundle list
+ *   per-node guards: node->[0x18] & 0x8, node->[0x8] & 0x200,
+ *                    node->[0x8] bit-17 set ((<<14) < 0),
+ *                    !(node->[0x2C] & 0x1)
+ *   if (root->[0x2C] & 0x2): gl_func(node+0x30, node+0x70)
+ *   else: inline 4x4 mat-mult into sp+0x58; gl_func(sp+0x58, node+0x70)
+ *   if (root->[0x2C] & 0x2): D_00000000 = root  (publish current root)
+ *   reload t2 = node->[0x4]; if (t2 != 0): node->[0x14] = root
+ *   vt = node->[0x28]; (vt->[0x24])(*(short*)(vt+0x20) + (int)node)
+ *
+ * Cap: same hand-unrolled 4x4 mat-mult as 38DC0 (clean triple-for
+ * doesn't reproduce the unroll), plus the per-node gating order is
+ * sensitive. Initial NM wrap with structure decoded. */
+extern int gl_func_00000000();
+int gl_func_000393B8(int *root) {
+    int **bundle = (int**)root[0x10/4];
+    int **iter;
+    int *node = NULL;
+
+    gl_func_00000000(root[0xC/4]);
+
+    if (bundle != NULL) {
+        iter = (int**)bundle[0x4/4];
+        node = (int*)bundle[0x0/4];
+    } else {
+        iter = NULL;
+    }
+    while (node != NULL) {
+        if ((node[0x18/4] & 0x8) &&
+            (node[0x8/4] & 0x200) &&
+            ((node[0x8/4] << 14) < 0) &&
+            !(node[0x2C/4] & 0x1)) {
+            float result[16];
+            if (root[0x2C/4] & 0x2) {
+                gl_func_00000000((char*)node + 0x30, (char*)node + 0x70);
+            } else {
+                float *src = (float*)((char*)node + 0x30);
+                float *world = (float*)((char*)root + 0x70);
+                int row, col, k;
+                for (row = 0; row < 4; row++) {
+                    for (col = 0; col < 4; col++) {
+                        float sum = 0.0f;
+                        for (k = 0; k < 4; k++) {
+                            sum += src[row * 4 + k] * world[k * 4 + col];
+                        }
+                        result[row * 4 + col] = sum;
+                    }
+                }
+                gl_func_00000000(result, (char*)node + 0x70);
+            }
+            if (root[0x2C/4] & 0x2) {
+                *(int**)&D_00000000 = root;
+            }
+            if (node[0x4/4] != 0) {
+                node[0x14/4] = (int)root;
+            }
+            {
+                int *vt = (int*)node[0x28/4];
+                ((void(*)(int))vt[0x24/4])(*(short*)((char*)vt + 0x20) + (int)node);
+            }
+        }
+        if (iter == NULL) break;
+        node = (int*)iter[0];
+        iter = (int**)iter[1];
+    }
+
+    gl_func_00000000();
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000393B8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039624);
 
