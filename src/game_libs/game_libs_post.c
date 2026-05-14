@@ -2703,7 +2703,34 @@ int gl_func_00038BB8(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038BB8);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00038C04: 27-insn list-walk + vtable-dispatch loop.
+ *   if (state[0] == 0) return;
+ *   do {
+ *     vtable = self->[0x28];
+ *     method = vtable->[0x3C];
+ *     method((s16)vtable->[0x38] + (int)self);
+ *     p = state[1]; state[1] = p + 1;
+ *     state[0] = *(u16*)p;
+ *   } while (state[0] != 0); */
+void gl_func_00038C04(int *self, int **state) {
+    unsigned short next_val;
+    if (state[0] == 0) return;
+    do {
+        int *vtable = (int*)self[0x28/4];
+        int (*method)(int) = (int(*)(int))vtable[0x3C/4];
+        method((short)vtable[0x38/4] + (int)self);
+        {
+            int *p = state[1];
+            state[1] = (int*)((char*)p + 4);
+            next_val = (unsigned short)*p;
+        }
+        state[0] = (int*)(int)next_val;
+    } while (next_val != 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038C04);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00038C70(int a0, int a1, int a2) {
