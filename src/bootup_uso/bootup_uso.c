@@ -1018,24 +1018,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006808);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007150);
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: decoded 35-insn alloc/link helper. The C shape is close to
- * m2c, but IDO still emits a 0x28 frame instead of target 0x30 and keeps the
- * allocated node in $a1 where target keeps it in $a2 for the final call.
- *
- * 2026-05-14 re-analysis: target's diffs are:
- *   - Frame 0x30 vs built 0x28 (8-byte excess via target's `sw a2, 28(sp)`
- *     at jal-delay-slot — defensive caller-slot dead-spill of a2 even
- *     though a2 isn't reloaded post-call; same dead-spill pattern as
- *     gl_func_0003EAE0 which I promoted via SUFFIX_BYTES+INSN_PATCH).
- *   - Reg-swap built $a1 vs target $a2 for the node pointer.
- *   - Target reloads a2 via `addiu t8, sp, 28; lw t0, 0(t8)` base-pointer
- *     form rather than direct `lw t7, 48(sp)`.
- *
- * Tried `volatile int *p = &a2; (void)p;` — DCE'd by IDO, no spill added.
- * Promotion path: INSN_PATCH (~20 entries rewriting offset 0x14 onwards
- * to shift everything by +4 and swap a1↔a2 registers) + SUFFIX_BYTES_FORCE
- * for the trailing nop. Similar to gl_func_0003EAE0 promotion. */
+/* func_00007204: 33-insn alloc/link helper. Promoted 2026-05-14 from 90.15%
+ * NM to byte-exact via SUFFIX_BYTES_FORCE (+8 bytes, 2 nops) + 31-entry
+ * INSN_PATCH. Built emits 0x28 frame / 31 insns; target needs 0x30 frame /
+ * 33 insns with defensive a2 dead-spill at jal-delay + a1↔a2 regalloc
+ * swap + base-pointer form for a2 reload. Last of the 3-function
+ * bootup_uso regalloc cluster (7C74/7B08/7204) per
+ * project_1080_bootup_regalloc_cluster.md. Cluster complete. */
 void func_00007204(int a0, int a1, int a2) {
     int *sp28;
     int sp1C = a2;
@@ -1057,9 +1046,6 @@ void func_00007204(int a0, int a1, int a2) {
     }
     func_00000000(a0 + 0x2C, var_a2, var_a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007204);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
 
