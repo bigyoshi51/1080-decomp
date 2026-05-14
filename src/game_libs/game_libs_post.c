@@ -7497,6 +7497,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060318);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060370);
 
+/* gl_func_00060468: 26-insn 3-call wrapper. Decoded structure:
+ *   v = func();
+ *   p = a0->[0x44]; p[1] = v;
+ *   p[2] += p[1] - p[0];
+ *   func(p);
+ *   v = func();
+ *   p = a0->[0x44]; p[0] = v;
+ * Straight C produces 77% (below 80% threshold) — IDO regalloc/scheduler
+ * cap. Kept as INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060468);
 
 /* gl_func_000604D0: 23-insn linked-list walk-and-call. Walks a2->[0x18]
