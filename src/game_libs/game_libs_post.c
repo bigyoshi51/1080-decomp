@@ -4874,6 +4874,36 @@ int gl_func_000546BC(char *a0) {
     return gl_func_00000000(gl_func_00000000, a0 + 0x2C, a0);
 }
 
+/* gl_func_000546E8: 203-insn (0x32C) chained-constructor + setup.
+ * 0xE0-byte stack frame, sibling of just-landed gl_func_00054668 family.
+ * NOT yet NM-wrapped — needs full body decode before compilable C.
+ *
+ * Decoded entry (insns 1-27):
+ *   void *gl_func_000546E8(void *a0, void *a1) {
+ *     void *s0 = a0;
+ *     void *s1;
+ *     if (a0 == NULL) {
+ *       s0 = gl_func_00000000(0x138);   // alloc 0x138-byte primary
+ *       if (s0 == NULL) goto epilogue;  // returns NULL
+ *     }
+ *     s1 = s0;
+ *     if (s0 == NULL) {
+ *       s1 = gl_func_00000000(0xB4);    // alloc 0xB4-byte secondary
+ *       if (s1 == NULL) goto epilogue;
+ *     }
+ *     gl_func_00000000(s1, a1);          // initialize secondary via callee
+ *     s0->[0x28] = &D_00000000;          // store data placeholder
+ *     if (s1 != -0x2C) {                 // odd: signed-pointer compare?
+ *       gl_func_00000000(s1 + 0x2C, ...);
+ *     }
+ *     // ... ~176 more insns of field setup + more callee chains
+ *   }
+ *
+ * The `bne s1, $at` where at=-0x2C is unusual — possibly a tag check
+ * (s1+0x2C != 0?) decoded incorrectly. Needs second-pass refinement.
+ *
+ * TODO: decode insns 28-203 (field setups + 4-5 more cross-USO calls)
+ * before wrapping NM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
