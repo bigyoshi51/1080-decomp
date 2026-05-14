@@ -2676,7 +2676,71 @@ int *gl_func_00038D64(int *a0) {
     return (int*)((char*)a0 + 0x18);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00038DC0: 136-insn linked-list iterator that drives a per-node
+ * 4x4 matrix transform + virtual-dispatch.
+ *
+ * For each node in root->[0x10] (linked list of {node*, next*} bundles):
+ *   skip if !(node->[0x8] & 0x200) || (node->[0x2C] & 0x1)
+ *   if (root->[0x2C] & 0x2):
+ *     gl_func(node+0x30, node+0x70)   (caller-driven transform)
+ *   else:
+ *     compute result[4x4] = node_mat[4x4] * root_world[4x4]
+ *     gl_func(result, node+0x70)
+ *   vt = node->[0x28];
+ *   (vt->[0x14])(node + (short)vt->[0x10])
+ *
+ * Cap: 4x4 mat-mult is hand-unrolled with prologue-mul + 3 main-body iters
+ * +  beql/bnel-based loop-skip + epilogue store. Standard `for (row; col; k)`
+ *  triple-loop won't match the unroll/scheduling. Documented as NM until a
+ *  pattern recipe lands for this unroll. */
+extern int gl_func_00000000();
+void gl_func_00038DC0(int *root) {
+    int **bundle = (int**)root[0x10/4];
+    int **iter;
+    int *node;
+
+    if (bundle != NULL) {
+        iter = (int**)bundle[0x4/4];
+        node = (int*)bundle[0x0/4];
+    } else {
+        node = NULL;
+        iter = NULL;
+    }
+
+    while (node != NULL) {
+        if ((node[0x8/4] & 0x200) && !(node[0x2C/4] & 0x1)) {
+            float result[16];
+            if (root[0x2C/4] & 0x2) {
+                gl_func_00000000((char*)node + 0x30, (char*)node + 0x70);
+            } else {
+                float *src = (float*)((char*)node + 0x30);
+                float *world = (float*)((char*)root + 0x70);
+                int row, col, k;
+                for (row = 0; row < 4; row++) {
+                    for (col = 0; col < 4; col++) {
+                        float sum = 0.0f;
+                        for (k = 0; k < 4; k++) {
+                            sum += src[row * 4 + k] * world[k * 4 + col];
+                        }
+                        result[row * 4 + col] = sum;
+                    }
+                }
+                gl_func_00000000(result, (char*)node + 0x70);
+            }
+            {
+                int *vt = (int*)node[0x28/4];
+                ((void(*)(int))vt[0x14/4])(*(short*)((char*)vt + 0x10) + (int)node);
+            }
+        }
+        if (iter == NULL) break;
+        node = (int*)iter[0];
+        iter = (int**)iter[1];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038DC0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038FE0);
 
