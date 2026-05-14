@@ -3834,7 +3834,29 @@ void game_uso_func_0000591C(int *a0) {
      *
      * Cumulative ~595/1102 insns characterized, ~507 remaining.
      *
-     * TODO: ~507 remaining insns. */
+     * 0x633C-0x63B0 region (+30 insns) — more nested LOD/proximity gates:
+     *     if (f0 < s0->float_B8) {
+     *         if (t5 != 0) {  // (skip path)
+     *             f6  = sp[0x170];
+     *             f18 = (double)f6;
+     *             if ((double)sp[0x170] < 0.0) {
+     *                 t6 = *(int*)((char*)&D_0 + 0x78);
+     *                 if (t6 == 0) sp[0x1B4] |= 0x4;   // global-disabled flag
+     *             }
+     *             // f6 = (f0 / s0->B8) * sp[0x16C]
+     *             ratio = (f0 / s0->float_B8) * sp[0x16C];
+     *             sp[0x1B4] |= 0x8;                    // proximity-flag bit 3
+     *             if (1.0f < ratio) { ... }
+     *         }
+     *     }
+     *
+     * Pattern continues: another nested set of float tests with 0x4/0x8
+     * bit-flags at sp[0x1B4]. Double-precision sign check + global
+     * config gate at &D_0+0x78.
+     *
+     * Cumulative ~625/1102 insns characterized, ~477 remaining.
+     *
+     * TODO: ~477 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
