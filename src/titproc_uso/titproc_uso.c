@@ -431,7 +431,52 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001718);
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00001840: 68-insn (0x110) 2-cascade constructor with
+ * 11-int + 4-float constant spray. Allocates main 0x74-byte object,
+ * runs init helper from &D_0 + 0x4D8, sets vtable + 11 int field
+ * constants (255, 163, 154, 67, 44, 1, -57, 28, 17, -3, 33) at offsets
+ * 0x2C..0x70, plus 4 floats (1.0f x3, 0.0f) at 0x3C..0x48.
+ *
+ * Initial structural pass; default INCLUDE_ASM keeps ROM exact. */
+void *titproc_uso_func_00001840(void *a0) {
+    char *base = &D_00000000;
+    void *self = a0;
+    if (self == 0) {
+        self = (void*)gl_func_00000000(0x74);
+        if (self == 0) return self;
+    }
+    if (self == 0) {  /* dead-arm passthrough cascade */
+        self = (void*)gl_func_00000000(0x2C);
+        if (self == 0) return self;
+    }
+    gl_func_00000000(self, base + 0x4D8);
+    *(int*)((char*)self + 0x28) = (int)base;
+    *(int*)((char*)self + 0x28) = (int)base;
+    *(int*)((char*)self + 0x0C) = (int)(base + 0x4E0);
+    *(int*)((char*)self + 0x4C) = 163;
+    *(int*)((char*)self + 0x50) = 154;
+    *(int*)((char*)self + 0x6C) = 67;
+    *(int*)((char*)self + 0x70) = 44;
+    *(int*)((char*)self + 0x54) = 1;
+    *(int*)((char*)self + 0x58) = -57;
+    *(int*)((char*)self + 0x5C) = 28;
+    *(int*)((char*)self + 0x60) = 17;
+    *(int*)((char*)self + 0x64) = -3;
+    *(int*)((char*)self + 0x68) = 33;
+    *(int*)((char*)self + 0x2C) = 255;
+    *(int*)((char*)self + 0x30) = 255;
+    *(float*)((char*)self + 0x3C) = 1.0f;
+    *(float*)((char*)self + 0x40) = 1.0f;
+    *(float*)((char*)self + 0x44) = 1.0f;
+    *(float*)((char*)self + 0x48) = 0.0f;
+    gl_func_00000000(self);
+    gl_func_00000000(self);
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001840);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
 
