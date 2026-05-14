@@ -3813,9 +3813,28 @@ void game_uso_func_0000591C(int *a0) {
      * the XZ distance is zero (player exactly at entity).
      *
      * Cumulative ~565/1102 insns characterized, ~537 remaining.
-     * NEXT PASS: 0x62C8+ — sqrt/inverse + scale apply.
      *
-     * TODO: ~537 remaining insns. */
+     * 0x62C8-0x6338 region (+30 insns) — multi-cond LOD/proximity tests:
+     *     // Compute dot² / dist² and compare vs scale²
+     *     f0  = f10*f4 + f6*f18;            // dot-product-like sum
+     *     f12 = (f0 * f0) / dist_sq;         // normalized dot²
+     *     f6  = scale * scale;
+     *     if (f12 <= f6) { ... }            // first test
+     *     // Reload f18 from sp[0x170], read s0->float_BC
+     *     if (s0->float_BC <= sp[0x170]) { ... }   // second test
+     *     // Third test: f0 < 50.0f (lui 0x4248 = 50.0f)
+     *     if (f0 < 50.0f) {
+     *         sp[0x1B4] |= 0x40;             // proximity-flag bit 6
+     *     }
+     *     // Reloads s0->float_B4 in delay slots for subsequent ops
+     *
+     * Pattern: cascade of three proximity/LOD tests with bit-flags at
+     * sp[0x1B4]. Camera/LOD selector for particle visibility — common
+     * effect-system pattern (only emit close particles).
+     *
+     * Cumulative ~595/1102 insns characterized, ~507 remaining.
+     *
+     * TODO: ~507 remaining insns. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
