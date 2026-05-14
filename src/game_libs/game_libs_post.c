@@ -8737,22 +8737,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
  * (70.71% → 79.28%, +8.57pp). Cost: dummy adds 2 unwanted insns (spill
  * to sp+0x8 and trailing `lw zero, 0x4(sp)` use). Without dummy, frame
  * is gone. Tried `int pad[1]` (no volatile) — DCE'd, no frame, 70.71%.
- * Net: volatile-dummy wins +8.57pp at the cost of 2 dead insns.
- * Remaining diffs are bnel-vs-bne branch-likely + register-name
- * cascades — would need INSN_PATCH for ~6 insns to promote. */
+ *
+ * 2026-05-14 — two-step refinement to 86.78% (+7.50pp from 79.28%):
+ *   (a) Match target asm: `*a2 = *a1` (uses a1) instead of `*a2 = *a3`
+ *       (uses a3). At the match site a1==a3 functionally, but IDO encodes
+ *       the source register from the literal expression. +0.36pp.
+ *   (b) Drop the `(void)dummy` read; use `dummy = a0_unused` WRITE-ONLY.
+ *       Volatile-write keeps the slot allocated (frame stays -8) without
+ *       emitting the trailing `lw zero, 0x4(sp)` dead-load. Insn count
+ *       drops 16 → 14 (matches target). +7.14pp.
+ *   Net: 9/14 insns match. Remaining 5-insn diff:
+ *   - `sw a0, 4(sp)` at DS-of-beqz vs target nop (volatile-write artifact)
+ *   - `bnel a3,a1` + `or a2,a3,0` in DS vs target `bne a3,a1; nop` (IDO
+ *     branch-likely scheduling — pulled the continue-side or-to-DS)
+ *   - `lw a3, 0(a3)` vs target `lw a3, 0(a2)` (functionally same since
+ *     a2 just set to a3, but encodes different source reg)
+ *   These last 3 diffs are IDO -O2 scheduler/encoder cascades from the
+ *   bnel optimization; no obvious C lever. Would need INSN_PATCH for
+ *   final 5-insn promotion. */
 void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
     volatile int dummy;
+    dummy = a0_unused;
     if (a3 == 0) goto out;
     do {
         if (a3 == a1) {
-            *a2 = *a3;
+            *a2 = *a1;
             goto out;
         }
         a2 = a3;
         a3 = *(int**)a3;
     } while (a3 != 0);
 out:
-    (void)dummy;
+    ;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF0C);
