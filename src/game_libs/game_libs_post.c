@@ -7052,7 +7052,18 @@ int gl_func_00067550(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000675A4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000679BC);
+/* gl_func_000679BC: 21-insn 4-arg field-init helper. Fills 5 fields in
+ * a0 (offsets 0x4C, 0x50, 0x54, 0x58, 0x5C) and clears *a3, then calls
+ * gl_func(&D_0 + 0x225EC, a0->[0x34]). */
+void gl_func_000679BC(int *a0, int a1, int a2, int *a3) {
+    a0[0x5C/4] = a1;
+    a0[0x50/4] = 0;
+    a0[0x54/4] = a2;
+    a0[0x58/4] = (int)a3;
+    *a3 = 0;
+    a0[0x4C/4] = 2;
+    gl_func_00000000((char*)&D_00000000 + 0x225EC, a0[0x34/4]);
+}
 
 extern int gl_func_00000000();
 extern char gl_ref_00022604;
