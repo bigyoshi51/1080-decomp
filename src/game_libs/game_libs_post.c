@@ -3201,28 +3201,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A9C);
 
 #ifdef NON_MATCHING
 /* gl_func_00039B0C: 19-insn float-Vec3-copy + 2 alt-entry jal dispatches.
- *   Copies a0->{0x5C,0x60,0x64} to local sp+0x24..0x2F (Vec3 buf).
- *   Calls gl_ref_0004C3B4(&buf, a0);
- *   Calls gl_ref_0004C414(a0 + 0x6C, a0);
+ *   Copies a0->{0x5C,0x60,0x64} to local Vec3 buf.
+ *   Calls func_0004C3B4(&buf, a0);
+ *   Calls func_0004C414(a0 + 0x6C, a0);
  *
- * UNBLOCKED (2026-05-14): added gl_ref_0004C3B4 and gl_ref_0004C414
- * symbol injections to undefined_syms_auto.txt. The alt-entry calls
- * now resolve at link.
- *
- * Caps: shared with 39A9C — buf at sp+0x1C (built) vs sp+0x24 (expected)
- * + .o jal-target pre-baked bytes (would need INSN_PATCH at offsets
- * 0x28, 0x34). 4 insns differ at .o level; ROM post-link correct. */
-extern int gl_ref_0004C3B4();
-extern int gl_ref_0004C414();
+ * 2026-05-14 improvement: switched extern naming from gl_ref_X to unprefixed
+ * func_X per docs/MATCHING_WORKFLOW.md#feedback-cross-segment-extern-naming-unprefixed,
+ * brought 99.26% → 99.58% (jal-name diffs resolved). Stack-offset cap
+ * remains (buf at sp+0x18 C-emit vs sp+0x24 target — needs 12 bytes of
+ * unused stack between ra and buf, no clean C trigger found). */
+extern int func_0004C3B4();
+extern int func_0004C414();
 void gl_func_00039B0C(int *a0) {
-    int pad1, pad2;
     float buf[3];
-    (void)pad1; (void)pad2;
     buf[0] = *(float*)((char*)a0 + 0x5C);
     buf[1] = *(float*)((char*)a0 + 0x60);
     buf[2] = *(float*)((char*)a0 + 0x64);
-    gl_ref_0004C3B4(buf, a0);
-    gl_ref_0004C414((char*)a0 + 0x6C, a0);
+    func_0004C3B4(buf, a0);
+    func_0004C414((char*)a0 + 0x6C, a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B0C);
@@ -4535,7 +4531,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F278);
  * and makes 2 cross-segment calls:
  *   - sp+0x60 buf: {1, *a2, ?, *a2 again}  (5-int struct? sp+0x60..0x70)
  *   - sp+0x18 buf: first int = 12
- *   - Call 1: func_00000000(sp+0x20, /* indirect lookup via *a2 */);
+ *   - Call 1: func_00000000(sp+0x20, indirect-lookup-via-*a2);
  *   - Call 2: func_00000000(sp+0x18);
  *
  * Args: (int *a0, ??, int *a2). a1 not used in body.
