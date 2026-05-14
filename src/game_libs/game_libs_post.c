@@ -4934,8 +4934,31 @@ int gl_func_000546BC(char *a0) {
  *
  * Cumulative 84/203 insns characterized, ~119 remaining.
  *
- * TODO: decode insns 85-203 — fail-tail (+0x5A) handler + main success
- * block continuation. */
+ * Insns 85-114 (+30 insns) — stack-resident transform-state setup:
+ *     // Continuing from 8-byte alloc at v1:
+ *     v1[0] = &D_00000000 + 0x21084;     // vtable/typeinfo ptr
+ *     v1[1] = 0;
+ *     f0 = 1.0f;                          // (lui 0x3F80)
+ *     t0 = *(int*)((char*)&D_00000000 + 0x2108C);  // load global counter/flags
+ *     // Zero Vec4 at sp+0x94..0xA0 (4 floats = 0.0f)
+ *     sp[0x94] = sp[0x98] = sp[0x9C] = sp[0xA0] = 0.0f;
+ *     // Identity scale Vec4 at sp+0xA4..0xB0 (4 floats = 1.0f)
+ *     sp[0xA4] = sp[0xA8] = sp[0xAC] = sp[0xB0] = 1.0f;
+ *     // Another unit Vec4 at sp+0x84..0x90
+ *     sp[0x84] = sp[0x88] = sp[0x8C] = sp[0x90] = 1.0f;
+ *     sp[0x80] = (int)t0;                // store global counter
+ *     // Begin copy of Vec4 from sp+0xA4 → sp+0x48 (manual lw/sw pairs)
+ *     // and from sp+0x84 → another area
+ *
+ * Pattern: building a complete transform/matrix on the stack with
+ * 16+ float fields, prepping for a memcpy or sub-call. The
+ * `&D_00000000 + 0x21084` looks like a relocatable vtable pointer for
+ * the v1 8-byte alloc.
+ *
+ * Cumulative 114/203 insns characterized, ~89 remaining.
+ *
+ * TODO: decode insns 115-203 — finish the stack-to-stack memcpy +
+ * cross-USO submit/call. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
