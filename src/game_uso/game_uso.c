@@ -3951,9 +3951,70 @@ void game_uso_func_0000591C(int *a0) {
      * float-field LUTs for a SECOND set of constants (0x384/0x39C/0x3B4),
      * mirroring the earlier 0x2AC/0x2C4/0x2F4/0x30C/0x324 set.
      *
-     * Cumulative ~715/1102 insns characterized, ~387 remaining.
+     * Cumulative ~715/1102 insns characterized.
      *
-     * TODO: ~387 remaining insns. */
+     * TAIL STAGE (insns ~716-1102 @ 0x6510-0x6A2C, ~387 insns):
+     *
+     *   // (5) proximity-flag bookkeeping on sp[0x1A0] / sp[0x1B4]
+     *   if (state == 0) {
+     *       f0 = s0->float_00FC; f2 = s0->float_0114; f4 = s0->float_012C;
+     *       // gather; compare; set sp[0x1A0] |= 0x800 on hit
+     *   }
+     *   // double-precision sign check on accumulated scalar:
+     *   //   cvt.d.s + c.lt.d 0.0  ->  neg.d if signed-negative (abs-value)
+     *   // followed by another sp[0x1B4] flag-OR (|= 0x2)
+     *
+     *   // (6) state-keyed float-LUT cascade #3 — offsets 0x264 / 0x27C / 0x294
+     *   //     (same dispatch shape as cascades #1 and #2 above)
+     *   //     selected float fed into jal gl_func_0(s0 + 0xA58, ...)
+     *
+     *   // (7) frame-counter increment with bound 0x4B:
+     *   if (s0->int_54 < 0x4B) s0->int_54++;
+     *   // bit-tests on sp[0x1B0]/sp[0x1A4]/sp[0x1AC]: 0x20, 0x40, 0x400, 0x10
+     *   // each toggles a corresponding sp[0x1B4] bit
+     *
+     *   // (8) state-keyed float-LUT cascade #4 — offsets 0x264/0x294/0x27C/0x24C/0x21C/0x234
+     *   //     double-precision compare of s0->float_BC vs hard-coded threshold
+     *   //     (neg.d if below)
+     *
+     *   // (9) linked-list walk #1: t9 = s0->ptr_7C; while (t9) { ... t9 = t9->next; }
+     *
+     *   // (10) state-keyed float-LUT cascades #5-#8 — additional struct-offset groups:
+     *   //      0x1BC/0x18C/0x1A4  ; cascade #5
+     *   //      0x174/0x144/0x15C  ; cascade #6
+     *   //      0x204/0x1D4/0x1EC  ; cascade #7
+     *   //      0x144/0x15C/0x174 reprise (different state arm) ; cascade #8
+     *   //   Each cascade is the SAME dispatch shape as #1-#4: 3-arm
+     *   //   state-keyed select feeding a single float into an FPU clamp /
+     *   //   indirect call.
+     *
+     *   // (11) indirect call via t9: t9 = s0->fnptr_XX; jalr t9
+     *   //      (per-state-machine method dispatch — final emit step)
+     *
+     *   // (12) final sp[0x1B4] bit-flag finalization:
+     *   //      conditional OR of 0x10 / 0x40 / 0x80 based on remaining state checks
+     *
+     *   // (13) linked-list walk #2: t8 = s0->ptr_7C; iterate; check t8 != 0
+     *
+     *   // (14) tail-call gl_func_0(s0, sp[0x1B4]) — commits the accumulated
+     *   //      bit-flags back to whatever owns the s0 instance.
+     *
+     *   // EPILOGUE (insns 1099-1102 @ 0x6A1C-0x6A2C):
+     *   //   lw $ra, 0x24(sp)
+     *   //   lw $s0, 0x20(sp)
+     *   //   addiu $sp, sp, 0x1D0
+     *   //   jr $ra
+     *
+     * The full 1102-insn body resolves to: dispatch-rich per-frame state
+     * update for a physics/animation entity. Repeated 3-arm state-keyed
+     * float-LUT pattern dominates (~8 cascades), interleaved with
+     * frame-counter and bit-flag bookkeeping on a stack-resident control
+     * block (sp[0x1A0]-sp[0x1B4]). Final step is an indirect-method call
+     * plus a gl_func_0 commit of the accumulated flags.
+     *
+     * Full structural decode complete (1102/1102 insns characterized).
+     * Default emit is still INCLUDE_ASM until C-body grind reaches >=80%.
+     * Decode doc unblocks future single-tick C-write attempts. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
