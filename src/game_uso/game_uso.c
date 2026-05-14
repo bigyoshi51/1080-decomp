@@ -6730,39 +6730,35 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D6E4);
 #endif
 
 #ifdef NON_MATCHING
-/* First structural pass: conditional three-call state update. Default
- * INCLUDE_ASM keeps bytes exact; this records the field offsets and side
- * effects for later register/scheduling work.
+/* Conditional 3-call state update. 90.31% → 92.45% via two fixes 2026-05-13:
+ *   1. Inline-deref obj ptr (no named local) → $t6 holds obj inline (per
+ *      feedback-ido-v0-reuse-via-locals).
+ *   2. `int result = 0; if (...) { body; result = 1; } return result;` —
+ *      preemptive-set + single-return shape matches target's `or v0, zero, zero`
+ *      before the beqz.
  *
- * 2026-05-13: tested OR-operand swap (`0xA | *(int*)(a0+0xFC)` vs
- * `*(int*)(a0+0xFC) | 0xA`) — no-op, commutative folds identical at IDO
- * -O2. Still 90.31%. The cap is regalloc/scheduling around the 5 K&R
- * gl_func calls, not the OR-shape. Next angle: try `int *flagsp =
- * (int*)(a0+0xFC); arg = *flagsp | 0xA;` to keep flagsp live across
- * the inner if-branch. */
+ * Remaining cap: IDO puts `result` in $v1 not $v0 → trailing `or v0, v1, 0`
+ * extra move + frame grows by 8 (extra spill). Two-returns form regresses
+ * to 90.6 %. The 92.45 % is the local maximum for $v0/$v1 regalloc choice
+ * cap class (per feedback-ido-v0-reuse-via-locals — named locals across
+ * function calls compete for $v0/$v1 with IDO's allocno priority). */
 int game_uso_func_0000D74C(char *a0) {
-    char *obj;
+    int result = 0;
     int arg;
-
-    obj = *(char**)(a0 + 0xB4);
-    if (*(int*)(obj + 0x938) == 0) {
-        return 0;
+    if (*(int*)(*(char**)(a0 + 0xB4) + 0x938) != 0) {
+        gl_func_00000000(a0, 1);
+        gl_func_00000000(a0, 2, 0);
+        arg = *(int*)(a0 + 0xFC) | 0xA;
+        if (*(int*)(*(char**)(a0 + 0xB4) + 0xA14) <= 0) {
+            arg = 0x0006000A;
+            *(int*)(*(char**)(a0 + 0xB4) + 0x960) = 0x64;
+        }
+        gl_func_00000000(a0, 3, 0, arg);
+        gl_func_00000000(a0, arg);
+        gl_func_00000000(a0, 0);
+        result = 1;
     }
-
-    gl_func_00000000(a0, 1);
-    gl_func_00000000(a0, 2, 0);
-
-    obj = *(char**)(a0 + 0xB4);
-    arg = *(int*)(a0 + 0xFC) | 0xA;
-    if (*(int*)(obj + 0xA14) <= 0) {
-        arg = 0x0006000A;
-        *(int*)(obj + 0x960) = 0x64;
-    }
-
-    gl_func_00000000(a0, 3, 0, arg);
-    gl_func_00000000(a0, arg);
-    gl_func_00000000(a0, 0);
-    return 1;
+    return result;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
