@@ -590,7 +590,37 @@ void titproc_uso_func_00001C68(int *a0) {
     (void)pad;
 }
 
+#ifdef NON_MATCHING
+/* titproc_uso_func_00001D7C: 44-insn (0xB0) 2-cascade ctor + 4 floats=1.0f.
+ * Sibling of 1840: alloc(0x40) + dead-arm alloc(0x2C), init from
+ * &D_0+0x500, vtable, 4 floats=1.0f at +0x2C..0x38, zero at +0x3C.
+ *
+ * Initial structural pass; default INCLUDE_ASM keeps ROM exact. */
+void *titproc_uso_func_00001D7C(void *a0) {
+    char *base = &D_00000000;
+    void *self = a0;
+    if (self == 0) {
+        self = (void*)gl_func_00000000(0x40);
+        if (self == 0) return self;
+    }
+    if (self == 0) {  /* dead-arm passthrough cascade */
+        self = (void*)gl_func_00000000(0x2C);
+        if (self == 0) return self;
+    }
+    gl_func_00000000(self, base + 0x500);
+    *(int*)((char*)self + 0x28) = (int)base;
+    *(int*)((char*)self + 0x28) = (int)base;
+    *(int*)((char*)self + 0x0C) = (int)(base + 0x508);
+    *(int*)((char*)self + 0x3C) = 0;
+    *(float*)((char*)self + 0x2C) = 1.0f;
+    *(float*)((char*)self + 0x30) = 1.0f;
+    *(float*)((char*)self + 0x34) = 1.0f;
+    *(float*)((char*)self + 0x38) = 1.0f;
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001D7C);
+#endif
 
 extern int gl_func_00000000();
 extern char D_00000000;
