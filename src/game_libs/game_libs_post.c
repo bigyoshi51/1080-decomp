@@ -1310,7 +1310,18 @@ void gl_func_0002DD58(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD58);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002DD90: 10-insn 1-call wrapper.
+ *   gl_func_00042428((u8)a0, a1, 0, 0x3F800000 \/*1.0f-as-int*\/);
+ * alt-entry inside gl_func_000423D8 at +0x50. Trailing 12 insns donate
+ * alt-entry-prologue to successor gl_func_0002DDBC. */
+extern int gl_func_00042428();
+int gl_func_0002DD90(int a0, int a1) {
+    return gl_func_00042428(a0 & 0xFF, a1, 0, 0x3F800000);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD90);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0002DDF4: 12-insn float-store + tail-call wrapper. Caller pre-sets
