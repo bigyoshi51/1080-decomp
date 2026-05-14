@@ -6952,29 +6952,9 @@ int game_uso_func_0000C3CC(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3CC);
 #endif
 
-#ifdef NON_MATCHING
-/* C3E8: 4-insn simple global load with unused-$a0 spill. Delay-slot
- * scheduling cap — target has lui/lw/jr/sw, built emits lui/sw/jr/lw.
- *
- * 2026-05-13: tested two volatile-pointer variants:
- *   v1) `volatile int *p = &a0; (void)p; return *D_0;` — produced
- *       lui_v0/sw/jr/lw_v0 (wrong order, sw before lw).
- *   v2) `int v = *D_0; volatile int *p = &a0; (void)p; return v;`
- *       — produced lui_v1/sw/jr/lw_v0,0(v1) (wrong order AND wrong
- *       reg: lui now goes to $v1 because the lw uses local `v`).
- *
- * IDO's scheduler hoists the sw $a0 before the lw regardless of C
- * statement order. The sw and lw have no data dependency so the
- * scheduler can reorder freely; it prefers the sw earlier (covers a
- * latency slot). Match requires forcing the sw into the delay slot —
- * possibly via INSN_PATCH on offset 0x4 to swap the 2nd/4th insns.
- * Kept as NM doc for future INSN_PATCH-recipe tightening. */
 int game_uso_func_0000C3E8(int a0) {
     return *(int*)&D_00000000;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor.
