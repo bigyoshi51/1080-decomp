@@ -4197,29 +4197,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D48C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D550);
 
-#ifdef NON_MATCHING
-/* gl_func_0003D5BC: 25-insn alloc-if-null + init + zero-Vec3.
- *   if (a0 == 0) a0 = alloc(0x3C); if (a0 == 0) return 0;
- *   func(a0, 0x1F2DC);
- *   a0->[0x28] = &D; a0->[0x2C] = 0;
- *   a0->[0x30/0x34/0x38] = 0.0f (Vec3-zero);
- *   return a0; */
+/* 25-insn alloc-if-null + init + zero-Vec3. Promoted 81.6%→100% via:
+ * (1) `||` short-circuit alloc form (per gl_func_000378D0 recipe);
+ * (2) symbol-arith `&D_00000000 + 0x1F2DC` for 17-bit constant arg
+ *     (lui+addiu emit, not lui+ori). */
 int *gl_func_0003D5BC(int *a0) {
-    if (a0 == 0) {
-        a0 = (int*)func_00000000(0x3C);
-        if (a0 == 0) return 0;
+    if (a0 != 0 || (a0 = (int*)func_00000000(0x3C)) != 0) {
+        func_00000000(a0, (char*)&D_00000000 + 0x1F2DC);
+        a0[0x28/4] = (int)&D_00000000;
+        a0[0x2C/4] = 0;
+        *(float*)((char*)a0 + 0x30) = 0.0f;
+        *(float*)((char*)a0 + 0x34) = 0.0f;
+        *(float*)((char*)a0 + 0x38) = 0.0f;
     }
-    func_00000000(a0, (char*)0x1F2DC);
-    a0[0x28/4] = (int)&D_00000000;
-    a0[0x2C/4] = 0;
-    *(float*)((char*)a0 + 0x30) = 0.0f;
-    *(float*)((char*)a0 + 0x34) = 0.0f;
-    *(float*)((char*)a0 + 0x38) = 0.0f;
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D5BC);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003D620: 27-insn type-tagged float-copy-or-error.
