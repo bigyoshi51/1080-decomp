@@ -1141,7 +1141,7 @@ void gl_func_0002D130(int a0) {
             int i;
             *(int*)((char*)s1 + 0x38) = (int)retval;
             *(int*)((char*)retval + 0x4C) = (int)s3;
-            *(char*)retval &= 0x7F;
+            *(char*)retval &= 0xFF7F;
             p = retval;
             for (i = 0; i < 8; i += 4) {
                 *(int*)((char*)p + 0x54) = 0;
