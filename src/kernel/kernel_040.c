@@ -52,12 +52,15 @@ void func_800080D0(s32* arg0, s32* arg1) {
  * trap instruction (opcode 0xD = SPECIAL/BREAK). Mask 0xFC00003F isolates
  * the opcode-major + opcode-minor bits to detect BREAK.
  *
- * MATCH BLOCKED: alt-entry pattern. func_800081D0 is externally callable
- * from func_800074A0 / func_8000745C via `jal 0x800081D0`. Standard C-emit
- * can't produce a function whose internal label is also a callable entry —
- * IDO always emits prologue+epilogue at function boundary. Same class as
- * func_80008430 / func_80006698 cross-file alt-entry blockers per
- * docs/PATTERNS.md#feedback-contiguous-fragment-can-be-alt-entry-check-extern-first.
+ * MATCH BLOCKED: dual-role tail-and-callable pattern. func_800081D0 is
+ * BOTH the fall-through tail of this entry block AND externally callable
+ * from func_8000745C via `jal 0x800081D0` (two callsites: 0x800074F0,
+ * 0x8000752C). Standard C-emit can't produce a function whose internal
+ * label is also a callable entry — IDO always emits prologue+epilogue at
+ * function boundary. See docs/PATTERNS.md#feedback-dual-role-tail-and-callable
+ * (this pair is Example 2 there). DO NOT merge-fragments — it would
+ * eliminate the jal-callable func_800081D0 symbol. Same blocker class as
+ * func_80008430 / func_80006698 cross-file alt-entry cases.
  *
  * Default INCLUDE_ASM build remains exact. Documented for future-pass
  * Ghidra-assisted decode + permuter exploration. */
