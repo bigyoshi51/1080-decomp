@@ -4310,7 +4310,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D914);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D9AC);
+void gl_func_0003D9AC(int *arg0) {
+    gl_func_00000000(&D_00000000, (char*)arg0 + 0x48);
+    gl_func_00000000(arg0);
+}
+
+#ifdef NON_MATCHING
+/* game_libs_func_0003D9E4: 12-insn no-prologue leaf split from
+ * gl_func_0003D9AC parent. Indexed linked-list lookup:
+ *   if (list[0x34] == 0) return 0;
+ *   count = 0; node = list[0x34];
+ *   while (count != key) {
+ *       node = node[0x2C];
+ *       count++;
+ *       if (node == 0) break;
+ *   }
+ *   return node;
+ *
+ * Cap: no-prologue leaf — IDO -O2 always emits addiu sp + sw ra prologue
+ * (5+ extra insns vs target). Same chain-state-fragment class as
+ * game_libs_func_000664D4/000664F0 — unreachable from standalone C. */
+int* game_libs_func_0003D9E4(int *list, int key) {
+    int *v1 = (int*)list[0x34/4];
+    int count = 0;
+    if (v1 == 0) return 0;
+    while (count != key) {
+        v1 = (int*)v1[0x2C/4];
+        count++;
+        if (v1 == 0) break;
+    }
+    return v1;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D9E4);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DA18);
 
