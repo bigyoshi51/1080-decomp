@@ -2358,6 +2358,14 @@ int gl_func_00035164(int a0) {
     return (int)r;
 }
 
+/* gl_func_00035188: 25-insn 2-vtable-call + conditional assert.
+ *   g = *(int**)&D_0; g->[0x74](a0, a1);
+ *   g = *(int**)&D_0; rv = g->[0x40](a1);
+ *   if (rv < 0) func(&D + 0x1E510, a1);
+ *   return rv;
+ * Naive C scored 79.2% (frame -0x20 vs target -0x18; IDO hoists global
+ * load to $v0 before sp adjustment; target uses $t6 after sp). Same
+ * family as 0003F008's K&R-spill cap. Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
 
 /* gl_func_000351EC: 20-insn vtable dispatch + error helper. Loads
