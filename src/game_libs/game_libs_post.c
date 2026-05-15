@@ -10126,6 +10126,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074AC0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074C04);
 
+/* gl_func_00074D54: 22-insn float-arg + global-state wrapper.
+ *   rv = func_a(f);            // jal#1 takes float
+ *   g->[0x24] = f;              // store f as float
+ *   *(short*)g |= 4;            // bit-set in halfword
+ *   return func_b(rv);          // jal#2 takes int
+ * Naive C with explicit float/int prototypes scores 67.7%. Two
+ * mismatches stick: IDO target uses $s0 to preserve rv across the
+ * FPU/global work (my emit keeps it in $v0); and target reloads the
+ * global pointer TWICE (lui+lw) whereas my single-`int*g =` does
+ * one load (CSE). Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074D54);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00074D54_pad.s")
 
