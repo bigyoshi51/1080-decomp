@@ -4264,7 +4264,16 @@ int *gl_func_0003D5BC(int *a0) {
  *     a0->[0x30..0x38] = (float)tmp[0..2];
  *   } else {
  *     func();   // error
- *   } */
+ *   }
+ *
+ * 96.96% cap. Residuals (2026-05-15): (1) `*a1` test value in $t6 vs
+ * target $v0; (2) p=a1[1] in $v0 vs target $t7; (3) tmp store is
+ * sp-direct vs target's `addiu t6,sp; sw 0/4/8(t6)` register-base —
+ * `int *tp = tmp` named-base recipe does NOT trigger (collapses to
+ * sp-direct, flat 96.93%, same finicky behavior as gl_func_00046BC4 /
+ * gl_func_00037D48); (4) tmp@sp+0x1C vs target sp+0x24 frame slot.
+ * Mixed reg-alloc + addressing-mode + frame cap — permuter/INSN_PATCH
+ * class. */
 extern int func_00000000();
 void gl_func_0003D620(int *a0, int *a1) {
     volatile int pad[4];
