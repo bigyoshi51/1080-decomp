@@ -3471,7 +3471,7 @@ int *gl_func_00039A04(int *a0) {
         self = (int*)gl_func_00000000(0x88);
     }
     if (self != NULL) {
-        gl_func_00000000(self, (char*)&D_00000000 + 0x1ECEC);
+        gl_func_00000000(self, (char*)&D_00000000 + 0x1ECF4);
         self[0x28/4] = (int)&D_00000000;
         self[0x84/4] = 0;
         *(float*)((char*)self + 0x74) = 0.0f;
