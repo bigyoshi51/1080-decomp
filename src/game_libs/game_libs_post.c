@@ -5888,18 +5888,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004BAF4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C190);
 
-/* gl_func_0004C214: 29-insn 6-call orchestrator with field updates.
- *   func(a0->[0x158]);
- *   func(a0 + 0x168);
- *   func(a0->[0x1C0]);
- *   a0->[0x158] = a0->[0x1C0];
- *   func(a0->[0x1C0]);     // re-call
- *   func(a0);
- *   p = a0->[0x1C0];
- *   func(p);
- *   p->[0x68] = p->[0x64] - p->[0xC]->[0x4];  // subtract
- * Deferred. */
+#ifdef NON_MATCHING
+extern int func_00000000();
+void gl_func_0004C214(int *a0) {
+    int *p;
+    func_00000000(a0[0x158/4]);
+    func_00000000((char*)a0 + 0x168);
+    func_00000000(a0[0x1C0/4]);
+    a0[0x158/4] = a0[0x1C0/4];
+    func_00000000(a0[0x1C0/4]);
+    func_00000000(a0);
+    p = (int*)a0[0x1C0/4];
+    func_00000000(p);
+    p[0x68/4] = p[0x64/4] - ((int*)p[0xC/4])[1];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C214);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C288);
 
