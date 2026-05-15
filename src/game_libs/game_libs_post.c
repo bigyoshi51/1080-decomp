@@ -2637,6 +2637,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037CE0);
  *   Copy a0[0..2] (as ints) to sp+0x24..0x2F, then re-read those bytes as
  *   floats and copy to sp+0x38..0x43, then call func(&D, &fbuf, 12). */
 void gl_func_00037D48(int *a0) {
+    volatile int pad[6];
     int tmp[3];
     float fbuf[3];
     tmp[0] = a0[0];
@@ -2646,6 +2647,7 @@ void gl_func_00037D48(int *a0) {
     fbuf[1] = *(float*)&tmp[1];
     fbuf[2] = *(float*)&tmp[2];
     func_00000000(&D_00000000, fbuf, 12);
+    (void)pad;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037D48);
