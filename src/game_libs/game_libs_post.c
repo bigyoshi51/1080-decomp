@@ -1128,15 +1128,25 @@ void gl_func_0002D064(char *a0) {
  *       s1 += 4;
  *   }
  *
- * Initial structural pass; cross-USO alt-entry call shape caps expected. */
+ * 2026-05-15: 81.51% → 90.74% (+9.2pp) via two fixes:
+ *   1. Swap the if/else arms — test `retval == 0` first (sets
+ *      s1->0x38 = &D_5280) so IDO emits `bne v0,zero` matching target.
+ *   2. Hoist `&D_5280` into a loop-invariant `char *d5280` local
+ *      instead of recomputing `base + 0x5280` in the else arm.
+ * Remaining ~9%: inner-loop reg roles (mine i=$a0/p=$v1 vs target
+ * counter=$v1/p=$v0-reused-from-retval) + one `or s1,s3,0` schedule
+ * slot. Reloading p from s1->0x38 regressed (89.1%); reg-alloc cap. */
 void gl_func_0002D130(int a0) {
     char *base = &D_00000000;
     int *s3 = (int*)(base + (a0 * 0x160) + 0x2D00);
+    char *d5280 = base + 0x5280;
     int *s1 = s3;
     int j;
     for (j = 0; j < 64; j += 4) {
         int *retval = (int*)gl_func_00000000(base + 0x2198, 228);
-        if (retval != 0) {
+        if (retval == 0) {
+            *(int*)((char*)s1 + 0x38) = (int)d5280;
+        } else {
             int *p;
             int i;
             *(int*)((char*)s1 + 0x38) = (int)retval;
@@ -1150,8 +1160,6 @@ void gl_func_0002D130(int a0) {
                 p = (int*)((char*)p + 16);
                 *(int*)((char*)p + 0x40) = 0;
             }
-        } else {
-            *(int*)((char*)s1 + 0x38) = (int)(base + 0x5280);
         }
         gl_func_00000000(*(int*)((char*)s1 + 0x38));
         s1 = (int*)((char*)s1 + 4);
