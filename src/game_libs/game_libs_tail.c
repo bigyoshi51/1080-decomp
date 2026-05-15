@@ -126,7 +126,21 @@ void gl_func_0000A768(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A7B4);
 
+#ifdef NON_MATCHING
+/* gl_func_0000A990: 25-insn 5-identical-call + 2-zero-fields wrapper. */
+extern int func_00000000();
+void gl_func_0000A990(int *a0) {
+    func_00000000(a0, 0);
+    func_00000000(a0, 0);
+    func_00000000(a0, 0);
+    func_00000000(a0, 0);
+    func_00000000(a0, 0);
+    a0[1] = 0;
+    a0[2] = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A990);
+#endif
 
 extern int gl_func_00000000();
 
