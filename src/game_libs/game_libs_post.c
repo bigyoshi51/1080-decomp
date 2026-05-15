@@ -10944,7 +10944,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070C44);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071144);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00071144_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_00071304: 27-insn 2-call wrapper with 3-global-init.
+ *   rv = func();
+ *   externA->[0x10] = a0;
+ *   externB->[0x14] = a1;
+ *   externC->[2:short] = (short)a2;
+ *   func(rv);
+ * Structural decode (3 distinct externs all `lui+lw 0(*)` — needs unique-
+ * extern recipe for full byte match). Multi-tick refinement. */
+void gl_func_00071304(int a0, int a1, int a2) {
+    int rv = gl_func_00000000();
+    *(int*)((char*)&D_00000000 + 0x10) = a0;
+    *(int*)((char*)&D_00000000 + 0x14) = a1;
+    *(short*)((char*)&D_00000000 + 2) = (short)a2;
+    gl_func_00000000(rv);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071304);
+#endif
+
+/* game_libs_func_00071370: leading-nop FPU-control-reg wrapper
+ * (cfc1/ctc1 pair, libreultra __osSetFpcCsr-style). Hand-written MIPS
+ * asm; INCLUDE_ASM stays. */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071370);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071384);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00071384_pad.s")
