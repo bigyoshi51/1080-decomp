@@ -2383,7 +2383,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035648);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000356FC);
 
+#ifdef NON_MATCHING
+/* gl_func_00035834: 24-insn fn-ptr dispatch with conditional assert.
+ *   g = *(int**)&D_00000000;
+ *   r = g->[0x48](a1, a2);
+ *   if (r < 0) func(&D + 0x1E64C, a1);
+ *   return r;
+ * a0 declared but unused (caller-slot spill, same family as 0003F2B8). */
+extern int func_00000000();
+extern int D_00000000;
+int gl_func_00035834(int a0, int a1, int a2) {
+    int *g = *(int**)&D_00000000;
+    int r = ((int(*)(int,int))g[0x48/4])(a1, a2);
+    if (r < 0) {
+        func_00000000((char*)&D_00000000 + 0x1E64C, a1);
+    }
+    (void)a0;
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035834);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_0001E660;
