@@ -222,7 +222,43 @@ void gl_func_00001134(char *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001134);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_000011A4: 54-insn alloc-or-given + init constructor.
+ * 50/54 = 92.6% match. Cap class: dead-inner-alloc emission — target has
+ * a 4-insn dead `alloc(0x10C)` block at offset 0x2C-0x38 that's
+ * provably unreachable (s0 always non-zero post-merge) but emitted by
+ * the original C. Tried docs/PATTERNS.md feedback-alloc-or-passthrough-
+ * cascade-includes-dead-arms recipe (sub = self; if (sub == 0) alloc):
+ * REGRESSED to 61 insns (+7 over target) because the named `sub` local
+ * forced an extra $s reg + spill pair. The dead-arm in target uses ONE
+ * $s reg (s0) for both 'self' and 'sub'-like role — unreachable from
+ * 2-var C without inline-asm. Stays NM-wrap; default INCLUDE_ASM exact. */
+extern int gl_data_00000000;
+int* gl_func_000011A4(int *a0) {
+    int *self = a0;
+    if (self == 0) {
+        self = (int*)gl_func_00000000(0x140);
+        if (self == 0) return 0;
+    }
+    gl_func_00000000(self, (char*)&gl_data_00000000 + 0xCC20, self);
+    *(int*)((char*)self + 0x28) = (int)&D_00000000;
+    gl_func_00000000((char*)self + 0x2C);
+    *(int*)((char*)self + 0x28) = (int)&D_00000000;
+    *(int*)((char*)self + 0xC) = (int)((char*)&gl_data_00000000 + 0xCC28);
+    gl_func_00000000((char*)self + 0x110,
+        *(int*)((char*)&gl_data_00000000 + 0x54) | 0x001E0000);
+    *(int*)((char*)self + 0xD4) = 0;
+    *(int*)((char*)self + 0xD8) = 0xFF;
+    *(int*)((char*)self + 0x10C) = 0;
+    *(float*)((char*)self + 0xC4) = 0.0f;
+    *(float*)((char*)self + 0xC8) = 0.0f;
+    *(float*)((char*)self + 0xCC) = 0.0f;
+    *(float*)((char*)self + 0xD0) = *(float*)((char*)&D_00000000 + 0xC78);
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000011A4);
+#endif
 
 void gl_func_0000127C(char *a0) {
     gl_func_00000000(a0 + 0x110);
