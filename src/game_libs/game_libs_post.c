@@ -8644,7 +8644,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063568);
  *   7c=84=a2, 80=88=a3, 78=(float)ret, 98=stack_a5. */
 void gl_func_000635D8(int *self, int a1, int a2, int a3, int a4, int a5) {
     int r;
-    func_00000000((char*)&D_00000000 + 0x21A8);
+    func_00000000((char*)&D_00000000 + 0x221A8);
     self[0x88/4] = a3;
     self[0x80/4] = a3;
     self[0x74/4] = a1;
