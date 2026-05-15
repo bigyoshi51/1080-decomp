@@ -4979,7 +4979,28 @@ void gl_func_0003F6CC(int *a0, int a1, int *a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F6CC);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0003F730: 30-insn 6-call dispatch with conditional final.
+ *   buf @ sp+0x18..0xB8, buf[0]=34, then 5 sequential calls (jal#1-#5)
+ *   with various args. Final jal#6 is conditional on buf[0x50] != 0.
+ *   Returns buf[0x50]. */
+extern int func_00000000();
+int gl_func_0003F730(int *a0, int a1, int a2) {
+    char buf[0xA0];
+    *(int*)&buf[0x00] = 34;
+    func_00000000(&buf[0x08]);
+    func_00000000(&buf[0x00]);
+    func_00000000(&buf[0x08], a2);
+    func_00000000(&buf[0x00]);
+    func_00000000(a0);
+    if (*(int*)&buf[0x50] != 0) {
+        func_00000000(0, &buf[0x08]);
+    }
+    return *(int*)&buf[0x50];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F730);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
 
