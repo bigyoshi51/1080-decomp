@@ -7954,7 +7954,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000628EC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062A2C);
 
+#ifdef NON_MATCHING
+/* gl_func_00062E10: 28-insn assert-then-store.
+ *   v1 = a0->[0x48];
+ *   if ((v1[0] & 0xFFFF) != 0x17) {
+ *     assert(0x22130, 0x22144, 0x2A1);
+ *     v1 = a0->[0x48];   // reload
+ *   }
+ *   v1[a1*4 + 0xC/4] = a2;
+ *
+ * Standard "magic-tag-check + assert" then field-set. */
+void gl_func_00062E10(int *a0, int a1, int a2) {
+    int *v1 = (int*)a0[0x48/4];
+    if ((v1[0] & 0xFFFF) != 0x17) {
+        func_00000000((char*)&D_00000000 + 0x22130, (char*)&D_00000000 + 0x22144, 0x2A1);
+        v1 = (int*)a0[0x48/4];
+    }
+    *(int*)((char*)v1 + a1*4 + 0xC) = a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E10);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E80);
 
