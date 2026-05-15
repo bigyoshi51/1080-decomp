@@ -6006,6 +6006,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047F9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048354);
 
+#ifdef NON_MATCHING
+/* game_libs_func_000483A0: 7-insn cleanup + deref-init (split 2026-05-15).
+ *   v = *a0; a0[1] = 0; a0[2] = 0; a0[3] = v[7][1];  // last in jr ra delay */
+void game_libs_func_000483A0(int *a0) {
+    int *v = (int*)a0[0];
+    a0[1] = 0;
+    a0[2] = 0;
+    a0[3] = ((int*)v[7])[1];
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000483A0);
+#endif
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000483BC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048510);
