@@ -5761,7 +5761,42 @@ void gl_func_00046B64(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046B64);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00046BC4: 34-insn cleanup helper (0% → 84.68%). Saves arg to
+ * $s0, makes 3 calls to gl_func_0001CA10, clears bit0 of obj+0x1C4, then
+ * sets/clears bit1 of obj+0x13C based on whether (*(obj+0x254))+0x104
+ * has bit1 set.
+ *
+ * Remaining 15% is documented-hard final-mile:
+ *  - target splits obj+0x1C4 access into `addiu v0,s0,452; lw/sw 0(v0)`
+ *    (shared base reused for the RMW); IDO collapses our single
+ *    `*(int*)(s0+0x1C4) &= ~1` to direct `lw/sw 452(s0)`. Named-pointer
+ *    recipe (feedback-ido-named-base-forces-addiu-split) does NOT trigger
+ *    for a single read-modify-write — verified 2026-05-15, both
+ *    `int *p = ...; *p &= ~1` and `int *r=...; r[1]|=2` variants stay at
+ *    84.68% / regress to 81.06%.
+ *  - target's `(*(s0+0x254))+0x104` read is followed by a dead
+ *    `addiu v1,v1,0x100` (computed pointer never used) — an inlined-
+ *    accessor artifact not reproducible from straight field-access C.
+ *  - obj+0x13C accessed via `addiu v0,s0,0x138; lw/sw 4(v0)` base, and
+ *    the conditional uses plain `beq` where our if/else emits `beql`. */
+extern int gl_func_0001CA10();
+
+void gl_func_00046BC4(int *a0) {
+    int *s0 = a0;
+    gl_func_0001CA10(a0);
+    *(int*)((char*)s0 + 0x1C4) &= ~1;
+    gl_func_0001CA10(s0);
+    gl_func_0001CA10(s0);
+    if (*(int*)(*(int*)((char*)s0 + 0x254) + 0x104) & 2) {
+        *(int*)((char*)s0 + 0x13C) |= 2;
+    } else {
+        *(int*)((char*)s0 + 0x13C) &= ~2;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046BC4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046C4C);
 
