@@ -2074,12 +2074,116 @@ int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
  * Stage 3 @ 0x35C4-0x35E8 (re-copy as floats):
  *   sp[0xC0..0xC8] = sp[0x8C..0x94]      ; treats Tri3i as Vec3
  *
- * Stage 4+: ~210 insns remaining — likely transforms, gl_func dispatches,
- * and writes back to arg0's struct fields. Multi-tick decomp.
+ * 2026-05-15 (agent-b, source-2 sibling of 0x3AC0) — FULL 252-insn algorithm
+ * mapped from raw-word objdump. It is a camera/spring vector solve:
+ *   p   = s0->[0x14];                 // pointer, spilled sp+0xFC
+ *   va  = p->Vec3@0xA0;               // sp+0xF0
+ *   m0  = s0->[0x48];                 // matrix/transform source
+ *   vb  = { m0->[0xA0], (m0+0x70)->[0x34], (m0+0x70)->[0x38] };
+ *   v   = (Vec3)s0->Tri3i@0x68;       // input vec (int bits reused as float)
+ *   // 3x3 matrix-vector accumulate: out = vb + M*v, M at (m0+0x70)
+ *   //   rows use (m0+0x70)+{0,4,8 / 20,24,36 / 32,40,...}
+ *   acc = transform(v, M) + vb;       // -> sp+0xC0 + back to sp+0xE4
+ *   d   = acc - va;                   // sp+0x68 (Vec3 sub)
+ *   s0->[0x3C..0x44] = scratch Vec3 (write-back of sp+0x8C copy)
+ *   len = normalize(&sp+0xD8);        // jal gl_func (sqrt/normalize)
+ *   // build sub-frame at p->[0x48]: zero + one product term, 2 gl_func
+ *   m1  = s0->[0x4C]; repeat gather+sub+normalize on m1; 2 gl_func
+ *   t   = gl_func_result;             // sp+0xAC distance
+ *   // 3-way distance clamp (c.lt.s + bc1fl/bc1f):
+ *   if (s0->[0x88] < t)      scale = t - s0->[0xA0];
+ *   else if (t < s0->[0xA0]) scale = t - s0->[0xA0];
+ *   else                     scale = 0.0f;     // f20
+ *   sp+0xB0 *= scale;
+ *   k = (sp+0xBC - s0->[0xB8]) * s0->[0x118];
+ *   sp+0xD8 = sp+0xD8*k + sp+0xB0; gl_func(...);
+ * Frame -0x100 saving s0/ra + double $f20 (sdc1 0x18 / ldc1 epilogue).
  *
- * Picked under source 5 (strategy memo, exported-but-not-intra-called
- * size-descending). INCLUDE_ASM keeps ROM byte-correct. */
+ * First-pass structural NM wrap below @ 39.82% (was comment-only/bare
+ * INCLUDE_ASM) — float scheduling NOT matched (USO raw-word, no m2c; IDO
+ * float-sched is the multi-run tail). Captures the control flow, struct
+ * offsets, and gl_func dispatch points as compilable reference. Next-run
+ * levers: the exact M-row index mapping (0x00/0x10/0x20 vs 0x00/0x04/0x08
+ * — disasm shows interleaved 112/128/.. (v0) offsets, verify per-row), and
+ * the sub-frame build at p->[0x48] (mtc1 zero,$f20 + 2 gl_func, currently
+ * elided). Picked source-2 (sibling of 0x3AC0). INCLUDE_ASM is the build
+ * path so ROM stays byte-correct. */
+#ifdef NON_MATCHING
+void game_uso_func_00003558(char *s0) {
+    char *p;
+    char *m0;
+    char *m1;
+    float va[3], vb[3], v[3], acc[3], d[3];
+    float scratch[3], nrm[3], sub[3];
+    float len, t, scale, k;
+    int i;
+
+    p = *(char**)(s0 + 0x14);
+    va[0] = *(float*)(p + 0xA0);
+    va[1] = *(float*)(p + 0xA4);
+    va[2] = *(float*)(p + 0xA8);
+
+    m0 = *(char**)(s0 + 0x48);
+    vb[0] = *(float*)(m0 + 0xA0);
+    vb[1] = *(float*)(m0 + 0x70 + 0x34);
+    vb[2] = *(float*)(m0 + 0x70 + 0x38);
+
+    v[0] = *(float*)(s0 + 0x68);
+    v[1] = *(float*)(s0 + 0x6C);
+    v[2] = *(float*)(s0 + 0x70);
+
+    /* out = vb + M*v, M is 3x3 at (m0+0x70) */
+    {
+        char *M = m0 + 0x70;
+        acc[0] = vb[0] + *(float*)(M + 0x00) * v[0]
+                       + *(float*)(M + 0x10) * v[1]
+                       + *(float*)(M + 0x20) * v[2];
+        acc[1] = vb[1] + *(float*)(M + 0x04) * v[0]
+                       + *(float*)(M + 0x14) * v[1]
+                       + *(float*)(M + 0x24) * v[2];
+        acc[2] = vb[2] + *(float*)(M + 0x08) * v[0]
+                       + *(float*)(M + 0x18) * v[1]
+                       + *(float*)(M + 0x28) * v[2];
+    }
+
+    d[0] = acc[0] - va[0];
+    d[1] = acc[1] - va[1];
+    d[2] = acc[2] - va[2];
+
+    *(float*)(s0 + 0x3C) = v[0];
+    *(float*)(s0 + 0x40) = v[1];
+    *(float*)(s0 + 0x44) = v[2];
+
+    for (i = 0; i < 3; i++) { scratch[i] = d[i]; nrm[i] = acc[i]; }
+    len = gl_func_00000000(&nrm[0]);
+
+    m1 = *(char**)(s0 + 0x4C);
+    sub[0] = *(float*)(m1 + 0xA0) - vb[0];
+    sub[1] = *(float*)(m1 + 0x70 + 0x34) - vb[1];
+    sub[2] = *(float*)(m1 + 0x70 + 0x38) - vb[2];
+    t = gl_func_00000000(&sub[0]);
+
+    if (*(float*)(s0 + 0x88) < t) {
+        scale = t - *(float*)(s0 + 0xA0);
+    } else if (t < *(float*)(s0 + 0xA0)) {
+        scale = t - *(float*)(s0 + 0xA0);
+    } else {
+        scale = 0.0f;
+    }
+    nrm[0] *= scale;
+    nrm[1] *= scale;
+    nrm[2] *= scale;
+
+    k = (scratch[0] - *(float*)(s0 + 0xB8)) * *(float*)(s0 + 0x118);
+    sub[0] = sub[0] * k + nrm[0];
+    sub[1] = sub[1] * k + nrm[1];
+    sub[2] = sub[2] * k + nrm[2];
+    gl_func_00000000(&sub[0]);
+    (void)len;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003558);
+#endif
 
 void game_uso_func_00003948(char *a0) {
     game_uso_func_00000000(a0 + 0x50);
