@@ -10096,6 +10096,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000717CC);
  * Confirmed: needs -O0 file split — deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071864);
 
+/* gl_func_000718C0: 26-insn ones-complement-style checksum loop.
+ *   *a2 = 0; *a1 = *a2; for (i = 0; i < 0x1C; i += 2) { v = *(u16*)(a0+i); *a1 += v; *a2 += ~v; }
+ * Target keeps everything on stack — -O0-shaped. Needs file-split per
+ * docs/IDO_CODEGEN.md#feedback-ido-o0-loop-stack-reload-signal.
+ * Naive -O2 unrolls badly (228B vs 104B); volatile-loop variant adds barriers (124B). Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000718C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071928);
