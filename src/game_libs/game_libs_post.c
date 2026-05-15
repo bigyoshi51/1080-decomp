@@ -6164,22 +6164,24 @@ void gl_func_0004ECE4(int a0) {
  *     count = self->[0x120];          // re-read (callee may have changed it)
  *   }
  *
- * Iterates an array of pointers at self->[0x134..0x134+count*4], calling
- * a vtable method on each.
- *
- * 2026-05-14 multi-fix: 88.57% → 96.07%:
+ * 2026-05-14 multi-fix: 88.57% → 96.07% → 97.68%:
  *  1. Direct halfword `*(short*)((char*)vtable + 0x8)` instead of
  *     `(short)vtable[0x8/4]` — fixes the lh-offset trap.
  *  2. Inline method-ptr cast (no named local) — IDO uses $t9 for jalr.
  *  3. Drop the explicit `if (count <= 0) return;` — the for-loop's
- *     initial test already handles it. The redundant check produced
- *     blezl (likely) + extra blez at IDO -O2.
- * Remaining cap is $s0/$s1 swap (i vs iter) — register-priority. */
+ *     initial test already handles it.
+ *  4. Initialize `i = 0;` BEFORE `iter = self;` in the body — IDO
+ *     allocates $s0 to i (= 0 first-assigned) instead of iter, matching
+ *     target's $s0 = i / $s1 = iter mapping. (+1.6pp final-mile.)
+ * Remaining cap (~2.3%): count loaded to $v0 vs target's $t6. */
 void gl_func_0004ED0C(int *self) {
-    int *iter = self;
+    int *iter;
     int i;
-    int count = self[0x120/4];
-    for (i = 0; i < count; i++) {
+    int count;
+    i = 0;
+    iter = self;
+    count = self[0x120/4];
+    for (; i < count; i++) {
         int *v1 = (int*)iter[0x134/4];
         int *vtable = (int*)v1[0];
         ((void(*)(int))vtable[0xC/4])(*(short*)((char*)vtable + 0x8) + (int)v1);
