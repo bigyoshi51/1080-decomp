@@ -1,4 +1,4 @@
-nonmatching gl_func_0004DDF8, 0x90
+nonmatching gl_func_0004DDF8, 0x88
 
 glabel gl_func_0004DDF8
     /* E32ED0 0004DDF8 27BDFFD8 */  .word 0x27BDFFD8
@@ -35,6 +35,4 @@ glabel gl_func_0004DDF8
     /* E32F4C 0004DE74 8FB00018 */  .word 0x8FB00018
     /* E32F50 0004DE78 03E00008 */  .word 0x03E00008
     /* E32F54 0004DE7C 27BD0028 */  .word 0x27BD0028
-    /* E32F58 0004DE80 03E00008 */  .word 0x03E00008
-    /* E32F5C 0004DE84 AC800038 */  .word 0xAC800038
 endlabel gl_func_0004DDF8

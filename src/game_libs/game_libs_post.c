@@ -6719,7 +6719,34 @@ void gl_func_0004DDA0(Quad4 *dst) {
     *dst = scratch;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0004DDF8: 32-insn alloc-or-given + multi-init constructor. */
+int* gl_func_0004DDF8(int *a0, int a1) {
+    int *s0 = a0;
+    int byte_size;
+    int v0;
+    if (s0 == 0) {
+        s0 = (int*)gl_func_00000000(0x3C);
+        if (s0 == 0) return 0;
+    }
+    gl_func_00000000(s0, (char*)&D_00000000 + 0x204A8);
+    s0[0x28/4] = (int)&D_00000000;
+    byte_size = a1 * 4;
+    gl_func_00000000(byte_size);
+    v0 = gl_func_00000000(byte_size);
+    s0[0x2C/4] = v0;
+    s0[0x30/4] = v0;
+    gl_func_00000000(s0);
+    s0[0x34/4] = a1;
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DDF8);
+#endif
+
+void game_libs_func_0004DE80(int *a0) {
+    a0[0xE] = 0;
+}
 
 #ifdef NON_MATCHING
 extern int func_00000000();
