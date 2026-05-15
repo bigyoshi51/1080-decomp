@@ -603,6 +603,24 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * matching first (any %), then SUFFIX_BYTES, then the successor matches
  * naturally without needing PROLOGUE_STEALS.
  *
+ * 2026-05-15 status: 61.83%. buf-copy switched to the pointer-walk form
+ * (`int *src = &D+0x4A0; buf[i]=src[i]`) — that IS the target shape
+ * (`addiu t7,&D+0x4A0; lw t9,0(t7); sw t9,0(sp+0x54); ...`), flat fuzzy
+ * but a more faithful decode. Dominant remaining blockers, in order:
+ *   1. Frame size: built -0x70 (112) vs target -0x68 (104). Built saves
+ *      $s4/$s8 (10 sreg slots) where target saves only $s0-$s7 (8).
+ *      The extra $s4-as-&D-base + $s8 are the regression source.
+ *   2. built materializes `&D` into $s4 once (`lui s4; addiu s4; or a0,s4`)
+ *      and reloads all 0x4A0+ fields off it; target keeps NO persistent
+ *      &D base — it re-lui's per use (t7 for the copy, fresh a0 for the
+ *      setup call). Need to inline `(char*)&D + N` at every site (the
+ *      feedback-ido-inline-symbol-arith-vs-base-local recipe) so no
+ *      $s4 base local is created.
+ *   3. After 1+2 collapse the frame to -0x68, the nested-loop $s-reg
+ *      assignment still needs to land x/y/p/idx in the target's slots.
+ * Path (a) gate is "predecessor byte-exact"; #1+#2 are the next concrete
+ * multi-tick steps. Defer SUFFIX_BYTES until then.
+ *
  * Inner-loop calls are placeholder `jal 0` relocations resolved at USO
  * load time — both calls labeled gl_func_00000000 by convention. The
  * 24-byte stride (s5 = 0x18) matches the 00002EF0 wrap's struct size.
@@ -617,11 +635,14 @@ void timproc_uso_b3_func_00002DF0(int a0, int a1, int a2, int a3) {
 
     (void)a0;  /* a0 spilled at entry, unused in body */
 
-    buf[0] = *(int*)((char*)&D_00000000 + 0x4A0);
-    buf[1] = *(int*)((char*)&D_00000000 + 0x4A4);
-    buf[2] = *(int*)((char*)&D_00000000 + 0x4A8);
-    buf[3] = *(int*)((char*)&D_00000000 + 0x4AC);
-    buf[4] = *(int*)((char*)&D_00000000 + 0x4B0);
+    {
+        int *src = (int*)((char*)&D_00000000 + 0x4A0);
+        buf[0] = src[0];
+        buf[1] = src[1];
+        buf[2] = src[2];
+        buf[3] = src[3];
+        buf[4] = src[4];
+    }
 
     gl_func_00000000(&D_00000000, a1, a2, a3);
 
