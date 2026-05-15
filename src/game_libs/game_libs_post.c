@@ -150,6 +150,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
  *  - split-epilogue `if (v0 == 0) goto end_zero; ... end_zero: return 0;`:
  *    REGRESSED 86% → 61.8%. The slot-base computation + bnez delay slot
  *    interaction doesn't match the gl_func_00021E08 split-epi pattern
+ *  - 2026-05-14 (later): if-then-store form `if (v0 != 0) { sw v0; ...; return v0; } sw 0; return 0;`
+ *    REGRESSED 86% → 33.9%. Splits the unconditional sw into two arms,
+ *    IDO emits both stores rather than collapsing into bne-DS.
+ *  - 2026-05-14 (later): early-return-zero form `if (v0 == 0) { sw 0; return 0; } sw v0; ...`
+ *    REGRESSED 86% → 42.7%. Same issue.
+ *
+ * Specific cap class: target uses `bne v0,0,.L1; sw v0,0x2538(slot) (DS);
+ * beq zero,zero,end; or v0,zero,zero (DS)`. The unconditional sw is in
+ * the bne's delay slot (executes regardless), and the zero-arm uses
+ * explicit `or v0, 0, 0` in the unconditional-branch's DS. This SPECIFIC
+ * insn shape requires the C unconditional-sw form (current C is right),
+ * but IDO doesn't merge the sw into the bne's DS — it places the sw
+ * earlier in the schedule. INSN_PATCH at the affected positions is the
+ * only path forward.
  *
  * Remaining 14% diff is reloc-table cosmetic (lui+addiu vs %hi/%lo) plus
  * 1-insn stack-offset diff (0x18 vs 0x1c). Both intrinsic to IDO -O2
