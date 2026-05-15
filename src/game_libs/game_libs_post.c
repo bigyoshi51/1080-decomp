@@ -6056,13 +6056,29 @@ int gl_func_00047F48(int *a0) {
 }
 
 /* game_libs_func_00047F68: 13-insn 3-arm dispatcher split off from
- * gl_func_00047F48 bundle 2026-05-14. C draft below at 54.6% — below 80%
- * threshold; kept as INCLUDE_ASM. Decoded structure for future grind:
+ * gl_func_00047F48 bundle 2026-05-14. EXACT (objdiff 100.0).
  *   a0->[0x188] = a1; then:
  *     a1 == 0  → a0->[0x1E0] = 1
  *     a1 == 1  → a0->[0x1E0] = 0
- *     else     → leave 0x1E0 untouched */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F68);
+ *     else     → leave 0x1E0 untouched
+ * MATCH KEY: must be a 2-case switch(a1){case 0; case 1;}, NOT if/else-if.
+ * if/else-if emits plain bne/nop; only switch emits the beq a1,zero +
+ * beql a1,at dispatch with sw in the beql delay slot. For exactly 2
+ * sparse cases (0,1) IDO emits NO .rodata jumptable, so switch IS
+ * reachable here — corrects IDO_CODEGEN.md#feedback-ido-sparse-switch-
+ * beql-preload-unreachable (that cap is the lw-preload / denser variant,
+ * not the 2-case store variant). */
+void game_libs_func_00047F68(int *a0, int a1) {
+    *(int*)((char*)a0 + 0x188) = a1;
+    switch (a1) {
+    case 0:
+        *(int*)((char*)a0 + 0x1E0) = 1;
+        break;
+    case 1:
+        *(int*)((char*)a0 + 0x1E0) = 0;
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047F9C);
 
