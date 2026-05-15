@@ -114,7 +114,78 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002003C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020100);
 
+/* gl_func_000201B8: 449-insn (0x704) multi-config slot-manager state
+ * machine. Sibling-of-0x208BC pick (source-2, adjacent offset, same
+ * dispatch family). Frame -0x50. Args: mode (a0/s0), val (a1), op (a2),
+ * + stack args at sp+0x30 (tbl seed) / sp+0x4C (cfg seed) / sp+0x54.
+ * ra is pinned to the constant 12 (record stride; indexing is
+ * `multu idx, 12`). t0=2, t1=1 constants.
+ *
+ * ENTRY DISPATCH (decoded, real C below): mode selects a (cfg, tbl)
+ * pointer pair from fixed &D tables:
+ *   mode==0 → cfg=&D+0x21F8, tbl=&D+0x2C70
+ *   mode==1 → cfg=&D+0x2308, tbl=&D+0x2C40
+ *   mode==2 → cfg=&D+0x2418, tbl=&D+0x2C10
+ *   else    → cfg/tbl unset (skip to tail)
+ * if (op != 0) → re-entry/update block @0x63C (decoded below).
+ * Flag derive: a2c=cfg+212; t3 = (cfg[242]==-1 ? tbl[a2c[30]] : 0-ish);
+ *   t4 = tbl[a2c[42]] (each gated by the field != -1).
+ *
+ * TAIL (mapped, NOT yet C — multi-run): a large t3/t4/t5 + mode dispatch
+ * with ~6 near-identical record-scan loops:
+ *   - 208-byte-record scan: count=*(int*)(&D+0x2070), rec=&D+0x2CFC,
+ *     match rec[51]==a2c[30|42], skip if rec[176]>>31.
+ *   - 352-byte-record scan: count=*(s16*)(&D+0x2048), rec=&D+0x2D00,
+ *     match rec[11524]==a2c[30], skip if rec[11520]>>31.
+ *   Result written to *(int*)op_struct; index math `multu n,12`.
+ *   Two fixup blocks @0x4B8/0x57C: sh/sw into a2c[20/24/30/32/42],
+ *   call gl_func_00000000 / func@0x34238 (gl_func_00034238). Re-entry
+ *   @0x63C: gl_func call, rewrites cfg records by 12-stride, loops to
+ *   the entry dispatch (op consumed).
+ *
+ * First-pass structural NM wrap: entry dispatch + flag derive are real
+ * C; deep tail kept as INCLUDE_ASM-equivalent stub return so the body
+ * compiles. ~low% expected — multi-run. INCLUDE_ASM is the build path
+ * (ROM byte-exact). */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int gl_func_00034238();
+int gl_func_000201B8(int mode, int val, int op, int a3, int s4) {
+    char *cfg = 0;
+    char *tbl = 0;
+    int t3 = 0, t4 = 0;
+    char *a2c;
+
+    (void)a3; (void)s4;
+    if (mode == 0) {
+        cfg = (char*)&D_00000000 + 0x21F8;
+        tbl = (char*)&D_00000000 + 0x2C70;
+    } else if (mode == 1) {
+        cfg = (char*)&D_00000000 + 0x2308;
+        tbl = (char*)&D_00000000 + 0x2C40;
+    } else if (mode == 2) {
+        cfg = (char*)&D_00000000 + 0x2418;
+        tbl = (char*)&D_00000000 + 0x2C10;
+    }
+    if (op != 0 || cfg == 0) {
+        /* re-entry/update + unset paths — TODO multi-run (see header) */
+        return 0;
+    }
+    a2c = cfg + 212;
+    if (*(short*)(cfg + 242) == -1) {
+        short i0 = *(short*)(a2c + 30);
+        if (i0 != -1) t3 = *(unsigned char*)(tbl + i0);
+        i0 = *(short*)(a2c + 42);
+        if (i0 != -1) t4 = *(unsigned char*)(tbl + i0);
+    }
+    (void)t3; (void)t4; (void)val;
+    /* large t3/t4/t5+mode dispatch with record-scan loops + fixups —
+     * TODO multi-run (algorithm mapped in header comment). */
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000201B8);
+#endif
 
 /* gl_func_000208BC: 22-insn 3-arg guard/dispatch.
  *   r = gl_func_00000000(a0, a2);
