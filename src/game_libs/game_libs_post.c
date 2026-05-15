@@ -6004,7 +6004,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F68);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047F9C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048354);
+void gl_func_00048354(char *a0, int a1) {
+    int idx = (*(int*)(a0 + 0x258))++;
+    ((int*)(a0 + 0x25C))[idx] = a1;
+    if ((unsigned int)*(int*)(a0 + 0x258) >= 8) {
+        gl_func_00000000((char*)&D_00000000 + 0x1FF30);
+    }
+}
 
 #ifdef NON_MATCHING
 /* game_libs_func_000483A0: 7-insn cleanup + deref-init (split 2026-05-15).
