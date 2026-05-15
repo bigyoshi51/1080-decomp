@@ -1851,12 +1851,21 @@ void game_uso_func_00000B14(void *a0) {
  *     to force stack materialization: REGRESSED 48.29% -> 39.96%. volatile
  *     forces ordered single-element accesses that diverge harder than the
  *     fold. Do NOT retry volatile here.
- * Untried, most-promising next lever: kill `sub`'s cross-call liveness so
- * IDO spills it to a fixed slot (mirroring EXP's sp+0x90) instead of $s1 —
- * pass `(char*)s0+OFF` inline to gl_func_00000000 and recompute the base
- * for the post-call field stores, in ALL 9 sub-blocks (partial won't shift
- * allocation). That single change should restore frame size + drop $s1.
- * Multi-run refinement still expected. */
+ *   - 2026-05-15: inline-base lever (pass `(char*)s0+OFF` to the init call
+ *     + recompute base for post-call stores in all 9 sub-blocks, dead alloc
+ *     arm uses block-local `p`): REGRESSED 48.29% -> 28.59%. The if/else
+ *     split fully duplicates the 4 field stores (dead arm + live arm), and
+ *     IDO emits BOTH arms in full (it can't fold the s0==-OFF sentinel),
+ *     ~doubling the sub-block body. The single-`sub`-variable form (current)
+ *     is structurally closest despite the $s1 promotion. Do NOT retry the
+ *     inline/duplicated-arm split.
+ * Both documented levers (volatile buffers, inline-base) are now dead ends.
+ * The $s1 cascade is the true blocker but every source-restructuring attempt
+ * to dislodge it diverges harder. The logic/control-flow is already faithful;
+ * only $s-register assignment + stack-slot scheduling remain. Realistic next
+ * step is the permuter (register-allocation search) on the CURRENT
+ * single-`sub` body — treat as a permuter/INSN_PATCH-class cap, NOT a hand
+ * structural-rewrite candidate. */
 void* game_uso_func_00003018(void* arg0) {
     void *s0;
     void *v1;
