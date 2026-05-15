@@ -4674,21 +4674,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F044);
 #endif
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 93% — a1-spill family (same as gl_func_0003F008).
- * Tested unprefixed `func_00000000` extern — no improvement; the
- * cap is the unused-a1 caller-slot spill, not extern naming. */
-extern int gl_func_00000000();
-
 void gl_func_0003F0A4(int a0, int a1, int a2) {
-    char buf[0x98];
-    int pad;
-    int local;
-    *(int*)&buf[0x80] = a2;
-    *(int*)&buf[0x84] = 1;
-    *(int*)&buf[0x8C] = 0;
-    gl_func_00000000(buf);
-    local = 0x29;
-    gl_func_00000000(&local);
+    char buf[0xA0];
+    *(int*)&buf[0x88] = a2;
+    *(int*)&buf[0x8C] = 1;
+    *(int*)&buf[0x94] = 0;
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x00] = 0x29;
+    func_00000000(&buf[0x00]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F0A4);
