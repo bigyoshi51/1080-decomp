@@ -4649,6 +4649,12 @@ void gl_func_0003EE1C(int a0) {
     gl_func_00000000(&local);
 }
 
+/* gl_func_0003EE50: 28-insn 6-arg variant of the 3F008 wrapper family.
+ * (a0, a1, a2, a3, a4, a5) with stack args.
+ *   buf[0x48]=1, [0x4C]=*a2, [0x50]=a2, [0x54]=0, [0x58]=a3,
+ *   [0x5C]=a4, [0x60]=a5, [0x00]=2; jal#1(buf+8, a1); jal#2(buf).
+ * Best naive C scores 76% — reg-alloc cap on $tN for stack-arg reloads
+ * doesn't transfer cleanly. Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EE50);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EEC0);
