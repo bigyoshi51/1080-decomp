@@ -4710,35 +4710,25 @@ void gl_func_0003F12C(int a0) {
 }
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 92% — extra `sw a1, 188(sp)` spill (same family as gl_func_0003F008) */
-extern int gl_func_00000000();
-
 void gl_func_0003F158(int a0, int a1, int a2) {
-    char buf[0x98];
-    int pad;
-    int local;
-    gl_func_00000000(buf);
-    local = 0x2B;
-    *(int*)&buf[0x48] = a2;
-    gl_func_00000000(&local);
+    char buf[0xA0];
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x50] = a2;
+    *(int*)&buf[0x00] = 0x2B;
+    func_00000000(&buf[0x00]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F158);
 #endif
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 92.5% — extra `sw a1, 188(sp)` (same family as gl_func_0003F008) */
-extern int gl_func_00000000();
-
 void gl_func_0003F198(int a0, int a1, int a2, int a3) {
-    char buf[0x98];
-    int pad;
-    int local;
-    *(int*)&buf[0x40] = a2;
-    *(int*)&buf[0x48] = a3;
-    gl_func_00000000(buf);
-    local = 0x2C;
-    gl_func_00000000(&local);
+    char buf[0xA0];
+    *(int*)&buf[0x48] = a2;
+    *(int*)&buf[0x50] = a3;
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x00] = 0x2C;
+    func_00000000(&buf[0x00]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F198);
