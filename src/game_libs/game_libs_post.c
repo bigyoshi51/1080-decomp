@@ -4959,7 +4959,25 @@ void gl_func_0003F66C(int *a0, int a1, float *a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F66C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0003F6CC: 25-insn 2-call wrapper, family of 0003F60C.
+ * Differences: *a2 is INT (lw), buf[0x48]=1 AND buf[0x54]=1 (both 1). */
+extern int func_00000000();
+void gl_func_0003F6CC(int *a0, int a1, int *a2, int a3) {
+    char buf[0xA0];
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x48] = 1;
+    *(int*)&buf[0x50] = (int)a2;
+    *(int*)&buf[0x4C] = *a2;
+    *(int*)&buf[0x58] = a3;
+    *(int*)&buf[0x54] = 1;
+    *(int*)&buf[0x00] = 15;
+    func_00000000(&buf[0x00]);
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F6CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F730);
 
