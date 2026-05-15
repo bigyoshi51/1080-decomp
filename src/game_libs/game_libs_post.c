@@ -9082,7 +9082,43 @@ void game_libs_func_00066460(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066460);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00066484: 20-insn doubly-linked-list insert-before. Split from
+ * bundled 36-insn parent on 2026-05-15 (extracted game_libs_func_000664D4
+ * and game_libs_func_000664F0 as no-prologue chain-state fragments).
+ *
+ * If a0 is currently not in a list (a0->prev == a0->next), splice a0
+ * before a1 in the doubly-linked list:
+ *   - a0->next = a1 (anchor)
+ *   - a0->prev = a1->prev (anchor's old prev)
+ *   - (anchor's old prev)->next = a0
+ *   - a1->prev = a0
+ * Otherwise (a0 already linked) call placeholder gl_func_00000000().
+ *
+ * Cap: target uses `beql t6, t7, body` with `lw t8, 0(a1)` in the
+ * delay-likely slot + duplicate `lw t8, 0(a1)` at offset 0x28 (between
+ * `b end` and the body target — unreachable in normal flow). This is
+ * the documented "beql with delay-slot pre-load" pattern from
+ * docs/IDO_CODEGEN.md#feedback-ido-sparse-switch-beql-preload-unreachable
+ * (sparse-switch-style dispatch — unreachable from plain C if/else, which
+ * emits `bne + nop` without the pre-load). 19/20 word-match.
+ *
+ * Tried 2026-05-15: if-then-return form, if/else form, inverted-cond form
+ * — all emit `bne` not `beql` with no duplicate load. Cap is structural. */
+void gl_func_00066484(int *a0, int *a1) {
+    if (a0[1] == a0[0]) {
+        int t8 = a1[0];
+        a0[1] = (int)a1;
+        a0[0] = t8;
+        ((int*)a1[0])[1] = (int)a0;
+        a1[0] = (int)a0;
+    } else {
+        gl_func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066484);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000664D4);
 
