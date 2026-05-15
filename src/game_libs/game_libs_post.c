@@ -4731,29 +4731,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F278);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0003F2B8: 20-insn wrapper. Sets up 2 stack-local "buffer" regions
- * and makes 2 cross-segment calls:
- *   - sp+0x60 buf: {1, *a2, ?, *a2 again}  (5-int struct? sp+0x60..0x70)
- *   - sp+0x18 buf: first int = 12
- *   - Call 1: func_00000000(sp+0x20, indirect-lookup-via-*a2);
- *   - Call 2: func_00000000(sp+0x18);
- *
- * Args: (int *a0, ??, int *a2). a1 not used in body.
- * Frame: 0xB8 (184 bytes). a0 spilled to sp+0xB8 (caller's a0 slot);
- *        a2 spilled to sp+0x68. *a2 loaded twice (IDO scheduling quirk).
- *
- * UNRESOLVED: struct layout for sp+0x60..0x70 buffer & sp+0x18 buffer
- * not yet identified. Two cross-segment placeholder jals — extern uses
- * unprefixed `func_00000000` per docs/MATCHING_WORKFLOW.md#feedback-cross-segment-extern-naming-unprefixed.
- * Skeleton C left here for next-pass struct typing. */
+/* gl_func_0003F2B8: 20-insn wrapper, 2 cross-segment calls.
+ * Frame 0xB8. The "buffer at sp+0x60..0x70" stores are escapes via the
+ * jal#1 call (which receives sp+0x20 — buf base — and reads buf+0x40..).
+ * *a2 is loaded TWICE because IDO's scheduler fills jal#1's delay slot
+ * with the second-stored value (see
+ * docs/IDO_CODEGEN.md#feedback-ido-double-deref-fills-jal-delay-slot). */
 extern int func_00000000();
-void gl_func_0003F2B8_skeleton(int *a0, int a1, int *a2) {
-    /* deferred: write body after typing the sp+0x18 and sp+0x60..0x70
-     * stack buffers (they're inputs to the 2 cross-segment callees) */
-    (void)a0; (void)a1; (void)a2;
+void gl_func_0003F2B8(int *a0, int a1, int *a2) {
+    char buf[0x58];
+    int local;
+    *(int*)&buf[0x40] = 1;
+    *(int*)&buf[0x44] = *a2;
+    *(int*)&buf[0x50] = *a2;
+    func_00000000(buf, a1);
+    local = 12;
+    func_00000000(&local);
+    (void)a0;
 }
-#endif
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F2B8);
+#endif
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: 93.8% — extra `sw a1, 0xBC(sp)` (unused a1 arg, same family as 0003F008) */

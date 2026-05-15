@@ -79,18 +79,17 @@ def asm_shape_flags(asm_path: str) -> str:
 def find_plain_include_asm() -> list[tuple[str, int, str, str]]:
     """Return [(function_name, size_bytes, source_file_path, shape), ...]
     for plain `INCLUDE_ASM("...", FN);` lines that are NOT inside a
-    #ifdef NON_MATCHING / #else / #endif wrap and NOT shadowed by an
-    NM-wrap elsewhere in the file."""
-    results = []
+    #ifdef NON_MATCHING / #else / #endif wrap in ANY src/**/*.c file
+    (cross-file shadows count — a function with an NM-wrap somewhere and
+    a stray plain INCLUDE_ASM in a sibling .c is still "touched")."""
     plain_re = re.compile(
         r'^INCLUDE_ASM\("(?P<asm>[^"]+)",\s*(?P<fn>\w+)\);\s*$', re.MULTILINE
     )
-    # NM-wrap pattern: #ifdef NON_MATCHING ... #else ... INCLUDE_ASM(...,FN); ... #endif
-    # Allow other directives (e.g. #pragma GLOBAL_ASM) between INCLUDE_ASM and #endif.
     nm_wrap_re = re.compile(
         r'#ifdef NON_MATCHING.*?#else.*?INCLUDE_ASM\("[^"]+",\s*(\w+)\);.*?#endif',
         re.DOTALL,
     )
+    wrapped_global: set[str] = set()
     for root, _, files in os.walk("src"):
         for f in files:
             if not f.endswith(".c"):
@@ -100,11 +99,21 @@ def find_plain_include_asm() -> list[tuple[str, int, str, str]]:
                 text = open(path).read()
             except (OSError, UnicodeDecodeError):
                 continue
-            wrapped = {m.group(1) for m in nm_wrap_re.finditer(text)}
+            wrapped_global.update(m.group(1) for m in nm_wrap_re.finditer(text))
+    results = []
+    for root, _, files in os.walk("src"):
+        for f in files:
+            if not f.endswith(".c"):
+                continue
+            path = os.path.join(root, f)
+            try:
+                text = open(path).read()
+            except (OSError, UnicodeDecodeError):
+                continue
             for m in plain_re.finditer(text):
                 fn = m.group("fn")
-                if fn in wrapped:
-                    continue  # this INCLUDE_ASM is inside an NM-wrap
+                if fn in wrapped_global:
+                    continue
                 asm_seg = m.group("asm")
                 asm_path = f"{asm_seg}/{fn}.s"
                 size = parse_asm_size(asm_path)
