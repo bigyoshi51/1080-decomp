@@ -442,7 +442,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B710);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B77C);
 
+#ifdef NON_MATCHING
+/* gl_func_0000B868: 30-insn 4-call init sequence. Each call passes
+ * a different D_* address with various arg shapes:
+ *   gl_func_00000000(&D_A, 2);
+ *   gl_func_00000000(&D_B, 0, &D + 0xD4E0);  // 3rd arg is symbol+offset
+ *   gl_func_00000000(&D_C, 0, a2);
+ *   gl_func_00000000(&D_D, a1, a3);
+ * a0 declared but unused → K&R-style spill of all caller-slots.
+ * Note the 3rd arg of call#2 is `(char*)&D + 0xD4E0` — emits as
+ * lui+addiu (two insns) because 0xD4E0 has bit 15 set; not 0xD4E0
+ * literal which would emit single-insn ori. */
+extern int gl_func_00000000();
+extern int gl_data_B884_arg, gl_data_B89C_arg, gl_data_B8AC_arg, gl_data_B8C0_arg;
+extern int D_00000000;
+
+void gl_func_0000B868(int a0, int a1, int a2, int a3) {
+    gl_func_00000000(&gl_data_B884_arg, 2);
+    gl_func_00000000(&gl_data_B89C_arg, 0, (char*)&D_00000000 + 0xD4E0);
+    gl_func_00000000(&gl_data_B8AC_arg, 0, a2);
+    gl_func_00000000(&gl_data_B8C0_arg, a1, a3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B868);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B8E0);
 
