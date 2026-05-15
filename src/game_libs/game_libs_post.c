@@ -8092,7 +8092,31 @@ void gl_func_0005B68C(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B68C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B6E4);
+void gl_func_0005B6E4(int *a0, int *a1) {
+    if (a1[3] != 0x87654321) {
+        gl_func_00000000((char*)&D_00000000 + 0x21A20, *(int*)((char*)a0 + 0x20), a1[3], a1);
+    }
+    a1[3] = 0x12345678;
+}
+
+#ifdef NON_MATCHING
+/* game_libs_func_0005B73C: 10-insn no-frame leaf DLL length counter.
+ * Returns count of nodes in circular DLL anchored at `list` (excluding
+ * list itself). Cap: target has NO prologue/epilogue; IDO -O2 always
+ * emits frame for any function with non-trivial control flow. */
+int game_libs_func_0005B73C(int *list) {
+    int *node = (int*)list[1];
+    int count = 0;
+    if (node == list) return 0;
+    do {
+        node = (int*)node[1];
+        count++;
+    } while (node != list);
+    return count;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B73C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B764);
 
