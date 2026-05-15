@@ -4987,7 +4987,51 @@ void gl_func_0003F410(int a0) {
     gl_func_00000000(&local);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0003F444: 43-insn 2-buffer-setup + 4x4 nested dispatch loop
+ * (0% → 97.60%). Two gl_func_0001CA10 calls prime stack buffers (one
+ * with int=16), then a 4-outer x 4-inner loop calls
+ * gl_func_0001CA10(p, a3) walking p by +4 bytes inner, the row base by
+ * +16 bytes outer (a2 = base). do-while form + (i,row,j,p) decl order
+ * gets the $s-reg roles right (i→s4, row→s5, j→s0, p→s1).
+ *
+ * Remaining ~2.4%: (1) IDO spills the unused `a1` param to its caller
+ * home slot (`sw a1, 0xF4(sp)`) where target spills only `a0` — the
+ * unused-arg-save (docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save)
+ * fires for both params here, no C lever isolates a0-only; (2) the
+ * extra spill shifts the two stack buffers down 8 bytes (buf @ sp+0x50
+ * vs target sp+0x58). Both stem from the single a1 spill; buf58[42]
+ * size-bump tested (regressed to 97.53%). Permuter/INSN_PATCH class. */
+extern int gl_func_0001CA10();
+
+void gl_func_0003F444(int a0, int a1, int a2, int a3) {
+    int buf58[40];
+    int buf50;
+    int i;
+    int *row;
+    int j;
+    int *p;
+    (void)a0;
+    gl_func_0001CA10(&buf58);
+    buf50 = 16;
+    gl_func_0001CA10(&buf50);
+    i = 0;
+    row = (int*)a2;
+    do {
+        j = 0;
+        p = row;
+        do {
+            gl_func_0001CA10(p, a3);
+            j += 4;
+            p++;
+        } while (j != 16);
+        i++;
+        row += 4;
+    } while (i != 4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F444);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F4F0);
 
