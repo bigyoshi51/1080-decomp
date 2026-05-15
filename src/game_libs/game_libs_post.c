@@ -8263,7 +8263,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BBCC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BCD4);
 
+#ifdef NON_MATCHING
+/* gl_func_0005BD80: 16-insn Vec3-sqlen + callee (probably sqrtf).
+ * `func(x*x + y*y + z*z)` — K&R float-to-double promote cap. */
+float gl_func_0005BD80(float *a0) {
+    return gl_func_00000000(a0[0] * a0[0] + a0[1] * a0[1] + a0[2] * a0[2]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BD80);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BDC0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BE20);
 
