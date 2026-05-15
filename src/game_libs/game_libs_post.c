@@ -366,7 +366,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022E58);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023078);
+/* gl_func_00023078: 22-insn prologue-stolen successor of gl_func_00022FC0.
+ * Predecessor tail `lui t6,0; lhu t6,0x202C(t6)` (= u16 *(&D+0x202C))
+ * belongs to this entry — PROLOGUE_STEALS=8 splices the C-emit dup.
+ *   lim = *(u16*)(&D+0x202C);
+ *   if (a0 < (int)lim) {
+ *     if (a1 & 2) gl_func_00000000(a0, &local);
+ *     if (a1 & 1) gl_func_00037D98();   // jal in-segment 0x37D98
+ *   }
+ * No v0 set → void. */
+extern int gl_func_00000000();
+extern int gl_func_00037D98();
+void gl_func_00023078(int a0, int a1) {
+    int local[2];
+    if (a0 < (int)*(unsigned short*)((char*)&D_00000000 + 0x202C)) {
+        if (a1 & 2) {
+            gl_func_00000000(a0, local);
+        }
+        if (a1 & 1) {
+            gl_func_00037D98(a0);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000230D0);
 
