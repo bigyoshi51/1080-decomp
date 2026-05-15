@@ -9130,7 +9130,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066674);
 
+#ifdef NON_MATCHING
+/* gl_func_00066720: 29-insn chunked-transfer loop. Splits a (src, dst, len)
+ * transfer into 0x2710 = 10000-byte chunks, calling gl_func_00000000 per
+ * chunk. Early-exits on len==0.
+ *
+ * 58.6% match — structural decode correct, cap is the 0x2710 inlining:
+ *   target: `addiu s0, 0, 0x2710; sltu at, s1, s0` (2 insns, register cmp)
+ *   c-emit: `sltiu at, s1, 0x2710` (1 insn, immediate cmp)
+ * IDO -O2 constant-folds chunk = 0x2710 into the sltiu when chunk is
+ * function-local and the value is visible. To force the addiu+sltu pair,
+ * 0x2710 must be opaque (memory load, asm barrier, or extern const) —
+ * none of which the source likely had. Plus 1-insn prologue-spill order
+ * (target spills s0 first, IDO defers s0 spill to after assignments).
+ *
+ * Variants tried 2026-05-15: int len, unsigned int len, register-keyword
+ * on chunk — all 17/29 same. */
+void gl_func_00066720(char *src, char *dst, unsigned int len) {
+    unsigned int chunk;
+    if (len == 0) return;
+    do {
+        chunk = 0x2710;
+        if (len < chunk) chunk = len;
+        gl_func_00000000(src, dst, chunk);
+        len -= chunk;
+        src += chunk;
+        dst += chunk;
+    } while (len != 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066720);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066794);
 
