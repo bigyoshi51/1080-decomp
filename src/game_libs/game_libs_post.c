@@ -4839,12 +4839,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F308);
  * a0 declared but unused (caller-slot spill family — same as 0003F2B8). */
 extern int func_00000000();
 void gl_func_0003F350(int *a0, int *a1) {
-    char buf[0x70];
-    func_00000000(&buf[0x08], a1[0xC/4]);
-    *(int*)&buf[0x48] = (int)a1;
-    *(int*)&buf[0x00] = 18;
-    *(int*)&buf[0x4C] = a1[0x18/4] & 2;
-    func_00000000(&buf[0x00]);
+    char buf[0xA8];
+    func_00000000(&buf[0x10], a1[0xC/4]);
+    *(int*)&buf[0x50] = (int)a1;
+    *(int*)&buf[0x54] = a1[0x18/4] & 2;
+    *(int*)&buf[0x08] = 18;
+    func_00000000(&buf[0x08]);
     (void)a0;
 }
 #else
