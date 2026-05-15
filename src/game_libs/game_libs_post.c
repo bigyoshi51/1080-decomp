@@ -7787,6 +7787,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FF14);
 
+/* gl_func_0005FFD0: 22-insn 2-call ternary-pick wrapper.
+ *   rv = func(a0, &buf); p = rv ? &buf : a0;
+ *   g = *(int**)&D_0; if (g == 0) return 0;
+ *   return func(g, p, g->[0x44]);
+ * Naive C body scores 33.7% — control flow / arg-register ordering
+ * doesn't transfer from C ternary cleanly. Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FFD0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060028);
