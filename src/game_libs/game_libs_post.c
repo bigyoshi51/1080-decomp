@@ -7565,6 +7565,11 @@ void gl_func_0005DB0C(int a0, int a1, float f14_arg) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB0C);
 #endif
 
+/* gl_func_0005DB58: 22-insn float wrapper.
+ *   r = func1(a2[0]*a2[0] + a2[2]*a2[2]);    // jal#1 — sqrtf-style
+ *   return func2(a0, a1, bits_of_r, *(int*)&a2[1]);
+ * Naive C body scores 71.8% (frame off by +8, mul.s+add.s order swap,
+ * spurious cvt.d.s from IDO widening to double). Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB58);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
