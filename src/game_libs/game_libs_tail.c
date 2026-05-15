@@ -300,7 +300,18 @@ int gl_func_0000B208(int *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B290);
+extern int gl_func_00000000();
+int gl_func_0000B290(int *a0) {
+    int s0;
+    int s2 = 0;
+    for (s0 = 0; s0 != 0x180; s0 += 0x30) {
+        if (gl_func_00000000(a0[0] + s0) ||
+            gl_func_00000000(a0[0] + s0)) {
+            s2++;
+        }
+    }
+    return s2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B310);
 
