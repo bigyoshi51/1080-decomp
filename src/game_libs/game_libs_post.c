@@ -7908,7 +7908,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E0B4);
  *
  * Target asm uses pointer-increment idiom (v0 += 16, v1 += 4 per iter)
  * for the inner unrolled loop, with a single bne loop on the dst pointer
- * reaching sp+0x68 (= dst + 16*4 bytes). */
+ * reaching sp+0x68 (= dst + 16*4 bytes).
+ *
+ * 80.95% cap. Remaining diffs (2026-05-15):
+ *  - target copies src→v1 (`or v1,a0,0`) + uses $a0 as the loop
+ *    sentinel (sp+0x68); mine keeps src in $a0 and computes the
+ *    sentinel in $t6 from the dst base. Reg-alloc choice.
+ *  - frame -96 vs target -104 (same volatile-pad/frame coupling cap
+ *    class — POST_CC_RECIPES.md#feedback-volatile-pad-frame-offset-coupling).
+ *  NEGATIVE: a `float *end = dst+16;` loop-bound local makes IDO fully
+ *  UNROLL the 4-iter loop into a 16x giant (unscorable). Do NOT add a
+ *  named loop-bound local; the `p != dst + 16` inline form is required
+ *  to keep the rolled loop. Reordering reads to src[0];src++;src[3/7/11]
+ *  is neutral (IDO normalizes back). Both remaining diffs are
+ *  reg-alloc/frame, INSN_PATCH-class. */
 extern int func_00000000();
 void gl_func_0005E138(float *src) {
     float dst[16];
