@@ -155,6 +155,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
  *    IDO emits both stores rather than collapsing into bne-DS.
  *  - 2026-05-14 (later): early-return-zero form `if (v0 == 0) { sw 0; return 0; } sw v0; ...`
  *    REGRESSED 86% → 42.7%. Same issue.
+ *  - 2026-05-15: post-sw `if (v0 == 0) return 0;` and explicit `goto
+ *    end_zero` variants — both 57.6%. Drop-base-local + inline-symbol
+ *    didn't move the needle either. Current measured fuzzy 57.6% is lower
+ *    than the historic 86% — the historic measure was likely against an
+ *    earlier expected/ snapshot. Cap class unchanged.
  *
  * Specific cap class: target uses `bne v0,0,.L1; sw v0,0x2538(slot) (DS);
  * beq zero,zero,end; or v0,zero,zero (DS)`. The unconditional sw is in
