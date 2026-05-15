@@ -569,7 +569,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B958);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BA6C);
 
+#ifdef NON_MATCHING
+/* gl_func_0000BB14: 39-insn 6-call sequence — reads 4 8-byte chunks
+ * from a0 at offsets 0x188/0x1F0/0x210/0x228 into local data[32],
+ * then computes a hash via 0xD1265205, then submits at offset 0.
+ * Likely a save-game checksum or asset-streaming primitive.
+ *
+ * Score 99.77% (was 0% INCLUDE_ASM-only). 9 byte diffs remaining,
+ * all stack-offset shifts: target uses frame -0x48 with hash[32]
+ * placed at sp+0x40..0x5F — overlapping into the CALLER's arg-save
+ * region (IDO "borrowed caller-slot" optimization for unused outgoing
+ * arg slots). My emit uses frame -0x60 (96 bytes) so hash sits fully
+ * within own frame at sp+0x20..0x3F. C-unreproducible without
+ * compiler-level control over arg-save reuse. */
+extern int gl_func_00000000();
+void gl_func_0000BB14(int a0) {
+    char data[32];
+    char hash[32];
+    gl_func_00000000(a0, &data[0],  0x188, 8);
+    gl_func_00000000(a0, &data[8],  0x1F0, 8);
+    gl_func_00000000(a0, &data[16], 0x210, 8);
+    gl_func_00000000(a0, &data[24], 0x228, 8);
+    gl_func_00000000(hash, data, 0x20, 0xD1265205);
+    gl_func_00000000(a0, 0, hash, 8);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BB14);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_0000BBB0(int a0) {
