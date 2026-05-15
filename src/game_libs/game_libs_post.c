@@ -7990,7 +7990,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005AB84);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005AD54);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005AF64);
+void gl_func_0005AF64(int *a0, char *a1) {
+    a0[0x74/4] = (int)a1;
+    a0[0xC/4] = (int)a1;
+    a0[0x1C/4] = (int)(a1 + 0x10);
+    a0[0x2C/4] = (int)(a1 + 0x20);
+    a0[0x3C/4] = (int)(a1 + 0x30);
+    a0[0x4C/4] = (int)(a1 + 0x40);
+    a0[0x5C/4] = (int)(a1 + 0x50);
+    gl_func_00000000(a0, a1);
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005AFB0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005AFD4);
 
