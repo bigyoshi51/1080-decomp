@@ -283,7 +283,22 @@ void gl_func_0000B190(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B190);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B208);
+extern int gl_func_00000000();
+int gl_func_0000B208(int *a0) {
+    int s0;
+    int s1 = 0;
+    int s2 = 0;
+    int sum;
+    for (s0 = 0; s0 != 0x180; s0 += 0x30) {
+        s1 += gl_func_00000000(a0[0] + s0);
+        s2 += gl_func_00000000(a0[0] + s0);
+    }
+    sum = s1 + s2;
+    {
+        int r = gl_func_00000000(a0[1]);
+        return sum + r;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B290);
 
