@@ -9171,7 +9171,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063F40);
 
+#ifdef NON_MATCHING
+/* gl_func_000640E4: 16-insn dispatcher. If *a1 == 9 call funcA, else
+ * funcB. NM 17/16 — extra `sw a0, 0x18(sp)` arg spill (target doesn't
+ * spill — likely had 1 arg in $a1 via non-standard convention). */
+void gl_func_000640E4(int a0, int *a1) {
+    if (*a1 == 9) {
+        gl_func_00000000();
+    } else {
+        gl_func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000640E4);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00064124);
 
 #ifdef NON_MATCHING
 /* gl_func_00064174: 26-insn 10-float zero + 3-int-to-float bit-copy.
