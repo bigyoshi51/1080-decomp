@@ -2585,7 +2585,23 @@ void gl_func_00037C70(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00037CE0: 26-insn read-into-local-then-copy-to-arg.
+ *   func(&D, buf, 24);          // populate 24-byte local buf
+ *   for (i in 0..5) a0[i] = buf[i]; */
+void gl_func_00037CE0(int *a0) {
+    int buf[6];
+    func_00000000(&D_00000000, buf, 24);
+    a0[0] = buf[0];
+    a0[1] = buf[1];
+    a0[2] = buf[2];
+    a0[3] = buf[3];
+    a0[4] = buf[4];
+    a0[5] = buf[5];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037CE0);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00037D48: 24-insn 3-int→3-float reinterpret + 1-call wrapper.
