@@ -5792,7 +5792,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004880C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000488A0);
 
+#ifdef NON_MATCHING
+/* gl_func_00048A74: 30-insn alloc-or-given + init + cond-followup.
+ *   if (a0 == NULL) { a0 = func(0xC0); if (!a0) return 0; }
+ *   func(a0, a1, a2, a3);
+ *   a0->[0x28] = &D;
+ *   if (a2 != 0) func(a0);
+ *   return a0; */
+extern int func_00000000();
+extern int D_00000000;
+int *gl_func_00048A74(int *a0, int a1, int a2, int a3) {
+    if (a0 == 0) {
+        a0 = (int*)func_00000000(0xC0);
+        if (a0 == 0) return 0;
+    }
+    func_00000000(a0, a1, a2, a3);
+    a0[0x28/4] = (int)&D_00000000;
+    if (a2 != 0) {
+        func_00000000(a0);
+    }
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048A74);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048AEC);
 
