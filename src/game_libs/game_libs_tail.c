@@ -305,7 +305,32 @@ void gl_func_0000B450(int *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000B4A4: 47-insn 3-bit-test orchestrator. Sibling of B450
+ * (same flag-bit test idiom) with three independent branches on
+ * a0[5] bits {1,2,4}, each invoking the 5-arg gl_func_00000000
+ * with: (a0[0_or_1], a1, char_a2, char_a3, &D[0x154]+offset).
+ * char_a2/char_a3 emit as lbu from byte 3 of caller-slot spill. */
+extern int gl_func_00000000();
+extern int D_00000000;
+
+void gl_func_0000B4A4(int *a0, int a1, char a2, char a3) {
+    if (a0[5] & 1) {
+        gl_func_00000000(a0[0], a1, a2, a3,
+            (*(char**)((char*)&D_00000000 + 0x154)) + 0xE);
+    }
+    if (a0[5] & 2) {
+        gl_func_00000000(a0[0], a1, a2, a3,
+            (*(char**)((char*)&D_00000000 + 0x154)) + 0xF);
+    }
+    if (a0[5] & 4) {
+        gl_func_00000000(a0[1], a1, a2, a3,
+            (*(char**)((char*)&D_00000000 + 0x154)) + 0x10);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B4A4);
+#endif
 
 /* 14-insn 2-call wrapper at 0xB560-0xB594. The 4 trailing bytes at
  * 0xB59C-0xB5A8 (`sll/subu/addiu/div` computing (a1*3)/5) are stolen
