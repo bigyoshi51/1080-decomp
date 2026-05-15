@@ -271,7 +271,28 @@ int gl_func_0000B3B0() {
     return 0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000B3DC: 29-insn conditional double-call + finalize.
+ *   v = a0->[0x14];
+ *   if (v & 3) { func(a0->[0x10], a0[0]); v = a0->[0x14]; }
+ *   if (v & 4) func(a0->[0x10], a0[1]);
+ *   func(a0->[0x10], &D[0x154]); */
+extern int func_00000000();
+extern int D_00000000;
+void gl_func_0000B3DC(int *a0) {
+    int v = a0[0x14/4];
+    if ((v & 3) != 0) {
+        func_00000000(a0[0x10/4], a0[0]);
+        v = a0[0x14/4];
+    }
+    if ((v & 4) != 0) {
+        func_00000000(a0[0x10/4], a0[1]);
+    }
+    func_00000000(a0[0x10/4], *(int*)((char*)&D_00000000 + 0x154));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B3DC);
+#endif
 
 void gl_func_0000B450(int *a0) {
     int flags = a0[0x14 / 4];
