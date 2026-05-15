@@ -6965,7 +6965,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005165C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051694);
 
+#ifdef NON_MATCHING
+/* gl_func_00051714: 24-insn 4-float-promoted-to-double printf-style call.
+ * Reads a0[0..3] as floats, cvt.d.s to doubles, passes to gl_func
+ * with a format string at &D + 0x20E8C as 1st arg. K&R varargs:
+ *   - 1st double in a2/a3 (a1 slot wasted for 8-byte align)
+ *   - 2nd-4th doubles on stack at sp+0x10/0x18/0x20
+ *
+ * Score 73.5% (was 0% INCLUDE_ASM-only). Cap: target emits a `sw a0,
+ * 0x30(sp); lw t6, 0x30(sp)` K&R-home spill+reload at function entry
+ * (frame -0x30), suggesting the original signature was `va_list`-style
+ * or `int a0`-via-caller-spill. Naive `float *a0` skips the round-trip
+ * (frame -0x28). Tested `float *p = *(volatile float**)&a0;` — adds
+ * extra spill slot (frame -0x38) but doesn't recover target's
+ * pattern. Cap is C-unreproducible without proper varargs idiom. */
+extern int gl_func_00000000();
+void gl_func_00051714(float *a0) {
+    gl_func_00000000((char*)&D_00000000 + 0x20E8C,
+                     (double)a0[0],
+                     (double)a0[1],
+                     (double)a0[2],
+                     (double)a0[3]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051714);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_00020EA0;
