@@ -238,10 +238,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000ACBC);
 extern int func_00000000();
 int gl_func_0000AD2C(char *a0, int a1) {
     int i;
-    for (i = 0; i < 3; i++) {
-        if (func_00000000(a0, a1) != 0) {
-            return i + 1;
-        }
+    for (i = 0; i != 3; i++) {
+        if (func_00000000(a0, a1) != 0) return i;
         a0 += 0x20;
     }
     return 3;
