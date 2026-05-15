@@ -3359,8 +3359,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A04);
 extern int func_0004C2DC();
 extern int func_0004C34C();
 void gl_func_00039A9C(int *a0) {
+    volatile int pad[4];
     float buf[3];
     int sp_arg;
+    (void)pad;
     func_0004C2DC(buf);
     *(float*)((char*)a0 + 0x5C) = buf[0];
     *(float*)((char*)a0 + 0x60) = buf[1];
