@@ -8733,7 +8733,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066A50);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066AF0);
 
+#ifdef NON_MATCHING
+/* gl_func_00066B64: 28-insn 3-call init + magic-write.
+ *   func(a0);
+ *   func(&D+0x41310, 1, &D, a0, &D+0x415C0, 1);
+ *   D[0x414C0] = 0x12345678; D[0x414C4] = 0x12345678;
+ *   func(&D + 0x41310); */
+extern int func_00000000();
+extern int D_00000000;
+void gl_func_00066B64(int *a0) {
+    func_00000000(a0);
+    func_00000000((char*)&D_00000000 + 0x41310, 1, &D_00000000, a0,
+                   (char*)&D_00000000 + 0x415C0, 1);
+    *(int*)((char*)&D_00000000 + 0x414C0) = 0x12345678;
+    *(int*)((char*)&D_00000000 + 0x414C4) = 0x12345678;
+    func_00000000((char*)&D_00000000 + 0x41310);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066B64);
+#endif
 
 /* gl_func_00066BD4: 23-insn 3-call chain with mixed-arg middle call. */
 void gl_func_00066BD4(int a0) {
