@@ -116,7 +116,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020100);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000201B8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000208BC);
+/* gl_func_000208BC: 22-insn 3-arg guard/dispatch.
+ *   r = gl_func_00000000(a0, a2);
+ *   if (r != 0) return r;
+ *   if (a1 == 3) return 0;
+ *   return gl_func_00034F80(a0, a1, a2);   // jal in-segment 0x34F80
+ * args spilled to sp at entry; reloaded on each path. */
+extern int gl_func_00000000();
+extern int gl_func_00034F80();
+int gl_func_000208BC(int a0, int a1, int a2) {
+    int r = gl_func_00000000(a0, a2);
+    if (r != 0) {
+        return r;
+    }
+    if (a1 == 3) {
+        return 0;
+    }
+    return gl_func_00034F80(a0, a1, a2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
 
