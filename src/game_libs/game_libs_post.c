@@ -5260,12 +5260,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000415A4);
 void gl_func_00041768(int *self) {
     int *vtable;
     int local;
+    volatile int pad[3];
     func_00000000((char*)&D_00000000 + 0x1F5E4);
     vtable = (int*)self[0x28/4];
     ((void(*)(int))vtable[0x14/4])(*(short*)((char*)vtable + 0x10) + (int)self);
     local = 9;
     vtable = (int*)self[0x28/4];
     ((void(*)(int, int*))vtable[0x34/4])(*(short*)((char*)vtable + 0x30) + (int)self, &local);
+    (void)pad;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041768);
