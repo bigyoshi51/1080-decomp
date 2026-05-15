@@ -5174,12 +5174,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F6CC);
 /* gl_func_0003F730: 30-insn 6-call dispatch with conditional final.
  *   buf @ sp+0x18..0xB8, buf[0]=34, then 5 sequential calls (jal#1-#5)
  *   with various args. Final jal#6 is conditional on buf[0x50] != 0.
- *   Returns buf[0x50]. */
+ *   Returns buf[0x50].
+ *
+ * Score 91.33% (was 87.6%). Improvement: pass a1 to the FIRST call
+ * (per docs/IDO_CODEGEN.md#feedback-ido-unused-arg-fix-pass-to-callee)
+ * suppresses the K&R unused-a1 spill. Remaining cap: 2-insn gap in
+ * args-setup region around jal#5/6 — target has extra `addiu a0, sp,
+ * 0x18` and `lw a0, 0xC0(sp)` not in my emit. */
 extern int func_00000000();
 int gl_func_0003F730(int *a0, int a1, int a2) {
     char buf[0xA0];
     *(int*)&buf[0x00] = 34;
-    func_00000000(&buf[0x08]);
+    func_00000000(&buf[0x08], a1);
     func_00000000(&buf[0x00]);
     func_00000000(&buf[0x08], a2);
     func_00000000(&buf[0x00]);
