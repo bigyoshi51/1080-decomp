@@ -291,7 +291,7 @@ build/src/kernel/kernel_000.c.o: SUFFIX_BYTES := func_800021A4=0x00000000,0x0000
 build/src/kernel/kernel_000.c.o: SUFFIX_BYTES_FORCE := func_800000B0=0x00000000
 build/src/kernel/kernel_000.c.o: PREFIX_BYTES := \
 	func_80000568=0x00000000,0x00001025,0x8FBF0024,0x8FB00014,0x8FB10018,0x8FB2001C,0x8FB30020
-build/src/game_libs/game_libs_post.c.o build/non_matching/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8 gl_func_0002D620=8 gl_func_0002DEA4=8 gl_func_0002DF38=8 gl_func_0002D8A8=8 gl_func_0002D838=8 gl_func_0002D870=8 gl_func_00030598=8 gl_func_00027548=4 gl_func_000315C4=8 gl_func_00023598=12
+build/src/game_libs/game_libs_post.c.o build/non_matching/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8 gl_func_0002D620=8 gl_func_0002DEA4=8 gl_func_0002DF38=8 gl_func_0002D8A8=8 gl_func_0002D838=8 gl_func_0002D870=8 gl_func_00030598=8 gl_func_00027548=4 gl_func_000315C4=8 gl_func_00023598=12 gl_func_0002DC7C=8
 
 # INSN_PATCH := <func>=<offset>:<word>[,<offset>:<word>] — overwrite N specific
 # instruction words in a function body post-cc, without changing function size

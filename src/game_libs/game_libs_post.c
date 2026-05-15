@@ -1678,7 +1678,36 @@ void gl_func_0002D910(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D910);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002DC7C: 32-insn float-clamping helper that calls
+ * gl_func_0001CA10(0x04030F00, float_bits). Prologue-stolen successor
+ * of gl_func_0002D910 — predecessor's tail (2 words: lui t6,0; lw t6,0(t6))
+ * pre-loads the $t6 dispatch global. Captured via PROLOGUE_STEALS=8.
+ *
+ * Fuzzy 58.6%. Capped by docs/IDO_CODEGEN.md#feedback-ido-mfc1-from-c:
+ * target uses `mfc1 a1, $f0` directly (one frame slot reused, $f0 only),
+ * but IDO emits swc1/lw round-trip for `*(int*)&f` → expanded frame
+ * (-32 vs -24) plus distinct $f4/$f6/$f8/$f10/$f16 reload chain. Also
+ * uses beql for last conditional which `if (...) f = ...` doesn't
+ * generate. Leaving as NM wrap. */
+extern int gl_func_0001CA10();
+extern float D_0001C1D8[];
+
+void gl_func_0002DC7C(int a0, int a1) {
+    float f;
+    if (*(int*)&D_00000000 != 15) {
+        return;
+    }
+    f = 1.0f;
+    if (a0 >= 17) f = D_0001C1D8[0];
+    if (a1 >= 17) f = D_0001C1D8[1];
+    if (a0 < -16) f = D_0001C1D8[2];
+    if (a1 < -16) f = D_0001C1D8[3];
+    gl_func_0001CA10(0x04030F00, *(int*)&f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DC7C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DCF8);
 
