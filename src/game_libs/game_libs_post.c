@@ -4656,7 +4656,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F044);
 #endif
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 93% — a1-spill family (same as gl_func_0003F008) */
+/* NON_MATCHING: 93% — a1-spill family (same as gl_func_0003F008).
+ * Tested unprefixed `func_00000000` extern — no improvement; the
+ * cap is the unused-a1 caller-slot spill, not extern naming. */
 extern int gl_func_00000000();
 
 void gl_func_0003F0A4(int a0, int a1, int a2) {
