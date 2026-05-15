@@ -2576,6 +2576,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003695C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036A48);
 
+/* gl_func_00036B9C: 27-insn alloc-or-given + init constructor.
+ *   if (a0 == NULL) a0 = func(60);
+ *   if (a0) { func(a0, &D + 0x1EA08); a0->[0x28] = &D;
+ *             a0->[0x2C..0x34] = 0.0f x 3; a0->[0x38] = a1; }
+ *   return a0;
+ * Naive C scores 70% (control-flow shape + reg-alloc). Below 80%
+ * threshold. Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036B9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
