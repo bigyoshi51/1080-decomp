@@ -4797,7 +4797,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F278);
  * docs/IDO_CODEGEN.md#feedback-ido-double-deref-fills-jal-delay-slot). */
 extern int func_00000000();
 void gl_func_0003F2B8(int *a0, int a1, int *a2) {
-    char buf[0x58];
+    char buf[0x98];
     int local;
     *(int*)&buf[0x40] = 1;
     *(int*)&buf[0x44] = *a2;
