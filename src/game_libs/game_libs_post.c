@@ -3480,15 +3480,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A04);
  * Added gl_ref_0004C2DC = 0x0004C2DC; gl_ref_0004C34C = 0x0004C34C;
  * to undefined_syms_auto.txt for the alt-entry call resolution.
  *
- * Caps:
- *  - Stack layout: target frame -64 with buf at sp+0x28 / sp_arg at
- *    sp+0x34 / a2-save at sp+0x40 (callee-arg-slot). My emit produces
- *    -48 with everything shifted. Same alignment issue as 39A04.
+ * Caps (99.8%, 2026-05-15 — frame size now MATCHES at -64 via pad[4]):
+ *  - Stack in-frame layout: target buf@sp+0x28, sp_arg@sp+0x34; mine
+ *    buf@sp+0x24, sp_arg@sp+0x20 (4-byte shift + sp_arg below buf vs
+ *    target's sp_arg above buf). pad-size tuning does NOT fix it:
+ *    pad[N] moves buf to 0x34-4N, so pad[4]→0x24, pad[5]→0x20 (worse),
+ *    and the frame-size is coupled to N — there is no pad value that
+ *    yields BOTH -64 frame AND buf@0x28. The 16 bytes of dead space sit
+ *    4 bytes lower than target's. Confirmed C-level dead-end; INSN_PATCH
+ *    of the affected lwc1/sw/addiu offsets is the only route.
  *  - Jal-target byte-encoding: expected/.o pre-bakes the resolved jal
  *    bytes (0x0C0130B7 / 0x0C0130D3). My C-emit leaves R_MIPS_26 +
  *    `0c000000` since the .o-level diff is pre-link. Would need
  *    INSN_PATCH at offsets 0x10, 0x34 to make .o byte-match. ROM
- *    post-link is correct via the new undefined_syms entries. */
+ *    post-link is correct via the new undefined_syms entries.
+ * Net: 99.8% NM cap; both residual diffs are INSN_PATCH-only. */
 extern int func_0004C2DC();
 extern int func_0004C34C();
 void gl_func_00039A9C(int *a0) {
