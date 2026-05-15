@@ -698,7 +698,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026CF0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026D64);
 
+#ifdef NON_MATCHING
+/* gl_func_000270FC: 25-insn parse-something-then-split-24-8 wrapper.
+ *   rv = func(&D + 0x164C, &local, 0);
+ *   if (rv == -1) { *a0 = 0; return 0; }
+ *   *a0 = local & 0xFFFFFF;
+ *   return local >> 24;  // signed */
+extern int func_00000000();
+extern int D_00000000;
+int gl_func_000270FC(int *a0) {
+    int local;
+    int rv = func_00000000((char*)&D_00000000 + 0x164C, &local, 0);
+    if (rv == -1) {
+        *a0 = 0;
+        return 0;
+    }
+    *a0 = local & 0xFFFFFF;
+    return (unsigned)local >> 24;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000270FC);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00027160() {
