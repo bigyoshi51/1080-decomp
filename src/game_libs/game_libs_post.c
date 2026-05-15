@@ -7967,13 +7967,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FF14);
 
+#ifdef NON_MATCHING
 /* gl_func_0005FFD0: 22-insn 2-call ternary-pick wrapper.
  *   rv = func(a0, &buf); p = rv ? &buf : a0;
  *   g = *(int**)&D_0; if (g == 0) return 0;
  *   return func(g, p, g->[0x44]);
- * Naive C body scores 33.7% — control flow / arg-register ordering
- * doesn't transfer from C ternary cleanly. Deferred. */
+ * Refactored 2026-05-15: pre-assign + conditional-overwrite idiom
+ * lands a0's caller-slot reload in the bne's delay slot (matches
+ * target's `lw a3, 0x80(sp)` in delay slot + conditional `addiu
+ * a3, sp, 0x1C` only on the v0 != 0 fall-through). Score 73.5%
+ * (up from prior 33.7%). Remaining cap:
+ *   - Frame 0x88 vs target 0x80 (8 bytes extra; my a0 spill goes
+ *     to local sp+0x20 rather than caller-slot sp+0x80). Target's
+ *     caller-slot spill is the K&R-style; trigger unclear since
+ *     a0 IS used here.
+ *   - Trailing branch shape (b .end vs longer fall-through). */
+int gl_func_0005FFD0(char *a0) {
+    char buf[0x64];
+    char *p = a0;
+    char *g;
+    if (gl_func_00000000(a0, buf) != 0) {
+        p = buf;
+    }
+    g = *(char**)&D_00000000;
+    if (g == NULL) {
+        return 0;
+    }
+    return gl_func_00000000(g, p, *(int*)(g + 0x44));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FFD0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060028);
 
