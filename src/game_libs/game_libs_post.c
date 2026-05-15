@@ -8087,6 +8087,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060584);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000608A4);
 
+/* gl_func_00060A74: 23-insn guarded-call wrapper with K&R varargs
+ * forwarding shape.
+ *   if (a0->[0x34] == 0) {
+ *       D_60A88_owner = a0;
+ *       call(&D_60A88_fmt, 0, a1, va_arg-ptr);
+ *   }
+ *
+ * The `addiu a3, sp, 0x2B; and a3, -4` pattern is the K&R varargs
+ * align-up: `(va_list)(((unsigned)&first_vararg + 3) & ~3)`. Target
+ * frame=0x20 (vs naive 0x18) — extra 8 bytes likely reserve a slot
+ * for the `va_list ap` local. Target's 3rd-arg setup is `lw a2,
+ * 0x24(sp)` in the jal delay slot (reloading a1 from caller-spill);
+ * naive C emits `move a2, a1` earlier instead.
+ *
+ * Naive C scored 65% mnemonic-only — without IDO's va_list/va_start
+ * macros + matching ap-slot reservation, can't close the gap. NM
+ * wrap kept as plain INCLUDE_ASM for the documentation; promote
+ * once varargs idiom is needed elsewhere. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060A74);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060AD0);
