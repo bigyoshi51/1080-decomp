@@ -1157,7 +1157,14 @@ void gl_func_0000E1DC(int *a0, int a1, int a2) {
 /* gl_func_0000E230: 29-insn count-loop calling func per element.
  *   for (i = 0, off = 0; i < a0->[0x48]; i++, off += 0x60) {
  *     func(a0, *(int*)((char*)a0->[0x44] + off), 1, 0);
- *   } */
+ *   }
+ *
+ * 98.45% cap. Sole residual is a pure 2-reg swap: mine assigns the
+ * saved a0-ptr→$s2 / offset→$s1; target wants a0→$s1 / offset→$s2.
+ * Adding an explicit `int *s = a0;` to bias first-assignment REGRESSED
+ * to 87.1% (IDO kept BOTH s2 and s3 = a0, +1 sreg save slot, frame
+ * grew). No C lever flips just the two $s roles — permuter/INSN_PATCH
+ * class (same family as gl_func_00035834 / gl_func_0004ED0C). */
 extern int func_00000000();
 void gl_func_0000E230(int *a0) {
     int i;
