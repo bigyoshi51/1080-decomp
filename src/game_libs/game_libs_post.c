@@ -5626,11 +5626,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000422AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042338);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000423D8);
+void gl_func_000423D8(void) {
+    gl_func_00000000(0);
+    gl_func_00000000(1);
+}
 
+#ifdef NON_MATCHING
+/* game_libs_func_00042400: 10-insn leaf, table-driven pack. 60% match.
+ * Cap: $t-register selection — target uses ($t8, $t0) for the 2 lw's,
+ * IDO emits ($t9, $t8). Structural decode correct. Permuter-class. */
+unsigned short game_libs_func_00042400(int a0, int a1) {
+    int *entry = (int*)((char*)&D_00000000 + a1 * 8);
+    return (a0 << entry[0]) + entry[1];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042400);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042428);
+unsigned short game_libs_func_00042428(int a0, int a1) {
+    return (a0 << 3) | a1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042438);
 
