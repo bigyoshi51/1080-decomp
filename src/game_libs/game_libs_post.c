@@ -4634,14 +4634,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EFC4);
 extern int gl_func_00000000();
 
 void gl_func_0003F008(int a0, int a1, int a2, int a3) {
-    char buf[0x98];
-    int pad;
-    int local;
-    *(int*)&buf[0x40] = a2;
-    *(int*)&buf[0x44] = a3;
-    gl_func_00000000(buf);
-    local = 0x18;
-    gl_func_00000000(&local);
+    char buf[0xA0];
+    *(int*)&buf[0x48] = a2;
+    *(int*)&buf[0x4C] = a3;
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x00] = 0x18;
+    func_00000000(&buf[0x00]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F008);
