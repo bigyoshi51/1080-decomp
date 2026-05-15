@@ -1012,6 +1012,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B5F4);
 
+/* gl_func_0002BA38: 29-insn alloc-then-store with byte-arg + node-init.
+ * Body sketch:
+ *   a1 = (u8)a1;
+ *   rv = func(*(u8*)(a0 + 7));
+ *   if (rv == 0) { *a2 = 0; return 0; }
+ *   v1 = rv;
+ *   *(int*)(a3 + 4) = *(int*)(v1 + 4);
+ *   *(u8*)a3 = *(u8*)(v1 + 3);
+ *   *a2 = v1;
+ *   return ((a1 + 2) & 0xFF);
+ * Stack-byte-spill + byte-load + node-copy pattern. Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BA38);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BAAC);
