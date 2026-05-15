@@ -1038,47 +1038,28 @@ void gl_func_0002D014(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D014);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0002D064: 51-insn (0xCC) per-frame init with 16-iter call loop.
- * Resets a structure pointed by a0 to default values and runs 16
- * cross-USO calls (intra-segment alt-entry to gl_func_0005BD80+0x18,
- * approximated as generic gl_func placeholder).
- *
- * Logic:
- *   self = a0;
- *   gl_func_0001CA10();                  ; intra-segment alt-entry call
- *   self->[0] &= ~0x02;                  ; (lbu/andi 0xFFFD/sb)
- *   self->[2] = 0;                       ; sb 0
- *   self->[1] = 1;                       ; sb 1
- *   self->[8] = 0x1680;                  ; sh 5760
- *   self->[10] = self->[12] = self->[14] = self->[16] = self->[18] = self->[20] = 0;  ; clear shorts
- *   self->[148] = &D_0; self->[152] = &D_0;
- *   self->[224] = 0;
- *   self->[28] = 1.0f; self->[32] = 0.0f; self->[36] = 0.0f; self->[40] = 0.5f;
- *   p = self;
- *   for (i = 0; i < 64; i += 4) {
- *       gl_func(p->[56]);
- *       p = (char*)p + 4;
- *   }
- *
- * Initial structural pass. Cross-USO call shape (intra-segment alt-entry
- * vs generic placeholder) and regalloc caps expected. */
+ * Matched 2026-05-14 via 4-step refinement chain: ~K andi mask form,
+ * cse-bust-via-distinct-externs for &D_0 stores at +148/+152, $s0
+ * priority via `i = 0;` first body assignment, and store-statement
+ * reordering to match target's emit sequence (0,16,1,18,20,10,8,12,14,2). */
 extern char D_2D064_148;
 extern char D_2D064_152;
 void gl_func_0002D064(char *a0) {
     char *p;
     int i;
     gl_func_00000000();
+    i = 0;
     *(char*)(a0 + 0) = *(char*)(a0 + 0) & ~2;
-    *(char*)(a0 + 1) = 1;
-    *(char*)(a0 + 2) = 0;
-    *(short*)(a0 + 8) = 0x1680;
-    *(short*)(a0 + 10) = 0;
-    *(short*)(a0 + 12) = 0;
-    *(short*)(a0 + 14) = 0;
     *(short*)(a0 + 16) = 0;
+    *(char*)(a0 + 1) = 1;
     *(short*)(a0 + 18) = 0;
     *(short*)(a0 + 20) = 0;
+    *(short*)(a0 + 10) = 0;
+    *(short*)(a0 + 8) = 0x1680;
+    *(short*)(a0 + 12) = 0;
+    *(short*)(a0 + 14) = 0;
+    *(char*)(a0 + 2) = 0;
     *(int*)(a0 + 148) = (int)&D_2D064_148;
     *(int*)(a0 + 152) = (int)&D_2D064_152;
     *(int*)(a0 + 224) = 0;
@@ -1087,14 +1068,11 @@ void gl_func_0002D064(char *a0) {
     *(float*)(a0 + 36) = 0.0f;
     *(float*)(a0 + 40) = 0.5f;
     p = a0;
-    for (i = 0; i < 64; i += 4) {
+    for (; i < 64; i += 4) {
         gl_func_00000000(*(int*)(p + 56));
         p += 4;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D064);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0002D130: 59-insn (0xF4) nested-loop per-frame init with
