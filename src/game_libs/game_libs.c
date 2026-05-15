@@ -5,7 +5,53 @@ typedef struct { int a, b, c, d; } Quad4;
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000000);
 
+#ifdef NON_MATCHING
+/* gl_func_000001CC: 79-insn alloc-if-null constructor + color-normalize.
+ * Allocates a 0x13C-byte object if a0==NULL (and a 0x10C sub-object if
+ * that's NULL too), wires several setup callees, then fills the object:
+ *   - obj[0x28] = &D_0; obj[0xC] = &gl_ref_0000CAFC
+ *   - color floats obj[0xC4..0xD0] = {250,235,100,0} / 255.0f
+ *   - obj[0xD4..0xDC] = {0, 255, 130}; obj[0xE0] = a1 (saved param)
+ *   - trailing setup call gl_func(obj, -78, -1, -51, 0)
+ * Structural first pass — many cross-USO jal-0 calls + magic args;
+ * exact match deferred to a later tightening tick. */
+extern int gl_func_00000000();
+extern char gl_ref_0000CAF4;
+extern char gl_ref_0000CAFC;
+int gl_func_000001CC(int *a0, int a1) {
+    int *s0 = a0;
+    if (a0 == 0) {
+        s0 = (int*)gl_func_00000000(0x13C);
+        if (s0 == 0) {
+            return 0;
+        }
+    }
+    if (s0 == 0) {
+        int *p = (int*)gl_func_00000000(0x10C);
+        if (p != 0) {
+            gl_func_00000000(p, &gl_ref_0000CAF4);
+            *(int*)((char*)p + 0x28) = (int)&D_00000000;
+            gl_func_00000000((char*)p + 0x2C);
+        }
+    }
+    *(int*)((char*)s0 + 0xC) = (int)&gl_ref_0000CAFC;
+    gl_func_00000000((char*)s0 + 0x10C, 0x50000);
+    gl_func_00000000((char*)s0 + 0x124, 0x50007);
+    gl_func_00000000(s0, (char*)s0 + 0x124);
+    *(float*)((char*)s0 + 0xC4) = 250.0f / 255.0f;
+    *(float*)((char*)s0 + 0xC8) = 235.0f / 255.0f;
+    *(float*)((char*)s0 + 0xCC) = 100.0f / 255.0f;
+    *(float*)((char*)s0 + 0xD0) = 0.0f / 255.0f;
+    *(int*)((char*)s0 + 0xD4) = 0;
+    *(int*)((char*)s0 + 0xD8) = 255;
+    *(int*)((char*)s0 + 0xDC) = 130;
+    *(int*)((char*)s0 + 0xE0) = a1;
+    gl_func_00000000(s0, -78, -1, -51, 0);
+    return (int)s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000001CC);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00000308(char *a0) {
