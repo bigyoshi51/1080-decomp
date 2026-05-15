@@ -8753,7 +8753,27 @@ void gl_func_00067370(void) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00067370_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_00067394: 26-insn rv-store + sign-flip-or-assert + call.
+ *   rv = func(a0, a1); a0->[0x64] = rv;
+ *   if (a1 > 0) a1 = -a1; else func(&D, a0);
+ *   func(a0, a1); return 1; */
+extern int func_00000000();
+extern int D_00000000;
+int gl_func_00067394(int *a0, int a1) {
+    int rv = func_00000000(a0, a1);
+    a0[0x64/4] = rv;
+    if (a1 >= 0) {
+        func_00000000(&D_00000000, a0);
+    } else {
+        a1 = -a1;
+    }
+    func_00000000(a0, a1);
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067394);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000673FC);
 
