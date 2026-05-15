@@ -1828,7 +1828,35 @@ void game_uso_func_00000B14(void *a0) {
  * of stages 1-5 (~50/291 insns). 2026-05-08: encoded the full repeated
  * Stage 6 subobject setup through the tail; still NON_MATCHING due to
  * stack/register allocation and unresolved cross-USO callee signatures.
- * Multi-run refinement expected. */
+ * Multi-run refinement expected.
+ *
+ * 2026-05-15 (source-1 grind, agent-b) — root-caused the 48.29% cap to a
+ * register-allocation cascade, NOT logic error. expected/.o vs
+ * build/non_matching/.o (objdump -M no-aliases): mnemonic stream diverges
+ * from instruction 0:
+ *   - EXP frame `addiu sp,sp,-232` (0xE8); C-emit `-136` (0x88).
+ *   - EXP saves ONLY $s0 (the object ptr). C-emit also saves $s1.
+ *   - EXP spills the field-base ptr to a FIXED stack slot sp+0x90 (`sw a0,
+ *     144(sp)` / `lw a0,144(sp)` around each init call) — caller-save, NOT
+ *     an $s reg. C-emit keeps `sub` live across the gl_func init call, so
+ *     IDO promotes it to $s1, which cascades the whole allocation off.
+ *   - EXP materializes zbuf/nbuf/xbuf (0/-1000/+1000 Vec3s) on stack at
+ *     sp+0xDC/0xD0/0xC4, then struct-copies them to sp+0x64/0x54/0x44
+ *     (lw/sw triplets). C-emit FOLDS the `ent_x = *_vec` struct copies
+ *     (constant-propagates the buf fields straight into the sub-block
+ *     float stores), eliminating the second stack region → the missing
+ *     0x60 of frame and the $s1.
+ * Levers TESTED and REJECTED this run:
+ *   - `volatile Vec3 zbuf,nbuf,xbuf; volatile int d37c;` + element copies
+ *     to force stack materialization: REGRESSED 48.29% -> 39.96%. volatile
+ *     forces ordered single-element accesses that diverge harder than the
+ *     fold. Do NOT retry volatile here.
+ * Untried, most-promising next lever: kill `sub`'s cross-call liveness so
+ * IDO spills it to a fixed slot (mirroring EXP's sp+0x90) instead of $s1 —
+ * pass `(char*)s0+OFF` inline to gl_func_00000000 and recompute the base
+ * for the post-call field stores, in ALL 9 sub-blocks (partial won't shift
+ * allocation). That single change should restore frame size + drop $s1.
+ * Multi-run refinement still expected. */
 void* game_uso_func_00003018(void* arg0) {
     void *s0;
     void *v1;
