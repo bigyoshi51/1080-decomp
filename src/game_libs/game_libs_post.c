@@ -2501,12 +2501,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000356FC);
  *   r = g->[0x48](a1, a2);
  *   if (r < 0) func(&D + 0x1E64C, a1);
  *   return r;
- * a0 declared but unused (caller-slot spill, same family as 0003F2B8). */
+ * a0 declared but unused (caller-slot spill, same family as 0003F2B8).
+ *
+ * 2026-05-15: 98.46% → 99.375% via inline fn-ptr deref
+ * `((T)(*(int**)&D)[0x48/4])(...)` (no named `g` local) — moves the
+ * dispatch base off $v0 onto a $t reg (feedback-ido-inline-deref-v0)
+ * and aligns the cross-call spill to sp+0x1C. Sole residual: the
+ * return value `r` saved across the conditional func() call sits in
+ * $v1 (mine) vs $a2 (target) — a 3-insn register-name-only diff
+ * (`or v1,v0,0`/`lw v1,0x1C(sp)`/`or v0,v1,0`). Reusing the `a2`
+ * param to hold r regresses (99.08%). Permuter/INSN_PATCH-class. */
 extern int func_00000000();
 extern int D_00000000;
 int gl_func_00035834(int a0, int a1, int a2) {
-    int *g = *(int**)&D_00000000;
-    int r = ((int(*)(int,int))g[0x48/4])(a1, a2);
+    int r = ((int(*)(int,int))(*(int**)&D_00000000)[0x48/4])(a1, a2);
     if (r < 0) {
         func_00000000((char*)&D_00000000 + 0x1E64C, a1);
     }
