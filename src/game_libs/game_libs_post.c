@@ -2299,7 +2299,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034458);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034548);
 
+#ifdef NON_MATCHING
+/* gl_func_00034684: 27-insn 3-call config init.
+ *   func(&D + 0x3BB18, &D + 0x3BB30, 1);
+ *   func(&D + 0x3B968, 5, &D, 0, &D + 0x3C040, 12);
+ *   func(&D + 0x3B968); */
+extern int func_00000000();
+extern int D_00000000;
+void gl_func_00034684(void) {
+    func_00000000((char*)&D_00000000 + 0x3BB18, (char*)&D_00000000 + 0x3BB30, 1);
+    func_00000000((char*)&D_00000000 + 0x3B968, 5, &D_00000000, 0,
+                   (char*)&D_00000000 + 0x3C040, 12);
+    func_00000000((char*)&D_00000000 + 0x3B968);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034684);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000346F0);
 
