@@ -2165,10 +2165,140 @@ int *game_uso_func_00003A28(int *arg0) {
  * "alloc + init from template_a + alloc + init from template_b + ...
  * link both to arg0".
  *
- * Picked under source 5 (strategy memo, exported-but-not-intra-called
- * size-descending). Multi-tick decomp; structural wrap only this tick.
- * INCLUDE_ASM keeps ROM byte-correct. */
+ * 2026-05-15 (agent-b, source-5 fall-through to fresh-unstarted): FULL
+ * structure decoded from raw-word objdump. It is exactly 12 identical
+ * blocks, D-template index 0x680,0x684,...,0x6AC (step 4, 12 entries):
+ *   dN = *(int*)(&D + 0x680 + N*4);
+ *   s0 = alloc(0x58);                       // gl_func_00000000(0x58)
+ *   if (s0) {
+ *     gl_func_00000000(s0, dN, 0, 0);       // init from template dN
+ *     *(int*)(s0 + 0x28) = (int)&D;         // install parent/vtable ptr
+ *   }
+ *   gl_func_00000000(arg0, s0, -1);         // register sub-object w/ arg0
+ * Each dN gets its own descending stack home (sp+0x6C..0x40) → 12 distinct
+ * named locals modelled below. s0 persists in $s0 across the register call
+ * (and into the next block's failed-alloc path). Epilogue sets no v0
+ * explicitly → return type void (last call's v0 is unused).
+ *
+ * Picked under source 5 (strategy memo exhausted → fresh-unstarted,
+ * size-descending). Structural NM wrap @ 63.67% (was bare INCLUDE_ASM).
+ * INCLUDE_ASM still the build path so ROM stays byte-correct.
+ *
+ * Remaining 36% gap = SAME $s-promotion cascade as game_uso_func_00003018:
+ * EXP frame -0x70 saving only $s0; computes Dval, spills it twice
+ * (sp+0x6C home + sp+0x24 working) BEFORE the alloc call, reloads after.
+ * C-emit frame -0x58, also saves $s1 because IDO keeps `dN` live across
+ * the alloc() call and promotes it to callee-saved $s1 instead of
+ * stack-spilling. Next-run lever: force `dN` to a stack temp not live
+ * across the alloc (e.g. spill/reload idiom or compute-after-alloc with a
+ * reloaded copy) — but per 00003018's findings this resists source
+ * restructuring; likely a permuter-class final-mile. Multi-run expected. */
+#ifdef NON_MATCHING
+void game_uso_func_00003AC0(void *arg0) {
+    void *s0;
+    int d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11;
+
+    s0 = NULL;
+
+    d0 = *(int*)((char*)&D_00000000 + 0x680);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d0, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d1 = *(int*)((char*)&D_00000000 + 0x684);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d1, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d2 = *(int*)((char*)&D_00000000 + 0x688);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d2, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d3 = *(int*)((char*)&D_00000000 + 0x68C);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d3, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d4 = *(int*)((char*)&D_00000000 + 0x690);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d4, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d5 = *(int*)((char*)&D_00000000 + 0x694);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d5, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d6 = *(int*)((char*)&D_00000000 + 0x698);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d6, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d7 = *(int*)((char*)&D_00000000 + 0x69C);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d7, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d8 = *(int*)((char*)&D_00000000 + 0x6A0);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d8, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d9 = *(int*)((char*)&D_00000000 + 0x6A4);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d9, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d10 = *(int*)((char*)&D_00000000 + 0x6A8);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d10, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+
+    d11 = *(int*)((char*)&D_00000000 + 0x6AC);
+    s0 = (void*)gl_func_00000000(0x58);
+    if (s0 != NULL) {
+        gl_func_00000000(s0, d11, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    }
+    gl_func_00000000(arg0, s0, -1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
 
