@@ -5886,7 +5886,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043BEC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043D38);
 
+#ifdef NON_MATCHING
+/* gl_func_00043EAC: 17-insn wrapper. Builds a 4-float buf {1,1,1,0} on
+ * stack and calls func(a0, buf, 996, 1000). NM 58.8% — frame-size + buf
+ * layout diffs. */
+void gl_func_00043EAC(int a0) {
+    float buf[4];
+    buf[0] = 1.0f;
+    buf[1] = 1.0f;
+    buf[2] = 1.0f;
+    buf[3] = 0.0f;
+    gl_func_00000000(a0, buf, 0x3E4, 0x3E8);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043EAC);
+#endif
+
+#ifdef NON_MATCHING
+/* game_libs_func_00043EF0: 11-insn struct-init leaf. Sets a0[0x10/0x14]
+ * = (a2,a3) and copies 4 ints from a1[0..3] to a0[0..3]. NM 27% —
+ * $t-register choice cap (target alternates $t7/$t6; IDO emits $t6..$t9
+ * distinct each pair). Same class as t-register-swap-unreachable. */
+void game_libs_func_00043EF0(int *a0, int *a1, int a2, int a3) {
+    a0[0x10/4] = a2;
+    a0[0x14/4] = a3;
+    a0[0] = a1[0];
+    a0[1] = a1[1];
+    a0[2] = a1[2];
+    a0[3] = a1[3];
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00043EF0);
+#endif
 
 extern int gl_func_00000000();
 extern int *gl_ref_00000254;
