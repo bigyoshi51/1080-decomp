@@ -2226,7 +2226,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003395C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000339B4);
 
+#ifdef NON_MATCHING
+/* gl_func_00033A20: 27-insn busy-wait + 2-call wrapper.
+ *   while (D[0x3C] != 0) func();   // poll-wait
+ *   func(0, a0, a1, a2);
+ *   func(0); */
+extern int func_00000000();
+extern int D_00000000;
+void gl_func_00033A20(int a0, int a1, int a2) {
+    while (*(int*)((char*)&D_00000000 + 0x3C) != 0) {
+        func_00000000();
+    }
+    func_00000000(0, a0, a1, a2);
+    func_00000000(0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033A20);
+#endif
 
 /* gl_func_00033A8C: 22-insn table-scan helper. Walks 9 records at
  * &D_0 + 0x44 (stride 0x44); returns index of first record where
