@@ -5127,7 +5127,20 @@ trunk:
      *     doesn't match target's per-arm-direct-to-trunk pattern. Both
      *     paths (a) inlining and (b) if/else if are now confirmed
      *     dead-ends; cap is structural, not C-level fixable.
-     *     Path-(c) (verify leaf shape after path-(b)) is moot. */
+     *     Path-(c) (verify leaf shape after path-(b)) is moot.
+     *
+     * 2026-05-15 PATH-(d) TESTED, NEGATIVE RESULT (-0.66pp): added
+     *     `ret_hi = 1;` at the top of the bit-0x80 trunk arm (matching
+     *     asm 0x783C `addiu v1, $0, 1` which executes unconditionally
+     *     for both fast/slow paths). Result: 48.97% → 48.31%. Setting
+     *     ret_hi locally here changes downstream `if (ret_hi != 0)`
+     *     float-state-update tail emit because IDO sees ret_hi as a
+     *     live value through to the tail, which alters the cross-block
+     *     allocation. The asm's v1=1 likely couples differently
+     *     (e.g. the addiu is scheduled for the slow-path-only or
+     *     consumed by an immediate post-branch use we haven't modeled).
+     *     Adding ret_hi in C without modeling the precise scope where
+     *     v1=1 is live regresses. Reverted. */
 
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
