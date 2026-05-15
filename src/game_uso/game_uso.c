@@ -7367,7 +7367,16 @@ void game_uso_func_0000C0F0(int *dst) {
  * the 8-byte frame excess is likely file-level (game_uso.c context) and
  * not closable from C alone. Plausible final paths: INSN_PATCH of the
  * rename + frame-size adjust (heavy: 4-5 byte rewrites for prologue +
- * post-call reload registers), or accept as documented NM cap. */
+ * post-call reload registers), or accept as documented NM cap.
+ *
+ * 2026-05-15 NEGATIVE: indexed-array body (`a0[0]=src[0]; a0[1]=src[1];
+ * a0[2]=src[2]; src+=3; a0+=3;`) makes IDO fully loop-UNROLL into a
+ * 48-byte-stride giant (frame -104, fuzzy unscorable). The
+ * pointer-post-increment `*a0++=*src++` form is REQUIRED to keep the
+ * 3-per-iter rolled loop — do not try the indexed form again. The
+ * INSN_PATCH path is the only remaining route and is near-whole-function
+ * (frame + rename + every loop reg differs), i.e. cargo-culting target
+ * bytes — not worth it. Accept as documented C-level NM cap. */
 void game_uso_func_0000C12C(int *a0) {
     int buf[16];
     int *src;
