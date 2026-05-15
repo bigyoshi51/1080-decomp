@@ -5587,7 +5587,7 @@ void gl_func_00046B64(int *a0) {
     p = (int*)a0[0x240/4];
     p[0x144/4] = toggled;
     vtable = (int*)p[0x28/4];
-    rv = ((int(*)(int))vtable[0x64/4])((short)vtable[0x60/4] + (int)p);
+    rv = ((int(*)(int))vtable[0x64/4])(*(short*)((char*)vtable + 0x60) + (int)p);
     func_00000000(rv);
     func_00000000(a0);
 }
