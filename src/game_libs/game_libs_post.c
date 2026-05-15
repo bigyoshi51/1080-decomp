@@ -5628,6 +5628,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042338);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000423D8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042400);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042428);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042438);
+
 #ifdef NON_MATCHING
 /* gl_func_00042440: 17-insn (0x44) single-call wrapper with PROLOGUE-STEALS-PREDECESSOR
  * pattern. Predecessor gl_func_000423D8's tail sets `$v0 = *(D + 0x240)` via
