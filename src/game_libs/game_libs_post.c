@@ -8588,24 +8588,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062F8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006337C);
 
-#ifdef NON_MATCHING
-/* gl_func_00063498: 24-insn setter into the same 8-byte array as
- * gl_func_000634F8/63568 family.
- *   r = func(a0->[0x58]);
- *   r->[0x10][a2*2] = a3;                 (int slot)
- *   r->[0x10][a2*2] = (int)f5;            (overwrites — see asm)
- * 5th arg is a float on the stack (lwc1 at sp+0x28). The asm does TWO
- * stores to the same element offset — bytes are what they are. */
+/* 24-insn setter. Promoted 92.86%→100% via feedback-ido-unused-arg-fix-
+ * pass-to-callee: passed unused a1 to the first call to suppress its
+ * K&R caller-slot spill. */
 extern int func_00000000();
 void gl_func_00063498(int *a0, int a1, int a2, int a3, float f) {
-    int *r = (int*)func_00000000(a0[0x58/4]);
+    int *r = (int*)func_00000000(a0[0x58/4], a1);
     *(int*)((char*)r[0x10/4] + a2*8) = a3;
     *(int*)((char*)r[0x10/4] + a2*8) = (int)f;
-    (void)a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063498);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000634F8: 28-insn bounds-check + array-deref.
