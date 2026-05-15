@@ -29,8 +29,28 @@ u32 func_80004730(void* vaddr) {
  * Remaining ~7%: target threads the accumulator through a FRESH register
  * each step (t8→t2→t6→t0); `register` pins it to one ($a1 chain). Using
  * distinct per-step temps to get fresh regs regresses to 80.2% (loses
- * other structure). Register-name-only cap — permuter/INSN_PATCH class.
- * Default build is INCLUDE_ASM (byte-exact); wrap is for reference. */
+ * other structure). Register-name-only cap.
+ *
+ * 2026-05-15 (agent-b, source-3) — exhaustive characterization:
+ *   - 19/22 instructions differ, ALL pure register-field changes (same
+ *     opcode/structure/immediates; accumulator EXP t8→t2→t6→t0 vs C $a1).
+ *   - Variant: 4 distinct plain locals + volatile sink — accumulator DOES
+ *     thread fresh regs (matches EXP!) but distinct locals over-spill
+ *     (frame -0x18, double stores per step). Worse, not better.
+ *   - Variant: 4 distinct `register` locals — also over-spills under -O1
+ *     (frame -0x18, sink slot). Worse. Confirms the register-pin tradeoff
+ *     is fundamental to IDO -O1 here, not a missing C idiom.
+ *   - Permuter ACTUALLY RUN (import OK via PERMUTER=1; 150s, -j4, random):
+ *     NO match, NO improvement saved. Random mode does not crack it; would
+ *     need targeted PERM_GENERAL on the |-operand order + a longer run.
+ *   - INSN_PATCH is NOT a valid promotion here: patching 19 register-field
+ *     bytes to expected would be the documented tautology trap (bytes not
+ *     produced by the C). The DEFAULT build is already byte-exact via
+ *     INCLUDE_ASM, so the ROM is correct and NO episode is possible/needed
+ *     — the fuzzy<100 is purely the reference-wrap scoring artifact.
+ * Verdict: genuine IDO -O1 register-allocation cap. Leave as 92.73%
+ * reference wrap; INCLUDE_ASM keeps ROM byte-exact. Do NOT re-grind C
+ * variants or INSN_PATCH; only a targeted long permuter run could help. */
 #ifdef NON_MATCHING
 /* Unaligned big-endian u32 load. Register-chain accumulator with a
  * speculative volatile-sink store to sp+4 after every OR step (target
