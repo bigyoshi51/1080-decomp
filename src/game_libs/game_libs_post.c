@@ -2263,7 +2263,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000332B4);
 
+#ifdef NON_MATCHING
+/* gl_func_00033338: 27-insn 3-call wrapper. Calls:
+ *   func(&D, a0[3]);
+ *   func(&D, &D+0x1E1AC, a0+0x14C, 0, 180.0f, 0);     // 6 args (last 2 on stack)
+ *   func(&D);
+ *
+ * Cap: 5th arg `180.0f` — IDO sees gl_func_00000000 as K&R/unprototyped
+ * and promotes float arg to double (sdc1 vs swc1) plus cvt.d.s. Target
+ * has float (swc1). Function-pointer cast variant adds 2+ insns for the
+ * indirect call setup. Without a typed prototype on the cross-USO callee
+ * (impossible — gl_func_00000000 is a runtime-patched placeholder), the
+ * float-promote is unreachable. Same class as feedback_ido_knr_float_call. */
+void gl_func_00033338(int *a0) {
+    gl_func_00000000(&D_00000000, *(int*)((char*)a0 + 0xC));
+    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x1E1AC,
+                     (char*)a0 + 0x14C, 0, 180.0f, 0);
+    gl_func_00000000(&D_00000000);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033338);
+#endif
+
+void game_libs_func_000333A4(int a0, int a1, int a2) {
+}
 
 extern int gl_ref_000473F0();
 extern int gl_ref_0004742C();
