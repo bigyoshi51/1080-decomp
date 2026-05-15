@@ -824,7 +824,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C784);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C8B8);
 
+#ifdef NON_MATCHING
+/* gl_func_0000CB9C: 24-insn bounds-check + dispatch (0%→70%).
+ *   if (a0[0x30] < a0[0x34]) return 0;
+ *   p = a0[0x78];
+ *   v = a0[0x34] - 8;
+ *   if (p != 0) { func(p); a0[0x30] = v; }
+ *   return 1;
+ * Remaining cap: frame -0x20 vs target -0x18, extra spills of v/target
+ * locals, and IDO chooses $a1 for preserving a0 vs target's $a2. */
+extern int gl_func_00000000();
+int gl_func_0000CB9C(int *a0) {
+    int *target;
+    int v;
+    if (a0[0x30/4] < a0[0x34/4]) goto end_zero;
+    target = (int*)a0[0x78/4];
+    v = a0[0x34/4] - 8;
+    if (target != 0) {
+        gl_func_00000000(target);
+        a0[0x30/4] = v;
+    }
+    return 1;
+end_zero:
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CB9C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CBFC);
 
