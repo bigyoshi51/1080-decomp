@@ -6749,17 +6749,24 @@ void game_libs_func_0004DE80(int *a0) {
 }
 
 #ifdef NON_MATCHING
-extern int func_00000000();
-extern int D_00000000;
+/* gl_func_0004DE88: 26-insn dual-array append with bounds check.
+ * if (count < limit) {
+ *     table_a[count*16] = a2;
+ *     count++;
+ *     table_b[(count-1)*16] = a1;
+ * } else func(&D + 0x204B0);  // error
+ * NM ~50% — 16-byte stride (not 4-byte) and reload-count pattern.
+ * Prior wrap had count*4 stride (wrong); corrected here. */
 void gl_func_0004DE88(int *a0, int a1, int a2) {
     int limit = a0[0x34/4];
     int count = a0[0x38/4];
     if (count < limit) {
-        ((int*)a0[0x2C/4])[count] = a2;
+        *(int*)(a0[0x2C/4] + count * 16) = a2;
+        count = a0[0x38/4];
         a0[0x38/4] = count + 1;
-        ((int*)a0[0x30/4])[count] = a1;
+        *(int*)(a0[0x30/4] + count * 16) = a1;
     } else {
-        func_00000000((char*)&D_00000000 + 0x204B0);
+        gl_func_00000000((char*)&D_00000000 + 0x204B0);
     }
 }
 #else
