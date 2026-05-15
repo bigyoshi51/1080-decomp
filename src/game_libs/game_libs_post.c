@@ -5324,7 +5324,31 @@ int gl_func_00046B44() {
     return gl_func_00000000();
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00046B64: 24-insn toggle-bit + vtable-dispatch + 2-call.
+ *   v = a0->[0x204] ^ 1;
+ *   a0->[0x204] = v;
+ *   p = a0->[0x240];
+ *   p->[0x144] = v;
+ *   vtable = p->[0x28];
+ *   rv = (vtable->[0x64])((s16)vtable->[0x60] + p);
+ *   func(rv);
+ *   func(a0); */
+void gl_func_00046B64(int *a0) {
+    int toggled = a0[0x204/4] ^ 1;
+    int *p, *vtable;
+    int rv;
+    a0[0x204/4] = toggled;
+    p = (int*)a0[0x240/4];
+    p[0x144/4] = toggled;
+    vtable = (int*)p[0x28/4];
+    rv = ((int(*)(int))vtable[0x64/4])((short)vtable[0x60/4] + (int)p);
+    func_00000000(rv);
+    func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046B64);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046BC4);
 
