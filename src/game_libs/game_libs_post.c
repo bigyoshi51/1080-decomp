@@ -4915,7 +4915,25 @@ void gl_func_0003F5B0(int *a0, int a1, short *a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F5B0);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0003F60C: 24-insn 2-call wrapper, same family as 0003F5B0.
+ * Differences vs F5B0: *a2 is WORD (lw not lh), buf[0x48]=1 (not 0). */
+extern int func_00000000();
+void gl_func_0003F60C(int *a0, int a1, int *a2, int a3) {
+    char buf[0xA0];
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x48] = 1;
+    *(int*)&buf[0x50] = (int)a2;
+    *(int*)&buf[0x4C] = *a2;
+    *(int*)&buf[0x54] = 0;
+    *(int*)&buf[0x58] = a3;
+    *(int*)&buf[0x00] = 15;
+    func_00000000(&buf[0x00]);
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F60C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F66C);
 
