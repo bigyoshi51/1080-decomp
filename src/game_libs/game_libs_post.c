@@ -8658,7 +8658,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061BC8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061C9C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061D1C);
+void gl_func_00061D1C(int *a0, int matchval) {
+    int *node = (int*)a0[0xC/4];
+    while (node != 0) {
+        if (node[0x64/4] == matchval) {
+            gl_func_00000000(a0, node);
+        }
+        node = (int*)node[0x60/4];
+    }
+}
+
+void game_libs_func_00061D80(int *a0, int a1) {
+    a0[1] = a1;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00061D1C_pad.s")
 
 /* gl_func_00061D94 was 19-insn 2-function bundle. Split via
