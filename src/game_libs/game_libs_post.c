@@ -5912,6 +5912,17 @@ void gl_func_0004DDA0(Quad4 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DDF8);
 
+/* gl_func_0004DE88: 26-insn push-to-dual-array with capacity-check.
+ *   if (a0->[0x38] < a0->[0x34]) {
+ *     entries = a0->[0x2C]; lookup = a0->[0x30];
+ *     entries[count] = a2;
+ *     a0->[0x38] = count + 1;
+ *     lookup[count] = a1;
+ *   } else {
+ *     func(0x204B0);  // error / overflow report
+ *   }
+ * Straight C produces 64% (below threshold) — IDO regalloc/scheduler
+ * cap on the if/else+capacity-check shape. Kept as INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DE88);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DEF0);
