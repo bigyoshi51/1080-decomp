@@ -4891,7 +4891,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F444);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F4F0);
 
+#ifdef NON_MATCHING
+/* gl_func_0003F5B0: 23-insn 2-call wrapper, same family as 0003F044.
+ * Frame -0xB8. buf @ sp+0x18..0xB8. 2 calls:
+ *   jal#1: func(&buf[0x08], a1) — a0 = sp+0x20
+ *   jal#2: func(&buf[0x00])      — a0 = sp+0x18
+ * Stores into buf: [0x00]=15, [0x48]=0, [0x4C]=(s16)*a2, [0x50]=a2,
+ *   [0x54]=0, [0x58]=a3. */
+extern int func_00000000();
+void gl_func_0003F5B0(int *a0, int a1, short *a2, int a3) {
+    char buf[0xA0];
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x48] = 0;
+    *(int*)&buf[0x50] = (int)a2;
+    *(int*)&buf[0x4C] = (int)*a2;
+    *(int*)&buf[0x54] = 0;
+    *(int*)&buf[0x58] = a3;
+    *(int*)&buf[0x00] = 15;
+    func_00000000(&buf[0x00]);
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F5B0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F60C);
 
