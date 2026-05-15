@@ -9249,7 +9249,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067AE8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067C98);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067EFC);
+/* 9-insn double-return wrapper (split off from 14-insn bundle 2026-05-15
+ * via split-fragments.py). Target uses `cvt.d.w` (function 0x21), not
+ * `cvt.s.w` — return type is double, not float. The `volatile int *p =
+ * &a1` forces caller-slot a1 spill (target's `sw a1, 0x1C(sp)` in jal
+ * delay slot). */
+extern int func_00000000();
+double gl_func_00067EFC(int a0, int a1) {
+    volatile int *p = &a1;
+    (void)p;
+    return (double)func_00000000(a0, a1);
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067F20);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
 
