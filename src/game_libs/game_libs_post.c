@@ -9261,7 +9261,21 @@ double gl_func_00067EFC(int a0, int a1) {
     return (double)func_00000000(a0, a1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067F20);
+/* 14-insn strupr-like (split off from gl_func_00067EFC bundle 2026-
+ * 05-15). Walks string a0, converts 'a'..'z' to 'A'..'Z' via ANDI
+ * 0xDF. Leaf — no stack frame. Signature: `int f(unsigned char *)`
+ * — `int` (not `char`) for c forces $v0 allocation; `unsigned char *`
+ * matches the lbu/sb byte access pattern. */
+int game_libs_func_00067F20(unsigned char *a0) {
+    int c;
+    while ((c = *a0) != 0) {
+        if (c >= 'a' && c <= 'z') {
+            *a0 = c & 0xDF;
+        }
+        a0++;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
 
