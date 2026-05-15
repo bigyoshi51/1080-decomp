@@ -1,0 +1,11 @@
+nonmatching game_libs_func_000483A0, 0x1C
+
+glabel game_libs_func_000483A0
+    /* E2D478 000483A0 8C820000 */  .word 0x8C820000
+    /* E2D47C 000483A4 AC800004 */  .word 0xAC800004
+    /* E2D480 000483A8 AC800008 */  .word 0xAC800008
+    /* E2D484 000483AC 8C4E001C */  .word 0x8C4E001C
+    /* E2D488 000483B0 8DCF0004 */  .word 0x8DCF0004
+    /* E2D48C 000483B4 03E00008 */  .word 0x03E00008
+    /* E2D490 000483B8 AC8F000C */  .word 0xAC8F000C
+endlabel game_libs_func_000483A0
