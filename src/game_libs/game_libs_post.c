@@ -5680,7 +5680,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042440);
  * allocates a1 as a0-alias, spills both arg slots, picks $v0 not
  * $v1 for g). Deferred to a next pass after the Makefile entry
  * is added. */
+#ifdef NON_MATCHING
+/* gl_func_00042484: 21-insn prologue-stolen successor of gl_func_00042440.
+ * Body uses $v1 throughout, preset by predecessor to *(&D+0x240). Target
+ * has NO spill of $v1 across the inner jalr (v1 survives caller-clobber).
+ *
+ * 2026-05-15 attempt with PROLOGUE_STEALS=8 + void-arg form:
+ *  - Splice DID fire (8 bytes removed from C-emit start)
+ *  - 22/21 insns (+1 over target): IDO spills $v1 to sp+0x24 before jalr
+ *    and reloads after — natural C ABI behavior since $v1 is caller-saved.
+ *  - Target was compiled with the predecessor having $v1 preserved (or
+ *    the source uses inline-asm to mark it caller-preserved). No plain
+ *    C path produces target's "g lives in $v1 across the call" shape.
+ *  - `register int *g` hint had no effect.
+ * Reverting PROLOGUE_STEALS=8 (no longer in Makefile); default INCLUDE_ASM
+ * keeps the function exact via .s file. */
+extern int gl_func_00000000();
+int gl_func_00042484(void) {
+    int *g = *(int**)((char*)&D_00000000 + 0x240);
+    int *p = *(int**)((char*)g + 0x28);
+    int (*cb)(int) = (int(*)(int))*(int*)((char*)p + 0x64);
+    short off = *(short*)((char*)p + 0x60);
+    cb((int)g + off);
+    return gl_func_00000000(&D_00000000, 0x110, p,
+        *(int*)((char*)g + 0xB8), *(int*)((char*)g + 0xBC));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042484);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_0001FCB4;
