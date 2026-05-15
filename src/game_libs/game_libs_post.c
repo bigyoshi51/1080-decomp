@@ -4159,7 +4159,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C814);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
 
+#ifdef NON_MATCHING
+/* gl_func_0003CAA0: 24-insn alloc-or-given Vec6-zero constructor. NM ~92%. */
+int* gl_func_0003CAA0(int *a0) {
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00000000(0x34);
+        if (a0 == 0) return 0;
+    }
+    a0[0x30/4] = (int)&D_00000000;
+    a0[1] = 0;
+    a0[0] = 0;
+    *(float*)((char*)a0 + 0x18) = 0.0f;
+    *(float*)((char*)a0 + 0x1C) = 0.0f;
+    *(float*)((char*)a0 + 0x20) = 0.0f;
+    *(float*)((char*)a0 + 0x24) = 0.0f;
+    *(float*)((char*)a0 + 0x28) = 0.0f;
+    *(float*)((char*)a0 + 0x2C) = 0.0f;
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CAA0);
+#endif
+
+#ifdef NON_MATCHING
+/* game_libs_func_0003CB00: 11-insn no-frame leaf setter. NM 72% — $t-reg
+ * choice cap (target uses $v0 for the 0xFFFF, $a3 for 4th arg sign-ext). */
+void game_libs_func_0003CB00(int *a0, int a1, int a2, short a3) {
+    a0[0] = a1;
+    a0[2] = a2;
+    *(short*)((char*)a0 + 0x14) = 0xFFFF;
+    *(short*)((char*)a0 + 0x16) = 0xFFFF;
+    *(short*)((char*)a0 + 0xC) = a3;
+    a0[4] = 0;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003CB00);
+#endif
 
 /* 16-insn indirect dispatcher. Sibling of gl_func_0000DE30/DE80/DED0
  * (same `*p->[0x2C](*p->[0x28]+0x28+(int)p, &local)` shape; this variant
