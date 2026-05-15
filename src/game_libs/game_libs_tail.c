@@ -567,7 +567,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B8E0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B958);
 
+#ifdef NON_MATCHING
+/* gl_func_0000BA6C: 42-insn save-game checksum verifier (sibling of
+ * BB14 — same magic 0xD1265205 + same 4 data chunks).
+ * Reads 4 8-byte data chunks + existing hash, recomputes hash, returns
+ * 1 if hashes mismatch, 0 if match.
+ *
+ * Score 99.95% (was 0% INCLUDE_ASM-only). Only 2 byte diffs: target
+ * frame -0x48 vs mine -0x60 — same "caller-slot borrowing" cap as
+ * BB14 (hash dest writes into caller's arg-save region). */
+extern int gl_func_00000000();
+int gl_func_0000BA6C(int a0) {
+    char buf[0x40];
+    gl_func_00000000(a0, &buf[0x08], 0x188, 8);
+    gl_func_00000000(a0, &buf[0x10], 0x1F0, 8);
+    gl_func_00000000(a0, &buf[0x18], 0x210, 8);
+    gl_func_00000000(a0, &buf[0x20], 0x228, 8);
+    gl_func_00000000(a0, &buf[0], 0, 8);
+    if (gl_func_00000000(&buf[0], &buf[0x08], 0x20, 0xD1265205) == 0) {
+        return 0;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BA6C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000BB14: 39-insn 6-call sequence — reads 4 8-byte chunks
