@@ -935,7 +935,26 @@ void gl_func_0000E1DC(int *a0, int a1, int a2) {
     gl_func_00000000(a0, a2);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000E230: 29-insn count-loop calling func per element.
+ *   for (i = 0, off = 0; i < a0->[0x48]; i++, off += 0x60) {
+ *     func(a0, *(int*)((char*)a0->[0x44] + off), 1, 0);
+ *   } */
+extern int func_00000000();
+void gl_func_0000E230(int *a0) {
+    int i;
+    int offset;
+    i = 0;
+    offset = 0;
+    while (i < a0[0x48/4]) {
+        func_00000000(a0, *(int*)((char*)a0[0x44/4] + offset), 1, 0);
+        i++;
+        offset += 0x60;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E230);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E2A4);
 
