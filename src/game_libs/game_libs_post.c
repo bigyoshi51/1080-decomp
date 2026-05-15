@@ -1729,7 +1729,38 @@ void gl_func_0002DC7C(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DC7C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0002DCF8: 14-insn 2-call setup (split 2026-05-15).
+ *   func(); D_a = 1; func(0xF8000000, 0); */
+extern int D_2DCF8_flag;
+void gl_func_0002DCF8(void) {
+    gl_func_00000000();
+    D_2DCF8_flag = 1;
+    gl_func_00000000(0xF8000000, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DCF8);
+#endif
+
+#ifdef NON_MATCHING
+/* game_libs_func_0002DD30: 2-insn empty stub. */
+void game_libs_func_0002DD30(void) { }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD30);
+#endif
+
+#ifdef NON_MATCHING
+/* game_libs_func_0002DD38: 8-insn 2-global store.
+ *   D_a = a0 & 0xFF; D_b = 0xD2; */
+extern int D_2DD38_byte;
+extern int D_2DD38_const;
+void game_libs_func_0002DD38(int a0) {
+    D_2DD38_byte = a0 & 0xFF;
+    D_2DD38_const = 0xD2;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD38);
+#endif
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: 92.5% — missing `or a2, a0, zero` copy before andi.
