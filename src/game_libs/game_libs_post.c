@@ -1086,7 +1086,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D064);
 /* gl_func_0002D130: 59-insn (0xF4) nested-loop per-frame init with
  * alt-entry calls.
  *
- *   s3 = D_base + (a0 * 0x320);    ; array entry (0x320-byte stride)
+ *   s3 = D_base + (a0 * 0x160);    ; array entry (0x160-byte stride)
  *   for (j = 0; j < 64; j += 4) {
  *       retval = gl_func(&D_2198, 228);    ; alt-entry call
  *       s1->[0x38] = retval ?: &D_5280;
@@ -1108,7 +1108,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D064);
  * Initial structural pass; cross-USO alt-entry call shape caps expected. */
 void gl_func_0002D130(int a0) {
     char *base = &D_00000000;
-    int *s3 = (int*)(base + (a0 * 0x320) + 0x2D00);
+    int *s3 = (int*)(base + (a0 * 0x160) + 0x2D00);
     int *s1 = s3;
     int j;
     for (j = 0; j < 64; j += 4) {
