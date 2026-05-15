@@ -6328,7 +6328,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B620);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004BAF4);
 
+#ifdef NON_MATCHING
+/* gl_func_0004C190: 25-insn alloc-or-given constructor with aligned stack
+ * buf. If a0 is null, allocates 0x1CC bytes. Then calls func(self),
+ * stores &D at self[0xA], calls func(self, a1, aligned_sp_buf), calls
+ * func(self). Returns self. Multi-tick decomp (alignment+frame math). */
+int* gl_func_0004C190(int *a0, int a1, int a2_unused, int a3) {
+    int *s0 = a0;
+    char buf[0x14];
+    int aligned;
+    if (s0 == 0) {
+        s0 = (int*)gl_func_00000000(0x1CC);
+        if (s0 == 0) return 0;
+    }
+    gl_func_00000000(s0);
+    s0[0x28/4] = (int)&D_00000000;
+    aligned = ((int)buf + 0x33) & ~3;
+    gl_func_00000000(s0, a1, aligned);
+    gl_func_00000000(s0);
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C190);
+#endif
+
+void game_libs_func_0004C20C(int *a0, int a1) {
+    *(int*)((char*)a0 + 0x1B4) = a1;
+}
 
 #ifdef NON_MATCHING
 extern int func_00000000();
