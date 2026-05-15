@@ -1241,7 +1241,7 @@ void gl_func_0002D2F4(void) {
     gl_func_00000000();
     p = base + 0x3280;
     while (p < base + 0x5280) {
-        *(char*)(p + 0x00) &= 0x7F;
+        *(char*)(p + 0x00) &= 0xFF7F;
         *(int*)(p + 0x50) = 0;
         p += 0x80;
     }
