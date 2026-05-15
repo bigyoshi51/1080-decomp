@@ -6070,26 +6070,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AE40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AFB4);
 
-#ifdef NON_MATCHING
-/* gl_func_0004B040: 26-insn entry-array iter.
- *   count = a0->[0xC];
- *   for (i = 0; i < count; i++) {
- *     entries = a0->[0]; func(entries[i]);
- *     count = a0->[0xC];   // re-read (callee may modify)
- *   } */
+/* 26-insn entry-array iter: count re-read from a0[0xC/4] each iter
+ * (callee may mutate). Naming `count` as a local regresses to 88% by
+ * pinning $v0; full-inline form preserves target's $t6/$t7/$t8/$t9
+ * use-and-discard pattern. */
 void gl_func_0004B040(int *a0) {
     int i;
-    int count = a0[0xC/4];
-    if (count <= 0) return;
-    for (i = 0; i < count; i++) {
-        int *entries = (int*)a0[0];
-        func_00000000(entries[i]);
-        count = a0[0xC/4];
+    for (i = 0; i < a0[0xC/4]; i++) {
+        func_00000000(((int*)a0[0])[i]);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B040);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);
 
