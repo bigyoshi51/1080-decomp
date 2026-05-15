@@ -2344,6 +2344,8 @@ void gl_func_0003341C(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003341C);
 #endif
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00033444);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003344C);
 
 extern int gl_func_00000000();
