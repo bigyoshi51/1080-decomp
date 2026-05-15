@@ -5571,7 +5571,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AE40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AFB4);
 
+#ifdef NON_MATCHING
+/* gl_func_0004B040: 26-insn entry-array iter.
+ *   count = a0->[0xC];
+ *   for (i = 0; i < count; i++) {
+ *     entries = a0->[0]; func(entries[i]);
+ *     count = a0->[0xC];   // re-read (callee may modify)
+ *   } */
+void gl_func_0004B040(int *a0) {
+    int i;
+    int count = a0[0xC/4];
+    if (count <= 0) return;
+    for (i = 0; i < count; i++) {
+        int *entries = (int*)a0[0];
+        func_00000000(entries[i]);
+        count = a0[0xC/4];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B040);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);
 
