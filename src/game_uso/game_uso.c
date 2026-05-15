@@ -8792,9 +8792,16 @@ void game_uso_func_0000FEC8(char *a0) {
  *   }
  * Same precall-arg-spill cap: target emits `sw a1,4(sp); sw a2,8(sp)` defensive
  * spills before the second jal that IDO -O2 with K&R extern doesn't reproduce.
- * Documented in feedback_uso_3unique_extern_inline_store_before_jal_combo.md
- * and feedback_ido_varargs_extern_doesnt_force_caller_spill.md. Size diff
- * blocks INSN_PATCH per feedback_insn_patch_size_diff_blocked.md. */
+ * Documented in docs/IDO_CODEGEN.md#feedback-ido-precall-arg-spill-unreachable.
+ *
+ * 2026-05-15 negative-finding: named `int *pair_e10 = (int*)(&D + 0xE10)`
+ * declared at function top (the FC34-matching idiom) REGRESSES this wrap
+ * to 87.29% (-1.9pp). FC34's named-pair works because of intervening FPU
+ * computation between the materialization and the pair[0]/pair[1] use,
+ * which keeps the base register alive. FF48 has no intervening work
+ * between if-entry and the 2nd jal, so IDO inlines pair_e10[0/1] back
+ * into two separate lui+lw pairs. Keep inline `*(int*)((char*)&D + 0xN)`
+ * form for this shape. */
 void game_uso_func_0000FF48(char *a0) {
     if (*(int*)(*(int**)(a0 + 0xB4) + 0x938 / 4) != 0) {
         gl_func_00000000(a0, 0x30001, 6, 1, 1, 1);
