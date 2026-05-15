@@ -8702,20 +8702,35 @@ void game_uso_func_0000FC34(int *a0) {
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000FD04: 50-insn sibling of game_uso_func_0000FC34.
- * Direct C compile builds but reports fuzzy=None: call-argument spill ordering
- * and the post-call Vec3-style reset block still differ. Default INCLUDE_ASM
- * keeps the ROM exact while preserving the decoded gate/call/reset structure. */
+ * 2026-05-15 fix: FPU op corrected sub→add (target's 0x46062200 is
+ * add.s f8,f4,f6 — function field = 000000, not 000001). Prior wrap
+ * had `-=` which never matched. Now adds the 0x798-field to the
+ * 0x31C-field. Score 78.86% (+0.26pp from prior 78.6% wrap; small
+ * because the add fixes only the FPU op insn, not the surrounding
+ * shape). Remaining cap:
+ *   - Call#2 K&R-style spill of a1/a2 to sp+4/sp+8 (target emits
+ *     these because the pair-loaded args trigger K&R home setup;
+ *     IDO doesn't emit them in our shape since pair is inlined as
+ *     `*(int*)(&D+N)` not via an intermediate base register).
+ *   - Post-call FPU block: target uses named base+0x788 / base+0x31C
+ *     pointer-arith locals; IDO inlines our `base_788`/`base_31C`
+ *     locals back into the lwc1/swc1 addressing despite multiple
+ *     uses. The named-pair variant (pair_e18 declared at function
+ *     top) regresses to 44%/78.86% — same shape unless intervening
+ *     non-call work keeps the materialization alive in a register. */
 void game_uso_func_0000FD04(int *a0) {
     int *base = *(int**)((char*)a0 + 0xB4);
     int *flags = *(int**)((char*)base + 0x800);
 
     if ((flags[0x10 / 4] & 0x100) == 0) {
         gl_func_00000000(a0, 0x30001, 2, 3, 1, 1);
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE18), *(int*)((char*)&D_00000000 + 0xE1C), 3);
+        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE18),
+                         *(int*)((char*)&D_00000000 + 0xE1C), 3);
         gl_func_00000000(a0);
 
         base = *(int**)((char*)a0 + 0xB4);
-        *(float*)((char*)base + 0x31C) -= *(float*)((char*)base + 0x798);
+        *(float*)((char*)base + 0x31C) += *(float*)((char*)base + 0x798);
+
         base = *(int**)((char*)a0 + 0xB4);
         *(float*)((char*)base + 0x308) = 1.0f;
         *(float*)((char*)base + 0x304) = 0.0f;
