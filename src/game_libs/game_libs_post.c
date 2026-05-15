@@ -6784,19 +6784,24 @@ void gl_func_0004ECE4(int a0) {
  *  4. Initialize `i = 0;` BEFORE `iter = self;` in the body — IDO
  *     allocates $s0 to i (= 0 first-assigned) instead of iter, matching
  *     target's $s0 = i / $s1 = iter mapping. (+1.6pp final-mile.)
- * Remaining cap (~2.3%): count loaded to $v0 vs target's $t6. */
+ *  5. 2026-05-15: inline `self[0x120/4]` in the loop condition (drop
+ *     the named `count` local) — IDO stops pinning count to $v0; both
+ *     the initial test and the per-iter re-read now match target.
+ *     97.68% → 98.75% (+1.1pp).
+ * Remaining cap (~1.25%): the v1/vtable pointer pair is register-
+ * swapped — mine iter[0x134]→$v0, *v1→$v1; target iter[0x134]→$v1,
+ * *v1→$v0. Both live across the call-arg setup; IDO's allocno order
+ * picks the opposite assignment. Pure 2-reg rename, permuter/
+ * INSN_PATCH-class (same family as gl_func_00035834's $v1/$a2). */
 void gl_func_0004ED0C(int *self) {
     int *iter;
     int i;
-    int count;
     i = 0;
     iter = self;
-    count = self[0x120/4];
-    for (; i < count; i++) {
+    for (; i < self[0x120/4]; i++) {
         int *v1 = (int*)iter[0x134/4];
         int *vtable = (int*)v1[0];
         ((void(*)(int))vtable[0xC/4])(*(short*)((char*)vtable + 0x8) + (int)v1);
-        count = self[0x120/4];
         iter++;
     }
 }
