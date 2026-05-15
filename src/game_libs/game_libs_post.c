@@ -8332,7 +8332,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063F40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000640E4);
 
+#ifdef NON_MATCHING
+/* gl_func_00064174: 26-insn 10-float zero + 3-int-to-float bit-copy.
+ *   a0[0..9] = 0.0f (10 floats)
+ *   tmp[0..2] = a1[0..2]
+ *   a0[10..12] = (float)tmp[0..2]  (bit-cast via memcpy semantics)
+ *
+ * Target uses swc1 f0 for zero stores — relies on $f0 being 0.0f.
+ * IDO emits this when the function has prior 0.0f computation, or via
+ * implicit-zero assumption. */
+void gl_func_00064174(float *a0, int *a1) {
+    int tmp[3];
+    a0[0] = 0.0f; a0[1] = 0.0f; a0[2] = 0.0f; a0[3] = 0.0f; a0[4] = 0.0f;
+    a0[5] = 0.0f; a0[6] = 0.0f; a0[7] = 0.0f; a0[8] = 0.0f; a0[9] = 0.0f;
+    tmp[0] = a1[0]; tmp[1] = a1[1]; tmp[2] = a1[2];
+    a0[10] = *(float*)&tmp[0];
+    a0[11] = *(float*)&tmp[1];
+    a0[12] = *(float*)&tmp[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064174);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000641DC);
 
