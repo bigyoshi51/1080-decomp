@@ -8010,7 +8010,21 @@ int gl_func_000634F8(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000634F8);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00063568: 28-insn float-version of gl_func_000634F8.
+ *   Same bounds-check + array-deref pattern, but returns float from
+ *   offset +4 in the 8-byte entry. */
+float gl_func_00063568(int *a0, int a1, int a2) {
+    int *v0 = (int*)func_00000000(a0[0x58/4]);
+    if (a2 >= v0[0xC/4]) {
+        int v = func_00000000(a1);
+        func_00000000((char*)&D_00000000 + 0x22194, a2, v);
+    }
+    return *(float*)((char*)v0[0x10/4] + a2*8 + 4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063568);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000635D8);
 
