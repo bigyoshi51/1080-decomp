@@ -4635,12 +4635,15 @@ void gl_func_0003ED8C(int *a0) {
  *   if (local != 1) func(0x1F398, local);
  *   a0[0] |= 1;
  *   return 1; */
+extern char gl_ref_0001F398;
 int gl_func_0003EDBC(int *a0) {
+    char buf[168];
     int local = 0;
+    (void)buf;
     func_00000000(&local);
     func_00000000(&local);
     if (local != 1) {
-        func_00000000((char*)0x1F398, local);
+        func_00000000(&gl_ref_0001F398, local);
     }
     *a0 |= 1;
     return 1;
