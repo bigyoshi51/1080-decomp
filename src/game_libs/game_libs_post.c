@@ -5494,7 +5494,34 @@ void gl_func_00043558(int *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00043558_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_00043584: 30-insn init-many-fields + conditional alloc-call.
+ *   a0->84 = 1; a0->4C = 1; a0->50 = -1;
+ *   a0->60..a0->74 = 0;
+ *   if ((D[0x1C4] & 8) != 0) a0->7C = func(0x100); else a0->7C = 0;
+ * Asm has dead code (b jumps over a redundant store) — likely a
+ * refactor leftover. */
+extern int func_00000000();
+extern int D_00000000;
+void gl_func_00043584(int *a0) {
+    a0[0x84/4] = 1;
+    a0[0x4C/4] = 1;
+    a0[0x50/4] = -1;
+    a0[0x60/4] = 0;
+    a0[0x64/4] = 0;
+    a0[0x68/4] = 0;
+    a0[0x6C/4] = 0;
+    a0[0x70/4] = 0;
+    a0[0x74/4] = 0;
+    if ((*(int*)((char*)&D_00000000 + 0x1C4) & 8) != 0) {
+        a0[0x7C/4] = func_00000000(0x100);
+    } else {
+        a0[0x7C/4] = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043584);
+#endif
 
 /* gl_func_000435FC: 22-insn 7-arg + 1-arg call chain. */
 int gl_func_000435FC(int *a0, int a1) {
