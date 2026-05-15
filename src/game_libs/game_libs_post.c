@@ -2531,7 +2531,28 @@ void gl_func_0003787C(void *a0) {
     gl_func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_000378D0: 26-insn alloc-if-null + init + field-set.
+ *   if (a0 == 0) a0 = alloc(0x34); if (NULL) return 0;
+ *   func(a0, &D + 0x1EA20);  // init
+ *   a0->[0x28] = &D;
+ *   a0->[0x30] = (float)a2_bits;   // a2 int reg → float field
+ *   a0->[0x2C] = a1;
+ *   return a0; */
+int *gl_func_000378D0(int *a0, int a1, float a2) {
+    if (a0 == 0) {
+        a0 = (int*)func_00000000(0x34);
+        if (a0 == 0) return 0;
+    }
+    func_00000000(a0, (char*)&D_00000000 + 0x1EA20);
+    a0[0x28/4] = (int)&D_00000000;
+    *(float*)((char*)a0 + 0x30) = a2;
+    a0[0x2C/4] = a1;
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000378D0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
 
