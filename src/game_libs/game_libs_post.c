@@ -4118,7 +4118,35 @@ int *gl_func_0003D5BC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D5BC);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0003D620: 27-insn type-tagged float-copy-or-error.
+ *   if (*a1 == 7) {
+ *     p = (int*)a1[1];
+ *     tmp[0..2] = p[0..2]; (int copies via stack)
+ *     a0->[0x30..0x38] = (float)tmp[0..2];
+ *   } else {
+ *     func();   // error
+ *   } */
+extern int func_00000000();
+void gl_func_0003D620(int *a0, int *a1) {
+    volatile int pad[4];
+    int tmp[3];
+    (void)pad;
+    if (*a1 == 7) {
+        int *p = (int*)a1[1];
+        tmp[0] = p[0];
+        tmp[1] = p[1];
+        tmp[2] = p[2];
+        *(float*)((char*)a0 + 0x30) = *(float*)&tmp[0];
+        *(float*)((char*)a0 + 0x34) = *(float*)&tmp[1];
+        *(float*)((char*)a0 + 0x38) = *(float*)&tmp[2];
+    } else {
+        func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D620);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D68C);
 
