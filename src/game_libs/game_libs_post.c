@@ -1049,6 +1049,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D014);
  *
  * Initial structural pass. Cross-USO call shape (intra-segment alt-entry
  * vs generic placeholder) and regalloc caps expected. */
+extern char D_2D064_148;
+extern char D_2D064_152;
 void gl_func_0002D064(char *a0) {
     char *p;
     int i;
@@ -1063,8 +1065,8 @@ void gl_func_0002D064(char *a0) {
     *(short*)(a0 + 16) = 0;
     *(short*)(a0 + 18) = 0;
     *(short*)(a0 + 20) = 0;
-    *(int*)(a0 + 148) = (int)&D_00000000;
-    *(int*)(a0 + 152) = (int)&D_00000000;
+    *(int*)(a0 + 148) = (int)&D_2D064_148;
+    *(int*)(a0 + 152) = (int)&D_2D064_152;
     *(int*)(a0 + 224) = 0;
     *(float*)(a0 + 28) = 1.0f;
     *(float*)(a0 + 32) = 0.0f;
@@ -5591,7 +5593,16 @@ int gl_func_0004D0B4(int a0) {
  * loads EARLY, target places them in lw-load-delay-slot AFTER D_0 read)
  * and CSE of the constant `1` (built reuses one $v0 across stores, target
  * emits TWO separate addiu zero,1 into different registers $t6 and $t3).
- * Both controlled by IDO's instruction scheduler / CSE — no clean C lever. */
+ * Both controlled by IDO's instruction scheduler / CSE — no clean C lever.
+ *
+ * 2026-05-14 (later): applied cse-bust-via-distinct-externs recipe for the
+ * &D_00000000 stores at +0x148 and +0x152. Target asm emits TWO separate
+ * `lui+addiu` pairs (one per store), built was CSE'ing them into one base
+ * register. Declared D_2D064_148 and D_2D064_152 in undefined_syms_auto.txt
+ * (both aliased to 0x00000000). 84.62% → 89.47% (+4.85pp). Remaining 10.5%
+ * is $s0/$s1 swap (self vs i loop counter) — first-assignment trick
+ * regressed (87.67%) because of interaction with the leading
+ * gl_func_00000000() call. */
 extern char gl_ref_0003EB00;
 void game_libs_func_0004D0E4(int *a0, int a1, int a2) {
     a0[0x58/4] = a2;
