@@ -571,12 +571,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B958);
  * Reads 4 8-byte data chunks + existing hash, recomputes hash, returns
  * 1 if hashes mismatch, 0 if match.
  *
- * Score 99.95% (was 0% INCLUDE_ASM-only). Only 2 byte diffs: target
- * frame -0x48 vs mine -0x60 — same "caller-slot borrowing" cap as
- * BB14 (hash dest writes into caller's arg-save region). */
+ * EXACT (100.0%). The 99.95% cap was an oversized local: char buf[0x40]
+ * forced frame -0x60; the correct size is buf[0x28] (only [0,0x28) is
+ * ever touched), which yields target frame -0x48 and lets the high data
+ * writes borrow the caller arg-save region (caller-slot-borrow, same
+ * family as BB14). Episode logged. */
 extern int gl_func_00000000();
 int gl_func_0000BA6C(int a0) {
-    char buf[0x40];
+    char buf[0x28];
     gl_func_00000000(a0, &buf[0x08], 0x188, 8);
     gl_func_00000000(a0, &buf[0x10], 0x1F0, 8);
     gl_func_00000000(a0, &buf[0x18], 0x210, 8);
