@@ -11011,17 +11011,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074AC0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074C04);
 
+#ifdef NON_MATCHING
 /* gl_func_00074D54: 22-insn float-arg + global-state wrapper.
  *   rv = func_a(f);            // jal#1 takes float
  *   g->[0x24] = f;              // store f as float
  *   *(short*)g |= 4;            // bit-set in halfword
  *   return func_b(rv);          // jal#2 takes int
- * Naive C with explicit float/int prototypes scores 67.7%. Two
- * mismatches stick: IDO target uses $s0 to preserve rv across the
- * FPU/global work (my emit keeps it in $v0); and target reloads the
- * global pointer TWICE (lui+lw) whereas my single-`int*g =` does
- * one load (CSE). Deferred. */
+ *
+ * 2026-05-15 — applied unique-extern recipe (gl_data_00074_a and
+ * gl_data_00074_b separate symbols added to undefined_syms_auto.txt) to
+ * break IDO's CSE on the duplicate `lui+lw 0(*)` pair. Plus `register`
+ * hint on rv. Result: 19/22 insns (still 3 short). Target uses $s0 for
+ * rv across the FPU work; IDO sees rv's only post-jal use is the next
+ * jal (immediate tail-call style) and keeps it in $v0 → no $s0 save.
+ * The "rv needs $s0" can't be forced without an artificial extra use
+ * that would add MORE insns. Cap holds at the documented 67-86% range. */
+extern int gl_data_00074_a;
+extern int gl_data_00074_b;
+int gl_func_00074D54(int a0, float arg1) {
+    int rv = gl_func_00000000(a0);
+    *(float*)((char*)gl_data_00074_a + 0x24) = arg1;
+    *(short*)gl_data_00074_b |= 4;
+    return gl_func_00000000(rv);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074D54);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00074D54_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074DB4);
