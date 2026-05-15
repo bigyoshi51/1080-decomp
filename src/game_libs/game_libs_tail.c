@@ -313,7 +313,34 @@ int gl_func_0000B290(int *a0) {
     return s2;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000B310: 40-insn 8-iter or-pair counter + index-array-fill.
+ * Sibling of B290 (or-pair) with extra write to a1[s2] = s0 in the
+ * success-path. Returns count of successful iterations.
+ *
+ * Score 92.93% (was 0% INCLUDE_ASM-only). Decl-order count/iter/
+ * offset matches target's $s2/$s0/$s1 regalloc. Remaining cap:
+ * target schedules `or v0, s2, 0` (return value setup) into the
+ * bnel/beq delay slots — IDO doesn't naturally emit this when the
+ * return is at function end. */
+extern int gl_func_00000000();
+int gl_func_0000B310(int *a0, int *a1) {
+    int count = 0;
+    int iter = 0;
+    int offset = 0;
+    for (; iter != 8; iter++) {
+        if (gl_func_00000000(a0[0] + offset) ||
+            gl_func_00000000(a0[0] + offset)) {
+            a1[count] = iter;
+            count++;
+        }
+        offset += 0x30;
+    }
+    return count;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B310);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_0000B3B0() {
