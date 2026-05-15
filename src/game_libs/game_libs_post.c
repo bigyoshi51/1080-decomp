@@ -2723,6 +2723,14 @@ void gl_func_00037F58(int a0, char *a1) {
     gl_func_00000000(a0, a1 + 0xC);
 }
 
+/* gl_func_00037FAC: alloc-then-init with apparently-unreachable
+ * second-alloc block (insns 11-17): `addiu a0, 4; jal; sw a1, 0x18;
+ * lw a1, 0x18; beqz v0; or v1, v0, 0; sw $0, 0(v1)`. Per my trace,
+ * a1 is never 0 at the bne dispatch under either entry path
+ * (a0 != 0 or alloc-OK), so the second-alloc block is dead. Simple
+ * 1-alloc C body scores 56 % (dead insns omitted). Need to revisit:
+ * either the dead block is reachable via a path I'm missing, or it's
+ * a refactor leftover. Doc-only for now. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037FAC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003800C);
