@@ -9790,7 +9790,24 @@ int gl_func_0006EEE4(int a0, int a1, int a2) {
     return gl_func_00000000(a0, a1) + a2;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0006EF08: 22-insn string-format-style wrapper.
+ *   rv = func("string@0x83550", a0, a1, &a2);
+ *   if (rv >= 0) a0[rv] = 0;
+ *   return rv; */
+extern int func_00000000();
+extern int D_00000000;
+int gl_func_0006EF08(char *a0, int a1, int a2, int a3) {
+    int rv = func_00000000((char*)&D_00000000 + 0x83550, a0, a1, &a2);
+    if (rv >= 0) {
+        a0[rv] = 0;
+    }
+    (void)a3;
+    return rv;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF08);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006EF08_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF64);
