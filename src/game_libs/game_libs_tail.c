@@ -257,7 +257,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B0A8);
 
 #ifdef NON_MATCHING
-/* gl_func_0000B190: 30-insn 5-call wrapper gated on (a1 != 0):
+/* gl_func_0000B190: 30-insn 5-call wrapper gated on (a0 != NULL):
  *   gl_func(*a0); gl_func(a0[1]); inner = a0[2];
  *   if (inner[2] != 0) gl_func(inner[2]);
  *   gl_func(a0[2]);
@@ -266,7 +266,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B0A8);
 extern int gl_func_00000000();
 void gl_func_0000B190(int *a0, int a1) {
     int *inner;
-    if (a1 != 0) {
+    if (a0 != NULL) {
         gl_func_00000000(*a0);
         gl_func_00000000(a0[1]);
         inner = (int*)a0[2];
