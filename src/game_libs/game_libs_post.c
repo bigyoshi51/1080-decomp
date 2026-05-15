@@ -5235,6 +5235,23 @@ void gl_func_00042440(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042440);
 #endif
 
+/* gl_func_00042484: PROLOGUE-STOLEN successor of gl_func_00042440.
+ * The 2 insns
+ *     lui v1, 0x0; lw v1, 0x240(v1)
+ * sit AT THE END of 00042440's range (after its jr ra+nop) and
+ * logically belong to this function's entry — v1 is uninitialized
+ * at the start of 00042484's .s otherwise. Promotion requires
+ * PROLOGUE_STEALS=8 in the Makefile (this segment doesn't yet have
+ * a PROLOGUE_STEALS line for game_libs_post.c.o).
+ *
+ * Body sketch: g = *(int**)(&D + 0x240); v0 = g->[0x28] (dead pre-
+ * load); rv = a0->fn_at_64((s16)a0->[0x60] + g); func(str, 0x110,
+ * rv, g->[0xB8], g->[0xBC]).
+ *
+ * Initial NM attempt scored 54.6% — body shape diverged (IDO
+ * allocates a1 as a0-alias, spills both arg slots, picks $v0 not
+ * $v1 for g). Deferred to a next pass after the Makefile entry
+ * is added. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042484);
 
 extern int gl_func_00000000();
