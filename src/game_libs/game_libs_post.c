@@ -8003,7 +8003,40 @@ void gl_func_0005AF64(int *a0, char *a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005AFB0);
 
+#ifdef NON_MATCHING
+/* gl_func_0005AFD4: 39-insn dual-struct init (likely freelist/pool).
+ * Calls func(&D+0x219F8, a1, a2, 0x10), then init s0 (= a0) and a1
+ * (linked sentinel pair) plus magic value 0x87654321 + 0xFF000000.
+ *
+ * 38/39 (97%) — target has a `srl t7, v0, 4; addu t8, t7, 0xFF000000`
+ * pair where t8 is then DEAD (never stored). Maybe original had
+ * `(diff >> 4) + 0xFF000000` evaluated but result unused. Mine uses
+ * `(diff << 4) - 1` (matching the t9 = t7-1 path for a1[0]) but the
+ * unused-add-of-0xFF000000 dead computation isn't reproducible from C.
+ * Also srl vs sll: target has unsigned shift, mine signed. */
+void gl_func_0005AFD4(int *a0, int *a1, int *a2) {
+    int *s0 = a0;
+    int diff;
+    gl_func_00000000((char*)&D_00000000 + 0x000219F8, a1, a2, 0x10);
+    s0[0x24/4] = 0;
+    diff = (int)a2 - (int)a1;
+    s0[0x28/4] = diff;
+    s0[0x20/4] = 0;
+    s0[0x14/4] = (int)((char*)s0 + 0x10);
+    s0[0x18/4] = (int)((char*)s0 + 0x10);
+    s0[0x10/4] = 0;
+    s0[0x1C/4] = 0x87654321;
+    a1[0] = (diff << 4) - 1;
+    a1[1] = (int)s0;
+    a1[2] = (int)s0;
+    a1[3] = 0x87654321;
+    s0[0] = 0xFF000000;
+    s0[1] = (int)a1;
+    s0[2] = (int)a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005AFD4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B070);
 
