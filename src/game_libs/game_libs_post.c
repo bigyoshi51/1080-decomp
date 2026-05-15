@@ -6080,7 +6080,7 @@ void gl_func_0004C214(int *a0) {
     func_00000000(a0);
     p = (int*)a0[0x1C0/4];
     func_00000000(p);
-    p[0x68/4] = p[0x64/4] - ((int*)p[0xC/4])[1];
+    p[0x68/4] = ((int*)p[0xC/4])[1] - p[0x64/4];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C214);
