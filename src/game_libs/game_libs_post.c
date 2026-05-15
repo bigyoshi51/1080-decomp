@@ -2415,6 +2415,15 @@ int gl_func_00035894(int *a0) {
     return 0;
 }
 
+/* gl_func_000358DC: 3-way dispatch on a0->[4].
+ *   case 1: g = *(int**)&D_0; g->[0x58](a0->[0x20]);
+ *   case 0: func(&D_0);
+ *   default: noop.
+ * Tried switch and if/else-if — best score 68.9 % (target 96B, mine 88B).
+ * Target hoists `or a1, a0, 0` BEFORE both branches even though only the
+ * v==1 path uses a1 as saved-a0. IDO's choice of $a1 as the carrier
+ * register isn't reachable from straight C. Likely needs an extra arg in
+ * the signature or a register-keyword hint. Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000358DC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003593C);
