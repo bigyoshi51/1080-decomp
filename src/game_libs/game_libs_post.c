@@ -2874,14 +2874,19 @@ void gl_func_00037F58(int a0, char *a1) {
     gl_func_00000000(a0, a1 + 0xC);
 }
 
-/* gl_func_00037FAC: alloc-then-init with apparently-unreachable
- * second-alloc block (insns 11-17): `addiu a0, 4; jal; sw a1, 0x18;
- * lw a1, 0x18; beqz v0; or v1, v0, 0; sw $0, 0(v1)`. Per my trace,
- * a1 is never 0 at the bne dispatch under either entry path
- * (a0 != 0 or alloc-OK), so the second-alloc block is dead. Simple
- * 1-alloc C body scores 56 % (dead insns omitted). Need to revisit:
- * either the dead block is reachable via a path I'm missing, or it's
- * a refactor leftover. Doc-only for now. */
+/* gl_func_00037FAC: 24-insn alloc-or-given pattern with dead-code
+ * twin-check on (a0 == 0). Target asm has TWO sequential checks:
+ *   1) if (a0 == 0) { a0 = alloc(4); if (a0 == 0) return 0; }
+ *   2) if (a0 == 0) { ... }   ← UNREACHABLE but emitted by IDO
+ *      because compiler can't prove a0 != 0 across function calls.
+ * Inside check #2: another alloc(4) + conditional store.
+ * Then: *a0 = 0; *a0 = 0x4E; return a0.
+ *
+ * 2026-05-15: tried explicit twin-check NM wrap (q = alloc + *q = 0
+ * if non-null + a0 = q). Scored 61.8% (up from 56% simple-form).
+ * Cap: my emit collapses the (a0 == 0)/(q != 0) nested branches
+ * differently from target — built 92 bytes vs target 96 (off by 1
+ * insn). Keeping INCLUDE_ASM; documented for future passes. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037FAC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003800C);
