@@ -4720,19 +4720,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F198);
 #endif
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: ~93% — a1-spill family (same as gl_func_0003F008) */
-extern int gl_func_00000000();
-
 void gl_func_0003F1D4(int a0, int a1, int a2, int a3) {
-    char buf[0x98];
-    int pad;
-    int local;
-    *(int*)&buf[0x48] = a2;
-    *(int*)&buf[0x44] = a3;
-    *(int*)&buf[0x40] = 1;
-    gl_func_00000000(buf);
-    local = 0x2D;
-    gl_func_00000000(&local);
+    char buf[0xA0];
+    *(int*)&buf[0x50] = a2;
+    *(int*)&buf[0x4C] = a3;
+    *(int*)&buf[0x48] = 1;
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x00] = 0x2D;
+    func_00000000(&buf[0x00]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F1D4);
@@ -4757,19 +4752,14 @@ void gl_func_0003F244(int a0, int a1, int a2) {
 }
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: ~93% expected — a1-spill family */
-extern int gl_func_00000000();
-
 void gl_func_0003F278(int a0, int a1, int a2, int a3) {
-    char buf[0x98];
-    int pad;
-    int local;
-    *(int*)&buf[0x80] = a2;
-    *(int*)&buf[0x84] = a3;
-    *(int*)&buf[0x8C] = 0;
-    gl_func_00000000(buf);
-    local = 0xD;
-    gl_func_00000000(&local);
+    char buf[0xA0];
+    *(int*)&buf[0x88] = a2;
+    *(int*)&buf[0x8C] = a3;
+    *(int*)&buf[0x94] = 0;
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x00] = 0xD;
+    func_00000000(&buf[0x00]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F278);
@@ -4847,17 +4837,12 @@ void gl_func_0003F3A4(int a0) {
 }
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 93% — a1-spill family (only extra diff from target) */
-extern int gl_func_00000000();
-
 void gl_func_0003F3D0(int a0, int a1, int a2) {
-    char buf[0x98];
-    int pad;
-    int local;
-    gl_func_00000000(buf);
-    *(int*)&buf[0x40] = a2;
-    local = 5;
-    gl_func_00000000(&local);
+    char buf[0xA0];
+    func_00000000(&buf[0x08], a1);
+    *(int*)&buf[0x48] = a2;
+    *(int*)&buf[0x00] = 5;
+    func_00000000(&buf[0x00]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F3D0);
