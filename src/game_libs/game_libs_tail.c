@@ -467,7 +467,25 @@ void gl_func_0000B868(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B868);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0000B8E0: 30-insn sibling of gl_func_0000B868. Same 4-call
+ * shape but with one arg shifted (B868 uses a2 at call#3 and a1+a3 at
+ * call#4; B8E0 uses a1 at call#3 and a2+a3 at call#4). Magic constant
+ * is 0xD4E4 (4 bytes higher than B868's 0xD4E0). a0 declared but
+ * unused → K&R-style spill of all caller-slots. */
+extern int gl_func_00000000();
+extern int gl_data_B8FC_arg, gl_data_B914_arg, gl_data_B924_arg, gl_data_B938_arg;
+extern int D_00000000;
+
+void gl_func_0000B8E0(int a0, int a1, int a2, int a3) {
+    gl_func_00000000(&gl_data_B8FC_arg, 2);
+    gl_func_00000000(&gl_data_B914_arg, 0, (char*)&D_00000000 + 0xD4E4);
+    gl_func_00000000(&gl_data_B924_arg, 0, a1);
+    gl_func_00000000(&gl_data_B938_arg, a2, a3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B8E0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B958);
 
