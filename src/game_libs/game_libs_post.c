@@ -2749,7 +2749,14 @@ void gl_func_00037C70(Vec3 *dst) {
 #ifdef NON_MATCHING
 /* gl_func_00037CE0: 26-insn read-into-local-then-copy-to-arg.
  *   func(&D, buf, 24);          // populate 24-byte local buf
- *   for (i in 0..5) a0[i] = buf[i]; */
+ *   for (i in 0..5) a0[i] = buf[i];
+ *
+ * 85.1% NM. Cap: target uses named src/dst base pointers with
+ * a0 reloaded from caller-slot (`lw t6, 0x30(sp)`). My emit uses
+ * a0 directly + stack temps with different reg names. Tested
+ * 2026-05-15: explicit `int *src = buf; int *dst = a0;` REGRESSED
+ * to 20-diff/26 (IDO assigns different $s-regs due to first-use
+ * order changes). C-unreproducible without permuter. */
 void gl_func_00037CE0(int *a0) {
     int buf[6];
     func_00000000(&D_00000000, buf, 24);
