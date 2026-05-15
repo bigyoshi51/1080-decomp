@@ -829,6 +829,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002888C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000289B0);
 
 #ifdef NON_MATCHING
+/* game_libs_func_00028A08: 4-insn self-linked-list init.
+ *   a0[0] = a0; a0[1] = a0; a0[2] = 0;  // (in jr ra delay) */
+void game_libs_func_00028A08(int *a0) {
+    a0[0] = (int)a0;
+    a0[1] = (int)a0;
+    a0[2] = 0;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028A08);
+#endif
+
+#ifdef NON_MATCHING
 /* gl_func_00028A18: 20-insn 4-call init wrapper for 4 contiguous 0x10-byte
  * blocks. Calls gl_func_0003D074 (alt-entry inside gl_func_0003D068 at +0xC)
  * on each block, then sets each block's [0xC] field to self-reference (= a0). */
