@@ -9913,6 +9913,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC14);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CC14_pad.s")
 
+/* gl_func_0006CC64: 28-insn flag-bit-set via global ptr halfword.
+ *   rv = func(a0); p = *(short**)&D; if ((u8)a0) *p |= 0x20; else *p &= ~0x20;
+ *   return func(rv);
+ * Target uses lbu from stack-spilled a0 byte (offset 0x2B(sp), BE-low-byte).
+ * Naive C with (unsigned char)a0 scores 60.7% — IDO doesn't spill a0 to
+ * stack for the post-call byte test; it keeps a0 in callee-save reg. Cap. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC64);
 
 /* gl_func_0006CCD4: 20-insn DMA-sync + uncached-read helper. Calls
