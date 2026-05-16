@@ -1204,7 +1204,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BA38);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BAAC);
 
-#ifdef NON_MATCHING
 /* game_libs_func_0002BB58: 9-insn byte-to-float-scale leaf.
  * `a0[0x2C] = (float)(a1 & 0xFF) / 127.0f`.
  *
@@ -1215,11 +1214,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BAAC);
  * for non-spilling andi of a1). Same class as feedback-ido-arg-shadow-
  * spill-not-emitted (e.g. game_libs_func_0002DD38). */
 void game_libs_func_0002BB58(int *a0, int a1) {
-    *(float*)((char*)a0 + 0x2C) = (float)(a1 & 0xFF) / 127.0f;
+    int *p = &a1;
+    *(float*)((char*)a0 + 0x2C) = (float)(*p & 0xFF) / 127.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BB58);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
 
