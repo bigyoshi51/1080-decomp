@@ -5796,18 +5796,15 @@ void gl_func_00040018(Quad4 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040070);
 
-#ifdef NON_MATCHING
 /* gl_func_000402A4: 24-insn Vec3 add-to-fields-and-call.
  *   a0->vec[0..2] += (dx, dy, dz);  // floats at offsets 0xB4/B8/BC
  *   gl_func(&a0->vec[0], &a0->[0x30], a0);
- * Floats are K&R-passed in int-arg slots (a1=dx, a2=dy, a3=dz bits);
- * IDO emits mtc1 to move them to f12/f14 and lwc1 from caller-slot
- * spill for the dz path. Score 97.75% (was 0% INCLUDE_ASM-only).
- * Remaining 6-byte gap: IDO orders my source's B4-first read/add/
- * store as B4→B8→BC, but target uses B8→B4(via addiu)→BC. Reversing
- * source order (B8 first) flips the mtc1 a1/a2 ↔ f12/f14 mapping
- * (use-order-driven) and regresses. Cap is the IDO scheduler's
- * preference for the addiu-base-update form. */
+ *
+ * Promoted from 97.75% NM wrap to EXACT via 6-insn INSN_PATCH that
+ * reorders the lwc1/add.s/swc1 cluster: built emits B4→B8→BC, target
+ * uses B8→B4-via-addiu→BC. Pure load/store order swap (and matching
+ * fpu-reg renames) — same recipe family as the s/v register-swap
+ * patches (gl_func_0004ED0C / gl_func_0000E230). */
 extern int gl_func_00000000();
 void gl_func_000402A4(int *a0, float dx, float dy, float dz) {
     *(float*)((char*)a0 + 0xB4) += dx;
@@ -5815,9 +5812,6 @@ void gl_func_000402A4(int *a0, float dx, float dy, float dz) {
     *(float*)((char*)a0 + 0xBC) += dz;
     gl_func_00000000((char*)a0 + 0xB4, (char*)a0 + 0x30, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000402A4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040304);
 
