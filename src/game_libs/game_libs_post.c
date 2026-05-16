@@ -9780,13 +9780,18 @@ void gl_func_00066BD4(int a0) {
 }
 
 /* 8-insn: stores arg to D_00000000, calls gl_func_00000000(0).
- * Splat bundled 2 trailing empty (jr ra; nop) leaves at func+0x28/0x30 —
- * absorbed via SUFFIX_BYTES (4 words). */
+ * Splat originally bundled 2 trailing empty (jr ra; nop) leaves —
+ * split off 2026-05-15 as game_libs_func_00066C58 / _00066C60 below. */
 extern int D_00000000;
 void gl_func_00066C30(int a0) {
     D_00000000 = a0;
     gl_func_00000000(0);
 }
+
+void game_libs_func_00066C58(void) {}
+
+void game_libs_func_00066C60(void) {}
+
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00066C30_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066C74);
