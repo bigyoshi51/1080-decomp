@@ -6193,21 +6193,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043BEC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043D38);
 
-#ifdef NON_MATCHING
 /* gl_func_00043EAC: 17-insn wrapper. Builds a 4-float buf {1,1,1,0} on
- * stack and calls func(a0, buf, 996, 1000). NM 58.8% — frame-size + buf
- * layout diffs. */
+ * stack at sp+0x38 (frame 0x48) and calls func(a0, &buf, 996, 1000).
+ * The 32-byte `pad` array (unused; declared first so IDO places it at
+ * lower offsets) pushes buf to the right offset. */
 void gl_func_00043EAC(int a0) {
     float buf[4];
+    char pad[32];
+    (void)pad;
     buf[0] = 1.0f;
     buf[1] = 1.0f;
     buf[2] = 1.0f;
     buf[3] = 0.0f;
     gl_func_00000000(a0, buf, 0x3E4, 0x3E8);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043EAC);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00043EF0: 11-insn struct-init leaf. Sets a0[0x10/0x14]
