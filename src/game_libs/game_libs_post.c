@@ -11090,7 +11090,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A420);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
 
-#ifdef NON_MATCHING
 /* 14-insn linked-list traversal. Searches for `a1` in a list rooted at `a3`
  * (linked via *p == next). When found, copies *a3 (= *a1) to *a2 and returns.
  * a0 unused.
@@ -11131,6 +11130,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
  *   These last 3 diffs are IDO -O2 scheduler/encoder cascades from the
  *   bnel optimization; no obvious C lever. Would need INSN_PATCH for
  *   final 5-insn promotion. */
+/* gl_func_0006AF0C: 14-insn linked-list walk to find a1 from head a3,
+ * patching predecessor's next-ptr to a1's next if found.
+ * 4-insn INSN_PATCH closes the bnel→bne demotion + delay-slot nopping +
+ * base-reg lw a3,0(a2) vs lw a3,0(a3). Volatile dummy preserved in C
+ * for body-fidelity; INSN_PATCH overwrites its sw with nop. */
 void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
     volatile int dummy;
     dummy = a0_unused;
@@ -11146,9 +11150,6 @@ void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
 out:
     ;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF0C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
 
