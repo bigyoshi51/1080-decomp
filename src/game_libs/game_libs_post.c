@@ -4557,7 +4557,31 @@ void gl_func_0003D68C(int *a0) {
         (int *)((char *)a0 + *(short *)(v0 + 0x28)), (int *)&s);
 }
 
+/* gl_func_0003D71C: 55-insn — guarded by a 7-arg call, then struct-copy
+ * D+0xE8 -> D+0xA0 (0x40 bytes), 3 float products into D+0xD0/D4/D8,
+ * final call. USO convention: call -> func_00000000, data -> &D+off. */
+#ifdef NON_MATCHING
+struct gl_3D71C_blk { int w[16]; };
+void gl_func_0003D71C(int *a0) {
+    int *s0 = a0;
+    if (func_00000000(*(int *)((char *)&D_00000000 + 0x254), 3,
+                       *(int *)((char *)s0 + 0x30),
+                       *(int *)((char *)s0 + 0x34),
+                       *(float *)((char *)s0 + 0x38), 0, 0.0f) != 0) {
+        *(struct gl_3D71C_blk *)((char *)&D_00000000 + 0xA0) =
+            *(struct gl_3D71C_blk *)((char *)&D_00000000 + 0xE8);
+        *(float *)((char *)&D_00000000 + 0xD0) =
+            *(float *)((char *)s0 + 0x30) * *(float *)((char *)&D_00000000 + 0x128);
+        *(float *)((char *)&D_00000000 + 0xD4) =
+            *(float *)((char *)s0 + 0x34) * *(float *)((char *)&D_00000000 + 0x12C);
+        *(float *)((char *)&D_00000000 + 0xD8) =
+            *(float *)((char *)s0 + 0x38) * *(float *)((char *)&D_00000000 + 0x130);
+        func_00000000(s0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D71C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
 
