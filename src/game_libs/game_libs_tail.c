@@ -656,7 +656,24 @@ int gl_func_0000BBB0(int a0) {
     return tmp;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BBF0);
+/* gl_func_0000BBF0: 37-insn 6-call streaming/checksum (sibling of
+ * gl_func_0000BB14 family, 0xDEADBBAD magic). a0 saved in s0, a1 spilled.
+ *   gl_func_00000000(a0, 0x1F8, a1, 24);
+ *   gl_func_00000000(buf, a1, 24, 0xDEADBBAD);
+ *   gl_func_00000000(a0, 0x210, buf, 8);
+ *   gl_func_00000000(a0, 0x7FC8, a1, 24);
+ *   gl_func_00000000(a0, 0x7FE0, buf, 8);
+ *   gl_func_00000000(a0); */
+extern int gl_func_00000000();
+void gl_func_0000BBF0(int a0, int a1) {
+    char buf[8];
+    gl_func_00000000(a0, 0x1F8, a1, 24);
+    gl_func_00000000(buf, a1, 24, 0xDEADBBAD);
+    gl_func_00000000(a0, 0x210, buf, 8);
+    gl_func_00000000(a0, 0x7FC8, a1, 24);
+    gl_func_00000000(a0, 0x7FE0, buf, 8);
+    gl_func_00000000(a0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BC84);
 
