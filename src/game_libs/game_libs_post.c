@@ -6046,17 +6046,14 @@ void gl_func_000423D8(void) {
     gl_func_00000000(1);
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_00042400: 10-insn leaf, table-driven pack. 60% match.
- * Cap: $t-register selection — target uses ($t8, $t0) for the 2 lw's,
- * IDO emits ($t9, $t8). Structural decode correct. Permuter-class. */
+/* game_libs_func_00042400: 10-insn leaf, table-driven pack:
+ *   entry = D[a1 * 8]; return (a0 << entry[0]) + entry[1];
+ * Promoted from 97.5% NM wrap to EXACT via 4-insn INSN_PATCH for
+ * $t-register rename ($t9/$t8/$t0 → $t8/$t0/$t9). */
 unsigned short game_libs_func_00042400(int a0, int a1) {
     int *entry = (int*)((char*)&D_00000000 + a1 * 8);
     return (a0 << entry[0]) + entry[1];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042400);
-#endif
 
 unsigned short game_libs_func_00042428(int a0, int a1) {
     return (a0 << 3) | a1;
