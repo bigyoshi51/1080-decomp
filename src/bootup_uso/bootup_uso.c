@@ -681,43 +681,25 @@ void func_0000502C(int *dst) {
  * string) then func(0, a0). 13/14 insns match; target has an extra
  * `sw a1, 0x4(sp)` in the 2nd jal's delay slot (a1-spill to local slot,
  * not outgoing-arg area). IDO -O2 won't emit this dead spill from std C
- * since a1 isn't reused after the jal. May be a varargs-style ABI quirk
- * in the callee's expected calling convention; the K&R declaration of
- * func_00000000 doesn't trigger it. Stays NM-wrapped.
+ * since a1 isn't reused after the jal. Cap holds.
  *
+ * 2026-05-15: re-verified C-emit @ 52 bytes / 13 insns (no spill).
+ * Earlier `-DNON_MATCHING` "match" was tautology trap — the Makefile
+ * doesn't honor CFLAGS_EXTRA on a per-target rebuild, so the build
+ * silently used the #else INCLUDE_ASM branch, which is byte-tautological
+ * with expected. Confirmed by unwrapping and checking actual C-only
+ * build: 52 bytes vs target 56.
+ *
+ * Prior cap notes:
  * 2026-05-05: tried `void func(int a0, int a1) { (void)a1; ... }` —
- * (void)a1 DCE'd by IDO, no extra spill emitted. Same diff. Cap class:
- * IDO -O2 delay-slot scheduler chose `lw a1, 0x18(sp)` (the reload-for-
- * return) over `sw a1, 0x4(sp)` (target's dead-spill). The dead-spill
- * isn't reachable from natural C — would need INSN_PATCH on the 2 insns
- * at 0x80/0x84 (insn-shift) plus SUFFIX of 1 insn. Defer.
- *
- * 2026-05-07 — tried 4 variadic-decl variants to force outgoing-arg spill:
- *   - `int func(int, ...)` + call func(0, a0)            → 13 insns, no spill
- *   - `int func(int, ...)` + call func(0, a0, 0)         → 13 insns, a2=0
- *   - K&R `int func()` (current)                          → 13 insns (baseline)
- *   - `__asm__ volatile("sw $a1, 0x4($sp)")` after call  → CFE Syntax Error
- *     (IDO 7.1's frontend rejects GCC inline-asm — confirms
- *      `feedback_ido_no_gcc_register_asm.md`-style limitation extends to
- *      plain `__asm__` blocks too, not just register-asm decls).
- * IDO's outgoing-arg homing ("spill all 4 register args to sp+0..0xC for
- * variadic callees") only fires when the CALLEE is variadic AND the args
- * are sourced from spilled registers. With 2-fixed-args + tail variadic
- * there's nothing to spill BACK out. No C-level path produces target's
- * dead-spill at this delay slot.
- *
- * 2026-05-07 (later) — two more variants:
- *   - `volatile int x; x = arg0;` after first call
- *     → 14 insns (right count!), but frame 0x20 vs target 0x18, dead
- *       spill at sp+0x1C vs target sp+0x4. IDO allocates volatile at
- *       TOP of frame, growing it. Right shape, wrong offset.
- *   - `char buf[8]; *(volatile int*)(buf+4) = arg0;`
- *     → 15 insns, extra `addiu t6, sp, 0x18` to compute buf base.
- *       Volatile-cast forces base register over direct sp-offset.
- * Combination of "force a dead-store at sp+0x4" + "frame stays 0x18"
- * is genuinely unreachable from C. The two requirements conflict:
- * adding a volatile slot grows the frame; aliasing into existing slot
- * via cast adds a base-register hop. Cap holds. */
+ * (void)a1 DCE'd by IDO, no extra spill emitted.
+ * 2026-05-07: tried 4 variadic-decl variants — none triggered the spill.
+ * IDO's outgoing-arg homing only fires when the CALLEE is variadic AND
+ * the args are sourced from spilled registers. With 2-fixed-args +
+ * tail variadic there's nothing to spill BACK out.
+ * 2026-05-07 (later): volatile slot grows frame; aliasing into existing
+ * slot via cast adds a base-register hop. The dead-spill at sp+0x4
+ * with frame-stays-0x18 is genuinely unreachable from natural C. */
 extern char D_00007D94;
 void func_00005068(int a0) {
     func_00000000(&D_00007D94);
