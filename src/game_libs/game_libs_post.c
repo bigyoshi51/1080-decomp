@@ -11451,7 +11451,46 @@ int gl_func_0006EF08(char *a0, int a1, int a2, int a3) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006EF08_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_0006EF64: ~52-insn dispatch helper.
+ *   if (g_state == 0) return -1;
+ *   a1->word_14 = a0;
+ *   a1->short_0  = (a2 == 0) ? 0xF : 0x10;
+ *   if (a1->byte_2 == 1) { r = FUNC_A(); return FUNC_B(r, a1, 0); }
+ *   else                 { r = FUNC_C(); return FUNC_D(r, a1, 0); }
+ *
+ * Args saved to caller slots (sp+0x28/2C/30) at prologue, reloaded
+ * before each use. Build path stays INCLUDE_ASM; this NM wrap
+ * documents the structure for future struct-typing. Sibling decode
+ * after gl_func_0006EF08 (string-format wrapper). */
+extern int D_6EF64_g;
+extern int FUNC_6EF64_a(void);
+extern int FUNC_6EF64_b(int, void*, int);
+extern int FUNC_6EF64_c(void);
+extern int FUNC_6EF64_d(int, void*, int);
+int gl_func_0006EF64(int a0, void *a1, int a2) {
+    int s1, s0;
+    if (D_6EF64_g == 0) return -1;
+    *(int*)((char*)a1 + 0x14) = a0;
+    if (a2 == 0) {
+        *(short*)a1 = 0xF;
+    } else {
+        *(short*)a1 = 0x10;
+    }
+    if (*(unsigned char*)((char*)a1 + 2) == 1) {
+        s1 = FUNC_6EF64_a();
+        s0 = FUNC_6EF64_b(s1, a1, 0);
+    } else {
+        s1 = FUNC_6EF64_c();
+        s0 = FUNC_6EF64_d(s1, a1, 0);
+    }
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF64);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F038);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F088);
 
