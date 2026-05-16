@@ -234,6 +234,9 @@ def inject_prefix(o_path: Path, func_name: str, prefix_words: list[int],
             0x23,  # lw    rt, offset(rs)
             0x24,  # lbu
             0x25,  # lhu
+            0x28,  # sb    rt, offset(rs)
+            0x29,  # sh
+            0x2B,  # sw    rt, offset(rs)  (leaf-insert/link-list entry)
             0x30,  # ll  (rare but valid)
         }
         opcode_high6 = (first >> 26) & 0x3F

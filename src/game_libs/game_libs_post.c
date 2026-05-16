@@ -8501,24 +8501,12 @@ void gl_func_0005AF64(int *a0, char *a1) {
     gl_func_00000000(a0, a1);
 }
 
-#ifdef NON_MATCHING
-/* 9-insn (0x24) doubly-linked-list insert-before-anchor with leading nop:
- *   a0->next  = a2;        // a0[1] = a2
- *   a0->prev  = a2->prev;  // a0[2] = a2[2]
- *   a2->prev  = a0;        // a2[2] = a0
- *   a0->prev->next = a0;   // ((int*)a0[2])[1] = a0
- *   a0->key   = a1;        // a0[0] = a1 (delay-slot)
- *
- * 2026-05-16: C-only emit is 8 insns / 0x20 — byte-identical to expected's
- * body offsets [0x04..0x24] (verified). The leading nop at +0x0 is a stub
- * prefix per docs/PATTERNS.md#feedback-nop-prefixed-empty-stub.
- *
- * BLOCKED on PREFIX_BYTES injection: scripts/inject-prefix-bytes.py refuses
- * to patch when target function's first insn is sw (opcode 0x2b) — the
- * script's VALID_ENTRY_OPCODES whitelist was sized for the USO loader-
- * trampoline use case (b/jr/lui-at-start), not arbitrary nop-prefixing
- * of a function whose body starts with a store. Extending the whitelist
- * would unblock this; that's infrastructure work, not /decompile work. */
+/* 9-insn (0x24) doubly-linked-list insert-before-anchor with leading nop.
+ * C-emit produces the 8-insn body (offsets 0x04..0x24, byte-identical).
+ * PREFIX_BYTES injects the leading nop. inject-prefix-bytes.py whitelist
+ * extended this tick to accept opcode 0x2B (sw) as a valid entry insn —
+ * the link-list insert's first store (`sw a2, 4(a0)`) was previously
+ * rejected. See docs/POST_CC_RECIPES.md inject-prefix-bytes whitelist. */
 void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
     a0[1] = (int)a2;
     a0[2] = a2[2];
@@ -8526,9 +8514,6 @@ void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
     ((int*)a0[2])[1] = (int)a0;
     a0[0] = a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005AFB0);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005AFD4: 39-insn dual-struct init (likely freelist/pool).
