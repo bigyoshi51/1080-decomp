@@ -9568,7 +9568,40 @@ void gl_func_000640E4(int a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000640E4);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_00064124: struct-field initializer. Zeros several
+ * int/float fields, sets three 1.0f fields + an int 256.
+ *
+ * 87.05% — logic fully decoded, store order matches. Residual caps:
+ *  - Float-reg split: target materializes THREE fp consts —
+ *    $f2=0.0f (bulk zero stores), $f0=1.0f, $f4=0.0f (used ONLY for
+ *    the final a0+0x144 store, emitted in the jr-ra delay slot). C
+ *    CSEs all `0.0f` to one reg ($f0) so the separate $f4 + delay-slot
+ *    placement is lost. No plain-C expression yields two distinct 0.0f
+ *    regs; needs the source's original distinct sub-expression (likely
+ *    a variable, not a literal) — unknown.
+ *  - The 0x50 symbol's trailing `mtc1 zero,$f0` is the SUCCESSOR's
+ *    stolen prologue; byte_verify needs it via SUFFIX_BYTES, but the
+ *    successor would also need PROLOGUE_STEALS — deferred pair work.
+ * NM kept; INCLUDE_ASM is the build path. */
+void game_libs_func_00064124(char *a0) {
+    *(int*)(a0 + 0x160) = 0;
+    *(int*)(a0 + 0x14C) = 0;
+    *(int*)(a0 + 0x168) = 256;
+    *(float*)(a0 + 0x12C) = 0.0f;
+    *(float*)(a0 + 0x130) = 0.0f;
+    *(float*)(a0 + 0x134) = 0.0f;
+    *(float*)(a0 + 0x108) = 0.0f;
+    *(float*)(a0 + 0x10C) = 0.0f;
+    *(float*)(a0 + 0x110) = 0.0f;
+    *(float*)(a0 + 0x150) = 1.0f;
+    *(float*)(a0 + 0x154) = 1.0f;
+    *(float*)(a0 + 0x148) = 1.0f;
+    *(float*)(a0 + 0x144) = 0.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00064124);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00064174: 26-insn 10-float zero + 3-int-to-float bit-copy.
