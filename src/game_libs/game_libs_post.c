@@ -1900,7 +1900,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD30);
 
 #ifdef NON_MATCHING
 /* game_libs_func_0002DD38: 8-insn 2-global store.
- *   D_a = a0 & 0xFF; D_b = 0xD2; */
+ *   D_a = a0 & 0xFF; D_b = 0xD2;
+ *
+ * Caps:
+ *  (a) std C produces 7 insns (no leading `sw a0, 0(sp)` arg-save).
+ *  (b) std C uses $t6/$t7 for andi-result + 0xD2 constant; target uses
+ *      $a0/$t6 (one register lower — andi modifies a0 in-place).
+ *
+ * 2026-05-15 attempt: `int *p = &a0; (void)p;` to force save-arg-to-stack.
+ *   Result: save emitted (32-byte size matches target), BUT placed at +0x14
+ *   (between addiu and jr ra) instead of +0x0, AND still uses $t6/$t7.
+ *   Both diffs are IDO scheduler decisions not reachable via natural C. */
 extern int D_2DD38_byte;
 extern int D_2DD38_const;
 void game_libs_func_0002DD38(int a0) {
