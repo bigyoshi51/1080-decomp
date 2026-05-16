@@ -871,6 +871,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000085B0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008674);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000086A0);
+
 /* gl_func_0000871C: 54-insn (0xD8) FPU-heavy float-ramp + indirect-call.
  * 0x18-byte stack frame. Sibling of 88B4 family (just-landed f1f06a20)
  * but structurally different — operates on object's float field 0x550
