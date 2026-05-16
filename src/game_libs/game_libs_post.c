@@ -9510,20 +9510,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063F40);
 
-#ifdef NON_MATCHING
-/* gl_func_000640E4: 16-insn dispatcher. If *a1 == 9 call funcA, else
- * funcB. NM 17/16 — extra `sw a0, 0x18(sp)` arg spill (target doesn't
- * spill — likely had 1 arg in $a1 via non-standard convention). */
+/* gl_func_000640E4: 16-insn dispatcher. EXACT — keys: pass a0 through
+ * to both calls (gl_func_00000000(a0)) so IDO does not emit the unused-
+ * arg `sw a0` spill, and read `int v = *a1` into a named temp so the
+ * compare value lands in $v0 (bare `*a1==9` uses $t6). */
 void gl_func_000640E4(int a0, int *a1) {
-    if (*a1 == 9) {
-        gl_func_00000000();
+    int v = *a1;
+    if (v == 9) {
+        gl_func_00000000(a0);
     } else {
-        gl_func_00000000();
+        gl_func_00000000(a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000640E4);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00064124: struct-field initializer. Zeros several
