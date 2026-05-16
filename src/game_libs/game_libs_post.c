@@ -3654,6 +3654,10 @@ void gl_func_00039960(char *a0, char *a1) {
     gl_func_00000000(a1 + 0xD0, a0 + 0x30);
 }
 
+int *game_libs_func_00039988(int *a0) {
+    return (int*)((char*)a0 + 0x70);
+}
+
 void gl_func_00039990(int *a0, int *a1) {
     gl_func_00000000(a0 + 4);
     if (a1[0x14/4] != 0) {
