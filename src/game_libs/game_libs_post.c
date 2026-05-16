@@ -4600,13 +4600,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D71C);
  *   }
  *
  * Control flow, data refs, float identity {0x48=1,0x4C=0,0x50=0,0x54=1},
- * shared epilogue (goto end) all byte-aligned. REMAINING GAP (~the only
- * residual): target emits `bnel t8,zero,0x80; lw t1,0(t9)` (branch-likely,
- * first copy load in delay) and double-loads the a3 home slot
- * (`lw t8,36(sp); lw t9,36(sp)` — t8 for the null test, t9 as copy base);
- * C-emit produces a plain `bne a3,zero` + single a3 reload. Needs
- * branch-likely shaping (docs/IDO_CODEGEN bnel recipes) + forcing the
- * spilled-param double-reload. ~1 insn short until bnel lands.
+ * shared epilogue (goto end) all byte-aligned. REMAINING GAP (the only
+ * residual): target reloads the SPILLED PARAM a3 TWICE into separate regs
+ * (`lw t8,36(sp); lw t9,36(sp)`) so it can emit an annulled branch-likely
+ * `bnel t8,zero,0x80; lw t1,0(t9)` (test reg t8 ≠ copy-base reg t9 — the
+ * different regs are what let GCC reorg annul-fill the delay with the
+ * first copy load). C-emit reloads a3 once, tests+copies from the same
+ * reg, so reorg emits a plain `bne a3,zero` (no annul) → build is exactly
+ * 1 insn short (43 vs 44).
+ *
+ * NEGATIVE FINDINGS (do NOT re-try — verified ineffective 2026-05-16):
+ *   - IDO_CODEGEN #feedback-ido-bnel-arm-swap: EQUAL case in the `if` arm
+ *     (`if (a3 == 0) {...}`) — already in this shape, still plain bne.
+ *   - pointer-local `int *p = a3;` then copy via p — IDO CSEs p back to
+ *     a3, single reload, no change (stayed 73.0%).
+ * The double-spill-reload is an IDO regalloc/reorg artifact not reachable
+ * by C expression restructuring at this frame shape.
+ *
+ * NEXT APPROACH: (a) permuter on the 73% body (randomize spill/reg choices
+ * until the t8/t9 split + bnel appears), OR (b) force SAME-LEN 44 first
+ * (a second distinct spilled local for the copy base so a3-home loads
+ * twice), then INSN_PATCH the bne→bnel + delay-load + register renames
+ * (all same-length word overwrites; jal orphan-reloc auto-stripped).
  * USO convention: call -> func_00000000, data -> &D+off. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
 
