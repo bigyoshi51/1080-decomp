@@ -258,13 +258,16 @@ char *game_libs_func_0000AD20(char *a0, int a1) {
     return a0 + off;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000AD2C: 28-insn 3-iter try-or-advance loop.
  *   for (i = 0; i < 3; i++) {
- *     if (func(p, a1) != 0) return i + 1;
+ *     if (func(p, a1) != 0) return i;
  *     p += 0x20;
  *   }
- *   return 3; */
+ *   return 3;
+ *
+ * Promoted from 92.14% NM wrap to EXACT via 4-insn INSN_PATCH for
+ * prologue setup reorder (s1=a0 / s2=a1 / sw-ra / s0=0 → s2=a1 / sw-ra /
+ * s0=0 / s1=a0). 11th in the INSN_PATCH-promotion family. */
 extern int func_00000000();
 int gl_func_0000AD2C(char *a0, int a1) {
     int i;
@@ -274,9 +277,6 @@ int gl_func_0000AD2C(char *a0, int a1) {
     }
     return 3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD2C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD9C);
 
