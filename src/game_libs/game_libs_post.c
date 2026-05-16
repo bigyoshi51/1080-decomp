@@ -4842,19 +4842,26 @@ void gl_func_0003E840(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E868);
 
 #ifdef NON_MATCHING
-/* gl_func_0003E904: 25-insn link-back wrapper.
+/* 87.28% NM. gl_func_0003E904: 25-insn link-back wrapper.
  *   a1->[0x30] = a0->[0x2C];
  *   a0->[0x1C] = a1;
  *   func(&a0->[0x10], a1, a2);
- *   if (a1->[0x14] != 0) a0[1] = 1;
+ *   if (a1->[0x14] != 0) a1[1] = 1;   // (was misdocumented as a0[1]; target asm shows a1)
  *   a1->[0x14] = a0;
- *   a0->[0x44] = a2; */
+ *   a0->[0x44] = a2;
+ *
+ * Cap (2026-05-16): built 26 insns vs target 25 — 1 extra insn from
+ * IDO's separate `addiu a0,a0,0x10` for the func arg setup. Target
+ * defers that addiu into the jal-delay slot, saving 1 insn. C-level
+ * reorder + ptr-local both tested — IDO doesn't schedule the addiu
+ * into the delay slot when a store-via-original-a0 immediately
+ * precedes the call. INSN_PATCH blocked by 1-insn size delta. */
 void gl_func_0003E904(int *a0, int *a1, int a2) {
     a1[0x30/4] = a0[0x2C/4];
     a0[0x1C/4] = (int)a1;
     func_00000000((char*)a0 + 0x10, a1, a2);
     if (a1[0x14/4] != 0) {
-        a0[1] = 1;
+        a1[1] = 1;
     }
     a1[0x14/4] = (int)a0;
     a0[0x44/4] = a2;
