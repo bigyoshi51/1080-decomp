@@ -1592,7 +1592,16 @@ branch_else:
      *   t6->Vec3@0x60 = self_v
      *   t6->Vec3@0xA0 = self_v
      *
-     * Initial decode 2026-05-05; extended decode 2026-05-06. */
+     * Initial decode 2026-05-05; extended decode 2026-05-06.
+ *
+ * 2026-05-15 status: 47.19% fuzzy. Tested `if (key == 0) return a0;`
+ * (vs current `goto end`) to force beql-to-epilogue emit matching
+ * target asm 0x20-0x24 — regressed -1.4pp to 45.79%. The early-return
+ * shape changes the larger dispatch layout. Reverted. Keep current
+ * `goto end` structure; future grinding needs to target the
+ * `sw t6, 0x94(sp)` spill at insn 0x14 (target spills t6 immediately
+ * at prologue; IDO normally delays spill to just-before-first-call,
+ * requires unusual codegen pressure to force early spill). */
     v1 = (int*)a0[0x38 / 4];
     ref_x = *(float*)((char*)v1 + 0xA0);
     ref_y = *(float*)((char*)v1 + 0xA4);
