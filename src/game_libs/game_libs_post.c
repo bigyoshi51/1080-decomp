@@ -8520,12 +8520,18 @@ void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
  * Calls func(&D+0x219F8, a1, a2, 0x10), then init s0 (= a0) and a1
  * (linked sentinel pair) plus magic value 0x87654321 + 0xFF000000.
  *
- * 38/39 (97%) — target has a `srl t7, v0, 4; addu t8, t7, 0xFF000000`
- * pair where t8 is then DEAD (never stored). Maybe original had
- * `(diff >> 4) + 0xFF000000` evaluated but result unused. Mine uses
- * `(diff << 4) - 1` (matching the t9 = t7-1 path for a1[0]) but the
- * unused-add-of-0xFF000000 dead computation isn't reproducible from C.
- * Also srl vs sll: target has unsigned shift, mine signed. */
+ * 97% — CORRECTED decode (prior note was wrong: t8 is NOT dead).
+ * a1[0] = ((unsigned)diff >> 4) + 0xFF000000 - 1, with 0xFF000000
+ * also stored to s0[0]; target keeps 0xFF000000 in $a2 (one `lui`)
+ * reused for the addu AND s0[0], with `-1` a separate `addiu t9,t8,-1`.
+ * Body now logic-correct (idx0-22 + most stores match). Residual is a
+ * genuine IDO -O2 constant-fold cap (split-or-constant family, cf.
+ * gl_func_00066B64): C `(diff>>4)+0xFF000000-1` folds the `+C1-C2`
+ * into `0xFEFFFFFF` (lui+ori, 2 insns) + a re-lui for s0[0]=0xFF000000
+ * → +1 length vs target's single-lui-reused + separate addiu. No C
+ * form blocks the fold (explicit intermediate still propagated;
+ * __asm__("") barrier regressed to 48). Un-INSN_PATCH-able (size
+ * differs, 40 vs 39). NM; INCLUDE_ASM is the build path. */
 void gl_func_0005AFD4(int *a0, int *a1, int *a2) {
     int *s0 = a0;
     int diff;
@@ -8538,13 +8544,16 @@ void gl_func_0005AFD4(int *a0, int *a1, int *a2) {
     s0[0x18/4] = (int)((char*)s0 + 0x10);
     s0[0x10/4] = 0;
     s0[0x1C/4] = 0x87654321;
-    a1[0] = (diff << 4) - 1;
-    a1[1] = (int)s0;
-    a1[2] = (int)s0;
-    a1[3] = 0x87654321;
-    s0[0] = 0xFF000000;
-    s0[1] = (int)a1;
-    s0[2] = (int)a1;
+    {
+        unsigned int t8 = ((unsigned int)diff >> 4) + 0xFF000000;
+        a1[1] = (int)s0;
+        a1[2] = (int)s0;
+        a1[0] = (int)(t8 - 1);
+        a1[3] = 0x87654321;
+        s0[0] = (int)0xFF000000;
+        s0[1] = (int)a1;
+        s0[2] = (int)a1;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005AFD4);
