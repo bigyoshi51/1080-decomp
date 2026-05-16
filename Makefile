@@ -204,7 +204,8 @@ build/src/game_libs/game_libs_post.c.o: INSN_PATCH := \
 	gl_func_0006EF08=0x00:0x27BDFFE0,0x04:0xAFA40020,0x08:0xAFBF0014,0x0C:0xAFA50024,0x10:0xAFA60028,0x14:0xAFA7002C,0x18:0x3C040008,0x1C:0x24843550,0x20:0x27A70028,0x24:0x8FA60024,0x2C:0x8FA50020,0x38:0x8FAE0020,0x48:0x27BD0020 \
 	gl_func_0003D620=0x08:0x8CA20000,0x10:0x14410010,0x18:0x8CAF0004,0x1C:0x27AE0024,0x20:0x8DF90000,0x24:0xADD90000,0x28:0x8DF80004,0x2C:0xADD80004,0x30:0x8DF90008,0x34:0xADD90008,0x38:0xC7A40024,0x40:0xC7A60028,0x48:0xC7A8002C \
 	gl_func_00037D48=0x08:0x8C980000,0x0C:0x27AE0024,0x10:0x27A50038,0x14:0xADD80000,0x20:0xADCF0004,0x30:0xADD80008,0x34:0xC7A8002C,0x38:0xC7A60028,0x3C:0xC7A40024,0x40:0xE7A80040,0x44:0xE7A6003C,0x4C:0xE7A40038 \
-	game_libs_func_00043EF0=0x08:0x8CAF0000,0x0C:0xAC8F0000,0x10:0x8CAE0004,0x14:0xAC8E0004,0x18:0x8CAF0008,0x1C:0xAC8F0008,0x20:0x8CAE000C,0x28:0xAC8E000C
+	game_libs_func_00043EF0=0x08:0x8CAF0000,0x0C:0xAC8F0000,0x10:0x8CAE0004,0x14:0xAC8E0004,0x18:0x8CAF0008,0x1C:0xAC8F0008,0x20:0x8CAE000C,0x28:0xAC8E000C \
+	gl_func_00064174=0x00:0x27BDFFE0,0x04:0x27AE000C,0x30:0x8CB80000,0x34:0xADD80000,0x3C:0xADCF0004,0x44:0xADD80008,0x48:0xC7A4000C,0x50:0xC7A60010,0x58:0xC7A80014,0x5C:0x27BD0020
 
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
@@ -312,7 +313,7 @@ build/src/kernel/kernel_000.c.o: SUFFIX_BYTES := func_800021A4=0x00000000,0x0000
 build/src/kernel/kernel_000.c.o: SUFFIX_BYTES_FORCE := func_800000B0=0x00000000
 build/src/kernel/kernel_000.c.o: PREFIX_BYTES := \
 	func_80000568=0x00000000,0x00001025,0x8FBF0024,0x8FB00014,0x8FB10018,0x8FB2001C,0x8FB30020
-build/src/game_libs/game_libs_post.c.o build/non_matching/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8 gl_func_0002D620=8 gl_func_0002DEA4=8 gl_func_0002DF38=8 gl_func_0002D8A8=8 gl_func_0002D838=8 gl_func_0002D870=8 gl_func_00030598=8 gl_func_00027548=4 gl_func_000315C4=8 gl_func_00023598=12 gl_func_0002DC7C=8 gl_func_00023078=8
+build/src/game_libs/game_libs_post.c.o build/non_matching/src/game_libs/game_libs_post.c.o: PROLOGUE_STEALS := gl_func_0001FCD0=8 gl_func_0006BA0C=8 gl_func_0006BE6C=8 gl_func_00066810=8 gl_func_0002D620=8 gl_func_0002DEA4=8 gl_func_0002DF38=8 gl_func_0002D8A8=8 gl_func_0002D838=8 gl_func_0002D870=8 gl_func_00030598=8 gl_func_00027548=4 gl_func_000315C4=8 gl_func_00023598=12 gl_func_0002DC7C=8 gl_func_00023078=8 gl_func_00064174=4
 
 # INSN_PATCH := <func>=<offset>:<word>[,<offset>:<word>] — overwrite N specific
 # instruction words in a function body post-cc, without changing function size

@@ -278,6 +278,11 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
         #               gl_func_00027548, where the stolen-prologue insn
         #               is `andi t6, a0, 0xFF` and the successor packs
         #               4 bytes into a Gfx-command word using t6).
+        #   0x11 = COP1: 1-insn `mtc1 $0, $fN` float-zero materialization
+        #               (PROLOGUE_STEALS=4 — predecessor's tail already
+        #               sets $fN=0.0, so the C-emit's duplicate mtc1 is
+        #               redundant and gets spliced). Only `mtc1 zero, $fN`
+        #               (word & 0xFFFF07FF == 0x44800000) is accepted.
         # INCLUDE_ASM .o first insn is the asm prologue (typically
         # 0x09=ADDIU `addiu sp, sp, -N`), which doesn't match either, so
         # the skip fires correctly.
@@ -287,7 +292,11 @@ def splice_prefix(o_path: Path, func_name: str, n_bytes: int, verify: bool):
         second_word = struct.unpack(">I", bytes(elf.data[text_off + 4:text_off + 8]))[0]
         opcode1 = (first_word >> 26) & 0x3F
         opcode2 = (second_word >> 26) & 0x3F
-        if opcode1 not in (0x0F, 0x23, 0x0C, 0x00):  # LUI / LW / ANDI / R-type — known prefix forms
+        if opcode1 == 0x11 and (first_word & 0xFFE007FF) != 0x44800000:
+            print(f"splice-skip: {func_name} starts with COP1 but not `mtc1 zero, $fN` "
+                  f"(word={first_word:#010x}); leaving as-is", file=sys.stderr)
+            return
+        if opcode1 not in (0x0F, 0x23, 0x0C, 0x00, 0x11):  # LUI / LW / ANDI / R-type / COP1(mtc1-zero) — known prefix forms
             print(f"splice-skip: {func_name} doesn't start with LUI/LW/ANDI/R-type "
                   f"(word={first_word:#010x}); leaving as-is "
                   f"(probably an INCLUDE_ASM build path)", file=sys.stderr)

@@ -9711,27 +9711,15 @@ void game_libs_func_00064124(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00064124);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00064174: 26-insn 10-float zero + 3-int-to-float bit-copy.
- *   a0[0..9] = 0.0f (10 floats)
- *   tmp[0..2] = a1[0..2]
- *   a0[10..12] = (float)tmp[0..2]  (bit-cast via stack round-trip)
- *
- * 94.08% — logic correct. The "$f0 = 0.0f for the zero stores" is NOT
- * an implicit-zero assumption: it is PROLOGUE-STOLEN from the immediate
- * predecessor game_libs_func_00064124, whose 0x50 symbol's trailing
- * `mtc1 zero,$f0` (last 4 bytes) materializes f0=0.0 for this entry.
- * CAP: cannot reach exact. PROLOGUE_STEALS=4 would splice the C-emit's
- * duplicate leading `mtc1 zero,$f0`, but splice-function-prefix.py
- * rejects COP1/mtc1 prefixes (opcode 0x11) — exactly the documented
- * limitation in docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-
- * only-splice-restriction (mtc1-led bullet, same as gl_func_00042338).
- * Residual after the unspliceable dup: frame -0x10 vs target -0x20 +
- * Vec3-temp stack offset. This is the 0x64124 mtc1-steal cluster
- * (64124 = SUFFIX holder, 64174 = stolen successor); both NM until the
- * splice script accepts opcode 0x11. INCLUDE_ASM is the build path. */
+ * $f0=0.0 prologue-stolen from predecessor game_libs_func_00064124's
+ * trailing `mtc1 zero,$f0`. PROLOGUE_STEALS=4 splices the C-emit's
+ * duplicate leading `mtc1 zero,$f0`. Splice script extended 2026-05-16
+ * to accept opcode 0x11 mtc1-zero prefixes. */
 void gl_func_00064174(float *a0, int *a1) {
+    int pad[3];
     int tmp[3];
+    (void)pad;
     a0[0] = 0.0f; a0[1] = 0.0f; a0[2] = 0.0f; a0[3] = 0.0f; a0[4] = 0.0f;
     a0[5] = 0.0f; a0[6] = 0.0f; a0[7] = 0.0f; a0[8] = 0.0f; a0[9] = 0.0f;
     tmp[0] = a1[0]; tmp[1] = a1[1]; tmp[2] = a1[2];
@@ -9739,9 +9727,6 @@ void gl_func_00064174(float *a0, int *a1) {
     a0[11] = *(float*)&tmp[1];
     a0[12] = *(float*)&tmp[2];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064174);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000641DC);
 
