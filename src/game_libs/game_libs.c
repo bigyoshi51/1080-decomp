@@ -267,6 +267,10 @@ void gl_func_0000127C(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000012B4);
 
+void game_libs_func_00001354(int *a0, int a1) {
+    a0[0x10C/4] = a1;
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000135C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000015FC);
