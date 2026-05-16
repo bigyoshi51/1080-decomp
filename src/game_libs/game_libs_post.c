@@ -4423,6 +4423,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D3C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D48C);
 
+int game_libs_func_0003D538(int a0, int a1, int a2) {
+    return 0;
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D54C);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D550);
 
 /* 25-insn alloc-if-null + init + zero-Vec3. Promoted 81.6%→100% via:
