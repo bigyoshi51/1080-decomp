@@ -872,7 +872,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008510);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000085B0);
 
+#ifdef NON_MATCHING
+/* 87.73% NM. gl_func_00008674: 11-insn (0x2C) struct-fnptr dispatch
+ * with hidden $v1 carry. Body:
+ *   t9 = a0->[0x64];          (fn pointer)
+ *   t6 = (s16)a0->[0x60];     (selector)
+ *   return t9(t6 + v1);       // v1 = caller's register, NOT a C-level param
+ *
+ * The `addu a0, t6, v1` at offset 0x18 (jalr delay) uses $v1 directly —
+ * an undeclared register at function entry. This is an alt-entry-fragment
+ * pattern where the caller pre-loads $v1 with an offset, then calls or
+ * falls through here. Plain-C signature `f(struct *a0, int v1)` would put
+ * `v1` in $a1 not $v1, mismatching.
+ *
+ * NM-wrap documents the structure; INCLUDE_ASM is the build path. Path
+ * to exact requires either inline-asm-injection (IDO doesn't support
+ * GCC __asm__) or PREFIX_BYTES+INSN_PATCH if the call site can be
+ * normalized. Defer until a sibling alt-entry pattern reveals the call
+ * convention. */
+extern int func_00000000();
+int gl_func_00008674(int *a0, int v1) {
+    int (*fn)(int) = (int(*)(int))a0[0x64/4];
+    int sel = (int)(*(short*)((char*)a0 + 0x60));
+    return fn(sel + v1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008674);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000086A0);
 
