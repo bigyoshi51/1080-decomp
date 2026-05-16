@@ -9971,7 +9971,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066AF0);
  *   func(a0);
  *   func(&D+0x41310, 1, &D, a0, &D+0x415C0, 1);
  *   D[0x414C0] = 0x12345678; D[0x414C4] = 0x12345678;
- *   func(&D + 0x41310); */
+ *   func(&D + 0x41310);
+ *
+ * 93% cap — address-materialization form (split-or-constant class,
+ * docs/IDO_CODEGEN.md#feedback-ido-split-or-constant). Target wants the
+ * data addrs as `lui rX,0x4; addiu rX,rX,LO` (arithmetic, no reloc,
+ * shared base reused for both magic stores via sw,DISP(base)). Three
+ * C forms tested 2026-05-16, all wrong:
+ *   1. `&D_00000000 + off` (extern reloc): %hi/%lo pair → spurious
+ *      `addiu rX,rX,0` (+1 insn, 29 vs 28).
+ *   2. `(void*)0xABS` literal: `lui;ori` (bitwise) not `lui;addiu`.
+ *   3. `&D_000414C0` absolute-symbol (undefined_syms): still %hi/%lo
+ *      reloc → same +0 addiu (absolute-symbol trick works for R_MIPS_26
+ *      jal targets, NOT for data %hi/%lo).
+ * No C form yields target's non-reloc arithmetic `lui;addiu`. Stays NM;
+ * INCLUDE_ASM is the build path. */
 extern int func_00000000();
 extern int D_00000000;
 void gl_func_00066B64(int *a0) {
