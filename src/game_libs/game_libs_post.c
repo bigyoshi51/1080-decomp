@@ -5537,9 +5537,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F6CC);
  *
  * Score 91.33% (was 87.6%). Improvement: pass a1 to the FIRST call
  * (per docs/IDO_CODEGEN.md#feedback-ido-unused-arg-fix-pass-to-callee)
- * suppresses the K&R unused-a1 spill. Remaining cap: 2-insn gap in
- * args-setup region around jal#5/6 — target has extra `addiu a0, sp,
- * 0x18` and `lw a0, 0xC0(sp)` not in my emit. */
+ * suppresses the K&R unused-a1 spill. Remaining cap (2-insn gap): the
+ * jal#6 arg setup is `addiu a0,sp,0x18` (DEAD, =&buf[0]) immediately
+ * overwritten by `lw a0,0xC0(sp)` (reload of a value spilled at
+ * sp+0xC0 — NOT the a0 param, which spills at sp+0xB8). 2026-05-16:
+ * jal#6 first-arg = `0` and = `a0` both tested — neither yields the
+ * dead-addiu + sp+0xC0 reload (a0 gives sp+0xB8 reload, no dead addiu;
+ * 0 gives move zero). The dead-then-reload is an IDO arg-scheduling
+ * artifact tied to whatever distinct value lives at sp+0xC0 (likely a
+ * call-result spill); needs full stack-flow trace, not a 1-line lever.
+ * Permuter/structural — deferred. */
 extern int func_00000000();
 int gl_func_0003F730(int *a0, int a1, int a2) {
     char buf[0xA0];
