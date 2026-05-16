@@ -9733,7 +9733,36 @@ void game_uso_func_00010FB8(int *a0) {
     game_uso_func_00000000(a0, v1, v2);
 }
 
+#ifdef NON_MATCHING
+/* 32-insn / 0x80 dual-call orchestrator on a0->B4-child:
+ *   a0->D0 = D[0xF48];
+ *   a0->D4 = D[0xF4C];
+ *   a0->B4->A58 &= ~4;          // clear bit 2 in B4-child's A58 field
+ *   gl_func_00000000(a0, D[0xE10], D[0xE14]);  // first call
+ *   gl_func_00000000(a0);                       // second call
+ *   a0->B4->960 = 0x64;          // = 100
+ *
+ * Initial decode 2026-05-16; structural shape only. Two USO data
+ * placeholders (D+0xF48/0xF4C and D+0xE10/0xE14) per
+ * docs/PATTERNS.md uso-multi-placeholder-wrapper. The asm has a
+ * double `lw a0, 0x18(sp)` at insns 24/25 (jal-delay + post-jal) —
+ * scheduler quirk likely. */
+extern int gl_func_00000000();
+extern char D_00000000;
+void game_uso_func_00011024(int *a0) {
+    int *p_B4 = *(int **)((char*)a0 + 0xB4);
+    *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF48);
+    *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF4C);
+    *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
+    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10),
+                     *(int*)((char*)&D_00000000 + 0xE14));
+    gl_func_00000000(a0);
+    p_B4 = *(int **)((char*)a0 + 0xB4);
+    *(int*)((char*)p_B4 + 0x960) = 0x64;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
 
