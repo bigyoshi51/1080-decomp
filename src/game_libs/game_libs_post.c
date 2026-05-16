@@ -2814,7 +2814,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035648);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000356FC);
 
-#ifdef NON_MATCHING
 /* gl_func_00035834: 24-insn fn-ptr dispatch with conditional assert.
  *   g = *(int**)&D_00000000;
  *   r = g->[0x48](a1, a2);
@@ -2840,9 +2839,6 @@ int gl_func_00035834(int a0, int a1, int a2) {
     (void)a0;
     return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035834);
-#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_0001E660;
