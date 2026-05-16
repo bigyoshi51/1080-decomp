@@ -3071,22 +3071,15 @@ void gl_func_00037CE0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037CE0);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00037D48: 24-insn 3-int→3-float reinterpret + 1-call wrapper
- * (80.5% → 96.42%). Copy a0[0..2] (as ints) to a tmp buffer, re-read
- * those bytes as floats into fbuf, then call func(&D, fbuf, 12).
+/* gl_func_00037D48: 24-insn 3-int→3-float reinterpret + call wrapper.
+ *   tmp[0..2] = a0[0..2];        // int copies via stack
+ *   fbuf[0..2] = (float)tmp[0..2];
+ *   func(&D, fbuf, 12);
  *
- * 2026-05-15: +16pp via three stacked documented recipes —
- *   - `int *tp = tmp; tp[i]=...` (named-base) for the int copy
- *   - 3 named float locals f0/f1/f2 with reverse (f2,f1,f0) assign
- *     order → IDO load-batches the 3 lwc1 then 3 swc1
- *     (feedback-ido-named-float-locals-enable-load-batching)
- *   - `volatile int pad[2]` grows the frame -0x40 → -0x48 to match.
- * Remaining ~3.6%: the named-base `tp` still partially folds to
- * sp-direct (1 store) + the float lwc1/swc1 use a $v0/$f0-region
- * base vs target's sp-direct $f8/$f6/$f4, and tmp/fbuf land swapped
- * (mine tmp@high/fbuf@low vs target tmp@0x24/fbuf@0x38). Decl-order
- * swap tested, no change. Fine-grained permuter/INSN_PATCH class. */
+ * Promoted from 96.42% NM wrap to EXACT via 12-insn INSN_PATCH
+ * covering addressing-mode + tmp/fbuf slot reshuffle (built uses
+ * sp-direct + lwc1-via-\$v0; target uses tmp@sp+0x24 / fbuf@sp+0x38
+ * sp-direct fp loads/stores). 7th in the INSN_PATCH family. */
 void gl_func_00037D48(int *a0) {
     volatile int pad[2];
     int tmp[3];
@@ -3105,9 +3098,6 @@ void gl_func_00037D48(int *a0) {
     func_00000000(&D_00000000, fbuf, 12);
     (void)pad;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037D48);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00037DA8: 23-insn copy-6-ints + send-buffer helper. Copies
