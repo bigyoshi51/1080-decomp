@@ -900,6 +900,27 @@ int gl_func_00008674(int *a0, int v1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008674);
 #endif
 
+/* game_libs_func_000086A0: 31-insn FPU-only updater on two adjacent floats
+ * at a0+0x550 (f550) and a0+0x54C (f54C). Decoded but NM cap 74.48% —
+ * below the 80% wrap threshold; kept as INCLUDE_ASM with the decode as
+ * a reference for future grinds.
+ *
+ * Pseudocode:
+ *   f550 = *(float*)(a0 + 0x550);
+ *   if (f550 < 4.0f) {
+ *     f550 = (float)((double)f550 + *(double*)(&D + 0xE58));  // double step
+ *     *(float*)(a0 + 0x550) = f550;
+ *     f550 = *(float*)(a0 + 0x550);  // reload (IDO emit quirk)
+ *   }
+ *   f54C = *(float*)(a0 + 0x54C);
+ *   *(float*)(a0 + 0x54C) = f54C - f550;
+ *   f54C = *(float*)(a0 + 0x54C);  // reload
+ *   if (f54C < 58.0f) {
+ *     *(float*)(a0 + 0x54C) = f54C + f550;
+ *     *(float*)(a0 + 0x550) = -(f550 / 4.0f);
+ *   }
+ *
+ * Structure correct, register allocation/scheduling diverges from target. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000086A0);
 
 /* gl_func_0000871C: 54-insn (0xD8) FPU-heavy float-ramp + indirect-call.
