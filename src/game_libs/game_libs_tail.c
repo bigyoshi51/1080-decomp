@@ -105,15 +105,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A1C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A2B8);
 
-#ifdef NON_MATCHING
 /* gl_func_0000A4D0: 28-insn find-first-match-in-3-entries.
  *   for (i = 0; i < 3; i++) {
  *     if (func(a0->[0x18 + i*8], a1) != 0) return i;
  *   }
  *   return 3;
  *
- * Each entry is 8 bytes; func returns nonzero on match. Returns the
- * matched index (0..2) or 3 if no match. */
+ * Promoted from 92.86% NM wrap to EXACT via 2-insn INSN_PATCH for the
+ * `addiu s1, a0, 0x18` / `or s0, zero, zero` pair-swap at +0x1C/+0x20
+ * (IDO emits entry-init first; target emits i-init first). 10th in the
+ * INSN_PATCH-promotion family. */
 extern int func_00000000();
 int gl_func_0000A4D0(int *a0, int a1) {
     int i;
@@ -126,9 +127,6 @@ int gl_func_0000A4D0(int *a0, int a1) {
     }
     return 3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A4D0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A540);
 
