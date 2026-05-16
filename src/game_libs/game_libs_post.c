@@ -4480,9 +4480,11 @@ int game_libs_func_0003D538(int a0, int a1, int a2) {
     return 0;
 }
 
+/* game_libs_func_0003D54C: splat mis-split the leading `lw t6,0x10(a0)` of
+ * gl_func_0003D550 into its own 0x4 symbol; gl_func_0003D550 read t6
+ * uninitialized. Merged into one 0x70 function at the true entry 0x3D54C
+ * (predecessor 0003D538 is a complete 5-insn arg-home stub). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D54C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D550);
 
 /* 25-insn alloc-if-null + init + zero-Vec3. Promoted 81.6%→100% via:
  * (1) `||` short-circuit alloc form (per gl_func_000378D0 recipe);
