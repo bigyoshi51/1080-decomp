@@ -9411,7 +9411,49 @@ void gl_func_00062E10(int *a0, int a1, int a2) {
     *(int*)((char*)v1 + a1*4 + 0xC) = a2;
 }
 
+/* gl_func_00062E80: 34-insn constructor (was bundled w/ 62F08+62F58, split 2026-05-16).
+ *   s0 = a0;
+ *   if (a0 == 0) { s0 = alloc(0xB0); if (!s0) return s0; }
+ *   init(s0, &D+0x22178);
+ *   s0->0x28 = &D+0;
+ *   v1 = s0 + 0x30;
+ *   if (s0 == (void*)-48) { v1 = alloc(4); if (!v1) goto L64; }
+ *   *v1 = 0;
+ * L64:
+ *   call(s0);
+ *   s0->0x58 = a1;
+ *   return s0;
+ * USO reloc convention: calls→func_00000000, data→&D_00000000+off (per 62E10).
+ * The s0==-48 sentinel is faithful to `bne s0, (addiu zero,-48)`. */
+#ifdef NON_MATCHING
+void *gl_func_00062E80(void *a0, int a1) {
+    void *s0 = a0;
+    if (a0 == 0) {
+        s0 = (void *)func_00000000(0xB0);
+        if (s0 == 0) return s0;
+    }
+    func_00000000(s0, (char *)&D_00000000 + 0x22178);
+    *(void **)((char *)s0 + 0x28) = (char *)&D_00000000 + 0;
+    {
+        int *v1 = (int *)((char *)s0 + 0x30);
+        if (s0 == (void *)-48) {
+            v1 = (int *)func_00000000(4);
+            if (v1 == 0) goto L64;
+        }
+        *v1 = 0;
+    }
+L64:
+    func_00000000(s0);
+    *(int *)((char *)s0 + 0x58) = a1;
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E80);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062F08);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062F58);
 
 extern int gl_func_00000000();
 void gl_func_00062F64(int a0) {
