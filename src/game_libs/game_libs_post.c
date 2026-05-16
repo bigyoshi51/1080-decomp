@@ -1886,7 +1886,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD30);
  * 2026-05-15 attempt: `int *p = &a0; (void)p;` to force save-arg-to-stack.
  *   Result: save emitted (32-byte size matches target), BUT placed at +0x14
  *   (between addiu and jr ra) instead of +0x0, AND still uses $t6/$t7.
- *   Both diffs are IDO scheduler decisions not reachable via natural C. */
+ *   Both diffs are IDO scheduler decisions not reachable via natural C.
+ *
+ * 2026-05-16 closure (size-sort re-roll; DOCUMENTED CAP — future size-sort
+ * /sibling rolls should SKIP, not re-grind):
+ *   - Natural body builds 7 insns vs target 8 (LEN-DIFF, missing the
+ *     leading `sw a0,0(sp)` arg-home-AT-ENTRY). Per
+ *     docs/PATTERNS.md#feedback-uso-no-frame-save-args-stub the entry
+ *     arg-home is an IDO emit gated on caller-reference / scheduler, not
+ *     C-reachable for a body-bearing leaf.
+ *   - INSN_PATCH NOT viable: it requires SAME-LEN; this is 1-short. The
+ *     only SAME-LEN variant (`&a0`) places the save at +0x14, which
+ *     shifts every subsequent insn -> high op-mismatch (whole-function
+ *     rewrite = the tautology trap, per
+ *     docs/POST_CC_RECIPES.md#feedback-insn-patch-screen-by-opmismatch-count).
+ *   - Remaining path is permuter only. Cap stands; INCLUDE_ASM. */
 extern int D_2DD38_byte;
 extern int D_2DD38_const;
 void game_libs_func_0002DD38(int a0) {
