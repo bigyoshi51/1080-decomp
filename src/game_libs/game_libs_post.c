@@ -1158,6 +1158,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BA38);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BAAC);
 
+#ifdef NON_MATCHING
+/* game_libs_func_0002BB58: 9-insn byte-to-float-scale leaf.
+ * `a0[0x2C] = (float)(a1 & 0xFF) * 127.0f`. NM 8/9 — likely 1-insn cap
+ * from `sw a1, 4(sp)` shadow store target has but C-only emits elsewhere. */
+void game_libs_func_0002BB58(int *a0, int a1) {
+    *(float*)((char*)a0 + 0x2C) = (float)(a1 & 0xFF) * 127.0f;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BB58);
+#endif
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
