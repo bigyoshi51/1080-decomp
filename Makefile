@@ -34,9 +34,6 @@ build/src/arcproc_uso/arcproc_uso.c.o: PREFIX_BYTES := arcproc_uso_func_00000000
 build/src/boarder5_uso/boarder5_uso.c.o: PREFIX_BYTES := boarder5_uso_func_00000000=0x1000736F
 build/src/eddproc_uso/eddproc_uso.c.o: PREFIX_BYTES := eddproc_uso_func_00000000=0x10006F00
 build/src/n64proc_uso/n64proc_uso.c.o: PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
-build/src/game_uso/game_uso.c.o: PREFIX_BYTES := \
-	game_uso_func_00007ABC=0x44801000,0x00000000 \
-	game_uso_func_00007A98=0x8C820030,0x8C430908,0x50600007,0x44801000,0xC46400BC,0xC44600BC,0x46062081
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
 build/src/game_libs/game_libs_post.c.o: PREFIX_BYTES := game_libs_func_0005AFB0=0x00000000
 build/src/gui_uso/gui_uso.c.o: PREFIX_BYTES := gui_func_00000000=0x1000736F,0xAFA40000
