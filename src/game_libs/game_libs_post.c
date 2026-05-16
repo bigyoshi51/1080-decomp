@@ -4405,20 +4405,19 @@ int* gl_func_0003CAA0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CAA0);
 #endif
 
-#ifdef NON_MATCHING
-/* game_libs_func_0003CB00: 11-insn no-frame leaf setter. NM 72% — $t-reg
- * choice cap (target uses $v0 for the 0xFFFF, $a3 for 4th arg sign-ext). */
+/* game_libs_func_0003CB00: 11-insn no-frame leaf setter. EXACT — key:
+ * shared `int v=0xFFFF` forces `ori v0,zero,0xffff` (a plain literal
+ * sign-extends to `addiu -1`), and the two 0xFFFF short stores must be
+ * emitted 0x16-before-0x14. */
 void game_libs_func_0003CB00(int *a0, int a1, int a2, short a3) {
+    int v = 0xFFFF;
     a0[0] = a1;
     a0[2] = a2;
-    *(short*)((char*)a0 + 0x14) = 0xFFFF;
-    *(short*)((char*)a0 + 0x16) = 0xFFFF;
+    *(short*)((char*)a0 + 0x16) = v;
+    *(short*)((char*)a0 + 0x14) = v;
     *(short*)((char*)a0 + 0xC) = a3;
     a0[4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003CB00);
-#endif
 
 /* 16-insn indirect dispatcher. Sibling of gl_func_0000DE30/DE80/DED0
  * (same `*p->[0x2C](*p->[0x28]+0x28+(int)p, &local)` shape; this variant
