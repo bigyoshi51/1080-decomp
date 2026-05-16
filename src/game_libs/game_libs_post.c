@@ -4583,6 +4583,31 @@ void gl_func_0003D71C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D71C);
 #endif
 
+/* gl_func_0003D7F8: 44-insn nullable-construct + init + optional quat copy.
+ * STRUCTURE VERIFIED at 73% fuzzy (peaked here; <80% so kept INCLUDE_ASM
+ * per CLAUDE.md). Decode (resume here next tick — do NOT re-derive):
+ *
+ *   int *gl_func_0003D7F8(int *a0, int a1, int a2, int *a3) {
+ *       if (a0 == 0) { a0 = func_00000000(0x58); if (!a0) goto end; }
+ *       func_00000000(a0, a1, a2);
+ *       *(int*)((char*)a0+0x28) = (int)&D_00000000;
+ *       if (a3 == 0) {                      // float identity
+ *           *(float*)(a0+0x4C)=0; *(float*)(a0+0x50)=0;
+ *           *(float*)(a0+0x48)=1; *(float*)(a0+0x54)=1; goto end;
+ *       }
+ *       a0[0x48..0x54] = a3[0..3];          // quat copy (fall-through)
+ *   end: return a0;
+ *   }
+ *
+ * Control flow, data refs, float identity {0x48=1,0x4C=0,0x50=0,0x54=1},
+ * shared epilogue (goto end) all byte-aligned. REMAINING GAP (~the only
+ * residual): target emits `bnel t8,zero,0x80; lw t1,0(t9)` (branch-likely,
+ * first copy load in delay) and double-loads the a3 home slot
+ * (`lw t8,36(sp); lw t9,36(sp)` — t8 for the null test, t9 as copy base);
+ * C-emit produces a plain `bne a3,zero` + single a3 reload. Needs
+ * branch-likely shaping (docs/IDO_CODEGEN bnel recipes) + forcing the
+ * spilled-param double-reload. ~1 insn short until bnel lands.
+ * USO convention: call -> func_00000000, data -> &D+off. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
