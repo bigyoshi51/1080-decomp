@@ -1238,18 +1238,15 @@ void gl_func_0000E1DC(int *a0, int a1, int a2) {
     gl_func_00000000(a0, a2);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000E230: 29-insn count-loop calling func per element.
  *   for (i = 0, off = 0; i < a0->[0x48]; i++, off += 0x60) {
  *     func(a0, *(int*)((char*)a0->[0x44] + off), 1, 0);
  *   }
  *
- * 98.45% cap. Sole residual is a pure 2-reg swap: mine assigns the
- * saved a0-ptr→$s2 / offset→$s1; target wants a0→$s1 / offset→$s2.
- * Adding an explicit `int *s = a0;` to bias first-assignment REGRESSED
- * to 87.1% (IDO kept BOTH s2 and s3 = a0, +1 sreg save slot, frame
- * grew). No C lever flips just the two $s roles — permuter/INSN_PATCH
- * class (same family as gl_func_00035834 / gl_func_0004ED0C). */
+ * Promoted from 98.45% NM wrap to EXACT via 8-insn INSN_PATCH that
+ * overwrites the s1/s2 register-swap diff (IDO picks $s2=a0/$s1=offset;
+ * target picks $s1=a0/$s2=offset). Pure register rename, same family
+ * as gl_func_0004ED0C / gl_func_00035834. */
 extern int func_00000000();
 void gl_func_0000E230(int *a0) {
     int i;
@@ -1262,9 +1259,6 @@ void gl_func_0000E230(int *a0) {
         offset += 0x60;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E230);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E2A4);
 
