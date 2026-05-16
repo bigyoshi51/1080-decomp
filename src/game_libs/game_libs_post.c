@@ -5779,7 +5779,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041524);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000415A4);
 
-#ifdef NON_MATCHING
 /* gl_func_00041768: 25-insn 3-call vtable-dispatch.
  *   func(0x1F5E4);
  *   vtable = self->[0x28];
@@ -5806,9 +5805,6 @@ void gl_func_00041768(int *self) {
     ((void(*)(int, int*))vtable[0x34/4])(*(short*)((char*)vtable + 0x30) + (int)self, &local);
     (void)pad;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041768);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000417CC);
 
