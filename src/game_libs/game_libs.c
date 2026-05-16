@@ -1117,3 +1117,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 
 /* game_libs_func_00039988 split 2026-05-15; INCLUDE_ASM/body lives in
  * game_libs_post.c next to parent gl_func_00039960. */
+
+/* game_libs_func_00035360 split 2026-05-15; INCLUDE_ASM lives in
+ * game_libs_post.c next to parent gl_func_00035338. */

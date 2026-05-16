@@ -2687,14 +2687,15 @@ void gl_func_0003523C(int a0, int a1, int a2) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035268);
 
-/* gl_func_00035338: 10-insn 1-call wrapper. Trailing 4 insns
- * (lui v0, 0; sw a0, 0(sp); jr ra; lw v0, 0(v0)) are an unsplit-by-splat
- * micro-function — appended via SUFFIX_BYTES. */
+/* gl_func_00035338: 10-insn 1-call wrapper. Split off 4-insn
+ * game_libs_func_00035360 (`return *D_X` with arg-shadow). */
 extern char D_35338_X;
 void gl_func_00035338(int a0) {
     gl_func_00000000(&D_35338_X);
     (void)a0;
 }
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035360);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
 
