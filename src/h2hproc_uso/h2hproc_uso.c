@@ -895,7 +895,14 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD
  * call at v0->[0x7C]*0x28 + 0x90 with a final wrapper call(a0).
  *
  * Multi-tick decompile — needs struct typing and indirect-call signature
- * to tighten beyond partial wrap.
+ * to tighten beyond partial wrap. 2026-05-16: 90.86%; the earliest
+ * divergence is IDO hoisting the INCR-path `0x2D0` clamp constant above
+ * the `<0xFF` conditional (target materializes it late, @body+0x44),
+ * cascading ~76 no-alias diffs from a 2-insn shift. Tested __asm__("")
+ * scheduling barrier before the >=0x100 clamp — REGRESSED (86 insns,
+ * +barrier insn). The cascade is structural (counter-clamp scheduling +
+ * the indirect-call arg typing), not a 1-line lever; defer to the
+ * struct-typing pass.
  *
  * 2026-05-07 fix (82.67% -> 87.62%, +4.95pp): the 3 gl_func gates were
  * wrong as `if (... == 0) return;` early-exits — target's branches all
