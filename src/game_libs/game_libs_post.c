@@ -7076,7 +7076,30 @@ void gl_func_0004DEF0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DEF0);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DF90);
+/* gl_func_0004DF90: 31-insn alloc-cascade constructor.
+ *   obj = alloc(24); if(!obj) goto end;
+ *   obj->[0x14] = &D; v1 = obj ?: alloc(20); if(!v1) goto end;
+ *   v1->[8]=5; v1->[0xC]=0; v1->[0]=alloc(20);
+ * end: a0->[0x134] = obj;
+ * Same goto-end alloc-if-null double-cascade as gl_func_0000B77C. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0004DF90(int *a0) {
+    void *obj = (void*)gl_func_00000000(24);
+    void *v1;
+    if (obj == 0) goto end;
+    *(int*)((char*)obj + 0x14) = (int)&D_00000000;
+    v1 = obj;
+    if (v1 == 0) {
+        v1 = (void*)gl_func_00000000(20);
+        if (v1 == 0) goto end;
+    }
+    *(int*)((char*)v1 + 8) = 5;
+    *(int*)((char*)v1 + 0xC) = 0;
+    *(int*)((char*)v1 + 0) = (int)gl_func_00000000(20);
+end:
+    *(int*)((char*)a0 + 0x134) = (int)obj;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
