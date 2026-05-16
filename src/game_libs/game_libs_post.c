@@ -9477,7 +9477,44 @@ void gl_func_0006382C(Quad4 *dst) {
     *dst = scratch;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00063884: 56-insn alloc-if-null constructor + 2 Vec3
+ * int->float copies. a0 ?: alloc(292); init call; a0->[0x28]=&D;
+ * a2 Vec3 -> a0->[0x10C..0x114]; a3 Vec3 -> a0->[0x118..0x120] (both
+ * via shared sp+0x2C int tmp); a0->[0x108]=a1.
+ *
+ * 73.25% CAP: the init call passes three single-precision float zeros
+ * — target `mtc1 zero,$f0; mfc1 a2,$f0; mfc1 a3,$f0; swc1 $f0,16(sp)`
+ * (4-byte) — but the file-scope K&R `extern int gl_func_00000000()`
+ * DOUBLE-PROMOTES the C `0.0f` literals: `cvt.d.s` + `sdc1` (8-byte)
+ * + extra insns (+3 length). Provably unmatchable per
+ * docs/IDO_CODEGEN.md#feedback-ido-knr-float-call (same cap class as
+ * gl_func_0005DB58 / gl_func_00063DC4). Logic fully decoded; the Vec3
+ * copies + struct stores ARE correct. INCLUDE_ASM is the build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void *gl_func_00063884(void *a0, int a1, int *a2, int *a3) {
+    int tmp[3];
+    if (a0 == 0) {
+        a0 = (void*)gl_func_00000000(292);
+        if (a0 == 0) return a0;
+    }
+    gl_func_00000000(a0, (char*)&D_00000000 + 0x22388, 0.0f, 0.0f, 0.0f);
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    tmp[0] = a2[0]; tmp[1] = a2[1]; tmp[2] = a2[2];
+    *(float*)((char*)a0 + 0x10C) = *(float*)&tmp[0];
+    *(float*)((char*)a0 + 0x110) = *(float*)&tmp[1];
+    *(float*)((char*)a0 + 0x114) = *(float*)&tmp[2];
+    tmp[0] = a3[0]; tmp[1] = a3[1]; tmp[2] = a3[2];
+    *(float*)((char*)a0 + 0x118) = *(float*)&tmp[0];
+    *(float*)((char*)a0 + 0x11C) = *(float*)&tmp[1];
+    *(float*)((char*)a0 + 0x120) = *(float*)&tmp[2];
+    *(int*)((char*)a0 + 0x108) = a1;
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063884);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063964);
 
