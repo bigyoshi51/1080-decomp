@@ -4625,7 +4625,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D71C);
  * USO convention: call -> func_00000000, data -> &D+off. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
 
+/* gl_func_0003D8A8: 27-insn — X1(0); v1=a0->0x40; if(v1){ ret=X2(ret+0x10,v1);
+ *   if (v1->0x14 != 0) v1->0x4 = 1; v1->0x14 = ret; } return ret;
+ * v1->0x14 store is the beql speculative double-emit (delay-likely on
+ * v1->0x14==0 taken + at fall-through) per
+ * docs/IDO_CODEGEN.md#feedback-ido-beql-speculative-store-double-emit.
+ * NM @83.07% (kept as wrap, ≥80%). Residual (LEN-DIFF, build 1 short of
+ * 27 — need SAME-LEN before any INSN_PATCH): the v1-null check emits
+ * `beql a1,zero` + ra-preload (separate early-return) vs target plain
+ * `beq v1,zero,0x58` to the shared epilogue, inflating frame 0x20->0x28;
+ * plus regalloc (target ret->a2, v1->v1; build ret->v1, v1->a1). Same
+ * branch-likely/regalloc class as gl_func_0003D7F8 — multi-tick;
+ * permuter or force-SAME-LEN-then-INSN_PATCH next.
+ * USO convention: call -> func_00000000, data -> a0[off]. */
+#ifdef NON_MATCHING
+int gl_func_0003D8A8(int *a0) {
+    int ret = func_00000000(0);
+    int *v1 = (int *)a0[0x40 / 4];
+    if (v1 == 0) goto end;
+    ret = func_00000000((char *)ret + 0x10, (int)v1);
+    if (v1[0x14 / 4] != 0) {
+        v1[0x4 / 4] = 1;
+    }
+    v1[0x14 / 4] = ret;
+end:
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D914);
 
