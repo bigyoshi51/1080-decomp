@@ -5975,24 +5975,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000422AC);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_00042338: 15-insn prologue-stolen successor of gl_func_000422AC.
- * Predecessor's final insn `mtc1 zero,$f0` (f0 = 0.0f, the LAST 4 bytes
- * of its 0x8C symbol) is logically this function's entry. Body:
- *   gl_func_00000000(&buf, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
- * (O32: the &buf ptr in a0 pushes the 7 floats into a1-a3 + stack via
- * mfc1/swc1, all = f0 = 0.0).
+/* 82.67% NM. gl_func_00042338: 15-insn prologue-stolen successor of
+ * gl_func_000422AC. Predecessor's final insn `mtc1 zero,$f0` is this
+ * function's stolen prologue. Body:
+ *   gl_func_00000000(&buf, 0.0f x7);
  *
- * CAP (2026-05-15): cannot reach exact. PROLOGUE_STEALS=4 is REJECTED by
- * scripts/splice-function-prefix.py — it only splices a leading
- * LUI/LW/ANDI/R-type word, but the C-emit's stolen-prologue dup here is
- * `mtc1 zero,$f0` (0x44800000), so the duplicate 0.0f-materialize can't
- * be removed (+1 insn, frame/scheduling shifted). A direct
- * gl_func_00000000(...) call also can't carry the 7 float args without a
- * prototype (file-scope decl is K&R `extern int gl_func_00000000()`;
- * a fn-ptr cast yields `jalr t9` not the target's direct `jal`).
- * Needs either a splice-script extension to handle mtc1-prefix steals,
- * or INSN_PATCH once a closer structural form is found. NM-wrap kept as
- * decoded reference; INCLUDE_ASM is the build path. */
+ * 2026-05-16 mtc1 splice cap closed: splice-function-prefix.py extended
+ * to accept opcode 0x11 mtc1-zero prefixes (docs/POST_CC_RECIPES.md
+ * sixth-extension). PROLOGUE_STEALS=4 now strips the duplicate leading
+ * `mtc1 zero,$f0` (76% → 82.67%).
+ *
+ * Remaining cap (~17pp): the file-scope `extern int gl_func_00000000();`
+ * K&R prototype prevents a typed redecl in this function's scope —
+ * IDO 7.1 rejects with "Incompatible function return type" even for
+ * block-scope `extern void gl_func_00000000(void*, float, ...)`. The
+ * fn-ptr cast workaround emits `lui t9 / addiu t9 / jalr t9` (3-insn
+ * indirect call) instead of target's single `jal` direct call — net
+ * +2 insns. INSN_PATCH cannot fix size-count diffs. To close: introduce
+ * an alias undefined-fn (`func_42338_callee = gl_func_00000000`) in
+ * the linker script so a fresh-name typed extern can be used without
+ * the K&R conflict, while the reloc still resolves to the same target.
+ * Pursue when the alias mechanism is in place. */
 extern int gl_func_00000000();
 void gl_func_00042338(void) {
     int local[16];
