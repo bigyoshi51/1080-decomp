@@ -505,7 +505,42 @@ void func_00002214(char *a0) {
     func_00001C10((int*)(a0 + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* func_00002244: alloc + init + entity-link. STRUCTURAL TWIN of
+ * func_00000C10 (identical asm shape & offsets) — same documented
+ * spill-pattern cap (~42%): target spills the 2nd func() result to
+ * sp+0x1C and reloads it for the field stores (sw v0,0x1C(sp); lw
+ * a0,0x1C(sp)); C-emit keeps it in a reg (1 insn short, 35 vs 36) and
+ * IDO won't introduce the spill from logic-correct C. `&arg0`
+ * arg-spill lever tested — did not add the missing spill. See
+ * func_00000C10 NM note. Decoded reference; INCLUDE_ASM is the build
+ * path. */
+extern int func_00000000();
+void *func_00002244(int *arg0) {
+    void *o = (void*)func_00000000(0x40);
+    void *v1;
+    void *e;
+    if (o != 0) {
+        o = (void*)func_00000000(o);
+        *(int*)((char*)o + 0x28) = (int)&D_00000000;
+        *(int*)((char*)o + 0x3C) = 0;
+    }
+    v1 = o;
+    e = *(void**)((char*)arg0 + 0x40);
+    if (e != 0) {
+        void *r = (void*)func_00000000((char*)o + 0x10, e);
+        if (*(int*)((char*)r + 0x14) == 0) {
+            *(int*)((char*)r + 0x14) = (int)v1;
+        } else {
+            *(int*)((char*)r + 4) = 1;
+            *(int*)((char*)r + 0x14) = (int)v1;
+        }
+    }
+    return v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002244);
+#endif
 
 void func_000022E0(int *dst) {
     int buf[2];
