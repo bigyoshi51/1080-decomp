@@ -9481,7 +9481,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063884);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063964);
 
+#ifdef NON_MATCHING
+/* gl_func_00063DC4: 48-insn alloc-if-null constructor + Vec3-magnitude.
+ *   s0 = a0 ?: alloc(368); if(!s0) return s0;
+ *   gl_func_00000000(s0, &D+0x22390, 0.0f, 0.0f, 0.0f);  // a2/a3/sp16=0
+ *   s0->[0x28] = &D_00000000;
+ *   s0->[0x16C] = a1;
+ *   gl_func_00000000(s0, a2, a3, <sp+0x38>);
+ *   gl_func_00000000(s0);
+ *   s0->[0x164] = gl_func_00000000(a2*a2 + a3*a3 + <f>*<f>);  // jal#4
+ *   return s0;
+ *
+ * CAP: jal#4 passes a single float (the magnitude²) to the file-scope
+ * K&R `extern int gl_func_00000000()` via DIRECT jal — provably
+ * unmatchable per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call
+ * (float→double promote / prototype-redecl cfe error / fn-ptr-cast
+ * yields jalr). Same cap as gl_func_0005DB58. The early float-zero
+ * args (jal#1) ARE matchable (GPR-passed after the ptr, like
+ * gl_func_0000BBF0) — only jal#4 is the blocker, making the whole
+ * function NM. INCLUDE_ASM is the build path (ROM byte-exact). */
+extern int gl_func_00000000();
+void *gl_func_00063DC4(void *a0, int a1, float a2, float a3) {
+    void *s0 = a0;
+    if (s0 == 0) {
+        s0 = (void*)gl_func_00000000(368);
+        if (s0 == 0) return s0;
+    }
+    gl_func_00000000(s0, (char*)&D_00000000 + 0x22390, 0.0f, 0.0f, 0.0f);
+    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)s0 + 0x16C) = a1;
+    gl_func_00000000(s0, a2, a3, 0);
+    gl_func_00000000(s0);
+    *(float*)((char*)s0 + 0x164) =
+        gl_func_00000000(a2 * a2 + a3 * a3 + 0.0f);
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063DC4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
 
