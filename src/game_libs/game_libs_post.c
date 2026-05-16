@@ -8688,12 +8688,29 @@ void gl_func_0005DB0C(int a0, int a1, float f14_arg) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB0C);
 #endif
 
+#ifdef NON_MATCHING
 /* gl_func_0005DB58: 22-insn float wrapper.
- *   r = func1(a2[0]*a2[0] + a2[2]*a2[2]);    // jal#1 — sqrtf-style
- *   return func2(a0, a1, bits_of_r, *(int*)&a2[1]);
- * Naive C body scores 71.8% (frame off by +8, mul.s+add.s order swap,
- * spurious cvt.d.s from IDO widening to double). Deferred. */
+ *   r = gl_func_00000000(a2[0]*a2[0] + a2[2]*a2[2]);  // jal#1, float
+ *                                                     // arg in $f12
+ *   gl_func_00000000(a0, a1, bits_of_r, *((int*)a2 + 1));  // jal#2
+ *
+ * CAP (documented, not a deferral): jal#1 passes a single float arg to
+ * the file-scope K&R `extern int gl_func_00000000()` via DIRECT `jal`.
+ * Per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call this is provably
+ * unmatchable from C: K&R promotes float→double (spurious `cvt.d.s` —
+ * the 71.8% prior result), a `(float)` prototype redecl is a cfe error
+ * ("not compatible after default argument promotion"), and a fn-ptr
+ * cast yields `jalr $t9` not the target's direct `jal`. No C form
+ * exists. NM kept as decoded reference; INCLUDE_ASM is the build path
+ * (ROM byte-exact). */
+extern int gl_func_00000000();
+void gl_func_0005DB58(int a0, int a1, float *a2) {
+    float r = gl_func_00000000(a2[0] * a2[0] + a2[2] * a2[2]);
+    gl_func_00000000(a0, a1, r, *((int*)a2 + 1));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB58);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
 
