@@ -1179,10 +1179,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BAAC);
 
 #ifdef NON_MATCHING
 /* game_libs_func_0002BB58: 9-insn byte-to-float-scale leaf.
- * `a0[0x2C] = (float)(a1 & 0xFF) * 127.0f`. NM 8/9 — likely 1-insn cap
- * from `sw a1, 4(sp)` shadow store target has but C-only emits elsewhere. */
+ * `a0[0x2C] = (float)(a1 & 0xFF) / 127.0f`.
+ *
+ * 2026-05-16: prior wrap said `* 127.0f` (8/9 cap). Funct decode of
+ * insn @+0x18 (0x46083283) is 0x03 = div.s, NOT mul.s — corrected to
+ * `/ 127.0f`. C-only emit drops to 32 bytes vs target 36; missing
+ * `sw a1, 0x4(sp)` at +0x0 (arg-save sentinel that IDO doesn't emit
+ * for non-spilling andi of a1). Same class as feedback-ido-arg-shadow-
+ * spill-not-emitted (e.g. game_libs_func_0002DD38). */
 void game_libs_func_0002BB58(int *a0, int a1) {
-    *(float*)((char*)a0 + 0x2C) = (float)(a1 & 0xFF) * 127.0f;
+    *(float*)((char*)a0 + 0x2C) = (float)(a1 & 0xFF) / 127.0f;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BB58);
