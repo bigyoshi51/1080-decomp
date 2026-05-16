@@ -3698,7 +3698,6 @@ int *gl_func_00039A04(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A04);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00039A9C: 28-insn helper.
  *   gl_ref_0004C2DC(&buf);              alt-entry into gl_func_0004C288
  *   a0->[0x5C..0x64] = buf[0..2]         Vec3 copy
@@ -3742,9 +3741,6 @@ void gl_func_00039A9C(int *a0) {
         ((void(*)(int, int*))vt[0x2C/4])(*(short*)((char*)vt + 0x28) + (int)a0, &sp_arg);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A9C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00039B0C: 19-insn float-Vec3-copy + 2 alt-entry jal dispatches.
