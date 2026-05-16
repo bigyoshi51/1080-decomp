@@ -767,7 +767,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026B48);
 
-#ifdef NON_MATCHING
 /* game_libs_func_00026BD8: ring-buffer push. head=u8 D[0x53B8],
  * cap=u8 D[0x53B9], 8-byte entries at D+0x5430+head*8 = {a0, *a1}.
  * Advance head; if buffer would be full (cap == (u8)(head+1)) roll
@@ -796,9 +795,6 @@ void game_libs_func_00026BD8(int a0, int *a1) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026BD8);
-#endif
 
 extern int gl_ref_0003B244();
 void gl_func_00026C24(int a0, int a1) {
