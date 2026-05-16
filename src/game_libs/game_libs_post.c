@@ -2495,7 +2495,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000337AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033880);
 
+#ifdef NON_MATCHING
+/* gl_func_0003395C: prologue-stolen successor of gl_func_00033880.
+ * Predecessor tail computes v0 = &D + a0*68 and t8 = v0->[0x3C]
+ * (7 insns, 0x1C bytes). With PROLOGUE_STEALS=28 the splice fires and
+ * the logic is correct, but only 73.77% (19/22 insns): IDO does NOT
+ * reproduce the target's spill/reload of the call-return ptr to a fixed
+ * slot sp+0x1C after EACH gl_func call (target `sw v0,28(sp); lw
+ * v0,28(sp)` x2, ~3 missing insns); it copies v0->v1 / keeps in reg
+ * instead. Also &local at sp+0x20 vs target sp+0x24. Next-run levers:
+ * force the call-result through a spilled stack local across the 2nd
+ * call (the documented call-result-respill pattern), or INSN_PATCH the
+ * 2 jal literals + the spill/offset insns once the structure is closer.
+ * Kept NM (PROLOGUE_STEALS reverted — only valid for exact); INCLUDE_ASM
+ * is the build path.
+ *   base = &D + a0*68;
+ *   if (base->[0x3C] == 0) return;
+ *   p = gl_func_00000000(base + 0x18, &local, 1);
+ *   if (p->[0x40] != 0) { p = gl_func_00000000(p->[0x34], p->[0x38]); }
+ *   p->[0x3C] = 0;     (beqzl: t9==0 arm sets p->[0x3C]=0 directly) */
+extern int gl_func_00000000();
+void gl_func_0003395C(int a0) {
+    char *base = (char*)&D_00000000 + a0 * 68;
+    int local;
+    char *p;
+    if (*(int*)(base + 0x3C) == 0) {
+        return;
+    }
+    p = (char*)gl_func_00000000(base + 0x18, &local, 1);
+    if (*(int*)(p + 0x40) != 0) {
+        p = (char*)gl_func_00000000(*(int*)(p + 0x34), *(int*)(p + 0x38));
+    }
+    *(int*)(p + 0x3C) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003395C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000339B4: 27-insn busy-wait + 2-call. Identical structure to
