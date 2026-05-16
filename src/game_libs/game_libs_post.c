@@ -4669,6 +4669,44 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
 #endif
 
+/* gl_func_0003D914: 38-insn — vtable-dispatched call then linked-list walk
+ * with a per-node vtable call.
+ *   save = a0->0x10;
+ *   v=a0->0x28; s0 = (*(v->0x84))((char*)a0 + (s16)v->0x80, 0);
+ *   if (!s0) return 0;
+ *   a0->0x34 = s0;
+ *   do { v=a0->0x28; (*(v->0x84))((char*)a0+(s16)v->0x80, s0)->stored@s0->0x2C;
+ *        node=save; nv=0;
+ *        if (node) { last=node; save=node->4; nv=node->0; }
+ *        s0=nv; } while (nv);
+ *   return s0;
+ * USO convention: vtable call is a real fn-ptr (not func_00000000).
+ *
+ * ASM-VERIFIED ALGORITHM (decode is correct; the C-codegen SHAPE is the
+ * open problem — resume here, do NOT re-read asm):
+ *   The per-node dispatch is: v0=a0->0x28; t9=v0->0x84; off=(s16)v0->0x80;
+ *   t9((char*)a0+off, arg). Called twice — pre-loop arg=0 (result->s0,
+ *   if 0 return), then a0->0x34=s0; loop: per node arg=s0, result stored
+ *   at s0->0x2C; advance: cursor=a0->0x10 (a STACK int @0x24sp, NOT a
+ *   reg-var); node=cursor; if(node){cursor=node->4; v1=node->0;} s0=v1;
+ *   while(v1).
+ *
+ * CODEGEN SHAPE (the hard part): target uses EXACTLY 2 saved regs —
+ * s1=a0 (object, whole-fn), s0=result/list-value (survives both calls) —
+ * and keeps the list cursor in a STACK slot (0x24sp), reloaded each
+ * iter. Everything else is t-regs (t6..t1,v1).
+ *
+ * NEGATIVE FINDINGS (verified ineffective 2026-05-16, do NOT re-try):
+ *   - pointer-typed locals for v/save/node + fn-ptr cast
+ *     `(*(int(**)(void*,int))((char*)v+0x84))` → 5 s-regs promoted
+ *     (s0..s4), frame 0x30 vs 0x28, 43 insns, 3.26%.
+ *   - `int cursor` + `(*(int(**)())(v0[0x84/4]))` → 47 insns, 0% (the
+ *     int-cast-to-ptr + bare fn-ptr cast bloats address calc further).
+ * The blocker is forcing exactly-2-s-regs + stack-cursor allocation;
+ * heavy casts over-promote. NEXT: try minimal-cast struct typing (a real
+ * vtable struct: `obj->vt->fn`, `obj->vt->off`) so the dispatch compiles
+ * tight, and keep only `a0` + one result var live across calls; or
+ * permuter the closest variant. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D914);
 
 void gl_func_0003D9AC(int *arg0) {
