@@ -8996,6 +8996,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061B30);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061BC8);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00061C88: 5-insn no-frame DLL-splice leaf. Has redundant
+ * `sw zero, 0x60(a1)` followed by `sw t6, 0x60(a1)` (overwrite). Likely
+ * `a1->next = NULL; a1->next = a0->next;` in source — IDO -O2 should CSE
+ * but didn't. Unmatched from plain C; no-frame leaf cap. */
+void game_libs_func_00061C88(int *a0, int *a1) {
+    a1[0x18] = 0;
+    a1[0x18] = a0[3];
+    a0[3] = (int)a1;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061C88);
+#endif
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061C9C);
 
 void gl_func_00061D1C(int *a0, int matchval) {
