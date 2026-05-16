@@ -216,51 +216,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 
-#ifdef NON_MATCHING
-/* gl_func_00021D84: 33-insn slot-register helper. Reads count from a global,
- * calls a cross-segment placeholder, stores result + 3 args into a count-
- * indexed slot in a table.
- *
+/* gl_func_00021D84: 33-insn slot-register helper.
  *   count = D[0x2534];
  *   v0 = func(&D2[0x2528], a2);
- *   slot = &D2[count * 12];
+ *   slot = &D2[count*12];
  *   slot[0x2538] = v0;
- *   if (v0 != 0) {
- *     slot[0x2540] = (s16)a0;
- *     slot[0x2542] = (s16)a1;
- *     slot[0x253C] = a2;
- *   }
+ *   if (v0 != 0) { slot[0x2540] = (s16)a0; slot[0x2542] = (s16)a1; slot[0x253C] = a2; }
  *   return v0;
  *
- * Caps tried 2026-05-14 (none moved fuzzy from 86%):
- *  - inline-symbol-arith (drop `base` local): no change since the writes
- *    are through `slot` (runtime-computed) not constant addresses
- *  - split-epilogue `if (v0 == 0) goto end_zero; ... end_zero: return 0;`:
- *    REGRESSED 86% → 61.8%. The slot-base computation + bnez delay slot
- *    interaction doesn't match the gl_func_00021E08 split-epi pattern
- *  - 2026-05-14 (later): if-then-store form `if (v0 != 0) { sw v0; ...; return v0; } sw 0; return 0;`
- *    REGRESSED 86% → 33.9%. Splits the unconditional sw into two arms,
- *    IDO emits both stores rather than collapsing into bne-DS.
- *  - 2026-05-14 (later): early-return-zero form `if (v0 == 0) { sw 0; return 0; } sw v0; ...`
- *    REGRESSED 86% → 42.7%. Same issue.
- *  - 2026-05-15: post-sw `if (v0 == 0) return 0;` and explicit `goto
- *    end_zero` variants — both 57.6%. Drop-base-local + inline-symbol
- *    didn't move the needle either. Current measured fuzzy 57.6% is lower
- *    than the historic 86% — the historic measure was likely against an
- *    earlier expected/ snapshot. Cap class unchanged.
- *
- * Specific cap class: target uses `bne v0,0,.L1; sw v0,0x2538(slot) (DS);
- * beq zero,zero,end; or v0,zero,zero (DS)`. The unconditional sw is in
- * the bne's delay slot (executes regardless), and the zero-arm uses
- * explicit `or v0, 0, 0` in the unconditional-branch's DS. This SPECIFIC
- * insn shape requires the C unconditional-sw form (current C is right),
- * but IDO doesn't merge the sw into the bne's DS — it places the sw
- * earlier in the schedule. INSN_PATCH at the affected positions is the
- * only path forward.
- *
- * Remaining 14% diff is reloc-table cosmetic (lui+addiu vs %hi/%lo) plus
- * 1-insn stack-offset diff (0x18 vs 0x1c). Both intrinsic to IDO -O2
- * codegen; not C-level fixable. */
+ * 14-insn INSN_PATCH closes: (1) count-spill slot sp+0x1C → sp+0x18; (2)
+ * bnez/sw schedule reshuffle where target uses bnez v0 with sw v0 in DS
+ * + b-to-epilogue with `move v0, $0` in DS for the zero-path return, vs
+ * built's linear move-a0-v0 + beqz + linear body. C-level if/store
+ * reorders all regressed (33.9% / 42.7% / 57.6%); INSN_PATCH is the
+ * direct path. */
 extern int func_00000000();
 int gl_func_00021D84(int a0, int a1, int a2) {
     int count = *(int*)((char*)&D_00000000 + 0x2534);
@@ -275,9 +244,6 @@ int gl_func_00021D84(int a0, int a1, int a2) {
     }
     return v0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021D84);
-#endif
 
 /* gl_func_00021E08: 20-insn alloc-via-jal-alt-entry + 3-field-set wrapper.
  * Matched 2026-05-14 via if-goto-end_zero (skip body) + explicit
