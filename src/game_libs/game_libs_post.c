@@ -7035,7 +7035,46 @@ void gl_func_0004DE88(int *a0, int a1, int a2) {
     }
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0004DEF0: 40-insn for-loop over a0->[0x38] elements.
+ *   for (i=0; i < a0->[0x38]; i++) {
+ *     gl_func_00000000(&D, a0->[0x30][i] + 112);
+ *     v = a0->[0x2C][i]; vt = v->[0x28];
+ *     (vt->[0x1C])((s16)vt->[0x18] + v);
+ *   }
+ * Logic byte-exact 40/40 insns; 14 diffs are ALL pure register-name
+ * swaps: target s2=a0-alias / s1=i, C-emit s1=a0-alias / s2=i (the
+ * IDO global-allocator allocno-order tie, decl/first-use-order
+ * driven), plus v/vt on $v1/$v0. Tested: self-alias + reordered
+ * v/vt + decl reorder REGRESSED (43 insns). 14/40 register-only =
+ * permuter-class, NOT INSN_PATCH (that fraction = the documented
+ * faking-the-function tautology trap, cf. game_libs_func_00026BD8 /
+ * func_800047B0). NM kept; INCLUDE_ASM is the build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0004DEF0(int *a0) {
+    int i;
+    int off;
+    if (*(int*)((char*)a0 + 0x38) > 0) {
+        i = 0;
+        off = 0;
+        do {
+            gl_func_00000000(&D_00000000,
+                *(int*)(*(int*)((char*)a0 + 0x30) + off) + 112);
+            {
+                int *v = *(int**)(*(int*)((char*)a0 + 0x2C) + off);
+                int *vt = (int*)*(int*)((char*)v + 0x28);
+                ((void(*)(int))*(int*)((char*)vt + 0x1C))(
+                    *(short*)((char*)vt + 0x18) + (int)v);
+            }
+            i++;
+            off += 4;
+        } while (i < *(int*)((char*)a0 + 0x38));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DEF0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DF90);
 
