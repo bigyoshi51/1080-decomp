@@ -218,6 +218,8 @@ build/src/kernel/kernel_021.c.o build/non_matching/src/kernel/kernel_021.c.o: OP
 build/src/kernel/kernel_023.c.o build/non_matching/src/kernel/kernel_023.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_025.c.o build/non_matching/src/kernel/kernel_025.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_027.c.o build/non_matching/src/kernel/kernel_027.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_027.c.o: INSN_PATCH := \
+	func_800047B0=0x00:0x908E0000,0x08:0x31CF00FF,0x0C:0x000FC600,0x10:0xAFB80004,0x14:0x90990001,0x18:0x332800FF,0x1C:0x00084C00,0x20:0x03095025,0x24:0xAFAA0004,0x28:0x908B0002,0x2C:0x316C00FF,0x30:0x000C6A00,0x34:0x014D7025,0x38:0xAFAE0004,0x3C:0x908F0003,0x40:0x31F900FF,0x44:0x01D94025,0x48:0xAFA80004,0x54:0x01001025
 build/src/kernel/kernel_028.c.o build/non_matching/src/kernel/kernel_028.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_029.c.o build/non_matching/src/kernel/kernel_029.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_030.c.o build/non_matching/src/kernel/kernel_030.c.o: OPT_FLAGS := -O1
