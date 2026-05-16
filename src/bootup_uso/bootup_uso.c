@@ -276,7 +276,49 @@ void func_00000BE0(char *a0) {
     func_00000008((int*)(a0 + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* func_00000C10: alloc + init + entity-link. Logic decoded (42.56%):
+ *   o = func(0x40);
+ *   if (o) { o = func(o); o->[0x28]=&D; o->[0x3C]=0; }
+ *   v1 = o;
+ *   e = arg0->[0x40];
+ *   if (e) { r = func(o+0x10, e);
+ *            if (r->[0x14]==0) r->[0x14]=v1;
+ *            else { r->[4]=1; r->[0x14]=v1; } }   // beql double-store
+ *   return v1;
+ * Residual: target uses a -0x28 frame spilling every value to fixed
+ * slots (sw/lw arg0@0x28, v0@0x1C, v1@0x24, a1@0x20) and reloading
+ * before each use — the -O0-style spill-everything pattern (cf.
+ * project_1080_bootup_uso_o0_runs); C-emit at this file's opt level
+ * keeps values in regs (-0x20 frame, 35 vs 36 insns). Multi-run: needs
+ * the per-function -O0 split (kernel-style file split + Makefile
+ * OPT_FLAGS:=-O0) OR forced spills. INCLUDE_ASM is the build path. */
+extern int func_00000000();
+void *func_00000C10(int *arg0) {
+    void *o = (void*)func_00000000(0x40);
+    void *v1;
+    void *e;
+    if (o != 0) {
+        o = (void*)func_00000000(o);
+        *(int*)((char*)o + 0x28) = (int)&D_00000000;
+        *(int*)((char*)o + 0x3C) = 0;
+    }
+    v1 = o;
+    e = *(void**)((char*)arg0 + 0x40);
+    if (e != 0) {
+        void *r = (void*)func_00000000((char*)o + 0x10, e);
+        if (*(int*)((char*)r + 0x14) == 0) {
+            *(int*)((char*)r + 0x14) = (int)v1;
+        } else {
+            *(int*)((char*)r + 4) = 1;
+            *(int*)((char*)r + 0x14) = (int)v1;
+        }
+    }
+    return v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000C10);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000CA0);
 
