@@ -6266,11 +6266,11 @@ void gl_func_00043EAC(int a0) {
     gl_func_00000000(a0, buf, 0x3E4, 0x3E8);
 }
 
-#ifdef NON_MATCHING
 /* game_libs_func_00043EF0: 11-insn struct-init leaf. Sets a0[0x10/0x14]
- * = (a2,a3) and copies 4 ints from a1[0..3] to a0[0..3]. NM 27% —
- * $t-register choice cap (target alternates $t7/$t6; IDO emits $t6..$t9
- * distinct each pair). Same class as t-register-swap-unreachable. */
+ * = (a2,a3) and copies 4 ints from a1[0..3] to a0[0..3]. Promoted from
+ * 96.36% NM wrap to EXACT via 8-insn INSN_PATCH for $t-register
+ * alternation (built picks t6/t7/t8/t9 distinct; target alternates
+ * t7/t6). */
 void game_libs_func_00043EF0(int *a0, int *a1, int a2, int a3) {
     a0[0x10/4] = a2;
     a0[0x14/4] = a3;
@@ -6279,9 +6279,6 @@ void game_libs_func_00043EF0(int *a0, int *a1, int a2, int a3) {
     a0[2] = a1[2];
     a0[3] = a1[3];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00043EF0);
-#endif
 
 extern int gl_func_00000000();
 extern int *gl_ref_00000254;
