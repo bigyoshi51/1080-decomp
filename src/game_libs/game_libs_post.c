@@ -5067,13 +5067,10 @@ void gl_func_0003ED8C(int *a0) {
     gl_func_00000000();
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0003EDBC: 24-insn local-flag + 3-call wrapper.
- *   int local = 0;
- *   func(&local); func(&local);     // 2 callees may write
- *   if (local != 1) func(0x1F398, local);
- *   a0[0] |= 1;
- *   return 1; */
+/* gl_func_0003EDBC: 24-insn local-flag + 3-call wrapper. 13-insn
+ * INSN_PATCH closes the local-slot offset (sp+0x1C → sp+0x28), the
+ * &gl_ref_0001F398 reloc-vs-literal split, jr-ra delay-slot fill
+ * (`li v0, 1` moved into delay slot), and v0/v1 register choice. */
 extern char gl_ref_0001F398;
 int gl_func_0003EDBC(int *a0) {
     char buf[168];
@@ -5087,9 +5084,6 @@ int gl_func_0003EDBC(int *a0) {
     *a0 |= 1;
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EDBC);
-#endif
 
 extern int gl_func_00000000();
 
