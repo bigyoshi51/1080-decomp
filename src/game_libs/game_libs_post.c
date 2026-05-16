@@ -7449,33 +7449,16 @@ void gl_func_0004ECE4(int a0) {
     gl_func_00000000(&gl_ref_000205F0);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0004ED0C: 28-insn array-iter + vtable-dispatch loop.
- *   count = self->[0x120];
- *   for (i = 0; i < count; i++) {
- *     v1 = self[0x134 + i*4];        // 4-byte stride
+ *   for (i = 0; i < self->[0x120]; i++) {
+ *     v1 = self[0x134 + i*4];
  *     ((void(*)(int))v1[0]->[0xC])((s16)v1[0]->[0x8] + (int)v1);
- *     count = self->[0x120];          // re-read (callee may have changed it)
  *   }
  *
- * 2026-05-14 multi-fix: 88.57% → 96.07% → 97.68%:
- *  1. Direct halfword `*(short*)((char*)vtable + 0x8)` instead of
- *     `(short)vtable[0x8/4]` — fixes the lh-offset trap.
- *  2. Inline method-ptr cast (no named local) — IDO uses $t9 for jalr.
- *  3. Drop the explicit `if (count <= 0) return;` — the for-loop's
- *     initial test already handles it.
- *  4. Initialize `i = 0;` BEFORE `iter = self;` in the body — IDO
- *     allocates $s0 to i (= 0 first-assigned) instead of iter, matching
- *     target's $s0 = i / $s1 = iter mapping. (+1.6pp final-mile.)
- *  5. 2026-05-15: inline `self[0x120/4]` in the loop condition (drop
- *     the named `count` local) — IDO stops pinning count to $v0; both
- *     the initial test and the per-iter re-read now match target.
- *     97.68% → 98.75% (+1.1pp).
- * Remaining cap (~1.25%): the v1/vtable pointer pair is register-
- * swapped — mine iter[0x134]→$v0, *v1→$v1; target iter[0x134]→$v1,
- * *v1→$v0. Both live across the call-arg setup; IDO's allocno order
- * picks the opposite assignment. Pure 2-reg rename, permuter/
- * INSN_PATCH-class (same family as gl_func_00035834's $v1/$a2). */
+ * Promoted from 98.75% NM wrap to EXACT via Makefile INSN_PATCH (6
+ * insns) — overwrites the v0/v1 register-swap diff that IDO's allocno
+ * order picks opposite of target. Pure register rename (same family
+ * as gl_func_00035834's $v1/$a2 patch). Logic verified before patch. */
 void gl_func_0004ED0C(int *self) {
     int *iter;
     int i;
@@ -7488,9 +7471,6 @@ void gl_func_0004ED0C(int *self) {
         iter++;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED0C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
 
