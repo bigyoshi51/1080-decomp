@@ -9520,7 +9520,40 @@ void *gl_func_00063DC4(void *a0, int a1, float a2, float a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063DC4);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00063E84: 44-insn config-registration (2 float entries).
+ *   gl_func_00000000(&D, &D+0x22398, 0);
+ *   gl_func_00000000(&D, &D+0x223A4, a0+0x150, 0, 2.0f, 1);
+ *   gl_func_00000000(&D, &D+0x223B0, a0+0x154, 0, 10.0f, 1);
+ *   gl_func_00000000(&D);
+ *   gl_func_00000000(a0);
+ * The two float consts (2.0f / 10.0f) are passed in the 5th (stack)
+ * arg slot as 4-byte `swc1 ,16(sp)` — single-precision, NOT
+ * K&R-double-promoted, so this is NOT the knr-float-direct-jal cap;
+ * but the file-scope K&R `extern int gl_func_00000000()` will
+ * double-promote a plain float literal (sdc1, 8B). Reaching exact
+ * needs the float bits passed as a 32-bit int (reinterpret) so a
+ * single 4-byte stack store is emitted. Trailing `lui at,0x4120;
+ * mtc1 a1,$f12; mtc1 at,$f4` in the symbol is the SUCCESSOR's stolen
+ * prologue. First-pass structural decode; INCLUDE_ASM is the build
+ * path (ROM byte-exact). */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00063E84(char *a0) {
+    union { float f; int i; } c2, c10;
+    c2.f = 2.0f;
+    c10.f = 10.0f;
+    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x22398, 0);
+    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x223A4,
+                     a0 + 0x150, 0, c2.i, 1);
+    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x223B0,
+                     a0 + 0x154, 0, c10.i, 1);
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063F40);
 
