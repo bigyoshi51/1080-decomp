@@ -6964,7 +6964,48 @@ void gl_func_0004DC08(char *a0, int *a1) {
     a1[0x18] = 0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0004DC44: 36-insn busy-wait + conditional init/cleanup.
+ *   if (a1) { if (D[0]) while (D[0]) ; r = gl_func_00000000(1); }
+ *   v = a0[0];
+ *   if (v == 0) gl_func_00000000(&D + 0x20330);
+ *   gl_func_00000000(v, a0);
+ *   if (a1) gl_func_00000000(r);
+ *   return v;
+ *
+ * 67% first-pass decode. Residuals: (1) the D[0] spin is an
+ * empty-body do-while -> branch-likely (target `lw t7; beq t7,0,L;
+ * lw t8; bnel t8,0,.-4; lw t8`) — needs the
+ * docs/IDO_CODEGEN.md#feedback-ido-empty-body-do-while-emits-branch-
+ * likely recipe; my `if(D[0])while(D[0]){}` emits 3 plain branches
+ * (+structure). (2) `r` is held in $a2 (`or a2,v0,zero`) vs target
+ * spilling to sp+0x18. (3) prologue `sw a1` / `beq a1` order. Multi-
+ * run. INCLUDE_ASM is the build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0004DC44(int *a0, int a1) {
+    int r = 0;
+    int v;
+    if (a1 != 0) {
+        if (*(int*)&D_00000000 != 0) {
+            while (*(int*)&D_00000000 != 0) {
+            }
+        }
+        r = gl_func_00000000(1);
+    }
+    v = a0[0];
+    if (v == 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x20330);
+    }
+    gl_func_00000000(v, a0);
+    if (a1 != 0) {
+        gl_func_00000000(r);
+    }
+    return v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DC44);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DCD4);
 
