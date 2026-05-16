@@ -2747,7 +2747,10 @@ void gl_func_00035338(int a0) {
     (void)a0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035360);
+extern int D_35360_X;
+int game_libs_func_00035360(int a0) {
+    return D_35360_X;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
 
