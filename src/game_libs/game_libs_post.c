@@ -7440,7 +7440,11 @@ void gl_func_00051774(unsigned char *a0, int a1) {
     gl_func_00000000(&gl_ref_00020EA0, a1, a0[0], a0[1], a0[2], a0[3]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000517B8);
+void gl_func_000517B8(int *a0, int a1) {
+    gl_func_00000000((char*)&D_00000000 + 0x20EB4, a1, a0[1], a0);
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000517E4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
 
