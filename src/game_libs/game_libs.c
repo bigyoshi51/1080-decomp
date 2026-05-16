@@ -183,6 +183,9 @@ int gl_func_00000EA4(char *a0, int arg1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000ED0);
 
+void game_libs_func_00000F9C(int a0) {
+}
+
 extern int gl_func_00000000();
 extern char gl_ref_0000CBF8;
 int gl_func_00000FA4(char *a0, int arg1) {
