@@ -767,7 +767,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026B48);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00026BD8: ring-buffer push. head=u8 D[0x53B8],
+ * cap=u8 D[0x53B9], 8-byte entries at D+0x5430+head*8 = {a0, *a1}.
+ * Advance head; if buffer would be full (cap == (u8)(head+1)) roll
+ * head back by 1 (reject the advance).
+ *
+ * 81.53% — logic fully decoded, 19/19 insns, 17 diffs ALL pure
+ * register-rename (same opcodes/offsets/structure). Target pins the &D
+ * base in $a2 and reuses it for every access incl. the conditional
+ * wrap-back store; IDO C-emit splits &D across $t0 + a fresh `lui $at`
+ * for the if-branch store. No C structure tested (single base var,
+ * typed-offset, struct-array) shifts the base-reg choice. This is a
+ * whole-function register-allocation cap — permuter-class, NOT
+ * INSN_PATCH (17/19 register-only patches = the documented
+ * faking-the-function tautology trap, cf. func_800047B0). NM kept;
+ * INCLUDE_ASM is the build path. */
+void game_libs_func_00026BD8(int a0, int *a1) {
+    char *base = (char*)&D_00000000;
+    int head = *(unsigned char*)(base + 0x53B8);
+    *(int*)(base + head * 8 + 0x5430) = a0;
+    *(int*)(base + head * 8 + 0x5430 + 4) = *a1;
+    {
+        int h1 = *(unsigned char*)(base + 0x53B8) + 1;
+        *(unsigned char*)(base + 0x53B8) = (unsigned char)h1;
+        if (*(unsigned char*)(base + 0x53B9) == (unsigned char)h1) {
+            *(unsigned char*)(base + 0x53B8) = (unsigned char)h1 - 1;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026BD8);
+#endif
 
 extern int gl_ref_0003B244();
 void gl_func_00026C24(int a0, int a1) {
