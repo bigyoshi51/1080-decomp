@@ -418,6 +418,11 @@ void timproc_uso_b1_func_000018D4(char *a0) {
 
 #ifdef NON_MATCHING
 /* timproc_uso_b1_func_00001908: 43-insn (0xB8) decrement-and-fire helper.
+ * 2026-05-16 cap: built 43 vs target 46 — target keeps `self` in $a3
+ * (loaded once from sp+0x18) and reloads only self->[0xD4] x3; C-emit
+ * reloads self per-deref, collapsing 3 insns. self-alias `int *s=self`
+ * REGRESSED (41 insns, further). Multi-insn structural reload/spill
+ * cap — LEN-DIFF blocks INSN_PATCH. Deferred.
  *
  *   gl_func(self);                           ; pre-call
  *   sub = self->[0xD4];
