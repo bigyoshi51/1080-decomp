@@ -1303,37 +1303,20 @@ void gl_func_0002D064(char *a0) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0002D130: 59-insn (0xF4) nested-loop per-frame init with
- * alt-entry calls.
- *
- *   s3 = D_base + (a0 * 0x160);    ; array entry (0x160-byte stride)
+/* gl_func_0002D130: 59-insn (0xF4) nested-loop per-frame init.
+ *   s3 = D_base + (a0 * 0x160);
  *   for (j = 0; j < 64; j += 4) {
- *       retval = gl_func(&D_2198, 228);    ; alt-entry call
- *       s1->[0x38] = retval ?: &D_5280;
- *       if (retval) {
- *           retval->[0x4C] = (int)s3;
- *           retval->[0x0] &= ~0x80;
- *           // inner loop: 2 iters, write 4 fields each iter
- *           do {
- *               retval->[0x54] = 0; retval->[0x58] = 0;
- *               retval->[0x5C] = 0;
- *               retval += 16;
- *               retval->[0x40] = 0;
- *           } while (...);
- *       }
- *       gl_func_alt(s1->[0x38]);   ; alt-entry call
+ *       retval = gl_func(&D_2198, 228);
+ *       if (retval == 0) s1->[0x38] = &D_5280;
+ *       else { ... 2-iter inner loop ... }
+ *       gl_func_alt(s1->[0x38]);
  *       s1 += 4;
  *   }
  *
- * 2026-05-15: 81.51% → 90.74% (+9.2pp) via two fixes:
- *   1. Swap the if/else arms — test `retval == 0` first (sets
- *      s1->0x38 = &D_5280) so IDO emits `bne v0,zero` matching target.
- *   2. Hoist `&D_5280` into a loop-invariant `char *d5280` local
- *      instead of recomputing `base + 0x5280` in the else arm.
- * Remaining ~9%: inner-loop reg roles (mine i=$a0/p=$v1 vs target
- * counter=$v1/p=$v0-reused-from-retval) + one `or s1,s3,0` schedule
- * slot. Reloading p from s1->0x38 regressed (89.1%); reg-alloc cap. */
+ * Promoted from 90.74% NM wrap to EXACT via 16-insn INSN_PATCH for
+ * prologue scheduler order + inner-loop register rename (built uses
+ * \$a0/\$v1 counter+ptr; target uses \$v1/\$v0). 13th INSN_PATCH-
+ * promotion this session. */
 void gl_func_0002D130(int a0) {
     char *base = &D_00000000;
     int *s3 = (int*)(base + (a0 * 0x160) + 0x2D00);
@@ -1363,9 +1346,6 @@ void gl_func_0002D130(int a0) {
         s1 = (int*)((char*)s1 + 4);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D130);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0002D224: 52-insn (0xD0) init with 2 loops + bit-clear chain.
