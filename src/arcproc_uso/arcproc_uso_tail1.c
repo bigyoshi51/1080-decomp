@@ -711,6 +711,29 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000014C
  * feedback_unique_extern_breaks_shared_base.md). */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001604);
 
+/* arcproc_uso_func_000016F4 - verified structural decode (~170-insn FPU
+ * render/update orchestrator; full s-reg save + 255.0f scale + 12
+ * sub-object calls + div + branch-likely = documented FP/spill sub-80
+ * ceiling -> INCLUDE_ASM build path; struct-typing reference).
+ *   s6=a0; s8=a1; s4=a2;  sp[312..324] = 1.0f;
+ *   if ((((int*)a0->0x528)->0x14 & 0x4) == 0) return;
+ *   n = (int)(255.0f * *(float*)(a0+0x77C));            // 0x437f scale
+ *   gl_func_00000000(&D, n, a0+0x2A8, a0+0x2CC);        // +680/+716 regions
+ *   gl_func_00000000(a0+0x74C);                          // +1868
+ *   m = ((int*)a0->0x75C)->0x20 / 12;                    // +1884, /12
+ *   gl_func_00000000(a0+0x704);                          // +1796
+ *   gl_func_00000000(a0+0x71C);                          // +1820
+ *   ... (continues: ~12 sub-object dispatch calls over s6=a0 +offset
+ *        regions, FPU-scaled args, per-element loop on m) ...
+ * Struct-typing: a0->0x528 ctx (->0x14 bit 0x4 = render-enable gate),
+ * a0->0x77C float (scaled x255 -> int count/alpha), and a cluster of
+ * sub-objects/regions at a0 + {0x2A8,0x2CC, 0x704,0x71C,0x74C,0x75C}
+ * (0x75C->0x20 / 12 = element count); the body dispatches
+ * gl_func_00000000 over these regions with FP-derived args. Caps <80:
+ * mul.s/trunc.w.s + div + 12-call s0-s8 spill frame (-328) + beql
+ * branch-likely + &D %hi/%lo reloc scheduling. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F4);
 
 /* arcproc_uso_func_0000199C — verified structural decode (~9%, LEN-DIFF
