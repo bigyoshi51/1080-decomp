@@ -674,7 +674,71 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002838);
 
+/* timproc_uso_b1_func_00002A8C — verified decode, 86=86 byte-identical
+ * structure, 83% (15 mismatches = ONE 5-insn pure-regalloc pattern repeated
+ * ×3 in the vtail). Sequence of gl_func_00000000(&D, mask) gates toggling
+ * s0->0x58, then a recurring vtable-dispatch tail:
+ *   obj=(int*)s0->0x48; s0->0x50=0; vt=(int*)obj->0x28;
+ *   (*(fn)vt->0x5C)( (short)vt->0x58 + (int)obj );
+ * Masks: 0x10001 (clear 0x58), 0x4002 (set 0x58=1), 0x40100 (branch:
+ * s0->0x58==0 → gl(5)+gl(&D,1)+obj->0xD8=0+vtail, else gl(2050)+vtail),
+ * 0x200 (gl(2050)+vtail). Caps at 83%: target allocs obj→$v0, vt→$v1;
+ * IDO gives obj→$v1, vt→$a1 — pure $v/$a regalloc in the repeated tail,
+ * structurally identical (opcodes/offsets/branch-likely all exact).
+ * Tried: function-scope vs block-local obj/vt locals (no change). This is
+ * IDO allocator-internal $v-vs-$a in a call-bearing non-leaf — a clean
+ * decomp-permuter target (NOT a structural cap; the 0/6 fleet conclusion
+ * is about structural caps, not this $v/$a shuffle). NM wrap; INCLUDE_ASM
+ * build path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void timproc_uso_b1_func_00002A8C(int *a0) {
+    int *s0 = a0;
+    if (gl_func_00000000(&D_00000000, 0x10001)) {
+        if (s0[0x58 / 4] != 0) {
+            gl_func_00000000(1);
+            s0[0x58 / 4] = 0;
+        }
+    }
+    if (gl_func_00000000(&D_00000000, 0x4002)) {
+        if (s0[0x58 / 4] == 0) {
+            gl_func_00000000(1);
+            s0[0x58 / 4] = 1;
+        }
+    }
+    if (gl_func_00000000(&D_00000000, 0x40100)) {
+        if (s0[0x58 / 4] == 0) {
+            int *obj;
+            int *vt;
+            gl_func_00000000(5);
+            gl_func_00000000(&D_00000000, 1);
+            *(int *)((char *)s0[0x48 / 4] + 0xD8) = 0;
+            obj = (int *)s0[0x48 / 4];
+            s0[0x50 / 4] = 0;
+            vt = (int *)obj[0x28 / 4];
+            ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)obj);
+        } else {
+            int *obj;
+            int *vt;
+            gl_func_00000000(2050);
+            obj = (int *)s0[0x48 / 4];
+            s0[0x50 / 4] = 0;
+            vt = (int *)obj[0x28 / 4];
+            ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)obj);
+        }
+    }
+    if (gl_func_00000000(&D_00000000, 512)) {
+        int *obj;
+        int *vt;
+        gl_func_00000000(2050);
+        obj = (int *)s0[0x48 / 4];
+        s0[0x50 / 4] = 0;
+        vt = (int *)obj[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)obj);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002A8C);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b1_func_00002BE4: 0xFC (63 insns) — sibling of the just-matched
