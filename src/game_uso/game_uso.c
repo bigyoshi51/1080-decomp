@@ -7676,6 +7676,34 @@ void game_uso_func_0000B498(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B4B8);
 
+/* game_uso_func_0000B750 — verified structural decode (77=77 length-exact,
+ * 9% bytes; IDO FPU-regalloc + double-const/reloc scheduling cap → <80 so
+ * INCLUDE_ASM build path; game_uso struct-typing reference).
+ * void f(int *a0, int *s0, float *a2, float *a3, float arg4 /@sp+104/){
+ *   int flags = a0->0x1C; float f0 = a0->0x00;
+ *   if (flags & 4) f0 += arg4 * 400.0f;            // 0x43c80000
+ *   float k = (flags & 8) ? arg4 : 1.0f;           // f16, branch-selected
+ *   *(float*)(&D + 0xD0) = a2[0] + a3[0]*f0;       // basis-vec mul-add out
+ *   *(float*)(&D + 0xD4) = a2[1] + a3[1]*f0;
+ *   *(float*)(&D + 0xD8) = a2[2] + a3[2]*f0;
+ *   *(short*)(s0 + 0xC0) = a0->0x18;
+ *   float v = a0->0x14;
+ *   if (a0->0x1C & 2) v *= k;
+ *   if ((double)v > *(double*)(&D + 0x158)) {       // ldc1/cvt.d.s/c.lt.d/bc1fl
+ *     *(float*)(s0+0xB0) = *(float*)(s0+0xB4) = v;
+ *     float buf[4] = { a0->0x04, a0->0x08, a0->0x0C, a0->0x10 * k };
+ *     func_00000000(&D, buf);                       // buf @ sp+64
+ *     int *vt = (int*)s0->0x40;                      // vtable-ish
+ *     (*(fn*)vt->0x1C)( (short)vt->0x18 + (int)s0 );  // jalr, a0=vt->0x18+s0
+ *   }
+ * }
+ * Struct-typing value — a0 source: floats @0x00/04/08/0C/10/14, int @0x18,
+ * flag word @0x1C (bits 0x2 scale-by-k, 0x4 scalar-offset, 0x8 k=arg-vs-1).
+ * s0 dest: short @0xC0, float pair @0xB0/0xB4, object ptr @0x40 whose +0x1C
+ * is a fn-ptr called with (+0x18 + s0). D globals: out vec @0xD0/D4/D8,
+ * double gate @0x158. Caps <80: FPU temp/reg allocation, bc1fl branch-likely
+ * to epilogue, double-const ldc1 + &D %hi/%lo scheduling. INCLUDE_ASM is the
+ * correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B750);
 
 void game_uso_func_0000B884(char *dst) {
