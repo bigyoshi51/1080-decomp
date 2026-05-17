@@ -90,6 +90,7 @@ extern OSPiHandle *D_8000A470[];
 extern s32 func_80004B30(void *);
 
 #define PI_REG(offset) (*(volatile u32 *)(0xA4600000 + (offset)))
+#define PI_HANDLE_TABLE ((OSPiHandle **)0x8000A470)
 
 /* func_800052F0: __osEPiRawStartDma - extended PI DMA setup with handle.
  * 24-insn entry block (0x60). Falls through into func_80005350 (116 insns
@@ -135,10 +136,21 @@ extern s32 func_80004B30(void *);
  * always emits prologue+epilogue at function boundary. See
  * docs/MATCHING_WORKFLOW.md#feedback-cross-function-epilogue-entry.
  *
+ * 2026-05-17 deep attempt: PI_HANDLE_TABLE hardcoding + late `dir` assignment
+ * forces the 0x30 frame, s0 save, absolute D_8000A470 base, and shared-tail
+ * split boundary. NON_MATCHING_TRUNCATE_TEXT=0x8C plus one boundary nop patch
+ * leaves only the two PI_STATUS_REG loads mismatched at object level: target
+ * has R_MIPS_HI16/LO16 relocations against D_A4600010, while the schedulable
+ * C shape emits absolute 0xA4600010 loads. The extern/reloc variants were
+ * tested but IDO schedules the D_A4600010 load before the argument spills (or
+ * emits a 3-insn address materialization), regressing the 0x60-byte prefix.
+ * Current NM object score: 99.166664%; no exact episode.
+ *
  * Default INCLUDE_ASM build remains exact. */
 s32 func_800052F0(OSPiHandle *handle, s32 direction, u32 cartAddr, void *dramAddr, s32 size) {
     u32 status;
     u32 domain;
+    register s32 dir;
     OSPiHandle *curHandle;
 
     status = PI_REG(0x10);
@@ -147,7 +159,7 @@ s32 func_800052F0(OSPiHandle *handle, s32 direction, u32 cartAddr, void *dramAdd
     }
 
     domain = handle->domain;
-    curHandle = D_8000A470[domain];
+    curHandle = PI_HANDLE_TABLE[domain];
     if (curHandle != handle) {
         if (domain == 0) {
             if (curHandle->latency != handle->latency) {
@@ -176,15 +188,16 @@ s32 func_800052F0(OSPiHandle *handle, s32 direction, u32 cartAddr, void *dramAdd
                 PI_REG(0x28) = handle->pulse;
             }
         }
-        D_8000A470[domain] = handle;
+        PI_HANDLE_TABLE[domain] = handle;
     }
 
     PI_REG(0x00) = func_80004B30(dramAddr);
     PI_REG(0x04) = (handle->baseAddress | cartAddr) & 0x1FFFFFFF;
 
-    if (direction == 0) {
+    dir = direction;
+    if (dir == 0) {
         PI_REG(0x0C) = size - 1;
-    } else if (direction == 1) {
+    } else if (dir == 1) {
         PI_REG(0x08) = size - 1;
     } else {
         return -1;

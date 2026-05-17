@@ -229,6 +229,8 @@ build/src/game_libs/game_libs_post.c.o: INSN_PATCH := \
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_005.c.o build/non_matching/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1
+build/non_matching/src/kernel/kernel_005.c.o: NON_MATCHING_INSN_PATCH := func_800052F0=0x60:0x00000000
+build/non_matching/src/kernel/kernel_005.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x8C
 build/src/kernel/kernel_007.c.o build/non_matching/src/kernel/kernel_007.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_009.c.o build/non_matching/src/kernel/kernel_009.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_011.c.o build/non_matching/src/kernel/kernel_011.c.o: OPT_FLAGS := -O1
