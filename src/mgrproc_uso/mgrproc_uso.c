@@ -1015,6 +1015,35 @@ check_max:
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002294);
 #endif
 
+/* mgrproc_uso_func_00002324 - verified structural decode (0xD8,
+ * 54 insns, one-shot FP state-advance / transition trigger).
+ *   void mgrproc_uso_func_00002324(void *a0) {
+ *       if (a0->0x7C4 != 0) return;               // already triggered
+ *       f32 x = a0->0x7A8, y = a0->0x7AC;
+ *       a0->0x7B0 = x;  a0->0x7B4 = y;            // snapshot prev
+ *       a0->0x7A8 = x + 4.0f;
+ *       a0->0x7AC = y - 4.0f;
+ *       a0->0x7BC = a0->0x7B8 / 2.0f;
+ *       a0->0x7C0 = 1.0f;
+ *       a0->0x7C4 = 1;                            // mark triggered
+ *       a0->0x7C8 -= 1;                           // countdown
+ *       gl_func_00000000(50);
+ *       if (a0->0x7C8 != 0) return;
+ *       a0->0x554 = 200.0f;  a0->0x558 = 160.0f;  // final pose
+ *       a0->0x55C = -64.0f;  a0->0x560 = 0.0f;
+ *       a0->0x564 = 120.0f;
+ *   }
+ * Struct-typing reference: a0->0x7C4 (1988) s32 = triggered latch
+ * (0 -> run once, set to 1); a0->0x7C8 (1992) s32 = repeat counter
+ * (decremented; 0 -> emit final pose); a0->0x7A8/0x7AC (1960/1964)
+ * f32 current (x,y) advanced by +4/-4 per trigger; a0->0x7B0/0x7B4
+ * (1968/1972) f32 = snapshot of prev (x,y); a0->0x7B8 (1976) f32
+ * source halved into a0->0x7BC (1980); a0->0x7C0 (1984) f32 = 1.0;
+ * final-pose block a0->0x554..0x564 (1364..1380) f32 =
+ * {200,160,-64,0,120}. Caps <80: FP div.s/add.s/sub.s + many
+ * lui+mtc1 const loads + bnel branch-likely (x2) + gl_func_00000000
+ * reloc call. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002324);
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000023FC);
