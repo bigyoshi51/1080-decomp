@@ -9168,8 +9168,11 @@ void game_uso_func_0000EE74(void *a0) {
  *   X(a0, a0->0xFC, 0, 1, 1, 1);
  *   X(a0, D[0xE98], D[0xE9C], 1, ...); X(a0);
  * beql: ==0 case (|=0x1D) load in delay slot. USO: call->func_00000000,
- * data->&D_00000000+off. */
-#ifdef NON_MATCHING
+ * data->&D_00000000+off.
+ *
+ * Byte-exact with Makefile INSN_PATCH + SUFFIX_BYTES_FORCE: C emits the
+ * correct control flow, but IDO misses the target's outgoing a1/a2 stack
+ * spills and picks different scratch regs in the D+0xE98 call tail. */
 void game_uso_func_0000EE84(int *a0) {
     int *p = (int *)a0[0xB4 / 4];
     int a1;
@@ -9187,9 +9190,6 @@ void game_uso_func_0000EE84(int *a0) {
                   *(int *)((char *)&D_00000000 + 0xE9C), 1);
     func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE84);
-#endif
 
 #ifdef NON_MATCHING
 /* 82.20% NM. 4-call wrapper. Logic: call gl_func(a0); call gl_func(a0, D_E40, D_E44);
