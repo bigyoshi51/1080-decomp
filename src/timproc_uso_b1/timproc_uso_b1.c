@@ -393,6 +393,34 @@ void timproc_uso_b1_func_00001130(int *self) {
     fn();
 }
 
+/* timproc_uso_b1_func_000011D8 — verified structural decode (EE84-family,
+ * 90 insns, 4% LEN-DIFF; branch-likely + FPU compares + D-consts + multi-
+ * call = documented sub-80 ceiling → INCLUDE_ASM build path; struct ref).
+ *   if (a0->0x500 == 0) return;
+ *   if (*(float*)&D <= 0.0f) return;
+ *   fv = *(float*)(a0+0x72C);
+ *   if (fv < *(float*)(&D+0x40)) *(float*)(a0+0x72C) = fv + *(float*)(&D+0x44);
+ *   s0->0x508 += 1;
+ *   v0 = (((int*)s0->0x528)->0x14 & 1) && s0->0x4FC &&
+ *        ((int*)((int*)(*(int*)(&D+0x138)))->0x44)->0x38 < 3;
+ *   if (v0) {
+ *     saved = gl_func_00000000(s0+0x6E4);
+ *     gl_func_00000000(saved, (int)(255.0f * *(float*)(s0+0x72C)),
+ *                       s0+0x2F0, s0+0x314);
+ *     if (s0->0x508 & 8) {
+ *       gl_func_00000000(saved, 160,160,3);
+ *       gl_func_00000000(s0, 140, ((int*)s0->0x6A8)->0x30); return;
+ *     }
+ *   }
+ *   gl_func_00000000(s0, 0, ((int*)s0->0x6A8)->0x30);
+ * Struct-typing: a0->0x500 enable gate, 0x72C float accumulator (clamped
+ * +D[0x44] while < D[0x40]), 0x508 frame counter (bit 0x8 tested), 0x528
+ * obj (->0x14 bit 0x1), 0x4FC flag, 0x6E4 sub-obj (gl arg), 0x6A8 obj
+ * (->0x30), 0x2F0/0x314 out bufs. D consts: [0]/[0x40]/[0x44] floats,
+ * [0x138] global ptr. The 255.0f*x trunc.w.s is a float→u8 quantize.
+ * Caps <80: beql/bc1fl branch-likely, c.le.s/c.lt.s FP compare, &D
+ * %hi/%lo reloc + spill scheduling — documented EE84-family ceiling.
+ * INCLUDE_ASM is the correct build path (no episode; tautology-trap). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D8);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001340);
