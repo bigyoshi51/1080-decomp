@@ -25,5 +25,7 @@ logs/
 # Expected .o files are checked in (see expected/) — do not ignore
 !expected/**/*.o
 
-# decomp-permuter scratch dirs (transient, per-function search state)
-nonmatchings/
+# decomp-permuter scratch dirs (transient, per-function search state).
+# Anchored at root so `asm/nonmatchings/` (the real splat-extracted asm
+# tree) isn't accidentally ignored.
+/nonmatchings/
