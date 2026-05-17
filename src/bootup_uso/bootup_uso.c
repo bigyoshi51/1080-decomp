@@ -1403,6 +1403,36 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000074E8);
  * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007620);
 
+/* func_000076F4 - verified structural decode (0xDC, 55 insns).
+ * Same FP transform/draw family as func_0000485C (shared globals:
+ * root *(func_0000023C+0x18), scratch vector func_00000080+0x20,
+ * scale consts Dc->0x128/0x12C/0x130, a global emit counter).
+ *   void func_000076F4(St *s0) {
+ *       root = *(void**)(func_0000023C + 0x18);
+ *       if (reloc_emit(root, 3, s0->0x5C, s0->0x60,
+ *                      s0->0x64, 0, s0->0x80 * s0->0x70) != 0) {
+ *           reloc_b(&D_x, &s0->0x2C);            // a1 = s0 + 0x2C
+ *           v = &func_00000080[0x20];
+ *           v->0x30 *= Dc->0x128;                // scale scratch vec
+ *           v->0x34 *= Dc->0x12C;
+ *           v->0x38 *= Dc->0x130;
+ *           v->0x34 += s0->0x6C;                 // y offset
+ *           reloc_c(s0);
+ *       }
+ *       (*(int*)&D_cnt)++;                       // global emit count
+ *   }
+ * Struct-typing reference: s0 = drawable/emitter object. s0->0x5C
+ * (92) / 0x60 (96) s32 params, s0->0x64 (100) f32 (stack arg),
+ * s0->0x70 (112) f32 * s0->0x80 (128) f32 = a derived f32 stack
+ * arg, s0->0x6C (108) f32 y-offset, s0+0x2C = a sub-struct pointer
+ * arg. root = *(func_0000023C+0x18) global context; func_00000080+
+ * 0x20 = shared f32 scratch vector {0x30,0x34,0x38} scaled per-frame
+ * by the Dc->0x128/0x12C/0x130 scale triple (same as func_0000485C).
+ * reloc_emit returns nonzero to proceed with the transform+draw.
+ * Caps <80: FP mul.s/add.s chains + 3x func_00000000 reloc calls +
+ * cross-symbol data refs (func_0000023C+0x18, func_00000080+0x20) +
+ * f32 stack-arg passing. Full body INCLUDE_ASM-preserved (.s =
+ * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000076F4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000077D0);
