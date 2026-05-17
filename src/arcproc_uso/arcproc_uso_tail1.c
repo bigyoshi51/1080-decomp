@@ -382,7 +382,6 @@ void arcproc_uso_func_00000F50(int a0, int a1) {
     gl_func_00000000(a0, a1 + 0x26000F);
 }
 
-#ifdef NON_MATCHING
 /* arcproc_uso_func_00000F78: 12-insn 2-level NULL-check.
  *
  * BOUNDARY FIX 2026-05-08: was a 9-insn F78 + 3-insn F9C cross-function
@@ -392,40 +391,19 @@ void arcproc_uso_func_00000F50(int a0, int a1) {
  * into F78's .s, deleted F9C.s, added `arcproc_uso_func_00000F9C =
  * 0xF9C;` to undefined_syms_auto.txt.
  *
- * Decoded C body below produces 12 insns at IDO -O2 with the right SIZE
- * but wrong SHAPE (28% fuzzy):
- *   built  uses `move v0,zero; beqz v1; nop` (eager-init + beq)
- *   target uses `beql v0,0,target / or v0,0,0 [delay-likely]` (lazy-init via beql delay)
- *
- * IDO -O2 doesn't emit beql for early-out NULL checks at this shape;
- * it prefers the eager-init form. Cap class: branch-likely-with-
- * delay-likely-init. C-level levers tested ineffective:
- *   - 2026-05-08: original `if (a && b->[..]) return 1; return 0;` form
- *   - 2026-05-17: separated `if (==0) return 0;` form (per docs/IDO_CODEGEN.md
- *     #feedback-ido-bnel-arm-swap) — identical eager-init emit
- *   - 2026-05-17: `goto end` shared-epilogue form — identical eager-init emit
- * Also a regalloc divergence: target uses t6 for first lw + v0 for second
- * (return reg shared with second deref); built uses v0 for first + v1 for
- * second. Permuter-class.
- * Fix paths:
- *   - INSN_PATCH for 10 insns (essentially rewriting the whole body)
- *   - permuter random-search for an alternate C shape that emits beql
- *
- * Default INCLUDE_ASM path produces correct bytes (post-merge .s). */
+ * Positive nested form matches the branch-likely structure and keeps the
+ * second deref/test temp in `t7` (per docs/IDO_CODEGEN.md branch-likely
+ * arm-choice guidance). */
 int arcproc_uso_func_00000F78(int *a0) {
     int *v;
-    int t;
     v = *(int**)((char*)*(int**)((char*)a0 + 0x6AC) + 0x6C);
-    if (v == 0) goto end;
-    t = *(int*)((char*)v + 0xEC);
-    if (t == 0) goto end;
-    return 1;
-end:
+    if (v != 0) {
+        if (*(int*)((char*)v + 0xEC) != 0) {
+            return 1;
+        }
+    }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F78);
-#endif
 
 /* arcproc_uso_func_00000FA8: 114-insn (0x1C8) state-machine dispatcher.
  * 3-way switch on a0->0x504 (state code) with cases 0, 1, 4 + default.
