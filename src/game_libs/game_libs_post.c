@@ -6419,6 +6419,10 @@ void gl_func_00046B64(int *a0) {
  *    for a single read-modify-write — verified 2026-05-15, both
  *    `int *p = ...; *p &= ~1` and `int *r=...; r[1]|=2` variants stay at
  *    84.68% / regress to 81.06%.
+ *  - 2026-05-16 follow-up: `volatile int *clear_flags = s0+0x1C4;
+ *    *clear_flags &= ~1` also stays byte-identical to the direct RMW
+ *    (84.68%); volatility alone does not force the `addiu v0,s0,0x1C4`
+ *    split without adding stack traffic.
  *  - 2026-05-16 source=2 sibling pass: explicit named-base + goto clear
  *    form does flip the final conditional from `beql` to plain `beq` and
  *    gets the true-arm `addiu v0,s0,0x138` delay slot, but the function is
