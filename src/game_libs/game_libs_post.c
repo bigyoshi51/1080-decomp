@@ -12382,12 +12382,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
  * specific extern wiring needs more inspection. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000732C4);
 
-/* game_libs_func_00073310: 6-byte fragment (1 nop pad + 5-insn VI-status
- * read leaf). Split off from gl_func_000732C4 tail 2026-05-17 via
- * split-fragments.py. Body @ +4: `return *(volatile int*)0xA4400010 & 1;`
- * (reads VI_BASE+0x10 status bit 0). Leading nop is alignment padding —
- * future splat refinement should drop the +0 nop and start the symbol at
- * the lui insn. */
+/* game_libs_func_00073310: 5-insn VI-status read leaf + leading nop pad.
+ * Body @ +4: `return *(volatile int*)0xA4400010 & 1;` (VI_BASE+0x10 bit 0).
+ *
+ * 2026-05-17: tested `int t = *p & 1; return t;` (IDO collapses to direct
+ * andi v0,v0,1) and `volatile int t = *p & 1; return t;` (forces -0x8
+ * frame + spill+reload, 9 insns vs target 5). Target uses intermediate
+ * `andi t7,v0,1; ... or v0,t7,zero` shape — likely an IDO -g3 emit (vs
+ * -g2 default) preserving intermediate temporary across the jr-ra delay.
+ * Needs -g3 per-function override (Makefile lever) or accept INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073310);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000732C4_pad.s")
 
