@@ -4,27 +4,30 @@ In progress 1080 Snowboarding decompilation, mostly driven by Claude. Uses https
 
 ## Status
 
-Nineteen segments are being decompiled. USO overlays ship as a custom relocatable format (some Yay0-compressed); we match pre-relocation bytes by splatting at `VRAM=0` with per-segment symbol prefixes (`gl_func_`, `gui_func_`, etc.).
+Twenty segments are being decompiled. USO overlays ship as a custom relocatable format (some Yay0-compressed); we match pre-relocation bytes by splatting at `VRAM=0` with per-segment symbol prefixes (`gl_func_`, `gui_func_`, etc.).
 
 `Matched` is the share of code bytes whose C body compiles to baserom byte-for-byte. `Fuzzy` is bytes-weighted partial credit: NM-wrapped C bodies that aren't byte-perfect contribute their per-instruction similarity (e.g., a 1 KB function at 80 % match adds ~800 bytes of fuzzy credit). Both metrics use a separate `build/non_matching/` tree compiled with `-DNON_MATCHING` so partial decomp work shows up in the report.
 
-| Segment        | Functions       | Code matched           | Matched   | Fuzzy     | Notes                                          |
-|----------------|-----------------|------------------------|-----------|-----------|------------------------------------------------|
-| `kernel`       | 95 / 224        | 9.1 KB / 39.4 KB       | 23.20 %   | 28.21 %   | libultra + USO loader + audio (`0x80000000`)   |
-| `bootup_uso`   | 197 / 359       | 11.2 KB / 81.6 KB      | 13.73 %   | 15.06 %   | Giles Goddard's libgdl engine                  |
-| `game_libs`    | 243 / 1,373     | 12.4 KB / 412.5 KB     | 3.02 %    | 3.81 %    | Support libraries — wrapper mass-match         |
-| `gui_uso`      | 10 / 24         | 0.8 KB / 18.1 KB       | 4.61 %    | 5.44 %    | GUI/menu helpers                               |
-| `titproc_uso`  | 21 / 43         | 1.8 KB / 10.5 KB       | 16.92 %   | 22.93 %   | Title-screen process (templates + composites)  |
-| `arcproc_uso`  | 20 / 50         | 1.4 KB / 10.4 KB       | 13.11 %   | 24.42 %   | Arcade-mode process                            |
-| `h2hproc_uso`  | 23 / 40         | 1.5 KB / 6.8 KB        | 22.67 %   | 43.55 %   | Head-to-head process                           |
-| `eddproc_uso`  | 12 / 15         | 0.7 KB / 1.1 KB        | 64.46 %   | 91.53 %   | Edit-mode process                              |
-| `n64proc_uso`  | 2 / 7           | 0.1 KB / 1.0 KB        | 6.02 %    | 63.18 %   | N64-specific process                           |
-| `boarder1..5_uso` | 29 / 30      | 1.9 KB / 1.9 KB        | 96.74 %   | 99.80 %   | Per-character snowboarder USOs                 |
-| `mgrproc_uso`  | 12 / 50         | 0.7 KB / 13.0 KB       | 5.67 %    | 7.37 %    | Manager process (Yay0-decompressed)            |
-| `game_uso`     | 80 / 226        | 4.5 KB / 70.8 KB       | 6.41 %    | 13.44 %   | Main game loop (Yay0-decompressed)             |
-| `timproc_uso_b1,b3,b5` | 77 / 224 | 4.3 KB / 81.3 KB       | 5.29 %    | 8.27 %    | Timer process variants (Yay0-decompressed)     |
-| `map4_data_uso_b2` | 3 / 3       | 0.2 KB / 0.2 KB        | 100.00 %  | 100.00 %  | Map-4 data block                               |
-| **Total**      | **847 / 2,666** | **52.4 KB / 748.7 KB** | **7.00 %**| **10.13 %**|                                               |
+| Segment                | Functions         | Code matched           | Matched    | Fuzzy      | Notes                                          |
+|------------------------|-------------------|------------------------|------------|------------|------------------------------------------------|
+| `kernel`               | 98 / 213          | 9.5 KB / 39.4 KB       | 24.02 %    | 31.98 %    | libultra + USO loader + audio (`0x80000000`)   |
+| `bootup_uso`           | 198 / 335         | 11.8 KB / 79.3 KB      | 14.94 %    | 19.77 %    | Giles Goddard's libgdl engine                  |
+| `game_libs`            | 472 / 1,483       | 26.9 KB / 410.9 KB     | 6.54 %     | 11.53 %    | Support libraries — wrapper mass-match         |
+| `gui_uso`              | 10 / 28           | 0.8 KB / 18.1 KB       | 4.61 %     | 8.11 %     | GUI/menu helpers                               |
+| `titproc_uso`          | 25 / 43           | 2.4 KB / 10.5 KB       | 22.37 %    | 42.93 %    | Title-screen process (templates + composites)  |
+| `arcproc_uso`          | 24 / 51           | 1.9 KB / 10.4 KB       | 17.89 %    | 29.97 %    | Arcade-mode process                            |
+| `h2hproc_uso`          | 23 / 40           | 1.5 KB / 6.8 KB        | 22.64 %    | 77.70 %    | Head-to-head process                           |
+| `eddproc_uso`          | 12 / 15           | 0.7 KB / 1.1 KB        | 64.46 %    | 91.53 %    | Edit-mode process                              |
+| `n64proc_uso`          | 2 / 7             | 0.1 KB / 1.0 KB        | 6.02 %     | 88.33 %    | N64-specific process                           |
+| `boarder1..4_uso`      | 24 / 24           | 1.6 KB / 1.6 KB        | 100.00 %   | 100.00 %   | Per-character snowboarder USOs (b1..b4 done)   |
+| `boarder5_uso`         | 5 / 6             | 0.3 KB / 0.4 KB        | 83.84 %    | 98.99 %    | Last snowboarder USO — 1 function left         |
+| `mgrproc_uso`          | 14 / 50           | 1.0 KB / 13.0 KB       | 7.66 %     | 25.26 %    | Manager process (Yay0-decompressed)            |
+| `game_uso`             | 89 / 234          | 5.0 KB / 71.1 KB       | 7.04 %     | 29.41 %    | Main game loop (Yay0-decompressed)             |
+| `timproc_uso_b1`       | 29 / 55           | 2.2 KB / 11.7 KB       | 19.08 %    | 28.90 %    | Timer process variant b1 (Yay0)                |
+| `timproc_uso_b3`       | 24 / 55           | 1.6 KB / 12.2 KB       | 12.99 %    | 24.46 %    | Timer process variant b3 (Yay0)                |
+| `timproc_uso_b5`       | 79 / 153          | 2.9 KB / 57.5 KB       | 4.97 %     | 10.81 %    | Timer process variant b5 (Yay0)                |
+| `map4_data_uso_b2`     | 3 / 3             | 0.2 KB / 0.2 KB        | 100.00 %   | 100.00 %   | Map-4 data block                               |
+| **Total**              | **1,131 / 2,795** | **70.3 KB / 745.1 KB** | **9.43 %** | **17.56 %**|                                                |
 
 Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
@@ -74,11 +77,13 @@ Use Ghidra by trigger only (struct shape unknown, function family >3, stuck <50%
 
 ## Game Structure
 
-1080 Snowboarding uses a **USO (Universal Shared Objects)** overlay system loaded at runtime:
+1080 Snowboarding uses a **USO (Universal Shared Objects)** overlay system loaded at runtime. The ROM has the kernel + two large always-resident USOs (`bootup_uso`, `game_libs`), then a bag of process-specific USOs (`game_uso`, `gui_uso`, `*proc_uso`, `boarder*_uso`, `timproc_uso_b*`) that are loaded/unloaded as gameplay state changes. Yay0-compressed USOs are decompressed at splat time.
 
-- **Kernel** (41 KB, 253 functions, VRAM `0x80000000`) — libultra, USO loader, audio
-- **bootup_uso** (82 KB, 359 functions, VRAM `0`) — libgdl game engine (C++, debug strings preserved)
-- **game_libs** (469 KB, 1,371 functions, VRAM `0`) — support libraries (stripped)
-- **mainuso** (13.6 MB) — compressed data modules (models, audio, textures)
+- **Kernel** (39 KB, 213 functions, VRAM `0x80000000`) — libultra, USO loader, audio
+- **bootup_uso** (79 KB, 335 functions, VRAM `0`) — libgdl game engine (C++, debug strings preserved)
+- **game_libs** (411 KB, 1,483 functions, VRAM `0`) — support libraries (stripped); biggest segment, the main grinding target
+- **game_uso** (71 KB, 234 functions, VRAM `0`) — main game loop (Yay0-decompressed)
+- **timproc_uso_b{1,3,5}** (12+12+58 KB, 263 functions total) — timer-process variants (Yay0)
+- **Other process USOs** (1–18 KB each) — `gui_uso`, `titproc_uso`, `arcproc_uso`, `h2hproc_uso`, `eddproc_uso`, `n64proc_uso`, `mgrproc_uso`, `boarder{1..5}_uso`, `map4_data_uso_b2`
 
-Both USO segments splat at synthetic `VRAM=0` to match unrelocated ROM bytes; distinct symbol prefixes (`func_` vs `gl_func_`) avoid linker collisions between them.
+All USOs splat at synthetic `VRAM=0` to match unrelocated ROM bytes; distinct symbol prefixes (`func_` vs `gl_func_` vs `gui_func_` vs `game_uso_func_` vs `<usoname>_func_`) avoid linker collisions across USOs while letting each share its own internal label scope.
