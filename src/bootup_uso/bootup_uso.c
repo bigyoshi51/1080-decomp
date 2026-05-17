@@ -914,6 +914,37 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003734);
  * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000038C0);
 
+/* func_000039D8 - verified structural decode (0x1A0, 104 insns,
+ * multi-stage builder chain). MEMBER of the func_000038C0 /
+ * func_00003734 builder-chain family (same alloc-0x80 + tagged-arg
+ * func_00000000 builder pattern; flags = global|1|0x10000|0x40000,
+ * tag 0x1B; s2 source, cfg = s2->0x98).
+ *   void func_000039D8(St *s2, int a1) {
+ *       o1 = alloc(0x80); if (!o1) return; init(o1, 1);
+ *       o2 = alloc(0x80); if (!o2) return; init(o2, 0);
+ *       register(&D, o1);  register(&D, o2, o1);
+ *       register(&D, o1, o2);
+ *       flags = (D_g->0x50 | 1) | 0x10000 | 0x40000;
+ *       cfg = s2->0x98;
+ *       r = build(s2, 0, D_g->0x4C, D_g->0x54,
+ *                 o1, s2->0x80, cfg->0xC4, cfg->0xCC,
+ *                 flags, 0x1B);                   // tagged block
+ *       ... (chain continues: more build() stages wiring o1/o2,
+ *           a1*0x1C-indexed descriptor table, final list-link &
+ *           r->0x8DC = result, as in func_00003734).
+ *   }
+ * Struct-typing reference (same family as func_000038C0 /
+ * func_00003734): s2->0x80 (128) pass-through handle; s2->0x98
+ * (152) -> cfg with f32 0xC4 (196) / 0xCC (204) builder params;
+ * D_g (a global, lui/addiu 0) ->0x50 (80) base flags OR'd with
+ * 0x1|0x10000|0x40000 feature bits, ->0x4C (76) / ->0x54 (84)
+ * global build params. o1/o2 = 0x80-byte builder objects
+ * cross-wired through the tagged func_00000000 builder. a1 indexes
+ * a 0x1C-stride descriptor table (per the family pattern). Caps
+ * <80: ~12 func_00000000 reloc + FP stack-arg passing + packed-
+ * flag lui/ori + a1*0x1C index + list-link beql. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003B78);
