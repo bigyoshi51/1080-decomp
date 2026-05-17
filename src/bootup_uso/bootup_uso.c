@@ -307,6 +307,37 @@ void *func_00000C10(int *arg0) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000CA0);
 
+/* func_00000D94 - verified structural decode (0xD4, 53 insns,
+ * FP-threshold-gated state update).
+ *   void func_00000D94(void *a0) {
+ *       g = &D_g;
+ *       if ((f64)g->0x2A0 < *(f64*)(func_00000044 + 0x2C)) {
+ *           reloc_a(g, &func_0000027C[0x18]);     // func_00000000
+ *           reloc_b(a0);                          // func_00000000
+ *           st = g->0x254;
+ *           if (a0->0x3C == 0)
+ *               *(int*)((char*)st + 0x78) &= ~4;  // clear bit 2
+ *           else
+ *               *(int*)((char*)st + 0x78) |=  4;  // set bit 2
+ *       } else {
+ *           st = g->0x254;
+ *           kv = (int*)&func_0000027C[0x18];
+ *           *(int*)((char*)st + 0x78) |= 4;       // set bit 2
+ *           st->0xDC = kv[0];  st->0xE0 = kv[1];  // copy 4-word block
+ *           st->0xE4 = kv[2];  st->0xE8 = kv[3];
+ *       }
+ *   }
+ * Struct-typing reference: g = *(&D_g) global; g->0x2A0 (672) f32
+ * value compared (promoted to f64) against the f64 constant at
+ * func_00000044+0x2C; g->0x254 (596) ptr to a state object whose
+ * +0x78 (120) is a flags word (bit 2 / mask 0x4 = an enable, set or
+ * cleared by a0->0x3C in the below-threshold path, always set in the
+ * at/above path) and +0xDC..+0xE8 (220..232) a 4x int param block
+ * filled from func_0000027C+0x18; a0->0x3C (60) selector. Caps <80:
+ * FP cvt.d.s + c.lt.d double-promote + ldc1 f64 const + bc1f branch
+ * + 2x func_00000000 reloc + 2x cross-symbol data ref. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000D94);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000E68);
