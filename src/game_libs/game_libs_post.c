@@ -5530,6 +5530,30 @@ void gl_func_0003EE50(int a0, int a1, int *a2, int a3, int a4, int a5) {
     func_00000000(&buf[0x00]);
 }
 
+/* gl_func_0003EEC0 - verified structural decode (27-insn br=0 deterministic
+ * stack-struct builder; IDO local sp-slot layout = sp-slot divergence class
+ * -> INCLUDE_ASM build path; struct-typing reference).
+ * void f(int *a0, int a1, float *a2, int a3, float arg4, int arg5){
+ *   struct B b;                       // local @ sp+24
+ *   gl_func_00000000(&b.sub);         // X1, a0 = &b + 8 (sp+32)
+ *   b.f0  = 2;                        // +0  (sp+24)
+ *   b.f72 = 2;                        // +72 (sp+96)
+ *   b.f76 = a2[0];                    // +76 float
+ *   b.f80 = a2;                       // +80 ptr
+ *   b.f88 = (float)a3;                // +88 (a3 reinterpreted float)
+ *   b.f92 = arg4;                     // +92 (caller sp+16)
+ *   b.f96 = arg5;                     // +96 (caller sp+20)
+ *   gl_func_00000000(&b);             // X2, a0 = &b (sp+24)
+ * }
+ * Struct-typing: builds a ~100-byte arg block B on the stack - int @0/72,
+ * float @76 (= *a2), ptr @80 (= a2), float @88 (a3-as-float), float @92
+ * (arg4), int @96 (arg5); a sub-struct at B+8 is filled by X1 first, then
+ * the whole block passed to X2. a1 unused (homed only). Caps: deterministic
+ * but IDO assigns the B local sp-slots (sp+24 base, fields +72..+96) by its
+ * own frame-layout rules - flat C struct/array does not reproduce the exact
+ * offsets/spill order (the documented sp-slot/stack-build divergence class,
+ * cf gl_func_00065250 / 372D4). br=0 but not the clean-episode subset.
+ * INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EEC0);
 
 #ifdef NON_MATCHING
