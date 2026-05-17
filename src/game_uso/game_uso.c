@@ -8741,7 +8741,34 @@ void game_uso_func_0000EE74(void *a0) {
     *(s32*)((char*)*(s32**)((char*)a0 + 0xB4) + 0x960) = 100;
 }
 
+/* game_uso_func_0000EE84: 39-insn init/reset.
+ *   p = a0->0xB4; *(float*)(p+0xA74)=0; *(float*)(p+0xA70)=0;
+ *   if (a0->0xB4->0x9CC != 0) a0->0xFC |= 0x24; else a0->0xFC |= 0x1D;
+ *   X(a0, a0->0xFC, 0, 1, 1, 1);
+ *   X(a0, D[0xE98], D[0xE9C], 1, ...); X(a0);
+ * beql: ==0 case (|=0x1D) load in delay slot. USO: call->func_00000000,
+ * data->&D_00000000+off. */
+#ifdef NON_MATCHING
+void game_uso_func_0000EE84(int *a0) {
+    int *p = (int *)a0[0xB4 / 4];
+    int a1;
+    *(float *)((char *)p + 0xA74) = 0.0f;
+    p = (int *)a0[0xB4 / 4];
+    *(float *)((char *)p + 0xA70) = 0.0f;
+    p = (int *)a0[0xB4 / 4];
+    if (*(int *)((char *)p + 0x9CC) != 0) {
+        a1 = a0[0xFC / 4] | 0x24;
+    } else {
+        a1 = a0[0xFC / 4] | 0x1D;
+    }
+    func_00000000(a0, a1, 0, 1, 1, 1);
+    func_00000000(a0, *(int *)((char *)&D_00000000 + 0xE98),
+                  *(int *)((char *)&D_00000000 + 0xE9C), 1);
+    func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE84);
+#endif
 
 #ifdef NON_MATCHING
 /* 82.20% NM. 4-call wrapper. Logic: call gl_func(a0); call gl_func(a0, D_E40, D_E44);
