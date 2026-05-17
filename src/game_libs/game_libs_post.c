@@ -5703,12 +5703,14 @@ void gl_func_0003F410(int a0) {
  * Residual is EXACTLY one insn: build has an extra `sw a1,244(sp)` at
  * idx 12; insns 0-11 match target byte-for-byte and 12+ are identical
  * but shifted +1 by that spill. Remove it → SAME-LEN 43 → byte-exact.
- * Failed C levers (all 2026-05-16; IDO -O2 still emits the a1 spill,
+ * Failed C levers (all; IDO -O2 still emits the a1 spill,
  * 44 insns / 176B — IDO spills BOTH unused leading params a0+a1,
  * target spills a0 only):
- *   - dropping `(void)a0;`
- *   - `register int a1`
- *   - `void *a1` (pointer type) — same spill
+ *   - dropping `(void)a0;` (2026-05-16)
+ *   - `register int a1` (2026-05-16)
+ *   - `void *a1` (pointer type) — same spill (2026-05-16)
+ *   - `__asm__("" : : "r"(a1))` — IDO rejects extended-asm syntax (2026-05-17)
+ *   - K&R definition + `(void)a1;` — still spills both (2026-05-17)
  *   - permuter: 151k+ iterations, score flat at base (NEVER improved) —
  *     prologue arg-home spill is not body-level, permuter has no lever
  *     (see docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save).
