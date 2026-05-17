@@ -1411,6 +1411,44 @@ void func_00006228(char *a0) {
     func_00000000(a0);
 }
 
+/* func_00006254 - verified structural decode (0x160, 88 insns,
+ * get-or-create constructor + sub-object + Vec3 init).
+ *   void *func_00006254(St *a0, int a1, int a2, int a3, int a4) {
+ *       o = a0;
+ *       if (o == 0) { o = alloc(0xDC); if (!o) return 0; }
+ *       s = alloc(0xB4);
+ *       if (s) {
+ *           init(s, &D_00007E74);
+ *           s->0x28 = &D_a;                       // descriptor
+ *           c = alloc(4);                          // defensive arm
+ *           if (c) *(int*)c = 0;
+ *           sub_init(s);                           // func_00000000
+ *           Vec3f z = {0,0,0};                     // sp+0x34
+ *           func_00000000((char*)s + 0x30, &z);    // zero a Vec3
+ *       }
+ *       o->0x28 = &D_b;                            // descriptor
+ *       o->0xC  = &D_00007E7C;                     // type/vtable
+ *       o->0xB4 = a1;
+ *       func_00000000(o, a1);                      // wire o<->a1
+ *       if (((T*)o->0xB4)->0xA0 == 0)
+ *           func_00000000(&D_00007E84, &D_00007E98, 0x3E4);
+ *       o->0xB8 = a3;
+ *       o->0xBC = a2;
+ *       o->0xC0 = a4;                              // 5th stack arg
+ *       return o;
+ *   }
+ * Struct-typing reference: o = 0xDC-byte object. o->0x28 (40)
+ * descriptor ptr (&D), o->0xC (12) type/vtable ptr (&D_00007E7C),
+ * o->0xB4 (180) = a1 (a parent/owner handle; o->0xB4->0xA0 (160)
+ * gated for an extra reloc registration), o->0xB8 (184)=a3, o->0xBC
+ * (188)=a2, o->0xC0 (192)=a4. s = 0xB4-byte sub-object: s->0x28 (40)
+ * descriptor (&D), s+0x30 (48) a Vec3f zero-initialized via the
+ * reloc helper; plus a defensive 4-byte child alloc (*(int*)c = 0).
+ * D_00007E74/7E7C/7E84/7E98 = init datums. Caps <80: get-or-create
+ * + ~8 func_00000000 reloc (alloc/init) + &D descriptors +
+ * defensive-dead alloc guards + FP Vec3 + bnel branch-likely. Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006254);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000063B4);
