@@ -10113,7 +10113,15 @@ void gl_func_000640E4(int a0, int *a1) {
  *    won't reach exact alone. Multi-step: TRUNCATE_TEXT + larger
  *    SUFFIX could shape the trailing region, but the C-level
  *    distinct-$f4-for-0.0 source is also missing. Multi-blocker;
- *    defer until a separate insn-insert mechanism exists. */
+ *    defer until a separate insn-insert mechanism exists.
+ *
+ *  2026-05-17: tested `float zero2 = 0.0f;` named-local lever (per
+ *  docs/IDO_CODEGEN.md#feedback-ido-named-float-const-pins-fp-reg-across-body)
+ *  using zero2 only for the a0+0x144 store. No change — fuzzy stayed
+ *  87.05%. IDO -O2 constant-folds the named zero into the same $f0/$f2
+ *  CSE as the literal 0.0f stores. The named-FP-const lever works for
+ *  NON-zero literals (4.0f case) but not for 0.0f because mtc1 $0
+ *  encoding doesn't need a distinct lui+mtc1 setup. */
 void game_libs_func_00064124(char *a0) {
     *(int*)(a0 + 0x160) = 0;
     *(int*)(a0 + 0x14C) = 0;
