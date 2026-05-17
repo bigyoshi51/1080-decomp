@@ -713,6 +713,32 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000160
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F4);
 
+/* arcproc_uso_func_0000199C — verified structural decode (~9%, LEN-DIFF
+ * 82/90; alloc-cascade defensive-dead-check + spill/reloc scheduling cap →
+ * <80 INCLUDE_ASM build path; constructor struct-typing + alloc-sig ref).
+ * int *f(int *a0, int a1, int a2){
+ *   s0 = a0 ? a0 : gl_func_00000000(268);  if (!s0) return s0;
+ *   p2 = gl_func_00000000(212);  if (!p2) goto init4;
+ *   p3 = gl_func_00000000(80);   if (!p3) goto init3;
+ *   p4 = gl_func_00000000(44);   if (!p4) goto init2;
+ *   gl_func_00000000(p4, &D+0x3DC); p4->0x28 = &D;
+ * init2: p3->0x28=&D; init3: p2->0x28=&D; init4: s0->0x28=&D;
+ *   s0->0x60 = a2;
+ *   s0->0xE0=160; s0->0xE4=29; s0->0xD8=160; s0->0xDC=130;
+ *   s0->0xE8=160; s0->0xEC=105; *(float*)(s0+0x108)=1.0f;
+ *   s0->0xD4 = a1; *(float*)(a1+0x77C)=1.0f;
+ *   gl_func_00000000(s0+0xF0,
+ *       ((*(int*)&D + 35) << 16) | (((int*)s0->0xD4)->0x6B4 + 7));
+ *   return s0;
+ * }
+ * Struct-typing: object sizes — main 268(0x10C), subs 212/80/44; every
+ * object has ptr @0x28 init &D_00000000. s0 fields: 0x60=a2-arg,
+ * 0xD4=a1-arg, 0xD8/DC/E0/E4/E8/EC = {160,130,160,29,160,105} (3 pairs:
+ * x@0xD8,y@0xDC … pattern), 0x108=1.0f, sub-call arg a1->0x77C=1.0f.
+ * Caps <80: 4-level alloc cascade with defensive `if(ptr!=0)skip` dead
+ * checks + heavy stack-spill round each gl_ call + &D %hi/%lo reloc
+ * materialization scheduling. INCLUDE_ASM is the correct build path
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000199C);
 
 #ifdef NON_MATCHING
