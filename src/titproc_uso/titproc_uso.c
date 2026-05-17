@@ -464,11 +464,13 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F
  * the load/+6 into v0; target uses distinct $t7/$t8 — structural C rewrites
  * (combined vs split load/add, both tried) can't reorder IDO's leaf allocator.
  * Clean decomp-permuter target (pure $t shuffle — NOT the structural cap class
- * the 0/6 fleet concluded on; that conclusion does not apply here). The .s also
- * carries 2 trailing unreachable orphan words (lui at,0x3f80; mtc1 $f16 @ USO
- * 0x1710/0x1714) between this fn's jr and the cleanly-prologued func_00001718
- * — a SUFFIX_BYTES recipe candidate once the 22-insn body matches. Build path
- * stays INCLUDE_ASM (no episode; tautology-trap rule). */
+ * the 0/6 fleet concluded on; that conclusion does not apply here). Boundary
+ * corrected 2026-05-17: the .s is now its true 0x58/22 insns. The 2 words
+ * previously mis-attributed as 16B8's trailing tail (lui at,0x3f80; mtc1 $f16
+ * @ USO 0x1710/0x1714) were NOT orphan — they are func_00001710's
+ * constant-hoisted prologue (sets $f16=1.0f, used un-set at 1710+0x008);
+ * moved into titproc_uso_func_00001710.s and the symbol renamed 1718→1710.
+ * Build path stays INCLUDE_ASM (no episode; tautology-trap rule). */
 #ifdef NON_MATCHING
 void titproc_uso_func_000016B8(int *a0) {
     if (a0[0x30 / 4] == 0) {
@@ -491,7 +493,7 @@ void titproc_uso_func_000016B8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000016B8);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001718);
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001710);
 
 /* titproc_uso_func_00001840: 68-insn (0x110) 2-cascade constructor with
  * 11-int + 4-float constant spray. Allocates main 0x74-byte object,
