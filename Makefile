@@ -423,8 +423,10 @@ build/src/timproc_uso_b5/timproc_uso_b5.c.o: SUFFIX_BYTES := \
 	timproc_uso_b5_func_0000131C=0x00000000,0x00000000,0x00000000
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: POST_INSN_SUFFIX_BYTES := \
 	timproc_uso_b5_func_0000131C=0x00000000,0x00000000,0x00000000
+ifndef EXPECTED_BASELINE
 build/src/game_uso/game_uso.c.o: POST_INSN_SUFFIX_BYTES_FORCE := \
 	game_uso_func_0000D7F4=0x03E00008,0x00000000
+endif
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_00007204=0x00000000,0x00000000
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x00000000,0x00000000
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: INSN_PATCH := \

@@ -191,12 +191,14 @@ def main():
         subprocess.check_call(["make", "clean"], stdout=subprocess.DEVNULL)
         print("refresh-baseline: make objects (C objects only, baseline build)")
         subprocess.check_call(
-            ["make", "-j", "4", "objects", "RUN_CC_CHECK=0"],
+            ["make", "-j", "4", "objects", "RUN_CC_CHECK=0",
+             "EXPECTED_BASELINE=1"],
             stdout=subprocess.DEVNULL,
         )
         print("refresh-baseline: make expected")
         subprocess.check_call(
-            ["make", "expected", "RUN_CC_CHECK=0"], stdout=subprocess.DEVNULL
+            ["make", "expected", "RUN_CC_CHECK=0", "EXPECTED_BASELINE=1"],
+            stdout=subprocess.DEVNULL
         )
     finally:
         for p, txt in backup.items():
