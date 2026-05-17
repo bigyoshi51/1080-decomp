@@ -833,7 +833,7 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001C7
  * child-build + list-link tail = documented constructor sub-80 ceiling →
  * INCLUDE_ASM build path; struct-typing reference). Sibling-shape of
  * timproc_uso_b1_func_00001A64.
- * void f(int *a0, int a1, int a2, int a3 /*+ sp[88]=arg4*/){
+ * void f(int *a0, int a1, int a2, int a3, [sp+88]=arg4){
  *   s0 = a0;
  *   a0->0xC  = &D+0x3E4;  a0->0xBC = a1;  a0->0xB8 = a3;
  *   a0->0x54 = a2;  a0->0xD0 = 255;  a0->0xD4 = 0;  a0->0x4C = arg4;
