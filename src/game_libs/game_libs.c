@@ -820,7 +820,6 @@ void gl_func_000083CC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000083CC);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00008510: 40-insn dispatcher with prologue-stolen 8 bytes from
  * gl_func_000083CC (predecessor's tail loads `state = D[0x134]` into v1
  * and the function body uses v1 across its prologue). PROLOGUE_STEALS=8
@@ -836,18 +835,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000083CC);
  *       t = arg0->0x528->0x8            (refetched)
  *       gl_func(p2, t->0x8, t->0x4)     (call 2)
  *   }
- *   gl_func(p)                          (call 3)
+ *   gl_func(p, p->0x34)                 (call 3)
  *   gl_func(p, D[0x168], D[0x164], &D + 0x170)  (call 4)
  *   gl_func(arg0)                       (call 5)
  *
- * Current ~70% NM. Remaining diffs: (a) target uses beqzl (branch-likely)
- * with `lw a0,0x20(sp)` delay-likely preload — mine emits beqz+nop, losing
- * 1 insn (frame ends 4 bytes early); (b) regalloc — target uses v0/v1 for
- * state-derived ptrs, mine uses t6/t7/t9/t0/t1; (c) dead `lw a1,0x34(a0)`
- * in target at delay-slot of call 3 (CSE'd from if-body's call-1 setup,
- * harmlessly dead because next jal sets a1 from lui). All three coupled
- * to register allocation. INSN_PATCH not on agent-a worktree to fix
- * regalloc-only diffs. */
+ * Promoted from the previous NM wrap with PROLOGUE_STEALS=8. */
 void gl_func_00008510(int *arg0) {
     char *state = *(char**)((char*)&D_00000000 + 0x134);
     char *p = *(char**)(*(char**)((char*)state + 0xC4) + 0x800);
@@ -859,16 +851,13 @@ void gl_func_00008510(int *arg0) {
             gl_func_00000000(p2, *(int*)((char*)t + 0x8), *(int*)((char*)t + 0x4));
         }
     }
-    gl_func_00000000(p);
+    gl_func_00000000(p, *(int*)(p + 0x34));
     gl_func_00000000(p,
         *(int*)((char*)&D_00000000 + 0x168),
         *(int*)((char*)&D_00000000 + 0x164),
         (char*)&D_00000000 + 0x170);
     gl_func_00000000(arg0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008510);
-#endif
 
 void gl_func_000085B0(int *arg0, int arg1) {
     char *state;
