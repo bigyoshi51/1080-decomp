@@ -9783,6 +9783,27 @@ void gl_func_000619D4(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061A0C);
 
+/* gl_func_00061B30 — verified structural decode (global-subsystem init,
+ * 37 insns; arg-spill + (sp+47)&~3 aligned stack scratch + 3 calls =
+ * medium-difficulty class, not the trivial-ctor easy subset →
+ * INCLUDE_ASM build path; struct-typing reference).
+ * void f(int a0, int a1, int a2, int a3){
+ *   s0 = &D_00000000;
+ *   gl_func_00000000(s0, 1);
+ *   *(int*)(s0+0x224) = 8;  *(int*)(s0+0x228) = 8;
+ *   short s = *(short*)&D_00000000;          // D_short[0], loaded twice
+ *   *(int*)(s0+0x220) = s;  *(int*)(s0+0x21C) = s;
+ *   gl_func_00000000(s0, 0, a0, (char*)((sp+47)&~3));  // aligned stack buf
+ *   gl_func_00000000(s0, 0);
+ * }
+ * Struct-typing: &D_00000000 global subsystem block — int @0x21C/0x220
+ * = D_short[0] (a count/id), int @0x224/0x228 = 8 (sizes), and a
+ * sub-init call X1(&D,1) + a configure call X2(&D,0,arg0,&stackbuf) +
+ * teardown X3(&D,0). Caps <80: the (sp+47)&~3 aligned-scratch codegen,
+ * the dual `lh _,0(_)` D_short reload into two regs, and the 4-arg
+ * spill ordering are not reproduced by clean C first pass. Medium
+ * class (multi-run), not the easy a0-ctor vein subset. INCLUDE_ASM
+ * is the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061B30);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061BC8);
