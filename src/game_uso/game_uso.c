@@ -9328,6 +9328,34 @@ void game_uso_func_0000F664(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F664);
 #endif
 
+/* game_uso_func_0000F6D4 - verified structural decode; SIBLING of
+ * game_uso_func_0000E35C (the EE84-family node-process orchestrator;
+ * same shape, this instance's specifics). Documented sub-80 ceiling
+ * (D-pair sp-args + beql branch-likely + ceil-div-64 + ~10 calls) ->
+ * INCLUDE_ASM build path; struct-typing reference.
+ *   s0 = a0;
+ *   if (((int*)s0->0xF4)->0x38 & 1) func_00000000(s0->0xF0);   // pre-flush
+ *   func_00000000(s0, (s0->0xF0)->0x30, 1);
+ *   if ((s0->0xB4 -> 0xA58) & 0x20) {
+ *       n = ceil_div_64( (s0->0xF0)->0x3C * 64 ... );           // node-local
+ *       func_00000000(&D, ..., n);
+ *   } else {
+ *       func_00000000(&D, ..., ceil_div_64(s0->0xF0 - D_glob));
+ *   }
+ *   s0->0x100 += 1;  s0->0xF0 = 0;  s0->0xF4 = old;
+ *   s0->0xF8 = (old != s0->0xF8) ? old : (s0->0x100 = 0, old);
+ *   func_00000000(s0);
+ *   ... (E35C tail: s0->0xB4->0xA58 & 0x40 gate -> v=s0->0xF4;
+ *        v->0x20 = v->0x28 ? v->0x28 : v->0x24; if (v->0x38 & 2)
+ *        D-pair calls; trailing D-pair) ...
+ * Struct-typing: identical family to E35C - s0->0xF0 active node
+ * (->0x30 arg, ->0x3C size), s0->0xB4 obj (->0xA58 mode bits
+ * 0x20=node-local / 0x40=configure), s0->0xF4 current (->0x38 flag
+ * bit 0x1 pre-flush / 0x2), s0->0xF8 prev, s0->0x100 counter (reset on
+ * prev-wrap). The (d+63)>>6 = signed ceil-div-by-64. Caps <80: same as
+ * E35C - beql/bgez branch-likely + D-pair sp-spill + &D reloc + ceil
+ * scheduling. Full per-instance call args/D-offsets are INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F6D4);
 
 #ifdef NON_MATCHING
