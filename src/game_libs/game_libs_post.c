@@ -3009,7 +3009,11 @@ void gl_func_00037C70(Vec3 *dst) {
  * a0 directly + stack temps with different reg names. Tested
  * 2026-05-15: explicit `int *src = buf; int *dst = a0;` REGRESSED
  * to 20-diff/26 (IDO assigns different $s-regs due to first-use
- * order changes). C-unreproducible without permuter. */
+ * order changes).
+ * 2026-05-16: tested src-only named base (`int *src = buf;` without
+ * a dst alias) — slight regression 85.12% → 85.0%. C-unreproducible
+ * without permuter; cap is the move-a3-a0-then-spill prologue shape
+ * vs target's spill-a0-directly. */
 void gl_func_00037CE0(int *a0) {
     int buf[6];
     func_00000000(&D_00000000, buf, 24);
