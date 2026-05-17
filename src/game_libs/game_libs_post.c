@@ -6822,7 +6822,13 @@ void gl_func_00043F1C(short *a0) {
     gl_func_00000000(gl_ref_00000254[0x56], a0[9], a0[0xB], a0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043F50);
+void gl_func_00043F50(int *a0) {
+    gl_func_00000000(&D_00000000, 0x1FD20, 0);
+    gl_func_00000000(a0, 0);
+    gl_func_00000000(&D_00000000, 0x1FD2C, (int)a0 + 16, 500, 1000, 1);
+    gl_func_00000000(&D_00000000, 0x1FD30, (int)a0 + 20, 500, 1000, 1);
+    gl_func_00000000(&D_00000000);
+}
 
 extern int gl_ref_00056BDC();
 extern int gl_ref_00056C28();
