@@ -776,7 +776,12 @@ void func_0000502C(int *dst) {
  * tail variadic there's nothing to spill BACK out.
  * 2026-05-07 (later): volatile slot grows frame; aliasing into existing
  * slot via cast adds a base-register hop. The dead-spill at sp+0x4
- * with frame-stays-0x18 is genuinely unreachable from natural C. */
+ * with frame-stays-0x18 is genuinely unreachable from natural C.
+ * 2026-05-17: tested `int (*vfn)(int,...) = (int(*)(int,...))func`;
+ * `vfn(0, a0)` — REGRESSES to indirect `lui+addiu+jalr t9` instead of
+ * direct `jal func` (function-pointer cast pessimizes call shape).
+ * Direct variadic decl `extern int func(int, ...)` not tested (would
+ * affect all call sites in TU). Cap class confirmed structural. */
 extern char D_00007D94;
 void func_00005068(int a0) {
     func_00000000(&D_00007D94);
