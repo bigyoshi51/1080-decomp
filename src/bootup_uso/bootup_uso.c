@@ -1489,12 +1489,25 @@ extern int D_087A4_word0_store;
 extern int D_087A4_word0_base;
 extern int D_087A4_word0_final;
 
-/* 91.09% NM: allocator/init sibling of func_000086C0. This captures the
- * lazy arg0->0x40 setup, 0xC8/0x40 allocation fallback, vtable callback,
- * child link, and final flag/callback. Remaining diffs are scheduling around
- * the D_0 flag-base setup and the K&R float stack arg (`lwc1/swc1` target vs
- * int-bitcast `lw/sw`; direct float tried but double-promotes). Default build
- * keeps INCLUDE_ASM until those codegen gaps are closed. */
+/* 91.14% NM: allocator/init sibling of func_000086C0.
+ *
+ * 2026-05-17: added `char pad2[8]` lever — fixes frame size mismatch
+ * (was built -0x48, now matches target -0x50). +0.05pp.
+ *
+ * This captures the lazy arg0->0x40 setup, 0xC8/0x40 allocation
+ * fallback, vtable callback, child link, and final flag/callback.
+ *
+ * Remaining diffs:
+ *   (1) IDO hoists the `lui+addiu` for `&D_087A4_word0_base` BEFORE
+ *       the if-test bne, target materializes it INSIDE the if-block
+ *       (lui in bne delay slot, addiu after the test load). Scheduler
+ *       decision tied to IDO's address-materialization-hoisting.
+ *   (2) K&R float stack arg (`lwc1/swc1` target vs int-bitcast `lw/sw`;
+ *       direct float double-promotes through K&R `func_00000000`).
+ *   (3) Multiple embedded data symbols (D_00008814 etc.) in target are
+ *       treated as inline data in expected/.o but as code in built —
+ *       splat/.S file boundary issue, not pure C-level.
+ * Default build keeps INCLUDE_ASM until those codegen gaps are closed. */
 void *func_000087A4(char *arg0) {
     int kind;
     char *self;
@@ -1502,6 +1515,7 @@ void *func_000087A4(char *arg0) {
     char *desc;
     char *link_arg;
     char pad[4];
+    char pad2[8];  /* lever attempt 2026-05-17: frame target -0x50 vs built -0x48 (+8B) */
 
     if (*(int*)(arg0 + 0x40) == 0) {
         D_087A4_word0_store = D_087A4_word0_load | 8;
@@ -1527,6 +1541,7 @@ void *func_000087A4(char *arg0) {
 
 init_self:
     (void)pad;
+    (void)pad2;
     *(float*)(self + 0x70) = 10.0f;
     kind = 0x13;
     child = self;
