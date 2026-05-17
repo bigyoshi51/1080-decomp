@@ -131,6 +131,43 @@ void func_00014004(char *a0, int a1, int a2) {
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014010);
 
+/* func_000140C4 - verified structural decode (0x164, 89 insns,
+ * 3-element draw/place dispatcher).
+ *   void func_000140C4(St *s0) {
+ *       f32 col[4] = {1,1,1,1};                   // sp+0x58
+ *       if (s0->0x104) {                          // sub-object A
+ *           draw_select(s0->0x104);
+ *           n = (int)((f32)s0->0xDC * D_g);       // scaled count
+ *           draw_set(s0->0x104, n, col, 0);
+ *           draw_pos(s0->0x104, s0->0x44 + s0->0x74,
+ *                               s0->0x5C + s0->0x8C, 0);
+ *       }
+ *       if (s0->0x108) {                          // sub-object B
+ *           draw_select(s0->0x108);
+ *           n = (int)((f32)s0->0xD8 * D_g);
+ *           draw_set(s0->0x108, n, col, 0);
+ *           draw_pos(s0->0x108, s0->0x44 + s0->0xA4,
+ *                               s0->0x5C + s0->0xBC, 0);
+ *       }
+ *       draw_select(s0->0xE0);                     // sub-object C
+ *       n = (int)((f32)s0->0xD8 * D_g);
+ *       draw_set(s0->0xE0, n, &s0->0xC4, s0->0xD4);
+ *       draw_pos(s0->0xE0, s0->0x44, s0->0x5C, &s0->0xE4);
+ *   }
+ * (draw_* = func_00000000 reloc helpers: select, set count+color,
+ * set position.) Struct-typing reference: s0->0x104 (260) / 0x108
+ * (264) / 0xE0 (224) = three drawable sub-object handles (A/B
+ * optional, C unconditional). s0->0xDC (220) / 0xD8 (216) s32
+ * counts scaled by a global f32 (D_g) and truncated to int.
+ * Position = common base s0->0x44 (68) x / s0->0x5C (92) y plus
+ * per-element offsets: A {0x74 (116), 0x8C (140)}, B {0xA4 (164),
+ * 0xBC (188)}. Object C uses object-local params instead of the
+ * shared col: s0->0xC4 (196) colour/param block, s0->0xD4 (212)
+ * flag, s0->0xE4 (228) extra struct. col = const (1,1,1,1) RGBA.
+ * Caps <80: FP cvt.s.w/mul.s/trunc.w.s scaled counts + &D global +
+ * ~10 func_00000000 reloc + beql branch-likely on the optional
+ * handles. Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000140C4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014228);
