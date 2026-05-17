@@ -5,6 +5,39 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 
+/* func_00012E00 - verified structural decode (0x24C, 147 insns,
+ * get-or-create constructor + work-buffer allocation). bootup_uso
+ * constructor family (cf. func_00005124 / func_0001438C).
+ *   void *func_00012E00(void *a0, int a1) {
+ *       o = a0 ? a0 : func_00000000(0x78); if (!o) return 0;
+ *       s = func_00000000(0x2C);
+ *       func_00000000(s, &D_0000C730);            // init sub
+ *       s->0x28 = &D_a;  o->0x28 = &D_b;          // descriptors
+ *       o->0xC  = &D_0000C738;                    // type/vtable
+ *       o->0x5C = 0x20;                            // dim W
+ *       o->0x60 = 0x20;                            // dim H
+ *       o->0x64 = 0x400;                           // cell count
+ *       o->0x2C = a1;
+ *       o->0x48 = 1.0f;                            // scale
+ *       o->0x?? = func_00000000(...);              // init buffer
+ *       o->0x4C = func_00000000(0x800, 0x10);     // alloc 2048 B
+ *       o->0x50 = func_00000000(0x400, 0x10);     // alloc 1024 B
+ *       o->0x58 = func_00000000(0x1000);          // alloc 4096 B
+ *       ... = func_00000000(0x1000);              // another 4096
+ *       ...
+ *   }
+ * Struct-typing reference: o = 0x78-byte object. o->0x28 (40)
+ * descriptor (&D), o->0xC (12) type/vtable (&D_0000C738), o->0x2C
+ * (44) = a1, o->0x48 (72) f32 = 1.0 (scale/alpha), o->0x5C (92) /
+ * o->0x60 (96) s32 = grid dims 0x20 x 0x20, o->0x64 (100) s32 =
+ * 0x400 cell count (= 32*32). o->0x4C (76) / o->0x50 (80) / o->0x58
+ * (88) = pointers to work buffers allocated at sizes 0x800 / 0x400
+ * / 0x1000 (some with 0x10 alignment arg). s = 0x2C-byte sub-object
+ * (s->0x28 descriptor, init datum D_0000C730). Likely a 32x32
+ * tile/heightfield/render-target context. Caps <80: get-or-create
+ * + alloc-cascade (~8 func_00000000 buffer reloc) + &D descriptors
+ * + FP-1.0 const. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001304C);
