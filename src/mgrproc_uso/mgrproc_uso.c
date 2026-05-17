@@ -1048,6 +1048,35 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000232
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000023FC);
 
+/* mgrproc_uso_func_00002850 - verified structural decode (0xF0,
+ * jr-count 2 = main body + 1 bundled tail leaf).
+ *   void mgrproc_uso_func_00002850(St *s0, int *a1, int *a2,
+ *                                  int a3) {
+ *       f32 buf[4] = { 1.0f, 1.0f, 1.0f, 1.0f };  // sp+88
+ *       int n = (int)(255.0f * s0->0x7A4);        // trunc.w.s
+ *       gl_func_00000000(&D_00000000, n, buf);
+ *       tgt = (char*)s0 + 0x6F8;                  // s0 + 1784
+ *       gl_func_00000000(tgt);
+ *       for (i = a3 - 1; i >= 0; i--)
+ *           gl_func_00000000(tgt, &a1[i], &a2[-i], 3);
+ *   }
+ *   // bundled tail leaf (separate fn, splittable):
+ *   void <tail>(St *a0) {
+ *       a0->0x54C = 116.0f;                       // 0x42E80000
+ *       a0->0x554 = 170.0f;                       // 0x432A0000
+ *   }
+ * Struct-typing reference: s0->0x7A4 (1956) f32 = a 0..1 ratio
+ * scaled by 255 to an int param (alpha/level); s0+0x6F8 (1784) =
+ * a sub-object/context handle passed to the reloc helper (first
+ * a 1-arg "begin", then per-element with two parallel arrays and
+ * tag 3). a1/a2 = parallel int arrays walked inward from index
+ * a3-1 (a1 forward base, a2 mirrored: &a2[-i]). Bundled tail sets
+ * s0->0x54C (1356) f32 = 116.0 and s0->0x554 (1364) f32 = 170.0
+ * (same field group as the mgrproc final-pose constants seen in
+ * mgrproc_uso_func_00002324). Caps <80: FP 255.0 mul + trunc.w.s
+ * + 1.0 consts + reloc-call loop + bundled tail leaf (jr-count 2,
+ * splittable later). Full body INCLUDE_ASM-preserved (.s = source
+ * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002850);
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002940);
