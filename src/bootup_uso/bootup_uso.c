@@ -838,6 +838,36 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002C94);
  * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002DA4);
 
+/* func_00002F90 - verified structural decode (0x228, 138 insns,
+ * multi-widget builder + per-child init). Builder+register family
+ * (cf. func_00001E08 / func_00006734).
+ *   void func_00002F90(St *s1) {
+ *       func_00000000(&D_0000741C, 0);            // pre-init
+ *       c = func_00000000(0, &D_00007424);        // build child 0
+ *       s1->0x90 = c;
+ *       f32 k = *(f32*)(func_000003F8 + 0x12C);
+ *       c->0x124 = c->0x128 = c->0x12C = k;       // colour rgb
+ *       c->0x130 = 1.0f;                          // alpha
+ *       c->0xD0  = 1;                             // type tag
+ *       c->0xC4 |= 0x40;  c->0xC4 |= 0x80;        // flag bits
+ *       c = func_00000000(0, &D_00007434);        // build child 1
+ *       s1->0x94 = c;
+ *       c->0x124..0x130 = 1.0f;                   // white
+ *       c->0xD0  = 2;
+ *       c->0xC4 |= 0x40; ...
+ *       ... (repeats for D_00007444 / D_00007454 children) ...
+ *   }
+ * Struct-typing reference: s1->0x90 (144) / s1->0x94 (148) / ... =
+ * slots holding the built child widgets (D_00007424/7434/7444/
+ * 7454 = each child's key/descriptor data). Per child: ->0x124
+ * (292) / 0x128 (296) / 0x12C (300) f32 = RGB colour (child 0 uses
+ * the global func_000003F8+0x12C value; later children use 1.0),
+ * ->0x130 (304) f32 = 1.0 alpha, ->0xD0 (208) s32 = type tag
+ * (1,2,...), ->0xC4 (196) u32 flags (bits 0x40 then 0x80 OR'd in).
+ * D_0000741C = pre-init datum. Caps <80: ~6 func_00000000 reloc +
+ * per-child FP colour stores + flag-OR RMW + multi-&D. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002F90);
 
 void func_000031B8(int a0) {
