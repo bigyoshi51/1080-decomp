@@ -202,9 +202,15 @@ void game_libs_func_0000A8B4(int *a0, int a1) {
     *a0 = *a0 | ((a1 & 7) << 2);
 }
 
-/* A8D8: 8-insn body relies on beqz-fallthrough into the next function's
- * empty `jr ra; nop` body — IDO emitted a tail-fallthrough that C alone
- * can't reproduce. Keep INCLUDE_ASM. */
+/* A8D8: int f(int*a0){ if((*a0>>5)&1) return 32; return 0; } — CONFIRMED
+ * 2026-05-17: that exact C form produces all 8 body words byte-exact
+ * (8C8E0000 00001025 000E7943 31F80001 13000003 00000000 03E00008
+ * 24020020) but C always appends its own `jr ra; nop` epilogue (+2
+ * words). Target has NO epilogue: the v0=0 path `beq t8,zero,0x20`
+ * branches one past the last insn, falling through into the next
+ * function (shared-tail space optimization). Plain C cannot suppress the
+ * trailing epilogue; would need a TRUNCATE_TEXT=8 post-cc strip, not
+ * worth it for an 8-byte fn. Keep INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A8D8);
 
 /* empty: jr ra; nop */
