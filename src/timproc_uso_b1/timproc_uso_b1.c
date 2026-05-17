@@ -570,6 +570,37 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001A64);
 
+/* timproc_uso_b1_func_00001BCC - verified structural decode (~158-insn
+ * per-frame update state machine; 20 branches incl bnel/beql
+ * branch-likely + 11 calls + deep struct chains = documented sub-80
+ * ceiling -> INCLUDE_ASM build path; struct-typing reference).
+ *   s0 = a0;  func_00000000(a0);                      // entry tick
+ *   ctx = (int*)s0->0xB8;                              // 184
+ *   if (((ctx->0x4F0 << 15) >= 0) and ctx->0x4DC == 1)
+ *       s0->0x30 += 33;                                // 48: frame counter
+ *   func_00000000(s0);                                 // update
+ *   ctx = (int*)s0->0xB8;
+ *   if ((ctx->0x4F0 & 0x10000) and ctx->0x4DC == 1) {
+ *       if (s0->0x48 == 2) {                           // 72: state
+ *           if (s0->0xDC != 1                          // 220: sub-state
+ *               and ((int*)((int*)s0->0x44)->0x60)->0x800 -> 0x4C != 0)
+ *               func_00000000(s0, 1);
+ *           s0->0xDC = ((int*)((int*)s0->0x44)->0x60)->0x800 -> 0x4C;
+ *       }
+ *       if (((int*)s0->0x44)->0x34 == 0) func_00000000(s0->0xB8 ...);
+ *       ... (continues: more state-gated func_00000000 dispatches on
+ *            s0->0x44 sub-object chain + ctx flag combinations) ...
+ *   }
+ * Struct-typing: s0->0xB8 ctx (->0x4F0 flag word: bit-16 enable, sign
+ * bit gate; ->0x4DC mode == 1), s0->0x30 frame counter (+=33),
+ * s0->0x48 state (==2), s0->0xDC sub-state/cached value, s0->0x44
+ * active obj whose ->0x60 -> ->0x800 -> ->0x4C is a status field and
+ * ->0x34 a flag. Per-frame: tick, conditional counter advance, then
+ * state-machine dispatch of func_00000000 sub-updates. Caps <80:
+ * bnel/beql branch-likely throughout + 11-call spill + multi-level
+ * pointer-chain reload scheduling. Full per-state dispatch is
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001BCC);
 
 void timproc_uso_b1_func_00001E44(char *dst) {
