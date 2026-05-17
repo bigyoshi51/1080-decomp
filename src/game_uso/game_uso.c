@@ -8892,6 +8892,42 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
  * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
 
+/* game_uso_func_0000E35C - verified structural decode (129-insn EE84-family
+ * orchestrator; D-pair sp-args + beql branch-likely + ceil-div-64 + 9 calls
+ * = documented sub-80 ceiling -> INCLUDE_ASM build path; struct-typing ref).
+ *   s0 = a0;
+ *   if (s0->0xF0 == 0) return 0;
+ *   func_00000000(s0->0xF0 -> 0x30);            // X1, a1 = (s0->0xF0)->0x30
+ *   if ((s0->0xB4 -> 0xA58) & 0x20) {
+ *       n = ((s0->0xF0)->0x3C << 6 ... ) ;       // ceil-div-64: (d+63)>>6
+ *       func_00000000(&D, ..., ceil(n/64));      // X2
+ *   } else {
+ *       func_00000000(&D, ..., ceil((s0->0xF0 - D_glob)/64));  // X2'
+ *   }
+ *   s0->0x100 += 1;  s0->0xF0 = 0;  s0->0xF4 = old;
+ *   s0->0xF8 = (old != s0->0xF8) ? old : (s0->0x100=0, old);
+ *   func_00000000(s0);                            // X3
+ *   if ((s0->0xB4 -> 0xA58) & 0x40) {
+ *       v = s0->0xF4;
+ *       v->0x20 = v->0x28 ? v->0x28 : v->0x24;
+ *       if (v->0x38 & 2) {
+ *           func_00000000(s0, v->0x20, 0, sp:1,1, 2);   // X4 (D-pair sp)
+ *           func_00000000(s0, D[0xEC0], D[0xEC4]);          // X5
+ *       } else {
+ *           func_00000000(s0, v->0x20, 0, sp:1,1, 3);   // X6
+ *           func_00000000(s0, D[0xEC8], D[0xECC]);          // X7
+ *       }
+ *   }
+ *   func_00000000(s0, D[0xED0], D[0xED4]);          // X8
+ *   return 1;
+ * Struct-typing: s0->0xF0 active node (->0x30 arg, ->0x3C size), s0->0xB4
+ * obj (->0xA58 mode bits 0x20=node-local / 0x40=configure), s0->0xF4
+ * current (->0x20/0x24/0x28 ptr-trio, ->0x38 flag bit 0x2), s0->0xF8 prev,
+ * s0->0x100 counter (reset when prev wraps). D-pair consts @0xEC0/EC4,
+ * 0xEC8/ECC, 0xED0/ED4. The (d+63)>>6 is signed ceil-div-by-64. Caps <80:
+ * beql/bgez branch-likely + D-pair sp-spill arg shape + &D reloc + ceil
+ * idiom scheduling - documented EE84-family ceiling. INCLUDE_ASM is the
+ * correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E35C);
 
 void game_uso_func_0000E564(int *a0) {
