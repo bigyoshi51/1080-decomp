@@ -2416,6 +2416,36 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DDCC);
  * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DF04);
 
+/* func_0000E014 - verified structural decode (0x110, 68 insns).
+ * NEAR-SIBLING of func_0000DF04 (same Vec3 fetch-and-store fan-out,
+ * same s0 struct); variant: the first id of each pair comes from a
+ * signed-half field on s0 instead of a constant.
+ *   void func_0000E014(St *s0) {
+ *       if (s0->0xA58 & 0x80) {
+ *           v = fetch(&D_00000000, (s16)s0->0x902);
+ *           *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;
+ *           v = fetch(&D_00000000, 8);
+ *           *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
+ *       } else {
+ *           v = fetch(&D_00000000, (s16)s0->0x900);
+ *           *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;
+ *           v = fetch(&D_00000000, 5);
+ *           *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
+ *       }
+ *       v = fetch(&D_00000000, 6);
+ *       *(Vec3i*)s0->0x8FC = *(Vec3i*)v;
+ *   }
+ * Struct-typing reference: same layout as func_0000DF04 -
+ * s0->0xA58 (2648) u32 flags bit 7 (0x80) selector; s0->0x8F4
+ * (2292) / 0x8F8 (2296) / 0x8FC (2300) Vec3i dest pointers (3x int
+ * @ +0/+4/+8). NEW fields here: s0->0x902 (2306) and s0->0x900
+ * (2304) = s16 dynamic source-id selectors (the first fetch id is
+ * read from the object, not hardcoded), with constant ids 8 / 5 /
+ * 6 for the second-slot and final fetches. fetch = func_00000000
+ * (&D, id) -> Vec3i source ptr. Caps <80: 3-5 func_00000000 reloc
+ * calls + &D reloc + flag branch + lh dynamic-id + per-slot 3-word
+ * struct copies. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E014);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E124);
