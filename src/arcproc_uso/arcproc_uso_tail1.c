@@ -967,7 +967,6 @@ void arcproc_uso_func_0000247C(void) {
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
 
-#ifdef NON_MATCHING
 /* arcproc_uso_func_000024C0: F1 + 3 trailing empty stubs (0x5C total).
  * Sibling of 23F4/2438/247C (state-set menu helpers, plain-C exact at
  * -O2). Same shape with N=9 here (vs N=4/1/2 for the others).
@@ -977,15 +976,13 @@ void arcproc_uso_func_0000247C(void) {
  * with no callers in src/ or undefined_syms_auto.txt (dead splat-
  * bundled stubs).
  *
- * Promotion path tried 2026-05-07: plain-C F1 body + SUFFIX_BYTES
- * (6-word `jr ra; nop` triple) produces correct 0x5C bytes, but the
- * cross-USO data refs (gl_ref_00000040/70/74) hit the reloc-encoding-
- * pin issue (built emits `lw a0, 0(a0)` + R_MIPS_LO16; expected has
- * `lw a0, 0x70(a0)` baked). Fuzzy = None.
+ * Promoted 2026-05-17 with plain-C F1 body + SUFFIX_BYTES for the three
+ * empty trailers + INSN_PATCH on the three cross-USO data ref HI/LO pairs
+ * so the object carries the baked 0x70/0x40/0x74 offsets expected by the
+ * pure-asm baseline.
  *
- * Per docs/MATCHING_WORKFLOW.md
- * #reloc-encoding-pinning-structurally-identical-c-body-still-scores-65
- * — keep INCLUDE_ASM as default; C body in NM-wrap for reference. */
+ * See docs/POST_CC_RECIPES.md
+ * #feedback-suffix-bytes-for-bundled-empty-trailers. */
 extern int gl_func_00000000();
 extern int gl_ref_00000040, gl_ref_00000070, gl_ref_00000074;
 void arcproc_uso_func_000024C0(void) {
@@ -993,9 +990,6 @@ void arcproc_uso_func_000024C0(void) {
     gl_ref_00000040 = 9;
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000024C0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251C);
 
