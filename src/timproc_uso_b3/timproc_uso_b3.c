@@ -691,7 +691,6 @@ void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
     gl_func_00000000(entry, 0xA0, a2, 3);
 }
 
-#ifdef NON_MATCHING
 /* timproc_uso_b3_func_00002F48: 66-insn (0x108) two-pass render-helper.
  * Sibling of recently-NM-wrapped func_00002EF0.
  *
@@ -701,15 +700,15 @@ void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
  *     // Pass 1: table at &D + 0x190
  *     gl_func(&D + 0x190, ...);
  *     if (a0->0x58 != 0) {
- *       gl_func(0xFF);   // taken: simple call
+ *       gl_func(&D + 0x190, 0x40, &color, 0xFF);
  *     } else {
  *       gl_func(&D + 0x190, a0->0x5C, &color, 0xFF);
  *     }
- *     gl_func(&D + 0x190, 0x40, a1, 3);
+ *     gl_func(&D + 0x190, 0x78, a1, 3);
  *     gl_func(&D + 0x1A8);
  *     // Pass 2: table at &D + 0x1A8
  *     if (a0->0x58 == 0) {
- *       gl_func(0xFF);
+ *       gl_func(&D + 0x1A8, 0x40, &color, 0xFF);
  *     } else {
  *       gl_func(&D + 0x1A8, a0->0x5C, &color, 0xFF);
  *     }
@@ -720,34 +719,37 @@ void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
  * to sp+0x38..0x44 fill the color quad. Two-pass structure renders into
  * paired tables at &D+0x190 (alpha?) and &D+0x1A8 (RGB?).
  *
- * Fresh decode — no register/CSE tuning yet. Multi-pass refinement
- * expected. */
+ * Exact via a stack struct that places color[4] at sp+0x38 and the
+ * unprefixed func_00000000 cross-USO placeholder calls. objdiff still reports
+ * relocation-symbol arg mismatches against the raw .word baseline, but
+ * no-alias disassembly and byte-verify match. */
 extern int gl_func_00000000();
+extern int func_00000000();
 extern char D_00000000;
 void timproc_uso_b3_func_00002F48(int *a0, int a1) {
-    float color[4];
-    color[0] = 1.0f;
-    color[1] = 1.0f;
-    color[2] = 1.0f;
-    color[3] = 1.0f;
-    gl_func_00000000((char*)&D_00000000 + 0x190);
-    if (a0[0x58/4] != 0) {
-        gl_func_00000000(0xFF);
-    } else {
-        gl_func_00000000((char*)&D_00000000 + 0x190, a0[0x5C/4], &color, 0xFF);
-    }
-    gl_func_00000000((char*)&D_00000000 + 0x190, 0x40, a1, 3);
-    gl_func_00000000((char*)&D_00000000 + 0x1A8);
+    struct {
+        char pad[0x20];
+        float color[4];
+    } sp;
+    sp.color[0] = 1.0f;
+    sp.color[1] = 1.0f;
+    sp.color[2] = 1.0f;
+    sp.color[3] = 1.0f;
+    func_00000000((char*)&D_00000000 + 0x190);
     if (a0[0x58/4] == 0) {
-        gl_func_00000000(0xFF);
+        func_00000000((char*)&D_00000000 + 0x190, a0[0x5C/4], sp.color, 0xFF);
     } else {
-        gl_func_00000000((char*)&D_00000000 + 0x1A8, a0[0x5C/4], &color, 0xFF);
+        func_00000000((char*)&D_00000000 + 0x190, 0x40, sp.color, 0xFF);
     }
-    gl_func_00000000((char*)&D_00000000 + 0x1A8, 0xC8, a1, 3);
+    func_00000000((char*)&D_00000000 + 0x190, 0x78, a1, 3);
+    func_00000000((char*)&D_00000000 + 0x1A8);
+    if (a0[0x58/4] != 0) {
+        func_00000000((char*)&D_00000000 + 0x1A8, a0[0x5C/4], sp.color, 0xFF);
+    } else {
+        func_00000000((char*)&D_00000000 + 0x1A8, 0x40, sp.color, 0xFF);
+    }
+    func_00000000((char*)&D_00000000 + 0x1A8, 0xC8, a1, 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002F48);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00003050);
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00003050_pad.s")
