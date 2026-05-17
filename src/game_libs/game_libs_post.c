@@ -9492,6 +9492,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F0C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F3E0);
 
+/* gl_func_0005F54C - verified structural decode (40-insn perspective/
+ * frustum projection-matrix builder; FP div/mul chain + 2 transcendental
+ * calls = documented FP-divergence sub-80 -> INCLUDE_ASM build path;
+ * HIGH struct-typing value).
+ *   f(Matrix *a0/sp40, ?, float a2/sp48, float a3/sp52, float arg5/sp56,
+ *     float f14, float f6, float f12-precursor)
+ *   t = f14 / f6;                                  // e.g. fov/aspect
+ *   c1 = gl_func_00000000(t);                        // X1 (cos/tan-class)
+ *   c2 = gl_func_00000000(c1-spilled);               // X2
+ *   r = a3, l = arg5;  near = a2;                    // sp52/sp56/sp48
+ *   q  = c2 / c1;                                    // f2
+ *   d  = r - l;  s = r + l;                          // f12, f4
+ *   a0->0x2C = -1.0f;                                // [2][3]
+ *   a0->0x3C = 0.0f;                                 // [3][3]
+ *   a0->0x28 = s / d;                                // [2][0/2] (r+l)/(r-l)
+ *   a0->0x14 = q;                                    // [1][1]
+ *   a0->0x00 = q / near;                             // [0][0]
+ *   a0->0x38 = (2.0f * r * l) / d;                   // [2][?] 2rl/(r-l)
+ * Struct-typing (HIGH reuse - projection matrix): a0 is a 4x4-ish float
+ * matrix; this writes [0]=0x00, [1][1]=0x14, [2][0]=0x28, [2][3]=0x2C
+ * (=-1, the perspective-divide marker), [3][1]=0x38, [3][3]=0x3C (=0).
+ * The classic GL frustum form: x-scale q/near @0x00, y-scale q @0x14,
+ * (r+l)/(r-l) @0x28, 2rl/(r-l) @0x38, -1 @0x2C, 0 @0x3C. X1/X2 are the
+ * fov->scale transcendentals (cos/tan/cot). Caps <80: div.s/mul.s
+ * pipeline ordering + 2-call f-reg spill/reload interleave (sp+28/+32)
+ * - the documented FP-regalloc divergence; clean C won't reproduce the
+ * exact f-reg schedule. INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F54C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F5F0);
