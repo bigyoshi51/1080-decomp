@@ -9978,7 +9978,25 @@ void game_uso_func_00011258(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_000112E0: 34-insn sibling of game_uso_func_00011258
+ * (last tick's wrap). Byte-identical to 11258 except the magic constant
+ * 0x70009 → 0x70008 at insn idx 8 (one bit flip in the ori imm). Same
+ * 3-call init + bit-clear (a0->[0xB4]->[0xA58] &= ~0x800) tail. */
+extern int func_00000000();
+void game_uso_func_000112E0(int *a0) {
+    func_00000000(a0, 0x70008, 0, 2, 1, 1);
+    func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF18),
+                      *(int*)((char*)&D_00000000 + 0xF1C),
+                      2,
+                      *(int*)((char*)&D_00000000 + 0xF18),
+                      *(int*)((char*)&D_00000000 + 0xF1C));
+    func_00000000(a0);
+    *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0xA58) &= ~0x800;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000112E0);
+#endif
 
 /* Family sibling #5 of game_uso_func_00010E2C. Promoted from 87.38% NM
  * cap via SUFFIX_BYTES of 2 nops + 12-word INSN_PATCH at +0x2C..+0x58
