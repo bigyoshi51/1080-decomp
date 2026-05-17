@@ -1542,6 +1542,42 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007328);
 
+/* func_000074E8 - verified structural decode (0x138, 78 insns,
+ * guarded constructor + list-link + vtable + finalize).
+ *   void func_000074E8(St *a0) {
+ *       if (*(int*)(func_00000008 + 0x2C) == 8) return;  // gate
+ *       func_00000000(&D_00007FB0, 0);
+ *       r = func_00000000(0x134);                 // alloc object
+ *       if (r == 0) return;
+ *       sub = func_00000000(0x48);                // alloc aux
+ *       if (sub == 0) return;
+ *       func_00000000(sub, &D_00007FBC, r);
+ *       sub->0x28 = &D_a;  r->0x28 = &D_b;        // descriptors
+ *       a0->0x40 = r;                             // link into a0
+ *       head = (*(N**)(func_000000F0 + 0x44))->0x88;
+ *       func_00000000((char*)head + 0x10, r);
+ *       if (r->0x14 != 0) r->0x4 = 1;             // beql link
+ *       r->0x14 = head;
+ *       v = a0->0x40->0x28;                       // vtable dispatch
+ *       (*(fn)v->0x5C)((s16)v->0x58 + a0->0x40, 0x96);
+ *       a0->0x40->0x48 = 1;
+ *       a0->0x40->0x4C = 0.0f;
+ *       a0->0x40->0x48 = 0;
+ *       func_00000000(a0->0x40);                  // finalize
+ *   }
+ * Struct-typing reference: global gate *(func_00000008+0x2C) == 8
+ * skips construction (already-done / disabled state). r = 0x134-byte
+ * object, sub = 0x48-byte aux; both get a &D descriptor at ->0x28
+ * (r's is the obj-0x28 vtable, 0x5C/0x58 variant: fn@0x5C (92),
+ * s16@0x58 (88), dispatched with arg 0x96). a0->0x40 (64) = the
+ * owning slot for r. r linked into the global list whose head is
+ * (*(func_000000F0+0x44))->0x88 via r->0x14 (back-link) / r->0x4
+ * (=1 when already-linked). r->0x48 (72) s32 toggled 1 then 0,
+ * r->0x4C (76) f32 = 0.0 (init state/flags). D_00007FB0 / D_00007FBC
+ * = init datums. Caps <80: global gate + ~6 func_00000000 reloc
+ * (alloc/init/finalize) + &D descriptors + list-link beql + obj-
+ * 0x28 vtable jalr + FP. Full body INCLUDE_ASM-preserved (.s =
+ * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000074E8);
 
 /* func_00007620 - verified structural decode (0xD4, 53 insns,
