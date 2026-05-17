@@ -99,7 +99,23 @@ int gl_func_0000A0CC(char *a0) {
     return count;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A130);
+/* gl_func_0000A130: 25-insn 3-iter loop counting non-zero callee returns.
+ *   count = 0; for (p = a0+0x18; p != a0+0x30; p += 8)
+ *       if (FUNC1(p) != 0) count++;
+ *   return count;
+ * 6-insn INSN_PATCH closes the i/p $s-reg swap (target s0=i,s1=p; built
+ * s0=p,s1=i — decl-order swap REGRESSES per feedback-sreg-not-decl-driven). */
+extern int gl_func_00000000();
+int gl_func_0000A130(char *a0) {
+    int count = 0;
+    int i;
+    char *p = a0 + 0x18;
+    for (i = 0; i != 24; i += 8) {
+        if (gl_func_00000000(p) != 0) count++;
+        p += 8;
+    }
+    return count;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A194);
 
