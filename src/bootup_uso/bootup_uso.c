@@ -2283,6 +2283,35 @@ void func_0000E720(char *a0) {
     func_00000000(a0 + 0x2C);
 }
 
+/* func_0000E740 - verified structural decode (0xB4, 48 insns,
+ * 2D strided->packed halfword blit / unswizzle).
+ *   void func_0000E740(void *a0, int a1) {
+ *       root = *(void**)(func_0000023C + 4);     // global root ptr
+ *       vt   = root->0x28;
+ *       base = (*(fn)vt->0x64)((s16)vt->0x60 + root);  // vtable call
+ *       u16 *src = (u16*)((char*)base + 0x9140);
+ *       u16 *dst = (u16*)a0->0x1C;
+ *       for (row = 0; row != 0x20; row++) {       // 32 rows
+ *           for (col = 0; col != 0x40; col += 4) {// 16 iters (x4)
+ *               *dst++ = src[0x00/2];
+ *               *dst++ = src[0x08/2];
+ *               *dst++ = src[0x10/2];
+ *               *dst++ = src[0x18/2];
+ *               src += 0x20/2;                    // 0x20-byte stride
+ *           }
+ *           src += 0xA80/2;                       // row gap
+ *       }
+ *   }
+ * Struct-typing reference: global root *(func_0000023C+4); root->0x28
+ * (40) vtable ptr with fn @0x64 (100) + s16 base-adjust @0x60 (96)
+ * returning a buffer base; src region at base+0x9140 laid out as
+ * 0x20-byte cells with 4 u16 lanes at cell offsets 0/8/0x10/0x18;
+ * dst = a0->0x1C (28) packed u16 output. Grid 32x(16*4)=2048 u16,
+ * row stride +0xA80 in src. The obj-0x28 vtable-dispatch idiom
+ * (0x64/0x60 variant). Caps <80: vtable jalr + func_0000023C+4
+ * reloc data ref + nested strided copy loop (bne loop pair). Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E740);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E800);
