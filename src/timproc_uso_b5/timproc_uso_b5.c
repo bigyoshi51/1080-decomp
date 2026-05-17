@@ -953,7 +953,70 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008468);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_000085E0: 42-insn (0xA8) FPU-clamp + vtable dispatch.
+ *
+ *   f2 = a0->[0x480]; f0 = a0->[0x484];                  // upper/lower bound
+ *   if (f0 < f2) {                                       // out of upper bound?
+ *     f6 = f2 - a0->[0xEC];                              // decrement
+ *     a0->[0x480] = f6;
+ *     if (a0->[0x480] < f0) {                            // crossed lower bound
+ *       a0->[0x480] = f0;
+ *       a0->[0x3CC] = 0;
+ *       a0->[0x488] = a0->[0x104];                       // (entry-arm)
+ *     } else {
+ *       a0->[0x480] = f0;
+ *       a0->[0x3CC] = 0;
+ *       a0->[0x488] = a0->[0x104];                       // (loop-body-arm)
+ *       gl_func();                                       // callback
+ *       (*(v0->[0x28]->[0x64]))(v0->[0x28]->[0x60] + ret);  // vtable dispatch
+ *     }
+ *   } else {
+ *     // skipped-path: simpler index lookup
+ *     v0 = a0->[0x3C4];
+ *     a0->[0x3F0] = v0;
+ *     a0->[0x3F4] = a0[0x3D0 + v0];                       // (sp+t6 idx)
+ *   }
+ *
+ * Pattern: FPU clamp-and-update + indirect vtable dispatch. The vtable
+ * call shape (v0->[0x28]->[0x64] + v0->[0x28]->[0x60]) is repeated
+ * across timproc family — likely a shared "boarder/effect manager" type.
+ * Multi-tick: full byte match needs typed-struct decl + correct
+ * fn-ptr signature. */
+extern int gl_func_00000000();
+void timproc_uso_b5_func_000085E0(int *a0) {
+    float f0, f2, f6, f8;
+    int *v0;
+    int *v1;
+    int (*fn)(int);
+    f2 = *(float*)((char*)a0 + 0x480);
+    f0 = *(float*)((char*)a0 + 0x484);
+    if (f0 < f2) {
+        f6 = f2 - *(float*)((char*)a0 + 0xEC);
+        *(float*)((char*)a0 + 0x480) = f6;
+        f8 = *(float*)((char*)a0 + 0x480);
+        if (f8 < f0) {
+            *(float*)((char*)a0 + 0x480) = f0;
+            *(int*)((char*)a0 + 0x3CC) = 0;
+            *(int*)((char*)a0 + 0x488) = *(int*)((char*)a0 + 0x104);
+        } else {
+            *(float*)((char*)a0 + 0x480) = f0;
+            *(int*)((char*)a0 + 0x3CC) = 0;
+            *(int*)((char*)a0 + 0x488) = *(int*)((char*)a0 + 0x104);
+            v0 = (int*)gl_func_00000000();
+            v1 = (int*)v0[0x28/4];
+            fn = (int(*)(int))v1[0x64/4];
+            fn(*(short*)((char*)v1 + 0x60) + (int)v0);
+        }
+    } else {
+        int idx = *(int*)((char*)a0 + 0x3C4);
+        *(int*)((char*)a0 + 0x3F0) = idx;
+        *(int*)((char*)a0 + 0x3F4) = *(int*)((char*)a0 + 0x3D0 + idx * 4);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000085E0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008688);
 
