@@ -661,7 +661,6 @@ void timproc_uso_b3_func_00002DF0(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002DF0);
 #endif
 
-#ifdef NON_MATCHING
 /* timproc_uso_b3_func_00002EF0: 22-insn (0x58) prologue-stolen successor.
  *
  * Predecessor func_00002DF0 has a TRAILING `sll t6, a1, 2` (0x00057080) at
@@ -677,37 +676,20 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  *   gl_func(entry);
  *   gl_func(entry, 0xA0, a2, 3);
  *
- * Promotion path:
- *   (a) SUFFIX_BYTES on func_00002DF0 with 0x00057080 + decoded C body
- *       for the predecessor (predecessor is unmatched 0x100/64 insns).
- *       Cleanest per feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md
- *       but blocked on predecessor decode.
- *   (b) PROLOGUE_STEALS=4 on func_00002EF0 with C that emits a redundant
- *       `sll, a1, 2` at start (recipe strips it). Verified 2026-05-06:
- *       IDO -O2 DOES emit `sll t6, a1, 2` as the FIRST insn (before
- *       prologue) when the C uses `a1 * 24` strength-reduced-via-sub
- *       — but PROLOGUE_STEALS=4 alone doesn't suffice: even after
- *       stripping that one insn, got is 25 insns vs exp 22 (3 extra),
- *       AND the order of remaining setup insns differs (subu/addiu-sp/
- *       sll vs addiu-sp/subu/lui/etc. — interleaved differently). Plus
- *       missing the splice-script SLL-opcode acceptance (need the same
- *       type of script extension I did for LW on 2026-05-06 splice
- *       function-prefix LW addition). Multi-blocker; defer to (a).
- *
- * Doc-wrap with decoded C body for now. Default INCLUDE_ASM build matches
- * via the .s file's bytes (including the predecessor's trailing sll). */
+ * Exact via PROLOGUE_STEALS=4. Unique extern D_b3_2EF0_table bakes the
+ * +0x70 table offset into the relocation; the second pointer local keeps the
+ * target 0x28-byte frame and sp+0x1C spill slot. */
+extern char D_b3_2EF0_table;
 void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
-    int spill;
-    char *entry = (char*)&D_00000000 + 0x70 + a1 * 24;
+    char *entry, *spillee;
     (void)a0;
-    spill = (int)entry;
+    (void)spillee;
+    entry = (char*)&D_b3_2EF0_table + a1 * 24;
+    spillee = entry;
     gl_func_00000000(entry);
-    gl_func_00000000((char*)spill);
-    gl_func_00000000((char*)spill, 0xA0, a2, 3);
+    gl_func_00000000(entry);
+    gl_func_00000000(entry, 0xA0, a2, 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002EF0);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00002F48: 66-insn (0x108) two-pass render-helper.
