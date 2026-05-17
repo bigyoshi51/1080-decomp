@@ -997,6 +997,47 @@ void titproc_uso_func_000026D0(int *a0) {
     titproc_uso_func_00000000(p);
 }
 
+/* titproc_uso_func_000026FC — verified structural decode (113-insn scroll/
+ * slider state machine; heavy beql/bnel/bgtzl branch-likely + 8 calls =
+ * documented sub-80 ceiling → INCLUDE_ASM build path; struct-typing ref).
+ *   s0 = a0;
+ *   if (s0->0x6C0 != 0 && s0->0x6C4 == 2) gl_func_00000000(s0->0x6B8);
+ *   if (s0->0x6C4 == 0) goto tail_check;            // beql 0x38->0x168
+ *   if (((int*)((int*)s0->0x6AC)->0x44)->0x34 == 0) {
+ *     if (s0->0x4F4 > 0) goto dec_path;             // bgtzl -> 0x130
+ *   }
+ *   v1 = (int*)s0->0x6BC;
+ *   if (v1->0x3C < 255) {                           // offset clamp
+ *     *(int*)(v1+0x3C) += 16;
+ *     if (((int*)s0->0x6BC)->0x3C < 256) goto end;
+ *     ((int*)s0->0x6BC)->0x3C = 720;
+ *   }
+ *   a1 = s0->0x4F0;
+ *   if ((a1 << 14) >= 0) {                          // bgezl bit-17 test
+ *     v0 = (int*)((int*)s0->0x6BC)->0x28;
+ *     (*(fn)v0->0x64)( (short)v0->0x60 + (int)s0->0x6BC );  // vtable idiom
+ *   } else {
+ *     gl_func_00000000(s0);
+ *     // chain: t9=*(int*)(&D+0x134); v0=t9->0xC4; a0=v0->0x800;
+ *     gl_func_00000000(a0); ...; gl_func_00000000(s0);
+ *     s0->0x4F4 = s0->0x4F0 & 0xffff;  goto end;
+ *   }
+ * dec_path: v1=s0->0x6BC; if (v1->0x3C > 0){ *(int*)(v1+0x3C) -= 16;
+ *            if (((int*)s0->0x6BC)->0x3C < 0) ((int*)s0->0x6BC)->0x3C=0; }
+ * tail_check: if (((int*)((int*)s0->0x6AC)->0x44)->0x34 == 0
+ *                 && s0->0x4F4 <= 0) {
+ *     a0 = s0->0x6C0;
+ *     if (a0 != 0) gl_func_00000000(s0);
+ *     gl_func_00000000(s0, -1, 0);
+ *   }
+ * end: gl_func_00000000(s0);
+ * Struct-typing: s0->0x6C0 active flag, 0x6C4 state (==2 special, ==0
+ * skip), 0x6B8 handle, 0x6AC obj(->0x44->0x34 gate), 0x6BC scroll obj
+ * (->0x3C int offset clamped 0..255 / 256→720 / -16 / ≥0→0; ->0x28
+ * vtable {fn@0x64, short@0x60}), 0x4F0 flag word (bit-17, &0xffff),
+ * 0x4F4 derived counter, 0x528 list, D[0x134] global. Caps <80: dense
+ * branch-likely (beql/bnel/bgtzl/bgezl/blez) + 8-call spill + &D reloc
+ * scheduling. INCLUDE_ASM is the correct build path (no episode). */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000026FC);
 
 void titproc_uso_func_000028C0(char *dst) {
