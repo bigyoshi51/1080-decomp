@@ -27,7 +27,13 @@
  * Multi-tick: split into a new src/game_libs/game_libs_o0_8A40.c file with
  * `OPT_FLAGS := -O0` per project_o1o2_split.md. Family of -O0 functions in
  * this region (8A40, 8AE4, ...) deserves shared file. Same pattern as the
- * existing game_libs_o0_8944.c. */
+ * existing game_libs_o0_8944.c.
+ *
+ * 2026-05-17: confirmed byte-identical mirror of bootup_uso/func_0000F2EC
+ * (matched via 10-insn INSN_PATCH at 0x24/0x34/0x38/0x3C/0x58/0x5C/0x64/
+ * 0x6C/0x74/0x78). When the o0 file split happens, body+INSN_PATCH can be
+ * copied verbatim from src/bootup_uso/bootup_uso_o0_F1F0.c — pure sibling
+ * transfer. Same s-reg-shift + stack-offset-shift cap class. */
 extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { float x, y, z; } Vec3f;
