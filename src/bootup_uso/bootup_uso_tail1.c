@@ -384,6 +384,35 @@ void func_0000FEA0(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEA0);
 #endif
 
+/* func_0000FEE8 - verified structural decode (0x208, 130 insns,
+ * get-or-create constructor + normalized-colour init). bootup_uso
+ * constructor family (cf. func_00005124 / func_0001438C).
+ *   void *func_0000FEE8(void *a0) {
+ *       o = a0 ? a0 : func_00000000(0x304);
+ *       if (!o) return 0;
+ *       s = func_00000000(0x2C);
+ *       if (!s) return ...;
+ *       func_00000000(s, &D_0000C5BC);            // init sub
+ *       s->0x28 = &D_a;                            // descriptor
+ *       o->0x28 = &D_b;                            // descriptor
+ *       o->0xC  = &D_0000C5C4;                     // type/vtable
+ *       f32 *c = (f32*)((char*)o + 0x4C);
+ *       c[0] = 0x77 / 255.0f;                      // 119/255
+ *       c[1] = 0x75 / 255.0f;                      // 117/255
+ *       c[2] = 0xE5 / 255.0f;                      // 229/255
+ *       c[3] = ... / 255.0f;                       // (RGBA-ish)
+ *       ... (further normalized float fields)
+ *   }
+ * Struct-typing reference: o = 0x304-byte object; o->0x28 (40)
+ * descriptor (&D), o->0xC (12) type/vtable ptr (&D_0000C5C4).
+ * s = 0x2C-byte sub-object (s->0x28 descriptor, init datum
+ * D_0000C5BC). o+0x4C (76) = a float array initialized from u8
+ * literals divided by 255.0f (0x437F0000) - a 0..1 normalized
+ * colour / parameter vector (the int-byte / 255.0 idiom). Caps
+ * <80: get-or-create + alloc-cascade (~3 reloc) + repeated
+ * cvt.s.w + div.s by 255.0 chain + &D descriptors. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEE8);
 
 /* func_000100F0 + func_0001016C split out to bootup_uso_o0_100F0.c on
