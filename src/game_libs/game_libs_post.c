@@ -5621,9 +5621,13 @@ void gl_func_0003F410(int a0) {
  * target spills a0 only):
  *   - dropping `(void)a0;`
  *   - `register int a1`
- * INSN_PATCH inapplicable (LEN-DIFF +1, not same-length). Genuinely
- * permuter-class: needs a spill/reg arrangement where IDO homes a0
- * only — not reachable by the obvious C levers. */
+ *   - permuter: 151k+ iterations, score flat at base (NEVER improved) —
+ *     prologue arg-home spill is not body-level, permuter has no lever
+ *     (see docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save).
+ * INSN_PATCH inapplicable (LEN-DIFF +1, not same-length). NOT permuter-
+ * class. True-structural / PREFIX-SUFFIX-recipe territory only; the
+ * one extra `sw a1,FRAME+4(sp)` would need a same-length post-cc
+ * deletion mechanism that doesn't exist. Deferred — genuine hard cap. */
 extern int gl_func_0001CA10();
 
 void gl_func_0003F444(int a0, int a1, int a2, int a3) {
