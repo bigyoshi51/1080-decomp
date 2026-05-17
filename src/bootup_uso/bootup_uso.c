@@ -2143,7 +2143,55 @@ void func_0000EBB8(char *a0) {
     func_0000E8BC((int*)(a0 + 0x10));
 }
 
+#ifdef NON_MATCHING
+/* func_0000EBE8: 36-insn alloc-or-fail + linked-list-prepend wrapper.
+ * 84.47% NM (2026-05-17).
+ *
+ * Structure:
+ *   p = alloc(0x40);
+ *   if (p != 0) {
+ *       call(p);
+ *       p->0x28 = &D_00000000;
+ *       p->0x3C = 0;
+ *   }
+ *   target = caller_a0->0x40;
+ *   if (target != 0) {
+ *       call(p+0x10, target);
+ *       if (target->0x14 != 0) target->0x4 = 1;
+ *       target->0x14 = p;
+ *   }
+ *   return p;
+ *
+ * Target uses beql delay-likely to share `target->0x14 = p` store across
+ * both branches of `if (target->0x14 != 0)` — natural emit from the
+ * conditional-prefix + unconditional-suffix shape.
+ *
+ * Residual ~15.5%: (1) build emits beql+delay-likely for the outer
+ * `if (target == 0) goto end` (with epilogue lw-ra in delay), target uses
+ * non-likely beq + explicit fall-through; (2) build keeps p in $a2,
+ * target in $v1 — frame size cascade (build -0x20 vs target -0x28). Both
+ * structural reg-alloc, not C-suppressible without permuter. */
+int *func_0000EBE8(int *caller_a0) {
+    int *p = (int*)func_00000000(0x40);
+    int *target;
+    if (p != 0) {
+        func_00000000(p);
+        p[0x28/4] = (int)&D_00000000;
+        p[0x3C/4] = 0;
+    }
+    target = (int*)caller_a0[0x40/4];
+    if (target == 0) goto end;
+    func_00000000((char*)p + 0x10, target);
+    if (target[0x14/4] != 0) {
+        target[0x4/4] = 1;
+    }
+    target[0x14/4] = (int)p;
+end:
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EBE8);
+#endif
 
 void func_0000EC80(int *dst) {
     int buf[2];
