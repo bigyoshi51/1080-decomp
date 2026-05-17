@@ -2412,11 +2412,37 @@ void game_uso_func_00003AC0(void *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
 #endif
 
-/* game_uso_func_00003ED4: 54-insn FPU geometry. Copy a1 Vec3→vb, X(&vb);
- * copy a0 Vec3→va, X(&va); X(); r = X3ret / D[0x90];
- * if ((va.y*vb.x) < (va.x*vb.z)) r = -r; if (a2) *a2 = 0; return r.
- * USO: call -> func_00000000, data -> &D_00000000+off. */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
+/* game_uso_func_00003ED4: 54-insn FPU geometry. Copy a1 Vec3->vb, X(&vb);
+ * copy a0 Vec3->va, X(&va); X(); r = X3ret / D[0x90];
+ * if ((va.z*vb.x) < (va.x*vb.z)) r = -r; if (a2) *a2 = 0; return r.
+ * USO: call -> func_00000000, data -> &D_00000000+off. INSN_PATCH
+ * fixes the final f2/f12 register-field allocation cap. */
+extern float gl_func_00000000_f(float);
+float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
+    float unused;
+    Vec3 vb;
+    Vec3 va;
+    char pad[8];
+    float ret;
+    float r;
+
+    (void)unused;
+    (void)pad;
+    vb = *a1;
+    gl_func_00000000(&vb);
+    va = *a0;
+    gl_func_00000000(&va);
+    r = gl_func_00000000_f(va.x * vb.x + va.z * vb.z);
+    r = r / *(float*)((char*)&D_00000000 + 0x90);
+    ret = r;
+    if ((va.z * vb.x) < (va.x * vb.z)) {
+        ret = -r;
+    }
+    if (a2 != NULL) {
+        *a2 = 0;
+    }
+    return ret;
+}
 
 #ifdef NON_MATCHING
 /* game_uso_func_00003FAC: 53-insn (0xD4) FPU-heavy 2D-rotation-like
