@@ -6731,6 +6731,10 @@ void game_libs_func_00044534(int a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
 
+/* gl_func_00044548: 25-insn pointer-chain + counter + array-update.
+ * Structure: t = (a0->0xC)->0->0; call(t + (a1*8)); (a0->0xC)->0x4 += 1;
+ *   then write 2 ints into table indexed by a1. Multi-pass decode pending —
+ *   needs typed struct walk for the chain and INSN_PATCH for resolved jal. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044548);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000445AC);
