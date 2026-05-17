@@ -810,17 +810,28 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005068);
  *       Target's beqz-skip-populate-then-fallthrough-to-epilogue pattern
  *       only emits when the populate branch is the if-true arm.
  *
- * Remaining cap (~22%): target inserts an extra `lw t6, 0x48(sp)` reload
- * (a0 → t6) and spills t6 to in-frame 0x1C(sp) in the alloc-jal delay slot.
- * Built omits this hop, placing swc1 f0,0x44 in that delay slot. Then for
- * the 3rd-jal, target reloads a0 from in-frame 0x1C; built reads from
- * out-of-frame 0x48 directly. Plus v0 spill at 0x30 (target) vs 0x1C
- * (built). All three are IDO scheduler decisions; no obvious C-level
- * trigger to force the hop. Likely a documented post-cc-recipe-grade cap. */
+ * 2026-05-16 progress (77.33% -> 89.45%, +12.12pp):
+ *   `volatile int saved_a0; saved_a0 = a0;` makes IDO reload a0 through
+ *   t6 and spill it to 0x1C(sp) in the alloc-jal delay slot, matching the
+ *   target's first hard scheduler shape. Per docs/IDO_CODEGEN.md
+ *   feedback-ido-write-only-volatile-keeps-frame-without-deadload.
+ *
+ * Remaining cap (~11%): target's third call reloads a1 from 0x1C before
+ * the D_00000000 load, spills v0 to 0x30(sp) before the jal, then fills the
+ * jal delay slot with a defensive `sw a1, 0x4(sp)`. Best natural C still
+ * spills a0/v0 to 0x18(sp) in the delay slot. Tested and rejected:
+ * plain saved-a0 local (DCE/reloads caller slot), post-call `(void)saved_a0`
+ * (adds dead `lw zero,0x1C(sp)`), scoped call_a1 temp and aliased saved_p
+ * (both grow frame/buf to 0x50), and a 5-arg call (96.45% but wrong ABI
+ * stack shape: ra at 0x1C and 5th arg at 0x10). Remaining signature matches
+ * the documented low-offset precall-spill cap in docs/PATTERNS.md
+ * feedback-game-uso-precall-spill-family / docs/IDO_CODEGEN.md
+ * feedback-ido-volatile-local-frame-placement. */
 extern char D_00007DA4;
 int func_000050A0(int a0) {
     float buf[4];
     char pad[24];  /* declared AFTER buf so pad is at lower offset, buf at 0x38 */
+    volatile int saved_a0;
     int *p;
     /* Statement-order matters: target asm has init-call FIRST (0x10),
      * THEN buf-clear (0x24-0x30), then alloc (0x34). Reordering the
@@ -836,9 +847,10 @@ int func_000050A0(int a0) {
     buf[1] = 0.0f;
     buf[2] = 0.0f;
     buf[3] = 0.0f;
+    saved_a0 = a0;
     p = (int*)func_00000000(0x58);
     if (p != 0) {
-        func_00000000(p, a0, *(int*)&D_00000000, &buf);
+        func_00000000(p, saved_a0, *(int*)&D_00000000, &buf);
         *(int*)((char*)p + 0x28) = (int)&D_00000000;
     }
     return (int)p;
