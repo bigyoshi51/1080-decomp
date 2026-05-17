@@ -7478,6 +7478,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
 
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7D8);
+
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7F8);
 
 void game_uso_func_0000AB98(void *a0) {
