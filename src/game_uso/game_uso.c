@@ -2581,6 +2581,13 @@ void game_uso_func_000041C0(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000041C0);
 #endif
 
+/* game_uso_func_000043D8: 60-insn cell-walk + FPU nearest-select (merged,
+ * see 41C0 split). Walk {value@0,next@4} list from a0->0x10; for each
+ * node n != a2: d = a1->0x8 - n->0x38; if (d<0) { if (fmax<d){v1=n;
+ * fmax=d;} } else { if (d<fmin){v0=n; fmin=d;} } fmin=D[0x94],
+ * fmax=D[0x98] init. return v0 ? v0 : v1.
+ * No-call same-base cell-walk → reload-CSE cap class (DDC0/120C family).
+ * USO: data -> &D_00000000+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000043D8);
 
 void game_uso_func_000044C8(char *a0) {
