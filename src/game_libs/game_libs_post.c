@@ -4326,12 +4326,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C814);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
 
-#ifdef NON_MATCHING
-/* gl_func_0003CAA0: 24-insn alloc-or-given Vec6-zero constructor. NM ~92%. */
+/* gl_func_0003CAA0: 24-insn alloc-or-given Vec6-zero constructor. */
 int* gl_func_0003CAA0(int *a0) {
     if (a0 == 0) {
         a0 = (int*)gl_func_00000000(0x34);
-        if (a0 == 0) return 0;
+        if (a0 == 0) goto end;
     }
     a0[0x30/4] = (int)&D_00000000;
     a0[1] = 0;
@@ -4342,11 +4341,9 @@ int* gl_func_0003CAA0(int *a0) {
     *(float*)((char*)a0 + 0x24) = 0.0f;
     *(float*)((char*)a0 + 0x28) = 0.0f;
     *(float*)((char*)a0 + 0x2C) = 0.0f;
+end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CAA0);
-#endif
 
 /* game_libs_func_0003CB00: 11-insn no-frame leaf setter. EXACT — key:
  * shared `int v=0xFFFF` forces `ori v0,zero,0xffff` (a plain literal
