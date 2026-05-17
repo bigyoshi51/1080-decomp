@@ -7068,11 +7068,23 @@ int gl_func_0004D02C(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: sw ra scheduled wrong vs lui a0 */
+/* gl_func_0004D05C: 10-insn 1-call wrapper.
+ *
+ * 2026-05-17 size-LEN fix: bare body `gl_func(&D);` emitted 9 insns
+ * (missing the leading arg-home `sw a0, 0x18(sp)`). Added `(void)a0;`
+ * after the call → IDO emits `sw a0, 0x18(sp)` at insn 1 (a0 is now
+ * live across the call). Got to 10 insns matching target size.
+ *
+ * Residual cap (~20%): IDO emits `sw ra; lui a0` order; target has
+ * `lui a0; sw ra` order. Same scheduler cap class as gl_func_000333F4
+ * (`feedback_ido_o2_tiny_wrapper_unflippable.md`). 2-insn swap is
+ * INSN_PATCH-class but the lui's R_MIPS_HI16 reloc moves with it; not
+ * trivially patchable. Default INCLUDE_ASM remains the build path. */
 extern int gl_func_00000000();
 void gl_func_0004D05C(int a0) {
     extern char gl_ref_000201B0;
     gl_func_00000000(&gl_ref_000201B0);
+    (void)a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D05C);
