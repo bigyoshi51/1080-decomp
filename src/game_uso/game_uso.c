@@ -1083,13 +1083,12 @@ void game_uso_func_00001DC4(void *a0) {
 extern float gl_func_sqrt(float);
 extern void gl_func_normalize3(int *vec);
 typedef struct { float x, y, z; } Vec3f;
-/* Signature change 2026-05-07 (was `(int *a0)`): per the documented 0x2394-0x23C0
- * decode below, the spilled-then-reloaded $a2 is a SECOND function parameter (the
- * delta-output context), not an internal local. The asm spill `sw a1, sp+0x180`
- * at function entry then `lw a2, sp+0x180` near tail confirms a1→a2 ABI shuffle
- * pattern for a 2nd ptr arg. Without `out_delta`, IDO won't allocate the right
- * stack-spill slot for the entry save of `a1`, blocking the byte-match grind. */
-void *game_uso_func_00001DDC(int *a0, int *out_delta) {
+/* Signature correction 2026-05-17: the documented 0x2394-0x23C0 tail subtracts
+ * through the function-local $a2 copy of a0, not an incoming second argument.
+ * The target has `or a2, a0, zero` at entry and later spills/reloads that $a2
+ * at sp+0x180; there is no corresponding a1 save. Keep this single-arg so the
+ * NM body does not inject an artificial `or a3, a1, zero` path. */
+void *game_uso_func_00001DDC(int *a0) {
     /* Frame-padding fix 2026-05-08: built was emitting sp -= 0xC8 vs
      * target sp -= 0x180 (184-byte gap). The key==3 Vec3 temporaries now
      * account for 16 bytes, so `char frame_pad[168];` preserves the target
@@ -1368,12 +1367,10 @@ branch_88: {
              *     - prior_pos" semantics — the function returns the Vec3 delta
              *     applied this frame.
              *
-             *     Implication for byte-matching: function signature is
-             *         void *game_uso_func_00001DDC(int *a0, struct *out_delta_ctx)
-             *     not `void *game_uso_func_00001DDC(int *a0)` as currently typed
-             *     (single-arg). The second arg currently appears as `arg1` only
-             *     in the spill-load pattern; needs to become an explicit `a1`
-             *     parameter for the byte-match grind.
+             *     Implication for byte-matching: the tail delta target is the
+             *     function-local $a2 copy of a0. A prior pass misread this as an
+             *     incoming second argument; the target has no a1 save and later
+             *     reloads the spilled a2.
              *   0x23C4-0x23D0: epilogue (`lw ra, 0x14(sp); addiu sp, +0x180; jr ra; nop`).
              *
              * FUNCTION DECODE COMPLETE: 383 insns characterized end-to-end.
@@ -1405,19 +1402,17 @@ branch_88: {
     }
     (void)excess;
     /* 2026-05-07: removed gl_func_TODO_00001DDC stub call. Replaced with the
-     * documented 0x2394-0x23C0 epilogue pattern that uses `out_delta` (the
-     * second function arg). The "save-old + write-new" Vec3 fanout idiom
-     * captures pre-overwrite a1->vec into a temp, then delta-output is
-     * computed as `a1->vec -= saved_old`. Net effect: out_delta receives
-     * the per-frame Vec3 delta committed to a0->[0x2C..0x34]. */
+     * documented 0x2394-0x23C0 epilogue pattern. The "save-old + write-new"
+     * Vec3 fanout idiom captures the pre-overwrite a0->vec into a temp, then
+     * delta-output is computed as `a0->vec -= saved_old`. */
     {
         Vec3f saved_old;
-        saved_old.x = *(float*)((char*)out_delta + 0x2C);
-        saved_old.y = *(float*)((char*)out_delta + 0x30);
-        saved_old.z = *(float*)((char*)out_delta + 0x34);
-        *(float*)((char*)out_delta + 0x2C) = *(float*)((char*)a0 + 0x2C) - saved_old.x;
-        *(float*)((char*)out_delta + 0x30) = *(float*)((char*)a0 + 0x30) - saved_old.y;
-        *(float*)((char*)out_delta + 0x34) = *(float*)((char*)a0 + 0x34) - saved_old.z;
+        saved_old.x = *(float*)((char*)a0 + 0x2C);
+        saved_old.y = *(float*)((char*)a0 + 0x30);
+        saved_old.z = *(float*)((char*)a0 + 0x34);
+        *(float*)((char*)a0 + 0x2C) = *(float*)((char*)a0 + 0x2C) - saved_old.x;
+        *(float*)((char*)a0 + 0x30) = *(float*)((char*)a0 + 0x30) - saved_old.y;
+        *(float*)((char*)a0 + 0x34) = *(float*)((char*)a0 + 0x34) - saved_old.z;
     }
 }
 late_label:
