@@ -83,7 +83,51 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011DBC);
 void func_00011DF8(void) {
 }
 
+#ifdef NON_MATCHING
+/* func_00011E00: 53-insn "find first slot with mask bit set".
+ * Target appears to be -O0 (lots of separate load + branch + nop-filled
+ * delay slots) but the file is built at -O2 -g3 — same -O0-cluster
+ * blocker as adjacent func_00011D78 (per its wrap doc).
+ *
+ *   if (a0->[0x18C] != 0) return 0;
+ *   if (a0->[0x128] != -1) {
+ *       p = a0[0xE0 + idx*4];
+ *       if (p->[0x18] & a1) return 1 << idx;
+ *       return 0;
+ *   }
+ *   for (i = 0; i < a0->[0x120]; i++) {
+ *       p = a0[0xE0 + i*4];
+ *       if (p->[0x18] & a1) return 1 << i;
+ *   }
+ *   return 0;
+ *
+ * idx == -1 means scan all slots; otherwise check only slot[idx].
+ *
+ * Cap: -O2 -g3 emits 41 insns vs target's 53 (compact control flow
+ * vs -O0 separate-load-and-branch pattern). Migration to a dedicated
+ * -O0 file is blocked by the same adjacent-empty-stub issue noted on
+ * func_00011D78 (per docs/MATCHING_WORKFLOW.md#feedback-asmproc-o0-min-insn-count-blocks-2insn-include-asm). */
+int func_00011E00(int *a0, int a1) {
+    int idx;
+    int i;
+    int *p;
+    if (a0[0x18C/4] != 0) return 0;
+    idx = a0[0x128/4];
+    if (idx != -1) {
+        p = (int*)a0[0xE0/4 + idx];
+        if (p[0x18/4] & a1) return 1 << idx;
+        return 0;
+    }
+    if (a0[0x120/4] <= 0) return 0;
+    for (i = 0; i < a0[0x120/4]; i++) {
+        p = (int*)a0[0xE0/4 + i];
+        if (p[0x18/4] & a1) return 1 << i;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011E00);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011ED4);
 
