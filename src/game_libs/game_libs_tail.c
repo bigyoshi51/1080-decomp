@@ -1264,6 +1264,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
 
+/* gl_func_0000DD44 - verified structural decode (38-insn br=0
+ * deterministic 2x vtable-dispatch; address-taken-local + sp-slot
+ * divergence -> INCLUDE_ASM build path; struct-typing reference).
+ *   int l1 = 1001;  // sp+52, passed by &
+ *   v1 = *(int**)((char*)a0->0x44 + a1*0x60);
+ *   v0 = (int*)v1->0x28;
+ *   (*(fn)v0->0x2C)( (short)v0->0x28 + (int)v1, &l1 );    // vtable idiom
+ *   int l2 = 1001;  // sp+40
+ *   v1 = *(int**)((char*)a0->0x44 + (a1^1)*0x60);
+ *   v0 = (int*)v1->0x28;
+ *   (*(fn)v0->0x2C)( (short)v0->0x28 + (int)v1, &l2 );
+ * Struct-typing: a0->0x44 = base of a 0x60-stride entry-pointer array;
+ * indexed by a1 then a1^1 (a pair/toggle - e.g. left/right or
+ * front/back). Each entry's ->0x28 is a vtable {fn@0x2C, short@0x28}
+ * (the documented obj-dispatch idiom, 0x2C/0x28 variant); the handler
+ * is called with ((short)vt->0x28 + entry, &scratch) where scratch is a
+ * stack int preloaded to 1001 (a default/sentinel out-param). Caps
+ * 20/38: target pre-materializes 1001 (li t6,1001 @0x004) and assigns
+ * the two scratch locals fixed sp-slots (sp+52, sp+40) with frame -64;
+ * address-taken-local + sp-slot allocation is not reproduced by clean C
+ * (regalloc diverges from insn 0). br=0 but the address-taken-local
+ * divergence variant, not the clean-episode subset. INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DD44);
 
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DE30/DE80/DED0/0003CB2C).
