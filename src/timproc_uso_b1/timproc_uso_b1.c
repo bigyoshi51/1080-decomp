@@ -800,6 +800,43 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 #endif
 
 
+/* timproc_uso_b1_func_00002838 - verified structural decode (~150-insn
+ * state-dispatch registration; switch + beql branch-likely + 28 calls +
+ * &D relocs = documented sub-80 ceiling -> INCLUDE_ASM build path;
+ * struct-typing reference). 24F4-family but state-gated.
+ *   s0 = a0;  func_00000000(a0);                  // X0 entry
+ *   s0->0x5C -= 16;                                // counter decrement
+ *   switch (s0->0x50) {                            // v0 = s0->0x50
+ *     case 0: return;                              // -> 0x240
+ *     case 1:                                      // -> 0x48
+ *        func_00000000(&D+0);
+ *        func_00000000(&D+496);
+ *        func_00000000(&D+496, 160, 37, 3);
+ *        func_00000000(s0, 37);
+ *        func_00000000(s0, *(u8*)(&D+376), 80);
+ *        func_00000000(&D+448);
+ *        func_00000000(&D+448, 160, 105, 3);
+ *        v = s0->0x68;
+ *        if (*(int*)&D != 0) { v += 10; a0 = v-39; }
+ *        else                  a0 = (s0->0x68)-39;
+ *        a2 = (*(int*)&D == 0) ? a0 : a0-14;
+ *        func_00000000(&D+328); func_00000000(&D+328,160,...); ...
+ *        ... (continues: more &D+328 region registration calls)
+ *        break;
+ *     case 2:  // -> 0x13C : a different registration call sequence
+ *        ...
+ *     default: return;                             // -> 0x244
+ *   }
+ * Struct-typing: s0->0x50 state selector (0=idle/return, 1, 2), s0->0x5C
+ * frame counter (-=16 each call), s0->0x68 a position/index (+10 when
+ * D[0]!=0; offsets -39 / -14 derived for call args), &D[0] global mode
+ * flag, &D+376 a u8 param. Per-state runs distinct gl_func_00000000
+ * registration sequences against &D data regions (+0/+496/+448/+328 ...)
+ * with const args (160,37,105,3,80). Caps <80: switch-dispatch + beql
+ * branch-likely + 28-call spill + &D %hi/%lo reloc scheduling -
+ * documented state-dispatch ceiling. Full per-state call lists are
+ * INCLUDE_ASM-preserved (the .s is the source of truth for the exact
+ * sequence). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002838);
 
 /* timproc_uso_b1_func_00002A8C — verified decode, 86=86 byte-identical
