@@ -9828,7 +9828,26 @@ L64:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E80);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062F08);
+/* game_libs_func_00062F08: 20-insn no-frame multi-field init.
+ * Bulk-initializes 15 fields of struct a0 with constants -1, -1000, 0, 1
+ * + one float 0.0f. */
+void game_libs_func_00062F08(int *a0) {
+    a0[0x50/4] = -1;
+    a0[0x4C/4] = -1;
+    a0[0x64/4] = -1000;
+    a0[0x68/4] = -1000;
+    a0[0x34/4] = -1;
+    a0[0x38/4] = -1;
+    a0[0x48/4] = 0;
+    a0[0x44/4] = 0;
+    a0[0xA4/4] = 1;
+    a0[0xA0/4] = 1;
+    a0[0x74/4] = 0;
+    a0[0x98/4] = 0;
+    a0[0x6C/4] = 1;
+    a0[0x70/4] = 0;
+    *(float*)((char*)a0 + 0x78) = 0.0f;
+}
 
 #ifdef NON_MATCHING
 /* game_libs_func_00062F58: 3-insn save-arg sentinel — `sw a0,0(sp); jr ra; nop`
