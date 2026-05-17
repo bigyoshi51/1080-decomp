@@ -6275,7 +6275,30 @@ void gl_func_00041768(int *self) {
     (void)pad;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_000417CC: 21-insn 2-vtable-call dispatcher.
+ *   gl_func_00000000();   // unrelated jal
+ *   p = a0->0x28;        // vtable ptr (reloaded twice)
+ *   a0->0x30 = 0;
+ *   ((void(*)(int))p->0x74)(a0 + (short)p->0x70);
+ *   p = a0->0x28;        // reload (target reloads explicitly)
+ *   ((void(*)(int))p->0x84)(a0 + (short)p->0x80);
+ *
+ * Similar vtable-callback pattern as func_0000FEA0; explicit reload to
+ * match target's lw + lw between the two calls (IDO doesn't CSE across
+ * the jalr). */
+void gl_func_000417CC(int *a0) {
+    int *p;
+    gl_func_00000000();
+    p = (int*)a0[0x28/4];
+    a0[0x30/4] = 0;
+    ((void(*)(int))p[0x74/4])(*(short*)((char*)p + 0x70) + (int)a0);
+    p = (int*)a0[0x28/4];
+    ((void(*)(int))p[0x84/4])(*(short*)((char*)p + 0x80) + (int)a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000417CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004182C);
 
