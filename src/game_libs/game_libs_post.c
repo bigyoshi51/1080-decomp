@@ -10632,6 +10632,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
 
+/* gl_func_00065360 - verified structural decode (58-insn transform/matrix
+ * object init; dual-zero-FP-reg + a1-double-copy + 20-store grouping =
+ * documented FP-regalloc/sp-scratch divergence -> INCLUDE_ASM build path;
+ * HIGH struct-typing value).
+ *   Vec3i s = *(Vec3i*)a1;            // a1[0..2] -> sp+36 scratch
+ *   *(Vec3f*)((char*)a0+0xDC) = s;    // a0->0xDC/0xE0/0xE4 = a1 vec
+ *   s = *(Vec3i*)a1;                  // re-copied (second sp pass)
+ *   *(float*)(a0+0xB4) = s.x; *(float*)(a0+0xB8) = s.y;
+ *   // zero block (f0/f2 = 0.0): a0-> 0xCC,0xD0,0xD4, 0xF4,0xF8,0xFC,
+ *   //   0x2FC,0x300,0x304, 0x30C,0x310,0x314, 0x318,0x31C,0x320 = 0
+ *   *(float*)(a0+0x308)=1.0f; *(float*)(a0+0x100)=1.0f;
+ *   *(float*)(a0+0xD8)=1.0f;  *(float*)(a0+0xBC)=s.z;
+ *   vt=(int*)a0->0x28; (*(fn)vt->0x14)((short)vt->0x10 + a0);  // dispatch
+ * Struct-typing (high reuse - this is a transform/orientation object):
+ *   a0->0xB4 (Vec3f, =a1) position-ish; a0->0xDC (Vec3f, =a1) duplicate;
+ *   a0->0xBC z-component; a 4x3-ish float matrix spanning 0xCC..0xD8 (row
+ *   with 0xD8=1), 0xF4..0x100 (0x100=1), 0x2FC..0x308 (0x308=1),
+ *   0x30C..0x320 - i.e. THREE basis rows zeroed with their diagonal
+ *   element set 1.0f (an identity-rotation init) + translation = a1.
+ *   a0->0x28 vtable {fn@0x14, short@0x10} (obj-dispatch idiom, 0x14/0x10
+ *   variant). Caps: IDO uses TWO FP zero regs (f0,f2 both mtc1 zero) for
+ *   different store groups + copies a1 to sp scratch TWICE; clean C
+ *   (one 0.0f, one struct copy) diverges across the 20-store block
+ *   (FP-regalloc/sp-scratch class, not INSN_PATCH-able). INCLUDE_ASM
+ *   (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065360);
 
 extern int gl_func_00000000();
