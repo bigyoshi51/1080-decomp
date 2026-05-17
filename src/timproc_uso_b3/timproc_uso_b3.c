@@ -383,6 +383,17 @@ void timproc_uso_b3_func_0000183C(int *a0) {
     gl_func_00000000(p, 0x8C, *(int*)((char*)p + 0x6AC));
 }
 
+/* timproc_uso_b3_func_00001870: byte-identical clone of
+ * arcproc_uso_func_00001BBC (same FPU body: jal; reload a3; f2=0;
+ * a0=a3->0xD4; lwc1 f0,OFF; sub.s D-const; bc1fl x3; 2 calls — only
+ * data offsets differ: 0x72C/72(at)/1708 vs 1BBC's 0x77C/68/1712).
+ * SAME stolen-prologue boundary: declared 0xB8 but real 0xB0; trailing
+ * `lui at,0x3f80; mtc1 at,$f0` (=1.0f) @+0xB0/0xB4 is the successor's
+ * stolen f0 prologue. Defer identically to arcproc_uso_func_00001BBC
+ * (see its wrap in arcproc_uso_tail1.c + docs/MATCHING_WORKFLOW
+ * forward-merge FPU-variant + clone-canonical exclusion). Do NOT
+ * cold-re-derive: it's the 739fd8d1d3 clone family. Decode only
+ * alongside the SUFFIX_BYTES+PROLOGUE_STEALS pair for this family. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001870);
 
 #ifdef NON_MATCHING
