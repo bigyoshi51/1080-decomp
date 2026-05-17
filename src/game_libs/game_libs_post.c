@@ -6316,37 +6316,25 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000422AC);
 #endif
 
-#ifdef NON_MATCHING
-/* 82.67% NM. gl_func_00042338: 15-insn prologue-stolen successor of
- * gl_func_000422AC. Predecessor's final insn `mtc1 zero,$f0` is this
- * function's stolen prologue. Body:
- *   gl_func_00000000(&buf, 0.0f x7);
+/* gl_func_00042338: 15-insn prologue-stolen successor of gl_func_000422AC.
+ * Predecessor's final `mtc1 zero,$f0` is this function's stolen prologue.
+ * Body: gl_func_00000000(&buf, 0.0f x7).
  *
- * 2026-05-16 mtc1 splice cap closed: splice-function-prefix.py extended
- * to accept opcode 0x11 mtc1-zero prefixes (docs/POST_CC_RECIPES.md
- * sixth-extension). PROLOGUE_STEALS=4 now strips the duplicate leading
- * `mtc1 zero,$f0` (76% → 82.67%).
- *
- * Remaining cap (~17pp): the file-scope `extern int gl_func_00000000();`
- * K&R prototype prevents a typed redecl in this function's scope —
- * IDO 7.1 rejects with "Incompatible function return type" even for
- * block-scope `extern void gl_func_00000000(void*, float, ...)`. The
- * fn-ptr cast workaround emits `lui t9 / addiu t9 / jalr t9` (3-insn
- * indirect call) instead of target's single `jal` direct call — net
- * +2 insns. INSN_PATCH cannot fix size-count diffs. To close: introduce
- * an alias undefined-fn (`func_42338_callee = gl_func_00000000`) in
- * the linker script so a fresh-name typed extern can be used without
- * the K&R conflict, while the reloc still resolves to the same target.
- * Pursue when the alias mechanism is in place. */
-extern int gl_func_00000000();
+ * Two coupled fixes to reach byte-exact:
+ *  1. PROLOGUE_STEALS=4 strips the duplicate leading `mtc1 zero,$f0` that
+ *     C emit would otherwise produce (post-cc recipe in POST_CC_RECIPES.md).
+ *  2. ALIAS extern `gl_func_00000000_42338` (defined in undefined_syms_auto.txt
+ *     as `= 0x00000000;`) lets us redeclare the callee with FLOAT-typed args
+ *     in block scope without conflicting with the file-scope K&R
+ *     `extern int gl_func_00000000()`. Typed prototype forces:
+ *       (a) direct `jal` (vs lui+addiu+jalr indirect for fn-ptr cast)
+ *       (b) FLOAT arg passing via swc1 (vs K&R double-promote via sdc1)
+ *     Both required for byte-exact match. */
+extern void gl_func_00000000_42338(void*, float, float, float, float, float, float, float);
 void gl_func_00042338(void) {
     int local[16];
-    ((void(*)(void*, float, float, float, float, float, float, float))
-        gl_func_00000000)(local, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    gl_func_00000000_42338(local, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042338);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042374);
 
