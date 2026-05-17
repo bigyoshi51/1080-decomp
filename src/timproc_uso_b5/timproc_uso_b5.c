@@ -1739,6 +1739,36 @@ void timproc_uso_b5_func_0000CB40(int *a0, float a1) {
     }
 }
 #else
+/* timproc_uso_b5_func_0000CB40 - verified structural decode (0xC4,
+ * 49 insns, FP slew-limiter / value-approach).
+ *   void timproc_uso_b5_func_0000CB40(void *a0, f32 a1) {
+ *       f32 target = a1;
+ *       if (a0->0x2A4 == 0.0f) target = 0.0f;     // disabled -> 0
+ *       st = a0->0x2B8;
+ *       if (st->0x134 != 0) target = 1.0f;        // force-full gate
+ *       cur = st->0x124;
+ *       if (cur < target) {                       // ramp up
+ *           st->0x124 += D_<step_up>;             // global +step
+ *           st = a0->0x2B8;
+ *           if (target < st->0x124)               // overshoot ->
+ *               st->0x124 = target;               //   clamp
+ *       } else {                                  // ramp down
+ *           st->0x124 -= D_<step_dn>;             // global -step
+ *           st = a0->0x2B8;
+ *           if (st->0x124 < target)               // undershoot ->
+ *               st->0x124 = target;               //   clamp
+ *       }
+ *   }
+ * Struct-typing reference: a0->0x2A4 (676) f32 enable (0.0 = force
+ * target 0); a0->0x2B8 (696) ptr to slew-state; state->0x124 (292)
+ * f32 = the slewed/current value; state->0x134 (308) s32 = force-to-
+ * 1.0 gate (nonzero -> target clamps to 1.0). Step magnitudes are
+ * two global f32 constants (&D + 0x892 up / + 0x896 down). Per call
+ * the current value moves one step toward the resolved target then
+ * clamps so it never overshoots. Caps <80: FP-heavy c.eq.s/c.lt.s/
+ * add.s/sub.s + bc1fl/bc1f branch-likely (x4) + 2x &D global step
+ * reloc + dual jr-ra. Full body INCLUDE_ASM-preserved (.s = source
+ * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CB40);
 #endif
 
