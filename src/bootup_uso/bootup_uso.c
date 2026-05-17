@@ -735,6 +735,43 @@ void func_000031B8(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
 
+/* func_000034E8 - verified structural decode (0x150, 84 insns,
+ * tagged-arg-block object builder + wire).
+ *   void *func_000034E8(St *a0, int *a1, int a2) {
+ *       // copy a global Vec3 (+0 pad) into a global slot:
+ *       g = (f32*)(func_00000008 + 0x28);
+ *       g[0] = *(f32*)(func_000003F8 + 0x140);
+ *       g[1] = *(f32*)(func_000003F8 + 0x144);
+ *       g[2] = *(f32*)(func_000003F8 + 0x148);
+ *       g[3] = 0.0f;
+ *       // pack a tagged arg block (sp+0x10..0x4C): pairs of a
+ *       // small id tag + a value pulled from a1[]:
+ *       //   {2, 0x6E, a1[0], a1[1], 0x6F, a1[2], a1[3], 0x70,
+ *       //    a1[6]|2, 0x71, 1, 0x73, a1[4], 0x74, a1[5], 0}
+ *       r = func_00000000(0, 0x64, &D_000074D0, 0x6D, block...);
+ *       *(void**)(func_00000008 + 0x24) = r;
+ *       func_00000000(func_00000008 + 0x24, r);   // register
+ *       r->0x70 = a2;
+ *       if (a0->0x84 != 0) func_00000000(r);
+ *       if (a0->0x80 != 0) func_00000000(r);
+ *       func_00000000(a0, r);                      // final wire
+ *       return r;
+ *   }
+ * Struct-typing reference: func_000003F8+0x140 = a global source
+ * Vec3 (3 f32) copied (with a 0.0 4th lane) into the global slot
+ * func_00000008+0x28. a1 = an int[] params source: indices 0,1,2,
+ * 3,4,5 and 6 (a1[6] OR'd with 0x2) feed the builder arg block,
+ * interleaved with id tags 0x64/0x6D/0x6E/0x6F/0x70/0x71/0x73/0x74
+ * (the func_00000000 builder is a tagged-vararg constructor; tag
+ * 0x64 head, 0x6D terminator-ish). Result r: r->0x70 (112) = a2,
+ * and r is published to the global func_00000008+0x24. a0->0x84
+ * (132) / a0->0x80 (128) = optional-callback gates; final
+ * func_00000000(a0, r) attaches r to a0. D_000074D0 = builder
+ * datum. Caps <80: ~5 func_00000000 reloc + big tagged stack-arg
+ * block + FP global Vec copy + cross-symbol (func_00000008/
+ * 000003F8) refs + beql branch-likely gates. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000034E8);
 
 /* func_00003638 - verified structural decode (0xFC, 63 insns,
