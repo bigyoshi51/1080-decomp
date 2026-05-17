@@ -1327,6 +1327,46 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800018F0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001ADC);
 
+/* func_80001CF4 - verified structural decode (kernel, 56 insns incl.
+ * a leaked predecessor word).
+ * BOUNDARY ARTIFACT: the .s text begins at 0x80001CF0 (addiu sp,sp,
+ * 0x50) but the symbol func_80001CF4 = 0x80001CF4. That leading
+ * +0x50 is the PREDECESSOR's epilogue delay-slot (its jr ra +
+ * addiu sp,sp,0x50), disassembled one word early by splat. The
+ * real function starts at 0x80001CF4 = `addiu sp,sp,-0x20`. Harmless
+ * for the INCLUDE_ASM build (bytes are bytes), but a future C match
+ * must target the -0x20 prologue and the predecessor must own the
+ * +0x50 word (split-fragments / undefined_syms boundary fix needed
+ * before this can be byte-matched).
+ *   s32 func_80001CF4(St *s) {                // real entry, frame -0x20
+ *       if (s->0x54 != 0) {
+ *           if (func_80001EDC(s->0x54, s->0x48, s->0x10) != 0)
+ *               return -0xE;
+ *           func_80000518(s->0x54, s->0x1C);   // note: order is
+ *       }                                      //  EDC then 518; ret
+ *       if (s->0x50 != 0) {                    //  check on EDC result
+ *           if (func_80001EDC(s->0x50, s->0x44, s->0xC) != 0)
+ *               return -0xF;
+ *           func_80000518(s->0x50, s->0x18);
+ *       }
+ *       if (s->0x4C != 0) {
+ *           if (func_80001EDC(s->0x4C, s->0x40, s->0x8) != 0)
+ *               return -0x10;
+ *           func_80000518(s->0x4C, s->0x14);
+ *       }
+ *       return 0;
+ *   }
+ * Struct-typing reference: s = a 3-slot resource/handle holder.
+ * Parallel field groups, slot i in {0,1,2}: handle s->{0x54,0x50,
+ * 0x4C} (84/80/76), paramA s->{0x48,0x44,0x40} (72/68/64), paramB
+ * s->{0x10,0xC,0x8} (16/12/8), paramC s->{0x1C,0x18,0x14} (28/24/20).
+ * Per non-null slot: func_80001EDC(handle, paramA, paramB) (init/
+ * validate; nonzero = failure -> abort with -0xE/-0xF/-0x10 for
+ * slots 0/1/2), then func_80000518(handle, paramC) (commit/apply).
+ * Caps <80: leaked predecessor prologue word (boundary) + beql
+ * branch-likely chain + 2 callees. Full body INCLUDE_ASM-preserved
+ * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
+ * rule + unresolved head boundary). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001CF4);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001DD0);
