@@ -3734,7 +3734,13 @@ void game_uso_func_000057D8(char *a0) {
  * state-limit dispatch plus the two Vec3 transform-call arms into real
  * C. Rebuilt DNM object and checked objdiff/no-alias output: 9.005%
  * -> 14.902%, C-emitted body 0x1C0 -> 0x360 bytes. Tried plain
- * `register int *self`; no score/codegen change, so left it normal. */
+ * `register int *self`; no score/codegen change, so left it normal.
+ *
+ * 2026-05-17 Codex iteration: promoted the decoded post-transform
+ * scalar/flag gate (target 0x5E00-0x5F68 shape) into C. This is still
+ * structural C, not a final-mile match: the float-returning helper is
+ * represented as a side-effect call because the file's canonical
+ * gl_func_00000000 decl is int-returning. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int *self;
@@ -3751,18 +3757,24 @@ void game_uso_func_0000591C(int *a0) {
     Vec3 transform_out;
     Vec3 vec_tmp;
     Vec3 vec_copy;
-    char pad[0x170];
+    Vec3 scratch_xz;
+    Vec3 derived_vec;
+    char pad[0xF8];
     int state_flag;
     int active_state;
     int resolved_state;
     int transform_flag;
+    int state_bits;
+    int out_flags;
     float state_limit;
+    float metric;
+    float scale;
 
     self = a0;
 
     /* Two early-out guards on globals. */
-    if (*(int*)((char*)&D_00000000 + 0x78) != 0) return;
-    if (*(int*)&D_00000000 == 0) return;
+    if (((int*)&D_00000000)[0x1E] != 0) return;
+    if (((int*)&D_00000000)[0] == 0) return;
 
     /* 4-way bit dispatch on a0->field_68 (flag byte).  Each handler
      * makes one gl_func_00000000 call and returns. Fall-through goes
@@ -3870,6 +3882,62 @@ void game_uso_func_0000591C(int *a0) {
         transform_in.y = vec_copy.y;
         transform_in.z = vec_copy.z;
     }
+
+    sub = *(char**)((char*)self + 0x30);
+    scratch_xz.x = *(float*)(sub + 0x3C8);
+    scratch_xz.y = 0.0f;
+    scratch_xz.z = *(float*)(sub + 0x3D0);
+    gl_func_00000000(&scratch_xz, &transform_in, &transform_out);
+
+    metric = 0.0f;
+    if (metric < 0.0f) {
+        metric = -metric;
+    }
+
+    scale = *(float*)(sub + 0x348) / *(float*)((char*)self + 0xB0);
+    scale += 1.0f;
+    *(float*)((char*)self + 0x3C) =
+        (metric * scale * *(float*)((char*)self + 0xAC)) / *(float*)(sub + 0x708);
+
+    metric = *(float*)((char*)self + 0x3C);
+    if (metric < 0.0f) {
+        metric = -metric;
+    }
+
+    active_state = *(int*)((char*)self + 0x74);
+    out_flags = 0;
+    if (active_state != 0) {
+        if (active_state == 1) {
+            active_state = *(int*)((char*)self + 0x2C);
+        }
+        out_flags = active_state;
+    } else {
+        state_bits = *(int*)((char*)self + 0x6C);
+        if (state_bits & 1) {
+            if (((resolved_state & 1) == 0) && ((resolved_state & 2) == 0)) {
+                *(int*)((char*)self + 0x6C) = state_bits & ~1;
+                *(int*)((char*)self + 0x48) = 0x14;
+            }
+            if (resolved_state & 4) {
+                out_flags = 0x20;
+            } else if (resolved_state & 0x800) {
+                out_flags = 0x80;
+            }
+        } else if ((hit_parent != NULL) && (*(int*)(hit_parent + 0x84) & 2)) {
+            helper_ptr += 0x30;
+            scratch_xz.x = *(float*)helper_ptr;
+            scratch_xz.y = 0.0f;
+            scratch_xz.z = *(float*)(helper_ptr + 8);
+
+            hit_parent += 0x30;
+            derived_vec.x = scratch_xz.x - *(float*)hit_parent;
+            derived_vec.y = 0.0f;
+            derived_vec.z = scratch_xz.z - *(float*)(hit_parent + 8);
+            out_flags = 0x40;
+        }
+    }
+
+    gl_func_00000000(self, out_flags, metric);
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
      *   t2 = a0->0x30;                                  // sub-struct ptr
