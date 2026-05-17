@@ -10448,9 +10448,18 @@ void game_uso_func_000116D4(void *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011868);
+void game_uso_func_00011868(int *a0) {
+    *(float *)((char *)a0[0xB4 / 4] + 0x970) = 0.0f;
+    *(float *)((char *)a0[0xB4 / 4] + 0x974) = 0.0f;
+    *(float *)((char *)a0[0xB4 / 4] + 0x978) = 0.0f;
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011888);
+void game_uso_func_00011888(int *a0) {
+    a0[0xE8 / 4] = 0;
+    a0[0xEC / 4] = 0;
+    a0[0xF0 / 4] = 0;
+    a0[0x12C / 4] = 0;
+}
 
 /* game_uso_func_0001189C — verified decode, 77/78 (99%), single-insn blocker.
  * Dense switch(a1) 1..5; each case: func_00000000((s0->0xB4)->0x800,
