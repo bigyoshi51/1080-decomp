@@ -7453,6 +7453,31 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
 #endif
 
+/* game_uso_func_0000A0E8 - verified structural decode (~163-insn FPU
+ * geometry op; Vec3-diff + multi struct-copy + dispatch = documented
+ * FP-regalloc + struct-copy-sp-slot sub-80 ceiling -> INCLUDE_ASM
+ * build path; struct-typing reference).
+ *   f(a0, b /sp204/, a2 /sp208/):
+ *   if (a2 == 0) gl_func_00000000(&D+0x7D4, &D+0x7E0, 1586);  // assert
+ *   v0 = a2;                                                  // reloaded
+ *   d.x = v0->0x30 - b->0x30;                                  // Vec3 diff
+ *   d.y = v0->0x38 - b->0x38;                                  // (sp+92)
+ *   d.z = v0->0x34 - b->0x34;
+ *   copy d -> sp+108 (3 int-words);  copy sp+108 -> sp+188;
+ *   if (sp+160 == 0) { v1 = gl_func_00000000(b+0x30); }        // build
+ *   else v1 = sp+160;
+ *   v1->0x0 = *(float*)(sp+188);  v1->0x8 = *(float*)(sp+196);
+ *   ... (continues: more FP writes into v1 from the diff/copy block) ...
+ * Struct-typing: v0/a2 and b (a1) are objects holding a Vec3 at +0x30
+ * (x@0x30, z@0x34, y@0x38 - note z/y order); function computes the
+ * component difference v0.vec - b.vec, replicates it across stack
+ * scratch (sp+92 / +108 / +188 / +160), then writes it into a result
+ * object v1 (built via gl_func_00000000(b+0x30) when sp+160 slot is
+ * null). &D+0x7D4 / +0x7E0 = assert format/string (1586 = line?).
+ * Caps <80: FP sub.s pipeline + 3-int struct-copy sp-slot allocation +
+ * the result-object reload - combined FP-regalloc/struct-copy
+ * divergence (cf gl_func_00065250). Full body INCLUDE_ASM-preserved.
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
 
 #ifdef NON_MATCHING
