@@ -10448,6 +10448,10 @@ void game_uso_func_000116D4(void *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
 
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011868);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011888);
+
 /* game_uso_func_0001189C — verified decode, 77/78 (99%), single-insn blocker.
  * Dense switch(a1) 1..5; each case: func_00000000((s0->0xB4)->0x800,
  * &D+off_k, 10); func_00000000((s0->0xB4)+0x808, s1). off_k =
