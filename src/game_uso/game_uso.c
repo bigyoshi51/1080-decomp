@@ -8914,6 +8914,15 @@ void game_uso_func_0000F514(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F514);
 #endif
 
+/* game_uso_func_0000F5A8: 47-insn EE84-family branching variant.
+ *   s0=a0;
+ *   if (a0->0xF0 != 0) {
+ *     if (X(a0,?,3,1) == 0) { X(s0,D[0xEE0],D[0xEE4]); X(s0); }
+ *   } else {
+ *     X(s0, s0->0xF4->0x20, 0,1,1,1);
+ *     X(s0,D[0xEE8],D[0xEEC],1); X(s0);
+ *   }
+ * USO: call -> func_00000000, data -> &D_00000000+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F5A8);
 
 #ifdef NON_MATCHING
