@@ -435,6 +435,41 @@ end:
     return a0;
 }
 
+/* func_00001E08 - verified structural decode (0x170, 92 insns,
+ * get-or-create constructor + bulk property registration).
+ *   void *func_00001E08(void *a0) {
+ *       o = a0;
+ *       if (o == 0) { o = alloc(0x118); if (!o) return 0; }
+ *       init(o, &D_00006E30);                     // func_00000000
+ *       o->0x28 = &D_desc;
+ *       sub_init(o + 0x2C);                        // func_00000000
+ *       o->0xC  = &D_00006E38;                     // type/vtable
+ *       o->0x70 = 0;
+ *       o->0x78 = 0;
+ *       o->0x74 = (char*)o + 0x2C;                 // self-ref
+ *       reg(o, &D_00006E48, 0);                    // property 1
+ *       reg(o, &D_00006E54, 0);                    // 2
+ *       reg(o, &D_00006E60, 0);                    // 3
+ *       reg(o, &D_00006E70, 0);                    // 4
+ *       reg(o, &D_00006E80, 0);                    // 5
+ *       reg(o, &D_00006E8C, 0);                    // 6
+ *       reg(o, &D_00006E98, 0);                    // 7
+ *       reg(o, &D_00006EA8, 0);                    // 8 (.L label)
+ *       reg(o, &D_00006EB8, 0);                    // 9
+ *       reg(o, &D_00006EC4, 0);                    // 10
+ *       return o;
+ *   }
+ * (reg = func_00000000(obj, &descriptor, 0).) Struct-typing
+ * reference: o = 0x118-byte object. o->0x28 (40) descriptor ptr
+ * (&D), o->0xC (12) type/vtable ptr (&D_00006E38), o->0x70 (112) =
+ * 0, o->0x78 (120) = 0, o->0x74 (116) = &o[0x2C] (an embedded
+ * sub-struct self-pointer; o+0x2C is init'd by the second reloc
+ * call). D_00006E48..D_00006EC4 (and the .L00006EA8 entry) = ~10
+ * property/field descriptor data blobs registered into o via the
+ * reg helper (a property-table builder; arg3 = 0 default). Caps
+ * <80: get-or-create + ~13 func_00000000 reloc calls + ~12 &D
+ * descriptor relocs. Full body INCLUDE_ASM-preserved (.s = source
+ * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001E08);
 
 #ifdef NON_MATCHING
