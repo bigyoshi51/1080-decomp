@@ -1091,3 +1091,4 @@ gl_func_0003DA18 = 0x3DA18;
 gl_func_0003DBF0 = 0x3DBF0;
 gl_func_0003DE4C = 0x3DE4C;
 gl_func_0003DDC4 = 0x3DDC4;
+timproc_uso_b3_func_00001248 = 0x1248;
