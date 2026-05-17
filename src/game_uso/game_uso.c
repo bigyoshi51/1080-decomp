@@ -5421,6 +5421,17 @@ trunk:
      *     consumed by an immediate post-branch use we haven't modeled).
      *     Adding ret_hi in C without modeling the precise scope where
      *     v1=1 is live regresses. Reverted. */
+    /*
+     * 2026-05-16 branch-target audit, no C-body change: re-read the
+     * bit-0x80 slow-path classifier at 0x7848-0x7874. Two earlier notes
+     * over-flattened it into a simple low/mid/high tier cascade. The asm
+     * has an early branch from the `sub_cnt < 2 * list_base + 16` test
+     * directly into the post-lookup counter transition at 0x7930, with
+     * `main_cnt = a0[0x44]` in the branch-likely delay slot. That path
+     * bypasses the D+0x638 Vec2 load entirely. Any next code pass should
+     * model this as a range-classifier with a no-table transition arm,
+     * not as one shared table lookup for all three tiers.
+     */
 
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
