@@ -749,28 +749,29 @@ extern int gl_func_00000000();
 extern int func_00000000();
 extern char D_00000000;
 void timproc_uso_b3_func_00002F48(int *a0, int a1) {
-    struct {
-        char pad[0x20];
-        float color[4];
-    } sp;
-    sp.color[0] = 1.0f;
-    sp.color[1] = 1.0f;
-    sp.color[2] = 1.0f;
-    sp.color[3] = 1.0f;
-    func_00000000((char*)&D_00000000 + 0x190);
-    if (a0[0x58/4] == 0) {
-        func_00000000((char*)&D_00000000 + 0x190, a0[0x5C/4], sp.color, 0xFF);
+    float quad4[4];
+    char pad[32];
+    (void)pad;
+
+    quad4[0] = 1.0f;
+    quad4[1] = 1.0f;
+    quad4[2] = 1.0f;
+    quad4[3] = 1.0f;
+    gl_func_00000000((char*)&D_00000000 + 0x190);
+    if (a0[0x58 / 4] == 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x190, a0[0x5C / 4], quad4, 0xFF);
     } else {
-        func_00000000((char*)&D_00000000 + 0x190, 0x40, sp.color, 0xFF);
+        gl_func_00000000((char*)&D_00000000 + 0x190, 0x40, quad4, 0xFF);
     }
-    func_00000000((char*)&D_00000000 + 0x190, 0x78, a1, 3);
-    func_00000000((char*)&D_00000000 + 0x1A8);
-    if (a0[0x58/4] != 0) {
-        func_00000000((char*)&D_00000000 + 0x1A8, a0[0x5C/4], sp.color, 0xFF);
+    gl_func_00000000((char*)&D_00000000 + 0x190, 0x78, a1, 3);
+
+    gl_func_00000000((char*)&D_00000000 + 0x1A8);
+    if (a0[0x58 / 4] != 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x1A8, a0[0x5C / 4], quad4, 0xFF);
     } else {
-        func_00000000((char*)&D_00000000 + 0x1A8, 0x40, sp.color, 0xFF);
+        gl_func_00000000((char*)&D_00000000 + 0x1A8, 0x40, quad4, 0xFF);
     }
-    func_00000000((char*)&D_00000000 + 0x1A8, 0xC8, a1, 3);
+    gl_func_00000000((char*)&D_00000000 + 0x1A8, 0xC8, a1, 3);
 }
 
 /* timproc_uso_b3_func_00003050: byte-identical mirror of
