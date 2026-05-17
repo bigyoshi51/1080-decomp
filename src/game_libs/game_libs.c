@@ -292,6 +292,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000015FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001798);
 
+/* 3-insn 2-field setter: a0[0x44]=a1, a0[0x5C]=a2. */
+void game_libs_func_000017E0(int *a0, int a1, int a2) {
+    a0[0x44/4] = a1;
+    a0[0x5C/4] = a2;
+}
+
+/* 2-insn 1-field setter: a0[0xCC]=a1 (in jr-ra delay slot). */
+void game_libs_func_000017EC(int *a0, int a1) {
+    a0[0xCC/4] = a1;
+}
+
+/* 3-insn 2-field setter: a0[0x130]=a1, a0[0x134]=a2. */
+void game_libs_func_000017F4(int *a0, int a1, int a2) {
+    a0[0x130/4] = a1;
+    a0[0x134/4] = a2;
+}
+
+/* 6-insn 4-arg setter: a0[0x74]=a1, a0[0x8C]=a2, a0[0xA4]=a3, a0[0xBC]=a4
+ * (a4 from caller-arg-save sp+0x10). */
+void game_libs_func_00001800(int *a0, int a1, int a2, int a3, int a4) {
+    a0[0x74/4] = a1;
+    a0[0x8C/4] = a2;
+    a0[0xA4/4] = a3;
+    a0[0xBC/4] = a4;
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00001818);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001820);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001C54);
