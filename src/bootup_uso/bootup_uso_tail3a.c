@@ -90,7 +90,50 @@ void func_00010A9C(int *a0) {
 void func_00010AA8(void) {
 }
 
+#ifdef NON_MATCHING
+/* func_00010AB0 - verified decode, O0-BLOCKED record-append (0xBC,
+ * 47 insns). The asm is unmistakably IDO -O0: a0->0x78 index +
+ * record-base (idx*0x28) is recomputed from scratch for EVERY field
+ * store (no CSE), `or t0,a0,zero` reg-move before the increment, and
+ * a redundant `b .L00010B60` to the very next instruction. The C
+ * below is logically exact and compiles to this shape at -O0; it is
+ * NOT byte-exact at the file's default -O2 (O2 CSEs the index calc).
+ *
+ * Promotion path (deferred - needs a focused non-loop session):
+ * the documented bootup_uso -O0 file-split recipe (cf. commit
+ * 067b549f / Makefile lines 60-75): extract into
+ * src/bootup_uso/bootup_uso_o0_10AB0.c, add
+ *   build/src/bootup_uso/bootup_uso_o0_10AB0.c.o \
+ *   build/non_matching/src/bootup_uso/bootup_uso_o0_10AB0.c.o: \
+ *       OPT_FLAGS := -O0
+ * and a tenshoe.ld (.text) entry at the 0x10AB0 slot. Risk: tail3a
+ * is a multi-function blob already split tail3a/_mid/_bot; pulling a
+ * mid-file function out requires re-segmenting the containing piece
+ * so following addresses don't shift - too address-fragile to do +
+ * verify under a 60s loop tick without risking a main-breaking push.
+ * Wrapped NM so the exact C is preserved for that session.
+ *
+ * Struct-typing reference: a0 = container with an embedded array of
+ * 0x28-stride records and a current-index counter at a0->0x78 (120).
+ * record[i] = a0 + i*0x28; per append: rec->0x88 (136) = 1 (in-use
+ * flag), rec->0x8C (140) = (a2 == -1 ? a0->0x78 : a2), rec->0x84
+ * (132) = a1, rec->0x90 (144) = a3, then a0->0x78++. Caps: pure -O0
+ * codegen-shape (not C-source-reachable at -O2). */
+void func_00010AB0(char *a0, int a1, int a2, int a3) {
+    *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x88) = 1;
+    if (a2 == -1) {
+        *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x8C) =
+            *(int *)(a0 + 0x78);
+    } else {
+        *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x8C) = a2;
+    }
+    *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x84) = a1;
+    *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x90) = a3;
+    *(int *)(a0 + 0x78) += 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010AB0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010B6C);
 
