@@ -931,6 +931,18 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006C00);
 
+/* timproc_uso_b5_func_00006D30: 54-insn loop — DEFERRED, Yay0-blocked
+ * cap class (timproc_uso_b5 is Yay0-compressed, see file note ~L606;
+ * same -O0/Yay0 pipeline block as b3/mgrproc — -O2 C build can't match).
+ * Body sketch (for future post-Yay0 work):
+ *   f20=0.0; v=X(s0); if (v->0x2A4 != 0.0) return;
+ *   if (X(s0) <= 0) return;            // count
+ *   for (i=0; i < count; i++) {
+ *     k = s0->0x3C4; p = &s0[k*4]+0x3D0; n = X(s0); *p = p_old+1;
+ *     if (s0->[k*4]+0x3D0 < n) *p = 0;
+ *     v = X(s0); if (v->0x2A4 != 0.0) return;
+ *     cnt = X(s0); }                    // bnel s1<v0 loop
+ * Decode only when the Yay0/-O0 pipeline is tackled. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006D30);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006E08);
