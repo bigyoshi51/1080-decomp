@@ -2508,6 +2508,44 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DF04);
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E014);
 
+/* func_0000E124 - verified structural decode (0x14C, 83 insns,
+ * left/right mirror-flip toggle).
+ *   void func_0000E124(St *s0) {
+ *       u32 fl = s0->0xA58 ^ 0x80;                // toggle bit 7
+ *       s0->0xA58  = fl;
+ *       s0->0xA38  = 0.0f;
+ *       if (fl & 0x8) func_00000000(s0);
+ *       else          func_00000000();
+ *       s0->0x978  = -s0->0x978;                  // flip axis val
+ *       Vec3 up = {0.0f, 1.0f, 0.0f};             // sp+0x4C
+ *       cA = s0->0x844;
+ *       cA->0x30 *= -1.0f;                        // negate child A x
+ *       if (fl & 0x80) {
+ *           if (s0->0x864) func_00000000(s0->0x864 + 0x30);
+ *           Vec3 r = {-1.0f, 1.0f, 1.0f};         // sp+0x2C
+ *           func_00000000(s0->0x864 + 0x30, &r);  // reflect child B
+ *       } else {
+ *           if (s0->0x864) func_00000000(s0->0x864 + 0x30);
+ *       }
+ *       if (fl & 0x20) {
+ *           if (s0->0x864)
+ *               func_00000000(s0->0x864 + 0x30, &up, 180.0f);
+ *       }
+ *   }
+ * Struct-typing reference: s0->0xA58 (2648) u32 flag word - bit 7
+ * (0x80) = facing/mirror state (toggled here), bit 3 (0x8) selects
+ * the notify-callback arg form, bit 5 (0x20) gates a 180.0deg
+ * re-orient. s0->0xA38 (2616) f32 cleared (a timer/accum). s0->0x978
+ * (2424) f32 = an axis/spin value, sign-flipped on mirror. s0->0x844
+ * (2116) = child A object, s0->0x864 (2148) = child B; both carry a
+ * transform at +0x30 (child->0x30 f32 = x scale, negated to mirror;
+ * child+0x30 = the Vec3 transform passed to func_00000000 reflect/
+ * rotate helpers). Constants: -1.0/1.0 reflection vector, 0x43340000
+ * = 180.0f rotation. This is the snowboarder/board left<->right
+ * direction flip. Caps <80: FP-heavy neg.s/mul.s + many lui+mtc1
+ * f32 consts + beql branch-likely + flag-bit branches + reloc
+ * calls. Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E124);
 
 #ifdef NON_MATCHING
