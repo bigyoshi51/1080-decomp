@@ -399,18 +399,28 @@ void arcproc_uso_func_00000F50(int a0, int a1) {
  *
  * IDO -O2 doesn't emit beql for early-out NULL checks at this shape;
  * it prefers the eager-init form. Cap class: branch-likely-with-
- * delay-likely-init. No tested C-level lever forces the beql shape
- * for this 2-stage null-check pattern. Fix paths:
+ * delay-likely-init. C-level levers tested ineffective:
+ *   - 2026-05-08: original `if (a && b->[..]) return 1; return 0;` form
+ *   - 2026-05-17: separated `if (==0) return 0;` form (per docs/IDO_CODEGEN.md
+ *     #feedback-ido-bnel-arm-swap) — identical eager-init emit
+ *   - 2026-05-17: `goto end` shared-epilogue form — identical eager-init emit
+ * Also a regalloc divergence: target uses t6 for first lw + v0 for second
+ * (return reg shared with second deref); built uses v0 for first + v1 for
+ * second. Permuter-class.
+ * Fix paths:
  *   - INSN_PATCH for 10 insns (essentially rewriting the whole body)
  *   - permuter random-search for an alternate C shape that emits beql
  *
  * Default INCLUDE_ASM path produces correct bytes (post-merge .s). */
 int arcproc_uso_func_00000F78(int *a0) {
-    int *t6 = *(int**)((char*)a0 + 0x6AC);
-    int *v0 = *(int**)((char*)t6 + 0x6C);
-    if (v0 != 0 && *(int*)((char*)v0 + 0xEC) != 0) {
-        return 1;
-    }
+    int *v;
+    int t;
+    v = *(int**)((char*)*(int**)((char*)a0 + 0x6AC) + 0x6C);
+    if (v == 0) goto end;
+    t = *(int*)((char*)v + 0xEC);
+    if (t == 0) goto end;
+    return 1;
+end:
     return 0;
 }
 #else
