@@ -4783,8 +4783,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DB3C);
  * game_libs_func_0003DDC0; head=a0->0x10. On node==a1: copy 3 ints
  * v1->{0x30,0x34,0x38} into a stack Vec3 (sp+4), reload as float, store
  * a2[0..2], return 1; not found → 0. Residual: same write-only-sp-slot
- * + direct-sp-offset stack-forcing class as DDC0 — documented hard,
- * permuter/multi-tick. C body under NON_MATCHING is the permuter seed;
+ * + direct-sp-offset stack-forcing class as DDC0 — documented hard. PERMUTER-EXHAUSTED 2026-05-17: 4.6M iterations, score flat at 1415 — same verdict as DDC0 (sibling). True-structural, not permuter-crackable. C body under NON_MATCHING retained as reference;
  * build path stays INCLUDE_ASM via #else. */
 #ifdef NON_MATCHING
 int game_libs_func_0003DBEC(int *a0, int *a1, float *a2) {
@@ -4862,7 +4861,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DD28);
  * frame+spills but emits computed-base stores → 36, 2-over. Need the
  * write-only-sp+0 + direct-sp-offset form (cf.
  * docs/PATTERNS.md#feedback-typed-stack-struct-for-direct-sp-stores) —
- * documented hard stack-forcing class; permuter/multi-tick. objdiff
+ * documented hard stack-forcing class. PERMUTER-EXHAUSTED 2026-05-17: 7.5M iterations, score flat at 975 (never improved) — the write-only-sp-slot cell-walk stack-forcing residual resists the permuter too, not just C levers. Not permuter-class; true-structural. objdiff
  * can't score (new sym, expected/ baseline pre-merge stale).
  * C body present (under NON_MATCHING) as the permuter seed — build
  * path stays INCLUDE_ASM via #else. */
