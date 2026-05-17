@@ -12350,6 +12350,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000730CC_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000732C4);
+
+/* game_libs_func_00073310: 6-byte fragment (1 nop pad + 5-insn VI-status
+ * read leaf). Split off from gl_func_000732C4 tail 2026-05-17 via
+ * split-fragments.py. Body @ +4: `return *(volatile int*)0xA4400010 & 1;`
+ * (reads VI_BASE+0x10 status bit 0). Leading nop is alignment padding —
+ * future splat refinement should drop the +0 nop and start the symbol at
+ * the lui insn. */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073310);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000732C4_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073334);
