@@ -305,6 +305,41 @@ void *func_00000C10(int *arg0) {
     return node;
 }
 
+/* func_00000CA0 - verified structural decode (0xF4, 61 insns,
+ * get-or-create constructor + box-corner table generator).
+ *   void *func_00000CA0(void *a0, int a1, int a2, int a3) {
+ *       o = a0;
+ *       if (o == 0) {
+ *           o = alloc(0x40);                      // func_00000000
+ *           if (o == 0) return 0;
+ *           init(o, &D_000066A8);                 // func_00000000
+ *       }
+ *       o->0x28 = &D_desc;
+ *       o->0x34 = 1.0f; o->0x30 = 1.0f;           // scale = (1,1,1)
+ *       o->0x2C = 1.0f; o->0x38 = 0.0f;
+ *       o->0xC  = a1;
+ *       o->0x3C = a2;
+ *       *(int*)&D_g0 = a3;
+ *       *(int*)(func_00000000 + 4) = a3;          // 2nd global
+ *       h  = (a3 >= 0) ? (a3 >> 1) : ((a3 + 1) >> 1);  // a3/2
+ *       nh = -h;
+ *       // global s16 table D_v: 4 verts, stride 0x10, lanes +0/+2/+4
+ *       v[0]={ h, h, h};  v[1]={nh, h, h};
+ *       v[2]={nh,nh, h};  v[3]={ h,nh, h};
+ *       return o;
+ *   }
+ * Struct-typing reference: o = 0x40-byte transform object. o->0x28
+ * (40) descriptor/vtable ptr (&D), o->0x2C/0x30/0x34 (44/48/52) f32
+ * scale vector (init (1,1,1)), o->0x38 (56) f32 = 0.0, o->0xC (12)
+ * s32 = a1, o->0x3C (60) s32 = a2. a3 = a half-extent: a3/2 (signed-
+ * round) is written as a box/quad corner pattern into a global s16
+ * vertex table (4 entries, 0x10 stride, x/y/z at +0/+2/+4 - all z =
+ * +h, xy = the 4 (+-h) corners); a3 also stored to two global int
+ * slots (&D and func_00000000+4). D_000066A8 = init datum. Caps
+ * <80: get-or-create branch + 2x func_00000000 reloc + FP 1.0
+ * consts + signed-halve + many &D/global s16 stores. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000CA0);
 
 /* func_00000D94 - verified structural decode (0xD4, 53 insns,
