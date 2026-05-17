@@ -918,30 +918,41 @@ void game_libs_func_000086A0(char *a0) {
     }
 }
 
-/* gl_func_0000871C: 54-insn (0xD8) FPU-heavy float-ramp + indirect-call.
- * 0x18-byte stack frame. Sibling of 88B4 family (just-landed f1f06a20)
- * but structurally different — operates on object's float field 0x550
- * with double-precision intermediate, then an indirect call via fn-ptr.
- *
- * Decoded entry gate (insns 1-16):
- *   f4 = 4.0f                       ; lui 0x4080, mtc1
- *   f0 = a0->float_550;             ; lwc1
- *   a1 = a0;                        ; spill via or
- *   if (f0 < 4.0f) {                ; c.lt.s + bc1fl
- *       f18 = a0->float_54C;        ; (likely-delay) reload
- *       // dconst at &D_00000000 + 0xE60 (ldc1 — small double constant)
- *       a0->float_550 = (float)((double)f0 + (double)f18 * dconst);
- *       // followed by another c.lt.s on the new f550 vs f54C+2.0
+/* gl_func_0000871C: 54-insn (0xD8) FPU updater + conditional indirect-call.
+ *   if (a0->f550 < 4.0f) a0->f550 = (float)((double)a0->f550 + D[0xE60]);
+ *   a0->f54C += a0->f550;
+ *   if (a0->f554 < a0->f54C) {
+ *     if (2.0f < a0->f550) {
+ *       v = a0->[0x28]; short off = (s16)v->[0x130];
+ *       ((fn*)v->[0x134])(off + (int)a0);
+ *     }
+ *     a0->f54C -= a0->f550;
+ *     a0->f550 = -(a0->f550 / 4.0f);
  *   }
- *
- * Tail (insns 17-54): second float-compare leads to indirect-call branch
- * via t9 = a0+0x130 fn-ptr, args (a0+0x28's deref, accum). Then a
- * second float-ramp with different scale/divisor.
- *
- * Not wrapped NM yet — body is FPU-heavy with double-precision + indirect
- * call, needs careful decode to produce a compilable+correct C shape.
- * Future pass: complete decode and write NON_MATCHING wrap. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000871C);
+ * 4-insn INSN_PATCH closes the C-emit's $f6/$f8 reg-swap on the
+ * double-add ($f4-pinning via named `four = 4.0f` plus inline D-deref
+ * with literal +0xE60 offset gets 50/54 byte-identical). */
+void gl_func_0000871C(int *a0) {
+    float four = 4.0f;
+    float f550 = *(float*)((char*)a0 + 0x550);
+    if (f550 < four) {
+        *(float*)((char*)a0 + 0x550) =
+            (float)((double)f550 + *(double*)((char*)&D_00000000 + 0xE60));
+        f550 = *(float*)((char*)a0 + 0x550);
+    }
+    *(float*)((char*)a0 + 0x54C) = *(float*)((char*)a0 + 0x54C) + f550;
+    if (*(float*)((char*)a0 + 0x554) < *(float*)((char*)a0 + 0x54C)) {
+        if (2.0f < f550) {
+            int *v = (int*)a0[0x28/4];
+            ((void(*)(int))v[0x134/4])(
+                *(short*)((char*)v + 0x130) + (int)a0);
+            f550 = *(float*)((char*)a0 + 0x550);
+        }
+        *(float*)((char*)a0 + 0x54C) =
+            *(float*)((char*)a0 + 0x54C) - f550;
+        *(float*)((char*)a0 + 0x550) = -(f550 / four);
+    }
+}
 
 extern int gl_ref_00018770();
 extern int gl_ref_000187AC();
