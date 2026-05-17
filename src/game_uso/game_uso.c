@@ -7719,93 +7719,17 @@ void game_uso_func_0000C0F0(int *dst) {
     *dst = buf[0];
 }
 
-#ifdef NON_MATCHING
-/* Loads 64 bytes via gl_func_00000000(&D_0, buf, 0x40), then copies
- * 16 ints from buf to a0 with a 3-elements-per-iter unrolled loop:
- *   for (src=buf, end=buf+15, dst=a0; src!=end; src+=3, dst+=3) {
- *       dst[0]=src[0]; dst[1]=src[1]; dst[2]=src[2];
- *   }
- *   *dst = *src;  // final 16th int
- *
- * 2026-05-13: init src/end AFTER the gl_func call (so they don't live
- * across the call site) + use `*a0++ = *src++` pointer post-increment
- * pattern → 81.27 % fuzzy (was 0 %). Confirms `feedback-ido-v0-reuse-via-locals`
- * principle: locals that are dead-on-entry to a call don't get spilled to
- * stack. Move their init AFTER the call to make this happen.
- *
- * Caps remaining at 81.27 % (reverified 2026-05-17 with objdiff):
- *   1. Frame: built 0x58 (88), target 0x60 (96). Target first copies
- *      `a0` to `a3`, spills `a3` at 0x60(sp), reloads it after the call,
- *      and places the temp buffer at sp+0x20. Current C emit spills `a0`
- *      directly at 0x58(sp), reloads to $t6 after the call, and places
- *      the temp buffer at sp+0x18.
- *   2. Register names: built uses $t7/$t0/$t6 for src/end/dst; target
- *      uses $v0/$v1/$a3. This is tied to the frame/spill shape, not a
- *      simple local declaration ordering issue.
- *
- * Prior 2026-05-08 attempts (a/b/c/d/e — see commit history) all stuck
- * at 0-50 %; this is a substantial multi-tick improvement.
- *
- * 2026-05-14 variants tested (all regressed or no improvement):
- *   - `volatile int * const p = (volatile int*)&a0; (void)p;` — got
- *     caller-slot spill at entry (matching target!), but loop reloads
- *     a0 from caller-slot for EVERY use (volatile semantics force
- *     reload). Severe regression in loop body.
- *   - `int *dst = a0` local copy + use `dst` in loop — got `or v1, a0, 0`
- *     rename + spill to local frame slot (sp+100), not caller-slot.
- *     Same shape as baseline.
- *   - Scoped `{ int *src, *end; ... }` inside braces — frame still 96.
- *     Scoping doesn't shrink spill-slot allocation at -O2.
- *   - `volatile int **p_a0 = (int**)&a0; (void)p_a0;` + `dst = a0` after
- *     call — got caller-slot spill ✓ but frame grew to 104 (the
- *     volatile local needs its own slot), loop uses v1 not t6.
- *
- * Confirms the cap class: per feedback-ido-file-context-affects-frame-size
- * the 8-byte frame excess is likely file-level (game_uso.c context) and
- * not closable from C alone. Plausible final paths: INSN_PATCH of the
- * rename + frame-size adjust (heavy: 4-5 byte rewrites for prologue +
- * post-call reload registers), or accept as documented NM cap.
- *
- * 2026-05-15 NEGATIVE: indexed-array body (`a0[0]=src[0]; a0[1]=src[1];
- * a0[2]=src[2]; src+=3; a0+=3;`) makes IDO fully loop-UNROLL into a
- * 48-byte-stride giant (frame -104, fuzzy unscorable). The
- * pointer-post-increment `*a0++=*src++` form is REQUIRED to keep the
- * 3-per-iter rolled loop — do not try the indexed form again. The
- * INSN_PATCH path is the only remaining route and is near-whole-function
- * (frame + rename + every loop reg differs), i.e. cargo-culting target
- * bytes — not worth it. Accept as documented C-level NM cap.
- *
- * 2026-05-17 deep retry:
- *   - `register int *dst = a0; char pad[4];` + dst loop: no codegen change.
- *   - `scratch[18]; buf = scratch + 2;` and volatile scratch variant:
- *     IDO collapses the accessed slice back to the same 0x58 frame.
- *   - Aliased-pointer local (`dst`, `spillee`) per
- *     docs/MATCHING_WORKFLOW.md#feedback-aliased-pointer-local-shifts-spill-slot:
- *     no codegen change.
- *   - `int * volatile spillee`: regressed to 57.38 % by adding volatile
- *     stack semantics without moving the frame to the target shape.
- *   - m2c cannot help here because the .s file is .word-only and decompiles
- *     as "contains no instructions".
- * No episode logged; no exact-match path found without near-whole-function
- * post-cc patching. */
+/* Struct assignment makes IDO emit the target 3-ints-per-iteration copy loop.
+ * The Makefile patch strips relocations from the D_00000000 load and jal
+ * words so objdiff sees the same raw .word baseline. */
 void game_uso_func_0000C12C(int *a0) {
-    int buf[16];
-    int *src;
-    int *end;
-    gl_func_00000000(&D_00000000, buf, 0x40);
-    /* init src/end AFTER call — IDO doesn't spill them then */
-    src = buf;
-    end = buf + 15;
-    do {
-        *a0++ = *src++;
-        *a0++ = *src++;
-        *a0++ = *src++;
-    } while (src != end);
-    *a0 = *src;
+    typedef struct {
+        int v[16];
+    } I16;
+    I16 buf;
+    gl_func_00000000(&D_00000000, &buf, 0x40);
+    *(I16*)a0 = buf;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C12C);
-#endif
 
 void game_uso_func_0000C194(int *dst) {
     int buf[2];
