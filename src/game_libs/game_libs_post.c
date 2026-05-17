@@ -12136,6 +12136,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FDE8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FE5C);
 
+/* gl_func_0006FFE4: 19-insn 2-call wrapper with intermediate global OR.
+ * Verified decode (sub-80 resume-comment per
+ * docs/MATCHING_WORKFLOW.md#feedback-sub80-complex-embed-decode-resume-comment):
+ *
+ *   int r = gl_func(a0);
+ *   *(int*)&D_OTHER = (*(int*)&D) | a0;
+ *   return gl_func(r);
+ *
+ * Natural form: 16-17 insns, frame -0x18, r stays in $v0 (no $s0 save).
+ * Target: 19 insns, frame -0x28, r preserved via $s0 across the 2nd call
+ * (sw s0/lw s0 + or s0,v0,zero + or a0,s0,zero).
+ *
+ * Cap class: IDO's regalloc doesn't promote r to $s0 without longer live
+ * range. `register int r` + struct ordering both ineffective 2026-05-17.
+ * Target likely had additional source between calls (maybe a side-effecting
+ * helper that got inlined away, leaving the spill+s0-use artifact).
+ * Remains INCLUDE_ASM at 68.9%; multi-tick / permuter class. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FFE4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070030);
