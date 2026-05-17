@@ -247,7 +247,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001134);
  * REGRESSED to 61 insns (+7 over target) because the named `sub` local
  * forced an extra $s reg + spill pair. The dead-arm in target uses ONE
  * $s reg (s0) for both 'self' and 'sub'-like role — unreachable from
- * 2-var C without inline-asm. Stays NM-wrap; default INCLUDE_ASM exact. */
+ * 2-var C without inline-asm.
+ * 2026-05-17 tested goto-end form (alloc-fail jumps to shared epilogue
+ * `return self;`) — REGRESSED 92.6% → 46.2% (the long body's regalloc
+ * uses $s-regs for self/intermediate values; merging via goto changes
+ * the live-range across the 11-store body and IDO picks a totally
+ * different $s allocation). The simple `return 0` early-exit form is
+ * actually the local maximum for this function class.
+ * Stays NM-wrap; default INCLUDE_ASM exact. */
 extern int gl_data_00000000;
 int* gl_func_000011A4(int *a0) {
     int *self = a0;
