@@ -8290,6 +8290,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000525F0);
 
+/* game_libs_func_00052674 — verified structural decode (23 insns, no
+ * branches/calls = fully deterministic; future gl_ref_ episode candidate).
+ *   A->4 = 0;  A->0 = 0;                         // A = abs sym #1
+ *   v0 = *(int*)(B + 4);                          // B = abs sym #2 (==A?)
+ *   t6 = *(int*)(C + 0);                          // C = abs sym #3
+ *   v0 |= 0x2000 | 0x1 | 0x8000 | 0x20000;        // = v0 | 0x2A001
+ *   *(int*)(D + 4) = v0;                          // D abs sym #4
+ *   *(int*)(E + 0) = t6 | 1;                      // E abs sym #5
+ *   *(int*)(F + 0) = 0;                           // F abs sym #6
+ *   *(int*)(G + 0) = 0;                           // G abs sym #7
+ * A HW/global register init (the 0x2A001 OR-mask = enable bits). Blocker:
+ * the 7 lui/sw pairs are USO 0-placeholders with NO reloc symbol info in
+ * the .s — cannot tell from the .s whether syms #1..#7 are the same
+ * D_00000000 base at different offsets or 7 distinct gl_ref_ data exports.
+ * To land: dump the EXPECTED .o relocations
+ * (`objdump -r expected/src/game_libs/...o`) to recover the real symbol
+ * names/offsets, then apply the documented gl_ref_ recipe
+ * (docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data) with named-local
+ * $v0 intermediates. Deterministic body → genuine episode once symbols
+ * resolved. Deferred this tick (gl_ref_ multi-symbol resolution is the
+ * documented involved game_libs path, not a quick win). INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052674);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000526D0);
