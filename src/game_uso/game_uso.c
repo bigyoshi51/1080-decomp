@@ -8807,6 +8807,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
 
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EDCC);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EDD4);
+
 extern char D_00000138;
 void game_uso_func_0000EE30(char *a0, int a1, int a2) {
     int *dptr = (int*)&D_00000138;
