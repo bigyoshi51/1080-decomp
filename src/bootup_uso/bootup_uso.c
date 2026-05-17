@@ -1140,6 +1140,36 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006734);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006808);
 
+/* func_00007150 - verified structural decode (0xB4, 45 insns,
+ * get-or-create constructor).
+ *   void *func_00007150(void *a0) {
+ *       o = a0;
+ *       if (a0 == 0) {
+ *           o = alloc(0x44);                     // func_00000000(0x44)
+ *           if (o == 0) return 0;                // .L000071F0
+ *       }
+ *       init(o, &D_00007F84);                    // func_00000000(o,&D)
+ *       o->0x28 = &D_desc;                       // descriptor reloc
+ *       if (o == (void*)-0x2C) {                 // defensive-dead arm
+ *           sub = alloc(4);                      // func_00000000(4)
+ *           if (sub == 0) goto skip;
+ *       } else sub = (char*)o + 0x2C;            // normal path
+ *       *(int*)sub = 0;
+ *   skip:
+ *       *(int*)((char*)o + 0x18) &= ~8;          // clear flag bit 3
+ *       o->0x40 = 0;  o->0x3C = 0;
+ *       o->0x30 = 4;  o->0x34 = 0xB00;  o->0x38 = 1;
+ *       return o;
+ *   }
+ * Struct-typing reference: object = 0x44 bytes. Field map: o->0x18
+ * (24) u32 flags (bit 3 / mask 0x8 cleared here), o->0x28 (40)
+ * descriptor/vtable ptr (&D runtime-patched), o->0x2C (44) sub-ptr
+ * (normally &o[0x2C] inline, rare alloc(4) arm), o->0x30 (48) = 4,
+ * o->0x34 (52) = 0xB00, o->0x38 (56) = 1, o->0x3C (60) = 0, o->0x40
+ * (64) = 0; D_00007F84 = init datum. Caps <80: get-or-create branch
+ * + defensive-dead-check (a2 vs -0x2C) + 2-3 func_00000000 reloc +
+ * &D-store reloc. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007150);
 
 /* func_00007204: 33-insn alloc/link helper. Promoted 2026-05-14 from 90.15%
