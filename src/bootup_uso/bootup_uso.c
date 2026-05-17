@@ -2006,6 +2006,37 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E270);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E2D0);
 
+/* func_0000E4DC - verified structural decode (0xAC, 43 insns).
+ * Per-frame update/teardown over a composite object a0 (= s2). Uses
+ * the documented obj->0x28 vtable-dispatch idiom (PATTERNS.md
+ * #feedback-1080-obj-0x28-vtable-dispatch), 0x4C/0x48 offset variant.
+ *   void func_0000E4DC(Obj *a0) {
+ *       sub_init(a0 + 0x540);                    // func_00000000 reloc
+ *       func_000089C0(&n);                       // n at sp+0x34
+ *       p = (s16*)(a0 + 0x8C8);
+ *       for (i = 0; i < n; i++) {                // blezl guard
+ *           func_000089FC(p);
+ *           n = *(&n);                           // reloaded each iter
+ *           p += 1;                              // s1 += 2 (s16 stride)
+ *       }
+ *       c = a0->0x840;                           // child A
+ *       v = c->0x28;
+ *       (*(fn)v->0x4C)((s16)v->0x48 + c);        // vtable call
+ *       c = a0->0x804;                           // child B
+ *       v = c->0x28;
+ *       (*(fn)v->0x4C)((s16)v->0x48 + c);        // vtable call
+ *       sub_deinit(a0 + 0x108);                  // func_00000000 reloc
+ *   }
+ * Struct-typing reference: a0 composite object; a0+0x540 / a0+0x108
+ * sub-regions passed to reloc sub-init/deinit; a0+0x8C8 s16 array of
+ * `n` elements (n produced by func_000089C0, per-element processed by
+ * func_000089FC); a0->0x840 (2112) child A ptr, a0->0x804 (2052)
+ * child B ptr; child->0x28 (40) vtable ptr with fn @0x4C (76) and
+ * s16 base-adjust @0x48 (72) - the engine-wide obj-0x28 dispatch
+ * idiom, 0x4C/0x48 variant. Caps <80: 2x func_00000000 reloc + 2x
+ * vtable jalr + blezl branch-likely loop with per-iter reload. Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E4DC);
 
 void func_0000E588(char *a0) {
