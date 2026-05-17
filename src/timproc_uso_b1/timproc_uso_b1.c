@@ -440,7 +440,15 @@ void timproc_uso_b1_func_000018D4(char *a0) {
  * addressing per docs/IDO_CODEGEN.md#feedback-ido-named-base-forces-addiu-split.
  * Pushed 83.65% → 86.60% (+2.95pp). Remaining caps are register-name
  * cascades (self in $a0 vs $a3, sub in $v0 vs $a0, $f0 vs $f2 for zero
- * constant) — not C-controllable. */
+ * constant) — not C-controllable.
+ *
+ * 2026-05-16: tested the inline-deref CSE-defeat lever (#feedback-ido-
+ * inline-arg-deref-defeats-cse-emit-multiple-lw) — REGRESSED 86.60% →
+ * 85.96% (168B/42 insns, lost 1 more). The recipe applies when target
+ * has MORE lw's than built; here target has more insns but they aren't
+ * all lw's — inlining self[0xD4/4] adds compute but doesn't reach
+ * target's structural shape (which uses cached self in $a3 + $a0
+ * reload tracking). Cap class confirmed permuter-only. */
 void timproc_uso_b1_func_00001908(int *self) {
     char *base = &D_00000000;
     int *sub;
