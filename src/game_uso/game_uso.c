@@ -3746,7 +3746,12 @@ void game_uso_func_000057D8(char *a0) {
  * alloc trio plus the state-counter LUT dispatch into C. DNM objdiff
  * improved 21.319% -> 33.110%. Tried a ratio-flag variant for the
  * documented bit-0x8 path; it regressed to 32.999%, so the lower-level
- * ratio code remains for a later exact grind. */
+ * ratio code remains for a later exact grind.
+ *
+ * 2026-05-17 Codex deep attempt: extended the concrete C body through the
+ * second state LUT, proximity flag synthesis, flag-word update at sub+0xA58,
+ * and 0x54 frame-counter/timer block (target 0x6620-0x6820 range). Follow-up
+ * extended the next bit-test dispatch through the 0x400 direct-call path. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int *self;
@@ -3787,6 +3792,8 @@ void game_uso_func_0000591C(int *a0) {
     float dist_sq;
     float dot;
     float state_value;
+    float state_value2;
+    int *flag_word;
 
     self = a0;
 
@@ -4057,6 +4064,119 @@ void game_uso_func_0000591C(int *a0) {
                     *(int*)((char*)self + 0x4C4) = state_code;
                     gl_func_00000000(self);
                 }
+            }
+        }
+    }
+
+    sub = *(char**)((char*)self + 0x30);
+    state_code = *(int*)((char*)self + 0x2C);
+    if (state_code != 0) {
+        if (state_code == 3) {
+            state_value = *(float*)((char*)self + 0x3B4);
+        } else if (state_code == 2) {
+            state_value = *(float*)((char*)self + 0x384);
+        } else {
+            state_value = *(float*)((char*)self + 0x39C);
+        }
+
+        if (state_value < transform_out.y) {
+            *(int*)((char*)self + 0x4C4) = state_code - 1;
+            gl_func_00000000(self);
+        }
+    }
+
+    state_code = *(int*)((char*)self + 0x2C);
+    if (state_code == 3) {
+        state_value = *(float*)((char*)self + 0x12C);
+    } else if (state_code == 2) {
+        state_value = *(float*)((char*)self + 0x114);
+    } else {
+        state_value = *(float*)((char*)self + 0xFC);
+    }
+
+    if (state_value < transform_out.y) {
+        if (*(int*)(sub + 0x9CC) != 0) {
+            state_value2 = *(float*)((char*)self + 0xC8);
+        } else {
+            state_value2 = 1.0f;
+        }
+        if (metric <= state_value2 * *(float*)((char*)self + 0xC4)) {
+            effect_flags |= 2;
+        }
+    } else if (resolved_state & 0x800) {
+        if ((*(char**)(sub + 0x908) == NULL) || (transform_out.y <= -2000.0f)) {
+            effect_flags |= 0x80;
+        }
+    }
+
+    state_code = *(int*)((char*)self + 0x2C);
+    if (state_code == 1) {
+        state_value = *(float*)((char*)self + 0x264);
+    } else if (state_code == 2) {
+        state_value = *(float*)((char*)self + 0x27C);
+    } else {
+        state_value = *(float*)((char*)self + 0x294);
+    }
+
+    flag_word = (int*)(sub + 0xA58);
+    if (transform_out.y < state_value) {
+        if (((int)transform_out.y & 3) == 0) {
+            *flag_word |= 0x4000;
+        } else {
+            *flag_word &= ~0x4000;
+        }
+    } else {
+        *flag_word &= ~0x4000;
+    }
+
+    if (*(float*)(sub + 0x348) < 30.0f) {
+        state_counter = *(int*)((char*)self + 0x54) + 1;
+        if (state_counter >= 75) {
+            *(int*)((char*)self + 0x54) = 0;
+            gl_func_00000000(self);
+        } else {
+            *(int*)((char*)self + 0x54) = state_counter;
+        }
+    } else {
+        *(int*)((char*)self + 0x54) = 0;
+    }
+
+    if (resolved_state & 0x20) {
+        if (gl_func_00000000(self, helper_ptr, hit_parent) == 0) {
+            gl_func_00000000(self);
+            return;
+        }
+    }
+
+    if (resolved_state & 0x40) {
+        if (gl_func_00000000(self, helper_ptr, hit_parent) == 0) {
+            gl_func_00000000(self);
+            return;
+        }
+    }
+
+    if (effect_flags & 0x400) {
+        gl_func_00000000(self);
+        *(int*)((char*)self + 0x40) = gl_func_00000000(self);
+        gl_func_00000000(self);
+        return;
+    }
+
+    if (effect_flags & 0x10) {
+        if (helper_ptr != NULL) {
+            *(int*)((char*)self + 0x7C) = *(int*)(helper_ptr + 0x6C);
+        }
+        if ((effect_flags & 0x200) != 0) {
+            state_code = *(int*)((char*)self + 0x2C);
+            if (state_code == 3) {
+                state_value = *(float*)((char*)self + 0x1BC);
+            } else if (state_code == 2) {
+                state_value = *(float*)((char*)self + 0x18C);
+            } else {
+                state_value = *(float*)((char*)self + 0x1A4);
+            }
+            if (metric < state_value) {
+                effect_flags |= 0x10;
             }
         }
     }
