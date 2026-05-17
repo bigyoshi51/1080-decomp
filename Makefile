@@ -423,6 +423,8 @@ build/src/timproc_uso_b5/timproc_uso_b5.c.o: SUFFIX_BYTES := \
 	timproc_uso_b5_func_0000131C=0x00000000,0x00000000,0x00000000
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: POST_INSN_SUFFIX_BYTES := \
 	timproc_uso_b5_func_0000131C=0x00000000,0x00000000,0x00000000
+build/src/game_uso/game_uso.c.o: POST_INSN_SUFFIX_BYTES_FORCE := \
+	game_uso_func_0000D7F4=0x03E00008,0x00000000
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_00007204=0x00000000,0x00000000
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x00000000,0x00000000
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: INSN_PATCH := \
@@ -514,6 +516,11 @@ build/src/%.c.o: src/%.c
 		fn=$$(echo $$spec | cut -d= -f1); \
 		words=$$(echo $$spec | cut -d= -f2); \
 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words; \
+	done; fi
+	@if [ -n "$(POST_INSN_SUFFIX_BYTES_FORCE)" ]; then for spec in $(POST_INSN_SUFFIX_BYTES_FORCE); do \
+		fn=$$(echo $$spec | cut -d= -f1); \
+		words=$$(echo $$spec | cut -d= -f2); \
+		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words --allow-natural-epilogue; \
 	done; fi
 	@if [ -n "$(TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(TRUNCATE_TEXT); fi
 endif
