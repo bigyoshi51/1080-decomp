@@ -1867,12 +1867,8 @@ void gl_func_0002DCF8(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DCF8);
 #endif
 
-#ifdef NON_MATCHING
-/* game_libs_func_0002DD30: 2-insn empty stub. */
+/* game_libs_func_0002DD30: 2-insn empty stub (jr ra; nop). */
 void game_libs_func_0002DD30(void) { }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD30);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_0002DD38: 8-insn 2-global store.
