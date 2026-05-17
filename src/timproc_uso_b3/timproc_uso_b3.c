@@ -306,7 +306,17 @@ void timproc_uso_b3_func_000010E4(int *self) {
     fn();
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001184);
+/* timproc_uso_b3_func_00001184: 20-insn (func1 of the split bundle).
+ *   if (a0->0x4FC == 0) { X(a0->0x6A8,0,1); X(a0->0x6A8); a0->0x4FC=1; }
+ * orig a0 saved @sp+0x18, reloaded across the 2 calls. USO: call ->
+ * func_00000000. */
+void timproc_uso_b3_func_00001184(int *a0) {
+    if (a0[0x4FC / 4] == 0) {
+        func_00000000((int *)a0[0x6A8 / 4], 0, 1);
+        func_00000000((int *)a0[0x6A8 / 4]);
+        a0[0x4FC / 4] = 1;
+    }
+}
 
 /* timproc_uso_b3_func_000011D4: 14-insn — twin of 0000120C but clear-bit:
  * (a0->0x6A8->0x6C)->0x18 &= ~4; (a0->0x6A8->0x94)->0x18 &= ~4.
