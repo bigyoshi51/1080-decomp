@@ -9965,7 +9965,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
  * which is verifiable. */
 extern int func_00000000();
 void game_uso_func_00011258(int *a0) {
-    extern int D_00000000;
     func_00000000(a0, 0x70009, 0, 2, 1, 1);
     func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF18),
                       *(int*)((char*)&D_00000000 + 0xF1C),
