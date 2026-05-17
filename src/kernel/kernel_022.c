@@ -124,6 +124,36 @@ void func_80008AA0(void) {
 
 
 
+/* func_80008C30 - verified structural decode (0x118, jr-count 2).
+ * BUNDLE: this .s holds TWO functions splat couldn't separate -
+ * func_80008C30 (~33 insns, ends at the first jr ra) plus an
+ * unnamed sibling at ~0x80008CB4 (its own `addiu sp,-0x20`
+ * prologue, no glabel). Next real symbol is func_80008D4C. Needs
+ * scripts/split-fragments.py to introduce the mid boundary before
+ * either can be C-matched; harmless for the INCLUDE_ASM build
+ * (bytes are bytes). Deferred (mid-bundle split is address-fragile
+ * under a 60s loop tick; do it in a focused pass).
+ *   void func_80008C30(int a0, int a1) {        // a0 sp20, a1 sp24
+ *       u8 cmd[4] = {0};                          // sp+0x1C
+ *       s32 x = (a0 << 26) >> 26;                 // sign-ext 6-bit
+ *       s32 y = (a1 << 27) >> 27;                 // sign-ext 5-bit
+ *       cmd[0] = (cmd[0] & 0x03) | ((x << 2) & 0xFC);
+ *       cmd[1] = (cmd[1] & 0xE0) | (y & 0x1F);
+ *       func_80006A50(0x40010000, *(int*)cmd);    // submit word
+ *       func_80006A50(0x40800000, 0);             // kick/commit
+ *   }
+ *   // bundled sibling: same shape but packs a 3rd 6-bit field into
+ *   // cmd[2] (mask 0x07, sets bit 0x20) before the same submit.
+ * Struct-typing reference: a0/a1 carry small signed bitfields (6-bit
+ * x from a0, 5-bit y from a1) packed into a stack command struct
+ * (byte 0: bits 2-7 = x<<2, byte 1: bits 0-4 = y; sibling adds byte
+ * 2: bits 0-2 = z|0x20). func_80006A50(addr, val) = an MMIO/command
+ * submit helper; 0x40010000 / 0x40800000 are the command + kick
+ * register addresses (RSP/RDP-style command emit). Caps <80:
+ * 2-function bundle (boundary) + bitfield sll/sra/andi/or pack +
+ * func_80006A50 calls. Full body INCLUDE_ASM-preserved (.s =
+ * source of truth). INCLUDE_ASM (no episode; tautology-trap rule +
+ * unresolved bundle boundary). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
 
 
