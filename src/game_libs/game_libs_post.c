@@ -2846,9 +2846,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035FD4);
 
 #ifdef NON_MATCHING
-/* 9-insn 1-call wrapper + 5 trailing SUFFIX bytes (mtc1 0,$f0; lui v0,0;
- * addiu v0,v0,0; lui at,0x3F80; mtc1 at,$f4) — stolen-prologue setup for
- * successor gl_func_00036088 (which starts using $f0/$f4/$v0 unset).
+/* 9-insn 1-call wrapper. Trailing 5 dead bytes split off 2026-05-17 via
+ * split-fragments.py into game_libs_func_00036074 (stolen prologue for
+ * successor gl_func_00036088: mtc1 0,$f0; lui v0,0; addiu v0,v0,0;
+ * lui at,0x3F80; mtc1 at,$f4 — setting $f0=0.0, $v0=&D, $f4=1.0).
  *
  * 2026-05-05: cap on the body itself: target has frame 0x20 with a dead
  * `sw t6, 0x1C(sp)` spill of t6 BEFORE the jal (t6 then used directly in
@@ -2861,11 +2862,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035FD4);
  *   (c) `register int t = a0[5]; char pad[4];` → no spill, frame 0x18
  *
  * Volatile gets closest (frame matches + spill emitted) but adds an
- * extra reload. SUFFIX_BYTES recipe still applies to the 5 trailing
- * dead bytes.
- *
- * No clean C produces the dead-spill-without-reload form. Cap class
- * "non-volatile dead spill". */
+ * extra reload. No clean C produces the dead-spill-without-reload form.
+ * Cap class "non-volatile dead spill". */
 extern int gl_func_00000000();
 void gl_func_0003604C(int *a0) {
     volatile int t = a0[5];
@@ -2873,6 +2871,8 @@ void gl_func_0003604C(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003604C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00036074);
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
