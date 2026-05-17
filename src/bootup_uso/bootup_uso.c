@@ -2386,6 +2386,34 @@ void func_0000DDC4(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DDCC);
 
+/* func_0000DF04 - verified structural decode (0x110, 68 insns,
+ * Vec3 fetch-and-store fan-out).
+ *   void func_0000DF04(St *s0) {
+ *       if (s0->0xA58 & 0x80) {
+ *           v = fetch(&D_00000000, 0x11);          // func_00000000
+ *           *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;       // copy [0,4,8]
+ *           v = fetch(&D_00000000, 0x12);
+ *           *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
+ *       } else {
+ *           v = fetch(&D_00000000, 0x14);
+ *           *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;
+ *           v = fetch(&D_00000000, 0x15);
+ *           *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
+ *       }
+ *       v = fetch(&D_00000000, 0x16);
+ *       *(Vec3i*)s0->0x8FC = *(Vec3i*)v;
+ *   }
+ * Struct-typing reference: s0->0xA58 (2648) u32 flags, bit 7 (0x80)
+ * selects which source-id pair feeds the two slots; s0->0x8F4
+ * (2292) / s0->0x8F8 (2296) / s0->0x8FC (2300) = pointers to
+ * destination Vec3i (3x int at +0/+4/+8) buffers. fetch =
+ * func_00000000(&D, id) returns a pointer to a Vec3i source record
+ * for the given id; ids 0x11/0x12 (flag set) or 0x14/0x15 (flag
+ * clear) fill 0x8F4/0x8F8, id 0x16 always fills 0x8FC. Pure
+ * fetch-then-3-word-copy per slot. Caps <80: 3-5 func_00000000
+ * reloc calls + &D reloc + flag branch + per-slot 3-word struct
+ * copies. Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DF04);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E014);
