@@ -10600,7 +10600,14 @@ void gl_func_00065D08(int *a0) {
     gl_func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065D64);
+void gl_func_00065D64(int *a0) {
+    gl_func_00000000(&D_00000000, 0x2240C, 0);
+    gl_func_00000000(&D_00000000, 0x22414);
+    gl_func_00000000((char *)a0 + 0x108, 0);
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000(a0);
+}
 
 extern int gl_ref_00077DB0();
 extern int gl_ref_00077DEC();
