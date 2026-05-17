@@ -3649,9 +3649,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  * the snowboard's "up" vector gets transformed into world space.
  *
  * 2026-05-04 EXTENDED DECODE 0x5A34-0x5A78 (~17 insns): Vec3 component-
- * wise multiply + jal + spill setup.
+ * wise add + jal + spill setup.
  *
- *   /* component-wise multiply staged Vec3 by another Vec3 *\/
+ *   /* component-wise add staged Vec3 and another Vec3 *\/
  *   f10 = sp[0x1B8]               ; (post-stage Vec3.x — was the scaled axis)
  *   f18 = sp[0x1C4]
  *   f6  = sp[0x1BC]
@@ -3671,21 +3671,36 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  *   t2 = sp[0x1A8]                ; reload some pointer
  *   v1 = t2->0x84                 ; load field 0x84 from sub-struct
  *
- * This block computes a per-axis squared length / dot product on the
- * staged Vec3 (sp+0x1B8 hosts {f4,f10,f6} = {x*ox, y*oy, z*oz} which
- * after the jal becomes a 4-component vector if helper does normalize-
- * with-w-component). Then takes a guard branch on helper's return.
- * NEXT PASS: continue from 0x5A78; far-branch target 0x69E8 is the
- * epilogue/cleanup arm (function tail). */
+ * This block computes a per-axis vector sum before the helper call
+ * (sp+0x1B8 hosts {f4,f10,f6} = {x+ox, y+oy, z+oz}). Then takes a
+ * guard branch on helper's return.
+ * 2026-05-17 Codex pass: no-alias objdiff corrected the earlier `mul.s`
+ * read; target is add.s at 0x5A48/0x5A54/0x5A64. Promoted the helper
+ * call to its real four-arg shape `(self, &hit_parent, &staged_axis,
+ * &hit_obj)`, added the immediate post-helper state gate, and used
+ * stack padding to recover the target 0x1D0 frame. NON_MATCHING score:
+ * 6.416% -> 9.029% after rebuilding `build/non_matching/...game_uso.c.o`.
+ * Exact still blocked by $s0 allocation / local placement: IDO rejects
+ * GCC-style `register int *self asm("$16")`, so the C emit keeps `$a0`
+ * live and saves `$ra` at sp+0x14 instead of the target `$s0`/sp+0x20
+ * and `$ra`/sp+0x24 prologue. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
+    int *self;
     int v0;
     char *sub;
     char *helper_ptr;
+    char *hit_obj;
+    char *hit_parent;
     Vec3 staged_axis;
     Vec3 scaled_axis;
     Vec3 mul_axis;
+    char pad[0x170];
     int state_flag;
+    int active_state;
+    int resolved_state;
+
+    self = a0;
 
     /* Two early-out guards on globals. */
     if (*(int*)((char*)&D_00000000 + 0x78) != 0) return;
@@ -3694,36 +3709,57 @@ void game_uso_func_0000591C(int *a0) {
     /* 4-way bit dispatch on a0->field_68 (flag byte).  Each handler
      * makes one gl_func_00000000 call and returns. Fall-through goes
      * to the per-frame body at 0x5998 — not yet decoded. */
-    v0 = *(int*)((char*)a0 + 0x68);
+    v0 = *(int*)((char*)self + 0x68);
     if (v0 & 1) {
         gl_func_00000000();
         return;
     }
     if (v0 & 2) {
-        gl_func_00000000(a0);
+        gl_func_00000000(self);
         return;
     }
     if (v0 & 4) {
-        gl_func_00000000(a0);
+        gl_func_00000000(self);
         return;
     }
 
-    sub = *(char**)((char*)a0 + 0x30);
+    sub = *(char**)((char*)self + 0x30);
     staged_axis = *(Vec3*)(sub + 0xB4);
-    scaled_axis.x = *(float*)(sub + 0x318) * *(float*)((char*)a0 + 0xA8);
-    scaled_axis.y = *(float*)(sub + 0x31C) * *(float*)((char*)a0 + 0xA8);
-    scaled_axis.z = *(float*)(sub + 0x320) * *(float*)((char*)a0 + 0xA8);
+    scaled_axis.x = *(float*)(sub + 0x318) * *(float*)((char*)self + 0xA8);
+    scaled_axis.y = *(float*)(sub + 0x31C) * *(float*)((char*)self + 0xA8);
+    scaled_axis.z = *(float*)(sub + 0x320) * *(float*)((char*)self + 0xA8);
     mul_axis = scaled_axis;
-    staged_axis.x *= mul_axis.x;
-    staged_axis.y *= mul_axis.y;
-    staged_axis.z *= mul_axis.z;
+    staged_axis.x += mul_axis.x;
+    staged_axis.y += mul_axis.y;
+    staged_axis.z += mul_axis.z;
 
-    helper_ptr = (char*)gl_func_00000000(a0, &scaled_axis, &staged_axis);
+    hit_obj = NULL;
+    hit_parent = NULL;
+    helper_ptr = (char*)gl_func_00000000(self, &hit_parent, &staged_axis, &hit_obj);
     if (helper_ptr == 0) return;
 
     state_flag = *(int*)(helper_ptr + 0x84);
-    if (state_flag != 0) {
-        *(int*)((char*)a0 + 0x74) = state_flag;
+    if (hit_obj != NULL) {
+        resolved_state = state_flag;
+    } else {
+        resolved_state = 0;
+    }
+
+    gl_func_00000000(self);
+
+    active_state = *(int*)((char*)self + 0x74);
+    if (active_state == 0) {
+        if (*(float*)((char*)self + 0xD8) >= 0.0f) {
+            if ((state_flag == 0) && (hit_parent != NULL)
+                    && (*(int*)(hit_parent + 0x84) == 0)) {
+                sub = *(char**)((char*)self + 0x30);
+                if (*(float*)((char*)self + 0xB4) > *(float*)(sub + 0x348)) {
+                    resolved_state = 0;
+                }
+            }
+        }
+    } else if (active_state != 1) {
+        resolved_state = 0;
     }
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
@@ -3745,10 +3781,10 @@ void game_uso_func_0000591C(int *a0) {
      *   - 3-word memcpy block (0x5A04-0x5A30): t5 → v0 buffer + t2 → t8
      *     buffer, INTERLEAVED (8 lw/sw pairs total). t5/t2 are the two
      *     Vec3 sources (likely a0->0x30 and a0->0x148 or similar).
-     *   - 0x5A34-0x5A68: element-wise Vec3 multiply:
-     *       sp+0x1B8 *= sp+0x1C4    (x *= mul.x)
-     *       sp+0x1BC *= sp+0x1C8    (y *= mul.y)
-     *       sp+0x1C0 *= sp+0x1CC    (z *= mul.z)
+     *   - 0x5A34-0x5A68: element-wise Vec3 add:
+     *       sp+0x1B8 += sp+0x1C4    (x += mul.x)
+     *       sp+0x1BC += sp+0x1C8    (y += mul.y)
+     *       sp+0x1C0 += sp+0x1CC    (z += mul.z)
      *     Plus `sp+0x1B4 = 0` (clear scalar slot). Then jal cross-USO
      *     with delay-slot store of last result.
      *   - 0x5A6C-0x5AC0: post-call dispatch. `if (call_result == 0) goto
