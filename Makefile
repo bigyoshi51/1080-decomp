@@ -263,6 +263,11 @@ build/src/kernel/kernel_037.c.o build/non_matching/src/kernel/kernel_037.c.o: OP
 build/src/kernel/kernel_038.c.o build/non_matching/src/kernel/kernel_038.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_039.c.o build/non_matching/src/kernel/kernel_039.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: POST_COMPILE = $(OBJCOPY) --remove-section=.mdebug $@
+build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: TRUNCATE_TEXT := 0x100
+build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: INSN_PATCH := func_8000817C=0x0:0x27BDFFE0,0x14:0x11E00018,0x18:0x00000000,0x34:0xAFB8001C
+build/non_matching/src/kernel/kernel_040.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x100
+build/non_matching/src/kernel/kernel_040.c.o: NON_MATCHING_INSN_PATCH := func_8000817C=0x0:0x27BDFFE0,0x14:0x11E00018,0x18:0x00000000,0x34:0xAFB8001C
 build/src/kernel/kernel_041.c.o build/non_matching/src/kernel/kernel_041.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_042.c.o build/non_matching/src/kernel/kernel_042.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_043.c.o build/non_matching/src/kernel/kernel_043.c.o: OPT_FLAGS := -O1
@@ -506,6 +511,10 @@ endif
 # PROLOGUE_STEALS on non_matching, prologue-stolen-successor functions
 # always score 80-97% fuzzy even when build/.o is byte-exact, blocking
 # the land script's exact-match check.
+#
+# NON_MATCHING_INSN_PATCH and NON_MATCHING_TRUNCATE_TEXT are opt-in escapes for
+# exact C functions whose object-level split metadata also needs the same
+# boundary/word fixups for objdiff to read the base object.
 ifndef PERMUTER
 build/non_matching/src/%.c.o: src/%.c
 	@mkdir -p $(dir $@) build/non_matching/$(<D)
@@ -519,6 +528,10 @@ build/non_matching/src/%.c.o: src/%.c
 		nb=$$(echo $$spec | cut -d= -f2); \
 		python3 scripts/splice-function-prefix.py $@ $$fn -n $$nb; \
 	done; fi
+	@if [ -n "$(NON_MATCHING_INSN_PATCH)" ]; then for spec in $(NON_MATCHING_INSN_PATCH); do \
+		python3 scripts/patch-insn-bytes.py $@ $$spec; \
+	done; fi
+	@if [ -n "$(NON_MATCHING_TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(NON_MATCHING_TRUNCATE_TEXT); fi
 endif
 
 # Standalone assembly

@@ -92,6 +92,38 @@ def truncate_elf_text(path, target_size):
                 struct.pack_into('>I', data, s + 8, new_size)
                 print(f"{path}: shrunk symbol '{name}' @ 0x{st_value:x} from 0x{st_size:x} to 0x{new_size:x}")
 
+    # Drop relocations that point past the clipped .text range. Leaving them
+    # in place makes objdiff's MIPS parser read past the section end even when
+    # the bytes and tightened symbols are exact.
+    for i in range(e_shnum):
+        base = e_shoff + i * e_shentsize
+        sh_type = struct.unpack('>I', data[base + 4:base + 8])[0]
+        sh_info = struct.unpack('>I', data[base + 0x1C:base + 0x20])[0]
+        if sh_type not in (4, 9) or sh_info != text_idx:  # SHT_RELA / SHT_REL
+            continue
+
+        rel_off = struct.unpack('>I', data[base + 0x10:base + 0x14])[0]
+        rel_size = struct.unpack('>I', data[base + 0x14:base + 0x18])[0]
+        rel_entsize = struct.unpack('>I', data[base + 0x24:base + 0x28])[0]
+        if rel_entsize == 0:
+            continue
+
+        kept = bytearray()
+        dropped = 0
+        for off in range(rel_off, rel_off + rel_size, rel_entsize):
+            r_offset = struct.unpack('>I', data[off:off + 4])[0]
+            entry = data[off:off + rel_entsize]
+            if r_offset < target_size:
+                kept.extend(entry)
+            else:
+                dropped += 1
+
+        if dropped:
+            data[rel_off:rel_off + len(kept)] = kept
+            data[rel_off + len(kept):rel_off + rel_size] = b'\0' * (rel_size - len(kept))
+            data[base + 0x14:base + 0x18] = struct.pack('>I', len(kept))
+            print(f"{path}: dropped {dropped} .text reloc(s) at/after 0x{target_size:x}")
+
     with open(path, 'wb') as f:
         f.write(bytes(data))
 

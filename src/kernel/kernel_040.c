@@ -52,27 +52,24 @@ void func_800080D0(s32* arg0, s32* arg1) {
  * trap instruction (opcode 0xD = SPECIAL/BREAK). Mask 0xFC00003F isolates
  * the opcode-major + opcode-minor bits to detect BREAK.
  *
- * MATCH BLOCKED: dual-role tail-and-callable pattern. func_800081D0 is
- * BOTH the fall-through tail of this entry block AND externally callable
- * from func_8000745C via `jal 0x800081D0` (two callsites: 0x800074F0,
- * 0x8000752C). Standard C-emit can't produce a function whose internal
- * label is also a callable entry — IDO always emits prologue+epilogue at
- * function boundary. See docs/PATTERNS.md#feedback-dual-role-tail-and-callable
- * (this pair is Example 2 there). DO NOT merge-fragments — it would
- * eliminate the jal-callable func_800081D0 symbol. Same blocker class as
- * func_80008430 / func_80006698 cross-file alt-entry cases.
+ * Exact-match path: keep the full decoded body here, then clip this unit at
+ * the 0x100-byte fragment boundary with TRUNCATE_TEXT. Four INSN_PATCH words
+ * close the IDO frame/branch/delay-slot differences. The expected asm uses raw
+ * branch words for cross-fragment branches so expected/.o has concrete branch
+ * offsets instead of PC16 relocation placeholders.
  *
- * Default INCLUDE_ASM build remains exact. Documented for future-pass
- * Ghidra-assisted decode + permuter exploration. */
-#ifdef NON_MATCHING
+ * func_800081D0 remains a separate externally-callable tail fragment; do not
+ * merge-fragments, because that would remove the jal-callable symbol. */
 void func_8000817C(void) {
-    s32 *saved_a = (s32 *)rmonbrk_bss_0000;
+    s32 saved_a = ((s32 *)&rmonbrk_bss_0000)[0];
 
-    if (saved_a != NULL) {
-        if ((*saved_a & 0xFC00003F) == 0xD) {
-            *saved_a = *((s32 *)((char *)&rmonbrk_bss_0000 + 4));
-            func_800031F0((void *)rmonbrk_bss_0000, 4);
-            func_80005350((void *)rmonbrk_bss_0000, 4);
+    if (saved_a != 0) {
+        s32 inst = *(s32 *)saved_a;
+
+        if ((inst & 0xFC00003F) == 0xD) {
+            *(s32 *)((s32 *)&rmonbrk_bss_0000)[0] = ((s32 *)&rmonbrk_bss_0000)[1];
+            func_800031F0((void *)((s32 *)&rmonbrk_bss_0000)[0], 4);
+            func_80005350((void *)((s32 *)&rmonbrk_bss_0000)[0], 4);
         }
         rmonbrk_bss_0000 = 0;
     }
@@ -88,6 +85,3 @@ void func_8000817C(void) {
         D_8001FEF0 = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000817C);
-#endif
