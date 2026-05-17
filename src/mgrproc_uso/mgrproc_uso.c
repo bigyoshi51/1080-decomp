@@ -215,7 +215,15 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F
  * dispatch + D[0x80] ^= 1 toggle + 0x45000000 ASCII format constant
  * passed as arg2 to gl_func. Case 5 (scratch+OR), case 6 (D[0x40]=1),
  * case 7 (D[0x40]=8), case 8 (vtable+conditional-store) decoded.
- * Will not byte-match — see BLOCKED note above. */
+ * Will not byte-match — see BLOCKED note above.
+ *
+ * 2026-05-16 Codex pass: after fast-forwarding agent-c to main, rebuilt
+ * `build/non_matching/src/mgrproc_uso/mgrproc_uso.c.o` and diffed this
+ * function with objdiff. Current full-switch C scores 34.178898% and emits
+ * 251 instructions for a 0x368-byte target, so this is not an INSN_PATCH or
+ * suffix/prefix-byte candidate. The remaining work is structural: reproduce
+ * the original jump-table/USO relocation shape and case-local symbol aliases
+ * before register-level grinding is useful. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern char D_a_4_x;
