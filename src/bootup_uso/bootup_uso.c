@@ -2206,6 +2206,41 @@ void func_00008474(char *a0) {
     func_00000000(a0);
 }
 
+/* func_000084A0 - verified structural decode (0x1C4, 113 insns,
+ * guarded singleton constructor). Member of the bootup_uso
+ * alloc-cascade-ctor + defensive-dead-check family (cf.
+ * func_00005124 / func_0001438C / func_00006254).
+ *   void func_000084A0(void *a0) {
+ *       g = *(St**)&D_root;
+ *       if (g->0x40 != 0) return;                 // already built
+ *       func_00000000(g);                          // pre-init
+ *       o = alloc(0x74); if (!o) return;
+ *       init(o, &D_00007968);
+ *       o->0x28 = &D_desc;
+ *       s = alloc(0x38); if (!s) return;
+ *       c = alloc(8);                              // defensive arm
+ *       if (c) { c->0x0 = &D_00007FE4; c->0x4 = 0; }
+ *       v = *(int*)&D_00007FEC;
+ *       if (s != (void*)-8) {                      // defensive guard
+ *           c2 = alloc(0x18);
+ *           if (c2) init2(c2, s, v, 1);            // func_00000000
+ *       }
+ *       ... (chain continues: more sub-allocs, FP 300.0f
+ *           (0x43960000) param, &D_00007FF0/D_00007540 datums,
+ *           func_00007620 helper - same shape as the family).
+ *   }
+ * Struct-typing reference: D_root global -> g, g->0x40 (64) =
+ * built-once latch (nonzero = skip). o = 0x74-byte object,
+ * o->0x28 (40) descriptor (&D_00007968 init datum). s = 0x38-byte
+ * sub-object; c = 8-byte aux (c->0x0 = &D_00007FE4 descriptor,
+ * c->0x4 = 0); c2 = 0x18-byte child init'd from the global
+ * D_00007FEC value. The `s != -0x3C / -0x8` tests are defensive
+ * impossible-pointer guards (always true). FP const 0x43960000 =
+ * 300.0f. Caps <80: global-gate + alloc-cascade (~6 reloc) +
+ * defensive-dead-check guards + &D descriptors + FP-300 + cross-
+ * symbol (func_00007620) ref. Full body INCLUDE_ASM-preserved
+ * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
+ * rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000084A0);
 
 void func_00008664(char *a0, int *a1) {
