@@ -9637,6 +9637,33 @@ void game_uso_func_00010128(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
 #endif
 
+/* game_uso_func_000102CC — verified EE84-family decode (29%, LEN-DIFF 72/79;
+ * branch-likely + float short-circuit + D-pair stack-args cap → <80 so
+ * INCLUDE_ASM build path; PATTERNS.md EE84-family template). Structure:
+ *   func_00000000(a0);                                    // X1
+ *   func_00000000(s0, s0->0xFC | 0x19, 3, 4, 2, 1);       // X2 (6 args; 2,1 @sp)
+ *   v0 = (int*)s0->0xB4;
+ *   if (*(float*)(v0+0x31C) < 0.0f && *(float*)(v0+0x9D0) < 1000.0f) {
+ *       func_00000000(s0, D[0xDE8], D[0xDEC]);             // X3 (D-pair @sp+4/8)
+ *       v0 = (int*)s0->0xB4;
+ *   }
+ *   if (((int*)v0->0x800)->0x18 & 0x400)
+ *       func_00000000(s0, D[0xDE0], D[0xDE4]);             // X4
+ *   func_00000000(s0, 0);                                  // X5
+ *   if (func_00000000(s0) == 0) {                          // X6
+ *       int *t = (int*)s0->0xB4;
+ *       if (t->0x938 != 0) {
+ *           func_00000000(s0, D[0xDF8], D[0xDFC]);          // X7
+ *           func_00000000(s0);                              // X8
+ *       }
+ *       func_00000000(s0);                                  // X9
+ *   }
+ * Struct-typing: s0->0xFC flag word, s0->0xB4 object (float @0x31C, float
+ * @0x9D0, ptr @0x800 whose +0x18 has bit 0x400, int @0x938). D-pair consts
+ * @0xDE0/DE4, 0xDE8/DEC, 0xDF8/DFC (each passed via sp+4/sp+8 — the
+ * EE84-family D[]-pair-arg shape). Caps <80: bc1fl/beql/bnel branch-likely
+ * delay-slot dup + short-circuit && layout — documented EE84-family ceiling.
+ * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000102CC);
 
 /* Small state-dispatch helper. C emits the correct control flow but IDO uses
