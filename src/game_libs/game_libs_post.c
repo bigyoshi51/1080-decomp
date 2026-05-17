@@ -8811,7 +8811,18 @@ void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
  * → +1 length vs target's single-lui-reused + separate addiu. No C
  * form blocks the fold (explicit intermediate still propagated;
  * __asm__("") barrier regressed to 48). Un-INSN_PATCH-able (size
- * differs, 40 vs 39). NM; INCLUDE_ASM is the build path. */
+ * differs, 40 vs 39). NM; INCLUDE_ASM is the build path.
+ *
+ * Additional failed levers 2026-05-17:
+ *  - `unsigned int magic = 0xFF000000` named local + reuse in t8 init and
+ *    s0[0] — IDO still constant-folds each `magic` literal independently
+ *    into separate lui's (size unchanged at 160B).
+ *  - `register unsigned int magic` — same result (160B); register-hint
+ *    doesn't override IDO's constant-propagation.
+ *  - `volatile unsigned int magic` + snapshot local — REGRESSED to 164B
+ *    (volatile forces stack spill, 1 insn worse).
+ * The fold of `(diff>>4) + 0xFF000000 - 1 → +0xFEFFFFFF` is robust against
+ * all name/storage-class levers tried. */
 void gl_func_0005AFD4(int *a0, int *a1, int *a2) {
     int *s0 = a0;
     int diff;
