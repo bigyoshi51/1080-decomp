@@ -932,6 +932,28 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000051D4);
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005284);
 
+/* func_00005334 - verified structural decode (0xB4, 45 insns).
+ * NEAR-SIBLING of the func_00005124/51D4/5284 alloc-cascade-ctor +
+ * defensive-dead-check family (see func_00005124 for the full body).
+ * Variant: object size 0x50 (vs 0x4C), init datum D_00007DE8, one
+ * extra insn (0xB4 vs 0xB0). Same shape:
+ *   void *func_00005334(void *arg) {
+ *       sub_init(&D_00007DE8);
+ *       obj = alloc(0x50);                       // larger object
+ *       if (obj == 0) return 0;
+ *       if (obj != 0) goto have_obj;             // dead 0x48-alloc arm
+ *       ...defensive-dead-check (unreachable)...
+ *   have_obj:
+ *       *(void**)((char*)sub + 0x28) = &D_x;
+ *       obj->0x28 = &D_y;  obj->0x48 = &D_z;
+ *       return obj;
+ *   }
+ * Struct-typing reference: object = 0x50 bytes (this variant);
+ * obj->0x28 (40) / obj->0x48 (72) descriptor ptrs (&D runtime-
+ * patched), arg passed through (sp+0x2C/0x1C/0x4). Caps <80:
+ * alloc-cascade + defensive-dead-check + 3-4 func_00000000 reloc +
+ * 3x &D-store reloc. Full body INCLUDE_ASM-preserved (.s = source
+ * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
