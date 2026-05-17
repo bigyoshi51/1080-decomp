@@ -1354,7 +1354,12 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
  *
  * C structure is correct, but IDO currently assigns the saved original arg,
  * list count, and entry pointer to v0/v1/a2/a3 instead of target's a3/a1/a2
- * trio. Default INCLUDE_ASM remains the build path. */
+ * trio. Default INCLUDE_ASM remains the build path.
+ *
+ * 2026-05-17: tested `register int saved_a1 = a1;` + renamed locals (p, v,
+ * i) — fuzzy unchanged at 91.06%. IDO's register-priority formula is driven
+ * by ref-count + loop-depth, not local-name or `register` hint for this case.
+ * Permuter-class register-allocation cap. */
 int func_8000235C(int *a0, int a1) {
     int a3;
     int v1;
