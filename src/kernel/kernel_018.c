@@ -111,6 +111,43 @@ s32 func_80006C58(s32 arg0) {
 
 
 
+/* func_800070A0 - verified structural decode (kernel, 0x120, 72
+ * insns, memory-dump / word-stream transmit; rmon-family helper).
+ *   void func_800070A0(char *addr, int len) {
+ *       u32 n = (len + 3) >> 2;                   // word count
+ *       if ((u32)addr & 3) {                      // misaligned base
+ *           while (n--) {
+ *               func_80006AEC(&tmp, addr, 4);     // unaligned read
+ *               func_80005584(tmp);               // send word
+ *               addr += 4;
+ *           }
+ *       } else {                                  // aligned base
+ *           while (n--) {
+ *               if ((u32)addr >= 0x04000000 &&
+ *                   (u32)addr <  0x05000000) {    // cart/PI region
+ *                   func_80008FB0(addr, &tmp);    // DMA read
+ *                   func_80005584(tmp);
+ *               } else {
+ *                   func_80005584(*(int*)addr);   // direct read
+ *               }
+ *               addr += 4;
+ *           }
+ *       }
+ *       func_80005534();                          // flush/finalize
+ *   }
+ * Struct-typing reference: addr/len are a raw memory range; the
+ * routine streams ceil(len/4) 32-bit words out via func_80005584
+ * (send-one-word). Addresses in [0x04000000, 0x05000000) are the
+ * N64 cartridge/PI domain (not CPU-load-safe), so those words are
+ * fetched with func_80008FB0 (PI/DMA read into a stack tmp);
+ * everything else is a direct lw. A misaligned base forces every
+ * word through func_80006AEC (unaligned 4-byte read). func_80005534
+ * = end-of-stream flush. (Same rmon memory-inspect family as
+ * func_80009584 / the __rmon* handlers.) Caps <80: alignment
+ * branch + cart-range sltu check + 4 callees + decrement loop with
+ * spilled counter/cursor at sp+0x30/0x34. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800070A0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800071C0);
