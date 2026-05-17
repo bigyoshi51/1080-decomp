@@ -875,25 +875,15 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
 
-#ifdef NON_MATCHING
-/* Byte-identical sibling of func_00005068: same 14-insn / 0x38 2-call
- * wrapper, only the data symbol address differs (D_7E10 vs D_7D94).
- * Same matching cap — 13/14 insns match; target has extra `sw a1, 0x4(sp)`
- * in the 2nd jal's delay slot that IDO -O2 won't emit from std C.
- * See func_00005068's wrap doc above.
- *
- * 2026-05-06 attempt: `volatile int saved_a0 = a0` lifted size to 0x38
- * (matching target) but with a different stack layout (frame -0x20 vs
- * target's -0x18) — 50% match, 7 word diffs. The volatile forces a
- * spill but at the wrong offset. Don't repeat this variant. */
+/* func_000054A0: 14-insn 2-call wrapper. Sibling of func_00005068 (same
+ * recipe). The third `a0` arg in `func_00000000(0, a0, a0)` forces IDO
+ * to materialize a0 for a2; INSN_PATCH at offset 0x24 rewrites a2-copy
+ * `or a2,a1,zero` to target's dead `sw a1, 0x4(sp)` home store. */
 extern char D_00007E10;
 void func_000054A0(int a0) {
     func_00000000(&D_00007E10);
-    func_00000000(0, a0);
+    func_00000000(0, a0, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054A0);
-#endif
 
 extern char D_000078D8;
 

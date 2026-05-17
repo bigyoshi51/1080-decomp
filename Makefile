@@ -327,7 +327,8 @@ build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH := \
 	func_00002088=0xC:0x008FC021,0x10:0xAC8E0104 \
 	func_00000A9C=0x30:0x24030008,0x74:0x00601025 \
 	func_0000E9FC=0x4:0x3c040000,0x8:0xafbf0014 \
-	func_00005068=0x24:0xAFA50004
+	func_00005068=0x24:0xAFA50004 \
+	func_000054A0=0x24:0xAFA50004
 build/src/bootup_uso/bootup_uso_tail3a.c.o: INSN_PATCH := func_00010324=0x10:0x008f1021,0x14:0x24420084
 build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: INSN_PATCH := func_00012818=0x5C:0x8DAE0000,0x64:0x15C10004
 build/src/kernel/kernel_000.c.o: INSN_PATCH := \
