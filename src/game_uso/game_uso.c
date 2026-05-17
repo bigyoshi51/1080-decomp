@@ -3740,7 +3740,13 @@ void game_uso_func_000057D8(char *a0) {
  * scalar/flag gate (target 0x5E00-0x5F68 shape) into C. This is still
  * structural C, not a final-mile match: the float-returning helper is
  * represented as a side-effect call because the file's canonical
- * gl_func_00000000 decl is int-returning. */
+ * gl_func_00000000 decl is int-returning.
+ *
+ * 2026-05-17 follow-up iteration: promoted the next effect/proximity
+ * alloc trio plus the state-counter LUT dispatch into C. DNM objdiff
+ * improved 21.319% -> 33.110%. Tried a ratio-flag variant for the
+ * documented bit-0x8 path; it regressed to 32.999%, so the lower-level
+ * ratio code remains for a later exact grind. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int *self;
@@ -3759,6 +3765,10 @@ void game_uso_func_0000591C(int *a0) {
     Vec3 vec_copy;
     Vec3 scratch_xz;
     Vec3 derived_vec;
+    Vec3 effect_pos;
+    Vec3 effect_delta;
+    Vec3 effect_delta2;
+    Vec3 effect_stage;
     char pad[0xF8];
     int state_flag;
     int active_state;
@@ -3766,9 +3776,17 @@ void game_uso_func_0000591C(int *a0) {
     int transform_flag;
     int state_bits;
     int out_flags;
+    int effect_flags;
+    int state_counter;
+    int state_code;
+    Vec3 *effect_vec;
+    char *entity_pos;
     float state_limit;
     float metric;
     float scale;
+    float dist_sq;
+    float dot;
+    float state_value;
 
     self = a0;
 
@@ -3938,6 +3956,110 @@ void game_uso_func_0000591C(int *a0) {
     }
 
     gl_func_00000000(self, out_flags, metric);
+
+    effect_pos = transform_out;
+    effect_delta = derived_vec;
+    effect_flags = 0;
+    if ((hit_parent != NULL) && (*(int*)(hit_parent + 0x84) & 1)) {
+        if ((*(int*)(hit_parent + 0x84) & 0x804) != 0) {
+            sub = *(char**)((char*)self + 0x30);
+            if (*(char**)(sub + 0x908) != NULL) {
+                if (transform_out.y <= -2000.0f) {
+                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    if (effect_vec != NULL) {
+                        entity_pos = helper_ptr + 0x30;
+                        effect_vec->x = *(float*)entity_pos;
+                        effect_vec->y = 0.0f;
+                        effect_vec->z = *(float*)(entity_pos + 8);
+                    }
+                }
+            }
+        }
+    }
+
+    if (hit_parent != NULL) {
+        entity_pos = hit_parent + 0x30;
+        effect_vec = (Vec3*)gl_func_00000000(0xC);
+        if (effect_vec != NULL) {
+            effect_vec->x = transform_out.x - *(float*)entity_pos;
+            effect_vec->y = 0.0f;
+            effect_vec->z = transform_out.z - *(float*)(entity_pos + 8);
+        }
+
+        effect_stage = effect_delta;
+        sub = *(char**)((char*)self + 0x30);
+        entity_pos = sub + 0xB4;
+        effect_vec = (Vec3*)gl_func_00000000(0xC);
+        if (effect_vec != NULL) {
+            effect_vec->x = *(float*)entity_pos;
+            effect_vec->y = 0.0f;
+            effect_vec->z = *(float*)(entity_pos + 8);
+        }
+
+        entity_pos = hit_parent + 0x30;
+        effect_vec = (Vec3*)gl_func_00000000(0xC);
+        if (effect_vec != NULL) {
+            effect_vec->x = effect_pos.x - *(float*)entity_pos;
+            effect_vec->y = 0.0f;
+            effect_vec->z = effect_pos.z - *(float*)(entity_pos + 8);
+        }
+
+        effect_delta2 = effect_stage;
+        sub = *(char**)((char*)self + 0x30);
+        scale = *(float*)(sub + 0x348) * (*(float*)((char*)self + 0xC0) + 12.0f);
+        dist_sq = (effect_delta.x * effect_delta.x) + (effect_delta.z * effect_delta.z);
+        if (dist_sq != 0.0f) {
+            dot = (effect_delta.x * effect_delta2.x) + (effect_delta.z * effect_delta2.z);
+            dot = (dot * dot) / dist_sq;
+            if (dot <= (scale * scale)) {
+                *(int*)((char*)self + 0x48) = 0x14;
+                *(int*)((char*)self + 0x6C) &= ~1;
+            } else {
+                if (*(float*)((char*)self + 0xBC) <= transform_out.y) {
+                    if (metric < 50.0f) {
+                        effect_flags |= 0x40;
+                    }
+                }
+            }
+        }
+
+        if (effect_flags & 8) {
+            if (*(int*)((char*)self + 0x4C4) > 0) {
+                gl_func_00000000(self);
+                *(int*)((char*)self + 0x4C4) = 0;
+            }
+        } else {
+            state_counter = *(int*)((char*)self + 0x4C4);
+            if (state_counter == 0x10000) {
+                state_code = *(int*)((char*)self + 0x2C);
+                if (state_code == 3) {
+                    state_value = *(float*)((char*)self + 0x2DC);
+                } else if (state_code == 2) {
+                    state_value = *(float*)((char*)self + 0x2AC);
+                } else {
+                    state_value = *(float*)((char*)self + 0x2C4);
+                }
+                if (metric < state_value) {
+                    gl_func_00000000(self);
+                    state_code = *(int*)((char*)self + 0x2C);
+                    if (state_code == 3) {
+                        state_value = *(float*)((char*)self + 0x324);
+                    } else if (state_code == 2) {
+                        state_value = *(float*)((char*)self + 0x30C);
+                    } else {
+                        state_value = *(float*)((char*)self + 0x2F4);
+                    }
+                    *(int*)((char*)self + 0x4C4) = (int)state_value;
+                }
+            } else if (state_counter > 0) {
+                state_code = *(int*)((char*)self + 0x2C) - 1;
+                if (state_code == 1) {
+                    *(int*)((char*)self + 0x4C4) = state_code;
+                    gl_func_00000000(self);
+                }
+            }
+        }
+    }
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
      *   t2 = a0->0x30;                                  // sub-struct ptr
