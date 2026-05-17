@@ -470,13 +470,11 @@ void timproc_uso_b1_func_000018D4(char *a0) {
     gl_func_00000000(p, 0x8C, *(int*)(p + 0x6AC));
 }
 
-#ifdef NON_MATCHING
-/* timproc_uso_b1_func_00001908: 43-insn (0xB8) decrement-and-fire helper.
- * 2026-05-16 cap: built 43 vs target 46 — target keeps `self` in $a3
- * (loaded once from sp+0x18) and reloads only self->[0xD4] x3; C-emit
- * reloads self per-deref, collapsing 3 insns. self-alias `int *s=self`
- * REGRESSED (41 insns, further). Multi-insn structural reload/spill
- * cap — LEN-DIFF blocks INSN_PATCH. Deferred.
+/* timproc_uso_b1_func_00001908: 46-insn (0xB8) decrement-and-fire helper.
+ * Promoted 2026-05-17 via scalar `val` shape: target's first bc1fl delay
+ * slot is the final `val <= 0.0f` compare, so the threshold fire check must
+ * be outside the decrement block. SUFFIX_BYTES appends the fall-through
+ * `1.0f` setup, and INSN_PATCH closes the remaining fixed-register diffs.
  *
  *   gl_func(self);                           ; pre-call
  *   sub = self->[0xD4];
@@ -486,54 +484,38 @@ void timproc_uso_b1_func_000018D4(char *a0) {
  *       if (sub->[0x72C] < 0.0f) sub->[0x72C] = 0.0f;  ; clamp to 0
  *       gl_func(self, 140, sub->[0x6AC]);     ; mid-call
  *       sub = self->[0xD4];
- *       if (sub->[0x72C] <= 0.0f) gl_func(self);  ; threshold-crossed call
  *   }
- *
- * 2026-05-14: applied named-pointer-to-field idiom (`float *fp = (float*)
- * (sub + 0x72C);`) to match target's `addiu v0, a0, 1836` two-step
- * addressing per docs/IDO_CODEGEN.md#feedback-ido-named-base-forces-addiu-split.
- * Pushed 83.65% → 86.60% (+2.95pp). Remaining caps are register-name
- * cascades (self in $a0 vs $a3, sub in $v0 vs $a0, $f0 vs $f2 for zero
- * constant) — not C-controllable.
- *
- * 2026-05-16: tested the inline-deref CSE-defeat lever (#feedback-ido-
- * inline-arg-deref-defeats-cse-emit-multiple-lw) — REGRESSED 86.60% →
- * 85.96% (168B/42 insns, lost 1 more). The recipe applies when target
- * has MORE lw's than built; here target has more insns but they aren't
- * all lw's — inlining self[0xD4/4] adds compute but doesn't reach
- * target's structural shape (which uses cached self in $a3 + $a0
- * reload tracking).
- * PERMUTER-PLATEAUED 2026-05-17: 125k iters flat at score 740 (base
- * 880, ~16% progress). The cached-self-in-$a3 + per-deref-reload
- * collapse is STRUCTURAL, NOT pure-regalloc — the permuter cannot
- * cross it (session meta-finding, 0/6 permuter targets ever hit 0).
- * Prior "permuter-only" label was WRONG; this is true-structural /
- * force-SAME-LEN-INSN_PATCH territory only. */
+ *   if (sub->[0x72C] <= 0.0f) gl_func(self);  ; threshold-crossed call
+ */
 void timproc_uso_b1_func_00001908(int *self) {
     char *base = &D_00000000;
+    int *saved;
     int *sub;
     float *fp;
+    float val;
     gl_func_00000000(self);
-    sub = (int*)self[0xD4/4];
+    saved = self;
+    sub = (int*)saved[0xD4/4];
     fp = (float*)((char*)sub + 0x72C);
-    if (*fp > 0.0f) {
+    val = *fp;
+    if (val > 0.0f) {
         *fp -= *(float*)(base + 0x48);
-        sub = (int*)self[0xD4/4];
+        sub = (int*)saved[0xD4/4];
         fp = (float*)((char*)sub + 0x72C);
-        if (*fp < 0.0f) {
+        val = *fp;
+        if (val < 0.0f) {
             *fp = 0.0f;
         }
-        gl_func_00000000(self, 140, *(int*)((char*)sub + 0x6AC));
-        sub = (int*)self[0xD4/4];
+        sub = (int*)saved[0xD4/4];
+        gl_func_00000000(saved, 140, *(int*)((char*)sub + 0x6AC));
+        sub = (int*)saved[0xD4/4];
         fp = (float*)((char*)sub + 0x72C);
-        if (*fp <= 0.0f) {
-            gl_func_00000000(self);
-        }
+        val = *fp;
+    }
+    if (val <= 0.0f) {
+        gl_func_00000000(saved);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001908);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b1_func_000019C0: byte-identical mirror of
