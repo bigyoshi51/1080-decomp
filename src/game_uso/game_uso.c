@@ -10367,5 +10367,30 @@ void game_uso_func_00011A64(char *dst) {
     game_uso_func_0000C194((int*)(dst + 0x10));
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A94);
+/* game_uso_func_00011A94: byte-identical mirror of bootup_uso/func_000046EC
+ * (and func_00000C10, func_0000E690 — see those wrap docs). Cross-segment
+ * sibling transfer: same C body + same INSN_PATCH bytes. game_uso uses
+ * the gl_func_00000000 cross-segment placeholder for `func` calls. */
+void *game_uso_func_00011A94(int *arg0) {
+    volatile int **vparg = (volatile int **)&arg0;
+    int *node;
+    int *head;
+
+    node = (int*)gl_func_00000000(0x40);
+    if (node != 0) {
+        gl_func_00000000(node);
+        node[10] = (int)&D_00000000;
+        node[15] = 0;
+    }
+    head = (int*)arg0[16];
+    if (head != 0) {
+        gl_func_00000000(node + 4, head);
+        if (head[5] != 0) {
+            head[1] = 1;
+        }
+        head[5] = (int)node;
+    }
+    (void)vparg;
+    return node;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00011A94_pad.s")
