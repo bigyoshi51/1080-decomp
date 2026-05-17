@@ -3002,6 +3002,35 @@ void func_0000B49C(int idx) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B49C);
 #endif
 
+/* func_0000B520 - verified structural decode (0x23C, 143 insns,
+ * FP directional-nudge / input-driven position update).
+ *   void func_0000B520(St *a1) {
+ *       if (!(a1->0xA58 & 0x100)) return;          // enable gate
+ *       blk = a1->0x800;
+ *       f32 mag = 0.0f;
+ *       if (blk->0x10 & 0x4) mag += 10.0f;         // 0x41200000
+ *       if (blk->0x10 & 0x8) mag -= 10.0f;
+ *       Vec3f off = { a1->0x3C8[0] * mag,           // sp+0x50
+ *                     a1->0x3C8[1] * mag,
+ *                     a1->0x3C8[2] * mag };
+ *       // working copies sp+0x50 -> sp+0x5C -> sp+0x74
+ *       a1->0x318 += off.x;                         // position Vec3
+ *       a1->0x31C += off.y;
+ *       a1->0x320 += off.z;
+ *       ... (re-reads a1->0xA58, applies further updates) ...
+ *   }
+ * Struct-typing reference: a1->0xA58 (2648) u32 flags - bit 8
+ * (0x100) enables this update. a1->0x800 (2048) -> input/state
+ * block whose ->0x10 (16) carries direction bits 0x4 (forward/+)
+ * and 0x8 (back/-), each contributing +-10.0 to the step
+ * magnitude. a1->0x3C8 (968) f32[3] = the unit direction vector;
+ * a1->0x318 (792) f32[3] = the accumulated position Vec3 advanced
+ * by dir*mag. Likely the player/camera lateral or strafe nudge
+ * (snowboard movement). Caps <80: FP-heavy mul.s/add.s/sub.s
+ * Vec3 math + beql branch-likely on the input bits + a1->0x800
+ * deref chain + Vec3 stack-copy shuffles. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B75C);
