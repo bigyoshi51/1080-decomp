@@ -132,6 +132,37 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003F8);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000057C);
 
+/* func_00000610 - verified structural decode (0x24C, 147 insns,
+ * FP parameter normalize / clamp / scale).
+ *   void func_00000610(St *s0, f32 a1, f32 a2, int a3) {
+ *       o = s0->0x0;
+ *       if (o == 0) return;
+ *       // normalize a1 by a f64 divisor const, clamp to [0,1]:
+ *       f32 r = (f32)((f64)a1 / *(f64*)(func_00000044 + 0x14));
+ *       if (r < 0.0f)      r = 0.0f;
+ *       else if (1.0f < r) r = 1.0f;
+ *       o->0xC = r;
+ *       // |a2| scaled by 63.0 + f64 offset const:
+ *       f32 s = (a2 < 0.0f) ? -a2 : a2;
+ *       f32 v = (f32)((f64)s + *(f64*)(func_00000044 + 0x1C));
+ *       f32 w = a2 * 63.0f;                        // 0x427C0000
+ *       int flags = ((int*)&a3)[...];              // sp+0x50
+ *       bool b = (flags & 0x80) != 0;
+ *       ... (uses 'a' = 0x61 constant; func_00000000 reloc) ...
+ *   }
+ * Struct-typing reference: s0->0x0 (0) -> target object o (NULL ->
+ * no-op); o->0xC (12) f32 = the normalized 0..1 control value
+ * (a1 divided by the f64 const at func_00000044+0x14, then
+ * saturated). a1 / a2 are raw input axes (a2 sign-folded to its
+ * magnitude, scaled by 63.0, biased by the f64 const at
+ * func_00000044+0x1C). a3 + the sp+0x50 flag word (bit 7 / 0x80)
+ * select a sub-path; literal 0x61 ('a') used as a tag/threshold.
+ * Likely an analogue-stick / lean axis -> normalized steering
+ * parameter. Caps <80: FP-heavy cvt.d.s/div.d/cvt.s.d double
+ * promotion + c.lt.s clamp pair + neg.s abs + add.d f64 const +
+ * bc1fl branch-likely + func_00000000 reloc. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000610);
 
 void func_0000085C(int *a0) {
