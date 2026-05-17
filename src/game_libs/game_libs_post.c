@@ -359,7 +359,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000230D0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000231B4);
 
+#ifdef NON_MATCHING
+/* gl_func_00023284: 25-insn 2-callee dispatcher with conditional cleanup.
+ *   v = call(2);
+ *   v = call2(2, v, a1, a2, a3);    // 5-arg, last via stack
+ *   if (v == 0) call3(a3, 0, 0);
+ *
+ * Target has RESOLVED jal targets baked in (0x0C00E05D, 0x0C00E1C3)
+ * pointing inside other game_libs functions — needs INSN_PATCH jal recipe
+ * to byte-match. Initial structural wrap, INSN_PATCH deferred. */
+void gl_func_00023284(int a0, int a1, int a2, int a3) {
+    int v;
+    v = gl_func_00000000(2);
+    v = gl_func_00000000(2, v, a1, a2, a3);
+    if (v == 0) {
+        gl_func_00000000(a3, 0, 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023284);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
 
