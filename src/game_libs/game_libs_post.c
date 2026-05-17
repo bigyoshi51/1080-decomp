@@ -12278,7 +12278,24 @@ int game_libs_func_0006F614(int *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F534_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_0006F634: 20-insn 2-call + 2-global-state-update.
+ *   v = call(a0);
+ *   (*p_state)[1] = a0;     // *(t7+4) = a0 where t7 = *D_state_ptr
+ *   *(short*)*p_flag |= 0x10;  // *(short*)t8 |= 0x10 where t8 = *D_flag_ptr
+ *   call(v);
+ * Two pointer-deref globals (USO ind-data refs). */
+extern int **D_6F634_state;
+extern short **D_6F634_flag;
+void gl_func_0006F634(int a0) {
+    int v = gl_func_00000000(a0);
+    (*D_6F634_state)[1] = a0;
+    **D_6F634_flag |= 0x10;
+    gl_func_00000000(v);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F634);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F69C);
 
