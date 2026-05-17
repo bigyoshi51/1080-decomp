@@ -4779,8 +4779,53 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DB3C);
  * v1->{0x30,0x34,0x38} into a stack Vec3 (sp+4), reload as float, store
  * a2[0..2], return 1; not found → 0. Residual: same write-only-sp-slot
  * + direct-sp-offset stack-forcing class as DDC0 — documented hard,
- * permuter/multi-tick. Decode recorded; INCLUDE_ASM build path. */
+ * permuter/multi-tick. C body under NON_MATCHING is the permuter seed;
+ * build path stays INCLUDE_ASM via #else. */
+#ifdef NON_MATCHING
+int game_libs_func_0003DBEC(int *a0, int *a1, float *a2) {
+    int vec[3];
+    int *cell, *next4, *v1, *v0 = 0;
+    int *t6 = (int *)a0[0x10 / 4];
+    next4 = t6;
+    if (t6 != 0) {
+        cell = t6;
+        next4 = (int *)t6[1];
+        v0 = (int *)t6[0];
+    }
+    (void)cell;
+    if (v0 == 0) {
+        return 0;
+    }
+    v1 = v0;
+loop:
+    if (v1 == a1) {
+        vec[0] = v1[0x30 / 4];
+        vec[1] = v1[0x34 / 4];
+        vec[2] = v1[0x38 / 4];
+        a2[0] = *(float *)&vec[0];
+        a2[1] = *(float *)&vec[1];
+        a2[2] = *(float *)&vec[2];
+        return 1;
+    }
+    {
+        int *t3 = next4;
+        if (t3 == 0) {
+            v0 = 0;
+        } else {
+            cell = t3;
+            next4 = (int *)t3[1];
+            v0 = (int *)t3[0];
+        }
+    }
+    v1 = v0;
+    if (v0 != 0) {
+        goto loop;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DBEC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DC90);
 
