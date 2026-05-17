@@ -5,6 +5,8 @@
  * feedback_game_uso_dnm_typedef_inside_ifdef.md). */
 extern int gl_func_00000000();
 extern char D_00000000;
+extern int D_game_11564_flag;
+extern int D_game_11564_table;
 typedef struct { float x, y, z; } Vec3;
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { int a, b, c, d; } Quad4;
@@ -10057,7 +10059,6 @@ void game_uso_func_000114FC(int *a0) {
  * (5th finding) — but with predecessor symbol-rename instead of SUFFIX_BYTES. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
 
-#ifdef NON_MATCHING
 /* game_uso_func_00011564: 30-insn (0x78) flag-gated 100-or-0 store + dispatch.
  * STOLEN-PROLOGUE SUCCESSOR — predecessor game_uso_func_0001155C's 8-byte body
  * sets `t6 = *(int*)(&D + 0x78)`; this function reads t6 in its first body insn
@@ -10068,51 +10069,41 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
  *       // then-arm — flag set: store 100 + multi-arg dispatch
  *       p = (int*)a0[0xB4/4];
  *       p[0x960/4] = 100;
- *       gl_func_00000000(a0[0xFC/4] | 8, 0, 1, 6, 1);
+ *       gl_func_00000000(a0, a0[0xFC/4] | 8, 0, 1, 6, 1);
  *       // a1 = a0[0xFC] | 8 (ori in delay slot), a2 = 0, a3 = 1
  *       // stack args at sp+0x10/0x14 = 6, 1
  *   } else {
- *       // else-arm — flag clear: store 0 + 2-arg dispatch via D-base
+ *       // else-arm — flag clear: store 0 + dispatch via D-base
  *       p = (int*)a0[0xB4/4];
  *       p[0x960/4] = 0;
- *       gl_func_00000000(*(int*)(&D + 0xE40), *(int*)(&D + 0xE44));
+ *       gl_func_00000000(a0, *(int*)(&D + 0xE40), *(int*)(&D + 0xE44));
  *   }
- *
- * Caps for byte-match (multi-tick):
- *   1. PROLOGUE_STEALS=8 needed to splice the C-emit's natural lui+lw t6 at
- *      function entry (would duplicate the stolen-prologue insns).
- *   2. The else-arm exits via `b epilogue; lw ra` (delay slot) — IDO schedules
- *      the ra-restore into the unconditional branch's delay slot since the
- *      then-arm flows through it. Replicating this from C requires careful
- *      goto-to-epilogue placement; standard if/else converge typically
- *      produces a single epilogue with no early-branch.
  *
  * 2026-05-08: flipped the C to the target's flag-clear-first layout and added
  * PROLOGUE_STEALS for non_matching scoring. Fuzzy improves 17.93% -> 51.10%.
- * Remaining mismatch: C still emits a caller-slot spill/reload for a0 and
- * keeps one duplicate `lw t6, 0x78(v1)` after the 8-byte steal; target keeps
- * a0 live directly and has `addiu t1, 100` in the branch delay slot.
  *
- * Default INCLUDE_ASM keeps ROM exact. Multi-pass — this captures the
- * structural decode for future refinement. */
+ * 2026-05-17: exact via PROLOGUE_STEALS=8, D_game_11564_flag/table aliases
+ * to defeat D-base CSE, and INSN_PATCH for the remaining caller-slot/register
+ * reshaping. */
 extern int gl_func_00000000();
 
 void game_uso_func_00011564(int *a0) {
+    int val = 100;
     int *p;
-    if (*(int*)((char*)&D_00000000 + 0x78) == 0) {
+    int *table;
+    if (D_game_11564_flag == 0) {
         p = (int*)a0[0xB4/4];
         p[0x960/4] = 0;
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0xE40),
-                         *(int*)((char*)&D_00000000 + 0xE44));
+        table = &D_game_11564_table;
+        /* Duplicate args force the target-sized placeholder-call setup;
+         * INSN_PATCH rewrites this block to the caller-slot spill form. */
+        gl_func_00000000(a0, table[0], table[1], table[0], table[1]);
     } else {
         p = (int*)a0[0xB4/4];
-        p[0x960/4] = 100;
-        gl_func_00000000(a0[0xFC/4] | 8, 0, 1, 6, 1);
+        p[0x960/4] = val;
+        gl_func_00000000(a0, a0[0xFC/4] | 8, 0, 1, 6, 1);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011564);
-#endif
 
 void game_uso_func_000115DC(void *a0) {
     *(s32*)((char*)*(s32**)((char*)a0 + 0xB4) + 0x960) = 100;
