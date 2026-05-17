@@ -67,6 +67,32 @@ void func_00014004(char *a0, int a1, int a2) {
     *(int*)(a0 + 0x108) = a2;
 }
 
+/* func_00014010 - verified structural decode (0xB4, 45 insns,
+ * in-place string substitution cipher).
+ *   void func_00014010(char *a0) {
+ *       char *s = a0 + 0xE4;                      // string field
+ *       u32 n = strlen_like(s);                   // func_00000000(s)
+ *       u32 i = 0;
+ *       while (i < n) {
+ *           unsigned char c = s[i];
+ *           i++;
+ *           if (c != 'a' && c != 'b' && c != ' ') // 0x61/0x62/0x20
+ *               s[i-1] = (char)(0x69 - c);        // 'i' - c
+ *           n = strlen_like(s);                   // recomputed each iter
+ *       }
+ *   }
+ * Behavior: each character of the NUL-terminated string at a0+0xE4
+ * (offset 0xE4 = 228) is mapped c -> ('i' - c) UNLESS it is one of
+ * the passthrough chars 'a' (0x61), 'b' (0x62), or space (0x20),
+ * which are left unchanged. The length is re-evaluated via the
+ * reloc helper func_00000000 on every iteration (bound = current
+ * strlen). Struct-typing reference: a0->0xE4 (228) = char[] name/id
+ * string buffer. Caps <80: bnel branch-likely loop-back + reloc
+ * func_00000000 strlen recompute as the loop bound + 4 char
+ * constants ('a'/'b'/' '/'i') hoisted into s3-s6 (8-sreg pressure,
+ * IDO global-allocator order-sensitive). Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014010);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000140C4);
