@@ -8870,7 +8870,31 @@ void game_uso_func_0000E564(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
 
+/* game_uso_func_0000E91C — verified structural decode (EE84-family branchy
+ * orchestrator, ~118 insns; switch + flag-set + D-pair calls = documented
+ * sub-80 ceiling → INCLUDE_ASM build path; struct-typing reference).
+ *   s0 = a0; a0->0xB0 = 0;
+ *   v0 = (s0->0xB4)->0xA58;
+ *   func_00000000(s0, (v0&0x20)?1:((v0&0x40)!=0), v0&0x20);          // X1
+ *   if (((s0->0xB4)->0x800->0x10 & 0x1000) != 0) {
+ *     switch (s0->0x12C) {                                            // a1
+ *       case 2: s0->0xB0 = s0->0xFC | 0x1B; X(s0->0xB4+0x808, D[0xE44],D[0xE40]); break;
+ *       case 1: s0->0xB0 = s0->0xFC | 0x18; X(...,D+0xEF0 pair); break;
+ *       case 4: s0->0xB0 = s0->0xFC | 0x1C; X(...,D+0xE40 pair); break;
+ *       case 3: s0->0xB0 = s0->0xFC | 0x1A; X(...,D+0xEF0 pair); break;
+ *     }
+ *   }
+ *   if (s0->0xB0 != 0) { s0->0x12C = 0; func_00000000(s0,...,1,1);
+ *                        func_00000000(s0,D-pair); func_00000000(s0); }
+ * Struct-typing: s0->0xB0 flag word (OR'd with 0x18..0x1C per state),
+ * s0->0xB4 object (->0xA58 mode bits 0x20/0x40, ->0x800->0x10 bit 0x1000,
+ * +0x808 callee arg), s0->0xFC base flags, s0->0x12C state (1..4), D-pair
+ * consts @0xE40/E44, 0xEF0. Caps <80: beql/beq switch dispatch +
+ * branch-likely + D-pair sp-arg shape — documented EE84-family ceiling.
+ * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
 
