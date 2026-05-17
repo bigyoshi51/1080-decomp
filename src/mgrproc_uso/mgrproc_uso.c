@@ -609,6 +609,37 @@ void mgrproc_uso_func_00000D94(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000E04);
 
+/* mgrproc_uso_func_000011A4 - verified structural decode (0x108,
+ * 66 insns, sub-object registration table builder).
+ *   void mgrproc_uso_func_000011A4(St *s0, int a1) {
+ *       reg(&D_00000000, (a1 - 1) | 0x200000);
+ *       reg(s0 + 0x6B0, *(int*)&D_x | 0x000A0000);
+ *       reg(s0 + 0x6C8, 0x210000);
+ *       q = s0->0x6A8;
+ *       if (q->0x8 == q->0x4 + 1)
+ *           reg(s0 + 0x6E0, 0x210000 | 1);
+ *       else
+ *           reg(s0 + 0x6E0, 0x210000 | (q->0x4 + 2));
+ *       reg(s0 + 0x6F8, *(int*)&D_y | 0x001E0000);
+ *       reg(s0 + 0x728, 0x210000 | 0x7);
+ *       reg(s0 + 0x740, 0x210000 | 0x8);
+ *       reg(s0 + 0x758, 0x210000 | 0x9);
+ *       reg(s0 + 0x770, 0x210000 | 0xA);
+ *       reg(s0 + 0x788, 0x210000 | 0xD);
+ *   }
+ * (reg = func_00000000(sub_obj_ptr, packed_id).)
+ * Struct-typing reference: s0 holds a block of registrable sub-
+ * objects at offsets 0x6B0 (1712), 0x6C8 (1736), 0x6E0 (1760),
+ * 0x6F8 (1784), 0x728 (1832), 0x740 (1856), 0x758 (1880), 0x770
+ * (1904), 0x788 (1928); s0->0x6A8 (1704) = a queue/range struct
+ * whose 0x4 (start) and 0x8 (end) gate the 0x6E0 entry's id
+ * (full-range -> id 1, else start+2). Packed ids: high bits select
+ * a category (0x210000 = the main widget group, 0x200000 / 0xA0000
+ * / 0x1E0000 = variants OR'd with a per-element index or a global
+ * value from &D_x/&D_y). Caps <80: ~10x func_00000000 reloc calls
+ * + lui/ori packed-constant builds + a branch on the queue range.
+ * Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000011A4);
 
 void mgrproc_uso_func_000012AC(char *a0) {
