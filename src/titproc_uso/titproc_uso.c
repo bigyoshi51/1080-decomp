@@ -618,7 +618,11 @@ void titproc_uso_func_00001C68(int *a0) {
  * second alloc (per docs/IDO_CODEGEN.md#feedback-ido-goto-epilogue) and
  * fixed a typo (duplicate `*(self+0x28) = base` should have been `sub`
  * vs `self`). Pushed 59.36% → 84.20% (+24.84pp). Remaining cap: frame
- * size (-0x28 vs target -0x20) due to the extra `sub` local. */
+ * size (-0x28 vs target -0x20) due to the extra `sub` local.
+ *
+ * 2026-05-16: tested `register void *sub` lever — no change (84.20%).
+ * Consistent with the documented "register keyword honored narrowly"
+ * rule; doesn't influence the local-spill that drives the frame size. */
 void *titproc_uso_func_00001D7C(void *a0) {
     char *base = &D_00000000;
     void *self = a0;
