@@ -189,7 +189,128 @@ void timproc_uso_b5_func_00000470(void) {
 }
 
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00000478: 190-insn constructor/initializer.
+ * Boundary fix: split-fragments separated the trailing 2-insn
+ * timproc_uso_b5_func_00000770 leaf; this body is now a single function
+ * (grep -c 03E00008 = 1).
+ *
+ * Initial structural decode. Applies the alloc-or-passthrough cascade from
+ * docs/PATTERNS.md#feedback-alloc-or-passthrough-cascade-includes-dead-arms:
+ * self = arg0-or-alloc(0x58), sub = self-or-alloc(0x50),
+ * node = sub-or-alloc(0x2C), then table init and two arg1-selected init
+ * arms. m2c could not parse the .word-only USO asm and the cached Ghidra
+ * project was unavailable/locked, so this pass is from raw asm + sibling
+ * patterns. Default build remains INCLUDE_ASM. */
+int *timproc_uso_b5_func_00000478(int *arg0, int arg1, int arg2, int arg3) {
+    int *self;
+    int *sub;
+    int *node;
+    int *slot;
+    int *link;
+    int result0;
+    int result1;
+    int result2;
+
+    self = arg0;
+    if (self == 0) {
+        self = (int*)gl_func_00000000(0x58);
+        if (self == 0) goto done;
+    }
+
+    sub = self;
+    if (sub == 0) {
+        sub = (int*)gl_func_00000000(0x50);
+        if (sub == 0) goto after_sub;
+    }
+
+    node = sub;
+    if (node == 0) {
+        node = (int*)gl_func_00000000(0x2C);
+        if (node == 0) goto after_node;
+    }
+    gl_func_00000000(node, (char*)&D_00000000 + 0xFDC);
+    *(int*)((char*)node + 0x28) = (int)&D_00000000;
+
+after_node:
+    *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+
+after_sub:
+    *(int*)((char*)self + 0x28) = (int)&D_00000000;
+    *(int*)((char*)self + 0x0C) = (int)((char*)&D_00000000 + 0xFE4);
+
+    gl_func_00000000((char*)&D_00000000 + 0x1000, 0);
+    result0 = gl_func_00000000(0, arg1);
+    *(int*)((char*)self + 0x54) = 0;
+
+    slot = (int*)((char*)self + 0x10);
+    if (arg1 == 1) {
+        *(int*)((char*)self + 0x50) = 0;
+        result1 = gl_func_00000000(0, (char*)&D_00000000 + 0x100C,
+                                   (char*)&D_00000000 + 0x101C);
+        link = (int*)gl_func_00000000(slot, result1);
+        if (*(int*)((char*)link + 0x14) != 0) {
+            *(int*)((char*)link + 0x04) = 1;
+        }
+        *(int*)((char*)link + 0x14) = (int)self;
+
+        result2 = gl_func_00000000(0, self, arg1, arg2, arg3, result0,
+                                   result1, 0);
+        link = (int*)gl_func_00000000(slot, result2);
+        if (*(int*)((char*)link + 0x14) != 0) {
+            *(int*)((char*)link + 0x04) = 1;
+        }
+        *(int*)((char*)link + 0x14) = (int)self;
+        *(int*)&D_00000000 = 0x44140000;
+    } else {
+        *(int*)((char*)self + 0x50) = 1;
+        result1 = gl_func_00000000(0, (char*)&D_00000000 + 0x102C,
+                                   (char*)&D_00000000 + 0x103C);
+        link = (int*)gl_func_00000000(slot, result1);
+        if (*(int*)((char*)link + 0x14) != 0) {
+            *(int*)((char*)link + 0x04) = 1;
+        }
+        *(int*)((char*)link + 0x14) = (int)self;
+
+        result2 = gl_func_00000000(0, (char*)&D_00000000 + 0x104C,
+                                   (char*)&D_00000000 + 0x105C);
+        link = (int*)gl_func_00000000(slot, result2);
+        if (*(int*)((char*)link + 0x14) != 0) {
+            *(int*)((char*)link + 0x04) = 1;
+        }
+        *(int*)((char*)link + 0x14) = (int)self;
+
+        result2 = gl_func_00000000(0, self, arg1, arg2, arg3, result0,
+                                   result1, result2);
+        link = (int*)gl_func_00000000(slot, result2);
+        if (*(int*)((char*)link + 0x14) != 0) {
+            *(int*)((char*)link + 0x04) = 1;
+        }
+        *(int*)((char*)link + 0x14) = (int)self;
+        *(int*)&D_00000000 = 0x43BB0000;
+    }
+
+    gl_func_00000000(self);
+    link = (int*)gl_func_00000000(slot, *(int*)((char*)&D_00000000 + 0x190));
+    if (*(int*)((char*)link + 0x14) != 0) {
+        *(int*)((char*)link + 0x04) = 1;
+    }
+    *(int*)((char*)link + 0x14) = (int)self;
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
+    *(int*)((char*)self + 0x48) = 0;
+    *(int*)((char*)self + 0x30) = 0;
+    *(int*)((char*)self + 0x2C) = 0;
+    gl_func_00000000(&D_00000000, 0);
+    gl_func_00000000();
+
+done:
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000478);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000770);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000778);
 
