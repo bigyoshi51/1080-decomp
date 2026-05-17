@@ -75,6 +75,10 @@ def _is_lo16_opcode(word):
     return _opcode(word) in _LO16_OPCODES
 
 
+def _same_reloc_immediate(a, b):
+    return (a & 0xFFFF) == (b & 0xFFFF)
+
+
 def find_text_and_sym(data, func_name):
     h = struct.unpack(ELF_HDR_FMT, data[:struct.calcsize(ELF_HDR_FMT)])
     e_shoff, e_shentsize, e_shnum, e_shstrndx = h[6], h[11], h[12], h[13]
@@ -289,14 +293,17 @@ def patch_one(data, func_name, patches):
         # This applies both to jal->non-jal and jal 0->baked jal target.
         if _is_jump_opcode(existing):
             orphan_jal_offsets.add(rel_offset)
-        # Same for HI16/LO16: INSN_PATCH supplies concrete words, so a
-        # changed relocated instruction must drop the old relocation even
-        # when the replacement is another immediate-form opcode. Otherwise
-        # the linker re-applies the stale symbol/addend and mutates bytes
-        # that already matched the expected object.
-        if _is_lui_opcode(existing):
+        # Same for HI16/LO16 unless the patch only changes non-immediate
+        # fields (for example FPU register bits on an ldc1). Relocations
+        # rewrite the low 16-bit immediate only, so preserving them is
+        # required when a preceding HI16 still needs its paired LO16.
+        if _is_lui_opcode(existing) and (
+                not _is_lui_opcode(word)
+                or not _same_reloc_immediate(existing, word)):
             orphan_hi_offsets.add(rel_offset)
-        if _is_lo16_opcode(existing):
+        if _is_lo16_opcode(existing) and (
+                not _is_lo16_opcode(word)
+                or not _same_reloc_immediate(existing, word)):
             orphan_lo_offsets.add(rel_offset)
         data[abs_off:abs_off + 4] = struct.pack(">I", word)
         applied += 1

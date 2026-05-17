@@ -882,9 +882,7 @@ int gl_func_00008674(int unused, int *hidden_v0, int hidden_v1) {
 }
 
 /* game_libs_func_000086A0: 31-insn FPU-only updater on two adjacent floats
- * at a0+0x550 (f550) and a0+0x54C (f54C). Decoded but NM cap 74.48% —
- * below the 80% wrap threshold; kept as INCLUDE_ASM with the decode as
- * a reference for future grinds.
+ * at a0+0x550 (f550) and a0+0x54C (f54C).
  *
  * Pseudocode:
  *   f550 = *(float*)(a0 + 0x550);
@@ -901,8 +899,24 @@ int gl_func_00008674(int unused, int *hidden_v0, int hidden_v1) {
  *     *(float*)(a0 + 0x550) = -(f550 / 4.0f);
  *   }
  *
- * Structure correct, register allocation/scheduling diverges from target. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000086A0);
+ * Exact with a two-word INSN_PATCH for the FPU temp-register assignment in
+ * the double add; the natural C emit is otherwise byte-correct. */
+void game_libs_func_000086A0(char *a0) {
+    float four = 4.0f;
+    float f550 = *(float*)(a0 + 0x550);
+
+    if (f550 < four) {
+        double d550 = (double)f550;
+        *(float*)(a0 + 0x550) = (float)(*(double*)((char*)&D_00000000 + 0xE58) + d550);
+        f550 = *(float*)(a0 + 0x550);
+    }
+
+    *(float*)(a0 + 0x54C) = *(float*)(a0 + 0x54C) - f550;
+    if (*(float*)(a0 + 0x54C) < 58.0f) {
+        *(float*)(a0 + 0x54C) = *(float*)(a0 + 0x54C) + f550;
+        *(float*)(a0 + 0x550) = -(f550 / four);
+    }
+}
 
 /* gl_func_0000871C: 54-insn (0xD8) FPU-heavy float-ramp + indirect-call.
  * 0x18-byte stack frame. Sibling of 88B4 family (just-landed f1f06a20)
