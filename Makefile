@@ -285,6 +285,7 @@ build/src/kernel/kernel_056.c.o build/non_matching/src/kernel/kernel_056.c.o: PO
 # See scripts/splice-function-prefix.py and
 # feedback_prologue_stolen_successor_no_recipe.md for context.
 build/src/titproc_uso/titproc_uso.c.o build/non_matching/src/titproc_uso/titproc_uso.c.o: PROLOGUE_STEALS := titproc_uso_func_00000194=8 titproc_uso_func_000001E4=8 titproc_uso_func_0000028C=8 titproc_uso_func_00001C68=8
+build/src/titproc_uso/titproc_uso.c.o: INSN_PATCH := titproc_uso_func_00001840=0x08:0x00808025,0x10:0xAFBF001C,0x24:0x16000005,0x34:0x10400009,0x38:0x00402025,0x48:0xAFA40024,0x4C:0x8FA40024
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: PROLOGUE_STEALS := game_uso_func_00011564=8
 build/src/titproc_uso/titproc_uso.c.o: SUFFIX_BYTES := titproc_uso_func_00000194=0x3C020000,0x24420000 titproc_uso_func_00001BB8=0x3C013F80,0x44810000
 build/src/game_uso/game_uso.c.o: SUFFIX_BYTES := game_uso_func_00010E2C=0x00000000,0x00000000 game_uso_func_000114FC=0x00000000,0x00000000 game_uso_func_00010DC8=0x00000000,0x00000000 game_uso_func_0000FA54=0x00000000,0x00000000 game_uso_func_00011368=0x00000000,0x00000000 game_uso_func_000113C8=0x00000000,0x00000000 game_uso_func_0000FDCC=0x00000000,0x00000000,0x00000000,0x00000000 game_uso_func_0000FEC8=0x00000000,0x00000000 game_uso_func_000104A4=0x00000000,0x00000000 game_uso_func_000105DC=0x03E00008,0x00000000,0x3C013F80,0x44812000

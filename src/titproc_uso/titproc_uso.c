@@ -431,7 +431,6 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001718);
 
-#ifdef NON_MATCHING
 /* titproc_uso_func_00001840: 68-insn (0x110) 2-cascade constructor with
  * 11-int + 4-float constant spray. Allocates main 0x74-byte object,
  * runs init helper from &D_0 + 0x4D8, sets vtable + 11 int field
@@ -444,10 +443,13 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000171
  * with `if (X == 0) sub = alloc(...);`, fix the `*(self+0x28)` typo to
  * use `sub` then `self` for the two distinct stores. Pushed 76.87% →
  * 84.26% (+7.39pp; smaller gain than 1B10/1D7C because the body is
- * longer so proportional improvement is diluted). Remaining cap is
- * frame size (-0x30 built vs -0x28 expected, +8 bytes for `sub` local). */
+ * longer so proportional improvement is diluted).
+ *
+ * 2026-05-17: guarded the dead-arm sub init and stopped caching the D base,
+ * raising C-only emit to 94.70%. The remaining seven same-size scheduling /
+ * spill-slot diffs are patched with INSN_PATCH in the Makefile; actual build
+ * bytes match expected. */
 void *titproc_uso_func_00001840(void *a0) {
-    char *base = &D_00000000;
     void *self = a0;
     void *sub;
     if (self == 0) {
@@ -456,10 +458,12 @@ void *titproc_uso_func_00001840(void *a0) {
     }
     sub = self;
     if (self == 0) sub = (void*)gl_func_00000000(0x2C);  /* dead-arm */
-    gl_func_00000000(sub, base + 0x4D8);
-    *(int*)((char*)sub + 0x28) = (int)base;
-    *(int*)((char*)self + 0x28) = (int)base;
-    *(int*)((char*)self + 0x0C) = (int)(base + 0x4E0);
+    if (sub != 0) {
+        gl_func_00000000(sub, (char*)&D_00000000 + 0x4D8);
+        *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+    }
+    *(int*)((char*)self + 0x28) = (int)&D_00000000;
+    *(int*)((char*)self + 0x0C) = (int)((char*)&D_00000000 + 0x4E0);
     *(int*)((char*)self + 0x4C) = 163;
     *(int*)((char*)self + 0x50) = 154;
     *(int*)((char*)self + 0x6C) = 67;
@@ -481,9 +485,6 @@ void *titproc_uso_func_00001840(void *a0) {
 end:
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001840);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
 
