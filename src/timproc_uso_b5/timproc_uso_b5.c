@@ -1564,6 +1564,40 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * the original 0xA4 declared size into C7B4's body; C7B4 has no prologue
  * and uses caller-set $v1/$at. Splat-bundled fragment merge 2026-05-05.
  * Combined size 0xD8 = 54 insns. */
+/* timproc_uso_b5_func_0000C710 - verified structural decode (0xD8,
+ * 54 insns). SIBLING of timproc_uso_b5_func_0000CB40 (same
+ * timproc_uso_b5 FP slew-limiter family); differs only in how the
+ * target is resolved.
+ *   void timproc_uso_b5_func_0000C710(void *a0, f32 a1_unused) {
+ *       f32 target;
+ *       if (a0->0x2A4 == 0.0f) {
+ *           target = 0.0f;
+ *       } else {
+ *           st = a0->0x2B8;
+ *           target = (st->0x130 != 0) ? 1.0f : D_<dflt>;  // global
+ *       }
+ *       st = a0->0x2B8;
+ *       cur = st->0x124;
+ *       if (cur < target) {                       // ramp up
+ *           st->0x124 += D_<step_up>;
+ *           if (target < a0->0x2B8->0x124)
+ *               a0->0x2B8->0x124 = target;        // clamp
+ *       } else {                                  // ramp down
+ *           st->0x124 -= D_<step_dn>;
+ *           if (a0->0x2B8->0x124 < target)
+ *               a0->0x2B8->0x124 = target;        // clamp
+ *       }
+ *   }
+ * Struct-typing reference (same family as CB40): a0->0x2A4 (676) f32
+ * enable (0.0 -> target 0); a0->0x2B8 (696) ptr to slew-state;
+ * state->0x124 (292) f32 slewed value; state->0x130 (304) s32 gate
+ * (nonzero -> target = 1.0, else the global default const at &D+
+ * 0x872). Step magnitudes = global f32 consts &D+0x876 (up) /
+ * +0x880 (down). Per call moves one step toward target then clamps.
+ * Caps <80: FP c.eq.s/c.lt.s/add.s/sub.s + bc1fl/bc1f branch-likely
+ * + 3x &D global const reloc + dual jr-ra. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C710);
 
 void timproc_uso_b5_func_0000C7E8(char *a0, char *a1) {
