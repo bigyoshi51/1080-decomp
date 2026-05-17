@@ -6322,7 +6322,15 @@ void gl_func_00041768(int *self) {
  *
  * Similar vtable-callback pattern as func_0000FEA0; explicit reload to
  * match target's lw + lw between the two calls (IDO doesn't CSE across
- * the jalr). */
+ * the jalr).
+ *
+ * 2026-05-17: capped at 87.3% NM (21 vs target 24 insns). Remaining
+ * 3-insn deficit: target stores a0 to caller-slot (+0x14) at entry
+ * (`sw a0, 0x18(sp)`) AND reloads twice (`lw t9, ...(sp)` at offsets
+ * 0x10 and 0x1c), whereas IDO -O2 keeps a0 in $a1 for the duration.
+ * Adding `volatile int spill = (int)a0; (void)spill;` could force the
+ * spill but tested on adjacent wraps (e.g. func_00008B44) it shifts
+ * register allocation cascade — net regression. Permuter-class. */
 void gl_func_000417CC(int *a0) {
     int *p;
     gl_func_00000000();
