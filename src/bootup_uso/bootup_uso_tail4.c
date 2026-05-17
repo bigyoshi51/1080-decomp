@@ -87,6 +87,33 @@ void func_000144E0(void *a0, float a1, float a2) {
     *(float*)((char*)a0 + 0x8C) = a2;
 }
 
+/* func_000144F4 - verified structural decode (leaf, 43 insns, FP
+ * physics integrator). Returns s32 (0 = running, 1 = clamped).
+ *   s32 func_000144F4(void *a0, s32 a1) {
+ *       s32 r = 0;
+ *       f32 spd = a0->0xA8;                  // rate/accumulator
+ *       if (spd < 16.0f)                     // ramp-up gate
+ *           a0->0xA8 = (f32)((f64)spd + 0.5);// +0.5 via double promo
+ *       spd = a0->0xA8;
+ *       a0->0x5C = a0->0x5C + spd;           // integrate position
+ *       pos = a0->0x5C;
+ *       if ((f32)a1 < pos) {                 // exceeded int limit a1
+ *           r = 1;
+ *           if (6.0f < spd)                  // overspeed branch
+ *               a0->0xA8 = -(spd / 4.0f);    // reverse + damp /4
+ *           a0->0x5C = pos - spd;            // back off one step
+ *       }
+ *       return r;
+ *   }
+ * Struct-typing reference: a0->0xA8 (168) f32 rate/speed accumulator
+ * (ramps by 0.5/frame until >=16.0, then constant), a0->0x5C (92) f32
+ * integrated position; a1 = s32 limit (compared as float). On reaching
+ * the limit: clamp position back one step, set return flag, and if
+ * speed>6.0 reverse-and-damp speed to -(speed/4). Caps <80: bc1fl
+ * branch-likely (x2) + cvt.d.s/add.d/cvt.s.d double-promotion of the
+ * +0.5 literal add + c.lt.s operand-order. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000144F4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014598);
