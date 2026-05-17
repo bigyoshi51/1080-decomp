@@ -879,6 +879,33 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
 
+/* func_000051D4 - verified structural decode (0xB0, 44 insns).
+ * BYTE-STRUCTURALLY IDENTICAL SIBLING of func_00005124 (same
+ * alloc-cascade constructor with defensive-dead-check; the ONLY
+ * difference is the init datum D_00007DC4 here vs D_00007DB4 there).
+ *   void *func_000051D4(void *arg) {
+ *       sub_init(&D_00007DC4);                   // func_00000000 reloc
+ *       obj = alloc(0x4C);                       // func_00000000(0x4C)
+ *       if (obj == 0) return 0;                  // .L00005270
+ *       if (obj != 0) goto have_obj;             // .L0000522C
+ *       // provably-dead 0x48-alloc arm (defensive dead check)
+ *       tmp = alloc(0x48);
+ *       if (tmp == 0) return ...;                // .L00005258
+ *       sub2(tmp, arg, 0);
+ *   have_obj:
+ *       *(void**)((char*)sub + 0x28) = &D_x;
+ *       obj->0x28 = &D_y;
+ *       obj->0x48 = &D_z;
+ *       return obj;
+ *   }
+ * Struct-typing reference: identical to func_00005124 - object 0x4C
+ * bytes, obj->0x28 (40) / obj->0x48 (72) descriptor/vtable ptrs (&D
+ * runtime-patched), arg passed through (sp+0x2C/0x1C/0x4) into the
+ * dead arm; D_00007DC4 = named init datum. Caps <80: alloc-cascade +
+ * defensive-dead-check (bnez-after-beqz unreachable arm) + 3-4
+ * func_00000000 reloc + 3x &D-store reloc. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000051D4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005284);
