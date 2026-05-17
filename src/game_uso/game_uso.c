@@ -9038,6 +9038,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF70);
  * beql-chain flag logic; USO call->func_00000000, data->&D+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
 
+/* game_uso_func_0000F13C — verified structural decode (EE84-family, 82 insns,
+ * 12% LEN-DIFF; branch-likely + double-const abs-threshold + D-pair sp-args =
+ * documented sub-80 ceiling → INCLUDE_ASM build path; struct-typing ref).
+ *   s0=a0; v1=(int*)s0->0xB4; o=(int*)v1->0x800;
+ *   if ((o->0x10 & 0x100) && (o->0x10 & 0x200) && v1->0x938 != 0)
+ *       func_00000000(s0);
+ *   else {
+ *       f0 = *(float*)(v1+0x970);
+ *       if ((double)fabs(f0) > *(double*)(&D+0x238))
+ *           func_00000000(s0, 0x10028, 0x10029, *(int*)&f0, 0,0,1);
+ *       else
+ *           func_00000000(s0, 0x10011, 0,0, 6,1);
+ *       if (((int*)s0->0xB4)->0x938 == 0) func_00000000(s0);
+ *   }
+ *   short v0 = *(short*)(s0+0xE6); *(short*)(s0+0xE6) = v0+1;
+ *   if (s0->0x184 < v0) func_00000000(s0, D[0xEA8], D[0xEAC]);
+ * Struct-typing: s0->0xB4 object (->0x800->0x10 bits 0x100/0x200, ->0x938
+ * flag, ->0x970 float), s0->0xE6 short counter, s0->0x184 bound, D double
+ * gate @0x238, D-pair @0xEA8/EAC. Caps <80: beql/bc1fl/bnel branch-likely,
+ * neg.s/mov.s abs idiom, ldc1 double-const + cvt.d.s compare, multi-arg
+ * sp-spill D-pair calls — documented EE84-family ceiling. INCLUDE_ASM is
+ * the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
 
 /* game_uso_func_0000F284: 55-insn EE84-family branchy. X(a0->0xB4+0x808);
