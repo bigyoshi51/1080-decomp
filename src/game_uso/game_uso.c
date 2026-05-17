@@ -7697,17 +7697,15 @@ void game_uso_func_0000C0F0(int *dst) {
  * principle: locals that are dead-on-entry to a call don't get spilled to
  * stack. Move their init AFTER the call to make this happen.
  *
- * Caps remaining at 81.27 %:
- *   1. Frame: built 0x60 (96), target 0x58 (88). 8-byte excess. IDO adds
- *      `or a3, a0, 0` (register-rename a0 → a3) before the call so a3
- *      can be reloaded after; target writes a0 directly to caller-slot
- *      and reloads as $t6. The rename+local-slot-spill costs 8 bytes
- *      vs target's direct caller-slot use. `volatile int **p = &a0`
- *      trick regresses to 63 % (introduces extra spill+address-take).
- *   2. Register names: built uses $v0/$v1/$a3 for src/end/dst; target
- *      uses $t7/$t0/$t6. Cap class: IDO regalloc choice for short-lived
- *      locals (per feedback-ido-v0-reuse-via-locals — named locals get
- *      $v-regs; inline derefs get $t-regs).
+ * Caps remaining at 81.27 % (reverified 2026-05-17 with objdiff):
+ *   1. Frame: built 0x58 (88), target 0x60 (96). Target first copies
+ *      `a0` to `a3`, spills `a3` at 0x60(sp), reloads it after the call,
+ *      and places the temp buffer at sp+0x20. Current C emit spills `a0`
+ *      directly at 0x58(sp), reloads to $t6 after the call, and places
+ *      the temp buffer at sp+0x18.
+ *   2. Register names: built uses $t7/$t0/$t6 for src/end/dst; target
+ *      uses $v0/$v1/$a3. This is tied to the frame/spill shape, not a
+ *      simple local declaration ordering issue.
  *
  * Prior 2026-05-08 attempts (a/b/c/d/e — see commit history) all stuck
  * at 0-50 %; this is a substantial multi-tick improvement.
@@ -7739,7 +7737,21 @@ void game_uso_func_0000C0F0(int *dst) {
  * 3-per-iter rolled loop — do not try the indexed form again. The
  * INSN_PATCH path is the only remaining route and is near-whole-function
  * (frame + rename + every loop reg differs), i.e. cargo-culting target
- * bytes — not worth it. Accept as documented C-level NM cap. */
+ * bytes — not worth it. Accept as documented C-level NM cap.
+ *
+ * 2026-05-17 deep retry:
+ *   - `register int *dst = a0; char pad[4];` + dst loop: no codegen change.
+ *   - `scratch[18]; buf = scratch + 2;` and volatile scratch variant:
+ *     IDO collapses the accessed slice back to the same 0x58 frame.
+ *   - Aliased-pointer local (`dst`, `spillee`) per
+ *     docs/MATCHING_WORKFLOW.md#feedback-aliased-pointer-local-shifts-spill-slot:
+ *     no codegen change.
+ *   - `int * volatile spillee`: regressed to 57.38 % by adding volatile
+ *     stack semantics without moving the frame to the target shape.
+ *   - m2c cannot help here because the .s file is .word-only and decompiles
+ *     as "contains no instructions".
+ * No episode logged; no exact-match path found without near-whole-function
+ * post-cc patching. */
 void game_uso_func_0000C12C(int *a0) {
     int buf[16];
     int *src;
