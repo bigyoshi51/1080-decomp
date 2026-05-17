@@ -550,6 +550,42 @@ void timproc_uso_b1_func_000019C0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000019C0);
 #endif
 
+/* timproc_uso_b1_func_00001A64 — verified structural decode (89-insn
+ * init+configure constructor; 8 gl_ calls + branch-likely list-link tail
+ * = documented constructor sub-80 ceiling → INCLUDE_ASM build path;
+ * struct-typing reference).
+ * void f(int *a0, int a1, int a2, int a3){
+ *   s0 = a0;
+ *   a0->0xC  = &D_00000000 + 0x40C;
+ *   a0->0xB8 = a1;  a0->0x50 = a1;  a0->0x4C = a3;
+ *   a0->0xAC = 0;   a0->0xD8 = 0;   a0->0x54 = a2;
+ *   a0->0xD0 = 255; a0->0xD4 = 0;   a0->0xDC = 1;
+ *   *(float*)(a0+0xCC)=*(float*)(a0+0xC8)=*(float*)(a0+0xC4)=
+ *     *(float*)(a0+0xC0)=1.0f;
+ *   if (((int*)a1)->0x4F0 << 15 >= 0) {        // bgezl on (a1->0x4F0)<<15
+ *     gl_func_00000000(s0, 232, 19, s0->0x44 + 16);     // s0->0x44 = a3 home
+ *     gl_func_00000000(s0, 291, 225, 1);
+ *     gl_func_00000000(s0, 71, 19, s0+0x30);
+ *     gl_func_00000000(s0, 68, 34, s0->0x44 + 40);
+ *     // table lookup: t3=*(int*)(&D+0x64); base=*(int*)s0->0x4C;
+ *     gl_func_00000000(base + (t3*0x3C)*16 ...);          // (t3*4-t3)<<4 = t3*0x30
+ *     v0 = gl_func_00000000(s0->0x60); s0->0xBC = v0;
+ *     gl_func_00000000(v0, v1[5], v1[6], v1[7]);          // v1 = prev ret
+ *     gl_func_00000000(s0->0xBC, 75, 214);
+ *     gl_func_00000000(s0+0x10, s0->0xBC);
+ *     a1x = ...; if (a1x->0x14 == 0) a1x->0x4 = 1;
+ *     a1x->0x14 = s0;                                     // list link
+ *   }
+ * }
+ * Struct-typing: a0 widget/element — ptr @0xC (&D+0x40C), @0xB8/@0x50
+ * both = a1 (parent?), @0x4C = a3, @0x54 = a2, flags @0xAC/@0xD8/@0xD4
+ * zeroed, @0xD0 = 255 (alpha), @0xDC = 1, float quad @0xC0..@0xCC = 1.0f
+ * (scale/color), @0x44 sub-region base, @0x60 handle, @0xBC built child,
+ * @0x30 inline sub-struct, @0x10 another. a1->0x4F0 bit-31-after-<<15
+ * gates the whole configure block. Linked into a1x->0x14 list (sets
+ * ->0x4=1 on first). Caps <80: 8-call spill cascade + beql/bgezl branch-
+ * likely + &D %hi/%lo + 1.0f/255 const scheduling. INCLUDE_ASM is the
+ * correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001A64);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001BCC);
