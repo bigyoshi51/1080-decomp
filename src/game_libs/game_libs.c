@@ -534,6 +534,38 @@ int gl_func_00006A8C(char *a0, int a1) {
     return gl_func_00000000(a0);
 }
 
+/* gl_func_00006AAC - verified structural decode (0xD4, 53 insns,
+ * object reset/init). SIBLING of gl_func_00006B80 (same large object
+ * + same global G = *(&D)); this is the clear/reset entry.
+ *   void gl_func_00006AAC(int *a0) {
+ *       a0->0x2C = 0;  a0->0x30 = 0;
+ *       a0->0x4DC = 0; a0->0x4E0 = 0; a0->0x4FC = 0;
+ *       a0->0x4F4 = 0x1FFFF;
+ *       G->0x78 = 1;                              // global
+ *       gl_func_00000000(&D_00000000, 0);
+ *       a0->0x4E8 = 20;
+ *       a0->0x4E4 = (a0->0x4F0 & (1<<18)) ? 0 : 120;  // bgez bit18
+ *       G->0x8C = a0->0x4F0;
+ *       a0->0x540 = 255;
+ *       a0->0x534 = 1.0f;  a0->0x538 = 1.0f;
+ *       *(f32*)&D_x = 0.0f; *(f32*)&D_y = 0.0f;
+ *       *(f32*)&D_z = 0.0f;                       // 3 global floats
+ *       a0->0x500 = 0; a0->0x508 = 0; a0->0x510 = 0;
+ *       G->0x7C = 0;
+ *   }
+ * Struct-typing reference (extends the gl_func_00006B80 object map):
+ * 0x2C (44) / 0x30 (48) s32 = 0; 0x4DC (1244) / 0x4E0 (1248) s32 = 0
+ * (the "2/3" pair gl_func_00006B80 sets - here zeroed); 0x4E4 (1252)
+ * s32 timer = 120 or 0 by bit 18 of 0x4F0; 0x4E8 (1256) s32 = 20;
+ * 0x4F0 (1264) s32 mode/flags (bit 18 gate, also copied to G->0x8C);
+ * 0x4F4 (1268) s32 = 0x1FFFF mask; 0x4FC (1276) / 0x500 (1280) /
+ * 0x508 (1288) / 0x510 (1296) s32 = 0; 0x534 (1332) / 0x538 (1336)
+ * f32 = 1.0; 0x540 (1344) s32 = 255. Global G = *(&D): G->0x78 (120)
+ * = 1, G->0x7C (124) = 0, G->0x8C (140) = a0->0x4F0; plus 3 standalone
+ * global f32 zeroed. Caps <80: FP-const (1.0/0.0) loads + bgez bit
+ * test + gl_func_00000000 reloc + multiple &D global relocs. Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006AAC);
 
 /* gl_func_00006B80 - verified structural decode (0xB8, 46 insns,
