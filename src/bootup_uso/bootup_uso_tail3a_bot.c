@@ -129,9 +129,57 @@ int func_00011E00(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011E00);
 #endif
 
+#ifdef NON_MATCHING
+/* func_00011ED4: byte-identical sibling of func_00011E00 except the
+ * mask check reads `p->[0x10]` instead of `p->[0x18]`. Same cap class
+ * (target is -O0 codegen but file builds at -O2 -g3). */
+int func_00011ED4(int *a0, int a1) {
+    int idx;
+    int i;
+    int *p;
+    if (a0[0x18C/4] != 0) return 0;
+    idx = a0[0x128/4];
+    if (idx != -1) {
+        p = (int*)a0[0xE0/4 + idx];
+        if (p[0x10/4] & a1) return 1 << idx;
+        return 0;
+    }
+    if (a0[0x120/4] <= 0) return 0;
+    for (i = 0; i < a0[0x120/4]; i++) {
+        p = (int*)a0[0xE0/4 + i];
+        if (p[0x10/4] & a1) return 1 << i;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011ED4);
+#endif
 
+#ifdef NON_MATCHING
+/* func_00011FA8: byte-identical sibling of func_00011E00 except the
+ * mask check reads `p->[0x1C]` instead of `p->[0x18]`. Same cap class
+ * (target is -O0 codegen but file builds at -O2 -g3). */
+int func_00011FA8(int *a0, int a1) {
+    int idx;
+    int i;
+    int *p;
+    if (a0[0x18C/4] != 0) return 0;
+    idx = a0[0x128/4];
+    if (idx != -1) {
+        p = (int*)a0[0xE0/4 + idx];
+        if (p[0x1C/4] & a1) return 1 << idx;
+        return 0;
+    }
+    if (a0[0x120/4] <= 0) return 0;
+    for (i = 0; i < a0[0x120/4]; i++) {
+        p = (int*)a0[0xE0/4 + i];
+        if (p[0x1C/4] & a1) return 1 << i;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011FA8);
+#endif
 
 void func_0001207C(int *a0, int a1) {
     *(int*)((char*)a0 + 0x128) = a1;
