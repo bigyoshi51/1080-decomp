@@ -850,6 +850,33 @@ int func_000050A0(int a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
 #endif
 
+/* func_00005124 - verified structural decode (0xB0, 44 insns,
+ * alloc-cascade constructor with defensive-dead-check).
+ *   void *func_00005124(void *arg) {
+ *       sub_init(&D_00007DB4);                   // func_00000000 reloc
+ *       obj = alloc(0x4C);                       // func_00000000(0x4C)
+ *       if (obj == 0) return 0;                  // .L000051C0
+ *       if (obj != 0) goto have_obj;             // .L0000517C
+ *       // --- provably-dead 0x48-alloc arm (defensive dead check;
+ *       //     obj is non-0 here, so this never runs) ---
+ *       tmp = alloc(0x48);
+ *       if (tmp == 0) return ...;                // .L000051A8
+ *       sub2(tmp, arg, 0);                       // func_00000000
+ *   have_obj:
+ *       *(void**)((char*)sub + 0x28) = &D_x;     // sub-obj descriptor
+ *       obj->0x28 = &D_y;                        // descriptor reloc
+ *       obj->0x48 = &D_z;                        // descriptor reloc
+ *       return obj;
+ *   }
+ * Struct-typing reference: object = 0x4C bytes; obj->0x28 (40) and
+ * obj->0x48 (72) descriptor/vtable ptrs (&D, runtime-patched); arg
+ * passed through (spilled sp+0x2C / sp+0x1C / sp+0x4) into the dead
+ * arm's sub2. D_00007DB4 = named init datum (label/string). Caps <80:
+ * alloc-cascade + defensive-dead-check (bnez after beqz makes the
+ * 0x48 arm unreachable, documented ceiling) + 3-4 func_00000000
+ * reloc calls + 3x &D descriptor-store relocs. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000051D4);
