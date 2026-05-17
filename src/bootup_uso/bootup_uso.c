@@ -714,6 +714,34 @@ void *func_000046EC(int *arg0) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000477C);
 
+/* func_0000485C - verified structural decode (0xB8, 46 insns,
+ * FP transform/draw helper).
+ *   void func_0000485C(Obj *a0) {                // a2 = a0 (reloaded)
+ *       reloc_fn(&func_00000080[0x20]);          // func_00000000(str)
+ *       // build param block #1 at sp+0x40 from a0 floats:
+ *       f12 = a0->0x30; f2 = a0->0x34;
+ *       sp[0x48]=f12; sp[0x40]=f12; sp[0x44]=f2;
+ *       reloc_fn(&func_00000080[0x20], &sp[0x40]);
+ *       g  = *(Obj**)&D_a;  v0 = g->0x70;        // global root ->0x70
+ *       // scale g->0x70 vector by D_b constants:
+ *       x = v0->0xA0 * Dc->0x128;
+ *       y = v0->0xA4 * Dc->0x12C;
+ *       z = v0->0xA8 * Dc->0x130;
+ *       sp[0x20]=x; sp[0x28]=z;
+ *       sp[0x24]= y + a0->0x2C;                  // add.s f16,f18
+ *       reloc_fn(&func_00000080[0x20], &sp[0x20]);
+ *       reloc_fn(a0);                            // func_00000000(a0)
+ *   }
+ * Struct-typing reference: a0 = object; a0->0x2C/0x30/0x34 (44/48/52)
+ * f32 source vector components; global root *(&D_a) ->0x70 (112) ptr
+ * to a transform/state obj whose ->0xA0/0xA4/0xA8 (160/164/168) is an
+ * f32 Vec3 scaled per-component by Dc->0x128/0x12C/0x130 (296/300/304)
+ * f32 scale constants; func_00000080+0x20 = static string/param datum
+ * passed to the reloc draw/print helper. Caps <80: FP-heavy mul.s/
+ * add.s chains + 4x func_00000000 reloc calls + 2x &D reloc +
+ * func_00000080+0x20 cross-symbol data ref. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000485C);
 
 void func_00004914(char *a0, int a1, char *a2) {
