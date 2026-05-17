@@ -12361,6 +12361,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000730CC_pad.s")
 
+/* gl_func_000732C4: 19-insn 3-call sequence — verified decode (sub-80
+ * resume-comment per docs/MATCHING_WORKFLOW.md#feedback-sub80-complex-embed-decode-resume-comment):
+ *   int r = gl_func();
+ *   *(short*)(*(int*)&D + 0x10) = 2;
+ *   gl_func(&D2);  // &D + 0x10 OR a different 2nd symbol
+ *   gl_func(r);
+ * s0 preserves r across the 3-call chain.
+ *
+ * 2026-05-17: natural C body scored 61% — likely the second jal's a0
+ * resolves to a different D symbol than the first lui+lw chain, and
+ * the `*(short*)(*D + 0x10) = 2` halfword store probably wants a
+ * different intermediate computation (target uses pre-set t7 from lui+lw
+ * to do `sh t6, 0x10(t7)`). Decode is structurally correct but the
+ * specific extern wiring needs more inspection. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000732C4);
 
 /* game_libs_func_00073310: 6-byte fragment (1 nop pad + 5-insn VI-status
