@@ -1656,7 +1656,6 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
     game_uso_func_00000000(a0, a2);
 }
 
-#ifdef NON_MATCHING
 /* game_uso_func_00002744: 52-insn (0xD0) lazy-init/sub-allocator wrapper.
  * Pattern: take optional pre-existing pointer; if NULL, alloc(0x20). Then if
  * matched a sentinel constraint (a1 == -8), alloc(0x18) for an inner object
@@ -1686,46 +1685,49 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
  * compiled C source likely had an explicit redundant null-check that
  * IDO preserved.
  *
- * Cap at 57.63% as of 2026-05-06. Multi-tick refinement target — needs
- * exact insn-by-insn trace + register-allocation match for promotion. */
+ * 2026-05-17 Codex: real control flow is "init var_v1, then always run the
+ * sub-init call on either a1+8 or alloc(0x18)"; prior NM only ran that block
+ * for the -8 sentinel. C body rose 57.63% -> 95.40%; remaining stack-slot
+ * and scheduler differences are byte-restored with INSN_PATCH per
+ * docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps. */
 void *game_uso_func_00002744(void *arg0) {
-    void *p1;
-    void *p2;
-    void *p3;
-    int dead_load;
+    void *var_a1;
+    void *var_v1;
+    void *var_a0;
+    volatile int init_arg;
+    volatile int init_arg_copy;
 
-    p1 = arg0;
-    if (p1 == NULL) {
-        p1 = (void*)gl_func_00000000(0x20, p1);
-        if (p1 == NULL) return NULL;
+    var_a1 = arg0;
+    if (arg0 == NULL) {
+        var_a1 = (void*)gl_func_00000000(0x20);
+        if (var_a1 == NULL) goto done;
     }
 
-    p2 = p1;
-    if (p2 == NULL) {
-        p2 = (void*)gl_func_00000000(8, p1);
-        if (p2 != NULL) {
-            ((int*)p2)[0] = (int)((char*)&D_00000000 + 0x354);
-            ((int*)p2)[1] = 0;
-        }
+    var_v1 = var_a1;
+    if (var_a1 == NULL) {
+        var_v1 = (void*)gl_func_00000000(8);
+        if (var_v1 == NULL) goto after_template;
+    }
+    ((int*)var_v1)[0] = (int)((char*)&D_00000000 + 0x354);
+    ((int*)var_v1)[1] = 0;
+
+after_template:
+    init_arg = *(int*)((char*)&D_00000000 + 0x35C);
+    init_arg_copy = init_arg;
+    var_a0 = (char*)var_a1 + 8;
+    if (var_a1 == (void*)-8) {
+        var_a0 = (void*)gl_func_00000000(0x18);
+        if (var_a0 == NULL) goto done;
     }
 
-    dead_load = *(int*)((char*)&D_00000000 + 0x35C);
-    (void)dead_load;
+    gl_func_00000000(var_a0, var_a1, init_arg_copy, 1);
+    ((int*)var_a0)[3] = (int)((char*)&D_00000000 + 0x18);
+    ((float*)var_a0)[4] = 0.0f;
+    ((int*)var_a0)[5] = 0;
 
-    if (p1 == (void*)-8) {
-        p3 = (void*)gl_func_00000000(0x18, p1);
-        if (p3 != NULL) {
-            gl_func_00000000(p3, p1, dead_load, 1);
-            ((int*)p3)[3] = (int)((char*)&D_00000000 + 0x18);
-            ((float*)p3)[4] = 0.0f;
-            ((int*)p3)[5] = 0;
-        }
-    }
-    return p1;
+done:
+    return var_a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
-#endif
 
 /* Mirror of game_uso_func_00001D30 (alloc(0x64) variant; dispatch table at
  * &D_0+0x360). 5-insn arg-spill scheduling permutation patched via INSN_PATCH
