@@ -1898,6 +1898,39 @@ void func_00007288(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
 #endif
 
+/* func_00007328 - verified structural decode (0x1C0, 112 insns,
+ * list-search + match-dispatch).
+ *   void func_00007328(St *s3) {
+ *       int it = 0;                               // sp+0x54
+ *       func_00005EF8(&it);                       // init iterator
+ *       if (it == 0) return;
+ *       func_0000502C(&key2);                     // sp+0x50
+ *       Node *n = s3->0x2C;                        // list head
+ *       Node *match = NULL;
+ *       while (n != NULL) {
+ *           cur = n;  n = n->0x4 ? *(Node**)n->0x4 : n->0x0;
+ *           if (it_val == cur->key) { match = cur->0x0; break; }
+ *       }
+ *       if (match != NULL) {
+ *           func_00000000(&D_00007F90, (char*)match + 4);
+ *           o = match->0x0;
+ *           v = o->0x28;
+ *           (*(fn)v->...)(...);                   // vtable dispatch
+ *       }
+ *   }
+ * Struct-typing reference: s3->0x2C (44) = head of a node list;
+ * node->0x0 (0) = next/payload ptr, node->0x4 (4) = key/sub-list
+ * ptr (the walk follows 0x4 when set, else 0x0). func_00005EF8 /
+ * func_0000502C / func_00004FF0 = iterator/cursor helpers
+ * producing the search value compared against each node's key.
+ * On a match, the found node's payload (match->0x0) is dispatched:
+ * func_00000000(&D_00007F90, &match[1]) then the engine-wide
+ * obj->0x28 vtable call on payload->0x28. D_00007FA0 / D_00007F90
+ * = dispatch datums. Caps <80: linked-list walk + 3 iterator
+ * reloc callees + nested branch-likely (bnel) + obj-0x28 vtable
+ * jalr + reloc dispatch. Full body INCLUDE_ASM-preserved (.s =
+ * source of truth). INCLUDE_ASM (no episode; tautology-trap
+ * rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007328);
 
 /* func_000074E8 - verified structural decode (0x138, 78 insns,
