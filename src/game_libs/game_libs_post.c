@@ -4778,6 +4778,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DC90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DD28);
 
+/* game_libs_func_0003DDC0: 34-insn linked-list search + Vec3 copy.
+ * Newly decompilable (entry insn `lw t6,16(a0)` was the splat-stolen
+ * prologue merged in from gl_func_0003DD28's tail this session).
+ *
+ * VERIFIED DECODE (logic correct; codegen residual is stack-slot
+ * forcing — resume here, do NOT re-derive):
+ *   List of {value@0, next@4} cells; head = a0->0x10. Two stack scratch
+ *   slots: local_0 @sp+0 (WRITE-ONLY), local_4 @sp+4 (read as the next
+ *   cell ptr). Walk node values; if a value == a1, copy Vec3
+ *   v1->{0x5C,0x60,0x64} → a2[0..2], return 1; not found → return 0.
+ *
+ *   int f(int *a0, int *a1, float *a2){
+ *     int *c, *n4, *v1, *v0=0, *t6=(int*)a0[4];
+ *     n4=t6; if(t6){ c=t6; n4=(int*)t6[1]; v0=(int*)t6[0]; }
+ *     if(!v0) return 0; v1=v0;
+ *     loop: if(v1==a1){ a2[0]=v1->0x5C; a2[1]=0x60; a2[2]=0x64; return 1; }
+ *       { int *t0=n4; if(!t0) v0=0; else{ c=t0; n4=(int*)t0[1]; v0=(int*)t0[0]; } }
+ *       v1=v0; if(v0) goto loop; return 0; }
+ *
+ * RESIDUAL: target spills local_0/local_4 to fixed sp offsets with
+ * DIRECT `sw rX, 0|4(sp)` (incl. a WRITE-ONLY sp+0). Separate named
+ * locals → IDO register-promotes n4 + dead-store-eliminates the write-
+ * only c (build 31, 3-short, no frame). `int *st[2]` array forces the
+ * frame+spills but emits computed-base stores → 36, 2-over. Need the
+ * write-only-sp+0 + direct-sp-offset form (cf.
+ * docs/PATTERNS.md#feedback-typed-stack-struct-for-direct-sp-stores) —
+ * documented hard stack-forcing class; permuter/multi-tick. objdiff
+ * can't score (new sym, expected/ baseline pre-merge stale). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DDC0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DE48);
