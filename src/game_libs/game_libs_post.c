@@ -9767,7 +9767,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E80);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062F08);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00062F58: 3-insn save-arg sentinel — `sw a0,0(sp); jr ra; nop`
+ * (UNFILLED delay slot variant). Sibling of timproc_uso_b5_func_00000770
+ * (2-insn FILLED variant) but cap is different:
+ *
+ * Target: sw a0,0(sp); jr ra; nop  (12 bytes, unfilled)
+ * Build:  jr ra; sw a0,0(sp)       (8 bytes, IDO -O2 fills delay slot)
+ *
+ * Per docs/IDO_CODEGEN.md#feedback-ido-g3-disables-delay-slot-fill, the fix
+ * is `OPT_FLAGS := -O2 -g3` per-file. But game_libs_post.c contains hundreds
+ * of -O2 (filled-delay) functions; switching whole-file to -g3 would break
+ * them. Splitting just this 3-insn into its own .c with -g3 is overscope
+ * for a single sentinel. Deferred — needs companion functions to make the
+ * split worthwhile. */
+void game_libs_func_00062F58(int a0) { (void)a0; }
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062F58);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00062F64(int a0) {
