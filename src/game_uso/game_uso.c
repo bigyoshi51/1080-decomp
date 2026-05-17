@@ -8144,6 +8144,11 @@ void game_uso_func_0000D634(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D634);
 #endif
 
+/* game_uso_func_0000D63C: 42-insn — v0=a0->0x100; if(!v0||!a1) clear&exit;
+ * clamp v0<=10; t=D[v0]; if(t) X(D->0x138, a0->0xB4, t); a0->0xF8=0;
+ * a0->0x100=0; X(D->0x138, a0->0xB4, a1); a0->0x120=1.
+ * beql ==0 paths store a0->0xF8=0 in the delay slot. USO: call ->
+ * func_00000000, data -> &D_00000000+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
 
 /* 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
