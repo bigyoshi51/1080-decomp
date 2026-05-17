@@ -8215,12 +8215,29 @@ void game_uso_func_0000D634(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D634);
 #endif
 
-/* game_uso_func_0000D63C: 42-insn — v0=a0->0x100; if(!v0||!a1) clear&exit;
- * clamp v0<=10; t=D[v0]; if(t) X(D->0x138, a0->0xB4, t); a0->0xF8=0;
- * a0->0x100=0; X(D->0x138, a0->0xB4, a1); a0->0x120=1.
- * beql ==0 paths store a0->0xF8=0 in the delay slot. USO: call ->
- * func_00000000, data -> &D_00000000+off. */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
+void game_uso_func_0000D63C(char *a0, int a1) {
+    char *s0 = a0;
+    int idx = *(int*)(s0 + 0x100);
+    int value;
+
+    if (idx != 0 && a1 != 0) {
+        if (idx > 0) {
+            if (idx >= 10) {
+                idx = 10;
+                *(int*)(s0 + 0x100) = idx;
+            }
+            value = *(int*)((idx * 4));
+            if (value != 0) {
+                gl_func_00000000(*(int*)(&D_00000000 + 0x138),
+                                 *(int*)(s0 + 0xB4), value);
+            }
+        }
+    }
+    *(int*)(s0 + 0xF8) = 0;
+    *(int*)(s0 + 0x100) = 0;
+    gl_func_00000000(*(int*)(&D_00000000 + 0x138), *(int*)(s0 + 0xB4), a1);
+    *(int*)(s0 + 0x120) = 1;
+}
 
 /* 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
  * bit afterward, dispatch a0->0xFC to one of two flag values. Promoted
