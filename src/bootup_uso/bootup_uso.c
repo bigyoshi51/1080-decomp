@@ -773,6 +773,36 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003638);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003734);
 
+/* func_000038C0 - verified structural decode (0x118, 70 insns,
+ * composite constructor + 3-stage builder chain).
+ *   void func_000038C0(St *s1, int a1) {
+ *       o = alloc(0x80);                          // func_00000000
+ *       if (o == 0) return;
+ *       init(o, 1);
+ *       reg_a(&D_x, o);
+ *       reg_b(&D_y, o, 0);
+ *       cfg = s1->0x98;
+ *       flags = (D_z->0x50 | 1) | 0x10000 | 0x40000;
+ *       r = build1(s1, 0, D_z->0x4C, D_z->0x54,
+ *                  o, s1->0x80, cfg->0xC4, cfg->0xCC,
+ *                  flags, 0x1B);                  // 6 stack args
+ *       r2 = build2(s1, 2, s1->0x80, o);
+ *       row = (int*)((char*)&D_w + a1 * 0x1C);    // 28-byte stride
+ *       res = build3(s1, row, r2);
+ *       r->0x8DC = res;
+ *   }
+ * Struct-typing reference: o = alloc'd 0x80-byte object. s1->0x80
+ * (128) = a handle passed through; s1->0x98 (152) = ptr to a config
+ * whose 0xC4 (196) / 0xCC (204) are f32 params (passed as stack
+ * args to build1). flags word = global D_z->0x50 OR'd with 0x1 |
+ * 0x10000 | 0x40000 feature bits; D_z->0x4C (76) / 0x54 (84) =
+ * global build params. &D_w = a 0x1C-stride (28-byte) descriptor
+ * table indexed by a1. r (= build1 result) ->0x8DC (2268) = slot
+ * receiving the final build3 result (r2 + table row). Caps <80:
+ * ~8 func_00000000 reloc calls + FP stack-arg passing + packed-
+ * flag lui/ori build + a1*0x1C table index (sll/subu/sll). Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000038C0);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
