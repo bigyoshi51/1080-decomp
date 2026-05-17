@@ -5756,7 +5756,48 @@ void gl_func_0003F444(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F444);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0003F4F0: 48-insn 12-call dispatch. 97.88% NM (2026-05-17,
+ * first-attempt NM wrap). Initializes a local buffer + header byte,
+ * then calls func(a2+offset, a3) for offsets
+ * {0, 4, 8, 0x18, 0x1C, 0x20, 0x24, 0xC, 0x10, 0x14} (non-monotonic).
+ *
+ * a0 saved to caller arg slot (unused-arg-save). a1 truly unused.
+ * Frame -0xC0. Local hdr at sp+0x20, local buf at sp+0x28..0xBF.
+ *
+ * Residual cap (2 insns):
+ *   (1) Built spills unused a1 to caller slot sp+0xC4 (target doesn't).
+ *       Same class as gl_func_0003F444's `sw a1` cap — IDO unused-arg-save
+ *       fires for both a0 AND a1 when both are unused-leading; target
+ *       compiled with whatever shape spills a0 only (see F444 wrap doc
+ *       for failed-lever list).
+ *   (2) Built places hdr at sp+0x24 (4-byte skip from start of locals);
+ *       target places hdr at sp+0x20. Decl order swap (buf, hdr vs
+ *       hdr, buf) doesn't change the placement. Likely an extra implicit
+ *       local in target's source. */
+extern int gl_func_00000000();
+void gl_func_0003F4F0(int a0, int a1, char *a2, int a3) {
+    char buf[0x98];
+    int hdr;
+    (void)a0;
+    (void)a1;
+    gl_func_00000000(buf);
+    hdr = 0x1A;
+    gl_func_00000000(&hdr);
+    gl_func_00000000(a2, a3);
+    gl_func_00000000(a2 + 4, a3);
+    gl_func_00000000(a2 + 8, a3);
+    gl_func_00000000(a2 + 0x18, a3);
+    gl_func_00000000(a2 + 0x1C, a3);
+    gl_func_00000000(a2 + 0x20, a3);
+    gl_func_00000000(a2 + 0x24, a3);
+    gl_func_00000000(a2 + 0xC, a3);
+    gl_func_00000000(a2 + 0x10, a3);
+    gl_func_00000000(a2 + 0x14, a3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F4F0);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003F5B0: 23-insn 2-call wrapper, same family as 0003F044.
