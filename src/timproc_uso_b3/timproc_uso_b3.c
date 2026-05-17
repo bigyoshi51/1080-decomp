@@ -617,6 +617,49 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002700);
 
+/* timproc_uso_b3_func_0000294C - verified structural decode (0xF8,
+ * 62 insns, state dispatcher + record-vtable dispatch).
+ *   void timproc_uso_b3_func_0000294C(St *a2) {
+ *       switch (a2->0x50) {
+ *       case 0:
+ *           if (gl_func_00000000(&D_00000000, 0x40100) == 0)
+ *               return;
+ *           q   = a2->0x48;
+ *           rec = (char*)q + q->0x7C * 0x28;       // 0x28-stride
+ *           if (rec->0x90 == 0) return;            // no handler
+ *           if (rec->0x88 != 0) {
+ *               gl_func_00000000(5);
+ *               *(void**)&D_a = a2->0x48;          // publish ctx
+ *               *(void**)&D_b = a2;
+ *               q = a2->0x48;
+ *               rec = (char*)q + q->0x7C * 0x28;
+ *               (*(fn)rec->0x90)();                // vtable dispatch
+ *           } else {
+ *               gl_func_00000000(165);
+ *           }
+ *           return;
+ *       case 1:
+ *       case 2:
+ *           gl_func_00000000(a2);
+ *           return;
+ *       default:
+ *           return;
+ *       }
+ *   }
+ * Struct-typing reference: a2->0x50 (80) s32 state selector (0 =
+ * active/record path, 1|2 = simple forward, else no-op); a2->0x48
+ * (72) ptr to a record container; container->0x7C (124) s32 current
+ * record index; record = container + idx*0x28 (the recurring
+ * 0x28-stride record array, cf. func_00010AB0); record->0x88 (136)
+ * s32 = ready/arm gate, record->0x90 (144) = handler fn ptr (vtable
+ * dispatch when armed). Globals &D_a/&D_b (offsets 520/524 of a &D
+ * block) published as {ctx = a2->0x48, owner = a2} before the
+ * dispatch. gl_func_00000000(&D,0x40100) = a gated precondition;
+ * gl_func_00000000(165) / (5) / (a2) = reloc callbacks. Caps <80:
+ * switch (beq chain) + record-vtable jalr + 4x gl_func_00000000
+ * reloc + &D-global publishes. Full body INCLUDE_ASM-preserved
+ * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
+ * rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000294C);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002A44);
