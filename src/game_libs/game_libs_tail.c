@@ -101,6 +101,12 @@ int gl_func_0000A0CC(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A130);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A194);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A1A0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A1B0);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A1C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A2B8);
