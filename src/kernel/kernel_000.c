@@ -1369,6 +1369,41 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001ADC);
  * rule + unresolved head boundary). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001CF4);
 
+/* func_80001DD0 - verified structural decode (kernel, 0xF8, 62
+ * insns). SIBLING of func_80001CF4 (same 3-slot resource init/
+ * commit family); variant: calls func_80001CF0 (not func_80001EDC)
+ * and threads an extra arg `a1` via the sp+0x10 stack-arg slot.
+ * Clean prologue here (NO leaked-predecessor-word artifact, unlike
+ * func_80001CF4).
+ *   s32 func_80001DD0(St *s, int a1) {
+ *       if (s->0x54 != 0) {
+ *           if (func_80001CF0(s->0x54, s->0x48, s->0x10, a1) != 0)
+ *               return -0xE;
+ *           func_80000518(s->0x54, s->0x1C);
+ *       }
+ *       if (s->0x50 != 0) {
+ *           if (func_80001CF0(s->0x50, s->0x44, s->0xC, a1) != 0)
+ *               return -0xF;
+ *           func_80000518(s->0x50, s->0x18);
+ *       }
+ *       if (s->0x4C != 0) {
+ *           if (func_80001CF0(s->0x4C, s->0x40, s->0x8, a1) != 0)
+ *               return -0x10;
+ *           func_80000518(s->0x4C, s->0x14);
+ *       }
+ *       return 0;
+ *   }
+ * Struct-typing reference: identical 3-slot layout to func_80001CF4
+ * - slot i in {0,1,2}: handle s->{0x54,0x50,0x4C} (84/80/76),
+ * paramA s->{0x48,0x44,0x40} (72/68/64), paramB s->{0x10,0xC,0x8}
+ * (16/12/8), paramC s->{0x1C,0x18,0x14} (28/24/20). a1 = a shared
+ * extra arg passed to every func_80001CF0 (init/validate; nonzero
+ * = failure -> -0xE/-0xF/-0x10), then func_80000518(handle, paramC)
+ * commits. func_80001CF0 here vs func_80001EDC in CF4 = the
+ * with-extra-arg variant of the same init helper. Caps <80: beql
+ * branch-likely chain + 2 callees + sp+0x10 stack-arg passing.
+ * Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001DD0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
