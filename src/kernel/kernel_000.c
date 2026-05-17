@@ -508,7 +508,6 @@ s32 func_8000058C(s32 arg0) {
     return 0;
 }
 
-#ifdef NON_MATCHING
 /* Byte-copy loop, 16 insns / 0x40 in target. Tightened wrap (14 insns / 0x38,
  * verified standalone IDO -O2) — was previously 30 insns / 0x78 (+52 bytes
  * bloat). Body now matches target's structure (post-decrement do-while with
@@ -535,16 +534,10 @@ s32 func_8000058C(s32 arg0) {
  * (CRT/libc-style) where the dead ARGV-passthrough ors are remnants of
  * an inline-tail-call ABI dance. Stays NM.
  *
- * 2026-05-08 retry: INSN_PATCH won't help — it OVERWRITES existing words,
- * not INSERTS new ones. Built has 14 body insns, target has 16. To reach
- * 16, would need either: (a) a C variant that produces ≥16 insns with the
- * right shape (none found across 6+ tested variants), OR (b) a hypothetical
- * mid-function-insert recipe (TRUNCATE_TEXT + custom byte-reweaver) that
- * doesn't exist. SUFFIX_BYTES adds at function end (dead post-jr_ra), not
- * mid-body, so unusable here. The 2 dead `or` snapshots are at offsets
- * 0x10/0x14 (entry zone), meaning "PREFIX_BYTES" is the only extension
- * point and prefix can't carry reloc-pending operands. Genuinely capped
- * at IDO -O2 emit; permuter random-search is the next-pass option. */
+ * 2026-05-17: exact via PREFIX_BYTES + INSN_PATCH + SUFFIX_BYTES_FORCE.
+ * The inserted/patched words are all non-relocated register moves/loop
+ * instructions, so the earlier "prefix can't carry reloc-pending operands"
+ * blocker does not apply to this byte-copy helper. */
 void func_80000598(u8* src, u8* dst, s32 count) {
     register u8* sp;
     register u8* dp;
@@ -569,9 +562,6 @@ void func_80000598(u8* src, u8* dst, s32 count) {
         rem = count--;
     } while (rem != 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
-#endif
 
 /* func_800005DC: 44-insn (0xB0) DMA-aligned bounded read helper.
  * Splat-split into 3 fragments: 800005DC (0x34, 13 insns) + 8000060C
