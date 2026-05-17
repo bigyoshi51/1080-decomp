@@ -182,6 +182,45 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010C8C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010FEC);
 
+/* func_000116C8 - verified structural decode (0x134, 77 insns,
+ * subsystem init/teardown orchestrator).
+ *   void func_000116C8(void) {
+ *       reloc(&D_a);  reloc(&D_b);
+ *       *(int*)&D_c = 0;
+ *       reloc(1);
+ *       reloc(&D_0000C624);
+ *       reloc(&D_d);
+ *       reloc();
+ *       reloc(&D_0000C65C);
+ *       reloc(&D_e, *(int*)(func_00000008 + 0x2C),
+ *                   *(int*)(func_00000008 + 0x38));
+ *       g = *(void**)&D_root;
+ *       v = g->0x28;
+ *       (*(fn)v->0x14)((s16)v->0x10 + g);         // vtable dispatch
+ *       h = alloc(0xC);                            // reloc(0xC)
+ *       if (h != 0) {
+ *           h->0x0 = 8;
+ *           g = *(void**)&D_root;
+ *           v = g->0x28;
+ *           (*(fn)v->0x34)((s16)v->0x30 + g, &local);  // dispatch 2
+ *           reloc(&D_0000C694);
+ *       }
+ *   }
+ * (reloc = func_00000000.) Struct-typing reference: a fixed init
+ * sequence of ~10 reloc steps with datum args D_0000C624 / C65C /
+ * C694 (config/msg blocks) and a global cleared at &D_c;
+ * func_00000008+0x2C / +0x38 supply two args to one step. g =
+ * *(&D_root) global root, g->0x28 (40) vtable ptr exercised TWICE
+ * via the engine-wide obj-0x28 dispatch idiom - 0x14/0x10 variant
+ * (fn@0x14, s16 base-adjust@0x10) then 0x34/0x30 variant (fn@0x34,
+ * s16@0x30) with an extra stack-local arg. alloc(0xC) handle h:
+ * h->0x0 (0) = 8 (a type/kind tag). NOTE: this file
+ * (bootup_uso_tail3a.c) is the TRUNCATE_TEXT 3x-compile stitch
+ * (Makefile L85-100) - C-matching needs that offset re-tune too.
+ * Caps <80: ~10 func_00000000 reloc + 2 obj-0x28 vtable jalr +
+ * multi-&D + cross-symbol-ref + the stitch. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000116C8);
 
 /* func_000117FC - verified structural decode (0xE8, 58 insns,
