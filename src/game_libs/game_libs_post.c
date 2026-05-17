@@ -9466,6 +9466,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E718);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E950);
 
+/* gl_func_0005EAA4 - verified structural decode (42-insn per-Vec3-axis
+ * conditional dispatch; 3x bc1tl FP branch-likely = documented sub-80
+ * ceiling -> INCLUDE_ASM build path; struct-typing reference).
+ *   if (a1->x != 0.0f) gl_func_00000000(a0, 0, *(int*)&a1->x, 0);
+ *   if (a1->y != 0.0f) gl_func_00000000(a0, 1, *(int*)&a1->y, 0);
+ *   if (a1->z != 0.0f) gl_func_00000000(a0, 2, *(int*)&a1->z, 0);
+ * Struct-typing: a1 is a Vec3 (float x/y/z @0/4/8); for each non-zero
+ * axis it calls gl_func_00000000(a0, axis_index, <raw float bits via
+ * mfc1>, 0) - a per-component apply/notify (e.g. set non-zero
+ * translation/rotation axes). Caps <80: c.eq.s + bc1tl branch-likely
+ * x3 (each `if(comp!=0)` is a likely-annulled FP branch with the call
+ * setup in the delay region) + mfc1 float-bits-as-int arg; clean C
+ * if/return does not reproduce the bc1tl annul shape. Documented
+ * FP-branch-likely ceiling. INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EAA4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EB4C);
