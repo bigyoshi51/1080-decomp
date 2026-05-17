@@ -9730,6 +9730,12 @@ void game_uso_func_00010840(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
 #endif
 
+/* game_uso_func_0001094C: 48-insn EE84-family (near-twin of 10A0C).
+ *   s0=a0; p=s0->0xB4; v=s0->0xFC;
+ *   X(a0, v|4, v|5, p->0x970, 0, 1);
+ *   p=s0->0xB4; if(p->0x990==0){ X(s0,D[0xE10],D[0xE14]); p=s0->0xB4; }
+ *   t2=p->0x9CC; if(t2!=0) X(s0,D[0xE70],D[0xE74]); X(s0);X(s0);X(s0);
+ * USO: call -> func_00000000, data -> &D_00000000+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001094C);
 
 /* game_uso_func_00010A0C: 47-insn EE84-family, 2 bnel/bne-gated D-pairs.
