@@ -3065,6 +3065,39 @@ void func_0000E270(char *arg0, float arg1) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E270);
 #endif
 
+/* func_0000E2D0 - verified structural decode (0x20C, 131 insns,
+ * FP vector reflect/project math helper).
+ *   void func_0000E2D0(Obj *a0, int a1, Vec3f *a2, Vec3f *a3) {
+ *       // pass 1: input vector a2 vs axis a3
+ *       Vec3f v = *a2;                            // sp+0x64
+ *       f32 d = v.x*a3->x + v.y*a3->y + v.z*a3->z;// dot
+ *       v = (Vec3f){ d*a3->x - v.x,
+ *                    d*a3->y - v.y,
+ *                    d*a3->z - v.z };             // d*n - v
+ *       // pass 2: object's own vector a0->0x3BC vs same axis a3
+ *       Vec3f w = *(Vec3f*)((char*)a0 + 0x3BC);   // sp+0x58
+ *       d = w.x*a3->x + w.y*a3->y + w.z*a3->z;
+ *       w = (Vec3f){ d*a3->x - w.x,
+ *                    d*a3->y - w.y,
+ *                    d*a3->z - w.z };
+ *       // squared lengths of v / w, then a reloc (sqrt/normalize):
+ *       lv = v.x*v.x + v.y*v.y + v.z*v.z;
+ *       lw = w.x*w.x + w.y*w.y + w.z*w.z;
+ *       func_00000000(...);                       // sqrtf/helper
+ *       ... (uses func_0000098C datum) ...
+ *   }
+ * Struct-typing reference: a2 = input Vec3f (xyz @ +0/+4/+8), a3 =
+ * axis/normal Vec3f, a0->0x3BC (956) = the object's stored Vec3f
+ * (0x3BC/0x3C0/0x3C4). The per-vector transform is
+ * `proj = (v . n); out = proj*n - v` (component-wise) - a plane
+ * projection/reflection against axis a3 - applied to BOTH the
+ * passed vector and the object's vector, then their squared
+ * magnitudes feed a reloc helper (sqrtf / normalize, also reads
+ * a func_0000098C+off datum). a1 = an unused-here index/flag.
+ * Caps <80: very FP-heavy (dozens of mul.s/add.s/sub.s, two
+ * dot-products, two reflections, two |.|^2) + func_00000000 reloc
+ * + spilled f-temps. Full body INCLUDE_ASM-preserved (.s = source
+ * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E2D0);
 
 /* func_0000E4DC - verified structural decode (0xAC, 43 insns).
