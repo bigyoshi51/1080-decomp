@@ -1079,6 +1079,35 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003B78);
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003D3C);
 
+/* func_00003F00 - verified structural decode (0x21C, 135 insns,
+ * multi-stage builder chain). MEMBER of the func_000038C0 /
+ * func_00003734 / func_000039D8 / func_00003B78 / func_00003D3C
+ * builder-chain family (same alloc-0x80 x2 + register-&D +
+ * tagged-arg func_00000000 builder pattern; variant params).
+ *   void func_00003F00(St *s1, int a1) {
+ *       o1 = alloc(0x80); if (!o1) return; init(o1, 1);
+ *       o2 = alloc(0x80); if (!o2) return; init(o2, 2);
+ *       register(&D, o1);  register(&D, o2, o1);
+ *       register(&D, o1, o2);
+ *       cfg = s1->0x98;
+ *       r = build(s1, 0, D_g->0x4C, D_g->0x54,
+ *                 o1, s1->0x80, cfg->0xC4 - 500.0f,
+ *                 D_g->0x50, 0x15);               // tagged block
+ *       ... (chain continues per the family: more build() stages
+ *           wiring o1/o2, a1*0x1C descriptor table, list-link &
+ *           r->0x8DC = result, as in func_00003734).
+ *   }
+ * Struct-typing reference (same family as func_000038C0 et al.):
+ * s1->0x80 (128) pass-through handle; s1->0x98 (152) -> cfg with
+ * f32 0xC4 (196) builder param, here biased by -500.0f
+ * (0x43FA0000); D_g (a global) ->0x4C (76)/0x50 (80)/0x54 (84)
+ * global build params; tag 0x15. o1/o2 = 0x80-byte builder
+ * objects (init types 1 and 2) cross-wired via the tagged builder;
+ * a1 indexes the 0x1C-stride descriptor table per the family.
+ * Caps <80: ~12 func_00000000 reloc + FP stack-arg (with a
+ * sub.s 500.0 bias) + a1*0x1C index + list-link beql. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003F00);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000411C);
