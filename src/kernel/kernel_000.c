@@ -1303,9 +1303,27 @@ void func_800018B0(void* arg0) {
     } while (i != 0xE);
 }
 
+/* func_800018F0 - splat over-split repaired: merged former
+ * func_80001994 (0x148) back in (was split at the internal early-return
+ * `bnez a2; jr ra; v0=0` ~0x80001900, NOT a function boundary). True
+ * size 0x1EC (123 insns, ends 0x80001AD8); func_80001ADC is the next
+ * genuine function. func_80001994 = 0x80001994 added to
+ * undefined_syms_auto.txt for the in-function `bnel ...,0x80001994`.
+ * Per docs/MATCHING_WORKFLOW.md#feedback-split-fragments-over-splits-
+ * on-internal-early-return.
+ * Structural decode: s32 func_800018F0(tbl a0, a1, a2, s32 a3, ...)
+ *   table-scan/insert helper. Early-outs: if (!a1) ret on a0->0x3C
+ *   path; if (a2) continue else return 0; if (a3 <= 0) goto tail
+ *   (return 0). Walks a3 entries of a 12-byte (0xC-stride) record
+ *   array based at a0->0x3C (idx = (rec>>4)*12); per entry checks
+ *   (h&7)==1, (h>>4)==arg@sp+0x10, (h&8)!=0 to find a match; on hit
+ *   links via *a2 chain (t1=a2, rec->0x4/0x8 copied), sets flags
+ *   (&~8 etc.), returns 1; no match returns 0. a0->0x3C = record
+ *   table base; record: +0 s16 header (bit0-2 kind, bit3 flag, >>4
+ *   id), +0x4 / +0x8 link words. Caps <80: beql/bnel branch-likely
+ *   x3 + multu/mflo index + cross-block b-to-shared-tail. Full body
+ *   INCLUDE_ASM-preserved. INCLUDE_ASM (no episode; tautology-trap). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800018F0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001994);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001ADC);
 
