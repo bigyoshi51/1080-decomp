@@ -817,6 +817,32 @@ void gui_uso_func_00003F18(int a0, int a1, int a2, int a3);
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
 #endif
 
+/* gui_uso_func_0000413C — verified structural decode (no-call/no-branch RDP
+ * display-list builder, 134 insns, 1% first pass; GfxCtx-idiom regalloc
+ * cascade needs multi-run → INCLUDE_ASM build path; N64-forensics ref).
+ * Args: f(GfxCtx **a0, a1, a2, a3, arg4@sp16, arg5@sp20, arg6@sp24,
+ *         arg7@sp28, arg8@sp32). a0->0xC = ptr to {Gfx *buf @0; int idx @4}.
+ * Per-packet idiom (×7): g=(ctx*)a0->0xC; i=g->idx; g->idx=i+1;
+ *   slot=(int*)g->buf + i*2; slot[0]=w0; slot[1]=w1;  (a0->0xC reloaded
+ *   TWICE per packet in target — once for ->idx, once for ->buf).
+ * Packets (w0,w1):
+ *  1: ((a2-1)&0xfff)|0xFD100000 ; a1                       (G_SETTIMG-class)
+ *  2: t1 = ((((arg6<<1)+7)>>3 &0x1ff)<<9)|0xF5100000|((arg8<<8)&0x1ff)
+ *     ; 0x07020080                                          (G_SETTILE)
+ *  3: 0xE6000000 ; 0                                        (G_RDPLOADSYNC)
+ *  4: ((arg4<<2 &0xfff)<<12)|0xF4000000|((arg5<<2)&0xfff)
+ *     ; (((arg4+arg6-1)<<2 &0xfff)<<12)|0x07000000|(((arg5+arg7-1)<<2)&0xfff)
+ *                                                           (G_LOADTILE)
+ *  5: 0xE7000000 ; 0                                        (G_RDPPIPESYNC)
+ *  6: t1 (reused) ; ((arg8&7)<<24)|0x00020000|0x80          (G_SETTILE var)
+ *  7: 0xF2000000 ; ((arg8&7)<<24)|(((arg6-1)<<2 &0xfff)<<12)|(((arg7-1)<<2)&0xfff)
+ *                                                           (G_SETTILESIZE)
+ * Forensics: this is a texture-load DL fragment (SETTIMG→SETTILE→LOADSYNC→
+ * LOADTILE→PIPESYNC→SETTILE→SETTILESIZE). t1 is CSE'd across packets 2&6;
+ * arg6=texW, arg7=texH-ish, arg8=tile fmt/palette. Caps far <80: the
+ * a0->0xC double-reload GfxCtx idiom ×7 + cross-packet CSE drive a regalloc
+ * cascade no first-pass C reproduces (multi-run target). INCLUDE_ASM is the
+ * correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000413C);
 
 #ifdef NON_MATCHING
