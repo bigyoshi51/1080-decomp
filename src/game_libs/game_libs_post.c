@@ -6256,6 +6256,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041F90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042098);
 
+/* game_libs_func_000420E8: 3-insn leaf getter. Split off from
+ * gl_func_00042098 via split-fragments.py 2026-05-17 (was a trailing
+ * bundle: `lui v0; jr ra; lw v0,0x20(v0)` after gl_func_00042098's
+ * proper jr ra at 0x420E0). */
+int game_libs_func_000420E8(void) {
+    return *(int*)((char*)&D_00000000 + 0x20);
+}
+
 extern int gl_func_00000000();
 int gl_func_000420F4(int a0) {
     return gl_func_00000000(gl_func_00000000, a0);
