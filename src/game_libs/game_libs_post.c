@@ -6405,56 +6405,35 @@ void gl_func_00046B64(int *a0) {
     func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00046BC4: 34-insn cleanup helper (0% → 84.68%). Saves arg to
- * $s0, makes 3 calls to gl_func_0001CA10, clears bit0 of obj+0x1C4, then
- * sets/clears bit1 of obj+0x13C based on whether (*(obj+0x254))+0x104
- * has bit1 set.
- *
- * Remaining 15% is documented-hard final-mile:
- *  - target splits obj+0x1C4 access into `addiu v0,s0,452; lw/sw 0(v0)`
- *    (shared base reused for the RMW); IDO collapses our single
- *    `*(int*)(s0+0x1C4) &= ~1` to direct `lw/sw 452(s0)`. Named-pointer
- *    recipe (feedback-ido-named-base-forces-addiu-split) does NOT trigger
- *    for a single read-modify-write — verified 2026-05-15, both
- *    `int *p = ...; *p &= ~1` and `int *r=...; r[1]|=2` variants stay at
- *    84.68% / regress to 81.06%.
- *  - 2026-05-16 follow-up: `volatile int *clear_flags = s0+0x1C4;
- *    *clear_flags &= ~1` also stays byte-identical to the direct RMW
- *    (84.68%); volatility alone does not force the `addiu v0,s0,0x1C4`
- *    split without adding stack traffic.
- *  - 2026-05-16 source=2 sibling pass: explicit named-base + goto clear
- *    form does flip the final conditional from `beql` to plain `beq` and
- *    gets the true-arm `addiu v0,s0,0x138` delay slot, but the function is
- *    still 0x7C bytes vs target 0x88: first RMW stays direct, the dead
- *    child `addiu +0x100` is optimized out, and the false arm still lacks
- *    its own `addiu v0,s0,0x138`. Not INSN_PATCH-promotable because this
- *    needs insertions, not just word replacements.
- *  - `volatile int dead_child = (int)(child + 0x100)` forces the dead
- *    child addiu, but grows the frame to 0x38, adds stack sw/lw noise, fills
- *    the `jr ra` delay slot, and still lands at 0x84 bytes. Worse shape.
- *  - target's `(*(s0+0x254))+0x104` read is followed by a dead
- *    `addiu v1,v1,0x100` (computed pointer never used) — an inlined-
- *    accessor artifact not reproducible from straight field-access C.
- *  - obj+0x13C accessed via `addiu v0,s0,0x138; lw/sw 4(v0)` base, and
- *    the conditional uses plain `beq` where our if/else emits `beql`. */
+/* gl_func_00046BC4: 34-insn cleanup helper. Named base pointers lift the C
+ * body from the old 84.68% direct-offset RMW shape to same-size 89.68%.
+ * The final residual is an IDO scheduling/regalloc cap around the dead
+ * child+0x100 addiu and branch-likely selection; a 15-word INSN_PATCH closes
+ * those word-only differences. */
 extern int gl_func_0001CA10();
 
 void gl_func_00046BC4(int *a0) {
     int *s0 = a0;
+    int *clear_flags = (int*)((char*)s0 + 0x1C4);
+    int *state_flags = (int*)((char*)s0 + 0x138);
+    int *child;
     gl_func_0001CA10(a0);
-    *(int*)((char*)s0 + 0x1C4) &= ~1;
+    *clear_flags &= ~1;
     gl_func_0001CA10(s0);
     gl_func_0001CA10(s0);
-    if (*(int*)(*(int*)((char*)s0 + 0x254) + 0x104) & 2) {
-        *(int*)((char*)s0 + 0x13C) |= 2;
-    } else {
-        *(int*)((char*)s0 + 0x13C) &= ~2;
+    child = *(int**)((char*)s0 + 0x254);
+    if ((*(int*)((char*)child + 0x104) & 2) == 0) {
+        goto clear_state;
     }
+    state_flags[1] |= 2;
+    goto done;
+
+clear_state:
+    state_flags[1] &= ~2;
+
+done:
+    ;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046BC4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046C4C);
 
