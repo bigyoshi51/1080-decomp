@@ -123,6 +123,18 @@ int gl_func_00000790(char *a0, int arg1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000007BC);
 
+/* 3-insn 2-field setter: a0[0x44]=a1, a0[0x5C]=a2. No frame, no jal. */
+void game_libs_func_0000099C(int *a0, int a1, int a2) {
+    a0[0x44/4] = a1;
+    a0[0x5C/4] = a2;
+}
+
+/* 3-insn 2-field setter: a0[0x74]=a1, a0[0x8C]=a2. Sibling of 0x999C. */
+void game_libs_func_000009A8(int *a0, int a1, int a2) {
+    a0[0x74/4] = a1;
+    a0[0x8C/4] = a2;
+}
+
 /* gl_func_000009B4: 54-insn render-setup-style function (0xD8). .word-only
  * encoded; hand-decoded structure:
  *   - Frame -0x48, saves s0/ra
