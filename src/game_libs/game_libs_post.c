@@ -5835,24 +5835,17 @@ void gl_func_0003F6CC(int *a0, int a1, int *a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F6CC);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0003F730: 30-insn 6-call dispatch with conditional final.
- *   buf @ sp+0x18..0xB8, buf[0]=34, then 5 sequential calls (jal#1-#5)
- *   with various args. Final jal#6 is conditional on buf[0x50] != 0.
- *   Returns buf[0x50].
- *
- * Score 91.33% (was 87.6%). Improvement: pass a1 to the FIRST call
- * (per docs/IDO_CODEGEN.md#feedback-ido-unused-arg-fix-pass-to-callee)
- * suppresses the K&R unused-a1 spill. Remaining cap (2-insn gap): the
- * jal#6 arg setup is `addiu a0,sp,0x18` (DEAD, =&buf[0]) immediately
- * overwritten by `lw a0,0xC0(sp)` (reload of a value spilled at
- * sp+0xC0 — NOT the a0 param, which spills at sp+0xB8). 2026-05-16:
- * jal#6 first-arg = `0` and = `a0` both tested — neither yields the
- * dead-addiu + sp+0xC0 reload (a0 gives sp+0xB8 reload, no dead addiu;
- * 0 gives move zero). The dead-then-reload is an IDO arg-scheduling
- * artifact tied to whatever distinct value lives at sp+0xC0 (likely a
- * call-result spill); needs full stack-flow trace, not a 1-line lever.
- * Permuter/structural — deferred. */
+/* gl_func_0003F730: 30-insn 7-call dispatch with conditional final.
+ * Promoted from 91.33% NM → exact 2026-05-17 by fixing TWO decode bugs:
+ *   (1) The wrap had 6 calls but asm has 7 jals — missing unconditional
+ *       `func(&buf[0])` between call #5 (which calls with caller's a0)
+ *       and the conditional-final check at buf[0x50].
+ *   (2) Conditional final-call's first arg was `0` but asm reloads
+ *       `lw a0, 0xC0(sp)` (= caller's a2). Should be a2, not 0. The
+ *       "DEAD addiu + sp+0xC0 reload" mystery in the prior wrap doc
+ *       was just the wrap miscounting the jals: the addiu was the
+ *       MISSING #6's arg, and the lw was setting up #7's a2.
+ *   buf @ sp+0x18..0xB8, buf[0]=34, returns buf[0x50]. */
 extern int func_00000000();
 int gl_func_0003F730(int *a0, int a1, int a2) {
     char buf[0xA0];
@@ -5862,14 +5855,12 @@ int gl_func_0003F730(int *a0, int a1, int a2) {
     func_00000000(&buf[0x08], a2);
     func_00000000(&buf[0x00]);
     func_00000000(a0);
+    func_00000000(&buf[0x00]);  /* asm has 7 jals total — this 6th was missing */
     if (*(int*)&buf[0x50] != 0) {
-        func_00000000(0, &buf[0x08]);
+        func_00000000(a2, &buf[0x08]);  /* asm reloads sp+0xC0 (= a2) as arg0 */
     }
     return *(int*)&buf[0x50];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F730);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
 
