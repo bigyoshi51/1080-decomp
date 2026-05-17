@@ -7823,6 +7823,29 @@ void game_uso_func_0000B884(char *dst) {
     game_uso_func_0000AD10((float*)(dst + 0x20));
 }
 
+/* game_uso_func_0000B8D4 - verified structural decode (~174-insn
+ * elaborate alloc-cascade constructor; alloc-cascade dead-check + 18
+ * sub-init calls + FP-zero + branch-likely = documented sub-80 ceiling
+ * -> INCLUDE_ASM build path; struct-typing reference). SIBLING-class of
+ * the alloc-cascade ctor family (arcproc_uso_func_0000199C / 251C),
+ * larger/more elaborate.
+ *   s2 = a0 ? a0 : gl_func_00000000(632);   if (!s2) return s2;
+ *   s1 = gl_func_00000000(180);   if (!s1) goto done;
+ *   gl_func_00000000(s1, &D+3440);  s1->0x28 = &D;
+ *   if (s1 != (int*)-44) { ... sub = gl_func_00000000(4); ...
+ *       if (!sub) sub = gl_func_00000000(4); *(int*)sub = 0; }
+ *   gl_func_00000000(s1);
+ *   { Vec3f z = {0,0,0}; gl_func_00000000(s1+0x30, &z); }   // sp+96
+ *   ... (continues: ~18 gl_func_00000000 sub-object init calls over
+ *        s1 + offsets, FP-zeroed scratch, &D-table descriptor wiring) ...
+ * Struct-typing: cross-confirms the alloc-cascade ctor family - main
+ * object size 632 (0x278), sub-object 180 (0xB4), leaf allocs 4;
+ * sub-object ptr @0x28 = &D_00000000, s1->0x28 also = &D+0xD70 (3440)
+ * descriptor; a Vec3f at s1+0x30 zero-init'd; remaining body wires ~18
+ * sub-init calls over s1 + offsets. Caps <80: defensive `if(p!=0)`
+ * alloc-cascade dead checks + 18-call s0-s2 spill + mtc1-zero FP +
+ * beql branch-likely + &D reloc scheduling. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
