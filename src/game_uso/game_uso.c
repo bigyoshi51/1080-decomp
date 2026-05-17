@@ -2410,6 +2410,10 @@ void game_uso_func_00003AC0(void *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
 #endif
 
+/* game_uso_func_00003ED4: 54-insn FPU geometry. Copy a1 Vec3→vb, X(&vb);
+ * copy a0 Vec3→va, X(&va); X(); r = X3ret / D[0x90];
+ * if ((va.y*vb.x) < (va.x*vb.z)) r = -r; if (a2) *a2 = 0; return r.
+ * USO: call -> func_00000000, data -> &D_00000000+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
 
 #ifdef NON_MATCHING
