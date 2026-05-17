@@ -6419,6 +6419,16 @@ void gl_func_00046B64(int *a0) {
  *    for a single read-modify-write — verified 2026-05-15, both
  *    `int *p = ...; *p &= ~1` and `int *r=...; r[1]|=2` variants stay at
  *    84.68% / regress to 81.06%.
+ *  - 2026-05-16 source=2 sibling pass: explicit named-base + goto clear
+ *    form does flip the final conditional from `beql` to plain `beq` and
+ *    gets the true-arm `addiu v0,s0,0x138` delay slot, but the function is
+ *    still 0x7C bytes vs target 0x88: first RMW stays direct, the dead
+ *    child `addiu +0x100` is optimized out, and the false arm still lacks
+ *    its own `addiu v0,s0,0x138`. Not INSN_PATCH-promotable because this
+ *    needs insertions, not just word replacements.
+ *  - `volatile int dead_child = (int)(child + 0x100)` forces the dead
+ *    child addiu, but grows the frame to 0x38, adds stack sw/lw noise, fills
+ *    the `jr ra` delay slot, and still lands at 0x84 bytes. Worse shape.
  *  - target's `(*(s0+0x254))+0x104` read is followed by a dead
  *    `addiu v1,v1,0x100` (computed pointer never used) — an inlined-
  *    accessor artifact not reproducible from straight field-access C.
