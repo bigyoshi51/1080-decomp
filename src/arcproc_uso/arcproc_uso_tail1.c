@@ -991,6 +991,29 @@ void arcproc_uso_func_000024C0(void) {
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
 
+/* arcproc_uso_func_0000251C - verified structural decode; SIBLING of the
+ * alloc-cascade ctor family (arcproc_uso_func_0000199C /
+ * timproc_uso_b1_func_000016F8) + 24F4-style registration tail.
+ * Documented alloc-cascade dead-check + registration sub-80 ceiling ->
+ * INCLUDE_ASM build path; struct-typing reference.
+ *   s0 = a0 ? a0 : gl_func_00000000(84);   if (!s0) return s0;
+ *   p2 = gl_func_00000000(80);   if (!p2) goto init;
+ *   p3 = gl_func_00000000(44);   if (!p3) goto init2;
+ *   gl_func_00000000(p3, &D+1160);  p3->0x28 = &D;
+ * init2: p2->0x28 = &D;  init: s0->0x28 = &D;
+ *   s0->0xC = &D+1168;
+ *   // 24F4-style registration sequence:
+ *   gl_func_00000000(&D+16,  0x280000);
+ *   gl_func_00000000(&D+40,  0x280001);
+ *   ... (more gl_func_00000000(&D+OFF, 0x28xxxx | k) registrations) ...
+ * Struct-typing: cross-confirms the alloc-cascade ctor family - object
+ * sizes 84/80/44, every sub-object ptr @0x28 = &D_00000000, main
+ * s0->0xC = &D+0x490 (1168) descriptor; tail registers slots into &D
+ * data regions via the 0x28-prefixed packed args (same shape as
+ * timproc_uso_b1_func_000024F4). Caps <80: defensive `if(p!=0)`
+ * alloc-cascade dead checks + per-call spill + &D %hi/%lo reloc
+ * scheduling. Full per-slot args INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251C);
 
 #ifdef NON_MATCHING
