@@ -188,6 +188,46 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800073F8);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000745C);
 
+/* func_80007564 - verified structural decode (kernel, 0x134, rmon
+ * thread-list command handler). rmon family (cf. func_8000798C /
+ * func_80009584 / func_80007A98; libreultra rmon).
+ *   s32 func_80007564(RmonMsg *msg) {
+ *       UB *ub = &__rmonUtilityBuffer;
+ *       if (msg->0xC == -1) { ub->0xC = 0x3EA; goto send; }
+ *       ub->0xC = msg->0xC;
+ *       if (msg->0x9 == 1) {                      // single-target
+ *           ub->0x10 = 1;                         // count
+ *           ub->0x14 = 0x3E8;                     // one entry
+ *           goto send;
+ *       }
+ *       t = func_80009C30();                      // thread-list head
+ *       ub->0x10 = 0;
+ *       if (t->0x4 == -1) goto send;              // empty list
+ *       if (t->0x14 != 0) {
+ *           do {                                  // walk chain
+ *               ub->0x14[ub->0x10] = t->0x14;     // append id
+ *               ub->0x10++;
+ *               t = t->0xC;                       // next
+ *           } while (t->0x4 != -1);
+ *       }
+ *       ub->0x4 = (u8)msg->0x4;                    // domain
+ *       ub->0x6 = 0;
+ *   send:
+ *       func_800073F8(ub, ub->0x10 * 4 + 0x14, 1);// __rmonSendHeader
+ *       return 0;
+ *   }
+ * Struct-typing reference: __rmonUtilityBuffer (UB) - UB->0x4 (4)
+ * u8 domain, UB->0x6 (6) u16 cleared, UB->0xC (12) s32 status/echo
+ * (0x3EA = error code when msg->0xC==-1), UB->0x10 (16) u16 entry
+ * count, UB->0x14 (20) s32[] entry-id array. RmonMsg msg: msg->0x4
+ * (4) domain, msg->0x9 (9) u8 mode (1 = single), msg->0xC (12) s32
+ * request id (-1 = invalid). Thread chain node (from func_80009C30
+ * = __osThreadList/queue head): node->0x4 (4) sentinel (-1 = end),
+ * node->0xC (12) next, node->0x14 (20) thread id. func_800073F8 =
+ * __rmonSendHeader(buf, len = count*4 + 0x14, flag = 1). Caps <80:
+ * rmon utility-buffer build + thread-chain walk + branch-likely +
+ * __rmonSendHeader. Full body INCLUDE_ASM-preserved (.s = source
+ * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007564);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007698);
