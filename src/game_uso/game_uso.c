@@ -7719,25 +7719,20 @@ void game_uso_func_0000B498(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B4B8);
 
-/* game_uso_func_0000B710 — verified structural decode (16=16 len, ~31%;
- * IDO straight-line store-scheduling cap → <80 so INCLUDE_ASM build path;
- * constructor struct-typing reference).
- * void f(int *a0){
- *   *(float*)(a0+0x10)=1.0f; *(float*)(a0+0xC)=1.0f;
- *   *(float*)(a0+0x8)=1.0f;  *(float*)(a0+0x4)=1.0f;
- *   *(float*)(a0+0x0)=0.0f;
- *   a0->0x18=0; a0->0x1C=8;
- *   *(float*)(a0+0x20)=0.0f;
- *   *(float*)(a0+0x14)=*(float*)(&D_00000000+0x150);
- * }
- * Struct-typing: a0 object — float quad 0x4..0x10 init 1.0f, 0x0/0x20
- * init 0.0f, 0x14 init D_float[0x150], int 0x18=0, int 0x1C=8 (the
- * fields the B4B8 unrolled-loop sibling consumes). Caps <80: IDO's
- * instruction scheduler hoists the int-store block (li 8; sw 0x18;
- * sw 0x1C) above the swc1 float-store block; clean C statement order
- * can't pin the scheduler. INCLUDE_ASM is the correct build path
- * (no episode; tautology-trap rule). */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B710);
+void game_uso_func_0000B710(char *a0) {
+    float one = 1.0f;
+    float zero = 0.0f;
+
+    *(float*)(a0 + 0x10) = one;
+    *(float*)(a0 + 0x0C) = one;
+    *(float*)(a0 + 0x08) = one;
+    *(float*)(a0 + 0x04) = one;
+    *(float*)(a0 + 0x00) = zero;
+    *(float*)(a0 + 0x14) = *(float*)(&D_00000000 + 0x150);
+    *(s32*)(a0 + 0x18) = 0;
+    *(s32*)(a0 + 0x1C) = 8;
+    *(float*)(a0 + 0x20) = zero;
+}
 
 /* game_uso_func_0000B750 — verified structural decode (77=77 length-exact,
  * 9% bytes; IDO FPU-regalloc + double-const/reloc scheduling cap → <80 so
