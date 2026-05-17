@@ -142,4 +142,26 @@ void func_000144E0(void *a0, float a1, float a2) {
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000144F4);
 
+/* func_00014598 - verified structural decode (0xB4, 45 insns).
+ * INSTRUCTION-IDENTICAL SIBLING of func_00014010 (the in-place
+ * string substitution cipher); the ONLY difference is the string
+ * field offset 0xB4 here vs 0xE4 there.
+ *   void func_00014598(char *a0) {
+ *       char *s = a0 + 0xB4;                      // string field (180)
+ *       u32 i = 0, n = strlen_like(s);            // func_00000000(s)
+ *       while (i < n) {
+ *           unsigned char c = s[i]; i++;
+ *           if (c != 'a' && c != 'b' && c != ' ') // 0x61/0x62/0x20
+ *               s[i-1] = (char)(0x69 - c);        // 'i' - c
+ *           n = strlen_like(s);                   // recomputed each iter
+ *       }
+ *   }
+ * Struct-typing reference: a0->0xB4 (180) = char[] name/id string
+ * buffer (the func_00014010 cipher applied to a different field; an
+ * object with cipher-able strings at BOTH 0xB4 and 0xE4). Caps <80:
+ * bnel branch-likely loop + reloc func_00000000 strlen-recompute
+ * bound + 4 char constants hoisted s3-s6 (8-sreg, allocator order-
+ * sensitive) - same as func_00014010. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014598);
