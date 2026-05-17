@@ -1481,7 +1481,74 @@ void func_00008744(char *a0) {
     func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
+extern char D_00007FF4;
+extern float D_000005F0;
+extern int D_087A4_word0_load;
+extern int D_087A4_word0_store;
+extern int D_087A4_word0_base;
+extern int D_087A4_word0_final;
+
+/* 91.09% NM: allocator/init sibling of func_000086C0. This captures the
+ * lazy arg0->0x40 setup, 0xC8/0x40 allocation fallback, vtable callback,
+ * child link, and final flag/callback. Remaining diffs are scheduling around
+ * the D_0 flag-base setup and the K&R float stack arg (`lwc1/swc1` target vs
+ * int-bitcast `lw/sw`; direct float tried but double-promotes). Default build
+ * keeps INCLUDE_ASM until those codegen gaps are closed. */
+void *func_000087A4(char *arg0) {
+    int kind;
+    char *self;
+    char *child;
+    char *desc;
+    char *link_arg;
+    char pad[4];
+
+    if (*(int*)(arg0 + 0x40) == 0) {
+        D_087A4_word0_store = D_087A4_word0_load | 8;
+        (&D_087A4_word0_base)[1] = 0xAA002;
+        D_087A4_word0_base = 0;
+        *(int*)(arg0 + 0x40) = func_00000000(0, &D_00007FF4, *(int*)(arg0 + 0x48), 0);
+    }
+
+    self = (char*)func_00000000(0xC8);
+    if (self != 0) {
+        func_00000000(self);
+        child = self + 0x88;
+        *(volatile char**)(self + 0x28) = &D_00000000 + 0x7A58;
+        if (self == (char*)-0x88) {
+            child = (char*)func_00000000(0x40);
+            if (child == 0) {
+                goto init_self;
+            }
+        }
+        func_00000000(child);
+        *(char**)(child + 0x30) = &D_00000000;
+    }
+
+init_self:
+    (void)pad;
+    *(float*)(self + 0x70) = 10.0f;
+    kind = 0x13;
+    child = self;
+    desc = *(char**)(self + 0x28);
+    ((void (*)(char *, int *))*(int*)(desc + 0x2C))(self + *(short*)(desc + 0x28), &kind);
+
+    link_arg = child + 0x10;
+    self = *(char**)(arg0 + 0x40);
+    func_00000000(link_arg, self);
+    if (*(int*)(self + 0x14) != 0) {
+        *(int*)(self + 4) = 1;
+    }
+    *(char**)(self + 0x14) = child;
+    link_arg = child + 0x88;
+    func_00000000(link_arg, child, 0x74, 0x43160000, *(int*)&D_000005F0);
+    *(int*)(child + 0x98) |= 1;
+    func_00000000(D_087A4_word0_final, link_arg);
+    return child;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000087A4);
+#endif
 
 extern char *D_00000130;
 int func_00008920(int a0) {
