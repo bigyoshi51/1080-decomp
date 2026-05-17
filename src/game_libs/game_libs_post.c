@@ -750,6 +750,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026214);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
 
+/* gl_func_00026B48 — verified structural decode (global-block init, 35
+ * insns; stolen-$v0-base prologue = involved case → INCLUDE_ASM build
+ * path; struct-typing reference).
+ *   D[0x53C0..0x53C2] = 0,0,0;                    // 3 bytes @ +21432/3/4
+ *   D[0x53C8] = &D+0x53D0;  D[0x53CC] = &D+0x53E8;  D[0x53C4] = &D+0x53C0;
+ *   gl_func_00000000(&D+0x53D0, &D+0x5418, 1);
+ *   gl_func_00000000(D[0x53CC], &D+0x5420, 4);
+ *   gl_func_00000000(D[0x53C4], &D+0x541C, 1);
+ * A global-table init (3 byte-flags + 3 self-referential ptr fields +
+ * 3 sub-init calls). Blocker: the first block (0x024-0x038) addresses
+ * D via $v0 used UNINITIALIZED at entry — `lui v0,0; addiu v0` is
+ * hoisted into the predecessor (stolen-base prologue); later blocks
+ * re-materialize `lui v0,0; addiu v0` at 0x048/0x064. Clean C
+ * `*(char*)((char*)&D+N)=0` emits `lui at; sb zero,N(at)` ($at base),
+ * not the target's $v0 base for the first block → won't match without a
+ * PROLOGUE_STEALS-style recipe + predecessor boundary analysis. NOT the
+ * easy clean-wrapper-vein subset. INCLUDE_ASM (no episode); documents
+ * the D global-table layout (@0x53C0 flags / 0x53C4/8/C ptr trio). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026B48);
 
 /* game_libs_func_00026BD8: ring-buffer push. head=u8 D[0x53B8],
