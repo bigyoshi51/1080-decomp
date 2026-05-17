@@ -800,6 +800,42 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000027E8);
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002C94);
 
+/* func_00002DA4 - verified structural decode (0x1EC, 123 insns,
+ * subsystem-init + 12-way jump-table dispatcher).
+ *   void func_00002DA4(St *a3, int a1, int a2) {
+ *       func_00000000(&D_000073EC, 0);            // init
+ *       func_00000000();
+ *       *(void**)&D_g = func_00000000(0, &D_000073F8);  // create
+ *       v1 = a3->0x84;
+ *       func_00000000((char*)v1 + 0x10, *(int*)&D_h);   // attach
+ *       if (v1->0x14 != 0) v1->0x4 = 1;          // beql link
+ *       v1->0x14 = ...;
+ *       func_00000000(*(int*)&D_i);
+ *       cfg = *(int*)(func_00000000 + 4);
+ *       cfg |= 0x82000 | 0x20000;                 // set feature bits
+ *       *(int*)(func_00000000 + 4) = cfg;
+ *       u32 sel = (u32)(a1 - 1);
+ *       if (sel < 0xC) {
+ *           switch (sel) {                        // jtbl @
+ *               ...                               //  func_000003F8+0xFC
+ *               // each case: func_00000000(a3, a2) + variants
+ *           }
+ *       }
+ *       // default: .L00002F74
+ *   }
+ * Struct-typing reference: a3->0x84 (132) -> v1, an object whose
+ * +0x10 (16) is a child list/attach point; v1->0x14 (20) back-link
+ * (0 = unlinked), v1->0x4 (4) = 1 linked-flag. *(&D_g) global =
+ * the created object (func_00000000(0,&D_000073F8)). Config word
+ * at func_00000000+4 gets feature bits 0x82000|0x20000 OR'd in.
+ * a1 = a 1-based command/mode id (a1-1 indexes a 12-entry jump
+ * table at func_000003F8+0xFC; out-of-range -> no-op default);
+ * each handler invokes func_00000000(a3, a2) in a mode-specific
+ * way. D_000073EC/F8, D_00007408 = init datums. Caps <80:
+ * .rodata jump-table dispatch (jr $t9) + ~10 func_00000000 reloc
+ * + multi-&D + beql list-link + sltiu bound check. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002DA4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002F90);
