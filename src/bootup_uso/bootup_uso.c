@@ -978,6 +978,30 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
  * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003B78);
 
+/* func_00003D3C - verified structural decode (0x1C4, 113 insns,
+ * multi-stage builder chain). MEMBER of the func_000038C0 /
+ * func_00003734 / func_000039D8 / func_00003B78 builder-chain
+ * family (same alloc-0x80 x2 + register-&D + tagged-arg
+ * func_00000000 builder pattern; variant params).
+ *   void func_00003D3C(St *s1, int a1) {
+ *       o1 = alloc(0x80); if (!o1) return; init(o1, 1);
+ *       o2 = alloc(0x80); if (!o2) return; init(o2, 0);
+ *       register(&D, o1);  register(&D, o1, o2);
+ *       ... tagged func_00000000 build() stages wiring o1/o2,
+ *           cfg = s1->0x98 (f32 0xC4/0xCC), packed flags, a1*0x1C
+ *           descriptor-table index, final list-link & r->0x8DC =
+ *           result (identical chain shape to func_00003734) ...
+ *   }
+ * Struct-typing reference (same family as func_000038C0 et al.):
+ * s1->0x80 (128) pass-through handle; s1->0x98 (152) -> cfg with
+ * f32 0xC4 (196) / 0xCC (204) builder params; o1/o2 = 0x80-byte
+ * builder objects cross-wired through the tagged func_00000000
+ * builder (saved at sp+0x4C across the alloc pair); a1 indexes
+ * the 0x1C-stride descriptor table per the family pattern. Caps
+ * <80: ~12 func_00000000 reloc + FP stack-arg + packed-flag
+ * lui/ori + a1*0x1C index + list-link beql. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003D3C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003F00);
