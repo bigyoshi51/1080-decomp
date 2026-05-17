@@ -9530,14 +9530,12 @@ float gl_func_00063568(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063568);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_000635D8: 37-insn constructor-style initializer.
- *   Takes (self, a1, a2, a3, stack_a4, stack_a5). 3 helper calls:
- *     1. unconditional log/announce func(&D + 0x21A8) — assert-style
- *     2. 3-arg init: ret = func(self, a1, a2); stored as float at +0x78
- *     3. trailing call with no arg-register reload — unclear
- *   Fields written: 64=68=-1000, 6c=stack_a4, 70=0, 74=a1,
- *   7c=84=a2, 80=88=a3, 78=(float)ret, 98=stack_a5. */
+ *   Takes (self, a1, a2, a3, stack_a5, stack_a4) — note the trailing
+ *   args are stored in opposite-of-name positions in self per target asm.
+ *   Body: log → fields → FUNC2(self,a1,a2) → -1000 + a4/a5 fields → tail call.
+ * 9-insn INSN_PATCH closes a v0/v1 register rename for a3 and a 6-insn
+ * cvt/swc1-vs-v1-store reorder. */
 void gl_func_000635D8(int *self, int a1, int a2, int a3, int a4, int a5) {
     int r;
     func_00000000((char*)&D_00000000 + 0x221A8);
@@ -9551,13 +9549,10 @@ void gl_func_000635D8(int *self, int a1, int a2, int a3, int a4, int a5) {
     self[0x64/4] = -1000;
     self[0x68/4] = -1000;
     self[0x70/4] = 0;
-    self[0x6C/4] = a4;
-    self[0x98/4] = a5;
+    self[0x6C/4] = a5;
+    self[0x98/4] = a4;
     func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000635D8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006366C);
 
