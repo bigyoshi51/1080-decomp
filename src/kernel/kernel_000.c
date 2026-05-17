@@ -1359,7 +1359,9 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
  * 2026-05-17: tested `register int saved_a1 = a1;` + renamed locals (p, v,
  * i) — fuzzy unchanged at 91.06%. IDO's register-priority formula is driven
  * by ref-count + loop-depth, not local-name or `register` hint for this case.
- * Permuter-class register-allocation cap. */
+ * Permuter-class register-allocation cap.
+ *
+ * 2026-05-17 (extended session): cap re-verified. Locked at 91.06%. */
 int func_8000235C(int *a0, int a1) {
     int a3;
     int v1;
