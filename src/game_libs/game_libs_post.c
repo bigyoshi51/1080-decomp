@@ -4772,6 +4772,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DB3C);
 
+/* game_libs_func_0003DBEC: 41-insn linked-list search + Vec3 copy via
+ * stack temp (newly decompilable — merged from gl_func_0003DBF0 body
+ * this session). Same {value@0,next@4} cell-walk family as
+ * game_libs_func_0003DDC0; head=a0->0x10. On node==a1: copy 3 ints
+ * v1->{0x30,0x34,0x38} into a stack Vec3 (sp+4), reload as float, store
+ * a2[0..2], return 1; not found → 0. Residual: same write-only-sp-slot
+ * + direct-sp-offset stack-forcing class as DDC0 — documented hard,
+ * permuter/multi-tick. Decode recorded; INCLUDE_ASM build path. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DBEC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DC90);
