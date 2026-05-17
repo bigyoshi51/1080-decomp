@@ -622,7 +622,55 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000024F4);
 
+/* timproc_uso_b1_func_00002740 — verified decode, ~84% (52/62), 2 structural caps.
+ * switch on a0->0x50: case 0 → gl_func_00000000(&D,0x40100) gate, then walk
+ *   slot = base + base->0x7C * 0x28 (base = a0->0x48); if slot->0x90 != 0:
+ *   slot->0x88 ? { gl(5); D[0x208]=a0->0x48; D[0x20C]=a0; recompute slot2 via
+ *   the SAME base→idx→*0x28 walk; (*slot2->0x90)(); } : gl(165).
+ *   case 1/2 → gl_func_00000000(a0). Length + control flow byte-exact.
+ * Remaining 10 mismatches are two permuter-immune IDO codegen caps:
+ *  (a) 0x64,0xB8: `addu base,idx*0x28` — IDO canonicalizes commutative plus to
+ *      `addu v1,v0,t7` (base,offset); GCC emits `addu v1,t7,v0` regardless of
+ *      char*/int* expression shape (tried both).
+ *  (b) 0x90-0xA8,0xBC: the two D_00000000-relative stores (0x208/0x20C) — IDO
+ *      re-materializes `lui at` per absolute store; GCC CSEs the &D base into
+ *      one pseudo and reuses it, cascading the v0/v1 free-reg pick.
+ * Neither is a $s/$t regalloc shuffle (permuter 0/6 class is irrelevant) nor a
+ * reload-CSE deref cap — it's commutative-canonicalization + absolute-store
+ * non-CSE. Build path stays INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void timproc_uso_b1_func_00002740(int *a0) {
+    switch (a0[0x50 / 4]) {
+    case 0:
+        if (gl_func_00000000(&D_00000000, 0x40100) != 0) {
+            int *base = (int *)a0[0x48 / 4];
+            int *slot = (int *)(base + base[0x7C / 4] * 0xA);
+            if (slot[0x90 / 4] != 0) {
+                if (slot[0x88 / 4] != 0) {
+                    int *base2;
+                    int *slot2;
+                    gl_func_00000000(5);
+                    *(int *)((char *)&D_00000000 + 0x208) = a0[0x48 / 4];
+                    *(int *)((char *)&D_00000000 + 0x20C) = (int)a0;
+                    base2 = (int *)a0[0x48 / 4];
+                    slot2 = (int *)(base2 + base2[0x7C / 4] * 0xA);
+                    ((void (*)(void))slot2[0x90 / 4])();
+                } else {
+                    gl_func_00000000(165);
+                }
+            }
+        }
+        break;
+    case 1:
+    case 2:
+        gl_func_00000000(a0);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002740);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002838);
 
