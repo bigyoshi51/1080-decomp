@@ -2581,7 +2581,7 @@ void game_uso_func_000041C0(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000041C0);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000043E4);
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000043D8);
 
 void game_uso_func_000044C8(char *a0) {
     game_uso_func_00000000(a0);
