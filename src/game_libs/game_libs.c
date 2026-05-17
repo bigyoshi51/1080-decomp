@@ -629,6 +629,38 @@ void gl_func_00006C38(int *a0, int a1, int a2) {
     *(float*)((char*)a0 + 0x554) = 150.0f;
 }
 
+/* gl_func_00006CDC - verified structural decode (0xEC, ~55 insns +
+ * 2 bundled stubs). NEAR-SIBLING of gl_func_00006B80 (same large-
+ * object initializer family); variant differences noted.
+ *   void gl_func_00006CDC(int *a0, int a1, int a2) {
+ *       a0->0x4F8 = a2;
+ *       a0->0x4E0 = 3;  a0->0x4DC = 2;
+ *       gl_func_00000000(&D_00000000, 0);
+ *       a0->0x4EC = 0;
+ *       a0->0x518 = 60;                          // 6B80 sets 0 here
+ *       a0->0x4E4 = a1;
+ *       a0->0x54C = 120.0f;                      // 0x42F00000
+ *       if (g_mode == 2) a0->0x54C = 60.0f;      // *(&D)->0x34
+ *       if (g_mode == 3) gl_func_00000000(...);  // extra call (6CDC)
+ *       a0->0x540 = 255;
+ *       a0->0x550 = 0.0f;
+ *       a0->0x554 = 150.0f;                      // 0x43160000
+ *       v = a0->0x28;
+ *       (*(fn)v->0x84)((s16)v->0x80 + (int)a0);  // 0x84/0x80 variant
+ *   }
+ * BUNDLED: jr-count 3 - after the main body splat appended TWO tiny
+ * leaf stubs `void f(int a0){ *(int*)sp = a0; }` (jr ra; sw a0,0(sp))
+ * - separate 2-insn functions, splittable via split-fragments later.
+ * Struct-typing reference (extends gl_func_00006B80 object map):
+ * 0x4DC (1244)=2, 0x4E0 (1248)=3, 0x4E4 (1252)=a1, 0x4EC (1260)=0,
+ * 0x4F8 (1272)=a2, 0x518 (1304) s32 = 60 (this variant; 0 in 6B80),
+ * 0x540 (1344)=255, 0x54C (1356) f32 = 120.0/60.0 by global mode
+ * *(&D)->0x34, 0x550 (1360) f32=0.0, 0x554 (1364) f32=150.0; a0->
+ * 0x28 (40) vtable -> {fn@0x84 (132), s16@0x80 (128)} (obj-0x28
+ * dispatch, 0x84/0x80 variant). Caps <80: FP-const loads + global-
+ * mode branches (==2 / ==3) + gl_func_00000000 reloc + vtable jalr
+ * + 2 bundled tail stubs. Full body INCLUDE_ASM-preserved (.s =
+ * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006CDC);
 
 extern int gl_func_00000000();
