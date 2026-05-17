@@ -32,14 +32,22 @@
  * receive PREFIX_BYTES injection. The C body bnel-chain emits 71
  * insns (0x11C) vs target 82 (0x148) - the structural cap is the
  * 11-insn delta, not the 2-insn prefix. Reverted Makefile to single-word
- * PREFIX_BYTES (the 4-byte trampoline alone). The function IS byte-exact
- * in the actual ROM build via INCLUDE_ASM tautology; objdiff 4.1%
- * score is the documented .NON_MATCHING-build scoring quirk per
- * docs/MATCHING_WORKFLOW.md#feedback-byte-correct-match-via-include-asm-not-c-body.
+ * PREFIX_BYTES (the 4-byte trampoline alone).
  *
  * Stub C body decoded but NM wrap stays - default build INCLUDE_ASM is
  * correct bytes via the .s file. Multi-pass decomp; the bnel-chain emit
- * for the special-char branches is the last-mile blocker. */
+ * for the special-char branches is the last-mile blocker.
+ *
+ * 2026-05-17 EPISODE-ELIGIBILITY NOTE: this function IS the documented
+ * tautology trap class (per docs/POST_CC_RECIPES.md#feedback-prefix-bytes-
+ * idempotent-under-nm-wrap "Episode caveat"). ROM bytes are byte-correct
+ * via INCLUDE_ASM + PREFIX_BYTES, but the C body has 11-insn structural
+ * gap. NO EPISODE — confirmed today when the land script correctly
+ * rejected a drive-by episode attempt (matching path bytes matched,
+ * but non_matching path didn't, so byte_verify failed). Don't try
+ * again until the C body actually reaches byte-match (bnel-chain
+ * structural cap solved). Last PREFIX_BYTES function without an
+ * episode is intentional. */
 int gui_func_00000000(c)
 int c;
 {
