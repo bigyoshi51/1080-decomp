@@ -457,41 +457,21 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F
  * dance around 4 calls + &D %hi/%lo reloc materialization order + FPU-const
  * scheduling — INCLUDE_ASM is the correct build path (tautology-trap rule). */
 
-/* titproc_uso_func_000016B8 — verified decode, 22/22 ops byte-identical, pure
- * $t-regalloc divergence (15 insns differ ONLY in register number; opcodes,
- * branch targets, bnel-likely pattern all exact). a0->0x2C +/-6 toggle with
- * threshold-wrap on a0->0x30, branch selected by a0->0x30==0. IDO coalesces
- * the load/+6 into v0; target uses distinct $t7/$t8 — structural C rewrites
- * (combined vs split load/add, both tried) can't reorder IDO's leaf allocator.
- * Clean decomp-permuter target (pure $t shuffle — NOT the structural cap class
- * the 0/6 fleet concluded on; that conclusion does not apply here). Boundary
- * corrected 2026-05-17: the .s is now its true 0x58/22 insns. The 2 words
- * previously mis-attributed as 16B8's trailing tail (lui at,0x3f80; mtc1 $f16
- * @ USO 0x1710/0x1714) were NOT orphan — they are func_00001710's
- * constant-hoisted prologue (sets $f16=1.0f, used un-set at 1710+0x008);
- * moved into titproc_uso_func_00001710.s and the symbol renamed 1718→1710.
- * Build path stays INCLUDE_ASM (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
+/* titproc_uso_func_000016B8: 22-insn field oscillator. In-place field
+ * updates keep IDO's branch-likely delay-slot loads and temp registers aligned. */
 void titproc_uso_func_000016B8(int *a0) {
     if (a0[0x30 / 4] == 0) {
-        int t7 = a0[0x2C / 4];
-        int t8 = t7 + 6;
-        a0[0x2C / 4] = t8;
-        if (t8 >= 250) {
+        a0[0x2C / 4] += 6;
+        if (a0[0x2C / 4] >= 250) {
             a0[0x30 / 4] ^= 1;
         }
     } else {
-        int t2 = a0[0x2C / 4];
-        int t3 = t2 - 6;
-        a0[0x2C / 4] = t3;
-        if (t3 < 65) {
+        a0[0x2C / 4] -= 6;
+        if (a0[0x2C / 4] < 65) {
             a0[0x30 / 4] ^= 1;
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000016B8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001710);
 
