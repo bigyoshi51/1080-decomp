@@ -72,7 +72,29 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008054);
  * The entry has no stack-frame setup because func_8000817C falls through
  * into it after saving ra and reserving 0x20 bytes. It is also called
  * directly by the rmon event loop, so normal C cannot express both entry
- * modes in one byte-matching function. */
+ * modes in one byte-matching function.
+ *
+ * 2026-05-17 source-2 exact attempt after func_8000817C land:
+ * - Reference search for __rmonClearBreak/rmonClearBreak found no local
+ *   libreultra/OoT/Papermario source hit.
+ * - Baseline C-only objdiff: 74.13513%. Target begins at the inherited frame
+ *   (`addiu a1,4; lui/addiu t3,&rmonbrk_bss_0000`) and later writes the
+ *   fetched instruction to caller stack arg slot 0x1C(sp). Natural C emits a
+ *   fresh `addiu sp,-0x18; sw ra,0x14(sp)` prologue and relocations at the
+ *   wrong offsets, so a full-function INSN_PATCH/PREFIX rewrite would lose
+ *   required kernel symbol relocations and is not a valid promotion.
+ * - Tried pointer-base locals for `&rmonbrk_bss_0000` / `&D_8001FEF0`:
+ *   still 74.13513%.
+ * - Tried volatile saved-instruction variants to force the 0x1C(sp) store:
+ *   regressed to 65.35135% / 64.54054%.
+ * - Tried explicit early-return/goto shape to avoid IDO's beql epilogue
+ *   preload: still 74.13513%.
+ * - Tried m2c's inherited-stack-arg hint with an 8-arg dummy signature
+ *   (`arg7 = inst`): regressed to 67.10811% because IDO spilled incoming
+ *   args and shifted the useful relocations later.
+ *
+ * Keep this as NM until there is a real alt-entry/mid-function-label recipe
+ * that can preserve relocations without replacing the whole function body. */
 void func_800081D0(void) {
     func_80005350((void*)rmonbrk_bss_0000, 4);
     rmonbrk_bss_0000 = 0;
