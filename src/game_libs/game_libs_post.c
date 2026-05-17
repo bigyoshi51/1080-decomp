@@ -4654,8 +4654,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
  * `beql a1,zero` + ra-preload (separate early-return) vs target plain
  * `beq v1,zero,0x58` to the shared epilogue, inflating frame 0x20->0x28;
  * plus regalloc (target ret->a2, v1->v1; build ret->v1, v1->a1). Same
- * branch-likely/regalloc class as gl_func_0003D7F8 — multi-tick;
- * permuter or force-SAME-LEN-then-INSN_PATCH next.
+ * branch-likely/regalloc class as gl_func_0003D7F8.
+ * PERMUTER-PLATEAUED 2026-05-17: ran base 740 → 200 (got ~73% of the
+ * way) then stuck flat at 200 for 132k+ iterations — the residual the
+ * permuter cannot close is the beql-vs-beq + frame-0x20-vs-0x28
+ * structural part (it can shuffle regs but not flip the branch-likely
+ * shape / collapse the early-return frame). Killed. Remaining path is
+ * force-SAME-LEN-then-INSN_PATCH or true-structural, NOT more permuter.
  * USO convention: call -> func_00000000, data -> a0[off]. */
 #ifdef NON_MATCHING
 int gl_func_0003D8A8(int *a0) {
