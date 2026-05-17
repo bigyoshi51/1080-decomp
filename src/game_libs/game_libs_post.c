@@ -6903,7 +6903,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049DBC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A308);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A670);
+/* gl_func_0004A670: 30-insn alloc-or-given + init + cond-followup. Mirror
+ * of gl_func_00048A74 with alloc size 0xDC instead of 0xC0. Same `||`
+ * short-circuit FALL-THROUGH-WITH-NULL-GUARD recipe. */
+int *gl_func_0004A670(int *a0, int a1, int a2, int a3) {
+    if (a0 != 0 || (a0 = (int*)func_00000000(0xDC)) != 0) {
+        func_00000000(a0, a1, a2, a3);
+        a0[0x28/4] = (int)&D_00000000;
+        if (a2 != 0) {
+            func_00000000(a0);
+        }
+    }
+    return a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A6E8);
 
