@@ -1086,3 +1086,4 @@ gl_func_0003D550 = 0x3D550;
 gl_func_0003DA18 = 0x3DA18;
 gl_func_0003DBF0 = 0x3DBF0;
 gl_func_0003DE4C = 0x3DE4C;
+gl_func_0003DDC4 = 0x3DDC4;
