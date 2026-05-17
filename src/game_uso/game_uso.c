@@ -9949,7 +9949,35 @@ void game_uso_func_00011168(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
 #endif
 
+#ifdef NON_MATCHING
+/* game_uso_func_00011258: 34-insn (0x88) init+register-clear helper.
+ * Structure:
+ *   func(a0, 0x70009, 0, 2, /stack: 1, 1/);                     // call #1
+ *   func(a0, *(D+0xF18), *(D+0xF1C), 2, /stack: a1, a2/);       // call #2
+ *   func(a0);                                                     // call #3
+ *   a0->[0xB4]->[0xA58] &= ~0x800;   // bit-clear (probably an
+ *                                       SP/RSP status mask)
+ *
+ * The two stack-arg calls (#1 and #2) are 5+ arg invocations of
+ * `gl_func_00000000` (K&R extern); without callee signatures, fully
+ * matching them requires variadic-call shape research. First-pass
+ * NM wrap captures the bit-clear tail (offset 0xB4 → 0xA58 → ~0x800)
+ * which is verifiable. */
+extern int func_00000000();
+void game_uso_func_00011258(int *a0) {
+    extern int D_00000000;
+    func_00000000(a0, 0x70009, 0, 2, 1, 1);
+    func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF18),
+                      *(int*)((char*)&D_00000000 + 0xF1C),
+                      2,
+                      *(int*)((char*)&D_00000000 + 0xF18),
+                      *(int*)((char*)&D_00000000 + 0xF1C));
+    func_00000000(a0);
+    *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0xA58) &= ~0x800;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000112E0);
 
