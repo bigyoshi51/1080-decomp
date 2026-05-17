@@ -322,6 +322,42 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80009584);
  * parse GCC inline asm, so there's no C form; INCLUDE_ASM is correct. */
 INCLUDE_ASM("asm/nonmatchings/kernel", __osSetFpcCsr);
 
+/* func_80009850 - verified structural decode (kernel, 0x194, 104
+ * insns) = libultra __osEPiRawReadIo. Reference: libreultra
+ * src/io/epirawread.c / piint.c; same OSPiHandle layout as the
+ * documented func_800052F0 (__osEPiRawStartDma).
+ *   s32 func_80009850(OSPiHandle *h, u32 cartAddr, u32 *data) {
+ *       if (IO_READ(PI_STATUS_REG) & 3)           // 0xA4600010
+ *           while (IO_READ(PI_STATUS_REG) & 3) {} // wait idle
+ *       cur = __osPiTable[h->domain];             // D_8000A470[]
+ *       if (cur != h) {
+ *           if (h->domain == 0) {                 // DOM1 regs
+ *               if (cur->latency    != h->latency)    PI_BSD_DOM1_LAT = h->latency;   // 0xA4600014
+ *               if (cur->pageSize   != h->pageSize)   PI_BSD_DOM1_PGS = h->pageSize;  // 0xA460001C
+ *               if (cur->relDuration!= h->relDuration)PI_BSD_DOM1_RLS = h->relDuration;//0xA4600020
+ *               if (cur->pulse      != h->pulse)      PI_BSD_DOM1_PWD = h->pulse;     // 0xA4600018
+ *           } else {                              // DOM2 regs
+ *               ... PI_BSD_DOM2_{LAT 0xA4600024, PGS 0xA460002C,
+ *                                RLS 0xA4600030, PWD 0xA4600028} ...
+ *           }
+ *           __osPiTable[h->domain] = h;
+ *       }
+ *       *data = *(vu32*)(h->baseAddress | cartAddr | 0xA0000000);
+ *       return 0;
+ *   }
+ * Struct-typing reference: h = OSPiHandle (same as func_800052F0) -
+ * h->0x5 latency, 0x6 pageSize, 0x7 relDuration, 0x8 pulse, 0x9
+ * domain (u8; 0 = DOM1 else DOM2), 0xC baseAddress. __osPiTable =
+ * D_8000A470 (OSPiHandle*[] indexed by domain). PI BSD config
+ * registers only rewritten when the cached handle for that domain
+ * differs and the individual field changed (lazy reprogram). The
+ * final read is an uncached (0xA0000000 / KSEG1) load of
+ * baseAddress|cartAddr into *data. PI_STATUS_REG bit 0/1 = DMA/IO
+ * busy. (HW addrs per references/indexes/hw_registers.h.) Caps
+ * <80: ~11 MMIO reloc (D_A46000xx) + KSEG1 read + DOM1/DOM2 branch
+ * + per-field beq compares + busy-wait loop. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009850);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800099F0);
