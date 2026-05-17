@@ -1561,6 +1561,37 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80003FF0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80004030);
 
+/* func_800044CC - verified structural decode (kernel, 0xEC, libultra
+ * PI-event callback: inlined osSendMesg + thread wake).
+ * Reference: libreultra src/os/seteventmesg.c / osSendMesg.c /
+ * exceptasm.s (__osEventStateTab, __OSEventState).
+ *   void func_800044CC(void) {
+ *       __OSEventState *es = &__osEventStateTab[OS_EVENT_PI]; // +0x40
+ *       OSMesgQueue *mq = es->queue;          // es->0x0 (at +0x40)
+ *       if (mq == NULL) return;
+ *       if (mq->validCount < mq->msgCount) {  // 0x8 < 0x10
+ *           // inlined osSendMesg body:
+ *           idx = (mq->first + mq->validCount) % mq->msgCount;
+ *           mq->msg[idx] = es->message;       // es->0x4 -> mq->0x14[]
+ *           mq->validCount++;                 // mq->0x8++
+ *           if (mq->mtqueue->next != NULL) {  // mq->0x0 -> ->0x0
+ *               t = func_80003E54(mq);        // __osPopThread
+ *               func_80003E0C(&D_8000A418, t);// __osEnqueueThread
+ *           }                                 //   (D_8000A418 =
+ *       }                                     //    __osRunQueue)
+ *   }
+ * Struct-typing reference: __osEventStateTab = libultra event table,
+ * __OSEventState = { OSMesgQueue *queue; OSMesg message; } (8 bytes);
+ * entry +0x40 = index 8 = OS_EVENT_PI. OSMesgQueue fields used:
+ * 0x0 mtqueue (blocked-thread list head), 0x8 validCount, 0xC first,
+ * 0x10 msgCount, 0x14 msg[] (OSMesg array). func_80003E54 =
+ * __osPopThread(&queue), func_80003E0C = __osEnqueueThread, global
+ * D_8000A418 = __osRunQueue. The `div $zero,t4,t5; mfhi` + `break 7`
+ * / `break 6` are IDO's signed `%` divide-by-zero (msgCount==0) and
+ * INT_MIN/-1 overflow guards on the ring-index modulo - NOT C-source
+ * suppressible, so this caps <100 from C. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule + IDO div-guard cap). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
 
 
