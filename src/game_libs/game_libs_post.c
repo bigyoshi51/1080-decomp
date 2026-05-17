@@ -2934,6 +2934,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
 
+/* gl_func_00035FD4 - verified structural decode (30-insn br=0 clean
+ * 4-call init; single-precision float-vararg divergence -> INCLUDE_ASM
+ * build path; struct-typing reference).
+ *   gl_func_00000000(&D, 0x1E9B4, 0);
+ *   gl_func_00000000(&D, 0x1E9C0, (int)a0+0x44, 10.0f, 400.0f, 0);
+ *   gl_func_00000000(&D);
+ *   gl_func_00000000(a0);
+ * Target passes arg4 = 10.0f as raw bits in $a3 (`lui a3,0x4120` =
+ * 0x41200000) and arg5 = 400.0f via `mtc1 0x43C80000,$f4; swc1
+ * $f4,16(sp)` (single-precision stack slot). Caps: the file's K&R
+ * `extern int gl_func_00000000();` makes every call varargs, so a
+ * `float` arg promotes to DOUBLE (8-byte, ldc1/2-slot) -> +4 insns
+ * (34 vs 30). The original prototype was non-varargs single-float;
+ * not reproducible with the shared K&R decl. Documented float-vararg
+ * single-precision divergence class. Struct-typing: X2 takes a0+0x44
+ * (a sub-region) + (10.0f, 400.0f) params + magic addrs 0x1E9B4 /
+ * 0x1E9C0. br=0 but float-vararg variant, not clean-episode subset.
+ * INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035FD4);
 
 #ifdef NON_MATCHING
