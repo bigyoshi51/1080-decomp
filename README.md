@@ -12,7 +12,7 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 |------------------------|-------------------|------------------------|------------|------------|------------------------------------------------|
 | `kernel`               | 99 / 213          | 9.5 KB / 39.4 KB       | 24.23 %    | 32.28 %    | libultra + USO loader + audio (`0x80000000`)   |
 | `bootup_uso`           | 199 / 335         | 12.0 KB / 79.3 KB      | 15.10 %    | 20.24 %    | Giles Goddard's libgdl engine                  |
-| `game_libs`            | 496 / 1,509       | 27.5 KB / 410.9 KB     | 6.70 %     | 11.71 %    | Support libraries — wrapper mass-match         |
+| `game_libs`            | 503 / 1,511       | 28.1 KB / 410.9 KB     | 6.83 %     | 12.06 %    | Support libraries — wrapper mass-match         |
 | `gui_uso`              | 10 / 28           | 0.8 KB / 18.1 KB       | 4.61 %     | 8.11 %     | GUI/menu helpers                               |
 | `titproc_uso`          | 25 / 43           | 2.4 KB / 10.5 KB       | 22.37 %    | 43.21 %    | Title-screen process (templates + composites)  |
 | `arcproc_uso`          | 24 / 51           | 1.9 KB / 10.4 KB       | 17.89 %    | 29.97 %    | Arcade-mode process                            |
