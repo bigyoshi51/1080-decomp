@@ -473,6 +473,32 @@ void titproc_uso_func_000016B8(int *a0) {
     }
 }
 
+/* titproc_uso_func_00001710 — verified structural decode (FPU lerp, 76
+ * insns; div.s/mul.s chain + 3 calls + recovered f16=1.0f stolen prologue
+ * = documented sub-80 ceiling → INCLUDE_ASM build path; struct-typing ref).
+ * Boundary: 0x000-0x004 (lui at,0x3f80; mtc1 at,$f16 = 1.0f) is this fn's
+ * constant-hoisted prologue, recovered from 16B8's tail 2026-05-17.
+ *   f16 = 1.0f;  sp[96..108] = f16 (a 1,1,1,1 vec);
+ *   if (*(int*)(&D+0x18C) != 0) {
+ *     dc = *(float*)(&D+0x40);
+ *     sp[52]=1; sp[64]=1; sp[56]=dc; sp[60]=dc; sp[48]=1;
+ *     t = (float)s0->0x2C / 255.0f;            // 0x437f0000 = 255.0
+ *     sp[36] = sp[96] + (sp[52]-sp[96])*t;     // lerp(1, 1, t)
+ *     sp[40] = sp[100]+ (sp[56]-sp[100])*t;    // lerp(1, dc, t)
+ *     sp[44] = sp[104]+ (sp[60]-sp[104])*t;    // lerp(1, dc, t)
+ *     gl_func_00000000(&D+0x18, s0->0x2C, &sp[36]);
+ *   } else {
+ *     gl_func_00000000(&D, s0->0x2C, &sp[96]);
+ *   }
+ *   r = gl_func_00000000(&D);
+ *   gl_func_00000000(r, (int)*(float*)(s0+0x34), (int)*(float*)(s0+0x38), 3);
+ * Struct-typing: s0->0x2C is a 0..255 alpha/blend (÷255 → t); s0->0x34 /
+ * s0->0x38 are the 160.0f / 210.0f floats the 15F4 constructor sets, here
+ * trunc.w.s'd back to int 160 / 210 (confirms the ctor field types).
+ * D[0x18C] = mode flag, D[0x40] = a float constant, &D / &D+0x18 = two
+ * GBI-ish data bases. Caps <80: div.s/mul.s/sub.s lerp scheduling + the
+ * sp 1.0f stack-temp dance + &D %hi/%lo reloc + 3-call spill. INCLUDE_ASM
+ * is the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001710);
 
 /* titproc_uso_func_00001840: 68-insn (0x110) 2-cascade constructor with
