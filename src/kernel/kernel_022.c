@@ -80,6 +80,39 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800084AC);
  * re-exported via undefined_syms_auto.txt for those callers. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800084D0);
 
+/* func_8000858C - verified structural decode (kernel, 0x228, 138
+ * insns, rmon MIPS instruction decoder / branch-target helper).
+ * Part of the rmon single-step / breakpoint machinery.
+ *   void func_8000858C(s32 mode, void *ctx, void *addr) {
+ *       u32 insn = (mode == 1) ? func_80006A98((u32)addr) // reg rd
+ *                              : *(u32*)addr;             // mem rd
+ *       u32 op = (insn >> 26) & 0x3F;                     // opcode
+ *       if (op >= 0x18) return;                            // guard
+ *       switch (op) {                                      // jtbl_
+ *           ...                                            //  8000AA90
+ *           // SPECIAL (op 0): sub-decode funct, jr/jalr (8/9):
+ *           //   rs = (insn >> 21) & 0x1F; ...
+ *           //   func_80009B60(ctx, ctx2, rs);   // -> target
+ *           // REGIMM / branch / jump classes: extract rs/rt/
+ *           //   offset, compute the branch/jump destination
+ *           //   (uses jtbl_8000AAF0 sub-table)
+ *       }
+ *   }
+ * Struct-typing reference: classic MIPS field extraction - opcode
+ * = bits 31..26, rs = bits 25..21 (>>21 &0x1F), rt = bits 20..16
+ * (>>16 &0x1F), rd = bits 15..11, funct = bits 5..0 (&0x3F), the
+ * SPECIAL jr/jalr funct = 8/9. func_80006A98 = the MMIO/cop
+ * register read (mode 1 reads the live register file); func_
+ * 80009B60 = the branch/jump-target resolver (a0=ctx, a1=ctx2,
+ * a2=register index) used to find where a control-transfer
+ * instruction will go (for setting the single-step / temp
+ * breakpoint after a branch). jtbl_8000AA90 = 24-entry opcode
+ * dispatch, jtbl_8000AAF0 = a secondary (REGIMM/funct) table.
+ * This is the disassembler half of rmon hardware single-step.
+ * Caps <80: two .rodata jump tables (jr $t1) + heavy bitfield
+ * sra/andi extraction + mode branch + reloc callees. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000858C);
 
 /* Classifies a MIPS instruction: returns 1 if J/JAL/JR/JALR, else 0.
