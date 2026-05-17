@@ -2885,14 +2885,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003695C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036A48);
 
-/* gl_func_00036B9C: 27-insn alloc-or-given + init constructor.
- *   if (a0 == NULL) a0 = func(60);
- *   if (a0) { func(a0, &D + 0x1EA08); a0->[0x28] = &D;
- *             a0->[0x2C..0x34] = 0.0f x 3; a0->[0x38] = a1; }
- *   return a0;
- * Naive C scores 70% (control-flow shape + reg-alloc). Below 80%
- * threshold. Deferred. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036B9C);
+/* gl_func_00036B9C: 27-insn alloc-or-given + init constructor (sibling
+ * of gl_func_0003C814 and gl_func_0003CAA0). Same `goto end` recipe
+ * (docs/PATTERNS.md#feedback-alloc-or-init-goto-pattern). a1 is spilled
+ * to home slot (0x1C) before alloc, reloaded into t7 at end for the
+ * a0[0x38] = a1 store. */
+int* gl_func_00036B9C(int *a0, int a1) {
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00000000(0x3C);
+        if (a0 == 0) goto end;
+    }
+    gl_func_00000000(a0, (char*)&D_00000000 + 0x1EA08);
+    a0[0x28/4] = (int)&D_00000000;
+    a0[0x38/4] = a1;
+    *(float*)((char*)a0 + 0x34) = 0.0f;
+    *(float*)((char*)a0 + 0x30) = 0.0f;
+    *(float*)((char*)a0 + 0x2C) = 0.0f;
+end:
+    return a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
 
