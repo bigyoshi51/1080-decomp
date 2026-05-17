@@ -536,6 +536,36 @@ int gl_func_00006A8C(char *a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006AAC);
 
+/* gl_func_00006B80 - verified structural decode (0xB8, 46 insns,
+ * object initializer).
+ *   void gl_func_00006B80(int *a0, int a1, int a2) {
+ *       a0->0x4F8 = a2;
+ *       a0->0x4E0 = 3;
+ *       a0->0x4DC = 2;
+ *       gl_func_00000000(&D_00000000, 0);
+ *       a0->0x4EC = 0;
+ *       a0->0x518 = 0;
+ *       a0->0x4E4 = a1;
+ *       a0->0x54C = 120.0f;                       // 0x42F00000
+ *       if (g_mode == 2)                          // *(&D)->0x34
+ *           a0->0x54C = 60.0f;                    // 0x42700000
+ *       a0->0x550 = 0.0f;
+ *       a0->0x544 = 255;
+ *       a0->0x554 = 150.0f;                       // 0x43160000
+ *       v = a0->0x28;
+ *       (*(fn)v->0x7C)((s16)v->0x78 + (int)a0);   // obj-0x28 dispatch
+ *   }
+ * Struct-typing reference: a0 = a large object. Fields: 0x4DC (1244)
+ * s32 = 2, 0x4E0 (1248) s32 = 3, 0x4E4 (1252) s32 = a1, 0x4EC (1260)
+ * s32 = 0, 0x4F8 (1272) s32 = a2, 0x518 (1304) s32 = 0, 0x544 (1348)
+ * s32 = 255, 0x54C (1356) f32 timer/duration = 120.0 (60.0 when the
+ * global mode *(&D)->0x34 == 2), 0x550 (1360) f32 = 0.0, 0x554
+ * (1364) f32 = 150.0; a0->0x28 (40) vtable ptr with fn @0x7C (124)
+ * + s16 base-adjust @0x78 (120) - the engine-wide obj-0x28 dispatch
+ * idiom, 0x7C/0x78 variant. Caps <80: FP-const loads (lui+mtc1) x4
+ * + bne global-mode branch + gl_func_00000000 reloc call + &D reloc
+ * + vtable jalr. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006B80);
 
 /* gl_func_00006C38: 41-insn struct-init. Sets a0->{0x4F8,0x4E0,0x4DC} from
