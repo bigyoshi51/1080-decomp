@@ -74,7 +74,24 @@ s32 func_800052C0(void) {
 
 
 #ifdef NON_MATCHING
-/* func_800052F0: __osEPiRawStartDma — extended PI DMA setup with handle.
+typedef struct {
+    u32 unk_00;
+    u8 type;
+    u8 latency;
+    u8 pageSize;
+    u8 relDuration;
+    u8 pulse;
+    u8 domain;
+    u8 pad_0A[2];
+    u32 baseAddress;
+} OSPiHandle;
+
+extern OSPiHandle *D_8000A470[];
+extern s32 func_80004B30(void *);
+
+#define PI_REG(offset) (*(volatile u32 *)(0xA4600000 + (offset)))
+
+/* func_800052F0: __osEPiRawStartDma - extended PI DMA setup with handle.
  * 24-insn entry block (0x60). Falls through into func_80005350 (116 insns
  * / 0x1D0) which contains the body + epilogue. Combined function is the
  * full __osEPiRawStartDma per OoT reference (libultra/io/epirawdma.c).
@@ -89,7 +106,7 @@ s32 func_800052C0(void) {
  *       while (status & 3) { status = IO_READ(PI_STATUS_REG); }
  *
  *       curHandle = __osPiTable[handle->domain];            // table at 0x8000A470
- *       if (curHandle->type != handle->type) {
+ *       if (curHandle != handle) {
  *           // Per-domain BSD register updates (DOM1: 0x14/1C/20/18, DOM2: 0x24/2C/30/28)
  *           if (curHandle->latency    != handle->latency)    IO_WRITE(LAT_REG, ...);
  *           if (curHandle->pageSize   != handle->pageSize)   IO_WRITE(PGS_REG, ...);
@@ -119,11 +136,64 @@ s32 func_800052C0(void) {
  * docs/MATCHING_WORKFLOW.md#feedback-cross-function-epilogue-entry.
  *
  * Default INCLUDE_ASM build remains exact. */
-void func_800052F0(void *handle, s32 direction, u32 cartAddr, void *dramAddr, s32 size) {
-    /* Stub — see decoded structure above. The full body lives in the
-     * INCLUDE_ASM bytes via func_800052F0.s + func_80005350.s. */
-    (void)handle; (void)direction; (void)cartAddr; (void)dramAddr; (void)size;
+s32 func_800052F0(OSPiHandle *handle, s32 direction, u32 cartAddr, void *dramAddr, s32 size) {
+    u32 status;
+    u32 domain;
+    OSPiHandle *curHandle;
+
+    status = PI_REG(0x10);
+    while (status & 3) {
+        status = PI_REG(0x10);
+    }
+
+    domain = handle->domain;
+    curHandle = D_8000A470[domain];
+    if (curHandle != handle) {
+        if (domain == 0) {
+            if (curHandle->latency != handle->latency) {
+                PI_REG(0x14) = handle->latency;
+            }
+            if (curHandle->pageSize != handle->pageSize) {
+                PI_REG(0x1C) = handle->pageSize;
+            }
+            if (curHandle->relDuration != handle->relDuration) {
+                PI_REG(0x20) = handle->relDuration;
+            }
+            if (curHandle->pulse != handle->pulse) {
+                PI_REG(0x18) = handle->pulse;
+            }
+        } else {
+            if (curHandle->latency != handle->latency) {
+                PI_REG(0x24) = handle->latency;
+            }
+            if (curHandle->pageSize != handle->pageSize) {
+                PI_REG(0x2C) = handle->pageSize;
+            }
+            if (curHandle->relDuration != handle->relDuration) {
+                PI_REG(0x30) = handle->relDuration;
+            }
+            if (curHandle->pulse != handle->pulse) {
+                PI_REG(0x28) = handle->pulse;
+            }
+        }
+        D_8000A470[domain] = handle;
+    }
+
+    PI_REG(0x00) = func_80004B30(dramAddr);
+    PI_REG(0x04) = (handle->baseAddress | cartAddr) & 0x1FFFFFFF;
+
+    if (direction == 0) {
+        PI_REG(0x0C) = size - 1;
+    } else if (direction == 1) {
+        PI_REG(0x08) = size - 1;
+    } else {
+        return -1;
+    }
+
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800052F0);
 #endif
+
+#undef PI_REG
