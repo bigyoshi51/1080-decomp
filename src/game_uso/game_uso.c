@@ -8788,6 +8788,30 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
 
+/* game_uso_func_0000E2D0 — verified structural decode (~30%, LEN-DIFF 33/35;
+ * branch-likely-sense + compiler dead-store tail + FPU operand order cap →
+ * <80 so INCLUDE_ASM build path; struct-typing reference).
+ * void f(int *a0){
+ *   if (*(int*)&D_00000000 != 0) return;           // global gate (D+0)
+ *   short v0 = *(short*)(a0+0xE4);
+ *   if (v0 < 0) return;
+ *   int *p = (int*)a0->0xB4;
+ *   if ((((int*)p->0x800)->0x10 & 0x300) == 0) { *(short*)(a0+0xE4)=-1; return; }
+ *   *(short*)(a0+0xE4) = v0 + 1;
+ *   if (v0 >= a0->0x1CC) return;
+ *   p = (int*)a0->0xB4;
+ *   if (p->0x9A8 & 1) return;
+ *   *(float*)(p+0x31C) += *(float*)(a0+0x1E4);
+ * }
+ * Struct-typing: a0->0xE4 short counter (clamped, set -1 on flag-fail),
+ * a0->0x1CC int bound, a0->0x1E4 float delta, a0->0xB4 object whose
+ * ->0x800->0x10 has flag bits 0x300, ->0x9A8 bit 0x1, ->0x31C accumulator
+ * float. Caps <80: target uses beql (branch-likely) with the -1 store in
+ * the delay slot + an unreachable trailing `a0->0xE4=-1` dead store IDO
+ * emitted + FPU lwc1 operand ordering — not reachable by clean C.
+ * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
+
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E35C);
 
 void game_uso_func_0000E564(int *a0) {
