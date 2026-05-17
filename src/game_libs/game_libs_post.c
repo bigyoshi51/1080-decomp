@@ -6461,6 +6461,29 @@ int gl_func_0004211C(int a0) {
     return gl_func_00000000(gl_func_00000000, a0);
 }
 
+/* gl_func_00042144 - verified structural decode (36-insn br=0
+ * deterministic init; v0-spill + li-encoding divergence -> INCLUDE_ASM
+ * build path; struct-typing reference).
+ *   gl_func_00000000();                            // X1 (no args)
+ *   gl_func_00000000(&D);                          // X2
+ *   r = gl_func_00000000(&D);                      // X3
+ *   gl_func_00000000(0x1F6EC, (u32)r>>10, (u32)r>>10);   // X4
+ *   r = gl_func_00000000(&D);                      // X5
+ *   gl_func_00000000(0x1F704, (u32)r>>10,
+ *                    (u32)*(int*)(&D+40) >> 10);   // X6
+ *   gl_func_00000000(&D);                          // X7
+ *   gl_func_00000000();                            // X8
+ * Struct-typing: an 8-call subsystem init; X3/X5 return values are
+ * right-shifted by 10 (>>0xA, a fixed-point/page scale) and passed with
+ * magic addrs 0x1F6EC / 0x1F704 (region registration) plus a third arg
+ * = *(int*)(&D+40) >> 10. Caps 34/36: target spills X3-ret to sp+28
+ * (frame -32) and reloads it for one of the two >>10 args while keeping
+ * v0 for the other (IDO regalloc spill not reproduced by clean C, which
+ * computes once + reg-copies, frame -24); also IDO li-encodes 0x1F6EC
+ * as `lui 0x2; addiu -0x914` vs GCC `lui 0x1; ori 0xF6EC`. The
+ * spill-divergence changes length (not INSN_PATCH-able). br=0 but the
+ * spill-divergence variant, not the clean-episode subset. INCLUDE_ASM
+ * (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042144);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000421D4);
