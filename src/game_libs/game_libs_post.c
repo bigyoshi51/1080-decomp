@@ -10447,6 +10447,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065060);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065148);
 
+/* gl_func_00065250 — verified structural decode (Vec3-diff + double
+ * struct-copy + call, 33 insns; FPU-load-order + struct-copy sp-slot
+ * allocation diverges from clean C = documented sub-80 struct-copy class
+ * → INCLUDE_ASM build path; struct-typing reference).
+ *   Vec3 d, e, f;
+ *   d = (Vec3){ a1->x - *(float*)(a0+0x324), a1->y - *(float*)(a0+0x328),
+ *               a1->z - *(float*)(a0+0x32C) };   // diff into sp+52
+ *   e = d;                                        // int-copy → sp+68
+ *   f = e;                                        // int-copy → sp+84
+ *   gl_func_00000000((char*)a0 + 0x294, &f);
+ * Struct-typing: a0 has a Vec3 @0x324 (subtrahend) and a target/object
+ * @0x294 (passed to the callee); a1 is a Vec3*. Computes a1 - a0->0x324,
+ * duplicates it twice on the stack, passes the last copy. Caps <80: the
+ * target's specific base-then-a1 lwc1 load interleave + the 3-int struct
+ * assignment lw/sw chain with exact sp-slot (52/68/84) allocation is not
+ * reproduced by Vec3-local C (19/33 first pass). The documented finicky
+ * struct-copy+FP-load-order class — multi-run/permuter, not a clean
+ * vein win. INCLUDE_ASM is the correct build path (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
