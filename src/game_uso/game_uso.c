@@ -3683,7 +3683,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  * Exact still blocked by $s0 allocation / local placement: IDO rejects
  * GCC-style `register int *self asm("$16")`, so the C emit keeps `$a0`
  * live and saves `$ra` at sp+0x14 instead of the target `$s0`/sp+0x20
- * and `$ra`/sp+0x24 prologue. */
+ * and `$ra`/sp+0x24 prologue.
+ *
+ * 2026-05-17 follow-up: promoted the decoded 0x5B2C-0x5CB4
+ * state-limit dispatch plus the two Vec3 transform-call arms into real
+ * C. Rebuilt DNM object and checked objdiff/no-alias output: 9.005%
+ * -> 14.902%, C-emitted body 0x1C0 -> 0x360 bytes. Tried plain
+ * `register int *self`; no score/codegen change, so left it normal. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int *self;
@@ -3692,13 +3698,20 @@ void game_uso_func_0000591C(int *a0) {
     char *helper_ptr;
     char *hit_obj;
     char *hit_parent;
+    Vec3 *vec_result;
     Vec3 staged_axis;
     Vec3 scaled_axis;
     Vec3 mul_axis;
+    Vec3 transform_in;
+    Vec3 transform_out;
+    Vec3 vec_tmp;
+    Vec3 vec_copy;
     char pad[0x170];
     int state_flag;
     int active_state;
     int resolved_state;
+    int transform_flag;
+    float state_limit;
 
     self = a0;
 
@@ -3760,6 +3773,57 @@ void game_uso_func_0000591C(int *a0) {
         }
     } else if (active_state != 1) {
         resolved_state = 0;
+    }
+
+    transform_flag = 0;
+    if (active_state == 1) {
+        active_state = *(int*)((char*)self + 0x2C);
+        if (active_state == 3) {
+            state_limit = *(float*)((char*)self + 0x3FC);
+        } else if (active_state == 2) {
+            state_limit = *(float*)((char*)self + 0x3E4);
+        } else {
+            state_limit = *(float*)((char*)self + 0x3CC);
+        }
+
+        if (state_limit >= 0.0f) {
+            if ((state_flag == 0) && (hit_parent != NULL)
+                    && (*(int*)(hit_parent + 0x84) == 0)) {
+                sub = *(char**)((char*)self + 0x30);
+                if (*(float*)((char*)self + 0xB4) <= *(float*)(sub + 0x348)) {
+                    *(int*)((char*)self + 0x74) = 1;
+                    transform_flag = 1;
+                } else {
+                    *(int*)((char*)self + 0x74) = 0;
+                    resolved_state = 0;
+                }
+            } else {
+                *(int*)((char*)self + 0x74) = 0;
+                resolved_state = 0;
+            }
+        } else {
+            *(int*)((char*)self + 0x74) = 0;
+            resolved_state = 0;
+        }
+    }
+
+    sub = *(char**)((char*)self + 0x30);
+    if (resolved_state == 0) {
+        vec_result = (Vec3*)gl_func_00000000(sub, self, helper_ptr, hit_parent,
+            &staged_axis, &transform_out);
+        vec_tmp = *vec_result;
+        vec_copy = vec_tmp;
+        transform_in.x = vec_copy.x;
+        transform_in.y = vec_copy.y;
+        transform_in.z = vec_copy.z;
+    } else if (resolved_state == 1) {
+        vec_result = (Vec3*)gl_func_00000000(&mul_axis, self, helper_ptr,
+            hit_parent, transform_flag);
+        vec_tmp = *vec_result;
+        vec_copy = vec_tmp;
+        transform_in.x = vec_copy.x;
+        transform_in.y = vec_copy.y;
+        transform_in.z = vec_copy.z;
     }
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
