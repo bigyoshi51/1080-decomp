@@ -117,9 +117,21 @@ int gl_func_0000A130(char *a0) {
     return count;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A194);
+/* game_libs_func_0000A194: 3-insn leaf — return base + a1*8.
+ *   sll t6, a1, 3; jr ra; addu v0, a0, t6 (delay).
+ * Array stride-8 element pointer. Index-as-shift+add via int arith. */
+int game_libs_func_0000A194(int a0, int a1) {
+    int t = a1 << 3;
+    return a0 + t;
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A1A0);
+/* game_libs_func_0000A1A0: 4-insn leaf — return base + a1*8 + 0x18.
+ *   sll t6, a1, 3; addu v0, a0, t6; jr ra; addiu v0, v0, 0x18 (delay).
+ * Same stride-8 element pointer + 0x18 field offset. */
+int game_libs_func_0000A1A0(int a0, int a1) {
+    int t = a1 << 3;
+    return a0 + t + 0x18;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A1B0);
 
