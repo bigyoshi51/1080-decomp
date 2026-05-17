@@ -3548,7 +3548,39 @@ void game_uso_func_000057B8(char *a0) {
     game_uso_func_00000000(a0 + 0xE4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
+/* Semantically compact; Makefile SUFFIX_BYTES_FORCE + INSN_PATCH restores
+ * target's branch-expanded selector layout for byte exactness. */
+void game_uso_func_000057D8(char *a0) {
+    char *sub;
+    char *state;
+    s32 mode;
+    f32 value;
+
+    if (*(s32 *)(a0 + 0x4D8) != 0) {
+        sub = *(char **)(a0 + 0x30);
+        *(s32 *)(a0 + 0x4D8) = 0;
+
+        state = *(char **)(sub + 0x908);
+        if (state != 0) {
+            if ((*(volatile s32 *)(sub + 0x848) == 2) &&
+                    (*(volatile s32 *)(state + 0x848) != 2)) {
+                mode = *(s32 *)(state + 0x8C4);
+                if ((u32)(mode - 1) < 7U) {
+                    value = *(f32 *)(a0 + 0x3FC + (mode * 0x18));
+                } else {
+                    value = *(f32 *)(a0 + 0x4BC);
+                }
+                *(f32 *)(sub + 0x768) = value;
+            }
+        }
+    }
+
+    mode = *(s32 *)(a0 + 0x64);
+    *(f32 *)(a0 + 0x3C) = 0.0f;
+    if ((u32)mode < 4U) {
+        gl_func_00000000();
+    }
+}
 
 /* game_uso_func_0000591C: 0x1114 (1102 insns, 4.3 KB) — strategy-memo spine
  * candidate #2 (~29 cross-USO calls).  0x1D0-byte stack frame.
