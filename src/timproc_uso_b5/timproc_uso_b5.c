@@ -310,7 +310,10 @@ done:
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000478);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000770);
+/* timproc_uso_b5_func_00000770: 2-insn save-arg sentinel.
+ * Body is `jr ra; sw $a0, 0($sp)` — arg spilled to caller's arg-save slot
+ * in delay slot. Same recipe as game_libs_func_0000E044/E050. */
+void timproc_uso_b5_func_00000770(int a0) { (void)a0; }
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000778);
 
