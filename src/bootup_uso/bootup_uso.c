@@ -2414,6 +2414,36 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D900);
 void func_0000DDC4(int a0) {
 }
 
+/* func_0000DDCC - verified structural decode (0x138, 78 insns).
+ * NEAR-SIBLING of func_0000DF04 / func_0000E014 (same Vec3
+ * fetch-and-store fan-out + s0 struct); variant: a leading state
+ * switch on s0->0x8C4.
+ *   void func_0000DDCC(St *s0) {
+ *       u32 st = s0->0x8C4;
+ *       if (st == 7 || st == 6) {                 // early states
+ *           func_00000000(s0);                    // delegate
+ *           return;
+ *       }
+ *       if (s0->0xA58 & 0x80) {
+ *           v = fetch(&D, 0xE);  *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;
+ *           v = fetch(&D, 0xF);  *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
+ *       } else {
+ *           v = fetch(&D, 0xA);  *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;
+ *           v = fetch(&D, 0xB);  *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
+ *       }
+ *       v = fetch(&D, 0xC);  *(Vec3i*)s0->0x8FC = *(Vec3i*)v;
+ *   }
+ * Struct-typing reference: same layout as func_0000DF04/E014 -
+ * s0->0xA58 (2648) u32 flags bit 7 (0x80) selector; s0->0x8F4
+ * (2292) / 0x8F8 (2296) / 0x8FC (2300) Vec3i dest pointers (3x int
+ * @ +0/+4/+8). NEW: s0->0x8C4 (2244) s32 state - values 6/7 take
+ * an early func_00000000(s0) delegate-and-return; other states run
+ * the fan-out with id pair 0xE/0xF (flag set) or 0xA/0xB (clear)
+ * plus final id 0xC. fetch = func_00000000(&D, id) -> Vec3i src.
+ * Caps <80: state switch (beq/bnel) + flag branch + 3-5
+ * func_00000000 reloc + &D reloc + per-slot 3-word struct copies.
+ * Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DDCC);
 
 /* func_0000DF04 - verified structural decode (0x110, 68 insns,
