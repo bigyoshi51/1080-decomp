@@ -2151,6 +2151,42 @@ void func_000080EC(char *a0) {
     func_00000000(a0);
 }
 
+/* func_00008124 - verified structural decode (0x1D4, 117 insns).
+ * NEAR-SIBLING of func_0001438C / func_000084A0 (bootup_uso
+ * get-or-create constructor + child sub-objects family); variant
+ * params: object 0x90, init datum D_00007878, child descriptor
+ * D_00007FC4, child type D_00007540, child->0x10 = 200.0f
+ * (0x43480000), and FP/&D constants from D_00007FCC/0x7FD0.
+ *   void *func_00008124(void *a0) {
+ *       o = a0 ? a0 : alloc(0x90); if (!o) return 0;
+ *       init(o, &D_00007878);
+ *       o->0x28 = &D_desc;
+ *       s = alloc(0x38);
+ *       c = alloc(8);                              // defensive arm
+ *       if (c) { c->0x0 = &D_00007FC4; c->0x4 = 0; }
+ *       v = *(int*)&D_00007FCC;
+ *       if (s != (void*)-8) {
+ *           c2 = alloc(0x18);
+ *           if (c2) {
+ *               init2(c2, s, v, 1);                // func_00000000
+ *               c2->0xC  = &D_00007540;            // type/vtable
+ *               c2->0x14 = 0;
+ *               c2->0x10 = 200.0f;                 // 0x43480000
+ *           }
+ *       }
+ *       ... (further child from D_00007FD0, same family shape)
+ *   }
+ * Struct-typing reference (same as func_0001438C): o = 0x90-byte
+ * object, o->0x28 (40) descriptor (&D_00007878). s = 0x38-byte
+ * sub; c = 8-byte aux (c->0x0 = &D_00007FC4 descriptor, c->0x4=0);
+ * c2 = 0x18-byte child: c2->0xC (12) type ptr (&D_00007540),
+ * c2->0x10 (16) f32 = 200.0, c2->0x14 (20) = 0. The s != -0x3C /
+ * -0x8 tests are defensive impossible-pointer guards. D_00007FCC /
+ * D_00007FD0 = global init values feeding the children. Caps <80:
+ * get-or-create + alloc-cascade (~6 reloc) + defensive-dead
+ * guards + &D descriptors + FP-200 const. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
 
 #ifdef NON_MATCHING
