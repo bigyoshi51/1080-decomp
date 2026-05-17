@@ -975,7 +975,45 @@ void func_800010C0(s32 a0, s32 a1) {
 void func_800010CC(s32 a0, ...) {
 }
 
+extern s32 D_8000A34C;
+extern s32 D_8000A35C;
+extern s32 D_8000A2A0;
+extern s32 D_80012D30;
+
+#ifdef NON_MATCHING
+/* Logic-correct decode of the D_80012BC0+0x84 logger-dump family
+ * (SIBLING of func_800007D4 / func_8000085C). Hits func_800007D4's
+ * exact documented -O1 cap (see its NM comment, "state isn't getting
+ * $s-promoted ... build inlines lui+lw per iter; target uses
+ * lw 0x84(s2) with s2=state"): my build emits lui+lw of the absolute
+ * D_80012BC0 address per call and allocates 4 s-saves (s0/s1/s2/s3,
+ * frame -0x28) while the target keeps state in s2, reloads
+ * lw t9,0x84(s2), and uses 5 s-saves (s0-s4, frame -0x30) with s4
+ * holding `end` (&D_80012D5C). The state-pointer CSE/promotion is an
+ * IDO -O1 codegen choice not reachable from C source (same as the
+ * sibling). Logic verified correct vs asm.
+ * Struct-typing: prints &D_8000A34C with arg D_80012D5C once, then
+ * walks parallel s32 tables D_80012D30[] (values) and D_8000A2A0[]
+ * (values), 11 entries (D_80012D30..D_80012D5C), calling the
+ * UsoCallbacks84.field_84 logger(&D_8000A35C, D_8000A2A0[i],
+ * D_80012D30[i]) per entry. */
+void func_800010E8(void) {
+    register s32 *p0 = &D_80012D30;
+    register s32 *p1 = &D_8000A2A0;
+    register UsoCallbacks84 *state = (UsoCallbacks84*)&D_80012BC0;
+    register void *fmt2 = &D_8000A35C;
+    register s32 *end = &D_80012D5C;
+
+    (*(void (**)())((char*)state + 0x84))(&D_8000A34C, D_80012D5C);
+    do {
+        (*(void (**)())((char*)state + 0x84))(fmt2, *p1, *p0);
+        p0++;
+        p1++;
+    } while (p0 != end);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800010E8);
+#endif
 
 extern s32 D_80012D30;
 extern s32 D_80012D34;
