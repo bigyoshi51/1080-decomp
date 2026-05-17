@@ -235,6 +235,43 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80009314);
 
 /* func_80009474 split out to kernel_054.c (-O1, NON_MATCHING) */
 
+/* func_80009584 - verified structural decode (kernel, 0x118, rmon
+ * debug command handler). SIBLING of the rmon family (calls
+ * __rmonSendHeader; cf. func_8000798C / func_80007A98 / RmonMsg).
+ *   s32 func_80009584(RmonMsg *s0) {
+ *       if (func_80008430() == 0) return -4;     // precondition
+ *       hdr.type   = s0->0xC;                     // sp+0x30 struct
+ *       hdr.field  = 0x210;
+ *       hdr.flags  = 0;
+ *       hdr.domain = s0->0x4;
+ *       buf[ ] @ sp+0x244; bufptr=&buf; cnt=0;
+ *       n = func_800066F0(bufptr + cnt, 4 - cnt, 8);  // read
+ *       cnt += n;
+ *       if (cnt >= 4) {
+ *           __rmonSendHeader(&hdr, 0x10, 1);
+ *           func_80009148(1);
+ *           for (i = 0; i < 0x20; i++) {
+ *               func_800090B4(0x3A, i);
+ *               func_80008498();
+ *               func_800074A0(0x04000000, 0x10);
+ *           }
+ *       }
+ *       func_800091F0(1);
+ *       return 0;
+ *   }
+ * Struct-typing reference: s0 = RmonMsg (same layout as the
+ * func_8000798C family) - s0->0x4 (4) u8 domain, s0->0xC (12) type;
+ * stack rmon header at sp+0x30 {type@+0xC i.e. hdr+0, 0x210 const,
+ * domain byte, flags u16}. func_800066F0(dst, maxlen, chunk) =
+ * bounded read returning bytes read; needs >=4 to proceed.
+ * __rmonSendHeader(hdr, len=0x10, flag=1) = the shared rmon emit.
+ * The 0x20-iteration loop (func_800090B4(0x3A,i) build +
+ * func_80008498 + func_800074A0(0x04000000=PI/cart, 0x10) IO)
+ * streams 32 records; func_80009148(1)/func_800091F0(1) = bracket
+ * begin/end. Caps <80: rmon stack-struct builder + bounded-read +
+ * 32x callee loop + 8 distinct callees. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009584);
 
 /* func_8000969C split out to kernel_054.c (-O1, NON_MATCHING) */
