@@ -8141,7 +8141,26 @@ int game_uso_func_0000D74C(char *a0) {
     return result;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
+/* Conditional fall-below-floor update. C-only emit is 43/45 insns; target's
+ * third gl_func call uses the same vararg-spill table-call shape as D8A8/FABC
+ * (`sw a1, 4(sp)` / `sw a2, 8(sp)` before `jal`). Two C variants tried:
+ * direct D+offset derefs and named table/x/y locals, both stayed capped.
+ * Makefile INSN_PATCH + SUFFIX_BYTES_FORCE promote the target-only call
+ * sequence/epilogue bytes. */
+void game_uso_func_0000D7F4(char *a0) {
+    int *data = *(int**)(a0 + 0xB4);
+    int *table;
+    if (*(float*)((char*)data + 0xA38) < -20.0f) {
+        if (*(int*)((char*)data + 0x938) != 0) {
+            gl_func_00000000(a0, 1, 2);
+            gl_func_00000000(a0, *(int*)(a0 + 0xFC) | 0x16, 0, 1, 1, 1);
+            table = (int*)((char*)&D_00000000 + 0xE90);
+            gl_func_00000000(a0, table[0], table[1], 1);
+            gl_func_00000000(a0);
+            *(int*)(a0 + 0x114) = 0;
+        }
+    }
+}
 
 /* game_uso_func_0000D8A8: 17-insn conditional 3-call wrapper.
  * Body: t6 = a0->[0xB4]; if (t6->[0x990] != 0) gl_func(a0, *(D+0xE70), *(D+0xE74));
