@@ -311,34 +311,30 @@ void gl_func_0000AB70(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000ABBC);
 
-#ifdef NON_MATCHING
-/* gl_func_0000ACBC: 25-insn process-all-0x60-slots loop. Calls
- * gl_func_00000000(a0) for each of 0x60 entries (0x20-byte stride),
- * counting non-zero returns in a sum (* 0x20 per hit). Returns the
- * iter count (= 0x60).
- *
- * Cap: 80% match. Target uses 4 saved regs ($s0=hit_sum, $s1=ptr,
- * $s2=iter, $s3=0x60_limit). My emit folds 0x60 to a literal `addiu v0,
- * 0, 0x60` instead of `or v0, s2, 0` — IDO -O2 constant-prop kills
- * the variable form. Same class as
- * docs/IDO_CODEGEN.md#feedback-ido-register-keyword-doesnt-block-constant-fold.
- * Target was compiled with 0x60 from a non-const source (extern, #define
- * via macro, or arg) — unreachable from constant C. */
+/* gl_func_0000ACBC: 25-insn 3-iter loop, sibling of gl_func_0000A0CC.
+ * Calls func_00000000 (NOTE: not gl_-prefixed — target's reloc references
+ * the intra-segment `func_00000000` symbol, not `gl_func_00000000`).
+ * Returns non-zero hit count. Source structurally identical to A0CC;
+ * stride/limit immediates differ (0x20/0x60 vs 0x8/0x18) and callee
+ * reloc name. Byte-exact via sibling INSN_PATCH transfer logic. */
+extern int func_00000000();
 int gl_func_0000ACBC(char *a0) {
-    int hit_total = 0;
-    int iter = 0;
-    while (iter != 0x60) {
-        if (gl_func_00000000(a0) != 0) {
-            hit_total += 0x20;
-        }
-        iter++;
-        a0 += 0x20;
-    }
-    return iter;
+    char *p;
+    int count;
+    int i;
+    int limit;
+    count = 0;
+    i = 0;
+    p = a0;
+    limit = 0x60;
+    do {
+        int r = func_00000000(p);
+        i += 0x20;
+        if (r != 0) count += 1;
+        p += 0x20;
+    } while (i != limit);
+    return count;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000ACBC);
-#endif
 
 char *game_libs_func_0000AD20(char *a0, int a1) {
     int off = a1 * 0x20;
