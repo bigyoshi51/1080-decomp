@@ -8831,6 +8831,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF20);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF70);
 
+/* game_uso_func_0000F060: 55-insn flag-dispatch (EE84-family-ish, 5 calls).
+ *   X(a0); a0->0xF4=0; v=a0->0xB4; p=v->0x800;
+ *   if (v->0x938 && !((p->0x10&0x100) && !(p->0x10&0x200))) { X(a0); return; }
+ *   X(a0,0x10011,0,0,256,a0->0x16C); X(a0,D[0xEB0],D[0xEB4],-1);
+ *   a0->0xE6=0; a0->0xE4++; X(a0->0xB4+0x808);
+ * beql-chain flag logic; USO call->func_00000000, data->&D+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
