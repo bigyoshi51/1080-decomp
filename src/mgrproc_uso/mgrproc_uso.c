@@ -428,8 +428,44 @@ void mgrproc_uso_func_000009A8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000009A8);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00000A14: 48-insn -O0 aggregator.
+ *   total = func(*a0);
+ *   func(*a0, buf);     // buf @ sp+0x30, 8-int
+ *   sum = 0;
+ *   for (i = 0; i < total; i++) sum |= func(buf[i]);
+ *   *a1 = buf[0];
+ *   return sum;
+ *
+ * -O0 tells in target:
+ *   (a) sw a0/a1 to caller arg slots (sp+0x50/0x54), reload via $tN per use
+ *   (b) unfilled jal delay slots
+ *   (c) sp+0x28 sum, sp+0x24 i, sp+0x2C total — all on stack (no $s reg)
+ *   (d) trailing `b +1; nop` BBL marker before epilogue
+ *
+ * BLOCKED for byte match: mgrproc_uso is Yay0-compressed
+ * (feedback_uso_yay0_compressed.md). -O0 file-split recipe used by
+ * bootup_uso/arcproc_uso doesn't apply because Yay0 consumes one .o.
+ * Wrap captures semantics for grep + future PC-port reference. */
+extern int func_00000000();
+int mgrproc_uso_func_00000A14(int **a0, int *a1) {
+    int buf[8];
+    int sum;
+    int total;
+    int i;
+    sum = 0;
+    total = func_00000000(*a0);
+    func_00000000(*a0, buf);
+    for (i = 0; i < total; i++) {
+        sum |= func_00000000(buf[i]);
+    }
+    *a1 = buf[0];
+    return sum;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000A14);
 #pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00000A14_pad.s")
+#endif
 
 void mgrproc_uso_func_00000AE0(void) {
     gl_func_00000000(*(int*)(&D_00000000 + 0x30));
