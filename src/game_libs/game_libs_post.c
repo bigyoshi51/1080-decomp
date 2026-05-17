@@ -5122,26 +5122,33 @@ void gl_func_0003E840(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E868);
 
 #ifdef NON_MATCHING
-/* 87.28% NM. gl_func_0003E904: 25-insn link-back wrapper.
+/* 87.52% NM. gl_func_0003E904: 25-insn link-back wrapper.
  *   a1->[0x30] = a0->[0x2C];
- *   a0->[0x1C] = a1;
+ *   a0->[0x2C] = a1;          // 2026-05-17 corrected: was wrongly decoded as a0->[0x1C]
  *   func(&a0->[0x10], a1, a2);
- *   if (a1->[0x14] != 0) a1[1] = 1;   // (was misdocumented as a0[1]; target asm shows a1)
+ *   if (a1->[0x14] != 0) a1[1] = 1;
  *   a1->[0x14] = a0;
- *   a1->[0x44] = a2;   // 2026-05-16: corrected from a0->[0x44]
- *                      // (target idx20 `sw t9,68(a1)`, 87.28->87.48)
+ *   a1->[0x44] = a2;
  *
- * Cap (2026-05-16): built 26 insns vs target 25 — 1 extra insn from
- * IDO's separate `addiu a0,a0,0x10` for the func arg setup. Target
- * defers that addiu into the jal-delay slot, saving 1 insn. C-level
- * reorder + ptr-local both tested — IDO doesn't schedule the addiu
- * into the delay slot when a store-via-original-a0 immediately
- * precedes the call. INSN_PATCH blocked by 1-insn size delta (still 26 vs 25 after the
- * a1->[0x44] correction; the addiu-into-jal-delay deferral is not
- * C-forceable per the tested reorder/ptr-local negatives). */
+ * 2026-05-17 offset fix: prior wrap had `a0->[0x1C] = a1` but target
+ * asm shows `sw a1, 0x1C(a0)` AFTER `addiu a0, a0, 0x10`, so the
+ * effective address is orig_a0 + 0x10 + 0x1C = orig_a0 + 0x2C. The
+ * pre-existing C `a0[0x1C/4] = a1` was decoded against orig_a0 (giving
+ * effective +0x1C). Correct decode is +0x2C. Built bytes for the sw
+ * now match target's offset exactly. % went 87.28→87.52.
+ *
+ * Cap (still 26 vs 25 insns): built spills a1 BEFORE jal then fills
+ * the delay slot with a2 reload; target leaves the pre-jal slot empty
+ * and uses the delay slot to spill a1 (then reloads a2 later into t9).
+ * The reload-target-register choice ($a2 vs $t9) and the delay-slot
+ * fill selection are IDO scheduler decisions tied to live-range
+ * analysis. Tested 2026-05-17: snapshot local `int sa2 = a2` doesn't
+ * change scheduler choice; moving `a1[0x44] = a2` before the call
+ * REGRESSES (built shorter than target by 2 insns, target's t9 chain
+ * vanishes entirely). PERMUTER/structural — deferred. */
 void gl_func_0003E904(int *a0, int *a1, int a2) {
     a1[0x30/4] = a0[0x2C/4];
-    a0[0x1C/4] = (int)a1;
+    a0[0x2C/4] = (int)a1;
     func_00000000((char*)a0 + 0x10, a1, a2);
     if (a1[0x14/4] != 0) {
         a1[1] = 1;
