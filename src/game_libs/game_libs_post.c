@@ -4813,8 +4813,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DD28);
  * write-only-sp+0 + direct-sp-offset form (cf.
  * docs/PATTERNS.md#feedback-typed-stack-struct-for-direct-sp-stores) —
  * documented hard stack-forcing class; permuter/multi-tick. objdiff
- * can't score (new sym, expected/ baseline pre-merge stale). */
+ * can't score (new sym, expected/ baseline pre-merge stale).
+ * C body present (under NON_MATCHING) as the permuter seed — build
+ * path stays INCLUDE_ASM via #else. */
+#ifdef NON_MATCHING
+int game_libs_func_0003DDC0(int *a0, int *a1, float *a2) {
+    int *cell, *next4, *v1, *v0 = 0;
+    int *t6 = (int *)a0[0x10 / 4];
+    next4 = t6;
+    if (t6 != 0) {
+        cell = t6;
+        next4 = (int *)t6[1];
+        v0 = (int *)t6[0];
+    }
+    (void)cell;
+    if (v0 == 0) {
+        return 0;
+    }
+    v1 = v0;
+loop:
+    if (v1 == a1) {
+        a2[0] = *(float *)((char *)v1 + 0x5C);
+        a2[1] = *(float *)((char *)v1 + 0x60);
+        a2[2] = *(float *)((char *)v1 + 0x64);
+        return 1;
+    }
+    {
+        int *t0 = next4;
+        if (t0 == 0) {
+            v0 = 0;
+        } else {
+            cell = t0;
+            next4 = (int *)t0[1];
+            v0 = (int *)t0[0];
+        }
+    }
+    v1 = v0;
+    if (v0 != 0) {
+        goto loop;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DDC0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DE48);
 
