@@ -8807,7 +8807,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
 
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EDCC);
+void game_uso_func_0000EDCC(int *a0, int a1) {
+    a0[0x10C / 4] = a1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EDD4);
 
