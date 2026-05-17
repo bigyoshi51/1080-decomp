@@ -26,6 +26,43 @@ int func_00013980(float *a0) {
     return 0;
 }
 
+/* func_000139B0 - verified structural decode (0x170, 92 insns,
+ * 2D grid reset + random scatter).
+ *   void func_000139B0(St *s1, int a1, int a2) {
+ *       s1->0x68 = a2;
+ *       if (a2 == 0) { s1->0x6C = 1; s1->0x70 = 3; }
+ *       else         { s1->0x6C = 0; }
+ *       if (a1 == s1->0x40) return;
+ *       s1->0x40 = a1;
+ *       s1->0x44 = 4;
+ *       s1->0x74 = 0;
+ *       for (r = 0; r < s1->0x60; r++)            // clear grid
+ *           for (c = 0; c < s1->0x5C; c++)
+ *               ((f32*)s1->0x58)[c] = 0.0f;
+ *       for (k = 0; k < 5; k++) {                 // scatter 5 pts
+ *           x = (int)(rand01() * 32.0f);
+ *           y = (int)(rand01() * 32.0f);
+ *           v =       rand01() * D_00000C64;
+ *           *(f32*)((char*)s1->0x58 + x*4 + (y << 7)) = v;
+ *       }
+ *       func_00000000(s1);                        // finalize
+ *       s1->0x48 = 0.0f;
+ *   }
+ * (rand01 = func_00000000() with no args -> f0, a 0..1 RNG.)
+ * Struct-typing reference: s1->0x58 (88) = base ptr of a 2D f32
+ * grid, s1->0x5C (92) s32 columns, s1->0x60 (96) s32 rows (row
+ * stride = 128 bytes = 0x80, i.e. 32 f32 cells/row given the
+ * y<<7 index). s1->0x40 (64) s32 = current key/seed (skip if
+ * unchanged), s1->0x44 (68) = 4 (state), s1->0x48 (72) f32 = 0.0
+ * (reset accumulator), s1->0x68 (104) = a2 (mode), s1->0x6C (108)
+ * / s1->0x70 (112) = mode-derived flags (1/3 when a2==0, else
+ * 0), s1->0x74 (116) = 0. D_00000C64 = f32 value-scale for the
+ * scattered amplitude. Looks like a randomized snow/terrain
+ * height-field seed. Caps <80: FP-heavy mul.s/trunc.w.s +
+ * f20/f22/f24 sdc1/ldc1 double-saves + D_00000C64 reloc + 3x
+ * func_00000000 RNG calls + nested clear loop + bnel
+ * branch-likely. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000139B0);
 
 /* func_00013B20 - verified structural decode (0x144, 84 insns,
