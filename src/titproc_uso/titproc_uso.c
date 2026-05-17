@@ -429,6 +429,40 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000116
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F4);
 
+/* titproc_uso_func_000016B8 — verified decode, 22/22 ops byte-identical, pure
+ * $t-regalloc divergence (15 insns differ ONLY in register number; opcodes,
+ * branch targets, bnel-likely pattern all exact). a0->0x2C +/-6 toggle with
+ * threshold-wrap on a0->0x30, branch selected by a0->0x30==0. IDO coalesces
+ * the load/+6 into v0; target uses distinct $t7/$t8 — structural C rewrites
+ * (combined vs split load/add, both tried) can't reorder IDO's leaf allocator.
+ * Clean decomp-permuter target (pure $t shuffle — NOT the structural cap class
+ * the 0/6 fleet concluded on; that conclusion does not apply here). The .s also
+ * carries 2 trailing unreachable orphan words (lui at,0x3f80; mtc1 $f16 @ USO
+ * 0x1710/0x1714) between this fn's jr and the cleanly-prologued func_00001718
+ * — a SUFFIX_BYTES recipe candidate once the 22-insn body matches. Build path
+ * stays INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void titproc_uso_func_000016B8(int *a0) {
+    if (a0[0x30 / 4] == 0) {
+        int t7 = a0[0x2C / 4];
+        int t8 = t7 + 6;
+        a0[0x2C / 4] = t8;
+        if (t8 >= 250) {
+            a0[0x30 / 4] ^= 1;
+        }
+    } else {
+        int t2 = a0[0x2C / 4];
+        int t3 = t2 - 6;
+        a0[0x2C / 4] = t3;
+        if (t3 < 65) {
+            a0[0x30 / 4] ^= 1;
+        }
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000016B8);
+#endif
+
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001718);
 
 /* titproc_uso_func_00001840: 68-insn (0x110) 2-cascade constructor with
