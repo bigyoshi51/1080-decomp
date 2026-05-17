@@ -1566,6 +1566,36 @@ void func_00005EF8(int *dst) {
     *dst = buf[0];
 }
 
+/* func_00005F34 - verified structural decode (0x1CC, 115 insns,
+ * 3-element list builder + back-link). Same builder+link family
+ * as func_00003638 / func_000038C0.
+ *   void func_00005F34(int a0, int a1, int a2, int a3) {
+ *       s1 = func_00000000(0, &D_00007E6C, 0);    // container
+ *       list = (char*)s1 + 0x10;
+ *       // element 0 from a1, angle 0x5A (90):
+ *       r = func_00000000(0, a1, 0, 0, 0);
+ *       e = func_00000000(list, r);
+ *       if (e->0x14 == 0) { e->0x4 = 1; e->0x14 = s1; }
+ *       // element 1 from a2, angle 0xB4 (180):
+ *       r = func_00000000(0, a2, 0, 0, 0);
+ *       e = func_00000000(list, r);
+ *       if (e->0x14 == 0) { e->0x4 = 1; e->0x14 = s1; }
+ *       // element 2 from a3, angle 0x10E (270):
+ *       r = func_00000000(0, a3, 0, 0, 0);
+ *       e = func_00000000(list, r);
+ *       if (e->0x14 == 0) { e->0x4 = 1; e->0x14 = s1; }
+ *   }
+ * Struct-typing reference: s1 = a container object built from
+ * D_00007E6C; s1+0x10 (16) = its child list/attach point. Each
+ * element built from a1/a2/a3 (arg payloads) via the tagged
+ * func_00000000 builder, attached to the list, then back-linked:
+ * elem->0x14 (20) = owner (s1, 0 = unlinked), elem->0x4 (4) = 1
+ * (linked flag). The a3 register carries an angle/index constant
+ * 0x5A / 0xB4 / 0x10E (90/180/270 deg) per element - a 3-way
+ * radial placement (e.g. a podium / multi-slot layout). Caps <80:
+ * ~9 func_00000000 reloc + &D + beql back-link guards + spilled
+ * arg shuffling. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005F34);
 
 void func_00006100(float *dst) {
