@@ -488,7 +488,6 @@ end:
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
 
-#ifdef NON_MATCHING
 /* titproc_uso_func_00001B10: 42-insn (0xA8) 3-stage chained alloc-cascade.
  * Same shape as eddproc_uso_func_0000025C and timproc_uso_b5_func_00000058
  * — gets/allocs primary obj (size 0x40), then init-call into +0x4EC
@@ -504,32 +503,33 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000195
  * `if (p2 != 0) { ... }` inner-guard (target falls through to body with
  * p2 = 0 when p2-alloc fails; the body uses *p2 only inside the
  * conditional). Combined with goto-end form for p1-alloc-fail. Pushed
- * 51.93% → 73.40% (+21.47pp). Remaining caps: target has a redundant
- * `bne a2, 0` check that suggests original C had `if (p1 != 0) { ... }`
- * around the p2-init body, and p2 holds in $a3 (target) vs $a3/$a0
- * cascade (built). */
-void *titproc_uso_func_00001B10(void *a0, void *a1) {
-    void *p1;
-    void *p2;
-    p1 = a0;
-    if (p1 == 0) p1 = (void*)gl_func_00000000(0x40);
-    if (p1 == 0) goto end;
-    p2 = a1;
-    if (p2 == 0) p2 = (void*)gl_func_00000000(0x2C);
-    if (p2 != 0) {
-        gl_func_00000000(p2, (char*)&D_00000000 + 0x4EC);
-        *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
+ * 51.93% -> 73.40% (+21.47pp) C-only fuzzy.
+ *
+ * 2026-05-17: matched the dead-arm constructor shape used by sibling
+ * 0x1D7C: the secondary alloc is unreachable after the primary non-null
+ * guard, and the final dispatch is one-argument. */
+void *titproc_uso_func_00001B10(void *a0) {
+    char *base = &D_00000000;
+    void *self = a0;
+    if (self == 0) {
+        self = (void*)gl_func_00000000(0x40);
+        if (self == 0) goto end;
     }
-    *(int*)((char*)p1 + 0x28) = (int)((char*)&D_00000000 + 0x4F4);
-    *(int*)((char*)p1 + 0xC)  = (int)((char*)&D_00000000 + 0x4F4);
-    gl_func_00000000(p1, p2);
-    *(int*)((char*)p1 + 0x3C) = 0;
+    a0 = self;
+    if (self == 0) {
+        a0 = (void*)gl_func_00000000(0x2C);
+        if (a0 == 0) goto init_self;
+    }
+    gl_func_00000000(a0, base + 0x4EC);
+    *(int*)((char*)a0 + 0x28) = (int)base;
+init_self:
+    *(int*)((char*)self + 0x28) = (int)base;
+    *(int*)((char*)self + 0xC) = (int)(base + 0x4F4);
+    gl_func_00000000(self);
+    *(int*)((char*)self + 0x3C) = 0;
 end:
-    return p1;
+    return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
-#endif
 
 /* titproc_uso_func_00001BB8: 42-insn dual-state-bracket helper. Two
  * gl_func dispatches with asymmetric inner-D[0] gates.
