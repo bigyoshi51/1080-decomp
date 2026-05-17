@@ -9732,6 +9732,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001094C);
 
+/* game_uso_func_00010A0C: 47-insn EE84-family, 2 bnel/bne-gated D-pairs.
+ *   s0=a0; p=s0->0xB4; X(a0,0x20004,0x20005,p->0x970,0,1);
+ *   p=s0->0xB4; if(p->0x990==0){ X(s0,D[0xE48],D[0xE4C]); p=s0->0xB4; }
+ *   t2=p->0x9CC; if(t2==0) X(s0,D[0xE70],D[0xE74]); X(s0); X(s0);
+ * bnel: ==0 path calls X2 then reloads; !=0 path takes t2 in delay.
+ * USO: call -> func_00000000, data -> &D_00000000+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010A0C);
 
 #ifdef NON_MATCHING
