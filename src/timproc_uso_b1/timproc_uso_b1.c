@@ -631,7 +631,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * Remaining 10 mismatches are two permuter-immune IDO codegen caps:
  *  (a) 0x64,0xB8: `addu base,idx*0x28` — IDO canonicalizes commutative plus to
  *      `addu v1,v0,t7` (base,offset); GCC emits `addu v1,t7,v0` regardless of
- *      char*/int* expression shape (tried both).
+ *      char-cast vs int-cast expression shape (tried both).
  *  (b) 0x90-0xA8,0xBC: the two D_00000000-relative stores (0x208/0x20C) — IDO
  *      re-materializes `lui at` per absolute store; GCC CSEs the &D base into
  *      one pseudo and reuses it, cascading the v0/v1 free-reg pick.
