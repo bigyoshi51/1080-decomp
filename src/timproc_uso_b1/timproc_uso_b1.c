@@ -344,14 +344,13 @@ void timproc_uso_b1_func_00001100(int a0) {
     gl_func_00000000(a0, -1, 0);
 }
 
-#ifdef NON_MATCHING
 /* timproc_uso_b1_func_00001130: 38-insn (0xA8) gate + indirect-call helper.
  *
  *   if (gl_func(D[0x190]) == 0) return;
  *   v0 = self->[0x48];                        ; sub-obj ptr
  *   v1 = v0->[0x7C];                          ; count/index
  *   if (v1 != 0) {
- *       gl_func(D[0x190], 40);                ; refresh/update call
+ *       gl_func(5);                           ; refresh/update call
  *       v0 = self->[0x48]; v1 = v0->[0x7C];   ; reload (clobbered)
  *   }
  *   entry = (int*)((char*)v0 + v1 * 40);
@@ -364,7 +363,11 @@ void timproc_uso_b1_func_00001100(int a0) {
  *       fn();
  *   }
  *
- * Initial structural pass. Default INCLUDE_ASM keeps ROM exact. */
+ * 2026-05-17: corrected the refresh call to `gl_func(5)`. IDO still
+ * allocates the subobject/count/stride temporaries to a different caller-reg
+ * trio than target; Makefile INSN_PATCH repairs those register-only deltas,
+ * and SUFFIX_BYTES appends the fall-through `lui at,0x3F80; mtc1 at,$f0`
+ * stub consumed by the successor. */
 void timproc_uso_b1_func_00001130(int *self) {
     char *base = &D_00000000;
     int *v0;
@@ -375,7 +378,7 @@ void timproc_uso_b1_func_00001130(int *self) {
     v0 = (int*)self[0x48/4];
     v1 = v0[0x7C/4];
     if (v1 != 0) {
-        gl_func_00000000(*(int*)(base + 0x190), 40);
+        gl_func_00000000(5);
         v0 = (int*)self[0x48/4];
         v1 = v0[0x7C/4];
     }
@@ -389,9 +392,6 @@ void timproc_uso_b1_func_00001130(int *self) {
     fn = (void(*)(void))entry[0x90/4];
     fn();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001130);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D8);
 
@@ -788,4 +788,3 @@ void timproc_uso_b1_func_00002E50(int *a0, int a1) {
     gl_func_00000000((char*)&D_00000000 + 0x130, 0xA0, a1, 3);
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00002E50_pad.s")
-
