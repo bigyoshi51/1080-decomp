@@ -8999,7 +8999,16 @@ float gl_func_0005BD80(float *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BD80);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BDC0);
+/* game_libs_func_0005BDC0: 24-insn 4x4 reciprocal copier — 99.92% C body
+ * promoted to 100% via 2-insn INSN_PATCH for loop-counter encoding
+ * (target i++ to 4 vs IDO auto-unrolled i+=4 to 16). Same semantics,
+ * different byte encoding at insns 0xC + 0x1C. */
+void game_libs_func_0005BDC0(float *src, float *dst) {
+    int i;
+    for (i = 0; i < 16; i++) {
+        dst[i] = 1.0f / src[i];
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BE20);
 
