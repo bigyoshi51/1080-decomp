@@ -750,6 +750,21 @@ void arcproc_uso_func_00001B04(int *arg) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001B04);
 #endif
 
+/* arcproc_uso_func_00001BBC: 46-insn declared (0xB8) but the REAL function
+ * is 0xB0 / 44 insns — it ends jr-ra+nop at 0x1C64/0x1C68. The trailing 2
+ * words @0x1C6C/0x1C70 (`lui at,0x3f80; mtc1 at,$f0` = f0=1.0f) are the
+ * STOLEN PROLOGUE of the successor arcproc_uso_func_00001C74 (which reads
+ * $f0 uninitialized at its +0xC `swc1 f0,72(sp)`). FPU variant of the
+ * docs/MATCHING_WORKFLOW forward-merge stolen-leading-insn pattern.
+ * BOUNDARY FIX DEFERRED (unsafe to forward-merge here): 1C74 is
+ * clone-canonical — referenced by timproc_uso_b1/b3 byte-identical-clone
+ * stubs (sig 739fd8d1d3) — so renaming/merging it breaks those
+ * cross-segment refs. Both are #else INCLUDE_ASM so the linked ROM is
+ * already correct (bytes laid contiguously; runtime f0=1.0 precedes
+ * 0x1C74). Proper decomp fix = SUFFIX_BYTES(1BBC += 0x3C013F80,0x44810000)
+ * + PROLOGUE_STEALS(1C74=8) pair — multi-tick infra, NOT a clean decode.
+ * Body itself is FPU-heavy (bc1fl ×3, sub.s, c.lt.s/c.le.s) — decode the
+ * 0xB0 region only when tackling the SUFFIX/PROLOGUE pair. */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001BBC);
 
 #ifdef NON_MATCHING
