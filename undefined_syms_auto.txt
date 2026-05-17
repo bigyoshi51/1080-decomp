@@ -1103,3 +1103,4 @@ gl_pi_rdLen = 0x00000000;
 gl_pi_wrLen = 0x00000000;
 D_6F634_state = 0x00000000;
 D_6F634_flag = 0x00000000;
+D_2A014_table = 0x00000000;
