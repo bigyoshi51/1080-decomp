@@ -12145,7 +12145,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3BC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3E4);
 
+#ifdef NON_MATCHING
+/* gl_func_0006F534: 56-insn game_libs USO version of osSetThreadPri.
+ * Same C body shape as kernel func_80006110 (which IS osSetThreadPri),
+ * just with all OS-API calls funneled through gl_func_0001CA10 and
+ * two distinct D_ aliases playing the role of __osRunningThread + __osRunQueue.
+ *
+ * Decoded structure (per imm-masked sibling match with func_80006110):
+ *   sr = gl_func_0001CA10();   // osDisableInt
+ *   if (thread == 0) thread = D_run;
+ *   if (thread->pri != pri) {
+ *       thread->pri = pri;
+ *       if (thread != D_run && thread->state != 1) {
+ *           gl_func_0001CA10(thread->queue, thread);  // dequeue
+ *           gl_func_0001CA10(thread->queue, thread);  // enqueue (typo? both same call)
+ *       }
+ *       if (D_runq->pri < D_run->pri) {
+ *           D_run->state = 2;
+ *           gl_func_0001CA10(&D_runq);  // dispatch
+ *       }
+ *   }
+ *   gl_func_0001CA10(sr);     // osRestoreInt
+ *
+ * Initial structural wrap; multi-pass tightening pending — needs alias-extern
+ * for 2 distinct D_ symbols (D_run vs D_runq) + verified struct offsets. */
+extern int gl_func_0001CA10();
+extern int D_6F534_run;
+extern int D_6F534_runq;
+void gl_func_0006F534(int *thread, int pri) {
+    int sr;
+    int *cur;
+    int *rq;
+    sr = gl_func_0001CA10();
+    if (thread == 0) thread = *(int**)&D_6F534_run;
+    if (thread[1] != pri) {
+        thread[1] = pri;
+        cur = *(int**)&D_6F534_run;
+        if (thread != cur && *(short*)((char*)thread + 0x10) != 1) {
+            gl_func_0001CA10(thread[2], thread);
+            gl_func_0001CA10(thread[2], thread);
+        }
+        cur = *(int**)&D_6F534_run;
+        rq = *(int**)&D_6F534_runq;
+        if (rq[1] < cur[1]) {
+            *(short*)((char*)cur + 0x10) = 2;
+            gl_func_0001CA10(&D_6F534_runq);
+        }
+    }
+    gl_func_0001CA10(sr);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F534);
+#endif
 
 extern int *D_6F614_X;
 int game_libs_func_0006F614(int *a0) {

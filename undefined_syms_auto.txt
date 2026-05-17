@@ -1093,3 +1093,5 @@ gl_func_0003DE4C = 0x3DE4C;
 gl_func_0003DDC4 = 0x3DDC4;
 timproc_uso_b3_func_00001248 = 0x1248;
 game_uso_func_000043E4 = 0x43E4;
+D_6F534_run = 0x00000000;
+D_6F534_runq = 0x00000000;
