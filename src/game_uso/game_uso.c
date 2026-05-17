@@ -5034,7 +5034,8 @@ void game_uso_func_0000751C(char *a0) {
 /* game_uso_func_00007538: 0x560 (344 insns) — largest residue of the split-up
  * 0x7424 bundle. Per-frame event dispatcher + per-bit timer decrementer.
  *
- * Partial C body below: 38.83% (was 37.51% pre-bit-0x80-fix-2026-05-05).
+ * Partial C body below: 58.69% as of 2026-05-17 after the bit-0x80
+ * branch-target audit (was 38.83% pre-bit-0x80-table rewrite).
  * Captures prelude + dispatch outline + epilogue + bit-0x80 trunk arm.
  * Many arm bodies are TODO-stubbed with correct control-flow targets but
  * no per-bit state mutations yet.
@@ -5373,6 +5374,12 @@ trunk:
     /* Trunk-arms wired: 0x01 / 0x40 / 0x20 / 0x80 / 0x100. Bits 0x02 /
      * 0x04 / 0x08 / 0x10 are dispatch-cascade-only — verified
      * 2026-05-07 by walking 0x7740-0x7990 of the asm.
+     *
+     * Status 2026-05-17: 58.686047% via `objdiff-cli report generate`
+     * after rebuilding build/non_matching/src/game_uso/game_uso.c.o.
+     * Full project link is currently blocked by unrelated bootup/game_libs
+     * linker issues (`D_A0000200`, `D_35360_X`, `D_6F614_X`), but this
+     * unit compiles and the object-level NM score is current.
      *
      * Status 2026-05-08 (later): 48.97% (drift from 48.81% earlier same day; +0.16pp
      * is upstream parallel-agent activity reshuffling expected/.o baselines, NOT a
