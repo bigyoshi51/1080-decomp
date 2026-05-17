@@ -135,7 +135,48 @@ void func_00010AB0(char *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010AB0);
 #endif
 
+#ifdef NON_MATCHING
+/* func_00010B6C - verified decode, O0-BLOCKED record-append+init
+ * (0x120, 72 insns). SAME -O0 family as func_00010AB0 (record at
+ * a0 + a0->0x78*0x28, index recomputed from scratch for every field
+ * store - the unmistakable IDO -O0 signature); a richer variant
+ * that also zeroes rec->0x84 and runs a sub-init call in the
+ * a2==-1 arm. Logic-exact below; NOT byte-exact at tail3a's default
+ * -O2 (O2 CSEs the index). Promotion = the same bootup_uso -O0
+ * file-split, and tail3a is the TRUNCATE_TEXT 3x-compile stitch -
+ * see project_1080_o0_split_pending_candidates memo / func_00010AB0
+ * NM comment. Deferred from /loop (mid-stitch, address-fragile).
+ *
+ * Struct-typing reference: a0 = container with embedded 0x28-stride
+ * record array + current-index counter at a0->0x78 (120). Per call,
+ * rec = a0 + a0->0x78*0x28:
+ *   rec->0x88 (136) = 1;                      // in-use flag
+ *   if (a2 != -1) rec->0x8C (140) = a2;
+ *   else { rec->0x8C = a0->0x78;              //  = own index
+ *          rec->0x84 (132) = 0;
+ *          func_00000000(&rec->0x94, a1); }   // sub-init region
+ *   rec->0x90 (144) = a3;
+ *   a0->0x78++;
+ * (vs func_00010AB0: that one sets rec->0x84 = a1 unconditionally
+ * and has no sub-init call - this is the with-sub-object variant.)
+ * Caps: pure -O0 codegen-shape + reloc sub-init, not C-source-
+ * reachable at -O2. */
+void func_00010B6C(char *a0, int a1, int a2, int a3) {
+    *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x88) = 1;
+    if (a2 != -1) {
+        *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x8C) = a2;
+    } else {
+        *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x8C) =
+            *(int *)(a0 + 0x78);
+        *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x84) = 0;
+        func_00000000(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x94, a1);
+    }
+    *(int *)(a0 + *(int *)(a0 + 0x78) * 0x28 + 0x90) = a3;
+    *(int *)(a0 + 0x78) += 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010B6C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010C8C);
 
