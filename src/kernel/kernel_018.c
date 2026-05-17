@@ -88,6 +88,44 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800066EC);
 
 /* func_80006754 split out to kernel_047.c (-O1) */
 
+/* func_80006790 - verified structural decode (kernel, 0x1FC, 127
+ * insns, rmon memory-read command handler). rmon family (cf.
+ * func_80009584 / func_80007564; __rmonUtilityBuffer /
+ * __rmonSendHeader).
+ *   s32 func_80006790(RmonMsg *msg) {
+ *       UB *ub = &__rmonUtilityBuffer;
+ *       ub->0x4 = msg->0x4;                       // domain
+ *       ub->0xC = msg->0xC;                       // type/id echo
+ *       ub->0x6 = 0;
+ *       if (msg->0x10 == -1)       return -5;     // bad address
+ *       if (msg->0x14 >= 0x401)    return -8;     // len > 1024
+ *       if (msg->0x9 == 1)                        // RSP IMEM win
+ *           ok = msg->0x10 >= 0x04001000 &&
+ *                msg->0x10 + msg->0x14 < 0x04002000;
+ *       else                                       // RSP DMEM win
+ *           ok = msg->0x10 >= 0x04000000 &&
+ *                msg->0x10 + msg->0x14 < 0x04001000;
+ *       if (ok) {
+ *           phys = osVirtualToPhysical(msg->0x10);// func_80004B30
+ *           func_800074A0(phys, ...);             // PI read
+ *           func_800066F0(ub->payload, ..., n);   // copy out
+ *       }
+ *       __rmonSendHeader(ub, len, flag);          // ship reply
+ *       return 0;
+ *   }
+ * Struct-typing reference: RmonMsg msg - msg->0x4 (4) u8 domain,
+ * msg->0x9 (9) u8 mode (1 = RSP IMEM 0x04001000..0x04002000 else
+ * DMEM 0x04000000..0x04001000), msg->0xC (12) type/id, msg->0x10
+ * (16) target address (-1 = invalid), msg->0x14 (20) byte length
+ * (must be < 0x401 / 1024). __rmonUtilityBuffer: ->0x4 domain,
+ * ->0x6 (6) u16 cleared, ->0xC status/echo. func_80004B30 =
+ * osVirtualToPhysical, func_800074A0 = PI/cart IO read,
+ * func_800066F0 = bounded copy, __rmonSendHeader = the shared rmon
+ * emit. The RSP DMEM/IMEM range gate prevents reads outside the
+ * SP memory window. Caps <80: rmon buffer build + multi-range
+ * sltu validation + osVirtualToPhysical/PI-read + branch-likely +
+ * 4 callees. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80006790);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000698C);
