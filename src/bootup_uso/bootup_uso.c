@@ -1616,7 +1616,51 @@ void func_00008AEC(Quad4 *dst) {
     *dst = buf;
 }
 
+#ifdef NON_MATCHING
+/* func_00008B44: 36-insn (0x90) alloc-or-given init. 57.89% NM (2026-05-17).
+ *
+ * Decoded:
+ *   p = a0;
+ *   if (p == 0) {
+ *       p = alloc(0x178);
+ *       if (p == 0) goto end;
+ *   }
+ *   call(p, a1, a3, a4, f_arg);              // 5-arg, a2 SKIPPED, 5th=float via stack
+ *   p->0x28 = &D_00000000;                   // vtable-style
+ *   p->0x170 = a1;                           // reload a1 from caller-arg slot
+ *   p->0x150 = 1.0f;                         // f6 from lui 0x3F80
+ *   p->0x174 = (u16)a2;                      // lhu low half of a2 ONLY use
+ *   p->0x154 = 10.0f;                        // f8 from lui 0x4120
+ * end:
+ *   return p;
+ *
+ * Caller reloads at sp+0x24 (a1), sp+0x2C (a3 → as call arg2!), sp+0x30 (a4),
+ * lwc1 sp+0x34 (f_arg) — so the outgoing call args are (p, a1, a3, a4, f_arg).
+ * Variable a2 NOT passed to call; only used for (u16)a2 short store.
+ *
+ * Residual ~42% diff: build emits sdc1 (float→double promotion via K&R
+ * variadic) where target emits swc1 (typed-prototype, no promotion). Also
+ * $s0 promotion (build saves p in $s0 across call, target reloads from local
+ * sp+0x20 slot). Both promotable via alias-extern typed prototype +
+ * volatile-stack-alias for p, but multi-pass scope. */
+char* func_00008B44(char *a0, int a1, int a2, int a3, int a4, float f_arg) {
+    char *p = a0;
+    if (p == 0) {
+        p = (char*)func_00000000(0x178);
+        if (p == 0) goto end;
+    }
+    func_00000000(p, a1, a3, a4, f_arg);
+    *(int*)(p + 0x28) = (int)&D_00000000;
+    *(int*)(p + 0x170) = a1;
+    *(float*)(p + 0x150) = 1.0f;
+    *(unsigned short*)(p + 0x174) = (unsigned short)a2;
+    *(float*)(p + 0x154) = 10.0f;
+end:
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008B44);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008BD4);
 
