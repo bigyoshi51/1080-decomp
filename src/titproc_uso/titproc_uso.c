@@ -987,6 +987,37 @@ void titproc_uso_func_000022BC(int a0) {
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000022BC);
 #endif
 
+/* titproc_uso_func_0000240C - verified structural decode; SIBLING of
+ * titproc_uso_func_000026FC (the titproc state-machine family).
+ * Documented switch + vtable + branch-likely sub-80 ceiling ->
+ * INCLUDE_ASM build path; struct-typing reference.
+ *   s0 = a0;
+ *   if (s0->0x6C0 == 0) goto end;                 // 1728 active gate
+ *   switch (s0->0x6C4) {                          // 1732 state
+ *     case 0:
+ *        if (s0->0x6B4 != 0) gl_func_00000000(s0->0x6B4);   // 1716
+ *        if (*(u16*)(*(int*)(&D+0x154) + 4) & 0x8) {
+ *            gl_func_00000000(144);
+ *            v1 = (int*)s0->0x6B8;                            // 1720
+ *            (*(fn)((int*)v1->0x28)->0x5C)(
+ *                (short)((int*)v1->0x28)->0x58 + (int)v1);    // vtable idiom
+ *        }
+ *        if (s0->0x6B0 != 0) gl_func_00000000(...);           // 1712
+ *        s0->0x6C4 = 2;
+ *        v1=(int*)s0->0x6C0; (*(fn)v1->0x28->0x5C)(...);      // vtable
+ *        break;
+ *     case 1: ...   case 2: ...   default: goto end;
+ *   }
+ * end: ...
+ * Struct-typing: cross-confirms the titproc state-machine family -
+ * s0->0x6C0 (1728) active/handle gate, s0->0x6C4 (1732) state selector
+ * (0/1/2), s0->0x6B0/0x6B4/0x6B8 (1712/1716/1720) sub-handles,
+ * D[0x154]->0x4 (u16) flag bit 0x8, obj->0x28 vtable {fn@0x5C,
+ * short@0x58} dispatch (the engine-wide obj-dispatch idiom, 0x5C/0x58
+ * variant). Per-state runs cleanup/vtable-notify then transitions
+ * state. Caps <80: beql switch dispatch + vtable jalr + branch-likely
+ * + &D reloc. Full per-state body INCLUDE_ASM-preserved (.s = source
+ * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000240C);
 
 void titproc_uso_func_00000000();
