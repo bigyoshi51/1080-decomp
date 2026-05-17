@@ -1244,6 +1244,12 @@ void gl_func_0000DF8C(int a0, int a1, float a2, float a3) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DFC4);
 
+/* 3-insn save-arg sentinel: sw a0,0(sp); jr ra; sw a1,4(sp).
+ * Empty-body 2-arg function — args spilled to caller's arg-save slots.
+ * Per docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body. */
+void game_libs_func_0000E044(int a0, int a1) { (void)a0; (void)a1; }
+void game_libs_func_0000E050(int a0, int a1) { (void)a0; (void)a1; }
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E05C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E118);
