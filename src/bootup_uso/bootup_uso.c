@@ -908,6 +908,28 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000051D4);
 
+/* func_00005284 - verified structural decode (0xB0, 44 insns).
+ * THIRD IDENTICAL SIBLING of the func_00005124 / func_000051D4
+ * alloc-cascade-ctor family (instruction-for-instruction identical
+ * except the init datum D_00007DD4 and local label addresses).
+ *   void *func_00005284(void *arg) {
+ *       sub_init(&D_00007DD4);                   // func_00000000 reloc
+ *       obj = alloc(0x4C);
+ *       if (obj == 0) return 0;
+ *       if (obj != 0) goto have_obj;             // dead 0x48-alloc arm
+ *       ...defensive-dead-check arm (unreachable)...
+ *   have_obj:
+ *       *(void**)((char*)sub + 0x28) = &D_x;
+ *       obj->0x28 = &D_y;  obj->0x48 = &D_z;
+ *       return obj;
+ *   }
+ * Struct-typing reference: identical to func_00005124 - object 0x4C
+ * bytes, obj->0x28 (40) / obj->0x48 (72) descriptor ptrs (&D runtime-
+ * patched), arg passed through (sp+0x2C/0x1C/0x4); D_00007DD4 = named
+ * init datum (family: D_00007DB4/DC4/DD4 at +0x10 stride). Caps <80:
+ * alloc-cascade + defensive-dead-check + 3-4 func_00000000 reloc +
+ * 3x &D-store reloc. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005284);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
