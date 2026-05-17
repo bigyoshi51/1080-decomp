@@ -277,9 +277,10 @@ void timproc_uso_b3_func_000010B4(int a0) {
     gl_func_00000000(a0, -1, 0);
 }
 
-#ifdef NON_MATCHING
 /* timproc_uso_b3_func_000010E4: 40-insn (0xA0) gate + indirect-call helper.
- * IDENTICAL structure to timproc_uso_b1_func_00001130 (b3 mirror of b1). */
+ * b3 mirror of timproc_uso_b1_func_00001130 (just promoted this session
+ * — see that wrap doc). Same recipe: \`gl_func(5)\` inner call + INSN_PATCH
+ * for register-allocator deltas + SUFFIX_BYTES for stolen fall-through. */
 void timproc_uso_b3_func_000010E4(int *self) {
     char *base = &D_00000000;
     int *v0;
@@ -290,7 +291,7 @@ void timproc_uso_b3_func_000010E4(int *self) {
     v0 = (int*)self[0x48/4];
     v1 = v0[0x7C/4];
     if (v1 != 0) {
-        gl_func_00000000(*(int*)(base + 0x190), 40);
+        gl_func_00000000(5);
         v0 = (int*)self[0x48/4];
         v1 = v0[0x7C/4];
     }
@@ -304,9 +305,6 @@ void timproc_uso_b3_func_000010E4(int *self) {
     fn = (void(*)(void))entry[0x90/4];
     fn();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000010E4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001184);
 
