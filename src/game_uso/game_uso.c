@@ -3751,7 +3751,13 @@ void game_uso_func_000057D8(char *a0) {
  * 2026-05-17 Codex deep attempt: extended the concrete C body through the
  * second state LUT, proximity flag synthesis, flag-word update at sub+0xA58,
  * and 0x54 frame-counter/timer block (target 0x6620-0x6820 range). Follow-up
- * extended the next bit-test dispatch through the 0x400 direct-call path. */
+ * extended the next bit-test dispatch through the 0x400 direct-call path.
+ *
+ * 2026-05-17 final-pass tail lift: added the late effect-flag dispatch
+ * under the 0x10 path: helper linkage to self+0x7C, state-keyed threshold
+ * cascades at 0x24C/0x21C/0x234, 0x1BC/0x18C/0x1A4, 0x174/0x144/0x15C,
+ * and 0x204/0x1D4/0x1EC, plus the tail flag commit call. DNM objdiff:
+ * 45.586% -> 49.763%. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int *self;
@@ -4169,17 +4175,85 @@ void game_uso_func_0000591C(int *a0) {
         if ((effect_flags & 0x200) != 0) {
             state_code = *(int*)((char*)self + 0x2C);
             if (state_code == 3) {
-                state_value = *(float*)((char*)self + 0x1BC);
+                state_value = *(float*)((char*)self + 0x24C);
             } else if (state_code == 2) {
-                state_value = *(float*)((char*)self + 0x18C);
+                state_value = *(float*)((char*)self + 0x21C);
             } else {
-                state_value = *(float*)((char*)self + 0x1A4);
+                state_value = *(float*)((char*)self + 0x234);
             }
-            if (metric < state_value) {
-                effect_flags |= 0x10;
+            if (state_value >= transform_out.y) {
+                *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+            } else if (*(char**)(sub + 0x908) != NULL) {
+                state_value = *(float*)(*(char**)(sub + 0x908) + 0xBC);
+                if (state_value < 0.0f) {
+                    state_value = -state_value;
+                }
+                if (((int)state_value % 5) == 0) {
+                    *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+                }
+            }
+        } else if ((effect_flags & 0x100) != 0) {
+            state_code = *(int*)((char*)self + 0x2C);
+            if (state_code != 0) {
+                if (state_code == 3) {
+                    state_value = *(float*)((char*)self + 0x1BC);
+                } else if (state_code == 2) {
+                    state_value = *(float*)((char*)self + 0x18C);
+                } else {
+                    state_value = *(float*)((char*)self + 0x1A4);
+                }
+                if (transform_out.y <= state_value) {
+                    *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+                }
+            } else {
+                *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+            }
+        } else if ((effect_flags & 0x80) != 0) {
+            state_code = *(int*)((char*)self + 0x2C);
+            if (state_code == 3) {
+                state_value = *(float*)((char*)self + 0x174);
+            } else if (state_code == 2) {
+                state_value = *(float*)((char*)self + 0x144);
+            } else {
+                state_value = *(float*)((char*)self + 0x15C);
+            }
+            if (transform_out.y <= state_value) {
+                *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+            }
+        } else {
+            state_code = *(int*)((char*)self + 0x2C);
+            if (state_code == 3) {
+                state_value = *(float*)((char*)self + 0x204);
+            } else if (state_code == 2) {
+                state_value = *(float*)((char*)self + 0x1D4);
+            } else {
+                state_value = *(float*)((char*)self + 0x1EC);
+            }
+            if (state_value <= transform_out.y) {
+                *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+            } else if (transform_out.y > 0.0f) {
+                *(int*)((char*)self + 0x68) |= 1;
+            } else if (*(char**)(sub + 0x908) != NULL) {
+                state_value = *(float*)(*(char**)(sub + 0x908) + 0xBC);
+                if (state_value < 0.0f) {
+                    state_value = -state_value;
+                }
+                if (((int)state_value % 5) == 0) {
+                    *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+                }
             }
         }
+    } else if (hit_parent != NULL) {
+        if (*(int*)(hit_parent + 0x2C) == 0) {
+            if (*(int*)((char*)self + 0x40) == 0) {
+                *(int*)((char*)self + 0x40) = *(int*)(hit_parent + 0x6C);
+            }
+        }
+    } else {
+        effect_flags |= 0x10;
     }
+
+    gl_func_00000000(self, effect_flags);
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
      *   t2 = a0->0x30;                                  // sub-struct ptr
