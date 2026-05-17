@@ -425,6 +425,32 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001340);
 
+/* timproc_uso_b1_func_000016F8 — verified structural decode; near-clone
+ * SIBLING of arcproc_uso_func_0000199C (same 4-level alloc-cascade ctor
+ * template). Documented alloc-cascade defensive-dead-check + spill/reloc
+ * ceiling → <80 INCLUDE_ASM build path; struct-typing cross-confirm.
+ * int *f(int *a0, int a1, int a2){
+ *   s0 = a0 ? a0 : gl_func_00000000(268);  if(!s0) return s0;
+ *   p2 = gl_func_00000000(212);  if(!p2) goto init4;
+ *   p3 = gl_func_00000000(80);   if(!p3) goto init3;
+ *   p4 = gl_func_00000000(44);   if(!p4) goto init2;
+ *   gl_func_00000000(p4, &D+0x404); p4->0x28=&D;     // 199C used &D+0x3DC
+ * init2: p3->0x28=&D; init3: p2->0x28=&D; init4: s0->0x28=&D;
+ *   s0->0x60=a2;
+ *   s0->0xE0=160; s0->0xE4=29; s0->0xD8=160; s0->0xDC=130;
+ *   s0->0xE8=160; s0->0xEC=105; *(float*)(s0+0x108)=1.0f;
+ *   s0->0xD4=a1; *(float*)(a1+0x72C)=1.0f;           // 199C: a1+0x77C
+ *   gl_func_00000000(s0+0xF0,
+ *       ((*(int*)&D + 35) << 16) | (((int*)s0->0xD4)->0x6B0 + 7)); // 199C: 0x6B4
+ *   return s0;
+ * }
+ * Cross-confirms the 199C ctor family: object sizes 268/212/80/44, every
+ * sub-object ptr @0x28=&D, s0 field block 0xD8..0xEC={160,130,160,29,160,
+ * 105} + 0x60=a2 + 0xD4=a1 + 0x108=1.0f. This sibling's deltas vs 199C:
+ * a1-base &D+0x404 (was 0x3DC), a1->0x72C (was 0x77C), s0->0xD4->0x6B0
+ * (was 0x6B4). Caps <80: defensive `if(ptr!=0)skip` alloc-cascade dead
+ * checks + per-call stack-spill + &D %hi/%lo reloc scheduling (same as
+ * 199C, ~9%). INCLUDE_ASM is the correct build path (no episode). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000016F8);
 
 void timproc_uso_b1_func_00001860(int *a0) {
