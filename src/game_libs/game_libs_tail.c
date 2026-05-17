@@ -1428,7 +1428,15 @@ void gl_func_0000E4A8(int *a0) {
     gl_func_00000000(r, -1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E53C);
+void gl_func_0000E53C(int *a0) {
+    int r;
+    r = gl_func_00000000(0, &D_00000000, 352, 17, 11, 1);
+    a0[0x64 / 4] = r;
+    gl_func_00000000(r, -5);
+    r = gl_func_00000000(0, &D_00000000, 240, 11, 10, 1);
+    a0[0x68 / 4] = r;
+    gl_func_00000000(r, -4);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E5D0);
 
