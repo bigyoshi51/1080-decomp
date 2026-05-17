@@ -5416,7 +5416,13 @@ void gl_func_0003F410(int a0) {
  * fires for both params here, no C lever isolates a0-only; (2) the
  * extra spill shifts the two stack buffers down 8 bytes (buf @ sp+0x50
  * vs target sp+0x58). Both stem from the single a1 spill; buf58[42]
- * size-bump tested (regressed to 97.53%). Permuter/INSN_PATCH class. */
+ * size-bump tested (regressed to 97.53%).
+ *
+ * 2026-05-16: also tested `register int a1` lever — IDO -O2 still
+ * emits the spill (built remains 176B / 44 insns). The `register`
+ * keyword doesn't suppress unused-arg caller-slot saves under -O2.
+ * Adds to the list of failed C levers — confirms structural cap.
+ * INSN_PATCH-blocked by the +1-insn size delta. Permuter-only path. */
 extern int gl_func_0001CA10();
 
 void gl_func_0003F444(int a0, int a1, int a2, int a3) {
