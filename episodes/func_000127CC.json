@@ -1,14 +1,14 @@
 {
   "function_name": "func_000127CC",
-  "project": "1080-agent-b",
+  "project": "projects/1080-agent-i",
   "model": "claude-manual",
-  "start_time": "2026-05-05T08:03:03.880461+00:00",
-  "end_time": "2026-05-05T08:03:03.880480+00:00",
+  "start_time": "2026-05-17T10:21:58.957364+00:00",
+  "end_time": "2026-05-17T10:21:58.957405+00:00",
   "steps": [
     {
       "step_number": 1,
-      "timestamp": "2026-05-05T08:03:03.880474+00:00",
-      "assistant_text": "Byte-correct via INCLUDE_ASM tautology + post-cc recipes; fuzzy<100 reflects partial C-decomp.",
+      "timestamp": "2026-05-17T10:21:58.957391+00:00",
+      "assistant_text": "8-byte copy loop. Promoted from NM wrap; was already 100% per non_matching report (file is -O0 per prior split). Just unwrap + log.",
       "tool_calls": [],
       "match_percent": 100.0,
       "compiled": true,
@@ -19,10 +19,14 @@
   "final_match_percent": 100.0,
   "best_match_percent": 100.0,
   "total_tokens": 0,
-  "instruction_count": 0,
+  "instruction_count": 19,
   "initial_m2c_source": null,
-  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001266C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000126EC);\n\n#ifdef NON_MATCHING\n/* 19-insn 8-byte copy loop. Logic: copy 8 bytes from\n * (*(char**)(a0+0x154))+6 to a1[0..7].\n *\n * BLOCKED: -O0 shape (8-byte stack frame, sw/lw of i each iter, dead\n * 'b +1; nop' BB-end marker) but lives in bootup_uso_tail3b_bot_t.c\n * which builds at -O2. -O2 unrolls the loop and inlines the array base\n * load \u2014 totally different shape (still 19 insns by coincidence, but\n * 0/19 match).\n *\n * Promotion path: file split per feedback_o0_cluster_split_with_layout_shim.md.\n * Defer \u2014 infra change beyond single /decompile run scope. */\nvoid func_000127CC(char *a0, char *a1) {\n    int i;\n    for (i = 0; i < 8; i++) {\n        a1[i] = (*(char**)(a0 + 0x154))[i + 6];\n    }\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000127CC);\n#endif\n\n\n\n\n",
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nvoid func_0001266C(char *a0, int a1) {\n    register u16 *p;\n\n    p = (u16 *)(*(char **)(a0 + 0x154) + 4);\n    *p = *p & ~3;\n    p = (u16 *)(*(char **)(a0 + 0x154) + 4);\n    *p = *p | a1;\n    func_00000000((*(u16 *)(*(char **)(a0 + 0x154) + 4)) & 3);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000126EC);\n\n/* 19-insn 8-byte copy loop. Logic: copy 8 bytes from\n * (*(char**)(a0+0x154))+6 to a1[0..7].\n * Promoted from NM wrap 2026-05-17 (file is -O0 per file split). */\nvoid func_000127CC(char *a0, char *a1) {\n    int i;\n    for (i = 0; i < 8; i++) {\n        a1[i] = (*(char**)(a0 + 0x154))[i + 6];\n    }\n}\n",
   "metadata": {
-    "source_path": "src/bootup_uso/bootup_uso_tail3b_bot_t.c"
+    "source_path": "projects/1080-agent-i/src/bootup_uso/bootup_uso_tail3b_bot_t.c",
+    "asm_path": "projects/1080-agent-i/asm/nonmatchings/bootup_uso/func_000127CC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido-7.1 -O0",
+    "verification": "byte-exact (76 bytes / 19 insns)"
   }
 }
