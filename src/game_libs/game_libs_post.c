@@ -8921,7 +8921,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B568);
  * sentinel 0x87654321 to a1->[0xC].
  *
  * Cap: target spills a0 to sp+0x18 BEFORE the comparison branch; built
- * keeps a0 in $a0 across the branch. 84 vs 88 bytes (1 insn short). */
+ * keeps a0 in $a0 across the branch. 84 vs 88 bytes (1 insn short).
+ * 2026-05-17: tested trailing `(void)a0;` arg-spill recipe — REGRESSED
+ * 95% → 73% (the post-call `(void)a0` widened a0's live range across
+ * the whole function, churning $a0 vs $s-reg allocation; not the same
+ * surgical effect as in `gl_func_0004D05C` where a0 was unused-in-body
+ * and the spill was at the same offset as target's). Recipe only
+ * works when the function has NO body-level use of a0 — once a0 is
+ * read inside the body (here: `a0[0x20]` inside if-block), the
+ * `(void)a0` after triggers $s-reg promotion instead of just home save. */
 void gl_func_0005B68C(int *a0, int *a1) {
     if (a1[0xC/4] != 0x12345678) {
         gl_func_00000000((char*)&D_00000000 + 0x21A0C, a0[0x20/4], a1);
