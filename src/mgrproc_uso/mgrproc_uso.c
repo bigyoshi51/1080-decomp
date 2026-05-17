@@ -1050,6 +1050,23 @@ void mgrproc_uso_func_00002AFC(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7C);
 
+/* mgrproc_uso_func_00002E3C: 45-insn (real 0xB0; declared 0xD4 incl. a
+ * trailing FPU-const block) — DEFERRED, documented-cap class:
+ *  (1) mgrproc_uso is Yay0-compressed / -O0 (see file-head BLOCKED note);
+ *      -O2 C build can't match -O0 target — same cap as the other
+ *      mgrproc/timproc -O0 wraps.
+ *  (2) CHAINED FPU-const stolen-prologue boundary: 2E3C reads $f0
+ *      uninitialized at +0xC..+0x18 (`swc1 f0,72..84(sp)`) — $f0 is set
+ *      by the PREDECESSOR's trailing FPU-const. And 2E3C's own declared
+ *      tail 0xB4..0xD0 (`lui 0x437f;mtc1 f2; lui 0x4340;mtc1 f4; lui
+ *      0x437f;mtc1 f6; mtc1 zero,f10; div.s f0,f4,f2`) is the stolen
+ *      prologue of successor mgrproc_uso_func_00002F10. FPU-variant of
+ *      the docs/MATCHING_WORKFLOW forward-merge stolen-insn pattern,
+ *      chained across the -O0 run.
+ * Body shape (for future post-Yay0 work): a0->0x68++; v0=X(a0->0x50);
+ * pick a0+312/+288 by v0; X(that); X(.., trunc(255.0*a0->0x168), &..);
+ * if (a0->0x68 & 8) X(.., 160, 124, 3). Decode only when the Yay0/-O0
+ * pipeline + the chained FPU-prologue pair are tackled together. */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3C);
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002F10);
