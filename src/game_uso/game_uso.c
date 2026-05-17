@@ -10415,7 +10415,48 @@ void game_uso_func_000116D4(void *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
 
+/* game_uso_func_0001189C — verified decode, 77/78 (99%), single-insn blocker.
+ * Dense switch(a1) 1..5; each case: func_00000000((s0->0xB4)->0x800,
+ * &D+off_k, 10); func_00000000((s0->0xB4)+0x808, s1). off_k =
+ * {0x109C,0x10AC,0x10A4,0x10C0,0x10DC}. The C switch is byte-exact EXCEPT
+ * 0x030: target `lw t6,608(at)` (jtbl @ D_00000000+0x260, inside the USO
+ * data blob) vs IDO-emit `lw t6,0(at)` (IDO synthesizes its own .rodata
+ * jump table at reloc offset 0). This is the documented unmatchable-via-C
+ * USO case: docs/IDO_CODEGEN.md#feedback-ido-switch-rodata-jumptable —
+ * 1080's linker discards .rodata so the IDO jtbl can't even link, and the
+ * goto-chain recipe doesn't apply (target is a genuine jr-jumptable, not a
+ * beq chain). NM wrap; INCLUDE_ASM build path (no episode; the .rodata
+ * jtbl C neither links nor byte-matches — tautology-trap rule). */
+#ifdef NON_MATCHING
+void game_uso_func_0001189C(int *a0, int a1, int a2) {
+    int *s0 = a0;
+    int s1 = a2;
+    switch (a1) {
+    case 1:
+        func_00000000(((int *)s0[0xB4 / 4])[0x800 / 4], (char *)&D_00000000 + 0x109C, 10);
+        func_00000000((int)s0[0xB4 / 4] + 0x808, s1);
+        break;
+    case 2:
+        func_00000000(((int *)s0[0xB4 / 4])[0x800 / 4], (char *)&D_00000000 + 0x10AC, 10);
+        func_00000000((int)s0[0xB4 / 4] + 0x808, s1);
+        break;
+    case 3:
+        func_00000000(((int *)s0[0xB4 / 4])[0x800 / 4], (char *)&D_00000000 + 0x10A4, 10);
+        func_00000000((int)s0[0xB4 / 4] + 0x808, s1);
+        break;
+    case 4:
+        func_00000000(((int *)s0[0xB4 / 4])[0x800 / 4], (char *)&D_00000000 + 0x10C0, 10);
+        func_00000000((int)s0[0xB4 / 4] + 0x808, s1);
+        break;
+    case 5:
+        func_00000000(((int *)s0[0xB4 / 4])[0x800 / 4], (char *)&D_00000000 + 0x10DC, 10);
+        func_00000000((int)s0[0xB4 / 4] + 0x808, s1);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001189C);
+#endif
 
 void game_uso_func_000119D4(char *dst) {
     int tmp;
