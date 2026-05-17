@@ -552,6 +552,8 @@ end:
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
 
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001AF8);
+
 /* titproc_uso_func_00001B10: 42-insn (0xA8) 3-stage chained alloc-cascade.
  * Same shape as eddproc_uso_func_0000025C and timproc_uso_b5_func_00000058
  * — gets/allocs primary obj (size 0x40), then init-call into +0x4EC
