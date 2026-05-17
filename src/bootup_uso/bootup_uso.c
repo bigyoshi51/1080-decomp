@@ -699,6 +699,38 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000034E8);
 
+/* func_00003638 - verified structural decode (0xFC, 63 insns,
+ * object factory + link + notify).
+ *   void *func_00003638(void *a0, int a1, int a2, int a3,
+ *                       int e0, f32 e1, f32 e2, int flags,
+ *                       int e4, void *parent) {   // e* = stack args
+ *       reloc_init(&D_000074DC);
+ *       flags |= 0x2;                              // force bit 1
+ *       r = reloc_create(0, a1, a2 + 1, a3 + 1,
+ *                        e0, e1, e2, e4);          // big factory call
+ *       reloc_attach((char*)parent + 0x10, r);
+ *       if (r->0x14 == 0) {                        // not yet linked
+ *           r->0x4  = 1;
+ *           r->0x14 = parent;
+ *       }
+ *       if (flags & 0xC) reloc_notify(a0, ..., 0);
+ *       else             reloc_notify2(..., r);
+ *       reloc_finalize();
+ *       return r;
+ *   }
+ * Struct-typing reference: created object r - r->0x4 (4) s32 =
+ * linked-flag (set 1 when first attached), r->0x14 (20) = back-link
+ * to `parent` (0 = unlinked). `parent` (a stack arg, spilled
+ * sp+0x4C) is the owning container; parent+0x10 is the attach
+ * point passed to the second reloc helper. `flags` (stack arg,
+ * sp+0x58) gets bit 1 (0x2) forced on, and bits 0xC select the
+ * post-link notify path. a2/a3 are incremented by 1 before the
+ * factory call (1-based -> 0-based or count+1). e1/e2 are f32
+ * stack args (lwc1/swc1 through sp+0x14/0x18). D_000074DC = init
+ * datum. Caps <80: 5x func_00000000 reloc calls + f32 stack-arg
+ * passing + beql branch-likely link guard + flags-bit branch.
+ * Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003638);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003734);
