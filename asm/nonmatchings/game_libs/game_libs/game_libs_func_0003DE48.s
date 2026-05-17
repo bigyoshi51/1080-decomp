@@ -1,6 +1,7 @@
-nonmatching gl_func_0003DE4C, 0x110
+nonmatching game_libs_func_0003DE48, 0x114
 
-glabel gl_func_0003DE4C
+glabel game_libs_func_0003DE48
+    /* E22F20 0003DE48 8C8E0010 */  .word 0x8C8E0010
     /* E22F24 0003DE4C 27BDFFF0 */  .word 0x27BDFFF0
     /* E22F28 0003DE50 3C010000 */  .word 0x3C010000
     /* E22F2C 0003DE54 C4201ACC */  .word 0xC4201ACC
@@ -69,4 +70,4 @@ glabel gl_func_0003DE4C
     /* E23028 0003DF50 03E00008 */  .word 0x03E00008
     /* E2302C 0003DF54 27BD0010 */  .word 0x27BD0010
     /* E23030 0003DF58 8C8E0010 */  .word 0x8C8E0010
-endlabel gl_func_0003DE4C
+endlabel game_libs_func_0003DE48

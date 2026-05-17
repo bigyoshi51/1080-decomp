@@ -1,4 +1,4 @@
-nonmatching gl_func_0003DDC4, 0x88
+nonmatching gl_func_0003DDC4, 0x84
 
 glabel gl_func_0003DDC4
     /* E22E9C 0003DDC4 27BDFFF8 */  .word 0x27BDFFF8
@@ -34,5 +34,4 @@ glabel gl_func_0003DDC4
     /* E22F14 0003DE3C 00001025 */  .word 0x00001025
     /* E22F18 0003DE40 03E00008 */  .word 0x03E00008
     /* E22F1C 0003DE44 27BD0008 */  .word 0x27BD0008
-    /* E22F20 0003DE48 8C8E0010 */  .word 0x8C8E0010
 endlabel gl_func_0003DDC4
