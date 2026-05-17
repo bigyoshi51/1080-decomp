@@ -5712,6 +5712,7 @@ void gl_func_0003F410(int a0) {
  * target spills a0 only):
  *   - dropping `(void)a0;`
  *   - `register int a1`
+ *   - `void *a1` (pointer type) — same spill
  *   - permuter: 151k+ iterations, score flat at base (NEVER improved) —
  *     prologue arg-home spill is not body-level, permuter has no lever
  *     (see docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save).
