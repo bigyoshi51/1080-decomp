@@ -749,5 +749,26 @@ void timproc_uso_b3_func_00002F48(int *a0, int a1) {
     func_00000000((char*)&D_00000000 + 0x1A8, 0xC8, a1, 3);
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00003050);
+/* timproc_uso_b3_func_00003050: byte-identical mirror of
+ * timproc_uso_b1_func_00002E50. Same Quad4 dispatcher recipe — see
+ * the b1 wrap doc for the structural notes. */
+void timproc_uso_b3_func_00003050(int *a0, int a1) {
+    float quad_a[4];
+    float quad_b[4];
+    char pad[32];
+    (void)pad;
+    (void)a0;
+
+    quad_a[0] = 1.0f;
+    quad_a[1] = 1.0f;
+    quad_a[2] = 1.0f;
+    quad_a[3] = 1.0f;
+    quad_b[0] = 1.0f;
+    quad_b[1] = 0.0f;
+    quad_b[2] = 1.0f;
+    quad_b[3] = 1.0f;
+    gl_func_00000000(&D_00000000, 0xFF, quad_a, quad_b);
+    gl_func_00000000((char*)&D_00000000 + 0x130);
+    gl_func_00000000((char*)&D_00000000 + 0x130, 0xA0, a1, 3);
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00003050_pad.s")
