@@ -8835,7 +8835,50 @@ void game_uso_func_0000EDCC(int *a0, int a1) {
     a0[0x10C / 4] = a1;
 }
 
+#ifdef NON_MATCHING
+/* game_uso_func_0000EDD4: 23-insn 5-way switch + back-subtract. 95.52% NM.
+ *
+ * Structure:
+ *   if (a1 < 5) v0 = pickByA1[a1] from {a0[0x34C], a0[0x364], a0[0x37C],
+ *                                       a0[0x394], 0};
+ *   else v0 = 0;
+ *   p = a0->0xB4;
+ *   p->0xA14 -= v0;
+ *
+ * Trigger jumptable emit: 5 explicit cases (case 4 is empty break, NOT
+ * default) + `int v0 = 0;` pre-init. IDO -O2 then uses sltiu+jumptable
+ * via D_base+0x224. WITHOUT case 4 explicit, IDO falls back to cascading
+ * else-if chain (20% match). WITHOUT v0=0 pre-init, IDO emits redundant
+ * `or v0, zero, zero` in the default arm before/after the jump (70.95%).
+ *
+ * Residual ~4.5% (2 byte-level diffs):
+ *   (1) jumptable offset 0x4 (build) vs 0x224 (target) — pure data-section
+ *       placement; target's jumptable lives at &.rodata+0x224 in expected,
+ *       mine starts at +4. Pure linker/section-layout artifact.
+ *   (2) Target emits `addiu v1, v1, 0xA14; sw t8, 0(v1)` while build emits
+ *       `sw t8, 0xA14(v1)` (-1 insn). C body uses bracket access which
+ *       IDO folds; only explicit `int *p = ((char*)base + 0xA14)` aliasing
+ *       gets the addiu form, but cost outweighs benefit here.
+ *
+ * a2 is an unused 3rd arg saved to caller arg-slot at sp+0x8 by IDO arg-
+ * save (per docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save). */
+void game_uso_func_0000EDD4(int *a0, unsigned int a1, int a2) {
+    int v0 = 0;
+    int *p;
+    (void)a2;
+    switch (a1) {
+        case 0: v0 = a0[0x34C/4]; break;
+        case 1: v0 = a0[0x364/4]; break;
+        case 2: v0 = a0[0x37C/4]; break;
+        case 3: v0 = a0[0x394/4]; break;
+        case 4: break;
+    }
+    p = (int*)a0[0xB4/4];
+    p[0xA14/4] = p[0xA14/4] - v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EDD4);
+#endif
 
 extern char D_00000138;
 void game_uso_func_0000EE30(char *a0, int a1, int a2) {
