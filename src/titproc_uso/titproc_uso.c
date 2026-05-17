@@ -556,7 +556,70 @@ end:
     return self;
 }
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
+/* titproc_uso_func_00001950: 106-insn dual-phase display/alpha helper.
+ * Decrements/fades through the D+0x60/D+0x78 display blocks while
+ * a0->0x38 == 0, then increments/clamps a0->0x2C and dispatches the
+ * D+0x90 block. C emit is same length; INSN_PATCH fixes the decrement
+ * scheduling, one-word stack-slot shift, and register-choice diffs. */
+void titproc_uso_func_00001950(int *a0) {
+    float buf_a[4];
+    char pad[20];
+    float buf_b[4];
+    int v;
+
+    if (a0[0x38 / 4] == 0) {
+        if (a0[0x34 / 4] != 0) {
+            a0[0x34 / 4]--;
+            v = a0[0x2C / 4];
+        } else {
+            v = a0[0x2C / 4];
+            if (v != 0) {
+                v -= 4;
+                a0[0x2C / 4] = v;
+                if (v < 0) {
+                    a0[0x2C / 4] = 0;
+                    a0[0x38 / 4] = 1;
+                    v = 0;
+                }
+            }
+        }
+        if (v == 0) {
+            return;
+        }
+        buf_a[0] = 1.0f;
+        buf_a[1] = 1.0f;
+        buf_a[2] = 1.0f;
+        buf_a[3] = 1.0f;
+        gl_func_00000000(&D_00000000 + 0x60);
+        gl_func_00000000(&D_00000000 + 0x60, a0[0x2C / 4], buf_a, 0xFF);
+        gl_func_00000000(&D_00000000 + 0x60,
+                         a0[0x4C / 4] + a0[0x54 / 4],
+                         a0[0x50 / 4] + a0[0x58 / 4], 3);
+        gl_func_00000000(&D_00000000 + 0x78);
+        gl_func_00000000(&D_00000000 + 0x78, a0[0x2C / 4], buf_a, 0xFF);
+        gl_func_00000000(&D_00000000 + 0x78,
+                         a0[0x4C / 4] + a0[0x64 / 4],
+                         a0[0x50 / 4] + a0[0x68 / 4], 3);
+    } else {
+        v = a0[0x2C / 4];
+        if (v < 0xFF) {
+            v += 4;
+            a0[0x2C / 4] = v;
+            if (v >= 0xFF) {
+                a0[0x2C / 4] = 0xFF;
+            }
+        }
+        buf_b[0] = 1.0f;
+        buf_b[1] = 1.0f;
+        buf_b[2] = 1.0f;
+        buf_b[3] = 1.0f;
+        gl_func_00000000(&D_00000000 + 0x90);
+        gl_func_00000000(&D_00000000 + 0x90, a0[0x2C / 4], buf_b, 0xFF);
+        gl_func_00000000(&D_00000000 + 0x90,
+                         a0[0x6C / 4], a0[0x70 / 4], 3);
+    }
+    (void)pad;
+}
 
 void titproc_uso_func_00001AF8(int *a0) {
     a0[0x38 / 4] = 0;
