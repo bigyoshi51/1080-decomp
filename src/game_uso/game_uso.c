@@ -8197,6 +8197,51 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
 #endif
 
+/* game_uso_func_0000D210 - verified structural decode (129-insn state
+ * machine; stolen-t6 entry + heavy branch-likely + table-scan + vtable
+ * jalr = documented deep sub-80 -> INCLUDE_ASM build path; struct ref).
+ *   a3 = a0;
+ *   if (t6 != 0) goto post_init;             // t6 UNINIT at entry (see cap)
+ *   f2 = D[0x1F4];
+ *   if (!((a3->0xB4)->0xBC < f2)) { a3->0x120 = 0; }
+ *   if ((a3->0xB4)->0xBC < f2) {
+ *       w = a3->0x138;
+ *       if (a3->0x120 == 0) (a3->0x138->0xB4) and~4;
+ *       else                (a3->0x138->0xB4) or 3;
+ *   }
+ * post_init:
+ *   v0 = a3->0xB4;
+ *   if (v0->0x938 == 0
+ *       and (double-ish) v0->0x9D0 < 1399.0f (D 0x442f...)
+ *       and v0->0x31C < -100.0f (0xc2c8...))
+ *       func_00000000(v0->0x800, &D+0x109C, 1);   // X1
+ *   t5 = a3->0x114;
+ *   if (t5 == 0) func_00000000(a3);                // X2
+ *   v1 = a3 + 200;
+ *   // table-scan: compare v1[0..1] (a3->0xC8/0xCC) against &D+0xDC8 pair
+ *   if (match) {
+ *       if (a3->0xCA >= 0) {                       // lh signed
+ *           ... a2 = (v1->0x4 || a3->0xC8(short)) ? .. : 40 ;
+ *           tbl = *(int*)((char*)a3 + a3->0xC8 + a2);
+ *           ent = tbl + (a3->0xCE << 3);
+ *           ((fn)ent->0x4)( ent->0x0(short) + a3 );  // vtable jalr
+ *       } else func_00000000(a3, v1->0x4);
+ *   }
+ *   func_00000000(a3);                              // X3
+ *   if (a3->0x74 != 0) {
+ *       func_00000000(a3->0x58);                    // X4
+ *       if (a3->0x74 != a3->0x104) a3->0x104 = a3->0x74;
+ *   }
+ *   func_00000000(a3);                              // X5
+ * Struct-typing: a3->0xB4 obj (->0xBC float, ->0x938 flag, ->0x9D0 /
+ * ->0x31C floats, ->0x800 sub), a3->0x120 reset-flag, a3->0x138 child
+ * (->0xB4 mode bits 0x4/0x3), a3->0x114 state, a3->0xC8/0xCA/0xCE
+ * short-trio @+200/202/206, a3->0x74 / 0x104 / 0x58 dispatch fields.
+ * D[0x1F4] threshold float, D 0x1399.. / -100.. compare consts, D-pair
+ * @0x109C, scan-table @0xDC8. Caps <80: t6 read UNINITIALIZED at entry
+ * (stolen-base, predecessor sets it - boundary analysis needed) +
+ * bc1fl/bc1tl/bnel/beql branch-likely + table-scan loop + vtable jalr +
+ * FP-compare + reloc scheduling - deep sub-80. INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D210);
 
 void game_uso_func_0000D418(char *a0) {
