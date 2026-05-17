@@ -7474,6 +7474,31 @@ int game_uso_func_0000A374(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
 #endif
 
+/* game_uso_func_0000A3C4 - verified structural decode (~144-insn
+ * table-driven dispatch/registration; &D+0x548 entry-table + beql
+ * branch-likely + sp-spilled a3 + ~7 calls = documented sub-80 ceiling
+ * -> INCLUDE_ASM build path; struct-typing reference).
+ *   a3 = a0;  a0->0x68 &= ~2;
+ *   if (((int*)a0->0x30)->0x908 == 0) return;
+ *   // repeated per-slot block (slot index = a0->0x40, then a0->0x124, ...):
+ *   ent = *(int**)(&D_00000000 + 0x548 + idx*4);
+ *   arg = ent[0];
+ *   v0 = func_00000000(arg, /*sp4*/arg, ((int*)a3->0x30)->0x908 + 0xB4);
+ *   if (v0 == 0)
+ *       func_00000000(&D+0x7EC, &D+0x808, 1104);     // error path
+ *   slot = v0;
+ *   if (((int*)slot)->0x84 & 0x10) slot = ((int*)slot)->0x2C;  // 44
+ *   ... (block repeats with next index a3->0x124, same shape) ...
+ * Struct-typing: a0->0x68 flag word (bit 0x2 cleared on entry),
+ * a0->0x30 ctx whose ->0x908 is a base obj (+0xB4 passed to callee),
+ * a0->0x40 / a0->0x124 = slot indices into the &D+0x548 entry-pointer
+ * table (each entry->0 = the registration arg), result obj ->0x84 bit
+ * 0x10 selects ->0x2C as the effective slot. &D+0x7EC / +0x808 = error
+ * format/string args (1104). Caps <80: beql branch-likely + a3 sp-spill
+ * round each call + &D %hi/%lo table-index reloc scheduling - the
+ * documented table-dispatch ceiling. Full per-slot args/indices are
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
