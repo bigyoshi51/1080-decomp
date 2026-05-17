@@ -8841,6 +8841,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
 
+/* game_uso_func_0000F284: 55-insn EE84-family branchy. X(a0->0xB4+0x808);
+ * if (a0->0xB4->0x9CC) { m=0x20008; X(a0,D[0xE60],D[0xE64],-1); }
+ * else { m=a0->0xFC|8; X(a0,D[0xE40],D[0xE44],-1); }
+ * a0->0x118=1; X(a0); X(a0, m, 0,0,256, a0->0x19C). beql-selected pair.
+ * USO: call->func_00000000, data->&D_00000000+off. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F284);
 
 #ifdef NON_MATCHING
