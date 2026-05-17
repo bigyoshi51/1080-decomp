@@ -1915,6 +1915,48 @@ void *func_00007C74(char *a0) {
     return ret;
 }
 
+/* func_00007D04 - verified structural decode (0x14C, 83 insns,
+ * phased animation/timer state machine).
+ *   void func_00007D04(St *s0) {
+ *       root = *(void**)(func_0000023C + 0x18);
+ *       v = root->0x28;
+ *       s0->0x64 = (*(fn)v->0x64)((s16)v->0x60 + root); // vtable
+ *       int a3;                                   // next-state out
+ *       switch (s0->0x5C) {                       // current state
+ *       case 0:
+ *           if (s0->0x60++ >= 0x1F) a3 = 2; else a3 = old;
+ *           break;
+ *       case 1:
+ *           if (s0->0x60++ >= 0x3D) { a3 = 2; s0->0x58 -= 0xA; }
+ *           break;
+ *       case 2:
+ *           if (s0->0x60++ >= 0x5B) {
+ *               a3 = (int)(rand01() * 3.0f);      // func_00000000
+ *               s0->0x60 = 0;  s0->0x58 = 0x18;
+ *           }
+ *           break;
+ *       default: break;
+ *       }
+ *       o  = s0->0x40;  ml = o->0x84;
+ *       func_00000000(s0, ml[0]->0x1C, 0, a3);
+ *       func_00000000(s0, ml[1]->0x1C, 1, a3);
+ *       s0->0x5C = a3;
+ *   }
+ * Struct-typing reference: s0->0x5C (92) s32 = animation state /
+ * next-state (0/1/2 phases); s0->0x60 (96) s32 = per-phase frame
+ * counter (thresholds 0x1F / 0x3D / 0x5B per state); s0->0x58 (88)
+ * s32 = a timer/position adjusted on phase transition (-0xA for
+ * state1->next, =0x18 reset on state2 wrap); s0->0x64 (100) =
+ * stored result of the obj-0x28 vtable dispatch (0x64/0x60
+ * variant, root = *(func_0000023C+0x18)); s0->0x40 (64) -> obj
+ * whose ->0x84 (132) is a message/anim list (entries -> ->0x1C
+ * payload) driven by the two func_00000000 calls (idx 0 and 1,
+ * arg = next state a3). State 2 wrap randomizes the next state
+ * via rand01()*3.0. Caps <80: obj-0x28 vtable jalr + switch
+ * (beq/beql chain) + FP rand*3.0 trunc + func_0000023C+0x18
+ * reloc + reloc dispatch calls. Full body INCLUDE_ASM-preserved
+ * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
+ * rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007D04);
 
 void func_00007E50(int *a0) {
