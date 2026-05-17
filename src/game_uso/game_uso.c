@@ -7641,6 +7641,43 @@ skip_init:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
 #endif
 
+/* game_uso_func_0000B274 — verified structural decode (108-insn double-
+ * precision easing/animation update; ldc1/c.lt.d/div.d/mul.d + bc1tl/bc1fl
+ * branch-likely + 4 calls = documented heavy-double-FPU sub-80 ceiling →
+ * INCLUDE_ASM build path; struct-typing reference).
+ *   s1 = &D_00000000;
+ *   if ((double)*(float*)(s1+0x2A0) > *(double*)(&D+0x120)) return;
+ *   sp.vec = {s0->0xA0, s0->0xA4, s0->0xA8};
+ *   if (gl_func_00000000(*(int*)(s1+0x254), &sp.vec, 1, 0) == 0) return;
+ *   s0->0xD0 = (int)trunc(sp.vec[0]);  s0->0xD4 = (int)trunc(sp.vec[1]);
+ *   gl_func_00000000(s1, s0+0xDC);
+ *   s0->0xD8 = *(int*)(s1+0x254);
+ *   s0->0xC8 = s0->0xCC;
+ *   if (*(double*)(&D+0x128) < (double)*(float*)(s1+0x2A0)) {
+ *     d = ((double)*(float*)(s1+0x2A0) - *(double*)(&D+0x128))
+ *           / *(double*)(&D+0x130);
+ *     s0->0xC8 = (float)((double)s0->0xC8 * (0.0 - d));   // 1.0 const loaded, unused-here
+ *   }
+ *   if (*(double*)(&D+0x138) < (double)s0->0xC8) return;
+ *   gl_func_00000000(s0);
+ *   { int *v0 = &D + 0xA0; v0->0x30=s0->0xA0; v0->0x34=s0->0xA4;
+ *     v0->0x38=s0->0xA8; }
+ *   r = s0->0x134 * s0->0xC8;
+ *   gl_func_00000000(s1, s0+0x164);
+ *   t2 = s0->0xC4;
+ *   *(short*)(t2+0xC0) = s0->0x14C;
+ *   *(float*)(s0->0xC4 + 0xB0) = r;  *(float*)(s0->0xC4 + 0xB4) = r;
+ *   v1 = s0->0xC4; vt = (int*)v1->0x28;
+ *   (*(fn)vt->0x1C)( (short)vt->0x18 + (int)v1 );   // SAME vtable idiom as
+ *                                                   // timproc_uso_b1_2A8C
+ * Struct-typing: s0->0xA0/0xA4/0xA8 source vec3 (float), s0->0xC8 eased
+ * progress, 0xCC its reset value, 0xD0/0xD4 int-trunc'd vec, 0xD8 handle,
+ * 0xC4 child obj (vtable @+0x28→{fn@0x1C, short@0x18}; +0xB0/0xB4 float
+ * pair, +0xC0 short), 0x134 scale, 0x14C value, 0x164 sub-region. s1=&D
+ * global ctx: +0x2A0 float timer, +0x254 handle. D-double consts @0x120/
+ * 0x128/0x130/0x138 (thresholds + ease divisor). Caps <80: double-prec
+ * FPU chain + bc1tl/bc1fl branch-likely + &D %hi/%lo reloc + 4-call
+ * spill. INCLUDE_ASM is the correct build path (no episode; tautology). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
 
 #ifdef NON_MATCHING
