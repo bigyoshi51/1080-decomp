@@ -427,7 +427,35 @@ void titproc_uso_func_0000101C(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000116C);
 
+/* titproc_uso_func_000015F4 — verified structural decode (~31% first pass,
+ * <80% so INCLUDE_ASM build path; constructor struct-typing reference).
+ * int *f(int *a0){
+ *   int *p = a0;
+ *   if (p == 0) { p = gl_func_00000000(60);  if (p == 0) return 0; }
+ *   if (p == 0) { p = gl_func_00000000(44);  if (p == 0) goto init; }  // dead
+ *   gl_func_00000000(p, &D_00000000 + 0x4C4);
+ *   p->0x28 = &D_00000000;
+ * init:                                                      // asm 0x68
+ *   p->0x28 = &D_00000000;            // re-store (a2 base)
+ *   p->0xC  = &D_00000000 + 0x4CC;
+ *   p->0x2C = 0;
+ *   p->0x30 = 0;
+ *   p->0x34 = 160.0f;                 // 0x43200000
+ *   p->0x38 = 210.0f;                 // 0x43520000
+ *   gl_func_00000000(p);
+ *   return p;                         // v0 = a2
+ * }
+ */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F4);
+/* (end verified decode)
+ * Struct-typing value: object has int @0x28 (&D base), ptr @0xC (&D+0x4CC),
+ * counters @0x2C/0x30 (zeroed; 16B8 sibling does the ±6 wrap on these),
+ * floats @0x34=160.0 / @0x38=210.0 (the 16B8 threshold bounds 65..250 sit
+ * between these). Allocator sig gl_func_00000000(size) → ptr; 60- and
+ * 44-byte variants. The 2nd null-check is compiler-emitted dead code from a
+ * defensive double `if(p==0)` in source. Caps <80 first pass: spill/reload
+ * dance around 4 calls + &D %hi/%lo reloc materialization order + FPU-const
+ * scheduling — INCLUDE_ASM is the correct build path (tautology-trap rule). */
 
 /* titproc_uso_func_000016B8 — verified decode, 22/22 ops byte-identical, pure
  * $t-regalloc divergence (15 insns differ ONLY in register number; opcodes,
