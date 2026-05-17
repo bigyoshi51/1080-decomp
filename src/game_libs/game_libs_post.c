@@ -11914,7 +11914,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C484);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C90C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C90C_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_0006C9F4: 56-insn game_libs USO equivalent of __osPiRawStartDma
+ * (kernel func_80004650). Same structure: wait on PI status & 3, set up
+ * DMA registers, dispatch by direction (0=read, 1=write, else=-1).
+ *
+ * USO version uses unresolved relocs for all PI hardware register
+ * addresses (D_A460xxxx) and the kernel helper func_80004B30 (= virtual
+ * to physical address translation). Initial structural wrap; D_/jal
+ * alias-externs deferred to multi-pass. */
+extern int gl_func_0001CA10();  /* placeholder for func_80004B30 equiv */
+extern int gl_data_6C9F4_devCfg;
+extern volatile int gl_pi_status;
+extern volatile int gl_pi_dramAddr;
+extern volatile int gl_pi_devAddr;
+extern volatile int gl_pi_rdLen;
+extern volatile int gl_pi_wrLen;
+int gl_func_0006C9F4(int direction, unsigned int devAddr, int dramAddr, unsigned int size) {
+    register unsigned int status;
+    status = gl_pi_status;
+    while (status & 3) status = gl_pi_status;
+    gl_pi_dramAddr = gl_func_0001CA10(dramAddr);
+    gl_pi_devAddr = (gl_data_6C9F4_devCfg | devAddr) & 0x1FFFFFFF;
+    switch (direction) {
+        case 0: gl_pi_rdLen = size - 1; break;
+        case 1: gl_pi_wrLen = size - 1; break;
+        default: return -1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C9F4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CAD4);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CAD4_pad.s")
