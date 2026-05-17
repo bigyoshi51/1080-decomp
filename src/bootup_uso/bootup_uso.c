@@ -1961,7 +1961,31 @@ void func_0000E660(char *a0) {
     func_000089C0((int*)(a0 + 0x10));
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E690);
+/* func_0000E690: byte-identical mirror of func_00000C10 / func_000046EC.
+ * Third member of this constructor-mirror cluster. Same C body
+ * (volatile-int-pp lever) + same INSN_PATCH in Makefile. */
+void *func_0000E690(int *arg0) {
+    volatile int **vparg = (volatile int **)&arg0;
+    int *node;
+    int *head;
+
+    node = (int*)func_00000000(0x40);
+    if (node != 0) {
+        func_00000000(node);
+        node[10] = (int)&D_00000000;
+        node[15] = 0;
+    }
+    head = (int*)arg0[16];
+    if (head != 0) {
+        func_00000000(node + 4, head);
+        if (head[5] != 0) {
+            head[1] = 1;
+        }
+        head[5] = (int)node;
+    }
+    (void)vparg;
+    return node;
+}
 
 void func_0000E720(char *a0) {
     func_00000000(a0 + 0x2C);
