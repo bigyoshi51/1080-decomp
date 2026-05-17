@@ -1510,6 +1510,15 @@ extern int D_087A4_word0_final;
  *       decision tied to IDO's address-materialization-hoisting.
  *   (2) K&R float stack arg (`lwc1/swc1` target vs int-bitcast `lw/sw`;
  *       direct float double-promotes through K&R `func_00000000`).
+ *       2026-05-17: tested alias-extern recipe (func_00000000_087A4 in
+ *       undefined_syms_auto.txt + block-scope `extern void func(...,float)`)
+ *       per docs/MATCHING_WORKFLOW.md#feedback-alias-extern-via-undefined-syms.
+ *       DID emit swc1/lwc1 correctly for the float store/load. BUT net
+ *       fuzzy REGRESSED 91.14% -> 91.09% — adding the extern decl shifted
+ *       register allocation around the call (different LUI hoisting,
+ *       stack offsets +8 due to different scope analysis). Per-function
+ *       this lever is structurally too disruptive even though it fixes
+ *       the targeted opcode. Reverted.
  *   (3) Multiple embedded data symbols (D_00008814 etc.) in target are
  *       treated as inline data in expected/.o but as code in built —
  *       splat/.S file boundary issue, not pure C-level.
