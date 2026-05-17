@@ -5460,19 +5460,63 @@ trunk:
     if (a1 & 0x80) {
         /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
          * shared Vec2 table lookup at D[0x638] and post-lookup limit check.
-         * Initial wire-up of documented decode (above comments capture the
-         * full tier breakdown; this body covers the shared/limit portion). */
+         *
+         * 2026-05-17: wire the branch-target audit from 0x7848-0x7874.
+         * The `sub_cnt < 2 * list_base + 16` slow-path branch jumps straight
+         * to the post-lookup counter transition and uses the branch-likely
+         * delay slot to load main_cnt; it does NOT read D+0x638. The table
+         * path also indexes by the tier-local offset in a0[0x58], not by the
+         * absolute sub_cnt. */
         int sub_cnt = a0[0x4C / 4];
         int list_base = a0[0x4DC / 4];
         int main_cnt;
         int new_sub_cnt;
         int limit;
-        a0[0x58 / 4] = sub_cnt;
+        int table_idx;
+
         if (sub_cnt < 8) {
-            ret_lo |= 0x1000;
+            table_idx = sub_cnt;
+            a0[0x58 / 4] = table_idx;
+            if (sub_cnt >= 5) {
+                ret_lo |= 0x1000;
+            }
+            goto bit80_table;
         }
-        f0 = *(float*)((char*)&D_00000000 + 0x638 + sub_cnt * 8);
-        f2 = *(float*)((char*)&D_00000000 + 0x638 + sub_cnt * 8 + 4);
+
+        if (sub_cnt < list_base + 8) {
+            /* Slow-path no-table transition: 0x7870 branch target. */
+            goto bit80_count_transition;
+        }
+
+        if (sub_cnt < list_base + 16) {
+            goto bit80_mid_tier;
+        }
+
+        if (sub_cnt < list_base * 2 + 16) {
+            /* Slow-path no-table transition: branch-likely target 0x7934. */
+            goto bit80_count_transition;
+        }
+
+        table_idx = sub_cnt - (list_base * 2) - 16;
+        a0[0x58 / 4] = table_idx;
+        if (sub_cnt >= list_base * 2 + 21 && sub_cnt <= list_base * 2 + 23) {
+            ret_lo |= 0x1600;
+        }
+        goto bit80_table;
+
+bit80_mid_tier:
+        table_idx = sub_cnt - list_base - 8;
+        a0[0x58 / 4] = table_idx;
+        if (sub_cnt >= list_base + 13 && sub_cnt <= list_base + 15) {
+            ret_lo |= 0x1200;
+        }
+
+bit80_table:
+        table_idx = a0[0x58 / 4];
+        f0 = *(float*)((char*)&D_00000000 + 0x638 + table_idx * 8);
+        f2 = *(float*)((char*)&D_00000000 + 0x638 + table_idx * 8 + 4);
+
+bit80_count_transition:
         main_cnt = a0[0x44 / 4];
         new_sub_cnt = sub_cnt + 1;
         a0[0x4C / 4] = new_sub_cnt;
