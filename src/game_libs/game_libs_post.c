@@ -3002,6 +3002,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036E74);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036F0C);
 
+/* gl_func_000372D4 - verified structural decode (29-insn br=0 deterministic;
+ * t6-spill + p+48 sub-struct base-reuse = struct-base divergence class ->
+ * INCLUDE_ASM build path; struct-typing reference).
+ *   p = (int*)((int*)a0->0x14)->0xF4;
+ *   *(float*)(p+0x60) = a1[0];
+ *   *(float*)(p+0x64) = a1[1];          // target: addiu base,48; +0x34
+ *   *(float*)(p+0x68) = a1[2];          // target: +0x38 (p+48 base reuse)
+ *   *(float*)(a0+0x30) = -90.0f;        // 0xC2B40000
+ *   *(float*)(a0+0x34) = 180.0f;        // 0x43340000
+ *   *(float*)(a0+0x38) = 0.0f;
+ *   vt = (int*)a0->0x28;
+ *   (*(fn)vt->0x24)( (short)vt->0x20 + (int)a0 );   // vtable idiom
+ * Struct-typing: a0->0x14 obj whose ->0xF4 is a sub-object holding a Vec3
+ * at +0x60 (set from a1[0..2]); a0->0x30/0x34/0x38 = {-90,180,0} (an
+ * euler/orientation triple); a0->0x28 vtable {fn@0x24, short@0x20} (the
+ * documented obj-dispatch idiom, 0x24/0x20 variant). Caps 27/29: target
+ * spills t6 (the a0->0x14 ptr) to sp+28 and addresses p+0x64/0x68 via
+ * `addiu base,48; swc1 ,52/56(base)` (sub-struct at p+48 reached as
+ * +0x34/+0x38) - flat `*(float*)(p+0x64)` C is 2 insns short. The
+ * struct-base-reuse divergence class (cf gl_func_00065250). br=0 but not
+ * the clean-episode subset. INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000372D4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
