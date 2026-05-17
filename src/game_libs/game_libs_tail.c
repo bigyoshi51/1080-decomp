@@ -169,6 +169,59 @@ void gl_func_0000A768(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A7B4);
 
+/* Bitfield getter/setter cluster — gl_func_0000A7B4's tail-extracted micros.
+ * Each get returns a sub-field; each set replaces it in place. */
+
+/* getter: bits 0..1 → return (*a0 & 3) */
+int game_libs_func_0000A878(int *a0) { return *a0 & 3; }
+
+/* setter: bits 0..1 ← a1. Target writes the cleared-value intermediate too. */
+void game_libs_func_0000A884(int *a0, int a1) {
+    *a0 = *a0 & ~3;
+    *a0 = *a0 | (a1 & 3);
+}
+
+/* getter: bits 2..4 → return (*a0 >> 2) & 7 */
+int game_libs_func_0000A8A4(int *a0) { return (*a0 >> 2) & 7; }
+
+/* setter: bits 2..4 ← a1 */
+void game_libs_func_0000A8B4(int *a0, int a1) {
+    *a0 = *a0 & ~0x1C;
+    *a0 = *a0 | ((a1 & 7) << 2);
+}
+
+/* A8D8: 8-insn body relies on beqz-fallthrough into the next function's
+ * empty `jr ra; nop` body — IDO emitted a tail-fallthrough that C alone
+ * can't reproduce. Keep INCLUDE_ASM. */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A8D8);
+
+/* empty: jr ra; nop */
+void game_libs_func_0000A8F8(void) {}
+
+/* setter: bit 5 ← (a1 & 0x20) */
+void game_libs_func_0000A900(int *a0, int a1) {
+    *a0 = *a0 & ~0x20;
+    if (a1 & 0x20) *a0 = *a0 | 0x20;
+}
+
+/* getter: bits 6..9 → return (*a0 >> 6) & 0xF */
+int game_libs_func_0000A928(int *a0) { return (*a0 >> 6) & 0xF; }
+
+/* setter: bits 6..9 ← a1 */
+void game_libs_func_0000A938(int *a0, int a1) {
+    *a0 = *a0 & ~0x3C0;
+    *a0 = *a0 | ((a1 & 0xF) << 6);
+}
+
+/* getter: bits 10..13 → return (*a0 >> 10) & 0xF */
+int game_libs_func_0000A95C(int *a0) { return (*a0 >> 10) & 0xF; }
+
+/* setter: bits 10..13 ← a1 */
+void game_libs_func_0000A96C(int *a0, int a1) {
+    *a0 = *a0 & ~0x3C00;
+    *a0 = *a0 | ((a1 & 0xF) << 10);
+}
+
 #ifdef NON_MATCHING
 /* gl_func_0000A990: 25-insn 5-identical-call + 2-zero-fields wrapper. */
 extern int func_00000000();
