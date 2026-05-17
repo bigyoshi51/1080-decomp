@@ -947,6 +947,35 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000038C0);
  * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
 
+/* func_00003B78 - verified structural decode (0x1C4, 113 insns,
+ * multi-stage builder chain). MEMBER of the func_000038C0 /
+ * func_00003734 / func_000039D8 builder-chain family (same
+ * alloc-0x80 + tagged-arg func_00000000 builder pattern).
+ *   void func_00003B78(St *s1, int a1) {
+ *       o = alloc(0x80); if (!o) return; init(o, 0);
+ *       register(&D, o);  register(&D, o, 0);
+ *       cfg = s1->0x98;
+ *       flags = (CFG->0x182 | 0x8001) | 0x10000 | 0x40000;
+ *       r = build(s1, 0, CFG->0x181, CFG->0x183,
+ *                 o, s1->0x80, cfg->0xC4, cfg->0xCC,
+ *                 flags, 0x1B);                   // tagged block
+ *       r2 = build(s1, 0, s1->0x80, r);
+ *       ... (chain continues per the family: more build() stages
+ *           wiring r, a1*0x1C-indexed descriptor table, final
+ *           list-link & r->0x8DC = result, as in func_00003734).
+ *   }
+ * Struct-typing reference (same family as func_000038C0 /
+ * func_00003734 / func_000039D8): s1->0x80 (128) pass-through
+ * handle; s1->0x98 (152) -> cfg with f32 0xC4 (196) / 0xCC (204)
+ * builder params. CFG = a global byte-config block (lui/addiu 0):
+ * CFG->0x181 (385) / 0x182 (386) / 0x183 (387) u8 fields supply
+ * arg2/flag-base/arg3 (0x182 OR'd with 0x8001|0x10000|0x40000
+ * feature bits). o = the 0x80-byte builder object; a1 indexes the
+ * 0x1C-stride descriptor table per the family pattern. Caps <80:
+ * ~12 func_00000000 reloc + FP stack-arg passing + packed-flag
+ * lui/ori (with global u8 inputs) + a1*0x1C index + list-link
+ * beql. Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003B78);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003D3C);
