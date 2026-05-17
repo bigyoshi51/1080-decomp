@@ -99,6 +99,50 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000140C4);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014228);
 
+/* func_0001438C - verified structural decode (0x128, 74 insns,
+ * get-or-create constructor + 2 child sub-objects).
+ *   void *func_0001438C(void *a0) {
+ *       o = a0;
+ *       if (o == 0) { o = alloc(0x38); if (!o) return 0; }
+ *       s1 = alloc(8);
+ *       if (s1) {
+ *           s1->0x0 = &func_0000CACC[0xC];        // fn/descriptor
+ *           s1->0x4 = 0;
+ *       }
+ *       v = *(int*)(func_0000CAE8 + 4);
+ *       if (o != (void*)-8) {                     // defensive guard
+ *           c = alloc(0x18);
+ *           if (c) {
+ *               init(c, o, v, 1);                 // func_00000000
+ *               c->0xC  = &D_0000C83C;            // descriptor
+ *               c->0x14 = 0;
+ *               c->0x10 = 30.0f;                  // 0x41F00000
+ *           }
+ *       }
+ *       v = *(int*)(func_0000CAE8 + 8);
+ *       if (o != (void*)-0x20) {
+ *           c = alloc(0x18);
+ *           if (c) {
+ *               init(c, o, v, 1);
+ *               c->0xC  = &D_0000C83C;
+ *               c->0x14 = 0;
+ *               c->0x10 = 30.0f;
+ *           }
+ *       }
+ *       return o;
+ *   }
+ * Struct-typing reference: o = 0x38-byte object (get-or-create).
+ * s1 = 8-byte aux: s1->0x0 (0) fn/descriptor ptr (&func_0000CACC+
+ * 0xC), s1->0x4 (4) = 0. child = 0x18-byte sub-object: child->0xC
+ * (12) descriptor ptr (&D_0000C83C), child->0x10 (16) f32 = 30.0,
+ * child->0x14 (20) = 0; built twice with values from the global
+ * table func_0000CAE8+4 / +8. The `o != -8 / -0x20` tests are
+ * defensive impossible-pointer guards (always true for real
+ * objects). Caps <80: get-or-create + ~5 func_00000000 reloc
+ * (alloc/init) + &D / cross-symbol descriptor relocs + FP 30.0
+ * const + defensive-dead guards. Full body INCLUDE_ASM-preserved
+ * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
+ * rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001438C);
 
 void func_000144B4(int *a0, int a1, int a2, float a3, float arg5) {
