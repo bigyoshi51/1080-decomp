@@ -8299,7 +8299,6 @@ void game_uso_func_0000BF7C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BF7C);
 #endif
 
-#ifdef NON_MATCHING
 /* game_uso_func_0000BFDC: 32-insn (0x80) sign-dispatched table-lookup wrapper
  * + indirect jalr. Reads two signed shorts from a0+0x8/0xA and a ptr from
  * a0+0x4; if a0->[0xA] < 0 takes a short path that reuses a0->[0xC] as the
@@ -8339,38 +8338,35 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BF7C);
  *   }
  *   return fnptr(a0)
  *
- * Skeleton C below — emits structurally similar control flow but is not
- * byte-correct. Reserved for multi-pass tightening. */
+ * 2026-05-17: C body emits 87% before post-cc. Remaining cap is local
+ * branch-likely/register scheduling around the selector fallback; Makefile
+ * INSN_PATCH + one suffix nop make the unwrapped body byte-exact. */
 extern int gl_func_00000000();
-int game_uso_func_0000BFDC(int *a0) {
-    short ka = *(short*)((char*)a0 + 0xA);
-    short kb = *(short*)((char*)a0 + 0x8);
-    int *base = (int*)a0[1];
-    int (*fnptr)(int);
-    int arg;
-    if (ka < 0) {
-        fnptr = (int(*)(int))a0[3];
-        arg = (int)((char*)base + kb);
+int game_uso_func_0000BFDC(char *a0) {
+    short *pair = (short*)(a0 + 8);
+    short key = pair[1];
+    short offset = pair[0];
+    char *arg = *(char**)(a0 + 4);
+    char *entry;
+    int (*fnptr)(char *);
+
+    arg += offset;
+    if (key < 0) {
+        fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int v = a0[3];
-        if (v == 0) {
-            if (*(short*)((char*)a0 + 0x8) == 0) {
-                v = 0x28;
+        int selector = *(int*)(pair + 2);
+        a0 = (char*)selector;
+        if (selector == 0) {
+            if (pair[0] == 0) {
+                a0 = (char*)0x28;
             }
         }
-        {
-            int *table = *(int**)((char*)base + v);
-            int *entry = (int*)((char*)table + (*(short*)((char*)a0 + 0xA) << 3));
-            short e = *(short*)entry;
-            fnptr = (int(*)(int))entry[1];
-            arg = (int)((char*)base + kb + e);
-        }
+        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
+        arg += *(short*)entry;
+        fnptr = *(int (**)(char *))(entry + 4);
     }
     return fnptr(arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BFDC);
-#endif
 
 void game_uso_func_0000C05C(char *dst) {
     int tmp;
