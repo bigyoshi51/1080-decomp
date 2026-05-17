@@ -448,7 +448,13 @@ void timproc_uso_b1_func_000018D4(char *a0) {
  * has MORE lw's than built; here target has more insns but they aren't
  * all lw's — inlining self[0xD4/4] adds compute but doesn't reach
  * target's structural shape (which uses cached self in $a3 + $a0
- * reload tracking). Cap class confirmed permuter-only. */
+ * reload tracking).
+ * PERMUTER-PLATEAUED 2026-05-17: 125k iters flat at score 740 (base
+ * 880, ~16% progress). The cached-self-in-$a3 + per-deref-reload
+ * collapse is STRUCTURAL, NOT pure-regalloc — the permuter cannot
+ * cross it (session meta-finding, 0/6 permuter targets ever hit 0).
+ * Prior "permuter-only" label was WRONG; this is true-structural /
+ * force-SAME-LEN-INSN_PATCH territory only. */
 void timproc_uso_b1_func_00001908(int *self) {
     char *base = &D_00000000;
     int *sub;
