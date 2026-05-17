@@ -27,7 +27,7 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 | `timproc_uso_b3`       | 26 / 55           | 1.9 KB / 12.2 KB       | 15.82 %    | 24.46 %    | Timer process variant b3 (Yay0)                |
 | `timproc_uso_b5`       | 80 / 154          | 2.9 KB / 57.5 KB       | 4.98 %     | 10.81 %    | Timer process variant b5 (Yay0)                |
 | `map4_data_uso_b2`     | 3 / 3             | 0.2 KB / 0.2 KB        | 100.00 %   | 100.00 %   | Map-4 data block                               |
-| **Total**              | **1,161 / 2,822** | **71.6 KB / 745.1 KB** | **9.60 %** | **18.05 %**|                                                |
+| **Total**              | **1,184 / 2,837** | **73.0 KB / 745.4 KB** | **9.79 %** | **18.55 %**|                                                |
 
 Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
