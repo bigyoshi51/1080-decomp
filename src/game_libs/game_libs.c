@@ -333,6 +333,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000237C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000024C4);
 
+/* 3-insn 2-int setter: a0[0x1C4]=a1, a0[0x1C8]=a2. */
+void game_libs_func_00002540(int *a0, int a1, int a2) {
+    a0[0x1C4/4] = a1;
+    a0[0x1C8/4] = a2;
+}
+
+/* 5-insn 2-float setter (mtc1 in body — caller passes int in $a1/$a2). */
+void game_libs_func_0000254C(int *a0, float a1, float a2) {
+    *(float*)((char*)a0 + 0x1CC) = a1;
+    *(float*)((char*)a0 + 0x1D0) = a2;
+}
+
+/* 8-insn 3-float setter (3rd float via stack round-trip per K&R ABI). */
+void game_libs_func_00002560(int *a0, float a1, float a2, float a3) {
+    *(float*)((char*)a0 + 0x1E4) = a1;
+    *(float*)((char*)a0 + 0x1E8) = a2;
+    *(float*)((char*)a0 + 0x1EC) = a3;
+}
+
+/* 10-insn 4-float setter (3rd+4th via stack round-trip; 4th from caller sp+0x10). */
+void game_libs_func_00002580(int *a0, float a1, float a2, float a3, float a4) {
+    *(float*)((char*)a0 + 0x1D4) = a1;
+    *(float*)((char*)a0 + 0x1D8) = a2;
+    *(float*)((char*)a0 + 0x1DC) = a3;
+    *(float*)((char*)a0 + 0x1E0) = a4;
+}
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000025A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00002840);
