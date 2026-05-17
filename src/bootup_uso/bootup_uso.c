@@ -2259,6 +2259,43 @@ void func_00007E70(char *a0) {
     }
 }
 
+/* func_00007EC8 - verified structural decode (0x1B0, 108 insns,
+ * FP 1D collision / threshold-crossing test).
+ *   void func_00007EC8(St *s0) {
+ *       if (*(int*)(func_00000008 + 0x2C) == 8) return;  // gate
+ *       g     = *(St**)&D_g;
+ *       scale = g->0x130;                          // f32
+ *       limit = g->0x254->0x70->0xA8 * scale;      // boundary
+ *       p     = s0->0x38 * scale;                   // scaled pos
+ *       end   = s0->0x54 + p;                        // pos+vel
+ *       int hit = 0;
+ *       if (p < limit && end >= limit) {            // fwd cross
+ *           frac = (limit - p) / s0->0x54;          // toi
+ *           hit = 1;
+ *       } else if (end < limit && p >= limit) {     // rev cross
+ *           ...
+ *       }
+ *       if (hit == s0->0x8C) {                       // same state
+ *           ...
+ *       } else {                                     // state change
+ *           // copy a transform/quad block from
+ *           // func_0000027C+0x18 into a global, ...
+ *       }
+ *   }
+ * Struct-typing reference: s0->0x38 (56) f32 = position, s0->0x54
+ * (84) f32 = velocity, s0->0x6C (108) f32 = a derived value,
+ * s0->0x8C (140) s32 = a latched collision/zone state (compared
+ * to the new hit flag - mismatch triggers the transition + the
+ * func_0000027C+0x18 transform-block copy to a global). g =
+ * *(&D_g); g->0x130 (304) f32 = world scale, g->0x254 (596) ->
+ * 0x70 (112) -> 0xA8 (168) f32 = the boundary/limit position
+ * (scaled). The (limit - p) / vel is the time-of-impact fraction.
+ * Global gate *(func_00000008+0x2C) == 8 disables the test.
+ * Likely a course/wall boundary crossing detector. Caps <80:
+ * FP-heavy mul.s/c.lt.s/add.s/sub.s/div.s + bc1fl branch-likely
+ * chain + &D + func_0000027C+0x18 cross-symbol block copy. Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007EC8);
 
 void func_00008078(char *a0) {
