@@ -290,7 +290,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000135C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000015FC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001798);
+void gl_func_00001798(char *a0) {
+    gl_func_00000000(a0 + 0x138);
+    gl_func_00000000(a0 + 0x150);
+    gl_func_00000000(a0 + 0x180);
+    gl_func_00000000(a0 + 0x168);
+}
 
 /* 3-insn 2-field setter: a0[0x44]=a1, a0[0x5C]=a2. */
 void game_libs_func_000017E0(int *a0, int a1, int a2) {
