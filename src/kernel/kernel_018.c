@@ -162,6 +162,39 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80007698);
 
 
 
+/* func_80007A98 - verified structural decode (0xA4, 41 insns).
+ * SIBLING of the rmon register-fetch family (func_8000798C
+ * __rmonGetGRegisters calls this as func_80007A98(domain, id, &buf);
+ * func_800079F4 is the dispatch sibling that donates the -0x78 stack
+ * frame - this .s has no own prologue, it runs in func_800079F4's
+ * frame and exits via the shared epilogue / cross-function labels
+ * .L80007AB4/.L80007B28 (undefined_syms_auto.txt). NOT a fragment;
+ * boundary already resolved.
+ *   s32 func_80007A98(s32 domain, s32 id, void *buf) {
+ *       func_80008498();                          // setup/lock
+ *       ... shared-tail paths return -4 / -2 on error (.L80007B28)
+ *       // recursive sub-fetch:
+ *       v0 = func_80007A98(savedMsg->0x9, savedPayload->0xC, &hdr);
+ *       if (v0 != 0) return -2;
+ *       // build rmon header in stack struct at sp+0x28:
+ *       hdr.0x2C = savedMsg->0x4;  hdr.0x2E = 0;
+ *       func_800073F8(&hdr, 0x4C, 1);             // __rmonSendHeader
+ *       if (hdr.0x34 == 1) {
+ *           hdr.0x2C = 4;
+ *           func_800073F8(&hdr, 0x4C, 2);
+ *       }
+ *       return 0;                                 // shared epilogue
+ *   }
+ * Struct-typing reference: rmon command sender for the register-fetch
+ * family. buf/hdr stack struct at sp+0x28: +0x2C (0x2C) u8 command
+ * tag (savedMsg->0x4, or 4 on the resend path), +0x2E (0x2E) s16
+ * cleared field, +0x34 (0x34) s32 status checked == 1 (triggers a
+ * second SendHeader with tag 4 / flag 2). func_800073F8 =
+ * __rmonSendHeader(hdr, len=0x4C, flag). Caps <80: prologue-donated
+ * shared frame (no local addiu sp) + recursion + 2x func_800073F8
+ * rmon-builder + cross-function shared-epilogue branch-likely. Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007A98);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007B3C);
