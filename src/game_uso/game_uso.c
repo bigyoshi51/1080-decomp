@@ -1512,8 +1512,8 @@ void game_uso_func_0000249C(char *a0) {
  *   if (key == 0) return a0;
  *   if (key == 3) {
  *       v1 = a0[0xF];                        // sub-obj
- *       (a0[5])->Vec3@0xA0 = v1->Vec3@0xA0;  // 3-float copy to t6's child
- *       a0->Vec3@0x60 = v1->Vec3@0xA0;       // and to self+0x60
+ *       (a0[5])->Vec3@0x60 = v1->Vec3@0xA0;  // 3-float copy to t6's state
+ *       (a0[5])->Vec3@0xA0 = v1->Vec3@0xA0;  // and to t6's child/state mirror
  *       goto end;
  *   }
  *   else: {
@@ -1553,11 +1553,11 @@ void *game_uso_func_000024BC(int *a0, int *a1) {
     if (key == 0) goto end;
     if (key != 3) goto branch_else;
 
-    /* key == 3: dual Vec3 copy from sub-obj@0xA0 to (self+0x60) AND (t6+0xA0). */
+    /* key == 3: dual Vec3 copy from sub-obj@0xA0 to t6+0x60 and t6+0xA0. */
     v1 = (int*)a0[0x3C / 4];
-    *(float*)((char*)a0 + 0x60) = *(float*)((char*)v1 + 0xA0);
-    *(float*)((char*)a0 + 0x64) = *(float*)((char*)v1 + 0xA4);
-    *(float*)((char*)a0 + 0x68) = *(float*)((char*)v1 + 0xA8);
+    *(float*)((char*)t6 + 0x60) = *(float*)((char*)v1 + 0xA0);
+    *(float*)((char*)t6 + 0x64) = *(float*)((char*)v1 + 0xA4);
+    *(float*)((char*)t6 + 0x68) = *(float*)((char*)v1 + 0xA8);
     *(float*)((char*)t6 + 0xA0) = *(float*)((char*)v1 + 0xA0);
     *(float*)((char*)t6 + 0xA4) = *(float*)((char*)v1 + 0xA4);
     *(float*)((char*)t6 + 0xA8) = *(float*)((char*)v1 + 0xA8);
