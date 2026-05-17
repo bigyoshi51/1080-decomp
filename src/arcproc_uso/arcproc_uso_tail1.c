@@ -913,7 +913,51 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000024C
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251C);
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_000027BC: 42-insn string-match + vtable-dispatch.
+ *
+ *   if (gl_func(&D_str, 0x40100, a0) != 0) {
+ *     p = a0->[0x48];
+ *     idx = p->[0x7C];
+ *     t9 = (p + idx*0x28)->[0x90];          // vtable fn ptr
+ *     if (t9 != 0) {
+ *       gl_func();                          // some callback
+ *       p = a0->[0x48];                     // reload
+ *       *(int*)(&D_0 + 0x70) = (int)p;
+ *       *(int*)(&D_0 + 0x74) = (int)a0;
+ *       idx = p->[0x7C];                    // reload
+ *       (*t9)();                            // indirect dispatch
+ *     }
+ *   }
+ *
+ * Pattern: lookup-then-dispatch. The 0x7C index field selects from a
+ * 0x28-byte stride table at p; vtable slot at +0x90 per entry.
+ * Multi-tick — gl_func arg signatures unconfirmed, reg-alloc/spill
+ * order will diverge on first pass. */
+extern int gl_func_00000000();
+extern char D_arc_27BC_str;
+void arcproc_uso_func_000027BC(int *a0) {
+    int *p;
+    int idx;
+    void (*fn)(void);
+    if (gl_func_00000000(&D_arc_27BC_str, 0x40100, a0) != 0) {
+        p = (int*)a0[0x48/4];
+        idx = p[0x7C/4];
+        fn = (void(*)(void))*(int*)((char*)p + idx * 0x28 + 0x90);
+        if (fn != 0) {
+            gl_func_00000000();
+            p = (int*)a0[0x48/4];
+            *(int*)((char*)&D_00000000 + 0x70) = (int)p;
+            *(int*)((char*)&D_00000000 + 0x74) = (int)a0;
+            idx = p[0x7C/4];
+            fn = (void(*)(void))*(int*)((char*)p + idx * 0x28 + 0x90);
+            fn();
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000027BC);
+#endif
 
 void arcproc_uso_func_00002864(void) {
     arcproc_uso_func_00000000();
