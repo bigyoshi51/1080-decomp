@@ -938,7 +938,48 @@ int gl_func_0000C580(char *a0) {
     return gl_ref_0001DCE0(a0 + 0x10);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C5B0);
+/* gl_func_0000C5B0: byte-identical mirror of gl_func_000088B4 in
+ * game_libs.c. Same struct types redeclared locally (file-scope) so
+ * game_libs_tail.c can build standalone. 25-word INSN_PATCH in Makefile
+ * transferred verbatim. */
+struct GlConstructed {
+    char pad[0x10];
+    char pad2[0x18];
+    int *field_28;
+    char pad3[0x10];
+    int field_3C;
+};
+struct GlOrig {
+    char pad[0x40];
+    struct GlExisting *field_40;
+};
+struct GlExisting {
+    int field_0;
+    int field_4;
+    char pad8[0x14 - 8];
+    void *field_14;
+};
+
+struct GlConstructed *gl_func_0000C5B0(struct GlOrig *orig) {
+    struct GlConstructed *ptr;
+    struct GlConstructed *ret;
+    struct GlExisting *existing;
+    ptr = (struct GlConstructed *)gl_func_00000000(0x40);
+    if (ptr != 0) {
+        gl_func_00000000(ptr);
+        ptr->field_28 = (int *)&D_00000000;
+        ptr->field_3C = 0;
+    }
+    ret = ptr;
+    if ((existing = orig->field_40) != 0) {
+        gl_func_00000000((char *)ret + 0x10, existing);
+        if (existing->field_14 != 0) {
+            existing->field_4 = 1;
+        }
+        existing->field_14 = ret;
+    }
+    return ret;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000C5B0_pad.s")
 
 extern int gl_func_00000000();
