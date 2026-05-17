@@ -743,6 +743,30 @@ void *func_000046EC(int *arg0) {
     return node;
 }
 
+/* func_0000477C - verified structural decode (0xE0, 56 insns,
+ * slider/parameter registration). SIBLING of func_00006734 (same
+ * registration-builder shape, here with float range/step params).
+ *   void func_0000477C(void *a0) {
+ *       reg(&D_x, &D_000074F4, 0);                       // entry 0
+ *       reg(&D_x, &D_00007500, a0+0x2C, -2000.0f, 2000.0f, 0);
+ *       reg(&D_x, &D_00007508, a0+0x34,    0.01f,    1.0f, 0);
+ *       reg(&D_x, &D_00007510, a0+0x30,    0.01f,    1.0f, 0);
+ *       reloc_finalize(&D_y);
+ *       reloc_finalize2(a0);
+ *   }
+ * (reg = func_00000000; a3 = min/step as f32 bits, 5th/6th args =
+ * max + flag on the stack at sp+0x10 / sp+0x14.)
+ * Constants decoded: 0xC4FA0000 = -2000.0f, 0x44FA0000 = 2000.0f,
+ * 0x3C23D70A = 0.01f, 0x3F800000 = 1.0f.
+ * Struct-typing reference: D_000074F4/7500/7508/7510 = four
+ * slider/param key data; bound object fields a0->0x2C (44) [range
+ * +-2000.0, step 0], a0->0x34 (52) and a0->0x30 (48) [step 0.01,
+ * max 1.0] - i.e. one wide unbounded-ish axis plus two fine 0..1
+ * normalized params (entry 0 binds no field). Caps <80: 6x
+ * func_00000000 reloc + 4x &D reloc + f32-const-as-(a3/stack)-arg
+ * (lui+mtc1+swc1 + sp+0x10/0x14 passing). Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000477C);
 
 /* func_0000485C - verified structural decode (0xB8, 46 insns,
