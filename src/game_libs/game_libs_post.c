@@ -4578,7 +4578,12 @@ void gl_func_0003D68C(int *a0) {
 
 /* gl_func_0003D71C: 55-insn — guarded by a 7-arg call, then struct-copy
  * D+0xE8 -> D+0xA0 (0x40 bytes), 3 float products into D+0xD0/D4/D8,
- * final call. USO convention: call -> func_00000000, data -> &D+off. */
+ * final call. USO convention: call -> func_00000000, data -> &D+off.
+ * PERMUTER-PLATEAUED 2026-05-17: 124k iters flat at score 1325 (base
+ * 1625, ~18% progress). Residual is the 0x40-byte struct-copy unroll
+ * granularity — STRUCTURAL (IDO hand-tuned 3-word loop vs C unroll),
+ * which the permuter cannot cross (session meta-finding: permuter
+ * closes pure-regalloc, not structural). Killed; not permuter-class. */
 #ifdef NON_MATCHING
 struct gl_3D71C_blk { int w[16]; };
 void gl_func_0003D71C(int *a0) {
