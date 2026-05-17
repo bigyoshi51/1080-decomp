@@ -1346,7 +1346,47 @@ end:
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
 
+#ifdef NON_MATCHING
+/* func_8000235C: 33-insn entry-list clear-by-type helper.
+ *   if no entry list at a0+0x3C, return 0.
+ *   For each 0xC-byte entry, if low type bits == 1, high bits match arg1,
+ *   and bit 3 is set, clear bit 3 and mark a0+0x99 dirty.
+ *
+ * C structure is correct, but IDO currently assigns the saved original arg,
+ * list count, and entry pointer to v0/v1/a2/a3 instead of target's a3/a1/a2
+ * trio. Default INCLUDE_ASM remains the build path. */
+int func_8000235C(int *a0, int a1) {
+    int a3;
+    int v1;
+    short *a2;
+    int v0;
+
+    a3 = a1;
+    v0 = a0[0x3C / 4];
+    if (v0 == 0) return 0;
+
+    a1 = a0[0x4 / 4];
+    v1 = 0;
+    a2 = (short*)v0;
+    if (a1 <= 0) goto end;
+
+    do {
+        v0 = a2[0];
+        v1++;
+        if (((v0 & 0x7) == 1) && (a3 == (v0 >> 4)) && (v0 & 0x8)) {
+            *a2 = (short)(v0 & ~0x8);
+            *(unsigned char*)((char*)a0 + 0x99) = 1;
+            a1 = a0[0x4 / 4];
+        }
+        a2 = (short*)((char*)a2 + 0xC);
+    } while (v1 < a1);
+
+end:
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000235C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800023E0);
 
