@@ -753,7 +753,6 @@ void func_0000502C(int *dst) {
     *dst = buf[0];
 }
 
-#ifdef NON_MATCHING
 /* 14-insn / 0x38: 2-call wrapper — calls func(D_7D94) (likely a printf-fmt
  * string) then func(0, a0). 13/14 insns match; target has an extra
  * `sw a1, 0x4(sp)` in the 2nd jal's delay slot (a1-spill to local slot,
@@ -781,15 +780,17 @@ void func_0000502C(int *dst) {
  * `vfn(0, a0)` — REGRESSES to indirect `lui+addiu+jalr t9` instead of
  * direct `jal func` (function-pointer cast pessimizes call shape).
  * Direct variadic decl `extern int func(int, ...)` not tested (would
- * affect all call sites in TU). Cap class confirmed structural. */
+ * affect all call sites in TU). Cap class confirmed structural.
+ *
+ * 2026-05-17 later: `func_00000000(0, a0, a0)` moves the reload before the
+ * zero-a0 setup and reaches the target's 14-insn shape. One non-reloc
+ * INSN_PATCH rewrites the third-arg delay-slot copy to the target's dead
+ * a1 home-store. */
 extern char D_00007D94;
 void func_00005068(int a0) {
     func_00000000(&D_00007D94);
-    func_00000000(0, a0);
+    func_00000000(0, a0, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005068);
-#endif
 
 #ifdef NON_MATCHING
 /* 33-insn / 0x84 init+alloc+populate.
