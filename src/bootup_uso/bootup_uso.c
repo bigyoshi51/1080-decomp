@@ -1440,61 +1440,35 @@ void func_00008664(char *a0, int *a1) {
     }
 }
 
-#ifdef NON_MATCHING
 /* func_000086C0: 33-insn (0x84) two-init + linked-list dispatcher.
  *
- * Body:
- *   func(&D_00000000, a0 + 0x4C);                          // init 1
- *   func(a0 + 0x5C);                                       // init 2
- *   node = a0->[0x34];                                     // list head
- *   while (node) {
- *       if (node->[0x18] & 4) {                            // flag check
- *           obj = node->[0x28];
- *           cb = obj->[0x1C];
- *           cb(node + (s16)obj->[0x18]);                   // callback w/ offset
- *       }
- *       node = node->[0x84];                               // next
- *   }
- *   func(&func_0000027C + 0x18);                           // alt-entry tail call
- *
- * Caps:
- *   - Tail call jumps to func_0000027C+0x18 (alt-entry, not a clean symbol);
- *     the lui+addiu+jal placeholder bytes differ from C-compile-time emit.
- *     [RESOLVED 2026-05-14] Switched to &gl_ref_00000294 symbol-ref (declared
- *     in undefined_syms_auto.txt as 0x00000294 = func_0000027C+0x18). IDO
- *     now emits lui+jal+addiu(DS) — 3 insns matching target — vs the prior
- *     lui+addiu+jal+addiu(DS) 4-insn form. +3.17pp (81.76% → 84.93%).
- *     Applies the magic-arg-via-symbol recipe from
- *     docs/IDO_CODEGEN.md#feedback-ido-magic-arg-via-symbol-not-literal.
- *   - Loop has beql/bnel branch-likely shape — may need goto-restructure.
- *   - Arg0 saved to caller-slot (sp+0x20) + reloaded; target preserves in
- *     $s0 via callee-save. IDO heuristic doesn't allocate $s0 to arg0 even
- *     with 3 cross-jal uses — known file-context cap. */
+ * Matching notes: reusing arg0 as the list iterator makes IDO keep it in
+ * $s0 across the two init calls; the separate `node` null-test produces the
+ * target's `lw v0` + branch-delay `or s0,v0` loop entry. The direct function
+ * pointer call keeps the callback in $t9. */
 extern int func_00000000();
 extern char gl_ref_00000294;
 
 void func_000086C0(char *arg0) {
     char *node;
-    int (*cb)(char *);
     char *obj;
 
     func_00000000(&D_00000000, arg0 + 0x4C);
     func_00000000(arg0 + 0x5C);
 
     node = *(char**)(arg0 + 0x34);
-    while (node != 0) {
-        if ((*(int*)(node + 0x18) & 4) != 0) {
-            obj = *(char**)(node + 0x28);
-            cb = (int(*)(char*))*(int*)(obj + 0x1C);
-            cb(node + *(short*)(obj + 0x18));
-        }
-        node = *(char**)(node + 0x84);
+    if (node != 0) {
+        arg0 = node;
+        do {
+            if ((*(int*)(arg0 + 0x18) & 4) != 0) {
+                obj = *(char**)(arg0 + 0x28);
+                ((int (*)(char *))*(int*)(obj + 0x1C))(arg0 + *(short*)(obj + 0x18));
+            }
+            arg0 = *(char**)(arg0 + 0x84);
+        } while (arg0 != 0);
     }
     func_00000000(&gl_ref_00000294);  /* alt-entry tail call to func_0000027C+0x18 */
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000086C0);
-#endif
 
 extern char D_func_00008744_arg1;
 extern char D_func_00008744_arg2;
