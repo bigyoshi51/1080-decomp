@@ -28,6 +28,42 @@ int func_00013980(float *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000139B0);
 
+/* func_00013B20 - verified structural decode (0x144, 84 insns,
+ * LUT index->value remap with all-ones fallback).
+ *   void func_00013B20(St *a0) {
+ *       root = *(void**)(func_0000023C + 4);
+ *       v = root->0x28;
+ *       lut = (u16*)(*(fn)v->0x64)((s16)v->0x60 + root); // vtable
+ *       if (a0->0x68 != 0) {                      // remap path
+ *           int *src = a0->0x54;                  // index array
+ *           u16 *dst = a0->0x4C;                  // output
+ *           for (i = 0; i != 0x1000/4; i += 4) {  // 4-unrolled
+ *               dst[0] = lut[src[i+0]];
+ *               dst[1] = lut[src[i+1]];
+ *               dst[2] = lut[src[i+2]];
+ *               dst[3] = lut[src[i+3]];
+ *               dst += 4;
+ *           }
+ *       } else {                                  // fill path
+ *           u16 *dst = a0->0x4C;
+ *           for (j = 0; j != 0x800; j += 8) {     // 4-unrolled
+ *               dst[0] = dst[1] = dst[2] = dst[3] = 1;
+ *               dst += 4;
+ *           }
+ *       }
+ *   }
+ * Struct-typing reference: root = *(func_0000023C+4) global ctx;
+ * root->0x28 (40) vtable ptr, fn @0x64 (100) + s16 base-adjust
+ * @0x60 (96) returns a u16 lookup table (the obj-0x28 dispatch
+ * idiom, 0x64/0x60 variant). a0->0x54 (84) = source int index
+ * array (0x400 entries, 0x1000 bytes), a0->0x4C (76) = dest u16
+ * array (0x400 entries, 0x800 bytes), a0->0x68 (104) = mode gate
+ * (nonzero -> remap each src index through lut; zero -> fill dest
+ * with 1). Likely a tile/palette index-to-colour expansion. Caps
+ * <80: vtable jalr + func_0000023C+4 reloc data ref + 4-way
+ * unrolled nested loop + beql branch-likely. Full body INCLUDE_ASM-
+ * preserved (.s = source of truth). INCLUDE_ASM (no episode;
+ * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013B20);
 
 void func_00013C70(int *dst) {
