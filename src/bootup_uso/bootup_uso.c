@@ -2528,29 +2528,33 @@ void func_0000EE5C(char *a0) {
     func_0000EC80((int*)(a0 + 0x10));
 }
 
-/* func_0000EE8C - verified structural decode (~39 insns, alloc-cascade
- * constructor). Allocates and wires a 64-byte object from arg0.
- *   raw = alloc(0x40);                       // func_00000000(0x40)
- *   if (raw == 0) return 0;                  // .L0000EEC4 fail path
- *   obj = init(raw);                         // func_00000000(raw)
- *   obj->0x28 = &D_00000000;                 // descriptor/vtable reloc
- *   obj->0x3C = 0;
- *   src = arg0->0x40;
- *   if (src == 0) return obj;                // .L0000EF08
- *   child = sub_init(obj + 0x10, src);       // func_00000000(obj+0x10,
- *                                            //                arg0->0x40)
- *   if (child->0x14 != 0) child->0x4 = 1;    // beql: when ->0x14==0 skip
- *   child->0x14 = obj;                       //   the ->0x4=1 (store-in-
- *   return obj;                              //   delay sets ->0x14=obj)
- * Struct-typing reference: object = 64 bytes; obj->0x28 (40) descriptor
- * ptr (&D, runtime-patched), obj->0x3C (60) s32 zero-init, obj+0x10
- * sub-region passed to child sub-init; arg0->0x40 (64) optional source
- * handle; child->0x14 (20) back-link to obj (0 = unlinked), child->0x4
- * (4) s32 linked-flag (set 1 only when child was already linked). Caps
- * <80: alloc-cascade + 3x func_00000000 reloc calls + &D reloc +
- * beql conditional store-in-delay. Full body INCLUDE_ASM-preserved
- * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap). */
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EE8C);
+/* func_0000EE8C: alloc-cascade constructor, sibling of func_0000EBE8.
+ * The remaining outer-branch scheduling/stack-slot artifacts are promoted
+ * by the established bootup_uso INSN_PATCH alloc-cascade recipe. */
+void *func_0000EE8C(void *caller_a0) {
+    char pad[4];
+    void *target;
+    register void *p;
+    void *ret;
+    (void)pad;
+    p = (void*)func_00000000(0x40);
+    if (p != 0) {
+        func_00000000(p);
+        *(int*)((char*)p + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p + 0x3C) = 0;
+    }
+    ret = p;
+    p = (char*)p + 0x10;
+    target = *(void**)((char*)caller_a0 + 0x40);
+    if (target != 0) {
+        func_00000000(p, target);
+        if (*(int*)((char*)target + 0x14) != 0) {
+            *(int*)((char*)target + 0x4) = 1;
+        }
+        *(int*)((char*)target + 0x14) = (int)ret;
+    }
+    return ret;
+}
 
 void func_0000EF20(int *dst) {
     int buf[2];
