@@ -8836,6 +8836,30 @@ void game_uso_func_0000EF20(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF20);
 #endif
 
+/* game_uso_func_0000EF70 — verified decode (EE84-family branchy, reload-CSE cap).
+ * void f(int *a0){
+ *   int *s0 = a0;
+ *   func_00000000(a0);                              // X1
+ *   func_00000000(s0[0xB4/4], 0x3f800000);          // X2 (a1 = 1.0f bits, lui 0x3f80)
+ *   func_00000000(s0);                              // X3
+ *   if (((int*)s0[0xB4/4])[0x938/4] == 0) {
+ *     func_00000000(s0);                            // X4
+ *     func_00000000(s0, D[0xDF8], D[0xDFC]);        // X5
+ *   } else {
+ *     func_00000000(s0, 1);                         // X6
+ *     if (((int*)s0[0xB4/4])[0x9CC/4] != 0) {
+ *       func_00000000(s0, D[0xE60], D[0xE64]);      // X7
+ *       func_00000000(s0);                          // X8
+ *     } else {
+ *       func_00000000(s0, D[0xE40], D[0xE44]);      // X9
+ *       func_00000000(s0);                          // X10
+ *     }
+ *   }
+ * }
+ * Structure verified vs .s. Caps sub-80: no-call same-base s0->0xB4 re-derefs +
+ * branch-likely D-pair loads (beql at 0x8C) — the documented reload-CSE class
+ * (docs/IDO_CODEGEN.md#feedback-intervening-call-forces-reload-vs-cse-cap). No C
+ * form defeats it; INCLUDE_ASM is the correct build path (avoids tautology trap). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF70);
 
 /* game_uso_func_0000F060: 55-insn flag-dispatch (EE84-family-ish, 5 calls).
