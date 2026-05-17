@@ -9003,6 +9003,32 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
  * the delay slot + an unreachable trailing `a0->0xE4=-1` dead store IDO
  * emitted + FPU lwc1 operand ordering — not reachable by clean C.
  * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
+/* game_uso_func_0000E2D0 - verified structural decode (leaf, ~35 insns).
+ * Per-frame advance of a timed/animated sub-object on game-object a0.
+ *   if (gGlobalGate != 0) return;            // &D reloc, runtime-patched
+ *   s16 fc = a0->0xE4;                        // frame counter (signed)
+ *   if (fc < 0) return;
+ *   parent = a0->0xB4;
+ *   blk = parent->0x800;
+ *   if ((blk->0x10 & 0x300) == 0) {           // branch-likely: store only
+ *       a0->0xE4 = -1;                        //   on the taken path (beql,
+ *       return;                               //   sh in delay slot)
+ *   }
+ *   if (fc >= a0->0x1CC) return;              // s32 limit; no store
+ *   a0->0xE4 = fc + 1;                        // delay-slot store (always)
+ *   parent = a0->0xB4;
+ *   if (parent->0x9A8 & 1) return;
+ *   acc_at_parent_plus_0x31C += a0->0x1E4;    // f32 += f32 (jr ra, swc1
+ *                                             //   in delay slot)
+ * Struct-typing reference: a0 = game object; a0->0xE4 (228) s16 active
+ * frame counter (-1 = inactive sentinel), a0->0xB4 (180) parent ptr,
+ * a0->0x1CC (460) s32 frame limit, a0->0x1E4 (484) f32 per-frame delta;
+ * parent->0x800 (2048) sub-block ptr, sub-block->0x10 (16) flags mask
+ * 0x300 (enable gate), parent->0x9A8 (2472) flags mask 0x1 (freeze
+ * gate), parent+0x31C (796) f32 accumulator. Caps <80: branch-likely
+ * conditional store-in-delay + jr-ra swc1-in-delay + &D reloc. Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
+ * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
 
 /* game_uso_func_0000E35C - verified structural decode (129-insn EE84-family
