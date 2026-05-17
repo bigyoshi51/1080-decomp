@@ -12121,7 +12121,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
  *   func(v0);                                             // (cleanup call)
  *
  * Uses 2 distinct extern symbols (D_00000000 + gl_data_00000000) to bust
- * IDO CSE per docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs. */
+ * IDO CSE per docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs.
+ *
+ * 85.45% cap: target uses $s0 to preserve v0=func() return across call#2,
+ * giving frame -0x28 (s0-save + slot for caller a0). Built keeps v0 in $v0
+ * across the call and spills a0 to caller arg slot, frame -0x18.
+ *
+ * 2026-05-17 tested `register int v0 = func();` — no change at 85.45%.
+ * IDO ref-count formula doesn't promote v0 to $s0 from `register` alone
+ * (per feedback-ido-register-keyword-doesnt-block-constant-fold style cap).
+ * Permuter-class register-allocation cap. */
 extern int gl_data_00000000;
 void gl_func_00070634(int a0) {
     int v0 = func_00000000();
