@@ -7483,7 +7483,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
  *   // repeated per-slot block (slot index = a0->0x40, then a0->0x124, ...):
  *   ent = *(int**)(&D_00000000 + 0x548 + idx*4);
  *   arg = ent[0];
- *   v0 = func_00000000(arg, /*sp4*/arg, ((int*)a3->0x30)->0x908 + 0xB4);
+ *   v0 = func_00000000(arg, arg_at_sp4, ((int*)a3->0x30)->0x908 + 0xB4);
  *   if (v0 == 0)
  *       func_00000000(&D+0x7EC, &D+0x808, 1104);     // error path
  *   slot = v0;
