@@ -5185,19 +5185,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
 
-#ifdef NON_MATCHING
 /* 4-insn function: `nop; nop; jr ra; nop`. Body is structurally empty
  * but has 2 leading nops not reachable from std C (`void f(void){}`
- * emits just `jr ra; nop` = 2 insns). The leading nops are not alignment
- * padding — predecessor gl_func_0003EC5C ends cleanly at 0x3ECDC with
- * jr ra; nop; the 16-byte symbol starts immediately. May be a stub
- * placeholder. NM-wrap with empty body; would need PREFIX_BYTES of 2
- * insns (0x00000000,0x00000000) to promote to exact. */
+ * emits just `jr ra; nop` = 2 insns). PREFIX_BYTES injects those two
+ * leading nops post-cc to match the split stub exactly. */
 void game_libs_func_0003ECDC(void) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003ECDC);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_0003ECEC(int a0) {
