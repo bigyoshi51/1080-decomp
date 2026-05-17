@@ -324,12 +324,16 @@ void timproc_uso_b3_func_00001184(int *a0) {
  * family) — structure verified, INCLUDE_ASM kept. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000011D4);
 
-/* timproc_uso_b3_func_0000120C: 13-insn — (a0->0x6A8->0x6C)->0x18 |= 4;
- * (a0->0x6A8->0x94)->0x18 |= 4. a0->0x6A8 reloaded (store breaks CSE).
- * Structure verified; build 11 vs 13 — IDO CSEs the a0->0x6A8 load
- * (target reloads: lw t6/lw t9). Same reload-not-CSE residual class as
- * the EE84/DDC0 family; not C-suppressible. INCLUDE_ASM kept. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000120C);
+void timproc_uso_b3_func_0000120C(int *a0) {
+    int *p;
+
+    p = (int*)*(int*)((char*)a0[0x6A8 / 4] + 0x6C);
+    p = (int*)((char*)p + 0x18);
+    *p |= 4;
+    p = (int*)*(int*)((char*)a0[0x6A8 / 4] + 0x94);
+    p = (int*)((char*)p + 0x18);
+    *p |= 4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001240);
 
