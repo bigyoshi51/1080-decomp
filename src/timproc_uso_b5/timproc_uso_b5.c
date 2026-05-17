@@ -925,6 +925,35 @@ int timproc_uso_b5_func_0000687C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000687C);
 #endif
 
+/* timproc_uso_b5_func_00006900 - verified structural decode (0xE8,
+ * 58 insns, "any-entry-active" scan predicate). Returns s32 0/1.
+ *   s32 timproc_uso_b5_func_00006900(St *s) {
+ *       if (s->0x3C4 == 0) return 1;              // no group -> 1
+ *       n0 = count(s);                            // func_00000000(s)
+ *       start = s->0x3D0[s->0x3C4];               // lw 976(s+idx*4)
+ *       if (n0 == start) return 0;
+ *       i = start + 1;
+ *       if (i >= count(s)) return 0;
+ *       do {
+ *           grp = s->0x40C[s->0x3C4];             // table[idx]
+ *           e   = grp->0x40[i]->0x3C;             // entry @ +0x3C
+ *           if (e->0x2A4 != 0.0f) return 1;       // active found
+ *           i++;
+ *       } while (i < count(s));
+ *       return 0;
+ *   }
+ * Struct-typing reference: s->0x3C4 (964) s32 = active group index
+ * (0 -> trivially "active", return 1); s->0x3D0 (976) s32[] = per-
+ * group start/cursor (indexed by 0x3C4); s->0x40C (1036) ptr[]
+ * table (indexed by 0x3C4) -> group; group->0x40 (64) = entry ptr
+ * array; entry+0x3C (60) -> element; element->0x2A4 (676) f32 =
+ * the active flag (nonzero = active). count(s) = func_00000000(s)
+ * (total entries, re-read each iteration as the loop bound).
+ * Predicate: true (1) if ANY entry from start+1..count has a
+ * nonzero 0x2A4, else 0. Caps <80: c.eq.s vs 0.0 + bc1t/beql/bnel
+ * branch-likely + repeated func_00000000 reloc count call + f20
+ * sdc1/ldc1 double-save. Full body INCLUDE_ASM-preserved (.s =
+ * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006900);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000069E8);
