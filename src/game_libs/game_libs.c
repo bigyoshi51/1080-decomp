@@ -179,6 +179,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000A8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000BAC);
 
+/* gl_func_00000D5C - verified structural decode (0x118, 70 insns,
+ * get-or-create constructor + child wiring).
+ *   void *gl_func_00000D5C(void *s0, int a1) {
+ *       if (s0 == 0) {
+ *           s0 = gl_func_00000000(316);           // alloc object
+ *           if (s0 == 0) return 0;
+ *       }
+ *       sub = gl_func_00000000(0xCBC0 ...);       // alloc sub-obj
+ *       sub->0x28 = &D_desc1;
+ *       gl_func_00000000(sub + 0x2C);             // init sub
+ *       s0->0xC = &D_desc2;
+ *       gl_func_00000000(s0 + 268, 0x050001);     // child @ +0x10C
+ *       gl_func_00000000(s0 + 292, 0x050007);     // child @ +0x124
+ *       gl_func_00000000(s0, s0 + 292, s0 + 268); // wire children
+ *       k = D_k->0xC70;                            // f32 const
+ *       s0->0xC4 = k; s0->0xC8 = k; s0->0xCC = k;
+ *       s0->0xD0 = 0.0f;
+ *       s0->0xD4 = 0; s0->0xD8 = 255; s0->0xDC = 130;
+ *       s0->0xE0 = a1;
+ *       gl_func_00000000(s0, -56, -1, -13);       // final init
+ *       return s0;
+ *   }
+ * Struct-typing reference: object = 316 (0x13C) bytes. s0->0xC (12)
+ * descriptor/vtable ptr (&D); sub-object (separate alloc) ->0x28
+ * (40) descriptor (&D); s0+0x10C (268) and s0+0x124 (292) = two
+ * embedded child sub-objects init'd with packed ids 0x050001 /
+ * 0x050007 then cross-wired; field block s0->0xC4/0xC8/0xCC
+ * (196/200/204) f32 = a global default (D_k->0xC70), s0->0xD0
+ * (208) f32 = 0.0, s0->0xD4 (212)=0, s0->0xD8 (216)=255, s0->0xDC
+ * (220)=130, s0->0xE0 (224)=a1. Final gl_func_00000000(s0,-56,-1,
+ * -13) = a (mode,-1,-13) init. Caps <80: get-or-create branch +
+ * ~8 gl_func_00000000 reloc calls + &D descriptor relocs + FP
+ * const + packed-id args. Full body INCLUDE_ASM-preserved (.s =
+ * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000D5C);
 
 extern int gl_func_00000000();
