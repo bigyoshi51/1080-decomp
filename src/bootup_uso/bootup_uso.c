@@ -377,6 +377,45 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000D94);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000E68);
 
+/* func_00001A44 - verified structural decode (0x1CC, 115 insns,
+ * FP transform/draw + DL list-append). Same family as
+ * func_0000485C / func_000076F4 (global root vector scaled by the
+ * Dc->0x128/0x12C/0x130 triple, reloc draw helper, command-list
+ * append).
+ *   void func_00001A44(Obj *a0) {
+ *       if (*(int*)(func_00000188 + 0x3C) & 0x2) return;  // gate
+ *       st  = (*(int*)&D_a)->0x254;
+ *       n   = st->0x158;
+ *       e   = n->0x3C;                            // entry
+ *       base = e->0x0;  stride6 = e->0x4 << 6;
+ *       root = *(void**)&D_root;
+ *       v0  = root->0x70;
+ *       f32 sx = v0->0xA0 * Dc->0x128;
+ *       f32 sy = v0->0xA4 * Dc->0x12C;
+ *       f32 sz = v0->0xA8 * Dc->0x130;
+ *       reloc_draw(base + stride6,                // func_00000000
+ *                  (f32)a0->0x2C, (f32)a0->0x30, (f32)a0->0x34,
+ *                  1.0f, sx, sy, sz);             // stack args
+ *       l = n->0xC;                                // command list
+ *       i = l->0x4; l->0x4 = i + 1;                // bump count
+ *       cmd = l->0x0 + i*8;                        // 8-byte entry
+ *       cmd[0] = 0x01020040;                       // packed marker
+ *       ... (entry payload writes follow)
+ *   }
+ * Struct-typing reference: global gate *(func_00000188+0x3C) bit 1
+ * (0x2) = suppress/already-emitted. *(&D_a)->0x254 (596) -> state
+ * st; st->0x158 (344) -> node n; n->0x3C (60) -> a renderable
+ * entry e (e->0x0 base ptr, e->0x4 << 6 = byte offset); n->0xC
+ * (12) -> a command list {0x0 buffer, 0x4 u32 count}, 8-byte
+ * entries, first word = 0x01020040 marker. root = *(&D_root),
+ * root->0x70 (112) -> transform obj, ->0xA0/0xA4/0xA8 (160/164/
+ * 168) f32 Vec3 scaled per-component by Dc->0x128/0x12C/0x130
+ * (296/300/304) (the func_0000485C scale triple). a0->0x2C/0x30/
+ * 0x34 (44/48/52) s32 -> converted to f32 draw params; 1.0f
+ * const. Caps <80: FP-heavy cvt.s.w/mul.s + global gate + 2x &D
+ * + func_00000000 reloc draw + list-append (count bump + 8-byte
+ * stride). Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001A44);
 
 void func_00001C10(int *dst) {
