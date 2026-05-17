@@ -870,7 +870,28 @@ void gl_func_00008510(int *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008510);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000085B0);
+void gl_func_000085B0(int *arg0, int arg1) {
+    char *state;
+    char *p;
+
+    gl_func_00000000(arg0);
+    state = *(char**)((char*)&D_00000000 + 0x134);
+    p = *(char**)(*(char**)(state + 0xC4) + 0x800);
+    if (*(int**)((char*)*(int**)((char*)*(int**)((char*)arg0 + 0x528) + 0x8) + 0x8) != 0) {
+        char *p2 = *(char**)(*(char**)(state + 0xCC) + 0x800);
+        gl_func_00000000(p2, *(int*)(p2 + 0x34));
+        {
+            int *t = *(int**)((char*)*(int**)((char*)arg0 + 0x528) + 0x8);
+            gl_func_00000000(p2, *(int*)((char*)t + 0x8), *(int*)((char*)t + 0x4));
+        }
+    }
+    gl_func_00000000(p, 0);
+    gl_func_00000000(p,
+        *(int*)((char*)&D_00000000 + 0x168),
+        *(int*)((char*)&D_00000000 + 0x170));
+    gl_func_00000000(arg0);
+    *(int*)((char*)arg0 + 0x4F4) = arg1 & 0xFFFF;
+}
 
 /* Hidden-register dispatch stub. The real ABI has the dispatcher pointer in
  * $v0 and addend in $v1 while still spilling caller $a0. C emits the same
