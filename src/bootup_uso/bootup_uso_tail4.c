@@ -170,6 +170,27 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014010);
  * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000140C4);
 
+/* func_00014228 - verified structural decode (0x164, 89 insns).
+ * INSTRUCTION-IDENTICAL TWIN of func_000140C4 (the 3-element
+ * draw/place dispatcher) - same exact body, only the internal
+ * branch-label addresses differ (a second copy of the same routine,
+ * e.g. for a different render pass / mirrored layout). See
+ * func_000140C4 for the full decode and field map:
+ *   if (s0->0x104) { select; n=(int)((f32)s0->0xDC*D_g);
+ *       set(n,col); pos(s0->0x44+0x74, s0->0x5C+0x8C); }
+ *   if (s0->0x108) { select; n=(int)((f32)s0->0xD8*D_g);
+ *       set(n,col); pos(s0->0x44+0xA4, s0->0x5C+0xBC); }
+ *   select(s0->0xE0); n=(int)((f32)s0->0xD8*D_g);
+ *   set(s0->0xE0,n,&s0->0xC4,s0->0xD4);
+ *   pos(s0->0xE0,s0->0x44,s0->0x5C,&s0->0xE4);
+ * Struct-typing reference: identical layout to func_000140C4 -
+ * s0->0x104/0x108/0xE0 drawable handles, s0->0xDC/0xD8 scaled
+ * counts (* global f32 D_g), s0->0x44/0x5C base position, per-elem
+ * offsets {0x74,0x8C}/{0xA4,0xBC}, obj-C local params s0->0xC4/
+ * 0xD4/0xE4, const (1,1,1,1) col. Caps <80: FP cvt.s.w/mul.s/
+ * trunc.w.s + &D global + ~10 func_00000000 reloc + beql
+ * branch-likely. Full body INCLUDE_ASM-preserved (.s = source of
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014228);
 
 /* func_0001438C - verified structural decode (0x128, 74 insns,
