@@ -3683,6 +3683,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int v0;
+    char *sub;
+    char *helper_ptr;
+    Vec3 staged_axis;
+    Vec3 scaled_axis;
+    Vec3 mul_axis;
+    int state_flag;
 
     /* Two early-out guards on globals. */
     if (*(int*)((char*)&D_00000000 + 0x78) != 0) return;
@@ -3703,6 +3709,24 @@ void game_uso_func_0000591C(int *a0) {
     if (v0 & 4) {
         gl_func_00000000(a0);
         return;
+    }
+
+    sub = *(char**)((char*)a0 + 0x30);
+    staged_axis = *(Vec3*)(sub + 0xB4);
+    scaled_axis.x = *(float*)(sub + 0x318) * *(float*)((char*)a0 + 0xA8);
+    scaled_axis.y = *(float*)(sub + 0x31C) * *(float*)((char*)a0 + 0xA8);
+    scaled_axis.z = *(float*)(sub + 0x320) * *(float*)((char*)a0 + 0xA8);
+    mul_axis = scaled_axis;
+    staged_axis.x *= mul_axis.x;
+    staged_axis.y *= mul_axis.y;
+    staged_axis.z *= mul_axis.z;
+
+    helper_ptr = (char*)gl_func_00000000(a0, &scaled_axis, &staged_axis);
+    if (helper_ptr == 0) return;
+
+    state_flag = *(int*)(helper_ptr + 0x84);
+    if (state_flag != 0) {
+        *(int*)((char*)a0 + 0x74) = state_flag;
     }
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
