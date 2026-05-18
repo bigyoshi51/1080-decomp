@@ -19242,8 +19242,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005062C);
 // (USO-relocated). Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000510F0);
 
-/* gl_func_000513CC: 31-insn helper. Multi-pass decode pending. */
+extern int gl_data_513CC_addr;
+
+#ifdef NON_MATCHING
+/* gl_func_000513CC: 31-insn 3-call linked-list insertion init.
+ *   gl_func_00000000(a0);                                  // first call, ret ignored
+ *   r2 = gl_func_00000000(0, &gl_data_513CC_addr);          // second call
+ *   a0[0xB] = a0[0x3] = a0[0x4] = r2;                       // three same-value stores
+ *   a3 = a0[0xF][0x4];                                       // a0->0x3C->0x10
+ *   gl_func_00000000(a3 + 0x4, r2);                          // third call (a3+0x10 byte-offset)
+ *   if (r2[0x5] != 0) a3[0x1] = 1;                          // existing tail: set flag
+ *   r2[0x5] = a3;                                           // unconditional insert
+ * The literal address 0x00020E5C uses the unique-extern-at-offset
+ * recipe to emit addiu (not ori). */
+void gl_func_000513CC(int* a0) {
+    int* r2;
+    int* a3;
+    gl_func_00000000(a0);
+    r2 = (int*)gl_func_00000000(0, &gl_data_513CC_addr);
+    a0[11] = (int)r2;
+    a0[3] = (int)r2;
+    a0[4] = (int)r2;
+    a3 = (int*)((int*)a0[15])[4];
+    gl_func_00000000(a3 + 4, r2);
+    if (r2[5] != 0) {
+        a3[1] = 1;
+    }
+    r2[5] = (int)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000513CC);
+#endif
 
 /* gl_func_00051448: 54-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051448);
