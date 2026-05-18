@@ -1444,6 +1444,37 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000069E8);
 
+// timproc_uso_b5_func_00006C00 — STRUCTURAL PASS (0x130 / 76 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen element command-snapshot / refresh (operates on Scr).
+//
+//   void timproc_uso_b5_func_00006C00(Scr *scr) {        // scr -> s0
+//     if (!func_00000000(scr->0x3B8, scr->0x41C)) return; // gate
+//     func_00000000(scr);
+//     func_00000000(scr->0x418, -1, 0);                   // reset
+//     *(int*)(D_0 + 0x40) = *(int*)(D_0 + 0x48);          // global copy
+//     // x4 element rows: base = scr->0x40C; row =
+//     //   scr->{0x3DC,0x3D0,0x3D4,0x3D8}; p =
+//     //   scr->{0x4DC,0x4E0,0x4E8,0x4EC}; cnt = row->{0x4C,0x40,
+//     //   0x44,0x48}; e = base + index(p,cnt);
+//     //   *dst = e->0x3C->0x2B0  (rows 1-3) /  e->0x3C->0x2B4
+//     //   (row 4, OR-combined with the prior) — snapshot each row's
+//     //   command word into its target slot.
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x3B8/0x41C gate-query args, 0x418 reset target, 0x40C ->
+//     element-array base, 0x3D0/0x3D4/0x3D8/0x3DC row pointers,
+//     0x4DC/0x4E0/0x4E8/0x4EC stashed param indices (from
+//     func_00005BF0), row->0x40/0x44/0x48/0x4C counts;
+//     element->0x3C->0x2B0 / 0x2B4 = command/flag word pair.
+//   D_0 + 0x40 / + 0x48 = global command-state slots (refreshed).
+//   func_00000000 = USO placeholder dispatcher (gate / reset).
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006C00);
 
 /* timproc_uso_b5_func_00006D30: 54-insn loop — DEFERRED, Yay0-blocked
