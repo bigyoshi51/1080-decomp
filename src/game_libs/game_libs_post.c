@@ -9203,6 +9203,43 @@ end:
     return a0;
 }
 
+// gl_func_00036C08 — STRUCTURAL PASS (0x26C / 155 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — 0x78 FP frame). An FP position / anchor-offset
+// compute routine with a flag-bit gate.
+//
+//   void gl_func_00036C08(O *o) {
+//     Vec3 p = {0,0,0};                          // local sp+0x64
+//     S *s = o->p_38;
+//     if (o->w_10 & 0x200) {                      // flag gate (beql)
+//       p.x = s->f_D4 * -10.0f;                   // 0xC1200000
+//       p.y = s->f_D8 *  10.0f;                   // 0x41200000
+//       p.z = s->f_DC *  30.0f;                   // 0x41F00000
+//     }
+//     T *t = o->p_38->p_110;
+//     ? a1 = t->p_70;
+//     ... transform p through the chained pointer / store back ...
+//   }
+//
+// Struct-typing reference: a per-object anchor / offset-position
+//   builder. Gated on bit 0x200 of the object's flag word at
+//   o->0x10, it reaches a sub-object via o->0x38 and scales that
+//   sub-object's float triple at offsets 0xD4 / 0xD8 / 0xDC by the
+//   HARD-CODED extent factors -10.0f / 10.0f / 30.0f into a local
+//   Vec3 (stack sp+0x64), then walks a chained pointer path
+//   (o->0x38 → +0x110 → +0x70) to apply / store the computed
+//   position. The fixed -10/10/30 scales read as a fixed bounding-
+//   box / attach-point offset (e.g. a camera or label anchor
+//   relative to the sub-object's normalized position). A
+//   geometry/anchor node of the game_libs object subsystem
+//   (consumes the normalized vectors the gl_func_0003695C
+//   normalizer / gl_func_00036224 viewport family produce; the
+//   0x200 flag selects whether the offset is applied).
+// Caps: raw-word USO + flag-gated FP offset build (hard-coded
+//   -10/10/30 extents) + chained-pointer transform — not exact-
+//   matchable without proper USO mnemonic disasm + the object/
+//   sub-object structs typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036E74);
