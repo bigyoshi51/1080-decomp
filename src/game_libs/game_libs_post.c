@@ -24402,21 +24402,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000730CC_pad.s")
 
-/* gl_func_000732C4: 19-insn 3-call sequence — verified decode (sub-80
- * resume-comment per docs/MATCHING_WORKFLOW.md#feedback-sub80-complex-embed-decode-resume-comment):
- *   int r = gl_func();
- *   *(short*)(*(int*)&D + 0x10) = 2;
- *   gl_func(&D2);  // &D + 0x10 OR a different 2nd symbol
- *   gl_func(r);
- * s0 preserves r across the 3-call chain.
- *
- * 2026-05-17: natural C body scored 61% — likely the second jal's a0
- * resolves to a different D symbol than the first lui+lw chain, and
- * the `*(short*)(*D + 0x10) = 2` halfword store probably wants a
- * different intermediate computation (target uses pre-set t7 from lui+lw
- * to do `sh t6, 0x10(t7)`). Decode is structurally correct but the
- * specific extern wiring needs more inspection. */
+#ifdef NON_MATCHING
+/* gl_func_000732C4: 19-insn 3-call sequence storing 2 into a singleton.
+ * Decode:
+ *   r = gl_func_00000000();          // jal #1 (no args)
+ *   p = *(short**)&gl_data_X;        // lui+lw chain → t7
+ *   p[8] = 2;                        // sh t6=2, 0x10(t7)  (delay slot of jal #2)
+ *   gl_func_00000000(&gl_data_Y);    // jal #2 (a0 = &D_Y)
+ *   gl_func_00000000(r);             // jal #3 (a0 = s0 = r)
+ * 2026-05-17: natural C scored 61%. 2026-05-18 retry with explicit `short* p`
+ * named local to force the lui+lw to compute t7 before the constant-2
+ * generation, matching the target's instruction ordering. */
+extern int gl_data_732C4_load;
+extern int gl_data_732C4_arg;
+
+void gl_func_000732C4(void) {
+    register int r;
+    short* p;
+    r = gl_func_00000000();
+    p = *(short**)&gl_data_732C4_load;
+    p[8] = 2;
+    gl_func_00000000(&gl_data_732C4_arg);
+    gl_func_00000000(r);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000732C4);
+#endif
 
 /* VI-status read leaf. The leading nop pad and delay-slot temp move are
  * reproduced with PREFIX_BYTES + INSN_PATCH in the Makefile. */
