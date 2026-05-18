@@ -40,6 +40,41 @@ typedef struct { int a, b, c, d; } Quad4;
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
 
+// func_0001304C — STRUCTURAL PASS (0x8D8 / 566 insns, no episode).
+// Per-frame physics/animation integrator on a state struct, gated by an
+// active flag, with counter/cooldown bookkeeping; compute-heavy (only
+// 2 dispatcher calls, lots of f64 integration).
+//
+//   void func_0001304C(State *st) {            // st -> s0
+//     if (!st->0x40) return;                    // inactive -> bail
+//     st->0x74++;                               // frame/tick counter
+//     if (st->0x6C) {
+//       if (st->0x70) st->0x70--;               // cooldown decrement
+//       if (st->0x70 == 0) { ... }              // expiry path
+//     }
+//     // main body: f64 integration of st fields using the
+//     //   correctly-symbolized float-constant block
+//     //   D_00000C50/C54/C58/C5C/C60 (rate/limit coefficients) and the
+//     //   global ctx at func_0000023C+0x18; saved f20/f22/f24 doubles
+//     //   carry accumulators across the loop; writes results back into
+//     //   st fields and an out-record (a3->0x4 near the end).
+//   }
+//
+// Struct-typing reference:
+//   st(a0=s0): 0x40 active flag (gate); 0x6C enable, 0x70 cooldown
+//     (decremented), 0x74 frame counter (incremented); other 0x0..0x80
+//     fields are the integrated physics/animation state.
+//   D_00000C50..D_00000C60 = a CORRECTLY-symbolized 5-entry f32 const
+//     block (rate/clamp coefficients) — clean-pool contrast to the
+//     func_0000098C mis-fold: splat symbolizes most of bootup_uso's
+//     float pool fine; only specific runs got a spurious func_ code
+//     symbol (see
+//     docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
+//   func_0000023C + 0x18 = global ctx ptr (writable fold, recurring).
+// Caps: 566-insn f64 integrator; structural pass only, no byte body
+//   (this one's consts ARE symbolized, but it's too large for a 60s
+//   exact-match attempt — multi-run target).
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001304C);
 
 int func_00013924(int *a0) {
