@@ -1258,6 +1258,40 @@ void gl_func_00021EA8(int a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
 
+// gl_func_000221D8 — STRUCTURAL PASS (0x204 / 129 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. The named
+// leading fn is a table slot find/allocate scan.
+//
+//   int gl_func_000221D8(K *key) {
+//     S   *g   = &D_0;
+//     int  n   = *(int*)(g + 0x2020);                 // entry count
+//     if (n <= 0) return 0;
+//     char *tbl = *(char**)(g + 0x2030);              // record table
+//     int  i = 0, result = 0;
+//     byte kb = key->b_2;
+//     do {
+//       char *e = tbl + i;
+//       byte t2 = e->b_2, t3 = e->b_3;
+//       if (t2 == 0xFF) { ... free slot ... }
+//       if (t2 == kb)   { ... matched ...   }
+//       ... advance i, accumulate result ...
+//     } while (i < n);
+//     return result;                                   // slot index
+//   }
+//
+// Struct-typing reference: word &D_0+0x2020 is the live entry count,
+//   pointer &D_0+0x2030 the record-table base (same &D_0 state block
+//   as the gl_func_0002119C / gl_func_0001FBD4 sprite subsystem).
+//   Each record carries match bytes at +2 / +3 compared against the
+//   key's byte +2; the constants 0xFF and 0x7F are the empty-slot and
+//   mask/sentinel markers. This is the find-existing-or-claim-free
+//   slot scan for that registry table (the lower-level companion to
+//   the gl_func_00021F40 list-insert helper).
+// Caps: raw-word USO + 2-fn unsplit bundle — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only for the
+//   named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000223DC);
