@@ -23347,6 +23347,7 @@ int gl_func_0006CD24() {
     return gl_func_00000000(0x400);
 }
 
+/* gl_func_0006CD44: 26-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CD44);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CD44_pad.s")
 
