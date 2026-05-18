@@ -19480,6 +19480,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D054);
 /* gl_func_0005D20C: 64-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
 
+/* gl_func_0005D30C: 66-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D30C);
 
 /* gl_func_0005D414: 24-insn 3-call wrapper. Stores arg0 (float f12),
