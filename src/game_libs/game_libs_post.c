@@ -4538,6 +4538,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
 
+// gl_func_0002ABC0 — STRUCTURAL PASS (0x15C / 87 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A packed-id decode + list lookup / state toggle.
+//
+//   void gl_func_0002ABC0(O *o) {
+//     int w = o->w_0;
+//     if ((w << 2) < 0) { ... bit29 path ... }
+//     N *list = o->w_4C;
+//     if (list != 0) {
+//       int e   = list->w_0;
+//       int typ = (unsigned)e >> 28;                      // 4-bit type
+//       int sub = ((e << 4) >> 30);                        // 2-bit sub
+//       if (typ == 2 && sub == 0) {
+//         o->b_0 |= 0x20;                                  // mark bit5
+//       }
+//     }
+//     ... further sign-bit / sub-field branches ...
+//   }
+//
+// Struct-typing reference: a packed-handle classifier. word o->0 is a
+//   bit-packed control word (the type/kind field at bits[31:28], sub-
+//   selectors below it, an enable in the sign bit — the same packed-
+//   word layout gl_func_000230D0 / gl_func_00023914 decode); word
+//   o->0x4C points to a list whose head element word likewise carries
+//   a 4-bit type (>>28) and a 2-bit sub-field. When the list entry's
+//   type is 2 (sub 0) the object's primary flag byte o->0 has bit5
+//   set (a "matched/active" marker). A handle-classify-and-latch leaf
+//   in the game_libs registry/object subsystem.
+// Caps: raw-word USO + packed-bitfield decode + list walk — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002ABC0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
