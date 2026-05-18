@@ -20313,6 +20313,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061A0C);
  * is the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061B30);
 
+/* gl_func_00061BC8: 48-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061BC8);
 
 /* 5-insn no-frame DLL-splice leaf. The redundant zero-store is preserved by
