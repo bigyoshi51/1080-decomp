@@ -22443,7 +22443,12 @@ void game_libs_func_000664D4(int *a0, int *a1) {
     a1[1] = (int)a0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000664F0);
+void game_libs_func_000664F0(int *a0, int *a1) {
+    ((int *)a0[1])[0] = a1[0];
+    ((int *)a1[0])[1] = a0[1];
+    a1[0] = (int)a0;
+    a0[1] = (int)a1;
+}
 
 /* gl_func_00066514: 40-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066514);
