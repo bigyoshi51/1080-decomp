@@ -13030,6 +13030,41 @@ end:
     return a0;
 }
 
+// gl_func_0003E2B0 — STRUCTURAL PASS (0xE8 / 59 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x40 (saves ra + s0..s3) → ONE clean
+// function. Diagnostic/trace serialization family (contiguous helper trio
+// H_01459B / H_0145A8 / H_0145B5, jal-encoded fixed intra-USO targets; cb =
+// jal 0 USO-relocated emit callback).
+//
+//   void gl_func_0003E2B0(Obj a0) {
+//     Node n = a0->p2C;                 // intrusive list head at a0->0x2C
+//     void *g = &D_reloc;               // global emit base (lui/addiu s1)
+//     if (!n) goto done;
+//     do {
+//       if (n->p10 != 0) {              // skip nodes with empty p10
+//         H_0145A8(&n->p2C);            // begin/emit record for this node
+//         cb(g, 1, 0);                  // open bracket
+//         int saved = H_01459B(scratchA);// scratchA = sp+0x34
+//         Vtbl vt = n->p28;             // per-node vtable at n->0x28
+//         short k = (short)vt->p40;
+//         (*(fnptr)vt->p44)(k + n);     // virtual dispatch, arg = k + node
+//         cb(g, 1, 0);
+//         a2 = saved;                   // forward saved emit handle
+//         int span = a2 - saved_v0 - 4; // subu/addiu -4 (record length adj)
+//         cb(g, 0, span);  scratchB = span;   // scratchB = sp+0x30
+//         H_01459B(scratchB);
+//         cb(g, 1, scratchB);           // close bracket with span
+//       }
+//       n = n->p30;                     // advance via node->0x30
+//     } while (n);                      // bnel loop-back (branch-likely)
+//   done:
+//     scratchC = 0;                     // sp+0x38 = 0
+//     H_0145B5(scratchC);               // terminator/flush
+//   }
+// Family: same H_0145xx record-emit trio + cb open/value/close idiom as the
+// diagnostic/trace serializers already structural-passed in this segment.
+// Caps: list/node + vtable struct untyped; H_0145xx / cb signatures inferred
+// from call shape; FP-pool n/a here. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E39C);
