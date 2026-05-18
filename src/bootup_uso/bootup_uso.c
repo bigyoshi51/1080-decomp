@@ -2308,7 +2308,6 @@ void func_00007204(int a0, int a1, int a2) {
     func_00000000(a0 + 0x2C, var_a2, var_a2);
 }
 
-#ifdef NON_MATCHING
 /* func_00007288: 40-insn (0xA0) two-conditional state-init helper.
  *
  * Structure:
@@ -2324,28 +2323,28 @@ void func_00007204(int a0, int a1, int a2) {
  *
  * The `func_0000027C + 0x18` is the splat-fold-into-nearest-func pattern
  * (per docs/MATCHING_WORKFLOW.md): a real D_<addr> rodata symbol was folded
- * into the preceding function. Treated as raw lui+addiu pair for now. */
+ * into the preceding function. */
 void func_00007288(int *a0) {
     int *self;
     if (a0[0x38/4] & 2) {
         self = *(int**)((char*)&D_00000000 + 0x254);
         *(float*)((char*)self + 0xAC) = (float)(int)a0[0x30/4];
+        self = *(int**)((char*)&D_00000000 + 0x254);
         *(float*)((char*)self + 0xB0) = (float)(int)a0[0x34/4];
     }
     if (a0[0x3C/4] == 0) {
         int *src = (int*)((char*)&func_0000027C + 0x18);
+        int *dst;
         self = *(int**)((char*)&D_00000000 + 0x254);
-        *(int*)((char*)self + 0x78) |= 4;
-        self = *(int**)((char*)&D_00000000 + 0x254);
-        *(int*)((char*)self + 0xDC) = src[0];
-        *(int*)((char*)self + 0xE0) = src[1];
-        *(int*)((char*)self + 0xE4) = src[2];
-        *(int*)((char*)self + 0xE8) = src[3];
+        self = (int*)((char*)self + 0x78);
+        *self = *self | 4;
+        dst = *(int**)((char*)&D_00000000 + 0x254);
+        *(int*)((char*)dst + 0xDC) = src[0];
+        *(int*)((char*)dst + 0xE0) = src[1];
+        *(int*)((char*)dst + 0xE4) = src[2];
+        *(int*)((char*)dst + 0xE8) = src[3];
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
-#endif
 
 /* func_00007328 - verified structural decode (0x1C0, 112 insns,
  * list-search + match-dispatch).
