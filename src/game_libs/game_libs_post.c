@@ -16677,6 +16677,35 @@ void gl_func_00046F80(int a0, int a1, int a2) {
     gl_func_00000000(0, a1, a2, 0);
 }
 
+// gl_func_00046FA8 — STRUCTURAL PASS (0x138 / 85 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
+// (saves ra, s0). GBI/RDP DL packet emitter (sibling of gl_func_00045E20 /
+// 00046050; cb = jal 0 USO-relocated).
+//
+//   void gl_func_00046FA8(void *a0, int a1, int a2, int a3) {
+//     if (a0->p28C != 0) return;                     // bnez early-out
+//     void *ctx = a0->p254->p158;
+//     if (a3 != 0) cb(ctx, a1);                       // conditional
+//     cb(ctx, a2);                                    //   pre-dispatch
+//     cb(ctx, a3);                                    //   calls
+//     // emit a two-word GBI packet into the command buffer:
+//     GfxCtx *g = a0->p254->p158;
+//     int i = g->p0C->idx; g->p0C->idx = i + 1;       // bump packet index
+//     uint *p = (uint*)g->p0C->buf + i*2;              // slot = base + i*8
+//     p[0] = 0xF6000000;                               // G_FILLRECT-class op
+//     p[1] = argW;                                     // from a1->p00 / dims
+//   }
+// Emits one RDP/GBI command packet (top-byte 0xF6, G_FILLRECT family) into
+// the GfxCtx command buffer reached via a0->0x254 -> 0x158 -> 0x0C
+// ({buf, idx@+4}, stride 8 = two 32-bit words), preceded by up to three
+// conditional cb pre-dispatch calls on the a1/a2/a3 args, the whole thing
+// gated on the a0->0x28C "already emitted" flag. Family: CPU-side RDP DL
+// fragment builder (sibling of gl_func_00045E20 / 00046050; see
+// docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder). The cb
+// pre-dispatch arg wiring is representative; the a0->0x28C guard, the
+// a0->0x254->0x158->0x0C GfxCtx path, the 0xF6 opcode, the idx-bump and the
+// i*8 two-word stride are exact. Caps: GfxCtx struct + the arg word source
+// and cb signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046FA8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000470FC);
