@@ -3495,6 +3495,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027D00);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
 
+// gl_func_00028358 — STRUCTURAL PASS (0xD4 / 53 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Resolves an (a0,a1) handle into the global selection slot.
+//
+//   int gl_func_00028358(int a0, int a1) {
+//     if (a0 == 0xFF) return 0;                          // none sentinel
+//     int r = (*lookup)(a0, a1);                          // jal 0 USO
+//     if (r != 0) {
+//       *(int*)(&D_0 + 0x2158) = r;                        // hit: store
+//       return ...;
+//     }
+//     R *rec = *(R**)(&D_0 + 0x2030) + a0*0x14;            // registry
+//     byte cap = rec->b_0;                                  // sub count
+//     int packed = (a0 << 8) | a1;
+//     if (a1 < cap) packed += 1;                            // clamp adj
+//     *(int*)(&D_0 + 0x2158) = packed;                      // store sel
+//   }
+//
+// Struct-typing reference: maps a two-part handle (a0 = registry
+//   record index, a1 = sub-entry) to the global "current selection"
+//   word &D_0+0x2158. a0 == 0xFF is the no-selection sentinel
+//   (returns 0). A USO-relocated lookup (`jal 0` slot) is tried
+//   first; its non-zero result is stored directly. On miss it indexes
+//   the primary registry table &D_0+0x2030 (0x14 stride — same table
+//   as gl_func_000221D8 / gl_func_00025AC8 / gl_func_00025C54),
+//   range-checks a1 against the record's byte +0 sub-count, and
+//   stores the packed (a0<<8)|a1 (with a clamp adjustment) into the
+//   selection slot. The "select / resolve handle" entry feeding the
+//   registry subsystem's current-item state.
+// Caps: raw-word USO + jal-0 USO-reloc lookup — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028358);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002842C);
