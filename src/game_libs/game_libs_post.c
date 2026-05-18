@@ -24269,8 +24269,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F834);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F8A4);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F8A4_pad.s")
 
-/* gl_func_0006FAD4: 32-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006FAD4: 32-insn flag-extract + conditional bit-set/clear.
+ *   v0 = gl_func_00000000(a0);
+ *   flag = (v0 & 0x100) ? 1 : 0;     // test bit 8
+ *   if (v0 & 0x80) {                  // test bit 7
+ *     a0[1] = a0[1] | flag;           // set bit 0 if flag
+ *     a0[1] = a0[1] & ~2;             // clear bit 1
+ *   }
+ *   return flag;
+ *
+ * 67.6% — volatile-v0 + volatile-flag forces stack-resident locals as
+ * target does. Remaining gap: IDO emits the flag-set as beql + sw-in-
+ * delay-slot, but target uses `beq+nop; addiu;beq+sw; sw` (different
+ * branch shape). The bitfield rule produces correct 2 sw t->0x4 stores. */
+int gl_func_0006FAD4(int* a0) {
+    volatile int v0 = gl_func_00000000(a0);
+    volatile int flag = (v0 & 0x100) ? 1 : 0;
+    if (v0 & 0x80) {
+        a0[1] = a0[1] | flag;
+        a0[1] = a0[1] & ~2;
+    }
+    return flag;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FAD4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
 
