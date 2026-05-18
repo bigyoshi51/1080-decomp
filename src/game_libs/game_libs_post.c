@@ -7314,6 +7314,45 @@ void gl_func_000334B0(int a0, int a1, int a2) {
     gl_func_00000000(&gl_ref_0001E250, a0, a1, a2);
 }
 
+// gl_func_000334E8 — STRUCTURAL PASS (0x2C4 / 177 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0x68 frame, saves s0-s5). A region / block
+// allocator-management routine.
+//
+//   void gl_func_000334E8(void *a) {
+//     Desc d;                                 // local at sp+0x60
+//     callback(a, (void*)0x0001E280);         // jal 0 (USO cb)
+//     B *base = &D_0_base;
+//     callback(base);                          // 2nd USO cb
+//     int TAG = 0x12340002;                    // block sentinel
+//     int gran = 8;
+//     int used = *(int*)(&D_0 + 0x2C) - *(int*)(&D_0 + 8);
+//     if (used < gran) { ... }
+//     int misalign = (int)&d & 7;              // 8-byte align math
+//     if (misalign) { ptr = (char*)&d - misalign; ... }
+//     ... walk / fit blocks tagged with 0x12340002 ...
+//   }
+//
+// Struct-typing reference: a heap/region block manager. It builds a
+//   local descriptor on the stack (s0 = sp+0x60), runs two
+//   USO-relocated callbacks (jal 0 → resolved at load) — one with a
+//   fixed data-segment template at 0x0001E280, one with the global
+//   region base at &D_0 — computes a used/free span from a pair of
+//   global cursors (&D_0+0x08 = start, &D_0+0x2C = current), and
+//   manages 8-byte-granule aligned blocks each carrying the magic
+//   header sentinel 0x12340002 (a classic allocator block-tag /
+//   version marker — `lui 0x1234; ori 0x0002`). Performs the usual
+//   pointer alignment fix-ups (`& 7`, subtract misalignment). A
+//   memory/region-management leaf of the game_libs object subsystem
+//   (the allocator behind the gl_func_00030AF4 constructor's
+//   0x45010 arena and the gl_func_00032E18 / gl_func_00033228
+//   sub-record allocations — 0x12340002 is the heap block magic to
+//   key on when that allocator is formalized).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + global region
+//   cursors + 0x12340002 block-magic + alignment math — not exact-
+//   matchable without proper USO mnemonic disasm + the allocator
+//   structs typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000334E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000337AC);
