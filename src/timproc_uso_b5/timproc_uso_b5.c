@@ -842,6 +842,41 @@ void timproc_uso_b5_func_000027B0(int *self) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000283C);
 
+// timproc_uso_b5_func_00002B74 — STRUCTURAL PASS (0x754 / 469 words,
+// no episode). Raw-.word USO form (genuine code, single function).
+// Partial decode (entry + sub-record fan-out + shape) — multi-run.
+//
+// Large composite object constructor (alloc-or-reuse 0x168); builds a
+// fixed set of fixed-size sub-records, returns the object.
+//
+//   void *timproc_uso_b5_func_00002B74(Obj *self, ...) {
+//     if (!self) { self = func_00000000(0x168); if (!self) return 0; }
+//     func_00000000(0x8); ...                           // aux alloc
+//     self->0x00 = &D_00001130;                          // vtable
+//     self->0x04 = 0;
+//     self->0x0C = &D + 0x1A0;  self->0x10 = 0x52;        // fields
+//     // fan-out: ~12x  c = func_00000000(0x18);  init c; link into
+//     //   self (a fixed array/list of twelve 0x18-byte sub-records —
+//     //   e.g. lap/split rows or timer digits); plus 2x 0x20 sub-objs.
+//     //   Names/descs from the &D_00001130/1140/1160/1168 pool.
+//     //   ~30 func_00000000 calls total (alloc / init / attach).
+//     // tail: FP transform setup — swc1 from sp scratch into
+//     //   self->0x18 (a float field / position).
+//     return self;
+//   }
+//
+// Struct-typing reference:
+//   self(a0, alloc 0x168): 0x00 vtable(&D_00001130), 0x04 flag,
+//     0x0C ptr (&D+0x1A0), 0x10 = 0x52 (count/id), 0x18 f32; holds a
+//     fixed array of ~12 sub-records (0x18 bytes each) + 2 sub-objs
+//     (0x20). &D_00001130/1140/1160/1168 = USO name/desc data
+//     (the 0x11xx pool). func_00000000 = USO placeholder dispatcher
+//     (alloc / init / factory / attach).
+// Caps: raw-word USO + 30 placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structural (entry/fan-out/
+//   tail) pass only, no byte body. Multi-run: future passes can
+//   expand the 12-record init loop.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00002B74);
 
 #ifdef NON_MATCHING
