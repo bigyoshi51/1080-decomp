@@ -1535,6 +1535,7 @@ void game_uso_func_000024BC(int *a0, int *a1) {
     int *t6;
     int key;
     int *v1;
+    char *vc;
     char scratch[0x18];
     float ref_x, ref_y, ref_z;
     float delta_x, delta_y, delta_z;
@@ -1542,26 +1543,32 @@ void game_uso_func_000024BC(int *a0, int *a1) {
     float proj_x, proj_y, proj_z;
     float scale;
     float denom_xz, denom_y;
+    volatile float divs[3];
     float a1_proj[3];
-    volatile float copy_x, copy_y, copy_z;
     int *delta;
+    int * volatile mirror_t6;
 
     t6 = (int*)a0[0x14 / 4];
+    mirror_t6 = t6;
     key = a0[0x40 / 4];
     if (key == 0) goto end;
     if (key != 3) goto branch_else;
 
     /* key == 3: dual Vec3 copy from sub-obj@0xA0 to t6+0x60 and t6+0xA0. */
-    v1 = (int*)a0[0x3C / 4];
-    copy_x = *(float*)((char*)v1 + 0xA0);
-    copy_y = *(float*)((char*)v1 + 0xA4);
-    copy_z = *(float*)((char*)v1 + 0xA8);
-    *(float*)((char*)t6 + 0x60) = copy_x;
-    *(float*)((char*)t6 + 0x64) = copy_y;
-    *(float*)((char*)t6 + 0x68) = copy_z;
-    *(float*)((char*)t6 + 0xA0) = copy_x;
-    *(float*)((char*)t6 + 0xA4) = copy_y;
-    *(float*)((char*)t6 + 0xA8) = copy_z;
+    {
+        volatile float copy_x, copy_y, copy_z;
+        vc = (char*)a0[0x3C / 4];
+        copy_x = *(float*)(vc + 0xA0);
+        vc += 0x70;
+        copy_y = *(float*)(vc + 0x34);
+        copy_z = *(float*)(vc + 0x38);
+        *(float*)((char*)t6 + 0x60) = copy_x;
+        *(float*)((char*)t6 + 0x64) = copy_y;
+        *(float*)((char*)t6 + 0x68) = copy_z;
+        *(float*)((char*)mirror_t6 + 0xA0) = copy_x;
+        *(float*)((char*)mirror_t6 + 0xA4) = copy_y;
+        *(float*)((char*)mirror_t6 + 0xA8) = copy_z;
+    }
     goto end;
 
 branch_else:
@@ -1596,19 +1603,28 @@ branch_else:
      * Initial decode 2026-05-05; extended decode 2026-05-06.
  *
  * 2026-05-18 Codex status: 58.31% fuzzy (up from 47.13%). Improvements:
- * stack-resident copy_x/y/z temps for the key==3 dual Vec3 copy,
- * volatile self_x/y/z for the else-arm final vector, and void return type
- * (target epilogue does not set v0). Retested key==0 early-return after
- * the void change: score flat, still emits plain beq rather than target
- * beql-to-epilogue. Negative variants: volatile t6 regressed to 48.56%,
- * volatile proj_x/y/z to 55.47%, in-place ref-vector rewrite to 52.19%,
- * and moving copy temps earlier to 55.67%. Remaining work needs to target
- * the early `sw t6, 0x94(sp)` spill and the first-call delta copy/scratch
- * scheduling around sp+0x6C. */
-    v1 = (int*)a0[0x38 / 4];
-    ref_x = *(float*)((char*)v1 + 0xA0);
-    ref_y = *(float*)((char*)v1 + 0xA4);
-    ref_z = *(float*)((char*)v1 + 0xA8);
+     * stack-resident copy_x/y/z temps for the key==3 dual Vec3 copy,
+     * volatile self_x/y/z for the else-arm final vector, and void return type
+     * (target epilogue does not set v0). Retested key==0 early-return after
+     * the void change: score flat, still emits plain beq rather than target
+     * beql-to-epilogue. Negative variants: volatile t6 regressed to 48.56%,
+     * volatile proj_x/y/z to 55.47%, in-place ref-vector rewrite to 52.19%,
+     * and moving copy temps earlier to 55.67%. Remaining work needs to target
+     * the early `sw t6, 0x94(sp)` spill and the first-call delta copy/scratch
+     * scheduling around sp+0x6C.
+     *
+     * 2026-05-18 deep attempt: kept 58.34% after testing target-shaped
+     * cursor loads (`base+0x70; +0x34/+0x38`), block-scoped copy temps,
+     * a volatile mirror pointer for the early t6 spill, and explicit
+     * division-result locals/array for the tail. IDO folds the cursor loads
+     * back to direct +0xA4/+0xA8 and keeps the key-first beqz schedule; the
+     * likely branch/early spill mismatch matches the branch-likely and
+     * stack-slot codegen cap class in docs/IDO_CODEGEN.md. */
+    vc = (char*)a0[0x38 / 4];
+    ref_x = *(float*)(vc + 0xA0);
+    vc += 0x70;
+    ref_y = *(float*)(vc + 0x34);
+    ref_z = *(float*)(vc + 0x38);
     delta = (int*)gl_func_00000000(scratch, a0);
     delta_x = *(float*)&delta[0];
     delta_y = *(float*)&delta[1];
@@ -1638,9 +1654,12 @@ branch_else:
 
     denom_xz = *(float*)((char*)a0 + 0xAC);
     denom_y = *(float*)((char*)a0 + 0x10C);
-    self_x -= *(float*)&a1[0] / denom_xz;
-    self_y -= *(float*)&a1[1] / denom_y;
-    self_z -= *(float*)&a1[2] / denom_xz;
+    divs[0] = *(float*)&a1[0] / denom_xz;
+    divs[1] = *(float*)&a1[1] / denom_y;
+    divs[2] = *(float*)&a1[2] / denom_xz;
+    self_x -= divs[0];
+    self_y -= divs[1];
+    self_z -= divs[2];
 
     *(float*)((char*)t6 + 0x60) = self_x;
     *(float*)((char*)t6 + 0x64) = self_y;
