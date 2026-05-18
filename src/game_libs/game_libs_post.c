@@ -3093,6 +3093,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C9C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026CF0);
 
+// gl_func_00026D64 — STRUCTURAL PASS (0x398 / 230 words ≈ 0.9KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle). The command-buffer FLUSH / drain counterpart to
+// the gl_func_00026CF0 packed-submit helper (same &D_0+0x53Bx /
+// &D_0+0x2B5Dx state region). Large -0x68 frame.
+//
+//   ret gl_func_00026D64(int a0) {
+//     S  *g   = &D_0;
+//     int idx = g->b_53BA;                              // pending cnt
+//     if (idx == 0) {
+//       g->b_2B5DC = (a0 >> 8) & 0xFF;                    // re-seed
+//     }
+//     int lo = a0 & 0xFF;
+//     for (;;) {                                          // drain queue
+//       byte cur = g->b_2B5DC;
+//       if (cur == lo) { g->b_53BA = 0; break; }           // done
+//       E *e = (char*)g + cur*8 + ...;                     // queued ent
+//       ... process e (the (a2,a3)-packed entries) ...
+//       g->b_2B5DC = cur + 1;
+//     }
+//   }
+//
+// Struct-typing reference: the consumer side of the command queue
+//   gl_func_00026CF0 fills. Byte &D_0+0x53BA is the pending-entry
+//   count / write index (the committed shadow gl_func_00026CF0
+//   promotes), byte &D_0+0x2B5DC the drain read cursor, and the
+//   packed (a2<<? | a3) entries live in the &D_0+0x2B5Dx ring buffer
+//   (stride 8, s7=0x30 / s6=2 / s4=0x10 are field offsets/limits).
+//   It walks from the read cursor to the producer index, processes
+//   each queued entry, then zeroes &D_0+0x53BA to mark the queue
+//   empty. The flush/commit-all entry paired with the
+//   gl_func_00026CF0 enqueue.
+// Caps: raw-word USO + large queue-drain loop — not exact-matchable
+//   without proper USO mnemonic disasm; high-level structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026D64);
 
 #ifdef NON_MATCHING
