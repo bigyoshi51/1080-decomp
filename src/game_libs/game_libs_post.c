@@ -2211,6 +2211,41 @@ void game_libs_func_00024360(int a0) { D_24360_a = a0; }
 extern int D_2436C_a;
 void game_libs_func_0002436C(int a0) { D_2436C_a = a0; }
 
+// gl_func_00024378 — STRUCTURAL PASS (0x5D0 / 372 words ≈ 1.5KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle). The SUBSYSTEM INITIALIZER / full reset for the
+// game_libs &D_0 state block. Large -0x80 frame.
+//
+//   void gl_func_00024378(void) {
+//     S *g = &D_0;
+//     g->w_0    = 0;                                     // base clear
+//     g->w_215C = 0;                                     // handle clr
+//     int n = *(int*)(&D_0 + 4);
+//     n = (n + 7) >> 3;                                   // round to 8
+//     if (n > 0) {                                        // zero an
+//       long *p = tbl;                                     //  8-byte-
+//       do { p[-1] = 0; p[-2] = 0; p += 2; } while (...);  //  strided
+//     }                                                    //  table
+//     char *q = (char*)g;                                  // byte clr
+//     for (int i = 0x5C30; i != 0; i--) *q++ = 0;           //  0x5C30
+//     ... reload control globals, seed default fields ...
+//   }
+//
+// Struct-typing reference: the one-time bring-up / hard reset of the
+//   whole game_libs &D_0 state region used by every subsystem decoded
+//   in this file. It zeroes the base word, the &D_0+0x215C handle
+//   slot (the same handle the gl_func_0001FEC8 / gl_func_00021F40
+//   register helpers stash), an 8-byte-strided table whose length is
+//   the word &D_0+0x4 rounded up to a multiple of 8, and a large
+//   0x5C30-byte block (the registry/record/buffer arena), then
+//   reloads control globals. The init counterpart to the
+//   gl_func_00022A9C arena init / gl_func_0002119C state driver — runs
+//   once before any of the registry/record/buffer/resource families
+//   are usable.
+// Caps: raw-word USO + large multi-region clear/seed init — not
+//   exact-matchable without proper USO mnemonic disasm; high-level
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024378);
 
 void game_libs_func_00024948(void) {
