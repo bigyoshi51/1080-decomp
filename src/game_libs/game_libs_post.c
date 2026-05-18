@@ -17039,6 +17039,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000483A0);
 // signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000483BC);
 
+// gl_func_00048510 — STRUCTURAL PASS (0x20C / 132 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x78
+// (saves ra + s0..s8). Counted-collection iterate-and-process driver
+// (cb = jal 0 USO-relocated).
+//
+//   void gl_func_00048510(void *a0, int a1, int a2, int *a3, int a4) {
+//     self = a0;
+//     *a3 = 0;                                         // ACE00000 clear
+//     int n = self->p594;                              // element count
+//     if (n <= 0) return;                              // blez skip-all
+//     int i = 0;
+//     int *scr = sp + 0x6C;
+//     do {
+//       int first = (i == 0);                           // s6=1 sentinel
+//       int last  = (i == n - 1);                        // s5=2 / subu test
+//       int r = cb1(self, last_or_first_flag);           // per-element call
+//       if (r >= 0) {                                    // bgez gate
+//         scr[..] = r;
+//         t = self->p590;                                // bound table
+//         if (t->p04 - 1 < ...) { ... }                  // slt bound check
+//         *a3 = r;                                        // accumulate
+//       }
+//       i++;
+//     } while (i < n);
+//   }
+// Walks the self->0x594-counted collection (bound/table at self->0x590),
+// invoking cb1 per element with first/last-element sentinels (s6=1, s5=2),
+// gating on the cb1 result sign (bgez) and a self->0x590->0x04-relative
+// bound check, accumulating the result into *a3 and the sp+0x6C scratch.
+// Family: cb-driven counted-iterate/process (relates to the segment's
+// list-walk + dispatch routines). Per-element body and the exact flag
+// derivation representative; the *a3 clear, the self->0x594 count, the
+// blez skip-all, the cb1 per-element dispatch and the self->0x590->4 bound
+// are exact. Caps: self struct + cb signature untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048510);
 
 /* gl_func_00048720: 59-insn helper. Multi-pass decode pending. */
