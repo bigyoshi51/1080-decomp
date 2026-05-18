@@ -13132,6 +13132,35 @@ void gl_func_0003E594(int *a0) {
     }
 }
 
+// gl_func_0003E5E0 — STRUCTURAL PASS (0x25C / 152 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x38 (saves ra + s0,s1) → ONE clean
+// function. String-keyed resource registration/init family (cb = jal 0
+// USO-relocated alloc/lookup; string-literal keys at &D_0002Exx/&D_0002Fxx).
+//
+//   void gl_func_0003E5E0(Reg a0) {
+//     // STAGE 1: lookup-or-create a registry slot keyed by name A
+//     h = cb(a0->p0C, &D_0002....., 0);   // probe by string key
+//     if (!h) h = cb(0x10);               // alloc 0x10-byte node on miss
+//     if (h) {
+//       node->p00 = &D_0002F0D8;          // store key/desc literal A
+//       node->p04 = &D_0002EEC0;          // literal B
+//       node->p08 = *(&D_0002F1F8 + 0);   // resolved fn/handle C
+//       node->p0C = *(&D_0002F1F8 + 4);   // resolved fn/handle D
+//       cb(0x10);                         // chained sub-record alloc
+//       cb(&D_0002F318, ...);             // register pretty-name
+//     }
+//     // STAGE 2..3: same probe/alloc/fill-4-pointers block repeated for the
+//     // next two keyed entries (AE2B0000/AE0C0004/AE0F0008/AE0E000C and
+//     // AE2C0000 store quads), each gated on its own cb null-check, then a
+//     // bnez retry loop (1600FFDA) re-runs the stage on transient miss.
+//     // Tail: 3x cb(...) flush/commit then return.
+//   }
+// All four-pointer stores follow the AE2x0000 / AE0y0004 / AE0z0008 /
+// AE0w000C quad pattern into the freshly-alloc'd 0x10 node. Family: same
+// string-literal-keyed cb registration idiom as gl_func_0003E39C and the
+// diagnostic/registration serializers in this segment. Caps: registry-node
+// struct + &D_0002Exxx/Fxxx string-table symbolization untyped; cb
+// signatures inferred from call shape. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E5E0);
 
 extern int gl_func_00000000();
