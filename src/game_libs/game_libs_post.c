@@ -12125,6 +12125,44 @@ void gl_func_0003D288(char *a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D2C8);
 
+// gl_func_0003D3C4 — STRUCTURAL PASS (0xBC / 47 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A construct + wire + double-vtable-dispatch routine.
+//
+//   void gl_func_0003D3C4(O *o) {
+//     o->w_10 = 0;
+//     R *r = fixed_helper_01458C(&out@sp+0x44);   // jal 0x01458C
+//     init((void*)0x0001F2C0, &o->f_2C);           // jal 0 (USO cb)
+//     if (out == 0) return;
+//     H *h = o->p_28;                              // handler vtable
+//     h->fp_5C(h->h_58 + (int)o);                  // jalr h->0x5C
+//     callback(o);                                  // USO cb
+//     o->p_0C = &o->f_2C;                           // back-link
+//     h->fp_4C(h->h_48 + (int)o);                  // jalr h->0x4C
+//   }
+//
+// Struct-typing reference: a hybrid constructor/dispatch leaf — it
+//   combines the factory family pattern (a FIXED intra-USO helper
+//   at 0x01458C, encoded `jal 0x01458C`, a real resolved target,
+//   plus a data-segment template init at 0x0001F2C0 and a
+//   self-referential back-link o->0x0C = &o->0x2C, as in
+//   gl_func_00037BEC / gl_func_0003D16C) with the device-object
+//   VTABLE dispatch family — calling two methods on the handler
+//   reached via o->0x28: slot +0x5C then slot +0x4C (each with a
+//   self-relative arg from the handler's halfword + the object).
+//   Slots 0x4C / 0x5C extend the handler-vtable slot map mapped
+//   across the gl_func_0003537x / gl_func_0003593C group
+//   (0x14 / 0x1C / 0x4C / 0x50 / 0x54 / 0x5C / 0x60). It clears
+//   o->0x10 up front and counts via a local. A
+//   construct-then-bring-up node of the game_libs object subsystem
+//   (0x0001F2C0 is a deferred data-segment template-symbolization
+//   site).
+// Caps: raw-word USO + fixed intra-USO helper (0x01458C) +
+//   USO-relocated jal-0 init callback + data-seg template + jalr
+//   through handler vtable (o->0x28 + 0x5C / 0x4C) — not exact-
+//   matchable without proper USO mnemonic disasm + the object/
+//   vtable structs typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D3C4);
 
 int game_libs_func_0003D480(int a0) {
