@@ -24379,8 +24379,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072134);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072230);
 
-/* gl_func_00072550: 27-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00072550: fills a 32-byte stack buffer with a0[0x65] (same byte 32
+ * times -- the lbu is INSIDE the loop, not hoisted), then calls
+ *   gl_func_00000000(a0[1], a0[2], 0x400, buf, 0)   (5 args, 5th on stack)
+ * and returns its value. The redundant sw v0 / lw v0 round-trip just before
+ * `jr ra` is IDO -O2's spill-then-reload-return pattern for v0.
+ *
+ * Cap: 28% — IDO -O2 UNROLLS the const-bound (i<32), const-body fill loop
+ * 4x with pointer-stepping, but target emit uses a single-body indexed
+ * loop with `i` stack-resident (lw/sw via sp+0x24) and address computed
+ * via `addu t9, sp, i; sb t7, 0x28(t9)`. for() and do/while produce the
+ * same unrolled emit. Would need to defeat the unroll — non-constant
+ * bound, asm() barrier, or rewrite as memset-style external call. */
+int gl_func_00072550(int* a0) {
+    char buf[32];
+    int i = 0;
+    do {
+        buf[i] = ((char*)a0)[0x65];
+        i++;
+    } while (i < 32);
+    return gl_func_00000000(a0[1], a0[2], 0x400, buf, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072550);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00072550_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000725C4);
