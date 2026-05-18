@@ -17168,6 +17168,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048AEC);
 /* gl_func_00049308: 41-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049308);
 
+// gl_func_000493AC — STRUCTURAL PASS (0x78C / 484 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (very large init builder).
+// Single prologue frame 0x6B8 (~1.7 KB stack scratch; saves ra + s0..s8).
+// String-keyed subsystem init/registration builder (cb = jal 0
+// USO-relocated; string keys in the &D_0002FF54.. table).
+//
+//   void gl_func_000493AC(void *a0) {
+//     self = a0;
+//     if ((self->p30 & 1) == 0) goto done;           // bnez gate (else big
+//                                                    //   skip to tail)
+//     cb1(self->p0C);                                 // open/init
+//     cb2(self->p0C, &D_0002FF54);                     // register entry A
+//     self->pB0 = 0; self->pB4 = 0; self->pB8 = 0;     // zero a Vec3 block
+//     cb3(self->p0C, &D_0002FF58, &D_0002FF60, 0);     // register entry B
+//     // ... a long run of cb registrations, each keyed by a string literal
+//     //     in the contiguous &D_0002FF54.. table, interleaved with state
+//     //     zero-init writes into the object; the huge 0x6B8 frame is the
+//     //     scratch used to build the config records before they are
+//     //     committed via cb.
+//   done: ;
+//   }
+// One-shot subsystem builder: gated on the self->0x30 bit-0 flag, performs a
+// large fixed sequence of cb registrations (string-literal keys in the
+// &D_0002FF54.. block) and zeroes object state fields (e.g. the obj+0xB0
+// Vec3), using a ~1.7 KB stack scratch frame to assemble config before
+// committing. Family: cb-driven string-keyed registration/init builder
+// (siblings gl_func_00044144 / 000445AC / 0004182C; the large-frame
+// variant). Per-entry cb list not exhaustively decoded (484-word builder) —
+// the self->0x30&1 gate, the cb1(self->0xC) open, the &D_0002FF54.. key
+// table and the obj+0xB0 Vec3 zero-init are exact; the registration
+// sequence is representative. Caps: self struct, &D_0002FFxx table and cb
+// signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000493AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049B3C);
