@@ -419,6 +419,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
 
+// gl_func_0001EF20 — STRUCTURAL PASS (0x328 / 202 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A tween/step sprite-strip emitter in the game_libs
+// graphics family. -0x68 frame, ra/s1/s0 saved, a3 at sp+0x74.
+//
+//   ret gl_func_0001EF20(Gfx *dst, S *src, T *a2, int a3) {
+//     int x0 = (src->h_8  << 4) & 0xFFFF;       // scaled geom hw
+//     int x1 = (src->h_A  << 4) & 0xFFFF;
+//     int g  = a2->h_10;                         // compare key
+//     byte m = src->b_5;
+//     int g2 = a2->h_12;
+//     if (g == x0) { ... fast/degenerate path ... }
+//     int step = (x0 - x1) / (a3 >> 3);          // guarded sdiv
+//                                                 // (break 7 / break 6
+//                                                 //  div0 + ovf traps)
+//     ... ~160 words: loop advancing an accumulator by `step`,
+//         emitting interpolated F3D/sprite GBI commands into dst
+//         each iteration; cleanup + return ...
+//   }
+//
+// Struct-typing reference: src struct — halfwords src->8 / src->0xA
+//   (start/end coordinate, each <<4 fixed-point scaled), byte src->5
+//   (mode flag). a2 — halfwords a2->0x10 / a2->0x12 (comparison key /
+//   limit). The per-step delta is a signed division of the scaled
+//   coordinate range by (a3 >> 3); the two `break 7` / `break 6`
+//   words are the standard GCC div-by-zero / INT_MIN-overflow trap
+//   sequence, not real code paths. The remaining body is the
+//   interpolation loop that writes the sprite strip into the dst
+//   Gfx cursor. Sibling of the gl_func_0001EE78 F3D-emitter family.
+// Caps: raw-word USO + guarded-sdiv idiom + multi-iteration emit
+//   loop — not exact-matchable without proper USO mnemonic disasm;
+//   high-level structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
