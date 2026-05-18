@@ -19025,6 +19025,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FBA4);
 // Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
 
+// gl_func_000500EC — STRUCTURAL PASS (0x2B8 / 174 words, no episode).
+// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x38,
+// saves ra + s0..s7. Two jal-0 = USO-relocated callbacks (resolved at
+// load): cb1 (predicate/comparator) and cb2 (action). Shape:
+//   int gl_func_000500EC(void *self, int nOuter) {
+//     if (self->field_44 == 0) return 0;            // empty list short-circuit
+//     base = self->field_60; idx = self->field_68;  // 0x60 records, 0x68 dir
+//     for (i = 0; i != nOuter; i++) {
+//       cnt   = u16 idx[i].field_2;                  // dir entry stride 8
+//       recA  = base + cnt * 6;                      // 6-byte (3x u16) record
+//       end   = idx + nOuter * 8;
+//       for (j = idx; j != end; j += 8) {
+//         recB = base + (u16 j.field_2) * 6;
+//         // 3-field u16 key equality (offsets +0, +2, +4): each pair
+//         // xor'd, sltiu v0,v0,1 (==0 test), all three must match
+//         if (recA[0]==recB[0] && recA[2]==recB[2] && recA[4]==recB[4]) {
+//           if (!cb1(self, recA, recB)) continue;    // USO predicate
+//           cb2(self, ...);                          // USO action
+//           // mark/append into self->field_78 byte-list with dedup:
+//           p = self->field_78; flag = 1;
+//           while (p < self->field_44) {             // lbu scan, sb mark
+//             if (*p == 0) { *p = 1; ...; }
+//             p++;
+//           }
+//           // second dedup pass over field_78 (lbu/sb), then advance
+//         }
+//       }
+//     }
+//     return 0;
+//   }
+// Family: structured-record key-match + dedup-merge driver (sibling of
+// the structured-record decode/accumulate family gl_func_00049DBC /
+// 0004A308 / 0004FD18; this one is the 2-callback merge variant). The
+// frame, saved-reg set, the 6-byte (3x u16) record geometry, the
+// stride-8 0x68 directory, the 0x60 record base, the triple-u16 key
+// equality idiom, the 0x44 list-length guard and the 0x78 byte-list
+// dedup passes are exact; the two USO callback signatures and the
+// inner mark/advance bookkeeping are representative. Caps: self struct
+// and cb1/cb2 prototypes untyped (USO-relocated). Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000500EC);
 
 /* gl_func_000503A4: 40-insn helper. Multi-pass decode pending. */
