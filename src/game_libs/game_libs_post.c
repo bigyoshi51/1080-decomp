@@ -12169,6 +12169,37 @@ int game_libs_func_0003D480(int a0) {
     return 0;
 }
 
+// gl_func_0003D48C — STRUCTURAL PASS (0xAC / 43 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list-walk diagnostic dump — sibling of
+// gl_func_00038C98 (diagnostic/trace family).
+//
+//   void gl_func_0003D48C(O *o) {
+//     report(D0_fmt, o, 1);                       // jal 0 (header)
+//     L *anchor = (L*)((char*)o + 0x2C);
+//     for (N *n = o->p_10; n != 0; n = n->next_4)  // walk list
+//       report(*n);                                // per-node cb
+//     report(D0_fmt);                              // footer cb
+//   }
+//
+// Struct-typing reference: a per-LIST debug-dump leaf. It emits a
+//   header line via a USO-relocated printf-shaped callback (jal 0 →
+//   resolved at load) using a &D_0-relative format string and a
+//   constant 1, walks the intrusive list rooted at o->0x10 (next at
+//   +0x04) issuing a per-node callback for each element, then emits
+//   a footer line. The format strings are &D_0-relative entries of
+//   the same contiguous diagnostic string table mapped across the
+//   gl_func_00038108 / 000381F8 / 00038360 / 00038C98 family. The
+//   o+0x2C anchor it computes is the list-bookkeeping handle (same
+//   +0x2C / +0x10 convention as the gl_func_0003D3C4 constructor's
+//   o->0x2C sub-record and the collection-processor list heads). A
+//   diagnostic/trace node of the game_libs object subsystem — the
+//   list-iterating dumper, paired with gl_func_00038C98.
+// Caps: raw-word USO + intrusive-list walk + USO-relocated jal-0
+//   printf callbacks + &D_0-relative string table — not exact-
+//   matchable without proper USO mnemonic disasm + the string
+//   table / list struct typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D48C);
 
 int game_libs_func_0003D538(int a0, int a1, int a2) {
