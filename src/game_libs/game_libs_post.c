@@ -9491,6 +9491,48 @@ int *gl_func_000378D0(int *a0, int a1, float a2) {
     return a0;
 }
 
+// gl_func_00037938 — STRUCTURAL PASS + small BUNDLE BOUNDARY NOTE
+// (0x164 / 89 words, no episode). Raw-.word USO form (game_libs).
+//
+// realjr=2 / one 27BDFF28 prologue (0xD8 FP frame). The 2nd jr is
+// at the very tail (0x37A94, ~12 bytes after the main epilogue jr
+// at 0x37A88) with no prologue — a tiny ~3-word no-frame TAIL STUB
+// splat could not separate (no-frame-leaf shape, see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). DEFERRED USO
+// RE-SPLIT for that tail (tracked with the other game_libs_post.c
+// bundle notes; not fixable with mnemonic split/merge — needs the
+// spimdisasm-USO migration). No merge attempted; no episode.
+//
+// Named fn gl_func_00037938 — an FP transform-compose routine:
+//   void gl_func_00037938(O *o) {
+//     S *s = o->p_14;
+//     Vec3 a = { s->f_A0, s->f_A4, s->f_A8 };    // src block 1
+//     V *t = o->p_2C;
+//     float b0 = t->f_A0;
+//     float b1 = (t+0x70)->f_34;                  // src block 2
+//     // combine via add.s / sub.s into stack scratch
+//     //   (sp+0xB0..0xC4, sp+0x78..0x80)
+//     ... copy a matrix block out word-by-word (8D../AC..) ...
+//   }
+//
+// Struct-typing reference: a geometry transform-compose leaf. It
+//   gathers two source Vec/matrix blocks — one via o->0x14
+//   (offsets 0xA0/0xA4/0xA8) and one via o->0x2C (0xA0 and a
+//   +0x70-offset sub-block's 0x34/0x38) — combines their components
+//   with `add.s` / `sub.s` into stack scratch matrices
+//   (sp+0xB0..0xC4, sp+0x78..0x80), and copies the resulting
+//   transform block out via a word-copy. A companion of the
+//   gl_func_00036694 matrix-concat, gl_func_00036224 viewport
+//   builder, gl_func_00036C08 anchor-offset and gl_func_00036F0C
+//   flag-transform — the matrix-combine stage of the game_libs
+//   object subsystem's geometry pipeline (no &D_0 / no callbacks
+//   in the leader — a pure-math node).
+// Caps: raw-word USO + bundled ~3-word no-frame tail + FP matrix
+//   add/sub compose + word-copy block move — not exact-matchable
+//   without proper USO mnemonic disasm + boundary re-split + the
+//   matrix/vector structs typed; structural pass only, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
 
 /* gl_func_00037A9C: 21-insn count-bounded loop. Calls
