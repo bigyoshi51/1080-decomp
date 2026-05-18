@@ -1310,7 +1310,6 @@ void timproc_uso_b5_func_0000685C(char *a0) {
     gl_func_00000000(a0 + 0x2C);
 }
 
-#ifdef NON_MATCHING
 /* func_0000687C absorbs _00006890+_000068A8+_000068EC: 33-insn (0x84)
  * multi-exit table-search loop with 4 early-return paths.
  *
@@ -1325,7 +1324,7 @@ void timproc_uso_b5_func_0000685C(char *a0) {
  *
  *   if (idx < 0) return 0;                    // early-return path 3
  *
- *   // Loop: for (i = idx; i >= 0; i--) { check item; if (positive) return 1; }
+ *   // Loop: for (i = idx; i >= 0; i--) { check item; if (nonzero) return 1; }
  *   int *table = a0->[0x40C];
  *   int *outer = (int*)((char*)table + v0*4);
  *   int byte_off = idx*4;
@@ -1333,46 +1332,42 @@ void timproc_uso_b5_func_0000685C(char *a0) {
  *     int *inner = outer->[0x40];
  *     int *item = (int*)inner->[byte_off + 0x3C];
  *     float val = *(float*)((char*)item + 0x2A4);
- *     if (val > 0.0f) return 1;
+ *     if (val != 0.0f) return 1;
  *     byte_off -= 4;
  *   } while (--idx >= 0);
  *   return 0;
  *
  * Initial decode 2026-05-06; multi-pass refinement expected. The float
- * comparison `c.lt.s $f0, $f4` with $f0=0.0 followed by `bc1f` means
- * "branch if NOT (0 < f4)" = "branch if f4 <= 0" — so the success path
- * is f4 > 0. */
+ * comparison is equality against 0.0f; non-zero values take the success
+ * return path. */
 extern int gl_func_00000000();
 int timproc_uso_b5_func_0000687C(int *a0) {
-    int v0 = *(int*)((char*)a0 + 0x3C4);
+    int group = *(int*)((char*)a0 + 0x3C4);
+    int group_off = group * 4;
+    int count;
     int idx;
-    int *table;
-    int *outer;
     int byte_off;
-    if (v0 == 0) return 1;
+    register int *cursor;
+    register char *item;
+    if (group == 0) return 1;
 
-    idx = *(int*)((char*)a0 + 0x3D0 + v0 * 4);
-    if (idx == 0) return 0;
-    idx -= 1;
+    count = *(int*)((char*)a0 + 0x3D0 + group_off);
+    idx = count - 1;
+    if (count == 0) return 0;
 
-    if (idx < 0) return 0;
+    if (idx < 0) goto ret0;
 
-    table = *(int**)((char*)a0 + 0x40C);
-    outer = (int*)((char*)table + v0 * 4);
     byte_off = idx * 4;
+    cursor = (int*)((char*)*(int*)((char*)*(int**)((char*)a0 + 0x40C) + group_off + 0x40) + byte_off);
     do {
-        int *inner = (int*)*(int*)((char*)outer + 0x40);
-        int *item = (int*)*(int*)((char*)inner + byte_off + 0x3C);
-        if (*(float*)((char*)item + 0x2A4) > 0.0f) return 1;
+        item = (char*)*(int*)((char*)cursor + 0x3C);
         byte_off -= 4;
-        idx--;
-    } while (idx >= 0);
+        if (*(float*)(item + 0x2A4) != 0.0f) return 1;
+        cursor = (int*)((char*)cursor - 4);
+    } while (byte_off >= 0);
+ret0:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000687C);
-#endif
-
 /* timproc_uso_b5_func_00006900 - verified structural decode (0xE8,
  * 58 insns, "any-entry-active" scan predicate). Returns s32 0/1.
  *   s32 timproc_uso_b5_func_00006900(St *s) {
