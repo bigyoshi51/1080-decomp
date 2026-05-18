@@ -9734,6 +9734,39 @@ void game_uso_func_0000E564(int *a0) {
     }
 }
 
+// game_uso_func_0000E5C8 — STRUCTURAL PASS (0x354 / 213 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic). Pure bitfield work (1 call, no FP).
+//
+// State-flag remapper: tests bits in a source flag word and
+// bit-permutes them into the object's internal flag field obj->0xE8.
+//
+//   void game_uso_func_0000E5C8(Obj *obj, A a1) {
+//     src = obj->0xB4 ? obj->0xB4->0x800->0x10 : obj->0x18;
+//     // long unrolled chain, one test per source bit:
+//     //   if (src & 0x200)  obj->0xE8 |= 0x02;
+//     //   if (src & 0x1000) obj->0xE8 |= 0x...;            // (etc.)
+//     //   if (src & 0x4000) obj->0xE8 |= 0x01;
+//     //   if (src & 0x2000) obj->0xE8 |= 0x10;
+//     //   if (src & 0x4000) obj->0xE8 |= 0x20;
+//     //   if (src & 0x8000) obj->0xE8 |= 0x40;
+//     //   … ~16 such (mask -> outbit) pairs, each a
+//     //   lw 0xE8 / andi src,MASK / branch / ori OUTBIT / sw 0xE8;
+//     // tail: also folds obj->0xB4->0xA58 bits into obj->0xE8.
+//   }
+//
+// Struct-typing reference:
+//   obj: 0xB4 -> sub (->0x800->0x10 a hardware/input flag word,
+//     ->0xA58 more flags), 0x18 a fallback flag source, 0xE8 the
+//     object's internal/derived flag field (the permuted target).
+//   Pure bit-permutation: each source bit maps to a distinct
+//     internal bit (input/state translation table, unrolled).
+//   func_00000000 = USO placeholder dispatcher (1 trailing call).
+// Caps: raw-word USO + placeholder call — not exact-matchable
+//   without proper USO mnemonic disasm; the (mask -> outbit) map is
+//   fully enumerable from the .s when a future pass tightens it.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
 
 /* game_uso_func_0000E91C — verified structural decode (EE84-family branchy
