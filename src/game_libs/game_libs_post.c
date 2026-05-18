@@ -2560,6 +2560,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024E28);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024E34);
 
+// gl_func_00024F30 — STRUCTURAL PASS (0x114 / 69 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A free-slot allocator over the 0x54-stride slot table at
+// &D_0+0x1038.
+//
+//   void *gl_func_00024F30(int a0, int a1, int a2) {
+//     Slot *s   = (Slot*)(&D_0 + 0x1038);
+//     Slot *end = (Slot*)(&D_0 + 0x540 + ...);            // table end
+//     while (s != end) {                                  // linear scan
+//       if (s->b_0 == 0) break;                            // free slot
+//       s = (char*)s + 0x54;                               // stride
+//     }
+//     if (s == end) return 0;                              // table full
+//     s->b_0  = 1;                                          // in-use
+//     s->w_4  = a1;
+//     s->w_8  = ...;
+//     s->w_C  = a1;
+//     s->w_10 = a2;
+//     s->w_14 = ...;
+//     return s;
+//   }
+//
+// Struct-typing reference: a fixed-capacity slot pool — base
+//   &D_0+0x1038, entry stride 0x54, scanned linearly for the first
+//   entry whose byte +0 is 0 (free); the end marker is derived from
+//   the &D_0+0x540 region. On a full table it returns 0. A claimed
+//   slot gets byte +0 set to 1 (in-use flag) and words +4 / +8 / +0xC
+//   / +0x10 / +0x14 initialised from the caller args. A distinct slot
+//   pool from the &D_0+0x157C (gl_func_00024E34) and &D_0+0x2030
+//   (gl_func_000223DC) registry tables — the game_libs subsystem has
+//   several parallel fixed-stride pools.
+// Caps: raw-word USO + linear free-slot scan — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
