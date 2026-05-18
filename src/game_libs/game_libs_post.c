@@ -20420,6 +20420,7 @@ void game_libs_func_00061F70(GlFunc61F70Struct *a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F8C);
 
+/* gl_func_00062194: 65-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062194);
 
 /* gl_func_00062298: was 16-insn bundle. Split via split-fragments.py
