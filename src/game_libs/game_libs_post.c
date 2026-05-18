@@ -16176,8 +16176,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000445AC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044918);
 
-/* gl_func_00044AEC: 38-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00044AEC: 38-insn "wait while any of 3 fields nonzero" loop.
+ *   s0 = *(int**)(a0 + 0x218);
+ *   while (s0[7] != 0 || s0[1] != 0 || s0[3] != 0) {  // s0->[0x1C], [0x4], [0xC]
+ *     gl_func_00000000(s0);
+ *   }
+ * Each check uses `sltu v0, $0, v0` followed by `bne v0, $0, +N` to skip
+ * the remaining inner checks (early-exit-true pattern), landing at a
+ * common bne-loop-back (or beql-to-epilogue on first iteration). */
+void gl_func_00044AEC(int* a0) {
+    int* s0 = *(int**)((char*)a0 + 0x218);
+    while (s0[7] != 0 || s0[1] != 0 || s0[3] != 0) {
+        gl_func_00000000(s0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044AEC);
+#endif
 
 // gl_func_00044B84 — STRUCTURAL PASS + BOUNDARY NOTE (0x13C / 80 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0. Two N64_FORENSICS signatures:
