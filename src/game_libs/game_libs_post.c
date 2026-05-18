@@ -5929,6 +5929,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
 
+// gl_func_0002E354 — STRUCTURAL PASS (0xF34 / 973 words ≈ 3.9KB, no
+// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO
+// bundle (named fn + 3 trailing helpers) — deferred USO re-split.
+// The named leading fn is the LARGEST function in this file: the
+// main per-object update + render orchestrator. Huge -0x80 frame.
+//
+//   void gl_func_0002E354(O *o, int a1) {
+//     int cfg = *(int*)(&D_xxx);                        // global mode
+//     if (cfg == 0) { ... minimal/idle path ... return; }
+//     if (cfg == 4) { ... }
+//     int st = *(int*)(&D_yyy);                          // state mach
+//     switch (st) { case 1: case 2: case 3: ... }
+//     if (o->b_1C == 1) {
+//       if (o->b_21 == 0) o->b_21 = 2;                    // sub-state
+//     }
+//     ... ~900 words: per-mode build of the object's transform /
+//        animation / display state — FP matrix math, child traversal,
+//        F3D/GBI emission, sound/event hooks — the full per-object
+//        tick+draw; cleanup + return ...
+//   }
+//
+// Struct-typing reference: the top-level per-object processor of the
+//   game_libs object subsystem — it ties together everything decoded
+//   in this file: the gl_func_0002BB7C / gl_func_0002C7A4 command
+//   drivers, the gl_func_00029978 / gl_func_0002AA30 keyframe
+//   steppers, the gl_func_00027804 / gl_func_00029494 matrix loaders
+//   and the gl_func_0002E1C0 / gl_func_0002E24C event triggers. It is
+//   gated on a global config word (`*&D_xxx`, 0 = idle, 4 = special)
+//   and a global state machine word (`*&D_yyy` in 1..3); object
+//   fields o->0x1C / o->0x21 carry the per-object sub-state advanced
+//   each call. The remaining ~900 words are the per-mode transform/
+//   animation/draw body. The single largest driver in this file's
+//   object/animation subsystem.
+// Caps: raw-word USO + 4-fn unsplit bundle + very large multi-mode
+//   per-object tick+draw with heavy FP and many sub-calls — not
+//   exact-matchable without proper USO mnemonic disasm; high-level
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
