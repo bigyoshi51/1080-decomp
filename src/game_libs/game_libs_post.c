@@ -12630,6 +12630,40 @@ loop:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DBEC);
 #endif
 
+// gl_func_0003DC90 — STRUCTURAL PASS (0x98 / 38 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list-FOLD via repeated vtable dispatch.
+//
+//   void gl_func_0003DC90(O *o) {
+//     H *h = o->p_28;                              // handler vtable
+//     int acc = h->fp_84(h->h_80 + (int)o);        // jalr h->0x84
+//     if (acc == 0) return;
+//     o->w_34 = acc;
+//     for (N *n = o->p_10; n != 0; n = n->next_4) {
+//       acc = h->fp_84(acc, h->h_80 + (int)o);     // jalr h->0x84
+//       o->w_84 = acc;                              // running result
+//     }
+//   }
+//
+// Struct-typing reference: a reduce/accumulate over an intrusive
+//   list. It walks the list rooted at o->0x10 (next at +0x04) and,
+//   for each element, invokes the GLOBAL HANDLER's vtable method at
+//   (o->0x28)+0x84 — threading the accumulated result forward
+//   through successive calls (a fold/scan), seeding o->0x34 with
+//   the initial value and updating o->0x84 with the running
+//   result. Slot 0x84 extends the device-object handler-vtable
+//   slot map (0x14 / 0x1C / 0x4C / 0x50 / 0x54 / 0x5C / 0x60 /
+//   0x84) mapped across the gl_func_0003537x / gl_func_0003D3C4
+//   group. The reduce counterpart of the gl_func_00038964 two-phase
+//   processor and the gl_func_0003C86C circular-list walk — a
+//   collection-aggregate node of the game_libs object subsystem
+//   (same convention: list head +0x10, next +0x04, handler at
+//   +0x28).
+// Caps: raw-word USO + intrusive-list walk + repeated jalr through
+//   handler vtable ((o->0x28)+0x84) with threaded accumulator —
+//   not exact-matchable without proper USO mnemonic disasm + the
+//   list/handler structs typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DC90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DD28);
