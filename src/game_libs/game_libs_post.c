@@ -1294,6 +1294,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
 
+// gl_func_000223DC — STRUCTURAL PASS (0x88 / 34 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A find-or-append slot allocator over the &D_26B8 array,
+// in the gl_func_00021F40 / gl_func_000221D8 registry family.
+//
+//   void *gl_func_000223DC(int key) {
+//     int found = (*lookup)(&D_26B8, key);            // jal 0 USO-rel
+//     if (found != 0) return found;                    // existing
+//     int   i    = *(int*)(&D_0 + 0x2948);             // append index
+//     char *slot = (char*)&D_26B8 + i*0x14 + 0x10;     // stride 0x14
+//     slot->b_0  = 1;                                   // mark in-use
+//     slot->w_8  = key;                                 // store key
+//     slot->w_10 = 0;                                   // init field
+//     *(int*)(&D_0 + 0x2948) = i + 1;                   // count++
+//     return slot;
+//   }
+//
+// Struct-typing reference: &D_26B8 is a fixed-stride table (entry
+//   size 0x14, the live sub-record at +0x10 within each entry — the
+//   index math is count*5<<2 = count*0x14). Word &D_0+0x2948 is the
+//   append cursor / live count for that table. A new entry's byte +0
+//   is the in-use flag (set 1), word +8 holds the key, word +0x10 an
+//   init-zero field. Lookup is the USO-relocated `jal 0` helper
+//   (resolved at load) keyed on the &D_26B8 descriptor. This is the
+//   compact find-or-create-by-append companion to the
+//   gl_func_00021F40 list-insert / gl_func_000221D8 slot-scan.
+// Caps: raw-word USO + jal-0 USO-reloc lookup — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000223DC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
