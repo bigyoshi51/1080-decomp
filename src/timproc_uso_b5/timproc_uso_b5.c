@@ -315,6 +315,38 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * in delay slot. Same recipe as game_libs_func_0000E044/E050. */
 void timproc_uso_b5_func_00000770(int a0) { (void)a0; }
 
+// timproc_uso_b5_func_00000778 — STRUCTURAL PASS (0x974 / 605 words,
+// no episode). Raw-.word USO form (splat can't mnemonic-disasm
+// relocatable USO; this is genuine code, NOT data).
+//
+// Shape: a FLAT bulk-registration routine — 76 back-to-back
+// func_00000000() calls, ZERO control flow (1 jr at end, 1 branch).
+// Hand-decoded prologue + repeating unit:
+//   void timproc_uso_b5_func_00000778(State *st) {  // st -> s0 (arg0)
+//     // addiu sp,-0x20; save s0/s1/ra; s0 = arg0;
+//     // repeated ~76x, each unit:
+//     //   v = st->0x50;                       // lw a1,0x50(s0)
+//     //   a0 = &D + K;                        // lui a0 / addiu a0,a0,K
+//     //   a1 = v*9 (or v*8, v<<N) + small;    // sll/addu index calc
+//     //   a1 |= 0x70000 (lui at,7; or/ori);   // handle/tag prefix
+//     //   func_00000000(a0=&D+K, a1);         // register one entry
+//     //   K advances (0x10, 0x28, 0x130, ... 0x718) per entry;
+//     // restore ra/s0/s1; addiu sp,0x20; return;
+//   }
+// Net effect: binds ~76 timproc_uso_b5 table slots (&D + {0x10..0x718})
+// to indices/handles derived from st->0x50 (a base index/count),
+// tagged with the 0x7000B handle prefix.
+//
+// Struct-typing reference:
+//   st(a0=s0): 0x50 = base index/count used to compute every entry's
+//     handle (a1 = f(st->0x50) per slot). &D = the timproc_uso_b5
+//     registration table; K = per-slot byte offsets (0x10,0x28,0x130,
+//     …,0x718). Tag prefix 0x70000 / handle low bits ~0xB.
+// Caps: raw-word USO + 76 placeholder func_00000000 calls — not
+//   exact-matchable without proper USO mnemonic disasm (documented USO
+//   limitation); flat structure fully characterized here. Structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000778);
 
 int timproc_uso_b5_func_000010EC(int a0) {
