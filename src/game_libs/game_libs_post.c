@@ -15578,6 +15578,36 @@ void gl_func_00042648(int *dst) {
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042684);
 
+// gl_func_00042778 — STRUCTURAL PASS (0x1BC / 115 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
+// (saves ra). FP-heavy Vec3 geometry computation (cb = jal 0 USO-relocated
+// scalar helper, likely sqrt/normalize).
+//
+//   <fp> gl_func_00042778(void *a0, Vec a1, Vec a2) {
+//     float ax = a1->p08, ay = a1->p18, az = a1->p28;   // first vector lanes
+//     float bx = a2->p00, by = a2->p04, bz = a2->p08;    // second vector lanes
+//     // mul.s / add.s / sub.s chain forming a scalar (dot/cross/distance
+//     // accumulation) into sp scratch (sp+0x1C/0x20/0x24):
+//     float s = ax*bx + ... ;                             // mul-accumulate
+//     cb(s);                                              // sqrt/normalize
+//     double k = *(double*)(&D_0 + 0x1B30);               // FP-pool constant
+//     // refine with double consts 1.0 (3FF0) / 32.0 (4200) / 4.0 (4080),
+//     // cvt.d/cvt.s round-trips, then a bc1f threshold compare gate:
+//     if (result <comparison> k) { ... }
+//     return <fp result>;
+//   }
+// A vector-math kernel: pulls two Vec3-ish operands from a1 (lanes at
+// +0x08/0x18/0x28) and a2 (+0x00/0x04/0x08), performs a mul/add/sub
+// reduction to a scalar, calls a cb scalar helper (sqrt/normalize shape),
+// and refines/compares it against double immediates and the FP-literal-pool
+// double at &D_0+0x1B30 — which EXTENDS the contiguous spatial/FP-literal
+// pool block documented for this segment (1B30 region; symbolization is in
+// the deferred FP-pool backlog). Family: FP Vec3 geometry/transform
+// (siblings gl_func_00040CAC / 00040E90 / 00041008). Exact reduction formula
+// and compare sense representative — the operand offsets, the cb call, the
+// double-constant set (1.0/32.0/4.0) and the &D_0+0x1B30 FP-pool reference
+// are exact. Caps: Vec struct, FP-pool symbolization and cb signature
+// untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042778);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042944);
