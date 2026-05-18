@@ -19277,6 +19277,7 @@ int game_libs_func_0005B73C(int *list) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B73C);
 #endif
 
+/* gl_func_0005B764: 57-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B764);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B848);
