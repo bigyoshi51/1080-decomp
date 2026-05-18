@@ -9913,6 +9913,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000381F8);
 void game_libs_func_00038294(int a0) {
 }
 
+// gl_func_0003829C — STRUCTURAL PASS (0xC4 / 49 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A multi-block constructor with type/vtable wiring —
+// same family as gl_func_00034890.
+//
+//   X *gl_func_0003829C(O *o) {
+//     A *a = alloc(0x10);  if (!a) return 0;     // main (uses o->0xC)
+//     B *b = alloc(0x10);  if (!b) return 0;     // sub-record
+//     C *c = alloc(0x04);  if (!c) return 0;     // sub-block
+//     c->vt_0 = (void*)0x0001EB10;               // type/vtable tag
+//     c->p_4  = o;                                // parent backref
+//     c->w_8  = *(int*)0x0001EA30;               // copy descriptor
+//     c->w_C  = *(int*)(0x0001EA30 + 4);
+//     ... wire a / b / c together ...
+//     return a;
+//   }
+//
+// Struct-typing reference: a composite-object constructor of the
+//   gl_func_00034890 / gl_func_0003800C family. It chains three
+//   allocations (0x10 / 0x10 / 0x04) through a USO-relocated
+//   allocator callback (jal 0 → resolved at load), each guarded by
+//   an allocation-failure early-out (constructor rollback), then
+//   stamps a FIXED data-segment TYPE/VTABLE template pointer
+//   0x0001EB10 into the new record, stores the parent
+//   back-reference (the o argument), and COPIES descriptor fields
+//   out of a second fixed data-segment block at 0x0001EA30 into
+//   the record (offsets +0x08/+0x0C). The o->0x0C field seeds the
+//   first allocation's context. A factory leaf of the game_libs
+//   object subsystem; 0x0001EB10 (vtable/type) and 0x0001EA30
+//   (descriptor source) are deferred data-segment symbolization
+//   sites — and 0x0001EA30 is adjacent to gl_func_00036E74's
+//   0x0001EA10 template, consistent with a contiguous per-type
+//   descriptor table.
+// Caps: raw-word USO + USO-relocated jal-0 allocator + chained
+//   alloc-with-rollback + fixed data-seg type/vtable templates +
+//   descriptor-copy — not exact-matchable without proper USO
+//   mnemonic disasm + the structs/templates typed; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003829C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038360);
