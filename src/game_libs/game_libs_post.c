@@ -3712,6 +3712,37 @@ void gl_func_00028A18(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A18);
 #endif
 
+// gl_func_00028A68 — STRUCTURAL PASS (0xA4 / 41 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). The bulk record-array INITIALIZER of the sprite subsystem.
+//
+//   void gl_func_00028A68(void) {
+//     (*setup)(&D_5378);                                // jal 0 USO
+//     S *g = &D_0;
+//     int n = g->w_2070;                                 // record count
+//     if (n <= 0) return;
+//     for (int i = 0, off = 0; i < n; i++, off += 0xD0) { // 0xD0 stride
+//       R *rec = (char*)*(R**)(&D_0 + 0x2CFC) + off;
+//       rec->w_8 = rec;                                    // self-ptr
+//       rec->w_0 = 0;                                       // clear
+//       (*initRec)(rec);                                    // jal 0 USO
+//     }
+//   }
+//
+// Struct-typing reference: iterates the SAME primary sprite record
+//   table as gl_func_0001E134 / gl_func_0001FAE8 / gl_func_00027E24 —
+//   live count word &D_0+0x2070, record-table pointer &D_0+0x2CFC —
+//   here with a per-record stride of 0xD0. For every record it writes
+//   a self-referential pointer at +0x8, zeroes word +0x0, and calls a
+//   USO-relocated per-record initializer (`jal 0` slot). A leading
+//   USO-reloc setup call is passed the &D_5378 fn-ptr/string table
+//   (the same auxiliary table gl_func_0001FAE8 uses). This is the
+//   one-time "construct/clear every sprite record" pass that primes
+//   the subsystem before gl_func_0002119C drives it per-frame.
+// Caps: raw-word USO + record-init loop with jal-0 USO-reloc per
+//   record — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A68);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028B0C);
