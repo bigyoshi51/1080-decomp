@@ -6852,6 +6852,49 @@ int gl_func_00031898(int *a0) {
     return ret_val;
 }
 
+// gl_func_0003190C — STRUCTURAL PASS (0x158 / 86 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A dual state-block conditional command emitter.
+//
+//   void gl_func_0003190C(void) {
+//     // block A: state record at &D_0 + 0x368
+//     if (query_0117C1(&D_0 + 0x368)) {
+//       u16 s = *(u16*)(&D_0 + 0x3C8);
+//       if (s != 0) {
+//         emit(0x06020004, -1);              // jal 0 (USO callback)
+//         emit(0x06020004, 0);
+//       } else {
+//         emit(..., (signed char)*(s8*)(&D_0 + 0x3CB));
+//         emit(0x06020000, ...);
+//       }
+//     }
+//     // block B: parallel record at &D_0 + 0x3CC (state at +0x42C)
+//     if (query_0117C1(&D_0 + 0x3CC)) {
+//       u16 s = *(u16*)(&D_0 + 0x42C);
+//       if (s != 0) { emit(0x06020104, -1); ... }
+//       else        { emit(0x06020100, ...); }
+//     }
+//   }
+//
+// Struct-typing reference: a paired state-driven command flusher.
+//   For each of TWO parallel state records (table bases &D_0+0x368
+//   and &D_0+0x3CC) it calls a FIXED intra-USO query helper at
+//   0x0117C1 (encoded jal 0x0117C1, a real resolved target) passing
+//   the record base; only if that returns nonzero does it read the
+//   record's state halfword (&D_0+0x3C8 / +0x42C) and a signed byte
+//   (&D_0+0x3CB) and emit 0x06020000-bank command words via
+//   USO-relocated callbacks (jal 0 → resolved at load) — choosing a
+//   "nonzero state" variant (subfield 0x04/0x104, a1 = -1 then 0)
+//   vs a "zero state" variant (subfield 0x00/0x100, a1 = the
+//   sign-extended state byte). A per-frame two-channel command
+//   flush leaf of the game_libs object subsystem (the 0x06020000
+//   bank is the gl_func_0002F638 / 0002F9D4 emitter family with a
+//   0x02xx sub-bank; the query helper 0x0117C1 is shared with the
+//   gl_func_00031710 table cluster).
+// Caps: raw-word USO + fixed intra-USO query + USO-relocated jal-0
+//   callbacks + dual-block state gate — not exact-matchable without
+//   proper USO mnemonic disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003190C);
 
 /* Split off from gl_func_0003190C bundle 2026-05-08: 4-insn setter.
