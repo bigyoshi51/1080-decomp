@@ -6042,6 +6042,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F584);
 void game_libs_func_0002F630(void) {
 }
 
+// gl_func_0002F638 — STRUCTURAL PASS (0xF4 / 61 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A command-word emitter / mode dispatcher leaf.
+//
+//   void gl_func_0002F638(int a0, int sel, int arg3, int arg4,
+//                         ... byte at sp+0x43 ...) {
+//     int op = a0 ? 6 : 2;                  // opcode select from arg0
+//     int sub = op & 0xFF;
+//     int cmd3 = 0x03000000 | (sub << 8);   // 0x03 command bank
+//     callback(cmd3, (signed char)stk_43);  // USO-relocated jal 0
+//     if (sel == 0) { ... }
+//     else if (sel == 8) { ... }
+//     else if (sel == 0xC) {
+//       int cmd6 = 0x06000000 | sub;
+//       callback(cmd6 | 6, (signed char)arg4);   // sign-extended byte
+//       callback(cmd6 | 1, (signed char)(sel + arg3));
+//       ... FP-arg branch: mtc1 a1,f12 / mtc1 at,f4 ...
+//     }
+//   }
+//
+// Struct-typing reference: a graphics / command-stream builder. arg0
+//   chooses the opcode (2 vs 6); the 8-bit subfield is packed into
+//   command words from two banks — 0x03000000 (shifted <<8) and
+//   0x06000000 (low bits ORed with 1/6 tags). A mode selector (2nd
+//   arg, here `sel`) of {0, 8, 0xC} routes which command sequence is
+//   emitted. Byte arguments (stack slot sp+0x43, arg4, sel+arg3) are
+//   sign-extended (sll/sra 24) before being passed. One branch loads
+//   FP args (mtc1 a1,f12 / mtc1 at,f4) ahead of its callback. The
+//   callbacks are USO-relocated slots (jal 0 → resolved at load), the
+//   command-submission entry of the game_libs object subsystem.
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + multi-way mode
+//   dispatch — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F638);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F72C);
