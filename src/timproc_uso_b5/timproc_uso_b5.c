@@ -2086,6 +2086,48 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C44);
 
+// timproc_uso_b5_func_00008DB4 — STRUCTURAL PASS (0x1E4 / 121 words,
+// no episode). Raw-.word USO form (genuine code, single function).
+// Hand-decoded.
+//
+// Timing-screen sub-panel constructor (alloc-or-reuse); returns self.
+//
+//   void *timproc_uso_b5_func_00008DB4(Self *self, a1) {
+//     if (!self) { self = func_00000000(0xC); if (!self) return 0; }
+//     func_00000000(*(M**)(D_0+0x134), 2);                // mgr init
+//     *(int*)(D_0+0x1C4) &= ~9;                            // clear flags
+//     Vec4 *v = &D_00000294;  v->0=v->4=v->8=v->C = 0.0f;   // zero Vec4
+//     A = func_00000000(0, &D_00001334);  self->0x2A0 = 0.0f;
+//     B = func_00000000(0, &D_00001340);
+//     C = func_00000000(0, &D_00001344);
+//     func_00000000(*(M**)(D_0+0x134), C, B, self, 0, 0);
+//     func_00000000(self+0x10, B);
+//     if (!B->0x14) B->0x4 = 1;  B->0x14 = …;              // dirty+attach
+//     func_00000000(C);
+//     if (!C->0x14) C->0x4 = 1;  C->0x14 = …;
+//     func_00000000(a1);  self->0x00 = ret;
+//     self->0x04 = (a1 == 1) ? func_00000000(1, 1, 0x3C)
+//                            : func_00000000(0, 2, 0x29);
+//     self->0x08 = func_00000000(0, 2, 3, 0x29);
+//     *(int*)(D_0+0x1B8) = self->0x04->0x0C;               // publish
+//     return self;
+//   }
+//
+// Struct-typing reference:
+//   self (alloc 0xC): 0x00/0x04/0x08 sub-element ptrs, 0x2A0 f32 (=0),
+//     B/C child handles use 0x04 dirty-flag + 0x14 attach-link
+//     (dirty-and-attach idiom).
+//   D_0 + 0x134 = global manager ptr; D_0 + 0x1C4 = global flag word
+//     (bits 9 cleared); D_0 + 0x1B8 = published global (= self->0x04
+//     ->0x0C). &D_00000294 = a zeroed Vec4; &D_00001334/1340/1344 =
+//     USO child name/desc data. func_00000000 = USO placeholder
+//     dispatcher (alloc / factory / attach). Param triples (mode,
+//     a, b) like (1,1,0x3C) / (0,2,0x29) / (0,2,3,0x29) pick element
+//     kinds.
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
 
 /* Indirect-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
