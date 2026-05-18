@@ -2090,6 +2090,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023B44);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023BDC);
 
+// gl_func_00023E60 — STRUCTURAL PASS (0x144 / 81 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. The named
+// leading fn is a buffer-allocate + subsystem constructor.
+//
+//   ret gl_func_00023E60(int a0, int a1, int sz) {
+//     int n   = (sz + 0xF) & ~0xF;                       // align16
+//     void *b = (*alloc)(n);                              // jal 0 USO
+//     S *t3 = &D_1DD4;
+//     S *t4 = &D_2ACC0;                                   // big table
+//     S *t6 = &D_1DF0;
+//     if (n < 0x400) n = 0x400;                            // clamp min
+//     jal 0x38604(b, 1, 0, a0, …, n, t3, t4, t6);          // 0x0C00E181
+//     ...
+//   }
+//
+// Struct-typing reference: a constructor that sizes (request rounded
+//   up to a 16-byte multiple, floored at 0x400), allocates the
+//   backing buffer via a USO-relocated allocator (`jal 0` slot), and
+//   wires up three fixed base tables — &D_1DD4, &D_1DF0 and the large
+//   &D_2ACC0 (a code/data blob) — before handing everything to the
+//   fixed init routine 0x0C00E181 (≈0x38604) along with stacked
+//   config args. A subsystem object bring-up in the game_libs
+//   resource family (companion to the gl_func_00022A9C arena init /
+//   gl_func_0001FD98 alloc helpers).
+// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc
+//   allocator + fixed init — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only for the named leading fn,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023E60);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023FA4);
