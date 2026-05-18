@@ -1604,6 +1604,44 @@ void gl_func_00023078(int a0, int a1) {
     }
 }
 
+// gl_func_000230D0 — STRUCTURAL PASS (0xE4 / 57 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A packed-handle decode + dispatch.
+//
+//   ret gl_func_000230D0(H *h) {
+//     byte fl = h->b_0;
+//     if ((fl & 1) != 1) return;                        // gate bit0
+//     int  w   = h->w_0;                                 // packed word
+//     int  typ = (unsigned)w >> 30;                      // bits[31:30]
+//     int  id  = w & 0x00FFFFFF;                          // low 24 bits
+//     if (typ != 0) {
+//       int t = (typ << 24) >> 24;                        // sign-ext
+//       r = (*disp)(id, t);                                // jal 0 USO
+//       int a = h->w_4;
+//       if (r != 0) { ... }
+//     }
+//     // second decode path:
+//     int w2 = h->w_0;
+//     if (((unsigned)w2 >> 30) != 1) { ... }
+//     T *tbl = *(T**)(&D_0 + 0x2024);                      // global tbl
+//     int  a0arg = h->w_4;
+//     short hw   = h->h_2;
+//     ...
+//   }
+//
+// Struct-typing reference: `h` is a packed object handle — its first
+//   word doubles as a flags byte (bit0 = valid/active gate) and a
+//   bitfield: bits[31:30] a 2-bit type/kind selector, bits[23:0] a
+//   24-bit object id. Word h->4 and halfword h->2 are payload args
+//   passed to the dispatch. Type-selected behaviour goes through a
+//   USO-relocated routine (`jal 0` slot, resolved at load); the
+//   second path indexes a global table at &D_0+0x2024. This is the
+//   "resolve & act on a packed handle" entry of the game_libs
+//   registry/handle subsystem.
+// Caps: raw-word USO + packed-bitfield decode + jal-0 USO-reloc
+//   dispatch — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000230D0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000231B4);
