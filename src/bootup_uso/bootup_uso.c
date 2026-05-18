@@ -3026,11 +3026,22 @@ extern int D_087A4_word0_load;
 extern int D_087A4_word0_store;
 extern int D_087A4_word0_base;
 extern int D_087A4_word0_final;
+extern void func_00000000_087A4(char *, char *, int, int, float);
 
-/* 91.14% NM: allocator/init sibling of func_000086C0.
+/* 93.95% NM: allocator/init sibling of func_000086C0.
  *
  * 2026-05-17: added `char pad2[8]` lever — fixes frame size mismatch
  * (was built -0x48, now matches target -0x50). +0.05pp.
+ * 2026-05-18: moving pad2 before scalar locals keeps frame -0x50 while
+ * restoring `kind` to target sp+0x44, and assigning child after the
+ * descriptor store matches the target's bne delay slot. 91.14 -> 92.42%.
+ * Re-tested alias-extern after the stack-layout fix; unlike the earlier
+ * attempt, `func_00000000_087A4(..., float)` now improves net score by
+ * emitting target `lwc1/swc1` for the 5th arg. 92.42 -> 93.95%.
+ * Post-cc probe (not committed) with 3-nop SUFFIX + first-block reloc
+ * reorder reached 99.74%, but remaining expected/.o symbolic mismatches
+ * (`func_00007A48+0x10`, raw D_00000000 materializations, alias call
+ * target) still prevent an exact, landable match.
  *
  * This captures the lazy arg0->0x40 setup, 0xC8/0x40 allocation
  * fallback, vtable callback, child link, and final flag/callback.
@@ -3040,29 +3051,18 @@ extern int D_087A4_word0_final;
  *       the if-test bne, target materializes it INSIDE the if-block
  *       (lui in bne delay slot, addiu after the test load). Scheduler
  *       decision tied to IDO's address-materialization-hoisting.
- *   (2) K&R float stack arg (`lwc1/swc1` target vs int-bitcast `lw/sw`;
- *       direct float double-promotes through K&R `func_00000000`).
- *       2026-05-17: tested alias-extern recipe (func_00000000_087A4 in
- *       undefined_syms_auto.txt + block-scope `extern void func(...,float)`)
- *       per docs/MATCHING_WORKFLOW.md#feedback-alias-extern-via-undefined-syms.
- *       DID emit swc1/lwc1 correctly for the float store/load. BUT net
- *       fuzzy REGRESSED 91.14% -> 91.09% — adding the extern decl shifted
- *       register allocation around the call (different LUI hoisting,
- *       stack offsets +8 due to different scope analysis). Per-function
- *       this lever is structurally too disruptive even though it fixes
- *       the targeted opcode. Reverted.
- *   (3) Multiple embedded data symbols (D_00008814 etc.) in target are
+ *   (2) Multiple embedded data symbols (D_00008814 etc.) in target are
  *       treated as inline data in expected/.o but as code in built —
  *       splat/.S file boundary issue, not pure C-level.
  * Default build keeps INCLUDE_ASM until those codegen gaps are closed. */
 void *func_000087A4(char *arg0) {
+    char pad2[8];  /* frame target -0x50 vs natural -0x48 */
     int kind;
     char *self;
     char *child;
     char *desc;
     char *link_arg;
     char pad[4];
-    char pad2[8];  /* lever attempt 2026-05-17: frame target -0x50 vs built -0x48 (+8B) */
 
     if (*(int*)(arg0 + 0x40) == 0) {
         D_087A4_word0_store = D_087A4_word0_load | 8;
@@ -3074,8 +3074,8 @@ void *func_000087A4(char *arg0) {
     self = (char*)func_00000000(0xC8);
     if (self != 0) {
         func_00000000(self);
-        child = self + 0x88;
         *(volatile char**)(self + 0x28) = &D_00000000 + 0x7A58;
+        child = self + 0x88;
         if (self == (char*)-0x88) {
             child = (char*)func_00000000(0x40);
             if (child == 0) {
@@ -3103,7 +3103,7 @@ init_self:
     }
     *(char**)(self + 0x14) = child;
     link_arg = child + 0x88;
-    func_00000000(link_arg, child, 0x74, 0x43160000, *(int*)&D_000005F0);
+    func_00000000_087A4(link_arg, child, 0x74, 0x43160000, D_000005F0);
     *(int*)(child + 0x98) |= 1;
     func_00000000(D_087A4_word0_final, link_arg);
     return child;
