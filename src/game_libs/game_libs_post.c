@@ -17115,6 +17115,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D30C);
  * Structural decode pending — likely a quaternion/Vec3 lerp helper. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D414);
 
+/* gl_func_0005D480: 30-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D480);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
