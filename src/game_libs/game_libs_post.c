@@ -18695,6 +18695,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
  * (feedback_ido_knr_float_call.md) before compilable C exists. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
 
+/* gl_func_00054AEC: 62-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054AEC);
 
 extern int gl_func_00000000();
