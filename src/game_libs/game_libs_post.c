@@ -24386,20 +24386,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072230);
  * and returns its value. The redundant sw v0 / lw v0 round-trip just before
  * `jr ra` is IDO -O2's spill-then-reload-return pattern for v0.
  *
- * Cap: 28% — IDO -O2 UNROLLS the const-bound (i<32), const-body fill loop
- * 4x with pointer-stepping, but target emit uses a single-body indexed
- * loop with `i` stack-resident (lw/sw via sp+0x24) and address computed
- * via `addu t9, sp, i; sb t7, 0x28(t9)`. for() and do/while produce the
- * same unrolled emit. Would need to defeat the unroll — non-constant
- * bound, asm() barrier, or rewrite as memset-style external call. */
-int gl_func_00072550(int* a0) {
+ * Progression: naive for/i<32 → 28% (IDO unrolls 4x).
+ *               volatile i → 50% (loop preserved, $s0 still used for a0).
+ *               volatile i + volatile ret → 60% (frame layout closer).
+ *               int* volatile a0 = arg, volatile i, volatile ret → 75%
+ *                 (a0 reloaded from home slot each access, no $s0 promote).
+ * Remaining cap: target computes `addu t9, sp, i` inside loop each iter;
+ * mine precomputes `a3 = sp+0x28` outside (buf base). Mine: 80-byte frame;
+ * target: 72-byte. Address-computation pattern difference. */
+int gl_func_00072550(int* arg) {
     char buf[32];
-    int i = 0;
+    int* volatile a0 = arg;
+    volatile int ret = 0;
+    volatile int i = 0;
     do {
         buf[i] = ((char*)a0)[0x65];
         i++;
     } while (i < 32);
-    return gl_func_00000000(a0[1], a0[2], 0x400, buf, 0);
+    ret = gl_func_00000000(a0[1], a0[2], 0x400, buf, 0);
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072550);
