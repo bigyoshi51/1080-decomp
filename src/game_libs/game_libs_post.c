@@ -22004,6 +22004,7 @@ int game_libs_func_00067F20(unsigned char *a0) {
     return 0;
 }
 
+/* gl_func_00067F58: 60-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
 
 /* gl_func_00068048: 107-insn (0x1AC) FPU-heavy float clamp/range chain.
