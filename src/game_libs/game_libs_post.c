@@ -6269,6 +6269,51 @@ int gl_func_0002FB54(int a0) {
     return gl_func_00000000(a0, 0);
 }
 
+// gl_func_0002FB74 — STRUCTURAL PASS (0x990 / 612 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr $ra)
+// but with one INTERNAL computed jump (jr $t5) — a jump-table-driven
+// command / script interpreter. A MAJOR spine of the subsystem.
+//
+//   void gl_func_0002FB74(? a0, int sel, ...) {
+//     if (sel != 0x13) { ... early-out path ... }
+//     // walk a command/record list, fetch an opcode, then:
+//     int op = ...;                          // 0..N opcode
+//     goto *jumptab_1750[op];                // sll 2; lw; jr $t5
+//   L_op0:  ... ; break;
+//   L_op1:  ... ;
+//     ... ~one labelled arm per opcode, each issuing FP work and
+//         callbacks, then continuing the interpret loop ...
+//     // a secondary table at &D_0+0x17A4 selects sub-handlers.
+//   }
+//
+// Struct-typing reference: this is a per-frame command / animation
+//   SCRIPT INTERPRETER, one of the large orchestrators of the
+//   game_libs object subsystem. Observed structure:
+//   - opcode-keyed dispatch via a jump table based at &D_0+0x1750
+//     (computed `jr $t5` after sll-2 index + lw); a second table at
+//     &D_0+0x17A4 routes a sub-mode.
+//   - selector compared against 0x13 (19) up front to choose the
+//     fast-path vs the full interpret loop.
+//   - 31 USO-relocated callbacks (jal 0 → resolved at load) — the
+//     command-submission path shared with the gl_func_0002F638 /
+//     0002F9D4 / 0002FA90 emitter family — interleaved with 34 FIXED
+//     intra-USO calls (0x0C0xxxxx encoded, real resolved targets).
+//   - 69 FP loads (lwc1): heavy float processing (interpolation /
+//     ramp / transform math) inside the opcode arms.
+//   - touches many object + global fields via &D_0 + offset and an
+//     object pointer spilled at sp+0x28.
+//   It is the consumer/driver that ties together the quantizer
+//   (gl_func_0002F584), the table-apply (0002F72C), the canned-
+//   sequence selectors (0002F8A0 / 0002F934) and the multi-bank
+//   emitters — i.e. the command-stream "VM" for this object type.
+// Caps: 0x990 raw-word USO interpreter with a computed jump table and
+//   mixed USO-relocated + fixed intra-USO calls — categorically not
+//   exact-matchable without proper USO mnemonic disasm + the two
+//   dispatch tables symbolized; structural pass only, no byte body.
+//   (A future focused non-loop session — see the deferred USO
+//   re-split / symbolization backlog — is where this gets a real
+//   decode; not 60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FB74);
 
 extern int gl_func_00000000();
