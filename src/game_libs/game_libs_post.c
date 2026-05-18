@@ -7619,6 +7619,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 
+// gl_func_00033EB8 — STRUCTURAL PASS (0x2D0 / 180 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). The THIRD member of the gl_func_000334E8 /
+// gl_func_00033BE4 allocator family — the heap RESET / RE-BASE entry.
+//
+//   void gl_func_00033EB8(void *a, unsigned flags) {
+//     if (flags & 1) {
+//       callback(a, (void*)0x0001E368);       // jal 0 (USO cb)
+//     }
+//     B *base = &D_0_base;
+//     callback(base);                          // 2nd USO cb
+//     if (flags == 0) return;                  // gate
+//     int TAG2 = 0x12340002, TAG3 = 0x12340003;  // two block tags
+//     int hdr  = *(int*)(&D_0 + 0x28);
+//     int nv   = callback(base, hdr);          // 3rd USO cb
+//     *(int*)(&D_0 + 0x08) = nv;               // RE-BASE start cursor
+//     if (*(int*)(&D_0 + 0x2C) != *(int*)(&D_0 + 0x0C)) { ... }
+//     ... walk blocks tagged 0x12340002 / 0x12340003 ...
+//   }
+//
+// Struct-typing reference: the third entry of the region/block
+//   allocator family (with gl_func_000334E8 = init/setup,
+//   gl_func_00033BE4 = alloc/grow). Same flag-gated prologue
+//   (`flags & 1` selects the first USO-relocated setup callback,
+//   jal 0 → resolved at load) and a data-segment template, here
+//   0x0001E368. The distinguishing behavior: it handles BOTH block
+//   header magics — 0x12340002 AND 0x12340003 (two `lui 0x1234;
+//   ori` pairs) — and, crucially, RE-WRITES the global heap START
+//   cursor at &D_0+0x08 from a callback's return value (a heap
+//   reset / re-base / compaction step), then compares the
+//   &D_0+0x0C and &D_0+0x2C cursors. This is the allocator's
+//   "reset / reclaim" front-end — the lifecycle complement to
+//   000334E8 (init) and 00033BE4 (allocate). The trio is the heap
+//   manager behind the gl_func_00030AF4 0x45010 arena and the
+//   gl_func_00032E18 / gl_func_00033228 sub-record allocations
+//   (block magics 0x12340002 / 0x12340003; templates 0x0001E280 /
+//   0x0001E330 / 0x0001E368 are deferred symbolization sites).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + global heap
+//   cursors (re-based) + dual 0x1234000{2,3} block-magic — not
+//   exact-matchable without proper USO mnemonic disasm + the
+//   allocator structs typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034188);
