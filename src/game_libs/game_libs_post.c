@@ -3977,6 +3977,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000291C0);
 
+// gl_func_00029494 — STRUCTURAL PASS (0x2F8 / 190 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. The named
+// leading fn is a bulk per-record matrix-load pass over the sprite
+// table.
+//
+//   void gl_func_00029494(void) {
+//     S *g = &D_0;
+//     int n = g->w_2070;                                // record count
+//     if (n <= 0) return;
+//     S *src = &D_xxxx;                                   // source rows
+//     for (int i = 0, off = 0; i < n; i++, off += STRIDE) {
+//       R *rec = (char*)*(R**)(&D_0 + 0x2CFC) + off;
+//       rec->w_B0 = src->w_0;                              // copy the
+//       rec->w_B4 = src->w_4;                              //  +0xB0
+//       rec->w_B8 = src->w_8;                              //  Vec4 /
+//       rec->w_BC = src->w_C;                              //  matrix
+//       ... rec->0xC0+ = src->0x10+ ...                     //  block
+//     }
+//   }
+//
+// Struct-typing reference: iterates the SAME primary sprite record
+//   table as gl_func_0001E134 / gl_func_00027E24 / gl_func_00028A68 —
+//   live count word &D_0+0x2070, record-table pointer &D_0+0x2CFC —
+//   copying a Vec4/matrix-row block from a source into each record's
+//   +0xB0..0xBC+ block (the exact field block gl_func_00027804 /
+//   gl_func_00027D00 / gl_func_00028E94 individually write). &D_2198
+//   is a fixed descriptor passed per record; a1 const 0x1C0 / f20=0.0
+//   are the blit/transform params. This is the heavyweight per-frame
+//   "load every sprite record's transform" pass of that subsystem.
+// Caps: raw-word USO + 2-fn unsplit bundle + per-record matrix copy
+//   loop — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029494);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
