@@ -2739,6 +2739,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025320);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
 
+// gl_func_000258CC — STRUCTURAL PASS (0x1FC / 127 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. The named
+// leading fn is a parse-descriptor-and-apply / init-from-config
+// helper.
+//
+//   int gl_func_000258CC(int a0, int a1) {
+//     int spv;
+//     if (a0 == 0 || a1 <= 0) {
+//       (*parse)(&D_1684, &spv);                         // jal 0 USO
+//       *(int*)(&D_0 + 0x1034) = 0;                       // reset state
+//       return 0;
+//     }
+//     int r = (*parse)(&D_1684, &spv);                    // jal 0 USO
+//     if (r == -1) { *(int*)(&D_0 + 0x1034) = 0; return 0; }
+//     int hb  = (unsigned)spv >> 24;                      // high byte
+//     C  *cfg = (char*)(&D_0 + 0x640) + (hb*5 << 2);       // 0x14 stride
+//     ... apply cfg ...
+//   }
+//
+// Struct-typing reference: &D_1684 is a fixed config descriptor blob
+//   parsed by a USO-relocated parser (`jal 0` slot) into a stack
+//   scratch word. The parsed value's high byte (>>24) indexes a
+//   config table at &D_0+0x640 (entry stride 0x14, idx*5<<2). Word
+//   &D_0+0x1034 is the subsystem-state word (the same one
+//   gl_func_00025504's update driver gates on) — cleared to 0 on the
+//   degenerate / parse-fail paths. This is the "load and apply the
+//   config descriptor" front-end that primes the subsystem
+//   gl_func_00025504 then drives per-frame.
+// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc parser
+//   — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025AC8);
