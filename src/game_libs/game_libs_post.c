@@ -6006,6 +6006,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
 
+// gl_func_0002F584 — STRUCTURAL PASS (0xAC / 43 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A heavily-FP value-quantize / clamp-to-byte helper.
+//
+//   void gl_func_0002F584(O *o) {
+//     float v = ...;                                    // input value
+//     if (v < lo) v = lo;                                // clamp low
+//     v += bias;
+//     if (hi < v) v = hi;                                // clamp high
+//     byte m = o->b_1C;
+//     if (m & 1) v = -v;                                  // sign by flag
+//     int q = (int)(v * o->f_54);                          // trunc.w.s
+//     o->b_33 = (byte)q;
+//     if (q >= 0x80) q = 0x7F;                             // clamp 7-bit
+//     if (q <  0)    q = 0;
+//     ... store q into o->0x1C / o->0x21-selected slot ...
+//   }
+//
+// Struct-typing reference: maps an object float quantity to a 7-bit
+//   byte. The input is clamped between FP bounds (literals such as
+//   15.0f / 0.0f), optionally negated by the low bit of byte o->0x1C,
+//   scaled by the float o->0x54, truncated to int (trunc.w.s) and
+//   saturated to [0, 0x7F]; the result is written to byte slots
+//   o->0x33 / o->0x1C with byte o->0x21 selecting the target. A
+//   parameter-quantize leaf of the game_libs object subsystem (feeds
+//   the byte-domain command/state machinery, e.g. the
+//   gl_func_0002F288 integrator's consumers).
+// Caps: raw-word USO + FP clamp + trunc.w.s + 7-bit saturate idiom —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F584);
 
 void game_libs_func_0002F630(void) {
