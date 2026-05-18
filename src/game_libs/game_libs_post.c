@@ -14740,6 +14740,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040DE8);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040E90);
 
+// gl_func_00041008 — STRUCTURAL PASS (0xA0 / 41 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0, NO calls (leaf) → ONE clean function. Single
+// prologue frame 0x30. Struct Vec3-block copier with int<->FP reinterpret.
+//
+//   void gl_func_00041008(Dst a0, Src a1) {
+//     // each 32-bit word is round-tripped through sp+0x14 as an int store
+//     // then an FP (lwc1) load — IDO's bitwise int<->float copy idiom when
+//     // the value crosses the GPR/FPR register files; semantically a plain
+//     // word copy, NOT an arithmetic conversion:
+//     a0->pB4 = a1->pD4;  a0->pB8 = a1->pD8;  a0->pBC = a1->pDC;  // Vec3 1
+//     a0->pC0 = a1->pDC;  a0->pC4 = a1->pE0;  a0->pC8 = a1->pE4;  // Vec3 2
+//     a0->pCC = a1->pE8;  a0->pD0 = a1->pEC;  a0->pD4 = a1->pF0;  // Vec3 3
+//     a0->pD8 = a1->pF4;                                          // scalar
+//   }
+// Bulk-copies the source struct's transform block (a1->0xD4..0xF4) into the
+// destination struct's mirror block (a0->0xB4..0xD8) as four contiguous
+// Vec3-ish groups + a trailing scalar, every word bitwise-copied via the
+// sp+0x14 GPR->FPR bounce. This is the field-copy primitive consumed by the
+// segment's Vec3 transform routines (gl_func_00040CAC / 00040E90, which read
+// these same a0->0xB4/0xC0/0xCC/0xD8 fields). Source/dest offset pairing is
+// exact; the exact group-2 overlap (a1->0xDC reused) reflects the asm.
+// Caps: Src/Dst struct untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041008);
 
 /* gl_func_000410AC: 12-insn 2-call wrapper. Mid-function aliases
