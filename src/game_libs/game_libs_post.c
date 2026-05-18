@@ -4052,6 +4052,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029494);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
 
+// gl_func_00029978 — STRUCTURAL PASS (0x1F4 / 125 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A heavily-FPU per-object keyframe / tween step.
+//
+//   void gl_func_00029978(O *obj) {
+//     int t = obj->h_1A;                                // tween timer
+//     int s = obj->w_0;
+//     if (t == 0) { obj->h_1A = -1; obj->f_C = 1.0f; ... } // expired
+//     else {
+//       obj->h_1A = t - 1;                                // tick down
+//       int mode = obj->h_18;
+//       if (mode == 1) { ... linear ... }
+//       float cur = obj->f_C;                              // current t
+//       int   tgt = obj->h_16;                             // target
+//       float a = (float)something;                        // cvt.s.w
+//       float b = (float)tgt;
+//       obj->f_C = cur + (b - cur) / a;                     // interp
+//       ... mul.s / div.s / sub.s easing ...
+//     }
+//   }
+//
+// Struct-typing reference: a per-object animation/tween advance.
+//   halfword obj->0x1A is a frame countdown timer (-1 sentinel when
+//   finished), float obj->0xC the current interpolation parameter
+//   (0..1), halfword obj->0x16 a target value, halfword obj->0x18 an
+//   easing/mode selector (mode 1 special-cased), word obj->0 a config
+//   pointer. The body is a chain of integer→float conversions
+//   (cvt.s.w) and single-prec sub/div/mul producing the next
+//   interpolated value written back to obj->0xC. A keyframe stepper
+//   leaf in the game_libs object subsystem — paired with the
+//   gl_func_0002978C ramp updater on the same object.
+// Caps: raw-word USO + heavy FP interpolation idiom — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029978);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
