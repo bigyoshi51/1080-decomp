@@ -2809,6 +2809,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025AC8);
 
+// gl_func_00025C54 — STRUCTURAL PASS (0x460 / 280 words ≈ 1.1KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle). The FULL registry-table processor for the
+// &D_0+0x2030 / &D_0+0x1030 subsystem. Large -0x78 frame, full
+// s0-s7/ra save.
+//
+//   int gl_func_00025C54(int idx, int a1, int a2) {
+//     S  *g  = &D_0;
+//     int en = (g->w_1034 != 0);                        // state flag
+//     R  *tb = g->w_2030;                                // reg table
+//     g->w_1030 = 0;                                      // reset count
+//     for (int j = 0; ; j++) {                            // all records
+//       R *rec = (char*)tb + idx*0x14;                     // 0x14 stride
+//       byte k = rec->b_0;
+//       byte n = rec->b_1;                                 // sub count
+//       if (k <= 0) continue;
+//       (*proc)(idx, j, ...);                              // jal 0 USO
+//       ... fold sub-entries, accumulate into &D_0+0x1030 ...
+//     }
+//   }
+//
+// Struct-typing reference: the heavyweight "walk the whole registry
+//   and rebuild the active element set" driver. It reads the same
+//   registry table as gl_func_00025AC8 / gl_func_000221D8 (base
+//   &D_0+0x2030, fixed 0x14 entry stride; byte +0 a type/key, byte +1
+//   a sub-entry count) and the same subsystem-state / element-count
+//   words gl_func_00025504 uses — &D_0+0x1034 (enabled flag) and
+//   &D_0+0x1030 (live element count, cleared here then refilled). For
+//   every non-empty record it invokes a USO-relocated processor
+//   (`jal 0` slot) and folds its sub-entries into the rebuilt count.
+//   This is the registry-side companion that gl_func_000258CC primes
+//   and gl_func_00025504 then ticks per-frame.
+// Caps: raw-word USO + large full-table loop with USO-reloc per-
+//   record processing — not exact-matchable without proper USO
+//   mnemonic disasm; high-level structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025C54);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000260B4);
