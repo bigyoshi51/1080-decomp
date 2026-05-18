@@ -17007,6 +17007,36 @@ void game_libs_func_000483A0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000483A0);
 #endif
 
+// gl_func_000483BC — STRUCTURAL PASS (0x150 / 85 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
+// (saves ra, s0). Packed-command table append with DL-style bit-pack
+// (cb = jal 0 USO-relocated).
+//
+//   void gl_func_000483BC(Obj a0) {
+//     self = a0;
+//     if (self->p04 == 0) return;                    // beql early-out
+//     Tbl *t = self->p00->...;
+//     int n = t->p04; t->p04 = n + 1;                 // bump element count
+//     unsigned v = ...;                                // a value/id
+//     int *slot = (int*)t->p00 + n*2;                  // base + n*8
+//     // build the packed command word0:
+//     unsigned w0 = 0x04000000                         // command/flag tag
+//                  | ((v << 0xA))                       // field A << 10
+//                  | (((v << 4) - 1) & 0xFFFF);         // field B (16-bit)
+//     slot[0] = w0;
+//     cb(...);                                          // post-pack hook
+//     slot[1] = v;                                      // word1 = raw value
+//   }
+// Appends a two-word packed entry to a command table at the self->0x00
+// table (count bumped at +4, slot = base + n*8): word0 is a bit-packed
+// command = 0x04000000 (a GBI/RDP-style opcode/flag tag) OR (v << 0xA) OR
+// ((v << 4 - 1) & 0xFFFF), word1 is the raw value, with a cb hook between
+// the two stores. Family: packed-table append + command bit-pack (siblings
+// gl_func_00042684 / 00043BEC; the bit-layout variant). Exact field
+// derivation of v representative; the 0x04 entry guard, the count-bump,
+// the base + n*8 slot math, the 0x04000000 tag and the
+// (v<<0xA)|((v<<4-1)&0xFFFF) pack are exact. Caps: Obj/Tbl struct + cb
+// signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000483BC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048510);
