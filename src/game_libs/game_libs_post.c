@@ -2774,6 +2774,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
 
+// gl_func_00025AC8 — STRUCTURAL PASS (0x18C / 99 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. The named
+// leading fn iterates a registry record's sub-entries.
+//
+//   int gl_func_00025AC8(int idx, int a1) {
+//     R *rec = (char*)*(R**)(&D_0 + 0x2030) + idx*0x14; // reg record
+//     int  n   = rec->b_1;                               // sub count
+//     byte k   = rec->b_0;
+//     int  acc = 0;
+//     for (int i = 0; i < n; i++) {
+//       if ((*pred)(idx, i)) {                            // jal 0 USO
+//         void *p = rec->w_4;                              // sub list
+//         acc = jal 0x3A0EC(p, acc, a1);                   // 0x0C00E83B
+//       }
+//     }
+//     return acc;
+//   }
+//
+// Struct-typing reference: indexes the SAME registry record table as
+//   gl_func_000221D8 / gl_func_00023838 / gl_func_00023BDC (base
+//   &D_0+0x2030, fixed 0x14 entry stride). Per record: byte +0 a
+//   type/key, byte +1 the sub-entry count, word +4 a pointer to the
+//   sub-entry list. It walks all sub-entries, gating each on a
+//   USO-relocated predicate (`jal 0` slot) and folding the accepted
+//   ones through the fixed routine 0x0C00E83B (≈0x3A0EC) with an
+//   accumulator. The "apply over a record's sub-entry list" operation
+//   of the registry family.
+// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc
+//   predicate + fixed fold — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only for the named leading fn,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025AC8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025C54);
