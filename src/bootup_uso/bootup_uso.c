@@ -128,6 +128,36 @@ void func_000003D8(void) {
     func_00000000();
 }
 
+// func_000003F8(Vec3 *world, float *outDist, int *outProj, Obj *obj):
+// camera-relative projection / distance helper (billboard or HUD-marker math).
+//
+//   Cam *cam = obj->0x70;            // view/camera sub-struct
+//   Vec3 v = *world;                 // local copy (sp+0x3C..0x44)
+//   v.x -= cam->0xA0;  v.y -= cam->0xA4;  v.z -= cam->0xA8;   // eye-relative
+//   float lenSq = v.x*v.x + v.y*v.y + v.z*v.z;
+//   float dist  = func_00000000(lenSq);          // = sqrtf(lenSq)
+//   *outDist = dist;
+//   float inv = (float)(1.0 / (double)dist);     // reciprocal (done in f64)
+//   v.x *= inv;  v.y *= inv;  v.z *= inv;         // normalize
+//   float d = v.x*cam->0xB4 + v.y*cam->0xC4 + v.z*cam->0xD4;  // dot w/ basis row
+//   *outProj = (int)(d * 63.0f);                  // 0x427C0000 = 63.0f
+//   *outDist = *outDist / K;                      // K = func_00000044+0xC literal
+//   if ((double)*outDist > 1.0) *outDist = 1.0f;  // clamp to [.,1]
+//
+// Struct-typing reference:
+//   world = arg0 Vec3 (0x0 x, 0x4 y, 0x8 z);  outDist = arg1 f32*;
+//   outProj = arg2 s32*;  obj = arg3, obj->0x70 = Cam:
+//     0xA0/0xA4/0xA8 eye position Vec3;
+//     0xB4/0xC4/0xD4 a basis row Vec3 (stride 0x10 -> 4x4 matrix rows).
+//
+// BLOCKED on the bootup_uso FP-literal-pool bug — SECOND fold target:
+//   `func_00000044 + 0xC` (lwc1 @ 0x518/0x534) is an f32 constant splat
+//   folded into func_00000044's body (the f32-reader, real code @ 0x44),
+//   exactly like the func_0000098C case. Confirms the deferred fix must
+//   symbolize EVERY folded literal site, not just func_0000098C. See
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
+// Caps: f64 reciprocal + folded-literal divisor; structural, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003F8);
 
 func_0000057C(a0, a1, a2)
