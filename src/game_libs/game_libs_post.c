@@ -8858,6 +8858,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035C6C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
 
+// gl_func_00035E6C — STRUCTURAL PASS + small BUNDLE BOUNDARY NOTE
+// (0x168 / 90 words, no episode). Raw-.word USO form (game_libs).
+//
+// realjr=2 / one 27BDFF48 prologue (large 0xB8 FP frame). The 2nd
+// jr is at the very tail (0x35FCC, 8 bytes after the main epilogue
+// jr at 0x35FC4) with no prologue — a tiny 2-word no-frame TAIL
+// STUB splat could not separate (no-frame-leaf shape, see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). DEFERRED USO
+// RE-SPLIT for that 2-word tail (tracked with the other
+// game_libs_post.c bundle notes; not fixable with mnemonic
+// split/merge — needs the spimdisasm-USO migration). No merge
+// attempted; no episode.
+//
+// Named fn gl_func_00035E6C — an FP geometry / projection routine:
+//   void gl_func_00035E6C(O *o, ...) {
+//     if (ctx == 0) return;
+//     Vec3 p = { o->f_30, o->f_34, o->f_38 };  // source point
+//     // spill p to sp+0xA0.. with constant 1000.0f (0x447A0000)
+//     int ok = transform(ctx, &p, out@sp+0x74, scratch@sp+0xA0);
+//                                               // jal 0 (USO cb)
+//     if (!ok) return;
+//     float w = result@sp+0x80;
+//     if (w < 200.0f) { ... }                   // 0x43480000=200.0f
+//     Vec3 t = { @sp+0x74, @sp+0x78, @sp+0x7C };// transformed pt
+//     // neg.s / mul.s chain → projected/scaled position
+//     // stored to sp+0x3C / 0x4C / 0x5C
+//   }
+//
+// Struct-typing reference: a 3D point transform / projection leaf.
+//   It pulls a Vec3 from the object at offsets 0x30/0x34/0x38,
+//   hands it (with scratch buffers and a 1000.0f far-plane-ish
+//   constant) to a USO-relocated transform/project callback (jal 0
+//   → resolved at load), checks success, then applies a depth/scale
+//   test against 200.0f and a neg/multiply FP chain to produce a
+//   transformed (likely world→screen / clip-space) position written
+//   back to stack slots. A geometry/projection node of the
+//   game_libs object subsystem (pairs with the gl_func_00033094
+//   Vec3-transform leaf and feeds the gl_func_00034458 render
+//   traversal; the FP literals 1000.0f / 200.0f are projection
+//   parameters).
+// Caps: raw-word USO + bundled 2-word no-frame tail + USO-relocated
+//   jal-0 transform callback + FP projection math — not exact-
+//   matchable without proper USO mnemonic disasm + boundary
+//   re-split + the Vec3/object typed; structural pass only, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
 
 /* gl_func_00035FD4 - verified structural decode (30-insn br=0 clean
