@@ -12825,6 +12825,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DDC0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DE48);
 
+// gl_func_0003DF5C — STRUCTURAL PASS (0x194 / 101 words, no episode). Raw-.word
+// USO. realjr=2 → 2-function BUNDLE + BOUNDARY NOTE: the named fn ends at the
+// jr at 0x3E0B8; a separate no-prologue leaf begins at 0x3E0BC (DEFERRED USO
+// RE-SPLIT — its instructions belong to the next symbol, not to this one).
+//
+// Named fn = dual extremal-search-by-FP-field over a singly-linked list:
+//   void *gl_func_0003DF5C(List a0, RefNode a1, void *a2_stop) {  // a1 may be 0
+//     float ref = a1 ? a1->f64 : fp_pool_at_1AD0;   // min-sweep seed
+//     float lim = fp_pool_at_1AD4;                   // min-sweep bound
+//     void *best = 0; float bf;
+//     for (n = a0->p38; n; n = n->p04) {             // walk list head a0->0x38
+//       if (n == a2_stop) break;                     // stop at target node
+//       float v = n->f64;
+//       if (v < ref && v < lim) { best = n; bf = v; ref = v; }  // new extreme
+//     }
+//     // second sweep re-seeds from fp_pool_at_1AD8 / 1ADC (or a1->f64) and
+//     // repeats the same walk to refine best against the widened bound;
+//     // returns the best node (0 if none in range).
+//   }
+// FP-pool: extends the contiguous spatial-search block to &D_0+0x1AD0..0x1ADC
+// (seed/bound pair per sweep; &D_0+0x1ACC..0x1AD4 already mapped by the
+// 0003DE48 / 0003DB3C family). Trailing leaf at 0x3E0BC (separate symbol):
+// list membership/index scan — base = a0->0x34, follows chain node->0x84,
+// compares each against a1, returns the matched index in v0 (8C830034 head,
+// 8C630084 chain-step, jr at 0x3E0E8). Caps: list/node struct + FP-pool
+// symbolization untyped; bundle re-split deferred. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DF5C);
 
 extern char D_0002F2E4;
