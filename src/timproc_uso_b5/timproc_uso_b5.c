@@ -2013,6 +2013,40 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000894C);
 
+// timproc_uso_b5_func_00008AFC — STRUCTURAL PASS (no episode).
+// Raw-.word USO. BOUNDARY NOTE: this .s is a 3-function USO bundle
+// (3 jr-ra). Named fn 0x8AFC..0x8C18 (~70 words) is the draw loop;
+// 2 trailing tiny getters (0x8C1C: idx=scr->0x3C4 ->
+// scr->0x40C->0x3D0[idx]->0x40 ; 0x8C38: arg->0x40C[…]->0x3C) —
+// deferred USO re-split.
+//
+// Named fn = timing-screen multi-element draw loop (2-level):
+//   void timproc_uso_b5_func_00008AFC(Scr *scr) {        // scr -> s2
+//     float K = F32(D_00000238);
+//     for (g = 0; g < numGroups; g++) {                   // scr->0x40C[]
+//       grp = scr->0x40C + g*N;
+//       if (grp->0x40->0x6C == 0) continue;
+//       func_00000000(scr);
+//       for (i = 0; i < grp->0x40->0x6C; i++) {            // leaf items
+//         e = grp->0x40 + i*4;
+//         d = scr->...->0x28;
+//         (d->fn)(d->0x58base + …, scr->0x480 * K /*pos*/);  // draw
+//       }
+//     }
+//     d = scr->0x28;  (d->fn)(d->0x58 + …);               // finalize
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x40C -> group array (each grp->0x40 -> leaf list, ->0x6C
+//     leaf count), 0x480 f32 base position (scaled by K), 0x3C4 index
+//     (used by the trailing getter), 0x28 / leaf->0x28 vtable
+//     (->0x58 s16 base, ->0x5C fn ptr — obj->0x28 dispatch idiom,
+//     here a draw call taking a computed FP position).
+//   D_00000238 = USO f32 scale const. func_00000000 = USO placeholder
+//     dispatcher (per-group setup).
+// Caps: raw-word USO + unsplit bundle + placeholder/vtable calls —
+//   not exact-matchable here; structural pass only for the named fn.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008AFC);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C44);
