@@ -18704,6 +18704,43 @@ void game_libs_func_0004EB28(int *a0) {
 /* Split off from gl_func_0004E96C bundle 2026-05-08: 2-insn save-arg sentinel. */
 void game_libs_func_0004EB4C(int a0) {}
 
+// gl_func_0004EB54 — STRUCTURAL PASS (0x18C / 100 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
+// (saves ra, s0). Flag-gated init + diagnostic + vtable-dispatch (cbN =
+// jal 0 USO-relocated; diag strings &D_0002 05D0 / 05D4).
+//
+//   void gl_func_0004EB54(void *a0) {
+//     self = a0;
+//     int fl = self->p78;
+//     self->p11C = 0;
+//     if (fl & 0x20) {
+//       self->p120 = 0;
+//       cb1(&D_0002_05D0);                             // diagnostic line A
+//       cb2(&D_0002_05D4);                             // diagnostic line B
+//       cb3(self->p108);
+//       *(void**)&D_g = self;                          // register self
+//       cb4(&D_str);
+//     }
+//     void *n = self->p70;
+//     if (n != 0) {
+//       Vt vt = n->p28;
+//       short k = (short)vt->p60;
+//       (*(fnptr)vt->p64)(k + n);                       // virtual dispatch
+//       float c = 85.0f;                                // 0x42AA0000 const
+//       // ... use c with self->0x70 fields for the post-dispatch work.
+//     }
+//   }
+// Conditionally (self->0x78 bit 5 / 0x20) clears state, emits two
+// diagnostic strings and a cb3 hook, registers self into the &D_g global,
+// then — when self->0x70 is set — invokes the node's virtual method
+// (vt = node->0x28, fnptr vt->0x64, arg (short)vt->0x60 + node) and proceeds
+// with an 85.0f (0x42AA0000) FP constant. Family: flag-gated init +
+// diagnostic + vtable-dispatch (siblings gl_func_00043654 / 000469A8).
+// Post-dispatch body representative; the self->0x78&0x20 gate, the cleared
+// 0x11C/0x120 fields, the &D_0002_05D0/05D4 diag keys, the &D_g register and
+// the node->0x28 vtable dispatch (vt->0x64 fn, (short)vt->0x60+node arg)
+// are exact. Caps: self/node/vtable struct + cb signatures untyped. Full
+// body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EB54);
 
 extern int gl_func_00000000();
