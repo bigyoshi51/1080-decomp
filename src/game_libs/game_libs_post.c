@@ -16156,6 +16156,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044918);
 /* gl_func_00044AEC: 38-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044AEC);
 
+// gl_func_00044B84 — STRUCTURAL PASS + BOUNDARY NOTE (0x13C / 80 words, no
+// episode). Raw-.word USO. realjr=3, regjr=0. Two N64_FORENSICS signatures:
+//  - the early 03000008 at 0x44BA8 is `jr t8` = jump-table dispatch, NOT a
+//    return (ADDENDUM 18c: register-indirect jr is invisible to
+//    `grep 03E00008`);
+//  - the dense tail jr-ra cluster at 0x44C94 / 0x44CA8 / 0x44CBC (~0x14
+//    gaps, no interior 27BDFF prologue) is the ADDENDUM-18b no-frame-leaf
+//    signature ⇒ named fn + ~2 trailing tiny no-frame leaves (DEFERRED USO
+//    RE-SPLIT — decode each under its own symbol later).
+//
+// Named fn = jump-table string/name-table selector (single prologue frame
+// 0x18, saves ra; cb = jal 0 USO-relocated):
+//   const char *gl_func_00044B84(unsigned sel) {
+//     if (sel >= 9) goto def;                       // sltiu/beqz range guard
+//     goto *jumptab[sel];                            // table at &D_0+0x1B3C
+//     // each arm: a0 = &D_str_k (literal at &D_0+0x280 / 0x320 / 0x3C0 /
+//     //   0x50 / 0xA0 / ...); r = cb(&D_str_k); b common_tail;
+//     def:
+//     // default arm: a global flag check (&D_g) then a fallback cb(&D_..A0)
+//     // common_tail: return the cb result
+//   }
+// Per-index name/string resolver: range-checks the selector to [0,8],
+// dispatches through a 9-entry jump table at &D_0+0x1B3C (USO-relocated data
+// region — extends the &D_0 jump-table block alongside the 0x1AE4 / 0x1B00
+// tables used by gl_func_00040304 / 00040640), each arm passing a distinct
+// string-literal to cb and converging on a shared return. Family:
+// jump-table dispatch + string-table selector. Per-arm string identity
+// representative; the sltiu range guard, the &D_0+0x1B3C table address, the
+// jr-t8 dispatch and the per-arm cb(&D_str) shape are exact. Trailing
+// no-frame-leaf stack = deferred re-split. Caps: &D_0+0x1B3C jump table,
+// the &D_str literals and cb signature untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044B84);
 
 extern int gl_func_00000000();
