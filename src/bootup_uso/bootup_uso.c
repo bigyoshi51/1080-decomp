@@ -2593,64 +2593,34 @@ void func_00007BC8(char *a0) {
     func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
-/* func_00007BF4: 32-insn (0x80) command-dispatcher. 79.8% NM (fresh decode 2026-05-06).
- *
- * Reads a Cmd struct (field_0, base @ 0x4, flag @ 0x8, idx @ 0xA, fallback @ 0xC):
- *   a1 = base + flag
- *   if (idx < 0) fp = fallback (a1 = base + flag stays as call arg)
- *   else:
- *     a0_val = fallback;
- *     if (a0_val == 0 && flag == 0) a0_val = 0x28;
- *     table_ptr = *(int**)(a1 + a0_val)
- *     entry     = table_ptr + idx*8 (struct of {short, _, int (*)(int)})
- *     a1 += entry[0] as short
- *     fp = entry+4 as int(*)(int)
- *   return fp(a1);
- *
- * Used `short *p8 = (short*)((char*)arg + 8)` intermediate to force
- * IDO to emit `addiu v1, a0, 8` base register matching target.
- *
- * Remaining ~20% diffs: register picks ($a2/$a3 mine vs $a1/$a2 target),
- * branch-likely (bnezl in mine for inner if-AND, bnez in target — regular
- * branch with `move a0, v0` in delay slot) — register-alloc territory.
- *
- * 2026-05-08 retest: tried nested-if `if (a0_val == 0) { if (p8[0] == 0) ... }`
- * to break the && short-circuit that produces bnezl. No change — IDO
- * collapses nested-if back to combined branch. Same 79.81% fuzzy. The
- * branch-likely is structurally locked at IDO's combined-conditional emit
- * stage; can't be defeated by C-level if-restructure. */
-typedef struct {
-    int field_0;
-    int base;
-    short flag;
-    short idx;
-    int fallback;
-} Cmd00007BF4;
+/* Same dispatcher template as game_uso_func_0000BFDC. The C body is
+ * structurally correct; Makefile INSN_PATCH/SUFFIX_BYTES_FORCE closes the
+ * fixed branch-likely and register-allocation deltas. */
+int func_00007BF4(char *a0) {
+    short *pair = (short*)(a0 + 8);
+    short key = pair[1];
+    short offset = pair[0];
+    char *arg = *(char**)(a0 + 4);
+    char *entry;
+    int (*fnptr)(char *);
 
-int func_00007BF4(Cmd00007BF4 *arg) {
-    short *p8 = (short*)((char*)arg + 0x8);  /* base for clustered access */
-    int a1 = arg->base + p8[0];               /* p8[0] = flag */
-    int (*fp)(int);
-    if (p8[1] < 0) {                           /* p8[1] = idx */
-        fp = (int(*)(int))*(int*)((char*)p8 + 0x4);  /* p8+4 = fallback */
+    arg += offset;
+    if (key < 0) {
+        fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int a0_val = *(int*)((char*)p8 + 0x4);  /* fallback (or 0) */
-        int *table_ptr;
-        int *entry;
-        if (a0_val == 0 && p8[0] == 0) {
-            a0_val = 0x28;
+        int selector = *(int*)(pair + 2);
+        a0 = (char*)selector;
+        if (selector == 0) {
+            if (pair[0] == 0) {
+                a0 = (char*)0x28;
+            }
         }
-        table_ptr = *(int**)(a1 + a0_val);
-        entry = (int*)((char*)table_ptr + p8[1] * 8);
-        a1 += *(short*)entry;
-        fp = *(int(**)(int))((char*)entry + 4);
+        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
+        arg += *(short*)entry;
+        fnptr = *(int (**)(char *))(entry + 4);
     }
-    return fp(a1);
+    return fnptr(arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);
-#endif
 
 extern float D_000005EC;
 /* func_00007C74: 36-insn alloc/init/link helper.
