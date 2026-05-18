@@ -110,6 +110,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CFDC);
 
+// gl_func_0001D0AC — STRUCTURAL PASS (0x154 / 85 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 tiny trailing setter `sw t9,4(t8)`) — deferred USO
+// re-split. Near-identical SIBLING of gl_func_0001CFDC (same glyph/
+// sprite draw helper; differs only in the fixed blit target).
+//
+//   int gl_func_0001D0AC(int code, Spec spec) {           // spec by value
+//     E *e = (&D_0 + idx(code)) + 0x50;                    // glyph entry
+//     int w = e->0x10;  int h = e->0x0E;
+//     v0 = jal 0x31F4C(0x3E0, …, w, h, spec.0x2);          // blit pass 1
+//     if (e->0x12 != 0) {                                  // shadow pass
+//       v0 = jal 0x31F4C(0x3E0, e->0x10, 0, …, spec.0x2);
+//       v0 &= 0xFFFF;
+//     }
+//     return v0;                                            // advance
+//   }
+//
+// Struct-typing reference: identical to gl_func_0001CFDC (see its
+//   comment) — &D_0 glyph table, entry+0x50, e->0x10 width/advance,
+//   e->0x0E height, e->0x12 secondary-pass flag, spec by-value
+//   halfword struct, 0x3E0 blit mode. The ONLY difference: this
+//   variant calls the fixed blit routine at 0x0C00C813 (≈0x31F4C)
+//   instead of gl_func_0001CFDC's 0x0C00C7EC (≈0x31FB0) — likely a
+//   different render target / layer.
+// Caps: raw-word USO + unsplit bundle + fixed-target call — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only for the named fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D0AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D200);
