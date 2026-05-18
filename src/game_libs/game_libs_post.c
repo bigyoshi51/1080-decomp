@@ -8116,6 +8116,54 @@ void gl_func_00034C44(int a0, int a1) {
     gl_func_00000000(r);
 }
 
+// gl_func_00034C7C — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x140 / 80 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE (no-frame-leaf shape — see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). realjr=2 but only
+// ONE 27BDFFE0 prologue. The second jr bounds a LARGE no-frame
+// LEAF (it uses only 0($sp), no frame allocation) splat could not
+// separate:
+//   - 0x34C7C..0x34CC0: the NAMED function (frame-allocating).
+//   - 0x34CC8..0x34DB4: a no-frame TABLE-DECODE accessor (~60
+//       words) — indexes a table based at &D_0+0x11FA by a record
+//       index a1->0x34 with a *6 stride (`x = i*4 - i; x <<= 1`),
+//       copies byte fields out of the table entry into a1->0x08 /
+//       a1->0x09, reads a halfword and tests flag bits (0x20 /
+//       0x10) to branch on entry attributes. A "populate record
+//       from static table entry" accessor.
+//
+// Leading fn gl_func_00034C7C (4-callback orchestration wrapper):
+//   int gl_func_00034C7C(void *a0, void *a1) {
+//     int r = callback(1);                    // jal 0 (USO cb1)
+//     callback(a0, a1);                        // cb2
+//     callback(a0, a1);                        // cb3
+//     callback(r);                             // cb4
+//     return r;
+//   }
+// i.e. it spills its two args, runs FOUR USO-relocated callbacks
+// (jal 0 → resolved at load) threading the saved a0/a1 and the
+// first callback's result through them, and returns that result.
+// A sequencing/orchestration wrapper.
+//
+// Struct-typing reference: the named function is a small fixed
+//   pipeline (call A → B → C → D, A's result is the return value);
+//   the bundled leaf is the static-table → record decoder it (or a
+//   sibling) drives — the &D_0+0x11FA table holds 6-byte entries
+//   indexed by a1->0x34, whose byte/flag fields configure the a1
+//   record. An init/lookup cluster of the game_libs object
+//   subsystem (the &D_0+0x11FA table is a deferred symbolization
+//   site; 6-byte stride is the entry struct to type).
+// Resolution: DEFERRED USO RE-SPLIT for the tail leaf (tracked with
+//   the other game_libs_post.c bundle notes; not fixable with
+//   mnemonic split/merge tooling — needs the spimdisasm-USO
+//   migration). No merge attempted (would corrupt the leaf); no
+//   episode.
+// Caps: raw-word USO + bundled no-frame leaf + USO-relocated jal-0
+//   callbacks + &D_0 static table — not exact-matchable without
+//   proper USO mnemonic disasm + boundary re-split; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034C7C);
 
 extern int gl_func_00000000();
