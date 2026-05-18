@@ -1531,18 +1531,19 @@ void game_uso_func_0000249C(char *a0) {
  * calls + final stores to a0->0x60..0x68 and t6's child). Initial decode
  * 2026-05-05; tail writeback decoded 2026-05-08. */
 extern int gl_func_00000000();
-void *game_uso_func_000024BC(int *a0, int *a1) {
+void game_uso_func_000024BC(int *a0, int *a1) {
     int *t6;
     int key;
     int *v1;
     char scratch[0x18];
     float ref_x, ref_y, ref_z;
     float delta_x, delta_y, delta_z;
-    float self_x, self_y, self_z;
+    volatile float self_x, self_y, self_z;
     float proj_x, proj_y, proj_z;
     float scale;
     float denom_xz, denom_y;
     float a1_proj[3];
+    volatile float copy_x, copy_y, copy_z;
     int *delta;
 
     t6 = (int*)a0[0x14 / 4];
@@ -1552,12 +1553,15 @@ void *game_uso_func_000024BC(int *a0, int *a1) {
 
     /* key == 3: dual Vec3 copy from sub-obj@0xA0 to t6+0x60 and t6+0xA0. */
     v1 = (int*)a0[0x3C / 4];
-    *(float*)((char*)t6 + 0x60) = *(float*)((char*)v1 + 0xA0);
-    *(float*)((char*)t6 + 0x64) = *(float*)((char*)v1 + 0xA4);
-    *(float*)((char*)t6 + 0x68) = *(float*)((char*)v1 + 0xA8);
-    *(float*)((char*)t6 + 0xA0) = *(float*)((char*)v1 + 0xA0);
-    *(float*)((char*)t6 + 0xA4) = *(float*)((char*)v1 + 0xA4);
-    *(float*)((char*)t6 + 0xA8) = *(float*)((char*)v1 + 0xA8);
+    copy_x = *(float*)((char*)v1 + 0xA0);
+    copy_y = *(float*)((char*)v1 + 0xA4);
+    copy_z = *(float*)((char*)v1 + 0xA8);
+    *(float*)((char*)t6 + 0x60) = copy_x;
+    *(float*)((char*)t6 + 0x64) = copy_y;
+    *(float*)((char*)t6 + 0x68) = copy_z;
+    *(float*)((char*)t6 + 0xA0) = copy_x;
+    *(float*)((char*)t6 + 0xA4) = copy_y;
+    *(float*)((char*)t6 + 0xA8) = copy_z;
     goto end;
 
 branch_else:
@@ -1591,14 +1595,16 @@ branch_else:
      *
      * Initial decode 2026-05-05; extended decode 2026-05-06.
  *
- * 2026-05-15 status: 47.19% fuzzy. Tested `if (key == 0) return a0;`
- * (vs current `goto end`) to force beql-to-epilogue emit matching
- * target asm 0x20-0x24 — regressed -1.4pp to 45.79%. The early-return
- * shape changes the larger dispatch layout. Reverted. Keep current
- * `goto end` structure; future grinding needs to target the
- * `sw t6, 0x94(sp)` spill at insn 0x14 (target spills t6 immediately
- * at prologue; IDO normally delays spill to just-before-first-call,
- * requires unusual codegen pressure to force early spill). */
+ * 2026-05-18 Codex status: 58.31% fuzzy (up from 47.13%). Improvements:
+ * stack-resident copy_x/y/z temps for the key==3 dual Vec3 copy,
+ * volatile self_x/y/z for the else-arm final vector, and void return type
+ * (target epilogue does not set v0). Retested key==0 early-return after
+ * the void change: score flat, still emits plain beq rather than target
+ * beql-to-epilogue. Negative variants: volatile t6 regressed to 48.56%,
+ * volatile proj_x/y/z to 55.47%, in-place ref-vector rewrite to 52.19%,
+ * and moving copy temps earlier to 55.67%. Remaining work needs to target
+ * the early `sw t6, 0x94(sp)` spill and the first-call delta copy/scratch
+ * scheduling around sp+0x6C. */
     v1 = (int*)a0[0x38 / 4];
     ref_x = *(float*)((char*)v1 + 0xA0);
     ref_y = *(float*)((char*)v1 + 0xA4);
@@ -1644,7 +1650,7 @@ branch_else:
     *(float*)((char*)t6 + 0xA8) = self_z;
 
 end:
-    return a0;
+    return;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000024BC);
