@@ -20149,6 +20149,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000608A4);
  * once varargs idiom is needed elsewhere. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060A74);
 
+/* gl_func_00060AD0: 67-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060AD0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060BDC);
