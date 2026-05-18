@@ -384,6 +384,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
 
+// gl_func_0001EE78 — STRUCTURAL PASS (0xA8 / 42 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Small F3D/GBI display-list command-pair emitter in the
+// game_libs graphics family.
+//
+//   Gfx *gl_func_0001EE78(Gfx *dl, a1, a2, a3) {
+//     a3 &= 0xFFFF;
+//     if (a3 == 0) {
+//       jal 0x31BC8(dl, 0x3C0, …);              // 0x0C00C6F2
+//       return dl + 8;                            // one cmd consumed
+//     }
+//     // emit GBI command #1 (8 bytes):
+//     dl->word0 = 0x08000000 | hw_at_sp32;        // class-0x08 cmd
+//     dl->word1 = 0x03C00000 | (a2 & 0xFFFF);
+//     dl += 8;
+//     // emit GBI command #2 (8 bytes):
+//     dl->word0 = 0x05000000 | ((a2 & 0xFF) << 16) | (a3 & 0xFFFF);
+//     dl->word1 = *(int*)(a1 + 0xC) + 0x80000020; // segmented addr
+//     return dl + 8;                               // dl advanced 0x10
+//   }
+//
+// Struct-typing reference: dl is an F3D Gfx write cursor (8-byte
+//   command words). Two GBI command classes are emitted inline: a
+//   0x08-class word0 paired with a 0x03C0-tagged word1, then a
+//   0x05-class word0 (packing a2's low byte and a3) paired with a
+//   segment-relative pointer word1 = a1[0x0C] + 0x80000020. The
+//   a3==0 fast path instead delegates to fixed routine 0x0C00C6F2
+//   (≈0x31BC8) and consumes a single command. Sibling of the
+//   gl_func_0001D4C0 / gl_func_0001DA7C F3D-builder family.
+// Caps: raw-word USO + fixed-target call — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
