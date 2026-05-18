@@ -140,6 +140,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CFDC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D0AC);
 
+// gl_func_0001D200 — STRUCTURAL PASS (0x2C0 / 176 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. Same glyph-
+// table FAMILY as gl_func_0001CFDC / gl_func_0001D0AC, but the larger
+// STRING-draw variant: it loops over a packed glyph spec, accumulating
+// an advance, rather than drawing a single glyph.
+//
+//   int gl_func_0001D200(args…, Spec spec) {            // spec by value
+//     E *base = &D_0 + idx(...);                         // glyph table
+//     E *e = base + 0x50;
+//     int packed = e->0x5C;                              // word at +0x5C
+//     short flags = e->0x60;                             // halfword +0x60
+//     int lo = packed & 7;                               // 3-bit field
+//     int hi = (packed >> 4) & 0xFFF;                     // 12-bit field
+//     ... pack glyph metrics into sp+0x38/0x3A/0x3C ...
+//     v0 = jal 0x31FB0(0x3E0, …, 0x1A0, w, h, spec.0x2); // blit row
+//     if (cond) { ... second pass ... }
+//     // tail: lui/addiu builds a &D_xxxx table pointer for caller
+//     return v0;                                          // advance px
+//   }
+//
+// Struct-typing reference: shares gl_func_0001CFDC's glyph layout —
+//   &D_0 table, entry+0x50, fixed blit 0x0C00C7EC (≈0x31FB0), 0x3E0
+//   blit mode, spec by-value halfword struct. NEW here vs the single-
+//   glyph helpers: packed metric word at e->0x5C decoded via
+//   mask-0x7 / shift-4 mask-0xFFF (sub-fields), halfword e->0x60, and
+//   stack-built metric block at sp+0x38..0x3C passed by ref to the
+//   blit. This is the multi-glyph / string-row entry of the family.
+// Caps: raw-word USO + unsplit bundle + fixed-target call + packed
+//   bitfield decode — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only for the named fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D200);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D4C0);
