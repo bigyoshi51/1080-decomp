@@ -272,6 +272,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D870);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DA7C);
 
+// gl_func_0001DB88 — STRUCTURAL PASS (0x12C / 75 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Glyph/sprite draw helper in the gl_func_0001CFDC family,
+// the two-flag conditional variant.
+//
+//   int gl_func_0001DB88(int a0, short idx) {
+//     E *base = &D_0 + idx_scaled(idx);          // signed-hw index
+//     byte f1 = base->0x1B;
+//     byte f2 = (base + ...)->0x1C;              // second flag
+//     E *e = base + 0x50;
+//     if (f1 != 1) {                              // bne f1,1 path
+//       int h = e->0x0E;  int w = e->0x10;
+//       jal 0x31F4C(0x0C80, …, w, h, …);          // 0x0C00C813 blit
+//       ...
+//     }
+//     ...
+//   }
+//
+// Struct-typing reference: same glyph layout as gl_func_0001CFDC /
+//   0001D0AC (&D_0 table, +0x50 entry, e->0x0E height, e->0x10
+//   width/advance) plus TWO gating flag bytes read off the pre-+0x50
+//   base: byte base->0x1B (primary path selector, compared != 1) and
+//   byte base->0x1C (secondary). Uses the 0x0C80 blit-mode constant
+//   and the fixed blit routine 0x0C00C813 (≈0x31F4C) — same
+//   mode/target combination as the gl_func_0001D0AC sibling but with
+//   the extra two-flag conditional structure.
+// Caps: raw-word USO + fixed-target call — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
