@@ -7575,6 +7575,48 @@ int gl_func_00033B28(int a0, int a1, int a2) {{
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
 
+// gl_func_00033BE4 — STRUCTURAL PASS (0x2D4 / 181 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). The SIBLING / variant of gl_func_000334E8 — the same
+// region/block allocator-management routine, flag-gated entry +
+// different data-segment template.
+//
+//   void gl_func_00033BE4(void *a, unsigned flags) {
+//     if (flags & 1) {
+//       callback(a, (void*)0x0001E330);       // jal 0 (USO cb)
+//     }
+//     B *base = &D_0_base;
+//     callback(base);                          // 2nd USO cb
+//     if (flags == 0) return;                  // gate
+//     int TAG  = 0x12340002;                   // block sentinel
+//     int used = *(int*)(&D_0 + 0x2C) - *(int*)(&D_0 + 0x08);
+//     int mis  = (int)a & 7;                    // 8-byte align
+//     if (used < flags) { ... }
+//     ... walk / fit 0x12340002-tagged blocks (as in 000334E8) ...
+//   }
+//
+// Struct-typing reference: a heap/region block manager, the direct
+//   sibling of gl_func_000334E8. Same core machinery: the magic
+//   block-header sentinel 0x12340002 (`lui 0x1234; ori 0x0002`),
+//   the used/free span from the global cursor pair (&D_0+0x08 start,
+//   &D_0+0x2C current), and 8-byte-granule pointer alignment. The
+//   deltas vs gl_func_000334E8: this variant is FLAG-GATED on entry
+//   (`flags & 1` selects whether the first USO-relocated setup
+//   callback runs, jal 0 → resolved at load), uses the data-segment
+//   template 0x0001E330 (vs 000334E8's 0x0001E280), takes a
+//   zero-flags early-out, and is slightly larger (0x2D4 vs 0x2C4) —
+//   consistent with this being the "allocate/grow with options"
+//   entry vs 000334E8's "init/setup" entry of the SAME allocator.
+//   Together with gl_func_000334E8 these form the alloc front-end
+//   for the gl_func_00030AF4 0x45010 arena and the
+//   gl_func_00032E18 / gl_func_00033228 sub-record allocations
+//   (0x12340002 is the shared heap block magic; 0x0001E280 /
+//   0x0001E330 are the deferred template-symbolization sites).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + global region
+//   cursors + 0x12340002 block-magic + flag gate / alignment math —
+//   not exact-matchable without proper USO mnemonic disasm + the
+//   allocator structs typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
