@@ -39,6 +39,43 @@ typedef struct { float x, y, z; } Vec3;
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 
+// gl_func_0001CD64 — STRUCTURAL PASS (0x278 / 158 words, no episode).
+// Raw-.word USO form (game_libs RSP/graphics-library segment).
+// BOUNDARY NOTE: 2-jr USO bundle (named fn + 1 trailing helper) —
+// deferred USO re-split.
+//
+// game_libs display-list batch processor (large ~0x1068 stack
+// command/scratch buffer).
+//
+//   void gl_func_0001CD64(a0, B *a1, C *a2) {
+//     // big stack frame: ~0x1068 bytes = a working command buffer
+//     //   at sp+0x4C..; save s0-s7/fp.
+//     G *g = &D_0;                                         // global tbl
+//     s4 = (s16)g->0x2040;                                 // entry count
+//     if (s4 != 0) {
+//       do {
+//         func_00000000(a0, …);                            // pre-process
+//         s4 = (s16)g->0x2040;                              // re-read
+//       } while (--cnt > 0);                                // drain loop
+//     }
+//     // main pass: for each of (s16)g->0x2040 entries, dispatch the
+//     //   intra-USO processor at 0x310704 (jal 0x0C00C4C1, NOT a
+//     //   placeholder — a real fixed game_libs target) building
+//     //   command words into the stack buffer; flag-gated branches
+//     //   (at==1) select sub-paths; final lh g->0x2040 / store.
+//   }
+//
+// Struct-typing reference:
+//   &D_0 + 0x2040 = global s16 command/entry count (re-read each
+//     iteration — the list can shrink during processing). sp+0x4C..
+//     +0x1068 = a ~4KB stack command/vertex scratch buffer. a0/a1/a2
+//     = list/context args. 0x310704 = a real intra-USO processor
+//     (gl_func, NOT a runtime-patched placeholder); func_00000000 =
+//     the USO placeholder dispatcher (pre-process step).
+// Caps: raw-word USO + unsplit bundle + placeholder calls — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only for the named fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CFDC);
