@@ -6539,6 +6539,41 @@ void game_libs_func_000309A4(void) {
 // Body INCLUDE_ASM-preserved (.s = source of truth).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000309AC);
 
+// gl_func_000309B4 — STRUCTURAL PASS (0x6C / 27 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, has
+// its OWN prologue). The SUCCESSOR of the game_libs_func_000309AC
+// head-fragment (see the boundary note immediately above) — and the
+// WRITER of the global slot &D_0+0x10 that that fragment loads.
+//
+//   void gl_func_000309B4(int sel) {
+//     if (sel == cur) return;                 // no-op if unchanged
+//     int p;
+//     if (sel == 0)      p = 0;
+//     else if (sel == 1) p = 0x46;            // 70
+//     else if (sel == 2) p = 0x1E;            // 30
+//     else               p = 0;
+//     fixed_call(&D_0_base, p);               // jal 0x0118C5 (FIXED)
+//     *(int*)(&D_0 + 0x10) = sel;             // record selection
+//   }
+//
+// Struct-typing reference: a selector → parameter-mapped dispatcher
+//   that records its selection. The selector arg (0/1/2; else 0) is
+//   folded — via equality + branch-likely (bnel) tests — into a
+//   parameter value drawn from {0, 0x46 (70), 0x1E (30)}, then a
+//   FIXED intra-USO routine (encoded `jal 0x0118C5` / 0x0C0118C5, a
+//   real resolved target, NOT a jal-0 USO-relocated callback) is
+//   called with the &D_0 base pointer and the mapped parameter.
+//   Finally the original selector is stored into the global slot
+//   &D_0+0x10 — which is exactly the field the preceding splat-
+//   missplit head-fragment game_libs_func_000309AC loads, confirming
+//   the two share one logical record region (this fn WRITES it; the
+//   next fn, whose entry the fragment was sheared from, READS it).
+//   A mode-select / state-record leaf of the game_libs object
+//   subsystem (sibling of the gl_func_0003061C mode-arbiter).
+// Caps: raw-word USO + fixed intra-USO call + &D_0 global record —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000309B4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
