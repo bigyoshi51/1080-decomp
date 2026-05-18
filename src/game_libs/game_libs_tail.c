@@ -1373,6 +1373,7 @@ void gl_func_0000DF8C(int a0, int a1, float a2, float a3) {
     }
 }
 
+/* gl_func_0000DFC4: 32-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DFC4);
 
 /* 3-insn save-arg sentinel: sw a0,0(sp); jr ra; sw a1,4(sp).
