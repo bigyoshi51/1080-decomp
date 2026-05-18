@@ -3245,6 +3245,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002722C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
 
+// gl_func_0002737C — STRUCTURAL PASS (0x1CC / 115 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: LARGE 15-jr USO
+// bundle — a dense cluster of tiny accessor/setter functions splat
+// could not separate. Only the named leading fn is decoded; the ~14
+// trailing bodies are deferred USO re-split.
+//
+//   void gl_func_0002737C(int a0, int a1) {
+//     (*reg)(&D_2178, a0, a1);                          // jal 0 USO
+//   }
+//
+// Struct-typing reference: the named leading fn is a thin register/
+//   submit thunk — it forwards the caller args (a0, a1) plus the
+//   fixed descriptor blob &D_2178 to a USO-relocated routine (`jal 0`
+//   slot), saving a0 at sp+0x18 across the call. &D_2178 is the same
+//   descriptor pool the gl_func_0001FEC8 / gl_func_00021F40 register
+//   helpers use; word &D_0+0x2178 is the associated state slot
+//   (cleared by one of the bundled siblings: `sw zero, 0x2178`). The
+//   trailing bundled bodies are micro-accessors of the subsystem:
+//   float readers (lwc1 +0x04 / +0x28 with c.eq.s / c.lt.s FP
+//   compares), byte getters/setters (lbu +0 / +1, sb), and small bit
+//   ORs (`ori …,0x40`) over the records — typical compiler-emitted
+//   one-line inline-accessor functions, left for the deferred USO
+//   re-split.
+// Caps: raw-word USO + 15-fn unsplit accessor bundle + jal-0
+//   USO-reloc register call — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only for the named leading fn,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002737C);
 
 /* gl_func_00027548: 17-insn (0x44) F3DEX2-style display-list-word builder.
