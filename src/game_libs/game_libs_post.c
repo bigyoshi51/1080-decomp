@@ -6191,6 +6191,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F8A0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F934);
 
+// gl_func_0002F9D4 — STRUCTURAL PASS (0xBC / 47 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A composite multi-bank command emitter.
+//
+//   void gl_func_0002F9D4(int a0, int b, int arg3, int arg4,
+//                         ... bytes at sp+0x43, sp+0x47 ...) {
+//     int op  = a0 ? 5 : 1;                 // opcode select
+//     int sub = (op & 0xFF) << 8;
+//     emit(0x06000000 | sub | 5, (signed char)b);   // jal 0
+//     float n = (float)arg3 / 127.0f;       // 0x42FE0000 = 127.0f
+//     emit(0x01000000 | sub, n);
+//     emit(0x04000000 | sub, arg4);
+//     emit(0x06000000 | sub, (signed char)stk_43);
+//     emit(0x03000000 | sub, (signed char)stk_47);
+//   }
+//
+// Struct-typing reference: a composite command-stream builder. arg0
+//   picks the opcode (1 vs 5), packed as an 8-bit subfield (<<8) into
+//   command words spanning FOUR banks — 0x06000000, 0x01000000,
+//   0x04000000, 0x03000000 — each submitted via a USO-relocated
+//   callback (jal 0 → resolved at load). One submission converts an
+//   integer arg to a normalized float `(float)arg / 127.0f` (the
+//   recurring byte→[0,1] scalar idiom of this subsystem; 0x42FE0000
+//   is 127.0f); the rest pass sign-extended byte args (the b arg and
+//   stack bytes sp+0x43 / sp+0x47) plus arg4. A multi-attribute
+//   command-submission leaf of the game_libs object subsystem
+//   (richer sibling of gl_func_0002F638 — same 0x03/0x06 banks plus
+//   the 0x01/0x04 attribute banks and the /127 normalization).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + /127.0f
+//   normalize + multi-bank command build — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FA90);
