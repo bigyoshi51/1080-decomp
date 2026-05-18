@@ -16085,6 +16085,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
  *   needs typed struct walk for the chain and INSN_PATCH for resolved jal. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044548);
 
+// gl_func_000445AC — STRUCTURAL PASS (0x368 / 219 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
+// 0x58 (saves ra, s0). Config/command-table registration driver (cb = jal 0
+// USO-relocated; string keys around &D_0002FDE4 / &D_0002FDEC).
+//
+//   void gl_func_000445AC(void) {
+//     cb(0x140, 0xF0);                              // alloc record A
+//     cb(0x140, 0xF0);                              // alloc record B
+//     cb(&D_0002FDE4, 0);                            // register named scope
+//     // build a large stack-arg block of opcode/key-ID immediates:
+//     //   2, 0x6E, 0x6F, 0x70, 0x1E00, 0x71, 2, ...  (key/opcode + flags)
+//     // spilled to sp+0x10..0x38, then a varargs-style registration call:
+//     cb(0, 0x64, 0x6D, &D_0002FDEC, ... stack-args);// command/keymap entry
+//     // ... the immediate-load + sp-spill + cb pattern repeats for the
+//     //     remaining command entries, each keyed by a literal in the
+//     //     contiguous &D_0002FDxx table with its own opcode/flag tuple.
+//   }
+// One-shot command/keymap table init: allocates a couple of fixed-size
+// records, then publishes a series of command entries into the registrar
+// via varargs-style cb calls whose numeric args are key/opcode IDs
+// (0x6E..0x71) and flags (0x1E00), keyed by string literals in the
+// contiguous &D_0002FDE4 / &D_0002FDEC table. Family: cb-driven
+// config/command-registration table builder (siblings gl_func_00044144 /
+// 000415A4 / 0004182C). Per-entry arg tuples not exhaustively decoded
+// (219-word driver) — the cb(0x140,0xF0) allocs, the &D_0002FDE4/FDEC keys
+// and the opcode-immediate set (0x6E/0x6F/0x70/0x71, 0x1E00) are exact;
+// per-call ordering representative. Caps: registrar/record struct,
+// &D_0002FDxx table and cb signature untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000445AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044918);
