@@ -9993,6 +9993,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003829C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038360);
 
+// gl_func_00038598 — STRUCTURAL PASS (0xA4 / 41 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list-traversal + per-node flag-gated vtable dispatch
+// — sibling of gl_func_00035C6C / gl_func_00034458.
+//
+//   void gl_func_00038598(O *o) {
+//     N *n = o->p_10;
+//     while (n != 0) {
+//       if (n->w_8 & 0x200) {                    // flag gate (beql)
+//         callback(&n->f_30);                     // jal 0 (USO cb)
+//         H *h = n->p_28;
+//         h->fp_14(&n->f_30, &n->f_70,            // jalr h->0x14
+//                  h->h_10 + (int)n);
+//       }
+//       n = n->next_4;                            // (or *n on first)
+//     }
+//   }
+//
+// Struct-typing reference: a per-element process pass over an
+//   intrusive list rooted at o->0x10 (each node's next pointer at
+//   node->0x04). For every node whose flag word node->0x08 has bit
+//   0x200 set, it runs a USO-relocated callback (jal 0 → resolved
+//   at load) with a pointer to the node's +0x30 sub-block, then
+//   dispatches through a VTABLE method at node->0x28+0x14 (the
+//   handler object reached via node->0x28), passing node-relative
+//   arguments (node->0x30, node->0x70, and node->0x28->0x10
+//   halfword + node). Same shape as the gl_func_00034458 collection
+//   processor / gl_func_00035C6C list-fold but with the device-
+//   object vtable indirection (node->0x28 is the per-node handler;
+//   slot 0x14 of that family — cf. the 0x4C/0x50/0x54/0x5C/0x60
+//   handler-vtable slots mapped on the gl_func_0003537x group). A
+//   per-frame "process active nodes" traversal of the game_libs
+//   object subsystem.
+// Caps: raw-word USO + intrusive-list walk + flag gate + USO-
+//   relocated jal-0 callback + jalr through per-node vtable
+//   (node->0x28+0x14) — not exact-matchable without proper USO
+//   mnemonic disasm + the node/handler structs typed; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038598);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003863C);
