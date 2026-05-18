@@ -16632,6 +16632,44 @@ done:
     ;
 }
 
+// gl_func_00046C4C — STRUCTURAL PASS + BOUNDARY NOTE (0x32C / 205 words, no
+// episode). Raw-.word USO. realjr=4, regjr=0 → MULTI-FUNCTION BUNDLE: the
+// four jr at 0x46D44 / 0x46D98 / 0x46DB8 / 0x46F78 (varied gaps; only the
+// first carries the 27BDFFD0 prologue, the rest are no-frame FP helpers)
+// delimit a named fn + 3 trailing functions splat could not separate. Named
+// fn ends at the jr at 0x46D44; the trailing three (0x46D4C ~21w, 0x46D9C
+// ~8w, 0x46DBC ~112w) are a DEFERRED USO RE-SPLIT (decode under their own
+// symbols later).
+//
+// Named fn = FP scale/dimension computation (single prologue frame 0x30,
+// saves ra, s0; cb = jal 0 USO-relocated):
+//   int gl_func_00046C4C(void *a0, Cfg a1) {
+//     if ((a1->p28 & 0x10) == 0) goto alt;          // flag-gated branch
+//     void *r = a1->p1C;
+//     cb1(r);
+//     int p = r->p0C * r->p10;                        // multu/mflo product
+//     float v = (float)p * f0;                        // cvt.s.w + mul.s
+//     int out = (int)v;                               // trunc.w.s + mfc1
+//     ...
+//     goto done;
+//   alt:
+//     short w = a1->p20, h = a1->p22;                 // alt: 16-bit dims
+//     int p2 = w * h;
+//     float v2 = (float)p2 * f0; ...                  // same scale shape
+//   done:
+//     cb2(out);
+//   }
+// Computes an integer dimension product (obj->0x0C * obj->0x10, or the
+// a1->0x20/0x22 short pair on the !(a1->0x28&0x10) branch), promotes it to
+// float, applies an f0 scale factor and truncates back to int (a
+// fixed-point / aspect-ratio scale), bracketed by cb1/cb2. Family: FP
+// scale-compute (relates to the segment's geometry routines). The
+// a1->0x28&0x10 gate, the two product sources (0x0C*0x10 vs 0x20*0x22),
+// the cvt.s.w -> mul.s -> trunc.w.s scale pipeline and the cb1/cb2 bracket
+// are exact; the post-scale use is representative. Trailing 3 functions =
+// deferred re-split. Caps: Cfg/obj struct, the f0 scale constant and cb
+// signatures untyped; bundle re-split deferred. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046C4C);
 
 extern int gl_func_00000000();
