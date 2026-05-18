@@ -5,8 +5,6 @@
  * Covers gl_func_00008AE4..gl_func_000093DC (offset 0x8AE4..0x949C).
  * Built at -O2 (default). */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008AE4);
-
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008C3C);
 
 /* gl_func_00008DAC: 38-insn (0x98) 4-call sequencer. -O0 indicators

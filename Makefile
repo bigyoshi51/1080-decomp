@@ -135,7 +135,9 @@ build/src/game_libs/game_libs_o0_8944.c.o: TRUNCATE_TEXT := 0xFC
 build/src/game_libs/game_libs_o0_8A40.c.o build/non_matching/src/game_libs/game_libs_o0_8A40.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_8A40.c.o: TRUNCATE_TEXT := 0xA4
 build/src/game_libs/game_libs_o0_8A40.c.o: INSN_PATCH := gl_func_00008A40=0x24:0x27A50048,0x34:0x8FB10058,0x38:0x27AE0034,0x3C:0x27AF0048,0x58:0x02209025,0x5C:0x27B30034,0x64:0xE6440000,0x6C:0xE6460004,0x74:0xE6480008,0x78:0x02208025
-build/src/game_libs/game_libs_mid.c.o: TRUNCATE_TEXT := 0x9B8
+build/src/game_libs/game_libs_o0_8AE4.c.o build/non_matching/src/game_libs/game_libs_o0_8AE4.c.o: OPT_FLAGS := -O0
+build/src/game_libs/game_libs_o0_8AE4.c.o: TRUNCATE_TEXT := 0x158
+build/src/game_libs/game_libs_mid.c.o: TRUNCATE_TEXT := 0x860
 build/src/game_libs/game_libs_o0_949C.c.o build/non_matching/src/game_libs/game_libs_o0_949C.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
 # Bake resolved jal targets to match expected/.o (which is INCLUDE_ASM-derived

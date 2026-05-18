@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00008AE4",
+  "project": "1080 Snowboarding (USA)",
+  "model": "claude-manual",
+  "start_time": "2026-05-18T08:50:22.676739+00:00",
+  "end_time": "2026-05-18T08:50:22.676763+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-18T08:50:22.676756+00:00",
+      "assistant_text": "Exact match by splitting gl_func_00008AE4 into its own -O0 game_libs unit. Used D_00000000_a to keep independent base materialization for data loads and D_8AE4_mode alias at 0x34 for direct mode-word loads.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 86,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\nextern int D_00000000_a;\nextern int D_8AE4_mode;\n\nvoid gl_func_00008AE4(int a0, int a1, int a2, int a3) {\n    register int rv;\n\n    gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000_a + 0x0));\n    gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000_a + 0xC));\n\n    if (D_8AE4_mode == 3) {\n        gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000_a + 0x10));\n    }\n\n    if (D_8AE4_mode != 2) {\n        gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000_a + 0x14));\n    }\n\n    if ((D_8AE4_mode != 3) && (D_8AE4_mode != 5)) {\n        gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000_a + 0x18));\n    }\n\n    gl_func_00000000(&D_00000000, 3, 0, 0);\n    rv = gl_func_00000000(0, a1, a2, a3);\n    gl_func_00000000(a0, 0, rv);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o0_8AE4.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00008AE4.s",
+    "segment": "game_libs",
+    "compiler": "IDO-7.1",
+    "compiler_flags": "-O0 -G0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with refreshed expected baseline, objdiff-cli report generate (100.0%), and no-alias disassembly of expected/build objects."
+  }
+}
