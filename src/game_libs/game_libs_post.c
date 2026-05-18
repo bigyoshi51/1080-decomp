@@ -18928,6 +18928,42 @@ void gl_func_0004F9AC(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0004F9AC_pad.s")
 
+// gl_func_0004F9E4 — STRUCTURAL PASS + BOUNDARY NOTE (0x1C0 / 112 words, no
+// episode). Raw-.word USO. realjr=5, regjr=0 → MULTI-FUNCTION BUNDLE: the
+// small-gap tail jr cluster at 0x4FB2C / 0x4FB54 / 0x4FB70 / 0x4FB94 /
+// 0x4FB9C (only the named fn carries the 27BDFFD0 prologue) is the
+// docs/N64_FORENSICS ADDENDUM-18b no-frame-leaf signature ⇒ named fn + 4
+// trailing leaves. Named fn ends at the jr at 0x4FB2C; the trailing four
+// (0x4FB30 ~9w, 0x4FB58 ~6w, 0x4FB74 ~8w, 0x4FB98 ~2w) are a DEFERRED USO
+// RE-SPLIT.
+//
+// Named fn = bounded registration + record-iterate (single prologue frame
+// 0x30, saves ra, s0; cb = jal 0 USO-relocated; error string &D_0002 0E0C):
+//   void gl_func_0004F9E4(void *a0) {
+//     *(int*)&D_g = 0;                               // reset registry head
+//     int n = a0->p40;                                // element count
+//     if (n >= 0x12C) cb1(&D_0002_0E0C);              // overflow (>=300) log
+//     self = a0;
+//     n = self->p40;
+//     if (n == 0) return;
+//     for (i = 0; i < n; i++) {
+//       short *rec = (short*)(*(int*)(self->p60)) + i*3;  // 6-byte records
+//       sp_0x20 = rec[0];                              // lh -> sp scratch
+//       sp_0x22 = rec[1];
+//       // ... register the extracted name/key via &D_g2 + per-record fields
+//     }
+//   }
+// Resets the &D_g registry head, range-checks the a0->0x40 element count
+// against 300 (0x12C; cb1 error-log on overflow keyed by &D_0002 0E0C), then
+// iterates the a0->0x60 array of 6-byte records, extracting 16-bit fields
+// into an sp scratch and registering them against the &D_g2 table. Family:
+// cb-driven bounded registration + record iterate (relates to the segment's
+// registration / decode routines). Trailing 4 leaves = deferred re-split.
+// Per-record register detail representative; the *&D_g reset, the < 0x12C
+// count guard, the &D_0002 0E0C overflow key and the a0->0x60 6-byte-record
+// stride are exact. Caps: a0/record struct, &D_g/&D_g2 globals and cb
+// signature untyped; bundle re-split deferred. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F9E4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FBA4);
