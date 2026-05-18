@@ -8333,6 +8333,35 @@ void game_uso_func_0000B498(char *a0) {
     game_uso_func_00000000(a0 + 0xEC);
 }
 
+// game_uso_func_0000B4B8 — STRUCTURAL PASS (0x258 / 150 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic; boundary already split by commit c305c2b1 — named fn
+// still undecoded). Hand-decoded.
+//
+// 2D-grid / height-map sample with FP interpolation.
+//
+//   float game_uso_func_0000B4B8(Obj *obj) {             // obj -> a0
+//     Ctx *c = *(Ctx**)(D_0 + 0x240);
+//     // grid = obj->0xD8; W = obj->0xD0; H = obj->0xD4;
+//     // i = c->0x148-derived * W + …  (multu index calc into the
+//     //   2D cell array; bounds-checked vs W*H);
+//     // read u16 cell values (lhu) at neighbouring grid points;
+//     // FP block (~10 ops): convert cells to float and bilinear-
+//     //   interpolate using obj->0xB8/0xBC fractional coords;
+//     obj->0xCC = result;                                  // sampled value
+//     return result;
+//   }
+//
+// Struct-typing reference:
+//   obj: 0xD0 grid width, 0xD4 grid height, 0xD8 -> u16 cell array,
+//     0xB8/0xBC fractional sample coords, 0xCC f32 sampled output;
+//     0xD0/0xF0 sub-fields used in the index calc. *(Ctx**)(D_0 +
+//     0x240) = global ctx (->0x148 / ->0xB8 inputs to the index).
+//     Terrain/height-map lookup (snowboard ground sampling).
+// Caps: raw-word USO + 2D-index multu + FP interp — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B4B8);
 
 void game_uso_func_0000B710(char *a0) {
