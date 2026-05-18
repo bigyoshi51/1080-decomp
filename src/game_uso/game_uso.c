@@ -9793,6 +9793,41 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
  * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 
+// game_uso_func_0000EAF4 — STRUCTURAL PASS (0x1F8 / 126 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic). Pure integer/bitfield (no FP, no calls). Leaf-ish:
+// no sp frame — spills args a1/a2 to the caller's shadow slots
+// (sw a1,4(sp) / sw a2,8(sp)); this is a small function, NOT a
+// fragment (it has its own jr ra at 0xECE0).
+//
+// Steering/lean input integrator with rate-clamping.
+//
+//   void game_uso_func_0000EAF4(Obj *obj, int tgt, int a2) {
+//     Sub *s = obj->0xB4;
+//     if (s->0x800->0x7C(s16) == 0) { ... }
+//     int cur = (s16)obj->0x124;
+//     int d = tgt - cur;
+//     // clamp the per-frame step: d = clamp(d, -7, +7) normally,
+//     //   tightened to [-2,+2] / [-3,+3] when a flag selects slow
+//     //   mode (slti vs 8 / -7 / 3 / -2 chains);
+//     obj->0x124 = (s16)(cur + d);                          // step toward tgt
+//     obj->0x128 = 0;  obj->0x12C = 0;                       // reset deriv
+//     // if (s->0x800->0x18 & 0x4000) … recompute obj->0x12C from
+//     //   flags (an alternate / boosted steering response);
+//     // obj->0x12C = …;  return obj->0x12C-ish;
+//   }
+//
+// Struct-typing reference:
+//   obj: 0xB4 -> s (s->0x800->0x7C s16 enable, s->0x800->0x18 flags
+//     bit 0x4000), 0x124 s16 current steering value (rate-limited
+//     toward tgt), 0x128 s16 / 0x12C int steering derivative/state
+//     (reset then recomputed). tgt/a2 = target + mode args. Clamp
+//     bounds ±7 (fast) / ±2 / ±3 (slow). Snowboard steering/lean
+//     input smoothing.
+// Caps: raw-word USO — the clamp/branch tree is fully enumerable
+//   from the .s when a future pass tightens it; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
