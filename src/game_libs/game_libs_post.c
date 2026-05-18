@@ -3941,6 +3941,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029078);
  * undefined_syms_auto.txt entry may be needed. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
 
+// gl_func_000291C0 — STRUCTURAL PASS (0x2D4 / 181 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). An object DESTRUCTOR / free — undoes the
+// gl_func_00028E94 attach.
+//
+//   void gl_func_000291C0(O *obj) {
+//     S *sub = obj->w_50;
+//     if (!(sub->b_2 & 1)) return;                       // not active
+//     P *par = obj->w_2C;                                 // parent
+//     if (par == 0) return;
+//     if (par->w_40 == obj) {                             // unlink from
+//       int nx = par->w_48;                                //  parent's
+//       if (nx != -1) { ... relink ... }                   //  0x40/0x48
+//     }                                                     //  list
+//     (*detach)(par, obj);                                 // 0x0C00F59B
+//     (*op)(...);                                           // jal 0 USO
+//     (*freeBlk)(obj->w_C + 0x20);                          // 0x0C00F5A6
+//     ...
+//   }
+//
+// Struct-typing reference: the teardown/free entry, inverse of
+//   gl_func_00028E94. obj->0x50 is the descriptor sub-record (byte +2
+//   bit0 = active gate); obj->0x2C the parent/owner back-link; the
+//   parent's word +0x40 / +0x48 form the same intrusive list
+//   gl_func_00028604 splices (-1 = end sentinel). It unlinks obj from
+//   that list, invokes the fixed detach routine 0x0C00F59B (≈0x3D66C)
+//   and the fixed block-free 0x0C00F5A6 (≈0x3D698) on obj->0xC + 0x20.
+//   Completes the object lifecycle:
+//   gl_func_00028E94 (attach) → … → gl_func_00028604 (detach link) /
+//   gl_func_000291C0 (destroy+free).
+// Caps: raw-word USO + intrusive-list unlink + fixed detach/free
+//   calls — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000291C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029494);
