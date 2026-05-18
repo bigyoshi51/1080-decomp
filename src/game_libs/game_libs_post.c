@@ -7101,6 +7101,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00032E18);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
 
+// gl_func_00033228 — STRUCTURAL PASS (0x8C / 35 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). An object allocate-and-enlist helper.
+//
+//   void gl_func_00033228(O *o) {
+//     callback0();                            // jal 0 (USO factory)
+//     // build a sub-object: a1=0, a2=0.0f, a3=0.0f, sp+0x10=0.0f
+//     N *n = make(0, 0, 0.0f, 0.0f);          // 2nd USO callback
+//     o->p_28 = n;
+//     o->p_0C = n;
+//     o->p_10 = n;
+//     T *t = o->p_3C;
+//     L *lst = *(L**)(t + 0x10);
+//     list_insert(&lst[0x10/..], n);          // 3rd USO callback
+//     if (lst->p_14 != 0) { ... } else {
+//       lst->w_04 = 1;                         // branch-likely guard
+//     }
+//     lst->p_14 = n;                           // list head/anchor
+//   }
+//
+// Struct-typing reference: a construct-and-link leaf. It runs a
+//   USO-relocated factory callback (jal 0 → resolved at load),
+//   builds a sub-object via a second callback passing zeroed float
+//   args (0, 0, 0.0f, 0.0f incl. a stack float at sp+0x10), and
+//   publishes the resulting pointer into the parent object at three
+//   offsets (0x28, 0x0C, 0x10 — primary handle + two aliases). It
+//   then reaches a container via o->0x3C, loads a list anchor at
+//   +0x10, calls a third USO callback to splice the new node in,
+//   and updates the list head field (lst->0x14 = node) plus a flag
+//   (lst->0x04 = 1) under a branch-likely empty-list guard. An
+//   object-lifecycle / registration leaf of the game_libs object
+//   subsystem (the per-instance counterpart to the gl_func_00032E18
+//   constructor and the gl_func_00030A20 registration node; the
+//   list it enlists into is the collection the gl_func_0002FB74
+//   interpreter iterates).
+// Caps: raw-word USO + USO-relocated jal-0 factory/insert callbacks
+//   + intrusive-list splice — not exact-matchable without proper
+//   USO mnemonic disasm + the object/list structs typed; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000332B4);
