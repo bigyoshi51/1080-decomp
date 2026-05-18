@@ -18038,6 +18038,7 @@ void gl_func_000601B4(int a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000601B4_pad.s")
 
+/* gl_func_000601DC: 33-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000601DC);
 
 #ifdef NON_MATCHING
