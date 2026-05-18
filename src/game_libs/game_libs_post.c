@@ -16542,6 +16542,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046050);
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046790);
 
+// gl_func_000469A8 — STRUCTURAL PASS (0x198 / 103 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x58
+// (saves ra + s0..s2). Per-object render-prep + virtual-dispatch (cb = jal 0
+// USO-relocated).
+//
+//   void gl_func_000469A8(void *a0) {
+//     self = a0;
+//     cb1(self->p218, 0);                            // render-context init
+//     int i = self->p204;
+//     void *tb = self->p240;
+//     void *s1 = *(void**)((char*)tb + i*4 + 0x180); // resolved sub-object
+//     cb2(s1);
+//     void *o = self->p240;
+//     Vt vt = o->p28;                                 // object vtable
+//     short k = (short)vt->p60;
+//     (*(fnptr)vt->p64)(k + o);                        // virtual render call
+//     // render-config pointer setup off the dispatched object:
+//     void *cfg  = (char*)o + 0x100;
+//     void *cfg2 = (char*)o + 0x78;
+//     void *cfg3 = (char*)o + 0xDC;
+//     int  st    = o->pF0;
+//     if (st & 2) { ... } else { ... }                 // flag-gated path
+//   }
+// Prepares an object for rendering: cb1 initialises the render context,
+// resolves a sub-object via self->0x240[self->0x204] + 0x180, cb2-registers
+// it, invokes the object's virtual render method (vt = obj->0x28, fnptr
+// vt->0x64, arg (short)vt->0x60 + obj), then derives render-config field
+// pointers (obj+0x100 / +0x78 / +0xDC) and branches on the obj->0xF0 bit-1
+// flag. Family: cb + vtable-dispatch + render-setup (relates to the
+// segment's DL-builder / dispatch routines). Post-dispatch config-branch
+// detail representative; the cb1/cb2 shape, the
+// self->0x240[self->0x204]+0x180 resolution, the vt->0x64 dispatch (arg
+// (short)vt->0x60 + obj) and the obj+0x100/0x78/0xDC config offsets are
+// exact. Caps: self/obj/vtable struct + cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000469A8);
 
 extern int gl_func_00000000();
