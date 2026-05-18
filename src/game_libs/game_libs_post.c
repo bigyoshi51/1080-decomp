@@ -18659,6 +18659,38 @@ void gl_func_0004E920(int *a0, int *a1) {
     a1[5] = (int)a0;
 }
 
+// gl_func_0004E96C — STRUCTURAL PASS (0x1B8 / 111 words, no episode). Raw-.word
+// USO. realjr=1, regjr=1 (the 01E00008 at 0x4E994 is jr t7 = jump-table
+// dispatch, NOT a boundary — docs/N64_FORENSICS ADDENDUM-18c
+// register-indirect-jr pattern) → ONE clean function. Single prologue frame
+// 0x18 (saves ra). 9-way jump-table parameter-stream decoder.
+//
+//   void gl_func_0004E96C(void *a0, int *a1) {
+//     unsigned op = (unsigned)(*a1 - 0x6D);          // rebased opcode
+//     if (op >= 9) goto def;                          // sltiu/beqz guard
+//     goto *jumptab[op];                              // table at &D_0+0x1B84
+//     // each of the 9 arms:
+//     //   v   = a1->p04;                              // operand cursor
+//     //   a1->p04 = v + 4;                            // advance stream
+//     //   x   = *(int*)v;
+//     //   a0->p100 = x;  (or a0->p104 / a0->p108)     // store decoded slot
+//     //   FP arms: f = (float)x via mtc1/cvt.s.w; store / trunc.w.s back
+//     def:
+//     // default arm: fallthrough, no store
+//   }
+// Per-opcode parameter decoder: rebases the command word *(a1) by 0x6D,
+// range-checks to [0,8], dispatches through a 9-entry jump table at
+// &D_0+0x1B84 (USO-relocated data region — EXTENDS the &D_0 jump-table block
+// alongside the 0x1AE4 / 0x1B00 / 0x1B3C tables used by gl_func_00040304 /
+// 00040640 / 00044B84), and per arm pulls an operand from the a1->0x04
+// stream cursor (post-incrementing by 4), storing it into the object's
+// 0x100 / 0x104 / 0x108 slots with per-arm integer-or-FP (mtc1/cvt.s.w/
+// trunc.w.s) conversion. Family: jump-table command/parameter decode
+// (siblings gl_func_00040304 / 00040640 / 0004E96C-neighbours). Per-arm
+// store/convert detail representative; the dispatch math, the range guard,
+// the &D_0+0x1B84 table address, the jr-t7 dispatch and the a1->0x04
+// post-increment cursor are exact. Caps: object struct, the &D_0+0x1B84
+// jump table untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E96C);
 
 /* Split off from gl_func_0004E96C bundle 2026-05-08: 9-insn FPU int-to-float
