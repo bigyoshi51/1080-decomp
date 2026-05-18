@@ -11928,6 +11928,40 @@ void gl_func_0003CB6C(char *a0, int a1, int a2, float a3, float a4) {
     *(float*)(a0 + 0x38) = a4;
 }
 
+// gl_func_0003CBB4 — STRUCTURAL PASS (0x3E0 / 248 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0xD0 FP frame). A gated FP proximity / distance
+// test between two objects.
+//
+//   ? gl_func_0003CBB4(A *a, B *b, ? c) {
+//     if (b->w_8 != 1) return ...;                // type/active gate
+//     float dx = a->f_20 - b->f_20;               // per-component
+//     dx = (dx < 0.0f) ? -dx : dx;                //   abs delta
+//     float BOUND = 1000.0f;                       // 0x447A0000
+//     ... dy, dz the same; compare each |d| against BOUND ...
+//     // produce in-range / proximity result
+//   }
+//
+// Struct-typing reference: a spatial proximity / in-range test. It
+//   bails unless the second object's type/active word b->0x08 == 1,
+//   then computes the component-wise ABSOLUTE DIFFERENCE between the
+//   two objects' vector fields based at +0x20 (a->0x20.. vs
+//   b->0x20.., the `sub.s` then `c.lt.s ; bc1tl ; neg.s` abs idiom)
+//   and compares each magnitude against the bound constant 1000.0f
+//   (0x447A0000 — the same far-plane/extent constant materialized
+//   by gl_func_00036E74's FP-default init and the gl_func_00035E6C
+//   projector). A bounding-box / radius proximity node of the
+//   game_libs object subsystem (the cheap AABB-style pre-test that
+//   complements the precise gl_func_0003B9C0 distance solver and
+//   feeds the gl_func_0003C43C spatial-query node — together the
+//   collision/visibility front-end).
+// Caps: 0x3E0 raw-word USO + flag-gated per-component abs-delta vs
+//   1000.0f bound + extensive FP compare chain — categorically not
+//   exact-matchable without proper USO mnemonic disasm + the
+//   object vector layout typed; structural pass only, no byte body.
+//   (A future focused non-loop session is where this gets a real
+//   decode; not 60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CBB4);
 
 extern int gl_ref_0004F018();
