@@ -15263,6 +15263,33 @@ int gl_func_0004211C(int a0) {
  * (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042144);
 
+// gl_func_000421D4 — STRUCTURAL PASS (0xB0 / 45 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
+// (saves ra, s0). Multi-step parse/validate-and-link (cb = jal 0
+// USO-relocated; string-literal keys &D_0002F718/F71C/F724/F728).
+//
+//   void gl_func_000421D4(void) {
+//     char scr[..];                                 // s0 = sp+0x28 scratch
+//     cb_parse(&scr, &D_0002F718);                   // step 1: seed/parse
+//     if (cb_lookup(&D_g, &D_0002F71C, &scr) == 0)   // step 2: keyed lookup
+//       return;                                      //   beql bail on 0
+//     int h = cb_get(&scr);                          // step 3: extract handle
+//     cb_parse(&scr, &D_0002F724);                   // step 4: second parse
+//     if (cb_lookup(&D_g, &D_0002F728, &scr) == 0)   // step 5: keyed lookup
+//       return;                                      //   beql bail on 0
+//     int v = cb_get(&scr);                          // step 6: extract value
+//     if (h != 0)
+//       cb_link(&D_g, h, v);                         // step 7: stitch the two
+//   }
+// A fixed validate-then-link pipeline: alternating cb parse / keyed-lookup
+// steps over an sp+0x28 scratch, each lookup gated by a branch-likely beql
+// that aborts the whole routine on a 0 result; the two successfully
+// extracted handles are committed together via a final cb_link keyed by
+// &D_g. Family: cb-driven parse/registration (siblings gl_func_00041D40 /
+// 00041F90 / 0003E9C8). Per-step cb identity inferred from arg shape — the
+// string-literal key sequence, the two beql bail points and the final
+// h!=0-guarded link are exact. Caps: scratch layout, &D_g global and cb
+// signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000421D4);
 
 extern int gl_func_00000000();
