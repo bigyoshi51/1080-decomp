@@ -13641,18 +13641,8 @@ void gl_func_0003F008(int a0, int a1, int a2, int a3) {
     func_00000000(&buf[0x00]);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0003F044: 24-insn 2-call wrapper.
- *   buf @ sp+0x18..0x78 (extends across calls):
- *     buf[0]=50,
- *     buf[0x48]=a2 (pointer stored as int)
- *   jal#1: func(&buf[0x08], a1) — sp+0x20 = &buf[8]
- *   then floats: buf[0x4C..0x58] = *a2[0..3]
- *   jal#2: func(&buf[0]) — sp+0x18 = &buf[0]
- *
- * Same wrapper family as 0003F2B8 / 0003F350 — caller-slot arg spills
- * may cap below 100%. */
-extern int func_00000000();
+/* gl_func_0003F044: 24-insn 2-call wrapper. buf @ sp+0x18..0x78,
+ * jal#1: func(&buf[8], a1); jal#2: func(&buf[0]). */
 void gl_func_0003F044(int *a0, int a1, float *a2) {
     char buf[0xA0];
     *(int*)&buf[0x00] = 0x32;
@@ -13665,9 +13655,6 @@ void gl_func_0003F044(int *a0, int a1, float *a2) {
     func_00000000(&buf[0x00]);
     (void)a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F044);
-#endif
 
 #ifdef NON_MATCHING
 void gl_func_0003F0A4(int a0, int a1, int a2) {
