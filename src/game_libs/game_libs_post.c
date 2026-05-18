@@ -3562,6 +3562,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028358);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002842C);
 
+// gl_func_00028510 — STRUCTURAL PASS (0xF4 / 61 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Third SIBLING of gl_func_00028358 / gl_func_0002842C —
+// same handle-resolve into the &D_0+0x2158 selection slot, with a
+// halfword sub-count field.
+//
+//   int gl_func_00028510(int a0, int a1) {
+//     if (a0 == 0xFF) return 0;                          // none sentinel
+//     int r = (*lookup)(a0, a1);                          // jal 0 USO
+//     if (r != 0) { *(int*)(&D_0 + 0x2158) = r; return …; }
+//     R *rec = *(R**)(&D_0 + 0x2030) + a0*0x14;            // registry
+//     short cap = rec->h_4;                                 // sub count
+//     int packed = (a0 << 8) | a1;
+//     if (a1 < cap) packed += 1;
+//     *(int*)(&D_0 + 0x2158) = packed;
+//   }
+//
+// Struct-typing reference: identical to gl_func_00028358 /
+//   gl_func_0002842C (see their comments) — (a0,a1) -> &D_0+0x2158
+//   via USO-relocated lookup then a &D_0+0x2030 / 0x14-stride registry
+//   fallback. The ONLY difference vs the other two: this variant
+//   range-checks a1 against the record's HALFWORD at +0x4 (94590004
+//   lhu) rather than a byte at +0 / +1 — i.e. it consults a 16-bit
+//   sub-count field of the same record. The three together cover the
+//   byte-+0 / byte-+1 / halfword-+4 sub-count variants of the
+//   registry select/resolve entry.
+// Caps: raw-word USO + jal-0 USO-reloc lookup — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028604);
