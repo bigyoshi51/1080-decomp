@@ -10167,6 +10167,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 
+// gl_func_00038964 — STRUCTURAL PASS (0xC4 / 49 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list-traversal + DOUBLE per-node vtable dispatch —
+// sibling of gl_func_00038598 / gl_func_0003863C / gl_func_00038728.
+//
+//   void gl_func_00038964(O *o, void *ctx) {
+//     N *n = o->p_10;
+//     while (n != 0) {
+//       N *node = *n;
+//       H *h = node->p_28;                        // handler object
+//       int (*f1)() = node->fp_2C;
+//       f1(ctx, h->h_28 + ...);                    // jalr node->0x2C
+//       int (*f2)() = node->fp_34;
+//       f2(ctx, h->h_30 + ...);                    // jalr node->0x34
+//       n = n->next_4;
+//     }
+//   }
+//
+// Struct-typing reference: a TWO-PHASE per-element process pass over
+//   an intrusive list (collection-processor family with
+//   gl_func_00038598 / 0003863C / 00038728). It walks the list
+//   rooted at o->0x10 (next at +0x04) and, for every node, calls
+//   TWO distinct vtable function pointers in sequence —
+//   node->0x2C then node->0x34 — each receiving the context arg
+//   (a1 = the second parameter, threaded through) plus a halfword
+//   from the per-node handler object (handler = node->0x28; args
+//   handler->0x28 and handler->0x30) added to a node-relative base.
+//   The two-method-per-node shape is the classic update-then-render
+//   (or pre/post) pair. Extends the per-node vtable slot map of the
+//   family (node->0x2C / 0x34 here vs node->0x28+0x14 in 00038598,
+//   node->0x28+0x1C in 0003863C). A per-frame dual-pass collection
+//   driver of the game_libs object subsystem.
+// Caps: raw-word USO + intrusive-list walk + two jalr-through-node-
+//   vtable dispatches per element — not exact-matchable without
+//   proper USO mnemonic disasm + the node/handler structs typed;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038964);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038A28);
