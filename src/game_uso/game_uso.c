@@ -7476,6 +7476,37 @@ far_exit:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 #endif
 
+// game_uso_func_000097EC — STRUCTURAL PASS (0x39C / 231 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic segment). FP-heavy (33 FP ops, ~6 calls).
+//
+// Multi-point ground/height-contact query: for several reference
+// points on an object, raycast/sample the terrain and store the
+// flattened contact position (snowboard ground-contact sampling).
+//
+//   void game_uso_func_000097EC(Obj *obj, A a1) {
+//     World *w = obj->0x30;
+//     if (!w->0x908) return;                              // no terrain
+//     // repeated unit (~4-5x), once per reference point:
+//     //   r = func_00000000(0xC, &w->0x318[k], &sp.scratch);
+//     //   if (r) {                                        // hit
+//     //     dst->x = scratch[0];  dst->y = 0.0f;          // flatten Y
+//     //     dst->z = scratch[2];
+//     //   }
+//     //   k advances; dst is the next contact-point slot.
+//   }
+//
+// Struct-typing reference:
+//   obj->0x30 = World/terrain ctx; w->0x908 = terrain-loaded flag;
+//   w->0x318 = base of reference-point records (per-point input to
+//     the op-0xC raycast). func_00000000(0xC, point, &out) = the USO
+//     terrain height/raycast query (op code 0xC); out Vec3 -> the
+//     object's contact-point array with Y zeroed (XZ-plane contact).
+//   sp+0xF4 / sp+0x100 = result scratch. a1 = a secondary param.
+// Caps: raw-word USO + placeholder calls + 231-word FP loop — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
