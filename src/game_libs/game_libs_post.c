@@ -6115,6 +6115,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F638);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F72C);
 
+// gl_func_0002F8A0 — STRUCTURAL PASS (0x94 / 37 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A small command-sequence selector by mode.
+//
+//   void gl_func_0002F8A0(int mode) {
+//     switch (mode) {
+//       case 0:
+//         emit(0x06000100, 1);              // jal 0 (USO callback)
+//         emit(0x06000300, 1);
+//         break;
+//       case 1:
+//         emit(0x06000500, 1);
+//         emit(0x06000700, 1);
+//         break;
+//       case 2:
+//         emit(0x06000500, 1);
+//         break;
+//       default:                            // no-op
+//         break;
+//     }
+//   }
+//
+// Struct-typing reference: a fixed command-stream selector. The mode
+//   arg (0/1/2; any other value is a no-op) chooses a short, hard-
+//   coded sequence of command words from the 0x06000000 bank — pairs
+//   {0x0100,0x0300} / {0x0500,0x0700} or the single {0x0500} — each
+//   submitted via a USO-relocated callback (jal 0 → resolved at load)
+//   with the second arg fixed at 1. A canned-sequence emitter leaf of
+//   the game_libs object subsystem (issues preset command groups; the
+//   0x06000000 bank matches gl_func_0002F638's command-word banks).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + canned switch
+//   dispatch — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F8A0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F934);
