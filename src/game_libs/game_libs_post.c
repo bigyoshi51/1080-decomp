@@ -11826,6 +11826,47 @@ end:
     return (int)a0;
 }
 
+// gl_func_0003C86C — STRUCTURAL PASS (0x234 / 141 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION — exactly
+// ONE 27BDFF40 prologue (saves f20); the three jr's are multiple
+// early-out / main returns (the body's `beql`-to-shared-epilogue
+// exits, not a multi-fn bundle). A circular-list traversal with
+// per-node vtable dispatch + halfword-mask filtering.
+//
+//   void gl_func_0003C86C(O *o) {
+//     L *head = o->p_30;
+//     if (head == 0) return;
+//     float NEG1 = -1.0f;                          // f20 = 0xBF800000
+//     for (N *n = head->next_4; n != head; n = n->next_4) {
+//       H *h = o->p_30;
+//       int r = h->fp_C(o, n, &local@sp+0x80);      // jalr (*o->0x30)->0xC
+//       if (r == 0) continue;
+//       if ((o->h_14 & o->h_16) == 0) continue;     // mask filter
+//       ... process n ...
+//     }
+//   }
+//
+// Struct-typing reference: a per-element process pass over a
+//   CIRCULAR intrusive list (collection-processor family with
+//   gl_func_00038598 / 0003863C / 00038964 / 00038728). It bails
+//   if the list anchor o->0x30 is null, then iterates from
+//   head->0x04 until the cursor returns to the head (the circular-
+//   list termination idiom `n == head`), calling a VTABLE function
+//   pointer at (o->0x30)->0x0C per node (with the object, the node,
+//   and a stack scratch buffer at sp+0x80) and filtering on the
+//   conjunction of two halfword fields o->0x14 & o->0x16 (an
+//   enable/category mask). Uses the constant -1.0f in the FP
+//   callee-save f20. A per-frame "process eligible nodes of a
+//   circular list" traversal of the game_libs object subsystem —
+//   the circular-list variant of the gl_func_00038598 / 00038964
+//   collection processors (the o->0x30 anchor + ->0xC handler slot
+//   tie it to the device-object vtable family).
+// Caps: raw-word USO + circular intrusive-list walk + jalr through
+//   the list-owner vtable ((o->0x30)->0x0C) + halfword-mask filter
+//   + multi-return — not exact-matchable without proper USO
+//   mnemonic disasm + the list/handler structs typed; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
 
 /* gl_func_0003CAA0: 24-insn alloc-or-given Vec6-zero constructor. */
