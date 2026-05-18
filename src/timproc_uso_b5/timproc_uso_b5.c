@@ -668,6 +668,44 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001658);
 
+// timproc_uso_b5_func_000018B4 — STRUCTURAL PASS (0x354 / 213 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// 3-child labeled-widget panel constructor (alloc-or-reuse) for
+// timproc_uso_b5; returns the constructed object.
+//
+//   void *timproc_uso_b5_func_000018B4(Obj *self, a1, Owner *owner) {
+//     if (!self) { self = func_00000000(0x58); if (!self) return 0; }
+//     func_00000000(self, &D_000010D0);                // base-init
+//     self->0x28 = &D_0;                                // vtable
+//     self->0x0C = &D_000010D8;                         // descriptor
+//     self->0x30 = owner;                               // owner (arg2)
+//     self->0x2C = a1;                                  // arg1 ptr
+//     // 3x near-identical child blocks (names &D_000010E8 / _10F8 /
+//     //   _110C), each: build a spec on stack, c =
+//     //   func_00000000(0, ..., idx) with idx = 1,2,3 (3rd adds flag
+//     //   0x80); self->{0x34,0x38} = c; func_00000000(c+0x10, .);
+//     //   if (!c->0x14) c->0x4 = 1;  c->0x14 = parent;  (dirty+link)
+//     // layout finalize: dims 0x78(120)/0xF0(240); if
+//     //   self->0x34->0x3C8 == K: self->0x3C/0x40/0x48 = 0,
+//     //   self->0x44 = 1.0f, self->0x50 = 3, self->0x4C = 0;
+//     //   else: self->0x3C/0x40 = 1.0f, fields from prior children;
+//     //   self->0x54 = computed f32.
+//     return self;
+//   }
+//
+// Struct-typing reference:
+//   self(a0, alloc size 0x58): 0x0C descriptor(&D_10D8), 0x28
+//     vtable(&D_0), 0x2C a1 ptr, 0x30 owner, 0x34/0x38 child widget
+//     ptrs, 0x3C/0x40 f32 (1.0 default), 0x44 f32 scale, 0x48/0x4C
+//     state, 0x50 mode (3), 0x54 computed f32; child->0x3C8 a
+//     discriminator; child: 0x04 dirty, 0x14 parent link.
+//   &D_000010D0/10D8/10E8/10F8/110C = USO name/desc data; func_00000000
+//     = USO placeholder dispatcher (alloc / init / factory / attach).
+// Caps: raw-word USO + placeholder calls — not exact-matchable without
+//   proper USO mnemonic disasm; structure characterized. Structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000018B4);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001C08);
