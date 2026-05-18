@@ -23880,8 +23880,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C9F4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CAD4);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CAD4_pad.s")
 
-/* gl_func_0006CB84: 35-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006CB84: 35-insn RSP DMA setup helper.
+ *   r = gl_func_00000000(direction, mem_addr, dram_ptr, len);  // probably bounds-check
+ *   if (r != 0) return -1;
+ *   *(int*)0xA4040000 = mem_addr;                           // SP_MEM_ADDR_REG
+ *   *(int*)0xA4040004 = gl_func_00000000(dram_ptr);          // SP_DRAM_ADDR_REG = osVirtualToPhysical(dram_ptr)
+ *   if (direction != 0)
+ *     *(int*)0xA4040008 = len - 1;                           // SP_RD_LEN_REG (DMA read)
+ *   else
+ *     *(int*)0xA404000C = len - 1;                           // SP_WR_LEN_REG (DMA write)
+ *   return 0;
+ * Hardware regs at 0xA4040000+: SP MEM/DRAM/RD_LEN/WR_LEN. */
+int gl_func_0006CB84(int direction, int mem_addr, int dram_ptr, int len) {
+    int r = gl_func_00000000(direction, mem_addr, dram_ptr, len);
+    if (r != 0) return -1;
+    *(volatile int*)0xA4040000 = mem_addr;
+    *(volatile int*)0xA4040004 = gl_func_00000000(dram_ptr);
+    if (direction == 0) {
+        *(volatile int*)0xA404000C = len - 1;
+    } else {
+        *(volatile int*)0xA4040008 = len - 1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CB84);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CB84_pad.s")
 
 #ifdef NON_MATCHING
