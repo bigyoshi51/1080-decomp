@@ -8669,6 +8669,45 @@ void gl_func_000359C4(int a0, int a1, int a2, int a3) {
     gl_func_00000000(a1, a3, a1);
 }
 
+// gl_func_00035A18 — STRUCTURAL PASS (0x80 / 32 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue; trailing _pad.s left untouched). A table-driven
+// indirect (function-pointer-table) dispatcher.
+//
+//   int gl_func_00035A18(Rec *r) {
+//     short i = r->h_0A;                        // index / id
+//     short j = r->h_08;                        // secondary index
+//     T  *base = r->p_04;
+//     if (i >= 0) { ... a1 = j + base; ... }     // bgez branch
+//     else {
+//       Ent *tbl = ...;                          // entry stride 8
+//       Ent *e = &tbl[k];                         // k from j*8
+//       short hw = e->h_0;
+//       int (*f)() = e->fp_4;                     // fn ptr at +4
+//       a1 = hw + a1;
+//       return f(a1);                             // jalr e->fp_4
+//     }
+//   }
+//
+// Struct-typing reference: a jump-table / message dispatcher. The
+//   passed record carries type/index halfwords at offsets 0x08 and
+//   0x0A and payload pointers at 0x04 / 0x0C. A non-negative index
+//   takes a direct add path; otherwise it indexes a FUNCTION-
+//   POINTER TABLE whose entries are 8 bytes each — a leading
+//   halfword plus a code pointer at entry+0x04 — and tail-calls
+//   the selected handler via `jalr` (passing a computed argument
+//   = table-entry halfword + base). A polymorphic event/command
+//   dispatch leaf of the game_libs object subsystem (the 8-byte
+//   {tag, handler} table is the per-message handler array; sibling
+//   of the gl_func_00035A18-family vtable dispatchers and the
+//   gl_func_0002FB74 interpreter's opcode arms — this one keys on
+//   the record's own 0x08/0x0A id fields rather than a global
+//   handler vtable).
+// Caps: raw-word USO + jalr through an 8-byte {tag, fn-ptr} handler
+//   table indexed by record id fields — not exact-matchable
+//   without proper USO mnemonic disasm + the record/table structs
+//   typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035A18);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00035A18_pad.s")
 
