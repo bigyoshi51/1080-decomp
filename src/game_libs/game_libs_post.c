@@ -4836,6 +4836,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
 
+// gl_func_0002CF70 — STRUCTURAL PASS (0xA4 / 41 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A bulk record sweep over the &D_0+0x2D00 sprite-record
+// table (the gl_func_0001FBD4 table).
+//
+//   void gl_func_0002CF70(int a0) {
+//     S *g = &D_0;
+//     int n = g->h_2048;                                // record count
+//     *(int*)(&D_5364) = ((... - a0 - 1) * stride);       // cached calc
+//     if (n == 0) return;
+//     R *rec = (char*)g + 0x2D00;                          // 0x160 ent
+//     for (int i = 0; i < n; i++) {
+//       if (rec->w_0 < 0) {                                // sign-bit on
+//         jal 0x40E10(rec);                                // 0x0C010384
+//         (*handler)(rec);                                 // jal 0 USO
+//       }
+//       n = g->h_2048;                                     // reload cnt
+//       rec += 0x160;                                       // stride
+//     }
+//   }
+//
+// Struct-typing reference: iterates the SAME record table as
+//   gl_func_0001FBD4 / gl_func_0002119C — base &D_0+0x2D00, fixed
+//   stride 0x160, live count halfword &D_0+0x2048. A count-derived
+//   product is cached into the global word &D_5364 up front. Each
+//   record whose word +0 has its sign bit set (active marker) is
+//   processed via the fixed routine 0x0C010384 (≈0x40E10) followed by
+//   a USO-relocated per-record handler (`jal 0` slot). A bulk
+//   "process every active record" sweep over that table (sibling to
+//   gl_func_0001FBD4's lighter callback sweep).
+// Caps: raw-word USO + fixed-target + jal-0 USO-reloc per-record
+//   calls — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002CF70);
 
 #ifdef NON_MATCHING
