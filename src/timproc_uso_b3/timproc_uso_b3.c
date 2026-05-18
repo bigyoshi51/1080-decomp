@@ -615,7 +615,48 @@ void timproc_uso_b3_func_00002388(void) {
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002700);
+/* Byte-identical sibling of timproc_uso_b1_func_000024F4 (147 insns).
+ * Same display-list build pattern. */
+void timproc_uso_b3_func_00002700(int a0) {
+    gl_func_00000000((char *)&D_00000000 + 112,
+                     0x260000 | (*(int *)&D_00000000 << 3));
+    gl_func_00000000((char *)&D_00000000 + 136,
+                     0x260000 | ((*(int *)&D_00000000 << 3) + 1));
+    gl_func_00000000((char *)&D_00000000 + 160,
+                     0x260000 | ((*(int *)&D_00000000 << 3) + 2));
+    gl_func_00000000((char *)&D_00000000 + 184,
+                     0x260000 | ((*(int *)&D_00000000 << 3) + 3));
+    gl_func_00000000((char *)&D_00000000 + 208,
+                     0x260000 | ((*(int *)&D_00000000 << 3) + 4));
+    gl_func_00000000((char *)&D_00000000 + 232,
+                     0x260000 | ((*(int *)&D_00000000 << 3) + 5));
+    gl_func_00000000((char *)&D_00000000 + 256,
+                     0x260000 | ((*(int *)&D_00000000 << 3) + 6));
+    gl_func_00000000((char *)&D_00000000 + 280,
+                     0x260000 | ((*(int *)&D_00000000 << 3) + 7));
+    gl_func_00000000((char *)&D_00000000 + 16, 0x280000);
+    gl_func_00000000((char *)&D_00000000 + 40, 0x280000 | 1);
+    gl_func_00000000((char *)&D_00000000 + 64, 0x280000 | 2);
+    gl_func_00000000((char *)&D_00000000 + 88, 0x280000 | 3);
+    gl_func_00000000((char *)&D_00000000 + 304,
+                     (*(int *)&D_00000000 + 52) << 16);
+    gl_func_00000000((char *)&D_00000000 + 328,
+                     ((*(int *)&D_00000000 + 52) << 16) | 3);
+    gl_func_00000000((char *)&D_00000000 + 352,
+                     ((*(int *)&D_00000000 + 52) << 16) | 4);
+    gl_func_00000000((char *)&D_00000000 + 448,
+                     ((*(int *)&D_00000000 + 52) << 16) | 1);
+    gl_func_00000000((char *)&D_00000000 + 472,
+                     ((*(int *)&D_00000000 + 52) << 16) | 2);
+    gl_func_00000000((char *)&D_00000000 + 376,
+                     ((*(int *)&D_00000000 + 45) << 16) | 4);
+    gl_func_00000000((char *)&D_00000000 + 400,
+                     ((*(int *)&D_00000000 + 45) << 16) | 5);
+    gl_func_00000000((char *)&D_00000000 + 424,
+                     ((*(int *)&D_00000000 + 45) << 16) | 6);
+    gl_func_00000000((char *)&D_00000000 + 496, 0x2F0012);
+    (void)a0;
+}
 
 /* timproc_uso_b3_func_0000294C - verified structural decode (0xF8,
  * 62 insns, state dispatcher + record-vtable dispatch).
