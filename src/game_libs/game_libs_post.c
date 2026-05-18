@@ -1946,6 +1946,38 @@ void gl_func_0002372C(int a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023760);
 
+// gl_func_00023838 — STRUCTURAL PASS (0xDC / 55 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Decodes a registry record's two code fields and acts.
+//
+//   void gl_func_00023838(int a0) {
+//     int  j   = jal 0x38174(1);                        // 0x0C00E05D
+//     R   *rec = (char*)(&D_0 + 0x2030) + j*0x14;        // reg table
+//     byte c2  = rec->b_2;
+//     byte c3  = rec->b_3;
+//     int  x = 0, y = 0;
+//     if (c2 != 0xFF) {
+//       jal 0x37DCC(c2, &x);                              // 0x0C00DF73
+//     }
+//     if (c3 != 0xFF) {
+//       jal 0x37DCC(c3, &y);                              // 0x0C00DF73
+//     }
+//     jal 0x37F80(1, j, &..., x, y);                      // 0x0C00DFE0
+//   }
+//
+// Struct-typing reference: indexes the SAME registry table as
+//   gl_func_000221D8 / gl_func_00022464 — base &D_0+0x2030, fixed
+//   0x14 entry stride, byte fields +2 / +3 are code values with 0xFF
+//   = "none/empty" sentinel. The index `j` comes from the shared poll
+//   routine 0x0C00E05D (≈0x38174, arg 1). Each non-empty code is
+//   resolved through the fixed decoder 0x0C00DF73 (≈0x37DCC) into a
+//   stack scratch slot, then the pair is committed via the fixed
+//   routine 0x0C00DFE0 (≈0x37F80). The "decode & apply a record's
+//   two code fields" entry of the game_libs registry subsystem.
+// Caps: raw-word USO + fixed-target decode/commit calls — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023838);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023914);
