@@ -1265,6 +1265,7 @@ void gl_func_0000DB80(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
 #endif
 
+/* gl_func_0000DC90: 45-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
 
 /* gl_func_0000DD44 - verified structural decode (38-insn br=0
