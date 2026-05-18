@@ -15724,6 +15724,38 @@ void gl_func_00043284(int *a0, int a1) {
 // struct + the &D_0+0x18C global untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000432BC);
 
+// gl_func_00043484 — STRUCTURAL PASS (0xD0 / 53 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0, no calls (leaf) → ONE clean function. Single
+// prologue frame 0x10. Halfword buffer zero-fill with unrolled main loop.
+//
+//   void gl_func_00043484(void *arr, int idx, int count) {
+//     short *p = *(short**)((char*)arr + idx*4 + 0xF4);  // derive base ptr
+//     if (count <= 0) return;
+//     int rem = count & 3;                                 // remainder phase
+//     if (rem != 0) {
+//       do { *p = 0; p += 1; } while (--rem);               // sh zero, +2
+//     }
+//     int n = count >> 2;                                  // 4-at-a-time main
+//     if (n != 0) {
+//       do {
+//         p[0] = 0; p[1] = 0; p[2] = 0; p[3] = 0;
+//         p += 4;
+//       } while (--n);
+//     }
+//     int g = *(int*)&D_g;                                 // 3C03../8C63..
+//     int written = (int)p - count;                         // subu byte delta
+//     // (tail uses written vs g — a fill-extent/bounds bookkeeping value)
+//   }
+// Zeroes `count` 16-bit elements of the buffer reached via
+// *(arr + idx*4 + 0xF4): a (count & 3) remainder loop followed by a
+// 4-halfword-unrolled main loop (the cursor is spilled to sp+0x04 across
+// iterations), then a closing subu against a module global computes a
+// written-extent delta. Family: buffer-management / zero-fill (relates to
+// the byte-pack/quantize routine gl_func_000430E4). The unroll factor (4),
+// the (count & 3) split, the sh-zero stride and the arr+idx*4+0xF4 base
+// derivation are exact; the trailing global-delta use is representative.
+// Caps: arr element struct + &D_g global untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043484);
 
 void gl_func_00043558(int *a0) {
