@@ -18055,6 +18055,34 @@ void gl_func_0004D658(int a0) {
     gl_func_00000000(a0);
 }
 
+// gl_func_0004D688 — STRUCTURAL PASS (0x3B4 / 238 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x50
+// (saves ra + s0..s7). Object init + global-wire with magic-signature
+// (cb = jal 0 USO-relocated; name literal &D_0002021C).
+//
+//   void gl_func_0004D688(void *a0, int a1) {
+//     self = a0;
+//     self->p48 = 0;
+//     self->p18 = 0;
+//     self->p40 = &D_0002021C;                        // name/desc literal
+//     self->p10 = 0;
+//     cb1(&D_g, a1);                                   // register/init
+//     int g = *(int*)0x4CB00;                           // module global
+//     unsigned MAGIC = 0x12345678;                       // signature / init
+//                                                        //   key constant
+//     // ... validate g against MAGIC (header/signature check) and continue
+//     //     wiring self fields off &D_g / &D_g2 state.
+//   }
+// Initialises the object: clears self->0x48/0x18/0x10, binds a name/desc
+// pointer at self->0x40 (&D_0002021C), registers via cb1(&D_g, a1), then
+// reads a module global at *0x4CB00 and a 0x12345678 magic/signature
+// constant used as a header-validity or init key. Family: cb-driven
+// constructor/init + global-wire (siblings gl_func_0004C5E4 / 0004B0A8 /
+// 00040070). Post-magic wiring tail representative (238-word init) — the
+// cleared 0x48/0x18/0x10 fields, the &D_0002021C name binding at 0x40, the
+// cb1(&D_g,a1) call, the *0x4CB00 global read and the 0x12345678 signature
+// constant are exact. Caps: self/&D_g struct + cb signature untyped. Full
+// body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D688);
 
 /* gl_func_0004DA40: 68-insn helper. Multi-pass decode pending. */
