@@ -18013,6 +18013,39 @@ void game_libs_func_0004D39C(int *a0, int **a1) {
 /* gl_func_0004D3E4: 33-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D3E4);
 
+// gl_func_0004D468 — STRUCTURAL PASS (0x1EC / 124 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x30
+// (saves ra + s0..s2). Object constructor + ROM-resource load (cb = jal 0
+// USO-relocated; name key &D_0002F1F4).
+//
+//   void *gl_func_0004D468(void *a0) {
+//     self = a0;
+//     if (a0 == 0) {
+//       self = cb1(0x50);                              // alloc 0x50-byte obj
+//       if (self == 0) return 0;                        // beqz bail
+//     }
+//     cb2(&D_0002F1F4, 0);                              // register name
+//     cb3(&D_0004EB00, 0xB0000B70, 0x100);              // load cart/ROM
+//                                                       //   resource
+//                                                       //   (0xB0000000 =
+//                                                       //   cart ROM region)
+//     self->p44 = 0;
+//     self->p00 = 0; self->p04 = 0; self->p08 = 0; self->p0C = 0;  // hdr clr
+//     void *sub = cb4(0x78, 0x10);                       // alloc 0x78-byte
+//                                                        //   sub-array (x16)
+//     if (sub) { ... }                                   // wire sub into self
+//   }
+// Constructs the object: alloc-if-null a 0x50-byte root (cb1), register
+// under the &D_0002F1F4 name, DMA/load a fixed cart-ROM resource
+// (segment-address 0xB0000B70, length 0x100) into the &D_0004EB00 buffer,
+// zero the object header (self->0x00/0x04/0x08/0x0C and 0x44), then allocate
+// a 0x78-byte (x0x10) sub-array and wire it in. Family: cb-driven
+// constructor + name registration + ROM-resource load (siblings
+// gl_func_0004B0A8 / 0004B620 / 00040070). Sub-array wiring tail
+// representative; the 0x50 alloc, the &D_0002F1F4 key, the 0xB0000B70 cart
+// address, the &D_0004EB00 dest, the zeroed header block and the cb4(0x78,
+// 0x10) sub-alloc are exact. Caps: object struct + cb signatures untyped.
+// Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D468);
 
 extern int gl_func_00000000();
