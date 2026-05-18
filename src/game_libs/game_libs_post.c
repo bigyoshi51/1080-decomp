@@ -19335,6 +19335,42 @@ void game_libs_func_000517E4(int *a0) {
     *(float *)((char *)a0 + 0x10) = 1.0f;
 }
 
+// gl_func_0005185C — STRUCTURAL PASS (0x148 / 82 words, no episode).
+// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x28,
+// saves ra only. 9 jal-0 = USO-relocated callbacks. Constructor /
+// cb-registration + init driver. Shape:
+//   void gl_func_0005185C(void *self) {
+//     // self spilled to sp+0x28
+//     cb_log(&D_base, "str_0x20EC8", 0);     // register named asset
+//     cb_init(self, 0);
+//     if (self->field_38 & BIT22) return;    // bgez (t<<9) guard
+//     o1 = cb_alloc(self, 0x10);  if (!o1) return;
+//     o2 = cb_alloc(o1, 0x10);    if (!o2) return;
+//     o3 = cb_alloc(o2, 4);       if (!o3) return;
+//     // install vtable/handler ptrs into the allocated objects:
+//     *(void**)o3       = (void*)0x20740;    // vtable
+//     *(void**)(o3 + 4) = self;              // back-ref
+//     w = *(int*)0x20638; *(int*)(o3 + 8) = w;     // copy 2-word
+//     w2= *(int*)0x2063C; *(int*)(o3 + 0xC) = w2;  // handler triple
+//     *(void**)o2       = (void*)0x20D88;
+//     cb_log(&D_base, "str_0x20ED0", 1);
+//     cb_bind(&D_base, "str_0x20ED8", self + 0x50, 0);  // wire +0x50
+//     cb_bind(&D_base, "str_0x20EE0", self + 0x54, 0);  // wire +0x54
+//     cb_finalize(&D_base);
+//   }
+// Family: lazy multi-subobject constructor + cb-registration/init
+// driver (recurring game_libs family — sibling of the cb-registration
+// init drivers and the alloc-cascade constructors). The frame, the
+// single ra save, the 9 USO callback sites, the &D_base + string-table
+// offset (0x20EC8/0x20ED0/0x20ED8/0x20EE0) register/bind argument
+// convention, the field_38 bit-22 (bgez of t<<9) early-out guard, the
+// 0x10/0x10/4 alloc-by-selector cascade with per-step null-return, the
+// 0x20740 / 0x20638-loaded triple / 0x20D88 vtable-handler installs
+// and the self+0x50 / self+0x54 sub-field binds are exact; the 9 cb
+// prototypes and the exact alloc/handler struct layout are
+// representative. Caps: self struct + all 9 USO cb prototypes untyped
+// (USO-relocated); string-table offsets not symbolized. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000519A4);
