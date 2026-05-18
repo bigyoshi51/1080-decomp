@@ -14698,6 +14698,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040CAC);
 // Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040DE8);
 
+// gl_func_00040E90 — STRUCTURAL PASS (0x170 / 94 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
+// (saves ra + s0..s3). List-walk Vec3-transform applier (FP-heavy; no cb
+// calls — pure in-memory transform).
+//
+//   void gl_func_00040E90(void *a0) {
+//     self = a0;                                   // s2
+//     void *h = self->p10;
+//     void *node;
+//     if (h) { saved = h->p04; node = h->p00; }     // resolve list head
+//     if (node == 0) return;
+//     n = node;                                     // s0
+//     int mask = MASK;                              // s3 = lui 0x2.. const
+//     Vec3 scr;                                     // sp+0x3C
+//     do {
+//       if (n->p08 & mask) {                         // per-node enable flag
+//         if (self->p2C & 2) {                       // global enable bit
+//           // copy n->0xB4/0xB8/0xBC into scr, reload as float, combine
+//           // with n->0xC0/0xC4/0xC8 and write the result to
+//           // n->0xDC/0xE0/0xE4 (primary Vec3 transform), then a second
+//           // triple n->0xCC.. -> n->0xE8/0xEC (secondary lane):
+//           scr.x = n->pB4; scr.y = n->pB8; scr.z = n->pBC;
+//           n->pDC = (float)scr.x ... n->pC0 ...;    // mul/add combine
+//           n->pE8 = (float)... n->pCC ...;
+//         }
+//       }
+//       n = n->next;                                 // advance list
+//     } while (n);
+//   }
+// Walks the list rooted at self->0x10 -> {p00 head, p04 alt}, and for each
+// node whose 0x08 has the s3-mask bit AND self->0x2C bit 1 set, recomputes
+// the node's transformed Vec3 fields at +0xDC/0xE0/0xE4 (and a secondary
+// +0xE8/0xEC pair) from its source Vec3 at +0xB4.. combined with the
+// +0xC0..0xCC coefficient block (via an sp+0x3C float scratch). Family:
+// FP Vec3 geometry/transform (per-node variant of gl_func_00040CAC's
+// dispatcher; list-walk shape shared with gl_func_00040974). Per-node lane
+// arithmetic representative — head resolution, the 0x08&mask / 0x2C&2 gate,
+// the +0xB4 source / +0xC0 coeff / +0xDC dest offsets are exact. Caps:
+// node/self struct + the s3 mask constant untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040E90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041008);
