@@ -2025,6 +2025,33 @@ int gl_func_00023B08(int a0, int a1) {
     return a1;
 }
 
+// gl_func_00023B44 — STRUCTURAL PASS (0x98 / 38 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 5-jr USO bundle
+// (named fn + 4 tiny trailing getters) — deferred USO re-split. The
+// named leading fn (~20 words, ends at 0x23B90) is a two-step
+// init/begin.
+//
+//   int gl_func_00023B44(int a0, int a1) {
+//     int r = (*step1)(a0, a1);                          // jal 0 USO
+//     if (r == 0) return 0;                               // step1 fail
+//     int r2 = (*step2)(r, 2);                            // jal 0 USO
+//     if (r2 == 0) return 0;
+//     return 1;                                            // success
+//   }
+//
+// Struct-typing reference: a sequenced begin — calls one USO-relocated
+//   setup routine (`jal 0` slot) with the caller args; only on a
+//   non-zero result does it invoke a second USO-relocated routine
+//   (with constant 2), returning a 0/1 success flag. The 4 trailing
+//   bundled bodies are tiny accessors of the same &D_0 subsystem:
+//   a type→pointer selector (a0 == 0 / 1 / 2 picks a &D_ blob) and
+//   simple word getters reading globals &D_0+0x201C / 0x2020 / 0x2024
+//   (the registry/limit globals used by the gl_func_000221D8 /
+//   gl_func_00022FC0 families). Left for the deferred USO re-split.
+// Caps: raw-word USO + 5-fn unsplit bundle + jal-0 USO-reloc step
+//   calls — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023B44);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023BDC);
