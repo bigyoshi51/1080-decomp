@@ -1491,6 +1491,38 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Decode only when the Yay0/-O0 pipeline is tackled. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006D30);
 
+// timproc_uso_b5_func_00006E08 — STRUCTURAL PASS (0x270 / 156 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen expired-entry purge / list compaction (operates on
+// Scr; two element lists).
+//
+//   void timproc_uso_b5_func_00006E08(Scr *scr, a1) {     // scr -> s0
+//     if (!func_00000000(&D_0, 0x10001)) return;          // global gate
+//     if (!func_00000000(scr)) ...;
+//     float now = (float)func_00000000(scr);              // -> f20 ref
+//     // PASS 1: for i in [0 .. scr->0x3C4):
+//     //   e = scr->0x3D0[i];
+//     //   if (e->0x2A4 <= now) {                          // expired
+//     //     func_00000000(scr->0x4D4 ...);                // release
+//     //     shift scr->0x3D0[i+1..] down; scr->0x3C4--; i--;
+//     //   }
+//     // (gate func_00000000(.,0x4002) between passes)
+//     // PASS 2: identical compaction over the same list with the
+//     //   second predicate / scr->0x4D4 variant.
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x3C4 = live entry count, 0x3D0 = entry-ptr array base
+//     (compacted in place), 0x4D4 = a release/free helper target;
+//     entry->0x2A4 = f32 expiry timestamp (compared <= current time
+//     from func_00000000). D_0 global flags 0x10001 / 0x4002 gate
+//     the two passes. func_00000000 = USO placeholder dispatcher
+//     (time query / release / gate).
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006E08);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007078);
