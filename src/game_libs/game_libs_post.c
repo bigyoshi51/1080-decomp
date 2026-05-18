@@ -491,6 +491,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
 
+// gl_func_0001F3C8 — STRUCTURAL PASS (0x720 / 456 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
+// (named fn + 2 trailing helpers) — deferred USO re-split. The named
+// leading fn is a large tile-mode dispatcher + display-list builder
+// in the game_libs F3D family. -8 frame, s0 saved, args on stack.
+//
+//   ret gl_func_0001F3C8(a0, a1, R *a2, a3, int kind) {  // kind at sp+0x1C
+//     switch (kind) {                              // beq 1 / beq 2
+//       case 1:  a2->b_3 = a2->b_3src;             // tile class A
+//                a2->b_2 = 0x0940-selector; break;
+//       case 2:  a2->b_2 = a2->b_2src;             // tile class B
+//                a2->b_3 = 0x0AE0-selector; break;
+//       default: ...                                // pass-through
+//     }
+//     ... large body (~0xAA-word forward span): builds the F3D tile/
+//         load display list using the chosen 0x0940 vs 0x0AE0
+//         descriptor class, the 0x05C0 / 0x03C0 tile tags, and a
+//         per-row emit loop into the dst Gfx cursor; cleanup +
+//         return ...
+//   }
+//
+// Struct-typing reference: a2 is a tile-state record — bytes a2->2
+//   and a2->3 hold the active tile-descriptor selectors, swapped
+//   between a 0x0940-class and a 0x0AE0-class depending on the
+//   stack-passed `kind` code (1, 2, or default). The body emits the
+//   matching G_LOADBLOCK/G_SETTILE-style GBI command sequence
+//   (0x05C0 / 0x03C0 tile tags) for the selected class. Top of the
+//   gl_func_0001F248 texture/tile builder sub-family.
+// Caps: raw-word USO + 3-fn unsplit bundle + large multi-branch
+//   dispatcher — not exact-matchable without proper USO mnemonic
+//   disasm; high-level structural pass only for the named leading
+//   fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
