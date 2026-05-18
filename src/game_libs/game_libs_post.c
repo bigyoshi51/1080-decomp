@@ -19726,6 +19726,54 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000525F0);
  * documented involved game_libs path, not a quick win). INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052674);
 
+// gl_func_000526D0 — STRUCTURAL PASS (decl 0x2C4 / 177 words, no
+// episode). Raw-.word USO. realjr=2, regjr=0 → 2-FUNCTION BUNDLE.
+// BOUNDARY NOTE (DEFERRED USO RE-SPLIT): the declared symbol holds
+// (1) gl_func_000526D0 itself (insns 1..146, prologue 27BDFFB8 frame
+// 0x48, saves ra+s0, ends jr ra at insn 145 + sp+=0x48 delay) and
+// (2) a trailing NO-FRAME LEAF starting ~insn 147 (8C8E0008 lw t6,
+// 8(a0) — reads caller-set a0 with no prologue; ADDENDUM-18b
+// no-interior-27BDFF tail), ending at its own jr ra. splat could not
+// see the boundary on relocatable USO; a future re-split should cut
+// the second function off at 0x00052914.
+// (1) gl_func_000526D0 — lazy constructor / struct deep-clone, 5
+//     jal-0 USO callbacks:
+//   void *gl_func_000526D0(void *obj, void *src, void *src2,
+//                          int doCopy) {
+//     if (obj == 0) {
+//       obj = cb_alloc(0xB0); if (!obj) return 0;
+//       cb_init(obj, src);
+//     }
+//     obj->field_28 = &D_vtable;
+//     sub = cb_alloc(0x14);                  // sub-object
+//     if (sub) { sub->8 = 0; sub->0xC = 0; }
+//     cb_init2(obj, ...);
+//     if (doCopy != 0) {
+//       // field-by-field deep copy of the ~0xB0-byte record
+//       // src2 -> obj for offsets 0x00..0xAC (incl. float @ 0x9C)
+//     }
+//     flagword |= 0x10;                       // ori bit-4
+//     obj->field_1C = sub;                    // back-ref
+//     if (src2 != 0) cb_finalize(obj, src2);
+//     return obj;
+//   }
+// (2) trailing leaf — object field-reset initializer:
+//   void <leaf>(void *o) {
+//     o->field_8 |= 0x800;
+//     // zero o->0x40..0x80 and o->0x3C; o->0x98 = -1; o->0xA0 = 0;
+//     // o->0xA4 = -1; o->0xA8 = 0; o->0xAC = 0; o->0x9C = 1.0f
+//   }
+// Family: lazy multi-subobject constructor + deep-clone (1) and a
+// default-field-reset initializer (2) — recurring game_libs families.
+// The bundle boundary, both frames (0x48 / no-frame leaf), the
+// alloc-0xB0 + cb_init + vtable@0x28 + alloc-0x14 sub-object +
+// conditional ~0xB0 deep-copy + flag|0x10 + back-ref@0x1C +
+// cb_finalize constructor skeleton, and the leaf's field_8|0x800 /
+// 0x40..0x80 zero / -1 sentinels @0x98/0xA4 / 1.0f@0x9C reset are
+// exact; the 5 cb prototypes and the exact copied field map are
+// representative. Caps: structs + cb prototypes untyped
+// (USO-relocated); bundle awaits re-split. Full body
+// INCLUDE_ASM-preserved (covers both bundled functions).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000526D0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052994);
