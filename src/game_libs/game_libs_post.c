@@ -3778,6 +3778,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A68);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028B0C);
 
+// gl_func_00028C6C — STRUCTURAL PASS (0x228 / 138 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 7-jr USO bundle
+// (named fn + 6 trailing helpers) — deferred USO re-split. The named
+// leading fn is a multi-mode counted loop processor.
+//
+//   void gl_func_00028C6C(int a0, int n, …) {
+//     (*setup)(a0);                                     // jal 0 USO
+//     if (n <= 0) return;
+//     int mode = 0;
+//     for (int i = 0; i < n; i++) {
+//       switch (mode) {                                  // beq 1/2/3/4
+//         case 1: (*h1)(…); break;
+//         case 2: (*h2)(…); break;
+//         case 3: (*h3)(…); break;
+//         case 4: (*h4)(…); break;
+//         default: ...
+//       }
+//       ... advance mode / index, accumulate ...
+//     }
+//   }
+//
+// Struct-typing reference: a state-driven counted dispatch loop. It
+//   runs a leading USO-relocated setup, then iterates `n` (a1) times,
+//   each pass routing on a running mode value in {1,2,3,4} to one of
+//   four USO-relocated per-mode handlers (`jal 0` slots). Stack args
+//   sp+0x44 / sp+0x48 (s2 / s1) and the caller object a0 thread
+//   through the handlers. A small interpreter/sequencer: walk a
+//   command/state list `n` long, executing the mode-appropriate
+//   action each step. The 6 trailing bundled bodies are its
+//   per-mode/helper leaves, left for the deferred USO re-split.
+// Caps: raw-word USO + 7-fn unsplit bundle + 4-way mode loop with
+//   jal-0 USO-reloc handlers — not exact-matchable without proper
+//   USO mnemonic disasm; structural pass only for the named leading
+//   fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028C6C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028E94);
