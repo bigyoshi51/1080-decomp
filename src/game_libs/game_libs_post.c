@@ -1326,6 +1326,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000223DC);
 
+// gl_func_00022464 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. The named
+// leading fn is a SIBLING of gl_func_000221D8: same registry-table
+// scan, but the iterate-and-process-all-matches variant.
+//
+//   ret gl_func_00022464(K *key) {
+//     S    *g   = &D_0;
+//     int   n   = *(int*)(g + 0x2020);                // entry count
+//     int   acc = 0, cnt = 0;
+//     if (n <= 0) return 0;
+//     char *tbl = *(char**)(g + 0x2030);              // record table
+//     byte  kb  = key->b_0;
+//     for (int i = 0; i < n; i++) {
+//       char *e  = tbl + ...;
+//       byte  t2 = e->b_2, t3 = e->b_3;
+//       if (t2 == 0xFF) continue;                       // empty slot
+//       if (t3 != 3 && t2 == kb) {                       // match gate
+//         r = (*proc)(e, key);                            // jal 0 USO
+//         if (r == 0) continue;
+//         ... accumulate into acc/cnt ...
+//       }
+//     }
+//     g->w_1E14 = 0;                                     // result clr
+//     return acc;
+//   }
+//
+// Struct-typing reference: same registry table as gl_func_000221D8
+//   (count word &D_0+0x2020, base pointer &D_0+0x2030; record match
+//   bytes +2 / +3; 0xFF empty-slot, 0x7F mask sentinel). This variant
+//   does not stop at the first hit — it walks every entry, invokes a
+//   USO-relocated per-match processor (`jal 0` slot) on each record
+//   whose byte +2 equals the key and byte +3 != 3, accumulating a
+//   result, and clears the result global &D_0+0x1E14 at the end. The
+//   bulk "apply to all matching registry entries" operation paired
+//   with the gl_func_000221D8 single-slot scan.
+// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc per-
+//   match processor — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only for the named leading fn, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
