@@ -344,6 +344,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
 
+// gl_func_0001E134 — STRUCTURAL PASS (0xD44 / 849 words ≈ 3.4KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle) — the LARGEST member of the game_libs text/sprite
+// subsystem seen so far: a sprite/record-build + DL-emit orchestrator.
+// Huge -0x160 frame, full s0-s8/ra save, a0 at sp+0x160, a3 at +0x16C.
+//
+//   ret gl_func_0001E134(a0, int *a1, a2, a3) {
+//     int w   = a1[0];                            // packed control word
+//     int idx = a0*4 - a0;                         // a0 * 3 ...
+//     idx = (idx + a0) << 4;                        // ... scaled stride
+//     int f0  = (w << 11) >> 30;                    // 2-bit subfield
+//     int f1  = (w <<  1) >> 31;                     // 1-bit subfield
+//     R *tbl  = *(R**)(&D_0 + 0x2CFC);              // record table ptr
+//     R *rec  = tbl + idx;                           // target record
+//     if (f1 != 1) {                                 // build branch
+//       rec->b_0  = 0;  rec->w_8  = 0;               // zero-init the
+//       rec->h_6  = 0;  rec->h_10 = 0;               //  record fields
+//       rec->h_12 = 0;  rec->b_2  = 0;  rec->b_3 = 0;
+//       ... populate from a1[]/a2 ...
+//     }
+//     ... ~800 words: per-element loop emitting F3D/GBI commands and
+//         delegating leaf glyph/sprite draws to the gl_func_0001CFDC
+//         family; cleanup + return ...
+//   }
+//
+// Struct-typing reference: control word a1[0] carries packed
+//   subfields decoded by shift pairs (<<11>>30 = bits, <<1>>31 = sign-
+//   ish flag). Record table is a pointer global at &D_0 + 0x2CFC;
+//   records are fixed-stride (index = a0*3 then <<4). A record R has
+//   byte fields at 0/2/3, halfwords at 6/0x10/0x12, word at 8 — all
+//   zero-initialized on the build path before being filled. This is
+//   the top-level sprite/text record builder + display-list emitter;
+//   leaf draws delegate to the gl_func_0001CFDC glyph family.
+// Caps: raw-word USO + very large multi-phase orchestrator with many
+//   fixed-target calls and packed-bitfield decode — not exact-
+//   matchable without proper USO mnemonic disasm; high-level
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
