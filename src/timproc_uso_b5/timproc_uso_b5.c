@@ -1942,6 +1942,43 @@ void timproc_uso_b5_func_000085E0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000085E0);
 #endif
 
+// timproc_uso_b5_func_00008688 — STRUCTURAL PASS (no episode).
+// Raw-.word USO. BOUNDARY NOTE: this .s is a LARGE multi-function USO
+// bundle (20 jr-ra; named fn 0x8688..0x879C ~70 words, then ~12 tiny
+// trailing functions 0x87A0..0x8948 — small flag-test predicates /
+// table accessors for the scr->0x3C0 state bits and D_000001D4 /
+// D_000001F4 / D_00000214 lookup tables, each returning a small int).
+// USO bundles aren't splittable by mnemonic split-fragments.py;
+// deferred USO re-split. Only the named leading function is decoded.
+//
+// Named fn = timing-screen camera-snapshot + mode-dependent begin:
+//   void timproc_uso_b5_func_00008688(Scr *scr, int mode) {  // scr->s0
+//     Cam *cam = scr->0x414->0x10;
+//     scr->0x4C4 = cam->0x60;  scr->0x4C8 = cam->0x64;
+//     scr->0x4CC = cam->0x68;                              // eye pos Vec3
+//     scr->0x4C0 = scr->0x414->0xC->0x70->0x14C;            // fov-like
+//     scr->0x4B4 = scr->0x3F8 = mode;
+//     scr->0x488 = scr->0x104;  scr->0x3FC = scr->0x404;
+//     scr->0x4BC = scr->0x484 = 0.0f;                       // anim reset
+//     // a few f32 scratch derived from scr->0x404 / cam fields;
+//     d = scr->0x28;                                        // begin call
+//     if      (mode == 2) (d->0x74)(d->0x70 + …);
+//     else if (mode != …) (d->0x6C)(d->0x68 + …);
+//     else                (d->0x64)(d->0x60 + …);
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x414 -> node (->0x10 cam: 0x60/0x64/0x68 eye-pos;
+//     ->0xC->0x70->0x14C fov), 0x4C4/0x4C8/0x4CC captured eye Vec3,
+//     0x4C0 captured fov, 0x4B4/0x3F8 mode, 0x104/0x404 init sources,
+//     0x488/0x3FC copies, 0x4BC/0x484 f32 anim state (=0), 0x28 vtable
+//     (->0x60/0x64, ->0x68/0x6C, ->0x70/0x74 dispatch idiom — begin
+//     variants by mode); 0x3C0 = state-flag word (tested by the
+//     trailing predicate bundle). D_000001D4/01F4/0214 = USO lookup
+//     tables. func_00000000 = USO placeholder dispatcher.
+// Caps: raw-word USO + unsplit bundle + placeholder calls — not
+//   exact-matchable here; structural pass only for the named fn.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008688);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000894C);
