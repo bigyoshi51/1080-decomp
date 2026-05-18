@@ -3745,6 +3745,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A18);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A68);
 
+// gl_func_00028B0C — STRUCTURAL PASS (0x160 / 88 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A 4-way mode dispatcher over parallel descriptor tables.
+//
+//   void gl_func_00028B0C(O *obj, …, int mode) {  // mode passed on stack
+//     D *t0 = &D_53A8, *t1 = &D_5398;
+//     D *t2 = &D_5388, *t3 = &D_5378;                     // 4 tables
+//     void *sub;
+//     switch (mode) {
+//       case 0:  sub = obj;        break;                 // +0x00
+//       case 1:  sub = obj + 0x10; break;
+//       case 2:  sub = obj + 0x20; break;
+//       case 3:  sub = obj + 0x30; break;
+//       default: sub = obj + 0x..; break;
+//     }
+//     ... register `sub` against the mode-selected &D_53xx table ...
+//   }
+//
+// Struct-typing reference: routes by a stack-passed `mode` (0..4)
+//   onto one of four parallel fixed descriptor blobs in the &D_53xx
+//   pool — &D_53A8 / &D_5398 / &D_5388 / &D_5378 (the same auxiliary
+//   descriptor/fn-ptr pool gl_func_0001FAE8 / gl_func_00028A68 use) —
+//   and a matching object sub-structure at obj + 0x00 / 0x10 / 0x20 /
+//   0x30 (parallel 0x10-stride sub-blocks). It then registers/binds
+//   the selected sub-block with the selected table. A per-channel
+//   binding dispatcher in the game_libs subsystem (four logical
+//   channels sharing one object, one descriptor table each).
+// Caps: raw-word USO + 4-way mode switch over parallel tables — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028B0C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028C6C);
