@@ -1369,6 +1369,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000223DC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
 
+// gl_func_00022760 — STRUCTURAL PASS (0x33C / 207 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A custom HEAP ALLOCATOR (first-fit block walk) in the
+// game_libs memory subsystem. -0x50 frame, s0/s1/ra saved.
+//
+//   void *gl_func_00022760(void *a0, int size, void *arena, void *a3) {
+//     S *g = &D_0;
+//     if (arena == 0) {                                // use default
+//       arena_end  = g->w_1E10;
+//       if (a3->b_0 < arena_end) { ... }
+//     }
+//     char *base = g->w_1E08;                           // block table
+//     char *end  = g->w_1E10;
+//     char *free = g->w_1E0C;                            // free cursor
+//     for (int idx = 0; ; idx++) {
+//       Blk *b = base + idx*0x10;                         // 0x10 hdr
+//       int  sz = b->w_4;
+//       if (size <= sz) {                                  // fits?
+//         short cap = b->h_A;
+//         if (cap - size >= ...) return b;                 // first-fit
+//       }
+//       ... advance / split / fail ...
+//     }
+//   }
+//
+// Struct-typing reference: a fixed-stride block-header heap. Arena
+//   globals live in the &D_0 state block — word &D_0+0x1E08 is the
+//   block-table base, &D_0+0x1E0C the free/alloc cursor, &D_0+0x1E10
+//   the arena end (same &D_0+0x1Exx region the gl_func_00021498 /
+//   gl_func_00022464 routines clear at +0x1E0C / +0x1E14). Each block
+//   is a 0x10-byte header (idx<<4) with word +4 = block size and
+//   halfword +0xA = capacity/free count; the loop is a first-fit
+//   search comparing the requested `size` against block free space.
+//   The low-level allocator under the gl_func_0001FD98 alloc helper /
+//   gl_func_00021F40 registry family.
+// Caps: raw-word USO + first-fit allocator loop — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
