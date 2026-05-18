@@ -16104,6 +16104,7 @@ int gl_func_0004DC44(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DC44);
 #endif
 
+/* gl_func_0004DCD4: 36-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DCD4);
 
 extern int gl_func_00000000();
