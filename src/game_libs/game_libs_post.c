@@ -14374,6 +14374,42 @@ void gl_func_0003FC2C(int *a0) {
     a0[1] = 1;
 }
 
+// gl_func_0003FC58 — STRUCTURAL PASS (0x2E4 / 186 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x180 (saves ra) → ONE clean function
+// (large opcode-switch). Carries a trailing _pad.s GLOBAL_ASM (left intact).
+// Command dispatcher (cb = jal 0 USO-relocated; per-case vtable method calls).
+//
+//   void gl_func_0003FC58(void *a0, int op, ...) {
+//     char scratch[..];                       // sp+0xE0 region
+//     cb(&scratch);                            // preamble emit/init
+//     *(int*)&D_flags |= 4;                    // set a module status bit
+//     switch (op) {                            // a1 = command/opcode
+//       case 0x34: case 0x16: case 0x0A: case 0x09: case 0x07:
+//       case 0x08: case 0x15: case 0x17: case 0x19: case 0x1B:
+//       case 0x1C:  // ...further li-at / beq-a1 arms follow...
+//         {
+//           // typical arm: resolve target object, then vtable dispatch
+//           Vt vt = obj->p28;
+//           short k = (short)vt->p28;
+//           (*(fnptr)vt->p2C)(k + obj);         // virtual method call
+//           // some arms read obj->0x28 -> +0xC fnptr / +0x08 short bias
+//           // variant, plus cb(...) emits with a format/string literal
+//         }
+//         break;
+//       default:  // fallthrough to common tail
+//     }
+//     // common tail: cb(...) finalize emits, return.
+//   }
+// Big li-immediate / beq-a1 opcode ladder (enumerated set above is the
+// leading run; ladder continues to ~0x84-offset default). Each arm resolves
+// an object and tail-dispatches through its vtable (vt = obj->0x28; fnptr at
+// vt->0x2C or vt->0x0C; arg = (short)vt->0x{28,08} + obj) interleaved with
+// cb staged emits. Family: command-handler/opcode dispatch + vtable (same
+// dispatch idiom as gl_func_0003EBDC/EC5C and the segment's serializers).
+// Per-arm bodies not individually decoded (186-word switch) — structure,
+// preamble, flag-set, opcode set and dispatch shape are exact; arm payloads
+// are representative. Caps: object/vtable struct + D_flags global + per-arm
+// detail untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0003FC58_pad.s")
 
