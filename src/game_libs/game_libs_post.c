@@ -23444,7 +23444,55 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069E04);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069F64);
 
+#ifdef NON_MATCHING
+/* gl_func_0006A304: pointer-relocation fixup driver. Gets the fixed
+ * object at segment offset 0x41710, calls the USO init/register cb
+ * (a0, obj, 0x40), then for each of 7 pointer fields
+ * (0x10/0x18/0x20/0x28/0x2C/0x30/0x38) if non-null replaces it with
+ * cb(field) (a relocate/resolve helper), returns obj.
+ *
+ * Cap: target keeps the reloc base in a spilled register (sw obj,
+ * 0x1C(sp); reloaded `lw tN,0x1C(sp); lw tM,OFF(tN)` base+offset
+ * before every field). With `(char*)&D_00000000 + 0x41710` IDO -O2
+ * constant-folds each field into an ABSOLUTE `lui;lw` (D+0x4171x),
+ * never keeping a base — 67 vs 71 insns, frame 0x18 vs 0x20. The
+ * base+offset form needs a DISTINCT relocated symbol `&D_00041710`
+ * (its own HI/LO reloc, so offsets stay immediates and IDO holds the
+ * symbol address in a reg/stack). That symbol is not in the segment
+ * symbol table (link error if referenced) — needs an
+ * undefined_syms_auto.txt / splat entry first. Deferred: symbol
+ * plumbing, then expect a clean match with the obj[] index form. */
+extern int D_00000000;
+extern int gl_func_00000000();
+int gl_func_0006A304(int a0) {
+    char *obj = (char *)&D_00000000 + 0x41710;
+    gl_func_00000000(a0, obj, 0x40);
+    if (*(int *)(obj + 0x10)) {
+        *(int *)(obj + 0x10) = gl_func_00000000(*(int *)(obj + 0x10));
+    }
+    if (*(int *)(obj + 0x18)) {
+        *(int *)(obj + 0x18) = gl_func_00000000(*(int *)(obj + 0x18));
+    }
+    if (*(int *)(obj + 0x20)) {
+        *(int *)(obj + 0x20) = gl_func_00000000(*(int *)(obj + 0x20));
+    }
+    if (*(int *)(obj + 0x28)) {
+        *(int *)(obj + 0x28) = gl_func_00000000(*(int *)(obj + 0x28));
+    }
+    if (*(int *)(obj + 0x2C)) {
+        *(int *)(obj + 0x2C) = gl_func_00000000(*(int *)(obj + 0x2C));
+    }
+    if (*(int *)(obj + 0x30)) {
+        *(int *)(obj + 0x30) = gl_func_00000000(*(int *)(obj + 0x30));
+    }
+    if (*(int *)(obj + 0x38)) {
+        *(int *)(obj + 0x38) = gl_func_00000000(*(int *)(obj + 0x38));
+    }
+    return (int)obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A304);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A420);
 
