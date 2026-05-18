@@ -3251,6 +3251,50 @@ end:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008B44);
 #endif
 
+// func_00008BD4 — STRUCTURAL PASS (0x344 / 209 insns, no episode).
+// Collision impulse / force-application onto a physics body, gated by
+// the body's flag-class (body->0x174) and the impulse magnitude.
+//
+//   void func_00008BD4(Body *b, float amt, Vec3 *dir, x a3) {
+//     u16 fl = b->0x174;
+//     if (fl & 0x1F0) {                      // heavy-contact class
+//       if (amt < 0.0f) return;
+//       int code = func_00000000((*(G**)D_0)->0x84, b->0x14C);
+//       if (code==0x61 || code==0x62 || code==0x63) return;  // 'a''b''c' skip
+//       Ctx *cx = b->0x170;  cx->0x938++;                    // hit counter
+//       if (amt < -30.0f) amt = -30.0f;       // clamp; cx->0x9A4 = (s16)code
+//       cx->0xA10 |= fl;                                       // merge flags
+//       float s = (float)(-(double)amt * 0.5);                 // scaled mag
+//       Vec3 imp = { dir->x*s, dir->y*s, dir->z*s };
+//       cx->0xB4  += imp;        // force/vel accum  (0xB4/B8/BC)
+//       cx->0x93C += *dir;       // torque/pos accum (0x93C/940/944)
+//       cx->0x968 += amt;        // scalar accum
+//       Vec3 n = { dir->x*-amt, dir->y*-amt, dir->z*-amt };
+//       func_00000000(cx, b+0x120, &n, ...);                  // apply
+//       return;
+//     }
+//     if (fl & 0xF) {                         // light-contact class
+//       if (amt < 50.0f) return;
+//       Ctx *cx = b->0x170;  cx->0x938++;  cx->0xA10 |= fl;
+//       cx->0x968 += amt;  cx->0x93C += *dir;
+//       float q = fabsf(cx->0x970);
+//       func_00000000(b+0x120, b+0x114, dir, q*q);            // apply
+//       func_00000000(b, amt, dir, 0.1f);                     // restitution
+//     }
+//   }
+//
+// Struct-typing reference:
+//   b->0x114/0x120 = sub-handlers' anchor offsets; b->0x14C lookup key;
+//   b->0x170 = physics Ctx; b->0x174 = u16 contact-flag class
+//     (bits 0x1F0 heavy / 0x0F light).
+//   Ctx: 0xB4/B8/BC force-accum Vec3, 0x93C/940/944 torque-accum Vec3,
+//     0x938 hit counter, 0x968 scalar accum, 0x970 a limit, 0x9A4 last
+//     contact code (s16), 0xA10 merged flag bits.
+//   Consts: -30.0 max-neg clamp, 0.5 half, 50.0 light threshold,
+//     0.1f (0x3DCCCCCD) restitution; code 0x61/62/63 = skip set.
+// Caps: 209-insn 2-branch physics accumulator w/ dispatcher applies;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008BD4);
 
 #ifdef NON_MATCHING
