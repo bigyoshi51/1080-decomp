@@ -15960,6 +15960,7 @@ void gl_func_00044CC4(int a0, int a1) {
     gl_func_00000000((unsigned char)a1);
 }
 
+/* gl_func_00044CE8: 43-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044CE8);
 
 /* gl_func_00044D94: 12-insn array-indexed forwarding wrapper. Post-split
