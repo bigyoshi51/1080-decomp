@@ -19659,6 +19659,42 @@ int *gl_func_000521F8(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000521F8);
 #endif
 
+// gl_func_0005231C — STRUCTURAL PASS (0x250 / 148 words, no episode).
+// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x18,
+// saves ra only. 1 jal-0 = USO-relocated trace callback. Command-id
+// if-chain bitfield-patch dispatcher. Shape:
+//   int *gl_func_0005231C(void *out, int cmd16, int *cur) {
+//     cmd = cmd16 & 0xFFFF;
+//     switch (cmd) {                       // if/else-if chain:
+//       case 0x03:  out->0xC = *cur++;            break;  // word copy
+//       case 0x0D:  w = *cur++;                            // bit set
+//                   if (param) w |= 1; else w &= ~1;       // .. /clear
+//                   cur[-1] = w;                  break;
+//       case 0x0E:  // toggle bit-1 of cur[0]      (ori 2 / andi ~2)
+//       case 0x0F:  // toggle bit-1 of cur[4]
+//       case 0x16:  // toggle bit-0 of cur[4]      (ori 1 / andi ~1)
+//       case 0x17:  // set bit-16 of cur[4]        (ori 0x10000 / andi)
+//       case 0x11:  // toggle bit-2 of cur[0]      (ori 4 / andi ~4)
+//       case 0x18:  // toggle bit-1 of cur[0]      (ori 2 / andi ~2)
+//       default:    goto done;
+//     }
+//     out->0x38 |= *cur++;                 // shared fold-in tail
+//     cb_trace("str_0x20FA8", cur);        // USO trace
+//   done:
+//     return cur;                          // advanced cursor (v0=a2)
+//   }
+// Family: jump-table / if-chain command-parameter decoder (recurring
+// game_libs family — sibling of gl_func_00051AD8 and the GBI/RDP
+// stream decoders; this is the bitfield-patch variant). The frame,
+// the single ra save, the (cmd & 0xFFFF) + 8-way li/beq id chain
+// (cmds 0x03/0x0D/0x0E/0x0F/0x11/0x16/0x17/0x18), the per-command
+// ori-mask / andi-inverse-mask read-modify-write into out->0xC /
+// cur[0] / cur[4] / out->0x38, the advance-by-4 cursor, the
+// cb_trace(0x20FA8) tail and the return-advanced-cursor (v0 = a2)
+// are exact; the exact per-command bit numbers, the param source and
+// the cb prototype are representative (deferred FULL-DECODE node).
+// Caps: out + cursor structs untyped, trace-string offset not
+// symbolized (USO-relocated). Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
 
 /* gl_func_0005256C: 33-insn helper. Multi-pass decode pending. */
