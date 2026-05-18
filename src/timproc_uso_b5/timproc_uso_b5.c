@@ -2143,6 +2143,39 @@ void timproc_uso_b5_func_00008F98(char *a0) {
 }
 
 
+// timproc_uso_b5_func_00008FC8 — STRUCTURAL PASS (0x19B4 / 1645 words,
+// no episode). Raw-.word USO form. LARGEST function in this segment —
+// entry/alloc/fan-out partial pass only; multi-run target.
+// BOUNDARY NOTE: 3-jr USO bundle (named master ctor + 2 tiny trailing
+// getters) — deferred USO re-split.
+//
+// Timing-screen MASTER constructor (the full timing/replay HUD screen
+// assembly):
+//   void *timproc_uso_b5_func_00008FC8(Obj *self, a1) {
+//     if (!self) { self = func_00000000(0x60); if (!self) return 0; }
+//     func_00000000(self, &D_00001348);                  // base-init
+//     self->0x28 = &D_0;  self->0x0C = &D_00001350;        // vtable/desc
+//     func_00000000(0x30);                                // aux alloc
+//     // fan-out (~84 func_00000000 calls): builds ~8 sub-records of
+//     //   0x70 bytes (the screen's panels/columns) + 0x30 + 0x2C
+//     //   sub-objects, each allocated/initialized/positioned/linked
+//     //   from the long descriptor table &D_00001348 / 1350 / 135C /
+//     //   1364 / 1460 / 1474 / 1488 / 1498 / 14A4 (0x13xx/0x14xx
+//     //   USO data pool).
+//     return self;
+//   }
+//
+// Struct-typing reference:
+//   self (alloc 0x60): 0x0C descriptor(&D_00001350), 0x28 vtable
+//     (&D_0); aggregates ~8 x 0x70 sub-records + 0x30/0x2C sub-objs.
+//   &D_00001348..&D_000014A4 = USO widget/label descriptor table.
+//   func_00000000 = USO placeholder dispatcher (alloc / init /
+//     factory / position / attach).
+// Caps: raw-word USO + unsplit bundle + 84 placeholder calls + 1645
+//   words — not exact-matchable here; structural (entry/alloc/
+//   fan-out) partial pass only, no byte body. Multi-run: future
+//   passes can expand the 0x70 sub-record build loop.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
 
 #ifdef NON_MATCHING
