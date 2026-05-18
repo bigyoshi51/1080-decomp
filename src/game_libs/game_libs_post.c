@@ -14626,6 +14626,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040640);
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040974);
 
+// gl_func_00040CAC — STRUCTURAL PASS (0x138 / 79 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 (3-way beq/beql, NOT a jump table) → ONE clean
+// function. Single prologue frame 0x50 (saves ra). FP-heavy Vec3
+// transform/accumulate dispatcher.
+//
+//   void gl_func_00040CAC(void *a0, Cmd a1) {
+//     obj = a0;
+//     int op = a1->p00;
+//     if (op == 6) goto case6;
+//     if (op == 7) goto case7;        // beql
+//     goto def;
+//
+//   case6:                            // op==6
+//     Node n = a1->p04;
+//     Vec3 v;                          // sp scratch (sp+0x40)
+//     v.x = n->pEC; v.y = n->pF0; v.z = n->pF4;
+//     // transform: mul.s/add.s combine v with obj's current Vec3 at
+//     // obj->0xDC/0xE0/0xE4, cross-feeding a second triple at
+//     // obj->0xB4/0xB8/0xBC (46062200 mul.s, 46105480 add.s):
+//     obj->pDC = v.x * obj->pDC + ...;  // (and the 0xE0/0xE4 lanes)
+//     obj->pB4 = ... ;                  // second triple updated in lockstep
+//     goto out;
+//
+//   case7:                            // op==7 — same shape, different
+//     // obj field pairing (the lwc1/swc1 offsets select 0xDC.. vs 0xB4..
+//     // in the opposite order); identical mul.s/add.s combiner.
+//     goto out;
+//
+//   def:                              // default — plain copy, no transform
+//     Node n = a1->p04;
+//     Vec3 w;                          // sp scratch (sp+0x1C)
+//     w.x = n->p00; w.y = n->p04; w.z = n->p08;
+//     obj->pDC = w.x; obj->pE0 = w.y; // straight store-through
+//   out: ;
+//   }
+// Per-command Vec3 transform: cases 6/7 apply a mul.s/add.s combine of the
+// referenced node's Vec3 (a1->0x04 -> +0xEC/0xF0/0xF4) into the object's
+// twin Vec3 fields (obj->0xDC/0xE0/0xE4 and obj->0xB4/0xB8/0xBC); the
+// default just copies node->0x00/0x04/0x08 straight into obj->0xDC.. .
+// Family: FP Vec3 geometry/transform (relates to the segment's geometry
+// pipeline routines). Per-case lane arithmetic representative (the exact
+// mul/add operand pairing is not fully decoded) — the op dispatch (6/7/def),
+// node/obj field offsets, and Vec3 store-back targets are exact. Caps:
+// Cmd/Node/obj struct untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040CAC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040DE8);
