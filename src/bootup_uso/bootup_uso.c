@@ -1604,6 +1604,48 @@ void func_00004914(char *a0, int a1, char *a2) {
     *(float*)(a0 + 0x64) += 100.0f;
 }
 
+// func_00004948 — STRUCTURAL PASS (0x6A4 / 426 insns, no episode).
+// Per-frame camera/object transition state-machine tick (bootup/title
+// scene), keyed by obj->0x158 (transition-type enum).
+//
+//   void func_00004948(Obj *obj) {        // obj also kept in a2
+//     int st = obj->0x158;
+//     if (st == 2) {                       // .L4948: simple scaled-snap case
+//       Src *s = obj->0x154;               // s->0x318/31C/320 = a Vec3
+//       float k = K0;                      // folded literal (lui 0; lwc1 0)
+//       sp.vec = {s->0x318*k, s->0x31C*k, s->0x320*k};   // -> sp+0xF4
+//       copy 3-word blocks between sp scratch + obj+0x30;
+//       sp[0x118] *= K0;  func_00000000(obj+0x30, ...);
+//       obj->0x14C = obj->0x150;  goto commit;
+//     }
+//     // else range-dispatch on st: (<0x13) (0x13..0x17) (0x18..0x1C)
+//     //   (0x1D..) — each builds eye-relative delta Vec3s:
+//     //     d = {a2->0xA0 - s->.., a2->0xA4 - .., a2->0xA8 - ..};
+//     //     lenSq = d.x*d.x + d.y*d.y + d.z*d.z;
+//     //     dist  = func_00000000(lenSq);            // = sqrtf
+//     //   then normalize / lerp the transform, each axis scaled by a
+//     //   folded literal time const (lui 0; lwc1 0(at) — same
+//     //   func_00000000+0 / D_0 folded-zero-symbol family), writing
+//     //   3-word Vec3 blocks into sp scratch + obj+0x30 and back.
+//   commit:                                 // .L4FCC common tail
+//     // (some paths first: obj->0x14C = obj->0x150  at .L4FC0/.FC4)
+//     func_00000000(obj);                   // commit transform
+//     func_00000000(obj);                   // apply / notify
+//   }
+//
+// Struct-typing reference:
+//   obj->0x158 = transition-type/state enum (switch key; ranges
+//     ==2, <0x13, <0x18, <0x1D partition the behaviors);
+//   obj->0x154 = Src record, ->0x318/0x31C/0x320 a source Vec3;
+//   obj->0x30 = the live transform block (3-word Vec3 groups);
+//   obj->0x14C / 0x150 = an f32 pair (current / target — snapped equal);
+//   a2(=obj)->0xA0/0xA4/0xA8 = an eye/anchor Vec3 for delta math.
+//   Folded scale const: lui $at,0 + lwc1 0x0($at) = the JAL-target-0 /
+//   D_0 folded-zero literal family — see
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
+// Caps: 426-insn FP state machine w/ folded-literal scales + sqrt
+//   dispatcher; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00004948);
 
 void func_00004FF0(int *dst) {
