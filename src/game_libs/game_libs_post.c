@@ -1410,6 +1410,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
 
+// gl_func_00022A9C — STRUCTURAL PASS (0x2CC / 179 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). The heap-arena INITIALIZER — the setup counterpart to the
+// gl_func_00022760 first-fit allocator.
+//
+//   void gl_func_00022A9C(void) {
+//     S  *g    = &D_0;
+//     int n    = g->w_2070;                            // record count
+//     int sz   = g->h_2034;                             // unit size
+//     int tot  = (n << 6) * sz;                          // arena bytes
+//     g->w_2068 = g->w_2060;                             // save base
+//     void *blk = (*alloc)(&D_2198, tot);                // jal 0 USO
+//     g->w_1E08 = blk;                                   // arena base
+//     int t3   = (n << 6) * 3;
+//     g->w_1E0C = blk;                                   // free cursor
+//     g->w_1E10 = blk + tot;                             // arena end
+//     ... seed the block-header table / link the free list ...
+//   }
+//
+// Struct-typing reference: pairs with gl_func_00022760 — it produces
+//   the very arena globals that allocator walks: word &D_0+0x1E08
+//   (block-table base), &D_0+0x1E0C (free cursor), &D_0+0x1E10 (arena
+//   end), plus &D_0+0x2068 (saved original base). Total size is the
+//   live record count &D_0+0x2070 scaled (<<6) times the unit-size
+//   halfword &D_0+0x2034 (the same count/size globals the
+//   gl_func_0002119C / gl_func_00021498 sprite subsystem uses). The
+//   backing block is obtained from a USO-relocated allocator (`jal 0`
+//   slot, resolved at load) keyed on descriptor &D_2198. This is the
+//   one-time heap bring-up for the gl_func_00022760 allocator family.
+// Caps: raw-word USO + jal-0 USO-reloc allocator — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022D68);
