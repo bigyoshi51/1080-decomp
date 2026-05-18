@@ -8814,6 +8814,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035B1C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035C6C);
 
+// gl_func_00035DAC — STRUCTURAL PASS (0xC0 / 48 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). An iterator-driven nested-loop processor — SIBLING of
+// gl_func_00035C6C (shares the 0x012844 iterator-init helper).
+//
+//   void gl_func_00035DAC(void) {
+//     It it;                                    // local sp+0x34..0x4C
+//     it.f_48 = 0;
+//     fixed_iter_init_012844(&it);              // jal 0x012844 FIXED
+//     it.f_4C = -1;                             // sentinel
+//     while (it.cur_48 != it.end_34) {          // outer (beql end)
+//       int n = it.f_44;
+//       do {
+//         fixed_iter_step_012853(&it);          // jal 0x012853 FIXED
+//         n -= 4;                                // 4-byte stride
+//       } while (n != 0);
+//       it.f_48 = 0;                             // reset sub-iterator
+//     }
+//   }
+//
+// Struct-typing reference: a bulk multi-pass collection traversal
+//   leaf, the sibling of gl_func_00035C6C. It builds a local
+//   iterator/accumulator structure on the stack (sp+0x34..0x4C),
+//   initializes it through the SAME FIXED intra-USO helper at
+//   0x012844 (encoded `jal 0x012844`, a real resolved target — the
+//   shared "iterator begin" routine), then drives a nested loop:
+//   the outer loop tests an iterator-end condition (current vs end
+//   field, branch-likely beql); the inner loop repeatedly calls a
+//   second FIXED helper at 0x012853 ("iterator step / process
+//   current"), decrementing a per-element counter by 4 (a 4-byte-
+//   stride sub-array walk) and resetting the sub-iterator state
+//   (it->0x48 = 0) between outer passes. Together with
+//   gl_func_00035C6C this establishes a small iterator API in this
+//   USO — 0x012844 = begin/init, 0x012853 = step/get — over the
+//   game_libs object subsystem's collections (the same lists the
+//   gl_func_00033228 enlist / gl_func_00034458 process family
+//   touch).
+// Caps: raw-word USO + fixed intra-USO iterator API calls
+//   (0x012844 / 0x012853) + nested 4-byte-stride loop — not exact-
+//   matchable without proper USO mnemonic disasm + the iterator
+//   struct typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
