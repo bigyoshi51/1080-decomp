@@ -1760,6 +1760,39 @@ void game_uso_func_000028A8(void *a0) {
     *(f32*)((char*)a0 + 0x34) = 0.0f;
 }
 
+// game_uso_func_000028C0 — STRUCTURAL PASS (0x3E8 / 250 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic segment). Hand-decoded entry/shape; multi-run target.
+//
+// Per-object FP transform / world-matrix builder, gated by object
+// state.
+//
+//   void game_uso_func_000028C0(Obj *obj) {              // obj -> a2
+//     sp.cache0 = obj->0x14;                              // sp+0xE4
+//     sp.cache1 = obj->0x3C->0x38;                        // sp+0xE0
+//     if (obj->0x40 == 0) return;
+//     if (obj->0x40 != 1) { ...alt path... return; }
+//     // copy orientation/scale Vec3 from obj->...->0xA0/0xA4/0xA8
+//     //   into sp scratch (sp+0x8C/0xC4..), and position triple;
+//     // func_00000000(obj->0x3C, …);  store result;
+//     // assemble a transform: copy 3-word matrix-row blocks between
+//     //   obj sub-records and sp, then matrix*vector FP chains
+//     //   (mul.s/add.s) -> world Vec3/matrix in sp+0xB8..0xD8;
+//     // write the composed transform back into obj fields.
+//   }
+//
+// Struct-typing reference:
+//   obj: 0x14 a cached word, 0x3C -> sub (->0x38 a field), 0x40
+//     state (0 = skip, 1 = build transform, else alt), 0x154 -> a
+//     transform source (->0xA0/0xA4/0xA8 orientation Vec3). sp+0x78/
+//     0x8C/0xAC = matrix-row scratch; sp+0xB8..0xD8 = output world
+//     Vec3/matrix. func_00000000 = USO placeholder dispatcher
+//     (transform helper).
+// Caps: raw-word USO + placeholder calls + 250-word FP transform —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural (entry/state-gate/shape) partial pass only, no byte
+//   body. Multi-run.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000028C0);
 
 void game_uso_func_00002CA8(char *a0) {
