@@ -7247,6 +7247,28 @@ void gl_func_0003341C(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003341C);
 #endif
 
+// game_libs_func_00033444 — STRUCTURAL PASS / BOUNDARY NOTE
+// (0x8 / 2 words, no episode). Raw-.word USO form (game_libs).
+//
+// NOT A REAL FUNCTION. Splat-missplit HEAD FRAGMENT (same class as
+// game_libs_func_000309AC documented earlier in this file): two
+// instructions only, NO prologue (no addiu $sp), NO jr $ra —
+//     lui   $t6, 0            ( 3C0E0000 )
+//     lw    $t6, 0x20C($t6)   ( 8DCE020C )
+// a base-pointer load of &D_0 + 0x20C into $t6. These two words
+// logically belong to the ENTRY of the NEXT function (at
+// 0x0003344C): splat could not see the function boundary in this
+// relocatable USO segment and sheared the successor's prologue-area
+// base load off as a standalone 8-byte symbol.
+//
+// Resolution: DEFERRED USO BOUNDARY RE-SPLIT (tracked with the other
+// game_libs_post.c head-fragment / multi-jr boundary notes). NOT
+// fixable with the mnemonic split-fragments.py / merge-fragments
+// tooling — raw-.word relocatable USO needs the spimdisasm-USO
+// migration to re-derive the boundary. No merge attempted (would
+// corrupt the successor's bytes); no episode (tautology-trap; and
+// this is not a function). Body INCLUDE_ASM-preserved (.s = source
+// of truth).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00033444);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003344C);
