@@ -11591,6 +11591,41 @@ void game_uso_func_000116D4(void *a0) {
     *(int *)((char *)s0 + 0x114) = 0;
 }
 
+// game_uso_func_00011750 — STRUCTURAL PASS (0x118 / 70 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic; boundary already split by commit d3e4ee03 — named fn
+// still undecoded). Hand-decoded. LAST bare candidate in game_uso.c.
+//
+// Fall / wipeout detection + effect trigger.
+//
+//   void game_uso_func_00011750(Obj *obj) {              // obj -> s0
+//     Sub *s = obj->0xB4;
+//     if (s->0xA38 < -30.0f) {                            // 0xC1F00000
+//       obj->0x130 = 0;                                    // reset count
+//     } else {
+//       if ((s16)obj->0x130 + 1 >= 3) return;              // armed cap
+//       obj->0x130++;                                       // s16 counter
+//       obj->0x130 = 0;                                     // (re-clear)
+//       if (*(int*)(. + 0x9CC) == 0x100) { … }
+//       func_00000000(0x100, 5, obj->0xFC, 0x24);           // sound/event
+//       e = D_00000EA0[0];  func_00000000(e, obj, -1,
+//                                          D_00000EA0[1]);  // FX dispatch
+//       func_00000000(0x100, …, obj->0xFC, …);              // 2nd event
+//     }
+//   }
+//
+// Struct-typing reference:
+//   obj: 0xB4 -> s (s->0xA38 f32 downward velocity/impact metric;
+//     < -30.0 = hard landing/crash), 0x130 s16 frame counter
+//     (reset on hard hit, capped at 3 → arms the wipeout),
+//     0xFC an id passed to the effect calls, 0x9CC a state word.
+//   D_00000EA0 = USO static FX/event descriptor table; consts
+//     -30.0f, 0x100 / 5 / 0x24 event op codes. func_00000000 = USO
+//     placeholder dispatcher (sound / FX / event).
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
 
 void game_uso_func_00011868(int *a0) {
