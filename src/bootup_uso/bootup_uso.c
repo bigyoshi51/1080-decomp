@@ -1195,6 +1195,34 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003D3C);
  * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003F00);
 
+/* func_0000411C - verified structural decode (0x2B8, 174 insns,
+ * randomized multi-stage builder chain). MEMBER of the
+ * func_000038C0 / func_00003734 / func_000043D4 builder-chain
+ * family (alloc-0x80 x2 + register-&D + tagged-arg func_00000000
+ * builder; rand-scaled params, same shape as func_000043D4).
+ *   void func_0000411C(St *s1, int a1) {
+ *       o1 = alloc(0x80); if (!o1) return; init(o1, 0);
+ *       o2 = alloc(0x80); if (!o2) return; init(o2, 0);
+ *       register(&D, o1);  register(&D, o2);
+ *       r   = rand01();                            // func_00000000
+ *       int idx = (int)(r * *(f32*)(func_000003F8+0x14C));
+ *       f32 g   = r * *(f32*)(func_000003F8+0x150);
+ *       row = &func_00000080[0x10 + idx*4];
+ *       build(s1, ..., o1, g, 0x58005, 0x3, ...);  // tagged block
+ *       ... (chain continues per the family pattern) ...
+ *   }
+ * Struct-typing reference (same family as func_000038C0 /
+ * func_000043D4): o1/o2 = 0x80-byte builder objects (sp+0x68);
+ * rand01() = func_00000000() 0..1 f32; func_000003F8+0x14C /
+ * +0x150 = f32 scale consts (one -> int table index via trunc,
+ * one -> float param); func_00000080+0x10 = descriptor table
+ * indexed by idx*4; tag 0x58005; flag 0x3. Per-call random
+ * descriptor selection (same as func_000043D4). Caps <80: ~10
+ * func_00000000 reloc (incl. RNG) + FP mul.s/trunc.w.s + idx*4
+ * table index + cross-symbol (func_000003F8 / func_00000080)
+ * refs + FP stack-arg. Full body INCLUDE_ASM-preserved (.s =
+ * source of truth). INCLUDE_ASM (no episode; tautology-trap
+ * rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000411C);
 
 /* func_000043D4 - verified structural decode (0x258, 150 insns,
