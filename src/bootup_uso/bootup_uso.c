@@ -3941,6 +3941,46 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D440);
 
+// func_0000D900 — STRUCTURAL PASS (0x4C4 / 305 insns, no episode).
+// Event/message dispatcher: switch on the incoming message opcode and
+// run the matching handler (FP threshold checks + table-driven actions
+// + vtable sub-updates) on the state struct.
+//
+//   void func_0000D900(State *st, Msg *m) {     // st -> a3
+//     switch (m->0x0) {                          // opcode
+//       case 0x14:                               // .L0000D98C
+//         if (st->0xA80) break;                  // busy
+//         o = m->0x4;
+//         if ((double)o->0xC < DBL(D_00000988)   // properly-symbolized
+//             && o->0x28->0xC(u16) == 0x74)      //   double constant
+//           func_00000000(st+0x808);
+//         break;
+//       case 0x9:   ... case 0x6: ...            // .L0000DBB8 / .L0000DBC8
+//       case 0x3E8: case 0x3E9: case 0x3EA: case 0x3EB:
+//       case 0x3EC: case 0x3ED: case 0x3EE: case 0x3EF:
+//         // numbered sub-actions: set a small index (t-reg 1..5),
+//         //   run func_00008B44 / func_00008AEC descriptor actions,
+//         //   FP compares vs the folded pool constant;
+//       default: st->0xA54 = 6; break;           // .L0000DDAC
+//     }
+//     // common tail .L0000DDB8: restore ra, return.
+//   }
+//
+// Struct-typing reference:
+//   m(a1): 0x0 opcode, 0x4 payload obj (->0xC f32, ->0x28 vtable
+//     (->0xC u16 type tag, ==0x74 here)); st(a3): 0xA80 busy/cooldown,
+//     0xA54 result/status (set 6 on default), 0x808 sub-record.
+//   D_00000988 = a CORRECTLY-symbolized f64 const (splat got this one).
+//   Folded refs (literal-pool/placeholder fold family): func_0000098C
+//     + 0x4 = the MIS-folded continuation of the very pool that starts
+//     at D_00000988 — splat symbolized 0x988 (D_00000988, 8 bytes) then
+//     emitted a SPURIOUS code symbol func_0000098C at 0x98C that
+//     swallows the rest of the pool. func_00008AEC + {0x4C,0x54},
+//     func_00008B44 + {0x4,0x10,0x24} = folded action/desc tables.
+//     See docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
+// Caps: 305-insn opcode dispatcher w/ folded pool + tables — exact
+//   match blocked by the deferred pool symbolization; structural pass.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D900);
 
 void func_0000DDC4(int a0) {
