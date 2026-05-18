@@ -130,7 +130,31 @@ void func_000003D8(void) {
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003F8);
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000057C);
+func_0000057C(a0, a1, a2)
+int *a0;
+int a1;
+int a2;
+{
+    register int mode;
+    int byte = a2;
+
+    *a0 = func_00000000(0x64);
+    mode = 0;
+    switch (a1) {
+    case 0:
+        break;
+    case 1:
+        mode = 1;
+        break;
+    case 2:
+        mode = 2;
+        break;
+    }
+    *(s8*)(*a0 + 0x22) = byte;
+    *(f32*)(*a0 + 0x10) = 0.0f;
+    a0[2] = 0;
+    func_00000000(*a0, mode, mode, a0);
+}
 
 /* func_00000610 - verified structural decode (0x24C, 147 insns,
  * FP parameter normalize / clamp / scale).
