@@ -11514,6 +11514,44 @@ end:
     return (int)a0;
 }
 
+// gl_func_0003B01C — STRUCTURAL PASS (0x190 / 100 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION — exactly
+// ONE 27BDFF40 prologue; the two jr's are the EARLY-OUT return and
+// the main return (a `b` to the shared epilogue precedes the first
+// jr — not a multi-fn bundle). A flag-gated FP geometry-update.
+//
+//   void gl_func_0003B01C(O *o) {
+//     int fl = o->w_30;
+//     if (!(fl & 6)) {                            // dirty/active gate
+//       o->w_30 = fl | 2;                          // mark + early-out
+//       return;
+//     }
+//     Vec3 a = { o->f_54, o->f_58, o->f_5C };     // primary Vec3
+//     Vec3 b = { ... 2nd source ... };
+//     Vec3 d = { b.x - a.x, b.y - a.y, b.z - a.z };// delta
+//     // spill d / transformed components to sp scratch, then
+//     // copy a transform/matrix block back into o (word stores
+//     //   8F../AC.. : *o = *tmp ; o++ ; tmp++ ...)
+//   }
+//
+// Struct-typing reference: a per-object transform/state update
+//   leaf. It gates on bits 1-2 (mask 0x6) of the object's flag
+//   word o->0x30: when clear it sets bit 1 (mark-pending /
+//   dirty-clear) and returns immediately; otherwise it reads a
+//   Vec3 from o->0x54.. and a second source vector, computes their
+//   per-component difference (`sub.s` chain), and copies a
+//   transformed Vec3 / matrix block back into the object via a
+//   word-copy. The o->0x30 flag drives a "recompute only when
+//   dirty/active" pattern. A geometry-update node of the game_libs
+//   object subsystem (companion of the gl_func_00037938 transform-
+//   compose and gl_func_00036694 matrix-concat leaves; the o->0x30
+//   bit-6 mask is the same dirty/active flag-word convention seen
+//   in the gl_func_00036C08 / 00036F0C geometry family).
+// Caps: raw-word USO + flag-gated FP delta/transform + word-copy
+//   block move — not exact-matchable without proper USO mnemonic
+//   disasm + the object/Vec3 struct typed; structural pass only,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B01C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B1AC);
