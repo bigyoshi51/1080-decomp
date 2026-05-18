@@ -6778,6 +6778,46 @@ void gl_func_000316CC(int a0) {
     gl_ref_00045DF0(&gl_ref_00000430);
 }
 
+// gl_func_00031710 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x188 / 98 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE: this .s has SEVEN jr $ra sequences —
+// splat could not separate ~7 distinct functions in this relocatable
+// USO segment. Only the NAMED LEADING function is decoded here; the
+// trailing ~6 tiny leaves are flagged as a DEFERRED USO RE-SPLIT
+// (tracked with the other game_libs_post.c multi-jr boundary notes;
+// NOT fixable with the mnemonic split-fragments.py / merge-fragments
+// tooling — raw-.word relocatable USO needs the spimdisasm-USO
+// migration to re-derive the boundaries).
+//
+// Leading fn gl_func_00031710 (0x31710..0x3174C, ~16 words):
+//   void gl_func_00031710(int arg) {
+//     helper_011770(&D_0_table_0430, 0, arg + 0x17F, 0x7F);
+//     helper_01177C(&D_0_table_0430);
+//   }
+// i.e. a small two-call range-init wrapper: it hands a table base
+// (&D_0 + 0x430), a zero start, a computed end offset (arg + 0x17F)
+// and a 0x7F limit to a FIXED intra-USO helper at 0x011770, then
+// calls a second fixed helper at 0x01177C on the same table base.
+// (Both 0x011770 / 0x01177C targets are the very leaves bundled into
+// the tail of THIS .s — index / accessor helpers for the 0x430-based
+// table: computing a table index via shift+add, loading/storing the
+// 0x54/0x58/0x5C cursor fields, and bumping it.)
+//
+// Struct-typing reference: the named function is the public
+//   range-clear / cursor-reset entry for a 0x7F-element table based
+//   at &D_0+0x430; the bundled leaves are its private accessors
+//   (index = shift/add of the arg; the table record carries cursor
+//   words at +0x54/+0x58/+0x5C and a count at +0x40/+0x44/+0x48/
+//   +0x4C). A table-management cluster of the game_libs object
+//   subsystem (the storage the emitter / interpreter families read
+//   and write through this 0x430 table).
+// Caps: raw-word USO + 7-fn bundle (deferred re-split) + fixed
+//   intra-USO calls into its own bundled leaves — not exact-matchable
+//   without proper USO mnemonic disasm + boundary re-split;
+//   structural pass only, no byte body. No merge attempted here
+//   (would corrupt the bundled leaves' bytes); no episode.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031710);
 
 extern int gl_ref_00045DF0();
