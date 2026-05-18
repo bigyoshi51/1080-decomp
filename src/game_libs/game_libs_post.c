@@ -8464,6 +8464,52 @@ void gl_func_00035624(int a0, int a1) {
     gl_func_00000000(a1);
 }
 
+// gl_func_00035648 — STRUCTURAL PASS (0xB4 / 45 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). Same dispatch family as gl_func_00035370 / 00035440 /
+// 000355A0 — kind-switch, here with the device-config-write arm.
+//
+//   void gl_func_00035648(O *o, int a1, int a2) {
+//     switch (o->kind_4) {
+//       case 1: {
+//         H *h = *(H**)&D_0;
+//         r = h->fp_54(o->w_20);                // jalr (*&D_0)->0x54
+//         break;
+//       }
+//       case 0:
+//         r = callback(&D_0);                    // jal 0 (USO cb)
+//         break;
+//       case 2:
+//         if (a1 == 0)      *(int*)0x0004B8E8  = (flag);
+//         else if (a1 == 1) *(int*)0x0004B8E8 += a2;   // RMW accum
+//         break;
+//       default: break;
+//     }
+//   }
+//
+// Struct-typing reference: another sibling of the kind-dispatch
+//   family (gl_func_00035370 = vtable slot 0x4C, 00035440 = 0x50,
+//   000355A0 = 0x60). This one's kind==1 arm uses the global
+//   handler vtable slot (*&D_0)+0x54, kind==0 a USO-relocated
+//   callback (jal 0 → resolved at load), and the kind==2 arm
+//   READ-MODIFY-WRITEs the global DEVICE-CONFIG word at the FIXED
+//   absolute address 0x0004B8E8 — either storing a flag (a1==0
+//   path) or accumulating a2 into it (a1==1 path: `*0x0004B8E8 +=
+//   a2`). This confirms 0x0004B8E8 (inside the 0x0004B8xx config
+//   block that gl_func_00034A78 initializes and gl_func_00035440
+//   reads) is a MUTABLE device-config / counter accumulator. The
+//   00035370/00035440/000355A0/00035648 group are typed entry
+//   points walking consecutive handler-vtable slots
+//   (0x4C/0x50/0x60/0x54) over the device-object subsystem
+//   (gl_func_00034188 / 00034458). 0x0004B8E8 is a deferred
+//   absolute-symbol site (gl_ref_0004B8E8 candidate per
+//   docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data).
+// Caps: raw-word USO + jalr through global handler vtable
+//   ((*&D_0)+0x54) + USO-relocated jal-0 callback + fixed absolute
+//   device-config RMW (0x0004B8E8) — not exact-matchable without
+//   proper USO mnemonic disasm + the vtable/config symbolized;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035648);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000356FC);
