@@ -460,6 +460,41 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000CA0);
  * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000D94);
 
+// func_00000E68 — FIRST STRUCTURAL PASS (0xBDC / 759 insns, multi-run target,
+// no episode). Procedural tiled quad-mesh + index-buffer builder/constructor
+// (terrain/water-surface grid for the bootup/title scene).
+//
+//   void *func_00000E68(void *self, Cfg *a1, void *owner2, void *owner3,
+//                       arg5)  // arg5 @ sp+0x1E8; a1->s0 owner2->s1 owner3->s2
+//     if (!self) { self = func_00000000(0x4C); if (!self) return 0; }  // alloc
+//     func_00000000(self, &D_000066B0);          // register / base-init
+//     self->0x28 = 0;
+//     self->0x0C = &D_000066B8;                   // vtable/template
+//     self->0x2C = owner2;  self->0x30 = owner3;  self->0x34 = arg5;
+//     self->0x3C = self->0x40 = self->0x44 = self->0x48 = 1.0f;  // scale/uv
+//     // cache a1->0x8, a1->0xC into locals (grid dims)
+//     buf = func_00000000(0x800);                 // vertex scratch (sp+0x1CC)
+//     func_00000000(buf, 0x800, 0);               // zero-init
+//     // Phase 1: nested grid build — outer (dimA>>5) rows x inner (dimB>>6)
+//     //   cols; per cell emit a tessellated quad as 0x10-stride short records
+//     //   (pos x = colBase±0x20, y = rowBase±0x10; uv consts 0x7C0/0xFC0;
+//     //   the ±/>>1 idioms are signed ceil-divide rounding).
+//     // Phase 2: flatten into owner2->0xC index list (data @ +0x0,
+//     //   count @ +0x4): 4 vert indices per quad, s0 steps by 4, outer s6
+//     //   bounded by (dim>>6); appends s2(owner3) + per-vert payloads.
+//     return self;
+//   }
+//
+// Struct-typing reference:
+//   self: 0x0C vtable(&D_000066B8), 0x28 fnptr=0, 0x2C/0x30 owner ptrs,
+//         0x34 arg5, 0x3C/0x40/0x44/0x48 f32=1.0 (scale/uv defaults), size 0x4C.
+//   owner2(s1)->0x0C = a {data,count} index-list handle.
+//   D_000066B0 base-init descriptor; D_000066B8 instance vtable.
+//   func_00000000 + 0x4 = a placeholder/folded data ref (same JAL-target-0
+//   + folded-pool family as the func_0000098C/func_00000044 literal-pool bug,
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
+// Caps: 759-insn dual-phase builder; structural first pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000E68);
 
 /* func_00001A44 - verified structural decode (0x1CC, 115 insns,
