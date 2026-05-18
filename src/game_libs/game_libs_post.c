@@ -666,6 +666,33 @@ int gl_func_0001FD5C(int a0, int a1) {
     return v;
 }
 
+// gl_func_0001FD98 — STRUCTURAL PASS (0x130 / 76 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 7-jr USO bundle
+// (named fn + 6 tiny trailing helpers) — deferred USO re-split. The
+// named leading fn (~23 words, ends at 0x1FDEC) is an alloc-and-
+// zero-clear helper.
+//
+//   void *gl_func_0001FD98(H *a0) {
+//     void *p = (*alloc)(a0);             // jal 0 USO-reloc allocator
+//     if (p == 0) return 0;
+//     for (char *c = p; c < (char*)a0->w_4; c++)  // zero-fill region
+//       *c = 0;                            //  [p .. a0->4)
+//     return p;
+//   }
+//
+// Struct-typing reference: a0 is a small descriptor whose word a0->4
+//   holds the end address / size limit of the buffer to clear. The
+//   allocator is a USO-relocated callback (the leading `jal 0` slot,
+//   resolved at load); a0 is preserved across it via sp+0x18. The
+//   trailing bundled helpers (FDF4+) are tiny arithmetic utilities
+//   (16-align `(x+0xF)&~0xF` with a bounds-checked store, a
+//   min/clamp, etc.) belonging to the same allocator support family
+//   — left for the deferred USO re-split.
+// Caps: raw-word USO + 7-fn unsplit bundle + jal-0 USO-reloc
+//   allocator — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only for the named leading fn, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD98);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FEC8);
