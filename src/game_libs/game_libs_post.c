@@ -14910,6 +14910,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412E8);
 /* gl_func_00041524: 32-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041524);
 
+// gl_func_000415A4 — STRUCTURAL PASS (0x1C0 / 113 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
+// (saves ra). Subsystem init / config-table setup (cb = jal 0 USO-relocated
+// registrar; string literals around &D_0002F5D0).
+//
+//   void gl_func_000415A4(void *a0) {
+//     *(int*)0x4C160 = 0;                          // clear module-ready flag
+//     cb(&D_str0, &sp_outA, &sp_outB);              // registration call 1
+//     cb(&D_str1, sp_outA + sp_outB);               // registration call 2
+//     cb(&D_str2, 0);
+//     cb(&D_str3, 0x32);                            // (li a1,0x32)
+//     *(void**)&D_g = saved_a0;                      // stash arg ptr global
+//     cb(0); cfg->p0C = &D_0002F5D0;                 // name/string field
+//     cb(0); *(int*)&D_g2 = ...;
+//     cb(0); *(int*)&D_g3 = ...;
+//     // fill a config struct with literal constants:
+//     cfg->p04 = 2;        // 0x24180002
+//     cfg->p00 = 0;
+//     cfg->p10 = 0; cfg->p14 = 0;
+//     cfg->p08 = 0x140;    // 0x24190140
+//     cfg->p0C = 0xF0;     // 0x240800F0  (overwrites the name slot path)
+//     // v0 = 0x406 (0x24020406) used as a tag/version
+//     cfg->fpA = 100.0f;   // 0x42C80000 via mtc1
+//     cfg->fpB = 16000.0f; // 0x467A0000 via mtc1
+//   }
+// One-shot subsystem initializer: resets the 0x4C160 ready/verbose global,
+// performs a short sequence of cb registration calls (string-literal keyed,
+// sp scratch out-params), then writes a fixed constant block into a module
+// config struct (int fields 2 / 0x140 / 0xF0 / 0x406 at +0x00..+0x14, two
+// float params 100.0 and 16000.0, and a &D_0002F5D0 name pointer). Family:
+// cb-driven init/registration + constant config-table fill (siblings
+// 0003E5E0 / 00040DE8 / 000412E8). Constant-to-offset assignment order is
+// representative; the 0x4C160 clear, the cb call shape, and the literal
+// values (2/0x140/0xF0/0x406, 100.0f/16000.0f, &D_0002F5D0) are exact. Caps:
+// config struct, &D_g globals and cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000415A4);
 
 /* gl_func_00041768: 25-insn 3-call vtable-dispatch.
