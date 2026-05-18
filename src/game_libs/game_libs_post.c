@@ -24518,19 +24518,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071144);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00071144_pad.s")
 
 #ifdef NON_MATCHING
-/* gl_func_00071304: 27-insn 2-call wrapper with 3-global-init.
- *   rv = func();
- *   externA->[0x10] = a0;
- *   externB->[0x14] = a1;
- *   externC->[2:short] = (short)a2;
- *   func(rv);
- * Structural decode (3 distinct externs all `lui+lw 0(*)` — needs unique-
- * extern recipe for full byte match). Multi-tick refinement. */
+/* gl_func_00071304: 27-insn 2-call wrapper. Three distinct extern POINTERS
+ * (D_71304_A/B/C), each loaded via lui+lw, then stored to via offset.
+ * Applied unique-extern recipe per
+ * docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs. */
+extern int *D_71304_A;
+extern int *D_71304_B;
+extern short *D_71304_C;
 void gl_func_00071304(int a0, int a1, int a2) {
     int rv = gl_func_00000000();
-    *(int*)((char*)&D_00000000 + 0x10) = a0;
-    *(int*)((char*)&D_00000000 + 0x14) = a1;
-    *(short*)((char*)&D_00000000 + 2) = (short)a2;
+    *(int*)((char*)D_71304_A + 0x10) = a0;
+    *(int*)((char*)D_71304_B + 0x14) = a1;
+    *(short*)((char*)D_71304_C + 2) = (short)a2;
     gl_func_00000000(rv);
 }
 #else
