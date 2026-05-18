@@ -17576,6 +17576,7 @@ int gl_func_0004E3F4(char *a0) {
     return gl_ref_0006240C(a0 + 0x10);
 }
 
+/* gl_func_0004E424: 49-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E424);
 
 extern int gl_func_00000000();
