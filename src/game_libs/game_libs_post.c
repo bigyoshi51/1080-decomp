@@ -2669,6 +2669,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000250C8);
 
+// gl_func_00025320 — STRUCTURAL PASS (0x1E4 / 121 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
+// (named fn + 2 trailing helpers) — deferred USO re-split. The named
+// leading fn is a THIRD object constructor of the gl_func_00023E60 /
+// gl_func_00024D90 family — same shared fixed init 0x0C00E181.
+//
+//   void gl_func_00025320(O *obj, int sz) {
+//     int n = (sz + 0xF) & ~0xF;                        // align16
+//     (*alloc)(obj->w_C);                                // jal 0 USO
+//     (*build)(&obj->sub_20, &obj->sub_38, 1);            // jal 0 USO
+//     jal 0x38604(&obj->sub_3C, 0, 0,                     // 0x0C00E181
+//                 obj->w_8, n, obj->w_C,
+//                 &D_2B0C0, obj->b_2);
+//   }
+//
+// Struct-typing reference: identical construction shape to
+//   gl_func_00024D90 (and gl_func_00023E60) — round the requested
+//   size up to a 16-byte multiple, allocate via a USO-relocated
+//   allocator (`jal 0`), build two embedded sub-structures (here at
+//   obj+0x20 / obj+0x38, plus obj+0x3C passed to the init), then run
+//   the SAME shared fixed init routine 0x0C00E181 (≈0x38604) with
+//   obj fields (word obj->8, word obj->0xC, byte obj->2) and a fixed
+//   code/data blob &D_2B0C0 (the third pointer in the &D_2ACC0 /
+//   &D_2AFCC / &D_2B0C0 family the three constructors each select).
+//   The game_libs resource subsystem has at least three parallel
+//   object-bring-up entries differing only in the &D_2Bxx blob and
+//   sub-struct offsets.
+// Caps: raw-word USO + 3-fn unsplit bundle + jal-0 USO-reloc
+//   allocator/builder + shared fixed init — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only for the
+//   named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025320);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
