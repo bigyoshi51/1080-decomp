@@ -16216,6 +16216,41 @@ int game_libs_func_00044DD4(int *a0, int a1) {
     return a0[a1 + 0xAB];
 }
 
+// gl_func_00044DE4 — STRUCTURAL PASS (0xF4 / 62 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
+// (saves ra + s0..s2). Subsystem teardown/reset (cb = jal 0 USO-relocated;
+// cleanup string keys &D_0002FEB4 / FEBC / FEC4).
+//
+//   void gl_func_00044DE4(void *a0) {
+//     self = a0;
+//     *(void**)&D_g = &D_0002FEB4;                   // publish teardown tag
+//     *(int*)... = self->p218->p24;                   // snapshot a sub-field
+//     // indexed cleanup-handler dispatch:
+//     int i  = self->p204;
+//     void *h = *(void**)((char*)self->p240 + i*4 + 0x198);
+//     self->p244 = 0; self->p248 = 0; self->p258 = 0;  // clear state fields
+//     cb(h);                                            // run handler @0x198
+//     void *h2 = *(void**)((char*)self->p240 + i*4 + 0x180);
+//     cb(h2);                                           // run handler @0x180
+//     cb(&D_0002FEBC, self->p22C); ... ->p0C = 0;        // string-keyed cleanup
+//     cb(&D_0002FEC4, self->p15C);
+//     self->p1C0 = 0;
+//     // count-guarded loop (blez): iterate self->... entries invoking
+//     //   their per-entry teardown and zeroing the slot, until the count
+//     //   (v1) is exhausted.
+//   }
+// Tears down / resets the subsystem object: stamps a global teardown tag
+// (&D_0002FEB4), zeroes a set of state fields (self->0x244/0x248/0x258/
+// 0x1C0), and runs cleanup handlers — both index-resolved (handler ptr =
+// self->0x240 + self->0x204*4 + 0x198, and the parallel +0x180 table) and
+// string-keyed (&D_0002FEBC / &D_0002FEC4) — followed by a count-guarded
+// per-entry teardown loop. Family: cb-driven teardown/reset (the destructor
+// counterpart of the segment's init/registration drivers, e.g.
+// gl_func_00044918 / 000412E8). Per-handler arg and loop-body detail
+// representative; the &D_0002FEB4 tag store, the cleared offsets, the
+// 0x240 + idx*4 + 0x198/0x180 handler-table math and the &D_0002FExx keys
+// are exact. Caps: self struct, &D_g global and cb signatures untyped. Full
+// body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044EDC);
