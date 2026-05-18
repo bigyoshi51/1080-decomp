@@ -13257,6 +13257,31 @@ void game_libs_func_0003E9C0(int *a0, int a1) {
     *(int*)((char*)a0 + 0x30) = a1;
 }
 
+// gl_func_0003E9C8 — STRUCTURAL PASS (0xCC / 52 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x48 (saves ra) → ONE clean function.
+// String-keyed two-object link/copy (cb* = jal 0 USO-relocated lookup/resolve;
+// string-literal keys at the &D_0002F34C..F35C config/name block).
+//
+//   void gl_func_0003E9C8(void *a0) {
+//     int tok = *(int*)&D_0002F34C;          // unaligned lwl/lwr from config
+//     scratch = tok;                          // swl/swr into sp+0x44
+//     if (!cb(&D_reloc, &D_0002F350)) return; // keyed probe A (literal)
+//     int t1 = scratch;
+//     void *o1 = cb2(a0, t1);                  // resolve object 1
+//     if (!o1) return;
+//     if (!cb(&D_reloc, &D_0002F358, &scratch)) return;  // keyed probe B
+//     int t2 = scratch;
+//     void *o2 = cb2(a0, t2);                  // resolve object 2
+//     if (!o2) return;
+//     cb3(&D_0002F35C, (char*)o1 + 0x2C, (char*)o2 + 0x2C);  // link/bind
+//     *(int*)((char*)o1 + 0x2C) = *(int*)((char*)o2 + 0x2C); // copy field 0x2C
+//   }
+// The leading lwl/lwr + swl/swr pair is a 4-byte unaligned token copy from
+// the config block into the sp scratch (NOT a struct fragment). Family: same
+// string-literal-keyed cb lookup + resolve idiom as gl_func_0003E5E0 /
+// 0003E39C and the segment's registration routines. Caps: object struct +
+// &D_0002F34C..F35C string/config-table symbolization untyped; cb/cb2/cb3
+// signatures inferred from call shape. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E9C8);
 
 /* gl_func_0003EA98: linked-list lookup by key. Walks list at a0->[0x2C]
