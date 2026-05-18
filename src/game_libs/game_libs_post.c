@@ -6225,6 +6225,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F934);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
 
+// gl_func_0002FA90 — STRUCTURAL PASS (0x80 / 32 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A small biased two-command emitter.
+//
+//   void gl_func_0002FA90(int a0, int arg1, int arg2) {
+//     int op  = a0 ? 5 : 1;                 // opcode select
+//     int idx = arg2 + 0x40;                // bias
+//     if (idx >= 0x80) idx = 0x7F;          // clamp 7-bit
+//     int cmd = 0x06000000 | ((op & 0xFF) << 8);
+//     emit(cmd | 2, (signed char)idx);      // jal 0 (USO callback)
+//     emit(cmd | 1, (signed char)(arg1 + 8));
+//   }
+//
+// Struct-typing reference: a compact command-stream builder, a close
+//   sibling of gl_func_0002F638. arg0 selects the opcode (1 vs 5),
+//   packed as an 8-bit subfield (<<8) into a 0x06000000-bank command
+//   word. A byte index is formed as arg2 + 0x40 and saturated to
+//   0x7F (the recurring bias-then-clamp idiom of this subsystem),
+//   then both submissions go through USO-relocated callbacks
+//   (jal 0 → resolved at load) with tag bits 2 then 1; the second
+//   passes a sign-extended (arg1 + 8). A two-attribute command-submit
+//   leaf of the game_libs object subsystem (same 0x06000000 bank and
+//   sign-extend-byte-arg convention as gl_func_0002F638 /
+//   gl_func_0002F9D4).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + bias/clamp
+//   index — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FA90);
 
 extern int gl_func_00000000();
