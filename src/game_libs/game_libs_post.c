@@ -14794,6 +14794,43 @@ int gl_func_00041124() {
     return gl_func_00000000(&gl_ref_0001F568);
 }
 
+// gl_func_00041148 — STRUCTURAL PASS (0x10C / 68 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
+// (saves ra + s0..s2). Memory/size-report diagnostic (cbN = jal 0
+// USO-relocated; FP size formatting, string literals &D_0002F57C/F598).
+//
+//   void gl_func_00041148(char *a0, int a1) {
+//     char *end = a1 ? (a0 + a1) : a0;             // buffer-end pointer (s1)
+//     int mode = *(int*)(&D_g + 0x20);             // global state selector
+//     int r;
+//     if (mode == 1) {
+//       r = cb1(?, end);
+//     } else if (mode == 7) {
+//       r = cb1(?, end);
+//       if (r != 0) goto have;                      // bnez skip-on-nonzero
+//     }
+//     cb2();                                        // (mode-fallthrough hook)
+//     cb3(&D_0002F57C, (unsigned)end >> 10);        // print size in KiB-ish
+//   have:
+//     if (*(int*)0x4C160 != 0) {                    // global verbose flag
+//       int n = *(int*)(r - 0x10);
+//       float kib = (float)(unsigned)end / 1024.0f; // u32->float w/ 2^31
+//                                                   // correction, then /1024
+//       cb_fmt(&D_0002F598, r, end, ... , kib);     // detailed report line
+//     }
+//   }
+// Reports a buffer/allocation size: derives end = base+len, switches on a
+// global mode (1 / 7 / other) to take a cb1 snapshot of the region, then
+// emits a one-line summary via cb3(&D_0002F57C, size>>10) and, when the
+// 0x4C160 verbose global is set, a detailed line via &D_0002F598 including
+// an unsigned-int-to-float division by 1024.0 (the 0x4F800000 +2^31 / then
+// /0x44800000 idiom = bytes->KiB as float). Family: cb-driven diagnostic
+// serialize with FP value formatting (siblings 0003F7A8/FB6C, mode-switch
+// shape of 00041008's neighbours). Branch arm ordering and the detailed-line
+// arg list are representative; the end-ptr math, mode selector, string-lit
+// keys and the u32->float/1024 conversion are exact. Caps: &D_g/0x4C160
+// globals, the &D_0002F5xx strings and cbN signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041148);
 
 extern int gl_func_00000000();
