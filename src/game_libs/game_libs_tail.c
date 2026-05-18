@@ -300,6 +300,7 @@ void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int a
     a0[2] = arg7;
 }
 
+/* gl_func_0000AAEC: 33-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AAEC);
 
 extern int gl_func_00000000();
