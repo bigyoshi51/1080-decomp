@@ -2767,6 +2767,40 @@ void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
     gl_func_00000000(a0, a0[0x104/4], a0[0x11C/4], (char*)&D_b5_C2C0_table + a2 * 24, 0xFF);
 }
 
+// timproc_uso_b5_func_0000C310 — STRUCTURAL PASS (0x400 / 256 words,
+// no episode). Raw-.word USO form (single function; boundary already
+// split by commit 8de6787e — the named fn itself was still
+// undecoded). Hand-decoded.
+//
+// Timing-screen sample-enqueue + per-slot process: appends to a
+// fixed-capacity (0xA) ring buffer, then runs FP processing over the
+// obj's parallel sub-arrays.
+//
+//   void timproc_uso_b5_func_0000C310(Obj *obj, A a1) {  // obj->s0
+//     if (obj->0x2BC < 0xA) {                             // ring not full
+//       if (--obj->0x2C0 < 0) obj->0x2C0 = …;             // read idx wrap
+//       obj->0x2BC += 2;                                   // write idx adv
+//     }
+//     // base pointers into parallel per-slot sub-arrays:
+//     //   obj+0x134, obj+0x158, obj+0x17C, obj+0x1A0, obj+0x1C4,
+//     //   obj+0x1DC, obj+0x1F4 ; plus a global at D_0 + 0xB8;
+//     // FP loop (~10 FP ops, ~7 func_00000000 sub-calls): for the
+//     //   current slot, transform / accumulate sample values from
+//     //   a1 into the sub-arrays and emit via the dispatcher.
+//   }
+//
+// Struct-typing reference:
+//   obj: 0x2BC ring write index (cap 0xA, += 2 per push),
+//     0x2C0 read index / count (decremented, wraps),
+//     0x134/0x158/0x17C/0x1A0/0x1C4/0x1DC/0x1F4 = parallel per-slot
+//     sub-array bases (stride 0x24 between consecutive bases);
+//     D_0 + 0xB8 = a global sample source. a1 = incoming sample
+//     record. func_00000000 = USO placeholder dispatcher (per-slot
+//     transform / emit).
+// Caps: raw-word USO + placeholder calls + 256-word FP/ring pipeline
+//   — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C310);
 
 /* 0000C710 absorbs 0000C7B4: bc1f at offset 0x94 of C710 branches PAST
