@@ -7394,6 +7394,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000334E8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000337AC);
 
+// gl_func_00033880 — STRUCTURAL PASS (0xDC / 55 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). The direct SIBLING / variant of gl_func_000337AC
+// (immediately above) — same flag-gated record register-and-init
+// shape, different arg slots + template set.
+//
+//   void gl_func_00033880(int id, int a1, unsigned flags, int d) {
+//     if (flags & 7) {
+//       callback((void*)0x0001E2EC, d);       // jal 0 (USO cb)
+//     }
+//     if (d & 1) {
+//       callback((void*)0x0001E308, d);       // 2nd USO cb
+//     }
+//     R *rec = (R*)(&D_0 + id * 0x44);         // id*0x44 record
+//     rec->w_3C = 1;                            // mark active
+//     callback3(flags, d);                      // 3rd USO cb
+//     init(&rec->f_18, 0, 1, a1);               // init sub-block
+//   }
+//
+// Struct-typing reference: a flag-driven registration / slot-init
+//   leaf, the sibling of gl_func_000337AC. Identical structure:
+//   low flag bits gate optional USO-relocated setup callbacks
+//   (jal 0 → resolved at load) carrying fixed data-segment
+//   templates — here `flags & 7` → 0x0001E2EC and `d & 1` →
+//   0x0001E308 (vs gl_func_000337AC's 0x0001E2C0 / 0x0001E2D8) —
+//   then indexes the SAME &D_0 record array with stride 0x44
+//   (id*16 + id then *4 = id*0x44 shift/add multiply), sets the
+//   per-record active flag at +0x3C, and runs a third callback to
+//   initialize the record's sub-block at +0x18. The only deltas vs
+//   gl_func_000337AC are the argument positions (flags arrives in
+//   a2, the secondary gate keys off arg d) and the template pair.
+//   The two together form a register/activate pair over the same
+//   0x44-stride registry table of the game_libs object subsystem
+//   (likely "register kind A" vs "register kind B"; 0x0001E2EC /
+//   0x0001E308 are deferred data-segment template-symbolization
+//   sites).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0
+//   record-array (0x44 stride) + fixed data-seg templates
+//   (unsymbolized) — not exact-matchable without proper USO
+//   mnemonic disasm + the record struct typed; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033880);
 
 #ifdef NON_MATCHING
