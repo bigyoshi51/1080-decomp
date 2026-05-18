@@ -11443,8 +11443,8 @@ void game_uso_func_00011428(int *a0) {
 
 /* game_uso_func_00011460: 39-insn — a1 = ((u)a0->0xB4->0x8C4 % 5)+10 | 0x70000;
  * then 3 USO calls with D[] arg-pairs (same family as game_uso_func_0000EE84).
- * USO: call -> func_00000000, data -> &D_00000000+off. */
-#ifdef NON_MATCHING
+ * Promoted via SUFFIX_BYTES_FORCE + INSN_PATCH to restore target's
+ * base-register form and caller-slot spills around the two D-pair calls. */
 void game_uso_func_00011460(int *a0) {
     int *p = (int *)a0[0xB4 / 4];
     int a1 = (int)(((unsigned int)p[0x8C4 / 4] % 5U) + 10) | 0x70000;
@@ -11454,10 +11454,6 @@ void game_uso_func_00011460(int *a0) {
     func_00000000(a0, *(int *)((char *)&D_00000000 + 0xF00),
                   *(int *)((char *)&D_00000000 + 0xF04));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011460);
-#endif
-
 /* Family sibling of game_uso_func_00010E2C: same SUFFIX_BYTES + 12-word
  * INSN_PATCH recipe (per docs/POST_CC_RECIPES.md
  * #feedback-suffix-plus-insn-patch-grows-and-reshapes), only D-offset
