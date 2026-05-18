@@ -2703,6 +2703,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000250C8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025320);
 
+// gl_func_00025504 — STRUCTURAL PASS (0x3C8 / 242 words ≈ 1KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle). A per-frame subsystem UPDATE DRIVER. Large
+// -0x68 frame, full s0-s7/ra save.
+//
+//   int gl_func_00025504(a0, a1, a2, a3) {
+//     S *g = &D_0;
+//     if (g->w_1034 == 0) { ret = 0; } else { ret = 1; }  // state gate
+//     g->w_2B0  = 0;                                       // clear flag
+//     g->w_1030 = 0;                                        // reset cnt
+//     jal 0x38248(…, a2);                                   // 0x0C00E092
+//     int n = g->w_1030;                                     // refreshed
+//     if (n <= 0) return ret;
+//     for (int i = 0; i < n; i++) {                          // element
+//       E *e = *(E**)(&D_0 + 0x430 + i*4);                   //  table
+//       ... process e (mask 0xFFF0 align, sub-calls) ...
+//     }
+//     return ret;
+//   }
+//
+// Struct-typing reference: the top-level per-frame tick of the
+//   subsystem keyed on &D_0+0x1034 (an enabled/state word) and
+//   &D_0+0x1030 (a live element count, reset then refilled by the
+//   USO-relocated routine 0x0C00E092 ≈0x38248). &D_0+0x2B0 is a
+//   transient flag cleared each call. The element pointer table is
+//   rooted at &D_0+0x430 (word-strided, indexed by the count); each
+//   element is processed with a 0x10-aligned size and further
+//   sub-calls. This is the update/advance entry that complements the
+//   gl_func_00024378 init / gl_func_00025044 teardown for that
+//   subsystem.
+// Caps: raw-word USO + large element-loop update with USO-reloc
+//   sub-calls — not exact-matchable without proper USO mnemonic
+//   disasm; high-level structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
