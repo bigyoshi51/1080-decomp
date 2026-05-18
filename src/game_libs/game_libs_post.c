@@ -14515,6 +14515,37 @@ void gl_func_000402A4(int *a0, float dx, float dy, float dz) {
     gl_func_00000000((char*)a0 + 0xB4, (char*)a0 + 0x30, a0);
 }
 
+// gl_func_00040304 — STRUCTURAL PASS (0x338 / 207 words, no episode). Raw-.word
+// USO. realjr=1 (the early 01E00008 is jr t7 = jump-table dispatch, NOT a
+// function boundary), single prologue frame 0x90 (saves ra, s0) → ONE clean
+// function. 6-way jump-table command handler (cb = jal 0 USO-relocated).
+//
+//   void gl_func_00040304(void *a0, int *a1) {
+//     self = a0;
+//     unsigned idx = (unsigned)(*a1 - 0x6D);    // opcode rebased
+//     if (idx >= 6) goto def;                    // sltiu/beqz range guard
+//     goto *jumptab[idx];                        // table at &D_0+0x1AE4
+//     // each of the 6 arms:
+//     //   t = cb(&self->p..., a2, a3);          // build/resolve a payload
+//     //   copy 3-word block from t into a sp scratch (sp+0x6C..)
+//     //   load a float vec/quad from the scratch and store it into the
+//     //   object at +0xE8 / +0xEC / +0xF0 / +0xF4 / +0xF8 (Vec3/Quad set)
+//     //   cb(&scratch, ...) re-emit / commit the transformed block
+//     //   self pointers reloaded from self+0xC0 / +0xCC across arms
+//     def:
+//     // default arm: same copy/emit shape with a different source offset
+//   }
+// Per-opcode geometry/transform property setter: rebases the command byte
+// *(a1) by 0x6D, range-checks to [0,5], dispatches through a 6-entry jump
+// table at &D_0+0x1AE4 (USO-relocated data region — extends the &D_0 table
+// block), each arm copying a float Vec3/Quad from a cb-populated sp scratch
+// into the object's +0xE8.. field group and re-emitting via cb. Family:
+// jump-table command dispatch + FP-vec property set (relates to the segment's
+// cb-serialize / geometry routines). Per-arm bodies not individually decoded
+// (207-word table handler) — dispatch math, range guard, table address and
+// the +0xE8 vec-store shape are exact; arm payloads are representative.
+// Caps: object struct, the &D_0+0x1AE4 jump table and cb signature untyped.
+// Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040304);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040640);
