@@ -1795,6 +1795,45 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007E34);
 
+// timproc_uso_b5_func_000080F4 — STRUCTURAL PASS (0x374 / 221 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen draw/update sub-handler (a phase branch of the master
+// tick), gated by mode + an FP animation-progress compare.
+//
+//   void timproc_uso_b5_func_000080F4(Scr *scr) {        // scr -> s2
+//     if (scr->0x3BC == 2) {
+//       a = func_00000000(scr->0x41C, scr->0x3B8);
+//       int s0 = a->0x4C;
+//       int s1 = (s0 | scr->0x4B4);
+//       func_00000000(scr->0x41C, scr->0x3B8);             // re-query
+//       if (scr->0x44 < scr->0x4BC) {                       // anim ongoing
+//         func_00000000(scr);
+//         d = scr->0x28;  (d->0x7C)(d->0x78 + …);            // draw/update
+//       }
+//       if (s1 == 0) {                                       // idle
+//         if (func_00000000(&D_0, 0x100)) {
+//           d = scr->0x28;  (d->0x8C)(d->0x88 + …);          // show
+//           func_00000000(scr); func_00000000(scr);
+//           d = scr->0x28;  (d->0x84)(d->0x80 + …);          // deactivate
+//           // …element-array processing + state refresh…
+//         }
+//       }
+//     }
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x3BC mode (==2 active), 0x4B4 busy flag (OR'd with
+//     queried->0x4C into s1; nonzero = still busy), 0x41C/0x3B8
+//     sub-objects, 0x44 f32 current progress, 0x4BC f32 target
+//     (compare drives the draw step), 0x28 vtable (->0x78/0x7C
+//     draw/update, ->0x88/0x8C show, ->0x80/0x84 deactivate —
+//     obj->0x28 dispatch idiom). D_0 global flag 0x100 gates the
+//     idle/show path. func_00000000 = USO placeholder dispatcher.
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000080F4);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008468);
