@@ -7758,6 +7758,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034188);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
 
+// gl_func_00034458 — STRUCTURAL PASS (0xF0 / 60 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A collection processor with per-element vtable dispatch.
+//
+//   void gl_func_00034458(void) {
+//     R *r = *(R**)&D_0;                       // global record
+//     callback((void*)0x0001E3F4);             // jal 0 (USO cb)
+//     N *n = r->head_4;
+//     while (n != (N*)-1) {                     // -1 = end sentinel
+//       int  (*f)() = n->fp_70;
+//       int  outA, outB;                        // sp+0x50 / sp+0x54
+//       f(r->h_11C, &outA, &outB);              // jalr n->0x70
+//       callback0();                             // USO cb
+//       s1 = callback(r->h_14);                  // USO cb
+//       callback(r->h_10, outA, r->h_14, ...);   // USO cb
+//       n = n->next;
+//     }
+//   }
+//
+// Struct-typing reference: a per-element polymorphic processing
+//   pass over a collection rooted in the global record at &D_0. It
+//   walks a node list (head at r->0x04, terminated by a -1
+//   sentinel) and for each node calls a FUNCTION POINTER at
+//   node+0x70 — passing a record field r->0x11C plus two stack
+//   out-parameters (sp+0x50 / sp+0x54) the callee fills in — then
+//   issues USO-relocated callbacks (jal 0 → resolved at load) using
+//   the record's fields r->0x10 (halfword), r->0x14 and r->0x11C
+//   and the values the node's method produced. Two fixed data-
+//   segment templates are referenced (0x0001E3F4, 0x0001E400). The
+//   node+0x70 indirection makes the collection elements polymorphic
+//   — 0x70 is the element's "process/render" vtable slot. This is
+//   the per-frame UPDATE/RENDER traversal over the collection that
+//   the device-object family builds: it pairs with gl_func_00034240
+//   (init/constructor) and gl_func_00034188 (device tick) over the
+//   same &D_0-rooted record; the gl_func_00033B6C registry sweep
+//   resets the slots this pass walks.
+// Caps: raw-word USO + jalr through element vtable slot (node+0x70)
+//   + USO-relocated jal-0 callbacks + fixed data-seg templates
+//   (unsymbolized) — not exact-matchable without proper USO
+//   mnemonic disasm + the node/record structs typed; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034458);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034548);
