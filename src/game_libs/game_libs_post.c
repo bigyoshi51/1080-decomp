@@ -3380,6 +3380,43 @@ void gl_func_00027704(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027744);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00027744_pad.s")
 
+// gl_func_00027804 — STRUCTURAL PASS (0x4FC / 319 words ≈ 1.3KB, no
+// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO
+// bundle (named fn + 1 trailing helper) — deferred USO re-split. The
+// named leading fn is a large object-state apply/update. -0x50 frame.
+//
+//   void gl_func_00027804(O *obj, S *src) {
+//     byte  m = obj->b_35;
+//     void *p = src->w_4;
+//     int   r = jal 0x3C2B4(m, p, …);                   // 0x0C00F0AD
+//     byte  k = src->b_2;
+//     float f = src->f_8;                                 // lwc1 +8
+//     // build a stack scratch struct at sp+0x2C from
+//     //   src->b_0 / src->b_2 / src->b_3 …
+//     byte fl = obj->b_B0;
+//     fl &= ~0x08;                                         // clear bit3
+//     fl &= ~0x04;                                          // clear bit2
+//     fl &= ~0x02;                                          // clear bit1
+//     obj->b_B0 = fl;
+//     ...
+//     obj->h_BC = packed;                                   // write back
+//   }
+//
+// Struct-typing reference: applies an update to object `obj` from a
+//   source descriptor `src`. obj fields: byte +0x35 (a type/mode fed
+//   to the USO-relocated routine 0x0C00F0AD ≈0x3C2B4), flag byte
+//   +0xB0 (bits 1/2/3 cleared as part of the update — a
+//   state-transition mask), halfword +0xBC (a packed result written
+//   back). src fields: byte +0 / +2 / +3, word +4 (a pointer arg),
+//   float +0x8 (lwc1, an interpolation/scale value). A stack scratch
+//   struct at sp+0x2C is assembled from the src bytes and handed to
+//   the fixed routine. The object property-set / apply-state-change
+//   entry of the game_libs object subsystem.
+// Caps: raw-word USO + 2-fn unsplit bundle + large state-mutation
+//   body with FP + jal-0/fixed calls — not exact-matchable without
+//   proper USO mnemonic disasm; high-level structural pass only for
+//   the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027804);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027D00);
