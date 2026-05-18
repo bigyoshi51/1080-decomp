@@ -4193,6 +4193,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
 
+// gl_func_0002A260 — STRUCTURAL PASS (0x14C / 83 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). An object reset-to-defaults routine.
+//
+//   void gl_func_0002A260(O *obj) {
+//     if (obj == &D_5280) return;                       // null sentinel
+//     byte f = obj->b_0;
+//     f &= ~0x80; f &= ~0x40; f &= ~0x20; f &= ~0x10;     // clear flag
+//     f &= ~0x08; f &= ~0x04; f &= ~0x02;                  //  bits 1..7
+//     obj->b_0 = f;
+//     obj->h_14 = 0xF0;                                    // default
+//     obj->h_10 = ...;                                      //  field
+//     obj->h_26 = 0;                                        //  constants
+//     obj->b_9  = ...;
+//     ...  (0xFF / 0x40 / 0x80 / 0x03 / 0x01 literals) ...
+//   }
+//
+// Struct-typing reference: clears the object's primary flag byte
+//   (obj->0) bit-by-bit — bits 1 through 7 each masked off
+//   individually (the GCC-emitted sequential andi 0xFF7F / 0xBF /
+//   0xDF / 0xEF / 0xF7 / 0xFB / 0xFD pattern) — then stores a fixed
+//   set of default constants into the object's fields (halfwords
+//   obj->0x10 / 0x14 (=0xF0) / 0x26, byte obj->0x9, etc.; immediates
+//   0xFF / 0x40 / 0x80 / 0x03 / 0x01). &D_5280 is the
+//   no-object/null sentinel (early return). This is the
+//   "reinitialise object to its default/idle state" entry of the
+//   game_libs object subsystem (the state-clear counterpart to the
+//   gl_func_00028E94 attach / gl_func_00029B6C channel-reset).
+// Caps: raw-word USO + bitwise flag-clear + constant field init —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
