@@ -2597,6 +2597,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024E34);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
 
+// gl_func_00025044 — STRUCTURAL PASS (0x84 / 33 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). The teardown SWEEP counterpart to the gl_func_00024F30
+// slot allocator.
+//
+//   void gl_func_00025044(int a0) {
+//     S *g = &D_0;
+//     if (g->w_215C == 1) return;                       // already torn
+//     Slot *s   = (Slot*)(g + 0x1038);
+//     Slot *end = (Slot*)(g + 0x540 + ...);              // table end
+//     while (s != end) {
+//       if (s->b_0 == 1) {                                // in-use
+//         jal 0x39734(&s->..., a0);                        // 0x0C00E5CD
+//       }
+//       s = (char*)s + 0x54;                              // stride
+//     }
+//   }
+//
+// Struct-typing reference: walks the SAME fixed-capacity slot pool
+//   gl_func_00024F30 allocates from — base &D_0+0x1038, entry stride
+//   0x54, byte +0 the in-use flag, end derived from the &D_0+0x540
+//   region — and for every slot marked in-use (byte +0 == 1) invokes
+//   the fixed USO-relocated destructor 0x0C00E5CD (≈0x39734) with the
+//   caller arg. The whole sweep is gated on the subsystem handle
+//   &D_0+0x215C: if it equals 1 (already shut down) the function is a
+//   no-op. The shutdown/free-all counterpart to gl_func_00024F30,
+//   analogous to how gl_func_0002349C tears down the &D_0+0x2030
+//   registry.
+// Caps: raw-word USO + fixed-target per-slot destructor — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000250C8);
