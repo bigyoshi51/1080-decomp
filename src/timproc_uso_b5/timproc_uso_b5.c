@@ -1981,6 +1981,36 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008688);
 
+// timproc_uso_b5_func_0000894C — STRUCTURAL PASS (no episode).
+// Raw-.word USO. BOUNDARY NOTE: this .s is a 10-function USO bundle
+// (10 jr-ra). Named fn 0x894C..0x8968 is a TRIVIAL wrapper; the 9
+// trailing functions (0x896C..0x8AF8) are small timproc_uso_b5
+// accessors/helpers — deferred USO re-split (mnemonic
+// split-fragments.py can't split USO bundles).
+//
+// Named fn (the only one decoded here):
+//   void timproc_uso_b5_func_0000894C(void) {
+//     func_00000000();                                   // pass-through
+//   }
+//
+// Trailing helpers (catalogued, NOT decoded as separate functions):
+//   ~0x896C: scr->0x2A0 = scr->0x480 * F32(D_00000234);  // scale write
+//   ~0x8988/0x89DC: indexed search/count loops over an array,
+//     comparing the f32 field ->0x2A4, returning a match count;
+//   ~0x8A38 / 0x8A64 / 0x8A90: getters — idx = scr->0x3C4;
+//     return scr->0x40C->{0x3D0,0x3CC,0x3E0}[idx]->0x3C  (3 sub-array
+//     variants); ~0x8ABC: same family, writes scr->0x3E0;
+//   ~0x8AD4: idx from scr->0x3F0/0x3F4 -> scr->0x40C->0x3D0[...]->0x3C.
+//
+// Struct-typing reference:
+//   scr: 0x2A0 f32 scaled out, 0x480 f32 source, 0x3C4 / 0x3F0 / 0x3F4
+//     element indices, 0x40C -> array holder (->0x3CC/0x3D0/0x3E0
+//     sub-array bases; entry->0x3C the returned field, entry->0x2A4
+//     an f32 key). D_00000234 = USO f32 scale const. func_00000000 =
+//     USO placeholder dispatcher.
+// Caps: raw-word USO + unsplit bundle + placeholder calls — not
+//   exact-matchable here; structural pass only for the named fn.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000894C);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008AFC);
