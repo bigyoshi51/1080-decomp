@@ -19147,6 +19147,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00050444);
 // body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005062C);
 
+// gl_func_000510F0 — STRUCTURAL PASS (0x2DC / 183 words, no episode).
+// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0xD8,
+// saves ra + s0. ONE jal-0 = USO-relocated emit callback. FP
+// int->float vertex gather + multi-vec marshalling. Shape:
+//   void *gl_func_000510F0(void *self, int sel) {
+//     // args spilled: self -> sp+0xD8, sel -> sp+0xDC
+//     // For each of 4 packed sub-records, walk the directory triple
+//     // dir0=self->field_60, dir1=self->field_64, dir2=self->field_68
+//     // (entry indexed by a sel-derived scaled offset; lhu the i16
+//     // field), mtc1 + cvt.s.w each to float, and stage a Vec3-ish
+//     // float triple into stack scratch:
+//     //   recs[0] -> sp+0xA8/0xAC/0xB0
+//     //   recs[1] -> sp+0x90/0x94/0x98
+//     //   recs[2] -> sp+0xCC/0xD0/0xD4
+//     //   recs[3] -> sp+0xB4/0xB8/0xBC  (via field_60/0x64/0x68)
+//     // Then marshal three 12-byte vec blocks fetched through buffer
+//     // pointers (lw base; lw +0/+4/+8) into the consecutive
+//     // stack-arg window sp+0x10..0x60 and emit:
+//     //   cb(self, ..., <all spilled vec args>);   // USO geometry/DL
+//     return self;                                  // reload sp+0xD8
+//   }
+// Family: FP vertex-decode/int->float gather + multi-vec emit-marshal
+// (sibling of the FP geometry/transform-emit orchestrator
+// gl_func_0005062C and the FP-quantize family gl_func_00050444). The
+// frame, saved-reg set, the field_60/0x64/0x68 directory-triple gather,
+// the per-field mtc1 + cvt.s.w int->float conversion, the four
+// Vec3-triple stack-scratch stages, the 12-byte buffer-pointer vec
+// fetch, the consecutive sp+0x10.. spilled-arg marshalling for the
+// single USO emit callback and the return-self are exact; the cb
+// prototype and the exact directory-index arithmetic are
+// representative. Caps: self struct + cb prototype untyped
+// (USO-relocated). Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000510F0);
 
 /* gl_func_000513CC: 31-insn helper. Multi-pass decode pending. */
