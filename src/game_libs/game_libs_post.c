@@ -237,6 +237,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D4C0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D870);
 
+// gl_func_0001DA7C — STRUCTURAL PASS (0x10C / 67 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). An F3D/GBI glyph-command builder in the gl_func_0001D4C0
+// display-list family.
+//
+//   int gl_func_0001DA7C(int a0, int a1, short idx) {
+//     E *e = &D_0 + idx_scaled(idx);            // signed-halfword idx
+//     byte flag = e->0x1C;
+//     int r;
+//     if (flag != 1) {
+//       r = jal 0x31EDC(packed_at_sp42);        // 0x0C00C7B7 measure
+//     } else {
+//       r = jal 0x3186C(a0, packed_at_sp42);    // 0x0C00C61B measure
+//     }
+//     int dl = *(short*)(&D_0C34xxxx + ...);    // global DL cursor
+//     *(int*)dl     = 0x0C800940 | a1;          // GBI word0
+//     *(int*)(dl+4) = ...;                       // GBI word1
+//     dl_cursor = r + 8;                         // advance by 8 bytes
+//     ...
+//   }
+//
+// Struct-typing reference: object/glyph entry e from &D_0 via a
+//   sign-extended-halfword index (sll16/sra16 then *4 scaling); byte
+//   e->0x1C selects which fixed measure/prep routine runs (0x0C00C7B7
+//   ≈0x31EDC vs 0x0C00C61B ≈0x3186C, the flag==1 path also passes a0).
+//   Emits one 8-byte F3D/GBI command (word0 = const 0x0C800940 ORed
+//   with arg a1) to the global DL write cursor rooted at &D_0C34xxxx,
+//   then advances the cursor by 8. Same builder family as the
+//   gl_func_0001D4C0 leading fn but standalone.
+// Caps: raw-word USO + fixed-target calls — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DA7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
