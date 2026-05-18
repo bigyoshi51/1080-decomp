@@ -16116,6 +16116,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044548);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000445AC);
 
+// gl_func_00044918 — STRUCTURAL PASS (0x1D0 / 117 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
+// (saves ra, s0). Large struct reset/init + cb pipeline (cb = jal 0
+// USO-relocated).
+//
+//   void gl_func_00044918(void *a0) {
+//     self = a0;
+//     self->p5D0 = 0;
+//     int *p = (int*)((char*)a0 + 0x2AC);            // sub-array base
+//     for (i = 0; i < 50; i++) {                       // 0x32-count clear,
+//       p[0] = 0; p[1] = 0;                            //   8-byte stride
+//       p += 2;
+//     }
+//     // a paired 0x10-stride sub-array is then zero-filled the same way
+//     // (AC40 0/4/8/C stores), plus self->...0xC8 and self->0x210 = 0:
+//     self->p210 = 0;
+//     cb1(&self->p294);                               // init sub-object A
+//     cb2(self, 0);                                    // init sub-object B
+//     // bounds-validation pass: r = self->p218;
+//     //   if ((unsigned)r->p1C < LIM && (unsigned)r->p04 < LIM &&
+//     //       (unsigned)r->p0C < LIM) cb3(...);        // sltu-gated handler
+//     //   (the sltu/bnez ladder repeats for several r-> fields, each
+//     //    short-circuiting; a passing tuple triggers a cb3 commit.)
+//   }
+// Resets a large embedded structure: clears a scalar at 0x5D0, a 50-entry
+// 8-byte array at +0x2AC and a paired 0x10-stride sub-array, zeroes 0x210,
+// initialises two sub-objects via cb1(&self->0x294) / cb2(self,0), then
+// runs an unsigned-bounds (sltu) validation ladder over self->0x218->{0x1C,
+// 0x04,0x0C} that conditionally invokes a cb3 handler. Family: cb-driven
+// struct-init/reset + validation pipeline (relates to the segment's
+// registration/init drivers). Loop trip count (0x32), the array strides
+// (8 / 0x10), the cleared offsets (0x5D0/0x2AC/0x210), the cb1/cb2 inits and
+// the sltu-gated 0x218 field ladder are exact; per-validation cb3 arg detail
+// representative. Caps: self struct + cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044918);
 
 /* gl_func_00044AEC: 38-insn helper. Multi-pass decode pending. */
