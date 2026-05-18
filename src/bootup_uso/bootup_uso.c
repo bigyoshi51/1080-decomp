@@ -3888,6 +3888,57 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
 
+// func_0000D440 — STRUCTURAL PASS (0x4C0 / 304 insns, no episode).
+// Per-frame UI/scene event-flag processor: walks status bits on the
+// state struct, toggles a latch, fires descriptor-table actions and
+// vtable sub-updates accordingly.
+//
+//   void func_0000D440(State *st) {            // st -> s0
+//     func_00000000(&func_00008A7C+0x54);      // named action (table)
+//     int fl = st->0xA58;
+//     if (fl & 0x100) {
+//       sub = st->0x800;
+//       if (sub->0x18 & 0x20) st->0xA28 ^= 1;  // latch toggle
+//       if (st->0xA28 && (sub->0x18 & 0x10)) return;   // early-out
+//       if (sub->0x18 & 0x10) { st->0xA58 ^= 4; fl = st->0xA58; }
+//     }
+//     if (fl & 0x100) {
+//       d = st->0x800;
+//       if ((d->0x10 & 0x40) && (d->0x10 & 0x80)) {
+//         sp58 = 9;
+//         dispatch st->0x28 (vtbl: ->0x2C fn, ->0x28 s16 base, a0 = base+st);
+//         fl = st->0xA58;
+//       }
+//     }
+//     if (fl & 0x4) {
+//       st->0x800->0x3C = 1;
+//       func_00000000(&func_00008A7C+0x5C);
+//       dispatch st->0x804->0x28 (->0x24 fn, ->0x20 base);
+//       func_00000000(&func_00008A7C+0x64);
+//       fl = st->0xA58;
+//     }
+//     if (fl & 0x80) { func_00000000(st+0x808 ...); ... }
+//     // ... further fl-bit blocks (more func_00008A7C/func_00008AEC
+//     //   descriptor actions + func_000000F0+0x48 + vtable dispatches);
+//     func_00000000(&func_00008AEC+0x44);      // final action
+//   }
+//
+// Struct-typing reference:
+//   st: 0xA58 status/event flags (0x100 active, 0x4, 0x80 — toggled
+//     via xori); 0xA28 bool latch (^=1); 0x800 sub-object
+//     (->0x18 flags 0x10/0x20, ->0x10 flags 0x40/0x80, ->0x3C set 1);
+//     0x804 sub-obj w/ ->0x28 vtable (->0x24 fn, ->0x20 s16 base);
+//     0x28 own vtable (->0x2C fn, ->0x28 s16 base) — obj->0x28 dispatch
+//     idiom; 0x808 a sub-record.
+//   Folded action/desc tables (literal-pool/placeholder fold family):
+//     func_00008A7C + {0x54,0x5C,0x64,0x6C} (8-stride),
+//     func_00008AEC + {0x8,0x14,0x20,0x2C,0x38,0x44} (0xC-stride),
+//     func_000000F0 + 0x48 (x3); see
+//     docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
+// Caps: 304-insn flag-walk dispatcher w/ folded tables + vtable calls
+//   — exact-match blocked by deferred pool symbolization; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D440);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D900);
