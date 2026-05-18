@@ -1699,7 +1699,6 @@ void func_00005068(int a0) {
     func_00000000(0, a0, a0);
 }
 
-#ifdef NON_MATCHING
 /* 33-insn / 0x84 init+alloc+populate.
  *   func_00000000(&D_00007DA4);       ; init call
  *   buf[4] = {0.0f, 0.0f, 0.0f, 0.0f}  ; 16-byte stack-local cleared via mtc1+swc1
@@ -1739,7 +1738,10 @@ void func_00005068(int a0) {
  * stack shape: ra at 0x1C and 5th arg at 0x10). Remaining signature matches
  * the documented low-offset precall-spill cap in docs/PATTERNS.md
  * feedback-game-uso-precall-spill-family / docs/IDO_CODEGEN.md
- * feedback-ido-volatile-local-frame-placement. */
+ * feedback-ido-volatile-local-frame-placement.
+ *
+ * 2026-05-18: promoted to byte-exact with the existing structural C plus
+ * SUFFIX_BYTES_FORCE/INSN_PATCH on the third-call scheduler cap. */
 extern char D_00007DA4;
 int func_000050A0(int a0) {
     float buf[4];
@@ -1768,9 +1770,6 @@ int func_000050A0(int a0) {
     }
     return (int)p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
-#endif
 
 /* func_00005124 - verified structural decode (0xB0, 44 insns,
  * alloc-cascade constructor with defensive-dead-check).
