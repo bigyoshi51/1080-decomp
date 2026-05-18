@@ -76,6 +76,11 @@ def is_function_definition_here(text, name_start, args_end):
     Returns the past-of-closing-`}` index, or None if not a definition."""
     # Check prefix: must be start-of-line (modulo whitespace + return type)
     line_start = text.rfind("\n", 0, name_start) + 1
+    line_comment = text.find("//", line_start, name_start)
+    block_comment = text.rfind("/*", 0, name_start)
+    block_end = text.rfind("*/", 0, name_start)
+    if line_comment >= 0 or block_comment > block_end:
+        return None
     prefix = text[line_start:name_start].rstrip()
     # Prefix should end with identifier/`*` (a type) and not contain `(`
     if "(" in prefix or prefix.endswith(";") or prefix.endswith(","):

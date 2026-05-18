@@ -72,8 +72,6 @@ s32 func_800052C0(void) {
     return 0;
 }
 
-
-#ifdef NON_MATCHING
 typedef struct {
     u32 unk_00;
     u8 type;
@@ -88,6 +86,7 @@ typedef struct {
 
 extern OSPiHandle *D_8000A470[];
 extern s32 func_80004B30(void *);
+extern u32 D_A4600010;
 
 #define PI_REG(offset) (*(volatile u32 *)(0xA4600000 + (offset)))
 #define PI_HANDLE_TABLE ((OSPiHandle **)0x8000A470)
@@ -127,35 +126,27 @@ extern s32 func_80004B30(void *);
  * 0x07 relDuration, 0x08 pulse, 0x09 domain, 0x0C baseAddress}.
  * Same OSPiHandle layout as OoT/libreultra (PI_BASE = 0xA4600000).
  *
- * MATCH BLOCKED: same alt-entry shared-tail pattern as func_800073DC /
+ * Same alt-entry shared-tail pattern as func_800073DC /
  * func_8000817C / func_80008430. External callers in kernel_000.c /
  * kernel_001.c / kernel_003.c declare `extern void func_80005350(s32, s32)`
  * and call it as a 2-arg function — those callers expect to enter mid-body
- * (uses prologue's $sp frame + spilled $a0/$a3 args). Standard C-emit can't
- * produce a function whose internal label is also a callable entry — IDO
- * always emits prologue+epilogue at function boundary. See
- * docs/MATCHING_WORKFLOW.md#feedback-cross-function-epilogue-entry.
+ * (uses prologue's $sp frame + spilled $a0/$a3 args). The Makefile truncates
+ * this object to the 0x60-byte entry block so func_80005350 remains the
+ * separate shared-tail body.
  *
- * 2026-05-17 deep attempt: PI_HANDLE_TABLE hardcoding + late `dir` assignment
- * forces the 0x30 frame, s0 save, absolute D_8000A470 base, and shared-tail
- * split boundary. NON_MATCHING_TRUNCATE_TEXT=0x8C plus one boundary nop patch
- * leaves only the two PI_STATUS_REG loads mismatched at object level: target
- * has R_MIPS_HI16/LO16 relocations against D_A4600010, while the schedulable
- * C shape emits absolute 0xA4600010 loads. The extern/reloc variants were
- * tested but IDO schedules the D_A4600010 load before the argument spills (or
- * emits a 3-insn address materialization), regressing the 0x60-byte prefix.
- * Current NM object score: 99.166664%; no exact episode.
- *
- * Default INCLUDE_ASM build remains exact. */
+ * Exact via patch-insn-relocs: the direct D_A4600010 C form keeps the required
+ * HI16/LO16 relocs, but IDO hoists the first load before the argument spills.
+ * The post-cc recipe patches the fixed 0x60-byte prefix and retargets that
+ * first relocation pair to the target offsets. */
 s32 func_800052F0(OSPiHandle *handle, s32 direction, u32 cartAddr, void *dramAddr, s32 size) {
     u32 status;
     u32 domain;
     register s32 dir;
     OSPiHandle *curHandle;
 
-    status = PI_REG(0x10);
+    status = D_A4600010;
     while (status & 3) {
-        status = PI_REG(0x10);
+        status = D_A4600010;
     }
 
     domain = handle->domain;
@@ -205,8 +196,5 @@ s32 func_800052F0(OSPiHandle *handle, s32 direction, u32 cartAddr, void *dramAdd
 
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800052F0);
-#endif
 
 #undef PI_REG

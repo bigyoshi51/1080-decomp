@@ -234,8 +234,11 @@ build/src/game_libs/game_libs_post.c.o: INSN_PATCH += gl_func_00043F50=0x10:0x3C
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_005.c.o build/non_matching/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1
-build/non_matching/src/kernel/kernel_005.c.o: NON_MATCHING_INSN_PATCH := func_800052F0=0x60:0x00000000
-build/non_matching/src/kernel/kernel_005.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x8C
+FUNC_800052F0_RELOC_PATCH := func_800052F0=0x04:0xAFBF001C,0x08:0xAFA40030,0x0C:0xAFA50034,0x10:0xAFA60038,0x14:0xAFA7003C,0x18:0xAFB00018,0x1C:0x3C0E0000,0x20:0x8DCF0000,0x24:0x31F80003,0x28:0x13000008,0x2C:0xAFAF002C,0x30:0x3C190000,0x34:0x8F280000,0x38:0xAFA8002C,0x3C:0x8FA9002C,0x40:0x312A0003,0x44:0x1540FFFA,0x4C:0x8FAB0030,0x50:0x3C0E8001,0x54:0x916C0009,0x58:0x000C6880,0x5C:0x01CD7021,0x60:0x00000000@0x04:HI16:0x1C,0x08:LO16:0x20
+build/src/kernel/kernel_005.c.o: INSN_RELOC_PATCH := $(FUNC_800052F0_RELOC_PATCH)
+build/src/kernel/kernel_005.c.o: TEXT_CLIP_KEEP_ALIGN := 0x90 func_800052F0=0x60
+build/non_matching/src/kernel/kernel_005.c.o: NON_MATCHING_INSN_RELOC_PATCH := $(FUNC_800052F0_RELOC_PATCH)
+build/non_matching/src/kernel/kernel_005.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x90 func_800052F0=0x60
 build/src/kernel/kernel_007.c.o build/non_matching/src/kernel/kernel_007.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_009.c.o build/non_matching/src/kernel/kernel_009.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_011.c.o build/non_matching/src/kernel/kernel_011.c.o: OPT_FLAGS := -O1
@@ -542,6 +545,9 @@ build/src/%.c.o: src/%.c
 	@if [ -n "$(INSN_PATCH)" ]; then for spec in $(INSN_PATCH); do \
 		python3 scripts/patch-insn-bytes.py $@ $$spec; \
 	done; fi
+	@if [ -n "$(INSN_RELOC_PATCH)" ]; then for spec in $(INSN_RELOC_PATCH); do \
+		python3 scripts/patch-insn-relocs.py $@ $$spec; \
+	done; fi
 	@if [ -n "$(POST_INSN_SUFFIX_BYTES)" ]; then for spec in $(POST_INSN_SUFFIX_BYTES); do \
 		fn=$$(echo $$spec | cut -d= -f1); \
 		words=$$(echo $$spec | cut -d= -f2); \
@@ -553,6 +559,7 @@ build/src/%.c.o: src/%.c
 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words --allow-natural-epilogue; \
 	done; fi
 	@if [ -n "$(TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(TRUNCATE_TEXT); fi
+	@if [ -n "$(TEXT_CLIP_KEEP_ALIGN)" ]; then python3 scripts/clip-elf-text-keep-align.py $@ $(TEXT_CLIP_KEEP_ALIGN); fi
 endif
 
 # Non-matching C build: same compile pipeline as the byte-exact rule above
@@ -569,10 +576,11 @@ endif
 # always score 80-97% fuzzy even when build/.o is byte-exact, blocking
 # the land script's exact-match check.
 #
-# NON_MATCHING_INSN_PATCH, NON_MATCHING_SUFFIX_BYTES_FORCE, and
-# NON_MATCHING_TRUNCATE_TEXT are opt-in escapes for exact C functions whose
-# object-level split metadata also needs the same boundary/word fixups for
-# objdiff to read the base object.
+# NON_MATCHING_INSN_PATCH, NON_MATCHING_INSN_RELOC_PATCH,
+# NON_MATCHING_SUFFIX_BYTES_FORCE, NON_MATCHING_TRUNCATE_TEXT, and
+# NON_MATCHING_TEXT_CLIP_KEEP_ALIGN are opt-in escapes for exact C functions
+# whose object-level split metadata also needs the same boundary/word/reloc
+# fixups for objdiff to read the base object.
 ifndef PERMUTER
 build/non_matching/src/%.c.o: src/%.c
 	@mkdir -p $(dir $@) build/non_matching/$(<D)
@@ -594,7 +602,11 @@ build/non_matching/src/%.c.o: src/%.c
 	@if [ -n "$(NON_MATCHING_INSN_PATCH)" ]; then for spec in $(NON_MATCHING_INSN_PATCH); do \
 		python3 scripts/patch-insn-bytes.py $@ $$spec; \
 	done; fi
+	@if [ -n "$(NON_MATCHING_INSN_RELOC_PATCH)" ]; then for spec in $(NON_MATCHING_INSN_RELOC_PATCH); do \
+		python3 scripts/patch-insn-relocs.py $@ $$spec; \
+	done; fi
 	@if [ -n "$(NON_MATCHING_TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(NON_MATCHING_TRUNCATE_TEXT); fi
+	@if [ -n "$(NON_MATCHING_TEXT_CLIP_KEEP_ALIGN)" ]; then python3 scripts/clip-elf-text-keep-align.py $@ $(NON_MATCHING_TEXT_CLIP_KEEP_ALIGN); fi
 endif
 
 # Standalone assembly
