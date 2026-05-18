@@ -4465,6 +4465,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A7D8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A904);
 
+// gl_func_0002AA30 — STRUCTURAL PASS (0x104 / 65 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). An object per-frame advance / step with a fixed step
+// chain.
+//
+//   void gl_func_0002AA30(O *o) {
+//     int s = o->w_0;
+//     if (s < 0) return;                                // sign-bit gate
+//     short c = o->h_8;                                  // frame counter
+//     if (c >= 2) {
+//       o->h_8 = c - 1;                                   // tick down
+//       if (o->h_A < o->h_8) return;                       // not yet
+//     }
+//     (*pre)();                                           // jal 0 USO
+//     o->b_0 |= 0x20;                                     // mark stepped
+//     jal 0x3F1A0(o);                                     // 0x0C00FC68
+//     jal 0x3F388(o);                                     // 0x0C00FCE2
+//     int r = ...;
+//     if (r == -1) return;
+//     jal 0x3FC60(o);                                     // 0x0C00FF18
+//   }
+//
+// Struct-typing reference: a per-frame keyframe/animation advance.
+//   word o->0 carries an enable in its sign bit (negative = inactive,
+//   early return) and a flag set whose bit5 is OR-marked once a step
+//   fires; halfword o->8 is a frame countdown decremented toward the
+//   halfword o->0xA threshold. When the counter reaches the threshold
+//   the function runs a fixed three-stage USO-relocated step pipeline
+//   — 0x0C00FC68 (≈0x3F1A0) → 0x0C00FCE2 (≈0x3F388) → 0x0C00FF18
+//   (≈0x3FC60) — short-circuiting if the middle stage returns -1.
+//   The object-tick/advance leaf of the game_libs object subsystem
+//   (sibling to the gl_func_00029978 tween / gl_func_0002978C ramp
+//   steppers).
+// Caps: raw-word USO + fixed-target step pipeline — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
