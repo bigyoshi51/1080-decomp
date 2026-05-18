@@ -13439,6 +13439,37 @@ int gl_func_0003EBAC(char *a0) {
 // arm order inferred from branch sense. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
 
+// gl_func_0003EC5C — STRUCTURAL PASS (0x80 / 32 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x18 (saves ra) → ONE clean function.
+// SIBLING: byte-for-byte identical instruction stream to gl_func_0003EBDC
+// (same 32 words, same opcodes, only the .s addresses differ) — a duplicate
+// of the dispatch-through-indexed-table trampoline. Same semantics:
+//
+//   void gl_func_0003EC5C(Desc a0) {
+//     short hi = (short)a0->p0A;
+//     short lo = (short)a0->p08;
+//     void *base = a0->p04;
+//     if (hi < 0) base = lo + base;
+//     int sel;
+//     if (hi < 0) { sel = a0->p0C; }
+//     else {
+//       void *v = *(void**)((char*)a0 + 0xC);
+//       if (v != 0)       sel = (int)v;
+//       else if (a0->p08) sel = a0->p08;
+//       else              sel = 0x28;
+//     }
+//     void *tbl = *(void**)((char*)base + sel);
+//     void *e   = tbl + hi * 8;
+//     short bias = (short)e->p00;
+//     fnptr h    = e->p04;
+//     h(base + bias);                          // tail-call handler
+//   }
+// See the gl_func_0003EBDC structural pass above for the full instruction-
+// level rationale. Family: indexed-table / fnptr-from-entry dispatch (this
+// + 0003EBDC are an adjacent duplicate pair, likely the same template
+// instantiated for two descriptor variants). Caps: Desc/table-entry struct
+// untyped; selector ladder arm order inferred from branch sense. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
 
 /* 4-insn function: `nop; nop; jr ra; nop`. Body is structurally empty
