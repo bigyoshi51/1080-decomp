@@ -174,6 +174,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D0AC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D200);
 
+// gl_func_0001D4C0 — STRUCTURAL PASS (0x3B0 / 236 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: LARGE 40-jr USO
+// bundle — splat could not separate ~40 small functions here. Only
+// the named leading fn is decoded below (ends at the first jr, addr
+// 0x1D54C, ~36 words); the remaining ~40 bodies are deferred USO
+// re-split (mnemonic split-fragments.py cannot split USO bundles).
+//
+//   int gl_func_0001D4C0(args…, short h_at_sp32) {       // F3D emit
+//     E *e = base + idx(...);                             // obj/glyph
+//     byte f = e->0x1C;
+//     if (f & 1) {                                        // gated
+//       jal 0x31648(…, ptr_at_sp20);                      // 0x0C00C592
+//       int dl = *(short*)(&D_0C34xxxx + 0x20);           // DL cursor
+//       *(int*)dl     = 0x0C8003E0;                        // GBI word0
+//       *(int*)(dl+4) = arg;                               // GBI word1
+//       jal 0x31718(dl + 8);                               // 0x0C00C5C6
+//     }
+//     return e->0x1D;                                      // flag byte
+//   }
+//
+// Struct-typing reference: object/glyph entry e — byte e->0x1C
+//   (emit-gate flag), byte e->0x1D (returned status flag). Global DL
+//   write cursor lives as a halfword at &D_0C34xxxx + 0x20. Emitted
+//   command is one 8-byte F3D/GBI word pair (word0 const 0x0C8003E0,
+//   word1 = caller arg) then the cursor is advanced by 8 and handed
+//   to the fixed RSP-submit routine 0x0C00C5C6. Sibling of the
+//   game_libs F3D/RSP display-list builder family.
+// Caps: raw-word USO + 40-fn unsplit bundle + fixed-target calls —
+//   not exact-matchable without proper USO mnemonic disasm; structural
+//   pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D4C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D870);
