@@ -18966,6 +18966,33 @@ void gl_func_0004F9AC(char *a0) {
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F9E4);
 
+// gl_func_0004FBA4 — STRUCTURAL PASS (0x158 / 93 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x40
+// (saves ra, s0, s1). Multi-stage lazy allocate-and-link constructor
+// (SIBLING of gl_func_0004F85C; cb = jal 0 USO-relocated alloc).
+//
+//   void *gl_func_0004FBA4(void *a0, int a1, void *a2) {
+//     void *o0 = cb1(0x90); if (!o0) return 0;        // alloc obj A (0x90)
+//     void *o1 = a2;
+//     if (o1 == 0) { o1 = cb2(0x60); if (!o1) return 0; }   // alloc obj B
+//     o1->p5C = &D_reloc;                                    // bind global
+//     if (o1 != (void*)-0x34) { v = (char*)o1 + 0x34; }       // link region
+//     void *n = cb3(0x8);                                     // alloc 0x8
+//                                                             //   list node
+//     if (n) { n->p00 = 0; n->p04 = 0; }                       // zero node
+//     // ... link n into the o1+0x34 region; further wiring off o0/o1.
+//   }
+// Same lazy multi-subobject constructor as gl_func_0004F85C: allocates a
+// 0x90 object, a 0x60 object (only if the arg is null), and a small 0x8
+// list node via cb1/cb2/cb3 (each null-checked with an early bail), binds
+// the &D_reloc module global into a1->0x5C, links via the a1+0x34 region,
+// and zero-initialises the 0x8 node. Only the sub-object sizes
+// (0x90/0x60/0x8 vs the 0x90/0x90/0x60 of 0004F85C) differ. Family:
+// cb-driven lazy multi-subobject constructor (siblings gl_func_0004F85C /
+// 000412E8 / 00040070 / 0004D468). Post-link wiring tail representative;
+// the alloc-if-null guards, the 0x90/0x60/0x8 sizes, the null-check bails,
+// the a1->0x5C = &D_reloc bind and the 0x8 node zero-init are exact. Caps:
+// object struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FBA4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
