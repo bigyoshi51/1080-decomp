@@ -8374,6 +8374,52 @@ int game_libs_func_00035360(int a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
 
+// gl_func_00035440 — STRUCTURAL PASS (0x160 / 88 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). The SIBLING of gl_func_00035370 (immediately above) —
+// same kind-dispatch shape, adjacent vtable slot + a kind-2 arm.
+//
+//   void gl_func_00035440(O *o, int a1, int a2) {
+//     switch (o->kind_4) {
+//       case 1: {
+//         H *h = *(H**)&D_0;
+//         r = h->fp_50(o->w_20, a2);           // jalr (*&D_0)->0x50
+//         break;
+//       }
+//       case 0:
+//         r = callback(&D_0, a2);               // jal 0 (USO cb)
+//         break;
+//       case 2: {
+//         int cfg = *(int*)0x0004B8E8;          // device config
+//         report((char*)0x0001E5AC, a2, cfg);   // USO cb
+//         if (a2) { ... }
+//         break;
+//       }
+//       default: break;
+//     }
+//   }
+//
+// Struct-typing reference: the paired counterpart of
+//   gl_func_00035370 — same per-kind polymorphic processor
+//   switching on o->0x04 ∈ {0,1,2}. Deltas vs gl_func_00035370:
+//   the kind==1 arm dispatches through the ADJACENT vtable slot
+//   (*&D_0)+0x50 (vs 0x4C there) — confirming the global handler
+//   object has a contiguous method table around offset 0x4C/0x50 —
+//   and the kind==2 arm reads the global DEVICE CONFIG word at the
+//   FIXED absolute address 0x0004B8E8 (inside the 0x0004B8xx config
+//   block that gl_func_00034A78 initializes) and emits a diagnostic
+//   via a USO-relocated printf-shaped callback (jal 0 → resolved at
+//   load) with format string 0x0001E5AC. Together gl_func_00035370
+//   (slots 0x4C) and gl_func_00035440 (slot 0x50 + device-config
+//   arm) are a dispatch pair over the device-object vtable family
+//   (gl_func_00034188 / 00034458). 0x0004B8E8 / 0x0001E5AC are
+//   deferred absolute-symbol / string-data symbolization sites.
+// Caps: raw-word USO + jalr through global handler vtable
+//   ((*&D_0)+0x50) + USO-relocated jal-0 callbacks + fixed
+//   absolute device-config (0x0004B8E8) + fixed string data — not
+//   exact-matchable without proper USO mnemonic disasm + the
+//   vtable/config typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035440);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000355A0);
