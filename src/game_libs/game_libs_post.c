@@ -2459,6 +2459,32 @@ void gl_func_00024C08(int arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024C08);
 #endif
 
+// gl_func_00024D90 — STRUCTURAL PASS (0x84 / 33 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A companion object constructor to gl_func_00023E60 —
+// same fixed init 0x0C00E181 + &D_2Axxx table.
+//
+//   void gl_func_00024D90(O *obj, int a1) {
+//     (*build1)(obj->w_C);                              // jal 0 USO
+//     (*build2)(&obj->sub_30, &obj->sub_48, 1);          // jal 0 USO
+//     jal 0x38604(&obj->sub_4C, 0, 0,                    // 0x0C00E181
+//                 obj->w_8, a1, obj->w_C,
+//                 &D_2AFCC, obj->b_0);
+//   }
+//
+// Struct-typing reference: constructs an object `obj` by building
+//   two of its sub-structures in place — at obj+0x30 / obj+0x48 (via
+//   the second USO-relocated builder, `jal 0` slot) and obj+0x4C
+//   (passed to the init) — then runs the shared fixed init routine
+//   0x0C00E181 (≈0x38604, the SAME init gl_func_00023E60 calls) with
+//   obj fields (word obj->8, word obj->0xC, byte obj->0) and the
+//   fixed code/data blob &D_2AFCC (within the &D_2ACC0 region
+//   gl_func_00023E60 also references). A second object-bring-up entry
+//   of the same game_libs resource-construction family.
+// Caps: raw-word USO + jal-0 USO-reloc builders + shared fixed init
+//   — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024D90);
 
 void game_libs_func_00024E14(int a0, int a1, int a2, int a3) {
