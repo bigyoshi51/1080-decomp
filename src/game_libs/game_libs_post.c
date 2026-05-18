@@ -14333,6 +14333,31 @@ void gl_func_0003FB38(int a0) {
     gl_func_00000000(&scratch);
 }
 
+// gl_func_0003FB6C — STRUCTURAL PASS (0x90 / 37 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0xC0 (saves ra) → ONE clean function.
+// Formatted-size report emitter (cbN = jal 0 USO-relocated; same tagged-
+// scratch + cb-serialize family as 0003F7A8/F8E8/F9C4, tag byte 0x25 = '%').
+//
+//   void gl_func_0003FB6C(void *a0, int a1, int a2, int a3, int a4) {
+//     // a4 read from caller stack (sp+0xD0); a1/a2/a3/a4 spilled to a
+//     // consecutive sp-slot block (sp+0x28..0x34) = printf-style va save area
+//     char tag[..]; tag = 0x25;             // sp+0x20, '%' format/section tag
+//     long prod = (long)t8 * a4;            // multu/mflo size computation
+//     int n = (int)prod;
+//     n = (n + 7) >> 3;                     // round up to multiple of 8
+//     int sz = n;
+//     if (a1 == 0x508) sz = n + 0x200;      // special-case size bump
+//     cb1(&tag);                            // sz stashed at sp+0x1C
+//     cb2(&D_str, a2);                      // format-string literal + arg
+//     cb3(&tag, sz);                        // emit computed size
+//   }
+// Gathers a varargs-style register/stack save block, derives a
+// 8-byte-aligned size (with a +0x200 bump for the a1==0x508 case), and
+// reports it through the cb1/cb2/cb3 staged-emit chain keyed by a '%' tag
+// block and a format-string literal &D_str. Family: cb-driven
+// staged-serialize/diagnostic (siblings tag 0x23 / 0x1D / 0x1E). Caps:
+// the multu operand source, &D_str string, and cbN signatures inferred
+// from call shape; arg-struct untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FB6C);
 
 extern int gl_func_00000000();
