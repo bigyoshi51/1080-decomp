@@ -2972,6 +2972,37 @@ void timproc_uso_b5_func_0000C978(int *a0, float a1) {
     *(float*)((char*)*(int**)((char*)a0 + 0x2B8) + 0x11C) = a1;
 }
 
+// timproc_uso_b5_func_0000C98C — STRUCTURAL PASS (0x1B4 / 109 words,
+// no episode). Raw-.word USO form (single function; bundle already
+// split by commit f8c4b1b8 — the named fn itself was still
+// undecoded). Hand-decoded.
+//
+// Timing-screen draw/emit helper: assembles a draw command on the
+// stack and dispatches it.
+//
+//   void timproc_uso_b5_func_0000C98C(Obj *obj, a1, a2, a3) {  // obj->s0
+//     // stack arg block @ sp+0x10..0x44:
+//     //   sp+0x38..0x44 = a zeroed Vec4 (color/coords default);
+//     //   sp+0x18 = 0xFF (alpha);  sp+0x34 = a2;  sp+0x10 = a3;
+//     // d = obj->0x414->0xC;  vt = d->0x5C;
+//     // src = obj->0x44 (->0xC4 / ->0xBC fields);
+//     // entry = &D_000001C0 + obj->0x1AC * 0x68;            // table idx
+//     //   (index calc: n*4 - n -> *8 + n => n*0x27 word-ish stride);
+//     // ~6 func_00000000 calls emit the draw using d/vt/src/entry +
+//     //   the assembled arg block (color/alpha/position).
+//   }
+//
+// Struct-typing reference:
+//   obj: 0x414 -> node (->0xC -> drawable, ->0x5C vtable/fn),
+//     0x44 -> source (->0xBC/0xC4 fields), 0x1AC = table index into
+//     the D_000001C0 entry array (stride ~0x68). a1/a2/a3 forwarded
+//     into the draw arg block; alpha const 0xFF, 1.0f baseline.
+//   D_000001C0 = USO static draw-descriptor table. func_00000000 =
+//     USO placeholder dispatcher (emit/draw).
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C98C);
 
 #ifdef NON_MATCHING
