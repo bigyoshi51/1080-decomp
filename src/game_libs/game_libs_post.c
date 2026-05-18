@@ -20728,13 +20728,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
 /* gl_func_0005D30C: 66-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D30C);
 
-/* gl_func_0005D414: 24-insn 3-call wrapper. Stores arg0 (float f12),
- * a2, a3 to local slots, then makes 3 calls:
- *   call(arg0_byte_offset+8, arg1_copy, ?, a3);
- *   call(reload-saved-args, ?, lwc1 f12=arg0);
- *   call(reload-saved, ?, lwc1 f12=arg1);
- * Structural decode pending — likely a quaternion/Vec3 lerp helper. */
+#ifdef NON_MATCHING
+/* gl_func_0005D414: 24-insn dispatcher making 3 cross-USO callbacks
+ * over three float values (a1/a2/a3 received as int bits, reinterpreted
+ * via mtc1/lwc1 per call):
+ *   1) call(a0, a0+2, a0+1, a0+2, f12=bx)
+ *   2) call(_,  a0,   a0+2, _,    f12=by)
+ *   3) call(_,  a0,   a0+1, _,    f12=bz)
+ * Each gl_func_00000000 is a distinct USO reloc patched at runtime to
+ * a different real callee. The 12 trailing bytes after jr/nop
+ * (lui $1,0x3F00; mtc1 a2,f14; mtc1 $1,f4) load 0.5f and are dead/boundary
+ * spillage. Draft NM wrap — int-reg float passing via mtc1 is hard to
+ * spell in C; expect partial match. */
+void gl_func_0005D414(int* a0, int bx_bits, int by_bits, int bz_bits) {
+    int* p1 = a0 + 1;
+    int* p2 = a0 + 2;
+    float bx, by, bz;
+    *(int*)&bx = bx_bits;
+    gl_func_00000000(a0, p2, p1, p2, bx);
+    *(int*)&by = by_bits;
+    gl_func_00000000(0, a0, p2, 0, by);
+    *(int*)&bz = bz_bits;
+    gl_func_00000000(0, a0, p1, 0, bz);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D414);
+#endif
 
 /* gl_func_0005D480: 30-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D480);
