@@ -1112,3 +1112,5 @@ gl_data_67470_addr = 0x000225D8;
 gl_data_513CC_addr = 0x00020E5C;
 gl_data_42098_msgA = 0x00000000;
 gl_data_42098_msgB = 0x00000000;
+D_arc_27BC_g70 = 0x00000070;
+D_arc_27BC_g74 = 0x00000074;
