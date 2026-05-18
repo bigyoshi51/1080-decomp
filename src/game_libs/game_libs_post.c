@@ -2925,6 +2925,41 @@ int gl_func_000261F4() {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026214);
 
+// gl_func_00026790 — STRUCTURAL PASS (0x3B8 / 238 words ≈ 0.9KB, no
+// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO
+// bundle (named fn + 2 trailing helpers) — deferred USO re-split.
+// The named leading fn is a command-stream OPCODE DISPATCHER (dual
+// jump tables).
+//
+//   ret gl_func_00026790(byte *cmd) {
+//     int op = cmd[0];
+//     if (op >= 0x91) { ... }                            // out of range
+//     else if (op >= 0xF0 && op < 0xFC) {
+//       goto *((void**)(&D_0 + 0xEE0))[op - 0xF0];        // table A
+//     } else if (op >= 0x81 && op < 0x91) {
+//       goto *((void**)(&D_0 + 0xF10))[op - 0x81];        // table B
+//     } else return;                                       // default
+//     // per-opcode case bodies read cmd[1] / cmd[2] / cmd[3]
+//     // and invoke USO-relocated handlers (jal 0 slots), e.g.
+//     //   handler(cmd[1], cmd[2], cmd[3]);
+//   }
+//
+// Struct-typing reference: a bytecode/command-stream interpreter.
+//   cmd[0] is the opcode; two REAL computed jump tables decode it —
+//   &D_0+0xEE0 (12 entries) for opcodes 0xF0..0xFB and &D_0+0xF10
+//   (16 entries) for opcodes 0x81..0x90; anything else is a no-op.
+//   Operand bytes cmd[1]/cmd[2]/cmd[3] are passed to USO-relocated
+//   per-opcode handlers (the `jal 0` slots). These two tables sit
+//   alongside the &D_0+0xE7C (gl_func_0002119C) and &D_0+0xEA0
+//   (gl_func_00023914) dispatch tables — the game_libs subsystem
+//   keeps a contiguous bank of computed-jump dispatch tables in the
+//   &D_0+0xExx..0xFxx region. The command interpreter / VM step of
+//   the subsystem.
+// Caps: raw-word USO + 3-fn unsplit bundle + dual computed jump-table
+//   dispatch + jal-0 USO-reloc handlers — not exact-matchable without
+//   proper USO mnemonic disasm; structural pass only for the named
+//   leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
 
 /* gl_func_00026B48 — verified structural decode (global-block init, 35
