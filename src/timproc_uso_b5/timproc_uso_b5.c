@@ -632,6 +632,40 @@ end:
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001460);
 
+// timproc_uso_b5_func_00001658 — STRUCTURAL PASS (0x25C / 151 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Radial-dial HUD panel constructor (timproc_uso_b5): builds a parent
+// container plus a set of child marks at cardinal angle parameters.
+//
+//   void timproc_uso_b5_func_00001658(Owner *o) {     // o -> s1 (arg0)
+//     func_00000000(&D_000010B8, 0);                   // named setup x2
+//     func_00000000(&D_000010C0, 0);
+//     P = func_00000000(0, &D_000010C8, 1, 0x100);     // parent container
+//     func_00000000(o+0x10, P);                        // attach to owner
+//     if (!o->0x14) { o->0x4 = 1; o->0x14 = o; }       // one-time init
+//     // create child marks, each func_00000000(0,&D_0,0, ANGLE, sp10=0)
+//     //   stored into o->{0x44,0x48,0x4C,0x50,0x54,0x58}; ANGLE =
+//     //   0, 0x5A(90), 0xB4(180), 0x10E(270), -0x5A(-90), -0x10E(-270)
+//     //   -> a radial gauge / dial with cardinal tick marks.
+//     // then for each child c in o->0x44..0x58:
+//     //   func_00000000(c+0x10, P);                    // attach to P
+//     //   if (!c->0x14) c->0x4 = 1;  c->0x14 = P;       // dirty+link
+//     func_00000000(.);  func_00000000();               // finalize
+//   }
+//
+// Struct-typing reference:
+//   o(a0=s1): 0x04 init-done flag, 0x10 attach-target, 0x14 self/link
+//     latch, 0x44/0x48/0x4C/0x50/0x54/0x58 = 6 child mark ptrs;
+//     P = parent container (from &D_000010C8 factory).
+//   child: 0x04 dirty flag, 0x14 parent link (dirty-and-attach idiom).
+//   ANGLE args 0/±90/±180/±270 (deg*1, signed) = dial tick positions.
+//   &D_000010B8 / &D_000010C0 / &D_000010C8 = USO name/desc data refs;
+//   func_00000000 = USO placeholder dispatcher (setup/factory/attach).
+// Caps: raw-word USO + placeholder calls — not exact-matchable without
+//   proper USO mnemonic disasm; structure characterized. Structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001658);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000018B4);
