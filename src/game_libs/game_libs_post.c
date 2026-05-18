@@ -12489,6 +12489,48 @@ int* game_libs_func_0003D9E4(int *list, int key) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D9E4);
 #endif
 
+// game_libs_func_0003DA14 — STRUCTURAL PASS (0x128 / 74 words, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION.
+// NOTE: the FIRST instruction (0x3DA14: `lw $t6, 0x10($a0)`) is
+// emitted BEFORE the small-frame prologue at 0x3DA18 (27BDFFF0) —
+// this is IDO's load-first ordering, NOT a sheared head-fragment
+// (it has a real prologue + jr; the game_libs_func_ prefix here is
+// not a fragment marker). A list-search-by-proximity routine.
+//
+//   N *game_libs_func_0003DA14(O *o, Vec3 *ref, N *target) {
+//     float EPS = *(float*)(&D_0 + 0x1AC0);       // FP literal pool
+//     for (N *n = o->p_10; n != 0; n = n->next_4) {
+//       if (n == target) break;                     // stop at target
+//       Vec3 *p = (Vec3*)((char*)n + 0x30);
+//       if (p->x < ref->x) { ... }                  // c.lt.s / bc1tl
+//       float dx = fabsf(p->x - ref->x);            // sub.s; neg.s
+//       if (dx < EPS && |dy| < EPS && ...) return n; // within tol
+//     }
+//     return 0;
+//   }
+//
+// Struct-typing reference: a spatial nearest / within-tolerance
+//   search over an intrusive list. It walks the list rooted at
+//   o->0x10 (next at +0x04), and for each node compares the node's
+//   Vec3 at node->0x30 against a reference vector (the second arg)
+//   using an absolute-difference vs an epsilon/tolerance constant
+//   loaded from the FP LITERAL POOL at &D_0+0x1AC0 (the recurring
+//   FP-pool fold of this segment — deferred symbolization per
+//   docs/N64_FORENSICS.md, same class as the &D_0+0x19F0 clamp
+//   table / &D_0+0x128 coefficient pool / &D_0+0x1AB8 query limit),
+//   returning the matching node (or stopping early when the cursor
+//   reaches the third-arg target). A spatial-query / find-by-
+//   position node of the game_libs object subsystem — the
+//   list-search counterpart of the gl_func_0003CBB4 proximity test
+//   and the gl_func_0003C43C spatial-query wrapper (same
+//   collection convention: list head +0x10, next +0x04, position
+//   triple at +0x30).
+// Caps: raw-word USO + intrusive-list walk + FP abs-vs-epsilon
+//   compare with FP-literal-pool tolerance (&D_0+0x1AC0
+//   unsymbolized) — not exact-matchable without proper USO
+//   mnemonic disasm + FP-pool/struct symbolization; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 
 
