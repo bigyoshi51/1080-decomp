@@ -1536,17 +1536,16 @@ void game_uso_func_000024BC(int *a0, int *a1) {
     int key;
     int *v1;
     char *vc;
-    char scratch[0x18];
+    float work[9];
     float ref_x, ref_y, ref_z;
     float delta_x, delta_y, delta_z;
-    char self_pad[4];
+    char self_pad[16];
     volatile float self_z, self_y, self_x;
     float proj_x, proj_y, proj_z;
     float scale;
     float denom_xz, denom_y;
-    float divs[3];
-    float a1_proj[3];
     int *delta;
+    Tri3i delta_copy;
     int * volatile mirror_t6;
 
     (void)self_pad;
@@ -1604,7 +1603,22 @@ branch_else:
      *
      * Initial decode 2026-05-05; extended decode 2026-05-06.
  *
- * 2026-05-18 Codex status: 58.31% fuzzy (up from 47.13%). Improvements:
+     * 2026-05-18 Codex status: 72.62% fuzzy (up from 58.74%). Improvements
+     * this tick: force the late key==2 check to reload a0->0x40 instead of
+     * keeping `key` live across both calls (58.67 -> 60.32); rewrite the
+     * height-adjust branch as a selected add, producing the shared add shape
+     * (62.54); and most importantly, copy the first call's returned 3 words
+     * through a concrete Tri3i local before interpreting them as floats
+     * (72.61/72.62). Also folded first-call scratch, div temps, and second-call
+     * projection into one work array to document target-style stack reuse; this
+     * was byte-score-neutral but keeps the C closer to the target scratch
+     * lifetime. Negative variants: in-place ref-vector rewrite regressed to
+     * 61.80%, non-volatile mirror_t6 regressed to 71.61%, and int[3] delta_copy
+     * regressed to 64.96%. Remaining exact blockers are stack slot placement
+     * (target frame 0x98 vs built 0xC0, target scratch at sp+0x3C and
+     * accumulator at sp+0x60) and the key==2 branch-likely/plain-branch shape.
+     *
+     * Prior 2026-05-18 Codex status: 58.31% fuzzy (up from 47.13%). Improvements:
      * stack-resident copy_x/y/z temps for the key==3 dual Vec3 copy,
      * volatile self_x/y/z for the else-arm final vector, and void return type
      * (target epilogue does not set v0). Retested key==0 early-return after
@@ -1636,41 +1650,40 @@ branch_else:
     vc += 0x70;
     ref_y = *(float*)(vc + 0x34);
     ref_z = *(float*)(vc + 0x38);
-    delta = (int*)gl_func_00000000(scratch, a0);
-    delta_x = *(float*)&delta[0];
-    delta_y = *(float*)&delta[1];
-    delta_z = *(float*)&delta[2];
+    delta = (int*)gl_func_00000000(work, a0);
+    delta_copy = *(Tri3i*)delta;
+    delta_x = *(float*)&delta_copy.a;
+    delta_y = *(float*)&delta_copy.b;
+    delta_z = *(float*)&delta_copy.c;
     self_x = ref_x + delta_x;
     self_y = ref_y + delta_y;
     self_z = ref_z + delta_z;
     /* Zero-Y projection of a1 then second gl_func call. */
-    a1_proj[0] = *(float*)&a1[0];      /* a3.x */
-    a1_proj[1] = 0.0f;
-    a1_proj[2] = *(float*)&a1[2];      /* a3.z */
-    gl_func_00000000(a1_proj, a0);
+    work[6] = *(float*)&a1[0];      /* a3.x */
+    work[7] = 0.0f;
+    work[8] = *(float*)&a1[2];      /* a3.z */
+    gl_func_00000000(&work[6], a0);
 
     scale = *(float*)((char*)a0 + 0x94);
-    proj_x = a1_proj[0] * scale;
-    proj_y = a1_proj[1] * scale;
-    proj_z = a1_proj[2] * scale;
+    proj_x = work[6] * scale;
+    proj_y = work[7] * scale;
+    proj_z = work[8] * scale;
     self_x -= proj_x;
     self_y -= proj_y;
     self_z -= proj_z;
 
-    if (key == 2) {
-        self_y += *(float*)((char*)a0 + 0xF4);
-    } else {
-        self_y += *(float*)((char*)a0 + 0xDC);
-    }
+    self_y += (*(int*)((char*)a0 + 0x40) == 2)
+        ? *(float*)((char*)a0 + 0xF4)
+        : *(float*)((char*)a0 + 0xDC);
 
     denom_xz = *(float*)((char*)a0 + 0xAC);
     denom_y = *(float*)((char*)a0 + 0x10C);
-    divs[0] = *(float*)&a1[0] / denom_xz;
-    divs[1] = *(float*)&a1[1] / denom_y;
-    divs[2] = *(float*)&a1[2] / denom_xz;
-    self_x -= divs[0];
-    self_y -= divs[1];
-    self_z -= divs[2];
+    work[3] = *(float*)&a1[0] / denom_xz;
+    work[4] = *(float*)&a1[1] / denom_y;
+    work[5] = *(float*)&a1[2] / denom_xz;
+    self_x -= work[3];
+    self_y -= work[4];
+    self_z -= work[5];
 
     *(float*)((char*)t6 + 0x60) = self_x;
     *(float*)((char*)t6 + 0x64) = self_y;
