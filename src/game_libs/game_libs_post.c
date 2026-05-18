@@ -4426,6 +4426,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A7D8);
 
+// gl_func_0002A904 — STRUCTURAL PASS (0x12C / 75 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
+// (named fn + 3 trailing helpers) — deferred USO re-split. The named
+// leading fn is the subsystem bring-up / init for the &D_5368 list +
+// &D_52F0 element-array family.
+//
+//   void gl_func_0002A904(void) {
+//     S *g = &D_0;
+//     *(int*)(&D_5368) = &D_5368;                       // list anchors
+//     *(int*)(&D_536C) = &D_5368;                        //  (self-ref
+//     *(int*)(&D_5370) = 0;                              //   empty list)
+//     *(int*)(&D_5374) = 0;
+//     S *e = &D_52F0;  S *t = &D_3280;
+//     for (int i = 0; i < N; i++) {                       // stride 0x80
+//       *(int*)((char*)g + 0x32F8 + i*0x80) = t;          // wire entry
+//       *(int*)((char*)g + 0x32F0 + i*0x80) = 0;
+//       (*initElem)(&D_5368, e);                          // jal 0 USO
+//       e += 0x80;  t += 0x80;
+//     }
+//   }
+//
+// Struct-typing reference: the one-time construction of this
+//   object-pool subsystem. Words &D_5368 / &D_536C are the head/tail
+//   anchors of an intrusive list set to point at themselves (the
+//   empty-list convention); &D_5370 / &D_5374 are zeroed counters.
+//   It then walks a fixed-stride (0x80) element array based at
+//   &D_52F0, binding each element's slot at &D_0+0x32F8 to the
+//   parallel &D_3280 table entry, clearing &D_0+0x32F0, and running
+//   a USO-relocated per-element initializer (`jal 0` slot) with the
+//   &D_5368 list anchor. The init counterpart to the
+//   gl_func_0002A55C constructor / gl_func_0002A6C0 sweep / gl_func_
+//   0002A260 reset family (all over the same &D_52xx/53xx pool).
+// Caps: raw-word USO + 4-fn unsplit bundle + per-element jal-0
+//   USO-reloc init — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only for the named leading fn, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A904);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
