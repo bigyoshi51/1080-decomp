@@ -1644,6 +1644,41 @@ void gl_func_00023078(int a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000230D0);
 
+// gl_func_000231B4 — STRUCTURAL PASS (0xD0 / 52 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A recursive handle/node-tree walker.
+//
+//   int gl_func_000231B4(int handle, int depth) {
+//     if (depth >= 0x7F) return 0;                      // depth cap
+//     N *n = (*lookup)(handle);                          // jal 0 USO
+//     if (n == 0) return -1;
+//     byte k1 = n->b_1;
+//     if (k1 == 0) {                                      // leaf-ish
+//       jal 0x37364(n->w_10, handle);                     // 0x0C00DDCF
+//       jal 0x37364(n->w_10, handle);
+//     } else {
+//       jal 0x37364(n->w_8,  handle);                     // recurse 8
+//     }
+//     byte k2 = n->b_2;
+//     if (k2 != 0x7F) {
+//       jal 0x37364(n->w_18, handle);                     // recurse 18
+//     }
+//     ...
+//   }
+//
+// Struct-typing reference: walks a handle-resolved node graph. The
+//   handle is mapped to a node N via the USO-relocated lookup (`jal 0`
+//   slot). N has child/next pointers at words +8, +0x10, +0x18 and
+//   classifier bytes at +1 / +2 (the value 0x7F is the stop/no-child
+//   sentinel, matching the same 0x7F sentinel the gl_func_000221D8 /
+//   gl_func_00022D68 family uses). Traversal of each child goes
+//   through the fixed routine 0x0C00DDCF (≈0x37364); the `depth`
+//   second arg guards recursion (cap 0x7F). This is a scene/handle-
+//   graph recursive visitor in the game_libs registry subsystem.
+// Caps: raw-word USO + recursive fixed-target traversal + jal-0
+//   USO-reloc lookup — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000231B4);
 
 #ifdef NON_MATCHING
