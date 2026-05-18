@@ -16326,6 +16326,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044EDC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045178);
 
+// gl_func_000453A8 — STRUCTURAL PASS + BOUNDARY NOTE (0x118 / 71 words, no
+// episode). Raw-.word USO. realjr=3, regjr=0 → 3-function BUNDLE: the three
+// jr at 0x453D0 / 0x45410 / 0x454BC delimit three distinct small FP routines
+// (only the first carries the 27BDFFE8 prologue; the other two are no-frame
+// FP leaves). Named fn ends at the jr at 0x453D0; the trailing two functions
+// (0x453D8 and 0x45418) are a DEFERRED USO RE-SPLIT (decode under their own
+// symbols later).
+//
+// Named fn = int->float arg trampoline (single prologue frame 0x18, saves
+// ra; cb = jal 0 USO-relocated):
+//   float gl_func_000453A8(void *a0, int a1, float a2) {
+//     float f = (float)a1;                          // mtc1 a1,f12
+//     cb1(a0, f);                                    // a2 spilled to sp+0x20
+//     cb2();                                          // returns into f12
+//     return *(float*)(sp + 0x20);                    // = a2 (reloaded)
+//   }
+// A thin bridge that promotes an integer arg to float and forwards it
+// through two cb calls, returning the preserved a2 float (lwc1 from the
+// sp+0x20 spill in the cb2 delay slot). Trailing leaves (separate symbols):
+// (1) 0x453D8 ~16 words — a no-frame FP combine/compare leaf (mtc1 a1/a2,
+//     add.s with 2.0/8.0 consts, c.le.s gate); (2) 0x45418 ~43 words — a
+//     no-frame FP quantize/range leaf (FP const 0x41E00000, c.lt.s, andi
+//     0x78 lane mask). Family: small FP arithmetic helpers + int/FP
+//     trampoline. The fn1 mtc1->cb1->cb2 shape and the a2-spill/reload
+//     return are exact; the two trailing leaves are flagged for re-split,
+//     not decoded here. Caps: cb signatures + leaf math untyped; bundle
+//     re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000454C4);
