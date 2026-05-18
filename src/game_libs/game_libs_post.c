@@ -1910,6 +1910,40 @@ void gl_func_0002372C(int a0) {
     gl_ref_00037F80(0, r, &scratch);
 }
 
+// gl_func_00023760 — STRUCTURAL PASS (0xD8 / 54 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A multi-step resource acquire/resolve helper.
+//
+//   ret gl_func_00023760(int a0, int a1) {
+//     int  r0 = jal 0x38204(2);                         // 0x0C00E081
+//     int  j  = jal 0x38174(2);                          // 0x0C00E05D
+//     int  ok = jal 0x381B0(2, j);                       // 0x0C00E06C
+//     if (ok == 0) return ...;
+//     int  v  = (*acquire)(j, 2);                         // jal 0 USO
+//     E   *e  = tbl + j*0x10;                              // entry tbl
+//     if (e->b_19 == 4) {                                  // type 4
+//       byte t = e->b_18;
+//       *(int*)dst = t;
+//     } else {
+//       int p = e->w_10;
+//       ...
+//     }
+//   }
+//
+// Struct-typing reference: resolves a class-2 resource by chaining
+//   the fixed USO-relocated routines 0x0C00E081 (≈0x38204),
+//   0x0C00E05D (≈0x38174, the shared poll/advance used across the
+//   gl_func_00022D68 readiness + gl_func_00022FC0 buffer-run
+//   families) and 0x0C00E06C (≈0x381B0), then a `jal 0` acquire.
+//   The resolved index `j` selects an entry in a 0x10-stride table;
+//   byte e->0x19 is a type tag (value 4 special-cased), byte e->0x18
+//   a payload, word e->0x10 a pointer. The "obtain & dereference a
+//   resource handle of class 2" entry in the game_libs resource
+//   subsystem.
+// Caps: raw-word USO + fixed-target call chain + jal-0 USO-reloc
+//   acquire — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023760);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023838);
