@@ -7536,6 +7536,43 @@ int gl_func_00033B28(int a0, int a1, int a2) {{
     return r;
 }}
 
+// gl_func_00033B6C — STRUCTURAL PASS (0x78 / 30 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A sweep / reset-all over the &D_0 registry table —
+// the teardown counterpart to gl_func_000337AC / gl_func_00033880.
+//
+//   void gl_func_00033B6C(void) {
+//     R   *rec = (R*)(&D_0 + 0x00);
+//     u8  *f18 = (u8*)(&D_0 + 0x18);
+//     u8  *f30 = (u8*)(&D_0 + 0x30);
+//     u8  *end = (u8*)(&D_0 + 0x2D8);          // loop limit
+//     do {
+//       rec->w_3C = 0;                          // clear active flag
+//       callback(f18, f30, 1);                  // jal 0 per record
+//       rec  = (R*) ((char*)rec + 0x44);
+//       f18 += 0x44;  f30 += 0x44;
+//     } while (f30 != end);                      // ~10 records
+//   }
+//
+// Struct-typing reference: a bulk reset over the SAME 0x44-stride
+//   record array (based at &D_0) that gl_func_000337AC and
+//   gl_func_00033880 register individual slots into. It iterates
+//   every record from &D_0 up to the limit &D_0+0x2D8 — with the
+//   0x44 stride that is ((0x2D8-0x30)/0x44) = 0x0A ≈ 10 records —
+//   zeroing each record's active flag at +0x3C (the very field the
+//   register-one pair sets to 1) and invoking a USO-relocated
+//   callback (jal 0 → resolved at load) per record, passing the
+//   record's +0x18 and +0x30 sub-regions and a constant 1. The
+//   register-one functions (000337AC / 00033880) + this reset-all
+//   form the lifecycle trio for the registry table of the
+//   game_libs object subsystem (per-frame or per-state-change
+//   teardown before re-registration; the table is the collection
+//   the gl_func_0002FB74 interpreter iterates).
+// Caps: raw-word USO + USO-relocated jal-0 callback + &D_0
+//   record-array sweep (0x44 stride, +0x2D8 limit) — not exact-
+//   matchable without proper USO mnemonic disasm + the record
+//   struct typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
