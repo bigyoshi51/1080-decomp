@@ -2094,6 +2094,44 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007620);
  * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000076F4);
 
+/* func_000077D0 - verified structural decode (0x278, 158 insns,
+ * glyph/tile blit with mode dispatch). Font/HUD text renderer.
+ *   void func_000077D0(St *a0, u16 *dst, int mode) {
+ *       u16 *glyphs = a0->0x64;
+ *       if (glyphs == NULL) return;
+ *       base = a0->0x58;
+ *       code = mode ? (base + 0x60) : base;       // char code
+ *       switch (a0->0x5C) {                        // sub-mode
+ *           case 0: stride = 0x140; ...            // plain
+ *           case 2: stride = 0x140; ...            // variant
+ *           case 1: ...                            // variant
+ *           default: return;
+ *       }
+ *       c = code & 0xFF;
+ *       if (c < 0xF0) {                            // valid glyph
+ *           u16 *g = glyphs + c * stride;          // multu index
+ *           for (row = 0; row < 0x40; row += 4) {
+ *               *dst++ = g[0x00/2];
+ *               *dst++ = g[0x0A/2];
+ *               *dst++ = g[0x14/2];
+ *               *dst++ = g[0x1E/2];
+ *               g += 0x28/2;                       // next row
+ *           }
+ *       }
+ *   }
+ * Struct-typing reference: a0->0x64 (100) = glyph/tile pixel table
+ * (NULL -> no-op); a0->0x58 (88) s32 = the character/tile code
+ * (mode!=0 offsets it by +0x60 - e.g. alternate page); a0->0x5C
+ * (92) s32 = render sub-mode (0/1/2 select stride 0x140 + the
+ * per-row copy pattern; other = abort). Glyph cell layout: c <
+ * 0xF0 valid range; cell = glyphs + c*stride; each of 16 rows
+ * (loop 0..0x40 step 4) reads 4 u16 lanes at cell offsets 0x00/
+ * 0x0A/0x14/0x1E and advances the cell by 0x28 bytes - i.e. a
+ * 4-wide swizzled glyph blitted into the dst framebuffer/DL.
+ * Caps <80: sub-mode switch (beq chain) + multu glyph index +
+ * unrolled per-row halfword copy + branch-likely guards. Full
+ * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
+ * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000077D0);
 
 void func_00007A48(char *a0) {
