@@ -4796,6 +4796,44 @@ void game_libs_func_0002BB58(int *a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
 
+// gl_func_0002C7A4 — STRUCTURAL PASS (0x7CC / 499 words ≈ 2KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle) — another major per-object command/state
+// processor in the gl_func_0002BB7C script-VM family. -0x68 frame.
+//
+//   void gl_func_0002C7A4(O *o) {
+//     int w = o->w_0;
+//     if (w >= 0) return;                               // sign-bit gate
+//     if ((*pre)(o->b_4)) {                              // jal 0 USO
+//       (*onA)(o->b_5);                                  // jal 0 USO
+//       if (...) (*onB)(o->b_4, 2);
+//       (*onC)(o->b_5);
+//       ... per-(b_4/b_5) USO-reloc dispatch chain ...
+//     }
+//     int idx = o->w_0;                                   // packed idx
+//     T *t = &D_0 + (idx << 2);                            // table walk
+//     ...
+//     short n = *(short*)(&D_0 + 0x2040);                  // sprite cnt
+//     int   m = *(int*)(&D_0 + 0x2070);
+//     ... ~450-word body ...
+//   }
+//
+// Struct-typing reference: the active-bit-gated per-object processor
+//   (word o->0 sign bit = active; the same packed-status word the
+//   gl_func_0002BB7C tick / gl_func_0002ABC0 classifier use). Byte
+//   fields o->4 / o->5 are mode/type selectors driving a long chain
+//   of USO-relocated handler calls (`jal 0` slots, several with the
+//   constant 2). The body then indexes a &D_0 table by a packed index
+//   derived from o->0 and reads the sprite-subsystem count globals
+//   &D_0+0x2040 (halfword) / &D_0+0x2070 (word — the same record
+//   count gl_func_0001E134 / gl_func_00027E24 use). A heavyweight
+//   command/state-advance peer to gl_func_0002BB7C — the
+//   gl_func_0002AD1C interpreter's other large per-object driver.
+// Caps: raw-word USO + very large multi-phase command processor with
+//   many jal-0 USO-reloc calls — not exact-matchable without proper
+//   USO mnemonic disasm; high-level structural pass only, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002CF70);
