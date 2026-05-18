@@ -4291,6 +4291,37 @@ void gl_func_0002A50C(int *a0, int a1) {
     }
 }
 
+// gl_func_0002A55C — STRUCTURAL PASS (0x164 / 89 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. The named
+// leading fn is an object multi-element constructor.
+//
+//   void gl_func_0002A55C(O *obj) {
+//     for (int i = 0; i < 8; i++)
+//       (*initElem)(obj, i);                            // 0x0C00FADE
+//     (*initTail)(&obj->_94);                            // jal 0 USO
+//     byte f = obj->b_0;
+//     f &= ~0x80;                                         // clear bit7
+//     obj->b_0 = f;
+//     obj->b_0 = f | 0x40;                                // set bit6
+//   }
+//
+// Struct-typing reference: constructs a composite object by running
+//   the fixed USO-relocated per-element initializer 0x0C00FADE
+//   (≈0x3EB78) for each of its 8 sub-elements (index 0..7), then a
+//   second USO-relocated init on the embedded sub-block at obj+0x94,
+//   and finally stamps the object's primary flag byte +0 — clearing
+//   bit7 and setting bit6 (the "constructed / not-yet-active" marker
+//   the gl_func_0002A3AC lazy-construct also uses). An 8-channel
+//   object constructor in the game_libs object subsystem (the
+//   build-all-channels counterpart to gl_func_00029B6C's
+//   reset-all-channels). The 1 trailing bundled helper is its
+//   per-channel leaf, left for the deferred USO re-split.
+// Caps: raw-word USO + 2-fn unsplit bundle + fixed/jal-0 USO-reloc
+//   per-element inits — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only for the named leading fn,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
