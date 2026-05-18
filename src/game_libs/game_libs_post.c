@@ -9068,6 +9068,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036224);
 
+// gl_func_00036694 — STRUCTURAL PASS (0x2C8 / 178 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0xF0 FP frame). A 3D matrix / vector
+// composition (cross-product / matrix-multiply) helper.
+//
+//   void gl_func_00036694(M *out, V *a, V *b, V *c) {
+//     // args partly reinterpreted as floats (sw then lwc1 round-trip)
+//     float r0 = b.y * a.x;                     // mul.s chains
+//     float r1 = c.z * a.z;
+//     ... cross-product / row-by-row matrix-multiply FP chain ...
+//     // results assembled into stack matrix buffers
+//     //   sp+0x78 / sp+0xAC / sp+0xBC / sp+0xE4
+//     // then a matrix block is copied out (word loop:
+//     //   *out = *tmp ; out++ ; tmp++ ...)
+//   }
+//
+// Struct-typing reference: a linear-algebra helper of the
+//   game_libs object subsystem — the integer arguments are
+//   round-tripped through the stack and reloaded as floats
+//   (`sw aN,X(sp); lwc1 fM,X(sp)`, the IDO int-in-FP-reg idiom),
+//   then a dense sequence of `mul.s` / `add.s` / `sub.s` builds
+//   what is structurally a cross product or a row-by-row 3×3 / 4×4
+//   matrix product into several stack scratch matrices (sp+0x78,
+//   sp+0xAC, sp+0xBC, sp+0xE4) before a final word-copy loop emits
+//   the composed matrix to the output pointer. A companion of the
+//   gl_func_00036224 viewport/projection-matrix builder and the
+//   gl_func_00033094 / gl_func_00035E6C transform/project leaves —
+//   this is the matrix-concat / basis-build primitive those nodes
+//   rely on (no &D_0 / no callbacks — a pure math leaf).
+// Caps: 0x2C8 raw-word USO + heavy FP matrix/cross-product math +
+//   int↔float stack round-trip idiom — categorically not exact-
+//   matchable without proper USO mnemonic disasm + the matrix/
+//   vector structs typed; structural pass only, no byte body. (A
+//   future focused non-loop session — the deferred struct-typing
+//   backlog — is where this gets a real decode; not 60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036694);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003695C);
