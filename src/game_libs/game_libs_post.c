@@ -4610,6 +4610,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002ABC0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
 
+// gl_func_0002B09C — STRUCTURAL PASS (0x558 / 342 words ≈ 1.4KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle). The per-opcode command-step EXECUTOR body that
+// the gl_func_0002AD1C VM run loop calls. Large -0x70 frame.
+//
+//   int gl_func_0002B09C(O *o, int a1) {
+//     char *buf = o->w_50;                              // script buf
+//     int   cur = o->w_4C;                               // cursor
+//     if (o->b_2 != 0xFF) {
+//       int t = o->w_0;
+//       if ((t << 4) < 0) { short n = o->h_24; return -1; }
+//     }
+//     short sub = o->h_24;                                // subcommand
+//     switch (sub) {
+//       case 0: ...; case 1: ...;
+//       default:
+//         short d  = o->h_26;
+//         short k  = buf->h_10;
+//         byte  m  = buf->b_7;
+//         int pos = a1 + d + k;                            // target
+//         (*act)(pos, m & 0xFF);                           // jal 0 USO
+//     }
+//     ...
+//   }
+//
+// Struct-typing reference: executes one decoded command. o->0x50 is
+//   the script buffer, o->0x4C the read cursor, byte o->2 a
+//   stop/none flag (0xFF sentinel), word o->0 a packed status whose
+//   sign bit aborts (return -1). The command operands live at
+//   halfwords o->0x24 (subcommand selector), o->0x26 (a delta), and
+//   in the buffer record (halfword +0x10, byte +7); a target position
+//   is computed as a1 + o->0x26 + buf->0x10 and handed to USO-
+//   relocated per-subcommand handlers (`jal 0` slots). This is the
+//   instruction-execution body the gl_func_0002AD1C interpreter loop
+//   invokes per opcode (the VM's "execute one command" entry, peer to
+//   gl_func_00026790 / gl_func_0002A080 in the script-VM family).
+// Caps: raw-word USO + large multi-subcommand executor with jal-0
+//   USO-reloc handlers — not exact-matchable without proper USO
+//   mnemonic disasm; high-level structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B5F4);
