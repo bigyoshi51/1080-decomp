@@ -8775,6 +8775,43 @@ void gl_func_00035AE0(int *dst) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035B1C);
 
+// gl_func_00035C6C — STRUCTURAL PASS (0x140 / 80 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0x68 frame, saves s0-s8). A list-traversal +
+// accumulate routine.
+//
+//   ? gl_func_00035C6C(L *l) {
+//     N *n = l->head_4;
+//     if (n == 0) return ...;                   // empty-list early
+//     Acc acc;                                  // local sp+0x44..0x60
+//     acc.f_5C = 0;
+//     acc.f_60 = -1;                            // sentinel
+//     fixed_init_012844(&acc);                  // jal 0x012844 (FIXED)
+//     for (; n != 0; n = n->next_4) {
+//       ... fold n into acc (compare acc.5C vs acc.4C, copy slots) ...
+//     }
+//     return ...;                               // result from acc
+//   }
+//
+// Struct-typing reference: a collection fold / query leaf. It
+//   walks a singly-linked list rooted at l->0x04 (each node's next
+//   pointer at node->0x04), maintaining a local accumulator
+//   structure on the stack (sp+0x44 .. sp+0x60 — fields zeroed and
+//   a -1 sentinel installed up front). A FIXED intra-USO helper at
+//   0x012844 (encoded `jal 0x012844` / 0x0C012844, a real resolved
+//   target, NOT a jal-0 USO-relocated callback) initializes the
+//   accumulator, then each list element is folded in via
+//   branch-likely compares against the accumulator's tracked
+//   fields (0x5C vs 0x4C). A find/min/aggregate-over-list operation
+//   of the game_libs object subsystem (the list it walks is the
+//   collection the gl_func_00033228 enlist helper builds and the
+//   gl_func_00034458 processor iterates; 0x0001E6C0 is a referenced
+//   deferred data-segment template-symbolization site).
+// Caps: raw-word USO + fixed intra-USO call (0x012844) + linked-list
+//   walk + stack accumulator struct — not exact-matchable without
+//   proper USO mnemonic disasm + the node/accumulator structs
+//   typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035C6C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
