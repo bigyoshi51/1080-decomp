@@ -14231,6 +14231,36 @@ int gl_func_0003F96C(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F96C);
 #endif
 
+// gl_func_0003F9C4 — STRUCTURAL PASS (0x8C / 36 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0xC0 (saves ra) → ONE clean function.
+// Bounded-consume / take-from-pool (cbN = jal 0 USO-relocated; same scratch-
+// buffer + tag-block family as 0003F7A8 / 0003F8E8, tag byte 0x1E here).
+//
+//   int gl_func_0003F9C4(void *a0, int a1, unsigned a2) {
+//     if (guard == 0) goto out;             // early beq right after arg-save
+//     void *gp = *(void**)&D_g;             // snapshot a module global ptr
+//     char tag[..]; tag = 0x1E;             // sp+0x20 tag block
+//     cb1(&tag);                            // gp stashed at sp+0x6C
+//     *(int*)&D_g2 = 0;                     // clear a module flag
+//     unsigned avail = *(unsigned*)&D_a;    // pool counter
+//     unsigned taken;
+//     if (a2 < avail) {                     // sltu: request fits
+//       taken = a2;
+//       *(unsigned*)&D_a = avail - a2;      // decrement pool
+//     } else {                              // request exceeds pool
+//       taken = avail;                      // take all that remains
+//       *(unsigned*)&D_a = 0;               // drain pool
+//     }
+//     cb2(a1, taken);                       // emit/commit consumed amount
+//   out:
+//     return taken;                         // bytes/units consumed
+//   }
+// Classic clamp-to-available pool drain: min(a2, *&D_a) consumed, pool
+// decremented or zeroed accordingly, result reported via cb2 and returned.
+// Family: cb-driven staged op with a tagged scratch block (siblings
+// 0003F7A8 tag 0x23, 0003F8E8 tag 0x1D). Caps: the D_g/D_g2/D_a module
+// globals + cbN signatures inferred from call shape; the leading guard
+// register/struct untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F9C4);
 
 #ifdef NON_MATCHING
