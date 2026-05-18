@@ -8030,6 +8030,41 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
  * episode). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 
+// game_uso_func_0000A604 — STRUCTURAL PASS (0x1D4 / 117 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic; boundary already split by commit 66d6c531 — named fn
+// itself was still undecoded). Hand-decoded.
+//
+// Per-object physics/state advance step.
+//
+//   void game_uso_func_0000A604(Obj *obj) {              // obj -> s0
+//     World *w = obj->0x30;
+//     // copy obj->0xB4/0xB8/0xBC transform into sp scratch;
+//     // scale a Vec3 (w->0x318/0x31C/0x320) by w->0xA8, matrix*
+//     //   vector compose -> sp+0x50/0x7C/0x84 (mul.s/add.s chains);
+//     int r = func_00000000(w->0x548[obj->0x5C], …);      // query/sample
+//     if (r) {
+//       if (func_00000000(obj->0x2C, …) && …) {
+//         // FP clamp: if (obj->0x84 ...) vs 250.0f (0x437A0000) and
+//         //   obj->0x54 / obj->0x38 thresholds, write obj->0x60/
+//         //   obj->0x40;
+//       }
+//     }
+//     if (++obj->0x5C >= 0xA) obj->0x5C = 0;               // wrap counter
+//     obj->0x68 &= ~2;                                      // clear flag
+//   }
+//
+// Struct-typing reference:
+//   obj: 0x30 -> World (w->0xA8 a scale, w->0x318/0x31C/0x320 a Vec3,
+//     w->0x548 a per-index record array), 0x2C a sub-obj, 0x5C a
+//     cyclic counter (++ mod 0xA), 0x60/0x40 outputs, 0x68 flag word
+//     (bit 0x2 cleared each step), 0xB4/0xB8/0xBC a transform Vec3,
+//     0x38/0x54/0x84 f32 state. const 250.0f. func_00000000 = USO
+//     placeholder dispatcher (sample / query).
+// Caps: raw-word USO + placeholder calls + 117-word FP/physics step —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
 
 void game_uso_func_0000A7D8(int *a0) {
