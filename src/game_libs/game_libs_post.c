@@ -304,6 +304,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DA7C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
 
+// gl_func_0001DCB4 — STRUCTURAL PASS (0x480 / 288 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle) — a LARGE text-run layout/measure orchestrator above the
+// gl_func_0001CFDC glyph-draw family. -0xC0 frame, full s0-s8/ra save.
+//
+//   ret gl_func_0001DCB4(a0, a1, a2, a3) {
+//     S *g = &D_0;                                // global state base
+//     if (g->byte_1 == 0) {                        // config gate
+//       int n   = g->w_0x2070;                     // item count
+//       int i   = 0, k = 0;
+//       if (n > 0) {                                // classify loop
+//         char *buf = sp + 0x84;                    // scratch byte arr
+//         do {
+//           T *it = g->w_0x14 + idx;                // item table
+//           int v = it->w_0;
+//           if (v >> 31) ...                        // sign-bit class
+//           buf[k] = (char)i;                       // record index
+//           ...
+//         } while (i < n);
+//       }
+//     }
+//     ... second phase: walk the classified buf, emit per-run glyph
+//         draws via the gl_func_0001CFDC family ...
+//   }
+//
+// Struct-typing reference: global state struct at &D_0 — signed byte
+//   g->1 (a one-shot/config gate, skips the build when nonzero),
+//   word g->0x2070 (count of layout items), word g->0x14 (base of the
+//   item table indexed in the loop). Items carry a word whose sign
+//   bit (srl 31) classifies the entry (run-break vs glyph). A scratch
+//   byte array is built at sp+0x84 holding the per-item indices, then
+//   consumed by a second phase that issues the actual glyph draws.
+//   This is the run-layout/measure front-end of the game_libs text
+//   subsystem; the leaf draws delegate to the gl_func_0001CFDC family.
+// Caps: raw-word USO + large multi-phase orchestrator with many
+//   fixed-target calls — not exact-matchable without proper USO
+//   mnemonic disasm; high-level structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
