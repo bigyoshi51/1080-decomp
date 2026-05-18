@@ -9391,6 +9391,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000372D4);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
 
+// gl_func_00037540 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — 0xC0 frame). The larger SIBLING of gl_func_00037348 —
+// a multi-axis FP clamp / range-limit (deadzone) routine.
+//
+//   void gl_func_00037540(O *o) {
+//     V *v = o->p_2C;
+//     float s = o->f_3C;                          // per-call scale
+//     float a = v->f_4 * s;
+//     a = (a < 0.0f) ? -a : a;                     // abs idiom
+//     if (a < D_0_fp_19F8) ... else clamp ...      // FP-pool bound
+//     float b = v->f_0 * D_0_fp_19F8;
+//     b = fabsf(b);
+//     if (b < D_0_fp_19FC) ... else clamp ...      // 2nd pool bound
+//     ... more components, factor 2.0f (0x40000000) ...
+//   }
+//
+// Struct-typing reference: a multi-axis clamp / deadzone / range-
+//   limiter, the larger counterpart of gl_func_00037348. Same core
+//   idiom — read a vector from o->0x2C, scale by a per-call factor
+//   (o->0x3C) and/or FP-pool constants, take the absolute value
+//   (`c.lt.s f,0 ; bc1fl ; neg.s`), and saturate each component
+//   against an FP-LITERAL-POOL bound — but it covers more
+//   components / branches and uses the NEXT pool slots
+//   &D_0+0x19F8 and &D_0+0x19FC (immediately after
+//   gl_func_00037348's &D_0+0x19F0 / 0x19F4), plus a 2.0f factor
+//   (0x40000000). This confirms a CONTIGUOUS FP clamp-constant
+//   table based at &D_0+0x19F0 (0x19F0/0x19F4 used by 00037348,
+//   0x19F8/0x19FC by 00037540 — a per-axis {scale, limit} array;
+//   deferred FP-pool symbolization per docs/N64_FORENSICS.md, same
+//   class as the &D_0+0x186C/0x1868/0x1730 sites). The
+//   00037348 / 00037540 pair is the input/signal-conditioning
+//   stage of the game_libs object subsystem (companion of the
+//   gl_func_0003695C normalizer; feeds the geometry/command
+//   pipeline with clamped vectors).
+// Caps: 0x2FC raw-word USO + FP abs/clamp + contiguous FP-literal-
+//   pool constant table (&D_0+0x19F0.. unsymbolized) — not exact-
+//   matchable without proper USO mnemonic disasm + FP-pool
+//   symbolization; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037540);
 
 #ifdef NON_MATCHING
