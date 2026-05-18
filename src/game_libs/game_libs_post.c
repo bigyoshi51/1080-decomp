@@ -19414,6 +19414,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
 // offsets not symbolized. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000519A4);
 
+// gl_func_00051AD8 — STRUCTURAL PASS (0x3C0 / 240 words, no episode).
+// Raw-.word USO. realjr=1 (epilogue), regjr=1 = the JUMP-TABLE
+// DISPATCH at insn 13 (jr t6 after lw t6, 0x1BB4(at); ADDENDUM-18c
+// register-indirect jump, NOT a 2nd function) → ONE clean function.
+// Frame 0x48, saves ra only. 7 jal-0 = USO-relocated callbacks.
+// Jump-table command-stream decoder. Shape:
+//   void gl_func_00051AD8(void *out, int *strm) {
+//     op = *strm;                         // command word
+//     i  = op - 0xC8;
+//     if ((u32)i >= 0xC) goto bulk_copy;  // sltiu default guard
+//     switch (i) {                        // table at &D_0+0x1BB4
+//       // each case advances the stream cursor with the idiom
+//       //   p = strm[1]; strm[1] = p + 4; v = *p;
+//       // and stores v into out at a case-specific offset
+//       // (out->0x1C / 0x20 / 0x22 / 0x24 / 0x28 / 0x2C / 0x2E /
+//       //  0x30 / 0x32 / 0x34 / 0x38 / 0x44 / 0x48 / 0x58 ...);
+//       // some cases pull a byte field (lbu/sb out->0x32) or call
+//       // a USO sub-decoder/allocator: cb_n(out, strm); a few set
+//       // out->0x34/0x38 from a fetched record triple.
+//       ...
+//     }
+//     return;
+//   bulk_copy:                            // default: copy the whole
+//     // struct window out->0x34..0x58 from the stream record, then
+//     cb_err("str_0x20F20", v0);          // unknown-opcode report
+//   }
+// Family: jump-table command/parameter decoder (recurring game_libs
+// family — sibling of the GBI/RDP-style stream decoders). The frame,
+// the single ra save, the (op - 0xC8) normalize + sltiu 0xC bound +
+// &D_0+0x1BB4 12-entry table + jr-t6 dispatch, the
+// cursor-advance (p = strm[1]; strm[1] += 4; v = *p) per-case read
+// idiom, the per-case out-struct field offsets, the 7 USO callback
+// sites and the default bulk-copy + cb_err(0x20F20) tail are exact;
+// the individual case bodies, the cb prototypes and the exact field
+// map are representative (deferred FULL-DECODE node — needs the
+// 12-entry jump table resolved and the out/stream structs typed).
+// Caps: out + stream structs untyped, jump table + 7 cb prototypes
+// not symbolized (USO-relocated). Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051AD8);
 
 extern int gl_func_00000000();
