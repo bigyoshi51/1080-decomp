@@ -17082,6 +17082,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048720);
 /* gl_func_0004880C: 37-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004880C);
 
+// gl_func_000488A0 — STRUCTURAL PASS + BOUNDARY NOTE (0x1D0 / 117 words, no
+// episode). Raw-.word USO. realjr=2, regjr=0 → 2-function BUNDLE: named fn
+// ends at the jr at 0x48A58; a tiny trailing leaf at 0x48A5C (~5w, DEFERRED
+// USO RE-SPLIT — belongs to the next symbol).
+//
+// Named fn = packed-command table append (SIBLING-VARIANT of
+// gl_func_000483BC; single prologue frame 0x28, saves ra, s0; cb = jal 0
+// USO-relocated):
+//   void gl_func_000488A0(Obj a0) {
+//     self = a0;
+//     if (self->p04 == 0) return;                    // beqz early-out
+//     Tbl *t = self->p00;
+//     int n = t->p04; t->p04 = n + 1;                 // bump count
+//     unsigned v = ...;                                // a value/id
+//     int *slot = (int*)t->p00 + n*2;                  // base + n*8
+//     unsigned w0 = 0x04000000                         // command/flag tag
+//                  | (v << S1)                          // field A << shift1
+//                  | (((v << S2) - 1) & 0xFFFF);        // field B (16-bit)
+//     slot[0] = w0;
+//     cb(...);                                          // post-pack hook
+//     slot[1] = v;                                      // word1 = raw value
+//   }
+// Same two-word packed-entry append as gl_func_000483BC (0x04 entry guard,
+// count bump at +4, slot = base + n*8, word0 = 0x04000000 |
+// (v << s1) | ((v << s2 - 1) & 0xFFFF), cb between the two stores) — only
+// the bitfield shift amounts differ from the 000483BC variant. Family:
+// packed-table append + command bit-pack (siblings gl_func_000483BC /
+// 00042684 / 00043BEC). Trailing leaf at 0x48A5C = small stub (deferred
+// re-split). v derivation representative; the 0x04 guard, the count-bump,
+// the base + n*8 slot math, the 0x04000000 tag and the OR-pack structure
+// are exact. Caps: Obj/Tbl struct + cb signature untyped; bundle re-split
+// deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000488A0);
 
 /* 30-insn alloc-or-given + init + cond-followup. Promoted 82.33%→100%
