@@ -11234,6 +11234,57 @@ void gl_func_0003A044(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A044);
 #endif
 
+// gl_func_0003A0C4 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x4C8 / 306 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE (no-frame-leaf shape — see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). realjr=10 but only
+// ONE 27BDFFE0 prologue (boundary-checked: grep 27BDFF over the
+// whole .s shows exactly one). The ten jr's recur at a REGULAR
+// ~38-word (0x98-byte) spacing — a stack of ~10 near-identical
+// dispatcher functions (the trailing nine share no stack frame,
+// so no interior prologue exists for the heuristic to find). Splat
+// could not separate them in this relocatable USO segment. Only
+// the NAMED LEADING function is decoded; the other ~9 are a
+// DEFERRED USO RE-SPLIT (tracked with the other game_libs_post.c
+// bundle notes; not fixable with mnemonic split/merge — needs the
+// spimdisasm-USO migration).
+//
+// Leading fn gl_func_0003A0C4 (0x3A0C4..0x3A150) — a table-driven
+// indirect dispatcher, a CLONE of gl_func_00035A18:
+//   ? gl_func_0003A0C4(Rec *r) {
+//     short i = r->h_0A;                         // index / id
+//     short j = r->h_08;                         // secondary index
+//     T *base = r->p_04;
+//     if (i < 0) base += j;                       // bgez branch
+//     else { ... r->w_0C path ... }
+//     Ent *tbl = ...;                             // entry stride 8
+//     Ent *e   = &tbl[k];                          // k = j2*8
+//     short hw = e->h_0;
+//     int (*f)() = e->fp_4;                        // fn ptr at +4
+//     return f(hw + base, r->w_10, r->w_14);       // jalr e->0x4
+//   }
+//
+// Struct-typing reference: the named function is structurally the
+//   SAME jump-table / message dispatcher as gl_func_00035A18 — it
+//   keys on the record's own index halfwords (r->0x08 / r->0x0A),
+//   indexes an 8-byte {tag, code-pointer} handler table, and
+//   tail-calls the selected handler via `jalr` (passing the
+//   record's 0x10 / 0x14 fields). The bundle is ~10 such
+//   dispatchers in a row — a family of per-type/per-message
+//   dispatch trampolines over the 8-byte {tag, fn-ptr} handler
+//   array (cf. gl_func_00035A18). A polymorphic-dispatch cluster
+//   of the game_libs object subsystem (sibling of the
+//   gl_func_0002FB74 interpreter's opcode arms; the handler table
+//   is the per-message routing array to type when this family is
+//   formalized).
+// Caps: raw-word USO + ~10-fn no-frame-leaf bundle + jalr through
+//   an 8-byte {tag, fn-ptr} handler table — not exact-matchable
+//   without proper USO mnemonic disasm + boundary re-split + the
+//   record/table structs typed; structural pass only, no byte
+//   body. No merge attempted (would corrupt the bundled
+//   dispatchers); no episode.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A0C4);
 
 #ifdef NON_MATCHING
