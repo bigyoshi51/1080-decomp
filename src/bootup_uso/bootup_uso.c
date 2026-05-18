@@ -3157,6 +3157,43 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B75C);
 
+/* func_0000BF8C - verified structural decode (0x2A8, 170 insns,
+ * large FP per-frame parameter selector/update).
+ *   void func_0000BF8C(St *s0) {
+ *       in = s0->0x800;
+ *       s0->0x990 = ((f64)in->0x4 < 0.0) ? 1 : 0;  // sign flag
+ *       int m = (in->0x10 & 0x400) != 0;            // mode flag
+ *       s0->0x9CC = m;
+ *       s0->0x9F8 = s0->0x490;
+ *       if (m) {                                    // param set A
+ *           s0->0x9FC = s0->0x4F0;
+ *           s0->0x360 = s0->0x4D8;
+ *           s0->0xA00 = s0->0x6F0 * s0->0x508;
+ *       } else {                                    // param set B
+ *           s0->0x9FC = s0->0x4C0;
+ *           s0->0x360 = s0->0x4A8;
+ *           s0->0xA00 = s0->0x708 * s0->0x508;
+ *       }
+ *       if (s0->0x990) {                            // signed branch
+ *           if (s0->0x9CC) { ... 0.5f (0x3F000000) ... }
+ *           ... uses func_000008F4+0x20 / func_00008A40 ...
+ *       }
+ *       ... s0->0x9A2 (s16) further updates ...
+ *   }
+ * Struct-typing reference: s0->0x800 (2048) -> input/state block
+ * (in->0x4 f32 signed value -> sign flag, in->0x10 u32 bit 10 /
+ * 0x400 -> mode). Flags: s0->0x990 (2448) s32 sign latch, s0->
+ * 0x9CC (2508) s32 mode latch. Param sets selected by mode: set A
+ * {0x6F0 (1776), 0x4F0 (1264), 0x4D8 (1240)} vs set B {0x708
+ * (1800), 0x4C0 (1216), 0x4A8 (1192)}, with shared scale s0->0x508
+ * (1288); outputs s0->0x9FC (2556) / s0->0x360 (864) / s0->0xA00
+ * (2560); s0->0x9F8 (2552) = s0->0x490 (1168). s0->0x9A2 (2466)
+ * s16, 0.5 const for the signed sub-path. Likely a carve/lean
+ * direction (left vs right) parameter swap per frame. Caps <80:
+ * FP-heavy cvt.d.s/c.lt.d/mul.s + many lui+mtc1 consts + beql/
+ * bc1fl branch-likely + flag-gated dual param sets + reloc.
+ * Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000BF8C);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000C234);
