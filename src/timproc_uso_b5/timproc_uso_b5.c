@@ -1557,6 +1557,42 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007078);
 
+// timproc_uso_b5_func_000072D0 — STRUCTURAL PASS (no episode).
+// Raw-.word USO. BOUNDARY NOTE: this .s is a 2-function USO bundle
+// (2 jr-ra; named fn 0x72D0..0x73BC ~63 words, a SECOND fn — its
+// ramp-DOWN twin — follows at 0x73C0..0x742C). USO bundles aren't
+// splittable by the mnemonic split-fragments.py; deferred USO
+// re-split. Only the named leading function is decoded here.
+//
+// Named fn = FP ramp-UP animator with state transition + sound:
+//   void timproc_uso_b5_func_000072D0(Scr *scr) {        // scr -> s0
+//     if (scr->0x480 < scr->0x484) {                      // below target
+//       if (scr->0x3CC != 1) {
+//         float step = scr->0xD4 + scr->0xEC;
+//         scr->0x480 += step;
+//         if (scr->0x480 >= scr->0x484) {                 // reached
+//           scr->0x480 = scr->0x484;
+//           scr->0x3CC = (scr->0x3C8 == 3) ? 9 : 3;        // state xition
+//           if (func_00000000(&D_0, 0x10004203)) {
+//             func_00000000(1); func_00000000(scr);
+//             d = scr->0x28;  (d->0xAC)(d->0xA8 + …);      // sfx/effect
+//           }
+//           scr->0x3CC = 0xA;  scr->0x484 = 0.0f;
+//         }
+//       }
+//     }
+//     // (else / second bundled fn: symmetric ramp-DOWN of scr->0x480.)
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x480 current f32 (animated), 0x484 target f32, 0xD4/0xEC
+//     f32 step components, 0x3C8 mode (==3), 0x3CC state (1 lock /
+//     3 / 9 / 0xA done), 0x28 vtable (->0xA8 s16 base, ->0xAC fn —
+//     obj->0x28 dispatch idiom, here a sound/effect). D_0 +
+//     0x10004203 global gate. func_00000000 = USO placeholder.
+// Caps: raw-word USO + unsplit bundle + placeholder calls — not
+//   exact-matchable here; structural pass only for the named fn.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000072D0);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007430);
