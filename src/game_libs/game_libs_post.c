@@ -7271,6 +7271,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003341C);
 // of truth).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00033444);
 
+// gl_func_0003344C — STRUCTURAL PASS (0x64 / 25 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, has
+// its OWN prologue). The SUCCESSOR of the game_libs_func_00033444
+// head-fragment (its &D_0+0x20C load feeds in as the input).
+//
+//   float gl_func_0003344C(...) {
+//     unsigned u = *(unsigned*)(&D_0 + 0x20C);   // from frag 33444
+//     float a = (float)u;                          // cvt.s.w
+//     if ((int)u < 0) a += 2147483648.0f;          // 0x4F800000
+//     float r = callback(&D_0, a);                 // jal 0 (USO cb)
+//     float b = (float)(unsigned)r;                // same u32->f
+//     if (...) b += 2147483648.0f;
+//     return r0 / b;                                // div.s in delay
+//   }
+//
+// Struct-typing reference: the textbook UNSIGNED-32 -> FLOAT
+//   conversion idiom (IDO/GCC __floatunsi-style): `cvt.s.w` of the
+//   value followed by a sign-bit-gated add of 2^31 = 2147483648.0f
+//   (the literal 0x4F800000 materialized via lui/mtc1), applied
+//   twice (once to the &D_0+0x20C input, once to a callback result),
+//   with the final result produced by an FP divide emitted in the
+//   jr delay slot (`div.s f0, f0, f4`). It calls one USO-relocated
+//   callback (jal 0 → resolved at load) with the &D_0 base and the
+//   converted float. A numeric-conversion / ratio leaf of the
+//   game_libs object subsystem (computes a normalized ratio from an
+//   unsigned counter at &D_0+0x20C — likely a progress / fraction
+//   used by the gl_func_0002FB74 interpreter and the ramp/timer
+//   family; the head-fragment 00033444 is its sheared-off input
+//   base load, confirming the two are one logical unit pending the
+//   deferred USO re-split).
+// Caps: raw-word USO + unsigned->float 2^31-bias idiom + USO-
+//   relocated jal-0 callback + delay-slot div.s — not exact-
+//   matchable without proper USO mnemonic disasm + the 00033444
+//   boundary re-split; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003344C);
 
 extern int gl_func_00000000();
