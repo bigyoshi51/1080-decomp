@@ -23249,6 +23249,7 @@ int gl_func_0006C9F4(int direction, unsigned int devAddr, int dramAddr, unsigned
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C9F4);
 #endif
 
+/* gl_func_0006CAD4: 43-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CAD4);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CAD4_pad.s")
 
