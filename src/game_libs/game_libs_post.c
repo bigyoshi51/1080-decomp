@@ -1085,6 +1085,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 
+// gl_func_00021498 — STRUCTURAL PASS (0x8EC / 571 words ≈ 2.3KB, no
+// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO
+// bundle (named fn + 2 trailing helpers) — deferred USO re-split.
+// The named leading fn is one of the LARGEST gl_func_0002119C
+// jump-table state handlers: the sprite-record build/layout state.
+// Huge -0x98 frame, full s0-s8/ra save.
+//
+//   void gl_func_00021498(void) {
+//     S *g = &D_0;
+//     byte idx = g->b_2CF1;                          // sub-state/index
+//     g->w_1E0C = 0;                                  // clear global
+//     int v = *(int*)tbl;                             // table base
+//     g->h_2036 = (short)v;                            // config hw
+//     (*setup)(idx & 0xFFFF);                          // jal 0 USO-rel
+//     short cfg = g->h_2036;
+//     int   q   = g->w_213C;
+//     // 16-align + FP convert/divide per record:
+//     int sz = (q + 0xF) & ~0xF;                        // align16
+//     float f = (float)g->h_203A;                       // cvt.s.w
+//     ... long multi-phase body: lays out the record set, computing
+//         per-record FP-transformed fields (mtc1/cvt.s.w/div.s) and
+//         writing the &D_0+0x20xx config halfwords, with further
+//         USO-reloc sub-calls ...
+//   }
+//
+// Struct-typing reference: operates on the same &D_0 sprite-subsystem
+//   state block as gl_func_0002119C / gl_func_0001FBD4 — byte
+//   &D_0+0x2CF1 is a sub-state/index right after the 0x2CF0 main
+//   state; word &D_0+0x1E0C a scratch/result global cleared on entry;
+//   halfwords &D_0+0x2036 / 0x203A / word 0x213C are layout-config
+//   fields written/read while building the record set. The body mixes
+//   integer index math (16-align `(x+0xF)&~0xF`) with single-prec FP
+//   (mtc1 / cvt.s.w / div.s) to compute per-record transformed
+//   geometry, and calls USO-relocated sub-routines (`jal 0` slots).
+//   This is the heavyweight "(re)build the sprite record set" state
+//   reached from the gl_func_0002119C dispatcher.
+// Caps: raw-word USO + 3-fn unsplit bundle + very large multi-phase
+//   int/FP body with USO-reloc calls — not exact-matchable without
+//   proper USO mnemonic disasm; high-level structural pass only for
+//   the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 
 /* gl_func_00021D84: 33-insn slot-register helper.
