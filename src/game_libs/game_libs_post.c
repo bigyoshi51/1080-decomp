@@ -7858,6 +7858,42 @@ void gl_func_00034684(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034684);
 #endif
 
+// gl_func_000346F0 — STRUCTURAL PASS (0x120 / 72 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — very large 0x140 frame: a string buffer on the stack).
+//
+//   void gl_func_000346F0(int a0, char *fmt, void *args) {
+//     char *gbuf = *(char**)(&D_0 + 8);        // global fmt buffer
+//     if (gbuf != 0) {
+//       int len = vsprintf(gbuf, fmt, args);    // jal 0 (USO cb)
+//       if (len > 0xFF) len = 0xFF;             // clamp length
+//       if (len <= 0) return;
+//       char buf[..];                            // local at sp+0x38
+//       int i = 0, n = len & 3;                  // byte tail first
+//       while (i != n) { buf[i] = gbuf[i]; i++; }
+//       for (; i < len; i += 4) {                // word-batch main
+//         buf[i+0]=gbuf[i+0]; ... buf[i+3]=gbuf[i+3];
+//       }
+//     }
+//   }
+//
+// Struct-typing reference: a formatted-string build-and-copy leaf.
+//   It calls a USO-relocated callback (jal 0 → resolved at load) in
+//   the shape of vsprintf — destination = a global scratch buffer
+//   pointer at &D_0+0x08, format string = arg, varargs pointer =
+//   arg — captures the returned length, saturates it to 0xFF, and
+//   then copies the formatted text into a large on-stack buffer
+//   (sp+0x38) using the textbook IDO/GCC memcpy length-split: a
+//   `len & 3` byte remainder loop followed by a 4-byte-unrolled
+//   main loop. A debug/label/text-builder utility of the game_libs
+//   object subsystem (the &D_0+0x08 global scratch buffer is shared
+//   formatting storage; this is the kind of helper the command
+//   interpreter / UI nodes call to compose dynamic strings).
+// Caps: raw-word USO + USO-relocated jal-0 vsprintf-shaped callback
+//   + len&3 / word-batch copy split — not exact-matchable without
+//   proper USO mnemonic disasm + the global buffer typed;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000346F0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034810);
