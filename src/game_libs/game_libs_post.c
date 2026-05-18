@@ -12090,6 +12090,39 @@ void gl_func_0003D288(char *a0, int a1) {
     (*(int(**)(char*))(vt + 0x64))(a0 + *(short*)(vt + 0x60));
 }
 
+// gl_func_0003D2C8 — STRUCTURAL PASS (0xFC / 63 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list-count + fixed-helper-call + second-list-walk
+// routine.
+//
+//   void gl_func_0003D2C8(O *o) {
+//     int n = 0;
+//     for (N *p = o->p_10; p != 0; p = p->next_4) n++;  // count
+//     R *r = fixed_helper_01459B(n);              // jal 0x01459B
+//     for (N *q = r->p_10; q != 0; q = q->next_4) {  // 2nd walk
+//       ... process q ...
+//     }
+//   }
+//
+// Struct-typing reference: a two-phase collection routine. It first
+//   walks an intrusive list rooted at o->0x10 (next at +0x04)
+//   purely to COUNT its elements, passes that count to a FIXED
+//   intra-USO helper at 0x01459B (encoded `jal 0x01459B` /
+//   0x0C01459B — a real resolved target, NOT a jal-0 USO-relocated
+//   callback; given the count argument, most likely a buffer-
+//   allocate / sort / capacity-reserve routine), then iterates a
+//   SECOND list reached via the helper's result (->0x10, next at
+//   +0x04). The count-then-allocate-then-walk shape is the classic
+//   "size the work, get a buffer, process" pattern. A collection-
+//   aggregate node of the game_libs object subsystem (same
+//   intrusive-list convention — head at +0x10, next at +0x04 — as
+//   the gl_func_00038598 / 0003C86C processor family; pairs with
+//   the iterator API helpers gl_func_00035C6C / gl_func_00035DAC).
+// Caps: raw-word USO + intrusive-list count + fixed intra-USO call
+//   (0x01459B) + second-list walk — not exact-matchable without
+//   proper USO mnemonic disasm + the list structs typed;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D2C8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D3C4);
