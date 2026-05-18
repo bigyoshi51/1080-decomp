@@ -5,6 +5,38 @@ typedef struct { int a, b, c, d; } Quad4;
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
 
+// gl_func_0001CA10 — STRUCTURAL PASS (0x354 / 213 words, no episode).
+// Raw-.word USO form (game_libs RSP/graphics-library segment).
+// BOUNDARY NOTE: 2-jr USO bundle (named fn + 1 trailing helper) —
+// deferred USO re-split.
+//
+// game_libs RSP/F3D vertex-index / triangle-list builder.
+//
+//   void gl_func_0001CA10(int count, Cmd *a1, Ctx *a2) {
+//     if (count < 3) return;                              // need a tri
+//     C *c = a1 + 0x18;
+//     i = c->0x2(u8) * 4;  j = c->0x3(u8) * …;            // index calc
+//     // entry = base + idx * 0x340  (per-record stride 0x340);
+//     func_00000000(a2->0x3C, a2 + 0x38, …);              // setup/xform
+//     // loop over the index list: read s16 vertex fields v->0x10 /
+//     //   v->0x12 / v->0x04, signed-ceil-div-by-2 (sra+addiu idiom),
+//     //   compare/clip, and sh-store packed triangle/quad indices
+//     //   into the output command buffer; bne loops back (1420FFD7).
+//   }
+//
+// Struct-typing reference:
+//   count = vertex/primitive count (<3 = no-op); a1 + 0x18 -> a
+//     descriptor (->0x2 / ->0x3 u8 indices), a2->0x3C / a2+0x38 =
+//     transform inputs. Per-record stride 0x340. v->0x10 / 0x12 /
+//     0x04 = s16 vertex coords; signed ceil-div-by-2 is the
+//     `bgez; sra 1 / addiu 1; sra 1` rounding idiom. Output = an
+//     RSP/F3D triangle-index command buffer. func_00000000 = USO
+//     placeholder dispatcher (game_libs JAL targets are runtime-
+//     patched placeholders — see reference memos).
+// Caps: raw-word USO + unsplit bundle + placeholder calls — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only for the named fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
