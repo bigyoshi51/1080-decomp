@@ -19464,6 +19464,46 @@ void gl_func_00051E98(char *a0) {
 /* gl_func_00051ED8: 33-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051ED8);
 
+// gl_func_00051F5C — STRUCTURAL PASS (0x158 / 87 words, no episode).
+// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x40,
+// full callee-save (ra + s0..s7 + fp). 5 jal-0 = USO-relocated
+// callbacks (one parse cb + several error reporters). Token-stream /
+// list-walk processor. Shape:
+//   void gl_func_00051F5C(void *self, int *strm) {
+//     g_current = self;                    // sw self -> D_xxx global
+//     count = 0; i = 0; n = 0;             // s3/s4 accumulators
+//     for (;;) {
+//       tok = *strm; strm++;               // advance-by-4 cursor
+//       if (tok == 'd') {                  // 0x64 sub-record open
+//         lim = self->field_8C;
+//         if (i >= lim) cb_err("str_0x20F38");      // overflow
+//         r = cb_parse(self, &strm);                // USO element parse
+//         if (self->field_90 >= self->field_8C)
+//           cb_err("str_0x20F4C");                  // bound
+//         vec = self->field_84;                     // grown array
+//         k = vec->count; vec->count = k + 1;
+//         vec->base[k] = r;                         // append result
+//         self->field_18 = r;
+//         i++;
+//         continue;
+//       }
+//       if (tok == self->field_8C || tok == 'e' || tok == 0) break;
+//       cb_err("str_0x20F68"); cb_err("str_0x20F78"); // bad token
+//     }
+//   }
+// Family: token-stream / list-walk processor (recurring game_libs
+// family — sibling of the structured-record decoders and the
+// jump-table command decoders; this one is the linear cursor-walk +
+// grow-array-append variant). The frame, the full callee-save set,
+// the g_current global store, the advance-by-4 cursor walk, the
+// 'd'/'e'/0/field_8C token terminators, the cb_parse-per-element +
+// grow-array (field_84 {base, count@+0xC}) append, the field_8C bound
+// guards and the 4 error-reporter cb sites (0x20F38 / 0x20F4C /
+// 0x20F68 / 0x20F78) are exact; the cb prototypes, the exact token
+// table and the per-token bodies are representative (deferred
+// FULL-DECODE node). Caps: self struct + 5 cb prototypes untyped,
+// message offsets not symbolized (USO-relocated). Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051F5C);
 
 /* gl_func_000520B8: 19-insn float-mul wrapper. Sibling of recently-matched
