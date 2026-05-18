@@ -3594,6 +3594,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002842C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
 
+// gl_func_00028604 — STRUCTURAL PASS (0x268 / 154 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). An object detach / relink manager.
+//
+//   void gl_func_00028604(O *obj, A *a1) {
+//     if (obj == (O*)-1) return;                         // null sentinel
+//     byte fl = obj->b_0;
+//     if (obj->w_2C == 0) return;                         // not linked
+//     obj->b_0 = fl & ~0x08;                               // clear bit3
+//     int nx = obj->w_48;                                  // next link
+//     if (nx != a1) ...                                     // relink:
+//     obj->w_48 = -1;                                       //  unlink
+//     int p = a1->w_44;                                     //  patch
+//     ...                                                    //  prev
+//     byte st = obj->b_60;
+//     float g = *(float*)(&D_0 + 0x2050);                   // global
+//     obj->b_60 = st | 0x10;                                 // set bit4
+//   }
+//
+// Struct-typing reference: detaches object `obj` from a linked
+//   structure. obj fields: byte +0 a flag set (bit3 = linked/active,
+//   cleared on detach), word +0x2C a parent/owner pointer (zero ==
+//   already detached, early return), word +0x48 the next-link pointer
+//   (set to -1 to unlink), byte +0x60 a status flag set (bit4 set to
+//   mark detached/dirty). `a1` is the neighbour node whose word +0x44
+//   back-link is patched during the splice. &D_0+0x2050 is a global
+//   float constant referenced in the body. The -1 value is the null/
+//   end-of-list sentinel (consistent with the other game_libs
+//   linked-structure helpers). The unlink/detach entry of the
+//   game_libs object subsystem (counterpart to the gl_func_00027D00
+//   pull-and-apply link op).
+// Caps: raw-word USO + linked-structure splice — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028604);
 
 extern int gl_ref_0003CC70();
