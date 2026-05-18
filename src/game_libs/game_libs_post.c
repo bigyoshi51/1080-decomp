@@ -18866,6 +18866,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F2F4);
 
+// gl_func_0004F704 — STRUCTURAL PASS (0x154 / 86 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
+// (saves ra). FP distance/proximity computation (cb = jal 0 USO-relocated;
+// sqrt/normalize helper).
+//
+//   <ret> gl_func_0004F704(void *a0, float px, ... ) {
+//     void *o = a0->p70;
+//     // per-component deltas vs the object's Vec3 at o->0xA0/0xA4/0xA8:
+//     float dx = px        - o->pA0;                   // sub.s, sp+0x34 in
+//     float dy = sp_py     - o->pA4;
+//     float dz = sp_pz     - o->pA8;
+//     float d2 = dx*dx + dy*dy + dz*dz;                // mul.s / add.s
+//     float d  = cb1(d2);                               // sqrt / normalize
+//     if (d == thr) { ... }                              // c.eq.s / beql
+//     // result (distance / in-range flag) returned / stored.
+//   }
+// Computes the squared distance between a query point (px + the sp+0x34/
+// 0x38 scratch components) and the object's reference Vec3 at
+// (a0->0x70)->0xA0/0xA4/0xA8, calls a cb1 scalar helper (sqrt/normalize
+// shape) on it, and compares the result against a threshold (c.eq.s/beql).
+// Family: FP geometry / spatial-query distance test (siblings
+// gl_func_00042778 / 0004F2F4; the proximity-check variant). The
+// a0->0x70->0xA0.. reference Vec3, the per-component sub.s, the
+// dx*dx+dy*dy+dz*dz reduction and the cb1 scalar helper are exact; the
+// exact compare/return shape is representative. Caps: a0/object struct + cb
+// signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F85C);
