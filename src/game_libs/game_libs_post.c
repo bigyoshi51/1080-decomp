@@ -16424,6 +16424,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000454C4);
 // constants untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
 
+// gl_func_00045E20 — STRUCTURAL PASS (0x1D0 / 117 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
+// (saves ra + s0..s3). GBI/RDP display-list command emitter (data-driven
+// counterpart of the gui_uso inline RDP DL builders in docs/N64_FORENSICS).
+//
+//   void gl_func_00045E20(void *a0, GfxCtx a1, Mode a2) {
+//     int m = a2->p38;                              // mode/flags word
+//     if ((m << 0xB) >= 0) { ... }                   // sign-bit test on bit
+//     if ((m << 7)  >= 0) { ... }                    //   ~0x14 / ~0x18
+//     // emit a two-word GBI/RDP packet into the command buffer:
+//     int i = a1->p0C->idx;  a1->p0C->idx = i + 1;    // bump packet index
+//     uint *p = (uint*)(a1->p0C->buf) + i*2;           // slot = base + i*8
+//     p[0] = 0xB7000000;                               // GBI opcode word
+//     p[1] = 0x000C0000;                               // arg word
+//     // flag-selected variants store 0xB7000000 with 0x00040000 etc. as
+//     // the arg word; the GfxCtx idx/buf pair (a1->0x0C -> {buf, idx@+4})
+//     // is the standard double-reloaded DL-builder idiom.
+//   }
+// Builds RDP/GBI display-list command packets (top-byte 0xB7 opcode family,
+// e.g. G_RDPSETOTHERMODE-class) into the GfxCtx command buffer reached via
+// a1->0x0C, indexed by the +4 counter and stride 8 (two 32-bit words per
+// packet); the exact arg word (0xC0000 / 0x40000 / ...) is selected by
+// sign-bit tests (shift-left + bgez) on the a2->0x38 mode flags. Family:
+// CPU-side RDP DL fragment builder (data-driven sibling of the gui_uso
+// inline-DL routines; see docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-
+// builder). Per-flag arg-word selection representative; the 0xB7 opcode, the
+// a1->0x0C buf/idx pair, the idx-bump and the i*8 two-word stride are exact.
+// Caps: GfxCtx/Mode struct + the exact opcode/arg constants untyped. Full
+// body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045E20);
 
 /* gl_func_00045FF4: 21-insn busy-wait loop. Captures initial value of
