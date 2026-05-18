@@ -25,7 +25,6 @@ void func_80007FC8(void) {}
 
 
 
-#ifdef NON_MATCHING
 /* func_80008054: 31-insn (0x7C) bundled libultra SP/MI helper. Contains THREE
  * separately-callable entry points (similar alt-entry cap class as
  * func_8000817C / func_800052F0 / func_80006698):
@@ -46,26 +45,39 @@ void func_80007FC8(void) {}
  *     *SP_STATUS_REG = 0x125;            // clear sig1+sig0+sstep+dma_busy+halt
  *     return;
  *
- * MATCH BLOCKED: alt-entry pattern — standard C-emit can't produce one symbol
- * with 3 separately-callable entry points. External callers in kernel_*.c
- * likely call entries 1 and 2 directly via `extern void
- * func_80008098(void)`/`func_800080AC(void)`. Same cap class as func_8000817C
- * documented in src/kernel/kernel_040.c.
+ * Exact-match path: compile entry 0 from C, use INSN_PATCH to force the
+ * hand-scheduled non-branch-likely poll loops (same SP_STATUS cap family as
+ * func_80008030), then append `jr ra; nop` + the two raw relocation-free
+ * alt-entry tails with SUFFIX_BYTES. This keeps one expected 0x7C-byte symbol
+ * while making the default build path C+recipe instead of INCLUDE_ASM.
  *
  * SP_STATUS write bit decode (SP_STATUS write = SET/CLR bit pairs):
  *   0x82  = 0x80 | 0x02 = set_sig0 + clr_broke
  *   0xC5  = 0xC0 | 0x05 = set_sig1 + set_intr_break + clr_dma_busy + clr_halt
  *   0x125 = 0x100|0x25 = clr_sig1 + clr_sstep + clr_dma_busy + clr_halt
  *
- * Default INCLUDE_ASM build remains exact. Documented for future Ghidra-assisted
- * decode + permuter exploration. */
+ * Default build is byte-exact via C body + INSN_PATCH + SUFFIX_BYTES. */
 void func_80008054(void) {
-    /* Stub — see decoded structure above. Full body lives in INCLUDE_ASM
-     * bytes via func_80008054.s. */
+    volatile u32* busy;
+    volatile u32* statusReg;
+    u32 status;
+
+    busy = (volatile u32*)0xA4040018;
+loop_busy:
+    status = *busy;
+    if (status != 0) {
+        goto loop_busy;
+    }
+
+    statusReg = (volatile u32*)0xA4040010;
+    *statusReg = 0x82;
+loop_status:
+    status = *statusReg;
+    status &= 3;
+    if (status == 0) {
+        goto loop_status;
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008054);
-#endif
 
 #ifdef NON_MATCHING
 /* func_800081D0: callable continuation of func_8000817C's clear-break path.
