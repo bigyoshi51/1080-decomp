@@ -15541,6 +15541,41 @@ void gl_func_00042648(int *dst) {
     *dst = scratch;
 }
 
+// gl_func_00042684 — STRUCTURAL PASS (0xF0 / 61 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x48
+// (saves ra, s0). Flag-masked-record append (cb = jal 0 USO-relocated).
+//
+//   void gl_func_00042684(void *a0, Desc a1) {
+//     self = a0;
+//     int w0 = a1->p00, w1 = a1->p04;
+//     char scr[..];                                 // sp+0x40
+//     scr.w0 = w0 & 0xF0FF;                          // clear bit groups
+//     scr.w1 = w1;
+//     int f = sp_0x44;
+//     f = (f & 0xFFF70400) ;                          // bit clear/set masks
+//     f = f & ~0x0008;        sp_0x44 = f;            // (0xFFF7 -> clear bit3)
+//     cb1(self, &scr);                               // 3-call encode pipeline
+//     cb2(self, &scr);                               //   over the scratch
+//     cb3(self, &scr);
+//     Tbl *t = self->p0C;                            // packed table handle
+//     short k = *(short*)(sp + 0x52);
+//     int n = t->p04; t->p04 = n + 1;                 // bump element count
+//     int *base = (int*)t->p00;
+//     int *slot = base + n * 2;                       // n*8 bytes = 2 ints
+//     // pack k into the slot word via sra/sll field extraction
+//     // (k>>2 <<0x1B, k>>5 <<3, &0xFF lane composition):
+//     *slot = pack(k);
+//   }
+// Builds a masked copy of the a1 descriptor in an sp scratch (two flag words
+// cleared with 0xF0FF / 0xFFF70400 / ~0x8), runs a fixed 3-stage cb encode
+// over it, then appends one packed entry to the table at self->0x0C:
+// increments the count at +4, computes slot = base + count*8, and stores a
+// value bit-packed from the (short)sp+0x52 field. Family: cb-transform +
+// indexed table-append (relates to the segment's cb-serialize / registration
+// routines). The exact pack() bit layout is representative; the mask
+// constants, the 3-call cb shape, the +4 count-bump and the base + n*8 slot
+// math are exact. Caps: Desc/Tbl struct + cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042684);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042778);
