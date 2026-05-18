@@ -15645,6 +15645,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042778);
 // registry untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042944);
 
+// gl_func_000430E4 — STRUCTURAL PASS (0x19C / 104 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x10
+// (no ra save — leaf). List-walk Vec3-float-to-byte quantizer (no cb calls).
+//
+//   void gl_func_000430E4(void *out, void *a1, void *a2) {
+//     void *base = *(void**)a2;                      // output record base
+//     int idx = 0;
+//     if (a1 == 0) return;
+//     it  = a1->...;                                  // {cur,next} cursor in
+//     cur = it ? it->p00 : 0;                         //   sp+0x00 / sp+0x04
+//     nxt = it ? it->p04 : ...;
+//     if (cur == 0) return;
+//     do {
+//       float S = 120.0f;                             // 0x42F00000 scale
+//       if ((cur->pC4 & 0x80) == 0) {                  // skip flagged nodes
+//         char *slot = (char*)base + idx*0x10;
+//         slot[0x10] = (char)trunc(cur->pF0 * S);      // quantize Vec3.x
+//         slot[0x11] = (char)trunc(cur->pF4 * S);      //          .y
+//         slot[0x12] = (char)trunc(cur->pF8 * S);      //          .z
+//         idx++;
+//       }
+//       it = nxt;                                      // advance cursor
+//       cur = it ? it->p00 : 0;
+//       nxt = it ? it->p04 : nxt;
+//     } while (cur != 0);
+//   }
+// Walks an intrusive list (cursor {cur,next} held in sp+0x00/0x04, head
+// resolved from a1) and, for each node lacking the 0xC4 bit-7 skip flag,
+// converts its Vec3 at +0xF0/0xF4/0xF8 to three signed bytes scaled by
+// 120.0 (mul.s then trunc.w.s), packing them at out_base + idx*0x10 + 0x10..
+// 0x12 with a running write index. Family: FP Vec3 geometry serialize /
+// byte-pack export (relates to gl_func_00040E90 / 00042778; the byte-quantize
+// counterpart). Cursor-advance bookkeeping representative; the 120.0 scale,
+// the 0xC4&0x80 skip gate, the +0xF0/F4/F8 source lanes and the
+// idx*0x10+0x10 dest packing are exact. Caps: node/out struct untyped. Full
+// body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000430E4);
 
 extern int gl_func_00000000();
