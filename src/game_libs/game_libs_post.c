@@ -6961,6 +6961,42 @@ int gl_func_00031DA4(void) {
     return v;
 }
 
+// gl_func_00031DD8 — STRUCTURAL PASS + BOUNDARY / DATA-MISID NOTE
+// (0xF9C / 999 words, no episode). Raw-.word USO form (game_libs).
+//
+// The NAMED leading function is TINY — a one-call trampoline
+// (0x31DD8..0x31DF0, 6 instructions):
+//   void gl_func_00031DD8(void) {
+//     callback0();                            // jal 0 (USO callback)
+//   }
+// i.e. save ra, call a single USO-relocated callback (jal 0 →
+// resolved at load), restore, return. Nothing else.
+//
+// EVERYTHING AFTER 0x31DF0 IS NOT THIS FUNCTION and is NOT standard
+// o32 MIPS. After the trampoline's return there is a run of
+// .word 0 padding (also split out into the trailing _pad.s
+// GLOBAL_ASM below), then ~990 words whose encodings are NOT
+// IDO/MIPS-II integer code:
+//   - 0x0D000430 / 0x0D0006B4  — opcode 0x0D (jalx-style) targets
+//   - 0x40055800 / 0x40045800  — opcode 0x10/0x40 COP0 (mfc0-form)
+//   - 0x20010000 / 0x201802E0  — opcode 0x08 addi-immediate forms
+//   - 0x1C80FFFD               — opcode 0x07 branch-likely-style
+// This is RSP microcode / a vector-ucode or non-code DATA blob that
+// splat MISIDENTIFIED as code and bundled into this symbol (see the
+// RSP-ucode / splat data-misID notes in docs/N64_FORENSICS.md). The
+// extra realjr=5 count is an artifact of 0x03E00008 byte patterns
+// occurring inside that ucode/data, NOT real function returns.
+//
+// Resolution: DEFERRED USO BOUNDARY RE-SPLIT + DATA/UCODE
+// RECLASSIFICATION (tracked with the other game_libs_post.c
+// boundary notes). It is NOT a C function past the trampoline and
+// NOT fixable with mnemonic split-fragments.py / merge-fragments —
+// the segment needs the spimdisasm-USO migration to (a) cut the
+// real 6-insn function boundary at 0x31DF0 and (b) reclassify the
+// tail as .word data / RSP ucode rather than text. No merge or
+// C-decode attempted for the tail (would be meaningless / corrupt);
+// no episode (tautology-trap; and the tail is not code).
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031DD8);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00031DD8_pad.s")
 
