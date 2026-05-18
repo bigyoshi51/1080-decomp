@@ -4089,6 +4089,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029978);
 
+// gl_func_00029B6C — STRUCTURAL PASS (0x49C / 295 words ≈ 1.2KB, no
+// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: LARGE
+// 8-jr USO bundle (named fn + ~7 trailing accessor/setter helpers) —
+// deferred USO re-split. Also carries a trailing
+// gl_func_00029B6C_pad.s GLOBAL_ASM (alignment/literal pad), left
+// untouched. The named leading fn (~22 words) resets two object
+// animation sub-channels.
+//
+//   void gl_func_00029B6C(O *obj) {
+//     byte f0 = obj->b_80;
+//     if (f0 != ...) (*reset0)(&obj->_80);              // 0x0C00F7D1
+//     obj->f_38 = 0.0f;                                  // chan-0 phase
+//     byte f1 = obj->b_A0;
+//     if (f1 != ...) (*reset1)(&obj->_8C);               // 0x0C00F7F9
+//     obj->f_3C = 0.0f;                                  // chan-1 phase
+//   }
+//
+// Struct-typing reference: an object dual-channel animation reset.
+//   obj+0x80 and obj+0x8C are two parallel animation sub-channel
+//   sub-structs (each with a state byte at +0x80 / +0xA0); each is
+//   conditionally reset via its fixed USO-relocated init —
+//   0x0C00F7D1 (≈0x3DF44) for channel 0, 0x0C00F7F9 (≈0x3DFE4) for
+//   channel 1 — and its float phase accumulator (obj->0x38 /
+//   obj->0x3C) zeroed. The 7 trailing bundled bodies are this
+//   subsystem's micro-accessors (1.0f / byte / float field
+//   setter-getters over the same sub-channels — e.g. set f_3C, set
+//   b_A0=1, store w_90/w_94/w_8C) left for the deferred USO
+//   re-split. Companion reset to the gl_func_00029978 tween /
+//   gl_func_0002978C ramp steppers on the same object.
+// Caps: raw-word USO + 8-fn unsplit bundle + fixed-target channel
+//   resets — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00029B6C_pad.s")
 
