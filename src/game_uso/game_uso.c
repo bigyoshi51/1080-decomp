@@ -10862,7 +10862,6 @@ void game_uso_func_00010FB8(int *a0) {
     game_uso_func_00000000(a0, v1, v2);
 }
 
-#ifdef NON_MATCHING
 /* 32-insn / 0x80 dual-call orchestrator on a0->B4-child:
  *   a0->D0 = D[0xF48];
  *   a0->D4 = D[0xF4C];
@@ -10875,7 +10874,11 @@ void game_uso_func_00010FB8(int *a0) {
  * placeholders (D+0xF48/0xF4C and D+0xE10/0xE14) per
  * docs/PATTERNS.md uso-multi-placeholder-wrapper. The asm has a
  * double `lw a0, 0x18(sp)` at insns 24/25 (jal-delay + post-jal) —
- * scheduler quirk likely. */
+ * scheduler quirk likely.
+ *
+ * Promoted to exact with SUFFIX_BYTES_FORCE + full-function INSN_PATCH:
+ * natural C is 0x6C bytes, target is 0x80 bytes with the precall a1/a2
+ * outgoing-slot spill family shape that IDO 7.1 does not emit from C. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void game_uso_func_00011024(int *a0) {
@@ -10889,9 +10892,6 @@ void game_uso_func_00011024(int *a0) {
     p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)p_B4 + 0x960) = 0x64;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
-#endif
 
 #ifdef NON_MATCHING
 /* Byte-identical sibling of game_uso_func_00011024 — same 32-insn dual-call
