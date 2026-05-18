@@ -5896,6 +5896,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E06C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
 
+// gl_func_0002E24C — STRUCTURAL PASS (0x108 / 66 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 10-jr USO bundle
+// (named fn + 9 tiny trailing accessors/dispatcher) — deferred USO
+// re-split. The named leading fn (~16 words) is the "un-fire"
+// counterpart to gl_func_0002E1C0.
+//
+//   void gl_func_0002E24C(O *o) {
+//     byte f = o->b_16;
+//     if (!(f & 0x20)) return;                          // not fired
+//     byte k = o->b_21;
+//     o->b_16 = f & ~0x20;                               // clear latch
+//     if (k == 2) return;
+//     (*stop)(0x3D, …);                                  // jal 0 USO
+//   }
+//
+// Struct-typing reference: the stop/cancel partner to the
+//   gl_func_0002E1C0 one-shot trigger. It tests the same fired-latch
+//   bit (bit5 of flag byte o->0x16); if the event is currently
+//   active it clears that latch and invokes a USO-relocated stop
+//   routine (`jal 0` slot) with event id 0x3D — i.e. "stop the
+//   sound/event this object started". Byte o->0x21 selects a variant
+//   (kind 2 = no-stop). The 9 trailing bundled bodies are this
+//   subsystem's micro-accessors: byte getters (o->0x31, o->0x21), a
+//   range-clamp, and a computed jump-table dispatch indexed by
+//   o->0x21 through the table at &D_0+0x1660 (another entry in the
+//   game_libs &D_0+0x16xx dispatch-table bank) — left for the
+//   deferred USO re-split.
+// Caps: raw-word USO + 10-fn unsplit bundle + jal-0 USO-reloc stop —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
