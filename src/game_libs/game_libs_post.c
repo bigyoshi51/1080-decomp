@@ -7663,6 +7663,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
 
+// gl_func_00034188 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A device / subsystem step with indirect-call (vtable)
+// dispatch and a status busy-poll.
+//
+//   void gl_func_00034188(void) {
+//     H *h = ...;                              // a handle
+//     int (*f)() = h->fp_1C;
+//     int v = f(h->h_18 + (int)h);             // jalr h->0x1C
+//     callback0(); callback0();                // jal 0 x2
+//     while (v < 0x1E0) {                       // poll (< 480)
+//       callback0();
+//       v = ...;                                // re-read status
+//     }
+//     H *g = *(H**)(&D_0 + 0x240);             // global handle
+//     int (*f2)() = g->fp_64;
+//     int r = f2(g->h_60 + (int)g);            // jalr g->0x64
+//     callback0();
+//     *(int*)(&D_0 + 0x204) = ... ;             // timing state
+//     *(int*)((char*)g + 0x144) = 0;
+//     // uses cycle constant 0x001E8480 = 2,000,000
+//   }
+//
+// Struct-typing reference: a hardware/device-driver-style tick. It
+//   dereferences a handle and calls a FUNCTION POINTER stored at
+//   handle+0x1C (passing handle+handle->0x18 as the arg — a
+//   self-relative callback), spins on a status value until it
+//   reaches 0x1E0 (= 480, a scanline/line-count-shaped bound)
+//   while pumping a USO-relocated callback (jal 0 → resolved at
+//   load) each iteration, then fetches a global handle from
+//   &D_0+0x240 and calls a SECOND function pointer at handle+0x64
+//   (arg handle+handle->0x60). Finally it writes timing/state
+//   globals (&D_0+0x204 and the handle's +0x144) using the cycle
+//   constant 0x001E8480 (2,000,000 — a 1/30s-ish VR4300 cycle
+//   budget). A device step / vsync-or-DMA-wait node of the
+//   game_libs object subsystem (the indirect dispatch through
+//   h->0x1C / h->0x64 means this object family is polymorphic —
+//   those offsets are its vtable slots; &D_0+0x240 is the active-
+//   device global).
+// Caps: raw-word USO + jalr through object vtable slots + USO-
+//   relocated jal-0 callbacks + status busy-poll + cycle constant —
+//   not exact-matchable without proper USO mnemonic disasm + the
+//   handle/vtable struct typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034188);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
