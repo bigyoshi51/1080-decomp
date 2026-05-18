@@ -794,6 +794,52 @@ void timproc_uso_b5_func_000027B0(int *self) {
     gl_func_00000000(base, 0, v - 1, 319, v, 0x10001);
 }
 
+// timproc_uso_b5_func_0000283C — STRUCTURAL PASS (0x338 / 206 words,
+// no episode). Raw-.word USO form (genuine code, single function).
+// Hand-decoded.
+//
+// 2-child composite widget/object constructor (alloc-or-reuse);
+// returns the constructed object.
+//
+//   void *timproc_uso_b5_func_0000283C(Obj *self, a1, a2, a3) {
+//     if (!self) { self = func_00000000(0x20); if (!self) return 0; }
+//     G *g = *(G**)D_0;                                 // global root
+//     self->0x00 = a3;
+//     self->0x04 = a2;
+//     self->0x08 = g->0x134->0x8C;  func_00000000(0x80);
+//     func_00000000(a1, .);  func_00000000(self, &D_0); // init
+//     // child A:
+//     A = func_00000000(0xB4);  if (A) {
+//       func_00000000(A, &D_00001120);  A->0x28 = &D_0;
+//       func_00000000(A->0x2C ...);  Vec3 z={0,0,0};
+//       func_00000000(A+0x30, &z);  self->0x14 = A;
+//     }
+//     // child B (same shape, name &D_00001128):
+//     B = func_00000000(0xB4);  if (B) {
+//       func_00000000(B, &D_00001128);  B->0x28 = &D_0;
+//       Vec3 z2={0,0,0};  func_00000000(B+0x30, &z2);
+//       self->0x14 = B;
+//     }
+//     self->0x10 = childObj;
+//     func_00000000(self, 0.0f, 0.0f, ...);
+//     // transform/format setup: child->0x108 = 0x201 (a GBI/format
+//     //   code); consts -400.0f; child flag |= 6; child->0x14C =
+//     //   (float)…; Vec4 written to child+0xDC (0x0/0x4/0x8/0xC).
+//     return self;
+//   }
+//
+// Struct-typing reference:
+//   self(a0, alloc 0x20): 0x00 = a3, 0x04 = a2, 0x08 = g->0x134->0x8C,
+//     0x10 child obj, 0x14 last child link, 0x28 vtable(&D_0).
+//   child (alloc 0xB4): 0x2C sub, 0x30 transform anchor, 0x108 format
+//     word (0x201), 0x14C f32, +0xDC Vec4, flag word |= 6.
+//   *(G**)D_0 -> 0x134 = global table; ->0x8C a shared field.
+//   &D_00001120 / &D_00001128 = USO child name/desc data; func_00000000
+//     = USO placeholder dispatcher (alloc/init/factory/attach).
+// Caps: raw-word USO + placeholder calls — not exact-matchable without
+//   proper USO mnemonic disasm; structure characterized. Structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000283C);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00002B74);
