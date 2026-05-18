@@ -1544,6 +1544,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022DE0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022E58);
 
+// gl_func_00022FC0 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A bounds-checked buffer-run processor.
+//
+//   int gl_func_00022FC0(int idx, int arg) {
+//     S *g = &D_0;
+//     if (idx >= g->h_202C) return 0;                   // range check
+//     short *buf = g->w_2028;                            // record buf
+//     int start  = buf[idx];                             // run start
+//     int cur    = start;
+//     do {
+//       byte b = *((char*)buf + cur);                     // element
+//       cur++;
+//       ...
+//       jal 0x37EA4(b);                                   // 0x0C00DFA9
+//       count--;
+//     } while (count != 0);
+//     buf[idx] = cur;                                      // write back
+//     return ...;
+//   }
+//
+// Struct-typing reference: halfword &D_0+0x202C is the valid index
+//   limit; word &D_0+0x2028 is the base of a record/offset buffer
+//   indexed by idx (halfword stride, idx<<1) — each slot holds a
+//   cursor/offset into the same backing store. The loop walks a run
+//   of byte elements from that cursor invoking the fixed USO-relocated
+//   routine 0x0C00DFA9 (≈0x37EA4) per element, then writes the
+//   advanced cursor back into buf[idx]. A per-slot stream/run consumer
+//   in the same &D_0 sprite/registry subsystem (sibling family to the
+//   gl_func_00022D68 readiness queries over the neighbouring 0x2Cxx
+//   arrays).
+// Caps: raw-word USO + fixed-target per-element call — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
 
 /* gl_func_00023078: 22-insn prologue-stolen successor of gl_func_00022FC0.
