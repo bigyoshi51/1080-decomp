@@ -9242,6 +9242,48 @@ end:
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
 
+// gl_func_00036E74 — STRUCTURAL PASS (0x98 / 38 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). An object constructor with FP-default initialization.
+//
+//   O *gl_func_00036E74(O *o, int a1, int a2) {
+//     if (o == 0) {
+//       o = alloc(0x50);                        // jal 0 (USO alloc)
+//       if (o == 0) return 0;
+//     }
+//     init(o, (void*)0x0001EA10);               // 2nd USO cb
+//     o->p_28  = &D_0;                           // global root
+//     o->w_00  = 0x40;                           // type/flag tag
+//     o->w_3C  = 0;
+//     o->w_4C  = a2;
+//     o->f_2C  = 1000.0f;                        // 0x447A0000
+//     o->f_30  = -90.0f;                         // 0xC2B40000
+//     o->f_34  = 180.0f;                         // 0x43340000
+//     o->f_38  = 0.0f;
+//     return o;
+//   }
+//
+// Struct-typing reference: a constructor of the same family as
+//   gl_func_00036088 / gl_func_00034890 / gl_func_00032E18. It
+//   allocate-or-reuses a 0x50-byte record via a USO-relocated
+//   allocator callback (jal 0 → resolved at load), runs a second
+//   callback to initialize it from a fixed data-segment template
+//   at 0x0001EA10, back-links the global root at o->0x28, stamps a
+//   type/flag tag 0x40 at o->0x00, stores the a2 argument at
+//   o->0x4C, and seeds the object's FP configuration fields with
+//   defaults {1000.0f, -90.0f, 180.0f, 0.0f} at offsets
+//   0x2C/0x30/0x34/0x38 — these read as a range/limit config (a
+//   1000-unit max, a -90°..180° angular span, 0 initial value),
+//   consistent with a camera / parameter / animation-channel
+//   object. A factory leaf of the game_libs object subsystem
+//   (0x0001EA10 is a deferred data-segment template-symbolization
+//   site; the {1000,-90,180,0} defaults + 0x50 size define the
+//   struct to type when this object family is formalized).
+// Caps: raw-word USO + USO-relocated jal-0 allocator/init callbacks
+//   + &D_0 back-link + fixed data-seg template + FP-default seed —
+//   not exact-matchable without proper USO mnemonic disasm + the
+//   0x50 struct typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036E74);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036F0C);
