@@ -19109,6 +19109,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000503A4);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00050444);
 
+// gl_func_0005062C — STRUCTURAL PASS (0xACC / 689 words, no episode).
+// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Large frame
+// 0x250, saves ra only. 17 jal-0 = USO-relocated callbacks. Big FP
+// geometry/transform-emit orchestrator (NOT fully decoded — 689-word
+// FP routine). Shape:
+//   int gl_func_0005062C(void *a0, void *a1, void *a2, void *a3) {
+//     // args spilled to sp+0x250/0x254/0x258/0x25C
+//     // 3 leading USO callbacks build source vectors into stack
+//     // scratch: cb_a(sp+0x1B4, sp+0x278, sp+0x26C);
+//     //          cb_b(sp+0x278, sp+0x284, sp+0x1A8);
+//     //          cb_c(sp+0x284, sp+0x26C, sp+0x19C);
+//     // FP block: load the three vec3 results, dot/normalize via
+//     // mul.s/add.s + cvt, compare (c.lt/c.le → bc1f at the
+//     // 0x4502000x branch-likely guards) to pick branch arms, build
+//     // a transform/basis: cross-products, a 1/len reciprocal-scale
+//     // (lui 0x4000 = 2.0f bias), and quantize into packed float
+//     // triples written through dynamically-fetched buffer pointers
+//     // (lw base; sw 8-float stride blocks to *base / *base2).
+//     // Tail: ~14 further USO callbacks, each fed stack-scratch vec3
+//     // args via the aN + sp+0x10/0x14 spilled-arg (5+-arg) pattern —
+//     // emits the assembled geometry/DL records.
+//     return 0;
+//   }
+// Family: FP geometry/transform-emit orchestrator (sibling of the
+// large FP transform/orchestrator nodes; uses the same 3-callback
+// vector-source + reciprocal-scale + packed-float-triple-emit
+// pipeline). The frame size, the single ra save, the 17 USO callback
+// sites, the 3-leading-vector-source pattern, the 0x4502000x FP
+// branch-likely compare guards, the 2.0f (lui 0x4000) reciprocal
+// bias, the 8-float-stride buffer-pointer stores and the spilled-arg
+// tail-callback convention are exact; the per-callback prototypes and
+// the exact transform algebra are representative (this is a deferred
+// FULL-DECODE node — needs the vec/matrix structs and the 17 callback
+// signatures typed). Caps: all structs + USO callback prototypes
+// untyped (USO-relocated); transform algebra not byte-decoded. Full
+// body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005062C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000510F0);
