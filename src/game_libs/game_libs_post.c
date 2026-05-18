@@ -9286,6 +9286,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036E74);
 
+// gl_func_00036F0C — STRUCTURAL PASS (0x3C8 / 242 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — 0x88 FP frame, saves FP callee-save f20). A large
+// flag-driven FP transform / parameter-build routine. One of the
+// bigger nodes decoded in this vein.
+//
+//   void gl_func_00036F0C(O *o) {
+//     Vec3 v = {0,0,0};                          // local sp+0x74
+//     S *s = o->p_4C;
+//     int fl = s->p_B4->w_10;                     // flag word
+//     if (fl & 0x40)  { v.x = ... * K1; }         // K1 ~ 0x40590000
+//     if (fl & 0x80)  { v.y = ... * K1; }
+//     if (fl & 0x400) { v.z = ... * 100.0f; }     // 0x42C80000
+//     ... further per-bit conditional scale/clamp arms ...
+//     // assemble v into a transform / store back through s
+//   }
+//
+// Struct-typing reference: a per-flag conditional transform builder.
+//   It dereferences a chained pointer path (o->0x4C → +0xB4 → +0x10)
+//   to fetch a FLAG WORD, then for each of several bits (0x40, 0x80,
+//   0x400, …) conditionally applies fixed FP scale constants
+//   (≈ 0x40590000 ~3.39, 100.0f / 0x42C80000, 0.0f) to build a
+//   transformed Vec3 / parameter set in a local stack buffer
+//   (sp+0x74..0x7C, zero-initialized from the f20 = 0.0f callee-
+//   save), with `cvt`/`mov.s` conversions between the arms. A
+//   sizable geometry / animation-parameter node of the game_libs
+//   object subsystem — the per-axis enable/scale stage that pairs
+//   with the gl_func_00036C08 anchor-offset builder, the
+//   gl_func_0003695C normalizer and the gl_func_00036224 viewport
+//   matrix (consumes their outputs / feeds the render traversal;
+//   the flag bits select which axes/parameters are active).
+// Caps: 0x3C8 raw-word USO + chained-pointer flag word + heavy
+//   per-bit conditional FP scaling — categorically not exact-
+//   matchable without proper USO mnemonic disasm + the flag/Vec3
+//   structs typed; structural pass only, no byte body. (A future
+//   focused non-loop session — the deferred struct-typing backlog —
+//   is where this gets a real decode; not 60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036F0C);
 
 /* gl_func_000372D4 - verified structural decode (29-insn br=0 deterministic;
