@@ -2847,6 +2847,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025AC8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025C54);
 
+// gl_func_000260B4 — STRUCTURAL PASS (0x140 / 80 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A registry scan-and-resolve sweep.
+//
+//   void gl_func_000260B4(void) {
+//     int r = jal 0x38204(2);                           // 0x0C00E081
+//     S  *g = &D_0;
+//     int n = g->w_2534;                                 // entry count
+//     if (n <= 0) return;
+//     E  *e = (E*)(&D_0 + 0x2540);                        // entry tbl
+//     for (int i = 0; i < n; i++) {                        // 0x14 stride
+//       if (e->h_0 == 1) {                                 // active hw
+//         int j = jal 0x38174(1);                          // 0x0C00E05D
+//         short k = e->h_2;
+//         R *rec = *(R**)(&D_0 + 0x2030) + j*0x14;          // registry
+//         (*proc)(2, k, rec);                               // ...
+//       }
+//       e = (char*)e + 0x14;
+//     }
+//   }
+//
+// Struct-typing reference: walks a fixed-stride entry table at
+//   &D_0+0x2540 (count word &D_0+0x2534, entry stride 0x14, halfword
+//   fields +0 = active flag (==1), +2 = a key). For each active entry
+//   it calls the shared poll routine 0x0C00E05D (≈0x38174) and uses
+//   the result to index the main registry table &D_0+0x2030 (the same
+//   0x14-stride table gl_func_00025AC8 / gl_func_00025C54 walk). The
+//   leading 0x0C00E081 (≈0x38204) resolve primes the sweep. A
+//   secondary registry scan/resolve pass over a parallel index table
+//   (&D_0+0x2540) into the primary registry.
+// Caps: raw-word USO + fixed-target resolve/poll calls — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000260B4);
 
 extern int gl_ref_0003A880();
