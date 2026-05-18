@@ -3636,6 +3636,30 @@ int gl_func_0002886C(int a0) {
     return gl_ref_0003CC70(a0, 6);
 }
 
+// gl_func_0002888C — STRUCTURAL PASS (0x124 / 73 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing FP helper) — deferred USO re-split. The
+// named leading fn (~6 words) is a tiny tail-call thunk.
+//
+//   void gl_func_0002888C(int a0) {
+//     (*op)(a0, 7);                                     // jal 0x3CC70
+//   }                                                     //  (0x0C00F31C)
+//
+// Struct-typing reference: the named leading fn forwards its caller
+//   arg plus the constant 7 to the fixed USO-relocated routine
+//   0x0C00F31C (≈0x3CC70) — a one-line "do operation #7" wrapper. The
+//   trailing bundled body is an FP clamp/interpolation helper: it
+//   clamps a count arg to a max of 0x80, reads float fields a1->0x28
+//   / a1->0x30 and byte a1->0x20, pulls a float constant from
+//   &D_0+0xFD4, and runs single-precision compares/mul/add
+//   (c.lt.s / mul.s / add.s) to produce a clamped interpolated value
+//   written back at a1->0xC0 — a typical parameter-easing leaf, left
+//   for the deferred USO re-split.
+// Caps: raw-word USO + 2-fn unsplit bundle + fixed-target call /
+//   FP math — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only for the named leading fn, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002888C);
 
 /* gl_func_000289B0: 22-insn. sel = a1->u8[2]; if (sel==255) sel =
