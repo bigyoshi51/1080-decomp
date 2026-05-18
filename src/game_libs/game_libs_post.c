@@ -14584,6 +14584,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040304);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040640);
 
+// gl_func_00040974 — STRUCTURAL PASS (0x334 / 206 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 (no jump table) → ONE clean function. Single prologue
+// frame 0xE8, saves ra + s0..s5 + f20 (FP accumulator). cb = jal 0
+// USO-relocated. Iterate-list-with-flag-filter + FP accumulate.
+//
+//   void gl_func_00040974(void *a0) {
+//     self = a0;                                 // s3
+//     int saved = self->p10;                      // sp+0xE4
+//     cb1(self->p0C);                             // entry hook
+//     cb2(&self->pDC, &self->p70);                // init/snapshot pair
+//     void *h = (void*)saved;
+//     if (h) { saved2 = h->p04; node = h->p00; }   // resolve list head
+//     if (node == 0) goto done;
+//     n = node;                                    // s1
+//     float acc = 0.0f;                            // f20
+//     do {
+//       if (n->p18 & 8) {                          // primary flag gate
+//         if (self->p2C & 2) n->p00 = self;        // back-ref wire A
+//         t = n->p04;
+//         if (...) n->p14 = self;                  // back-ref wire B
+//         v = n->p08;
+//         if (self->p2C & 1) { ... }                // secondary flag gate
+//         // ... accumulate a float term into acc from n's fields,
+//         //     plus further (n->p18 / self->p2C) bit-tested sub-cases
+//       }
+//       n = n->next;                               // advance through list
+//     } while (n);
+//   done:
+//     // tail: cb(...) flush using sp+0xE4 / accumulated acc
+//   }
+// Walks a flag-filtered linked list rooted via self->0x10 -> {p00 head,
+// p04 alt}, and for each node whose 0x18 has bit 3 set, conditionally
+// back-links self into node->0x00 / node->0x14 (gated by self->0x2C bits
+// 1/2) while accumulating an FP quantity in f20. Family: cb-driven
+// list traversal/processing with FP accumulation (relates to the segment's
+// cb-serialize / geometry routines). Per-node body not individually decoded
+// (206-word traversal) — preamble, head resolution, the 0x18&8 / 0x2C&{1,2}
+// gate structure, back-ref wiring offsets and the f20 accumulator are exact;
+// inner arithmetic representative. Caps: node/self struct + cb signatures
+// untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040974);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040CAC);
