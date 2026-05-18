@@ -18809,6 +18809,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
 
+// gl_func_0004F0E0 — STRUCTURAL PASS (0x1FC / 133 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0, NO calls (leaf) → ONE clean function. Single
+// prologue frame 0x18. Unrolled FP matrix multiply / matrix-vector
+// transform (pure FP, no cb).
+//
+//   void gl_func_0004F0E0(void *dst, Mat a1, Mat a2) {
+//     // fully-unrolled row x column dot products: loads matrix elements
+//     // via lwc1 from a1->0x30/0x34/0x38 (a vector / row) and a2->0x40..
+//     // 0x64 (matrix columns), forms mul.s products and add.s sums per
+//     // output lane, with a 0x3FE00000 (1.75f) constant folded in:
+//     dst->c0 = a1->m30*a2->m40 + a1->m34*a2->m50 + a1->m38*a2->m60 + K;
+//     dst->c1 = a1->m30*a2->m44 + a1->m34*a2->m54 + a1->m38*a2->m64 + ... ;
+//     // ... the mul.s/add.s lattice repeats per output element (3-4
+//     //     lanes), straight-line, no loop.
+//   }
+// A classic straight-line 4x4 (or 3x4) matrix-vector / matrix-matrix
+// multiply: each output element is the dot product of an a1 row
+// (+0x30/0x34/0x38) with an a2 column (+0x40/0x44/0x48 .. /0x50/0x54 ..
+// /0x60/0x64), accumulated via the mul.s -> add.s chain with a 0x3FE00000
+// constant. Family: FP geometry/matrix transform (siblings gl_func_00047E00
+// / 0004B2FC / 00042778; the fully-unrolled mat-multiply variant). The
+// per-lane exact operand pairing is representative; the a1->0x30.. /
+// a2->0x40.. element sources, the mul.s/add.s dot-product structure and the
+// 0x3FE00000 constant are exact. Caps: Mat/dst struct untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F2F4);
