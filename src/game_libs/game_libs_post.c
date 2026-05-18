@@ -4227,6 +4227,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
 
+// gl_func_0002A3AC — STRUCTURAL PASS (0x124 / 73 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A slot-array lazy-construct (allocate-on-demand).
+//
+//   int gl_func_0002A3AC(S *base, int idx) {
+//     Slot *s = base + idx*4;                           // slot array
+//     if (s->w_50 != 0) { ... already built ... }
+//     void *o = (*alloc)(&D_5368);                       // jal 0 USO
+//     if (o == 0) { s->w_50 = 0; return -1; }             // alloc fail
+//     s->w_50 = o;
+//     (*initObj)(o);                                      // jal 0 USO
+//     O *no = s->w_50;
+//     byte fl = no->b_0;
+//     no->b_0 = (fl | 0x80) & ~0x40;                       // mark ready
+//     no->w_18 = src->w_8C;                                // copy field
+//     ...
+//   }
+//
+// Struct-typing reference: a per-index lazy object constructor over a
+//   word-strided slot array (`base[idx]`, the live object pointer at
+//   slot field +0x50). On first use it obtains the object from a
+//   USO-relocated allocator (`jal 0` slot) keyed on the fixed
+//   descriptor &D_5368 (same &D_53xx descriptor pool as
+//   gl_func_0001FAE8 / gl_func_00028B0C), stores it back into
+//   slot->0x50, runs a USO-relocated initializer, then stamps the new
+//   object's flag byte +0 (set bit7 ready / clear bit6) and copies a
+//   word into newobj->0x18 from a source +0x8C. Returns -1 on
+//   allocation failure. The allocate-on-demand entry of the game_libs
+//   object subsystem (companion to the gl_func_00028E94 attach /
+//   gl_func_000291C0 destroy lifecycle).
+// Caps: raw-word USO + jal-0 USO-reloc alloc/init — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
 
 /* gl_func_0002A4D0: 97.67%->100% via INSN_PATCH (5 reg-rename diffs at
