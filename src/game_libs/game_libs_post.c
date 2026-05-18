@@ -7896,6 +7896,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034684);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000346F0);
 
+// gl_func_00034810 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x80 / 32 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE (the no-frame-leaf shape — see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). realjr=3 but only
+// ONE 27BDFFE0 prologue (at the top). The two trailing jr's bound
+// tiny LEAF stubs with NO stack frame, splat could not separate:
+//   - 0x34810..0x34854: the NAMED function (frame-allocating).
+//   - 0x34858..0x34874: a 1-instruction HANG stub —
+//       sw $a0, 0($sp); b . (1000FFFF, branch-to-self) — an
+//       abort/panic/halt routine (spins forever).
+//   - 0x3487C..0x34888: a tiny GLOBAL SETTER — `lui $at,0; sw
+//       $a0,0($at)` then jr with `sw $a1,0($at)` in the delay slot
+//       (publishes two args into &D_0 globals; no prologue).
+//
+// Leading fn gl_func_00034810 (varargs debug-print wrapper):
+//   void gl_func_00034810(int a0, int a1, int a2, int a3, ...) {
+//     printf_like((char*)0x00058D5C, &varargs);  // jal 0 (USO cb)
+//   }
+// i.e. it spills a0..a3 to the stack, forms a varargs pointer
+// (sp+0x27-ish), loads a FIXED format-string address 0x00058D5C,
+// and calls a USO-relocated printf-shaped callback (jal 0 →
+// resolved at load). A debug/trace logging wrapper.
+//
+// Struct-typing reference: a debug/diagnostic cluster of the
+//   game_libs object subsystem — a printf wrapper + an abort/hang
+//   stub + a global-state setter, the kind of trio a fatal-error
+//   path uses (log message, stash context into &D_0 globals, then
+//   spin). 0x00058D5C is a deferred string-data symbolization site.
+// Resolution: DEFERRED USO RE-SPLIT for the two tail stubs (tracked
+//   with the other game_libs_post.c bundle notes; not fixable with
+//   mnemonic split/merge tooling — needs the spimdisasm-USO
+//   migration). No merge attempted (would corrupt the stubs); no
+//   episode.
+// Caps: raw-word USO + bundled no-frame leaves + USO-relocated jal-0
+//   printf callback + fixed string-data ref — not exact-matchable
+//   without proper USO mnemonic disasm + boundary re-split;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034810);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
