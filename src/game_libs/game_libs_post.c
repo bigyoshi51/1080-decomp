@@ -15192,26 +15192,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041EDC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041F90);
 
-// gl_func_00042098 — STRUCTURAL PASS (0x50 / 20 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
-// (saves ra). Conditional-log + global-publish (cb = jal 0 USO-relocated).
-//
-//   int gl_func_00042098(void *a0) {
-//     if (a0 != 0) cb(&D_str_present);              // a0 set: one message
-//     else         cb(&D_str_absent);               // a0 null: the other
-//     *(void**)(&D_g + 0x20) = a0;                   // publish ptr to global
-//                                                    //   (AC380020 in jr slot)
-//     return v0;                                     // saved scratch (sp+0x1C)
-//   }
-// Tiny presence/absence diagnostic: picks one of two string-literal messages
-// by whether a0 is non-null, emits it via cb, then on the way out stores the
-// argument pointer into the module global at &D_g+0x20 (the store is in the
-// jr delay slot). Family: cb-diagnostic + global-publish (relates to the
-// segment's cb-serialize / registration routines). Branch-message identity
-// representative; the a0 null test, the two-arm cb call and the
-// &D_g+0x20 publish are exact. Caps: &D_g global, the two &D_str literals
-// and cb signature untyped. Full body INCLUDE_ASM-preserved.
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042098);
+/* gl_func_00042098: prologue-stolen successor (PROLOGUE_STEALS=8).
+ * Predecessor (gl_func_00041F90) tail ends with `lui t6, 0; lw t6, 0x20(t6)`
+ * — those 2 insns belong to THIS function's prologue, preloading t6 from
+ * D[0x20]. C emits the same lui+lw at start; splice strips the redundant 8. */
+extern int gl_data_42098_msgA;
+extern int gl_data_42098_msgB;
+
+int gl_func_00042098(void *a0) {
+    int t6_val = *(int*)((char*)&gl_data_00000000 + 0x20);
+    if (a0 != 0) {
+        gl_func_00000000(&gl_data_42098_msgA);
+    } else {
+        gl_func_00000000(&gl_data_42098_msgB);
+    }
+    *(void**)((char*)&gl_data_00000000 + 0x20) = a0;
+    return t6_val;
+}
 
 /* game_libs_func_000420E8: 3-insn leaf getter. Split off from
  * gl_func_00042098 via split-fragments.py 2026-05-17 (was a trailing
