@@ -16064,6 +16064,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000444B4);
 void game_libs_func_00044534(int a0, int a1) {
 }
 
+// game_libs_func_00044540 — STRUCTURAL PASS + BOUNDARY NOTE (0x8 / 2 words, no
+// episode). Raw-.word USO. NOT a function: only 2 words, no prologue, no jr
+// (realjr=0, regjr=0):
+//     lui  v0, 0            // 3C020000  (reloc hi of a &D_ global)
+//     lw   v0, 0x214(v0)    // 8C420214  (reloc lo: v0 = *(&D_g + 0x214))
+// HEAD-FRAGMENT — same class as game_libs_func_00042438: the first two
+// instructions of the NEXT symbol's entry (a reloc-split load of a module
+// global into v0, no return), mis-split off at a wrong USO boundary; the
+// chain that consumes v0 lives in the following symbol. DEFERRED USO
+// RE-SPLIT: needs a USO-disasm boundary correction (mnemonic split/merge
+// does not work on reloc-split lui/lw pairs on relocatable USO — see
+// docs/N64_FORENSICS HEAD-fragment notes); not 60s-tick safe. No pseudo-C:
+// these two words belong to the next function. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
 
 /* gl_func_00044548: 25-insn pointer-chain + counter + array-update.
