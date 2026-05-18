@@ -5969,6 +5969,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
 
+// gl_func_0002F288 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A heavily-FP per-object physics / value-ramp update.
+//
+//   void gl_func_0002F288(O *o) {
+//     int mode = o->b_21;
+//     float acc = o->f_0;
+//     if (mode == 2) return;                            // skip mode
+//     byte k = o->b_14;
+//     if (o->b_1C != 0) return;                          // gated
+//     S *g = &D_0;
+//     int   t = g->w_4;
+//     float s = *(float*)(&D_0 + 0x1730);                 // step const
+//     float d = (float)t * s;
+//     if (k == 0) acc += d;                                // accumulate
+//     int   c = o->w_38;
+//     if (c < 0x15) { ... }
+//     // clamp acc against 0.25f / 0.5f / 127.0f, write back
+//     o->f_0 = acc;
+//   }
+//
+// Struct-typing reference: a per-object scalar integrator. Float
+//   o->0 is the accumulator advanced each call by (g->4 converted to
+//   float) * the global step constant at &D_0+0x1730; byte o->0x21 is
+//   a mode (value 2 = inactive), byte o->0x14 a direction/kind, byte
+//   o->0x1C a gate, word o->0x38 a frame counter checked against 0x15.
+//   The result is saturated using the float literals 0.25f / 0.5f /
+//   127.0f (0x3E80/0x3F00/0x42FE0000) before write-back to o->0. A
+//   physics/easing leaf of the game_libs object subsystem (peer to
+//   the gl_func_0002978C ramp / gl_func_00029978 tween steppers,
+//   driven by the gl_func_0002E354 orchestrator).
+// Caps: raw-word USO + heavy single-prec FP integrate/clamp idiom —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F584);
