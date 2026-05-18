@@ -14162,6 +14162,34 @@ int gl_func_0003F8B0(int a0) {
     return *(int*)&buf[0x48];
 }
 
+// gl_func_0003F8E8 — STRUCTURAL PASS (0x84 / 33 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0xB8 (saves ra) → ONE clean function.
+// SIBLING of gl_func_0003F7A8 (same 0xB8 scratch frame, same cb-driven
+// staged-serialize family; this variant publishes to globals + bool return).
+//
+//   int gl_func_0003F8E8(void *a0, int a1, int a2) {
+//     char bufA[..];   // sp+0x20
+//     char bufB[..];   // sp+0x60
+//     char tag[..];    // sp+0x18, tag byte 0x1D
+//     cb1(&bufA);
+//     cb2(&bufB, a2);
+//     tag = 0x1D;
+//     cb3(&tag);
+//     cb4(&tag);
+//     int st = *(int*)(sp + 0x68);          // status from the cb chain
+//     if (st == -1) return 0;               // bne at,-1 -> failure path
+//     int r = cb5(a0);                       // success: finalize
+//     *(int*)&D_g1 = r;                      // publish result to global 1
+//     *(int*)&D_g2 = 1;                      // set "ready" global 2
+//     return 1;
+//   }
+// Mirrors 0003F7A8's scratch-buffer + tag-block + cbN sequence; differs in
+// tag value (0x1D here vs 0x23 there), uses a -1 sentinel on sp+0x68 for
+// the fail branch, and on success publishes cb5's return into two module
+// globals (handle + ready-flag) returning a bool. Family: cb-driven
+// staged-serialize/init. Caps: scratch-buffer layout, the two D_g* globals
+// and cbN signatures inferred from call shape; arg-struct untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8E8);
 
 #ifdef NON_MATCHING
