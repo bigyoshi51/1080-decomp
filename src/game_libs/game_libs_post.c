@@ -15691,6 +15691,37 @@ void gl_func_00043284(int *a0, int a1) {
     }
 }
 
+// gl_func_000432BC — STRUCTURAL PASS (0x1A8 / 114 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
+// (saves ra + s0..s5). FP-heavy list-walk Vec3 conditional-negate/copy
+// (no cb calls — pure in-memory transform).
+//
+//   void gl_func_000432BC(void *a0, void *a1, int a2) {
+//     void *root = *(void**)(&D_0 + 0x18C);          // global list root
+//     it  = root ? root : 0;
+//     cur = it ? it->p00 : 0;                          // {cur,next} cursor in
+//     nxt = it ? it->p04 : 0;                          //   sp+0x60 / sp+0x64
+//     if (cur == 0) return;
+//     do {
+//       if ((cur->pC4 & 0x80) == 0) {                   // skip flagged nodes
+//         float x = cur->pE4, y = cur->pE8, z = cur->pEC;
+//         if (a2 != 0) { x = -x; y = -y; z = -z; }      // conditional negate
+//         cur->pF0 = x; cur->pF4 = y; cur->pF8 = z;     // write transformed
+//       }
+//       it = nxt; cur = it ? it->p00 : 0;               // advance cursor
+//       nxt = it ? it->p04 : nxt;
+//     } while (cur != 0);
+//   }
+// Walks the intrusive list rooted at &D_0+0x18C (cursor {cur,next} in
+// sp+0x60/0x64) and, for each node lacking the 0xC4 bit-7 skip flag, copies
+// its source Vec3 at +0xE4/0xE8/0xEC into the transformed-Vec3 slot at
+// +0xF0/0xF4/0xF8 — negating each lane (neg.s) when a2 is nonzero, plain
+// copy otherwise (an sp+0x44 Vec3 scratch is used on the copy path). Family:
+// FP Vec3 geometry/transform list-walk (siblings gl_func_00040E90 /
+// 000430E4 / 00042778; the negate/copy variant). Cursor-advance bookkeeping
+// representative; the &D_0+0x18C root, the 0xC4&0x80 gate, the a2 negate
+// branch and the +0xE4 source / +0xF0 dest lanes are exact. Caps: node
+// struct + the &D_0+0x18C global untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000432BC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043484);
