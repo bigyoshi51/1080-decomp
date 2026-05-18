@@ -12779,6 +12779,50 @@ loop:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DDC0);
 #endif
 
+// game_libs_func_0003DE48 — STRUCTURAL PASS (0x114 / 69 words, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION.
+// NOTE: the first instruction (0x3DE48: `lw $t6, 0x10($a0)`) is
+// emitted BEFORE the prologue at 0x3DE4C — IDO load-first ordering,
+// NOT a sheared head-fragment (real prologue + jr; the
+// game_libs_func_ prefix is not a fragment marker here). A list
+// nearest-search-by-distance routine.
+//
+//   N *game_libs_func_0003DE48(O *o, Vec3 *ref, N *target) {
+//     float best = *(float*)(&D_0 + 0x1ACC);      // FP literal pool
+//     N *r = 0;
+//     for (N *n = o->p_10; n != 0; n = n->next_4) {
+//       if (n == target) break;                     // stop at target
+//       float dx = fabsf(n->f_5C - ref->x);         // sub.s; neg.s
+//       float dy = fabsf(n->f_60 - ref->y);
+//       ... d = dx + dy + ...; if (d < best) { best = d; r = n; }
+//     }
+//     return r;
+//   }
+//
+// Struct-typing reference: a spatial nearest-neighbor search over an
+//   intrusive list — the position-field counterpart of
+//   game_libs_func_0003DA14 (which keyed node->0x30) and the value-
+//   extremum gl_func_0003DB3C. It walks the list rooted at o->0x10
+//   (next at +0x04), accumulates the absolute per-component
+//   difference between each node's vector at node->0x5C / 0x60 / …
+//   and a reference vector (the second arg), and tracks the minimum
+//   against an initial best from the FP LITERAL POOL at
+//   &D_0+0x1ACC — IMMEDIATELY ADJACENT to the &D_0+0x1AC0 / 0x1AC4
+//   / 0x1AC8 constants used by the rest of the spatial-search
+//   family, extending the CONTIGUOUS FP-pool block based at
+//   &D_0+0x1AC0 to ..0x1ACC (deferred FP-pool symbolization per
+//   docs/N64_FORENSICS.md, same class as the &D_0+0x19F0 clamp
+//   table / &D_0+0x128 coefficient pool / &D_0+0x1AB8 query limit).
+//   Stops early when the cursor reaches the third-arg target. A
+//   find-nearest-by-position node of the game_libs object subsystem
+//   (the &D_0+0x1AC0.. block is now the spatial-search constant
+//   table to symbolize as one unit).
+// Caps: raw-word USO + intrusive-list walk + FP abs-distance min-
+//   track with FP-literal-pool init (&D_0+0x1ACC unsymbolized) —
+//   not exact-matchable without proper USO mnemonic disasm +
+//   FP-pool/struct symbolization; structural pass only, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DE48);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DF5C);
