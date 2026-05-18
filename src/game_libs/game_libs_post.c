@@ -11678,6 +11678,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B2EC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
 
+// gl_func_0003B9C0 — STRUCTURAL PASS (0x45C / 279 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — very large 0xE8 frame, saves s0-s8 AND three FP
+// callee-save doubles f20/f22/f24). The LARGEST geometry node in
+// this vein.
+//
+//   void gl_func_0003B9C0(O *o, P *a, P *b, ...) {
+//     if (o->p_84 == 0) return;                   // active gate
+//     P *p = (P*)sp_FC;                            // point source 1
+//     P *q = (P*)sp_F8;                            // point source 2
+//     Vec3 d = { p->x - q->x,                       // sub.s chain
+//                p->y - q->y,
+//                p->z - q->z };
+//     // extensive FP pipeline on d: length / normalize / project /
+//     //   clamp using f20/f22/f24 accumulators + object fields +
+//     //   sp scratch (sp+0xA0..) ...
+//   }
+//
+// Struct-typing reference: a large per-object FP geometry compute.
+//   It bails unless the object's o->0x84 sub-object is present,
+//   then forms the component-wise DIFFERENCE of two point sources
+//   passed via the stack (sp+0xF8 / sp+0xFC) and runs an extensive
+//   floating-point pipeline (the three saved FP callee-save
+//   doubles f20/f22/f24 hold persistent accumulators across the
+//   computation — a strong signal of a length/normalize/projection
+//   or distance-and-angle calculation) over that delta, the
+//   object's fields and stack scratch (sp+0xA0..). The biggest
+//   node decoded in the gl_func_0003Bxx / 00036xx / 00037xx
+//   geometry family — likely the distance and direction-and-
+//   magnitude solver
+//   the gl_func_0003B6A0 6-part transform and gl_func_0003B2EC
+//   blend nodes call into (consumes the matrices/points the
+//   gl_func_0003B1AC matrix-apply produces).
+// Caps: 0x45C raw-word USO + flag-gated Vec3-difference + extensive
+//   FP length/normalize/transform pipeline (3 FP callee-save
+//   accumulators) — categorically not exact-matchable without
+//   proper USO mnemonic disasm + the point/object structs typed;
+//   structural pass only, no byte body. (A future focused non-loop
+//   session is where this gets a real decode; not 60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
