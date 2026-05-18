@@ -742,23 +742,21 @@ void timproc_uso_b1_func_000024F4(int a0) {
     gl_func_00000000((char *)&D_00000000 + 496, 0x2F0012);
 }
 
-/* timproc_uso_b1_func_00002740 — verified decode, ~84% (52/62), 2 structural caps.
- * switch on a0->0x50: case 0 → gl_func_00000000(&D,0x40100) gate, then walk
- *   slot = base + base->0x7C * 0x28 (base = a0->0x48); if slot->0x90 != 0:
- *   slot->0x88 ? { gl(5); D[0x208]=a0->0x48; D[0x20C]=a0; recompute slot2 via
- *   the SAME base→idx→*0x28 walk; (*slot2->0x90)(); } : gl(165).
- *   case 1/2 → gl_func_00000000(a0). Length + control flow byte-exact.
- * Remaining 10 mismatches are two permuter-immune IDO codegen caps:
- *  (a) 0x64,0xB8: `addu base,idx*0x28` — IDO canonicalizes commutative plus to
- *      `addu v1,v0,t7` (base,offset); GCC emits `addu v1,t7,v0` regardless of
- *      char-cast vs int-cast expression shape (tried both).
- *  (b) 0x90-0xA8,0xBC: the two D_00000000-relative stores (0x208/0x20C) — IDO
- *      re-materializes `lui at` per absolute store; GCC CSEs the &D base into
- *      one pseudo and reuses it, cascading the v0/v1 free-reg pick.
- * Neither is a $s/$t regalloc shuffle (permuter 0/6 class is irrelevant) nor a
- * reload-CSE deref cap — it's commutative-canonicalization + absolute-store
- * non-CSE. Build path stays INCLUDE_ASM (no episode; tautology-trap rule). */
+/* timproc_uso_b1_func_00002740 — 95.69% → 99.35% (2026-05-18) via distinct
+ * externs D_b1_2740_g208/g20C for the &D+0x208/+0x20C absolute stores so each
+ * sw gets its own R_MIPS_HI16/LO16 reloc (per
+ * docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs).
+ * switch on a0->0x50: case 0 → gl_func(&D,0x40100) gate, then walk
+ *   slot = base + base->0x7C * 0x28; if slot->0x90 != 0 && slot->0x88 != 0
+ *   { gl(5); D[0x208]=a0->0x48; D[0x20C]=a0; recompute slot2; (*slot2->0x90)(); }
+ *   else gl(165). case 1/2 → gl_func(a0).
+ * Residual cap (1 insn at 0x64/0xB8): commutative-add operand order
+ *   `addu v1, v0, t7` (target) vs `addu v1, t7, v0` (mine) — IDO canonicalizes
+ *   regardless of `base + idx*N` vs `(char*)base + idx*N` or split-var form.
+ * Build path stays INCLUDE_ASM (tautology-trap; no episode). */
 #ifdef NON_MATCHING
+extern int D_b1_2740_g208;
+extern int D_b1_2740_g20C;
 void timproc_uso_b1_func_00002740(int *a0) {
     switch (a0[0x50 / 4]) {
     case 0:
@@ -770,8 +768,8 @@ void timproc_uso_b1_func_00002740(int *a0) {
                     int *base2;
                     int *slot2;
                     gl_func_00000000(5);
-                    *(int *)((char *)&D_00000000 + 0x208) = a0[0x48 / 4];
-                    *(int *)((char *)&D_00000000 + 0x20C) = (int)a0;
+                    D_b1_2740_g208 = a0[0x48 / 4];
+                    D_b1_2740_g20C = (int)a0;
                     base2 = (int *)a0[0x48 / 4];
                     slot2 = (int *)(base2 + base2[0x7C / 4] * 0xA);
                     ((void (*)(void))slot2[0x90 / 4])();
