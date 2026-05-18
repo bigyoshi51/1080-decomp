@@ -8984,6 +8984,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003604C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00036074);
 #endif
 
+// gl_func_00036088 — STRUCTURAL PASS (0x19C / 103 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, has
+// its OWN prologue). The SUCCESSOR of the game_libs_func_00036074
+// splat-missplit FP-const HEAD fragment (that fragment's
+// f0=0.0f / f2=1.0f / &D_0 setup is this constructor's sheared-off
+// prologue prefix — the two are one logical unit).
+//
+//   void gl_func_00036088(O *o, float arg) {
+//     o->f_00 = 0.0f; o->f_04 = 0.0f;          // (f0 from frag 36074)
+//     o->f_08 = 0.0f; o->f_0C = arg;
+//     o->f_88 = 0.0f; o->w_1D8 = 0;
+//     o->f_2C = o->f_30 = o->f_34 =
+//       o->f_38 = o->f_3C = o->f_40 = 0.0f;     // zero FP block
+//     o->f_8C = o->f_90 = 0.0f;
+//     o->f_44 = 200.0f;                          // 0x43480000 default
+//     Desc d;                                    // local sp+0x64
+//     d = (Vec3){ o->f_88, o->f_8C, o->f_90 };
+//     o->p_DC = &d; ...                          // wire sub-pointers
+//   }
+//
+// Struct-typing reference: a large object / state-block CONSTRUCTOR.
+//   It zero-initializes long runs of FP fields in the passed object
+//   (offsets 0x00..0x0C, 0x2C..0x44, 0x88..0x90, plus the int at
+//   0x1D8), installs default scalar constants — 1.0f (materialized
+//   by the sheared-off game_libs_func_00036074 prologue fragment)
+//   and 200.0f at o->0x44 (a default limit/scale, the same
+//   0x43480000 seen in the gl_func_00035E6C projector) — builds a
+//   small Vec3-shaped descriptor on the stack (sp+0x64) from
+//   o->0x88/0x8C/0x90, and wires interior sub-pointers (o->0xDC
+//   etc.). A factory/init node of the game_libs object subsystem
+//   (companion to the gl_func_00034890 / 00035B1C / 00032E18
+//   constructor family); confirms game_libs_func_00036074 is this
+//   function's sheared prologue prefix pending the deferred USO
+//   re-split.
+// Caps: raw-word USO + FP field-zeroing constructor + sheared-
+//   prologue-fragment dependency (game_libs_func_00036074) — not
+//   exact-matchable without proper USO mnemonic disasm + the
+//   00036074 boundary re-split + the object struct typed;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036224);
