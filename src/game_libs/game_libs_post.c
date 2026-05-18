@@ -17900,6 +17900,7 @@ void gl_func_0004ED0C(int *self) {
     }
 }
 
+/* gl_func_0004ED7C: 50-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
