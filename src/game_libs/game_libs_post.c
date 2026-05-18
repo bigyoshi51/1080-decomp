@@ -3815,6 +3815,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028B0C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028C6C);
 
+// gl_func_00028E94 — STRUCTURAL PASS (0x138 / 78 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). An object attach/init that pairs an object with a
+// descriptor (counterpart to the gl_func_00028604 detach).
+//
+//   void gl_func_00028E94(O *obj, D *d) {
+//     obj->w_40 = -1;                                   // init link
+//     obj->w_44 = d;                                     // descriptor
+//     T *t = d->w_50;
+//     obj->b_30 = t->b_5;                                 // copy flag
+//     d->w_2C = obj;                                      // back-link
+//     d->b_0 |= 1;                                        // active bit0
+//     d->b_0 |= 8;                                         // ready bit3
+//     t->w_40 = obj;  t->w_44 = d;                         // cross-link
+//     d->f_40 = 0.0f;
+//     jal 0x3C36C(obj, d);                                // 0x0C00F0DB
+//     if (d->b_2 != 0xFF) { ... bind sub d->2 ... }
+//     ... init the obj+0xB0 transform block ...
+//   }
+//
+// Struct-typing reference: the attach/bind entry. obj fields: word
+//   +0x40 (link, set to -1), word +0x44 (the descriptor pointer),
+//   byte +0x30 (a mode/flag copied from d->0x50->5), block at +0xB0
+//   (the same matrix/Vec4 block gl_func_00027804 / gl_func_00027D00
+//   manipulate). descriptor d fields: byte +0 a flag set (bit0 =
+//   active, bit3 = ready, both set here), word +0x2C the owner
+//   back-link to obj, word +0x50 a shared sub-record (cross-linked at
+//   its +0x40/+0x44 to obj/d), float +0x40 zeroed. byte d->2 is a
+//   secondary id (0xFF = none sentinel). A leading USO-relocated
+//   setup 0x0C00F0DB (≈0x3C36C) finishes the bind. The
+//   construct/attach counterpart to the gl_func_00028604 detach in
+//   the game_libs object subsystem.
+// Caps: raw-word USO + jal-0 USO-reloc setup + multi-field link
+//   wiring — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028E94);
 
 void gl_func_00028FCC(int *a0, int a1) {
