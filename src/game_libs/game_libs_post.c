@@ -10206,6 +10206,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038964);
 
+// gl_func_00038A28 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x190 / 100 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE (no-frame-leaf shape — see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). realjr=8 but only
+// ONE 27BDFFC0 prologue; the trailing seven jr's cluster densely
+// at the tail (0x38B6C / 0x38B74 / 0x38B80 / 0x38B8C / 0x38B98 /
+// 0x38BA4 / 0x38BB0 — repeating ~3-word spacing) as tiny no-frame
+// LEAF accessors splat could not separate. Only the NAMED LEADING
+// function is decoded; the tail leaves are a DEFERRED USO RE-SPLIT
+// (tracked with the other game_libs_post.c bundle notes; not
+// fixable with mnemonic split/merge — needs the spimdisasm-USO
+// migration).
+//
+// Leading fn gl_func_00038A28 — a command-stream JUMP-TABLE
+// interpreter step:
+//   void gl_func_00038A28(O *o, Cmd *c) {
+//     int code = c->tag_0;
+//     unsigned i = (unsigned)(code - 0x64);
+//     if (i >= 9) return;                        // commands 0x64..0x6C
+//     goto *jumptab_1A1C[i];                     // sll 2; lw; jr $t6
+//   case 0x64: { int *p=c->p_4; c->p_4=p+1;
+//                o->w_20 = *p; break; }           // advance + store
+//   case 0x65: { ... o->w_0C = *p; break; }
+//   case 0x66: { ... callback((void*)0x0001EC6C,...); break; }
+//   ... ~9 per-command arms ...
+//   }
+//
+// Struct-typing reference: a per-opcode command interpreter step
+//   keyed by a COMPUTED JUMP TABLE based at &D_0+0x1A1C, indexed by
+//   (command tag - 0x64) over the 9-command range 0x64..0x6C. Each
+//   arm reads the command record's data pointer (c->0x04),
+//   advances that cursor by one word (c->0x04 += 4), and applies a
+//   per-command effect to the target object — field stores
+//   (o->0x20, o->0x0C, …) or a USO-relocated callback (jal 0 →
+//   resolved at load) parameterized by a fixed data-segment
+//   template at 0x0001EC6C. The jump-table-driven sibling of the
+//   if/else command handlers gl_func_000332B4 (tag 0x69) and
+//   gl_func_00038830 (tags 0xC/0xD/0xE/2); together they are the
+//   externalized opcode arms of the gl_func_0002FB74 command
+//   interpreter (the &D_0+0x1A1C table and 0x0001EC6C template are
+//   deferred symbolization sites — the table is the 9-entry
+//   opcode-0x64.. dispatch array to symbolize).
+// Caps: raw-word USO + bundled no-frame leaves + computed jump
+//   table (&D_0+0x1A1C unsymbolized) + USO-relocated jal-0
+//   callbacks — not exact-matchable without proper USO mnemonic
+//   disasm + boundary re-split + the jump table symbolized;
+//   structural pass only, no byte body. No merge attempted (would
+//   corrupt the leaves); no episode.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038A28);
 
 #ifdef NON_MATCHING
