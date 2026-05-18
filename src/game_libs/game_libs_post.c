@@ -16708,6 +16708,36 @@ void gl_func_00046F80(int a0, int a1, int a2) {
 // and cb signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046FA8);
 
+// gl_func_000470FC — STRUCTURAL PASS (0x294 / 172 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
+// (near-leaf). Saturating float-to-int converter over a Vec3-ish triple
+// (FP-heavy; the classic IDO float->int-with-overflow-clamp idiom).
+//
+//   void gl_func_000470FC(Out a0, Vec a1) {
+//     float x = a1->p04, y = a1->p08, z = a1->p0C;
+//     int cw = read_fpcsr();                          // cfc1
+//     set_round_to_zero();                            // ctc1 (mask round mode)
+//     // per lane: cvt.w.s; read FPCSR cause bits; if (cause & 0x78) the
+//     // conversion overflowed -> clamp to INT_MIN (0x80000000) or -1
+//     // (0xFFFFFFFF) using the 0x4F000000 (=2^31 as float) unsigned-bias
+//     // compare; else take the converted word:
+//     int ix = sat_cvt(x), iy = sat_cvt(y), iz = sat_cvt(z);
+//     restore_fpcsr(cw);                              // ctc1 back
+//     a0->b0 = (i8)ix; a0->b1 = (i8)iy; a0->b2 = (i8)iz; // store clamped
+//   }
+// Converts three floats to saturated integers using the IDO
+// float-to-int-with-clamp pattern: cfc1/ctc1 round-mode bracket, cvt.w.s,
+// then an `andi cause, 0x78` FPU-exception-cause test that, on overflow,
+// substitutes the 0x80000000 / 0xFFFFFFFF saturation value (the
+// 0x4F000000 = 2^31 float constant drives the unsigned-range branch). The
+// three-lane verbosity is just the idiom repeated per Vec component.
+// Family: FP saturating cast (the conversion primitive underlying the
+// segment's quantize/byte-pack routines gl_func_000430E4 / 00045CB0 /
+// 000454C4; see docs/IDO_CODEGEN float->int saturating-cast entry). The
+// cfc1/ctc1 + cvt.w.s + 0x78 cause-check + 0x4F000000 bias structure and
+// the per-lane repetition are exact; the exact clamp-value selection and
+// store width are representative. Caps: Out/Vec struct untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000470FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000473AC);
