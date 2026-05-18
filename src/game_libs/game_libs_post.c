@@ -4355,6 +4355,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
 
+// gl_func_0002A740 — STRUCTURAL PASS (0x98 / 38 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A slot-object reinitializer — SIBLING of the
+// gl_func_0002A55C 8-channel constructor.
+//
+//   void gl_func_0002A740(S *base, int idx, int a2) {
+//     idx &= 0xFF;
+//     O *o = (base + idx*4)->w_38;                       // slot object
+//     byte f = o->b_0;
+//     o->b_88 = 0;
+//     o->w_70 = a2;                                       // store arg
+//     o->b_0  = (f | 0x80) & ~0x40;                        // ready mark
+//     o->h_1E = 0;
+//     for (int i = 0; i < 8; i++)
+//       (*initElem)(o, i);                                // 0x0C00FADE
+//   }
+//
+// Struct-typing reference: reinitialises the object held in slot
+//   base[idx*4]->0x38 (the same word-strided slot array
+//   gl_func_0002A3AC lazily fills / gl_func_0002A6C0 sweeps). It
+//   clears byte o->0x88 and halfword o->0x1E, stores the caller arg
+//   into word o->0x70, stamps the flag byte o->0 (set bit7 ready /
+//   clear bit6 — same constructed marker as gl_func_0002A55C /
+//   gl_func_0002A3AC), then re-runs the fixed per-element initializer
+//   0x0C00FADE (≈0x3EB78) for all 8 sub-elements. The
+//   reinit-existing-slot counterpart to the gl_func_0002A55C
+//   construct-fresh path.
+// Caps: raw-word USO + fixed-target per-element inits — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A7D8);
