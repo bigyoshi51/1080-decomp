@@ -2054,6 +2054,40 @@ int gl_func_00023B08(int a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023B44);
 
+// gl_func_00023BDC — STRUCTURAL PASS (0x284 / 161 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A registry-list maintenance / splice op over the
+// &D_0+0x2030 record table.
+//
+//   ret gl_func_00023BDC(int idx, void **listp, int a2) {
+//     R *rec = (char*)(&D_0 + 0x2030) + idx*0x14;        // record
+//     byte k0 = rec->b_0;
+//     byte k1 = rec->b_1;
+//     short n = rec->h_4;                                 // count
+//     Node *head = *listp;                                // list head
+//     if (head == 0) { ...; return; }                     // empty
+//     for (Node *p = head; p; p = p->next) {              // walk list
+//       if (match(p, rec)) {
+//         *listp = ...;                                    // relink
+//         ...
+//       }
+//     }
+//     // inner: index a2 table, splice node into the record list
+//   }
+//
+// Struct-typing reference: indexes the SAME registry record table as
+//   gl_func_000221D8 / gl_func_00023838 — base &D_0+0x2030, fixed
+//   0x14 entry stride; byte fields +0 / +1 are match keys, halfword
+//   +4 a count. `listp` is a pointer to a linked-list head whose
+//   nodes are walked and conditionally re-linked (the `*listp = …`
+//   store splices the head); a parallel table indexed via a2 supplies
+//   the node payloads. This is the list insert/move/maintenance entry
+//   for the registry records — the structural mutator paired with the
+//   gl_func_00021F40 (insert) / gl_func_0002349C (remove) helpers.
+// Caps: raw-word USO + linked-list splice over a typed record — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023BDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023E60);
