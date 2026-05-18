@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00008A40",
+  "project": "1080-agent-c",
+  "model": "codex-manual",
+  "start_time": "2026-05-18T08:32:10.235286+00:00",
+  "end_time": "2026-05-18T08:32:10.235304+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-18T08:32:10.235299+00:00",
+      "assistant_text": "Exact match by transferring the byte-identical bootup_uso func_0000F2EC Vec3-reader body into a new -O0 game_libs split. Trimmed game_libs_mid to start at gl_func_00008AE4 and applied the established 10-word s-register/stack-offset INSN_PATCH for gl_func_00008A40.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 41,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 Vec3 reader at 0x8A40. Mirrors bootup_uso func_0000F2EC:\n * same logical body, same s-reg/stack-offset encoding patch class. */\n\nextern int gl_func_00000000();\nextern char D_00000000;\n\ntypedef struct { int a, b, c; } Tri3i;\ntypedef struct { float x, y, z; } Vec3;\n\nvoid gl_func_00008A40(Vec3 *dst) {\n    register Vec3 *p1;\n    register Vec3 *p2;\n    register Vec3 *q;\n    Tri3i raw;\n    int pad_mid[2];\n    Tri3i tmp;\n    register float *src;\n    gl_func_00000000(&D_00000000, &raw, 12);\n    p1 = dst;\n    tmp = raw;\n    p2 = p1;\n    src = (float*)&tmp;\n    p2->x = src[0];\n    p2->y = src[1];\n    p2->z = src[2];\n    q = p1;\n    (void)q;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o0_8A40.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00008A40.s",
+    "segment": "game_libs",
+    "compiler": "ido-7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified build/src/game_libs/game_libs_o0_8A40.c.o .text byte-identical to expected/src/game_libs/game_libs_o0_8A40.c.o after O0 split; linked symbols preserved gl_func_00008A40 at 0x8A40 and gl_func_00008AE4 at 0x8AE4."
+  }
+}

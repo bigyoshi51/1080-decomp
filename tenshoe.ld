@@ -1351,6 +1351,7 @@ SECTIONS
         game_libs_TEXT_START = .;
         build/src/game_libs/game_libs.c.o(.text);
         build/src/game_libs/game_libs_o0_8944.c.o(.text);
+        build/src/game_libs/game_libs_o0_8A40.c.o(.text);
         build/src/game_libs/game_libs_mid.c.o(.text);
         build/src/game_libs/game_libs_o0_949C.c.o(.text);
         build/src/game_libs/game_libs_tail.c.o(.text);
