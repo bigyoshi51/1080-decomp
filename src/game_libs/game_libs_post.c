@@ -16253,6 +16253,42 @@ int game_libs_func_00044DD4(int *a0, int a1) {
 // body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
 
+// gl_func_00044EDC — STRUCTURAL PASS (0x298 / 167 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
+// (saves ra + s0..s3). Subsystem teardown/reset — sibling of gl_func_00044DE4
+// (cb = jal 0 USO-relocated; cleanup string keys &D_0002FEC8 / FECC).
+//
+//   void gl_func_00044EDC(void *a0) {
+//     self = a0;
+//     int i = *(int*)(&D_0 + 0x204);
+//     *(void**)&D_g = &D_0002FEC8;                   // publish teardown tag
+//     cb1(*(void**)((char*)self->p280 + i*4));        // indexed entry cleanup
+//     int n = self->p258;                              // entry count
+//     if (n != 0) {
+//       int k = 0;
+//       do {
+//         cb2(self->p25C, ... , (k == n));             // per-entry teardown
+//         n = self->p258;                              // reload count
+//         k++;
+//       } while (k < n);                               // sltu/bnel loop
+//     }
+//     cb(&D_0002FECC);                                 // string-keyed cleanup
+//     void *r = self->p218;
+//     if (r->p04 != 0) { ... }                          // bnez validation
+//     if (r->p0C == 0) { ... }                          // beqz validation
+//     // further cb cleanup gated by the r->0x04 / r->0x0C checks.
+//   }
+// Tears down the subsystem: stamps the &D_0002FEC8 teardown tag, runs an
+// index-resolved entry cleanup (self->0x280 + (&D_0+0x204)*4), iterates the
+// self->0x258 entry count invoking a per-entry cb2 over the self->0x25C
+// table, performs a &D_0002FECC string-keyed cleanup, then validates
+// self->0x218->{0x04,0x0C} to gate the remaining cb teardown. Family:
+// cb-driven teardown/reset (sibling of gl_func_00044DE4; destructor
+// counterpart of the init/registration drivers). Loop-body and final
+// validation arms representative; the &D_0002FEC8 tag, the
+// self->0x280 + (&D_0+0x204)*4 index math, the self->0x258 count loop over
+// self->0x25C and the &D_0002FECC key are exact. Caps: self struct, &D_g
+// global and cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044EDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045178);
