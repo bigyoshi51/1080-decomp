@@ -1478,6 +1478,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022D68);
 
+// gl_func_00022DE0 — STRUCTURAL PASS (0x78 / 30 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Near-identical SIBLING of gl_func_00022D68 — same
+// readiness predicate, different state-byte array base.
+//
+//   int gl_func_00022DE0(int idx) {
+//     if (idx != 0xFF) {
+//       byte st = *(byte*)(&D_0 + 0x2C70 + idx);        // state byte
+//       if (st >= 2) return 1;                           // ready
+//       int j = jal 0x38174(0);                          // 0x0C00E05D
+//       byte st2 = *(byte*)(&D_0 + 0x2C70 + j);
+//       if (st2 >= 2) return 1;
+//       return 1;                                         // (default)
+//     }
+//     return 1;                                           // 0xFF sentinel
+//   }
+//
+// Struct-typing reference: structurally identical to gl_func_00022D68
+//   (see its comment) — readiness test "state byte >= 2", 0xFF index
+//   = trivially-ready sentinel, fixed USO-reloc poll routine
+//   0x0C00E05D (≈0x38174) on the not-ready path. The ONLY difference:
+//   this variant queries the per-index state-byte array at
+//   &D_0+0x2C70 instead of gl_func_00022D68's &D_0+0x2C40, and passes
+//   0 (not 1) to the poll routine. The two are per-resource-class
+//   readiness queries (the 0x2C40 / 0x2C70 byte arrays live in the
+//   same &D_0 sprite/registry state region as the 0x2CF0 state bytes).
+// Caps: raw-word USO + fixed-target poll call — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022DE0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022E58);
