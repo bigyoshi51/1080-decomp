@@ -2500,6 +2500,34 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B368);
 
+// timproc_uso_b5_func_0000B624 — STRUCTURAL PASS (0x304 / 193 words,
+// no episode). Raw-.word USO form. BOUNDARY NOTE: 4-jr USO bundle
+// (named FP transform fn + 3 tiny trailing helpers; last is a
+// flag-toggle setter `obj->0x2B4 ^= 0x20000`) — deferred USO
+// re-split.
+//
+// FP transform/basis builder on the obj+0xDC transform sub-struct —
+// same family as func_0000AC20 / func_0000B368.
+//
+//   void timproc_uso_b5_func_0000B624(Obj *obj, …) {     // obj -> s0
+//     T *t = (T*)((char*)obj + 0xDC);
+//     // load Vec3s from t (+0x0/+0x4/+0x8), compute product/cross/
+//     //   difference chains (mul.s/add.s/sub.s) building basis
+//     //   vectors into sp scratch (sp+0x68/0x6C/0x70/0x7C/0x8C);
+//     // copy 3-word matrix-row blocks between t and sp;
+//     // ~8 func_00000000 sub-calls (normalize / compose transform);
+//     // write the assembled matrix/Vec back into obj / t fields.
+//   }
+//   // trailing helper: obj->0x2B4 ^= 0x20000;  (flag toggle)
+//
+// Struct-typing reference:
+//   obj+0xDC = transform record (Vec3 rows at +0x0/+0x4/+0x8);
+//   sp+0x68..0x8C = basis-vector scratch; obj->0x2B4 = a flag word
+//   (bit 0x20000 toggled by the trailing setter). func_00000000 =
+//   USO placeholder dispatcher (length/normalize + matrix helpers).
+// Caps: raw-word USO + unsplit bundle + placeholder calls — not
+//   exact-matchable here; structural pass only for the named fn.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B624);
 
 void timproc_uso_b5_func_0000B928(int *a0) {
