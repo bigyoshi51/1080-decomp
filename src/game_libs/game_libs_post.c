@@ -18259,6 +18259,40 @@ end:
     *(int*)((char*)a0 + 0x134) = (int)obj;
 }
 
+// gl_func_0004E00C — STRUCTURAL PASS + BOUNDARY NOTE (0x140 / 81 words, no
+// episode). Raw-.word USO. realjr=2, regjr=0 → 2-function BUNDLE: named fn
+// ends at the jr at 0x4E130; a tiny trailing leaf at 0x4E134 (~5w, DEFERRED
+// USO RE-SPLIT — belongs to the next symbol). Named fn = object init +
+// sub-construct + flag-pack (single prologue frame 0x38, saves ra, s0;
+// cb = jal 0 USO-relocated).
+//
+//   void gl_func_0004E00C(void *a0) {
+//     self = a0;
+//     self->p1C8 = 0;
+//     self->p00 = 0;
+//     cb1((char*)self + 0xA0);                        // init sub-block A
+//     cb2((char*)self + 0x60);                         // init sub-block B
+//     cb3((char*)self + 0x20);                         // init sub-block C
+//     self->pE4 = 0;
+//     int *f = (int*)((char*)self + 0x140);
+//     int v = f->p04;
+//     v = (v & 0xF00) | 0x400 | 0x2 | 0x1 | 0x10;       // pack render-mode
+//     f[1] = v;                                         //   flag word
+//     self->p128 = 1.0f; self->p12C = 1.0f; self->p130 = 1.0f;  // scale
+//                                                       //   identity triple
+//     cb4((char*)self + 0xE8);                          // init sub-block D
+//   }
+// Constructs/initialises the object: clears self->0x1C8/0x00/0xE4,
+// initialises four embedded sub-blocks via cb1..cb4 (at self+0xA0/0x60/
+// 0x20/0xE8), builds a render-mode flag word at self->0x140->0x04 by
+// masking to 0xF00 then OR-ing in the 0x400/0x2/0x1/0x10 bits, and seeds a
+// 1.0f scale/identity triple at self->0x128/0x12C/0x130. Family: cb-driven
+// constructor/init + flag-pack + scale-identity (siblings gl_func_0004B0A8
+// / 0004C300 / 0004D688). Trailing leaf at 0x4E134 = small stub (deferred
+// re-split). The cleared fields, the cb1..cb4 sub-block offsets, the
+// 0xF00-mask | 0x400|2|1|0x10 flag pack and the 1.0f scale triple at
+// 0x128/0x12C/0x130 are exact. Caps: self struct + cb signatures untyped;
+// bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
 /* Vtable-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
