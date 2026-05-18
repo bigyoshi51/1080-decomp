@@ -15995,6 +15995,31 @@ void gl_func_00043FFC(char *a0) {
     gl_ref_00056C28(a0 + 0x14);
 }
 
+// gl_func_00044034 — STRUCTURAL PASS (0x10C / 68 words, no episode). Raw-.word
+// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
+// at the jr at 0x44064 (~13 words); a SECOND substantial real function
+// (~54 words, FP quaternion/matrix-vector transform) follows at 0x4406C —
+// DEFERRED USO RE-SPLIT (a genuine function boundary, not a stub).
+//
+// Named fn = small 3-call init/register wrapper (single prologue frame 0x18,
+// saves ra; H_0145xx = jal-encoded fixed intra-USO helper trio):
+//   void gl_func_00044034(void *a0) {
+//     H_0145B17(a0);                                // init/register base
+//     H_0145B2D((char*)a0 + 0x10);                   // register sub-field @0x10
+//     H_0145B2D((char*)a0 + 0x14);                   // register sub-field @0x14
+//   }
+// Initialises an object by calling the H_0145B17 setup helper on it and then
+// the H_0145B2D per-field registrar on its +0x10 and +0x14 sub-fields —
+// the same contiguous 0x0145xx helper family used by the segment's
+// diagnostic/registration routines. Trailing fn at 0x4406C (separate
+// symbol): an FP quaternion/matrix-vector transform — reads operands via
+// lwc1 from a1/a2, mul.s/add.s lattice (46xx ops), stores the result via
+// swc1; this is a real ~54-word function splat could not separate (deferred
+// re-split, decode under its own symbol later). Family: cb-less init/register
+// wrapper + (trailing) FP geometry transform. The H_0145xx call sequence and
+// the +0x10/+0x14 field targets are exact. Caps: object struct + H_0145xx
+// signatures untyped; bundle re-split deferred. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044034);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044144);
