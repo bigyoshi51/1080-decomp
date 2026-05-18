@@ -16809,8 +16809,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000470FC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000473AC);
 
-/* gl_func_00047644: 38-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00047644: 38-insn bit-flag-dispatcher (4 calls, 3 conditional).
+ *   v = a0->0x254;            // ptr-to-ptr-array (deref'd once per call)
+ *   gl_func_00000000(v->0x158, a1);                       // unconditional
+ *   if (a1[1] & 0xF00) gl_func_00000000(v->0x158, a1);    // bits 8-11
+ *   if (a1[1] >> 12)   gl_func_00000000(v->0x158, a1);    // bits 12+
+ *   if (a1[1] & 0xFF)  gl_func_00000000(v->0x158, a1);    // bits 0-7
+ * Note: a1[1] is RE-READ between each check (calls may modify it). Each
+ * call's args are recomputed via fresh lw from orig_a0 home-slot. */
+void gl_func_00047644(int* a0, int* a1) {
+    gl_func_00000000(((int**)a0[0x254/4])[0x158/4], a1);
+    if (a1[1] & 0xF00) {
+        gl_func_00000000(((int**)a0[0x254/4])[0x158/4], a1);
+    }
+    if ((unsigned int)a1[1] >> 12) {
+        gl_func_00000000(((int**)a0[0x254/4])[0x158/4], a1);
+    }
+    if (a1[1] & 0xFF) {
+        gl_func_00000000(((int**)a0[0x254/4])[0x158/4], a1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047644);
+#endif
 
 // gl_func_000476DC — STRUCTURAL PASS + BOUNDARY NOTE (0x21C / 136 words, no
 // episode). Raw-.word USO. realjr=4, regjr=0 → MULTI-FUNCTION BUNDLE: the
