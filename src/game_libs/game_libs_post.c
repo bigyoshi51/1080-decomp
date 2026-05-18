@@ -12534,6 +12534,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D9E4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 
 
+// gl_func_0003DB3C — STRUCTURAL PASS (0xB0 / 44 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list min/max-search-by-FP-field — sibling of
+// game_libs_func_0003DA14 (spatial-search FP-pool family).
+//
+//   N *gl_func_0003DB3C(O *o, ?) {
+//     float best  = *(float*)(&D_0 + 0x1AC4);     // sentinel init
+//     float bound = *(float*)(&D_0 + 0x1AC8);     // limit
+//     N *r = 0;
+//     for (N *n = o->p_10; n != 0; n = n->next_4) {
+//       float v = n->f_38;
+//       if (best < v && v < bound) { r = n; bound = v; }
+//     }
+//     return r;
+//   }
+//
+// Struct-typing reference: an extremal-search over an intrusive
+//   list. It walks the list rooted at o->0x10 (next at +0x04) and
+//   tracks the node whose float field at node->0x38 is the
+//   extremum within a range, with the running best/limit
+//   initialized from the FP LITERAL POOL at &D_0+0x1AC4 and
+//   &D_0+0x1AC8. Those constants are immediately ADJACENT to the
+//   &D_0+0x1AC0 tolerance used by game_libs_func_0003DA14 —
+//   confirming a CONTIGUOUS FP-pool block based at &D_0+0x1AC0
+//   that serves the spatial-search family (0x1AC0 = proximity
+//   epsilon, 0x1AC4 = search sentinel, 0x1AC8 = bound; deferred
+//   FP-pool symbolization per docs/N64_FORENSICS.md, same class as
+//   the &D_0+0x19F0 clamp table / &D_0+0x128 coefficient pool /
+//   &D_0+0x1AB8 query limit). A find-min/max-by-position node of
+//   the game_libs object subsystem, the value-extremum counterpart
+//   to game_libs_func_0003DA14's nearest-by-vector search and the
+//   gl_func_0003CBB4 / gl_func_0003C43C spatial-query family
+//   (same collection convention: list head +0x10, next +0x04,
+//   scalar at +0x38).
+// Caps: raw-word USO + intrusive-list walk + FP extremum-track with
+//   FP-literal-pool init/bound (&D_0+0x1AC4/0x1AC8 unsymbolized) —
+//   not exact-matchable without proper USO mnemonic disasm +
+//   FP-pool/struct symbolization; structural pass only, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DB3C);
 
 /* game_libs_func_0003DBEC: 41-insn linked-list search + Vec3 copy via
