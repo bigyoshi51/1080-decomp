@@ -17973,6 +17973,7 @@ int gl_func_00061E58(int arg0) {
     return (int)&gl_ref_0003F020;
 }
 
+/* gl_func_00061E9C: 31-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061E9C);
 
 /* Quad4 reader template — 4th in this loop's mass-match pass after
