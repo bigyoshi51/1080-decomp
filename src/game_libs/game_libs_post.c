@@ -2631,6 +2631,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
 
+// gl_func_000250C8 — STRUCTURAL PASS (0x258 / 150 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A per-object state-machine step (tick) on an object's
+// mode/countdown byte.
+//
+//   void gl_func_000250C8(O *obj, int a1) {
+//     int mode = obj->b_1;                              // signed byte
+//     int g    = *(int*)(&D_0 + 0x2024);
+//     if (mode >= 2) {
+//       obj->b_1 = mode - 1;                              // countdown
+//       ...
+//     } else if (mode == 1) {
+//       obj->b_1 = 0;                                     // -> idle
+//       if (a1) {
+//         (*onA)(&obj->sub_20, 0, 1);                      // jal 0 USO
+//       }
+//     } else {                                            // mode 0
+//       obj->b_0 = 0;
+//       (*onB)(&obj->sub_20, 0, 0);                        // jal 0 USO
+//       if (obj->w_10 != 0) { ... }                        // sub state
+//     }
+//   }
+//
+// Struct-typing reference: `obj` is a stateful object — signed byte
+//   obj->1 is the mode / frame-countdown (>=2 decrements toward a
+//   transition, ==1 finalises to 0, 0 is the terminal/idle state),
+//   byte obj->0 a secondary flag, word obj->0x10 a sub-state handle,
+//   and obj+0x20 an embedded sub-structure handed to USO-relocated
+//   per-mode handlers (the `jal 0` slots). Global &D_0+0x2024 is the
+//   shared registry table pointer (same one gl_func_000230D0 /
+//   gl_func_00023B44 read). This is the object-tick / advance-state
+//   entry of the game_libs object subsystem.
+// Caps: raw-word USO + multi-branch state machine + jal-0 USO-reloc
+//   transitions — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000250C8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025320);
