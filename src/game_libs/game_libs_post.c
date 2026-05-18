@@ -6426,6 +6426,42 @@ void gl_func_000305CC(int a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
 
+// gl_func_000307B0 — STRUCTURAL PASS (0x118 / 70 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A per-frame global-state timer / FP-ramp tick handler.
+//
+//   void gl_func_000307B0(int reset) {
+//     if (reset) { ... }
+//     G *g = *(G**)&D_0;
+//     if (g->state != 5) { ... unrelated branch ... }
+//     g->f_0C = 0; g->cnt_08 = 0;             // clear on entry
+//     if (g->cnt_08 != 0) {
+//       g->cnt_08 -= 1;                        // count down
+//       g->f_10 += g->f_18;                    // advance accumulator
+//       if (g->f_10 > 1.0f) g->f_10 = 1.0f;    // clamp (0x3F800000)
+//     } else if (g->cnt_0C != 0) {
+//       g->cnt_0C -= 1;                         // alt countdown
+//     }
+//     // tail: more FP reads incl. a literal-pool constant
+//     //       at &D_0 + 0x1868 (the FP-pool fold of this subsystem)
+//   }
+//
+// Struct-typing reference: a once-per-frame state/timer updater on
+//   the global record reachable via &D_0. Gated on the global state
+//   field == 5, it zeroes a pair of counters, then either counts
+//   down counter g->0x08 while advancing an FP accumulator g->0x10
+//   by step g->0x18 saturated at 1.0f, or counts down the alternate
+//   counter g->0x0C. It loads a float literal-pool constant at
+//   &D_0+0x1868 (one of the deferred FP-literal-pool symbolization
+//   sites of this segment — see the per-USO FP-pool backlog). A
+//   timing/transition-tick leaf of the game_libs object subsystem
+//   (the per-frame heartbeat the gl_func_0002FB74 interpreter and
+//   the gl_func_0003061C mode-arbiter advance against).
+// Caps: raw-word USO + global-state &D_0 base + FP literal-pool ref
+//   (&D_0+0x1868 unsymbolized) — not exact-matchable without proper
+//   USO mnemonic disasm + FP-pool symbolization; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000308C8);
