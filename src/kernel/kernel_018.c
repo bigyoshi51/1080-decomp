@@ -312,4 +312,43 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80007698);
  * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007A98);
 
+/* func_80007B3C - verified structural decode (kernel, 0x294, 165
+ * insns, rmon breakpoint / thread-control command handler). rmon
+ * family (cf. func_80007564 / func_80009584; __rmonRcpAtBreak,
+ * func_800073F8 = __rmonSendHeader, func_80009C30 = thread list).
+ *   s32 func_80007B3C(RmonMsg *msg) {
+ *       switch (msg->0x9) {                        // command kind
+ *       case 0:                                    // set/arm break
+ *           t = func_80009C30();                   // thread head
+ *           while (t->0x4 != -1) {                 // find by id
+ *               if (t->0x14 == msg->0xC) break;
+ *               t = t->0xC;                         // next
+ *           }
+ *           if (t->0x4 == -1) return -2;            // not found
+ *           if (t->0x10 != 1) return -4;            // bad state
+ *           t->0x12 &= ~0x4;                        // clear flag
+ *           if (msg->0x10 & 0x2)                    // opt arg
+ *               t->0x11C = msg->0x14;
+ *           ... (program RCP/HW break via func_80006A50/_80006A98,
+ *                __rmonRcpAtBreak; __rmonSendHeader reply) ...
+ *           break;
+ *       case 1: ...                                 // continue/clear
+ *       default: ...
+ *       }
+ *   }
+ * Struct-typing reference: RmonMsg msg - msg->0x9 (9) u8 command
+ * kind (0 = arm breakpoint, 1 = another op), msg->0xC (12) target
+ * thread id, msg->0x10 (16) flags (bit 1 / 0x2 = "set field"),
+ * msg->0x14 (20) the value. Thread-chain node (func_80009C30 head):
+ * node->0x4 (4) sentinel (-1 = end), node->0xC (12) next, node->
+ * 0x10 (16) s32 state (must be 1 / runnable), node->0x12 (18) u16
+ * flags (bit 2 / 0x4 cleared here = clear-pending-break), node->
+ * 0x14 (20) thread id, node->0x11C (284) = a programmable break
+ * value. Returns -2 (no such thread) / -4 (wrong state). Programs
+ * the RCP/CPU breakpoint via func_80006A50/func_80006A98 +
+ * __rmonRcpAtBreak, then __rmonSendHeader (func_800073F8). Caps
+ * <80: command switch + thread-chain walk + flag RMW + ~9 rmon/
+ * MMIO callees + branch-likely. Full body INCLUDE_ASM-preserved
+ * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
+ * rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007B3C);
