@@ -3789,7 +3789,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
 //
 //   void func_0000CCE0(State *st, a1) {       // st -> s0; cont = st+0x39C
 //     // repeated unit (x ~12), per element:
-//     //   e = func_00000000(0, st, TYPE, X, /*sp+0x10*/ P, /*sp+0x14*/ Y);
+//     //   e = func_00000000(0, st, TYPE, X, P_at_sp10, Y_at_sp14);
 //     //   func_00000000(cont, e);             // attach to st->0x39C
 //     //   save e -> sp slot;
 //     // batch 1 TYPE/coords: {2:(140,?)}, {8:(-140)}, {1:(350)},
