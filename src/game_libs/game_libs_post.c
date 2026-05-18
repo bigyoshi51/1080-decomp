@@ -18836,6 +18836,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
 
+// gl_func_0004F2F4 — STRUCTURAL PASS (0x40C / 260 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (large FP builder). Single
+// prologue frame 0x1A8 (~0.4 KB stack scratch; saves ra). Per-object FP
+// transform-and-emit (cb = jal 0 USO-relocated).
+//
+//   void gl_func_0004F2F4(int a0, void *a1, int a2, float a3) {
+//     float blk[..];                                  // sp+0xC8 transform
+//                                                     //   scratch
+//     // FP transform of a1's fields: sub.s / mul.s reductions plus
+//     // cvt.s.w integer->float conversions and constants (8.0f =
+//     // 0x41000000, &D_0+0x128 FP-pool) accumulated into blk[..];
+//     blk[0] = ...; blk[1] = ...; blk[2] = ...;
+//     cb1(a1, &sp_0xB4);                               // process/dispatch A
+//     cb2(&blk);                                       // emit transformed
+//                                                      //   block
+//     // copy the sp+0xC8 scratch block out (lw/sw loop) into the
+//     // destination resolved off a1->0x70 / a1->0x74.
+//   }
+// Builds a transformed coordinate / matrix block in a large sp+0xC8 scratch
+// from the a1 source (sub/mul FP math + cvt.s.w + the 8.0f / &D_0+0x128
+// FP-pool constants), runs it through cb1/cb2 for processing/emit, then
+// copies the result block out to the a1->0x70-rooted destination. Family:
+// FP geometry transform + cb-emit (siblings gl_func_00042778 / 0004BAF4 /
+// 0004F0E0). Inner transform arithmetic not decoded (260-word builder) —
+// the sp+0xC8 scratch, the cvt.s.w/FP-const usage, the cb1(a1,&sp+0xB4) /
+// cb2(&blk) emit pair and the a1->0x70 dest copy are exact; per-lane math
+// representative. Caps: a1 struct, the FP-pool refs and cb signatures
+// untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F2F4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
