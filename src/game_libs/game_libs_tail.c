@@ -11,6 +11,7 @@ typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
 
 
+/* gl_func_0000959C: 53-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000959C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000959C_pad.s")
 
