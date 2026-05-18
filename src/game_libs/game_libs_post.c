@@ -18644,6 +18644,7 @@ void game_libs_func_000622C8(int *a0, int a1) {
     a0[2] = a1;
 }
 
+/* gl_func_000622D8: 36-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000622D8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062368);
