@@ -16058,8 +16058,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044034);
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044144);
 
-/* gl_func_000444B4: 32-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000444B4: 32-insn struct-init + 5-call dispatcher.
+ *   s0 = *(int**)(&gl_data + 0x214);
+ *   a0[0] = *(int*)(s0->[0xC] + 0x4);
+ *   a0[1] = 0;
+ *   a0[2] = a1;
+ *   gl_func_00000000(s0, &a0[1]);  // called 5 times with same args, unrolled
+ * The 5 jal calls all pass (s0, s0+0x4) and resolve to distinct USO
+ * callees at runtime (each call is a separate reloc). */
+void gl_func_000444B4(int* a0, int a1) {
+    int* s0 = *(int**)((char*)&gl_data_00000000 + 0x214);
+    int* s1;
+    a0[1] = 0;
+    a0[2] = a1;
+    s1 = &a0[1];
+    a0[0] = *(int*)(((char*)s0[3]) + 0x4);
+    gl_func_00000000(s0, s1);
+    gl_func_00000000(s0, s1);
+    gl_func_00000000(s0, s1);
+    gl_func_00000000(s0, s1);
+    gl_func_00000000(s0, s1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000444B4);
+#endif
 
 void game_libs_func_00044534(int a0, int a1) {
 }
