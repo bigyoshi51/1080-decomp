@@ -3419,6 +3419,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027744);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027804);
 
+// gl_func_00027D00 — STRUCTURAL PASS (0x124 / 73 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
+// (named fn + 1 trailing helper) — deferred USO re-split. The named
+// leading fn pulls a transform from a linked source object and
+// applies it into the object's matrix/flag block.
+//
+//   void gl_func_00027D00(O *obj) {
+//     P *p = obj->w_44;                                 // source obj
+//     if (p->b_18 != 0) {
+//       (*ha)(&obj->_36, p->w_1C, …);                    // jal 0 USO
+//     } else {
+//       (*hb)(&obj->_60, p->w_1C);                        // jal 0 USO
+//     }
+//     T *t = p->w_50;
+//     obj->b_34 = 0;                                       // clear flag
+//     obj->b_60 = (obj->b_60 & 0xF0) | 1;                  // set bit0
+//     obj->w_B0 = t->w_0;                                  // copy a
+//     obj->w_B4 = t->w_4;                                  //  4-word
+//     obj->w_B8 = t->w_8;                                  //  block
+//     obj->w_BC = t->w_C;                                  //  (Vec4/row)
+//     obj->f_70 = …;                                        // swc1 +0x70
+//   }
+//
+// Struct-typing reference: applies a transform from a linked source.
+//   obj->0x44 is a pointer to the source object P; byte P->0x18 is a
+//   mode gate selecting which USO-relocated handler runs (`jal 0`
+//   slots) with obj sub-blocks at +0x36 / +0x60 and P->0x1C. P->0x50
+//   points to a 4-word value block (matrix row / Vec4) that is copied
+//   verbatim into obj->0xB0..0xBC (the same +0xB0 block
+//   gl_func_00027804 manipulates). obj flag byte +0x34 is cleared and
+//   +0x60 has its low nibble reset with bit0 set (a dirty/ready
+//   marker); float obj->0x70 is written. The "pull-and-apply linked
+//   transform" entry of the game_libs object subsystem.
+// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc handlers
+//   — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027D00);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
