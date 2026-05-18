@@ -2888,6 +2888,41 @@ int gl_func_000261F4() {
     return gl_ref_0003A880();
 }
 
+// gl_func_00026214 — STRUCTURAL PASS (0x57C / 351 words ≈ 1.4KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle). A ring-slot cursor-advance + callback-dispatch
+// driver. Large -0x70 frame.
+//
+//   ret gl_func_00026214(args…) {
+//     S  *g   = &D_0;
+//     int cur = g->w_2078;                              // ring cursor
+//     int lim = g->h_2034;                               // ring size
+//     int nxt = (cur + 1) % lim;                          // guarded %
+//                                                          // (break 7/6
+//                                                          //  div traps)
+//     g->w_2078 = cur + 1;                                // advance
+//     if (nxt == 0) { ... wrap handling ... }
+//     void (*cb)() = *(void(**)())(&D_0 + 0);             // global cb
+//     if (cb != 0) cb();                                  // dispatch
+//     ... process the slot at the new cursor, iterate ...
+//   }
+//
+// Struct-typing reference: a circular slot scheduler. Word
+//   &D_0+0x2078 is the ring write/advance cursor, halfword
+//   &D_0+0x2034 the ring capacity (the same limit the
+//   gl_func_00022FC0 / gl_func_00021498 family range-checks). The
+//   (cur+1) % lim wrap uses the standard GCC guarded signed-division
+//   idiom — the `break 7` / `break 6` words are the div-by-zero /
+//   INT_MIN-overflow traps, not real paths. A function pointer at
+//   &D_0+0 is invoked as a per-advance callback when non-null. The
+//   bulk of the body processes the slot now under the cursor. This is
+//   the round-robin slot scheduler/dispatcher of the game_libs
+//   subsystem (cursor sibling to the &D_0+0x1030 element count used
+//   by gl_func_00025504).
+// Caps: raw-word USO + ring-modulo guarded sdiv + indirect callback
+//   — not exact-matchable without proper USO mnemonic disasm; high-
+//   level structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026214);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
