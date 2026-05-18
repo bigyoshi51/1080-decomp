@@ -526,6 +526,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
 
+// gl_func_0001FAE8 — STRUCTURAL PASS (0xEC / 59 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A record-array sweep / "reactivate active records"
+// routine in the game_libs sprite subsystem. -0x30 frame, full
+// s0-s5/ra save.
+//
+//   void gl_func_0001FAE8(int a0) {
+//     S *g = &D_0;                                // shared global base
+//     int n = g->w_2070;                           // record count
+//     if (n <= 0) return;
+//     R *tbl = ...;                                 // &D_5378 fn/str tbl
+//     for (int i = 0, idx = 0; i < n; i++) {
+//       R *rec = *(R**)(&D_0 + 0x2CFC) + idx;       // record table
+//       if (rec->b_33 != 0) continue;               // flag gates
+//       if (rec->b_34 != 0) continue;
+//       if (rec->b_30 == 0) continue;
+//       byte *p = rec->w_44;                        // status-byte ptr
+//       *p &= ~0x80;                                 // clear bit7
+//       *p |=  0x40;                                 // set   bit6
+//       (*cb1)(a0);                                  // jal 0 USO reloc
+//       (*cb2)(a0);                                  // jal 0 USO reloc
+//       idx += stride;
+//     }
+//   }
+//
+// Struct-typing reference: shares the sprite-subsystem globals with
+//   gl_func_0001DCB4 / gl_func_0001E134 — word &D_0+0x2070 is the
+//   live-record count, pointer &D_0+0x2CFC is the fixed-stride record
+//   table base. Per record R: bytes R->0x30 / 0x33 / 0x34 are the
+//   active/skip gate flags, word R->0x44 points to a shared status
+//   byte whose bit7 is cleared and bit6 set (a "needs-refresh /
+//   activated" toggle). &D_5378 is an auxiliary fn-ptr/string table.
+//   The two `jal 0` words are USO-relocated callback slots (resolved
+//   at load) invoked with the caller-supplied a0.
+// Caps: raw-word USO + jal-0 USO-reloc callbacks — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FBD4);
