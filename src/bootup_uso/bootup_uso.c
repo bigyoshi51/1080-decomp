@@ -942,6 +942,49 @@ void func_000027C0(char *a0, int *a1) {
     }
 }
 
+// func_000027E8 — STRUCTURAL PASS (0x4AC / 299 insns, no episode).
+// UI/scene setup constructor for the bootup/title screen.
+//
+//   void *func_000027E8(Scene *scene, A a1, B a2, C a3) {  // args spilled
+//                                                          // sp+0x50/54/58/5C
+//     v0 = func_00000000(&D_00000000);  scene->0x3C = a2;  // (sp+0x38)
+//     func_00000000(&func_00007328, 0);                    // register descs:
+//     func_00000000(&D_00007334, scene->0x134);            // 7328/7334/7344/
+//     func_00000000(&D_00007344, 0);                       // .L7350/7360/7374
+//     func_00000000(.L00007350); func_00000000(&D_00007360);
+//     func_00000000(); func_00000000(&D_00007374, 0);
+//     // create widget objects from descriptor table, stash handles:
+//     h4C = func_00000000(0, &D_00007380);  // sp+0x4C
+//     h3C = func_00000000(0, &D_0000738C);  // sp+0x3C  (root, returned)
+//     h48 = func_00000000(0, &D_00007390);  // sp+0x48
+//     h44 = func_00000000(0, &D_00007394);  // sp+0x44
+//     h40 = func_00000000(0, .L00007398);   // sp+0x40
+//     g   = func_00000000(0); *(int*)D_0=g; // global singleton store
+//     func_00000000(h4C+0x10, g);
+//     if (g->0x14) g->0x4 = 1;  g->0x14 = h4C;             // re-parent idiom
+//     // 3x normalized-ratio: a,b,c = func_00000000(...) ints; each via the
+//     // u32->float fixup (bgez + add 0x4F800000 when sign bit set);
+//     //   ratio = (float)(b - c) / (float)a;  passed as split-double a3:a2
+//     //   to func_00000000 (anim/layout interp setup), once per axis,
+//     //   reading scene->0x134 + descriptors D_739C/73B4/73CC.
+//     // final: link h44/h40/h4C/h3C children — the
+//     //   `if(h->0x14) h->0x4=1; h->0x14=child` dirty-and-attach idiom x4.
+//     return scene->0x3C;  // = h3C
+//   }
+//
+// Struct-typing reference:
+//   scene = arg0 (spill sp+0x50): 0x3C result/root widget, 0x134 = UI
+//     container/parent passed to child registrations.
+//   widget handle H: 0x04 dirty-flag (set 1 when 0x14 was non-null),
+//     0x14 attached-child/content ptr (re-parent target).
+//   D_00007328..D_000073CC = descriptor/template table (labels, widget
+//     specs); .L00007350/7398 are in-table sub-labels.
+//   func_000001FC + 0x10 (lw, 3x) = folded int ref — same JAL-target-0 /
+//   folded-symbol family as the func_0000098C literal-pool bug
+//   (docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C);
+//   here it's the integer denominator of the ratio fixups.
+// Caps: 299-insn dispatcher-heavy ctor; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000027E8);
 
 /* func_00002C94 - verified structural decode (0x110, 68 insns,
