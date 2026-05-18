@@ -4388,6 +4388,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
 
+// gl_func_0002A7D8 — STRUCTURAL PASS (0x12C / 75 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
+// (named fn + 3 trailing helpers) — deferred USO re-split. The named
+// leading fn is an object commit / select-finalize.
+//
+//   void gl_func_0002A7D8(O *o) {
+//     (*pre)(o, 0xFFFF);                                // 0x0C00FB4B
+//     (*sub)(&o->_9C);                                   // jal 0 USO
+//     byte f = o->b_0;
+//     o->b_0 = f | 0x40;                                  // set bit6
+//     int m = o->b_4 & 0x7F;
+//     o->b_0 = ... & ~0x80;                                // clear bit7
+//     int r = (*dispatch)(m);                              // jal 0 USO
+//     if (r) (*onA)(o->b_4, 3);                            // mode 3
+//     if (o->b_5 == ...) (*onB)(o->b_5, 4);                // mode 4
+//     short cur = *(short*)(&D_0 + 0x23FA);                 // selection
+//     if (o->b_5 != 1) cur = *(short*)(&D_0 + 0x2406);
+//     *(int*)(&D_0 + 0x23DC) = ...;                         // commit
+//   }
+//
+// Struct-typing reference: finalises/commits an object selection.
+//   The object's flag byte +0 has bit6 set and bit7 cleared (the
+//   "committed/selected" transition); bytes +0x4 / +0x5 are mode
+//   selectors masked to 7-bit and dispatched to USO-relocated
+//   handlers (`jal 0` slots) with mode constants 3 / 4; the embedded
+//   sub-block at o+0x9C gets its own init. The selection-state
+//   globals updated — halfword &D_0+0x23FA / &D_0+0x2406 and word
+//   &D_0+0x23DC — are the same current-selection region the
+//   gl_func_0002349C teardown / gl_func_00026CF0 submit / gl_func_
+//   00023838 decoder touch. The "commit the active selection" entry
+//   of the game_libs registry/object subsystem.
+// Caps: raw-word USO + 4-fn unsplit bundle + jal-0 USO-reloc
+//   dispatch — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only for the named leading fn, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A7D8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A904);
