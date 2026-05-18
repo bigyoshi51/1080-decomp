@@ -17649,6 +17649,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C288);
 // struct + cb signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C300);
 
+// gl_func_0004C5E4 — STRUCTURAL PASS (0x340 / 209 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0xD0
+// (saves ra, s0, s1). Object init + global-registration (cb = jal 0
+// USO-relocated).
+//
+//   void gl_func_0004C5E4(void *a0, int a1) {
+//     self = a0;
+//     void *g = &D_g;
+//     int n = g->p204;
+//     g->p254 = self;                                 // publish self into
+//                                                     //   the global slot
+//     self->p144 = n;                                  // cache global counter
+//     cb1(self->pB0, self->pAC);                        // init sub-object A
+//     self->p1C0 = g->p180;
+//     *(short*)&D_g2 = cb1_result;                      // store handle short
+//     self->p1B4 = 0;
+//     cb2(self->p198, (char*)self + 0x15C);             // init sub-object B
+//     self->p158 = a1;
+//     if (*(int*)(g + 0x1C4) & 2) { ... }               // beql flag-2 branch
+//     // ... further wiring of self fields off the cb results / global state.
+//   }
+// Registers the object into the module global (g->0x254 = self), caches a
+// global counter into self->0x144, initialises two sub-objects via
+// cb1(self->0xB0,self->0xAC) and cb2(self->0x198,&self->0x15C), clears
+// self->0x1B4, stores the a1 arg into self->0x158, and branches on the
+// g+0x1C4 bit-1 config flag. Family: cb-driven constructor/init +
+// global-registration (siblings gl_func_0004B0A8 / 0004C300 / 00040070).
+// Per-field wiring tail representative; the g->0x254 = self publish, the
+// self->0x144 counter cache, the cb1/cb2 sub-inits, the self->0x158 = a1
+// store and the g+0x1C4&2 flag gate are exact. Caps: self/&D_g struct + cb
+// signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);
