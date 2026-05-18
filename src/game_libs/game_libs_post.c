@@ -6078,6 +6078,41 @@ void game_libs_func_0002F630(void) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F638);
 
+// gl_func_0002F72C — STRUCTURAL PASS (0x174 / 93 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A per-object FP value updater with quantized table apply.
+//
+//   void gl_func_0002F72C(O *o, float in, int idxb) {
+//     float nv  = in * o->f_scale;          // mul.s f12,f12,f4
+//     int   i   = (signed char)idxb;        // sll/sra 24
+//     float dlt = nv - o->f_5C;             // delta vs current
+//     if (i < 0x40) o->f_5C = nv;           // commit when in window
+//     int q = 0x7F - i;                      // clamp around 0x40/0x7F
+//     if (q < -0x40) q = (-0x80 - q);
+//     o->b_60 = (byte)(q + 0x40);            // quantized byte -> 0x60
+//     fixed_call(8,  ...);                    // jal 0x010E09 (FIXED)
+//     o->b_61 = D_0_table[q];                // byte-table lookup
+//     fixed_call(0x10, ...);
+//     float k = D_0_fptable[q];              // FP-table lookup (q*4)
+//     ... further per-object FP stores driven by k / dlt ...
+//   }
+//
+// Struct-typing reference: scales an input float by a per-object
+//   factor, computes a delta against the stored value o->0x5C, and
+//   commits the new value only inside an index window. A signed byte
+//   index is clamped around the 0x40 / 0x7F band and used to (a) write
+//   quantized bytes into o->0x60 / o->0x61 and (b) look up parallel
+//   byte and FP tables based at &D_0 (byte table; FP table at q*4
+//   stride). Two calls go to a FIXED intra-USO routine — encoded
+//   `jal 0x010E09` (0x0C010E09), a real resolved target, NOT a
+//   jal-0 USO-relocated callback — with command codes 8 and 0x10.
+//   A table-driven parameter-apply leaf of the game_libs object
+//   subsystem (sibling of the gl_func_0002F584 quantizer; both feed
+//   the byte-domain command machinery).
+// Caps: raw-word USO + FP delta/commit + signed-byte clamp-to-index +
+//   parallel byte/FP table lookups — not exact-matchable without
+//   proper USO mnemonic disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F72C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F8A0);
