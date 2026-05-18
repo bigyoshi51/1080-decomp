@@ -15127,6 +15127,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041A9C);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041D40);
 
+// gl_func_00041EDC — STRUCTURAL PASS (0xB0 / 45 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
+// (saves ra). cb-scoped list-iterate-and-dispatch (cb = jal 0 USO-relocated;
+// scope name &D_0002F6D0).
+//
+//   void gl_func_00041EDC(void *a0) {
+//     cb1(&D_0002F6D0);                            // open named scope
+//     void *it = a0->p2C;                           // list head
+//     if (it) {
+//       cur  = it->p00;                             // iterator pair held in
+//       next = it->p04;                             //   sp+0x18 / sp+0x1C
+//       while (cur != 0) {
+//         void *o = *cur;
+//         if (o->p18 & 4) {                          // per-node enable bit
+//           Vt vt = o->p28;
+//           short k = (short)o->p18;
+//           (*(fnptr)vt->...)(k + o);                // virtual dispatch
+//         }
+//         it   = next;                               // advance iterator
+//         cur  = it ? it->p00 : 0;
+//         next = it ? it->p04 : next;
+//       }
+//     }
+//     cb2();                                         // close scope
+//   }
+// Iterates the intrusive list rooted at a0->0x2C (a {cur,next} cursor pair
+// kept in sp+0x18/0x1C, chained via node->0x00 / node->0x04) and, for each
+// node whose 0x18 has bit 2 set, dispatches a virtual method (fnptr resolved
+// from the node's 0x28 vtable, arg = (short)node->0x18 + node), all bracketed
+// by a cb1/cb2 named-scope open/close. Family: cb-scope + list-walk +
+// vtable-dispatch (sibling of gl_func_0003E2B0 / 00040640 / 00040974).
+// Cursor-advance bookkeeping representative; the scope key, list root, the
+// 0x18&4 gate and the 0x28-vtable dispatch shape are exact. Caps: node/vtable
+// struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041EDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041F90);
