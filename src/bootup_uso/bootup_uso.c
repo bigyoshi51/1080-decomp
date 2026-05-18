@@ -1100,6 +1100,57 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002F90);
 void func_000031B8(int a0) {
 }
 
+// func_000031C0 — STRUCTURAL PASS (0x328 / 202 insns, no episode).
+// 3-mode UI/scene element constructor (bootup/title).
+//
+//   void *func_000031C0(A a0, int mode, P parent3, Q a3) {  // spill 0x90..0x9C
+//     obj = func_00000000(0xB8);  if (!obj) obj = func_00000000(0xB4);
+//     if (!obj) goto post;        // alloc primary record (fallback size)
+//     func_00000000(obj, &D_00007460);                 // base-init
+//     obj->0x28 = 0;
+//     sub = (obj == -0x2C) ? func_00000000(4) : obj+0x2C;   // sub-alloc/embed
+//     if (!sub) sub2 = func_00000000(4);
+//     if (sub) *sub = 0;
+//     func_00000000(obj);                                   // finalize
+//     // Vec3-ish default at sp+0x48: {0.0, 500.0f(0x43FA0000), 0.0};
+//     func_00000000(obj+0x30, &sp48);
+//   post:
+//     v = arg1(mode);
+//     switch (mode) {
+//       case 0: case 2:   // .L32CC: build widget kind A
+//         w = func_00000000(0,arg3,obj, 0, 500.0f, func_000003F8+0x138,
+//                           arg_at_0xA0);                    // folded f32
+//         func_00000000(0, arg3->0x874, &D_00007480);
+//         func_00000000(w, ret, &.L00007490);
+//         child = func_00000000(arg1b, ...);  arg1b->0xB4 = child;
+//         child->0xC = &D_000074A4;  break;
+//       case 1:           // .L3384: build widget kind B
+//         e = func_00000000(0x15C);
+//         if (e) { func_00000000(e, obj, 0, 500.0f, func_000003F8+0x13C);
+//                  e->0x28 = &D_00007120;  e->0x158 = 0;
+//                  e->0x154 = arg3;  e->0x150 = e->0x14C; }
+//         func_00000000(0, &D_000074B0, arg3);
+//         f = func_00000000(arg1b);  f->0xC = &D_000074C4;  break;
+//       default: ;        // .L341C
+//     }
+//     // common tail: x2 dirty-and-attach re-parent
+//     //   (if h->0x14: h->0x4=1; h->0x14 = parent3);
+//     // copy Vec3 arg3->{0x3A4,0x3A8,0x3AC} into widget->{0x60,0x64,0x68}
+//     // and into parent3+0x30; consts 500.0f / -1000.0f (0xC47A0000).
+//     return obj;
+//   }
+//
+// Struct-typing reference:
+//   obj sizes 0xB8 / 0xB4 / (kind-B) 0x15C; 0x28 vtable/desc ptr,
+//     0x2C embedded-sub, 0xB4 child, 0x14C/0x150 f32 pair, 0x154 owner,
+//     0x158 flag, 0x60/0x64/0x68 Vec3 (from arg3->0x3A4/0x3A8/0x3AC).
+//   widget handle: 0x04 dirty-flag, 0x14 attached-child (re-parent).
+//   D_00007460/746C/7480/.L7490/74A4/7120/74B0/74C4 = per-mode desc table.
+//   func_000003F8 + 0x138 / + 0x13C (lwc1) = folded f32 consts — yet
+//   another fold target in the bootup_uso literal-pool bug family
+//   (docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
+// Caps: 202-insn 3-mode ctor; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
 
 /* func_000034E8 - verified structural decode (0x150, 84 insns,
