@@ -2490,6 +2490,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024D90);
 void game_libs_func_00024E14(int a0, int a1, int a2, int a3) {
 }
 
+// game_libs_func_00024E28 — STRUCTURAL PASS (0xC / 3 words, no
+// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: this is
+// NOT a standalone function — it is a 3-word splat-missplit HEAD
+// FRAGMENT of the immediately-following gl_func_00024E34. No
+// prologue, no jr; it ends exactly where gl_func_00024E34 begins
+// (0x24E28 + 0xC == 0x24E34, contiguous).
+//
+//   (these 3 words belong to gl_func_00024E34's entry)
+//   lui   t0, %hi(&D_0)
+//   addiu t0, t0, %lo(&D_0)
+//   lhu   t6, 0x202C(t0)      // t6 = registry-limit halfword
+//
+// The 3 words preload t6 with the registry index limit (&D_0+0x202C,
+// the same limit the gl_func_00022FC0 / gl_func_000235E4 family
+// range-check against). gl_func_00024E34's very first body
+// instruction after its `addiu $sp,-0x18` prologue is
+// `slt $at, $a0, $t6` — i.e. it consumes this exact t6 to do the
+// `if (idx < limit)` bounds check. So the real function is
+// [0x24E28 .. 0x24E34+0xFC) and splat cut its boundary 0xC bytes
+// early, orphaning the limit-load as a separate symbol.
+//
+// FIX (deferred): merge this fragment into gl_func_00024E34 via the
+// USO boundary re-split — the mnemonic merge-fragments /
+// split-fragments.py tools do NOT operate on relocatable USO
+// segments (documented), so this requires the per-USO splat-config
+// re-extraction pass, not a 60s loop tick. Tracked here as a
+// boundary note alongside the other deferred USO re-split items.
+// Caps: raw-word USO + cross-boundary fragment (not independently
+//   meaningful) — no episode, no byte body; structural boundary
+//   documentation only.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024E28);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024E34);
