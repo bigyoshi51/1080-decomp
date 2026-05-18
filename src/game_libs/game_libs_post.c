@@ -13632,10 +13632,6 @@ void gl_func_0003EFC4(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EFC4);
 #endif
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 92.5% — extra `sw a1, 188(sp)` vs target (target only spills a0) */
-extern int gl_func_00000000();
-
 void gl_func_0003F008(int a0, int a1, int a2, int a3) {
     char buf[0xA0];
     *(int*)&buf[0x48] = a2;
@@ -13644,9 +13640,6 @@ void gl_func_0003F008(int a0, int a1, int a2, int a3) {
     *(int*)&buf[0x00] = 0x18;
     func_00000000(&buf[0x00]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F008);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003F044: 24-insn 2-call wrapper.
