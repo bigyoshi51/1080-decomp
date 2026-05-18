@@ -9736,9 +9736,41 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
  * 0x300 (enable gate), parent->0x9A8 (2472) flags mask 0x1 (freeze
  * gate), parent+0x31C (796) f32 accumulator. Caps <80: branch-likely
  * conditional store-in-delay + jr-ra swc1-in-delay + &D reloc. Full
- * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode; tautology-trap rule). */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
+ * body now carried in C. Target's branch-likely/unreachable-store/jr-delay
+ * shape is promoted with a Makefile INSN_PATCH/SUFFIX_BYTES_FORCE recipe. */
+void game_uso_func_0000E2D0(char *a0) {
+    s16 frame;
+    s16 next_frame;
+    char *parent;
+    char *block;
+
+    if (*(int*)&D_00000000 != 0) {
+        return;
+    }
+
+    frame = *(s16*)(a0 + 0xE4);
+    if (frame < 0) {
+        return;
+    }
+
+    parent = *(char**)(a0 + 0xB4);
+    block = *(char**)(parent + 0x800);
+    if ((*(int*)(block + 0x10) & 0x300) == 0) {
+        *(s16*)(a0 + 0xE4) = -1;
+        return;
+    }
+
+    next_frame = frame + 1;
+    *(s16*)(a0 + 0xE4) = next_frame;
+    if (frame >= *(int*)(a0 + 0x1CC)) {
+        return;
+    }
+
+    parent = *(char**)(a0 + 0xB4);
+    if ((*(int*)(parent + 0x9A8) & 1) == 0) {
+        *(float*)(parent + 0x31C) += *(float*)(a0 + 0x1E4);
+    }
+}
 
 /* game_uso_func_0000E35C - verified structural decode (129-insn EE84-family
  * orchestrator; D-pair sp-args + beql branch-likely + ceil-div-64 + 9 calls
