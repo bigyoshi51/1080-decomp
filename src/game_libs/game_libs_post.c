@@ -11354,6 +11354,48 @@ void game_libs_func_0003AA40(float *dst) {
     dst[2] = 0.0f;
 }
 
+// game_libs_func_0003AA5C — STRUCTURAL PASS + small BUNDLE NOTE
+// (0x200 / 128 words, no episode). Raw-.word USO form (game_libs).
+//
+// NO STACK-FRAME PROLOGUE anywhere in this .s (grep 27BDFF →
+// nothing): the named function is itself a NO-FRAME FP LEAF (it
+// starts directly with `lwc1`, uses only FP / temp regs, never
+// touches $sp or $ra). This is a legitimate standalone leaf — NOT
+// a sheared head-fragment despite the game_libs_func_ prefix (cf.
+// the 2-5-word head-fragments 000309AC / 00033444 / 00036074;
+// this one is a full ~127-word function ending in jr $ra).
+// realjr=2: the 2nd jr is the last instruction pair (0x3AC54,
+// 12 bytes after the main jr at 0x3AC48) — a tiny 2-word no-frame
+// TAIL STUB splat could not separate (no-frame-leaf shape, see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). DEFERRED USO
+// RE-SPLIT for that 2-word tail; no merge attempted; no episode.
+//
+//   int game_libs_func_0003AA5C(O *o, V *a, V *b, short tag) {
+//     float x = b->f_0 * a->f_0;                 // per-component
+//     float y = b->f_4 * a->f_4;                 //   products
+//     float z = b->f_8 * a->f_8;
+//     o->h_4 = tag;                               // sh a3,4(a0)
+//     float s = x + y + z;                        // dot-product
+//     s = (s < 0.0f) ? -s : s;                    // abs idiom
+//     ... per-axis abs / compare (c.lt.s; bc1fl; neg.s) ...
+//     o->f_8 = s;                                 // swc1 result
+//     return 1;
+//   }
+//
+// Struct-typing reference: a pure-FP vector math leaf — combines
+//   two Vec3 sources (a, b at args 0x4/0x8 worth of components),
+//   forming a dot-product / magnitude-style scalar with per-axis
+//   absolute-value and threshold comparisons, stamps a tag halfword
+//   into o->0x04, writes the float result into o->0x08, and returns
+//   1 (success). A geometry/signal-conditioning leaf of the
+//   game_libs object subsystem (companion of the gl_func_0003695C
+//   normalizer / gl_func_00037348 clamp family — the pure-math
+//   dot/abs primitive). No &D_0, no callbacks, no frame.
+// Caps: raw-word USO + no-frame FP-only leaf + bundled 2-word
+//   tail — not exact-matchable without proper USO mnemonic disasm
+//   + boundary re-split + the Vec3/object typed; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA5C);
 
 #ifdef NON_MATCHING
