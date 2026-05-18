@@ -596,6 +596,40 @@ end:
     return self;
 }
 
+// timproc_uso_b5_func_00001460 — STRUCTURAL PASS (0x1F8 / 126 words,
+// no episode). Raw-.word USO form (genuine code; splat can't
+// mnemonic-disasm relocatable USO). Hand-decoded from word encodings.
+//
+// Two-widget HUD/replay-element constructor for timproc_uso_b5:
+//   void timproc_uso_b5_func_00001460(Owner *o) {     // o -> s1 (arg0)
+//     // widget A:
+//     A = func_00000000(0, &D_0000108C);              // named factory
+//     o->0x38 = A;
+//     A->0x124 = A->0x128 = A->0x12C = A->0x130 = 255.0f/255.0f; // =1.0 white RGBA
+//     A->0xC4 |= 0x40;  A->0xC4 |= 0x80;              // flag bits
+//     A->0xD0 = 1;                                     // element id 1
+//     func_00000000(., A);                             // post-init
+//     func_00000000(o+0x10, A);                        // register/attach
+//     if (!o->0x14) { o->0x4 = 1; func_00000000(0, &D_0000109C);
+//                     o->0x14 = o; }                   // one-time owner init
+//     // widget B:
+//     B = func_00000000(...);  o->0x3C = B;
+//     B->0x124..0x130 = 1.0f;                          // white RGBA
+//     B->0xD0 = 2;                                      // element id 2
+//     func_00000000(., B);  func_00000000(o+0x10, B);   // post-init+attach
+//   }
+//
+// Struct-typing reference:
+//   o(a0=s1): 0x04 init-done flag, 0x10 attach-target/container,
+//     0x14 self-init latch, 0x38 widget A ptr, 0x3C widget B ptr.
+//   widget: 0xC4 flag word (bits 0x40/0x80 set), 0xD0 element id
+//     (A=1, B=2), 0x124/0x128/0x12C/0x130 f32 RGBA (set 1.0 = white).
+//   &D_0000108C / &D_0000109C = factory name/desc args (USO data refs).
+//   func_00000000 = the USO placeholder dispatcher (factory / attach).
+// Caps: raw-word USO + placeholder func_00000000 calls — not
+//   exact-matchable without proper USO mnemonic disasm (documented USO
+//   limitation); structure fully characterized. Structural pass only.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001460);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001658);
