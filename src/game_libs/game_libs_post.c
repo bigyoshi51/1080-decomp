@@ -9786,6 +9786,44 @@ void gl_func_00037F58(int a0, char *a1) {
  * insn). Keeping INCLUDE_ASM; documented for future passes. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037FAC);
 
+// gl_func_0003800C — STRUCTURAL PASS (0xFC / 63 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A multi-block chained-alloc constructor with
+// sentinel initialization.
+//
+//   O *gl_func_0003800C(O *o, ?) {
+//     if (o == 0) {
+//       o = alloc(0x2C);                        // jal 0 (USO alloc)
+//       if (o == 0) return 0;
+//     }
+//     A *a = alloc(0x18);  if (!a) return 0;     // sub-record
+//     B *b = alloc(0x10);  if (!b) return 0;     // sub-record
+//     b->w_0 = -1;                                // sentinel
+//     b->w_8 = 0x8000;                            // sentinel/flag
+//     b->w_4 = 0;
+//     C *c = alloc(0x04);  if (c) *c = 0;         // zeroed sub
+//     return o;
+//   }
+//
+// Struct-typing reference: a constructor of the same family as
+//   gl_func_00037AF0 / gl_func_00035B1C / gl_func_00034890. It
+//   allocate-or-reuses a 0x2C-byte record, then chain-allocates a
+//   0x18 sub-record, a 0x10 sub-record, and a 4-byte sub-block via
+//   USO-relocated allocator callbacks (jal 0 → resolved at load),
+//   each guarded by an allocation-failure early-out (constructor
+//   rollback discipline). The 0x10 sub-record is seeded with
+//   distinctive SENTINELS — field 0x00 = -1, field 0x08 = 0x8000,
+//   field 0x04 = 0 — which read as a free-list / handle-table
+//   initial state (the -1 = "no next / empty", 0x8000 = a
+//   capacity/flag bit), and the 4-byte sub-block is zeroed. A
+//   factory leaf of the game_libs object subsystem; the 0x2C / 0x18
+//   / 0x10 / 0x04 sizes and the {-1, 0x8000, 0} sentinel layout are
+//   the structs to type when this object family is formalized.
+// Caps: raw-word USO + USO-relocated jal-0 allocator + chained
+//   alloc-with-rollback + sentinel (-1 / 0x8000) init — not exact-
+//   matchable without proper USO mnemonic disasm + the 4 structs
+//   typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003800C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038108);
