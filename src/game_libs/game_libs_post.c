@@ -15833,6 +15833,43 @@ int gl_func_000435FC(int *a0, int a1) {
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043654);
 
+// gl_func_000437C0 — STRUCTURAL PASS (0x428 / 267 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
+// 0xE0 (saves ra, s0). Per-object state-machine update tick (cb = jal 0
+// USO-relocated).
+//
+//   void gl_func_000437C0(void *a0, void *a1) {
+//     self = a0;
+//     if (self->p14 == 0) return;                    // beql skip-all guard
+//     int r = self->p50;
+//     if (r != -1) {                                  // 2401FFFF sentinel
+//       g  = *(int*)(&D_0 + 0x254);
+//       lo = self->p54;
+//       a  = *(int*)(&D_0 + 0x10C);
+//       if ((a < lo) ^ 1) {                            // slt/xori bound test
+//         b = *(int*)(&D_0 + 0x110);
+//         if (b < ...) return;                          // 106000EE big bail
+//         self->p4C = r;                                // commit state
+//       }
+//     }
+//     // main body: reads global table heads (&D_0+0x254 / +0x158 / +0x244),
+//     // self fields (+0x60/+0x38/+0x18/+0xA4), runs a sequence of
+//     // counter/flag comparisons each gating a cb handler call and a
+//     // self-field update; iterates over sub-elements (sp+0x4C scratch),
+//     // re-reading the &D_0+0x254-rooted table per pass.
+//   }
+// A sizeable per-object update/state-advance routine: bails unless self->0x14
+// is set, validates the self->0x50 state against a -1 sentinel and global
+// bounds (&D_0+0x10C / +0x110), then walks module-global-rooted tables
+// (&D_0+0x254 / +0x158 / +0x244) performing conditional cb dispatch and
+// self-field commits (self->0x4C and neighbours). Family: cb-driven
+// state-machine / update tick (relates to the segment's dispatch +
+// registration routines). Per-branch payloads not exhaustively decoded
+// (267-word orchestrator) — the self->0x14 entry guard, the -1 sentinel
+// check, the &D_0+0x254/0x10C/0x110 global reads and the self->0x4C commit
+// are exact; the inner table-walk arm detail is representative. Caps:
+// self struct, the &D_0+0xNNN globals and cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000437C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043BEC);
