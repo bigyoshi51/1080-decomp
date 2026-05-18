@@ -17498,6 +17498,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B2FC);
 
+// gl_func_0004B620 — STRUCTURAL PASS (0x4CC / 309 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (large constructor). Single
+// prologue frame 0xB0 (saves ra + s0..s4). Object constructor/init (sibling
+// of gl_func_0004B0A8; cb = jal 0 USO-relocated; name key &D_0002F0FC).
+//
+//   void *gl_func_0004B620(void *a0, void *a1) {
+//     self = a0; arg = a1;
+//     if (a0 == 0) {
+//       self = cb1(0xD8);                              // alloc 0xD8-byte obj
+//       if (self == 0) return 0;                        // beqz bail
+//     }
+//     if (a1 == 0) {
+//       arg = cb2(0xCC);                                // alloc 0xCC sub-obj
+//       if (arg == 0) return 0;
+//     }
+//     cb3(self, &D_0002F0FC, arg, 0);                    // register name+sub
+//     self->p0C0 = 0; self->p0C4 = 0;                    // zero state block
+//     self->pB8 = 0.0f; self->pBC = 0.0f; self->pC8 = 0.0f;
+//     self->pB0 = 1.0f;                                  // scale/identity
+//                                                        //   default
+//     // ... further cb-registered sub-fields / FP defaults wired off self.
+//     return self;
+//   }
+// Larger constructor variant: alloc-if-null a 0xD8-byte object plus a 0xCC
+// sub-object (cb1/cb2), register under the &D_0002F0FC name, zero a field
+// block (self->0xC0/0xC4 + FP fields 0xB8/0xBC/0xC8) and seed self->0xB0 =
+// 1.0f (a scale/identity default), then continue with cb-registered
+// sub-fields. Family: cb-driven constructor + name/handler registration
+// (siblings gl_func_0004B0A8 / 00040070 / 0003E5E0). Per-field wiring tail
+// representative (309-word constructor) — the 0xD8/0xCC allocs, the
+// &D_0002F0FC name key, the zeroed 0xC0/0xC4/0xB8/0xBC/0xC8 block and the
+// self->0xB0 = 1.0f default are exact. Caps: object/sub struct + cb
+// signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B620);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004BAF4);
