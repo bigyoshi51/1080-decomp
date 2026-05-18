@@ -1674,6 +1674,46 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000077D8);
 
+// timproc_uso_b5_func_000079A4 — STRUCTURAL PASS (0x188 / 98 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen fade-out / teardown + next-phase re-init handler.
+//
+//   void timproc_uso_b5_func_000079A4(Scr *scr) {        // scr -> s0
+//     scr->0x400--;                                       // countdown
+//     if (scr->0x34 == 2) {
+//       if (scr->0x4A0 > 0.0f) scr->0x4A0 -= K;            // K = D_01D0
+//       if (scr->0x4A0 < 0.0f) scr->0x4A0 = 0.0f;          // clamp alpha
+//     }
+//     if (scr->0x400 == 0) {
+//       if (func_00000000(scr)) return;
+//       d = scr->0x28;  (d->0x8C)(d->0x88 + …);            // hide
+//       func_00000000(scr); func_00000000(scr);
+//       d = scr->0x28;  (d->0x84)(d->0x80 + …);            // deactivate
+//       if (func_00000000(scr)) { func_00000000(scr->0x41C); return; }
+//       // re-init next phase: e = D_000003E0[ f(scr->0x3C4) ];
+//       scr->0x3D4 = func_00000000(e, e->0xA4);
+//       scr->0x3C8 = func_00000000(scr);
+//       scr->0x3C4 = func_00000000(.);
+//       scr->0x3CC = 6;  scr->0x484 = 1.0f;                // next state
+//       func_00000000(scr, 0);
+//     }
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x400 countdown timer (dec; 0 triggers teardown), 0x34 mode
+//     (==2 enables alpha fade), 0x4A0 f32 alpha (faded down by K,
+//     clamped >=0), 0x3C4/0x3C8/0x3D4 re-init outputs, 0x3CC state
+//     (=6 next), 0x484 f32 (=1.0), 0x41C a sub-target, 0x28 vtable
+//     (->0x88/0x8C hide, ->0x80/0x84 deactivate — obj->0x28 idiom).
+//   D_000001D0 = folded f32 fade-step const (literal-pool fold family;
+//     see docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C);
+//   D_000003E0 = USO static phase/handler table. func_00000000 = USO
+//   placeholder dispatcher (gate / hide / re-init).
+// Caps: raw-word USO + folded const + placeholder calls — not exact-
+//   matchable without proper USO mnemonic disasm; structure
+//   characterized. Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000079A4);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007B2C);
