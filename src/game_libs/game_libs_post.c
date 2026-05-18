@@ -15008,6 +15008,43 @@ void gl_func_000417CC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000417CC);
 #endif
 
+// gl_func_0004182C — STRUCTURAL PASS (0x244 / 146 words, no episode). Raw-.word
+// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
+// at the jr at 0x41A64; a tiny trailing leaf at 0x41A6C is just `jr ra; nop`
+// (an empty/no-op stub — DEFERRED USO RE-SPLIT, belongs to the next symbol).
+//
+// Named fn = subsystem-registration init (single prologue frame 0x40, saves
+// ra; cb = jal 0 USO-relocated registrar; string literals &D_0002F5F0..F624):
+//   void gl_func_0004182C(void *a0) {
+//     *(int*)&D_0002.... = 1;                      // set module-active flag
+//     cb(&D_0002F5F0);                              // register entry A
+//     if (*(int*)&D_g == 0x17D7) {                  // version/magic guard
+//       cb(&D_0002F600);
+//       cb(&D_0002F618);
+//     }
+//     cb(*(int*)&D_x, 1);                           // register with state arg
+//     cb(&D_0002F624, 1);
+//     cb(&D_g2, 1);
+//     scratch = 0x10; cb(a0, &scratch);             // register with out-param
+//     cb(&D_..); cb(&D_..);
+//     cb(1); cb(1);
+//     cb(&D_.., 0x64);                              // numeric params
+//     r = cb(0x14);
+//     if (r == 0) { ... }                            // beqz post-register
+//     // ... continued cb registration calls with int params
+//     //     (0x32 / 1 / 0x64 / 0x14 / 0xA ...) keyed by the &D_0002F5xx
+//     //     string table; gated/sequenced as above.
+//   }
+// A one-shot registration driver: flips a module-active global, performs a
+// version-guarded (0x17D7) block of cb registrations keyed by a contiguous
+// string-literal table (&D_0002F5F0/F600/F618/F624), interspersed with
+// numeric-param and out-param cb calls. Family: cb-driven init/registration
+// (siblings gl_func_000415A4 / 00040DE8 / 0003E5E0). Full cb argument list
+// not exhaustively decoded (146-word driver) — the active-flag set, the
+// 0x17D7 version guard, the string-table keys and the cb call shape are
+// exact; per-call numeric params representative. Trailing leaf at 0x41A6C =
+// empty stub (deferred re-split). Caps: &D_g/&D_0002F5xx + cb signatures
+// untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004182C);
 
 extern int gl_func_00000000();
