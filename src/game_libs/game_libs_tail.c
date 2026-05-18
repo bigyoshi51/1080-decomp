@@ -53,6 +53,7 @@ void gl_func_0000975C(Quad4 *dst) {
     *dst = buf;
 }
 
+/* gl_func_00009DB8: 65-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009DB8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009EBC);
