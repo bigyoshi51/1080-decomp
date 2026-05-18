@@ -14672,6 +14672,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040974);
 // Cmd/Node/obj struct untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040CAC);
 
+// gl_func_00040DE8 — STRUCTURAL PASS (0xA4 / 42 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x18
+// (saves ra). String-keyed field-registration table (cb = jal 0
+// USO-relocated registrar; string-literal keys at &D_0002F494..F4A8).
+//
+//   void gl_func_00040DE8(void *a0) {
+//     self = a0;                                  // spilled to sp+0x18
+//     void *g = &D_reloc;                          // global registrar base
+//     cb_begin(g, &D_0002F494, 0);                 // open registration scope
+//     cb_field(g, &D_0002F49C, (char*)self + 0xB4, 0x3C);  // field A, size 0x3C
+//     cb_field(g, &D_0002F4A0, (char*)self + 0xDC, 0x3C);  // field B, size 0x3C
+//     cb_field(g, &D_0002F4A8, (char*)self + 0xB0, 0);      // field C, size 0
+//     cb_str(&D_str);                              // trailing finalize 1
+//     cb_end();                                    // trailing finalize 2
+//   }
+// Registers three fields of the object under string-literal names: self+0xB4
+// and self+0xDC as 0x3C-byte (Vec-block / matrix-ish) entries, self+0xB0 as
+// a 0-size (scalar/handle) entry, bracketed by a begin (key &D_0002F494) and
+// two finalize cb calls. Family: string-literal-keyed cb registration
+// (siblings gl_func_0003E5E0 / 0003E39C; same g + key + addr + typecode
+// shape). The 0x3C size on the +0xB4 / +0xDC fields corroborates the twin
+// Vec3/transform field group seen in gl_func_00040CAC. Caps: object struct,
+// the &D_0002F49x string table and cb signatures inferred from call shape.
+// Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040DE8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040E90);
