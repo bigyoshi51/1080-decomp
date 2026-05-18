@@ -720,6 +720,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD98);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FEC8);
 
+// gl_func_0001FF34 — STRUCTURAL PASS (0x84 / 33 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Sibling of gl_func_0001FEC8: a multi-step diagnostic /
+// status-print sequence.
+//
+//   void gl_func_0001FF34(int arg) {
+//     *(int*)(&D_0 + 0x216C) = ...;             // stash a value
+//     (*pr)(&D_2168, *(int*)reg);                // jal 0 USO-reloc
+//     (*pr)(&D_2198, arg);                        // jal 0 USO-reloc
+//     (*pr)(&D_2168, *(int*)(reg2 + 0xC));        // jal 0 USO-reloc
+//     (*pr)(&D_21C8, arg);                        // jal 0 USO-reloc
+//   }
+//
+// Struct-typing reference: &D_2168 / &D_2198 / &D_21C8 are fixed
+//   format-string / descriptor blobs (same &D_21xx descriptor pool
+//   used by the gl_func_0001FEC8 register helper). The `jal 0` slots
+//   are a USO-relocated printf-like reporter, resolved at load, each
+//   invoked with a format pointer and a value pulled from a global
+//   register/struct (word at reg+0, word at reg2+0xC) or the caller
+//   arg (preserved across the calls via sp+0x18). Word &D_0+0x216C
+//   is written once before the prints (a captured handle/value).
+//   This is the "report/dump state" entry of the same game_libs
+//   support family as gl_func_0001FD98 / gl_func_0001FEC8.
+// Caps: raw-word USO + jal-0 USO-reloc reporter calls — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FF34);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FFB8);
