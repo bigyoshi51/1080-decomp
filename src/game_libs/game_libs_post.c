@@ -7143,6 +7143,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
 
+// gl_func_000332B4 — STRUCTURAL PASS (0x84 / 33 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A single-opcode command-stream handler step.
+//
+//   void gl_func_000332B4(O *o, Cmd *c) {
+//     if (c->tag_0 != 0x69) return;           // tag gate
+//     int *sp = (int*)c->cur_4;
+//     c->cur_4 = (int)(sp + 1);               // advance cursor +4
+//     int idx = *sp;                          // stream param
+//     if (idx < 0x28) {                        // range guard (<40)
+//       callback((void*)0x0001E194, idx);     // jal 0 (USO cb)
+//       o->p_F4 = D_0_table[idx];              // &D_0 + idx*4
+//     } else {
+//       callback0(o);                          // else USO cb
+//     }
+//   }
+//
+// Struct-typing reference: one handler in the command-stream
+//   interpreter. It validates the incoming command record's tag
+//   word (*c == 0x69), advances the record's read cursor (field
+//   0x4) by one int, fetches an index parameter from the stream,
+//   bounds it to [0, 0x27] (< 0x28 = 40 entries), and on the
+//   in-range path indexes a dispatch table based at &D_0 (stride 4;
+//   also passing the fixed data-segment reference 0x0001E194 to a
+//   USO-relocated callback, jal 0 → resolved at load), storing the
+//   resolved value into the target object at o->0xF4 — the SAME
+//   handle/child field written by the gl_func_00033094 transform
+//   and the gl_func_00032E18 / gl_func_00033228 constructors,
+//   confirming o->0xF4 is this object's primary sub-object handle.
+//   The out-of-range path takes an alternate callback. A per-opcode
+//   step of the game_libs object subsystem's command VM (sibling
+//   handler to the gl_func_0002FB74 interpreter's inline arms,
+//   factored out for the 0x69 command).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0 dispatch
+//   table + fixed data-seg ref (0x0001E194 unsymbolized) — not
+//   exact-matchable without proper USO mnemonic disasm + the table
+//   symbolized; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000332B4);
 
 #ifdef NON_MATCHING
