@@ -19019,6 +19019,7 @@ void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055C34);
 
+/* gl_func_00055FB4: 51-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055FB4);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055FB4_pad.s")
 
