@@ -17323,6 +17323,37 @@ void gl_func_0004A84C(char *a0) {
     }
 }
 
+// gl_func_0004A890 — STRUCTURAL PASS + BOUNDARY NOTE (0x1FC / 128 words, no
+// episode). Raw-.word USO. realjr=2, regjr=0 → 2-function BUNDLE: named fn
+// ends at the jr at 0x4A9E8 (~90w); a ~40-word no-frame leaf at 0x4A9EC
+// (DEFERRED USO RE-SPLIT — belongs to the next symbol).
+//
+// Named fn = 16-bit-coordinate bounding-box / min-max compute (single
+// prologue frame 0x2A0 — large on-stack scratch; saves ra, s0, s1):
+//   void gl_func_0004A890(void *a0, int n, short *pts) {
+//     short *out = sp + 0x48;                         // result scratch
+//     if (n <= 0) goto done;                          // blez count guard
+//     int minx = -1, maxx = ...;                       // 240AFFFF init
+//     for (i = 0; i < n; i++) {
+//       int x = (short)pts[i*?];                        // lh + sra sign-ext
+//       int y = (short)pts[i*? + 1];
+//       // track running min/max (subu/compare), also reading pts+0xD4/0xD6
+//       // bound fields; write the accumulated extents into out (sh stores)
+//     }
+//     // a second pass (from 0x4A8FC) re-walks pts via pts->0xD0 to refine
+//     // / clip the extents.
+//   done:
+//   }
+// Computes a bounding box / min-max extent over an n-element array of 16-bit
+// coordinates (sign-extended via lh + sra), seeding from a -1 sentinel and
+// accumulating into the sp+0x48 scratch, with bound fields read at
+// pts+0xD4/0xD6 and a second refinement pass over pts->0xD0. Family:
+// geometry / spatial-query (bbox extent computation; relates to the
+// segment's spatial-search / FP-pool routines). Inner min/max bookkeeping
+// representative; the blez count guard, the 16-bit lh+sra coordinate read,
+// the -1 seed and the pts+0xD4/0xD6 bound fields are exact. Trailing leaf
+// at 0x4A9EC = deferred re-split. Caps: point/pts struct untyped; bundle
+// re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A890);
 
 #ifdef NON_MATCHING
