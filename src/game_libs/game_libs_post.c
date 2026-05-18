@@ -7802,6 +7802,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034458);
 
+// gl_func_00034548 — STRUCTURAL PASS (0x13C / 79 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A one-time global subsystem-table initializer.
+//
+//   void gl_func_00034548(void *a0) {
+//     setup(0xC, (void*)0x0003BB18, 0x10);     // jal 0 (USO cb)
+//     *(int*)0x0003BB38 = 0;                    // clear global
+//     int *slot = (int*)0x0003BB34;
+//     do {
+//       callback((void*)0x0003BB18, &localC);   // USO cb
+//       v = callback(..., 1);                    // USO cb
+//     } while (v == 0);                          // init/poll retry
+//     *slot = v;                                 // publish result
+//   }
+//
+// Struct-typing reference: a one-shot initializer for a global
+//   game_libs data table that lives at the FIXED absolute addresses
+//   0x0003BB18 / 0x0003BB34 / 0x0003BB38 — a registry block
+//   DISTINCT from the &D_0-rooted record (the 0x0003BBxx range is
+//   its own game_libs global, in the 0x0003xxxx data window, not
+//   &D_0 + small-offset). It performs an initial setup callback
+//   (size 0xC, ref 0x0003BB18), zeroes the 0x0003BB38 global, then
+//   spins a setup/poll loop issuing USO-relocated callbacks (jal 0
+//   → resolved at load) until one returns non-zero (an
+//   init-until-ready retry), publishing that result into the
+//   0x0003BB34 global. Two fixed data-segment templates are
+//   referenced (0x0001E424, 0x0001E438). A subsystem bring-up /
+//   one-time table-construction leaf of the game_libs object
+//   subsystem (the 0x0003BB18/34/38 trio are deferred absolute-
+//   symbol sites — candidates for `gl_ref_0003BBxx` externs per
+//   docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data when this
+//   global table is formalized).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + fixed
+//   absolute-address globals (0x0003BBxx) + init-poll loop — not
+//   exact-matchable without proper USO mnemonic disasm + the
+//   absolute globals symbolized; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034548);
 
 #ifdef NON_MATCHING
