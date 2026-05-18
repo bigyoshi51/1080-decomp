@@ -16508,6 +16508,38 @@ void game_libs_func_00046048(int a0) {
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046050);
 
+// gl_func_00046790 — STRUCTURAL PASS (0x214 / 134 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x8
+// (near-leaf). Nibble/bit-stream unpack decoder (no cb calls).
+//
+//   int gl_func_00046790(void *a0, int a1, int a2, int a3) {
+//     int idx = a0->p204;
+//     void *tbl = *(void**)(&D_0 + 0x240);           // global decode table
+//     void *row = (char*)tbl + idx*4 + a3*4;          // table[idx][a3]
+//     void *stream = *(void**)((char*)row + 0xF4);    // packed byte stream
+//     unsigned key = a1 & 0xFF;
+//     if (key >= 0x80) return 0;                       // slti/beqz range guard
+//     // walk the stream extracting 4-bit nibbles from each byte
+//     // (lbu + andi 0xF + sra), accumulating per the (key>>n) selector
+//     // and a2 control, into a decoded value:
+//     for (...) {
+//       unsigned b = *(u8*)stream;
+//       int hi = (b >> 4) & 0xF, lo = b & 0xF;        // nibble split
+//       // ... combine nibbles per the key/a2-driven state machine ...
+//       stream++;
+//     }
+//     return decoded;
+//   }
+// A nibble-granular stream decoder: resolves a per-index packed stream via
+// the &D_0+0x240 global table, range-checks the 0xFF-masked key against
+// 0x80, then unpacks 4-bit fields from the byte stream (lbu / andi 0xF /
+// sra arithmetic) under a key/a2-driven accumulation. Family: packed-table
+// decode (the unpack counterpart of the byte-pack/quantize routines
+// gl_func_000430E4 / 00043484 / 00045CB0). Inner loop accumulation
+// representative; the a0->0x204 index, the &D_0+0x240 table, the +0xF4
+// stream pointer, the key & 0xFF < 0x80 guard and the 4-bit nibble
+// extraction are exact. Caps: table/stream struct + &D_0+0x240 global
+// untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046790);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000469A8);
