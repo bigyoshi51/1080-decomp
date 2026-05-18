@@ -8073,6 +8073,33 @@ void game_uso_func_0000A7D8(int *a0) {
     *(float *)((char *)a0 + 0x60) = *(float *)((char *)&D_00000000 + 0x110);
 }
 
+// game_uso_func_0000A7F8 — STRUCTURAL PASS (0x3A0 / 232 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic). Same FP world-matrix-builder family as
+// game_uso_func_000028C0 / 00002CC8 / 0000A604.
+//
+//   void game_uso_func_0000A7F8(Obj *obj) {              // obj -> a2
+//     World *w = obj->0x30;
+//     // copy obj->0xB4/0xB8/0xBC transform into sp scratch;
+//     // Vec3 = { w->0x318, w->0x31C, w->0x320 } scaled by w->0xA8;
+//     //   (mul.s f0=w->0xA8; f14=f4*f0, f2=f6*f0, f12=f8*f0);
+//     //   store sp+0xB8/0xBC/0xC0;
+//     // copy 3-word matrix-row blocks between obj sub-records and sp;
+//     // matrix*vector FP chains compose a world transform; ~6
+//     //   func_00000000 sub-calls (transform helpers);
+//     // write the composed transform back into obj fields.
+//   }
+//
+// Struct-typing reference:
+//   obj: 0x30 -> World (w->0xA8 scale, w->0x318/0x31C/0x320 a Vec3),
+//     0xB4/0xB8/0xBC a transform Vec3. sp scratch = matrix rows +
+//     output. func_00000000 = USO placeholder dispatcher (transform
+//     helper). See game_uso_func_000028C0's comment for the shared
+//     family shape.
+// Caps: raw-word USO + placeholder calls + 232-word FP transform —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7F8);
 
 void game_uso_func_0000AB98(void *a0) {
