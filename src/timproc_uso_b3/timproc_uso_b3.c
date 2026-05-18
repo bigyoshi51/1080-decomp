@@ -415,18 +415,38 @@ void timproc_uso_b3_func_0000183C(int *a0) {
     gl_func_00000000(p, 0x8C, *(int*)((char*)p + 0x6AC));
 }
 
-/* timproc_uso_b3_func_00001870: byte-identical clone of
- * arcproc_uso_func_00001BBC (same FPU body: jal; reload a3; f2=0;
- * a0=a3->0xD4; lwc1 f0,OFF; sub.s D-const; bc1fl x3; 2 calls — only
- * data offsets differ: 0x72C/72(at)/1708 vs 1BBC's 0x77C/68/1712).
- * SAME stolen-prologue boundary: declared 0xB8 but real 0xB0; trailing
- * `lui at,0x3f80; mtc1 at,$f0` (=1.0f) @+0xB0/0xB4 is the successor's
- * stolen f0 prologue. Defer identically to arcproc_uso_func_00001BBC
- * (see its wrap in arcproc_uso_tail1.c + docs/MATCHING_WORKFLOW
- * forward-merge FPU-variant + clone-canonical exclusion). Do NOT
- * cold-re-derive: it's the 739fd8d1d3 clone family. Decode only
- * alongside the SUFFIX_BYTES+PROLOGUE_STEALS pair for this family. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001870);
+/* timproc_uso_b3_func_00001870: byte-identical mirror of
+ * timproc_uso_b1_func_00001908 (46-insn 0xB8 decrement-and-fire helper).
+ * Same SUFFIX_BYTES + INSN_PATCH recipe (mirror of b1's). */
+void timproc_uso_b3_func_00001870(int *self) {
+    char *base = &D_00000000;
+    int *saved;
+    int *sub;
+    float *fp;
+    float val;
+    gl_func_00000000(self);
+    saved = self;
+    sub = (int*)saved[0xD4/4];
+    fp = (float*)((char*)sub + 0x72C);
+    val = *fp;
+    if (val > 0.0f) {
+        *fp -= *(float*)(base + 0x48);
+        sub = (int*)saved[0xD4/4];
+        fp = (float*)((char*)sub + 0x72C);
+        val = *fp;
+        if (val < 0.0f) {
+            *fp = 0.0f;
+        }
+        sub = (int*)saved[0xD4/4];
+        gl_func_00000000(saved, 140, *(int*)((char*)sub + 0x6AC));
+        sub = (int*)saved[0xD4/4];
+        fp = (float*)((char*)sub + 0x72C);
+        val = *fp;
+    }
+    if (val <= 0.0f) {
+        gl_func_00000000(saved);
+    }
+}
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00001928: byte-identical mirror of
