@@ -24210,8 +24210,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F634);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F69C);
 
-/* gl_func_0006F834: 26-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006F834: 26-insn 2-call wrapper with float-bits-passthrough.
+ * Decoded shape:
+ *   void f(int x0, int x1, int x2, int x3, float a, float b, float c, float d) {
+ *     char buf[0x40];
+ *     gl_func_00000000(buf, x1, x2, x3, a, b, c, d);
+ *     gl_func_00000000(buf, x0);
+ *   }
+ * Caller passes 4 int reg args + 4 floats via stack at sp+0x78..0x84.
+ * Callee reads stack floats via lwc1, forwards to next callee via swc1
+ * outgoing slots (sp+0x10..0x1C).
+ *
+ * Cap: target emits a mysterious mtc1 a1,f12; mtc1 a2,f14; mtc1 a3,f16
+ * at entry IMMEDIATELY followed by mfc1 a1,f12; mfc1 a2,f14; mfc1 a3,f16
+ * after the lwc1 reads — a net no-op round-trip through FP regs. Likely
+ * an IDO emit artifact when args are typed `float` in C but arrive in
+ * int regs per O32. No standard C produces this exactly. */
+void gl_func_0006F834(int x0, int x1, int x2, int x3,
+                      float a, float b, float c, float d) {
+    char buf[0x40];
+    typedef void (*Fn8)(char*, int, int, int, float, float, float, float);
+    typedef void (*Fn2)(char*, int);
+    ((Fn8)gl_func_00000000)(buf, x1, x2, x3, a, b, c, d);
+    ((Fn2)gl_func_00000000)(buf, x0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F834);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F834_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F8A4);
