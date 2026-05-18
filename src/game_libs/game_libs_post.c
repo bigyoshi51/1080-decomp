@@ -18988,6 +18988,7 @@ void gl_func_00066720(char *src, char *dst, unsigned int len) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066720);
 #endif
 
+/* gl_func_00066794: 31-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066794);
 
 void gl_func_00066810(int a0) {
