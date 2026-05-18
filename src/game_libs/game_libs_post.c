@@ -14548,6 +14548,40 @@ void gl_func_000402A4(int *a0, float dx, float dy, float dz) {
 // Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040304);
 
+// gl_func_00040640 — STRUCTURAL PASS (0x330 / 205 words, no episode). Raw-.word
+// USO. realjr=1, regjr=1 (the 01E00008 at +0x44 is jr t7 = jump-table
+// dispatch, NOT a boundary — exactly the docs/N64_FORENSICS ADDENDUM-18c
+// register-indirect-jr pattern), single prologue frame 0xE8 (saves ra, s0)
+// → ONE clean function. 10-way jump-table diagnostic dispatcher
+// (cb = jal 0 USO-relocated emit).
+//
+//   void gl_func_00040640(void *a0) {
+//     self = a0;
+//     cb1(a0->p0C);                              // entry hook on sub-handle
+//     scratch = self->p10;                        // saved to sp+0xE4
+//     int st = self->pB0;                         // dispatch selector
+//     if (st == 0)  goto def;                      // beqz guard
+//     if ((unsigned)st >= 0xA) goto def;           // sltiu/beqz range guard
+//     goto *jumptab[st];                           // table at &D_0+0x1B00
+//     // each of the ~9 arms (st = 1..9):
+//     //   a0 = &D_str_k;  a1 = &D_..+0xE8 (or +0x70);
+//     //   cb2(a0, a1, ...);                        // emit labeled message k
+//     //   b shared_tail;                           // all arms converge
+//     def:
+//     // default arm: cb2 with the generic/unknown-state string, fallthrough
+//     // shared_tail: final cb(...) flush using sp+0xE4 (saved self->0x10)
+//   }
+// Per-state diagnostic/trace emitter: switches on self->0xB0, each case
+// prints a distinct labeled line through cb keyed by string literals at
+// &D_..+0xE8 / &D_..+0x70, all branching to a common flush tail. Sibling of
+// gl_func_00040304 (that one a 6-way geometry-setter jump table at
+// &D_0+0x1AE4; this one a 10-way string-emit table at &D_0+0x1B00 — same
+// IDO switch idiom `idx=sel; if(idx>=N) def; jr tab[idx];`). Per-arm strings
+// and bodies not individually decoded (205-word table handler) — dispatch
+// math, range guard, table address and the per-arm cb-emit shape are exact;
+// arm payloads representative. Caps: object struct, &D_0+0x1B00 jump table,
+// the &D_.. string literals and cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040640);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040974);
