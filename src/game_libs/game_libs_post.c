@@ -17714,6 +17714,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);
 /* gl_func_0004CCB4: 65-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CCB4);
 
+// gl_func_0004CDB8 — STRUCTURAL PASS (0x140 / 83 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
+// (saves ra, s0, s1). Indexed-object init + GBI/RDP DL-packet emit
+// (cb = jal 0 USO-relocated; sibling of gl_func_00045E20 / 00046FA8).
+//
+//   void gl_func_0004CDB8(void *a0, int idx) {
+//     void *obj = ((void**)&D_garr)[idx]->p280;       // global indexed array
+//     self = a0;
+//     cb1(obj, &obj->p174);                            // init sub-block A
+//     cb2(obj, &obj->p15C);                            // init sub-block B
+//     GfxCtx *g = obj->p0C;
+//     int i = g->idx; g->idx = i + 1;                  // bump packet index
+//     uint *p = (uint*)g->buf + i*2;                    // slot = base + i*8
+//     p[0] = 0x06000000;                                // G_DL / branch-seg
+//     cb3((char*)self + 0x168, ...);                    // resolve arg word
+//     p[1] = cb3_result;
+//   }
+// Resolves an object from a global indexed array (entry->0x280), initialises
+// two sub-blocks via cb1(obj,&obj->0x174) / cb2(obj,&obj->0x15C), then
+// appends a two-word DL command packet (top-byte 0x06 = G_DL /
+// branch-to-segment) into the GfxCtx buffer reached via obj->0x0C
+// ({buf, idx@+4}, stride 8), with a cb3 hook supplying the arg word.
+// Family: CPU-side RDP DL fragment builder (sibling of gl_func_00045E20 /
+// 00046050 / 00046FA8; the G_DL-class variant; see
+// docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder). The
+// global-array index, the obj->0x280 resolution, the cb1/cb2 inits, the
+// obj->0x0C GfxCtx path, the 0x06 opcode and the idx-bump + i*8 stride are
+// exact; the cb3 arg derivation is representative. Caps: array/obj/GfxCtx
+// struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
 
 /* gl_func_0004CF04: 52-insn helper. Multi-pass decode pending. */
