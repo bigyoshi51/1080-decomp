@@ -3490,6 +3490,37 @@ int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, int arg3,
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D14C);
 #endif
 
+// timproc_uso_b5_func_0000D550 — STRUCTURAL PASS (0x334 / 205 words,
+// no episode). Raw-.word USO form (single function). Dispatcher-heavy
+// (15 calls, ~1 FP op) — a constructor, not math.
+//
+// Timing-screen sub-screen/panel constructor.
+//
+//   void *timproc_uso_b5_func_0000D550(a0, a1, a2, a3) {
+//     R *r = func_00000000(0x2C8);  if (!r) return 0;      // main alloc
+//     S *s = func_00000000(0x2B8);  if (s) {               // sub alloc
+//       func_00000000(s, &D_000015F0);                     // base-init
+//       s->0x28 = &D_0;                                     // vtable
+//       func_00000000(s + 0x2C);
+//       func_00000000(s + 0x194, &D_000015F8);
+//     }
+//     // ~15 func_00000000 calls total: build/register child
+//     //   sub-elements at r/s offsets (0x2C, 0x194, …) from the
+//     //   D_000015F0 / D_000015F8 descriptor table; wire args
+//     //   a0/a1/a2/a3 (spilled sp+0x60..0x6C) into the children.
+//     return r;
+//   }
+//
+// Struct-typing reference:
+//   r (alloc 0x2C8) = the panel object; s (alloc 0x2B8) = a sub-record
+//     (0x28 vtable &D_0, 0x2C / 0x194 child anchors). a0..a3 =
+//     owner/config forwarded to children. D_000015F0 / D_000015F8 =
+//     USO static descriptor table. func_00000000 = USO placeholder
+//     dispatcher (alloc / init / factory / attach).
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D550);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D884);
