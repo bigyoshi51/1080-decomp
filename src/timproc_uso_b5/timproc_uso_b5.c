@@ -1157,6 +1157,40 @@ void timproc_uso_b5_func_000040BC(int a0, int a1, int a2, int a3, int arg5, int 
     gl_func_00000000(arg6, a1, a2, 3);
 }
 
+// timproc_uso_b5_func_00004118 — STRUCTURAL PASS (0x1AD8 / 1718 words,
+// no episode). Raw-.word USO form (genuine code, single function).
+// LARGEST function in this segment — entry/alloc/fan-out partial pass
+// only; multi-run target.
+//
+// Massive composite-screen constructor (the timing/replay HUD screen:
+// lap table + splits + controls):
+//
+//   void *timproc_uso_b5_func_00004118(Obj *self, a1, a2, a3) {
+//     // frame 0x3A8; args spilled to sp+0x3A8..0x3B4.
+//     if (!self) { self = func_00000000(0x4F0); if (!self) return 0; }
+//     func_00000000(0x2C);                               // aux alloc
+//     func_00000000(self, &D_00001260);                  // base-init
+//     self->0x28 = &D_0;                                  // vtable
+//     // fan-out (~74 func_00000000 calls total): builds
+//     //   ~18 sub-records of 0x18 bytes  (e.g. lap/split rows),
+//     //   ~13 sub-records of 0x24 bytes  (e.g. digit/column cells),
+//     //   plus larger sub-objects (0x38C, 0x2C, 0x8) — each
+//     //   allocated, initialized, positioned and linked into self;
+//     //   FP layout via the saved f20 accumulator.
+//     return self;
+//   }
+//
+// Struct-typing reference:
+//   self(a0, alloc 0x4F0): 0x28 vtable(&D_0); aggregates ~18 x 0x18
+//     records + ~13 x 0x24 records + sub-objects (0x38C/0x2C/0x8).
+//   &D_00001260 = base-init descriptor; the 0x12xx USO pool supplies
+//     child names/descs. func_00000000 = USO placeholder dispatcher
+//     (alloc / init / factory / position / attach).
+// Caps: raw-word USO + 74 placeholder calls + 1718 words — not
+//   exact-matchable here; structural (entry/alloc/fan-out/return)
+//   partial pass only, no byte body. Multi-run: future passes can
+//   expand the 0x18/0x24 sub-record build loops.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00004118);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005BF0);
