@@ -321,6 +321,7 @@ void gl_func_0000127C(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000127C_pad.s")
 
+/* gl_func_000012B4: 40-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000012B4);
 
 void game_libs_func_00001354(int *a0, int a1) {
