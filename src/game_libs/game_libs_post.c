@@ -10034,6 +10034,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038360);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038598);
 
+// gl_func_0003863C — STRUCTURAL PASS (0xEC / 59 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list-traversal + flag-gated relink / vtable dispatch
+// — sibling of gl_func_00038598 / gl_func_00035C6C.
+//
+//   void gl_func_0003863C(O *o) {
+//     callback(o->p_0C);                        // jal 0 (USO cb1)
+//     N *n = o->p_10;
+//     while (n != 0) {
+//       N *node = *n;
+//       if (node->w_18 & 4) {                    // flag gate (beql)
+//         if (node->p_4 != 0)
+//           node->p_14 = o;                       // relink to parent
+//         callback();                             // cb2 (process)
+//         if (node->w_20 & v0) {                  // mask gate (beql)
+//           H *h = node->p_28;
+//           h->fp_1C(...);                         // jalr h->0x1C
+//         }
+//       }
+//       n = n->next_4;
+//     }
+//   }
+//
+// Struct-typing reference: a per-element relink + dispatch pass
+//   over an intrusive list. It first runs a USO-relocated callback
+//   (jal 0 → resolved at load) on o->0x0C, then walks the list
+//   rooted at o->0x10 (next at +0x04) and, for each node whose
+//   flag word node->0x18 has bit 4 set, RELINKS the node's parent
+//   back-pointer (node->0x14 = o, guarded on node->0x04 != 0),
+//   runs a process callback, and — under a further mask test on
+//   node->0x20 — dispatches a VTABLE method at node->0x28+0x1C
+//   (the per-node handler reached via node->0x28). Same collection-
+//   processor shape as gl_func_00038598 (flag bit 0x200, slot
+//   0x14) / gl_func_00035C6C / gl_func_00034458 but with flag bit
+//   4 and handler-vtable slot 0x1C — extending the device-object
+//   handler-vtable slot map (0x14 / 0x1C / 0x4C / 0x50 / 0x54 /
+//   0x5C / 0x60). A per-frame "fix up & process active nodes"
+//   traversal of the game_libs object subsystem.
+// Caps: raw-word USO + intrusive-list walk + flag/mask gates +
+//   USO-relocated jal-0 callbacks + jalr through per-node vtable
+//   (node->0x28+0x1C) — not exact-matchable without proper USO
+//   mnemonic disasm + the node/handler structs typed; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003863C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
