@@ -8057,6 +8057,49 @@ void gl_func_00034B64(int a0) {
     gl_func_00000000(gl_func_00000000);
 }
 
+// gl_func_00034B98 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x7C / 31 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE (no-frame-leaf shape — see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). realjr=3 but only
+// ONE 27BDFFE0 prologue. The two trailing jr's bound tiny no-frame
+// LEAF stubs splat could not separate:
+//   - 0x34B98..0x34BD4: the NAMED function (frame-allocating).
+//   - 0x34BD8..0x34BF4: a tiny GLOBAL-POINTER COPY stub (no frame)
+//       — `t6 = *&D_0; *(other_global) = t6; t7 = *(...);
+//       jr ra; *(a2) = t7` (relays a &D_0-rooted pointer between
+//       globals).
+//   - 0x34BF8..0x34C0C: a tiny ADDRESS-TRANSLATE accessor (no
+//       frame) — `v0 = *&D_0; jr ra; v0 = v0 + 0x80000000`
+//       (KSEG0/segment fix-up of a &D_0 pointer).
+//
+// Leading fn gl_func_00034B98 (slot-init loop):
+//   void gl_func_00034B98(void *a0) {
+//     for (int i = 1; i != 0xA; i++)           // i = 1 .. 9
+//       callback(i);                            // jal 0 (USO cb)
+//   }
+// i.e. it iterates indices 1..9 calling a USO-relocated callback
+// (jal 0 → resolved at load) once per index — a "register / init
+// all 9 slots" loop (the 0xA bound = 10 means 9 active entries,
+// 1-based).
+//
+// Struct-typing reference: the named function is a fixed-count
+//   initializer that populates 9 numbered entries of some table
+//   (the per-index callback is the slot setter); the two bundled
+//   leaves are its companion pointer-relay / address-fixup
+//   accessors over the &D_0 global root (the +0x80000000 add is the
+//   recurring N64 segment translation, KSEG0 vs physical/KUSEG).
+//   An init + accessor cluster of the game_libs object subsystem.
+// Resolution: DEFERRED USO RE-SPLIT for the two tail stubs (tracked
+//   with the other game_libs_post.c bundle notes; not fixable with
+//   mnemonic split/merge tooling — needs the spimdisasm-USO
+//   migration). No merge attempted (would corrupt the stubs); no
+//   episode.
+// Caps: raw-word USO + bundled no-frame leaves + USO-relocated jal-0
+//   callback + &D_0 global + segment-translate add — not exact-
+//   matchable without proper USO mnemonic disasm + boundary
+//   re-split; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034B98);
 
 extern int gl_func_00000000();
