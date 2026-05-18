@@ -16773,6 +16773,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000473AC);
 /* gl_func_00047644: 38-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047644);
 
+// gl_func_000476DC — STRUCTURAL PASS + BOUNDARY NOTE (0x21C / 136 words, no
+// episode). Raw-.word USO. realjr=4, regjr=0 → MULTI-FUNCTION BUNDLE: the
+// four jr at 0x47714 (early, ~18w in) / 0x478D0 / 0x478E4 / 0x478F4 delimit
+// a named fn1 + 3 trailing functions (only fn1 carries the 27BDFFE8
+// prologue). Named fn ends at the jr at 0x47714; the trailing three
+// (0x4771C ~111w, 0x478D8 ~5w, 0x478EC ~5w) are a DEFERRED USO RE-SPLIT
+// (decode under their own symbols later).
+//
+// Named fn1 = thin cb arg-remarshal trampoline (single prologue frame 0x18,
+// saves ra; cb = jal 0 USO-relocated):
+//   void gl_func_000476DC(void *a0, int a1, int a2, int a3) {
+//     void *ctx = a0->p254->p158;                    // GfxCtx
+//     unsigned short h0 = *(u16*)(sp + 0x22);         // unpack two 16-bit
+//     unsigned short h1 = *(u16*)(sp + 0x26);         //   args from the
+//                                                     //   caller stack block
+//     cb1(ctx, a1, h0, h1);                            // tail-forward
+//   }
+// Re-marshals the incoming args (extracts two halfwords from the stack arg
+// area, threads the GfxCtx from a0->0x254->0x158) and forwards to a single
+// USO cb — a parameter-adapter wrapper. Trailing functions (separate
+// symbols): (1) 0x4771C ~111-word FP saturating-convert leaf — the same
+// 0x437F (255.0) / 0x4F00 (2^31) / cvt + andi cause,0x78 + clamp idiom as
+// gl_func_000470FC / 000473AC (a quantize variant); (2)/(3) 0x478D8 /
+// 0x478EC tiny ~5-word leaves. Family: cb arg-adapter wrapper + (trailing)
+// FP saturating quantize. The fn1 GfxCtx path, the two u16 stack-arg
+// unpacks and the cb1 forward are exact; the trailing leaves are flagged
+// for re-split, not decoded here. Caps: GfxCtx struct + cb signature
+// untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000476DC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000478FC);
