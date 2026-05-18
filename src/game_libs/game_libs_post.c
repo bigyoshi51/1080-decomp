@@ -1510,6 +1510,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022D68);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022DE0);
 
+// gl_func_00022E58 — STRUCTURAL PASS (0x168 / 90 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 5-jr USO bundle
+// (named fn + 4 tiny trailing sibling helpers) — deferred USO
+// re-split. The named leading fn (~30 words, ends at 0x22EC8) is
+// another readiness-predicate sibling of gl_func_00022D68 /
+// gl_func_00022DE0.
+//
+//   int gl_func_00022E58(int idx) {
+//     if (idx != 0xFF) {
+//       byte st = *(byte*)(&D_0 + 0x2C10 + idx);        // state byte
+//       if (st >= 2) return 1;                           // ready
+//       int j = jal 0x38174(2);                          // 0x0C00E05D
+//       byte st2 = *(byte*)(&D_0 + 0x2C10 + j);
+//       if (st2 >= 2) return 1;
+//       return 1;                                         // (default)
+//     }
+//     return 1;                                           // 0xFF sentinel
+//   }
+//
+// Struct-typing reference: structurally identical to gl_func_00022D68
+//   / gl_func_00022DE0 — readiness test "state byte >= 2", 0xFF index
+//   trivially ready, fixed USO-reloc poll 0x0C00E05D (≈0x38174) on
+//   the not-ready path. This third variant queries the state-byte
+//   array at &D_0+0x2C10 and passes 2 to the poll. The 0x2C10 /
+//   0x2C40 / 0x2C70 byte arrays are the per-resource-class slot-state
+//   tables of the same &D_0 sprite/registry subsystem; the 4 trailing
+//   bundled helpers are their tiny companions (one reads &D_0+0x2C40)
+//   left for the deferred USO re-split.
+// Caps: raw-word USO + 5-fn unsplit bundle + fixed-target poll call —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022E58);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
