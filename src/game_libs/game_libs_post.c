@@ -15381,6 +15381,20 @@ unsigned short game_libs_func_00042428(int a0, int a1) {
     return (a0 << 3) | a1;
 }
 
+// game_libs_func_00042438 — STRUCTURAL PASS + BOUNDARY NOTE (0x8 / 2 words, no
+// episode). Raw-.word USO. NOT a function: only 2 words, no prologue, no jr
+// (realjr=0, regjr=0):
+//     lui  v0, 0            // 3C020000  (reloc hi of a &D_ global)
+//     lw   v0, 0x240(v0)    // 8C420240  (reloc lo: v0 = *(&D_g + 0x240))
+// This is a HEAD-FRAGMENT — the first two instructions of the NEXT symbol's
+// entry (a load of a module global into v0 with no return), mis-split off by
+// the USO disassembler at a wrong boundary. It has no own prologue and the
+// chain that consumes v0 lives in the following symbol. DEFERRED USO
+// RE-SPLIT: the genuine fix is a boundary correction in the USO disasm
+// (mnemonic split/merge does not work on relocatable USO with reloc-split
+// lui/lw pairs — see docs/N64_FORENSICS HEAD-fragment notes); not 60s-tick
+// safe. No pseudo-C: these two words belong to the next function, not to
+// this symbol. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042438);
 
 #ifdef NON_MATCHING
