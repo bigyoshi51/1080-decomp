@@ -991,6 +991,35 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003A4C);
 
+// timproc_uso_b5_func_00003C8C — STRUCTURAL PASS (0x24C / 147 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Template-instantiation routine: copies two fixed structure templates
+// from USO static data into stack scratch, then builds/configures from
+// them plus the call args.
+//
+//   void timproc_uso_b5_func_00003C8C(a0, a1, a2, a3) {  // a1->s1 a2->s2
+//     // copy template T1 = &D_00001208[0 .. 0x24)  (3 x 0xC-byte
+//     //   records, stride 0xC) into local buf @ sp+0x84;
+//     // copy template T2 = &D_00001234[...]         (0xC-stride
+//     //   records) into local buf @ sp+0x58;
+//     // ~12 func_00000000 calls building/configuring an element from
+//     //   the copied templates + (a0@sp+0xB0, s1=a1, s2=a2,
+//     //   a3@sp+0xBC) — instantiate + position + attach.
+//   }
+//
+// Struct-typing reference:
+//   &D_00001208 = a 0x24-byte template = 3 x 0xC records (e.g. 3 Vec3
+//     / 3 mini-structs); &D_00001234 = a second 0xC-stride template;
+//     both in the timproc_uso_b5 0x12xx USO static-data pool.
+//   sp+0x84 / sp+0x58 = stack copies of T1 / T2 used as the working
+//     spec for the build. a1(s1)/a2(s2)/a0/a3 = target/owner/params.
+//   func_00000000 = USO placeholder dispatcher (build / position /
+//     attach).
+// Caps: raw-word USO + placeholder calls — not exact-matchable without
+//   proper USO mnemonic disasm; structure characterized. Structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003C8C);
 
 void timproc_uso_b5_func_00003ED8(char *a0) {
