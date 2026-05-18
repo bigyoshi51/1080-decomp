@@ -11554,6 +11554,45 @@ end:
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B01C);
 
+// gl_func_0003B1AC — STRUCTURAL PASS (0x140 / 80 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A matrix x point transform (apply 4-row matrix to a
+// Vec3 stream).
+//
+//   void gl_func_0003B1AC(C *c, M *m) {
+//     int n = c->w_2C;                            // point count
+//     if (n == 0) return;
+//     for (int i = 0; i < n; i++) {
+//       float *buf = c->p_30;                     // ring/shift buf
+//       buf[i*0]=buf[i+1]...;                       // shift entries
+//       Vec3 p = { sp_scratch... };
+//       // 4-row matrix at m+0x00 / +0x10 / +0x20 / +0x30
+//       //   (0x10 stride = 4 floats per row; row3 = translation)
+//       out.x = m00*p.x + m10*p.y + m20*p.z + m30;
+//       out.y = m01*p.x + m11*p.y + m21*p.z + m31;
+//       out.z = m02*p.x + m12*p.y + m22*p.z + m32;
+//     }
+//   }
+//
+// Struct-typing reference: the textbook 4x4 (well, 4-row x 4-float-
+//   stride) MATRIX-APPLY-TO-POINT transform. The matrix is at the
+//   second argument with rows at offsets 0x00 / 0x10 / 0x20 / 0x30
+//   (the +0x30 row being the translation), each component computed
+//   as the dot of a matrix column with the point plus the
+//   translation (`mul.s` / `add.s` chain). It runs count-gated
+//   (c->0x2C = number of points) over a buffer reached via c->0x30
+//   (shifting/streaming entries with the `lw;sw` move), spilling
+//   results through stack scratch (sp+0x24..0x40). A core geometry
+//   transform leaf of the game_libs object subsystem — the
+//   "apply the composed matrix to vertices" stage that consumes
+//   the matrices the gl_func_00036694 matrix-concat /
+//   gl_func_00036224 viewport / gl_func_00037938 transform-compose
+//   leaves build (and feeds the gl_func_00034458 render traversal).
+// Caps: raw-word USO + count-gated 4-row-matrix x Vec3 multiply +
+//   streaming buffer move — not exact-matchable without proper USO
+//   mnemonic disasm + the matrix/point/count structs typed;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B1AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B2EC);
