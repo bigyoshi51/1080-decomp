@@ -11638,6 +11638,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B1AC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B2EC);
 
+// gl_func_0003B6A0 — STRUCTURAL PASS (0x320 / 200 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0x80 frame, saves s0-s8). A large flag-gated FP
+// geometry / transform routine. One of the bigger nodes in this
+// vein.
+//
+//   void gl_func_0003B6A0(O *o, ...) {
+//     S *s = o->p_84;
+//     if (s == 0) return;                         // active gate
+//     X *x = s->p_44;
+//     if (x == 0) return;                          // sub gate
+//     float K = -50.0f;                            // 0xC2480000
+//     for (int i = 0; i < 6; i++) {                // 6-element loop
+//       // chained-pointer transform: s->0x44 -> 0x4C -> 0x2C
+//       // FP multiply/add pipeline using K, object fields,
+//       // spilling through sp scratch (sp+0x30 / 0x38 ...)
+//     }
+//   }
+//
+// Struct-typing reference: a sizable per-object FP transform leaf.
+//   It bails unless the object's o->0x84 sub-object is present and
+//   that sub-object's 0x44 pointer is non-null, then runs a
+//   6-iteration FP pipeline (loop count s4 = 6) over a chained
+//   pointer path (o->0x84 → +0x44 → +0x4C → +0x2C) using the
+//   constant -50.0f (0xC2480000) and saved arguments (spilled at
+//   sp+0x80..0x8C). The 6-count loop over a chained structure reads
+//   as a per-bone / per-segment skeletal or multi-part transform
+//   pass. A geometry/animation node of the game_libs object
+//   subsystem (companion of the gl_func_0003B2EC blend node, the
+//   gl_func_0003B1AC matrix-apply and the gl_func_00036694 /
+//   00037938 matrix family — the 6-part transform stage).
+// Caps: 0x320 raw-word USO + flag-gated chained-pointer FP
+//   pipeline + 6-element loop + -50.0f constant — categorically
+//   not exact-matchable without proper USO mnemonic disasm + the
+//   chained structs typed; structural pass only, no byte body.
+//   (A future focused non-loop session is where this gets a real
+//   decode; not 60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);
