@@ -1224,6 +1224,38 @@ void gl_func_00021EA8(int a0, int a1) {
     *(int*)((char*)&D_00000000 + 0x2BDC) = 0;
 }
 
+// gl_func_00021F40 — STRUCTURAL PASS (0x298 / 166 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A find-or-create registry/list-insert helper.
+//
+//   ret gl_func_00021F40(void *arg) {
+//     S    *g    = &D_0;
+//     Node *head = g->w_2950;                         // list head
+//     int   r    = (*lookup)(&D_294C, arg);           // jal 0 USO-rel
+//     if (r != 0) return r;                            // found: done
+//     Node *save = g->w_2950;
+//     g->w_2950  = *(int*)(&D_294C);                   // tentative new
+//     int r2     = (*alloc_link)(&D_294C, arg);        // jal 0 USO-rel
+//     if (r2 != 0) {
+//       g->w_2950 = save;                              // ROLLBACK head
+//       return ...;
+//     }
+//     ... finalize the prepended node ...
+//   }
+//
+// Struct-typing reference: &D_294C is a fixed descriptor blob (the
+//   key/format passed to both USO-relocated helpers, the `jal 0`
+//   slots). Word &D_0+0x2950 is the head pointer of a registry list
+//   built from that descriptor. The function does a lookup first;
+//   on miss it speculatively repoints the list head, calls an
+//   allocate-and-link helper, and rolls the head back if that
+//   allocation/link fails — a transactional find-or-create insert.
+//   Same game_libs registry support family as the gl_func_0001FD98 /
+//   gl_func_0001FEC8 allocator/install helpers.
+// Caps: raw-word USO + jal-0 USO-reloc lookup/alloc calls — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
