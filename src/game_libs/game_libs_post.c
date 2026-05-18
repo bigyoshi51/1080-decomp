@@ -15163,6 +15163,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041D40);
 // struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041EDC);
 
+// gl_func_00041F90 — STRUCTURAL PASS (0x100 / 66 words, no episode). Raw-.word
+// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
+// at the jr at 0x42078; a tiny trailing leaf at 0x42080 (DEFERRED USO
+// RE-SPLIT — belongs to the next symbol). Named fn = cb-registration +
+// record-block relink (cb = jal 0 USO-relocated; keys &D_0002F6E0/F6E4).
+//
+//   void gl_func_00041F90(void *a0, void *a1) {
+//     cb(&D_g, 1);                                  // module enable
+//     cb(&D_g, &D_0002F6E0);                         // register named scope
+//     if (a1 == 0) goto done;                        // beqz early-out
+//     char rec[0x44];                                // sp+0x60
+//     cb(&D_g, &rec, 0x44);                          // build a 0x44-byte rec
+//     // relink loop: copy 0xC-byte sub-records from rec+0x3C onward into
+//     // a0+0x3C onward until the in-band terminator word is reached
+//     // (bne t6,t8 loop; AF38FFF4/FFF8/FFFC triple-store per iteration):
+//     src = &rec + 0x3C; dst = (char*)a0 + 0x3C;
+//     do {
+//       dst[0] = src[0]; dst[4] = src[4]; dst[8] = src[8];   // 0xC stride
+//       src += 0xC; dst += 0xC;
+//     } while (src != src->term);
+//     cb(...);                                       // commit hook
+//     cb(&D_0002F6E4, &sp_0x20);                       // emit named record
+//   done: ;
+//   }
+// Registers a named scope, and when given a payload (a1) builds a 0x44-byte
+// staging record then relinks its 0xC-byte sub-records into the target
+// object at +0x3C via a terminator-bounded copy loop, finishing with a
+// cb-emit keyed by &D_0002F6E4. Family: cb-driven registration + record
+// list/block copy (siblings gl_func_00041D40 / 00041A9C / 0004182C).
+// Trailing leaf at 0x42080 = small stub (deferred re-split). Copy-loop
+// bookkeeping representative; the cb keys, the a1 early-out, the 0x44
+// staging size and the 0xC-stride relink into a0+0x3C are exact. Caps:
+// record struct, &D_g globals and cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041F90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042098);
