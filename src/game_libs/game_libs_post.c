@@ -4324,6 +4324,35 @@ void gl_func_0002A50C(int *a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
 
+// gl_func_0002A6C0 — STRUCTURAL PASS (0x80 / 32 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A 0x40-slot table sweep over the &D_5280 array.
+//
+//   void gl_func_0002A6C0(S *tbl, int arg) {
+//     S *dflt = &D_5280;                                // default ptr
+//     for (int i = 0; i < 0x40; i++) {                    // 64 slots
+//       void *e = tbl->w_38;                              // slot value
+//       if (e != dflt) {                                  // non-default
+//         (*handler)(e, …);                                // jal 0 USO
+//       }
+//       tbl += 4;                                          // word stride
+//     }
+//   }
+//
+// Struct-typing reference: walks a fixed 0x40 (64)-entry word-strided
+//   table, comparing each slot's pointer field (+0x38) against the
+//   shared default/sentinel &D_5280 (the same null-object sentinel
+//   gl_func_0002A260 / gl_func_0002A55C test). Every slot that has
+//   been populated (differs from the &D_5280 default) is passed to a
+//   USO-relocated per-slot handler (`jal 0` slot). The caller arg is
+//   threaded through. A bulk "apply to all live slots" sweep over a
+//   bounded object table in the game_libs object subsystem (the
+//   apply-all counterpart to the gl_func_0002A3AC lazy slot
+//   constructor).
+// Caps: raw-word USO + jal-0 USO-reloc per-slot handler — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
