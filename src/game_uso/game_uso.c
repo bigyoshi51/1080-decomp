@@ -5314,16 +5314,23 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
  * meaning the dispatch fires when `30 < sub[0x348]` (NOT when `sub[0x348]
  * <= 30` as previously written). Flipped the C accordingly. No build effect
  * (still NM-wrapped, default uses INCLUDE_ASM), but future tightening passes
- * now have correct logic to grind from. */
+ * now have correct logic to grind from.
+ *
+ * 2026-05-18 pass: added explicit frame padding so IDO emits the target
+ * 0x88-byte frame / epilogue, and tried register-vs-stack dispatch_arg plus
+ * single-scale-load variants. Best measured C body is 76.12745% by objdiff;
+ * single-scale-load regressed to 69.80% because it grew the frame to 0x90. */
 void game_uso_func_00006CF0(int *a0) {
     int *sub;
     int base_vec[3];
     int scaled_vec[3];
     int tmp_vec[3];
     int added_vec[3];
-    int dispatch_arg;
+    int pad[12];
+    register int dispatch_arg;
     int timer;
 
+    (void)pad;
     sub = *(int**)((char*)a0 + 0x30);
     base_vec[0] = *(int*)((char*)sub + 0xB4);
     base_vec[1] = *(int*)((char*)sub + 0xB8);
