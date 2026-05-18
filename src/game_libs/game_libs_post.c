@@ -18775,6 +18775,38 @@ void gl_func_0004ED0C(int *self) {
 /* gl_func_0004ED7C: 50-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
 
+// gl_func_0004EE44 — STRUCTURAL PASS + BOUNDARY NOTE (0x288 / 167 words, no
+// episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
+// dense tail jr cluster at 0x4F0A4 / 0x4F0B8 / 0x4F0C0 (~0x14 / 0x8 gaps,
+// no interior 27BDFF prologue) is the docs/N64_FORENSICS ADDENDUM-18b
+// no-frame-leaf signature ⇒ named fn + 2 tiny no-frame leaves. Named fn
+// ends at the jr at 0x4F0A4; the trailing two (0x4F0A8 ~5w, 0x4F0BC ~2w)
+// are a DEFERRED USO RE-SPLIT.
+//
+// Named fn = state-conditioned FP-emit/serialize (single prologue frame
+// 0xA8, saves ra, s0, s1; cb = jal 0 USO-relocated; key &D_0002 0604):
+//   void gl_func_0004EE44(void *a0) {
+//     self = a0;
+//     cb1((char*)self + 0x30);                        // init/snapshot
+//     if (self->p7C != 1) return;                      // bnel state gate
+//     float v = self->pB0;
+//     void *p = self->p70;
+//     cb2(&D_0002_0604, ...);                          // formatted emit
+//     cb3(self, ...);                                  // FP-arg emit (v ->
+//                                                      //   sp+0x10 scratch)
+//     // further reads of self->0x70 / 0xB4 / 0xAC / 0x14C feed the
+//     // serialize passes.
+//   }
+// Emits a formatted/serialized record for the object when its 0x7C state
+// equals 1: cb1 initialises off self+0x30, then cb2/cb3 emit using the
+// &D_0002 0604 string key and FP fields (self->0xB0 staged via sp+0x10) plus
+// the self->0x70/0xB4/0xAC/0x14C pointer block. Family: cb-driven
+// diagnostic / FP-formatted serialize (siblings gl_func_0003F7A8 /
+// 00041148). Trailing 2 leaves = deferred re-split. Per-emit arg detail
+// representative; the cb1(self+0x30) init, the self->0x7C==1 gate, the
+// &D_0002 0604 key and the self->0xB0 FP / sp+0x10 staging are exact. Caps:
+// self struct + cb signatures untyped; bundle re-split deferred. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
