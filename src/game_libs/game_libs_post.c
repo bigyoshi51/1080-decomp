@@ -17202,6 +17202,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049308);
 // signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000493AC);
 
+// gl_func_00049B3C — STRUCTURAL PASS (0x27C / 160 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x80
+// (saves ra). String-keyed field-registration table (cb = jal 0
+// USO-relocated registrar; string keys in the &D_0002FFD4.. table).
+//
+//   void gl_func_00049B3C(void *a0) {
+//     self = a0;                                     // spilled to sp+0x80
+//     void *g = &D_reloc;
+//     cb_begin(g, &D_0002FFD4, 0);                    // open registration
+//     cb_field(g, &D_0002FFE0, (char*)self + 0x40);   // field @0x40
+//     cb_field(g, &D_0002FFE8, (char*)self + 0x44, 10.0f);  // field @0x44,
+//                                                     //   default 10.0
+//     cb_field(g, &D_0002FFF4, (char*)self + 0x9C, 0);// field @0x9C
+//     // ... a long run of cb_field registrations, each keyed by a string
+//     //     literal in the contiguous &D_0002FFD4.. table, binding a
+//     //     self+offset field address plus a type/default (int 0 or a
+//     //     float immediate such as 0x41200000 = 10.0).
+//   }
+// Registers a fixed set of the object's fields under string-literal names
+// (keys in the &D_0002FFD4.. block), each call passing g + key + the
+// self+0xNN field address + a type/default code. Family: string-literal-
+// keyed cb field-registration table (siblings gl_func_00040DE8 /
+// 000415A4 / 0003E5E0). Per-field offset/default list not exhaustively
+// decoded (160-word table) — the g + key + self+offset + typecode call
+// shape, the &D_0002FFD4.. key table and the 10.0f (0x41200000) default
+// constant are exact; the full field list is representative. Caps: self
+// struct, the &D_0002FFxx string table and cb signature untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049B3C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049DBC);
