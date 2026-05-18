@@ -1525,6 +1525,36 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006E08);
 
+// timproc_uso_b5_func_00007078 — STRUCTURAL PASS (0x258 / 150 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen scroll/animation tick (operates on Scr).
+//
+//   void timproc_uso_b5_func_00007078(Scr *scr) {        // scr -> s0
+//     if (scr->0x414->0x18->0x130 != 0) {                // active gate
+//       v = func_00000000(1);
+//       // animate two FP scroll fields by += value * 2.0f:
+//       a = scr->0x414->...;  a->0x134 += v->0x4 * 2.0f;
+//       a->0x138 += v->0x0 * 2.0f;
+//     }
+//     if (--scr->0x488 < 0) {                             // countdown
+//       func_00000000(scr);
+//       // fetch entry from scr->0x3C4 / scr->0x4D4 list, process via
+//       //   func_00000000 (FP 1.0f), reset/advance the timer.
+//     }
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x414 -> node (->0x18 -> sub, ->0x130 active flag);
+//     scroll target ->0x134 / ->0x138 f32 (advanced by value*2.0);
+//     0x488 = countdown timer (decremented; expiry triggers entry
+//     processing); 0x3C4 list count, 0x4D4 list/helper, entry->0x2B0
+//     a command field. func_00000000 = USO placeholder dispatcher
+//     (value query / per-entry process). const 2.0f / 1.0f.
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007078);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000072D0);
