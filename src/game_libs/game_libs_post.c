@@ -22417,7 +22417,12 @@ void gl_func_00066484(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066484);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000664D4);
+void game_libs_func_000664D4(int *a0, int *a1) {
+    a0[1] = a1[1];
+    a0[0] = (int)a1;
+    ((int *)a1[1])[0] = (int)a0;
+    a1[1] = (int)a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000664F0);
 
