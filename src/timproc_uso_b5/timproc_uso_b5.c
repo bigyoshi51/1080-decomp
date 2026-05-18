@@ -1404,6 +1404,44 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006900);
 
+// timproc_uso_b5_func_000069E8 — STRUCTURAL PASS (0x218 / 134 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing/replay-screen input/navigation handler (operates on Scr).
+//
+//   int timproc_uso_b5_func_000069E8(Scr *scr, a1) {     // scr -> s0
+//     func_00000000(., a1);
+//     func_00000000(scr->0x418, -1, 0);                   // reset/clear
+//     switch (scr->0x4A4) {                               // cursor state
+//       case 0:  func_00000000(&D_00001304); ...; break;
+//       default: // 1..3+: index scr->0x4E0[scr->0x4A4] via the
+//         //   D_00000F24 static table; decrement global *(int*)D_0,
+//         //   if == 0x17D7 special-case;
+//     }
+//     // for the selected element(s): base = scr->0x40C->{0x3D0/0x3D4/
+//     //   0x3D8/0x3DC}; idx from scr->0x40/0x44/0x48/0x4C counts and
+//     //   the stashed params scr->0x4DC/0x4E0/0x4E4/0x4E8/0x4EC;
+//     //   e = base + idx;  write command/flag pair into
+//     //   e->0x3C->0x2B0 / 0x2B4 (OR-combined), gated by scr->0x4A8
+//     //   and scr->0x34 (==1 / ==2);
+//     // also writes globals *(int*)(D_0 + 0xA4) / + 0xB8.
+//     return 1;
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x418 reset target, 0x4A4 cursor/selection state (0..3+
+//     switch key), 0x4A8 gate, 0x34 sub-mode (1/2), 0x40C -> element
+//     array holder (->0x3D0/0x3D4/0x3D8/0x3DC bases), 0x40/0x44/0x48/
+//     0x4C per-axis counts, 0x4DC/0x4E0/0x4E4/0x4E8/0x4EC stashed
+//     params (from func_00005BF0); element->0x3C->0x2B0/0x2B4 =
+//     command/flag word pair. D_0 + {0xA4,0xB8} global out fields;
+//     global counter at *(int*)D_0 (dec, cmp 0x17D7).
+//   D_00001304 / D_00000F24 = USO static tables (0x13xx/0xF.. pool).
+//   func_00000000 = USO placeholder dispatcher.
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000069E8);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006C00);
