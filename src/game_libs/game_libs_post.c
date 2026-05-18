@@ -15799,6 +15799,38 @@ int gl_func_000435FC(int *a0, int a1) {
     return gl_func_00000000(v);
 }
 
+// gl_func_00043654 — STRUCTURAL PASS (0x168 / 91 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
+// (saves ra, s0). Handler-init + multi-cb pipeline + conditional
+// error-format (cbN = jal 0 USO-relocated; error string &D_0002FD1C).
+//
+//   void gl_func_00043654(void *a0, void *a1) {
+//     void *g = *(void**)(&D_0 + 0x214);             // module global
+//     a0->p64 = g;                                    // bind global into obj
+//     void *h = g->p0C;
+//     if (h->p48 == 0)
+//       a0->p88 = (short)h->p04;                       // cache a short field
+//     cb1(g, a1);                                      // open/init step
+//     cb2(a0->p64, a1);                                // fixed ~5-call
+//     cb3(a0->p64, a1);                                //   pipeline, each
+//     cb4(a0->p64, a1);                                //   keyed by a0->0x64
+//     cb5(a0->p64, a1);
+//     if ((a0->p38 << 9) < 0)                          // sll/bgez bit test A
+//       cb6(&D_str, a0->p64, a0);                       // diagnostic line
+//     if ((a0->p38 << 0xB) < 0)                         // sll/bgez bit test B
+//       cb7(&D_0002FD1C, ... , 0xA, 5, 0);              // formatted error
+//   }
+// Binds a module global (&D_0+0x214) into the object's 0x64 slot, optionally
+// caches a short from g->0x0C->0x04 into 0x88, runs a fixed pipeline of ~5
+// cb calls (each cb(a0->0x64, a1)), then performs two sign-bit tests on
+// a0->0x38 (via shift-left-then-bgez) gating two formatted diagnostic
+// emits — the second keyed by error-string &D_0002FD1C with numeric args
+// (0xA, 5, 0). Family: cb-pipeline + diagnostic/error-format (siblings
+// gl_func_0003E2B0 / 00041148). Per-cb identity and the exact error arg list
+// representative; the &D_0+0x214 bind, the 0x64/0x88 stores, the 5-call
+// pipeline shape and the a0->0x38 bitfield gates are exact. Caps: object/g
+// struct, &D_0+0x214 global and cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043654);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000437C0);
