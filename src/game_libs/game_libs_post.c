@@ -10080,6 +10080,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038598);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003863C);
 
+// gl_func_00038728 — STRUCTURAL PASS (0x108 / 66 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list-traversal + multi-flag-gated per-node process —
+// sibling of gl_func_00038598 / gl_func_0003863C.
+//
+//   void gl_func_00038728(O *o) {
+//     callback(o->p_0C);                        // jal 0 (USO cb1)
+//     N *n = o->p_10;
+//     while (n != 0) {
+//       N *node = *n;
+//       if ((node->w_18 & 8) &&                   // conjunction of
+//           (node->w_08 & 0x200) &&               // flag gates
+//           !(node->w_08 & D0_mask) &&
+//           !(node->w_2C & 1)) {
+//         callback(&node->f_30, &node->f_70);     // cb2 (process)
+//       }
+//       n = n->next_4;
+//     }
+//   }
+//
+// Struct-typing reference: a SELECTIVE per-element process pass over
+//   an intrusive list — the most restrictive member of the
+//   collection-processor family (gl_func_00038598 = flag 0x200 /
+//   slot 0x14; gl_func_0003863C = flag bit 4 / slot 0x1C; this one
+//   = a CONJUNCTION). It runs a USO-relocated callback (jal 0 →
+//   resolved at load) on o->0x0C, then walks the list rooted at
+//   o->0x10 (next at +0x04) and only for nodes that pass ALL of:
+//   node->0x18 bit 8, node->0x08 bit 0x200, a &D_0-derived mask
+//   test on node->0x08 (excluding), and node->0x2C bit 0
+//   (excluding) does it invoke a process callback with node-
+//   relative pointers (&node->0x30, &node->0x70). A per-frame
+//   "process only fully-eligible nodes" traversal of the game_libs
+//   object subsystem (same list/collection the gl_func_00033228
+//   enlist / gl_func_00034458 / 00035C6C family operate on; the
+//   &D_0-base mask is a global enable/category gate).
+// Caps: raw-word USO + intrusive-list walk + multi-flag conjunction
+//   gate (incl. &D_0 mask) + USO-relocated jal-0 callbacks — not
+//   exact-matchable without proper USO mnemonic disasm + the node
+//   struct typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
