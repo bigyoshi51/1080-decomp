@@ -22785,11 +22785,25 @@ void gl_func_000673FC(int *a0, int a1) {
     *(float *)((char *)a0 + 0x48) = 0.0f;
 }
 
-/* gl_func_00067470: 27-insn 2-call sequencer. a0/a1 saved to caller-arg
- * slots; first call with (&D+0x225D8, a1, a0->0x34); checks a0->0x78;
- * if non-zero, second call (a0->0x34, 0, a1-1) and store result to
- * a0->0x68. Multi-pass decode pending (2 unresolved jal + USO data refs). */
+#ifdef NON_MATCHING
+/* gl_func_00067470: 27-insn 1-or-2 call dispatcher.
+ *   gl_func_00000000((void*)0x000225D8, a0[0xD], a1);    // unconditional
+ *   if (a0[0x1E] != 0)
+ *     gl_func_00000000(&gl_data_X, a0[0xD] - 1, 0);
+ *   a0[0x1A] = a1;
+ * First call uses absolute address 0x225D8 (lui $a0, 0x2; addiu $a0, $a0, 0x25D8),
+ * second uses USO reloc to a different symbol. */
+void gl_func_00067470(int* a0, int a1) {
+    extern int gl_data_67470_addr;
+    gl_func_00000000(&gl_data_67470_addr, a0[13], a1);
+    if (a0[30] != 0) {
+        gl_func_00000000(&gl_data_00000000, a0[13] - 1, 0);
+    }
+    a0[26] = a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067470);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_000674DC(int *a0) {
