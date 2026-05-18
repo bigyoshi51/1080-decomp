@@ -12666,6 +12666,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DBEC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DC90);
 
+// gl_func_0003DD28 — STRUCTURAL PASS (0x98 / 38 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A construct + vtable-init + enlist helper.
+//
+//   O *gl_func_0003DD28(? a0) {
+//     O *o = make();                              // jal 0 (factory)
+//     o->f_70 = 10.0f;                             // 0x41200000
+//     int kind = 0x13;                             // local sentinel
+//     H *h = o->p_28;                              // handler vtable
+//     h->fp_2C(h->h_28 + (int)o, &kind);           // jalr h->0x2C
+//     N *node = a0->p_40;
+//     list_insert(&o->f_10, node);                  // 2nd cb (splice)
+//     if (node->p_14 == 0) node->w_4 = 1;          // empty guard
+//     node->p_14 = o;                               // list head
+//     return o;
+//   }
+//
+// Struct-typing reference: a construct-then-bring-up-and-enlist
+//   leaf — it fuses three family patterns: (1) the factory family
+//   (a USO-relocated allocator/factory callback, jal 0 → resolved
+//   at load) with an FP default seed o->0x70 = 10.0f (0x41200000,
+//   the recurring 10.0f extent); (2) the device-object VTABLE
+//   dispatch family — calling the handler method at
+//   (o->0x28)+0x2C with a self-relative arg and a pointer to a
+//   local 0x13 (=19) sentinel; (3) the construct-and-enlist family
+//   (cf. gl_func_00033228 / gl_func_00037BEC / gl_func_0003D3C4):
+//   splicing the new object into an intrusive list anchored at
+//   o->0x10 via a second USO callback and updating the list head
+//   (node->0x14 = o) plus an active flag (node->0x04 = 1) under a
+//   branch-likely empty-list guard, returning the object. Slot
+//   0x2C extends the handler-vtable slot map (… 0x2C / 0x4C / 0x50
+//   / 0x54 / 0x5C / 0x60 / 0x84 …). An object-lifecycle factory
+//   node of the game_libs object subsystem.
+// Caps: raw-word USO + USO-relocated jal-0 factory/insert callbacks
+//   + jalr through handler vtable ((o->0x28)+0x2C) + FP default
+//   seed + intrusive-list splice — not exact-matchable without
+//   proper USO mnemonic disasm + the object/vtable/list structs
+//   typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DD28);
 
 /* game_libs_func_0003DDC0: 34-insn linked-list search + Vec3 copy.
