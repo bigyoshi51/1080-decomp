@@ -10327,6 +10327,43 @@ void gl_func_00038C70(int a0, int a1, int a2) {
     gl_func_00000000(a0, args);
 }
 
+// gl_func_00038C98 — STRUCTURAL PASS (0xC4 / 49 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A list-walk diagnostic dump — diagnostic family with
+// gl_func_00038108 / gl_func_000381F8 / gl_func_00038360.
+//
+//   void gl_func_00038C98(O *o, int a1) {
+//     if (a1 == 0)
+//       report((char*)0x0001ECB8, o->w_0C);     // header (jal 0)
+//     N *n = o->p_10;
+//     while (n != 0) {
+//       report((char*)0x0001ECCC, n);            // per-node line
+//       report(n, n->w_0C);
+//       report((char*)0x0001ECCC, n);
+//       n = n->next_4;
+//     }
+//   }
+//
+// Struct-typing reference: a per-LIST debug-dump leaf. It optionally
+//   prints a header line via a USO-relocated printf-shaped callback
+//   (jal 0 → resolved at load) with the fixed format string
+//   0x0001ECB8 and the object's o->0x0C field, then walks the
+//   intrusive list rooted at o->0x10 (next at +0x04) and, for each
+//   node, emits a small group of printf callbacks using the fixed
+//   format string 0x0001ECCC plus the node and its node->0x0C
+//   field. The format strings 0x0001ECB8 / 0x0001ECCC continue the
+//   SAME contiguous data-segment diagnostic string table mapped
+//   across gl_func_00038108 / 000381F8 / 00038360
+//   (0x0001EBF8..0x0001EC50+), so the whole 0x0001EBF8..0x0001ECCC+
+//   range is one message block. The list-iterating member of the
+//   game_libs object subsystem's diagnostic/trace family (dumps a
+//   whole collection vs the single-object dump of gl_func_00038360).
+// Caps: raw-word USO + intrusive-list walk + USO-relocated jal-0
+//   printf callbacks + contiguous fixed string-data table — not
+//   exact-matchable without proper USO mnemonic disasm + the
+//   string table / node struct typed; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038C98);
 
 void game_libs_func_00038D5C(int *a0, int a1) {
