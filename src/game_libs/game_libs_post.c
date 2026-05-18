@@ -13408,6 +13408,35 @@ int gl_func_0003EBAC(char *a0) {
     return gl_ref_00051780(a0 + 0x10);
 }
 
+// gl_func_0003EBDC — STRUCTURAL PASS (0x80 / 32 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x18 (saves ra) → ONE clean function.
+// Dispatch-through-indexed-table trampoline (handler called via jalr a2):
+//
+//   void gl_func_0003EBDC(Desc a0) {
+//     short hi = (short)a0->p0A;
+//     short lo = (short)a0->p08;
+//     void *base = a0->p04;
+//     if (hi < 0) base = lo + base;            // bgez hi skip; else add lo
+//     int sel;
+//     if (hi < 0) { sel = a0->p0C; }           // negative-hi: direct selector
+//     else {
+//       void *v = *(void**)((char*)a0 + 0xC);  // a0->0xC slot
+//       if (v != 0)       sel = (int)v;        // present → use it
+//       else if (a0->p08) sel = a0->p08;       // else fall to lo
+//       else              sel = 0x28;          // else default selector 0x28
+//     }
+//     void *tbl = *(void**)((char*)base + sel);// table at base+sel
+//     void *e   = tbl + hi * 8;                // entry indexed by hi
+//     short bias = (short)e->p00;
+//     fnptr h    = e->p04;
+//     h(base + bias);                          // tail-call handler
+//   }
+// (Branch layout approximate — the hi>=0 / a0->0xC / a0->0x8 nullness ladder
+// picks one of {a0->0xC, 0x28} as the table selector; structure, offsets and
+// the (base+sel) -> +hi*8 -> {bias@0, fn@4} entry shape are exact.) Family:
+// same indexed-table / fnptr-from-entry dispatch idiom as the segment's
+// vtable trampolines. Caps: Desc/table-entry struct untyped; selector ladder
+// arm order inferred from branch sense. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
