@@ -9586,6 +9586,47 @@ void gl_func_00037A9C(int count) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037AF0);
 
+// gl_func_00037BEC — STRUCTURAL PASS (0x84 / 33 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). The direct SIBLING of gl_func_00033228 — an object
+// construct-and-enlist helper (template-init variant).
+//
+//   void gl_func_00037BEC(P *p) {
+//     callback0(p);                             // jal 0 (factory)
+//     N *n = make(0, (void*)0x0001EBF0);        // 2nd cb (template)
+//     p->p_10 = n;
+//     p->w_0C = 0;
+//     if (p->p_38 != 0) {
+//       L *lst = *(L**)(p->p_3C + 0x10);
+//       list_insert(&lst[..0x10..], p->p_10);   // 3rd cb (splice)
+//       if (lst->p_14 != 0) { ... } else
+//         lst->w_04 = 1;                          // empty-list guard
+//       lst->p_14 = node;                          // list head
+//     }
+//   }
+//
+// Struct-typing reference: the construct-and-link counterpart of
+//   gl_func_00033228. It runs a USO-relocated factory callback
+//   (jal 0 → resolved at load), builds a sub-object via a second
+//   callback parameterized by a FIXED data-segment template at
+//   0x0001EBF0 (vs gl_func_00033228's untyped make), publishes the
+//   resulting pointer into the parent at p->0x10 (clearing the
+//   companion field p->0x0C), and — gated on p->0x38 being set —
+//   splices the new node into an intrusive list reached via
+//   p->0x3C (anchor at +0x10) through a third USO callback, then
+//   updates the list head pointer (lst->0x14) and an active flag
+//   (lst->0x04 = 1) under a branch-likely empty-list guard. An
+//   object-lifecycle / registration leaf of the game_libs object
+//   subsystem — the template-driven sibling of gl_func_00033228;
+//   the list it enlists into is the collection the
+//   gl_func_00034458 processor / gl_func_0002FB74 interpreter
+//   iterate. 0x0001EBF0 is a deferred data-segment template-
+//   symbolization site.
+// Caps: raw-word USO + USO-relocated jal-0 factory/insert callbacks
+//   + data-seg template + intrusive-list splice — not exact-
+//   matchable without proper USO mnemonic disasm + the object/list
+//   structs typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037BEC);
 
 void gl_func_00037C70(Vec3 *dst) {
