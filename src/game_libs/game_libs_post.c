@@ -1702,6 +1702,39 @@ void gl_func_00023284(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023284);
 #endif
 
+// gl_func_000232E8 — STRUCTURAL PASS (0xFC / 63 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
+// (named fn + 2 trailing helpers) — deferred USO re-split. The named
+// leading fn is a SIBLING of gl_func_00022FC0: same &D_0+0x2028
+// buffer-run walk, different per-element processing.
+//
+//   void gl_func_000232E8(int idx, int a1, int a2) {
+//     short *buf = *(short**)(&D_0 + 0x2028);            // record buf
+//     int    cur = buf[idx];                              // run start
+//     byte   cnt = *((char*)buf + cur);                   // run length
+//     do {
+//       cur++;
+//       byte e = *((char*)buf + cur);                      // element
+//       jal 0x38174(e);                                    // 0x0C00E05D
+//       jal 0x381xx(1, …, a1, a2);                         // 0x0C00E1C3
+//       cnt--;
+//     } while (cnt != 0);
+//     ... write back / finalize buf[idx] ...
+//   }
+//
+// Struct-typing reference: walks the SAME per-slot record buffer as
+//   gl_func_00022FC0 — word &D_0+0x2028 base, halfword-strided by idx
+//   (idx<<1), each slot a cursor into the byte stream; a run length is
+//   read from the stream head. This variant invokes TWO fixed
+//   USO-relocated routines per element: 0x0C00E05D (≈0x38174, the
+//   same poll/advance used by the gl_func_00022D68 readiness family)
+//   and 0x0C00E1C3 (a per-element action taking the caller args
+//   a1/a2). The double-callback run consumer paired with the
+//   single-callback gl_func_00022FC0.
+// Caps: raw-word USO + 3-fn unsplit bundle + fixed-target per-element
+//   calls — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
