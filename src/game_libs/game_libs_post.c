@@ -17436,6 +17436,38 @@ void gl_func_0004B040(int *a0) {
     }
 }
 
+// gl_func_0004B0A8 — STRUCTURAL PASS (0x248 / 149 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0xA8
+// (saves ra + s0..s2). Object constructor/init (cb = jal 0 USO-relocated;
+// name keys &D_0002F0EC / F0F4).
+//
+//   void *gl_func_0004B0A8(void *a0, void *a1) {
+//     self = a0; arg = a1;
+//     if (a0 == 0) {
+//       self = cb1(0x44);                              // alloc 0x44-byte obj
+//       if (self == 0) return 0;                        // beqz bail
+//     }
+//     cb2(self, &D_0002F0EC);                           // register name A
+//     void *vt = &D_g2 + 0x140;                          // vtable/handler src
+//     self->p00 = vt->p00;                               // copy 2-word
+//     self->p04 = vt->p04;                               //   handler block
+//     self->p28 = &D_g1;                                 // bind handler table
+//     int x = arg->p214;
+//     cb3(self, &D_0002F0F4, 0);                          // register sub B
+//     self->p40 = cb3_result;
+//     // ... further cb-registered fields / handler wiring off self.
+//     return self;
+//   }
+// Typical constructor: alloc-if-null a 0x44-byte object (cb1), register it
+// under a string-literal name (&D_0002F0EC), splice a 2-word handler/vtable
+// block from &D_g2+0x140 into self->0x00/0x04, bind the handler table at
+// self->0x28 = &D_g1, then register additional sub-fields via cb keyed by
+// &D_0002F0F4 (results stored at self->0x40 etc.). Family: cb-driven
+// constructor + name/handler registration (siblings gl_func_00040070 /
+// 0003E5E0 / 0004B0A8 neighbours). Per-field wiring tail representative;
+// the 0x44 alloc, the &D_0002F0EC name key, the &D_g2+0x140 -> self->0/4
+// handler copy and the self->0x28 = &D_g1 bind are exact. Caps: object/
+// &D_g struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B2FC);
