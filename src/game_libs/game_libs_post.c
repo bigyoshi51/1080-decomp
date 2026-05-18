@@ -4758,6 +4758,42 @@ void game_libs_func_0002BB58(int *a0, int a1) {
     *(float*)((char*)a0 + 0x2C) = (float)(*p & 0xFF) / 127.0f;
 }
 
+// gl_func_0002BB7C — STRUCTURAL PASS (0xC28 / 778 words ≈ 3.1KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle) — the LARGEST function in the game_libs script-VM
+// subsystem: the per-frame command-script / animation-tree tick for
+// one object. Huge -0x88 frame, full s0-s8/ra save.
+//
+//   void gl_func_0002BB7C(O *o) {
+//     int w = o->w_0;
+//     if ((w << 2) >= 0) return;                        // active gate
+//     N *cmd = o->w_4C;                                  // command cur
+//     ...
+//     short t = o->h_1E;                                 // tween timer
+//     if (t >= 2) { o->h_1E = t - 1; ... }                // tick down
+//     S *tree = (char*)o + 0x70;                          // sub-tree
+//     // ~750 words: walk the command stream from o->0x4C, advance
+//     //  every animation channel / scene node under o+0x70, evaluate
+//     //  per-node timers and packed control words, and emit the
+//     //  resulting transforms; cleanup + return.
+//   }
+//
+// Struct-typing reference: the top-level per-object tick of the
+//   game_libs command-script / animation subsystem — it drives the
+//   gl_func_0002AD1C interpreter loop, the gl_func_0002B09C /
+//   gl_func_0002B5F4 command executors and the gl_func_0002BAAC
+//   operand decoder. o->0 is the packed status word (sign/active bit
+//   gating the whole tick); o->0x4C the command stream cursor; o->0x8
+//   / o->0x1E timer halfwords; o+0x70 the embedded child/scene-node
+//   block walked each frame. It folds together the keyframe steppers
+//   (gl_func_00029978 / gl_func_0002AA30) and channel resets
+//   (gl_func_00029B6C) over the whole node tree. The single biggest
+//   driver of this file's animation/command subsystem.
+// Caps: raw-word USO + very large multi-phase per-object tick over a
+//   command stream + node tree — not exact-matchable without proper
+//   USO mnemonic disasm; high-level structural pass only, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
