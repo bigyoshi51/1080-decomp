@@ -12021,6 +12021,42 @@ void gl_func_0003D114(Quad4 *dst) {
     *dst = scratch;
 }
 
+// gl_func_0003D16C — STRUCTURAL PASS (0xBC / 47 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). An object constructor (same family as gl_func_00037AF0
+// / gl_func_0003800C / gl_func_00032E18).
+//
+//   O *gl_func_0003D16C(O *o, int a1, int a2) {
+//     if (o == 0) {
+//       o = alloc(0x48);                          // jal 0 (USO alloc)
+//       if (o == 0) return 0;
+//     }
+//     init(o, (void*)0x0001F2B8);                 // template init cb
+//     o->p_28 = &D_0;                              // global root
+//     int *sub = alloc(0x04);                      // sub-block @0x2C
+//     if (sub) *sub = 0;
+//     *(int*)(o + 0x2C) = a1;                       // store arg
+//     o->w_? = -1;                                  // sentinel
+//     return o;
+//   }
+//
+// Struct-typing reference: a constructor of the game_libs object
+//   subsystem's factory family. Allocate-or-reuses a 0x48-byte
+//   record via a USO-relocated allocator callback (jal 0 →
+//   resolved at load), initializes it from a fixed data-segment
+//   template at 0x0001F2B8, back-links the global root at o->0x28,
+//   allocates a zeroed 4-byte sub-block anchored at o->0x2C, and
+//   stores the saved argument together with a -1 sentinel (the
+//   "no-handle / empty" marker of the gl_func_0003800C allocator
+//   family). 0x0001F2B8 is a deferred data-segment template-
+//   symbolization site; the 0x48 size + +0x28/+0x2C layout is the
+//   struct to type when this object family is formalized.
+// Caps: raw-word USO + USO-relocated jal-0 allocator/init callbacks
+//   + chained alloc-with-rollback + &D_0 back-link + data-seg
+//   template + -1 sentinel — not exact-matchable without proper
+//   USO mnemonic disasm + the struct typed; structural pass only,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D16C);
 
 #ifdef NON_MATCHING
