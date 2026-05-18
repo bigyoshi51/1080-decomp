@@ -2379,6 +2379,34 @@ void timproc_uso_b5_func_0000AC04(int a0, int a1) {
 void timproc_uso_b5_func_0000AC10(int a0, int a1, int a2) {
 }
 
+// timproc_uso_b5_func_0000AC20 — STRUCTURAL PASS (0x534 / 333 words,
+// no episode). Raw-.word USO form (genuine code, single function).
+// Heavily FP-math (83 FP ops / 19 FP moves / 13 calls) — entry/shape
+// partial pass; multi-run target.
+//
+// 3D transform / matrix-vector math routine operating on a transform
+// sub-struct at obj+0xDC.
+//
+//   void timproc_uso_b5_func_0000AC20(Obj *obj, …) {     // obj -> s0
+//     T *t = (T*)((char*)obj + 0xDC);                     // xform block
+//     // load Vec3s from t / a global, compute scaled / combined
+//     //   products (mul.s/add.s/sub.s chains), build transformed
+//     //   Vec3s into sp scratch (sp+0xD0.., sp+0xF4..);
+//     // copy 3-word (Vec3/row) blocks between t and sp;
+//     // ~13 func_00000000 sub-calls (apply / compose transform);
+//     // final FP combine + writeback into t / obj fields.
+//   }
+//
+// Struct-typing reference:
+//   obj+0xDC = a transform record (Vec3 rows / position / orientation
+//     at +0x0/+0x4/+0x8 groups); sp+0xD0 / sp+0xF4 = transformed Vec3
+//     scratch. The math is a per-frame matrix*vector / projection
+//     update for the timing-screen camera or marker placement.
+//     func_00000000 = USO placeholder dispatcher (transform helpers).
+// Caps: raw-word USO + placeholder calls + 333-word FP pipeline —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural (entry/shape/tail) partial pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AC20);
 
 /* timproc_uso_b5_func_0000B154: 133-insn (0x214) AI-update orchestrator.
