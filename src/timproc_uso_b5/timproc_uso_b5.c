@@ -1836,6 +1836,45 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000080F4);
 
+// timproc_uso_b5_func_00008468 — STRUCTURAL PASS (0x178 / 94 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen state-transition handler (phase-reset branch; sibling
+// of func_000077D8 / func_00007E34).
+//
+//   void timproc_uso_b5_func_00008468(Scr *scr) {        // scr -> s0
+//     if (func_00000000(&D_0, 0x100)) {                   // phase A
+//       func_00000000(scr);
+//       d = scr->0x28;  (d->0x8C)(d->0x88 + …);            // show
+//       func_00000000(scr); func_00000000(scr);
+//       d = scr->0x28;  (d->0x84)(d->0x80 + …);            // deactivate
+//       e = scr->0x3D0[ f(scr->0x3C4, scr->0x4D4) ];
+//       func_00000000(e);
+//       if (func_00000000(scr)) { func_00000000(scr->0x41C);
+//                                 return; }
+//       scr->0x3C8 = …;  scr->0x3C4 = …;  scr->0x3CC = 0xA;
+//       func_00000000(scr);  scr->0x484 = 0.0f;            // phase reset
+//     } else if (func_00000000(&D_0, 0x200)) {             // phase B
+//       func_00000000(scr);  scr->0x4B4 = …;
+//       if (scr->0x4B4) {
+//         if (func_00000000(&D_0, 0x4003)) { func_00000000(1); }
+//         else func_00000000(scr);
+//         if (scr->0x3CC == 9) scr->0x4B4 = 0;             // clear busy
+//       }
+//     }
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x3C4/0x3C8 state, 0x3CC phase (=0xA reset / ==9 done),
+//     0x3D0/0x4D4 element array + index, 0x41C sub-target, 0x484 f32
+//     (=0.0 reset), 0x4B4 busy flag (cleared when 0x3CC==9), 0x28
+//     vtable (->0x80/0x84 deactivate, ->0x88/0x8C show — obj->0x28
+//     idiom). D_0 global flags 0x100 / 0x200 / 0x4003 gate the
+//     phases. func_00000000 = USO placeholder dispatcher.
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008468);
 
 #ifdef NON_MATCHING
