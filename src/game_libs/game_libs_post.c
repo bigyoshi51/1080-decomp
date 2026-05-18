@@ -23141,6 +23141,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C11C);
 /* gl_func_0006C1B8: 61-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C1B8);
 
+/* gl_func_0006C2AC: 52-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C2AC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C2AC_pad.s")
 
