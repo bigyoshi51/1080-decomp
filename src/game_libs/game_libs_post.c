@@ -1007,6 +1007,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
 
+// gl_func_00020ED0 — STRUCTURAL PASS (0x2CC / 179 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
+// (named fn + 2 trailing helpers) — deferred USO re-split. The named
+// leading fn is an argument-presence dispatcher + table-record copy.
+//
+//   int gl_func_00020ED0(a0, a1, a2, a3) {
+//     if (a1 != 0) {
+//       r = (*h1)(a1);                              // jal 0 USO-reloc
+//     } else if (a2 != 0) {
+//       r = (*h2)(a0);                              // jal 0 USO-reloc
+//     } else if (a3 != 0) {
+//       r = (*h3)(a0, a3);                          // jal 0 USO-reloc
+//     } else {
+//       r = 0;
+//     }
+//     // fall-through table work:
+//     T *src = &D_E + a2*16;                         // index*16 entry
+//     T *dst = &D_F + a2*16;
+//     for (int i = 0; i < 8; i++)                     // 8 halfwords
+//       dst->h[i] = src->h[i];                        // record copy
+//     return r;
+//   }
+//
+// Struct-typing reference: a multi-path entry that routes to one of
+//   three USO-relocated handlers (the `jal 0` slots) depending on
+//   which of the optional args a1 / a2 / a3 is non-null (a0 passed
+//   through to the a2/a3 handlers), each yielding a result in $a1.
+//   The unconditional tail builds two parallel table pointers from
+//   index a2 scaled by 16 (sll 4) over the &D_E and &D_F globals and
+//   copies an 8-entry halfword record between them (count li 8, lh/sh
+//   stride 2). game_libs dispatch + record-shuffle helper.
+// Caps: raw-word USO + 3-fn unsplit bundle + jal-0 USO-reloc
+//   handlers — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only for the named leading fn, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
