@@ -7355,6 +7355,43 @@ void gl_func_000334B0(int a0, int a1, int a2) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000334E8);
 
+// gl_func_000337AC — STRUCTURAL PASS (0xD4 / 53 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A flag-gated record register-and-init routine.
+//
+//   void gl_func_000337AC(int id, unsigned flags, int b, int c) {
+//     if (flags & 7) {
+//       callback((void*)0x0001E2C0, id);      // jal 0 (USO cb)
+//     }
+//     if (flags & 1) {
+//       callback((void*)0x0001E2D8, c);       // 2nd USO cb
+//     }
+//     R *rec = (R*)(&D_0 + id * 0x44);         // id*0x44 record
+//     rec->w_3C = 1;                            // mark active
+//     callback3(flags, c);                      // 3rd USO cb
+//     init(&rec->f_18, 0, 0, ...);              // init sub-block
+//   }
+//
+// Struct-typing reference: a flag-driven registration / slot-init
+//   leaf. The flags arg's low bits select optional setup callbacks
+//   — `flags & 7` runs a USO-relocated callback (jal 0 → resolved
+//   at load) with the fixed data-segment template 0x0001E2C0, and
+//   `flags & 1` runs another with template 0x0001E2D8. It then
+//   indexes a record array based at &D_0 with stride 0x44 (the
+//   index computed as id*16 + id then *4 = id*0x44, the classic
+//   shift/add multiply for a non-power-of-two struct size), sets
+//   the per-record active flag at +0x3C, and runs a third callback
+//   to initialize the record's sub-block at +0x18. A table-slot
+//   register/activate node of the game_libs object subsystem (the
+//   0x44-stride array is a sibling of the registry/record tables
+//   mapped earlier in this vein; 0x0001E2C0 / 0x0001E2D8 are
+//   deferred data-segment template-symbolization sites).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0
+//   record-array (0x44 stride) + fixed data-seg templates
+//   (unsymbolized) — not exact-matchable without proper USO
+//   mnemonic disasm + the record struct typed; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000337AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033880);
