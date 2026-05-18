@@ -1456,6 +1456,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E910);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E9C0);
 
+/* gl_func_0000EAAC: 35-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000EAAC);
 
 extern int gl_ref_00020CB0();
