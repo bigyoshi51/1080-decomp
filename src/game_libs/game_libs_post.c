@@ -566,6 +566,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
 
+// gl_func_0001FBD4 — STRUCTURAL PASS (0x7C / 31 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Sibling of gl_func_0001FAE8: a record-array sweep firing
+// a per-record USO-reloc callback. -0x28 frame, s0-s2/ra saved.
+//
+//   void gl_func_0001FBD4(int n) {
+//     if (n <= 0) return;
+//     S *rec = &D_0 + 0x2D00;                       // record table base
+//     for (int i = 0; ; ) {
+//       int w = rec->w_0;                            // &D_0+0x2D00
+//       if (w >> 31) {                                // sign-bit gate
+//         byte f = rec->b_4;                          // &D_0+0x2D04
+//         if (f == ...) {
+//           (*cb)(rec);                                // jal 0 USO reloc
+//         }
+//       }
+//       i++;
+//       short lim = *(short*)(&D_x + 0x2048);          // global bound
+//       if (i >= lim) break;
+//       rec += 0x160;                                  // record stride
+//     }
+//   }
+//
+// Struct-typing reference: a second sprite-subsystem record table
+//   distinct from gl_func_0001FAE8's — base &D_0 + 0x2D00, fixed
+//   stride 0x160 per record. Record word R->0 carries an active flag
+//   in its sign bit (srl 31); byte R->4 (i.e. &D_0+0x2D04 for index 0)
+//   is a secondary gate. The loop iterates until a running counter
+//   reaches a global limit halfword at &D_x + 0x2048, invoking the
+//   USO-relocated callback (the `jal 0` slot, resolved at load) with
+//   the record pointer. Same sweep family as gl_func_0001FAE8.
+// Caps: raw-word USO + jal-0 USO-reloc callback — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FBD4);
 
 void gl_func_0001FC50(void) {
