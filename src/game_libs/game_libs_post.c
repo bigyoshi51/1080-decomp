@@ -7709,6 +7709,53 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034188);
 
+// gl_func_00034240 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x218 / 134 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE. The .s has SEVEN jr $ra but only ONE
+// stack-frame prologue (the 27BDFF40 at the very top). The other
+// six jr's cluster densely in the tail (0x343D8 / 0x343EC / 0x3441C
+// / 0x34428 / 0x34434 / 0x34440 / 0x34450 — note the repeated
+// 3-word spacing) and have NO addiu $sp before them: they are tiny
+// LEAF accessor functions that don't allocate a stack frame, which
+// is why the "one prologue ⇒ one function" heuristic FALSELY reads
+// this as a single function. Splat could not separate them in this
+// relocatable USO segment. Only the NAMED LEADING function is
+// decoded; the ~6 trailing no-frame leaves are a DEFERRED USO
+// RE-SPLIT (tracked with the other game_libs_post.c multi-jr
+// boundary notes; NOT fixable with mnemonic split-fragments.py /
+// merge-fragments — raw-.word relocatable USO needs the
+// spimdisasm-USO migration).
+//
+// Leading fn gl_func_00034240 (0x34240..~0x343D8):
+//   void gl_func_00034240(int a2) {
+//     R *r = *(R**)&D_0;
+//     Desc d;                                  // local at sp+0x40
+//     callback(&d, -1);                         // jal 0 (USO cb)
+//     r->w_38 = 1;                              // mark initialized
+//     callback(&D_0, *(int*)(r + 0x34), 1);     // 2nd USO cb
+//     if (*(int*)0x0001E21C != 0) {             // data-seg template
+//       callback(&D_0); callback(&d); ...
+//     }
+//   }
+// i.e. a subsystem / object INITIALIZER: builds a local descriptor
+// on the stack (sp+0x40), runs setup USO-relocated callbacks
+// (jal 0 → resolved at load) keyed off a data-segment template at
+// 0x0001E21C, sets the initialized flag in the &D_0-rooted record
+// (r->0x38 = 1), and fans out further callbacks. The bundled tail
+// leaves are its companion no-frame accessors (getters into the
+// record this fn initializes).
+//
+// Struct-typing reference: the constructor/init entry of the
+//   device/object family whose per-frame tick is gl_func_00034188
+//   (same &D_0-rooted record, vtable-style indirection); 0x0001E21C
+//   is a deferred data-segment template-symbolization site.
+// Caps: raw-word USO + 7-fn bundle (no-frame-leaf false-single-fn)
+//   + USO-relocated jal-0 callbacks + data-seg template — not
+//   exact-matchable without proper USO mnemonic disasm + boundary
+//   re-split; structural pass only, no byte body. No merge attempted
+//   (would corrupt the bundled leaves); no episode.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034458);
