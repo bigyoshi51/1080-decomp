@@ -1445,6 +1445,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
 
+// gl_func_00022D68 — STRUCTURAL PASS (0x78 / 30 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A small readiness/availability predicate over the
+// per-index state-byte array at &D_0+0x2C40.
+//
+//   int gl_func_00022D68(int idx) {
+//     if (idx != 0xFF) {
+//       byte st = *(byte*)(&D_0 + 0x2C40 + idx);        // state byte
+//       if (st >= 2) return 1;                           // ready
+//       int j = jal 0x38174(1);                          // 0x0C00E05D
+//       byte st2 = *(byte*)(&D_0 + 0x2C40 + j);
+//       if (st2 >= 2) return 1;
+//       return 1;                                         // (default)
+//     }
+//     return 1;                                           // 0xFF sentinel
+//   }
+//
+// Struct-typing reference: &D_0+0x2C40 is a per-index byte array of
+//   slot states; a value >= 2 means "ready/active". The 0xFF index is
+//   a null/none sentinel (treated as trivially ready). On a not-ready
+//   slot the function calls the fixed USO-relocated routine
+//   0x0C00E05D (≈0x38174) with arg 1 — a poll/advance that returns a
+//   (possibly different) index — then re-tests its state byte. The
+//   net result is a boolean readiness flag. A status-query helper of
+//   the same &D_0 sprite/registry subsystem (the 0x2C40 byte array
+//   sits alongside the 0x2CF0/0x2CF1 state bytes used by
+//   gl_func_0002119C / gl_func_00021498).
+// Caps: raw-word USO + fixed-target poll call — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022D68);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022DE0);
