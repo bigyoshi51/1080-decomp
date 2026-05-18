@@ -15633,6 +15633,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AE40);
 
+/* gl_func_0004AFB4: 35-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AFB4);
 
 /* 26-insn entry-array iter: count re-read from a0[0xC/4] each iter
