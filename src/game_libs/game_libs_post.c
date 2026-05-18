@@ -3458,6 +3458,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027804);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027D00);
 
+// gl_func_00027E24 — STRUCTURAL PASS (0x534 / 333 words ≈ 1.3KB, no
+// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO
+// bundle (named fn + 3 trailing helpers) — deferred USO re-split.
+// The named leading fn is a big per-record processing pass over the
+// main sprite record table. Large -0x98 frame.
+//
+//   void gl_func_00027E24(void) {
+//     S *g = &D_0;
+//     int n = g->w_2070;                                // record count
+//     if (n <= 0) return;
+//     for (int i = 0; i < n; i++) {                       // all records
+//       R *rec = *(R**)(&D_0 + 0x2CFC) + i;                // record tbl
+//       T *sub = rec->w_44;                                // sub-struct
+//       byte k = (&rec->_30)->b_4;
+//       int  v = rec->w_14;
+//       if ((unsigned)v < 0x7FFFFFFF) { ... clamp / use v ... }
+//       ... accumulate into a stack buffer at sp+0x67 ...
+//     }
+//   }
+//
+// Struct-typing reference: iterates the SAME primary sprite record
+//   table as gl_func_0001E134 / gl_func_0001FAE8 / gl_func_0002119c —
+//   live count word &D_0+0x2070, record-table pointer &D_0+0x2CFC.
+//   Per record: word +0x44 a linked sub-struct pointer, embedded
+//   sub-block at +0x30 (byte +4), word +0x14 a value clamped against
+//   0x7FFFFFFF (INT_MAX saturation). Results accumulate into a stack
+//   scratch buffer at sp+0x67. This is one of the heavyweight
+//   per-frame "process every sprite record" passes of that subsystem
+//   (sibling to gl_func_0001E134's builder / gl_func_0001FAE8's
+//   reactivate sweep).
+// Caps: raw-word USO + 4-fn unsplit bundle + large per-record loop —
+//   not exact-matchable without proper USO mnemonic disasm; high-
+//   level structural pass only for the named leading fn, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028358);
