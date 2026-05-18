@@ -16946,6 +16946,44 @@ void game_libs_func_00047F68(int *a0, int a1) {
     }
 }
 
+// gl_func_00047F9C — STRUCTURAL PASS + BOUNDARY NOTE (0x3B4 / 238 words, no
+// episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
+// three jr at 0x480FC (~92w in) / 0x4817C / 0x4834C delimit a named fn + 2
+// trailing FP leaves (only the named fn carries the 27BDFF90 + s0..s4
+// prologue). Named fn ends at the jr at 0x480FC; the trailing two (0x48100
+// ~32w, 0x48180 ~116w) are a DEFERRED USO RE-SPLIT (decode under their own
+// symbols later).
+//
+// Named fn = FP-Vec3 list-walk + cb dispatch (single prologue frame 0x70,
+// saves ra + s0..s4; cb = jal 0 USO-relocated; string default &D_0002F970):
+//   void gl_func_00047F9C(void *a0, ...) {
+//     void *root = *(void**)(&D_0 + 0x18C);            // global list root
+//     it  = root ? root : 0;
+//     cur = it ? it->p00 : 0;                          // {cur,next} cursor
+//     nxt = it ? it->p04 : 0;                          //   in sp+0x68/0x6C
+//     if (cur == 0) return;
+//     void *def = &D_0002F970;
+//     do {
+//       n = cur;
+//       float vx = n->pA0, vy = n->pA4, vz = n->pA8;    // node Vec3 @0xA0
+//       n->pE0 = n->p00;                                 // copy a field
+//       scratch = {vx, vy, vz};                          // sp+0x4C
+//       cb1(a0, &scratch);                               // per-node dispatch
+//       // read back n->0xE4.. and continue the per-node FP processing
+//       it = nxt; cur = it ? it->p00 : 0;
+//       nxt = it ? it->p04 : nxt;
+//     } while (cur != 0);
+//   }
+// Walks the global intrusive list rooted at &D_0+0x18C (cursor {cur,next}
+// in sp+0x68/0x6C) and, per node, snapshots its Vec3 at +0xA0/0xA4/0xA8 into
+// an sp scratch, copies a field into node->0xE0, and dispatches a cb1
+// handler (keyed/defaulted via &D_0002F970), then reads back node->0xE4..
+// for further FP processing. Family: FP-Vec3 list-walk + cb dispatch
+// (siblings gl_func_000478FC / 00040E90 / 000432BC). Per-node body
+// representative; the &D_0+0x18C root, the +0xA0 Vec3 source, the
+// node->0xE0 copy, the cb1 dispatch and the &D_0002F970 default are exact.
+// Trailing 2 leaves = deferred re-split. Caps: node struct + cb signature
+// untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047F9C);
 
 void gl_func_00048354(char *a0, int a1) {
