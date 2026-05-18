@@ -16740,6 +16740,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046FA8);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000470FC);
 
+// gl_func_000473AC — STRUCTURAL PASS (0x294 / 166 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
+// (near-leaf). SIBLING: near-identical instruction stream to
+// gl_func_000470FC (same 3C014F00 / C4A20004-08-0C / cfc1-ctc1-cvt.w.s /
+// 0x78-cause / 0x4F000000-bias sequence; only the .s addresses differ) —
+// the same saturating float-to-int converter over a Vec3-ish triple.
+//
+//   void gl_func_000473AC(Out a0, Vec a1) {
+//     float x = a1->p04, y = a1->p08, z = a1->p0C;
+//     int cw = read_fpcsr(); set_round_to_zero();     // cfc1 / ctc1
+//     // per lane: cvt.w.s; if (fpcsr_cause & 0x78) overflow -> clamp to
+//     // 0x80000000 / 0xFFFFFFFF via the 0x4F000000 (2^31) unsigned-bias
+//     // branch; else take the converted word:
+//     int ix = sat_cvt(x), iy = sat_cvt(y), iz = sat_cvt(z);
+//     restore_fpcsr(cw);                              // ctc1 back
+//     a0->b0 = (i8)ix; a0->b1 = (i8)iy; a0->b2 = (i8)iz;
+//   }
+// Duplicate of the gl_func_000470FC saturating-cast converter (this +
+// 000470FC are an adjacent pair, likely the same template instantiated for
+// two output targets). See the gl_func_000470FC structural pass above for
+// the full instruction-level rationale and the IDO float->int-with-clamp
+// idiom (cfc1/ctc1 round-mode bracket + cvt.w.s + andi cause,0x78 +
+// 0x4F000000 bias; see docs/IDO_CODEGEN float->int saturating-cast). Family:
+// FP saturating cast (conversion primitive under the quantize/byte-pack
+// routines). The cfc1/ctc1 + cvt.w.s + 0x78 cause-check + per-lane
+// repetition are exact; the exact clamp-value/store-width are
+// representative. Caps: Out/Vec struct untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000473AC);
 
 /* gl_func_00047644: 38-insn helper. Multi-pass decode pending. */
