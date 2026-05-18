@@ -9868,6 +9868,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003800C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038108);
 
+// gl_func_000381F8 — STRUCTURAL PASS (0x9C / 39 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). The SIBLING of gl_func_00038108 — a diagnostic-print
+// + vtable-dispatch routine.
+//
+//   void gl_func_000381F8(O *o) {
+//     report((char*)D0_str);                    // jal 0 (printf cb)
+//     if (report((char*)0x0001EC20, (char*)0x0001EC28, &D_0)) {
+//       if (report((char*)0x0001EC30, ...)) {
+//         R *r = o->p_28;
+//         int (*f)() = r->fp_44;                 // vtable slot
+//         short h = r->h_40;
+//         f(h + (int)r);                          // jalr r->0x44
+//         report((char*)D0_str);                  // final printf cb
+//       }
+//     }
+//   }
+//
+// Struct-typing reference: the paired counterpart of
+//   gl_func_00038108 — a debug-report + dispatch leaf. It issues a
+//   conditional sequence of printf-shaped USO-relocated callbacks
+//   (jal 0 → resolved at load) using the NEXT entries of the same
+//   contiguous data-segment string table (0x0001EC20 / 0x0001EC28 /
+//   0x0001EC30 — immediately after gl_func_00038108's
+//   0x0001EBF8..0x0001EC1C, confirming one contiguous message
+//   block), then dereferences the object chain (o->0x28) and calls
+//   a VTABLE function pointer at obj->0x28+0x44 (passing
+//   obj->0x28->0x40 halfword + obj — a self-relative arg), and
+//   emits a final report line. Together gl_func_00038108 /
+//   gl_func_000381F8 (and the gl_func_00035268 config-validator)
+//   form the diagnostic/trace family of the game_libs object
+//   subsystem over a shared message table; the obj->0x28->0x44
+//   slot ties this to the device-object vtable family
+//   (gl_func_00034188 / 00034458 / 0003537x).
+// Caps: raw-word USO + USO-relocated jal-0 printf callbacks +
+//   contiguous fixed string-data table + jalr through object
+//   vtable (obj->0x28+0x44) — not exact-matchable without proper
+//   USO mnemonic disasm + the string table / vtable typed;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000381F8);
 
 void game_libs_func_00038294(int a0) {
