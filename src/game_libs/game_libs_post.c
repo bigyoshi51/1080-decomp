@@ -17232,6 +17232,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000493AC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049B3C);
 
+// gl_func_00049DBC — STRUCTURAL PASS (0x548 / 339 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
+// 0xB0 (saves ra, s0, s1). Structured-record parser / field decoder
+// (cb = jal 0 USO-relocated).
+//
+//   <ret> gl_func_00049DBC(void *a0, int a1, int a2, int a3) {
+//     self = a0;
+//     u8 *rec = (u8*)self->p68 + a3*8;               // indexed record fetch
+//     r0 = cb1(rec); short f0 = *(u16*)(rec + 2);     // decode + halfword
+//     r1 = cb2(self, rec_field);  f1 = *(u16*)(r? + 4);
+//     r2 = cb3(self, rec_field);  f2 = *(u16*)(r? + 6);
+//     // the decoded values are spilled to sp+0xA4..0xAC, then sign-bit
+//     // tested (sll + bgez on the extracted fields) to drive a branch
+//     // ladder that re-fetches self->0x68 records and runs further cb
+//     // decode passes per the parsed header fields.
+//   }
+// Parses a structured record located at self->0x68 + index*8: alternates
+// cb1/cb2/cb3 field-decode calls with fixed-offset 16-bit reads (lhu at
+// +0x02 / +0x04 / +0x06 of the record / cb results), stashes the parsed
+// fields to the sp+0xA4.. scratch, and uses sign-bit tests (shift-left +
+// bgez) on them to select among further record-fetch + decode passes.
+// Family: cb-driven record/packet decode + dispatch (relates to the
+// segment's parse/registration routines). Per-pass body not exhaustively
+// decoded (339-word parser) — the self->0x68 + index*8 record base, the
+// cb1/cb2/cb3 decode shape and the +2/+4/+6 halfword field reads are exact;
+// the inner branch ladder is representative. Caps: record/self struct + cb
+// signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049DBC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A308);
