@@ -11765,6 +11765,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
 
+// gl_func_0003C43C — STRUCTURAL PASS (0x3D8 / 246 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION — exactly
+// ONE 27BDFF20 prologue (large 0xE0 FP frame, saves f20); the two
+// jr's are an early-out return and the main return (not a bundle).
+// A large geometry QUERY + result-process node.
+//
+//   ? gl_func_0003C43C(O *o, R *r, float s, A *a3) {
+//     int req[..];                                // sp+0x10..0x1C
+//     req[0]=r->w_0; req[1]=r->w_4; req[2]=r->w_8;
+//     Vec3 outA, outB;                            // sp+0xA0 / sp+0xC0
+//     int n = callback(o, 8, &outB, &outA, req);  // jal 0 (USO cb)
+//     float lim = *(float*)(&D_0 + 0x1AB8);       // FP literal pool
+//     if (n <= 0) return ...;                      // empty result
+//     a3->h_14 = (short)n;                          // store count
+//     if (n & 1) { ... }                            // parity branch
+//     // clamp/abs the result vs lim, process the n entries ...
+//   }
+//
+// Struct-typing reference: a geometry/collision QUERY wrapper. It
+//   marshals a request block from the second argument's fields
+//   (r->0x00 / 0x04 / 0x08) onto the stack, hands it plus two
+//   output-buffer pointers (sp+0xA0, sp+0xC0) and a fixed count of
+//   8 to a USO-relocated callback (jal 0 → resolved at load — the
+//   actual query/intersection routine), then post-processes the
+//   returned count: early-outs on n <= 0, stores the count as a
+//   halfword into a3->0x14, branches on the low bit (n & 1) and
+//   clamps/abs-compares results against an FP-literal-pool limit
+//   constant at &D_0+0x1AB8 (the recurring FP-pool fold of this
+//   segment — deferred symbolization per docs/N64_FORENSICS.md,
+//   same class as the &D_0+0x19F0 clamp table and &D_0+0x128
+//   coefficient pool). A spatial-query / visibility / collision
+//   node of the game_libs object subsystem (the higher-level
+//   consumer of the gl_func_0003B9C0 distance solver and the
+//   matrix/transform geometry leaves).
+// Caps: 0x3D8 raw-word USO + USO-relocated jal-0 query callback +
+//   FP-literal-pool limit (&D_0+0x1AB8 unsymbolized) + multi-return
+//   result post-process — categorically not exact-matchable
+//   without proper USO mnemonic disasm + FP-pool/struct
+//   symbolization; structural pass only, no byte body. (A future
+//   focused non-loop session is where this gets a real decode; not
+//   60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C43C);
 
 /* gl_func_0003C814: 22-insn optional-alloc + init constructor (sibling of
