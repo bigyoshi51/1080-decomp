@@ -5082,6 +5082,40 @@ void gl_func_0002D2F4(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D2F4);
 #endif
 
+// gl_func_0002D37C — STRUCTURAL PASS (0x2A4 / 169 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A subsystem timer / sequence-step tick.
+//
+//   void gl_func_0002D37C(a0, a1, a2, int a3) {
+//     if (a3 != 1) return;
+//     if (!(*precond)()) { *(int*)(&D_xxx) = 0; return; } // jal 0 USO
+//     int *ctr = (int*)(&D_0 + 0);                        // global ctr
+//     if (*ctr == 0) return;
+//     if (--(*ctr) != 0) return;                           // not expired
+//     int st = *(int*)(&D_yyy);
+//     if (st == 0xF) {
+//       jal 0x4423C(arg & 0xFF);                           // 0x0C0108F1
+//       jal 0x41E9C(arg & 0xFF);                           // 0x0C0107A7
+//     } else {
+//       jal 0x44490(...);                                  // 0x0C010924
+//       jal 0x41ED4(...);                                  // 0x0C0107B5
+//     }
+//   }
+//
+// Struct-typing reference: a gated countdown sequencer. Runs only
+//   when the a3 selector equals 1 and a USO-relocated precondition
+//   (`jal 0` slot) passes (otherwise it zeroes a global and bails).
+//   A global counter at &D_0+0 is decremented each call; when it
+//   reaches zero the function fires a fixed USO-relocated routine
+//   pipeline — 0x0C0108F1 (≈0x4423C) / 0x0C0107A7 (≈0x41E9C) on the
+//   state==0xF path, 0x0C010924 (≈0x44490) / 0x0C0107B5 (≈0x41ED4)
+//   otherwise — to advance the next phase. A subsystem
+//   tick/scheduler step in the game_libs subsystem (peer to the
+//   gl_func_00026214 ring scheduler).
+// Caps: raw-word USO + gated countdown + fixed-target sequence
+//   pipeline — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D37C);
 
 void gl_func_0002D620(void) {
