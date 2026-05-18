@@ -3114,49 +3114,48 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     }
 
     /* Stage 2: init main from template at D[0x6D0]; set parent ptr */
-    gl_func_00000000((char*)&D_00000000 + 0x6D0, a0);
+    gl_func_00000000(a0, (char*)&D_00000000 + 0x6D0);
     *(char**)(a0 + 0x28) = &D_00000000;
 
-    /* Stage 3: sub-region — branch is always-true (a0+0xE4 != 0xFFFFFF1C);
-     * IDO's `addiu at, zero, -0xE4; bne s1, at, +5` form. Else-arm
-     * allocates 0x3E0 if the sub-region pointer is NULL. */
-    if ((int)(a0 + 0xE4) != -0xE4) {
-        s1 = a0 + 0xE4;
-    } else {
+    /* Stage 3: sub-region. Expected compares a0 directly against -0xE4,
+     * computes s1 = a0 + 0xE4 in the bne delay slot, and allocates the
+     * 0x3E0 child only on the sentinel-equality path. */
+    s1 = a0 + 0xE4;
+    if (a0 == (char*)-0xE4) {
         s1 = (char*)gl_func_00000000(0x3E0);
         if (s1 == NULL) goto epi;
     }
 
-    /* Stage 4 (v1 setup + iter 0): v1 = (s1 != NULL) ? s1 : alloc(8).
-     * Then write template head at v1[0] / 0 at v1[4]. Iter 0 inits
-     * the first sub-obj at slot 8 from D[0x6E8] template. */
+    /* Stage 4 (v1 setup + iter 0): v1 = s1 ?: alloc(8); a failed alloc(8)
+     * skips only the template-head stores. Iter 0 allocates on the -8
+     * sentinel path, then always initializes the first sub-object slot. */
     {
         char *v1;
         char *tmpl0;
         char *_s2_buf;       /* stack temp at sp+0x2C, target uses for marshalling */
         char *s2 = (char*)&_s2_buf;
-        if (s1 != NULL) {
-            v1 = s1;
-        } else {
+        v1 = s1;
+        if (s1 == NULL) {
             v1 = (char*)gl_func_00000000(8);
-            if (v1 == NULL) goto epi;
+            if (v1 == NULL) goto after_head_template;
         }
         *(char**)v1 = (char*)&D_00000000 + 0x6D8;
         *(int*)(v1 + 4) = 0;
+after_head_template:
 
         {
             extern char D_44F4_iter0, D_44F4_typtag;
             tmpl0 = *(char**)((char*)&D_44F4_iter0 + 0x6E8);
             s0 = s1 + 8;
             *(char**)s2 = tmpl0;
-            if (s1 != (char*)-8) {
+            if (s1 == (char*)-8) {
                 s0 = (char*)gl_func_00000000(0x18);
                 if (s0 == NULL) goto epi;
-                gl_func_00000000(s0, s1, *(char**)s2, 1);
-                *(char**)(s0 + 0xC) = (char*)&D_44F4_typtag + 0x3C8;
-                *(int*)(s0 + 0x14) = 0;
-                *(float*)(s0 + 0x10) = *(float*)((char*)&D_44F4_iter0 + 0x9C);
             }
+            gl_func_00000000(s0, s1, *(char**)s2, 1);
+            *(char**)(s0 + 0xC) = (char*)&D_44F4_typtag + 0x3C8;
+            *(int*)(s0 + 0x14) = 0;
+            *(float*)(s0 + 0x10) = *(float*)((char*)&D_44F4_iter0 + 0x9C);
         }
 
         /* Unrolled iters A-D (slots 0x20, 0x38, 0x50, 0x68; tmpl_off
@@ -3169,14 +3168,14 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
             s0 = s1 + (SLOT); \
             _t_buf[0] = _t; \
             *(char**)s2 = _t_buf[0]; \
-            if (s1 != (char*)((SLOT) - 0x100)) { \
+            if (s1 == (char*)((SLOT) - 0x100)) { \
                 s0 = (char*)gl_func_00000000(0x18); \
                 if (s0 == NULL) goto epi; \
-                gl_func_00000000(s0, s1, *(char**)s2, 1); \
-                *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
-                *(int*)(s0 + 0x14) = 0; \
-                *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
             } \
+            gl_func_00000000(s0, s1, *(char**)s2, 1); \
+            *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
+            *(int*)(s0 + 0x14) = 0; \
+            *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
         } while (0)
 
             INIT_ITER(0x20,  0x6EC, *(float*)((char*)&D_44F4_iterA + 0xA0), D_44F4_iterA);  /* A */
@@ -3207,14 +3206,14 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
             s0 = s1 + (SLOT); \
             _t_buf[0] = _t; \
             *(char**)s2 = _t_buf[0]; \
-            if (s1 != (char*)((SLOT) - 0x100)) { \
+            if (s1 == (char*)((SLOT) - 0x100)) { \
                 s0 = (char*)gl_func_00000000(0x18); \
                 if (s0 == NULL) goto epi; \
-                gl_func_00000000(s0, s1, *(char**)s2, 1); \
-                *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
-                *(int*)(s0 + 0x14) = 0; \
-                *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
             } \
+            gl_func_00000000(s0, s1, *(char**)s2, 1); \
+            *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
+            *(int*)(s0 + 0x14) = 0; \
+            *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
         } while (0)
             INIT_ITER(0xB0,  0x704, -8000.0f,                                D_44F4_iterG);  /* G (lui 0xC5FA) */
             INIT_ITER(0xC8,  0x708, *(float*)((char*)&D_44F4_iterH + 0xB0), D_44F4_iterH);  /* H */
@@ -3292,7 +3291,7 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *   s0->[0xC] = (int)((char*)&D_00000000 + 0x3C8);  // template ptr (same as stage 5)
      *   s0->[0x14] = 0;
      *   s0->[0x10] = *(float*)((char*)&D_00000000 + 0xA0);  // float scalar
-     *   if (s1 != (char*)-0x38) { ... }            // unusual addr-as-imm cmp
+     *   if (s1 == (char*)-0x38) { alloc slot }     // unusual addr-as-imm cmp
      *
      * The 4-arg call here mirrors the structure of Stage 4's gl_func call
      * but with explicit (a0, a1, a2, a3) — different sub-init shape.
@@ -3358,7 +3357,7 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      *  - arg_slot decreases by 4 per iter (stack spills grow downward
      *    as live ranges of earlier tmpl ptrs end)
      *  - sentinel = slot_off - 0x100 (sign-extended low half) — IDO
-     *    rewrites `s1 + slot != magic_addr` as `s1 != magic_addr - slot`
+     *    rewrites `s1 + slot == magic_addr` as `s1 == magic_addr - slot`
      *    to fit the comparison constant in 16-bit imm
      *  - slot_off advances +0x18 (sub-obj size) per iter — sub-objs are
      *    laid out CONTIGUOUSLY in s1[]; offsets 0x20, 0x38, 0x50, 0x68
@@ -3379,8 +3378,8 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
      * read `sentinel == slot - 0x100` (sign-extended), where MAGIC is
      * `(char*)0xFFFFFF00`. Verified iters A-D: -0xE0=0x20-0x100,
      * -0xC8=0x38-0x100, -0xB0=0x50-0x100, -0x98=0x68-0x100. The C test
-     * IDO rewrites is `(s1 + slot) != (char*)0xFFFFFF00`, regrouped as
-     * `s1 != (char*)0xFFFFFF00 - slot` so the addiu imm fits 16-bit
+     * IDO rewrites is `(s1 + slot) == (char*)0xFFFFFF00`, regrouped as
+     * `s1 == (char*)0xFFFFFF00 - slot` so the addiu imm fits 16-bit
      * signed.
      *
      * Stage 9 (~70 insns covering 0x47B0-0x48E0): iters E, F, G, H
