@@ -6665,6 +6665,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
 
+// gl_func_00031334 — STRUCTURAL PASS (0x1EC / 123 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr $ra)
+// with one INTERNAL computed jump (jr $t8). A 3-arg stepped
+// state-machine driver / jump-table command loop.
+//
+//   void gl_func_00031334(int a, int b, int c) {
+//     ctx_a = a; ctx_b = b; ctx_c = c;       // spill 3 args
+//     callback0(0);                           // jal 0 setup
+//     callback(1);
+//     *(int*)&D_0_flag = 1;                   // mark active
+//     callback(0xFF, 0);                      // clear / reset pass
+//     int i = *(int*)&D_0_step + 1;           // global step index
+//     if (i >= 0xF) return;                   // bounded (0..0xE)
+//     goto *jumptab_1900[i];                  // sll 2; lw; jr $t8
+//   L_step0: if (a == 4) { ... } ...
+//   L_stepN: emit(0x83010000 | ..., 0x50);    // per-step callback
+//     ...
+//   }
+//
+// Struct-typing reference: a per-invocation STEP DRIVER for one of
+//   the subsystem's state machines. It spills its three args into
+//   context slots, runs reset/setup USO-relocated callbacks (jal 0
+//   → resolved at load) and marks a global active flag at &D_0,
+//   then reads a global STEP INDEX (based at &D_0), increments it,
+//   bounds it to [0, 0xE], and dispatches through a jump table at
+//   &D_0+0x1900 (computed `jr $t8` after sll-2 + lw) to ~15 per-step
+//   handler arms. Each arm tests the spilled args (e.g. == 4 via
+//   branch-likely beql) and issues USO-relocated callbacks carrying
+//   command words from the 0x83010000 bank with parameters such as
+//   0x50. The stepped counterpart to the gl_func_0002FB74
+//   interpreter — where that one is opcode-keyed per command, this
+//   one is index-keyed per progression step (the &D_0+0x1900 table
+//   and &D_0 step word are the deferred-symbolization sites).
+// Caps: raw-word USO + computed jump table (&D_0+0x1900 unsymbolized)
+//   + USO-relocated jal-0 callbacks — not exact-matchable without
+//   proper USO mnemonic disasm + the step table symbolized;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031334);
 
 extern int gl_func_00000000();
