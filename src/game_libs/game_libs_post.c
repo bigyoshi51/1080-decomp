@@ -8610,6 +8610,54 @@ int gl_func_00035894(int *a0) {
  * Target hoists `or a1, a0, 0` for $a1-carrier; not C-reachable. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000358DC);
 
+// gl_func_0003593C — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x88 / 34 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE (no-frame-leaf shape — see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). realjr=5 but only
+// ONE 27BDFFE8 prologue; the trailing four jr's bound tiny ~3-word
+// no-frame LEAF stubs (dense repeating spacing) splat could not
+// separate:
+//   - 0x3593C..0x35980: the NAMED function (frame-allocating).
+//   - 0x35988: `jr ra; v0 = *(a0+0x20)`            — getter stub.
+//   - 0x3598C..0x3599C: spill a0/a1/a2; `jr ra; v0 = 0` — varargs
+//       stub returning 0.
+//   - 0x359A0..0x359B0: spill a0/a1/a2; `jr ra; v0 = 1` — varargs
+//       stub returning 1.
+//   - 0x359B4..0x359BC: spill a0; `jr ra; v0 = 0`     — stub
+//       returning 0.
+//
+// Leading fn gl_func_0003593C — same kind-dispatch family as
+// gl_func_00035370 / 00035440 / 000355A0 / 00035648 / 000356FC:
+//   int gl_func_0003593C(O *o) {
+//     if (o->kind_4 != 1) return 0;            // branch-likely gate
+//     H *h = *(H**)&D_0;
+//     return h->fp_5C(o->w_20);                // jalr (*&D_0)->0x5C
+//   }
+// i.e. a kind==1-gated dispatch through the global handler vtable
+// slot (*&D_0)+0x5C (passing o->0x20), else returns 0. Continues
+// the consecutive-slot family (0x4C / 0x50 / 0x54 / 0x5C / 0x60).
+//
+// Struct-typing reference: the named function is the 0x5C-slot
+//   typed entry point of the device-object handler vtable family;
+//   the four bundled no-frame leaves are its trivial companion
+//   accessors / predicates (a field getter for o->0x20 and the
+//   constant-0 / constant-1 default method stubs that populate the
+//   vtable for "do-nothing" object kinds). An entry-point +
+//   default-vtable-stub cluster of the game_libs object subsystem
+//   (device-object family gl_func_00034188 / 00034458; the (*&D_0)
+//   handler vtable's slots 0x4C..0x60 are now mapped across this
+//   sibling group).
+// Resolution: DEFERRED USO RE-SPLIT for the four tail stubs
+//   (tracked with the other game_libs_post.c bundle notes; not
+//   fixable with mnemonic split/merge tooling — needs the
+//   spimdisasm-USO migration). No merge attempted (would corrupt
+//   the stubs); no episode.
+// Caps: raw-word USO + bundled no-frame leaves + jalr through global
+//   handler vtable ((*&D_0)+0x5C) — not exact-matchable without
+//   proper USO mnemonic disasm + boundary re-split; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003593C);
 
 /* gl_func_000359C4: 21-insn 3-call dispatcher with permuted arg lists.
