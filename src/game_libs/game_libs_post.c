@@ -16291,6 +16291,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
 // global and cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044EDC);
 
+// gl_func_00045178 — STRUCTURAL PASS (0x22C / 140 words, no episode). Raw-.word
+// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
+// at the jr at 0x4538C; a tiny trailing leaf at 0x45394 (DEFERRED USO
+// RE-SPLIT — belongs to the next symbol). Named fn = FP clamp-and-shift over
+// object history fields (FP-heavy, no calls).
+//
+//   void gl_func_00045178(void *a0) {
+//     self = a0;
+//     float lo = *(float*)(&D_0 + 0x1B60);           // FP-pool clamp bounds
+//     float a  = *(float*)(&D_0 + 0x1B64);
+//     float b  = *(float*)(&D_0 + 0x1B68);
+//     float v  = self->p90;
+//     if (v < lo) v = a;                              // c.lt.s / bc1f clamp
+//     else if (v < b) v = a; else v = b;              // (mov.s of a/b)
+//     // history shift with the same per-lane clamp applied:
+//     self->p90 = clamp(self->p94);                    // 0x94 -> 0x90
+//     self->p94 = clamp(self->p98);                    // 0x98 -> 0x94
+//     self->p98 = clamp(self->p9C);                    // 0x9C -> 0x98
+//     // ... continues over the contiguous 0x90.. lane block, each lane
+//     //     clamped against the &D_0+0x1B60/0x1B64/0x1B68 trio before the
+//     //     shift-down store.
+//   }
+// Per-component clamp + history-shift: each float lane in the object's
+// 0x90.. block is clamped against the FP-literal-pool bound trio at
+// &D_0+0x1B60 / 0x1B64 / 0x1B68 (this EXTENDS the contiguous segment
+// FP-literal-pool block — 1B60 region; symbolization is in the deferred
+// FP-pool backlog) and then shifted down one slot (a ring/decay buffer
+// update). Family: FP geometry/clamp (siblings gl_func_00040CAC /
+// 00042778). Trailing leaf at 0x45394 = small stub (deferred re-split).
+// Exact clamp branch sense representative; the 0x90.. lane block, the
+// shift-down direction and the &D_0+0x1B60..0x1B68 pool refs are exact.
+// Caps: self struct + FP-pool symbolization untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045178);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
