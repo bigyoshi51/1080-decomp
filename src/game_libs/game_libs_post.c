@@ -17533,6 +17533,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B2FC);
 // signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B620);
 
+// gl_func_0004BAF4 — STRUCTURAL PASS (0x698 / 423 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (very large FP driver). Single
+// prologue frame 0xF0 (saves ra). Per-frame FP transform / emit driver
+// (cb = jal 0 USO-relocated).
+//
+//   void gl_func_0004BAF4(void *a0) {
+//     float *g = (float*)(&D_g + 0xA0);
+//     float x = g[0x30/4], y = g[0x34/4], z = g[0x38/4];  // global Vec3
+//     float scrA[..]; float scrB[..];                      // sp+0xE4 / sp+0xA0
+//     scrA = {x, y, z};
+//     cb1(&scrB, &scrA, 1);                                 // transform/init
+//     void *st = *(void**)&D_g2;
+//     if (st == 0) return;                                   // null guard
+//     // main body: FP transform pipeline using 1.0f (0x3F800000) and
+//     // 16384.0f (0x46800000) constants — mul.s / add.s / div.s chains
+//     // with a saturating trunc.w.s (cvt + cause-check) to produce
+//     // fixed-point / quantized output, driven off the &D_g+0xA0 config
+//     // Vec3 and &D_g2 state, emitting results via further cb passes.
+//   }
+// Top-level per-frame FP transform/emit: snapshots a Vec3 from the
+// &D_g+0xA0 global config, cb1-initialises sp scratch, guards on a &D_g2
+// state pointer, then runs a large FP arithmetic pipeline (1.0 / 16384.0
+// scale constants, mul/add/div, saturating trunc) to compute transformed /
+// quantized output committed via cb. Family: FP geometry/transform + cb
+// emit (the per-frame driver counterpart of the segment's matrix/transform
+// kernels gl_func_00047E00 / 0004B2FC / 00042778). Per-pass body not
+// decoded (423-word driver) — the &D_g+0xA0 Vec3 source, the cb1 scratch
+// init, the &D_g2 null guard and the 1.0/16384.0 FP constants are exact;
+// the inner transform sequence is representative. Caps: &D_g/&D_g2 struct
+// and cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004BAF4);
 
 #ifdef NON_MATCHING
