@@ -2049,6 +2049,41 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008AFC);
 
+// timproc_uso_b5_func_00008C44 — STRUCTURAL PASS (no episode).
+// Raw-.word USO. BOUNDARY NOTE: this .s is a 4-function USO bundle
+// (4 jr-ra). Named fn 0x8C44..0x8D34 is the classification query;
+// trailing helpers: 0x8D38 a search loop over D_00000154 + idx*0x18
+// entries returning a found index (bit-test ->0x6 & 7); 0x8D90 a
+// setter that clears scr->0x4A4/0x4A8/0x4AC/0x4B0 (the captured-
+// camera fields) — deferred USO re-split.
+//
+// Named fn = timing-screen state/classification query:
+//   int timproc_uso_b5_func_00008C44(Rec *r) {           // r -> s3
+//     Cfg *c = *(Cfg**)(D_0 + 0x154);                     // global cfg
+//     int m = (s16)r->0x2 - 4;
+//     if (m < 0 || m >= 2) { ...loop scanning D_00000F1C
+//                            handler table via func_00000000,
+//                            comparing each entry->0x2B0... }
+//     if (c->0xE == 0xFC && c->0xF == 0xFF && c->0x10 == 7) {
+//       e = func_00000000(&D_00000F1C, r);
+//       return (e->0x2B0 == 4) ? 3 : 4;                    // class code
+//     }
+//     return 0;
+//   }
+//
+// Struct-typing reference:
+//   r: 0x0 a counter/id, 0x2 s16 mode/index (range-checked vs 4,2).
+//   *(Cfg**)(D_0 + 0x154) = global config record; c->0xE/0xF/0x10 =
+//     sentinel bytes (0xFC / 0xFF / 7) gating the classification;
+//     scanned entry->0x2B0 = a command/state word (==4 -> code 3
+//     else 4; default 0). D_00000F1C = USO static handler table;
+//     D_00000F18 = a global (touched by the trailing setter);
+//     scr->0x4A4/0x4A8/0x4AC/0x4B0 = captured-camera fields the
+//     trailing setter clears. func_00000000 = USO placeholder
+//     dispatcher (table entry fetch).
+// Caps: raw-word USO + unsplit bundle + placeholder calls — not
+//   exact-matchable here; structural pass only for the named fn.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C44);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
