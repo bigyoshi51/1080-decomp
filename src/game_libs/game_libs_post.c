@@ -6613,6 +6613,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000309B4);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
 
+// gl_func_00030AF4 — STRUCTURAL PASS (0x840 / 528 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr $ra)
+// with one internal computed jump. A MAJOR SUBSYSTEM CONSTRUCTOR /
+// top-level initializer — the biggest node decoded in this vein.
+//
+//   void gl_func_00030AF4(void *a, void *b, void *c) {
+//     if (*(int*)&D_0 != 1) fixed_init_0743(); // one-time guard
+//     void *blk = alloc(0x45010);              // large arena
+//                                              //  (lui 4; +0x5010)
+//     *(void**)&D_0_arena = blk;
+//     // zero a long run of fields: blk[0], blk[4], blk[8],
+//     //   blk[0x14], blk[0x18], ... (many sw $zero stores)
+//     // then fan out to ~60 FIXED intra-USO sub-initializers
+//     //   (0x0C010743 / 0107B5 / 0107C3 / 0107D1 / 0108D9 /
+//     //    0113C6 / 011834 ...) interleaved with ~43 USO-
+//     //   relocated callbacks (jal 0), plus heavy FP setup
+//     //   (74 lwc1 / 42 swc1) seeding default transforms.
+//     // a computed jump dispatches a sub-mode during setup.
+//   }
+//
+// Struct-typing reference: this is the TOP-LEVEL CONSTRUCTOR of the
+//   game_libs object subsystem — the routine that builds every
+//   structure the rest of this vein operates on. Observed:
+//   - a one-time init guard on the global state word at &D_0
+//     (== 1 ? skip the bootstrap : run fixed_init at 0x010743).
+//   - a single large arena allocation of 0x45010 bytes (encoded
+//     `lui $a1,4 ; addiu $a1,$a1,0x5010`), stored back into a
+//     global slot based at &D_0; other size args seen
+//     (0x...5F78, 0x...000A) feed secondary allocations.
+//   - a long zero-init sweep of the freshly allocated record's
+//     fields, then ~60 FIXED intra-USO sub-initializer calls
+//     (many distinct targets) + ~43 USO-relocated callbacks
+//     (jal 0 → resolved at load), with one computed jump
+//     selecting a setup sub-mode.
+//   - extensive FP field seeding (74 lwc1 / 42 swc1): default
+//     matrices / ramps / thresholds for the object.
+//   It is the producer for the consumers documented across this
+//   vein: the gl_func_0002FB74 command interpreter, the
+//   gl_func_0002F584/0002F72C quantizer/table-apply leaves, the
+//   canned-sequence and multi-bank emitters, and the
+//   gl_func_000307B0 per-frame timer all run against the record
+//   this function allocates and wires up.
+// Caps: 0x840 raw-word USO constructor with a computed jump, ~103
+//   call sites and a large untyped arena — categorically not
+//   exact-matchable without proper USO mnemonic disasm + the arena
+//   struct typed + the jump table symbolized; structural pass only,
+//   no byte body. (A future focused non-loop session — the deferred
+//   USO re-split / struct-typing backlog — is where this gets a
+//   real decode; not 60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031334);
