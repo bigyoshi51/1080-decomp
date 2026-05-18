@@ -3562,6 +3562,43 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D884);
 
+// timproc_uso_b5_func_0000DF14 — STRUCTURAL PASS (0x698 / 422 words,
+// no episode). Raw-.word USO form (single function). Near-identical
+// SIBLING of func_0000D884 (same prologue/alloc/wire shape; differs
+// only in the descriptor-table base) — entry/fan-out partial pass;
+// multi-run target.
+//
+// Timing-screen panel constructor (descriptor variant &D_000016D8).
+//
+//   void *timproc_uso_b5_func_0000DF14(a0, a1, a2, a3) {
+//     R *r = func_00000000(0x2BC);  if (!r) return 0;      // main alloc
+//     S *s = func_00000000(0x2B8);  if (s) {               // sub alloc
+//       func_00000000(s, &D_000016D8);                     // base-init
+//       s->0x28 = &D_0;
+//       func_00000000(s + 0x2C);  func_00000000(s + 0x194);
+//       s->0x28 = &D_000016E0 + 0x9A4;  s->0x0C = …;        // vtable wire
+//     }
+//     func_00000000(a0);                                   // owner init
+//     if (!owner->0x14) owner->0x4 = 1;  owner->0x14 = …;
+//     r->0x2AC = a3->0x6C + 0x10;
+//     r->0x2A4 = (float)a2;                                 // value/ts
+//     r->0x2B0 = a3;
+//     // ~remaining ~400 words: build many named child widgets from
+//     //   the D_000016D8 / 16E0 descriptor pool (factory calls)
+//     //   and wire them into r/s.
+//     return r;
+//   }
+//
+// Struct-typing reference:
+//   r (alloc 0x2BC) = panel object: 0x2A4 f32 (from a2), 0x2AC a
+//     derived offset, 0x2B0 = a3; s (alloc 0x2B8) = sub-record
+//     (0x28 vtable, 0x2C/0x194 child anchors). a0 = owner (0x04
+//     dirty / 0x14 attach). D_000016D8 / 16E0 = USO static
+//     descriptor tables. func_00000000 = USO placeholder dispatcher.
+// Caps: raw-word USO + placeholder calls + 422-word builder — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   (entry/fan-out) partial pass only, no byte body. Multi-run.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000DF14);
 
 void timproc_uso_b5_func_0000E5AC(int a0) {
