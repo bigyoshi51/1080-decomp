@@ -5833,6 +5833,33 @@ void gl_func_0002DF98(unsigned char *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF98);
 #endif
 
+// gl_func_0002E06C — STRUCTURAL PASS (0x154 / 85 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 6-jr USO bundle
+// (named fn + 5 tiny trailing one-line setters) — deferred USO
+// re-split. The named leading fn (~12 words) is a small object init.
+//
+//   void gl_func_0002E06C(O *o) {
+//     o->b_20 = 0;                                      // clear flags
+//     o->b_23 = 0;
+//     o->f_0  = 0.0f;                                    // zero floats
+//     o->f_4  = 0.0f;
+//     (*sub)(o->b_21);                                   // jal 0 USO
+//   }
+//
+// Struct-typing reference: a per-object reset/init leaf — zeroes the
+//   object's two float fields at +0 / +4 and two flag/state bytes at
+//   +0x20 / +0x23, then hands the byte selector o->0x21 to a
+//   USO-relocated sub-init (`jal 0` slot). The 5 trailing bundled
+//   bodies are compiler-emitted one-line field setters over the same
+//   object — e.g. `o->b_32 = 0x0F` / `o->b_32 = 0x1F` (mode setters),
+//   `o->h_1A = 1`, byte +0x16 latch tests, etc. — typical inline
+//   accessor functions, left for the deferred USO re-split. A small
+//   init/accessor cluster of the game_libs object subsystem.
+// Caps: raw-word USO + 6-fn unsplit accessor bundle + jal-0
+//   USO-reloc sub-init — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only for the named leading fn,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E06C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
