@@ -18894,6 +18894,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F2F4);
 // signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
 
+// gl_func_0004F85C — STRUCTURAL PASS (0x14C / 84 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
+// (saves ra). Multi-stage lazy allocate-and-link constructor (cb = jal 0
+// USO-relocated alloc).
+//
+//   void *gl_func_0004F85C(void *a0, int a1, void *a2, void *a3) {
+//     void *o0 = a0;
+//     if (o0 == 0) { o0 = cb1(0x90); if (!o0) return 0; }   // alloc obj A
+//     void *o1 = a2;
+//     if (o1 == 0) { o1 = cb2(0x90); if (!o1) return 0; }   // alloc obj B
+//     void *o2 = a3;
+//     if (o2 == 0) { o2 = cb3(0x60); if (!o2) return 0; }   // alloc sub C
+//     o1->p5C = &D_reloc;                                    // bind global
+//     if (o1 != (void*)-0x34) { v = (char*)o1 + 0x34; ... }   // link sub
+//     // wire o0 / o1 / o2 together off the +0x34 link region.
+//   }
+// Lazily allocates up to three objects (cb1/cb2/cb3: 0x90 + 0x90 + 0x60
+// bytes) only when the corresponding arg is null, bailing on any alloc
+// failure, then binds a module global pointer into a1->0x5C and links the
+// sub-objects via the a1+0x34 region. Family: cb-driven lazy
+// multi-subobject constructor (siblings gl_func_000412E8 / 00040070 /
+// 0004B0A8 / 0004D468). Post-link wiring tail representative; the
+// alloc-if-null guards, the 0x90/0x90/0x60 sizes, the null-check bails and
+// the a1->0x5C = &D_reloc bind are exact. Caps: object struct + cb
+// signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F85C);
 
 void gl_func_0004F9AC(char *a0) {
