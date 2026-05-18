@@ -8443,6 +8443,36 @@ void game_uso_func_0000B884(char *dst) {
  * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 
+// game_uso_func_0000BB8C — STRUCTURAL PASS (0x3F0 / 252 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic). Very FP-heavy (44 FP ops / 6 calls, saved f20-f26
+// doubles) — snowboard collision/contact-response solver. Entry/
+// shape partial pass; multi-run target.
+//
+//   void game_uso_func_0000BB8C(Obj *obj) {
+//     Sub *s = obj->0x220;
+//     // build a query struct on stack (sp+0x110..0x124): position
+//     //   Vec3 from s->0xA0 / s->0x34 / s->0x38, with -1.0f
+//     //   (0xBF800000) sentinel fields and 0.0 inits;
+//     // s->0x70 = a contact/normal record;
+//     // heavy FP pipeline: matrix*vector transforms, dot products,
+//     //   length/normalize, response projection (44 FP ops),
+//     //   ~6 func_00000000 sub-calls (sqrt / cross / collision
+//     //   query helpers);
+//     // write the resolved contact/velocity back into obj / s.
+//   }
+//
+// Struct-typing reference:
+//   obj->0x220 -> Sub: 0xA0 a Vec3-ish field, 0x34/0x38 scalars,
+//     0x70 -> contact/normal record. sp+0x110..0x124 = a stack query
+//     struct (Vec3 + -1.0f sentinels). const -1.0f (0xBF800000).
+//     func_00000000 = USO placeholder dispatcher (sqrt / cross /
+//     collision-query helpers). Core snowboard physics — collision
+//     contact-response.
+// Caps: raw-word USO + placeholder calls + 252-word FP solver — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   (entry/setup/shape) partial pass only, no byte body. Multi-run.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
 
 #ifdef NON_MATCHING
