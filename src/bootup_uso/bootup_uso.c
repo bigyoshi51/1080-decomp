@@ -3619,6 +3619,41 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B49C);
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
 
+// func_0000B75C — STRUCTURAL PASS (0x830 / 524 insns, no episode).
+// Per-frame camera/transform interpolation update over a large scene-
+// state struct (compute-heavy: f64 lerp/curve math, only 11 dispatcher
+// calls; ~70 accesses to the state struct via a3 = a0).
+//
+//   void func_0000B75C(State *st) {           // st kept in a3
+//     // local default Vec @ sp+0x6C..0x74 = {0.0, 1.0f, 0.0}
+//     float t = *(float*)st->0x800;            // a normalized phase/time
+//     double k0 = DBL(func_000008B4+0x14), k1 = DBL(func_000008B4+0x1C);
+//     // curve eval: scale t (as double) by the folded f64 coefficient
+//     //   bank, producing eased blend factors;
+//     if (st->0x960 != 0x64) { ... uses st->0x974 ... }   // state guard
+//     // main body: many double mul/add/sub chains driven by the
+//     //   func_000008B4 / func_000008D4 / func_000008F4 coefficient
+//     //   table (each symbol = 4 f64 at +0x4/+0xC/+0x14/+0x1C) plus
+//     //   func_00008124+0x4C — interpolates a transform/orientation
+//     //   from st fields and writes the result Vec to st->0x300.. .
+//     st->0x304 = (float)result_y;             // epilogue writes
+//     st->0x308 = (float)result_z;             //   the eased transform
+//   }
+//
+// Struct-typing reference:
+//   st(a3=a0): 0x300/0x304/0x308 output transform Vec3 (eased result);
+//     0x800 -> f32 phase/time input; 0x960 a state/mode word
+//     (compared to 0x64=100); 0x974 a sub-field used when 0x960!=0x64;
+//     many other 0x300+ fields read as f32 sources.
+//   Folded f64 coefficient bank (literal-pool fold family — and this
+//   function shows the pool is a CONTIGUOUS 0x20-stride double table,
+//   not scattered singletons: func_000008B4 / func_000008D4 /
+//   func_000008F4 each carry 4 f64 at +0x4/+0xC/+0x14/+0x1C, plus
+//   func_00008124+0x4C; see
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
+// Caps: 524-insn f64 interpolation w/ folded coefficient table;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B75C);
 
 /* func_0000BF8C - verified structural decode (0x2A8, 170 insns,
