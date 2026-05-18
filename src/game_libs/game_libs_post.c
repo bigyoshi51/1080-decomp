@@ -17682,6 +17682,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C300);
 // signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
 
+// gl_func_0004C928 — STRUCTURAL PASS (0x388 / 227 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x78
+// (saves ra, s0, s1). Wait/poll-until-ready loop with cb pump (cb = jal 0
+// USO-relocated).
+//
+//   void gl_func_0004C928(int a0) {
+//     void *st = *(void**)(&D_g + 0x218);            // global state object
+//     for (;;) {
+//       if (st->p1C != 0) { ... }                       // sltu/bnez ready?
+//       if (st->p04 != 0) { ... }
+//       if (st->p0C == 0) break;                         // beqz exit cond
+//       cb1();                                            // yield / pump step
+//       // re-read st->0x1C / st->0x04 / st->0x0C and loop (bnel) until the
+//       //   readiness combination is met
+//     }
+//     // post-ready handling using a0 and the st fields.
+//   }
+// Spins on the global state object at &D_g+0x218, repeatedly testing its
+// 0x1C / 0x04 / 0x0C fields (sltu-against-zero "is nonzero" checks) and
+// calling cb1() as a per-iteration pump/yield until the readiness condition
+// is satisfied, then proceeds with the post-ready work. Family:
+// synchronization / wait-for-resource-ready loop with a cb processing pump
+// (relates to the segment's state-machine / poll routines). The &D_g+0x218
+// state object, the 0x1C/0x04/0x0C poll fields, the cb1 pump and the
+// loop-until-ready structure are exact; the post-ready body is
+// representative. Caps: state struct + cb signature untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);
 
 /* gl_func_0004CCB4: 65-insn helper. Multi-pass decode pending. */
