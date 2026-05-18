@@ -6576,6 +6576,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000309AC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000309B4);
 
+// gl_func_00030A20 — STRUCTURAL PASS (0xD4 / 53 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A two-arg registration + state-conditional sequencer.
+//
+//   void gl_func_00030A20(int a, int b) {
+//     callback0();                            // jal 0 (USO callback)
+//     *(int*)&D_0_slotA = a;                  // register both args
+//     callback(0xF);
+//     *(int*)&D_0_slotB = b;
+//     if (*(int*)&D_0_state != 4) return;     // state gate (bnel)
+//     if (a < 5) {
+//       callback(*ptr + 0x29);
+//     } else {
+//       callback(*ptr + 0x04);
+//       callback(0xE);
+//     }
+//     if (b < 5) { ... callback(*(int*)&D_0_x) ... }
+//     ...
+//   }
+//
+// Struct-typing reference: a dual-argument registration + dispatch
+//   leaf. It first runs a USO-relocated callback (jal 0 → resolved
+//   at load), records both incoming args into global slots based at
+//   &D_0, then reads a global STATE word and — only when that state
+//   == 4 — performs threshold tests (each saved arg compared < 5 vs
+//   >= 5, via branch-likely bnel) to choose which USO callbacks to
+//   issue, with mode codes 0xF / 0xE and pointer-relative values
+//   (*p + 0x29 / *p + 0x04). A state-gated registration/command-
+//   submission node of the game_libs object subsystem (companion to
+//   the gl_func_000309B4 selector-recorder; both stash into the
+//   &D_0 global record and feed the gl_func_0002FB74 interpreter).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0 global
+//   state gate + branch-likely thresholds — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
