@@ -4504,6 +4504,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A904);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
 
+// gl_func_0002AB34 — STRUCTURAL PASS (0x8C / 35 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A small object state-transition / latch.
+//
+//   void gl_func_0002AB34(O *o) {
+//     int s = o->w_0;
+//     if ((s << 3) >= 0) {                              // flag bit gate
+//       (*notify)(o->w_2C);                              // jal 0 USO
+//     }
+//     if (o->w_2C != 0 && o->w_48 == ...) {
+//       int st = o->b_20 & ~0x80;                         // strip bit7
+//       if (st == 1 || st == 2) {
+//         o->b_20 = 0;                                     // reset state
+//         o->b_0 |= 0x01;                                  // set bit0
+//       }
+//     }
+//   }
+//
+// Struct-typing reference: a per-object phase latch. word o->0 holds
+//   a flag set (one bit, exposed by the `s << 3` sign test, gates a
+//   USO-relocated notify on the parent); word o->0x2C is the
+//   parent/owner back-link, o->0x48 a link pointer. Byte o->0x20 is a
+//   transient state code whose bit7 is masked off; if the remaining
+//   value is 1 or 2 the state is consumed (o->0x20 = 0) and the
+//   object's primary flag o->0 has bit0 set (a "transition complete /
+//   needs-redraw" marker). A state-acknowledge leaf in the game_libs
+//   object subsystem (operates on the same o->0/0x20/0x2C fields the
+//   gl_func_00028604 detach / gl_func_0002A7D8 commit use).
+// Caps: raw-word USO + jal-0 USO-reloc notify — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002ABC0);
