@@ -1865,6 +1865,41 @@ int gl_func_00023598(int a0, int a1, int a2) {
     return gl_func_00000000(a0, a1, 0);
 }
 
+// gl_func_000235E4 — STRUCTURAL PASS (0x148 / 82 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A COMBINED op that ties together the two &D_0 subsystems:
+// the gl_func_0001FBD4 record table AND the gl_func_00022FC0
+// buffer-run stream.
+//
+//   int gl_func_000235E4(int recIdx, int bufIdx, int arg) {
+//     S *g = &D_0;
+//     if (bufIdx >= g->h_202C) return 0;                // range check
+//     int stride = ((recIdx*3) << 2) << 5;               // *0x160-ish
+//     R *rec = (char*)g + 0x2D00 + stride;               // record tbl
+//     (*proc)(rec);                                       // jal 0 USO
+//     short *buf = g->w_2028;                             // run buffer
+//     int    cur = buf[bufIdx];                            // run start
+//     byte   cnt = *((char*)buf + cur);                    // run len
+//     do {
+//       cur++;
+//       ...                                                // per-elem
+//     } while (--cnt > 0);
+//   }
+//
+// Struct-typing reference: indexes the SAME record table as
+//   gl_func_0001FBD4 / gl_func_0002119C (base &D_0+0x2D00, fixed
+//   per-record stride, here from recIdx scaled *3<<2<<5) and the SAME
+//   per-slot run buffer as gl_func_00022FC0 / gl_func_000232E8 (word
+//   &D_0+0x2028 base, idx<<1 stride, cursor + run-length byte stream,
+//   0xFF sentinel), with the shared index limit halfword &D_0+0x202C.
+//   It first runs a USO-relocated processor (`jal 0` slot) on the
+//   selected record, then walks that record's associated buffer run.
+//   The cross-cutting "process record together with its stream"
+//   operation that links the registry/record and buffer-run families.
+// Caps: raw-word USO + jal-0 USO-reloc processor + run loop — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000235E4);
 
 extern int gl_ref_00038174();
