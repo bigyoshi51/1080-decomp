@@ -78,6 +78,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
 
+// gl_func_0001CFDC — STRUCTURAL PASS (0xD0 / 52 words, no episode).
+// Raw-.word USO form (game_libs RSP/graphics-library segment).
+// Hand-decoded.
+//
+// game_libs glyph / sprite draw helper (returns advance width).
+//
+//   int gl_func_0001CFDC(int code, Spec spec) {           // spec by value
+//     int hi = spec.0x2;
+//     E *e = &D_0 + idx(code) ;  e += 0x50;                // glyph entry
+//     int w = e->0x10;  int h = e->0x0E;                   // metrics
+//     v0 = jal 0x31FB0(0x3E0, …, w, h, hi);                // blit pass 1
+//     if (e->0x12 != 0) {                                  // outline/shadow
+//       v0 = jal 0x31FB0(0x3E0, e->0x10, 0, …, spec.0x2);  // blit pass 2
+//       v0 &= 0xFFFF;
+//     }
+//     return v0;                                            // advance
+//   }
+//
+// Struct-typing reference:
+//   code = glyph/char code; &D_0 = global glyph-table base, entry
+//     reached by index then +0x50; e->0x10 = width / advance,
+//     e->0x0E = height, e->0x12 = secondary-pass flag (shadow /
+//     outline), e->0x1B a u8 attribute. spec = a small by-value
+//     struct (halfword fields at +0x2 / +0x32). 0x31FB0 = a fixed
+//     intra-USO blit routine (real target, NOT a runtime placeholder);
+//     0x3E0 = a blit mode/format constant. Text/sprite rendering.
+// Caps: raw-word USO + fixed-target call — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CFDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D0AC);
