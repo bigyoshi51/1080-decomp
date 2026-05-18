@@ -4652,6 +4652,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
 
+// gl_func_0002B5F4 — STRUCTURAL PASS (0x444 / 273 words ≈ 1.1KB, no
+// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO
+// bundle (named fn + 1 trailing helper) — deferred USO re-split. The
+// named leading fn is the 0xC0-class command-step executor — SIBLING
+// of the gl_func_0002B09C per-opcode executor.
+//
+//   int gl_func_0002B5F4(O *o, int op) {
+//     char *buf = o->w_50;                              // script buf
+//     int   cur = o->w_4C;                               // cursor
+//     if (op != 0xC0) { ... other groups ... }
+//     int v = jal 0x3F05C(&o->_54);                      // 0x0C00FC17
+//     o->h_8 = v;
+//     o->b_0 = (o->b_0 | 0x20) & ~0x02;                   // flag toggle
+//     o->b_0 &= ~0x20;
+//     int w = o->w_0;
+//     if (((w << 6) >> 31) ...) { ... }                    // packed bit
+//     switch (op & 0xC0) {                                  // 0xC0 group
+//       case 0x40: ...; case 0xC0: ...;
+//     }
+//   }
+//
+// Struct-typing reference: a second per-opcode command-step body for
+//   the script VM (the 0xC0..0xFF opcode class; gl_func_0002B09C
+//   covers a different range). o->0x50 / o->0x4C are the same script
+//   buffer / cursor; o->0x54 the operand sub-block fed to the shared
+//   fixed fetch routine 0x0C00FC17 (≈0x3F05C, the same opcode reader
+//   gl_func_00026790 uses); halfword o->8 receives the fetched value;
+//   byte o->0 is the flag set toggled (bit5 set then cleared, bit1
+//   cleared — a transient processing marker); word o->0 also carries
+//   packed control bits (the `<<6>>31` test). The opcode group is
+//   `op & 0xC0` with the 0x40 / 0xC0 sub-cases dispatched. Peer to
+//   gl_func_0002B09C in the gl_func_0002AD1C interpreter's executor
+//   set. The trailing bundled helper is its leaf, left for the
+//   deferred USO re-split.
+// Caps: raw-word USO + 2-fn unsplit bundle + opcode-group executor
+//   with fixed-target fetch — not exact-matchable without proper USO
+//   mnemonic disasm; high-level structural pass only for the named
+//   leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B5F4);
 
 /* gl_func_0002BA38: 29-insn alloc-then-store with byte-arg + node-init.
