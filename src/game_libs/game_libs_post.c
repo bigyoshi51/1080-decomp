@@ -19825,6 +19825,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052AE8);
 /* gl_func_00052BBC: 70-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
 
+// gl_func_00052CD4 — STRUCTURAL PASS (decl 0x4EC / 315 words, no
+// episode). Raw-.word USO. realjr=5, regjr=1 → MULTI-FUNCTION BUNDLE.
+// The regjr is the JUMP-TABLE DISPATCH at insn 21 (jr t6 after
+// lw t6, 0x1BE4(at); ADDENDUM-18c, NOT a return).
+// BOUNDARY NOTE (DEFERRED USO RE-SPLIT): declared symbol holds the
+// main decoder (insns 1..282, prologue 27BDFFB8 frame 0x48, saves
+// ra+s0..s2) + FOUR no-frame leaf accessors (ADDENDUM-18b, each reads
+// caller-set a0/a1, own jr ra). Future re-split cuts at jr-ra ends
+// 0x00053134 / 0x0005316C / 0x00053184 / 0x000531A4 / 0x000531B8.
+// (1) gl_func_00052CD4 — jump-table command-stream decoder, 14 jal-0
+//     USO callbacks:
+//   int *gl_func_00052CD4(void *out, int *strm) {
+//     op = *strm & 0xFFFF; i = op - 2;
+//     if (op == 2) ...; if ((u32)i >= 0x25) return cur;  // bound
+//     cur = strm;
+//     switch (i) {                          // table at &D_0+0x1BE4
+//       // each case: v = *cur; cur += 4; store v into out at a
+//       // case-specific offset (out->0xA0/0x40/0x60/0x44/0x68/
+//       // 0x90/0x8C/0x80/0x64/0x78/0x7C/0x50/0x4C/0x98/0x54 ...);
+//       // some cases set/clear flag bits on a fetched record word
+//       // (ori 0x8 / ori 0x2000 / andi ~0x2000 / andi ~0x20000000)
+//       // or call a USO sub-decoder/allocator/error reporter
+//       // (cb_*(out, ...) ; msg offsets 0x20FD4 / 0x20FDC / 0x20FF4)
+//       ...
+//     }
+//     return cur;                           // advanced cursor (v0=s0)
+//   }
+// (2) leaf @0x00053138: idx->record ptr —
+//     return &out->field_60[ (out->field_70[i]) * 6 ];  // 6B stride
+// (3) leaf @0x00053170: return &out->field_60[ k * 6 + 2 ];
+// (4) leaf @0x00053188: return &(out->field_70 ? base+i*6+2 : ..);
+// (5) leaf @0x000531A8: return &out->field_64[i];        // 4B stride
+// Family: jump-table command/parameter decoder (1) + index->record
+// pointer accessor leaves (2..5; same 0x60 6-byte / 0x64 4-byte /
+// 0x70 directory geometry as the gl_func_000500EC/00050444 record
+// family). The bundle boundaries, the frames (0x48 / no-frame
+// leaves), the (op-2) normalize + 0x25 bound + &D_0+0x1BE4 table +
+// jr-t6 dispatch, the cursor-advance (v=*cur; cur+=4) per-case read,
+// the per-case out-struct offsets, the ori/andi-inverse flag toggles,
+// the 14 USO callback sites, the return-advanced-cursor, and the four
+// leaf record-pointer formulas are exact; the individual case bodies,
+// the cb prototypes and the exact field map are representative
+// (deferred FULL-DECODE node — needs the 0x25-entry table resolved).
+// Caps: out/stream structs + 14 cb prototypes untyped, jump table +
+// msg offsets not symbolized (USO-relocated); bundle awaits re-split.
+// Full body INCLUDE_ASM-preserved (all 5 fns).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052CD4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000531C0);
