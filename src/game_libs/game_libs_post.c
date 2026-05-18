@@ -8197,6 +8197,43 @@ void gl_func_00034E8C(int a0) {
     gl_func_00000000(gl_func_00000000);
 }
 
+// gl_func_00034EB4 — STRUCTURAL PASS (0x2B0 / 172 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A subsystem (re-)initialization / multi-resource setup.
+//
+//   void gl_func_00034EB4(O *o, int a1) {
+//     callback((void*)0x0001E47C);            // jal 0 (USO cb1)
+//     if (*(int*)&D_0 & 1) {                    // global flag bit 0
+//       callback();                             // cb2 (conditional)
+//     }
+//     o->w_0 &= ~1;                             // clear status bit
+//     int v = o->w_28;
+//     // iterate a set of resources using the four templates
+//     //   0x0001E484 / 0x0001E490 / 0x0001E494 / 0x0001E4A0
+//     for (int i = 0; ...; i++) { setup_resource(i, ...); }
+//   }
+//
+// Struct-typing reference: a sizable subsystem (re-)init /
+//   construction orchestrator. It runs an initial USO-relocated
+//   callback (jal 0 → resolved at load) with a fixed data-segment
+//   template/name at 0x0001E47C, conditionally runs a second
+//   callback gated on bit 0 of the global word at &D_0, clears the
+//   low status bit of the passed object (o->0x00 &= ~1 — "mark not
+//   ready / clear dirty"), and then drives a multi-resource setup
+//   loop over FOUR fixed data-segment template pointers
+//   (0x0001E484 / 0x0001E490 / 0x0001E494 / 0x0001E4A0 — a parallel
+//   bank of resource descriptors/names) keyed off object fields
+//   (o->0x28 etc.). A bring-up/constructor node of the game_libs
+//   object subsystem (companion to gl_func_00034A78 /
+//   gl_func_00034548 initializers; the 0x0001E47C..E4A0 templates
+//   are deferred data-segment symbolization sites — a contiguous
+//   descriptor table to type together).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0 global
+//   flag gate + four fixed data-seg template pointers
+//   (unsymbolized) — not exact-matchable without proper USO
+//   mnemonic disasm + the descriptor table typed; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
 
 /* gl_func_00035164: 93.3%->100% via INSN_PATCH (1-insn delay-slot fix at 0xC).
