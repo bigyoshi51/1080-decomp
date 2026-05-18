@@ -8512,6 +8512,58 @@ void gl_func_00035624(int a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035648);
 
+// gl_func_000356FC — STRUCTURAL PASS + small BUNDLE BOUNDARY NOTE
+// (0x138 / 78 words, no episode). Raw-.word USO form (game_libs).
+//
+// realjr=2 / one 27BDFF90 prologue. The 2nd jr is the LAST
+// instruction pair (0x3582C, only 8 bytes after the main epilogue
+// jr at 0x35824) with no prologue — a tiny 2-word no-frame TAIL
+// STUB splat could not separate (no-frame-leaf shape, see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). DEFERRED USO
+// RE-SPLIT for that 2-word tail (tracked with the other
+// game_libs_post.c bundle notes; not fixable with mnemonic
+// split/merge — needs the spimdisasm-USO migration). No merge
+// attempted; no episode.
+//
+// Named fn gl_func_000356FC — same kind-dispatch family as
+// gl_func_00035370 / 00035440 / 000355A0 / 00035648:
+//
+//   void gl_func_000356FC(O *o, int a1, int a2) {
+//     switch (o->kind_4) {
+//       case 0:
+//         callback((char*)0x0001E608);          // jal 0 (USO cb)
+//         break;
+//       case 1:
+//         callback((char*)0x0001E61C, o);        // USO cb
+//         int cfg = *(int*)0x0004B8E8;           // device config
+//         if (cfg & 7)
+//           report((char*)0x0001E638);           // USO cb
+//         // builds locals at sp+0x24 / sp+0x28 ...
+//         break;
+//       case 2:  ...
+//       default: break;
+//     }
+//   }
+//
+// Struct-typing reference: another sibling of the kind-dispatch
+//   family — switches on o->0x04 ∈ {0,1,2}. The kind==1 arm reads
+//   the global DEVICE-CONFIG word at the FIXED absolute address
+//   0x0004B8E8 (the mutable accumulator gl_func_00035648 writes,
+//   gl_func_00035440 reads, gl_func_00034A78 initializes), masks
+//   its low 3 bits (cfg & 7) and, when set, emits a diagnostic via
+//   a USO-relocated printf-shaped callback (jal 0 → resolved at
+//   load). Three fixed format strings select the per-kind message
+//   (0x0001E608 / 0x0001E61C / 0x0001E638). Together with
+//   gl_func_00035370 / 00035440 / 000355A0 / 00035648 this is the
+//   typed-entry-point / validate family over the device-object
+//   subsystem (gl_func_00034188 / 00034458); the 0x0004B8E8 config
+//   and 0x0001E6xx strings are deferred symbolization sites.
+// Caps: raw-word USO + bundled 2-word no-frame tail + USO-relocated
+//   jal-0 callbacks + fixed absolute device-config (0x0004B8E8) +
+//   fixed string data — not exact-matchable without proper USO
+//   mnemonic disasm + boundary re-split + the config/strings typed;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000356FC);
 
 /* gl_func_00035834: 24-insn fn-ptr dispatch with conditional assert.
