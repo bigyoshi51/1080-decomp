@@ -5862,6 +5862,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF98);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E06C);
 
+// gl_func_0002E1C0 — STRUCTURAL PASS (0x8C / 35 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A one-shot event / sound trigger.
+//
+//   void gl_func_0002E1C0(O *o) {
+//     byte f = o->b_16;
+//     if (f & 0x01) return;                             // disabled
+//     if (f & 0x20) return;                             // already fired
+//     o->b_16 = f | 0x20;                                // latch fired
+//     if (o->b_16 & 0x01) return;
+//     int kind = o->b_14;
+//     if (kind == 1) {
+//       jal 0x443E4(o->b_28, 0x29, 0, 80.0f);            // 0x0C010EF9
+//     } else {
+//       jal 0x443E4(o->b_28, 0x2A, 0, 80.0f);            // 0x0C010EF9
+//     }
+//   }
+//
+// Struct-typing reference: a fire-once trigger. Byte o->0x16 is a
+//   flag set — bit0 = disabled, bit5 = already-fired latch (set here
+//   so the event only emits once). Byte o->0x14 selects the variant
+//   (kind 1 vs other), byte o->0x28 carries an id/index argument.
+//   On the first eligible call it invokes the fixed event/sound
+//   submit routine 0x0C010EF9 (≈0x443E4) with a fixed event id
+//   (0x29 / 0x2A by kind), the o->0x28 argument, and the float
+//   constant 80.0f (0x42A00000). A one-shot SFX/event-emit leaf in
+//   the game_libs object subsystem (the 0x0C010EF9 submit is the same
+//   one other event helpers in this file use).
+// Caps: raw-word USO + fixed-target event submit — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
