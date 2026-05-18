@@ -3181,6 +3181,40 @@ void gl_func_000271D8(void) {
     } while (val != -1);
 }
 
+// gl_func_0002722C — STRUCTURAL PASS (0x98 / 38 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A lock-guarded subsystem operation (acquire / dispatch /
+// release).
+//
+//   void gl_func_0002722C(int a0) {
+//     jal 0x3B844(a0);                                  // 0x0C00EE11 lock
+//     S *g = &D_0;
+//     if (g->b_2CF0 != 0) {                              // subsystem on
+//       int r  = (*op)(a0);                               // jal 0 USO
+//       byte ss = g->b_2CF1;                              // sub-state
+//       if (ss != r && r < 3) {
+//         void *p = *(void**)(&D_0 + 0x53C4);              // global obj
+//         (*act)(p, &local, 1);                            // jal 0 USO
+//       }
+//       jal 0x3B844(a0);                                  // 0x0C00EE11 unlock
+//       (*fin)(0xF9000000);                                // jal 0 USO
+//     }
+//   }
+//
+// Struct-typing reference: the fixed routine 0x0C00EE11 (≈0x3B844) is
+//   used as a paired acquire/release lock around the body — called
+//   once at entry and again before the tail. State byte &D_0+0x2CF0
+//   (the main subsystem state from gl_func_0002119C) gates the whole
+//   operation; byte &D_0+0x2CF1 (the sub-state from gl_func_00021498)
+//   is compared against an operation result (must be < 3) to decide
+//   whether to act on the global object &D_0+0x53C4. The trailing
+//   USO-reloc call takes the constant 0xF9000000 (a segment-tagged /
+//   RDRAM-region pointer). A critical-section-guarded state operation
+//   in the game_libs subsystem.
+// Caps: raw-word USO + acquire/release lock pair + jal-0 USO-reloc
+//   ops — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002722C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
