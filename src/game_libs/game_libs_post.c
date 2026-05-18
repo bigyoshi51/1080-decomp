@@ -13169,6 +13169,28 @@ void gl_func_0003E840(int a0) {
     gl_func_00000000(&gl_ref_0001F338);
 }
 
+// gl_func_0003E868 — STRUCTURAL PASS (0x9C / 39 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x40 (saves ra) → ONE clean function.
+// Two-stage virtual-dispatch factory (cb = jal 0 USO-relocated alloc/wrap):
+//
+//   void *gl_func_0003E868(void *a0, Ctx a1, int a2) {
+//     if (a1 == 0) return 0;                  // beqz a1 early-out, v1=0
+//     Vt vt = a1->p28;                        // vtable at a1->0x28
+//     short k1 = (short)vt->p58;
+//     int inter = (*(fnptr)vt->p5C)(k1 + a1); // stage-1 virtual dispatch
+//     void *obj = cb(a1, inter);              // wrap/alloc result object
+//     obj->p0C = (char*)a1 + 0x2C;            // back-ref into ctx + 0x2C
+//     int stk[2]; stk[0] = 7; stk[1] = a2;    // stack arg block {7, a2}
+//     Vt vt2 = obj->p28;                      // obj's own vtable
+//     short k2 = (short)vt2->p28;
+//     (*(fnptr)vt2->p2C)(k2 + obj, stk);      // stage-2 virtual dispatch
+//     return obj;
+//   }
+// a0 saved to sp+0x40 but only spilled (callee-arg slot), not used in body.
+// Family: same vtable-method dispatch (vt = obj->0x28, fnptr at vt->0xNN,
+// arg (short)vt->0xMM + obj) + cb wrap idiom as the factory/registration
+// routines elsewhere in this segment. Caps: Ctx/obj/vtable struct untyped;
+// cb signature inferred from call shape. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E868);
 
 #ifdef NON_MATCHING
