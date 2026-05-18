@@ -886,6 +886,7 @@ void gl_func_0000C1E0(int a0) {
     gl_func_00000000(a0, &scratch);
 }
 
+/* gl_func_0000C210: 31-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C210);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C28C);
