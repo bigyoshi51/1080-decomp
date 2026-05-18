@@ -8004,6 +8004,50 @@ int gl_func_00034A54() {
     return gl_func_00000000(&gl_ref_0001E468);
 }
 
+// gl_func_00034A78 — STRUCTURAL PASS (0xEC / 59 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A subsystem bring-up / device-config initializer.
+//
+//   void gl_func_00034A78(void *a0) {
+//     callback0();                            // jal 0 (USO cb 1)
+//     callback0();                            // cb 2
+//     callback0();                            // cb 3
+//     callback(a0);                           // cb 4 (saved a0)
+//     R *r = *(R**)&D_0;
+//     r->p_8C = &D_0;                         // self-pointer wiring
+//     r->p_90 = &D_0;
+//     if (state != 3) {
+//       *(s8*)0x0004B8F4  = 3;                // global config block
+//       *(int*)0x0004B8FC = 0xA8000000;       // KSEG1 buffer base
+//       *(s8*)0x0004B8F5  = 5;
+//       *(s8*)0x0004B8F8  = 0xC;
+//       *(s8*)0x0004B8F7  = 2;
+//       ...
+//     }
+//   }
+//
+// Struct-typing reference: a hardware/device subsystem initializer.
+//   It runs a chain of FOUR USO-relocated init callbacks (jal 0 →
+//   resolved at load; one receives the saved a0 argument), wires
+//   &D_0 self-pointers into the &D_0-rooted record at +0x8C / +0x90
+//   (back-links the record to its global root), then populates a
+//   global CONFIG BLOCK living at the FIXED absolute addresses
+//   0x0004B8F4..0x0004B8FC with small byte mode constants
+//   (3 / 5 / 0xC / 2) and — crucially — a 0xA8000000 pointer at
+//   0x0004B8FC. 0xA8000000 is the N64 KSEG1 (uncached, direct-
+//   mapped) window base, so 0x0004B8FC is a DMA/IO uncached buffer-
+//   base slot: this is device/DMA channel setup. A bring-up leaf of
+//   the game_libs object subsystem (companion to gl_func_00034548's
+//   0x0003BBxx table init and gl_func_00034188's device tick; the
+//   0x0004B8Fx config block is a deferred absolute-symbol site —
+//   `gl_ref_0004B8Fx` extern candidates per
+//   docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data).
+// Caps: raw-word USO + USO-relocated jal-0 init callbacks + fixed
+//   absolute-address config block (0x0004B8Fx) + KSEG1 0xA8000000
+//   buffer base — not exact-matchable without proper USO mnemonic
+//   disasm + the absolute config block symbolized; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034A78);
 
 extern int gl_func_00000000();
