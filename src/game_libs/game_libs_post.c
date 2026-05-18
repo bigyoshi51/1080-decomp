@@ -2161,6 +2161,37 @@ int gl_func_00024080(int a0, int a1) {
     return gl_ref_00037F80(a0, a1, &scratch);
 }
 
+// gl_func_000240A0 — STRUCTURAL PASS (0x290 / 164 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). The UNIFIED class dispatcher over the three per-class
+// readiness state-byte arrays (the gl_func_00022D68 / gl_func_00022DE0
+// / gl_func_00022E58 predicate arrays).
+//
+//   ret gl_func_000240A0(int cls, int idx, int a2, int a3) {
+//     byte st;
+//     switch (cls) {                                    // beq 0/1/2
+//       case 0:  st = *(byte*)(&D_0 + 0x2C70 + idx); break; // 00022DE0
+//       case 1:  st = *(byte*)(&D_0 + 0x2C40 + idx); break; // 00022D68
+//       case 2:  st = *(byte*)(&D_0 + 0x2C10 + idx); break; // 00022E58
+//       default: return 0;
+//     }
+//     if (st != 1) return 0;                              // gate
+//     ... per-class action using a2 / a3 ...
+//   }
+//
+// Struct-typing reference: this is the central router that the
+//   gl_func_00022D68 / 00022DE0 / 00022E58 readiness predicates are
+//   the per-class leaves of. The `cls` arg selects which slot-state
+//   byte array to consult — &D_0+0x2C70 (class 0), &D_0+0x2C40
+//   (class 1), &D_0+0x2C10 (class 2); each is the same per-resource-
+//   class table those predicates query. It gates on the slot state
+//   == 1, then performs the class-appropriate action with the a2/a3
+//   payload. Confirms the 0x2C10/0x2C40/0x2C70 arrays are one
+//   indexed-by-class family, not three unrelated tables.
+// Caps: raw-word USO + class-switch over typed state arrays — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000240A0);
 
 /* gl_func_00024330: was 18-insn 3-function bundle. Split via
