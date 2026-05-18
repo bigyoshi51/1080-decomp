@@ -15610,6 +15610,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042684);
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042778);
 
+// gl_func_00042944 — STRUCTURAL PASS (0x78C / 488 words, no episode). Raw-.word
+// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
+// at the jr at 0x42F44 (~388 words); a SECOND substantial real function
+// (~99 words) follows at 0x42F48 — DEFERRED USO RE-SPLIT (a genuine function
+// boundary splat could not separate, NOT a stub; belongs to the next symbol).
+//
+// Named fn = global table-registration / init driver (single prologue frame
+// 0x58, saves ra, s0):
+//   void gl_func_00042944(void *a0) {
+//     if (a0 == 0) return;                          // bnez-guarded entry
+//     // for several managed table entries, repeated block:
+//     base = *(void**)&D_tbl;                        // global table head
+//     n    = base->idx;                              // current count
+//     off  = n * 0x50;                               // 0x50-byte record stride
+//     base->idx = 1;                                  // set ready/flag
+//     *(void**)(0x3C938 + n*4) = entry_ptr;           // publish into a fixed
+//     *(void**)(0x3C93C + n*4) = entry_ptr2;          //   parallel global
+//                                                     //   pointer array
+//     // (multu/mflo computes n*0x50; AC2EC938 / AC2FC93C store the resolved
+//     //  record + sub-record pointers into the &0x3C938.. registry slabs;
+//     //  the block repeats per entry with the next global table head.)
+//   }
+// Builds a registry of fixed-stride (0x50-byte) records by walking one or
+// more global table heads, multiplying the per-table index by 0x50, and
+// publishing the resolved record pointers into a parallel global pointer
+// array based at *0x3C938 / *0x3C93C. Family: cb-less global
+// table-registration / init (relates to the segment's registration drivers
+// gl_func_0004182C / 000412E8). Per-entry block not exhaustively decoded
+// (388-word driver) — the a0 guard, the *0x50 stride math and the
+// &0x3C938.. publish targets are exact; the per-table-head iteration count
+// is representative. Trailing fn at 0x42F48 = real ~99-word function
+// (deferred re-split). Caps: record/table struct + the 0x3C9xx global
+// registry untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042944);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000430E4);
