@@ -2209,6 +2209,43 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000063B4);
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006734);
 
+// func_00006808 — STRUCTURAL PASS (0x948 / 594 insns, no episode).
+// Large scene/screen constructor, bracketed by a global mode-flag
+// set/clear; builds a widget tree from the obj's sub-object table via
+// ~65 func_00000000 dispatcher calls.
+//
+//   void *func_00006808(Scene *obj, Ctx *a1, void *a2) {  // obj->s7
+//     s1 = a1->0x40;
+//     *(int*)(func_00000000+0x4) |= 0x20000;          // set global mode bit
+//     // stack widget descriptor: {flag=1, h=0x14, w=0x28, 0} @ sp+0xB0..BC
+//     // zero f32 triple @ sp+0xC0/C4/C8 (a default Vec/color)
+//     func_00000000(&.L00007EB8, 0);
+//     root = func_00000000();  *(void**)D_0 = root;   // singleton store
+//     s2 = root;
+//     func_00000000(obj->0x84 + 0x10, root);
+//     if (root->0x14) { ... }                          // attach guard
+//     // main body: iterate obj sub-objects 0x7C/0x80/0x84/0x88/0x90/0x94
+//     //   building child widgets/labels; descriptor tables .L00007EB8 /
+//     //   .L00007F5C / func_00000188+0x3C (6x); ~65 dispatcher calls
+//     //   total — create / configure / re-parent each element.
+//     // teardown: v = (*(int*)D_0) & s6;  *(int*)D_0b = v;  // clear flag
+//     return s0;                                        // built root/handle
+//   }
+//
+// Struct-typing reference:
+//   obj(s7): 0x7C/0x80/0x84/0x88 child/source sub-object ptrs,
+//     0x90/0x94 config words/handles; a1->0x40 = s1 seed.
+//   widget descriptor on stack: {enable, 0x14, 0x28, 0} (h/w spec).
+//   D_0 = global scene singleton (root stored, flag masked on exit).
+//   Folded refs (same JAL-target-0 / literal-pool fold family, see
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C):
+//     func_00000000 + 0x4  = a WRITABLE global mode word (RMW |0x20000);
+//     func_00000188 + 0x3C = a folded table (read 6x);
+//     func_0000057C + 0x38 = a folded f32 const (sibling of the
+//                            func_0000057C+0x34 ref in func_000063B4).
+// Caps: 594-insn dispatcher-heavy ctor w/ folded globals; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006808);
 
 /* func_00007150 - verified structural decode (0xB4, 45 insns,
