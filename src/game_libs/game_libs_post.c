@@ -9954,6 +9954,43 @@ void game_libs_func_00038294(int a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003829C);
 
+// gl_func_00038360 — STRUCTURAL PASS (0x238 / 142 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). The larger member of the gl_func_00038108 /
+// gl_func_000381F8 diagnostic family — a multi-line object state
+// dump.
+//
+//   void gl_func_00038360(O *o) {
+//     report((char*)0x0001EC34);                // jal 0 (printf cb)
+//     report((char*)0x0001EC3C, o->w_1C);
+//     report((char*)0x0001EC40, o->w_20);
+//     report((char*)0x0001EC44, o->w_18, 8);
+//     report((char*)0x0001EC50, o->w_08);
+//     ... ~10+ more report lines, one object field each ...
+//   }
+//
+// Struct-typing reference: a full debug-dump of an object's state.
+//   It issues a long, mostly-unconditional SEQUENCE of printf-
+//   shaped USO-relocated callbacks (jal 0 → resolved at load),
+//   each with a SUCCESSIVE format string from the contiguous data-
+//   segment message table — 0x0001EC34 / 0x0001EC3C / 0x0001EC40 /
+//   0x0001EC44 / 0x0001EC50 / … — continuing directly from the
+//   gl_func_00038108 / gl_func_000381F8 block (0x0001EBF8..0x0001EC30),
+//   so the whole 0x0001EBF8..0x0001EC50+ range is ONE contiguous
+//   diagnostic string table. Each line prints a different field of
+//   the object passed in a0 (offsets read at +0x1C / +0x20 / +0x18
+//   / +0x08 …). Together gl_func_00038108 / 000381F8 / 00038360
+//   (with gl_func_00035268) are the diagnostic/trace family of the
+//   game_libs object subsystem; this one is the verbose
+//   object-state printer. The string range is a deferred
+//   contiguous string-data symbolization block (a message table to
+//   type together).
+// Caps: raw-word USO + long sequence of USO-relocated jal-0 printf
+//   callbacks + contiguous fixed string-data table + object field
+//   reads — not exact-matchable without proper USO mnemonic disasm
+//   + the string table / object struct typed; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038360);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038598);
