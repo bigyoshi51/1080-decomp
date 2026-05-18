@@ -2468,6 +2468,36 @@ void timproc_uso_b5_func_0000B154(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B154);
 #endif
 
+// timproc_uso_b5_func_0000B368 — STRUCTURAL PASS (0x2BC / 175 words,
+// no episode). Raw-.word USO form. BOUNDARY NOTE: 2-jr USO bundle
+// (named fn 0xB368..0xB618 ~172 words + 1 tiny trailing setter
+// 0xB61C `jr ra; sw a0,0(…)`) — deferred USO re-split.
+//
+// FP basis/transform builder on the obj+0xDC transform sub-struct —
+// sibling of func_0000AC20 (camera look-at / billboard orientation).
+//
+//   void timproc_uso_b5_func_0000B368(Obj *obj, …) {     // obj -> s0
+//     T *t = (T*)((char*)obj + 0xDC);
+//     // load source Vec3s from t (+0x0/+0x4/+0x8 groups) and obj
+//     //   fields; compute cross-products / differences (mul.s/
+//     //   sub.s/add.s) to build orthogonal basis vectors into sp
+//     //   scratch (sp+0x110/0xF4/0xE8/0xDC/0xC4/0xB8);
+//     // normalize each via func_00000000 (= 1.0f / length);
+//     // assemble a 3x3-ish matrix and copy 3-word (row) blocks back
+//     //   into obj / t fields; const 1.0f (0x3F800000) used as the
+//     //   homogeneous / unit term;
+//     obj->0x12C = 1;                                      // computed flag
+//   }
+//
+// Struct-typing reference:
+//   obj+0xDC = transform record (Vec3 rows at +0x0/+0x4/+0x8);
+//   obj->0x108/0x124/0x128/0x13C/0x140 = input/param fields;
+//   obj->0x12C = "transform built" flag (set 1 at end). sp+0xB8..
+//   0x110 = basis-vector scratch. func_00000000 = USO placeholder
+//   dispatcher (length/normalize + matrix helpers). const 1.0f.
+// Caps: raw-word USO + unsplit bundle + placeholder calls — not
+//   exact-matchable here; structural pass only for the named fn.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B368);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B624);
