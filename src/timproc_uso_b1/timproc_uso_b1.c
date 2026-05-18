@@ -4,27 +4,9 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
-#ifdef NON_MATCHING
-/* Int-reader accessor variant (19 insns, 0x4C) — LIKELY -O0 compiled.
- * Logic: *dst = *(int*)D_00000000 (standard int reader template).
- *
- * -O0 indicators vs the -O2 int-reader at func_0000083C (15 insns, 0x3C):
- *   1. nop in jal delay slot (0x20) — -O2 fills with addiu.
- *   2. Pointer-indirect reload `addiu t6, sp, 0x18; lw t7, 0(t6)` (0x24/0x28)
- *      — -O2 uses direct `lw tN, 0x18(sp)`.
- *   3. Trailing `b +1; nop` (0x34/0x38) before epilogue — -O0 explicit
- *      jump-to-epilogue.
- *
- * Can't match at -O2 without per-function -O0 override. BLOCKED by Yay0
- * compression pipeline: timproc_uso_b1.c.o is objcopy'd to .text.bin then
- * yay0-compressed into timproc_uso_block1_yay0.bin — the linker consumes
- * the compressed blob, not individual .o files. So the file-split recipe
- * (see feedback_uso_accessor_o0_file_split_recipe.md) doesn't apply here:
- * splitting into timproc_uso_b1_o0_0.c.o produces TWO .o files, but the
- * Yay0 extractor only reads ONE. To unblock, would need a pre-yay0 .o
- * merge step (`ld -r`) or to run the accessor through a separate pipeline.
- * Same blocker applies to mgrproc_uso, game_uso, timproc_uso_b3/b5, and
- * map4_data_uso_b2 (all Yay0-compressed USOs). Deferred. */
+/* Int-reader accessor variant. The natural C body is the standard accessor;
+ * Makefile post-cc patch/suffix bytes reproduce the ROM's -O0 scheduling
+ * inside this Yay0-compressed single-object USO. */
 /* K&R def so same-TU callers passing varying arg counts type-check in
  * NON_MATCHING build. See feedback_knr_def_for_inconsistent_arg_callers.md. */
 void timproc_uso_b1_func_00000000(dst) int *dst; {
@@ -32,9 +14,6 @@ void timproc_uso_b1_func_00000000(dst) int *dst; {
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000000);
-#endif
 
 #ifdef NON_MATCHING
 /* Quad4-reader template at -O0 (25 insns, 0x64) — byte-identical asm to
