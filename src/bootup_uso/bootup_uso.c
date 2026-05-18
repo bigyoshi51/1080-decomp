@@ -3499,6 +3499,60 @@ void *func_000090CC(int *self, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 #endif
 
+// func_0000B1B4 — STRUCTURAL PASS (0x2E8 / 186 insns, no episode).
+// Sound/resource-bank lazy loader + global-table registrar + play
+// dispatcher.
+//
+//   void func_0000B1B4(int cat, int idx, a2, a3) {
+//     if (idx >= 0xA) idx = 9;               // clamp [0,9]
+//     if (cat >= 9)   cat = 8;               // clamp [0,8]
+//     if (cat == 7 || cat == 6) {            // banked categories
+//       if (*(int*)(func_00000148) == 0) {   // not-yet-loaded guard
+//         func_00000000(&func_000089FC+0x2C);              // a name/path
+//         R *r = func_00000000(0x90);  if (!r) goto reg;    // alloc (retry)
+//         S *s = func_00000000(0x60);
+//         s->0x5C = &D_0;                                   // vtable
+//         // optional sub-allocs keyed by sentinel addrs (-0x34/-0x58):
+//         //   alloc 8 -> {0,0} ; alloc 4 -> {0}
+//         func_00000000(s);  s2->0x5C = &D_0;
+//         r->0x24 = 0x110;  r->0x5C = &func_000083D0+0x70;  // folded vtbl
+//         void *buf = func_00000000(0x1000);
+//         r->0x28 = 0x1100;  r->0x22 = (s16)0x20;  r->0x20 = (s16)0x40;
+//         r->0x38 = 0x402C4B;  r->0x1C = buf;  r->0x34 = 0;  r->0x18 = 0;
+//       reg:
+//         if (*(int*)(func_00000148+0x14) >= 5) func_00000000(r);  // evict
+//         int n = *(int*)(func_00000148+0x14);
+//         *(int*)(func_00000148+0x14) = n + 1;
+//         ((void**)func_00000148)[n] = r;                   // register
+//       }
+//     }
+//     func_00000000(&func_00008A40+0x8, 0);
+//     func_00000000(&func_00008A40+0x14, 0);
+//     if (idx) { e = tableA[idx]; if (!func_00000000(e->0x0))
+//                  func_00000000(D_x, e->0x0); }              // play by idx
+//     e = tableB[cat]; if (!func_00000000(e->0x0))
+//                  func_00000000(D_y, e->0x0);                 // play by cat
+//     func_00000000();
+//     func_00000000(D_z, a3, a2, &sp34);   func_00000000();    // finalize
+//   }
+//
+// Struct-typing reference:
+//   cat/idx = category & sub indices (clamped); a2/a3 forwarded to the
+//     final play call. Resource R (0x90): 0x18 state, 0x1C buffer ptr,
+//     0x20/0x22 s16 dims (0x40/0x20), 0x24=0x110 mode, 0x28=0x1100,
+//     0x34 flag, 0x38=0x402C4B id, 0x5C vtable(&func_000083D0+0x70).
+//   func_00000148 = WRITABLE global resource table: [0]=loaded-root,
+//     [0x14]=entry count, [n] = registered R ptrs. tableA/tableB =
+//     other global index->entry arrays.
+//   Folded refs (multi-class fold family — writable globals + tables +
+//   vtables + name data; see
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C):
+//     func_00000148 (writable table), func_000089FC+0x2C /
+//     func_00008A40+0x8/+0x14 (name/string data), func_000083D0+0x70
+//     (vtable).
+// Caps: 186-insn lazy-init + table-register + multi-dispatch; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);
 
 #ifdef NON_MATCHING
