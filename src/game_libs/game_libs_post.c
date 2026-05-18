@@ -18342,6 +18342,34 @@ void gl_func_0004E214(char *a0) {
     gl_func_00000000(a0 + 0x18C);
 }
 
+// gl_func_0004E244 — STRUCTURAL PASS (0x134 / 80 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
+// (saves ra). Registry list-insert + field-copy (same idiom as
+// gl_func_00041D40 / 00043BEC; cb = jal 0 USO-relocated).
+//
+//   void gl_func_0004E244(void *src) {
+//     char scrA[..];                                 // sp+0x3C (in-params)
+//     // (build scrA from src via a leading helper) ...
+//     void *n = cb1(0xC);                              // alloc 0xC-byte node
+//     if (n == 0) return;                              // beqz bail
+//     n->p00 = src;                                    // back-ref to source
+//     n->p04 = -1;                                     // sentinel
+//     n->p08 = src->p0C - 1;                           // index/refcount
+//     // copy a 3-word field block from the sp+0x3C scratch into the node
+//     // and a second sp scratch (sp+0x4C / sp+0x5C):
+//     int *s = (int*)&scrA;
+//     n->... = s[0]; n->... = s[1]; n->... = s[2];
+//     scrB[0] = s[0]; scrB[1] = s[1]; scrB[2] = s[2];
+//   }
+// Builds and inserts a registry node: cb-allocates a 0xC-byte entry, links
+// it ahead of the source (n->0 = src, n->4 = -1, n->8 = src->0xC - 1) and
+// migrates a 3-word field group from an sp+0x3C scratch into both the node
+// and a parallel sp scratch (sp+0x4C/0x5C). Family: cb-driven registry
+// list-insert + field-copy (siblings gl_func_00041D40 / 00043BEC /
+// 00041F90). Copied-field offsets representative; the 0xC alloc, the
+// null-check, the head-link triple (0 / 4 = -1 / 8 = src->0xC-1) and the
+// 3-word sp-scratch migration are exact. Caps: node/src struct + cb
+// signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
 
 #ifdef NON_MATCHING
