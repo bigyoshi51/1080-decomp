@@ -1758,6 +1758,41 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007B2C);
 
+// timproc_uso_b5_func_00007E34 — STRUCTURAL PASS (0x2C0 / 176 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen sub-state handler (a phase branch of the master tick).
+//
+//   void timproc_uso_b5_func_00007E34(Scr *scr) {        // scr -> s0
+//     if (scr->0x3BC == 2) {
+//       func_00000000(scr->0x41C, scr->0x3B8);
+//       int busy = scr->0x4B4 | scr->0x4B8;
+//       if (scr->0x4B4 != 0) { ...busy/active branch... }
+//       else if (func_00000000(&D_0, 0x100)) {            // gate
+//         func_00000000(scr);
+//         d = scr->0x28;  (d->0x8C)(d->0x88 + …);          // show
+//         func_00000000(scr); func_00000000(scr);
+//         d = scr->0x28;  (d->0x84)(d->0x80 + …);          // deactivate
+//         e = scr->0x3D0[ f(scr->0x3C4, scr->0x4D4) ];
+//         func_00000000(e);
+//         if (func_00000000(scr)) { func_00000000(scr->0x41C);
+//                                   return; }
+//         scr->0x3C8 = …;  scr->0x3C4 = …;                 // refresh state
+//       }
+//     } else { ...alt (scr->0x4B4 read) path... }
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x3BC mode (==2 active), 0x4B4/0x4B8 busy/active flags
+//     (OR-combined), 0x41C/0x3B8 sub-objects, 0x3C4/0x3C8 state,
+//     0x3D0/0x4D4 element array + index source, 0x28 vtable
+//     (->0x80/0x84 deactivate, ->0x88/0x8C show — obj->0x28 idiom).
+//   D_0 global flag 0x100 gates the active branch. func_00000000 =
+//   USO placeholder dispatcher (gate / show / refresh).
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007E34);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000080F4);
