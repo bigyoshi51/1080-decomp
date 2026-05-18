@@ -17392,6 +17392,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ACD4);
 /* gl_func_0004ADB4: 35-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
 
+// gl_func_0004AE40 — STRUCTURAL PASS (0x170 / 93 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x30
+// (saves ra, s0, s1). Flag-gated multi-cb dispatch (cbN = jal 0
+// USO-relocated; 16-bit constants from a data literal &D_lit).
+//
+//   void gl_func_0004AE40(void *a0, int a1, int a2, int a3, int a4) {
+//     self = a0; aux = a3;
+//     int r = cb1(...);   // a4 spilled to sp+0x10; r saved at sp+0x2C
+//     if (a1 == 0) return;                            // beql early-out
+//     if ((self->p38 & 0x8000) == 0) goto tail;        // flag gate
+//     cb2(self);
+//     short k0 = *(short*)(&D_lit + 0);                // 16-bit const A
+//     cb3(self, cb2_result);
+//     cb4(self, aux, 1);
+//     short k1 = *(short*)(&D_lit + 2);                // 16-bit const B
+//     cb5(self, ...);
+//     // ... further cb calls reading &D_lit+4/6.. each threading self/aux
+//   tail: ;
+//   }
+// Conditionally issues a fixed pipeline of cb dispatches: an unconditional
+// cb1, an a1!=0 guard, then — only when self->0x38 has bit 15 (0x8000) set —
+// a sequence of cb2..cbN calls each parameterised by 16-bit immediates read
+// from a contiguous data literal (&D_lit + 0/2/4/..) and threading self and
+// the a3 aux handle. Family: cb-pipeline + flag-gated dispatch (relates to
+// the segment's render/emit dispatch routines). Per-call arg detail
+// representative; the cb1 prologue, the a1 early-out, the self->0x38&0x8000
+// gate and the &D_lit 16-bit-constant feed are exact. Caps: self struct,
+// &D_lit table and cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AE40);
 
 /* gl_func_0004AFB4: 35-insn helper. Multi-pass decode pending. */
