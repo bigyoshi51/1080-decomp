@@ -3736,6 +3736,51 @@ void func_0000CACC(char *a0) {
     *(int*)(a0 + 0xA58) = *(int*)(a0 + 0xA58) ^ 0x100;
 }
 
+// func_0000CAE8 — STRUCTURAL PASS (0x1F8 / 126 insns, no episode).
+// Per-round / per-attempt state reset & re-arm on a large state struct
+// (st = a0 = s0).
+//
+//   void func_0000CAE8(State *st) {
+//     func_00000000(?, 1, tableA[st->0x8C4]);            // indexed trigger
+//     int j = (s16)*(s16*)((char*)st + st->0x904*2 + 0x8C6);
+//     func_00000000(st+0x3EC, 1, tableB[j]);             // 2nd idx trigger
+//     if (st->0xA58 & 0x80) func_00000000(st, 0);        // cond reset
+//     func_00000000(st+0x90C, 0x17C);
+//     st->0x9D0 = F32(func_00000940+0x18);               // folded const
+//     st->0xA78 = st->0x768;
+//     switch (*(int*)(func_00000008+0x2C)) {              // mode/difficulty
+//       case 2:        st->0xA14 = 0x5A;     break;       // 90
+//       case 3: case 4:st->0xA14 = 0x4B;     break;       // 75
+//       default:       st->0xA14 = 0xF4240;  break;       // 1000000
+//     }
+//     st->0x3DC = 1;
+//     st->0x9E8 = st->0x9EC = st->0x9F0 = st->0x9F4 = 0.0f;  // clear quad
+//     st->0xA54 = 0;
+//     *(int*)D_0 &= ~0x8;  st->0xA0C = 1.0f;  *(int*)D_0b = 0;  // global rst
+//     if (st->0x8BC & 0x20) { st->0xA58 = st->0x8BC; func_00000000(st); }
+//     func_00000000(st, st+0x3A4);  func_00000000(st);
+//     func_00000000(st->0x840);     func_00000000(st->0x804);   // sub-resets
+//     if (!((st->0xA58 << 14) >= 0)) func_00000000(&func_00008A7C+0x40,
+//                                                  st->0xC);
+//     // snapshot: st->0xB4/B8/BC -> st->0x890/894/898 (prev pos),
+//     //           st->0x318/31C/320 -> st->0x89C/8A0/8A4 (prev pos2)
+//   }
+//
+// Struct-typing reference:
+//   st: 0x8C4 / 0x904 indexed-trigger keys; 0x8C6[] s16 index array;
+//     0xA58 status flags (bit 0x80 reset, bit-17 via <<14 test);
+//     0xA14 round budget/limit (mode-set); 0x3DC armed flag;
+//     0x9E8..0x9F4 cleared f32 quad; 0xA0C f32=1.0; 0x8BC config
+//     (bit 0x20); 0xB4/B8/BC + 0x318/31C/320 pos Vec3s snapshotted to
+//     0x890.. / 0x89C..; 0x768/0x9D0/0x840/0x804/0xC sub-objs.
+//   Folded refs (literal-pool/placeholder fold family — func_00000940
+//   +0x18 corroborates the contiguous strided table from func_0000B75C;
+//   func_00000008+0x2C a mode global; func_00008A7C+0x40 a folded
+//   struct; see
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
+// Caps: 126-insn reset w/ folded mode/const refs — exact-match blocked
+//   by the deferred pool symbolization; structural pass only.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
