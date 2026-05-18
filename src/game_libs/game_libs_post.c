@@ -15053,6 +15053,40 @@ void gl_func_00041A74(int a0) {
     gl_func_00000000(&gl_ref_0001F63C);
 }
 
+// gl_func_00041A9C — STRUCTURAL PASS (0x2A0 / 169 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x78
+// (saves ra). Registration-with-formatted-name + node alloc (cb = jal 0
+// USO-relocated; string literals &D_0002F658/F65C, default &D_0002F4B0).
+//
+//   void gl_func_00041A9C(void *a0) {
+//     cb(&D_reloc, &D_0002F658, 0);                 // open registration scope
+//     cb(&D_reloc, &D_0002F65C);
+//     char name[..];                                 // sp+0x38 scratch
+//     cb(a0, &name, &name + 0x3C);                   // format/build a name
+//     cb(&D_str, &name);                             // (repeated formatting
+//     cb(&name);                                     //  passes into the same
+//     cb(&D_str, &name);                             //  sp+0x38 buffer)
+//     cb(&D_str);
+//     void *n = cb(8);                               // alloc primary node
+//     if (n == 0) goto fail;
+//     void *c = cb(4);                               // alloc sub-cell
+//     if (c) n->p?? = c;
+//     if (n) { ... }                                  // beqz n post-checks
+//     *(void**)&D_0002F4B0_slot = n;                  // 25CEF4B0 -> store ptr
+//     // wire further module globals (lui/addiu &D_g pairs) with n / the
+//     // formatted name, then return.
+//   fail: ;
+//   }
+// Builds a formatted identifier in an sp+0x38 scratch (multi-pass cb
+// formatting keyed by string literals), allocates an 8-byte node plus a
+// 4-byte sub-cell (null-checked), seeds it from the &D_0002F4B0 default
+// string, and publishes it into the module's registry globals. Family:
+// cb-driven registration + alloc (siblings gl_func_0004182C / 000415A4 /
+// 000412E8). Per-call argument detail not exhaustively decoded (169-word
+// driver) — the string-literal keys, the sp+0x38 name-build, the cb(8)/cb(4)
+// alloc-and-null-check pair and the &D_0002F4B0 seed are exact; ordering of
+// the global-wire tail representative. Caps: node struct, &D_g globals and
+// cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041A9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041D40);
