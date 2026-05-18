@@ -578,7 +578,23 @@ void func_00001F78(char *a0) {
     *(int*)(a0 + 0x78) += 1;
 }
 #else
+// Linked-list insert-head: alloc node via func_00000000(0), splice after
+// obj->0x74 (head), advance head, bump obj->0x78 count. Body byte-matches at
+// 98%; the sole diff is IDO -O2 saving obj across the jal in $a1 while the
+// target uses $a3 — documented-unflippable from C, see
+// docs/IDO_CODEGEN.md#feedback-ido-arg-save-reg-pick (this func is that
+// entry's canonical example). Permuter-only; no episode (tautology-trap rule).
+#ifdef NON_MATCHING
+void func_00001F78(void *obj) {
+    void *n = func_00000000(0);
+    *(void **)((char *)n + 0x44) = *(void **)((char *)(*(void **)((char *)obj + 0x74)) + 0x44);
+    *(void **)((char *)(*(void **)((char *)obj + 0x74)) + 0x44) = n;
+    *(void **)((char *)obj + 0x74) = n;
+    *(int *)((char *)obj + 0x78) += 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001F78);
+#endif
 #endif
 
 void *func_00001FC8(char *a0, int a1) {
