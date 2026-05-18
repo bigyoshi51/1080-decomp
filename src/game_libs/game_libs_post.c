@@ -16880,6 +16880,37 @@ int gl_func_00047DD8(int *a0, int a1) {
     return gl_func_00000000(a1, a0[0x38]);
 }
 
+// gl_func_00047E00 — STRUCTURAL PASS (0x144 / 82 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x90
+// (saves ra; large stack scratch). FP matrix-vector / weighted-blend
+// accumulate (no calls — pure FP).
+//
+//   void gl_func_00047E00(void *a0, float *src) {
+//     int n = a0->pE0;                              // component/row count
+//     float *w   = src;                              // weight/coeff stream
+//     float *acc = sp + 0x40;                         // result scratch
+//     float *tmp = sp + 0x80;
+//     // for each of n rows, stride 0x10 (4 floats):
+//     //   r = w[0]*v[0] + w[1]*v[1] + w[2]*v[2] + w[3]*v[3]   (mul.s/add.s
+//     //   chain across the 4 lanes, src advanced by 0x10, dest by 4)
+//     //   acc[k] = r;                                  (swc1 ...FFFC stores)
+//     for (k = 0; k < n; k++) {
+//       float r = 0.0f;                                // mtc1 zero,f0
+//       r += w[0]*v0; r += w[1]*v1; r += w[2]*v2; r += w[3]*v3;
+//       acc[k] = r;
+//       w += 4;                                        // 0x10-byte stride
+//     }
+//   }
+// A 4-wide multiply-accumulate sweep: for each of a0->0xE0 rows it forms the
+// dot product of a 4-float weight/coefficient group with the source vector
+// (mul.s into f18, add.s chained into the running f14 sum) and stores the
+// result into the sp+0x40 scratch — a 4x4 matrix-vector multiply / weighted
+// vertex blend (skinning-style) kernel. Family: FP geometry/matrix transform
+// (relates to gl_func_00040CAC / 00042778 and the segment's transform
+// pipeline). Inner lane arithmetic representative; the a0->0xE0 count, the
+// 0x10 (4-float) stride, the mul.s/add.s MAC structure and the sp+0x40
+// result scratch are exact. Caps: source/weight layout + a0 struct untyped.
+// Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047E00);
 
 /* gl_func_00047F48: 8-insn tail-call wrapper.
