@@ -8725,6 +8725,54 @@ void gl_func_00035AE0(int *dst) {
     *dst = scratch;
 }
 
+// gl_func_00035B1C — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
+// (0x150 / 84 words, no episode). Raw-.word USO form (game_libs).
+//
+// MULTI-FUNCTION USO BUNDLE (no-frame-leaf shape — see
+// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). realjr=4 but only
+// ONE 27BDFFB0 prologue; the three trailing jr's bound tiny
+// no-frame LEAF stubs (dense ~8/8/12-byte spacing at the tail) at
+// 0x35C50 / 0x35C58 / 0x35C64 that splat could not separate. Only
+// the NAMED leading function is decoded; the trailing stubs are a
+// DEFERRED USO RE-SPLIT (tracked with the other game_libs_post.c
+// bundle notes; not fixable with mnemonic split/merge tooling —
+// needs the spimdisasm-USO migration).
+//
+// Leading fn gl_func_00035B1C (chained-alloc record constructor):
+//   O *gl_func_00035B1C(O *o, int a1, int a2, int a3) {
+//     if (o == 0) {
+//       o = alloc(0x10);                        // jal 0 (USO alloc)
+//       if (o == 0) return 0;
+//     }
+//     o->p_0C = &D_0;                            // wire global root
+//     int *sub = alloc(0x04);                    // 2nd alloc
+//     *sub = 0;
+//     o->w_08 = a3;
+//     // template 0x0001E6B0 ; then iterate a source list at s3
+//     for (e = ...; ...; ) { ... attach e ... }
+//     return o;
+//   }
+// i.e. allocate-or-reuse a 0x10-byte record + a 4-byte zeroed
+// sub-block (via USO-relocated allocator callbacks, jal 0 →
+// resolved at load), back-link the global root at o->0x0C, stash
+// the a3 argument at o->0x08, reference the fixed data-segment
+// template 0x0001E6B0, then walk a source list building the
+// record.
+//
+// Struct-typing reference: a constructor/builder of the same
+//   family as gl_func_00034890 / gl_func_00032E18 / gl_func_00033228
+//   (chained alloc with rollback, &D_0 back-link, data-seg
+//   template); the three bundled no-frame leaves are its companion
+//   accessor/predicate stubs. A factory + accessor cluster of the
+//   game_libs object subsystem (0x0001E6B0 is a deferred data-
+//   segment template-symbolization site; 0x10 / 0x04 are the
+//   struct sizes to type).
+// Caps: raw-word USO + bundled no-frame leaves + USO-relocated jal-0
+//   allocator + &D_0 back-link + data-seg template — not exact-
+//   matchable without proper USO mnemonic disasm + boundary
+//   re-split + the structs typed; structural pass only. No merge
+//   attempted (would corrupt the stubs); no episode.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035B1C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035C6C);
