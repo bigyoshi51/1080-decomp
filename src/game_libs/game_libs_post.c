@@ -2122,6 +2122,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023BDC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023E60);
 
+// gl_func_00023FA4 — STRUCTURAL PASS (0xDC / 55 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
+// (named fn + 2 trailing helpers) — deferred USO re-split. The named
+// leading fn is a slot-configure-by-mode helper.
+//
+//   int gl_func_00023FA4(int id, int a1, int mode, int size) {
+//     if ((unsigned)id >= 0x11) return -1;              // 17-slot cap
+//     Slot *s = (Slot*)id;
+//     void *buf;
+//     switch (mode) {                                    // beq 2 / 3
+//       case 2:  buf = *(void**)(&D_0 + 0x1644); break;
+//       case 3:  buf = *(void**)(&D_0 + 0x1648); break;
+//       default: buf = 0;                                 // none
+//     }
+//     if (size & 0xF) size = (size + 0xF) & ~0xF;          // align16
+//     s->b_2 = (byte)a1;                                   // slot tag
+//     ...                                                   // wire buf
+//   }
+//
+// Struct-typing reference: configures one of up to 0x11 (17) slots
+//   (`id` is range-checked, -1 returned on overflow). The `mode`
+//   stack arg selects which global double-buffer pointer to bind —
+//   word &D_0+0x1644 (mode 2) or &D_0+0x1648 (mode 3); other modes
+//   bind none. The slot's byte +2 is set from `a1` (a tag/type), and
+//   a requested size is rounded up to a 16-byte multiple. A
+//   per-slot resource-binding configurator in the game_libs resource
+//   subsystem (the &D_0+0x164x globals are its mode buffers).
+// Caps: raw-word USO + 3-fn unsplit bundle + mode-switch — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023FA4);
 
 extern int gl_ref_00037F80();
