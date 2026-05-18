@@ -14413,6 +14413,38 @@ void gl_func_0003FC2C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0003FC58_pad.s")
 
+// gl_func_0003FF44 — STRUCTURAL PASS (0x94 / 38 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x30 (saves ra, s0) → ONE clean
+// function. Init/reset-with-formatted-log + node-link (cbN = jal 0
+// USO-relocated; FP-formatted emit, same cb-serialize/registration family).
+//
+//   void gl_func_0003FF44(void *a0) {
+//     void *self = a0;                          // s0 = a0
+//     cb1(a0);                                  // entry hook
+//     float z = 0.0f;
+//     int h = cb2(0, &D_0002F488, z, z, z);     // printf-style: 3 float-zero
+//                                               // args (reset/zero trace line)
+//     self->p0C = h;                            // store handle in two slots
+//     self->p10 = h;
+//     if (self->p38 != 0) {                     // beql guard: sub-object set?
+//       void *sub = self->p3C;
+//       void *n   = sub->p10;                   // resolved target node
+//       int r = cb3((char*)n + 0x10, ...);      // emit/build into node+0x10
+//       if (n->p14 == 0) {                       // beql: first link
+//         n->p14 = r;
+//       } else {                                 // already linked
+//         n->p04 = 1;                            // set dirty/linked flag
+//         n->p14 = r;
+//       }
+//     }
+//   }
+// Resets/initialises self (publishes a cb2 handle into self->0xC/0x10 via a
+// zeroed-float formatted log), then conditionally resolves self->0x3C->0x10
+// and links a cb3-produced value into that node's 0x14 slot (with a 0x4
+// dirty-flag when overwriting). Family: cb-driven staged-serialize +
+// node-registration (siblings 0003F7A8/F8E8/F9C4/FB6C). Caps: self/sub/node
+// struct, &D_0002F488 format string, cbN signatures inferred from call shape.
+// Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FF44);
 
 extern int gl_func_00000000();
