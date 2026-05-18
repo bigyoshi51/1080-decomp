@@ -9830,6 +9830,37 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
 
+// game_uso_func_0000ECEC — STRUCTURAL PASS (0xE0 / 56 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic; boundary already split by commit 4d76f242 — named fn
+// still undecoded). Pure integer (no FP/calls).
+//
+// Jump-table dispatched field selector.
+//
+//   void game_uso_func_0000ECEC(Obj *obj, int idx) {
+//     if (idx == 0) return;
+//     if ((unsigned)(idx - 1) >= 5) return;                // default
+//     switch (idx - 1) {                                    // table @
+//       case 0: a = obj->0x43C; b = obj->0x3AC; break;       //  D_0+0x210
+//       case 1: a = obj->0x43C; b = obj->0x3C4; break;
+//       case 2: a = obj->0x43C; b = obj->0x3DC; break;
+//       case 3: a = obj->0x424; … ; break;
+//       case 4: … ; break;
+//     }
+//     // common tail: stash (a,b) into sp slots, write the selected
+//     //   pair into obj->0x110 (and obj->0x114), obj->0x110 cleared
+//     //   / set; return.
+//   }
+//
+// Struct-typing reference:
+//   obj: 0x43C / 0x3AC / 0x3C4 / 0x3DC / 0x424 = candidate source
+//     fields; 0x110 / 0x114 = the selected output pair. idx = 1-based
+//     selector (0 / out-of-range = no-op). D_0 + 0x210 = the 5-entry
+//     jump table. No calls, no FP.
+// Caps: raw-word USO + jump-table — the per-case field map is fully
+//   enumerable from the .s when a future pass tightens it;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
 
 void game_uso_func_0000EDCC(int *a0, int a1) {
