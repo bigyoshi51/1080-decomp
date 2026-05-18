@@ -791,6 +791,54 @@ end:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002420);
 #endif
 
+// func_000024B8(obj): per-frame state/animation tick for a bootup_uso scene object.
+// Sibling of the obj->0x28 vtable-dispatch family (the 0x6C/0x68 jalr idiom appears 3x,
+// same shape as func_0000485C draw-delegate path).
+//
+// Pseudocode:
+//   cfg = obj->0x38;  world = obj->0x2C;  cam = world->0x70;
+//   active = obj->0x4C;
+//   if (READ32(func_00000044 + 0x20) == 1) {
+//       active = func_00000000((cfg->0x10 & 0x400) != 0, (cfg->0x10 & 0x1000) != 0,
+//                              (s8)cfg->0x8, (s8)cfg->0x9);   // result via sp+0x4C slot
+//   }
+//   if (cfg->0x18 & 0x40) { obj->0x4C = (obj->0x4C == 0); t0 = 1; }   // edge-toggle latch
+//   if (obj->0x4C) {
+//       if (t0) {
+//           func_00000000(obj, 0);
+//           d = obj->0x30->0x28;  (d->0x6C)(d->0x68 + func_00000000(obj,3,0));  // vtable
+//           cam->0x14C = 85.0f;                                                 // activate
+//       }
+//       if (cfg->0x10 & 0x8  && cam->0x14C < 120.0f) cam->0x14C += 2.0f;         // ramp up
+//       if (cfg->0x10 & 0x4  && cam->0x14C > 45.0f)   cam->0x14C -= 2.0f;        // ramp dn
+//       cam->0x134 += cfg->0x4 * 2.0f;
+//       cam->0x138 += cfg->0x0 * 2.0f;
+//   } else {
+//       if (t0) obj->0x48 = 10000;                          // 0x2710 retry timeout
+//       if (++obj->0x48 >= 0x3C) {                           // 60-frame poll gate
+//           obj->0x48 = obj->0x48 + 1;
+//           p = func_00000000(READ32(0), D_00007324, obj->0x40 + 0xB4, 0);
+//           if (p && p != obj->0x44) {
+//               k = p->0x3C;
+//               sel = (k >= 3 && k < 0x13) ? obj->0x30 : obj->0x34;  // in-range vs default
+//               func_00000000(obj, (k in-range ? 0 : ...), k);
+//               d = sel->0x28;  (d->0x6C)(d->0x68 + func_00000000(obj,k,p));     // vtable
+//               obj->0x48 = 0;  obj->0x44 = p;
+//           }
+//       }
+//   }
+//
+// Struct-typing reference (obj = arg0):
+//   0x2C world ptr (->0x70 cam: FP 0x134 pan, 0x138 tilt, 0x14C fov-like, slewed +-2.0,
+//        clamp [45.0,120.0], reset 85.0); 0x30/0x34 delegate objs (->0x28 vtable;
+//        vtable->0x6C fnptr, vtable->0x68 s16 base-id; dispatch a0 = base + retval);
+//        0x38 cfg (0x0/0x4 float rates, 0x8/0x9 s8 params, 0x10 flag-bits 0x4/0x8/
+//        0x400/0x1000, 0x18 flag 0x40 latch-enable); 0x40 id (poll key + 0xB4),
+//        0x44 cached poll result, 0x48 frame/timeout counter, 0x4C active latch.
+//   func_00000044+0x20 == 1 = global-mode gate;  D_00007324 = poll-table word arg.
+// Caps <80: 4 func_00000000 dispatcher calls with stack-slot return + nested vtable
+//   indirections; structural, no C body byte-matches yet.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000024B8);
 
 void func_00002774(char *a0, int a1) {
