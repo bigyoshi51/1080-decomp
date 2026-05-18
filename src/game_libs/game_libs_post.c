@@ -9106,6 +9106,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036224);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036694);
 
+// gl_func_0003695C — STRUCTURAL PASS (0xEC / 59 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). An FP vector-normalize / direction-vector routine.
+//
+//   void gl_func_0003695C(? out, ?, float *p) {  // p = sp+0x38..0x50
+//     float s  = p[z];                          // common divisor
+//     float dx = (p[0] - p[1]) / s;
+//     float dy = (p[2] - p[3]) / s;
+//     float len2 = dx*dx + dy*dy;
+//     float len  = sqrtf(len2);                  // sqrt.s
+//     if (len < 1.0f / EPS-ish) callback(...);   // jal 0 guard
+//     float inv = 1.0f / len;
+//     out.x = dx * inv;                          // normalized dir
+//     out.y = dy * inv;
+//     ...
+//   }
+//
+// Struct-typing reference: a 2D/3D direction-vector normalize leaf.
+//   It forms component deltas from a packed float argument block
+//   (stack slots sp+0x38..0x50 — the args reloaded as floats via
+//   the IDO int-in-FP-reg `sw;lwc1` round-trip), scales them by a
+//   common divisor, computes the squared length, takes `sqrt.s`
+//   for the magnitude, guards a degenerate/zero-length case with a
+//   single conditional USO-relocated callback (jal 0 → resolved at
+//   load — a clamp/error path), and divides each component by the
+//   length (with the 1.0f reciprocal idiom) to emit a unit
+//   direction vector into stack output slots. A geometry-math leaf
+//   of the game_libs object subsystem — the normalize/heading
+//   primitive complementing the gl_func_00036694 matrix-concat and
+//   gl_func_00036224 viewport builder (pure FP except the one
+//   degenerate-case callback).
+// Caps: raw-word USO + FP normalize (sqrt.s + 1/len) + int↔float
+//   stack round-trip + one conditional jal-0 guard — not exact-
+//   matchable without proper USO mnemonic disasm + the vector
+//   args typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003695C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036A48);
