@@ -16473,6 +16473,39 @@ void gl_func_00045FF4(int *a0) {
 void game_libs_func_00046048(int a0) {
 }
 
+// gl_func_00046050 — STRUCTURAL PASS (0x73C / 464 words, no episode). Raw-.word
+// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
+// at the jr at 0x46780 (~463 words); a tiny trailing stub at 0x46784
+// (jr ra; ...) is a DEFERRED USO RE-SPLIT (empty/no-op, belongs to the next
+// symbol — same shape as gl_func_0004182C's trailing stub).
+//
+// Named fn = large CPU-side RDP/GBI display-list segment builder (single
+// prologue frame 0x40, saves ra + s0..s8):
+//   void gl_func_00046050(void *a0, ...) {
+//     if (a0->p28C != 0) goto skip;                 // bnez early-out
+//     // GfxCtx packet sink: ctx = a0->p254->p158->p0C; emit helper is
+//     //   i = ctx->idx; ctx->idx = i + 1;
+//     //   uint *p = (uint*)ctx->buf + i*2; p[0]=opcodeW; p[1]=argW;
+//     // a long fixed sequence of two-word GBI/RDP packets is appended,
+//     // opcode top-bytes including 0xE7 (G_RDPPIPESYNC), 0xBA
+//     // (G_SETOTHERMODE_H), 0xB7 (G_SETOTHERMODE_L) ... with arg words
+//     // built from a0->0x21C/0x224/0x228/0x254 state and immediates
+//     // (0xBA001402 etc.); the ctx idx/buf double-reload idiom recurs per
+//     // packet.
+//   skip: ;
+//   }
+// Builds a complete RDP/RSP display-list segment by appending dozens of
+// fixed two-word GBI command packets into the GfxCtx command buffer reached
+// via a0->0x254 -> 0x158 -> 0x0C ({buf, idx@+4}, stride 8), gated on the
+// a0->0x28C "already built" flag. Family: CPU-side RDP DL fragment builder
+// (large-segment sibling of gl_func_00045E20 and the gui_uso inline-DL
+// routines; see docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder).
+// Per-packet opcode/arg list not exhaustively decoded (464-word builder) —
+// the a0->0x28C guard, the a0->0x254->0x158->0x0C GfxCtx path, the
+// idx-bump + i*8 two-word stride and the 0xE7/0xBA/0xB7 opcode families are
+// exact; the full packet stream is representative. Trailing stub at 0x46784
+// = deferred re-split. Caps: GfxCtx/state struct + the exact GBI constants
+// untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046050);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046790);
