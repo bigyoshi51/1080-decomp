@@ -2148,6 +2148,42 @@ void func_00006228(char *a0) {
  * (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006254);
 
+// func_000063B4 — STRUCTURAL PASS (0x380 / 224 insns, no episode).
+// Minimap/radar marker screen-projection: turns obj grid indices into a
+// world point, projects through the view matrix, clamps to 0..127 pixel
+// coords, stores into the view ctx, then issues the draw.
+//
+//   void func_000063B4(Obj *obj) {
+//     float inv = func_00000000(...);                    // 1/range helper
+//     float u =  (float)obj->0xBC / Kfold;               // Kfold =
+//     float v = -(float)obj->0xB8 / inv;                 //   func_0000057C+0x34
+//     // build two basis input vecs in sp scratch:
+//     //   A = { 0, 0, u }  (sp+0x84/88/8C),  B = { -v, 0, u } (sp+0x78/7C/80)
+//     Ctx *cx = *(Ctx**)(D_0 + 0x254);   View *vw = cx->0x70;
+//     Mat *m = &vw->0xB4;                                 // 0x10-stride rows
+//     // p = m * A  (full 3x3-ish mul.s/add.s expansion, then m * B)
+//     // screen scale/bias from cx->0x130 + v1->0xC/0x14 (int->float):
+//     int sx = (int)((p.x*cx->0x130 - (float)v1->0xC) / v1->0x14);
+//     // clamp helper-run: trunc, c.lt.s pick-min/max against bounds,
+//     //   subu v0=obj->0xC0 offset, then byte clamp:
+//     //   if (v1 < 0) v1 = 0;  if (v1 >= 0x80) v1 = 0x7F;  (same for a0)
+//     cx->0x10C = clampedX;  cx->0x110 = clampedY;        // marker pixel
+//     // emit: vec {0,0,0,1.0f} at sp+0x5C; func_00000000(cx, &sp5C);
+//     func_00000000(obj);                                 // draw / finalize
+//   }
+//
+// Struct-typing reference:
+//   obj->0xB8 / 0xBC = grid/index counts (numerator inputs);
+//   obj->0xC0 = a pixel origin offset; obj->0xB4 = a record ptr (->0xA0).
+//   D_0 + 0x254 = global ctx ptr; ctx->0x70 = View; View->0xB4.. =
+//     a 0x10-stride basis/projection matrix; ctx->0x130 = screen scale;
+//     ctx->0x10C / 0x110 = output marker pixel X/Y (byte-clamped 0..0x7F).
+//   func_0000057C + 0x34 (lwc1) = folded f32 const — another bootup_uso
+//   literal-pool fold target (multi-symbol; see
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
+// Caps: 224-insn matrix-projection + multi-clamp + folded literal;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000063B4);
 
 /* func_00006734 - verified structural decode (0xD4, 53 insns,
