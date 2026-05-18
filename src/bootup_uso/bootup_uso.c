@@ -3818,6 +3818,74 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
 
+// func_0000CFA0 — STRUCTURAL PASS (0x4A0 / 296 insns, no episode).
+// Per-frame active-object sync + draw-state / color update on a large
+// state struct (st = a0 = s0).
+//
+//   void func_0000CFA0(State *st) {
+//     int *ctx = *(int**)(func_0000023C+0x18);          // global ctx ptr
+//     if ((st->0xA58 & 0x2000) && ctx == st->0x8DC) return;   // unchanged
+//     R *r = func_00000000(ctx, st->0xB4, st->0xB8, st->0xBC,
+//                          0, out_at_sp84);              // query current
+//     if (!r) return;
+//     st->0xA40 = r;
+//     int changed = (ctx->0x98 < out_at_sp84) ? 1
+//                  : ((ctx ^ st->0x8DC) != 0);           // change detect
+//     if (bit15(st->0xA58) && st->0x9A0==0x61 && st->0x904!=9
+//         && st->0x938!=0) {
+//       func_00000000(.,0xD);  st->0x8FC[0..2] = r[0..2];  // copy Vec3
+//       set sp Vec3 = {1,1,1, F32(func_00000940+0x30)};
+//       func_00000000(.); func_00000000(0x10);
+//       dispatch st->0x824->0x28 (vtbl: ->0x1C fn, ->0x18 s16 base);
+//       func_00000000(.,6);  st->0x8FC[0..2] = v0[0..2];
+//     }
+//     if (changed) { if (st->0x8B8 & 4) goto reset; }
+//     st->0xA44 = 1;
+//     if ((st->9A8 & 2) && (st->0xA58 & 0x1000) && st->0xA4C) {
+//       func_00000000(st->0x850, st+0x9D8); func_00000000(st);
+//       func_00000000(0x11); func_00000000(0, st+0x8E0);
+//       func_00000000(.); func_00000000(st); func_00000000(st);
+//       *(int*)(func_00000080+0x64) = 0;  goto tail;
+//     }
+//     if ((st->0x8B8 & 0xA) && st->0xA4C && !(st->9A8 & 0x400)) {
+//       Vec3 d = func_00000000(st->0x850, &sp44);
+//       float m = d.x*st->0x9D8 + d.y*st->0x9DC + d.z*st->0x9E0;
+//       if ((double)m < DBL(func_00000940+0x38)) {        // folded f64
+//         // RGB: st->0xA30/A31/A32 u8 -> halve(sra1) -> u32->float fixup
+//         //   -> /255.0f (0x437F0000) -> st->0x9E8/0x9EC/0x9F0;
+//         //   0x42E00000(112.0)/255 -> st->0x9F4;
+//         func_00000000(st+0x9E8 ...);
+//         if (st->0x8B8 & 2) { func_00000000(2);
+//           dispatch st->0x814->0x28; dispatch st->0x820->0x28; }
+//         if ((st->0x8B8 & 8) && st->0x938==0)
+//           dispatch st->0x824->0x28;
+//       }
+//     }
+//     *(int*)(func_00000080+0x64) = 0;
+//   tail:
+//     func_00000000((st->0x8B8 & 1) ? 0x11 : 0x14);
+//     func_00000000(0, sp30); func_00000000(st);
+//     func_00000000((*(int**)(func_0000023C+0x18))->0x108);
+//   reset: func_00000000(. ); st->0xA44 = 0; ...
+//   }
+//
+// Struct-typing reference:
+//   st: 0x8DC cached-ctx ptr; 0xA58 status flags (0x2000 guard, 0x1000,
+//     bit15); 0x8B8 draw flags (1,2,4,8,0xA); 0x9A8 sub-flags (2,0x400);
+//     0xA40 query result; 0xA44 dirty; 0xA4C enable; 0x8FC Vec3 dest;
+//     0x9D8/9DC/9E0 basis Vec3; 0x9E8/9EC/9F0/9F4 normalized color out;
+//     0xA30/A31/A32 u8 RGB src; 0x814/0x820/0x824 sub-objs (->0x28
+//     vtable, ->0x1C fn ptr, ->0x18 s16 base — the obj->0x28 dispatch
+//     idiom); 0x850 a transform source; 0x9A0/0x904/0x938 state words.
+//   Folded refs: func_0000023C+0x18 (global ctx ptr — writable fold);
+//   func_00000940 +0x30 (f32) / +0x38 (f64) — extends the contiguous
+//   strided fold table to +0x4..+0x38; func_00000080+0x64 (writable
+//   global flag, cleared 2x); see
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
+// Caps: 296-insn multi-branch sync w/ folded globals + vtable dispatch
+//   — exact-match blocked by deferred pool symbolization; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D440);
