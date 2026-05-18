@@ -9826,6 +9826,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037FAC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003800C);
 
+// gl_func_00038108 — STRUCTURAL PASS (0xF0 / 60 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A diagnostic / state-report (printf-sequence) routine.
+//
+//   void gl_func_00038108(O *o, int a1, int a2) {
+//     report((char*)D0_str);                    // jal 0 (printf cb)
+//     if (a1 != 0) {
+//       report((char*)0x0001EBF8, (char*)0x0001EC00, &D_0);
+//       if (rv) {
+//         report((char*)0x0001EC08, &D_0);
+//         report((char*)0x0001EC1C, ...);
+//         if (...) {
+//           R *r = o->p_28;
+//           int  m = r->w_4C;
+//           short h = r->h_48;
+//           ... print object state ...
+//         }
+//       }
+//     }
+//   }
+//
+// Struct-typing reference: a debug-dump / state-report leaf. It
+//   spills its arguments, then issues a conditional SEQUENCE of
+//   printf-shaped USO-relocated callbacks (jal 0 → resolved at
+//   load) using FIXED format strings drawn from a CONTIGUOUS data-
+//   segment string table — 0x0001EBF8 / 0x0001EC00 / 0x0001EC08 /
+//   0x0001EC1C (the report lines), gated on argument / return
+//   values — and finally dereferences the object's chain
+//   (o->0x28 → fields 0x4C / 0x48) to print its state. Same
+//   printf-callback diagnostic family as gl_func_00035268 (the
+//   config-validate reporter). A debug/trace node of the game_libs
+//   object subsystem; the 0x0001EBF8..0x0001EC1C strings form a
+//   deferred contiguous string-data symbolization block (a message
+//   table to type together).
+// Caps: raw-word USO + USO-relocated jal-0 printf callbacks +
+//   contiguous fixed string-data table + object-chain deref — not
+//   exact-matchable without proper USO mnemonic disasm + the
+//   string table / object struct typed; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038108);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000381F8);
