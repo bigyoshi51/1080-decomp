@@ -19077,6 +19077,7 @@ int gl_func_000625FC(int *a0, int a1) {
     return *entry;
 }
 
+/* gl_func_0006264C: 40-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006264C);
 
 extern int gl_func_00000000();
