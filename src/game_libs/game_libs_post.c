@@ -19022,6 +19022,7 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
     gl_func_00000000(&gl_ref_00022604, *(int*)(a0 + 0x34));
 }
 
+/* gl_func_00067A54: 29-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
 
 extern int gl_func_00067AC8_inner(float, float);
