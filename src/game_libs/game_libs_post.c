@@ -775,6 +775,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FF34);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FFB8);
 
+// gl_func_0002003C — STRUCTURAL PASS (0xC4 / 49 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A longer member of the gl_func_0001FF34 diagnostic-dump
+// family: a multi-field struct reporter.
+//
+//   void gl_func_0002003C(S *obj) {
+//     *(int*)(&D_0 + 0x21DC) = ...;             // stash a value
+//     (*pr)(&D_21D8, *(int*)reg);                // jal 0 USO-reloc
+//     (*pr)(&D_21FC, obj->w_0);
+//     (*pr)(&D_21D8, *(int*)reg2);
+//     (*pr)(&D_230C, obj->w_4);
+//     (*pr)(&D_21D8, *(int*)reg3);
+//     (*pr)(&D_241C, obj->w_8);
+//     (*pr)(&D_21F8, ...);                        // trailing pair(s)
+//     (*pr)(&D_2308, ...);
+//   }
+//
+// Struct-typing reference: same USO-reloc printf-like reporter `jal 0`
+//   slots as gl_func_0001FF34 / gl_func_0001FFB8. `obj` (saved in s0
+//   from a0) is dumped field by field — words obj->0, obj->4, obj->8
+//   — each preceded by a &D_21D8 label line and followed by a
+//   value-format line from the &D_21xx/&D_23xx/&D_24xx descriptor
+//   pool (&D_21FC / &D_230C / &D_241C / &D_21F8 / &D_2308). Handle
+//   stashed at &D_0+0x21DC. The fullest "dump this object" variant of
+//   the game_libs report support family.
+// Caps: raw-word USO + jal-0 USO-reloc reporter calls — not exact-
+//   matchable without proper USO mnemonic disasm; structural pass
+//   only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002003C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020100);
