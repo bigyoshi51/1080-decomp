@@ -1775,6 +1775,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
 
+// gl_func_0002349C — STRUCTURAL PASS (0xAC / 43 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). An unregister/free-by-id — the deregister counterpart to
+// the gl_func_00021F40 / gl_func_000223DC registry inserts.
+//
+//   void gl_func_0002349C(int id) {
+//     S *g = &D_0;
+//     g->h_23FA = -1;                                   // clear marker
+//     if (g->h_2406 == id) g->h_2406 = -1;               // clear cur
+//     Node *n = g->w_2308;                               // list base
+//     if (n != 0) {
+//       for (int i = 0; n; i++, n += 0xC) {               // 0xC stride
+//         if (n->h_1E == id) n->h_1E = -1;                // unlink ent
+//       }
+//     }
+//     (*free)(id);                                        // jal 0 USO
+//   }
+//
+// Struct-typing reference: halfwords &D_0+0x23FA and &D_0+0x2406 are
+//   "current/selected id" markers reset (to -1) when they reference
+//   the id being removed (the same 0x23FA halfword the
+//   gl_func_000233E4 buffer-run finalize touches). Word &D_0+0x2308
+//   is the base of a fixed-stride (0xC) node list whose halfword +0x1E
+//   holds an owning id; every node matching `id` has that field
+//   cleared to -1 (unlinked). The actual storage release goes through
+//   a USO-relocated free routine (`jal 0` slot). This is the
+//   teardown/deregister entry of the gl_func_00021F40 / 000223DC /
+//   000221D8 registry family.
+// Caps: raw-word USO + jal-0 USO-reloc free — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
 
 #ifdef NON_MATCHING
