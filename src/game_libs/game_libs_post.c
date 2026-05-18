@@ -24080,8 +24080,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DC0C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DD14);
 
-/* gl_func_0006E1A4: 30-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006E1A4: 30-insn table-write + call-and-call dispatcher.
+ *   ret = gl_func_00000000(idx, a, b);                   // first call
+ *   entry = &gl_data[idx * 2];                            // 8-byte entries
+ *   entry[0] = a;
+ *   entry[1] = b;
+ *   gl_func_00000000(ret);                                // second call (1 arg)
+ * Table base is a USO data symbol; idx is multiplied by 8 via sll for
+ * pointer arithmetic.
+ *
+ * Cap: 62% — target spills `entry` to stack slot sp+0x20 and uses $s0
+ * to hold the call return. Mine keeps both in temp regs. The store-and-
+ * reload roundtrip of entry through stack is hard to reproduce from C
+ * without ugly volatile tricks. Multi-tick polish. */
+void gl_func_0006E1A4(int idx, int a, int b) {
+    int* entry = (int*)((char*)&gl_data_00000000 + idx * 8);
+    int ret = gl_func_00000000(idx, a, b);
+    entry[0] = a;
+    entry[1] = b;
+    gl_func_00000000(ret);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006E1A4);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006E1A4_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006E224);
