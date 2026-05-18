@@ -3217,6 +3217,32 @@ void gl_func_000271D8(void) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002722C);
 
+// gl_func_000272C4 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
+// (named fn + 3 tiny trailing accessors) — deferred USO re-split.
+// The named leading fn (~15 words) is the subsystem SHUTDOWN / deinit.
+//
+//   void gl_func_000272C4(void) {
+//     S *g = &D_0;
+//     g->w_215C = 1;                                    // mark torn down
+//     (*cleanup)(0);                                     // jal 0 USO
+//     g->b_2CF0 = 0;                                     // clear state
+//   }
+//
+// Struct-typing reference: the deinit counterpart to the
+//   gl_func_00024378 initializer. It sets the subsystem handle word
+//   &D_0+0x215C to 1 — exactly the "already torn down" sentinel the
+//   gl_func_00025044 teardown sweep and gl_func_0001FEC8 register
+//   helper test — calls a USO-relocated cleanup routine (`jal 0`
+//   slot) with arg 0, and clears the main subsystem state byte
+//   &D_0+0x2CF0 (the gl_func_0002119C state). The 3 trailing bundled
+//   accessors are tiny table getters over the &D_0+0x2D00 record
+//   table (idx-scaled lookups returning record bytes +0xD4 etc., and
+//   a &D_0+0x2E58 byte read) — left for the deferred USO re-split.
+// Caps: raw-word USO + 4-fn unsplit bundle + jal-0 USO-reloc cleanup
+//   — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002737C);
