@@ -20460,6 +20460,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FC78);
 /* gl_func_0006FDE8: 29-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FDE8);
 
+/* gl_func_0006FE5C: helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FE5C);
 
 /* gl_func_0006FFE4: 19-insn 2-call wrapper with intermediate global OR.
