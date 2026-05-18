@@ -3349,6 +3349,34 @@ void gl_func_00027704(int a0, int a1) {
     gl_func_00000000(r);
 }
 
+// gl_func_00027744 — STRUCTURAL PASS (0xB4 / 45 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
+// (named fn + 2 trailing helpers) — deferred USO re-split. The named
+// leading fn (~15 words) is a 3-step sequenced wrapper.
+//
+//   void gl_func_00027744(int a0, int a1) {
+//     int r = (*setup)(1);                              // jal 0 USO
+//     (*op)(a0, a1);                                     // jal 0 USO
+//     (*finish)(r);                                      // jal 0 USO
+//   }
+//
+// Struct-typing reference: the named leading fn is a thin
+//   begin/middle/end orchestrator — it calls a USO-relocated setup
+//   routine with constant 1, saving its result; then an op with the
+//   caller args (a0, a1); then a finish/teardown with the saved
+//   setup result (a0/a1 are preserved across all three via the
+//   sp+0x1C..0x24 spill slots). The 2 trailing bundled bodies are
+//   lower-level helpers that read a state byte at &D_0+0x2B710 (mask
+//   0x1FFF) and touch N64 hardware registers in the 0xA4500000 (SP /
+//   RSP DMA) region — an RSP/DMA submit path — left for the deferred
+//   USO re-split. NOTE: this function also carries a trailing
+//   gl_func_00027744_pad.s GLOBAL_ASM (alignment/literal pad), which
+//   is left untouched.
+// Caps: raw-word USO + 3-fn unsplit bundle + jal-0 USO-reloc steps
+//   + HW-register access in the tail — not exact-matchable without
+//   proper USO mnemonic disasm; structural pass only for the named
+//   leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027744);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00027744_pad.s")
 
