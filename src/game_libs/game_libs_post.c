@@ -24240,6 +24240,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073904);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00073E74_pad.s")
 
+/* gl_func_000743C4: 66-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000743C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000744CC);
