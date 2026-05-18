@@ -3309,6 +3309,32 @@ void gl_func_000275B0(int a0) { D_gl275B0 = a0; }
 extern int D_gl275BC;
 void gl_func_000275BC(void) { D_gl275BC = 0; }
 
+// gl_func_000275C8 — STRUCTURAL PASS (0x11C / 71 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 8-jr USO bundle
+// (named fn + 7 trailing record-accessors) — deferred USO re-split.
+// The named leading fn (~10 words) is a thin process-global thunk.
+//
+//   void gl_func_000275C8(void) {
+//     void *obj = *(void**)(&D_0 + 0x53C8);             // global obj
+//     (*proc)(obj, 0, 1);                                // jal 0 USO
+//   }
+//
+// Struct-typing reference: the named leading fn forwards the global
+//   object pointer at &D_0+0x53C8 (the same &D_0+0x53Cx state region
+//   the gl_func_0002722C lock-guarded op / gl_func_00026CF0
+//   submit-helper use) to a USO-relocated processor (`jal 0` slot)
+//   with the fixed args (0, 1) — a one-line "tick/flush the current
+//   global object" entry. The 7 trailing bundled bodies are
+//   compiler-emitted micro-accessors over the &D_0+0x2D00 record
+//   table (index scaled idx*5<<2 = idx*0x14, table pointer
+//   &D_0+0x2D00, secondary table &D_0+0x2D38; field getters
+//   rec->0x50 etc. with sign-bit tests) — left for the deferred USO
+//   re-split.
+// Caps: raw-word USO + 8-fn unsplit accessor bundle + jal-0
+//   USO-reloc processor — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only for the named leading fn,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000275C8);
 
 extern int gl_func_0003B1AC();
