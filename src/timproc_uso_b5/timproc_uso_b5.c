@@ -1631,6 +1631,47 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007430);
 
+// timproc_uso_b5_func_000077D8 — STRUCTURAL PASS (0x1CC / 115 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen mode/transition handler: global-state-gated phase
+// entries that snapshot the camera and kick off entry/exit animation.
+//
+//   void timproc_uso_b5_func_000077D8(Scr *scr) {        // scr -> s0
+//     if (func_00000000(&D_0, 0x100)) {                   // phase A
+//       func_00000000(scr);  func_00000000(scr->...table);
+//       scr->0x3CC = 5;  scr->0x400 = 0x37;  scr->0x484 = 1.0f;
+//       func_00000000(scr);
+//       d = scr->0x28;  (d->0x9C)(d->0x98 + …);            // show/activate
+//       // snapshot camera: cam = scr->0x414->0x10;
+//       scr->0x4C4 = cam->0x60;  scr->0x4C8 = cam->0x64;
+//       scr->0x4CC = cam->0x68;                            // eye pos Vec3
+//       scr->0x4C0 = scr->0x414->0xC->0x70->0x14C;          // fov-like
+//       scr->0x4B4 = 2;  scr->0x4BC = 0.0f;                 // anim start
+//     } else if (func_00000000(&D_0, 0x200)) {             // phase B
+//       func_00000000(0x802 …);  scr->0x3CC = 3;
+//     } else if (func_00000000(&D_0, 0x4002)) {            // phase C
+//       if (bit14(scr->0x2B4)) { func_00000000(0);
+//         func_00000000(scr);  d=scr->0x28; (d->0x94)(d->0x90+…); }
+//     } else if (func_00000000(&D_0, 0x10001)) {           // phase D
+//       if (bit14(scr->0x2B4)) { func_00000000(0);
+//         func_00000000(scr);  d=scr->0x28; (d->0x94)(d->0x90+…); }
+//     }
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x28 vtable (->0x98/0x9C and ->0x90/0x94 dispatch idiom —
+//     activate/show), 0x2B4 flags (bit14 via <<14 test), 0x3CC state
+//     (5 / 3), 0x400 = 0x37 sub-state, 0x484 f32 = 1.0, 0x4B4 anim
+//     phase (=2), 0x4BC f32 anim timer (=0.0), 0x4C0 captured fov,
+//     0x4C4/0x4C8/0x4CC captured eye-pos Vec3; 0x414 -> node
+//     (->0x10 cam ->0x60/0x64/0x68 eye; ->0xC->0x70->0x14C fov).
+//   D_0 global flags 0x100 / 0x200 / 0x4002 / 0x10001 gate the phases.
+//   func_00000000 = USO placeholder dispatcher (gate / activate).
+// Caps: raw-word USO + placeholder calls — not exact-matchable
+//   without proper USO mnemonic disasm; structure characterized.
+//   Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000077D8);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000079A4);
