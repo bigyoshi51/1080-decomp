@@ -3530,6 +3530,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028358);
 
+// gl_func_0002842C — STRUCTURAL PASS (0xE4 / 57 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Near-identical SIBLING of gl_func_00028358 — same handle-
+// resolve into the &D_0+0x2158 selection slot, different sub-count
+// field and lookup arg.
+//
+//   int gl_func_0002842C(int a0, int a1) {
+//     if (a0 == 0xFF) return 0;                          // none sentinel
+//     int r = (*lookup)(a0, a1);                          // jal 0 USO
+//     if (r != 0) { *(int*)(&D_0 + 0x2158) = r; return …; }
+//     R *rec = *(R**)(&D_0 + 0x2030) + a0*0x14;            // registry
+//     byte cap = rec->b_1;                                  // sub count
+//     int packed = (a0 << 8) | a1;
+//     if (a1 < cap) packed += 1;
+//     *(int*)(&D_0 + 0x2158) = packed;
+//   }
+//
+// Struct-typing reference: structurally identical to gl_func_00028358
+//   (see its comment) — maps an (a0,a1) handle to the global
+//   selection word &D_0+0x2158 via a USO-relocated lookup then a
+//   fallback into the &D_0+0x2030 / 0x14-stride registry table. The
+//   ONLY differences: this variant range-checks a1 against the
+//   record's byte +1 (vs gl_func_00028358's byte +0) — i.e. a
+//   different sub-count field of the same record — and forwards the
+//   arg via $a2. The two are the per-sub-field-class select/resolve
+//   entries for the registry current-item state.
+// Caps: raw-word USO + jal-0 USO-reloc lookup — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002842C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
