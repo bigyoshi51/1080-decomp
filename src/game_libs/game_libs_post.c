@@ -15089,6 +15089,42 @@ void gl_func_00041A74(int a0) {
 // cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041A9C);
 
+// gl_func_00041D40 — STRUCTURAL PASS (0x198 / 103 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x88
+// (saves ra + s0..s2). Registry list-insert / entry-builder (cb = jal 0
+// USO-relocated; string literals &D_0002F6B4 / &D_0002F6C0).
+//
+//   void gl_func_00041D40(void *a0) {
+//     cb(a0, &D_0002F6B4);                          // open/register scope
+//     Reg *r = (Reg*)&D_reloc;                       // s2 = registry base
+//     void *head = r->p00;
+//     cb(head, ...); head->p0C = 0;                   // touch current head
+//     void *old = r->p00;
+//     void *n = cb(0xC);                              // alloc 0xC-byte node
+//     if (n == 0) goto done;
+//     n->p04 = -1;                                    // sentinel
+//     n->p00 = old;                                   // link: new -> old head
+//     n->p08 = old->p0C - 1;                          // index/refcount
+//     // copy a few fields from old (and its sub-records) into n and into
+//     // sp scratch (sp+0x6C / sp+0x7C):
+//     n->... = old->p00; n->... = old->p04; ...        // field shuffle
+//     // reference a second string literal &D_0002F6C0 for the entry name
+//     if (sp_0x84 < sp_0x80) { ... }                   // bounds/order guard
+//     // ... finalize: store n back as the new registry head, more cb wiring
+//   done: ;
+//   }
+// Builds a new registry entry node and inserts it at the head of a global
+// intrusive list: allocates a 0xC-byte node, links it ahead of the previous
+// head (n->0 = old, n->4 = -1, n->8 = old->0xC - 1), migrates selected
+// fields from the prior head/source records into the node and an sp scratch,
+// keyed by string literals &D_0002F6B4 / &D_0002F6C0, with an sp+0x80/0x84
+// bounds/order comparison. Family: cb-driven registration + list-insert
+// (siblings gl_func_0004182C / 00041A9C / 000412E8). Field-shuffle and
+// finalize tail not exhaustively decoded (103-word builder) — the cb keys,
+// the 0xC alloc + null-check, the head-link triple (0 / 4=-1 / 8=idx) and
+// the bounds guard are exact; copied-field offsets representative. Caps:
+// Reg/node struct, &D_reloc and cb signatures untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041D40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041EDC);
