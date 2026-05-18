@@ -2523,6 +2523,41 @@ void game_libs_func_00024E14(int a0, int a1, int a2, int a3) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024E28);
 
+// gl_func_00024E34 — STRUCTURAL PASS (0xFC / 63 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr) — but
+// its true entry is the preceding 3-word head fragment
+// game_libs_func_00024E28 (splat boundary missplit; see that comment).
+// A bounds-checked registry-slot creator.
+//
+//   int gl_func_00024E34(int idx, int a1, void *a2) {  // entry preloads
+//     // t6 = *(u16*)(&D_0 + 0x202C)  (from the head fragment)
+//     if (idx >= t6) { *(byte*)a2 = 0; return -1; }     // range fail
+//     int j = jal 0x38174(0, idx);                       // 0x0C00E05D
+//     int r = jal 0x38204(0, j);                          // 0x0C00E081
+//     T  *tp = *(T**)(&D_0 + 0x1578);                      // table ptr
+//     R  *rec = (char*)(&D_0 + 0x157C) + r*0x14;           // record
+//     int  k  = *(int*)(&D_0 + 0x1590);
+//     if (k != 3) rec->w_14 = 0;                            // zero-init
+//     rec->w_24 = 0;
+//     ...
+//   }
+//
+// Struct-typing reference: the bounds-checked allocator/creator for a
+//   registry record table. The valid index ceiling is the halfword
+//   &D_0+0x202C (the same registry limit the gl_func_00022FC0 /
+//   gl_func_000235E4 family checks) — preloaded into t6 by the head
+//   fragment game_libs_func_00024E28. On overflow it clears the
+//   caller's a2 byte and returns -1. Otherwise it resolves a slot via
+//   the shared poll 0x0C00E05D (≈0x38174) + 0x0C00E081 (≈0x38204),
+//   indexes a 0x14-stride record at base &D_0+0x157C (table pointer
+//   &D_0+0x1578, control word &D_0+0x1590) and zero-initialises the
+//   record's words +0x14 / +0x24. Companion to the gl_func_000223DC
+//   find-or-append / gl_func_00021F40 insert helpers, on a distinct
+//   record table (&D_0+0x157C vs &D_0+0x2030).
+// Caps: raw-word USO + cross-fragment entry + fixed-target resolve —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024E34);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
