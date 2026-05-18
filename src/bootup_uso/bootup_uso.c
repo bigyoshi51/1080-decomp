@@ -3783,6 +3783,39 @@ void func_0000CACC(char *a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
 
+// func_0000CCE0 — STRUCTURAL PASS (0x2C0 / 176 insns, no episode).
+// HUD/menu layout builder: creates ~12 positioned widget elements into
+// the state's UI container, gated by a flag, then finalizes them.
+//
+//   void func_0000CCE0(State *st, a1) {       // st -> s0; cont = st+0x39C
+//     // repeated unit (x ~12), per element:
+//     //   e = func_00000000(0, st, TYPE, X, /*sp+0x10*/ P, /*sp+0x14*/ Y);
+//     //   func_00000000(cont, e);             // attach to st->0x39C
+//     //   save e -> sp slot;
+//     // batch 1 TYPE/coords: {2:(140,?)}, {8:(-140)}, {1:(350)},
+//     //   {4:(-350)} with P = F32(func_00000940 + {0x1C,0x20,0x24,0x28});
+//     // then func_00000000(st, savedE) x4  (configure pass);
+//     if (st->0xA58 & 0x200) return;           // skip optional batch
+//     // batch 2: TYPE {0,0x20,0x80,0x10,0x40} at screen coords
+//     //   140/-140/350/-350/250/-250/-150/-400/400 (0x430C0000 etc.)
+//     //   with P = F32(func_00000940 + 0x2C); attach + configure each.
+//   }
+//
+// Struct-typing reference:
+//   st(a0=s0): 0x39C = UI container/parent (s1, receives each element);
+//     0xA58 status flags (bit 0x200 = suppress optional HUD batch).
+//   func_00000000(0, st, type, xF32, paramF32, yF32) = widget factory;
+//     func_00000000(cont, e) = attach; func_00000000(st, e) = configure.
+//   Screen-coord consts: ±140 (0x430C0000), ±350 (0x43AF0000),
+//     ±250 (0x437A0000), -150 (0xC3160000), ±400 (0x43C80000).
+//   Folded param table: func_00000940 + {0x1C,0x20,0x24,0x28,0x2C}
+//   (read-only f32) — extends the contiguous strided fold table
+//   (now spans +0x4..+0x2C, ≥11 entries; strongly confirms the single
+//   D_base[] characterization in
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
+// Caps: 176-insn factory-loop w/ folded param table — exact-match
+//   blocked by deferred pool symbolization; structural pass only.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
