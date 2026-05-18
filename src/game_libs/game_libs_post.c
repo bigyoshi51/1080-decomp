@@ -9349,6 +9349,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036F0C);
  * the clean-episode subset. INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000372D4);
 
+// gl_func_00037348 — STRUCTURAL PASS (0x1F8 / 126 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — 0x70 frame). An FP per-component clamp / range-limit
+// (deadzone-style) routine.
+//
+//   void gl_func_00037348(O *o) {
+//     float k   = D_0_fp_19F0;                   // FP literal pool
+//     float lim = D_0_fp_19F4;                   // FP literal pool
+//     V *v = o->p_2C;
+//     float x = v->f_0 * k;
+//     float y = v->f_4 * k;
+//     float ax = (x < 0.0f) ? -x : x;            // abs
+//     if (ax < lim) ... else clamp ...           // bound check
+//     float ay = (y < 0.0f) ? -y : y;
+//     if (ay < lim) ... else clamp ...
+//     ... further components (v->0x60 ...) same pattern ...
+//   }
+//
+// Struct-typing reference: a per-axis clamp / deadzone / range-
+//   limiter. It reads a vector from o->0x2C, scales each component
+//   by a fixed FP scale constant loaded from the literal pool at
+//   &D_0+0x19F0, takes the absolute value (the `c.lt.s f,0 ;
+//   bc1fl ; neg.s` idiom), and compares against a bound constant
+//   from &D_0+0x19F4, clamping/saturating per component (the shape
+//   of an analog-input deadzone, a velocity/turn-rate cap, or a
+//   normalized-range limiter). &D_0+0x19F0 / &D_0+0x19F4 are the
+//   recurring FP-LITERAL-POOL fold sites of this segment (the
+//   constants live in the USO data segment, splat-disassembled as
+//   part of a func — deferred FP-pool symbolization per
+//   docs/N64_FORENSICS.md bootup_uso-FP-pool note; same class as
+//   the &D_0+0x186C/0x1868/0x1730 sites recorded earlier in this
+//   file). A signal-conditioning leaf of the game_libs object
+//   subsystem (companion of the gl_func_0003695C normalizer and the
+//   gl_func_0002F584 quantizer — the input-clamp stage feeding the
+//   geometry/command pipeline).
+// Caps: raw-word USO + FP abs/clamp + FP-literal-pool constants
+//   (&D_0+0x19F0/0x19F4 unsymbolized) — not exact-matchable without
+//   proper USO mnemonic disasm + FP-pool symbolization; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037540);
