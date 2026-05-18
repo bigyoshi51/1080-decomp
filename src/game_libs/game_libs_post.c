@@ -11595,6 +11595,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B01C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B1AC);
 
+// gl_func_0003B2EC — STRUCTURAL PASS (0x3B4 / 237 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0x98 FP frame, saves s0-s7). A large flag-gated
+// FP geometry / transform routine. One of the bigger nodes in this
+// vein.
+//
+//   void gl_func_0003B2EC(O *o, ?, ?, float a3) {
+//     float k0 = *(float*)(&D_0 + 0x128);        // FP literal pool
+//     float k1 = *(float*)(&D_0 + 0x130);
+//     float u  = a3 * k0;
+//     float v  = sp_A8 * k1;
+//     if (o->w_84 == 0) return;                   // active gate
+//     if (o->w_A0 == 0)
+//       callback((void*)0x0001EE8C, ...);         // jal 0 (USO cb)
+//     ... extensive FP transform / blend using u, v, &D_0 consts,
+//         object fields, spilling through sp+0xA4.. scratch ...
+//   }
+//
+// Struct-typing reference: a sizable per-object FP transform /
+//   animation-blend node. It scales input arguments (the float a3
+//   and a stack value) by FP constants loaded from the LITERAL
+//   POOL at &D_0+0x128 and &D_0+0x130 (the recurring FP-pool fold
+//   of this segment — same class as the &D_0+0x19F0 clamp table /
+//   &D_0+0x186C / 0x1730 sites; deferred FP-pool symbolization per
+//   docs/N64_FORENSICS.md), gates the whole body on the object's
+//   active flag o->0x84, conditionally runs a USO-relocated
+//   callback (jal 0 → resolved at load) parameterized by a fixed
+//   data-segment reference 0x0001EE8C, and then performs an
+//   extensive multiply/add FP pipeline over object fields with
+//   stack scratch (sp+0xA4..). A geometry/animation node of the
+//   game_libs object subsystem (consumes the matrices/vectors the
+//   gl_func_0003B1AC matrix-apply / gl_func_00036694 concat /
+//   gl_func_00036224 viewport leaves produce).
+// Caps: 0x3B4 raw-word USO + FP-literal-pool constants
+//   (&D_0+0x128/0x130 unsymbolized) + USO-relocated jal-0 callback
+//   + data-seg ref + heavy FP transform — categorically not exact-
+//   matchable without proper USO mnemonic disasm + FP-pool/struct
+//   symbolization; structural pass only, no byte body. (A future
+//   focused non-loop session is where this gets a real decode; not
+//   60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B2EC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
