@@ -15906,6 +15906,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000437C0);
 // 0x4C7C4 global and cb signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043BEC);
 
+// gl_func_00043D38 — STRUCTURAL PASS (0x170 / 93 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
+// (saves ra). Packed-table-entry invalidation over an index range (no cb
+// calls — pure table maintenance).
+//
+//   void gl_func_00043D38(void *a0) {
+//     self = a0;
+//     if (self->p7C == 0) return;                    // beql skip-all guard
+//     Tbl *tb = *(Tbl**)(&D_g + 0x254);               // global table base
+//     int i   = tb->p10C - 1;                         // dirty-range start
+//     int lim = tb->p110;                             // dirty-range end
+//     while (i < lim) {
+//       short key = ((short*)self->p7C)[i];            // index from self->0x7C
+//       int *slot = (int*)(*(int*)(self->p6C->p0C)) + key*2;  // base + key*8
+//       slot[0] = 0xC0000000;                          // invalidate sentinel
+//       slot[1] = 0;
+//       i++;
+//       tb = *(Tbl**)(&D_g + 0x254); lim = tb->p110;   // reload bounds
+//     }
+//     if (self->p6C != 0) {
+//       // second pass: same invalidation keyed by the halfword block at
+//       // self->0x7C + 0x80 (a separate index set), writing the same
+//       // {0xC0000000, 0} sentinel into the keyed slots.
+//     }
+//   }
+// Walks the dirty index range [tb->0x10C-1, tb->0x110) of the global table
+// at &D_g+0x254 and, for each, resets the packed slot reached via
+// self->0x6C->0x0C->0 + key*8 (key = (short)self->0x7C[i]) to the
+// {0xC0000000, 0} invalid sentinel — the release/clear counterpart of the
+// append routines gl_func_00043BEC / 00042684. A second pass repeats the
+// invalidation for the self->0x7C+0x80 key block. Family: packed-table
+// management (invalidate side). Second-pass key detail representative; the
+// 0x7C entry guard, the &D_g+0x254 base, the 0x10C-1 / 0x110 range, the
+// key*8 slot math and the 0xC0000000 sentinel are exact. Caps: self/Tbl
+// struct + &D_g global untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043D38);
 
 /* gl_func_00043EAC: 17-insn wrapper. Builds a 4-float buf {1,1,1,0} on
