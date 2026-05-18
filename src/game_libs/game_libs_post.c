@@ -7937,6 +7937,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000346F0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034810);
 
+// gl_func_00034890 — STRUCTURAL PASS (0x158 / 86 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A multi-block (chained-allocation) object constructor.
+//
+//   X *gl_func_00034890(O *o) {
+//     A *a = alloc(0x10, o->h_0C);            // jal 0 (USO alloc)
+//     if (a == 0) return 0;
+//     B *b = alloc(0x10, ...);                // 2nd alloc
+//     if (b == 0) return 0;                   // (rollback path)
+//     C *c = alloc(0x04, ...);                // 3rd alloc
+//     if (c == 0) return 0;
+//     c->vt_0 = (void*)0x0001E1E8;            // type/vtable tag
+//     b->p_4  = o;                            // parent backref
+//     ... wire a / b / c together; 2nd template 0x0001E1B0 ...
+//     return a;
+//   }
+//
+// Struct-typing reference: a composite-object constructor. It chains
+//   THREE allocations through a USO-relocated allocator callback
+//   (jal 0 → resolved at load) — two 0x10-byte sub-records and a
+//   4-byte tail — each guarded by an allocation-failure early-out
+//   (the staged `beqz v0` bail-outs are the rollback discipline of
+//   a constructor). It then wires the blocks together: stamping
+//   FIXED data-segment TYPE/VTABLE template pointers (0x0001E1E8
+//   and 0x0001E1B0) into the new records and storing a parent
+//   back-reference (the o argument) at offset +0x04. A factory leaf
+//   of the game_libs object subsystem (manufactures a 3-part typed
+//   object; companion to the gl_func_00032E18 / gl_func_00033228
+//   constructors and consumed by the gl_func_0002FB74 interpreter —
+//   0x0001E1E8 / 0x0001E1B0 are the object's vtable/type tables,
+//   deferred data-segment symbolization sites; the 0x10/0x10/0x04
+//   sizes are the struct sizes to type when this family is
+//   formalized).
+// Caps: raw-word USO + USO-relocated jal-0 allocator + chained
+//   alloc-with-rollback + fixed data-seg type templates
+//   (unsymbolized) — not exact-matchable without proper USO
+//   mnemonic disasm + the 3 structs typed; structural pass only,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
 
 /* gl_func_000349E8 - verified structural decode (27-insn deterministic
