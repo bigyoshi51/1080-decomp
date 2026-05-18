@@ -1193,6 +1193,43 @@ void timproc_uso_b5_func_000040BC(int a0, int a1, int a2, int a3, int arg5, int 
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00004118);
 
+// timproc_uso_b5_func_00005BF0 — STRUCTURAL PASS (0x3D0 / 244 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Per-frame HUD panel build/refresh for the timing/replay screen
+// (operates on the 0x4F0 object built by func_00004118).
+//
+//   void timproc_uso_b5_func_00005BF0(Scr *scr, a1, a2, a3) {  // scr->s0
+//     scr->0x4DC = a1;  scr->0x4E0 = a3;  scr->0x4E4 = a3;
+//     scr->0x4E8 = 1;   scr->0x4EC = ...;                // stash params
+//     // index static layout tables by id: D_00000E74 -> scr->0x4A4,
+//     //   D_00000E54 -> scr->0x3E0, D_00000E94 -> scr->0x4A8;
+//     func_00000000(.);  scr->0x3E4 = .;
+//     // per-item layout loop over scr->0x40->0x6C count, walking
+//     //   scr->0x3B8..0x3BC, writing per-row offsets to +0x2B4;
+//     // vtable draw dispatch x3-4: d = node->0x3C->0x28;
+//     //   (d->0x84)(d->0x80 + …)  (obj->0x28 dispatch idiom);
+//     // bake vertex/draw-data float block into scr+0x420..0x47C:
+//     //   colors 255.0 (0x437F), coords 90/145/232/13/161/91/35/70…
+//     //   (RGBA + UV + position constants for the panel quads);
+//     func_00000000(.); ... more vtable draws ...;
+//     scr->0x404 = 0x40;  scr->0x488 = .;  scr->0x4BC = f;
+//   }
+//
+// Struct-typing reference:
+//   scr (the 0x4F0 timing-HUD object from func_00004118):
+//     0x4DC/0x4E0/0x4E4 stashed call params, 0x4E8 = 1 flag,
+//     0x3E0/0x3E4/0x4A4/0x4A8 = looked-up layout entries,
+//     0x3B8/0x3BC iteration range, 0x40->0x6C item count,
+//     +0x2B4 per-row offset out, +0x420..0x47C f32 vertex/color
+//     block, 0x404 = 0x40, 0x488/0x4BC trailing fields;
+//     node->0x3C->0x28 vtable (->0x84 fn, ->0x80 s16 base).
+//   D_00000E54/0E74/0E94 = USO static layout tables (0xE.. pool).
+//   func_00000000 = USO placeholder dispatcher.
+// Caps: raw-word USO + placeholder calls — not exact-matchable without
+//   proper USO mnemonic disasm; structure characterized. Structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005BF0);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005FC0);
