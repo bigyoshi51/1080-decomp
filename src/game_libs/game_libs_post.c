@@ -7014,6 +7014,47 @@ void gl_func_00032DC0(Quad4 *dst) {
     *dst = scratch;
 }
 
+// gl_func_00032E18 — STRUCTURAL PASS (0x27C / 159 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0x60 frame). An OBJECT CONSTRUCTOR.
+//
+//   O *gl_func_00032E18(int a, int b, int c, int d) {
+//     if (a == 0) { alloc(0x150); ... }      // jal 0 allocator
+//     O *o = (O*)v0;
+//     if (o == 0) return 0;                   // alloc-fail guard
+//     S *s = (S*)alloc(0xB4);                 // sub-record
+//     if (s == 0) return 0;
+//     memcpy(s, (void*)0x0001E178, ...);      // default template
+//     s->p_28 = &D_0_base;                    // wire global base
+//     if (s != SENTINEL) sub_init(&s->f_2C);  // (-0x2C compare)
+//     ... further alloc(4) / sub-inits ...
+//     return o;
+//   }
+//
+// Struct-typing reference: a constructor for one of the subsystem's
+//   objects. It allocates a main record of 0x150 bytes (via a
+//   USO-relocated allocator callback, jal 0 → resolved at load) on
+//   the a==0 path, bails cleanly on allocation failure, allocates a
+//   0xB4-byte sub-record, then COPIES a default/template block from
+//   a FIXED data-segment source at 0x0001E178 into it, stores the
+//   global base pointer (&D_0) into the sub-record at offset 0x28,
+//   and performs further small sub-allocations (size 4) / field
+//   inits before returning the constructed object. The args
+//   (a/b/c/d, spilled to sp+0x64..0x6C) select the construction
+//   variant. A producer leaf of the game_libs object subsystem —
+//   it manufactures the records the gl_func_0002FB74 interpreter,
+//   the emitter family and the gl_func_00030AF4 top-level
+//   constructor operate on (0x0001E178 is the deferred-symbolization
+//   template-data site; the 0x150 / 0xB4 sizes are the struct sizes
+//   to type when this object family is formalized).
+// Caps: raw-word USO + USO-relocated allocator callbacks + fixed
+//   data-segment template copy (0x0001E178 unsymbolized) — not
+//   exact-matchable without proper USO mnemonic disasm + the
+//   template data symbolized + the 0x150/0xB4 structs typed;
+//   structural pass only, no byte body. (Constructor: NOT a skip —
+//   the offsets/sizes/template ref captured here ARE the
+//   struct-typing groundwork for a future focused decode.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00032E18);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
