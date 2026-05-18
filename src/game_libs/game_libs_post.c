@@ -14146,6 +14146,12 @@ void gl_func_00042338(void) {
     gl_func_00000000_42338(local, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
+/* game_libs_func_00042374: 25-insn nested-loop ushort fill.
+ * Outer loop (a1=0x64; a1<0x12C; a1+=2) sets up a0 base offset, inner
+ * loop (v1=0x32; v1<0x96; v1+=4) writes 0xFFFF to 4 short positions
+ * (offsets 0/0x280/0x500/0x780) then advances a0 by 0xA00. Multi-pass
+ * decode pending — nested loops resist IDO scheduling without careful
+ * intermediate naming. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042374);
 
 void gl_func_000423D8(void) {
