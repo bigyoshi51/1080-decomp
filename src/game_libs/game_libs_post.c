@@ -4572,6 +4572,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002ABC0);
 
+// gl_func_0002AD1C — STRUCTURAL PASS (0x380 / 224 words ≈ 0.9KB, no
+// episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
+// (1 jr, no bundle). The command-script VM RUN LOOP — the
+// interpreter main loop for the gl_func_00026790 / gl_func_0002A080
+// opcode family.
+//
+//   void gl_func_0002AD1C(O *o) {
+//     char *buf = o->w_50;                              // script buf
+//     int   cur = o->w_4C;                               // cursor
+//     for (;;) {
+//       int op = jal 0x3F010(cur) & 0xFF;                 // 0x0C00FC04
+//       if (op >= 0xC1 && op < 0xF2) {                     // dispatch
+//         jal 0x3E680(op - 0xC1, …);                       // 0x0C00F9A0
+//         int r = jal 0x3E6E8(op, …);                      // 0x0C00F9BA
+//         if (r == 0) continue;                             // keep going
+//       } else {
+//         break;                                            // terminator
+//       }
+//     }
+//   }
+//
+// Struct-typing reference: the per-object bytecode interpreter loop.
+//   o->0x50 is the script/instruction buffer base, o->0x4C the
+//   read cursor, o->0x54 the VM working state, &D_0+0x1058 a float
+//   constant loaded into f20 for the duration. Each iteration fetches
+//   the next opcode through the fixed routine 0x0C00FC04 (≈0x3F010);
+//   opcodes in [0xC1, 0xF2) are decoded via the fixed handler pair
+//   0x0C00F9A0 (≈0x3E680, indexed by op-0xC1) and 0x0C00F9BA
+//   (≈0x3E6E8), looping until a handler signals stop or an
+//   out-of-range opcode terminates. This is the execution engine the
+//   gl_func_00026790 / gl_func_0002A080 jump-table dispatchers feed
+//   (the VM "interpret the whole script" entry).
+// Caps: raw-word USO + bytecode interpreter loop with fixed-target
+//   handlers — not exact-matchable without proper USO mnemonic
+//   disasm; high-level structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
