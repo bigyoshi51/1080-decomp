@@ -929,6 +929,45 @@ int gl_func_000208BC(int a0, int a1, int a2) {
     return gl_func_00034F80(a0, a1, a2);
 }
 
+// gl_func_00020914 — STRUCTURAL PASS (0x114 / 69 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A mode-select / config-apply routine over the &D_21xx
+// descriptor pool (same pool the gl_func_0001FF34 reporter family
+// uses).
+//
+//   void gl_func_00020914(int mode, void *target) {
+//     D *desc;
+//     switch (mode) {                              // beq 0 / 1 / 2
+//       case 0:  desc = &D_21F8; break;
+//       case 1:  desc = &D_2308; break;
+//       case 2:  desc = &D_2418; break;
+//       default: desc = &D_xxxx; break;
+//     }
+//     R *rec = (char*)desc + 0xD4;                  // sub-record
+//     if (target == 0) {
+//       int   a = rec->w_0;
+//       short b = rec->h_1E;
+//       if (...) rec->w_0 = 1;                       // set state
+//       int   c = rec->w_14;
+//       short d = rec->h_2A;
+//       ...                                          // apply config
+//       float f = *(float*)(&D_0 + 0xE78);           // global scalar
+//     }
+//   }
+//
+// Struct-typing reference: &D_21F8 / &D_2308 / &D_2418 are the
+//   mode-indexed descriptor blobs (one per display/format mode 0/1/2,
+//   plus a default). Each has an active sub-record at desc+0xD4 with
+//   word fields at 0 / 0x14 / 0x20 and halfwords at 0x1E / 0x2A; field
+//   0 is a state/enabled flag set to 1. &D_0+0xE78 is a global float
+//   constant pulled in when applying. The whole apply path is gated
+//   on whether `target` (the caller-saved arg at sp+0x24) is null.
+//   Configuration front-end paired with the gl_func_0001FF34 /
+//   gl_func_0002003C reporter dump family (shared &D_21xx pool).
+// Caps: raw-word USO + mode-switch + struct config-apply — not
+//   exact-matchable without proper USO mnemonic disasm; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
