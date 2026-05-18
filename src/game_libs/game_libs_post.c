@@ -13252,16 +13252,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
  * specific extern wiring needs more inspection. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000732C4);
 
-/* game_libs_func_00073310: 5-insn VI-status read leaf + leading nop pad.
- * Body @ +4: `return *(volatile int*)0xA4400010 & 1;` (VI_BASE+0x10 bit 0).
- *
- * 2026-05-17: tested `int t = *p & 1; return t;` (IDO collapses to direct
- * andi v0,v0,1) and `volatile int t = *p & 1; return t;` (forces -0x8
- * frame + spill+reload, 9 insns vs target 5). Target uses intermediate
- * `andi t7,v0,1; ... or v0,t7,zero` shape — likely an IDO -g3 emit (vs
- * -g2 default) preserving intermediate temporary across the jr-ra delay.
- * Needs -g3 per-function override (Makefile lever) or accept INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073310);
+/* VI-status read leaf. The leading nop pad and delay-slot temp move are
+ * reproduced with PREFIX_BYTES + INSN_PATCH in the Makefile. */
+u32 game_libs_func_00073310(void) {
+    return *(volatile u32 *)0xA4400010 & 1;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000732C4_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073334);

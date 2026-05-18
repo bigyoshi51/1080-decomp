@@ -35,7 +35,7 @@ build/src/boarder5_uso/boarder5_uso.c.o: PREFIX_BYTES := boarder5_uso_func_00000
 build/src/eddproc_uso/eddproc_uso.c.o: PREFIX_BYTES := eddproc_uso_func_00000000=0x10006F00
 build/src/n64proc_uso/n64proc_uso.c.o: PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
-build/src/game_libs/game_libs_post.c.o: PREFIX_BYTES := game_libs_func_0003ECDC=0x00000000,0x00000000 game_libs_func_0005AFB0=0x00000000
+build/src/game_libs/game_libs_post.c.o: PREFIX_BYTES := game_libs_func_0003ECDC=0x00000000,0x00000000 game_libs_func_0005AFB0=0x00000000 game_libs_func_00073310=0x00000000
 build/src/gui_uso/gui_uso.c.o: PREFIX_BYTES := gui_func_00000000=0x1000736F,0xAFA40000
 build/src/gui_uso/gui_uso.c.o: INSN_PATCH := gui_uso_func_00003B14=0x58:0x032A6025,0x5C:0x016E7825
 build/src/game_uso/game_uso.c.o: PREFIX_BYTES := \
@@ -232,6 +232,7 @@ build/src/game_libs/game_libs_post.c.o: INSN_PATCH := \
 	game_libs_func_000517E4=0x14:0x25EF0EBC
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH += gl_func_00065D64=0x14:0x24A5240C,0x2c:0x24A52414
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH += gl_func_00043F50=0x10:0x3C050002,0x14:0x24A5FD20,0x38:0x3C050002,0x4c:0x24A5FD2C,0x68:0x3C050002,0x7c:0x24A5FD30
+build/src/game_libs/game_libs_post.c.o: INSN_PATCH += game_libs_func_00073310=0xC:0x304F0001,0x10:0x03E00008
 
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
@@ -334,6 +335,7 @@ endif
 build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES_FORCE := gl_func_0003EAE0=0x00000000 gl_func_000688F8=0x00000000 gl_func_0003E238=0x00000000 gl_func_0006CCD4=0x00000000
 build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES := gl_func_00041278=0x3C0E0004,0x8DCEC160 gl_func_0006BA48=0x3C0EA460,0x8DC60010 gl_func_0005FDCC=0x3C030000,0x8C630000 gl_func_0005FD20=0x00000000,0x3C060000,0x8CC60000 gl_func_0002DED0=0x000470C0,0x01C52021,0x2484001A gl_func_0002DF00=0x3C0E0000,0x8DCE2D00 gl_func_0002DF38=0x44856000 gl_func_0004E524=0x3C050000,0x24A50000 gl_func_0004E214=0x03E00008,0xAC850190,0x03E00008,0x8C820190 gl_func_00030564=0x3C020000,0x24420000,0x8C4E0008 gl_func_0002D838=0x3C0E0000,0x8DCE0000 gl_func_0002D870=0x3C0E0000,0x8DCE0000 gl_func_0003FB38=0x30AF00FF,0x01E70019 gl_func_000661D8=0x03E00008,0xAFA40000,0x03E00008,0xAFA40000 gl_func_000709DC=0x3C013780,0x44810000 gl_func_000515FC=0x3C020000,0x24430000 gl_func_0002D6C8=0x00803025 game_libs_func_00031580=0x00047880,0x01E47823 gl_func_0002D7D0=0x27BD0018,0x03E00008,0x00000000,0x3C0E0000,0x8DCE0000
 build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES += gl_func_0002D788=0x3C010000,0xAC220000,0x3C010000 gl_func_000305CC=0x3C020000,0x24420000,0x8C4E0000 gl_func_0003E0F0=0x27BD0050,0x8C8E0010
+build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES += game_libs_func_00073310=0x01E01025
 build/src/timproc_uso_b3/timproc_uso_b3.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3.c.o: PROLOGUE_STEALS := timproc_uso_b3_func_00000818=8 timproc_uso_b3_func_00001C28=8 timproc_uso_b3_func_0000074C=8 timproc_uso_b3_func_00000790=8 timproc_uso_b3_func_000007D4=8 timproc_uso_b3_func_00002240=8 timproc_uso_b3_func_00002EF0=4
 build/src/timproc_uso_b3/timproc_uso_b3.c.o: SUFFIX_BYTES := timproc_uso_b3_func_000021F4=0x3C040000,0x8C840148 timproc_uso_b3_func_00002388=0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000 timproc_uso_b3_func_00000DE4=0x8C8E06A8,0x8DC2006C,0x50400007,0x00001025,0x8C4F00EC,0x51E00004,0x00001025,0x03E00008,0x24020001,0x00001025,0x03E00008,0x00000000 timproc_uso_b3_func_00000FF4=0x240E0009,0x3C010000,0xAFA40000,0x03E00008,0xAC2E0040,0x3C050000,0x8CA50170
 build/src/timproc_uso_b3/timproc_uso_b3.c.o: INSN_PATCH := timproc_uso_b3_func_000010E4=0x24:0x8CA20048,0x28:0x24040005,0x2C:0x8C43007C,0x30:0x50600007,0x34:0x24040028,0x44:0x8CA20048,0x48:0x8C43007C,0x4C:0x24040028,0x50:0x00640019,0x5C:0x004E7821,0x60:0x8DF80090,0x64:0x5300000B,0x70:0x8CA20048,0x74:0x8C59007C,0x78:0x03240019,0x7C:0x00004012,0x80:0x00484821,0x84:0x8D390090,0x88:0x0320F809,0x8C:0x00000000
