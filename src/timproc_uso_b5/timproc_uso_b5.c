@@ -2030,7 +2030,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //       for (i = 0; i < grp->0x40->0x6C; i++) {            // leaf items
 //         e = grp->0x40 + i*4;
 //         d = scr->...->0x28;
-//         (d->fn)(d->0x58base + …, scr->0x480 * K /*pos*/);  // draw
+//         (d->fn)(d->0x58base + …, scr->0x480 * K);  // draw at scaled pos
 //       }
 //     }
 //     d = scr->0x28;  (d->fn)(d->0x58 + …);               // finalize
