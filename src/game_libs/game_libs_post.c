@@ -970,6 +970,41 @@ int gl_func_000208BC(int a0, int a1, int a2) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
 
+// gl_func_00020A28 — STRUCTURAL PASS (0x4A8 / 298 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
+// (named fn + 3 trailing helpers) — deferred USO re-split. The named
+// leading fn is a heavily-FPU float vector/matrix transform helper.
+//
+//   void gl_func_00020A28(args…, float *a2) {
+//     // builds a stack scratch of computed floats:
+//     float t0 = fa * fb;                         // mul.s chains
+//     float t1 = fc * fd + fe;                     //  (460x ops)
+//     ... sp[+0x0C/+0x10/+0x2C/+0x30] = …;          // swc1 scratch
+//     float u = a2[-1], v = a2[-2];                 // lwc1 -4/-8(a2)
+//     // FP rounding-mode control for truncated int convert:
+//     int ctrl = cfc1();                            // 444EF800
+//     ctrl = (ctrl & ~mask) | 1;                    // set RZ-ish
+//     ctc1(ctrl);                                   // 44CFF800
+//     int n = (int)(scaled_float);                  // trunc-to-int
+//     if (n & 0x78) { ... }                          // bit test branch
+//     ... emit / store transformed result ...
+//   }
+//
+// Struct-typing reference: a2 points just past a small float record
+//   (inputs read at a2[-1] / a2[-2]). The body is a chain of single-
+//   precision mul/add/sub (cop1 0x460x ops) producing a stack-local
+//   scratch struct of floats at sp+0x0C..0x30, with explicit FPCSR
+//   manipulation (cfc1/ctc1 pair, 444EF800 / 44CFF800) to switch the
+//   rounding mode before a float→int truncation — the classic
+//   project/round-to-screen-space idiom. A 4F00xxxx float literal
+//   (3C014F00) is a large scale constant. This is a graphics-math
+//   transform leaf in the game_libs subsystem; the 3 trailing bundled
+//   bodies are its small FP helpers, left for the deferred re-split.
+// Caps: raw-word USO + 4-fn unsplit bundle + heavy FP with FPCSR
+//   control — not exact-matchable without proper USO mnemonic disasm;
+//   high-level structural pass only for the named leading fn, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
