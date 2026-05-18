@@ -17132,6 +17132,37 @@ int *gl_func_00048A74(int *a0, int a1, int a2, int a3) {
     return a0;
 }
 
+// gl_func_00048AEC — STRUCTURAL PASS (0x81C / 519 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (very large top-level driver).
+// Single prologue frame 0x160 (saves ra, s0, s1). Per-frame render/process
+// orchestrator (cb = jal 0 USO-relocated).
+//
+//   void gl_func_00048AEC(void *a0) {
+//     *(void**)0x4C7C4 = 0;                          // clear global registry
+//                                                    //   head (the slot
+//                                                    //   gl_func_00043BEC
+//                                                    //   patches/inserts into)
+//     void *g = &D_reloc;                              // module global base
+//     if (a0->p30 & 0x80) cb1(g->p254, ...);           // state-flag dispatch
+//     if ((*(int*)(g + 0x1C4) & 1)) return;            // bnel big skip-out
+//     if (g->pE4 == 0) goto tail;                       // beqz guard
+//     // main body: a long sequence of cb-driven passes — FP processing,
+//     // intrusive-list walks, GfxCtx DL-build emits and per-object
+//     // dispatch — driving this subsystem's per-frame work using the
+//     // g->0x254 GfxCtx and the g->0xE4.. state.
+//   tail: ;
+//   }
+// Top-level per-frame driver for the subsystem: resets the 0x4C7C4 global
+// registry head (consumed by the gl_func_00043BEC registry-insert), branches
+// on the a0->0x30 bit-7 and the g(&D_reloc)+0x1C4 bit-0 state flags, then
+// runs the bulk render/update work (cb dispatch + FP + list-walk + DL build)
+// against the &D_reloc-rooted GfxCtx/state. Family: cb-driven orchestrator
+// (the per-frame entry that ties together the segment's registration /
+// dispatch / DL-builder routines). Per-pass body not decoded (519-word
+// driver) — the *0x4C7C4 clear, the &D_reloc base, the a0->0x30&0x80 and
+// +0x1C4&1 state gates and the g->0x254 GfxCtx path are exact; the inner
+// pass sequence is representative. Caps: a0/&D_reloc struct, the 0x4C7C4
+// global and cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048AEC);
 
 /* gl_func_00049308: 41-insn helper. Multi-pass decode pending. */
