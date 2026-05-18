@@ -4013,6 +4013,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000291C0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029494);
 
+// gl_func_0002978C — STRUCTURAL PASS (0x1EC / 123 words, no episode).
+// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
+// (named fn + 2 trailing helpers) — deferred USO re-split. The named
+// leading fn is a per-object FP ramp / clamp updater.
+//
+//   void gl_func_0002978C(O *obj) {
+//     int n = obj->h_12;                                // iteration cnt
+//     if (n == 0) return;
+//     for (int i = 0; i < n; i++) {
+//       float v   = obj->f_1C;                            // accumulator
+//       float lim = obj->f_20;                            // limit
+//       v += 1.0f;                                         // ramp up
+//       obj->b_0 |= 0x04;                                  // mark dirty
+//       if (v < lim) {
+//         obj->f_1C = v;
+//       } else {
+//         obj->f_1C = 0.0f;                                // wrap / clamp
+//         ...                                              //  (bc1fl)
+//       }
+//       n = obj->h_12;                                     // reload cnt
+//     }
+//   }
+//
+// Struct-typing reference: a per-object single-precision counter /
+//   timer ramp. obj fields: halfword +0x12 the iteration/active count
+//   (zero == inactive, early return; reloaded each pass), float +0x1C
+//   the accumulator (incremented by 1.0 each step), float +0x20 the
+//   wrap limit, byte +0 a flag set whose bit2 is OR-set as a
+//   dirty/advanced marker. On reaching the limit the accumulator
+//   resets to 0.0 (a saw-tooth/wrap, c.lt.s + bc1fl branch-likely).
+//   A frame-timer/phase-accumulator leaf in the game_libs object
+//   subsystem (same object whose +0xB0 matrix block the
+//   gl_func_00027804 / gl_func_00029494 family loads).
+// Caps: raw-word USO + 3-fn unsplit bundle + FP ramp/clamp loop —
+//   not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only for the named leading fn, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029978);
