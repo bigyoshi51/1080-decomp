@@ -6464,6 +6464,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
 
+// gl_func_000308C8 — STRUCTURAL PASS (0xDC / 55 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A per-mode global-state initializer + command emitter.
+//
+//   void gl_func_000308C8(int mode, float farg) {
+//     ctx->f_1C = farg;                       // always store FP arg
+//     switch (mode) {
+//       case 0:
+//         g->f_14 = D_0_const_186C;           // FP literal-pool
+//         emit(0x01000800, 0);                // jal 0 (USO callback)
+//         break;
+//       case 1:
+//         g->w_04 = 0;
+//         g->f_14 = 0.5f;                      // 0x3F000000
+//         break;
+//       case 2:
+//         g->w_04 = 8;
+//         g->f_14 = 0.5f;
+//         g->f_1C = D_0_const_1870;            // FP literal-pool
+//         emit(0x06000800, g->f_14);
+//         break;
+//       default: break;
+//     }
+//   }
+//
+// Struct-typing reference: a per-mode state-reset + command-emit
+//   helper. The mode arg {0,1,2} (else no-op) selects which global
+//   record fields to write — an int at &D_0+4 and FP fields at
+//   &D_0+0x14 / +0x1C — seeding either an FP literal-pool constant
+//   (loaded from &D_0+0x186C and &D_0+0x1870, two more deferred
+//   FP-pool symbolization sites of this segment) or the 0.5f default
+//   (0x3F000000), and emits 0x01000800 / 0x06000800-bank command
+//   words via USO-relocated callbacks (jal 0 → resolved at load).
+//   The incoming float arg is unconditionally stored to a context
+//   field at offset 0x1C up front. A state-entry / preset leaf of
+//   the game_libs object subsystem (the per-mode setup the
+//   gl_func_0002FB74 interpreter invokes before running a state; the
+//   0x01/0x06 banks match the gl_func_0002F9D4 emitter family).
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + FP literal-
+//   pool refs (&D_0+0x186C/0x1870 unsymbolized) — not exact-
+//   matchable without proper USO mnemonic disasm + FP-pool
+//   symbolization; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000308C8);
 
 void game_libs_func_000309A4(void) {
