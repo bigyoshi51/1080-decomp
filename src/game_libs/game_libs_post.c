@@ -8422,6 +8422,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035440);
 
+// gl_func_000355A0 — STRUCTURAL PASS (0x84 / 33 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). Same dispatch family as gl_func_00035370 /
+// gl_func_00035440 — a kind-validated vtable-dispatch wrapper.
+//
+//   int gl_func_000355A0(O *o, int a1, int a2) {
+//     if (o->kind_4 != 1)
+//       report((char*)0x0001E5F0);             // jal 0 (USO cb)
+//     H *h = *(H**)&D_0;
+//     int r = h->fp_60(o->w_20);                // jalr (*&D_0)->0x60
+//     int v = callback(a1, r);                  // 2nd USO cb
+//     callback(o, 1, a2);                        // 3rd USO cb
+//     return v;
+//   }
+//
+// Struct-typing reference: a kind-checked dispatch wrapper, sibling
+//   of gl_func_00035370 (vtable slot 0x4C) and gl_func_00035440
+//   (slot 0x50). This one ASSERTS the object's type/kind field
+//   o->0x04 == 1 (emitting a diagnostic via a USO-relocated printf-
+//   shaped callback, jal 0 → resolved at load, with format string
+//   0x0001E5F0 when it isn't), then dispatches through the global
+//   handler object's vtable method at the next slot (*&D_0)+0x60
+//   (passing o->0x20), and chains two further USO-relocated
+//   callbacks threading the method's result (returns the first
+//   chained call's value). Together gl_func_00035370 / 00035440 /
+//   000355A0 walk consecutive method slots 0x4C / 0x50 / 0x60 of
+//   the same global handler vtable — a family of typed entry points
+//   over the device-object subsystem (gl_func_00034188 /
+//   00034458); 0x0001E5F0 is a deferred format-string data
+//   symbolization site.
+// Caps: raw-word USO + jalr through global handler vtable
+//   ((*&D_0)+0x60) + USO-relocated jal-0 callbacks + fixed string
+//   data — not exact-matchable without proper USO mnemonic disasm +
+//   the vtable typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000355A0);
 
 extern int gl_func_00000000();
