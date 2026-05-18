@@ -4163,6 +4163,34 @@ int gl_func_0002A014(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
 #endif
 
+// gl_func_0002A080 — STRUCTURAL PASS (0x1E0 / 120 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A command-opcode dispatcher (single jump table) in the
+// gl_func_00026790 bytecode-interpreter family.
+//
+//   ret gl_func_0002A080(int op, Buf *a1, int a2, int a3) {
+//     if ((unsigned)op >= 0xE) return ...;              // out of range
+//     goto *((void**)(&D_0 + 0x1020))[op];               // jump table
+//     // 14 opcode cases, each operating on the a1 buffer, e.g.:
+//     //   case X: a1->b_18 = a3; a1->w_0 = a1->w_4; ...
+//     //   case Y: jal 0x3F05C(a1);   // 0x0C00FC17
+//     //   ...
+//   }
+//
+// Struct-typing reference: a bytecode/command processor. `op` (a0)
+//   is an opcode in [0, 0xE) decoded by a REAL computed jump table at
+//   &D_0+0x1020 (14 entries; out-of-range = default return). Each
+//   case mutates the `a1` command buffer — byte +0x18 a status/cursor
+//   flag, words +0x0 / +0x4 a read/commit cursor pair — with some
+//   opcodes invoking the fixed USO-relocated handler 0x0C00FC17
+//   (≈0x3F05C). This &D_0+0x1020 table joins the contiguous bank of
+//   game_libs dispatch tables (&D_0+0xE7C / 0xEA0 / 0xEE0 / 0xF10
+//   from gl_func_0002119C / 00023914 / 00026790) — the subsystem's
+//   command-VM step over a per-buffer instruction stream.
+// Caps: raw-word USO + computed jump-table dispatch + jal-0
+//   USO-reloc handler — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
