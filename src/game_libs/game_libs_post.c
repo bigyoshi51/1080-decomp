@@ -14091,6 +14091,32 @@ int gl_func_0003F730(int *a0, int a1, int a2) {
     return *(int*)&buf[0x50];
 }
 
+// gl_func_0003F7A8 — STRUCTURAL PASS (0x84 / 33 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0xB8 (saves ra) → ONE clean function.
+// Multi-step formatted-emit/serialize (cbN = jal 0 USO-relocated emit/format
+// helpers; large frame is the on-stack scratch buffer).
+//
+//   int gl_func_0003F7A8(void *a0, int a1, int a2, int a3, int a4) {
+//     // a4 from caller stack (sp+0xC8); a0/a2/a3 spilled to arg homes
+//     char tagbuf[..]; tagbuf.tag = 0x23;       // '#' section/format marker
+//     char buf[..];    // scratch at sp+0x20
+//     cb1(&buf);          // a4 stashed at sp+0x6C
+//     cb2(&tagbuf);
+//     cb3(&buf, a2);
+//     cb4(&tagbuf);
+//     cb5(a0);
+//     cb6(&tagbuf);
+//     int st = *(int*)(sp + 0x68);              // status produced by the chain
+//     if (st != 0) cb7(a3, &buf);               // beql-guarded final emit
+//     return st;
+//   }
+// The fixed cb1..cb7 sequence threads {scratch buffer, tag block, a2, a0, a3}
+// through staged format/emit helpers; the final cb7 is conditional on the
+// chain's status word (sp+0x68), which is also the return value. Family:
+// same cb-driven staged-serialize idiom (with a local 0x23-tagged scratch
+// buffer) as the diagnostic/trace serializers elsewhere in this segment.
+// Caps: scratch-buffer layout + cbN signatures inferred from call shape;
+// arg-struct untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
 
 /* gl_func_0003F82C: 21-insn 3-call helper with large stack buffer. */
