@@ -1232,6 +1232,44 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005BF0);
 
+// timproc_uso_b5_func_00005FC0 — STRUCTURAL PASS (0x3D4 / 245 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Per-frame timing/replay-screen tick (counterpart to func_00005BF0's
+// build; operates on the same Scr object).
+//
+//   void timproc_uso_b5_func_00005FC0(Scr *scr) {        // scr -> s0
+//     if (scr->0x3BC != 2) return;                        // inactive
+//     if (scr->0x3C8 == 4) func_00000000(&D_0, -1);
+//     else                  func_00000000(&D_0, scr->0x3B8);
+//     // jump-table state machine on scr->0x3CC (0..0xA, 11 cases;
+//     //   table at D_0 + 0x190): a cascade of  func_00000000(scr);
+//     //   advancing scr->0x4B4 per state.
+//     // FP animation: scr->0x4BC += 1.0f;  if (scr->0x4BC >= lim)
+//     //   reset scr->0x4B4/0x4B8;  scr->0x3FC counter -= 4.
+//     // vtable-dispatched element draws x4: d = scr->0x480->0x28;
+//     //   (d->0xBC)(d->0xB8 + …)   (obj->0x28 dispatch idiom).
+//     if (scr->0x34 != 2) {
+//       // FP transform from folded consts D_000001BC/01C0/01C4/01C8/
+//       //   01CC: compute positions -> scr->0x498/0x49C/0x4C0 and
+//       //   cam->0x14C (the fov-like field).
+//     }
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x3BC active gate (==2), 0x3C8 mode (==4 special), 0x3B8 arg,
+//     0x3CC state index (0..0xA jump-table key), 0x3FC frame counter,
+//     0x4B4/0x4B8 stage scratch, 0x4BC f32 anim timer (+=1.0f),
+//     0x480 draw-element ptr (->0x28 vtable: ->0xBC fn, ->0xB8 s16
+//     base), 0x498/0x49C/0x4C0 computed f32 positions; 0x34 sub-mode.
+//   D_000001BC/01C0/01C4/01C8/01CC = folded FP consts (literal-pool
+//     fold family; see
+//     docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
+//   D_0 + 0x190 = the 11-entry jump table. func_00000000 = USO
+//     placeholder dispatcher (state advance / draw).
+// Caps: raw-word USO + jump-table + placeholder calls + folded consts
+//   — not exact-matchable here; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005FC0);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006394);
