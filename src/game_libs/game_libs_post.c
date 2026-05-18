@@ -6151,6 +6151,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F72C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F8A0);
 
+// gl_func_0002F934 — STRUCTURAL PASS (0xA0 / 40 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A canned command-sequence selector — SIBLING of
+// gl_func_0002F8A0 (same shape, different subfields / arg).
+//
+//   void gl_func_0002F934(int mode) {
+//     switch (mode) {                       // case 2 arm is beql
+//       case 0:
+//         emit(0x06000100, -1);             // jal 0 (USO callback)
+//         emit(0x06000101, -1);
+//         emit(0x06000300,  0);
+//         break;
+//       case 1:
+//         emit(0x06000700,  0);
+//         emit(0x06000500, -1);
+//         break;
+//       case 2:
+//         emit(0x06000501, -1);
+//         break;
+//       default:                            // no-op
+//         break;
+//     }
+//   }
+//
+// Struct-typing reference: a fixed command-stream selector, the
+//   sibling of gl_func_0002F8A0. The mode arg (0/1/2; other = no-op)
+//   chooses a short hard-coded sequence of 0x06000000-bank command
+//   words; here the second callback arg is -1 or 0 (vs the +1 used by
+//   gl_func_0002F8A0) and the subfields are 0x0100/0x0101/0x0300,
+//   0x0700/0x0500, 0x0501. Callbacks are USO-relocated (jal 0 →
+//   resolved at load); the mode==2 dispatch is emitted as a branch-
+//   likely (beql). A canned-sequence emitter leaf of the game_libs
+//   object subsystem (a paired counterpart to gl_func_0002F8A0 —
+//   likely the "off / teardown" sequence vs that one's "on").
+// Caps: raw-word USO + USO-relocated jal-0 callbacks + canned switch
+//   dispatch (beql arm) — not exact-matchable without proper USO
+//   mnemonic disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F934);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
