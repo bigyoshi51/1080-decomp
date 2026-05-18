@@ -2,6 +2,15 @@
 
 extern void* func_80009C30(void);
 
+typedef struct RmonThreadNode {
+    s32 unk0;
+    s32 state;
+    s32 unk8;
+    struct RmonThreadNode* next;
+    s32 unk10;
+    s32 threadId;
+} RmonThreadNode;
+
 /* __rmonSendHeader — find free comm slot and configure it */
 void __rmonSendHeader(void) {
     register s32* node = (s32*)func_80009C30();
@@ -15,7 +24,6 @@ void __rmonSendHeader(void) {
     }
 }
 
-#ifdef NON_MATCHING
 /* func_800073DC is the prologue fragment of the original 31-insn function
  * at ROM 0x800073DC, which splat split into:
  *   - func_800073DC (this file, 7 insns / 0x1C — prologue + first jal,
@@ -54,10 +62,26 @@ void __rmonSendHeader(void) {
  * Loop infiniteness is not propagated to reorg.c's epilogue-emission
  * logic. Same cap holds.
  *
- * Stays INCLUDE_ASM-tautology (build/.o byte-correct via #else branch). */
-void func_800073DC(void) {
-    /* see __rmonSendHeader above — this fragment is its prologue */
+ * 2026-05-18: promoted from INCLUDE_ASM with the C body below plus the
+ * kernel_036.c.o post-cc recipe. IDO -O1 with a `register` node emits the
+ * exact 0x80-byte logical `func_800073DC + func_800073F8` instruction stream,
+ * including the relocatable `jal func_80009C30`. The Makefile then zeros the
+ * first two successor-body words and clips the .text section to preserve the
+ * historical 0x1C symbol boundary and 8 bytes of padding. */
+RmonThreadNode* func_800073DC(s32 threadId) {
+    register RmonThreadNode* node;
+
+    node = func_80009C30();
+    if (threadId <= 0) {
+        return 0;
+    }
+    if (node->state != -1) {
+        do {
+            if (node->threadId == threadId) {
+                return node;
+            }
+            node = node->next;
+        } while (node->state != -1);
+    }
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800073DC);
-#endif

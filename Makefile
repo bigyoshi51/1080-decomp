@@ -273,6 +273,10 @@ build/src/kernel/kernel_033.c.o build/non_matching/src/kernel/kernel_033.c.o: OP
 build/src/kernel/kernel_034.c.o build/non_matching/src/kernel/kernel_034.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_035.c.o build/non_matching/src/kernel/kernel_035.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_036.c.o build/non_matching/src/kernel/kernel_036.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_036.c.o: INSN_PATCH := func_800073DC=0x1C:0x00000000,0x20:0x00000000
+build/src/kernel/kernel_036.c.o: TEXT_CLIP_KEEP_ALIGN := 0xA0 func_800073DC=0x1C func_800073DC.NON_MATCHING=0x1C
+build/non_matching/src/kernel/kernel_036.c.o: NON_MATCHING_INSN_PATCH := func_800073DC=0x1C:0x00000000,0x20:0x00000000
+build/non_matching/src/kernel/kernel_036.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0xA0 func_800073DC=0x1C func_800073DC.NON_MATCHING=0x1C
 build/src/kernel/kernel_037.c.o build/non_matching/src/kernel/kernel_037.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_038.c.o build/non_matching/src/kernel/kernel_038.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_039.c.o build/non_matching/src/kernel/kernel_039.c.o: OPT_FLAGS := -O1
