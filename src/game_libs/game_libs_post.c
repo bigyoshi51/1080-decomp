@@ -15872,6 +15872,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043654);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000437C0);
 
+// gl_func_00043BEC — STRUCTURAL PASS (0x14C / 83 words, no episode). Raw-.word
+// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
+// at the jr at 0x43D24; a tiny trailing leaf at 0x43D2C (DEFERRED USO
+// RE-SPLIT — belongs to the next symbol). Named fn = global-registry insert
+// + packed-table append (cb = jal 0 USO-relocated).
+//
+//   void gl_func_00043BEC(void *a0, void *a1) {
+//     self = a0;  arg = a1;
+//     if (self->p6C != 0) return;                    // beql already-registered
+//     g = *(void**)0x4C7C4;                            // global registry head
+//     if (g != self->p48->...) cb(...);                // (head-mismatch hook)
+//     *(void**)0x4C7C4 = self->p48;                    // patch global head
+//     self->p70 = cb(self->p0C);                        // store derived handle
+//     // append packed entry #1 into the table at self->0x0C:
+//     Tbl t = self->p0C;
+//     int n = t->p04; t->p04 = n + 1;                   // bump count
+//     int *slot = (int*)t->p00 + n*2;                   // n*8 bytes
+//     slot[0] = x; slot[1] = y;                         // {x,y} pair
+//     // append packed entry #2 (same idiom; source from self->0x60/0x64,
+//     //   sh-via self->0x88, sll *0x800 index) then a closing cb(...).
+//   }
+// Inserts self into a module registry: skips when already registered
+// (self->0x6C set), repoints the global registry head at *0x4C7C4 to
+// self->0x48, caches a cb-derived handle into self->0x70, then appends one
+// or two 8-byte packed entries into the table at self->0x0C (count bump at
+// +4, slot = base + n*8) sourced from self->0x60/0x64/0x88. Family:
+// cb-registration + indexed table-append (siblings gl_func_00042684 /
+// 00041D40 / 00041F90). Trailing leaf at 0x43D2C = small stub (deferred
+// re-split). Second-append source detail representative; the 0x6C skip
+// guard, the *0x4C7C4 head patch, the self->0x70 handle store and the
+// count-bump + base+n*8 slot math are exact. Caps: self/Tbl struct, the
+// 0x4C7C4 global and cb signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043BEC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043D38);
