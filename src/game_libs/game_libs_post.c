@@ -1045,6 +1045,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
 
+// gl_func_0002119C — STRUCTURAL PASS (0x2FC / 191 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). The per-frame STATE-MACHINE DRIVER of the sprite-record
+// subsystem whose table gl_func_0001FBD4 sweeps. -0x30 frame,
+// s0/s1/ra saved.
+//
+//   void gl_func_0002119C(void) {
+//     S *g  = &D_0;
+//     int md = (g->h_2034 == 2) ? 2 : 1;            // mode at +0x2034
+//     int st = g->b_2CF0 - 1;                        // state at +0x2CF0
+//     if ((unsigned)st >= 5) return;                 // switch default
+//     goto *((void**)(&D_0 + 0xE7C))[st];            // jump table
+//     // (one) state body — iterate the record array:
+//     int n = g->h_2048;                             // record count
+//     R *rec = &D_0 + 0x2D00;                         // shared table
+//     for (int i = 0; i < n; i++) {
+//       (*handler)(rec);                              // jal 0 USO-reloc
+//       n = g->h_2048;                                // reload count
+//       rec += 0x160;                                 // record stride
+//     }
+//     ... other state bodies ...
+//   }
+//
+// Struct-typing reference: drives the SAME record table as
+//   gl_func_0001FBD4 — base &D_0+0x2D00, fixed stride 0x160, live
+//   count halfword at &D_0+0x2048. Control globals: halfword
+//   &D_0+0x2034 (a 2-vs-1 mode selector), byte &D_0+0x2CF0 (the
+//   state, 1..5). Dispatch is a real computed jump through the table
+//   at &D_0+0xE7C indexed by (state-1); states out of [1,5] fall to
+//   the default (early return). At least one state walks the record
+//   array invoking a USO-relocated per-record handler (the `jal 0`
+//   slot, resolved at load). This is the top-level tick/update entry
+//   of that sprite subsystem (the gl_func_0001FAE8 / gl_func_0001FBD4
+//   sweeps are its leaf operations).
+// Caps: raw-word USO + computed jump-table dispatch + jal-0 USO-reloc
+//   handler — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
