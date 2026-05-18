@@ -10893,10 +10893,10 @@ void game_uso_func_00011024(int *a0) {
     *(int*)((char*)p_B4 + 0x960) = 0x64;
 }
 
-#ifdef NON_MATCHING
 /* Byte-identical sibling of game_uso_func_00011024 — same 32-insn dual-call
  * orchestrator pattern; only the D-offsets differ (0xF20/0xF24 vs 0xF48/0xF4C).
- * See game_uso_func_00011024's wrap above for structural notes. */
+ * Same promotion recipe as 11024: SUFFIX_BYTES_FORCE restores target size,
+ * and INSN_PATCH writes the verified caller-slot spill/register sequence. */
 void game_uso_func_000110A4(int *a0) {
     int *p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF20);
@@ -10908,9 +10908,6 @@ void game_uso_func_000110A4(int *a0) {
     p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)p_B4 + 0x960) = 0x64;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
-#endif
 
 #ifdef NON_MATCHING
 /* 82.2%: 2-call wrapper. First call `gl_func_00000000(a0)`; second call
