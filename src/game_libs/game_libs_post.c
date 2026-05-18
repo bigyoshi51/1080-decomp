@@ -18770,6 +18770,7 @@ int gl_func_000551B0(char *a0) {
     return gl_ref_00065C68(a0 + 0x10);
 }
 
+/* gl_func_000551E0: 32-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000551E0);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000551E0_pad.s")
 
