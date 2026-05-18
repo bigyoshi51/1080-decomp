@@ -1539,15 +1539,17 @@ void game_uso_func_000024BC(int *a0, int *a1) {
     char scratch[0x18];
     float ref_x, ref_y, ref_z;
     float delta_x, delta_y, delta_z;
-    volatile float self_x, self_y, self_z;
+    char self_pad[4];
+    volatile float self_z, self_y, self_x;
     float proj_x, proj_y, proj_z;
     float scale;
     float denom_xz, denom_y;
-    volatile float divs[3];
+    float divs[3];
     float a1_proj[3];
     int *delta;
     int * volatile mirror_t6;
 
+    (void)self_pad;
     t6 = (int*)a0[0x14 / 4];
     mirror_t6 = t6;
     key = a0[0x40 / 4];
@@ -1613,7 +1615,16 @@ branch_else:
      * the early `sw t6, 0x94(sp)` spill and the first-call delta copy/scratch
      * scheduling around sp+0x6C.
      *
-     * 2026-05-18 deep attempt: kept 58.34% after testing target-shaped
+     * 2026-05-18 deep attempt: reached 58.74% after reversing the self-vector
+     * volatile declaration order (`self_z,self_y,self_x`), adding a 4-byte
+     * frame-only pad before those locals so IDO places self at sp+0x60/64/68
+     * (matching the target's main accumulator slots), and changing the
+     * division scratch array from volatile to normal stack floats. Negative
+     * variants: 8-byte self pad regressed to 55.69%, removing the volatile
+     * mirror pointer regressed to 54.65%, moving scratch later regressed to
+     * 55.68%, and inlining the division expressions regressed to 58.61%.
+     *
+     * Prior 2026-05-18 deep attempt: kept 58.34% after testing target-shaped
      * cursor loads (`base+0x70; +0x34/+0x38`), block-scoped copy temps,
      * a volatile mirror pointer for the early t6 spill, and explicit
      * division-result locals/array for the tail. IDO folds the cursor loads
