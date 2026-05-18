@@ -741,6 +741,34 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001C08);
 
+// timproc_uso_b5_func_00001F14 — STRUCTURAL PASS (0x89C / 551 words,
+// no episode). Raw-.word USO form (genuine code, single function).
+// Large per-frame state/transition processor; partial decode (entry
+// gate + shape + tail) — multi-run target.
+//
+//   void timproc_uso_b5_func_00001F14(State *st) {     // st -> a2 (arg0)
+//     if (st->0x30 != 2) { st->0x3C = 0; return; }      // only "mode 2"
+//     // mode-2 body (~0x21B words): walk sub-records via st->0x34/
+//     //   0x38/0x44 pointer chains, branch on the discriminator at
+//     //   sub->0x3CC, and edit the flag word st->0x3C (e.g. |= 0x2)
+//     //   per transition; state constants 1 / 2 / 4 select sub-paths;
+//     //   ~6 func_00000000 sub-dispatch calls advance/commit each
+//     //   record's 0x38/0x40/0x44/0x50 fields.
+//     // tail: func_00000000(st);  (final commit/notify)
+//   }
+//
+// Struct-typing reference:
+//   st(a0=a2): 0x30 mode/phase (==2 gate, else early-out clearing
+//     0x3C); 0x34/0x38/0x44 sub-record pointers (chained);
+//     0x3C flag word (bit 0x2 set on transition); 0x3CC sub-record
+//     discriminator (drives the branch tree); 0x40/0x50 per-record
+//     scratch updated alongside. State constants 1/2/4 = phase ids.
+//   func_00000000 = USO placeholder dispatcher (per-record advance /
+//     final notify).
+// Caps: raw-word USO + placeholder calls + 0x21B-word branch tree —
+//   not exact-matchable here; structural (entry/shape/tail) pass only,
+//   no byte body. Multi-run: future passes can expand the mode-2 tree.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001F14);
 
 /* 35-insn (0x8C) state==2 init helper. Promoted 2026-05-14 from 99.86%
