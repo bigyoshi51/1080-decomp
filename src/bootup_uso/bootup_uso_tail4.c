@@ -154,6 +154,41 @@ void func_00013CE8(Quad4 *dst) {
     *dst = buf;
 }
 
+/* func_00013D40 - verified structural decode (0x2A0, 168 insns).
+ * NEAR-SIBLING of func_0001438C / func_00008124 (bootup_uso
+ * get-or-create constructor + N child sub-objects family); variant:
+ * object 0x98, more children, datums D_0000CAAC/CAC0/CAC4/CAC8 +
+ * D_0000C764, child->0x10 = 0x1E.
+ *   void *func_00013D40(void *a0) {
+ *       o = a0 ? a0 : alloc(0x98); if (!o) return 0;
+ *       s = alloc(8);
+ *       if (s) { s->0x0 = &D_0000CAAC; s->0x4 = 0; }
+ *       v = *(int*)&D_0000CAC0;
+ *       if (o != (void*)-8) {                      // defensive
+ *           c = alloc(0x18);
+ *           if (c) {
+ *               init(c, o, v, 1);                  // func_00000000
+ *               c->0x10 = 0x1E;
+ *               c->0xC  = &D_0000C764;             // type/vtable
+ *               c->0x14 = 0;
+ *           }
+ *       }
+ *       v = *(int*)&D_0000CAC4;
+ *       if (o != (void*)-0x20) { c2 = alloc(0x18); ... }
+ *       ... (further children from D_0000CAC8, same shape) ...
+ *   }
+ * Struct-typing reference (same family as func_0001438C): o =
+ * 0x98-byte object; s = 8-byte aux (s->0x0 = &D_0000CAAC
+ * descriptor, s->0x4 = 0). Each child = 0x18-byte sub-object:
+ * child->0xC (12) type/vtable ptr (&D_0000C764), child->0x10 (16)
+ * s32 = 0x1E (a kind/priority), child->0x14 (20) = 0; built via
+ * func_00000000(child, o, val, 1) with val pulled from the global
+ * table D_0000CAC0 / D_0000CAC4 / D_0000CAC8. The o != -0x8 /
+ * -0x20 tests are defensive impossible-pointer guards. Caps <80:
+ * get-or-create + alloc-cascade (~8 reloc) + defensive-dead
+ * guards + &D descriptors + cross-symbol (func_0000CACC) ref.
+ * Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013D40);
 
 void func_00013FE0(char *a0, int a1, int a2) {
