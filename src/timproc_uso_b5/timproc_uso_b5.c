@@ -1716,6 +1716,46 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000079A4);
 
+// timproc_uso_b5_func_00007B2C — STRUCTURAL PASS (0x308 / 194 words,
+// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+//
+// Timing-screen MASTER state-machine tick — PC-driven handler dispatch
+// that ties together the sub-handlers (func_00007430 sequencer,
+// func_000077D8 transition, func_000079A4 fade).
+//
+//   int timproc_uso_b5_func_00007B2C(Scr *scr) {         // scr -> s0
+//     if (scr->0x3C4 != 1) { ...alt path... }
+//     else if (func_00000000()) {                         // event ready
+//       h = D_00000F60[ f(scr->0x4AC) ];                   // handler PC
+//       scr->0x4B0 = D_00000F18[ f(scr->0x4AC) ];          // sub-state
+//       if (*(int*)D_0 == 0x100 && match) scr->0x4AC++;     // advance PC
+//       else { func_00000000(1);  scr->0x4A8 = reload; }    // reset
+//       // run handler: index scr->0x3C4 / scr->0x4D4 / scr->0x3D0
+//       //   element arrays, then obj->0x28 vtable dispatch x~5
+//       //   (->0x88/0x8C show, ->0x80/0x84 deact, ->0x70/0x74,
+//       //   ->0xA8/0xAC) with computed a0 = base + retval;
+//       //   set scr->0x3CC = 7 / 0xA, scr->0x484 = 1.0f,
+//       //   refresh scr->0x3C4 / 0x3C8 / 0x3D0 from func_00000000;
+//       // extra global-gated branches: D_0 flags 0x100 / 0x200 /
+//       //   0x4003 trigger alternate activations + state writes.
+//     }
+//     return 1;
+//   }
+//
+// Struct-typing reference:
+//   scr: 0x3C4 mode/count (==1 active; also element count), 0x4AC
+//     program counter (indexes handler tables; ++ on match), 0x4B0
+//     current sub-state, 0x4A8 reload counter, 0x3CC state (7 / 0xA),
+//     0x484 f32 (=1.0 anim start), 0x3C8/0x3D0/0x4D4 element arrays,
+//     0x28 vtable (->0x70/0x74, ->0x80/0x84, ->0x88/0x8C, ->0xA8/0xAC
+//     dispatch idiom — show / deactivate / draw).
+//   D_00000F60 / D_00000F18 = USO static handler/jump tables (shared
+//     with func_00007430); D_0 global flags 0x100 / 0x200 / 0x4003.
+//   func_00000000 = USO placeholder dispatcher (event / handler).
+// Caps: raw-word USO + PC-table dispatch + placeholder calls — not
+//   exact-matchable without proper USO mnemonic disasm; structure
+//   characterized. Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007B2C);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007E34);
