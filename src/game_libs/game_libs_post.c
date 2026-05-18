@@ -9026,6 +9026,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00036074);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
 
+// gl_func_00036224 — STRUCTURAL PASS (0x470 / 284 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0x108 FP frame). A viewport / projection-matrix
+// builder. One of the bigger nodes decoded in this vein.
+//
+//   void gl_func_00036224(O *o, ...) {
+//     S *src = o->p_1CC;                        // source transform
+//     // screen-space constants:
+//     //   f0  = -1.0f   (0xBF800000)
+//     //   f2  = 160.0f  (0x43200000)  = 320/2 half-width
+//     //   f12 = 120.0f  (0x42F00000)  = 240/2 half-height
+//     Vec3 t = { src->f_F8, src->f_FC, src->f_100 };
+//     // ... mul.s / sub.s / add.s chains scaling t by 160/120 and
+//     //     biasing by -1.0f → NDC→screen viewport mapping ...
+//     M *m = o->p_1CC;
+//     // copy / compose a transform matrix block (m->0xBC..0xC4
+//     // and o->+0/+4/+8 ...) — projection · view composition
+//   }
+//
+// Struct-typing reference: a camera / viewport-projection matrix
+//   setup. It dereferences a source transform via o->0x1CC, pulls
+//   a Vec3 from src->0xF8/0xFC/0x100, and applies the textbook N64
+//   NTSC viewport constants — 160.0f (320/2 half screen width),
+//   120.0f (240/2 half screen height) and -1.0f — through a long
+//   FP multiply/subtract/add chain to map normalized-device
+//   coordinates to screen space, composing the result with a
+//   transform-matrix block (src->0xBC..0xC4 copied into the object
+//   at +0x00/+0x04/+0x08). A projection/viewport node of the
+//   game_libs object subsystem — the matrix producer that feeds the
+//   gl_func_00035E6C point projector and the gl_func_00033094 Vec3
+//   transform (those consume the matrix this builds); o->0x1CC is
+//   the camera/transform handle.
+// Caps: 0x470 raw-word USO + heavy FP projection-matrix math + the
+//   N64 160/120/-1 viewport idiom — categorically not exact-
+//   matchable without proper USO mnemonic disasm + the matrix /
+//   camera structs typed; structural pass only, no byte body. (A
+//   future focused non-loop session — the deferred USO re-split /
+//   struct-typing backlog — is where this gets a real decode; not
+//   60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036224);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036694);
