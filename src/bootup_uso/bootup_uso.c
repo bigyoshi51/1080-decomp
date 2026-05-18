@@ -3695,6 +3695,40 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B75C);
  * INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000BF8C);
 
+// func_0000C234 — STRUCTURAL PASS (0x898 / 550 insns, no episode).
+// Per-frame entity physics/state update over a large state struct
+// (st = a0 = s0; ~152 field accesses, 16 dispatcher sub-calls).
+//
+//   void func_0000C234(State *st) {
+//     if (st->0xA80) st->0xA80--;              // cooldown/timer decrement
+//     Vec3 p = { st->0xB4, st->0xB8, st->0xBC };   // -> sp+0xB4 local
+//     st->0x890 = p.x;  st->0x894 = p.y;       // snapshot prev position
+//     // const 0x457A0000 = 4000.0f (a range/limit); 1.0f baseline;
+//     // a1 = &st->0xDC (a sub-record), a3 = sp+0xCC scratch.
+//     // main body: physics/animation integration driven by folded
+//     //   constant tables —
+//     //     func_00000940 + {0x4,0x8,0xC,0x10}  (4-word table),
+//     //     func_00008A7C + {0x14,0x18,0x28,0x34} (a folded struct),
+//     //     func_00008A40 + 0x38, func_000008F4 + {0x2C,0x30,0x34}
+//     //   (same literal-pool fold family) — plus 16 func_00000000
+//     //   sub-calls (sub-system updates) operating on st->0x300.. and
+//     //   st->0xA00.. blocks.
+//     st->0xA24 -= (delta_a + delta_b);        // decay/damp accumulate
+//   }
+//
+// Struct-typing reference:
+//   st(a0=s0): 0xA80 cooldown counter; 0xB4/0xB8/0xBC current pos Vec3;
+//     0x890/0x894 prev-pos snapshot; 0xDC a sub-record (passed by ptr);
+//     0x318 a source field; 0xA24 a decayed accumulator; many 0x300+/
+//     0xA00+ fields as physics state.
+//   Folded refs (literal-pool fold family — incl. another contiguous
+//   strided table at func_00000940 +0x4/0x8/0xC/0x10; see
+//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C):
+//     func_00000940 (4-word table), func_00008A7C (folded struct),
+//     func_00008A40+0x38, func_000008F4+{0x2C,0x30,0x34} (f-pool).
+// Caps: 550-insn folded-table-driven physics integrator; structural
+//   pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000C234);
 
 void func_0000CACC(char *a0) {
