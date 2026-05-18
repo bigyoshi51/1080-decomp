@@ -19058,6 +19058,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065148);
  * vein win. INCLUDE_ASM is the correct build path (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
 
+/* gl_func_000652D8: 34-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
 
 /* gl_func_00065360 - verified structural decode (58-insn transform/matrix
