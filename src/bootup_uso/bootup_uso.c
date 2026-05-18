@@ -3449,14 +3449,22 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E124);
  *   func_00000000(arg0 + 0xCC, arg0 + 0x3B0, ratio);
  *   func_00000000(arg0 + 0xF4, arg0 + 0x3B0, ratio);
  *
- * Suspicious: `&func_0000098C + 0xC` reads bytes inside that function's body
- * (insn `lw $a1, 0x8($a0)` at offset 0x998 — `8C 85 00 08` interpreted as
- * f32 = -8.13e-32-ish). Likely splat misnamed the relocation target — there
- * may be a real D_00000998 rodata float symbol that splat folded into the
- * nearest preceding function. func_0000D900.s also references
- * `func_0000098C + 0x4` with the same pattern (LUI/LWC1 pair). Investigation
- * needed: scan asm for `func_0000098C + N` references and replace with a
- * proper rodata symbol once found.
+ * INVESTIGATION DONE (2026-05-17): this is the bootup_uso FP literal pool,
+ * splat-folded into func_0000098C (real code, 0x4C @ vram 0x98C) because the
+ * USO segment has no rodata/literal-pool symbol. Exactly THREE mis-attributed
+ * FP constants, referenced across 3 functions:
+ *   func_0000098C + 0x4  -> ldc1 (f64)  @ 0x990  (func_0000D900, func_0000E2D0)
+ *   func_0000098C + 0xC  -> lwc1 (f32)  @ 0x998  (func_0000E270 — this fn)
+ *   func_0000098C + 0x14 -> ldc1 (f64)  @ 0x9A0  (func_0000D900)
+ * Adjacent `lui 0x3FE00000` in func_0000D900 (= double 0.5) confirms an FP
+ * constant region, not code. Fix is NOT a typed-extern: splat disassembled
+ * 0x990-0x9A8 AS code (coincidentally-plausible prologue bytes), so the real
+ * resolution is a splat-config pass that breaks out the bootup_uso literal
+ * pool into D_0000098C.._9A8 symbols + re-extract, then these become proper
+ * f32/f64 consts and func_0000E270/D900/E2D0 can byte-match. Multi-file
+ * re-extraction = DEFERRED focused-session task (high blast radius; not a
+ * /loop tick). Tracked in project_1080_o0_split_pending_candidates.md and
+ * docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
  *
  * Default INCLUDE_ASM keeps ROM correct; this wrap is a structural pass for
  * the next iteration. Likely won't byte-match without proper symbol naming
