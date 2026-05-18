@@ -17614,6 +17614,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C214);
 /* gl_func_0004C288: 30-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C288);
 
+// gl_func_0004C300 — STRUCTURAL PASS (0x2E0 / 185 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x60
+// (saves ra + s0..s8). Object state-reset/init + flag-extract (cb = jal 0
+// USO-relocated; name key &D_0002F128).
+//
+//   void gl_func_0004C300(void *a0) {
+//     self = a0;
+//     self->p1B8 = 0;
+//     self->p1B0 = 1;                                 // enable/ready default
+//     self->p1A4 = 0;
+//     self->p1A8 = -1; self->p1AC = -1;                // "none" sentinels
+//     self->p144 = 0;
+//     cb1(&D_0002F128, 0);                              // register/log scope
+//     int flags = self->p78;
+//     int a = self->pB8, b = self->pBC;
+//     int sz = a * b;                                   // multu/mflo product
+//     int f200 = flags & 0x200;                          // config bit tests
+//     int f400 = flags & 0x400;
+//     int f800 = flags & 0x800;
+//     // ... use sz and the f200/f400/f800 flags to drive the remaining
+//     //     state setup / allocation / sub-init for this object.
+//   }
+// Resets the object's state-field block to defaults (0x1B0=1 enable, the
+// 0x1A8/0x1AC=-1 "none" sentinels, 0x1B8/0x1A4/0x144 cleared), registers a
+// named scope (&D_0002F128), then reads config flags from self->0x78
+// (testing bits 0x200/0x400/0x800) and a size product (self->0xB8 *
+// self->0xBC) to parameterise the remaining initialisation. Family:
+// cb-driven constructor/reset + config-flag extract (siblings
+// gl_func_0004B0A8 / 0004B620 / 00040070). Post-flag setup tail
+// representative; the cleared/defaulted field offsets (0x1B0=1, 0x1A8/0x1AC
+// =-1, 0x1B8/0x1A4/0x144=0), the &D_0002F128 key, the 0x78 flag bits
+// (0x200/0x400/0x800) and the 0xB8*0xBC product are exact. Caps: self
+// struct + cb signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C300);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
