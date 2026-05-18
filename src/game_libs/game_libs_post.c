@@ -1980,6 +1980,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023760);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023838);
 
+// gl_func_00023914 — STRUCTURAL PASS (0x1F4 / 125 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A resource-resolve + computed jump-table dispatch (sibling
+// of gl_func_00023760's resolve chain).
+//
+//   ret gl_func_00023914(a0, a1, a2) {
+//     int h = jal 0x381B0(a0, a1, a2);                  // 0x0C00E06C
+//     if (h == 0) { ...; return 2; }                     // fail path
+//     jal 0x38204(a0, …);                                // 0x0C00E081
+//     E *e = tbl + idx*0x10;                              // entry tbl
+//     int  sz  = (e->w_14 + 0xF) & ~0xF;                  // align16
+//     byte pl  = e->b_18;
+//     int  typ = e->b_19;                                 // type tag
+//     void *p  = e->w_10;
+//     if ((unsigned)typ >= 5) return;                     // default
+//     goto *((void**)(&D_0 + 0xEA0))[typ];                // jump table
+//     // ... 5 per-type case bodies ...
+//   }
+//
+// Struct-typing reference: resolves a resource handle through the
+//   fixed USO-relocated routines 0x0C00E06C (≈0x381B0) and
+//   0x0C00E081 (≈0x38204) — the same chain gl_func_00023760 uses.
+//   The resolved index selects a 0x10-stride entry: word +0x10 a
+//   pointer, word +0x14 a size (16-aligned), byte +0x18 a payload,
+//   byte +0x19 the type tag. Dispatch is a REAL computed jump through
+//   the table at &D_0+0xEA0 indexed by the type in [0,5); type >= 5
+//   falls to the default. A second jump-table dispatcher in the
+//   game_libs resource subsystem (cf. gl_func_0002119C's table at
+//   &D_0+0xE7C — adjacent dispatch tables).
+// Caps: raw-word USO + computed jump-table dispatch + fixed-target
+//   resolve calls — not exact-matchable without proper USO mnemonic
+//   disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023914);
 
 extern int gl_ref_00038204();
