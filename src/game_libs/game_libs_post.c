@@ -8275,6 +8275,44 @@ void gl_func_0003523C(int a0, int a1, int a2) {
     gl_func_00000000(gl_func_00000000, a1, a1 + a2);
 }
 
+// gl_func_00035268 — STRUCTURAL PASS (0xD0 / 52 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A config-validate + diagnostic-report routine.
+//
+//   void gl_func_00035268(int a0, int a1) {
+//     Cfg *c = *(Cfg**)(&D_0 + 0x218);          // global config ptr
+//     if (c->w_1C != 0 && c->w_04 != 0 && c->w_0C == 0) {
+//       printf_like((char*)0x0001E54C);          // jal 0 (USO cb)
+//       printf_like(&D_0);                        // 2nd cb
+//     }
+//     if (a1) {
+//       float f = (float)(unsigned)a1;            // 0x4F800000 idiom
+//       f *= 1024.0f;                              // 0x44800000
+//       report((char*)0x0001E55C, f);              // 3rd cb
+//     }
+//   }
+//
+// Struct-typing reference: a sanity-check / diagnostic-logging
+//   leaf. It dereferences a global configuration pointer at
+//   &D_0+0x218 and runs a sequence of validity tests on its fields
+//   (0x1C, 0x04 must be set; 0x0C must be clear — `sltu reg,zero,x`
+//   is the "x != 0" idiom). On the failing combination it emits a
+//   diagnostic via USO-relocated printf-shaped callbacks (jal 0 →
+//   resolved at load) using a FIXED format-string at 0x0001E54C
+//   (and the &D_0 base); a second branch converts the a1 argument
+//   with the unsigned-32→float bias idiom (0x4F800000 = 2^31) and
+//   scales it by 1024.0f (0x44800000) before reporting it with a
+//   second format string 0x0001E55C. A debug/assert-and-log node
+//   of the game_libs object subsystem (the kind of check the
+//   command interpreter calls to validate state and complain when
+//   a required config slot is missing; 0x0001E54C / 0x0001E55C are
+//   deferred format-string-data symbolization sites).
+// Caps: raw-word USO + USO-relocated jal-0 printf callbacks + global
+//   config-ptr field checks + unsigned→float / *1024 idiom + fixed
+//   string data — not exact-matchable without proper USO mnemonic
+//   disasm + the config struct/strings typed; structural pass only,
+//   no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035268);
 
 /* gl_func_00035338: 10-insn 1-call wrapper. Split off 4-insn
