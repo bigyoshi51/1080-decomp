@@ -11720,6 +11720,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);
 
+// gl_func_0003BE1C — STRUCTURAL PASS (0x620 / 392 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — very large 0xF0 frame, saves s0-s7). The LARGEST node
+// decoded in this entire structural vein.
+//
+//   void gl_func_0003BE1C(O *o, ...) {
+//     S *s = o->p_84;
+//     if (s == 0) return;                         // active gate
+//     if (s->w_A0 == 0)
+//       callback((void*)0x0001EE9C, ...);         // jal 0 (USO cb)
+//     float *K = (float*)(&D_0 + 0x128);          // FP literal pool
+//     float a = sp_100 * K[0];
+//     float b = sp_104 * K[1];
+//     ... very long FP transform pipeline using the K[] pool
+//         constants, the s = o->0x84 sub-object's fields, and the
+//         saved args (sp+0x100..), spilling through stack scratch ...
+//   }
+//
+// Struct-typing reference: a very large per-object FP transform /
+//   compose node — the biggest in the gl_func_0003Bxx geometry
+//   family. It bails unless the object's o->0x84 sub-object is
+//   present, conditionally runs a USO-relocated callback (jal 0 →
+//   resolved at load) parameterized by a fixed data-segment
+//   reference 0x0001EE9C (gated on s->0xA0), then drives an
+//   extensive multiply/add FP pipeline whose coefficients come
+//   from the LITERAL POOL at &D_0+0x128 (the SAME pool base used
+//   by gl_func_0003B2EC — confirming a shared FP coefficient table
+//   at &D_0+0x128; deferred FP-pool symbolization per
+//   docs/N64_FORENSICS.md, same class as the &D_0+0x19F0 clamp
+//   table site). The aggregate of this family — it likely composes
+//   the full object transform from the sub-results the
+//   gl_func_0003B9C0 distance solver, the gl_func_0003B6A0 6-part
+//   transform, the gl_func_0003B1AC matrix-apply and the
+//   gl_func_00036694 matrix-concat leaves produce, and feeds the
+//   gl_func_00034458 render traversal.
+// Caps: 0x620 raw-word USO + flag-gated USO-relocated jal-0 callback
+//   + FP-literal-pool coefficient table (&D_0+0x128 unsymbolized) +
+//   data-seg ref + very heavy FP transform pipeline — categorically
+//   not exact-matchable without proper USO mnemonic disasm +
+//   FP-pool/struct symbolization; structural pass only, no byte
+//   body. (A future focused non-loop session is where this gets a
+//   real decode; not 60s-tick safe.)
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C43C);
