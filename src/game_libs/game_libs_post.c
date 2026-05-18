@@ -10122,6 +10122,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003863C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
 
+// gl_func_00038830 — STRUCTURAL PASS (0x134 / 77 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A command / message handler — sibling of
+// gl_func_000332B4 (command-stream opcode dispatch).
+//
+//   void gl_func_00038830(O *o, Cmd *c) {
+//     switch (c->tag_0) {
+//       case 0xC:                                 // SET visible/enable
+//         if (c->p_4->w_4 != 0)
+//           o->w_18 |= 0x80;
+//         break;
+//       case 0xD:                                 // CLEAR
+//         o->w_18 &= ~0x80;
+//         break;
+//       case 0xE:                                 // INVOKE w/ payload
+//         callback(o->p_0C, *(c->p_4));            // jal 0 (USO cb)
+//         if (rv) { ... }
+//         break;
+//       case 0x2:  ...                             // field op
+//       default: break;                            // no-op
+//     }
+//   }
+//
+// Struct-typing reference: a per-opcode command interpreter step,
+//   the sibling of gl_func_000332B4. It dispatches on the incoming
+//   command record's tag word (*c) — values {0xC, 0xD, 0xE, 0x2},
+//   anything else a no-op. Commands 0xC / 0xD SET / CLEAR the
+//   single flag bit 0x80 in the target object's state word
+//   o->0x18 (an enable / visible / dirty-style toggle, 0xC gated on
+//   the command payload c->0x04->0x04 being set); command 0xE
+//   invokes a USO-relocated callback (jal 0 → resolved at load)
+//   with the object's payload pointer o->0x0C and the command's
+//   data (*c->0x04); command 0x2 performs another field
+//   operation. A factored command handler of the game_libs object
+//   subsystem's command VM — the same per-tag dispatch shape as
+//   gl_func_000332B4 (which keyed tag 0x69 and o->0xF4); together
+//   they are the externalized arms of the gl_func_0002FB74
+//   interpreter for specific opcodes.
+// Caps: raw-word USO + command-tag switch + flag-bit RMW on object
+//   state + USO-relocated jal-0 callback — not exact-matchable
+//   without proper USO mnemonic disasm + the command/object structs
+//   typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038964);
