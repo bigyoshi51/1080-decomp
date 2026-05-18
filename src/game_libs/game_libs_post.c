@@ -19070,6 +19070,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000500EC);
 /* gl_func_000503A4: 40-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000503A4);
 
+// gl_func_00050444 — STRUCTURAL PASS (0x1E8 / 122 words, no episode).
+// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x30,
+// saves ra + s0. Two jal-0 = USO-relocated callbacks: cb1 (lazy table
+// init, only when tbl->field_64 == 0) and cb2 (overflow handler).
+// FP-quantize → record-dedup-insert (vertex/index intern). Shape:
+//   int gl_func_00050444(int idx0, Tbl *tbl, int unused2, float *v) {
+//     if (tbl->field_64 == 0) cb1(0x20E3C);          // lazy init
+//     // quantize v[]: trunc.w.s of v[0..2] → 3x u16 key K012 at
+//     // sp+0x28/0x2A/0x2C; v[0],v[1] → 2x u16 key K01 at sp+0x24/0x26
+//     n = tbl->field_40;                              // current count
+//     if (idx0 < n) {
+//       i = idx0;
+//       do {
+//         recA = tbl->field_60 + i * 6;               // 6-byte record
+//         if (recA[0]==K0 && recA[1]==K1 && recA[2]==K2) {
+//           recB = tbl->field_64 + i * 4;             // 4-byte 2nd key
+//           if (recB[0]==J0 && recB[1]==J1) return i; // found → index
+//         }
+//         i++;
+//       } while (i < n);                              // linear scan
+//     }
+//     // not found → append: write K01 to field_64[n], K012 to
+//     // field_60[n], tbl->field_40 = n + 1
+//     if (n + 1 >= capacity) cb2(0x20E4C);            // overflow (arg4)
+//     return tbl->field_40 - 1;                       // new index
+//   }
+// Family: FP-quantize + record key-match + dedup-insert (intern) —
+// sibling of the structured-record key-match family (gl_func_000500EC
+// / 00049DBC / 0004A308 / 0004FD18) and the FP trunc-quantize family.
+// The frame, saved-reg set, the v[] trunc.w.s quantization to the
+// twin u16 keys (3-wide K012 + 2-wide K01), the 6-byte field_60 record
+// stride, the 4-byte field_64 secondary stride, the field_40 count,
+// the linear scan + match-return, the append-then-bump and the
+// capacity (arg4) overflow guard are exact; the cb1/cb2 prototypes and
+// the exact found/append index arithmetic are representative. Caps:
+// Tbl struct and cb1/cb2 prototypes untyped (USO-relocated). Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00050444);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005062C);
