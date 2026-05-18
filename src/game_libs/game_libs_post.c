@@ -695,6 +695,29 @@ int gl_func_0001FD5C(int a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD98);
 
+// gl_func_0001FEC8 — STRUCTURAL PASS (0x6C / 27 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A two-step subsystem register/install helper.
+//
+//   void gl_func_0001FEC8(int arg) {
+//     (*reg1)(&D_2188, &D_0, arg);          // jal 0 USO-reloc
+//     int g = *(int*)(&D_0 + 4);             // global ptr field
+//     (*reg2)(&D_2168, &D_0 + arg, g - arg); // jal 0 USO-reloc
+//     *(int*)(&D_0 + 0x2178) = 0;            // reset state flag
+//   }
+//
+// Struct-typing reference: &D_2188 and &D_2168 are fixed
+//   descriptor/format blobs (passed as the first arg to two distinct
+//   USO-relocated registration routines, the `jal 0` slots resolved
+//   at load). Word &D_0+0x4 is a global end/extent pointer; the
+//   second call receives (base + arg) and the span (global - arg).
+//   Word &D_0+0x2178 is a subsystem state flag cleared on completion.
+//   This is the "install/register" entry of the same game_libs
+//   support family as the gl_func_0001FD98 allocator helper.
+// Caps: raw-word USO + jal-0 USO-reloc calls — not exact-matchable
+//   without proper USO mnemonic disasm; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FEC8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FF34);
