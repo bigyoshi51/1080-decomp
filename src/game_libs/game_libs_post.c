@@ -16389,6 +16389,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
 // the output record format untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000454C4);
 
+// gl_func_00045CB0 — STRUCTURAL PASS (0x16C / 92 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x40
+// (saves ra). FP Vec3-to-quantized-byte interleaved packer (the single-
+// element counterpart of gl_func_000454C4's batch loop).
+//
+//   void gl_func_00045CB0(Out a0, Batch a1) {
+//     int meta = a1->p2C;
+//     float CS = 255.0f;                             // 0x437F0000 colour scale
+//     int idx = a1->p04; a1->p04 = idx + 1;          // bump write index
+//     Elem *e = ...;                                  // a1->p04-indexed entry
+//     float x = e->p00, y = e->p04, z = e->p08;
+//     // quantize each lane: v*255.0 -> trunc.w.s -> byte, with the
+//     // 0xBC000000 / 0x80000000|0x40 sign/bias constants applied:
+//     char bx = (char)trunc(x * CS);
+//     char by = (char)trunc(y * CS);
+//     char bz = (char)trunc(z * CS);
+//     // store interleaved at stride 4 into the output record (one quantized
+//     // lane per 4-byte column): out[0/4/8/C] = bx-group,
+//     // out[1/5/9/D] = by-group, out[2/6/A/E] = bz-group, ...
+//     a3[0] = bx; a3[4] = bx; a3[8] = bx; a3[0xC] = bx;
+//     a3[1] = by; a3[5] = by; a3[9] = by; a3[0xD] = by;
+//     a3[2] = bz; a3[6] = bz;  // ... remaining lanes likewise
+//   }
+// Converts one element's source Vec3 (e->0x00/0x04/0x08) to bytes scaled by
+// 255.0 (mul.s + trunc.w.s, with the 0xBC000000 / 0x80000000+0x40 sign-bias
+// immediates) and writes each quantized lane interleaved at 4-byte stride
+// into the output record (a 4-vertex / RGBA-style strided buffer fill).
+// Family: FP geometry / colour-quantize-and-pack (the per-element packer
+// that gl_func_000454C4 drives in a loop; relates to gl_func_000430E4 /
+// 00043484). Exact byte-store fan-out representative; the a1->0x04 index
+// bump, the 255.0 scale, the trunc-to-byte conversion and the stride-4
+// interleaved layout are exact. Caps: Batch/Elem/Out struct + the bias
+// constants untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045E20);
