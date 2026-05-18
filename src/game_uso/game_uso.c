@@ -9600,6 +9600,39 @@ void game_uso_func_0000D9CC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
 #endif
 
+// game_uso_func_0000E1FC — STRUCTURAL PASS (0xD4 / 53 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic; boundary already split by commit 085ef620 — named fn
+// still undecoded). Hand-decoded.
+//
+// Threshold-gated event / effect trigger.
+//
+//   void game_uso_func_0000E1FC(Obj *obj, A a1, A a2) {
+//     Sub *s = obj->0xB4;
+//     if (!(s->0x348 < s->0x10)) return;                  // timer/state
+//     if (!(obj->0x800->0x18 & 0x2000)) return;            // flag gate
+//     if (s->0x9CC == K) {                                 // table id
+//       float m = fabsf(s->0x970);                          // magnitude
+//       if ((double)m < DBL(D_00000E68 + 0x208)) {           // folded f64
+//         func_00000000(a1->0x0, a2->0x0);                   // event A
+//       } else {
+//         func_00000000(a1->0x0, a2->0x4);                   // event B
+//       }
+//     }
+//   }
+//
+// Struct-typing reference:
+//   obj: 0xB4 -> s (s->0x10 a threshold, s->0x348 a current value/
+//     timer, s->0x970 a magnitude f32, s->0x9CC a table id), 0x740
+//     a sub-anchor, 0x800 -> ctx (->0x18 flags, bit 0x2000 gate).
+//   D_00000E68 / D_00000E50 = USO static tables; D_00000E68 + 0x208
+//     = a folded f64 threshold constant. a1/a2 = event arg records.
+//   func_00000000 = USO placeholder dispatcher (event report /
+//     state notify).
+// Caps: raw-word USO + placeholder calls + folded f64 — not exact-
+//   matchable without proper USO mnemonic disasm; structure
+//   characterized. Structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
 
 /* game_uso_func_0000E2D0 — verified structural decode (~30%, LEN-DIFF 33/35;
