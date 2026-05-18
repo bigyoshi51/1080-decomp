@@ -13067,6 +13067,45 @@ end:
 // from call shape; FP-pool n/a here. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
 
+// gl_func_0003E39C — STRUCTURAL PASS (0x1AC / 108 words, no episode). Raw-.word
+// USO. realjr=2 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends at jr 0x3E51C;
+// a separate no-prologue leaf begins at 0x3E524 (DEFERRED USO RE-SPLIT — its
+// instructions belong to the next symbol).
+//
+// Named fn = string-keyed registration + iterate-with-virtual-dispatch
+// (single prologue frame 0x58, saves ra + s0..s5; cb = jal 0 USO-relocated;
+// H_01458C from the contiguous 0x0145xx helper trio):
+//   void gl_func_0003E39C(Ctx a0) {
+//     Ctx self = a0;
+//     cb(...);                              // entry hook
+//     cb(&D_0002F2EC);                      // register under string literal A
+//     void *g = &D_reloc;                   // global base (lui/addiu s3)
+//     it = cb(g, &iterState, 4);            // init collection iterator
+//     if (!iterState) goto done;            // empty → skip
+//     do {
+//       H_01458C(scratchHdr);               // scratchHdr = sp+0x48
+//       *scratchRec = iterState->p00;       // copy current record fields
+//       int hit = cb(self, *scratchKey);    // probe by key
+//       if (hit == 0) {
+//         e = it->p30;                       // entry chain
+//         if (e && (e & it->p44) ) {         // and-mask filter (03194024)
+//           Vt vt = e->p28;
+//           short k = (short)vt->p48;
+//           (*(fnptr)vt->p4C)(k + matched);  // virtual dispatch
+//         }
+//       }
+//       // mismatch path emits via cb(&D_0002F2FC) (string literal B)
+//     } while (it = it->next);               // loop-back (branch-likely)
+//   done:
+//     cb(g, 1, ...); cb(self); cb();         // close/flush trio
+//   }
+// Trailing leaf at 0x3E524 (separate symbol): list-reset walk — v = a0->p2C;
+// for (; v; v = v->p30) { v->p3C = 0; v->p10 = 0; } (8C82002C head,
+// AC40003C / AC400010 stores, 8C420030 chain-step, jr at 0x3E544).
+// Family: same cb open/probe/close + 0x0145xx helper + string-literal-keyed
+// registration idiom as the diagnostic/registration serializers in this
+// segment. Caps: Ctx/entry/vtable struct + string-table symbolization
+// untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E39C);
 
 extern int gl_func_00000000();
