@@ -16830,6 +16830,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D30C);
 
+/* gl_func_0005D414: 24-insn 3-call wrapper. Stores arg0 (float f12),
+ * a2, a3 to local slots, then makes 3 calls:
+ *   call(arg0_byte_offset+8, arg1_copy, ?, a3);
+ *   call(reload-saved-args, ?, lwc1 f12=arg0);
+ *   call(reload-saved, ?, lwc1 f12=arg1);
+ * Structural decode pending — likely a quaternion/Vec3 lerp helper. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D414);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D480);
