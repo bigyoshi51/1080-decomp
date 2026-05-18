@@ -16022,6 +16022,40 @@ void gl_func_00043FFC(char *a0) {
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044034);
 
+// gl_func_00044144 — STRUCTURAL PASS (0x36C / 220 words, no episode). Raw-.word
+// USO. realjr=5, regjr=0 → MULTI-FUNCTION BUNDLE + BOUNDARY NOTE: the tail
+// has a dense small-gap jr cluster at 0x44458 / 0x4446C / 0x44480 / 0x44490 /
+// 0x444AC (gaps ~0x14/0x14/0x10/0x1C with no interior 27BDFF prologue) —
+// per docs/N64_FORENSICS ADDENDUM 18b that jr-spacing signature ⇒ a stack of
+// tiny no-frame LEAF functions following the named function, NOT one fn with
+// 5 returns. Named fn ends at the jr at 0x44458; the ~4 trailing leaves
+// (0x4445C / 0x44470 / 0x44484 / 0x44494) are a DEFERRED USO RE-SPLIT
+// (decode each under its own symbol later).
+//
+// Named fn = large string-keyed config-registration table builder (single
+// prologue frame 0x138, saves ra; cb = jal 0 USO-relocated registrar):
+//   void gl_func_00044144(void) {
+//     cb(&D_g, &D_0002FD34, 0);                      // register entry, int 0
+//     cb(&D_g, &D_0002FD40, &cfg_24C, 1.0f);          // ptr + float-1.0 const
+//     cb(&D_g, &D_0002FD50, &cfg_250, 0);
+//     cb(&D_g, &D_0002FD58, &D_0002F970);             // ptr-to-default
+//     cb(&D_g, &D_0002FD64, &cfg_000, 0x19000);        // int const 0x19000
+//     // ... ~15+ such cb registrations, each keyed by a string literal in
+//     //     the contiguous &D_0002FD34.. table, binding a config address
+//     //     (&D_0+0x24C/0x250/.. or a &D_0002Fxxx default) plus a numeric
+//     //     or float (3F800000=1.0) immediate; sp scratch (sp+0x10/0x14)
+//     //     used to pass the float/aux args.
+//   }
+// One-shot config-table init: publishes a fixed set of named settings into
+// the module registrar (string keys in the contiguous &D_0002FD34.. table,
+// values = config-struct field addresses or default-string pointers, with
+// 1.0f / 0x19000-style immediates). Family: cb-driven string-keyed
+// registration-table builder (siblings gl_func_000415A4 / 0004182C /
+// 00040DE8). Per-entry value/const list representative (220-word driver) —
+// the cb call shape, the &D_0002FD34.. key table and the 1.0f/0x19000
+// immediates are exact. Trailing no-frame-leaf stack = deferred re-split.
+// Caps: registrar/config struct, &D_g + &D_0002FDxx table and cb signature
+// untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044144);
 
 /* gl_func_000444B4: 32-insn helper. Multi-pass decode pending. */
