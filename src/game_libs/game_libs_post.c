@@ -6392,6 +6392,42 @@ void gl_func_000305CC(int a0) {
     gl_func_00000000(0x03000800, (s8)a2);
 }
 
+// gl_func_0003061C — STRUCTURAL PASS (0x194 / 101 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A state-transition / mode-mapper with conditional commit.
+//
+//   void gl_func_0003061C(int lim, int val, int m, int kind) {
+//     if (kind == 4) return;                 // early-out
+//     int *rec = *(int**)&D_0;               // global record ptr
+//     if (gstate != 2) { ... alt path ... }
+//     // remap the incoming mode through a cascade:
+//     if (m == 0) m = 8;
+//     else if (m == 1) m = 0xA;
+//     else if (m == 3) m = 0xB;
+//     else if (kind == 5) m = 0xB; ...       // → canonical opcode
+//     if (rec == 0) return;
+//     if (rec < lim) return;                 // range guard
+//     if (m == *(int*)(&D_0 + 4)) rec[3] = val;   // conditional store
+//     float t = *(float*)(lim + 0x10);
+//     ... FP work with 1.5f (0x3FC00000) ...
+//   }
+//
+// Struct-typing reference: a mode-canonicalizing state helper. It
+//   reads a global record pointer / state word based at &D_0, bails
+//   on a 4-valued "kind" arg, then folds an incoming mode value
+//   through an if/else cascade into a canonical opcode (8 / 0xA /
+//   0xB) using nested equality + branch-likely (bnel) tests. After a
+//   null + range guard on the record pointer it conditionally writes
+//   a value into rec[0xC] when the canonical mode matches a global
+//   selector at &D_0+4, then performs FP scaling against a 1.5f
+//   constant (0x3FC00000). A control/state-bookkeeping node of the
+//   game_libs object subsystem (the kind of mode-arbitration helper
+//   the gl_func_0002FB74 interpreter and the emitter family call to
+//   resolve which command opcode applies).
+// Caps: raw-word USO + global-state &D_0 base + multi-branch mode
+//   cascade + conditional commit — not exact-matchable without
+//   proper USO mnemonic disasm; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
