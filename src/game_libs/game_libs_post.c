@@ -9547,6 +9547,43 @@ void gl_func_00037A9C(int count) {
     }
 }
 
+// gl_func_00037AF0 — STRUCTURAL PASS (0xFC / 63 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). An object constructor (chained alloc + template init).
+//
+//   O *gl_func_00037AF0(? a0) {
+//     callback0(a0);                            // jal 0 (USO cb)
+//     O *o = alloc(0xB4);                        // main record
+//     if (o == 0) return 0;
+//     init(o, (void*)0x0001EBE4);               // template init cb
+//     o->p_28 = &D_0;                            // global root
+//     int *s1 = alloc(0x04);                     // sub-block @0x2C
+//     if (s1) *s1 = 0;
+//     int *s2 = alloc(0x04);
+//     if (s2) *s2 = 0;
+//     o->v_30 = (Vec3){0,0,0};                   // zero a Vec3
+//     init_vec(o, &localVec3@sp+0x30);           // sub-init cb
+//     return o;
+//   }
+//
+// Struct-typing reference: a constructor of the same family as
+//   gl_func_00035B1C / gl_func_00034890 / gl_func_00032E18 /
+//   gl_func_00036E74. It allocate-or-reuses a 0xB4-byte record via
+//   USO-relocated allocator callbacks (jal 0 → resolved at load),
+//   initializes it from a fixed data-segment template at
+//   0x0001EBE4, back-links the global root at o->0x28, allocates a
+//   pair of zeroed 4-byte sub-blocks anchored at o->0x2C, zeroes a
+//   Vec3 field at o->0x30 (via a local at sp+0x30 passed to a
+//   sub-init callback). A factory leaf of the game_libs object
+//   subsystem (0x0001EBE4 is a deferred data-segment template-
+//   symbolization site; the 0xB4 size + the +0x28/+0x2C/+0x30
+//   layout are the struct to type when this object family is
+//   formalized).
+// Caps: raw-word USO + USO-relocated jal-0 allocator/init callbacks
+//   + chained alloc-with-rollback + &D_0 back-link + data-seg
+//   template — not exact-matchable without proper USO mnemonic
+//   disasm + the struct typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037AF0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037BEC);
