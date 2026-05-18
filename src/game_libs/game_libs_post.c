@@ -8328,6 +8328,50 @@ int game_libs_func_00035360(int a0) {
     return D_35360_X;
 }
 
+// gl_func_00035370 — STRUCTURAL PASS (0xD0 / 52 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue). A kind-dispatch command handler with vtable indirect.
+//
+//   void gl_func_00035370(O *o, int a1) {
+//     switch (o->kind_4) {
+//       case 1: {
+//         H *h = *(H**)&D_0;
+//         int r = h->fp_4C(a1);                // jalr (*&D_0)->0x4C
+//         o->w_20 = r;
+//         if (r == 0) report((char*)0x0001E578, o, a1);  // jal 0
+//         break;
+//       }
+//       case 0: {
+//         int r = callback(&D_0, a1);           // USO cb
+//         o->w_20 = r;
+//         if (r == 0) report((char*)0x0001E590, ...);
+//         break;
+//       }
+//       case 2:  ...                             // third arm
+//       default: break;
+//     }
+//   }
+//
+// Struct-typing reference: a polymorphic per-kind processor. It
+//   switches on the object's type/kind field at o->0x04 (values
+//   {0, 1, 2}; anything else is the default no-op). The kind==1 arm
+//   dispatches through a VTABLE function pointer at (*&D_0)+0x4C
+//   (the global handler object's method slot), while kind==0 / 2
+//   use USO-relocated callbacks (jal 0 → resolved at load). Each
+//   arm stores the handler's result into the object at o->0x20 and,
+//   on a zero/failure result, emits a diagnostic via a printf-
+//   shaped callback with a FIXED format string (0x0001E578 for
+//   kind 1, 0x0001E590 for kind 0). A dispatch/validate node of the
+//   game_libs object subsystem (the (*&D_0)+0x4C slot ties this to
+//   the gl_func_00034188 / 00034458 vtable-driven device-object
+//   family; 0x0001E578 / 0x0001E590 are deferred format-string
+//   data symbolization sites).
+// Caps: raw-word USO + jalr through global handler vtable
+//   ((*&D_0)+0x4C) + USO-relocated jal-0 callbacks + fixed string
+//   data — not exact-matchable without proper USO mnemonic disasm +
+//   the handler vtable/object typed; structural pass only, no byte
+//   body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035440);
