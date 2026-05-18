@@ -17261,6 +17261,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049B3C);
 // signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049DBC);
 
+// gl_func_0004A308 — STRUCTURAL PASS (0x364 / 218 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x80
+// (saves ra, s0). Structured-record-to-fields decoder (sibling of
+// gl_func_00049DBC; ×6-stride record-table variant).
+//
+//   void gl_func_0004A308(void *a0, int a1, int a2, int a3) {
+//     self = a0;
+//     u16 *rec = (u16*)((char*)self->p6C + a3*8);     // indexed record
+//     void *tbl = self->p60;                           // ×6-stride table base
+//     u16 i0 = rec[2];                                  // rec+4 (16-bit)
+//     u8  *e0 = (u8*)tbl + i0*6;                         // multu .., 6
+//     u16 i1 = rec[3];                                  // rec+6
+//     u8  *e1 = (u8*)tbl + i1*6;
+//     // extract byte/halfword sub-fields from e0/e1 (lbu/lhu) with 0xFF
+//     // masks and pack them into the sp output struct (sp+0x6C / 0x6E /
+//     // 0x74 / 0x78 / 0x7C ...); a 0xFF "no entry" sentinel on the index
+//     // short-circuits a sub-field to a default.
+//     out->h0 = ...; out->b1 = ...; ...
+//   }
+// Decodes a record located at self->0x6C + index*8 by using its two 16-bit
+// fields (rec+4, rec+6) as ×6-byte-stride indices into the self->0x60 table,
+// then unpacking byte/halfword sub-fields (lbu/lhu, 0xFF-masked, with a
+// 0xFF=absent sentinel) into a packed sp output struct. Family: structured
+// record decode + table lookup (sibling of gl_func_00049DBC; this one keys a
+// 6-byte-entry table — e.g. a 3×u16 / RGB-ish palette record). Per-field
+// extraction list not exhaustively decoded (218-word decoder) — the
+// self->0x6C + index*8 record base, the self->0x60 table, the *6 index
+// stride and the 0xFF-sentinel guards are exact; the exact sp-struct layout
+// is representative. Caps: record/table/self struct untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A308);
 
 /* gl_func_0004A670: 30-insn alloc-or-given + init + cond-followup. Mirror
