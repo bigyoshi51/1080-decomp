@@ -16974,6 +16974,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);
 
+/* gl_func_0004CCB4: 65-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CCB4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
