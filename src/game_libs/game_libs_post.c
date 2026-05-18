@@ -17470,6 +17470,32 @@ void gl_func_0004B040(int *a0) {
 // &D_g struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);
 
+// gl_func_0004B2FC — STRUCTURAL PASS (0x320 / 201 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0xC0
+// (saves ra, s0). FP matrix-vector / weighted-blend MAC kernel (sibling of
+// gl_func_00047E00; gated + global-table-sourced variant).
+//
+//   void gl_func_0004B2FC(void *a0, int a1, int a2, int a3) {
+//     if ((a3 & 1) == 0) return;                     // andi/beqz gate
+//     void *g = &D_g;
+//     float *w  = (float*)(g->pE4) + ...;             // weight/coeff stream
+//     float *acc = sp + 0x74;                          // result scratch
+//     // for each row, stride 0x10 (4 floats):
+//     //   r = w[0]*v[0] + w[1]*v[1] + w[2]*v[2] + w[3]*v[3]   (mul.s into
+//     //   f18, add.s chained into f14; w advanced 0x10, dest by 4)
+//     //   acc[k] = r;                                  (swc1 stores)
+//   }
+// Same 4-wide multiply-accumulate sweep as gl_func_00047E00 — forms the dot
+// product of a 4-float weight group with the source vector (mul.s/add.s
+// chain, 0.0 seed) and stores the result into the sp+0x74 scratch — but
+// gated on the a3 bit-0 flag and sourcing the weight/matrix data from the
+// &D_g+0xE4 global table rather than an arg. Family: FP geometry/matrix
+// transform (4x4 mat-vec / weighted vertex blend; sibling of
+// gl_func_00047E00, relates to 00040CAC / 00042778). Inner lane arithmetic
+// representative; the a3&1 gate, the &D_g+0xE4 source, the 0x10 (4-float)
+// stride, the mul.s/add.s MAC structure and the sp+0x74 result scratch are
+// exact. Caps: &D_g/weight layout + a0 struct untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B2FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B620);
