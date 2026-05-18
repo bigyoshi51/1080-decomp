@@ -14874,6 +14874,37 @@ void gl_func_000412A0(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412A0);
 #endif
 
+// gl_func_000412E8 — STRUCTURAL PASS (0x238 / 143 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
+// (saves ra, s0). Lazy multi-subobject allocator/initializer (cb = jal 0
+// USO-relocated alloc).
+//
+//   void gl_func_000412E8(void) {
+//     root = *(void**)&D_reloc;                    // s0 = module root ptr
+//     if (root == 0) { root = cb(0x1E0); if(!root) return; }  // alloc root
+//
+//     // for each managed sub-slot: if it does not already hold its
+//     // expected sentinel/handle, allocate + zero-init + store back.
+//     // The 2401FExx negative immediates are the per-slot sentinel
+//     // compares (-0x138, -0x140, -0x18C, -0x1C4, ...):
+//     if (root->p138 != SENT) { p = cb(8); if(p){p->0=0;p->4=0;} root->p138=p; }
+//     if (root->p140 != SENT) { p = cb(8); if(p){p->0=0;p->4=0;} root->p140=p; }
+//     if (root->p18C != SENT) { p = cb(4); if(p) p->0=0;        root->p18C=p; }
+//     if (root->p1C4 != SENT) { p = cb(4); ...                  root->p1C4=p; }
+//     // ... further slots with the same alloc-zero-store idiom; trailing
+//     // section loads more module globals (&D_g via lui/addiu) and wires
+//     // them similarly.
+//   }
+// Idempotent lazy constructor: a single root object (allocated on first
+// call) whose sub-blocks at +0x138/+0x140/+0x18C/+0x1C4.. are each
+// allocated-on-demand (8- or 4-byte cells, zeroed) only if the slot is not
+// already populated (sentinel-guarded). Family: cb-driven lazy
+// allocator/registration (siblings gl_func_00040070 / 0003E5E0). Per-slot
+// list not exhaustively decoded (143-word initializer) — the root-alloc
+// guard, the sentinel-compare-then-alloc-zero-store idiom, slot offsets and
+// alloc sizes are exact; later-slot specifics representative. Caps: root
+// struct, &D_reloc/&D_g globals and cb signature untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412E8);
 
 /* gl_func_00041524: 32-insn helper. Multi-pass decode pending. */
