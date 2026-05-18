@@ -7057,6 +7057,48 @@ void gl_func_00032DC0(Quad4 *dst) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00032E18);
 
+// gl_func_00033094 — STRUCTURAL PASS (0x194 / 101 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0x90 FP-heavy frame). An FP vector / transform
+// composition routine.
+//
+//   void gl_func_00033094(O *o) {
+//     Vec3 base = { o->f_A0, o->f_A4, o->f_A8 };   // primary Vec3
+//     O *child = o->p_F4;
+//     Vec3 off;
+//     if (child != 0) {
+//       off = (Vec3){ child->f_A0, child->f_A4, child->f_A8 };
+//     } else {
+//       // build off from o->0x104 / 0x108 / 0x10C (+ const 0x4120)
+//       off = (Vec3){ o->f_104, o->f_108, o->f_10C };
+//     }
+//     // FP composition: scale a vector by a scalar (f12) and add
+//     //   the offset Vec3 — position / transform update
+//     result.x = base.x * s + off.x;
+//     result.y = base.y * s + off.y;
+//     result.z = base.z * s + off.z;
+//     ... store result back into o / a child record ...
+//   }
+//
+// Struct-typing reference: an FP transform-composition leaf. It
+//   reads a primary Vec3 from the object at offsets 0xA0/0xA4/0xA8,
+//   then either pulls a second Vec3 from a child object pointed to
+//   by o->0xF4 (when non-null, selected via branch-likely beql) or
+//   synthesizes one from the scalar fields o->0x104/0x108/0x10C
+//   (with an injected constant 0x41200000 = 10.0f), and performs a
+//   per-component multiply-add (scale-by-scalar + offset) — the
+//   classic position / velocity / transform update shape. Uses a
+//   large 0x90 stack frame purely as FP scratch (Vec3 spills at
+//   sp+0x54..0x8C). A geometry/kinematics leaf of the game_libs
+//   object subsystem (the per-object math the gl_func_0002FB74
+//   interpreter and the integrator family (0002F288 / 0002F584 /
+//   00031A74) drive each frame; o->0xF4 is the child/parent link
+//   also touched by the gl_func_00032E18 constructor's sub-record).
+// Caps: raw-word USO + FP Vec3 mul-add + conditional child-deref —
+//   not exact-matchable without proper USO mnemonic disasm + the
+//   object's Vec3/child layout typed; structural pass only, no
+//   byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
