@@ -16803,6 +16803,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047644);
 // untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000476DC);
 
+// gl_func_000478FC — STRUCTURAL PASS + BOUNDARY NOTE (0x228 / 145 words, no
+// episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
+// three jr at 0x47AAC (~112w in) / 0x47AD0 / 0x47B20 delimit a named fn + 2
+// trailing small leaves (only the named fn carries the 27BDFFB8 + f20
+// prologue). Named fn ends at the jr at 0x47AAC; the trailing two (0x47AB0
+// ~9w, 0x47AD4 ~20w) are a DEFERRED USO RE-SPLIT (decode under their own
+// symbols later).
+//
+// Named fn = FP-threshold-filtered list-walk (single prologue frame 0x48,
+// saves ra + s0..s6 + f20):
+//   void gl_func_000478FC(void *a0, void *a1, void *a2, float a3) {
+//     self = a0;
+//     float thr = a3;                                 // mtc1 -> f20
+//     void *root = *(void**)(&D_0 + 0x18C);            // global list root
+//     self->p244 = 0; self->p248 = 0; self->p194 = 0;  // clear accum state
+//     it  = root ? root : 0;
+//     cur = it ? it->p00 : 0;                          // {cur,next} cursor
+//     nxt = it ? it->p04 : 0;                          //   in sp+0x40/0x44
+//     if (cur == 0) return;
+//     do {
+//       if (cur->pD0 & MASK) {                          // s6 flag-mask gate
+//         // compare/accumulate the node against thr (f20), updating
+//         // self->0x244/0x248/0x194 and per-node fields at cur+0xC4..
+//       }
+//       it = nxt; cur = it ? it->p00 : 0;
+//       nxt = it ? it->p04 : nxt;
+//     } while (cur != 0);
+//   }
+// Walks the global intrusive list rooted at &D_0+0x18C (cursor {cur,next}
+// in sp+0x40/0x44) and, for each node passing the cur->0xD0 & mask gate,
+// processes it against the a3 float threshold (held in f20), accumulating
+// into the self->0x244/0x248/0x194 state and touching per-node +0xC4 fields.
+// Family: FP-threshold list-walk processing (siblings gl_func_00040974 /
+// 000432BC / 00040E90). Per-node accumulation body representative; the
+// &D_0+0x18C root, the cleared 0x244/0x248/0x194 state, the cur->0xD0 mask
+// gate and the f20 threshold are exact. Trailing 2 leaves = deferred
+// re-split. Caps: self/node struct + the s6 mask untyped; bundle re-split
+// deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000478FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047B40);
