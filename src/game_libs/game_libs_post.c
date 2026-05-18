@@ -9144,6 +9144,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036694);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003695C);
 
+// gl_func_00036A48 — STRUCTURAL PASS (0x154 / 85 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
+// prologue — large 0xB0 frame, saves FP callee-save f20). A
+// per-element marshal-and-dispatch loop.
+//
+//   void gl_func_00036A48(O *o, a1, a2, a3, ..., int n) {
+//     // n = stack arg at sp+0xC4 ; varargs saved at sp+0xB4..
+//     float k = -1.0f;                          // f20 = 0xBF800000
+//     if (n <= 0) return;
+//     for (int i = 0; i < n; i++) {
+//       T *e = (T*)(*(int*)(sp+0xC0) + step);   // indexed table
+//       // pack a call frame: o->0, o->8, e->0, e->4, varargs...
+//       arg[2]=o->w_0; arg[3]=o->w_8; arg[5]=e->w_0; arg[6]=e->w_4;
+//       callback(&buf, o, ...);                  // jal 0 (USO cb)
+//     }
+//   }
+//
+// Struct-typing reference: a variadic batch-dispatch leaf. It saves
+//   the incoming a1/a2/a3 into a varargs spill area (sp+0xB4..),
+//   reads an element count from the stack arg at sp+0xC4, and loops
+//   that many times: each iteration gathers fields from the primary
+//   object (o->0x00, o->0x08), an element of an indexed table
+//   (base at sp+0xC0, advanced per iteration; fields +0x00/+0x04),
+//   and the saved varargs, packs them into an on-stack call-frame
+//   argument block (sp+0x08..0x18+), and invokes a USO-relocated
+//   callback (jal 0 → resolved at load) — the per-element processor
+//   (formatter / emitter / draw-each). An FP callee-save (f20 holds
+//   -1.0f) implies the callback or packed args involve a float
+//   sign/scale. A "for each element, marshal args + call handler"
+//   node of the game_libs object subsystem (the iteration backbone
+//   the gl_func_0002FB74 interpreter and the emitter family use to
+//   fan a list out to a uniform handler with extra context).
+// Caps: raw-word USO + USO-relocated jal-0 per-element callback +
+//   on-stack varargs marshalling + indexed-table walk — not exact-
+//   matchable without proper USO mnemonic disasm + the element/
+//   arg structs typed; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036A48);
 
 /* gl_func_00036B9C: 27-insn alloc-or-given + init constructor (sibling
