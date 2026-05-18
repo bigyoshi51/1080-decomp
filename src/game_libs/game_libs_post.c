@@ -14461,6 +14461,41 @@ void gl_func_00040018(Quad4 *dst) {
     *dst = scratch;
 }
 
+// gl_func_00040070 — STRUCTURAL PASS (0x230 / 141 words, no episode). Raw-.word
+// USO. realjr=1, single prologue frame 0x70 (saves ra, s0) → ONE clean
+// function (constructor). cb = jal 0 USO-relocated alloc/lookup.
+//
+//   void *gl_func_00040070(void *a0, int a1, int a2, int a3) {
+//     self = a0;
+//     if (a0 == 0) { a0 = cb(0x108); }          // alloc primary (size 0x108)
+//     if (!a0) return 0;                         // beqz bail
+//     if (a2 == 0) a2 = cb(0xB4);                // alloc sub-object B (0xB4)
+//     if (!a2) return 0;
+//     void *o = a2;
+//     o->p28 = &D_n + 0;                         // wire base ptr + sentinel
+//     if (o->p28 != -0x2C) sub = o + 0x2C;       // (2401FFD4 = -0x2C check)
+//     // staged small-alloc chain: several cb(4) 4-byte cells, each
+//     // null-checked, linked into o (a3/intermediate copied into p+0)
+//     c1 = cb(4); if (c1) c1->p00 = ...;
+//     c2 = cb(4); if (c2) c2->p00 = ...;
+//     // FP init: mtc1 + swc1 triple into a sp+0x54..0x5C scratch and
+//     // into o+0x30 (a Vec3-like zero/identity), o->p28 reloaded with
+//     // a second sentinel (2401FEFC = -0x104)
+//     cb(o + 0x30);                              // build/register vec block
+//     o->p28 = -0x104;
+//     // further cb(...) wiring + bne sentinel guards (16010006 etc.)
+//     return o;
+//   }
+// Multi-stage constructor: allocates a 0x108 primary + a 0xB4 sub-object +
+// a chain of 4-byte cells via cb, null-checks/bails at each step, wires
+// child pointers into the parent at +0x28/+0x2C, sentinels (-0x2C / -0x104)
+// stored to o->0x28 as state markers, and an FP triple initialised at
+// o+0x30 / sp scratch. Family: cb-driven allocator/registration (siblings
+// 0003E5E0/E39C). Per-stage payloads not individually decoded (141-word
+// constructor) — alloc sizes, null-check structure, wire offsets and
+// sentinel constants are exact; intermediate value flow is representative.
+// Caps: object struct + cb signature + FP-block semantics untyped. Full body
+// INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040070);
 
 /* gl_func_000402A4: 24-insn Vec3 add-to-fields-and-call.
