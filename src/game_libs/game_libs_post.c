@@ -16355,6 +16355,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045178);
 //     re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
 
+// gl_func_000454C4 — STRUCTURAL PASS (0x7E8 / 507 words, no episode). Raw-.word
+// USO. realjr=1, regjr=0 → ONE clean function (very large). Single prologue
+// frame 0x58 (saves ra + s0..s5 + f20). Per-element FP transform +
+// quantize-to-byte batch processor (FP-heavy; relates to the segment's
+// geometry serialize / byte-pack routines).
+//
+//   void gl_func_000454C4(void *out, Batch a1) {
+//     int n = a1->p2C;                              // element count
+//     float CS = 255.0f;                             // 0x437F0000 colour scale
+//     a1->p04 += 1;                                  // bump a write/seq index
+//     for (i = 0; i < n; i++) {
+//       Elem *e = ... (a1->p04-indexed entry);
+//       // per-element: load src vec/quad (e->0x00 / e->0xFC ...), apply
+//       // mul.s products + cvt/trunc.w.s conversions, select a lane via
+//       // the (x & 0x78) mask (same per-lane select idiom as
+//       // gl_func_000430E4 / 00043484), clamp via c.lt.s against FP-pool
+//       // / 0x4F00.. (2^31) and 0x437F (255.0) constants, then pack the
+//       // quantized bytes into the output record:
+//       *(packed bytes) = quantize(e, CS);
+//     }
+//   }
+// A sizeable batch transform: walks the a1->0x04-indexed element list of
+// length a1->0x2C and, per element, runs an FP product/convert pipeline
+// (mul.s / cvt / trunc.w.s) with the 0x78 lane-select mask and a 255.0
+// colour scale, emitting quantized packed output. Family: FP geometry
+// serialize / colour-quantize batch (siblings gl_func_000430E4 / 00043484 /
+// 00042778; this is the large multi-element driver). Per-element arithmetic
+// not exhaustively decoded (507-word processor) — the a1->0x2C count, the
+// a1->0x04 index bump, the 255.0 (0x437F0000) scale, the 0x78 lane mask and
+// the unsigned-to-float 0x4F00.. correction constant are exact; the exact
+// pack layout is representative. Caps: Batch/Elem struct, FP-pool refs and
+// the output record format untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000454C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
