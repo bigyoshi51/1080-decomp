@@ -6903,6 +6903,48 @@ void game_libs_func_00031A64(void) {
     *(int*)((char*)&D_00000000 + 0x1CAA8) = -1;
 }
 
+// gl_func_00031A74 — STRUCTURAL PASS (0x304 / 193 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION — exactly
+// ONE prologue; the three jr $ra are multiple RETURN points (early
+// exits), NOT a multi-fn bundle (boundary-checked: no interior
+// prologue between the returns). A state-gated FP integrator.
+//
+//   void gl_func_00031A74(int a0, float v, signed char sel) {
+//     if (sel != 1) { ... alternate path / return ... }
+//     int st = *(int*)&D_0;                   // global state word
+//     if (st == 4)  { ... }
+//     else if (st == 0xB) { ... }
+//     else {
+//       float acc = G_fp_2CAC0;               // global accumulator
+//       float lim = *(float*)(&D_0 + 0x1968);
+//       if (acc > lim) acc = 0.0f;            // clamp / reset
+//       acc *= *(float*)(&D_0 + 0x196C);      // scale
+//       ... mix with v (f12) ...
+//       G_fp_2CAC0 = acc;                     // store back
+//     }
+//     if (*(int*)&D_0 == 0) { ... }           // state==0 branch
+//     ...                                     // (3 return points)
+//   }
+//
+// Struct-typing reference: a per-call FP state integrator gated on
+//   a signed-byte selector (only sel==1 runs the main body). It
+//   reads the global state word at &D_0 and, by state value
+//   {4 / 0xB / other}, advances a global float accumulator located
+//   in the USO data segment (referenced as -0x3540(0x0002....),
+//   i.e. a fixed data-segment FP global, addr ~0x0002CAC0),
+//   clamping it against the limit float &D_0+0x1968, scaling by
+//   &D_0+0x196C, and mixing in the float argument (f12). Has three
+//   return points (selector miss, state-specific early exits, and
+//   the main update fallthrough). A physics/value-ramp state node
+//   of the game_libs object subsystem (the global-accumulator
+//   counterpart to the per-object gl_func_0002F288 / 0002F584
+//   integrators; driven each frame by the gl_func_0002FB74
+//   interpreter through the &D_0 state word).
+// Caps: raw-word USO + data-segment FP global (-0x3540 base
+//   unsymbolized) + &D_0 state gate + multi-return — not exact-
+//   matchable without proper USO mnemonic disasm + the data-seg FP
+//   global symbolized; structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031A74);
 
 extern int gl_data_00000000;
