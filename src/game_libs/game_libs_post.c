@@ -454,6 +454,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
 
+// gl_func_0001F248 — STRUCTURAL PASS (0x180 / 96 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A texture-block-load display-list builder in the game_libs
+// F3D family. -0x20 frame, ra/s0 saved, a3 at sp+0x2C.
+//
+//   Gfx *gl_func_0001F248(Gfx *dst, H *a1, B *a2, int a3) {
+//     int   w   = a1[0];
+//     byte  b6  = a1->b_6;
+//     int   typ = (w << 11) >> 30;              // 2-bit type field
+//     if (typ != 0) {
+//       int   sz  = (a3 * 2 + 0xF) & ~0xF;       // 16-align size
+//       void *src = a2->w_8;
+//       jal 0x31D3C(dst, 0x580, sz, src|0x80000000);  // 0x0C00C74F
+//       dst += 8;
+//       dst->word0 = 0x14080580;                  // tex-setup GBI cmd
+//       dst->word1 = ...;                          // (a2->0x10 etc.)
+//       dst += 8;
+//       ... a few more texture-setup GBI words ...
+//     }
+//     return dst;                                  // advanced cursor
+//   }
+//
+// Struct-typing reference: a1 header — word a1[0] holds a packed
+//   2-bit type selector at <<11>>30 (gates the whole emit), byte
+//   a1->6 a sub-mode. a2 block — word a2->8 is the texture source
+//   pointer (made segment/physical via |0x80000000), halfword/word
+//   a2->0x10 feeds the tile-setup command. Emitted commands use the
+//   0x580 tile descriptor and a 0x14080580 word0 (a load-block-class
+//   GBI op). Fixed routine 0x0C00C74F (≈0x31D3C) does the actual
+//   DMA/load setup. Sibling of the gl_func_0001EE78 / gl_func_0001EF20
+//   F3D-emitter family.
+// Caps: raw-word USO + fixed-target call + packed-bitfield gate —
+//   not exact-matchable without proper USO mnemonic disasm; high-
+//   level structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
