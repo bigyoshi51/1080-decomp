@@ -11493,7 +11493,19 @@ void game_uso_func_000115EC(int *a0, int a1) {
  * D[0xE44],1) else X(s0,D[0xDC8],D[0xDCC],1); s0->0x114=0.
  * bgtzl: >0 case D-pair load in delay; s0->0x114=0 on both paths.
  * USO: call -> func_00000000, data -> &D_00000000+off. */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011624);
+void game_uso_func_00011624(int *a0) {
+    int *pair;
+
+    gl_func_00000000(a0);
+    gl_func_00000000(a0, a0[0x108 / 4], 0, 1, 1, 1);
+    if (((int *)a0[0xB4 / 4])[0xA14 / 4] > 0) {
+        pair = (int *)((char *)&D_00000000 + 0xE40);
+    } else {
+        pair = (int *)((char *)&D_00000000 + 0xDC8);
+    }
+    gl_func_00000000(a0, pair[0], pair[1], 1);
+    a0[0x114 / 4] = 0;
+}
 
 /* game_uso_func_000116D4: 31-insn (0x7C) flag-gated double-call wrapper.
  * Promoted from 79.97% NM-wrap to byte-exact via the family-cap recipe
