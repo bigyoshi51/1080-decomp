@@ -22662,6 +22662,7 @@ void gl_func_00068F64(Quad4 *dst) {
     *dst = scratch;
 }
 
+/* gl_func_00068FBC: 59-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068FBC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
