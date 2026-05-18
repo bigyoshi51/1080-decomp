@@ -1737,6 +1737,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023284);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
 
+// gl_func_000233E4 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). Another SIBLING of the gl_func_00022FC0 / gl_func_000232E8
+// buffer-run consumer family: per-element poll + lookup + handler.
+//
+//   void gl_func_000233E4(int idx) {
+//     S *g = &D_0;
+//     short *buf = g->w_2028;                            // record buf
+//     int cur = buf[idx];                                 // run start
+//     byte cnt = *((char*)buf + cur);                     // run length
+//     do {
+//       cur++;
+//       byte e = *((char*)buf + cur);                      // element
+//       jal 0x38174(e);                                    // 0x0C00E05D
+//       int r = (*lookup)(1);                              // jal 0 USO
+//       if (r != 0) {
+//         jal 0x37B00(r);                                  // 0x0C00DEC0
+//         (*handler)(0);                                   // jal 0 USO
+//       }
+//       cnt--;
+//     } while (cnt != 0);
+//     ... finalize via buf[idx] / &D_0+0x23FA ...
+//   }
+//
+// Struct-typing reference: walks the SAME per-slot record buffer as
+//   gl_func_00022FC0 / gl_func_000232E8 (word &D_0+0x2028 base,
+//   idx<<1 stride, cursor + run-length byte stream). Per element it
+//   calls the shared poll routine 0x0C00E05D (≈0x38174), then a
+//   USO-relocated lookup (`jal 0` slot); on a hit it runs the fixed
+//   action 0x0C00DEC0 (≈0x37B00) and a second USO-reloc handler.
+//   Halfword &D_0+0x23FA is read in the tail finalize. The
+//   poll+lookup+conditional-handler member of the buffer-run family.
+// Caps: raw-word USO + fixed-target + jal-0 USO-reloc per-element
+//   calls — not exact-matchable without proper USO mnemonic disasm;
+//   structural pass only, no byte body.
+// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
