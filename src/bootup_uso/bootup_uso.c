@@ -2918,6 +2918,18 @@ void func_000083D0(int *a0) {
     func_00000000(&D_00000000);
     func_00000000(a0);
 }
+/* Status 2026-05-18: build-path tested. 30/30 insns, build/.o vs
+ * expected/.o differ at EXACTLY ONE word (w5, 0x14): the call-1
+ * arg2. Target's .s uses %hi/%lo of LOCAL label `.L00007FD4`
+ * (assembled-in intra-segment → expected/.o bakes addiu a1,a1,0x7FC4,
+ * NO reloc). This NM uses extern `&D_00007FD4` (D_00007FD4=0x7FD4 in
+ * undefined_syms) → emits a reloc with placeholder 0 (build/.o
+ * 24A50000). The 0x10 delta (0x7FD4 vs 0x7FC4) = lui/addiu %hi-carry
+ * of a local-label pair, NOT a flat symbol. w12 (&D_00007FDC) is
+ * CORRECT (matches .o-vs-.o). Fix path: reference the local
+ * `.L00007FD4` segment data symbol at the value that bakes 0x7FC4 in
+ * %lo (account for %hi carry), not the flat extern. Reloc word →
+ * INSN_PATCH-unsafe. One-word symbol-form cap; rest byte-exact. */
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000083D0);
 #endif
