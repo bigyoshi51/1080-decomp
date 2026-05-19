@@ -17514,6 +17514,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ACD4);
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ *
+ * build/non_matching test 2026-05-19: 33 vs 35 (count -2).
+ * Confirms the D_BASE-placeholder bug (target `lui 2` vs built
+ * `lui 0`): promote requires `D_BASE` → `(char*)&D_00000000`
+ * with the offsets folded (`+0x200BC` / `+0x200E0`, absorbing the
+ * 0x20000 the lui carried). Assert is 4-arg (str,str,0xAAF,self).
+ * After the symbol fix the residual is the usual count-2
+ * codegen-shaping (base reload after assert, idx-base recompute,
+ * cap*10 shift chain). Deferred to a focused pass; INCLUDE_ASM
+ * build path. (Cross-fn pattern → memo
+ * project_1080_D_BASE_placeholder_batch_2026-05-19.)
  */
 void gl_func_0004ADB4(int *self, int val, int idx) {
     extern int D_BASE;
