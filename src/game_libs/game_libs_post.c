@@ -6041,11 +6041,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A18);
 //   (the same auxiliary table gl_func_0001FAE8 uses). This is the
 //   one-time "construct/clear every sprite record" pass that primes
 //   the subsystem before gl_func_0002119C drives it per-frame.
-// Caps: raw-word USO + record-init loop with jal-0 USO-reloc per
-//   record — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + record-init loop with jal-0
+//   USO-reloc — byte-match needs USO mnemonic disasm + reloc-pad jal
+//   infra. Real-C STRUCTURAL body below per the analysis (placeholder
+//   calls / fields). Byte-match deferred.
+//   Name pre-checked: no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00028A68(void) {
+    int n;
+    int i;
+    gl_func_00000000((char *)&D_00000000 + 0x5378);
+    n = *(int *)((char *)&D_00000000 + 0x2070);
+    if (n <= 0) return;
+    for (i = 0; i < n; i++) {
+        char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + i * 0xD0;
+        *(int *)(rec + 8) = (int)rec;
+        *(int *)rec = 0;
+        gl_func_00000000(rec);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A68);
+#endif
 
 // gl_func_00028B0C — STRUCTURAL PASS (0x160 / 88 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
