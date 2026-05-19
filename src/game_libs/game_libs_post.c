@@ -27651,8 +27651,77 @@ out:
     ;
 }
 
-/* gl_func_0006AF44: 65-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006AF44: 65-insn list-unlink + cleanup helper (size 0x104, frame 0x38, saves s0/s1/s2).
+ *
+ * Operates on a singleton linked list at D+0:
+ *   struct Node {
+ *       int     _0;        // 0x0
+ *       int     tag;       // 0x4 — -1 means list-end sentinel
+ *       void   *sub_ptr;   // 0x8
+ *       int    _C_or_next; // 0xC — next pointer (for list nodes) / data (for sentinel)
+ *       u16     state;     // 0x10 — halfword: != 1 means "needs pre-unlink hook"
+ *   };
+ *
+ * Decoded structure (raw-word disasm):
+ *   void unlink_and_cleanup(Node *target) {
+ *       void *prelim = setup_hook();           // jal <func> (no args set, uses caller-supplied?)
+ *       int saved_target = (int)target;
+ *
+ *       if (target == NULL) {
+ *           target = *(Node**)&D_00000000;      // load head as fallback
+ *           goto search_list;
+ *       }
+ *
+ *       // Pre-unlink hook: if state != 1, fire callback
+ *       if (target->state != 1) {
+ *           callback(target->sub_ptr, target);   // jal <func>(target->[0x8], target)
+ *       }
+ *
+ *   search_list:
+ *       Node *head = *(Node**)&D_00000000;
+ *       if (head == target) {
+ *           // Unlink at head: shift head pointer to next
+ *           *(Node**)&D_00000000 = head->_C_or_next;
+ *           goto post_unlink;
+ *       }
+ *       // Search through list for target
+ *       Node *curr = *(Node**)&D_00000000;      // re-load head (separate lui/lw pair)
+ *       while (curr->tag != -1) {                // -1 sentinel terminator
+ *           Node *next = curr->_C_or_next;
+ *           if (next == target) {
+ *               curr->_C_or_next = target->_C_or_next;   // unlink middle
+ *               goto post_unlink;
+ *           }
+ *           curr = next;
+ *       }
+ *       // (fell off end: target not in list — no-op for unlink)
+ *
+ *   post_unlink:
+ *       // If target was the head: extra cleanup call
+ *       Node *new_head = *(Node**)&D_00000000;
+ *       if (target == new_head) {
+ *           extra_cleanup();                     // jal <func> (no args)
+ *       }
+ *       final_cleanup(prelim);                  // jal <func>(prelim_from_first_jal)
+ *   }
+ *
+ * Notes:
+ *  - The `lui $s1, 0; lw $s1, 0($s1)` PAIR re-loads head AFTER the head==target
+ *    check — slight redundancy from IDO not folding the load. Both reads return
+ *    the same value when the head wasn't modified.
+ *  - "tag = -1 sentinel" pattern: walking ends when curr->[0x4] == 0xFFFFFFFF.
+ *    Likely a global static node placed as list terminator.
+ *  - 5 jal calls total: 1 setup_hook (entry), 1 pre-unlink callback (conditional),
+ *    1 extra_cleanup (if target was head), 1 final_cleanup (always), and 1
+ *    in the search-not-found-target path (not shown — actually no, only 4 jal
+ *    are visible in the raw asm).
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_0006B048: libc-style bzero / memset-zero (declared size 0xB4, 45 words).
