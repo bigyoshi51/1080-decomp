@@ -23622,8 +23622,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060D40);
 void game_libs_func_00060DBC(int a0) {
 }
 
-/* gl_func_00060DC4: 67-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00060DC4: 67-insn flag-bit cascade dispatcher (0x10C, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   state = self->[0x2C];
+ *   if (state == NULL) return;                        // beql v0,$0,exit
+ *   flags1 = state->[0x10];
+ *   flags2 = state->[0x18];                            // secondary flag word
+ *
+ *   // Cascade of bit-tests on flags1 + flags2; each fires a different dispatch:
+ *   if (flags1 & 0x800) func1();
+ *   if (flags2 & 0x1)   func2();
+ *   if (flags1 & 0x2)   func3(self);
+ *   if (flags1 & 0x4)   func4(self);                  // re-loaded after each call
+ *   if (flags1 & 0x8)   func5(self);
+ *   if (flags1 & 0x1)   func6(self);
+ *   if (flags1 & 0x2)   func7(self);                  // duplicate-bit test
+ *   func8(self->[0x38]);                               // unconditional tail call
+ *
+ * The flags1 is reloaded between each test (via `lw flags1, 0x10(state)`)
+ * because the dispatched functions may modify state→[0x10]. Same pattern
+ * as flag-driven dispatch matrix (cf. gl_func_0000E05C). Tests are ordered
+ * by bit priority: 0x800 (high), then 0x1/0x2/0x4/0x8/0x1/0x2.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00060DC4(int *self) {
+    int *state = (int*)self[0x2C / 4];
+    if (state == 0) return;
+    if (state[0x10 / 4] & 0x800) gl_func_00000000();
+    if (state[0x18 / 4] & 0x1)   gl_func_00000000(self);
+    if (((int*)self[0x2C / 4])[0x10 / 4] & 0x4) gl_func_00000000(self);
+    if (((int*)self[0x2C / 4])[0x10 / 4] & 0x8) gl_func_00000000(self);
+    if (((int*)self[0x2C / 4])[0x10 / 4] & 0x1) gl_func_00000000(self);
+    if (((int*)self[0x2C / 4])[0x10 / 4] & 0x2) gl_func_00000000(self);
+    gl_func_00000000(self[0x38 / 4]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060DC4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060ED0);
 
