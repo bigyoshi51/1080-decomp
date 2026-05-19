@@ -343,11 +343,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D3E0);
 //   word1 = caller arg) then the cursor is advanced by 8 and handed
 //   to the fixed RSP-submit routine 0x0C00C5C6. Sibling of the
 //   game_libs F3D/RSP display-list builder family.
-// Caps: raw-word USO + 40-fn unsplit bundle + fixed-target calls —
-//   not exact-matchable without proper USO mnemonic disasm; structural
-//   pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "40-fn unsplit bundle" note is
+//   STALE — .s is 0x94/37 words, ONE function). Glyph-quad DL
+//   emitter of the family: record from a sub-index, visibility gate
+//   (rec->0x1C == 1, bnel-skip), helper call, two F3D command words
+//   packed (v1->0x20 | 0x0C340000, then 0x0C8003E0) into the DL
+//   buffer, second helper, return advanced ptr. Real-C structural
+//   body below; byte-match deferred — two fixed jal targets
+//   (0x31648 / 0x31718) need symbols, and the multu/mflo + bnel
+//   schedule is IDO-sensitive. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder for the two fixed helpers.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_0001D4C0(int *v0, int ctx, int sub) {
+    short si = (short)sub;
+    int *v1 = (int *)((char *)v0 + si);
+    signed char k = *((signed char *)v1 + 0x1D);
+    int *t8 = (int *)((char *)v0 + k * ctx);
+    if (*((unsigned char *)t8 + 0x1C) != 1) {
+        return (int)v0;
+    }
+    gl_func_00000000(v1, si);
+    v0[0] = *(unsigned short *)((char *)v1 + 0x20) | 0x0C340000;
+    v0[1] = 0x0C8003E0;
+    gl_func_00000000((char *)v0 + 8, *((signed char *)v1 + 0x1D));
+    return (int)v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D4C0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D554);
 
