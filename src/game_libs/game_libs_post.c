@@ -17491,8 +17491,51 @@ void game_libs_func_0004ACCC(int a0) {
 /* gl_func_0004ACD4: 56-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ACD4);
 
-/* gl_func_0004ADB4: 35-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004ADB4: 35-insn bounds-checked short[] index-store (0x8C, frame 0x18).
+ *
+ * Decoded structure (raw-word disasm):
+ *   cap  = self->[0x40];                              // capacity (count)
+ *   base = (short)self->[0xD4];                       // base index
+ *   limit = cap * 10;                                 // via shifts: cap<<2 + cap → cap*5, then <<1
+ *   offset = idx - base;
+ *   if ((unsigned)offset >= (unsigned)limit) {
+ *       assert(&D_BASE + 0xBC, &D_BASE + 0xE0, 0xAAF, self);  // bounds-check assert
+ *   }
+ *   // (reload v0=base after assert in case it returns)
+ *   short *target = (short*)((char*)self->[0xD0] + (idx - base) * 2);
+ *   *target = (short)val;
+ *
+ * The `cap * 10` multiplier suggests each element in self->[0xD0] is 10
+ * bytes total (1 short = 2 bytes × 10 = 20-byte stride per logical entry?)
+ * — but the actual store is 2 bytes (short), with offset multiplied by 2.
+ * So the array layout is: 10 shorts per logical entry; this fn writes the
+ * first short of the (idx - base)-th logical entry.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0004ADB4(int *self, int val, int idx) {
+    extern int D_BASE;
+    int cap = self[0x40 / 4];
+    short base = *(short*)((char*)self + 0xD4);
+    unsigned int limit = (unsigned int)cap * 10;
+    int offset = idx - base;
+    if ((unsigned int)offset >= limit) {
+        gl_func_00000000((char*)&D_BASE + 0xBC,
+                          (char*)&D_BASE + 0xE0,
+                          0xAAF,
+                          self);
+        base = *(short*)((char*)self + 0xD4);  // reload after assert
+    }
+    {
+        short *target = (short*)((char*)self[0xD0 / 4] + (idx - base) * 2);
+        *target = (short)val;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
+#endif
 
 // gl_func_0004AE40 — STRUCTURAL PASS (0x170 / 93 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x30
