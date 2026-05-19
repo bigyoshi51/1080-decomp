@@ -250,13 +250,28 @@ int gl_func_00001114(char *a0) {
  * Picks one of 3 format-string variants from gl_data based on a1's
  * magnitude:
  *   a1 < 10   → format at &gl_data + 0xCC10  (with a2 = a1)
- *   a1 < 100  → format at &gl_data + 0xCC18  (3-arg)
+ *   a1 < 100  → format at &gl_data + 0xCC18
  *   else      → format at &gl_data + 0xCC1C  (likely 4-digit / large)
  *
- * Likely a digit-count-driven number-to-text formatter — pads or
- * positions output based on how many digits a1 needs. Each arm calls
+ * Digit-count-driven number-to-text formatter; each arm calls
  * gl_func_00000000 (cross-USO printf-like) with (a0 + 0xE4) as the
- * destination buffer. */
+ * destination buffer.
+ *
+ * Tested on build path 2026-05-18: builds ERR=0, arm1 (a1<10) is
+ * byte-exact (w0..w9), but total 29 vs 28 insns and arm2/arm3
+ * diverge. Root cause: this is a VARARGS cb with a DIFFERENT arg
+ * count per arm, and the target fills each jal delay slot by
+ * RE-deriving a0 = a3+0xE4 (a3 = saved orig a0 from `or a3,a0,0`):
+ *   arm1: cb(a0+0xE4, &+0xCC10, a1)        ; a2=a1 set pre-branch
+ *   arm2: cb(a0+0xE4, &+0xCC18)            ; only 2 args, the second
+ *         a0=a3+0xE4 is the DELAY-SLOT redundant recompute, NOT a
+ *         3rd arg (current C wrongly passes a0+0xE4 as arg3 → extra
+ *         insn + reorder)
+ *   arm3: cb(a0, &+0xCC1C)                 ; a0 = orig a0 (NO +0xE4;
+ *         arm3 has no addiu a0 — buffer is orig a0, not a0+0xE4)
+ * Next pass: drop arm2's 3rd arg; arm3 buffer = a0 (not a0+0xE4);
+ * keep a3=orig-a0 alive so IDO recomputes a0=a3+0xE4 in arm1/arm2
+ * delay slots. Promotable with per-arm arg-count fix. */
 extern int gl_data_00000000;
 void gl_func_00001134(char *a0, int a1) {
     if (a1 < 10) {
