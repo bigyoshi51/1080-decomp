@@ -21820,8 +21820,48 @@ void game_libs_func_00061C88(int *a0, int *a1) {
     a0[3] = (int)a1;
 }
 
-/* gl_func_00061C9C: 32-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00061C9C: 32-insn linked-list find-and-unlink (0x80, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   cur = self->[0xC];                              // head of chain
+ *   while (cur != NULL) {
+ *       if (cur == target) {                        // bne a2,a1,advance
+ *           recurse = func(cur, target, cur, self); // 4-arg recursive helper
+ *           if (recurse != NULL) {
+ *               recurse->[0x60] = target->[0x60];   // splice: recurse->next = target->next
+ *           } else {
+ *               self->[0xC] = target->[0x60];       // direct head-unlink
+ *           }
+ *           return;                                  // both b → epilogue
+ *       }
+ *       cur = cur->[0x60];                           // advance via next ptr (offset 96)
+ *   }
+ *
+ * Offset 0x60 = 96 is the "next" pointer slot in this node layout.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00061C9C(int *self, int *target) {
+    int *cur = (int*)self[0xC / 4];
+    int *recurse;
+    while (cur != 0) {
+        if (cur == target) {
+            recurse = (int*)gl_func_00000000(cur, target, cur, self);
+            if (recurse != 0) {
+                recurse[0x60 / 4] = target[0x60 / 4];
+            } else {
+                self[0xC / 4] = target[0x60 / 4];
+            }
+            return;
+        }
+        cur = (int*)cur[0x60 / 4];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061C9C);
+#endif
 
 void gl_func_00061D1C(int *a0, int matchval) {
     int *node = (int*)a0[0xC/4];
