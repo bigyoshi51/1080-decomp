@@ -29750,8 +29750,59 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071D40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071ED8);
 
-/* gl_func_00072134: 63-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00072134: 63-insn save-data verification with retry-on-error-2 (size 0xFC, frame 0x40).
+ *
+ * Verifies a 32-byte block read from a save channel against a stored expected
+ * copy. Includes a re-init early step (if flag at obj+0x65 is set) and a
+ * one-time retry if the reader returns specific error code 2.
+ *
+ * Decoded structure (raw-word disasm):
+ *   int verify_save_block(Obj *obj) {
+ *       // Stage 1: optional re-init step
+ *       if (obj->flag_65 != 0) {
+ *           obj->flag_65 = 0;
+ *           int err = reinit(obj);          // jal #1
+ *           if (err != 0) return err;
+ *       }
+ *
+ *       // Stage 2: read 32 bytes into local buffer at sp+0x1C
+ *       uint8_t buf[32];
+ *       int err = read_save_block(obj->[0x4], obj->[0x8], 1, &buf);  // jal #2
+ *       if (err != 0) {
+ *           if (err != 2) return err;       // hard error
+ *           // err == 2: retry once
+ *           err = read_save_block(obj->[0x4], obj->[0x8], 1, &buf);  // jal #3 (same args)
+ *           if (err != 0) return err;
+ *       }
+ *
+ *       // Stage 3: byte-compare 32 bytes at buf[] against obj->expected[]
+ *       for (int i = 0; i < 0x20; i++) {
+ *           uint8_t got      = *(uint8_t*)((char*)&buf + i + 0x0);
+ *           uint8_t expected = *(uint8_t*)((char*)obj  + i + 0xC);
+ *           if (got != expected) return 2;   // byte mismatch
+ *       }
+ *       return 0;                            // OK
+ *   }
+ *
+ * Notes:
+ *  - obj layout: `flag_65` at +0x65 (re-init flag), `channel/handle` at +0x4
+ *    and +0x8 (likely controller-pak channel + file handle), expected hash
+ *    at +0xC..+0x2B (32 bytes).
+ *  - Error-code 2 has special "retry-once" semantics; other non-zero errors
+ *    propagate directly. Caller likely uses error 2 from the verify to drive
+ *    its own recovery (re-format pak, reset save state, etc.).
+ *  - Compare loop uses `sp + loop_idx + 0x1C` addressing — addu $tN, $sp,
+ *    $loop_idx then lbu with +0x1C offset = standard array indexing without
+ *    multiplier (byte-stride).
+ *  - The double-read-retry pattern is hallmark of N64 Controller Pak access
+ *    (jitter / cmd-retry on hardware-level transient failures).
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072134);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072230);
 
