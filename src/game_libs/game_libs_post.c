@@ -23529,8 +23529,62 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000608A4);
  * once varargs idiom is needed elsewhere. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060A74);
 
-/* gl_func_00060AD0: 67-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00060AD0: 67-insn per-element char-classify + dispatch loop (0x10C, frame 0x30).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (count <= 0) return;
+ *   for (i = 0; i < count; i++) {
+ *       ch = src[i];                                   // byte read
+ *       if (ch == 10 /*'\n'*/) {
+ *           // newline path:
+ *           ptr1 = a1->[0];
+ *           ptr2 = a1->[0] + i*4;
+ *           func_a(self, *ptr2);
+ *           *dst_byte_ptr = 0;
+ *           continue;
+ *       } else if (i < a1->[0x8] /* limit */) {
+ *           // in-range path:
+ *           ptr = a1->[0] + i*4;
+ *           func_b(self, *ptr);
+ *           *dst_byte_ptr = 0;
+ *           continue;
+ *       } else {
+ *           // out-of-range: decrement counter, byte-write character ch
+ *           a1->[0x4]++;
+ *           dst_byte_ptr[shift] = (byte)ch;
+ *           i--;
+ *       }
+ *   }
+ *
+ * 3-way per-character dispatch loop: newline character (10) → 1st action;
+ * in-range index → 2nd action; out-of-range → 3rd action (advance counter
+ * + byte copy). Common pattern for tokenizer / format-string scanner.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00060AD0(int *self, int *a1, int a2, int count, char *src) {
+    /* 3-way per-char loop: newline, in-range, out-of-range dispatch.
+     * Real body has intricate index math + 2 jals per iter. Approximate
+     * structural decode; cap class: format-translation needs source-data
+     * knowledge for exact byte-match. */
+    int i;
+    if (count <= 0) return;
+    for (i = 0; i < count; i++) {
+        char ch = src[i];
+        if (ch == 10) {
+            gl_func_00000000(self, *(int*)((char*)a1[0] + i * 4));
+        } else if (i < (int)a1[2]) {
+            gl_func_00000000(self, *(int*)((char*)a1[0] + i * 4));
+        } else {
+            a1[1]++;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060AD0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060BDC);
 
