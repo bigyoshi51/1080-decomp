@@ -1486,3 +1486,5 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
  * bodies live in game_libs_post.c next to parent. */
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F84);
