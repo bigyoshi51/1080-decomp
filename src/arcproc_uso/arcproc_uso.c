@@ -28,3 +28,5 @@ void arcproc_uso_func_00000000(int *dst) {
     *dst = buf[0];
 }
 
+
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EEC);
