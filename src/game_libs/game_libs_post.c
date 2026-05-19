@@ -19195,6 +19195,8 @@ end:
 // bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E138);
+
 /* Vtable-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
  * declare p2 FIRST with p1's load inlined; IDO CSE's the duplicated
  * `a0->0x134` load and assigns $v1 to p1, $v0 to p2 (target's regalloc).
