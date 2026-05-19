@@ -16071,11 +16071,30 @@ void game_libs_func_00044534(int a0, int a1) {
 // these two words belong to the next function. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
 
-/* gl_func_00044548: 25-insn pointer-chain + counter + array-update.
- * Structure: t = (a0->0xC)->0->0; call(t + (a1*8)); (a0->0xC)->0x4 += 1;
- *   then write 2 ints into table indexed by a1. Multi-pass decode pending —
- *   needs typed struct walk for the chain and INSN_PATCH for resolved jal. */
+#ifdef NON_MATCHING
+/* gl_func_00044548: 25-insn DList/RDP-cmd appender.
+ *   rv = func(*(a0->[0xC]) + a0[0] * 8);   // call uses a0's element
+ *   counter = a1->[0xC]->[0x4];
+ *   a1->[0xC]->[0x4] = counter + 1;
+ *   entry = a1->[0xC]->[0] + counter * 8;
+ *   entry[0] = 0x06000000;   // DList tag
+ *   entry[1] = rv;
+ * The 0x06000000 constant is the F3DEX2 G_DL command opcode marker. */
+extern int gl_func_00000000();
+void gl_func_00044548(int *a0, int **a1) {
+    int rv;
+    int counter;
+    int *base;
+    rv = gl_func_00000000((char*)((int**)a0[0xC/4])[0] + a0[0] * 8);
+    counter = ((int*)a1[0xC/4])[0x4/4];
+    base = (int*)((int*)a1[0xC/4])[0];
+    ((int*)a1[0xC/4])[0x4/4] = counter + 1;
+    base[counter * 2 + 0] = 0x06000000;
+    base[counter * 2 + 1] = rv;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044548);
+#endif
 
 // gl_func_000445AC — STRUCTURAL PASS (0x368 / 219 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
