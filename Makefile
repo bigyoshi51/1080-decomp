@@ -368,7 +368,11 @@ build/src/timproc_uso_b3/timproc_uso_b3.c.o: INSN_PATCH := \
 	timproc_uso_b3_func_000010E4=0x24:0x8CA20048,0x28:0x24040005,0x2C:0x8C43007C,0x30:0x50600007,0x34:0x24040028,0x44:0x8CA20048,0x48:0x8C43007C,0x4C:0x24040028,0x50:0x00640019,0x5C:0x004E7821,0x60:0x8DF80090,0x64:0x5300000B,0x70:0x8CA20048,0x74:0x8C59007C,0x78:0x03240019,0x7C:0x00004012,0x80:0x00484821,0x84:0x8D390090,0x88:0x0320F809,0x8C:0x00000000 \
 	timproc_uso_b3_func_00002700=0x2C:0x022f2825,0x50:0x02282825,0x6C:0x022b2825,0x88:0x022e2825,0xA4:0x02392825,0xC0:0x022a2825,0xDC:0x022d2825,0xF8:0x02382825 \
 	timproc_uso_b3_func_00001870=0x10:0x8FA70018,0x1C:0x8CE400D4,0x24:0xC480072C,0x28:0x2482072C,0x3C:0xC4440000,0x48:0xE4480000,0x4C:0x8CE400D4,0x50:0xC48A072C,0x54:0x4602503C,0x60:0x8C8606AC,0x64:0xE482072C,0x68:0x8CE400D4,0x6C:0x8C8606AC,0x74:0xAFA70018,0x78:0x8FA70018,0x80:0x8CEE00D4,0x84:0xC5C0072C,0x9C:0x00E02025
+TIMPROC_B1_5A4_DONOR := build/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o
 build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1.c.o: PROLOGUE_STEALS := timproc_uso_b1_func_00000800=8 timproc_uso_b1_func_00000734=8 timproc_uso_b1_func_00000778=8 timproc_uso_b1_func_000007BC=8 timproc_uso_b1_func_00002030=8
+build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1.c.o: REPLACE_FUNC_BODY := timproc_uso_b1_func_000005A4=$(TIMPROC_B1_5A4_DONOR)
+build/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o: OPT_FLAGS := -O0
+build/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o: INSN_PATCH := timproc_uso_b1_func_000005A4=0x30:0x8CA50148,0x54:0xAC30014C,0x98:0xAC200068
 build/src/timproc_uso_b5/timproc_uso_b5.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: PROLOGUE_STEALS := timproc_uso_b5_func_0000E5D8=8 timproc_uso_b5_func_00003F5C=4
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: SUFFIX_BYTES := timproc_uso_b1_func_00001FE4=0x3C040000,0x8C840148 timproc_uso_b1_func_00002178=0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: SUFFIX_BYTES += timproc_uso_b1_func_00001130=0x3C013F80,0x44810000
@@ -519,7 +523,7 @@ build/src/timproc_uso_b1/timproc_uso_b1.c.o: INSN_PATCH += timproc_uso_b1_func_0
 build/src/timproc_uso_b1/timproc_uso_b1.c.o: INSN_PATCH += timproc_uso_b1_func_00001908=0x10:0x8FA70018,0x1C:0x8CE400D4,0x24:0xC480072C,0x28:0x2482072C,0x3C:0xC4440000,0x48:0xE4480000,0x4C:0x8CE400D4,0x50:0xC48A072C,0x54:0x4602503C,0x60:0x8C8606AC,0x64:0xE482072C,0x68:0x8CE400D4,0x6C:0x8C8606AC,0x74:0xAFA70018,0x78:0x8FA70018,0x80:0x8CEE00D4,0x84:0xC5C0072C,0x9C:0x00E02025
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
-C_FILES   := $(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null)
+C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 
@@ -575,6 +579,12 @@ build/src/%.c.o: src/%.c
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ \
 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
+	@if [ -n "$(REPLACE_FUNC_BODY)" ]; then for spec in $(REPLACE_FUNC_BODY); do \
+		fn=$$(echo $$spec | cut -d= -f1); \
+		donor=$$(echo $$spec | cut -d= -f2); \
+		$(MAKE) $$donor; \
+		python3 scripts/replace-function-body.py $@ $$fn $$donor; \
+	done; fi
 	@if [ -n "$(PROLOGUE_STEALS)" ]; then for spec in $(PROLOGUE_STEALS); do \
 		fn=$$(echo $$spec | cut -d= -f1); \
 		nb=$$(echo $$spec | cut -d= -f2); \
@@ -649,6 +659,12 @@ build/non_matching/src/%.c.o: src/%.c
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ \
 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
+	@if [ -n "$(REPLACE_FUNC_BODY)" ]; then for spec in $(REPLACE_FUNC_BODY); do \
+		fn=$$(echo $$spec | cut -d= -f1); \
+		donor=$$(echo $$spec | cut -d= -f2); \
+		$(MAKE) $$donor; \
+		python3 scripts/replace-function-body.py $@ $$fn $$donor; \
+	done; fi
 	@if [ -n "$(PROLOGUE_STEALS)" ]; then for spec in $(PROLOGUE_STEALS); do \
 		fn=$$(echo $$spec | cut -d= -f1); \
 		nb=$$(echo $$spec | cut -d= -f2); \
