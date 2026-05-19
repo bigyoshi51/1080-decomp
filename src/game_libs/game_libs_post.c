@@ -13615,7 +13615,6 @@ void gl_func_0003F044(int *a0, int a1, float *a2) {
     (void)a0;
 }
 
-#ifdef NON_MATCHING
 void gl_func_0003F0A4(int a0, int a1, int a2) {
     char buf[0xA0];
     *(int*)&buf[0x88] = a2;
@@ -13625,9 +13624,6 @@ void gl_func_0003F0A4(int a0, int a1, int a2) {
     *(int*)&buf[0x00] = 0x29;
     func_00000000(&buf[0x00]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F0A4);
-#endif
 
 #ifdef NON_MATCHING
 void gl_func_0003F0E8(int a0, int a1, int a2, int a3) {
