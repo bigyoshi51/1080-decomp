@@ -472,11 +472,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D9E0);
 //   with arg a1) to the global DL write cursor rooted at &D_0C34xxxx,
 //   then advances the cursor by 8. Same builder family as the
 //   gl_func_0001D4C0 leading fn but standalone.
-// Caps: raw-word USO + fixed-target calls — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Glyph/sprite DL-emitter of the
+//   family: record = &D_00000000 + (short)a2 * 0x158; visibility
+//   gate rec->0x1C==1 selects helper1 vs helper2; then two F3D
+//   command pairs ((rec->0x22 | 0x0C340000)/0x0C800940 and
+//   ((rec->0x24+0x8000)&0xFFFF | 0x0C340000)/0x0C800C80) written to
+//   the returned DL ptr; a final helper3 call gated on
+//   rec->0x28==0 && rec->0x2A!=0. Real-C structural body below;
+//   byte-match deferred — three placeholder jals (0xC7B7/0xC61B/
+//   0xC5FA) are runtime-patched USO relocs (need USO reloc infra,
+//   not resolvable from .s), plus beql/bne schedule. Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder for the three helpers.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0001DA7C(int a0, int a1, int a2, int a3) {
+    short si = (short)a2;
+    char *rec = (char *)&D_00000000 + si * 0x158;
+    int *dl;
+    if (*(unsigned char *)(rec + 0x1C) == 1) {
+        dl = (int *)gl_func_00000000(a0, a1, a2, a3);
+    } else {
+        dl = (int *)gl_func_00000000(a0, a1, a2, a3);
+    }
+    dl[0] = *(unsigned short *)(rec + 0x22) | 0x0C340000;
+    dl[1] = 0x0C800940;
+    dl[2] = ((*(unsigned short *)(rec + 0x24) + 0x8000) & 0xFFFF) | 0x0C340000;
+    dl[3] = 0x0C800C80;
+    if (*(unsigned short *)(rec + 0x28) == 0 && *(unsigned short *)(rec + 0x2A) != 0) {
+        dl = (int *)gl_func_00000000(&dl[4], si);
+    }
+    return (int)dl;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DA7C);
+#endif
 
 // gl_func_0001DB88 — STRUCTURAL PASS (0x12C / 75 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
