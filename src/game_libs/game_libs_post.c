@@ -23122,8 +23122,52 @@ void gl_func_0005FE7C(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE7C);
 #endif
 
-/* gl_func_0005FF14: 47-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005FF14: 47-insn header-dump + chain-walk debug formatter (0xBC, frame 0x70).
+ *
+ * Decoded structure (raw-word disasm):
+ *   int raw = a0->[0x8];
+ *   float ratio = (float)(unsigned)raw / 1024.0f;     // div by 1024 (lui 0x4480)
+ *   int truncated = (int)ratio;
+ *   func1(&D + 0x21C7C, a0, truncated, (double)ratio);  // header w/ double on stack
+ *   func2(a0, &D_sym);                                  // banner
+ *   s0 = a0->[0x18];                                    // chain head
+ *   while (s0 != 0) {
+ *       func3(s0, a0);                                  // per-node log
+ *       s0 = s0->[0x14];                                // advance
+ *   }
+ *   func4(&D_footer_sym, a0);                            // footer
+ *
+ * Standard "log structure contents" debug helper. Float-divide by 1024
+ * yields a "ratio" value passed both as int and as double.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0005FF14(int *a0) {
+    extern int D_00000000;
+    int raw = a0[0x8 / 4];
+    float ratio;
+    int truncated;
+    int *s0;
+    if (raw < 0) {
+        ratio = ((float)raw + 4294967296.0f) / 1024.0f;
+    } else {
+        ratio = (float)raw / 1024.0f;
+    }
+    truncated = (int)ratio;
+    gl_func_00000000((char*)&D_00000000 + 0x21C7C, a0, truncated, (double)ratio);
+    gl_func_00000000(a0, &D_00000000);
+    s0 = (int*)a0[0x18 / 4];
+    while (s0 != 0) {
+        gl_func_00000000(s0, a0);
+        s0 = (int*)s0[0x14 / 4];
+    }
+    gl_func_00000000(&D_00000000, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FF14);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005FFD0: 22-insn 2-call ternary-pick wrapper.
