@@ -23274,8 +23274,96 @@ int gl_func_00060028(int* a0, int a1) {
     return 0;
 }
 
-/* gl_func_000600A4: 68-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000600A4: 68-insn linked-list insertion + sym attach (0x110, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   global = *D_global;
+ *   head = global->[0x40];
+ *   if (head == NULL) {
+ *       node = func_alloc();
+ *       global = *D_global;
+ *       if (node == NULL) {
+ *           goto error;
+ *       }
+ *   } else {
+ *       node = func_init(0x44);
+ *       global = *D_global;
+ *   }
+ *
+ *   // Re-read head with mutex/lock pattern (volatile-style):
+ *   head = global->[0x40];
+ *   if (head == NULL) {
+ *       cur = head->[0x18];
+ *       if (cur == NULL) {
+ *           func_log(&D + 0x21C8C);
+ *           global->[0x44] = node;
+ *       }
+ *   } else {
+ *       // Linked-list insertion at end:
+ *       cur = head->[0x18];
+ *       node->[0x14] = cur;
+ *       prev_node = global->[0];
+ *       prev_node->[0x18] = node;
+ *       global->[0x40] = node;
+ *       node->[0x1C] = prev_node->[0x40];
+ *       global = *D_global;
+ *       head2 = global->[0x44];
+ *       if (head2 == NULL) global->[0x44] = node;
+ *       global2 = *D_global;
+ *       node->[0x20] = global2->[0x40];
+ *       func_post(node);
+ *       global->[0x40] = node;
+ *   }
+ *   self->[0] = v0;                                   // store result
+ *   return v0;
+ *
+ * Standard linked-list-with-mutex insertion. Uses *D_global as the head
+ * pointer (read+write atomic on N64; no real mutex needed for single CPU).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_000600A4(int **self_pp, int a1) {
+    extern int **D_global;
+    extern int D_00000000;
+    int *global;
+    int *node;
+    int *head;
+    global = *D_global;
+    head = (int*)global[0x40 / 4];
+    if (head == 0) {
+        node = (int*)gl_func_00000000(a1);
+        global = *D_global;
+        if (node == 0) {
+            *self_pp = 0;
+            return 0;
+        }
+    } else {
+        node = (int*)gl_func_00000000(0x44);
+        global = *D_global;
+    }
+    head = (int*)global[0x40 / 4];
+    if (head == 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x21C8C);
+        global[0x44 / 4] = (int)node;
+    } else {
+        int *prev = (int*)global[0];
+        node[0x14 / 4] = (int)head[0x18 / 4];
+        prev[0x18 / 4] = (int)node;
+        node[0x1C / 4] = prev[0x40 / 4];
+        global = *D_global;
+        if (global[0x44 / 4] == 0) global[0x44 / 4] = (int)node;
+        node[0x20 / 4] = (*D_global)[0x40 / 4];
+        gl_func_00000000(node);
+        global[0x40 / 4] = (int)node;
+    }
+    *self_pp = node;
+    return (int)node;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000600A4);
+#endif
 
 void gl_func_000601B4(int a0) {
     gl_func_00000000(a0, 1);
