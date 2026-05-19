@@ -142,6 +142,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CFDC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D0AC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D17C);
+
 // gl_func_0001D200 — STRUCTURAL PASS (0x2C0 / 176 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
 // (named fn + 1 trailing helper) — deferred USO re-split. Same glyph-
