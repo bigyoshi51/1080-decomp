@@ -22996,6 +22996,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DDE4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DF64);
+
 #ifdef NON_MATCHING
 /* gl_func_0005E030: 33-insn 4x4 matrix add + dispatch (0x84, frame 0x70).
  *
