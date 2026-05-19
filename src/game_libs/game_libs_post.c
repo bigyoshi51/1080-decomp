@@ -21774,6 +21774,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054D04);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054E78);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000550A0);
+
 #ifdef NON_MATCHING
 /* gl_func_000550CC — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
  * (declared 0xE4 / 57 words). NAMED fn = init/register, insns
