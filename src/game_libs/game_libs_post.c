@@ -17265,13 +17265,6 @@ void gl_func_0004A84C(char *a0) {
 // re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A890);
 
-#ifdef NON_MATCHING
-/* gl_func_0004AA90: 24-insn flag-gated 1-call + counter increment.
- *   a0->[0xC0] = a1;
- *   if ((a0->[0x30] & 0x800) && (a0->[0xD8] == 5 || (a0->[0x30] & 0x400))) {
- *     func();
- *   }
- *   a0->[0xD8]++; */
 void gl_func_0004AA90(int *a0, int a1) {
     int v0 = a0[0x30/4];
     a0[0xC0/4] = a1;
@@ -17282,9 +17275,6 @@ void gl_func_0004AA90(int *a0, int a1) {
     }
     a0[0xD8/4]++;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AA90);
-#endif
 
 /* gl_func_0004AAF0: 58-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AAF0);
