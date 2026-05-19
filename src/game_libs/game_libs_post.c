@@ -17694,8 +17694,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ABD8);
 void game_libs_func_0004ACCC(int a0) {
 }
 
-/* gl_func_0004ACD4: 56-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004ACD4: alloc + memset16(-1). Decoded from bare stub
+ * 2026-05-19. void f(int *self):
+ *   count = self->0x40 * 10;            // sll<<2; addu; sll<<1
+ *   buf = cb_alloc(&D_00000000, count * 2);
+ *   self->0xD0 = buf;
+ *   if (count <= 0) return;             // blez
+ *   for (i = 0; i < count; i++)
+ *       ((short*)self->0xD0)[i] = -1;   // buf reloaded per store
+ * Multi-idiom (defer): IDO -O2 emits the RUNTIME-trip fill as a
+ * 4-way unrolled body + a `count & 3` remainder pre-loop
+ * (Duff-style: `andi v1,count,3; beq v1,0,main; <rem loop>;
+ * main: <4x sh>`); the buffer is RELOADED from self->0xD0 every
+ * store (`lw tN,0xD0(a2); addu; sh -1`); count*10 via sll/addu/sll;
+ * the cb_alloc(&D, count*2) arg and self->0xD0 spill/reload around
+ * the call. Documented-hard unrolled-fill shape — focused-pass.
+ * Real decoded C preserved; INCLUDE_ASM build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0004ACD4(int *self) {
+    int i;
+    int count = self[0x40 / 4] * 10;
+    self[0xD0 / 4] = gl_func_00000000(&D_00000000, count * 2);
+    if (count <= 0) {
+        return;
+    }
+    for (i = 0; i < count; i++) {
+        ((short *)self[0xD0 / 4])[i] = -1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ACD4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004ADB4: 35-insn bounds-checked short[] index-store (0x8C, frame 0x18).
