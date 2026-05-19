@@ -5665,12 +5665,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027DC0);
 //   per-frame "process every sprite record" passes of that subsystem
 //   (sibling to gl_func_0001E134's builder / gl_func_0001FAE8's
 //   reactivate sweep).
-// Caps: raw-word USO + 4-fn unsplit bundle + large per-record loop —
-//   not exact-matchable without proper USO mnemonic disasm; high-
-//   level structural pass only for the named leading fn, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + heavy per-record loop with FP +
+//   jal-0 USO-reloc calls — byte-match needs USO mnemonic disasm +
+//   the reloc-pad jal infra. Real-C STRUCTURAL body below per the
+//   analysis (placeholder calls / fields). Byte-match deferred.
+//   STALE bundle-note: grep -c 03E00008 = 1 (.s is single fn now).
+//   Name pre-checked: no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00027E24(void) {
+    int i;
+    int n = *(int *)((char *)&D_00000000 + 0x2070);
+    if (n <= 0) return;
+    for (i = 0; i < n; i++) {
+        char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + i * 0x60;
+        int v = *(int *)(rec + 0x14);
+        if ((unsigned)v < 0x7FFFFFFF) {
+            (void)v;
+        }
+        gl_func_00000000(rec, *(int *)(rec + 0x44),
+                         *(unsigned char *)(rec + 0x34));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002831C);
 
