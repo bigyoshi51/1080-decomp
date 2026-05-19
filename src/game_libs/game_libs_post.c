@@ -8235,15 +8235,28 @@ int gl_func_00035164(int a0) {
     return (int)r;
 }
 
+#ifdef NON_MATCHING
 /* gl_func_00035188: 25-insn 2-vtable-call + conditional assert.
  *   g = *(int**)&D_0; g->[0x74](a0, a1);
  *   g = *(int**)&D_0; rv = g->[0x40](a1);
- *   if (rv < 0) func(&D + 0x1E510, a1);
- *   return rv;
+ *   if (rv < 0) func(&D + 0x1E510, a1, rv);
  * Naive C scored 79.2% (frame -0x20 vs target -0x18; IDO hoists global
  * load to $v0 before sp adjustment; target uses $t6 after sp). Same
- * family as 0003F008's K&R-spill cap. Deferred. */
+ * family as 0003F008's K&R-spill cap. */
+void gl_func_00035188(int a0, int a1) {
+    int *g;
+    int rv;
+    g = *(int**)&D_00000000;
+    ((void(*)(int, int))g[0x74/4])(a0, a1);
+    g = *(int**)&D_00000000;
+    rv = ((int(*)(int))g[0x40/4])(a1);
+    if (rv < 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x1E510, a1, rv);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
+#endif
 
 /* gl_func_000351EC: 20-insn vtable dispatch + error helper. Loads
  * function pointer from (*(int**)&D_0)[0x11], calls it with arg1, and
