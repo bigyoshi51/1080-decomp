@@ -1545,8 +1545,50 @@ void gl_func_0000E53C(int *a0) {
     gl_func_00000000(r, -4);
 }
 
-/* gl_func_0000E5D0: 39-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000E5D0: 39-insn factory + 2-threshold side-effect (0x9C, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   factory = func1(0, &D_A, 0xC0, 0xB, /* sp:0x10 */ 0xC, /* sp:0x14 */ 1);
+ *   self->[0x60] = factory;
+ *   func2(factory, -2);
+ *   factory = self->[0x60];                          // reload
+ *   first = factory->[0];
+ *   if (first >= 0xB) {                              // threshold 1
+ *       ((int*)factory->[0x20])->[0xD4] = 8;
+ *       first = factory->[0];                         // re-read (likely same)
+ *   }
+ *   if (first >= 0xC) {                              // threshold 2
+ *       ((int*)factory->[0x20])->[0xE8] = 4;
+ *   }
+ *
+ * Two slti+bnel guards. bnel ANNULS its delay slot when not taken, which
+ * means the body runs only when t9/t2 >= threshold. The thresholds 0xB
+ * and 0xC are tier breakpoints — sets [0xD4]=8 at tier-1 entry, [0xE8]=4
+ * at tier-2 entry.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000E5D0(int *self) {
+    extern int D_A;
+    int *factory = (int*)gl_func_00000000(0, &D_A, 0xC0, 0xB, 0xC, 1);
+    int first;
+    self[0x60 / 4] = (int)factory;
+    gl_func_00000000(factory, -2);
+    factory = (int*)self[0x60 / 4];
+    first = factory[0];
+    if (first >= 0xB) {
+        ((int*)factory[0x20 / 4])[0xD4 / 4] = 8;
+        first = factory[0];
+    }
+    if (first >= 0xC) {
+        ((int*)factory[0x20 / 4])[0xE8 / 4] = 4;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E5D0);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000E66C: 31-insn lazy-init + 4-arg + linked-set (0x7C, frame 0x28).
