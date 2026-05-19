@@ -5544,8 +5544,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027784);
 //   body with FP + jal-0/fixed calls — not exact-matchable without
 //   proper USO mnemonic disasm; high-level structural pass only for
 //   the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO bundle + jal-0/fixed routine 0x3C2B4
+//   + heavy FP state-mutation cluster — byte-match needs USO mnemonic
+//   disasm + the reloc-pad jal infra. Real-C STRUCTURAL body below
+//   per the analysis (placeholder calls / fields). Byte-match deferred.
+//   Name pre-checked: no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00027804(int *obj, int *src) {
+    int r1 = gl_func_00000000(*(unsigned char *)((char *)obj + 0x35),
+                              *(int *)((char *)src + 4),
+                              src);
+    int k = *(unsigned char *)((char *)src + 2);
+    float f = *(float *)((char *)src + 8);
+    unsigned char fl = *(unsigned char *)((char *)obj + 0xB0);
+    fl &= ~0x0E;
+    *(unsigned char *)((char *)obj + 0xB0) = fl;
+    (void)k; (void)f; (void)r1;
+    gl_func_00000000(obj, src);
+    *(short *)((char *)obj + 0xBC) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027804);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027C48);
 
