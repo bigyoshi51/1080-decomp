@@ -23190,8 +23190,45 @@ int gl_func_00066210(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066210);
 #endif
 
-/* gl_func_00066264: 33-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00066264: 33-insn aligned/unaligned-length dispatch (0x84, frame 0x30).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if ((len & 3) == 0) {
+ *       // Aligned path: single direct call
+ *       func0(a0=src, a1=a1, a2=len);
+ *   } else {
+ *       // Unaligned path: split into aligned-prefix + 4-byte-temp-buf tail
+ *       int aligned = len & ~3;       // round down to 4-byte boundary
+ *       int rem     = len & 3;         // remainder
+ *       int tmpbuf[4];                 // sp+0x20 scratch
+ *       func1(src, a1);                // pre-setup call (a0=src, a1=a1)
+ *       func2(&tmpbuf, src + aligned, 4);              // read 4 bytes via tmpbuf
+ *       func3(&tmpbuf, dst_a0 + aligned, rem);         // write `rem` bytes
+ *   }
+ *
+ * The unaligned-tail copy uses a 4-byte scratch buffer at sp+0x20 to
+ * load the partial word and write only the byte count specified by `rem`
+ * (= len & 3). Classic unaligned-tail handler for word-only IO devices.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00066264(int dst_a0, int a1, int *src, int len) {
+    int rem = len & 3;
+    if (rem == 0) {
+        gl_func_00000000(src, a1, len);
+    } else {
+        int aligned = len & ~3;
+        int tmpbuf[4];
+        gl_func_00000000(src, a1);
+        gl_func_00000000(&tmpbuf, (char*)a1 + aligned, 4);
+        gl_func_00000000(&tmpbuf, (char*)dst_a0 + aligned, rem);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066264);
+#endif
 
 extern int gl_func_00000000();
 
