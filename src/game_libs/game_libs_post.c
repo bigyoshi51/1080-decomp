@@ -28433,8 +28433,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D270);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D554);
 
-/* gl_func_0006D6F4: 54-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006D6F4: 54-insn record-stream emit helper (declared size 0xD8, frame 0x10).
+ *
+ * Decoded structure (raw-word disasm):
+ *   void emit_records(int count_byte /* a0, masked to u8 */) {
+ *       int orig_count = *(uint8_t*)&D_00000000;     // gate value (entry-skip)
+ *       count_byte &= 0xFF;
+ *       *(uint8_t*)&D_00000000 = count_byte;          // overwrite global counter
+ *       *(int    *)((char*)&D_00000000 + 0x3C) = 1;   // flag = 1 (active)
+ *
+ *       // Build 8-byte template on stack at sp+0x4..sp+0xB
+ *       uint8_t buf[8] = {
+ *           0xFF, 0x01, 0x03, count_byte,
+ *           0xFF, 0xFF, 0xFF, 0xFF
+ *       };
+ *
+ *       // Skip if no prior records existed
+ *       if (orig_count <= 0) goto write_sentinel;
+ *
+ *       int idx = 0;
+ *       char *dst = (char*)D_global_ptr;  // saved at sp+0xC
+ *       while (1) {
+ *           // Unaligned 8-byte template store at *dst (swl/swr pair × 2)
+ *           *(uint32_t*)(dst+0) = *(uint32_t*)(buf+0);
+ *           *(uint32_t*)(dst+4) = *(uint32_t*)(buf+4);
+ *           uint8_t bound = *(uint8_t*)&D_00000000;   // reloaded EVERY iter
+ *           idx++;
+ *           dst += 8;
+ *           if (idx >= bound) break;
+ *       }
+ *   write_sentinel:
+ *       *(uint8_t*)dst = 0xFE;                          // list-terminator byte
+ *   }
+ *
+ * Notes:
+ *  - Two D+0 byte loads (one before overwrite to capture original gate, one
+ *    inside the loop as bound): the loop bound IS the NEWLY-written value
+ *    while the entry gate is the OLD value. Could be deliberate (caller
+ *    expects emit-when-empty semantics) or a subtle bug captured by IDO.
+ *  - Template bytes `0xFF, 0x01, 0x03` suggest a packet/command record format
+ *    where 0x01 = type, 0x03 = subtype, 0xFF = padding/flags.
+ *  - 0xFE final-byte = list terminator (matches the "all-bytes-FF" record-not-
+ *    terminator semantics).
+ *  - Unaligned 8-byte writes via paired swl/swr indicate dst may not be 4-byte
+ *    aligned — typical of packed binary stream emission.
+ *  - Trailing 2-insn fragment (`lui $t7,0; lbu $t7,0($t7)`) post-jr+delay is
+ *    incomplete — likely start of a next helper that reads D+0. Variant of
+ *    feedback_splat_too_big_incomplete_fragment_tail.md.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D6F4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D7CC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D7CC_pad.s")
