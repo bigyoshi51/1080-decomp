@@ -1197,12 +1197,30 @@ int gl_func_0001FD5C(int a0, int a1) {
 //   (16-align `(x+0xF)&~0xF` with a bounds-checked store, a
 //   min/clamp, etc.) belonging to the same allocator support family
 //   — left for the deferred USO re-split.
-// Caps: raw-word USO + 7-fn unsplit bundle + jal-0 USO-reloc
-//   allocator — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only for the named leading fn, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "7-jr bundle" note is STALE;
+//   .s is 0x5C/23 words, ONE function). Alloc-and-zero-clear helper.
+//   Real-C STRUCTURAL body below per the analysis (jal-0 USO-reloc
+//   allocator, a0 preserved via sp+0x18; zero-fill [p .. a0->4)).
+//   Byte-match deferred — placeholder jal-0 allocator needs USO
+//   reloc infra + beql/bnel clear-loop schedule. Name pre-checked:
+//   no extern reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for the allocator.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void *gl_func_0001FD98(int *a0) {
+    char *p = (char *)gl_func_00000000(a0);
+    char *c;
+    if (p == 0) {
+        return 0;
+    }
+    for (c = p; c < (char *)a0[1]; c++) {
+        *c = 0;
+    }
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD98);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FDF4);
 
