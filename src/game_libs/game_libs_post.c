@@ -4274,11 +4274,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
 //   no-op. The shutdown/free-all counterpart to gl_func_00024F30,
 //   analogous to how gl_func_0002349C tears down the &D_0+0x2030
 //   registry.
-// Caps: raw-word USO + fixed-target per-slot destructor — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Shutdown/free-all
+//   counterpart to gl_func_00024F30 (analogous to gl_func_0002349C
+//   tearing down the &D_0+0x2030 registry). Real-C STRUCTURAL body
+//   below per the analysis (if &D_0+0x215C == 1 no-op; else for each
+//   of the 16 pool slots &D_0+0x1038 stride 0x54 with byte+0==1 call
+//   the fixed per-slot destructor 0x39734(slot, a0)). Byte-match
+//   deferred — placeholder jal + bnel scan-loop need USO reloc
+//   infra. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00025044(int a0) {
+    char *g = (char *)&D_00000000;
+    char *base = g + 0x1038;
+    int off;
+    if (*(int *)(g + 0x215C) == 1) {
+        return;
+    }
+    for (off = 0; off != 0x540; off += 0x54) {
+        if (*(char *)(base + off) == 1) {
+            gl_func_00000000(base + off, a0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
+#endif
 
 // gl_func_000250C8 — STRUCTURAL PASS (0x258 / 150 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
