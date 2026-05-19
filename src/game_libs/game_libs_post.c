@@ -4335,11 +4335,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
 //   shared registry table pointer (same one gl_func_000230D0 /
 //   gl_func_00023B44 read). This is the object-tick / advance-state
 //   entry of the game_libs object subsystem.
-// Caps: raw-word USO + multi-branch state machine + jal-0 USO-reloc
-//   transitions — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Object-tick / advance-state
+//   entry of the game_libs object subsystem. Real-C STRUCTURAL body
+//   below per the analysis (signed byte obj->1 = mode/countdown:
+//   >=2 decrements, ==1 finalises to 0 + jal-0 onA(&obj+0x20,0,1)
+//   when a1, 0 = idle clears obj->0 + jal-0 onB(&obj+0x20,0,0) and
+//   sub-state on obj->0x10; global &D_0+0x2024 registry ptr).
+//   Byte-match deferred — multi-branch state machine + jal-0
+//   transitions need USO reloc infra. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_000250C8(char *obj, int a1) {
+    int mode = *(signed char *)(obj + 1);
+    if (mode >= 2) {
+        *(char *)(obj + 1) = (char)(mode - 1);
+    } else if (mode == 1) {
+        *(char *)(obj + 1) = 0;
+        if (a1) {
+            gl_func_00000000(obj + 0x20, 0, 1);
+        }
+    } else {
+        *(char *)(obj + 0) = 0;
+        gl_func_00000000(obj + 0x20, 0, 0);
+        if (*(int *)(obj + 0x10) != 0) {
+            gl_func_00000000(*(int *)(obj + 0x10));
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000250C8);
+#endif
 
 // gl_func_00025320 — STRUCTURAL PASS (0x1E4 / 121 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
