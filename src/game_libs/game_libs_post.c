@@ -20990,8 +20990,55 @@ void gl_func_00052AE8(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052AE8);
 #endif
 
-/* gl_func_00052BBC: 70-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00052BBC: bbox/extent min-max scan (clean leaf, NO
+ * calls). Decoded from bare stub 2026-05-19. Frame 0x20, saves
+ * s0 only. Seeds min=max=0x7530 (two u16 axes tracked in stack
+ * scratch sp+0xC/0xE/0x10/0x12), iterates the a0->0x68 directory
+ * (entry → a0->0x64 record at idx*6, two u16 coords at +0/+2),
+ * updating per-axis min/max, returns a count/flag in v1.
+ *   int f(void *a0, int n) {
+ *     int lo0=0x7530, hi0=0x7530, lo1=0x7530, hi1=0x7530;
+ *     int r = 0;
+ *     for (i = 0; i != n; i++) {
+ *       rec = a0->0x64 + (u16 a0->0x68[i].field_2) * 6;
+ *       x = (u16)rec[0]; y = (u16)rec[1];
+ *       if (x < lo0) lo0 = x;  if (x > hi0) hi0 = x;   // axis 0
+ *       if (y < lo1) lo1 = y;  if (y > hi1) hi1 = y;   // axis 1
+ *       r = ...;
+ *     }
+ *     return r;
+ *   }
+ * Multi-idiom (focused pass): the min/max is the IDO
+ * slt/andi 1/beq/sh conditional-store idiom (not cmov), the
+ * record stride is `li t2,6; multu` ×6, the directory index is
+ * reloaded per iter, and the dual-axis tracking lives in 4
+ * stack-scratch halfwords (sp+0xC..0x12). Exact slt-arm order,
+ * the andi-mask-1 guards and the bne back-edge need a focused
+ * .s pass. Real decoded C documents the algorithm/offsets;
+ * INCLUDE_ASM build path. */
+int gl_func_00052BBC(int *a0, int n) {
+    int i;
+    int lo0 = 0x7530, hi0 = 0x7530;
+    int lo1 = 0x7530, hi1 = 0x7530;
+    int r = 0;
+    for (i = 0; i != n; i++) {
+        unsigned short idx =
+            *(unsigned short *)((char *)a0[0x68 / 4] + i * 8 + 2);
+        short *rec = (short *)((char *)a0[0x64 / 4] + idx * 6);
+        int x = (unsigned short)rec[0];
+        int y = (unsigned short)rec[1];
+        if (x < lo0) lo0 = x;
+        if (x > hi0) hi0 = x;
+        if (y < lo1) lo1 = y;
+        if (y > hi1) hi1 = y;
+        r = hi0;
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
+#endif
 
 // gl_func_00052CD4 — STRUCTURAL PASS (decl 0x4EC / 315 words, no
 // episode). Raw-.word USO. realjr=5, regjr=1 → MULTI-FUNCTION BUNDLE.
