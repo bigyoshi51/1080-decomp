@@ -23763,8 +23763,41 @@ int gl_func_00061458() {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061478);
 
-/* gl_func_00061734: 29-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00061734: 26-insn append-to-table-with-overflow-log (size 0x74 declared,
+ * actual function body 0x68; declared size bundles 3-insn trailing fragment).
+ *
+ * BOUNDARY NOTE: splat declares 0x74 (29 insns). Function ends at offset 0x68
+ * with `jr $ra; nop`. The trailing 3 insns at offset 0x68..0x74
+ * (`lui $v0,0; addiu $v0,$v0,0; lw $t6,0($v0)`) are a non-self-contained
+ * fragment (no prologue, no jr). Likely splat over-sized; candidate for
+ * split-fragments.py size correction to 0x68.
+ *
+ * Decoded structure (first 26 insns):
+ *   void f(int arg0, int *out_count, int v1) {   // $v1 caller-set
+ *       if (v1 >= 0x3F) {
+ *           debug_print((char*)&D_00000000 + 0x21EB4);  // overflow msg
+ *       } else {
+ *           int new_count = v1 + 1;
+ *           int *tbl = (int*)((char*)&D_00000000 + 0);   // D+0 = ptr table
+ *           tbl[v1]     = arg0;
+ *           tbl[v1 + 1] = 0;       // null-terminate
+ *           *out_count  = new_count;
+ *       }
+ *   }
+ *
+ * Notes:
+ *  - $v1 caller-set (no init in this function) → fits the caller-set-int-reg
+ *    cap class (feedback_caller_set_int_reg_cap_1080_game_libs.md). IDO C can't
+ *    receive in $v1, so even with the body the byte-emit would diverge.
+ *  - D+0x21EB4 is a debug-string pointer in bootup_uso data area.
+ *  - 0x3F limit = 63 entries (max table size).
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061734);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000617A8);
 
