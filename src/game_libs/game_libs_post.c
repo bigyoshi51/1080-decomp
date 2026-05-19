@@ -29514,8 +29514,57 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071384);
 /* gl_func_00071624: 57-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071624);
 
-/* gl_func_00071708: 49-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00071708: 49-insn record-stream sibling (zero-a0-bytes prefix variant).
+ * Size 0xC4, frame 0x10. Member of the family in
+ * reference_1080_record_stream_template_family.md.
+ *
+ * NEW VARIANT — distinct from prior siblings (0006D6F4 emit, 0006BD14/0006C1B8
+ * reset-with-clear-prefix). This one:
+ *   - Uses a SMALLER 6-byte template (not 8-byte): `{1, 3, 0, 0xFF, 0xFF, 0xFF}`
+ *   - "Zero a0 bytes + advance dst" prefix (not full 60-byte table clear)
+ *   - Writes template ONCE (not a loop) then terminates with 0xFE
+ *
+ * Decoded structure (raw-word disasm):
+ *   void emit_after_zero_prefix(int a0_count) {
+ *       *(uint8_t*)&D_00000000 = 0;                     // zero D+0 count byte
+ *       int *dst = (int*)&D_00000000;                   // start dst at D+0
+ *       *(int*)((char*)&D_00000000 + 0x3C) = 1;          // active flag
+ *
+ *       // Template buf[6] = {1, 3, 0, 0xFF, 0xFF, 0xFF}
+ *
+ *       // Stage 1: zero a0 bytes starting at dst, advance dst by a0
+ *       for (int i = 0; i < a0_count; i++) {
+ *           *(uint8_t*)dst = 0;
+ *           dst = (char*)dst + 1;
+ *       }
+ *
+ *       // Stage 2: write 6-byte template at advanced dst
+ *       *(uint32_t*)dst = *(uint32_t*)buf;       // swl/swr unaligned 4 bytes
+ *       *((uint8_t*)dst + 4) = buf[4];           // = 0xFF
+ *       *((uint8_t*)dst + 5) = buf[5];           // = 0xFF
+ *       dst = (char*)dst + 6;
+ *
+ *       // Stage 3: 0xFE terminator
+ *       *(uint8_t*)dst = 0xFE;
+ *   }
+ *
+ * Notes:
+ *  - 6-byte template suggests a different record-type than the 8-byte sibs.
+ *    Bytes {1, 3, 0, 0xFF×3} read as { type=1, subtype=3, len=0, pad×3 }.
+ *  - The "zero a0 bytes" leading loop is the equivalent of the family's
+ *    "advance dst" with side effect (clear pre-existing records before
+ *    placing the new one).
+ *  - This may be a "replace-at-offset" variant where caller passes a0 as
+ *    "offset where new record goes" and the function clears any stale data
+ *    in [0..a0) before placing the new record at [a0..a0+6).
+ *  - Trailing 1-insn fragment (`lui $t6, 0x0`) post-epilogue — incomplete.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071708);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000717CC: 38-insn single-record decode (sibling of gl_func_0006C11C).
