@@ -18400,8 +18400,37 @@ int gl_func_0004DC44(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DC44);
 #endif
 
-/* gl_func_0004DCD4: 36-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004DCD4 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
+ * (declared 0x90 / 36 words). The NAMED function is only ~14 words
+ * (insns 1..13, prologue 27BDFFE8 frame 0x18, jr ra at insn 13):
+ *   void gl_func_0004DCD4(int *a0) {
+ *     if (a0->field_C != 0) cb(a0->field_C, a0);   // destructor cb
+ *     a0->field_C = 0;
+ *   }
+ * (the cb arg is a0->0xC, a1=a0 saved; beq skips the call when
+ * field_C==0; field_C cleared on both paths.)
+ *
+ * BOUNDARY NOTE (DEFERRED USO RE-SPLIT): insns 14..36 after the
+ * jr ra are ~8 tiny TRAILING LEAVES splat couldn't separate —
+ * `jr ra; sw a0,0(sp)` arg-stash accessors and
+ * `lui at,0x3F80; mtc1 at,f0; jr ra` float-return-1.0 stubs (each
+ * its own symbol, multiple 03E00008). The 0x90 declared size spans
+ * all of them, so the named fn can't byte-match standalone without
+ * a re-split. A future pass should cut the leaf symbols off at
+ * 0x0004DD0C (end of the named fn) via split-fragments / USO
+ * re-split. Real decoded C of the named fn preserved; INCLUDE_ASM
+ * remains the build path for the whole bundle. */
+extern int gl_func_00000000();
+void gl_func_0004DCD4(int *a0) {
+    if (a0[3] != 0) {
+        gl_func_00000000(a0[3], a0);
+    }
+    a0[3] = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DCD4);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0004DD64(int *dst) {
