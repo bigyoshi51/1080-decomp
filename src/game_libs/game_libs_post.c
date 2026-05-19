@@ -1331,6 +1331,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D2C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D70);
+
 /* gl_func_00021D84: 33-insn slot-register helper.
  *   count = D[0x2534];
  *   v0 = func(&D2[0x2528], a2);
