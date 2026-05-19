@@ -18688,8 +18688,71 @@ void gl_func_0004D658(int a0) {
 // body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D688);
 
-/* gl_func_0004DA40: 68-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004DA40 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
+ * (declared 0x110 / 68 words). NAMED fn = stateful init/register,
+ * insns 1..64 (prologue 27BDFFD8 frame 0x28, jr ra at insn 64):
+ *   int gl_func_0004DA40(int *self) {
+ *     if (self->0xC == 0) cb1(&D_00000000 + 0x202F0);   // beql-likely
+ *     if (self->4 == 0) return 0;                        // beq end
+ *     self->0xC = self->4;
+ *     cb2(self->4);
+ *     if ((self->0xC)->0x74 != 0) cb3((self->0xC)->0x74);// beql-likely
+ *     if ((self->0xC)->0x70 == 0) return 0;              // beq end
+ *     g = *(int*)(&D_00000000 + 0x254);                  // save global
+ *     *(int*)(&D_00000000 + 0x254) = (self->0xC)->0x74;  // set global
+ *     cb4((self->0xC)->0x70);
+ *     *(int*)(&D_00000000 + 0x254) = g;                  // restore
+ *     self->0x3C = &D_00000000 + 0x20308; self->0x1C = 1;
+ *     cb5(self->0xC);
+ *     self->0x20 = 1; self->0x40 = &D_00000000 + 0x2030C;
+ *     cb6(&D_00000000 + 0x20310);
+ *     return 1;
+ *   }
+ * Multi-idiom (defer): beql-likely guards, the global
+ * save/cb4/restore bracket, several cb arg-threads off
+ * self->0xC, dual return 1/0 epilogue. Exact cb arities + the
+ * global-restore placement need a focused pass.
+ *
+ * BOUNDARY NOTE (DEFERRED USO RE-SPLIT): insns 65..68 after the
+ * jr ra are a trailing LEAF (`sw a0,0; sw a1,4; sw a2,8;
+ * sw a3,0xC; jr ra; li v0,1` arg-stash stub, own 03E00008). The
+ * 0x110 size spans it so the named fn can't byte-match standalone
+ * without a re-split at the named-fn end. Real decoded C of the
+ * named fn preserved; INCLUDE_ASM is the bundle build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0004DA40(int *self) {
+    int g;
+    if (self[0xC / 4] == 0) {
+        gl_func_00000000((char *)&D_00000000 + 0x202F0);
+    }
+    if (self[4 / 4] == 0) {
+        return 0;
+    }
+    self[0xC / 4] = self[4 / 4];
+    gl_func_00000000(self[4 / 4]);
+    if (*(int *)(self[0xC / 4] + 0x74) != 0) {
+        gl_func_00000000(*(int *)(self[0xC / 4] + 0x74));
+    }
+    if (*(int *)(self[0xC / 4] + 0x70) == 0) {
+        return 0;
+    }
+    g = *(int *)((char *)&D_00000000 + 0x254);
+    *(int *)((char *)&D_00000000 + 0x254) = *(int *)(self[0xC / 4] + 0x74);
+    gl_func_00000000(*(int *)(self[0xC / 4] + 0x70));
+    *(int *)((char *)&D_00000000 + 0x254) = g;
+    *(int *)((char *)self + 0x3C) = (int)((char *)&D_00000000 + 0x20308);
+    *(int *)((char *)self + 0x1C) = 1;
+    gl_func_00000000(self[0xC / 4]);
+    *(int *)((char *)self + 0x20) = 1;
+    *(int *)((char *)self + 0x40) = (int)((char *)&D_00000000 + 0x2030C);
+    gl_func_00000000((char *)&D_00000000 + 0x20310);
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DA40);
+#endif
 
 /* gl_func_0004DB50: 46-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DB50);
