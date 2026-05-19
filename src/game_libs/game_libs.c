@@ -986,6 +986,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00007324);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007344);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000076C8);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000076F0);
 
 #ifdef NON_MATCHING
