@@ -22526,8 +22526,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D054);
 
-/* gl_func_0005D20C: 64-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005D20C: pure-FP leaf, quaternion -> 3x3 rotation matrix.
+   ~50 FP ops (mul/add/sub of the four components + a 1.0f const at
+   0x3F800000), no branches and no calls; writes 9 floats to the
+   result via $a1 at offsets {0,4,8, 0x10,0x14,0x18, 0x20,0x24,0x28}
+   (3x3 with 0x10 row stride, skipping the 0x0C/0x1C/0x2C slots).
+   DEFERRED: documented-hard caller-set-float cap — the inputs arrive
+   in caller-set $f4/$f6 (the function's first real insns spill $f4
+   /$f6 to sp scratch before any load), NOT the IDO FP arg regs
+   $f12/$f14. IDO C always materialises the first FP params in
+   $f12/$f14, so the entry-spill order cannot be reproduced from C
+   (see feedback_caller_set_int_reg_cap_1080_game_libs — caller-set-
+   float subclass). The body below is the standard quat->mat shape
+   for algorithm reference; exact IDO FP-op coefficient/scheduling
+   and the caller-set-float entry are the multi-pass grind. Next
+   pass: identify the producing predecessor that sets $f4/$f6, then
+   PROLOGUE/INSN-patch the spill prefix per docs/POST_CC_RECIPES.md
+   and grind the dense FP schedule. */
+void gl_func_0005D20C(float *out, float *q) {
+    float x = q[0], y = q[1], z = q[2], w = q[3];
+    float xx = x * x, yy = y * y, zz = z * z;
+    float xy = x * y, xz = x * z, yz = y * z;
+    float wx = w * x, wy = w * y, wz = w * z;
+    out[0] = 1.0f - 2.0f * (yy + zz);
+    out[1] = 2.0f * (xy - wz);
+    out[2] = 2.0f * (xz + wy);
+    out[4] = 2.0f * (xy + wz);
+    out[5] = 1.0f - 2.0f * (xx + zz);
+    out[6] = 2.0f * (yz - wx);
+    out[8] = 2.0f * (xz - wy);
+    out[9] = 2.0f * (yz + wx);
+    out[10] = 1.0f - 2.0f * (xx + yy);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
+#endif
 
 /* gl_func_0005D30C: 66-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D30C);
