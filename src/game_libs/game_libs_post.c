@@ -3197,6 +3197,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025320);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253B0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253C4);
+
 // gl_func_00025504 — STRUCTURAL PASS (0x3C8 / 242 words ≈ 1KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
 // (1 jr, no bundle). A per-frame subsystem UPDATE DRIVER. Large
