@@ -19398,8 +19398,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000500EC);
 
-/* gl_func_000503A4: 40-insn helper. Multi-pass decode pending. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000503A4);
+/* gl_func_000503A4: record-append (4x u16) with overflow assert.
+ * Decoded from bare stub 2026-05-19.
+ *   int f(self, cap, b, c, d, e):
+ *     // slot = self->0x68 + self->0x44*8 ; idx RELOADED per store
+ *     *(u16*)(slot+2) = b;  *(u16*)(slot+4) = c;
+ *     *(u16*)(slot+6) = d;  *(u16*)(slot+0) = e;
+ *     n = self->0x44 + 1; self->0x44 = n;
+ *     if (!((u)n < (u)cap)) cb_assert(&D_00000000 + 0x20E2C);
+ *     return self->0x44 - 1;
+ * d/e are stack args (sp+0x30 / sp+0x34). The asm reloads
+ * self->0x44 AND self->0x68 before EACH field store (no cached
+ * slot) — the C uses uncached derefs to force that. Multi-idiom
+ * (defer): 6-arg with 2 stack args, uncached per-store reloads,
+ * overflow bnel + the cb_assert in the bne-not-taken path,
+ * return self->0x44-1 in the jr delay slot. Documented-hard arg/
+ * shape — focused pass. Real decoded C preserved; INCLUDE_ASM
+ * build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_000503A4(int *self, int cap, int b, int c, int d, int e) {
+    *(short *)(self[0x68 / 4] + self[0x44 / 4] * 8 + 2) = b;
+    *(short *)(self[0x68 / 4] + self[0x44 / 4] * 8 + 4) = c;
+    *(short *)(self[0x68 / 4] + self[0x44 / 4] * 8 + 6) = d;
+    *(short *)(self[0x68 / 4] + self[0x44 / 4] * 8 + 0) = e;
+    {
+        int n = self[0x44 / 4] + 1;
+        self[0x44 / 4] = n;
+        if (!((unsigned int)n < (unsigned int)cap)) {
+            gl_func_00000000((char *)&D_00000000 + 0x20E2C);
+        }
+    }
+    return self[0x44 / 4] - 1;
+}
 
 // gl_func_00050444 — STRUCTURAL PASS (0x1E8 / 122 words, no episode).
 // Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x30,
