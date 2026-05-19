@@ -16457,6 +16457,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044EDC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045178);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00045394);
+
 // gl_func_000453A8 — STRUCTURAL PASS + BOUNDARY NOTE (0x118 / 71 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → 3-function BUNDLE: the three
 // jr at 0x453D0 / 0x45410 / 0x454BC delimit three distinct small FP routines
