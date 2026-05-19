@@ -809,11 +809,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
 //   sequence, not real code paths. The remaining body is the
 //   interpolation loop that writes the sprite strip into the dst
 //   Gfx cursor. Sibling of the gl_func_0001EE78 F3D-emitter family.
-// Caps: raw-word USO + guarded-sdiv idiom + multi-iteration emit
-//   loop — not exact-matchable without proper USO mnemonic disasm;
-//   high-level structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Tween/step sprite-strip
+//   emitter (gl_func_0001EE78 F3D family). Real-C STRUCTURAL body
+//   below per the analysis (scaled coords x0/x1 = src->8/->0xA <<4,
+//   compare key a2->0x10, guarded sdiv step = (x0-x1)/(a3>>3), then
+//   interpolation loop emitting GBI command pairs into dst). The
+//   break 7 / break 6 words are the standard GCC div0 / INT_MIN
+//   trap sequence (not real paths). Byte-match deferred — ~202-insn
+//   guarded-sdiv + multi-iteration emit, placeholder jals need USO
+//   reloc infra. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_0001EF20(int *dst, char *src, short *a2, int a3) {
+    int x0 = (*(short *)(src + 8) << 4) & 0xFFFF;
+    int x1 = (*(short *)(src + 0xA) << 4) & 0xFFFF;
+    int g = a2[0x10 / 2];
+    int step, acc, i, cnt;
+    if (g == x0) {
+        return (int)dst;
+    }
+    cnt = a3 >> 3;
+    step = (cnt != 0) ? (x0 - x1) / cnt : 0;
+    acc = x0;
+    for (i = 0; i < cnt; i++) {
+        dst[0] = 0x08000000 | (acc & 0xFFFF);
+        dst[1] = a2[0x12 / 2];
+        dst += 2;
+        acc -= step;
+    }
+    return (int)dst;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
+#endif
 
 // gl_func_0001F248 — STRUCTURAL PASS (0x180 / 96 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
