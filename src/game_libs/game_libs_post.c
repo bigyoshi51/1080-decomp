@@ -8862,6 +8862,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031754);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031784);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000317F0);
+
 extern int gl_ref_00045DF0();
 extern int gl_ref_00045E5C();
 extern int gl_ref_00045EA8();
