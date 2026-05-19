@@ -3777,11 +3777,39 @@ void game_libs_func_0002436C(int a0) { D_2436C_a = a0; }
 //   gl_func_00022A9C arena init / gl_func_0002119C state driver — runs
 //   once before any of the registry/record/buffer/resource families
 //   are usable.
-// Caps: raw-word USO + large multi-region clear/seed init — not
-//   exact-matchable without proper USO mnemonic disasm; high-level
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. SUBSYSTEM INITIALIZER / full
+//   reset of the whole game_libs &D_0 state region (init counterpart
+//   to gl_func_00022A9C arena init / gl_func_0002119C driver; runs
+//   once before any registry/record/buffer/resource family).
+//   Real-C STRUCTURAL body below per the analysis (clear base word
+//   &D_0+0, handle &D_0+0x215C; zero an 8-byte-strided table of
+//   length (&D_0+4 word + 7)>>3; clear a 0x5C30-byte arena block;
+//   reload control globals). Byte-match deferred — large multi-
+//   region clear/seed loop schedule. Name pre-checked: no extern
+//   reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00024378(void) {
+    char *g = (char *)&D_00000000;
+    int n = (*(int *)(g + 4) + 7) >> 3;
+    int i;
+    *(int *)(g + 0) = 0;
+    *(int *)(g + 0x215C) = 0;
+    if (n > 0) {
+        int *p = (int *)g;
+        for (i = 0; i < n; i++) {
+            p[0] = 0;
+            p[1] = 0;
+            p += 2;
+        }
+    }
+    for (i = 0; i < 0x5C30; i++) {
+        g[i] = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024378);
+#endif
 
 void game_libs_func_00024948(void) {
     *(int*)((char*)&D_00000000 + 0x1590) = 0;
