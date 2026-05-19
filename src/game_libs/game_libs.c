@@ -245,46 +245,19 @@ int gl_func_00001114(char *a0) {
     return gl_func_00000000(a0 + 0x10C);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00001134: 28-insn (0x70) 3-way value formatter dispatcher.
- * Picks one of 3 format-string variants from gl_data based on a1's
- * magnitude:
- *   a1 < 10   → format at &gl_data + 0xCC10  (with a2 = a1)
- *   a1 < 100  → format at &gl_data + 0xCC18
- *   else      → format at &gl_data + 0xCC1C  (likely 4-digit / large)
- *
- * Digit-count-driven number-to-text formatter; each arm calls
- * gl_func_00000000 (cross-USO printf-like) with (a0 + 0xE4) as the
- * destination buffer.
- *
- * Tested on build path 2026-05-18: builds ERR=0, arm1 (a1<10) is
- * byte-exact (w0..w9), but total 29 vs 28 insns and arm2/arm3
- * diverge. Root cause: this is a VARARGS cb with a DIFFERENT arg
- * count per arm, and the target fills each jal delay slot by
- * RE-deriving a0 = a3+0xE4 (a3 = saved orig a0 from `or a3,a0,0`):
- *   arm1: cb(a0+0xE4, &+0xCC10, a1)        ; a2=a1 set pre-branch
- *   arm2: cb(a0+0xE4, &+0xCC18)            ; only 2 args, the second
- *         a0=a3+0xE4 is the DELAY-SLOT redundant recompute, NOT a
- *         3rd arg (current C wrongly passes a0+0xE4 as arg3 → extra
- *         insn + reorder)
- *   arm3: cb(a0, &+0xCC1C)                 ; a0 = orig a0 (NO +0xE4;
- *         arm3 has no addiu a0 — buffer is orig a0, not a0+0xE4)
- * Next pass: drop arm2's 3rd arg; arm3 buffer = a0 (not a0+0xE4);
- * keep a3=orig-a0 alive so IDO recomputes a0=a3+0xE4 in arm1/arm2
- * delay slots. Promotable with per-arm arg-count fix. */
+/* gl_func_00001134: 3-way value-formatter dispatcher — picks one of
+ * 3 format strings by a1's magnitude and calls the cross-USO
+ * printf-like gl_func_00000000. Per-arm arg counts/buffers differ. */
 extern int gl_data_00000000;
 void gl_func_00001134(char *a0, int a1) {
     if (a1 < 10) {
         gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC10, a1);
     } else if (a1 < 100) {
-        gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC18, a0 + 0xE4);
+        gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC18);
     } else {
-        gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC1C);
+        gl_func_00000000(a0, (char*)&gl_data_00000000 + 0xCC1C);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001134);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000011A4: 54-insn alloc-or-given + init constructor.
