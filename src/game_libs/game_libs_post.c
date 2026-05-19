@@ -21916,8 +21916,52 @@ void gl_func_000601B4(int a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000601B4_pad.s")
 
-/* gl_func_000601DC: 33-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000601DC: 28-insn lazy-init + state-update + dispatch (0x70, frame 0x20).
+ *
+ * CALLER-SET $t6 CONVENTION (intra-USO non-O32): the first instruction
+ * `lw $v1, 0x40($t6)` reads through $t6 which is not set anywhere in this
+ * function — caller pre-loads $t6 with a state pointer before jal. Same
+ * cap class as the caller-set-float family (gl_func_00010650).
+ *
+ * Decoded structure (raw-word disasm):
+ *   v1 = caller_t6->[0x40];                          // state sub-pointer
+ *   if (v1 == 0) {
+ *       func1((char*)&D_BASE + 0x21CA4);              // lazy-init w/ string sym
+ *       v1 = caller_t6->[0x40];                       // (reload via spill/load)
+ *   }
+ *   v0 = func2((char*)&D_BASE + 0x21CA4);             // 2nd dispatch call (size)
+ *   v1->[0x4] = v0;
+ *   v1->[0x8] = v1->[0x8] + v0 - v1->[0];             // advance position
+ *   *(int*)((char*)*D_globalX + 0x40) = v1->[0x20];   // commit to global
+ *   return v1->[0x8];
+ *
+ * Marker said "33-insn" but actual size is 28-insn × 4 = 0x70 (marker
+ * was stale; size mismatch noted in commit).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path
+ * (caller-set $t6 is unreproducible from standard C).
+ */
+int gl_func_000601DC(void) {
+    extern int D_BASE;
+    extern int **D_globalX;
+    extern int *t6_caller_state;
+    int *v1 = (int*)t6_caller_state[0x40 / 4];
+    int v0;
+    if (v1 == 0) {
+        gl_func_00000000((char*)&D_BASE + 0x21CA4);
+        v1 = (int*)t6_caller_state[0x40 / 4];
+    }
+    v0 = (int)gl_func_00000000((char*)&D_BASE + 0x21CA4);
+    v1[0x4 / 4] = v0;
+    v1[0x8 / 4] = v1[0x8 / 4] + v0 - v1[0];
+    (*D_globalX)[0x40 / 4] = v1[0x20 / 4];
+    return v1[0x8 / 4];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000601DC);
+#endif
 
 void game_libs_func_0006024C(int a0) {
     gl_data_00000000 = a0;
