@@ -2138,6 +2138,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000233A0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000233D4);
+
 // gl_func_000233E4 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). Another SIBLING of the gl_func_00022FC0 / gl_func_000232E8
