@@ -19145,8 +19145,42 @@ int gl_func_0004E3F4(char *a0) {
     return gl_ref_0006240C(a0 + 0x10);
 }
 
-/* gl_func_0004E424: 49-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004E424: pure-FP clamp/abs transform leaf (no calls).
+ * Decoded from bare stub 2026-05-19. Clean single fn, frame 0x10,
+ * saves callee FP $f20 (sdc1/ldc1 @ sp+8). Float signature
+ * f(float p0, float p1, float p2, float a3) → float in $f0.
+ * Structure: t = a3 - p1; (f20); load p0,p1,p2 + a2-as-float;
+ * a chain of c.lt.s / c.le.s vs 0.0 / 2.0f(0x40000000) with
+ * bc1f/bc1t guards selecting abs.s / neg.s / add.s arms — a
+ * saturating clamp + abs of the difference; returns the folded f0
+ * (mov.s in the jr delay slot).
+ *
+ * DOCUMENTED-HARD FP cap (focused-pass): pure-FP leaf with many
+ * interleaved c.lt/c.le + bc1f/bc1t + abs.s is the FP-compare-
+ * branch + FP-register-allocation family (same class as the
+ * centroid/transform caps) — the exact bc1f/bc1t arm order,
+ * delay-likely fills, and $f0..$f20 allocation are not reachable
+ * without iterating the .s. The C below documents the determinable
+ * shape (args, the f20=a3-p1 sub, the clamp/abs nature, f0 return)
+ * for the focused pass; it is NOT expected to byte-match as-is.
+ * INCLUDE_ASM build path. */
+float gl_func_0004E424(float p0, float p1, float p2, float a3) {
+    float t = a3 - p1;
+    float r;
+    if (t < 0.0f) {
+        r = -t;
+    } else {
+        r = t;
+    }
+    if (r < 2.0f) {
+        r = p0 - p2;
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E424);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0004E4E8(int *dst) {
