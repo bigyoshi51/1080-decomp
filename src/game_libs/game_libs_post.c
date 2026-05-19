@@ -3363,11 +3363,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023838);
 //   falls to the default. A second jump-table dispatcher in the
 //   game_libs resource subsystem (cf. gl_func_0002119C's table at
 //   &D_0+0xE7C — adjacent dispatch tables).
-// Caps: raw-word USO + computed jump-table dispatch + fixed-target
-//   resolve calls — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Resource-resolve + computed
+//   jump-table dispatch (sibling of gl_func_00023760's resolve
+//   chain; second dispatcher cf. gl_func_0002119C). Real-C
+//   STRUCTURAL body below per the analysis (h = fixed 0x381B0(a0,
+//   a1,a2); h==0 -> return 2; fixed 0x38204(a0,..); 0x10-stride
+//   entry: size16=(e->0x14+0xF)&~0xF, payload e->0x18, type tag
+//   e->0x19, ptr e->0x10; type>=5 default else computed jump via
+//   &D_0+0xEA0[type] modelled as a switch). Byte-match deferred —
+//   computed jump-table + fixed-target resolve need USO reloc infra.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_00023914(int a0, int a1, int a2) {
+    int h = gl_func_00000000(a0, a1, a2);
+    char *e;
+    int typ;
+    if (h == 0) {
+        return 2;
+    }
+    gl_func_00000000(a0);
+    e = (char *)gl_func_00000000(h) + h * 0x10;
+    typ = *(unsigned char *)(e + 0x19);
+    if ((unsigned)typ >= 5) {
+        return 0;
+    }
+    switch (typ) {
+    case 0:
+        gl_func_00000000(*(int *)(e + 0x10), (*(int *)(e + 0x14) + 0xF) & ~0xF);
+        break;
+    case 1:
+        gl_func_00000000(*(unsigned char *)(e + 0x18));
+        break;
+    default:
+        gl_func_00000000(e, typ);
+        break;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023914);
+#endif
 
 extern int gl_ref_00038204();
 
