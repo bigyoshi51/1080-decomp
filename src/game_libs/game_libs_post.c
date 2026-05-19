@@ -20310,10 +20310,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
  * deferred to a focused pass; INCLUDE_ASM build path.
  */
 void gl_func_000525F0(int *self, int *target) {
-    extern int D_BASE;
+    extern int D_00000000;
     int *obj = (int*)self[0x2C / 4];
     if (obj == 0) {
-        obj = (int*)gl_func_00000000(self, (char*)&D_BASE + 0x20FC0);
+        obj = (int*)gl_func_00000000(self, (char*)&D_00000000 + 0x20FC0);
         self[0x2C / 4] = (int)obj;
     }
     gl_func_00000000((char*)obj + 0x10, target);
@@ -20927,11 +20927,11 @@ void gl_func_00054C24(char *a0, char *a1) {
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 void gl_func_00054C6C(int *self) {
-    extern int D_BASE;
+    extern int D_00000000;
     extern int D_strA, D_strB, D_strC, D_strD;
-    gl_func_00000000(&D_strA, (char*)&D_BASE + 0x210CC, 0);
-    gl_func_00000000(&D_strB, (char*)&D_BASE + 0x210D8, (char*)self + 0x120, 0);
-    gl_func_00000000(&D_strC, (char*)&D_BASE + 0x210E4, (char*)self + 0x124, 0,
+    gl_func_00000000(&D_strA, (char*)&D_00000000 + 0x210CC, 0);
+    gl_func_00000000(&D_strB, (char*)&D_00000000 + 0x210D8, (char*)self + 0x120, 0);
+    gl_func_00000000(&D_strC, (char*)&D_00000000 + 0x210E4, (char*)self + 0x124, 0,
                       1.0f, 0);
     gl_func_00000000(&D_strD);
     gl_func_00000000(self);
@@ -21529,14 +21529,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C6C4);
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 void gl_func_0005C784(int a0, float *src) {
-    extern int D_BASE;
+    extern int D_00000000;
     int i;
     gl_func_00000000(a0, src);
     for (i = 0; i < 16; i += 4) {
-        gl_func_00000000((char*)&D_BASE + 0x21B14, (double)*src);
+        gl_func_00000000((char*)&D_00000000 + 0x21B14, (double)*src);
         src++;
     }
-    gl_func_00000000((char*)&D_BASE + 0x21B18);
+    gl_func_00000000((char*)&D_00000000 + 0x21B18);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C784);
@@ -22125,10 +22125,10 @@ void gl_func_000601B4(int a0) {
  * Decoded structure (raw-word disasm):
  *   v1 = caller_t6->[0x40];                          // state sub-pointer
  *   if (v1 == 0) {
- *       func1((char*)&D_BASE + 0x21CA4);              // lazy-init w/ string sym
+ *       func1((char*)&D_00000000 + 0x21CA4);              // lazy-init w/ string sym
  *       v1 = caller_t6->[0x40];                       // (reload via spill/load)
  *   }
- *   v0 = func2((char*)&D_BASE + 0x21CA4);             // 2nd dispatch call (size)
+ *   v0 = func2((char*)&D_00000000 + 0x21CA4);             // 2nd dispatch call (size)
  *   v1->[0x4] = v0;
  *   v1->[0x8] = v1->[0x8] + v0 - v1->[0];             // advance position
  *   *(int*)((char*)*D_globalX + 0x40) = v1->[0x20];   // commit to global
@@ -22142,16 +22142,16 @@ void gl_func_000601B4(int a0) {
  * (caller-set $t6 is unreproducible from standard C).
  */
 int gl_func_000601DC(void) {
-    extern int D_BASE;
+    extern int D_00000000;
     extern int **D_globalX;
     extern int *t6_caller_state;
     int *v1 = (int*)t6_caller_state[0x40 / 4];
     int v0;
     if (v1 == 0) {
-        gl_func_00000000((char*)&D_BASE + 0x21CA4);
+        gl_func_00000000((char*)&D_00000000 + 0x21CA4);
         v1 = (int*)t6_caller_state[0x40 / 4];
     }
-    v0 = (int)gl_func_00000000((char*)&D_BASE + 0x21CA4);
+    v0 = (int)gl_func_00000000((char*)&D_00000000 + 0x21CA4);
     v1[0x4 / 4] = v0;
     v1[0x8 / 4] = v1[0x8 / 4] + v0 - v1[0];
     (*D_globalX)[0x40 / 4] = v1[0x20 / 4];
@@ -23686,7 +23686,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066850);
 void gl_func_000669B8(void) {
     extern int *v0_caller_state;
     extern int **v1_caller_state;
-    extern int D_BASE;
+    extern int D_00000000;
     extern int *D_X, *D_Y;
     int rc;
     int *state = v0_caller_state;
@@ -23698,10 +23698,10 @@ void gl_func_000669B8(void) {
     fn2 = (int(*)(void))(*D_X)[0x40 / 4];
     rc = fn2();
     if (rc != 0) {
-        gl_func_00000000((char*)&D_BASE + 0x218C, rc);
+        gl_func_00000000((char*)&D_00000000 + 0x218C, rc);
     }
-    gl_func_00000000((char*)&D_BASE + 0x21A4, state);
-    gl_func_00000000((char*)&D_BASE + 0x21AC, (*D_Y)[0], (*D_Y)[1]);
+    gl_func_00000000((char*)&D_00000000 + 0x21A4, state);
+    gl_func_00000000((char*)&D_00000000 + 0x21AC, (*D_Y)[0], (*D_Y)[1]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000669B8);
