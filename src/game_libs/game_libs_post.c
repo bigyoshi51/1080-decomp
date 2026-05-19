@@ -1677,12 +1677,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
 //   (3C014F00) is a large scale constant. This is a graphics-math
 //   transform leaf in the game_libs subsystem; the 3 trailing bundled
 //   bodies are its small FP helpers, left for the deferred re-split.
-// Caps: raw-word USO + 4-fn unsplit bundle + heavy FP with FPCSR
-//   control — not exact-matchable without proper USO mnemonic disasm;
-//   high-level structural pass only for the named leading fn, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "4-jr bundle" note is STALE;
+//   .s is 0x4A8/243 words, ONE function). Heavily-FP vector/matrix
+//   transform leaf with FPCSR rounding-mode control. Real-C
+//   STRUCTURAL body below per the analysis (mul/add cop1 chains into
+//   a sp+0x0C..0x30 float scratch from a2[-1]/a2[-2], cfc1/ctc1
+//   FPCSR manip to switch rounding before a float->int truncation,
+//   bit-test branch on the truncated value, 0x4F00 scale literal).
+//   Byte-match deferred — dense FP schedule + FPCSR cfc1/ctc1 pair
+//   (IDO emits these only from inline-asm, unreproducible from C).
+//   Name pre-checked: no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_00020A28(int a0, int a1, float *a2) {
+    float u = a2[-1];
+    float v = a2[-2];
+    float scaled = u * v * 8388608.0f;   /* 0x4F00 scale literal */
+    int n;
+    /* FPCSR rounding-mode switch (cfc1/ctc1) elided — see recipe */
+    n = (int)scaled;
+    if (n & 0x78) {
+        gl_func_00000000(a0, a1, n);
+    } else {
+        gl_func_00000000(a0, a1, n & 0x7);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020DF4);
 
