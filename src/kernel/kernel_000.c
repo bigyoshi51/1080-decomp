@@ -833,6 +833,10 @@ extern s32 D_80012F80;
 extern s32 D_80012FC0;
 extern s32 func_800021D0();
 extern s32 func_8000275C();
+extern s32 D_8000A314;
+extern s32 D_8000A328;
+extern s32* func_800008B8(void*, void*, void*);
+extern s32 func_80000A98(void);
 
 s32 func_800008F0(s32 a0) {
     s32 s2;
@@ -868,7 +872,48 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800008F0);
  * merged into predecessor func_8000098C (size 0x4C → 0x60). Address re-exported
  * via undefined_syms_auto.txt for the many cross-jal callers (kernel_000.c
  * line 383, 389, 409, etc.). */
+#ifdef NON_MATCHING
+/* func_800009EC: front block for the USO module loader tail at func_80000A88 /
+ * func_80000A98. Boundary check: this symbol has no jr-ra and branches to
+ * func_80000A98's epilogue label, while both 80000A88 and 80000A98 are also
+ * standalone jal targets. That makes a merge unsafe per
+ * docs/PATTERNS.md#feedback-contiguous-fragment-can-be-alt-entry-check-extern-first
+ * and docs/PATTERNS.md#feedback-dual-role-tail-and-callable.
+ *
+ * Decoded front semantics:
+ *   - reset pending module/function indexes to -1
+ *   - call the registered loader callback with D_8000A314 and the file
+ *   - clear two fields in D_80012BC0, then prime D_80012FC0/D_80012F80
+ *   - read a range descriptor into the stack header buffer
+ *   - on failure, return -17 through func_80000A98's shared epilogue
+ *   - on success, seed D_8000A2D8/D_8000A2DC and fall through to 80000A98
+ *
+ * Natural C has to model the final fall-through as a call to the continuation,
+ * so the default byte-correct build stays INCLUDE_ASM. */
+s32 func_800009EC(s32 file) {
+    s32 header[12];
+    s32 *range;
+
+    D_80012C64 = -1;
+    D_80012C68 = -1;
+    D_80012C44(&D_8000A314, (void*)file);
+
+    ((s32*)&D_80012BC0)[6] = 0;
+    ((s16*)&D_80012BC0)[0x16] = 0;
+
+    func_80000660(file, &D_80012FC0, &D_80012F80);
+    range = func_800008B8(header, &D_80012FC0, &D_8000A328);
+    if (range == 0) {
+        return -17;
+    }
+
+    D_8000A2D8 = range[0];
+    D_8000A2DC = range[1];
+    return func_80000A98();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800009EC);
+#endif
 
 #ifdef NON_MATCHING
 /* func_80000A88: 4-insn alt-entry preamble for func_80000A98.
