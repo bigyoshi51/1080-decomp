@@ -19910,31 +19910,17 @@ end:
     return a0;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00054668: 21-insn / 0x54 four-call wrapper.
- *   gl_func_00000000(&D_00000000, a0->n0xC, 0);     // call 1: 3 args
- *   gl_func_00000000(a0 + 0x2C, 0);                  // call 2: 2 args
- *   gl_func_00000000(&D_00000000);                   // call 3: 1 arg
- *   gl_func_00000000(a0);                            // call 4: 1 arg (passthrough)
- *
- * Cap class: target reads a0->n0xC via original $a0 BEFORE the call-1
- * lui+addiu clobbers it (`lw a1, 0xC(a0); lui a0, 0; ...; jal; move a2, 0`).
- * IDO -O2 with the C `gl_func(&D, a0[3], 0)` form clobbers $a0 first then
- * reloads via $t6 (`sw a0, 0x18(sp); lw t6, 0x18(sp); ...; lw a1, 0xC(t6)`)
- * — extra spill+reload, +1 insn vs target. No clear C-level lever to force
- * IDO to evaluate field-load before address materialization. Documented
- * cap. */
 extern int gl_func_00000000();
 void gl_func_00054668(int *a0_arg) {
-    int val = a0_arg[3];  /* pre-load to force read BEFORE a0 lui-clobber */
+    /* Pre-load to force read of a0->[0xC] BEFORE a0 gets lui-clobbered by
+     * the first call's &D arg. Without this local, IDO -O2 spills+reloads
+     * a0 via stack (+1 insn). */
+    int val = a0_arg[3];
     gl_func_00000000(&D_00000000, val, 0);
     gl_func_00000000((char*)a0_arg + 0x2C, 0);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0_arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054668);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_000546BC(char *a0) {
