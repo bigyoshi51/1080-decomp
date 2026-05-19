@@ -19809,42 +19809,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
 
 #ifdef NON_MATCHING
 /* game_libs_func_00054144: triangle-centroid (average of 3 vertices).
- * Zeros the Vec3 accumulator at a1, loops 3x reading three u16 vertex
- * indices from the a0->0x68 directory entry [a2] (8-byte stride, the
- * indices at byte offsets +2/+4/+6), indexes the a0->0x60 6-byte
- * record array (record = base + idx*6), reads 3 s16 fields (x/y/z at
- * +0/+2/+4), converts to float and accumulates into a1[0..2], then
- * divides each by 3.0f. The decoded algorithm below is correct.
+ * Zeros the Vec3 at a1, loops 3x reading three u16 vertex indices
+ * from the a0->0x68 directory entry [a2] (8-byte stride, indices at
+ * byte offsets +2/+4/+6), indexes the a0->0x60 6-byte record array
+ * (rec = base + idx*6), reads 3 s16 fields (x/y/z @ +0/+2/+4),
+ * accumulates as float into a1[0..2], divides each by 3.0f. Decoded
+ * algorithm is correct and verified against the .s.
  *
- * Cap (in progress, chained-inheritance UNLOCK path): the declared
- * symbol is 57 words = 51-word body (insns at 0x54144..0x5420C, jr ra
- * + swc1-delay) PLUS a 6-word post-jr-ra TAIL
- *   lw t7,0x54(a0); sll t8,a2,2; subu t8,t8,a2; sll t8,t8,2;
- *   addu t9,t7,t8; lw t1,0(t9)
- * that materializes $t9/$t1 as the stolen prologue for the
- * fall-through successor gl_func_00054228. Prior analysis said
- * SUFFIX_BYTES was blocked "because predecessor is INCLUDE_ASM";
- * making this C-emit UNBLOCKS it. Plan: tighten the body to byte-
- * exact (51 words), then add to the Makefile
- *   build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES :=
- *     game_libs_func_00054144=0x8C8F0054,0x0006C080,0x0306C023,
- *     0x0018C080,0x01F8C821,0x8F290000
- * which restores the 6-word tail and unblocks the successor too.
- * Current body draft is structurally off (statement order: target
- * zeros a1[] BEFORE loading a0->0x68/0x60; `idx*6` must emit
- * `multu t1,a3` with a3=6 held in a reg, not a shift/add of literal
- * 6; ~76 vs 51 insns). Needs FP-regalloc + multu-form iteration —
- * deferred to a focused multi-pass. Real C preserved for tightening. */
+ * Chained-inheritance UNLOCK target: declared symbol = 51-word body
+ * + 6-word post-jr-ra tail (lw t7,0x54(a0); sll/subu/sll a2*15*4;
+ * addu t9; lw t1,0(t9)) that materializes $t9/$t1 as the stolen
+ * prologue for fall-through successor gl_func_00054228. Prior
+ * analysis: "SUFFIX_BYTES blocked because predecessor is
+ * INCLUDE_ASM" — C-emit unblocks it. Plan unchanged: body-match 51w
+ * then `build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES :=
+ * game_libs_func_00054144=0x8C8F0054,0x0006C080,0x0306C023,
+ * 0x0018C080,0x01F8C821,0x8F290000`.
+ *
+ * Progress 2026-05-18: statement-order fix applied (zero a1[] BEFORE
+ * loading a0->0x68/0x60) — confirmed builds ERR=0. IDO -O2 still
+ * emits 76 insns vs target 51: the target keeps the Vec3 sum in
+ * MEMORY at a1[] with a tight load/add/store per component AND uses
+ * v1 as both the dir byte-offset (0/2/4) and the loop bound
+ * (bne v1,6) with idx*6 via `li a3,6; multu t1,a3; mflo`. The C
+ * draft explodes the per-component conversions + address math.
+ * Needs the standalone `-S` compare diagnostic (tools/gcc -O2 -S vs
+ * the .s) to localize the 25-insn excess — a deep FP-regalloc /
+ * scheduling grind, not a one-tick win. Real C preserved for the
+ * focused tightening pass. */
 void game_libs_func_00054144(int *a0, float *a1, int a2) {
     int i;
-    char *dir = (char *)a0[0x1A] + a2 * 8;
-    char *recbase = (char *)a0[0x18];
+    short *dir;
+    short *recbase;
     a1[0] = 0.0f;
     a1[1] = 0.0f;
     a1[2] = 0.0f;
+    dir = (short *)((char *)a0[0x1A] + a2 * 8);
+    recbase = (short *)a0[0x18];
     for (i = 0; i != 6; i += 2) {
-        unsigned short vi = *(unsigned short *)(dir + i + 2);
-        short *rec = (short *)(recbase + vi * 6);
+        unsigned short vi = *(unsigned short *)((char *)dir + i + 2);
+        short *rec = (short *)((char *)recbase + vi * 6);
         a1[0] += (float)rec[0];
         a1[1] += (float)rec[1];
         a1[2] += (float)rec[2];
