@@ -249,6 +249,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D870);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D944);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D9E0);
+
 // gl_func_0001DA7C — STRUCTURAL PASS (0x10C / 67 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). An F3D/GBI glyph-command builder in the gl_func_0001D4C0
