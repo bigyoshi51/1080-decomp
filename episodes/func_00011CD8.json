@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00011CD8",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-05-19T19:14:11.876688+00:00",
+  "end_time": "2026-05-19T19:14:11.876708+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-19T19:14:11.876702+00:00",
+      "assistant_text": "Exact -O0 split-body match for the 26-insn if/else flag setter. Source already lived in bootup_uso_o0_11C70.c; this episode records the missing exact-match metadata.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 26,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\n\n/* -O0 sub-file split out of bootup_uso_tail3a.c on 2026-05-07. Holds the\n * 0x11C70..0x11D40 -O0 cluster: 11C70/11CA4 (append-to-array helpers,\n * register-typed-local recipe) + 11CD8 (if-else flag-setter, full\n * arg-spill).\n *\n * Pattern: minimal -O0 frame, register-typed locals for leaf, full\n * arg-spill+reload for non-leaf, b .+1 dead-branch BB markers. */\n\n/* func_00011C70: append-to-array helper. a0->0x120 is the count, the array\n * is at a0->0xE0 (4-byte entries). Decl order matters \u2014 `idx` declared\n * BEFORE `p` so that the local pointer copy lands in $a3 (higher arg slot)\n * via IDO -O0's first-allocated-reg-local pick. Body byte-exact at -O0\n * (verified 2026-05-02 and re-verified 2026-05-07). */\nvoid func_00011C70(s32 *a0, s32 a1) {\n    register s32 idx;\n    register s32 *p = a0;\n    idx = *(s32*)((char*)p + 0x120);\n    *(s32*)((char*)p + 0x120) = idx + 1;\n    *(s32*)((char*)a0 + idx*4 + 0xE0) = a1;\n}\n\n/* Sibling of func_00011C70: same append-to-array shape with offsets 0x124\n * (count) + 0x100 (4-byte entries). Verified byte-exact at -O0 with the\n * same `register s32 idx; register s32 *p = a0;` decl-order recipe\n * (2026-05-07). */\nvoid func_00011CA4(s32 *a0, s32 a1) {\n    register s32 idx;\n    register s32 *p = a0;\n    idx = *(s32*)((char*)p + 0x124);\n    *(s32*)((char*)p + 0x124) = idx + 1;\n    *(s32*)((char*)a0 + idx*4 + 0x100) = a1;\n}\n\n/* 26-insn -O0 if-else flag-setter. Sets a0->0x188 to 0 if a1 != 0 else 1.\n * Both branches call func_00000000(a0) (cross-USO placeholder). Verified\n * byte-exact at -O0 standalone (2026-05-07). */\nvoid func_00011CD8(int *a0, int a1) {\n    if (a1 != 0) {\n        func_00000000(a0);\n        *(int*)((char*)a0 + 0x188) = 0;\n    } else {\n        func_00000000(a0);\n        *(int*)((char*)a0 + 0x188) = 1;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_11C70.c",
+    "asm_path": "projects/1080-agent-c/asm/nonmatchings/bootup_uso/func_00011CD8.s",
+    "segment": "bootup_uso",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul -O0 -mips2 -32 -I include -I src",
+    "verification": "Verified with make RUN_CC_CHECK=0 and no-alias objdump comparison of build/src/bootup_uso/bootup_uso_o0_11C70.c.o against expected/src/bootup_uso/bootup_uso_o0_11C70.c.o; function bytes are identical."
+  }
+}
