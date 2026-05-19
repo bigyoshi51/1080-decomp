@@ -3441,11 +3441,27 @@ int gl_func_00023B08(int a0, int a1) {
 //   simple word getters reading globals &D_0+0x201C / 0x2020 / 0x2024
 //   (the registry/limit globals used by the gl_func_000221D8 /
 //   gl_func_00022FC0 families). Left for the deferred USO re-split.
-// Caps: raw-word USO + 5-fn unsplit bundle + jal-0 USO-reloc step
-//   calls — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "5-fn unsplit bundle" note is
+//   STALE; .s is 0x54/21 words, ONE function). Two-stage
+//   lookup-or-fallback. Real-C STRUCTURAL body below per the
+//   analysis (r = jal-0 reloc1(a0,a1); if r != 0 return r; else
+//   jal-0 reloc2(a0,2,a1); return 0). Byte-match deferred —
+//   placeholder jal-0 calls + beql schedule need USO reloc infra.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_00023B44(int a0, int a1) {
+    int r = gl_func_00000000(a0, a1);
+    if (r != 0) {
+        return r;
+    }
+    gl_func_00000000(a0, 2, a1);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023B44);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023B98);
 
