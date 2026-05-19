@@ -20844,8 +20844,43 @@ void gl_func_00054C24(char *a0, char *a1) {
     }
 }
 
-/* gl_func_00054C6C: 38-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00054C6C: 38-insn 5-call multi-section debug printer (0x98, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm) — series of 5 jal calls, each with
+ * different (string_sym, format_sym_at_D+0x210CC..0x210E4, ...) args:
+ *
+ *   func1(&D_strA, &D_BASE + 0x210CC, 0);
+ *   func2(&D_strB, &D_BASE + 0x210D8, self + 0x120, 0);
+ *   func3(&D_strC, &D_BASE + 0x210E4, self + 0x124, 0,
+ *         1.0f /* stack +0x10 */, 0 /* stack +0x14 */);
+ *   func4(&D_strD);
+ *   func5(self);
+ *
+ * Each call passes a unique format-string sym (D_strA..D), a config offset
+ * from D_BASE+0x210CC..+0x210E4, and stride-incremented pointers into the
+ * self struct (self+0x120, self+0x124). The 1.0f literal is set up via
+ * `lui at, 0x3F80; mtc1 at, f4; swc1 f4, 0x10(sp)` for func3's stack arg.
+ *
+ * Structured multi-section debug-dump helper (common in 1080's game_libs
+ * debug instrumentation).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00054C6C(int *self) {
+    extern int D_BASE;
+    extern int D_strA, D_strB, D_strC, D_strD;
+    gl_func_00000000(&D_strA, (char*)&D_BASE + 0x210CC, 0);
+    gl_func_00000000(&D_strB, (char*)&D_BASE + 0x210D8, (char*)self + 0x120, 0);
+    gl_func_00000000(&D_strC, (char*)&D_BASE + 0x210E4, (char*)self + 0x124, 0,
+                      1.0f, 0);
+    gl_func_00000000(&D_strD);
+    gl_func_00000000(self);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054C6C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054D04);
 
