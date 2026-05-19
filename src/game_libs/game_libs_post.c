@@ -4664,11 +4664,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025BFC);
 //   (`jal 0` slot) and folds its sub-entries into the rebuilt count.
 //   This is the registry-side companion that gl_func_000258CC primes
 //   and gl_func_00025504 then ticks per-frame.
-// Caps: raw-word USO + large full-table loop with USO-reloc per-
-//   record processing — not exact-matchable without proper USO
-//   mnemonic disasm; high-level structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Heavyweight "walk the whole
+//   registry and rebuild the active element set" driver — the
+//   registry-side companion that gl_func_000258CC primes and
+//   gl_func_00025504 then ticks per-frame. Real-C STRUCTURAL body
+//   below per the analysis (state flag &D_0+0x1034; tb = registry
+//   table &D_0+0x2030 (0x14 stride); clear &D_0+0x1030 active count;
+//   for each non-empty record (byte+0>0) invoke jal-0 proc(idx,j,..)
+//   and fold its rec->1 sub-entries into the rebuilt count). Byte-
+//   match deferred — large full-table loop / USO-reloc processor /
+//   s0-s7 schedule. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00025C54(int idx, int a1, int a2) {
+    char *g = (char *)&D_00000000;
+    int en = (*(int *)(g + 0x1034) != 0);
+    char *tb = *(char **)(g + 0x2030);
+    int j;
+    *(int *)(g + 0x1030) = 0;
+    for (j = 0; j < 0x100; j++) {
+        char *rec = tb + j * 0x14;
+        unsigned char k = *(unsigned char *)(rec + 0);
+        unsigned char n = *(unsigned char *)(rec + 1);
+        int i;
+        if (k == 0) {
+            continue;
+        }
+        gl_func_00000000(idx, j, k, a1, a2);
+        for (i = 0; i < n; i++) {
+            *(int *)(g + 0x1030) += gl_func_00000000(rec, i);
+        }
+    }
+    return en;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025C54);
+#endif
 
 // gl_func_000260B4 — STRUCTURAL PASS (0x140 / 80 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
