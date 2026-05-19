@@ -2733,6 +2733,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000250C8);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025320);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253B0);
+
 // gl_func_00025504 — STRUCTURAL PASS (0x3C8 / 242 words ≈ 1KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
 // (1 jr, no bundle). A per-frame subsystem UPDATE DRIVER. Large
