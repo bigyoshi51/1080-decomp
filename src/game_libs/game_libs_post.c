@@ -2751,11 +2751,43 @@ void gl_func_00023078(int a0, int a1) {
 //   second path indexes a global table at &D_0+0x2024. This is the
 //   "resolve & act on a packed handle" entry of the game_libs
 //   registry/handle subsystem.
-// Caps: raw-word USO + packed-bitfield decode + jal-0 USO-reloc
-//   dispatch — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Packed-handle decode +
+//   dispatch entry of the game_libs registry/handle subsystem.
+//   Real-C STRUCTURAL body below per the analysis (h->0 bit0 valid
+//   gate; word bits[31:30]=type, bits[23:0]=id; type!=0 -> jal-0
+//   USO-reloc disp(id, sign-ext type); second path indexes global
+//   table &D_0+0x2024 with h->4 / h->2 payload). Byte-match deferred
+//   — placeholder jal-0 dispatch needs USO reloc infra + bitfield
+//   schedule. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_000230D0(int *h) {
+    char *g = (char *)&D_00000000;
+    int w = h[0];
+    int typ = (unsigned)w >> 30;
+    int id = w & 0x00FFFFFF;
+    int r = 0;
+    if ((*(unsigned char *)h & 1) != 1) {
+        return 0;
+    }
+    if (typ != 0) {
+        int t = (typ << 24) >> 24;
+        r = gl_func_00000000(id, t);
+        if (r != 0) {
+            return r;
+        }
+    }
+    if (((unsigned)h[0] >> 30) == 1) {
+        int *tbl = *(int **)(g + 0x2024);
+        gl_func_00000000(tbl, h[1], *(short *)((char *)h + 2));
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000230D0);
+#endif
 
 // gl_func_000231B4 — STRUCTURAL PASS (0xD0 / 52 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
