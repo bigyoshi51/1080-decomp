@@ -18577,6 +18577,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000453D8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00045418);
+
 // gl_func_000454C4 — STRUCTURAL PASS (0x7E8 / 507 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (very large). Single prologue
 // frame 0x58 (saves ra + s0..s5 + f20). Per-element FP transform +
