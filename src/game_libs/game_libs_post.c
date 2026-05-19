@@ -25411,8 +25411,54 @@ void game_libs_func_00066C60(void) {}
 
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00066C30_pad.s")
 
-/* gl_func_00066C74: 56-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00066C74: 56-insn 4-slot struct-array init + 2-call setup (0xE0, frame 0x30).
+ *
+ * Decoded structure (raw-word disasm):
+ *   *(int*)0x000416B0 = 2;                            // global flag
+ *   self->[0x13E8] = 0;
+ *   func1(self + 0x11B0, self + 0x11C8, 4);           // setup call
+ *   func2(5, self + 0x11B0, (char*)0x40000 + 0x16B0); // 2nd setup call
+ *   self->[0x13F0] = 0;
+ *   self->[0x13C8] = 3; self->[0x13CC] = 3; self->[0x13D0] = 3; self->[0x13D4] = 3;
+ *   // Per-slot init (4 slots, structured as int + 4 bytes + 1 short):
+ *   for (i = 0; i < 4; i++) {
+ *       self->bytes[0x13D8 + i] = 0;                  // slot.[0]
+ *       self->bytes[0x13DC + i] = 0;                  // slot.[4]
+ *       self->shorts[0x13E0 + i*2] = 0;               // slot.[8]
+ *   }
+ *   func3(self);                                       // post-init
+ *   func4(self + 0x1000, 6, self);                    // 3-arg final call
+ *
+ * 4-slot struct-array at self->[0x13C8..0x13E7], each slot has int +
+ * 4 bytes + 2 shorts (or 1 short padded). The unrolled per-slot init
+ * writes byte fields with offsets +0x10/+0x14 and short field +0x18
+ * (relative to slot base).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00066C74(char *self) {
+    *(volatile int*)0x000416B0 = 2;
+    *(int*)(self + 0x13E8) = 0;
+    gl_func_00000000(self + 0x11B0, self + 0x11C8, 4);
+    gl_func_00000000(5, self + 0x11B0, (char*)0x000416B0);
+    *(int*)(self + 0x13F0) = 0;
+    {
+        int i;
+        for (i = 0; i < 4; i++) {
+            *(int*)(self + 0x13C8 + i*4) = 3;
+            self[0x13D8 + i] = 0;
+            self[0x13DC + i] = 0;
+            *(short*)(self + 0x13E0 + i*2) = 0;
+        }
+    }
+    gl_func_00000000(self);
+    gl_func_00000000(self + 0x1000, 6, self);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066C74);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066D54);
 
