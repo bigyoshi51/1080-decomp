@@ -17241,8 +17241,51 @@ int *gl_func_00048A74(int *a0, int a1, int a2, int a3) {
 // global and cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048AEC);
 
-/* gl_func_00049308: 41-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00049308: per-record out-of-bounds scan. Decoded from
+ * bare stub 2026-05-19. void f(int *self, int unused):
+ *   n = self->0x90;  if (n <= 0) return;
+ *   for (i = 0, off = 0; i < n; i++, off += 4) {
+ *       rec = *(int**)((char*)self->0x84 + off);
+ *       q   = (int*)self->0x254;
+ *       if (rec->0x54 >= q->0x10C && rec->0x50 >= q->0x110)
+ *           cb();                       // both axes out of bounds
+ *   }
+ * The two bounds tests are the bnel-delay-likely early-skip idiom
+ * (each `slt at,lo,hi; bnel at,0,CONT; addiu s0,s0,1` — i++ folded
+ * into the likely slot; the loop bne reuses s0). s3=&D_00000000 is
+ * set up (likely a cb arg in the focused pass).
+ *
+ * build/non_matching test 2026-05-19: 40 vs 41 (count -1).
+ * Residual: (1) the unused `a1` param spills `sw a1,0x2C(sp)` —
+ * target has NO such spill (drop the param / make it match the
+ * real arity, see docs unused-arg-save); (2) s3=&D_00000000 must
+ * be materialized in the prologue (lui/addiu) as the loop-invariant
+ * cb base, not folded; (3) bnel-delay-likely i++ shaping + the
+ * count-1 around the s3 setup. Documented-hard multi-idiom —
+ * deferred to a focused pass; INCLUDE_ASM build path. Real decoded
+ * C preserved. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00049308(int *self, int a1) {
+    int i;
+    int off = 0;
+    int n = self[0x90 / 4];
+    if (n <= 0) {
+        return;
+    }
+    for (i = 0; i < n; i++) {
+        int *rec = *(int **)((char *)self[0x84 / 4] + off);
+        int *q = (int *)self[0x254 / 4];
+        if (rec[0x54 / 4] >= q[0x10C / 4] && rec[0x50 / 4] >= q[0x110 / 4]) {
+            gl_func_00000000();
+        }
+        off += 4;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049308);
+#endif
 
 // gl_func_000493AC — STRUCTURAL PASS (0x78C / 484 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (very large init builder).
