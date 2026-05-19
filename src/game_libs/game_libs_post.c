@@ -3562,12 +3562,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023BDC);
 //   config args. A subsystem object bring-up in the game_libs
 //   resource family (companion to the gl_func_00022A9C arena init /
 //   gl_func_0001FD98 alloc helpers).
-// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc
-//   allocator + fixed init — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only for the named leading fn,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "2-jr bundle" note is STALE;
+//   .s is 0x144/77 words, ONE function). Subsystem object bring-up
+//   (companion to gl_func_00022A9C arena init / gl_func_0001FD98
+//   alloc). Real-C STRUCTURAL body below per the analysis (size16 =
+//   (sz+0xF)&~0xF floored at 0x400; jal-0 USO-reloc alloc(n); wire
+//   three fixed base tables &D_1DD4 / &D_1DF0 / &D_2ACC0; hand to
+//   fixed init 0x38604(b,1,0,a0,..,n,t3,t4,t6)). Byte-match deferred
+//   — placeholder jal-0 alloc + fixed init need USO reloc infra.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00023E60(int a0, int a1, int sz) {
+    char *g = (char *)&D_00000000;
+    int n = (sz + 0xF) & ~0xF;
+    void *b = (void *)gl_func_00000000(n);
+    char *t3 = g + 0x1DD4;
+    char *t4 = g + 0x2ACC0;
+    char *t6 = g + 0x1DF0;
+    if (n < 0x400) {
+        n = 0x400;
+    }
+    gl_func_00000000(b, 1, 0, a0, a1, n, t3, t4, t6);
+    return (int)b;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023E60);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F84);
 
