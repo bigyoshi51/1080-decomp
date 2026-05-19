@@ -4377,6 +4377,8 @@ void gl_func_0002A50C(int *a0, int a1) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A5C8);
+
 // gl_func_0002A6C0 — STRUCTURAL PASS (0x80 / 32 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A 0x40-slot table sweep over the &D_5280 array.
