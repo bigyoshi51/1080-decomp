@@ -19484,8 +19484,33 @@ void gl_func_0005165C(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005165C);
 #endif
 
-/* gl_func_00051694: 32-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00051694: branch-log then register. Decoded from bare
+ * stub 2026-05-18. void f(int a0, int a1):
+ *   if (a1 == 0) cb(&D, "str_0x20E7C");
+ *   else         cb(&D);
+ *   cb(&D, "str_0x20E84", a0 + 0xC, 0, 1.0f, 0);
+ * The final call is 6-arg with a FLOAT 5th arg: a3=0, then stack
+ * sp+0x10 = 1.0f (swc1 f4, built `lui at,0x3F80; mtc1 at,f4`),
+ * sp+0x14 = 0. Multi-idiom (defer): branch-convergence with a0
+ * spilled in the beq DELAY slot (reloaded as a2 on both arms then
+ * +0xC), and the float-on-stack 5th-arg ABI (swc1 in the jal delay)
+ * — needs the exact arg-prototype shaping in a focused pass. Real
+ * decoded C preserved. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00051694(int a0, int a1) {
+    if (a1 == 0) {
+        gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x20E7C);
+    } else {
+        gl_func_00000000(&D_00000000);
+    }
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x20E84,
+                     a0 + 0xC, 0, 1.0f, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051694);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00051714: 24-insn 4-float-promoted-to-double printf-style call.
