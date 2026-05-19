@@ -2820,11 +2820,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000230D0);
 //   through the fixed routine 0x0C00DDCF (≈0x37364); the `depth`
 //   second arg guards recursion (cap 0x7F). This is a scene/handle-
 //   graph recursive visitor in the game_libs registry subsystem.
-// Caps: raw-word USO + recursive fixed-target traversal + jal-0
-//   USO-reloc lookup — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Recursive scene/handle-graph
+//   visitor in the game_libs registry subsystem. Real-C STRUCTURAL
+//   body below per the analysis (depth cap 0x7F; jal-0 USO-reloc
+//   lookup(handle)->node; classifier byte n->1 selects leaf double-
+//   visit of n->0x10 vs recurse n->8; n->2 != 0x7F sentinel ->
+//   recurse n->0x18; traversal via fixed routine 0x37364). Byte-
+//   match deferred — placeholder jal-0 lookup/traversal need USO
+//   reloc infra + recursion schedule. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_000231B4(int handle, int depth) {
+    int *n;
+    if (depth >= 0x7F) {
+        return 0;
+    }
+    n = (int *)gl_func_00000000(handle);
+    if (n == 0) {
+        return -1;
+    }
+    if (*((unsigned char *)n + 1) == 0) {
+        gl_func_00000000(n[0x10 / 4], handle);
+        gl_func_00000000(n[0x10 / 4], handle);
+    } else {
+        gl_func_00000000(n[8 / 4], handle);
+    }
+    if (*((unsigned char *)n + 2) != 0x7F) {
+        gl_func_00000000(n[0x18 / 4], handle);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000231B4);
+#endif
 
 /* gl_func_00023284: 25-insn 2-callee dispatcher with conditional cleanup.
  *   v = call(2, a0);
