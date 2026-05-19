@@ -19544,8 +19544,50 @@ void gl_func_0004ED0C(int *self) {
     }
 }
 
-/* gl_func_0004ED7C: 50-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004ED7C — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
+ * (declared 0xC8 / 50 words, realjr=2). NAMED fn = indirect-
+ * dispatch iterator, insns 1..28 (prologue 27BDFFD8 frame 0x28,
+ * saves ra+s0..s2, jr ra at insn 28):
+ *   void gl_func_0004ED7C(int *self) {
+ *     int i; char *cur = (char*)self;            // s1
+ *     if (self->0x11C <= 0) return;              // blez count
+ *     for (i = 0; i < self->0x11C; i++, cur += 4) {
+ *         int *v1 = *(int**)(cur + 0x124);
+ *         int *v0 = *(int**)v1;
+ *         void (*fp)() = (void(*)())v0[3];        // v0->0xC
+ *         fp((char*)v1 + *(short*)((char*)v1 + 8)); // jalr t9
+ *     }
+ *   }
+ * count (self->0x11C) reloaded per iter; loop back-edge is
+ * bnel-delay-likely with `lw v1,0x124(s1)` pre-loaded.
+ *
+ * BOUNDARY NOTE (DEFERRED USO RE-SPLIT): insns 29..50 after the
+ * jr ra are a TRAILING LEAF — a bounded (cap 3) append:
+ *   void <leaf>(int *self, int a1) {
+ *     self->[0x134 + self->0x120 * 4] = a1;
+ *     if (self->0x120 < 3) self->0x120 += 1;
+ *   }
+ * own 03E00008. The 0xC8 size spans it so the iterator can't
+ * byte-match standalone without a re-split at the named-fn end.
+ * Real decoded C of both fns documented; INCLUDE_ASM is the
+ * bundle build path. */
+void gl_func_0004ED7C(int *self) {
+    int i;
+    char *cur = (char *)self;
+    if (*(int *)((char *)self + 0x11C) <= 0) {
+        return;
+    }
+    for (i = 0; i < *(int *)((char *)self + 0x11C); i++, cur += 4) {
+        int *v1 = *(int **)(cur + 0x124);
+        int *v0 = *(int **)v1;
+        void (*fp)() = (void (*)())v0[3];
+        fp((char *)v1 + *(short *)((char *)v1 + 8));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
+#endif
 
 // gl_func_0004EE44 — STRUCTURAL PASS + BOUNDARY NOTE (0x288 / 167 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
