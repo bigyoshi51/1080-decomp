@@ -18466,6 +18466,8 @@ int gl_func_0004CF04(int a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CF04);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CFB8);
 #endif
 
 /* gl_func_0004CFD4: 16-insn dual-indexed-lookup wrapper. Was a 22-insn
