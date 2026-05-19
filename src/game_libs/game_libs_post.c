@@ -20072,8 +20072,55 @@ void gl_func_000513CC(int* a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000513CC);
 #endif
 
-/* gl_func_00051448: 54-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00051448: 54-insn lazy constructor + cb-register +
+ * field-init (clean single fn). Decoded from bare stub 2026-05-19.
+ * Same family as the LANDED gl_func_00041524 (goto-end single
+ * epilogue, minimal locals). cb3 has a FLOAT 5th stack arg
+ * (swc1 f0,0x10(sp) = 0.0f); the 0x108/10C/110 fields are set
+ * from a float const *(&D_00000000 + 0x1BB0); 0x124 = 1.0f;
+ * 0x120 = 0xFFFF; 0x28 = &vtable; then 0x28/0xC/0x10 = (a0)->0x3C;
+ * v = ((a0)->0x3C)->0x10; cb4(v+0x10, o); list-insert
+ * (if o->0x14 != 0: o->4 = 1; o->0x14 = v). Multi-idiom (focused
+ * pass): the &D_00000000 vtable/float-const generic-symbol fold
+ * (see #feedback-ido-generic-reloc-base-folds), cb3 float-stack
+ * arg ABI, the beql-delay-likely list-insert, exact field order /
+ * regalloc. Real decoded C preserved; INCLUDE_ASM build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00051448(int *a0, int a1) {
+    int o;
+    int v;
+    gl_func_00000000();
+    o = gl_func_00000000(0x16C);
+    if (o == 0) {
+        goto end;
+    }
+    gl_func_00000000(o, (char *)&D_00000000 + 0x20E68, 0, 0, 0.0f);
+    *(int *)(o + 0x120) = 0xFFFF;
+    *(int *)(o + 0x28) = (int)&D_00000000;
+    *(float *)(o + 0x108) = *(float *)((char *)&D_00000000 + 0x1BB0);
+    *(float *)(o + 0x10C) = *(float *)((char *)&D_00000000 + 0x1BB0);
+    *(float *)(o + 0x110) = *(float *)((char *)&D_00000000 + 0x1BB0);
+    *(float *)(o + 0x124) = 1.0f;
+    {
+        int x = *(int *)((char *)a0 + 0x3C);
+        *(int *)(o + 0x28) = x;
+        *(int *)(o + 0xC) = x;
+        *(int *)(o + 0x10) = x;
+        v = *(int *)(x + 0x10);
+    }
+    gl_func_00000000(v + 0x10, o);
+    if (*(int *)(o + 0x14) != 0) {
+        *(int *)(o + 4) = 1;
+    }
+    *(int *)(o + 0x14) = v;
+end:
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051448);
+#endif
 
 /* gl_func_00051520: 40-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051520);
