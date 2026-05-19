@@ -8704,11 +8704,7 @@ void game_uso_func_0000C27C(Quad4 *dst) {
     *dst = buf;
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000C2D4: 28-insn alloc-init constructor with optional 3-arg sub-init.
- * 2026-05-10 attempt 2: switched NULL-check to `goto end` + final `return a0`
- * to match target's single-beqz-to-epilogue shape (prior `return 0` emitted
- * `b end; or v0,zero,zero` — 2 extra insns vs target). */
+/* game_uso_func_0000C2D4: 28-insn alloc-init constructor with optional 3-arg sub-init. */
 void *game_uso_func_0000C2D4(void *a0, int a1) {
     if (a0 == 0) {
         a0 = (void*)gl_func_00000000(0x2C);
@@ -8722,9 +8718,6 @@ void *game_uso_func_0000C2D4(void *a0, int a1) {
 end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C2D4);
-#endif
 
 /* C344-C3CC: 7 accessor fragments for a table at *(int**)&D_00000000, each
  * entry 0x40 bytes. Indexed by arg1 << 6. Templates:
