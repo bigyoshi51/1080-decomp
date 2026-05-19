@@ -2849,6 +2849,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025AC8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025BFC);
+
 // gl_func_00025C54 — STRUCTURAL PASS (0x460 / 280 words ≈ 1.1KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
 // (1 jr, no bundle). The FULL registry-table processor for the
