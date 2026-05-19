@@ -13688,7 +13688,6 @@ void gl_func_0003F244(int a0, int a1, int a2) {
     gl_func_00000000(buf);
 }
 
-#ifdef NON_MATCHING
 void gl_func_0003F278(int a0, int a1, int a2, int a3) {
     char buf[0xA0];
     *(int*)&buf[0x88] = a2;
@@ -13698,9 +13697,6 @@ void gl_func_0003F278(int a0, int a1, int a2, int a3) {
     *(int*)&buf[0x00] = 0xD;
     func_00000000(&buf[0x00]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F278);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003F2B8: 20-insn wrapper, 2 cross-segment calls.
