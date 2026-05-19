@@ -2904,11 +2904,37 @@ void gl_func_00023284(int a0, int a1, int a2, int a3) {
 //   and 0x0C00E1C3 (a per-element action taking the caller args
 //   a1/a2). The double-callback run consumer paired with the
 //   single-callback gl_func_00022FC0.
-// Caps: raw-word USO + 3-fn unsplit bundle + fixed-target per-element
-//   calls — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
+//   .s is 0xFC/46 words, ONE function). Sibling of gl_func_00022FC0
+//   — double-callback per-slot run consumer over the same
+//   &D_0+0x2028 record buffer. Real-C STRUCTURAL body below per the
+//   analysis (buf halfword-strided by idx; run length from stream
+//   head; per element invoke two fixed USO-reloc routines 0x38174
+//   and 0x381C3(1,a1,a2)). Byte-match deferred — placeholder jal-0
+//   per-element calls need USO reloc infra + loop schedule. Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_000232E8(int idx, int a1, int a2) {
+    char *g = (char *)&D_00000000;
+    short *buf = *(short **)(g + 0x2028);
+    int cur = buf[idx];
+    int cnt = *((unsigned char *)buf + cur);
+    do {
+        unsigned char e;
+        cur++;
+        e = *((unsigned char *)buf + cur);
+        gl_func_00000000(e);
+        gl_func_00000000(1, e, a1, a2);
+        cnt--;
+    } while (cnt != 0);
+    buf[idx] = (short)cur;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000233A0);
 
