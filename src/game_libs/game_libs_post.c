@@ -23740,8 +23740,57 @@ int gl_func_00062484(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062484);
 #endif
 
-/* gl_func_00062540: 47-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00062540: 47-insn alloc-slot + initialize-or-evict (0xBC, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   slot = func_alloc(self, key1, key2);             // try gl_func_00062484-style alloc
+ *   entries = self->[0];                              // base of 20-byte entries
+ *   if (slot != -1) {
+ *       entry = entries + slot * 20;                  // fresh slot path
+ *       entry->[0xC] = 1;
+ *       entry->[0x10:short] = -1;
+ *   } else {
+ *       func_evict(self);                              // overflow handler (sets new $v0)
+ *       entry = entries + slot * 20;
+ *       existing = entry->[0];
+ *       func3(key1, existing, key2, 1);               // notify of eviction
+ *       entry->[0x10:short] = (short)slot;
+ *       entry->[0x8] = key1;
+ *       entry->[0x4] = key2;
+ *   }
+ *   return slot;
+ *
+ * Companion to gl_func_00062484 (the slot-alloc fn) — this is the higher-
+ * level "claim-or-evict" wrapper that updates the entry payload on the
+ * evict path. 5*x*4 = 20-byte entry stride matches 62484.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_00062540(int *self, int key1, int key2) {
+    int slot = (int)gl_func_00000000(self, key1, key2);
+    int *entries = (int*)self[0];
+    int *entry;
+    if (slot != -1) {
+        entry = (int*)((char*)entries + slot * 20);
+        entry[0xC / 4] = 1;
+        *(short*)((char*)entry + 0x10) = -1;
+    } else {
+        int existing;
+        gl_func_00000000(self);
+        entry = (int*)((char*)entries + slot * 20);
+        existing = entry[0];
+        gl_func_00000000(key1, existing, key2, 1);
+        *(short*)((char*)entry + 0x10) = (short)slot;
+        entry[0x8 / 4] = key1;
+        entry[0x4 / 4] = key2;
+    }
+    return slot;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062540);
+#endif
 
 /* gl_func_000625FC: 20-insn array-walk + conditional-call helper.
  * Indexes into (*a0)[a1*5]; if entry[0x10] (signed halfword) != -1,
