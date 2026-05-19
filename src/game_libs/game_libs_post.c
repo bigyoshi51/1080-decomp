@@ -1154,6 +1154,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D2C);
+
 /* gl_func_00021D84: 33-insn slot-register helper.
  *   count = D[0x2534];
  *   v0 = func(&D2[0x2528], a2);
