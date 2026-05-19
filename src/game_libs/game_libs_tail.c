@@ -329,8 +329,41 @@ void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int a
     a0[2] = arg7;
 }
 
-/* gl_func_0000AAEC: 33-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000AAEC: 33-insn 3-iter fixed-loop 4-arg helper (0x84, frame 0x30).
+ *
+ * Decoded structure (raw-word disasm):
+ *   self2 = &D_1D438;                              // s3 (constant ptr1)
+ *   data2 = &D_1D3E8;                              // s2 (advances per iter)
+ *   for (i = 0; i < 3; i++) {                       // s0=0..2, s4=3 sentinel
+ *       int a1 = i + ((i + 4) << 3);               // = 9*i + 32 (8-byte stride+32 base, idx-encoded)
+ *       gl_func(self_p, a1, self2, data2);         // 4-arg
+ *       self_p += 0x20;                            // s1 += 32 per iter
+ *       data2  += 0x18;                            // s2 += 24 per iter (delay slot of bne)
+ *   }
+ *
+ * Frame saves s0/s1/s2/s3/s4/ra (6 saved regs); 0x30 frame. The `9*i + 32`
+ * argument shape suggests an interleaved-array index: iter 0→32, 1→41, 2→50.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+extern int D_1D438, D_1D3E8;
+void gl_func_0000AAEC(int *a0) {
+    int *self_p = a0;
+    int *self2 = &D_1D438;
+    int *data2 = &D_1D3E8;
+    int i;
+    for (i = 0; i < 3; i++) {
+        int a1 = i + ((i + 4) << 3);
+        gl_func_00000000(self_p, a1, self2, data2);
+        self_p = (int*)((char*)self_p + 0x20);
+        data2 = (int*)((char*)data2 + 0x18);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AAEC);
+#endif
 
 extern int gl_func_00000000();
 
