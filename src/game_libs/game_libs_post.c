@@ -750,11 +750,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
 //   a3==0 fast path instead delegates to fixed routine 0x0C00C6F2
 //   (≈0x31BC8) and consumes a single command. Sibling of the
 //   gl_func_0001D4C0 / gl_func_0001DA7C F3D-builder family.
-// Caps: raw-word USO + fixed-target call — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. F3D DL command emitter: if
+//   (a3&0xFFFF)==0 call helper(dl,0x3C0) and return dl+8; else emit
+//   two GBI command pairs into dl ((arg4|0x08000000)/((a2&0xFFFF)|
+//   0x03C00000), then (((arg5&0xFF)<<16)|0x05000000|(a3&0xFFFF))/
+//   (a1->0xC+0x80000020)) and return the advanced ptr. Real-C
+//   structural body below; byte-match deferred — placeholder jal
+//   (0xC6F2) is a runtime-patched USO reloc (need USO reloc infra)
+//   plus bnez/constant-build schedule. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for the helper.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_0001EE78(int *dl, int *a1, int a2, int a3, int arg4, int arg5) {
+    int *s0 = dl;
+    if ((a3 & 0xFFFF) == 0) {
+        gl_func_00000000(s0, 0x3C0);
+        return (int)(s0 + 2);
+    }
+    s0[0] = ((unsigned short)arg4) | 0x08000000;
+    s0[1] = (a2 & 0xFFFF) | 0x03C00000;
+    s0 += 2;
+    s0[0] = ((arg5 & 0xFF) << 16) | 0x05000000 | (a3 & 0xFFFF);
+    s0[1] = a1[0xC / 4] + 0x80000020;
+    s0 += 2;
+    return (int)s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
+#endif
 
 // gl_func_0001EF20 — STRUCTURAL PASS (0x328 / 202 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
