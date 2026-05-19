@@ -10337,6 +10337,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038964);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038A28);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B6C);
+
 #ifdef NON_MATCHING
 /* gl_func_00038BB8: 19-insn vtable-dispatch + stack-built request struct.
  * Builds a 5-field req struct on stack (count=14, buf_ptr=&buf, return_slot=0,
