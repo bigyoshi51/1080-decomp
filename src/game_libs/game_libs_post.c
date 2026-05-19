@@ -24002,8 +24002,36 @@ int gl_func_0006CD24() {
     return gl_func_00000000(0x400);
 }
 
-/* gl_func_0006CD44: 26-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006CD44: 26-insn factory + 3 global-data stores + chain (0x68, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   result = gl_func(self);                          // 1st call (arg untouched)
+ *   D_A[2] = self;                                   // store self into global table
+ *   *D_B = 1;                                        // set flag (short)
+ *   D_C[3] = ((int**)D_C)[2][1];                     // chain: D_C[3] = (D_C[2] as int*)[1]
+ *   gl_func(result);                                 // 2nd call w/ 1st-call result
+ *
+ * The 3 global-data accesses (D_A/D_B/D_C) interleave with the s0 spill and
+ * arg-reload — IDO -O2 fills the post-1st-call delay slot with the early s0
+ * spill (afb00018) and amortizes lui+lw setup across the body. No FP.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+extern int *D_A;
+extern short *D_B;
+extern int *D_C;
+void gl_func_0006CD44(int *self) {
+    int *result = (int*)gl_func_00000000(self);
+    D_A[2] = (int)self;
+    *D_B = 1;
+    D_C[3] = ((int**)D_C)[2][1];
+    gl_func_00000000(result);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CD44);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CD44_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CDB4);
