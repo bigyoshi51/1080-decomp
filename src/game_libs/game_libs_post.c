@@ -17062,8 +17062,61 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000483BC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048510);
 
-/* gl_func_00048720: 59-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00048720: 16-byte-key record search — returns matching
+ * record index in [a0->0xC, a0->0xC + a0->4), else -1. Decoded from
+ * bare stub 2026-05-18; algorithm correct, build = 62 vs 59 (count
+ * diff) + structural reorder. Remaining (multi-pass, defer):
+ *  - prologue order: `t6=a0[1](0x4); v1=a0[3](0xC); a3=v1+t6;
+ *    if(!(v1<a3))return -1; a1=v1<<4` with the `a1=v1*16` in the
+ *    beq's DELAY slot (not a separate `int off`); a1 then `+=0x10`
+ *    each iter (w58 delay). Drop the named `off` — let v1<<4 fill
+ *    the guard-branch delay.
+ *  - record ptr is the 3-deref chain RECOMPUTED at loop top each
+ *    iter: rec = *(*(*(int*)a0 + 0x1C)) + a1.
+ *  - the 8 field tests are the bnel-likely early-exit chain
+ *    (docs/IDO_CODEGEN.md branch-likely): each `if(key->X!=rec->X)`
+ *    emits `bnel; addiu v1,v1,1 [delay-likely]` → next-record. Full
+ *    match: `if(s0==0) return v1;` then 3 lbu tests; both the
+ *    s0==0 and full-match exits are `b <end>; or v0,v1,zero [delay]`
+ *    (two separate b+move tails, NOT one shared).
+ * Next pass: express as do-while with v1 as the index, a1=v1<<4
+ * tracked in-loop (no `off`), the 5 lh + 3 lbu tests as a single
+ * `if(... && ...) { if(s0==0)return v1; if(...)return v1; }`
+ * chain so IDO emits the bnel ladder with v1++ in each delay.
+ * Real decoded C preserved. */
+int gl_func_00048720(int *a0, int a1, int a2) {
+    int s0 = a1;
+    int i = a0[3];
+    int end = i + a0[1];
+    int off = i * 16;
+    if (i >= end) {
+        return -1;
+    }
+    do {
+        int rec = *(int *)(*(int *)(*(int *)a0 + 0x1C)) + off;
+        if (*(short *)(a2 + 0) == *(short *)(rec + 0) &&
+            *(short *)(a2 + 2) == *(short *)(rec + 2) &&
+            *(short *)(a2 + 4) == *(short *)(rec + 4) &&
+            *(short *)(a2 + 8) == *(short *)(rec + 8) &&
+            *(short *)(a2 + 0xA) == *(short *)(rec + 0xA)) {
+            if (s0 == 0) {
+                return i;
+            }
+            if (*(unsigned char *)(a2 + 0xC) == *(unsigned char *)(rec + 0xC) &&
+                *(unsigned char *)(a2 + 0xD) == *(unsigned char *)(rec + 0xD) &&
+                *(unsigned char *)(a2 + 0xE) == *(unsigned char *)(rec + 0xE)) {
+                return i;
+            }
+        }
+        i++;
+        off += 16;
+    } while (i < end);
+    return -1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048720);
+#endif
 
 /* gl_func_0004880C: 37-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004880C);
