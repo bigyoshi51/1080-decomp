@@ -17721,6 +17721,8 @@ void gl_func_0004A84C(char *a0) {
 // re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A890);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004A9F0);
+
 void gl_func_0004AA90(int *a0, int a1) {
     int v0 = a0[0x30/4];
     a0[0xC0/4] = a1;
