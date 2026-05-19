@@ -17343,6 +17343,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004880C);
 // deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000488A0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00048A60);
+
 /* 30-insn alloc-or-given + init + cond-followup. Promoted 82.33%→100%
  * via `||` short-circuit FALL-THROUGH-WITH-NULL-GUARD recipe (same as
  * gl_func_000378D0 / 0003D5BC). */
