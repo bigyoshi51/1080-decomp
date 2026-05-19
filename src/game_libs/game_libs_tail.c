@@ -161,7 +161,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009DB8);
 
 extern int gl_data_0000D434;
 
-#ifdef NON_MATCHING
 /* gl_func_00009EBC: 3-iteration loop dispatching to gl_func_00000000 with
  * a 5x8 grid index computed as (a1 % 5) + ((a2 % 8) << 3). The signed
  * remainder of a2 by 8 comes from a sign-preserving bgez/andi/beq dance
@@ -169,29 +168,25 @@ extern int gl_data_0000D434;
  *   a0 = base pointer (dst is a0+0x18, advances +8/iter)
  *   a1 = row seed (advances +1/iter, fed to %5)
  *   a2 = col seed (advances +1/iter, fed to signed-%8)
- *   a3 = pointer to sink int read once per iter (lw a3, 0(s4) in jal slot)
- * Draft NM wrap: structure captured, expect partial match — divide-trap
- * break-6/break-7 inserts (UB-guards on s5=5, s1=INT_MIN) and signed-%8
- * scheduling will likely diverge from compiler emit. */
+ *   a3 = pointer to sink ints, advancing one word per iter. */
 void gl_func_00009EBC(int x0, int a1, int a2, int* a3) {
     int dst = x0 + 0x18;
     int row = a1;
     int col = a2;
     int sink;
     int i;
+    int idx;
 
-    for (i = 0; i < 12; i += 4) {
-        int idx = (row % 5) + ((col % 8) << 3);
+    for (i = 0; i != 12; i += 4) {
+        idx = (row % 5) + ((col % 8) << 3);
         sink = *a3;
         gl_func_00000000(dst, idx, &gl_data_0000D434, sink);
         dst += 8;
         row += 1;
         col += 1;
+        a3++;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009EBC);
-#endif
 
 /* gl_func_00009FA8: 25-insn 3-iteration loop with 2 cross-USO calls per
  * iter. Calls gl_func(a0+i) and gl_func(a0+0x18+i) for i = 0, 8, 0x10. */
@@ -2061,8 +2056,3 @@ int gl_func_0000EBC8(char *a0) {
     gl_ref_00020CB0(&scratch);
     return gl_ref_00020D80(a0 + 0x10);
 }
-
-
-
-
-
