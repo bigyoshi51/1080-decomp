@@ -4138,11 +4138,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024E28);
 //   record's words +0x14 / +0x24. Companion to the gl_func_000223DC
 //   find-or-append / gl_func_00021F40 insert helpers, on a distinct
 //   record table (&D_0+0x157C vs &D_0+0x2030).
-// Caps: raw-word USO + cross-fragment entry + fixed-target resolve —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Bounds-checked registry-slot
+//   creator (companion to gl_func_000223DC / gl_func_00021F40, on
+//   the &D_0+0x157C record table). CROSS-FRAGMENT ENTRY: true entry
+//   is the 3-word head fragment game_libs_func_00024E28 which
+//   preloads the &D_0+0x202C limit into t6 (splat boundary missplit
+//   — DEFERRED USO re-split / merge-fragments; the bounds check is
+//   inlined below for the structural body). Real-C STRUCTURAL body
+//   per the analysis (idx >= limit -> *a2=0, return -1; else poll
+//   0x38174(0,idx) + 0x38204(0,j); rec = &D_0+0x157C + r*0x14;
+//   control &D_0+0x1590 != 3 -> rec->0x14=0; rec->0x24=0). Byte-
+//   match deferred — needs the head-fragment merge + USO reloc
+//   infra. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00024E34(int idx, int a1, char *a2) {
+    char *g = (char *)&D_00000000;
+    int j, r;
+    char *rec;
+    if (idx >= *(unsigned short *)(g + 0x202C)) {
+        *a2 = 0;
+        return -1;
+    }
+    j = gl_func_00000000(0, idx);
+    r = gl_func_00000000(0, j);
+    rec = g + 0x157C + r * 0x14;
+    if (*(int *)(g + 0x1590) != 3) {
+        *(int *)(rec + 0x14) = 0;
+    }
+    *(int *)(rec + 0x24) = 0;
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024E34);
+#endif
 
 // gl_func_00024F30 — STRUCTURAL PASS (0x114 / 69 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
