@@ -5113,11 +5113,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026D4C);
 //   each queued entry, then zeroes &D_0+0x53BA to mark the queue
 //   empty. The flush/commit-all entry paired with the
 //   gl_func_00026CF0 enqueue.
-// Caps: raw-word USO + large queue-drain loop — not exact-matchable
-//   without proper USO mnemonic disasm; high-level structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Command-buffer FLUSH / drain
+//   — the consumer paired with gl_func_00026CF0's enqueue (same
+//   &D_0+0x53Bx / &D_0+0x2B5Dx state region). Real-C STRUCTURAL body
+//   below per the analysis (idx=&D_0+0x53BA pending count; idx==0
+//   re-seeds &D_0+0x2B5DC = (a0>>8)&0xFF; lo=a0&0xFF; drain ring
+//   while read cursor &D_0+0x2B5DC != lo, processing each entry,
+//   advance cursor; zero &D_0+0x53BA on drain). Byte-match deferred —
+//   queue-drain loop schedule. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00026D64(int a0) {
+    char *g = (char *)&D_00000000;
+    unsigned char idx = *(unsigned char *)(g + 0x53BA);
+    unsigned char lo;
+    if (idx == 0) {
+        *(unsigned char *)(g + 0x2B5DC) = (a0 >> 8) & 0xFF;
+    }
+    lo = a0 & 0xFF;
+    for (;;) {
+        unsigned char cur = *(unsigned char *)(g + 0x2B5DC);
+        if (cur == lo) {
+            *(unsigned char *)(g + 0x53BA) = 0;
+            break;
+        }
+        gl_func_00000000(g + cur * 8, a0);
+        *(unsigned char *)(g + 0x2B5DC) = cur + 1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026D64);
+#endif
 
 /* gl_func_000270FC: 25-insn parse-something-then-split-24-8 wrapper.
  * rv = func(&D + 0x164C, &local, 0). On -1, *a0=0; return 0.
