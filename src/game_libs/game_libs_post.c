@@ -5221,11 +5221,36 @@ void gl_func_000271D8(void) {
 //   USO-reloc call takes the constant 0xF9000000 (a segment-tagged /
 //   RDRAM-region pointer). A critical-section-guarded state operation
 //   in the game_libs subsystem.
-// Caps: raw-word USO + acquire/release lock pair + jal-0 USO-reloc
-//   ops — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Critical-section-guarded
+//   subsystem operation. Real-C STRUCTURAL body below per the
+//   analysis (fixed 0x3B844 used as paired acquire/release lock;
+//   state byte &D_0+0x2CF0 from gl_func_0002119C gates whole op;
+//   sub-state &D_0+0x2CF1 vs op result with <3 check selects act on
+//   global &D_0+0x53C4 obj; tail jal-0 with 0xF9000000 segment-
+//   tagged pointer). Byte-match deferred — placeholder jal-0 ops
+//   need USO reloc infra. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002722C(int a0) {
+    char *g = (char *)&D_00000000;
+    gl_func_00000000(a0);
+    if (*(unsigned char *)(g + 0x2CF0) != 0) {
+        int r = gl_func_00000000(a0);
+        unsigned char ss = *(unsigned char *)(g + 0x2CF1);
+        int local = 0;
+        if (ss != r && r < 3) {
+            gl_func_00000000(*(void **)(g + 0x53C4), &local, 1);
+        }
+        gl_func_00000000(a0);
+        gl_func_00000000((void *)0xF9000000);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002722C);
+#endif
 
 // gl_func_000272C4 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
