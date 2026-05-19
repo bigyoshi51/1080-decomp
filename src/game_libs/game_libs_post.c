@@ -4594,12 +4594,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025A80);
 //   ones through the fixed routine 0x0C00E83B (≈0x3A0EC) with an
 //   accumulator. The "apply over a record's sub-entry list" operation
 //   of the registry family.
-// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc
-//   predicate + fixed fold — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only for the named leading fn,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "2-fn unsplit bundle" note is
+//   STALE; .s is 0x18C/81 words, ONE function). "Apply over a
+//   record's sub-entry list" of the registry family (same
+//   &D_0+0x2030 0x14-stride table as gl_func_000221D8 /
+//   gl_func_00023838 / gl_func_00023BDC). Real-C STRUCTURAL body
+//   below per the analysis (rec = (*&D_0+0x2030) + idx*0x14; for
+//   each of rec->1 sub-entries gated on jal-0 pred(idx,i), fold the
+//   accepted ones through fixed 0x3A0EC(rec->4, acc, a1)). Byte-
+//   match deferred — placeholder jal-0 predicate + fixed fold need
+//   USO reloc infra + loop schedule. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00025AC8(int idx, int a1) {
+    char *g = (char *)&D_00000000;
+    char *rec = *(char **)(g + 0x2030) + idx * 0x14;
+    int n = *(unsigned char *)(rec + 1);
+    int acc = 0;
+    int i;
+    for (i = 0; i < n; i++) {
+        if (gl_func_00000000(idx, i)) {
+            acc = gl_func_00000000(*(void **)(rec + 4), acc, a1);
+        }
+    }
+    return acc;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025AC8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025BFC);
 
