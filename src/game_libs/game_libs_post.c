@@ -22899,8 +22899,40 @@ void gl_func_0005E138(float *src) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
 #endif
 
-/* gl_func_0005E190: 62-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005E190: 4x4-matrix normalize-by-scalar with degeneracy
+   guard. reloc1() setup; s = reloc2(m) (float scale -- det/norm);
+   compute |s| via sign-test+neg; if |s| < const@(&D_00000000+0x204C)
+   call reloc3(&D_00000000+0x21B28) (singular-matrix warning); then
+   divide all 16 floats of the matrix at m by s (loop unrolled as
+   four blocks of 4, stride 0x10, store-in-delay-slot).
+   DEFERRED: documented-hard medium cap — c.lt.s/bc1fl abs idiom and a
+   second c.lt.s/bc1fl epsilon test (branch-likely), THREE unresolved
+   jal relocs (setup / scale / warning), an FP const loaded from
+   &D_00000000+0x204C, and the 4x-unrolled divide loop with its two
+   back-edges (top beq + body bne). Next pass: resolve the 3 relocs
+   and grind the FP-compare-branch + unroll schedule per
+   docs/IDO_CODEGEN.md. */
+extern int gl_func_00000000();
+extern float gl_func_0005E190_scale();
+extern int D_00000000;
+void gl_func_0005E190(int a0, float *m) {
+    float s;
+    float as;
+    int i;
+    gl_func_00000000();
+    s = gl_func_0005E190_scale(m);
+    as = (s < 0.0f) ? -s : s;
+    if (as < *(float *)((char *)&D_00000000 + 0x204C)) {
+        gl_func_00000000((char *)&D_00000000 + 0x21B28);
+    }
+    for (i = 0; i < 16; i++) {
+        m[i] = m[i] / s;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E190);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E288);
 
