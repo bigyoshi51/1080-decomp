@@ -1846,6 +1846,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022ED0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F00);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F30);
+
 // gl_func_00022FC0 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A bounds-checked buffer-run processor.
