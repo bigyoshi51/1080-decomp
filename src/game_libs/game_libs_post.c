@@ -875,11 +875,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
 //   GBI op). Fixed routine 0x0C00C74F (≈0x31D3C) does the actual
 //   DMA/load setup. Sibling of the gl_func_0001EE78 / gl_func_0001EF20
 //   F3D-emitter family.
-// Caps: raw-word USO + fixed-target call + packed-bitfield gate —
-//   not exact-matchable without proper USO mnemonic disasm; high-
-//   level structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Texture-block-load DL
+//   builder (gl_func_0001EE78/EF20 F3D family). Real-C STRUCTURAL
+//   body below per the analysis (packed 2-bit type gate
+//   (a1[0]<<11)>>30, 16-aligned size (a3*2+0xF)&~0xF, src =
+//   a2->8|0x80000000, fixed 0x31D3C load-setup call, then
+//   0x14080580 tile-setup GBI words). Byte-match deferred —
+//   placeholder jal needs USO reloc infra + bitfield/align schedule.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int *gl_func_0001F248(int *dst, int *a1, int *a2, int a3) {
+    int w = a1[0];
+    int typ = (w << 11) >> 30;
+    if (typ != 0) {
+        int sz = (a3 * 2 + 0xF) & ~0xF;
+        int src = a2[8 / 4] | 0x80000000;
+        gl_func_00000000(dst, 0x580, sz, src);
+        dst += 2;
+        dst[0] = 0x14080580;
+        dst[1] = a2[0x10 / 4];
+        dst += 2;
+    }
+    return dst;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
+#endif
 
 // gl_func_0001F3C8 — STRUCTURAL PASS (0x720 / 456 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
