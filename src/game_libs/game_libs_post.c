@@ -27998,8 +27998,53 @@ void gl_func_0006BC4C(int count, void *src, void *dst, int unused) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BC4C);
 #endif
 
-/* gl_func_0006BD14: 61-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006BD14: 61-insn sibling of gl_func_0006D6F4 with prepended 60-byte CLEAR loop.
+ * Size 0xF4, frame 0x10.
+ *
+ * SIBLING IDENTIFICATION: shares the template-emit code structure of
+ * gl_func_0006D6F4 (8-byte template {0xFF,1,3,a0,0xFF×4}, unaligned swl/swr
+ * store loop, 0xFE terminator). The DIFFERENCE is a 60-byte clear-loop
+ * prefix that zeroes D+0..D+0x38, which ALWAYS makes the emit loop dead
+ * because the loop-bound at D+0 is then 0.
+ *
+ * Decoded structure (raw-word disasm):
+ *   void reset_and_terminate(int unused_a0 /* masked to u8 */) {
+ *       // STAGE 1: Clear 60-byte state table (15 int slots) at D+0..D+0x38
+ *       for (int i = 0; i < 15; i++) {
+ *           *(int*)((char*)&D_00000000 + i*4) = 0;
+ *       }
+ *
+ *       // STAGE 2: Read OLD count (now 0 after clear) for emit-skip gate
+ *       int orig_count = *(uint8_t*)&D_00000000;     // = 0 always
+ *
+ *       // STAGE 3: Sister boilerplate from gl_func_0006D6F4 (dead-ish)
+ *       *(int*)((char*)&D_00000000 + 0x3C) = 1;       // active flag
+ *       uint8_t buf[8] = {0xFF, 0x01, 0x03, a0, 0xFF, 0xFF, 0xFF, 0xFF};
+ *
+ *       // STAGE 4: emit-loop entry (DEAD due to orig_count = 0)
+ *       if (orig_count <= 0) goto write_sentinel;
+ *       // (would emit template records to D_global_ptr if reached — never is)
+ *
+ *   write_sentinel:
+ *       *(uint8_t*)(&D_00000000 + 0) = 0xFE;          // terminator byte at D+0
+ *   }
+ *
+ * Notes:
+ *  - Sibling of gl_func_0006D6F4 — likely produced by source-code variant
+ *    where the same template-build/emit code is shared between "append" and
+ *    "reset" variants. IDO didn't dead-code-eliminate the emit-loop because
+ *    it depends on a global byte value, not a constant.
+ *  - The 60-byte (15-slot) clear establishes the structure: D+0..D+0x38 is
+ *    a 60-byte status table, D+0x3C is the activity flag. Consistent with the
+ *    record-stream layout in 0006D6F4.
+ *  - 0xFE terminator at D+0 = "all records reset, list-end marker present".
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BD14);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BD14_pad.s")
 
 #ifdef NON_MATCHING
