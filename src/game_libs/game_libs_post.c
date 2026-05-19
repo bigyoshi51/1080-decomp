@@ -26231,8 +26231,71 @@ void game_libs_func_00068BF4(int *a0) {
 /* gl_func_00068C14: 65-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068C14);
 
-/* gl_func_00068D18: 47-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00068D18: 47-insn double entry-write + lookup + 2-dispatch (0xBC, frame 0x38).
+ *
+ * Decoded structure (raw-word disasm):
+ *   // Two near-identical entry-write blocks into a packed buffer at self->[0]:
+ *   for (block = 0; block < 2; block++) {
+ *       int **bufp = (int**)self->[0];
+ *       int *p = *bufp;
+ *       *bufp = p + 1;                                // post-incr buf ptr
+ *       p[0] = (int)self->[0];                         // store back-ref
+ *       p[1] = (*self) * 4;                            // sll 2 emit (4-byte align)
+ *   }
+ *   // (Optional log via direct sym if D_X != 0)
+ *   if (D_X != 0) func_log(&D + 0x3C550);
+ *   // Lookup via D_X[0x90 + i*8] sub-array (8-byte stride):
+ *   sub = D_X[0x90/4 + i*2];
+ *   if (sub->next != NULL) {
+ *       func_d1(self, sub->next->[0x3C]);
+ *       func_d2(saved_log_arg, sub->next);
+ *   }
+ *
+ * Pattern: packed command-stream writer (post-incr ptr-array) followed
+ * by lookup and dual-dispatch. Approximate decode; exact struct field
+ * roles need a typing pass.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00068D18(int *self) {
+    extern int D_00000000;
+    extern int D_X_global;
+    int idx;
+    /* Block 1 */
+    {
+        int **bufp = (int**)&self[0];
+        int *p = *bufp;
+        *bufp = p + 1;
+        p[0] = (int)self[0];
+        idx = (*self) * 4;
+        p[1] = idx;
+    }
+    if (D_X_global != 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x3C550);
+    }
+    /* Block 2 (mirror) */
+    {
+        int **bufp = (int**)&self[0];
+        int *p = *bufp;
+        *bufp = p + 1;
+        p[0] = (int)self[0];
+        p[1] = idx;
+    }
+    /* Lookup + dual dispatch */
+    {
+        int *sub = ((int**)&D_X_global)[0x90 / 4 + idx * 2];
+        if (sub != 0 && sub[1] != 0) {
+            int *target = (int*)sub[1];
+            gl_func_00000000(self, target[0x3C / 4]);
+            gl_func_00000000(self[0xC / 4], target);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068D18);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068DD4);
 
