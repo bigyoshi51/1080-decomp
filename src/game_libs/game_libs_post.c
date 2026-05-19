@@ -19208,6 +19208,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047F9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00048104);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00048184);
+
 void gl_func_00048354(char *a0, int a1) {
     int idx = (*(int*)(a0 + 0x258))++;
     ((int*)(a0 + 0x25C))[idx] = a1;
