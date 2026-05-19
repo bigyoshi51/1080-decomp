@@ -1743,6 +1743,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E410);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E42C);
+
 void gl_func_0000E4A8(int *a0) {
     int r;
     r = gl_func_00000000(0, &D_00000000, 16, 320, 1, 10);
