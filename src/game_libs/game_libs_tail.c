@@ -847,8 +847,41 @@ void gl_func_0000C1E0(int a0) {
     gl_func_00000000(a0, &scratch);
 }
 
-/* gl_func_0000C210: 31-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000C210: 31-insn alloc-init-conditional-finalize (0x7C, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm, no caller-set float convention):
+ *   obj = gl_func(0x10);                          // 16-byte alloc
+ *   gl_func(arg0, obj, 0x218, 0x10);              // 4-arg init
+ *   if (gl_func(obj) != 0) {                       // beql v0,$0,epilogue
+ *       int v = gl_func(obj[1] * 4);              // arg = obj->[0x4] << 2
+ *       obj[2] = v;                                // store at +0x8
+ *       gl_func(arg0, v, 0x230, obj[1] * 4);      // 4-arg finalize
+ *   }
+ *   return obj;
+ *
+ * Note: the SAME obj[1] value is loaded twice (lw a0,4(s0) then lw a3,4(s0))
+ * and shifted in each call's delay slot — pure scheduling pattern, not a
+ * convention quirk. K&R unprototyped `gl_func_00000000()` cluster; matching
+ * attempts deferred.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 with
+ * substantive decode (per feedback_doc_marker_is_bail.md). INCLUDE_ASM is
+ * the build path.
+ */
+void* gl_func_0000C210(void *arg0) {
+    int *obj = (int*)gl_func_00000000(0x10);
+    gl_func_00000000(arg0, obj, 0x218, 0x10);
+    if (gl_func_00000000(obj) != 0) {
+        int v = gl_func_00000000(obj[1] * 4);
+        obj[2] = v;
+        gl_func_00000000(arg0, v, 0x230, obj[1] * 4);
+    }
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C210);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C28C);
 
