@@ -1484,3 +1484,5 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 
 /* game_libs_func_00066C58 / _00066C60 split 2026-05-15 from gl_func_00066C30;
  * bodies live in game_libs_post.c next to parent. */
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
