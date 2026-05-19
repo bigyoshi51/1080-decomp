@@ -2656,11 +2656,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F60);
 //   in the same &D_0 sprite/registry subsystem (sibling family to the
 //   gl_func_00022D68 readiness queries over the neighbouring 0x2Cxx
 //   arrays).
-// Caps: raw-word USO + fixed-target per-element call — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Bounds-checked buffer-run
+//   processor in the &D_0 sprite/registry subsystem. Real-C
+//   STRUCTURAL body below per the analysis (idx range-check vs
+//   &D_0+0x202C; buf = &D_0+0x2028 halfword-indexed; walk a run of
+//   byte elements from buf[idx] invoking the fixed USO-reloc routine
+//   0x37EA4 per element, then write the advanced cursor back).
+//   Byte-match deferred — placeholder jal-0 per-element call needs
+//   USO reloc infra + loop schedule. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for the per-element routine.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00022FC0(int idx, int arg) {
+    char *g = (char *)&D_00000000;
+    short *buf;
+    int cur, count;
+    if (idx >= *(short *)(g + 0x202C)) {
+        return 0;
+    }
+    buf = *(short **)(g + 0x2028);
+    cur = buf[idx];
+    count = arg;
+    do {
+        unsigned char b = *((unsigned char *)buf + cur);
+        cur++;
+        gl_func_00000000(b);
+        count--;
+    } while (count != 0);
+    buf[idx] = (short)cur;
+    return cur;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
+#endif
 
 /* gl_func_00023078: 22-insn prologue-stolen successor of gl_func_00022FC0.
  * Predecessor tail `lui t6,0; lhu t6,0x202C(t6)` (= u16 *(&D+0x202C))
