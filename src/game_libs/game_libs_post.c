@@ -3499,11 +3499,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023BC8);
 //   the node payloads. This is the list insert/move/maintenance entry
 //   for the registry records — the structural mutator paired with the
 //   gl_func_00021F40 (insert) / gl_func_0002349C (remove) helpers.
-// Caps: raw-word USO + linked-list splice over a typed record — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Registry-list maintenance /
+//   splice op over the &D_0+0x2030 record table (structural mutator
+//   paired with gl_func_00021F40 insert / gl_func_0002349C remove).
+//   Real-C STRUCTURAL body below per the analysis (rec =
+//   &D_0+0x2030 + idx*0x14; match keys rec->0/1, count rec->4;
+//   empty-list early return; walk *listp conditionally re-linking
+//   the head; a2-indexed parallel table supplies node payloads).
+//   Byte-match deferred — list-splice / pointer-walk schedule. Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00023BDC(int idx, int **listp, int a2) {
+    char *g = (char *)&D_00000000;
+    char *rec = g + 0x2030 + idx * 0x14;
+    unsigned char k0 = *(unsigned char *)(rec + 0);
+    unsigned char k1 = *(unsigned char *)(rec + 1);
+    int *head = *listp;
+    int *p;
+    if (head == 0) {
+        return 0;
+    }
+    for (p = head; p != 0; p = (int *)p[0]) {
+        if (*(unsigned char *)((char *)p + 0) == k0 &&
+            *(unsigned char *)((char *)p + 1) == k1) {
+            *listp = (int *)p[0];
+            gl_func_00000000(p, rec, a2);
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023BDC);
+#endif
 
 // gl_func_00023E60 — STRUCTURAL PASS (0x144 / 81 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
