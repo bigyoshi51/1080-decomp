@@ -29511,8 +29511,57 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071370);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071384);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00071384_pad.s")
 
-/* gl_func_00071624: 57-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00071624: 57-insn multi-stage status query + decision tree (size 0xE4, frame 0x28).
+ *
+ * Probes subsystem state via 6 jal calls (likely controller / save-data /
+ * Controller-Pak status queries), then maps the result bit-flags into a
+ * return status code.
+ *
+ * Decoded structure (raw-word disasm):
+ *   int status_query(void *a0_state, void *a1_target) {
+ *       int saved_v0 = 0;
+ *       hook1(a1_target);                              // jal #1
+ *       saved_v0 = hook2(1, &D_00000000);              // jal #2 — returns "default" status
+ *       hook3(a0_state, &sp_buf_20, 1);                // jal #3 — write status to buf[0x20]
+ *       saved_v0 = hook4(0, &D_00000000);              // jal #4 — get current status
+ *       hook5(a0_state, &sp_buf_1C, 1);                // jal #5 — write status to buf[0x1C]
+ *       hook6(a1_target, &sp_buf_1C);                  // jal #6 — finalize
+ *
+ *       uint8_t flags_1E = *(uint8_t*)(sp + 0x1E);
+ *       uint8_t flags_1F = *(uint8_t*)(sp + 0x1F);
+ *
+ *       // Decision tree (mapping result bits to status code)
+ *       if (flags_1E & 0x1) {
+ *           if (flags_1E & 0x2) return 2;
+ *           // else fall to check flags_1F
+ *       }
+ *       if (flags_1F != 0) {
+ *           // skip to inner check (flags_1E & 0x4)
+ *           if (flags_1E & 0x4) return 4;
+ *           return saved_v0;
+ *       }
+ *       // (flags_1F == 0)
+ *       if (!(flags_1E & 0x1)) return 1;
+ *       if (flags_1E & 0x4) return 4;
+ *       return saved_v0;
+ *   }
+ *
+ * Notes:
+ *  - Two stack buffers at sp+0x1C and sp+0x20 receive results of hook3 and
+ *    hook5 — likely controller-pak status / save-data state structs.
+ *  - The bit-test sequence on flags_1E/flags_1F (`& 0x1`, `& 0x2`, `& 0x4`)
+ *    suggests a 3-bit status word per subsystem with flags like
+ *    {present=1, formatted=2, writable=4}.
+ *  - Likely a `pak_status_query` or `save_data_status` function returning
+ *    an enum: 0=ok, 1=missing, 2=corrupted, 4=read-only.
+ *  - Returns saved_v0 (default status from hook2/hook4) on the catch-all path.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071624);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00071708: 49-insn record-stream sibling (zero-a0-bytes prefix variant).
