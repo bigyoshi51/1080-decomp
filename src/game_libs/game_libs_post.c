@@ -1608,11 +1608,44 @@ int gl_func_000208BC(int a0, int a1, int a2) {
 //   on whether `target` (the caller-saved arg at sp+0x24) is null.
 //   Configuration front-end paired with the gl_func_0001FF34 /
 //   gl_func_0002003C reporter dump family (shared &D_21xx pool).
-// Caps: raw-word USO + mode-switch + struct config-apply — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Mode-select / config-apply over
+//   the &D_21xx descriptor pool (config front-end paired with the
+//   gl_func_0001FF34 / gl_func_0002003C reporter family). Real-C
+//   STRUCTURAL body below per the analysis (mode switch picks
+//   &D_21F8/0x2308/0x2418, sub-record at desc+0xD4, apply path
+//   gated on target==null sets the enabled flag and pulls the
+//   &D_0+0xE78 global float). Byte-match deferred — beq mode-switch
+//   + struct-apply + global-float schedule. Name pre-checked: no
+//   extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00020914(int mode, void *target) {
+    char *D = (char *)&D_00000000;
+    char *desc;
+    char *rec;
+    if (mode == 0) {
+        desc = D + 0x21F8;
+    } else if (mode == 1) {
+        desc = D + 0x2308;
+    } else if (mode == 2) {
+        desc = D + 0x2418;
+    } else {
+        desc = D + 0x21F8;
+    }
+    rec = desc + 0xD4;
+    if (target == 0) {
+        float f;
+        if (*(int *)(rec + 0) == 0) {
+            *(int *)(rec + 0) = 1;
+        }
+        f = *(float *)(D + 0xE78);
+        *(float *)(rec + 0x14) = f * *(short *)(rec + 0x1E);
+        *(short *)(rec + 0x2A) = (short)*(int *)(rec + 0x20);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
+#endif
 
 // gl_func_00020A28 — STRUCTURAL PASS (0x4A8 / 298 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
