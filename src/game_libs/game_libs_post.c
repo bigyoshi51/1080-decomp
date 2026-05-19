@@ -22734,6 +22734,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D054);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D134);
+
 #ifdef NON_MATCHING
 /* gl_func_0005D20C: pure-FP leaf, quaternion -> 3x3 rotation matrix.
    ~50 FP ops (mul/add/sub of the four components + a 1.0f const at
