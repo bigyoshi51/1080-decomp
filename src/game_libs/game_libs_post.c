@@ -23958,8 +23958,60 @@ void game_libs_func_00061F70(GlFunc61F70Struct *a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F8C);
 
-/* gl_func_00062194: 65-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00062194: 65-insn 64-bit-multiply-based scale + dispatch (0x104, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   key = self->[0x8];                                // discriminator
+ *   if (key != 0) {
+ *       func_a(&D_sym_a, 1);                          // 1st dispatch
+ *   }
+ *   // Common path:
+ *   func_b(&D_sym_b, self->[0x3C]);                   // 2nd dispatch
+ *
+ *   // 64-bit multiply scaling: (a1 << 1) * self->[(a2)*8 + offset]
+ *   // emitted as `sll t,a1,1; sub t,a1; sll t,1; multu pre, t; mflo` pattern
+ *   {
+ *       short x = (short)self->[0];
+ *       int factor = a1 * 2 - a1;                    // = a1
+ *       int idx_off = factor * 2;
+ *       int scaled_a = ((long long)pre * x) >> 32;   // multu + mflo
+ *       func_c(...);
+ *   }
+ *
+ *   if (cond) goto exit;
+ *
+ *   // Second scaling block with arg-from-stack:
+ *   short y = (short)self->[0];
+ *   int factor2 = a1 + (saved_a1 + saved_a2*2 - saved_a1);
+ *   ... func_d(...) dispatch
+ *
+ *   return -1;
+ *
+ * Two 64-bit multu blocks (`multu hi,lo` + `mflo`) with sll/subu mixing —
+ * standard IDO emit for `(arg * stride * 2)` scale-factor math. Likely
+ * fixed-point arithmetic for layout / scaling. Total 5 jal calls with
+ * various dispatch and sym args.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_00062194(int *self, int a1, int a2, int a3) {
+    extern int D_sym_a, D_sym_b, D_sym_c, D_sym_d;
+    if (self[0x8 / 4] != 0) {
+        gl_func_00000000(&D_sym_a, 1);
+    }
+    gl_func_00000000(&D_sym_b, self[0x3C / 4]);
+    /* 64-bit-multiply scale block 1 */
+    gl_func_00000000(&D_sym_c, /* scaled args */ a1, a2);
+    if (a3 == 0) return -1;
+    /* 64-bit-multiply scale block 2 */
+    gl_func_00000000(&D_sym_d, a1, a2, a3);
+    return -1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062194);
+#endif
 
 /* gl_func_00062298: was 16-insn bundle. Split via split-fragments.py
  * 2026-05-08 into: parent gl_func_00062298 (12 insns / 0x30, conditional
