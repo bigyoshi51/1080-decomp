@@ -18754,8 +18754,51 @@ int gl_func_0004DA40(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DA40);
 #endif
 
-/* gl_func_0004DB50: 46-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004DB50: 3-way log dispatcher. Decoded from bare stub
+ * 2026-05-19 (clean single fn, NOT a bundle). Frame 0x18,
+ * 4 args spilled (a0..a3 @ sp+0x18/1C/20/24).
+ *   void f(int *a0, int a1, int a2, int a3) {
+ *     a0->0x28 += 1;                          // bump counter
+ *     cb1(a1_orig, a2_orig);                  // args reloaded from spill
+ *     cb2(a1_orig, a3_orig, ...);             // 2nd cb, more spill reloads
+ *     v = a0->0x2C;                            // switch selector
+ *     switch (v) {
+ *       case 4: cb3(&D+0x..A, *(&D+..), *(&D+..)); break;
+ *       case 3: cb3(&D+0x..B, *(&D+..), *(&D+..)); break;
+ *       default: cb3(&D+0x20314, *(&D+..), *(&D+..));
+ *     }
+ *   }
+ * Multi-idiom (defer): heavy arg-spill/reload threading for cb1/cb2
+ * (a0..a3 all saved at entry, reloaded in a specific order per
+ * call), the `v == 4 / v == 3 / default` li-at;beq chain, and each
+ * case loads two distinct `*(int*)(&D_00000000 + N)` globals + a
+ * string arg before the shared cb3, then `b` to one epilogue.
+ * Exact per-case D_0 offsets/strings + the selector source (a0->
+ * 0x2C vs a stack temp) need a focused pass. Real decoded C
+ * preserved; INCLUDE_ASM build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0004DB50(int *a0, int a1, int a2, int a3) {
+    int v;
+    *(int *)((char *)a0 + 0x28) += 1;
+    gl_func_00000000(a1, a2);
+    gl_func_00000000(a1, a3);
+    v = *(int *)((char *)a0 + 0x2C);
+    if (v == 4) {
+        gl_func_00000000((char *)&D_00000000 + 0x20314,
+                         *(int *)&D_00000000, *(int *)&D_00000000);
+    } else if (v == 3) {
+        gl_func_00000000((char *)&D_00000000 + 0x20314,
+                         *(int *)&D_00000000, *(int *)&D_00000000);
+    } else {
+        gl_func_00000000((char *)&D_00000000 + 0x20314,
+                         *(int *)&D_00000000, *(int *)&D_00000000);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DB50);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0004DC08(char *a0, int *a1) {
