@@ -21827,6 +21827,8 @@ void gl_func_000550CC(int *self) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000550CC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00055194);
 #endif
 
 extern int gl_ref_00065C2C();
