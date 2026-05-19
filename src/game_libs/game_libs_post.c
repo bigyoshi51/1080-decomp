@@ -535,11 +535,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DA7C);
 //   and the fixed blit routine 0x0C00C813 (≈0x31F4C) — same
 //   mode/target combination as the gl_func_0001D0AC sibling but with
 //   the extra two-flag conditional structure.
-// Caps: raw-word USO + fixed-target call — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Glyph-draw family variant:
+//   rec = &D_00000000 + (short)a1 * 0x158; e = rec + attr/idx math
+//   + 0x50; visibility gate rec->0x1C==1; two 0x3204C blit calls
+//   (mode 0xC80, second on e->0x12!=0 with (e->0x10+0xC80)&0xFFFF);
+//   trailing 0xC759 helper (a1=0xC80,a2=0x340, arg from e->0x54);
+//   final rec->0x18 = 0 flag clear; return draw result. Real-C
+//   structural body below; byte-match deferred — placeholder jals
+//   (0xC813/0xC759) are runtime-patched USO relocs (need USO reloc
+//   infra), plus beql/index-multiply schedule. Name pre-checked: no
+//   extern reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for the helpers.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0001DB88(int a0, int a1, int a2) {
+    short idx = (short)a1;
+    char *rec = (char *)&D_00000000 + idx * 0x158;
+    unsigned char attr = *(unsigned char *)(rec + 0x1B);
+    char *e = rec + attr * 0x64 + (short)a2 * 0x14 + 0x50;
+    int r;
+    if (*(unsigned char *)(rec + 0x1C) != 1) {
+        return a0;
+    }
+    r = gl_func_00000000(a0, 0xC80, *(unsigned short *)(e + 0xE), *(short *)(e + 0x10), idx);
+    if (*(short *)(e + 0x12) != 0) {
+        r = gl_func_00000000(r, (*(short *)(e + 0x10) + 0xC80) & 0xFFFF, 0, idx);
+    }
+    r = gl_func_00000000(r, 0xC80, 0x340, *(int *)(e + 0x54), idx);
+    *(char *)(rec + 0x18) = 0;
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
+#endif
 
 // gl_func_0001DCB4 — STRUCTURAL PASS (0x480 / 288 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
