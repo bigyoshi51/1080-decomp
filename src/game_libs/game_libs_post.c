@@ -21772,8 +21772,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BAF4);
 /* gl_func_0005BBCC: 66-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BBCC);
 
-/* gl_func_0005BCD4: 43-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005BCD4: 43-insn 2D-rotation transform (0xAC, frame 0x30).
+ *
+ * Caller-set float convention ($f12 angle, $f4 divisor): USO intra-USO
+ * non-O32. Same cap class as gl_func_00010650 family.
+ *
+ * Decoded structure (raw-word disasm):
+ *   norm = caller_f12 / caller_f4;                   // div.s f20, f12, f4
+ *   sin_val = func1(norm);                            // 1st call (sin)
+ *   cos_val = func2(norm);                            // 2nd call (cos)
+ *   new_x = cos_val * (*a1) - sin_val * (*a2);
+ *   sin_val2 = func3(norm);                           // 3rd call (sin, again)
+ *   cos_val2 = func4(norm);                           // 4th call (cos, again)
+ *   new_y = cos_val2 * (*a1) + sin_val2 * (*a2);
+ *   *a1 = new_x;
+ *   *a2 = new_y;
+ *
+ * Classic 2D rotation: (x', y') = (x*cos - y*sin, x*sin + y*cos).
+ * The duplicate sin/cos calls suggest the callees are stateful or use
+ * volatile globals (IDO re-emits each call to avoid CSE).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0005BCD4(float caller_f12_angle, float *a1, float *a2, float caller_f4_div) {
+    extern float gl_compute_sin(float), gl_compute_cos(float);
+    float norm = caller_f12_angle / caller_f4_div;
+    float sin1 = gl_compute_sin(norm);
+    float cos1 = gl_compute_cos(norm);
+    float new_x = cos1 * (*a1) - sin1 * (*a2);
+    float sin2 = gl_compute_sin(norm);
+    float cos2 = gl_compute_cos(norm);
+    float new_y = cos2 * (*a1) + sin2 * (*a2);
+    *a1 = new_x;
+    *a2 = new_y;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BCD4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005BD80: 16-insn Vec3-sqlen + callee (probably sqrtf).
