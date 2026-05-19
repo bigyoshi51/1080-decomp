@@ -16023,6 +16023,8 @@ void gl_func_00043FFC(char *a0) {
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044034);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004406C);
+
 // gl_func_00044144 — STRUCTURAL PASS (0x36C / 220 words, no episode). Raw-.word
 // USO. realjr=5, regjr=0 → MULTI-FUNCTION BUNDLE + BOUNDARY NOTE: the tail
 // has a dense small-gap jr cluster at 0x44458 / 0x4446C / 0x44480 / 0x44490 /
