@@ -10,11 +10,7 @@ extern void func_80004FE0(s32*, s32*, s32);
 extern void func_800069BC(u8*);
 extern s32 func_800066F0(u8*, u8*, s32);
 
-/* __osRdb_ReadThread — forever-loop reading the debug read buffer.
- * NON_MATCHING: this goto-based body matches exactly in isolated probes, but
- * kernel_055.c still grows the same 4 extra nops before the unreachable
- * epilogue. The remaining diff appears to be translation-unit context. */
-#ifdef NON_MATCHING
+/* __osRdb_ReadThread — forever-loop reading the debug read buffer. */
 void func_800051F0(void) {
     s32 total;
     s32 buf;
@@ -33,6 +29,3 @@ loop:
     }
     goto loop;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800051F0);
-#endif
