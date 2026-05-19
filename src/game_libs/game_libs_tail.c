@@ -614,12 +614,6 @@ void gl_func_0000B6D8(int *a0) {
     gl_func_00000000(a0[4], a0[2]);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0000B710: 27-insn 7-call sequence with various arg shapes.
- *   func(*a0); func(a0[1]); func(a0); func(a0);
- *   func(*(int*)&D[0x154]);
- *   func(&D);
- *   func(a0[0x10/4], *(int*)&D[0x154]); */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0000B710(int *a0) {
@@ -631,9 +625,6 @@ void gl_func_0000B710(int *a0) {
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0[0x10/4], *(int*)((char*)&D_00000000 + 0x154));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B710);
-#endif
 
 /* gl_func_0000B77C: 59-insn alloc-if-null constructor (BBxx streaming
  * family sibling). s0 = a0 ?: alloc(8); if(!s0) return 0; *s0 = 6400;
