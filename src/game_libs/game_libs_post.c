@@ -934,12 +934,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
 //   matching G_LOADBLOCK/G_SETTILE-style GBI command sequence
 //   (0x05C0 / 0x03C0 tile tags) for the selected class. Top of the
 //   gl_func_0001F248 texture/tile builder sub-family.
-// Caps: raw-word USO + 3-fn unsplit bundle + large multi-branch
-//   dispatcher — not exact-matchable without proper USO mnemonic
-//   disasm; high-level structural pass only for the named leading
-//   fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
+//   .s is 0x720/184 words, ONE function). Tile-mode dispatcher + DL
+//   builder (top of the gl_func_0001F248 texture/tile sub-family).
+//   Real-C STRUCTURAL body below per the analysis (kind switch 1/2/
+//   default swaps a2->2 / a2->3 tile selectors between a 0x0940 and
+//   a 0x0AE0 descriptor class, then emits the matching
+//   G_LOADBLOCK/G_SETTILE GBI sequence with 0x05C0/0x03C0 tags).
+//   Byte-match deferred — large multi-branch + placeholder jals
+//   (need USO reloc infra). Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder for the leaf emitters.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int *gl_func_0001F3C8(int *dst, int a1, char *a2, int a3, int kind) {
+    if (kind == 1) {
+        a2[3] = a2[5];
+        a2[2] = 0;
+    } else if (kind == 2) {
+        a2[2] = a2[4];
+        a2[3] = 0;
+    }
+    dst[0] = (kind == 2) ? 0x0AE00000 : 0x09400000;
+    dst[1] = 0x05C00000 | (unsigned char)a2[2];
+    dst += 2;
+    dst[0] = 0x03C00000 | (unsigned char)a2[3];
+    dst[1] = a3;
+    dst += 2;
+    gl_func_00000000(dst, a2, kind);
+    return dst;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001F6A8);
 
