@@ -3696,11 +3696,38 @@ int gl_func_00024080(int a0, int a1) {
 //   == 1, then performs the class-appropriate action with the a2/a3
 //   payload. Confirms the 0x2C10/0x2C40/0x2C70 arrays are one
 //   indexed-by-class family, not three unrelated tables.
-// Caps: raw-word USO + class-switch over typed state arrays — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. UNIFIED class dispatcher —
+//   central router for which the gl_func_00022D68 / 00022DE0 /
+//   00022E58 readiness predicates are the per-class leaves. Real-C
+//   STRUCTURAL body below per the analysis (cls switch selects state
+//   array &D_0+0x2C70 (0) / +0x2C40 (1) / +0x2C10 (2); gate on
+//   slot-state byte == 1; then per-class action with a2/a3).
+//   Byte-match deferred — class-switch / typed-state-array schedule.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_000240A0(int cls, int idx, int a2, int a3) {
+    char *g = (char *)&D_00000000;
+    unsigned char st;
+    if (cls == 0) {
+        st = *(unsigned char *)(g + 0x2C70 + idx);
+    } else if (cls == 1) {
+        st = *(unsigned char *)(g + 0x2C40 + idx);
+    } else if (cls == 2) {
+        st = *(unsigned char *)(g + 0x2C10 + idx);
+    } else {
+        return 0;
+    }
+    if (st != 1) {
+        return 0;
+    }
+    return gl_func_00000000(cls, idx, a2, a3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000240A0);
+#endif
 
 /* gl_func_00024330: was 18-insn 3-function bundle. Split via
  * split-fragments.py 2026-05-08 into parent (12 insns / 0x30, 3-jal
