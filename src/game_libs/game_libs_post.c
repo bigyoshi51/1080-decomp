@@ -80,6 +80,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CC98);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CF68);
+
 // gl_func_0001CFDC — STRUCTURAL PASS (0xD0 / 52 words, no episode).
 // Raw-.word USO form (game_libs RSP/graphics-library segment).
 // Hand-decoded.
