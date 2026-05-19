@@ -2413,11 +2413,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
 //   backing block is obtained from a USO-relocated allocator (`jal 0`
 //   slot, resolved at load) keyed on descriptor &D_2198. This is the
 //   one-time heap bring-up for the gl_func_00022760 allocator family.
-// Caps: raw-word USO + jal-0 USO-reloc allocator — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Heap-arena INITIALIZER —
+//   one-time bring-up counterpart to the gl_func_00022760 first-fit
+//   allocator. Real-C STRUCTURAL body below per the analysis (total
+//   = (count<<6)*unit-size from &D_0+0x2070/0x2034; save base to
+//   &D_0+0x2068; jal-0 USO-reloc backing alloc keyed on &D_2198;
+//   set arena base/free/end at &D_0+0x1E08/0x1E0C/0x1E10; seed the
+//   block-header table). Byte-match deferred — placeholder jal-0
+//   allocator needs USO reloc infra + seed-loop schedule. Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder for the allocator.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00022A9C(void) {
+    char *g = (char *)&D_00000000;
+    int n = *(int *)(g + 0x2070);
+    int sz = *(short *)(g + 0x2034);
+    int tot = (n << 6) * sz;
+    char *blk;
+    *(int *)(g + 0x2068) = *(int *)(g + 0x2060);
+    blk = (char *)gl_func_00000000(g + 0x2198, tot);
+    *(char **)(g + 0x1E08) = blk;
+    *(char **)(g + 0x1E0C) = blk;
+    *(char **)(g + 0x1E10) = blk + tot;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
+#endif
 
 // gl_func_00022D68 — STRUCTURAL PASS (0x78 / 30 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
