@@ -2191,6 +2191,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F84);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023FA4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024070);
+
 extern int gl_ref_00037F80();
 int gl_func_00024080(int a0, int a1) {
     int scratch;
