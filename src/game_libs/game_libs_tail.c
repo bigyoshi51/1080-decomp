@@ -1170,6 +1170,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CA30);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CB58);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CB88);
+
 #ifdef NON_MATCHING
 /* gl_func_0000CB9C: 24-insn bounds-check + dispatch (0%→70%).
  *   if (a0[0x30] < a0[0x34]) return 0;
