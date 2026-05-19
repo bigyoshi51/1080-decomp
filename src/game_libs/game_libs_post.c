@@ -23414,8 +23414,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065EB4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065F08);
 
-/* gl_func_0006612C: 43-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006612C: 43-insn magic-value spin-handshake helper (0xAC, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm) — repeated send-and-spin pattern:
+ *   v = func(self, self->[0x28] + 8);                // initial send
+ *   while (v != 0x12340004) {                         // spin until response
+ *       v = func(self, self->[0x28] + 8);
+ *   }
+ *   func(self, self->[0x28] + 8, /*a2*/ 0x12340002); // state-change call
+ *   v = func(self, self->[0x28] + 8);                // another send
+ *   while (v != 0x12340003) {                         // spin until next response
+ *       v = func(self, self->[0x28] + 8);
+ *   }
+ *
+ * Magic-value handshake protocol: send via call, spin reading response,
+ * advance state with action call (passing different magic constant),
+ * then spin for next response. Common in HW-IO / DMA / thread-sync code.
+ *
+ * CURIOSITY: the beql target lands at `ori a2, a2, 0x2` (0x4C), SKIPPING
+ * the preceding `lui a2, 0x1234` (0x48). For this not to be broken, $a2
+ * must be caller-set to 0x12340000 (so both arms converge a2 == 0x12340002).
+ * Yet another caller-set int-reg case — adds $a2 to the list of caller-set
+ * register conventions in 1080's game_libs.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0006612C(int *self) {
+    /* a2 incoming = 0x12340000 magic-base (caller-set int-reg convention). */
+    int v;
+    do {
+        v = (int)gl_func_00000000(self, (char*)self[0x28 / 4] + 8);
+    } while (v != 0x12340004);
+    gl_func_00000000(self, (char*)self[0x28 / 4] + 8, 0x12340002);
+    do {
+        v = (int)gl_func_00000000(self, (char*)self[0x28 / 4] + 8);
+    } while (v != 0x12340003);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006612C);
+#endif
 
 /* 10-insn 1-arg call wrapper that spills caller's a0 to local frame
  * before discarding it; calls gl_func_00000000((int*)0x2246C). The spill
