@@ -1536,8 +1536,65 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DFC4);
 void game_libs_func_0000E044(int a0, int a1) { (void)a0; (void)a1; }
 void game_libs_func_0000E050(int a0, int a1) { (void)a0; (void)a1; }
 
-/* gl_func_0000E05C: 47-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000E05C: 47-insn 2-gate + flag-driven dispatch + vtable tail (0xBC, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   v0 = func1(self);                                // lookup
+ *   if (v0 == NULL) return;
+ *   if ((v0->[0x4] & 1) == 0) return;                 // 2nd gate
+ *
+ *   flags = self->[0xB4];
+ *   int a2_var = -1;
+ *   if (flags & 0x10) {
+ *       a2_var = func2(D_sym1);                       // 1st flag-conditional call
+ *   }
+ *   if (flags & 0x1) {
+ *       int r1 = func3(D_sym2, a1);                   // chained 2nd flag-conditional
+ *       func4(self, r1, a2_var);                       // 3-arg with prior a2_var
+ *   }
+ *   func5(0x24, a1);                                  // unconditional middle call
+ *
+ *   // Vtable tail-dispatch (always):
+ *   vt = self->[0x28];
+ *   fn = (vtable_fn)vt->[0x6C];
+ *   short off = (s16)vt->[0x68];
+ *   fn((char*)self + off, a1);
+ *
+ * Cascading flag-conditional dispatch: bit 0x10 sets up a2_var, bit 0x1
+ * runs middle pair, then unconditional tail vtable call. Standard
+ * "dispatch matrix on flag bits" idiom for state-machine objects.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000E05C(int *self, int a1, int a2) {
+    extern int D_sym1, D_sym2;
+    int *v0 = (int*)gl_func_00000000(self);
+    int a2_var = -1;
+    int flags;
+    int *vt;
+    int (*fn)(int, int);
+    short off;
+    if (v0 == 0) return;
+    if ((v0[1] & 1) == 0) return;
+    flags = self[0xB4 / 4];
+    if (flags & 0x10) {
+        a2_var = (int)gl_func_00000000(&D_sym1);
+    }
+    if (flags & 0x1) {
+        int r1 = (int)gl_func_00000000(&D_sym2, a1);
+        gl_func_00000000(self, r1, a2_var);
+    }
+    gl_func_00000000(0x24, a1);
+    vt = (int*)self[0x28 / 4];
+    fn = (int(*)(int, int))vt[0x6C / 4];
+    off = *(short*)((char*)vt + 0x68);
+    fn((int)((char*)self + off), a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E05C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E118);
 
