@@ -408,11 +408,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D58C);
 //   those siblings: the blit-mode constant is 0x0C80 here instead of
 //   0x3E0 — a different blit format / layer selector for the same
 //   draw helper.
-// Caps: raw-word USO + unsplit bundle + fixed-target call — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only for the named fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (older "unsplit bundle" note is
+//   STALE; .s is 0xD4/53 words, one function). Exact twin of
+//   gl_func_0001CFDC — identical glyph-draw logic and jal target
+//   (0x31FB0), only the blit-mode constant differs (0xC80 here vs
+//   0x3E0). Real-C structural body below; byte-match deferred
+//   (resolve 0x31FB0 + index-multiply/beql codegen). Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder for the blit routine.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0001D870(int code, int spec) {
+    short idx = (short)code;
+    short sub = (short)spec;
+    char *rec = (char *)&D_00000000 + idx * 0x158;
+    unsigned char attr = *(unsigned char *)(rec + 0x1B);
+    char *e = rec + attr * 0x64 + sub * 0x14 + 0x50;
+    short h = *(short *)(e + 0x10);
+    unsigned short w = *(unsigned short *)(e + 0xE);
+    int r = gl_func_00000000(code, 0xC80, w, h, idx);
+    if (*(short *)(e + 0x12) != 0) {
+        r = gl_func_00000000(r, (*(short *)(e + 0x10) + 0xC80) & 0xFFFF, 0, idx);
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D870);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D944);
 
