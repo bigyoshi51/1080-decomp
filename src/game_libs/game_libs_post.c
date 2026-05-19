@@ -5952,12 +5952,20 @@ int gl_func_0002886C(int a0) {
 //   (c.lt.s / mul.s / add.s) to produce a clamped interpolated value
 //   written back at a1->0xC0 — a typical parameter-easing leaf, left
 //   for the deferred USO re-split.
-// Caps: raw-word USO + 2-fn unsplit bundle + fixed-target call /
-//   FP math — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only for the named leading fn, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc to 0x3CC70/op=7 —
+//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
+//   STALE 2-jr-bundle comment: .s is 0x20 / 8 words single fn (the
+//   FP helper now lives elsewhere). Real-C STRUCTURAL body below per
+//   the analysis: tail-call thunk forwarding (a0, 7). Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002888C(int a0) {
+    gl_func_00000000(a0, 7);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002888C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000288AC);
 
