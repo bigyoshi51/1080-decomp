@@ -16155,22 +16155,37 @@ void gl_func_00044CC4(int a0, int a1) {
  * local AND is fed by the bnel-likely slot. Next attempt must pair
  * the goto-skip guard form with NO named `base`/`cnt` locals
  * (compute via the v0 the bnel-likely produces). Documented-hard
- * idiom; defer to a focused multi-pass. */
+ * idiom; defer to a focused multi-pass.
+ *
+ * 2026-05-19 attempt 4 (combined levers): applied stride-6 fix
+ * (was wrongly 12), the gl_func_000503A4 count-temp `int n` lever,
+ * and the goto-skip guard form together. Result still 43==43 / 28
+ * diffs, frame 0x18 vs target 0x20 — the bnel-delay-likely-move
+ * (`addiu v0,a3,0x378` hoisted into the likely slot, v0 the SOLE
+ * base for count@+0x258 and rec) does NOT form from goto-skip; the
+ * count read stays `lw …,0x5D0(a3)` not `lw …,0x258(v0)`. The
+ * count-temp + stride-6 ARE baked in (NM body now correct: rec =
+ * (a0+0x378)+n*6, n reused). DO NOT RE-ATTEMPT without a working
+ * lever to force the v0=a3+0x378 hoist into the bnel-likely slot
+ * (the frame-0x20 a3-spill + sole-base depends on it). 4 attempts
+ * spent; truly a focused-pass-only cap. */
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_00044CE8(int a0, int a1, int a2) {
-    int cnt;
+    int n;
     int rec;
     if ((unsigned int)a1 >= 0x32U) {
         gl_func_00000000((char *)&D_00000000 + 0x1FE94,
                          (char *)&D_00000000 + 0x1FEA8, 0x102D);
     }
-    if (*(int *)(a0 + 0x5D0) >= 0x32) {
-        gl_func_00000000();
+    if (*(int *)(a0 + 0x5D0) < 0x32) {
+        goto skip;
     }
-    cnt = *(int *)(a0 + 0x5D0);
-    *(int *)(a0 + 0x5D0) = cnt + 1;
-    rec = a0 + 0x378 + cnt * 12;
+    gl_func_00000000();
+skip:
+    n = *(int *)(a0 + 0x5D0);
+    *(int *)(a0 + 0x5D0) = n + 1;
+    rec = (a0 + 0x378) + n * 6;
     *(int *)(a0 + a1 * 4 + 0x2AC) = rec;
     *(int *)(rec + 8) = 0;
     gl_func_00000000(rec, a2);
