@@ -84,11 +84,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CC98);
 //     = list/context args. 0x310704 = a real intra-USO processor
 //     (gl_func, NOT a runtime-patched placeholder); func_00000000 =
 //     the USO placeholder dispatcher (pre-process step).
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only for the named fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED, documented-hard): single jr $ra (older "2-jr
+//   bundle" note is STALE; .s is 0x204/129 words, one function).
+//   Real-C structural body below per the analysis above; byte-match
+//   deferred — 0x1068 frame + several resolved intra-USO jal helpers
+//   (0xC4C1/0xC414/0xC8C8<<2) + branch-likely (bnel/beql) clip/min-
+//   max scheduling. gl_func_00000000 = canonical never-defined USO
+//   placeholder (safe; per feedback_placeholder_func_name_reuse).
+//   Name pre-checked: 3 file occurrences (not a reused placeholder),
+//   so a typed def is collision-safe. Next pass: resolve the three
+//   internal helper targets and grind the two-loop / branch-likely
+//   schedule against the 0x158-stride record buffer.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0001CD64(int a0, int *a1) {
+    char buf[0x101C];
+    short count;
+    int i;
+    short *g = (short *)((char *)&D_00000000 + 0x2040);
+    *(void **)((char *)&D_00000000 + 0x14) = buf;
+    count = g[0];
+    for (i = count; i > 0; i = (short)g[0] - (count - i)) {
+        gl_func_00000000(a0);
+        count = g[0];
+    }
+    count = g[0];
+    for (i = 0; i < count; i++) {
+        int lo = g[1];
+        int hi = g[2];
+        int v = g[3];
+        if (v < lo) {
+            v = lo;
+        }
+        if (v > hi) {
+            v = hi;
+        }
+        gl_func_00000000(a0, v, &buf[i * 0x158]);
+        count = g[0];
+    }
+    *a1 = (int)&buf[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CF68);
 
