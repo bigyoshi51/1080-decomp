@@ -11892,6 +11892,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C43C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003C7A4);
+
 /* gl_func_0003C814: 22-insn optional-alloc + init constructor (sibling of
  * gl_func_0003CAA0). Same alloc-or-init recipe — uses `goto end` to merge
  * the alloc-fail path into the shared epilogue.
