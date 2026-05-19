@@ -22445,8 +22445,35 @@ void gl_func_0005C66C(int a0, float *vec) {
                      (double)vec[0], (double)vec[1], (double)vec[2]);
 }
 
-/* gl_func_0005C6C4: 48-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005C6C4: 4x4 float-matrix pretty-printer. header-log()
+   first; then for each of 4 rows (row ptr advances 0x10 = 4 floats):
+   for each of 4 cols log(&D_00000000+0x21B0C, (double)row[col]); then
+   log(&D_00000000+0x21B10) as the row separator.
+   DEFERRED: FP+varargs+sreg medium cap — cvt.d.s/mfc1 double pair for
+   the %f arg, two nested bne-counter loops (inner s0!=0x10 step 4,
+   outer s4!=4), heavy $s0-$s7 callee-save pinning (a1->$s5 row base,
+   const fmts in $s2/$s6), frame 0x38, three distinct jal relocs
+   (header / per-cell / row-sep). Next pass: resolve the relocs and
+   grind the sreg/loop-induction schedule (matrix-printer twin of the
+   0005Bxxx float-format-log family). */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0005C6C4(int a0, float *a1) {
+    int row, col;
+    float *p;
+    gl_func_00000000();
+    for (row = 0; row < 4; row++) {
+        p = a1 + row * 4;
+        for (col = 0; col < 4; col++) {
+            gl_func_00000000((char *)&D_00000000 + 0x21B0C, (double)p[col]);
+        }
+        gl_func_00000000((char *)&D_00000000 + 0x21B10);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C6C4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005C784: 35-insn Vec4-printf w/ cvt.d.s + post-banner (0x8C, frame 0x28).
