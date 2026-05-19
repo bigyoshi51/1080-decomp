@@ -24553,14 +24553,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071708);
 /* gl_func_000717CC: 38-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000717CC);
 
+#ifdef NON_MATCHING
 /* gl_func_00071864: 23-insn 16-bit byte-sum checksum.
  *   accum = 0; for (i=0; i<n; i++) accum = (accum + p[i]) & 0xFFFF;
  *   return (u16)accum;
  *
  * Target spills p/accum/i to stack every iteration (-O0-shaped emit).
  * `volatile`-laden -O2 body scores 23.8% (worse than naive 5.4%).
- * Confirmed: needs -O0 file split — deferred. */
+ * Confirmed: needs -O0 file split — deferred. Wrap preserves the
+ * decoded C for permuter / future -O0-split work; INCLUDE_ASM stays
+ * the build path. */
+unsigned short gl_func_00071864(unsigned char *a0, int a1) {
+    int accum = 0;
+    int i;
+    for (i = 0; i < a1; i++) {
+        accum = (accum + a0[i]) & 0xFFFF;
+    }
+    return (unsigned short)accum;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071864);
+#endif
 
 /* gl_func_000718C0: 26-insn ones-complement-style checksum loop.
  *   *a2 = 0; *a1 = *a2; for (i = 0; i < 0x1C; i += 2) { v = *(u16*)(a0+i); *a1 += v; *a2 += ~v; }
