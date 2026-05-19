@@ -1006,11 +1006,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FA20);
 //   activated" toggle). &D_5378 is an auxiliary fn-ptr/string table.
 //   The two `jal 0` words are USO-relocated callback slots (resolved
 //   at load) invoked with the caller-supplied a0.
-// Caps: raw-word USO + jal-0 USO-reloc callbacks — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Record-array sweep /
+//   "reactivate active records" (shares sprite-subsystem globals
+//   with gl_func_0001DCB4 / gl_func_0001E134). Real-C STRUCTURAL
+//   body below per the analysis (count &D_0+0x2070, fixed-stride
+//   record table &D_0+0x2CFC, skip gates rec->0x33/0x34/0x30,
+//   status byte rec->0x44 clear bit7 / set bit6, two jal-0
+//   USO-reloc callbacks). Byte-match deferred — placeholder jal-0
+//   callbacks need USO reloc infra + s0-s5 loop schedule. Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder for the callbacks.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0001FAE8(int a0) {
+    char *g = (char *)&D_00000000;
+    int n = *(int *)(g + 0x2070);
+    int i, idx;
+    if (n <= 0) {
+        return;
+    }
+    idx = 0;
+    for (i = 0; i < n; i++) {
+        char *rec = *(char **)(g + 0x2CFC) + idx;
+        if (*(char *)(rec + 0x33) == 0 && *(char *)(rec + 0x34) == 0 &&
+            *(char *)(rec + 0x30) != 0) {
+            char *p = *(char **)(rec + 0x44);
+            *p &= ~0x80;
+            *p |= 0x40;
+            gl_func_00000000(a0);
+            gl_func_00000000(a0);
+        }
+        idx += 0x158;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
+#endif
 
 // gl_func_0001FBD4 — STRUCTURAL PASS (0x7C / 31 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
