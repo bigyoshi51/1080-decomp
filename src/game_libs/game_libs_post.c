@@ -26996,8 +26996,85 @@ void gl_func_00068F64(Quad4 *dst) {
     *dst = scratch;
 }
 
-/* gl_func_00068FBC: 59-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00068FBC: 59-insn nested alloc/init constructor (size 0xEC, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (obj == NULL) {
+ *       obj = alloc(0xA8);          // master record
+ *       if (!obj) return NULL;
+ *   }
+ *   sub = obj;                       // delay-slot a1 init = s0
+ *   if (sub == NULL) {
+ *       sub = alloc(0x18);
+ *       if (!sub) return obj;
+ *   }
+ *   if (sub == NULL) {                // dead branch (sub is set above)
+ *       inner = alloc(0x10);
+ *       if (inner) {
+ *           *(int*)(inner+0)  = -1;
+ *           *(int*)(inner+8)  = 0x8000;
+ *           *(int*)(inner+4)  = 0;
+ *       }
+ *   }
+ *   if (sub == (void*)0xFFFFFFF0) {   // magic-sentinel branch
+ *       inner = alloc(0x4);
+ *       if (inner) *(int*)inner = 0;
+ *   }
+ *   *((char*)sub + 0xC) = D+0x2C58C;  // sub-object vtable/info
+ *   *((char*)sub + 0x14) = 0;
+ *   *((char*)obj + 0xC) = D+0x2C598;  // master vtable/info
+ *   *((char*)obj + 0x18) = arg3;
+ *   *((char*)obj + 0x1C) = arg2;
+ *   *((char*)obj + 0x20) = arg1;
+ *   return obj;
+ *
+ * Notes:
+ *  - `jal 0x0` raw-word entries are unsymbolicated callees in USO disasm
+ *    (reloc resolves at link), NOT the hardcoded-libc-thunk family.
+ *  - 0xFFFFFFF0 magic check is preserved from asm; appears dead in practice.
+ *  - D+0x2C58C / D+0x2C598 are USO data relocs (vtable/info pointers).
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+extern int D_00000000;
+extern void *alloc(int size);
+void *gl_func_00068FBC(void *obj, int arg1, int arg2, int arg3) {
+    void *sub;
+    void *inner;
+
+    if (obj == NULL) {
+        obj = alloc(0xA8);
+        if (obj == NULL) return obj;
+    }
+    sub = obj;
+    if (sub == NULL) {
+        sub = alloc(0x18);
+        if (sub == NULL) return obj;
+    }
+    if (sub == NULL) {
+        inner = alloc(0x10);
+        if (inner != NULL) {
+            *(int*)((char*)inner + 0x0) = -1;
+            *(int*)((char*)inner + 0x8) = 0x8000;
+            *(int*)((char*)inner + 0x4) = 0;
+        }
+    }
+    if (sub == (void*)0xFFFFFFF0) {
+        inner = alloc(0x4);
+        if (inner != NULL) *(int*)inner = 0;
+    }
+    *(int*)((char*)sub + 0xC)  = (int)((char*)&D_00000000 + 0x2C58C);
+    *(int*)((char*)sub + 0x14) = 0;
+    *(int*)((char*)obj + 0xC)  = (int)((char*)&D_00000000 + 0x2C598);
+    *(int*)((char*)obj + 0x18) = arg3;
+    *(int*)((char*)obj + 0x1C) = arg2;
+    *(int*)((char*)obj + 0x20) = arg1;
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068FBC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
 
