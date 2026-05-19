@@ -5558,18 +5558,13 @@ void gl_func_0002DC7C(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DC7C);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0002DCF8: 14-insn 2-call setup (split 2026-05-15).
- *   func(); D_a = 1; func(0xF8000000, 0); */
+/* gl_func_0002DCF8: 14-insn 2-call setup. func(); D_a=1; func(0xF8000000, 0). */
 extern int D_2DCF8_flag;
 void gl_func_0002DCF8(void) {
     gl_func_00000000();
     D_2DCF8_flag = 1;
     gl_func_00000000(0xF8000000, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DCF8);
-#endif
 
 /* game_libs_func_0002DD30: 2-insn empty stub (jr ra; nop). */
 void game_libs_func_0002DD30(void) { }
