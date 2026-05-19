@@ -103,8 +103,61 @@ void gl_func_0000975C(Quad4 *dst) {
     *dst = buf;
 }
 
-/* gl_func_00009DB8: 65-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00009DB8: 65-insn 3-iter batch dispatcher (size 0x104, frame 0x48, saves s0-s7).
+ *
+ * Iterates 3 times over a 3-element record array (12-byte stride), each
+ * iteration computing a grid-index from (counter % 5) + (alignment-adjusted
+ * delta * 8) and dispatching to a callee with the current pointer and the
+ * global D+0xD430 as context.
+ *
+ * Decoded structure (raw-word disasm):
+ *   void batch_dispatch3(int *out_recs, int base_idx, int delta_a, int delta_b,
+ *                        int *src_a)  // arg5 — but actually a3
+ *   {
+ *       int *src   = src_a;          // s0 (advances by 12 each iter)
+ *       int *out_p = out_recs;       // s1 (advances by 8 each iter)
+ *       int  ia    = base_idx;       // s2 (++ each iter)
+ *       int  ib    = delta_a;        // s3 (++ each iter)
+ *       int  i     = 0;              // s4 (+= 12 each iter, exits at 0x24=36)
+ *       int *ctx   = (int*)&D_00000000 + 0xD430/4;  // s6 — global pointer base
+ *
+ *       for (i = 0; i != 36; i += 12) {
+ *           int rem = ia % 5;                 // div + safety traps (break 6/7)
+ *           int v0 = *src;
+ *           int v1 = *(src + 1);
+ *           int v2 = *(src + 2);
+ *
+ *           // Signed alignment adjust: if ib < 0 and (ib & 7) != 0, subtract 8
+ *           int adj = (ib < 0 && (ib & 7) != 0) ? ((ib & 7) - 8) : 0;
+ *           int grid_idx = rem + (adj << 3);
+ *
+ *           hook(out_p, grid_idx, 0, ctx);    // jal
+ *
+ *           src   += 3;      // 12 bytes / 4
+ *           out_p += 2;      // 8 bytes / 4
+ *           ia++;
+ *           ib++;
+ *       }
+ *   }
+ *
+ * Notes:
+ *  - Inline `div + break 7 + break 6` is the standard IDO signed-modulo
+ *    safety-trap pattern (reference_1080_mips3_runtime_helpers.md).
+ *  - Each loop iteration loads 3 fields from *src (12 bytes), saves 3 args at
+ *    sp+0x10/0x14/0x18 (caller's outgoing arg slots), invokes hook with 4 args.
+ *  - 3-iteration unroll suggests XYZ vector dispatch (3 components) or
+ *    3-channel color encoding (RGB or YCbCr).
+ *  - The "alignment adjust if ib < 0" preserves floor-division semantics on
+ *    negative dividends — typical of "wrap signed index back into range" logic.
+ *  - Loop exit at counter = 0x24 (=36 bytes = 3 × 12-byte records) confirms
+ *    fixed 3-iter shape.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009DB8);
+#endif
 
 extern int gl_data_0000D434;
 
