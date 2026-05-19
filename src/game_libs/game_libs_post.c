@@ -16954,6 +16954,8 @@ void gl_func_00047644(int* a0, int* a1) {
 // untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000476DC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004771C);
+
 // gl_func_000478FC — STRUCTURAL PASS + BOUNDARY NOTE (0x228 / 145 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
 // three jr at 0x47AAC (~112w in) / 0x47AD0 / 0x47B20 delimit a named fn + 2
