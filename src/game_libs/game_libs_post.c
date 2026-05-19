@@ -13558,7 +13558,6 @@ void gl_func_0003EE50(int a0, int a1, int *a2, int a3, int a4, int a5) {
  * INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EEC0);
 
-#ifdef NON_MATCHING
 void gl_func_0003EF2C(int a0, int a1, int a2, int a3, int a4, int a5) {
     char buf[0xA0];
     *(int*)&buf[0x50] = a2;
@@ -13569,9 +13568,6 @@ void gl_func_0003EF2C(int a0, int a1, int a2, int a3, int a4, int a5) {
     *(int*)&buf[0x00] = 0x28;
     func_00000000(&buf[0x00]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EF2C);
-#endif
 
 #ifdef NON_MATCHING
 void gl_func_0003EF78(int a0, int a1, int a2, int a3, int a4, int a5) {
