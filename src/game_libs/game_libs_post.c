@@ -21104,17 +21104,6 @@ int gl_func_0005FFD0(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FFD0);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00060028: 31-insn linked-list search with init-call guard.
- *   if (!gl_func_00000000(a0+0x24, a1, a0)) return a0;
- *   for (n = a0->0x18; n != 0; n = n->0x14) {
- *     if (gl_func_00000000(n, a1) != 0) return n;
- *   }
- *   return 0;
- * The init call uses (orig_a0 + 0x24, orig_a1, orig_a0) — 3 args. The
- * search-call uses (n, orig_a1) — 2 args. Both go through K&R-style
- * gl_func_00000000(). The original a0 is saved at sp+0x20 and reloaded
- * after the init call's clobber. List nodes linked via [0x14]. */
 int gl_func_00060028(int* a0, int a1) {
     int* n;
     int r;
@@ -21129,9 +21118,6 @@ int gl_func_00060028(int* a0, int a1) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060028);
-#endif
 
 /* gl_func_000600A4: 68-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000600A4);
