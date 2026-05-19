@@ -23281,12 +23281,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068990);
 /* gl_func_00068B04: 42-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068B04);
 
-#ifdef NON_MATCHING
-/* gl_func_00068BAC: 18-insn flag-gated cleanup (split 2026-05-15).
- *   if (!(*a0 & 1)) {
- *     if (a0[2] != 0) func(a0[2]);
- *     a0[2] = 0;
- *   } */
 void gl_func_00068BAC(int *a0) {
     if ((*a0 & 1) == 0) {
         int *p = (int*)a0[2];
@@ -23296,9 +23290,6 @@ void gl_func_00068BAC(int *a0) {
         a0[2] = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068BAC);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00068BF4: 7-insn sibling without the func call.
