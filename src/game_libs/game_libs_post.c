@@ -24053,8 +24053,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066D54);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066EEC);
 
-/* gl_func_00067084: 44-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00067084: 44-insn indexed-entry state-toggle (0xB0, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   v1 = a0 + a1;                                    // index helper (a1 = byte offset)
+ *   if (v1->byte[0x13DC] == 0) return;                // gate 1: enabled flag
+ *   if (v1->byte[0x13D8] == a2) return;               // gate 2: already in state a2
+ *   // Compute 104-byte-stride entry: addr = a0 + a1*104 + 0x1228
+ *   addr = a0 + 104*a1 + 0x1228;
+ *   if (a2 != 0) {
+ *       if (func(addr) == 0) {                        // alloc/setup fail
+ *           v1->byte[0x13D8] = 3;
+ *       }
+ *   } else {
+ *       if (func(addr) != 0) {                        // destroy/teardown success
+ *           if (v1->byte[0x13D8] > 0) {
+ *               v1->byte[0x13D8] -= 1;                 // decrement counter
+ *           }
+ *       }
+ *   }
+ *
+ * The `104*a1` multiplication is emitted as `sll t,2; subu t-a1; sll t,2;
+ * addu t+a1; sll t,3` — i.e., 13*a1*8 via shift-subtract-shift chain
+ * (cheaper than `mul`). 0x1228 is the offset into the indexed-entry array.
+ * 0x13D8/0x13DC are byte fields at the entry's flags-region.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00067084(char *a0, int a1, int a2, int arg3) {
+    char *v1 = a0 + a1;
+    char *addr;
+    if (v1[0x13DC] == 0) return;
+    if (v1[0x13D8] == (char)a2) return;
+    addr = a0 + 104 * a1 + 0x1228;
+    if (a2 != 0) {
+        if (gl_func_00000000(addr) == 0) {
+            v1[0x13D8] = 3;
+        }
+    } else {
+        if (gl_func_00000000(addr) != 0) {
+            if ((signed char)v1[0x13D8] > 0) {
+                v1[0x13D8] = (char)(v1[0x13D8] - 1);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067084);
+#endif
 
 extern int gl_func_00000000();
 extern int gl_ref_000416C0;
