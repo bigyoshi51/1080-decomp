@@ -14769,53 +14769,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412A0);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412E8);
 
-#ifdef NON_MATCHING
-/* gl_func_00041524: 32-insn constructor — alloc-or-given + init +
- * vtable install + sub-alloc. Decoded from bare stub 2026-05-18.
- * Algorithm correct; build-path test = 36 vs 32 (count diff):
- *  - frame 0x20 vs target 0x18: the explicit if/else + early-return
- *    + `int r` local spill bloats; target reuses $a2 as the object
- *    throughout with NO extra local.
- *  - the alloc-or-given prologue must be the folded IDO idiom
- *    `obj = a0 ? a0 : alloc(0x80)` (bne a0,0,L; a2=a0 delay; jal
- *    alloc; a0=0x80 delay; beq v0,0,end; a2=v0 delay; L:) — see
- *    docs/IDO_CODEGEN.md#feedback-ido-bnel-delay-likely-move-fall-
- *    through-alloc ("out = ptr ? ptr : alloc(N)" ternary). The
- *    early `if(obj==0)return 0;` must collapse into the shared
- *    `beq v0,0,end` + `return obj` (one epilogue), not a separate
- *    return path.
- * Next pass: rewrite as the ternary-alloc form with a single end
- * label and `a2`-reuse (no `int r`; inline the sub-alloc result
- * test). Real decoded C preserved (supersedes the prior
- * decode-pending stub). */
+/* gl_func_00041524: alloc-or-given constructor + init + vtable
+ * install + sub-alloc. Ternary-alloc form (obj reuses a0/a2, single
+ * end label) per docs/IDO_CODEGEN.md ternary-alloc idiom. */
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_00041524(int a0) {
-    int obj;
     int *v1;
     if (a0 == 0) {
-        obj = gl_func_00000000(0x80);
-        if (obj == 0) {
-            return 0;
+        a0 = gl_func_00000000(0x80);
+        if (a0 == 0) {
+            goto end;
         }
-    } else {
-        obj = a0;
     }
-    gl_func_00000000(obj, (char *)&D_00000000 + 0x1F5C8);
-    *(int *)(obj + 0x28) = (int)&D_00000000;
-    v1 = (int *)(obj + 0x2C);
-    if (v1 != 0) {
-        int r = gl_func_00000000(4);
-        if (r != 0) {
-            v1 = (int *)r;
+    gl_func_00000000(a0, (char *)&D_00000000 + 0x1F5C8);
+    *(int *)(a0 + 0x28) = (int)&D_00000000;
+    v1 = (int *)(a0 + 0x2C);
+    if (v1 == 0) {
+        v1 = (int *)gl_func_00000000(4);
+        if (v1 == 0) {
+            goto end;
         }
-        *v1 = 0;
     }
-    return obj;
+    *v1 = 0;
+end:
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041524);
-#endif
 
 // gl_func_000415A4 — STRUCTURAL PASS (0x1C0 / 113 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
