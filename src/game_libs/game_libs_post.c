@@ -25815,8 +25815,71 @@ void gl_func_00067220(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067220);
 #endif
 
-/* gl_func_00067264: 67-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00067264: 50-insn counter-gated 4-slot bit-dispatch + 2-stub BUNDLE
+ * (0x10C declared, real fn ~50 insns ending at jr ra @0xCC; rest are 2 small stubs).
+ *
+ * Decoded fn 1 (real gl_func_00067264):
+ *   self->[0x13F0]++;                                 // increment call counter
+ *   if (self->[0x13F0] < 32) return;                  // skip until counter wraps
+ *   self->[0x13F0] = 0;                                // reset
+ *
+ *   // Pre-init local 1-byte buffer at sp+0x4F, fetch active-slot bitmask:
+ *   byte slot_mask;
+ *   func_a(self + 0x11B0, &slot_mask);                // returns mask via &local
+ *
+ *   // Dispatch over 4 slots (s6=4 sentinel):
+ *   for (i = 0; i < 4; i++) {
+ *       if (slot_mask & (1 << i)) {                   // sllv-based bit test
+ *           entry = self + i * 104 + 0x1228;          // 104-byte stride entry
+ *           int rc = func_b(self + 0x11B0, entry, i);
+ *           if (rc == 0) {
+ *               func_c(entry);
+ *               self[i*104 + 0x13DC] = 1;            // claim slot
+ *           } else {
+ *               self[i*104 + 0x13DC] = 0;            // clear slot
+ *           }
+ *       }
+ *   }
+ *
+ * The 104-byte entry stride matches the alloc-empty-slot pattern in
+ * gl_func_00062484 (also 104-byte) — same array layout. Combined with
+ * a 32-call timer (`self->[0x13F0] >= 32`), this is a periodic
+ * slot-refresher: every 32 calls, check the bitmask and refresh each
+ * active slot's flag at +0x13DC.
+ *
+ * Bundled siblings @0xD0-0x10C: 2 small leaf functions (need fragment-split):
+ *   - byte-array indexed lookup: `return self->[i*4 + 0x13C8]`
+ *   - byte-load: `return *(byte*)(self + 0x13EC)`
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00067264(int *self) {
+    char slot_mask;
+    int i;
+    int counter = self[0x13F0 / 4];
+    self[0x13F0 / 4] = counter + 1;
+    if (counter < 31) return;                  // (sltiu < 31 → branch when not yet 31+)
+    self[0x13F0 / 4] = 0;
+    slot_mask = 0;
+    gl_func_00000000((char*)self + 0x11B0, &slot_mask);
+    for (i = 0; i < 4; i++) {
+        if (slot_mask & (1 << i)) {
+            char *entry = (char*)self + i * 104 + 0x1228;
+            int rc = (int)gl_func_00000000((char*)self + 0x11B0, entry, i);
+            if (rc == 0) {
+                gl_func_00000000(entry);
+                ((char*)self)[i * 104 + 0x13DC] = 1;
+            } else {
+                ((char*)self)[i * 104 + 0x13DC] = 0;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067264);
+#endif
 
 void gl_func_00067370(void) {
     gl_func_00000000();
