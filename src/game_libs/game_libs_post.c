@@ -9614,6 +9614,8 @@ int *gl_func_000378D0(int *a0, int a1, float a2) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037A90);
+
 /* gl_func_00037A9C: 21-insn count-bounded loop. Calls
  * gl_func(&D_0 + 0x1EBDC) `count` times if count > 0. */
 void gl_func_00037A9C(int count) {
