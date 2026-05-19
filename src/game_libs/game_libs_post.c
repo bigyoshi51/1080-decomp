@@ -604,11 +604,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
 //   consumed by a second phase that issues the actual glyph draws.
 //   This is the run-layout/measure front-end of the game_libs text
 //   subsystem; the leaf draws delegate to the gl_func_0001CFDC family.
-// Caps: raw-word USO + large multi-phase orchestrator with many
-//   fixed-target calls — not exact-matchable without proper USO
-//   mnemonic disasm; high-level structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Large text-run layout/measure
+//   orchestrator over the gl_func_0001CFDC glyph-draw family.
+//   Real-C STRUCTURAL body below per the analysis (two-phase: classify
+//   g->0x2070 items by item-word sign bit into a sp+0x84 byte buffer,
+//   then emit per-run glyph draws); byte-match deferred — ~288-insn
+//   multi-phase with many runtime-patched placeholder jals (need USO
+//   reloc infra) and -0xC0 frame s0-s8 schedule. Name pre-checked: no
+//   extern reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for the leaf glyph draws.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0001DCB4(int a0, int a1, int a2, int a3) {
+    char *g = (char *)&D_00000000;
+    char buf[0x40];
+    int n, i, k, ret;
+    ret = 0;
+    if (*(signed char *)(g + 1) == 0) {
+        n = *(int *)(g + 0x2070);
+        i = 0;
+        k = 0;
+        if (n > 0) {
+            int *tbl = *(int **)(g + 0x14);
+            do {
+                int v = tbl[i];
+                if ((unsigned)v >> 31) {
+                    buf[k++] = (char)i;
+                }
+                i++;
+            } while (i < n);
+        }
+        for (i = 0; i < k; i++) {
+            ret = gl_func_00000000(a0, a1, buf[i], a3);
+        }
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
+#endif
 
 // gl_func_0001E134 — STRUCTURAL PASS (0xD44 / 849 words ≈ 3.4KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
