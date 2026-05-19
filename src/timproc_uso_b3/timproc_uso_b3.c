@@ -41,20 +41,124 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_000000B0: 0x4F4 (317 insns), 0x40-byte stack frame.
- * Boundary-checked 2026-05-08: one jr ra, so this is one real function.
+ * Boundary-checked 2026-05-19: one jr ra plus an internal jump-table jr.
  *
- * Sibling of timproc_uso_b1_func_000000B0. The entry is a 14-case dispatch
- * on a1 using a jump table, followed by per-case gl_func_00000000 calls and
- * stores to D[0x40]/D[0x44]/D[0x48]. Matching will need the same full
- * if/goto-chain rewrite as the b1 sibling because 1080's linker discards
- * normal C jump-table rodata.
- *
- * This first pass preserves the decoded entry/default shape for future
- * refinement while default builds continue to use the original asm. */
+ * Full state-machine decode of the 14 jump-table arms. This is still
+ * NON_MATCHING because IDO's C switch emits a normal rodata jump table, while
+ * this raw-word USO target has the original relocatable table shape. The
+ * explicit body preserves the real call/field map for the next pass:
+ * state 4/6/8/9 loop by writing D[0x40]; all other decoded arms set done.
+ * Current score: 36.09% (up from 3.36%). Tried volatile stack locals
+ * (regressed to 32.28%) and a forced -O0 probe (blocked by pad sidecars). */
 void timproc_uso_b3_func_000000B0(int *a0, int a1) {
-    if ((unsigned int)a1 >= 14) return;
-    (void)gl_func_00000000();
-    (void)a0;
+    int done;
+    int tmp;
+    int *node;
+    char *base;
+    char *link;
+
+    done = 0;
+    do {
+        switch ((unsigned int)a1) {
+        case 0:
+            gl_func_00000000(a0, 1, 7, 1);
+            *(int*)((char*)&D_00000000 + 0x44) = 4;
+            *(int*)((char*)&D_00000000 + 0x48) = 0xD;
+            done = 1;
+            break;
+        case 1:
+            gl_func_00000000(a0, 1, 7, 1);
+            *(int*)((char*)&D_00000000 + 0x44) = 4;
+            *(int*)((char*)&D_00000000 + 0x48) = 0xD;
+            done = 1;
+            break;
+        case 2:
+            gl_func_00000000(a0, 1, 7, 2);
+            *(int*)((char*)&D_00000000 + 0x44) = 4;
+            *(int*)((char*)&D_00000000 + 0x48) = 0xD;
+            done = 1;
+            break;
+        case 3:
+            gl_func_00000000(a0, 1, 7, 4);
+            *(int*)((char*)&D_00000000 + 0x44) = 4;
+            *(int*)((char*)&D_00000000 + 0x48) = 0xD;
+            done = 1;
+            break;
+        case 4:
+            gl_func_00000000(a0, 1, *(int*)((char*)&D_00000000 + 0x64));
+            *(int*)((char*)&D_00000000 + 0x40) = 5;
+            break;
+        case 5:
+            gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000 + 4));
+            gl_func_00000000(&D_00000000, 4, *(int*)((char*)&D_00000000 + 0x64), 2);
+            tmp = gl_func_00000000(a0, *a0, 1);
+            tmp = gl_func_00000000(0, 0x410000, tmp, *a0);
+            tmp = gl_func_00000000(a0, 0, tmp);
+            done = 1;
+            break;
+        case 6:
+            gl_func_00000000(a0, 0, *(unsigned char*)((char*)&D_00000000 + 0x178));
+            *(int*)((char*)&D_00000000 + 0x40) = 7;
+            break;
+        case 7:
+            gl_func_00000000(&D_00000000, 0xA, *(int*)((char*)&D_00000000 + 0x64), 2);
+            tmp = gl_func_00000000(a0, *a0, 1);
+            tmp = gl_func_00000000(
+                0, *(int*)((char*)&D_00000000 + 0x170) + 0x1A000F, tmp, *a0);
+            tmp = gl_func_00000000(a0, 0, tmp);
+            done = 1;
+            break;
+        case 8:
+            gl_func_00000000(a0);
+            *(int*)((char*)&D_00000000 + 0x40) =
+                *(int*)((char*)&D_00000000 + 0x44);
+            break;
+        case 9:
+            gl_func_00000000(a0);
+            *(int*)((char*)&D_00000000 + 0x40) = 0xA;
+            break;
+        case 10:
+            gl_func_00000000(&D_00000000, 7, 0, 0);
+            tmp = gl_func_00000000(0);
+            gl_func_00000000(a0, 1, tmp);
+            done = 1;
+            break;
+        case 11:
+            tmp = gl_func_00000000(a0, *a0, 4);
+            tmp = gl_func_00000000(
+                0, *(int*)((char*)&D_00000000 + 0x170) + 0x20000, tmp, *a0);
+            node = (int*)tmp;
+            base = &D_00000000;
+            link = base + 0x10;
+            gl_func_00000000(link, node);
+            if (node[5] != 0) {
+                node[1] = 1;
+            }
+            node[5] = (int)base;
+            gl_func_00000000(a0, *a0);
+            done = 1;
+            break;
+        case 12:
+            tmp = gl_func_00000000(*(int*)((char*)&D_00000000 + 0x64));
+            gl_func_00000000(
+                a0, (*(int*)((char*)&D_00000000 + 0x64) | 0x4000) | tmp, 0x4000, *a0);
+            done = 1;
+            break;
+        case 13:
+            tmp = gl_func_00000000(0, 1, 0);
+            base = &D_00000000;
+            link = base + 0x10;
+            gl_func_00000000(link, tmp);
+            node = (int*)tmp;
+            if (node[5] != 0) {
+                node[1] = 1;
+            }
+            node[5] = (int)base;
+            done = 1;
+            break;
+        }
+        a1 = *(int*)((char*)&D_00000000 + 0x40);
+    } while (done == 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000000B0);
