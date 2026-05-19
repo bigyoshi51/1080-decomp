@@ -29804,8 +29804,65 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073538);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007369C);
 
-/* gl_func_00073824: 53-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00073824: 53-insn 8-arg structure initializer + chained registration.
+ * Size 0xD4, frame 0x20.
+ *
+ * Initializes an Obj at `a0` from 7 caller-provided fields (a2/a3 plus 5 stack
+ * args at sp+0x30/0x34/0x38/0x3C plus default-fallback args), calls a
+ * registration hook, then optionally chains a second hook if the object is the
+ * currently-active global.
+ *
+ * Decoded structure (raw-word disasm):
+ *   int init_and_register(Obj *obj, void *_unused_a1, int a2, int a3,
+ *                         int arg5, int arg6, int arg7, int arg8) {
+ *       obj->[0x0]  = 0;                       // zero head fields
+ *       obj->[0x4]  = 0;
+ *       obj->[0xC]  = arg6;                    // 6th arg (sp+0x34)
+ *       obj->[0x8]  = arg5;                    // 5th arg (sp+0x30)
+ *
+ *       // Conditional field default: if both a2 and a3 are zero, use arg5/arg6 as fallback
+ *       if (a2 != 0) {
+ *           obj->[0x10] = a2;
+ *           obj->[0x14] = a3;
+ *       } else if (a3 != 0) {
+ *           obj->[0x10] = a2;                  // = 0
+ *           obj->[0x14] = a3;
+ *       } else {
+ *           obj->[0x10] = arg5;                // fallback to stack-arg defaults
+ *           obj->[0x14] = arg6;
+ *       }
+ *
+ *       obj->[0x18] = arg7;                    // 7th arg (sp+0x38)
+ *       obj->[0x1C] = arg8;                    // 8th arg (sp+0x3C)
+ *
+ *       void *result = register_obj(obj);      // jal <func>(obj)
+ *
+ *       // Chain handler if this is the current global object
+ *       if (obj->[0x0] == obj) {               // self-ref test (jal may have set [0])
+ *           chain_handler(saved_v0, saved_v1);  // jal <func>
+ *       }
+ *
+ *       return 0;
+ *   }
+ *
+ * Notes:
+ *  - The `obj->[0x0] == obj` self-reference check after the jal is unusual:
+ *    register_obj() likely populates obj->[0x0] with the back-pointer for
+ *    head-tracking. When the back-pointer is self, this object is its own
+ *    "head" (i.e., the active one) — fire the chain handler.
+ *  - Args 5-8 passed on stack (O32 ABI args 5+ at sp+0x30..0x3C after our
+ *    frame adjust).
+ *  - The a2/a3 branch is functionally equivalent to "if !(a2==0 && a3==0)
+ *    use a2/a3 else use arg5/arg6" but IDO emits a 3-way tree.
+ *  - v0:v1 from first jal saved at sp+0x18/0x1C (64-bit-return pair) then
+ *    re-loaded as a0/a1 for the chain call.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073824);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00073824_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073904);
