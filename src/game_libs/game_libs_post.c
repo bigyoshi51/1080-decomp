@@ -21492,8 +21492,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DDE4);
 
-/* gl_func_0005E030: 33-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005E030: 33-insn 4x4 matrix add + dispatch (0x84, frame 0x70).
+ *
+ * Decoded structure (raw-word disasm):
+ *   float buf[16];                                  // local at sp+0x30..+0x70
+ *   for (i = 0; i < 16; i += 4) {
+ *       buf[i+0] = a[i+0] + b[i+0];                 // 4-wide unrolled add
+ *       buf[i+1] = a[i+1] + b[i+1];
+ *       buf[i+2] = a[i+2] + b[i+2];
+ *       buf[i+3] = a[i+3] + b[i+3];
+ *   }
+ *   func(&buf, a2);                                  // pass summed matrix to callee
+ *
+ * 4-iter loop (sp+0x30 → sp+0x70 in 0x10 byte steps) processes 4 floats
+ * per iter via 4 add.s; first iter uses base loads at 0(v1)/0(a3), then
+ * negative offsets (-0xC, -0x8, -0x4) from post-incremented pointers for
+ * the in-progress chunk. Total 16 floats summed = Matrix4 + Matrix4.
+ *
+ * Matrix4 add idiom: 1080's MTX_ADD helper, sibling of mtx mul/inv.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0005E030(float *a, int a2, float *b) {
+    float buf[16];
+    int i;
+    for (i = 0; i < 16; i += 4) {
+        buf[i + 0] = a[i + 0] + b[i + 0];
+        buf[i + 1] = a[i + 1] + b[i + 1];
+        buf[i + 2] = a[i + 2] + b[i + 2];
+        buf[i + 3] = a[i + 3] + b[i + 3];
+    }
+    gl_func_00000000(buf, a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E030);
+#endif
 
 /* gl_func_0005E0B4: 33-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E0B4);
