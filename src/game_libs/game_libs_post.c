@@ -18168,8 +18168,72 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);
 
-/* gl_func_0004CCB4: 65-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004CCB4 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
+ * (declared 0x104 / 65 words). NAMED fn = constructor, insns 1..60
+ * (prologue 27BDFFD8 frame 0x28, jr ra at insn 60):
+ *   void gl_func_0004CCB4(int a0) {
+ *     cb_reg(&D_00000000, "str_0x20198", 0);
+ *     o1 = cb_alloc(0xC);   if (!o1) goto end;
+ *     o2 = cb_alloc(o1, 8); if (!o2) goto end;
+ *     o3 = cb_alloc(.., 4); if (!o3) goto end;
+ *     // vtable/handler installs (gl_data abs syms):
+ *     *(void**)o3       = &gl_data_0x21F730;
+ *     *(int*)(o2 + 0)   = &gl_data_0x21FC24;  *(o2+4) = o1ish;
+ *     *(int*)(o1 + 0)   = &gl_data_0x21FC3C;  *(o1+8) = a0(spill);
+ *     cb_reg(&D_00000000, "str_0x201A0", 1);
+ *     cb_reg2(&D_00000000);
+ *     cb_fin();
+ *   end: return a0;
+ *   }
+ * Same lazy-alloc-cascade + cb-register family as the LANDED
+ * gl_func_00041524 (apply: goto-end single epilogue, reuse the a0
+ * param as the object, no extra named locals, per
+ * docs/IDO_CODEGEN.md#feedback-ido-reuse-param-as-object-caller-
+ * slot-spill).
+ *
+ * BOUNDARY NOTE (DEFERRED USO RE-SPLIT): insns 61..65 after the
+ * jr ra are a tiny TRAILING LEAF (`sw a0,0(sp); jr ra;
+ * or v0,zero,zero`-style stub, own 03E00008) splat couldn't
+ * separate; the 0x104 size spans it so the constructor can't
+ * byte-match standalone without a re-split at the named-fn end.
+ * The vtable gl_data abs offsets (0x21F730/0x21FC24/0x21FC3C) also
+ * need symbolizing for a promote. Multi-idiom + bundle → focused
+ * pass. Real decoded C of the named fn preserved; INCLUDE_ASM is
+ * the build path for the whole bundle. */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0004CCB4(int a0) {
+    int o1;
+    int o2;
+    int o3;
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x20198, 0);
+    o1 = gl_func_00000000(0xC);
+    if (o1 == 0) {
+        goto end;
+    }
+    o2 = gl_func_00000000(o1, 8);
+    if (o2 == 0) {
+        goto end;
+    }
+    o3 = gl_func_00000000(o2, 4);
+    if (o3 == 0) {
+        goto end;
+    }
+    *(int *)o3 = (int)((char *)&D_00000000 + 0x21F730);
+    *(int *)o2 = (int)((char *)&D_00000000 + 0x21FC24);
+    *(int *)(o2 + 4) = o1;
+    *(int *)o1 = (int)((char *)&D_00000000 + 0x21FC3C);
+    *(int *)(o1 + 8) = a0;
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x201A0, 1);
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000();
+end:
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CCB4);
+#endif
 
 // gl_func_0004CDB8 — STRUCTURAL PASS (0x140 / 83 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
