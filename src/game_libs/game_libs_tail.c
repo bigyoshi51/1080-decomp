@@ -1330,8 +1330,58 @@ void gl_func_0000DB80(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
 #endif
 
-/* gl_func_0000DC90: 45-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000DC90: 45-insn vtable-dispatch on indexed 96-byte entry + pair-toggle (0xB4, frame 0x40).
+ *
+ * Decoded structure (raw-word disasm):
+ *   // Index into self->[0x44] array of 96-byte entries (idx * 96 stride):
+ *   entry = (int*)((char*)self->[0x44] + idx * 96);
+ *   v1 = *entry;
+ *   vt = v1->[0x28];
+ *   off = (short)vt->[0x28];                                  // signed half
+ *   fn  = (int(*)(int,int,int))vt->[0x2C];
+ *   fn((int)((char*)v1 + off), &sp_args[/*=1001*/], self);    // 1001 as stack arg @sp+0x34
+ *
+ *   if (self->[0x48] == 2) {                                   // pair-toggle gate
+ *       // Same dispatch on partner entry (idx XOR 1):
+ *       entry2 = (int*)((char*)self->[0x44] + (idx ^ 1) * 96);
+ *       v1_2 = *entry2;
+ *       vt_2 = v1_2->[0x28];
+ *       off2 = (short)vt_2->[0x28];
+ *       fn_2 = (int(*)(int,int))vt_2->[0x2C];
+ *       fn_2((int)((char*)v1_2 + off2), &sp_args2[/*=1000*/]);  // 1000 stack arg
+ *   }
+ *
+ * The `idx * 96` stride uses the shift-subtract-shift sequence
+ * `sll t,2; subu t,a; sll t,5` (= a*3*32 = a*96). The pair-toggle via
+ * `xori idx, 1` is the classic "this+partner" idiom for paired objects.
+ * Magic constants 1001 (0x3E9) and 1000 (0x3E8) passed to vtable methods
+ * — likely event-code or priority tags.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000DC90(int *self, int idx) {
+    int *entry = (int*)((char*)self[0x44 / 4] + idx * 96);
+    int *v1 = (int*)*entry;
+    int *vt = (int*)v1[0x28 / 4];
+    short off = *(short*)((char*)vt + 0x28);
+    int (*fn)(int, int *, int *) = (int(*)(int, int*, int*))vt[0x2C / 4];
+    int sp_args = 1001;
+    fn((int)((char*)v1 + off), &sp_args, self);
+    if (self[0x48 / 4] == 2) {
+        int *entry2 = (int*)((char*)self[0x44 / 4] + (idx ^ 1) * 96);
+        int *v1_2 = (int*)*entry2;
+        int *vt_2 = (int*)v1_2[0x28 / 4];
+        short off2 = *(short*)((char*)vt_2 + 0x28);
+        int (*fn2)(int, int *) = (int(*)(int, int*))vt_2[0x2C / 4];
+        int sp_args2 = 1000;
+        fn2((int)((char*)v1_2 + off2), &sp_args2);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
+#endif
 
 /* gl_func_0000DD44 - verified structural decode (38-insn br=0
  * deterministic 2x vtable-dispatch; address-taken-local + sp-slot
