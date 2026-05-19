@@ -530,6 +530,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003DB8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003F08);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003FF8);
+
 extern int gl_ref_00013C70();
 int gl_func_0000405C(char *a0) {
     int scratch;
