@@ -13912,9 +13912,6 @@ void gl_func_0003F66C(int *a0, int a1, float *a2, int a3) {
     (void)a0;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0003F6CC: 25-insn 2-call wrapper, family of 0003F60C.
- * Differences: *a2 is INT (lw), buf[0x48]=1 AND buf[0x54]=1 (both 1). */
 extern int func_00000000();
 void gl_func_0003F6CC(int *a0, int a1, int *a2, int a3) {
     char buf[0xA0];
@@ -13928,9 +13925,6 @@ void gl_func_0003F6CC(int *a0, int a1, int *a2, int a3) {
     func_00000000(&buf[0x00]);
     (void)a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F6CC);
-#endif
 
 /* gl_func_0003F730: 30-insn 7-call dispatch with conditional final.
  * Promoted from 91.33% NM → exact 2026-05-17 by fixing TWO decode bugs:
