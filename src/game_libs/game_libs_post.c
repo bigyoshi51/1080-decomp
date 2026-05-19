@@ -23699,8 +23699,46 @@ int gl_func_0006273C(char *a0) {
     return gl_func_00000000(a0 + 0x40);
 }
 
-/* gl_func_0006275C: 44-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006275C: 44-insn factory + 2 direct-jal + 12×-stride alloc + N-init loop (0xB0, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   self->[0x3C] = func_a(&D_sym);                     // factory
+ *   func_at_0x764C4(&self->[0x2C]);                    // direct-addr jal #1
+ *   func_at_0x76488(&self->[0x34]);                    // direct-addr jal #2 (diff addr)
+ *   count = self->[0x34];
+ *   self->[0x30] = func_b(count * 12);                 // 12×-stride alloc
+ *   for (i = 0; i < count; i++) {
+ *       func_c(self->[0x30], self->[0x30] + i*12);
+ *       func_d(self->[0x30] + i*12, count);
+ *   }
+ *
+ * 3rd/4th direct-address jal case (0x764C4 also in gl_func_000622D8;
+ * 0x76488 new). Both in the 0x764xx cluster — likely libc-family
+ * (memset/memcpy/strncpy-style).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0006275C(int *self) {
+    extern int D_sym_6275C;
+    int *arr;
+    int count;
+    int i;
+    self[0x3C / 4] = (int)gl_func_00000000(&D_sym_6275C);
+    ((void(*)(int*))0x764C4)((int*)((char*)self + 0x2C));
+    ((void(*)(int*))0x76488)((int*)((char*)self + 0x34));
+    count = self[0x34 / 4];
+    arr = (int*)gl_func_00000000(count * 12);
+    self[0x30 / 4] = (int)arr;
+    for (i = 0; i < count; i++) {
+        gl_func_00000000(arr, (char*)arr + i * 12);
+        gl_func_00000000((char*)arr + i * 12, count);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006275C);
+#endif
 
 /* gl_func_0006280C: 56-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006280C);
