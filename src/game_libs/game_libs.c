@@ -465,6 +465,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00002B94);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003138);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003298);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000032B0);
 
 extern int gl_func_00000000();
