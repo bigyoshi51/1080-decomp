@@ -22565,6 +22565,8 @@ void gl_func_0005BBCC(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BBCC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BBEC);
 #endif
 
 #ifdef NON_MATCHING
