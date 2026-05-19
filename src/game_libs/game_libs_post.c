@@ -25796,8 +25796,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000669B8);
 /* gl_func_00066A50: 40-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066A50);
 
-/* gl_func_00066AF0: 29-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00066AF0: 29-insn debug-canary triple-check helper (size 0x74, frame 0x18).
+ *
+ * Decoded structure (raw-word disasm):
+ *   // Pre-check: caller-set $at gates the first canary read
+ *   if ((($at_caller | 0x5678) == 0x40000)) {  // gate (caller-supplied flag)
+ *       t7 = *(int*)((char*)&D_00000000 + 0x3F314);  // canary slot 1
+ *       if (t7 != 0x12345678)
+ *           debug_print((char*)&D_00000000 + 0x21BC);  // error msg 1
+ *   }
+ *   t8 = *(int*)((char*)&D_00000000 + 0x414C0);      // canary slot 2
+ *   if (t8 == 0x12345678) {
+ *       t9 = *(int*)((char*)&D_00000000 + 0x414C4);  // canary slot 3
+ *       if (t9 != 0x12345678)
+ *           debug_print((char*)&D_00000000 + 0x21D8);  // error msg 2 (or 3)
+ *   }
+ *   return;
+ *
+ * Pattern: debug-assert / memory-canary check. Three 32-bit slots at
+ *   D+0x3F314, D+0x414C0, D+0x414C4 each hold a magic sentinel 0x12345678.
+ *   On mismatch, the helper prints an error message from D+0x21BC / D+0x21D8.
+ *
+ * Notes:
+ *  - $at is caller-set (upper bits used by `ori $at, $at, 0x5678` at insn[2]
+ *    with NO prior `lui` in this function). Fits the caller-set-int-reg cap
+ *    class (feedback_caller_set_int_reg_cap_1080_game_libs.md). $at-as-arg
+ *    is a unusual variant beyond the previously-documented $v0/$v1/$t6/$a2.
+ *  - 0x12345678 is the canary sentinel value (classic 1234-5678 marker).
+ *  - The error messages at D+0x21BC and D+0x21D8 are debug strings (likely
+ *    "Memory canary corrupted" or similar — verify via objdump --full-contents).
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path
+ *    (caller-set $at can't be expressed in IDO C).
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066AF0);
+#endif
 
 /* gl_func_00066B64: 28-insn 3-call init + magic-write.
  *   func(a0);
