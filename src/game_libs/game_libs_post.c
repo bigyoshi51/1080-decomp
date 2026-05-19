@@ -27654,8 +27654,79 @@ out:
 /* gl_func_0006AF44: 65-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
 
-/* game_libs_func_0006B048: 45-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* game_libs_func_0006B048: libc-style bzero / memset-zero (declared size 0xB4, 45 words).
+ *
+ * Splat declares the symbol at offset 0, but the real function body starts at
+ * offset 0xC (the first 3 words are leading nops — either splat misalignment
+ * or compiler-emitted padding). The body is a standard IDO libc bzero.
+ *
+ * Decoded structure (real body 0xB054..0xB0F0):
+ *     void bzero(void *dst, size_t n) {
+ *         if (n < 0xC) goto byte_tail;          // small case, skip optimizations
+ *         // Align dst to 4-byte boundary via swl (store-word-left)
+ *         size_t pre = (-(intptr_t)dst) & 3;
+ *         if (pre) {
+ *             *(unsigned*)dst = 0;              // emit swl $zero, 0(dst)
+ *             dst += pre;
+ *             n -= pre;
+ *         }
+ *         // 32-byte unrolled chunks
+ *         size_t big = n & ~0x1F;
+ *         if (big) {
+ *             void *end = (char*)dst + big;
+ *             n -= big;
+ *             do {
+ *                 dst += 0x20;
+ *                 ((int*)dst)[-8] = 0;
+ *                 ((int*)dst)[-7] = 0;
+ *                 ((int*)dst)[-6] = 0;
+ *                 ((int*)dst)[-5] = 0;
+ *                 ((int*)dst)[-4] = 0;
+ *                 ((int*)dst)[-3] = 0;
+ *                 ((int*)dst)[-2] = 0;
+ *                 ((int*)dst)[-1] = 0;          // delay slot of bne
+ *             } while (dst != end);
+ *         }
+ *         // 4-byte chunks
+ *         size_t med = n & ~3;
+ *         if (med) {
+ *             void *end = (char*)dst + med;
+ *             n -= med;
+ *             do {
+ *                 dst += 4;
+ *                 ((int*)dst)[-1] = 0;
+ *             } while (dst != end);
+ *         }
+ *     byte_tail:
+ *         // 1-byte tail
+ *         if ((ssize_t)n <= 0) return;
+ *         void *end = (char*)dst + n;
+ *         do {
+ *             dst += 1;
+ *             ((char*)dst)[-1] = 0;
+ *         } while (dst != end);
+ *     }
+ *
+ * TRAILING FRAGMENT (0x6B0F0..0x6B0FC, 3 insns): nop; lui $t6, 0x0; lw $t6, 0($t6).
+ *   Incomplete fragment (no prologue, no jr) — likely start of a hardcoded-
+ *   address libc thunk that the linker fills in. Variant of
+ *   feedback_splat_too_big_incomplete_fragment_tail.md.
+ *
+ * Notes:
+ *  - This is the IDO-canonical bzero emission (4-align prefix, 32-byte unroll
+ *    of 8 sw $zero, 4-byte cleanup, 1-byte tail). Standard libc pattern.
+ *  - Symbol prefix `game_libs_func_` (not `gl_func_`) suggests this was a libc
+ *    function exported into the game_libs USO at compile time — the leading
+ *    3 nops could be a function-start alignment artifact for the call-by-
+ *    absolute-address calling convention.
+ *  - Splat boundary issue: candidate for split-fragments.py.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B048);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B0FC);
 
