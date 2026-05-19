@@ -21530,8 +21530,43 @@ void gl_func_0005E030(float *a, int a2, float *b) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E030);
 #endif
 
-/* gl_func_0005E0B4: 33-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005E0B4: 33-insn 4x4 matrix subtract + dispatch (0x84, frame 0x70).
+ *
+ * BYTE-IDENTICAL to gl_func_0005E030 except `add.s` (function code 0x00)
+ * → `sub.s` (function code 0x01) at the 4 FP-arithmetic instructions
+ * (offsets 0x28, 0x3C, 0x4C, 0x60). Same loop structure, same frame, same
+ * dispatch — only the FP operation is sub instead of add.
+ *
+ * Decoded structure (raw-word disasm):
+ *   float buf[16];
+ *   for (i = 0; i < 16; i += 4) {
+ *       buf[i+0] = a[i+0] - b[i+0];                 // 4-wide unrolled subtract
+ *       buf[i+1] = a[i+1] - b[i+1];
+ *       buf[i+2] = a[i+2] - b[i+2];
+ *       buf[i+3] = a[i+3] - b[i+3];
+ *   }
+ *   func(&buf, a2);
+ *
+ * 1080's MTX_SUB sibling of MTX_ADD (gl_func_0005E030).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0005E0B4(float *a, int a2, float *b) {
+    float buf[16];
+    int i;
+    for (i = 0; i < 16; i += 4) {
+        buf[i + 0] = a[i + 0] - b[i + 0];
+        buf[i + 1] = a[i + 1] - b[i + 1];
+        buf[i + 2] = a[i + 2] - b[i + 2];
+        buf[i + 3] = a[i + 3] - b[i + 3];
+    }
+    gl_func_00000000(buf, a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E0B4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005E138: 22-insn 4x4 float matrix transpose + 1 call.
