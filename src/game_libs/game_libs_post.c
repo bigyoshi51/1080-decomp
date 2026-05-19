@@ -19601,8 +19601,44 @@ void gl_func_00051E98(char *a0) {
     gl_func_00000000(&gl_data_00000000, *(int*)(a0 + 0x24), *(int*)(a0 + 0x1C), *(short*)(a0 + 0x20), *(short*)(a0 + 0x22));
 }
 
-/* gl_func_00051ED8: 33-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00051ED8: varargs per-arg dispatch loop. Decoded from bare
+ * stub 2026-05-18. Signature: void f(void *obj, int a1, ...).
+ * Sets up an aligned va pointer ((sp+0x43)&~3 → the a1/a2/a3 caller
+ * save area at sp+0x3C..), saves a1/a2/a3 to those slots (varargs
+ * save). If a1==0 return. Loop: stash current arg at sp+0x2C;
+ * fp = *(int*)( *(int*)((char*)obj+0x5C) + 0x24 ); call
+ * fp((char*)obj + *(s16*)((char*)obj+0x20), &stash); advance the va
+ * pointer by 4; load next arg; `bnel arg,0,TOP` (delay-likely
+ * stash) until a 0 terminator.
+ *
+ * Multi-pass (defer): VARARGS byte-match is a documented-hard
+ * confluence — the IDO `...` save-area layout (sw a1/a2/a3 to
+ * sp+0x3C/0x40/0x44 = caller arg slots, frame 0x38), the
+ * `(sp+0x43)&~3` aligned-va init, the indirect-chain call
+ * (`lw v0,0x5C(s0); lh t9,0x20(s0); addu a0,t9,s0; lw t9,0x24(v0);
+ * jalr t9`), and the bnel delay-likely loop must all line up. No
+ * single C lever; needs a focused varargs pass (likely
+ * __builtin_va_* shaping or an explicit save-area struct). Real
+ * decoded C below documents exact offsets/semantics. */
+extern int gl_func_00000000();
+void gl_func_00051ED8(void *a0, int a1, ...) {
+    int stash;
+    int *va = (int *)(((int)&stash + 0x17) & ~3);
+    if (a1 == 0) {
+        return;
+    }
+    stash = a1;
+    do {
+        int (*fp)() = (int (*)())*(int *)(*(int *)((char *)a0 + 0x5C) + 0x24);
+        fp((char *)a0 + *(short *)((char *)a0 + 0x20), &stash);
+        stash = *va;
+        va++;
+    } while (stash != 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051ED8);
+#endif
 
 // gl_func_00051F5C — STRUCTURAL PASS (0x158 / 87 words, no episode).
 // Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x40,
