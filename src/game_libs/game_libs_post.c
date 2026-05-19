@@ -19074,18 +19074,32 @@ extern int gl_data_513CC_addr;
 
 #ifdef NON_MATCHING
 /* gl_func_000513CC: 31-insn 3-call linked-list insertion init.
- *   gl_func_00000000(a0);                                  // first call, ret ignored
- *   r2 = gl_func_00000000(0, &gl_data_513CC_addr);          // second call
- *   a0[0xB] = a0[0x3] = a0[0x4] = r2;                       // three same-value stores
- *   a3 = a0[0xF][0x4];                                       // a0->0x3C->0x10
- *   gl_func_00000000(a3 + 0x4, r2);                          // third call (a3+0x10 byte-offset)
- *   if (r2[0x5] != 0) a3[0x1] = 1;                          // existing tail: set flag
- *   r2[0x5] = a3;                                           // unconditional insert
- * The literal address 0x00020E5C uses the unique-extern-at-offset
- * recipe to emit addiu (not ori). */
+ *   gl_func_00000000(a0);
+ *   r2 = gl_func_00000000(0, &gl_data_513CC_addr);   // 0x20E5C
+ *   a0[0xB] = a0[3] = a0[4] = r2;
+ *   a3 = a0[0xF][4];                                  // a0->0x3C->0x10
+ *   gl_func_00000000(a3 + 0x4, r2);
+ *   if (r2[5] != 0) a3[1] = 1;
+ *   r2[5] = a3;
+ *
+ * Status 2026-05-18: structure byte-EXACT (31/31 insns, correct
+ * shape). Tested on build path: only a coherent REGALLOC cap remains
+ * (decl-order swap r2/a3 already trims it from 11→10 raw diffs):
+ *   - w4/w5 (0x10/0x14): benign — pre-link reloc placeholder for
+ *     &gl_data_513CC_addr (0x20E5C); matches in .o-vs-.o, resolves
+ *     at link. NOT a real mismatch.
+ *   - 8 real diffs: the `a3` local lands in $v1, target uses $a3
+ *     (w14 lw, w16 addiu, w22/24/26 base reg), and r2's spill slot
+ *     is sp+0x1C vs target sp+0x18 (w18/19/20). Pure register-
+ *     allocation/spill-slot priority — structure & logic exact.
+ * Next pass: priority-formula tuning (separate temps / shorten a3's
+ * live range / a3 as `int*` reused so it wins $a3; widen r2 refs to
+ * shift its spill slot). If unflippable, an 8-word INSN_PATCH is
+ * possible but borderline (regalloc, not a ≤2-word scheduling cap).
+ * Real C preserved. */
 void gl_func_000513CC(int* a0) {
-    int* r2;
     int* a3;
+    int* r2;
     gl_func_00000000(a0);
     r2 = (int*)gl_func_00000000(0, &gl_data_513CC_addr);
     a0[11] = (int)r2;
