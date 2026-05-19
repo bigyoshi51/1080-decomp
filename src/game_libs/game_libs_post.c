@@ -15209,6 +15209,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041EDC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041F90);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042080);
+
 /* gl_func_00042098: prologue-stolen successor (PROLOGUE_STEALS=8).
  * Predecessor (gl_func_00041F90) tail ends with `lui t6, 0; lw t6, 0x20(t6)`
  * — those 2 insns belong to THIS function's prologue, preloading t6 from
