@@ -24275,8 +24275,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000659D0);
 /* gl_func_00065B5C: 62-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065B5C);
 
-/* gl_func_00065C54: 45-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00065C54: 45-insn op-6 special-case + transform-reset (0xB4, frame 0x48).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (a1->[0] == 6) {
+ *       int *src = a1->[1];
+ *       float x = (float)src->[0xEC], y = (float)src->[0xF0], z = (float)src->[0xF4];
+ *       func1(a0, x, y, z);
+ *       // Identity-transform reset on a0:
+ *       *(float*)(a0+0x2FC..+0x304) = 0.0f;          // quat x,y,z = 0
+ *       *(float*)(a0+0x308) = 1.0f;                   // quat w = 1 (identity)
+ *       *(float*)(a0+0x318..+0x320) = 0.0f;           // translation Vec3 = 0
+ *   } else {
+ *       func2(a0, a1);                                // default dispatch
+ *   }
+ *
+ * Op-6 = "load-pos-and-reset-transform" event. Quaternion (0,0,0,1) +
+ * translation (0,0,0) is a standard identity transform layout.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00065C54(char *a0, int *a1) {
+    if (a1[0] == 6) {
+        int *src = (int*)a1[1];
+        float x = *(float*)((char*)src + 0xEC);
+        float y = *(float*)((char*)src + 0xF0);
+        float z = *(float*)((char*)src + 0xF4);
+        gl_func_00000000(a0, x, y, z);
+        *(float*)(a0 + 0x2FC) = 0.0f;
+        *(float*)(a0 + 0x300) = 0.0f;
+        *(float*)(a0 + 0x304) = 0.0f;
+        *(float*)(a0 + 0x318) = 0.0f;
+        *(float*)(a0 + 0x31C) = 0.0f;
+        *(float*)(a0 + 0x320) = 0.0f;
+        *(float*)(a0 + 0x308) = 1.0f;
+    } else {
+        gl_func_00000000(a0, a1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065C54);
+#endif
 
 /* gl_func_00065D08: 23-insn 7-call cascade. First call passes a0->[0xC];
  * subsequent 6 calls pass a0 itself. */
