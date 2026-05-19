@@ -23737,8 +23737,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066514);
 /* gl_func_000665B4: 48-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
 
-/* gl_func_00066674: 43-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00066674: 27-insn append-to-linked-list + 3-stub BUNDLE (0xAC declared,
+ * real fn ends at 0x6C; 0x70-0xAC is 3 small leaf stubs bundled by splat).
+ *
+ * Decoded structure (real fn, raw-word disasm):
+ *   node = factory(*D_X);                            // allocate via factory
+ *   node->[0] = data;                                 // data field
+ *   node->[0x4] = NULL;                               // next pointer
+ *   if (*head == NULL) {                              // empty list
+ *       *head = node;
+ *   } else {
+ *       cur = *head;
+ *       while (cur->[0x4] != NULL) cur = cur->[0x4]; // walk to tail
+ *       cur->[0x4] = node;                            // append
+ *   }
+ *
+ * Marker said "43-insn" but the real function is 27 insns (0x6C). The
+ * remaining 16 insns (0x70-0xAC) are 3 bundled leaf stubs that splat
+ * couldn't separate: D_Y setter (sw a0), D_Z getter (lw return), and a
+ * 3rd small fn (lui v0+addiu return). Fragment-split required for byte-
+ * exact; structural decode + bundle note is the one-tick output.
+ * INCLUDE_ASM remains build path.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md.
+ */
+void gl_func_00066674(int **head, int data) {
+    extern int D_X;
+    int *node = (int*)gl_func_00000000(D_X);
+    node[0] = data;
+    node[1] = 0;
+    if (*head == 0) {
+        *head = node;
+    } else {
+        int *cur = *head;
+        while (cur[1] != 0) {
+            cur = (int*)cur[1];
+        }
+        cur[1] = (int)node;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066674);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00066720: 29-insn chunked-transfer loop. Splits a (src, dst, len)
