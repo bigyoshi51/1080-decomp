@@ -3139,6 +3139,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C9C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026CF0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026D4C);
+
 // gl_func_00026D64 — STRUCTURAL PASS (0x398 / 230 words ≈ 0.9KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
 // (1 jr, no bundle). The command-buffer FLUSH / drain counterpart to
