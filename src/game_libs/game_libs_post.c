@@ -9742,6 +9742,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343E0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343F4);
+
 // gl_func_00034458 — STRUCTURAL PASS (0xF0 / 60 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
 // prologue). A collection processor with per-element vtable dispatch.
