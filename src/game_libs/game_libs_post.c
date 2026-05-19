@@ -20049,6 +20049,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ *
+ * build/non_matching test 2026-05-19: 31 vs 33 (count -2).
+ * Algorithm/structure exact; residual is codegen-shaping: the
+ * a0/a2 arg-save ordering (target `or a2,a0,0; or a3,a2,0` saving
+ * BOTH self and target before the lazy-init branch), the cached
+ * factory-result reuse (obj kept in a reg across the 2nd cb, not
+ * respilled), and the bne→shared-epilogue convergence. Also: the
+ * `D_BASE` here is a placeholder — a real promote must use
+ * `(char*)&D_00000000 + 0x20FC0` (the generic seg symbol; D_BASE
+ * is undefined and would link-fail). Documented-hard shaping —
+ * deferred to a focused pass; INCLUDE_ASM build path.
  */
 void gl_func_000525F0(int *self, int *target) {
     extern int D_BASE;
