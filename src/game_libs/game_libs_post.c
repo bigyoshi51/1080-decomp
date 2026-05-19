@@ -1395,6 +1395,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000223DC);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
+
 // gl_func_00022760 — STRUCTURAL PASS (0x33C / 207 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A custom HEAP ALLOCATOR (first-fit block walk) in the
