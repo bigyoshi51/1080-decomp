@@ -16118,8 +16118,55 @@ void gl_func_00044CC4(int a0, int a1) {
     gl_func_00000000((unsigned char)a1);
 }
 
-/* gl_func_00044CE8: 43-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00044CE8: record-allocator/registrar with bound asserts.
+ * Decoded from bare stub 2026-05-18; algorithm correct, 43==43
+ * SAME count, unsigned-a1 sltiu lever applied (29→28 diffs).
+ * Remaining cap (2 idioms, multi-pass):
+ *  (1) frame 0x20 vs built 0x18: target carries an extra 8-byte
+ *      slot — it spills a3 (the saved a0 / record-base holder) to
+ *      sp+0x20 (`sw a3,0x20(sp)`) across BOTH the assert jal and
+ *      cb2; the C must keep a3 live across the calls so IDO
+ *      allocates that slot (frame 0x20, arg spills at 0x24/0x28).
+ *  (2) the 2nd guard is the bnel-delay-likely-move idiom
+ *      (docs/IDO_CODEGEN.md#feedback-ido-alloc-or-passthrough-
+ *      ternary family): target =
+ *        lw t7,0x5D0(a3); slti at,t7,0x32;
+ *        bnel at,zero,L;  addiu v0,a3,0x378   ; <-delay-likely
+ *        jal cb2; ...; L: lw v1,0x258(v0);
+ *        addiu t8,v1,1; sw t8,0x258(v0)
+ *      i.e. v0 = a3+0x378 is hoisted into the bnel-likely slot and
+ *      the count is read/written via *(v0+0x258) (NOT a0+0x5D0
+ *      directly — same address, but the base must be the v0=a3+0x378
+ *      register so the record store `a0=v0+cnt*12` shares it).
+ *      Record: rec = (a3+0x378) + cnt*12; table[a1] at a3+a1*4+0x2AC.
+ * Next pass: introduce `int *base = (int*)(a3+0x378);` used for both
+ * the count (base[0x258/4]) and rec (`(char*)base + cnt*12`), and
+ * shape the t7>=0x32 guard as `if (t7 < 0x32) goto skip; cb2();
+ * skip:` so IDO emits bnel+delay-likely. Real C preserved. */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00044CE8(int a0, int a1, int a2) {
+    int cnt;
+    int rec;
+    if ((unsigned int)a1 >= 0x32U) {
+        gl_func_00000000((char *)&D_00000000 + 0x1FE94,
+                         (char *)&D_00000000 + 0x1FEA8, 0x102D);
+    }
+    if (*(int *)(a0 + 0x5D0) >= 0x32) {
+        gl_func_00000000();
+    }
+    cnt = *(int *)(a0 + 0x5D0);
+    *(int *)(a0 + 0x5D0) = cnt + 1;
+    rec = a0 + 0x378 + cnt * 12;
+    *(int *)(a0 + a1 * 4 + 0x2AC) = rec;
+    *(int *)(rec + 8) = 0;
+    gl_func_00000000(rec, a2);
+    return rec;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044CE8);
+#endif
 
 /* gl_func_00044D94: 12-insn array-indexed forwarding wrapper. Post-split
  * from a 3-function bundle (originally 0x50, now 0x30). Loads the entry
