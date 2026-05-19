@@ -1369,8 +1369,44 @@ void gl_func_0000DF8C(int a0, int a1, float a2, float a3) {
     }
 }
 
-/* gl_func_0000DFC4: 32-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000DFC4: 32-insn 3-arg lookup+gate+accumulate (0x80, frame 0x18).
+ *
+ * Decoded structure (3 short-circuit returns, then conditional accumulate):
+ *   v0 = gl_func(a0, a1, a2);                       // lookup, 3-arg
+ *   if (v0 == 0) return;
+ *   if ((v0->[0x4] & 1) == 0) return;                // gate: flag bit
+ *   if ((a0->[0xB4] & 2) == 0) return;               // gate: caller-state flag
+ *   v1 = v0->[0x1C];                                 // current offset
+ *   if (v1 != 0) v0->[0x20] = 0;                     // reset partner field
+ *   v0->[0x1C] = v1 + a2;                            // accumulate
+ *   if (v0->[0x24] != 1) v0->[0x24] = 1;             // set flag
+ *
+ * 3 beql guards (v0==0, v0->4 & 1 == 0, a0->B4 & 2 == 0) all jump to the
+ * shared epilogue with `lw ra` in the delay slot — IDO -O2's standard
+ * early-return-cascade emission.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000DFC4(int *a0, int a1, int a2) {
+    int *v0 = (int*)gl_func_00000000(a0, a1, a2);
+    int v1;
+    if (v0 == 0) return;
+    if ((v0[0x4 / 4] & 1) == 0) return;
+    if ((a0[0xB4 / 4] & 2) == 0) return;
+    v1 = v0[0x1C / 4];
+    if (v1 != 0) {
+        v0[0x20 / 4] = 0;
+    }
+    v0[0x1C / 4] = v1 + a2;
+    if (v0[0x24 / 4] != 1) {
+        v0[0x24 / 4] = 1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DFC4);
+#endif
 
 /* 3-insn save-arg sentinel: sw a0,0(sp); jr ra; sw a1,4(sp).
  * Empty-body 2-arg function — args spilled to caller's arg-save slots.
