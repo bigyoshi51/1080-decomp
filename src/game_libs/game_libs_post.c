@@ -28853,8 +28853,62 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D6F4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D7CC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D7CC_pad.s")
 
-/* gl_func_0006D964: 67-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006D964: 67-insn command-record builder + dual-dispatch helper.
+ * Size 0x10C, frame 0x28, saves s0/s1.
+ *
+ * Builds a 20-byte command record at *a0 then dispatches via one of two
+ * jal pairs based on the kind flag `a1`. Returns -1 if the global head
+ * pointer at D+0 is NULL.
+ *
+ * Decoded structure (raw-word disasm):
+ *   int build_and_send(uint8_t *out_record,  // a0 — record buffer (≥0x14 bytes)
+ *                      int kind_flag,         // a1 (1 = path A, else path B)
+ *                      int type_alt,          // a2 (0 = type 0xB, else 0xC)
+ *                      int arg3,              // a3
+ *                      int arg5,              // sp+0x38
+ *                      int arg6,              // sp+0x3C
+ *                      int arg4)              // sp+0x40 — order via stack-arg slots
+ *   {
+ *       void *head = *(void**)&D_00000000;
+ *       if (head == NULL) return -1;
+ *
+ *       // Build 0x14-byte command record:
+ *       *(uint16_t*)(out_record + 0x00) = (type_alt == 0) ? 0xB : 0xC;
+ *       *(uint8_t *)(out_record + 0x02) = (uint8_t)kind_flag;
+ *       *(uint32_t*)(out_record + 0x04) = arg4;       // sp+0x40
+ *       *(uint32_t*)(out_record + 0x08) = arg5;       // sp+0x38
+ *       *(uint32_t*)(out_record + 0x0C) = arg3;       // a3
+ *       *(uint32_t*)(out_record + 0x10) = arg6;       // sp+0x3C
+ *       *(uint32_t*)(out_record + 0x14) = 0;
+ *
+ *       // Dispatch
+ *       int s1;
+ *       if (kind_flag == 1) {
+ *           s1 = func_a();           // jal #1
+ *       } else {
+ *           s1 = func_b();           // jal #1' (different target)
+ *       }
+ *       return func_send(s1, out_record, 0);   // jal #2 — common dispatch
+ *   }
+ *
+ * Notes:
+ *  - The two jal-pair branches share identical structure (`jal X; s1 = v0;
+ *    jal send(s1, out_record, 0)`). Only the first jal target differs.
+ *    IDO appears to have emitted them as separate code paths rather than
+ *    a conditional callee lookup — probably the original C had two
+ *    explicit if-branches, each with its own builder function call.
+ *  - Type byte 0xB or 0xC suggests a command-ID enum where 0xB = some
+ *    "write" command and 0xC = a related command variant.
+ *  - 20-byte record matches typical OS-level message-queue entry size
+ *    (osCreateMesgQueue size and friends).
+ *  - Returns -1 on NULL head (early-out), else result of send-jal.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D964);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D964_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DA74);
