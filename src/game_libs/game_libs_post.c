@@ -4758,6 +4758,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B5F4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BA08);
+
 /* gl_func_0002BA38: 29-insn alloc-then-store with byte-arg + node-init.
  * Body sketch:
  *   a1 = (u8)a1;
