@@ -24777,8 +24777,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BF34);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BF34_pad.s")
 #endif
 
-/* gl_func_0006C084: 38-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006C084: 38-insn one-time init w/ guarded heavy path (0x98, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   func1(a0);
+ *   if (D_lock_flag != 1) {
+ *       func_at_0x80824();                          // direct-addr jal (not a sym)
+ *       func3(1, &D_sym1);
+ *       func4(a0, 0, 1);                            // 3-arg
+ *   }
+ *   // Always-run tail:
+ *   v0_ret = func5(0, &D_sym2);
+ *   func6();
+ *   D_lock_flag = 1;                                 // sb 1 to lock
+ *   return v0_ret;                                   // func5's result via sp+0x1C
+ *
+ * The `D_lock_flag` is a 1-byte (sb) global that guards re-running the
+ * heavy init path on subsequent calls — classic "once" idiom.
+ *
+ * The `jal 0x80824` at offset 0x28 is a direct hardcoded jal-to-absolute,
+ * not a relocated symbol — unusual for IDO; suggests inlined libc thunk.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_0006C084(int a0) {
+    extern char D_lock_flag;
+    extern int D_sym1, D_sym2;
+    int v0_ret;
+    gl_func_00000000(a0);
+    if (D_lock_flag != 1) {
+        ((void(*)(void))0x80824)();
+        gl_func_00000000(1, &D_sym1);
+        gl_func_00000000(a0, 0, 1);
+    }
+    v0_ret = (int)gl_func_00000000(0, &D_sym2);
+    gl_func_00000000();
+    D_lock_flag = 1;
+    return v0_ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C084);
+#endif
 
 /* gl_func_0006C11C: 39-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C11C);
