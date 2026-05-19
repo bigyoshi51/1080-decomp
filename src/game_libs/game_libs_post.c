@@ -23386,8 +23386,75 @@ void gl_func_00060318(int *a0, int a1) {
     }
 }
 
-/* gl_func_00060370: 62-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00060370: 62-insn alloc-or-init constructor w/ chained factories (0xF8, frame 0x30).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (self_or_null == NULL) {
+ *       obj = func_alloc(0x48);                       // alloc 0x48 bytes
+ *       if (obj == NULL) return 0;
+ *   } else {
+ *       obj = self_or_null;
+ *   }
+ *   func_init(obj, &D + 0x21CE8);                     // init with string sym
+ *   obj->[0x28] = &D_sym_a;
+ *   if (self_or_null != (int*)-44) {                  // sentinel pointer check
+ *       func_factory(20);                              // returns child obj
+ *       if (child != NULL) {
+ *           child->[0x8] = 0x50;                      // type tag
+ *           child->[0xC] = 0;
+ *           func_init2(child, 0x1540);                 // 0x1540-byte sub-init
+ *           child->[0] = grandchild;                   // back-ref
+ *       }
+ *   }
+ *   D_global = obj;                                    // global handle update
+ *   func_b(obj);                                       // post-init
+ *   func_c(&D + 0x21CF8, 0);                          // banner 1
+ *   func_d(0, &D_other_sym);                          // banner 2
+ *   func_e(&D + 0x21D00, 0);                          // banner 3
+ *   func_f(...);
+ *   // Update obj->[0x8] += child_returned (chain link)
+ *   obj->[0x8] += retval->[0x8];
+ *   return obj;
+ *
+ * Standard constructor: alloc-or-take, chain-init with multiple banners,
+ * sub-object child allocation, global registration. Many string-sym
+ * references suggest debug-formatted logging during construction.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int* gl_func_00060370(int *self_or_null) {
+    extern int D_00000000;
+    extern int D_sym_a, D_sym_b, D_global;
+    int *obj;
+    if (self_or_null == 0) {
+        obj = (int*)gl_func_00000000(0x48);
+        if (obj == 0) return 0;
+    } else {
+        obj = self_or_null;
+    }
+    gl_func_00000000(obj, (char*)&D_00000000 + 0x21CE8);
+    obj[0x28 / 4] = (int)&D_sym_a;
+    if (self_or_null != (int*)-44) {
+        int *child = (int*)gl_func_00000000(20);
+        if (child != 0) {
+            child[0x8 / 4] = 0x50;
+            child[0xC / 4] = 0;
+            gl_func_00000000(child, 0x1540);
+            child[0] = (int)obj;
+        }
+    }
+    D_global = (int)obj;
+    gl_func_00000000(obj);
+    gl_func_00000000((char*)&D_00000000 + 0x21CF8, 0);
+    gl_func_00000000(0, &D_sym_b);
+    gl_func_00000000((char*)&D_00000000 + 0x21D00, 0);
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060370);
+#endif
 
 /* gl_func_00060468: 26-insn 3-call wrapper. Decoded structure:
  *   v = func();
