@@ -21681,7 +21681,6 @@ void gl_func_00063498(int *a0, int a1, int a2, int a3, float f) {
     *(int*)((char*)r[0x10/4] + a2*8) = (int)f;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_000634F8: 28-insn bounds-check + array-deref.
  *   v0 = func(a0->[0x58]);
  *   if (a2 >= v0->[0xC]) {
@@ -21697,11 +21696,7 @@ int gl_func_000634F8(int *a0, int a1, int a2) {
     }
     return *(int*)((char*)v0[0x10/4] + a2*8);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000634F8);
-#endif
 
-#ifdef NON_MATCHING
 /* gl_func_00063568: 28-insn float-version of gl_func_000634F8.
  *   Same bounds-check + array-deref pattern, but returns float from
  *   offset +4 in the 8-byte entry. */
@@ -21713,9 +21708,6 @@ float gl_func_00063568(int *a0, int a1, int a2) {
     }
     return *(float*)((char*)v0[0x10/4] + a2*8 + 4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063568);
-#endif
 
 /* gl_func_000635D8: 37-insn constructor-style initializer.
  *   Takes (self, a1, a2, a3, stack_a5, stack_a4) — note the trailing
@@ -22634,13 +22626,10 @@ void gl_func_00067370(void) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00067370_pad.s")
 
-#ifdef NON_MATCHING
 /* gl_func_00067394: 26-insn rv-store + sign-flip-or-assert + call.
  *   rv = func(a0, a1); a0->[0x64] = rv;
  *   if (a1 > 0) a1 = -a1; else func(&D, a0);
  *   func(a0, a1); return 1; */
-extern int func_00000000();
-extern int D_00000000;
 int gl_func_00067394(int *a0, int a1) {
     int rv = func_00000000(a0, a1);
     a0[0x64/4] = rv;
@@ -22652,9 +22641,6 @@ int gl_func_00067394(int *a0, int a1) {
     func_00000000(a0, a1);
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067394);
-#endif
 
 void gl_func_000673FC(int *a0, int a1) {
     *(short *)((char *)a0 + 0x74) = 0;
