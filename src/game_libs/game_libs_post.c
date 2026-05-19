@@ -23588,8 +23588,66 @@ void gl_func_00066810(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066850);
 
-/* gl_func_000669B8: 38-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000669B8: 38-insn 5-call dispatch w/ caller-set $v0/$v1 (0x98, frame 0x20).
+ *
+ * CALLER-SET $v0 AND $v1 CONVENTION (intra-USO non-O32): the function
+ * starts with `lw $t6, 0x30($v0)` and `lw $t7, 0x0($v1)` — both v0 and v1
+ * are read without being set in this function. Same cap class as
+ * gl_func_000744CC (caller-set $v0) and gl_func_000601DC (caller-set $t6).
+ * Pattern: caller pre-loads register-passed state pointers, callee
+ * dereferences directly. IDO C has no way to express receive-in-$v0.
+ *
+ * Decoded structure (raw-word disasm):
+ *   t6 = caller_v0->[0x30];                          // load state field
+ *   caller_v0->[0x34] = t6;                          // copy 0x30 → 0x34
+ *   vt = (*caller_v1)->[0x44];                       // vtable lookup via *v1
+ *   (*vt)();                                          // 1st indirect call
+ *
+ *   t8 = *D_X;
+ *   vt2 = t8->[0x40];
+ *   v0 = (*vt2)();                                    // 2nd indirect call (returns int)
+ *
+ *   if (v0 != 0) {
+ *       func3(&D_BASE + 0x218C, v0);                 // banner call only when nonzero
+ *   }
+ *
+ *   func4(&D_BASE + 0x21A4, saved_v0);                // 4th call
+ *
+ *   D_Y_ptr = *D_Y;
+ *   func5(&D_BASE + 0x21AC, D_Y_ptr->[0], D_Y_ptr->[1]);  // 5th call
+ *
+ * Two indirect (jalr) + 3 direct (jal) calls. The 2-vtable lookups in
+ * sequence (caller_v1 then global D_X) suggest a "self.dispatch then
+ * global-singleton.dispatch" pattern.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path
+ * (caller-set $v0/$v1 unreproducible from standard C).
+ */
+void gl_func_000669B8(void) {
+    extern int *v0_caller_state;
+    extern int **v1_caller_state;
+    extern int D_BASE;
+    extern int *D_X, *D_Y;
+    int rc;
+    int *state = v0_caller_state;
+    int **vt = v1_caller_state;
+    int (*fn1)(void), (*fn2)(void);
+    state[0x34 / 4] = state[0x30 / 4];
+    fn1 = (int(*)(void))(*vt)[0x44 / 4];
+    fn1();
+    fn2 = (int(*)(void))(*D_X)[0x40 / 4];
+    rc = fn2();
+    if (rc != 0) {
+        gl_func_00000000((char*)&D_BASE + 0x218C, rc);
+    }
+    gl_func_00000000((char*)&D_BASE + 0x21A4, state);
+    gl_func_00000000((char*)&D_BASE + 0x21AC, (*D_Y)[0], (*D_Y)[1]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000669B8);
+#endif
 
 /* gl_func_00066A50: 40-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066A50);
