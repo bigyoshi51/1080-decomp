@@ -1046,6 +1046,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FE74);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FE88);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FEB8);
+
 // gl_func_0001FEC8 — STRUCTURAL PASS (0x6C / 27 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A two-step subsystem register/install helper.
