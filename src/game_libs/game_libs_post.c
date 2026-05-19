@@ -16903,18 +16903,12 @@ void gl_func_00048354(char *a0, int a1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_000483A0: 7-insn cleanup + deref-init (split 2026-05-15).
- *   v = *a0; a0[1] = 0; a0[2] = 0; a0[3] = v[7][1];  // last in jr ra delay */
 void game_libs_func_000483A0(int *a0) {
     int *v = (int*)a0[0];
     a0[1] = 0;
     a0[2] = 0;
     a0[3] = ((int*)v[7])[1];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000483A0);
-#endif
 
 // gl_func_000483BC — STRUCTURAL PASS (0x150 / 85 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
