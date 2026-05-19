@@ -26741,8 +26741,59 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BA7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BAD4);
 
-/* gl_func_0006BC4C: 50-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006BC4C: 50-insn unaligned-load + byte-format-translate loop (0xC8, frame 0x18).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (count <= 0) return;
+ *   for (i = 0; i < count; i++) {
+ *       // Unaligned word load via lwl/lwr (LE pair):
+ *       int word_lo = lwl/lwr from src+0..3;
+ *       int word_hi = lwl/lwr from src+4..7;
+ *       *(int*)tmp_buf = word_lo;
+ *       *(int*)(tmp_buf+4) = word_hi;
+ *
+ *       // Byte mask + shift + merge for nibble-pair processing:
+ *       byte t = src->[0xE] & 0xC0;
+ *       byte t_shifted = t >> 6 << 2 | t_other;       // pack into result halfword
+ *       *(short*)dst = packed;
+ *
+ *       // Carry / adjust + dst-byte writes from tmp_buf
+ *       advance pointers (src += stride, dst += stride);
+ *   }
+ *
+ * Multi-byte format translation using lwl/lwr unaligned loads followed by
+ * bit-field extract and short-store. Likely a packed-data-decoder
+ * (palette indexes, 4-bit nibble unpacking, or similar bit-packed format).
+ * Complex bit-twiddling — exact bit-layout depends on caller's data format.
+ *
+ * The `count <= 0` guard at top exits early on empty input. Loop body
+ * advances by ~8 bytes/iter (matches lwl/lwr alignment + stride of byte
+ * writes at sp+0x7, +0xE, +0x10).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path
+ * (lwl/lwr unaligned-load idiom is hard to reproduce from standard C
+ * without intrinsics; bit-field shape needs source-data knowledge).
+ */
+void gl_func_0006BC4C(int count, void *src, void *dst, int unused) {
+    /* Approximate structural decode. Real body uses lwl/lwr for unaligned
+     * source reads + byte-level format translation. INCLUDE_ASM is the
+     * authoritative build path. */
+    int i;
+    char *s = (char*)src;
+    char *d = (char*)dst;
+    if (count <= 0) return;
+    for (i = 0; i < count; i++) {
+        unsigned int t = (unsigned char)s[0xE] & 0xC0;
+        *(short*)d = (short)((t >> 6) << 2);  /* approximate packing */
+        d += 8;
+        s += 8;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BC4C);
+#endif
 
 /* gl_func_0006BD14: 61-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BD14);
