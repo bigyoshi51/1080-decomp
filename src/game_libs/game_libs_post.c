@@ -19973,8 +19973,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000521F8);
 // symbolized (USO-relocated). Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
 
-/* gl_func_0005256C: 33-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005256C: 33-insn op-code dispatch (set/clear bits) (0x84, frame 0x18).
+ *
+ * Decoded structure (raw-word disasm):
+ *   op = *(int*)a1;                                  // a1 = va_list*; *a1 = op code
+ *   if (op == 0x6A) {                                // 'j' — bit-set
+ *       p = (int*)a1[1]; a1[1] = p + 1;             // va_arg
+ *       a0->[0x30] |= *p;
+ *   } else if (op == 0x6B) {                         // 'k' — bit-clear
+ *       p = (int*)a1[1]; a1[1] = p + 1;
+ *       a0->[0x30] &= ~(*p);                         // emitted as nor+and
+ *   } else {
+ *       func_other();                                // unknown opcode handler
+ *   }
+ *
+ * The bit-clear (`&= ~val`) is emitted as `nor t1, val, $0` (= ~val) then
+ * `and t2, t0, t1`. Sibling of gl_func_000525F0 (next entry, also 33 insns).
+ *
+ * 0x6A/0x6B ASCII = 'j'/'k' — likely format-spec chars in a printf-style
+ * processor (cf. gl_func_000558A0 sibling va_list walker).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0005256C(int *a0, int **a1) {
+    int op = *(int*)a1;
+    int *p;
+    if (op == 0x6A) {
+        p = a1[1];
+        a1[1] = p + 1;
+        a0[0x30 / 4] |= *p;
+    } else if (op == 0x6B) {
+        p = a1[1];
+        a1[1] = p + 1;
+        a0[0x30 / 4] &= ~(*p);
+    } else {
+        gl_func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
+#endif
 
 /* gl_func_000525F0: 33-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000525F0);
