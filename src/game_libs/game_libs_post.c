@@ -22817,8 +22817,45 @@ void gl_func_00066720(char *src, char *dst, unsigned int len) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066720);
 #endif
 
-/* gl_func_00066794: 31-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00066794: 31-insn chunked transfer w/ 10000-byte limit (0x7C, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (count == 0) return;
+ *   do {
+ *       chunk = min(count, 10000);                  // 0x2710 limit (DMA boundary)
+ *       func(dst, src, chunk);                       // perform transfer
+ *       count -= chunk;
+ *       src   += chunk;                              // advance per chunk
+ *       dst   += chunk;
+ *   } while (count != 0);
+ *
+ * The 0x2710 (10000) limit is a classic DMA boundary on N64 (libultra
+ * osPiStartDma's per-call maximum). This wrapper amortizes large transfers
+ * across multiple sub-DMA calls.
+ *
+ * Frame saves s0-s3 + ra (5 regs, 0x28 frame). The min() is emitted as
+ * `sltu at, count, limit; beq at,$0,skip; move chunk, limit; <delay slot>;
+ * move chunk, count` — IDO -O2 standard for ternary on unsigned comparison.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00066794(char *dst, char *src, unsigned int count) {
+    unsigned int limit = 10000;
+    unsigned int chunk;
+    if (count == 0) return;
+    do {
+        chunk = (count < limit) ? count : limit;
+        gl_func_00000000(dst, src, chunk);
+        count -= chunk;
+        src += chunk;
+        dst += chunk;
+    } while (count != 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066794);
+#endif
 
 void gl_func_00066810(int a0) {
     int v0 = (*(int(**)())((char*)*(void**)&D_00000000 + 0x40))();
