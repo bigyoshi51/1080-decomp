@@ -4221,6 +4221,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002745C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027488);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274A0);
+
 /* gl_func_00027548: 17-insn (0x44) F3DEX2-style display-list-word builder.
  * Computes a packed 32-bit dlist word:
  *   packed = 0xFA000000 | ((a0 & 0xFF) << 16) | ((a1 & 0xFF) << 8) | (a2 & 0xFF)
