@@ -21958,8 +21958,43 @@ void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055C34);
 
-/* gl_func_00055FB4: 51-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00055FB4: trace/log dispatch over a linked list (clean
+ * single fn). Decoded from bare stub 2026-05-19.
+ *   void f(int *self, int a1, int *ctx) {
+ *     cb1(&D_00000000 + 0x21880);
+ *     cb2(&D_00000000 + 0x2188C, self);
+ *     for (n = *self; n != 0; n = n->0xC) {
+ *       if (self & n) cb3(&D_00000000 + 0x21890, ctx->4, ...);
+ *       else          cb4(&D_00000000 + 0x21894, ctx->8, ...);
+ *     }
+ *     cb5(&D_00000000 + 0x21898);
+ *   }
+ * Multi-idiom (focused pass): 5 cb with &D_00000000+string args
+ * (generic-symbol fold), the beq-zero list-empty guard, the
+ * `and t,self,n` flag test selecting cb3/cb4, the bnel-delay-
+ * likely list back-edge (`n = n->0xC`), and ctx (s0) field reads
+ * (->4 / ->8) threaded into the per-iter cb. Exact flag-test arm
+ * order / cb arities need a focused .s pass. Real decoded C
+ * preserved; INCLUDE_ASM build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00055FB4(int *self, int a1, int *ctx) {
+    int *n;
+    gl_func_00000000((char *)&D_00000000 + 0x21880);
+    gl_func_00000000((char *)&D_00000000 + 0x2188C, self);
+    for (n = (int *)*self; n != 0; n = (int *)n[0xC / 4]) {
+        if ((int)self & (int)n) {
+            gl_func_00000000((char *)&D_00000000 + 0x21890, ctx[4 / 4]);
+        } else {
+            gl_func_00000000((char *)&D_00000000 + 0x21894, ctx[8 / 4]);
+        }
+    }
+    gl_func_00000000((char *)&D_00000000 + 0x21898);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055FB4);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055FB4_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056084);
