@@ -13255,6 +13255,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A0C4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A158);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A1F0);
+
 #ifdef NON_MATCHING
 /* gl_func_0003A58C: 264-insn FPU-heavy vec3 transform + multi-copy.
  *
