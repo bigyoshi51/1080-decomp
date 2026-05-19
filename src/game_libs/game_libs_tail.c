@@ -1440,8 +1440,40 @@ void gl_func_0000E53C(int *a0) {
 /* gl_func_0000E5D0: 39-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E5D0);
 
-/* gl_func_0000E66C: 31-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000E66C: 31-insn lazy-init + 4-arg + linked-set (0x7C, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (self->[0x58] == 0) gl_func(self);            // lazy-init
+ *   v0 = gl_func(0, self->[0x58], self->[0x5C], self->[0x54]);
+ *   self->[0x6C] = v0;
+ *   v1 = gl_func(&self[0x10/4], v0);                  // a0 = self+0x10
+ *   if (v1->[0x14] != 0) v1->[0x4] = 1;               // conditional flag
+ *   v1->[0x14] = self;                                // unconditional back-link
+ *
+ * The lazy-init uses bnel (branch-likely) at 0x680 to skip the 1st call's
+ * jal block when self->[0x58] is already non-zero; if zero, runs the
+ * init call then reloads a1 from self->[0x58] for the 4-arg main call.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path. */
+void gl_func_0000E66C(int *self) {
+    int *v1;
+    int v0;
+    if (self[0x58 / 4] == 0) {
+        gl_func_00000000(self);
+    }
+    v0 = gl_func_00000000(0, self[0x58 / 4], self[0x5C / 4], self[0x54 / 4]);
+    self[0x6C / 4] = v0;
+    v1 = (int*)gl_func_00000000((char*)self + 0x10, v0);
+    if (v1[0x14 / 4] != 0) {
+        v1[0x4 / 4] = 1;
+    }
+    v1[0x14 / 4] = (int)self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E66C);
+#endif
 
 /* gl_func_0000E6E8: 45-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E6E8);
