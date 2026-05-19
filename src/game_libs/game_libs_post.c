@@ -11369,6 +11369,8 @@ void game_libs_func_0003AA40(float *dst) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA5C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AC50);
+
 #ifdef NON_MATCHING
 /* gl_func_0003AC5C: 127-insn (0x1FC) constructor + token-stream loop.
  * Sibling of gl_func_0003AE58 (next func, similar alloc-init pattern).
