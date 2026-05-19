@@ -17636,8 +17636,43 @@ void gl_func_0004C214(int *a0) {
     p[0x68/4] = ((int*)p[0xC/4])[1] - p[0x64/4];
 }
 
-/* gl_func_0004C288: 30-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004C288: 30-insn init-call + 2-iter loop + final-set (0x78, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   func1(self, a1);                                // init call
+ *   p = self;                                       // s1 (advances 4 bytes/iter)
+ *   for (i = 0; i < 2; i++) {
+ *       self->[0x144] = i;                          // counter slot
+ *       func2(p->[0x14C]);                          // 1st loop call
+ *       func3(p->[0x14C], self);                    // 2nd loop call (a1=self)
+ *   }
+ *   self->[0x144] = *(int*)(&D + 0x204);            // post-loop final set
+ *
+ * Frame saves s0-s3 + ra (5 regs, 0x28 frame). The double `lw a0, 0x14C(s1)`
+ * (delay slot + post-return) is IDO -O2 standard for arg reload around a
+ * caller-save-clobbering call.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0004C288(int *self, int a1) {
+    extern int D_204_val;
+    int *p;
+    int i;
+    gl_func_00000000(self, a1);
+    p = self;
+    for (i = 0; i < 2; i++) {
+        self[0x144 / 4] = i;
+        gl_func_00000000(p[0x14C / 4]);
+        gl_func_00000000(p[0x14C / 4], self);
+        p = (int*)((char*)p + 4);
+    }
+    self[0x144 / 4] = D_204_val;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C288);
+#endif
 
 // gl_func_0004C300 — STRUCTURAL PASS (0x2E0 / 185 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x60
