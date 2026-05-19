@@ -22241,8 +22241,37 @@ int game_libs_func_0005B73C(int *list) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B73C);
 #endif
 
-/* gl_func_0005B764: 57-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005B764: circular-list float-format-log iterator. s0=a0->4;
+   while (s0 != a0): v=(*s0 & 0xFFFFFF)<<4; f=(float)(unsigned)v/1024;
+   log(a1, &D_00000000+0x21A38, (double)f); s0=s0->4; count++. After
+   the loop: log(a1, &D_00000000+0x21A40). returns count.
+   DEFERRED: medium FP+sreg cap — bnel-likely back-edge (loop-top lw in
+   the delay slot), f20=1024.0 / 0x4F800000=2^32 const materialization
+   order, $s0-$s5 callee-save pinning (a0->$s2, a1->$s5), and the
+   float->double mfc1 pair for the varargs %f arg. Next pass: resolve
+   the two distinct jal relocs (loop body vs post-loop) and grind the
+   sreg/FP-const schedule. */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0005B764(int *a0, int a1) {
+    int *s0 = (int *)a0[1];
+    int count = 0;
+    if (s0 != a0) {
+        do {
+            unsigned v = ((unsigned)*s0 & 0xFFFFFF) << 4;
+            float f = (float)v / 1024.0f;
+            gl_func_00000000(a1, (char *)&D_00000000 + 0x21A38, (double)f);
+            s0 = (int *)s0[1];
+            count++;
+        } while (s0 != a0);
+    }
+    gl_func_00000000(a1, (char *)&D_00000000 + 0x21A40);
+    return count;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B764);
+#endif
 
 /* gl_func_0005B848: 49-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B848);
