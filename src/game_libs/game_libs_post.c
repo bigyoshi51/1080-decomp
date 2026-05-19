@@ -6199,6 +6199,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9A4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9B8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9F0);
+
 // gl_func_0002AA30 — STRUCTURAL PASS (0x104 / 65 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). An object per-frame advance / step with a fixed step
