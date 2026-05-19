@@ -17515,26 +17515,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ACD4);
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  *
- * build/non_matching test 2026-05-19: 33 vs 35 (count -2).
- * Confirms the D_BASE-placeholder bug (target `lui 2` vs built
- * `lui 0`): promote requires `D_BASE` → `(char*)&D_00000000`
- * with the offsets folded (`+0x200BC` / `+0x200E0`, absorbing the
- * 0x20000 the lui carried). Assert is 4-arg (str,str,0xAAF,self).
- * After the symbol fix the residual is the usual count-2
- * codegen-shaping (base reload after assert, idx-base recompute,
- * cap*10 shift chain). Deferred to a focused pass; INCLUDE_ASM
- * build path. (Cross-fn pattern → memo
+ * D_BASE→&D_00000000 fix APPLIED 2026-05-19 (offsets folded to
+ * +0x200BC / +0x200E0; assert is 4-arg str,str,0xAAF,self). That
+ * cleared the lui-0 reloc diffs. Re-test still 33 vs 35 (count -2):
+ * residual is pure codegen-shaping — built picks v0 where target
+ * uses t8 for cap (`lw t8,0x40`), recomputes idx-base differently,
+ * and is 2 insns short around the base-reload-after-assert +
+ * cap*10 shift chain (sll<<2;addu;sll<<1). Not a single-lever
+ * land; needs a focused regalloc/shape pass. INCLUDE_ASM build
+ * path. (Cross-fn pattern → memo
  * project_1080_D_BASE_placeholder_batch_2026-05-19.)
  */
 void gl_func_0004ADB4(int *self, int val, int idx) {
-    extern int D_BASE;
+    extern int D_00000000;
     int cap = self[0x40 / 4];
     short base = *(short*)((char*)self + 0xD4);
     unsigned int limit = (unsigned int)cap * 10;
     int offset = idx - base;
     if ((unsigned int)offset >= limit) {
-        gl_func_00000000((char*)&D_BASE + 0xBC,
-                          (char*)&D_BASE + 0xE0,
+        gl_func_00000000((char*)&D_00000000 + 0x200BC,
+                          (char*)&D_00000000 + 0x200E0,
                           0xAAF,
                           self);
         base = *(short*)((char*)self + 0xD4);  // reload after assert
