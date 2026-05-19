@@ -3887,6 +3887,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027300);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027348);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027354);
+
 // gl_func_0002737C — STRUCTURAL PASS (0x1CC / 115 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: LARGE 15-jr USO
 // bundle — a dense cluster of tiny accessor/setter functions splat
