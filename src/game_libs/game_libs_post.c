@@ -23266,8 +23266,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061A0C);
  * is the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061B30);
 
-/* gl_func_00061BC8: 48-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00061BC8: 48-insn byte-by-byte copy-to-local-buf + null-term + dispatch (0xC0, frame 0xB0).
+ *
+ * Decoded structure (raw-word disasm):
+ *   char buf[0x80];                                  // local sp+0x30..sp+0xB0
+ *   if (count > 0) {
+ *       head = count & 3;
+ *       for (i = 0; i < head; i++) buf[i] = src[i];   // remainder head
+ *       for (; i < count; i += 4) {                    // 4-byte unrolled body
+ *           buf[i+0] = src[i+0]; buf[i+1] = src[i+1];
+ *           buf[i+2] = src[i+2]; buf[i+3] = src[i+3];
+ *       }
+ *   }
+ *   buf[count] = '\0';
+ *   func(&D_sym, &buf, 0x140);
+ *   return 1;
+ *
+ * Byte-by-byte copy (not word-aligned memcpy) suggests src may be misaligned
+ * or this is strncpy-style. 0x80-byte buffer + 0x140 dispatch arg suggests
+ * a debug-string formatter (0x80-byte input → 0x140-byte output).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_00061BC8(char *_, char *src, int count) {
+    extern int D_00000000;
+    char buf[0x80 + 1];
+    int i;
+    if (count > 0) {
+        int head = count & 3;
+        for (i = 0; i < head; i++) buf[i] = src[i];
+        for (; i < count; i += 4) {
+            buf[i + 0] = src[i + 0];
+            buf[i + 1] = src[i + 1];
+            buf[i + 2] = src[i + 2];
+            buf[i + 3] = src[i + 3];
+        }
+    }
+    buf[count] = '\0';
+    gl_func_00000000(&D_00000000, buf, 0x140);
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061BC8);
+#endif
 
 /* 5-insn no-frame DLL-splice leaf. The redundant zero-store is preserved by
  * writing the next-link field twice. */
