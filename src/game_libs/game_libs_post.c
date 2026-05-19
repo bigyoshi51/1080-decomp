@@ -22013,8 +22013,39 @@ void gl_func_00056864(char *a0) {
     gl_func_00000000(&gl_ref_00021908, *(int*)(a0 + 0x70));
 }
 
-/* gl_func_00056898: 55-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00056898: 14-arg varargs log/format dispatch. First two args
+   are fmt (&D_00000000+0x21934) and self->0x70; then six sub-objects at
+   self offsets 0xC,0x1C,0x2C,0x3C,0x4C,0x5C each contribute a (->0x4,
+   ->0x8) pair (0xC pair in a2/a3, the rest in the 0x10..0x34 outgoing
+   area). DEFERRED: varargs arg-save scheduling cap. Next pass — match
+   IDO's outgoing-arg interleave: temps are loaded into t-regs, spilled
+   to scratch sp slots (0x7C/0x74/0x6C/0x64/0x54/0x5C/0x4C), reloaded,
+   then stored to 0x10..0x34 in IDO's specific reorder (see asm: the
+   0x7C/0x74/0x6C/0x64 save-reload dance precedes the outgoing stores).
+   frame 0xA8, $s0=self held across the dispatch. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00056898(char *self) {
+    int *p0C = *(int **)(self + 0xC);
+    int *p1C = *(int **)(self + 0x1C);
+    int *p2C = *(int **)(self + 0x2C);
+    int *p3C = *(int **)(self + 0x3C);
+    int *p4C = *(int **)(self + 0x4C);
+    int *p5C = *(int **)(self + 0x5C);
+    gl_func_00000000(
+        (char *)&D_00000000 + 0x21934,
+        *(int *)(self + 0x70),
+        p0C[1], p0C[2],
+        p1C[1], p1C[2],
+        p2C[1], p2C[2],
+        p3C[1], p3C[2],
+        p4C[1], p4C[2],
+        p5C[1], p5C[2]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056898);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056974);
 
