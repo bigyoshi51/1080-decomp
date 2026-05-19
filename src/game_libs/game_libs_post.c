@@ -19845,22 +19845,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
  * the .s) to localize the 25-insn excess — a deep FP-regalloc /
  * scheduling grind, not a one-tick win. Real C preserved for the
  * focused tightening pass. */
+/* ROOT CAUSE (2026-05-18, via build/non_matching disasm diagnostic):
+ * the 76-vs-51 gap is IDO -O2 2x LOOP UNROLLING, not regalloc. IDO
+ * computes the static trip count (v1: 0,2,4 → 3 iters) from the
+ * constant bound and emits TWO full body copies per loop pass (~50
+ * loop insns) vs target's single non-unrolled do-while body (28).
+ * for-loop AND do-while both unroll (trip count is statically known
+ * either way). The target was compiled NON-unrolled despite `li
+ * t0,6` / `li a3,6` constant bounds — so the original source must
+ * defeat IDO's trip-count analysis (runtime/opaque bound) or IDO's
+ * unroll cost-heuristic declined for that exact body shape. No
+ * C-level lever found to suppress IDO's small-known-trip unroll
+ * while keeping a `li 6` bound. Classify: IDO-loop-unroll cap (see
+ * docs/IDO_CODEGEN.md#feedback-ido-unrolls-known-small-trip-loop).
+ * Real C (correct centroid algorithm) preserved; unlock
+ * (C-emit+SUFFIX_BYTES of the 6-word $t9/$t1 tail for successor
+ * gl_func_00054228) stays gated on defeating the unroll. */
 void game_libs_func_00054144(int *a0, float *a1, int a2) {
-    int i;
-    short *dir;
-    short *recbase;
+    int v1;
+    char *dir;
+    char *recbase;
     a1[0] = 0.0f;
     a1[1] = 0.0f;
     a1[2] = 0.0f;
-    dir = (short *)((char *)a0[0x1A] + a2 * 8);
-    recbase = (short *)a0[0x18];
-    for (i = 0; i != 6; i += 2) {
-        unsigned short vi = *(unsigned short *)((char *)dir + i + 2);
-        short *rec = (short *)((char *)recbase + vi * 6);
+    dir = (char *)a0[0x1A] + a2 * 8;
+    recbase = (char *)a0[0x18];
+    v1 = 0;
+    do {
+        unsigned short vi = *(unsigned short *)(dir + v1 + 2);
+        short *rec = (short *)(recbase + vi * 6);
         a1[0] += (float)rec[0];
         a1[1] += (float)rec[1];
         a1[2] += (float)rec[2];
-    }
+        v1 += 2;
+    } while (v1 != 6);
     a1[0] /= 3.0f;
     a1[1] /= 3.0f;
     a1[2] /= 3.0f;
