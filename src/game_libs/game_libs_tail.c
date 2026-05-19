@@ -1767,8 +1767,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E79C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E84C);
 
-/* gl_func_0000E910: 44-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000E910: 44-insn lazy-init + 4-call chain + linked-set finalizer (0xB0, frame 0x30).
+ *
+ * 6th sibling of the E66C/EAAC/525F0/E6E8/E79C linked-set finalizer family
+ * (per feedback_1080_linked_set_finalizer_tail_idiom memo). Distinguished
+ * by field offsets 0x60/0x78/0x7C and 2-arg factory call.
+ *
+ * Decoded structure (raw-word disasm):
+ *   self->[0x7C] = a3_int_ptr;                       // save arg ptr
+ *   if (self->[0x60] == 0) func1_init();             // lazy init
+ *   obj = func2(0, self->[0x60]);                    // 2-arg factory
+ *   self->[0x78] = obj;
+ *   func3(obj, *(int*)self->[0x7C]);                 // int-deref (vs E6E8's float→int)
+ *   func4(obj, a1, a2);
+ *   func5(&self[0x10/4], obj);
+ *   if (obj->[0x14] != 0) obj->[0x4] = 1;            // back-link-with-flag finalizer
+ *   obj->[0x14] = self;
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000E910(int *self, int a1, int a2, int *a3_int_ptr) {
+    int *obj;
+    self[0x7C / 4] = (int)a3_int_ptr;
+    if (self[0x60 / 4] == 0) {
+        gl_func_00000000();
+    }
+    obj = (int*)gl_func_00000000(0, self[0x60 / 4]);
+    self[0x78 / 4] = (int)obj;
+    gl_func_00000000(obj, *(int*)self[0x7C / 4]);
+    obj = (int*)self[0x78 / 4];
+    gl_func_00000000(obj, a1, a2);
+    obj = (int*)self[0x78 / 4];
+    gl_func_00000000((char*)self + 0x10, obj);
+    if (obj[0x14 / 4] != 0) {
+        obj[0x4 / 4] = 1;
+    }
+    obj[0x14 / 4] = (int)self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E910);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E9C0);
 
