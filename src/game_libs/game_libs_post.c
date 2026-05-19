@@ -25110,8 +25110,46 @@ void gl_func_00065060(char *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065060);
 #endif
 
-/* gl_func_00065148: 66-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00065148: 66-insn 3D affine-transform helper (size 0x108, frame 0x50).
+ *
+ * Performs:
+ *   1. Two leading jal calls (likely matrix-composition / pre-update)
+ *      jal func1(obj + 0xDC, obj + 0x294)   — sub-matrix update at +0xDC
+ *      jal func2(obj + 0xDC, obj + 0x2C8)   — sub-matrix update at +0x2C8
+ *   2. Bit-copies obj->[0x1F8..0x200] (Vec3 int bits) to local stack
+ *      (effectively reinterprets the int-stored Vec3 as float via `lw/sw` →
+ *      `lwc1` chain)
+ *   3. Matrix-vector affine multiply:
+ *        v_in[3] = float-bits-of(obj->[0x1F8], obj->[0x1FC], obj->[0x200])
+ *        Matrix M (3 rows × 4 columns, row-major slots at +0x70+0x10*col):
+ *            obj->[0x70]  obj->[0x80]  obj->[0x90]  obj->[0xA0]   ← row 0 → out[0]
+ *            obj->[0x74]  obj->[0x84]  obj->[0x94]  obj->[0xA4]   ← row 1 → out[1]
+ *            obj->[0x78]  obj->[0x88]  obj->[0x98]  obj->[0xA8]   ← row 2 → out[2]
+ *        out[i] = M[i,0]*v_in[0] + M[i,1]*v_in[1] + M[i,2]*v_in[2] + M[i,3]
+ *        // The last column (offsets 0xA0/0xA4/0xA8) is the translation
+ *   4. Stores result to obj->[0x324..0x32C] (transformed Vec3)
+ *
+ * Notes:
+ *  - "Bit-copy via lw/sw then lwc1" pattern: the input Vec3 at +0x1F8..0x200
+ *    is stored as integers but reinterpreted as floats. Either the storage is
+ *    union'd or the int and float fields share the same offset.
+ *  - The 3 final accumulator regs ($f14, $f16, $f18) hold per-row results then
+ *    swc1 into +0x324/0x328/0x32C — destination slot for transformed point.
+ *  - swc1/lwc1 pair `swc1 $f4, 0x324(obj); lwc1 $f0, 0x324(obj)` is the
+ *    standard IDO "move float through memory" pattern (no mov.s emit when the
+ *    address-of operator is taken on adjacent stores).
+ *  - The pre-matrix jal calls likely do matrix composition (apply parent
+ *    transform, or recompute world-space transform from local + parent).
+ *  - Pattern: this is a per-node update during scene-graph traversal. A
+ *    node's local Vec3 at +0x1F8 gets transformed by the cached world matrix
+ *    at +0x70..0xA8 and stored to a "transformed-position" slot at +0x324.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065148);
+#endif
 
 /* gl_func_00065250 — verified structural decode (Vec3-diff + double
  * struct-copy + call, 33 insns; FPU-load-order + struct-copy sp-slot
