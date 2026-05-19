@@ -5324,12 +5324,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027354);
 //   ORs (`ori …,0x40`) over the records — typical compiler-emitted
 //   one-line inline-accessor functions, left for the deferred USO
 //   re-split.
-// Caps: raw-word USO + 15-fn unsplit accessor bundle + jal-0
-//   USO-reloc register call — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only for the named leading fn,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "15-fn unsplit accessor
+//   bundle" note is STALE; .s is 0x30/12 words, ONE function).
+//   Small 3-arg printf-like / register wrapper. Real-C STRUCTURAL
+//   body below per the analysis (jal-0 reloc(&D_0+0x2178, a0, a1)).
+//   Byte-match deferred — placeholder jal-0 wrapper needs USO reloc
+//   infra. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002737C(int a0, int a1) {
+    char *g = (char *)&D_00000000;
+    gl_func_00000000(g + 0x2178, a0, a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002737C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000273AC);
 
