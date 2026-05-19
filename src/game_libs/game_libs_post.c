@@ -13698,13 +13698,9 @@ void gl_func_0003F278(int a0, int a1, int a2, int a3) {
     func_00000000(&buf[0x00]);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0003F2B8: 20-insn wrapper, 2 cross-segment calls.
- * Frame 0xB8. The "buffer at sp+0x60..0x70" stores are escapes via the
- * jal#1 call (which receives sp+0x20 — buf base — and reads buf+0x40..).
- * *a2 is loaded TWICE because IDO's scheduler fills jal#1's delay slot
- * with the second-stored value (see
- * docs/IDO_CODEGEN.md#feedback-ido-double-deref-fills-jal-delay-slot). */
+/* gl_func_0003F2B8: 20-insn wrapper, 2 cross-segment calls. *a2 is loaded
+ * twice — IDO's scheduler fills jal#1's delay slot with the second deref
+ * (docs/IDO_CODEGEN.md#feedback-ido-double-deref-fills-jal-delay-slot). */
 extern int func_00000000();
 void gl_func_0003F2B8(int *a0, int a1, int *a2) {
     char buf[0xA0];
@@ -13717,9 +13713,6 @@ void gl_func_0003F2B8(int *a0, int a1, int *a2) {
     func_00000000(&buf[0x00]);
     (void)a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F2B8);
-#endif
 
 #ifdef NON_MATCHING
 void gl_func_0003F308(char *a0, int a1, int *a2, int a3) {
