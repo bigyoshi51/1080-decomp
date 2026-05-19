@@ -21594,8 +21594,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054D04);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054E78);
 
-/* gl_func_000550CC: 57-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000550CC — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
+ * (declared 0xE4 / 57 words). NAMED fn = init/register, insns
+ * 1..50 (prologue 27BDFFB8 frame 0x48, jr ra at insn 50):
+ *   void gl_func_000550CC(int *self) {
+ *     if (cb1(self) == 2) return;            // beql v0,2
+ *     // build a struct in stack scratch sp+0x34:
+ *     //   [0]=self->0xDC  [4]=self->0xE0  [8]=self->0xE4
+ *     //   + FP fields copied from self->0x114/118/11C/120/124/128
+ *     cb2(&D_00000000, self + 0x114, &sp34, ...);
+ *     // write FP results back: self->0x108/0x10C/0x110 = sp34 FP,
+ *     // self->0x128 = 0
+ *   }
+ * Multi-idiom (focused pass): beql-likely early-return on cb1==2,
+ * the mixed int(0xDC/E0/E4)+FP(0x114..0x128) struct-marshal into
+ * sp+0x34, cb2's stack-scratch pointer arg, the FP write-back
+ * (lwc1/swc1) to self->0x108/10C/110, and the &D_00000000 generic
+ * symbol. Exact field order / FP regalloc need a focused .s pass.
+ *
+ * BOUNDARY NOTE (DEFERRED USO RE-SPLIT): insns 51..57 after the
+ * jr ra are TWO tiny TRAILING LEAVES — arg-stash stubs
+ * (`sw a0,0; jr ra; sw a1,4` and `sw a0,0; sw a1,4; jr ra;
+ * sw a2,8`), each its own 03E00008. The 0xE4 size spans them so
+ * the named fn can't byte-match standalone without a re-split at
+ * the named-fn end. Real decoded C of the named fn preserved;
+ * INCLUDE_ASM is the bundle build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_000550CC(int *self) {
+    int sp34[3];
+    float fp[6];
+    if (gl_func_00000000(self) == 2) {
+        return;
+    }
+    sp34[0] = *(int *)((char *)self + 0xDC);
+    sp34[1] = *(int *)((char *)self + 0xE0);
+    sp34[2] = *(int *)((char *)self + 0xE4);
+    fp[0] = *(float *)((char *)self + 0x114);
+    fp[1] = *(float *)((char *)self + 0x118);
+    fp[2] = *(float *)((char *)self + 0x11C);
+    fp[3] = *(float *)((char *)self + 0x120);
+    fp[4] = *(float *)((char *)self + 0x124);
+    fp[5] = *(float *)((char *)self + 0x128);
+    gl_func_00000000(&D_00000000, (char *)self + 0x114, sp34);
+    *(float *)((char *)self + 0x108) = fp[0];
+    *(float *)((char *)self + 0x10C) = fp[1];
+    *(float *)((char *)self + 0x110) = fp[2];
+    *(int *)((char *)self + 0x128) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000550CC);
+#endif
 
 extern int gl_ref_00065C2C();
 extern int gl_ref_00065C68();
