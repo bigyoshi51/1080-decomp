@@ -1219,6 +1219,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);
+
 // gl_func_0002119C — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). The per-frame STATE-MACHINE DRIVER of the sprite-record
