@@ -2066,11 +2066,39 @@ void gl_func_00021EA8(int a0, int a1) {
 //   allocation/link fails — a transactional find-or-create insert.
 //   Same game_libs registry support family as the gl_func_0001FD98 /
 //   gl_func_0001FEC8 allocator/install helpers.
-// Caps: raw-word USO + jal-0 USO-reloc lookup/alloc calls — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Transactional find-or-create
+//   registry/list-insert (same support family as gl_func_0001FD98 /
+//   gl_func_0001FEC8). Real-C STRUCTURAL body below per the analysis
+//   (lookup(&D_294C,arg); on hit return; else save head, tentatively
+//   repoint &D_0+0x2950, alloc-and-link; rollback head on failure).
+//   Byte-match deferred — placeholder jal-0 lookup/alloc calls need
+//   USO reloc infra. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder for the helpers.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00021F40(void *arg) {
+    char *g = (char *)&D_00000000;
+    char *desc = g + 0x294C;
+    int *head = (int *)(g + 0x2950);
+    int save, r;
+    r = gl_func_00000000(desc, arg);
+    if (r != 0) {
+        return r;
+    }
+    save = *head;
+    *head = *(int *)desc;
+    r = gl_func_00000000(desc, arg);
+    if (r != 0) {
+        *head = save;
+        return r;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
+#endif
 
 // gl_func_000221D8 — STRUCTURAL PASS (0x204 / 129 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
