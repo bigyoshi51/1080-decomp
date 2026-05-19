@@ -18219,7 +18219,11 @@ void game_libs_func_00047F84(s32 *arg0) {
     arg0[0x78] = 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F90);
+/* Natural C emits the zero-store in the jr delay slot; Makefile INSN_PATCH +
+ * SUFFIX_BYTES_FORCE restores the target sw/jr/nop order. */
+void game_libs_func_00047F90(s32 *arg0) {
+    arg0[0x78] = 0;
+}
 
 // gl_func_00047F9C — STRUCTURAL PASS + BOUNDARY NOTE (0x3B4 / 238 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
