@@ -18220,7 +18220,7 @@ void game_libs_func_00047F84(s32 *arg0) {
 }
 
 /* Natural C emits the zero-store in the jr delay slot; Makefile INSN_PATCH +
- * SUFFIX_BYTES_FORCE restores the target sw/jr/nop order. */
+ * EXPECTED_BASELINE-guarded SUFFIX_BYTES_FORCE restores target sw/jr/nop. */
 void game_libs_func_00047F90(s32 *arg0) {
     arg0[0x78] = 0;
 }

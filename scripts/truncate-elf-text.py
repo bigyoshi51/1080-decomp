@@ -85,7 +85,13 @@ def truncate_elf_text(path, target_size):
             st_value = struct.unpack('>I', data[s + 4:s + 8])[0]
             st_size = struct.unpack('>I', data[s + 8:s + 12])[0]
             st_shndx = struct.unpack('>H', data[s + 0xE:s + 0x10])[0]
-            if st_shndx == text_idx and st_value + st_size > target_size:
+            if st_shndx == text_idx and st_value > target_size:
+                name_end = data.index(b'\0', strtab_off + st_name)
+                name = data[strtab_off + st_name:name_end].decode() or '<no-name>'
+                struct.pack_into('>I', data, s + 4, target_size)
+                struct.pack_into('>I', data, s + 8, 0)
+                print(f"{path}: clamped symbol '{name}' @ 0x{st_value:x} to .text end 0x{target_size:x}")
+            elif st_shndx == text_idx and st_value + st_size > target_size:
                 new_size = max(0, target_size - st_value)
                 name_end = data.index(b'\0', strtab_off + st_name)
                 name = data[strtab_off + st_name:name_end].decode() or '<no-name>'
