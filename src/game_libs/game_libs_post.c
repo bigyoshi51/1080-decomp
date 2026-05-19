@@ -1819,11 +1819,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);
 //   slot, resolved at load). This is the top-level tick/update entry
 //   of that sprite subsystem (the gl_func_0001FAE8 / gl_func_0001FBD4
 //   sweeps are its leaf operations).
-// Caps: raw-word USO + computed jump-table dispatch + jal-0 USO-reloc
-//   handler — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Per-frame state-machine
+//   driver of the sprite-record subsystem (top-level tick/update;
+//   the gl_func_0001FAE8/FBD4 sweeps are its leaf ops). Real-C
+//   STRUCTURAL body below per the analysis (mode = g->0x2034==2?2:1,
+//   state = g->0x2CF0-1, early return if state>=5, computed jump via
+//   &D_0+0xE7C[state] modelled as a switch; one state walks the
+//   &D_0+0x2D00 record array stride 0x160 count g->0x2048 invoking
+//   a jal-0 handler). Byte-match deferred — computed jump-table +
+//   placeholder jal-0 handler need USO reloc infra. Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder for the handler.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002119C(void) {
+    char *g = (char *)&D_00000000;
+    int md = (*(short *)(g + 0x2034) == 2) ? 2 : 1;
+    int st = *(unsigned char *)(g + 0x2CF0) - 1;
+    int n, i;
+    char *rec;
+    (void)md;
+    if ((unsigned)st >= 5) {
+        return;
+    }
+    switch (st) {
+    case 0:
+        n = *(short *)(g + 0x2048);
+        rec = g + 0x2D00;
+        for (i = 0; i < n; i++) {
+            gl_func_00000000(rec);
+            n = *(short *)(g + 0x2048);
+            rec += 0x160;
+        }
+        break;
+    default:
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
+#endif
 
 // gl_func_00021498 — STRUCTURAL PASS (0x8EC / 571 words ≈ 2.3KB, no
 // episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO
