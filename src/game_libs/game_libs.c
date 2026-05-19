@@ -773,6 +773,8 @@ void gl_func_00006C38(int *a0, int a1, int a2) {
  * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006CDC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00006DB8);
+
 extern int gl_func_00000000();
 extern int *gl_ref_00000138;
 
