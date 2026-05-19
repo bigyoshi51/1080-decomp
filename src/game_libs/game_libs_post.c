@@ -1322,6 +1322,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022398);
+
 // gl_func_000223DC — STRUCTURAL PASS (0x88 / 34 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A find-or-append slot allocator over the &D_26B8 array,
