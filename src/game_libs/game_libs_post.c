@@ -18910,6 +18910,8 @@ int gl_func_0004DA40(int *self) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DA40);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DB38);
 #endif
 
 #ifdef NON_MATCHING
