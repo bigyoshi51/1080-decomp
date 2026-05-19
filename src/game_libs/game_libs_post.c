@@ -13199,6 +13199,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
 // untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E39C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003E524);
+
 extern int gl_func_00000000();
 void gl_func_0003E54C(int *a0, int a1) {
     int *item = (int*)a0[0xB];
