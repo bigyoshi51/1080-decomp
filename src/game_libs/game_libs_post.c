@@ -5837,11 +5837,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002842C);
 //   sub-count field of the same record. The three together cover the
 //   byte-+0 / byte-+1 / halfword-+4 sub-count variants of the
 //   registry select/resolve entry.
-// Caps: raw-word USO + jal-0 USO-reloc lookup — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc lookup — byte-match
+//   needs USO mnemonic disasm + reloc-pad jal infra. Real-C
+//   STRUCTURAL body below per the analysis (placeholder calls /
+//   fields). Byte-match deferred.
+//   Name pre-checked: no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00028510(int a0, int a1) {
+    int r;
+    char *rec;
+    unsigned short cap;
+    int packed;
+    if (a0 == 0xFF) return 0;
+    r = gl_func_00000000(a0, a1);
+    if (r != 0) {
+        *(int *)((char *)&D_00000000 + 0x2158) = r;
+        return r;
+    }
+    rec = *(char **)((char *)&D_00000000 + 0x2030) + a0 * 0x14;
+    cap = *(unsigned short *)(rec + 4);
+    packed = (a0 << 8) | a1;
+    if (a1 < cap) packed += 1;
+    *(int *)((char *)&D_00000000 + 0x2158) = packed;
+    return packed;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
+#endif
 
 // gl_func_00028604 — STRUCTURAL PASS (0x268 / 154 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
