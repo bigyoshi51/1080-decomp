@@ -20122,8 +20122,42 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051448);
 #endif
 
-/* gl_func_00051520: 40-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00051520: cursor-read init/register (clean single fn).
+ * Decoded from bare stub 2026-05-19; algorithm correct.
+ * build/non_matching: 44 vs 40 (count +4), frame 0x18 vs target
+ * 0x20. Residual = cb-arg spill/reload threading (target keeps
+ * v0=s0->0 / v1=*v0 / *v1 in regs across cb2/cb3 with the s0
+ * spill at sp+0x20; the named v0/v1 locals + my extra spills add
+ * 4 insns) and the beql-delay-likely s0->0x34 branch (target
+ * picks the ->0xB0=6 arm in the likely slot). Documented-hard
+ * arg-thread shape — focused pass (try: no named v0/v1, inline
+ * the derefs; reuse a0 as s0). Real decoded C preserved;
+ * INCLUDE_ASM build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00051520(int *a0) {
+    int *v0;
+    int *v1;
+    gl_func_00000000(a0);
+    v0 = (int *)a0[0];
+    v1 = (int *)*v0;
+    *v0 = (int)(v1 + 1);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x20E74, *v1);
+    a0[4 / 4] = *v1;
+    a0[0x28 / 4] = (int)v0;
+    a0[0x10 / 4] = (int)v0;
+    a0[0xC / 4] = 0;
+    gl_func_00000000(*(int *)(a0[0x3C / 4] + 0xC), v0);
+    if (*(int *)((char *)a0 + 0x34) != 0) {
+        *(int *)(*(int *)(a0[0x3C / 4] + 0xC) + 0xB0) = 3;
+    } else {
+        *(int *)(*(int *)(a0[0x3C / 4] + 0xC) + 0xB0) = 6;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051520);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_000515C0(int *dst) {
