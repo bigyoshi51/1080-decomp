@@ -3039,11 +3039,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
 //   a USO-relocated free routine (`jal 0` slot). This is the
 //   teardown/deregister entry of the gl_func_00021F40 / 000223DC /
 //   000221D8 registry family.
-// Caps: raw-word USO + jal-0 USO-reloc free — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Unregister/free-by-id —
+//   teardown counterpart to the gl_func_00021F40 / 000223DC /
+//   000221D8 registry inserts. Real-C STRUCTURAL body below per the
+//   analysis (set &D_0+0x23FA marker = -1; if &D_0+0x2406 == id
+//   reset it to -1; walk the &D_0+0x2308 node list, 0xC stride,
+//   bound = the &D_0+0x2308 count, clearing every node->0x1E owning
+//   id matching `id` to -1; then jal-0 USO-reloc free(id)).
+//   Byte-match deferred — placeholder jal-0 free needs USO reloc
+//   infra + bnel unlink-loop schedule. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for free.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002349C(int id) {
+    char *g = (char *)&D_00000000;
+    int n = *(int *)(g + 0x2308);
+    *(short *)(g + 0x23FA) = -1;
+    if (*(short *)(g + 0x2406) == id) {
+        *(short *)(g + 0x2406) = -1;
+    }
+    if (n != 0) {
+        char *e = g + 0x2308;
+        int i;
+        for (i = 0; i < n; i++) {
+            if (*(short *)(e + 0x1E) == id) {
+                *(short *)(e + 0x1E) = -1;
+            }
+            e += 0xC;
+        }
+    }
+    gl_func_00000000(id);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00023548: 16-insn body + 3-insn donated alt-entry-prologue tail.
