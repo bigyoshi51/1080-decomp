@@ -678,12 +678,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
 //   zero-initialized on the build path before being filled. This is
 //   the top-level sprite/text record builder + display-list emitter;
 //   leaf draws delegate to the gl_func_0001CFDC glyph family.
-// Caps: raw-word USO + very large multi-phase orchestrator with many
-//   fixed-target calls and packed-bitfield decode — not exact-
-//   matchable without proper USO mnemonic disasm; high-level
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Largest game_libs text/sprite
+//   member — record-build + DL-emit orchestrator. Real-C STRUCTURAL
+//   body below per the analysis (control word a1[0] -> packed
+//   subfields, record = (&D_0+0x2CFC ptr) + (a0*3<<4), zero-init +
+//   populate on the f1!=1 build path, then per-element command/leaf
+//   draw loop). Byte-match deferred — ~849-insn multi-phase, many
+//   runtime-patched placeholder jals (need USO reloc infra), -0x160
+//   frame s0-s8 schedule. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined USO
+//   placeholder for the leaf glyph/sprite draws.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0001E134(int a0, int *a1, int a2, int a3) {
+    int w = a1[0];
+    int idx = ((a0 * 3 + a0) << 4);
+    int f0 = (w << 11) >> 30;
+    int f1 = (w << 1) >> 31;
+    char *tbl = *(char **)((char *)&D_00000000 + 0x2CFC);
+    char *rec = tbl + idx;
+    int i, n;
+    if (f1 != 1) {
+        *(char *)(rec + 0) = 0;
+        *(int *)(rec + 8) = 0;
+        *(short *)(rec + 6) = 0;
+        *(short *)(rec + 0x10) = 0;
+        *(short *)(rec + 0x12) = 0;
+        *(char *)(rec + 2) = 0;
+        *(char *)(rec + 3) = 0;
+        *(int *)(rec + 4) = a2;
+    }
+    n = a1[1];
+    for (i = 0; i < n; i++) {
+        gl_func_00000000(a0, rec, f0, a3, i);
+    }
+    return (int)rec;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
+#endif
 
 // gl_func_0001EE78 — STRUCTURAL PASS (0xA8 / 42 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
