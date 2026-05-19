@@ -4868,12 +4868,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026214);
 //   keeps a contiguous bank of computed-jump dispatch tables in the
 //   &D_0+0xExx..0xFxx region. The command interpreter / VM step of
 //   the subsystem.
-// Caps: raw-word USO + 3-fn unsplit bundle + dual computed jump-table
-//   dispatch + jal-0 USO-reloc handlers — not exact-matchable without
-//   proper USO mnemonic disasm; structural pass only for the named
-//   leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
+//   .s is 0x3B8/201 words, ONE function). Command interpreter / VM
+//   step — bytecode dispatcher with DUAL computed jump tables in
+//   the &D_0+0xExx..0xFxx dispatch-table bank (alongside
+//   gl_func_0002119C @0xE7C and gl_func_00023914 @0xEA0). Real-C
+//   STRUCTURAL body below per the analysis (op=cmd[0]; opcodes
+//   0xF0..0xFB modelled as 12-entry table A @0xEE0; 0x81..0x90 as
+//   16-entry table B @0xF10; else no-op; operand bytes cmd[1..3]
+//   passed to jal-0 per-opcode handlers). Byte-match deferred —
+//   dual computed jump-table + jal-0 handlers need USO reloc infra.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_00026790(unsigned char *cmd) {
+    int op = cmd[0];
+    if (op >= 0xF0 && op < 0xFC) {
+        return gl_func_00000000(op, cmd[1], cmd[2], cmd[3]);
+    }
+    if (op >= 0x81 && op < 0x91) {
+        return gl_func_00000000(op, cmd[1], cmd[2], cmd[3]);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026AA4);
 
