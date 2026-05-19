@@ -2196,11 +2196,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022398);
 //   (resolved at load) keyed on the &D_26B8 descriptor. This is the
 //   compact find-or-create-by-append companion to the
 //   gl_func_00021F40 list-insert / gl_func_000221D8 slot-scan.
-// Caps: raw-word USO + jal-0 USO-reloc lookup — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Compact find-or-create-by-append
+//   companion to gl_func_00021F40 / gl_func_000221D8. Real-C
+//   STRUCTURAL body below per the analysis (jal-0 USO-reloc lookup
+//   keyed on the &D_26B8 descriptor; on hit append a 0x14-stride
+//   entry at index *(&D_0+0x2948): entry[0]=1, entry[8]=lookup
+//   result, entry[0x10]=arg, then count++). Byte-match deferred —
+//   placeholder jal-0 lookup needs USO reloc infra + branch/index
+//   schedule. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_000223DC(int arg) {
+    char *D = (char *)&D_00000000;
+    char *base = D + 0x26B8;
+    int r = gl_func_00000000(base, arg);
+    if (r != 0) {
+        int count = *(int *)(D + 0x2948);
+        char *e = base + count * 0x14 + 0x10;
+        *(char *)(e + 0) = 1;
+        *(int *)(e + 8) = r;
+        *(int *)(e + 0x10) = arg;
+        *(int *)(D + 0x2948) = count + 1;
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000223DC);
+#endif
 
 // gl_func_00022464 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
