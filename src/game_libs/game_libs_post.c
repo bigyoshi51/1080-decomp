@@ -23670,8 +23670,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000622D8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062368);
 
-/* gl_func_00062484: 47-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00062484: 26-insn alloc-empty-slot + 21-insn lookup-by-key BUNDLE (0xBC declared).
+ *
+ * 2-function bundle. Real fn 1 ends at jr ra @0x68 (26 insns). Fn 2 starts
+ * at 0x6C and ends at jr ra @0xB4. Fragment-split needed for byte-exact.
+ *
+ * Decoded fn 1 (gl_func_00062484 proper):
+ *   entries = self->[0];
+ *   for (i = 0; i < self->[1]; i++) {
+ *       if (entries->[0xC] == 0) {                   // empty-slot check
+ *           entries->[0xC] = 1;                       // claim
+ *           return i;
+ *       }
+ *       entries = (int*)((char*)entries + 0x14);     // 20-byte stride
+ *   }
+ *   assert(&D + 0x20C4);
+ *   return -1;
+ *
+ * Standard "alloc free slot in fixed-size array" pattern. 20-byte entries
+ * with [0x0C] = in-use flag.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_00062484(int *self) {
+    extern int D_00000000;
+    int *entries = (int*)self[0];
+    int count = self[1];
+    int i;
+    for (i = 0; i < count; i++) {
+        if (entries[0xC / 4] == 0) {
+            entries[0xC / 4] = 1;
+            return i;
+        }
+        entries = (int*)((char*)entries + 0x14);
+    }
+    gl_func_00000000((char*)&D_00000000 + 0x20C4);
+    return -1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062484);
+#endif
 
 /* gl_func_00062540: 47-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062540);
