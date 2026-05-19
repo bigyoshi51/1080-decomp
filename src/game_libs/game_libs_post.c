@@ -7021,6 +7021,8 @@ void game_libs_func_00031A64(void) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031A74);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031CA8);
+
 extern int gl_data_00000000;
 
 void gl_func_00031D78(int a0, int a1, int a2) {
