@@ -4208,11 +4208,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024E34);
 //   pool from the &D_0+0x157C (gl_func_00024E34) and &D_0+0x2030
 //   (gl_func_000223DC) registry tables — the game_libs subsystem has
 //   several parallel fixed-stride pools.
-// Caps: raw-word USO + linear free-slot scan — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Free-slot allocator over a
+//   fixed-capacity slot pool (distinct from the &D_0+0x157C /
+//   &D_0+0x2030 registry tables). Real-C STRUCTURAL body below per
+//   the analysis (base &D_0+0x1038, stride 0x54, 16 slots = scan
+//   limit 0x540; first slot whose byte+0==0 is claimed: byte+0=1,
+//   words +4/+8/+0xC/+0x10/+0x14 from args; full table -> 0).
+//   Byte-match deferred — bnel scan-loop schedule. Name pre-checked:
+//   no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int D_00000000;
+void *gl_func_00024F30(int a0, int a1, int a2) {
+    char *base = (char *)&D_00000000 + 0x1038;
+    int off;
+    for (off = 0; off != 0x540; off += 0x54) {
+        if (*(char *)(base + off) == 0) {
+            break;
+        }
+    }
+    if (off == 0x540) {
+        return 0;
+    }
+    {
+        char *s = base + off;
+        *(char *)(s + 0) = 1;
+        *(int *)(s + 4) = a1;
+        *(int *)(s + 8) = a0;
+        *(int *)(s + 0xC) = a1;
+        *(int *)(s + 0x10) = a2;
+        *(int *)(s + 0x14) = 0;
+        return s;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
+#endif
 
 // gl_func_00025044 — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
