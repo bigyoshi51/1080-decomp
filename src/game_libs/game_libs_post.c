@@ -29472,8 +29472,64 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071624);
 /* gl_func_00071708: 49-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071708);
 
-/* gl_func_000717CC: 38-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000717CC: 38-insn single-record decode (sibling of gl_func_0006C11C).
+ * Size 0x98, frame 0x10.
+ *
+ * Sibling decoder: where gl_func_0006C11C iterates over a stream of 8-byte
+ * records, this function decodes ONE record at offset (caller-set src + a0).
+ *
+ * Decoded structure (raw-word disasm):
+ *   void decode_single(int byte_offset /* a0 */,
+ *                      uint16_t *out      /* a1 */,
+ *                      uint8_t  *src      /* $t6 caller-set */)
+ *   {
+ *       // Stage 1: advance src by `byte_offset` bytes via counted loop
+ *       // (semantically `src += byte_offset`; IDO emits a no-op increment
+ *       // loop because the stack-slot `sw/lw` cycle defeats constant folding)
+ *       for (int i = 0; i < byte_offset; i++) {
+ *           src += 1;
+ *       }
+ *
+ *       // Stage 2: copy 6 bytes from src into local buf at sp+0x4
+ *       uint8_t buf[8];
+ *       *(uint32_t*)(buf+0) = *(uint32_t*)src;   // lwl/lwr unaligned 4 bytes
+ *       buf[4] = src[4];
+ *       buf[5] = src[5];
+ *
+ *       // Stage 3: extract 2-bit tag from buf[1] top bits
+ *       uint8_t tag = (buf[1] & 0xC0) >> 4;     // 0/4/8/0xC code
+ *       buf[3] = tag;                            // overwrite sp+7
+ *
+ *       // Stage 4: write packed payload to *out if tag is zero
+ *       if (tag == 0) {
+ *           // Construct 16-bit value: (buf[4] << 8) | tag
+ *           uint16_t packed = ((uint16_t)buf[4] << 8) | (uint16_t)tag;
+ *           *out = packed;                       // sh to *a1
+ *           *((uint8_t*)out + 2) = buf[5];      // tail byte
+ *       }
+ *       // (tag != 0: skip payload write — caller's *out unchanged)
+ *   }
+ *
+ * Notes:
+ *  - $t6 caller-set src ptr — fits caller-set-int-reg cap class
+ *    (feedback_caller_set_int_reg_cap_1080_game_libs.md).
+ *  - The "advance src via counted loop" is functionally equivalent to a
+ *    single `addu src, src, a0` but IDO emits ~9 instructions instead. The
+ *    stack-roundtrip on the loop_idx via `lw/sw` is the giveaway — looks like
+ *    a compiler intrinsic for "volatile counter" semantics, or perhaps the
+ *    original source has a side-effecting inner expression that we can't see
+ *    in the disasm (e.g., `do_something(src); src++; i++;`).
+ *  - Same 2-bit tag dispatch and bit-shifted offset stride as 0006C11C.
+ *  - Reads 6 bytes from src but writes only 3 bytes (2-byte sh + 1-byte sb)
+ *    to *out — outputs less than reads, so this is a "compress/decode"
+ *    operation.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000717CC);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00071864: 23-insn 16-bit byte-sum checksum.
