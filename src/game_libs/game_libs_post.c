@@ -2471,11 +2471,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
 //   the same &D_0 sprite/registry subsystem (the 0x2C40 byte array
 //   sits alongside the 0x2CF0/0x2CF1 state bytes used by
 //   gl_func_0002119C / gl_func_00021498).
-// Caps: raw-word USO + fixed-target poll call — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Status-query readiness helper of
+//   the &D_0 sprite/registry subsystem (0x2C40 byte status array
+//   alongside the 0x2CF0/0x2CF1 state bytes). Real-C STRUCTURAL body
+//   below per the analysis (a0==0xFF -> ready; else status =
+//   *(&D_0+0x2C40+a0); if status<2 ready; else poll a USO-reloc
+//   helper(1) and re-check its slot; ready unless that slot is also
+//   <2). Byte-match deferred — placeholder jal-0 poll needs USO
+//   reloc infra + branch schedule. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder for the poll.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00022D68(int a0) {
+    char *st = (char *)&D_00000000 + 0x2C40;
+    int r;
+    if (a0 == 0xFF) {
+        return 1;
+    }
+    if (*(unsigned char *)(st + a0) < 2) {
+        return 1;
+    }
+    r = gl_func_00000000(1);
+    if (*(unsigned char *)(st + r) < 2) {
+        return 0;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022D68);
+#endif
 
 // gl_func_00022DE0 — STRUCTURAL PASS (0x78 / 30 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
