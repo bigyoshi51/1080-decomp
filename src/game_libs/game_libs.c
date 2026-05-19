@@ -984,6 +984,8 @@ common_after:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000070FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00007324);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000732C);
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007344);
