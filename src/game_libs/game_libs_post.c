@@ -23323,7 +23323,6 @@ void gl_func_00068BAC(int *a0) {
     }
 }
 
-#ifdef NON_MATCHING
 /* game_libs_func_00068BF4: 7-insn sibling without the func call.
  *   if (!(*a0 & 1)) a0[2] = 0; */
 void game_libs_func_00068BF4(int *a0) {
@@ -23331,9 +23330,6 @@ void game_libs_func_00068BF4(int *a0) {
         a0[2] = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068BF4);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00068BAC_pad.s")
 
 /* gl_func_00068C14: 65-insn helper. Multi-pass decode pending. */
