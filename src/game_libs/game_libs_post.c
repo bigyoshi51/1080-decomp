@@ -20437,8 +20437,52 @@ int gl_func_000551B0(char *a0) {
     return gl_ref_00065C68(a0 + 0x10);
 }
 
-/* gl_func_000551E0: 32-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000551E0: indirect-dispatch (jalr through computed fn ptr).
+ * Decoded from bare stub 2026-05-18; algorithm ~correct, build 35
+ * vs 32 (count diff + structural). Remaining (multi-pass, defer):
+ *  - `a1 = a0[1] + (s16)a0->8` is computed in the bgez DELAY slot
+ *    (executes regardless of the sel<0 test) — must be a plain
+ *    statement BEFORE the branch, not inside either arm.
+ *  - the sel<0 short-path must CONVERGE to the SAME `jalr a2` as the
+ *    main path (one shared indirect-call tail), via the `b` at
+ *    insn 9 whose delay slot is `a2 = a0->0xC`. Use goto-call, NOT
+ *    a separate `return fp(a1);` (that adds the extra epilogue).
+ *  - the v0!=0 / a0->8!=0 / 0x5C selection is a 3-way branch chain
+ *    that also falls through to the shared body; keep a0v in one
+ *    var and converge.
+ *  - tail: t0=*(a1+a0v); v0=t0+sel*8; fp=v0[1]; a1=(s16)*v0 + a1;
+ *    jalr a2 with a0=a1 in its delay slot. Single shared jalr.
+ * Next pass: hoist the a1 sum above the branch; goto-CALL label for
+ * both the sel<0 and main paths; one fp(a1) at the label. Note the
+ * sibling _pad.s GLOBAL_ASM stays. Real decoded C preserved. */
+int gl_func_000551E0(int *a0) {
+    int a1 = a0[1] + *(short *)((char *)a0 + 8);
+    int sel = *(short *)((char *)a0 + 0xA);
+    int a0v;
+    int (*fp)();
+    if (*(short *)((char *)a0 + 0xA) < 0) {
+        fp = (int (*)())a0[3];
+        return fp(a1);
+    }
+    if (*(int *)((char *)a0 + 0xC) != 0) {
+        a0v = *(int *)((char *)a0 + 0xC);
+    } else if (*(short *)((char *)a0 + 8) != 0) {
+        a0v = 0;
+    } else {
+        a0v = 0x5C;
+    }
+    {
+        int t0 = *(int *)(a1 + a0v);
+        int *v0 = (int *)(t0 + sel * 8);
+        fp = (int (*)())v0[1];
+        a1 = *(short *)v0 + a1;
+    }
+    return fp(a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000551E0);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000551E0_pad.s")
 
 extern int gl_func_00000000();
