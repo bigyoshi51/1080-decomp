@@ -1743,12 +1743,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E78);
 //   index a2 scaled by 16 (sll 4) over the &D_E and &D_F globals and
 //   copies an 8-entry halfword record between them (count li 8, lh/sh
 //   stride 2). game_libs dispatch + record-shuffle helper.
-// Caps: raw-word USO + 3-fn unsplit bundle + jal-0 USO-reloc
-//   handlers — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only for the named leading fn, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
+//   .s is 0x2CC/179 words, ONE function). Arg-presence dispatcher +
+//   table-record copy. Real-C STRUCTURAL body below per the analysis
+//   (route to one of three jal-0 USO-reloc handlers by which of
+//   a1/a2/a3 is non-null, then copy an 8-halfword record between
+//   &D_E + a2*16 and &D_F + a2*16). Byte-match deferred —
+//   placeholder jal-0 handlers need USO reloc infra + copy-loop
+//   schedule. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00020ED0(int a0, int a1, int a2, int a3) {
+    char *D = (char *)&D_00000000;
+    short *src, *dst;
+    int r, i;
+    if (a1 != 0) {
+        r = gl_func_00000000(a1);
+    } else if (a2 != 0) {
+        r = gl_func_00000000(a0);
+    } else if (a3 != 0) {
+        r = gl_func_00000000(a0, a3);
+    } else {
+        r = 0;
+    }
+    src = (short *)(D + 0xE000 + a2 * 16);
+    dst = (short *)(D + 0xF000 + a2 * 16);
+    for (i = 0; i < 8; i++) {
+        dst[i] = src[i];
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
 
