@@ -4527,11 +4527,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
 //   degenerate / parse-fail paths. This is the "load and apply the
 //   config descriptor" front-end that primes the subsystem
 //   gl_func_00025504 then drives per-frame.
-// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc parser
-//   — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "2-fn unsplit bundle" note is
+//   STALE; .s is 0x1FC/113 words, ONE function). "Load and apply the
+//   config descriptor" front-end that primes the gl_func_00025504
+//   subsystem. Real-C STRUCTURAL body below per the analysis
+//   (degenerate a0==0 || a1<=0 or parse==-1 -> reset &D_0+0x1034=0,
+//   return 0; else jal-0 parse(&D_1684,&spv); cfg = &D_0+0x640 +
+//   ((spv>>24)*5<<2) (0x14 stride); apply). Byte-match deferred —
+//   placeholder jal-0 parser needs USO reloc infra. Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_000258CC(int a0, int a1) {
+    char *g = (char *)&D_00000000;
+    int spv;
+    int r, hb;
+    char *cfg;
+    if (a0 == 0 || a1 <= 0) {
+        gl_func_00000000(g + 0x1684, &spv);
+        *(int *)(g + 0x1034) = 0;
+        return 0;
+    }
+    r = gl_func_00000000(g + 0x1684, &spv);
+    if (r == -1) {
+        *(int *)(g + 0x1034) = 0;
+        return 0;
+    }
+    hb = (unsigned)spv >> 24;
+    cfg = g + 0x640 + ((hb * 5) << 2);
+    gl_func_00000000(cfg, spv, a0, a1);
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025A80);
 
