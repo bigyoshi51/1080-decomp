@@ -3623,11 +3623,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F84);
 //   a requested size is rounded up to a 16-byte multiple. A
 //   per-slot resource-binding configurator in the game_libs resource
 //   subsystem (the &D_0+0x164x globals are its mode buffers).
-// Caps: raw-word USO + 3-fn unsplit bundle + mode-switch — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
+//   .s is 0xDC/51 words, ONE function). Per-slot resource-binding
+//   configurator in the game_libs resource subsystem. Real-C
+//   STRUCTURAL body below per the analysis (id range-checked vs
+//   0x11, -1 on overflow; mode switch binds &D_0+0x1644 (2) /
+//   &D_0+0x1648 (3) / none; size 16-aligned; slot byte+2 = a1 tag).
+//   Byte-match deferred — mode-switch / align schedule. Name
+//   pre-checked: no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int D_00000000;
+int gl_func_00023FA4(int id, int a1, int mode, int size) {
+    char *g = (char *)&D_00000000;
+    char *s = (char *)id;
+    void *buf;
+    if ((unsigned)id >= 0x11) {
+        return -1;
+    }
+    if (mode == 2) {
+        buf = *(void **)(g + 0x1644);
+    } else if (mode == 3) {
+        buf = *(void **)(g + 0x1648);
+    } else {
+        buf = 0;
+    }
+    if (size & 0xF) {
+        size = (size + 0xF) & ~0xF;
+    }
+    *(char *)(s + 2) = (char)a1;
+    *(void **)(s + 8) = buf;
+    *(int *)(s + 0xC) = size;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023FA4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024070);
 
