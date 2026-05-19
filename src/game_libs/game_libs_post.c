@@ -23136,8 +23136,47 @@ void gl_func_000618F8(int *a0, int a1) {
     gl_func_00000000(a1, &gl_ref_00021F00, (int)a0 + 4, *a0);
 }
 
-/* gl_func_00061934: 40-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00061934: 40-insn self-init + factory call w/ Vec4 stack-arg buffer (0xA0, frame 0x58).
+ *
+ * Decoded structure (raw-word disasm):
+ *   self->[0x14] = 0; self->[0x10] = 0; self->[0x0C] = 0;
+ *   float vec[4] = {0.0f, 0.0f, 0.0f, *(float*)(&D + 0x2078)};
+ *   v0 = func(0, &D + 0x21F0C, 0x46, 0x78,
+ *             0x21, 0x14, vec[0], vec[1], vec[2], vec[3]);  // stack 0x10..0x24
+ *   self->[0x08] = v0;
+ *
+ * The Vec4 stack-arg copy is emitted as int-by-int lw/sw chain from local
+ * sp+0x48 buffer to callsite args sp+0x18..sp+0x24 — standard IDO emit
+ * for passing struct/fixed-stride buffer through stack.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00061934(int *self) {
+    extern int D_00000000;
+    int v0;
+    self[0x14 / 4] = 0;
+    self[0x10 / 4] = 0;
+    self[0x0C / 4] = 0;
+    {
+        float vec[4];
+        vec[0] = 0.0f;
+        vec[1] = 0.0f;
+        vec[2] = 0.0f;
+        vec[3] = *(float*)((char*)&D_00000000 + 0x2078);
+        v0 = (int)gl_func_00000000(0,
+                                    (char*)&D_00000000 + 0x21F0C,
+                                    0x46,
+                                    0x78,
+                                    0x21, 0x14,
+                                    vec[0], vec[1], vec[2], vec[3]);
+    }
+    self[0x08 / 4] = v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061934);
+#endif
 
 extern int gl_func_00000000();
 
