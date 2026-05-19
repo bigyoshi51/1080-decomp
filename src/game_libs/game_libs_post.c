@@ -1897,12 +1897,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 //   geometry, and calls USO-relocated sub-routines (`jal 0` slots).
 //   This is the heavyweight "(re)build the sprite record set" state
 //   reached from the gl_func_0002119C dispatcher.
-// Caps: raw-word USO + 3-fn unsplit bundle + very large multi-phase
-//   int/FP body with USO-reloc calls — not exact-matchable without
-//   proper USO mnemonic disasm; high-level structural pass only for
-//   the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
+//   .s is 0x8EC/549 words, ONE function). One of the largest
+//   gl_func_0002119C jump-table state handlers — the heavyweight
+//   "(re)build the sprite record set" layout state. Real-C
+//   STRUCTURAL body below per the analysis (clear &D_0+0x1E0C,
+//   stash (short)*tbl into &D_0+0x2036, setup(idx&0xFFFF), then a
+//   16-align + per-record FP convert/divide layout pass writing the
+//   &D_0+0x20xx config halfwords). Byte-match deferred — ~549-insn
+//   multi-phase int/FP with USO-reloc calls (need USO reloc infra)
+//   and -0x98 s0-s8 schedule. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder for the sub-routines.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00021498(void) {
+    char *g = (char *)&D_00000000;
+    unsigned char idx = *(unsigned char *)(g + 0x2CF1);
+    int q, sz, i, n;
+    float f;
+    *(int *)(g + 0x1E0C) = 0;
+    *(short *)(g + 0x2036) = (short)*(int *)g;
+    gl_func_00000000(idx & 0xFFFF);
+    q = *(int *)(g + 0x213C);
+    sz = (q + 0xF) & ~0xF;
+    f = (float)*(short *)(g + 0x203A);
+    n = *(short *)(g + 0x2036);
+    for (i = 0; i < n; i++) {
+        char *rec = g + 0x2D00 + i * 0x160;
+        if (f != 0.0f) {
+            *(float *)(rec + 0x10) = (float)*(int *)(rec + 0x14) / f;
+        }
+        gl_func_00000000(rec, sz, i);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D2C);
 
