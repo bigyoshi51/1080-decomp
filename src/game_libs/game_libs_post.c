@@ -5727,6 +5727,8 @@ int gl_func_0002DD90(int a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD90);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DDBC);
 #endif
 
 #ifdef NON_MATCHING
