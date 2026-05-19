@@ -11,8 +11,58 @@ typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
 
 
-/* gl_func_0000959C: 53-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000959C: 53-insn alloc + init + chain-walk dispatch (0xD4, frame 0x38).
+ *
+ * Decoded structure (raw-word disasm):
+ *   obj = func1(0x40);                              // 0x40-byte alloc
+ *   if (obj == NULL) goto exit;
+ *   func2(obj);                                      // init call
+ *   obj->[0x28] = &D_sym;                            // store sym ptr
+ *   obj->[0x3C] = 0;                                 // clear next-link
+ *
+ *   // Walk the chain at a0->[0x40] looking for end:
+ *   cur = a0->[0x40];
+ *   while (cur != NULL) {
+ *       prev = cur;
+ *       cur = cur->[0x10/4*N];                      // advance via offset
+ *       func3(prev + 0x10, obj);                     // process each node
+ *       if (some_field == 0) {                       // tail-check then either:
+ *           cur->[0x4] = 1;                          // mark
+ *       }
+ *       cur->[0x14] = (int)obj;                      // back-link
+ *   }
+ *
+ * Mix of alloc, init, sym attach, and a chain-walk through caller's list
+ * structure at a0->[0x40]. The dead `bne s1, $0` after `move s1, $0` is
+ * IDO's loop-back marker — s1 gets reassigned to alloc result on first
+ * pass and the loop reuses the branch on subsequent iterations.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000959C(int *a0) {
+    extern int D_sym_959C;
+    int *obj = (int*)gl_func_00000000(0x40);
+    int *cur;
+    if (obj == 0) return;
+    gl_func_00000000(obj);
+    obj[0x28 / 4] = (int)&D_sym_959C;
+    obj[0x3C / 4] = 0;
+    cur = (int*)a0[0x40 / 4];
+    while (cur != 0) {
+        int *prev = cur;
+        cur = (int*)cur[0x10 / 4];
+        gl_func_00000000((char*)prev + 0x10, obj);
+        if (prev[0x14 / 4] == 0) {
+            prev[0x4 / 4] = 1;
+        }
+        prev[0x14 / 4] = (int)obj;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000959C);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000959C_pad.s")
 
 extern int gl_func_00000000();
