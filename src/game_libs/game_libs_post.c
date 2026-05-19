@@ -17441,8 +17441,51 @@ int *gl_func_0004A670(int *a0, int a1, int a2, int a3) {
     return a0;
 }
 
-/* gl_func_0004A6E8: 57-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004A6E8: init + s16-copy. Decoded from bare stub
+ * 2026-05-19. void f(int *self):
+ *   self->0xC8=self->0xCC=self->0xC0=self->0xC4=self->0xD8 = 0;
+ *   cb1();  cb2(self);
+ *   g = *(int*)(&D_00000000 + 0x214);
+ *   self->0xD6 = (u16)((*(int**)((char*)g + 0x1C))[1]);   // g->0x1C->4
+ *   dst = cb3((self->0xD6 - self->0xD4) * 2);              // alloc buffer
+ *   for (i = 0; i < self->0xD6 - self->0xD4; i++)          // count reloaded
+ *       *(short*)(dst + i*2) = *(short*)(self->0xD0 + i*2);
+ * Multi-idiom (defer): 4 jal-0 (cb1/cb2/cb3 + the copy uses no
+ * call), the count `self->0xD6 - self->0xD4` is reloaded EVERY
+ * iteration (lh D4; lh D6; subu) — uncached; loop back-edge is
+ * `slt at,i,count; bnel at,0,TOP; lw t3,0xD0(s0) [delay-likely]`;
+ * dst advances via `addiu a1,a1,2; sh t5,-2(a1)` (post-advance
+ * store). cb3's result is the buffer base. Documented-hard
+ * loop+reload+bnel-likely shape — focused-pass. Real decoded C
+ * preserved; INCLUDE_ASM build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0004A6E8(int *self) {
+    int i;
+    int *g;
+    short *dst;
+    *(int *)((char *)self + 0xC8) = 0;
+    *(int *)((char *)self + 0xCC) = 0;
+    *(int *)((char *)self + 0xC0) = 0;
+    *(int *)((char *)self + 0xC4) = 0;
+    gl_func_00000000();
+    *(int *)((char *)self + 0xD8) = 0;
+    gl_func_00000000(self);
+    g = *(int **)((char *)&D_00000000 + 0x214);
+    *(short *)((char *)self + 0xD6) =
+        (*(int **)((char *)g + 0x1C))[1];
+    dst = (short *)gl_func_00000000(
+        (*(short *)((char *)self + 0xD6) -
+         *(short *)((char *)self + 0xD4)) * 2);
+    for (i = 0; i < *(short *)((char *)self + 0xD6) -
+                    *(short *)((char *)self + 0xD4); i++) {
+        dst[i] = *(short *)(*(int *)((char *)self + 0xD0) + i * 2);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A6E8);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004A7CC: global-queue append with optional bound assert.
