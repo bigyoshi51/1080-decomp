@@ -19085,6 +19085,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000478FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047AB4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047AD8);
+
 // gl_func_00047B40 — STRUCTURAL PASS (0x294 / 166 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
 // (near-leaf). SIBLING: byte-for-byte identical instruction stream to
