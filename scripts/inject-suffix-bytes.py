@@ -195,7 +195,8 @@ class ElfPatcher:
 
 
 def inject_suffix(o_path: Path, func_name: str, suffix_words: list[int],
-                  verify: bool, allow_natural_epilogue: bool = False):
+                  verify: bool, allow_natural_epilogue: bool = False,
+                  skip_if_size_ge: int | None = None):
     n_bytes = 4 * len(suffix_words)
     payload = b"".join(struct.pack(">I", w) for w in suffix_words)
 
@@ -208,6 +209,12 @@ def inject_suffix(o_path: Path, func_name: str, suffix_words: list[int],
     func_addr = fields[1]
     func_size = fields[2]
     tail_addr = func_addr + func_size  # where suffix is inserted
+
+    if skip_if_size_ge is not None and func_size >= skip_if_size_ge:
+        print(f"inject-suffix-skip: {func_name} size {func_size:#x} >= "
+              f"{skip_if_size_ge:#x}; no-op",
+              file=sys.stderr)
+        return
 
     text_idx = elf.find_section(".text")
     text_off = elf.sections[text_idx][4]
@@ -307,10 +314,15 @@ def main():
                          "Use when SUFFIX_BYTES + INSN_PATCH together overwrite "
                          "the body's last 2 insns. See "
                          "docs/POST_CC_RECIPES.md.")
+    ap.add_argument("--skip-if-size-ge", type=lambda s: int(s, 0),
+                    help="No-op when the function symbol is already at least "
+                         "this size. Useful for C builds that need a forced "
+                         "suffix but INCLUDE_ASM baselines already cover it.")
     args = ap.parse_args()
     inject_suffix(args.o_file, args.func_name, parse_words(args.suffix),
                   verify=not args.no_verify,
-                  allow_natural_epilogue=args.allow_natural_epilogue)
+                  allow_natural_epilogue=args.allow_natural_epilogue,
+                  skip_if_size_ge=args.skip_if_size_ge)
 
 
 if __name__ == "__main__":
