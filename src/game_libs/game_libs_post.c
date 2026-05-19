@@ -39,6 +39,8 @@ typedef struct { float x, y, z; } Vec3;
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CC98);
+
 // gl_func_0001CD64 — STRUCTURAL PASS (0x278 / 158 words, no episode).
 // Raw-.word USO form (game_libs RSP/graphics-library segment).
 // BOUNDARY NOTE: 2-jr USO bundle (named fn + 1 trailing helper) —
