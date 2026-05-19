@@ -17118,8 +17118,45 @@ int gl_func_00048720(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048720);
 #endif
 
-/* gl_func_0004880C: 37-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004880C: per-item cb loop over a0->0x594 entries.
+ * Decoded from bare stub 2026-05-18; algorithm correct, build 41
+ * vs 37 (count diff). Remaining (multi-pass, defer):
+ *  - the `if (v1 <= 0) return 1;` early-exit must COLLAPSE into the
+ *    shared `v0=1` epilogue: target = `blez v1, END` (single insn)
+ *    where END is the lone `addiu v0,zero,1; <restore>; jr ra` tail.
+ *    Use goto-END (like gl_func_00041524) so there is ONE v0=1
+ *    return, not a separate `b; li v0,1` early path (+~3 insns).
+ *  - per-iter flag arg = (i==0) ? 1 : (a0->0x594 == 2), emitted as
+ *    `sltiu a1,s0,1; bnez a1,callsetup; <else> xor a1,2,v1;
+ *    sltiu a1,a1,1`. The `||` form mis-compiles; needs the explicit
+ *    first-iter-skip shape (i==0 reuses the sltiu result =1).
+ *  - loop back-edge is `bnel at,zero,TOP` with the TOP `sltiu a1,
+ *    s0,1` pre-loaded in the delay-likely slot; early-exit on
+ *    cb<0 is `bgezl v0,CONT` with `lw v1,0x594(s2)` delay-likely,
+ *    fall-through `b END2; or v0,zero,zero` (return 0).
+ * Next pass: goto-label form with the explicit i==0 flag-skip and
+ * the two likely branches. Real decoded C preserved. */
+extern int gl_func_00000000();
+int gl_func_0004880C(int a0, int a1) {
+    int i;
+    int v1 = *(int *)(a0 + 0x594);
+    if (v1 <= 0) {
+        return 1;
+    }
+    for (i = 0; i < v1; i++) {
+        int flag = (i == 0) || (*(int *)(a0 + 0x594) == 2);
+        if (gl_func_00000000(a0, flag, a1) < 0) {
+            return 0;
+        }
+        v1 = *(int *)(a0 + 0x594);
+        a1 += 0x10;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004880C);
+#endif
 
 // gl_func_000488A0 — STRUCTURAL PASS + BOUNDARY NOTE (0x1D0 / 117 words, no
 // episode). Raw-.word USO. realjr=2, regjr=0 → 2-function BUNDLE: named fn
