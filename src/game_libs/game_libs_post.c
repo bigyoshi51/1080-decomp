@@ -25700,8 +25700,57 @@ void game_libs_func_000664F0(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066514);
 #endif
 
-/* gl_func_000665B4: 48-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000665B4: too-big-N-function-bundle (declared size 0xC0, 48 words).
+ * 2-function bundle.
+ *
+ * SUB-FUNCTION 1 (0x665B4..0x66620, 27 insns, 0x6C bytes) — retry-alloc-cache lookup:
+ *     void *f1(Obj *obj) {
+ *         while (1) {
+ *             if (obj->cache == NULL) {            // [0x4]
+ *                 obj->cache = alloc(0);           // arg = 0
+ *                 obj->refcount = obj->refcount+1; // [0x8]++
+ *             }
+ *             void *result = lookup_cached(obj->cache);  // jal <func>, no args
+ *             if (result != NULL) return result;
+ *             obj->cache = NULL;                   // invalidate, retry
+ *         }
+ *     }
+ *   Pattern: lazy-init cache with retry-on-failure. The beql loop-back at the
+ *   end uses the lw $a0, 0x4($s0) as delay-slot-likely (only executes on
+ *   loop-back to refresh the cache pointer for the next iteration's check).
+ *
+ * SUB-FUNCTION 2 (0x66620..0x66674, 21 insns, 0x54 bytes) — linked-list-remove-by-key:
+ *     void f2(LinkedList *list, int key) {
+ *         Node *prev = NULL;
+ *         Node *curr = list->head;  // [0]
+ *         if (!curr) return;
+ *         while (1) {
+ *             if (curr->key == key) {  // [0]
+ *                 if (prev) prev->next = curr->next;  // [4]
+ *                 else      list->head = curr->next;
+ *                 return;
+ *             }
+ *             prev = curr;
+ *             curr = curr->next;
+ *             if (!curr) return;
+ *         }
+ *     }
+ *   Pattern: standard singly-linked-list remove-by-key with head + middle
+ *   unlink paths. Uses bnel branch-likely for both the loop-skip ("not match,
+ *   advance") and the unlink-head-vs-middle dispatch.
+ *
+ * Notes:
+ *  - 3 internal `jr $ra` (at f1 epilogue 0x66618, f2 head-unlink 0x66648,
+ *    f2 middle-unlink 0x66654) + final jr at 0x6666C. Bundle confirmed.
+ *  - f2 layout uses 4-insn nodes: Node { int key; Node *next; } — 8 bytes each.
+ *  - Splat boundary issue: candidate for split-fragments.py.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00066674: 27-insn append-to-linked-list + 3-stub BUNDLE (0xAC declared,
