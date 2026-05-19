@@ -23477,8 +23477,55 @@ int gl_func_000625FC(int *a0, int a1) {
     return *entry;
 }
 
-/* gl_func_0006264C: 40-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006264C: 40-insn alloc-or-init + 14×-stride sub-init + 4-call (0xA0, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (self_or_null == NULL) {
+ *       obj = func1(0x48);                          // alloc 0x48 bytes
+ *       if (obj == NULL) return NULL;
+ *   } else {
+ *       obj = self_or_null;
+ *   }
+ *   func2(obj, &D + 0x220DC);                       // init w/ sym ptr
+ *   obj->[0x28] = &D_sym;
+ *   // 14× stride compute: (a2 << 3) - a2 = 7a, then << 1 = 14a
+ *   func3((char*)obj + 0x40, a3, a2 * 14);
+ *   obj->[0x2C] = 0;
+ *   obj->[0x34] = 0;
+ *   obj->[0x38] = a2;
+ *   func4(obj, 1, a1);
+ *   return obj;
+ *
+ * The `14*a2` is emitted as `addu at, a2; sll a2, 3; subu a2, at; sll a2, 1`
+ * — IDO standard shift-subtract-shift chain for constant multiply
+ * (`(a*8) - a = 7a; 7a*2 = 14a`).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int* gl_func_0006264C(int *self_or_null, int a1, int a2, int a3) {
+    extern int D_00000000;
+    extern int D_sym_6264C;
+    int *obj;
+    if (self_or_null == 0) {
+        obj = (int*)gl_func_00000000(0x48);
+        if (obj == 0) return 0;
+    } else {
+        obj = self_or_null;
+    }
+    gl_func_00000000(obj, (char*)&D_00000000 + 0x220DC);
+    obj[0x28 / 4] = (int)&D_sym_6264C;
+    gl_func_00000000((char*)obj + 0x40, a3, a2 * 14);
+    obj[0x2C / 4] = 0;
+    obj[0x34 / 4] = 0;
+    obj[0x38 / 4] = a2;
+    gl_func_00000000(obj, 1, a1);
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006264C);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_000626EC(char *a0) {
