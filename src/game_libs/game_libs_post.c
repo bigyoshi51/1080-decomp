@@ -26493,8 +26493,72 @@ void game_libs_func_00068BF4(int *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00068BAC_pad.s")
 
-/* gl_func_00068C14: 65-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00068C14: 65-insn ext-pre-init + 3-call cascade + linked-set finalizer (0x104, frame 0x38).
+ *
+ * Decoded structure (raw-word disasm):
+ *   func_pre(a0);                                     // pre-init (unknown args)
+ *   // Write to extension buffer self->[0]:
+ *   {
+ *       int **bufp = &self->[0];
+ *       int *p = *bufp; *bufp = p + 1;
+ *       p[0] = &D + 0x3C4F4;
+ *       p[1] = &D + 0x3C508;                          // sym pair (config keys)
+ *   }
+ *   // Conditional log on count <= 3:
+ *   if (count > 3) func_log(0xDD);                   // overflow log
+ *
+ *   // Write another sym to ext buffer:
+ *   {
+ *       int *p = *bufp; *bufp = p + 1;
+ *       p[0] = &D + 0x3C538;
+ *   }
+ *   // 2nd conditional log on diff condition
+ *   if (some_count != 0) func_log2(saved_arg);
+ *
+ *   // Sub-init via 2nd call returning v0:
+ *   func_sub(0, child_arg);                           // returns v0 = obj
+ *   self->[0x18] = v0;
+ *   self->[0x10] = v0;
+ *   v1 = *(int*)(v0+0x10); v1++; *(int*)(v0+0x10) = v1;  // post-incr ref-count
+ *
+ *   // Linked-set finalizer (back-link-with-conditional-flag — 6th sibling
+ *   // in the linked-set finalizer family per
+ *   // feedback_1080_linked_set_finalizer_tail_idiom memo):
+ *   if (obj->[0x14] != 0) obj->[0x4] = 1;
+ *   obj->[0x14] = self;
+ *   D_global->[0] = saved_a2 + i*4;                   // global update
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00068C14(int *self) {
+    extern int D_00000000;
+    extern int D_global;
+    int *obj;
+    gl_func_00000000(self);
+    /* Ext buf write 1: */
+    {
+        int **bufp = (int**)&self[0];
+        int *p = *bufp;
+        *bufp = p + 1;
+        p[0] = (int)((char*)&D_00000000 + 0x3C4F4);
+        p[1] = (int)((char*)&D_00000000 + 0x3C508);
+    }
+    /* Sub-init + linked-set: */
+    obj = (int*)gl_func_00000000(0);
+    self[0x18 / 4] = (int)obj;
+    self[0x10 / 4] = (int)obj;
+    obj[0x10 / 4]++;
+    if (obj[0x14 / 4] != 0) {
+        obj[0x4 / 4] = 1;
+    }
+    obj[0x14 / 4] = (int)self;
+    (void)D_global;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068C14);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00068D18: 47-insn double entry-write + lookup + 2-dispatch (0xBC, frame 0x38).
