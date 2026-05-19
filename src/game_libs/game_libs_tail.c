@@ -1557,8 +1557,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E910);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E9C0);
 
-/* gl_func_0000EAAC: 35-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000EAAC: 35-insn 4-arg create-and-link (0x8C, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   self->[0x9C] = a3;                              // store user data slot
+ *   node = gl_func(0, 0x4B);                        // factory call
+ *   self->[0x98] = node;                            // store node ref
+ *   gl_func(node, *(int*)self->[0x9C]);             // 2-arg init via stored a3
+ *   gl_func(node, a1_orig, a2_orig);                // 3-arg init w/ caller args
+ *   gl_func(&self[0x10/4], node);                   // 4-arg link (return ignored)
+ *   if (node->[0x14] != 0) node->[0x4] = 1;         // conditional flag
+ *   node->[0x14] = self;                            // back-link
+ *
+ * The tail (last 2 stmts) is the same back-link-with-conditional-flag
+ * pattern as gl_func_0000E66C — likely shared linked-set finalizer used
+ * across these helpers.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000EAAC(int *self, int a1, int a2, int a3) {
+    int *node;
+    int *target;
+    self[0x9C / 4] = a3;
+    node = (int*)gl_func_00000000(0, 0x4B);
+    self[0x98 / 4] = (int)node;
+    target = (int*)self[0x9C / 4];
+    gl_func_00000000(node, *target);
+    gl_func_00000000(node, a1, a2);
+    gl_func_00000000((char*)self + 0x10, node);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
+    }
+    node[0x14 / 4] = (int)self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000EAAC);
+#endif
 
 extern int gl_ref_00020CB0();
 int gl_func_0000EB38(char *a0) {
