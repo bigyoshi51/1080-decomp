@@ -20577,8 +20577,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005534C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055470);
 
-/* gl_func_000558A0: 31-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000558A0: 31-insn va_list-walking dispatch loop (0x7C, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   p = *va_ptr;                                   // a0 = int** (va_list head)
+ *   *va_ptr = p + 1;                                // advance va_list
+ *   s0 = *p;                                        // fetch first arg
+ *   if (s0 == 0) return;                            // NUL sentinel terminates
+ *   sp_args[1] = s0;                                // pre-store (delay slot, dead)
+ *   do {
+ *       sp_args[1] = s0 & 0xFFFF;                   // masked low-16
+ *       func(&sp_args);                             // callback w/ 4-slot args buffer
+ *       p = *va_ptr;
+ *       *va_ptr = p + 1;
+ *       s0 = *p;
+ *   } while (s0 != 0);
+ *
+ * sp_args[] is a 4-slot home buffer at sp+0x20..0x2C, pre-populated with
+ * (a0_orig=va_ptr, a1_orig, a2_orig, a3_orig) at entry and selectively
+ * overwritten with the masked varg value per iteration. The callback
+ * thus receives `{va_ptr, masked_varg, a2, a3}` — likely a printf-style
+ * format-spec consumer.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path (the
+ * caller-side va_arg shuffle with home-slot mutation is not
+ * reproducible from standard varargs C without intrinsics).
+ */
+void gl_func_000558A0(int **va_ptr, int a1, int a2, int a3) {
+    int sp_args[4];
+    int *p;
+    int s0;
+    sp_args[0] = (int)va_ptr;
+    sp_args[1] = a1;
+    sp_args[2] = a2;
+    sp_args[3] = a3;
+    p = *va_ptr;
+    *va_ptr = p + 1;
+    s0 = *p;
+    while (s0 != 0) {
+        sp_args[1] = s0 & 0xFFFF;
+        gl_func_00000000(&sp_args);
+        p = *va_ptr;
+        *va_ptr = p + 1;
+        s0 = *p;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000558A0);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005591C: 88-insn (0x160) varargs-style printf-like dispatcher
