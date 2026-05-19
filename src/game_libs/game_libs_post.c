@@ -25890,8 +25890,57 @@ void gl_func_000669B8(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000669B8);
 #endif
 
-/* gl_func_00066A50: 40-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00066A50: 40-insn panic/fatal handler — canary-reset + halt (size 0xA0, frame 0x20).
+ *
+ * COMPANION FUNCTION: this is the PANIC-INIT counterpart to gl_func_00066AF0
+ * (the canary verifier). 00066A50 RESETS the canary slots to 0x12345678 and
+ * halts; 00066AF0 VERIFIES them and prints an error string on mismatch.
+ *
+ * Decoded structure (raw-word disasm):
+ *   void f(int a0_save) {
+ *       // STAGE 1: debug-print with file/line context
+ *       *(sp+0x10) = (char*)&D_00000000 + 0x41310;  // file-name string ptr
+ *       *(sp+0x14) = 0xA;                             // line number (10)
+ *       debug_print(
+ *           (char*)&D_00000000 + 0x3F160,  // arg0: format string
+ *           2,                              // arg1: severity / category
+ *           (char*)&D_00000000 + 0,         // arg2: another string
+ *           0                               // arg3: nul
+ *       );
+ *
+ *       // STAGE 2: canary slot reset to magic 0x12345678
+ *       *(int*)((char*)&D_00000000 + 0x3F310) = 0x12345678;
+ *       *(int*)((char*)&D_00000000 + 0x3F314) = 0x12345678;  // matches 0x66AF0 slot 1
+ *
+ *       // STAGE 3: invoke cleanup hooks (likely fflush / sync-and-shutdown)
+ *       hook1((char*)&D_00000000 + 0x3F160);   // re-pass format string
+ *       hook2(0, 0);                            // null-arg cleanup
+ *
+ *       // STAGE 4: halt forever (`b .` infinite loop)
+ *       while (1) ;  // emit: b -1; nop
+ *
+ *       // STAGE 5: UNREACHABLE — IDO-emitted standard epilogue
+ *       // (5 padding nops, then lw $ra / addiu $sp / jr $ra / nop)
+ *       // (3-insn lead-in fragment at end: lui $t6,0x4; lw $t6,-0xCF0($t6);
+ *       //  lui $at,0x1234 — incomplete read-canary-start sequence, dead code)
+ *   }
+ *
+ * Notes:
+ *  - Pairs with reference_1080_canary_sentinel_pattern.md: this is the SETTER
+ *    half of the canary system (00066AF0 = checker).
+ *  - `b -1; nop` is the unconditional halt loop (1000FFFF / 00000000).
+ *  - Trailing nops + dead epilogue + 3-insn canary-read fragment all live
+ *    inside the declared 0xA0 region; they're IDO unreachable-code emission.
+ *    NOT a too-big-bundle (only one jr $ra).
+ *  - File-name string at D+0x41310 (likely "<filename>.c") and format string
+ *    at D+0x3F160 ("PANIC: %s line %d" or similar).
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066A50);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00066AF0: 29-insn debug-canary triple-check helper (size 0x74, frame 0x18).
