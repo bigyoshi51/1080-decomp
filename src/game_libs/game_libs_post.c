@@ -22347,8 +22347,27 @@ void gl_func_0005BAF4(float *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BAF4);
 #endif
 
-/* gl_func_0005BBCC: 66-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005BBCC: trivial single-call wrapper. frame 0x18, saves
+   only $ra, one jal reloc, args passed through unchanged.
+   BUNDLE BOUNDARY (DEFERRED USO RE-SPLIT): the .s declares size 0x108
+   but the named fn ends at its first jr $ra (0x5BBE4). FOUR separate
+   prologue-less FP leaves follow, splat couldn't separate (no symbols,
+   relocatable USO): 0x5BBEC (c.lt.s/bc1fl/neg.s/mov.s — fabs/clamp
+   select), 0x5BC04 (same compare-select idiom), 0x5BC24 (3-axis struct
+   clamp: lwc1/swc1 at +0/+4/+8 with the c.le.s/bc1fl pattern, b-skip
+   stores), 0x5BCAC (small FP-compare leaf); a 5th begins at 0x5BCCC
+   (lui/lwc1 from &D_00000000+0x2030). These are the documented-hard
+   FP-compare-branch (c.lt.s/bc1fl mov.s/neg.s select) cap family.
+   Next pass: split-fragments.py per leaf (each needs its symbol name),
+   then the FP-compare-branch grind per docs/IDO_CODEGEN.md. */
+extern int gl_func_00000000();
+void gl_func_0005BBCC(void) {
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BBCC);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005BCD4: 43-insn 2D-rotation transform (0xAC, frame 0x30).
