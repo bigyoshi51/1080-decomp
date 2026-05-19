@@ -30011,8 +30011,70 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073904);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00073E74_pad.s")
 
-/* gl_func_000743C4: 66-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000743C4: 66-insn 64-bit-arithmetic timestamp/range helper (size 0x108, frame 0x30).
+ *
+ * Computes a 64-bit subtraction across two function-returned values, optionally
+ * applies a wrap correction, and stores 4 32-bit fields to an output Obj.
+ *
+ * Decoded structure (raw-word disasm):
+ *   void compute_delta(int *out_obj, /* a0 — destination */
+ *                      int unused_a1,
+ *                      uint32_t a_hi, uint32_t a_lo,  // a2:a3 = first 64-bit operand
+ *                      uint32_t b_hi, uint32_t b_lo,  // sp+0x40:0x44 = second
+ *                      uint32_t c_hi, uint32_t c_lo)  // sp+0x48:0x4C = third? (read later)
+ *   {
+ *       // STAGE 1: jal #1 (a2, a3, sp_arg40_lo, sp_arg44_hi)
+ *       int64_t r1 = func1(a_hi, a_lo, sp_arg44, sp_arg40);
+ *
+ *       // STAGE 2: jal #2 (sp_arg40, sp_arg44, r1_v0, r1_v1) — chain
+ *       int64_t r2 = func2(sp_arg40, sp_arg44, r1.lo, r1.hi);
+ *
+ *       // STAGE 3: 64-bit subtract  diff = saved_a2:a3 - r2_v0:v1
+ *       uint64_t diff = ((uint64_t)saved_a2 << 32 | saved_a3) -
+ *                       ((uint64_t)r2.hi    << 32 | r2.lo);
+ *       int32_t  d_hi = (int32_t)(diff >> 32);
+ *       uint32_t d_lo = (uint32_t)diff;
+ *
+ *       // STAGE 4: range adjustment based on sign of d_hi
+ *       if (d_hi > 0) {
+ *           // positive: use diff as-is
+ *       } else if (d_hi < 0) {
+ *           // negative: subtract sp_arg40:sp_arg44 from diff (wrap correction)
+ *           int64_t adj = (uint64_t)d_hi << 32 | d_lo;
+ *           adj -= ((uint64_t)sp_arg40 << 32 | sp_arg44);
+ *           d_hi = (int32_t)(adj >> 32);
+ *           d_lo = (uint32_t)adj;
+ *           // r1 also adjusted: r1.lo++; r1.hi += (r1.lo == 0 ? 1 : 0)  (saturating)
+ *       }
+ *       // (d_hi == 0: use diff as-is, no adjust)
+ *
+ *       // STAGE 5: store 4 fields to out_obj
+ *       *(int*)(out_obj + 0x0) = r1.hi;
+ *       *(int*)(out_obj + 0x4) = r1.lo;
+ *       *(int*)(out_obj + 0x8) = d_hi;
+ *       *(int*)(out_obj + 0xC) = d_lo;
+ *   }
+ *
+ * Notes:
+ *  - Uses standard 64-bit subtract sequence:
+ *      subu $hi_diff, $hi_a, $hi_b
+ *      sltu $borrow, $lo_a, $lo_b
+ *      subu $hi_diff, $hi_diff, $borrow
+ *      subu $lo_diff, $lo_a, $lo_b
+ *  - The bltzl branch-likely after bgtz/bltz forms a 3-way dispatch on signed
+ *    64-bit comparison (positive / negative / zero).
+ *  - 4-field store is the canonical "save 64-bit timestamp pair + 64-bit delta"
+ *    pattern. Likely tracks elapsed-time / lap-time / frame-counter delta.
+ *  - Trailing 2-insn fragment (`mult $a1, $a2; mflo $v0`) past epilogue —
+ *    likely incomplete next function fragment. Variant of
+ *    feedback_splat_too_big_incomplete_fragment_tail.md.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000743C4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000744CC: 31-insn divide-correction helper w/ IDO trap prologue (0x7C, frame 0x08).
