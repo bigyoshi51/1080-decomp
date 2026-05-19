@@ -6035,6 +6035,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F1B8);
+
 // gl_func_0002F288 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A heavily-FP per-object physics / value-ramp update.
