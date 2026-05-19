@@ -19996,6 +19996,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ *
+ * build/non_matching test 2026-05-19: 32 vs 33 (count -1). Residual
+ * is the documented beq/beql command-dispatch shaping: target emits
+ * `beq v0,0x6A,SET` then `beql v0,0x6B,CLR` (delay-likely
+ * `lw v1,4(a1)`) then `b OTHER` for the default; the if/else-if
+ * here emits `bnel`/`b` instead and is 1 insn short. Needs the
+ * sparse-switch/ordered-if shape that yields beq-first +
+ * beql-second + b-default with the va_arg load in the beql
+ * delay-likely slot (see docs/IDO_CODEGEN.md branch-likely /
+ * sparse-switch). Documented-hard idiom — deferred to a focused
+ * pass; algorithm/structure already exact, INCLUDE_ASM build path.
  */
 void gl_func_0005256C(int *a0, int **a1) {
     int op = *(int*)a1;
