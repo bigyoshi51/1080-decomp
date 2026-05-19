@@ -2348,11 +2348,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
 //   search comparing the requested `size` against block free space.
 //   The low-level allocator under the gl_func_0001FD98 alloc helper /
 //   gl_func_00021F40 registry family.
-// Caps: raw-word USO + first-fit allocator loop — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Custom first-fit HEAP
+//   ALLOCATOR (low-level allocator under the gl_func_0001FD98 /
+//   gl_func_00021F40 family). Real-C STRUCTURAL body below per the
+//   analysis (arena globals &D_0+0x1E08 table base / +0x1E0C free
+//   cursor / +0x1E10 end; 0x10-byte block headers, word+4 = size,
+//   halfword+0xA = capacity; first-fit walk returning the first
+//   block whose free space fits `size`). Byte-match deferred —
+//   allocator loop / split-or-advance branch schedule. Name
+//   pre-checked: no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int D_00000000;
+void *gl_func_00022760(void *a0, int size, void *arena, char *a3) {
+    char *g = (char *)&D_00000000;
+    char *base = *(char **)(g + 0x1E08);
+    char *end = *(char **)(g + 0x1E10);
+    int idx;
+    if (arena == 0 && a3 != 0 && *(unsigned char *)a3 < (int)end) {
+        /* default-arena bounds adjust (structural) */
+    }
+    for (idx = 0;; idx++) {
+        char *b = base + idx * 0x10;
+        if (b >= end) {
+            return 0;
+        }
+        if (size <= *(int *)(b + 4)) {
+            short cap = *(short *)(b + 0xA);
+            if (cap - size >= 0) {
+                return b;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
+#endif
 
 // gl_func_00022A9C — STRUCTURAL PASS (0x2CC / 179 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
