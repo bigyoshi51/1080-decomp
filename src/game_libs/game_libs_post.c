@@ -4808,11 +4808,35 @@ int gl_func_000261F4() {
 //   the round-robin slot scheduler/dispatcher of the game_libs
 //   subsystem (cursor sibling to the &D_0+0x1030 element count used
 //   by gl_func_00025504).
-// Caps: raw-word USO + ring-modulo guarded sdiv + indirect callback
-//   — not exact-matchable without proper USO mnemonic disasm; high-
-//   level structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Round-robin slot
+//   scheduler/dispatcher of the game_libs subsystem (cursor sibling
+//   to the &D_0+0x1030 count used by gl_func_00025504). Real-C
+//   STRUCTURAL body below per the analysis (cur=&D_0+0x2078,
+//   lim=&D_0+0x2034 (ring size); nxt=(cur+1)%lim — the break 7 /
+//   break 6 words are GCC div0 / INT_MIN traps not real paths;
+//   advance cur, wrap handling; cb=*(fnp*)&D_0+0 dispatch if
+//   non-null; process slot under new cursor). Byte-match deferred —
+//   ring-modulo guarded sdiv + indirect callback schedule. Name
+//   pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00026214(int a0) {
+    char *g = (char *)&D_00000000;
+    int cur = *(int *)(g + 0x2078);
+    int lim = *(short *)(g + 0x2034);
+    int nxt = (lim != 0) ? ((cur + 1) % lim) : 0;
+    void (*cb)(void) = *(void (**)(void))g;
+    *(int *)(g + 0x2078) = cur + 1;
+    if (cb != 0) {
+        cb();
+    }
+    return gl_func_00000000(nxt, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026214);
+#endif
 
 // gl_func_00026790 — STRUCTURAL PASS (0x3B8 / 238 words ≈ 0.9KB, no
 // episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO
