@@ -19807,7 +19807,55 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053A2C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00054144: triangle-centroid (average of 3 vertices).
+ * Zeros the Vec3 accumulator at a1, loops 3x reading three u16 vertex
+ * indices from the a0->0x68 directory entry [a2] (8-byte stride, the
+ * indices at byte offsets +2/+4/+6), indexes the a0->0x60 6-byte
+ * record array (record = base + idx*6), reads 3 s16 fields (x/y/z at
+ * +0/+2/+4), converts to float and accumulates into a1[0..2], then
+ * divides each by 3.0f. The decoded algorithm below is correct.
+ *
+ * Cap (in progress, chained-inheritance UNLOCK path): the declared
+ * symbol is 57 words = 51-word body (insns at 0x54144..0x5420C, jr ra
+ * + swc1-delay) PLUS a 6-word post-jr-ra TAIL
+ *   lw t7,0x54(a0); sll t8,a2,2; subu t8,t8,a2; sll t8,t8,2;
+ *   addu t9,t7,t8; lw t1,0(t9)
+ * that materializes $t9/$t1 as the stolen prologue for the
+ * fall-through successor gl_func_00054228. Prior analysis said
+ * SUFFIX_BYTES was blocked "because predecessor is INCLUDE_ASM";
+ * making this C-emit UNBLOCKS it. Plan: tighten the body to byte-
+ * exact (51 words), then add to the Makefile
+ *   build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES :=
+ *     game_libs_func_00054144=0x8C8F0054,0x0006C080,0x0306C023,
+ *     0x0018C080,0x01F8C821,0x8F290000
+ * which restores the 6-word tail and unblocks the successor too.
+ * Current body draft is structurally off (statement order: target
+ * zeros a1[] BEFORE loading a0->0x68/0x60; `idx*6` must emit
+ * `multu t1,a3` with a3=6 held in a reg, not a shift/add of literal
+ * 6; ~76 vs 51 insns). Needs FP-regalloc + multu-form iteration —
+ * deferred to a focused multi-pass. Real C preserved for tightening. */
+void game_libs_func_00054144(int *a0, float *a1, int a2) {
+    int i;
+    char *dir = (char *)a0[0x1A] + a2 * 8;
+    char *recbase = (char *)a0[0x18];
+    a1[0] = 0.0f;
+    a1[1] = 0.0f;
+    a1[2] = 0.0f;
+    for (i = 0; i != 6; i += 2) {
+        unsigned short vi = *(unsigned short *)(dir + i + 2);
+        short *rec = (short *)(recbase + vi * 6);
+        a1[0] += (float)rec[0];
+        a1[1] += (float)rec[1];
+        a1[2] += (float)rec[2];
+    }
+    a1[0] /= 3.0f;
+    a1[1] /= 3.0f;
+    a1[2] /= 3.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054144);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00054228: 15-insn function INHERITS $t9 and $t1 from predecessor
