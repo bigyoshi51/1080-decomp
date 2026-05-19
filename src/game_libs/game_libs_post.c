@@ -22563,8 +22563,46 @@ void gl_func_0005D20C(float *out, float *q) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
 #endif
 
-/* gl_func_0005D30C: 66-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005D30C: Euler-angles -> quaternion composer. Inits out to
+   the identity quat {0,0,0,1} (out[0..2]=0, out[3]=1.0); the three
+   float angle inputs arrive in $a1/$a2/$a3 (standard o32 mixed
+   int/float ABI: a0 is the out ptr so the trailing float args land in
+   GPRs and are mtc1'd in -- NOT the caller-set-float cap). Then three
+   per-axis blocks: each builds an axis-angle quat in a sp+0x80 Vec4
+   scratch from a sincos pair, and quaternion-multiplies it into the
+   s0(=out) accumulator (X: {s,0,0,c}; Y: {0,s,0,c}; Z: {0,0,s,c}).
+   DEFERRED: documented-hard multi-call FP orchestrator -- NINE
+   unresolved jal relocs (sin/cos pair x3, quat-mul x3, plus the
+   pre-normalization divs on $f12/$f14/$f22), $f20/$f22 callee-save FP
+   (sdc1/ldc1), $s0=out held across. Next pass: resolve the 9 relocs
+   (identify the trig + quaternion-multiply helpers), pin the exact FP
+   normalization (div.s operands), then grind the FP/sreg schedule. */
+extern int gl_func_00000000();
+void gl_func_0005D30C(float *out, float ax, float ay, float az) {
+    float q[4];
+    int axis;
+    out[0] = 0.0f;
+    out[1] = 0.0f;
+    out[2] = 0.0f;
+    out[3] = 1.0f;
+    ax = ax / az;
+    ay = ay / az;
+    for (axis = 0; axis < 3; axis++) {
+        float a = (axis == 0) ? ax : (axis == 1) ? ay : az;
+        float s = (float)gl_func_00000000(a);
+        float c = (float)gl_func_00000000(a);
+        q[0] = 0.0f;
+        q[1] = 0.0f;
+        q[2] = 0.0f;
+        q[axis] = s;
+        q[3] = c;
+        gl_func_00000000(q, out, out);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D30C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005D414: 24-insn dispatcher making 3 cross-USO callbacks
