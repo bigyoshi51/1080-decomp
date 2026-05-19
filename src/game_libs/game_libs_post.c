@@ -2587,11 +2587,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022DE0);
 //   tables of the same &D_0 sprite/registry subsystem; the 4 trailing
 //   bundled helpers are their tiny companions (one reads &D_0+0x2C40)
 //   left for the deferred USO re-split.
-// Caps: raw-word USO + 5-fn unsplit bundle + fixed-target poll call —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "5-fn unsplit bundle" note is
+//   STALE; .s is 0x78/30 words, ONE function). Triplet sibling of
+//   gl_func_00022D68 / gl_func_00022DE0 — status-query readiness
+//   helper, table &D_0+0x2C10, poll arg 2. Real-C STRUCTURAL body
+//   below per the analysis. Byte-match deferred — placeholder jal-0
+//   poll needs USO reloc infra. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00022E58(int a0) {
+    char *st = (char *)&D_00000000 + 0x2C10;
+    int r;
+    if (a0 == 0xFF) {
+        return 1;
+    }
+    if (*(unsigned char *)(st + a0) < 2) {
+        return 1;
+    }
+    r = gl_func_00000000(2);
+    if (*(unsigned char *)(st + r) < 2) {
+        return 0;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022E58);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022ED0);
 
