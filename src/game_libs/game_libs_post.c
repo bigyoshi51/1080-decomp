@@ -24417,8 +24417,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FC78);
 
-/* gl_func_0006FDE8: 29-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006FDE8: 29-insn 4-call cascade w/ 64-bit-add via carry detect (0x74, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   func(a0, a1);                                   // 1st call
+ *   v0_2 = func();                                  // 2nd call (a0/a1 post-1st-call state)
+ *   *D_global = v0_2;                                // store 2nd-call result
+ *   // 64-bit add: D_X = D_X + (a0_saved:a1_saved)
+ *   {
+ *       int low  = *D_X_low + a1_saved;
+ *       int carry = ((unsigned)low < (unsigned)a1_saved);
+ *       int high = D_X_hi + carry + a0_saved;
+ *       // saved to sp+0x20 / sp+0x24 (callsite stack args for func3)
+ *   }
+ *   func(low, ..., high_via_stack);                  // 3rd call (low in $a0, high at sp+0x20/0x24)
+ *   func(v0_2);                                      // 4th call w/ 2nd-call result
+ *
+ * The 64-bit add via `sltu at, low, addend` + `addu carry, sym_lo` pattern is
+ * IDO's standard expansion for `(s64)X = (s64)D + (s64)(a0,a1)` when args
+ * 0-1 are an int64 pair (a0=hi, a1=lo).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+extern int D_global_val;
+extern unsigned int D_X_low, D_X_hi;
+void gl_func_0006FDE8(int a0_hi, unsigned int a1_lo) {
+    int v0_2;
+    unsigned int low;
+    int high;
+    gl_func_00000000(a0_hi, a1_lo);
+    v0_2 = gl_func_00000000();
+    D_global_val = v0_2;
+    low = D_X_low + a1_lo;
+    high = D_X_hi + (low < a1_lo ? 1 : 0) + a0_hi;
+    /* Pass (low, high) to 3rd call — high is callsite-stack arg at sp+0x20. */
+    gl_func_00000000(low, /*high via stack*/ high);
+    gl_func_00000000(v0_2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FDE8);
+#endif
 
 /* gl_func_0006FE5C: helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FE5C);
