@@ -4734,11 +4734,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025C54);
 //   leading 0x0C00E081 (≈0x38204) resolve primes the sweep. A
 //   secondary registry scan/resolve pass over a parallel index table
 //   (&D_0+0x2540) into the primary registry.
-// Caps: raw-word USO + fixed-target resolve/poll calls — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Secondary registry scan
+//   /resolve pass — walks parallel index table &D_0+0x2540 (count
+//   &D_0+0x2534, stride 0x14) and resolves each active entry into
+//   the primary registry &D_0+0x2030 (the same 0x14 table
+//   gl_func_00025AC8 / gl_func_00025C54 walk). Real-C STRUCTURAL
+//   body below per the analysis (fixed 0x38204(2) prime; for each
+//   entry with hw+0==1, poll 0x38174(1)->j, k=e->2, rec =
+//   *&D_0+0x2030 + j*0x14, proc(2,k,rec)). Byte-match deferred —
+//   placeholder jal-0 resolves need USO reloc infra + bnel scan.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_000260B4(void) {
+    char *g = (char *)&D_00000000;
+    int n = *(int *)(g + 0x2534);
+    char *e;
+    int i;
+    gl_func_00000000(2);
+    if (n <= 0) {
+        return;
+    }
+    e = g + 0x2540;
+    for (i = 0; i < n; i++) {
+        if (*(short *)(e + 0) == 1) {
+            int j = gl_func_00000000(1);
+            short k = *(short *)(e + 2);
+            char *rec = *(char **)(g + 0x2030) + j * 0x14;
+            gl_func_00000000(2, k, rec);
+        }
+        e += 0x14;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000260B4);
+#endif
 
 extern int gl_ref_0003A880();
 int gl_func_000261F4() {
