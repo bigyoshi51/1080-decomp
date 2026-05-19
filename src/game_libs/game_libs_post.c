@@ -25668,8 +25668,46 @@ int game_libs_func_00067F20(unsigned char *a0) {
     return 0;
 }
 
-/* gl_func_00067F58: 60-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00067F58: 18-insn 4-call cascade + 5-stub BUNDLE (0xF0 declared,
+ * real fn is 18 insns = 0x4C; rest are 5 small leaf utilities).
+ *
+ * Decoded fn 1 (gl_func_00067F58 proper):
+ *   func1(a0);
+ *   v0 = func2(...);                                  // arg setup overlaps via delay slot
+ *   if (v0 == 0) {
+ *       func3(&D_00000000 + 0x2AA40);                 // error log
+ *   }
+ *   func4(v0, a0);
+ *   return v0;
+ *
+ * Bundled stubs @0x4C-0xF0 (5 small leaf utilities, need fragment-split):
+ *   - @0x4C (19 insns): byte-counting helper — scan a string for char,
+ *     returns count of bytes (`while (*p++) count++;` style)
+ *   - @0xA0: FP-cast helper — short load (`lhu`) + cvt.d.w + arith — converts
+ *     short to double w/ table lookup at &D + 0x2AA60 base
+ *   - @0xE0: similar FP helper with table at &D + 0x2AA60
+ *   - more stubs after
+ *
+ * Marker said 60-insn — real fn 18 + bundled stubs make total 60.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_00067F58(int a0) {
+    extern int D_00000000;
+    int v0;
+    gl_func_00000000(a0);
+    v0 = (int)gl_func_00000000();
+    if (v0 == 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x2AA40);
+    }
+    gl_func_00000000(v0, a0);
+    return v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
+#endif
 
 /* gl_func_00068048: 107-insn (0x1AC) FPU-heavy float clamp/range chain.
  * Single function (1 jr ra). Stack frame -0x28 with sdc1 f22/f20 (callee-
