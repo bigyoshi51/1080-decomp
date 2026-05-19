@@ -25497,8 +25497,58 @@ int gl_func_0006C9F4(int direction, unsigned int devAddr, int dramAddr, unsigned
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C9F4);
 #endif
 
-/* gl_func_0006CAD4: 43-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006CAD4: 43-insn PIF DMA wrapper (Serial Interface I/O) (0xAC, frame 0x18).
+ *
+ * RECOGNIZED HARDWARE PATTERN: writes to 0xA4800000 (SI_DRAM_ADDR_REG) and
+ * 0xA4800004 (SI_PIF_ADDR_RD64B_REG) / 0xA4800010 (SI_PIF_ADDR_WR64B_REG)
+ * with the value 0x1FC007C0 = PIF RAM start (K1-mapped). This is an
+ * N64 PIF controller-block 64-byte DMA wrapper.
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (factory(dir, buf) != 0) return -1;            // factory init / validate
+ *   dma_buf = (dir == 1) ? func_prep_wr(buf, 0x40)
+ *                        : func_prep_rd(buf);          // 0x40 = 64-byte PIF block
+ *   *(volatile int*)0xA4800000 = dma_buf;              // SI_DRAM_ADDR
+ *   if (dir == 0) {
+ *       *(volatile int*)0xA4800004 = 0x1FC007C0;       // SI_PIF_ADDR_RD64B (trigger PIF→DRAM)
+ *   } else {
+ *       *(volatile int*)0xA4800010 = 0x1FC007C0;       // SI_PIF_ADDR_WR64B (trigger DRAM→PIF)
+ *   }
+ *   if (dir == 0) {
+ *       func_post_rd(buf, 0x40);                       // post-read processing
+ *   }
+ *   return 0;
+ *
+ * Register addresses match libultra `osSiRawReadIo`/`osSiRawWriteIo`-style
+ * direct hardware access for controller pak / EEPROM communication.
+ * 0x1FC007C0 = PIF RAM start.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_0006CAD4(int dir, int buf) {
+    int dma_buf;
+    if (gl_func_00000000(dir, buf) != 0) return -1;
+    if (dir == 1) {
+        dma_buf = (int)gl_func_00000000(buf, 0x40);
+    } else {
+        dma_buf = (int)gl_func_00000000(buf);
+    }
+    *(volatile int*)0xA4800000 = dma_buf;
+    if (dir == 0) {
+        *(volatile int*)0xA4800004 = 0x1FC007C0;
+    } else {
+        *(volatile int*)0xA4800010 = 0x1FC007C0;
+    }
+    if (dir == 0) {
+        gl_func_00000000(buf, 0x40);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CAD4);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CAD4_pad.s")
 
 #ifdef NON_MATCHING
