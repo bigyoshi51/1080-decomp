@@ -25561,8 +25561,59 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000693A4);
 
-/* gl_func_000695F4: 37-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000695F4: 37-insn alloc-or-init + sym-store + sentinel-branch (0x94, frame 0x18).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (self_or_null == NULL) {
+ *       obj = func1(0x98);                          // alloc 0x98 bytes
+ *       if (obj == NULL) return NULL;
+ *   } else {
+ *       obj = self_or_null;
+ *   }
+ *   func2(obj, &D_00000000 + 0x2C5A8);              // init w/ string sym
+ *   obj->[0x28] = &D_sym;
+ *   if (obj == (int*)-72) {                          // sentinel-pointer guard
+ *       int *v1 = func3(4);
+ *       if (v1 != NULL) *v1 = 0;
+ *   } else {
+ *       *(int*)((char*)obj + 0x48) = 0;             // normal: clear obj->[0x48]
+ *   }
+ *   obj->[0x38] = 0;
+ *   obj->[0x90] = a2;
+ *   return obj;
+ *
+ * The `bne a3, at(-72)` compares obj-pointer to magic -72 — likely a
+ * sentinel "error pointer" check or IDO codegen peculiarity.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int* gl_func_000695F4(int *self_or_null, int a1, int a2) {
+    extern int D_00000000;
+    extern int D_sym_695F4;
+    int *obj;
+    if (self_or_null == 0) {
+        obj = (int*)gl_func_00000000(0x98);
+        if (obj == 0) return 0;
+    } else {
+        obj = self_or_null;
+    }
+    gl_func_00000000(obj, (char*)&D_00000000 + 0x2C5A8);
+    obj[0x28 / 4] = (int)&D_sym_695F4;
+    if (obj == (int*)-72) {
+        int *v1 = (int*)gl_func_00000000(4);
+        if (v1 != 0) *v1 = 0;
+    } else {
+        *(int*)((char*)obj + 0x48) = 0;
+    }
+    obj[0x38 / 4] = 0;
+    obj[0x90 / 4] = a2;
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000695F4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069688);
 
