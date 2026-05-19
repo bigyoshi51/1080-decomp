@@ -3311,6 +3311,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027300);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002737C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000273AC);
+
 /* gl_func_00027548: 17-insn (0x44) F3DEX2-style display-list-word builder.
  * Computes a packed 32-bit dlist word:
  *   packed = 0xFA000000 | ((a0 & 0xFF) << 16) | ((a1 & 0xFF) << 8) | (a2 & 0xFF)
