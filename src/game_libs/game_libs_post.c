@@ -17492,7 +17492,6 @@ void game_libs_func_0004C20C(int *a0, int a1) {
     *(int*)((char*)a0 + 0x1B4) = a1;
 }
 
-#ifdef NON_MATCHING
 extern int func_00000000();
 void gl_func_0004C214(int *a0) {
     int *p;
@@ -17506,9 +17505,6 @@ void gl_func_0004C214(int *a0) {
     func_00000000(p);
     p[0x68/4] = ((int*)p[0xC/4])[1] - p[0x64/4];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C214);
-#endif
 
 /* gl_func_0004C288: 30-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C288);
