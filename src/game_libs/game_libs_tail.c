@@ -1719,8 +1719,51 @@ void gl_func_0000E6E8(int *self, int a1, int a2, float *a3_float) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E6E8);
 #endif
 
-/* gl_func_0000E79C: 44-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000E79C: 44-insn lazy-init + 4-call chain + linked-set finalizer (0xB0, frame 0x30).
+ *
+ * Sibling of gl_func_0000E6E8 with different field offsets and one extra
+ * a2 arg on the factory call. Same overall pattern.
+ *
+ * Decoded structure (raw-word disasm):
+ *   self->[0x88] = a3_int_ptr;                       // save arg ptr
+ *   if (self->[0x64] == 0) func1_init();             // lazy init
+ *   obj = func2(0, self->[0x64], self->[0x68]);      // factory (3-arg vs E6E8's 2-arg)
+ *   self->[0x84] = obj;
+ *   func3(obj, *(int*)self->[0x88], 1);              // 3-arg init w/ literal 1
+ *   func4(obj, a1, a2);                                // 3-arg dispatch
+ *   func5(&self[0x10/4], obj);                         // linked-set register
+ *   // Standard back-link-with-conditional-flag finalizer:
+ *   if (obj->[0x14] != 0) obj->[0x4] = 1;
+ *   obj->[0x14] = self;
+ *
+ * Same finalizer tail as gl_func_0000E66C / EAAC / 525F0 / E6E8 (5th
+ * sibling — per feedback_1080_linked_set_finalizer_tail_idiom memo).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000E79C(int *self, int a1, int a2, int *a3_int_ptr) {
+    int *obj;
+    self[0x88 / 4] = (int)a3_int_ptr;
+    if (self[0x64 / 4] == 0) {
+        gl_func_00000000();
+    }
+    obj = (int*)gl_func_00000000(0, self[0x64 / 4], self[0x68 / 4]);
+    self[0x84 / 4] = (int)obj;
+    gl_func_00000000(obj, *(int*)self[0x88 / 4], 1);
+    obj = (int*)self[0x84 / 4];
+    gl_func_00000000(obj, a1, a2);
+    obj = (int*)self[0x84 / 4];
+    gl_func_00000000((char*)self + 0x10, obj);
+    if (obj[0x14 / 4] != 0) {
+        obj[0x4 / 4] = 1;
+    }
+    obj[0x14 / 4] = (int)self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E79C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E84C);
 
