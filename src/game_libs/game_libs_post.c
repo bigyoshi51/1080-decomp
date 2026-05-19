@@ -5046,11 +5046,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C9C);
 //   &D_0+0x53B9 (a committed/last-good shadow). The trailing bundled
 //   fn is its companion 1-line state setter (writes &D_0+0x53B9 /
 //   0x53BA). A state-commit helper in the game_libs subsystem.
-// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc submit
-//   — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "2-fn unsplit bundle" note is
+//   STALE; .s is 0x5C/22 words, ONE function). Small state-commit
+//   helper in the game_libs subsystem. Real-C STRUCTURAL body below
+//   per the analysis (range-check a0 — OOB records to diagnostic
+//   &D_0+0x2B594 and aborts; pack ((a3&0xFF)<<8)|(a2&0xFF); hand to
+//   jal-0 submit(*&D_0+0x53CC,packed,0); on success != -1 promote
+//   the &D_0+0x53B8 state byte into committed shadow &D_0+0x53B9).
+//   Byte-match deferred — placeholder jal-0 submit needs USO reloc
+//   infra. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00026CF0(int a0, int a1, int a2, int a3) {
+    char *g = (char *)&D_00000000;
+    int packed, r;
+    (void)a1;
+    if ((unsigned)a0 >= 0x100) {
+        *(int *)(g + 0x2B594) = a0;
+        return;
+    }
+    packed = ((a3 & 0xFF) << 8) | (a2 & 0xFF);
+    r = gl_func_00000000(*(void **)(g + 0x53CC), packed, 0);
+    if (r != -1) {
+        *(unsigned char *)(g + 0x53B9) = *(unsigned char *)(g + 0x53B8);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026CF0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026D4C);
 
