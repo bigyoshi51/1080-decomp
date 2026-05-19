@@ -3163,11 +3163,43 @@ int gl_func_00023598(int a0, int a1, int a2) {
 //   selected record, then walks that record's associated buffer run.
 //   The cross-cutting "process record together with its stream"
 //   operation that links the registry/record and buffer-run families.
-// Caps: raw-word USO + jal-0 USO-reloc processor + run loop — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Cross-cutting "process record
+//   together with its stream" op linking the gl_func_0001FBD4 record
+//   table and the gl_func_00022FC0 buffer-run families. Real-C
+//   STRUCTURAL body below per the analysis (bufIdx range-check vs
+//   &D_0+0x202C; rec = &D_0+0x2D00 + recIdx-scaled stride; jal-0
+//   USO-reloc processor(rec); then walk the &D_0+0x2028 buf[bufIdx]
+//   run-length byte stream). Byte-match deferred — placeholder jal-0
+//   processor needs USO reloc infra + stride-shift / run-loop
+//   schedule. Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_000235E4(int recIdx, int bufIdx, int arg) {
+    char *g = (char *)&D_00000000;
+    char *rec;
+    short *buf;
+    int cur, cnt;
+    if (bufIdx >= *(short *)(g + 0x202C)) {
+        return 0;
+    }
+    rec = g + 0x2D00 + ((recIdx * 3) << 2 << 5);
+    gl_func_00000000(rec);
+    buf = *(short **)(g + 0x2028);
+    cur = buf[bufIdx];
+    cnt = *((unsigned char *)buf + cur);
+    do {
+        cur++;
+        gl_func_00000000(*((unsigned char *)buf + cur), arg);
+        cnt--;
+    } while (cnt > 0);
+    buf[bufIdx] = (short)cur;
+    return cur;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000235E4);
+#endif
 
 extern int gl_ref_00038174();
 extern int gl_ref_00037F80();
