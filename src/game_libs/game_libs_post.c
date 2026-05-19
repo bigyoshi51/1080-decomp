@@ -5236,6 +5236,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028DA8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028DE8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E14);
+
 // gl_func_00028E94 — STRUCTURAL PASS (0x138 / 78 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). An object attach/init that pairs an object with a
