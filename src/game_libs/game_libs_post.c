@@ -23606,7 +23606,7 @@ void gl_func_00060318(int *a0, int a1) {
  */
 int* gl_func_00060370(int *self_or_null) {
     extern int D_00000000;
-    extern int D_sym_a, D_sym_b, D_global;
+    extern int D_sym_a_00060370, D_sym_b_00060370, D_global_00060370;
     int *obj;
     if (self_or_null == 0) {
         obj = (int*)gl_func_00000000(0x48);
@@ -23615,7 +23615,7 @@ int* gl_func_00060370(int *self_or_null) {
         obj = self_or_null;
     }
     gl_func_00000000(obj, (char*)&D_00000000 + 0x21CE8);
-    obj[0x28 / 4] = (int)&D_sym_a;
+    obj[0x28 / 4] = (int)&D_sym_a_00060370;
     if (self_or_null != (int*)-44) {
         int *child = (int*)gl_func_00000000(20);
         if (child != 0) {
@@ -23625,10 +23625,10 @@ int* gl_func_00060370(int *self_or_null) {
             child[0] = (int)obj;
         }
     }
-    D_global = (int)obj;
+    D_global_00060370 = (int)obj;
     gl_func_00000000(obj);
     gl_func_00000000((char*)&D_00000000 + 0x21CF8, 0);
-    gl_func_00000000(0, &D_sym_b);
+    gl_func_00000000(0, &D_sym_b_00060370);
     gl_func_00000000((char*)&D_00000000 + 0x21D00, 0);
     return obj;
 }
@@ -23716,14 +23716,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060A74);
  *   if (count <= 0) return;
  *   for (i = 0; i < count; i++) {
  *       ch = src[i];                                   // byte read
- *       if (ch == 10 /*'\n'*/) {
+ *       if (ch == 10 [newline]) {
  *           // newline path:
  *           ptr1 = a1->[0];
  *           ptr2 = a1->[0] + i*4;
  *           func_a(self, *ptr2);
  *           *dst_byte_ptr = 0;
  *           continue;
- *       } else if (i < a1->[0x8] /* limit */) {
+ *       } else if (i < a1->[0x8] [limit]) {
  *           // in-range path:
  *           ptr = a1->[0] + i*4;
  *           func_b(self, *ptr);
@@ -26578,7 +26578,7 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
  * SUB-FUNCTION 1 (0x67A54 .. 0x67A8C, 15 insns, 0x3C bytes):
  *     void f1(Obj *a0, int new_int, int new_short) {
  *         if (a0->[0x78] == new_int)            return;   // beql to epilogue
- *         if (new_short < a0->[0x76]) /*hu*/    return;   // bnel to epilogue
+ *         if (new_short < a0->[0x76]) [hu]    return;   // bnel to epilogue
  *         debug_print();                                   // jal <func>
  *     }
  *   Pattern: condition-then-debug-print helper. Likely "report change-of-state"
@@ -27330,7 +27330,7 @@ void game_libs_func_00068BF4(int *a0) {
  */
 void gl_func_00068C14(int *self) {
     extern int D_00000000;
-    extern int D_global;
+    extern int D_global_00068C14;
     int *obj;
     gl_func_00000000(self);
     /* Ext buf write 1: */
@@ -27350,7 +27350,7 @@ void gl_func_00068C14(int *self) {
         obj[0x4 / 4] = 1;
     }
     obj[0x14 / 4] = (int)self;
-    (void)D_global;
+    (void)D_global_00068C14;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068C14);
@@ -27940,13 +27940,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B0FC);
  *
  * Decoded structure (raw-word disasm):
  *   // Spin-wait for PI_STATUS_REG busy bits (& 3) to clear
- *   while ((*(volatile int*)0xA4600010 & 3) != 0) { /* spin */ }
+ *   while ((*(volatile int*)0xA4600010 & 3) != 0) { [spin] }
  *
  *   // Write to extended PI register at 0xA4600510 with cart-mapped address:
  *   *(volatile int*)0xA4600510 = (a0 + 0x14) | 0x10000000;
  *
  *   // Spin-wait for AI_STATUS_REG busy bits to clear
- *   while ((*(volatile int*)0xA4500010 & 3) != 0) { /* spin */ }
+ *   while ((*(volatile int*)0xA4500010 & 3) != 0) { [spin] }
  *
  *   // Write to extended AI register at 0xA4500510 with similar mapping
  *   *(volatile int*)0xA4500510 = ...;
@@ -28208,7 +28208,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BC4C);
  * because the loop-bound at D+0 is then 0.
  *
  * Decoded structure (raw-word disasm):
- *   void reset_and_terminate(int unused_a0 /* masked to u8 */) {
+ *   void reset_and_terminate(int unused_a0 [masked to u8]) {
  *       // STAGE 1: Clear 60-byte state table (15 int slots) at D+0..D+0x38
  *       for (int i = 0; i < 15; i++) {
  *           *(int*)((char*)&D_00000000 + i*4) = 0;
@@ -28526,13 +28526,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C1B8);
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 int gl_func_0006C2AC(void) {
-    extern int t6_caller_state;
-    extern int D_result_sym, D_init_arg;
-    if (t6_caller_state != (int)0xA6000000) return D_result_sym;
+    extern int t6_caller_state_0006C2AC;
+    extern int D_result_sym_0006C2AC, D_init_arg_0006C2AC;
+    if (t6_caller_state_0006C2AC != (int)0xA6000000) return D_result_sym_0006C2AC;
     /* Init globals — exact field roles need typing pass: */
-    gl_func_00000000((char*)&D_init_arg + 0x14, 0x60);
+    gl_func_00000000((char*)&D_init_arg_0006C2AC + 0x14, 0x60);
     gl_func_00000000();
-    return D_result_sym;
+    return D_result_sym_0006C2AC;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C2AC);
@@ -28891,7 +28891,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D554);
 /* gl_func_0006D6F4: 54-insn record-stream emit helper (declared size 0xD8, frame 0x10).
  *
  * Decoded structure (raw-word disasm):
- *   void emit_records(int count_byte /* a0, masked to u8 */) {
+ *   void emit_records(int count_byte [a0, masked to u8]) {
  *       int orig_count = *(uint8_t*)&D_00000000;     // gate value (entry-skip)
  *       count_byte &= 0xFF;
  *       *(uint8_t*)&D_00000000 = count_byte;          // overwrite global counter
@@ -29197,17 +29197,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F038);
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 int gl_func_0006F088(void) {
-    extern unsigned char D_sym_a;     /* 9-byte buffer */
-    extern int D_arg_sym, D_zero_sym, D_result;
+    extern unsigned char D_sym_a_0006F088;     /* 9-byte buffer */
+    extern int D_arg_sym_0006F088, D_zero_sym_0006F088, D_result_0006F088;
     *(volatile int*)0xA4600024 = 3;
-    *(volatile int*)0xA4600028 = (&D_sym_a)[8];
-    *(volatile int*)0xA460002C = (&D_sym_a)[6];
-    *(volatile int*)0xA4600030 = (&D_sym_a)[7];
-    (&D_sym_a)[9] = 1;
-    D_zero_sym = 0;
-    gl_func_00000000((char*)&D_arg_sym + 0x14, 0x60);
+    *(volatile int*)0xA4600028 = (&D_sym_a_0006F088)[8];
+    *(volatile int*)0xA460002C = (&D_sym_a_0006F088)[6];
+    *(volatile int*)0xA4600030 = (&D_sym_a_0006F088)[7];
+    (&D_sym_a_0006F088)[9] = 1;
+    D_zero_sym_0006F088 = 0;
+    gl_func_00000000((char*)&D_arg_sym_0006F088 + 0x14, 0x60);
     gl_func_00000000();
-    return D_result;
+    return D_result_0006F088;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F088);
@@ -29878,9 +29878,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071708);
  * records, this function decodes ONE record at offset (caller-set src + a0).
  *
  * Decoded structure (raw-word disasm):
- *   void decode_single(int byte_offset /* a0 */,
- *                      uint16_t *out      /* a1 */,
- *                      uint8_t  *src      /* $t6 caller-set */)
+ *   void decode_single(int byte_offset [a0],
+ *                      uint16_t *out      [a1],
+ *                      uint8_t  *src      [$t6 caller-set])
  *   {
  *       // Stage 1: advance src by `byte_offset` bytes via counted loop
  *       // (semantically `src += byte_offset`; IDO emits a no-op increment
@@ -30232,7 +30232,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
  * applies a wrap correction, and stores 4 32-bit fields to an output Obj.
  *
  * Decoded structure (raw-word disasm):
- *   void compute_delta(int *out_obj, /* a0 — destination */
+ *   void compute_delta(int *out_obj, [a0 = destination]
  *                      int unused_a1,
  *                      uint32_t a_hi, uint32_t a_lo,  // a2:a3 = first 64-bit operand
  *                      uint32_t b_hi, uint32_t b_lo,  // sp+0x40:0x44 = second
