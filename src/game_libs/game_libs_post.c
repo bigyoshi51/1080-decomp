@@ -21075,6 +21075,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052674);
 // INCLUDE_ASM-preserved (covers both bundled functions).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000526D0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052918);
+
 // gl_func_00052994 — STRUCTURAL PASS (85 words, no episode).
 // Raw-.word USO. realjr=5, regjr=0 → 5-FUNCTION BUNDLE.
 // BOUNDARY NOTE (DEFERRED USO RE-SPLIT): the declared symbol holds a
