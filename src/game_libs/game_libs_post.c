@@ -3303,11 +3303,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023760);
 //   stack scratch slot, then the pair is committed via the fixed
 //   routine 0x0C00DFE0 (≈0x37F80). The "decode & apply a record's
 //   two code fields" entry of the game_libs registry subsystem.
-// Caps: raw-word USO + fixed-target decode/commit calls — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. "Decode & apply a record's
+//   two code fields" entry of the game_libs registry subsystem.
+//   Real-C STRUCTURAL body below per the analysis (j = poll
+//   0x38174(1); rec = &D_0+0x2030 + j*0x14; each non-0xFF code byte
+//   +2/+3 decoded via fixed 0x37DCC into a stack scratch; commit the
+//   pair via fixed 0x37F80(1,j,..,x,y)). Byte-match deferred —
+//   placeholder jal chain needs USO reloc infra + branch schedule.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00023838(int a0) {
+    char *g = (char *)&D_00000000;
+    int j = gl_func_00000000(1);
+    char *rec = g + 0x2030 + j * 0x14;
+    unsigned char c2 = *(unsigned char *)(rec + 2);
+    unsigned char c3 = *(unsigned char *)(rec + 3);
+    int x = 0, y = 0;
+    if (c2 != 0xFF) {
+        gl_func_00000000(c2, &x);
+    }
+    if (c3 != 0xFF) {
+        gl_func_00000000(c3, &y);
+    }
+    gl_func_00000000(1, j, a0, x, y);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023838);
+#endif
 
 // gl_func_00023914 — STRUCTURAL PASS (0x1F4 / 125 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
