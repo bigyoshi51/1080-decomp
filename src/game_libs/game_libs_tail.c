@@ -1449,7 +1449,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
  *   vt = v1->[0x28];
  *   off = (short)vt->[0x28];                                  // signed half
  *   fn  = (int(*)(int,int,int))vt->[0x2C];
- *   fn((int)((char*)v1 + off), &sp_args[/*=1001*/], self);    // 1001 as stack arg @sp+0x34
+ *   fn((int)((char*)v1 + off), &sp_args[1001], self);    // 1001 as stack arg @sp+0x34
  *
  *   if (self->[0x48] == 2) {                                   // pair-toggle gate
  *       // Same dispatch on partner entry (idx XOR 1):
@@ -1458,7 +1458,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
  *       vt_2 = v1_2->[0x28];
  *       off2 = (short)vt_2->[0x28];
  *       fn_2 = (int(*)(int,int))vt_2->[0x2C];
- *       fn_2((int)((char*)v1_2 + off2), &sp_args2[/*=1000*/]);  // 1000 stack arg
+ *       fn_2((int)((char*)v1_2 + off2), &sp_args2[1000]);  // 1000 stack arg
  *   }
  *
  * The `idx * 96` stride uses the shift-subtract-shift sequence
@@ -1771,7 +1771,7 @@ void gl_func_0000E53C(int *a0) {
 /* gl_func_0000E5D0: 39-insn factory + 2-threshold side-effect (0x9C, frame 0x20).
  *
  * Decoded structure (raw-word disasm):
- *   factory = func1(0, &D_A, 0xC0, 0xB, /* sp:0x10 */ 0xC, /* sp:0x14 */ 1);
+ *   factory = func1(0, &D_A, 0xC0, 0xB, [sp:0x10] 0xC, [sp:0x14] 1);
  *   self->[0x60] = factory;
  *   func2(factory, -2);
  *   factory = self->[0x60];                          // reload

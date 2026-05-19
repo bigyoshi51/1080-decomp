@@ -21653,7 +21653,7 @@ void gl_func_00054C24(char *a0, char *a1) {
  *   func1(&D_strA, &D_BASE + 0x210CC, 0);
  *   func2(&D_strB, &D_BASE + 0x210D8, self + 0x120, 0);
  *   func3(&D_strC, &D_BASE + 0x210E4, self + 0x124, 0,
- *         1.0f /* stack +0x10 */, 0 /* stack +0x14 */);
+ *         1.0f (stack +0x10), 0 (stack +0x14));
  *   func4(&D_strD);
  *   func5(self);
  *
@@ -25505,7 +25505,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065F08);
  *   while (v != 0x12340004) {                         // spin until response
  *       v = func(self, self->[0x28] + 8);
  *   }
- *   func(self, self->[0x28] + 8, /*a2*/ 0x12340002); // state-change call
+ *   func(self, self->[0x28] + 8, (a2) 0x12340002); // state-change call
  *   v = func(self, self->[0x28] + 8);                // another send
  *   while (v != 0x12340003) {                         // spin until next response
  *       v = func(self, self->[0x28] + 8);
@@ -25909,8 +25909,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
  * feedback_doc_marker_is_bail.md.
  */
 void gl_func_00066674(int **head, int data) {
-    extern int D_X;
-    int *node = (int*)gl_func_00000000(D_X);
+    extern int D_X_66674;
+    int *node = (int*)gl_func_00000000(D_X_66674);
     node[0] = data;
     node[1] = 0;
     if (*head == 0) {
@@ -26049,7 +26049,7 @@ void gl_func_000669B8(void) {
     extern int *v0_caller_state;
     extern int **v1_caller_state;
     extern int D_00000000;
-    extern int *D_X, *D_Y;
+    extern int **D_X_669B8, **D_Y_669B8;
     int rc;
     int *state = v0_caller_state;
     int **vt = v1_caller_state;
@@ -26057,13 +26057,13 @@ void gl_func_000669B8(void) {
     state[0x34 / 4] = state[0x30 / 4];
     fn1 = (int(*)(void))(*vt)[0x44 / 4];
     fn1();
-    fn2 = (int(*)(void))(*D_X)[0x40 / 4];
+    fn2 = (int(*)(void))(*D_X_669B8)[0x40 / 4];
     rc = fn2();
     if (rc != 0) {
         gl_func_00000000((char*)&D_00000000 + 0x218C, rc);
     }
     gl_func_00000000((char*)&D_00000000 + 0x21A4, state);
-    gl_func_00000000((char*)&D_00000000 + 0x21AC, (*D_Y)[0], (*D_Y)[1]);
+    gl_func_00000000((char*)&D_00000000 + 0x21AC, (*D_Y_669B8)[0], (*D_Y_669B8)[1]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000669B8);
