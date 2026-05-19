@@ -3002,6 +3002,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026214);
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026AA4);
+
 /* gl_func_00026B48 — verified structural decode (global-block init, 35
  * insns; stolen-$v0-base prologue = involved case → INCLUDE_ASM build
  * path; struct-typing reference).
