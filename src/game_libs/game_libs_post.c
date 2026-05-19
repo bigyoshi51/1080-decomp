@@ -20948,8 +20948,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000526D0);
 // awaits re-split. Full body INCLUDE_ASM-preserved (all 5 fns).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052994);
 
-/* gl_func_00052AE8: 53-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00052AE8: lazy-alloc + memset + per-zero-byte callback
+ * (clean single fn). Decoded from bare stub 2026-05-19.
+ *   void f(int *self) {
+ *     cb1(&D_00000000 + 0x20FC8);
+ *     if (self->0x78 == 0) self->0x78 = cb2(self->0x44);
+ *     for (i = 0; i < self->0x44; i++) ((char*)self->0x78)[i] = 0;
+ *     *(int*)&D_00000000 = 1;                       // global flag
+ *     for (i = 0; i < self->0x44; i++)
+ *         if (((char*)self->0x78)[i] == 0) cb3(self, i);
+ *     cb4(self->0x78);
+ *   }
+ * Multi-idiom (focused pass): bnel-delay-likely guards
+ * (`self->0x78!=0` skip, `self->0x44==0` skip, both loop
+ * back-edges), self->0x44 + self->0x78 RELOADED per iteration
+ * (uncached), the `*(&D_00000000)=1` generic-symbol store, and
+ * cb2's result threaded as the buffer. Real decoded C preserved;
+ * INCLUDE_ASM build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00052AE8(int *self) {
+    int i;
+    gl_func_00000000((char *)&D_00000000 + 0x20FC8);
+    if (*(int *)((char *)self + 0x78) == 0) {
+        *(int *)((char *)self + 0x78) =
+            gl_func_00000000(*(int *)((char *)self + 0x44));
+    }
+    for (i = 0; i < *(int *)((char *)self + 0x44); i++) {
+        ((char *)*(int *)((char *)self + 0x78))[i] = 0;
+    }
+    *(int *)&D_00000000 = 1;
+    for (i = 0; i < *(int *)((char *)self + 0x44); i++) {
+        if (((char *)*(int *)((char *)self + 0x78))[i] == 0) {
+            gl_func_00000000(self, i);
+        }
+    }
+    gl_func_00000000(*(int *)((char *)self + 0x78));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052AE8);
+#endif
 
 /* gl_func_00052BBC: 70-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
