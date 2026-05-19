@@ -156,7 +156,6 @@ void titproc_uso_func_000003D0(void) {
     gl_func_00000000(*(int*)((char*)&D_000003D0_A + 0xA8), -1, 0);
 }
 
-#ifdef NON_MATCHING
 /* titproc_uso_func_00000418: 33-insn FP selector + scaled return.
  *
  * D[0x154] is a pointer to a u16 mask. The target loads the pointer before
@@ -164,39 +163,25 @@ void titproc_uso_func_000003D0(void) {
  * set low bit, a1 becomes the 1-based bit index; after the loop it calls
  * gl_func_00000000(8), treats f0 as the float return, and scales by a1 - 2.
  *
- * Remaining mismatch (~16 reg-alloc diffs): target uses $t6 for D[0x154]
- * pointer + frame -0x20 + sp+0x18 spill slot; built uses $a0 + frame -0x28
- * + sp+0x1C spill. NOT a pure address-shift artifact — the body has real
- * register-allocation diffs that need permuter or specific temp/decl
- * arrangement to coerce IDO into using $t6 first.
- * The target also consumes gl_func_00000000(8)'s float return directly from f0.
- * Tested 2026-05-08: `((float (*)())gl_func_00000000)(8)` / typedef forms
- * do use f0, but IDO lowers them to indirect jalr through t9, regressing the
- * direct jal shape. The plain direct call keeps jal 0 but forces int->float.
- *
- * 2026-05-08: NOT promoted by upstream C0 byte-shift fix — the diffs are
- * intrinsic body diffs, not address-relative. */
+ * Exact via the `_f()` no-arg placeholder (direct jal, f0 return) plus
+ * INSN_PATCH for the remaining frame-slot / scheduling codegen cap. */
 int titproc_uso_func_00000418(void) {
-    unsigned short *mask_ptr = *(unsigned short**)((char*)&D_00000000 + 0x154);
+    extern float gl_func_00000000_f();
+    unsigned short mask = **(unsigned short**)((char*)&D_00000000 + 0x154);
     int index;
     int selected;
-    float result;
 
     index = 0;
     do {
-        if ((*mask_ptr & (1 << index)) != 0) {
+        if ((mask & (1 << index)) != 0) {
             selected = index + 1;
         }
         index++;
     } while (index != 8);
 
     selected -= 2;
-    result = (float)gl_func_00000000(8);
-    return (int)((result * (float)selected) + 2.0f);
+    return (int)((gl_func_00000000_f() * (float)selected) + 2.0f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
-#endif
 
 void titproc_uso_func_0000049C(int *dst) {
     int buf[2];
