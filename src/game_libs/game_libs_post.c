@@ -26690,8 +26690,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B048);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B0FC);
 
-/* gl_func_0006B7A0: 56-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006B7A0: 56-insn hardware-register status-poll + DMA setup (0xE0, frame 0x20).
+ *
+ * Heavy N64 hardware access:
+ *   - 0xA460xxxx (PI cluster) — status polls via lw +0x10 (PI_STATUS_REG)
+ *   - 0xA500xxxx (AI cluster) — status polls via lw +0x10 (AI_STATUS_REG)
+ *   - 0xA4600510 / 0xA4500510 — extended register writes (non-standard offsets,
+ *     possibly devkit-specific or PIF-adjacent)
+ *
+ * Decoded structure (raw-word disasm):
+ *   // Spin-wait for PI_STATUS_REG busy bits (& 3) to clear
+ *   while ((*(volatile int*)0xA4600010 & 3) != 0) { /* spin */ }
+ *
+ *   // Write to extended PI register at 0xA4600510 with cart-mapped address:
+ *   *(volatile int*)0xA4600510 = (a0 + 0x14) | 0x10000000;
+ *
+ *   // Spin-wait for AI_STATUS_REG busy bits to clear
+ *   while ((*(volatile int*)0xA4500010 & 3) != 0) { /* spin */ }
+ *
+ *   // Write to extended AI register at 0xA4500510 with similar mapping
+ *   *(volatile int*)0xA4500510 = ...;
+ *
+ *   // Call direct-addr jal 0x807EC (libc-family — registered in
+ *   //   reference_1080_hardcoded_jal_addresses memo as 5th site)
+ *   ((void(*)())0x807EC)();
+ *
+ *   *(volatile int*)0xA4600010 = 2;                  // PI_STATUS reset
+ *   D_global_sym = D_other_sym | (some bits);         // global update
+ *
+ * PI + AI dual-DMA setup with status-polling — likely cart-to-AI streaming
+ * audio DMA initialization. The 0xA4600510 / 0xA4500510 writes target
+ * non-standard register offsets (PI/AI register blocks end ~0x1C), so
+ * these are devkit-extended registers or PIF-adjacent regions.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0006B7A0(int *a0) {
+    /* Spin-wait PI not busy */
+    while ((*(volatile int*)0xA4600010 & 3) != 0) { }
+    *(volatile int*)0xA4600510 = (int)((char*)a0 + 0x14) | 0x10000000;
+    /* Spin-wait AI not busy */
+    while ((*(volatile int*)0xA4500010 & 3) != 0) { }
+    *(volatile int*)0xA4500510 = *(volatile int*)0xA4600010 | 0x10000000;
+    ((void(*)(void))0x807EC)();
+    *(volatile int*)0xA4600010 = 2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B7A0);
+#endif
 
 /* gl_func_0006B880: 59-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B880);
