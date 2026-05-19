@@ -21415,8 +21415,39 @@ void gl_func_0005C66C(int a0, float *vec) {
 /* gl_func_0005C6C4: 48-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C6C4);
 
-/* gl_func_0005C784: 35-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005C784: 35-insn Vec4-printf w/ cvt.d.s + post-banner (0x8C, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   func1(a0, src);                                  // header call
+ *   for (i = 0; i < 16; i += 4) {                    // 4 iterations
+ *       double d = (double)*src;                     // cvt.d.s
+ *       func2(&D_BASE + 0x21B14, d);                 // printf("%g\n", d) style
+ *       src += 1;                                    // advance 4 bytes
+ *   }
+ *   func3(&D_BASE + 0x21B18);                        // post-banner / footer
+ *
+ * IDO o32 emits `mfc1 a3, fLO; mfc1 a2, fHI` for passing a double in the
+ * (a2,a3) register pair — big-endian convention places the high half in
+ * the lower-numbered register ($a2). Standard double-vararg promotion
+ * pattern (printf-style debug helper iterating 4 floats = Vec4 dump).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0005C784(int a0, float *src) {
+    extern int D_BASE;
+    int i;
+    gl_func_00000000(a0, src);
+    for (i = 0; i < 16; i += 4) {
+        gl_func_00000000((char*)&D_BASE + 0x21B14, (double)*src);
+        src++;
+    }
+    gl_func_00000000((char*)&D_BASE + 0x21B18);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C784);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C810);
 
