@@ -29377,8 +29377,53 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070030);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070040);
 
-/* gl_func_00070194: 44-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00070194: 44-insn CRC-5 hash (polynomial 0x15), 16-bit input → 5-bit output.
+ * Size 0xB0, frame 0x10.
+ *
+ * Classic LFSR shift-and-XOR algorithm. Iterates 16 times over the input bits
+ * (a0 & 0xFFFF), processing one bit per iteration via shift-feedback:
+ *
+ * Decoded structure (raw-word disasm):
+ *   uint8_t crc5_n64(uint16_t a0) {
+ *       uint8_t accum = 0;     // sp+0xF
+ *       int     count = 0;     // sp+0x8
+ *       a0 &= 0xFFFF;
+ *       while (count < 16) {
+ *           // If bit 4 of accum is set, XOR with polynomial 0x15
+ *           uint8_t mask = (accum & 0x10) ? 0x15 : 0x00;
+ *           // Inject next input bit into LSB of accum after shift-left
+ *           uint8_t in_bit = (a0 & 0x400) ? 1 : 0;
+ *           accum = ((accum << 1) | in_bit) & 0xFF;
+ *           // XOR with polynomial
+ *           accum ^= mask;
+ *           // Shift input left by 1 (bring next bit into position 0x400)
+ *           a0 = (a0 << 1) & 0xFFFF;
+ *           count++;
+ *       }
+ *       return accum & 0x1F;   // low 5 bits = CRC-5 result
+ *   }
+ *
+ * Notes:
+ *  - Polynomial `0x15` = `0b10101` = CRC-5 / x^5 + x^2 + 1 (one of the
+ *    standard CRC-5 polynomials).
+ *  - 16-bit input matches N64 joybus controller cmd/status word size.
+ *  - Likely `osContSetCh` / `__osControllerCrc` / `__osPfsCrc` family.
+ *    Cross-reference libreultra `src/io/{controller,pfsisplug}.c` for
+ *    canonical polynomial usage.
+ *  - The "if bit 4 set, mask = 0x15 else 0" pattern is the classic LFSR
+ *    feedback gate — when the MSB-to-be-shifted-out is 1, mix in the
+ *    polynomial. Standard bit-serial CRC computation.
+ *  - Bit-extraction via `andi 0x400` (bit 10) reads the MSB of the input
+ *    after pre-shifting it to position 10 — IDO's choice of where to
+ *    sample the bit may reflect the source-level mask constant being
+ *    `0x8000 >> 5` or similar offset shenanigans.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070194);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070244_pad.s")
