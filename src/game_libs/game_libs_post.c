@@ -33,10 +33,20 @@ typedef struct { float x, y, z; } Vec3;
 //     RSP/F3D triangle-index command buffer. func_00000000 = USO
 //     placeholder dispatcher (game_libs JAL targets are runtime-
 //     patched placeholders — see reference memos).
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only for the named fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// MUST STAY INCLUDE_ASM (hard blocker, not a bail): the name
+//   `gl_func_0001CA10` is reused as a GENERIC PLACEHOLDER extern in
+//   ~8 unrelated NM bodies in this file (e.g. lines ~5656/13960/
+//   16784/28834/29493) — each `extern int gl_func_0001CA10();` and
+//   called with conflicting arg counts/return types. IDO cfe treats
+//   file-scope externs as one symbol, so giving THIS function a real
+//   typed definition makes the whole game_libs_post.c NON_MATCHING
+//   compile fail (redeclaration / incompatible type / arg-count) and
+//   freezes the objdiff report. Real-C body is blocked until the
+//   placeholder-name reuse is migrated to unique names (separate
+//   refactor). Single jr $ra (older "2-jr bundle" note is STALE; .s
+//   is 0x288/162 words). Algorithm is fully captured in the analysis
+//   comment above; build path is INCLUDE_ASM (no episode — tautology
+//   rule). DO-NOT-define-without first renaming the placeholder uses.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CC98);
