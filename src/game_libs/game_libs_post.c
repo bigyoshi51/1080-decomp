@@ -24711,8 +24711,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065494);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000659D0);
 
-/* gl_func_00065B5C: 62-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00065B5C: 62-insn pure-FP quaternion/matrix arithmetic (0xF8, frame 0x30).
+ *
+ * CALLER-SET FLOAT CONVENTION (intra-USO non-O32): the function reads
+ * $f0..$f16 directly without setting them, performing extensive FP
+ * arithmetic (mul.s, sub.s, add.s, neg.s, mov.s) and writing results
+ * to caller's struct via offsets in $a0 starting around 0x3B0..0x3D0.
+ * Same cap class as gl_func_00010650 family.
+ *
+ * Decoded structure (raw-word disasm summary):
+ *   // Reads caller-set floats f0, f2, f4, f6, f8, f10, f12, f14, f16
+ *   // Computes ~30 mul/add/sub/neg ops producing 10+ float intermediates
+ *   // Writes to:
+ *   //   a0->[0x3B0..0x3D0]: 8+ output floats (transformed values)
+ *   //   sp+0x00..+0x28: 10+ scratch floats (temporary registers)
+ *
+ * Per the FP operation count and output pattern (8 floats stored to a0->
+ * [0x3B0..0x3D0]) this is likely a Quaternion-to-Matrix conversion or
+ * Matrix×Matrix multiply emit. Caller passes operand floats via $f-regs
+ * and gets output via the struct pointed at by $a0.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path (the
+ * pure-caller-set-float convention is unreproducible from standard C —
+ * IDO has no `register float x asm("$f4")` syntax).
+ */
+void gl_func_00065B5C(char *self_struct) {
+    /* Pure-FP quaternion-or-matrix transform. Real body reads from $f0..f16
+     * caller-set float regs and writes 8+ floats to self_struct+0x3B0..0x3D0.
+     * Cannot byte-match — caller-set-float cap. INCLUDE_ASM is the build path. */
+    (void)self_struct;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065B5C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00065C54: 45-insn op-6 special-case + transform-reset (0xB4, frame 0x48).
