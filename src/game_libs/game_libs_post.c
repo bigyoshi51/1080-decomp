@@ -24114,8 +24114,57 @@ void gl_func_0006275C(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006275C);
 #endif
 
-/* gl_func_0006280C: 56-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006280C: 56-insn double-bounds-check + 2-level lookup + dispatch (0xE0, frame 0x30).
+ *
+ * Decoded structure (raw-word disasm):
+ *   int hi_idx = (u16)(a1 >> 16);
+ *   int lo_idx = a1 & 0xFFFF;
+ *   if (hi_idx >= self->[0x34]) assert(D+0x220E8, hi_idx);     // outer bounds
+ *   entry1 = self->[0x30][hi_idx];                              // first table lookup
+ *   if (lo_idx >= entry1->[0x4]) assert(D+0x22100, ...);        // inner bounds
+ *   entry2 = entry1->[0] + lo_idx * 4;                          // sub-array index
+ *   // ... uses lo_idx*4 as offset into entry1->[0] table
+ *   short key = (short)(entry2->[2]);                           // halfword pull
+ *   if (... condition ...) {
+ *       func_dispatch(self, key);
+ *   }
+ *   return value;
+ *
+ * Composite-index lookup with 2 bounds checks: a1 is a 32-bit packed index
+ * (high u16 = outer table index, low u16 = inner sub-index). Standard
+ * 2D-array dispatch pattern. The two `assert` calls fire on out-of-bounds.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_0006280C(int *self, int a1) {
+    extern int D_00000000;
+    int hi_idx = (unsigned int)a1 >> 16;
+    int lo_idx = a1 & 0xFFFF;
+    int *entry1;
+    int *entry2;
+    short key;
+    int rc;
+    if (hi_idx >= self[0x34 / 4]) {
+        gl_func_00000000((char*)&D_00000000 + 0x220E8, hi_idx);
+    }
+    entry1 = (int*)(self[0x30 / 4] + hi_idx * 8);
+    if (lo_idx >= entry1[1]) {
+        gl_func_00000000((char*)&D_00000000 + 0x22100, lo_idx);
+    }
+    entry2 = (int*)(entry1[0] + lo_idx * 4);
+    key = *(short*)((char*)entry2 + 2);
+    if (key != 0) {
+        rc = (int)gl_func_00000000(self, key);
+    } else {
+        rc = 0;
+    }
+    return rc;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006280C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000628EC);
 
