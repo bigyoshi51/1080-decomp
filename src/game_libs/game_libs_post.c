@@ -272,11 +272,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D17C);
 //   mask-0x7 / shift-4 mask-0xFFF (sub-fields), halfword e->0x60, and
 //   stack-built metric block at sp+0x38..0x3C passed by ref to the
 //   blit. This is the multi-glyph / string-row entry of the family.
-// Caps: raw-word USO + unsplit bundle + fixed-target call + packed
-//   bitfield decode — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only for the named fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (older "2-jr bundle" note is STALE;
+//   .s is 0x1E0/120 words, one function). Multi-glyph/string-row
+//   variant of the gl_func_0001CFDC family. Real-C structural body
+//   below per the analysis; byte-match deferred — fixed blit target
+//   0x31FB0 needs its symbol, the e->0x5C packed-bitfield decode
+//   (&7 / >>4 &0xFFF) and the trailing F3D command-pair emission
+//   (0x08000000/0x0C800000/0x05000000/0x0E200000/0x80000000 opcode
+//   highs) are IDO-schedule-sensitive. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for the 0x31FB0 blit routine.
+//   Next pass: resolve 0x31FB0, pin the exact attr/idx entry math,
+//   then grind the bitfield + DL-emit schedule.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0001D200(int code, int spec) {
+    short idx = (short)code;
+    char *rec = (char *)&D_00000000 + idx * 0x158;
+    unsigned char attr = *(unsigned char *)(rec + 0x1B);
+    char *e = rec + (int)attr * 0x158 + 0x50;
+    int packed = *(int *)(e + 0x5C);
+    short flags = *(short *)(e + 0x60);
+    int lo = packed & 7;
+    int hi = (packed >> 4) & 0xFFF;
+    int *dl;
+    int r = gl_func_00000000(0x3E0, lo, 0x1A0, hi, (short)spec, idx);
+    if (flags != 0) {
+        r = gl_func_00000000(r, 0x3E0, hi, 0, idx);
+    }
+    dl = *(int **)((char *)&D_00000000 + 0x40);
+    dl[0] = 0x08000000;
+    dl[1] = 0;
+    dl[2] = 0x0C800000;
+    dl[3] = 0x05000000;
+    dl[4] = 0x0E200000;
+    dl[5] = (int)0x80000000;
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D200);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D3E0);
 
