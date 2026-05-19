@@ -7678,6 +7678,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E06C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E0A0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E0AC);
+
 // gl_func_0002E1C0 — STRUCTURAL PASS (0x8C / 35 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A one-shot event / sound trigger.
