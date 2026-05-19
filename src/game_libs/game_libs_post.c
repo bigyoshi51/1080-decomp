@@ -16143,7 +16143,19 @@ void gl_func_00044CC4(int a0, int a1) {
  * Next pass: introduce `int *base = (int*)(a3+0x378);` used for both
  * the count (base[0x258/4]) and rec (`(char*)base + cnt*12`), and
  * shape the t7>=0x32 guard as `if (t7 < 0x32) goto skip; cb2();
- * skip:` so IDO emits bnel+delay-likely. Real C preserved. */
+ * skip:` so IDO emits bnel+delay-likely. Real C preserved.
+ *
+ * 2026-05-18 negative result: the `int *base = a0+0x378` reuse alone
+ * does NOT converge — it ADDS a 3rd local, growing the frame further
+ * (0x18→0x30) and worsening spill offsets (25 diffs, frame wrong
+ * direction). The true gate is the bnel-delay-likely-move for the
+ * 2nd guard (target hoists `addiu v0,a3,0x378` into the bnel-likely
+ * delay slot, then uses v0 as the SOLE base for count+0x258 / rec).
+ * base-reuse only helps if it does NOT introduce an extra spilled
+ * local AND is fed by the bnel-likely slot. Next attempt must pair
+ * the goto-skip guard form with NO named `base`/`cnt` locals
+ * (compute via the v0 the bnel-likely produces). Documented-hard
+ * idiom; defer to a focused multi-pass. */
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_00044CE8(int a0, int a1, int a2) {
