@@ -21843,8 +21843,48 @@ int gl_func_00061E58(int arg0) {
     return (int)&gl_ref_0003F020;
 }
 
-/* gl_func_00061E9C: 31-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00061E9C: 31-insn lookup + assert + 5-arg dispatch (0x7C, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   self = func1(arg0);                              // 1st call (lookup)
+ *   if (self->[0x14] == 0) func2(0x22040);           // assert / error log
+ *   ptrptr = (int**)self[0];                          // va_arg-style pop
+ *   p = *ptrptr;
+ *   *ptrptr = p + 1;                                  // advance
+ *   val = *p;
+ *   self->[0x4] = val;
+ *   related = (int*)self->[0x3C];
+ *   result = func3(0, related->[0x10], self->[0x14], 0, val);  // 5-arg
+ *   self->[0x10] = result;
+ *   self->[0xC]  = 0;
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00061E9C(int *arg0) {
+    int *self = (int*)gl_func_00000000(arg0);
+    int **ptrptr;
+    int *p;
+    int val;
+    int *related;
+    int result;
+    if (self[0x14 / 4] == 0) {
+        gl_func_00000000(0x22040);
+    }
+    ptrptr = (int**)self[0];
+    p = *ptrptr;
+    *ptrptr = p + 1;
+    val = *p;
+    self[0x4 / 4] = val;
+    related = (int*)self[0x3C / 4];
+    result = (int)gl_func_00000000(0, related[0x10 / 4], self[0x14 / 4], 0, val);
+    self[0x10 / 4] = result;
+    self[0xC / 4] = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061E9C);
+#endif
 
 /* Quad4 reader template — 4th in this loop's mass-match pass after
  * 0003A9E8/0000975C/00037E40. Standard 22-insn body. */
