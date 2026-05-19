@@ -28597,8 +28597,66 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D964);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DA74);
 
-/* gl_func_0006DC0C: 59-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006DC0C: 59-insn save-data / SRAM init helper (size 0xEC, frame 0x20).
+ *
+ * Sets up the hardware-mapped 0xB000_0000 region (N64 PI bus DOM2 = cartridge
+ * SRAM / EEPROM / save-data mapping) and unpacks a status word from a
+ * hardware/save-header call into byte fields in the D segment.
+ *
+ * Decoded structure (raw-word disasm):
+ *   void *save_init(void) {
+ *       if ($t6 == 0xB000_0000) {           // caller-set $t6 = current SRAM ptr
+ *           *(int*)(sp+0x1C) = 0;
+ *           return (void*)&D_00000000 + 0;  // already initialized, return cached
+ *       }
+ *
+ *       // First-time init path:
+ *       *(uint8_t*)(D+0x4)  = 0;            // status flag
+ *       *(int    *)(D+0xC)  = 0xB000_0000;  // mapped SRAM base ptr (this is the
+ *                                            //   "now initialized" sentinel that
+ *                                            //   the caller-set $t6 will check)
+ *
+ *       uint32_t hdr = 0;
+ *       hardware_query(0, &hdr);            // jal <func>(0, sp+0x1C)
+ *
+ *       // Unpack packed status word: layout looks like a date/version stamp
+ *       *(uint8_t*)(D+0x5) = (hdr >>  0) & 0xFF;   // byte 0
+ *       *(uint8_t*)(D+0x8) = (hdr >>  8) & 0xFF;   // byte 1
+ *       *(uint8_t*)(D+0x6) = (hdr >> 16) & 0x0F;   // nibble 4
+ *       *(uint8_t*)(D+0x7) = (hdr >> 20) & 0x0F;   // nibble 5
+ *       *(uint8_t*)(D+0x9) = 0;
+ *       *(int    *)(D+0x10) = 0;
+ *
+ *       init_struct((char*)D + 0x14, 0x60);       // 0x60-byte init at D+0x14
+ *       int saved = alloc_or_create();             // jal <func> (no args set)
+ *
+ *       // Final cleanup: copy D+0 → D+0 and chain finalize-hook
+ *       *(int*)(D+0) = *(int*)(D+0);              // self-copy (likely IDO peephole leftover)
+ *       *(int*)(D+0) = (char*)&D_00000000 + 0;     // restore default pointer
+ *       finalize_hook(saved);                       // jal <func>(saved_v0)
+ *
+ *       return (void*)&D_00000000 + 0;
+ *   }
+ *
+ * Notes:
+ *  - 0xB000_0000 is the N64 PI bus DOM2 (cart/SRAM) virtual address. Writes
+ *    to *(D+0xC) here are storing the mapped pointer as a global for future
+ *    code to access SRAM via *D+0xC dereference.
+ *  - $t6 caller-set: the function expects caller to pass current value of
+ *    `*(D+0xC)` in $t6 (the saved pointer). Fits caller-set-int-reg cap class
+ *    (feedback_caller_set_int_reg_cap_1080_game_libs.md).
+ *  - The unpacked byte fields look like a date+time stamp (or version
+ *    YYYY-MM-DD HH:MM packed into 32 bits) parsed from save-header.
+ *  - The "self-copy" `*(D+0) = *(D+0)` at insns 43-47 is IDO peephole leftover
+ *    where a temporary went through register allocation but the load and store
+ *    pair didn't get eliminated.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DC0C);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006DC0C_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DD14);
