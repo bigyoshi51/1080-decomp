@@ -1460,6 +1460,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A48);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A50);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A6C);
+
 /* Fragments 00037E98, 00037F10, 00037F40, 0003AA40, 0003AA5C, 00061F70
  * moved to game_libs_post.c (correct file for VRAM past 0x8944 cap of
  * game_libs.c). */
