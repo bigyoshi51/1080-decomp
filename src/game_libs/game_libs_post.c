@@ -5421,12 +5421,23 @@ void gl_func_000275BC(void) { D_gl275BC = 0; }
 //   &D_0+0x2D00, secondary table &D_0+0x2D38; field getters
 //   rec->0x50 etc. with sign-bit tests) — left for the deferred USO
 //   re-split.
-// Caps: raw-word USO + 8-fn unsplit accessor bundle + jal-0
-//   USO-reloc processor — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only for the named leading fn,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "8-fn unsplit accessor bundle"
+//   note is STALE; .s is 0x2C/11 words, ONE function). Tiny wrapper.
+//   Real-C STRUCTURAL body below per the analysis (jal-0
+//   reloc(*(&D_0+0x53C8), 0, 1)). Byte-match deferred — placeholder
+//   jal-0 needs USO reloc infra. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_000275C8(void) {
+    char *g = (char *)&D_00000000;
+    gl_func_00000000(*(void **)(g + 0x53C8), 0, 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000275C8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000275F4);
 
