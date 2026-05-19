@@ -24673,8 +24673,61 @@ void gl_func_000635D8(int *self, int a1, int a2, int a3, int a4, int a5) {
     func_00000000();
 }
 
-/* gl_func_0006366C: 40-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006366C: too-big-N-function-bundle (declared size 0xA0, 40 words).
+ * Splat grouped 3 distinct functions under one symbol — 3 jr $ra terminators.
+ * Candidate for split-fragments.py.
+ *
+ * SUB-FUNCTION 1 (0x6366C..0x636BC, 20 insns, 0x4C bytes):
+ *     // 3-field compare + log if any differs
+ *     void f1(Obj *a0, int a1, int a2, int a3, int arg5, int arg6) {
+ *         if (a1 == a0->[0x74] &&
+ *             a2 == a0->[0x84] &&
+ *             a3 == a0->[0x88]) return;     // beql to epilogue
+ *         // diff detected: stash args and log
+ *         *(int*)(sp+0x10) = arg5;
+ *         *(int*)(sp+0x14) = arg6;
+ *         debug_log();                       // jal <func>
+ *     }
+ *
+ * SUB-FUNCTION 2 (0x636BC..0x63700, 17 insns, 0x44 bytes, NO PROLOGUE — leaf):
+ *     // 6-arg setter with flag-check on incoming bits
+ *     void f2(Obj *a0, int a1, int a2, float a3, int sp_arg10, int sp_arg14) {
+ *         int flag_new = a0->[0x98];     // pre-update flag
+ *         a0->[0x8C] = a1;
+ *         a0->[0x90] = a2;
+ *         a0->[0x94] = a3;               // swc1 (float)
+ *         if (flag_new & 0x100) a0->[0x6C] = sp_arg14;  // bit 8 set
+ *         if (!(sp_arg10 & 0x100)) a0->[0x70] = 0;       // bit 8 clear in sp_arg10
+ *         a0->[0x98] = sp_arg10 | 0x80;   // commit with new flag bit
+ *     }
+ *   Pattern: incoming float arg in $a3 → mtc1 $a3, $f12 first insn (FP convert),
+ *   then standard sw stores. No-prologue leaf relies on caller's sp+0x10..0x14
+ *   for 5th/6th args (standard O32 outgoing-arg-area aliasing).
+ *
+ * SUB-FUNCTION 3 (0x63700..0x63708, 2 insns, 0x8 bytes):
+ *     void f3(int a0) {
+ *         // body inlined-out; remaining: arg-save stub
+ *         *(int*)(sp+0x0) = a0;
+ *     }
+ *   Pattern: vestigial "store arg to stack-slot" thunk. Body was likely inlined
+ *   elsewhere but the IDO arg-save pseudo-prologue (caller saves a0-a3 to
+ *   sp+0..0xC) remained as the only emitted insn. Returns without altering
+ *   anything observable.
+ *
+ * Notes:
+ *  - 3 internal `jr $ra` confirm the 3-function bundle.
+ *  - f2 uses no-prologue leaf with caller-supplied sp+0x10/0x14 args — fits
+ *    standard O32 stack-arg passing (args 5+).
+ *  - f3 is functionally a no-op with arg-save side effect; possibly an
+ *    inlining residue (compiler couldn't fully eliminate it because the symbol
+ *    is taken by address elsewhere).
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006366C);
+#endif
 
 void gl_func_0006370C(char *a0) {
     int local;
