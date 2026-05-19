@@ -17386,8 +17386,44 @@ int *gl_func_0004A670(int *a0, int a1, int a2, int a3) {
 /* gl_func_0004A6E8: 57-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A6E8);
 
-/* gl_func_0004A7CC: 32-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004A7CC: global-queue append with optional bound assert.
+ * Decoded from bare stub 2026-05-18. void f(int a0, int a1):
+ *   if (a0 & 1) return;                 // andi+bne; delay sets a1=a0
+ *   q = *(int**)(&D_00000000 + 0x22C);
+ *   if (q->0xC >= q->8)                 // slt+bnel
+ *       cb_assert(&D_00000000 + 0x2003C, a1);
+ *   idx = q->0xC; q->0xC = idx + 1;
+ *   *(int*)(q->0 + idx*4) = a1;
+ *   cb(a1);
+ * Build/decode notes (multi-pass, defer): the bne's DELAY slot is
+ * `or a1,a0,zero` (a1=a0 ALWAYS — the body's a1 is really a0), so
+ * the C must take (int a0) and use a0 (no real 2nd param) with the
+ * a1=a0 falling into the if-guard's delay; the assert guard is the
+ * bnel-delay-likely form (`lw a0,0xC(v0)` reused); two jal-0 with
+ * a0=a1 in the 2nd's delay. Exact andi rs / global offsets to
+ * confirm in the focused pass (hand-decode ambiguous on the andi
+ * register + 0x22C/0x2003C). Real decoded C preserved. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0004A7CC(int a0) {
+    int *q;
+    int idx;
+    if (a0 & 1) {
+        return;
+    }
+    q = *(int **)((char *)&D_00000000 + 0x22C);
+    if (q[3] >= q[2]) {
+        gl_func_00000000((char *)&D_00000000 + 0x2003C, a0);
+    }
+    idx = q[3];
+    q[3] = idx + 1;
+    *(int *)(q[0] + idx * 4) = a0;
+    gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A7CC);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0004A84C(char *a0) {
