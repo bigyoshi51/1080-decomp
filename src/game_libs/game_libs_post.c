@@ -18208,17 +18208,18 @@ int gl_func_00047F48(int *a0) {
  * reachable here — corrects IDO_CODEGEN.md#feedback-ido-sparse-switch-
  * beql-preload-unreachable (that cap is the lw-preload / denser variant,
  * not the 2-case store variant). */
-void game_libs_func_00047F68(int *a0, int a1) {
-    *(int*)((char*)a0 + 0x188) = a1;
-    switch (a1) {
-    case 0:
-        *(int*)((char*)a0 + 0x1E0) = 1;
-        break;
-    case 1:
-        *(int*)((char*)a0 + 0x1E0) = 0;
-        break;
-    }
+/* game_libs_func_00047F68 boundary note: the pre-split switch C emitted the
+ * two leaf bodies inline. Keep the split asm so game_libs_func_00047F84 /
+ * 00047F90 retain their own symbols. Equivalent pre-split shape:
+ *   a0[0x188/4] = a1; switch (a1) { case 0: a0[0x1E0/4] = 1; break;
+ *   case 1: a0[0x1E0/4] = 0; break; } */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F68);
+
+void game_libs_func_00047F84(s32 *arg0) {
+    arg0[0x78] = 1;
 }
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F90);
 
 // gl_func_00047F9C — STRUCTURAL PASS + BOUNDARY NOTE (0x3B4 / 238 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the

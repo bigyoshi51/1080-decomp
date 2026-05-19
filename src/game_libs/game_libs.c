@@ -1571,9 +1571,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CF8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F84);
+/* game_libs_func_00047F84 split 2026-05-19 from game_libs_func_00047F68;
+ * decompiled in game_libs_post.c next to the parent. */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F90);
+/* game_libs_func_00047F90 split from game_libs_func_00047F68; INCLUDE_ASM
+ * lives in game_libs_post.c next to the parent. */
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070C4);
 
