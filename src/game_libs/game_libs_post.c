@@ -15909,6 +15909,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000437C0);
 // 0x4C7C4 global and cb signature untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043BEC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00043D2C);
+
 // gl_func_00043D38 — STRUCTURAL PASS (0x170 / 93 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
 // (saves ra). Packed-table-entry invalidation over an index range (no cb
