@@ -1253,11 +1253,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FEB8);
 //   Word &D_0+0x2178 is a subsystem state flag cleared on completion.
 //   This is the "install/register" entry of the same game_libs
 //   support family as the gl_func_0001FD98 allocator helper.
-// Caps: raw-word USO + jal-0 USO-reloc calls — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Two-step subsystem
+//   register/install helper (same support family as the
+//   gl_func_0001FD98 allocator). Real-C STRUCTURAL body below per
+//   the analysis (two jal-0 USO-reloc registration calls with fixed
+//   &D_2188 / &D_2168 descriptor blobs, then reset state flag
+//   &D_0+0x2178). Byte-match deferred — placeholder jal-0 calls
+//   need USO reloc infra. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder for the registration routines.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0001FEC8(int arg) {
+    char *D = (char *)&D_00000000;
+    int g;
+    gl_func_00000000(D + 0x2188, D, arg);
+    g = *(int *)(D + 4);
+    gl_func_00000000(D + 0x2168, D + arg, g - arg);
+    *(int *)(D + 0x2178) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FEC8);
+#endif
 
 // gl_func_0001FF34 — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
