@@ -25771,8 +25771,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069688);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
 
-/* gl_func_00069B94: 41-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00069B94: 41-insn linked-list walk + per-node dispatch (0xA4, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   t6 = self->[0x38];                              // discriminator field
+ *   if (t6 != 3) func1(&D + 0x3C5F0);               // log/setup if not = 3
+ *
+ *   // Two-level linked-list walk: outer at self->[0x48] via [0x4] next-ptr,
+ *   // inner per-node sub-chain. NULL-terminated.
+ *   for (p = self->[0x48]; p != NULL; p = p->[0x4]) {
+ *       int key = p->[0x0];
+ *       if (key == 0) continue;                      // sentinel skip
+ *       int *result = func2(self->[0x3C], key);
+ *       for (q = result; q != NULL; q = q->[0x4]) {
+ *           if (q->[0x0] == 0) continue;
+ *           // (inner processing — exact details omitted in this pass)
+ *       }
+ *   }
+ *
+ * Standard hash-bucket-walk dispatch pattern. The inner-loop body skipped
+ * in C body — full decode would require sub-pass.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_00069B94(int *self) {
+    extern int D_00000000;
+    int *p;
+    if (self[0x38 / 4] != 3) {
+        gl_func_00000000((char*)&D_00000000 + 0x3C5F0);
+    }
+    p = (int*)self[0x48 / 4];
+    while (p != 0) {
+        if (p[0] != 0) {
+            int *q = (int*)gl_func_00000000(self[0x3C / 4], p[0]);
+            while (q != 0) {
+                q = (int*)q[1];
+            }
+        }
+        p = (int*)p[1];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069B94);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00069C38(char *a0) {
