@@ -13724,13 +13724,6 @@ void gl_func_0003F308(char *a0, int a1, int *a2, int a3) {
     func_00000000(&buf[0x00]);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0003F350: 21-insn 2-call wrapper.
- *   jal#1: func(sp+0x28, *(a1 + 0xC));
- *   then prepare buf @ sp+0x20: [0]=18, [0x48]=a1, [0x4C]=*(a1+0x18)&2
- *   jal#2: func(sp+0x20);
- *
- * a0 declared but unused (caller-slot spill family — same as 0003F2B8). */
 extern int func_00000000();
 void gl_func_0003F350(int *a0, int *a1) {
     char buf[0xA8];
@@ -13741,9 +13734,6 @@ void gl_func_0003F350(int *a0, int *a1) {
     func_00000000(&buf[0x08]);
     (void)a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F350);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0003F3A4(int a0) {
