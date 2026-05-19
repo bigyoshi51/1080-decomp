@@ -19040,6 +19040,8 @@ void gl_func_0004DCD4(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DCD4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD0C);
 #endif
 
 extern int gl_func_00000000();
