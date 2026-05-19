@@ -28239,8 +28239,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C084);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C11C);
 #endif
 
-/* gl_func_0006C1B8: 61-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006C1B8: 61-insn reset-sibling of gl_func_0006BD14 (size 0xF4, frame 0x10).
+ *
+ * SAME STRUCTURE as gl_func_0006BD14:
+ *   1. 15-iter loop clears 60-byte table at D+0..D+0x38
+ *   2. Reads D+0 byte (now 0) for emit-skip gate
+ *   3. Sets D+0x3C = 1 (active flag)
+ *   4. Builds 8-byte template buf
+ *   5. Emit-record loop GATED on orig_count > 0 — always skipped (dead)
+ *   6. Writes 0xFE terminator byte at D+0
+ *
+ * DIFFERENCE: template bytes
+ *     gl_func_0006BD14 template: {0xFF, 0x01, 0x03, a0_in,  0xFF, 0xFF, 0xFF, 0xFF}
+ *     gl_func_0006C1B8 template: {0xFF, 0x01, 0x04, 0x01,   0xFF, 0xFF, 0xFF, 0xFF}
+ *                                            type^^  ^subtype
+ *
+ *   This sibling resets-with-type=4-subtype=1 (vs 0006BD14's type=3-subtype-from-arg).
+ *   Also uses NO ARGS — `a0` isn't read by this function; subtype is hardcoded 1.
+ *
+ * Decoded structure (raw-word disasm):
+ *   void reset_type4(void) {  // takes no arg; a0 unused
+ *       for (int i = 0; i < 15; i++) {
+ *           *(int*)((char*)&D_00000000 + i*4) = 0;
+ *       }
+ *       int orig_count = *(uint8_t*)&D_00000000;     // = 0 after clear
+ *       *(int*)((char*)&D_00000000 + 0x3C) = 1;       // active flag
+ *
+ *       // Build template: {0xFF, 0x01, 0x04, 0x01, 0xFF, 0xFF, 0xFF, 0xFF}
+ *       // Note: bytes [4,5] written as `sh 0xFFFF` (halfword), [6,7] as `sb 0xFF` each
+ *
+ *       if (orig_count > 0) {
+ *           // emit-record loop — DEAD due to clear
+ *           ...
+ *       }
+ *       *(uint8_t*)((char*)&D_00000000) = 0xFE;        // terminator
+ *   }
+ *
+ * Notes:
+ *  - Uses `sh $tN, 0x8(sp)` (store halfword) for the middle 2 bytes vs
+ *    individual `sb` stores in 0006BD14. Same byte values, different
+ *    instruction widths — likely IDO register allocation chose halfword
+ *    because the constant 0xFFFF fits one ori-into-low-half.
+ *  - No argument used: confirms this is a fixed-shape reset for one
+ *    specific record type (type=4-subtype=1).
+ *  - Trailing 2-insn `lui $t6,0; lw $t6,0xC($t6)` fragment post-epilogue —
+ *    incomplete fragment per feedback_splat_too_big_incomplete_fragment_tail.md.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C1B8);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006C2AC: 52-insn caller-set-$t6 gate + multi-byte/word global init (0xD0, frame 0x20).
