@@ -1146,8 +1146,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CE38);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D0D0);
 
-/* gl_func_0000D288: 36-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000D288: 36-insn unlink-and-dispatch (0x90, frame 0x20).
+ *
+ * Decoded structure (3 short-circuit returns then unlink+dispatch):
+ *   parent = self->[0x44];                          // a2 register
+ *   child  = parent->[0x4C];
+ *   if (child == 0) return;                         // beql v1,$0,epilogue
+ *   if (*(float*)(child+0x64) > *(float*)(parent+0xC)) return;
+ *                                                    // FP compare via c.le.s + bc1fl
+ *   parent->[0x4C] = child->[0x84];                  // unlink: take next in chain
+ *   rc = gl_func(child, &(*self->[0x44])[0xB4]);     // 2-arg recursive(ish) call
+ *   if (rc != 0) {                                   // beq v0,$0,epilogue
+ *       vt = self->[0x28];
+ *       fn = (vt->[0x64])(self + vt->[0x60]_h, child);  // indirect dispatch
+ *   }
+ *
+ * The FP gate uses c.le.s f6,f4 (=child's val <= parent's bound) feeding
+ * bc1fl: branch-if-false-likely returns when val > bound.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000D288(int *self) {
+    int *parent = (int*)self[0x44 / 4];
+    int *child = (int*)parent[0x4C / 4];
+    int rc;
+    if (child == 0) return;
+    if (*(float*)((char*)child + 0x64) > *(float*)((char*)parent + 0xC)) return;
+    parent[0x4C / 4] = child[0x84 / 4];
+    /* a1 = *(int*)self->[0x44] + 0xB4 byte-offset */
+    rc = gl_func_00000000(child, (char*)*(int**)self[0x44 / 4] + 0xB4);
+    if (rc != 0) {
+        int *vt = (int*)self[0x28 / 4];
+        short h = *(short*)((char*)vt + 0x60);
+        int (*fn)(int*, int*) = (int(*)(int*, int*))vt[0x64 / 4];
+        fn((int*)((char*)self + h), child);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D288);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D318);
 
