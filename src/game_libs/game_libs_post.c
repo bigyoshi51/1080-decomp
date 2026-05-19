@@ -3710,6 +3710,8 @@ int gl_func_0002886C(int a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002888C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000288AC);
+
 /* gl_func_000289B0: 22-insn. sel = a1->u8[2]; if (sel==255) sel =
  * (s16)(*(int**)(a1+0x50))->[0x24]; v1 = a0->u8[0x32];
  * rv = gl_func_0003CF18(a0, a1, sel);   // jal in-segment 0x3CF18
