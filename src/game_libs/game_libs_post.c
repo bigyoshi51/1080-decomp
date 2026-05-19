@@ -26947,8 +26947,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C11C);
 /* gl_func_0006C1B8: 61-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C1B8);
 
-/* gl_func_0006C2AC: 52-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006C2AC: 52-insn caller-set-$t6 gate + multi-byte/word global init (0xD0, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   if (caller_t6 != 0xA6000000) {                   // caller-set-$t6 gate (cap class)
+ *       goto skip;                                    // return stored value
+ *   }
+ *   // Init: write byte/word fields to several D_sym globals:
+ *   *(byte*)&D_a = 1;                                 // sb 1, &D_a+0x4
+ *   *(int*) &D_b = 0xA6000000;                        // sw to +0xC
+ *   *(byte*)&D_c = 0x40;                              // sb 0x40, +0x5
+ *   *(byte*)&D_d = 7;                                 // sb 7, +0x8
+ *   *(byte*)&D_e = 7;                                 // sb 7, +0x6
+ *   *(byte*)&D_f = 2;                                 // sb 2, +0x7
+ *   *(byte*)&D_g = 0;                                 // sb 0, +0x9
+ *   *(int*) &D_h = 0;                                 // sw 0, +0x10
+ *   func1(&D_arg + 0x14, 0x60);                       // 0x60-byte init
+ *   func2();
+ *   *(int*)&D_x = *(int*)&D_y;                        // copy a global
+ *   func3(saved_x);                                   // post-init
+ * skip:
+ *   return *(int*)&D_result;
+ *
+ * CALLER-SET $t6 = 0xA6000000 gate (5th member of caller-set-int-reg cap
+ * family — see feedback_caller_set_int_reg_cap_1080_game_libs memo).
+ * The 0xA6000000 constant is unusual — not a standard N64 hardware base
+ * (0xA460/0xA480/0xA404 etc.) — may be a custom MMIO or debug region.
+ *
+ * Sibling of gl_func_0006F088 (PI DOM2 hardware init); both are libultra-
+ * style boot-time hardware register setup.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_0006C2AC(void) {
+    extern int t6_caller_state;
+    extern int D_result_sym, D_init_arg;
+    if (t6_caller_state != (int)0xA6000000) return D_result_sym;
+    /* Init globals — exact field roles need typing pass: */
+    gl_func_00000000((char*)&D_init_arg + 0x14, 0x60);
+    gl_func_00000000();
+    return D_result_sym;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C2AC);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C2AC_pad.s")
 
 /* gl_func_0006C384: 61-insn helper. Multi-pass decode pending. */
