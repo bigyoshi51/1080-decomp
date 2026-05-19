@@ -26244,8 +26244,57 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
     gl_func_00000000(&gl_ref_00022604, *(int*)(a0 + 0x34));
 }
 
-/* gl_func_00067A54: 29-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_00067A54: too-big-N-function-bundle (declared size 0x74, 29 words).
+ * Splat grouped 3 distinct functions + a 3-insn trailing fragment under one symbol.
+ * Candidate for split-fragments.py — needs the script to recurse on each newly-
+ * split-off boundary until no more splits happen.
+ *
+ * SUB-FUNCTION 1 (0x67A54 .. 0x67A8C, 15 insns, 0x3C bytes):
+ *     void f1(Obj *a0, int new_int, int new_short) {
+ *         if (a0->[0x78] == new_int)            return;   // beql to epilogue
+ *         if (new_short < a0->[0x76]) /*hu*/    return;   // bnel to epilogue
+ *         debug_print();                                   // jal <func>
+ *     }
+ *   Pattern: condition-then-debug-print helper. Likely "report change-of-state"
+ *   when (new_int, new_short) escalates beyond stored (a0->[0x78], a0->[0x76]).
+ *
+ * SUB-FUNCTION 2 (0x67A90 .. 0x67A9C, 4 insns, 0x10 bytes):
+ *     void f2(Obj *a0, int new_int, short new_short) {
+ *         *(int  *)((char*)a0 + 0x78) = new_int;
+ *         *(short*)((char*)a0 + 0x76) = new_short;
+ *         *(short*)((char*)a0 + 0x74) = 0;
+ *     }
+ *   Pattern: paired setter for the f1 fields. (0x74 cleared as a "dirty" flag.)
+ *
+ * SUB-FUNCTION 3 (0x67AA0 .. 0x67ABC, 7 insns, 0x1C bytes):
+ *     void f3(Obj *a0) {
+ *         *(int*)((char*)a0 + 0x10) = 0;
+ *         *(int*)((char*)a0 + 0x14) = 0;
+ *         *(int*)((char*)a0 + 0x18) = 0;
+ *         *(int*)((char*)a0 + 0x1C) = 0;
+ *         *(int*)((char*)a0 + 0x20) = 0;
+ *         *(int*)((char*)a0 + 0x24) = 0;
+ *     }
+ *   Pattern: clear-6-int-fields zero-init helper.
+ *
+ * TRAILING FRAGMENT (0x67ABC .. 0x67AC8, 3 insns):
+ *     nop; nop; mtc1 $zero, $f12.
+ *   Incomplete fragment (no prologue, no jr) — likely prologue-stub of a
+ *   subsequent function whose body lives further in. Variant of
+ *   feedback_splat_too_big_incomplete_fragment_tail.md.
+ *
+ * Notes:
+ *  - Two `jr $ra` inside the declared region at 0x67A88 (f1 end) and 0x67A98 (f2)
+ *    plus a third at 0x67AB4 (f3 end). 3 jr $ra = 3 functions bundle.
+ *  - Splat boundary-issue family per docs/MATCHING_WORKFLOW.md
+ *    "too-big-N-function-bundle".
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
+#endif
 
 extern int gl_func_00067AC8_inner(float, float);
 
