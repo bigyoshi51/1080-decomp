@@ -2264,12 +2264,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000223DC);
 //   result, and clears the result global &D_0+0x1E14 at the end. The
 //   bulk "apply to all matching registry entries" operation paired
 //   with the gl_func_000221D8 single-slot scan.
-// Caps: raw-word USO + 2-fn unsplit bundle + jal-0 USO-reloc per-
-//   match processor — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only for the named leading fn, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "2-jr bundle" note is STALE;
+//   .s is 0x2FC/130 words, ONE function). Sibling of
+//   gl_func_000221D8 — the "apply to all matching registry entries"
+//   variant. Real-C STRUCTURAL body below per the analysis (count
+//   &D_0+0x2020, table &D_0+0x2030; walk every entry, skip 0xFF
+//   empty slots, on byte+2==key && byte+3!=3 invoke a jal-0 per-
+//   match processor and accumulate; clear &D_0+0x1E14 at the end).
+//   Byte-match deferred — placeholder jal-0 processor needs USO
+//   reloc infra + scan-loop schedule. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for the processor.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00022464(char *key) {
+    char *g = (char *)&D_00000000;
+    int n = *(int *)(g + 0x2020);
+    char *tbl;
+    unsigned char kb;
+    int i, acc;
+    if (n <= 0) {
+        return 0;
+    }
+    tbl = *(char **)(g + 0x2030);
+    kb = *(unsigned char *)(key + 0);
+    acc = 0;
+    for (i = 0; i < n; i++) {
+        char *e = tbl + i * 0x14;
+        unsigned char t2 = *(unsigned char *)(e + 2);
+        unsigned char t3 = *(unsigned char *)(e + 3);
+        if (t2 == 0xFF) {
+            continue;
+        }
+        if (t3 != 3 && t2 == kb) {
+            int r = gl_func_00000000(e, key);
+            if (r != 0) {
+                acc += r;
+            }
+        }
+    }
+    *(int *)(g + 0x1E14) = 0;
+    return acc;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
 
