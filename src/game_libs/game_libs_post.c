@@ -22306,8 +22306,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B848);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B90C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0005B90C_pad.s")
 
-/* gl_func_0005BAF4: 54-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005BAF4: affine 4x4 builder from src object a0 (=s0).
+   (1) copy Vec3 a0[1..3] (a0+0x4..0xC) into a scratch triple;
+   (2) nested loop extracts s0's 3x3 (base s0+0x14, row stride 0x10)
+       into the matrix at scratch+0x00;
+   (3) zero the homogeneous column (mat[0..2][3]=0), mat[3][3]=1.0,
+       and drop the copied Vec3 into the translation column
+       (mat[3][0..2]); then reloc(&matrix, s0).
+   DEFERRED: multi-loop FP medium cap — three pointer-walk induction
+   loops with sltu/bne back-edges and store-in-delay-slot, 0.0/1.0
+   FP-const materialization order, deep frame 0x88 scratch layout
+   (Vec3 at sp+0x74, matrix at sp+0x34, work buf sp+0x44), and one
+   unresolved jal reloc. Next pass: resolve the reloc callee and grind
+   the three loops' exact induction-variable / stride-pointer schedule
+   (this is the matrix-build twin family; pairs with later 0005Bxxx). */
+extern int gl_func_00000000();
+void gl_func_0005BAF4(float *a0) {
+    float vec[3];
+    float mat[4][4];
+    int i, j;
+    for (i = 0; i < 3; i++) {
+        vec[i] = a0[1 + i];
+    }
+    for (j = 0; j < 3; j++) {
+        for (i = 0; i < 3; i++) {
+            mat[j][i] = a0[5 + j * 4 + i];
+        }
+    }
+    mat[0][3] = 0.0f;
+    mat[1][3] = 0.0f;
+    mat[2][3] = 0.0f;
+    mat[3][3] = 1.0f;
+    for (i = 0; i < 3; i++) {
+        mat[3][i] = vec[i];
+    }
+    gl_func_00000000(&mat[0][0], a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BAF4);
+#endif
 
 /* gl_func_0005BBCC: 66-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BBCC);
