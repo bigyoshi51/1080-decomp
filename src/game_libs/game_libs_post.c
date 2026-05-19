@@ -17567,8 +17567,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
 // &D_lit table and cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AE40);
 
-/* gl_func_0004AFB4: 35-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004AFB4: 35-insn 5-arg wrapper + conditional pair-dispatch (0x8C, frame 0x28).
+ *
+ * Decoded structure (raw-word disasm):
+ *   v0 = func1(a0, a1, a2, a3, stack_arg);          // 5-arg main call
+ *   if (a1 != 0) return v0;                          // early-exit via bne (target = epilogue)
+ *   // Else (a1 == 0): pair-dispatch with 8-byte-stride entry @ a0->[0x6C]:
+ *   {
+ *       char *entry = (char*)a0->[0x6C] + (a3 << 3);   // a3-indexed (8-byte stride)
+ *       short halfA = D_S[0];                          // global half @+0
+ *       func2(a0, *(u16*)(entry + 0x4), halfA);
+ *       entry = (char*)a0->[0x6C] + (a3 << 3);         // reload (asm has 2 separate loads)
+ *       short halfB = D_S[1];                          // global half @+2
+ *       func3(a0, *(u16*)(entry + 0x6), halfB);
+ *   }
+ *   return v0;                                        // 1st-call result via sp+0x24
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_0004AFB4(int *a0, int a1, int a2, int a3, int stack_arg) {
+    extern short D_S[];
+    int v0 = (int)gl_func_00000000(a0, a1, a2, a3, stack_arg);
+    if (a1 != 0) return v0;
+    {
+        char *entry = (char*)a0[0x6C / 4] + (a3 << 3);
+        gl_func_00000000(a0, *(unsigned short*)(entry + 0x4), D_S[0]);
+        entry = (char*)a0[0x6C / 4] + (a3 << 3);
+        gl_func_00000000(a0, *(unsigned short*)(entry + 0x6), D_S[1]);
+    }
+    return v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AFB4);
+#endif
 
 /* 26-insn entry-array iter: count re-read from a0[0xC/4] each iter
  * (callee may mutate). Naming `count` as a local regresses to 88% by
