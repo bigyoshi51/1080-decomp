@@ -3241,11 +3241,37 @@ void gl_func_0002372C(int a0) {
 //   a payload, word e->0x10 a pointer. The "obtain & dereference a
 //   resource handle of class 2" entry in the game_libs resource
 //   subsystem.
-// Caps: raw-word USO + fixed-target call chain + jal-0 USO-reloc
-//   acquire — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. "Obtain & dereference a
+//   class-2 resource handle" entry of the game_libs resource
+//   subsystem. Real-C STRUCTURAL body below per the analysis (chain
+//   fixed USO-reloc 0x38204(2) / 0x38174(2) / 0x381B0(2,j); if ok,
+//   jal-0 USO-reloc acquire(j,2); resolved j selects a 0x10-stride
+//   table entry; type tag e->0x19==4 special-cases payload e->0x18
+//   else pointer e->0x10). Byte-match deferred — placeholder jal
+//   chain / jal-0 acquire need USO reloc infra + branch schedule.
+//   Name pre-checked: no extern reuse (collision-safe).
+//   gl_func_00000000 = canonical never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_00023760(int *dst, int a1) {
+    int j = gl_func_00000000(2);
+    int ok = gl_func_00000000(2, j);
+    char *e;
+    if (ok == 0) {
+        return 0;
+    }
+    gl_func_00000000(j, 2);
+    e = (char *)gl_func_00000000(j) + j * 0x10;
+    if (*(unsigned char *)(e + 0x19) == 4) {
+        *dst = *(unsigned char *)(e + 0x18);
+    } else {
+        *dst = *(int *)(e + 0x10);
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023760);
+#endif
 
 // gl_func_00023838 — STRUCTURAL PASS (0xDC / 55 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
