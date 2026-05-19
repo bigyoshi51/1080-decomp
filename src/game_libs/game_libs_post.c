@@ -23250,6 +23250,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052994);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A4C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A64);
+
 #ifdef NON_MATCHING
 /* gl_func_00052AE8: lazy-alloc + memset + per-zero-byte callback
  * (clean single fn). Decoded from bare stub 2026-05-19.
