@@ -1,0 +1,10 @@
+nonmatching arcproc_uso_func_00002504, 0x18
+
+glabel arcproc_uso_func_00002504
+    /* 5A864C 00002504 03E00008 */  .word 0x03E00008
+    /* 5A8650 00002508 00000000 */  .word 0x00000000
+    /* 5A8654 0000250C 03E00008 */  .word 0x03E00008
+    /* 5A8658 00002510 00000000 */  .word 0x00000000
+    /* 5A865C 00002514 03E00008 */  .word 0x03E00008
+    /* 5A8660 00002518 00000000 */  .word 0x00000000
+endlabel arcproc_uso_func_00002504
