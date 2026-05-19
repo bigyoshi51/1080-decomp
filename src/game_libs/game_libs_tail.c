@@ -1675,8 +1675,49 @@ void gl_func_0000E66C(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E66C);
 #endif
 
-/* gl_func_0000E6E8: 45-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0000E6E8: 45-insn lazy-init + 4-call chain + linked-set finalizer (0xB4, frame 0x30).
+ *
+ * Decoded structure (raw-word disasm):
+ *   self->[0x74] = a3_float;                          // save float-arg pointer
+ *   if (self->[0x60] == 0) func1();                   // lazy init
+ *   obj = func2(0, self->[0x60]);                     // factory call
+ *   self->[0x70] = obj;
+ *   func3(obj, (int)*(float*)self->[0x74]);           // trunc.w.s + mfc1 — float→int cast
+ *   func4(obj, a1, a2);                                // 3-arg init
+ *   func5(&self[0x10/4], obj);                         // linked-set register
+ *   if (obj->[0x14] != 0) obj->[0x4] = 1;             // conditional flag
+ *   obj->[0x14] = self;                                // back-link
+ *
+ * The tail (last 2 stmts) is the back-link-with-conditional-flag idiom
+ * also seen in gl_func_0000E66C, gl_func_0000EAAC, gl_func_000525F0 —
+ * this is the 4th sibling confirming a SHARED LINKED-SET FINALIZER
+ * pattern across 1080's game_libs.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_0000E6E8(int *self, int a1, int a2, float *a3_float) {
+    int *obj;
+    self[0x74 / 4] = (int)a3_float;
+    if (self[0x60 / 4] == 0) {
+        gl_func_00000000();
+    }
+    obj = (int*)gl_func_00000000(0, self[0x60 / 4]);
+    self[0x70 / 4] = (int)obj;
+    gl_func_00000000(obj, (int)*(float*)self[0x74 / 4]);
+    obj = (int*)self[0x70 / 4];
+    gl_func_00000000(obj, a1, a2);
+    obj = (int*)self[0x70 / 4];
+    gl_func_00000000((char*)self + 0x10, obj);
+    if (obj[0x14 / 4] != 0) {
+        obj[0x4 / 4] = 1;
+    }
+    obj[0x14 / 4] = (int)self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E6E8);
+#endif
 
 /* gl_func_0000E79C: 44-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E79C);
