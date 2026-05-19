@@ -20016,8 +20016,45 @@ void gl_func_0005256C(int *a0, int **a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
 #endif
 
-/* gl_func_000525F0: 33-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000525F0: 33-insn lazy-init + register w/ back-link (0x84, frame 0x20).
+ *
+ * Decoded structure (raw-word disasm):
+ *   obj = self->[0x2C];                              // cached factory result
+ *   if (obj == NULL) {
+ *       obj = func(self, &D_BASE + 0x20FC0, ...);   // lazy factory call w/ string sym
+ *       self->[0x2C] = obj;                          // cache
+ *   }
+ *   func(obj + 0x10, target);                        // process call
+ *   if (target->[0x14] != 0) {                       // beql conditional flag
+ *       target->[0x4] = 1;
+ *   }
+ *   target->[0x14] = obj;                            // back-link (unconditional)
+ *
+ * Same tail-shape (back-link-with-conditional-flag) as gl_func_0000E66C
+ * and gl_func_0000EAAC — these 3 are siblings in a linked-set finalizer
+ * idiom. Different lazy-init shape (cached at self->[0x2C] here vs direct
+ * factory in EAAC).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_000525F0(int *self, int *target) {
+    extern int D_BASE;
+    int *obj = (int*)self[0x2C / 4];
+    if (obj == 0) {
+        obj = (int*)gl_func_00000000(self, (char*)&D_BASE + 0x20FC0);
+        self[0x2C / 4] = (int)obj;
+    }
+    gl_func_00000000((char*)obj + 0x10, target);
+    if (target[0x14 / 4] != 0) {
+        target[0x4 / 4] = 1;
+    }
+    target[0x14 / 4] = (int)obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000525F0);
+#endif
 
 /* game_libs_func_00052674 — verified structural decode (23 insns, no
  * branches/calls = fully deterministic; future gl_ref_ episode candidate).
