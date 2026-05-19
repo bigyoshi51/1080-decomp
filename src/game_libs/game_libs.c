@@ -309,8 +309,58 @@ void gl_func_0000127C(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000127C_pad.s")
 
-/* gl_func_000012B4: 40-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000012B4: 40-insn helper (0xA0, frame 0x68, saves s0/s1/s2/ra).
+ *
+ * Caller-set float convention ($f4, $f6, $f0): same family as
+ * gl_func_00010650 / game_uso_func_00010650 — IDO C-level cannot receive
+ * floats in $f4/$f6/$f0 (intra-USO non-O32 call convention,
+ * docs/IDO_CODEGEN.md#feedback-ido-no-gcc-register-asm). Real C body
+ * sketched below for documentation; INCLUDE_ASM is the build path.
+ *
+ * Decoded structure:
+ *   self = a0; product_int = (int)(f4 * f6);
+ *   Quad4 buf = {0,0,0,0};                 // 4× swc1 f0 (=0.0f caller-set)
+ *   gl_func_00000000(&D_NNN, product_int, &buf, 0);     // 4-arg call
+ *   s2 = self + 0x110;                                 // subobject pointer
+ *   gl_func_00000000(s2);                              // unary call
+ *   for (i = self->[0x10C] - 1; i >= 0; i--) {
+ *       byte_off = i * 4;                              // sll 2
+ *       p = (char*)self->[0x44] + byte_off;
+ *       q = self->[0x5C] - byte_off;
+ *       gl_func_00000000(s2, p, q, 3);                 // a3=3 literal
+ *   }
+ *
+ * Structural-decode note 2026-05-18: was 1-line "Multi-pass decode pending"
+ * doc-marker (the bail pattern per feedback_doc_marker_is_bail.md).
+ * Replaced with substantive structural decode + caller-set-float-cap class
+ * attribution. INCLUDE_ASM path holds; promotion would need INSN_PATCH for
+ * the $f4/$f6/$f0 calling convention which IDO C cannot emit.
+ */
+void gl_func_000012B4(int *self) {
+    /* Real C below documents the body shape. Cannot byte-match due to
+     * intra-USO float-in-fN callee convention; INCLUDE_ASM #else branch is
+     * the build path. */
+    extern int gl_func_00000000();
+    extern int D_00000000;
+    extern float gl_float_f4, gl_float_f6;  /* placeholder caller-set floats */
+    int product_int = (int)(gl_float_f4 * gl_float_f6);
+    int buf[4] = {0, 0, 0, 0};
+    int *s2;
+    int i;
+    gl_func_00000000(&D_00000000, product_int, &buf, 0);
+    s2 = (int*)((char*)self + 0x110);
+    gl_func_00000000(s2);
+    for (i = self[0x10C / 4] - 1; i >= 0; i--) {
+        int byte_off = i * 4;
+        int *p = (int*)((char*)self[0x44 / 4] + byte_off);
+        int q = self[0x5C / 4] - byte_off;
+        gl_func_00000000(s2, p, q, 3);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000012B4);
+#endif
 
 void game_libs_func_00001354(int *a0, int a1) {
     a0[0x10C/4] = a1;
