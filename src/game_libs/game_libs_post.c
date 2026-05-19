@@ -23293,8 +23293,45 @@ void game_libs_func_000622C8(int *a0, int a1) {
     a0[2] = a1;
 }
 
-/* gl_func_000622D8: 36-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000622D8: 36-insn alloc-array + N-init loop (0x90, frame 0x38).
+ *
+ * Decoded structure (raw-word disasm):
+ *   func_at_0x764C4(&local_buf, a1);                // direct-address jal (libc-style thunk)
+ *   count = local_buf[0];
+ *   factory = func2(count * 32);                     // alloc N×32-byte entries
+ *   self->[0] = factory;
+ *   self->[1] = count;
+ *   for (i = 0; i < count; i++) {
+ *       func3((char*)self->[0] + i*32, self->[2]);   // per-entry init
+ *       func4((char*)self->[0] + i*32);              // per-entry post
+ *   }
+ *
+ * Loop optimized via delay-slot reuse: `lw t8, 0(s2)` lives in bnel's
+ * delay slot. Direct jal to 0x764C4 (no R_MIPS_26 reloc) is another
+ * hardcoded-address-jal pattern (cf. 0x80824 in gl_func_0006C084).
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+void gl_func_000622D8(int *self, int a1) {
+    int local_buf[1];
+    int *factory;
+    int count;
+    int i;
+    ((void(*)(int*, int))0x764C4)(local_buf, a1);
+    count = local_buf[0];
+    factory = (int*)gl_func_00000000(count * 32);
+    self[0] = (int)factory;
+    self[1] = count;
+    for (i = 0; i < count; i++) {
+        gl_func_00000000((char*)self[0] + i * 32, self[2]);
+        gl_func_00000000((char*)self[0] + i * 32);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000622D8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062368);
 
