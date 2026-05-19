@@ -27902,8 +27902,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000744CC);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074554);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00074554_pad.s")
 
-/* gl_func_000747F4: 43-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_000747F4: 19-insn uncached-write helper + 4-stub BUNDLE (0xAC declared,
+ * real fn is 19 insns = 0x4C; rest are 4 small leaf utilities).
+ *
+ * Decoded fn 1 (gl_func_000747F4 proper):
+ *   if (func_acquire() != 0) return -1;
+ *   *(volatile int*)((uintptr_t)a0 | 0xA0000000) = a1;  // KSEG1 uncached write
+ *   return 0;
+ *
+ * The `lui at, 0xA000; or t8, t7, at` is KSEG0→KSEG1 conversion: forces
+ * write to bypass dcache (DMA-buffer poke / hardware register).
+ *
+ * Bundled siblings @0x4C-0xAC (need fragment-split for byte-exact):
+ *   - @0x4C: `*(volatile int*)0xA4040010 = a0;`     // SP_STATUS_REG write
+ *   - @0x58: `return *(volatile int*)0xA4040010;`   // SP_STATUS_REG read
+ *   - @0x68: icache invalidate 0x80000000..0x80002000 (8KB via `cache 0x01`)
+ *   - @0x94: getter — returns *(int*)&D_sym
+ *
+ * The cache-invalidate loop is the libultra-style `osInvalDCache` / icache
+ * primitive — directly invokes `cache 0x01, off(t0)` insn for SI-related
+ * hardware operations.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_000747F4(void *a0, int a1) {
+    int rc = (int)gl_func_00000000(a0, a1);
+    if (rc != 0) return -1;
+    *(volatile int*)((unsigned int)a0 | 0xA0000000) = a1;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000747F4);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000747F4_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000748A4);
