@@ -22676,8 +22676,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D628);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D760);
 
-/* gl_func_0005D908: 57-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0005D908: recursive FP transform-tree combine over three
+   structs src(a0)/other(a1)/out(a2). reloc1(src+0x18, other, out)
+   fills the out 0x00..0x14 region; then for the (0,4,8)/(C,10,14)
+   triple pairing out[i] = src[i] + src[i+3]*out[i]; reloc2(src+0x18,
+   other+0x18, out+0x18) recurses on the sub-region; finally
+   out[3..5] = src[3..5] * other[3..5].
+   DEFERRED: medium FP struct-math cap — two unresolved recursive jal
+   relocs (likely this fn / a sibling on the +0x18 child), $s0=src /
+   $s1=other callee-save pinning, dense lwc1/mul.s/add.s read-modify
+   interleave with the out struct as both in and out, and a stack
+   arg-shuffle (src+0x18 at sp+0x20, a2 saved/reloaded at sp+0x38
+   across reloc1's delay slot). Next pass: resolve the two relocs and
+   grind the FP-op / sreg schedule. */
+extern int gl_func_00000000();
+void gl_func_0005D908(float *src, float *other, float *out) {
+    gl_func_00000000((char *)src + 0x18, other, out);
+    out[0] = src[0] + src[3] * out[0];
+    out[1] = src[1] + src[4] * out[1];
+    out[2] = src[2] + src[5] * out[2];
+    gl_func_00000000((char *)src + 0x18, (char *)other + 0x18, (char *)out + 0x18);
+    out[3] = src[3] * other[3];
+    out[4] = src[4] * other[4];
+    out[5] = src[5] * other[5];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D908);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D9EC);
 
