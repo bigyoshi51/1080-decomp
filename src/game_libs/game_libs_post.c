@@ -3422,6 +3422,8 @@ void gl_func_00027704(int a0, int a1) {
 //   leading fn, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027744);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027784);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00027744_pad.s")
 
 // gl_func_00027804 — STRUCTURAL PASS (0x4FC / 319 words ≈ 1.3KB, no
