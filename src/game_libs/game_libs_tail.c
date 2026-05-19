@@ -690,17 +690,11 @@ void gl_func_0000B8E0(int a0, int a1, int a2, int a3) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B958);
 
-#ifdef NON_MATCHING
 /* gl_func_0000BA6C: 42-insn save-game checksum verifier (sibling of
  * BB14 — same magic 0xD1265205 + same 4 data chunks).
  * Reads 4 8-byte data chunks + existing hash, recomputes hash, returns
- * 1 if hashes mismatch, 0 if match.
- *
- * EXACT (100.0%). The 99.95% cap was an oversized local: char buf[0x40]
- * forced frame -0x60; the correct size is buf[0x28] (only [0,0x28) is
- * ever touched), which yields target frame -0x48 and lets the high data
- * writes borrow the caller arg-save region (caller-slot-borrow, same
- * family as BB14). Episode logged. */
+ * 1 if hashes mismatch, 0 if match. buf[0x28] sizes the frame for the
+ * target's caller-slot-borrow into the high stores. */
 extern int gl_func_00000000();
 int gl_func_0000BA6C(int a0) {
     char buf[0x28];
@@ -714,9 +708,6 @@ int gl_func_0000BA6C(int a0) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BA6C);
-#endif
 
 /* gl_func_0000BB14: 39-insn 6-call sequence — reads 4 8-byte chunks
  * from a0 at offsets 0x188/0x1F0/0x210/0x228 into local data[32],
