@@ -28340,8 +28340,68 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C2AC);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C2AC_pad.s")
 
-/* gl_func_0006C384: 61-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006C384: too-big-N-function-bundle (declared 0xF4, 61 words) — 2 libultra cache helpers.
+ *
+ * SUB-FUNCTION 1 (0x6C384..0x6C400, 31 insns) — __osVirtualToPhysical / osVirtualToPhysical:
+ *     uint32_t osVirtualToPhysical(void *vaddr) {
+ *         uint32_t a = (uint32_t)vaddr;
+ *         if (a >= 0x80000000 && a < 0xA0000000)
+ *             return a & 0x1FFFFFFF;   // KSEG0 cached → physical
+ *         if (a >= 0xA0000000 && a < 0xC0000000)
+ *             return a & 0x1FFFFFFF;   // KSEG1 uncached → physical
+ *         return runtime_helper(vaddr);  // KSEG2/KUSEG: page-table lookup via jal
+ *     }
+ *   Standard libultra/n64 virtual-to-physical translation. KSEG0+KSEG1 are
+ *   direct-mapped with `& 0x1FFFFFFF`; KSEG2/KUSEG require a page-table walk
+ *   delegated to a runtime helper (whose target is unresolved at splat time).
+ *
+ * SUB-FUNCTION 2 (0x6C400..0x6C478, 30 insns) — osInvalDCache:
+ *     void osInvalDCache(void *vaddr, s32 nbytes) {
+ *         if (nbytes <= 0) return;
+ *         if (nbytes >= 0x2000) {                          // 8KB threshold
+ *             // Full D-cache flush via index-writeback-invalidate
+ *             char *p   = (char*)0x80000000;
+ *             char *end = (char*)0x80001FF0;               // 8KB - 16
+ *             do {
+ *                 __asm("cache 0x1, 0(%0)" :: "r"(p));     // INDEX_WRITEBACK_INV_D
+ *                 p += 0x10;
+ *             } while (p < end);
+ *         } else {
+ *             // Hit-invalidate for small range, line-aligned
+ *             char *p   = (char*)vaddr;
+ *             char *end = (char*)vaddr + nbytes;
+ *             if (p >= end) return;
+ *             uint32_t pre = (uintptr_t)p & 0xF;
+ *             p   -= pre;
+ *             end -= 0x10;                                  // round end down
+ *             do {
+ *                 __asm("cache 0x19, 0(%0)" :: "r"(p));    // HIT_WRITEBACK_INV_D
+ *                 p += 0x10;
+ *             } while (p < end);
+ *         }
+ *     }
+ *   Standard libultra osInvalDCache. 0x10 = D-cache line size. The 0x2000
+ *   threshold = D-cache size = 8 KB. Two cache opcodes:
+ *     cache 0x01 = Index Writeback Invalidate D (flush all cache slots by index)
+ *     cache 0x19 = Hit Writeback Invalidate D   (line-by-line for given addresses)
+ *
+ * Notes:
+ *  - libultra-class helpers — see libreultra `src/os/invaldcache.c` and
+ *    `src/os/virtualtophysical.c` for canonical source. Likely byte-match
+ *    via libreultra exact source if compiled with IDO. Could be promoted to
+ *    full byte-exact if INCLUDE_ASM is replaced with proper libreultra body.
+ *    For this tick: structural wrap + INCLUDE_ASM build path.
+ *  - Two jr $ra in f2 (one early-out at 0x6C44C, one post-full-flush at
+ *    0x6C470) are both valid exits from the same function — NOT a bundle
+ *    boundary within f2.
+ *  - Bundle has 3 total jr $ra (f1 + f2's two exits).
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C384);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C384_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C484);
