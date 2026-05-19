@@ -4461,11 +4461,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253C4);
 //   sub-calls. This is the update/advance entry that complements the
 //   gl_func_00024378 init / gl_func_00025044 teardown for that
 //   subsystem.
-// Caps: raw-word USO + large element-loop update with USO-reloc
-//   sub-calls — not exact-matchable without proper USO mnemonic
-//   disasm; high-level structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Per-frame subsystem UPDATE
+//   DRIVER (complements gl_func_00024378 init / gl_func_00025044
+//   teardown). Real-C STRUCTURAL body below per the analysis (state
+//   gate &D_0+0x1034 -> ret; clear &D_0+0x2B0 flag and &D_0+0x1030
+//   count; jal-0 0x38248(..,a2) refills the count; loop the
+//   &D_0+0x430 word-strided element-ptr table processing each with
+//   a 0x10-aligned size + sub-calls; return ret). Byte-match
+//   deferred — large element-loop + USO-reloc sub-calls need USO
+//   reloc infra + s0-s7 schedule. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_00025504(int a0, int a1, int a2, int a3) {
+    char *g = (char *)&D_00000000;
+    int ret = (*(int *)(g + 0x1034) == 0) ? 0 : 1;
+    int n, i;
+    *(int *)(g + 0x2B0) = 0;
+    *(int *)(g + 0x1030) = 0;
+    gl_func_00000000(a0, a2);
+    n = *(int *)(g + 0x1030);
+    if (n <= 0) {
+        return ret;
+    }
+    for (i = 0; i < n; i++) {
+        int *e = *(int **)(g + 0x430 + i * 4);
+        gl_func_00000000(e, (e[5] + 0xF) & ~0xF, a3);
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
+#endif
 
 // gl_func_000258CC — STRUCTURAL PASS (0x1FC / 127 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
