@@ -27248,8 +27248,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF64);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F038);
 #endif
 
-/* gl_func_0006F088: 47-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006F088: 47-insn N64 PI DOM2 setup + buffer-init dispatch (0xBC, frame 0x20).
+ *
+ * RECOGNIZED HARDWARE PATTERN: writes to PI (Peripheral Interface) BSD
+ * timing registers for domain 2 (cart/disk):
+ *   0xA4600024 = PI_BSD_DOM2_LAT_REG (latency, set to 3)
+ *   0xA4600028 = PI_BSD_DOM2_PWD_REG (pulse width, from D_sym byte +8)
+ *   0xA460002C = PI_BSD_DOM2_PGS_REG (page size, from D_sym byte +6)
+ *   0xA4600030 = PI_BSD_DOM2_RLS_REG (release, from D_sym byte +7)
+ *
+ * Decoded structure (raw-word disasm):
+ *   D_sym_a[9] = 1;                                  // flag set
+ *   *(volatile int*)0xA4600024 = 3;                  // PI_BSD_DOM2_LAT
+ *   *(volatile int*)0xA4600028 = D_sym_a[8];         // PI_BSD_DOM2_PWD
+ *   *(volatile int*)0xA460002C = D_sym_b[6];         // PI_BSD_DOM2_PGS
+ *   *(volatile int*)0xA4600030 = D_sym_c[7];         // PI_BSD_DOM2_RLS
+ *   D_zero_sym = 0;
+ *   func1(&D_arg_sym + 0x14, 0x60);                   // 0x60-byte buffer init
+ *   func2();                                          // post-init
+ *   D_other_syms = ... ;                              // additional sym writes
+ *   return *(int*)&D_result;
+ *
+ * Cart/64DD domain-2 timing setup. Boot-time hardware init. Pairs with
+ * the SI/PIF DMA helper in gl_func_0006CAD4 — both are libultra-style
+ * hardware register configuration.
+ *
+ * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
+ * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+int gl_func_0006F088(void) {
+    extern unsigned char D_sym_a;     /* 9-byte buffer */
+    extern int D_arg_sym, D_zero_sym, D_result;
+    *(volatile int*)0xA4600024 = 3;
+    *(volatile int*)0xA4600028 = (&D_sym_a)[8];
+    *(volatile int*)0xA460002C = (&D_sym_a)[6];
+    *(volatile int*)0xA4600030 = (&D_sym_a)[7];
+    (&D_sym_a)[9] = 1;
+    D_zero_sym = 0;
+    gl_func_00000000((char*)&D_arg_sym + 0x14, 0x60);
+    gl_func_00000000();
+    return D_result;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F088);
+#endif
 
 void gl_func_0006F144(int a0, ...) {
 }
