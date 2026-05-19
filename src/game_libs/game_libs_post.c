@@ -1396,11 +1396,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FFB8);
 //   pool (&D_21FC / &D_230C / &D_241C / &D_21F8 / &D_2308). Handle
 //   stashed at &D_0+0x21DC. The fullest "dump this object" variant of
 //   the game_libs report support family.
-// Caps: raw-word USO + jal-0 USO-reloc reporter calls — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Fullest "dump this object" variant
+//   of the gl_func_0001FF34 report support family. Real-C STRUCTURAL
+//   body below per the analysis (stash handle &D_0+0x21DC, then a
+//   chain of jal-0 USO-reloc reporter calls: a label line from
+//   &D_21D8 then a value line from the &D_21FC/&D_230C/&D_241C/
+//   &D_21F8/&D_2308 pool, fed from obj->0/4/8). Byte-match deferred —
+//   placeholder jal-0 reporter needs USO reloc infra. Name
+//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
+//   = canonical never-defined USO placeholder for the reporter.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002003C(int *obj) {
+    char *D = (char *)&D_00000000;
+    *(int *)(D + 0x21DC) = (int)obj;
+    gl_func_00000000(D + 0x21D8, obj[0]);
+    gl_func_00000000(D + 0x21FC, obj[0]);
+    gl_func_00000000(D + 0x21D8, obj[1]);
+    gl_func_00000000(D + 0x230C, obj[1]);
+    gl_func_00000000(D + 0x21D8, obj[2]);
+    gl_func_00000000(D + 0x241C, obj[2]);
+    gl_func_00000000(D + 0x21F8);
+    gl_func_00000000(D + 0x2308);
+    gl_func_00000000(D + 0x2418);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002003C);
+#endif
 
 // gl_func_00020100 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
