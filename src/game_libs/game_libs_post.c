@@ -1450,11 +1450,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002003C);
 //   report/dump support family — this and gl_func_0002003C are the
 //   per-object-type dump variants (different descriptor sets per
 //   record kind).
-// Caps: raw-word USO + jal-0 USO-reloc reporter calls — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra. Twin of gl_func_0002003C —
+//   dump-object report sequence, same support family, different
+//   &D_2xxx descriptor offsets. Real-C STRUCTURAL body below per
+//   the analysis (stash handle &D_0+0x21EC, then label+value jal-0
+//   reporter pairs fed from obj->0/4/8 plus three trailing footer
+//   lines). Byte-match deferred — placeholder jal-0 reporter needs
+//   USO reloc infra. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder for the reporter.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00020100(int *obj) {
+    char *D = (char *)&D_00000000;
+    *(int *)(D + 0x21EC) = (int)obj;
+    gl_func_00000000(D + 0x21E8, obj[0]);
+    gl_func_00000000(D + 0x22D0, obj[0]);
+    gl_func_00000000(D + 0x21E8, obj[1]);
+    gl_func_00000000(D + 0x23E0, obj[1]);
+    gl_func_00000000(D + 0x21E8, obj[2]);
+    gl_func_00000000(D + 0x24F0, obj[2]);
+    gl_func_00000000(D + 0x22CC);
+    gl_func_00000000(D + 0x23DC);
+    gl_func_00000000(D + 0x24EC);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020100);
+#endif
 
 /* gl_func_000201B8: 449-insn (0x704) multi-config slot-manager state
  * machine. Sibling-of-0x208BC pick (source-2, adjacent offset, same
