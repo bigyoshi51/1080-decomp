@@ -5486,12 +5486,24 @@ void gl_func_00027704(int a0, int a1) {
 //   USO re-split. NOTE: this function also carries a trailing
 //   gl_func_00027744_pad.s GLOBAL_ASM (alignment/literal pad), which
 //   is left untouched.
-// Caps: raw-word USO + 3-fn unsplit bundle + jal-0 USO-reloc steps
-//   + HW-register access in the tail — not exact-matchable without
-//   proper USO mnemonic disasm; structural pass only for the named
-//   leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "3-fn unsplit bundle" note is
+//   STALE; .s is 0x40/16 words, ONE function). Small 3-call
+//   acquire/work/release sequence. Real-C STRUCTURAL body below per
+//   the analysis (r1=jal-0 reloc1(1); jal-0 reloc2(a0,a1); jal-0
+//   reloc3(r1)). Byte-match deferred — placeholder jal-0 chain
+//   needs USO reloc infra. Name pre-checked: no extern reuse
+//   (collision-safe). gl_func_00000000 = canonical never-defined
+//   USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_00027744(int a0, int a1) {
+    int r1 = gl_func_00000000(1);
+    gl_func_00000000(a0, a1);
+    gl_func_00000000(r1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027744);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027784);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00027744_pad.s")
