@@ -1075,11 +1075,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
 //   reaches a global limit halfword at &D_x + 0x2048, invoking the
 //   USO-relocated callback (the `jal 0` slot, resolved at load) with
 //   the record pointer. Same sweep family as gl_func_0001FAE8.
-// Caps: raw-word USO + jal-0 USO-reloc callback — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. Sibling of gl_func_0001FAE8
+//   — a second sprite-subsystem record-array sweep firing a
+//   per-record USO-reloc callback. Real-C STRUCTURAL body below per
+//   the analysis (record table &D_0+0x2D00, stride 0x160, sign-bit
+//   gate on rec->0, secondary byte gate rec->4 != a0, loop bound =
+//   short at &D_0+0x2048, jal-0 callback with the record ptr).
+//   Byte-match deferred — placeholder jal-0 callback needs USO
+//   reloc infra + beql/bnel s0-s2 schedule. Name pre-checked: no
+//   extern reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder for the callback.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0001FBD4(int a0) {
+    char *rec;
+    int i;
+    if (a0 <= 0) {
+        return;
+    }
+    rec = (char *)&D_00000000 + 0x2D00;
+    i = 0;
+    do {
+        if ((unsigned)*(int *)rec >> 31) {
+            if (a0 != *(unsigned char *)(rec + 4)) {
+                gl_func_00000000(rec);
+            }
+        }
+        i++;
+        rec += 0x160;
+    } while (i < *(short *)((char *)&D_00000000 + 0x2048));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FBD4);
+#endif
 
 void gl_func_0001FC50(void) {
     gl_func_00000000();
