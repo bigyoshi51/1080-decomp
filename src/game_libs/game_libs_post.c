@@ -16245,6 +16245,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044AEC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044B84);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044C9C);
+
 extern int gl_func_00000000();
 void gl_func_00044CC4(int a0, int a1) {
     gl_func_00000000((unsigned char)a1);
