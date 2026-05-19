@@ -2972,11 +2972,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000233D4);
 //   action 0x0C00DEC0 (≈0x37B00) and a second USO-reloc handler.
 //   Halfword &D_0+0x23FA is read in the tail finalize. The
 //   poll+lookup+conditional-handler member of the buffer-run family.
-// Caps: raw-word USO + fixed-target + jal-0 USO-reloc per-element
-//   calls — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): CLEAN single jr $ra. poll+lookup+conditional-
+//   handler member of the gl_func_00022FC0 / gl_func_000232E8
+//   buffer-run consumer family. Real-C STRUCTURAL body below per the
+//   analysis (same &D_0+0x2028 idx<<1 cursor buffer; per element
+//   poll 0x38174(e), jal-0 USO-reloc lookup(1); on hit run fixed
+//   0x37B00(r) + a second jal-0 handler(0); finalize via buf[idx] /
+//   &D_0+0x23FA). Byte-match deferred — placeholder jal-0 calls need
+//   USO reloc infra + loop schedule. Name pre-checked: no extern
+//   reuse (collision-safe). gl_func_00000000 = canonical
+//   never-defined USO placeholder.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_000233E4(int idx) {
+    char *g = (char *)&D_00000000;
+    short *buf = *(short **)(g + 0x2028);
+    int cur = buf[idx];
+    int cnt = *((unsigned char *)buf + cur);
+    do {
+        unsigned char e;
+        int r;
+        cur++;
+        e = *((unsigned char *)buf + cur);
+        gl_func_00000000(e);
+        r = gl_func_00000000(1);
+        if (r != 0) {
+            gl_func_00000000(r);
+            gl_func_00000000(0);
+        }
+        cnt--;
+    } while (cnt != 0);
+    buf[idx] = (short)cur;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
+#endif
 
 // gl_func_0002349C — STRUCTURAL PASS (0xAC / 43 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
