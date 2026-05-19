@@ -30,3 +30,5 @@ void arcproc_uso_func_00000000(int *dst) {
 
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EEC);
+
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000011F0);
