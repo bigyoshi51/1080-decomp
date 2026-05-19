@@ -2130,11 +2130,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
 //   mask/sentinel markers. This is the find-existing-or-claim-free
 //   slot scan for that registry table (the lower-level companion to
 //   the gl_func_00021F40 list-insert helper).
-// Caps: raw-word USO + 2-fn unsplit bundle — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only for the
-//   named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): single jr $ra (the "2-jr bundle" note is STALE;
+//   .s is 0x204/115 words, ONE function). Find-existing-or-claim-
+//   free slot scan for the registry table (lower-level companion to
+//   the gl_func_00021F40 list-insert). Real-C STRUCTURAL body below
+//   per the analysis (count &D_0+0x2020, table &D_0+0x2030, per-
+//   record match bytes +2/+3 vs key->2, 0xFF empty-slot / 0x7F
+//   sentinel). Byte-match deferred — scan-loop / branch schedule.
+//   Name pre-checked: no extern reuse (collision-safe).
+#ifdef NON_MATCHING
+extern int D_00000000;
+int gl_func_000221D8(char *key) {
+    char *g = (char *)&D_00000000;
+    int n = *(int *)(g + 0x2020);
+    char *tbl;
+    unsigned char kb;
+    int i, result;
+    if (n <= 0) {
+        return 0;
+    }
+    tbl = *(char **)(g + 0x2030);
+    kb = *(unsigned char *)(key + 2);
+    result = 0;
+    for (i = 0; i < n; i++) {
+        char *e = tbl + i;
+        unsigned char t2 = *(unsigned char *)(e + 2);
+        if (t2 == 0xFF) {
+            return i;
+        }
+        if (t2 == kb) {
+            result = i;
+        }
+    }
+    return result;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022398);
 
