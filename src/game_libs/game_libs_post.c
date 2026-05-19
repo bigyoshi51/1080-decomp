@@ -7457,10 +7457,7 @@ void gl_func_0003395C(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003395C);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_000339B4: 27-insn busy-wait + 2-call. Identical structure to
- * gl_func_00033A20 (same recipe). */
-extern int func_00000000();
+/* gl_func_000339B4: 27-insn busy-wait + 2-call. */
 void gl_func_000339B4(int a0, int a1, int a2) {
     while (*(int*)((char*)&D_00000000 + 0x3C) != 0) {
         func_00000000();
@@ -7468,9 +7465,6 @@ void gl_func_000339B4(int a0, int a1, int a2) {
     func_00000000(0, a0, a1, a2);
     func_00000000(0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000339B4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00033A20: 27-insn busy-wait + 2-call wrapper.
