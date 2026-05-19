@@ -27781,8 +27781,52 @@ void gl_func_0006B7A0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B7A0);
 #endif
 
-/* gl_func_0006B880: 59-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0006B880: 59-insn ring-buffer-append with notify-list callback (size 0xEC, frame 0x30).
+ *
+ * Operates on a singleton ring buffer at D+0x40:
+ *   struct RingBuf *head = *(struct RingBuf**)(D+0x40);
+ *   struct RingBuf {
+ *       struct Notify *first;  // 0x0
+ *       int            _4;     // 0x4
+ *       int            count;  // 0x8  — current occupied slots
+ *       int            base;   // 0xC  — read cursor
+ *       int            cap;    // 0x10 — capacity
+ *       int           *slots;  // 0x14 — slot array (int-stride)
+ *   };
+ *
+ * Decoded structure (raw-word disasm):
+ *   void enqueue(void) {
+ *       struct RingBuf *head = *(void**)(D+0x40);
+ *       if (head == NULL) return;
+ *       if (head->count >= head->cap) return;            // full, drop
+ *
+ *       // Signed-div slot index with full safety traps (break 7=div0, break 6=INT_MIN/-1)
+ *       int slot = (head->base + head->count) % head->cap;
+ *       head->slots[slot] = *(int*)(D+0x44);              // enqueue value
+ *       head->count++;
+ *
+ *       // Chain callback if notify-list has any entries
+ *       if (head->first && head->first->next != NULL) return;
+ *       int *result = callback1(head);                    // jal <func>(head)
+ *       callback2((char*)&D_00000000 + 0, result);        // jal <func>(D+0, result)
+ *   }
+ *
+ * Notes:
+ *  - The signed-div safety trap pattern (`div + mfhi + bnez/break 7 + bne $at,-1
+ *    + bne $at,INT_MIN + break 6`) is the standard IDO-emitted modulo guard
+ *    sequence — see reference_1080_mips3_runtime_helpers.md for the recognition.
+ *    This is INLINE rather than via runtime-call because the divisor is sized
+ *    at 32-bit (`div` not `ddiv`).
+ *  - Ring buffer is singleton at D+0x40; the value-to-enqueue lives at D+0x44.
+ *  - "notify-list" empty-check is `head->first->next == NULL` (head->first must
+ *    be non-NULL for the deref) — if list has no successors, fire callbacks.
+ *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
+ *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ */
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B880);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006B880_pad.s")
 
 #ifdef NON_MATCHING
