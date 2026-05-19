@@ -179,6 +179,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000A8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B8C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B94);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000BAC);
 
 /* gl_func_00000D5C - verified structural decode (0x118, 70 insns,
