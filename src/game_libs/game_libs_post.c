@@ -17580,8 +17580,60 @@ void gl_func_0004AA90(int *a0, int a1) {
     a0[0xD8/4]++;
 }
 
-/* gl_func_0004AAF0: 58-insn helper. Multi-pass decode pending. */
+#ifdef NON_MATCHING
+/* gl_func_0004AAF0: gather-copy of 6-byte records with -1 skip.
+ * Decoded from bare stub 2026-05-19. void f(int *self):
+ *   if (self->0xC0 == 0) { cb_assert(&D_00000000 + 0x2006C); return; }
+ *   d4 = (s16)self->0xD4;
+ *   for (i = 0, t0 = 0; i < (s16)self->0xD6 - d4; i++, t0 += 2) {
+ *       idx = *(s16*)(self->0xD0 + t0);
+ *       if (idx != -1) {
+ *           g    = *(int*)(&D_00000000 + 0x214);
+ *           base = *(int*)(*(int*)((char*)g + 0x1C));   // g->0x1C->0
+ *           slot = (short*)(base + d4*16 + i*16);
+ *           rec  = (short*)(self->0xC0 + idx*6);
+ *           slot[0]=rec[0]; slot[1]=rec[1]; slot[2]=rec[2];
+ *       }
+ *   }
+ *   self->0xC0 = 0;
+ * Multi-idiom (defer): bnel-likely `self->0xC0!=0` assert guard;
+ * beql-likely `idx==-1` skip (i++ in the likely-delay); `idx*6`
+ * via `li t5,6; multu t1,t5; mflo`; the resolved base chain
+ * (g=*(&D+0x214); g->0x1C; deref; +d4*16 +i*16); count
+ * `self->0xD6 - d4` RELOADED every iteration (lh D6; lh D4; subu);
+ * `i` AND `t0` both advance per entry, `t0` in the loop-bne delay.
+ * Documented-hard loop+reload+likely shape — focused-pass. Real
+ * decoded C preserved; INCLUDE_ASM build path. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0004AAF0(int *self) {
+    int i;
+    int t0;
+    int d4;
+    if (*(int *)((char *)self + 0xC0) == 0) {
+        gl_func_00000000((char *)&D_00000000 + 0x2006C);
+        return;
+    }
+    d4 = *(short *)((char *)self + 0xD4);
+    for (i = 0, t0 = 0;
+         i < *(short *)((char *)self + 0xD6) - d4;
+         i++, t0 += 2) {
+        short idx = *(short *)(*(int *)((char *)self + 0xD0) + t0);
+        if (idx != -1) {
+            int g = *(int *)((char *)&D_00000000 + 0x214);
+            int base = *(int *)(*(int *)((char *)g + 0x1C));
+            short *slot = (short *)(base + d4 * 16 + i * 16);
+            short *rec = (short *)(*(int *)((char *)self + 0xC0) + idx * 6);
+            slot[0] = rec[0];
+            slot[1] = rec[1];
+            slot[2] = rec[2];
+        }
+    }
+    *(int *)((char *)self + 0xC0) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AAF0);
+#endif
 
 /* gl_func_0004ABD8: 61-insn helper. Multi-pass decode pending. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ABD8);
