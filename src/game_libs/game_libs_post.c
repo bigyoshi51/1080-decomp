@@ -9125,11 +9125,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
 //   parameter-quantize leaf of the game_libs object subsystem (feeds
 //   the byte-domain command/state machinery, e.g. the
 //   gl_func_0002F288 integrator's consumers).
-// Caps: raw-word USO + FP clamp + trunc.w.s + 7-bit saturate idiom —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + FP clamp + trunc.w.s + 7-bit
+//   saturate idiom — byte-match needs USO mnemonic disasm. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0002F584(char *o) {
+    float v = *(float *)(o + 0);
+    int q;
+    if (v < 0.0f) v = 0.0f;
+    v += 1.0f;
+    if (v > 15.0f) v = 15.0f;
+    if (*(unsigned char *)(o + 0x1C) & 1) v = -v;
+    q = (int)(v * *(float *)(o + 0x54));
+    *(unsigned char *)(o + 0x33) = (unsigned char)q;
+    if (q >= 0x80) q = 0x7F;
+    if (q < 0) q = 0;
+    *(unsigned char *)(o + 0x1C) = (unsigned char)q;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F584);
+#endif
 
 void game_libs_func_0002F630(void) {
 }
