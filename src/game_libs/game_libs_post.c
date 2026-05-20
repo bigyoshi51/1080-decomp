@@ -11909,12 +11909,24 @@ void gl_func_00034B64(int a0) {
 //   mnemonic split/merge tooling — needs the spimdisasm-USO
 //   migration). No merge attempted (would corrupt the stubs); no
 //   episode.
-// Caps: raw-word USO + bundled no-frame leaves + USO-relocated jal-0
-//   callback + &D_0 global + segment-translate add — not exact-
-//   matchable without proper USO mnemonic disasm + boundary
-//   re-split; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled no-frame leaves
+//   (pointer-relay + KSEG0-translate accessors at tail) + USO-reloc
+//   jal-0 callback + &D_0 global + segment-translate add —
+//   byte-match needs USO mnemonic disasm + boundary re-split.
+//   Real-C STRUCTURAL body below for the NAMED leading 1..9
+//   slot-init loop only. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00034B98(void *a0) {
+    int i;
+    (void)a0;
+    for (i = 1; i != 0xA; i++) {
+        gl_func_00000000(i);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034B98);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034BDC);
 
