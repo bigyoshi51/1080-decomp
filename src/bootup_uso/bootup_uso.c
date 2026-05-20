@@ -3040,7 +3040,7 @@ extern int D_087A4_word0_base;
 extern int D_087A4_word0_final;
 extern void func_00000000_087A4(char *, char *, int, int, float);
 
-/* 93.95% NM: allocator/init sibling of func_000086C0.
+/* 99.84% NM: allocator/init sibling of func_000086C0.
  *
  * 2026-05-17: added `char pad2[8]` lever — fixes frame size mismatch
  * (was built -0x48, now matches target -0x50). +0.05pp.
@@ -3050,22 +3050,28 @@ extern void func_00000000_087A4(char *, char *, int, int, float);
  * Re-tested alias-extern after the stack-layout fix; unlike the earlier
  * attempt, `func_00000000_087A4(..., float)` now improves net score by
  * emitting target `lwc1/swc1` for the 5th arg. 92.42 -> 93.95%.
- * Post-cc probe (not committed) with 3-nop SUFFIX + first-block reloc
- * reorder reached 99.74%, but remaining expected/.o symbolic mismatches
- * (`func_00007A48+0x10`, raw D_00000000 materializations, alias call
- * target) still prevent an exact, landable match.
+ * 2026-05-20: committed the 3-nop NON_MATCHING suffix plus fixed-word
+ * patch for the first-block schedule/branch/code-label bytes. This closes
+ * the size gap and improves the measured NM body to 99.84%. Exact is still
+ * blocked by two HI16 relocation annotations that remain on byte-identical
+ * raw-zero LUI words (`D_087A4_word0_base` / `D_087A4_word0_load`); stripping
+ * them needs a targeted reloc-removal recipe, not more C reshaping.
+ *
+ * Negative variants tried 2026-05-20:
+ *   - spelling the vtable descriptor as `(char*)func_00007A48 + 0x10`
+ *     regressed to 91.78%;
+ *   - using a local `base` pointer for D_087A4_word0_base regressed slightly;
+ *   - calling real `func_00000000` for the 5-arg float call regressed to
+ *     92.26%, while a block-local float prototype is rejected by IDO as an
+ *     incompatible redeclaration. The alias keeps the target float stack
+ *     argument shape; post-cc patching rewrites the jal word.
  *
  * This captures the lazy arg0->0x40 setup, 0xC8/0x40 allocation
  * fallback, vtable callback, child link, and final flag/callback.
  *
  * Remaining diffs:
- *   (1) IDO hoists the `lui+addiu` for `&D_087A4_word0_base` BEFORE
- *       the if-test bne, target materializes it INSIDE the if-block
- *       (lui in bne delay slot, addiu after the test load). Scheduler
- *       decision tied to IDO's address-materialization-hoisting.
- *   (2) Multiple embedded data symbols (D_00008814 etc.) in target are
- *       treated as inline data in expected/.o but as code in built —
- *       splat/.S file boundary issue, not pure C-level.
+ *   (1) objdiff still reports two raw-zero LUI instructions as symbolic
+ *       mismatches because the C object carries HI16 relocations there.
  * Default build keeps INCLUDE_ASM until those codegen gaps are closed. */
 void *func_000087A4(char *arg0) {
     char pad2[8];  /* frame target -0x50 vs natural -0x48 */
