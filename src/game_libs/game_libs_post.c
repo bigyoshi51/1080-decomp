@@ -13839,7 +13839,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037AF0);
 //   no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
-extern void gl_func_00000000();
+extern int gl_func_00000000();
 void gl_func_00037BEC(char *p) {
     char *n;
     char *lst;
@@ -20379,7 +20379,7 @@ void gl_func_00043FFC(char *a0) {
 //   the named fn (3-call register wrapper) only. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern void gl_func_00000000();
+extern int gl_func_00000000();
 void gl_func_00044034(void *a0) {
     gl_func_00000000(a0);
     gl_func_00000000((char *)a0 + 0x10);
@@ -20847,7 +20847,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00045394);
 //   named fn (int→float trampoline) only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern void gl_func_00000000();
+extern int gl_func_00000000();
 float gl_func_000453A8(void *a0, int a1, float a2) {
     float f = (float)a1;
     gl_func_00000000(a0, f);
@@ -21327,7 +21327,7 @@ void gl_func_00047644(int* a0, int* a1) {
 //   STRUCTURAL body below — the named fn (cb arg-adapter) only.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern void gl_func_00000000();
+extern int gl_func_00000000();
 void gl_func_000476DC(void **a0, int a1, int a2, int a3) {
     void *ctx = ((void ***)a0)[0x254/4][0x158/4];
     unsigned short h0 = *(unsigned short *)((char *)&a0 + 0x22);
