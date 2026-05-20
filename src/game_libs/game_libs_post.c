@@ -9295,11 +9295,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F72C);
 //   with the second arg fixed at 1. A canned-sequence emitter leaf of
 //   the game_libs object subsystem (issues preset command groups; the
 //   0x06000000 bank matches gl_func_0002F638's command-word banks).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + canned switch
-//   dispatch — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks +
+//   canned switch dispatch — byte-match needs USO mnemonic disasm
+//   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002F8A0(int mode) {
+    switch (mode) {
+        case 0:
+            gl_func_00000000(0x06000100, 1);
+            gl_func_00000000(0x06000300, 1);
+            break;
+        case 1:
+            gl_func_00000000(0x06000500, 1);
+            gl_func_00000000(0x06000700, 1);
+            break;
+        case 2:
+            gl_func_00000000(0x06000500, 1);
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F8A0);
+#endif
 
 // gl_func_0002F934 — STRUCTURAL PASS (0xA0 / 40 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
