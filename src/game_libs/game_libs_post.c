@@ -10473,6 +10473,8 @@ void gl_func_00031DD8(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031DD8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031DF8);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F20);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00031DD8_pad.s")
 
