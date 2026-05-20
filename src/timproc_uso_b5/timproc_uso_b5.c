@@ -763,11 +763,62 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     discriminator; child: 0x04 dirty, 0x14 parent link.
 //   &D_000010D0/10D8/10E8/10F8/110C = USO name/desc data; func_00000000
 //     = USO placeholder dispatcher (alloc / init / factory / attach).
-// Caps: raw-word USO + placeholder calls — not exact-matchable without
-//   proper USO mnemonic disasm; structure characterized. Structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — alloc-or-reuse 3-child labeled-widget panel. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *timproc_uso_b5_func_000018B4(char *self, int a1, char *owner) {
+    char *c1, *c2, *c3;
+    int spec[8];
+    if (self == 0) {
+        self = (char *)func_00000000(0x58);
+        if (self == 0) return 0;
+    }
+    func_00000000(self, (char *)&D_00000000 + 0x000010D0);
+    *(char **)(self + 0x28) = (char *)&D_00000000;
+    *(char **)(self + 0x0C) = (char *)&D_00000000 + 0x000010D8;
+    *(char **)(self + 0x30) = owner;
+    *(int *)(self + 0x2C) = a1;
+    c1 = (char *)func_00000000(0, (char *)&D_00000000 + 0x000010E8, 1, spec);
+    *(char **)(self + 0x34) = c1;
+    func_00000000(c1 + 0x10, self);
+    if (*(char **)(c1 + 0x14) == 0) {
+        *(int *)(c1 + 0x4) = 1;
+        *(char **)(c1 + 0x14) = self;
+    }
+    c2 = (char *)func_00000000(0, (char *)&D_00000000 + 0x000010F8, 2, spec);
+    *(char **)(self + 0x38) = c2;
+    func_00000000(c2 + 0x10, self);
+    if (*(char **)(c2 + 0x14) == 0) {
+        *(int *)(c2 + 0x4) = 1;
+        *(char **)(c2 + 0x14) = self;
+    }
+    c3 = (char *)func_00000000(0, (char *)&D_00000000 + 0x0000110C, 3, spec);
+    func_00000000(c3 + 0x10, self);
+    if (*(char **)(c3 + 0x14) == 0) {
+        *(int *)(c3 + 0x4) = 1;
+        *(char **)(c3 + 0x14) = self;
+    }
+    *(int *)(self + 0x40) = 0x42F00000;
+    *(int *)(self + 0x44) = 0x43700000;
+    if (*(int *)(*(char **)(self + 0x34) + 0x3C8) == 0) {
+        *(int *)(self + 0x3C) = 0;
+        *(int *)(self + 0x40) = 0;
+        *(int *)(self + 0x48) = 0;
+        *(float *)(self + 0x44) = 1.0f;
+        *(int *)(self + 0x50) = 3;
+        *(int *)(self + 0x4C) = 0;
+    } else {
+        *(float *)(self + 0x3C) = 1.0f;
+        *(float *)(self + 0x40) = 1.0f;
+    }
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000018B4);
+#endif
 
 // timproc_uso_b5_func_00001C08 — STRUCTURAL PASS (no episode).
 // Raw-.word USO form. BOUNDARY NOTE: this .s is an UNSPLIT USO
