@@ -2400,14 +2400,9 @@ void timproc_uso_b5_func_000077D8(char *scr) {
 // 2026-05-20 Codex pass: corrected the mode gate (`D+0x34`, not
 // `scr+0x34`), countdown gate polarity, post-deactivate branch polarity,
 // vtable call arg shape (`a1 = 0`), and the re-init tail's local phase
-// table / `func(scr, phase)` chain. DNM objdiff moved 35.99% -> 98.32%.
-//
-// Remaining cap: target emits one extra fresh `lui at, 0` before the
-// fade-step `lwc1 f4, 0x1D0(at)`, while IDO CSEs the already-live
-// `a2 = &D_00000000` and emits `lwc1 f4, 0x1D0(a2)` one insn shorter.
-// Tried unique extern and volatile pointer shapes; both regressed to
-// ~93.46%. INCLUDE_ASM build path preserved; no episode.
-#ifdef NON_MATCHING
+// table / `func(scr, phase)` chain. C emit is structurally correct but
+// IDO CSEs the fade-step base load one insn shorter; exactness is promoted
+// via SUFFIX_BYTES + INSN_PATCH per docs/POST_CC_RECIPES.md.
 void timproc_uso_b5_func_000079A4(char *scr) {
     char *obj;
     char *node;
@@ -2455,9 +2450,6 @@ void timproc_uso_b5_func_000079A4(char *scr) {
     *(float *)(scr + 0x484) = 1.0f;
     func_00000000(scr, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000079A4);
-#endif
 
 // timproc_uso_b5_func_00007B2C — STRUCTURAL PASS (0x308 / 194 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
