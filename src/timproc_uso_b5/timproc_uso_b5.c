@@ -1217,6 +1217,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Default INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000398C);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003A28);
+
 /* timproc_uso_b5_func_00003A4C: 144-insn (0x240) heavy data-init function.
  * Frame -0xB0, saves s0/s1/s2/ra. Sibling of recently-matched
  * timproc_uso_b5_func_00003F5C in the same "FPU-heavy data-driven init"
