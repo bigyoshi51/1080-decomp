@@ -2237,6 +2237,8 @@ void timproc_uso_b5_func_00008F98(char *a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A928);
+
 #ifdef NON_MATCHING
 /* 72.21% NM. 23-insn loop with branch-likely preload (bnezl at 0x50 with delay-slot
  * `lw v1, 0x40(s2)` preloading v1 for next iteration's body at 0x2C).
