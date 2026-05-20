@@ -1088,7 +1088,7 @@ typedef struct { float x, y, z; } Vec3f;
  * The target has `or a2, a0, zero` at entry and later spills/reloads that $a2
  * at sp+0x180; there is no corresponding a1 save. Keep this single-arg so the
  * NM body does not inject an artificial `or a3, a1, zero` path. */
-void *game_uso_func_00001DDC(int *a0) {
+void game_uso_func_00001DDC(int *a0) {
     /* Frame-padding fix 2026-05-08: built was emitting sp -= 0xC8 vs
      * target sp -= 0x180 (184-byte gap). The key==3 Vec3 temporaries now
      * account for 16 bytes, so `char frame_pad[168];` preserves the target
@@ -1262,12 +1262,25 @@ branch_88: {
             threshold_y = *(float*)((char*)a0 + 0xC4);
             if (y_diff < threshold_y) {
                 y_excess = threshold_y - y_diff;
+                local_xz[0] = 0.0f;
+                local_xz[1] = 1.0f;
+                local_xz[2] = 0.0f;
+                scaled_y.x = local_xz[0] * y_excess;
+                scaled_y.y = local_xz[1] * y_excess;
+                scaled_y.z = local_xz[2] * y_excess;
+                *(Vec3f*)scratch = scaled_y;
+                self_v = *(Vec3f*)scratch;
             } else {
                 y_excess = y_scalar - y_diff;
+                local_xz[0] = 0.0f;
+                local_xz[1] = 1.0f;
+                local_xz[2] = 0.0f;
+                scaled_y.x = local_xz[0] * y_excess;
+                scaled_y.y = local_xz[1] * y_excess;
+                scaled_y.z = local_xz[2] * y_excess;
+                *(Vec3f*)scratch = scaled_y;
+                self_v = *(Vec3f*)scratch;
             }
-            scaled_y.x = 0.0f * y_excess;
-            scaled_y.y = 1.0f * y_excess;
-            scaled_y.z = 0.0f * y_excess;
             /* TODO 0x21F4-end: continued Y-homing apply + final-exit convergence.
              * ~225 insns remain stubbed.
              *
@@ -1395,30 +1408,48 @@ branch_88: {
              *      target. Likely a Vec3+Vec3 (pos + vel) pair OR pos + accum.
              *   4. Lay out stack locals to match IDO's 0x1A8 frame: sp+0xFC scratch
              *      sub-struct, sp+0x110-0x148 multi-Vec3 working buffers,
-             *      sp+0x148-0x150 saved-prev-pos triplet, sp+0x180 entity ref. */
-            (void)scaled_y;
+             *      sp+0x148-0x150 saved-prev-pos triplet, sp+0x180 entity ref.
+             *
+             * 2026-05-20 Codex pass: moved the duplicated Y-scale arm, late
+             * gl_func dispatch, local_xz re-scale, and saved-old subtract into
+             * real C. This raises the NM body from 19.18% to 37.70%; remaining
+             * gap is mostly stack-slot layout, saved-register pressure, and
+             * missing fanout-copy exact scheduling. */
+            {
+                Vec3f call_stage;
+                Vec3f post_scaled;
+                Vec3f saved_old;
+                float late_speed;
+
+                local_xz[0] = 0.0f;
+                local_xz[1] = 1.0f;
+                local_xz[2] = 0.0f;
+                call_stage.x = local_xz[0] * y_excess;
+                call_stage.y = local_xz[1] * y_excess;
+                call_stage.z = local_xz[2] * y_excess;
+                *(Vec3f*)scratch = call_stage;
+
+                gl_func_00000000((int*)&post_scaled, (int*)&self_v, (int*)scratch);
+
+                late_speed = *(float*)((char*)a0 + 0x94);
+                post_scaled.x = local_xz[0] * late_speed;
+                post_scaled.y = local_xz[1] * late_speed;
+                post_scaled.z = local_xz[2] * late_speed;
+                saved_old = *(Vec3f*)scratch;
+                *(Vec3f*)scratch = post_scaled;
+                *(float*)((char*)a0 + 0x2C) -= saved_old.x;
+                *(float*)((char*)a0 + 0x30) -= saved_old.y;
+                *(float*)((char*)a0 + 0x34) -= saved_old.z;
+            }
         }
         (void)delta_scaled;
     }
     (void)excess;
-    /* 2026-05-07: removed gl_func_TODO_00001DDC stub call. Replaced with the
-     * documented 0x2394-0x23C0 epilogue pattern. The "save-old + write-new"
-     * Vec3 fanout idiom captures the pre-overwrite a0->vec into a temp, then
-     * delta-output is computed as `a0->vec -= saved_old`. */
-    {
-        Vec3f saved_old;
-        saved_old.x = *(float*)((char*)a0 + 0x2C);
-        saved_old.y = *(float*)((char*)a0 + 0x30);
-        saved_old.z = *(float*)((char*)a0 + 0x34);
-        *(float*)((char*)a0 + 0x2C) = *(float*)((char*)a0 + 0x2C) - saved_old.x;
-        *(float*)((char*)a0 + 0x30) = *(float*)((char*)a0 + 0x30) - saved_old.y;
-        *(float*)((char*)a0 + 0x34) = *(float*)((char*)a0 + 0x34) - saved_old.z;
-    }
 }
 late_label:
     /* convergence point — final exit setup */
 end:
-    return a0;
+    return;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
