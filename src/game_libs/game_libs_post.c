@@ -9724,12 +9724,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
 //   timing/transition-tick leaf of the game_libs object subsystem
 //   (the per-frame heartbeat the gl_func_0002FB74 interpreter and
 //   the gl_func_0003061C mode-arbiter advance against).
-// Caps: raw-word USO + global-state &D_0 base + FP literal-pool ref
-//   (&D_0+0x1868 unsymbolized) — not exact-matchable without proper
-//   USO mnemonic disasm + FP-pool symbolization; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + global-state &D_0 base + FP
+//   literal-pool ref (&D_0+0x1868 unsymbolized) — byte-match needs
+//   USO mnemonic disasm + FP-pool symbolization. Real-C STRUCTURAL
+//   body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_000307B0(int reset) {
+    char *g = *(char **)((char *)&D_00000000 + 0);
+    (void)reset;
+    if (*(int *)(g + 0x4) != 5) {
+        return;
+    }
+    *(float *)(g + 0xC) = 0.0f;
+    *(int *)(g + 8) = 0;
+    if (*(int *)(g + 8) != 0) {
+        *(int *)(g + 8) -= 1;
+        *(float *)(g + 0x10) += *(float *)(g + 0x18);
+        if (*(float *)(g + 0x10) > 1.0f) {
+            *(float *)(g + 0x10) = 1.0f;
+        }
+    } else if (*(int *)(g + 0xC) != 0) {
+        *(int *)(g + 0xC) -= 1;
+    }
+    (void)*(float *)((char *)&D_00000000 + 0x1868);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
+#endif
 
 // gl_func_000308C8 — STRUCTURAL PASS (0xDC / 55 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
