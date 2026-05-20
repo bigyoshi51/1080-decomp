@@ -33054,6 +33054,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C77C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C7B8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C7E4);
+
 #ifdef NON_MATCHING
 /* gl_func_0006C90C: too-big-N-function-bundle (declared 0xE4, 57 words) — 4 MIPS3 runtime helpers.
  *
