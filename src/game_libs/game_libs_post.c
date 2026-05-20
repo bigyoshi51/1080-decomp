@@ -6818,11 +6818,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
 //   allocation failure. The allocate-on-demand entry of the game_libs
 //   object subsystem (companion to the gl_func_00028E94 attach /
 //   gl_func_000291C0 destroy lifecycle).
-// Caps: raw-word USO + jal-0 USO-reloc alloc/init — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc alloc/init —
+//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0002A3AC(char *base, int idx) {
+    char *slot = base + idx * 4;
+    char *no;
+    if (*(int *)(slot + 0x50) != 0) {
+        return 0;
+    }
+    no = (char *)gl_func_00000000((char *)&D_00000000 + 0x5368);
+    if (no == 0) {
+        *(int *)(slot + 0x50) = 0;
+        return -1;
+    }
+    *(int *)(slot + 0x50) = (int)no;
+    gl_func_00000000(no);
+    *(unsigned char *)no = (*(unsigned char *)no | 0x80) & ~0x40;
+    *(int *)(no + 0x18) = *(int *)(base + 0x8C);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
+#endif
 
 /* gl_func_0002A4D0: 97.67%->100% via INSN_PATCH (5 reg-rename diffs at
  * offsets 0x18/0x1C/0x20/0x24/0x28). IDO emits $v0/$t6 for val/val|0x40;
