@@ -7197,11 +7197,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9F0);
 //   The object-tick/advance leaf of the game_libs object subsystem
 //   (sibling to the gl_func_00029978 tween / gl_func_0002978C ramp
 //   steppers).
-// Caps: raw-word USO + fixed-target step pipeline — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed-target step pipeline
+//   (0x3F1A0 → 0x3F388 → 0x3FC60) — byte-match needs USO mnemonic
+//   disasm + reloc-pad jal infra. Real-C STRUCTURAL body below per
+//   the analysis. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002AA30(char *o) {
+    int s = *(int *)o;
+    short c;
+    int r;
+    if (s < 0) return;
+    c = *(short *)(o + 8);
+    if (c >= 2) {
+        *(short *)(o + 8) = c - 1;
+        if (*(short *)(o + 0xA) < *(short *)(o + 8)) return;
+    }
+    gl_func_00000000();
+    *(unsigned char *)o = *(unsigned char *)o | 0x20;
+    gl_func_00000000(o);
+    r = gl_func_00000000(o);
+    if (r == -1) return;
+    gl_func_00000000(o);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
+#endif
 
 // gl_func_0002AB34 — STRUCTURAL PASS (0x8C / 35 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
