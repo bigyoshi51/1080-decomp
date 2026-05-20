@@ -8078,7 +8078,22 @@ int game_uso_func_00009B88(a0, a1, a2)
  *   - explicit `if (out != 0) ... else alloc` for the first final
  *     screen-space destination regressed to 47.90116%;
  *   - recomputing the local_138 call address from local_EC tied baseline
- *     exactly, so the clearer direct local_138 call stayed. */
+ *     exactly, so the clearer direct local_138 call stayed.
+ *
+ * 2026-05-20 Codex deep retry:
+ *   - boundary rechecked clean (`grep -c 03E00008` = 1);
+ *   - m2c still cannot decode this raw-word USO body ("contains no
+ *     instructions"), so no new m2c seed was available;
+ *   - no-alias objdump shows the current major residuals are the missing
+ *     target alloc-or-passthrough `bnel` arms at the first two Vec3
+ *     destinations, an extra saved `$s0` cache for sp+0x138, and lower
+ *     Vec3 stack slots such as local_B8 still mapped far below target;
+ *   - first-two-destination ternary form per
+ *     docs/IDO_CODEGEN.md#feedback-ido-alloc-or-passthrough-ternary
+ *     produced the same object/report (50.377907%);
+ *   - pad_10C 24 -> 40 and `volatile local_138[3]` also produced the same
+ *     report, leaving the `$s0` save and stack-slot residual unchanged.
+ *   Exact not reached; keep INCLUDE_ASM fallback, no episode. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
