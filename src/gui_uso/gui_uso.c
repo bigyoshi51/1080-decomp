@@ -104,6 +104,8 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000055C);
 
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000006B8);
+
 #ifdef NON_MATCHING
 /* gui_func_00000918: 144-insn display-list builder for GUI primitives.
  *
