@@ -10702,12 +10702,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
 //   step of the game_libs object subsystem's command VM (sibling
 //   handler to the gl_func_0002FB74 interpreter's inline arms,
 //   factored out for the 0x69 command).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0 dispatch
-//   table + fixed data-seg ref (0x0001E194 unsymbolized) — not
-//   exact-matchable without proper USO mnemonic disasm + the table
-//   symbolized; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + &D_0
+//   dispatch table + fixed data-seg ref (0x0001E194 unsymbolized) —
+//   byte-match needs USO mnemonic disasm + table symbolized.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_000332B4(char *o, char *c) {
+    int *sp;
+    int idx;
+    if (*(int *)c != 0x69) return;
+    sp = *(int **)(c + 4);
+    *(int **)(c + 4) = sp + 1;
+    idx = *sp;
+    if (idx < 0x28) {
+        gl_func_00000000((void *)0x0001E194, idx);
+        *(int *)(o + 0xF4) = *(int *)((char *)&D_00000000 + idx * 4);
+    } else {
+        gl_func_00000000(o);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000332B4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00033338: 27-insn 3-call wrapper. Calls:
