@@ -33817,6 +33817,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F218);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F250);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F2A4);
+
 #ifdef NON_MATCHING
 /* Sibling of gl_func_0006F3BC — same `(a0 & MASK) != 0 ? 1 : 0` shape
  * with forced sp=-8 frame + unfilled delay slots. Mask = 0x1C here vs
