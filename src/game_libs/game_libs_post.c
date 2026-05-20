@@ -28880,6 +28880,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F27C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F3E0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F534);
+
 /* gl_func_0005F54C - verified structural decode (40-insn perspective/
  * frustum projection-matrix builder; FP div/mul chain + 2 transcendental
  * calls = documented FP-divergence sub-80 -> INCLUDE_ASM build path;
