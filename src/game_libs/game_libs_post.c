@@ -9356,11 +9356,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F8A0);
 //   likely (beql). A canned-sequence emitter leaf of the game_libs
 //   object subsystem (a paired counterpart to gl_func_0002F8A0 —
 //   likely the "off / teardown" sequence vs that one's "on").
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + canned switch
-//   dispatch (beql arm) — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks +
+//   canned switch (with beql arm) — byte-match needs USO mnemonic
+//   disasm + reloc-pad jal infra. Real-C STRUCTURAL body below per
+//   the analysis. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002F934(int mode) {
+    switch (mode) {
+        case 0:
+            gl_func_00000000(0x06000100, -1);
+            gl_func_00000000(0x06000101, -1);
+            gl_func_00000000(0x06000300, 0);
+            break;
+        case 1:
+            gl_func_00000000(0x06000700, 0);
+            gl_func_00000000(0x06000500, -1);
+            break;
+        case 2:
+            gl_func_00000000(0x06000501, -1);
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F934);
+#endif
 
 // gl_func_0002F9D4 — STRUCTURAL PASS (0xBC / 47 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
