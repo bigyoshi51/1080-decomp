@@ -8014,7 +8014,14 @@ int game_uso_func_00009B88(a0, a1, a2)
  *     to 42.898254% (IDO deleted the dead alloc arms);
  *   - `result` local tail shape regressed to 42.909885% and grew the frame
  *     to -0x1B0, so the return/return tail stayed.
- *   Current best: 43.302326%. */
+ *
+ * 2026-05-20 tail retry:
+ *   - direct boolean return for the final cross-product sign test removed
+ *     the extra unconditional branch and improved 43.343020% -> 43.633720%;
+ *   - commuted cross-product operands nudged FPU load order and improved to
+ *     43.636627%;
+ *   - named temporaries for the same tail regressed to 38.921513%.
+ *   Current best: 43.636627%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
@@ -8131,13 +8138,10 @@ int game_uso_func_00009B88(a0, a1, a2)
     /* @ 0xA1D4-0xA230: two 2D cross products over the four derived screen
      * vectors. Return 1 when the products have opposite signs. */
     {
-        float cross1 = (local_160[2] * local_154[0]) - (local_160[0] * local_154[2]);
-        float cross2 = (local_178[2] * local_16C[0]) - (local_178[0] * local_16C[2]);
-        if ((cross1 * cross2) < 0.0f) {
-            return 1;
-        }
+        float cross1 = (local_154[0] * local_160[2]) - (local_154[2] * local_160[0]);
+        float cross2 = (local_16C[0] * local_178[2]) - (local_16C[2] * local_178[0]);
+        return (cross1 * cross2) < 0.0f;
     }
-    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
