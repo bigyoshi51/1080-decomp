@@ -14464,12 +14464,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003863C);
 //   object subsystem (same list/collection the gl_func_00033228
 //   enlist / gl_func_00034458 / 00035C6C family operate on; the
 //   &D_0-base mask is a global enable/category gate).
-// Caps: raw-word USO + intrusive-list walk + multi-flag conjunction
-//   gate (incl. &D_0 mask) + USO-relocated jal-0 callbacks — not
-//   exact-matchable without proper USO mnemonic disasm + the node
-//   struct typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + intrusive-list walk + multi-flag
+//   conjunction gate (incl. &D_0 mask) + USO-relocated jal-0 cbs;
+//   node struct untyped. Real-C STRUCTURAL body below. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00038728(char *o) {
+    char *n;
+    int mask = *(int *)&D_00000000;
+    gl_func_00000000(*(char **)(o + 0x0C));
+    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
+        char *node = *(char **)n;
+        if ((*(int *)(node + 0x18) & 8) &&
+            (*(int *)(node + 0x08) & 0x200) &&
+            !(*(int *)(node + 0x08) & mask) &&
+            !(*(int *)(node + 0x2C) & 1)) {
+            gl_func_00000000((float *)(node + 0x30), (float *)(node + 0x70));
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
+#endif
 
 // gl_func_00038830 — STRUCTURAL PASS (0x134 / 77 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
