@@ -22699,13 +22699,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049DBC);
 // then unpacking byte/halfword sub-fields (lbu/lhu, 0xFF-masked, with a
 // 0xFF=absent sentinel) into a packed sp output struct. Family: structured
 // record decode + table lookup (sibling of gl_func_00049DBC; this one keys a
-// 6-byte-entry table — e.g. a 3×u16 / RGB-ish palette record). Per-field
-// extraction list not exhaustively decoded (218-word decoder) — the
-// self->0x6C + index*8 record base, the self->0x60 table, the *6 index
-// stride and the 0xFF-sentinel guards are exact; the exact sp-struct layout
-// is representative. Caps: record/table/self struct untyped. Full body
-// INCLUDE_ASM-preserved.
+// 6-byte-entry table — e.g. a 3×u16 / RGB-ish palette record).
+//
+// Caps (DEFERRED): record/table/self struct untyped; per-field
+//   extraction list not exhaustively decoded (218-word decoder).
+//   Real-C STRUCTURAL body below — record/table lookup + a
+//   representative sub-field extraction skeleton. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0004A308(char *a0, int a1, int a2, int a3) {
+    unsigned short *rec = (unsigned short *)(*(char **)(a0 + 0x6C) + a3 * 8);
+    unsigned char *tbl = (unsigned char *)*(char **)(a0 + 0x60);
+    unsigned short i0 = rec[2];
+    unsigned short i1 = rec[3];
+    unsigned char *e0 = tbl + i0 * 6;
+    unsigned char *e1 = tbl + i1 * 6;
+    unsigned char out[0x20];
+    if (i0 != 0xFF) {
+        out[0] = e0[0] & 0xFF;
+        out[1] = e0[1] & 0xFF;
+        out[2] = e0[2] & 0xFF;
+    }
+    if (i1 != 0xFF) {
+        out[4] = e1[0] & 0xFF;
+        out[5] = e1[1] & 0xFF;
+        out[6] = e1[2] & 0xFF;
+    }
+    gl_func_00000000(a0, out, a1, a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A308);
+#endif
 
 /* gl_func_0004A670: 30-insn alloc-or-given + init + cond-followup. Mirror
  * of gl_func_00048A74 with alloc size 0xDC instead of 0xC0. Same `||`
