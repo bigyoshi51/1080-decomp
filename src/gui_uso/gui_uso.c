@@ -436,6 +436,8 @@ void gui_func_0000161C(void) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000161C);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001670);
+
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000168C);
 #endif
 
 extern int gl_func_00000000();
