@@ -2444,11 +2444,39 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     draw/update, ->0x88/0x8C show, ->0x80/0x84 deactivate —
 //     obj->0x28 dispatch idiom). D_0 global flag 0x100 gates the
 //     idle/show path. func_00000000 = USO placeholder dispatcher.
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — draw/update + idle/show skeleton only. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_000080F4(char *scr) {
+    char *a;
+    char *d;
+    void (*fp)(int);
+    int s1;
+    if (*(int *)(scr + 0x3BC) != 2) return;
+    a = (char *)func_00000000(*(char **)(scr + 0x41C), *(int *)(scr + 0x3B8));
+    s1 = *(int *)(a + 0x4C) | *(int *)(scr + 0x4B4);
+    func_00000000(*(char **)(scr + 0x41C), *(int *)(scr + 0x3B8));
+    if (*(float *)(scr + 0x44) < *(float *)(scr + 0x4BC)) {
+        func_00000000(scr);
+        d = *(char **)(scr + 0x28);
+        fp = *(void (**)(int))(d + 0x7C);
+        fp(*(short *)(d + 0x78));
+    }
+    if (s1 != 0) return;
+    if (!func_00000000(&D_00000000, 0x100)) return;
+    d = *(char **)(scr + 0x28);
+    fp = *(void (**)(int))(d + 0x8C);
+    fp(*(short *)(d + 0x88));
+    func_00000000(scr);
+    func_00000000(scr);
+    fp = *(void (**)(int))(d + 0x84);
+    fp(*(short *)(d + 0x80));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000080F4);
+#endif
 
 // timproc_uso_b5_func_00008468 — STRUCTURAL PASS (0x178 / 94 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
