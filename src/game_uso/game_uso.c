@@ -7565,7 +7565,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 33.40% NM (objdiff 2026-05-20; up from 11.85% before this pass).
+/* 43.27% NM (objdiff 2026-05-20; up from 33.40% before this pass).
  * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Inferred from the final cross-product sign test + screen-space transform
  * constants: this is a billboard-visibility / 2D point-on-line predicate
@@ -7980,7 +7980,7 @@ int game_uso_func_00009B88(a0, a1, a2)
      *     plus frame padding per docs/IDO_CODEGEN.md arg-spill/frame recipes:
      *     29.48% -> 33.39%.
      *
-     * 2026-05-20 recheck with the correct non_matching object rebuild:
+ * 2026-05-20 recheck with the correct non_matching object rebuild:
      *   - raw integer zero stores for all Vec3 Y components regressed
      *     33.386627% -> 32.220932%;
      *   - volatile destination pointer + moving pad_frame below real locals
@@ -7991,8 +7991,18 @@ int game_uso_func_00009B88(a0, a1, a2)
      *     stack slot map for local_190/local_DC/local_EC/local_C4/local_19C
      *     (sp+0x190/0xDC/0xEC/0xC4/0x19C) and slightly improved
      *     33.386627% -> 33.395348%.
-     *   Ghidra helper was unavailable in this worktree (missing
-     *   build/ghidra-project/tenshoe). Current best remains 33.395348%. */
+ *   Ghidra helper was unavailable in this worktree (missing
+ *   build/ghidra-project/tenshoe).
+ *
+ * 2026-05-20 continuation:
+ *   - applying the documented alloc-or-fill shape as a direct ternary to
+ *     the first three Vec3 destinations emitted the wrong `beq + b`
+ *     form and regressed 33.35% -> 32.68%;
+ *   - wrapping the four final screen-space Vec3 combinations in explicit
+ *     stack-destination alloc guards improved 33.35% -> 43.27%;
+ *   - adding the same wrapper to the preceding local_184/local_B8 writes
+ *     regressed slightly to 42.99%, so those stayed as direct writes.
+ *   Current best: 43.270348%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
@@ -8039,16 +8049,28 @@ int game_uso_func_00009B88(a0, a1, a2)
     *(int*)&local_120[2] = *(int*)&local_B8[2];
 
     /* @ 0x9FF4-0xA194: four unrolled screen-space Vec3 combinations. */
-    local_A0[0] = local_144[0] + local_138[0];
-    local_A0[1] = 0.0f;
-    local_A0[2] = local_144[2] + local_138[2];
+    out = (int*)local_A0;
+    if (out == 0) {
+        out = (int*)gl_func_00000000(0xC);
+    }
+    if (out != 0) {
+        ((float*)out)[0] = local_144[0] + local_138[0];
+        ((float*)out)[1] = 0.0f;
+        ((float*)out)[2] = local_144[2] + local_138[2];
+    }
     *(int*)&local_178[0] = *(int*)&local_A0[0];
     *(int*)&local_178[1] = *(int*)&local_A0[1];
     *(int*)&local_178[2] = *(int*)&local_A0[2];
 
-    local_88[0] = local_120[0] - local_12C[0];
-    local_88[1] = 0.0f;
-    local_88[2] = local_120[2] - local_12C[2];
+    out = (int*)local_88;
+    if (out == 0) {
+        out = (int*)gl_func_00000000(0xC);
+    }
+    if (out != 0) {
+        ((float*)out)[0] = local_120[0] - local_12C[0];
+        ((float*)out)[1] = 0.0f;
+        ((float*)out)[2] = local_120[2] - local_12C[2];
+    }
     *(int*)&local_94[0] = *(int*)&local_88[0];
     *(int*)&local_94[1] = *(int*)&local_88[1];
     *(int*)&local_94[2] = *(int*)&local_88[2];
@@ -8056,9 +8078,15 @@ int game_uso_func_00009B88(a0, a1, a2)
     *(int*)&local_16C[1] = *(int*)&local_94[1];
     *(int*)&local_16C[2] = *(int*)&local_94[2];
 
-    local_6C[0] = local_144[0] - local_138[0];
-    local_6C[1] = 0.0f;
-    local_6C[2] = local_144[2] - local_138[2];
+    out = (int*)local_6C;
+    if (out == 0) {
+        out = (int*)gl_func_00000000(0xC);
+    }
+    if (out != 0) {
+        ((float*)out)[0] = local_144[0] - local_138[0];
+        ((float*)out)[1] = 0.0f;
+        ((float*)out)[2] = local_144[2] - local_138[2];
+    }
     *(int*)&local_7C[0] = *(int*)&local_6C[0];
     *(int*)&local_7C[1] = *(int*)&local_6C[1];
     *(int*)&local_7C[2] = *(int*)&local_6C[2];
@@ -8066,9 +8094,15 @@ int game_uso_func_00009B88(a0, a1, a2)
     *(int*)&local_160[1] = *(int*)&local_7C[1];
     *(int*)&local_160[2] = *(int*)&local_7C[2];
 
-    local_38[0] = local_120[0] + local_12C[0];
-    local_38[1] = 0.0f;
-    local_38[2] = local_120[2] + local_12C[2];
+    out = (int*)local_38;
+    if (out == 0) {
+        out = (int*)gl_func_00000000(0xC);
+    }
+    if (out != 0) {
+        ((float*)out)[0] = local_120[0] + local_12C[0];
+        ((float*)out)[1] = 0.0f;
+        ((float*)out)[2] = local_120[2] + local_12C[2];
+    }
     *(int*)&local_44[0] = *(int*)&local_38[0];
     *(int*)&local_44[1] = *(int*)&local_38[1];
     *(int*)&local_44[2] = *(int*)&local_38[2];
