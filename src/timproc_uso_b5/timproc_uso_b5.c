@@ -3032,11 +3032,54 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     dispatcher (alloc / factory / attach). Param triples (mode,
 //     a, b) like (1,1,0x3C) / (0,2,0x29) / (0,2,3,0x29) pick element
 //     kinds.
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — alloc-or-reuse sub-panel constructor skeleton.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
+    char *A;
+    char *B;
+    char *C;
+    float *v;
+    if (self == 0) {
+        self = (char *)func_00000000(0xC);
+        if (self == 0) return 0;
+    }
+    func_00000000(*(char **)((char *)&D_00000000 + 0x134), 2);
+    *(int *)((char *)&D_00000000 + 0x1C4) &= ~9;
+    v = (float *)((char *)&D_00000000 + 0x00000294);
+    v[0] = 0.0f; v[1] = 0.0f; v[2] = 0.0f; v[3] = 0.0f;
+    A = (char *)func_00000000(0, (char *)&D_00000000 + 0x00001334);
+    *(float *)(self + 0x2A0) = 0.0f;
+    B = (char *)func_00000000(0, (char *)&D_00000000 + 0x00001340);
+    C = (char *)func_00000000(0, (char *)&D_00000000 + 0x00001344);
+    func_00000000(*(char **)((char *)&D_00000000 + 0x134), C, B, self, 0, 0);
+    func_00000000(self + 0x10, B);
+    if (*(char **)(B + 0x14) == 0) {
+        *(int *)(B + 0x4) = 1;
+        *(char **)(B + 0x14) = self;
+    }
+    func_00000000(C);
+    if (*(char **)(C + 0x14) == 0) {
+        *(int *)(C + 0x4) = 1;
+        *(char **)(C + 0x14) = self;
+    }
+    *(int *)(self + 0x00) = func_00000000(a1);
+    if (a1 == 1) {
+        *(char **)(self + 0x04) = (char *)func_00000000(1, 1, 0x3C);
+    } else {
+        *(char **)(self + 0x04) = (char *)func_00000000(0, 2, 0x29);
+    }
+    *(char **)(self + 0x08) = (char *)func_00000000(0, 2, 3, 0x29);
+    *(int *)((char *)&D_00000000 + 0x1B8) = *(int *)(*(char **)(self + 0x04) + 0x0C);
+    (void)A;
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
+#endif
 
 /* Indirect-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
  * declare p2 FIRST with the full deref chain inline (including p1's load),
