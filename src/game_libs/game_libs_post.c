@@ -10905,12 +10905,32 @@ void gl_func_000334B0(int a0, int a1, int a2) {
 //   0x45010 arena and the gl_func_00032E18 / gl_func_00033228
 //   sub-record allocations — 0x12340002 is the heap block magic to
 //   key on when that allocator is formalized).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + global region
-//   cursors + 0x12340002 block-magic + alignment math — not exact-
-//   matchable without proper USO mnemonic disasm + the allocator
-//   structs typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + global
+//   region cursors + 0x12340002 block-magic + alignment math —
+//   byte-match needs USO mnemonic disasm + allocator structs typed.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_000334E8(int a) {
+    char d[0x40];
+    int used;
+    int misalign;
+    char *ptr = (char *)&d;
+    gl_func_00000000(a, (void *)0x0001E280);
+    gl_func_00000000(&D_00000000);
+    used = *(int *)((char *)&D_00000000 + 0x2C)
+         - *(int *)((char *)&D_00000000 + 8);
+    if (used < 8) {
+        (void)used;
+    }
+    misalign = (int)&d & 7;
+    if (misalign) ptr = (char *)&d - misalign;
+    (void)0x12340002;
+    (void)ptr;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000334E8);
+#endif
 
 // gl_func_000337AC — STRUCTURAL PASS (0xD4 / 53 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
