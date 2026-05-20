@@ -10832,25 +10832,45 @@ void game_uso_func_0000FC34(int *a0) {
  *     locals back into the lwc1/swc1 addressing despite multiple
  *     uses. The named-pair variant (pair_e18 declared at function
  *     top) regresses to 44%/78.86% — same shape unless intervening
- *     non-call work keeps the materialization alive in a register. */
+ *     non-call work keeps the materialization alive in a register.
+ *
+ * 2026-05-20 deep attempt: volatile pair0/pair1 stack-spill variant
+ * moves the C path to 82.26%. It forces the D-pair args through stack
+ * locals (sw/lw pair before call #2), but IDO allocates them at local
+ * slots in a 0x40 frame rather than target outgoing arg homes sp+4/sp+8
+ * in a 0x28 frame. Volatile pointer locals for the FPU block produced
+ * target-like addiu pointer materialization but regressed to 61.3% due
+ * to extra pointer stack spills. Exact C match remains blocked by the
+ * documented game_uso precall-arg-spill cap in docs/PATTERNS.md. */
 void game_uso_func_0000FD04(int *a0) {
     int *base = *(int**)((char*)a0 + 0xB4);
     int *flags = *(int**)((char*)base + 0x800);
 
     if ((flags[0x10 / 4] & 0x100) == 0) {
+        int *pair_e18;
+        volatile int pair0;
+        volatile int pair1;
+        float *base_788;
+        float *base_31C;
+        float *base_2FC;
         gl_func_00000000(a0, 0x30001, 2, 3, 1, 1);
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE18),
-                         *(int*)((char*)&D_00000000 + 0xE1C), 3);
+        pair_e18 = (int*)((char*)&D_00000000 + 0xE18);
+        pair0 = pair_e18[0];
+        pair1 = pair_e18[1];
+        gl_func_00000000(a0, pair0, pair1, 3);
         gl_func_00000000(a0);
 
         base = *(int**)((char*)a0 + 0xB4);
-        *(float*)((char*)base + 0x31C) += *(float*)((char*)base + 0x798);
+        base_788 = (float*)((char*)base + 0x788);
+        base_31C = (float*)((char*)base + 0x31C);
+        *base_31C += base_788[0x10 / 4];
 
         base = *(int**)((char*)a0 + 0xB4);
-        *(float*)((char*)base + 0x308) = 1.0f;
-        *(float*)((char*)base + 0x304) = 0.0f;
-        *(float*)((char*)base + 0x300) = 0.0f;
-        *(float*)((char*)base + 0x2FC) = 0.0f;
+        base_2FC = (float*)((char*)base + 0x2FC);
+        base_2FC[3] = 1.0f;
+        base_2FC[2] = 0.0f;
+        base_2FC[1] = 0.0f;
+        base_2FC[0] = 0.0f;
     }
 }
 #else
