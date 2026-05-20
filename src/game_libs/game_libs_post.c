@@ -24800,12 +24800,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F2F4);
 // (a0->0x70)->0xA0/0xA4/0xA8, calls a cb1 scalar helper (sqrt/normalize
 // shape) on it, and compares the result against a threshold (c.eq.s/beql).
 // Family: FP geometry / spatial-query distance test (siblings
-// gl_func_00042778 / 0004F2F4; the proximity-check variant). The
-// a0->0x70->0xA0.. reference Vec3, the per-component sub.s, the
-// dx*dx+dy*dy+dz*dz reduction and the cb1 scalar helper are exact; the
-// exact compare/return shape is representative. Caps: a0/object struct + cb
-// signature untyped. Full body INCLUDE_ASM-preserved.
+// gl_func_00042778 / 0004F2F4; the proximity-check variant).
+//
+// Caps (DEFERRED): a0/object struct + cb signature untyped; exact
+//   compare/return shape representative. Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern float sqrtf(float);
+float gl_func_0004F704(char *a0, float px, float py, float pz) {
+    char *o = *(char **)(a0 + 0x70);
+    float dx = px - *(float *)(o + 0xA0);
+    float dy = py - *(float *)(o + 0xA4);
+    float dz = pz - *(float *)(o + 0xA8);
+    float d2 = dx * dx + dy * dy + dz * dz;
+    return sqrtf(d2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
+#endif
 
 // gl_func_0004F85C — STRUCTURAL PASS (0x14C / 84 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
