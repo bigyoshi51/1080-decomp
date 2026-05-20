@@ -132,6 +132,8 @@ void mgrproc_uso_func_000000F8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F8);
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000140);
+
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000015C);
 #endif
 
 /* mgrproc_uso_func_0000019C: 218-insn (0x368) state-machine orchestrator.
