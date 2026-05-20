@@ -19206,8 +19206,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040E90);
 // segment's Vec3 transform routines (gl_func_00040CAC / 00040E90, which read
 // these same a0->0xB4/0xC0/0xCC/0xD8 fields). Source/dest offset pairing is
 // exact; the exact group-2 overlap (a1->0xDC reused) reflects the asm.
-// Caps: Src/Dst struct untyped. Full body INCLUDE_ASM-preserved.
+//
+// Caps (DEFERRED): Src/Dst structs untyped; the GPR->FPR sp+0x14
+//   bounce idiom IDO emits is not produced by plain word-copy C
+//   (recipe would need INSN_PATCH or stack-spill control). Real-C
+//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00041008(char *a0, char *a1) {
+    *(int *)(a0 + 0xB4) = *(int *)(a1 + 0xD4);
+    *(int *)(a0 + 0xB8) = *(int *)(a1 + 0xD8);
+    *(int *)(a0 + 0xBC) = *(int *)(a1 + 0xDC);
+    *(int *)(a0 + 0xC0) = *(int *)(a1 + 0xDC);
+    *(int *)(a0 + 0xC4) = *(int *)(a1 + 0xE0);
+    *(int *)(a0 + 0xC8) = *(int *)(a1 + 0xE4);
+    *(int *)(a0 + 0xCC) = *(int *)(a1 + 0xE8);
+    *(int *)(a0 + 0xD0) = *(int *)(a1 + 0xEC);
+    *(int *)(a0 + 0xD4) = *(int *)(a1 + 0xF0);
+    *(int *)(a0 + 0xD8) = *(int *)(a1 + 0xF4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041008);
+#endif
 
 /* gl_func_000410AC: 12-insn 2-call wrapper. Mid-function aliases
  * gl_func_00054648 (= gl_func_000545BC + 0x8C) and gl_func_00054684
