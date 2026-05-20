@@ -23246,12 +23246,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDA4);
 // ({buf, idx@+4}, stride 8), with a cb3 hook supplying the arg word.
 // Family: CPU-side RDP DL fragment builder (sibling of gl_func_00045E20 /
 // 00046050 / 00046FA8; the G_DL-class variant; see
-// docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder). The
-// global-array index, the obj->0x280 resolution, the cb1/cb2 inits, the
-// obj->0x0C GfxCtx path, the 0x06 opcode and the idx-bump + i*8 stride are
-// exact; the cb3 arg derivation is representative. Caps: array/obj/GfxCtx
-// struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
+// docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder).
+//
+// Caps (DEFERRED): array/obj/GfxCtx struct + cb signatures untyped.
+//   Real-C STRUCTURAL body below. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0004CDB8(void *a0, int idx) {
+    char *entry = ((char **)&D_00000000)[idx];
+    char *obj = *(char **)(entry + 0x280);
+    char *g;
+    int i;
+    unsigned int *p;
+    int arg;
+    gl_func_00000000(obj, obj + 0x174);
+    gl_func_00000000(obj, obj + 0x15C);
+    g = *(char **)(obj + 0x0C);
+    i = *(int *)(g + 0x4);
+    *(int *)(g + 0x4) = i + 1;
+    p = (unsigned int *)(*(char **)g + i * 8);
+    p[0] = 0x06000000;
+    arg = gl_func_00000000((char *)a0 + 0x168);
+    p[1] = (unsigned int)arg;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004CF04 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
