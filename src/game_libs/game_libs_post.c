@@ -25250,6 +25250,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0C0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0C8);
+
 // gl_func_0004F0E0 — STRUCTURAL PASS (0x1FC / 133 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0, NO calls (leaf) → ONE clean function. Single
 // prologue frame 0x18. Unrolled FP matrix multiply / matrix-vector
