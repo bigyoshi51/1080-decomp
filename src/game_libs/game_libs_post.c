@@ -18435,10 +18435,35 @@ int gl_func_0003F8B0(int a0) {
 // tag value (0x1D here vs 0x23 there), uses a -1 sentinel on sp+0x68 for
 // the fail branch, and on success publishes cb5's return into two module
 // globals (handle + ready-flag) returning a bool. Family: cb-driven
-// staged-serialize/init. Caps: scratch-buffer layout, the two D_g* globals
-// and cbN signatures inferred from call shape; arg-struct untyped. Full body
-// INCLUDE_ASM-preserved.
+// staged-serialize/init.
+//
+// Caps (DEFERRED): scratch-buffer layout, the two D_g* globals and cbN
+//   signatures inferred from call shape; arg-struct untyped. Real-C
+//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+int gl_func_0003F8E8(void *a0, int a1, int a2) {
+    char bufA[0x40];
+    char bufB[0x40];
+    char tag[0x10];
+    int st;
+    int r;
+    gl_func_00000000(&bufA[0]);
+    gl_func_00000000(&bufB[0], a2);
+    tag[0] = 0x1D;
+    gl_func_00000000(&tag[0]);
+    gl_func_00000000(&tag[0]);
+    st = *(int *)&bufA[0x48];
+    if (st == -1) return 0;
+    r = gl_func_00000000(a0);
+    *(int *)((char *)&D_00000000 + 0x4) = r;
+    *(int *)((char *)&D_00000000 + 0x8) = 1;
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8E8);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003F96C: 22-insn (0x58) two-call wrapper with stack buffer.
