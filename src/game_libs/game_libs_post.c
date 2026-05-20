@@ -11744,13 +11744,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003487C);
 //   deferred data-segment symbolization sites; the 0x10/0x10/0x04
 //   sizes are the struct sizes to type when this family is
 //   formalized).
-// Caps: raw-word USO + USO-relocated jal-0 allocator + chained
-//   alloc-with-rollback + fixed data-seg type templates
-//   (unsymbolized) — not exact-matchable without proper USO
-//   mnemonic disasm + the 3 structs typed; structural pass only,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 allocator + chained
+//   alloc-with-rollback + fixed data-seg type templates (0x0001E1E8
+//   / 0x0001E1B0 unsymbolized) — byte-match needs USO mnemonic
+//   disasm + 3 structs typed. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+char *gl_func_00034890(char *o) {
+    char *a;
+    char *b;
+    char *c;
+    a = (char *)gl_func_00000000(0x10, *(short *)(o + 0x0C));
+    if (a == 0) return 0;
+    b = (char *)gl_func_00000000(0x10);
+    if (b == 0) return 0;
+    c = (char *)gl_func_00000000(0x04);
+    if (c == 0) return 0;
+    *(int *)c = 0x0001E1E8;
+    *(int *)(b + 0x4) = (int)o;
+    *(int *)b = 0x0001E1B0;
+    *(int *)a = (int)b;
+    *(int *)(a + 0x4) = (int)c;
+    return a;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
+#endif
 
 /* gl_func_000349E8 - verified structural decode (27-insn deterministic
  * no-branch; stolen-base leading load = involved -> INCLUDE_ASM build
