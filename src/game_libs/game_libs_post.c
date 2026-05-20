@@ -10450,17 +10450,20 @@ int gl_func_00031DA4(void) {
 // extra realjr=5 count is an artifact of 0x03E00008 byte patterns
 // occurring inside that ucode/data, NOT real function returns.
 //
-// Resolution: DEFERRED USO BOUNDARY RE-SPLIT + DATA/UCODE
-// RECLASSIFICATION (tracked with the other game_libs_post.c
-// boundary notes). It is NOT a C function past the trampoline and
-// NOT fixable with mnemonic split-fragments.py / merge-fragments —
-// the segment needs the spimdisasm-USO migration to (a) cut the
-// real 6-insn function boundary at 0x31DF0 and (b) reclassify the
-// tail as .word data / RSP ucode rather than text. No merge or
-// C-decode attempted for the tail (would be meaningless / corrupt);
-// no episode (tautology-trap; and the tail is not code).
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): the named fn is a TINY 6-insn one-call USO-reloc
+//   trampoline; the rest of the .s is .word data / RSP ucode that
+//   splat misidentified as code (NOT C past the trampoline). Real-C
+//   STRUCTURAL body below for the named trampoline only. Byte-match
+//   deferred (USO boundary re-split + data/ucode reclassification
+//   needs spimdisasm-USO migration). Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+void gl_func_00031DD8(void) {
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031DD8);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00031DD8_pad.s")
 
 extern int gl_func_00000000();
