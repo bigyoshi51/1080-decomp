@@ -34772,6 +34772,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000707E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070850);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070954);
+
 /* 12-insn 2-call wrapper using a 0x40-byte stack buffer.
  * Trailing 2 insns (lui $at, 0x3780; mtc1 $at, $f0) are stolen prologue
  * for the successor (float-constant load); absorbed via SUFFIX_BYTES. */
