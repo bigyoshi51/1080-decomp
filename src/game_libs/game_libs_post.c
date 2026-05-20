@@ -29499,6 +29499,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000628EC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062A2C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062D70);
+
 /* gl_func_00062E10: 28-insn assert-then-store.
  *   v1 = a0->[0x48];
  *   if ((v1[0] & 0xFFFF) != 0x17) {
