@@ -7425,11 +7425,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
 //   instruction-execution body the gl_func_0002AD1C interpreter loop
 //   invokes per opcode (the VM's "execute one command" entry, peer to
 //   gl_func_00026790 / gl_func_0002A080 in the script-VM family).
-// Caps: raw-word USO + large multi-subcommand executor with jal-0
-//   USO-reloc handlers — not exact-matchable without proper USO
-//   mnemonic disasm; high-level structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + multi-subcommand executor with
+//   jal-0 USO-reloc handlers — byte-match needs USO mnemonic disasm
+//   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_0002B09C(char *o, int a1) {
+    char *buf = *(char **)(o + 0x50);
+    int cur = *(int *)(o + 0x4C);
+    int t;
+    short sub;
+    int pos;
+    (void)cur;
+    if (*(unsigned char *)(o + 2) != 0xFF) {
+        t = *(int *)o;
+        if ((t << 4) < 0) {
+            (void)*(short *)(o + 0x24);
+            return -1;
+        }
+    }
+    sub = *(short *)(o + 0x24);
+    switch (sub) {
+        case 0: case 1: break;
+        default:
+            pos = a1 + *(short *)(o + 0x26) + *(short *)(buf + 0x10);
+            gl_func_00000000(pos, *(unsigned char *)(buf + 7));
+            break;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
+#endif
 
 // gl_func_0002B5F4 — STRUCTURAL PASS (0x444 / 273 words ≈ 1.1KB, no
 // episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO
