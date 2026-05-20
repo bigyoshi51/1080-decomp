@@ -1109,6 +1109,7 @@ void game_uso_func_00001DDC(int *a0) {
      * the inline-vs-spill scale-mul site). Future passes will replace
      * `frame_pad` with typed locals as they're decoded. */
     char frame_pad[168];
+    register int *ctx = a0;
     int key = a0[0x40 / 4];
     (void)frame_pad;
     if (key == 0) goto end;
@@ -1149,19 +1150,19 @@ branch_88: {
     Vec3f self_v;                 /* sp+0x130 — own position copy (accumulator) */
     float local_xz[4];            /* sp+0x110..0x11C: [diff_x, 0, diff_z, speed] */
     char scratch[0x18];           /* sp+0xFC scratch sub-struct (address-taken) */
-    Vec3f *t7 = (Vec3f*)((char*)a0[0x14 / 4] + 0xA0);
-    Vec3f *v1 = (Vec3f*)((char*)a0[0x38 / 4] + 0xA0);
+    Vec3f *t7 = (Vec3f*)((char*)ctx[0x14 / 4] + 0xA0);
+    Vec3f *v1 = (Vec3f*)((char*)ctx[0x38 / 4] + 0xA0);
     Vec3f *delta;
     float length, excess, threshold, speed, sqrlen;
     ref_v = *t7;
     self_v = *v1;
-    delta = (Vec3f*)gl_func_00000000((int*)scratch, (int)a0);
+    delta = (Vec3f*)gl_func_00000000((int*)scratch, (int)ctx);
     delta_v = *delta;
     self_v.x += delta_v.x;
     self_v.y += delta_v.y;
     self_v.z += delta_v.z;
     /* 2D distance + sqrt + normalize block (0x1F00-0x1FA0) */
-    speed = *(float*)((char*)a0 + 0x94);
+    speed = *(float*)((char*)ctx + 0x94);
     local_xz[0] = self_v.x - ref_v.x;
     local_xz[1] = 0.0f;
     local_xz[2] = self_v.z - ref_v.z;
@@ -1169,7 +1170,7 @@ branch_88: {
     sqrlen = local_xz[0]*local_xz[0] + local_xz[1]*local_xz[1] + local_xz[2]*local_xz[2];
     length = gl_func_sqrt(sqrlen);
     gl_func_normalize3((int*)local_xz);
-    threshold = *(float*)((char*)a0 + 0x7C);
+    threshold = *(float*)((char*)ctx + 0x7C);
     if (length < threshold) {
         excess = length - speed;
     } else {
@@ -1252,14 +1253,15 @@ branch_88: {
         {
             Vec3f scaled_y;
             float y_diff, threshold_y, y_scalar, y_excess;
-            *(float*)((char*)a0 + 0x2C) = delta_scaled.x;
-            *(float*)((char*)a0 + 0x30) = delta_scaled.y;
-            *(float*)((char*)a0 + 0x34) = delta_scaled.z;
-            y_scalar = (a0[0x40 / 4] == 2)
-                ? *(float*)((char*)a0 + 0xF4)
-                : *(float*)((char*)a0 + 0xDC);
+            *(float*)((char*)ctx + 0x2C) = delta_scaled.x;
+            *(float*)((char*)ctx + 0x30) = delta_scaled.y;
+            *(float*)((char*)ctx + 0x34) = delta_scaled.z;
+            gl_func_00000000((char*)ctx[0x14 / 4] + 0x30, &delta_scaled);
+            y_scalar = (ctx[0x40 / 4] == 2)
+                ? *(float*)((char*)ctx + 0xF4)
+                : *(float*)((char*)ctx + 0xDC);
             y_diff = ref_v.y - self_v.y;
-            threshold_y = *(float*)((char*)a0 + 0xC4);
+            threshold_y = *(float*)((char*)ctx + 0xC4);
             if (y_diff < threshold_y) {
                 y_excess = threshold_y - y_diff;
                 local_xz[0] = 0.0f;
@@ -1412,7 +1414,9 @@ branch_88: {
              *
              * 2026-05-20 Codex pass: moved the duplicated Y-scale arm, late
              * gl_func dispatch, local_xz re-scale, and saved-old subtract into
-             * real C. This raises the NM body from 19.18% to 37.70%; remaining
+             * real C. This raised the NM body from 19.18% to 37.70%.
+             * Follow-up in this pass added the mid-body Vec3 dispatch at the
+             * 0x20B4 join and lifted the verified NM score to 38.25%; remaining
              * gap is mostly stack-slot layout, saved-register pressure, and
              * missing fanout-copy exact scheduling. */
             {
@@ -1431,15 +1435,15 @@ branch_88: {
 
                 gl_func_00000000((int*)&post_scaled, (int*)&self_v, (int*)scratch);
 
-                late_speed = *(float*)((char*)a0 + 0x94);
+                late_speed = *(float*)((char*)ctx + 0x94);
                 post_scaled.x = local_xz[0] * late_speed;
                 post_scaled.y = local_xz[1] * late_speed;
                 post_scaled.z = local_xz[2] * late_speed;
                 saved_old = *(Vec3f*)scratch;
                 *(Vec3f*)scratch = post_scaled;
-                *(float*)((char*)a0 + 0x2C) -= saved_old.x;
-                *(float*)((char*)a0 + 0x30) -= saved_old.y;
-                *(float*)((char*)a0 + 0x34) -= saved_old.z;
+                *(float*)((char*)ctx + 0x2C) -= saved_old.x;
+                *(float*)((char*)ctx + 0x30) -= saved_old.y;
+                *(float*)((char*)ctx + 0x34) -= saved_old.z;
             }
         }
         (void)delta_scaled;
