@@ -11834,13 +11834,35 @@ int gl_func_00034A54() {
 //   0x0004B8Fx config block is a deferred absolute-symbol site —
 //   `gl_ref_0004B8Fx` extern candidates per
 //   docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data).
-// Caps: raw-word USO + USO-relocated jal-0 init callbacks + fixed
-//   absolute-address config block (0x0004B8Fx) + KSEG1 0xA8000000
-//   buffer base — not exact-matchable without proper USO mnemonic
-//   disasm + the absolute config block symbolized; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 init callbacks +
+//   fixed absolute-address config block (0x0004B8Fx) + KSEG1
+//   0xA8000000 buffer base — byte-match needs USO mnemonic disasm
+//   + absolute config block symbolized (gl_ref_0004B8Fx externs
+//   per docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data).
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00034A78(int a0) {
+    char *r;
+    int state = *(int *)((char *)&D_00000000 + 0);
+    gl_func_00000000();
+    gl_func_00000000();
+    gl_func_00000000();
+    gl_func_00000000(a0);
+    r = *(char **)((char *)&D_00000000 + 0);
+    *(int *)(r + 0x8C) = (int)&D_00000000;
+    *(int *)(r + 0x90) = (int)&D_00000000;
+    if (state != 3) {
+        *(signed char *)0x0004B8F4 = 3;
+        *(int *)0x0004B8FC = 0xA8000000;
+        *(signed char *)0x0004B8F5 = 5;
+        *(signed char *)0x0004B8F8 = 0xC;
+        *(signed char *)0x0004B8F7 = 2;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034A78);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00034B64(int a0) {
