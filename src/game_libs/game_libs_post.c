@@ -24837,6 +24837,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B5FC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B630);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B63C);
+
 #ifdef NON_MATCHING
 /* gl_func_0005B68C: 22-insn sentinel-set helper. If a1->[0xC] !=
  * 0x12345678, call gl_func(&D_0+0x21A0C, a0->[0x20], a1). Then write
