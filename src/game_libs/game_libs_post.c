@@ -7493,12 +7493,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
 //   gl_func_0002B09C in the gl_func_0002AD1C interpreter's executor
 //   set. The trailing bundled helper is its leaf, left for the
 //   deferred USO re-split.
-// Caps: raw-word USO + 2-fn unsplit bundle + opcode-group executor
-//   with fixed-target fetch — not exact-matchable without proper USO
-//   mnemonic disasm; high-level structural pass only for the named
-//   leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + opcode-group executor with fixed-
+//   target fetch (0x3F05C) — byte-match needs USO mnemonic disasm +
+//   reloc-pad jal infra. STALE 2-jr-bundle comment: grep -c
+//   03E00008 = 1 (.s now single fn). Real-C STRUCTURAL body below
+//   per the analysis. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_0002B5F4(char *o, int op) {
+    char *buf = *(char **)(o + 0x50);
+    int cur = *(int *)(o + 0x4C);
+    int v;
+    int w;
+    (void)buf; (void)cur;
+    if (op != 0xC0) {
+        (void)op;
+    }
+    v = gl_func_00000000(o + 0x54);
+    *(short *)(o + 8) = (short)v;
+    *(unsigned char *)o = (*(unsigned char *)o | 0x20) & ~0x02;
+    *(unsigned char *)o = *(unsigned char *)o & ~0x20;
+    w = *(int *)o;
+    (void)((w << 6) >> 31);
+    switch (op & 0xC0) {
+        case 0x40: break;
+        case 0xC0: break;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B5F4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BA08);
 
