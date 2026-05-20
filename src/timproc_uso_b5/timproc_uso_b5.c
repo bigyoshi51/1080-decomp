@@ -1011,11 +1011,60 @@ void timproc_uso_b5_func_000027B0(int *self) {
 //   *(G**)D_0 -> 0x134 = global table; ->0x8C a shared field.
 //   &D_00001120 / &D_00001128 = USO child name/desc data; func_00000000
 //     = USO placeholder dispatcher (alloc/init/factory/attach).
-// Caps: raw-word USO + placeholder calls — not exact-matchable without
-//   proper USO mnemonic disasm; structure characterized. Structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — 2-child composite widget constructor. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *timproc_uso_b5_func_0000283C(char *self, char *a1, int a2, int a3) {
+    char *g;
+    char *A;
+    char *B;
+    char *childObj;
+    float z[3] = { 0.0f, 0.0f, 0.0f };
+    float z2[3] = { 0.0f, 0.0f, 0.0f };
+    if (self == 0) {
+        self = (char *)func_00000000(0x20);
+        if (self == 0) return 0;
+    }
+    g = *(char **)&D_00000000;
+    *(int *)(self + 0x00) = a3;
+    *(int *)(self + 0x04) = a2;
+    *(int *)(self + 0x08) = *(int *)(*(char **)(g + 0x134) + 0x8C);
+    func_00000000(0x80);
+    func_00000000(a1, self);
+    func_00000000(self, &D_00000000);
+    A = (char *)func_00000000(0xB4);
+    if (A != 0) {
+        func_00000000(A, (char *)&D_00000000 + 0x00001120);
+        *(char **)(A + 0x28) = (char *)&D_00000000;
+        func_00000000(*(char **)(A + 0x2C));
+        func_00000000(A + 0x30, z);
+        *(char **)(self + 0x14) = A;
+    }
+    B = (char *)func_00000000(0xB4);
+    if (B != 0) {
+        func_00000000(B, (char *)&D_00000000 + 0x00001128);
+        *(char **)(B + 0x28) = (char *)&D_00000000;
+        func_00000000(B + 0x30, z2);
+        *(char **)(self + 0x14) = B;
+    }
+    childObj = B ? B : A;
+    *(char **)(self + 0x10) = childObj;
+    func_00000000(self, 0.0f, 0.0f, 0.0f);
+    *(int *)(childObj + 0x108) = 0x201;
+    *(int *)(childObj + 0xC4) |= 6;
+    *(float *)(childObj + 0x14C) = -400.0f;
+    *(float *)(childObj + 0xDC) = 0.0f;
+    *(float *)(childObj + 0xE0) = 0.0f;
+    *(float *)(childObj + 0xE4) = 0.0f;
+    *(float *)(childObj + 0xE8) = 0.0f;
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000283C);
+#endif
 
 // timproc_uso_b5_func_00002B74 — STRUCTURAL PASS (0x754 / 469 words,
 // no episode). Raw-.word USO form (genuine code, single function).
