@@ -878,21 +878,30 @@ void game_libs_func_00007080(int a0) {}
 int  game_libs_func_00007088(int a0) { return 1; }
 int  game_libs_func_00007094(int a0) { return 1; }
 
-/* gl_func_000070A0: F1 (9-insn 1-call wrapper) + 7 trailing 8-byte
- * `jr ra; sw a0, 0(sp)` empty stubs (0x5C total).
+/* gl_func_000070A0: 9-insn 1-call wrapper.
  *
- * F1 @ 0x70A0-0x70C0: gl_func_00000000(a0, -1, 0).
- * F2..F8 @ 0x70C4-0x70F8: 7 splat-bundled empty stubs (no callers in
- * src/ or undefined_syms_auto.txt — dead names).
- *
- * Promoted 2026-05-07 via SUFFIX_BYTES recipe (sibling of
- * mgrproc_uso_func_0000179C / timproc_uso_b3_func_00002388):
- * 14-word `jr ra; sw a0, 0(sp)` × 7 injected post-cc to absorb the
- * trailing stubs as part of the gl_func_000070A0 symbol. */
+ * F1 @ 0x70A0-0x70C0: gl_func_00000000(a0, -1, 0). The following
+ * 0x70C4..0x70F8 empty stubs are standalone split symbols. */
 extern int gl_func_00000000();
 void gl_func_000070A0(int a0) {
     gl_func_00000000(a0, -1, 0);
 }
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070C4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070CC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070D4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070DC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070E4);
+
+/* Empty K&R one-arg function: IDO keeps the unused a0 save in the
+ * jr-ra delay slot (`sw a0, 0(sp)`). */
+void game_libs_func_000070EC(a0) int a0; {}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070F4);
 
 #ifdef NON_MATCHING
 /* gl_func_000070FC: 0x248 = 146 insns total. Sibling of gl_func_000070A0
@@ -1584,17 +1593,5 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
 
 /* game_libs_func_00047F90 split from game_libs_func_00047F68; INCLUDE_ASM
  * lives in game_libs_post.c next to the parent. */
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070C4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070CC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070D4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070DC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070E4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070EC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E234);
