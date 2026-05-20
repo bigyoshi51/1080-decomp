@@ -7128,12 +7128,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8C4);
 //   &D_5368 list anchor. The init counterpart to the
 //   gl_func_0002A55C constructor / gl_func_0002A6C0 sweep / gl_func_
 //   0002A260 reset family (all over the same &D_52xx/53xx pool).
-// Caps: raw-word USO + 4-fn unsplit bundle + per-element jal-0
-//   USO-reloc init — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only for the named leading fn, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + per-element jal-0 USO-reloc init —
+//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
+//   STALE 4-jr-bundle comment: grep -c 03E00008 = 1 (.s now single
+//   fn). Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002A904(void) {
+    char *anchor = (char *)&D_00000000 + 0x5368;
+    char *e = (char *)&D_00000000 + 0x52F0;
+    char *t = (char *)&D_00000000 + 0x3280;
+    int i;
+    *(int *)anchor             = (int)anchor;
+    *(int *)(anchor + 4)       = (int)anchor;
+    *(int *)(anchor + 8)       = 0;
+    *(int *)(anchor + 0xC)     = 0;
+    for (i = 0; i < 0x10; i++) {
+        char *slot = (char *)&D_00000000 + 0x32F0 + i * 0x80;
+        *(int *)(slot + 8) = (int)t;
+        *(int *)slot       = 0;
+        gl_func_00000000(anchor, e);
+        e += 0x80;
+        t += 0x80;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A904);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9A4);
 
