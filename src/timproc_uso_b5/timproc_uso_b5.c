@@ -2798,6 +2798,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C120);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C150);
+
 /* timproc_uso_b5_func_0000C1B4: 16-insn 4-float copy + cross-USO call,
  * plus a 5-insn alt-entry tail at sp+0x40..0x50 (different `(a0, a1)` arg
  * shape, used by separate caller via jal directly into the post-epilogue
