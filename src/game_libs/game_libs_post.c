@@ -24080,14 +24080,30 @@ void gl_func_0004D658(int a0) {
 // Initialises the object: clears self->0x48/0x18/0x10, binds a name/desc
 // pointer at self->0x40 (&D_0002021C), registers via cb1(&D_g, a1), then
 // reads a module global at *0x4CB00 and a 0x12345678 magic/signature
-// constant used as a header-validity or init key. Family: cb-driven
-// constructor/init + global-wire (siblings gl_func_0004C5E4 / 0004B0A8 /
-// 00040070). Post-magic wiring tail representative (238-word init) — the
-// cleared 0x48/0x18/0x10 fields, the &D_0002021C name binding at 0x40, the
-// cb1(&D_g,a1) call, the *0x4CB00 global read and the 0x12345678 signature
-// constant are exact. Caps: self/&D_g struct + cb signature untyped. Full
-// body INCLUDE_ASM-preserved.
+// constant used as a header-validity or init key.
+//
+// Caps (DEFERRED): self/&D_g struct + cb signature untyped;
+//   post-magic wiring tail representative (238-word init). Real-C
+//   STRUCTURAL body below — clear + bind + register + magic-check
+//   skeleton only. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0004D688(char *a0, int a1) {
+    int g;
+    *(int *)(a0 + 0x48) = 0;
+    *(int *)(a0 + 0x18) = 0;
+    *(char **)(a0 + 0x40) = (char *)&D_00000000 + 0x0002021C;
+    *(int *)(a0 + 0x10) = 0;
+    gl_func_00000000(&D_00000000, a1);
+    g = *(int *)0x4CB00;
+    if ((unsigned int)g == 0x12345678) {
+        gl_func_00000000(a0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D688);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004DA40 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
