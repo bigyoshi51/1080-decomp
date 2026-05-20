@@ -22529,13 +22529,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000493AC);
 // (keys in the &D_0002FFD4.. block), each call passing g + key + the
 // self+0xNN field address + a type/default code. Family: string-literal-
 // keyed cb field-registration table (siblings gl_func_00040DE8 /
-// 000415A4 / 0003E5E0). Per-field offset/default list not exhaustively
-// decoded (160-word table) — the g + key + self+offset + typecode call
-// shape, the &D_0002FFD4.. key table and the 10.0f (0x41200000) default
-// constant are exact; the full field list is representative. Caps: self
-// struct, the &D_0002FFxx string table and cb signature untyped. Full body
-// INCLUDE_ASM-preserved.
+// 000415A4 / 0003E5E0).
+//
+// Caps (DEFERRED): self struct, the &D_0002FFxx string table and cb
+//   signature untyped; per-field offset/default list not exhaustively
+//   decoded (160-word table). Real-C STRUCTURAL body below —
+//   representative calls only. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00049B3C(char *a0) {
+    char *g = (char *)&D_00000000;
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0002FFD4, 0);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0002FFE0, a0 + 0x40);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0002FFE8, a0 + 0x44, 10.0f);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0002FFF4, a0 + 0x9C, 0);
+    gl_func_00000000(g);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049B3C);
+#endif
 
 // gl_func_00049DBC — STRUCTURAL PASS (0x548 / 339 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
