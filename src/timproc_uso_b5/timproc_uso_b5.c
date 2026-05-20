@@ -3472,10 +3472,37 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   obj->0x12C = "transform built" flag (set 1 at end). sp+0xB8..
 //   0x110 = basis-vector scratch. func_00000000 = USO placeholder
 //   dispatcher (length/normalize + matrix helpers). const 1.0f.
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable here; structural pass only for the named fn.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — basis-vector setup + cb normalize +
+//   transform-built flag skeleton only. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_0000B368(char *obj, int unused) {
+    char *t = obj + 0xDC;
+    float basis[12];
+    int i;
+    /* Build initial basis from t Vec3 rows + obj input fields. */
+    for (i = 0; i < 3; i++) {
+        basis[i + 0] = *(float *)(t + i * 4);
+        basis[i + 3] = *(float *)(t + 0x10 + i * 4);
+        basis[i + 6] = *(float *)(obj + 0x108 + i * 4);
+    }
+    /* Cross / normalize via cb helpers. */
+    func_00000000(&basis[0], &basis[6]);
+    func_00000000(&basis[3]);
+    func_00000000(&basis[0], &basis[3]);
+    /* Write resulting matrix back into the transform sub-struct. */
+    for (i = 0; i < 3; i++) {
+        *(float *)(t + i * 4)       = basis[i + 0];
+        *(float *)(t + 0x10 + i * 4) = basis[i + 3];
+        *(float *)(t + 0x20 + i * 4) = basis[i + 6];
+    }
+    *(int *)(obj + 0x12C) = 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B368);
+#endif
 
 // timproc_uso_b5_func_0000B624 — STRUCTURAL PASS (0x304 / 193 words,
 // no episode). Raw-.word USO form. BOUNDARY NOTE: 4-jr USO bundle
