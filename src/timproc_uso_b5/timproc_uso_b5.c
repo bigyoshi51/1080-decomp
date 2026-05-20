@@ -3307,6 +3307,8 @@ void timproc_uso_b5_func_0000CD24(int *a0, float a1) {
  * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
  * rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CD24);
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CDC8);
 #endif
 
 void timproc_uso_b5_func_0000CDFC(int a0) {}
