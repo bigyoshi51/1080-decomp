@@ -2726,10 +2726,42 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     variants by mode); 0x3C0 = state-flag word (tested by the
 //     trailing predicate bundle). D_000001D4/01F4/0214 = USO lookup
 //     tables. func_00000000 = USO placeholder dispatcher.
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable here; structural pass only for the named fn.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — named leading fn (camera-snapshot + mode
+//   begin) only; trailing 12 predicate/accessor functions remain
+//   INCLUDE_ASM under their own symbols. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00008688(char *scr, int mode) {
+    char *cam = *(char **)(*(char **)(scr + 0x414) + 0x10);
+    char *d;
+    void (*fp)(int);
+    *(float *)(scr + 0x4C4) = *(float *)(cam + 0x60);
+    *(float *)(scr + 0x4C8) = *(float *)(cam + 0x64);
+    *(float *)(scr + 0x4CC) = *(float *)(cam + 0x68);
+    *(float *)(scr + 0x4C0) = *(float *)(*(char **)(*(char **)(*(char **)(scr + 0x414) + 0xC) + 0x70) + 0x14C);
+    *(int *)(scr + 0x4B4) = mode;
+    *(int *)(scr + 0x3F8) = mode;
+    *(int *)(scr + 0x488) = *(int *)(scr + 0x104);
+    *(int *)(scr + 0x3FC) = *(int *)(scr + 0x404);
+    *(float *)(scr + 0x4BC) = 0.0f;
+    *(float *)(scr + 0x484) = 0.0f;
+    d = *(char **)(scr + 0x28);
+    if (mode == 2) {
+        fp = *(void (**)(int))(d + 0x74);
+        fp(*(short *)(d + 0x70));
+    } else if (mode == 1) {
+        fp = *(void (**)(int))(d + 0x6C);
+        fp(*(short *)(d + 0x68));
+    } else {
+        fp = *(void (**)(int))(d + 0x64);
+        fp(*(short *)(d + 0x60));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008688);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087A0);
 
