@@ -13340,12 +13340,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036694);
 //   primitive complementing the gl_func_00036694 matrix-concat and
 //   gl_func_00036224 viewport builder (pure FP except the one
 //   degenerate-case callback).
-// Caps: raw-word USO + FP normalize (sqrt.s + 1/len) + int↔float
-//   stack round-trip + one conditional jal-0 guard — not exact-
-//   matchable without proper USO mnemonic disasm + the vector
-//   args typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + FP normalize (sqrt.s + 1/len) +
+//   int↔float stack round-trip + one conditional jal-0 guard; vector
+//   args untyped. Real-C STRUCTURAL body below. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern float sqrtf(float);
+void gl_func_0003695C(float *out, int unused, float *p) {
+    float s = p[6];
+    float dx = (p[0] - p[1]) / s;
+    float dy = (p[2] - p[3]) / s;
+    float len2 = dx * dx + dy * dy;
+    float len = sqrtf(len2);
+    float inv;
+    if (len < 1e-6f) {
+        gl_func_00000000();
+    }
+    inv = 1.0f / len;
+    out[0] = dx * inv;
+    out[1] = dy * inv;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003695C);
+#endif
 
 // gl_func_00036A48 — STRUCTURAL PASS (0x154 / 85 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
