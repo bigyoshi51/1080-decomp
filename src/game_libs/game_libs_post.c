@@ -24890,13 +24890,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0C0);
 // multiply: each output element is the dot product of an a1 row
 // (+0x30/0x34/0x38) with an a2 column (+0x40/0x44/0x48 .. /0x50/0x54 ..
 // /0x60/0x64), accumulated via the mul.s -> add.s chain with a 0x3FE00000
-// constant. Family: FP geometry/matrix transform (siblings gl_func_00047E00
-// / 0004B2FC / 00042778; the fully-unrolled mat-multiply variant). The
-// per-lane exact operand pairing is representative; the a1->0x30.. /
-// a2->0x40.. element sources, the mul.s/add.s dot-product structure and the
-// 0x3FE00000 constant are exact. Caps: Mat/dst struct untyped. Full body
-// INCLUDE_ASM-preserved.
+// constant.
+//
+// Caps (DEFERRED): Mat/dst struct untyped; per-lane operand pairing
+//   representative. Real-C STRUCTURAL body below — 3 output lanes via
+//   the 3-row x 3-column dot pattern. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0004F0E0(char *dst, char *a1, char *a2) {
+    float r0 = *(float *)(a1 + 0x30);
+    float r1 = *(float *)(a1 + 0x34);
+    float r2 = *(float *)(a1 + 0x38);
+    float K = 1.75f;
+    *(float *)(dst + 0x00) = r0 * *(float *)(a2 + 0x40)
+                           + r1 * *(float *)(a2 + 0x50)
+                           + r2 * *(float *)(a2 + 0x60) + K;
+    *(float *)(dst + 0x04) = r0 * *(float *)(a2 + 0x44)
+                           + r1 * *(float *)(a2 + 0x54)
+                           + r2 * *(float *)(a2 + 0x64) + K;
+    *(float *)(dst + 0x08) = r0 * *(float *)(a2 + 0x48)
+                           + r1 * *(float *)(a2 + 0x58)
+                           + r2 * *(float *)(a2 + 0x68) + K;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
+#endif
 
 // gl_func_0004F2F4 — STRUCTURAL PASS (0x40C / 260 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large FP builder). Single
