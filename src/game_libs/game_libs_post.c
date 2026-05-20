@@ -13532,25 +13532,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036F0C);
 /* gl_func_000372D4 - verified structural decode (29-insn br=0 deterministic;
  * t6-spill + p+48 sub-struct base-reuse = struct-base divergence class ->
  * INCLUDE_ASM build path; struct-typing reference).
- *   p = (int*)((int*)a0->0x14)->0xF4;
- *   *(float*)(p+0x60) = a1[0];
- *   *(float*)(p+0x64) = a1[1];          // target: addiu base,48; +0x34
- *   *(float*)(p+0x68) = a1[2];          // target: +0x38 (p+48 base reuse)
- *   *(float*)(a0+0x30) = -90.0f;        // 0xC2B40000
- *   *(float*)(a0+0x34) = 180.0f;        // 0x43340000
- *   *(float*)(a0+0x38) = 0.0f;
- *   vt = (int*)a0->0x28;
- *   (*(fn)vt->0x24)( (short)vt->0x20 + (int)a0 );   // vtable idiom
- * Struct-typing: a0->0x14 obj whose ->0xF4 is a sub-object holding a Vec3
- * at +0x60 (set from a1[0..2]); a0->0x30/0x34/0x38 = {-90,180,0} (an
- * euler/orientation triple); a0->0x28 vtable {fn@0x24, short@0x20} (the
- * documented obj-dispatch idiom, 0x24/0x20 variant). Caps 27/29: target
- * spills t6 (the a0->0x14 ptr) to sp+28 and addresses p+0x64/0x68 via
- * `addiu base,48; swc1 ,52/56(base)` (sub-struct at p+48 reached as
- * +0x34/+0x38) - flat `*(float*)(p+0x64)` C is 2 insns short. The
- * struct-base-reuse divergence class (cf gl_func_00065250). br=0 but not
- * the clean-episode subset. INCLUDE_ASM (no episode). */
+ *
+ * Caps (DEFERRED): target spills t6 (the a0->0x14 ptr) to sp+28 and
+ *   addresses p+0x64/0x68 via `addiu base,48; swc1 ,52/56(base)`
+ *   (sub-struct at p+48 reached as +0x34/+0x38) — flat
+ *   *(float*)(p+0x64) C is 2 insns short. The struct-base-reuse
+ *   divergence class (cf gl_func_00065250). Real-C STRUCTURAL body
+ *   below. Byte-match deferred. Name pre-checked: no extern reuse. */
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_000372D4(int *a0, float *a1) {
+    int *p = (int *)((int **)a0)[0x14/4][0xF4/4];
+    void (**vt)(int);
+    *(float *)((char *)p + 0x60) = a1[0];
+    *(float *)((char *)p + 0x64) = a1[1];
+    *(float *)((char *)p + 0x68) = a1[2];
+    *(float *)((char *)a0 + 0x30) = -90.0f;
+    *(float *)((char *)a0 + 0x34) = 180.0f;
+    *(float *)((char *)a0 + 0x38) = 0.0f;
+    vt = (void (**)(int))((char **)a0)[0x28/4];
+    ((void (*)(int))vt[0x24/4])(*(short *)((char *)vt + 0x20) + (int)a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000372D4);
+#endif
 
 // gl_func_00037348 — STRUCTURAL PASS (0x1F8 / 126 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
