@@ -29645,6 +29645,8 @@ int gl_func_00061458() {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061478);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006170C);
+
 #ifdef NON_MATCHING
 /* gl_func_00061734: 26-insn append-to-table-with-overflow-log (size 0x74 declared,
  * actual function body 0x68; declared size bundles 3-insn trailing fragment).
