@@ -3031,16 +3031,16 @@ void func_00008744(char *a0) {
     func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
 extern char D_00007FF4;
 extern float D_000005F0;
 extern int D_087A4_word0_load;
 extern int D_087A4_word0_store;
 extern int D_087A4_word0_base;
 extern int D_087A4_word0_final;
+extern char D_087A4_vtable;
 extern void func_00000000_087A4(char *, char *, int, int, float);
 
-/* 99.84% NM: allocator/init sibling of func_000086C0.
+/* func_000087A4: allocator/init sibling of func_000086C0.
  *
  * 2026-05-17: added `char pad2[8]` lever — fixes frame size mismatch
  * (was built -0x48, now matches target -0x50). +0.05pp.
@@ -3050,12 +3050,13 @@ extern void func_00000000_087A4(char *, char *, int, int, float);
  * Re-tested alias-extern after the stack-layout fix; unlike the earlier
  * attempt, `func_00000000_087A4(..., float)` now improves net score by
  * emitting target `lwc1/swc1` for the 5th arg. 92.42 -> 93.95%.
- * 2026-05-20: committed the 3-nop NON_MATCHING suffix plus fixed-word
- * patch for the first-block schedule/branch/code-label bytes. This closes
- * the size gap and improves the measured NM body to 99.84%. Exact is still
- * blocked by two HI16 relocation annotations that remain on byte-identical
- * raw-zero LUI words (`D_087A4_word0_base` / `D_087A4_word0_load`); stripping
- * them needs a targeted reloc-removal recipe, not more C reshaping.
+ * 2026-05-20: promoted after adding the 3-nop suffix plus fixed-word
+ * patches for the first-block schedule/branch/code-label bytes. The two
+ * byte-identical raw-zero LUI words (`D_087A4_word0_base` /
+ * `D_087A4_word0_load`) need a second same-word patch invocation so
+ * patch-insn-bytes strips their orphan HI16 relocs after the main patch.
+ * `D_087A4_vtable = 0x7A48` keeps the vtable pointer as a two-insn
+ * relocated `symbol + 0x10` address without IDO emitting an extra addiu.
  *
  * Negative variants tried 2026-05-20:
  *   - spelling the vtable descriptor as `(char*)func_00007A48 + 0x10`
@@ -3067,12 +3068,7 @@ extern void func_00000000_087A4(char *, char *, int, int, float);
  *     argument shape; post-cc patching rewrites the jal word.
  *
  * This captures the lazy arg0->0x40 setup, 0xC8/0x40 allocation
- * fallback, vtable callback, child link, and final flag/callback.
- *
- * Remaining diffs:
- *   (1) objdiff still reports two raw-zero LUI instructions as symbolic
- *       mismatches because the C object carries HI16 relocations there.
- * Default build keeps INCLUDE_ASM until those codegen gaps are closed. */
+ * fallback, vtable callback, child link, and final flag/callback. */
 void *func_000087A4(char *arg0) {
     char pad2[8];  /* frame target -0x50 vs natural -0x48 */
     int kind;
@@ -3092,7 +3088,7 @@ void *func_000087A4(char *arg0) {
     self = (char*)func_00000000(0xC8);
     if (self != 0) {
         func_00000000(self);
-        *(volatile char**)(self + 0x28) = &D_00000000 + 0x7A58;
+        *(volatile char**)(self + 0x28) = &D_087A4_vtable + 0x10;
         child = self + 0x88;
         if (self == (char*)-0x88) {
             child = (char*)func_00000000(0x40);
@@ -3126,9 +3122,6 @@ init_self:
     func_00000000(D_087A4_word0_final, link_arg);
     return child;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000087A4);
-#endif
 
 extern char *D_00000130;
 int func_00008920(int a0) {
