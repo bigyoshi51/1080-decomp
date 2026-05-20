@@ -7781,11 +7781,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
 //   a USO-relocated per-record handler (`jal 0` slot). A bulk
 //   "process every active record" sweep over that table (sibling to
 //   gl_func_0001FBD4's lighter callback sweep).
-// Caps: raw-word USO + fixed-target + jal-0 USO-reloc per-record
-//   calls — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed-target 0x40E10 + jal-0 USO-
+//   reloc per-record calls — byte-match needs USO mnemonic disasm
+//   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002CF70(int a0) {
+    int n = *(short *)((char *)&D_00000000 + 0x2048);
+    int i;
+    char *rec;
+    *(int *)((char *)&D_00000000 + 0x5364) = (-a0 - 1) * 0x160;
+    if (n == 0) return;
+    rec = (char *)&D_00000000 + 0x2D00;
+    for (i = 0; i < n; i++) {
+        if (*(int *)rec < 0) {
+            gl_func_00000000(rec);
+            gl_func_00000000(rec);
+        }
+        n = *(short *)((char *)&D_00000000 + 0x2048);
+        rec += 0x160;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002CF70);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0002D014: 20-insn (0x50) "drain counter" loop with cross-function
