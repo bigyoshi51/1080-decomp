@@ -2002,10 +2002,39 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     3 / 9 / 0xA done), 0x28 vtable (->0xA8 s16 base, ->0xAC fn —
 //     obj->0x28 dispatch idiom, here a sound/effect). D_0 +
 //     0x10004203 global gate. func_00000000 = USO placeholder.
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable here; structural pass only for the named fn.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — named leading fn (ramp-UP) only;
+//   trailing 0x73C0 ramp-DOWN twin remains INCLUDE_ASM. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_000072D0(char *scr) {
+    char *d;
+    void (*fp)(int);
+    if (*(float *)(scr + 0x480) < *(float *)(scr + 0x484)) {
+        if (*(int *)(scr + 0x3CC) != 1) {
+            float step = *(float *)(scr + 0xD4) + *(float *)(scr + 0xEC);
+            *(float *)(scr + 0x480) += step;
+            if (*(float *)(scr + 0x480) >= *(float *)(scr + 0x484)) {
+                *(float *)(scr + 0x480) = *(float *)(scr + 0x484);
+                *(int *)(scr + 0x3CC) = (*(int *)(scr + 0x3C8) == 3) ? 9 : 3;
+                if (func_00000000(&D_00000000, 0x10004203)) {
+                    func_00000000(1);
+                    func_00000000(scr);
+                    d = *(char **)(scr + 0x28);
+                    fp = *(void (**)(int))(d + 0xAC);
+                    fp(*(short *)(d + 0xA8));
+                }
+                *(int *)(scr + 0x3CC) = 0xA;
+                *(float *)(scr + 0x484) = 0.0f;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000072D0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000073C0);
 
