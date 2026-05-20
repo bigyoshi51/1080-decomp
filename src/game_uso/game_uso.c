@@ -12080,5 +12080,3 @@ void *game_uso_func_00011A94(int *arg0) {
     return node;
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00011A94_pad.s")
-
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E350);
