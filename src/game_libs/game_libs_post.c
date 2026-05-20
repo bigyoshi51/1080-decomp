@@ -9794,12 +9794,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
 //   the game_libs object subsystem (the per-mode setup the
 //   gl_func_0002FB74 interpreter invokes before running a state; the
 //   0x01/0x06 banks match the gl_func_0002F9D4 emitter family).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + FP literal-
-//   pool refs (&D_0+0x186C/0x1870 unsymbolized) — not exact-
-//   matchable without proper USO mnemonic disasm + FP-pool
-//   symbolization; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + FP
+//   literal-pool refs (&D_0+0x186C/0x1870 unsymbolized) — byte-
+//   match needs USO mnemonic disasm + FP-pool symbolization.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_000308C8(int mode, float farg) {
+    char *g = *(char **)((char *)&D_00000000 + 0);
+    *(float *)(g + 0x1C) = farg;
+    switch (mode) {
+        case 0:
+            *(float *)(g + 0x14) = *(float *)((char *)&D_00000000 + 0x186C);
+            gl_func_00000000(0x01000800, 0);
+            break;
+        case 1:
+            *(int *)(g + 0x4) = 0;
+            *(float *)(g + 0x14) = 0.5f;
+            break;
+        case 2:
+            *(int *)(g + 0x4) = 8;
+            *(float *)(g + 0x14) = 0.5f;
+            *(float *)(g + 0x1C) = *(float *)((char *)&D_00000000 + 0x1870);
+            gl_func_00000000(0x06000800, *(float *)(g + 0x14));
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000308C8);
+#endif
 
 void game_libs_func_000309A4(void) {
 }
