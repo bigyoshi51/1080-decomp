@@ -7585,11 +7585,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BA38);
 //   sub-block at o+0x8C, clearing flag bit3 of o->0. Operand-decode
 //   peer to the gl_func_0002B09C / gl_func_0002B5F4 executors fed by
 //   the gl_func_0002AD1C interpreter loop.
-// Caps: raw-word USO + fixed-target operand fetch — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed-target operand fetch
+//   (0x400A4) — byte-match needs USO mnemonic disasm + reloc-pad
+//   jal infra. Real-C STRUCTURAL body below per the analysis.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002BAAC(char *o, int op) {
+    int a;
+    op &= 0xFF;
+    if (op < 0x80) {
+        *(short *)(o + 0x24) = (short)op;
+        *(int *)(o + 0x48) = 0;
+    } else if (op == 0x7F) {
+        *(short *)(o + 0x24) = 0;
+        *(int *)(o + 0x48) = 1;
+    } else if (op == 0x7E) {
+        *(short *)(o + 0x24) = 1;
+        *(int *)(o + 0x48) = 2;
+    } else {
+        a = (short)gl_func_00000000(o + 0x8C);
+        if (a != 0) *(short *)(o + 0x24) = (short)a;
+        *(unsigned char *)o = *(unsigned char *)o & ~0x08;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BAAC);
+#endif
 
 /* game_libs_func_0002BB58: 9-insn byte-to-float-scale leaf.
  * `a0[0x2C] = (float)(a1 & 0xFF) / 127.0f`.
