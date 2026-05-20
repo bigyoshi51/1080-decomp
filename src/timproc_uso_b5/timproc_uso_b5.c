@@ -3856,11 +3856,31 @@ void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
 //     D_0 + 0xB8 = a global sample source. a1 = incoming sample
 //     record. func_00000000 = USO placeholder dispatcher (per-slot
 //     transform / emit).
-// Caps: raw-word USO + placeholder calls + 256-word FP/ring pipeline
-//   — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls + 256-word
+//   FP/ring pipeline; USO mnemonic disasm limitation prevents
+//   byte-match. Real-C STRUCTURAL body below — ring push + per-slot
+//   FP loop skeleton only. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_0000C310(char *obj, char *a1) {
+    int slot;
+    if (*(int *)(obj + 0x2BC) < 0xA) {
+        if (--*(int *)(obj + 0x2C0) < 0) *(int *)(obj + 0x2C0) = 9;
+        *(int *)(obj + 0x2BC) += 2;
+    }
+    slot = *(int *)(obj + 0x2C0);
+    *(float *)(obj + 0x134 + slot * 4) = *(float *)a1;
+    *(float *)(obj + 0x158 + slot * 4) = *(float *)(a1 + 0x4);
+    *(float *)(obj + 0x17C + slot * 4) = *(float *)(a1 + 0x8);
+    *(float *)(obj + 0x1A0 + slot * 4) = *(float *)(a1 + 0xC);
+    *(float *)(obj + 0x1C4 + slot * 4) = *(float *)((char *)&D_00000000 + 0xB8);
+    func_00000000(obj, slot);
+    func_00000000(obj, a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C310);
+#endif
 
 /* 0000C710 absorbs 0000C7B4: bc1f at offset 0x94 of C710 branches PAST
  * the original 0xA4 declared size into C7B4's body; C7B4 has no prologue
