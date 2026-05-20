@@ -3358,11 +3358,33 @@ void timproc_uso_b5_func_0000AC10(int a0, int a1, int a2) {
 //     scratch. The math is a per-frame matrix*vector / projection
 //     update for the timing-screen camera or marker placement.
 //     func_00000000 = USO placeholder dispatcher (transform helpers).
-// Caps: raw-word USO + placeholder calls + 333-word FP pipeline —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural (entry/shape/tail) partial pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls + 333-word FP
+//   pipeline; USO mnemonic disasm limitation prevents byte-match.
+//   Real-C STRUCTURAL body below — transform block + initial scaled
+//   compose + cb chain skeleton only. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_0000AC20(char *obj, int unused) {
+    char *t = obj + 0xDC;
+    float scratch[8];
+    float ax = *(float *)(t + 0x00);
+    float ay = *(float *)(t + 0x04);
+    float az = *(float *)(t + 0x08);
+    float bx = *(float *)(t + 0x0C);
+    float by = *(float *)(t + 0x10);
+    float bz = *(float *)(t + 0x14);
+    scratch[0] = ax + bx;
+    scratch[1] = ay + by;
+    scratch[2] = az + bz;
+    func_00000000(t, scratch);
+    func_00000000(obj, scratch);
+    *(float *)(t + 0x18) = scratch[0];
+    *(float *)(t + 0x1C) = scratch[1];
+    *(float *)(t + 0x20) = scratch[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AC20);
+#endif
 
 /* timproc_uso_b5_func_0000B154: 133-insn (0x214) AI-update orchestrator.
  * Frame 0xA8, $s0/$s1 saves. Coarse structure decoded 2026-05-05:
