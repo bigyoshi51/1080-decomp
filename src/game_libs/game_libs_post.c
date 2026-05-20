@@ -11024,13 +11024,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000337AC);
 //   (likely "register kind A" vs "register kind B"; 0x0001E2EC /
 //   0x0001E308 are deferred data-segment template-symbolization
 //   sites).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + &D_0
 //   record-array (0x44 stride) + fixed data-seg templates
-//   (unsymbolized) — not exact-matchable without proper USO
-//   mnemonic disasm + the record struct typed; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+//   (0x0001E2EC/0x0001E308 unsymbolized) — byte-match needs USO
+//   mnemonic disasm + record struct typed. Real-C STRUCTURAL body
+//   below per the analysis (sibling of gl_func_000337AC). Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00033880(int id, int a1, unsigned flags, int d) {
+    char *rec;
+    if (flags & 7) {
+        gl_func_00000000((void *)0x0001E2EC, id);
+    }
+    if (d & 1) {
+        gl_func_00000000((void *)0x0001E308, d);
+    }
+    rec = (char *)&D_00000000 + id * 0x44;
+    *(int *)(rec + 0x3C) = 1;
+    gl_func_00000000(flags, d);
+    gl_func_00000000(rec + 0x18, 0, 1, a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033880);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003395C: prologue-stolen successor of gl_func_00033880.
