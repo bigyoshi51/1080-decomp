@@ -7720,12 +7720,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
 //   count gl_func_0001E134 / gl_func_00027E24 use). A heavyweight
 //   command/state-advance peer to gl_func_0002BB7C — the
 //   gl_func_0002AD1C interpreter's other large per-object driver.
-// Caps: raw-word USO + very large multi-phase command processor with
-//   many jal-0 USO-reloc calls — not exact-matchable without proper
-//   USO mnemonic disasm; high-level structural pass only, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + large multi-phase command
+//   processor with many jal-0 USO-reloc calls — byte-match needs
+//   USO mnemonic disasm + reloc-pad jal infra. Real-C STRUCTURAL
+//   body below per the analysis (top-level early-out + first-phase
+//   sketch). Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002C7A4(char *o) {
+    int w = *(int *)o;
+    int idx;
+    char *t;
+    short n;
+    int m;
+    if (w >= 0) return;
+    if (gl_func_00000000(*(unsigned char *)(o + 4))) {
+        gl_func_00000000(*(unsigned char *)(o + 5));
+        gl_func_00000000(*(unsigned char *)(o + 4), 2);
+        gl_func_00000000(*(unsigned char *)(o + 5));
+    }
+    idx = *(int *)o;
+    t = (char *)&D_00000000 + ((idx << 2) & 0x3FFC);
+    (void)t;
+    n = *(short *)((char *)&D_00000000 + 0x2040);
+    m = *(int *)((char *)&D_00000000 + 0x2070);
+    (void)n; (void)m;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
+#endif
 
 // gl_func_0002CF70 — STRUCTURAL PASS (0xA4 / 41 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
