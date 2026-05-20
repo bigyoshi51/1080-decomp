@@ -18657,6 +18657,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044460);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044474);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044488);
+
 /* 5-call unrolled dispatcher. Last call passes only s0 (no a1=s1 reset
  * in DS) — K&R-declared gl_func_00000000 lets IDO omit the a1 setup for
  * the final 1-arg call, matching target's pattern of 4×(a0=s0; jal;
