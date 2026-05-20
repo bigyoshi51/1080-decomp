@@ -21146,15 +21146,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044548);
 // records, then publishes a series of command entries into the registrar
 // via varargs-style cb calls whose numeric args are key/opcode IDs
 // (0x6E..0x71) and flags (0x1E00), keyed by string literals in the
-// contiguous &D_0002FDE4 / &D_0002FDEC table. Family: cb-driven
-// config/command-registration table builder (siblings gl_func_00044144 /
-// 000415A4 / 0004182C). Per-entry arg tuples not exhaustively decoded
-// (219-word driver) — the cb(0x140,0xF0) allocs, the &D_0002FDE4/FDEC keys
-// and the opcode-immediate set (0x6E/0x6F/0x70/0x71, 0x1E00) are exact;
-// per-call ordering representative. Caps: registrar/record struct,
-// &D_0002FDxx table and cb signature untyped. Full body
-// INCLUDE_ASM-preserved.
+// contiguous &D_0002FDE4 / &D_0002FDEC table.
+//
+// Caps (DEFERRED): registrar/record struct, &D_0002FDxx table and cb
+//   signature untyped; per-entry arg tuples not exhaustively decoded
+//   (219-word driver). Real-C STRUCTURAL body below — representative
+//   skeleton only. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_000445AC(void) {
+    gl_func_00000000(0x140, 0xF0);
+    gl_func_00000000(0x140, 0xF0);
+    gl_func_00000000((char *)&D_00000000 + 0x0002FDE4, 0);
+    gl_func_00000000(0, 0x64, 0x6D, (char *)&D_00000000 + 0x0002FDEC,
+                     2, 0x6E, 0x6F, 0x70, 0x1E00, 0x71, 2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000445AC);
+#endif
 
 // gl_func_00044918 — STRUCTURAL PASS (0x1D0 / 117 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
