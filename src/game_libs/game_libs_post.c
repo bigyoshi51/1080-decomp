@@ -16245,14 +16245,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B2EC);
 //   subsystem (companion of the gl_func_0003B2EC blend node, the
 //   gl_func_0003B1AC matrix-apply and the gl_func_00036694 /
 //   00037938 matrix family — the 6-part transform stage).
-// Caps: 0x320 raw-word USO + flag-gated chained-pointer FP
-//   pipeline + 6-element loop + -50.0f constant — categorically
-//   not exact-matchable without proper USO mnemonic disasm + the
-//   chained structs typed; structural pass only, no byte body.
-//   (A future focused non-loop session is where this gets a real
-//   decode; not 60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x320 raw-word USO + flag-gated chained-pointer
+//   FP pipeline + 6-element loop + -50.0f constant; chained structs
+//   untyped; per-iteration FP lattice not decoded here. Real-C
+//   STRUCTURAL body below — gate + 6-iteration skeleton only.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0003B6A0(char *o) {
+    char *s = *(char **)(o + 0x84);
+    char *x;
+    int i;
+    if (s == 0) return;
+    x = *(char **)(s + 0x44);
+    if (x == 0) return;
+    for (i = 0; i < 6; i++) {
+        char *t = *(char **)(*(char **)(x + 0x4C) + 0x2C);
+        *(float *)(t + i * 4) *= -50.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
+#endif
 
 // gl_func_0003B9C0 — STRUCTURAL PASS (0x45C / 279 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
