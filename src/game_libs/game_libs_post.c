@@ -30517,6 +30517,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062F8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006337C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006347C);
+
 /* 24-insn setter. Promoted 92.86%→100% via feedback-ido-unused-arg-fix-
  * pass-to-callee: passed unused a1 to the first call to suppress its
  * K&R caller-slot spill. */
