@@ -2832,10 +2832,19 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     sub-array bases; entry->0x3C the returned field, entry->0x2A4
 //     an f32 key). D_00000234 = USO f32 scale const. func_00000000 =
 //     USO placeholder dispatcher.
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable here; structural pass only for the named fn.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — named leading pass-through wrapper only;
+//   the 9 trailing helpers (0x896C..0x8AF8) remain INCLUDE_ASM under
+//   their own symbols. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_0000894C(void) {
+    func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000894C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000896C);
 
