@@ -12260,13 +12260,40 @@ int game_libs_func_00035360(int a0) {
 //   the gl_func_00034188 / 00034458 vtable-driven device-object
 //   family; 0x0001E578 / 0x0001E590 are deferred format-string
 //   data symbolization sites).
-// Caps: raw-word USO + jalr through global handler vtable
-//   ((*&D_0)+0x4C) + USO-relocated jal-0 callbacks + fixed string
-//   data — not exact-matchable without proper USO mnemonic disasm +
-//   the handler vtable/object typed; structural pass only, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jalr through global handler
+//   vtable ((*&D_0)+0x4C) + USO-reloc jal-0 callbacks + fixed
+//   string data (0x0001E578 / 0x0001E590 unsymbolized) — byte-
+//   match needs USO mnemonic disasm + handler vtable/object typed.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00035370(char *o, int a1) {
+    int r;
+    char *h;
+    int (*f)(void *, int);
+    switch (*(int *)(o + 4)) {
+        case 1:
+            h = *(char **)((char *)&D_00000000 + 0);
+            f = *(int (**)(void *, int))(h + 0x4C);
+            r = f(&D_00000000, a1);
+            *(int *)(o + 0x20) = r;
+            if (r == 0) gl_func_00000000((char *)0x0001E578);
+            break;
+        case 0:
+            r = gl_func_00000000(&D_00000000, a1);
+            *(int *)(o + 0x20) = r;
+            if (r == 0) gl_func_00000000((char *)0x0001E590);
+            break;
+        case 2:
+            gl_func_00000000(&D_00000000, a1);
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
+#endif
 
 // gl_func_00035440 — STRUCTURAL PASS (0x160 / 88 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
