@@ -12335,13 +12335,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
 //   arm) are a dispatch pair over the device-object vtable family
 //   (gl_func_00034188 / 00034458). 0x0004B8E8 / 0x0001E5AC are
 //   deferred absolute-symbol / string-data symbolization sites.
-// Caps: raw-word USO + jalr through global handler vtable
-//   ((*&D_0)+0x50) + USO-relocated jal-0 callbacks + fixed
-//   absolute device-config (0x0004B8E8) + fixed string data — not
-//   exact-matchable without proper USO mnemonic disasm + the
-//   vtable/config typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jalr through global handler
+//   vtable ((*&D_0)+0x50) + USO-reloc jal-0 callbacks + fixed
+//   absolute device-config (0x0004B8E8) + fixed string data
+//   (0x0001E5AC) — byte-match needs USO mnemonic disasm + vtable
+//   /config typed. Real-C STRUCTURAL body below per the analysis
+//   (paired counterpart to gl_func_00035370). Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00035440(char *o, int a2) {
+    int r;
+    char *h;
+    int (*f)(int, int);
+    int cfg;
+    switch (*(int *)(o + 4)) {
+        case 1:
+            h = *(char **)((char *)&D_00000000 + 0);
+            f = *(int (**)(int, int))(h + 0x50);
+            r = f(*(int *)(o + 0x20), a2);
+            *(int *)(o + 0x20) = r;
+            break;
+        case 0:
+            r = gl_func_00000000(&D_00000000, a2);
+            *(int *)(o + 0x20) = r;
+            break;
+        case 2:
+            cfg = *(int *)0x0004B8E8;
+            gl_func_00000000((char *)0x0001E5AC, a2, cfg);
+            if (a2) {
+                gl_func_00000000(a2);
+            }
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035440);
+#endif
 
 // gl_func_000355A0 — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
