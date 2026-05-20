@@ -21846,16 +21846,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046FA8);
 // float-to-int-with-clamp pattern: cfc1/ctc1 round-mode bracket, cvt.w.s,
 // then an `andi cause, 0x78` FPU-exception-cause test that, on overflow,
 // substitutes the 0x80000000 / 0xFFFFFFFF saturation value (the
-// 0x4F000000 = 2^31 float constant drives the unsigned-range branch). The
-// three-lane verbosity is just the idiom repeated per Vec component.
-// Family: FP saturating cast (the conversion primitive underlying the
-// segment's quantize/byte-pack routines gl_func_000430E4 / 00045CB0 /
-// 000454C4; see docs/IDO_CODEGEN float->int saturating-cast entry). The
-// cfc1/ctc1 + cvt.w.s + 0x78 cause-check + 0x4F000000 bias structure and
-// the per-lane repetition are exact; the exact clamp-value selection and
-// store width are representative. Caps: Out/Vec struct untyped. Full body
-// INCLUDE_ASM-preserved.
+// 0x4F000000 = 2^31 float constant drives the unsigned-range branch).
+//
+// Caps (DEFERRED): Out/Vec struct untyped; saturating-cast asm idiom
+//   is exact; plain (int)cast C produces fewer insns. Real-C
+//   STRUCTURAL body below — first member of the 000470FC / 000473AC /
+//   00047B40 duplicate family. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_000470FC(char *a0, char *a1) {
+    float x = *(float *)(a1 + 0x04);
+    float y = *(float *)(a1 + 0x08);
+    float z = *(float *)(a1 + 0x0C);
+    *(signed char *)(a0 + 0) = (signed char)(int)x;
+    *(signed char *)(a0 + 1) = (signed char)(int)y;
+    *(signed char *)(a0 + 2) = (signed char)(int)z;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000470FC);
+#endif
 
 // gl_func_000473AC — STRUCTURAL PASS (0x294 / 166 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
