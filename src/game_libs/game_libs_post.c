@@ -31912,6 +31912,8 @@ void gl_func_00066810(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066850);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000669AC);
+
 #ifdef NON_MATCHING
 /* gl_func_000669B8: 38-insn 5-call dispatch w/ caller-set $v0/$v1 (0x98, frame 0x20).
  *
