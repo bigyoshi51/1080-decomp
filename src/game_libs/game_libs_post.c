@@ -25183,14 +25183,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
 // Builds a transformed coordinate / matrix block in a large sp+0xC8 scratch
 // from the a1 source (sub/mul FP math + cvt.s.w + the 8.0f / &D_0+0x128
 // FP-pool constants), runs it through cb1/cb2 for processing/emit, then
-// copies the result block out to the a1->0x70-rooted destination. Family:
-// FP geometry transform + cb-emit (siblings gl_func_00042778 / 0004BAF4 /
-// 0004F0E0). Inner transform arithmetic not decoded (260-word builder) —
-// the sp+0xC8 scratch, the cvt.s.w/FP-const usage, the cb1(a1,&sp+0xB4) /
-// cb2(&blk) emit pair and the a1->0x70 dest copy are exact; per-lane math
-// representative. Caps: a1 struct, the FP-pool refs and cb signatures
-// untyped. Full body INCLUDE_ASM-preserved.
+// copies the result block out to the a1->0x70-rooted destination.
+//
+// Caps (DEFERRED): a1 struct, FP-pool refs and cb signatures
+//   untyped; inner transform arithmetic not decoded (260-word
+//   builder). Real-C STRUCTURAL body below — transform-build +
+//   cb-emit + dest-copy skeleton only. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0004F2F4(int a0, char *a1, int a2, float a3) {
+    float blk[16];
+    float K = *(float *)((char *)&D_00000000 + 0x128);
+    int local[16];
+    int i;
+    for (i = 0; i < 3; i++) {
+        float v = *(float *)(a1 + 0x10 + i * 4)
+                - *(float *)(a1 + 0x20 + i * 4);
+        blk[i] = v * K * 8.0f;
+    }
+    gl_func_00000000(a1, local);
+    gl_func_00000000(blk);
+    {
+        float *dst = *(float **)(a1 + 0x70);
+        for (i = 0; i < 3; i++) dst[i] = blk[i];
+    }
+    (void)a0; (void)a2; (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F2F4);
+#endif
 
 // gl_func_0004F704 — STRUCTURAL PASS (0x154 / 86 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
