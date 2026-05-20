@@ -2008,7 +2008,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   trailing 0x73C0 ramp-DOWN twin remains INCLUDE_ASM. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_000072D0(char *scr) {
     char *d;
     void (*fp)(int);
@@ -2074,7 +2073,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   table-dispatch skeleton only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00007430(char *scr) {
     int step;
     char **htab;
@@ -2140,7 +2138,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — 4-phase global-state-gated transition skeleton.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_000077D8(char *scr) {
     char *cam;
     char *d;
@@ -2229,7 +2226,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   phase skeleton only. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_000079A4(char *scr) {
     char *d;
     void (*fp)(int);
@@ -2309,7 +2305,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   skeleton + vtable-dispatch chain. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 int timproc_uso_b5_func_00007B2C(char *scr) {
     char *d;
     void (*fp)(int);
