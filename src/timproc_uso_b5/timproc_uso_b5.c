@@ -768,7 +768,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — alloc-or-reuse 3-child labeled-widget panel. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 char *timproc_uso_b5_func_000018B4(char *self, int a1, char *owner) {
     char *c1, *c2, *c3;
     int spec[8];
@@ -1016,7 +1015,6 @@ void timproc_uso_b5_func_000027B0(int *self) {
 //   below — 2-child composite widget constructor. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 char *timproc_uso_b5_func_0000283C(char *self, char *a1, int a2, int a3) {
     char *g;
     char *A;
@@ -1101,7 +1099,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — large composite constructor + 12-record init loop
 //   skeleton. Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 char *timproc_uso_b5_func_00002B74(char *self) {
     char *c;
     int i;
@@ -2235,7 +2232,9 @@ int timproc_uso_b5_func_000087D0(void) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087D8);
+int timproc_uso_b5_func_000087D8(void) {
+    return 2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087E0);
 
