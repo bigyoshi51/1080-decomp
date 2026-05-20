@@ -27482,6 +27482,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E718);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E7EC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E83C);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E950);
 
 /* gl_func_0005EAA4 - verified structural decode (42-insn per-Vec3-axis
