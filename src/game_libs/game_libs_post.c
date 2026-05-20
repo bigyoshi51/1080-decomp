@@ -11625,12 +11625,37 @@ void gl_func_00034684(void) {
 //   object subsystem (the &D_0+0x08 global scratch buffer is shared
 //   formatting storage; this is the kind of helper the command
 //   interpreter / UI nodes call to compose dynamic strings).
-// Caps: raw-word USO + USO-relocated jal-0 vsprintf-shaped callback
-//   + len&3 / word-batch copy split — not exact-matchable without
-//   proper USO mnemonic disasm + the global buffer typed;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 vsprintf-shaped
+//   callback + len&3 / word-batch copy split — byte-match needs USO
+//   mnemonic disasm + global buffer typed. Real-C STRUCTURAL body
+//   below per the analysis. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_000346F0(int a0, char *fmt, void *args) {
+    char *gbuf = *(char **)((char *)&D_00000000 + 8);
+    char buf[0x108];
+    int len;
+    int i;
+    int n;
+    (void)a0;
+    if (gbuf == 0) return;
+    len = gl_func_00000000(gbuf, fmt, args);
+    if (len > 0xFF) len = 0xFF;
+    if (len <= 0) return;
+    n = len & 3;
+    for (i = 0; i != n; i++) {
+        buf[i] = gbuf[i];
+    }
+    for (; i < len; i += 4) {
+        buf[i + 0] = gbuf[i + 0];
+        buf[i + 1] = gbuf[i + 1];
+        buf[i + 2] = gbuf[i + 2];
+        buf[i + 3] = gbuf[i + 3];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000346F0);
+#endif
 
 // gl_func_00034810 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
 // (0x80 / 32 words, no episode). Raw-.word USO form (game_libs).
