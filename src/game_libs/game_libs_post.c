@@ -7053,12 +7053,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
 //   gl_func_0002349C teardown / gl_func_00026CF0 submit / gl_func_
 //   00023838 decoder touch. The "commit the active selection" entry
 //   of the game_libs registry/object subsystem.
-// Caps: raw-word USO + 4-fn unsplit bundle + jal-0 USO-reloc
-//   dispatch — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only for the named leading fn, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc dispatch — byte-
+//   match needs USO mnemonic disasm + reloc-pad jal infra. STALE
+//   4-jr-bundle comment: grep -c 03E00008 = 1 (.s now single fn).
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002A7D8(char *o) {
+    unsigned char f;
+    int m;
+    int r;
+    short cur;
+    gl_func_00000000(o, 0xFFFF);
+    gl_func_00000000(o + 0x9C);
+    f = *(unsigned char *)o;
+    *(unsigned char *)o = f | 0x40;
+    m = *(unsigned char *)(o + 4) & 0x7F;
+    *(unsigned char *)o = *(unsigned char *)o & ~0x80;
+    r = gl_func_00000000(m);
+    if (r) {
+        gl_func_00000000(*(unsigned char *)(o + 4), 3);
+    }
+    if (*(unsigned char *)(o + 5) != 0) {
+        gl_func_00000000(*(unsigned char *)(o + 5), 4);
+    }
+    if (*(unsigned char *)(o + 5) != 1) {
+        cur = *(short *)((char *)&D_00000000 + 0x2406);
+    } else {
+        cur = *(short *)((char *)&D_00000000 + 0x23FA);
+    }
+    *(int *)((char *)&D_00000000 + 0x23DC) = cur;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A7D8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A884);
 
