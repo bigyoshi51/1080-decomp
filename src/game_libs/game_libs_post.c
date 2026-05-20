@@ -13182,13 +13182,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00036074);
 //   constructor family); confirms game_libs_func_00036074 is this
 //   function's sheared prologue prefix pending the deferred USO
 //   re-split.
-// Caps: raw-word USO + FP field-zeroing constructor + sheared-
-//   prologue-fragment dependency (game_libs_func_00036074) — not
-//   exact-matchable without proper USO mnemonic disasm + the
-//   00036074 boundary re-split + the object struct typed;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + FP field-zeroing constructor +
+//   sheared-prologue-fragment dependency
+//   (game_libs_func_00036074) — byte-match needs USO mnemonic
+//   disasm + 00036074 boundary re-split + object struct typed.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00036088(char *o, float arg) {
+    char d[0x10];
+    *(float *)(o + 0x00) = 0.0f;
+    *(float *)(o + 0x04) = 0.0f;
+    *(float *)(o + 0x08) = 0.0f;
+    *(float *)(o + 0x0C) = arg;
+    *(float *)(o + 0x88) = 0.0f;
+    *(int *)(o + 0x1D8) = 0;
+    *(float *)(o + 0x2C) = 0.0f;
+    *(float *)(o + 0x30) = 0.0f;
+    *(float *)(o + 0x34) = 0.0f;
+    *(float *)(o + 0x38) = 0.0f;
+    *(float *)(o + 0x3C) = 0.0f;
+    *(float *)(o + 0x40) = 0.0f;
+    *(float *)(o + 0x8C) = 0.0f;
+    *(float *)(o + 0x90) = 0.0f;
+    *(float *)(o + 0x44) = 200.0f;
+    *(float *)(d + 0) = *(float *)(o + 0x88);
+    *(float *)(d + 4) = *(float *)(o + 0x8C);
+    *(float *)(d + 8) = *(float *)(o + 0x90);
+    *(int *)(o + 0xDC) = (int)&d;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
+#endif
 
 // gl_func_00036224 — STRUCTURAL PASS (0x470 / 284 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
