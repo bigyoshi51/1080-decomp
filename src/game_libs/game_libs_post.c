@@ -17023,13 +17023,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DC90);
 //   0x2C extends the handler-vtable slot map (… 0x2C / 0x4C / 0x50
 //   / 0x54 / 0x5C / 0x60 / 0x84 …). An object-lifecycle factory
 //   node of the game_libs object subsystem.
-// Caps: raw-word USO + USO-relocated jal-0 factory/insert callbacks
-//   + jalr through handler vtable ((o->0x28)+0x2C) + FP default
-//   seed + intrusive-list splice — not exact-matchable without
-//   proper USO mnemonic disasm + the object/vtable/list structs
-//   typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 factory/insert
+//   cbs + jalr through handler vtable ((o->0x28)+0x2C) + FP default
+//   seed + intrusive-list splice; object/vtable/list structs untyped.
+//   Real-C STRUCTURAL body below. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+char *gl_func_0003DD28(char *a0) {
+    char *o = (char *)gl_func_00000000();
+    int kind = 0x13;
+    char *h;
+    char *node;
+    void (*fp)(int, int *);
+    *(float *)(o + 0x70) = 10.0f;
+    h = *(char **)(o + 0x28);
+    fp = *(void (**)(int, int *))(h + 0x2C);
+    fp(*(short *)(h + 0x28) + (int)o, &kind);
+    node = *(char **)(a0 + 0x40);
+    gl_func_00000000(o + 0x10, node);
+    if (*(char **)(node + 0x14) == 0) {
+        *(int *)(node + 0x04) = 1;
+    }
+    *(char **)(node + 0x14) = o;
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DD28);
+#endif
 
 /* game_libs_func_0003DDC0: 34-insn linked-list search + Vec3 copy.
  * Newly decompilable (entry insn `lw t6,16(a0)` was the splat-stolen
