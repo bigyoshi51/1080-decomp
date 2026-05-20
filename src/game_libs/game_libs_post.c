@@ -16379,13 +16379,29 @@ void gl_func_0003D114(Quad4 *dst) {
 //   family). 0x0001F2B8 is a deferred data-segment template-
 //   symbolization site; the 0x48 size + +0x28/+0x2C layout is the
 //   struct to type when this object family is formalized.
-// Caps: raw-word USO + USO-relocated jal-0 allocator/init callbacks
-//   + chained alloc-with-rollback + &D_0 back-link + data-seg
-//   template + -1 sentinel — not exact-matchable without proper
-//   USO mnemonic disasm + the struct typed; structural pass only,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 allocator/init
+//   cbs + chained alloc-with-rollback + &D_0 back-link + data-seg
+//   template + -1 sentinel; 0x48 struct untyped. Real-C STRUCTURAL
+//   body below. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *gl_func_0003D16C(char *o, int a1, int a2) {
+    int *sub;
+    if (o == 0) {
+        o = (char *)gl_func_00000000(0x48);
+        if (o == 0) return 0;
+    }
+    gl_func_00000000(o, (char *)&D_00000000 + 0x0001F2B8);
+    *(char **)(o + 0x28) = (char *)&D_00000000;
+    sub = (int *)gl_func_00000000(0x04);
+    if (sub) *sub = 0;
+    *(int *)(o + 0x2C) = a1;
+    *(int *)(o + 0x34) = -1;
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D16C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003D228: 24-insn helper. Calls gl_func(a0+0x10, a1), sets
