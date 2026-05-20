@@ -9887,11 +9887,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000309AC);
 //   next fn, whose entry the fragment was sheared from, READS it).
 //   A mode-select / state-record leaf of the game_libs object
 //   subsystem (sibling of the gl_func_0003061C mode-arbiter).
-// Caps: raw-word USO + fixed intra-USO call + &D_0 global record —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed intra-USO call (0x0118C5)
+//   + &D_0 global record — byte-match needs USO mnemonic disasm
+//   + jal-0/fixed routing. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_000309B4(int sel) {
+    int p;
+    if (sel == *(int *)((char *)&D_00000000 + 0x10)) return;
+    if      (sel == 0) p = 0;
+    else if (sel == 1) p = 0x46;
+    else if (sel == 2) p = 0x1E;
+    else               p = 0;
+    gl_func_00000000(&D_00000000, p);
+    *(int *)((char *)&D_00000000 + 0x10) = sel;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000309B4);
+#endif
 
 // gl_func_00030A20 — STRUCTURAL PASS (0xD4 / 53 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
