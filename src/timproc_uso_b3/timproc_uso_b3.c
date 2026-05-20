@@ -1024,3 +1024,5 @@ void timproc_uso_b3_func_00003050(int *a0, int a1) {
     gl_func_00000000((char*)&D_00000000 + 0x130, 0xA0, a1, 3);
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00003050_pad.s")
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000E30);
