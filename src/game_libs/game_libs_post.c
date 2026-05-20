@@ -16908,13 +16908,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 //   gl_func_0003CBB4 / gl_func_0003C43C spatial-query family
 //   (same collection convention: list head +0x10, next +0x04,
 //   scalar at +0x38).
-// Caps: raw-word USO + intrusive-list walk + FP extremum-track with
-//   FP-literal-pool init/bound (&D_0+0x1AC4/0x1AC8 unsymbolized) —
-//   not exact-matchable without proper USO mnemonic disasm +
-//   FP-pool/struct symbolization; structural pass only, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + intrusive-list walk + FP
+//   extremum-track with FP-literal-pool init/bound
+//   (&D_0+0x1AC4/0x1AC8 unsymbolized). Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *gl_func_0003DB3C(char *o, int unused) {
+    float best = *(float *)((char *)&D_00000000 + 0x1AC4);
+    float bound = *(float *)((char *)&D_00000000 + 0x1AC8);
+    char *r = 0;
+    char *n;
+    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
+        float v = *(float *)(n + 0x38);
+        if (best < v && v < bound) {
+            r = n;
+            bound = v;
+        }
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DB3C);
+#endif
 
 /* game_libs_func_0003DBEC: 41-insn linked-list search + Vec3 copy via
  * stack temp (newly decompilable — merged from gl_func_0003DBF0 body
