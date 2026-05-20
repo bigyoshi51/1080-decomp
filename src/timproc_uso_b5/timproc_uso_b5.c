@@ -1744,11 +1744,36 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     global counter at *(int*)D_0 (dec, cmp 0x17D7).
 //   D_00001304 / D_00000F24 = USO static tables (0x13xx/0xF.. pool).
 //   func_00000000 = USO placeholder dispatcher.
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — reset + cursor-switch + per-element write skeleton only.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+int timproc_uso_b5_func_000069E8(char *scr, int a1) {
+    func_00000000(scr, a1);
+    func_00000000(*(char **)(scr + 0x418), -1, 0);
+    if (*(int *)(scr + 0x4A4) == 0) {
+        func_00000000((char *)&D_00000000 + 0x00001304);
+    } else {
+        int idx = *(int *)(scr + 0x4E0 + (*(int *)(scr + 0x4A4) - 1) * 4);
+        char *base = *(char **)(*(char **)(scr + 0x40C) + 0x3D0);
+        char *e = base + idx;
+        if (*(int *)&D_00000000 == 0x17D7) {
+            *(int *)((char *)&D_00000000 + 0xA4) = idx;
+        }
+        if (*(int *)(scr + 0x4A8) != 0 && *(int *)(scr + 0x34) == 1) {
+            *(int *)(*(char **)(e + 0x3C) + 0x2B0) |= 1;
+            *(int *)(*(char **)(e + 0x3C) + 0x2B4) |= 1;
+        }
+        *(int *)&D_00000000 -= 1;
+        *(int *)((char *)&D_00000000 + 0xB8) = idx;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000069E8);
+#endif
 
 // timproc_uso_b5_func_00006C00 — STRUCTURAL PASS (0x130 / 76 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
