@@ -9466,11 +9466,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
 //   leaf of the game_libs object subsystem (same 0x06000000 bank and
 //   sign-extend-byte-arg convention as gl_func_0002F638 /
 //   gl_func_0002F9D4).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + bias/clamp
-//   index — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks +
+//   bias/clamp index — byte-match needs USO mnemonic disasm +
+//   reloc-pad jal infra. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0002FA90(int a0, int arg1, int arg2) {
+    int op = a0 ? 5 : 1;
+    int idx = arg2 + 0x40;
+    int cmd = 0x06000000 | ((op & 0xFF) << 8);
+    if (idx >= 0x80) idx = 0x7F;
+    gl_func_00000000(cmd | 2, (signed char)idx);
+    gl_func_00000000(cmd | 1, (signed char)(arg1 + 8));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FA90);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0002FB10(int a0) {
