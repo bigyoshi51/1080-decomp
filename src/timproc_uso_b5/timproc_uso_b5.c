@@ -342,12 +342,24 @@ void timproc_uso_b5_func_00000770(int a0) { (void)a0; }
 //     handle (a1 = f(st->0x50) per slot). &D = the timproc_uso_b5
 //     registration table; K = per-slot byte offsets (0x10,0x28,0x130,
 //     …,0x718). Tag prefix 0x70000 / handle low bits ~0xB.
-// Caps: raw-word USO + 76 placeholder func_00000000 calls — not
-//   exact-matchable without proper USO mnemonic disasm (documented USO
-//   limitation); flat structure fully characterized here. Structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + 76 placeholder func_00000000 calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — flat 76-entry bulk-registration skeleton
+//   (3 representative entries shown). Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00000778(char *st) {
+    int v = *(int *)(st + 0x50);
+    int i;
+    static const int offsets[3] = { 0x10, 0x28, 0x130 };
+    for (i = 0; i < 3; i++) {
+        func_00000000((char *)&D_00000000 + offsets[i], (v * 9) | 0x70000);
+    }
+    /* 73 more identical entries with offsets 0x148, …, 0x718 omitted. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000778);
+#endif
 
 int timproc_uso_b5_func_000010EC(int a0) {
     if (a0 != 0) goto init;
