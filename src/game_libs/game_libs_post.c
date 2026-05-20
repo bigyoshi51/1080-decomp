@@ -16568,12 +16568,25 @@ void gl_func_0003D288(char *a0, int a1) {
 //   intrusive-list convention — head at +0x10, next at +0x04 — as
 //   the gl_func_00038598 / 0003C86C processor family; pairs with
 //   the iterator API helpers gl_func_00035C6C / gl_func_00035DAC).
-// Caps: raw-word USO + intrusive-list count + fixed intra-USO call
-//   (0x01459B) + second-list walk — not exact-matchable without
-//   proper USO mnemonic disasm + the list structs typed;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + intrusive-list count + fixed
+//   intra-USO call (0x01459B) + second-list walk; list structs
+//   untyped. Real-C STRUCTURAL body below. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0003D2C8(char *o) {
+    int n = 0;
+    char *p;
+    char *r;
+    char *q;
+    for (p = *(char **)(o + 0x10); p != 0; p = *(char **)(p + 0x04)) n++;
+    r = (char *)gl_func_00000000(n);
+    for (q = *(char **)(r + 0x10); q != 0; q = *(char **)(q + 0x04)) {
+        gl_func_00000000(q);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D2C8);
+#endif
 
 // gl_func_0003D3C4 — STRUCTURAL PASS (0xBC / 47 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
