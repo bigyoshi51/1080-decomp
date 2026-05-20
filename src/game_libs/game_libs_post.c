@@ -13300,14 +13300,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036224);
 //   gl_func_00033094 / gl_func_00035E6C transform/project leaves —
 //   this is the matrix-concat / basis-build primitive those nodes
 //   rely on (no &D_0 / no callbacks — a pure math leaf).
-// Caps: 0x2C8 raw-word USO + heavy FP matrix/cross-product math +
-//   int↔float stack round-trip idiom — categorically not exact-
-//   matchable without proper USO mnemonic disasm + the matrix/
-//   vector structs typed; structural pass only, no byte body. (A
-//   future focused non-loop session — the deferred struct-typing
-//   backlog — is where this gets a real decode; not 60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x2C8 raw-word USO + heavy FP matrix/cross-product
+//   math + int↔float stack round-trip idiom; matrix/vector structs
+//   untyped; full ~178-word mul/add/sub lattice not decoded here.
+//   Real-C STRUCTURAL body below — the leading cross-product /
+//   matrix-build seed only. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00036694(float *out, float *a, float *b, float *c) {
+    float r0 = b[1] * a[0];
+    float r1 = c[2] * a[2];
+    out[0] = r0 - r1;
+    out[1] = c[0] * a[2] - b[2] * a[0];
+    out[2] = b[2] * a[1] - c[1] * a[2];
+    out[3] = a[0];
+    out[4] = a[1];
+    out[5] = a[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036694);
+#endif
 
 // gl_func_0003695C — STRUCTURAL PASS (0xEC / 59 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
