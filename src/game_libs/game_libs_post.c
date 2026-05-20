@@ -12976,12 +12976,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035C6C);
 //   game_libs object subsystem's collections (the same lists the
 //   gl_func_00033228 enlist / gl_func_00034458 process family
 //   touch).
-// Caps: raw-word USO + fixed intra-USO iterator API calls
-//   (0x012844 / 0x012853) + nested 4-byte-stride loop — not exact-
-//   matchable without proper USO mnemonic disasm + the iterator
-//   struct typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed intra-USO iterator API
+//   calls (0x012844 begin + 0x012853 step) + nested 4-byte-stride
+//   loop — byte-match needs USO mnemonic disasm + iterator struct
+//   typed. Real-C STRUCTURAL body below per the analysis (sibling
+//   of gl_func_00035C6C). Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00035DAC(void) {
+    char it[0x18];
+    int n;
+    *(int *)(it + 0x14) = 0;
+    gl_func_00000000(&it);
+    *(int *)(it + 0x18 - 4) = -1;
+    while (*(int *)(it + 0x14) != *(int *)(it + 0)) {
+        n = *(int *)(it + 0x10);
+        do {
+            gl_func_00000000(&it);
+            n -= 4;
+        } while (n != 0);
+        *(int *)(it + 0x14) = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
+#endif
 
 // gl_func_00035E6C — STRUCTURAL PASS + small BUNDLE BOUNDARY NOTE
 // (0x168 / 90 words, no episode). Raw-.word USO form (game_libs).
