@@ -7528,18 +7528,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B5F4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BA08);
 
-/* gl_func_0002BA38: 29-insn alloc-then-store with byte-arg + node-init.
- * Body sketch:
- *   a1 = (u8)a1;
- *   rv = func(*(u8*)(a0 + 7));
- *   if (rv == 0) { *a2 = 0; return 0; }
- *   v1 = rv;
- *   *(int*)(a3 + 4) = *(int*)(v1 + 4);
- *   *(u8*)a3 = *(u8*)(v1 + 3);
- *   *a2 = v1;
- *   return ((a1 + 2) & 0xFF);
- * Stack-byte-spill + byte-load + node-copy pattern. Deferred. */
+/* Caps (DEFERRED): stack-byte-spill + byte-load + node-copy
+ * idiom + indirect alloc helper. Real-C STRUCTURAL body below per
+ * the in-comment sketch. Byte-match deferred. Name pre-checked: no
+ * extern reuse. */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_0002BA38(char *a0, int a1, int **a2, char *a3) {
+    char *rv;
+    a1 = (unsigned char)a1;
+    rv = (char *)gl_func_00000000(*(unsigned char *)(a0 + 7));
+    if (rv == 0) {
+        *a2 = 0;
+        return 0;
+    }
+    *(int *)(a3 + 4) = *(int *)(rv + 4);
+    *(unsigned char *)a3 = *(unsigned char *)(rv + 3);
+    *a2 = (int *)rv;
+    return (a1 + 2) & 0xFF;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BA38);
+#endif
 
 // gl_func_0002BAAC — STRUCTURAL PASS (0xAC / 43 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
