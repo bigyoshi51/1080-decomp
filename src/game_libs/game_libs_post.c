@@ -31540,6 +31540,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E28);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E58);
+
 /* 9-insn double-return wrapper (split off from 14-insn bundle 2026-05-15
  * via split-fragments.py). Target uses `cvt.d.w` (function 0x21), not
  * `cvt.s.w` — return type is double, not float. The `volatile int *p =
