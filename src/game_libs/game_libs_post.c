@@ -22868,12 +22868,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
 // cb1, an a1!=0 guard, then — only when self->0x38 has bit 15 (0x8000) set —
 // a sequence of cb2..cbN calls each parameterised by 16-bit immediates read
 // from a contiguous data literal (&D_lit + 0/2/4/..) and threading self and
-// the a3 aux handle. Family: cb-pipeline + flag-gated dispatch (relates to
-// the segment's render/emit dispatch routines). Per-call arg detail
-// representative; the cb1 prologue, the a1 early-out, the self->0x38&0x8000
-// gate and the &D_lit 16-bit-constant feed are exact. Caps: self struct,
-// &D_lit table and cb signatures untyped. Full body INCLUDE_ASM-preserved.
+// the a3 aux handle. Family: cb-pipeline + flag-gated dispatch.
+//
+// Caps (DEFERRED): self struct, &D_lit table and cb signatures
+//   untyped; per-call arg detail representative. Real-C STRUCTURAL
+//   body below. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0004AE40(char *a0, int a1, int a2, int a3, int a4) {
+    int r;
+    short *lit = (short *)((char *)&D_00000000);
+    r = gl_func_00000000(a0, a1, a2, a3, a4);
+    if (a1 == 0) return;
+    if ((*(int *)(a0 + 0x38) & 0x8000) == 0) return;
+    gl_func_00000000(a0);
+    gl_func_00000000(a0, r, lit[0]);
+    gl_func_00000000(a0, a3, 1);
+    gl_func_00000000(a0, lit[1]);
+    gl_func_00000000(a0, lit[2]);
+    gl_func_00000000(a0, lit[3]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AE40);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004AFB4: 35-insn 5-arg wrapper + conditional pair-dispatch (0x8C, frame 0x28).
