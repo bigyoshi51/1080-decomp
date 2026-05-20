@@ -6617,11 +6617,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029978);
 //   b_A0=1, store w_90/w_94/w_8C) left for the deferred USO
 //   re-split. Companion reset to the gl_func_00029978 tween /
 //   gl_func_0002978C ramp steppers on the same object.
-// Caps: raw-word USO + 8-fn unsplit bundle + fixed-target channel
-//   resets — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed-target channel resets
+//   (0x3DF44 / 0x3DFE4) — byte-match needs USO mnemonic disasm +
+//   reloc-pad jal infra. STALE 8-jr-bundle comment: grep -c
+//   03E00008 = 1 (.s now single fn). Real-C STRUCTURAL body below
+//   per the analysis. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_00029B6C(char *obj) {
+    if (*(unsigned char *)(obj + 0x80) != 0xFF) {
+        gl_func_00000000(obj + 0x80);
+    }
+    *(float *)(obj + 0x38) = 0.0f;
+    if (*(unsigned char *)(obj + 0xA0) != 0xFF) {
+        gl_func_00000000(obj + 0x8C);
+    }
+    *(float *)(obj + 0x3C) = 0.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029BC8);
 
