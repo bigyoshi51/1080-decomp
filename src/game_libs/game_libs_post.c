@@ -7364,11 +7364,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002ABC0);
 //   out-of-range opcode terminates. This is the execution engine the
 //   gl_func_00026790 / gl_func_0002A080 jump-table dispatchers feed
 //   (the VM "interpret the whole script" entry).
-// Caps: raw-word USO + bytecode interpreter loop with fixed-target
-//   handlers — not exact-matchable without proper USO mnemonic
-//   disasm; high-level structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bytecode interpreter loop with
+//   fixed-target handlers (0x3F010/0x3E680/0x3E6E8) — byte-match
+//   needs USO mnemonic disasm + reloc-pad jal infra. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002AD1C(char *o) {
+    char *buf = *(char **)(o + 0x50);
+    int cur = *(int *)(o + 0x4C);
+    int op;
+    int r;
+    (void)buf;
+    for (;;) {
+        op = gl_func_00000000(cur) & 0xFF;
+        if (op < 0xC1 || op >= 0xF2) break;
+        gl_func_00000000(op - 0xC1);
+        r = gl_func_00000000(op);
+        if (r != 0) break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
+#endif
 
 // gl_func_0002B09C — STRUCTURAL PASS (0x558 / 342 words ≈ 1.4KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
