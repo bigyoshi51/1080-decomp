@@ -12772,12 +12772,32 @@ void gl_func_000359C4(int a0, int a1, int a2, int a3) {
 //   gl_func_0002FB74 interpreter's opcode arms — this one keys on
 //   the record's own 0x08/0x0A id fields rather than a global
 //   handler vtable).
-// Caps: raw-word USO + jalr through an 8-byte {tag, fn-ptr} handler
-//   table indexed by record id fields — not exact-matchable
-//   without proper USO mnemonic disasm + the record/table structs
-//   typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jalr through an 8-byte {tag,
+//   fn-ptr} handler table indexed by record id fields — byte-match
+//   needs USO mnemonic disasm + record/table structs typed. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+int gl_func_00035A18(char *r, int a1) {
+    short i = *(short *)(r + 0x0A);
+    short j = *(short *)(r + 0x08);
+    char *base = *(char **)(r + 0x04);
+    char *tbl;
+    short hw;
+    int (*f)(int);
+    if (i >= 0) {
+        a1 = j + (int)base;
+        return a1;
+    }
+    tbl = *(char **)(r + 0x0C);
+    hw = *(short *)(tbl + j * 8);
+    f = *(int (**)(int))(tbl + j * 8 + 4);
+    a1 = hw + a1;
+    return f(a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035A18);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00035A18_pad.s")
 
 extern int gl_func_00000000();
