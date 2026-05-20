@@ -12931,6 +12931,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B6C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B74);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B7C);
+
 #ifdef NON_MATCHING
 /* gl_func_00038BB8: 19-insn vtable-dispatch + stack-built request struct.
  * Builds a 5-field req struct on stack (count=14, buf_ptr=&buf, return_slot=0,
