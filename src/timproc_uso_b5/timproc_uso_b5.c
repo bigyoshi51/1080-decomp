@@ -3689,3 +3689,5 @@ void timproc_uso_b5_func_0000E5D8(int a0) {
     *(float*)((char*)&D_00000000 + 8) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xDC);
     gl_func_00000000(a0);
 }
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006890);
