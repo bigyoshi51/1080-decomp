@@ -28403,6 +28403,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F5F0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F984);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FC64);
+
 /* 23-insn alloc-or-passthrough + 2-call init wrapper. Sibling of
  * gl_func_0005FDCC. C body produces target shape EXCEPT for IDO's
  * register choice ($v1 instead of target's $a1) for the persistent `p`
