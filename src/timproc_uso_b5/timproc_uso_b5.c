@@ -1461,12 +1461,40 @@ void timproc_uso_b5_func_000040BC(int a0, int a1, int a2, int a3, int arg5, int 
 //   &D_00001260 = base-init descriptor; the 0x12xx USO pool supplies
 //     child names/descs. func_00000000 = USO placeholder dispatcher
 //     (alloc / init / factory / position / attach).
-// Caps: raw-word USO + 74 placeholder calls + 1718 words — not
-//   exact-matchable here; structural (entry/alloc/fan-out/return)
-//   partial pass only, no byte body. Multi-run: future passes can
-//   expand the 0x18/0x24 sub-record build loops.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + 74 placeholder calls + 1718 words;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — alloc-or-reuse + base-init + 18+13
+//   sub-record fan-out skeleton only; future passes can expand the
+//   sub-record build loops further. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+char *timproc_uso_b5_func_00004118(char *self, int a1, int a2, int a3) {
+    int i;
+    char *r;
+    if (self == 0) {
+        self = (char *)func_00000000(0x4F0);
+        if (self == 0) return 0;
+    }
+    func_00000000(0x2C);
+    func_00000000(self, (char *)&D_00000000 + 0x00001260);
+    *(char **)(self + 0x28) = (char *)&D_00000000;
+    for (i = 0; i < 18; i++) {
+        r = (char *)func_00000000(0x18);
+        *(char **)(self + 0x40 + i * 4) = r;
+    }
+    for (i = 0; i < 13; i++) {
+        r = (char *)func_00000000(0x24);
+        *(char **)(self + 0x100 + i * 4) = r;
+    }
+    func_00000000(0x38C);
+    func_00000000(0x2C);
+    func_00000000(0x8);
+    (void)a1; (void)a2; (void)a3;
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00004118);
+#endif
 
 // timproc_uso_b5_func_00005BF0 — STRUCTURAL PASS (0x3D0 / 244 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
