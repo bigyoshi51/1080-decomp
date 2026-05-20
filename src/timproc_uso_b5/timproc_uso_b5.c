@@ -2303,11 +2303,47 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   D_00000F60 / D_00000F18 = USO static handler/jump tables (shared
 //     with func_00007430); D_0 global flags 0x100 / 0x200 / 0x4003.
 //   func_00000000 = USO placeholder dispatcher (event / handler).
-// Caps: raw-word USO + PC-table dispatch + placeholder calls — not
-//   exact-matchable without proper USO mnemonic disasm; structure
-//   characterized. Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + PC-table dispatch + placeholder
+//   calls; USO mnemonic disasm limitation prevents byte-match.
+//   Real-C STRUCTURAL body below — PC-driven master state-machine
+//   skeleton + vtable-dispatch chain. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+int timproc_uso_b5_func_00007B2C(char *scr) {
+    char *d;
+    void (*fp)(int);
+    int *F60_tab;
+    int *F18_tab;
+    int idx;
+    if (*(int *)(scr + 0x3C4) != 1) {
+        func_00000000(scr);
+        return 1;
+    }
+    if (!func_00000000()) return 1;
+    F60_tab = (int *)((char *)&D_00000000 + 0x00000F60);
+    F18_tab = (int *)((char *)&D_00000000 + 0x00000F18);
+    idx = *(int *)(scr + 0x4AC);
+    /* h = F60_tab[idx]; sub-state from F18_tab[idx] */
+    *(int *)(scr + 0x4B0) = F18_tab[idx];
+    if (*(int *)&D_00000000 == 0x100 && F60_tab[idx] == *(int *)(scr + 0x4B0)) {
+        *(int *)(scr + 0x4AC) += 1;
+    } else {
+        func_00000000(1);
+        *(int *)(scr + 0x4A8) = 0x3E8;
+    }
+    d = *(char **)(scr + 0x28);
+    fp = *(void (**)(int))(d + 0x8C);
+    fp(*(short *)(d + 0x88));
+    fp = *(void (**)(int))(d + 0x84);
+    fp(*(short *)(d + 0x80));
+    *(int *)(scr + 0x3CC) = 7;
+    *(float *)(scr + 0x484) = 1.0f;
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007B2C);
+#endif
 
 // timproc_uso_b5_func_00007E34 — STRUCTURAL PASS (0x2C0 / 176 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
