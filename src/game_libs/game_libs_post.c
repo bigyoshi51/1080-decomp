@@ -29282,6 +29282,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061824);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006186C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061878);
+
 extern int gl_func_00000000();
 int gl_func_000618D0(char *a0, int a1) {
     return gl_func_00000000(a1, a0 + 0x24);
