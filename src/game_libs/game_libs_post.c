@@ -16388,15 +16388,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
 //   node of the game_libs object subsystem (the higher-level
 //   consumer of the gl_func_0003B9C0 distance solver and the
 //   matrix/transform geometry leaves).
-// Caps: 0x3D8 raw-word USO + USO-relocated jal-0 query callback +
-//   FP-literal-pool limit (&D_0+0x1AB8 unsymbolized) + multi-return
-//   result post-process — categorically not exact-matchable
-//   without proper USO mnemonic disasm + FP-pool/struct
-//   symbolization; structural pass only, no byte body. (A future
-//   focused non-loop session is where this gets a real decode; not
-//   60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x3D8 raw-word USO + USO-relocated jal-0 query
+//   callback + FP-literal-pool limit (&D_0+0x1AB8 unsymbolized) +
+//   multi-return result post-process; FP-pool/struct symbolization
+//   deferred. Real-C STRUCTURAL body below — query marshal + count
+//   store skeleton only. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+int gl_func_0003C43C(char *o, char *r, float s, char *a3) {
+    int req[3];
+    float outA[3];
+    float outB[3];
+    int n;
+    req[0] = *(int *)(r + 0x00);
+    req[1] = *(int *)(r + 0x04);
+    req[2] = *(int *)(r + 0x08);
+    n = gl_func_00000000(o, 8, outB, outA, req);
+    if (n <= 0) return 0;
+    *(short *)(a3 + 0x14) = (short)n;
+    if (n & 1) {
+        gl_func_00000000(a3, outA, outB, n);
+    }
+    (void)s;
+    (void)*(float *)((char *)&D_00000000 + 0x1AB8);
+    return n;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C43C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003C7A4);
 
