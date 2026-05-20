@@ -16204,15 +16204,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B1AC);
 //   game_libs object subsystem (consumes the matrices/vectors the
 //   gl_func_0003B1AC matrix-apply / gl_func_00036694 concat /
 //   gl_func_00036224 viewport leaves produce).
-// Caps: 0x3B4 raw-word USO + FP-literal-pool constants
-//   (&D_0+0x128/0x130 unsymbolized) + USO-relocated jal-0 callback
-//   + data-seg ref + heavy FP transform — categorically not exact-
-//   matchable without proper USO mnemonic disasm + FP-pool/struct
-//   symbolization; structural pass only, no byte body. (A future
-//   focused non-loop session is where this gets a real decode; not
-//   60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x3B4 raw-word USO + FP-literal-pool constants
+//   (&D_0+0x128/0x130 unsymbolized) + USO-relocated jal-0 cb +
+//   data-seg ref + heavy FP transform. Real-C STRUCTURAL body below
+//   — gate + scale + conditional cb skeleton only. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0003B2EC(char *o, int unused1, int unused2, float a3) {
+    float k0 = *(float *)((char *)&D_00000000 + 0x128);
+    float k1 = *(float *)((char *)&D_00000000 + 0x130);
+    float u = a3 * k0;
+    float v;
+    if (*(int *)(o + 0x84) == 0) return;
+    if (*(int *)(o + 0xA0) == 0) {
+        gl_func_00000000((char *)&D_00000000 + 0x0001EE8C, o);
+    }
+    v = u * k1;
+    gl_func_00000000(o, u, v);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B2EC);
+#endif
 
 // gl_func_0003B6A0 — STRUCTURAL PASS (0x320 / 200 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
