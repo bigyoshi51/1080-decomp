@@ -11562,12 +11562,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034458);
 //   symbol sites — candidates for `gl_ref_0003BBxx` externs per
 //   docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data when this
 //   global table is formalized).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + fixed
-//   absolute-address globals (0x0003BBxx) + init-poll loop — not
-//   exact-matchable without proper USO mnemonic disasm + the
-//   absolute globals symbolized; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + fixed
+//   absolute-address globals (0x0003BBxx) + init-poll loop —
+//   byte-match needs USO mnemonic disasm + absolute globals
+//   symbolized (gl_ref_0003BBxx externs per
+//   docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data). Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00034548(void *a0) {
+    int localC;
+    int v;
+    (void)a0;
+    gl_func_00000000(0xC, (void *)0x0003BB18, 0x10);
+    *(int *)0x0003BB38 = 0;
+    do {
+        gl_func_00000000((void *)0x0003BB18, &localC);
+        v = gl_func_00000000((void *)0x0001E424, 1);
+    } while (v == 0);
+    *(int *)0x0003BB34 = v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034548);
+#endif
 
 /* gl_func_00034684: 27-insn 3-call config init. */
 void gl_func_00034684(void) {
