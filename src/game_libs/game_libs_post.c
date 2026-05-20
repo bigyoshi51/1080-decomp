@@ -10007,15 +10007,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
 //   canned-sequence and multi-bank emitters, and the
 //   gl_func_000307B0 per-frame timer all run against the record
 //   this function allocates and wires up.
-// Caps: 0x840 raw-word USO constructor with a computed jump, ~103
-//   call sites and a large untyped arena — categorically not
-//   exact-matchable without proper USO mnemonic disasm + the arena
-//   struct typed + the jump table symbolized; structural pass only,
-//   no byte body. (A future focused non-loop session — the deferred
-//   USO re-split / struct-typing backlog — is where this gets a
-//   real decode; not 60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x840 / 528-word ≈ 2.1KB raw-word USO TOP-LEVEL
+//   CONSTRUCTOR with ~103 call sites (~60 fixed intra-USO sub-inits
+//   + ~43 USO-reloc callbacks), 0x45010-byte arena allocation, 74
+//   lwc1 / 42 swc1 FP seeding, and a computed jump sub-mode select.
+//   Byte-match deferred to a future non-loop session (USO mnemonic
+//   disasm + arena struct typing + jump-table symbolization
+//   prerequisites). Real-C STRUCTURAL skeleton below per the
+//   analysis (one-time init guard + alloc only — full body
+//   summarised in the in-comment analysis above). Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00030AF4(void) {
+    if (*(int *)((char *)&D_00000000 + 0) == 1) {
+        gl_func_00000000();
+        return;
+    }
+    *(int *)((char *)&D_00000000 + 0x24) = (int)gl_func_00000000(0x45010);
+    gl_func_00000000(0x5F78);
+    gl_func_00000000(0x000A);
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
+#endif
 
 // gl_func_00031334 — STRUCTURAL PASS (0x1EC / 123 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr $ra)
