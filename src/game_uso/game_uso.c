@@ -7768,6 +7768,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
     char pad_D0[12];
     int   local_C4[3];    /* sp+0xC4:  raw-word copy of local_DC */
+    float local_B8[3];    /* sp+0xB8:  local_184 - a1->0x30 */
     float local_A0[3];    /* sp+0xA0:  local_144 + local_138 */
     float local_88[3];    /* sp+0x88:  local_120 - local_12C */
     float local_94[3];    /* sp+0x94:  copy of local_88 */
@@ -7775,7 +7776,6 @@ int game_uso_func_00009B88(a0, a1, a2)
     float local_7C[3];    /* sp+0x7C:  copy of local_6C */
     float local_38[3];    /* sp+0x38:  local_120 + local_12C */
     float local_44[3];    /* sp+0x44:  copy of local_38 */
-    float local_B8[3];    /* sp+0xB8:  local_184 - a1->0x30 */
     int *out;
     float *src_vec;
     int * volatile *spill_a1 = &a1;
@@ -8093,7 +8093,20 @@ int game_uso_func_00009B88(a0, a1, a2)
  *     produced the same object/report (50.377907%);
  *   - pad_10C 24 -> 40 and `volatile local_138[3]` also produced the same
  *     report, leaving the `$s0` save and stack-slot residual unchanged.
- *   Exact not reached; keep INCLUDE_ASM fallback, no episode. */
+ *
+ * 2026-05-20 Codex continuation:
+ *   - ternary `out = local ? local : alloc(0xC)` for the first two Vec3
+ *     destinations regressed 50.377907% -> 49.261627%;
+ *   - a volatile passthrough pointer for only those first two destinations
+ *     regressed to 49.854652%;
+ *   - shrinking pad_10C 24 -> 8 moved the frame to -0x198 and regressed to
+ *     50.348840%;
+ *   - moving local_B8 into the lower Vec3 declaration cluster preserved the
+ *     current score while keeping that source slot nearer the target stack
+ *     band; adding a 4-byte neighboring gap regressed to 50.351746%;
+ *   - Ghidra was unavailable: agent-c has no local project and agent-e's
+ *     project was locked.
+ *   Exact not reached; keep INCLUDE_ASM fallback, no new episode. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
