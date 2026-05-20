@@ -9237,11 +9237,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F638);
 //   A table-driven parameter-apply leaf of the game_libs object
 //   subsystem (sibling of the gl_func_0002F584 quantizer; both feed
 //   the byte-domain command machinery).
-// Caps: raw-word USO + FP delta/commit + signed-byte clamp-to-index +
-//   parallel byte/FP table lookups — not exact-matchable without
-//   proper USO mnemonic disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + FP delta/commit + signed-byte
+//   clamp-to-index + parallel byte/FP table lookups — byte-match
+//   needs USO mnemonic disasm. Real-C STRUCTURAL body below per
+//   the analysis. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002F72C(char *o, float in, int idxb) {
+    float nv = in * *(float *)(o + 0);
+    int i = (signed char)idxb;
+    float dlt = nv - *(float *)(o + 0x5C);
+    int q;
+    float k;
+    if (i < 0x40) *(float *)(o + 0x5C) = nv;
+    q = 0x7F - i;
+    if (q < -0x40) q = (-0x80 - q);
+    *(unsigned char *)(o + 0x60) = (unsigned char)(q + 0x40);
+    gl_func_00000000(8);
+    *(unsigned char *)(o + 0x61) = *(unsigned char *)((char *)&D_00000000 + q);
+    gl_func_00000000(0x10);
+    k = *(float *)((char *)&D_00000000 + q * 4);
+    (void)k; (void)dlt;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F72C);
+#endif
 
 // gl_func_0002F8A0 — STRUCTURAL PASS (0x94 / 37 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
