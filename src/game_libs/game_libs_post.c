@@ -22735,13 +22735,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049B3C);
 // +0x02 / +0x04 / +0x06 of the record / cb results), stashes the parsed
 // fields to the sp+0xA4.. scratch, and uses sign-bit tests (shift-left +
 // bgez) on them to select among further record-fetch + decode passes.
-// Family: cb-driven record/packet decode + dispatch (relates to the
-// segment's parse/registration routines). Per-pass body not exhaustively
-// decoded (339-word parser) — the self->0x68 + index*8 record base, the
-// cb1/cb2/cb3 decode shape and the +2/+4/+6 halfword field reads are exact;
-// the inner branch ladder is representative. Caps: record/self struct + cb
-// signatures untyped. Full body INCLUDE_ASM-preserved.
+//
+// Caps (DEFERRED): record/self struct + cb signatures untyped;
+//   per-pass body not exhaustively decoded (339-word parser). Real-C
+//   STRUCTURAL body below — initial decode + sign-test branch
+//   skeleton only. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+int gl_func_00049DBC(char *a0, int a1, int a2, int a3) {
+    unsigned char *rec = (unsigned char *)*(char **)(a0 + 0x68) + a3 * 8;
+    int r0 = gl_func_00000000(rec);
+    unsigned short f0 = *(unsigned short *)(rec + 2);
+    int r1 = gl_func_00000000(a0, f0);
+    unsigned short f1 = *(unsigned short *)(rec + 4);
+    int r2 = gl_func_00000000(a0, f1);
+    unsigned short f2 = *(unsigned short *)(rec + 6);
+    int scratch[4];
+    scratch[0] = r0;
+    scratch[1] = r1;
+    scratch[2] = r2;
+    scratch[3] = f2;
+    if ((int)(f0 << 16) >= 0) {
+        gl_func_00000000(a0, scratch);
+    } else {
+        gl_func_00000000(a0, rec, scratch);
+    }
+    (void)a1; (void)a2;
+    return r0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049DBC);
+#endif
 
 // gl_func_0004A308 — STRUCTURAL PASS (0x364 / 218 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x80
