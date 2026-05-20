@@ -6147,12 +6147,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028B0C);
 //   command/state list `n` long, executing the mode-appropriate
 //   action each step. The 6 trailing bundled bodies are its
 //   per-mode/helper leaves, left for the deferred USO re-split.
-// Caps: raw-word USO + 7-fn unsplit bundle + 4-way mode loop with
-//   jal-0 USO-reloc handlers — not exact-matchable without proper
-//   USO mnemonic disasm; structural pass only for the named leading
-//   fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + 4-way mode loop with jal-0
+//   USO-reloc handlers — byte-match needs USO mnemonic disasm +
+//   reloc-pad jal infra. STALE 7-jr-bundle comment: grep -c
+//   03E00008 = 1 (.s now single fn, helpers split elsewhere). Real-C
+//   STRUCTURAL body below per the analysis (placeholder calls /
+//   fields). Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_00028C6C(int a0, int n, int s2_arg, int s1_arg) {
+    int i;
+    int mode = 0;
+    gl_func_00000000(a0);
+    if (n <= 0) return;
+    for (i = 0; i < n; i++) {
+        switch (mode) {
+            case 1: gl_func_00000000(a0, s2_arg, s1_arg); break;
+            case 2: gl_func_00000000(a0, s2_arg, s1_arg); break;
+            case 3: gl_func_00000000(a0, s2_arg, s1_arg); break;
+            case 4: gl_func_00000000(a0, s2_arg, s1_arg); break;
+            default: gl_func_00000000(a0, s2_arg, s1_arg); break;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028C6C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028DA8);
 
