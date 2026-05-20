@@ -25394,14 +25394,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FBA4);
 // index-scaled position, stages it into the sp+0x44.. scratch, then runs an
 // accumulate loop that re-indexes the a0->0x60 / a0->0x68 base/stride array
 // (multu-scaled), lhu-loads per-record fields and folds them — plus an FP
-// term (2.0f scale, 0.0f seed) — into the running scratch totals. Family:
-// structured-record decode + accumulate (siblings gl_func_00049DBC /
-// 0004A308). Inner accumulate arithmetic not decoded (245-word decoder) —
-// the 6-byte (3x u16) record layout, the sp+0x44/0x46/0x48 staging, the
-// a0->0x60/0x68 base/stride and the 2.0f/0.0f FP constants are exact; the
-// fold/advance detail is representative. Caps: a0/record struct untyped.
-// Full body INCLUDE_ASM-preserved.
+// term (2.0f scale, 0.0f seed) — into the running scratch totals.
+//
+// Caps (DEFERRED): a0/record struct untyped; inner accumulate
+//   arithmetic not decoded (245-word decoder); fold/advance detail
+//   representative. Real-C STRUCTURAL body below — record stage +
+//   accumulate skeleton only. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0004FD18(char *a0, int a1, int a2) {
+    unsigned short *r = (unsigned short *)(*(char **)(a0 + 0x60) + a1 * 6);
+    unsigned short scr[3];
+    unsigned short *base = (unsigned short *)*(char **)(a0 + 0x68);
+    float acc = 0.0f;
+    int i;
+    scr[0] = r[0];
+    scr[1] = r[1];
+    scr[2] = r[2];
+    for (i = 0; i < a2; i++) {
+        unsigned short *e = base + i * 3;
+        scr[0] += e[0];
+        scr[1] += e[1];
+        acc += (float)e[2] * 2.0f;
+    }
+    gl_func_00000000(scr, acc);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
+#endif
 
 // gl_func_000500EC — STRUCTURAL PASS (0x2B8 / 174 words, no episode).
 // Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x38,
