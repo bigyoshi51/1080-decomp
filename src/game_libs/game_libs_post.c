@@ -17461,10 +17461,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DE48);
 // 0003DE48 / 0003DB3C family). Trailing leaf at 0x3E0BC (separate symbol):
 // list membership/index scan — base = a0->0x34, follows chain node->0x84,
 // compares each against a1, returns the matched index in v0 (8C830034 head,
-// 8C630084 chain-step, jr at 0x3E0E8). Caps: list/node struct + FP-pool
-// symbolization untyped; bundle re-split deferred. Full body
-// INCLUDE_ASM-preserved.
+// 8C630084 chain-step, jr at 0x3E0E8).
+//
+// Caps (DEFERRED): list/node struct + FP-pool symbolization untyped;
+//   bundle re-split deferred (trailing 0x3E0BC leaf decoded under its
+//   own symbol). Real-C STRUCTURAL body below — the named fn (dual
+//   extremal-search) only. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *gl_func_0003DF5C(char *a0, char *a1, char *a2_stop) {
+    float ref = a1 ? *(float *)(a1 + 0x64) : *(float *)((char *)&D_00000000 + 0x1AD0);
+    float lim = *(float *)((char *)&D_00000000 + 0x1AD4);
+    char *best = 0;
+    char *n;
+    for (n = *(char **)(a0 + 0x38); n != 0; n = *(char **)(n + 0x04)) {
+        float v;
+        if (n == a2_stop) break;
+        v = *(float *)(n + 0x64);
+        if (v < ref && v < lim) {
+            best = n;
+            ref = v;
+        }
+    }
+    ref = a1 ? *(float *)(a1 + 0x64) : *(float *)((char *)&D_00000000 + 0x1AD8);
+    lim = *(float *)((char *)&D_00000000 + 0x1ADC);
+    for (n = *(char **)(a0 + 0x38); n != 0; n = *(char **)(n + 0x04)) {
+        float v;
+        if (n == a2_stop) break;
+        v = *(float *)(n + 0x64);
+        if (v < ref && v < lim) {
+            best = n;
+            ref = v;
+        }
+    }
+    return best;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DF5C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003E0C0);
 
