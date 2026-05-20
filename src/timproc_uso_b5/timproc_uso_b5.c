@@ -2103,7 +2103,31 @@ void timproc_uso_b5_func_000072D0(char *scr) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000072D0);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000073C0);
+// timproc_uso_b5_func_000073C0 — ramp-UP twin of 000072D0's leading
+// decoded body. It increments scr->0x480 toward scr->0x484, using the
+// fast step at 0xD4 when state 1 is active and the normal step at 0xEC
+// otherwise. Two add.s operand-order words are fixed in Makefile
+// INSN_PATCH/NON_MATCHING_INSN_PATCH.
+void timproc_uso_b5_func_000073C0(char *scr) {
+    float cur = *(float *)(scr + 0x480);
+    int state;
+    int done_state;
+
+    if (cur < *(float *)(scr + 0x484)) {
+        state = *(int *)(scr + 0x3CC);
+        done_state = 9;
+        if (state == 1) goto fast_step;
+        *(float *)(scr + 0x480) = cur + *(float *)(scr + 0xEC);
+        goto check_target;
+fast_step:
+        *(float *)(scr + 0x480) = cur + *(float *)(scr + 0xD4);
+check_target:
+        if (*(float *)(scr + 0x484) < *(float *)(scr + 0x480)) {
+            *(float *)(scr + 0x480) = *(float *)(scr + 0x484);
+            *(int *)(scr + 0x3CC) = done_state;
+        }
+    }
+}
 
 // timproc_uso_b5_func_00007430 — STRUCTURAL PASS (0x3A8 / 234 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
