@@ -11208,6 +11208,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034810);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003485C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003487C);
+
 // gl_func_00034890 — STRUCTURAL PASS (0x158 / 86 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
 // prologue). A multi-block (chained-allocation) object constructor.
