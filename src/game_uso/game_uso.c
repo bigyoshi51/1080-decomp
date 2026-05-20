@@ -7565,7 +7565,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 43.27% NM (objdiff 2026-05-20; up from 33.40% before this pass).
+/* 50.38% NM (objdiff 2026-05-20; up from 33.40% before this pass).
  * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Inferred from the final cross-product sign test + screen-space transform
  * constants: this is a billboard-visibility / 2D point-on-line predicate
@@ -8066,7 +8066,19 @@ int game_uso_func_00009B88(a0, a1, a2)
  *     source-projection and local_B8 delta blocks improved to 50.311047%;
  *   - reducing pad_frame 32 -> 24 restored the target -0x1A8 frame and
  *     improved to 50.337208%; pad_frame=16 regressed to 50.30814.
- *   Current best: 50.337208%. */
+ *   Current best: 50.337208%.
+ *
+ * 2026-05-20 exact-grind stop point:
+ *   - current forced rebuild/report measures 50.377907%;
+ *   - making the shared destination pointer volatile preserved more dead
+ *     alloc arms but regressed badly to 42.8343%;
+ *   - making local_138 volatile to avoid the saved $s0 pointer regressed
+ *     to 47.94186%;
+ *   - pad_10C=8 or 16 both regressed to 50.34884%;
+ *   - explicit `if (out != 0) ... else alloc` for the first final
+ *     screen-space destination regressed to 47.90116%;
+ *   - recomputing the local_138 call address from local_EC tied baseline
+ *     exactly, so the clearer direct local_138 call stayed. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
