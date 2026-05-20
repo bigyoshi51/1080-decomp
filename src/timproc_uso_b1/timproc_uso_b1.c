@@ -294,6 +294,8 @@ void timproc_uso_b1_func_00000EC0(int a0) {
  * D[0x40]/D[0x44] state, EE8 reads work-state and runs the orchestrator). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000EE8);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010C0);
+
 void timproc_uso_b1_func_00000000();
 
 void timproc_uso_b1_func_000010DC(int a0, char *a1) {

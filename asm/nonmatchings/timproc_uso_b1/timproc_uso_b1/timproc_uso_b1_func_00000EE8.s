@@ -1,4 +1,4 @@
-nonmatching timproc_uso_b1_func_00000EE8, 0x1F4
+nonmatching timproc_uso_b1_func_00000EE8, 0x1D8
 
 glabel timproc_uso_b1_func_00000EE8
     /* 000EE8 00000EE8 27BDFFD0 */  .word 0x27BDFFD0
@@ -119,11 +119,4 @@ glabel timproc_uso_b1_func_00000EE8
     /* 0010B4 000010B4 8FB40028 */  .word 0x8FB40028
     /* 0010B8 000010B8 03E00008 */  .word 0x03E00008
     /* 0010BC 000010BC 27BD0030 */  .word 0x27BD0030
-    /* 0010C0 000010C0 240E0009 */  .word 0x240E0009
-    /* 0010C4 000010C4 3C010000 */  .word 0x3C010000
-    /* 0010C8 000010C8 AFA40000 */  .word 0xAFA40000
-    /* 0010CC 000010CC 03E00008 */  .word 0x03E00008
-    /* 0010D0 000010D0 AC2E0040 */  .word 0xAC2E0040
-    /* 0010D4 000010D4 3C050000 */  .word 0x3C050000
-    /* 0010D8 000010D8 8CA50170 */  .word 0x8CA50170
 endlabel timproc_uso_b1_func_00000EE8
