@@ -11691,12 +11691,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000346F0);
 //   mnemonic split/merge tooling — needs the spimdisasm-USO
 //   migration). No merge attempted (would corrupt the stubs); no
 //   episode.
-// Caps: raw-word USO + bundled no-frame leaves + USO-relocated jal-0
-//   printf callback + fixed string-data ref — not exact-matchable
-//   without proper USO mnemonic disasm + boundary re-split;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled no-frame leaves (HANG stub
+//   + global setter at tail) + USO-reloc jal-0 printf callback +
+//   fixed string-data ref (0x00058D5C) — byte-match needs USO
+//   mnemonic disasm + boundary re-split. Real-C STRUCTURAL body
+//   below for the NAMED leading printf wrapper only — bundled tail
+//   stubs untouched. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00034810(int a0, int a1, int a2, int a3) {
+    gl_func_00000000((char *)0x00058D5C, &a0);
+    (void)a1; (void)a2; (void)a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034810);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003485C);
 
