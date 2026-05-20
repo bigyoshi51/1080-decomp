@@ -10579,12 +10579,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00032E18);
 //   interpreter and the integrator family (0002F288 / 0002F584 /
 //   00031A74) drive each frame; o->0xF4 is the child/parent link
 //   also touched by the gl_func_00032E18 constructor's sub-record).
-// Caps: raw-word USO + FP Vec3 mul-add + conditional child-deref —
-//   not exact-matchable without proper USO mnemonic disasm + the
-//   object's Vec3/child layout typed; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + FP Vec3 mul-add + conditional
+//   child-deref — byte-match needs USO mnemonic disasm + object's
+//   Vec3/child layout typed. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00033094(char *o, float s) {
+    float bx = *(float *)(o + 0xA0);
+    float by = *(float *)(o + 0xA4);
+    float bz = *(float *)(o + 0xA8);
+    char *child = *(char **)(o + 0xF4);
+    float ox, oy, oz;
+    if (child != 0) {
+        ox = *(float *)(child + 0xA0);
+        oy = *(float *)(child + 0xA4);
+        oz = *(float *)(child + 0xA8);
+    } else {
+        ox = *(float *)(o + 0x104) + 10.0f;
+        oy = *(float *)(o + 0x108);
+        oz = *(float *)(o + 0x10C);
+    }
+    *(float *)(o + 0xA0) = bx * s + ox;
+    *(float *)(o + 0xA4) = by * s + oy;
+    *(float *)(o + 0xA8) = bz * s + oz;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
+#endif
 
 // gl_func_00033228 — STRUCTURAL PASS (0x8C / 35 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
