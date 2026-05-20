@@ -33268,6 +33268,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A1BC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A1C4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A2C0);
+
 #ifdef NON_MATCHING
 /* gl_func_0006A304: pointer-relocation fixup driver. Gets the fixed
  * object at segment offset 0x41710, calls the USO init/register cb
