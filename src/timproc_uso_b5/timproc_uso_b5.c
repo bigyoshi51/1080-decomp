@@ -741,6 +741,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001C08);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001CF0);
+
 // timproc_uso_b5_func_00001F14 — STRUCTURAL PASS (0x89C / 551 words,
 // no episode). Raw-.word USO form (genuine code, single function).
 // Large per-frame state/transition processor; partial decode (entry
