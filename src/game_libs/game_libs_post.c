@@ -12562,13 +12562,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035648);
 //   typed-entry-point / validate family over the device-object
 //   subsystem (gl_func_00034188 / 00034458); the 0x0004B8E8 config
 //   and 0x0001E6xx strings are deferred symbolization sites.
-// Caps: raw-word USO + bundled 2-word no-frame tail + USO-relocated
-//   jal-0 callbacks + fixed absolute device-config (0x0004B8E8) +
-//   fixed string data — not exact-matchable without proper USO
-//   mnemonic disasm + boundary re-split + the config/strings typed;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled 2-word no-frame tail +
+//   USO-reloc jal-0 callbacks + fixed absolute device-config
+//   (0x0004B8E8) + fixed string data (0x0001E608 / 0x0001E61C /
+//   0x0001E638) — byte-match needs USO mnemonic disasm + boundary
+//   re-split + config/strings typed. Real-C STRUCTURAL body below
+//   per the analysis (fifth sibling: 35370 0x4C / 35440 0x50 /
+//   355A0 0x60 / 35648 0x54 / this is the diagnostic/validate
+//   variant). Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+void gl_func_000356FC(char *o, int a1, int a2) {
+    int cfg;
+    (void)a1; (void)a2;
+    switch (*(int *)(o + 4)) {
+        case 0:
+            gl_func_00000000((char *)0x0001E608);
+            break;
+        case 1:
+            gl_func_00000000((char *)0x0001E61C, o);
+            cfg = *(int *)0x0004B8E8;
+            if (cfg & 7) {
+                gl_func_00000000((char *)0x0001E638);
+            }
+            break;
+        case 2:
+            gl_func_00000000(o);
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000356FC);
+#endif
 
 /* gl_func_00035834: 24-insn fn-ptr dispatch with conditional assert.
  *   g = *(int**)&D_00000000;
