@@ -12071,13 +12071,33 @@ void gl_func_00034E8C(int a0) {
 //   gl_func_00034548 initializers; the 0x0001E47C..E4A0 templates
 //   are deferred data-segment symbolization sites — a contiguous
 //   descriptor table to type together).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0 global
-//   flag gate + four fixed data-seg template pointers
-//   (unsymbolized) — not exact-matchable without proper USO
-//   mnemonic disasm + the descriptor table typed; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + &D_0
+//   global flag gate + four fixed data-seg template pointers
+//   (0x0001E47C / 0x0001E484 / 0x0001E490 / 0x0001E494 / 0x0001E4A0
+//   unsymbolized) — byte-match needs USO mnemonic disasm +
+//   descriptor table typed. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00034EB4(char *o, int a1) {
+    int v;
+    int i;
+    (void)a1;
+    gl_func_00000000((void *)0x0001E47C);
+    if (*(int *)((char *)&D_00000000 + 0) & 1) {
+        gl_func_00000000();
+    }
+    *(int *)o &= ~1;
+    v = *(int *)(o + 0x28);
+    for (i = 0; i < v; i++) {
+        gl_func_00000000(i, (void *)0x0001E484);
+        gl_func_00000000(i, (void *)0x0001E490);
+        gl_func_00000000(i, (void *)0x0001E494);
+        gl_func_00000000(i, (void *)0x0001E4A0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
+#endif
 
 /* gl_func_00035164: 93.3%->100% via INSN_PATCH (1-insn delay-slot fix at 0xC).
  * IDO -O2 leaves jal's delay slot empty (nop); target spills $a0 to caller's
