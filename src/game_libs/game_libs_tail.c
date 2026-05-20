@@ -1035,7 +1035,28 @@ void gl_func_0000C28C(void *arg0, int *arg1) {
     gl_func_00000000(arg0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C378);
+int gl_func_0000C378(void *arg0) {
+    int current16[4];
+    int current8[2];
+    int digest[2];
+    int backup16[4];
+    int backup8[2];
+
+    gl_func_00000000(arg0, current16, 0x218, 0x10);
+    gl_func_00000000(arg0, current8, 0x228, 8);
+    gl_func_00000000(digest, current16, 0x10, 0xDEADBBAD);
+    if (gl_func_00000000(digest, current8) == 0) {
+        gl_func_00000000(arg0, backup16, 0x7FE8, 0x10);
+        gl_func_00000000(arg0, backup8, 0x7FF8, 8);
+        gl_func_00000000(digest, backup16, 0x10, 0xDEADBBAD);
+        if (gl_func_00000000(digest, backup8) == 0) {
+            return 0;
+        }
+        gl_func_00000000(arg0, 0x218, backup16, 0x10);
+        gl_func_00000000(arg0, 0x228, backup8, 8);
+    }
+    return 1;
+}
 
 extern int gl_func_00000000();
 void gl_func_0000C46C(int a0) {
