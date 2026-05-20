@@ -2397,44 +2397,63 @@ void timproc_uso_b5_func_000077D8(char *scr) {
 //     see docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C);
 //   D_000003E0 = USO static phase/handler table. func_00000000 = USO
 //   placeholder dispatcher (gate / hide / re-init).
-// Caps (DEFERRED): raw-word USO + folded const + placeholder calls;
-//   USO mnemonic disasm limitation prevents byte-match. Real-C
-//   STRUCTURAL body below — countdown + alpha-fade + teardown + next
-//   phase skeleton only. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
+// 2026-05-20 Codex pass: corrected the mode gate (`D+0x34`, not
+// `scr+0x34`), countdown gate polarity, post-deactivate branch polarity,
+// vtable call arg shape (`a1 = 0`), and the re-init tail's local phase
+// table / `func(scr, phase)` chain. DNM objdiff moved 35.99% -> 98.32%.
+//
+// Remaining cap: target emits one extra fresh `lui at, 0` before the
+// fade-step `lwc1 f4, 0x1D0(at)`, while IDO CSEs the already-live
+// `a2 = &D_00000000` and emits `lwc1 f4, 0x1D0(a2)` one insn shorter.
+// Tried unique extern and volatile pointer shapes; both regressed to
+// ~93.46%. INCLUDE_ASM build path preserved; no episode.
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_000079A4(char *scr) {
-    char *d;
-    void (*fp)(int);
-    char *e;
-    float K = *(float *)((char *)&D_00000000 + 0x000001D0);
+    char *obj;
+    char *node;
+    int idx;
+    int slot;
+    int phase;
+    int next;
     *(int *)(scr + 0x400) -= 1;
-    if (*(int *)(scr + 0x34) == 2) {
-        if (*(float *)(scr + 0x4A0) > 0.0f) *(float *)(scr + 0x4A0) -= K;
-        if (*(float *)(scr + 0x4A0) < 0.0f) *(float *)(scr + 0x4A0) = 0.0f;
+    if (*(int *)((char *)&D_00000000 + 0x34) == 2) {
+        if (*(float *)(scr + 0x4A0) > 0.0f) {
+            *(float *)(scr + 0x4A0) -= *(float *)((char *)&D_00000000 + 0x000001D0);
+            if (*(float *)(scr + 0x4A0) < 0.0f) {
+                *(float *)(scr + 0x4A0) = 0.0f;
+            }
+        }
     }
-    if (*(int *)(scr + 0x400) == 0) {
-        if (func_00000000(scr)) return;
-        d = *(char **)(scr + 0x28);
-        fp = *(void (**)(int))(d + 0x8C);
-        fp(*(short *)(d + 0x88));
-        func_00000000(scr);
-        func_00000000(scr);
-        d = *(char **)(scr + 0x28);
-        fp = *(void (**)(int))(d + 0x84);
-        fp(*(short *)(d + 0x80));
-        if (func_00000000(scr)) {
-            func_00000000(*(char **)(scr + 0x41C));
+    if (*(int *)(scr + 0x400) != 0) {
+        if (func_00000000(&D_00000000, 0x100) == 0) {
             return;
         }
-        e = ((char **)((char *)&D_00000000 + 0x000003E0))[*(int *)(scr + 0x3C4)];
-        *(int *)(scr + 0x3D4) = func_00000000(e, *(short *)(e + 0xA4));
-        *(int *)(scr + 0x3C8) = func_00000000(scr);
-        *(int *)(scr + 0x3C4) = func_00000000(scr);
-        *(int *)(scr + 0x3CC) = 6;
-        *(float *)(scr + 0x484) = 1.0f;
-        func_00000000(scr, 0);
     }
+
+    obj = (char *)func_00000000(scr);
+    node = *(char **)(obj + 0x28);
+    (*(void (**)(int, int))(node + 0x8C))(*(short *)(node + 0x88) + (int)obj, 0);
+    func_00000000(scr);
+    obj = (char *)func_00000000(scr);
+    node = *(char **)(obj + 0x28);
+    (*(void (**)(int, int))(node + 0x84))(*(short *)(node + 0x80) + (int)obj, 0);
+    if (func_00000000(scr) == 0) {
+        func_00000000(*(char **)(scr + 0x41C));
+        return;
+    }
+
+    func_00000000(scr);
+    idx = *(int *)(scr + 0x3C4);
+    slot = *(int *)(scr + 0x3E0 + idx * 4);
+    *(int *)(scr + 0x3D4) = func_00000000(scr, 1, ((int *)&D_00000000)[0xA4 / 4 + slot]);
+    phase = func_00000000(scr);
+    *(int *)(scr + 0x3C8) = phase;
+    next = func_00000000(scr, phase);
+    *(int *)(scr + 0x3C4) = next;
+    *(int *)(scr + 0x3CC) = 6;
+    func_00000000(scr);
+    *(float *)(scr + 0x484) = 1.0f;
+    func_00000000(scr, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000079A4);
