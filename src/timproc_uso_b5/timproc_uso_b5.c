@@ -1271,7 +1271,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — template-instantiate skeleton (template copy + cb chain).
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00003C8C(int a0, char *a1, char *a2, int a3) {
     char T1[0x2C];
     char T2[0x2C];
@@ -1537,7 +1536,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   + FP anim skeleton only. Byte-match deferred. Name pre-checked:
 //   no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00005FC0(char *scr) {
     char *d;
     void (*fp)(int);
@@ -1598,7 +1596,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   body below — bound guards + query + draw skeleton only.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00006394(char *scr) {
     char *n = *(char **)(*(char **)(scr + 0x414) + 0xC);
     int v;
@@ -1749,7 +1746,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — reset + cursor-switch + per-element write skeleton only.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 int timproc_uso_b5_func_000069E8(char *scr, int a1) {
     func_00000000(scr, a1);
     func_00000000(*(char **)(scr + 0x418), -1, 0);
@@ -1807,7 +1803,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — gate + reset + element-snapshot skeleton only.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00006C00(char *scr) {
     char *base;
     char *row;
@@ -1886,11 +1881,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — gate + 2-pass list-compaction skeleton only. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00006E08(char *scr, int a1) {
     float now;
     char **arr;
     int i;
+    int j;
     int *cnt;
     if (!func_00000000(&D_00000000, 0x10001)) return;
     func_00000000(scr);
@@ -1901,7 +1896,7 @@ void timproc_uso_b5_func_00006E08(char *scr, int a1) {
     for (i = 0; i < *cnt; i++) {
         if (*(float *)(arr[i] + 0x2A4) <= now) {
             func_00000000(*(char **)(scr + 0x4D4), arr[i]);
-            for (int j = i; j < *cnt - 1; j++) arr[j] = arr[j + 1];
+            for (j = i; j < *cnt - 1; j++) arr[j] = arr[j + 1];
             (*cnt)--;
             i--;
         }
@@ -1911,7 +1906,7 @@ void timproc_uso_b5_func_00006E08(char *scr, int a1) {
     for (i = 0; i < *cnt; i++) {
         if (*(float *)(arr[i] + 0x2A4) <= now) {
             func_00000000(*(char **)(scr + 0x4D8), arr[i]);
-            for (int j = i; j < *cnt - 1; j++) arr[j] = arr[j + 1];
+            for (j = i; j < *cnt - 1; j++) arr[j] = arr[j + 1];
             (*cnt)--;
             i--;
         }
