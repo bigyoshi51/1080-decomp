@@ -31186,6 +31186,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065494);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000659D0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00065B40);
+
 #ifdef NON_MATCHING
 /* gl_func_00065B5C: 62-insn pure-FP quaternion/matrix arithmetic (0xF8, frame 0x30).
  *
