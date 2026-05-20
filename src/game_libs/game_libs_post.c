@@ -10513,15 +10513,34 @@ void gl_func_00032DC0(Quad4 *dst) {
 //   constructor operate on (0x0001E178 is the deferred-symbolization
 //   template-data site; the 0x150 / 0xB4 sizes are the struct sizes
 //   to type when this object family is formalized).
-// Caps: raw-word USO + USO-relocated allocator callbacks + fixed
-//   data-segment template copy (0x0001E178 unsymbolized) — not
-//   exact-matchable without proper USO mnemonic disasm + the
-//   template data symbolized + the 0x150/0xB4 structs typed;
-//   structural pass only, no byte body. (Constructor: NOT a skip —
-//   the offsets/sizes/template ref captured here ARE the
-//   struct-typing groundwork for a future focused decode.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc allocator callbacks +
+//   fixed data-segment template copy (0x0001E178 unsymbolized) —
+//   byte-match needs USO mnemonic disasm + template data symbolized
+//   + 0x150/0xB4 structs typed. Real-C STRUCTURAL body below per
+//   the analysis. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+extern void *memcpy(void *, const void *, unsigned);
+void *gl_func_00032E18(int a, int b, int c, int d) {
+    char *o;
+    char *s;
+    if (a != 0) {
+        o = (char *)gl_func_00000000(0x150);
+    } else {
+        o = (char *)gl_func_00000000(0x150);
+    }
+    if (o == 0) return 0;
+    s = (char *)gl_func_00000000(0xB4);
+    if (s == 0) return 0;
+    memcpy(s, (void *)0x0001E178, 0xB4);
+    *(int *)(s + 0x28) = (int)&D_00000000;
+    gl_func_00000000(s + 0x2C);
+    (void)b; (void)c; (void)d;
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00032E18);
+#endif
 
 // gl_func_00033094 — STRUCTURAL PASS (0x194 / 101 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
