@@ -17687,9 +17687,40 @@ int gl_func_0003EBAC(char *a0) {
 // picks one of {a0->0xC, 0x28} as the table selector; structure, offsets and
 // the (base+sel) -> +hi*8 -> {bias@0, fn@4} entry shape are exact.) Family:
 // same indexed-table / fnptr-from-entry dispatch idiom as the segment's
-// vtable trampolines. Caps: Desc/table-entry struct untyped; selector ladder
-// arm order inferred from branch sense. Full body INCLUDE_ASM-preserved.
+// vtable trampolines.
+//
+// Caps (DEFERRED): Desc/table-entry struct untyped; selector-ladder arm
+//   order inferred from branch sense (final byte-match requires testing
+//   each ordering). Real-C STRUCTURAL body below. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0003EBDC(char *a0) {
+    short hi = *(short *)(a0 + 0xA);
+    short lo = *(short *)(a0 + 0x8);
+    char *base = *(char **)(a0 + 0x4);
+    int sel;
+    char *tbl;
+    char *e;
+    short bias;
+    void (*h)(char *);
+    if (hi < 0) {
+        base = base + lo;
+        sel = *(int *)(a0 + 0xC);
+    } else {
+        void *v = *(void **)(a0 + 0xC);
+        if (v != 0) sel = (int)v;
+        else if (lo != 0) sel = lo;
+        else sel = 0x28;
+    }
+    tbl = *(char **)(base + sel);
+    e = tbl + hi * 8;
+    bias = *(short *)e;
+    h = *(void (**)(char *))(e + 4);
+    h(base + bias);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
+#endif
 
 // gl_func_0003EC5C — STRUCTURAL PASS (0x80 / 32 words, no episode). Raw-.word
 // USO. realjr=1, single prologue frame 0x18 (saves ra) → ONE clean function.
