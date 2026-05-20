@@ -21470,14 +21470,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
 // e.g. G_RDPSETOTHERMODE-class) into the GfxCtx command buffer reached via
 // a1->0x0C, indexed by the +4 counter and stride 8 (two 32-bit words per
 // packet); the exact arg word (0xC0000 / 0x40000 / ...) is selected by
-// sign-bit tests (shift-left + bgez) on the a2->0x38 mode flags. Family:
-// CPU-side RDP DL fragment builder (data-driven sibling of the gui_uso
-// inline-DL routines; see docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-
-// builder). Per-flag arg-word selection representative; the 0xB7 opcode, the
-// a1->0x0C buf/idx pair, the idx-bump and the i*8 two-word stride are exact.
-// Caps: GfxCtx/Mode struct + the exact opcode/arg constants untyped. Full
-// body INCLUDE_ASM-preserved.
+// sign-bit tests (shift-left + bgez) on the a2->0x38 mode flags.
+//
+// Caps (DEFERRED): GfxCtx/Mode struct + the exact opcode/arg constants
+//   untyped; per-flag arg-word selection representative. Real-C
+//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00045E20(void *a0, char *a1, char *a2) {
+    int m = *(int *)(a2 + 0x38);
+    char *g = *(char **)(a1 + 0x0C);
+    int i;
+    unsigned int *p;
+    unsigned int arg = 0x000C0000;
+    if (m & (1 << (31 - 0xB))) arg = 0x00040000;
+    if (m & (1 << (31 - 0x7))) arg = 0x00080000;
+    i = *(int *)(g + 0x4);
+    *(int *)(g + 0x4) = i + 1;
+    p = (unsigned int *)(*(char **)g + i * 8);
+    p[0] = 0xB7000000;
+    p[1] = arg;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045E20);
+#endif
 
 /* gl_func_00045FF4: 21-insn busy-wait loop. Captures initial value of
  * a0->[0x218]->[0x24] and spins gl_func() while the (possibly volatile)
