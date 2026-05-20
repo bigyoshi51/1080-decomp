@@ -14656,14 +14656,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038964);
 //   interpreter (the &D_0+0x1A1C table and 0x0001EC6C template are
 //   deferred symbolization sites — the table is the 9-entry
 //   opcode-0x64.. dispatch array to symbolize).
-// Caps: raw-word USO + bundled no-frame leaves + computed jump
-//   table (&D_0+0x1A1C unsymbolized) + USO-relocated jal-0
-//   callbacks — not exact-matchable without proper USO mnemonic
-//   disasm + boundary re-split + the jump table symbolized;
-//   structural pass only, no byte body. No merge attempted (would
-//   corrupt the leaves); no episode.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled no-frame leaves + computed
+//   jump table (&D_0+0x1A1C unsymbolized) + USO-relocated jal-0 cbs;
+//   bundle re-split + jump-table symbolization needed for byte-match.
+//   Real-C STRUCTURAL body below — leading dispatcher only (trailing
+//   7 leaves remain INCLUDE_ASM under their own symbols). Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00038A28(char *o, char *c) {
+    int code = *(int *)c;
+    unsigned int i = (unsigned int)(code - 0x64);
+    int *p;
+    if (i >= 9) return;
+    p = *(int **)(c + 0x4);
+    switch (code) {
+        case 0x64: *(int *)(o + 0x20) = *p++; break;
+        case 0x65: *(int *)(o + 0x0C) = *p++; break;
+        case 0x66:
+            gl_func_00000000((char *)&D_00000000 + 0x0001EC6C, o, *p++);
+            break;
+        case 0x67: case 0x68: case 0x69: case 0x6A: case 0x6B: case 0x6C:
+            gl_func_00000000(o, *p++);
+            break;
+        default: break;
+    }
+    *(int **)(c + 0x4) = p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038A28);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B6C);
 
