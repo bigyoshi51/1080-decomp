@@ -21879,13 +21879,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000470FC);
 // two output targets). See the gl_func_000470FC structural pass above for
 // the full instruction-level rationale and the IDO float->int-with-clamp
 // idiom (cfc1/ctc1 round-mode bracket + cvt.w.s + andi cause,0x78 +
-// 0x4F000000 bias; see docs/IDO_CODEGEN float->int saturating-cast). Family:
-// FP saturating cast (conversion primitive under the quantize/byte-pack
-// routines). The cfc1/ctc1 + cvt.w.s + 0x78 cause-check + per-lane
-// repetition are exact; the exact clamp-value/store-width are
-// representative. Caps: Out/Vec struct untyped. Full body
-// INCLUDE_ASM-preserved.
+// 0x4F000000 bias; see docs/IDO_CODEGEN float->int saturating-cast).
+//
+// Caps (DEFERRED): Out/Vec struct untyped; saturating-cast asm idiom
+//   (cfc1/ctc1 + cvt.w.s + 0x78 cause-check) is exact; plain (int)cast
+//   C produces fewer insns. Real-C STRUCTURAL body below. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_000473AC(char *a0, char *a1) {
+    float x = *(float *)(a1 + 0x04);
+    float y = *(float *)(a1 + 0x08);
+    float z = *(float *)(a1 + 0x0C);
+    *(signed char *)(a0 + 0) = (signed char)(int)x;
+    *(signed char *)(a0 + 1) = (signed char)(int)y;
+    *(signed char *)(a0 + 2) = (signed char)(int)z;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000473AC);
+#endif
 
 void gl_func_00047644(int* a0, int* a1) {
     gl_func_00000000(((int**)a0[0x254/4])[0x158/4], a1);
