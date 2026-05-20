@@ -19138,10 +19138,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040CAC);
 // two finalize cb calls. Family: string-literal-keyed cb registration
 // (siblings gl_func_0003E5E0 / 0003E39C; same g + key + addr + typecode
 // shape). The 0x3C size on the +0xB4 / +0xDC fields corroborates the twin
-// Vec3/transform field group seen in gl_func_00040CAC. Caps: object struct,
-// the &D_0002F49x string table and cb signatures inferred from call shape.
-// Full body INCLUDE_ASM-preserved.
+// Vec3/transform field group seen in gl_func_00040CAC.
+//
+// Caps (DEFERRED): object struct, the &D_0002F49x string table and cb
+//   signatures inferred from call shape. Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00040DE8(char *a0) {
+    char *g = (char *)&D_00000000;
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0002F494, 0);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0002F49C, a0 + 0xB4, 0x3C);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0002F4A0, a0 + 0xDC, 0x3C);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0002F4A8, a0 + 0xB0, 0);
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040DE8);
+#endif
 
 // gl_func_00040E90 — STRUCTURAL PASS (0x170 / 94 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
