@@ -18531,10 +18531,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F96C);
 // Classic clamp-to-available pool drain: min(a2, *&D_a) consumed, pool
 // decremented or zeroed accordingly, result reported via cb2 and returned.
 // Family: cb-driven staged op with a tagged scratch block (siblings
-// 0003F7A8 tag 0x23, 0003F8E8 tag 0x1D). Caps: the D_g/D_g2/D_a module
-// globals + cbN signatures inferred from call shape; the leading guard
-// register/struct untyped. Full body INCLUDE_ASM-preserved.
+// 0003F7A8 tag 0x23, 0003F8E8 tag 0x1D).
+//
+// Caps (DEFERRED): D_g/D_g2/D_a module globals + cbN signatures
+//   inferred from call shape; leading guard register/struct untyped.
+//   Real-C STRUCTURAL body below. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+unsigned gl_func_0003F9C4(void *a0, int a1, unsigned a2) {
+    char tag[0x10];
+    unsigned avail;
+    unsigned taken = 0;
+    if (*(int *)((char *)&D_00000000 + 0x10) == 0) return 0;
+    tag[0] = 0x1E;
+    gl_func_00000000(&tag[0]);
+    *(int *)((char *)&D_00000000 + 0xC) = 0;
+    avail = *(unsigned *)((char *)&D_00000000 + 0x14);
+    if (a2 < avail) {
+        taken = a2;
+        *(unsigned *)((char *)&D_00000000 + 0x14) = avail - a2;
+    } else {
+        taken = avail;
+        *(unsigned *)((char *)&D_00000000 + 0x14) = 0;
+    }
+    gl_func_00000000(a1, taken);
+    return taken;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F9C4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003FA54: 21-insn 2-call helper. Initializes buf[0]=0x33,
