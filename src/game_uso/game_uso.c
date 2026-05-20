@@ -7762,7 +7762,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
     float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
     float local_120[3];   /* sp+0x120: copy of local_B8 */
-    char pad_10C[40];
+    char pad_10C[24];
     volatile int local_EC[3]; /* sp+0xEC: raw-word copy of local_DC */
     char pad_E0[4];
     float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
@@ -7828,15 +7828,27 @@ int game_uso_func_00009B88(a0, a1, a2)
     /* Body-part-2 entry @ 0x9C44-0x9C98 (CORRECTED 2026-05-04 via byte-decode):
      * 1-to-4 fanout copy. local_DC's 3 words get distributed to local_EC,
      * local_19C, local_144 — interleaved IDO -O2 codegen with shared loads. */
-    local_EC[0] = ((int*)local_DC)[0];
-    local_19C[0] = local_EC[0];
-    local_EC[1] = ((int*)local_DC)[1];
-    local_EC[2] = ((int*)local_DC)[2];
-    local_19C[1] = ((int*)local_DC)[1];
-    local_19C[2] = ((int*)local_DC)[2];
-    *(int*)&local_144[0] = local_19C[0];
-    *(int*)&local_144[1] = local_19C[1];
-    *(int*)&local_144[2] = local_19C[2];
+    {
+        register int copy0 = ((int*)local_DC)[0];
+        register int copy1 = ((int*)local_DC)[1];
+        register int copy2;
+        register int copy3;
+
+        local_EC[0] = copy0;
+        copy3 = local_EC[0];
+        copy2 = ((int*)local_DC)[2];
+        local_19C[0] = copy3;
+        copy3 = local_19C[0];
+        local_19C[1] = copy1;
+        local_EC[1] = copy1;
+        local_19C[2] = copy2;
+        local_EC[2] = copy2;
+        *(int*)&local_144[0] = copy3;
+        copy1 = local_19C[1];
+        *(int*)&local_144[1] = copy1;
+        copy2 = local_19C[2];
+        *(int*)&local_144[2] = copy2;
+    }
 
     /* @ 0x9DD0-0x9E18: rotated Vec3 into the always-nonnull sp+0xC4 slot.
      * The alloc arm is dead for the stack destination, matching the target's
@@ -8034,7 +8046,15 @@ int game_uso_func_00009B88(a0, a1, a2)
  *     dead raw scratch fanout, improving to 48.229652%;
  *   - local_144 volatile regressed to 48.078487%, and local_C4 volatile
  *     regressed to 46.872093%, so both were rejected.
- *   Current best: 48.229652%. */
+ *
+ * 2026-05-20 follow-up:
+ *   - volatile `out` for all alloc-or-fill blocks regressed to 38.5%;
+ *   - explicit register-temp replay of the local_DC -> local_EC/local_19C/
+ *     local_144 fanout improved 48.229652% -> 48.819767%;
+ *   - removing volatile from local_EC/local_19C regressed to 45.918606%;
+ *   - tuning pad_10C from 40 to 24 kept target-adjacent lower stack slots
+ *     closer and improved to 48.851746% (pad 16/32 were worse).
+ *   Current best: 48.851746%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
