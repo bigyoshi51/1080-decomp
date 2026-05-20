@@ -7565,7 +7565,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 50.38% NM (objdiff 2026-05-20; up from 33.40% before this pass).
+/* 50.343020% NM (objdiff 2026-05-20; up from 33.40% before this pass).
  * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Inferred from the final cross-product sign test + screen-space transform
  * constants: this is a billboard-visibility / 2D point-on-line predicate
@@ -7762,7 +7762,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
     float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
     float local_120[3];   /* sp+0x120: copy of local_B8 */
-    char pad_10C[24];
+    char pad_10C[40];
     volatile int local_EC[3]; /* sp+0xEC: raw-word copy of local_DC */
     char pad_E0[4];
     float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
@@ -7782,7 +7782,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     float src_x, src_z, dx, dz;
     float scale0;         /* screen-space transform scale: 250.0f * a1->0x54 + 50.0f */
     float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
-    char pad_frame[24];
+    char pad_frame[8];
     (void)pad_frame;
     (void)gap_150;
     (void)pad_10C;
@@ -8106,6 +8106,23 @@ int game_uso_func_00009B88(a0, a1, a2)
  *     band; adding a 4-byte neighboring gap regressed to 50.351746%;
  *   - Ghidra was unavailable: agent-c has no local project and agent-e's
  *     project was locked.
+ *   Exact not reached; keep INCLUDE_ASM fallback, no new episode.
+ *
+ * 2026-05-20 Codex source=2 iteration:
+ *   - boundary rechecked clean (`grep -c 03E00008` = 1);
+ *   - fresh non_matching object/report measured 50.337208% before edits;
+ *   - pad_10C 24 -> 40 plus pad_frame 24 -> 8 preserved the target
+ *     -0x1A8 frame while placing the early stack band at target offsets:
+ *     local_DC=sp+0xDC, local_EC=sp+0xEC, local_C4=sp+0xC4. This improved
+ *     50.337208% -> 50.343020%;
+ *   - pad_10C 40 without the pad_frame compensation grew the frame to
+ *     -0x1B8 and regressed to 50.308140%;
+ *   - ternary alloc-or-passthrough form for the first three Vec3
+ *     destinations regressed to 48.636627% in the full TU;
+ *   - `float * volatile src_vec` to force the local_184 source spill
+ *     regressed to 48.732560%;
+ *   - Ghidra helper still unavailable in agent-c (missing
+ *     build/ghidra-project/tenshoe).
  *   Exact not reached; keep INCLUDE_ASM fallback, no new episode. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
