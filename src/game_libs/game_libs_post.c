@@ -9417,11 +9417,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F934);
 //   command-submission leaf of the game_libs object subsystem
 //   (richer sibling of gl_func_0002F638 — same 0x03/0x06 banks plus
 //   the 0x01/0x04 attribute banks and the /127 normalization).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + /127.0f
-//   normalize + multi-bank command build — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks +
+//   /127.0f normalize + multi-bank command build — byte-match
+//   needs USO mnemonic disasm + reloc-pad jal infra. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002F9D4(int a0, int b, int arg3, int arg4,
+                      int stk_43, int stk_47) {
+    int op = a0 ? 5 : 1;
+    int sub = (op & 0xFF) << 8;
+    float n;
+    gl_func_00000000(0x06000000 | sub | 5, (signed char)b);
+    n = (float)arg3 / 127.0f;
+    gl_func_00000000(0x01000000 | sub, n);
+    gl_func_00000000(0x04000000 | sub, arg4);
+    gl_func_00000000(0x06000000 | sub, (signed char)stk_43);
+    gl_func_00000000(0x03000000 | sub, (signed char)stk_47);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
+#endif
 
 // gl_func_0002FA90 — STRUCTURAL PASS (0x80 / 32 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
