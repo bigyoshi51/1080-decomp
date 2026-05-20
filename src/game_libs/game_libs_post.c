@@ -20171,11 +20171,23 @@ void gl_func_00043FFC(char *a0) {
 // lwc1 from a1/a2, mul.s/add.s lattice (46xx ops), stores the result via
 // swc1; this is a real ~54-word function splat could not separate (deferred
 // re-split, decode under its own symbol later). Family: cb-less init/register
-// wrapper + (trailing) FP geometry transform. The H_0145xx call sequence and
-// the +0x10/+0x14 field targets are exact. Caps: object struct + H_0145xx
-// signatures untyped; bundle re-split deferred. Full body
-// INCLUDE_ASM-preserved.
+// wrapper + (trailing) FP geometry transform.
+//
+// Caps (DEFERRED): object struct + H_0145xx helper signatures untyped;
+//   trailing 0x4406C FP-geometry function needs USO re-split before it
+//   can be decoded under its own symbol. Real-C STRUCTURAL body below —
+//   the named fn (3-call register wrapper) only. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern void gl_func_00000000();
+void gl_func_00044034(void *a0) {
+    gl_func_00000000(a0);
+    gl_func_00000000((char *)a0 + 0x10);
+    gl_func_00000000((char *)a0 + 0x14);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044034);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004406C);
 
