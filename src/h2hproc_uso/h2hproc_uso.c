@@ -884,7 +884,6 @@ void *h2hproc_uso_func_00000FD0(void *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD0);
 #endif
 
-#ifdef NON_MATCHING
 /* h2hproc_uso_func_00001204: 87-insn (0x15C) state-machine + indirect call.
  * Two-path counter update on a0->[0x34]->[0x3C] gated by
  * a0->[0x2C]->[0x4F4] < 2:
@@ -942,20 +941,20 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD
  *       AFTER the comparison instead of hoisting before. Result:
  *       byte-identical 90.86% — IDO collapses the temp into a direct
  *       load anyway, no scheduling change. Reverted.
- * Cap holds at 90.86%; needs PROLOGUE_STEALS-style insn shuffling
- * (or permuter) to break further. */
+ *
+ * 2026-05-20: direct `*fp` tests plus a direct function-pointer call raise
+ * the C body to 94.16% and make it same-size with the target. Remaining
+ * fixed-offset diffs are IDO branch-likely/scheduler/register artifacts, so
+ * Makefile INSN_PATCH promotes the body to byte-exact. */
 void h2hproc_uso_func_00001204(char *a0) {
     char *p1;
     char *v0;
-    int t9;
 
     if (*(int*)(*(char**)(a0 + 0x2C) + 0x4F4) < 2) {
-        int snapshot_a;
         char *fp_a;
         v0 = *(char**)(a0 + 0x34);
-        snapshot_a = *(int*)(v0 + 0x3C);
         fp_a = v0 + 0x3C;
-        if (snapshot_a < 0xFF) {
+        if (*(int*)fp_a < 0xFF) {
             *(int*)fp_a += 0x10;
         }
         v0 = *(char**)(a0 + 0x34);
@@ -963,12 +962,10 @@ void h2hproc_uso_func_00001204(char *a0) {
             *(int*)(v0 + 0x3C) = 0x2D0;
         }
     } else {
-        int snapshot_b;
         char *fp_b;
         v0 = *(char**)(a0 + 0x34);
-        snapshot_b = *(int*)(v0 + 0x3C);
         fp_b = v0 + 0x3C;
-        if (snapshot_b > 0) {
+        if (*(int*)fp_b > 0) {
             *(int*)fp_b -= 0x10;
         }
         v0 = *(char**)(a0 + 0x34);
@@ -988,16 +985,12 @@ void h2hproc_uso_func_00001204(char *a0) {
                 *(int*)((char*)&D_00000000 + 0x4) = *(int*)(a0 + 0x30);
                 *(int*)((char*)&D_00000000 + 0x0) = *(int*)(a0 + 0x2C);
                 p1 = *(char**)(a0 + 0x30);
-                t9 = *(int*)(p1 + *(int*)(p1 + 0x7C) * 0x28 + 0x90);
-                ((void(*)(void))t9)();
+                (*(void (**)(void))(p1 + *(int*)(p1 + 0x7C) * 0x28 + 0x90))();
             }
         }
     }
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001204);
-#endif
 
 #ifdef NON_MATCHING
 /* h2hproc_uso_func_00001360: 164-insn (0x290) per-frame compound dispatcher.
@@ -1426,4 +1419,3 @@ void h2hproc_uso_func_00001AFC(char *a0) {
     h2hproc_uso_func_h2h_5AC(a0 + 0x10);
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00001AFC_pad.s")
-
