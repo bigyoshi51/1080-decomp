@@ -132,7 +132,11 @@ void mgrproc_uso_func_000000F8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F8);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000140);
+int mgrproc_uso_func_00000140(int *a0) {
+    if (a0[1] == a0[2]) {
+        return 1;
+    }
+}
 
 int mgrproc_uso_func_0000015C(void) {
     return 0;
