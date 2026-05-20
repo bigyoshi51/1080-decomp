@@ -885,6 +885,8 @@ void mgrproc_uso_func_0000179C(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001824);
 
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001A5C);
+
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00001AD0: 34-insn (0x88) 5-call orchestrator.
  *
