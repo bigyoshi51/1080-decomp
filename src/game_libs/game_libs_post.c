@@ -7305,11 +7305,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
 //   type is 2 (sub 0) the object's primary flag byte o->0 has bit5
 //   set (a "matched/active" marker). A handle-classify-and-latch leaf
 //   in the game_libs registry/object subsystem.
-// Caps: raw-word USO + packed-bitfield decode + list walk — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + packed-bitfield decode (the same
+//   layout gl_func_000230D0 / 00023914 use) — byte-match needs USO
+//   mnemonic disasm. Real-C STRUCTURAL body below per the analysis.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0002ABC0(char *o) {
+    int w = *(int *)o;
+    char *list = *(char **)(o + 0x4C);
+    int e;
+    int typ;
+    int sub;
+    if ((w << 2) < 0) {
+        (void)w;
+    }
+    if (list != 0) {
+        e = *(int *)list;
+        typ = (unsigned)e >> 28;
+        sub = ((unsigned)(e << 4)) >> 30;
+        if (typ == 2 && sub == 0) {
+            *(unsigned char *)o = *(unsigned char *)o | 0x20;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002ABC0);
+#endif
 
 // gl_func_0002AD1C — STRUCTURAL PASS (0x380 / 224 words ≈ 0.9KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
