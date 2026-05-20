@@ -8869,11 +8869,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E0C4);
 //   constant 80.0f (0x42A00000). A one-shot SFX/event-emit leaf in
 //   the game_libs object subsystem (the 0x0C010EF9 submit is the same
 //   one other event helpers in this file use).
-// Caps: raw-word USO + fixed-target event submit — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed-target event submit
+//   (0x443E4) — byte-match needs USO mnemonic disasm + reloc-pad
+//   jal infra. Real-C STRUCTURAL body below per the analysis.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002E1C0(char *o) {
+    unsigned char f = *(unsigned char *)(o + 0x16);
+    int kind;
+    if (f & 0x01) return;
+    if (f & 0x20) return;
+    *(unsigned char *)(o + 0x16) = f | 0x20;
+    if (*(unsigned char *)(o + 0x16) & 0x01) return;
+    kind = *(unsigned char *)(o + 0x14);
+    if (kind == 1) {
+        gl_func_00000000(*(unsigned char *)(o + 0x28), 0x29, 0, 80.0f);
+    } else {
+        gl_func_00000000(*(unsigned char *)(o + 0x28), 0x2A, 0, 80.0f);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
+#endif
 
 // gl_func_0002E24C — STRUCTURAL PASS (0x108 / 66 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 10-jr USO bundle
