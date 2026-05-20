@@ -1881,11 +1881,46 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     from func_00000000). D_0 global flags 0x10001 / 0x4002 gate
 //     the two passes. func_00000000 = USO placeholder dispatcher
 //     (time query / release / gate).
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — gate + 2-pass list-compaction skeleton only. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00006E08(char *scr, int a1) {
+    float now;
+    char **arr;
+    int i;
+    int *cnt;
+    if (!func_00000000(&D_00000000, 0x10001)) return;
+    func_00000000(scr);
+    now = (float)func_00000000(scr);
+    /* PASS 1 */
+    arr = *(char ***)(scr + 0x3D0);
+    cnt = (int *)(scr + 0x3C4);
+    for (i = 0; i < *cnt; i++) {
+        if (*(float *)(arr[i] + 0x2A4) <= now) {
+            func_00000000(*(char **)(scr + 0x4D4), arr[i]);
+            for (int j = i; j < *cnt - 1; j++) arr[j] = arr[j + 1];
+            (*cnt)--;
+            i--;
+        }
+    }
+    func_00000000(&D_00000000, 0x4002);
+    /* PASS 2: identical compaction over same list */
+    for (i = 0; i < *cnt; i++) {
+        if (*(float *)(arr[i] + 0x2A4) <= now) {
+            func_00000000(*(char **)(scr + 0x4D8), arr[i]);
+            for (int j = i; j < *cnt - 1; j++) arr[j] = arr[j + 1];
+            (*cnt)--;
+            i--;
+        }
+    }
+    (void)a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006E08);
+#endif
 
 // timproc_uso_b5_func_00007078 — STRUCTURAL PASS (0x258 / 150 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
