@@ -1,4 +1,4 @@
-nonmatching mgrproc_uso_func_00002E3C, 0xD4
+nonmatching mgrproc_uso_func_00002E3C, 0xB4
 
 glabel mgrproc_uso_func_00002E3C
     /* 002E3C 00002E3C 27BDFFA8 */  .word 0x27BDFFA8
@@ -46,12 +46,4 @@ glabel mgrproc_uso_func_00002E3C
     /* 002EE4 00002EE4 27BD0058 */  .word 0x27BD0058
     /* 002EE8 00002EE8 03E00008 */  .word 0x03E00008
     /* 002EEC 00002EEC 00000000 */  .word 0x00000000
-    /* 002EF0 00002EF0 3C01437F */  .word 0x3C01437F
-    /* 002EF4 00002EF4 44811000 */  .word 0x44811000
-    /* 002EF8 00002EF8 3C014340 */  .word 0x3C014340
-    /* 002EFC 00002EFC 44812000 */  .word 0x44812000
-    /* 002F00 00002F00 3C01437F */  .word 0x3C01437F
-    /* 002F04 00002F04 44813000 */  .word 0x44813000
-    /* 002F08 00002F08 44805000 */  .word 0x44805000
-    /* 002F0C 00002F0C 46022003 */  .word 0x46022003
 endlabel mgrproc_uso_func_00002E3C
