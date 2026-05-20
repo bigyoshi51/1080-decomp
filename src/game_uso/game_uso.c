@@ -3925,7 +3925,13 @@ void game_uso_func_000057D8(char *a0) {
  * under the 0x10 path: helper linkage to self+0x7C, state-keyed threshold
  * cascades at 0x24C/0x21C/0x234, 0x1BC/0x18C/0x1A4, 0x174/0x144/0x15C,
  * and 0x204/0x1D4/0x1EC, plus the tail flag commit call. DNM objdiff:
- * 45.586% -> 49.763%. */
+ * 45.586% -> 49.763%.
+ *
+ * 2026-05-20 Codex iteration: corrected the 0x20/0x40 helper-fail arms
+ * and the 0x400 fast path to fall through to the final flag-commit call
+ * instead of returning after a one-arg helper call. Tried frame-pad
+ * resizing and split D-base aliases for the entry globals; both compiled
+ * back to the same frame/D-base CSE shape and did not move objdiff. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int *self;
@@ -4318,22 +4324,21 @@ void game_uso_func_0000591C(int *a0) {
     if (resolved_state & 0x20) {
         if (gl_func_00000000(self, helper_ptr, hit_parent) == 0) {
             gl_func_00000000(self);
-            return;
+            goto commit_flags;
         }
     }
 
     if (resolved_state & 0x40) {
         if (gl_func_00000000(self, helper_ptr, hit_parent) == 0) {
             gl_func_00000000(self);
-            return;
+            goto commit_flags;
         }
     }
 
     if (effect_flags & 0x400) {
         gl_func_00000000(self);
         *(int*)((char*)self + 0x40) = gl_func_00000000(self);
-        gl_func_00000000(self);
-        return;
+        goto commit_flags;
     }
 
     if (effect_flags & 0x10) {
@@ -4421,6 +4426,7 @@ void game_uso_func_0000591C(int *a0) {
         effect_flags |= 0x10;
     }
 
+commit_flags:
     gl_func_00000000(self, effect_flags);
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
