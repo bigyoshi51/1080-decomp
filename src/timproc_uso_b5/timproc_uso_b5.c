@@ -1096,12 +1096,37 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     (0x20). &D_00001130/1140/1160/1168 = USO name/desc data
 //     (the 0x11xx pool). func_00000000 = USO placeholder dispatcher
 //     (alloc / init / factory / attach).
-// Caps: raw-word USO + 30 placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structural (entry/fan-out/
-//   tail) pass only, no byte body. Multi-run: future passes can
-//   expand the 12-record init loop.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + 30 placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — large composite constructor + 12-record init loop
+//   skeleton. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *timproc_uso_b5_func_00002B74(char *self) {
+    char *c;
+    int i;
+    if (self == 0) {
+        self = (char *)func_00000000(0x168);
+        if (self == 0) return 0;
+    }
+    func_00000000(0x8);
+    *(char **)(self + 0x00) = (char *)&D_00000000 + 0x00001130;
+    *(int *)(self + 0x04) = 0;
+    *(char **)(self + 0x0C) = (char *)&D_00000000 + 0x000001A0;
+    *(int *)(self + 0x10) = 0x52;
+    for (i = 0; i < 12; i++) {
+        c = (char *)func_00000000(0x18);
+        func_00000000(c, (char *)&D_00000000 + 0x00001140);
+        *(char **)(self + 0x20 + i * 4) = c;
+    }
+    func_00000000((char *)&D_00000000 + 0x00001160);
+    func_00000000((char *)&D_00000000 + 0x00001168);
+    *(float *)(self + 0x18) = 0.0f;
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00002B74);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_000032C8: bundled symbol (0x608, 386 insns total).
