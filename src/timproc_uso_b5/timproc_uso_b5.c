@@ -847,11 +847,35 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     ->0x48 / ->0x3C / ->0x2B0 = nested record chain for the
 //     dispatch arg. func_00000000 = USO placeholder (query / notify;
 //     arg 7 = a query op, arg 1 = a reset/notify op).
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable here (boundary + USO-disasm); structural pass only
-//   for the named function, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder
+//   calls; boundary re-split needs generate-uso-asm migration. Real-C
+//   STRUCTURAL body below — the named leading dispatcher only;
+//   trailing functions (0x1CF0/0x1D1C/0x1D60/0x1DB0) remain
+//   INCLUDE_ASM under their own symbols. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00001C08(char *st) {
+    int i = 0;
+    char *r;
+    char *c;
+    char *d;
+    int s0;
+    int n;
+    if (*(int *)(st + 0x30) == 2) {
+        i = (*(int *)(st + 0x48) == 1) ? 1 : 0;
+    }
+    r = *(char **)(st + 0x34 + i * 4);
+    c = *(char **)(r + 0x40C);
+    d = *(char **)(c + 0x48) + *(int *)(r + 0x3D8) * 4;
+    func_00000000(7, *(char **)(*(char **)(d + 0x3C) + 0x2B0));
+    n = *(int *)(st + 0x30);
+    for (s0 = 0; s0 < n; s0++) {
+        func_00000000(*(char **)(*(char **)(st + s0 * 4) + 0x34), 1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001C08);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001CF0);
 
