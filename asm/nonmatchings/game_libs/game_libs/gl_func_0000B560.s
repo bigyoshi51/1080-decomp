@@ -1,4 +1,4 @@
-nonmatching gl_func_0000B560, 0x4C
+nonmatching gl_func_0000B560, 0x3C
 
 glabel gl_func_0000B560
     /* DF0638 0000B560 27BDFFE8 */  .word 0x27BDFFE8
@@ -16,8 +16,4 @@ glabel gl_func_0000B560
     /* DF0668 0000B590 27BD0018 */  .word 0x27BD0018
     /* DF066C 0000B594 03E00008 */  .word 0x03E00008
     /* DF0670 0000B598 00000000 */  .word 0x00000000
-    /* DF0674 0000B59C 00051080 */  .word 0x00051080
-    /* DF0678 0000B5A0 00451023 */  .word 0x00451023
-    /* DF067C 0000B5A4 24010005 */  .word 0x24010005
-    /* DF0680 0000B5A8 0041001A */  .word 0x0041001A
 endlabel gl_func_0000B560
