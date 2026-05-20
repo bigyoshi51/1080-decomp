@@ -23449,14 +23449,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B620);
 // &D_g+0xA0 global config, cb1-initialises sp scratch, guards on a &D_g2
 // state pointer, then runs a large FP arithmetic pipeline (1.0 / 16384.0
 // scale constants, mul/add/div, saturating trunc) to compute transformed /
-// quantized output committed via cb. Family: FP geometry/transform + cb
-// emit (the per-frame driver counterpart of the segment's matrix/transform
-// kernels gl_func_00047E00 / 0004B2FC / 00042778). Per-pass body not
-// decoded (423-word driver) — the &D_g+0xA0 Vec3 source, the cb1 scratch
-// init, the &D_g2 null guard and the 1.0/16384.0 FP constants are exact;
-// the inner transform sequence is representative. Caps: &D_g/&D_g2 struct
-// and cb signatures untyped. Full body INCLUDE_ASM-preserved.
+// quantized output committed via cb.
+//
+// Caps (DEFERRED): &D_g/&D_g2 struct and cb signatures untyped;
+//   per-pass body not decoded (423-word driver). Real-C STRUCTURAL
+//   body below — snapshot + init + null-guard + FP scale skeleton
+//   only. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0004BAF4(void *a0) {
+    float *g = (float *)((char *)&D_00000000 + 0xA0);
+    float scrA[3];
+    float scrB[4];
+    char *st;
+    scrA[0] = g[12];
+    scrA[1] = g[13];
+    scrA[2] = g[14];
+    gl_func_00000000(scrB, scrA, 1);
+    st = *(char **)((char *)&D_00000000 + 0x10);
+    if (st == 0) return;
+    {
+        float s = 1.0f / 16384.0f;
+        scrB[0] *= s;
+        scrB[1] *= s;
+        scrB[2] *= s;
+    }
+    gl_func_00000000(a0, scrB, st);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004BAF4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004C190: 25-insn alloc-or-given constructor with aligned stack
