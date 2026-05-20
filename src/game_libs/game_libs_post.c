@@ -14110,12 +14110,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037FAC);
 //   factory leaf of the game_libs object subsystem; the 0x2C / 0x18
 //   / 0x10 / 0x04 sizes and the {-1, 0x8000, 0} sentinel layout are
 //   the structs to type when this object family is formalized.
-// Caps: raw-word USO + USO-relocated jal-0 allocator + chained
-//   alloc-with-rollback + sentinel (-1 / 0x8000) init — not exact-
-//   matchable without proper USO mnemonic disasm + the 4 structs
-//   typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 allocator +
+//   chained alloc-with-rollback + sentinel (-1 / 0x8000) init; 4
+//   structs untyped. Real-C STRUCTURAL body below. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+char *gl_func_0003800C(char *o, int unused) {
+    char *a;
+    char *b;
+    int *c;
+    if (o == 0) {
+        o = (char *)gl_func_00000000(0x2C);
+        if (o == 0) return 0;
+    }
+    a = (char *)gl_func_00000000(0x18);
+    if (!a) return 0;
+    b = (char *)gl_func_00000000(0x10);
+    if (!b) return 0;
+    *(int *)b = -1;
+    *(int *)(b + 0x08) = 0x8000;
+    *(int *)(b + 0x04) = 0;
+    c = (int *)gl_func_00000000(0x04);
+    if (c) *c = 0;
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003800C);
+#endif
 
 // gl_func_00038108 — STRUCTURAL PASS (0xF0 / 60 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
