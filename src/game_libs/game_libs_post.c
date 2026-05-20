@@ -7096,6 +7096,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A884);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8C4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8D8);
+
 // gl_func_0002A904 — STRUCTURAL PASS (0x12C / 75 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
 // (named fn + 3 trailing helpers) — deferred USO re-split. The named
