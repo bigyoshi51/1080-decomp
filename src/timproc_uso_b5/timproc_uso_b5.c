@@ -2438,6 +2438,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D78);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D90);
+
 // timproc_uso_b5_func_00008DB4 — STRUCTURAL PASS (0x1E4 / 121 words,
 // no episode). Raw-.word USO form (genuine code, single function).
 // Hand-decoded.
