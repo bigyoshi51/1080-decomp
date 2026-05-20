@@ -12856,13 +12856,29 @@ void gl_func_00035AE0(int *dst) {
 //   game_libs object subsystem (0x0001E6B0 is a deferred data-
 //   segment template-symbolization site; 0x10 / 0x04 are the
 //   struct sizes to type).
-// Caps: raw-word USO + bundled no-frame leaves + USO-relocated jal-0
-//   allocator + &D_0 back-link + data-seg template — not exact-
-//   matchable without proper USO mnemonic disasm + boundary
-//   re-split + the structs typed; structural pass only. No merge
-//   attempted (would corrupt the stubs); no episode.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled no-frame leaves + USO-reloc
+//   jal-0 allocator + &D_0 back-link + data-seg template (0x0001E6B0
+//   unsymbolized) — byte-match needs USO mnemonic disasm + boundary
+//   re-split + structs typed. Real-C STRUCTURAL body below for the
+//   NAMED leading function only — bundled tail stubs untouched.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+char *gl_func_00035B1C(char *o, int a1, int a2, int a3) {
+    int *sub;
+    (void)a1; (void)a2;
+    if (o == 0) {
+        o = (char *)gl_func_00000000(0x10);
+        if (o == 0) return 0;
+    }
+    *(int *)(o + 0x0C) = (int)&D_00000000;
+    sub = (int *)gl_func_00000000(0x04);
+    if (sub != 0) *sub = 0;
+    *(int *)(o + 0x08) = a3;
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035B1C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035C50);
 
