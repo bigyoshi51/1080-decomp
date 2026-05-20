@@ -13585,14 +13585,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036E74);
 //   gl_func_0003695C normalizer and the gl_func_00036224 viewport
 //   matrix (consumes their outputs / feeds the render traversal;
 //   the flag bits select which axes/parameters are active).
-// Caps: 0x3C8 raw-word USO + chained-pointer flag word + heavy
-//   per-bit conditional FP scaling — categorically not exact-
-//   matchable without proper USO mnemonic disasm + the flag/Vec3
-//   structs typed; structural pass only, no byte body. (A future
-//   focused non-loop session — the deferred struct-typing backlog —
-//   is where this gets a real decode; not 60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x3C8 raw-word USO + chained-pointer flag word
+//   + heavy per-bit conditional FP scaling; flag/Vec3 structs
+//   untyped. Real-C STRUCTURAL body below — flag-fetch + per-bit
+//   conditional skeleton only (three representative arms).
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00036F0C(char *o) {
+    float v[3] = {0.0f, 0.0f, 0.0f};
+    char *s = *(char **)(o + 0x4C);
+    int fl = *(int *)(*(char **)(s + 0xB4) + 0x10);
+    float K1 = 3.390625f;
+    if (fl & 0x40)  v[0] = *(float *)(s + 0x10) * K1;
+    if (fl & 0x80)  v[1] = *(float *)(s + 0x14) * K1;
+    if (fl & 0x400) v[2] = *(float *)(s + 0x18) * 100.0f;
+    *(float *)(s + 0x20) = v[0];
+    *(float *)(s + 0x24) = v[1];
+    *(float *)(s + 0x28) = v[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036F0C);
+#endif
 
 /* gl_func_000372D4 - verified structural decode (29-insn br=0 deterministic;
  * t6-spill + p+48 sub-struct base-reuse = struct-base divergence class ->
