@@ -13455,12 +13455,28 @@ end:
 //   (consumes the normalized vectors the gl_func_0003695C
 //   normalizer / gl_func_00036224 viewport family produce; the
 //   0x200 flag selects whether the offset is applied).
-// Caps: raw-word USO + flag-gated FP offset build (hard-coded
-//   -10/10/30 extents) + chained-pointer transform — not exact-
-//   matchable without proper USO mnemonic disasm + the object/
-//   sub-object structs typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + flag-gated FP offset build
+//   (hard-coded -10/10/30 extents) + chained-pointer transform;
+//   object/sub-object structs untyped; chained-pointer transform
+//   tail is documented but not fully decoded. Real-C STRUCTURAL body
+//   below — flag-gated offset build only. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00036C08(char *o) {
+    float p[3] = {0.0f, 0.0f, 0.0f};
+    char *s = *(char **)(o + 0x38);
+    char *t;
+    if (*(int *)(o + 0x10) & 0x200) {
+        p[0] = *(float *)(s + 0xD4) * -10.0f;
+        p[1] = *(float *)(s + 0xD8) *  10.0f;
+        p[2] = *(float *)(s + 0xDC) *  30.0f;
+    }
+    t = *(char **)(*(char **)(o + 0x38) + 0x110);
+    gl_func_00000000(*(char **)(t + 0x70), p);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
+#endif
 
 // gl_func_00036E74 — STRUCTURAL PASS (0x98 / 38 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
