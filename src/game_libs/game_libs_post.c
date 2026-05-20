@@ -33574,6 +33574,8 @@ void gl_func_00069C94(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069C94);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00069CB8);
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069CD0);
