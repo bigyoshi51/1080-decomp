@@ -1005,22 +1005,26 @@ void h2hproc_uso_func_00001204(char *a0) {
  *   gl_func(self->[0x2C]->[0x568]);                 ; 2 cross-USO helper calls
  *   gl_func(self->[0x2C]->[0x568]);
  *
- *   ; First "gate body" iteration — gated by `(v0 & 0x10) != 0`
- *   ; where v0 = 16 (always; the asm has a dead-bnezl/b construct):
+ *   ; First "gate body" iteration — gated by
+ *   ;   (((self->[0x2C]->[0x6B8] != 0) ? 0x10 : self->[0x98]) & 0x10) != 0:
  *   ;   gl_func(sp+0x38, &D_0 + 0x3FC);             ; sp-local Vec3-style load 80 bytes
- *   ;   gl_func(self->[0x2C]->[0x568], 80, sp+0x38, ...);
+ *   ;   r = gl_func(self->[0x2C]->[0x568], 80, sp+0x38);
+ *   ;   gl_func(self->[0x2C]->[0x568], r, 30, sp+0x38);
  *   ;   v0 = ((self->[0x2C]->[0x6A8])->[0x0] == 1) ? 0 : 115;
- *   ;   gl_func(self->[0x2C]->[0x568], v0, 80, sp+0x38, &D_0+0x400);
- *   ;   gl_func(self->[0x2C]->[0x568], retval, 80, sp+0x38);
+ *   ;   gl_func(sp+0x38, &D_0+0x400, v0);
+ *   ;   r = gl_func(self->[0x2C]->[0x568], 80, sp+0x38);
+ *   ;   gl_func(self->[0x2C]->[0x568], r, 80, sp+0x38);
  *
  *   ; Second iteration — same shape but with sub-state 0x4 instead of 0x0,
  *   ; constants 240 instead of 80, &D_0+0x40C instead of 0x3FC,
  *   ; &D_0+0x410 instead of 0x400:
  *   ;   gl_func(sp+0x38, &D_0 + 0x40C);
- *   ;   gl_func(self->[0x2C]->[0x568], 240, sp+0x38);
+ *   ;   r = gl_func(self->[0x2C]->[0x568], 240, sp+0x38);
+ *   ;   gl_func(self->[0x2C]->[0x568], r, 30, sp+0x38);
  *   ;   v0 = ((self->[0x2C]->[0x6A8])->[0x4] == 1) ? 0 : 115;
- *   ;   gl_func(self->[0x2C]->[0x568], v0, 240, sp+0x38, &D_0+0x410);
- *   ;   gl_func(self->[0x2C]->[0x568], retval, 240, sp+0x38);
+ *   ;   gl_func(sp+0x38, &D_0+0x410, v0);
+ *   ;   r = gl_func(self->[0x2C]->[0x568], 240, sp+0x38);
+ *   ;   gl_func(self->[0x2C]->[0x568], r, 80, sp+0x38);
  *
  *   ; Tail: 4 more sub-inits at self+0x38, self+0x50, self+0x68, self+0x80:
  *   gl_func(&D_0);
@@ -1033,13 +1037,11 @@ void h2hproc_uso_func_00001204(char *a0) {
  *
  * Initial structural pass. Default INCLUDE_ASM keeps ROM exact. */
 void h2hproc_uso_func_00001360(int *self) {
-    char *base = &D_00000000;
     int *vtable;
     int *v_call;
-    int *helper;
     char scratch[80];
     int retval;
-    int *parent;
+    int gate;
     int *sub;
 
     *(int*)((char*)self + 0x98) += 1;
@@ -1050,36 +1052,36 @@ void h2hproc_uso_func_00001360(int *self) {
     gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
     gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
 
-    /* First gate body */
-    gl_func_00000000(scratch, base + 0x3FC);
-    helper = (int*)*(int*)((char*)self + 0x2C);
-    retval = gl_func_00000000(helper[0x568/4], 80, scratch);
-    helper = (int*)*(int*)((char*)self + 0x2C);
-    parent = (int*)*(int*)((char*)helper + 0x6A8);
-    {
-        int id = (parent[0] == 1) ? 0 : 115;
-        gl_func_00000000(helper[0x568/4], retval, 30, scratch, base + 0x400);
-        retval = id;
+    gate = 0x10;
+    if (*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6B8) == 0) {
+        gate = *(int*)((char*)self + 0x98);
     }
-    helper = (int*)*(int*)((char*)self + 0x2C);
-    gl_func_00000000(helper[0x568/4], retval, 80, scratch);
+    if (gate & 0x10) {
+        gl_func_00000000(scratch, &D_00000000 + 0x3FC);
+        retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 80, scratch);
+        gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 30, scratch);
+        gl_func_00000000(scratch, &D_00000000 + 0x400,
+                         (*(int*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) == 1) ? 0 : 115);
+        retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 80, scratch);
+        gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
+    }
 
-    /* Second gate body (mirror) */
-    gl_func_00000000(scratch, base + 0x40C);
-    helper = (int*)*(int*)((char*)self + 0x2C);
-    retval = gl_func_00000000(helper[0x568/4], 240, scratch);
-    helper = (int*)*(int*)((char*)self + 0x2C);
-    parent = (int*)*(int*)((char*)helper + 0x6A8);
-    {
-        int id = (parent[1] == 1) ? 0 : 115;
-        gl_func_00000000(helper[0x568/4], retval, 30, scratch, base + 0x410);
-        retval = id;
+    gate = 0x10;
+    if (*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6B8) == 1) {
+        gate = *(int*)((char*)self + 0x98);
     }
-    helper = (int*)*(int*)((char*)self + 0x2C);
-    gl_func_00000000(helper[0x568/4], retval, 80, scratch);
+    if (gate & 0x10) {
+        gl_func_00000000(scratch, &D_00000000 + 0x40C);
+        retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 240, scratch);
+        gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 30, scratch);
+        gl_func_00000000(scratch, &D_00000000 + 0x410,
+                         (*(int*)((char*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) + 4) == 1) ? 0 : 115);
+        retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 240, scratch);
+        gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
+    }
 
     /* Tail */
-    gl_func_00000000(base);
+    gl_func_00000000(&D_00000000);
     sub = (int*)((char*)self + 0x38);
     gl_func_00000000(sub);
     gl_func_00000000(sub, 60, 64, 3);
