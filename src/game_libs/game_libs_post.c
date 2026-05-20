@@ -27403,6 +27403,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EF00);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F0C4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F27C);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F3E0);
 
 /* gl_func_0005F54C - verified structural decode (40-insn perspective/
