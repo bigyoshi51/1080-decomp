@@ -30705,6 +30705,8 @@ void gl_func_00067AC8(float a) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067AE8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067C98);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D18);
