@@ -17750,10 +17750,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
 // See the gl_func_0003EBDC structural pass above for the full instruction-
 // level rationale. Family: indexed-table / fnptr-from-entry dispatch (this
 // + 0003EBDC are an adjacent duplicate pair, likely the same template
-// instantiated for two descriptor variants). Caps: Desc/table-entry struct
-// untyped; selector ladder arm order inferred from branch sense. Full body
-// INCLUDE_ASM-preserved.
+// instantiated for two descriptor variants).
+//
+// Caps (DEFERRED): Desc/table-entry struct untyped; selector-ladder arm
+//   order inferred from branch sense. Sibling of gl_func_0003EBDC —
+//   same C body. Real-C STRUCTURAL body below. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0003EC5C(char *a0) {
+    short hi = *(short *)(a0 + 0xA);
+    short lo = *(short *)(a0 + 0x8);
+    char *base = *(char **)(a0 + 0x4);
+    int sel;
+    char *tbl;
+    char *e;
+    short bias;
+    void (*h)(char *);
+    if (hi < 0) {
+        base = base + lo;
+        sel = *(int *)(a0 + 0xC);
+    } else {
+        void *v = *(void **)(a0 + 0xC);
+        if (v != 0) sel = (int)v;
+        else if (lo != 0) sel = lo;
+        else sel = 0x28;
+    }
+    tbl = *(char **)(base + sel);
+    e = tbl + hi * 8;
+    bias = *(short *)e;
+    h = *(void (**)(char *))(e + 4);
+    h(base + bias);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
+#endif
 
 /* 4-insn function: `nop; nop; jr ra; nop`. Body is structurally empty
  * but has 2 leading nops not reachable from std C (`void f(void){}`
