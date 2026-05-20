@@ -917,11 +917,34 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     scratch updated alongside. State constants 1/2/4 = phase ids.
 //   func_00000000 = USO placeholder dispatcher (per-record advance /
 //     final notify).
-// Caps: raw-word USO + placeholder calls + 0x21B-word branch tree —
-//   not exact-matchable here; structural (entry/shape/tail) pass only,
-//   no byte body. Multi-run: future passes can expand the mode-2 tree.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls + 0x21B-word
+//   branch tree; structural (entry/shape/tail) pass; multi-run
+//   target (future passes can expand the mode-2 tree). Real-C
+//   STRUCTURAL body below — gate + skeleton only. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00001F14(char *st) {
+    char *r;
+    if (*(int *)(st + 0x30) != 2) {
+        *(int *)(st + 0x3C) = 0;
+        return;
+    }
+    r = *(char **)(st + 0x34);
+    switch (*(int *)(r + 0x3CC)) {
+        case 1:
+        case 2:
+        case 4:
+            *(int *)(st + 0x3C) |= 0x2;
+            func_00000000(r);
+            break;
+        default:
+            break;
+    }
+    func_00000000(st);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001F14);
+#endif
 
 /* 35-insn (0x8C) state==2 init helper. Promoted 2026-05-14 from 99.86%
  * NM to byte-exact via 5-entry INSN_PATCH for buf-offset shift (target
