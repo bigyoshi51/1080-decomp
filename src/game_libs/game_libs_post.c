@@ -11064,6 +11064,8 @@ void gl_func_00033880(int id, int a1, unsigned flags, int d) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033880);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00033940);
 #endif
 
 #ifdef NON_MATCHING
