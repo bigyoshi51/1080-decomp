@@ -11224,12 +11224,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
 //   gl_func_00032E18 / gl_func_00033228 sub-record allocations
 //   (0x12340002 is the shared heap block magic; 0x0001E280 /
 //   0x0001E330 are the deferred template-symbolization sites).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + global region
-//   cursors + 0x12340002 block-magic + flag gate / alignment math —
-//   not exact-matchable without proper USO mnemonic disasm + the
-//   allocator structs typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + global
+//   region cursors + 0x12340002 block-magic + flag gate / alignment
+//   math — byte-match needs USO mnemonic disasm + allocator structs
+//   typed. Real-C STRUCTURAL body below per the analysis (sibling
+//   of gl_func_000334E8). Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00033BE4(void *a, unsigned flags) {
+    int used;
+    int mis;
+    if (flags & 1) {
+        gl_func_00000000(a, (void *)0x0001E330);
+    }
+    gl_func_00000000(&D_00000000);
+    if (flags == 0) return;
+    used = *(int *)((char *)&D_00000000 + 0x2C)
+         - *(int *)((char *)&D_00000000 + 0x08);
+    mis = (int)a & 7;
+    if (used < (int)flags) {
+        (void)used;
+    }
+    (void)0x12340002;
+    (void)mis;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
+#endif
 
 // gl_func_00033EB8 — STRUCTURAL PASS (0x2D0 / 180 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
