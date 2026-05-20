@@ -7565,7 +7565,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 50.343020% NM (objdiff 2026-05-20; up from 33.40% before this pass).
+/* 54.950580% NM (objdiff 2026-05-20; up from 50.38% before this pass).
  * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Inferred from the final cross-product sign test + screen-space transform
  * constants: this is a billboard-visibility / 2D point-on-line predicate
@@ -7753,10 +7753,10 @@ int game_uso_func_00009B88(a0, a1, a2)
     volatile int local_19C[3]; /* sp+0x19C: raw-word copy of local_DC */
     float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
     float local_184[3];   /* sp+0x184: projected source from a0->0x30 + 0xB4 */
-    float local_178[3];   /* sp+0x178: copy of local_A0 */
-    float local_16C[3];   /* sp+0x16C: copy of local_88 */
-    float local_160[3];   /* sp+0x160: copy of local_7C */
-    float local_154[3];   /* sp+0x154: copy of local_44 */
+    volatile int local_178[3]; /* sp+0x178: raw-word copy of local_A0 */
+    volatile int local_16C[3]; /* sp+0x16C: raw-word copy of local_88 */
+    volatile int local_160[3]; /* sp+0x160: raw-word copy of local_7C */
+    volatile int local_154[3]; /* sp+0x154: raw-word copy of local_44 */
     int   gap_150;        /* sp+0x150: target gap between local_154/local_144 */
     float local_144[3];   /* sp+0x144: Vec3 — passed to alloc-or-fill helper */
     float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
@@ -7769,20 +7769,20 @@ int game_uso_func_00009B88(a0, a1, a2)
     char pad_D0[12];
     int   local_C4[3];    /* sp+0xC4:  raw-word copy of local_DC */
     float local_B8[3];    /* sp+0xB8:  local_184 - a1->0x30 */
-    float local_A0[3];    /* sp+0xA0:  local_144 + local_138 */
-    float local_88[3];    /* sp+0x88:  local_120 - local_12C */
-    float local_94[3];    /* sp+0x94:  copy of local_88 */
-    float local_6C[3];    /* sp+0x6C:  local_144 - local_138 */
-    float local_7C[3];    /* sp+0x7C:  copy of local_6C */
-    float local_38[3];    /* sp+0x38:  local_120 + local_12C */
-    float local_44[3];    /* sp+0x44:  copy of local_38 */
+    volatile float local_A0[3]; /* sp+0xA0:  local_144 + local_138 */
+    volatile float local_88[3]; /* sp+0x88:  local_120 - local_12C */
+    volatile int local_94[3]; /* sp+0x94:  raw-word copy of local_88 */
+    volatile float local_6C[3]; /* sp+0x6C:  local_144 - local_138 */
+    volatile int local_7C[3]; /* sp+0x7C:  raw-word copy of local_6C */
+    volatile float local_38[3]; /* sp+0x38:  local_120 + local_12C */
+    volatile int local_44[3]; /* sp+0x44:  raw-word copy of local_38 */
     int *out;
     float *src_vec;
     int * volatile *spill_a1 = &a1;
     float src_x, src_z, dx, dz;
     float scale0;         /* screen-space transform scale: 250.0f * a1->0x54 + 50.0f */
     float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
-    char pad_frame[8];
+    char pad_frame[16];
     (void)pad_frame;
     (void)gap_150;
     (void)pad_10C;
@@ -8123,6 +8123,26 @@ int game_uso_func_00009B88(a0, a1, a2)
  *     regressed to 48.732560%;
  *   - Ghidra helper still unavailable in agent-c (missing
  *     build/ghidra-project/tenshoe).
+ *   Exact not reached; keep INCLUDE_ASM fallback, no new episode.
+ *
+ * 2026-05-20 Codex current-candidate iteration:
+ *   - boundary rechecked clean (`grep -c 03E00008` = 1);
+ *   - no-alias objdump showed the lower Vec3 fanout slots were being
+ *     optimized into direct float temporaries instead of target-style raw
+ *     word-copy buffers;
+ *   - declaration-order/padding repack of the lower Vec3 band regressed
+ *     50.383720% -> 50.348840%, so it was rejected;
+ *   - converting the intermediate raw-copy buffers local_94/local_7C/local_44
+ *     to volatile int[3] preserved explicit lw/sw fanout and improved to
+ *     53.688953%;
+ *   - increasing pad_frame 8 -> 16 restored the target 0x1A8 frame and
+ *     improved to 53.735466%; 24-byte padding regressed to 53.688953%;
+ *   - converting final fanout destinations local_178/local_16C/local_160/
+ *     local_154 to volatile int[3], with float reinterpretation only in the
+ *     final cross-product predicate, improved to 54.950580%;
+ *   - applying the same raw-buffer treatment to local_120 regressed to
+ *     53.139534%, so it was rejected; volatile lower output Vec3s tied the
+ *     current best.
  *   Exact not reached; keep INCLUDE_ASM fallback, no new episode. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
@@ -8191,9 +8211,9 @@ int game_uso_func_00009B88(a0, a1, a2)
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_144[2] + local_138[2];
     }
-    *(int*)&local_178[0] = *(int*)&local_A0[0];
-    *(int*)&local_178[1] = *(int*)&local_A0[1];
-    *(int*)&local_178[2] = *(int*)&local_A0[2];
+    local_178[0] = *(int*)&local_A0[0];
+    local_178[1] = *(int*)&local_A0[1];
+    local_178[2] = *(int*)&local_A0[2];
 
     out = (int*)local_88;
     if (out == 0) {
@@ -8204,12 +8224,12 @@ int game_uso_func_00009B88(a0, a1, a2)
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_120[2] - local_12C[2];
     }
-    *(int*)&local_94[0] = *(int*)&local_88[0];
-    *(int*)&local_94[1] = *(int*)&local_88[1];
-    *(int*)&local_94[2] = *(int*)&local_88[2];
-    *(int*)&local_16C[0] = *(int*)&local_94[0];
-    *(int*)&local_16C[1] = *(int*)&local_94[1];
-    *(int*)&local_16C[2] = *(int*)&local_94[2];
+    local_94[0] = *(int*)&local_88[0];
+    local_94[1] = *(int*)&local_88[1];
+    local_94[2] = *(int*)&local_88[2];
+    local_16C[0] = local_94[0];
+    local_16C[1] = local_94[1];
+    local_16C[2] = local_94[2];
 
     out = (int*)local_6C;
     if (out == 0) {
@@ -8220,12 +8240,12 @@ int game_uso_func_00009B88(a0, a1, a2)
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_144[2] - local_138[2];
     }
-    *(int*)&local_7C[0] = *(int*)&local_6C[0];
-    *(int*)&local_7C[1] = *(int*)&local_6C[1];
-    *(int*)&local_7C[2] = *(int*)&local_6C[2];
-    *(int*)&local_160[0] = *(int*)&local_7C[0];
-    *(int*)&local_160[1] = *(int*)&local_7C[1];
-    *(int*)&local_160[2] = *(int*)&local_7C[2];
+    local_7C[0] = *(int*)&local_6C[0];
+    local_7C[1] = *(int*)&local_6C[1];
+    local_7C[2] = *(int*)&local_6C[2];
+    local_160[0] = local_7C[0];
+    local_160[1] = local_7C[1];
+    local_160[2] = local_7C[2];
 
     out = (int*)local_38;
     if (out == 0) {
@@ -8236,12 +8256,12 @@ int game_uso_func_00009B88(a0, a1, a2)
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_120[2] + local_12C[2];
     }
-    *(int*)&local_44[0] = *(int*)&local_38[0];
-    *(int*)&local_44[1] = *(int*)&local_38[1];
-    *(int*)&local_44[2] = *(int*)&local_38[2];
-    *(int*)&local_154[0] = *(int*)&local_44[0];
-    *(int*)&local_154[1] = *(int*)&local_44[1];
-    *(int*)&local_154[2] = *(int*)&local_44[2];
+    local_44[0] = *(int*)&local_38[0];
+    local_44[1] = *(int*)&local_38[1];
+    local_44[2] = *(int*)&local_38[2];
+    local_154[0] = local_44[0];
+    local_154[1] = local_44[1];
+    local_154[2] = local_44[2];
 
     (void)local_19C;  /* suppress unused warnings until body-part-2 done */
     (void)local_EC;
@@ -8252,8 +8272,8 @@ int game_uso_func_00009B88(a0, a1, a2)
     /* @ 0xA1D4-0xA230: two 2D cross products over the four derived screen
      * vectors. Return 1 when the products have opposite signs. */
     {
-        float cross1 = (local_154[0] * local_160[2]) - (local_154[2] * local_160[0]);
-        float cross2 = (local_16C[0] * local_178[2]) - (local_16C[2] * local_178[0]);
+        float cross1 = (*(float*)&local_154[0] * *(float*)&local_160[2]) - (*(float*)&local_154[2] * *(float*)&local_160[0]);
+        float cross2 = (*(float*)&local_16C[0] * *(float*)&local_178[2]) - (*(float*)&local_16C[2] * *(float*)&local_178[0]);
         return (cross1 * cross2) < 0.0f;
     }
 }
