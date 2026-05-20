@@ -6900,12 +6900,26 @@ void gl_func_0002A50C(int *a0, int a1) {
 //   build-all-channels counterpart to gl_func_00029B6C's
 //   reset-all-channels). The 1 trailing bundled helper is its
 //   per-channel leaf, left for the deferred USO re-split.
-// Caps: raw-word USO + 2-fn unsplit bundle + fixed/jal-0 USO-reloc
-//   per-element inits — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only for the named leading fn,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed/jal-0 USO-reloc per-element
+//   inits (0x3EB78) — byte-match needs USO mnemonic disasm + reloc-
+//   pad jal infra. STALE 2-jr-bundle comment: grep -c 03E00008 = 1
+//   (.s now single fn). Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002A55C(char *obj) {
+    int i;
+    unsigned char f;
+    for (i = 0; i < 8; i++) {
+        gl_func_00000000(obj, i);
+    }
+    gl_func_00000000(obj + 0x94);
+    f = *(unsigned char *)obj & ~0x80;
+    *(unsigned char *)obj = f | 0x40;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A5C8);
 
