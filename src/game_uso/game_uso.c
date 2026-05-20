@@ -7565,7 +7565,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 11.20% NM (corrected from outdated 17.92% comment 2026-05-05).
+/* 29.48% NM (objdiff 2026-05-20; up from 11.85% before this pass).
  * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Inferred from the final cross-product sign test + screen-space transform
  * constants: this is a billboard-visibility / 2D point-on-line predicate
@@ -7573,11 +7573,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  * boolean result via $v0.
  * Strategy-memo candidate for "per-frame compute" (1.4 KB, 11 cross-calls).
  *
- * Partial C body: ~10 % match guess. Captures entry (panic-on-a2-null
- * + 2 cross-call dispatches with sp+0x190 and sp+0xDC Vec3 locals) +
- * body-part-1 Vec3 copy (a2->0x30 XZ-projection). Body-part-2 (insns
- * 50-344) still TODO -- its 300 insns of float scheduling
- * around a quaternion/matrix slot at sp+0x12C.
+ * Partial C body now captures entry (panic-on-a2-null + 2 cross-call
+ * dispatches with sp+0x190 and sp+0xDC Vec3 locals), body-part-1 Vec3 copy
+ * (a2->0x30 XZ-projection), the sp+0xC4 rotated vector, the 250.5f/50.0f
+ * screen-space scale, the tail Vec3 fanout family, and the final
+ * two-cross-product sign test. Remaining gap is the exact stack-layout /
+ * FPU scheduling of the middle transform helpers.
  *
  * ENTRY DECODE (insns 1-15 @ 0x9B88-0x9BC4):
  *   args: (a0, a1, a2).  All three spilled to caller-slot (sp+0x1A8/AC/B0)
@@ -7753,7 +7754,22 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
     float local_144[3];   /* sp+0x144: Vec3 — passed to alloc-or-fill helper */
     float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
     float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
+    float local_184[3];   /* sp+0x184: projected source from a0->0x30 + 0xB4 */
+    float local_178[3];   /* sp+0x178: copy of local_A0 */
+    float local_16C[3];   /* sp+0x16C: copy of local_88 */
+    float local_160[3];   /* sp+0x160: copy of local_7C */
+    float local_154[3];   /* sp+0x154: copy of local_44 */
+    float local_120[3];   /* sp+0x120: copy of local_B8 */
+    float local_A0[3];    /* sp+0xA0:  local_144 + local_138 */
+    float local_88[3];    /* sp+0x88:  local_120 - local_12C */
+    float local_94[3];    /* sp+0x94:  copy of local_88 */
+    float local_6C[3];    /* sp+0x6C:  local_144 - local_138 */
+    float local_7C[3];    /* sp+0x7C:  copy of local_6C */
+    float local_38[3];    /* sp+0x38:  local_120 + local_12C */
+    float local_44[3];    /* sp+0x44:  copy of local_38 */
+    float local_B8[3];    /* sp+0xB8:  local_184 - a1->0x30 */
     int *out;
+    float *src_vec;
     float src_x, src_z, dx, dz;
     float scale;          /* screen-space transform scale: 250.5f * a3->[0x54] */
     (void)a3;
@@ -7806,27 +7822,21 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
     local_144[1] = *(float*)&local_19C[1];
     local_144[2] = *(float*)&local_19C[2];
 
-    /* @ 0x9C84-0x9C98: word-copy local_C4 setup */
-    local_C4[0] = a1[0]; local_C4[1] = a1[1]; local_C4[2] = a1[2];
-
-    /* @ 0x9C9C-0x9CB0: 3rd cross-call alloc(12). Result in a1.
-     * If alloc succeeded, store XZ-rotated Vec3:
-     *   a1->[0] = local_144[2]    ; new x = old z
-     *   a1->[4] = 0.0f            ; y stays zero
-     *   a1->[8] = -local_144[0]   ; new z = -old x
-     * (= 90° clockwise rotation of local_144's XZ plane, Y=0). */
-    out = (int*)gl_func_00000000(0xC);
+    /* @ 0x9DD0-0x9E18: rotated Vec3 into the always-nonnull sp+0xC4 slot.
+     * The alloc arm is dead for the stack destination, matching the target's
+     * `bne v1,$zero` skip over the helper allocation. */
+    out = (int*)local_C4;
+    if (out == 0) {
+        out = (int*)gl_func_00000000(0xC);
+    }
     if (out != 0) {
         ((float*)out)[0] = local_144[2];   /* x = old z */
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = -local_144[0];  /* z = -old x */
     }
 
-    /* @ 0x9CD0-0x9CFC (extended decode 2026-05-03): 3-way Vec3 fan-out from
-     * local_C4 to local_EC and a new sp+0x138 buffer:
-     *   local_EC = local_C4    (word copy: sw t5,0; sw t4,4; sw t5,8)
-     *   sp+0x138 = local_C4    (same 3-word copy, interleaved)
-     * Then calls gl_func_00000000(sp+0x138, a1?, sp+0xEC) — likely a 3-Vec3
+    /* @ 0x9E1C-0x9E48: 3-way Vec3 fan-out from local_C4 to local_EC and
+     * sp+0x138, then call helper(local_138, local_C4, local_EC). Likely a 3-Vec3
      * accumulator (passing rotated, original, and delta to a single helper).
      *
      * @ 0x9D00-0x9D34: screen-space transform setup.
@@ -7946,7 +7956,21 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
      * The 250.5/50.0 constants confirm screen-space coordinate transform
      * (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset).
      * Combined with the cross-product sign test, this is likely a
-     * billboard-visibility / point-in-frustum check after screen projection. */
+     * billboard-visibility / point-in-frustum check after screen projection.
+     *
+     * 2026-05-20 variants tried:
+     *   - real tail Vec3 math + predicate: 11.85% -> 20.33%;
+     *   - raw-word fanout copies instead of float copies: 20.33% -> 28.59%;
+     *   - correct sp+0xC4 as always-stack rotated Vec3 + helper call:
+     *     28.59% -> 29.48%. */
+    *(int*)&local_EC[0] = local_C4[0];
+    *(int*)&local_EC[1] = local_C4[1];
+    *(int*)&local_EC[2] = local_C4[2];
+    *(int*)&local_138[0] = local_C4[0];
+    *(int*)&local_138[1] = local_C4[1];
+    *(int*)&local_138[2] = local_C4[2];
+    gl_func_00000000(local_138, local_C4, local_EC);
+
     /* @ 0x9D00-0x9D34: 3-word copy local_12C = local_138 buffer (the 90°-rotated
      * XZ Vec3 from the alloc-or-fill above). Both serve as input to the
      * subsequent in-place scaling chain. */
@@ -7965,44 +7989,72 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
     local_12C[0] *= scale;  local_12C[1] *= scale;  /* local_12C[2] not scaled */
     local_138[0] *= scale;  local_138[1] *= scale;  local_138[2] *= scale;
 
-    (void)local_12C;
+    /* @ 0x9F0C-0x9F48: project a source Vec3 from a0->0x30+0xB4 into
+     * sp+0x184, clearing Y. This is the fourth always-stack destination,
+     * matching the earlier alloc-or-fill Vec3 templates. */
+    src_vec = (float*)((char*)*(int*)((char*)a0 + 0x30) + 0xB4);
+    local_184[0] = src_vec[0];
+    local_184[1] = 0.0f;
+    local_184[2] = src_vec[2];
+
+    /* @ 0x9F48-0x9F9C: build the second delta vector against a1+0x30. */
+    local_B8[0] = local_184[0] - *(float*)((char*)a1 + 0x30);
+    local_B8[1] = 0.0f;
+    local_B8[2] = local_184[2] - *(float*)((char*)a1 + 0x38);
+
+    *(int*)&local_120[0] = *(int*)&local_B8[0];
+    *(int*)&local_120[1] = *(int*)&local_B8[1];
+    *(int*)&local_120[2] = *(int*)&local_B8[2];
+
+    /* @ 0x9FF4-0xA194: four unrolled screen-space Vec3 combinations. */
+    local_A0[0] = local_144[0] + local_138[0];
+    local_A0[1] = 0.0f;
+    local_A0[2] = local_144[2] + local_138[2];
+    *(int*)&local_178[0] = *(int*)&local_A0[0];
+    *(int*)&local_178[1] = *(int*)&local_A0[1];
+    *(int*)&local_178[2] = *(int*)&local_A0[2];
+
+    local_88[0] = local_120[0] - local_12C[0];
+    local_88[1] = 0.0f;
+    local_88[2] = local_120[2] - local_12C[2];
+    *(int*)&local_94[0] = *(int*)&local_88[0];
+    *(int*)&local_94[1] = *(int*)&local_88[1];
+    *(int*)&local_94[2] = *(int*)&local_88[2];
+    *(int*)&local_16C[0] = *(int*)&local_94[0];
+    *(int*)&local_16C[1] = *(int*)&local_94[1];
+    *(int*)&local_16C[2] = *(int*)&local_94[2];
+
+    local_6C[0] = local_144[0] - local_138[0];
+    local_6C[1] = 0.0f;
+    local_6C[2] = local_144[2] - local_138[2];
+    *(int*)&local_7C[0] = *(int*)&local_6C[0];
+    *(int*)&local_7C[1] = *(int*)&local_6C[1];
+    *(int*)&local_7C[2] = *(int*)&local_6C[2];
+    *(int*)&local_160[0] = *(int*)&local_7C[0];
+    *(int*)&local_160[1] = *(int*)&local_7C[1];
+    *(int*)&local_160[2] = *(int*)&local_7C[2];
+
+    local_38[0] = local_120[0] + local_12C[0];
+    local_38[1] = 0.0f;
+    local_38[2] = local_120[2] + local_12C[2];
+    *(int*)&local_44[0] = *(int*)&local_38[0];
+    *(int*)&local_44[1] = *(int*)&local_38[1];
+    *(int*)&local_44[2] = *(int*)&local_38[2];
+    *(int*)&local_154[0] = *(int*)&local_44[0];
+    *(int*)&local_154[1] = *(int*)&local_44[1];
+    *(int*)&local_154[2] = *(int*)&local_44[2];
+
     (void)local_19C;  /* suppress unused warnings until body-part-2 done */
     (void)local_EC;
     (void)local_C4;
     (void)scale;
-    /* @ 0xA0A0-0xA0E4: 2D cross-product sign test predicate. Returns 1 when
-     * cross_z < 0 (point on negative side of a directed line / counter-CW
-     * winding), else 0 (or whatever was set by an earlier dispatch arm).
-     *
-     * Sketch (2026-05-05) — register state from body-part-2 abstracted:
-     * the four operands (call them ax/ay/bx/by) are screen-projected XZ
-     * coordinates from sp+0x178, sp+0x180, sp+0x174 and a register state
-     * surviving body-part-2's mul.s chain. Cross-product sign test
-     * computes (ax*by - bx*ay) and returns 1 when the result is negative.
-     *
-     * Pseudocode the asm performs:
-     *   cross_z = (vec_a.x * vec_b.y) - (vec_b.x * vec_a.y);
-     *   diff_a  = sp[0x148] - vec_a.x * vec_b.x;       (loaded earlier)
-     *   final   = cross_z * diff_a;
-     *   return (final < 0.0f) ? 1 : prior_v0;
-     *
-     * Full operand identification requires body-part-2 decoded into named
-     * C locals first. */
+
+    /* @ 0xA1D4-0xA230: two 2D cross products over the four derived screen
+     * vectors. Return 1 when the products have opposite signs. */
     {
-        float vec_ax = *(float*)((char*)&local_19C[0] + 0xDC);  /* sp+0x178 */
-        float vec_ay = *(float*)((char*)&local_19C[0] + 0xE4);  /* sp+0x180 */
-        float diff_acc = *(float*)((char*)&local_19C[0] + 0xD8); /* sp+0x174 */
-        float cross_z;
-        float final;
-        (void)vec_ax;
-        (void)vec_ay;
-        (void)diff_acc;
-        /* The two missing operands (vec_b.x, vec_b.y) survive in $f4/$f18
-         * from body-part-2's last mul.s/sub.s chain. Without those locals
-         * the sign test C is incomplete. Documented for next pass. */
-        cross_z = 0.0f;
-        final = cross_z * diff_acc;
-        if (final < 0.0f) {
+        float cross1 = (local_160[2] * local_154[0]) - (local_160[0] * local_154[2]);
+        float cross2 = (local_178[2] * local_16C[0]) - (local_178[0] * local_16C[2]);
+        if ((cross1 * cross2) < 0.0f) {
             return 1;
         }
     }
