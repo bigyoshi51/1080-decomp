@@ -316,6 +316,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D200);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D3E0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D4B0);
+
 // gl_func_0001D4C0 — STRUCTURAL PASS (0x3B0 / 236 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: LARGE 40-jr USO
 // bundle — splat could not separate ~40 small functions here. Only
