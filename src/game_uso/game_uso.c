@@ -7750,19 +7750,20 @@ int game_uso_func_00009B88(a0, a1, a2)
     int *a1;
     int *a2;
 {
-    int   local_19C[3];   /* sp+0x19C: raw-word copy of local_DC */
+    volatile int local_19C[3]; /* sp+0x19C: raw-word copy of local_DC */
     float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
     float local_184[3];   /* sp+0x184: projected source from a0->0x30 + 0xB4 */
     float local_178[3];   /* sp+0x178: copy of local_A0 */
     float local_16C[3];   /* sp+0x16C: copy of local_88 */
     float local_160[3];   /* sp+0x160: copy of local_7C */
     float local_154[3];   /* sp+0x154: copy of local_44 */
+    int   gap_150;        /* sp+0x150: target gap between local_154/local_144 */
     float local_144[3];   /* sp+0x144: Vec3 — passed to alloc-or-fill helper */
     float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
     float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
     float local_120[3];   /* sp+0x120: copy of local_B8 */
-    char pad_10C[44];
-    int   local_EC[3];    /* sp+0xEC:  raw-word copy of local_DC */
+    char pad_10C[40];
+    volatile int local_EC[3]; /* sp+0xEC: raw-word copy of local_DC */
     char pad_E0[4];
     float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
     char pad_D0[12];
@@ -7783,6 +7784,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
     char pad_frame[32];
     (void)pad_frame;
+    (void)gap_150;
     (void)pad_10C;
     (void)pad_E0;
     (void)pad_D0;
@@ -7832,9 +7834,9 @@ int game_uso_func_00009B88(a0, a1, a2)
     local_EC[2] = ((int*)local_DC)[2];
     local_19C[1] = ((int*)local_DC)[1];
     local_19C[2] = ((int*)local_DC)[2];
-    local_144[0] = *(float*)&local_19C[0];
-    local_144[1] = *(float*)&local_19C[1];
-    local_144[2] = *(float*)&local_19C[2];
+    *(int*)&local_144[0] = local_19C[0];
+    *(int*)&local_144[1] = local_19C[1];
+    *(int*)&local_144[2] = local_19C[2];
 
     /* @ 0x9DD0-0x9E18: rotated Vec3 into the always-nonnull sp+0xC4 slot.
      * The alloc arm is dead for the stack destination, matching the target's
@@ -8021,7 +8023,18 @@ int game_uso_func_00009B88(a0, a1, a2)
  *   - commuted cross-product operands nudged FPU load order and improved to
  *     43.636627%;
  *   - named temporaries for the same tail regressed to 38.921513%.
- *   Current best: 43.636627%. */
+ *
+ * 2026-05-20 stack/raw-copy retry:
+ *   - inserted the target's sp+0x150 gap between local_154 and local_144,
+ *     compensated with the mid scratch pad to preserve lower slots, improving
+ *     43.636627% -> 43.639534%;
+ *   - changed the initial local_144 fanout from float copies to raw int-word
+ *     copies, improving to 45.968020%;
+ *   - made local_EC/local_19C volatile to preserve the target's otherwise
+ *     dead raw scratch fanout, improving to 48.229652%;
+ *   - local_144 volatile regressed to 48.078487%, and local_C4 volatile
+ *     regressed to 46.872093%, so both were rejected.
+ *   Current best: 48.229652%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
