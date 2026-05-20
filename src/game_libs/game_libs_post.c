@@ -32316,6 +32316,8 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
  */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067A90);
 #endif
 
 extern int gl_func_00067AC8_inner(float, float);
