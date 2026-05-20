@@ -17846,10 +17846,32 @@ void gl_func_0003E594(int *a0) {
 // All four-pointer stores follow the AE2x0000 / AE0y0004 / AE0z0008 /
 // AE0w000C quad pattern into the freshly-alloc'd 0x10 node. Family: same
 // string-literal-keyed cb registration idiom as gl_func_0003E39C and the
-// diagnostic/registration serializers in this segment. Caps: registry-node
-// struct + &D_0002Exxx/Fxxx string-table symbolization untyped; cb
-// signatures inferred from call shape. Full body INCLUDE_ASM-preserved.
+// diagnostic/registration serializers in this segment.
+//
+// Caps (DEFERRED): registry-node struct + &D_0002Exxx/Fxxx
+//   string-table untyped; cb signatures inferred from call shape;
+//   one representative stage shown — actual asm has 3 stages + a
+//   retry loop. Real-C STRUCTURAL body below. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0003E5E0(char *a0) {
+    char *h;
+    h = (char *)gl_func_00000000(*(char **)(a0 + 0x0C),
+                                  (char *)&D_00000000 + 0x0002F0D8, 0);
+    if (h == 0) h = (char *)gl_func_00000000(0x10);
+    if (h != 0) {
+        *(char **)(h + 0x00) = (char *)&D_00000000 + 0x0002F0D8;
+        *(char **)(h + 0x04) = (char *)&D_00000000 + 0x0002EEC0;
+        *(int *)(h + 0x08) = *(int *)((char *)&D_00000000 + 0x0002F1F8);
+        *(int *)(h + 0x0C) = *(int *)((char *)&D_00000000 + 0x0002F1FC);
+        gl_func_00000000(0x10);
+        gl_func_00000000((char *)&D_00000000 + 0x0002F318, h);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E5E0);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_0001F338;
