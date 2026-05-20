@@ -2006,6 +2006,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008854);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000886C);
+
 // timproc_uso_b5_func_0000894C — STRUCTURAL PASS (no episode).
 // Raw-.word USO. BOUNDARY NOTE: this .s is a 10-function USO bundle
 // (10 jr-ra). Named fn 0x894C..0x8968 is a TRIVIAL wrapper; the 9
