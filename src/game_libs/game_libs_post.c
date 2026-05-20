@@ -10143,18 +10143,26 @@ void gl_func_000315C4(int a0, int a1) {
     gl_ref_00045DC0(&gl_ref_00000368 + a0 * 100, 1, a1, 0x7F);
 }
 
-/* gl_func_00031608: 49-insn (0xC4) state-machine dispatcher feeding into
- * gl_ref_00045DC0 (the same vtable-dispatch helper used by sibling
- * gl_func_000315C4 / gl_func_000316CC). Structural decode 2026-05-08:
- *   - Reads global D_00000000 (some state flag) and a0->_21, a0->_22 (byte
- *     fields).
- *   - Dispatches on (global == 4) + bytes b22/b21 to compute t0 (sentinel),
- *     a0_arg, and table_offset (a0[21] * 0x64 + 0x368 = record array index).
- *   - Final call: gl_ref_00045DC0(&gl_ref_00000368 + b21 * 100, 1, 0x7F, ...)
- *     — same gl_ref_00045DC0 family as 315C4/316CC siblings.
- * Multi-tick decode pending — the 4-way state branch + 2-byte field combo
- * needs careful enumeration. Default INCLUDE_ASM keeps ROM correct. */
+/* Caps (DEFERRED): 4-way state-machine dispatch enumeration — but
+ * the final call shape is known from sibling gl_func_000315C4 /
+ * gl_func_000316CC. Real-C STRUCTURAL body below per the analysis
+ * (top-level globals + final dispatch only — full 4-way branch
+ * enumeration deferred). Byte-match deferred. Name pre-checked: no
+ * extern reuse. */
+#ifdef NON_MATCHING
+extern char gl_ref_00000368;
+void gl_func_00031608(char *a0) {
+    unsigned char b21 = *(unsigned char *)(a0 + 0x21);
+    unsigned char b22 = *(unsigned char *)(a0 + 0x22);
+    int g = *(int *)((char *)&D_00000000 + 0);
+    if (g == 4) {
+        (void)b22;
+    }
+    gl_ref_00045DC0(&gl_ref_00000368 + b21 * 100, 1, 0x7F);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031608);
+#endif
 
 extern int gl_ref_00045DC0();
 extern int gl_ref_00045DF0();
