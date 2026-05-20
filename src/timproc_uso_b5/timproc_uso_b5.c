@@ -2936,6 +2936,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C710);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C7B4);
+
 void timproc_uso_b5_func_0000C7E8(char *a0, char *a1) {
     *(float*)(*(int*)(a1 + 0x2B8) + 0x128) = *(float*)(*(int*)(a0 + 0x2B8) + 0x128);
     *(float*)(*(int*)(a1 + 0x2B8) + 0x124) = *(float*)(*(int*)(a0 + 0x2B8) + 0x124);
