@@ -10378,12 +10378,33 @@ void game_libs_func_00031A64(void) {
 //   counterpart to the per-object gl_func_0002F288 / 0002F584
 //   integrators; driven each frame by the gl_func_0002FB74
 //   interpreter through the &D_0 state word).
-// Caps: raw-word USO + data-segment FP global (-0x3540 base
-//   unsymbolized) + &D_0 state gate + multi-return — not exact-
-//   matchable without proper USO mnemonic disasm + the data-seg FP
-//   global symbolized; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + data-segment FP global (-0x3540
+//   base unsymbolized) + &D_0 state gate + multi-return — byte-
+//   match needs USO mnemonic disasm + data-seg FP global symbolized.
+//   Real-C STRUCTURAL body below per the analysis (top-level sel
+//   gate + state-arms sketch — full body's three return points
+//   summarised in the in-comment analysis above). Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00031A74(int sel, float v) {
+    int st;
+    float acc;
+    float lim;
+    if ((signed char)sel != 1) return;
+    st = *(int *)((char *)&D_00000000 + 0);
+    if (st == 0) return;
+    if (st == 4 || st == 0xB) {
+        acc = *(float *)((char *)&D_00000000 + 0x2CAC0);
+        lim = *(float *)((char *)&D_00000000 + 0x1968);
+        if (acc > lim) acc = 0.0f;
+        acc *= *(float *)((char *)&D_00000000 + 0x196C);
+        acc += v;
+        *(float *)((char *)&D_00000000 + 0x2CAC0) = acc;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031A74);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031CA8);
 
