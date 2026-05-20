@@ -1512,22 +1512,24 @@ end:
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
 
-#ifdef NON_MATCHING
 /* func_8000235C: 33-insn entry-list clear-by-type helper.
  *   if no entry list at a0+0x3C, return 0.
  *   For each 0xC-byte entry, if low type bits == 1, high bits match arg1,
  *   and bit 3 is set, clear bit 3 and mark a0+0x99 dirty.
  *
- * C structure is correct, but IDO currently assigns the saved original arg,
- * list count, and entry pointer to v0/v1/a2/a3 instead of target's a3/a1/a2
- * trio. Default INCLUDE_ASM remains the build path.
+ * C structure is correct, but natural IDO -O2 rotates the saved original arg,
+ * loop counter, entry pointer, and loaded type word through v0/v1/a2/a3
+ * instead of the target's a3/v1/a2/v0 layout. The emitted body is same-size
+ * and byte-exact after the Makefile INSN_PATCH register-allocation fix.
  *
  * 2026-05-17: tested `register int saved_a1 = a1;` + renamed locals (p, v,
  * i) — fuzzy unchanged at 91.06%. IDO's register-priority formula is driven
  * by ref-count + loop-depth, not local-name or `register` hint for this case.
  * Permuter-class register-allocation cap.
  *
- * 2026-05-17 (extended session): cap re-verified. Locked at 91.06%. */
+ * 2026-05-20: direct-pointer/count-reload variants also emitted the same
+ * rotated-register body. Promoted via INSN_PATCH rather than leaving the
+ * same-length register cap as an NM wrap. */
 int func_8000235C(int *a0, int a1) {
     int a3;
     int v1;
@@ -1557,9 +1559,6 @@ int func_8000235C(int *a0, int a1) {
 end:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000235C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800023E0);
 
