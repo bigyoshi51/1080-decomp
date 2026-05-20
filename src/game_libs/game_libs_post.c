@@ -15309,6 +15309,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003CA80);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003CA90);
+
 /* gl_func_0003CAA0: 24-insn alloc-or-given Vec6-zero constructor. */
 int* gl_func_0003CAA0(int *a0) {
     if (a0 == 0) {
