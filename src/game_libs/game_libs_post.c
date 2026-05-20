@@ -9668,11 +9668,30 @@ void gl_func_000305CC(int a0) {
 //   game_libs object subsystem (the kind of mode-arbitration helper
 //   the gl_func_0002FB74 interpreter and the emitter family call to
 //   resolve which command opcode applies).
-// Caps: raw-word USO + global-state &D_0 base + multi-branch mode
-//   cascade + conditional commit — not exact-matchable without
-//   proper USO mnemonic disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + global-state &D_0 base + multi-
+//   branch mode cascade + conditional commit — byte-match needs
+//   USO mnemonic disasm. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0003061C(char *lim, int val, int m, int kind) {
+    int *rec;
+    if (kind == 4) return;
+    rec = *(int **)((char *)&D_00000000 + 0);
+    if (m == 0) m = 8;
+    else if (m == 1) m = 0xA;
+    else if (m == 3) m = 0xB;
+    else if (kind == 5) m = 0xB;
+    if (rec == 0) return;
+    if ((char *)rec < lim) return;
+    if (m == *(int *)((char *)&D_00000000 + 4)) {
+        rec[3] = val;
+    }
+    (void)*(float *)(lim + 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
+#endif
 
 // gl_func_000307B0 — STRUCTURAL PASS (0x118 / 70 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
