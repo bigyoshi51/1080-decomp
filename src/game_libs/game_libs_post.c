@@ -9538,13 +9538,27 @@ int gl_func_0002FB54(int a0) {
 //   emitters — i.e. the command-stream "VM" for this object type.
 // Caps: 0x990 raw-word USO interpreter with a computed jump table and
 //   mixed USO-relocated + fixed intra-USO calls — categorically not
-//   exact-matchable without proper USO mnemonic disasm + the two
-//   dispatch tables symbolized; structural pass only, no byte body.
-//   (A future focused non-loop session — see the deferred USO
-//   re-split / symbolization backlog — is where this gets a real
-//   decode; not 60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x990 / 612 words ≈ 2.4KB raw-word USO interpreter
+//   with computed jump table at &D_0+0x1750 (sll-2 + lw + jr $t5) and
+//   secondary &D_0+0x17A4 sub-mode table, 31 USO-reloc + 34 fixed
+//   intra-USO jal calls — byte-match needs USO mnemonic disasm +
+//   symbolized dispatch tables (a future non-loop session). Real-C
+//   STRUCTURAL skeleton below per the analysis (top-level fast-path
+//   early-out only — full body's 69 lwc1 + opcode arms summarised
+//   in the in-comment analysis above). Byte-match deferred.
+//   Name pre-checked: no extern reuse (only "externalized" word
+//   matches in cross-ref comments).
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002FB74(int a0, int sel) {
+    if (sel != 0x13) {
+        return;
+    }
+    gl_func_00000000(a0, sel);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FB74);
+#endif
 
 extern int gl_func_00000000();
 
