@@ -2018,6 +2018,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000894C);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000896C);
+
 // timproc_uso_b5_func_00008AFC — STRUCTURAL PASS (no episode).
 // Raw-.word USO. BOUNDARY NOTE: this .s is a 3-function USO bundle
 // (3 jr-ra). Named fn 0x8AFC..0x8C18 (~70 words) is the draw loop;
