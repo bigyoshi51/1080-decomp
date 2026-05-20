@@ -13042,13 +13042,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
 //   Vec3-transform leaf and feeds the gl_func_00034458 render
 //   traversal; the FP literals 1000.0f / 200.0f are projection
 //   parameters).
-// Caps: raw-word USO + bundled 2-word no-frame tail + USO-relocated
-//   jal-0 transform callback + FP projection math — not exact-
-//   matchable without proper USO mnemonic disasm + boundary
-//   re-split + the Vec3/object typed; structural pass only, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled 2-word no-frame tail +
+//   USO-reloc jal-0 transform callback + FP projection math —
+//   byte-match needs USO mnemonic disasm + boundary re-split +
+//   Vec3/object typed. Real-C STRUCTURAL body below for the NAMED
+//   leading function only — bundled tail stub untouched. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00035E6C(char *o) {
+    float px, py, pz;
+    float tx, ty, tz;
+    float w;
+    int ok;
+    char *ctx = *(char **)((char *)&D_00000000 + 0);
+    if (ctx == 0) return;
+    px = *(float *)(o + 0x30);
+    py = *(float *)(o + 0x34);
+    pz = *(float *)(o + 0x38);
+    ok = gl_func_00000000(ctx, px, py, pz, 1000.0f, &tx, &ty, &tz, &w);
+    if (!ok) return;
+    if (w < 200.0f) {
+        (void)w;
+    }
+    *(float *)(o + 0x3C) = -tx;
+    *(float *)(o + 0x4C) = -ty;
+    *(float *)(o + 0x5C) = -tz;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
+#endif
 
 /* gl_func_00035FD4 - verified structural decode (30-insn br=0 clean
  * 4-call init; single-precision float-vararg divergence -> INCLUDE_ASM
