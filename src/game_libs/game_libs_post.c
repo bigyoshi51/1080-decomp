@@ -14656,13 +14656,26 @@ void gl_func_00038C70(int a0, int a1, int a2) {
 //   range is one message block. The list-iterating member of the
 //   game_libs object subsystem's diagnostic/trace family (dumps a
 //   whole collection vs the single-object dump of gl_func_00038360).
-// Caps: raw-word USO + intrusive-list walk + USO-relocated jal-0
-//   printf callbacks + contiguous fixed string-data table — not
-//   exact-matchable without proper USO mnemonic disasm + the
-//   string table / node struct typed; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + intrusive-list walk + USO-relocated
+//   jal-0 printf cbs + contiguous fixed string-data table; string
+//   table / node struct untyped. Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00038C98(char *o, int a1) {
+    char *n;
+    if (a1 == 0) {
+        gl_func_00000000((char *)&D_00000000 + 0x0001ECB8, *(int *)(o + 0x0C));
+    }
+    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
+        gl_func_00000000((char *)&D_00000000 + 0x0001ECCC, n);
+        gl_func_00000000(n, *(int *)(n + 0x0C));
+        gl_func_00000000((char *)&D_00000000 + 0x0001ECCC, n);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038C98);
+#endif
 
 void game_libs_func_00038D5C(int *a0, int a1) {
     a0[0x24/4] = a1;
