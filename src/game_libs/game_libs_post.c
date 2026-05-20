@@ -19819,9 +19819,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042144);
 // &D_g. Family: cb-driven parse/registration (siblings gl_func_00041D40 /
 // 00041F90 / 0003E9C8). Per-step cb identity inferred from arg shape — the
 // string-literal key sequence, the two beql bail points and the final
-// h!=0-guarded link are exact. Caps: scratch layout, &D_g global and cb
-// signatures untyped. Full body INCLUDE_ASM-preserved.
+// h!=0-guarded link are exact.
+//
+// Caps (DEFERRED): scratch layout, &D_g global and cb signatures
+//   untyped. Real-C STRUCTURAL body below. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_000421D4(void) {
+    char scr[0x40];
+    int h;
+    int v;
+    gl_func_00000000(&scr[0], (char *)&D_00000000 + 0x0002F718);
+    if (gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0002F71C, &scr[0]) == 0) return;
+    h = gl_func_00000000(&scr[0]);
+    gl_func_00000000(&scr[0], (char *)&D_00000000 + 0x0002F724);
+    if (gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0002F728, &scr[0]) == 0) return;
+    v = gl_func_00000000(&scr[0]);
+    if (h != 0) {
+        gl_func_00000000(&D_00000000, h, v);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000421D4);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00042288() {
