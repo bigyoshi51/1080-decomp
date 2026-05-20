@@ -2963,10 +2963,30 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     scr->0x4A4/0x4A8/0x4AC/0x4B0 = captured-camera fields the
 //     trailing setter clears. func_00000000 = USO placeholder
 //     dispatcher (table entry fetch).
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable here; structural pass only for the named fn.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — named leading classification query only;
+//   trailing 2 helpers (0x8D38/0x8D90) remain INCLUDE_ASM. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+int timproc_uso_b5_func_00008C44(char *r) {
+    char *c = *(char **)((char *)&D_00000000 + 0x154);
+    int m = *(short *)(r + 0x2) - 4;
+    char *e;
+    if (m < 0 || m >= 2) return 0;
+    if (*(unsigned char *)(c + 0xE) == 0xFC &&
+        *(unsigned char *)(c + 0xF) == 0xFF &&
+        *(unsigned char *)(c + 0x10) == 7) {
+        e = (char *)func_00000000((char *)&D_00000000 + 0x00000F1C, r);
+        if (*(int *)(e + 0x2B0) == 4) return 3;
+        return 4;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C44);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D38);
 
