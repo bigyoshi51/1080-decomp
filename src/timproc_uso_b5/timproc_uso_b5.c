@@ -1199,6 +1199,8 @@ void *timproc_uso_b5_func_000032C8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003890);
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038B0);
 #endif
 
 /* timproc_uso_b5_func_000038D0: 47-insn FPU-heavy function with NON-O32
