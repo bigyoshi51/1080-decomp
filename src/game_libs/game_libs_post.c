@@ -6376,11 +6376,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
 //   Completes the object lifecycle:
 //   gl_func_00028E94 (attach) → … → gl_func_00028604 (detach link) /
 //   gl_func_000291C0 (destroy+free).
-// Caps: raw-word USO + intrusive-list unlink + fixed detach/free
-//   calls — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + intrusive-list unlink + fixed
+//   detach/free calls (0x3D66C / 0x3D698) — byte-match needs USO
+//   mnemonic disasm + reloc-pad jal infra. Real-C STRUCTURAL body
+//   below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_000291C0(char *obj) {
+    char *sub = *(char **)(obj + 0x50);
+    char *par;
+    int nx;
+    if ((*(unsigned char *)(sub + 2) & 1) == 0) return;
+    par = *(char **)(obj + 0x2C);
+    if (par == 0) return;
+    if (*(int *)(par + 0x40) == (int)obj) {
+        nx = *(int *)(par + 0x48);
+        if (nx != -1) {
+            gl_func_00000000(par, nx);
+        }
+    }
+    gl_func_00000000(par, obj);
+    gl_func_00000000(obj);
+    gl_func_00000000(*(int *)(obj + 0xC) + 0x20);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000291C0);
+#endif
 
 // gl_func_00029494 — STRUCTURAL PASS (0x2F8 / 190 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
