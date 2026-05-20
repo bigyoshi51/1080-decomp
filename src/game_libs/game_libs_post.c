@@ -17557,9 +17557,40 @@ void gl_func_0003E840(int a0) {
 // a0 saved to sp+0x40 but only spilled (callee-arg slot), not used in body.
 // Family: same vtable-method dispatch (vt = obj->0x28, fnptr at vt->0xNN,
 // arg (short)vt->0xMM + obj) + cb wrap idiom as the factory/registration
-// routines elsewhere in this segment. Caps: Ctx/obj/vtable struct untyped;
-// cb signature inferred from call shape. Full body INCLUDE_ASM-preserved.
+// routines elsewhere in this segment.
+//
+// Caps (DEFERRED): Ctx/obj/vtable structs untyped; cb signature
+//   inferred from call shape. Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+char *gl_func_0003E868(void *a0, char *a1, int a2) {
+    char *vt;
+    short k1;
+    int inter;
+    char *obj;
+    int stk[2];
+    char *vt2;
+    short k2;
+    int (*fp1)(int);
+    void (*fp2)(int, int *);
+    if (a1 == 0) return 0;
+    vt = *(char **)(a1 + 0x28);
+    k1 = *(short *)(vt + 0x58);
+    fp1 = *(int (**)(int))(vt + 0x5C);
+    inter = fp1(k1 + (int)a1);
+    obj = (char *)gl_func_00000000(a1, inter);
+    *(char **)(obj + 0x0C) = a1 + 0x2C;
+    stk[0] = 7;
+    stk[1] = a2;
+    vt2 = *(char **)(obj + 0x28);
+    k2 = *(short *)(vt2 + 0x28);
+    fp2 = *(void (**)(int, int *))(vt2 + 0x2C);
+    fp2(k2 + (int)obj, stk);
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E868);
+#endif
 
 #ifdef NON_MATCHING
 /* 87.52% NM. gl_func_0003E904: 25-insn link-back wrapper.
