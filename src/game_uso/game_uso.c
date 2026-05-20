@@ -10503,12 +10503,13 @@ void game_uso_func_0000F49C(int *a0) {
     gl_func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
 /* game_uso_func_0000F514: 37-insn state-init w/ flag-gated branch.
  * gl_func_0(a0); a0->0xB4->0xA68 = 1; check (a0->0xB4)->0x800->0x10 & 0x200:
  *   if set:  gl_func_0(a0); gl_func_0(a0, 1, 1);
  *   else:    gl_func_0(a0, D[0xED8], D[0xEDC]);
- * gl_func_0(a0). Multi-pass NM. F49C-family — same precall-arg-spill cap. */
+ * gl_func_0(a0). Promoted with the game_uso call-tail recipe: the C body
+ * gives the correct branch layout, and Makefile SUFFIX_BYTES_FORCE +
+ * INSN_PATCH restore the target's caller-slot D-pair spills and epilogue. */
 void game_uso_func_0000F514(int *a0) {
     int *sub;
     int **subp;
@@ -10519,19 +10520,16 @@ void game_uso_func_0000F514(int *a0) {
     sub = (int*)a0[0xB4/4];
     subp = (int**)((char*)sub + 0x800);
     p2 = *subp;
-    if (p2[0x10/4] & 0x200) {
-        gl_func_00000000(a0);
-        gl_func_00000000(a0, 1, 1);
-    } else {
+    if (!(p2[0x10/4] & 0x200)) {
         gl_func_00000000(a0,
             *(int*)((char*)&D_00000000 + 0xED8),
             *(int*)((char*)&D_00000000 + 0xEDC));
+    } else {
+        gl_func_00000000(a0);
+        gl_func_00000000(a0, 1, 1);
     }
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F514);
-#endif
 
 /* game_uso_func_0000F5A8: 47-insn EE84-family branching variant.
  *   s0=a0;
