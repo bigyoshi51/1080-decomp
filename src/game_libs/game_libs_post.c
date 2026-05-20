@@ -16967,12 +16967,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DBEC);
 //   collection-aggregate node of the game_libs object subsystem
 //   (same convention: list head +0x10, next +0x04, handler at
 //   +0x28).
-// Caps: raw-word USO + intrusive-list walk + repeated jalr through
-//   handler vtable ((o->0x28)+0x84) with threaded accumulator —
-//   not exact-matchable without proper USO mnemonic disasm + the
-//   list/handler structs typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + intrusive-list walk + repeated jalr
+//   through handler vtable ((o->0x28)+0x84) with threaded accumulator;
+//   list/handler structs untyped. Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0003DC90(char *o) {
+    char *h = *(char **)(o + 0x28);
+    int (*fp)(int, int);
+    int acc;
+    char *n;
+    fp = *(int (**)(int, int))(h + 0x84);
+    acc = ((int (*)(int))fp)(*(short *)(h + 0x80) + (int)o);
+    if (acc == 0) return;
+    *(int *)(o + 0x34) = acc;
+    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
+        acc = fp(acc, *(short *)(h + 0x80) + (int)o);
+        *(int *)(o + 0x84) = acc;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DC90);
+#endif
 
 // gl_func_0003DD28 — STRUCTURAL PASS (0x98 / 38 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
