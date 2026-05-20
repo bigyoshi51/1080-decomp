@@ -14153,13 +14153,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038108);
 //   subsystem over a shared message table; the obj->0x28->0x44
 //   slot ties this to the device-object vtable family
 //   (gl_func_00034188 / 00034458 / 0003537x).
-// Caps: raw-word USO + USO-relocated jal-0 printf callbacks +
-//   contiguous fixed string-data table + jalr through object
-//   vtable (obj->0x28+0x44) — not exact-matchable without proper
-//   USO mnemonic disasm + the string table / vtable typed;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 printf
+//   callbacks + contiguous fixed string-data table + jalr through
+//   object vtable (obj->0x28+0x44); string table / vtable untyped.
+//   Real-C STRUCTURAL body below — sibling of gl_func_00038108.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_000381F8(char *o) {
+    char *r;
+    void (*fp)(int);
+    short h;
+    gl_func_00000000(&D_00000000);
+    if (gl_func_00000000((char *)&D_00000000 + 0x0001EC20,
+                         (char *)&D_00000000 + 0x0001EC28,
+                         &D_00000000)) {
+        if (gl_func_00000000((char *)&D_00000000 + 0x0001EC30)) {
+            r = *(char **)(o + 0x28);
+            fp = *(void (**)(int))(r + 0x44);
+            h = *(short *)(r + 0x40);
+            fp(h + (int)r);
+            gl_func_00000000(&D_00000000);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000381F8);
+#endif
 
 void game_libs_func_00038294(int a0) {
 }
