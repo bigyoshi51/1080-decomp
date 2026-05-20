@@ -2223,11 +2223,49 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     see docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C);
 //   D_000003E0 = USO static phase/handler table. func_00000000 = USO
 //   placeholder dispatcher (gate / hide / re-init).
-// Caps: raw-word USO + folded const + placeholder calls — not exact-
-//   matchable without proper USO mnemonic disasm; structure
-//   characterized. Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + folded const + placeholder calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — countdown + alpha-fade + teardown + next
+//   phase skeleton only. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_000079A4(char *scr) {
+    char *d;
+    void (*fp)(int);
+    char *e;
+    float K = *(float *)((char *)&D_00000000 + 0x000001D0);
+    *(int *)(scr + 0x400) -= 1;
+    if (*(int *)(scr + 0x34) == 2) {
+        if (*(float *)(scr + 0x4A0) > 0.0f) *(float *)(scr + 0x4A0) -= K;
+        if (*(float *)(scr + 0x4A0) < 0.0f) *(float *)(scr + 0x4A0) = 0.0f;
+    }
+    if (*(int *)(scr + 0x400) == 0) {
+        if (func_00000000(scr)) return;
+        d = *(char **)(scr + 0x28);
+        fp = *(void (**)(int))(d + 0x8C);
+        fp(*(short *)(d + 0x88));
+        func_00000000(scr);
+        func_00000000(scr);
+        d = *(char **)(scr + 0x28);
+        fp = *(void (**)(int))(d + 0x84);
+        fp(*(short *)(d + 0x80));
+        if (func_00000000(scr)) {
+            func_00000000(*(char **)(scr + 0x41C));
+            return;
+        }
+        e = ((char **)((char *)&D_00000000 + 0x000003E0))[*(int *)(scr + 0x3C4)];
+        *(int *)(scr + 0x3D4) = func_00000000(e, *(short *)(e + 0xA4));
+        *(int *)(scr + 0x3C8) = func_00000000(scr);
+        *(int *)(scr + 0x3C4) = func_00000000(scr);
+        *(int *)(scr + 0x3CC) = 6;
+        *(float *)(scr + 0x484) = 1.0f;
+        func_00000000(scr, 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000079A4);
+#endif
 
 // timproc_uso_b5_func_00007B2C — STRUCTURAL PASS (0x308 / 194 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
