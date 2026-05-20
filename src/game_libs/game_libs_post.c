@@ -18340,9 +18340,32 @@ int gl_func_0003F730(int *a0, int a1, int a2) {
 // chain's status word (sp+0x68), which is also the return value. Family:
 // same cb-driven staged-serialize idiom (with a local 0x23-tagged scratch
 // buffer) as the diagnostic/trace serializers elsewhere in this segment.
-// Caps: scratch-buffer layout + cbN signatures inferred from call shape;
-// arg-struct untyped. Full body INCLUDE_ASM-preserved.
+//
+// Caps (DEFERRED): scratch-buffer layout + cbN signatures inferred from
+//   call shape; arg-struct untyped. Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+int gl_func_0003F7A8(void *a0, int a1, int a2, int a3, int a4) {
+    char buf[0xA0];
+    char tagbuf[0x10];
+    int st;
+    tagbuf[0] = 0x23;
+    gl_func_00000000(&buf[0], a4);
+    gl_func_00000000(&tagbuf[0]);
+    gl_func_00000000(&buf[0], a2);
+    gl_func_00000000(&tagbuf[0]);
+    gl_func_00000000(a0);
+    gl_func_00000000(&tagbuf[0]);
+    st = *(int *)&buf[0x48];
+    if (st != 0) {
+        gl_func_00000000(a3, &buf[0]);
+    }
+    return st;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
+#endif
 
 /* gl_func_0003F82C: 21-insn 3-call helper with large stack buffer. */
 int gl_func_0003F82C(int a0, int a1) {
