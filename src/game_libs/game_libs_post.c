@@ -17770,10 +17770,33 @@ void game_libs_func_0003E9C0(int *a0, int a1) {
 // The leading lwl/lwr + swl/swr pair is a 4-byte unaligned token copy from
 // the config block into the sp scratch (NOT a struct fragment). Family: same
 // string-literal-keyed cb lookup + resolve idiom as gl_func_0003E5E0 /
-// 0003E39C and the segment's registration routines. Caps: object struct +
-// &D_0002F34C..F35C string/config-table symbolization untyped; cb/cb2/cb3
-// signatures inferred from call shape. Full body INCLUDE_ASM-preserved.
+// 0003E39C and the segment's registration routines.
+//
+// Caps (DEFERRED): object struct + &D_0002F34C..F35C string/config
+//   table untyped; cb/cb2/cb3 signatures inferred from call shape.
+//   Real-C STRUCTURAL body below. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0003E9C8(void *a0) {
+    int scratch;
+    int t1, t2;
+    char *o1, *o2;
+    scratch = *(int *)((char *)&D_00000000 + 0x0002F34C);
+    if (!gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0002F350)) return;
+    t1 = scratch;
+    o1 = (char *)gl_func_00000000(a0, t1);
+    if (!o1) return;
+    if (!gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0002F358, &scratch)) return;
+    t2 = scratch;
+    o2 = (char *)gl_func_00000000(a0, t2);
+    if (!o2) return;
+    gl_func_00000000((char *)&D_00000000 + 0x0002F35C, o1 + 0x2C, o2 + 0x2C);
+    *(int *)(o1 + 0x2C) = *(int *)(o2 + 0x2C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E9C8);
+#endif
 
 /* gl_func_0003EA98: linked-list lookup by key. Walks list at a0->[0x2C]
  * via 0x30 next-pointer; returns first node where node->[0x2C] == a1, or 0.
