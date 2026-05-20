@@ -20834,6 +20834,8 @@ void gl_func_00043284(int *a0, int a1) {
 // struct + the &D_0+0x18C global untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000432BC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00043468);
+
 // gl_func_00043484 — STRUCTURAL PASS (0xD0 / 53 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0, no calls (leaf) → ONE clean function. Single
 // prologue frame 0x10. Halfword buffer zero-fill with unrolled main loop.
