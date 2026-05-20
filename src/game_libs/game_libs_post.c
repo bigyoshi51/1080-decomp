@@ -12702,12 +12702,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000358DC);
 //   fixable with mnemonic split/merge tooling — needs the
 //   spimdisasm-USO migration). No merge attempted (would corrupt
 //   the stubs); no episode.
-// Caps: raw-word USO + bundled no-frame leaves + jalr through global
-//   handler vtable ((*&D_0)+0x5C) — not exact-matchable without
-//   proper USO mnemonic disasm + boundary re-split; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled no-frame leaves (4 trivial
+//   default-vtable stubs at tail) + jalr through global handler
+//   vtable ((*&D_0)+0x5C) — byte-match needs USO mnemonic disasm
+//   + boundary re-split. Real-C STRUCTURAL body below for the
+//   NAMED leading function only (7th sibling: 35370 0x4C / 35440
+//   0x50 / 35648 0x54 / this 0x5C / 355A0 0x60 — consecutive
+//   handler-vtable slots now mapped). Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+int gl_func_0003593C(char *o) {
+    char *h;
+    int (*f)(int);
+    if (*(int *)(o + 4) != 1) return 0;
+    h = *(char **)((char *)&D_00000000 + 0);
+    f = *(int (**)(int))(h + 0x5C);
+    return f(*(int *)(o + 0x20));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003593C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035988);
 
