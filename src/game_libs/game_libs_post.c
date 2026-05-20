@@ -9937,11 +9937,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000309B4);
 //   submission node of the game_libs object subsystem (companion to
 //   the gl_func_000309B4 selector-recorder; both stash into the
 //   &D_0 global record and feed the gl_func_0002FB74 interpreter).
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + &D_0 global
-//   state gate + branch-likely thresholds — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + &D_0
+//   global state gate + branch-likely thresholds — byte-match
+//   needs USO mnemonic disasm + reloc-pad jal infra. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00030A20(int a, int b) {
+    char *p;
+    gl_func_00000000();
+    *(int *)((char *)&D_00000000 + 0x18) = a;
+    gl_func_00000000(0xF);
+    *(int *)((char *)&D_00000000 + 0x1C) = b;
+    if (*(int *)((char *)&D_00000000 + 4) != 4) return;
+    p = *(char **)((char *)&D_00000000 + 0x20);
+    if (a < 5) {
+        gl_func_00000000(*(int *)p + 0x29);
+    } else {
+        gl_func_00000000(*(int *)p + 0x04);
+        gl_func_00000000(0xE);
+    }
+    if (b < 5) {
+        gl_func_00000000(*(int *)p);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
+#endif
 
 // gl_func_00030AF4 — STRUCTURAL PASS (0x840 / 528 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr $ra)
