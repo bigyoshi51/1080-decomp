@@ -1212,6 +1212,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Default INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038D0);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000396C);
+
 /* timproc_uso_b5_func_0000398C: 47-insn bundled symbol, sibling of
  * timproc_uso_b5_func_000038D0. F1 @ 0x398C-0x3A24 (39 insns) is
  * BYTE-IDENTICAL TEMPLATE to 38D0's F1 except for two field-offset
