@@ -6712,11 +6712,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
 //   game_libs dispatch tables (&D_0+0xE7C / 0xEA0 / 0xEE0 / 0xF10
 //   from gl_func_0002119C / 00023914 / 00026790) — the subsystem's
 //   command-VM step over a per-buffer instruction stream.
-// Caps: raw-word USO + computed jump-table dispatch + jal-0
-//   USO-reloc handler — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + computed jump-table dispatch +
+//   jal-0 USO-reloc handler (0x3F05C) — byte-match needs USO
+//   mnemonic disasm + reloc-pad jal infra. Real-C STRUCTURAL body
+//   below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0002A080(unsigned int op, char *a1, int a2, int a3) {
+    int r = 0;
+    if (op >= 0xE) return 0;
+    switch (op) {
+        case 0:  *(unsigned char *)(a1 + 0x18) = (unsigned char)a3;
+                 *(int *)a1 = *(int *)(a1 + 4); break;
+        case 1:  gl_func_00000000(a1); break;
+        case 2:  case 3:  case 4:  case 5:
+        case 6:  case 7:  case 8:  case 9:
+        case 10: case 11: case 12: case 13:
+                 gl_func_00000000(a1, a2, a3); break;
+    }
+    (void)&D_00000000;
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
+#endif
 
 // gl_func_0002A260 — STRUCTURAL PASS (0x14C / 83 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
