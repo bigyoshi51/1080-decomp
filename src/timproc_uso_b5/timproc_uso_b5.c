@@ -631,7 +631,6 @@ end:
 //   STRUCTURAL body below — two-widget HUD constructor. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00001460(char *o) {
     char *A;
     char *B;
@@ -700,7 +699,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — radial-dial HUD panel constructor with 6 cardinal-angle
 //   children. Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00001658(char *o) {
     char *P;
     char *c;
@@ -2061,7 +2059,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087A0);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087D0);
+int timproc_uso_b5_func_000087D0(void) {
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087D8);
 
