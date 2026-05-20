@@ -11771,25 +11771,24 @@ char *gl_func_00034890(char *o) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
 #endif
 
-/* gl_func_000349E8 - verified structural decode (27-insn deterministic
- * no-branch; stolen-base leading load = involved -> INCLUDE_ASM build
- * path; struct-typing reference).
- *   D[0] = D[0] | 4;                          // leading lw t6,0(&D) STOLEN
- *                                             // by predecessor (uninit t6
- *                                             // read at 0x014)
- *   gl_func_00000000(&D, 0x1E460, 900, 900);  // X1 (a1 = 0x20000-7072)
- *   gl_func_00000000(*(int*)&D);              // X2
- *   gl_func_00000000(&D);                     // X3
- *   D[0] = D[0] & ~4;
- * Struct-typing: D[0] is a global flag word; bit 0x4 is set for the
- * duration of the X1/X2/X3 init then cleared (a re-entrancy / in-progress
- * guard). X1 = (&D, 0x1E460, 900, 900) registration; X2 takes *(int*)&D
- * (the flagged value); X3(&D). Caps: the leading `D[0] |= 4` needs a
- * `lw _,0(&D)` that the target hoisted into the predecessor (t6 read
- * UNINITIALIZED at 0x014) - clean C emits the lw (+1 insn) -> needs
- * PROLOGUE_STEALS + predecessor boundary analysis, not a clean episode.
- * br=0 deterministic but stolen-base variant. INCLUDE_ASM (no episode). */
+/* Caps (DEFERRED): leading `D[0] |= 4` needs `lw _,0(&D)` that the
+ * target hoisted into the predecessor (uninit t6 read at 0x014) —
+ * clean C emits the lw (+1 insn) → byte-match needs PROLOGUE_STEALS
+ * + predecessor boundary analysis. Real-C STRUCTURAL body below per
+ * the decode (re-entrancy/in-progress guard: set D bit 0x4 for
+ * X1/X2/X3 init then clear). Byte-match deferred. Name pre-checked:
+ * no extern reuse. */
+#ifdef NON_MATCHING
+void gl_func_000349E8(void) {
+    *(int *)((char *)&D_00000000 + 0) |= 4;
+    gl_func_00000000(&D_00000000, 0x1E460, 900, 900);
+    gl_func_00000000(*(int *)((char *)&D_00000000 + 0));
+    gl_func_00000000(&D_00000000);
+    *(int *)((char *)&D_00000000 + 0) &= ~4;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000349E8);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_0001E468;
