@@ -13831,13 +13831,31 @@ int *gl_func_000378D0(int *a0, int a1, float a2) {
 //   flag-transform — the matrix-combine stage of the game_libs
 //   object subsystem's geometry pipeline (no &D_0 / no callbacks
 //   in the leader — a pure-math node).
-// Caps: raw-word USO + bundled ~3-word no-frame tail + FP matrix
-//   add/sub compose + word-copy block move — not exact-matchable
-//   without proper USO mnemonic disasm + boundary re-split + the
-//   matrix/vector structs typed; structural pass only, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled ~3-word no-frame tail +
+//   FP matrix add/sub compose + word-copy block move;
+//   matrix/vector structs untyped; bundle re-split deferred. Real-C
+//   STRUCTURAL body below — Vec3 add/sub compose + block-copy
+//   skeleton only. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+void gl_func_00037938(char *o) {
+    char *s = *(char **)(o + 0x14);
+    char *t = *(char **)(o + 0x2C);
+    float a0 = *(float *)(s + 0xA0);
+    float a1 = *(float *)(s + 0xA4);
+    float a2 = *(float *)(s + 0xA8);
+    float b0 = *(float *)(t + 0xA0);
+    float b1 = *(float *)(t + 0x70 + 0x34);
+    float b2 = *(float *)(t + 0x70 + 0x38);
+    float scratch[3];
+    scratch[0] = a0 + b0;
+    scratch[1] = a1 - b1;
+    scratch[2] = a2 - b2;
+    gl_func_00000000(o, scratch);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037A90);
 
