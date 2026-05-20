@@ -29586,6 +29586,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061A0C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061ADC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061AF0);
+
 /* gl_func_00061B30 — verified structural decode (global-subsystem init,
  * 37 insns; arg-spill + (sp+47)&~3 aligned stack scratch + 3 calls =
  * medium-difficulty class, not the trivial-ctor easy subset →
