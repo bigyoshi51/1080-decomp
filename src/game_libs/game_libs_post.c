@@ -20457,14 +20457,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042684);
 // reduction to a scalar, calls a cb scalar helper (sqrt/normalize shape),
 // and refines/compares it against double immediates and the FP-literal-pool
 // double at &D_0+0x1B30 — which EXTENDS the contiguous spatial/FP-literal
-// pool block documented for this segment (1B30 region; symbolization is in
-// the deferred FP-pool backlog). Family: FP Vec3 geometry/transform
-// (siblings gl_func_00040CAC / 00040E90 / 00041008). Exact reduction formula
-// and compare sense representative — the operand offsets, the cb call, the
-// double-constant set (1.0/32.0/4.0) and the &D_0+0x1B30 FP-pool reference
-// are exact. Caps: Vec struct, FP-pool symbolization and cb signature
-// untyped. Full body INCLUDE_ASM-preserved.
+// pool block documented for this segment.
+//
+// Caps (DEFERRED): Vec struct, FP-pool symbolization and cb signature
+//   untyped; exact reduction formula and compare sense representative.
+//   Real-C STRUCTURAL body below. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+extern float sqrtf(float);
+float gl_func_00042778(void *a0, char *a1, char *a2) {
+    float ax = *(float *)(a1 + 0x08);
+    float ay = *(float *)(a1 + 0x18);
+    float az = *(float *)(a1 + 0x28);
+    float bx = *(float *)(a2 + 0x00);
+    float by = *(float *)(a2 + 0x04);
+    float bz = *(float *)(a2 + 0x08);
+    float dx = ax - bx;
+    float dy = ay - by;
+    float dz = az - bz;
+    float s = dx * dx + dy * dy + dz * dz;
+    double k = *(double *)((char *)&D_00000000 + 0x1B30);
+    double r = (double)sqrtf(s);
+    if (r < k) {
+        return (float)(r * 32.0 / 4.0);
+    }
+    return (float)r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042778);
+#endif
 
 // gl_func_00042944 — STRUCTURAL PASS (0x78C / 488 words, no episode). Raw-.word
 // USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
