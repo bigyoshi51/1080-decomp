@@ -21648,12 +21648,34 @@ void gl_func_00046F80(int a0, int a1, int a2) {
 // conditional cb pre-dispatch calls on the a1/a2/a3 args, the whole thing
 // gated on the a0->0x28C "already emitted" flag. Family: CPU-side RDP DL
 // fragment builder (sibling of gl_func_00045E20 / 00046050; see
-// docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder). The cb
-// pre-dispatch arg wiring is representative; the a0->0x28C guard, the
-// a0->0x254->0x158->0x0C GfxCtx path, the 0xF6 opcode, the idx-bump and the
-// i*8 two-word stride are exact. Caps: GfxCtx struct + the arg word source
-// and cb signature untyped. Full body INCLUDE_ASM-preserved.
+// docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder).
+//
+// Caps (DEFERRED): GfxCtx struct + arg-word source + cb signature
+//   untyped. Real-C STRUCTURAL body below. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00046FA8(char *a0, int a1, int a2, int a3) {
+    char *ctx;
+    char *gb;
+    int i;
+    unsigned int *p;
+    int argW;
+    if (*(int *)(a0 + 0x28C) != 0) return;
+    ctx = *(char **)(*(char **)(a0 + 0x254) + 0x158);
+    if (a3 != 0) gl_func_00000000(ctx, a1);
+    gl_func_00000000(ctx, a2);
+    gl_func_00000000(ctx, a3);
+    gb = *(char **)(ctx + 0x0C);
+    i = *(int *)(gb + 0x4);
+    *(int *)(gb + 0x4) = i + 1;
+    p = (unsigned int *)(*(char **)gb + i * 8);
+    p[0] = 0xF6000000;
+    argW = gl_func_00000000(a1);
+    p[1] = (unsigned int)argW;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046FA8);
+#endif
 
 // gl_func_000470FC — STRUCTURAL PASS (0x294 / 172 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
