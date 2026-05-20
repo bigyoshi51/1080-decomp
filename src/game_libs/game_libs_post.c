@@ -29936,6 +29936,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000622D8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062368);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062444);
+
 #ifdef NON_MATCHING
 /* gl_func_00062484: 26-insn alloc-empty-slot + 21-insn lookup-by-key BUNDLE (0xBC declared).
  *
