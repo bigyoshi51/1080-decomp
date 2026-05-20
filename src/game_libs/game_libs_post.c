@@ -28517,6 +28517,8 @@ void game_libs_func_00060574(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060584);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000607FC);
+
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000608A4);
 
 /* gl_func_00060A74: 23-insn guarded-call wrapper with K&R varargs
