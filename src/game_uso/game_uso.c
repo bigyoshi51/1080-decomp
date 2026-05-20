@@ -7782,7 +7782,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     float src_x, src_z, dx, dz;
     float scale0;         /* screen-space transform scale: 250.0f * a1->0x54 + 50.0f */
     float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
-    char pad_frame[32];
+    char pad_frame[24];
     (void)pad_frame;
     (void)gap_150;
     (void)pad_10C;
@@ -8054,7 +8054,19 @@ int game_uso_func_00009B88(a0, a1, a2)
  *   - removing volatile from local_EC/local_19C regressed to 45.918606%;
  *   - tuning pad_10C from 40 to 24 kept target-adjacent lower stack slots
  *     closer and improved to 48.851746% (pad 16/32 were worse).
- *   Current best: 48.851746%. */
+ *   Current best at that point: 48.851746%.
+ *
+ * 2026-05-20 continuation:
+ *   - remeasured inherited body after forced non_matching rebuild:
+ *     48.811047%;
+ *   - pad_10C=8 regressed to 48.779068%;
+ *   - explicit first-destination non-null/else alloc form regressed to
+ *     47.72384%;
+ *   - adding real alloc-or-fill wrappers for the middle local_184
+ *     source-projection and local_B8 delta blocks improved to 50.311047%;
+ *   - reducing pad_frame 32 -> 24 restored the target -0x1A8 frame and
+ *     improved to 50.337208%; pad_frame=16 regressed to 50.30814.
+ *   Current best: 50.337208%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
@@ -8087,14 +8099,26 @@ int game_uso_func_00009B88(a0, a1, a2)
      * sp+0x184, clearing Y. This is the fourth always-stack destination,
      * matching the earlier alloc-or-fill Vec3 templates. */
     src_vec = (float*)((char*)*(int*)((char*)a0 + 0x30) + 0xB4);
-    local_184[0] = src_vec[0];
-    local_184[1] = 0.0f;
-    local_184[2] = src_vec[2];
+    out = (int*)local_184;
+    if (out == 0) {
+        out = (int*)gl_func_00000000(0xC);
+    }
+    if (out != 0) {
+        ((float*)out)[0] = src_vec[0];
+        ((float*)out)[1] = 0.0f;
+        ((float*)out)[2] = src_vec[2];
+    }
 
     /* @ 0x9F48-0x9F9C: build the second delta vector against a1+0x30. */
-    local_B8[0] = local_184[0] - *(float*)((char*)a1 + 0x30);
-    local_B8[1] = 0.0f;
-    local_B8[2] = local_184[2] - *(float*)((char*)a1 + 0x38);
+    out = (int*)local_B8;
+    if (out == 0) {
+        out = (int*)gl_func_00000000(0xC);
+    }
+    if (out != 0) {
+        ((float*)out)[0] = local_184[0] - *(float*)((char*)a1 + 0x30);
+        ((float*)out)[1] = 0.0f;
+        ((float*)out)[2] = local_184[2] - *(float*)((char*)a1 + 0x38);
+    }
 
     *(int*)&local_120[0] = *(int*)&local_B8[0];
     *(int*)&local_120[1] = *(int*)&local_B8[1];
