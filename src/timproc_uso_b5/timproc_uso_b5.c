@@ -695,11 +695,41 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   ANGLE args 0/±90/±180/±270 (deg*1, signed) = dial tick positions.
 //   &D_000010B8 / &D_000010C0 / &D_000010C8 = USO name/desc data refs;
 //   func_00000000 = USO placeholder dispatcher (setup/factory/attach).
-// Caps: raw-word USO + placeholder calls — not exact-matchable without
-//   proper USO mnemonic disasm; structure characterized. Structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — radial-dial HUD panel constructor with 6 cardinal-angle
+//   children. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00001658(char *o) {
+    char *P;
+    char *c;
+    int angles[6] = { 0, 0x5A, 0xB4, 0x10E, -0x5A, -0x10E };
+    int offsets[6] = { 0x44, 0x48, 0x4C, 0x50, 0x54, 0x58 };
+    int i;
+    func_00000000((char *)&D_00000000 + 0x000010B8, 0);
+    func_00000000((char *)&D_00000000 + 0x000010C0, 0);
+    P = (char *)func_00000000(0, (char *)&D_00000000 + 0x000010C8, 1, 0x100);
+    func_00000000(o + 0x10, P);
+    if (*(char **)(o + 0x14) == 0) {
+        *(int *)(o + 0x4) = 1;
+        *(char **)(o + 0x14) = o;
+    }
+    for (i = 0; i < 6; i++) {
+        c = (char *)func_00000000(0, &D_00000000, 0, angles[i], 0);
+        *(char **)(o + offsets[i]) = c;
+        func_00000000(c + 0x10, P);
+        if (*(char **)(c + 0x14) == 0) {
+            *(int *)(c + 0x4) = 1;
+            *(char **)(c + 0x14) = P;
+        }
+    }
+    func_00000000(o);
+    func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001658);
+#endif
 
 // timproc_uso_b5_func_000018B4 — STRUCTURAL PASS (0x354 / 213 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
