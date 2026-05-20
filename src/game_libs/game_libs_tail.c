@@ -980,7 +980,6 @@ void gl_func_0000C1E0(int a0) {
     gl_func_00000000(a0, &scratch);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000C210: 31-insn alloc-init-conditional-finalize (0x7C, frame 0x20).
  *
  * Decoded structure (raw-word disasm, no caller-set float convention):
@@ -999,8 +998,7 @@ void gl_func_0000C1E0(int a0) {
  * attempts deferred.
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 with
- * substantive decode (per feedback_doc_marker_is_bail.md). INCLUDE_ASM is
- * the build path.
+ * substantive decode (per feedback_doc_marker_is_bail.md).
  */
 void* gl_func_0000C210(void *arg0) {
     int *obj = (int*)gl_func_00000000(0x10);
@@ -1012,9 +1010,6 @@ void* gl_func_0000C210(void *arg0) {
     }
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C210);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C28C);
 
