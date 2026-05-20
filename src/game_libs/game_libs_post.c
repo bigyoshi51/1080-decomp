@@ -16596,14 +16596,31 @@ void gl_func_0003CB6C(char *a0, int a1, int a2, float a3, float a4) {
 //   complements the precise gl_func_0003B9C0 distance solver and
 //   feeds the gl_func_0003C43C spatial-query node — together the
 //   collision/visibility front-end).
-// Caps: 0x3E0 raw-word USO + flag-gated per-component abs-delta vs
-//   1000.0f bound + extensive FP compare chain — categorically not
-//   exact-matchable without proper USO mnemonic disasm + the
-//   object vector layout typed; structural pass only, no byte body.
-//   (A future focused non-loop session is where this gets a real
-//   decode; not 60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x3E0 raw-word USO + flag-gated per-component
+//   abs-delta vs 1000.0f bound + extensive FP compare chain; object
+//   vector layout untyped. Real-C STRUCTURAL body below — gate +
+//   per-axis abs-delta proximity test only. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+int gl_func_0003CBB4(char *a, char *b, int c) {
+    float dx, dy, dz;
+    float BOUND = 1000.0f;
+    if (*(int *)(b + 0x08) != 1) return 0;
+    dx = *(float *)(a + 0x20) - *(float *)(b + 0x20);
+    if (dx < 0.0f) dx = -dx;
+    if (dx >= BOUND) return 0;
+    dy = *(float *)(a + 0x24) - *(float *)(b + 0x24);
+    if (dy < 0.0f) dy = -dy;
+    if (dy >= BOUND) return 0;
+    dz = *(float *)(a + 0x28) - *(float *)(b + 0x28);
+    if (dz < 0.0f) dz = -dz;
+    if (dz >= BOUND) return 0;
+    (void)c;
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CBB4);
+#endif
 
 extern int gl_ref_0004F018();
 extern int gl_ref_0004F054();
