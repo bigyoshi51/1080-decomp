@@ -11163,12 +11163,29 @@ int gl_func_00033B28(int a0, int a1, int a2) {{
 //   game_libs object subsystem (per-frame or per-state-change
 //   teardown before re-registration; the table is the collection
 //   the gl_func_0002FB74 interpreter iterates).
-// Caps: raw-word USO + USO-relocated jal-0 callback + &D_0
-//   record-array sweep (0x44 stride, +0x2D8 limit) — not exact-
-//   matchable without proper USO mnemonic disasm + the record
-//   struct typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callback + &D_0
+//   record-array sweep (0x44 stride, +0x2D8 limit) — byte-match
+//   needs USO mnemonic disasm + record struct typed. Real-C
+//   STRUCTURAL body below per the analysis (teardown counterpart
+//   to gl_func_000337AC / gl_func_00033880). Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00033B6C(void) {
+    char *rec = (char *)&D_00000000;
+    char *f18 = (char *)&D_00000000 + 0x18;
+    char *f30 = (char *)&D_00000000 + 0x30;
+    char *end = (char *)&D_00000000 + 0x2D8;
+    do {
+        *(int *)(rec + 0x3C) = 0;
+        gl_func_00000000(f18, f30, 1);
+        rec += 0x44;
+        f18 += 0x44;
+        f30 += 0x44;
+    } while (f30 != end);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
+#endif
 
 // gl_func_00033BE4 — STRUCTURAL PASS (0x2D4 / 181 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
