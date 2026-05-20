@@ -12633,13 +12633,31 @@ int gl_func_00035894(int *a0) {
     return 0;
 }
 
-/* gl_func_000358DC: 3-way dispatch on a0->[4].
- *   case 1: g = *(int**)&D_0; g->[0x58](a0->[0x20]);
- *   case 0: func(&D_0);
- *   default: noop.
- * Tried switch, if/else-if, 2-arg sig with unused a1 — best 68.9%.
- * Target hoists `or a1, a0, 0` for $a1-carrier; not C-reachable. */
+/* Caps (DEFERRED): target hoists `or a1, a0, 0` for $a1-carrier;
+ * not C-reachable (best 68.9% via switch / if-else-if / 2-arg-sig
+ * variants). Real-C STRUCTURAL body below per the in-comment
+ * decode (6th sibling of the kind-dispatch family at vtable slot
+ * 0x58). Byte-match deferred. Name pre-checked: no extern reuse. */
+#ifdef NON_MATCHING
+void gl_func_000358DC(char *a0) {
+    char *g;
+    void (*f)(int);
+    switch (*(int *)(a0 + 4)) {
+        case 1:
+            g = *(char **)((char *)&D_00000000 + 0);
+            f = *(void (**)(int))(g + 0x58);
+            f(*(int *)(a0 + 0x20));
+            break;
+        case 0:
+            gl_func_00000000(&D_00000000);
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000358DC);
+#endif
 
 // gl_func_0003593C — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
 // (0x88 / 34 words, no episode). Raw-.word USO form (game_libs).
