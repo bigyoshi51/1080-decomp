@@ -6948,11 +6948,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A5C8);
 //   bounded object table in the game_libs object subsystem (the
 //   apply-all counterpart to the gl_func_0002A3AC lazy slot
 //   constructor).
-// Caps: raw-word USO + jal-0 USO-reloc per-slot handler — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc per-slot handler —
+//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002A6C0(char *tbl, int arg) {
+    char *dflt = (char *)&D_00000000 + 0x5280;
+    int i;
+    for (i = 0; i < 0x40; i++) {
+        char *e = *(char **)(tbl + 0x38);
+        if (e != dflt) {
+            gl_func_00000000(e, arg);
+        }
+        tbl += 4;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
+#endif
 
 // gl_func_0002A740 — STRUCTURAL PASS (0x98 / 38 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
