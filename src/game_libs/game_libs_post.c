@@ -21119,12 +21119,24 @@ void gl_func_00047644(int* a0, int* a1) {
 // symbols): (1) 0x4771C ~111-word FP saturating-convert leaf — the same
 // 0x437F (255.0) / 0x4F00 (2^31) / cvt + andi cause,0x78 + clamp idiom as
 // gl_func_000470FC / 000473AC (a quantize variant); (2)/(3) 0x478D8 /
-// 0x478EC tiny ~5-word leaves. Family: cb arg-adapter wrapper + (trailing)
-// FP saturating quantize. The fn1 GfxCtx path, the two u16 stack-arg
-// unpacks and the cb1 forward are exact; the trailing leaves are flagged
-// for re-split, not decoded here. Caps: GfxCtx struct + cb signature
-// untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
+// 0x478EC tiny ~5-word leaves.
+//
+// Caps (DEFERRED): GfxCtx struct + cb1 USO-callback signature untyped;
+//   trailing three functions (0x4771C/0x478D8/0x478EC) need USO re-split
+//   before they can be decoded under their own symbols. Real-C
+//   STRUCTURAL body below — the named fn (cb arg-adapter) only.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern void gl_func_00000000();
+void gl_func_000476DC(void **a0, int a1, int a2, int a3) {
+    void *ctx = ((void ***)a0)[0x254/4][0x158/4];
+    unsigned short h0 = *(unsigned short *)((char *)&a0 + 0x22);
+    unsigned short h1 = *(unsigned short *)((char *)&a0 + 0x26);
+    gl_func_00000000(ctx, a1, h0, h1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000476DC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004771C);
 
