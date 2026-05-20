@@ -33646,6 +33646,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A5F0);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD68);
+
 /* 14-insn linked-list traversal. Searches for `a1` in a list rooted at `a3`
  * (linked via *p == next). When found, copies *a3 (= *a1) to *a2 and returns.
  * a0 unused.
