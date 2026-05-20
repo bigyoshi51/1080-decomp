@@ -1264,11 +1264,25 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     spec for the build. a1(s1)/a2(s2)/a0/a3 = target/owner/params.
 //   func_00000000 = USO placeholder dispatcher (build / position /
 //     attach).
-// Caps: raw-word USO + placeholder calls — not exact-matchable without
-//   proper USO mnemonic disasm; structure characterized. Structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — template-instantiate skeleton (template copy + cb chain).
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00003C8C(int a0, char *a1, char *a2, int a3) {
+    char T1[0x2C];
+    char T2[0x2C];
+    int i;
+    for (i = 0; i < 0x24; i++) T1[i] = *((char *)&D_00000000 + 0x00001208 + i);
+    for (i = 0; i < 0x24; i++) T2[i] = *((char *)&D_00000000 + 0x00001234 + i);
+    func_00000000(T1, T2, a0, a1, a2, a3);
+    func_00000000(T1, a1);
+    func_00000000(T2, a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003C8C);
+#endif
 
 void timproc_uso_b5_func_00003ED8(char *a0) {
     char *v;
