@@ -6767,11 +6767,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
 //   "reinitialise object to its default/idle state" entry of the
 //   game_libs object subsystem (the state-clear counterpart to the
 //   gl_func_00028E94 attach / gl_func_00029B6C channel-reset).
-// Caps: raw-word USO + bitwise flag-clear + constant field init —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + sequential single-bit andi flag-
+//   clear idiom (must match GCC's bit-by-bit emit order) — byte-
+//   match needs USO mnemonic disasm. Real-C STRUCTURAL body below
+//   per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0002A260(char *obj) {
+    if (obj == (char *)&D_00000000 + 0x5280) return;
+    *(unsigned char *)obj = *(unsigned char *)obj & 0x01;
+    *(short *)(obj + 0x14) = 0xF0;
+    *(short *)(obj + 0x10) = 0;
+    *(short *)(obj + 0x26) = 0;
+    *(unsigned char *)(obj + 0x9) = 0xFF;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
+#endif
 
 // gl_func_0002A3AC — STRUCTURAL PASS (0x124 / 73 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
