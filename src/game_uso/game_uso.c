@@ -2593,19 +2593,19 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
  *   a0: float[3] output #1 (writes [0], [4]=0, [8])
  *   a1: float[3] output #2 (writes [0], [4]=0, [8])
  *   a2: float[3] input vector (reads [0] and [8] only — [4] unused)
- *   a3: int divisor
+ *   a3: float divisor (o32 mixed-mode ABI passes it in $a3, target mtc1s it)
  *   sp+0x30: float arg5 (numerator for scale = arg5/a3)
  *
  * Algorithm:
  *   orig_scale = arg5 / a3                 ; f0 before call
  *   ratio     = orig_scale * orig_scale    ; f8 = orig_scale^2
  *   inner_arg = 1.0 - ratio                ; f12 (passed to callee)
- *   new_scale = inner_func(passthrough_args, inner_arg, a3_as_float)
+ *   new_scale = func_00000000(inner_arg, a3)
  *
  *   ; outputs use both new_scale (= post-call f0) and orig_scale (= f2 saved):
  *   a0[0] = new_scale * a2[0] + orig_scale * a2[2]
  *   a0[1] = 0
- *   a0[2] = ratio     * a2[0] + new_scale  * a2[2]
+ *   a0[2] = -orig_scale * a2[0] + new_scale * a2[2]
  *   a1[0] = new_scale * a2[0] - orig_scale * a2[2]
  *   a1[1] = 0
  *   a1[2] = orig_scale * a2[0] + new_scale * a2[2]
@@ -2614,35 +2614,33 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
  * sin^2*x + cos*z) and a1 may be the reflected/swapped variant. Inner
  * func is plausibly sqrt or sincos-like (returns derived scale).
  *
- * f24 = -orig_scale is set but never read — likely a dead store from the
- * original source's `float neg = -orig_scale;` local that the compiler
- * preserved across optimization. Suggests the original C declared more
- * locals than survive into the visible algebra.
  *
- * Initial structural decode 2026-05-07; default INCLUDE_ASM build remains
- * exact via the asm. Multi-tick refinement target — exact algebra +
- * register allocation match needs deeper trace + variant grinding. */
-void game_uso_func_00003FAC(float *a0, float *a1, float *a2, int a3, float arg4) {
+ * 2026-05-20 refinement: corrected a3 to mixed-mode float, switched the
+ * inner call to a typed zero-address alias returning float, and fixed a0[2]
+ * to use -orig_scale instead of ratio. Fuzzy: 52.43% -> 98.23%.
+ * Remaining cap: alias reloc name vs target `func_00000000`, plus FPU
+ * operand/register ordering in the final a1[0]/a1[2] stores. A named-local
+ * x/z variant regressed to a 0x50 frame, matching the IDO tight-FPU warning.
+ * Default INCLUDE_ASM build remains exact via the asm. */
+extern float func_00000000_03FAC(float, float);
+void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg4) {
     float orig_scale = arg4 / a3;
     float ratio = orig_scale * orig_scale;
     float new_scale;
-    float dummy;
+    float neg_scale;
 
-    /* Inner call gets `(1 - ratio)` as f12 + `(float)a3` as f14. Passthrough
-     * a0/a1/a2/a3 (saved/reloaded from caller stack). Returns new_scale in f0. */
-    new_scale = (float)gl_func_00000000(a0, a1, a2, a3);
+    /* Inner call gets `(1 - ratio)` as f12 + `a3` as f14. */
+    new_scale = func_00000000_03FAC(1.0f - ratio, a3);
     (void)ratio;
 
     a0[0] = new_scale * a2[0] + orig_scale * a2[2];
     a0[1] = 0.0f;
-    a0[2] = ratio * a2[0] + new_scale * a2[2];
+    neg_scale = -orig_scale;
+    a0[2] = neg_scale * a2[0] + new_scale * a2[2];
 
-    a1[1] = 0.0f;
     a1[0] = new_scale * a2[0] - orig_scale * a2[2];
+    a1[1] = 0.0f;
     a1[2] = orig_scale * a2[0] + new_scale * a2[2];
-
-    dummy = -orig_scale; /* f24 dead-store equivalent */
-    (void)dummy;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003FAC);
