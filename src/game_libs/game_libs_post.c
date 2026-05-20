@@ -18673,10 +18673,30 @@ void gl_func_0003FB38(int a0) {
 // 8-byte-aligned size (with a +0x200 bump for the a1==0x508 case), and
 // reports it through the cb1/cb2/cb3 staged-emit chain keyed by a '%' tag
 // block and a format-string literal &D_str. Family: cb-driven
-// staged-serialize/diagnostic (siblings tag 0x23 / 0x1D / 0x1E). Caps:
-// the multu operand source, &D_str string, and cbN signatures inferred
-// from call shape; arg-struct untyped. Full body INCLUDE_ASM-preserved.
+// staged-serialize/diagnostic (siblings tag 0x23 / 0x1D / 0x1E).
+//
+// Caps (DEFERRED): multu operand source, &D_str string, and cbN
+//   signatures inferred from call shape; arg-struct untyped. Real-C
+//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0003FB6C(void *a0, int a1, int a2, int a3, int a4) {
+    char tag[0x10];
+    int n;
+    int sz;
+    tag[0] = 0x25;
+    n = (int)(a3 * a4);
+    n = (n + 7) >> 3;
+    sz = n;
+    if (a1 == 0x508) sz = n + 0x200;
+    gl_func_00000000(&tag[0]);
+    gl_func_00000000(&D_00000000, a2);
+    gl_func_00000000(&tag[0], sz);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FB6C);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0003FC00(int a0) {
