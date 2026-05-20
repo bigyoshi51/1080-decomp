@@ -1,4 +1,4 @@
-nonmatching game_libs_func_00034BDC, 0x38
+nonmatching game_libs_func_00034BDC, 0x20
 
 glabel game_libs_func_00034BDC
     /* E19CB4 00034BDC 3C0E0000 */  .word 0x3C0E0000
@@ -9,10 +9,4 @@ glabel game_libs_func_00034BDC
     /* E19CC8 00034BF0 8DEF0000 */  .word 0x8DEF0000
     /* E19CCC 00034BF4 03E00008 */  .word 0x03E00008
     /* E19CD0 00034BF8 ACCF0000 */  .word 0xACCF0000
-    /* E19CD4 00034BFC 3C020000 */  .word 0x3C020000
-    /* E19CD8 00034C00 8C420000 */  .word 0x8C420000
-    /* E19CDC 00034C04 3C018000 */  .word 0x3C018000
-    /* E19CE0 00034C08 AFA40000 */  .word 0xAFA40000
-    /* E19CE4 00034C0C 03E00008 */  .word 0x03E00008
-    /* E19CE8 00034C10 00411021 */  .word 0x00411021
 endlabel game_libs_func_00034BDC
