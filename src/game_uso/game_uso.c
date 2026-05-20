@@ -7565,7 +7565,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 33.39% NM (objdiff 2026-05-20; up from 11.85% before this pass).
+/* 33.40% NM (objdiff 2026-05-20; up from 11.85% before this pass).
  * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Inferred from the final cross-product sign test + screen-space transform
  * constants: this is a billboard-visibility / 2D point-on-line predicate
@@ -7750,21 +7750,23 @@ int game_uso_func_00009B88(a0, a1, a2)
     int *a1;
     int *a2;
 {
-    char pad_frame[60];
-    float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
-    float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
-    int   local_EC[3];    /* sp+0xEC:  raw-word copy of local_DC */
-    int   local_C4[3];    /* sp+0xC4:  raw-word copy of local_DC */
     int   local_19C[3];   /* sp+0x19C: raw-word copy of local_DC */
-    float local_144[3];   /* sp+0x144: Vec3 — passed to alloc-or-fill helper */
-    float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
-    float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
+    float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
     float local_184[3];   /* sp+0x184: projected source from a0->0x30 + 0xB4 */
     float local_178[3];   /* sp+0x178: copy of local_A0 */
     float local_16C[3];   /* sp+0x16C: copy of local_88 */
     float local_160[3];   /* sp+0x160: copy of local_7C */
     float local_154[3];   /* sp+0x154: copy of local_44 */
+    float local_144[3];   /* sp+0x144: Vec3 — passed to alloc-or-fill helper */
+    float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
+    float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
     float local_120[3];   /* sp+0x120: copy of local_B8 */
+    char pad_10C[44];
+    int   local_EC[3];    /* sp+0xEC:  raw-word copy of local_DC */
+    char pad_E0[4];
+    float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
+    char pad_D0[12];
+    int   local_C4[3];    /* sp+0xC4:  raw-word copy of local_DC */
     float local_A0[3];    /* sp+0xA0:  local_144 + local_138 */
     float local_88[3];    /* sp+0x88:  local_120 - local_12C */
     float local_94[3];    /* sp+0x94:  copy of local_88 */
@@ -7779,7 +7781,9 @@ int game_uso_func_00009B88(a0, a1, a2)
     float src_x, src_z, dx, dz;
     float scale0;         /* screen-space transform scale: 250.0f * a1->0x54 + 50.0f */
     float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
-    (void)pad_frame;
+    (void)pad_10C;
+    (void)pad_E0;
+    (void)pad_D0;
     (void)spill_a1;
 
     if (a2 == 0) {
@@ -7983,8 +7987,12 @@ int game_uso_func_00009B88(a0, a1, a2)
      *     regressed to 32.462208%;
      *   - tail predicate rewrites (`result` local, inverted >= early-return)
      *     regressed to 32.279068% or left the same extra-branch class.
+     *   - target-order stack Vec3 declarations + padding fixed the early
+     *     stack slot map for local_190/local_DC/local_EC/local_C4/local_19C
+     *     (sp+0x190/0xDC/0xEC/0xC4/0x19C) and slightly improved
+     *     33.386627% -> 33.395348%.
      *   Ghidra helper was unavailable in this worktree (missing
-     *   build/ghidra-project/tenshoe). Current best remains 33.386627%. */
+     *   build/ghidra-project/tenshoe). Current best remains 33.395348%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
