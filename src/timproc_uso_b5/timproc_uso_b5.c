@@ -2513,11 +2513,53 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     vtable (->0x80/0x84 deactivate, ->0x88/0x8C show — obj->0x28
 //     idiom). D_0 global flags 0x100 / 0x200 / 0x4003 gate the
 //     phases. func_00000000 = USO placeholder dispatcher.
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — 2-phase state-transition skeleton (phase-reset variant).
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00008468(char *scr) {
+    char *d;
+    void (*fp)(int);
+    char *e;
+    if (func_00000000(&D_00000000, 0x100)) {
+        func_00000000(scr);
+        d = *(char **)(scr + 0x28);
+        fp = *(void (**)(int))(d + 0x8C);
+        fp(*(short *)(d + 0x88));
+        func_00000000(scr);
+        func_00000000(scr);
+        fp = *(void (**)(int))(d + 0x84);
+        fp(*(short *)(d + 0x80));
+        e = ((char **)*(char **)(scr + 0x3D0))[*(int *)(scr + 0x3C4)];
+        func_00000000(e);
+        if (func_00000000(scr)) {
+            func_00000000(*(char **)(scr + 0x41C));
+            return;
+        }
+        *(int *)(scr + 0x3C8) = func_00000000(scr);
+        *(int *)(scr + 0x3C4) = func_00000000(scr);
+        *(int *)(scr + 0x3CC) = 0xA;
+        func_00000000(scr);
+        *(float *)(scr + 0x484) = 0.0f;
+    } else if (func_00000000(&D_00000000, 0x200)) {
+        func_00000000(scr);
+        *(int *)(scr + 0x4B4) = func_00000000(scr);
+        if (*(int *)(scr + 0x4B4) != 0) {
+            if (func_00000000(&D_00000000, 0x4003)) {
+                func_00000000(1);
+            } else {
+                func_00000000(scr);
+            }
+            if (*(int *)(scr + 0x3CC) == 9) {
+                *(int *)(scr + 0x4B4) = 0;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008468);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_000085E0: 42-insn (0xA8) FPU-clamp + vtable dispatch.
