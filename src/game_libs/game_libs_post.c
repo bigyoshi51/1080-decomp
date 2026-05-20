@@ -16038,12 +16038,38 @@ end:
 //   compose and gl_func_00036694 matrix-concat leaves; the o->0x30
 //   bit-6 mask is the same dirty/active flag-word convention seen
 //   in the gl_func_00036C08 / 00036F0C geometry family).
-// Caps: raw-word USO + flag-gated FP delta/transform + word-copy
-//   block move — not exact-matchable without proper USO mnemonic
-//   disasm + the object/Vec3 struct typed; structural pass only,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + flag-gated FP delta/transform +
+//   word-copy block move; object/Vec3 struct untyped. Real-C
+//   STRUCTURAL body below — early-out + Vec3 delta only; the
+//   transform/matrix block copy tail is documented but not fully
+//   decoded here. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+void gl_func_0003B01C(char *o) {
+    int fl = *(int *)(o + 0x30);
+    float ax, ay, az;
+    float bx, by, bz;
+    float dx, dy, dz;
+    if (!(fl & 6)) {
+        *(int *)(o + 0x30) = fl | 2;
+        return;
+    }
+    ax = *(float *)(o + 0x54);
+    ay = *(float *)(o + 0x58);
+    az = *(float *)(o + 0x5C);
+    bx = *(float *)(o + 0x60);
+    by = *(float *)(o + 0x64);
+    bz = *(float *)(o + 0x68);
+    dx = bx - ax;
+    dy = by - ay;
+    dz = bz - az;
+    *(float *)(o + 0x6C) = dx;
+    *(float *)(o + 0x70) = dy;
+    *(float *)(o + 0x74) = dz;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B01C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003B198);
 
