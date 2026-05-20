@@ -22602,6 +22602,8 @@ void gl_func_0004ED7C(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004EDEC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004EE18);
 #endif
 
 // gl_func_0004EE44 — STRUCTURAL PASS + BOUNDARY NOTE (0x288 / 167 words, no
