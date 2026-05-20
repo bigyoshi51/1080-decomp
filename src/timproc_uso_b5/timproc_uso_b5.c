@@ -2135,11 +2135,57 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     (->0x10 cam ->0x60/0x64/0x68 eye; ->0xC->0x70->0x14C fov).
 //   D_0 global flags 0x100 / 0x200 / 0x4002 / 0x10001 gate the phases.
 //   func_00000000 = USO placeholder dispatcher (gate / activate).
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — 4-phase global-state-gated transition skeleton.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_000077D8(char *scr) {
+    char *cam;
+    char *d;
+    void (*fp)(int);
+    if (func_00000000(&D_00000000, 0x100)) {
+        func_00000000(scr);
+        func_00000000(*(char **)(scr + 0x440));
+        *(int *)(scr + 0x3CC) = 5;
+        *(int *)(scr + 0x400) = 0x37;
+        *(float *)(scr + 0x484) = 1.0f;
+        func_00000000(scr);
+        d = *(char **)(scr + 0x28);
+        fp = *(void (**)(int))(d + 0x9C);
+        fp(*(short *)(d + 0x98));
+        cam = *(char **)(*(char **)(scr + 0x414) + 0x10);
+        *(float *)(scr + 0x4C4) = *(float *)(cam + 0x60);
+        *(float *)(scr + 0x4C8) = *(float *)(cam + 0x64);
+        *(float *)(scr + 0x4CC) = *(float *)(cam + 0x68);
+        *(float *)(scr + 0x4C0) = *(float *)(*(char **)(*(char **)(*(char **)(scr + 0x414) + 0xC) + 0x70) + 0x14C);
+        *(int *)(scr + 0x4B4) = 2;
+        *(float *)(scr + 0x4BC) = 0.0f;
+    } else if (func_00000000(&D_00000000, 0x200)) {
+        func_00000000(0x802, scr);
+        *(int *)(scr + 0x3CC) = 3;
+    } else if (func_00000000(&D_00000000, 0x4002)) {
+        if (*(int *)(scr + 0x2B4) & (1 << 14)) {
+            func_00000000(0);
+            func_00000000(scr);
+            d = *(char **)(scr + 0x28);
+            fp = *(void (**)(int))(d + 0x94);
+            fp(*(short *)(d + 0x90));
+        }
+    } else if (func_00000000(&D_00000000, 0x10001)) {
+        if (*(int *)(scr + 0x2B4) & (1 << 14)) {
+            func_00000000(0);
+            func_00000000(scr);
+            d = *(char **)(scr + 0x28);
+            fp = *(void (**)(int))(d + 0x94);
+            fp(*(short *)(d + 0x90));
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000077D8);
+#endif
 
 // timproc_uso_b5_func_000079A4 — STRUCTURAL PASS (0x188 / 98 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
