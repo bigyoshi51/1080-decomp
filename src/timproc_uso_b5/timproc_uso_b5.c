@@ -1802,11 +1802,42 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     element->0x3C->0x2B0 / 0x2B4 = command/flag word pair.
 //   D_0 + 0x40 / + 0x48 = global command-state slots (refreshed).
 //   func_00000000 = USO placeholder dispatcher (gate / reset).
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — gate + reset + element-snapshot skeleton only.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00006C00(char *scr) {
+    char *base;
+    char *row;
+    int idx;
+    char *e;
+    int *dst;
+    if (!func_00000000(*(int *)(scr + 0x3B8), *(int *)(scr + 0x41C))) return;
+    func_00000000(scr);
+    func_00000000(*(char **)(scr + 0x418), -1, 0);
+    *(int *)((char *)&D_00000000 + 0x40) = *(int *)((char *)&D_00000000 + 0x48);
+    base = *(char **)(scr + 0x40C);
+    /* Row 1: 0x3DC/0x4DC param; cnt = row[0x4C] */
+    row = *(char **)(base + 0x3DC);
+    idx = *(int *)(scr + 0x4DC) % *(int *)(row + 0x4C);
+    e = base + idx;
+    *(int *)(scr + 0x300) = *(int *)(*(char **)(e + 0x3C) + 0x2B0);
+    /* Row 2..4 same pattern with 0x3D0/0x3D4/0x3D8 + 0x4E0/0x4E8/0x4EC. */
+    row = *(char **)(base + 0x3D0);
+    idx = *(int *)(scr + 0x4E0) % *(int *)(row + 0x40);
+    *(int *)(scr + 0x304) = *(int *)(*(char **)(base + idx + 0x3C) + 0x2B0);
+    row = *(char **)(base + 0x3D4);
+    idx = *(int *)(scr + 0x4E8) % *(int *)(row + 0x44);
+    *(int *)(scr + 0x308) = *(int *)(*(char **)(base + idx + 0x3C) + 0x2B0);
+    row = *(char **)(base + 0x3D8);
+    idx = *(int *)(scr + 0x4EC) % *(int *)(row + 0x48);
+    *(int *)(scr + 0x30C) |= *(int *)(*(char **)(base + idx + 0x3C) + 0x2B4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006C00);
+#endif
 
 /* timproc_uso_b5_func_00006D30: 54-insn loop — DEFERRED, Yay0-blocked
  * cap class (timproc_uso_b5 is Yay0-compressed, see file note ~L606;
