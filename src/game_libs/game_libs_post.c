@@ -11431,13 +11431,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034188);
 //   device/object family whose per-frame tick is gl_func_00034188
 //   (same &D_0-rooted record, vtable-style indirection); 0x0001E21C
 //   is a deferred data-segment template-symbolization site.
-// Caps: raw-word USO + 7-fn bundle (no-frame-leaf false-single-fn)
-//   + USO-relocated jal-0 callbacks + data-seg template — not
-//   exact-matchable without proper USO mnemonic disasm + boundary
-//   re-split; structural pass only, no byte body. No merge attempted
-//   (would corrupt the bundled leaves); no episode.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks +
+//   data-seg template — byte-match needs USO mnemonic disasm +
+//   boundary re-split (the 6 no-frame trailing leaves need
+//   spimdisasm-USO migration). Real-C STRUCTURAL body below for the
+//   NAMED leading function only — bundled tail leaves untouched.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00034240(int a2) {
+    char *r = *(char **)((char *)&D_00000000 + 0);
+    char d[0x40];
+    (void)a2;
+    gl_func_00000000(&d, -1);
+    *(int *)(r + 0x38) = 1;
+    gl_func_00000000(&D_00000000, *(int *)(r + 0x34), 1);
+    if (*(int *)0x0001E21C != 0) {
+        gl_func_00000000(&D_00000000);
+        gl_func_00000000(&d);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343E0);
 
