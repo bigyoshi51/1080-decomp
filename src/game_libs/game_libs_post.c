@@ -7253,11 +7253,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
 //   needs-redraw" marker). A state-acknowledge leaf in the game_libs
 //   object subsystem (operates on the same o->0/0x20/0x2C fields the
 //   gl_func_00028604 detach / gl_func_0002A7D8 commit use).
-// Caps: raw-word USO + jal-0 USO-reloc notify — not exact-matchable
-//   without proper USO mnemonic disasm; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc notify — byte-
+//   match needs USO mnemonic disasm + reloc-pad jal infra. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002AB34(char *o) {
+    int s = *(int *)o;
+    int st;
+    if ((s << 3) >= 0) {
+        gl_func_00000000(*(int *)(o + 0x2C));
+    }
+    if (*(int *)(o + 0x2C) != 0 && *(int *)(o + 0x48) != 0) {
+        st = *(unsigned char *)(o + 0x20) & ~0x80;
+        if (st == 1 || st == 2) {
+            *(unsigned char *)(o + 0x20) = 0;
+            *(unsigned char *)o = *(unsigned char *)o | 0x01;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
+#endif
 
 // gl_func_0002ABC0 — STRUCTURAL PASS (0x15C / 87 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
