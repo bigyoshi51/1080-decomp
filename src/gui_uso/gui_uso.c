@@ -86,6 +86,8 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000B4);
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000CC);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000E4);
+
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000104);
 #endif
 
 /* gui_func_00000148: BUNDLED splat symbol (0x7D0 total / 500 insns).
