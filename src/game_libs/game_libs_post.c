@@ -11719,6 +11719,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035988);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035990);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000359A4);
+
 /* gl_func_000359C4: 21-insn 3-call dispatcher with permuted arg lists.
  * Calls gl_func(a1, a3, a2), then gl_func(0, a2, a1), then
  * gl_func(a1, a3) (2-arg). a0 unused. */
