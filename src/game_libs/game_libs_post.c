@@ -16385,15 +16385,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);
 //   transform, the gl_func_0003B1AC matrix-apply and the
 //   gl_func_00036694 matrix-concat leaves produce, and feeds the
 //   gl_func_00034458 render traversal.
-// Caps: 0x620 raw-word USO + flag-gated USO-relocated jal-0 callback
-//   + FP-literal-pool coefficient table (&D_0+0x128 unsymbolized) +
-//   data-seg ref + very heavy FP transform pipeline — categorically
-//   not exact-matchable without proper USO mnemonic disasm +
-//   FP-pool/struct symbolization; structural pass only, no byte
-//   body. (A future focused non-loop session is where this gets a
-//   real decode; not 60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x620 raw-word USO + flag-gated USO-relocated
+//   jal-0 callback + FP-literal-pool coefficient table
+//   (&D_0+0x128 unsymbolized) + data-seg ref + very heavy FP
+//   transform pipeline. Real-C STRUCTURAL body below — gate +
+//   conditional cb + initial K-scaled accumulation skeleton only.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0003BE1C(char *o, float arg0, float arg1, float arg2) {
+    char *s = *(char **)(o + 0x84);
+    float *K;
+    float a, b, c;
+    if (s == 0) return;
+    if (*(int *)(s + 0xA0) == 0) {
+        gl_func_00000000((char *)&D_00000000 + 0x0001EE9C, s);
+    }
+    K = (float *)((char *)&D_00000000 + 0x128);
+    a = arg0 * K[0];
+    b = arg1 * K[1];
+    c = arg2 * K[2];
+    gl_func_00000000(o, a, b, c);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
+#endif
 
 // gl_func_0003C43C — STRUCTURAL PASS (0x3D8 / 246 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION — exactly
