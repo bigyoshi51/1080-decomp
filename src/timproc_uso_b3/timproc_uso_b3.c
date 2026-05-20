@@ -341,7 +341,85 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
     func_00000000(a0 + 0x6E4);
 }
 
+/* timproc_uso_b3_func_00000E60: state-machine dispatcher, sibling of
+ * timproc_uso_b1_func_00000EE8 and arcproc_uso_func_00000FA8.
+ *
+ * Decoded state 0 and state 1 bodies from the target asm. State 0 walks a
+ * 0x30-stride table selected by D[0x64], searching for an entry whose
+ * returned [4] matches a0->[0x6AC]. State 1 runs the setup/commit chain and
+ * links a0->[0x56C] under the object returned into a0->[0x524].
+ *
+ * 2026-05-20: NON_MATCHING body reaches 95.237625% via objdiff report.
+ * Tried plain char* base, register int* base, goto-shaped dispatch, inverted
+ * loop branch, and volatile int* base. Volatile base is required to get the
+ * target $s3 global-base lifetime and 0x28 stack frame. Remaining no-alias
+ * diffs are codegen-level: entry emits bne+b instead of beq+default branch,
+ * the state-0 compare still uses bnel, and loop temporaries choose different
+ * caller registers around the table stride multiply.
+ */
+#ifdef NON_MATCHING
+void timproc_uso_b3_func_00000E60(char *a0) {
+    volatile int *base = (int*)&D_00000000;
+    char *saved = a0;
+    int state = *(int*)(a0 + 0x504);
+    char *obj;
+    int count;
+    int *ret;
+    int *created;
+    char *link;
+
+    if (state == 0) {
+        goto state0;
+    }
+    if (state == 1) {
+        goto state1;
+    }
+    return;
+
+state0:
+        obj = *(char**)(saved + 0x6A8);
+        *(int*)(saved + 0x6AC) = *(int*)(*(char**)(obj + 0x44) + 0x14);
+        count = *(int*)(*(char**)(obj + 0x44) + 0x3C);
+        state = count - 1;
+        *(int*)(saved + 0x6B0) = count;
+        while (state >= 0) {
+            char *table = *(char**)(saved + 0x528);
+            ret = (int*)gl_func_00000000(*(char**)table + (base[0x64 / 4] * 0x30), state);
+            if (*(int*)(saved + 0x6AC) != ret[1]) {
+                goto state0_done;
+            }
+            *(int*)(saved + 0x6B0) = *(int*)(saved + 0x6B0) - 1;
+            state--;
+        }
+state0_done:
+        base = (volatile int*)&D_00000000;
+        *(int*)(saved + 0x4D8) = 1;
+        gl_func_00000000(base[0x190 / 4], 3, 1);
+        *(int*)(saved + 0x504) = 1;
+        return;
+
+state1:
+        if (gl_func_00000000(base[0x190 / 4]) == 0) {
+            return;
+        }
+        gl_func_00000000(saved);
+        gl_func_00000000(base);
+        gl_func_00000000(saved);
+        gl_func_00000000(saved, base[0x170 / 4] + 0x00220000);
+        *(int*)(saved + 0x524) = gl_func_00000000(0, saved, 0);
+        gl_func_00000000(*(int*)(saved + 0x524), *(int*)(saved + 0x528));
+        created = *(int**)(saved + 0x524);
+        link = *(char**)(saved + 0x56C);
+        gl_func_00000000(link + 0x10, created);
+        if (created[0x14 / 4] != 0) {
+            created[1] = 1;
+        }
+        created[0x14 / 4] = (int)link;
+        gl_func_00000000(base[0x190 / 4], 1, 1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000E60);
+#endif
 
 /* timproc_uso_b3_func_00000FF4: F1 (32-insn 0x80) gate-then-update wrapper
  * + SUFFIX bundle (5-insn D[0x40]=9 stub at 0x1074 + 2-insn fragment at
