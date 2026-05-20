@@ -24093,9 +24093,30 @@ void gl_func_0004E214(char *a0) {
 // list-insert + field-copy (siblings gl_func_00041D40 / 00043BEC /
 // 00041F90). Copied-field offsets representative; the 0xC alloc, the
 // null-check, the head-link triple (0 / 4 = -1 / 8 = src->0xC-1) and the
-// 3-word sp-scratch migration are exact. Caps: node/src struct + cb
-// signature untyped. Full body INCLUDE_ASM-preserved.
+// 3-word sp-scratch migration are exact.
+//
+// Caps (DEFERRED): node/src struct + cb signature untyped. Real-C
+//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0004E244(char *src) {
+    int scrA[3];
+    int scrB[3];
+    char *n;
+    gl_func_00000000(src, scrA);
+    n = (char *)gl_func_00000000(0xC);
+    if (n == 0) return;
+    *(char **)n = src;
+    *(int *)(n + 0x4) = -1;
+    *(int *)(n + 0x8) = *(int *)(src + 0xC) - 1;
+    scrB[0] = scrA[0];
+    scrB[1] = scrA[1];
+    scrB[2] = scrA[2];
+    gl_func_00000000(n, scrB);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
+#endif
 
 #ifdef NON_MATCHING
 /* Append-to-array-with-bounds-check (28 insns, prologue-stolen).
