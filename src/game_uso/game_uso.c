@@ -7974,7 +7974,17 @@ int game_uso_func_00009B88(a0, a1, a2)
      *   - corrected signature back to 3 args, changed scale block to
      *     250.0f/50.0f using a1/a2->0x54, and added caller-slot a1 spill
      *     plus frame padding per docs/IDO_CODEGEN.md arg-spill/frame recipes:
-     *     29.48% -> 33.39%. */
+     *     29.48% -> 33.39%.
+     *
+     * 2026-05-20 recheck with the correct non_matching object rebuild:
+     *   - raw integer zero stores for all Vec3 Y components regressed
+     *     33.386627% -> 32.220932%;
+     *   - volatile destination pointer + moving pad_frame below real locals
+     *     regressed to 32.462208%;
+     *   - tail predicate rewrites (`result` local, inverted >= early-return)
+     *     regressed to 32.279068% or left the same extra-branch class.
+     *   Ghidra helper was unavailable in this worktree (missing
+     *   build/ghidra-project/tenshoe). Current best remains 33.386627%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
