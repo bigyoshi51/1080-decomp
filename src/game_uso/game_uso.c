@@ -7565,7 +7565,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 #ifdef NON_MATCHING
-/* 29.48% NM (objdiff 2026-05-20; up from 11.85% before this pass).
+/* 33.39% NM (objdiff 2026-05-20; up from 11.85% before this pass).
  * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
  * Inferred from the final cross-product sign test + screen-space transform
  * constants: this is a billboard-visibility / 2D point-on-line predicate
@@ -7575,7 +7575,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *
  * Partial C body now captures entry (panic-on-a2-null + 2 cross-call
  * dispatches with sp+0x190 and sp+0xDC Vec3 locals), body-part-1 Vec3 copy
- * (a2->0x30 XZ-projection), the sp+0xC4 rotated vector, the 250.5f/50.0f
+ * (a2->0x30 XZ-projection), the sp+0xC4 rotated vector, the 250.0f/50.0f
  * screen-space scale, the tail Vec3 fanout family, and the final
  * two-cross-product sign test. Remaining gap is the exact stack-layout /
  * FPU scheduling of the middle transform helpers.
@@ -7635,7 +7635,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *     0x437A0000 (= 250.0f) and 0x42480000 (= 50.0f) materialized via lui+at
  *     to specific slots. The 250.0f goes to one slot, 50.0f to another —
  *     looks like a "near-clip / far-clip" pair for projection or LOD.
- *   - 0x9D34-0x9D60: lw sp+0x1AC/0x1B0/0x1A8 (re-load some context arg
+ *   - 0x9D34-0x9D60: lw sp+0x1AC/0x1B0/0x1A8 (re-load a1/a2/a0
  *     pointers spilled at entry), then lwc1 sp+0x12C/0x130, lwc1 0x54(t2)
  *     — read transformed-coord result from a per-object slot, plus a
  *     stored-context float. Compute `f4 = f0 * f6` (scale).
@@ -7745,7 +7745,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
  *   strongly suggests this is a coordinate-transform function: takes
  *   (context, anchor, src-Vec3) and produces a transformed Vec3 written to
  *   one of several local slots for downstream cross-USO dispatch. */
-int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
+int game_uso_func_00009B88(a0, a1, a2)
+    int *a0;
+    int *a1;
+    int *a2;
+{
+    char pad_frame[60];
     float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
     float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
     int   local_EC[3];    /* sp+0xEC:  raw-word copy of local_DC */
@@ -7770,9 +7775,12 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
     float local_B8[3];    /* sp+0xB8:  local_184 - a1->0x30 */
     int *out;
     float *src_vec;
+    int * volatile *spill_a1 = &a1;
     float src_x, src_z, dx, dz;
-    float scale;          /* screen-space transform scale: 250.5f * a3->[0x54] */
-    (void)a3;
+    float scale0;         /* screen-space transform scale: 250.0f * a1->0x54 + 50.0f */
+    float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
+    (void)pad_frame;
+    (void)spill_a1;
 
     if (a2 == 0) {
         /* Assert: line 0x623 (1571) — message at &D+0x7BC / &D+0x7C8 */
@@ -7842,21 +7850,21 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
      * @ 0x9D00-0x9D34: screen-space transform setup.
      *   t9 = sp+0x138, t8 = sp+0x12C
      *   sp+0x12C = sp+0x138   (word copy: 3 lw/sw pairs interleaved)
-     *   f2 = 250.5f (lui $at, 0x437A; mtc1 $at, $f2)   ; viewport-half scale
+     *   f2 = 250.0f (lui $at, 0x437A; mtc1 $at, $f2)   ; viewport-half scale
      *   f10 = 50.0f (lui $at, 0x4248; mtc1 $at, $f10)  ; vertical offset
      *   v1 = sp+0x184  (another working buffer)
-     *   t2 = arg from caller-slot (sp+0x1AC = a3 spill)
+     *   t2 = a1 from caller-slot (sp+0x1AC)
      *
      * (Math chain continues 0x9D34-0x9DC4 — multiplies sp+0x12C entries by
-     * 250.5f scale + 50.0f offset for screen-coord transform; not yet decoded.)
+     * 250.0f scale + 50.0f offset for screen-coord transform; not yet decoded.)
      *
      * Extended characterization 2026-05-04 (0x9D34-0x9DC4, ~37 insns):
      *   - 0x9D34-0x9D58: load 3 floats from sp+0x12C/130/134, mul.s with
-     *     250.5f and a fresh load from t2->0x54 (struct field arg). Result
+     *     250.0f and a fresh load from t2->0x54 (struct field arg). Result
      *     stays in $f0..$f4.
      *   - 0x9D5C-0x9D74: load sp+0x134, more mul.s on $f4/$f6/$f8/$f10/$f12,
      *     swc1 BACK to sp+0x12C and sp+0x130 (in-place scaling of first 2 of 3
-     *     Vec3 components — pattern is `vec[i] = vec[i] * 250.5f * t2->0x54`).
+     *     Vec3 components — pattern is `vec[i] = vec[i] * (250.0f * t2->0x54 + 50.0f)`).
      *   - 0x9D7C-0x9DBC: another lwc1 chain from sp+0x138/13C/140 into
      *     $f6/$f10, mul.s with same scale, swc1 back to sp+0x138/0x13C/0x140
      *     (second Vec3 in-place scale, same pattern).
@@ -7864,9 +7872,10 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
      *   - 0x9DC4-0x9DD0: bne+jal sequence — 4th cross-USO dispatch with
      *     scratch_a (sp+0xEC) and t5+0xB4 args.
      *
-     * Net: 0x9D34-0x9DC4 is "scale 2 Vec3s in place by 250.5f * t2->0x54,
-     * load 3rd Vec3 source, dispatch helper". Confirms screen-space transform
-     * hypothesis. Body-part-2 still has ~200 insns past 0x9DD0.
+     * Net: 0x9D34-0x9DC4 scales local_12C by (250.0f * a1->0x54 + 50.0f),
+     * scales local_138 by (250.0f * (a2->0x54 - a1->0x54)), then loads a
+     * third Vec3 source and dispatches a helper. Confirms screen-space
+     * transform hypothesis. Body-part-2 still has ~200 insns past 0x9DD0.
      *
      * Extended characterization 2026-05-04 (0x9DD0-0x9E80, ~44 insns):
      *   - 0x9DD8-0x9DF8: post-cross-call result handling. If callee
@@ -7875,16 +7884,15 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
      *   - 0x9DFC-0x9E0C: 5th cross-USO dispatch — alloc(0xC) for a new
      *     Vec3 buffer.
      *   - 0x9E20-0x9E4C: post-alloc, fill the new Vec3 with delta from
-     *     (sp+0x184/0x18C) and a3->0x30/0x38: Vec3(diff_x, 0, diff_z).
-     *     a3 = the FOURTH function arg (caller-slot at sp+0x1AC) — a
-     *     position struct providing the reference XZ subtract origin.
+     *     (sp+0x184/0x18C) and a1->0x30/0x38: Vec3(diff_x, 0, diff_z).
+     *     a1 is the reference XZ subtract origin.
      *   - 0x9E50-0x9E80: another 12-byte struct copy (a1 → a2, then
      *     a1 → sp+0x120; final destination tracking gets convoluted).
      *
      * Cumulative: ~115 insns characterized of the 344. Body-part-2's
      * theme is clearly "fan out the player's screen-projected XZ to
      * multiple per-displayed-object buffer slots, with various deltas
-     * against the reference position from a3".
+     * against the reference position from a1".
      *
      * Extended characterization 2026-05-04 (0x9E80-0x9F50, ~52 insns):
      *   Continues the same alloc(0xC) + Vec3 sub.s pattern observed in
@@ -7953,8 +7961,8 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
      *
      * Cumulative 263/344 insns characterized (~76%).
      *
-     * The 250.5/50.0 constants confirm screen-space coordinate transform
-     * (250.5 ≈ viewport-half + pixel-center; 50.0 ≈ vertical offset).
+     * The 250.0/50.0 constants confirm screen-space coordinate transform
+     * (250.0 ~= viewport-half; 50.0 ~= vertical offset).
      * Combined with the cross-product sign test, this is likely a
      * billboard-visibility / point-in-frustum check after screen projection.
      *
@@ -7962,7 +7970,11 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
      *   - real tail Vec3 math + predicate: 11.85% -> 20.33%;
      *   - raw-word fanout copies instead of float copies: 20.33% -> 28.59%;
      *   - correct sp+0xC4 as always-stack rotated Vec3 + helper call:
-     *     28.59% -> 29.48%. */
+     *     28.59% -> 29.48%;
+     *   - corrected signature back to 3 args, changed scale block to
+     *     250.0f/50.0f using a1/a2->0x54, and added caller-slot a1 spill
+     *     plus frame padding per docs/IDO_CODEGEN.md arg-spill/frame recipes:
+     *     29.48% -> 33.39%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
@@ -7978,16 +7990,18 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
     *(int*)&local_12C[1] = *(int*)&local_138[1];
     *(int*)&local_12C[2] = *(int*)&local_138[2];
 
-    /* @ 0x9D34-0x9DBC: in-place screen-space scale (250.5f * a3->[0x54]).
+    /* @ 0x9D34-0x9DBC: in-place screen-space scale.
      * Both local_12C[0..2] and local_138[0..2] scale-multiplied in-place.
-     * `scale` survives in $f0 across the two scaling blocks per documented
-     * IDO-O2 register reuse pattern. The a3 source is the function's 4th
-     * arg (TODO: signature should be (int*,int*,int*,int*) — current
-     * 3-arg sig is incomplete; sp+0x1AC reload at 0x9D2C confirms a3 is
-     * passed but unnamed in the C decl). */
-    scale = 250.5f * (*(float*)((char*)a3 + 0x54));
-    local_12C[0] *= scale;  local_12C[1] *= scale;  /* local_12C[2] not scaled */
-    local_138[0] *= scale;  local_138[1] *= scale;  local_138[2] *= scale;
+     * Target reloads only the three spilled args: a1 supplies the first
+     * scale source, a2 supplies the second, and a0 supplies the Vec3 source. */
+    scale0 = 250.0f * (*(float*)((char*)a1 + 0x54)) + 50.0f;
+    local_12C[0] *= scale0;
+    local_12C[1] *= scale0;
+    local_12C[2] *= scale0;
+    scale1 = 250.0f * (*(float*)((char*)a2 + 0x54) - *(float*)((char*)a1 + 0x54));
+    local_138[0] *= scale1;
+    local_138[1] *= scale1;
+    local_138[2] *= scale1;
 
     /* @ 0x9F0C-0x9F48: project a source Vec3 from a0->0x30+0xB4 into
      * sp+0x184, clearing Y. This is the fourth always-stack destination,
@@ -8047,7 +8061,8 @@ int game_uso_func_00009B88(int *a0, int *a1, int *a2, int *a3) {
     (void)local_19C;  /* suppress unused warnings until body-part-2 done */
     (void)local_EC;
     (void)local_C4;
-    (void)scale;
+    (void)scale0;
+    (void)scale1;
 
     /* @ 0xA1D4-0xA230: two 2D cross products over the four derived screen
      * vectors. Return 1 when the products have opposite signs. */
