@@ -13026,6 +13026,8 @@ void gl_func_00035DAC(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035E5C);
 #endif
 
 // gl_func_00035E6C — STRUCTURAL PASS + small BUNDLE BOUNDARY NOTE

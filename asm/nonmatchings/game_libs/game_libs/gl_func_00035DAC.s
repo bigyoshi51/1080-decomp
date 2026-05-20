@@ -1,4 +1,4 @@
-nonmatching gl_func_00035DAC, 0xC0
+nonmatching gl_func_00035DAC, 0xB0
 
 glabel gl_func_00035DAC
     /* E1AE84 00035DAC 27BDFFB0 */  .word 0x27BDFFB0
@@ -45,8 +45,4 @@ glabel gl_func_00035DAC
     /* E1AF28 00035E50 8FB40028 */  .word 0x8FB40028
     /* E1AF2C 00035E54 03E00008 */  .word 0x03E00008
     /* E1AF30 00035E58 27BD0050 */  .word 0x27BD0050
-    /* E1AF34 00035E5C 00000000 */  .word 0x00000000
-    /* E1AF38 00035E60 00000000 */  .word 0x00000000
-    /* E1AF3C 00035E64 3C0E0000 */  .word 0x3C0E0000
-    /* E1AF40 00035E68 8DCE0000 */  .word 0x8DCE0000
 endlabel gl_func_00035DAC
