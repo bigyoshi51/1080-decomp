@@ -34991,6 +34991,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D964);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DA74);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006DBFC);
+
 #ifdef NON_MATCHING
 /* gl_func_0006DC0C: 59-insn save-data / SRAM init helper (size 0xEC, frame 0x20).
  *
