@@ -14470,12 +14470,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 //   family (node->0x2C / 0x34 here vs node->0x28+0x14 in 00038598,
 //   node->0x28+0x1C in 0003863C). A per-frame dual-pass collection
 //   driver of the game_libs object subsystem.
-// Caps: raw-word USO + intrusive-list walk + two jalr-through-node-
-//   vtable dispatches per element — not exact-matchable without
-//   proper USO mnemonic disasm + the node/handler structs typed;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + intrusive-list walk + two
+//   jalr-through-node-vtable dispatches per element; node/handler
+//   structs untyped. Real-C STRUCTURAL body below. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00038964(char *o, void *ctx) {
+    char *n;
+    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
+        char *node = *(char **)n;
+        char *h = *(char **)(node + 0x28);
+        void (*f1)(void *, int);
+        void (*f2)(void *, int);
+        f1 = *(void (**)(void *, int))(node + 0x2C);
+        f1(ctx, *(short *)(h + 0x28) + (int)node);
+        f2 = *(void (**)(void *, int))(node + 0x34);
+        f2(ctx, *(short *)(h + 0x30) + (int)node);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038964);
+#endif
 
 // gl_func_00038A28 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
 // (0x190 / 100 words, no episode). Raw-.word USO form (game_libs).
