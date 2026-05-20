@@ -9066,11 +9066,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F224);
 //   physics/easing leaf of the game_libs object subsystem (peer to
 //   the gl_func_0002978C ramp / gl_func_00029978 tween steppers,
 //   driven by the gl_func_0002E354 orchestrator).
-// Caps: raw-word USO + heavy single-prec FP integrate/clamp idiom —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + heavy single-prec FP integrate/
+//   clamp idiom — byte-match needs USO mnemonic disasm. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0002F288(char *o) {
+    unsigned char mode = *(unsigned char *)(o + 0x21);
+    float acc = *(float *)(o + 0);
+    unsigned char k;
+    int t;
+    float s;
+    float d;
+    if (mode == 2) return;
+    k = *(unsigned char *)(o + 0x14);
+    if (*(unsigned char *)(o + 0x1C) != 0) return;
+    t = *(int *)((char *)&D_00000000 + 4);
+    s = *(float *)((char *)&D_00000000 + 0x1730);
+    d = (float)t * s;
+    if (k == 0) acc += d;
+    if (*(int *)(o + 0x38) < 0x15) {
+        if (acc > 0.5f) acc = 0.5f;
+        if (acc < -0.5f) acc = -0.5f;
+    }
+    if (acc > 127.0f) acc = 127.0f;
+    if (acc < -127.0f) acc = -127.0f;
+    *(float *)(o + 0) = acc;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
+#endif
 
 // gl_func_0002F584 — STRUCTURAL PASS (0xAC / 43 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
