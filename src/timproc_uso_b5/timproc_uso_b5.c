@@ -2371,11 +2371,43 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     (->0x80/0x84 deactivate, ->0x88/0x8C show — obj->0x28 idiom).
 //   D_0 global flag 0x100 gates the active branch. func_00000000 =
 //   USO placeholder dispatcher (gate / show / refresh).
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — mode-gated sub-state handler + show/deact + refresh
+//   skeleton only. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00007E34(char *scr) {
+    char *d;
+    void (*fp)(int);
+    char *e;
+    if (*(int *)(scr + 0x3BC) != 2) return;
+    func_00000000(*(char **)(scr + 0x41C), *(int *)(scr + 0x3B8));
+    if (*(int *)(scr + 0x4B4) != 0 || *(int *)(scr + 0x4B8) != 0) {
+        func_00000000(scr);
+        return;
+    }
+    if (!func_00000000(&D_00000000, 0x100)) return;
+    func_00000000(scr);
+    d = *(char **)(scr + 0x28);
+    fp = *(void (**)(int))(d + 0x8C);
+    fp(*(short *)(d + 0x88));
+    func_00000000(scr);
+    func_00000000(scr);
+    fp = *(void (**)(int))(d + 0x84);
+    fp(*(short *)(d + 0x80));
+    e = ((char **)*(char **)(scr + 0x3D0))[*(int *)(scr + 0x3C4)];
+    func_00000000(e);
+    if (func_00000000(scr)) {
+        func_00000000(*(char **)(scr + 0x41C));
+        return;
+    }
+    *(int *)(scr + 0x3C8) = func_00000000(scr);
+    *(int *)(scr + 0x3C4) = func_00000000(scr);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007E34);
+#endif
 
 // timproc_uso_b5_func_000080F4 — STRUCTURAL PASS (0x374 / 221 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
