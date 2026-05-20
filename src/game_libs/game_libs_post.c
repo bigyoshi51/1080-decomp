@@ -6997,11 +6997,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
 //   0x0C00FADE (≈0x3EB78) for all 8 sub-elements. The
 //   reinit-existing-slot counterpart to the gl_func_0002A55C
 //   construct-fresh path.
-// Caps: raw-word USO + fixed-target per-element inits — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed-target per-element inits
+//   (0x3EB78) — byte-match needs USO mnemonic disasm + reloc-pad
+//   jal infra. Real-C STRUCTURAL body below per the analysis.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002A740(char *base, int idx, int a2) {
+    char *o;
+    unsigned char f;
+    int i;
+    idx &= 0xFF;
+    o = *(char **)(base + idx * 4 + 0x38);
+    f = *(unsigned char *)o;
+    *(unsigned char *)(o + 0x88) = 0;
+    *(int *)(o + 0x70) = a2;
+    *(unsigned char *)o = (f | 0x80) & ~0x40;
+    *(short *)(o + 0x1E) = 0;
+    for (i = 0; i < 8; i++) {
+        gl_func_00000000(o, i);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
+#endif
 
 // gl_func_0002A7D8 — STRUCTURAL PASS (0x12C / 75 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
