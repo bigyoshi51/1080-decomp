@@ -12916,12 +12916,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035C58);
 //   collection the gl_func_00033228 enlist helper builds and the
 //   gl_func_00034458 processor iterates; 0x0001E6C0 is a referenced
 //   deferred data-segment template-symbolization site).
-// Caps: raw-word USO + fixed intra-USO call (0x012844) + linked-list
-//   walk + stack accumulator struct — not exact-matchable without
-//   proper USO mnemonic disasm + the node/accumulator structs
-//   typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed intra-USO call (0x012844) +
+//   linked-list walk + stack accumulator struct — byte-match needs
+//   USO mnemonic disasm + node/accumulator structs typed. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+int gl_func_00035C6C(char *l) {
+    char *n = *(char **)(l + 0x04);
+    char acc[0x1C];
+    if (n == 0) return 0;
+    *(float *)(acc + 0x18) = 0.0f;
+    *(int *)(acc + 0x1C - 4) = -1;
+    gl_func_00000000(&acc);
+    while (n != 0) {
+        gl_func_00000000(n, &acc);
+        n = *(char **)(n + 0x04);
+    }
+    return *(int *)(acc + 0x18);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035C6C);
+#endif
 
 // gl_func_00035DAC — STRUCTURAL PASS (0xC0 / 48 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
