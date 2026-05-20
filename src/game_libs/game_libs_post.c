@@ -22036,12 +22036,30 @@ void game_libs_func_000483A0(int *a0) {
 // command = 0x04000000 (a GBI/RDP-style opcode/flag tag) OR (v << 0xA) OR
 // ((v << 4 - 1) & 0xFFFF), word1 is the raw value, with a cb hook between
 // the two stores. Family: packed-table append + command bit-pack (siblings
-// gl_func_00042684 / 00043BEC; the bit-layout variant). Exact field
-// derivation of v representative; the 0x04 entry guard, the count-bump,
-// the base + n*8 slot math, the 0x04000000 tag and the
-// (v<<0xA)|((v<<4-1)&0xFFFF) pack are exact. Caps: Obj/Tbl struct + cb
-// signature untyped. Full body INCLUDE_ASM-preserved.
+// gl_func_00042684 / 00043BEC; the bit-layout variant).
+//
+// Caps (DEFERRED): Obj/Tbl struct + cb signature untyped; v
+//   derivation representative. Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_000483BC(char *a0) {
+    char *t;
+    int n;
+    unsigned int v;
+    unsigned int *slot;
+    if (*(int *)(a0 + 0x04) == 0) return;
+    t = *(char **)a0;
+    n = *(int *)(t + 0x4);
+    *(int *)(t + 0x4) = n + 1;
+    v = *(unsigned int *)(a0 + 0x08);
+    slot = (unsigned int *)(*(char **)t + n * 8);
+    slot[0] = 0x04000000 | (v << 0xA) | (((v << 4) - 1) & 0xFFFF);
+    gl_func_00000000(a0, slot);
+    slot[1] = v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000483BC);
+#endif
 
 // gl_func_00048510 — STRUCTURAL PASS (0x20C / 132 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x78
