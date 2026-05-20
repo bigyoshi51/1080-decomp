@@ -1011,7 +1011,29 @@ void* gl_func_0000C210(void *arg0) {
     return obj;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C28C);
+extern int gl_func_00000000();
+void gl_func_0000C28C(void *arg0, int *arg1) {
+    int buf10[4];
+    int buf08[2];
+
+    buf10[0] = arg1[0];
+    buf10[1] = arg1[1];
+    buf10[2] = arg1[2];
+    buf10[3] = arg1[3];
+    buf10[2] = 0;
+
+    *(int*)((char*)arg0 + 4) = arg1[0];
+    gl_func_00000000(arg0, 0x218, buf10, 0x10);
+    if (gl_func_00000000(arg1) != 0) {
+        gl_func_00000000(arg0, 0x230, arg1[2], arg1[1] * 4);
+    }
+
+    gl_func_00000000(buf08, buf10, 0x10, 0xDEADBBAD);
+    gl_func_00000000(arg0, 0x228, buf08, 8);
+    gl_func_00000000(arg0, 0x7FE8, buf10, 0x10);
+    gl_func_00000000(arg0, 0x7FF8, buf08, 8);
+    gl_func_00000000(arg0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C378);
 
