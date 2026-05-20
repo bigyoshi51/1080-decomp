@@ -10304,11 +10304,36 @@ int gl_func_00031898(int *a0) {
 //   bank is the gl_func_0002F638 / 0002F9D4 emitter family with a
 //   0x02xx sub-bank; the query helper 0x0117C1 is shared with the
 //   gl_func_00031710 table cluster).
-// Caps: raw-word USO + fixed intra-USO query + USO-relocated jal-0
-//   callbacks + dual-block state gate — not exact-matchable without
-//   proper USO mnemonic disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed intra-USO query (0x0117C1)
+//   + USO-reloc jal-0 callbacks + dual-block state gate — byte-
+//   match needs USO mnemonic disasm + reloc-pad jal infra.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0003190C(void) {
+    if (gl_func_00000000((char *)&D_00000000 + 0x368)) {
+        unsigned short s = *(unsigned short *)((char *)&D_00000000 + 0x3C8);
+        if (s != 0) {
+            gl_func_00000000(0x06020004, -1);
+            gl_func_00000000(0x06020004, 0);
+        } else {
+            gl_func_00000000(0x06020000,
+                             *(signed char *)((char *)&D_00000000 + 0x3CB));
+            gl_func_00000000(0x06020000, 0);
+        }
+    }
+    if (gl_func_00000000((char *)&D_00000000 + 0x3CC)) {
+        unsigned short s = *(unsigned short *)((char *)&D_00000000 + 0x42C);
+        if (s != 0) {
+            gl_func_00000000(0x06020104, -1);
+        } else {
+            gl_func_00000000(0x06020100, 0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003190C);
+#endif
 
 /* Split off from gl_func_0003190C bundle 2026-05-08: 4-insn setter.
  * Clears the global at &D_00000000 + 0x1CAA8 to -1. */
