@@ -23194,14 +23194,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);
 // product of a 4-float weight group with the source vector (mul.s/add.s
 // chain, 0.0 seed) and stores the result into the sp+0x74 scratch — but
 // gated on the a3 bit-0 flag and sourcing the weight/matrix data from the
-// &D_g+0xE4 global table rather than an arg. Family: FP geometry/matrix
-// transform (4x4 mat-vec / weighted vertex blend; sibling of
-// gl_func_00047E00, relates to 00040CAC / 00042778). Inner lane arithmetic
-// representative; the a3&1 gate, the &D_g+0xE4 source, the 0x10 (4-float)
-// stride, the mul.s/add.s MAC structure and the sp+0x74 result scratch are
-// exact. Caps: &D_g/weight layout + a0 struct untyped. Full body
-// INCLUDE_ASM-preserved.
+// &D_g+0xE4 global table rather than an arg.
+//
+// Caps (DEFERRED): &D_g/weight layout + a0 struct untyped; inner-lane
+//   arithmetic representative. Real-C STRUCTURAL body below — gate +
+//   4x4 MAC sweep skeleton only. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0004B2FC(float *a0, int a1, int a2, int a3) {
+    float acc[4];
+    float *w;
+    int k;
+    if ((a3 & 1) == 0) return;
+    w = (float *)((char *)&D_00000000 + 0xE4);
+    for (k = 0; k < 4; k++) {
+        acc[k] = w[0] * a0[0] + w[1] * a0[1] + w[2] * a0[2] + w[3] * a0[3];
+        w += 4;
+    }
+    a0[0] = acc[0];
+    a0[1] = acc[1];
+    a0[2] = acc[2];
+    a0[3] = acc[3];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B2FC);
+#endif
 
 // gl_func_0004B620 — STRUCTURAL PASS (0x4CC / 309 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large constructor). Single
