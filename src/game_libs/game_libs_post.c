@@ -8815,12 +8815,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF98);
 //   `o->h_1A = 1`, byte +0x16 latch tests, etc. — typical inline
 //   accessor functions, left for the deferred USO re-split. A small
 //   init/accessor cluster of the game_libs object subsystem.
-// Caps: raw-word USO + 6-fn unsplit accessor bundle + jal-0
-//   USO-reloc sub-init — not exact-matchable without proper USO
-//   mnemonic disasm; structural pass only for the named leading fn,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc sub-init —
+//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
+//   STALE 6-jr-bundle comment: grep -c 03E00008 = 1 (.s now single
+//   fn). Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002E06C(char *o) {
+    *(unsigned char *)(o + 0x20) = 0;
+    *(unsigned char *)(o + 0x23) = 0;
+    *(float *)(o + 0) = 0.0f;
+    *(float *)(o + 4) = 0.0f;
+    gl_func_00000000(*(unsigned char *)(o + 0x21));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E06C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E0A0);
 
