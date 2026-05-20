@@ -12476,13 +12476,45 @@ void gl_func_00035624(int a0, int a1) {
 //   (gl_func_00034188 / 00034458). 0x0004B8E8 is a deferred
 //   absolute-symbol site (gl_ref_0004B8E8 candidate per
 //   docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data).
-// Caps: raw-word USO + jalr through global handler vtable
-//   ((*&D_0)+0x54) + USO-relocated jal-0 callback + fixed absolute
-//   device-config RMW (0x0004B8E8) — not exact-matchable without
-//   proper USO mnemonic disasm + the vtable/config symbolized;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jalr through global handler
+//   vtable ((*&D_0)+0x54) + USO-reloc jal-0 callback + fixed
+//   absolute device-config RMW (0x0004B8E8 — gl_ref_0004B8E8 candidate
+//   per docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data) —
+//   byte-match needs USO mnemonic disasm + vtable/config typed.
+//   Real-C STRUCTURAL body below per the analysis (fourth sibling:
+//   35370 slot 0x4C / 35440 slot 0x50 / 355A0 slot 0x60 / this slot
+//   0x54). Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00035648(char *o, int a1, int a2) {
+    int r;
+    char *h;
+    int (*f)(int);
+    int flag = *(int *)((char *)&D_00000000 + 0x100);
+    switch (*(int *)(o + 4)) {
+        case 1:
+            h = *(char **)((char *)&D_00000000 + 0);
+            f = *(int (**)(int))(h + 0x54);
+            r = f(a2);
+            (void)r;
+            break;
+        case 0:
+            r = gl_func_00000000(&D_00000000);
+            (void)r;
+            break;
+        case 2:
+            if (a1 == 0) {
+                *(int *)0x0004B8E8 = flag;
+            } else if (a1 == 1) {
+                *(int *)0x0004B8E8 += a2;
+            }
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035648);
+#endif
 
 // gl_func_000356FC — STRUCTURAL PASS + small BUNDLE BOUNDARY NOTE
 // (0x138 / 78 words, no episode). Raw-.word USO form (game_libs).
