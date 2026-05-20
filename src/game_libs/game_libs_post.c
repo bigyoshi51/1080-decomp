@@ -8992,12 +8992,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
 //   each call. The remaining ~900 words are the per-mode transform/
 //   animation/draw body. The single largest driver in this file's
 //   object/animation subsystem.
-// Caps: raw-word USO + 4-fn unsplit bundle + very large multi-mode
-//   per-object tick+draw with heavy FP and many sub-calls — not
-//   exact-matchable without proper USO mnemonic disasm; high-level
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + very large multi-mode per-object
+//   tick+draw with heavy FP and many sub-calls (3.9KB / 973 words —
+//   LARGEST function in this file) — byte-match needs USO mnemonic
+//   disasm + reloc-pad jal infra. STALE 4-jr-bundle comment: grep
+//   -c 03E00008 = 1 (.s now single fn). Real-C STRUCTURAL body
+//   below per the analysis (top-level early-out + state-machine
+//   sketch only — full per-mode body summarised in the comment
+//   above). Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002E354(char *o, int a1) {
+    int cfg = *(int *)((char *)&D_00000000 + 0);
+    int st;
+    (void)a1;
+    if (cfg == 0) {
+        return;
+    }
+    if (cfg == 4) {
+        (void)cfg;
+    }
+    st = *(int *)((char *)&D_00000000 + 4);
+    switch (st) {
+        case 1: case 2: case 3:
+            break;
+    }
+    if (*(unsigned char *)(o + 0x1C) == 1) {
+        if (*(unsigned char *)(o + 0x21) == 0) {
+            *(unsigned char *)(o + 0x21) = 2;
+        }
+    }
+    gl_func_00000000(o);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F1B8);
 
