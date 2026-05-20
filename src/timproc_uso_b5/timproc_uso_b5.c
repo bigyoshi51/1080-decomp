@@ -3529,10 +3529,35 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   sp+0x68..0x8C = basis-vector scratch; obj->0x2B4 = a flag word
 //   (bit 0x20000 toggled by the trailing setter). func_00000000 =
 //   USO placeholder dispatcher (length/normalize + matrix helpers).
-// Caps: raw-word USO + unsplit bundle + placeholder calls — not
-//   exact-matchable here; structural pass only for the named fn.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — basis-build + normalize + writeback
+//   skeleton only; trailing 3 helpers (incl. obj[0x2B4]^=0x20000
+//   flag-toggle) remain INCLUDE_ASM. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_0000B624(char *obj, int unused) {
+    char *t = obj + 0xDC;
+    float basis[9];
+    int i;
+    for (i = 0; i < 3; i++) {
+        basis[i + 0] = *(float *)(t + i * 4);
+        basis[i + 3] = *(float *)(t + 0x10 + i * 4);
+        basis[i + 6] = *(float *)(t + 0x20 + i * 4);
+    }
+    func_00000000(&basis[0]);
+    func_00000000(&basis[3]);
+    func_00000000(&basis[6]);
+    func_00000000(&basis[0], &basis[3], &basis[6]);
+    for (i = 0; i < 3; i++) {
+        *(float *)(t + i * 4)         = basis[i + 0];
+        *(float *)(t + 0x10 + i * 4)   = basis[i + 3];
+        *(float *)(t + 0x20 + i * 4)   = basis[i + 6];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B624);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B850);
 
