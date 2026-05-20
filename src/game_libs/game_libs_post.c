@@ -6326,10 +6326,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029078);
  * field from a1+0x30 byte for second). Reads fields at a1->0x30 (byte)
  * and a1->0x50 (int).
  *
- * Not NM-wrapped yet — call signature for gl_func_0003D480 needs
- * verification + this is one of multiple internal-helper callers; an
- * undefined_syms_auto.txt entry may be needed. */
+ * Caps (DEFERRED): direct intra-USO jal 0x3D480 needs sym table
+ * resolution. Real-C STRUCTURAL body below per the decode above.
+ * Byte-match deferred. Name pre-checked: no extern reuse. */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_000290C8(char *a0, char *a1) {
+    int field50 = *(int *)(a1 + 0x50);
+    int r;
+    char sp24[8];
+    r = gl_func_00000000(a0 + 0x20, *(unsigned char *)(a1 + 5),
+                         field50, sp24, 0x10, 0x10);
+    if (r == 0) {
+        gl_func_00000000(a0 + 0x20, *(unsigned char *)(a1 + 0x30),
+                         field50, sp24, 0x10, 0x10);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
+#endif
 
 // gl_func_000291C0 — STRUCTURAL PASS (0x2D4 / 181 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
