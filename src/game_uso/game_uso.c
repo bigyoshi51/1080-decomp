@@ -7781,6 +7781,8 @@ int game_uso_func_00009B88(a0, a1, a2)
     float src_x, src_z, dx, dz;
     float scale0;         /* screen-space transform scale: 250.0f * a1->0x54 + 50.0f */
     float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
+    char pad_frame[32];
+    (void)pad_frame;
     (void)pad_10C;
     (void)pad_E0;
     (void)pad_D0;
@@ -8002,7 +8004,17 @@ int game_uso_func_00009B88(a0, a1, a2)
  *     stack-destination alloc guards improved 33.35% -> 43.27%;
  *   - adding the same wrapper to the preceding local_184/local_B8 writes
  *     regressed slightly to 42.99%, so those stayed as direct writes.
- *   Current best: 43.270348%. */
+ *
+ * 2026-05-20 deep retry:
+ *   - m2c cannot decode this .word-only USO body ("contains no instructions");
+ *   - moving a 32-byte frame pad below the real locals fixed the target
+ *     -0x1A8 frame and early local slots (local_190=sp+0x190,
+ *     local_DC=sp+0xDC) and improved 43.270348% -> 43.302326%;
+ *   - goto-shaped alloc guards for the first two Vec3 destinations regressed
+ *     to 42.898254% (IDO deleted the dead alloc arms);
+ *   - `result` local tail shape regressed to 42.909885% and grew the frame
+ *     to -0x1B0, so the return/return tail stayed.
+ *   Current best: 43.302326%. */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
