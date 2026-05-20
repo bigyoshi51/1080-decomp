@@ -10206,13 +10206,20 @@ void gl_func_000316CC(int a0) {
 //   +0x4C). A table-management cluster of the game_libs object
 //   subsystem (the storage the emitter / interpreter families read
 //   and write through this 0x430 table).
-// Caps: raw-word USO + 7-fn bundle (deferred re-split) + fixed
-//   intra-USO calls into its own bundled leaves — not exact-matchable
-//   without proper USO mnemonic disasm + boundary re-split;
-//   structural pass only, no byte body. No merge attempted here
-//   (would corrupt the bundled leaves' bytes); no episode.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed intra-USO calls into its own
+//   bundled leaves at 0x011770 / 0x01177C — byte-match needs USO
+//   mnemonic disasm + boundary re-split. STALE 7-jr bundle comment:
+//   grep -c 03E00008 = 1 (.s now single fn). Real-C STRUCTURAL body
+//   below per the analysis. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00031710(int arg) {
+    gl_func_00000000((char *)&D_00000000 + 0x430, 0, arg + 0x17F, 0x7F);
+    gl_func_00000000((char *)&D_00000000 + 0x430);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031710);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031754);
 
