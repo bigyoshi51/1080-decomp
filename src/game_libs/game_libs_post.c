@@ -23510,14 +23510,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
 // Spins on the global state object at &D_g+0x218, repeatedly testing its
 // 0x1C / 0x04 / 0x0C fields (sltu-against-zero "is nonzero" checks) and
 // calling cb1() as a per-iteration pump/yield until the readiness condition
-// is satisfied, then proceeds with the post-ready work. Family:
-// synchronization / wait-for-resource-ready loop with a cb processing pump
-// (relates to the segment's state-machine / poll routines). The &D_g+0x218
-// state object, the 0x1C/0x04/0x0C poll fields, the cb1 pump and the
-// loop-until-ready structure are exact; the post-ready body is
-// representative. Caps: state struct + cb signature untyped. Full body
-// INCLUDE_ASM-preserved.
+// is satisfied, then proceeds with the post-ready work.
+//
+// Caps (DEFERRED): state struct + cb signature untyped; post-ready
+//   body representative. Real-C STRUCTURAL body below — wait loop +
+//   post-ready skeleton only. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0004C928(int a0) {
+    char *st = *(char **)((char *)&D_00000000 + 0x218);
+    while (*(int *)(st + 0x0C) != 0) {
+        gl_func_00000000();
+    }
+    gl_func_00000000(a0, st);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004CCB4 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
