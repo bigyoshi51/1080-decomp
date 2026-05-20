@@ -2068,11 +2068,35 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     gate); D_00001320 / D_00000F60 / D_00000F18 = USO static
 //     handler/jump tables (0xF.. / 0x13.. pool). func_00000000 =
 //     USO placeholder dispatcher (step query / handler invoke).
-// Caps: raw-word USO + table-driven dispatch + placeholder calls —
-//   not exact-matchable without proper USO mnemonic disasm; structure
-//   characterized. Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + table-driven dispatch + placeholder
+//   calls; USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — entry gate + step query + handler
+//   table-dispatch skeleton only. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00007430(char *scr) {
+    int step;
+    char **htab;
+    if (*(int *)(scr + 0x3C4) != 0) {
+        func_00000000(scr, 1);
+        return;
+    }
+    step = func_00000000() - 1;
+    if (step < 0) return;
+    htab = (char **)((char *)&D_00000000 + 0x00001320);
+    if (*(int *)&D_00000000 == 0x100 && *(int *)(scr + 0x4AC) == step) {
+        *(int *)(scr + 0x4AC) += 1;
+    } else {
+        func_00000000(0);
+        *(int *)(scr + 0x4A4) = 0x3E8;
+    }
+    func_00000000(htab[*(int *)(scr + 0x4AC)]);
+    *(int *)(scr + 0x4B0) = (step << 4) | (*(int *)(scr + 0x4B0) & 0xF);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007430);
+#endif
 
 // timproc_uso_b5_func_000077D8 — STRUCTURAL PASS (0x1CC / 115 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
