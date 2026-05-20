@@ -6216,11 +6216,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E6C);
 //   setup 0x0C00F0DB (≈0x3C36C) finishes the bind. The
 //   construct/attach counterpart to the gl_func_00028604 detach in
 //   the game_libs object subsystem.
-// Caps: raw-word USO + jal-0 USO-reloc setup + multi-field link
-//   wiring — not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc setup + multi-field
+//   link wiring — byte-match needs USO mnemonic disasm + reloc-pad
+//   jal infra. Real-C STRUCTURAL body below per the analysis
+//   (placeholder calls / fields). Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_00028E94(char *obj, char *d) {
+    char *t;
+    *(int *)(obj + 0x40) = -1;
+    *(int *)(obj + 0x44) = (int)d;
+    t = *(char **)(d + 0x50);
+    *(unsigned char *)(obj + 0x30) = *(unsigned char *)(t + 5);
+    *(int *)(d + 0x2C) = (int)obj;
+    *(unsigned char *)d = *(unsigned char *)d | 0x09;
+    *(int *)(t + 0x40) = (int)obj;
+    *(int *)(t + 0x44) = (int)d;
+    *(float *)(d + 0x40) = 0.0f;
+    gl_func_00000000(obj, d);
+    if (*(unsigned char *)(d + 2) != 0xFF) {
+        gl_func_00000000(d, *(unsigned char *)(d + 2));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028E94);
+#endif
 
 void gl_func_00028FCC(int *a0, int a1) {
     volatile int **vp0 = (volatile int **)&a0;
