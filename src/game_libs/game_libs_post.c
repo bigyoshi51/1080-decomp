@@ -12183,13 +12183,31 @@ void gl_func_0003523C(int a0, int a1, int a2) {
 //   command interpreter calls to validate state and complain when
 //   a required config slot is missing; 0x0001E54C / 0x0001E55C are
 //   deferred format-string-data symbolization sites).
-// Caps: raw-word USO + USO-relocated jal-0 printf callbacks + global
-//   config-ptr field checks + unsigned→float / *1024 idiom + fixed
-//   string data — not exact-matchable without proper USO mnemonic
-//   disasm + the config struct/strings typed; structural pass only,
-//   no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 printf callbacks
+//   + global config-ptr field checks + unsigned→float / *1024 idiom
+//   + fixed string data (0x0001E54C / 0x0001E55C) — byte-match needs
+//   USO mnemonic disasm + config struct/strings typed. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00035268(int a0, int a1) {
+    char *c = *(char **)((char *)&D_00000000 + 0x218);
+    float f;
+    (void)a0;
+    if (*(int *)(c + 0x1C) != 0 && *(int *)(c + 0x04) != 0
+        && *(int *)(c + 0x0C) == 0) {
+        gl_func_00000000((char *)0x0001E54C);
+        gl_func_00000000(&D_00000000);
+    }
+    if (a1) {
+        f = (float)(unsigned)a1;
+        f *= 1024.0f;
+        gl_func_00000000((char *)0x0001E55C, f);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035268);
+#endif
 
 /* gl_func_00035338: 10-insn 1-call wrapper. Split off 4-insn
  * game_libs_func_00035360 (`return *D_X` with arg-shadow). */
