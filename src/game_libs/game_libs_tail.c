@@ -704,6 +704,8 @@ void gl_func_0000B560(int *p) {
  * per call site — not a uniform recipe. Stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B5AC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000B628);
+
 /* gl_func_0000B638: 29-insn function in the B560/B5AC/B638 dispatcher chain.
  * Like B5AC, INHERITS $hi (from B5AC's tail-SUFFIX_BYTES `sll v0,a1,2; subu;
  * addiu at,$0,5; div`) AND $v0 (caller-side flag). Same uninterruptible
