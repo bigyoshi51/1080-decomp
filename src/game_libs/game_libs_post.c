@@ -24790,9 +24790,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
 // multi-subobject constructor (siblings gl_func_000412E8 / 00040070 /
 // 0004B0A8 / 0004D468). Post-link wiring tail representative; the
 // alloc-if-null guards, the 0x90/0x90/0x60 sizes, the null-check bails and
-// the a1->0x5C = &D_reloc bind are exact. Caps: object struct + cb
-// signatures untyped. Full body INCLUDE_ASM-preserved.
+// the a1->0x5C = &D_reloc bind are exact.
+//
+// Caps (DEFERRED): object struct + cb signatures untyped. Real-C
+//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *gl_func_0004F85C(char *a0, int a1, char *a2, char *a3) {
+    char *o0 = a0;
+    char *o1 = a2;
+    char *o2 = a3;
+    if (o0 == 0) {
+        o0 = (char *)gl_func_00000000(0x90);
+        if (!o0) return 0;
+    }
+    if (o1 == 0) {
+        o1 = (char *)gl_func_00000000(0x90);
+        if (!o1) return 0;
+    }
+    if (o2 == 0) {
+        o2 = (char *)gl_func_00000000(0x60);
+        if (!o2) return 0;
+    }
+    *(char **)(o1 + 0x5C) = (char *)&D_00000000;
+    *(char **)(o1 + 0x34) = o2;
+    *(char **)(o0 + 0x34) = o1;
+    return o0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F85C);
+#endif
 
 void gl_func_0004F9AC(char *a0) {
     int local;
