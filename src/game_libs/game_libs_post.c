@@ -13247,15 +13247,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
 //   gl_func_00035E6C point projector and the gl_func_00033094 Vec3
 //   transform (those consume the matrix this builds); o->0x1CC is
 //   the camera/transform handle.
-// Caps: 0x470 raw-word USO + heavy FP projection-matrix math + the
-//   N64 160/120/-1 viewport idiom — categorically not exact-
-//   matchable without proper USO mnemonic disasm + the matrix /
-//   camera structs typed; structural pass only, no byte body. (A
-//   future focused non-loop session — the deferred USO re-split /
-//   struct-typing backlog — is where this gets a real decode; not
-//   60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x470 raw-word USO + heavy FP projection-matrix
+//   math + N64 160/120/-1 viewport idiom — byte-match needs USO
+//   mnemonic disasm + matrix/camera structs typed (future non-loop
+//   session). Real-C STRUCTURAL skeleton below per the analysis
+//   (top-level src-deref + Vec3 pull + matrix-block copy — full
+//   FP chain summarised in the in-comment analysis only).
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00036224(char *o) {
+    char *src = *(char **)(o + 0x1CC);
+    float tx = *(float *)(src + 0xF8);
+    float ty = *(float *)(src + 0xFC);
+    float tz = *(float *)(src + 0x100);
+    *(float *)(o + 0x00) = tx * 160.0f + -1.0f;
+    *(float *)(o + 0x04) = ty * 120.0f + -1.0f;
+    *(float *)(o + 0x08) = tz * 160.0f + -1.0f;
+    *(int *)(o + 0xBC) = *(int *)(src + 0xBC);
+    *(int *)(o + 0xC0) = *(int *)(src + 0xC0);
+    *(int *)(o + 0xC4) = *(int *)(src + 0xC4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036224);
+#endif
 
 // gl_func_00036694 — STRUCTURAL PASS (0x2C8 / 178 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
