@@ -20407,6 +20407,8 @@ end:
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000422AC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004230C);
 #endif
 
 /* gl_func_00042338: 15-insn prologue-stolen successor of gl_func_000422AC.
