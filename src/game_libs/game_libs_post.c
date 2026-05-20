@@ -10065,12 +10065,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
 //   interpreter — where that one is opcode-keyed per command, this
 //   one is index-keyed per progression step (the &D_0+0x1900 table
 //   and &D_0 step word are the deferred-symbolization sites).
-// Caps: raw-word USO + computed jump table (&D_0+0x1900 unsymbolized)
-//   + USO-relocated jal-0 callbacks — not exact-matchable without
-//   proper USO mnemonic disasm + the step table symbolized;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + computed jump table
+//   (&D_0+0x1900 unsymbolized) + USO-reloc jal-0 callbacks —
+//   byte-match needs USO mnemonic disasm + step table symbolized.
+//   Real-C STRUCTURAL skeleton below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00031334(int a, int b, int c) {
+    int i;
+    *(int *)((char *)&D_00000000 + 0x28) = a;
+    *(int *)((char *)&D_00000000 + 0x2C) = b;
+    *(int *)((char *)&D_00000000 + 0x30) = c;
+    gl_func_00000000(0);
+    gl_func_00000000(1);
+    *(int *)((char *)&D_00000000 + 0x34) = 1;
+    gl_func_00000000(0xFF, 0);
+    i = *(int *)((char *)&D_00000000 + 0x38) + 1;
+    *(int *)((char *)&D_00000000 + 0x38) = i;
+    if (i >= 0xF) return;
+    if (a == 4) {
+        gl_func_00000000(0x83010000 | (i << 8), 0x50);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031334);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00031520() {
