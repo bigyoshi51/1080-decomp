@@ -8920,11 +8920,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
 //   o->0x21 through the table at &D_0+0x1660 (another entry in the
 //   game_libs &D_0+0x16xx dispatch-table bank) — left for the
 //   deferred USO re-split.
-// Caps: raw-word USO + 10-fn unsplit bundle + jal-0 USO-reloc stop —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc stop — byte-match
+//   needs USO mnemonic disasm + reloc-pad jal infra. STALE 10-jr
+//   bundle comment: grep -c 03E00008 = 1 (.s now single fn).
+//   Real-C STRUCTURAL body below per the analysis (stop/cancel
+//   counterpart to gl_func_0002E1C0 fire-once trigger). Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002E24C(char *o) {
+    unsigned char f = *(unsigned char *)(o + 0x16);
+    unsigned char k;
+    if (!(f & 0x20)) return;
+    k = *(unsigned char *)(o + 0x21);
+    *(unsigned char *)(o + 0x16) = f & ~0x20;
+    if (k == 2) return;
+    gl_func_00000000(0x3D);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E290);
 
