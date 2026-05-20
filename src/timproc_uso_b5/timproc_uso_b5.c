@@ -1529,10 +1529,39 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
 //   D_0 + 0x190 = the 11-entry jump table. func_00000000 = USO
 //     placeholder dispatcher (state advance / draw).
-// Caps: raw-word USO + jump-table + placeholder calls + folded consts
-//   — not exact-matchable here; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jump-table + placeholder calls +
+//   folded consts; USO mnemonic disasm limitation prevents
+//   byte-match. Real-C STRUCTURAL body below — gate + state-advance
+//   + FP anim skeleton only. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00005FC0(char *scr) {
+    char *d;
+    void (*fp)(int);
+    if (*(int *)(scr + 0x3BC) != 2) return;
+    if (*(int *)(scr + 0x3C8) == 4) {
+        func_00000000(&D_00000000, -1);
+    } else {
+        func_00000000(&D_00000000, *(int *)(scr + 0x3B8));
+    }
+    if ((unsigned int)*(int *)(scr + 0x3CC) < 11) {
+        func_00000000(scr);
+    }
+    *(float *)(scr + 0x4BC) += 1.0f;
+    *(int *)(scr + 0x3FC) -= 4;
+    d = *(char **)(*(char **)(scr + 0x480) + 0x28);
+    fp = *(void (**)(int))(d + 0xBC);
+    fp(*(short *)(d + 0xB8));
+    if (*(int *)(scr + 0x34) != 2) {
+        *(float *)(scr + 0x498) = *(float *)((char *)&D_00000000 + 0x000001BC);
+        *(float *)(scr + 0x49C) = *(float *)((char *)&D_00000000 + 0x000001C0);
+        *(float *)(scr + 0x4C0) = *(float *)((char *)&D_00000000 + 0x000001C4);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005FC0);
+#endif
 
 // timproc_uso_b5_func_00006394 — STRUCTURAL PASS (0x4C8 / 306 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
