@@ -1593,11 +1593,29 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     state ids 1/5/7, 2/3.
 //   D_00000160 = USO static layout table (the 0x1xx pool). func_00000000
 //     = USO placeholder dispatcher (query / build / draw).
-// Caps: raw-word USO + placeholder calls + FP block — not exact-
-//   matchable without proper USO mnemonic disasm; structure
-//   characterized. Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls + FP block; USO
+//   mnemonic disasm limitation prevents byte-match. Real-C STRUCTURAL
+//   body below — bound guards + query + draw skeleton only.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00006394(char *scr) {
+    char *n = *(char **)(*(char **)(scr + 0x414) + 0xC);
+    int v;
+    int idxbuf[8];
+    if (*(short *)(n + 0xBC) >= 0x78) return;
+    if (*(int *)(scr + 0x3B0) + *(int *)(n + 0xC4) < 0x15) {
+        v = func_00000000(*(int *)(scr + 0x3C8), 0x15);
+        func_00000000(&D_00000000, *(int *)(scr + 0x398), scr + 0x1E8);
+        func_00000000(idxbuf, 0xA0, v);
+    }
+    if (*(int *)(scr + 0x4B4) == 1) {
+        func_00000000(scr, 0xFF);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006394);
+#endif
 
 void timproc_uso_b5_func_0000685C(char *a0) {
     gl_func_00000000(a0 + 0x2C);
