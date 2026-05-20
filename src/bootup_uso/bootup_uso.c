@@ -4403,9 +4403,10 @@ void func_0000EBB8(char *a0) {
     func_0000E8BC((int*)(a0 + 0x10));
 }
 
-#ifdef NON_MATCHING
 /* func_0000EBE8: 36-insn alloc-or-fail + linked-list-prepend wrapper.
- * 84.47% NM (2026-05-17).
+ * Promoted from 84.47% NM with the same size-preserving INSN_PATCH recipe as
+ * sibling func_00007B08: the natural C body emits a 0x20 frame and keeps the
+ * return node in $a2, while target wants the 0x28-frame $v1 layout.
  *
  * Structure:
  *   p = alloc(0x40);
@@ -4426,11 +4427,7 @@ void func_0000EBB8(char *a0) {
  * both branches of `if (target->0x14 != 0)` — natural emit from the
  * conditional-prefix + unconditional-suffix shape.
  *
- * Residual ~15.5%: (1) build emits beql+delay-likely for the outer
- * `if (target == 0) goto end` (with epilogue lw-ra in delay), target uses
- * non-likely beq + explicit fall-through; (2) build keeps p in $a2,
- * target in $v1 — frame size cascade (build -0x20 vs target -0x28). Both
- * structural reg-alloc, not C-suppressible without permuter. */
+ * See docs/POST_CC_RECIPES.md#insn_patch-for-frame-regalloc-caps. */
 int *func_0000EBE8(int *caller_a0) {
     int *p = (int*)func_00000000(0x40);
     int *target;
@@ -4449,9 +4446,6 @@ int *func_0000EBE8(int *caller_a0) {
 end:
     return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EBE8);
-#endif
 
 void func_0000EC80(int *dst) {
     int buf[2];
