@@ -14526,12 +14526,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
 //   gl_func_000332B4 (which keyed tag 0x69 and o->0xF4); together
 //   they are the externalized arms of the gl_func_0002FB74
 //   interpreter for specific opcodes.
-// Caps: raw-word USO + command-tag switch + flag-bit RMW on object
-//   state + USO-relocated jal-0 callback — not exact-matchable
-//   without proper USO mnemonic disasm + the command/object structs
-//   typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + command-tag switch + flag-bit RMW
+//   on object state + USO-relocated jal-0 cb; command/object structs
+//   untyped. Real-C STRUCTURAL body below. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00038830(char *o, char *c) {
+    int tag = *(int *)c;
+    char *payload;
+    switch (tag) {
+        case 0xC:
+            payload = *(char **)(c + 0x4);
+            if (*(int *)(payload + 0x4) != 0) {
+                *(int *)(o + 0x18) |= 0x80;
+            }
+            break;
+        case 0xD:
+            *(int *)(o + 0x18) &= ~0x80;
+            break;
+        case 0xE:
+            payload = *(char **)(c + 0x4);
+            gl_func_00000000(*(char **)(o + 0x0C), *(int *)payload);
+            break;
+        case 0x2:
+            gl_func_00000000(o, c);
+            break;
+        default:
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
+#endif
 
 // gl_func_00038964 — STRUCTURAL PASS (0xC4 / 49 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
