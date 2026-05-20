@@ -2645,6 +2645,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A928);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A95C);
+
 #ifdef NON_MATCHING
 /* 72.21% NM. 23-insn loop with branch-likely preload (bnezl at 0x50 with delay-slot
  * `lw v1, 0x40(s2)` preloading v1 for next iteration's body at 0x2C).
