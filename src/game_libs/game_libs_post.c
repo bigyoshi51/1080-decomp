@@ -6496,11 +6496,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000295BC);
 //   A frame-timer/phase-accumulator leaf in the game_libs object
 //   subsystem (same object whose +0xB0 matrix block the
 //   gl_func_00027804 / gl_func_00029494 family loads).
-// Caps: raw-word USO + 3-fn unsplit bundle + FP ramp/clamp loop —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only for the named leading fn, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + FP ramp/clamp with bc1fl branch-
+//   likely — byte-match needs USO mnemonic disasm. STALE 3-jr-bundle
+//   comment: grep -c 03E00008 = 1 (.s now single fn). Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_0002978C(char *obj) {
+    int n = *(unsigned short *)(obj + 0x12);
+    int i;
+    if (n == 0) return;
+    for (i = 0; i < n; i++) {
+        float v = *(float *)(obj + 0x1C);
+        float lim = *(float *)(obj + 0x20);
+        v += 1.0f;
+        *(unsigned char *)obj = *(unsigned char *)obj | 0x04;
+        if (v < lim) {
+            *(float *)(obj + 0x1C) = v;
+        } else {
+            *(float *)(obj + 0x1C) = 0.0f;
+        }
+        n = *(unsigned short *)(obj + 0x12);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000298D8);
 
