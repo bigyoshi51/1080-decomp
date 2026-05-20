@@ -6560,11 +6560,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029934);
 //   interpolated value written back to obj->0xC. A keyframe stepper
 //   leaf in the game_libs object subsystem — paired with the
 //   gl_func_0002978C ramp updater on the same object.
-// Caps: raw-word USO + heavy FP interpolation idiom — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + heavy FP interpolation idiom (mul/
+//   div/sub + cvt.s.w) — byte-match needs USO mnemonic disasm.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void gl_func_00029978(char *obj) {
+    int t = *(unsigned short *)(obj + 0x1A);
+    if (t == 0) {
+        *(short *)(obj + 0x1A) = -1;
+        *(float *)(obj + 0xC) = 1.0f;
+    } else {
+        int mode = *(unsigned short *)(obj + 0x18);
+        float cur = *(float *)(obj + 0xC);
+        int tgt = *(short *)(obj + 0x16);
+        float a = (float)t;
+        float b = (float)tgt;
+        *(short *)(obj + 0x1A) = t - 1;
+        if (mode == 1) {
+            *(float *)(obj + 0xC) = cur + (b - cur) / a;
+        } else {
+            *(float *)(obj + 0xC) = cur + (b - cur) / a;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029978);
+#endif
 
 // gl_func_00029B6C — STRUCTURAL PASS (0x49C / 295 words ≈ 1.2KB, no
 // episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: LARGE
