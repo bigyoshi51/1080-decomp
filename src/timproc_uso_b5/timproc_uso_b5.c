@@ -1529,11 +1529,35 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     node->0x3C->0x28 vtable (->0x84 fn, ->0x80 s16 base).
 //   D_00000E54/0E74/0E94 = USO static layout tables (0xE.. pool).
 //   func_00000000 = USO placeholder dispatcher.
-// Caps: raw-word USO + placeholder calls — not exact-matchable without
-//   proper USO mnemonic disasm; structure characterized. Structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — param stash + table-lookup + vertex-bake skeleton only.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00005BF0(char *scr, int a1, int a2, int a3) {
+    *(int *)(scr + 0x4DC) = a1;
+    *(int *)(scr + 0x4E0) = a3;
+    *(int *)(scr + 0x4E4) = a3;
+    *(int *)(scr + 0x4E8) = 1;
+    *(int *)(scr + 0x4EC) = a2;
+    *(int *)(scr + 0x4A4) = ((int *)((char *)&D_00000000 + 0x00000E74))[a1];
+    *(int *)(scr + 0x3E0) = ((int *)((char *)&D_00000000 + 0x00000E54))[a1];
+    *(int *)(scr + 0x4A8) = ((int *)((char *)&D_00000000 + 0x00000E94))[a1];
+    *(int *)(scr + 0x3E4) = func_00000000(scr);
+    *(float *)(scr + 0x420) = 255.0f;
+    *(float *)(scr + 0x424) = 255.0f;
+    *(float *)(scr + 0x428) = 255.0f;
+    *(float *)(scr + 0x42C) = 255.0f;
+    *(float *)(scr + 0x430) = 90.0f;
+    *(float *)(scr + 0x434) = 145.0f;
+    *(float *)(scr + 0x438) = 232.0f;
+    *(int *)(scr + 0x404) = 0x40;
+    *(int *)(scr + 0x488) = func_00000000(scr);
+    *(float *)(scr + 0x4BC) = 0.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005BF0);
+#endif
 
 // timproc_uso_b5_func_00005FC0 — STRUCTURAL PASS (0x3D4 / 245 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
