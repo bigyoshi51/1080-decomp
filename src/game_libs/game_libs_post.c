@@ -10844,12 +10844,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00033444);
 //   family; the head-fragment 00033444 is its sheared-off input
 //   base load, confirming the two are one logical unit pending the
 //   deferred USO re-split).
-// Caps: raw-word USO + unsigned->float 2^31-bias idiom + USO-
-//   relocated jal-0 callback + delay-slot div.s — not exact-
-//   matchable without proper USO mnemonic disasm + the 00033444
-//   boundary re-split; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsigned->float 2^31-bias idiom +
+//   USO-reloc jal-0 callback + delay-slot div.s — byte-match needs
+//   USO mnemonic disasm + 00033444 boundary re-split. Real-C
+//   STRUCTURAL body below per the analysis. Byte-match deferred.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+float gl_func_0003344C(void) {
+    unsigned u = *(unsigned *)((char *)&D_00000000 + 0x20C);
+    float a = (float)(int)u;
+    float r;
+    float b;
+    if ((int)u < 0) a += 2147483648.0f;
+    r = ((float (*)(void *, float))gl_func_00000000)(&D_00000000, a);
+    b = (float)(int)*(unsigned *)&r;
+    if ((int)*(unsigned *)&r < 0) b += 2147483648.0f;
+    return r / b;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003344C);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_0001E250;
