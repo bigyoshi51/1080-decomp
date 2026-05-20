@@ -28375,6 +28375,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C810);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C8CC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C948);
+
 /* gl_func_0005C960: 23-insn FPU helper. mul.s, sub.s, c.lt.s with
  * paired f4/f6/f8/f10 manipulation, sw f8 at sp+0x8 for callee arg.
  * Likely a magnitude/clamp helper. Structural decode pending. */
