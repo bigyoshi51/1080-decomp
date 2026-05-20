@@ -13832,12 +13832,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037AF0);
 //   gl_func_00034458 processor / gl_func_0002FB74 interpreter
 //   iterate. 0x0001EBF0 is a deferred data-segment template-
 //   symbolization site.
-// Caps: raw-word USO + USO-relocated jal-0 factory/insert callbacks
-//   + data-seg template + intrusive-list splice — not exact-
-//   matchable without proper USO mnemonic disasm + the object/list
-//   structs typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 factory/insert
+//   callbacks + data-seg template + intrusive-list splice. Object/list
+//   structs untyped. Real-C STRUCTURAL body below — template-init
+//   sibling of gl_func_00033228. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+extern void gl_func_00000000();
+void gl_func_00037BEC(char *p) {
+    char *n;
+    char *lst;
+    gl_func_00000000(p);
+    n = (char *)gl_func_00000000(0, (char *)&D_00000000 + 0x0001EBF0);
+    *(char **)(p + 0x10) = n;
+    *(int *)(p + 0x0C) = 0;
+    if (*(char **)(p + 0x38) != 0) {
+        lst = *(char **)(*(char **)(p + 0x3C) + 0x10);
+        gl_func_00000000(lst + 0x10, *(char **)(p + 0x10));
+        if (*(char **)(lst + 0x14) == 0) {
+            *(int *)(lst + 0x04) = 1;
+        }
+        *(char **)(lst + 0x14) = *(char **)(p + 0x10);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037BEC);
+#endif
 
 void gl_func_00037C70(Vec3 *dst) {
     int pad_top[1];
