@@ -16501,13 +16501,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D2C8);
 //   construct-then-bring-up node of the game_libs object subsystem
 //   (0x0001F2C0 is a deferred data-segment template-symbolization
 //   site).
-// Caps: raw-word USO + fixed intra-USO helper (0x01458C) +
-//   USO-relocated jal-0 init callback + data-seg template + jalr
-//   through handler vtable (o->0x28 + 0x5C / 0x4C) — not exact-
-//   matchable without proper USO mnemonic disasm + the object/
-//   vtable structs typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + fixed intra-USO helper (0x01458C)
+//   + USO-relocated jal-0 init cb + data-seg template + jalr through
+//   handler vtable (o->0x28 + 0x5C / 0x4C); object/vtable structs
+//   untyped. Real-C STRUCTURAL body below. Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_0003D3C4(char *o) {
+    char *out;
+    char *h;
+    void (*fp5C)(int);
+    void (*fp4C)(int);
+    *(int *)(o + 0x10) = 0;
+    out = (char *)gl_func_00000000(&out);
+    gl_func_00000000((char *)&D_00000000 + 0x0001F2C0, (float *)(o + 0x2C));
+    if (out == 0) return;
+    h = *(char **)(o + 0x28);
+    fp5C = *(void (**)(int))(h + 0x5C);
+    fp5C(*(short *)(h + 0x58) + (int)o);
+    gl_func_00000000(o);
+    *(char **)(o + 0x0C) = o + 0x2C;
+    fp4C = *(void (**)(int))(h + 0x4C);
+    fp4C(*(short *)(h + 0x48) + (int)o);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D3C4);
+#endif
 
 int game_libs_func_0003D480(int a0) {
     return 0;
