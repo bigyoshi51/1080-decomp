@@ -11989,12 +11989,23 @@ void gl_func_00034C44(int a0, int a1) {
 //   mnemonic split/merge tooling — needs the spimdisasm-USO
 //   migration). No merge attempted (would corrupt the leaf); no
 //   episode.
-// Caps: raw-word USO + bundled no-frame leaf + USO-relocated jal-0
-//   callbacks + &D_0 static table — not exact-matchable without
-//   proper USO mnemonic disasm + boundary re-split; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + bundled no-frame leaf
+//   (static-table → record decoder at tail) + USO-reloc jal-0
+//   callbacks + &D_0+0x11FA static table — byte-match needs USO
+//   mnemonic disasm + boundary re-split. Real-C STRUCTURAL body
+//   below for the NAMED leading 4-callback orchestration wrapper
+//   only. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+int gl_func_00034C7C(void *a0, void *a1) {
+    int r = gl_func_00000000(1);
+    gl_func_00000000(a0, a1);
+    gl_func_00000000(a0, a1);
+    gl_func_00000000(r);
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034C7C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034CC8);
 
