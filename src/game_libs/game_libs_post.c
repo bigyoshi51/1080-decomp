@@ -24998,13 +24998,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004FB78);
 // list node via cb1/cb2/cb3 (each null-checked with an early bail), binds
 // the &D_reloc module global into a1->0x5C, links via the a1+0x34 region,
 // and zero-initialises the 0x8 node. Only the sub-object sizes
-// (0x90/0x60/0x8 vs the 0x90/0x90/0x60 of 0004F85C) differ. Family:
-// cb-driven lazy multi-subobject constructor (siblings gl_func_0004F85C /
-// 000412E8 / 00040070 / 0004D468). Post-link wiring tail representative;
-// the alloc-if-null guards, the 0x90/0x60/0x8 sizes, the null-check bails,
-// the a1->0x5C = &D_reloc bind and the 0x8 node zero-init are exact. Caps:
-// object struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
+// (0x90/0x60/0x8 vs the 0x90/0x90/0x60 of 0004F85C) differ.
+//
+// Caps (DEFERRED): object struct + cb signatures untyped. Real-C
+//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *gl_func_0004FBA4(char *a0, int a1, char *a2) {
+    char *o0;
+    char *o1 = a2;
+    char *n;
+    o0 = (char *)gl_func_00000000(0x90);
+    if (o0 == 0) return 0;
+    if (o1 == 0) {
+        o1 = (char *)gl_func_00000000(0x60);
+        if (o1 == 0) return 0;
+    }
+    *(char **)(o1 + 0x5C) = (char *)&D_00000000;
+    *(char **)(o0 + 0x34) = o1;
+    n = (char *)gl_func_00000000(0x8);
+    if (n != 0) {
+        *(int *)n = 0;
+        *(int *)(n + 0x4) = 0;
+    }
+    *(char **)(o1 + 0x34) = n;
+    return o0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FBA4);
+#endif
 
 // gl_func_0004FD18 — STRUCTURAL PASS (0x3D0 / 245 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
