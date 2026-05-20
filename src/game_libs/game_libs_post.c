@@ -14128,13 +14128,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003800C);
 //   object subsystem; the 0x0001EBF8..0x0001EC1C strings form a
 //   deferred contiguous string-data symbolization block (a message
 //   table to type together).
-// Caps: raw-word USO + USO-relocated jal-0 printf callbacks +
-//   contiguous fixed string-data table + object-chain deref — not
-//   exact-matchable without proper USO mnemonic disasm + the
-//   string table / object struct typed; structural pass only, no
-//   byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 printf cbs +
+//   contiguous fixed string-data table + object-chain deref; string
+//   table / object struct untyped. Real-C STRUCTURAL body below.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00038108(char *o, int a1, int a2) {
+    char *r;
+    gl_func_00000000(&D_00000000);
+    if (a1 != 0) {
+        if (gl_func_00000000((char *)&D_00000000 + 0x0001EBF8,
+                             (char *)&D_00000000 + 0x0001EC00,
+                             &D_00000000)) {
+            gl_func_00000000((char *)&D_00000000 + 0x0001EC08, &D_00000000);
+            if (gl_func_00000000((char *)&D_00000000 + 0x0001EC1C)) {
+                r = *(char **)(o + 0x28);
+                gl_func_00000000(*(int *)(r + 0x4C), *(short *)(r + 0x48));
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038108);
+#endif
 
 // gl_func_000381F8 — STRUCTURAL PASS (0x9C / 39 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
