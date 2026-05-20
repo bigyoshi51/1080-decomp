@@ -2901,7 +2901,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   only; trailing 2 tiny getters (0x8C1C/0x8C38) remain INCLUDE_ASM.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_00008AFC(char *scr) {
     float K = *(float *)((char *)&D_00000000 + 0x00000238);
     char *grp;
@@ -2969,7 +2968,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   trailing 2 helpers (0x8D38/0x8D90) remain INCLUDE_ASM. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 int timproc_uso_b5_func_00008C44(char *r) {
     char *c = *(char **)((char *)&D_00000000 + 0x154);
     int m = *(short *)(r + 0x2) - 4;
@@ -3037,7 +3035,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — alloc-or-reuse sub-panel constructor skeleton.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
     char *A;
     char *B;
@@ -3862,7 +3859,6 @@ void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
 //   FP loop skeleton only. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void timproc_uso_b5_func_0000C310(char *obj, char *a1) {
     int slot;
     if (*(int *)(obj + 0x2BC) < 0xA) {
