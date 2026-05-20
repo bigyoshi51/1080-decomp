@@ -597,17 +597,95 @@ void arcproc_uso_func_00001170(int *a0) {
  * loads of constants from D[0x77C] and D[0x30/0x34] (likely a Vec3 of
  * float thresholds at 0x30/0x34/0x38), and chained c.lt.s + bc1fl gates.
  *
- * Body structure (insns 15-130): float-clamp/scale loop with ~3 cross-USO
- * calls. The 1.0f-initialized buffer at sp+0x50..0x5C is updated based on
- * comparisons against thresholds and stored back to D[0x77C] (per-element).
+ * Body structure:
+ *   - Maintain a progress float at a0->0x77C. If a0->0x4E4 >= 11 and the
+ *     progress is below D[0x30], add D[0x34]. Otherwise, while progress is
+ *     positive, subtract D[0x38].
+ *   - Dispatch two alpha-scaled ranges:
+ *       gl_func(&D, (int)(255.0f * progress), a0+0x380, a0+0x3A4)
+ *       gl_func(&D, (int)(255.0f * progress), a0+0x260, a0+0x284)
+ *   - Run 0x6BC setup, then choose whether 0x6D4 or 0x6EC is the first
+ *     follow-up based on a0->0x6A8->[4]+1 == a0->0x6A8->[8].
  *
  * EPILOGUE (insns 130-139): standard frame teardown with pre-loaded ra
  * (loaded in 1st bgez delay slot — common -O2 trick).
  *
- * Multi-tick refinement target — doc-only this tick. Default INCLUDE_ASM
- * build remains exact. Likely a "physics gate clamp on per-stage float
- * accumulator" for the arcade-mode stage scoring system. */
+ * 2026-05-20: first real C body from no-alias disassembly after m2c failed
+ * on raw .word USO asm and Ghidra project was unavailable in this worktree.
+ * NON_MATCHING only; default INCLUDE_ASM keeps ROM exact. Tried volatile
+ * one0..one3 locals (70.72%) and inverted threshold branch layout (64.82%);
+ * plain ones[4] with the >= threshold layout is best at 74.63%. */
+#ifdef NON_MATCHING
+void arcproc_uso_func_0000125C(char *a0) {
+    float ones[4];
+    float progress;
+    int alpha;
+    int span;
+    int sum;
+    int half;
+    int *seq;
+
+    if ((*(int*)(a0 + 0x4F0) & 0x10000) == 0) {
+        return;
+    }
+
+    ones[0] = 1.0f;
+    ones[1] = 1.0f;
+    ones[2] = 1.0f;
+    ones[3] = 1.0f;
+
+    progress = *(float*)(a0 + 0x77C);
+    if (*(int*)(a0 + 0x4E4) >= 11) {
+        if (progress < *(float*)((char*)&D_00000000 + 0x30)) {
+            progress += *(float*)((char*)&D_00000000 + 0x34);
+            *(float*)(a0 + 0x77C) = progress;
+        }
+    } else if (progress > 0.0f) {
+        progress -= *(float*)((char*)&D_00000000 + 0x38);
+        *(float*)(a0 + 0x77C) = progress;
+    }
+
+    progress = *(float*)(a0 + 0x77C);
+    alpha = (int)(255.0f * progress);
+    gl_func_00000000(&D_00000000, alpha, a0 + 0x380, a0 + 0x3A4);
+
+    gl_func_00000000(a0 + 0x6BC);
+    gl_func_00000000(a0 + 0x6BC, 0xA0, 0xB6, 3);
+
+    sum = *(short*)(*(char**)(a0 + 0x6FC) + 0x20) +
+          *(short*)(*(char**)(a0 + 0x6E4) + 0x20) + 4;
+    if (sum < 0) {
+        half = (sum + 1) >> 1;
+    } else {
+        half = sum >> 1;
+    }
+    span = 0xA0 - half;
+
+    alpha = (int)(255.0f * *(float*)(a0 + 0x77C));
+    gl_func_00000000(&D_00000000, alpha, a0 + 0x260, a0 + 0x284);
+
+    seq = *(int**)(a0 + 0x6A8);
+    if (seq[2] == seq[1] + 1) {
+        gl_func_00000000(a0 + 0x6EC);
+        gl_func_00000000(a0 + 0x6EC, span, 0x8E, 2);
+        gl_func_00000000(a0 + 0x6D4);
+        gl_func_00000000(a0 + 0x6D4,
+                         span + *(short*)(*(char**)(a0 + 0x6FC) + 0x20) + 4,
+                         0x8E, 2);
+    } else {
+        gl_func_00000000(a0 + 0x6D4);
+        gl_func_00000000(a0 + 0x6D4, span, 0x8E, 2);
+        gl_func_00000000(a0 + 0x6EC);
+        gl_func_00000000(a0 + 0x6EC,
+                         span + *(short*)(*(char**)(a0 + 0x6E4) + 0x20) + 4,
+                         0x8E, 2);
+    }
+
+    (void)ones;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000125C);
+#endif
 
 int arcproc_uso_func_00000000();
 
