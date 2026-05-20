@@ -9180,11 +9180,31 @@ void game_libs_func_0002F630(void) {
 //   FP args (mtc1 a1,f12 / mtc1 at,f4) ahead of its callback. The
 //   callbacks are USO-relocated slots (jal 0 → resolved at load), the
 //   command-submission entry of the game_libs object subsystem.
-// Caps: raw-word USO + USO-relocated jal-0 callbacks + multi-way mode
-//   dispatch — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks +
+//   multi-way mode dispatch — byte-match needs USO mnemonic disasm
+//   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
+//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002F638(int a0, int sel, int arg3, int arg4, int stk_43) {
+    int op = a0 ? 6 : 2;
+    int sub = op & 0xFF;
+    int cmd3 = 0x03000000 | (sub << 8);
+    int cmd6;
+    gl_func_00000000(cmd3, (signed char)stk_43);
+    if (sel == 0) {
+        gl_func_00000000(cmd3, arg3);
+    } else if (sel == 8) {
+        gl_func_00000000(cmd3 | 8, arg3);
+    } else if (sel == 0xC) {
+        cmd6 = 0x06000000 | sub;
+        gl_func_00000000(cmd6 | 6, (signed char)arg4);
+        gl_func_00000000(cmd6 | 1, (signed char)(sel + arg3));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F638);
+#endif
 
 // gl_func_0002F72C — STRUCTURAL PASS (0x174 / 93 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
