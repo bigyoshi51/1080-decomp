@@ -13699,12 +13699,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
 //   stage of the game_libs object subsystem (companion of the
 //   gl_func_0003695C normalizer; feeds the geometry/command
 //   pipeline with clamped vectors).
-// Caps: 0x2FC raw-word USO + FP abs/clamp + contiguous FP-literal-
-//   pool constant table (&D_0+0x19F0.. unsymbolized) — not exact-
-//   matchable without proper USO mnemonic disasm + FP-pool
-//   symbolization; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x2FC raw-word USO + FP abs/clamp + contiguous
+//   FP-literal-pool constant table (&D_0+0x19F0.. unsymbolized).
+//   Real-C STRUCTURAL body below — two representative axes only.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void gl_func_00037540(char *o) {
+    float *v = *(float **)(o + 0x2C);
+    float s = *(float *)(o + 0x3C);
+    float L1 = *(float *)((char *)&D_00000000 + 0x19F8);
+    float L2 = *(float *)((char *)&D_00000000 + 0x19FC);
+    float a, b;
+    a = v[1] * s;
+    if (a < 0.0f) a = -a;
+    if (a >= L1) a = L1;
+    b = v[0] * L1;
+    if (b < 0.0f) b = -b;
+    if (b >= L2) b = L2;
+    v[0] = b * 2.0f;
+    v[1] = a * 2.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037540);
+#endif
 
 #ifdef NON_MATCHING
 /* ~16% NM (3/16 insns identical). Builds (0,arg0->float_2C,0) Vec3 on
