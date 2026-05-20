@@ -2562,7 +2562,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
  * if ((va.z*vb.x) < (va.x*vb.z)) r = -r; if (a2) *a2 = 0; return r.
  * USO: call -> func_00000000, data -> &D_00000000+off. INSN_PATCH
  * fixes the final f2/f12 register-field allocation cap. */
-extern float gl_func_00000000_f(float);
+extern float gl_func_00000000_f();
 float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
     float unused;
     Vec3 vb;
@@ -3931,7 +3931,14 @@ void game_uso_func_000057D8(char *a0) {
  * and the 0x400 fast path to fall through to the final flag-commit call
  * instead of returning after a one-arg helper call. Tried frame-pad
  * resizing and split D-base aliases for the entry globals; both compiled
- * back to the same frame/D-base CSE shape and did not move objdiff. */
+ * back to the same frame/D-base CSE shape and did not move objdiff.
+ *
+ * 2026-05-20 Codex follow-up: promoted the 0x5D00 transform helper to the
+ * float-return alias so the following sign/metric block consumes `$f0`
+ * instead of a synthetic 0.0f. Also tested pad sizes 0xA0/0xA8/0xB0:
+ * 0xA0 recovers the 0x1D0 frame but shifts early Vec3 locals down, while
+ * 0xB0 keeps the first staged Vec3 at target sp+0x1B8 and scores best.
+ * DNM objdiff: 51.995% -> 52.010%; the target is still far from exact. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int *self;
@@ -3954,7 +3961,7 @@ void game_uso_func_0000591C(int *a0) {
     Vec3 effect_delta;
     Vec3 effect_delta2;
     Vec3 effect_stage;
-    char pad[0xF8];
+    char pad[0xB0];
     int state_flag;
     int active_state;
     int resolved_state;
@@ -4092,9 +4099,7 @@ void game_uso_func_0000591C(int *a0) {
     scratch_xz.x = *(float*)(sub + 0x3C8);
     scratch_xz.y = 0.0f;
     scratch_xz.z = *(float*)(sub + 0x3D0);
-    gl_func_00000000(&scratch_xz, &transform_in, &transform_out);
-
-    metric = 0.0f;
+    metric = gl_func_00000000_f(&scratch_xz, &transform_in, &transform_out);
     if (metric < 0.0f) {
         metric = -metric;
     }
