@@ -3060,7 +3060,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C1C);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C38);
+int timproc_uso_b5_func_00008C38(char *scr) {
+    return *(int *)(*(char **)(scr + 0x40C) + 0x3C);
+}
 
 // timproc_uso_b5_func_00008C44 — STRUCTURAL PASS (no episode).
 // Raw-.word USO. BOUNDARY NOTE: this .s is a 4-function USO bundle
