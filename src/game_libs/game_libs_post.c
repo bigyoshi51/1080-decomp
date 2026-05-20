@@ -11357,12 +11357,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
 //   h->0x1C / h->0x64 means this object family is polymorphic —
 //   those offsets are its vtable slots; &D_0+0x240 is the active-
 //   device global).
-// Caps: raw-word USO + jalr through object vtable slots + USO-
-//   relocated jal-0 callbacks + status busy-poll + cycle constant —
-//   not exact-matchable without proper USO mnemonic disasm + the
-//   handle/vtable struct typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jalr through object vtable slots
+//   + USO-reloc jal-0 callbacks + status busy-poll + cycle constant
+//   (0x001E8480 = 2,000,000) — byte-match needs USO mnemonic disasm
+//   + handle/vtable struct typed. Real-C STRUCTURAL body below per
+//   the analysis. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+void gl_func_00034188(void) {
+    char *h = (char *)&D_00000000;
+    int (*f)(void *);
+    int v;
+    char *g;
+    int (*f2)(void *);
+    int r;
+    f = *(int (**)(void *))(h + 0x1C);
+    v = f(h + *(int *)(h + 0x18));
+    gl_func_00000000();
+    gl_func_00000000();
+    while (v < 0x1E0) {
+        gl_func_00000000();
+    }
+    g = *(char **)((char *)&D_00000000 + 0x240);
+    f2 = *(int (**)(void *))(g + 0x64);
+    r = f2(g + *(int *)(g + 0x60));
+    gl_func_00000000();
+    *(int *)((char *)&D_00000000 + 0x204) = 0x001E8480;
+    *(int *)(g + 0x144) = 0;
+    (void)r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034188);
+#endif
 
 // gl_func_00034240 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
 // (0x218 / 134 words, no episode). Raw-.word USO form (game_libs).
