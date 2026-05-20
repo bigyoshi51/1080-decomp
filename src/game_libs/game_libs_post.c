@@ -31907,6 +31907,8 @@ int gl_func_00067F58(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FA4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FD8);
 #endif
 
 /* gl_func_00068048: 107-insn (0x1AC) FPU-heavy float clamp/range chain.
