@@ -3171,6 +3171,8 @@ void timproc_uso_b5_func_0000CB40(int *a0, float a1) {
  * reloc + dual jr-ra. Full body INCLUDE_ASM-preserved (.s = source
  * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CB40);
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CBD0);
 #endif
 
 void timproc_uso_b5_func_0000CC04(int a0) {}
