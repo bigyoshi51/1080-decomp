@@ -13482,12 +13482,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
 //   (0x0001EA10 is a deferred data-segment template-symbolization
 //   site; the {1000,-90,180,0} defaults + 0x50 size define the
 //   struct to type when this object family is formalized).
-// Caps: raw-word USO + USO-relocated jal-0 allocator/init callbacks
-//   + &D_0 back-link + fixed data-seg template + FP-default seed —
-//   not exact-matchable without proper USO mnemonic disasm + the
-//   0x50 struct typed; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 allocator/init
+//   callbacks + &D_0 back-link + fixed data-seg template + FP-default
+//   seed; 0x50 struct untyped. Real-C STRUCTURAL body below — factory
+//   leaf of the gl_func_00036088 / 00034890 / 00032E18 family.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+char *gl_func_00036E74(char *o, int a1, int a2) {
+    if (o == 0) {
+        o = (char *)gl_func_00000000(0x50);
+        if (o == 0) return 0;
+    }
+    gl_func_00000000(o, (char *)&D_00000000 + 0x0001EA10);
+    *(char **)(o + 0x28) = (char *)&D_00000000;
+    *(int *)(o + 0x00) = 0x40;
+    *(int *)(o + 0x3C) = 0;
+    *(int *)(o + 0x4C) = a2;
+    *(float *)(o + 0x2C) = 1000.0f;
+    *(float *)(o + 0x30) = -90.0f;
+    *(float *)(o + 0x34) = 180.0f;
+    *(float *)(o + 0x38) = 0.0f;
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036E74);
+#endif
 
 // gl_func_00036F0C — STRUCTURAL PASS (0x3C8 / 242 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
