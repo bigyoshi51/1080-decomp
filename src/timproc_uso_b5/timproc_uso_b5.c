@@ -2407,6 +2407,8 @@ void timproc_uso_b5_func_000085E0(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000085E0);
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000866C);
 #endif
 
 // timproc_uso_b5_func_00008688 — STRUCTURAL PASS (no episode).
