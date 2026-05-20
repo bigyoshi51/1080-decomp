@@ -2931,7 +2931,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008930);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008940);
+int timproc_uso_b5_func_00008940(void) {
+    return 0;
+}
 
 // timproc_uso_b5_func_0000894C — STRUCTURAL PASS (no episode).
 // Raw-.word USO. BOUNDARY NOTE: this .s is a 10-function USO bundle
