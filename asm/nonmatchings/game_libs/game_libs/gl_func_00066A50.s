@@ -1,4 +1,4 @@
-nonmatching gl_func_00066A50, 0xA0
+nonmatching gl_func_00066A50, 0x94
 
 glabel gl_func_00066A50
     /* E4BB28 00066A50 27BDFFE0 */  .word 0x27BDFFE0
@@ -38,7 +38,4 @@ glabel gl_func_00066A50
     /* E4BBB0 00066AD8 27BD0020 */  .word 0x27BD0020
     /* E4BBB4 00066ADC 03E00008 */  .word 0x03E00008
     /* E4BBB8 00066AE0 00000000 */  .word 0x00000000
-    /* E4BBBC 00066AE4 3C0E0004 */  .word 0x3C0E0004
-    /* E4BBC0 00066AE8 8DCEF310 */  .word 0x8DCEF310
-    /* E4BBC4 00066AEC 3C011234 */  .word 0x3C011234
 endlabel gl_func_00066A50
