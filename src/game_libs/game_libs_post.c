@@ -7660,12 +7660,32 @@ void game_libs_func_0002BB58(int *a0, int a1) {
 //   (gl_func_00029978 / gl_func_0002AA30) and channel resets
 //   (gl_func_00029B6C) over the whole node tree. The single biggest
 //   driver of this file's animation/command subsystem.
-// Caps: raw-word USO + very large multi-phase per-object tick over a
-//   command stream + node tree — not exact-matchable without proper
-//   USO mnemonic disasm; high-level structural pass only, no byte
-//   body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + very large multi-phase per-object
+//   tick over command stream + node tree (3.1KB / 778 words) —
+//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
+//   Real-C STRUCTURAL body below per the analysis (heavyweight body
+//   summarised; only sketches the top-level early-out and tick
+//   structure). Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gl_func_0002BB7C(char *o) {
+    int w = *(int *)o;
+    int cmd = *(int *)(o + 0x4C);
+    short t;
+    char *tree;
+    if ((w << 2) >= 0) return;
+    (void)cmd;
+    t = *(short *)(o + 0x1E);
+    if (t >= 2) {
+        *(short *)(o + 0x1E) = t - 1;
+    }
+    tree = o + 0x70;
+    gl_func_00000000(tree, o);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
+#endif
 
 // gl_func_0002C7A4 — STRUCTURAL PASS (0x7CC / 499 words ≈ 2KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
