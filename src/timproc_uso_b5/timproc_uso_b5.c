@@ -2,6 +2,7 @@
 
 extern int gl_func_00000000();
 extern char D_00000000;
+extern char D_00000000_a;
 typedef struct { int a, b, c, d; } Quad4;
 
 extern char D_b5_0_a;
@@ -2129,8 +2130,8 @@ check_target:
     }
 }
 
-// timproc_uso_b5_func_00007430 — 95.83% NM (0x3A8 / 234 words,
-// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+// timproc_uso_b5_func_00007430 — exact (0x3A8 / 234 words).
+// Raw-.word USO form (genuine code). Hand-decoded.
 //
 // Timing-screen sequence/script driver: a small table-driven state
 // machine that advances an intro/outro animation program.
@@ -2159,16 +2160,9 @@ check_target:
 //     gate); D_00001320 / D_00000F60 / D_00000F18 = USO static
 //     handler/jump tables (0xF.. / 0x13.. pool). func_00000000 =
 //     USO placeholder dispatcher (step query / handler invoke).
-// Caps (DEFERRED): raw-word USO + table-driven dispatch + placeholder
-//   calls. 2026-05-20 Codex pass expanded the body from the old 200-byte
-//   entry skeleton to the full sequencer + phase/event tail. Measured via
-//   build/non_matching + objdiff/no-alias: target 936 bytes, C body 932
-//   bytes, 95.83% fuzzy. Tried branch-arm flip, shorter live ranges,
-//   vtable zero-arg shape, repeated camera loads, and D-base CSE busting.
-//   Remaining cap is register/reloc scheduling around the D+0xF60 table
-//   lookup and downstream raw-word placeholder calls. Byte-match deferred.
-//   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// Matching notes: D_00000000_a is a 0-address alias used only for the first
+// table-dispatch call. It prevents IDO from CSE'ing the D_00000F60 table base
+// into the call argument, matching the target's separate base registers.
 void timproc_uso_b5_func_00007430(char *scr) {
     int step;
     int *seq_table;
@@ -2185,7 +2179,7 @@ void timproc_uso_b5_func_00007430(char *scr) {
             }
 
             seq_table = ((int **)((char *)&D_00000000 + 0x00000F60))[step];
-            if (func_00000000(&D_00000000, seq_table[*(int *)(scr + 0x4AC)])) {
+            if (func_00000000(&D_00000000_a, seq_table[*(int *)(scr + 0x4AC)])) {
                 *(int *)(scr + 0x4B0) = *(int *)((char *)&D_00000000 + 0x00000F18);
                 if (seq_table[*(int *)(scr + 0x4AC)] != 0x100) {
                     *(int *)(scr + 0x4AC) += 1;
@@ -2229,7 +2223,7 @@ void timproc_uso_b5_func_00007430(char *scr) {
 
         obj = (char *)func_00000000(scr);
         func_00000000(((int **)&D_00000000)[*(int *)(scr + 0x3C4)],
-                      *(int *)(scr + 0x4D4) | (*(int *)(obj + 0x2B0) + 1));
+                      (*(int *)(obj + 0x2B0) + 1) | *(int *)(scr + 0x4D4));
 
         *(int *)(scr + 0x3CC) = 5;
         *(int *)(scr + 0x400) = 0x37;
@@ -2250,7 +2244,7 @@ void timproc_uso_b5_func_00007430(char *scr) {
         if (func_00000000(&D_00000000, 0x200)) {
             obj = (char *)func_00000000(scr);
             func_00000000(((int **)&D_00000000)[*(int *)(scr + 0x3C4)],
-                          *(int *)(scr + 0x4D4) | (*(int *)(obj + 0x2B0) + 1));
+                          (*(int *)(obj + 0x2B0) + 1) | *(int *)(scr + 0x4D4));
         }
 
         obj = (char *)func_00000000(scr);
@@ -2267,16 +2261,13 @@ void timproc_uso_b5_func_00007430(char *scr) {
 
         obj = (char *)func_00000000(scr);
         func_00000000(((int **)&D_00000000)[*(int *)(scr + 0x3C4)],
-                      *(int *)(scr + 0x4D4) | (*(int *)(obj + 0x2B0) + 1));
+                      (*(int *)(obj + 0x2B0) + 1) | *(int *)(scr + 0x4D4));
 
         obj = (char *)func_00000000(scr);
         node = *(char **)(obj + 0x28);
         (*(void (**)(int))(node + 0xA4))(*(short *)(node + 0xA0) + (int)obj);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007430);
-#endif
 
 // timproc_uso_b5_func_000077D8 — STRUCTURAL PASS (0x1CC / 115 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
