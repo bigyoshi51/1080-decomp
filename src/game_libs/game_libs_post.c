@@ -5514,6 +5514,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027744);
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027784);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000277E0);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00027744_pad.s")
 
 // gl_func_00027804 — STRUCTURAL PASS (0x4FC / 319 words ≈ 1.3KB, no
