@@ -1943,11 +1943,31 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     processing); 0x3C4 list count, 0x4D4 list/helper, entry->0x2B0
 //     a command field. func_00000000 = USO placeholder dispatcher
 //     (value query / per-entry process). const 2.0f / 1.0f.
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — scroll-anim + countdown skeleton only. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00007078(char *scr) {
+    char *a;
+    char *v;
+    if (*(int *)(*(char **)(*(char **)(scr + 0x414) + 0x18) + 0x130) != 0) {
+        v = (char *)func_00000000(1);
+        a = *(char **)(*(char **)(scr + 0x414) + 0x18);
+        *(float *)(a + 0x134) += *(float *)(v + 0x4) * 2.0f;
+        *(float *)(a + 0x138) += *(float *)(v + 0x0) * 2.0f;
+    }
+    if (--*(int *)(scr + 0x488) < 0) {
+        func_00000000(scr);
+        if (*(int *)(scr + 0x3C4) > 0) {
+            func_00000000(*(char **)(scr + 0x4D4), 1.0f);
+        }
+        *(int *)(scr + 0x488) = 0x10;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007078);
+#endif
 
 // timproc_uso_b5_func_000072D0 — STRUCTURAL PASS (no episode).
 // Raw-.word USO. BOUNDARY NOTE: this .s is a 2-function USO bundle
