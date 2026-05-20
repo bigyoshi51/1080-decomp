@@ -2895,10 +2895,39 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     here a draw call taking a computed FP position).
 //   D_00000238 = USO f32 scale const. func_00000000 = USO placeholder
 //     dispatcher (per-group setup).
-// Caps: raw-word USO + unsplit bundle + placeholder/vtable calls —
-//   not exact-matchable here; structural pass only for the named fn.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder/vtable
+//   calls; USO mnemonic disasm limitation prevents byte-match.
+//   Real-C STRUCTURAL body below — named leading 2-level draw loop
+//   only; trailing 2 tiny getters (0x8C1C/0x8C38) remain INCLUDE_ASM.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00008AFC(char *scr) {
+    float K = *(float *)((char *)&D_00000000 + 0x00000238);
+    char *grp;
+    char *e;
+    char *d;
+    void (*fp)(int, float);
+    int g, i;
+    int numGroups = 4;
+    for (g = 0; g < numGroups; g++) {
+        grp = *(char **)(scr + 0x40C) + g * 0x10;
+        if (*(int *)(*(char **)(grp + 0x40) + 0x6C) == 0) continue;
+        func_00000000(scr);
+        for (i = 0; i < *(int *)(*(char **)(grp + 0x40) + 0x6C); i++) {
+            e = *(char **)(grp + 0x40) + i * 4;
+            d = *(char **)(*(char **)e + 0x28);
+            fp = *(void (**)(int, float))(d + 0x5C);
+            fp(*(short *)(d + 0x58) + (int)e, *(float *)(scr + 0x480) * K);
+        }
+    }
+    d = *(char **)(scr + 0x28);
+    fp = *(void (**)(int, float))(d + 0x5C);
+    fp(*(short *)(d + 0x58), 0.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008AFC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C1C);
 
