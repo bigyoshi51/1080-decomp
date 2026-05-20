@@ -626,11 +626,44 @@ end:
 //     (A=1, B=2), 0x124/0x128/0x12C/0x130 f32 RGBA (set 1.0 = white).
 //   &D_0000108C / &D_0000109C = factory name/desc args (USO data refs).
 //   func_00000000 = the USO placeholder dispatcher (factory / attach).
-// Caps: raw-word USO + placeholder func_00000000 calls — not
-//   exact-matchable without proper USO mnemonic disasm (documented USO
-//   limitation); structure fully characterized. Structural pass only.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder func_00000000 calls;
+//   USO mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — two-widget HUD constructor. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int D_00000000;
+void timproc_uso_b5_func_00001460(char *o) {
+    char *A;
+    char *B;
+    A = (char *)func_00000000(0, (char *)&D_00000000 + 0x0000108C);
+    *(char **)(o + 0x38) = A;
+    *(float *)(A + 0x124) = 1.0f;
+    *(float *)(A + 0x128) = 1.0f;
+    *(float *)(A + 0x12C) = 1.0f;
+    *(float *)(A + 0x130) = 1.0f;
+    *(int *)(A + 0xC4) |= 0x40;
+    *(int *)(A + 0xC4) |= 0x80;
+    *(int *)(A + 0xD0) = 1;
+    func_00000000(o, A);
+    func_00000000(o + 0x10, A);
+    if (*(char **)(o + 0x14) == 0) {
+        *(int *)(o + 0x4) = 1;
+        func_00000000(0, (char *)&D_00000000 + 0x0000109C);
+        *(char **)(o + 0x14) = o;
+    }
+    B = (char *)func_00000000(0, (char *)&D_00000000 + 0x0000108C);
+    *(char **)(o + 0x3C) = B;
+    *(float *)(B + 0x124) = 1.0f;
+    *(float *)(B + 0x128) = 1.0f;
+    *(float *)(B + 0x12C) = 1.0f;
+    *(float *)(B + 0x130) = 1.0f;
+    *(int *)(B + 0xD0) = 2;
+    func_00000000(o, B);
+    func_00000000(o + 0x10, B);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001460);
+#endif
 
 // timproc_uso_b5_func_00001658 — STRUCTURAL PASS (0x25C / 151 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
