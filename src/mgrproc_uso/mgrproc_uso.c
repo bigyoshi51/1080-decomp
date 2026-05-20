@@ -143,6 +143,8 @@ void mgrproc_uso_func_00000168(void) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000170);
 
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000188);
+
 /* mgrproc_uso_func_0000019C: 218-insn (0x368) state-machine orchestrator.
  *
  * Per-state init dispatcher: 9-way jump-table on a1 (state index), each case
