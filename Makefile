@@ -500,6 +500,7 @@ build/src/timproc_uso_b5/timproc_uso_b5.c.o: INSN_PATCH := \
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: INSN_PATCH += timproc_uso_b5_func_0000687C=0x4C:0x8CC8003C,0x54:0xC50402A4
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: INSN_PATCH += timproc_uso_b5_func_00001DA4=0x0:0x24020001,0x4:0x03E00008
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: INSN_PATCH += timproc_uso_b5_func_000087E8=0x0:0x00001025,0x4:0x03E00008
+build/src/timproc_uso_b5/timproc_uso_b5.c.o: INSN_PATCH += timproc_uso_b5_func_00008894=0x0:0x00001025,0x4:0x03E00008
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: SUFFIX_BYTES := \
 	timproc_uso_b5_func_00003F18=0x8C98023C \
 	timproc_uso_b5_func_00003F5C=0x03E00008,0xAFA40000 \
@@ -508,6 +509,7 @@ build/src/timproc_uso_b5/timproc_uso_b5.c.o: SUFFIX_BYTES := \
 	timproc_uso_b5_func_0000131C=0x00000000,0x00000000,0x00000000
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: SUFFIX_BYTES += timproc_uso_b5_func_00001DA4=0x00000000
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: SUFFIX_BYTES += timproc_uso_b5_func_000087E8=0x00000000
+build/src/timproc_uso_b5/timproc_uso_b5.c.o: SUFFIX_BYTES += timproc_uso_b5_func_00008894=0x00000000
 build/src/timproc_uso_b5/timproc_uso_b5.c.o: POST_INSN_SUFFIX_BYTES := \
 	timproc_uso_b5_func_0000131C=0x00000000,0x00000000,0x00000000
 ifndef EXPECTED_BASELINE
