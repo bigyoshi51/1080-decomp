@@ -16326,14 +16326,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
 //   the gl_func_0003B6A0 6-part transform and gl_func_0003B2EC
 //   blend nodes call into (consumes the matrices/points the
 //   gl_func_0003B1AC matrix-apply produces).
-// Caps: 0x45C raw-word USO + flag-gated Vec3-difference + extensive
-//   FP length/normalize/transform pipeline (3 FP callee-save
-//   accumulators) — categorically not exact-matchable without
-//   proper USO mnemonic disasm + the point/object structs typed;
-//   structural pass only, no byte body. (A future focused non-loop
-//   session is where this gets a real decode; not 60s-tick safe.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 0x45C raw-word USO + flag-gated Vec3-difference
+//   + extensive FP length/normalize/transform pipeline (3 FP
+//   callee-save accumulators); point/object structs untyped. Real-C
+//   STRUCTURAL body below — gate + Vec3 delta + length skeleton
+//   only. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern float sqrtf(float);
+void gl_func_0003B9C0(char *o, float *a, float *b) {
+    float dx, dy, dz, len2, len;
+    if (*(int *)(o + 0x84) == 0) return;
+    dx = a[0] - b[0];
+    dy = a[1] - b[1];
+    dz = a[2] - b[2];
+    len2 = dx * dx + dy * dy + dz * dz;
+    len = sqrtf(len2);
+    *(float *)(o + 0x88) = len;
+    *(float *)(o + 0x8C) = dx;
+    *(float *)(o + 0x90) = dy;
+    *(float *)(o + 0x94) = dz;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);
+#endif
 
 // gl_func_0003BE1C — STRUCTURAL PASS (0x620 / 392 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
