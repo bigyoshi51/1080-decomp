@@ -8048,11 +8048,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D2F4);
 //   otherwise — to advance the next phase. A subsystem
 //   tick/scheduler step in the game_libs subsystem (peer to the
 //   gl_func_00026214 ring scheduler).
-// Caps: raw-word USO + gated countdown + fixed-target sequence
-//   pipeline — not exact-matchable without proper USO mnemonic
-//   disasm; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + gated countdown + fixed-target
+//   sequence pipeline (0x4423C / 0x41E9C / 0x44490 / 0x41ED4) —
+//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
+//   Real-C STRUCTURAL body below per the analysis. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0002D37C(int a0, int a1, int a2, int a3) {
+    int *ctr;
+    int st;
+    (void)a1; (void)a2;
+    if (a3 != 1) return;
+    if (!gl_func_00000000()) {
+        *(int *)((char *)&D_00000000 + 0) = 0;
+        return;
+    }
+    ctr = (int *)((char *)&D_00000000 + 0);
+    if (*ctr == 0) return;
+    if (--(*ctr) != 0) return;
+    st = *(int *)((char *)&D_00000000 + 4);
+    if (st == 0xF) {
+        gl_func_00000000(a0 & 0xFF);
+        gl_func_00000000(a0 & 0xFF);
+    } else {
+        gl_func_00000000(a0);
+        gl_func_00000000(a0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D37C);
+#endif
 
 void gl_func_0002D620(void) {
     if (*(int*)&D_00000000 == 1) {
