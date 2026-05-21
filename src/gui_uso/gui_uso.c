@@ -13,7 +13,12 @@ int c;
     return c & 0xFF;
 }
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000024);
+/* Branch-chain fragment: the predecessor leaves the character in $v0, and the
+ * taken path jumps into gui_uso_func_0000003C after using this fragment's
+ * delay slot to seed $at. IDO cannot name inherited $v0 from C, so the exact
+ * bytes are supplied by the Makefile post-cc recipe. */
+int gui_uso_func_00000024(void) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000003C);
 
