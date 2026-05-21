@@ -1354,4 +1354,7 @@ void mgrproc_uso_func_000033E8(char *dst) {
  * the predecessors' SUFFIX_BYTES. Removed to stop discover from listing
  * them as candidates. */
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000194);
+/* mgrproc_uso_func_00000194: orphan absorbed by SUFFIX_BYTES of
+ * mgrproc_uso_func_00000188 (3 words 0x00000000,0x03E00008,0x00000000;
+ * first 2 are the SUFFIX_BYTES, the orphan is the last 2). Per
+ * docs/MATCHING_WORKFLOW.md SUFFIX_BYTES-absorbed orphan-prune. */
