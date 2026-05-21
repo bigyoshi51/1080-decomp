@@ -3935,6 +3935,20 @@ void game_uso_func_000057D8(char *a0) {
  * 0xA0 recovers the 0x1D0 frame but shifts early Vec3 locals down, while
  * 0xB0 keeps the first staged Vec3 at target sp+0x1B8 and scores best.
  * DNM objdiff: 51.995% -> 52.010%; the target is still far from exact. */
+/*
+ * 2026-05-21 Codex exact-grind attempt: current baseline measured 52.12077%.
+ * Tried the existing D_game_11564_flag alias for the 0x78 global guard to
+ * split the prologue into target-like independent lui/lw pairs; prologue
+ * improved locally but objdiff regressed to 51.967064% because relocation
+ * form/stack alignment worsened. Tried materializing the bit-4 dispatch
+ * mask as a normal and register local to chase target `$t1`; both kept `$t3`,
+ * grew the frame to 0x1E8, and scored 52.117107%. Re-sampled pad sizes:
+ * 0xA0 restored the target 0x1D0 frame but moved early Vec3 stack slots
+ * off target and scored 52.117107%; 0xA8 scored 52.11528%; 0xB8 scored
+ * 52.116196%. Keep pad[0xB0] as the best current C shape despite its 0x1E0
+ * frame because it preserves the early Vec3 stage at sp+0x1B8 and the best
+ * whole-function alignment. No episode: not exact.
+ */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
     int *self;
