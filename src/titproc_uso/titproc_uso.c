@@ -1136,4 +1136,6 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002A1
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_00002980_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000016E8);
+/* titproc_uso_func_000016E8: orphan absorbed by C-emit of _000016B8
+ * (decl 0x30, .o 0x58 — +0x28 bytes absorb the 40-byte orphan at vram
+ * 0x16E8). C-emit-absorbed variant per docs/MATCHING_WORKFLOW.md. */

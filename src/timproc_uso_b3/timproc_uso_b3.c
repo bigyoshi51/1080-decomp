@@ -1132,6 +1132,6 @@ void timproc_uso_b3_func_00003050(int *a0, int a1) {
  * neutral. Removed alongside the .s deletion (per docs/MATCHING_WORKFLOW.md
  * orphan-attached-recipes blocker note). */
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002238);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001920);
+/* C-emit-absorbed orphans:
+ *   _00002238 ← _000021F4 (decl 0x44, .o 0x4C)
+ *   _00001920 ← _00001870 (decl 0xB0, .o 0xB8) */

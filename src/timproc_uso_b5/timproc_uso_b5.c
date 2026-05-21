@@ -4945,12 +4945,8 @@ void timproc_uso_b5_func_0000E5D8(int a0) {
     gl_func_00000000(a0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006890);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000068A8);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000068EC);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCB4);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1F4);
+/* C-emit-absorbed orphans (per docs/MATCHING_WORKFLOW.md):
+ *   _00006890 + _000068A8 + _000068EC ← _0000687C (decl 0x14, .o 0x84
+ *      — covers vram 0x687C-0x6900 inclusive of all 3 orphans)
+ *   _0000C1F4 ← _0000C1B4 (decl 0x40, .o 0x54)
+ *   _0000CCB4 ← _0000CC74 (decl 0x40, .o 0x54) */

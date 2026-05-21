@@ -1207,7 +1207,9 @@ void mgrproc_uso_func_00002AFC(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7C);
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E34);
+/* mgrproc_uso_func_00002E34: orphan absorbed by C-emit of _00002B7C
+ * (decl 0x2B8, .o 0x2C0 — +2 insns absorb the 8-byte orphan at vram
+ * 0x2E34). C-emit-absorbed variant per docs/MATCHING_WORKFLOW.md. */
 
 /* mgrproc_uso_func_00002E3C: 45-insn (real 0xB0; declared 0xD4 incl. a
  * trailing FPU-const block) — DEFERRED, documented-cap class:
