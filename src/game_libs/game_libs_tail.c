@@ -142,7 +142,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AFC);
+/* Clears MSB (sibling of matched _00009978). */
+void game_libs_func_00009AFC(unsigned char *arg0) {
+    *arg0 &= 0x7F;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
 

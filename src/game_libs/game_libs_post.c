@@ -12773,11 +12773,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003593C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035988);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035990);
+/* Returns 0 (sibling of matched _0003D538). */
+int game_libs_func_00035990(int a0, int a1, int a2) {
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000359A4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000359B8);
+/* Returns 0 (sibling of matched _0003D480). */
+int game_libs_func_000359B8(int a0) {
+    return 0;
+}
 
 /* gl_func_000359C4: 21-insn 3-call dispatcher with permuted arg lists.
  * Calls gl_func(a1, a3, a2), then gl_func(0, a2, a1), then
@@ -32609,7 +32615,9 @@ void gl_func_00067AC8(float a) {
     gl_func_00067AC8_inner(a, a);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067AE8);
+/* Varargs empty stub (sibling of matched gl_func_0006F144). */
+void gl_func_00067AE8(int a0, ...) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
 
@@ -32627,7 +32635,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D18);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D50);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D80);
+/* Returns 0 (sibling of matched _0003D480). */
+int game_libs_func_00067D80(int a0) {
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D8C);
 
@@ -35300,7 +35311,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F088);
 void gl_func_0006F144(int a0, ...) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F160);
+/* Varargs empty stub (sibling of matched gl_func_0006F144). */
+void gl_func_0006F160(int a0, ...) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F17C);
 
