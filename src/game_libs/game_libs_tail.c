@@ -1340,6 +1340,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CB9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CBFC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CD74);
+
 #ifdef NON_MATCHING
 /* gl_func_0000CD80: 23-insn (0x5C) "any-of-three-thresholds undercut" gate.
  *
