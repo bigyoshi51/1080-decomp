@@ -474,7 +474,41 @@ void gl_func_0000AB70(char *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000ABBC);
+void gl_func_0000ABBC(char *a0, int a1, unsigned char a2, unsigned char a3, unsigned char *arg4) {
+    int i;
+    unsigned char *flagp;
+    char *p;
+    int saved_a1;
+    int arg2_trunc;
+    int arg3_trunc;
+    int one;
+    int limit;
+
+    saved_a1 = a1;
+    arg2_trunc = a2;
+    arg3_trunc = a3;
+    i = 0;
+    flagp = arg4;
+    p = a0;
+    one = 1;
+    limit = 3;
+    for (; i != limit; i++) {
+        if (gl_func_00000000(p) != 0) {
+            unsigned char flags;
+
+            gl_func_00000000(p, saved_a1, arg2_trunc, arg3_trunc);
+            if (i == 0) {
+                *flagp = (*flagp & 3) << 1;
+            } else if (i == one) {
+                flags = *flagp;
+                *flagp = (flags & 1) | ((flags & 2) << 1);
+            }
+            flags = *flagp;
+            *flagp = flags | (one << i);
+        }
+        p += 0x20;
+    }
+}
 
 /* gl_func_0000ACBC: 25-insn 3-iter loop, sibling of gl_func_0000A0CC.
  * Calls func_00000000 (NOTE: not gl_-prefixed — target's reloc references
