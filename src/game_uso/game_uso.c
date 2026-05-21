@@ -9407,6 +9407,8 @@ end:
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
+
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D204);
 #endif
 
 /* game_uso_func_0000D210 - verified structural decode (129-insn state
