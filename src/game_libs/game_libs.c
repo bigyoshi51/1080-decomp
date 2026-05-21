@@ -1537,16 +1537,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
 /* game_libs_func_00047F90 split from game_libs_func_00047F68; INCLUDE_ASM
  * lives in game_libs_post.c next to the parent. */
 
-/* game_libs_func_00066200 + game_libs_func_00066208: 2x2-insn arg-save
- * sentinels (jr $ra; sw $a0, 0($sp)) at gl_func_000661D8 tail, emitted by
- * the gl_func_000661D8=...,0x03E00008,0xAFA40000,0x03E00008,0xAFA40000
- * SUFFIX_BYTES recipe on game_libs_post.c.o (see Makefile). The .s files
- * existed as splat-extracted symbol entries but were never used by the
- * build (game_libs.c.o gets truncated to 0x8944, dropping any INCLUDE_ASM
- * bytes placed past that offset). Removed to stop the discover tool from
- * re-surfacing them as candidates.  */
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D7C0);
+/* game_libs_func_00066200 + game_libs_func_00066208 + game_libs_func_0002D7C0:
+ * SUFFIX_BYTES-absorbed orphans whose bytes are emitted by the post-cc
+ * recipes on adjacent gl_func_* entries in game_libs_post.c.o (see Makefile:
+ * gl_func_000661D8 SUFFIX_BYTES covers 0x66200/0x66208; gl_func_0002D788
+ * INSN_PATCH+SUFFIX_BYTES + gl_func_0002D7D0 PROLOGUE_STEALS cover 0x2D7C0).
+ * The .s files existed as splat-extracted symbol entries but were never used
+ * by the build (game_libs.c.o gets truncated to 0x8944, dropping any
+ * INCLUDE_ASM bytes placed past that offset). Removed to stop the discover
+ * tool from re-surfacing them as candidates. See
+ * docs/MATCHING_WORKFLOW.md#feedback-splat-orphan-duplicate-symbol-pruning
+ * SUFFIX_BYTES-absorbed orphan variant. */
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FDC0);
 
