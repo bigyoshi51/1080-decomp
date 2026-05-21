@@ -3990,6 +3990,11 @@ void game_uso_func_000057D8(char *a0) {
  * of transform_out.y for the gate scored 53.380604%, and forcing the ratio
  * value into the following out_flags&8 branch scored 52.65782%. Still not
  * exact; no new episode.
+ *
+ * 2026-05-21 follow-up: fixed the late hit-parent/self->0x40 tail logic to
+ * match target 0x6B04-0x6B58: the parent copy triggers when self->0x40 is
+ * already nonzero, and the null-parent path either copies helper_ptr+0x6C
+ * or sets out_flags|0x10. DNM objdiff: 54.043% -> 54.99451%. Still not exact.
  */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
@@ -4485,12 +4490,16 @@ void game_uso_func_0000591C(int *a0) {
         }
     } else if (hit_parent != NULL) {
         if (*(int*)(hit_parent + 0x2C) == 0) {
-            if (*(int*)((char*)self + 0x40) == 0) {
+            if (*(int*)((char*)self + 0x40) != 0) {
                 *(int*)((char*)self + 0x40) = *(int*)(hit_parent + 0x6C);
             }
         }
     } else {
-        out_flags |= 0x10;
+        if (*(int*)((char*)self + 0x40) != 0) {
+            *(int*)((char*)self + 0x40) = *(int*)(helper_ptr + 0x6C);
+        } else {
+            out_flags |= 0x10;
+        }
     }
 
 commit_flags:
