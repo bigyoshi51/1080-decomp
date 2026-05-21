@@ -1558,4 +1558,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
  * gl_func_0002DED0 SUFFIX_BYTES (3 words 0x000470C0,0x01C52021,0x2484001A).
  * All four predecessor recipes live on game_libs_post.c.o. */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00008668);
+/* game_libs_func_00008668: SUFFIX_BYTES-absorbed orphan ← gl_func_000085B0
+ * (3 words 0x3C030000,0x24630000,0x8C620028 exact match). gl_func_000085B0
+ * is in this same file with size 0xC4 covering the orphan's vram. The
+ * orphan symbol pre-prune sat at .o offset 0x8944 (= TRUNCATE_TEXT cap)
+ * with size 0 — its bytes never reached the link. */
