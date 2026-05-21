@@ -296,6 +296,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010C0);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010D4);
+
 void timproc_uso_b1_func_00000000();
 
 void timproc_uso_b1_func_000010DC(int a0, char *a1) {
