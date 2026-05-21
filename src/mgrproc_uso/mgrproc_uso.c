@@ -644,6 +644,8 @@ void mgrproc_uso_func_00000D94(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000E04);
 
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000119C);
+
 /* mgrproc_uso_func_000011A4 - verified structural decode (0x108,
  * 66 insns, sub-object registration table builder).
  *   void mgrproc_uso_func_000011A4(St *s0, int a1) {
