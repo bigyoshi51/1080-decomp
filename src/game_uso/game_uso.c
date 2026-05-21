@@ -8491,11 +8491,34 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 //     (bit 0x2 cleared each step), 0xB4/0xB8/0xBC a transform Vec3,
 //     0x38/0x54/0x84 f32 state. const 250.0f. func_00000000 = USO
 //     placeholder dispatcher (sample / query).
-// Caps: raw-word USO + placeholder calls + 117-word FP/physics step —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls + 117-word
+//   FP/physics step; USO mnemonic disasm limitation prevents
+//   byte-match. Real-C STRUCTURAL body below — per-object
+//   physics/state advance + wrap-counter skeleton. Byte-match
+//   deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void game_uso_func_0000A604(char *obj) {
+    char *w = *(char **)(obj + 0x30);
+    float scratch[3];
+    int r;
+    scratch[0] = *(float *)(w + 0x318) * *(float *)(w + 0xA8);
+    scratch[1] = *(float *)(w + 0x31C) * *(float *)(w + 0xA8);
+    scratch[2] = *(float *)(w + 0x320) * *(float *)(w + 0xA8);
+    r = func_00000000(*(char **)(w + 0x548 + *(int *)(obj + 0x5C) * 4), scratch);
+    if (r != 0) {
+        if (func_00000000(*(char **)(obj + 0x2C), scratch) != 0) {
+            if (*(float *)(obj + 0x84) > 250.0f) {
+                *(float *)(obj + 0x60) = *(float *)(obj + 0x54);
+                *(int *)(obj + 0x40) = 0;
+            }
+        }
+    }
+    if (++*(int *)(obj + 0x5C) >= 0xA) *(int *)(obj + 0x5C) = 0;
+    *(int *)(obj + 0x68) &= ~2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
+#endif
 
 void game_uso_func_0000A7D8(int *a0) {
     a0[0x5C / 4] = 0;
