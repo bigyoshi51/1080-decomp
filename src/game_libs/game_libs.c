@@ -1529,7 +1529,14 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
 /* game_libs_func_00066C58 / _00066C60 split 2026-05-15 from gl_func_00066C30;
  * bodies live in game_libs_post.c next to parent. */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
+/* game_libs_func_0004D3D0: orphan absorbed by the C-emit of
+ * game_libs_func_0004D39C (doubly-linked-list insert-after-head;
+ * 18/18 exact at .o size 0x48 in game_libs_post.c.o, covers vram
+ * 0x4D39C-0x4D3E3 inclusive of the orphan's 5-insn range). The
+ * INCLUDE_ASM here was past TRUNCATE_TEXT=0x8944 anyway (dead).
+ * Same pattern as the SUFFIX_BYTES-absorbed orphan-prune variants
+ * documented in MATCHING_WORKFLOW.md, except absorbed by a C body
+ * instead of a Makefile recipe. */
 
 /* game_libs_func_00047F84 split 2026-05-19 from game_libs_func_00047F68;
  * decompiled in game_libs_post.c next to the parent. */
