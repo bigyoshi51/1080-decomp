@@ -453,7 +453,45 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * (was 0x6B4). Caps <80: defensive `if(ptr!=0)skip` alloc-cascade dead
  * checks + per-call stack-spill + &D %hi/%lo reloc scheduling (same as
  * 199C, ~9%). INCLUDE_ASM is the correct build path (no episode). */
+#ifdef NON_MATCHING
+char *timproc_uso_b1_func_000016F8(char *a0, char *a1, int a2) {
+    char *s0;
+    char *p2;
+    char *p3;
+    char *p4;
+    s0 = a0 ? a0 : (char *)gl_func_00000000(268);
+    if (!s0) return s0;
+    p2 = (char *)gl_func_00000000(212);
+    if (p2) {
+        p3 = (char *)gl_func_00000000(80);
+        if (p3) {
+            p4 = (char *)gl_func_00000000(44);
+            if (p4) {
+                gl_func_00000000(p4, (char *)&D_00000000 + 0x404);
+                *(char **)(p4 + 0x28) = &D_00000000;
+            }
+            *(char **)(p3 + 0x28) = &D_00000000;
+        }
+        *(char **)(p2 + 0x28) = &D_00000000;
+    }
+    *(char **)(s0 + 0x28) = &D_00000000;
+    *(int *)(s0 + 0x60) = a2;
+    *(int *)(s0 + 0xE0) = 160;
+    *(int *)(s0 + 0xE4) = 29;
+    *(int *)(s0 + 0xD8) = 160;
+    *(int *)(s0 + 0xDC) = 130;
+    *(int *)(s0 + 0xE8) = 160;
+    *(int *)(s0 + 0xEC) = 105;
+    *(float *)(s0 + 0x108) = 1.0f;
+    *(char **)(s0 + 0xD4) = a1;
+    *(float *)(a1 + 0x72C) = 1.0f;
+    gl_func_00000000(s0 + 0xF0,
+        ((*(int *)&D_00000000 + 35) << 16) | (*(int *)(*(char **)(s0 + 0xD4) + 0x6B0) + 7));
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000016F8);
+#endif
 
 void timproc_uso_b1_func_00001860(int *a0) {
     if (gl_func_00000000(*(int*)(&D_00000000 + 0x190)) == 0) return;
