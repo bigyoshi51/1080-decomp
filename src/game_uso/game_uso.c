@@ -3948,6 +3948,14 @@ void game_uso_func_000057D8(char *a0) {
  * 52.116196%. Keep pad[0xB0] as the best current C shape despite its 0x1E0
  * frame because it preserves the early Vec3 stage at sp+0x1B8 and the best
  * whole-function alignment. No episode: not exact.
+ *
+ * 2026-05-21 follow-up: tested moving scaled_axis/mul_axis after pad[0xB0]
+ * to chase target's sp+0x148/sp+0x15C scaled-Vec3 slots; it regressed
+ * 52.010063% -> 52.009148%, so reverted. Removing the defensive NULL
+ * initialization of hit_parent/hit_obj improved 52.010063% -> 52.338516%
+ * by dropping non-target pre-call stores. Reusing out_flags as the late
+ * effect flag accumulator instead of a separate effect_flags local improved
+ * further to 52.799633%. Still not exact; no episode.
  */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
@@ -3978,7 +3986,6 @@ void game_uso_func_0000591C(int *a0) {
     int transform_flag;
     int state_bits;
     int out_flags;
-    int effect_flags;
     int state_counter;
     int state_code;
     Vec3 *effect_vec;
@@ -4025,8 +4032,6 @@ void game_uso_func_0000591C(int *a0) {
     staged_axis.y += mul_axis.y;
     staged_axis.z += mul_axis.z;
 
-    hit_obj = NULL;
-    hit_parent = NULL;
     helper_ptr = (char*)gl_func_00000000(self, &hit_parent, &staged_axis, &hit_obj);
     if (helper_ptr == 0) return;
 
@@ -4161,7 +4166,7 @@ void game_uso_func_0000591C(int *a0) {
 
     effect_pos = transform_out;
     effect_delta = derived_vec;
-    effect_flags = 0;
+    out_flags = 0;
     if ((hit_parent != NULL) && (*(int*)(hit_parent + 0x84) & 1)) {
         if ((*(int*)(hit_parent + 0x84) & 0x804) != 0) {
             sub = *(char**)((char*)self + 0x30);
@@ -4219,13 +4224,13 @@ void game_uso_func_0000591C(int *a0) {
             } else {
                 if (*(float*)((char*)self + 0xBC) <= transform_out.y) {
                     if (metric < 50.0f) {
-                        effect_flags |= 0x40;
+                        out_flags |= 0x40;
                     }
                 }
             }
         }
 
-        if (effect_flags & 8) {
+        if (out_flags & 8) {
             if (*(int*)((char*)self + 0x4C4) > 0) {
                 gl_func_00000000(self);
                 *(int*)((char*)self + 0x4C4) = 0;
@@ -4296,11 +4301,11 @@ void game_uso_func_0000591C(int *a0) {
             state_value2 = 1.0f;
         }
         if (metric <= state_value2 * *(float*)((char*)self + 0xC4)) {
-            effect_flags |= 2;
+            out_flags |= 2;
         }
     } else if (resolved_state & 0x800) {
         if ((*(char**)(sub + 0x908) == NULL) || (transform_out.y <= -2000.0f)) {
-            effect_flags |= 0x80;
+            out_flags |= 0x80;
         }
     }
 
@@ -4350,17 +4355,17 @@ void game_uso_func_0000591C(int *a0) {
         }
     }
 
-    if (effect_flags & 0x400) {
+    if (out_flags & 0x400) {
         gl_func_00000000(self);
         *(int*)((char*)self + 0x40) = gl_func_00000000(self);
         goto commit_flags;
     }
 
-    if (effect_flags & 0x10) {
+    if (out_flags & 0x10) {
         if (helper_ptr != NULL) {
             *(int*)((char*)self + 0x7C) = *(int*)(helper_ptr + 0x6C);
         }
-        if ((effect_flags & 0x200) != 0) {
+        if ((out_flags & 0x200) != 0) {
             state_code = *(int*)((char*)self + 0x2C);
             if (state_code == 3) {
                 state_value = *(float*)((char*)self + 0x24C);
@@ -4380,7 +4385,7 @@ void game_uso_func_0000591C(int *a0) {
                     *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
                 }
             }
-        } else if ((effect_flags & 0x100) != 0) {
+        } else if ((out_flags & 0x100) != 0) {
             state_code = *(int*)((char*)self + 0x2C);
             if (state_code != 0) {
                 if (state_code == 3) {
@@ -4396,7 +4401,7 @@ void game_uso_func_0000591C(int *a0) {
             } else {
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             }
-        } else if ((effect_flags & 0x80) != 0) {
+        } else if ((out_flags & 0x80) != 0) {
             state_code = *(int*)((char*)self + 0x2C);
             if (state_code == 3) {
                 state_value = *(float*)((char*)self + 0x174);
@@ -4438,11 +4443,11 @@ void game_uso_func_0000591C(int *a0) {
             }
         }
     } else {
-        effect_flags |= 0x10;
+        out_flags |= 0x10;
     }
 
 commit_flags:
-    gl_func_00000000(self, effect_flags);
+    gl_func_00000000(self, out_flags);
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
      *   t2 = a0->0x30;                                  // sub-struct ptr
