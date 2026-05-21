@@ -8831,11 +8831,45 @@ void game_uso_func_0000B498(char *a0) {
 //     0xD0/0xF0 sub-fields used in the index calc. *(Ctx**)(D_0 +
 //     0x240) = global ctx (->0x148 / ->0xB8 inputs to the index).
 //     Terrain/height-map lookup (snowboard ground sampling).
-// Caps: raw-word USO + 2D-index multu + FP interp — not exact-
-//   matchable without proper USO mnemonic disasm; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + 2D-index multu + FP interp; USO
+//   mnemonic disasm limitation prevents byte-match. Real-C
+//   STRUCTURAL body below — 2D-grid sample + bilinear interp
+//   skeleton (terrain/height-map lookup; snowboard ground
+//   sampling). Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+float game_uso_func_0000B4B8(char *obj) {
+    char *c = *(char **)((char *)&D_00000000 + 0x240);
+    int W = *(int *)(obj + 0xD0);
+    int H = *(int *)(obj + 0xD4);
+    unsigned short *grid = *(unsigned short **)(obj + 0xD8);
+    int x = *(int *)(c + 0x148);
+    int y = *(int *)(c + 0xB8);
+    int idx;
+    float u, v;
+    float c00, c01, c10, c11;
+    float r;
+    if (x < 0 || x >= W || y < 0 || y >= H) {
+        *(float *)(obj + 0xCC) = 0.0f;
+        return 0.0f;
+    }
+    idx = y * W + x;
+    c00 = (float)grid[idx];
+    c01 = (float)grid[idx + 1];
+    c10 = (float)grid[idx + W];
+    c11 = (float)grid[idx + W + 1];
+    u = *(float *)(obj + 0xB8);
+    v = *(float *)(obj + 0xBC);
+    r = c00 * (1.0f - u) * (1.0f - v)
+      + c01 * u         * (1.0f - v)
+      + c10 * (1.0f - u) * v
+      + c11 * u         * v;
+    *(float *)(obj + 0xCC) = r;
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B4B8);
+#endif
 
 void game_uso_func_0000B710(char *a0) {
     float one = 1.0f;
