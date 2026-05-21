@@ -349,15 +349,18 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
  * returned [4] matches a0->[0x6AC]. State 1 runs the setup/commit chain and
  * links a0->[0x56C] under the object returned into a0->[0x524].
  *
- * 2026-05-20: NON_MATCHING body reaches 95.237625% via objdiff report.
+ * 2026-05-20: NON_MATCHING body reached 95.237625% via objdiff report.
  * Tried plain char* base, register int* base, goto-shaped dispatch, inverted
  * loop branch, and volatile int* base. Volatile base is required to get the
  * target $s3 global-base lifetime and 0x28 stack frame. Remaining no-alias
  * diffs are codegen-level: entry emits bne+b instead of beq+default branch,
  * the state-0 compare still uses bnel, and loop temporaries choose different
  * caller registers around the table stride multiply.
+ *
+ * 2026-05-21: inverted the state-1 guard to recover the target beq+default
+ * dispatch shape (C-only 96.86%). Remaining same-size register/scheduler
+ * diffs are promoted with INSN_PATCH in Makefile.
  */
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000E60(char *a0) {
     volatile int *base = (int*)&D_00000000;
     char *saved = a0;
@@ -371,10 +374,10 @@ void timproc_uso_b3_func_00000E60(char *a0) {
     if (state == 0) {
         goto state0;
     }
-    if (state == 1) {
-        goto state1;
+    if (state != 1) {
+        return;
     }
-    return;
+    goto state1;
 
 state0:
         obj = *(char**)(saved + 0x6A8);
@@ -417,9 +420,6 @@ state1:
         created[0x14 / 4] = (int)link;
         gl_func_00000000(base[0x190 / 4], 1, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000E60);
-#endif
 
 /* timproc_uso_b3_func_00000FF4: F1 (32-insn 0x80) gate-then-update wrapper
  * + SUFFIX bundle (5-insn D[0x40]=9 stub at 0x1074 + 2-insn fragment at
