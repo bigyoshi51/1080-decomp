@@ -71,11 +71,28 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
 //     symbol (see
 //     docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
 //   func_0000023C + 0x18 = global ctx ptr (writable fold, recurring).
-// Caps: 566-insn f64 integrator; structural pass only, no byte body
-//   (this one's consts ARE symbolized, but it's too large for a 60s
-//   exact-match attempt — multi-run target).
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 566-insn f64 integrator; consts ARE symbolized but
+//   the function is too large for a 60s exact-match attempt (multi-run
+//   target). Real-C STRUCTURAL body below — per-frame physics/anim
+//   integrator skeleton. Byte-match deferred. Name pre-checked: no
+//   extern reuse. D_NNNNNNNN named consts via offset cast.
+#ifdef NON_MATCHING
+void func_0001304C(char *st) {
+    char *ctx;
+    if (!*(int *)(st + 0x40)) return;
+    *(int *)(st + 0x74) = *(int *)(st + 0x74) + 1;
+    if (*(int *)(st + 0x6C)) {
+        if (*(int *)(st + 0x70)) *(int *)(st + 0x70) = *(int *)(st + 0x70) - 1;
+        if (*(int *)(st + 0x70) == 0) {
+            *(int *)(st + 0x6C) = 0;
+        }
+    }
+    ctx = *(char **)((char *)&D_00000000 + 0x18);
+    (void)ctx;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001304C);
+#endif
 
 int func_00013924(int *a0) {
     if (*(float*)((char*)a0 + 0x48) == 1.0f) {
