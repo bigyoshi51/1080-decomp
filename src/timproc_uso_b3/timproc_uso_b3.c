@@ -1133,3 +1133,5 @@ void timproc_uso_b3_func_00003050(int *a0, int a1) {
  * orphan-attached-recipes blocker note). */
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002238);
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001920);
