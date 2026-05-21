@@ -10338,12 +10338,33 @@ void game_uso_func_0000E564(int *a0) {
 //   Pure bit-permutation: each source bit maps to a distinct
 //     internal bit (input/state translation table, unrolled).
 //   func_00000000 = USO placeholder dispatcher (1 trailing call).
-// Caps: raw-word USO + placeholder call — not exact-matchable
-//   without proper USO mnemonic disasm; the (mask -> outbit) map is
-//   fully enumerable from the .s when a future pass tightens it.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder call; USO mnemonic
+//   disasm limitation prevents byte-match — full (mask -> outbit)
+//   table is enumerable from .s in a future pass. Real-C STRUCTURAL
+//   body below — input/state flag-translation skeleton (representative
+//   mask→outbit pairs). Byte-match deferred. Name pre-checked: no
+//   extern reuse.
+#ifdef NON_MATCHING
+void game_uso_func_0000E5C8(char *obj, int a1) {
+    unsigned int src;
+    unsigned int dst = 0;
+    if (*(char **)(obj + 0xB4) != 0) {
+        src = *(unsigned int *)(*(char **)(*(char **)(obj + 0xB4) + 0x800) + 0x10);
+        dst |= *(unsigned int *)(*(char **)(obj + 0xB4) + 0xA58);
+    } else {
+        src = *(unsigned int *)(obj + 0x18);
+    }
+    if (src & 0x200)  dst |= 0x02;
+    if (src & 0x1000) dst |= 0x04;
+    if (src & 0x4000) dst |= 0x01;
+    if (src & 0x2000) dst |= 0x10;
+    if (src & 0x8000) dst |= 0x40;
+    *(unsigned int *)(obj + 0xE8) = dst;
+    (void)a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
+#endif
 
 /* game_uso_func_0000E91C — verified structural decode (EE84-family branchy
  * orchestrator, ~118 insns; switch + flag-set + D-pair calls = documented
