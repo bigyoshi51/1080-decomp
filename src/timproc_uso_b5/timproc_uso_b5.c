@@ -2855,9 +2855,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
 //   USO mnemonic disasm limitation prevents byte-match. Real-C
 //   STRUCTURAL body below — named leading fn (camera-snapshot + mode
-//   begin) only; trailing 12 predicate/accessor functions remain
-//   INCLUDE_ASM under their own symbols. Byte-match deferred. Name
-//   pre-checked: no extern reuse.
+//   begin) only; trailing predicates/accessors mostly remain INCLUDE_ASM.
+//   The 0x87F4 switch predicate has been boundary-merged with its case
+//   fragments (0x8834..0x8894), which inherit registers and share tails.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_00008688(char *scr, int mode) {
     char *cam = *(char **)(*(char **)(scr + 0x414) + 0x10);
@@ -2905,21 +2906,10 @@ int timproc_uso_b5_func_000087E8(void) {
     return 0;
 }
 
+/* Boundary-merged switch predicate. The internal alabels at 0x8834, 0x8844,
+ * 0x8854, 0x886C, 0x887C, and 0x8894 are case labels/tail entries, not
+ * standalone C-callable functions. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087F4);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008834);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008844);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008854);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000886C);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000887C);
-
-int timproc_uso_b5_func_00008894(void) {
-    return 0;
-}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088A0);
 
