@@ -1554,7 +1554,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
  * 0x3C020000,0x24420000,0x8C4E0008); game_libs_func_00030610 →
  * gl_func_000305CC SUFFIX_BYTES (3 words 0x3C020000,0x24420000,0x8C4E0000);
  * game_libs_func_0005FDC0 → gl_func_0005FD20 SUFFIX_BYTES (3 words
- * 0x00000000,0x3C060000,0x8CC60000). All three predecessor recipes live on
- * game_libs_post.c.o. */
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DEF4);
+ * 0x00000000,0x3C060000,0x8CC60000); game_libs_func_0002DEF4 →
+ * gl_func_0002DED0 SUFFIX_BYTES (3 words 0x000470C0,0x01C52021,0x2484001A).
+ * All four predecessor recipes live on game_libs_post.c.o. */
