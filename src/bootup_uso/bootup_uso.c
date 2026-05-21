@@ -4165,11 +4165,90 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
 //   strided fold table to +0x4..+0x38; func_00000080+0x64 (writable
 //   global flag, cleared 2x); see
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
-// Caps: 296-insn multi-branch sync w/ folded globals + vtable dispatch
-//   — exact-match blocked by deferred pool symbolization; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 296-insn multi-branch sync w/ folded globals +
+//   vtable dispatch — byte-match blocked by deferred pool
+//   symbolization. Real-C STRUCTURAL body below. Name pre-checked:
+//   no extern reuse. D_00000000 reuses file-scope extern char.
+#ifdef NON_MATCHING
+void func_0000CFA0(char *st) {
+    char *ctx;
+    char *r;
+    float out_at_sp84;
+    int changed;
+    char *sub;
+    float d0, d1, d2, m;
+    int sp30;
+    ctx = *(char **)((char *)&D_00000000 + 0x18);
+    if ((*(int *)(st + 0xA58) & 0x2000) && ctx == *(char **)(st + 0x8DC)) return;
+    r = (char *)func_00000000(ctx, *(int *)(st + 0xB4), *(int *)(st + 0xB8),
+                              *(int *)(st + 0xBC), 0, &out_at_sp84);
+    if (!r) return;
+    *(char **)(st + 0xA40) = r;
+    changed = ((float)*(int *)(ctx + 0x98) < out_at_sp84) ? 1
+              : (((int)ctx ^ *(int *)(st + 0x8DC)) != 0);
+    if ((*(int *)(st + 0xA58) & 0x8000) && *(int *)(st + 0x9A0) == 0x61 &&
+        *(int *)(st + 0x904) != 9 && *(int *)(st + 0x938) != 0) {
+        func_00000000(st, 0xD);
+        *(int *)(st + 0x8FC) = *(int *)r;
+        *(int *)(st + 0x900) = *(int *)(r + 4);
+        *(int *)(st + 0x904) = *(int *)(r + 8);
+        func_00000000(st);
+        func_00000000(0x10);
+        sub = *(char **)(st + 0x824);
+        if (sub) {
+            void (*fn)(void *, int) = *(void (**)(void *, int))(sub + 0x1C);
+            if (fn) fn(sub, *(short *)(sub + 0x18));
+        }
+        func_00000000(st, 6);
+    }
+    if (changed && (*(int *)(st + 0x8B8) & 4)) {
+        func_00000000(st);
+        *(int *)(st + 0xA44) = 0;
+        return;
+    }
+    *(int *)(st + 0xA44) = 1;
+    if ((*(int *)(st + 0x9A8) & 2) && (*(int *)(st + 0xA58) & 0x1000) &&
+        *(int *)(st + 0xA4C)) {
+        func_00000000(*(int *)(st + 0x850), st + 0x9D8);
+        func_00000000(st);
+        func_00000000(0x11);
+        func_00000000(0, st + 0x8E0);
+        func_00000000(st);
+        func_00000000(st);
+        *(int *)((char *)&D_00000000 + 0x64) = 0;
+    } else {
+        if ((*(int *)(st + 0x8B8) & 0xA) && *(int *)(st + 0xA4C) &&
+            !(*(int *)(st + 0x9A8) & 0x400)) {
+            d0 = *(float *)(st + 0x9D8);
+            d1 = *(float *)(st + 0x9DC);
+            d2 = *(float *)(st + 0x9E0);
+            m = d0 * d0 + d1 * d1 + d2 * d2;
+            (void)m;
+            *(float *)(st + 0x9E8) = (float)(*(unsigned char *)(st + 0xA30) >> 1) / 255.0f;
+            *(float *)(st + 0x9EC) = (float)(*(unsigned char *)(st + 0xA31) >> 1) / 255.0f;
+            *(float *)(st + 0x9F0) = (float)(*(unsigned char *)(st + 0xA32) >> 1) / 255.0f;
+            *(float *)(st + 0x9F4) = 112.0f / 255.0f;
+            func_00000000(st + 0x9E8);
+            if (*(int *)(st + 0x8B8) & 2) func_00000000(2);
+            if ((*(int *)(st + 0x8B8) & 8) && *(int *)(st + 0x938) == 0) {
+                sub = *(char **)(st + 0x824);
+                if (sub) {
+                    void (*fn)(void *) = *(void (**)(void *))(sub + 0x1C);
+                    if (fn) fn(sub);
+                }
+            }
+        }
+        *(int *)((char *)&D_00000000 + 0x64) = 0;
+    }
+    func_00000000((*(int *)(st + 0x8B8) & 1) ? 0x11 : 0x14);
+    sp30 = 0;
+    func_00000000(0, &sp30);
+    func_00000000(st);
+    func_00000000(*(int *)(*(char **)((char *)&D_00000000 + 0x18) + 0x108));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
+#endif
 
 // func_0000D440 — STRUCTURAL PASS (0x4C0 / 304 insns, no episode).
 // Per-frame UI/scene event-flag processor: walks status bits on the
