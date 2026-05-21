@@ -1572,3 +1572,5 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
  * with size 0 — its bytes never reached the link. */
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070A0C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006BA74);
