@@ -12934,7 +12934,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035C50);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035C58);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035C60);
+/* Empty 2-arg stub (sibling of matched timproc_uso_b5_func_0000AC04). */
+void game_libs_func_00035C60(int a0, int a1) {
+}
 
 // gl_func_00035C6C — STRUCTURAL PASS (0x140 / 80 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
@@ -14833,7 +14835,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B6C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B74);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B7C);
+/* Empty 2-arg stub (sibling of matched timproc_uso_b5_func_0000AC04). */
+void game_libs_func_00038B7C(int a0, int a1) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B88);
 
@@ -28086,7 +28090,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B630);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B63C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B680);
+/* Empty 2-arg stub (sibling of matched timproc_uso_b5_func_0000AC04). */
+void game_libs_func_0005B680(int a0, int a1) {
+}
 
 #ifdef NON_MATCHING
 /* gl_func_0005B68C: 22-insn sentinel-set helper. If a1->[0xC] !=
@@ -29879,7 +29885,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061AF0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061B04);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061B10);
+/* Empty 2-arg stub (sibling of matched timproc_uso_b5_func_0000AC04). */
+void game_libs_func_00061B10(int a0, int a1) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061B1C);
 
