@@ -26,7 +26,27 @@ int gui_uso_func_00000024(void) {
 int gui_uso_func_0000003C(void) {
 }
 
+// gui_uso_func_00000054 — STRUCTURAL PASS (0x18 / 6 words, no episode).
+// Raw-.word USO chained char-mapper entry (one of 10 contiguous entries
+// at 0x54..0x124, each 0x18). Pattern: `bnel v0,$at,past-end` with the
+// next-test addiu in the delay slot — falls THROUGH into the next entry
+// if v0 != tested char.
+//   if (v0 == 0x5B) { a0 = 0x26; return a0 & 0xFF; }   // ']' → '&'
+//   else fall through to gui_uso_func_0000006C (next chained entry)
+// Caps (DEFERRED): fall-through-on-mismatch can't be expressed in C
+// without function-merge; keep INCLUDE_ASM as build path. The NM body
+// below documents the MATCH branch only.
+#ifdef NON_MATCHING
+int gui_uso_func_00000054(int v0) {
+    if (v0 == 0x5B) {
+        int a0 = 0x26;
+        return a0 & 0xFF;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000054);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000006C);
 
