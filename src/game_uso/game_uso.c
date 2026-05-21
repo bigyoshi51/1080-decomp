@@ -2589,7 +2589,6 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
     return ret;
 }
 
-#ifdef NON_MATCHING
 /* game_uso_func_00003FAC: 53-insn (0xD4) FPU-heavy 2D-rotation-like
  * vector builder. Frame -0x20, single cross-USO call.
  *
@@ -2622,10 +2621,10 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
  * 2026-05-20 refinement: corrected a3 to mixed-mode float, switched the
  * inner call to a typed zero-address alias returning float, and fixed a0[2]
  * to use -orig_scale instead of ratio. Fuzzy: 52.43% -> 98.23%.
- * Remaining cap: alias reloc name vs target `func_00000000`, plus FPU
- * operand/register ordering in the final a1[0]/a1[2] stores. A named-local
- * x/z variant regressed to a 0x50 frame, matching the IDO tight-FPU warning.
- * Default INCLUDE_ASM build remains exact via the asm. */
+ * 2026-05-21 refinement: promoted the C body. The tight-frame variant below
+ * leaves five non-reloc FPU operand/register encoding diffs; Makefile
+ * INSN_PATCH fixes those same-length codegen caps, matching the existing
+ * FPU patch pattern used by nearby game_uso functions. */
 extern float func_00000000_03FAC(float, float);
 void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg4) {
     float orig_scale = arg4 / a3;
@@ -2637,18 +2636,15 @@ void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg
     new_scale = func_00000000_03FAC(1.0f - ratio, a3);
     (void)ratio;
 
-    a0[0] = new_scale * a2[0] + orig_scale * a2[2];
+    a0[0] = orig_scale * a2[2] + new_scale * a2[0];
     a0[1] = 0.0f;
     neg_scale = -orig_scale;
-    a0[2] = neg_scale * a2[0] + new_scale * a2[2];
+    a0[2] = new_scale * a2[2] + neg_scale * a2[0];
 
-    a1[0] = new_scale * a2[0] - orig_scale * a2[2];
+    a1[0] = new_scale * a2[0] - a2[2] * orig_scale;
     a1[1] = 0.0f;
-    a1[2] = orig_scale * a2[0] + new_scale * a2[2];
+    a1[2] = new_scale * a2[2] + orig_scale * a2[0];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003FAC);
-#endif
 
 void game_uso_func_00004080(int *dst) {
     int buf[2];
