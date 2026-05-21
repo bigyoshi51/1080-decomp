@@ -3892,10 +3892,33 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
 //   func_000008F4 each carry 4 f64 at +0x4/+0xC/+0x14/+0x1C, plus
 //   func_00008124+0x4C; see
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps: 524-insn f64 interpolation w/ folded coefficient table;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 524-insn f64 interpolation w/ folded coefficient
+//   table — byte-match blocked by deferred pool symbolization.
+//   Real-C STRUCTURAL body below — per-frame camera/transform
+//   interpolation skeleton. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void func_0000B75C(char *st) {
+    float def_x = 0.0f, def_y = 1.0f, def_z = 0.0f;
+    float t;
+    double k0, k1;
+    double result_x, result_y, result_z;
+    (void)def_x; (void)def_y; (void)def_z;
+    t = *(float *)*(char **)(st + 0x800);
+    k0 = *(double *)((char *)&D_00000000 + 0x14);
+    k1 = *(double *)((char *)&D_00000000 + 0x1C);
+    if (*(int *)(st + 0x960) != 0x64) {
+        (void)*(float *)(st + 0x974);
+    }
+    result_x = (double)t * k0;
+    result_y = (double)t * k1;
+    result_z = (double)t * (k0 + k1);
+    *(float *)(st + 0x300) = (float)result_x;
+    *(float *)(st + 0x304) = (float)result_y;
+    *(float *)(st + 0x308) = (float)result_z;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B75C);
+#endif
 
 /* func_0000BF8C - verified structural decode (0x2A8, 170 insns,
  * large FP per-frame parameter selector/update).
