@@ -14845,11 +14845,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B74);
 void game_libs_func_00038B7C(int a0, int a1) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B88);
+/* D_X setter (sibling of matched gl_func_000275B0). */
+extern int D_38B88;
+void game_libs_func_00038B88(int a0) {
+    D_38B88 = a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B94);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038BA0);
+/* D_X setter (sibling of matched gl_func_000275B0). */
+extern int D_38BA0;
+void game_libs_func_00038BA0(int a0) {
+    D_38BA0 = a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038BAC);
 
