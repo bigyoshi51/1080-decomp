@@ -1,73 +1,17 @@
 #include "common.h"
 
-#ifdef NON_MATCHING
-/* USO entry-0: character-to-glyph-index converter (82 insns / 0x148).
- * Leading 0x1000736F trampoline (loader-patched) + a bnel-chain dispatch.
- *
- * 2026-05-05 retry: PREFIX_BYTES injection now WORKS (script's
- * VALID_ENTRY_OPCODES list accepts opcode 0x0C `andi`, the previous
- * blocker comment was outdated). Added Makefile entry:
- *   build/src/gui_uso/gui_uso.c.o: PREFIX_BYTES := gui_func_00000000=0x1000736F
- *
- * Remaining structural blocker: target's entry has `sw a0, 0(sp)` in the
- * trampoline's delay slot (caller arg-save area at sp+0). IDO -O2 elides
- * this from the K&R-form C body since `c` isn't address-taken inside the
- * function body. Tried standard prototype `int gui_func_00000000(int c)`
- * - breaks 2-arg callers (gui_func_000013E8 et al pass 2 args). Tried
- * `int tmp = c;` - folded by IDO.
- *
- * 2026-05-05: tested `int gui_func_00000000(int c, ...)` (varargs) at
- * both def and all 3 extern decl sites (305/337/403). Build succeeded
- * but match dropped from K&R baseline to 4.1% (built 0x128 vs expected
- * 0x148, -8 insns). The varargs form makes IDO's calling convention
- * for `c` change in a way that REGRESSES on the bnel-chain emit, not
- * helps. Don't re-attempt - neither standard prototype, K&R nudge, nor
- * varargs solves the trampoline-`sw a0, 0(sp)` blocker.
- *
- * 2026-05-06: tested 8-byte PREFIX_BYTES (extending to include the
- * `sw a0, 0(sp)` delay slot at 0xAFA40000): no help for objdiff scoring.
- * Reason: the inject runs on `build/src/` only (where INCLUDE_ASM path
- * already supplies these bytes via the .s file). objdiff compares
- * `build/non_matching/.o` to `expected/.o`; non_matching builds DONT
- * receive PREFIX_BYTES injection. The C body bnel-chain emits 71
- * insns (0x11C) vs target 82 (0x148) - the structural cap is the
- * 11-insn delta, not the 2-insn prefix. Reverted Makefile to single-word
- * PREFIX_BYTES (the 4-byte trampoline alone).
- *
- * Stub C body decoded but NM wrap stays - default build INCLUDE_ASM is
- * correct bytes via the .s file. Multi-pass decomp; the bnel-chain emit
- * for the special-char branches is the last-mile blocker.
- *
- * 2026-05-17 EPISODE-ELIGIBILITY NOTE: this function IS the documented
- * tautology trap class (per docs/POST_CC_RECIPES.md#feedback-prefix-bytes-
- * idempotent-under-nm-wrap "Episode caveat"). ROM bytes are byte-correct
- * via INCLUDE_ASM + PREFIX_BYTES, but the C body has 11-insn structural
- * gap. NO EPISODE — confirmed today when the land script correctly
- * rejected a drive-by episode attempt (matching path bytes matched,
- * but non_matching path didn't, so byte_verify failed). Don't try
- * again until the C body actually reaches byte-match (bnel-chain
- * structural cap solved). Last PREFIX_BYTES function without an
- * episode is intentional. */
+/* USO entry-0 trampoline leaf. The previous NM body described the old bundled
+ * 0x148-byte glyph dispatch; after splitting, this symbol is just the first
+ * 0x24 bytes. PREFIX_BYTES supplies the loader branch and arg-save delay slot. */
 int gui_func_00000000(c)
 int c;
 {
     c &= 0xFF;
-    if (c == 0x21) return 0x27;
-    if (c == 0x2C) return 0x28;
-    if (c == 0x2F) return 0x29;
-    if (c == 0x5B) return 0x26;
-    if (c == 0x5D) return 0x27;
-    if (c == 0x2B) return 0x24;
-    if (c == 0x5F) return 0x25;
-    if (c == 0x2E) return 0x25;
-    if (c == 0x2D) return 0x25;
-    if (c >= 0x61 && c < 0x7B) return (c - 0x57) & 0xFF;
-    if (c >= 0x41 && c < 0x5B) return (c - 0x37) & 0xFF;
-    if (c >= 0x30 && c < 0x3A) return (c - 0x30) & 0xFF;
-    return c;
+    if (c == 0x21) {
+        c = 0x27;
+    }
+    return c & 0xFF;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000024);
 
@@ -90,7 +34,6 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000E4);
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000104);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000124);
-#endif
 
 /* gui_func_00000148: BUNDLED splat symbol (0x7D0 total / 500 insns).
  * splat could not separate sub-functions (no inter-function relocs).
@@ -997,4 +940,3 @@ void gui_func_00004568(int *a0, int a1, int a2, int a3, int y_hi) {
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00004568);
 #endif
-
