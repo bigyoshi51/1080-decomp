@@ -1103,15 +1103,16 @@ void timproc_uso_b3_func_00003050(int *a0, int a1) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00003050_pad.s")
 
-/* timproc_uso_b3_func_00000E30: SUFFIX_BYTES-absorbed orphan ←
- * timproc_uso_b3_func_00000DE4 (9 of 12 recipe words exact match
- * 0x8C8E06A8,0x8DC2006C,0x50400007,0x00001025,0x8C4F00EC,0x51E00004,
- *  0x00001025,0x03E00008,0x24020001). Sibling _00000E54 (rest 3 words)
- * has own SUFFIX_BYTES + INSN_PATCH recipes and stays. */
-
-int timproc_uso_b3_func_00000E54(void) {
-    return 0;
-}
+/* timproc_uso_b3_func_00000E30 + 00000E54: SUFFIX_BYTES-absorbed orphans ←
+ * timproc_uso_b3_func_00000DE4 (12 words exact:
+ *   0x8C8E06A8,0x8DC2006C,0x50400007,0x00001025,0x8C4F00EC,0x51E00004,
+ *   0x00001025,0x03E00008,0x24020001,0x00001025,0x03E00008,0x00000000).
+ * _00000E54 was a C-body stub (`int f(void) { return 0; }`) with both
+ * own SUFFIX_BYTES (1 nop trailer) and INSN_PATCH (force `move v0,zero;
+ * jr ra`); removed entirely along with both recipes. No external callers,
+ * so dropping the symbol is safe. The 3 trailing recipe words of
+ * _00000DE4 (`move v0,zero; jr ra; nop`) emit the same bytes at vram
+ * 0xE54-0xE5F. */
 
 /* SUFFIX_BYTES-absorbed orphan (per
  * docs/MATCHING_WORKFLOW.md#feedback-splat-orphan-duplicate-symbol-pruning,
