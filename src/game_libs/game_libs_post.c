@@ -1429,6 +1429,8 @@ void gl_func_0001FFB8(int arg) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FFB8);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020030);
 #endif
 
 // gl_func_0002003C — STRUCTURAL PASS (0xC4 / 49 words, no episode).
