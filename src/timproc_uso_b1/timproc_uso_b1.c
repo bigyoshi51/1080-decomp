@@ -1034,6 +1034,10 @@ void timproc_uso_b1_func_00002E50(int *a0, int a1) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00002E50_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000021BC);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000021C4);
+/* SUFFIX_BYTES-absorbed orphans (per
+ * docs/MATCHING_WORKFLOW.md#feedback-splat-orphan-duplicate-symbol-pruning):
+ * timproc_uso_b1_func_000021BC + 000021C4 (concatenated 6 words) ←
+ * timproc_uso_b1_func_00002178 SUFFIX_BYTES
+ *   (0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000).
+ * Pre-prune symbols were at .o offsets 0x2EE0/0x2EE8 (tail, past natural
+ * function layout end at 0x21D4); no-truncate variant of the orphan-prune. */
