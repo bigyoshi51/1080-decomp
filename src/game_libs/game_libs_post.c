@@ -32571,6 +32571,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067A90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067AA0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067ABC);
 #endif
 
 extern int gl_func_00067AC8_inner(float, float);
