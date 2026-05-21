@@ -4758,11 +4758,29 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     owner/config forwarded to children. D_000015F0 / D_000015F8 =
 //     USO static descriptor table. func_00000000 = USO placeholder
 //     dispatcher (alloc / init / factory / attach).
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — alloc-cascade + sub-record init + child-wire skeleton.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+char *timproc_uso_b5_func_0000D550(int a0, int a1, int a2, int a3) {
+    char *r;
+    char *s;
+    r = (char *)func_00000000(0x2C8);
+    if (r == 0) return 0;
+    s = (char *)func_00000000(0x2B8);
+    if (s != 0) {
+        func_00000000(s, (char *)&D_00000000 + 0x000015F0);
+        *(char **)(s + 0x28) = &D_00000000;
+        func_00000000(s + 0x2C);
+        func_00000000(s + 0x194, (char *)&D_00000000 + 0x000015F8);
+    }
+    func_00000000(r, s, a0, a1, a2, a3);
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D550);
+#endif
 
 // timproc_uso_b5_func_0000D884 — STRUCTURAL PASS (0x690 / 420 words,
 // no episode). Raw-.word USO form (single function). Larger sibling
