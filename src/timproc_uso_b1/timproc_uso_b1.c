@@ -296,7 +296,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010C0);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010D4);
+/* timproc_uso_b1_func_000010D4: orphan absorbed by C-emit of
+ * timproc_uso_b1_func_000010C0 (decl 0x14, .o size 0x1C — 2 extra insns
+ * cover the 8-byte orphan at vram 0x10D4). C-emit-absorbed variant per
+ * docs/MATCHING_WORKFLOW.md. */
 
 void timproc_uso_b1_func_00000000();
 
@@ -1044,8 +1047,7 @@ void timproc_uso_b1_func_00002E50(int *a0, int a1) {
  * Pre-prune symbols were at .o offsets 0x2EE0/0x2EE8 (tail, past natural
  * function layout end at 0x21D4); no-truncate variant of the orphan-prune. */
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002028);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000019B8);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D0);
+/* C-emit-absorbed orphans (all variants per docs/MATCHING_WORKFLOW.md):
+ *   _00002028 ← _00001FE4 (decl 0x44, .o 0x4C, +8 bytes covers orphan vram 0x2028)
+ *   _000019B8 ← _00001908 (decl 0xB0, .o 0xB8)
+ *   _000011D0 ← _00001130 (decl 0xA0, .o 0xA8) */
