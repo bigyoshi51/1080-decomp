@@ -9407,15 +9407,14 @@ end:
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
-
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D204);
 #endif
 
-/* game_uso_func_0000D210 - verified structural decode (129-insn state
- * machine; stolen-t6 entry + heavy branch-likely + table-scan + vtable
+/* game_uso_func_0000D204/D210 - verified structural decode (132-insn state
+ * machine; 0xD204 prelude merged + heavy branch-likely + table-scan + vtable
  * jalr = documented deep sub-80 -> INCLUDE_ASM build path; struct ref).
  *   a3 = a0;
- *   if (t6 != 0) goto post_init;             // t6 UNINIT at entry (see cap)
+ *   t6 = *(D + 0x64);
+ *   if (t6 != 0) goto post_init;
  *   f2 = D[0x1F4];
  *   if (!((a3->0xB4)->0xBC < f2)) { a3->0x120 = 0; }
  *   if ((a3->0xB4)->0xBC < f2) {
@@ -9456,7 +9455,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D204);
  * (stolen-base, predecessor sets it - boundary analysis needed) +
  * bc1fl/bc1tl/bnel/beql branch-likely + table-scan loop + vtable jalr +
  * FP-compare + reloc scheduling - deep sub-80. INCLUDE_ASM (no episode). */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D210);
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D204);
 
 void game_uso_func_0000D418(char *a0) {
     gl_func_00000000(a0 + 0x13C);
