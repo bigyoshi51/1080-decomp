@@ -34181,6 +34181,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BA7C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BAD4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006BC44);
+
 #ifdef NON_MATCHING
 /* gl_func_0006BC4C: 50-insn unaligned-load + byte-format-translate loop (0xC8, frame 0x18).
  *
