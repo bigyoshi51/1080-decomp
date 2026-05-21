@@ -3867,10 +3867,58 @@ void func_0000CACC(char *a0) {
 //   func_00000008+0x2C a mode global; func_00008A7C+0x40 a folded
 //   struct; see
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps: 126-insn reset w/ folded mode/const refs — exact-match blocked
-//   by the deferred pool symbolization; structural pass only.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 126-insn reset w/ folded mode/const refs — byte
+//   match blocked by deferred pool symbolization. Real-C STRUCTURAL
+//   body below — per-round state reset / re-arm skeleton.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void func_0000CAE8(char *st) {
+    int j;
+    int mode;
+    func_00000000(0, 1, *(int *)((char *)st + 0x8C4));
+    j = (int)*(short *)((char *)st + (*(int *)(st + 0x904) * 2) + 0x8C6);
+    func_00000000(st + 0x3EC, 1, j);
+    if (*(int *)(st + 0xA58) & 0x80) func_00000000(st, 0);
+    func_00000000(st + 0x90C, 0x17C);
+    *(float *)(st + 0x9D0) = 0.0f;
+    *(int *)(st + 0xA78) = *(int *)(st + 0x768);
+    mode = *(int *)(0 + 0x2C);
+    if (mode == 2) {
+        *(int *)(st + 0xA14) = 0x5A;
+    } else if (mode == 3 || mode == 4) {
+        *(int *)(st + 0xA14) = 0x4B;
+    } else {
+        *(int *)(st + 0xA14) = 0xF4240;
+    }
+    *(int *)(st + 0x3DC) = 1;
+    *(float *)(st + 0x9E8) = 0.0f;
+    *(float *)(st + 0x9EC) = 0.0f;
+    *(float *)(st + 0x9F0) = 0.0f;
+    *(float *)(st + 0x9F4) = 0.0f;
+    *(int *)(st + 0xA54) = 0;
+    *(int *)&D_00000000 &= ~0x8;
+    *(float *)(st + 0xA0C) = 1.0f;
+    if (*(int *)(st + 0x8BC) & 0x20) {
+        *(int *)(st + 0xA58) = *(int *)(st + 0x8BC);
+        func_00000000(st);
+    }
+    func_00000000(st, st + 0x3A4);
+    func_00000000(st);
+    func_00000000(*(char **)(st + 0x840));
+    func_00000000(*(char **)(st + 0x804));
+    if (!((*(int *)(st + 0xA58) << 14) >= 0)) {
+        func_00000000((char *)&D_00000000 + 0x40, *(int *)(st + 0xC));
+    }
+    *(int *)(st + 0x890) = *(int *)(st + 0xB4);
+    *(int *)(st + 0x894) = *(int *)(st + 0xB8);
+    *(int *)(st + 0x898) = *(int *)(st + 0xBC);
+    *(int *)(st + 0x89C) = *(int *)(st + 0x318);
+    *(int *)(st + 0x8A0) = *(int *)(st + 0x31C);
+    *(int *)(st + 0x8A4) = *(int *)(st + 0x320);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
+#endif
 
 // func_0000CCE0 — STRUCTURAL PASS (0x2C0 / 176 insns, no episode).
 // HUD/menu layout builder: creates ~12 positioned widget elements into
