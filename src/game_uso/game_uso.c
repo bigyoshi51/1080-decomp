@@ -8549,11 +8549,31 @@ void game_uso_func_0000A7D8(int *a0) {
 //     output. func_00000000 = USO placeholder dispatcher (transform
 //     helper). See game_uso_func_000028C0's comment for the shared
 //     family shape.
-// Caps: raw-word USO + placeholder calls + 232-word FP transform —
-//   not exact-matchable without proper USO mnemonic disasm;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls + 232-word FP
+//   transform; USO mnemonic disasm limitation prevents byte-match.
+//   Real-C STRUCTURAL body below — world-Vec3 scale + transform
+//   compose skeleton (family of 000028C0 / 00002CC8 / 0000A604).
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void game_uso_func_0000A7F8(char *obj) {
+    char *w = *(char **)(obj + 0x30);
+    float vec[3];
+    float scratch[3];
+    float k = *(float *)(w + 0xA8);
+    vec[0] = *(float *)(w + 0x318) * k;
+    vec[1] = *(float *)(w + 0x31C) * k;
+    vec[2] = *(float *)(w + 0x320) * k;
+    scratch[0] = *(float *)(obj + 0xB4);
+    scratch[1] = *(float *)(obj + 0xB8);
+    scratch[2] = *(float *)(obj + 0xBC);
+    func_00000000(obj, vec, scratch);
+    *(float *)(obj + 0xC0) = scratch[0];
+    *(float *)(obj + 0xC4) = scratch[1];
+    *(float *)(obj + 0xC8) = scratch[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7F8);
+#endif
 
 void game_uso_func_0000AB98(void *a0) {
     *(int*)((char*)a0 + 0x5C) = 0;
