@@ -2266,10 +2266,52 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006254);
 //   func_0000057C + 0x34 (lwc1) = folded f32 const — another bootup_uso
 //   literal-pool fold target (multi-symbol; see
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps: 224-insn matrix-projection + multi-clamp + folded literal;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 224-insn matrix-projection + multi-clamp + folded
+//   literal. Real-C STRUCTURAL body below — minimap/radar marker
+//   screen projection skeleton. Byte-match deferred. Name pre-checked:
+//   no extern reuse. D_00000000 reuses file-scope extern char.
+#ifdef NON_MATCHING
+void func_000063B4(char *obj) {
+    float inv, u, v;
+    char *cx, *vw, *m;
+    char *v1;
+    float px, py;
+    int sx, sy;
+    float A_x, A_y, A_z;
+    float B_x, B_y, B_z;
+    float sp5C_a, sp5C_b, sp5C_c, sp5C_d;
+    inv = (float)func_00000000();
+    u = (float)*(int *)(obj + 0xBC) / inv;
+    v = -(float)*(int *)(obj + 0xB8) / inv;
+    A_x = 0.0f; A_y = 0.0f; A_z = u;
+    B_x = -v;   B_y = 0.0f; B_z = u;
+    cx = *(char **)((char *)&D_00000000 + 0x254);
+    vw = *(char **)(cx + 0x70);
+    m = vw + 0xB4;
+    v1 = *(char **)(obj + 0xB4);
+    px = (*(float *)(m + 0x0)  * A_x +
+          *(float *)(m + 0x4)  * A_y +
+          *(float *)(m + 0x8)  * A_z);
+    py = (*(float *)(m + 0x10) * B_x +
+          *(float *)(m + 0x14) * B_y +
+          *(float *)(m + 0x18) * B_z);
+    sx = (int)((px * *(float *)(cx + 0x130) - (float)*(int *)(v1 + 0xC)) /
+               (float)*(int *)(v1 + 0x14)) - *(int *)(obj + 0xC0);
+    sy = (int)((py * *(float *)(cx + 0x130) - (float)*(int *)(v1 + 0xC)) /
+               (float)*(int *)(v1 + 0x14));
+    if (sx < 0)     sx = 0;
+    if (sx >= 0x80) sx = 0x7F;
+    if (sy < 0)     sy = 0;
+    if (sy >= 0x80) sy = 0x7F;
+    *(int *)(cx + 0x10C) = sx;
+    *(int *)(cx + 0x110) = sy;
+    sp5C_a = 0.0f; sp5C_b = 0.0f; sp5C_c = 0.0f; sp5C_d = 1.0f;
+    func_00000000(cx, &sp5C_a);
+    func_00000000(obj);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000063B4);
+#endif
 
 /* func_00006734 - verified structural decode (0xD4, 53 insns,
  * 4-entry registration/builder).
