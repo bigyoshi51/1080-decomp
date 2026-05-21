@@ -151,7 +151,9 @@ int mgrproc_uso_func_00000170(int *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000188);
+int mgrproc_uso_func_00000188(void) {
+    return 0;
+}
 
 /* mgrproc_uso_func_0000019C: 218-insn (0x368) state-machine orchestrator.
  *
