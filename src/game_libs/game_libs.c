@@ -1549,3 +1549,5 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D7C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FDC0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00030610);

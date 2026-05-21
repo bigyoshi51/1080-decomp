@@ -1,4 +1,4 @@
-nonmatching gl_func_000305CC, 0x50
+nonmatching gl_func_000305CC, 0x44
 
 glabel gl_func_000305CC
     /* E156A4 000305CC 27BDFFE8 */  .word 0x27BDFFE8
@@ -18,7 +18,4 @@ glabel gl_func_000305CC
     /* E156DC 00030604 27BD0018 */  .word 0x27BD0018
     /* E156E0 00030608 03E00008 */  .word 0x03E00008
     /* E156E4 0003060C 00000000 */  .word 0x00000000
-    /* E156E8 00030610 3C020000 */  .word 0x3C020000
-    /* E156EC 00030614 24420000 */  .word 0x24420000
-    /* E156F0 00030618 8C4E0000 */  .word 0x8C4E0000
 endlabel gl_func_000305CC
