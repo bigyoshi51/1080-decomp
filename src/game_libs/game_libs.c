@@ -1022,7 +1022,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000076D8);
 void game_libs_func_000076E0(int a0) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000076E8);
+/* Empty one-arg stub; sibling of game_libs_func_000076E0. */
+void game_libs_func_000076E8(int a0) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000076F0);
 
