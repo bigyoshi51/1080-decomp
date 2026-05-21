@@ -1198,7 +1198,24 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000023F
  * + 1.0 consts + reloc-call loop + bundled tail leaf (jr-count 2,
  * splittable later). Full body INCLUDE_ASM-preserved (.s = source
  * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void mgrproc_uso_func_00002850(char *s0, int *a1, int *a2, int a3) {
+    float buf[4];
+    int n;
+    char *tgt;
+    int i;
+    buf[0] = 1.0f; buf[1] = 1.0f; buf[2] = 1.0f; buf[3] = 1.0f;
+    n = (int)(255.0f * *(float *)(s0 + 0x7A4));
+    gl_func_00000000(&D_00000000, n, buf);
+    tgt = s0 + 0x6F8;
+    gl_func_00000000(tgt);
+    for (i = a3 - 1; i >= 0; i--) {
+        gl_func_00000000(tgt, &a1[i], &a2[-i], 3);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002850);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002924);
 
