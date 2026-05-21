@@ -1402,6 +1402,8 @@ void timproc_uso_b5_func_00003F5C(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F5C);
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003FA0);
 #endif
 
 void timproc_uso_b5_func_00003FA8(int a0, int a1, int a2, int a3) {
