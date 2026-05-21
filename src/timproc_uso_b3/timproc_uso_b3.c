@@ -1129,3 +1129,5 @@ void timproc_uso_b3_func_00003050(int *a0, int a1) {
  * bytes weren't at any meaningful linked-vram, so dropping the recipe is
  * neutral. Removed alongside the .s deletion (per docs/MATCHING_WORKFLOW.md
  * orphan-attached-recipes blocker note). */
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002238);
