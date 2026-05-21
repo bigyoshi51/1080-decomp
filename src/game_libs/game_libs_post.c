@@ -21346,6 +21346,8 @@ void gl_func_00044AEC(int* a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044AEC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044B78);
 #endif
 
 // gl_func_00044B84 — STRUCTURAL PASS + BOUNDARY NOTE (0x13C / 80 words, no
