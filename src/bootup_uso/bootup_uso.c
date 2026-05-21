@@ -2846,36 +2846,38 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
  *     loads/stores) for the `f16=a0->0x38` and `f18=0.0f` stack args,
  *     built uses lw+sw (int). Same bytes per-slot but different opcodes.
  *
- * Documented cap: per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call,
- * K&R-extern `func_00000000()` cannot accept float args without forcing
- * either double-promotion (K&R semantics) OR a `jalr`-via-fnptr-cast.
- * Direct `jal` + lwc1/swc1 stack-store pattern requires a non-K&R
- * prototype which conflicts with the file-level `func_00000000() {}`
- * K&R definition. Capped at ~75%; bytes for slots match but opcodes
- * differ. Future grind needs a different func_00000000 declaration
- * convention or per-call cast that IDO accepts. */
+ * 2026-05-21: restored the target's D[0x254]->0x70 dereference, used a
+ * distinct D-base alias for call-1, folded the func_00000008+0x2C state
+ * load, and applied the typed alias-extern recipe for the 7-arg float-stack
+ * call. C-only fuzzy improved 75.59% -> 97.87%. Remaining cap: relocation
+ * target names differ for the typed alias / D aliases even when bytes are
+ * patched identical, so this stays NM until reloc-symbol patching exists. */
+extern int func_00000000_082F8(int, int, int, int, float, int, float);
+extern char D_00000000_a;
+extern char D_func_00000008_data;
 void func_000082F8(int *a0) {
     int *t6 = *(int**)((char*)&D_00000000 + 0x254);
+    int *t7 = *(int**)((char*)t6 + 0x70);
     float f0 = *(float*)((char*)&D_00000000 + 0x130);
+    float f2 = *(float*)((char*)t7 + 0xA8) * f0;
     float f12 = *(float*)((char*)a0 + 0x38) * f0;
-    float f2 = *(float*)((char*)t6 + 0xA8) * f0;
 
     if (f12 < f2) {
         float f10 = *(float*)((char*)a0 + 0x54) + f12;
         if (f10 > f2) {
-            func_00000000(*(int*)&D_00000000, *(int*)((char*)a0 + 0x6C));
+            func_00000000(*(int*)&D_00000000_a, *(int*)((char*)a0 + 0x6C));
         }
     }
 
-    if (*(int*)((char*)&D_00000000 + 0x34) == 8) {
-        int v0 = func_00000000(
+    if (*(int*)(&D_func_00000008_data + 0x2C) == 8) {
+        int v0 = func_00000000_082F8(
             *(int*)((char*)&D_00000000 + 0x254),
             3,
             *(int*)((char*)a0 + 0x30),
             *(int*)((char*)a0 + 0x34),
-            *(int*)((char*)a0 + 0x38),  /* float bits as int — avoid K&R double-promote */
+            *(float*)((char*)a0 + 0x38),
             0,
-            0);
+            0.0f);
         if (v0 != 0) {
             func_00000000(a0);
         }
