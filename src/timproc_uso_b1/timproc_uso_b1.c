@@ -738,11 +738,9 @@ void timproc_uso_b1_func_000024F4(int a0) {
  *   slot = base + base->0x7C * 0x28; if slot->0x90 != 0 && slot->0x88 != 0
  *   { gl(5); D[0x208]=a0->0x48; D[0x20C]=a0; recompute slot2; (*slot2->0x90)(); }
  *   else gl(165). case 1/2 → gl_func(a0).
- * Residual cap (1 insn at 0x64/0xB8): commutative-add operand order
- *   `addu v1, v0, t7` (target) vs `addu v1, t7, v0` (mine) — IDO canonicalizes
- *   regardless of `base + idx*N` vs `(char*)base + idx*N` or split-var form.
- * Build path stays INCLUDE_ASM (tautology-trap; no episode). */
-#ifdef NON_MATCHING
+ * Promoted 2026-05-21 with INSN_PATCH for fixed register/operand choice caps
+ * plus raw-word relocation cleanup at 0x90/0x98/0x9C/0xA0 (per
+ * docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps). */
 extern int D_b1_2740_g208;
 extern int D_b1_2740_g20C;
 void timproc_uso_b1_func_00002740(int *a0) {
@@ -773,9 +771,6 @@ void timproc_uso_b1_func_00002740(int *a0) {
         break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002740);
-#endif
 
 
 /* timproc_uso_b1_func_00002838 - verified structural decode (~150-insn
