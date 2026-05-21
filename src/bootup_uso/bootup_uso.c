@@ -3950,10 +3950,54 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
 //   (now spans +0x4..+0x2C, ≥11 entries; strongly confirms the single
 //   D_base[] characterization in
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps: 176-insn factory-loop w/ folded param table — exact-match
-//   blocked by deferred pool symbolization; structural pass only.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 176-insn factory-loop w/ folded param table —
+//   byte-match blocked by deferred pool symbolization. Real-C
+//   STRUCTURAL body below — HUD/menu layout builder skeleton.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void func_0000CCE0(char *st, int a1) {
+    char *cont = st + 0x39C;
+    char *e0, *e1, *e2, *e3;
+    float P_a, P_b, P_c, P_d, P_e;
+    P_a = 0.0f; P_b = 0.0f; P_c = 0.0f; P_d = 0.0f; P_e = 0.0f;
+    e0 = (char *)func_00000000(0, st, 2, 140.0f, P_a, 0.0f);
+    func_00000000(cont, e0);
+    e1 = (char *)func_00000000(0, st, 8, -140.0f, P_b, 0.0f);
+    func_00000000(cont, e1);
+    e2 = (char *)func_00000000(0, st, 1, 350.0f, P_c, 0.0f);
+    func_00000000(cont, e2);
+    e3 = (char *)func_00000000(0, st, 4, -350.0f, P_d, 0.0f);
+    func_00000000(cont, e3);
+    func_00000000(st, e0);
+    func_00000000(st, e1);
+    func_00000000(st, e2);
+    func_00000000(st, e3);
+    if (*(int *)(st + 0xA58) & 0x200) return;
+    {
+        char *h0, *h1, *h2, *h3, *h4, *h5, *h6, *h7, *h8;
+        h0 = (char *)func_00000000(0, st, 0x00, 140.0f, P_e, 0.0f);
+        func_00000000(cont, h0); func_00000000(st, h0);
+        h1 = (char *)func_00000000(0, st, 0x20, -140.0f, P_e, 0.0f);
+        func_00000000(cont, h1); func_00000000(st, h1);
+        h2 = (char *)func_00000000(0, st, 0x80, 350.0f, P_e, 0.0f);
+        func_00000000(cont, h2); func_00000000(st, h2);
+        h3 = (char *)func_00000000(0, st, 0x10, -350.0f, P_e, 0.0f);
+        func_00000000(cont, h3); func_00000000(st, h3);
+        h4 = (char *)func_00000000(0, st, 0x40, 250.0f, P_e, 0.0f);
+        func_00000000(cont, h4); func_00000000(st, h4);
+        h5 = (char *)func_00000000(0, st, 0x40, -250.0f, P_e, 0.0f);
+        func_00000000(cont, h5); func_00000000(st, h5);
+        h6 = (char *)func_00000000(0, st, 0x40, -150.0f, P_e, 0.0f);
+        func_00000000(cont, h6); func_00000000(st, h6);
+        h7 = (char *)func_00000000(0, st, 0x40, -400.0f, P_e, 0.0f);
+        func_00000000(cont, h7); func_00000000(st, h7);
+        h8 = (char *)func_00000000(0, st, 0x40, 400.0f, P_e, 0.0f);
+        func_00000000(cont, h8); func_00000000(st, h8);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
+#endif
 
 // func_0000CFA0 — STRUCTURAL PASS (0x4A0 / 296 insns, no episode).
 // Per-frame active-object sync + draw-state / color update on a large
