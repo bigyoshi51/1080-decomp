@@ -246,87 +246,97 @@ int mgrproc_uso_func_00000188(void) {
  * 251 instructions for a 0x368-byte target, so this is not an INSN_PATCH or
  * suffix/prefix-byte candidate. The remaining work is structural: reproduce
  * the original jump-table/USO relocation shape and case-local symbol aliases
- * before register-level grinding is useful. */
+ * before register-level grinding is useful.
+ *
+ * 2026-05-20 Codex pass: fixed the dispatcher model. The target initializes
+ * the stack marker once, uses one switch range check, falls through a common
+ * tail that reloads a1 from D[0x40], and repeats while the marker remains 0.
+ * The previous C used a duplicate range guard and `a1++`, which was not the
+ * target control flow. Direct objdiff now scores 37.8578% (was ~34.5%). */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern char D_a_4_x;
 extern int D_b_4_x[];
 extern char D_c_4_x;
-extern char D_X_17D;
-extern int D_X_90[];
 extern char D_8_x;
 void mgrproc_uso_func_0000019C(char *a0, int a1) {
-    int loop_continue;
+    volatile char *arg0 = a0;
+    volatile int state = a1;
+    volatile int loop_continue;
     int v0_save;
     int s0_save;
-    int *p, *q;
+    loop_continue = 0;
     do {
-        loop_continue = 0;
-        if ((unsigned)a1 >= 9) break;
-        switch (a1) {
+        switch (state) {
             case 0:
-                gl_func_00000000(a0, 1, 0xB, 8);
+                gl_func_00000000(arg0, 1, 0xB, 8);
                 *(int*)((char*)&D_00000000 + 0x44) = 2;
                 *(int*)((char*)&D_00000000 + 0x48) = 8;
                 loop_continue = 1;
                 break;
             case 1:
-                gl_func_00000000(a0, 1, 7, 4);
+                gl_func_00000000(arg0, 1, 7, 4);
                 *(int*)((char*)&D_00000000 + 0x44) = 2;
                 *(int*)((char*)&D_00000000 + 0x48) = 8;
                 loop_continue = 1;
                 break;
             case 2:
-                gl_func_00000000(a0);
+                gl_func_00000000(arg0);
                 *(int*)((char*)&D_00000000 + 0x40) = 3;
                 break;
             case 3:
-                gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0x68));
+                gl_func_00000000(arg0, *(int*)((char*)&D_00000000 + 0x68));
                 *(int*)((char*)&D_00000000 + 0x40) = 4;
                 break;
-            case 4:
+            case 4: {
+                int *p;
+                int *q;
                 /* 51 insns: 4 gl_func calls + vtable dispatch + D[0x80]^=1 */
                 gl_func_00000000(&D_a_4_x, D_b_4_x[1]);
                 /* a0->[8] points to a struct with header; index = header[1] */
-                p = (int*)*(int**)(a0 + 8);
+                p = (int*)*(int**)((char*)arg0 + 8);
                 q = p + p[1] * 1;  /* p[1]<<2 then add */
                 *(int*)((char*)&D_00000000 + 0x64) = q[3]; /* +0xC */
                 /* toggle D[0x80] bit 0 (xori) */
                 *(int*)((char*)&D_00000000 + 0x80) =
                     *(int*)((char*)&D_00000000 + 0x80) ^ 1;
-                p = (int*)*(int**)(a0 + 8);
+                p = (int*)*(int**)((char*)arg0 + 8);
                 q = p + p[1] * 1;
-                /* sb (byte-store) of q->[0x24] to D_X_17D */
-                D_X_17D = (char)q[9]; /* +0x24 = q[9] */
-                /* lbu reload + sb of D_X_90[D_X_17D] to D_X_17D+2 */
-                *(&D_X_17D + 2) = (char)D_X_90[(unsigned char)D_X_17D];
+                /* sb (byte-store) of q->[0x24] to D[0x17D] */
+                *((char*)&D_00000000 + 0x17D) = (char)q[9]; /* +0x24 = q[9] */
+                /* lbu reload + sb of D[D[0x17D] * 4 + 0x90] to D[0x17F] */
+                *((char*)&D_00000000 + 0x17F) =
+                    (char)*(int*)((char*)&D_00000000 +
+                                  ((unsigned char)*((char*)&D_00000000 + 0x17D) * 4) +
+                                  0x90);
                 gl_func_00000000(&D_c_4_x, 4,
                                  *(int*)((char*)&D_00000000 + 0x64), 0);
                 gl_func_00000000(&D_c_4_x, *(int*)((char*)&D_00000000 + 0x64));
-                v0_save = gl_func_00000000(a0, *(int*)a0, 1);
+                v0_save = gl_func_00000000(arg0, *(int*)arg0, 1);
                 /* 5-arg: stack arg5 = a0->[0] */
                 s0_save = gl_func_00000000(0, 0x45000000, v0_save,
-                                           *(int*)((char*)a0 + 8),
-                                           *(int*)a0);
-                gl_func_00000000(a0, 0, s0_save);
+                                           *(int*)((char*)arg0 + 8),
+                                           *(int*)arg0);
+                gl_func_00000000(arg0, 0, s0_save);
                 loop_continue = 1;
                 break;
+            }
             case 5: {
                 /* gl_func(a0, &sp[0x44]); spill v0; reload sp[0x44];
                  * arg1 = sp[0x44] | 0x2000 | v0; gl_func(a0, ..., 0x2000, a0[0]); */
                 int buf;
-                int v0_local = gl_func_00000000(a0, &buf);
-                gl_func_00000000(a0, (buf | 0x2000) | v0_local, 0x2000,
-                                 *(int*)a0);
+                int v0_local = gl_func_00000000(arg0, &buf);
+                gl_func_00000000(arg0, (buf | 0x2000) | v0_local, 0x2000,
+                                 *(int*)arg0);
                 loop_continue = 1;
                 break;
             }
             case 6:
-                gl_func_00000000(a0);
+                gl_func_00000000(arg0);
                 *(int*)((char*)&D_00000000 + 0x40) = 1;
                 break;
             case 7:
-                gl_func_00000000(a0);
+                gl_func_00000000(arg0);
                 *(int*)((char*)&D_00000000 + 0x40) = 8;
                 break;
             case 8: {
@@ -341,9 +351,11 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
                 loop_continue = 1;
                 break;
             }
+            default:
+                break;
         }
-        a1++;
-    } while (loop_continue);
+        state = *(int*)((char*)&D_00000000 + 0x40);
+    } while (!loop_continue);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000019C);
