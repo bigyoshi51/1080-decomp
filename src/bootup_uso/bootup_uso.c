@@ -3990,10 +3990,33 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000BF8C);
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C):
 //     func_00000940 (4-word table), func_00008A7C (folded struct),
 //     func_00008A40+0x38, func_000008F4+{0x2C,0x30,0x34} (f-pool).
-// Caps: 550-insn folded-table-driven physics integrator; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 550-insn folded-table-driven physics integrator —
+//   byte-match blocked by deferred pool symbolization. Real-C
+//   STRUCTURAL body below — per-frame entity physics/state update
+//   skeleton. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void func_0000C234(char *st) {
+    float p_x, p_y, p_z;
+    float delta_a, delta_b;
+    if (*(int *)(st + 0xA80)) {
+        *(int *)(st + 0xA80) = *(int *)(st + 0xA80) - 1;
+    }
+    p_x = *(float *)(st + 0xB4);
+    p_y = *(float *)(st + 0xB8);
+    p_z = *(float *)(st + 0xBC);
+    (void)p_z;
+    *(float *)(st + 0x890) = p_x;
+    *(float *)(st + 0x894) = p_y;
+    func_00000000(st + 0xDC, 4000.0f, 1.0f);
+    delta_a = *(float *)((char *)&D_00000000 + 0x4);
+    delta_b = *(float *)((char *)&D_00000000 + 0x8);
+    *(float *)(st + 0xA24) -= (delta_a + delta_b);
+    func_00000000(st + 0x300);
+    func_00000000(st + 0xA00);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000C234);
+#endif
 
 void func_0000CACC(char *a0) {
     *(int*)(a0 + 0xA14) = 0xF4240;
