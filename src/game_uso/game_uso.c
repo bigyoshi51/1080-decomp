@@ -3956,6 +3956,14 @@ void game_uso_func_000057D8(char *a0) {
  * by dropping non-target pre-call stores. Reusing out_flags as the late
  * effect flag accumulator instead of a separate effect_flags local improved
  * further to 52.799633%. Still not exact; no episode.
+ *
+ * 2026-05-21 Codex iteration: promoted the decoded proximity/ratio flag
+ * gate after the XZ distance test into C. Guarding the gate with
+ * sub->0x908 matched target structure best and moved DNM objdiff
+ * 52.799633% -> 54.043%. Nearby variants regressed: using metric instead
+ * of transform_out.y for the gate scored 53.380604%, and forcing the ratio
+ * value into the following out_flags&8 branch scored 52.65782%. Still not
+ * exact; no new episode.
  */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
@@ -4227,6 +4235,19 @@ void game_uso_func_0000591C(int *a0) {
                         out_flags |= 0x40;
                     }
                 }
+            }
+        }
+
+        if (transform_out.y < *(float*)((char*)self + 0xB8)) {
+            if (*(char**)(sub + 0x908) != NULL) {
+                state_value = transform_out.y;
+                if (state_value < 0.0f) {
+                    if (((int*)&D_00000000)[0x1E] == 0) {
+                        out_flags |= 4;
+                    }
+                }
+                state_value = (state_value / *(float*)((char*)self + 0xB8)) * metric;
+                out_flags |= 8;
             }
         }
 
