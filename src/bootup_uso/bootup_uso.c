@@ -4297,11 +4297,58 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
 //     func_00008AEC + {0x8,0x14,0x20,0x2C,0x38,0x44} (0xC-stride),
 //     func_000000F0 + 0x48 (x3); see
 //     docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
-// Caps: 304-insn flag-walk dispatcher w/ folded tables + vtable calls
-//   — exact-match blocked by deferred pool symbolization; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 304-insn flag-walk dispatcher w/ folded tables +
+//   vtable calls — byte-match blocked by deferred pool symbolization.
+//   Real-C STRUCTURAL body below — UI/scene event-flag processor
+//   skeleton. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void func_0000D440(char *st) {
+    char *sub;
+    char *d;
+    int fl;
+    int sp58;
+    func_00000000((char *)&D_00000000 + 0x54);
+    fl = *(int *)(st + 0xA58);
+    if (fl & 0x100) {
+        sub = *(char **)(st + 0x800);
+        if (*(int *)(sub + 0x18) & 0x20) *(int *)(st + 0xA28) ^= 1;
+        if (*(int *)(st + 0xA28) && (*(int *)(sub + 0x18) & 0x10)) return;
+        if (*(int *)(sub + 0x18) & 0x10) {
+            *(int *)(st + 0xA58) ^= 4;
+            fl = *(int *)(st + 0xA58);
+        }
+    }
+    if (fl & 0x100) {
+        d = *(char **)(st + 0x800);
+        if ((*(int *)(d + 0x10) & 0x40) && (*(int *)(d + 0x10) & 0x80)) {
+            sp58 = 9;
+            (void)sp58;
+            {
+                void (*fn)(char *) = *(void (**)(char *))(st + 0x2C);
+                if (fn) fn(st + (short)*(short *)(st + 0x28));
+            }
+            fl = *(int *)(st + 0xA58);
+        }
+    }
+    if (fl & 0x4) {
+        *(int *)(*(char **)(st + 0x800) + 0x3C) = 1;
+        func_00000000((char *)&D_00000000 + 0x5C);
+        {
+            char *sub2 = *(char **)(st + 0x804);
+            void (*fn)(char *) = *(void (**)(char *))(sub2 + 0x24);
+            if (fn) fn(sub2 + (short)*(short *)(sub2 + 0x20));
+        }
+        func_00000000((char *)&D_00000000 + 0x64);
+        fl = *(int *)(st + 0xA58);
+    }
+    if (fl & 0x80) {
+        func_00000000(st + 0x808);
+    }
+    func_00000000((char *)&D_00000000 + 0x44);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D440);
+#endif
 
 // func_0000D900 — STRUCTURAL PASS (0x4C4 / 305 insns, no episode).
 // Event/message dispatcher: switch on the incoming message opcode and
