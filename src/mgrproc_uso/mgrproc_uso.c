@@ -1141,7 +1141,31 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000229
  * lui+mtc1 const loads + bnel branch-likely (x2) + gl_func_00000000
  * reloc call. Full body INCLUDE_ASM-preserved (.s = source of
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void mgrproc_uso_func_00002324(char *a0) {
+    float x, y;
+    if (*(int *)(a0 + 0x7C4) != 0) return;
+    x = *(float *)(a0 + 0x7A8);
+    y = *(float *)(a0 + 0x7AC);
+    *(float *)(a0 + 0x7B0) = x;
+    *(float *)(a0 + 0x7B4) = y;
+    *(float *)(a0 + 0x7A8) = x + 4.0f;
+    *(float *)(a0 + 0x7AC) = y - 4.0f;
+    *(float *)(a0 + 0x7BC) = *(float *)(a0 + 0x7B8) / 2.0f;
+    *(float *)(a0 + 0x7C0) = 1.0f;
+    *(int *)(a0 + 0x7C4) = 1;
+    *(int *)(a0 + 0x7C8) -= 1;
+    gl_func_00000000(50);
+    if (*(int *)(a0 + 0x7C8) != 0) return;
+    *(float *)(a0 + 0x554) = 200.0f;
+    *(float *)(a0 + 0x558) = 160.0f;
+    *(float *)(a0 + 0x55C) = -64.0f;
+    *(float *)(a0 + 0x560) = 0.0f;
+    *(float *)(a0 + 0x564) = 120.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002324);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000023FC);
 
