@@ -8976,11 +8976,34 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 //     func_00000000 = USO placeholder dispatcher (sqrt / cross /
 //     collision-query helpers). Core snowboard physics — collision
 //     contact-response.
-// Caps: raw-word USO + placeholder calls + 252-word FP solver — not
-//   exact-matchable without proper USO mnemonic disasm; structural
-//   (entry/setup/shape) partial pass only, no byte body. Multi-run.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls + 252-word FP
+//   solver; USO mnemonic disasm limitation prevents byte-match.
+//   Real-C STRUCTURAL body below — query-struct setup + collision
+//   query + response writeback skeleton (core snowboard physics
+//   collision contact-response). Byte-match deferred. Name
+//   pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void game_uso_func_0000BB8C(char *obj) {
+    char *s = *(char **)(obj + 0x220);
+    char *n;
+    float q[8];
+    q[0] = *(float *)(s + 0xA0);
+    q[1] = *(float *)(s + 0x34);
+    q[2] = *(float *)(s + 0x38);
+    q[3] = -1.0f;
+    q[4] = 0.0f;
+    q[5] = 0.0f;
+    q[6] = -1.0f;
+    q[7] = -1.0f;
+    n = *(char **)(s + 0x70);
+    func_00000000(obj, q, n);
+    func_00000000(s, q);
+    *(float *)(obj + 0xC0) = q[4];
+    *(float *)(obj + 0xC4) = q[5];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
+#endif
 
 #ifdef NON_MATCHING
 /* 2026-05-07: $s0/$s1 swap FIXED via init-statement order (17 diffs → 3).
