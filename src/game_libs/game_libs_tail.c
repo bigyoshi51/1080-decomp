@@ -427,7 +427,6 @@ void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int a
     a0[2] = arg7;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000AAEC: 33-insn 3-iter fixed-loop 4-arg helper (0x84, frame 0x30).
  *
  * Decoded structure (raw-word disasm):
@@ -444,7 +443,9 @@ void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int a
  * argument shape suggests an interleaved-array index: iter 0→32, 1→41, 2→50.
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * feedback_doc_marker_is_bail.md. 2026-05-21: C body is structurally correct;
+ * INSN_PATCH fixes IDO's unreachable setup scheduling and raw USO data
+ * immediates.
  */
 extern int D_1D438, D_1D3E8;
 void gl_func_0000AAEC(int *a0) {
@@ -459,9 +460,6 @@ void gl_func_0000AAEC(int *a0) {
         data2 = (int*)((char*)data2 + 0x18);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AAEC);
-#endif
 
 extern int gl_func_00000000();
 
