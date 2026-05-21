@@ -187,7 +187,20 @@ void func_80008AA0(void) {
  * func_80006A50 calls. Full body INCLUDE_ASM-preserved (.s =
  * source of truth). INCLUDE_ASM (no episode; tautology-trap rule +
  * unresolved bundle boundary). */
+#ifdef NON_MATCHING
+void func_80008C30(int a0, int a1) {
+    unsigned char cmd[4];
+    int x = (a0 << 26) >> 26;
+    int y = (a1 << 27) >> 27;
+    cmd[0] = 0; cmd[1] = 0; cmd[2] = 0; cmd[3] = 0;
+    cmd[0] = (cmd[0] & 0x03) | ((x << 2) & 0xFC);
+    cmd[1] = (cmd[1] & 0xE0) | (y & 0x1F);
+    func_80006A50(0x40010000, *(int *)cmd);
+    func_80006A50(0x40800000, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
+#endif
 
 
 
