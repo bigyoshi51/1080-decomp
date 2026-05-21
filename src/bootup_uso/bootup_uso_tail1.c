@@ -413,7 +413,30 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEA0);
  * cvt.s.w + div.s by 255.0 chain + &D descriptors. Full body
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void *func_0000FEE8(char *a0) {
+    char *o;
+    char *s;
+    float *c;
+    o = a0 ? a0 : (char *)func_00000000(0x304);
+    if (!o) return 0;
+    s = (char *)func_00000000(0x2C);
+    if (s) {
+        func_00000000(s, (char *)&D_00000000 + 0xC5BC);
+        *(char **)(s + 0x28) = &D_00000000;
+    }
+    *(char **)(o + 0x28) = &D_00000000;
+    *(char **)(o + 0xC) = (char *)&D_00000000 + 0xC5C4;
+    c = (float *)(o + 0x4C);
+    c[0] = (float)0x77 / 255.0f;
+    c[1] = (float)0x75 / 255.0f;
+    c[2] = (float)0xE5 / 255.0f;
+    c[3] = 1.0f;
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEE8);
+#endif
 
 /* func_000100F0 + func_0001016C split out to bootup_uso_o0_100F0.c on
  * 2026-05-14 for -O0 build (same recipe as func_000118E4 ->
