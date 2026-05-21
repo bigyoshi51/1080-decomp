@@ -12310,11 +12310,34 @@ void game_uso_func_000116D4(void *a0) {
 //   D_00000EA0 = USO static FX/event descriptor table; consts
 //     -30.0f, 0x100 / 5 / 0x24 event op codes. func_00000000 = USO
 //     placeholder dispatcher (sound / FX / event).
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder cb's mean wrap can't
+//   reach byte-match. Real-C STRUCTURAL body below — fall/wipeout
+//   detection + effect trigger skeleton. Byte-match deferred. Name
+//   pre-checked: no extern reuse. D_00000000 reuses file-scope
+//   extern char (no redeclaration).
+#ifdef NON_MATCHING
+void game_uso_func_00011750(char *obj) {
+    char *s = *(char **)(obj + 0xB4);
+    short cnt;
+    int e;
+    if (*(float *)(s + 0xA38) < -30.0f) {
+        *(int *)(obj + 0x130) = 0;
+    } else {
+        cnt = *(short *)(obj + 0x130);
+        if ((int)(cnt + 1) >= 3) return;
+        *(short *)(obj + 0x130) = cnt + 1;
+        *(int *)(obj + 0x130) = 0;
+        if (*(int *)((char *)&D_00000000 + 0x9CC) == 0x100) {
+        }
+        gl_func_00000000(0x100, 5, *(int *)(obj + 0xFC), 0x24);
+        e = *(int *)((char *)&D_00000000 + 0xEA0);
+        gl_func_00000000(e, obj, -1, *(int *)((char *)&D_00000000 + 0xEA4));
+        gl_func_00000000(0x100, 5, *(int *)(obj + 0xFC), 0x24);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
+#endif
 
 void game_uso_func_00011868(int *a0) {
     *(float *)((char *)a0[0xB4 / 4] + 0x970) = 0.0f;
