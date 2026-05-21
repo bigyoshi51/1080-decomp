@@ -33978,6 +33978,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B0F0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B0FC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B798);
+
 #ifdef NON_MATCHING
 /* gl_func_0006B7A0: 56-insn hardware-register status-poll + DMA setup (0xE0, frame 0x20).
  *
