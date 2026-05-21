@@ -28509,6 +28509,8 @@ void gl_func_0005D20C(float *out, float *q) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D304);
 #endif
 
 #ifdef NON_MATCHING
