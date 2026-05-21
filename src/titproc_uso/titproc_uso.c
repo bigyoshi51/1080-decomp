@@ -1045,7 +1045,43 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000022B
  * state. Caps <80: beql switch dispatch + vtable jalr + branch-likely
  * + &D reloc. Full per-state body INCLUDE_ASM-preserved (.s = source
  * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void titproc_uso_func_0000240C(char *s0) {
+    char *v1;
+    if (*(int *)(s0 + 0x6C0) == 0) return;
+    switch (*(int *)(s0 + 0x6C4)) {
+        case 0:
+            if (*(int *)(s0 + 0x6B4) != 0) gl_func_00000000(*(int *)(s0 + 0x6B4));
+            if (*(unsigned short *)(*(int *)((char *)&D_00000000 + 0x154) + 4) & 0x8) {
+                gl_func_00000000(144);
+                v1 = *(char **)(s0 + 0x6B8);
+                {
+                    char *vt = *(char **)(v1 + 0x28);
+                    void (*fn)(char *) = *(void (**)(char *))(vt + 0x5C);
+                    short base = *(short *)(vt + 0x58);
+                    if (fn) fn((char *)((int)base + (int)v1));
+                }
+            }
+            if (*(int *)(s0 + 0x6B0) != 0) gl_func_00000000(*(int *)(s0 + 0x6B0));
+            *(int *)(s0 + 0x6C4) = 2;
+            v1 = *(char **)(s0 + 0x6C0);
+            {
+                char *vt = *(char **)(v1 + 0x28);
+                void (*fn)(char *) = *(void (**)(char *))(vt + 0x5C);
+                if (fn) fn(v1);
+            }
+            break;
+        case 1:
+            break;
+        case 2:
+            break;
+        default:
+            return;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000240C);
+#endif
 
 void titproc_uso_func_00000000();
 
