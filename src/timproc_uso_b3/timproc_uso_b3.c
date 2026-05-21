@@ -647,6 +647,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000019CC);
 
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001C20);
+
 /* Prologue-stolen successor: predecessor func_000019CC's tail has lui+lw
  * setting t6 = *(D+0x64). PROLOGUE_STEALS removes our redundant 8-byte
  * lui+lw prefix. Per feedback_combine_prologue_steals_with_unique_extern.md. */
