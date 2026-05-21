@@ -10514,11 +10514,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
 //     fields; 0x110 / 0x114 = the selected output pair. idx = 1-based
 //     selector (0 / out-of-range = no-op). D_0 + 0x210 = the 5-entry
 //     jump table. No calls, no FP.
-// Caps: raw-word USO + jump-table — the per-case field map is fully
-//   enumerable from the .s when a future pass tightens it;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + jump-table; per-case field map
+//   fully enumerable from .s in a future pass. Real-C STRUCTURAL
+//   body below — jump-table-dispatched field selector skeleton.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void game_uso_func_0000ECEC(char *obj, int idx) {
+    int a = 0, b = 0;
+    if (idx == 0) return;
+    if ((unsigned int)(idx - 1) >= 5) return;
+    switch (idx - 1) {
+        case 0: a = *(int *)(obj + 0x43C); b = *(int *)(obj + 0x3AC); break;
+        case 1: a = *(int *)(obj + 0x43C); b = *(int *)(obj + 0x3C4); break;
+        case 2: a = *(int *)(obj + 0x43C); b = *(int *)(obj + 0x3DC); break;
+        case 3: a = *(int *)(obj + 0x424); b = *(int *)(obj + 0x3AC); break;
+        case 4: a = *(int *)(obj + 0x424); b = *(int *)(obj + 0x3C4); break;
+    }
+    *(int *)(obj + 0x110) = a;
+    *(int *)(obj + 0x114) = b;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
+#endif
 
 void game_uso_func_0000EDCC(int *a0, int a1) {
     a0[0x10C / 4] = a1;
