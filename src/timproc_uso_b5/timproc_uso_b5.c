@@ -4214,11 +4214,33 @@ void timproc_uso_b5_func_0000C978(int *a0, float a1) {
 //     into the draw arg block; alpha const 0xFF, 1.0f baseline.
 //   D_000001C0 = USO static draw-descriptor table. func_00000000 =
 //     USO placeholder dispatcher (emit/draw).
-// Caps: raw-word USO + placeholder calls — not exact-matchable
-//   without proper USO mnemonic disasm; structure characterized.
-//   Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
+//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
+//   below — stack arg block + descriptor-table lookup + emit
+//   skeleton only. Byte-match deferred. Name pre-checked: no extern
+//   reuse.
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_0000C98C(char *obj, int a1, int a2, int a3) {
+    char *d;
+    char *vt;
+    char *src;
+    char *entry;
+    int args[14];
+    args[0] = a3;
+    args[10] = a2;
+    args[11] = 0;
+    args[12] = 0;
+    args[13] = 0;
+    args[2] = 0xFF;
+    d = *(char **)(*(char **)(obj + 0x414) + 0xC);
+    vt = *(char **)(d + 0x5C);
+    src = *(char **)(obj + 0x44);
+    entry = (char *)&D_00000000 + 0x000001C0 + *(int *)(obj + 0x1AC) * 0x68;
+    func_00000000(d, vt, src, entry, args, a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C98C);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000CB40: 49-insn (0xC4) approach-target-with-decay
