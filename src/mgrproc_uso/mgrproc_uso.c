@@ -1351,3 +1351,5 @@ void mgrproc_uso_func_000033E8(char *dst) {
  * effect on the linked binary — the bytes at vram 0x1814/0x1BD4 come from
  * the predecessors' SUFFIX_BYTES. Removed to stop discover from listing
  * them as candidates. */
+
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000194);
