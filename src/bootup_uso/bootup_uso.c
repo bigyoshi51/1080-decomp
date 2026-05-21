@@ -3401,10 +3401,60 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008B44);
 //     contact code (s16), 0xA10 merged flag bits.
 //   Consts: -30.0 max-neg clamp, 0.5 half, 50.0 light threshold,
 //     0.1f (0x3DCCCCCD) restitution; code 0x61/62/63 = skip set.
-// Caps: 209-insn 2-branch physics accumulator w/ dispatcher applies;
-//   structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 209-insn 2-branch physics accumulator w/ dispatcher
+//   applies — byte-match blocked by raw-word USO. Real-C STRUCTURAL
+//   body below. Name pre-checked: no extern reuse. D_00000000 reuses
+//   file-scope extern char.
+#ifdef NON_MATCHING
+void func_00008BD4(char *b, float amt, float *dir, int a3) {
+    unsigned short fl = *(unsigned short *)(b + 0x174);
+    char *cx;
+    int code;
+    float s;
+    float n0, n1, n2;
+    float q;
+    if (fl & 0x1F0) {
+        if (amt < 0.0f) return;
+        code = (int)func_00000000(*(int *)((*(char ***)&D_00000000)[0] + 0x84), *(int *)(b + 0x14C));
+        if (code == 0x61 || code == 0x62 || code == 0x63) return;
+        cx = *(char **)(b + 0x170);
+        *(int *)(cx + 0x938) = *(int *)(cx + 0x938) + 1;
+        if (amt < -30.0f) amt = -30.0f;
+        *(short *)(cx + 0x9A4) = (short)code;
+        *(unsigned short *)(cx + 0xA10) |= fl;
+        s = (float)(-(double)amt * 0.5);
+        *(float *)(cx + 0xB4) += dir[0] * s;
+        *(float *)(cx + 0xB8) += dir[1] * s;
+        *(float *)(cx + 0xBC) += dir[2] * s;
+        *(float *)(cx + 0x93C) += dir[0];
+        *(float *)(cx + 0x940) += dir[1];
+        *(float *)(cx + 0x944) += dir[2];
+        *(float *)(cx + 0x968) += amt;
+        n0 = dir[0] * -amt;
+        n1 = dir[1] * -amt;
+        n2 = dir[2] * -amt;
+        (void)n0; (void)n1; (void)n2;
+        func_00000000(cx, b + 0x120, dir);
+        return;
+    }
+    if (fl & 0xF) {
+        if (amt < 50.0f) return;
+        cx = *(char **)(b + 0x170);
+        *(int *)(cx + 0x938) = *(int *)(cx + 0x938) + 1;
+        *(unsigned short *)(cx + 0xA10) |= fl;
+        *(float *)(cx + 0x968) += amt;
+        *(float *)(cx + 0x93C) += dir[0];
+        *(float *)(cx + 0x940) += dir[1];
+        *(float *)(cx + 0x944) += dir[2];
+        q = *(float *)(cx + 0x970);
+        if (q < 0.0f) q = -q;
+        func_00000000(b + 0x120, b + 0x114, dir, q * q);
+        func_00000000(b, amt, dir, 0.1f);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008BD4);
+#endif
 
 /* func_00008F18: 36-insn (0x90) optional-alloc + multi-call init. */
 extern char D_00008708;
