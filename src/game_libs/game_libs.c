@@ -1537,8 +1537,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
 /* game_libs_func_00047F90 split from game_libs_func_00047F68; INCLUDE_ASM
  * lives in game_libs_post.c next to the parent. */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E234);
-
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066200);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D7C0);

@@ -24680,6 +24680,12 @@ void gl_func_0004E214(char *a0) {
     gl_func_00000000(a0 + 0x18C);
 }
 
+void game_libs_func_0004E234(char *a0, int a1) {
+    *(int*)(a0 + 0x190) = a1;
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E23C);
+
 // gl_func_0004E244 — STRUCTURAL PASS (0x134 / 80 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
 // (saves ra). Registry list-insert + field-copy (same idiom as
