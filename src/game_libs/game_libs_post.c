@@ -28597,6 +28597,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D908);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D9EC);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DB00);
+
 #ifdef NON_MATCHING
 /* gl_func_0005DB0C: 19-insn (0x4C) FPU helper with NON-STANDARD calling
  * convention. The very first body insn at 0x08 is `div.s $f12, $f14, $f4`
