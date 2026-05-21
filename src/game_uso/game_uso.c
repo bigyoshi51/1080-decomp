@@ -3995,6 +3995,17 @@ void game_uso_func_000057D8(char *a0) {
  * match target 0x6B04-0x6B58: the parent copy triggers when self->0x40 is
  * already nonzero, and the null-parent path either copies helper_ptr+0x6C
  * or sets out_flags|0x10. DNM objdiff: 54.043% -> 54.99451%. Still not exact.
+ *
+ * 2026-05-21 Codex exact-grind: remeasured current DNM body at 54.99451%.
+ * Re-tested stack padding after the tail lift: pad[0xA0] regressed slightly
+ * to 54.98902%, so pad[0xB0] remains best. Target uses separate stack flag
+ * words at sp+0x1A4 (0x20/0x40 helper-fail arms) and sp+0x1A0 (late
+ * 0x400/0x10/0x200/0x100/0x80 dispatch), but rewriting the C to use
+ * state_flag/resolved_state for those exact semantic sources regressed hard:
+ * full rewrite 54.19213%, helper-arm-only rewrite 54.50778%. The current
+ * out_flags-shaped tail is therefore retained as the best measured IDO
+ * allocation shape, despite being less semantically direct than the asm's
+ * stack-slot split. No episode: not an exact C/body match.
  */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0) {
