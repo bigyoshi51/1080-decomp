@@ -1,4 +1,4 @@
-nonmatching gl_func_000709DC, 0x38
+nonmatching gl_func_000709DC, 0x30
 
 glabel gl_func_000709DC
     /* E55AB4 000709DC 27BDFFA8 */  .word 0x27BDFFA8
@@ -13,6 +13,4 @@ glabel gl_func_000709DC
     /* E55AD8 00070A00 27BD0058 */  .word 0x27BD0058
     /* E55ADC 00070A04 03E00008 */  .word 0x03E00008
     /* E55AE0 00070A08 00000000 */  .word 0x00000000
-    /* E55AE4 00070A0C 3C013780 */  .word 0x3C013780
-    /* E55AE8 00070A10 44810000 */  .word 0x44810000
 endlabel gl_func_000709DC

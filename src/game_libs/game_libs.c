@@ -1570,3 +1570,5 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
  * is in this same file with size 0xC4 covering the orphan's vram. The
  * orphan symbol pre-prune sat at .o offset 0x8944 (= TRUNCATE_TEXT cap)
  * with size 0 — its bytes never reached the link. */
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070A0C);
