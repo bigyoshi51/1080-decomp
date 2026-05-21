@@ -20,7 +20,11 @@ int c;
 int gui_uso_func_00000024(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000003C);
+/* Branch-chain sibling of gui_uso_func_00000024. This fragment inherits the
+ * character in $v0 and cannot express the compare in C; Makefile
+ * INSN_PATCH/SUFFIX_BYTES supplies the exact six target words. */
+int gui_uso_func_0000003C(void) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000054);
 
