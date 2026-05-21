@@ -493,9 +493,65 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000D94);
 //   func_00000000 + 0x4 = a placeholder/folded data ref (same JAL-target-0
 //   + folded-pool family as the func_0000098C/func_00000044 literal-pool bug,
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps: 759-insn dual-phase builder; structural first pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 759-insn dual-phase builder, multi-run target —
+//   byte-match deferred. Real-C STRUCTURAL body below — procedural
+//   tiled quad-mesh + index-buffer builder skeleton. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void *func_00000E68(char *self, char *a1, void *owner2, void *owner3, int arg5) {
+    char *buf;
+    int dimA, dimB;
+    if (!self) {
+        self = (char *)func_00000000(0x4C);
+        if (!self) return 0;
+    }
+    func_00000000(self, (char *)&D_00000000 + 0x66B0);
+    *(int *)(self + 0x28) = 0;
+    *(char **)(self + 0x0C) = (char *)&D_00000000 + 0x66B8;
+    *(void **)(self + 0x2C) = owner2;
+    *(void **)(self + 0x30) = owner3;
+    *(int *)(self + 0x34) = arg5;
+    *(float *)(self + 0x3C) = 1.0f;
+    *(float *)(self + 0x40) = 1.0f;
+    *(float *)(self + 0x44) = 1.0f;
+    *(float *)(self + 0x48) = 1.0f;
+    dimA = *(int *)(a1 + 0x8);
+    dimB = *(int *)(a1 + 0xC);
+    buf = (char *)func_00000000(0x800);
+    func_00000000(buf, 0x800, 0);
+    {
+        int rows = dimA >> 5;
+        int cols = dimB >> 6;
+        int r, c;
+        for (r = 0; r < rows; r++) {
+            for (c = 0; c < cols; c++) {
+                short *q = (short *)(buf + (r * cols + c) * 0x10);
+                q[0] = (short)(c * 0x20);
+                q[1] = (short)(r * 0x10);
+                q[2] = 0x7C0;
+                q[3] = 0xFC0;
+            }
+        }
+    }
+    {
+        char *l = *(char **)((char *)owner2 + 0x0C);
+        int *idx = *(int **)l;
+        int cnt = *(int *)(l + 0x4);
+        int q, i;
+        int qcols = dimB >> 6;
+        int qrows = dimA >> 5;
+        for (q = 0; q < qrows * qcols; q++) {
+            for (i = 0; i < 4; i++) {
+                idx[cnt++] = q * 4 + i;
+            }
+        }
+        *(int *)(l + 0x4) = cnt;
+    }
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000E68);
+#endif
 
 /* func_00001A44 - verified structural decode (0x1CC, 115 insns,
  * FP transform/draw + DL list-append). Same family as
