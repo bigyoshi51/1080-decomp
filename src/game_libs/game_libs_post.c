@@ -36529,6 +36529,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007507C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00075248);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00075260);
+
 #ifdef NON_MATCHING
 /* SP_PC_REG (uncached, 0xA4080000) conditional writer.
  *   if ((flag & 1) != 0) { *(volatile u32*)0xA4080000 = pc; return 0; }
