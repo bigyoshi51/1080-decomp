@@ -10152,11 +10152,32 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
 //     = a folded f64 threshold constant. a1/a2 = event arg records.
 //   func_00000000 = USO placeholder dispatcher (event report /
 //     state notify).
-// Caps: raw-word USO + placeholder calls + folded f64 — not exact-
-//   matchable without proper USO mnemonic disasm; structure
-//   characterized. Structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO + placeholder calls + folded f64; USO
+//   mnemonic disasm limitation prevents byte-match. Real-C STRUCTURAL
+//   body below — threshold-gated event/effect trigger skeleton.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void game_uso_func_0000E1FC(char *obj, char *a1, char *a2) {
+    char *s = *(char **)(obj + 0xB4);
+    char *ctx;
+    float m;
+    double t;
+    if (!(*(float *)(s + 0x348) < *(float *)(s + 0x10))) return;
+    ctx = *(char **)(obj + 0x800);
+    if (!(*(int *)(ctx + 0x18) & 0x2000)) return;
+    if (*(int *)(s + 0x9CC) != 0) return;
+    m = *(float *)(s + 0x970);
+    if (m < 0.0f) m = -m;
+    t = *(double *)((char *)&D_00000000 + 0x00000E68 + 0x208);
+    if ((double)m < t) {
+        func_00000000(*(int *)a1, *(int *)a2);
+    } else {
+        func_00000000(*(int *)a1, *(int *)(a2 + 0x4));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
+#endif
 
 /* game_uso_func_0000E2D0 — verified structural decode (~30%, LEN-DIFF 33/35;
  * branch-likely-sense + compiler dead-store tail + FPU operand order cap →
