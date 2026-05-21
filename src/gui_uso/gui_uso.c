@@ -48,21 +48,68 @@ int gui_uso_func_00000054(int v0) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000054);
 #endif
 
+// Chained char-mapper entries (continuation of gui_uso_func_00000054).
+// Each falls THROUGH to the next on mismatch — see
+// reference_1080_chained_char_mapper_fallthrough memo. NM-wrap match
+// branch only; INCLUDE_ASM is the build path.
+#ifdef NON_MATCHING
+int gui_uso_func_0000006C(int v0) { if (v0 == 0x5D) { int a0 = 0x27; return a0 & 0xFF; } return 0; }
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000006C);
+#endif
 
+#ifdef NON_MATCHING
+int gui_uso_func_00000084(int v0) { if (v0 == 0x2B) { int a0 = 0x24; return a0 & 0xFF; } return 0; }
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000084);
+#endif
 
+#ifdef NON_MATCHING
+int gui_uso_func_0000009C(int v0) { if (v0 == 0x5F) { int a0 = 0x25; return a0 & 0xFF; } return 0; }
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000009C);
+#endif
 
+#ifdef NON_MATCHING
+int gui_uso_func_000000B4(int v0) { if (v0 == 0x2E) { int a0 = 0x25; return a0 & 0xFF; } return 0; }
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000B4);
+#endif
 
+#ifdef NON_MATCHING
+int gui_uso_func_000000CC(int v0) { if (v0 == 0x2D) { int a0 = 0x25; return a0 & 0xFF; } return 0; }
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000CC);
+#endif
 
+// Range entries: hex/digit decoders (lowercase 'a'-'z', uppercase 'A'-'Z',
+// digit '0'-'9'); same fall-through-to-next-entry pattern on mismatch.
+#ifdef NON_MATCHING
+int gui_uso_func_000000E4(int v0) {
+    if (v0 >= 0x61 && v0 < 0x7B) { int a0 = v0 - 0x57; return a0 & 0xFF; }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000E4);
+#endif
 
+#ifdef NON_MATCHING
+int gui_uso_func_00000104(int v0) {
+    if (v0 >= 0x41 && v0 < 0x5B) { int a0 = v0 - 0x37; return a0 & 0xFF; }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000104);
+#endif
 
+#ifdef NON_MATCHING
+int gui_uso_func_00000124(int v0) {
+    if (v0 >= 0x30 && v0 < 0x3A) { int a0 = (v0 - 0x30) & 0xFF; return a0 & 0xFF; }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000124);
+#endif
 
 /* gui_func_00000148: BUNDLED splat symbol (0x7D0 total / 500 insns).
  * splat could not separate sub-functions (no inter-function relocs).
