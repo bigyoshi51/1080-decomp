@@ -1205,6 +1205,8 @@ void mgrproc_uso_func_00002AFC(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7C);
 
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E34);
+
 /* mgrproc_uso_func_00002E3C: 45-insn (real 0xB0; declared 0xD4 incl. a
  * trailing FPU-const block) — DEFERRED, documented-cap class:
  *  (1) mgrproc_uso is Yay0-compressed / -O0 (see file-head BLOCKED note);
