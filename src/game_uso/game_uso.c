@@ -10452,11 +10452,40 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 //     (reset then recomputed). tgt/a2 = target + mode args. Clamp
 //     bounds ±7 (fast) / ±2 / ±3 (slow). Snowboard steering/lean
 //     input smoothing.
-// Caps: raw-word USO — the clamp/branch tree is fully enumerable
-//   from the .s when a future pass tightens it; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): raw-word USO — clamp/branch tree fully
+//   enumerable from .s in a future pass. Real-C STRUCTURAL body
+//   below — steering/lean input integrator with rate-clamping
+//   skeleton. Byte-match deferred. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void game_uso_func_0000EAF4(char *obj, int tgt, int a2) {
+    char *s = *(char **)(obj + 0xB4);
+    char *ctx = *(char **)(s + 0x800);
+    int cur;
+    int d;
+    int hi, lo;
+    if (*(short *)(ctx + 0x7C) == 0) {
+        *(short *)(obj + 0x124) = 0;
+        return;
+    }
+    cur = *(short *)(obj + 0x124);
+    d = tgt - cur;
+    if (a2) {
+        hi = 3; lo = -2;
+    } else {
+        hi = 7; lo = -7;
+    }
+    if (d > hi) d = hi;
+    if (d < lo) d = lo;
+    *(short *)(obj + 0x124) = (short)(cur + d);
+    *(short *)(obj + 0x128) = 0;
+    *(int *)(obj + 0x12C) = 0;
+    if (*(unsigned int *)(ctx + 0x18) & 0x4000) {
+        *(int *)(obj + 0x12C) = d * 2;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
+#endif
 
 // game_uso_func_0000ECEC — STRUCTURAL PASS (0xE0 / 56 words,
 // no episode). Raw-.word USO form (single function, game_uso main
