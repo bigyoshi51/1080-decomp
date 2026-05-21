@@ -1729,10 +1729,60 @@ void func_00004914(char *a0, int a1, char *a2) {
 //   Folded scale const: lui $at,0 + lwc1 0x0($at) = the JAL-target-0 /
 //   D_0 folded-zero literal family — see
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
-// Caps: 426-insn FP state machine w/ folded-literal scales + sqrt
-//   dispatcher; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 426-insn FP state machine w/ folded-literal scales
+//   + sqrt dispatcher — byte-match blocked by deferred pool
+//   symbolization. Real-C STRUCTURAL body below — camera/object
+//   transition tick skeleton. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void func_00004948(char *obj) {
+    int st = *(int *)(obj + 0x158);
+    char *s;
+    float K0;
+    float sx, sy, sz;
+    float dx, dy, dz;
+    float lenSq, dist;
+    K0 = *(float *)&D_00000000;
+    if (st == 2) {
+        s = *(char **)(obj + 0x154);
+        sx = *(float *)(s + 0x318) * K0;
+        sy = *(float *)(s + 0x31C) * K0;
+        sz = *(float *)(s + 0x320) * K0;
+        *(float *)(obj + 0x30) = sx;
+        *(float *)(obj + 0x34) = sy;
+        *(float *)(obj + 0x38) = sz;
+        *(int *)(obj + 0x14C) = *(int *)(obj + 0x150);
+    } else {
+        s = *(char **)(obj + 0x154);
+        dx = *(float *)(obj + 0xA0) - *(float *)(s + 0x318);
+        dy = *(float *)(obj + 0xA4) - *(float *)(s + 0x31C);
+        dz = *(float *)(obj + 0xA8) - *(float *)(s + 0x320);
+        lenSq = dx * dx + dy * dy + dz * dz;
+        dist = (float)func_00000000(lenSq);
+        if (dist != 0.0f) {
+            dx /= dist; dy /= dist; dz /= dist;
+        }
+        if (st < 0x13) {
+            *(float *)(obj + 0x30) = dx * K0;
+            *(float *)(obj + 0x34) = dy * K0;
+            *(float *)(obj + 0x38) = dz * K0;
+        } else if (st < 0x18) {
+            *(float *)(obj + 0x30) = dx;
+            *(float *)(obj + 0x34) = dy;
+            *(float *)(obj + 0x38) = dz;
+        } else if (st < 0x1D) {
+            *(float *)(obj + 0x30) += dx * K0;
+            *(float *)(obj + 0x34) += dy * K0;
+            *(float *)(obj + 0x38) += dz * K0;
+        } else {
+            *(int *)(obj + 0x14C) = *(int *)(obj + 0x150);
+        }
+    }
+    func_00000000(obj);
+    func_00000000(obj);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00004948);
+#endif
 
 void func_00004FF0(int *dst) {
     int buf[2];
