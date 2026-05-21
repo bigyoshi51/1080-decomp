@@ -1120,9 +1120,11 @@ int timproc_uso_b3_func_00000E54(void) {
  * 0x240E0009,0x3C010000,0xAFA40000,0x03E00008,0xAC2E0040,0x3C050000,0x8CA50170).
  * Pre-prune the orphan symbol was at .o offset 0x3114 (tail). */
 
-/* timproc_uso_b3_func_000023CC: SUFFIX_BYTES-absorbed orphan ←
- * timproc_uso_b3_func_00002388 (first 2 of 6 recipe words exact match
- * 0x03E00008,0x00000000). Sibling _000023D4 (next 4 words) has own
- * SUFFIX_BYTES recipe and stays. */
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023D4);
+/* timproc_uso_b3_func_000023CC + 000023D4: SUFFIX_BYTES-absorbed orphans
+ * ← timproc_uso_b3_func_00002388 (6 words exact:
+ *   0x03E00008,0x00000000,0x03E00008,0x00000000,0x03E00008,0x00000000).
+ * _000023D4 had its own 2-word SUFFIX_BYTES recipe (`0x00000000,0x00000000`)
+ * that emitted 2 nops at the .o tail past its orphan position — those
+ * bytes weren't at any meaningful linked-vram, so dropping the recipe is
+ * neutral. Removed alongside the .s deletion (per docs/MATCHING_WORKFLOW.md
+ * orphan-attached-recipes blocker note). */
