@@ -3640,7 +3640,11 @@ int gl_func_00023E60(int a0, int a1, int sz) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023E60);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F84);
+/* Empty 4-arg stub (byte-identical sibling of matched _00024E14,
+ * timproc_uso_b5_func_0000ABE0). C-emit: sw a0,0(sp); sw a1,4(sp);
+ * sw a2,8(sp); jr ra; sw a3,0xC(sp). */
+void game_libs_func_00023F84(int a0, int a1, int a2, int a3) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F98);
 
@@ -4463,7 +4467,9 @@ void gl_func_00025320(char *obj, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025320);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253B0);
+/* Empty 4-arg stub (sibling of _00023F84). */
+void game_libs_func_000253B0(int a0, int a1, int a2, int a3) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253C4);
 
@@ -21624,7 +21630,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044EDC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045178);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00045394);
+/* Empty 4-arg stub (sibling of _00023F84). */
+void game_libs_func_00045394(int a0, int a1, int a2, int a3) {
+}
 
 // gl_func_000453A8 — STRUCTURAL PASS + BOUNDARY NOTE (0x118 / 71 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → 3-function BUNDLE: the three
@@ -22642,7 +22650,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004880C);
 // deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000488A0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00048A60);
+/* Empty 4-arg stub (sibling of _00023F84). */
+void game_libs_func_00048A60(int a0, int a1, int a2, int a3) {
+}
 
 /* 30-insn alloc-or-given + init + cond-followup. Promoted 82.33%→100%
  * via `||` short-circuit FALL-THROUGH-WITH-NULL-GUARD recipe (same as
@@ -25282,7 +25292,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004EE18);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0AC);
+/* Empty 4-arg stub (sibling of _00023F84). */
+void game_libs_func_0004F0AC(int a0, int a1, int a2, int a3) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0C0);
 
