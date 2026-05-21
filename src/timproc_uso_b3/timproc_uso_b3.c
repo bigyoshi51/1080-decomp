@@ -1103,7 +1103,11 @@ void timproc_uso_b3_func_00003050(int *a0, int a1) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00003050_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000E30);
+/* timproc_uso_b3_func_00000E30: SUFFIX_BYTES-absorbed orphan ←
+ * timproc_uso_b3_func_00000DE4 (9 of 12 recipe words exact match
+ * 0x8C8E06A8,0x8DC2006C,0x50400007,0x00001025,0x8C4F00EC,0x51E00004,
+ *  0x00001025,0x03E00008,0x24020001). Sibling _00000E54 (rest 3 words)
+ * has own SUFFIX_BYTES + INSN_PATCH recipes and stays. */
 
 int timproc_uso_b3_func_00000E54(void) {
     return 0;
@@ -1116,11 +1120,9 @@ int timproc_uso_b3_func_00000E54(void) {
  * 0x240E0009,0x3C010000,0xAFA40000,0x03E00008,0xAC2E0040,0x3C050000,0x8CA50170).
  * Pre-prune the orphan symbol was at .o offset 0x3114 (tail). */
 
-/* timproc_uso_b3_func_000023CC + 000023D4: SUFFIX_BYTES-absorbed-orphan
- * candidates of timproc_uso_b3_func_00002388 (6 words) but BLOCKED — the
- * orphan symbol _000023D4 has its OWN Makefile recipes (SUFFIX_BYTES
- * 2 words + see Makefile). Pruning these requires also stripping those
- * orphan-attached recipes; deferred to a focused cleanup commit. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023CC);
+/* timproc_uso_b3_func_000023CC: SUFFIX_BYTES-absorbed orphan ←
+ * timproc_uso_b3_func_00002388 (first 2 of 6 recipe words exact match
+ * 0x03E00008,0x00000000). Sibling _000023D4 (next 4 words) has own
+ * SUFFIX_BYTES recipe and stays. */
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023D4);
