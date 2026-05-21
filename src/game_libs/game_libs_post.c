@@ -28517,6 +28517,8 @@ void gl_func_0005D414(int* a0, int bx_bits, int by_bits, int bz_bits) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D414);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D474);
 #endif
 
 #ifdef NON_MATCHING
