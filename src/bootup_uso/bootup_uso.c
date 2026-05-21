@@ -4387,10 +4387,43 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D440);
 //     swallows the rest of the pool. func_00008AEC + {0x4C,0x54},
 //     func_00008B44 + {0x4,0x10,0x24} = folded action/desc tables.
 //     See docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
-// Caps: 305-insn opcode dispatcher w/ folded pool + tables — exact
-//   match blocked by the deferred pool symbolization; structural pass.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 305-insn opcode dispatcher w/ folded pool + tables
+//   — byte-match blocked by deferred pool symbolization. Real-C
+//   STRUCTURAL body below. Name pre-checked: no extern reuse.
+//   D_00000988 reuses pre-symbolized double const at file scope.
+#ifdef NON_MATCHING
+void func_0000D900(char *st, char *m) {
+    int op = *(int *)m;
+    char *o;
+    switch (op) {
+        case 0x14:
+            if (*(int *)(st + 0xA80)) break;
+            o = *(char **)(m + 0x4);
+            if ((double)*(float *)(o + 0xC) < *(double *)((char *)&D_00000000 + 0x988) &&
+                *(unsigned short *)(*(char **)(o + 0x28) + 0xC) == 0x74) {
+                func_00000000(st + 0x808);
+            }
+            break;
+        case 0x9:
+        case 0x6:
+            break;
+        case 0x3E8:
+        case 0x3E9:
+        case 0x3EA:
+        case 0x3EB:
+        case 0x3EC:
+        case 0x3ED:
+        case 0x3EE:
+        case 0x3EF:
+            break;
+        default:
+            *(int *)(st + 0xA54) = 6;
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D900);
+#endif
 
 void func_0000DDC4(int a0) {
 }
