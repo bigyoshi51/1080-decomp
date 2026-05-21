@@ -2420,10 +2420,47 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006734);
 //     func_00000188 + 0x3C = a folded table (read 6x);
 //     func_0000057C + 0x38 = a folded f32 const (sibling of the
 //                            func_0000057C+0x34 ref in func_000063B4).
-// Caps: 594-insn dispatcher-heavy ctor w/ folded globals; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 594-insn dispatcher-heavy ctor w/ folded globals
+//   — byte-match blocked by deferred pool symbolization. Real-C
+//   STRUCTURAL body below — large scene/screen constructor skeleton.
+//   Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
+void *func_00006808(char *obj, char *a1, void *a2) {
+    char *s1 = *(char **)(a1 + 0x40);
+    char *root;
+    int sp_desc[4];
+    float sp_vec[3];
+    (void)s1; (void)a2;
+    sp_desc[0] = 1;
+    sp_desc[1] = 0x14;
+    sp_desc[2] = 0x28;
+    sp_desc[3] = 0;
+    sp_vec[0] = 0.0f;
+    sp_vec[1] = 0.0f;
+    sp_vec[2] = 0.0f;
+    *(int *)((char *)&D_00000000 + 0x4) |= 0x20000;
+    func_00000000((char *)&D_00000000 + 0x7EB8, 0);
+    root = (char *)func_00000000();
+    *(char **)&D_00000000 = root;
+    func_00000000(*(char **)(obj + 0x84) + 0x10, root);
+    if (*(int *)(root + 0x14)) {
+    }
+    {
+        char *c1 = *(char **)(obj + 0x7C);
+        char *c2 = *(char **)(obj + 0x80);
+        char *c3 = *(char **)(obj + 0x84);
+        char *c4 = *(char **)(obj + 0x88);
+        if (c1) func_00000000(c1, sp_desc);
+        if (c2) func_00000000(c2, sp_desc);
+        if (c3) func_00000000(c3, sp_desc);
+        if (c4) func_00000000(c4, sp_desc);
+    }
+    *(int *)((char *)&D_00000000 + 0x4) &= ~0x20000;
+    return root;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006808);
+#endif
 
 /* func_00007150 - verified structural decode (0xB4, 45 insns,
  * get-or-create constructor).
