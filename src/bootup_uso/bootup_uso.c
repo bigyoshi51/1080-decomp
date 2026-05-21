@@ -1182,9 +1182,62 @@ void func_000031B8(int a0) {
 //   func_000003F8 + 0x138 / + 0x13C (lwc1) = folded f32 consts — yet
 //   another fold target in the bootup_uso literal-pool bug family
 //   (docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps: 202-insn 3-mode ctor; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 202-insn 3-mode ctor; raw-word USO + placeholder
+//   cb's + folded f32 consts at func_000003F8+0x138/+0x13C. Real-C
+//   STRUCTURAL body below. Byte-match deferred. Name pre-checked:
+//   no extern reuse.
+#ifdef NON_MATCHING
+void *func_000031C0(int a0, int mode, char *parent3, int a3) {
+    char *obj;
+    char *sub;
+    char *child;
+    char *e;
+    char *w;
+    char *f;
+    float sp48_x, sp48_y, sp48_z;
+    obj = (char *)func_00000000(0xB8);
+    if (!obj) obj = (char *)func_00000000(0xB4);
+    if (obj) {
+        func_00000000(obj, (char *)&D_00000000 + 0x7460);
+        *(int *)(obj + 0x28) = 0;
+        sub = obj + 0x2C;
+        if (!sub) sub = (char *)func_00000000(4);
+        if (sub) *(int *)sub = 0;
+        func_00000000(obj);
+        sp48_x = 0.0f;
+        sp48_y = 500.0f;
+        sp48_z = 0.0f;
+        func_00000000(obj + 0x30, &sp48_x);
+    }
+    if (mode == 0 || mode == 2) {
+        w = (char *)func_00000000(0, a3, obj, 0, 500.0f);
+        func_00000000(0, *(int *)(parent3 + 0x874), (char *)&D_00000000 + 0x7480);
+        func_00000000(w, (char *)&D_00000000 + 0x7490);
+        child = (char *)func_00000000(a0);
+        *(char **)(parent3 + 0xB4) = child;
+        *(char **)(child + 0xC) = (char *)&D_00000000 + 0x74A4;
+    } else if (mode == 1) {
+        e = (char *)func_00000000(0x15C);
+        if (e) {
+            func_00000000(e, obj, 0, 500.0f);
+            *(char **)(e + 0x28) = (char *)&D_00000000 + 0x7120;
+            *(int *)(e + 0x158) = 0;
+            *(int *)(e + 0x154) = a3;
+            *(int *)(e + 0x150) = *(int *)(e + 0x14C);
+        }
+        func_00000000(0, (char *)&D_00000000 + 0x74B0, a3);
+        f = (char *)func_00000000(a0);
+        *(char **)(f + 0xC) = (char *)&D_00000000 + 0x74C4;
+    }
+    if (*(int *)(parent3 + 0x14)) *(int *)(parent3 + 0x4) = 1;
+    *(int *)(parent3 + 0x14) = (int)parent3;
+    if (*(int *)(parent3 + 0x14)) *(int *)(parent3 + 0x4) = 1;
+    *(int *)(parent3 + 0x30) = *(int *)((char *)0 + 0x3A4);
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
+#endif
 
 /* func_000034E8 - verified structural decode (0x150, 84 insns,
  * tagged-arg-block object builder + wire).
