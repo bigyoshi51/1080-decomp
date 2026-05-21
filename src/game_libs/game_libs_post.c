@@ -3147,6 +3147,8 @@ void gl_func_00023548(int a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023548);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002358C);
 #endif
 
 /* gl_func_00023598: 19-insn slot writer with global gate. Matched
