@@ -3639,10 +3639,62 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 //     func_00000148 (writable table), func_000089FC+0x2C /
 //     func_00008A40+0x8/+0x14 (name/string data), func_000083D0+0x70
 //     (vtable).
-// Caps: 186-insn lazy-init + table-register + multi-dispatch; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 186-insn lazy-init + table-register + multi-dispatch
+//   — byte-match blocked by deferred pool symbolization. Real-C
+//   STRUCTURAL body below — sound/resource-bank lazy loader skeleton.
+//   Name pre-checked: no extern reuse. D_00000000 reuses file-scope
+//   extern char.
+#ifdef NON_MATCHING
+void func_0000B1B4(int cat, int idx, int a2, int a3) {
+    char *r;
+    char *s;
+    char *buf;
+    int n;
+    char *e;
+    char *sp34;
+    if (idx >= 0xA) idx = 9;
+    if (cat >= 9)  cat = 8;
+    if (cat == 7 || cat == 6) {
+        if (*(int *)((char *)&D_00000000 + 0x148) == 0) {
+            func_00000000((char *)&D_00000000 + 0x2C);
+            r = (char *)func_00000000(0x90);
+            if (r) {
+                s = (char *)func_00000000(0x60);
+                *(char **)(s + 0x5C) = &D_00000000;
+                func_00000000(s);
+                *(int *)(r + 0x24) = 0x110;
+                *(char **)(r + 0x5C) = (char *)&D_00000000 + 0x70;
+                buf = (char *)func_00000000(0x1000);
+                *(int *)(r + 0x28) = 0x1100;
+                *(short *)(r + 0x22) = 0x20;
+                *(short *)(r + 0x20) = 0x40;
+                *(int *)(r + 0x38) = 0x402C4B;
+                *(char **)(r + 0x1C) = buf;
+                *(int *)(r + 0x34) = 0;
+                *(int *)(r + 0x18) = 0;
+            }
+            if (*(int *)((char *)&D_00000000 + 0x148 + 0x14) >= 5) func_00000000(r);
+            n = *(int *)((char *)&D_00000000 + 0x148 + 0x14);
+            *(int *)((char *)&D_00000000 + 0x148 + 0x14) = n + 1;
+            *(char **)((char *)&D_00000000 + 0x148 + n * 4) = r;
+        }
+    }
+    func_00000000((char *)&D_00000000 + 0x8, 0);
+    func_00000000((char *)&D_00000000 + 0x14, 0);
+    if (idx) {
+        e = *(char **)((char *)&D_00000000 + idx * 4);
+        if (!func_00000000(*(int *)e)) func_00000000(&D_00000000, *(int *)e);
+    }
+    e = *(char **)((char *)&D_00000000 + cat * 4);
+    if (!func_00000000(*(int *)e)) func_00000000(&D_00000000, *(int *)e);
+    func_00000000();
+    sp34 = 0;
+    func_00000000(&D_00000000, a3, a2, &sp34);
+    func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);
+#endif
 
 #ifdef NON_MATCHING
 /* func_0000B49C: 33-insn (0x84) clamped-index dispatcher.
