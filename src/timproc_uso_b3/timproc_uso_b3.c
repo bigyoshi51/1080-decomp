@@ -1109,8 +1109,18 @@ int timproc_uso_b3_func_00000E54(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001074);
+/* SUFFIX_BYTES-absorbed orphan (per
+ * docs/MATCHING_WORKFLOW.md#feedback-splat-orphan-duplicate-symbol-pruning,
+ * no-truncate variant): timproc_uso_b3_func_00001074 (7 words) ←
+ * timproc_uso_b3_func_00000FF4 SUFFIX_BYTES (exact 7-word match
+ * 0x240E0009,0x3C010000,0xAFA40000,0x03E00008,0xAC2E0040,0x3C050000,0x8CA50170).
+ * Pre-prune the orphan symbol was at .o offset 0x3114 (tail). */
 
+/* timproc_uso_b3_func_000023CC + 000023D4: SUFFIX_BYTES-absorbed-orphan
+ * candidates of timproc_uso_b3_func_00002388 (6 words) but BLOCKED — the
+ * orphan symbol _000023D4 has its OWN Makefile recipes (SUFFIX_BYTES
+ * 2 words + see Makefile). Pruning these requires also stripping those
+ * orphan-attached recipes; deferred to a focused cleanup commit. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023CC);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023D4);
