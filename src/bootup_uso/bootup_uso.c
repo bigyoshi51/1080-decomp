@@ -973,9 +973,52 @@ void func_000027C0(char *a0, int *a1) {
 //   folded-symbol family as the func_0000098C literal-pool bug
 //   (docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C);
 //   here it's the integer denominator of the ratio fixups.
-// Caps: 299-insn dispatcher-heavy ctor; structural pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// Caps (DEFERRED): 299-insn dispatcher-heavy ctor; raw-word USO +
+//   placeholder cb's. Real-C STRUCTURAL body below — bootup/title
+//   scene constructor skeleton. Byte-match deferred. Name pre-checked:
+//   no extern reuse. D_00000000 reuses file-scope extern char.
+#ifdef NON_MATCHING
+void *func_000027E8(char *scene, int a1, int a2, int a3) {
+    char *h4C, *h3C, *h48, *h44, *h40, *g;
+    int aa, bb, cc;
+    float ratio;
+    func_00000000(&D_00000000);
+    *(int *)(scene + 0x3C) = a2;
+    func_00000000((char *)&D_00000000 + 0x7328, 0);
+    func_00000000((char *)&D_00000000 + 0x7334, *(int *)(scene + 0x134));
+    func_00000000((char *)&D_00000000 + 0x7344, 0);
+    func_00000000((char *)&D_00000000 + 0x7350);
+    func_00000000((char *)&D_00000000 + 0x7360);
+    func_00000000();
+    func_00000000((char *)&D_00000000 + 0x7374, 0);
+    h4C = (char *)func_00000000(0, (char *)&D_00000000 + 0x7380);
+    h3C = (char *)func_00000000(0, (char *)&D_00000000 + 0x738C);
+    h48 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7390);
+    h44 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7394);
+    h40 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7398);
+    g = (char *)func_00000000(0);
+    *(char **)&D_00000000 = g;
+    func_00000000(h4C + 0x10, g);
+    if (*(int *)(g + 0x14)) *(int *)(g + 0x4) = 1;
+    *(char **)(g + 0x14) = h4C;
+    aa = (int)func_00000000(*(int *)(scene + 0x134), (char *)&D_00000000 + 0x739C);
+    bb = (int)func_00000000(*(int *)(scene + 0x134), (char *)&D_00000000 + 0x73B4);
+    cc = (int)func_00000000(*(int *)(scene + 0x134), (char *)&D_00000000 + 0x73CC);
+    ratio = (float)(bb - cc) / (float)aa;
+    func_00000000(scene, ratio);
+    if (*(int *)(h44 + 0x14)) *(int *)(h44 + 0x4) = 1;
+    *(char **)(h44 + 0x14) = h4C;
+    if (*(int *)(h40 + 0x14)) *(int *)(h40 + 0x4) = 1;
+    *(char **)(h40 + 0x14) = h4C;
+    if (*(int *)(h48 + 0x14)) *(int *)(h48 + 0x4) = 1;
+    *(char **)(h48 + 0x14) = h4C;
+    if (*(int *)(h3C + 0x14)) *(int *)(h3C + 0x4) = 1;
+    *(char **)(h3C + 0x14) = h4C;
+    return *(void **)(scene + 0x3C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000027E8);
+#endif
 
 /* func_00002C94 - verified structural decode (0x110, 68 insns,
  * subsystem init: scratch-vec setup + global flag config + table
