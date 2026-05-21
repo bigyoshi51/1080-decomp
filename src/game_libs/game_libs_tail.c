@@ -63,7 +63,6 @@ void gl_func_0000959C(int *a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000959C);
 #endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000959C_pad.s")
 
 extern int gl_func_00000000();
 void gl_func_00009674(int *dst) {
@@ -102,6 +101,78 @@ void gl_func_0000975C(Quad4 *dst) {
     gl_func_00000000(&D_00000000, &buf, 0x10);
     *dst = buf;
 }
+
+/* 0x97B4..0x9DB8 gap moved here from truncated game_libs.c on 2026-05-21. */
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009920);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000993C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009944);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009970);
+
+void game_libs_func_00009978(unsigned char *arg0) {
+    *arg0 &= 0x7F;
+}
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000099DC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A2C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A48);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A50);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A6C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A80);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A9C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AB0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD8);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AFC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B60);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B98);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BB4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BBC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BD8);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BE0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BF4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C04);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C5C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CDC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CF8);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D00);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D1C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D24);
 
 #ifdef NON_MATCHING
 /* gl_func_00009DB8: 65-insn 3-iter batch dispatcher (size 0x104, frame 0x48, saves s0-s7).

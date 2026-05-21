@@ -1457,76 +1457,8 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
  * game_libs_tail.c. */
 
 
-/* Fragments 0003AA40, 0003AA5C moved to game_libs_post.c on 2026-05-07
- * (correct file for VRAM 0x3*** range). */
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009920);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000993C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009944);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009970);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009978);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000099DC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A2C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A48);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A50);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A6C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A80);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A9C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AB0);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD0);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD8);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AFC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B60);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B98);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BB4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BBC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BD8);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BE0);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BF4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C04);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C5C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CDC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CF8);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D00);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D1C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D24);
+/* Fragments 000097B4..00009D24 moved to game_libs_tail.c on
+ * 2026-05-21; game_libs.c is truncated at 0x8944. */
 
 /* Fragments 00037E98, 00037F10, 00037F40, 0003AA40, 0003AA5C, 00061F70
  * moved to game_libs_post.c (correct file for VRAM past 0x8944 cap of
