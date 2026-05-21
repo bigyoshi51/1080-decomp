@@ -503,7 +503,30 @@ void titproc_uso_func_000016B8(int *a0) {
  * GBI-ish data bases. Caps <80: div.s/mul.s/sub.s lerp scheduling + the
  * sp 1.0f stack-temp dance + &D %hi/%lo reloc + 3-call spill. INCLUDE_ASM
  * is the correct build path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void titproc_uso_func_00001710(char *s0) {
+    float f16 = 1.0f;
+    float sp_96 = f16, sp_100 = f16, sp_104 = f16, sp_108 = f16;
+    float sp_36, sp_40, sp_44;
+    float t, dc;
+    char *r;
+    (void)sp_108;
+    if (*(int *)((char *)&D_00000000 + 0x18C) != 0) {
+        dc = *(float *)((char *)&D_00000000 + 0x40);
+        t = (float)*(int *)(s0 + 0x2C) / 255.0f;
+        sp_36 = sp_96  + (1.0f - sp_96)  * t;
+        sp_40 = sp_100 + (dc   - sp_100) * t;
+        sp_44 = sp_104 + (dc   - sp_104) * t;
+        gl_func_00000000((char *)&D_00000000 + 0x18, *(int *)(s0 + 0x2C), &sp_36);
+    } else {
+        gl_func_00000000(&D_00000000, *(int *)(s0 + 0x2C), &sp_96);
+    }
+    r = (char *)gl_func_00000000(&D_00000000);
+    gl_func_00000000(r, (int)*(float *)(s0 + 0x34), (int)*(float *)(s0 + 0x38), 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001710);
+#endif
 
 /* titproc_uso_func_00001840: 68-insn (0x110) 2-cascade constructor with
  * 11-int + 4-float constant spray. Allocates main 0x74-byte object,
