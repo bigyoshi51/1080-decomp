@@ -3633,6 +3633,8 @@ void timproc_uso_b5_func_0000B368(char *obj, int unused) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B368);
+
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B61C);
 #endif
 
 // timproc_uso_b5_func_0000B624 — STRUCTURAL PASS (0x304 / 193 words,
