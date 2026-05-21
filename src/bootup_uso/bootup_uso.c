@@ -4348,31 +4348,31 @@ void func_0000E9FC(void) {
     *(int*)(&D_func_00000008_data + 0x20) = (int)&D_func_0000E9FC_arg2;
 }
 
-/* func_0000EA2C: 51-insn (0xCC) init function with 7 cross-USO calls
- * + 1 conditional branch.
- *
- * Decoded structure:
- *   a0->0xC = &D_00008D70        ; install handler/callback ptr
- *   gl_func(a0->0xC, &D_00008D7C); ; register
- *   v0 = gl_func(0)              ; allocate something (saved at sp+0x18)
- *   gl_func(0, &D_00008D8C, 0x20, 0xC);  ; install another, result -> D_00000000
- *   gl_func(saved_v0, &D_00008D9C);
- *   gl_func(...)                 ; with global D refs
- *   v0 = gl_func(...)            ; flag check
- *   if (v0 == 0) {
- *       gl_func(D_X, 0, 0);      ; "false" path
- *   } else {
- *       gl_func(D_Y, 1, 0);      ; "true" path
- *   }
- *
- * 5 distinct D_00008D70/7C/8C/9C globals are LOCAL data within bootup_uso
- * (relative offsets), not the cross-USO D_00000000 placeholder. They're
- * accessed via standard %hi/%lo of resolved local symbols.
- *
- * Multi-tick refinement target — this is an init function for some
- * bootup subsystem (likely callback registration). Doc-only this tick.
- * Default INCLUDE_ASM build remains exact. */
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EA2C);
+extern char D_00008D70;
+extern char D_00008D7C;
+extern char D_00008D8C;
+extern char D_00008D9C;
+extern char D_00000000_a;
+extern char D_00000000_b;
+void func_0000EA2C(char *arg0) {
+    char pad[4];
+    int saved;
+
+    (void)pad;
+    *(int *)(arg0 + 0xC) = (int)&D_00008D70;
+    func_00000000(arg0, &D_00008D7C);
+    saved = func_00000000(0);
+    *(int *)&D_00000000 = func_00000000(0, &D_00008D8C, 0x20, 0xC);
+    func_00000000(saved);
+    /* Distinct zero-address aliases keep IDO from caching the base in $s0. */
+    func_00000000(&D_00000000_a, &D_00008D9C);
+    func_00000000(&D_00000000_b, arg0);
+    if (func_00000000(&D_00000000) != 0) {
+        func_00000000(&D_00000000_a, 1, 0);
+    } else {
+        func_00000000(&D_00000000_b, 0, 0);
+    }
+}
 
 extern int D_00000190;
 void func_0000EAF8(int a0) {
