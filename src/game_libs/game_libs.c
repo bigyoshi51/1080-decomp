@@ -1012,7 +1012,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000733C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007344);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000076C8);
+/* Empty one-arg stub; IDO keeps the caller-slot spill in the return delay. */
+void game_libs_func_000076C8(int a0) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000076D0);
 
