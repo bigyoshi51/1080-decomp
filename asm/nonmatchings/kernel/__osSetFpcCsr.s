@@ -1,4 +1,5 @@
 
+/* Handwritten function */
 nonmatching __osSetFpcCsr, 0x10
 
 glabel __osSetFpcCsr
