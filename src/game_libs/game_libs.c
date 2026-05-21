@@ -1549,10 +1549,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D3D0);
  * docs/MATCHING_WORKFLOW.md#feedback-splat-orphan-duplicate-symbol-pruning
  * SUFFIX_BYTES-absorbed orphan variant. */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FDC0);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00030610);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003058C);
+/* Additional SUFFIX_BYTES-absorbed orphans (same pattern as the cluster
+ * above): game_libs_func_0003058C → gl_func_00030564 SUFFIX_BYTES (3 words
+ * 0x3C020000,0x24420000,0x8C4E0008); game_libs_func_00030610 →
+ * gl_func_000305CC SUFFIX_BYTES (3 words 0x3C020000,0x24420000,0x8C4E0000);
+ * game_libs_func_0005FDC0 → gl_func_0005FD20 SUFFIX_BYTES (3 words
+ * 0x00000000,0x3C060000,0x8CC60000). All three predecessor recipes live on
+ * game_libs_post.c.o. */
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DEF4);
