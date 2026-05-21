@@ -393,7 +393,37 @@ void timproc_uso_b1_func_00001130(int *self) {
  * Caps <80: beql/bc1fl branch-likely, c.le.s/c.lt.s FP compare, &D
  * %hi/%lo reloc + spill scheduling — documented EE84-family ceiling.
  * INCLUDE_ASM is the correct build path (no episode; tautology-trap). */
+#ifdef NON_MATCHING
+void timproc_uso_b1_func_000011D8(char *a0) {
+    char *s0 = a0;
+    float fv;
+    int v0;
+    int saved;
+    if (*(int *)(a0 + 0x500) == 0) return;
+    if (*(float *)&D_00000000 <= 0.0f) return;
+    fv = *(float *)(a0 + 0x72C);
+    if (fv < *(float *)((char *)&D_00000000 + 0x40)) {
+        *(float *)(a0 + 0x72C) = fv + *(float *)((char *)&D_00000000 + 0x44);
+    }
+    *(int *)(s0 + 0x508) = *(int *)(s0 + 0x508) + 1;
+    v0 = ((*(int *)(*(char **)(s0 + 0x528) + 0x14) & 1) &&
+          *(int *)(s0 + 0x4FC) &&
+          *(int *)(*(int *)(*(int *)((char *)&D_00000000 + 0x138)) + 0x44 + 0x38) < 3);
+    if (v0) {
+        saved = (int)gl_func_00000000(s0 + 0x6E4);
+        gl_func_00000000(saved, (int)(255.0f * *(float *)(s0 + 0x72C)),
+                         s0 + 0x2F0, s0 + 0x314);
+        if (*(int *)(s0 + 0x508) & 8) {
+            gl_func_00000000(saved, 160, 160, 3);
+            gl_func_00000000(s0, 140, *(int *)(*(char **)(s0 + 0x6A8) + 0x30));
+            return;
+        }
+    }
+    gl_func_00000000(s0, 0, *(int *)(*(char **)(s0 + 0x6A8) + 0x30));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001340);
 
