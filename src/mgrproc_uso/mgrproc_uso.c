@@ -1337,6 +1337,13 @@ void mgrproc_uso_func_000033E8(char *dst) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_000033E8_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001814);
-
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BD4);
+/* SUFFIX_BYTES-absorbed orphans (per
+ * docs/MATCHING_WORKFLOW.md#feedback-splat-orphan-duplicate-symbol-pruning):
+ *   mgrproc_uso_func_00001814 ← mgrproc_uso_func_0000179C SUFFIX_BYTES
+ *                                (4 words 0x03E00008,0xAFA40000,0x03E00008,0xAFA40000)
+ *   mgrproc_uso_func_00001BD4 ← mgrproc_uso_func_00001B58 SUFFIX_BYTES
+ *                                (4 words 0x00803025,0x3C040000,0x24840000,0x8C830064)
+ * The INCLUDE_ASMs lived at the .o tail (offsets 0x3420/0x3430) with no
+ * effect on the linked binary — the bytes at vram 0x1814/0x1BD4 come from
+ * the predecessors' SUFFIX_BYTES. Removed to stop discover from listing
+ * them as candidates. */
