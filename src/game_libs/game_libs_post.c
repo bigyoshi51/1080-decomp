@@ -20163,6 +20163,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00041820);
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004182C);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00041A6C);
+
 extern int gl_func_00000000();
 extern char gl_ref_0001F63C;
 void gl_func_00041A74(int a0) {

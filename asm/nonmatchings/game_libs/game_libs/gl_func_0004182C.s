@@ -1,4 +1,4 @@
-nonmatching gl_func_0004182C, 0x248
+nonmatching gl_func_0004182C, 0x240
 
 glabel gl_func_0004182C
     /* E26904 0004182C 27BDFFC0 */  .word 0x27BDFFC0
@@ -145,6 +145,4 @@ glabel gl_func_0004182C
     /* E26B38 00041A60 27BD0040 */  .word 0x27BD0040
     /* E26B3C 00041A64 03E00008 */  .word 0x03E00008
     /* E26B40 00041A68 00000000 */  .word 0x00000000
-    /* E26B44 00041A6C 03E00008 */  .word 0x03E00008
-    /* E26B48 00041A70 AFA40000 */  .word 0xAFA40000
 endlabel gl_func_0004182C
