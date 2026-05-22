@@ -3127,7 +3127,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D78);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D90);
+void timproc_uso_b5_func_00008D90(int *a0, int a1) {
+    if (a1 == 0) {
+        a0[0x4A4 / 4] = 0;
+    } else {
+        a0[0x4A8 / 4] = 0;
+    }
+    a0[0x4AC / 4] = 0;
+    a0[0x4B0 / 4] = *(int *)((char *)&D_00000000 + 0xF18);
+}
 
 // timproc_uso_b5_func_00008DB4 — STRUCTURAL PASS (0x1E4 / 121 words,
 // no episode). Raw-.word USO form (genuine code, single function).
