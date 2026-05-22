@@ -1219,3 +1219,5 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002A1
  * 0x16E8). C-emit-absorbed variant per docs/MATCHING_WORKFLOW.md. */
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C60);
+
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000001DC);
