@@ -2947,7 +2947,21 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008ABC);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00008AD4: double-indexed double-deref accessor. Logic
+ * exact (10/10 insns); same register-allocation cap as the _00008C1C family
+ * — the three input loads land in $v1/$a1/$a2 here vs the target's all-$t
+ * ($t7/$t6/$t1), so the dependent sll/addu chain uses different temps.
+ * Structurally identical. Permuter-class reg-alloc lever needed. */
+int timproc_uso_b5_func_00008AD4(int *a0) {
+    int i = a0[0x3F0 / 4];
+    int *base = (int *)a0[0x40C / 4];
+    int j = a0[0x3F4 / 4];
+    return *(int *)(*(int *)((char *)base + (i << 2) + 0x40) + (j << 2) + 0x3C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008AD4);
+#endif
 
 // timproc_uso_b5_func_00008AFC — STRUCTURAL PASS (no episode).
 // Raw-.word USO. BOUNDARY NOTE: this .s is a 3-function USO bundle
