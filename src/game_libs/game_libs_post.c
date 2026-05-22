@@ -28341,6 +28341,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC04);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC24);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BCAC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BCCC);
 #endif
 
 #ifdef NON_MATCHING
