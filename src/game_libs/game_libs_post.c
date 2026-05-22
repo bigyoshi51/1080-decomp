@@ -24791,6 +24791,8 @@ void gl_func_0004E244(char *src) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E37C);
 #endif
 
 #ifdef NON_MATCHING
