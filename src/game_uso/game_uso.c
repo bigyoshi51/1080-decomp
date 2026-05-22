@@ -10715,12 +10715,35 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
  * the correct build path (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
 
-/* game_uso_func_0000F284: 55-insn EE84-family branchy. X(a0->0xB4+0x808);
- * if (a0->0xB4->0x9CC) { m=0x20008; X(a0,D[0xE60],D[0xE64],-1); }
- * else { m=a0->0xFC|8; X(a0,D[0xE40],D[0xE44],-1); }
- * a0->0x118=1; X(a0); X(a0, m, 0,0,256, a0->0x19C). beql-selected pair.
- * USO: call->func_00000000, data->&D_00000000+off. */
+#ifdef NON_MATCHING
+/* game_uso_func_0000F284: 55-insn EE84-family branchy, beql-selected mode+D-pair.
+ * `m` is saved to a stack slot in each branch and reused in the final 6-arg
+ * call. Cross-USO jal-0 → gl_func_00000000, float-pairs → &D_00000000+off.
+ * Caps via EE84-family beql-scheduling + precall-arg-spill + jal-0 ceiling;
+ * NM body documents the decode. */
+extern int gl_func_00000000();
+void game_uso_func_0000F284(int *a0) {
+    int *s0 = a0;
+    int m;
+    gl_func_00000000((char *)s0[0xB4 / 4] + 0x808);
+    if (*(int *)((char *)s0[0xB4 / 4] + 0x9CC) != 0) {
+        m = 0x20008;
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xE60),
+            *(int *)((char *)&D_00000000 + 0xE64), -1);
+    } else {
+        m = s0[0xFC / 4] | 8;
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xE40),
+            *(int *)((char *)&D_00000000 + 0xE44), -1);
+    }
+    s0[0x118 / 4] = 1;
+    gl_func_00000000(s0);
+    gl_func_00000000(s0, m, 0, 0, 0x100, s0[0x19C / 4]);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F284);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000F360: 49-insn float-compare-gated state update.
