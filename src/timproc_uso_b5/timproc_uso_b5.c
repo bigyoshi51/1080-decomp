@@ -3796,7 +3796,23 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B850);
 
+#ifdef NON_MATCHING
+/* 13-insn FP delta-write + conditional clamp. Caller-set caps: $v1 (out
+ * pointer) and $f12 (clamp threshold) — neither maps to IDO's standard
+ * arg slots ($a2/$f14 for a 3rd ptr + 2nd float), so byte-match is
+ * blocked by the convention. Sibling family: 0xC0D4/C7B4/CBD0/CDC8
+ * share the same shape with offset differences. NM body captures logic;
+ * build path keeps INCLUDE_ASM. */
+void timproc_uso_b5_func_0000B8E0(int *a0, float *a1, float *out_v1, float thresh_f12) {
+    *out_v1 = *a1 - *(float*)((char*)a0 + 0x35C);
+    void *p = *(void**)((char*)a0 + 0x2B8);
+    if (*(float*)((char*)a0 + 0x130) < thresh_f12) {
+        *(float*)((char*)p + 0x130) = thresh_f12;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B8E0);
+#endif
 
 void timproc_uso_b5_func_0000B914(int *a0) {
     *(int*)((char*)a0 + 0x2B4) ^= 0x20000;
