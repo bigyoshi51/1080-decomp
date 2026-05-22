@@ -27994,34 +27994,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056974);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056D14);
 
-#ifdef NON_MATCHING
-/* gl_func_00056FF4: flag-test dispatch wrapper. v0 = a1->4; if bit19==0
-   AND bit23==0 (tested as (v0<<12)>=0 && (v0<<8)>=0) call callee B,
-   else call callee A; both with the unchanged (a0,a1). frame 0x18,
-   saves only $ra.
-   BUNDLE BOUNDARY (DEFERRED USO RE-SPLIT): the .s declares size 0x110
-   but the named fn ends at its first jr $ra (0x57034); a SEPARATE
-   ~50-insn leaf begins at 0x5703C (prologue-less, reads $a1->4 then
-   builds a packed flag word via a chain of andi/ori/sll and appends
-   to two list arenas at &D_00000000+0x37980 / +0x550C0). splat
-   couldn't separate them (relocatable USO, no symbol). Next pass:
-   split-fragments.py on the 0x5703C body (needs its symbol name),
-   then resolve the named fn's two reloc callees (distinct jal relocs,
-   unresolved in raw .word) to finalize this wrap. */
+/* gl_func_00056FF4: flag-test dispatch wrapper. v0 = a1->4; call callee A
+   if bit19 OR bit23 set (i.e. (v0<<12)<0 || (v0<<8)<0), else callee B.
+   The OR-of-negatives form is required: it emits `bltz t6, then(A);
+   bgez t7, else(B)` — an && of the >=0 tests would emit two bltz and
+   miss the bgez. (5703C leaf below was split into its own symbol.) */
 extern int gl_func_00000000();
 void gl_func_00056FF4(int a0, int *a1) {
     int v0 = a1[1];
-    if (((v0 << 12) >= 0) && ((v0 << 8) >= 0)) {
+    if (((v0 << 12) < 0) || ((v0 << 8) < 0)) {
         gl_func_00000000(a0, a1);
     } else {
         gl_func_00000000(a0, a1);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056FF4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005703C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057104);
 
