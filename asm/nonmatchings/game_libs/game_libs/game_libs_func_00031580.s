@@ -1,4 +1,4 @@
-nonmatching game_libs_func_00031580, 0x44
+nonmatching game_libs_func_00031580, 0x3C
 
 glabel game_libs_func_00031580
     /* E16658 00031580 3C030000 */  .word 0x3C030000
@@ -16,6 +16,4 @@ glabel game_libs_func_00031580
     /* E16688 000315B0 AC60FFF8 */  .word 0xAC60FFF8
     /* E1668C 000315B4 03E00008 */  .word 0x03E00008
     /* E16690 000315B8 00000000 */  .word 0x00000000
-    /* E16694 000315BC 00047880 */  .word 0x00047880
-    /* E16698 000315C0 01E47823 */  .word 0x01E47823
 endlabel game_libs_func_00031580
