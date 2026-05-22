@@ -1162,6 +1162,8 @@ void gl_func_000083CC(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000083CC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00008508);
 #endif
 
 /* gl_func_00008510: 40-insn dispatcher with prologue-stolen 8 bytes from
