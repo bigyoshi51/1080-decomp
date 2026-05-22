@@ -11817,6 +11817,8 @@ char *gl_func_00034890(char *o) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000349E0);
 #endif
 
 /* Caps (DEFERRED): leading `D[0] |= 4` needs `lw _,0(&D)` that the
