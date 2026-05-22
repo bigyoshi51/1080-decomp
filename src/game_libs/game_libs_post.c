@@ -23882,6 +23882,8 @@ void gl_func_0004CDB8(void *a0, int idx) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CEFC);
 #endif
 
 #ifdef NON_MATCHING
