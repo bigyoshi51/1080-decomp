@@ -3804,8 +3804,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * share the same shape with offset differences. NM body captures logic;
  * build path keeps INCLUDE_ASM. */
 void timproc_uso_b5_func_0000B8E0(int *a0, float *a1, float *out_v1, float thresh_f12) {
-    *out_v1 = *a1 - *(float*)((char*)a0 + 0x35C);
     void *p = *(void**)((char*)a0 + 0x2B8);
+    *out_v1 = *a1 - *(float*)((char*)a0 + 0x35C);
     if (*(float*)((char*)a0 + 0x130) < thresh_f12) {
         *(float*)((char*)p + 0x130) = thresh_f12;
     }
