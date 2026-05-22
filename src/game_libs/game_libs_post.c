@@ -28217,12 +28217,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B73C);
    while (s0 != a0): v=(*s0 & 0xFFFFFF)<<4; f=(float)(unsigned)v/1024;
    log(a1, &D_00000000+0x21A38, (double)f); s0=s0->4; count++. After
    the loop: log(a1, &D_00000000+0x21A40). returns count.
-   DEFERRED: medium FP+sreg cap — bnel-likely back-edge (loop-top lw in
-   the delay slot), f20=1024.0 / 0x4F800000=2^32 const materialization
-   order, $s0-$s5 callee-save pinning (a0->$s2, a1->$s5), and the
-   float->double mfc1 pair for the varargs %f arg. Next pass: resolve
-   the two distinct jal relocs (loop body vs post-loop) and grind the
-   sreg/FP-const schedule. */
+   CAP (2 residual diffs, both the SAME root cause): the `/1024.0f` is
+   reciprocal-folded by IDO -O2 to `mul.s` by 0x3A800000 (1/1024), but the
+   target keeps `div.s` by f20=1024.0 (0x44800000). This div→mul fold is
+   C-UNSUPPRESSIBLE (docs/IDO_CODEGEN.md#feedback-ido-div-2-mul-fold-...).
+   It IS a clean 2-insn size-preserving INSN_PATCH (0x38:0x3C014480,
+   0x80:0x46143283, no relocs) — BUT this function is at 0x5B764, PAST the
+   game_libs_post TRUNCATE_TEXT cap (0x588F0), so it's a layout-orphan
+   truncated out of the default build; INSN_PATCH/promotion can't land it
+   until the truncate-orphan tail is re-split. Sibling gl_func_0005B848
+   shares both the fold and the past-truncate status. */
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_0005B764(int *a0, int a1) {
