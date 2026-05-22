@@ -1,0 +1,24 @@
+{
+  "function_name": "game_libs_func_00000B8C",
+  "project": "1080-agent-i",
+  "model": "claude-manual",
+  "start_time": "2026-05-22T21:08:00.000000+00:00",
+  "end_time": "2026-05-22T21:08:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-22T21:08:00.000000+00:00",
+      "assistant_text": "2-insn USO leaf (jr ra; sw a0,0(sp)) = empty body void func(int a0) {}. IDO -O2 -g2 emits the auto-arg-spill of $a0 to standard home slot even for empty body.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 2,
+  "initial_m2c_source": null
+}
