@@ -11742,13 +11742,38 @@ void game_uso_func_00010840(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
 #endif
 
-/* game_uso_func_0001094C: 48-insn EE84-family (near-twin of 10A0C).
- *   s0=a0; p=s0->0xB4; v=s0->0xFC;
- *   X(a0, v|4, v|5, p->0x970, 0, 1);
- *   p=s0->0xB4; if(p->0x990==0){ X(s0,D[0xE10],D[0xE14]); p=s0->0xB4; }
- *   t2=p->0x9CC; if(t2!=0) X(s0,D[0xE70],D[0xE74]); X(s0);X(s0);X(s0);
- * USO: call -> func_00000000, data -> &D_00000000+off. */
+#ifdef NON_MATCHING
+/* game_uso_func_0001094C: 47-insn EE84-family (near-twin of 10A0C).
+ * Cross-USO jal-0 → gl_func_00000000, float-pair globals → &D_00000000+off.
+ * Caps below exact via the EE84-family precall arg-spill + jal-0 placeholder
+ * ceiling; NM body documents the decode for a future tightening pass. */
+extern int gl_func_00000000();
+void game_uso_func_0001094C(int *a0) {
+    int *s0 = a0;
+    int *p = (int *)s0[0xB4 / 4];
+    int v = s0[0xFC / 4];
+    int t2;
+    gl_func_00000000(s0, v | 4, v | 5, p[0x970 / 4], 0, 1);
+    p = (int *)s0[0xB4 / 4];
+    if (p[0x990 / 4] == 0) {
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xE10),
+            *(int *)((char *)&D_00000000 + 0xE14));
+        p = (int *)s0[0xB4 / 4];
+    }
+    t2 = p[0x9CC / 4];
+    if (t2 != 0) {
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xE70),
+            *(int *)((char *)&D_00000000 + 0xE74));
+    }
+    gl_func_00000000(s0);
+    gl_func_00000000(s0);
+    gl_func_00000000(s0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001094C);
+#endif
 
 /* game_uso_func_00010A0C: 47-insn EE84-family, 2 bnel/bne-gated D-pairs.
  *   s0=a0; p=s0->0xB4; X(a0,0x20004,0x20005,p->0x970,0,1);
