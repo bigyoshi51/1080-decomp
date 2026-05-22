@@ -475,9 +475,25 @@ int gui_func_000015F4(int a0, int a1, int a2) {
  *   back-jumps and shared register state (no local prologues). Heavy float
  *   math from ~0x16A4 onward (matrix/quaternion display-list construction).
  *
- * Multi-tick decomp; this commit captures the entry sub-function only as
- * stub documentation. Default build still matches via INCLUDE_ASM. */
-void gui_func_0000161C(void) {
+ * Multi-tick decomp; the entry sub-function (this symbol, 0x161C-0x166C,
+ * 21 insns) is now a real structural decode below — a per-element field
+ * accumulate loop. Caps below exact: target keeps the byte-offset in the
+ * loop-induction reg ($a1, += 0x14) and walks the pointer (`v1 += 0xC; sw
+ * at v1+0`), whereas the natural C emits a separate offset var + direct
+ * `p->0xC` store (20 vs 21 insns, register-layout diff). INCLUDE_ASM is
+ * the build path; NM body documents the loop. */
+void gui_func_0000161C(int *a0, int a1) {
+    int i = 0;
+    int off = 0;
+    if (*a0 > 0) {
+        do {
+            int *p = (int *)((char *)a0[0x20 / 4] + off);
+            *(int *)((char *)p + 0xC) = *(int *)((char *)p + 0xC) + a1;
+            off += 0x14;
+            i++;
+        } while (i < *a0);
+    }
+    a0[0xC / 4] = a0[0xC / 4] + a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000161C);
