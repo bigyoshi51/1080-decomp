@@ -4202,7 +4202,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 /* timproc_uso_b5_func_0000C7B4: TAIL-FRAGMENT of C710 via forward
  * bc1f-past-declared-end (parent comment above details the absorb).
  * Same idiom as B850→B8E0 / C044→C0D4 / CB40→CBD0 / CD24→CDC8 — see
- * reference_1080_timproc_b5_fp_clamp_family.md for the full family.
+ * docs/MATCHING_WORKFLOW.md#feedback-splat-fragment-via-register-flow
+ * (raw-.word USO variant, 2026-05-22 family extension) for the full
+ * family.
  * No standalone semantics. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C7B4);
 
