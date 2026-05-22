@@ -4019,7 +4019,21 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C044);
 
+#ifdef NON_MATCHING
+/* Sibling of 0xB8E0 FP delta-write+clamp family (offset table in
+ * reference_1080_timproc_b5_fp_clamp_family.md). Caller-set $v1/$f12
+ * cap class; build path keeps INCLUDE_ASM. Offsets: $f6 from a0+0x364;
+ * $f10 + store at p+0x124. */
+void timproc_uso_b5_func_0000C0D4(int *a0, float *a1, float *out_v1, float thresh_f12) {
+    *out_v1 = *a1 - *(float*)((char*)a0 + 0x364);
+    void *p = *(void**)((char*)a0 + 0x2B8);
+    if (*(float*)((char*)a0 + 0x124) < thresh_f12) {
+        *(float*)((char*)p + 0x124) = thresh_f12;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C0D4);
+#endif
 
 void timproc_uso_b5_func_0000C108(int a0) {
 }
