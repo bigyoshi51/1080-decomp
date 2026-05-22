@@ -13132,6 +13132,8 @@ void gl_func_00035E6C(char *o) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035FCC);
 #endif
 
 /* Caps (DEFERRED): the file's K&R `extern int gl_func_00000000();`
