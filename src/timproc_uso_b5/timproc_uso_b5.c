@@ -3060,7 +3060,18 @@ void timproc_uso_b5_func_00008AFC(char *scr) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008AFC);
 #endif
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00008C1C: indexed double-deref accessor. Logic exact;
+ * register allocation differs by 1 (target loads idx 0x3C4→$t7 / base
+ * 0x40C→$t6, this build gets idx→$t6 / base→$t8, flipping the addu operand
+ * order base+shifted vs shifted+base). All 7 insns structurally identical;
+ * needs a reg-alloc lever (permuter) to flip the first two load targets. */
+int timproc_uso_b5_func_00008C1C(int *a0) {
+    return *(int *)(*(int *)((char *)a0[0x40C / 4] + (a0[0x3C4 / 4] << 2) + 0x40) + 0x6C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C1C);
+#endif
 
 int timproc_uso_b5_func_00008C38(char *scr) {
     return *(int *)(*(char **)(scr + 0x40C) + 0x3C);
