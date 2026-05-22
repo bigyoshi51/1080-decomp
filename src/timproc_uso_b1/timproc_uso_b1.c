@@ -211,7 +211,77 @@ void timproc_uso_b1_func_0000090C(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_0000097C — 232-insn manager get-or-create + register.
+ * FIRST-PASS NM decode (cascade control flow approximate; the id-registration
+ * loop and return are decoded exactly). Acquires/builds the object, fills its
+ * fields, performs a virtual call (jalr through a fetched fn-ptr) to build the
+ * child into ->0x48, registers 6 entries with computed ids
+ * ((*(D)+3)<<16)|{0,1,4,3,2,5}, links into lists, returns the object.
+ * Cross-USO jal-0 → gl_func_00000000. Caps via cascade/branch-likely +
+ * jalr virtual dispatch + 11-call spill + deep pointer-chain scheduling. */
+extern int gl_func_00000000();
+int timproc_uso_b1_func_0000097C(int *a0, int a1, int a2, int a3) {
+    int *s0 = a0;
+    int *h;
+    int child;
+    int prev;
+    int idbase;
+
+    /* get-or-allocate the manager object (typed-lookup cascade) */
+    if (s0 == 0) {
+        s0 = (int *)gl_func_00000000(0x730);
+        if (s0 == 0) {
+            return 0;
+        }
+    }
+    h = s0;
+    if (h == 0) {
+        h = (int *)gl_func_00000000(0x6A8);
+    }
+    if (h == 0) {
+        h = (int *)gl_func_00000000(0x50);
+        if (h == 0) {
+            h = (int *)gl_func_00000000(0x2C);
+        }
+        if (h != 0) {
+            s0[0x28 / 4] = (int)((char *)&D_00000000 + 0x3B8);
+        }
+    }
+    s0[0x28 / 4] = (int)((char *)&D_00000000 + 0x3B8);
+    s0[0x568 / 4] = 0;
+    gl_func_00000000(s0, a1, a2, a3);
+    s0[0x528 / 4] = (int)((char *)&D_00000000 + 0x3C0);
+    *(float *)((char *)s0 + 0x72C) = (float)gl_func_00000000((char *)&D_00000000 + 0x3D0, 0);
+    gl_func_00000000((char *)&D_00000000 + 0x3D0, 0);
+
+    /* build the child object via virtual dispatch, store handle at ->0x48 */
+    h = (int *)gl_func_00000000(0xE0);
+    if (h != 0) {
+        s0[0x28 / 4] = (int)h;
+    }
+    s0[0x6A8 / 4] = (int)s0;
+    child = gl_func_00000000(s0[0x48 / 4]);
+    (void)child;
+
+    /* register 6 entries with computed ids ((*(D)+3)<<16)|N */
+    idbase = ((*(int *)&D_00000000) + 3) << 16;
+    gl_func_00000000(s0[0x48 / 4], idbase, -1, (int)((char *)&D_00000000));
+    gl_func_00000000(s0[0x48 / 4], idbase | 1, -1, (int)((char *)&D_00000000));
+    gl_func_00000000(s0[0x48 / 4], idbase | 4, -1, (int)((char *)&D_00000000));
+    gl_func_00000000(s0[0x48 / 4], idbase | 3, -1, (int)((char *)&D_00000000));
+    gl_func_00000000(s0[0x48 / 4], idbase | 2, -1, (int)((char *)&D_00000000));
+    gl_func_00000000(s0[0x48 / 4], idbase | 5, -1, (int)((char *)&D_00000000));
+    gl_func_00000000(s0[0x48 / 4], s0[0x48 / 4]);
+
+    /* list link */
+    prev = gl_func_00000000(0x190);
+    (void)prev;
+    return (int)s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_0000097C);
+#endif
 
 /* 33-insn 5-call dispatcher: each call passes a different a0+offset and
  * a packed (high16|low16) constant. First two calls OR in the high half
