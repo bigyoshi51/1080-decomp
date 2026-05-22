@@ -1,4 +1,4 @@
-nonmatching gl_func_0003061C, 0x194
+nonmatching gl_func_0003061C, 0x18C
 
 glabel gl_func_0003061C
     /* E156F4 0003061C 27BDFFE8 */  .word 0x27BDFFE8
@@ -100,6 +100,4 @@ glabel gl_func_0003061C
     /* E15874 0003079C 27BD0018 */  .word 0x27BD0018
     /* E15878 000307A0 03E00008 */  .word 0x03E00008
     /* E1587C 000307A4 00000000 */  .word 0x00000000
-    /* E15880 000307A8 3C0E0000 */  .word 0x3C0E0000
-    /* E15884 000307AC 8DCE0000 */  .word 0x8DCE0000
 endlabel gl_func_0003061C
