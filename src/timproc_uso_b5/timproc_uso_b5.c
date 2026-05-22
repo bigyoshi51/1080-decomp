@@ -3911,7 +3911,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C120);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C150);
+void timproc_uso_b5_func_0000C150(int *a0) {
+    *(int*)((char*)a0[0x2B8/4] + 0x12C) = 0;
+    *(int*)((char*)a0[0x2B8/4] + 0x130) = 0;
+}
 
 void timproc_uso_b5_func_0000C164(int *a0) {
     *(int*)((char*)a0[0x2B8/4] + 0x130) = 0;
@@ -3921,9 +3924,13 @@ void timproc_uso_b5_func_0000C170(int *a0) {
     *(int*)((char*)a0[0x2B8/4] + 0x130) = 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C180);
+void timproc_uso_b5_func_0000C180(int *a0) {
+    *(int*)((char*)a0 + 0x2B4) ^= 0x20;
+}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C190);
+void timproc_uso_b5_func_0000C190(int *a0, int a1) {
+    *(int*)((char*)a0[0x2B8/4] + 0x134) = 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1A4);
 
