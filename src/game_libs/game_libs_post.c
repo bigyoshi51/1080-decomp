@@ -5744,6 +5744,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002831C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028334);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028350);
+
 // gl_func_00028358 — STRUCTURAL PASS (0xD4 / 53 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). Resolves an (a0,a1) handle into the global selection slot.
