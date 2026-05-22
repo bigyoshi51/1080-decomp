@@ -3903,7 +3903,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C0D4);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C108);
+void timproc_uso_b5_func_0000C108(int a0) {
+}
 
 void timproc_uso_b5_func_0000C110(int a0) {
 }
@@ -3940,7 +3941,9 @@ void timproc_uso_b5_func_0000C190(int *a0, int a1) {
     *(int*)((char*)a0[0x2B8/4] + 0x134) = 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1A4);
+void timproc_uso_b5_func_0000C1A4(int *a0, int a1) {
+    *(int*)((char*)a0[0x2B8/4] + 0x134) = 0;
+}
 
 /* timproc_uso_b5_func_0000C1B4: 16-insn 4-float copy + cross-USO call,
  * plus a 5-insn alt-entry tail at sp+0x40..0x50 (different `(a0, a1)` arg
