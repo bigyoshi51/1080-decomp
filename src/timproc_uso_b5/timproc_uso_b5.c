@@ -3275,7 +3275,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A928);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000A95C: array-append + count-increment, returns a1.
+ * Logic exact (8/8 insns); caps on a 1-pair scheduling swap — target emits
+ * `addu t8,a0,t7` (array addr) before `sw t6,0x3C(a0)` (count store); this
+ * build emits the count store first. Both stores + return correct; IDO's
+ * scheduler picks the count store as soon as t6 is ready. Needs a
+ * scheduling lever (permuter) to delay it one slot. */
+int timproc_uso_b5_func_0000A95C(int *a0, int a1) {
+    int v1 = a0[0x3C / 4];
+    a0[0x3C / 4] = v1 + 1;
+    *(int *)((char *)a0 + (v1 << 2) + 0x40) = a1;
+    return a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A95C);
+#endif
 
 #ifdef NON_MATCHING
 /* 72.21% NM. 23-insn loop with branch-likely preload (bnezl at 0x50 with delay-slot
