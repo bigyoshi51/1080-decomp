@@ -3905,11 +3905,19 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C108);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C110);
+void timproc_uso_b5_func_0000C110(int a0) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C118);
+void timproc_uso_b5_func_0000C118(int a0) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C120);
+void timproc_uso_b5_func_0000C120(int *a0) {
+    *(int*)((char*)a0[0x2B8/4] + 0x12C) = 1;
+    *(float*)((char*)a0[0x2B8/4] + 0x10C) = 0.0f;
+    *(int*)((char*)a0 + 0x2BC) = 0;
+    *(int*)((char*)a0 + 0x2C0) = 2;
+    *(int*)((char*)a0[0x2B8/4] + 0x130) = 1;
+}
 
 void timproc_uso_b5_func_0000C150(int *a0) {
     *(int*)((char*)a0[0x2B8/4] + 0x12C) = 0;
