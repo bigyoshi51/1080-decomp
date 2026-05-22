@@ -3263,7 +3263,12 @@ void timproc_uso_b5_func_00008F98(char *a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008FC8);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A928);
+void timproc_uso_b5_func_0000A928(int *a0) {
+    a0[0x2C / 4] = *(int *)(*(int *)((char *)&D_00000000 + 0x134) + 0x84);
+    a0[0x30 / 4] = *(int *)(*(int *)((char *)&D_00000000 + 0x134) + 0x80);
+    a0[0x34 / 4] = *(int *)(*(int *)((char *)&D_00000000 + 0x134) + 0x8C);
+    a0[0x3C / 4] = 0;
+}
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000A95C: array-append + count-increment, returns a1.
