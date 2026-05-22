@@ -889,7 +889,20 @@ void timproc_uso_b5_func_00001C08(char *st) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001C08);
 #endif
 
+#ifdef NON_MATCHING
+/* 9-insn flag-check + indexed-load with branch-to-empty-next-function as
+ * implicit early-return (cap class: IDO won't emit `bne; ...; <fall to
+ * empty next>` from a `return 0` since the empty function 0x1D14 is just
+ * `jr $ra; nop`). NM body captures logic; build path keeps INCLUDE_ASM. */
+int timproc_uso_b5_func_00001CF0(int *a0, int a1) {
+    if (*(int*)((char*)a0 + 0x30) != 2) {
+        return 0;
+    }
+    return *(int*)((char*)a0 + 0x34 + 4 * (a1 ^ 1));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001CF0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001D14);
 
