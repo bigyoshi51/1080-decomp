@@ -522,7 +522,84 @@ void timproc_uso_b3_func_0000120C(int *a0) {
     *p |= 4;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001240);
+/* timproc_uso_b3_func_00001240: 94-insn FP accumulator/dispatch helper.
+ * b3 variant of timproc_uso_b1_func_000011D8. Boundary-checked: one jr ra.
+ *
+ * Structure:
+ *   if (a0->0x500 == 0) return;
+ *   if (*(float*)&D > 0.0f) return;
+ *   if (a0->0x72C < D[0x40]) a0->0x72C += D[0x44];
+ *   a0->0x508++;
+ *   armed = (a0->0x528->0x14 & 2) && a0->0x4FC &&
+ *           D[0x138]->0x44->0x3C < 3;
+ *   if (armed) {
+ *     gl_func(&D, (int)(255.0f * a0->0x72C), a0+0x2F0, a0+0x314);
+ *     saved = a0+0x6E4; gl_func(saved);
+ *     if (a0->0x508 & 8) {
+ *       gl_func(saved, 160, 160, 3);
+ *       gl_func(a0, 140, a0->0x6A8->0x44->0x14);
+ *     }
+ *   } else {
+ *     gl_func(a0, 140, a0->0x6A8->0x44->0x14);
+ *   }
+ *
+ * Exact via targeted INSN_PATCH for IDO register/scheduling deltas:
+ * D-reloc offsets on unique externs, mtc1/lwc1 order, saved stack slot
+ * offset, and the final nested pointer temp registers. */
+extern char D_b3_1240_base;
+extern float D_b3_1240_f0;
+extern float D_b3_1240_f40;
+extern float D_b3_1240_f44;
+extern char *D_b3_1240_ptr138;
+void timproc_uso_b3_func_00001240(char *a0) {
+    float color[4];
+    char pad[32];
+    char *saved;
+    int armed;
+    char *tmp;
+
+    color[0] = 1.0f;
+    color[1] = 1.0f;
+    color[2] = 1.0f;
+    color[3] = 1.0f;
+    (void)color;
+    (void)pad;
+
+    if (*(int*)(a0 + 0x500) != 0) {
+        if (D_b3_1240_f0 <= 0.0f) {
+            if (*(float*)(a0 + 0x72C) < D_b3_1240_f40) {
+                *(float*)(a0 + 0x72C) += D_b3_1240_f44;
+            }
+
+            *(int*)(a0 + 0x508) = *(int*)(a0 + 0x508) + 1;
+            armed = 0;
+            if ((*(int*)(*(char**)(a0 + 0x528) + 0x14) & 2) != 0 &&
+                *(int*)(a0 + 0x4FC) != 0 &&
+                *(int*)(*(char**)(D_b3_1240_ptr138 + 0x44) + 0x3C) < 3) {
+                armed = 1;
+            }
+
+            if (armed != 0) {
+                gl_func_00000000(&D_b3_1240_base,
+                                 (int)(255.0f * *(float*)(a0 + 0x72C)),
+                                 a0 + 0x2F0,
+                                 a0 + 0x314);
+                saved = a0 + 0x6E4;
+                gl_func_00000000(saved);
+                if ((*(int*)(a0 + 0x508) & 8) != 0) {
+                    gl_func_00000000(saved, 0xA0, 0xA0, 3);
+                    tmp = *(char**)(a0 + 0x6A8);
+                    tmp = *(char**)(tmp + 0x44);
+                    gl_func_00000000(a0, 0x8C, *(int*)(tmp + 0x14));
+                }
+            } else {
+                tmp = *(char**)(a0 + 0x6A8);
+                tmp = *(char**)(tmp + 0x44);
+                gl_func_00000000(a0, 0x8C, *(int*)(tmp + 0x14));
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000013B8);
 
