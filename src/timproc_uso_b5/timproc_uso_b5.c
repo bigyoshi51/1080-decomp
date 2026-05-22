@@ -4470,7 +4470,20 @@ void timproc_uso_b5_func_0000CB40(int *a0, float a1) {
  * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CB40);
 
+#ifdef NON_MATCHING
+/* Sibling of 0xB8E0 FP delta-write+clamp family (offset table in
+ * reference_1080_timproc_b5_fp_clamp_family.md). Caller-set $v1/$f12
+ * cap class. Offsets: $f6 from a0+0x380; $f10 + store at p+0x124. */
+void timproc_uso_b5_func_0000CBD0(int *a0, float *a1, float *out_v1, float thresh_f12) {
+    *out_v1 = *a1 - *(float*)((char*)a0 + 0x380);
+    void *p = *(void**)((char*)a0 + 0x2B8);
+    if (*(float*)((char*)a0 + 0x124) < thresh_f12) {
+        *(float*)((char*)p + 0x124) = thresh_f12;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CBD0);
+#endif
 #endif
 
 void timproc_uso_b5_func_0000CC04(int a0) {}
