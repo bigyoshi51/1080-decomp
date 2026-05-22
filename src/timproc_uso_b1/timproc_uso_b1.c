@@ -294,12 +294,16 @@ void timproc_uso_b1_func_00000EC0(int a0) {
  * D[0x40]/D[0x44] state, EE8 reads work-state and runs the orchestrator). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000EE8);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010C0);
+void timproc_uso_b1_func_000010C0(int a0) {
+    *(int *)((char *)&D_00000000 + 0x40) = 9;
+}
 
-/* timproc_uso_b1_func_000010D4: orphan absorbed by C-emit of
- * timproc_uso_b1_func_000010C0 (decl 0x14, .o size 0x1C — 2 extra insns
- * cover the 8-byte orphan at vram 0x10D4). C-emit-absorbed variant per
- * docs/MATCHING_WORKFLOW.md. */
+/* timproc_uso_b1_func_000010D4: 2-insn `lui a1; lw a1, 0x170(a1)` pre-load
+ * fragment (sets $a1 = *(D+0x170) for successor 010DC). NOT C-emit-absorbed —
+ * the earlier prune was mistaken (010C0 is a 5-insn `*(D+0x40)=9`, doesn't
+ * emit these bytes); restored to keep the 8 bytes at vram 0x10D4-0x10DB in
+ * the linked layout. INCLUDE_ASM (uninitialized-reg fragment, no standalone C). */
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010D4);
 
 void timproc_uso_b1_func_00000000();
 
