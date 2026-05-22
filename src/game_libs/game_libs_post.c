@@ -4948,6 +4948,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026AA4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026AF8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026B40);
+
 // gl_func_00026B48 — verified structural decode (global-block init, 35
 //   insns). DEFERRED: stolen-$v0-base prologue cap.
 //     D[0x53C0..0x53C2] = 0,0,0;   // 3 byte flags
