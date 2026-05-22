@@ -1234,7 +1234,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Default INCLUDE_ASM keeps ROM byte-correct. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000398C);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003A28);
+void timproc_uso_b5_func_00003A28(int *a0, int *a1, int a2) {
+    float *src = (float *)a0[0x29C / 4];
+    float x = *(float *)((char *)src + 0xDC);
+    float y = *(float *)((char *)src + 0xE0);
+    float z = *(float *)((char *)src + 0xE4);
+    *(float *)((char *)a1 + 0x60) = x;
+    *(float *)((char *)a1 + 0x64) = y;
+    *(float *)((char *)a1 + 0x68) = z;
+}
 
 /* timproc_uso_b5_func_00003A4C: 144-insn (0x240) heavy data-init function.
  * Frame -0xB0, saves s0/s1/s2/ra. Sibling of recently-matched
