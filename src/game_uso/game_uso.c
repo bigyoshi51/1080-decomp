@@ -10683,13 +10683,37 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF20);
  * form defeats it; INCLUDE_ASM is the correct build path (avoids tautology trap). */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF70);
 
-/* game_uso_func_0000F060: 55-insn flag-dispatch (EE84-family-ish, 5 calls).
- *   X(a0); a0->0xF4=0; v=a0->0xB4; p=v->0x800;
- *   if (v->0x938 && !((p->0x10&0x100) && !(p->0x10&0x200))) { X(a0); return; }
- *   X(a0,0x10011,0,0,256,a0->0x16C); X(a0,D[0xEB0],D[0xEB4],-1);
- *   a0->0xE6=0; a0->0xE4++; X(a0->0xB4+0x808);
- * beql-chain flag logic; USO call->func_00000000, data->&D+off. */
+#ifdef NON_MATCHING
+/* game_uso_func_0000F060: 55-insn flag-dispatch (EE84-family, 5 calls).
+ * Early-return gated by a beql-chain boolean: v->0x938 set AND NOT
+ * (0x100-bit set AND 0x200-bit clear). Cross-USO jal-0 → gl_func_00000000,
+ * float-pair → &D_00000000+off. Caps via EE84-family beql-chain scheduling
+ * + precall-arg-spill + jal-0 ceiling; NM body documents the decode. */
+extern int gl_func_00000000();
+void game_uso_func_0000F060(int *a0) {
+    int *s0 = a0;
+    int *v1;
+    int *p;
+    gl_func_00000000(a0);
+    s0[0xF4 / 4] = 0;
+    v1 = (int *)s0[0xB4 / 4];
+    p = (int *)v1[0x800 / 4];
+    if (v1[0x938 / 4] &&
+        !((p[0x10 / 4] & 0x100) && !(p[0x10 / 4] & 0x200))) {
+        gl_func_00000000(s0);
+        return;
+    }
+    gl_func_00000000(s0, 0x10011, 0, 0, 0x100, s0[0x16C / 4]);
+    gl_func_00000000(s0,
+        *(int *)((char *)&D_00000000 + 0xEB0),
+        *(int *)((char *)&D_00000000 + 0xEB4), -1);
+    *(short *)((char *)s0 + 0xE6) = 0;
+    *(short *)((char *)s0 + 0xE4) = *(short *)((char *)s0 + 0xE4) + 1;
+    gl_func_00000000((char *)s0[0xB4 / 4] + 0x808);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
+#endif
 
 /* game_uso_func_0000F13C — verified structural decode (EE84-family, 82 insns,
  * 12% LEN-DIFF; branch-likely + double-const abs-threshold + D-pair sp-args =
