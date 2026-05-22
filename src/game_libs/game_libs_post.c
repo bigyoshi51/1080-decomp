@@ -2746,6 +2746,8 @@ int gl_func_00022FC0(int idx, int arg) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023070);
 #endif
 
 /* gl_func_00023078: 22-insn prologue-stolen successor of gl_func_00022FC0.
