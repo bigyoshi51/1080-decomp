@@ -23441,6 +23441,8 @@ void gl_func_0004B040(int *a0) {
 // &D_g struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004B2F4);
+
 // gl_func_0004B2FC — STRUCTURAL PASS (0x320 / 201 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0xC0
 // (saves ra, s0). FP matrix-vector / weighted-blend MAC kernel (sibling of
