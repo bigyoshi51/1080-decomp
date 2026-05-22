@@ -4195,6 +4195,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C710);
 
+/* timproc_uso_b5_func_0000C7B4: TAIL-FRAGMENT of C710 via forward
+ * bc1f-past-declared-end (parent comment above details the absorb).
+ * Same idiom as B850→B8E0 / C044→C0D4 / CB40→CBD0 / CD24→CDC8 — see
+ * reference_1080_timproc_b5_fp_clamp_family.md for the full family.
+ * No standalone semantics. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C7B4);
 
 void timproc_uso_b5_func_0000C7E8(char *a0, char *a1) {
@@ -4600,6 +4605,11 @@ void timproc_uso_b5_func_0000CD24(int *a0, float a1) {
  * rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CD24);
 
+/* timproc_uso_b5_func_0000CDC8: TAIL-FRAGMENT of CD24 via forward
+ * bc1f-past-declared-end ($f0-variant: compare/store use $f0 instead
+ * of $f12). Same idiom as B850→B8E0 / C044→C0D4 / C710→C7B4 /
+ * CB40→CBD0 — see reference_1080_timproc_b5_fp_clamp_family.md for
+ * the full family. No standalone semantics. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CDC8);
 #endif
 
