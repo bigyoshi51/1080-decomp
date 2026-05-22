@@ -2949,11 +2949,44 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A1C);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00008A38/A64/A90: indexed double-deref accessors,
+ * same register-allocation cap as _00008C1C/_00008AD4 (verified: structure
+ * exact, $t register numbers shifted). See
+ * docs/IDO_CODEGEN.md#feedback-ido-indexed-double-deref-allt-cap. */
+int timproc_uso_b5_func_00008A38(int *a0) {
+    int sh = a0[0x3C4 / 4] << 2;
+    int t0 = *(int *)((char *)a0 + sh + 0x3D0);
+    int t8 = *(int *)((char *)a0[0x40C / 4] + sh + 0x40);
+    return *(int *)(t8 + (t0 << 2) + 0x3C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A38);
+#endif
 
+#ifdef NON_MATCHING
+/* Sibling of _00008A38 (offsets 0x3CC/0x3C); same indexed-double-deref cap. */
+int timproc_uso_b5_func_00008A64(int *a0) {
+    int sh = a0[0x3C4 / 4] << 2;
+    int t0 = *(int *)((char *)a0 + sh + 0x3CC);
+    int t8 = *(int *)((char *)a0[0x40C / 4] + sh + 0x3C);
+    return *(int *)(t8 + (t0 << 2) + 0x3C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A64);
+#endif
 
+#ifdef NON_MATCHING
+/* Sibling of _00008A38 (offsets 0x3E0/0x40); same indexed-double-deref cap. */
+int timproc_uso_b5_func_00008A90(int *a0) {
+    int sh = a0[0x3C4 / 4] << 2;
+    int t0 = *(int *)((char *)a0 + sh + 0x3E0);
+    int t8 = *(int *)((char *)a0[0x40C / 4] + sh + 0x40);
+    return *(int *)(t8 + (t0 << 2) + 0x3C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A90);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_00008ABC: copy a0[idx*4+0x3D0] → a0[idx*4+0x3E0],
