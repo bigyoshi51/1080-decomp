@@ -8538,6 +8538,8 @@ void gl_func_0002D910(int a0, int a1, int a2, int a3) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D910);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DC74);
 #endif
 
 #ifdef NON_MATCHING
