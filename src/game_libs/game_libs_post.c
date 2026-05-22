@@ -20568,6 +20568,8 @@ void gl_func_00042440(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042440);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004247C);
 #endif
 
 /* gl_func_00042484: PROLOGUE-STOLEN successor of gl_func_00042440.
