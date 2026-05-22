@@ -528,7 +528,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003C0C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003DB8);
 
+#ifdef NON_MATCHING
+/* Ring-buffer (4-slot, index a0->0x7C) record append + advance. Writes
+ * a1/a2/0/0/200 into the current slot's fields (0x5C/0x6C/0x9C/0x8C/0xBC),
+ * then sets 0xAC=160 and clamps the slot's 0xBC to prev->0xBC+16 when the
+ * delta < 15; advances 0x7C/0x80 ring indices (&3), bumps 0x88 by 16 and
+ * 0x84 (cap 4). First 26 insns (the 5 indexed stores + delta setup) match
+ * exactly; the prev/cur/160/delta tail caps on register allocation
+ * (reload/temp slot picks). Logic exact. */
+void game_libs_func_00003F08(int *a0, int a1, int a2) {
+    int idx;
+    int *cur;
+    int *prev;
+    int prevbc;
+    int next;
+    *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x5C) = a1;
+    *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x6C) = a2;
+    *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x9C) = 0;
+    *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x8C) = 0;
+    *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0xBC) = 200;
+    idx = a0[0x7C / 4];
+    cur = (int *)((char *)a0 + idx * 4);
+    prev = (int *)((char *)a0 + ((idx - 1) & 3) * 4);
+    prevbc = prev[0xBC / 4];
+    if (cur[0xBC / 4] - prevbc < 15) {
+        cur[0xBC / 4] = prevbc + 16;
+        cur = (int *)((char *)a0 + a0[0x7C / 4] * 4);
+        cur[0xAC / 4] = 160;
+    } else {
+        cur[0xAC / 4] = 160;
+    }
+    next = (a0[0x7C / 4] + 1) & 3;
+    a0[0x88 / 4] += 16;
+    if (a0[0x80 / 4] == next) {
+        a0[0x80 / 4] = (a0[0x80 / 4] + 1) & 3;
+    }
+    a0[0x7C / 4] = next;
+    if (a0[0x84 / 4] < 4) {
+        a0[0x84 / 4] = a0[0x84 / 4] + 1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003F08);
+#endif
 
 #ifdef NON_MATCHING
 /* Clamp 4 consecutive fields (0x8C/0x90/0x94/0x98) to a minimum of 112,
