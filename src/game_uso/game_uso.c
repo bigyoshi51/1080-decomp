@@ -10833,16 +10833,34 @@ void game_uso_func_0000F514(int *a0) {
     gl_func_00000000(a0);
 }
 
-/* game_uso_func_0000F5A8: 47-insn EE84-family branching variant.
- *   s0=a0;
- *   if (a0->0xF0 != 0) {
- *     if (X(a0,?,3,1) == 0) { X(s0,D[0xEE0],D[0xEE4]); X(s0); }
- *   } else {
- *     X(s0, s0->0xF4->0x20, 0,1,1,1);
- *     X(s0,D[0xEE8],D[0xEEC],1); X(s0);
- *   }
- * USO: call -> func_00000000, data -> &D_00000000+off. */
+#ifdef NON_MATCHING
+/* game_uso_func_0000F5A8: 45-insn EE84-family two-path orchestrator.
+ * Decoded structure (cross-USO jal-0 placeholders → gl_func_00000000,
+ * float-pair globals → &D_00000000+off). Caps below exact via the
+ * runtime-patched jal targets + arg-marshal details; NM body documents
+ * the control flow for a future tightening pass. a1 passes through to
+ * the first callee. */
+extern int gl_func_00000000();
+void game_uso_func_0000F5A8(int *a0, int a1) {
+    int *s0 = a0;
+    if (s0[0xF0 / 4] != 0) {
+        if (gl_func_00000000(a0, a1, 3, 1) == 0) {
+            gl_func_00000000(s0,
+                *(int *)((char *)&D_00000000 + 0xEE0),
+                *(int *)((char *)&D_00000000 + 0xEE4));
+            gl_func_00000000(s0);
+        }
+    } else {
+        gl_func_00000000(s0, *(int *)((char *)s0[0xF4 / 4] + 0x20), 3, 1, 1, 1);
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xEE8),
+            *(int *)((char *)&D_00000000 + 0xEEC), 1);
+        gl_func_00000000(s0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F5A8);
+#endif
 
 #ifdef NON_MATCHING
 /* 88.10% NM. 26 insns built vs 28 expected (size 0x6C vs 0x70).
