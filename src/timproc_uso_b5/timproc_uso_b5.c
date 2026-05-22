@@ -3796,23 +3796,17 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B850);
 
-#ifdef NON_MATCHING
-/* 13-insn FP delta-write + conditional clamp. Caller-set caps: $v1 (out
- * pointer) and $f12 (clamp threshold) — neither maps to IDO's standard
- * arg slots ($a2/$f14 for a 3rd ptr + 2nd float), so byte-match is
- * blocked by the convention. Sibling family: 0xC0D4/C7B4/CBD0/CDC8
- * share the same shape with offset differences. NM body captures logic;
- * build path keeps INCLUDE_ASM. */
-void timproc_uso_b5_func_0000B8E0(int *a0, float *a1, float *out_v1, float thresh_f12) {
-    void *p = *(void**)((char*)a0 + 0x2B8);
-    *out_v1 = *a1 - *(float*)((char*)a0 + 0x35C);
-    if (*(float*)((char*)a0 + 0x130) < thresh_f12) {
-        *(float*)((char*)p + 0x130) = thresh_f12;
-    }
-}
-#else
+/* timproc_uso_b5_func_0000B8E0: TAIL-FRAGMENT of B850 via forward
+ * bc1f-past-declared-end. B850 (0x90, 36 insns) ends at 0xB8E0 with
+ * bc1f $f12<$f18 → 0xB90C (the jr ra inside this "B8E0" range) and a
+ * jr ra/delay-slot store at 0xB8D8. The bytes at 0xB8E0..0xB910 are
+ * the branch-target-replicated tail of B850's slew-limiter epilogue
+ * (FP delta-write + conditional-clamp), splat-named separately because
+ * the branch crossed B850's declared symbol size. Same pattern as
+ * documented C710+C7B4 / CD24+CDC8 merges. Logic belongs to B850; this
+ * "function" has no standalone semantics. Build keeps INCLUDE_ASM
+ * (.s is source of truth). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B8E0);
-#endif
 
 void timproc_uso_b5_func_0000B914(int *a0) {
     *(int*)((char*)a0 + 0x2B4) ^= 0x20000;
@@ -4019,21 +4013,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C044);
 
-#ifdef NON_MATCHING
-/* Sibling of 0xB8E0 FP delta-write+clamp family (offset table in
- * reference_1080_timproc_b5_fp_clamp_family.md). Caller-set $v1/$f12
- * cap class; build path keeps INCLUDE_ASM. Offsets: $f6 from a0+0x364;
- * $f10 + store at p+0x124. */
-void timproc_uso_b5_func_0000C0D4(int *a0, float *a1, float *out_v1, float thresh_f12) {
-    void *p = *(void**)((char*)a0 + 0x2B8);
-    *out_v1 = *a1 - *(float*)((char*)a0 + 0x364);
-    if (*(float*)((char*)a0 + 0x124) < thresh_f12) {
-        *(float*)((char*)p + 0x124) = thresh_f12;
-    }
-}
-#else
+/* timproc_uso_b5_func_0000C0D4: TAIL-FRAGMENT of C044 via forward
+ * bc1f-past-declared-end (same idiom as B850→B8E0 / C710→C7B4 /
+ * CB40→CBD0 / CD24→CDC8). C044 (0x90, 36 insns) ends at 0xC0D4; the
+ * bytes here are C044's branch-target tail. No standalone semantics.
+ * Build keeps INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C0D4);
-#endif
 
 void timproc_uso_b5_func_0000C108(int a0) {
 }
@@ -4470,20 +4455,14 @@ void timproc_uso_b5_func_0000CB40(int *a0, float a1) {
  * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CB40);
 
-#ifdef NON_MATCHING
-/* Sibling of 0xB8E0 FP delta-write+clamp family (offset table in
- * reference_1080_timproc_b5_fp_clamp_family.md). Caller-set $v1/$f12
- * cap class. Offsets: $f6 from a0+0x380; $f10 + store at p+0x124. */
-void timproc_uso_b5_func_0000CBD0(int *a0, float *a1, float *out_v1, float thresh_f12) {
-    *out_v1 = *a1 - *(float*)((char*)a0 + 0x380);
-    void *p = *(void**)((char*)a0 + 0x2B8);
-    if (*(float*)((char*)a0 + 0x124) < thresh_f12) {
-        *(float*)((char*)p + 0x124) = thresh_f12;
-    }
-}
-#else
+/* timproc_uso_b5_func_0000CBD0: TAIL-FRAGMENT of CB40 via forward
+ * bc1f-past-declared-end. CB40 (0xC4, 49 insns) ends at 0xCBD0; the
+ * bytes here are CB40's branch-target tail (FP delta-write +
+ * conditional-clamp epilogue replicated by branch-likely). Same idiom
+ * as B850→B8E0 / C710→C7B4 / C044→C0D4 / CD24→CDC8. No standalone
+ * semantics — logic belongs to CB40's slew-limiter. Build keeps
+ * INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CBD0);
-#endif
 #endif
 
 void timproc_uso_b5_func_0000CC04(int a0) {}
