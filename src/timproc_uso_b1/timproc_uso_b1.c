@@ -612,7 +612,51 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * ->0x4=1 on first). Caps <80: 8-call spill cascade + beql/bgezl branch-
  * likely + &D %hi/%lo + 1.0f/255 const scheduling. INCLUDE_ASM is the
  * correct build path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
+    int *s0 = a0;
+    int r5, r6;
+    int *a1x;
+    a0[0xC / 4] = (int)((char *)&D_00000000 + 0x40C);
+    a0[0xB8 / 4] = a1;
+    a0[0x50 / 4] = a1;
+    a0[0x4C / 4] = a3;
+    a0[0xAC / 4] = 0;
+    a0[0xD8 / 4] = 0;
+    a0[0x54 / 4] = a2;
+    a0[0xD0 / 4] = 0xFF;
+    a0[0xD4 / 4] = 0;
+    a0[0xDC / 4] = 1;
+    *(float *)((char *)a0 + 0xCC) = 1.0f;
+    *(float *)((char *)a0 + 0xC8) = 1.0f;
+    *(float *)((char *)a0 + 0xC4) = 1.0f;
+    *(float *)((char *)a0 + 0xC0) = 1.0f;
+    if ((*(int *)((char *)a1 + 0x4F0) << 15) >= 0) {
+        return;
+    }
+    gl_func_00000000(s0, 0xE8, 0x13, s0[0x44 / 4] + 0x10);
+    gl_func_00000000(s0, 0x123, 0xE1, 1);
+    gl_func_00000000(s0, 0x47, 0x13, (int)s0 + 0x30);
+    gl_func_00000000(s0, 0x44, 0x22, s0[0x44 / 4] + 0x28);
+    r5 = gl_func_00000000(*(int *)s0[0x4C / 4] +
+             (*(int *)((char *)&D_00000000 + 0x64)) * 0x30, 0);
+    r6 = gl_func_00000000(0, s0[0x60 / 4]);
+    s0[0xBC / 4] = r6;
+    gl_func_00000000(r6,
+        *(unsigned char *)(r5 + 5),
+        *(unsigned char *)(r5 + 6),
+        *(unsigned char *)(r5 + 7));
+    gl_func_00000000(s0[0xBC / 4], 0x4B, 0xD6);
+    gl_func_00000000((int)s0 + 0x10, s0[0xBC / 4]);
+    a1x = (int *)s0[0xBC / 4];
+    if (a1x[0x14 / 4] != 0) {
+        a1x[4 / 4] = 1;
+    }
+    a1x[0x14 / 4] = (int)s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001A64);
+#endif
 
 /* timproc_uso_b1_func_00001BCC - verified structural decode (~158-insn
  * per-frame update state machine; 20 branches incl bnel/beql
