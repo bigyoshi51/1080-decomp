@@ -3191,82 +3191,95 @@ void timproc_uso_b5_func_00008D90(int *a0, int a1) {
 //   void *timproc_uso_b5_func_00008DB4(Self *self, a1) {
 //     if (!self) { self = func_00000000(0xC); if (!self) return 0; }
 //     func_00000000(*(M**)(D_0+0x134), 2);                // mgr init
-//     *(int*)(D_0+0x1C4) &= ~9;                            // clear flags
+//     *(int*)(D_0+0x1C4) &= ~8;                            // clear flags
 //     Vec4 *v = &D_00000294;  v->0=v->4=v->8=v->C = 0.0f;   // zero Vec4
-//     A = func_00000000(0, &D_00001334);  self->0x2A0 = 0.0f;
+//     A = func_00000000(0, &D_00001334);  *(f32*)(D+0x2A0)=0.0f;
 //     B = func_00000000(0, &D_00001340);
 //     C = func_00000000(0, &D_00001344);
-//     func_00000000(*(M**)(D_0+0x134), C, B, self, 0, 0);
-//     func_00000000(self+0x10, B);
-//     if (!B->0x14) B->0x4 = 1;  B->0x14 = …;              // dirty+attach
-//     func_00000000(C);
-//     if (!C->0x14) C->0x4 = 1;  C->0x14 = …;
-//     func_00000000(a1);  self->0x00 = ret;
-//     self->0x04 = (a1 == 1) ? func_00000000(1, 1, 0x3C)
-//                            : func_00000000(0, 2, 0x29);
+//     func_00000000(*(M**)(D_0+0x134), C, B, A, 0, 0);
+//     func_00000000(A+0x10, B);
+//     if (B->0x14) B->0x4 = 1;  B->0x14 = A;               // dirty+attach
+//     func_00000000(A+0x10, C);
+//     if (C->0x14) C->0x4 = 1;  C->0x14 = A;
+//     func_00000000(D_00000000+0x10, A);
+//     if (A->0x14) A->0x4 = 1;  A->0x14 = D_00000000;
+//     func_00000000(0, a1);  self->0x00 = ret;
+//     self->0x04 = (a1 == 1) ? func_00000000(0, 1, 1, 0x3C)
+//                            : func_00000000(0, 1, 2, 0x29);
 //     self->0x08 = func_00000000(0, 2, 3, 0x29);
-//     *(int*)(D_0+0x1B8) = self->0x04->0x0C;               // publish
+//     *(int*)(self->0x08->0x0C + 0x1B8) = self->0x04->0x0C; // publish
 //     return self;
 //   }
 //
 // Struct-typing reference:
-//   self (alloc 0xC): 0x00/0x04/0x08 sub-element ptrs, 0x2A0 f32 (=0),
-//     B/C child handles use 0x04 dirty-flag + 0x14 attach-link
-//     (dirty-and-attach idiom).
+//   self (alloc 0xC): 0x00/0x04/0x08 sub-element ptrs. A/B/C child
+//     handles use 0x04 dirty-flag + 0x14 attach-link (dirty-and-attach
+//     idiom).
 //   D_0 + 0x134 = global manager ptr; D_0 + 0x1C4 = global flag word
-//     (bits 9 cleared); D_0 + 0x1B8 = published global (= self->0x04
+//     (0x8 cleared); D_0 + 0x1B8 = published global (= self->0x04
 //     ->0x0C). &D_00000294 = a zeroed Vec4; &D_00001334/1340/1344 =
 //     USO child name/desc data. func_00000000 = USO placeholder
 //     dispatcher (alloc / factory / attach). Param triples (mode,
-//     a, b) like (1,1,0x3C) / (0,2,0x29) / (0,2,3,0x29) pick element
-//     kinds.
-// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
-//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
-//   below — alloc-or-reuse sub-panel constructor skeleton.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+//     a, b) like (0,1,1,0x3C), (0,1,2,0x29), and (0,2,3,0x29)
+//     pick element kinds.
+// Exact via unique D_8DB4_* aliases to break IDO &D CSE plus a scoped
+// INSN_PATCH for frame/reloc/register residuals.
 char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
+    extern char D_8DB4_0134_a;
+    extern char D_8DB4_01C4_load;
+    extern char D_8DB4_01C4_store;
+    extern char D_8DB4_0294;
+    extern char D_8DB4_02A0;
+    extern char D_8DB4_1334;
+    extern char D_8DB4_1340;
+    extern char D_8DB4_1344;
+    extern char D_8DB4_0134_b;
+    extern char D_8DB4_0010;
+    extern char D_8DB4_0000;
     char *A;
     char *B;
     char *C;
     float *v;
     if (self == 0) {
         self = (char *)func_00000000(0xC);
-        if (self == 0) return 0;
+        if (self == 0) goto done;
     }
-    func_00000000(*(char **)((char *)&D_00000000 + 0x134), 2);
-    *(int *)((char *)&D_00000000 + 0x1C4) &= ~9;
-    v = (float *)((char *)&D_00000000 + 0x00000294);
+    func_00000000(*(char **)((char *)&D_8DB4_0134_a + 0x134), 2);
+    *(int *)((char *)&D_8DB4_01C4_store + 0x1C4) = *(int *)((char *)&D_8DB4_01C4_load + 0x1C4) & ~8;
+    v = (float *)((char *)&D_8DB4_0294 + 0x00000294);
     v[0] = 0.0f; v[1] = 0.0f; v[2] = 0.0f; v[3] = 0.0f;
-    A = (char *)func_00000000(0, (char *)&D_00000000 + 0x00001334);
-    *(float *)(self + 0x2A0) = 0.0f;
-    B = (char *)func_00000000(0, (char *)&D_00000000 + 0x00001340);
-    C = (char *)func_00000000(0, (char *)&D_00000000 + 0x00001344);
-    func_00000000(*(char **)((char *)&D_00000000 + 0x134), C, B, self, 0, 0);
-    func_00000000(self + 0x10, B);
-    if (*(char **)(B + 0x14) == 0) {
+    *(float *)((char *)&D_8DB4_02A0 + 0x2A0) = 0.0f;
+    A = (char *)func_00000000(0, (char *)&D_8DB4_1334 + 0x00001334);
+    B = (char *)func_00000000(0, (char *)&D_8DB4_1340 + 0x00001340);
+    C = (char *)func_00000000(0, (char *)&D_8DB4_1344 + 0x00001344);
+    func_00000000(*(char **)((char *)&D_8DB4_0134_b + 0x134), C, B, A, 0, 0);
+    func_00000000(A + 0x10, B);
+    if (*(char **)(B + 0x14) != 0) {
         *(int *)(B + 0x4) = 1;
-        *(char **)(B + 0x14) = self;
     }
-    func_00000000(C);
-    if (*(char **)(C + 0x14) == 0) {
+    *(char **)(B + 0x14) = A;
+    func_00000000(A + 0x10, C);
+    if (*(char **)(C + 0x14) != 0) {
         *(int *)(C + 0x4) = 1;
-        *(char **)(C + 0x14) = self;
     }
-    *(int *)(self + 0x00) = func_00000000(a1);
+    *(char **)(C + 0x14) = A;
+    func_00000000((char *)&D_8DB4_0010 + 0x10, A);
+    if (*(char **)(A + 0x14) != 0) {
+        *(int *)(A + 0x4) = 1;
+    }
+    *(char **)(A + 0x14) = &D_8DB4_0000;
+    *(int *)(self + 0x00) = func_00000000(0, a1);
     if (a1 == 1) {
-        *(char **)(self + 0x04) = (char *)func_00000000(1, 1, 0x3C);
+        *(char **)(self + 0x04) = (char *)func_00000000(0, 1, 1, 0x3C);
+        goto done;
     } else {
-        *(char **)(self + 0x04) = (char *)func_00000000(0, 2, 0x29);
+        *(char **)(self + 0x04) = (char *)func_00000000(0, 1, 2, 0x29);
     }
     *(char **)(self + 0x08) = (char *)func_00000000(0, 2, 3, 0x29);
-    *(int *)((char *)&D_00000000 + 0x1B8) = *(int *)(*(char **)(self + 0x04) + 0x0C);
-    (void)A;
+    *(int *)(*(char **)(*(char **)(self + 0x08) + 0x0C) + 0x1B8) = *(int *)(*(char **)(self + 0x04) + 0x0C);
+done:
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
-#endif
 
 /* Indirect-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
  * declare p2 FIRST with the full deref chain inline (including p1's load),
