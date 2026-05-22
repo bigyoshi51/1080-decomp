@@ -9536,18 +9536,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
 //   bias/clamp index — byte-match needs USO mnemonic disasm +
 //   reloc-pad jal infra. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+/* Command-stream builder. op=(a0==0)?1:5 (the ==0 form gives bnez+1-first
+   to match); cmd=0x06000000|((op&0xFF)<<8); idx=clamp(arg2+0x40, 0x7F).
+   Two USO-callback submits (cmd|2, idx) then (cmd|1, sign-ext(arg1+8)).
+   The cmd spill slot (sp+0x1C) is fixed via a 2-insn INSN_PATCH — IDO
+   picks sp+0x18 for the spill, an allocator slot detail unreachable from C
+   (size-preserving sw/lw offset, no reloc). */
 void gl_func_0002FA90(int a0, int arg1, int arg2) {
-    int op = a0 ? 5 : 1;
+    int op = (a0 == 0) ? 1 : 5;
     int idx = arg2 + 0x40;
     int cmd = 0x06000000 | ((op & 0xFF) << 8);
     if (idx >= 0x80) idx = 0x7F;
     gl_func_00000000(cmd | 2, (signed char)idx);
     gl_func_00000000(cmd | 1, (signed char)(arg1 + 8));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FA90);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0002FB10(int a0) {
