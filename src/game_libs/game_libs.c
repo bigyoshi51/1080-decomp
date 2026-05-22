@@ -530,7 +530,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003DB8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003F08);
 
+#ifdef NON_MATCHING
+/* Clamp 4 consecutive fields (0x8C/0x90/0x94/0x98) to a minimum of 112,
+ * returns a0. Logic exact; caps on register allocation — target copies
+ * a0→v0 early and uses v0 as the base for fields 2-4 (a0 only for field 1),
+ * and re-materializes `li 112` before each field; IDO instead parks the
+ * constant 112 in v0 and emits the a0→v0 return-move at the end. Branch-
+ * likely (beqzl) skip-store with the next field's load in the delay slot. */
+int *game_libs_func_00003FF8(int *a0) {
+    if (a0[0x8C / 4] < 112) a0[0x8C / 4] = 112;
+    if (a0[0x90 / 4] < 112) a0[0x90 / 4] = 112;
+    if (a0[0x94 / 4] < 112) a0[0x94 / 4] = 112;
+    if (a0[0x98 / 4] < 112) a0[0x98 / 4] = 112;
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003FF8);
+#endif
 
 extern int gl_ref_00013C70();
 int gl_func_0000405C(char *a0) {
