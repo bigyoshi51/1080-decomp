@@ -23872,6 +23872,8 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CCB4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDA4);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDB0);
 #endif
 
 // gl_func_0004CDB8 — STRUCTURAL PASS (0x140 / 83 words, no episode). Raw-.word
