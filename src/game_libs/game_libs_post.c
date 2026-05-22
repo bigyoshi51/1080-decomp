@@ -8715,6 +8715,8 @@ void gl_func_0002DE24(int a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DE24);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DE9C);
 #endif
 
 /* gl_func_0002DEA4: prologue-stolen successor (predecessor 0x2DE24's tail
