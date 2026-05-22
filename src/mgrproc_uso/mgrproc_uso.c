@@ -1217,7 +1217,10 @@ void mgrproc_uso_func_00002850(char *s0, int *a1, int *a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002850);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002924);
+void mgrproc_uso_func_00002924(int *a0) {
+    *(float *)((char *)a0 + 0x54C) = 116.0f;
+    *(float *)((char *)a0 + 0x554) = 170.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002940);
 
