@@ -177,7 +177,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000009B4);
  * this comment is structural context for the next agent. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000A8C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B8C);
+void game_libs_func_00000B8C(int a0) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B94);
 
