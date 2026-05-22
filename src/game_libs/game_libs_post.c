@@ -1206,6 +1206,8 @@ int gl_func_0001FC78(int *a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FC78);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FCC8);
 #endif
 
 extern int gl_func_00000000();
