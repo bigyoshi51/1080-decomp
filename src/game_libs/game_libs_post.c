@@ -12643,6 +12643,8 @@ void gl_func_000356FC(char *o, int a1, int a2) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000356FC);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003582C);
 #endif
 
 /* gl_func_00035834: 24-insn fn-ptr dispatch with conditional assert.
