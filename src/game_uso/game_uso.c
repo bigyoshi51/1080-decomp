@@ -11590,7 +11590,42 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
  * EE84-family D[]-pair-arg shape). Caps <80: bc1fl/beql/bnel branch-likely
  * delay-slot dup + short-circuit && layout — documented EE84-family ceiling.
  * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void game_uso_func_000102CC(int *a0) {
+    int *s0 = a0;
+    int *v0;
+    int *t;
+    gl_func_00000000(a0);
+    gl_func_00000000(s0, s0[0xFC / 4] | 0x19, 3, 4, 2, 1);
+    v0 = (int *)s0[0xB4 / 4];
+    if (*(float *)((char *)v0 + 0x31C) < 0.0f &&
+        *(float *)((char *)v0 + 0x9D0) < 1000.0f) {
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xDE8),
+            *(int *)((char *)&D_00000000 + 0xDEC));
+        v0 = (int *)s0[0xB4 / 4];
+    }
+    if (*(int *)((char *)*(int *)((char *)v0 + 0x800) + 0x18) & 0x400) {
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xDE0),
+            *(int *)((char *)&D_00000000 + 0xDE4));
+    }
+    gl_func_00000000(s0, 0);
+    if (gl_func_00000000(s0) == 0) {
+        t = (int *)s0[0xB4 / 4];
+        if (t[0x938 / 4] != 0) {
+            gl_func_00000000(s0,
+                *(int *)((char *)&D_00000000 + 0xDF8),
+                *(int *)((char *)&D_00000000 + 0xDFC));
+            gl_func_00000000(s0);
+        }
+        gl_func_00000000(s0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000102CC);
+#endif
 
 /* Small state-dispatch helper. C emits the correct control flow but IDO uses
  * the direct D_00000000 load form and omits the late a1/a2 stack spills.
