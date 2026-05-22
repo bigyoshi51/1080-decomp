@@ -2953,7 +2953,20 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A90);
 
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00008ABC: copy a0[idx*4+0x3D0] → a0[idx*4+0x3E0],
+ * idx = a0->0x3C4. Logic exact, all 6 registers match (t6/t7/v0/t8); the
+ * ONLY diff is the addu operand order — target `addu v0,a0,t7` (base rs,
+ * index rt) vs this build's `addu v0,t7,a0` (index rs, base rt). Tried
+ * `(char*)a0 + (idx<<2)` and `&a0[idx]` — both emit index-first. IDO picks
+ * the operand order for scaled-index pointer arith; no C lever found. */
+void timproc_uso_b5_func_00008ABC(int *a0) {
+    int *p = &a0[a0[0x3C4 / 4]];
+    *(int *)((char *)p + 0x3E0) = *(int *)((char *)p + 0x3D0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008ABC);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_00008AD4: double-indexed double-deref accessor. Logic
