@@ -6777,6 +6777,8 @@ int gl_func_0002A080(unsigned int op, char *a1, int a2, int a3) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A258);
 #endif
 
 // gl_func_0002A260 — STRUCTURAL PASS (0x14C / 83 words, no episode).
