@@ -359,6 +359,8 @@ end:
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000620);
+
+INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000008E4);
 #endif
 
 /* 0x8EC + 0x944 are BYTE-IDENTICAL sibling functions (verified). Decoded:
