@@ -1,4 +1,4 @@
-nonmatching game_uso_func_000105DC, 0x74
+nonmatching game_uso_func_000105DC, 0x6C
 
 glabel game_uso_func_000105DC
     /* 0105DC 000105DC 27BDFFE0 */  .word 0x27BDFFE0
@@ -28,6 +28,4 @@ glabel game_uso_func_000105DC
     /* 01063C 0001063C 27BD0020 */  .word 0x27BD0020
     /* 010640 00010640 03E00008 */  .word 0x03E00008
     /* 010644 00010644 00000000 */  .word 0x00000000
-    /* 010648 00010648 3C013F80 */  .word 0x3C013F80
-    /* 01064C 0001064C 44812000 */  .word 0x44812000
 endlabel game_uso_func_000105DC
