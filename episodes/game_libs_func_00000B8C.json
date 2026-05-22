@@ -20,5 +20,6 @@
   "best_match_percent": 100.0,
   "total_tokens": 0,
   "instruction_count": 2,
-  "initial_m2c_source": null
+  "initial_m2c_source": null,
+  "final_source": "void game_libs_func_00000B8C(int a0) {}\n"
 }
