@@ -8117,6 +8117,8 @@ void gl_func_0002D37C(int a0, int a1, int a2, int a3) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D37C);
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D618);
 #endif
 
 void gl_func_0002D620(void) {
