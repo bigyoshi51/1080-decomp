@@ -11775,13 +11775,37 @@ void game_uso_func_0001094C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001094C);
 #endif
 
-/* game_uso_func_00010A0C: 47-insn EE84-family, 2 bnel/bne-gated D-pairs.
- *   s0=a0; p=s0->0xB4; X(a0,0x20004,0x20005,p->0x970,0,1);
- *   p=s0->0xB4; if(p->0x990==0){ X(s0,D[0xE48],D[0xE4C]); p=s0->0xB4; }
- *   t2=p->0x9CC; if(t2==0) X(s0,D[0xE70],D[0xE74]); X(s0); X(s0);
- * bnel: ==0 path calls X2 then reloads; !=0 path takes t2 in delay.
- * USO: call -> func_00000000, data -> &D_00000000+off. */
+#ifdef NON_MATCHING
+/* game_uso_func_00010A0C: 45-insn EE84-family, near-twin of 0001094C
+ * (constant first-call args 0x20004/0x20005, D[0xE48] pair, INVERTED t2
+ * test: calls X3 when t2==0). Cross-USO jal-0 → gl_func_00000000,
+ * float-pairs → &D_00000000+off. Same EE84-family precall-arg-spill +
+ * jal-0 placeholder ceiling; NM body documents the decode. */
+extern int gl_func_00000000();
+void game_uso_func_00010A0C(int *a0) {
+    int *s0 = a0;
+    int *p = (int *)s0[0xB4 / 4];
+    int t2;
+    gl_func_00000000(s0, 0x20004, 0x20005, p[0x970 / 4], 0, 1);
+    p = (int *)s0[0xB4 / 4];
+    if (p[0x990 / 4] == 0) {
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xE48),
+            *(int *)((char *)&D_00000000 + 0xE4C));
+        p = (int *)s0[0xB4 / 4];
+    }
+    t2 = p[0x9CC / 4];
+    if (t2 == 0) {
+        gl_func_00000000(s0,
+            *(int *)((char *)&D_00000000 + 0xE70),
+            *(int *)((char *)&D_00000000 + 0xE74));
+    }
+    gl_func_00000000(s0);
+    gl_func_00000000(s0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010A0C);
+#endif
 
 #ifdef NON_MATCHING
 /* 89.18% NM. 6th member of precall-arg-spill family
