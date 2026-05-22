@@ -10766,7 +10766,39 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
  * neg.s/mov.s abs idiom, ldc1 double-const + cvt.d.s compare, multi-arg
  * sp-spill D-pair calls — documented EE84-family ceiling. INCLUDE_ASM is
  * the correct build path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void game_uso_func_0000F13C(int *a0) {
+    int *s0 = a0;
+    int *v1 = (int *)s0[0xB4 / 4];
+    int *o = (int *)v1[0x800 / 4];
+    if ((o[0x10 / 4] & 0x100) && (o[0x10 / 4] & 0x200) && v1[0x938 / 4] != 0) {
+        gl_func_00000000(s0);
+    } else {
+        float f0 = *(float *)((char *)v1 + 0x970);
+        double af = (f0 < 0.0f) ? -f0 : f0;
+        if (af > *(double *)((char *)&D_00000000 + 0x238)) {
+            gl_func_00000000(s0, 0x10028, 0x10029, *(int *)&f0, 0, 0, 1);
+        } else {
+            gl_func_00000000(s0, 0x10011, 0, 0, 6, 1);
+        }
+        if (((int *)s0[0xB4 / 4])[0x938 / 4] == 0) {
+            gl_func_00000000(s0);
+        }
+    }
+    {
+        short v0 = *(short *)((char *)s0 + 0xE6);
+        *(short *)((char *)s0 + 0xE6) = v0 + 1;
+        if (s0[0x184 / 4] < v0) {
+            gl_func_00000000(s0,
+                *(int *)((char *)&D_00000000 + 0xEA8),
+                *(int *)((char *)&D_00000000 + 0xEAC));
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000F284: 55-insn EE84-family branchy, beql-selected mode+D-pair.
