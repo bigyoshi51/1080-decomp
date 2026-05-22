@@ -1,4 +1,4 @@
-nonmatching gl_func_00020914, 0x114
+nonmatching gl_func_00020914, 0x10C
 
 glabel gl_func_00020914
     /* E059EC 00020914 27BDFFE0 */  .word 0x27BDFFE0
@@ -68,6 +68,4 @@ glabel gl_func_00020914
     /* E05AEC 00020A14 27BD0020 */  .word 0x27BD0020
     /* E05AF0 00020A18 03E00008 */  .word 0x03E00008
     /* E05AF4 00020A1C 00000000 */  .word 0x00000000
-    /* E05AF8 00020A20 3C010000 */  .word 0x3C010000
-    /* E05AFC 00020A24 C4200E78 */  .word 0xC4200E78
 endlabel gl_func_00020914
