@@ -2,6 +2,7 @@
 
 extern int gl_func_00000000();
 extern char D_00000000;
+extern char D_titproc_15F4_tmp;
 typedef struct { int a, b, c, d; } Quad4;
 
 /* K&R-style def: function name doubles as placeholder for unresolved
@@ -412,8 +413,9 @@ void titproc_uso_func_0000101C(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000116C);
 
-/* titproc_uso_func_000015F4 — verified structural decode (~31% first pass,
- * <80% so INCLUDE_ASM build path; constructor struct-typing reference).
+/* titproc_uso_func_000015F4 — alloc-or-passthrough constructor. The second
+ * null guard is dead after the first successful alloc, but the original source
+ * shape emitted it; preserve it per docs/PATTERNS.md's cascade recipe.
  * int *f(int *a0){
  *   int *p = a0;
  *   if (p == 0) { p = gl_func_00000000(60);  if (p == 0) return 0; }
@@ -431,35 +433,42 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000116
  *   return p;                         // v0 = a2
  * }
  */
-#ifdef NON_MATCHING
-int *titproc_uso_func_000015F4(int *a0) {
-    int *p = a0;
-    if (p == 0) {
-        p = (int *)gl_func_00000000(60);
-        if (p == 0) return 0;
+int *titproc_uso_func_000015F4(a0)
+int *a0;
+{
+    int *tmp;
+    if (a0 == 0) {
+        a0 = (int *)gl_func_00000000(60);
+        if (a0 == 0) goto end;
     }
-    gl_func_00000000(p, (char *)&D_00000000 + 0x4C4);
-    *(int *)((char *)p + 0x28) = (int)&D_00000000;
-    *(int **)((char *)p + 0xC) = (int *)((char *)&D_00000000 + 0x4CC);
-    *(int *)((char *)p + 0x2C) = 0;
-    *(int *)((char *)p + 0x30) = 0;
-    *(float *)((char *)p + 0x34) = 160.0f;
-    *(float *)((char *)p + 0x38) = 210.0f;
-    gl_func_00000000(p);
-    return p;
+    tmp = a0;
+    if (tmp == 0) {
+        tmp = (int *)gl_func_00000000(44);
+        if (tmp == 0) goto common;
+    }
+    gl_func_00000000(tmp, (char *)&D_00000000 + 0x4C4);
+    *(int *)((char *)tmp + 0x28) = (int)&D_titproc_15F4_tmp;
+common:
+    *(int *)((char *)a0 + 0x28) = (int)&D_00000000;
+    *(int **)((char *)a0 + 0xC) = (int *)((char *)&D_00000000 + 0x4CC);
+    *(int *)((char *)a0 + 0x2C) = 0;
+    *(int *)((char *)a0 + 0x30) = 0;
+    *(float *)((char *)a0 + 0x34) = 160.0f;
+    *(float *)((char *)a0 + 0x38) = 210.0f;
+    gl_func_00000000(a0);
+end:
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F4);
-#endif
 /* (end verified decode)
  * Struct-typing value: object has int @0x28 (&D base), ptr @0xC (&D+0x4CC),
  * counters @0x2C/0x30 (zeroed; 16B8 sibling does the ±6 wrap on these),
  * floats @0x34=160.0 / @0x38=210.0 (the 16B8 threshold bounds 65..250 sit
  * between these). Allocator sig gl_func_00000000(size) → ptr; 60- and
  * 44-byte variants. The 2nd null-check is compiler-emitted dead code from a
- * defensive double `if(p==0)` in source. Caps <80 first pass: spill/reload
- * dance around 4 calls + &D %hi/%lo reloc materialization order + FPU-const
- * scheduling — INCLUDE_ASM is the correct build path (tautology-trap rule). */
+ * defensive cascade in source. K&R parameter style plus reusing `a0` keeps
+ * IDO on caller-slot spills; D_titproc_15F4_tmp prevents CSE of the two
+ * base stores, and the Makefile retargets one %lo relocation for final
+ * scheduling. */
 
 /* titproc_uso_func_000016B8: 22-insn field oscillator. In-place field
  * updates keep IDO's branch-likely delay-slot loads and temp registers aligned. */
