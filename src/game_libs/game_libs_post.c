@@ -5892,7 +5892,12 @@ void game_libs_func_000274C0(unsigned char *a0, signed char *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274C0);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274E0);
+/* Single signed-byte copy a1[4] -> a0[3]. Reloc-free; IDO allocs the temp as
+ * $t6 but target uses $t1 (register-renumber from original non-standalone
+ * context) -> INSN_PATCH the 2 register fields. */
+void game_libs_func_000274E0(char *a0, char *a1) {
+    a0[3] = a1[4];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274EC);
 
