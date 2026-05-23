@@ -29899,7 +29899,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D480);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
 
+/* Vec3 cross product (xyz) + dot product (w) of a1 and a2 into a 4-float a0:
+ *   a0[0..2] = a1 x a2 ; a0[3] = a1 . a2
+ * Logic exact (31/40 insns); residual is FP-interplay cap: within each cross
+ * component IDO swaps the load-operand to $f-reg order of the SECOND product
+ * (loads a2[k] before a1[j] vs target's a1[j],a2[k]), and the dot's final
+ * add operands are commuted ($f6+$f8 vs $f8+$f6). Tested vanilla / per-product
+ * temps / reordered-dot - vanilla is closest; FP load-scheduling not reachable
+ * from C source restructuring. Reloc-free; INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+void game_libs_func_0005D588(float *a0, float *a1, float *a2) {
+    a0[0] = a1[1]*a2[2] - a1[2]*a2[1];
+    a0[1] = a1[2]*a2[0] - a1[0]*a2[2];
+    a0[2] = a1[0]*a2[1] - a1[1]*a2[0];
+    a0[3] = a1[0]*a2[0] + a1[1]*a2[1] + a1[2]*a2[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D588);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D628);
 
