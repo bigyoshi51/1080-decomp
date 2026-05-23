@@ -442,7 +442,10 @@ void game_libs_func_0001D6D0(int *a0, int a1, int a2, int a3) { a0[0] = ((((a2 >
 
 void game_libs_func_0001D6F8(int *a0, int a1, int a2, int a3) { a0[0] = ((((a2 >> 4) & 0xFF) << 16) | 0x15000000) | (a1 & 0xFFFF); a0[1] = a3; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D720);
+void game_libs_func_0001D720(int *a0, int a1, int a2) {
+    a0[0] = 0x16000000;
+    a0[1] = (a1 << 16) | (a2 & 0xFFFF);
+}
 
 void game_libs_func_0001D73C(void) {}
 
