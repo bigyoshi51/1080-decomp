@@ -159,7 +159,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BBC);
 
 void game_libs_func_00009BD8(void) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BE0);
+void game_libs_func_00009BE0(char *a0, int a1) { *(int*)(a0 + 4) = a1; *(unsigned char*)a0 |= 0x80; }
 
 void game_libs_func_00009BF4(int *a0) { *(int*)((char*)a0 + 0x0) &= 0x7F; }
 
