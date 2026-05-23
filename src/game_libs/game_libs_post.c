@@ -5777,7 +5777,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027684);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027694);
 
+#ifdef NON_MATCHING
+/* game_libs_func_000276B8: pointer-chain subtract — returns
+ * (*a0)->8->4 - a3->0x18. Logic exact; near-miss: the two unused MIDDLE args
+ * (a1/a2 = $5/$6) are reused as scratch for the loads, but IDO -O2 homes one
+ * of them (sw a1,4(sp)) defensively even though the function has NO jal to
+ * pass it through (so the feedback_ido_unused_arg_fix_pass_to_callee remedy
+ * doesn't apply). Reassigning the param kills a2's home but not a1's = +1 insn.
+ * Reloc-free (episode-worthy if the home were avoidable). Unused-middle-arg-
+ * home-without-jal cap. */
+int game_libs_func_000276B8(int *a0, int a1, int a2, int *a3) {
+    a2 = a3[6];
+    a1 = *(int *)(*(int *)(*a0 + 8) + 4);
+    return a1 - a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276B8);
+#endif
 
 int game_libs_func_000276D0(void) { return 0; }
 
