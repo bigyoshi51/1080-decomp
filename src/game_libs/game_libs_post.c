@@ -28572,7 +28572,44 @@ void gl_func_0005534C(int **a0, int a1, int a2, int a3) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005534C);
 
+#ifdef NON_MATCHING
+/* Command-stream block-skipper with nesting depth. a0[0] points to a stream
+ * cursor. Each iteration: read cmd at cursor, advance cursor by 4, store cmd to
+ * a0[1]; op = cmd & 0xFFFF. Opcodes 1010-1012 push depth; 1015 = jump (cursor +=
+ * (cmd>>16)*4, and if depth==1 return); 1014 = pop depth (return when depth hits
+ * 0). Loops until the nesting balances. Reloc-free → episode target. Byte-match
+ * multi-run: branch-likely loop (bnel/beqzl/bnezl) + register-alloc. */
+void game_libs_func_000553E8(int *a0) {
+    int depth = 1;
+    int op;
+    do {
+        int *cp = (int *)a0[0];
+        int *cur = (int *)*cp;
+        int cmd;
+        int *tgt;
+        *cp = (int)(cur + 1);
+        cmd = *cur;
+        op = cmd & 0xFFFF;
+        a0[1] = cmd;
+        if (op >= 1010 && op < 1013) {
+            depth++;
+        }
+        cp = (int *)a0[0];
+        tgt = (int *)(*cp + ((cmd >> 16) & 0xFFFF) * 4);
+        if (op == 1015) {
+            *cp = (int)tgt;
+            if (depth == 1) {
+                return;
+            }
+        }
+        if (op == 1014) {
+            depth--;
+        }
+    } while (op != 1014 || depth != 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000553E8);
+#endif
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055470);
