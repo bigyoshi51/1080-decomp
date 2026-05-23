@@ -22959,7 +22959,29 @@ void game_libs_func_00047F90(s32 *arg0) {
 // untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047F9C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00048104);
+void game_libs_func_00048104(int a0, short *a1, short *a2, short *a3, short arg5, unsigned char *arg6) {
+    a1[0] = a2[0];
+    a1[1] = a2[1];
+    a1[2] = a2[2];
+    a1[3] = 0;
+    if (a3 != 0) {
+        a1[4] = a3[0];
+        a1[5] = a3[1];
+    } else {
+        a1[4] = 0;
+        a1[5] = 0;
+    }
+    if (arg6 != 0) {
+        *((char *)a1 + 0xC) = arg6[0];
+        *((char *)a1 + 0xD) = arg6[1];
+        *((char *)a1 + 0xE) = arg6[2];
+    } else {
+        *((char *)a1 + 0xC) = 0;
+        *((char *)a1 + 0xD) = 0;
+        *((char *)a1 + 0xE) = 0;
+    }
+    *((char *)a1 + 0xF) = (char)arg5;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00048184);
 
