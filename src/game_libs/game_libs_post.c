@@ -27945,9 +27945,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
 // Full body INCLUDE_ASM-preserved (all 5 fns).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052CD4);
 
+/* Nested 6-byte-stride table lookup. v1=a0->0x70; if v1!=0: idx=*(u16*)(v1 +
+ * a1*6); return a0->0x60 + idx*6; else return a0->0x60 + a1*6. Merged: the
+ * v1==0 branch was splat-split off as game_libs_func_00053174 (UNSHARED);
+ * merged back (0x38 -> 0x50). NOT byte-exact: the three *6 reuses make IDO -O2
+ * share `li 6`+multu (a3), whereas target inlines sll/subu/sll shift sequences
+ * per use (multi-use *6 strength-reduction cap; single-use *6 DOES reduce, cf
+ * matched sibling game_libs_func_0005318C). INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+int game_libs_func_0005313C(int *a0, int a1) {
+    char *v1 = (char*)a0[0x70 / 4];
+    if (v1 != 0) {
+        int idx = *(unsigned short*)(v1 + a1 * 6);
+        return a0[0x60 / 4] + idx * 6;
+    }
+    return a0[0x60 / 4] + a1 * 6;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005313C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053174);
+#endif
 
 /* Conditional table-index: if a0->0x70 (x) != 0, return x + a1*6 + 2; else
  * return a0->0x64 + a1*4. Merged: the else-branch was splat-split off as
