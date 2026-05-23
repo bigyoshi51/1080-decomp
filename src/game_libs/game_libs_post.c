@@ -16675,7 +16675,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
 
 void game_libs_func_0003CA80(int *a0, int *a1) { *(int*)((char*)a1 + 4) = *(int*)((char*)a0 + 0x2C); *(int*)((char*)a0 + 0x2C) = (int)a1; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003CA90);
+void game_libs_func_0003CA90(int *a0, int *a1) { *(int*)((char*)a1 + 4) = *(int*)((char*)a0 + 0x30); *(int*)((char*)a0 + 0x30) = (int)a1; }
 
 /* gl_func_0003CAA0: 24-insn alloc-or-given Vec6-zero constructor. */
 int* gl_func_0003CAA0(int *a0) {
@@ -29807,9 +29807,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F64);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F90);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060FDC);
+void game_libs_func_00060FDC(int *a0) { *(int*)((char*)a0 + 0x2C) = *(int*)((char*)(*(int*)((char*)a0 + 0x2C)) + 0x38); }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060FEC);
+void game_libs_func_00060FEC(int *a0) { *(int*)((char*)a0 + 0x2C) = *(int*)((char*)(*(int*)((char*)a0 + 0x2C)) + 0x3C); }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060FFC);
 
