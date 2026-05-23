@@ -450,7 +450,10 @@ void game_libs_func_0001D824(void) {}
 
 void game_libs_func_0001D82C(void) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D834);
+void game_libs_func_0001D834(int *a0, int a1, int a2, int a3) {
+    a0[0] = (((a1 & 0xFF) << 16) | 0x07000000) | (a2 & 0xFFFF);
+    a0[1] = a3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D858);
 
