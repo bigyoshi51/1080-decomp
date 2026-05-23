@@ -1851,7 +1851,21 @@ void game_libs_func_00020DF4(short *a0) {
     } while (i != 8);
 }
 
+#ifdef NON_MATCHING
+/* Copies the a1-th 16-byte (8-short) entry of the &D_00000000+0x... table to
+ * a0. Target emits a rotated 2x4-short copy loop (counter 0..8 step 4); the
+ * exact loop rotation + the reloc-blind D_ base (lh offset 0) aren't yet
+ * byte-matched. Semantic body for documentation. */
+void game_libs_func_00020E24(short *a0, int a1) {
+    short *s = (short *)((char *)&D_00000000 + a1 * 16);
+    int i;
+    for (i = 0; i < 8; i++) {
+        a0[i] = s[i];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E24);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E78);
 
