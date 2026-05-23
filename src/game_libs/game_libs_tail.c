@@ -1463,9 +1463,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C8B8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CA30);
 
+/* Linear search: scan count (a0->0x48) elements (stride 0x60) at a0->0x44 for
+ * one whose first field == a1; return that element, else 0. Merged: the loop-
+ * back/not-found epilogue was splat-split off as game_libs_func_0000CB88
+ * (UNSHARED); merged back (0x30 -> 0x44). NOT byte-exact: target keeps the key
+ * in a1 + array in a2 + count in v1 with a blezl guard; IDO -O2 copies the key
+ * (move a2,a1), uses a1 for the array, and emits bgtzl (register-alloc +
+ * branch-likely-arm grind). INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+void *game_libs_func_0000CB58(int *a0, int a1) {
+    int count = a0[0x48 / 4];
+    int *p;
+    int i = 0;
+    if (count <= 0) {
+        return 0;
+    }
+    p = (int*)a0[0x44 / 4];
+    do {
+        i++;
+        if (*p == a1) {
+            return p;
+        }
+        p = (int*)((char*)p + 0x60);
+    } while (i < count);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CB58);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CB88);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000CB9C: 24-insn bounds-check + dispatch (0%→70%).
