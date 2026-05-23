@@ -22371,7 +22371,14 @@ done:
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046C4C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00046D4C);
+// Convert Vec3 a2[0..2] to 3 signed bytes at a1[0..2], scaled by 127.0f.
+// Sibling of 0x47AD8 (dest a1 / src a2, first arg unused+homed). (int) cast
+// for trunc.w.s, not (char).
+void game_libs_func_00046D4C(int a0, char *a1, float *a2) {
+    a1[0] = (int)(a2[0] * 127.0f);
+    a1[1] = (int)(a2[1] * 127.0f);
+    a1[2] = (int)(a2[2] * 127.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00046DA0);
 
