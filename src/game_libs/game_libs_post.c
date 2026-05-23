@@ -28566,7 +28566,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000575E0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00057628);
 
+#ifdef NON_MATCHING
+/* game_libs_func_0005769C: doubled record-append (sibling of 571E4, done twice).
+ * Each: rec = a0->0xC; idx = rec[1]; rec[1]++; arr = rec[0] + idx*8;
+ * arr[0] = 0xFE000000; arr[1] = a1 & 0xFFFFFF. Base re-reads a0->0xC inline.
+ * Logic + STRUCTURE exact (25/25 insns, same opcode order, filled jr delay),
+ * but 20/25 register renumber (rec in v0 vs v1, etc.) — pervasive register-
+ * allocation divergence, above INSN_PATCH threshold (permuter territory).
+ * Reloc-free (consts 0xFE000000 / 0xFFFFFF are literals). */
+void game_libs_func_0005769C(int *a0, int a1) {
+    int v = a1 & 0xFFFFFF;
+    int *rec;
+    int idx;
+    int *arr;
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)((int *)a0)[3])[0] + idx * 8);
+    arr[0] = 0xFE000000;
+    arr[1] = v;
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)((int *)a0)[3])[0] + idx * 8);
+    arr[0] = 0xFE000000;
+    arr[1] = v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005769C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
 
