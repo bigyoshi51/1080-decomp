@@ -289,7 +289,37 @@ void game_libs_func_00009C04(int *a0, char *a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C04);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_00009C5C: a0->0 = a1&0xFF; then a 3-iter char-transform loop
+ * (a0[5..7] bytes = a2[0..2] - 0x61) + a block-copy from a3 (a0->8=a3->4,
+ * a0->C/0x10/0x14/0x18 = a3->8/C/0x10/0x14, a0->8 byte=5, a0->0x1C=a3->0).
+ * Logic exact; near-miss (28/32): the loop's register allocation diverges AND
+ * the block-copy's a3+4 cursor folds to offset addressing (4 insns short). */
+void game_libs_func_00009C5C(int *a0, int a1, unsigned char *a2, int *a3) {
+    unsigned char *dst = (unsigned char *)a0;
+    unsigned char *src = a2;
+    int i = 0;
+    int *q;
+    *a0 = a1 & 0xFF;
+    do {
+        unsigned char c = *src;
+        i++;
+        dst++;
+        dst[4] = c - 0x61;
+        src++;
+    } while (i != 3);
+    a0[2] = a3[1];
+    q = a0 + 1;
+    q[2] = a3[2];
+    q[3] = a3[3];
+    q[4] = a3[4];
+    q[5] = a3[5];
+    *((char *)q + 4) = 5;
+    a0[7] = a3[0];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C5C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CDC);
 
