@@ -29184,7 +29184,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E7EC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E83C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E87C);
+void game_libs_func_0005E87C(char *a0, float *a1) {
+    *(float *)(a0 + 0x30) += a1[0];
+    *(float *)(a0 + 0x34) += a1[1];
+    *(float *)(a0 + 0x38) += a1[2];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E8B0);
 
