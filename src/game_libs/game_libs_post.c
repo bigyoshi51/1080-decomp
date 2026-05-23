@@ -1879,7 +1879,25 @@ void game_libs_func_00020E24(short *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E24);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_00020E78: copies 8 shorts (one 16-byte record) from
+ * &D + a1*16 - 16 (record a1-1) to dst. Logic + STRUCTURE exact: IDO unrolls
+ * this loop x4 over 2 iterations identically (22 insns, byte-for-byte shape).
+ * Only register allocation diverges — the target's setup skips $t6 (uses
+ * $t7/$t8/$t9) while the C build starts at $t6; an 18/22 register-renumber
+ * (above the INSN_PATCH/episode threshold, and the lui/addiu &D pair would
+ * resist patching). Register-allocation near-miss — permuter candidate. */
+void game_libs_func_00020E78(short *dst, int a1) {
+    short *src = (short *)((char *)&D_00000000 + a1 * 16 - 16);
+    short *d = dst;
+    int i;
+    for (i = 0; i < 8; i++) {
+        *d++ = *src++;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E78);
+#endif
 
 // gl_func_00020ED0 — STRUCTURAL PASS (0x2CC / 179 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
