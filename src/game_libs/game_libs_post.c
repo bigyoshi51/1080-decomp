@@ -31792,7 +31792,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000622D8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062368);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062444);
+void game_libs_func_00062444(int *a0) {
+    int v0 = 0;
+    int v1 = 0;
+    if (a0[1] > 0) {
+        do {
+            v0++;
+            *(int *)(a0[0] + v1 + 12) = 0;
+            v1 += 20;
+        } while (v0 < a0[1]);
+    }
+}
 
 #ifdef NON_MATCHING
 /* gl_func_00062484: 26-insn alloc-empty-slot + 21-insn lookup-by-key BUNDLE (0xBC declared).
