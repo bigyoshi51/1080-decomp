@@ -1657,11 +1657,37 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80004030);
  * __osPopThread(&queue), func_80003E0C = __osEnqueueThread, global
  * D_8000A418 = __osRunQueue. The `div $zero,t4,t5; mfhi` + `break 7`
  * / `break 6` are IDO's signed `%` divide-by-zero (msgCount==0) and
- * INT_MIN/-1 overflow guards on the ring-index modulo - NOT C-source
- * suppressible, so this caps <100 from C. Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule + IDO div-guard cap). */
+ * INT_MIN/-1 overflow guards on the ring-index modulo. CAP REASON
+ * (corrected 2026-05-23): the guards themselves DO match a C `%`; the real
+ * blocker is their PLACEMENT — the target emits the break guards AFTER the
+ * mq->msg[idx] store, whereas C `%` emits them right after the div (before
+ * the store). Plus the event-table base resolves to 0x8001F510 here, not
+ * symbol_addrs' __osEventStateTab=0x80019510 (a 0x6000 discrepancy to
+ * reconcile before a match). Stays INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+extern char __osEventStateTab_real[]; /* @0x8001F510 (note: != symbol_addrs) */
+extern int D_8000A418;                 /* __osRunQueue */
+extern void *func_80003E54(void *);    /* __osPopThread */
+extern void func_80003E0C(void *, void *); /* __osEnqueueThread */
+void func_800044CC(void) {
+    char *es = __osEventStateTab_real + 0x40; /* &table[OS_EVENT_PI] */
+    char *mq = *(char **)es;                  /* es->queue */
+    if (mq == 0) {
+        return;
+    }
+    if (*(int *)(mq + 0x8) < *(int *)(mq + 0x10)) {   /* validCount < msgCount */
+        int idx = (*(int *)(mq + 0xC) + *(int *)(mq + 0x8)) % *(int *)(mq + 0x10);
+        *(int *)(mq + 0x14 + idx * 4) = *(int *)(es + 0x4); /* msg[idx] = es->message */
+        *(int *)(mq + 0x8) += 1;                       /* validCount++ */
+        if (*(char **)(*(char **)mq) != 0) {           /* mtqueue->next */
+            void *t = func_80003E54(mq);
+            func_80003E0C(&D_8000A418, t);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
+#endif
 
 
 
