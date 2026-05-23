@@ -31307,7 +31307,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000628EC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062A2C);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00062D70: convert 7 shorts from a1 to floats in a2 — the first
+ * 4 (a1[3..6]) scaled by D[0x2094] -> a2[6..9], the last 3 (a1[0..2]) unscaled
+ * -> a2[0..2]. Logic exact (incl. the leading sw a0,0(sp): an unused leading
+ * int param DOES reproduce the home at -O2 when it's the first insn, not in a
+ * delay slot — unlike the 62F58 unfilled-delay home cap). Won't byte-match: the
+ * 4 scaled conversions are FP software-pipelined in the target (loads/mtc1/
+ * cvt.s.w/mul.s/swc1 interleaved, scale held in $f16) — sequential C can't
+ * reproduce the schedule (40/40 schedule+FP-reg diffs). FP-pipeline cap;
+ * straight-line + FP-heavy is a schedule cap (vs integer straight-line clean). */
+void game_libs_func_00062D70(int a0, short *a1, float *a2) {
+    float scale = *(float *)((char *)&D_00000000 + 0x2094);
+    a2[6] = (float)a1[3] * scale;
+    a2[7] = (float)a1[4] * scale;
+    a2[8] = (float)a1[5] * scale;
+    a2[9] = (float)a1[6] * scale;
+    a2[0] = (float)a1[0];
+    a2[1] = (float)a1[1];
+    a2[2] = (float)a1[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062D70);
+#endif
 
 /* gl_func_00062E10: 28-insn assert-then-store.
  *   v1 = a0->[0x48];
