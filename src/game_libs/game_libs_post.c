@@ -6250,7 +6250,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028C6C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028DA8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028DE8);
+void game_libs_func_00028DE8(int **a0) {
+    int *p = a0[0];
+    if (p != 0) {
+        p[1] = (int)a0[1];
+        *(int **)a0[1] = a0[0];
+        a0[0] = 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E14);
 
@@ -18128,7 +18135,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
 // untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E39C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003E524);
+void game_libs_func_0003E524(int **a0) {
+    int *p = (int *)a0[0xB];
+    while (p != 0) {
+        p[0xF] = 0;
+        p[4] = 0;
+        p = (int *)p[0xC];
+    }
+}
 
 extern int gl_func_00000000();
 void gl_func_0003E54C(int *a0, int a1) {
@@ -28244,7 +28258,17 @@ int game_libs_func_0005B73C(int *list) {
     return count;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B73C);
+int game_libs_func_0005B73C(int *a0) {
+    int *p = (int *)a0[1];
+    int n = 0;
+    if (p != a0) {
+        do {
+            p = (int *)p[1];
+            n++;
+        } while (p != a0);
+    }
+    return n;
+}
 #endif
 
 #ifdef NON_MATCHING
@@ -35450,7 +35474,15 @@ void gl_func_0006F160(int a0, ...) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F17C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F1B0);
+int game_libs_func_0006F1B0(char *a0) {
+    char *p = a0;
+    if (*p != 0) {
+        do {
+            p++;
+        } while (*p != 0);
+    }
+    return p - a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F1D8);
 
