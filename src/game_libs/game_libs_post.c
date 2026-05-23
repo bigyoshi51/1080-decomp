@@ -5376,7 +5376,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027300);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027348);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027354);
+signed char game_libs_func_00027354(int a0, int a1) {
+    return *(signed char *)((char *)&D_00000000 + a0 * 352 + a1 + 0x2E58);
+}
 
 // gl_func_0002737C — STRUCTURAL PASS (0x1CC / 115 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: LARGE 15-jr USO
@@ -8981,7 +8983,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E0B8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E0C4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E1A8);
+void game_libs_func_0002E1A8(unsigned char *a0) {
+    a0[0x16] |= 1;
+    a0[0x16] &= ~0x20;
+}
 
 // gl_func_0002E1C0 — STRUCTURAL PASS (0x8C / 35 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -22402,7 +22407,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000478EC);
 // deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000478FC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047AB4);
+void game_libs_func_00047AB4(char *a0, char *a1) {
+    a0[0x1F8] = a1[0];
+    a0[0x1F9] = a1[1];
+    a0[0x1FA] = a1[2];
+    a0[0x1FB] = a1[3];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047AD8);
 
@@ -24536,7 +24546,9 @@ int gl_func_0004DA40(int *self) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DA40);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DB38);
+int game_libs_func_0004DB38(int a0, int a1, int a2, int a3) {
+    return 1;
+}
 #endif
 
 #ifdef NON_MATCHING
