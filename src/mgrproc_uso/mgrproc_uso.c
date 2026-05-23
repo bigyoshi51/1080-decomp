@@ -673,11 +673,29 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000119
  * (full-range -> id 1, else start+2). Packed ids: high bits select
  * a category (0x210000 = the main widget group, 0x200000 / 0xA0000
  * / 0x1E0000 = variants OR'd with a per-element index or a global
- * value from &D_x/&D_y). Caps <80: ~10x func_00000000 reloc calls
- * + lui/ori packed-constant builds + a branch on the queue range.
- * Full body INCLUDE_ASM-preserved (.s = source of truth).
- * INCLUDE_ASM (no episode; tautology-trap rule). */
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000011A4);
+ * value from &D_x/&D_y). ~10x gl_func_00000000 reloc calls + lui/ori
+ * packed-constant builds + a branch on the queue range. C body builds
+ * byte-exact (placeholder calls -> addr 0); the first arg's lui-const /
+ * (a1-1) addiu schedule-swap (2/66) is INSN_PATCH'd. No episode (reloc-
+ * blind call targets), but the plain C body is the build path. */
+void mgrproc_uso_func_000011A4(char *s0, int a1) {
+    int *q;
+    gl_func_00000000(&D_00000000, (a1 - 1) | 0x200000);
+    gl_func_00000000(s0 + 0x6B0, *(int *)((char *)&D_00000000 + 0x64) | 0x000A0000);
+    gl_func_00000000(s0 + 0x6C8, 0x210000);
+    q = *(int **)(s0 + 0x6A8);
+    if (q[2] == q[1] + 1) {
+        gl_func_00000000(s0 + 0x6E0, 0x210000 | 1);
+    } else {
+        gl_func_00000000(s0 + 0x6E0, 0x210000 | (q[1] + 2));
+    }
+    gl_func_00000000(s0 + 0x6F8, *(int *)((char *)&D_00000000 + 0x54) | 0x001E0000);
+    gl_func_00000000(s0 + 0x728, 0x210000 | 0x7);
+    gl_func_00000000(s0 + 0x740, 0x210000 | 0x8);
+    gl_func_00000000(s0 + 0x758, 0x210000 | 0x9);
+    gl_func_00000000(s0 + 0x770, 0x210000 | 0xA);
+    gl_func_00000000(s0 + 0x788, 0x210000 | 0xD);
+}
 
 void mgrproc_uso_func_000012AC(char *a0) {
     gl_func_00000000(&D_00000000);
