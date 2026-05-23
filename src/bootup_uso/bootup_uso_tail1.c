@@ -374,7 +374,14 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FD4C);
  * Promotion path: file split per feedback_o0_cluster_split_with_layout_shim.md
  * (create src/bootup_uso/bootup_uso_o0_FEA0.c with -O0 OPT_FLAGS, update
  * linker script) PLUS a 2-insn INSN_PATCH to collapse the redundant
- * a0-reload. Deferred — heavier than one-tick scope. */
+ * a0-reload. Deferred — heavier than one-tick scope.
+ * NOTE 2026-05-23: bootup builds these `-g -mips2 -O2` by DEFAULT (the
+ * `o0_`-named files in the Makefile are the exception); the `-g` gives the
+ * homed-arg/s0-save/b-to-epilogue shape. An INLINE-CALL form
+ * `(*(void(**)(void*))(p+0x64))((void*)((int)(short)*(short*)(p+0x60)+(int)a0))`
+ * reaches 18 insns (right size) but reorders the 0x60/0x64 loads (fn-designator
+ * evaluates before the arg) — 6/18, still a cap. The 19-insn double-reload
+ * variant is the closer one (1-over, INSN_PATCH+shrink path above). */
 void func_0000FEA0(char *a0) {
     register char *self = a0;
     char *p = *(char**)(self + 0x28);
