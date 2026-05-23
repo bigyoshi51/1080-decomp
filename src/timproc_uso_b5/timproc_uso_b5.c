@@ -2925,7 +2925,7 @@ int timproc_uso_b5_func_000087D8(void) {
     return 2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087E0);
+int timproc_uso_b5_func_000087E0(void) { return 3; }
 
 int timproc_uso_b5_func_000087E8(void) {
     return 0;
