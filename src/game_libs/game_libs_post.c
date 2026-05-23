@@ -7486,7 +7486,29 @@ void gl_func_0002A55C(char *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
 #endif
 
+#ifdef NON_MATCHING
+/* Bitmask scatter-copy: for each of the low 16 bits of a1, if set, copy 3 bytes
+ * (a0[5]->p[7], a0[3]->p[3], a0[2]->p[2]) where p = *(int*)(a0 + 56 + i*4).
+ * RELOC-FREE → episode target. IDO unrolls the loop by 4 (matched, 59 vs 62);
+ * byte-match capped by the arg-home (sw a1 saved), the v0-step-4 unroll counter
+ * vs i-step-1, and $t-renumber. Re-attempt with the permuter or explicit
+ * nested-by-4 loop in a focused pass. */
+void game_libs_func_0002A5C8(char *a0, int a1) {
+    int i;
+    a1 &= 0xFFFF;
+    for (i = 0; i < 16; i++) {
+        if (a1 & 1) {
+            char *p = (char *)*(int *)(a0 + 56 + i * 4);
+            p[7] = a0[5];
+            p[3] = a0[3];
+            p[2] = a0[2];
+        }
+        a1 = (a1 >> 1) & 0xFFFF;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A5C8);
+#endif
 
 // gl_func_0002A6C0 — STRUCTURAL PASS (0x80 / 32 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
