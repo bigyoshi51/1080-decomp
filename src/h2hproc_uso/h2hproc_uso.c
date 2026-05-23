@@ -361,21 +361,11 @@ end:
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000620);
 #endif
 
-#ifdef NON_MATCHING
-/* h2hproc_uso_func_000008E4: 2-insn continuation stub — `jr ra; sw a0, 0(sp)`
- * (store incoming a0 to caller's outgoing-arg slot, then return).
- *
- * UNMATCHABLE from standalone C: a void leaf returns `jr ra; nop` (no
- * spill), and an arg-spill-at-exit isn't something IDO -O2 emits without a
- * frame. Same pattern + cap as game_uso_func_0000D634 (see its wrap and
- * feedback_lw_arg_from_stack_no_preceding_sw.md). Likely a continuation
- * helper called by a sibling that pre-positions sp. INCLUDE_ASM stays. */
-void h2hproc_uso_func_000008E4(int a0) {
-    (void)a0;  /* sw a0, 0(sp) in delay slot — not C-emit-able */
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000008E4);
-#endif
+/* h2hproc_uso_func_000008E4: empty leaf with an unused int param.
+ * IDO -O2 spills the incoming a0 to its caller-shadow slot at sp+0 even
+ * with no frame: `jr ra; sw a0, 0(sp)`. See
+ * docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body. */
+void h2hproc_uso_func_000008E4(int a0) {}
 
 /* 0x8EC + 0x944 are BYTE-IDENTICAL sibling functions (verified). Decoded:
  *   void f(char *a0, int a1) {
