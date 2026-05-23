@@ -16675,7 +16675,24 @@ int gl_func_0003A0C4(char *r) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A0C4);
 #endif
 
+#ifdef NON_MATCHING
+/* Point-in-AABB test: return 1 iff point a0 (x=a0[0],y=a0[1],z=a0[2]) is inside
+ * box a1 (min=a1[0..2], max=a1[3..5]) on all 3 axes (checked x,z,y order).
+ * Reloc-free → episode target. Byte-match multi-run: target uses bc1fl
+ * (branch-likely-false) to a shared return-0 with each next operand load in the
+ * annulled delay slot; the && form emits plain bc1f (38/38 same size, arm-choice
+ * cap per IDO_CODEGEN#feedback-ido-branch-likely-arm-choice). */
+int game_libs_func_0003A158(float *a0, float *a1) {
+    if (a1[0] <= a0[0] && a0[0] <= a1[3] &&
+        a1[2] <= a0[2] && a0[2] <= a1[5] &&
+        a1[1] <= a0[1] && a0[1] <= a1[4]) {
+        return 1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A158);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A1F0);
 
