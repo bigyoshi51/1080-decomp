@@ -12954,7 +12954,9 @@ int game_libs_func_00035990(int a0, int a1, int a2) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000359A4);
+int game_libs_func_000359A4(int a0, int a1, int a2) {
+    return 1;
+}
 
 /* Returns 0 (sibling of matched _0003D480). */
 int game_libs_func_000359B8(int a0) {
@@ -24049,7 +24051,9 @@ end:
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CCB4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDA4);
+int game_libs_func_0004CDA4(int a0) {
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDB0);
 #endif
@@ -24153,9 +24157,11 @@ int gl_func_0004CF04(int a0, int a1) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CF04);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CFB8);
+void game_libs_func_0004CFB8(int a0, int a1) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CFC4);
+void game_libs_func_0004CFC4(int a0, int a1, int a2) {
+}
 #endif
 
 /* gl_func_0004CFD4: 16-insn dual-indexed-lookup wrapper. Was a 22-insn
@@ -27740,7 +27746,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000550CC);
 void game_libs_func_00055194(int a0, int a1) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000551A0);
+void game_libs_func_000551A0(int a0, int a1, int a2) {
+}
 #endif
 
 extern int gl_ref_00065C2C();
@@ -30177,11 +30184,15 @@ void gl_func_000619D4(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061A0C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061ADC);
+int game_libs_func_00061ADC(int a0, int a1, int a2) {
+    return -1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061AF0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061B04);
+int game_libs_func_00061B04(int a0) {
+    return -1;
+}
 
 /* Empty 2-arg stub (sibling of matched timproc_uso_b5_func_0000AC04). */
 void game_libs_func_00061B10(int a0, int a1) {
