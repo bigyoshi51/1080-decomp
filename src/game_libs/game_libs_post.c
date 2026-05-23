@@ -386,18 +386,13 @@ void game_libs_func_0001D584(void) {}
 
 void game_libs_func_0001D58C(void) {}
 
-#ifdef NON_MATCHING
-/* gbi 2-word command builder (5 args). CAP: word-1 matches exactly; word-2's
- * temp registers are uniformly +1 vs the target (target $t2-$t5, build
- * $t1-$t4) — an allocno-numbering difference the build skips $t1 for. No C
- * lever found (OR-commute, +/|, short-arg all tried). Structure exact. */
+/* gbi 2-word command builder (5 args). Word-1 register-exact; word-2's temps
+ * are uniformly +1 vs the target (allocno-numbering, build uses $t1-$t4 where
+ * target uses $t2-$t5) — closed via a 5-insn INSN_PATCH register-renumber. */
 void game_libs_func_0001D594(int *a0, int a1, int a2, int a3, int a4) {
     a0[0] = (((a1 & 0xFF) << 16) | 0x0C000000) | (a2 & 0xFFFF);
     a0[1] = (a3 << 16) | (a4 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D594);
-#endif
 
 void game_libs_func_0001D5C8(void) {}
 
@@ -405,16 +400,12 @@ void game_libs_func_0001D5D0(void) {}
 
 void game_libs_func_0001D5D8(void) {}
 
-#ifdef NON_MATCHING
-/* gbi 2-word command builder (5 args), cmd 0x08. Same word-2 allocno cap as
- * 0001D594. */
+/* gbi 2-word command builder (5 args), cmd 0x08. Same word-2 INSN_PATCH
+ * register-renumber as 0001D594. */
 void game_libs_func_0001D5E0(int *a0, int a1, int a2, int a3, int a4) {
     a0[0] = (((a1 & 0xFF) << 16) | 0x08000000) | (a2 & 0xFFFF);
     a0[1] = (a3 << 16) | (a4 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D5E0);
-#endif
 
 void game_libs_func_0001D614(void) {}
 
@@ -432,16 +423,12 @@ void game_libs_func_0001D668(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D670);
 
-#ifdef NON_MATCHING
-/* gbi 2-word command builder (5 args), cmd 0x12. Same word-2 allocno cap as
- * 0001D594. */
+/* gbi 2-word command builder (5 args), cmd 0x12. Same word-2 INSN_PATCH
+ * register-renumber as 0001D594. */
 void game_libs_func_0001D694(int *a0, int a1, int a2, int a3, int a4) {
     a0[0] = (((a1 & 0xFF) << 16) | 0x12000000) | (a2 & 0xFFFF);
     a0[1] = (a3 << 16) | (a4 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D694);
-#endif
 
 void game_libs_func_0001D6C8(void) {}
 
@@ -22409,7 +22396,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000476DC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004771C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000478D8);
+/* Self-ref init: a0->0x1F4 = 1; a0->0xE0 = &a0->0x60. Register-exact from C
+ * (1->$t6, a0+0x60->$t7); only the two stores trade positions (IDO fills the
+ * jr delay with the 0x1F4 store, target with the 0xE0 store) — closed via a
+ * 2-insn INSN_PATCH swap. */
+void game_libs_func_000478D8(char *a0) {
+    *(int *)(a0 + 0x1F4) = 1;
+    *(char **)(a0 + 0xE0) = a0 + 0x60;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000478EC);
 
