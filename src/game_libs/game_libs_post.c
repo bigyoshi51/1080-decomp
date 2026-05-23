@@ -13888,8 +13888,9 @@ void gl_func_00035E6C(char *o) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
 
-void game_libs_func_00035FCC(void) {}
 #endif
+
+void game_libs_func_00035FCC(void) {}
 
 /* Caps (DEFERRED): the file's K&R `extern int gl_func_00000000();`
  * makes every call varargs, so a `float` arg promotes to DOUBLE
@@ -20795,8 +20796,9 @@ void gl_func_000412A0(int a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412A0);
 
-void game_libs_func_000412E0(void) {}
 #endif
+
+void game_libs_func_000412E0(void) {}
 
 // gl_func_000412E8 — STRUCTURAL PASS (0x238 / 143 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
@@ -24742,12 +24744,12 @@ end:
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CCB4);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDB0);
+#endif
+
 int game_libs_func_0004CDA4(int a0) {
     return 0;
 }
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDB0);
-#endif
 
 // gl_func_0004CDB8 — STRUCTURAL PASS (0x140 / 83 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
@@ -24848,12 +24850,13 @@ int gl_func_0004CF04(int a0, int a1) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CF04);
 
+#endif
+
 void game_libs_func_0004CFB8(int a0, int a1) {
 }
 
 void game_libs_func_0004CFC4(int a0, int a1, int a2) {
 }
-#endif
 
 /* gl_func_0004CFD4: 16-insn dual-indexed-lookup wrapper. Was a 22-insn
  * 2-function bundle until split-fragments.py 2026-05-08:
@@ -25312,10 +25315,11 @@ int gl_func_0004DA40(int *self) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DA40);
 
+#endif
+
 int game_libs_func_0004DB38(int a0, int a1, int a2, int a3) {
     return 1;
 }
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004DB50: 3-way log dispatcher. Decoded from bare stub
@@ -26186,6 +26190,8 @@ void gl_func_0004ED7C(int *self) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
 
+#endif
+
 void game_libs_func_0004EDEC(int *a0, int a1) {
     *(int *)((char *)a0 + a0[0x48] * 4 + 0x134) = a1;
     if (a0[0x48] < 3) {
@@ -26199,7 +26205,6 @@ void game_libs_func_0004EE18(int *a0, int a1) {
         a0[0x47] += 1;
     }
 }
-#endif
 
 // gl_func_0004EE44 — STRUCTURAL PASS + BOUNDARY NOTE (0x288 / 167 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
@@ -28470,12 +28475,13 @@ void gl_func_000550CC(int *self) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000550CC);
 
+#endif
+
 void game_libs_func_00055194(int a0, int a1) {
 }
 
 void game_libs_func_000551A0(int a0, int a1, int a2) {
 }
-#endif
 
 extern int gl_ref_00065C2C();
 extern int gl_ref_00065C68();
@@ -29387,22 +29393,9 @@ void gl_func_0005B6E4(int *a0, int *a1) {
     a1[3] = 0x12345678;
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_0005B73C: 10-insn no-frame leaf DLL length counter.
- * Returns count of nodes in circular DLL anchored at `list` (excluding
- * list itself). Cap: target has NO prologue/epilogue; IDO -O2 always
- * emits frame for any function with non-trivial control flow. */
-int game_libs_func_0005B73C(int *list) {
-    int *node = (int*)list[1];
-    int count = 0;
-    if (node == list) return 0;
-    do {
-        node = (int*)node[1];
-        count++;
-    } while (node != list);
-    return count;
-}
-#else
+/* game_libs_func_0005B73C: circular-DLL node counter (excludes anchor). The
+ * `if (p != a0) do-while` shape matches no-frame; the earlier `int *list`
+ * early-return cap body was superseded once this exact form was found. */
 int game_libs_func_0005B73C(int *a0) {
     int *p = (int *)a0[1];
     int n = 0;
@@ -29414,7 +29407,6 @@ int game_libs_func_0005B73C(int *a0) {
     }
     return n;
 }
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005B764: circular-list float-format-log iterator. s0=a0->4;
@@ -32359,8 +32351,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006366C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000636BC);
 
-void game_libs_func_00063704(int a0) {}
 #endif
+
+void game_libs_func_00063704(int a0) {}
 
 void gl_func_0006370C(char *a0) {
     int local;
@@ -33380,8 +33373,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006656C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006658C);
 
-void game_libs_func_000665A4(int *a0, int a1) { *(int*)a0 = a1; *(int*)((char*)a0 + 8) = 0; *(int*)((char*)a0 + 4) = 0; }
 #endif
+
+void game_libs_func_000665A4(int *a0, int a1) { *(int*)a0 = a1; *(int*)((char*)a0 + 8) = 0; *(int*)((char*)a0 + 4) = 0; }
 
 #ifdef NON_MATCHING
 /* gl_func_000665B4: too-big-N-function-bundle (declared size 0xC0, 48 words).
@@ -33488,10 +33482,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066674);
 // Setter for the segment-base int global: D = a0. Builds byte-exact as plain C
 // (single &D_00000000 ref resolves to addr 0); C body is the build path (moves
 // %). No episode (reloc-blind base).
-void game_libs_func_000666E4(int a0) {
-    *(int *)&D_00000000 = a0;
-}
-
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000666F0);
 
 #ifdef NON_MATCHING
@@ -33508,6 +33498,10 @@ int game_libs_func_000666FC(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000666FC);
 #endif
+
+void game_libs_func_000666E4(int a0) {
+    *(int *)&D_00000000 = a0;
+}
 #endif
 
 #ifdef NON_MATCHING
@@ -34041,11 +34035,11 @@ void gl_func_00067264(int *self) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067264);
 
+#endif
+
 int game_libs_func_00067358(char *a0, int a1) {
     return *(int *)((char *)a0 + a1 * 4 + 0x13C8);
 }
-
-#endif
 
 int game_libs_func_00067368(char *a0) {
     return *(unsigned char *)(a0 + 0x13EC);
@@ -34218,6 +34212,9 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
 
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067ABC);
+#endif
+
 void game_libs_func_00067A90(char *a0, int a1, int a2) {
     *(int *)(a0 + 0x78) = a1;
     *(short *)(a0 + 0x76) = a2;
@@ -34232,9 +34229,6 @@ void game_libs_func_00067AA0(int *a0) {
     a0[7] = 0;
     a0[9] = 0;
 }
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067ABC);
-#endif
 
 extern int gl_func_00067AC8_inner(float, float);
 
