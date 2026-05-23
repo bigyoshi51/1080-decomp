@@ -263,6 +263,7 @@ build/src/game_libs/game_libs_post.c.o: INSN_PATCH += gl_func_00023284=0x1C:0x0C
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH += game_libs_func_00047F90=0x00:0xAC8001E0,0x04:0x03E00008
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH += gl_func_0002FA90=0x50:0xAFA2001C,0x58:0x8FA2001C
 build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_INSN_PATCH += gl_func_0002FA90=0x50:0xAFA2001C,0x58:0x8FA2001C
+build/src/game_libs/game_libs_post.c.o: INSN_PATCH += game_libs_func_0005B5FC=0x8:0x00001825,0x10:0x34A5FFFF
 
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1

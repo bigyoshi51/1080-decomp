@@ -28279,7 +28279,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B568);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B5D8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B5FC);
+/* Circular-list sum: sum += (node->0 & 0xFFFFFF) << 4 over the ring at a0->4.
+ * Register-exact from C; the only residual is a delay-slot-fill swap (IDO
+ * fills the beq delay with sum=0 (move v1,0) where the target fills it with
+ * the mask's `ori a1` — the lui+ori mask construction is kept adjacent by C,
+ * split by the target). Closed via a size-preserving 2-insn INSN_PATCH swap
+ * (@0x8/@0x10), no relocs. See Makefile. */
+int game_libs_func_0005B5FC(int *a0) {
+    int *p = (int *)a0[1];
+    int sum = 0;
+    if (p != a0) {
+        do {
+            sum += (*p & 0xFFFFFF) << 4;
+            p = (int *)p[1];
+        } while (p != a0);
+    }
+    return sum;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B630);
 
