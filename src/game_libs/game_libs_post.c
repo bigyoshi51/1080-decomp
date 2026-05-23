@@ -25379,9 +25379,19 @@ void gl_func_0004ED7C(int *self) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004EDEC);
+void game_libs_func_0004EDEC(int *a0, int a1) {
+    *(int *)((char *)a0 + a0[0x48] * 4 + 0x134) = a1;
+    if (a0[0x48] < 3) {
+        a0[0x48] += 1;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004EE18);
+void game_libs_func_0004EE18(int *a0, int a1) {
+    *(int *)((char *)a0 + a0[0x47] * 4 + 0x124) = a1;
+    if (a0[0x47] < 3) {
+        a0[0x47] += 1;
+    }
+}
 #endif
 
 // gl_func_0004EE44 — STRUCTURAL PASS + BOUNDARY NOTE (0x288 / 167 words, no
