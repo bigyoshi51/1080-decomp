@@ -1317,7 +1317,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FDF4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FE34);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FE4C);
+/* 16-byte-align builder: a0[0]=a0[1]=(a1+0xF)&~0xF; a0[2]=a2-(a1&0xF); a0[3]=0.
+ * Register-exact; IDO schedules the `and`(round) and `subu`(offset) — two
+ * independent ALU ops feeding different stores — in the opposite order from the
+ * target (a 2-insn positional swap), closed via INSN_PATCH. */
+void game_libs_func_0001FE4C(int *a0, int a1, int a2) {
+    int up = (a1 + 0xF) & ~0xF;
+    a0[0] = up;
+    a0[1] = up;
+    a0[2] = a2 - (a1 & 0xF);
+    a0[3] = 0;
+}
 
 void game_libs_func_0001FE74(int *a0) { *(int*)((char*)(a0) + 0x10) = 0; *(int*)((char*)(a0) + 0x0) = 0; *(int*)((char*)(a0) + 0x8) = *(int*)((char*)(a0) + 0x4); }
 
