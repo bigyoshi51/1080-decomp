@@ -4195,10 +4195,37 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * 0x872). Step magnitudes = global f32 consts &D+0x876 (up) /
  * +0x880 (down). Per call moves one step toward target then clamps.
  * Caps <80: FP c.eq.s/c.lt.s/add.s/sub.s + bc1fl/bc1f branch-likely
- * + 3x &D global const reloc + dual jr-ra. Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule). */
+ * + 3x &D global const reloc + dual jr-ra + C7B4 tail-fragment. Stays
+ * INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+extern char D_00000000;
+void timproc_uso_b5_func_0000C710(char *a0, float a1u) {
+    float target;
+    float *st;
+    if (*(float *)(a0 + 0x2A4) == 0.0f) {
+        target = 0.0f;
+    } else {
+        st = *(float **)(a0 + 0x2B8);
+        target = (*(int *)((char *)st + 0x130) != 0) ? 1.0f : *(float *)(&D_00000000 + 0x872);
+    }
+    st = *(float **)(a0 + 0x2B8);
+    if (*(float *)((char *)st + 0x124) < target) {
+        *(float *)((char *)st + 0x124) += *(float *)(&D_00000000 + 0x876);
+        st = *(float **)(a0 + 0x2B8);
+        if (target < *(float *)((char *)st + 0x124)) {
+            *(float *)((char *)st + 0x124) = target;
+        }
+    } else {
+        *(float *)((char *)st + 0x124) -= *(float *)(&D_00000000 + 0x880);
+        st = *(float **)(a0 + 0x2B8);
+        if (*(float *)((char *)st + 0x124) < target) {
+            *(float *)((char *)st + 0x124) = target;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C710);
+#endif
 
 /* timproc_uso_b5_func_0000C7B4: TAIL-FRAGMENT of C710 via forward
  * bc1f-past-declared-end (parent comment above details the absorb).
