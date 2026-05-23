@@ -22700,7 +22700,9 @@ void game_libs_func_00046048(int a0) {
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046050);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00046788);
+void game_libs_func_00046788(int *a0, int a1) {
+    a0[163] = a1;
+}
 
 // gl_func_00046790 — STRUCTURAL PASS (0x214 / 134 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x8
