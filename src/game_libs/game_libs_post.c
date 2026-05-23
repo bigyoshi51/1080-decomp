@@ -466,7 +466,13 @@ void game_libs_func_0001D770(int *a0, int a1, int a2, int a3, int arg4) {
     a0[1] = (a2 << 16) | (a3 & 0xFFFF);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D7A4);
+// GBI 2-word command packer (cmd 0x19000000), sibling of 0001D770:
+// word0 = (arg4&0xFF)<<16 | 0x19000000 | (a3&0xFFFF); word1 = a1<<16 |
+// (a2&0xFFFF). Second-word temps renumber +1 -> INSN_PATCH 4/13.
+void game_libs_func_0001D7A4(int *a0, int a1, int a2, int a3, int arg4) {
+    a0[0] = (((arg4 & 0xFF) << 16) | 0x19000000) | (a3 & 0xFFFF);
+    a0[1] = (a1 << 16) | (a2 & 0xFFFF);
+}
 
 void game_libs_func_0001D7D8(void) {}
 
