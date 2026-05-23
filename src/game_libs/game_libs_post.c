@@ -29535,7 +29535,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E950);
  * setup in the delay region) + mfc1 float-bits-as-int arg; clean C
  * if/return does not reproduce the bc1tl annul shape. Documented
  * FP-branch-likely ceiling. INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+void gl_func_0005EAA4(void *a0, float *a1) {
+    if (a1[0] != 0.0f) {
+        gl_func_00000000(a0, 0, *(int *)&a1[0], 0);
+    }
+    if (a1[1] != 0.0f) {
+        gl_func_00000000(a0, 1, *(int *)&a1[1], 0);
+    }
+    if (a1[2] != 0.0f) {
+        gl_func_00000000(a0, 2, *(int *)&a1[2], 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EAA4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EB4C);
 
