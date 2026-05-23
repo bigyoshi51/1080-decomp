@@ -33728,7 +33728,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067C90);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067C98);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00067D18: counts occurrences of byte a1 in the string at a0,
+ * returns -count (negative running tally). Logic clear; cap: target uses
+ * branch-likely (bnel) for BOTH the match-test and the loop-continue
+ * (branch-likely-reorg) — clean C emits regular beq/bne. Reloc-free. */
+int game_libs_func_00067D18(unsigned char *a0, int a1) {
+    int count = 0;
+    if (*a0 != 0) {
+        do {
+            unsigned char c = *a0;
+            a0++;
+            if ((unsigned char)a1 == c) {
+                count--;
+            }
+        } while (*a0 != 0);
+    }
+    return count;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D18);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00067D50: byte-fill (memset) — writes a1 to a0[0..a2),
