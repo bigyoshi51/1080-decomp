@@ -7606,7 +7606,28 @@ short game_libs_func_0002A9B8(unsigned char **a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9B8);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_0002A9F0: 1-or-2-byte big-endian varint reader over a cursor
+ * (**a0). v=*p; *a0=p+1; if high bit set: v=((v<<8)&0x7F00)|p[1]; v&=0xFFFF;
+ * *a0=p+2. return v. Logic exact; near-miss (1 insn short, 15 vs 16): target
+ * saves the input byte (`move a1,v1`) into the beqz delay slot before reusing
+ * $v1 as the working/return register, while IDO fills the delay with the shift
+ * and keeps the result in a fresh temp — a delay-slot-scheduling choice no
+ * tested C form (hi-copy, reorder) flips. Reloc-free. */
+int game_libs_func_0002A9F0(unsigned char **a0) {
+    unsigned char *p = *a0;
+    int v = *p;
+    *a0 = p + 1;
+    if (v & 0x80) {
+        v = ((v << 8) & 0x7F00) | p[1];
+        *a0 = p + 2;
+        v &= 0xFFFF;
+    }
+    return v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9F0);
+#endif
 
 // gl_func_0002AA30 — STRUCTURAL PASS (0x104 / 65 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
