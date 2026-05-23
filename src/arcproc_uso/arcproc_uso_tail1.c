@@ -818,7 +818,45 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F
  * checks + heavy stack-spill round each gl_ call + &D %hi/%lo reloc
  * materialization scheduling. INCLUDE_ASM is the correct build path
  * (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+char *arcproc_uso_func_0000199C(char *a0, char *a1, int a2) {
+    char *s0;
+    char *p2;
+    char *p3;
+    char *p4;
+    s0 = a0 ? a0 : (char *)gl_func_00000000(268);
+    if (!s0) return s0;
+    p2 = (char *)gl_func_00000000(212);
+    if (p2) {
+        p3 = (char *)gl_func_00000000(80);
+        if (p3) {
+            p4 = (char *)gl_func_00000000(44);
+            if (p4) {
+                gl_func_00000000(p4, (char *)&D_00000000 + 0x3DC);
+                *(char **)(p4 + 0x28) = &D_00000000;
+            }
+            *(char **)(p3 + 0x28) = &D_00000000;
+        }
+        *(char **)(p2 + 0x28) = &D_00000000;
+    }
+    *(char **)(s0 + 0x28) = &D_00000000;
+    *(int *)(s0 + 0x60) = a2;
+    *(int *)(s0 + 0xE0) = 160;
+    *(int *)(s0 + 0xE4) = 29;
+    *(int *)(s0 + 0xD8) = 160;
+    *(int *)(s0 + 0xDC) = 130;
+    *(int *)(s0 + 0xE8) = 160;
+    *(int *)(s0 + 0xEC) = 105;
+    *(float *)(s0 + 0x108) = 1.0f;
+    *(char **)(s0 + 0xD4) = a1;
+    *(float *)(a1 + 0x77C) = 1.0f;
+    gl_func_00000000(s0 + 0xF0,
+        ((*(int *)&D_00000000 + 35) << 16) | (*(int *)(*(char **)(s0 + 0xD4) + 0x6B4) + 7));
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000199C);
+#endif
 
 #ifdef NON_MATCHING
 /* arcproc_uso_func_00001B04: 33-insn / 0x84 conditional-init dispatcher.
