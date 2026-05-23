@@ -4463,9 +4463,37 @@ void timproc_uso_b5_func_0000CB40(int *a0, float a1) {
  * the current value moves one step toward the resolved target then
  * clamps so it never overshoots. Caps <80: FP-heavy c.eq.s/c.lt.s/
  * add.s/sub.s + bc1fl/bc1f branch-likely (x4) + 2x &D global step
- * reloc + dual jr-ra. Full body INCLUDE_ASM-preserved (.s = source
- * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * reloc + dual jr-ra + the CBD0 tail-fragment branch-target. Stays
+ * INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+extern char D_00000000;
+void timproc_uso_b5_func_0000CB40(char *a0, float a1) {
+    float target = a1;
+    float *st;
+    if (*(float *)(a0 + 0x2A4) == 0.0f) {
+        target = 0.0f;
+    }
+    st = *(float **)(a0 + 0x2B8);
+    if (*(int *)((char *)st + 0x134) != 0) {
+        target = 1.0f;
+    }
+    if (*(float *)((char *)st + 0x124) < target) {
+        *(float *)((char *)st + 0x124) += *(float *)(&D_00000000 + 0x892);
+        st = *(float **)(a0 + 0x2B8);
+        if (target < *(float *)((char *)st + 0x124)) {
+            *(float *)((char *)st + 0x124) = target;
+        }
+    } else {
+        *(float *)((char *)st + 0x124) -= *(float *)(&D_00000000 + 0x896);
+        st = *(float **)(a0 + 0x2B8);
+        if (*(float *)((char *)st + 0x124) < target) {
+            *(float *)((char *)st + 0x124) = target;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CB40);
+#endif
 
 /* timproc_uso_b5_func_0000CBD0: TAIL-FRAGMENT of CB40 via forward
  * bc1f-past-declared-end. CB40 (0xC4, 49 insns) ends at 0xCBD0; the
