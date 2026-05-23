@@ -3022,20 +3022,15 @@ int timproc_uso_b5_func_00008A90(int *a0) {
     return *(int *)(*(int *)((char *)a0 + *(int *)((char *)a0 + 0x3C4) * 4 + 0x3E0) * 4 + *(int *)(*(int *)((char *)a0 + 0x3C4) * 4 + *(int *)((char *)a0 + 0x40C) + 0x40) + 0x3C);
 }
 
-#ifdef NON_MATCHING
-/* timproc_uso_b5_func_00008ABC: copy a0[idx*4+0x3D0] → a0[idx*4+0x3E0],
- * idx = a0->0x3C4. Logic exact, all 6 registers match (t6/t7/v0/t8); the
- * ONLY diff is the addu operand order — target `addu v0,a0,t7` (base rs,
- * index rt) vs this build's `addu v0,t7,a0` (index rs, base rt). Tried
- * `(char*)a0 + (idx<<2)` and `&a0[idx]` — both emit index-first. IDO picks
- * the operand order for scaled-index pointer arith; no C lever found. */
+// copy a0[idx*4+0x3D0] → a0[idx*4+0x3E0], idx = a0->0x3C4. Faithful decode,
+// all 6 registers match; the scaled-index addu emits index-first (addu v0,t7,a0)
+// but the target wants base-first (addu v0,a0,t7) — commutative-operand-order
+// only, IDO won't flip it via C, so patched 1/6 (well under the <=half
+// episode-fidelity threshold) per docs/POST_CC_RECIPES.md.
 void timproc_uso_b5_func_00008ABC(int *a0) {
     int *p = &a0[a0[0x3C4 / 4]];
     *(int *)((char *)p + 0x3E0) = *(int *)((char *)p + 0x3D0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008ABC);
-#endif
 
 /* timproc_uso_b5_func_00008AD4: double-indexed double-deref accessor. Same
  * addu operand-order lever (scaled index FIRST, fully inlined). */
