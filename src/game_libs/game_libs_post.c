@@ -33124,9 +33124,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E28);
 
+// Merged fragment: splat split this string-to-int parser at the mid-function
+// jr ra (0x67E90) into _00067E58 + _00067E98; the tail's `b` loops back into
+// the head, so it's one function (size 0xA4). Caller-set $v1 accumulator
+// (read on entry, *= 10 per digit via multu) — IDO C can't express, stays
+// INCLUDE_ASM. Boundary now correct (one symbol).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E58);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E98);
 
 /* 9-insn double-return wrapper (split off from 14-insn bundle 2026-05-15
  * via split-fragments.py). Target uses `cvt.d.w` (function 0x21), not
