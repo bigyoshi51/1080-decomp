@@ -27188,7 +27188,26 @@ short game_libs_func_00052A64(char *a0, int a1) {
     return *(short *)(*(int *)(*(int *)(a0 + 0x84) + a1 * 4) + 0x30);
 }
 
+#ifdef NON_MATCHING
+/* Flag set/clear on *(int*)(a0+0x38): bit 29 (0x20000000) set if a1 else
+ * cleared; bit 17 (0x20000) set if a2. Faithful decode but 21/20 cap: the
+ * `if(a2)` block needs beqzl (branch-likely with the field reload folded into
+ * the delay slot) which IDO won't emit from this shape — my beqz+nop is 1 insn
+ * over (verified in-tree, not just standalone). Reorg heuristic, not forceable. */
+void game_libs_func_00052A7C(int *a0, int a1, int a2) {
+    int *p = (int *)((char *)a0 + 0x34);
+    if (a1) {
+        p[1] |= 0x20000000;
+    } else {
+        p[1] &= ~0x20000000;
+    }
+    if (a2) {
+        p[1] |= 0x20000;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A7C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052ACC);
 
