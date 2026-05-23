@@ -110,11 +110,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009920);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000993C);
+void game_libs_func_0000993C(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009944);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009970);
+void game_libs_func_00009970(void) {}
 
 void game_libs_func_00009978(unsigned char *arg0) {
     *arg0 &= 0x7F;
@@ -126,7 +126,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000099DC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A2C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A48);
+void game_libs_func_00009A48(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A50);
 
@@ -138,7 +138,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AB0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD0);
+void game_libs_func_00009AD0(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD8);
 
@@ -153,11 +153,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B60);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B98);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BB4);
+void game_libs_func_00009BB4(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BBC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BD8);
+void game_libs_func_00009BD8(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BE0);
 
@@ -169,11 +169,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C5C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CDC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CF8);
+void game_libs_func_00009CF8(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D00);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D1C);
+void game_libs_func_00009D1C(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D24);
 
