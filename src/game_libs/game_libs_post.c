@@ -458,7 +458,13 @@ void game_libs_func_0001D754(int *a0, int a1, int a2) {
     a0[1] = a2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D770);
+// Pack a GBI-style 2-word command: word0 = (a1&0xFF)<<16 | 0x0E000000 |
+// (arg4&0xFFFF); word1 = a2<<16 | (a3&0xFFFF). The second-word temps renumber
+// +1 (t2/t3/t4 vs target t3/t4/t5); not C-nudgeable, INSN_PATCH'd (4/13).
+void game_libs_func_0001D770(int *a0, int a1, int a2, int a3, int arg4) {
+    a0[0] = (((a1 & 0xFF) << 16) | 0x0E000000) | (arg4 & 0xFFFF);
+    a0[1] = (a2 << 16) | (a3 & 0xFFFF);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D7A4);
 
