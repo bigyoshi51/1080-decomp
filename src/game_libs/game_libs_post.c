@@ -49,7 +49,44 @@ typedef struct { float x, y, z; } Vec3;
 //   rule). DO-NOT-define-without first renaming the placeholder uses.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 
+#ifdef NON_MATCHING
+/* Per-record copy loop over count=D[0x2070] records (src stride 0xD0 at
+ * D[0x2CFC]). For each record's flag word at +0xB0: if its top bit is set, copy
+ * the 32-byte block to dst = D[0x14] + (count*a0 + i)*32 and clear bit6 of the
+ * src flag; else clear bit7 of dst[0]. Then src[+6]=0. Reloc-blind (&D_00000000).
+ * Byte-match multi-run: target unrolls the 32-byte copy ×8 + multu/branch-likely
+ * + register-alloc the first-pass C doesn't reproduce. */
+void game_libs_func_0001CC98(int a0) {
+    int i;
+    int count = *(int *)((char *)&D_00000000 + 0x2070);
+    int a1;
+    if (count <= 0) {
+        return;
+    }
+    a1 = 0;
+    for (i = 0; i < count; i++) {
+        int *src = (int *)(a1 + *(int *)((char *)&D_00000000 + 0x2CFC) + 0xB0);
+        int *dst = (int *)((count * a0 + i) * 32 + *(int *)((char *)&D_00000000 + 0x14));
+        if ((unsigned int)src[0] >> 31) {
+            dst[0] = src[0];
+            dst[1] = src[1];
+            dst[2] = src[2];
+            dst[3] = src[3];
+            dst[4] = src[4];
+            dst[5] = src[5];
+            dst[6] = src[6];
+            dst[7] = src[7];
+            *(unsigned char *)src = *(unsigned char *)src & 0xFFBF;
+        } else {
+            *(unsigned char *)dst = *(unsigned char *)dst & 0xFF7F;
+        }
+        *((char *)src + 6) = 0;
+        a1 += 0xD0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CC98);
+#endif
 
 // gl_func_0001CD64 — STRUCTURAL PASS (0x278 / 158 words, no episode).
 // Raw-.word USO form (game_libs RSP/graphics-library segment).
