@@ -33719,7 +33719,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067C98);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D18);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00067D50: byte-fill (memset) — writes a1 to a0[0..a2),
+ * returns a0. Logic clear; near-miss: the target loop carries redundant per-
+ * iteration moves (v1=v0 cursor-copy + a3=a2 dead) — -O0-ish loop-codegen
+ * artifacts that clean -O2 C doesn't reproduce. Reloc-free. */
+void *game_libs_func_00067D50(char *a0, int a1, int a2) {
+    char *p = a0;
+    if (a2 != 0) {
+        do {
+            *p++ = (char)a1;
+        } while (--a2 != 0);
+    }
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D50);
+#endif
 
 /* Returns 0 (sibling of matched _0003D480). */
 int game_libs_func_00067D80(int a0) {
