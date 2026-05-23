@@ -422,10 +422,42 @@ void *func_00000C10(int *arg0) {
  * +h, xy = the 4 (+-h) corners); a3 also stored to two global int
  * slots (&D and func_00000000+4). D_000066A8 = init datum. Caps
  * <80: get-or-create branch + 2x func_00000000 reloc + FP 1.0
- * consts + signed-halve + many &D/global s16 stores. Full body
- * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode; tautology-trap rule). */
+ * consts + signed-halve + many &D/global s16 stores. Stays
+ * INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+extern int func_00000000();
+extern char D_00000000;
+void *func_00000CA0(void *a0, int a1, int a2, int a3) {
+    char *o = (char *)a0;
+    short *v;
+    int h, nh;
+    if (o == 0) {
+        o = (char *)func_00000000(0x40);
+        if (o == 0) {
+            return 0;
+        }
+        func_00000000(o, (char *)&D_00000000 + 0x66A8);
+    }
+    *(int *)(o + 0x28) = (int)&D_00000000;   /* descriptor */
+    *(float *)(o + 0x34) = 1.0f;
+    *(int *)(o + 0xC) = a1;
+    *(float *)(o + 0x30) = 1.0f;
+    *(float *)(o + 0x2C) = 1.0f;             /* scale = (1,1,1) */
+    *(float *)(o + 0x38) = 0.0f;
+    *(int *)(o + 0x3C) = a2;
+    *(int *)&D_00000000 = a3;                /* global g0 */
+    h = (a3 >= 0) ? (a3 >> 1) : ((a3 + 1) >> 1);  /* a3/2, signed-round */
+    nh = -h;
+    v = (short *)&D_00000000;                /* global box-corner table, 0x10 stride */
+    v[0] = h;   v[1] = h;   v[2] = h;
+    v[8] = nh;  v[9] = h;   v[10] = h;
+    v[16] = nh; v[17] = nh; v[18] = h;
+    v[24] = h;  v[25] = nh; v[26] = h;
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000CA0);
+#endif
 
 /* func_00000D94 - verified structural decode (0xD4, 53 insns,
  * FP-threshold-gated state update).
