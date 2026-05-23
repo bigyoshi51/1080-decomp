@@ -5136,7 +5136,18 @@ void game_libs_func_00026AA4(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026AA4);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026AF8);
+void game_libs_func_00026AF8(int a0, int a1) {
+    char *p;
+    if (a1 == 0) {
+        return;
+    }
+    p = (char *)&D_00000000 + a0 * 352;
+    *(char *)(p + 0x2D01) = 1;
+    *(short *)(p + 0x2D14) = a1;
+    *(short *)(p + 0x2D12) = a1;
+    *(float *)(p + 0x2D1C) = 0.0f;
+    *(float *)(p + 0x2D20) = 0.0f;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026B40);
 
