@@ -259,7 +259,14 @@ def strip_orphan_hilo_relocs(data, hi_offsets, lo_offsets):
 def patch_one(data, func_name, patches):
     text_file_off, func_addr, func_size = find_text_and_sym(data, func_name)
     if text_file_off is None:
-        raise KeyError(f"function {func_name} not found in .symtab")
+        # Symbol absent — happens in the EXPECTED_BASELINE refresh build, which
+        # swaps decomp bodies to INCLUDE_ASM (a pure-asm baseline that needs no
+        # post-cc patch). Treat as a full no-op skip rather than a fatal error,
+        # mirroring the "bytes already match" INCLUDE_ASM-path skip below.
+        print(f"patch-insn-skip: {func_name} not in .symtab "
+              f"(likely EXPECTED_BASELINE/INCLUDE_ASM build); no-op",
+              file=sys.stderr)
+        return 0, len(patches), 0, 0
 
     skipped = 0
     applied = 0
