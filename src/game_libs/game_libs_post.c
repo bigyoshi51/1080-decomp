@@ -16694,7 +16694,24 @@ int game_libs_func_0003A158(float *a0, float *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A158);
 #endif
 
+#ifdef NON_MATCHING
+/* AABB/range test variant (sibling of 3A158): return 1 iff test coord f2 and the
+ * a0 point fit box a1: f2<=a0[3] && a0[3]<=a1[3] && a1[2]<=a0[2] && a0[2]<=a1[5]
+ * && a1[1]<=a0[1] && a0[1]<=a1[4]. Reloc-free. CALLER-SET-FLOAT cap: f2 arrives in
+ * $f2 (not a standard FP arg reg f12/f14) — IDO C can't bind a param to $f2, so
+ * the body can't reproduce the calling convention. Also the bc1fl-shared-return
+ * chain cap (see IDO_CODEGEN#feedback-ido-branch-likely-arm-choice). */
+int game_libs_func_0003A1F0(float *a0, float *a1, float f2) {
+    if (f2 <= a0[3] && a0[3] <= a1[3] &&
+        a1[2] <= a0[2] && a0[2] <= a1[5] &&
+        a1[1] <= a0[1] && a0[1] <= a1[4]) {
+        return 1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A1F0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A278);
 
