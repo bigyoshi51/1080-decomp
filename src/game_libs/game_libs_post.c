@@ -29255,7 +29255,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DDE4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DF64);
 
+#ifdef NON_MATCHING
+/* Copy a 3x3 float block from a0 to a1, row stride 16 bytes (4th column of each
+ * 4-wide row skipped). Faithful decode, structure exact (19/19), but a 12/19
+ * register-allocation cap: the row/inner pointer + counter vars map to
+ * different temps than the target (a2/a3/v0/v1/a0/a1) and no decl ordering
+ * aligns them (verified in-tree, >half so no INSN_PATCH). */
+void game_libs_func_0005DFE4(float *a0, float *a1) {
+    int i = 0;
+    float *drow = a1;
+    float *srow = a0;
+    do {
+        int j = 0;
+        float *s = srow;
+        float *d = drow;
+        do {
+            *d = *s;
+            s++;
+            d++;
+            j++;
+        } while (j != 3);
+        i++;
+        drow += 4;
+        srow += 4;
+    } while (i != 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DFE4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005E030: 33-insn 4x4 matrix add + dispatch (0x84, frame 0x70).
