@@ -428,7 +428,10 @@ void game_libs_func_0001D744(void) {}
 
 void game_libs_func_0001D74C(void) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D754);
+void game_libs_func_0001D754(int *a0, int a1, int a2) {
+    a0[0] = ((a1 & 0xFF) << 16) | 0x17000000;
+    a0[1] = a2;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D770);
 
@@ -455,7 +458,10 @@ void game_libs_func_0001D834(int *a0, int a1, int a2, int a3) {
     a0[1] = a3;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D858);
+void game_libs_func_0001D858(int *a0, int a1, int a2) {
+    a0[0] = (a1 & 0xFFFF) | 0x07020000;
+    a0[1] = a2;
+}
 
 // gl_func_0001D870 — STRUCTURAL PASS (0x20C / 131 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
@@ -7230,7 +7236,11 @@ void gl_func_0002A904(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A904);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9A4);
+unsigned char game_libs_func_0002A9A4(unsigned char **a0) {
+    unsigned char v = **a0;
+    *a0 = *a0 + 1;
+    return v;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9B8);
 
@@ -32687,7 +32697,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067A90);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067AA0);
+void game_libs_func_00067AA0(int *a0) {
+    a0[8] = 0;
+    a0[4] = 0;
+    a0[5] = 0;
+    a0[6] = 0;
+    a0[7] = 0;
+    a0[9] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067ABC);
 #endif
