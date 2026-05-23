@@ -28279,7 +28279,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005640C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056580);
 
+#ifdef NON_MATCHING
+/* Reset/reinit: clear bit0 of field 0x78, zero fields 0x04/0x14/0x24/0x34/
+ * 0x44/0x54, then set 0x60 = p->0 + p->1*8 and 0x64 = p->1 where p = a0->0xC.
+ * Faithful decode but 19/20: the field-0x78 RMW folds to lw/sw 0x78(a0), while
+ * the target materializes `addiu v0,a0,0x78` + 0(v0) — the addiu-form single-
+ * RMW cap (feedback_rmw_pointer_local_folds_to_offset_addressing), not
+ * C-forceable. Stays INCLUDE_ASM. */
+void game_libs_func_00056814(int *a0) {
+    int *p;
+    *(int *)((char *)a0 + 0x78) &= ~1;
+    p = (int *)a0[3];
+    a0[1] = 0;
+    a0[5] = 0;
+    a0[9] = 0;
+    a0[13] = 0;
+    a0[17] = 0;
+    a0[21] = 0;
+    a0[24] = p[0] + p[1] * 8;
+    a0[25] = p[1];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056814);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_00021908;
