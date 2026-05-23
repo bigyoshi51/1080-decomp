@@ -5083,7 +5083,26 @@ int gl_func_00026790(unsigned char *cmd) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
 #endif
 
+#ifdef NON_MATCHING
+/* Per-entry (a0-indexed, stride 352) FP struct update at &D_+0x2D00. If a1==0,
+ * a1=1; base->1=2; base->0x12=(short)a1; base->0x20 = -(base->0x1C / (float)a1).
+ * CAP: IDO folds the +0x2D00 into the access offsets (build 20 insns) where the
+ * target materializes the full base &D_+a0*352+0x2D00 then uses small offsets
+ * (21 insns) — a materialization-fold difference, not C-reachable. Faithful
+ * decode; INCLUDE_ASM build path. */
+void game_libs_func_00026AA4(int a0, int a1) {
+    char *base;
+    if (a1 == 0) {
+        a1 = 1;
+    }
+    base = (char *)&D_00000000 + a0 * 352 + 0x2D00;
+    base[1] = 2;
+    *(short *)(base + 0x12) = a1;
+    *(float *)(base + 0x20) = -(*(float *)(base + 0x1C) / (float)a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026AA4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026AF8);
 
