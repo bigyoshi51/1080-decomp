@@ -29675,11 +29675,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060584);
 
 void game_libs_func_000607FC(int *a0) { *(int*)((char*)a0 + 0x34) ^= 0x1; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006080C);
+void game_libs_func_0006080C(int *a0) {
+    int v = *(int*)((char*)a0 + 0x18);
+    if (v > 0) {
+        *(int*)((char*)a0 + 0x18) = v - 1;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060824);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060864);
+void game_libs_func_00060864(int *a0) {
+    int v = *(int*)((char*)a0 + 0x10);
+    if (v > 0) {
+        *(int*)((char*)a0 + 0x10) = v - 1;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006087C);
 
@@ -30759,7 +30769,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062F8C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006337C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006347C);
+void game_libs_func_0006347C(int *a0, int a1) {
+    if (a1 != *(int*)((char*)a0 + 0xA4)) {
+        *(int*)((char*)a0 + 0xA4) = a1;
+        *(int*)((char*)a0 + 0xA0) = a1;
+    }
+}
 
 /* 24-insn setter. Promoted 92.86%→100% via feedback-ido-unused-arg-fix-
  * pass-to-callee: passed unused a1 to the first call to suppress its
