@@ -29691,7 +29691,12 @@ void game_libs_func_00060864(int *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006087C);
+void game_libs_func_0006087C(int *a0) {
+    int v = a0[4];
+    if (v < a0[2] - a0[7]) {
+        a0[4] = v + 1;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000608A4);
 
