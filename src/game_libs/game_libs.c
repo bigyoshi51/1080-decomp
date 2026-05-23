@@ -471,6 +471,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00002B94);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003138);
 
+/* game_libs_func_00003298 (0x18, no prologue/jr): stolen FP-const prologue of
+ * the successor gl_func_000032B0 — six lui/mtc1 insns materializing f4=100.0f,
+ * f6=255.0f, f8=235.0f. gl_func_000032B0 reads these uninitialized before its
+ * own `addiu sp` (e.g. `mul.s f22, f4, f6` at +0x1C). Same chained-FP-stolen-
+ * prologue pattern as mgrproc_uso_func_00002EF0 -> _00002F10; leave INCLUDE_ASM
+ * (the bytes belong logically to 32B0's prologue). 32B0 itself = 77-insn FP
+ * color/material setup (8-iter loop + placeholder call + caller-set/stolen FP) =
+ * multi-tick FP-pipeline cap. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003298);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000032B0);
