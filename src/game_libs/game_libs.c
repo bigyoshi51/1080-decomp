@@ -590,7 +590,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003F08);
  * a0→v0 early and uses v0 as the base for fields 2-4 (a0 only for field 1),
  * and re-materializes `li 112` before each field; IDO instead parks the
  * constant 112 in v0 and emits the a0→v0 return-move at the end. Branch-
- * likely (beqzl) skip-store with the next field's load in the delay slot. */
+ * likely (beqzl) skip-store with the next field's load in the delay slot.
+ *
+ * 2026-05-23 RE-VERIFIED cap (4 levers all coalesce to the 24-insn form):
+ * root cause is the delay-slot-fill scheduling class — target is 25 insns
+ * (early `move v0,a0` + nop in jr-ra delay + v0-base for fields 2-4); IDO's
+ * natural emit is 24 (a0-base throughout + late move-in-delay-slot). The
+ * v0=a0 copy is free so IDO always picks the shorter form. See
+ * docs/IDO_CODEGEN.md#feedback-ido-target-larger-preemptive-set-nop-delay
+ * (return-the-pointer-arg leaf cascade instance). Permanent NM, no episode. */
 int *game_libs_func_00003FF8(int *a0) {
     if (a0[0x8C / 4] < 112) a0[0x8C / 4] = 112;
     if (a0[0x90 / 4] < 112) a0[0x90 / 4] = 112;
