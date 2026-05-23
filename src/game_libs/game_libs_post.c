@@ -34637,7 +34637,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A5F0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD68);
+int game_libs_func_0006AD68(volatile int *a0) {
+    int x = *a0;
+    *a0 = *a0;
+    return x;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD78);
 
