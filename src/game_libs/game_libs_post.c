@@ -5547,7 +5547,24 @@ void gl_func_000272C4(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_00027300: a0*352-strided lookup returning a signed byte, or
+ * -1 when the slot's 0x2D00 word is non-negative. Logic verified exact for all
+ * insns EXCEPT the -1 return: target's `beql t9,zero` (sign==0) branches PAST
+ * its own end (0x2734C > 0x27348) into the NEXT function's shared epilogue —
+ * a -O1 cross-fn-epilogue / tail-merge of the `return -1`. C must emit a
+ * self-contained epilogue (li v1,-1; jr; move v0,v1) = +3 insns. Unmatchable
+ * standalone (see feedback_leaf_branch_past_end_is_cross_fn_epilogue). The
+ * `(unsigned)v>>31` form IS correct (produces the srl 0x1F + beql shape).
+ * Sibling of game_libs_func_00026AF8 (same *352 stride, matched plain-C). */
+int game_libs_func_00027300(int a0, int a1, int a2) {
+    char *p = (char *)&D_00000000 + a0 * 352;
+    int v = *(int *)(p + 0x2D00);
+    return ((unsigned int)v >> 31) ? *(signed char *)(*(int *)(p + a1 * 4 + 0x2D38) + a2 + 0xD4) : -1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027300);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027348);
 
