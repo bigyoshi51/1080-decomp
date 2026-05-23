@@ -27644,7 +27644,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053348);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053368);
 
+#ifdef NON_MATCHING
+/* 2D-table element-address lookup: v = *(u16*)(a0->0x68 + a1*8 + a2*2 + 2);
+ * return a0->0x58 + v*12 (the *12 = (v*4 - v)*4 strength-reduce). Structurally
+ * exact (13/13 same opcodes incl. sll/subu/sll *12); reloc-free. Caps: $t-renumber
+ * cascade + UNFILLED jr-delay (target emits addu v0 before `jr ra; nop`; C-emit
+ * fills the jr delay with the addu) — recurring game_libs unfilled-jr-delay class. */
+int game_libs_func_000533B8(int *a0, int a1, int a2) {
+    unsigned short v = *(unsigned short *)(*(int *)((char *)a0 + 0x68) + a1 * 8 + a2 * 2 + 2);
+    return *(int *)((char *)a0 + 0x58) + v * 12;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000533B8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000533EC);
 
