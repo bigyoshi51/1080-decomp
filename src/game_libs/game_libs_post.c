@@ -22459,7 +22459,11 @@ void game_libs_func_00046D4C(int a0, char *a1, float *a2) {
     a1[2] = (int)(a2[2] * 127.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00046DA0);
+void game_libs_func_00046DA0(int a0, char *a1, char *a2) {
+    a1[0] = a2[0];
+    a1[1] = a2[1];
+    a1[2] = a2[2];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00046DC0);
 
