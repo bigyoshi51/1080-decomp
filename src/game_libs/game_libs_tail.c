@@ -213,7 +213,28 @@ void game_libs_func_00009AFC(unsigned char *arg0) {
     *arg0 &= 0x7F;
 }
 
+#ifdef NON_MATCHING
+/* Sibling of 00009988 (copy to a0[1..3] via d[0]; same flag-pack a0[0]).
+ * Same modified-param home-spill cap (a2,a3 spilled at entry). Faithful
+ * decode; INCLUDE_ASM build path. */
+void game_libs_func_00009B0C(char *a0, char *a1, int a2, int a3) {
+    int n = 0;
+    char *d = a0;
+    char *s = a1;
+    a3 &= 0xFF;
+    a2 &= 0xFF;
+    do {
+        char c = *s;
+        n++;
+        d++;
+        s++;
+        d[0] = c;
+    } while (n != 3);
+    a0[0] = ((int)(unsigned char)a0[0] & 0xFF80) | a2 | (a3 << 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
+#endif
 
 /* 3-byte transform copy (a2[i]-0x61 -> a0[1..3]) + a0[0]=a1 + a0[4]=a3.
  * Register-exact from C (counter decl first -> $v0); IDO reorders the 4 setup
