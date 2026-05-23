@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern char D_00000000;
+
 /* USO entry-0 trampoline leaf. The previous NM body described the old bundled
  * 0x148-byte glyph dispatch; after splitting, this symbol is just the first
  * 0x24 bytes. PREFIX_BYTES supplies the loader branch and arg-save delay slot. */
@@ -504,7 +506,16 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000168C);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000016A4);
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001794);
+void gui_uso_func_00001794(int a0) {
+    int *rec = *(int **)&D_00000000;
+    int *sub = (int *)rec[3];
+    int count = sub[1];
+    int *arr;
+    sub[1] = count + 1;
+    arr = (int *)(((int *)rec[3])[0] + count * 8);
+    arr[0] = 0xFCFFFFFF;
+    arr[1] = 0xFFFCF279;
+}
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000017DC);
 
