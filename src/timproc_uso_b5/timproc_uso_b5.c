@@ -1797,7 +1797,32 @@ ret0:
  * branch-likely + repeated func_00000000 reloc count call + f20
  * sdc1/ldc1 double-save. Full body INCLUDE_ASM-preserved (.s =
  * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+int timproc_uso_b5_func_00006900(char *s) {
+    int idx;
+    int n0;
+    int start;
+    int i;
+    char *grp;
+    char *e;
+    idx = *(int *)(s + 0x3C4);
+    if (idx == 0) return 1;
+    n0 = (int)func_00000000(s);
+    start = *(int *)(s + 0x3D0 + idx * 4);
+    if (n0 == start) return 0;
+    i = start + 1;
+    if (i >= (int)func_00000000(s)) return 0;
+    do {
+        grp = *(char **)(s + 0x40C + idx * 4);
+        e = *(char **)(*(char **)(grp + 0x40 + i * 4) + 0x3C);
+        if (*(float *)(e + 0x2A4) != 0.0f) return 1;
+        i++;
+    } while (i < (int)func_00000000(s));
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006900);
+#endif
 
 // timproc_uso_b5_func_000069E8 — STRUCTURAL PASS (0x218 / 134 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
