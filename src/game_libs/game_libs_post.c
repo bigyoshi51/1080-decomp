@@ -21288,7 +21288,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044144);
 
 void game_libs_func_00044460(int *a0, int *a1) { *(int*)a0 = (int)a1; *(int*)((char*)a0 + 4) = *(int*)((char*)(*(int*)((char*)a1 + 0xC)) + 4); }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044474);
+void game_libs_func_00044474(int *a0) { int *p = *(int**)a0; *(int*)((char*)a0 + 8) = *(int*)((char*)(*(int*)((char*)p + 0xC)) + 4); }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044488);
 
