@@ -8502,7 +8502,34 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
  * documented table-dispatch ceiling. Full per-slot args/indices are
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode). */
+#ifdef NON_MATCHING
+void game_uso_func_0000A3C4(char *a0) {
+    char *a3 = a0;
+    char *ent;
+    char *slot;
+    int idx;
+    *(int *)(a0 + 0x68) &= ~2;
+    if (*(int *)(*(char **)(a0 + 0x30) + 0x908) == 0) return;
+    idx = *(int *)(a0 + 0x40);
+    ent = *(char **)((char *)&D_00000000 + 0x548 + idx * 4);
+    slot = (char *)func_00000000(*(int *)ent, 0,
+                                 *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
+    if (slot == 0) {
+        func_00000000((char *)&D_00000000 + 0x7EC, (char *)&D_00000000 + 0x808, 1104);
+    }
+    if (*(int *)(slot + 0x84) & 0x10) slot = *(char **)(slot + 0x2C);
+    idx = *(int *)(a0 + 0x124);
+    ent = *(char **)((char *)&D_00000000 + 0x548 + idx * 4);
+    slot = (char *)func_00000000(*(int *)ent, 0,
+                                 *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
+    if (slot == 0) {
+        func_00000000((char *)&D_00000000 + 0x7EC, (char *)&D_00000000 + 0x808, 1104);
+    }
+    if (*(int *)(slot + 0x84) & 0x10) slot = *(char **)(slot + 0x2C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
+#endif
 
 // game_uso_func_0000A604 — STRUCTURAL PASS (0x1D4 / 117 words,
 // no episode). Raw-.word USO form (single function, game_uso main
