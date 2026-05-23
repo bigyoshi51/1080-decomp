@@ -7355,7 +7355,18 @@ void gl_func_0002A7D8(char *o) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A7D8);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A884);
+// Doubly-linked-list insert-at-head: link a1 before a0's current head.
+void game_libs_func_0002A884(int *a0, int *a1) {
+    if (*a1 != 0) {
+        return;
+    }
+    *(int *)(*a0 + 4) = (int)a1;
+    *a1 = *a0;
+    a1[1] = (int)a0;
+    *a0 = (int)a1;
+    a0[2] = a0[2] + 1;
+    a1[3] = a0[3];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8C4);
 
