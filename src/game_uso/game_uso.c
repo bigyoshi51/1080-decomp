@@ -11127,7 +11127,37 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F664);
  * E35C - beql/bgez branch-likely + D-pair sp-spill + &D reloc + ceil
  * scheduling. Full per-instance call args/D-offsets are INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+void game_uso_func_0000F6D4(char *a0) {
+    char *s0 = a0;
+    char *old;
+    int n;
+    if (*(int *)(*(char **)(s0 + 0xF4) + 0x38) & 1) {
+        func_00000000(*(char **)(s0 + 0xF0));
+    }
+    func_00000000(s0, *(int *)(*(char **)(s0 + 0xF0) + 0x30), 1);
+    if (*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x20) {
+        n = (*(int *)(*(char **)(s0 + 0xF0) + 0x3C) * 64 + 63) >> 6;
+        func_00000000(&D_00000000, n);
+    } else {
+        n = ((int)*(char **)(s0 + 0xF0) - *(int *)&D_00000000 + 63) >> 6;
+        func_00000000(&D_00000000, n);
+    }
+    *(int *)(s0 + 0x100) += 1;
+    old = *(char **)(s0 + 0xF4);
+    *(int *)(s0 + 0xF0) = 0;
+    *(char **)(s0 + 0xF4) = old;
+    if (old != *(char **)(s0 + 0xF8)) {
+        *(char **)(s0 + 0xF8) = old;
+    } else {
+        *(int *)(s0 + 0x100) = 0;
+        *(char **)(s0 + 0xF8) = old;
+    }
+    func_00000000(s0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F6D4);
+#endif
 
 #ifdef NON_MATCHING
 /* 85.17% NM. 24-insn 2-call wrapper. Body: gl_func(a0, a0->0xFC, 0, 0, 0x100, 5);
