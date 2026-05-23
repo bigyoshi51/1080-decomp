@@ -2307,7 +2307,17 @@ int gl_func_000221D8(char *key) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022398);
+/* Guarded bitfield update: if(a1 && a0->8==a1->4){ a1->4=a0->0xC;
+ * *a1 = ((a0[1]<<2)&0xC)|(*a1&~0xC); }. Structure exact; the bitfield
+ * intermediates renumber (allocno cap) — 7-insn INSN_PATCH register fix. */
+void game_libs_func_00022398(char *a0, char *a1) {
+    if (a1 != 0) {
+        if (*(int *)(a0 + 8) == *(int *)(a1 + 4)) {
+            *(int *)(a1 + 4) = *(int *)(a0 + 0xC);
+            *(unsigned char *)a1 = (((signed char)a0[1] << 2) & 0xC) | (*(unsigned char *)a1 & ~0xC);
+        }
+    }
+}
 
 // gl_func_000223DC — STRUCTURAL PASS (0x88 / 34 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
