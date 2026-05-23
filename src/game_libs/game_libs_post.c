@@ -32591,7 +32591,12 @@ void gl_func_00066674(int **head, int data) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066674);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000666E4);
+// Setter for the segment-base int global: D = a0. Builds byte-exact as plain C
+// (single &D_00000000 ref resolves to addr 0); C body is the build path (moves
+// %). No episode (reloc-blind base).
+void game_libs_func_000666E4(int a0) {
+    *(int *)&D_00000000 = a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000666F0);
 
