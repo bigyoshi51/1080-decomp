@@ -30933,7 +30933,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000610F4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006110C);
 
+#ifdef NON_MATCHING
+/* pow10-scale: return a0 * 10^(a1-1) (a1<2 returns a0). Reloc-free. The simple
+ * loop reproduces IDO's unroll-by-4 + (a1-1)&3 remainder-loop structure EXACTLY
+ * through the first multu/mflo; the only mismatch is the target's r4300
+ * multiply-hazard NOPs (2 nops after each mflo before the next multu in the
+ * unrolled body) which this build (-Wab,-r4300_mul) doesn't emit — a build/
+ * hazard-nop gap, not a C-shape issue. Byte-match would need the hazard nops
+ * inserted (assembler config), not reachable per-function. */
+int game_libs_func_000611E4(int a0, int a1) {
+    int i;
+    for (i = 1; i < a1; i++) {
+        a0 *= 10;
+    }
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000611E4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006126C);
 
