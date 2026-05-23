@@ -27935,7 +27935,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000531AC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000531C0);
 
+/* RGB888 palette lookup-copy. idx = a0->0x70 ? *(u16*)(a0->0x70 + a1*6) : a1;
+ * pal = a0->0x5C; if pal != 0, copy 3 bytes pal[idx*3 .. +2] to a2[0..2].
+ * Logic decoded; NOT byte-exact: both null-checks (table, palette) early-exit
+ * via -O1 cross-jumps to a shared epilogue past this fn's end (the beqz delay
+ * even pre-loads a 127.0f `lui 0x42FE` for that shared tail) = tail-merge cap.
+ * Reloc-free. INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+void game_libs_func_0005323C(int *a0, int a1, unsigned char *a2) {
+    int *tbl;
+    unsigned char *pal;
+    int idx;
+    tbl = (int*)a0[0x70 / 4];
+    idx = a1;
+    if (tbl != 0) {
+        idx = *(unsigned short*)((char*)tbl + a1 * 6);
+    }
+    pal = (unsigned char*)a0[0x5C / 4];
+    if (pal == 0) {
+        return;
+    }
+    a2[0] = pal[idx * 3 + 0];
+    a2[1] = pal[idx * 3 + 1];
+    a2[2] = pal[idx * 3 + 2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005323C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053294);
 
