@@ -364,7 +364,35 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000140C4);
  * trunc.w.s + &D global + ~10 func_00000000 reloc + beql
  * branch-likely. Full body INCLUDE_ASM-preserved (.s = source of
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void func_00014228(char *s0) {
+    int n;
+    float col[4];
+    col[0] = 1.0f; col[1] = 1.0f; col[2] = 1.0f; col[3] = 1.0f;
+    if (*(int *)(s0 + 0x104)) {
+        func_00000000(*(int *)(s0 + 0x104));
+        n = (int)((float)*(int *)(s0 + 0xDC) * *(float *)&D_00000000);
+        func_00000000(*(int *)(s0 + 0x104), n, col, 0);
+        func_00000000(*(int *)(s0 + 0x104),
+                      *(int *)(s0 + 0x44) + *(int *)(s0 + 0x74),
+                      *(int *)(s0 + 0x5C) + *(int *)(s0 + 0x8C), 0);
+    }
+    if (*(int *)(s0 + 0x108)) {
+        func_00000000(*(int *)(s0 + 0x108));
+        n = (int)((float)*(int *)(s0 + 0xD8) * *(float *)&D_00000000);
+        func_00000000(*(int *)(s0 + 0x108), n, col, 0);
+        func_00000000(*(int *)(s0 + 0x108),
+                      *(int *)(s0 + 0x44) + *(int *)(s0 + 0xA4),
+                      *(int *)(s0 + 0x5C) + *(int *)(s0 + 0xBC), 0);
+    }
+    func_00000000(*(int *)(s0 + 0xE0));
+    n = (int)((float)*(int *)(s0 + 0xD8) * *(float *)&D_00000000);
+    func_00000000(*(int *)(s0 + 0xE0), n, s0 + 0xC4, *(int *)(s0 + 0xD4));
+    func_00000000(*(int *)(s0 + 0xE0), *(int *)(s0 + 0x44), *(int *)(s0 + 0x5C), s0 + 0xE4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014228);
+#endif
 
 /* func_0001438C - verified structural decode (0x128, 74 insns,
  * get-or-create constructor + 2 child sub-objects).
