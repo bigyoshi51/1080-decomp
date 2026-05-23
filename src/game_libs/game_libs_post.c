@@ -2688,11 +2688,29 @@ int gl_func_00022E58(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022E58);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022ED0);
+void game_libs_func_00022ED0(int a0, int a1) {
+    if (a0 != 0xFF) {
+        if (*(unsigned char *)((char *)&D_00000000 + a0 + 0x2C40) != 5) {
+            *(unsigned char *)((char *)&D_00000000 + a0 + 0x2C40) = a1;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F00);
+void game_libs_func_00022F00(int a0, int a1) {
+    if (a0 != 0xFF) {
+        if (*(unsigned char *)((char *)&D_00000000 + a0 + 0x2C70) != 5) {
+            *(unsigned char *)((char *)&D_00000000 + a0 + 0x2C70) = a1;
+        }
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F30);
+void game_libs_func_00022F30(int a0, int a1) {
+    if (a0 != 0xFF) {
+        if (*(unsigned char *)((char *)&D_00000000 + a0 + 0x2C10) != 5) {
+            *(unsigned char *)((char *)&D_00000000 + a0 + 0x2C10) = a1;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F60);
 
