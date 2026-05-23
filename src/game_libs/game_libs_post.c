@@ -27003,9 +27003,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052918);
 // awaits re-split. Full body INCLUDE_ASM-preserved (all 5 fns).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052994);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A4C);
+unsigned char game_libs_func_00052A4C(char *a0, int a1) {
+    return *(unsigned char *)(*(int *)(*(int *)(a0 + 0x84) + a1 * 4) + 0x32);
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A64);
+short game_libs_func_00052A64(char *a0, int a1) {
+    return *(short *)(*(int *)(*(int *)(a0 + 0x84) + a1 * 4) + 0x30);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A7C);
 
