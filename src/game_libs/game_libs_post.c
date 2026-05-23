@@ -13520,7 +13520,9 @@ int gl_func_0003593C(char *o) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003593C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035988);
+int game_libs_func_00035988(int *a0) {
+    return a0[8];
+}
 
 /* Returns 0 (sibling of matched _0003D538). */
 int game_libs_func_00035990(int a0, int a1, int a2) {
