@@ -1133,7 +1133,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001F6A8);
 
+#ifdef NON_MATCHING
+/* Reset 3 byte-arrays in the global D struct: for each entry in D+0x2C40[48],
+ * D+0x2C10[48], D+0x2C70[128], if entry != 5 set it to 0 (via beql 5,entry).
+ * Reloc-blind (&D_00000000). Byte-match multi-run: target unrolls the 3rd loop
+ * (128 entries) by 4 and uses pointer-cursor + branch-likely (beql/bnezl) that
+ * the clean for-loops don't reproduce (36 vs 50 insns). */
+void game_libs_func_0001FA20(void) {
+    char *p, *e;
+    for (p = (char *)&D_00000000, e = p + 48; p < e; p++) {
+        if (((unsigned char *)p)[0x2C40] != 5) {
+            p[0x2C40] = 0;
+        }
+    }
+    for (p = (char *)&D_00000000, e = p + 48; p < e; p++) {
+        if (((unsigned char *)p)[0x2C10] != 5) {
+            p[0x2C10] = 0;
+        }
+    }
+    for (p = (char *)&D_00000000, e = p + 128; p < e; p++) {
+        if (((unsigned char *)p)[0x2C70] != 5) {
+            p[0x2C70] = 0;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FA20);
+#endif
 
 // gl_func_0001FAE8 — STRUCTURAL PASS (0xEC / 59 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
