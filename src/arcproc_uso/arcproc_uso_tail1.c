@@ -790,7 +790,25 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000160
  * branch-likely + &D %hi/%lo reloc scheduling. Full body
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void arcproc_uso_func_000016F4(char *a0, int a1, int a2) {
+    int n;
+    int m;
+    float buf[4];
+    (void)a1; (void)a2;
+    buf[0] = 1.0f; buf[1] = 1.0f; buf[2] = 1.0f; buf[3] = 1.0f;
+    if ((*(int *)(*(char **)(a0 + 0x528) + 0x14) & 0x4) == 0) return;
+    n = (int)(255.0f * *(float *)(a0 + 0x77C));
+    gl_func_00000000(&D_00000000, n, a0 + 0x2A8, a0 + 0x2CC);
+    gl_func_00000000(a0 + 0x74C);
+    m = *(int *)(*(char **)(a0 + 0x75C) + 0x20) / 12;
+    gl_func_00000000(a0 + 0x704);
+    gl_func_00000000(a0 + 0x71C);
+    (void)m;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F4);
+#endif
 
 /* arcproc_uso_func_0000199C — verified structural decode (~9%, LEN-DIFF
  * 82/90; alloc-cascade defensive-dead-check + spill/reloc scheduling cap →
