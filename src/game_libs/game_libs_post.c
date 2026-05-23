@@ -31336,9 +31336,17 @@ void game_libs_func_00060FDC(int *a0) { *(int*)((char*)a0 + 0x2C) = *(int*)((cha
 
 void game_libs_func_00060FEC(int *a0) { *(int*)((char*)a0 + 0x2C) = *(int*)((char*)(*(int*)((char*)a0 + 0x2C)) + 0x3C); }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060FFC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061018);
+/* Conditional flag set/clear on a0->0x18 bit 2. Merged: success-clear path
+ * (61018: *p &= ~4) was splat-split off as game_libs_func_00061018, UNSHARED
+ * (only 60FFC's beqz reaches it); merged back (0x1C -> 0x34). */
+void game_libs_func_00060FFC(int *a0, int a1) {
+    int *p = (int*)((char*)a0 + 0x18);
+    if (a1) {
+        *p |= 4;
+    } else {
+        *p &= ~4;
+    }
+}
 
 void game_libs_func_00061030(int *a0) { *(int*)((char*)a0 + 0x18) ^= 0x4; }
 
