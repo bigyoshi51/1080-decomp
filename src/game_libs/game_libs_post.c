@@ -30246,7 +30246,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060BD4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060BDC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060CB8);
+// Per-entry reset over a0->0xC entries of an 8-byte-stride array at a0->0:
+// for each entry, clear the byte at *entry[0] and zero entry[1]; finally
+// a0->0x20 = 0. a0[0] is read inline (not a named local) so the base reloads
+// fresh for each access, matching the target's two lw a0->0 per iteration.
+void game_libs_func_00060CB8(int *a0) {
+    int i = 0;
+    int off = 0;
+    if (a0[3] > 0) {
+        do {
+            *(char *)(*(int *)((char *)a0[0] + off)) = 0;
+            *(int *)((char *)a0[0] + off + 4) = 0;
+            off += 8;
+            i++;
+        } while (i < a0[3]);
+    }
+    a0[8] = 0;
+}
 
 extern int gl_func_00000000();
 extern int gl_data_00000000;
