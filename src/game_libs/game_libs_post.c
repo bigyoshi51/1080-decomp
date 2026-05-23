@@ -29379,7 +29379,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E664);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E718);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E7EC);
+// Identity-init a 4x4 matrix: diagonal (0x0/0x14/0x28/0x3C) = 1.0f, the other
+// 12 floats = 0.0f. 1.0f stores written first so 1.0f owns $f0, 0.0f -> $f2
+// (f0/f2 source-order lever). 4x4 sibling of game_libs_func_0005E83C (3x4).
+void game_libs_func_0005E7EC(float *a0) {
+    a0[0] = 1.0f;
+    a0[5] = 1.0f;
+    a0[10] = 1.0f;
+    a0[15] = 1.0f;
+    a0[1] = 0.0f;
+    a0[2] = 0.0f;
+    a0[3] = 0.0f;
+    a0[4] = 0.0f;
+    a0[6] = 0.0f;
+    a0[7] = 0.0f;
+    a0[8] = 0.0f;
+    a0[9] = 0.0f;
+    a0[11] = 0.0f;
+    a0[12] = 0.0f;
+    a0[13] = 0.0f;
+    a0[14] = 0.0f;
+}
 
 // Identity-init a 3x4 affine matrix: diagonal (0x0/0x14/0x28) = 1.0f, the other
 // 9 floats = 0.0f. The 1.0f stores are written FIRST in source so 1.0f lands in
