@@ -1131,7 +1131,31 @@ void arcproc_uso_func_000024C0(void) {
  * alloc-cascade dead checks + per-call spill + &D %hi/%lo reloc
  * scheduling. Full per-slot args INCLUDE_ASM-preserved (.s = source of
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+char *arcproc_uso_func_0000251C(char *a0) {
+    char *s0;
+    char *p2;
+    char *p3;
+    s0 = a0 ? a0 : (char *)gl_func_00000000(84);
+    if (!s0) return s0;
+    p2 = (char *)gl_func_00000000(80);
+    if (p2) {
+        p3 = (char *)gl_func_00000000(44);
+        if (p3) {
+            gl_func_00000000(p3, (char *)&D_00000000 + 1160);
+            *(char **)(p3 + 0x28) = &D_00000000;
+        }
+        *(char **)(p2 + 0x28) = &D_00000000;
+    }
+    *(char **)(s0 + 0x28) = &D_00000000;
+    *(char **)(s0 + 0xC) = (char *)&D_00000000 + 1168;
+    gl_func_00000000((char *)&D_00000000 + 16, 0x280000);
+    gl_func_00000000((char *)&D_00000000 + 40, 0x280001);
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251C);
+#endif
 
 #ifdef NON_MATCHING
 /* arcproc_uso_func_000027BC: 42-insn string-match + vtable-dispatch.
