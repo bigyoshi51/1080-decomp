@@ -18989,8 +18989,25 @@ void gl_func_0003EE50(int a0, int a1, int *a2, int a3, int a4, int a5) {
  * own frame-layout rules - flat C struct/array does not reproduce the exact
  * offsets/spill order (the documented sp-slot/stack-build divergence class,
  * cf gl_func_00065250 / 372D4). br=0 but not the clean-episode subset.
+ * (a3/arg4 are float-in-int-reg per o32; a0/a2/a3 homed, a1 not — IDO homes
+ * a1 too, a 1-insn divergence; plus reloc-blind placeholder calls.)
  * INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+void gl_func_0003EEC0(int a0, int a1, float *a2, float a3, float arg4, int arg5) {
+    char buf[0xA0]; /* arg block at sp+0x18 */
+    gl_func_00000000(&buf[8]);     /* X1: fill sub-struct at buf+8 */
+    *(int *)&buf[0] = 2;
+    *(int *)&buf[0x48] = 2;
+    *(float *)&buf[0x4C] = a2[0];
+    *(int *)&buf[0x50] = (int)a2;
+    *(float *)&buf[0x58] = a3;
+    *(float *)&buf[0x5C] = arg4;
+    *(int *)&buf[0x60] = arg5;
+    gl_func_00000000(&buf[0]);      /* X2: pass whole block */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EEC0);
+#endif
 
 void gl_func_0003EF2C(int a0, int a1, int a2, int a3, int a4, int a5) {
     char buf[0xA0];
