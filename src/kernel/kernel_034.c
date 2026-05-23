@@ -49,6 +49,41 @@ s32 func_8000798C(RmonMsg* msg) {
  * with magic args 0x40800000 / 0x40010000 / 0x3E8, else alt path);
  * a0->0xC (12) payload ptr. Caps <80: cross-function shared-epilogue
  * tail-jump (no local jr ra) + 5 jal calls + magic-constant lui/ori
- * args. Full body INCLUDE_ASM-preserved (.s = source of truth).
- * INCLUDE_ASM (no episode; tautology-trap rule). */
+ * args. Magic consts (from asm): func_80006A98(0x04080000); the 0x8000898C
+ * arg is (handle-4) + 0x04001000, with 1 / 1000 (0x3E8). Stays INCLUDE_ASM
+ * (no episode): cross-fn shared-epilogue tail-jump (returns via `b` into
+ * func_80007A98, not C-expressible). */
+#ifdef NON_MATCHING
+extern int func_8000785C();
+extern int func_80008430();
+extern int func_80008454();
+extern int func_80006A98();
+extern int func_8000898C();
+void func_800079F4(char *a0) {
+    unsigned char kind = *(unsigned char *)(a0 + 9);
+    int h;
+    if (kind == 0) {
+        func_8000785C(*(int *)(a0 + 0xC));
+        return;
+    }
+    if (kind != 1) {
+        return; /* default: alt shared tail */
+    }
+    if (func_80008430() == 0) {
+        return;
+    }
+    func_80008454();
+    h = func_80006A98(0x04080000);
+    if (h == 0) {
+        return;
+    }
+    h -= 4;
+    func_8000898C(1, 1000, h + 0x04001000);
+    if (h & 3) {
+        return;
+    }
+    /* ... continues into func_80007A98's shared tail ... */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800079F4);
+#endif
