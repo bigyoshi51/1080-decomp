@@ -3396,9 +3396,27 @@ void gl_func_000232E8(int idx, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
 #endif
 
+/* Table lookup into a global at &D_00000000+0x2028: base = *(that); idx =
+ * *(u16*)(base + a0*2); c = base[idx]; if c!=0 return base+idx+1 (string ptr);
+ * else *a1 = 0, return 0. Merged: the non-zero return (base+idx+1) was
+ * splat-split off as game_libs_func_000233D4 (UNSHARED); merged back
+ * (0x34 -> 0x44). Reloc-blind (uses &D global, no episode); NOT byte-exact:
+ * IDO folds the &D base into lui+lw (target uses lui+addiu+lw separate base).
+ * INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+int game_libs_func_000233A0(int a0, char *a1) {
+    char *base = *(char**)((char*)&D_00000000 + 0x2028);
+    int idx = *(unsigned short*)(base + a0 * 2);
+    char c = base[idx];
+    if (c != 0) {
+        return (int)(base + idx + 1);
+    }
+    *a1 = c;
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000233A0);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000233D4);
+#endif
 
 // gl_func_000233E4 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
