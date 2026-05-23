@@ -242,7 +242,32 @@ int gl_func_0001D0AC(int code, int spec) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D0AC);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_0001D17C: GBI display-list builder. Writes 3 commands (6 words)
+ * to a0 indexing &D + a1*344 (record stride 344), reading 2 shorts from
+ * rec+0x28 / rec+0x2A OR'd with 0x0C1A0000; returns a0+24 (next DL ptr).
+ * Logic exact; near-miss: target uses explicit chained cursors (a2=a0+8;
+ * t0=a2+8; sw 0(a2)/0(t0); return t0+8) but IDO -O2 FOLDS both int-cursor
+ * `p+=2` and struct-pointer `p++` into offset addressing (sw 8(a0)) — 31 vs
+ * 33 insns (cursor-vs-offset preference, like the addiu-form RMW). Reloc-blind
+ * (single &D base). */
+int *game_libs_func_0001D17C(int *a0, int a1) {
+    char *rec = (char *)&D_00000000 + a1 * 344;
+    int *p = a0;
+    p[0] = 0x0A000C80;
+    p[1] = 0x03E001A0;
+    p += 2;
+    p[0] = *(unsigned short *)(rec + 0x28) | 0x0C1A0000;
+    p[1] = 0x0E200C80;
+    p += 2;
+    p[0] = *(unsigned short *)(rec + 0x2A) | 0x0C1A0000;
+    p[1] = 0x03E00E20;
+    p += 2;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D17C);
+#endif
 
 // gl_func_0001D200 — STRUCTURAL PASS (0x2C0 / 176 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
