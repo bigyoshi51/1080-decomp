@@ -1184,7 +1184,34 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002DA4);
  * per-child FP colour stores + flag-OR RMW + multi-&D. Full body
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void func_00002F90(char *s1) {
+    char *c;
+    float k;
+    func_00000000((char *)&D_00000000 + 0x741C, 0);
+    c = (char *)func_00000000(0, (char *)&D_00000000 + 0x7424);
+    *(char **)(s1 + 0x90) = c;
+    k = *(float *)((char *)&D_00000000 + 0x12C);
+    *(float *)(c + 0x124) = k;
+    *(float *)(c + 0x128) = k;
+    *(float *)(c + 0x12C) = k;
+    *(float *)(c + 0x130) = 1.0f;
+    *(int *)(c + 0xD0) = 1;
+    *(int *)(c + 0xC4) |= 0x40;
+    *(int *)(c + 0xC4) |= 0x80;
+    c = (char *)func_00000000(0, (char *)&D_00000000 + 0x7434);
+    *(char **)(s1 + 0x94) = c;
+    *(float *)(c + 0x124) = 1.0f;
+    *(float *)(c + 0x128) = 1.0f;
+    *(float *)(c + 0x12C) = 1.0f;
+    *(float *)(c + 0x130) = 1.0f;
+    *(int *)(c + 0xD0) = 2;
+    *(int *)(c + 0xC4) |= 0x40;
+    *(int *)(c + 0xC4) |= 0x80;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002F90);
+#endif
 
 void func_000031B8(int a0) {
 }
