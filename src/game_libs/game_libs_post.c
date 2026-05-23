@@ -29381,7 +29381,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E718);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E7EC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E83C);
+// Identity-init a 3x4 affine matrix: diagonal (0x0/0x14/0x28) = 1.0f, the other
+// 9 floats = 0.0f. The 1.0f stores are written FIRST in source so 1.0f lands in
+// $f0 and 0.0f in $f2 (matching the target's float-register choice); IDO then
+// reorders the actual stores. (Flips the f0/f2 float-register-swap.)
+void game_libs_func_0005E83C(float *a0) {
+    a0[0] = 1.0f;
+    a0[5] = 1.0f;
+    a0[10] = 1.0f;
+    a0[1] = 0.0f;
+    a0[2] = 0.0f;
+    a0[3] = 0.0f;
+    a0[4] = 0.0f;
+    a0[6] = 0.0f;
+    a0[7] = 0.0f;
+    a0[8] = 0.0f;
+    a0[9] = 0.0f;
+    a0[11] = 0.0f;
+}
 
 void game_libs_func_0005E87C(char *a0, float *a1) {
     *(float *)(a0 + 0x30) += a1[0];
