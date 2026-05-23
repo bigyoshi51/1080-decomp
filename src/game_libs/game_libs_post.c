@@ -28361,7 +28361,9 @@ int game_libs_func_0005B5FC(int *a0) {
     return sum;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B630);
+int game_libs_func_0005B630(int *a0) {
+    return *(int *)((char *)a0 + 0x24) << 4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B63C);
 
