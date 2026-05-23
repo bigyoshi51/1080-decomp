@@ -11773,11 +11773,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343E0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343F4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034424);
+// Address-of accessors into a 0xC-stride table at segment offset 0x1E3C8
+// (lui+addiu address-style return; the offset is baked into the bytes).
+int game_libs_func_00034424(void) {
+    return (int)((char *)&D_00000000 + 0x1E3C8);
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034430);
+int game_libs_func_00034430(void) {
+    return (int)((char *)&D_00000000 + 0x1E3D4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003443C);
+int game_libs_func_0003443C(void) {
+    return (int)((char *)&D_00000000 + 0x1E3E0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034448);
 
