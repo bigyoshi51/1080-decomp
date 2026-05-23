@@ -5497,7 +5497,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027694);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276B8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276D0);
+int game_libs_func_000276D0(void) { return 0; }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276D8);
 
@@ -9011,19 +9011,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E290);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E2F8);
+int game_libs_func_0002E2F8(void) { return 16; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E300);
+int game_libs_func_0002E300(void) { return 0; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E308);
+int game_libs_func_0002E308(void) { return 2; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E310);
+int game_libs_func_0002E310(void) { return 4; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E318);
+int game_libs_func_0002E318(void) { return 6; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E320);
+int game_libs_func_0002E320(void) { return 8; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E328);
+int game_libs_func_0002E328(void) { return 10; }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
 
@@ -12976,9 +12976,9 @@ char *gl_func_00035B1C(char *o, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035B1C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035C50);
+void game_libs_func_00035C50(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035C58);
+void game_libs_func_00035C58(int a0) {}
 
 /* Empty 2-arg stub (sibling of matched timproc_uso_b5_func_0000AC04). */
 void game_libs_func_00035C60(int a0, int a1) {
@@ -14879,9 +14879,9 @@ void gl_func_00038A28(char *o, char *c) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038A28);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B6C);
+void game_libs_func_00038B6C(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B74);
+void game_libs_func_00038B74(int a0) {}
 
 /* Empty 2-arg stub (sibling of matched timproc_uso_b5_func_0000AC04). */
 void game_libs_func_00038B7C(int a0, int a1) {
@@ -20211,7 +20211,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00041820);
 // untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004182C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00041A6C);
+void game_libs_func_00041A6C(int a0) {}
 
 extern int gl_func_00000000();
 extern char gl_ref_0001F63C;
@@ -24569,17 +24569,17 @@ void gl_func_0004DCD4(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD0C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD1C);
+void game_libs_func_0004DD1C(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD24);
+void game_libs_func_0004DD24(int a0) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD2C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD3C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD4C);
+void game_libs_func_0004DD4C(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD54);
+void game_libs_func_0004DD54(int a0) {}
 
 void game_libs_func_0004DD5C(void) {}
 
@@ -25363,7 +25363,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
 void game_libs_func_0004F0AC(int a0, int a1, int a2, int a3) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0C0);
+void game_libs_func_0004F0C0(int a0) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0C8);
 
@@ -27920,25 +27920,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056084);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000560E4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056150);
+int game_libs_func_00056150(void) { return 1; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056158);
+int game_libs_func_00056158(void) { return 2; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056160);
+int game_libs_func_00056160(void) { return 3; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056168);
+int game_libs_func_00056168(void) { return 4; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056170);
+int game_libs_func_00056170(void) { return 5; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056178);
+int game_libs_func_00056178(void) { return 6; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056180);
+int game_libs_func_00056180(void) { return 7; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056188);
+int game_libs_func_00056188(void) { return 8; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056190);
+int game_libs_func_00056190(void) { return 9; }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056198);
+int game_libs_func_00056198(void) { return 10; }
 
 void game_libs_func_000561A0(void) {}
 
@@ -30835,7 +30835,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006366C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000636BC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00063704);
+void game_libs_func_00063704(int a0) {}
 #endif
 
 void gl_func_0006370C(char *a0) {
