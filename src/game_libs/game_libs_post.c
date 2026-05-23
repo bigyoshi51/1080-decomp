@@ -28176,27 +28176,32 @@ int gl_func_000551B0(char *a0) {
  * Next pass: hoist the a1 sum above the branch; goto-CALL label for
  * both the sel<0 and main paths; one fp(a1) at the label. Note the
  * sibling _pad.s GLOBAL_ASM stays. Real decoded C preserved. */
+/* Selector-dispatch tail call: a1 = a0[1] + (short)a0[8]; if (short)a0[0xA] < 0
+ * call a0[3](a1), else index a table at (a1 + a0v) by sel*8, load fn ptr + short
+ * bias, then tail-call. Single jalr convergence point. Reloc-free (indirect
+ * jalr). Structurally correct but byte-% capped by IDO's delay-slot schedule
+ * (addu in bgez slot, lw a2 in b slot, double-load of sel via a0 vs a0+8 base). */
 int gl_func_000551E0(int *a0) {
     int a1 = a0[1] + *(short *)((char *)a0 + 8);
     int sel = *(short *)((char *)a0 + 0xA);
     int a0v;
     int (*fp)();
-    if (*(short *)((char *)a0 + 0xA) < 0) {
+    if (sel < 0) {
         fp = (int (*)())a0[3];
-        return fp(a1);
-    }
-    if (*(int *)((char *)a0 + 0xC) != 0) {
-        a0v = *(int *)((char *)a0 + 0xC);
-    } else if (*(short *)((char *)a0 + 8) != 0) {
-        a0v = 0;
     } else {
-        a0v = 0x5C;
-    }
-    {
-        int t0 = *(int *)(a1 + a0v);
-        int *v0 = (int *)(t0 + sel * 8);
-        fp = (int (*)())v0[1];
-        a1 = *(short *)v0 + a1;
+        if (*(int *)((char *)a0 + 0xC) != 0) {
+            a0v = *(int *)((char *)a0 + 0xC);
+        } else if (*(short *)((char *)a0 + 8) != 0) {
+            a0v = 0;
+        } else {
+            a0v = 0x5C;
+        }
+        {
+            int t0 = *(int *)(a1 + a0v);
+            int *v0 = (int *)(t0 + sel * 8);
+            fp = (int (*)())v0[1];
+            a1 = *(short *)v0 + a1;
+        }
     }
     return fp(a1);
 }
