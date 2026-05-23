@@ -1292,9 +1292,74 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7
  * pipeline + the chained FPU-prologue pair are tackled together. */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3C);
 
+/* mgrproc_uso_func_00002EF0 (0x20, no prologue/no jr): the 8-insn stolen
+ * FPU-const prologue of the successor mgrproc_uso_func_00002F10 — lui/mtc1
+ * pairs materializing f2=255.0, f4=192.0, f6=255.0, f10=0.0 then
+ * `div.s f0, f4, f2` (= 192/255). 2F10 reads these registers uninitialized.
+ * This is the chained-FPU-stolen-prologue fragment flagged in the 2E3C note;
+ * leave INCLUDE_ASM (its bytes belong logically to 2F10's prologue). */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF0);
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00002F10: ~90-insn object initializer + draw-list builder
+ * ending in the linked-set finalizer idiom (see
+ * reference_1080_linked_set_finalizer_tail_idiom). Real decoded logic; will
+ * NOT byte-match — documented multi-cap:
+ *   - caller-set/stolen FPU consts: f0=192/255, f2=f6=255, f10=0 are
+ *     materialized by the physically-preceding fragment
+ *     mgrproc_uso_func_00002EF0; read here uninitialized, so IDO C re-emits
+ *     them and the layout diverges (chained-FPU-stolen-prologue pair).
+ *   - Yay0-compressed / -O0 segment (see file-head BLOCKED note).
+ *   - branch-likely (bgezl/beqzl) + two distinct &D bases + placeholder calls.
+ * Kept INCLUDE_ASM; body documents field layout + the draw call sequence. */
+void mgrproc_uso_func_00002F10(self, a1, a2, a3, arg5)
+    int *self; int a1, a2, a3, arg5;
+{
+    float c = 192.0f / 255.0f;   /* f0 from 2EF0: div.s f4(192)/f2(255) */
+
+    *(int*)((char*)self + 0xC)  = (int)((char*)&D_00000000 + 0x688);
+    *(int*)((char*)self + 0xBC) = a1;
+    *(int*)((char*)self + 0xB8) = a3;
+    *(int*)((char*)self + 0x54) = a2;
+    *(int*)((char*)self + 0xD4) = 0xFF;
+    *(int*)((char*)self + 0xD8) = 0;
+    *(int*)((char*)self + 0xDC) = 0;
+    *(int*)((char*)self + 0x30) = 0;
+    *(int*)((char*)self + 0x4C) = arg5;
+    *(float*)((char*)self + 0xCC) = c;
+    *(float*)((char*)self + 0xC4) = c;
+    *(float*)((char*)self + 0xC8) = 255.0f / 255.0f;   /* f8 = f6/f2 */
+    *(float*)((char*)self + 0xD0) = 0.0f / 255.0f;     /* f10 = f10/f2 */
+
+    if (*(int*)((char*)a1 + 0x4F0) & 0x10000) {
+        gl_func_00000000(self, 0xE8, 0x13, *(int*)((char*)self + 0x44) + 0x10);
+        gl_func_00000000(self, 0x123, 0xE1, 0xD);
+        gl_func_00000000(self, 0x47, 0x13, (int)((char*)self + 0x30));
+        gl_func_00000000(self, 0x44, 0x26, *(int*)((char*)self + 0x44) + 0x28);
+        {
+            int t3 = *(int*)((char*)&D_00000000 + 0x64);
+            int p  = *(int*)((char*)self + 0x4C);
+            unsigned char *v1 =
+                (unsigned char *)gl_func_00000000(*(int*)p + t3 * 48, 0);
+            int obj = gl_func_00000000(0, *(int*)((char*)self + 0x60));
+            int *node;
+            *(int*)((char*)self + 0xC0) = obj;
+            gl_func_00000000(obj, v1[5], v1[6], v1[7]);
+            gl_func_00000000(*(int*)((char*)self + 0xC0), 0x4B, 0xD6);
+            node = (int *)*(int*)((char*)self + 0xC0);
+            gl_func_00000000((int)((char*)self + 0x10), (int)node);
+            if (*(int*)((char*)node + 0x14) == 0) {
+                *(int*)((char*)node + 0x14) = (int)self;
+            } else {
+                *(int*)((char*)node + 4) = 1;
+                *(int*)((char*)node + 0x14) = (int)self;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002F10);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003074);
 
