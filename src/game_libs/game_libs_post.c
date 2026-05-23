@@ -18572,7 +18572,20 @@ char *gl_func_0003DF5C(char *a0, char *a1, char *a2_stop) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DF5C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003E0C0);
+int game_libs_func_0003E0C0(int a0, int a1) {
+    int v1 = *(int *)(a0 + 0x34);
+    a0 = 0;
+    if (v1 != 0) {
+        do {
+            if (a0 == a1) {
+                break;
+            }
+            v1 = *(int *)(v1 + 0x84);
+            a0++;
+        } while (v1 != 0);
+    }
+    return v1;
+}
 
 extern char D_0002F2E4;
 extern int D_00000000;
