@@ -28618,7 +28618,46 @@ void gl_func_00056FF4(int a0, int *a1) {
     }
 }
 
+#ifdef NON_MATCHING
+/* Flag-decode (a1[1]) → geometry-mode word, then two display-list appends
+ * (0xB6000000 = G_CLEARGEOMETRYMODE, 0xB7000000 = G_SETGEOMETRYMODE) to the
+ * record buffer at a0->0xC. Structurally exact (all opcodes/immediates/offsets
+ * match); only $t-register numbering differs — permuter-crackable record-append
+ * + bit-test class. Reloc-free. */
+void game_libs_func_0005703C(int *a0, int *a1) {
+    int v0 = 4;
+    int v1 = a1[1];
+    int new_var;
+    int *rec;
+    int idx;
+    int *arr;
+
+    if ((v1 & 2) || (((unsigned int)v1 << 6) >> 31)) {
+        v0 = 5;
+    }
+    if (v1 & 0x8000) v0 |= 0x200;
+    if (v1 & 0x2000) v0 |= 0x20004;
+    if (((unsigned int)v1 << 14) >> 31) v0 |= 0x2000;
+    if (((unsigned int)v1 << 2) >> 31) v0 |= 0x1000;
+    if (((unsigned int)v1 << 12) >> 31) v0 |= 0x10000;
+
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    new_var = ((int *)((int *)a0)[3])[0] + (idx * 8);
+    arr = (int *)new_var;
+    arr[0] = 0xB6000000;
+    arr[1] = -1;
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)((int *)a0)[3])[0] + (idx * 8));
+    arr[0] = 0xB7000000;
+    arr[1] = v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005703C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057104);
 
