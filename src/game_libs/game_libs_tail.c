@@ -122,7 +122,25 @@ void game_libs_func_00009978(unsigned char *arg0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000099DC);
+/* 7-arg string-builder: a0[0]=a1; a0[1]=a2; 3x copy (a3[i]-0x61)->a0[2..4];
+ * a0[5..7]=stack args. Register-exact; the 5 setup insns reorder vs target
+ * (isolated-vs-full-TU scheduling) — closed via INSN_PATCH positional swap. */
+void game_libs_func_000099DC(char *a0, int a1, int a2, char *a3, int a4, int a5, int a6) {
+    int n = 0;
+    char *d = a0;
+    char *s = a3;
+    a0[0] = a1;
+    a0[1] = a2;
+    do {
+        n++;
+        d++;
+        d[1] = *s - 0x61;
+        s++;
+    } while (n != 3);
+    a0[5] = a4;
+    a0[6] = a5;
+    a0[7] = a6;
+}
 
 #ifdef NON_MATCHING
 /* game_libs_func_00009A2C: 7-insn flag-test returning bool — decoded as
