@@ -2046,7 +2046,13 @@ int func_000050A0(int a0) {
  * arm's sub2. D_00007DB4 = named init datum (label/string). Caps <80:
  * alloc-cascade + defensive-dead-check (bnez after beqz makes the
  * 0x48 arm unreachable, documented ceiling) + 3-4 func_00000000
- * reloc calls + 3x &D descriptor-store relocs. Full body INCLUDE_ASM-
+ * reloc calls + 3x &D descriptor-store relocs. To MATCH this family
+ * (5124/51D4/5284/5334) you need: (a) the 3 distinct descriptor symbols
+ * — they are lui-0+addiu-0 (reloc'd, addend 0) in the raw-word .s, so the
+ * names live only in the USO reloc sidecar, not recoverable from the .s
+ * alone; (b) the redundant-goto + dead-0x48-arm written out so -g -O2
+ * keeps it; (c) the obj->0x28 double-write (&D_x then &D_y) kept (no
+ * dead-store elim under -g). Blocked on (a). Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
