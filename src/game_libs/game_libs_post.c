@@ -4793,7 +4793,31 @@ int gl_func_00025AC8(int idx, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025AC8);
 #endif
 
+#ifdef NON_MATCHING
+/* Flag-guarded D_-queue append. p=*a0; x=*p; require (x&0xFFFFFF)!=0 AND
+ * (x<<6)<0 (bit25 set) AND ((u)(x<<4)>>30)!=0 (bits26-27); then append (int)p
+ * to the queue at &D_+0x430 indexed by the count at &D_+0x1030, count++.
+ * Structure exact (22/22 opcodes); back-half register allocation renumbers
+ * (12/22, allocno cap — over-half so INSN_PATCH would hurt episode fidelity).
+ * Faithful decode; INCLUDE_ASM build path. */
+void game_libs_func_00025BFC(int **a0) {
+    int *p = a0[0];
+    int x = *p;
+    if ((x & 0xFFFFFF) == 0) {
+        return;
+    }
+    if ((x << 6) >= 0) {
+        return;
+    }
+    if (((unsigned int)(x << 4) >> 30) == 0) {
+        return;
+    }
+    *(int *)((char *)&D_00000000 + *(int *)((char *)&D_00000000 + 0x1030) * 4 + 0x430) = (int)p;
+    *(int *)((char *)&D_00000000 + 0x1030) += 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025BFC);
+#endif
 
 // gl_func_00025C54 — STRUCTURAL PASS (0x460 / 280 words ≈ 1.1KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
