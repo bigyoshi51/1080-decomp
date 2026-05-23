@@ -12396,7 +12396,9 @@ void gl_func_00034B98(void *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034BDC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034BFC);
+int game_libs_func_00034BFC(int a0) {
+    return *(int *)&D_00000000 + 0x80000000;
+}
 
 extern int gl_func_00000000();
 void gl_func_00034C14() {
