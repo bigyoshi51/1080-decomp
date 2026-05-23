@@ -20624,7 +20624,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041EDC);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041F90);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042080);
+// Store a1 to global at segment offset 0x3C160; first arg unused (homed).
+// (Standalone shows a 2/4 home/store delay-slot swap, but the full-TU
+// schedule matches cleanly — no INSN_PATCH needed.)
+void game_libs_func_00042080(int a0, int a1) {
+    *(int *)((char *)&D_00000000 + 0x3C160) = a1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042090);
 
