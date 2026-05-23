@@ -904,7 +904,7 @@ int timproc_uso_b5_func_00001CF0(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001CF0);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001D14);
+void timproc_uso_b5_func_00001D14(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001D1C);
 
