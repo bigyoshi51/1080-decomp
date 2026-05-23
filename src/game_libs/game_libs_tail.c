@@ -158,7 +158,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AB0);
 
 void game_libs_func_00009AD0(void) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AD8);
+void game_libs_func_00009AD8(unsigned char *a0, int a1, int a2, int a3, int a4) {
+    a0[5] = a1;
+    a0[6] = a2;
+    a0[7] = a3;
+    a0[1] = a4;
+    a0[0] |= 0x80;
+}
 
 /* Clears MSB (sibling of matched _00009978). */
 void game_libs_func_00009AFC(unsigned char *arg0) {

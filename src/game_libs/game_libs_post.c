@@ -5156,7 +5156,10 @@ void gl_func_00026CF0(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026CF0);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026D4C);
+void game_libs_func_00026D4C(void) {
+    *(unsigned char *)((char *)&D_00000000 + 0x53B9) = *(unsigned char *)((char *)&D_00000000 + 0x53B8);
+    *(unsigned char *)((char *)&D_00000000 + 0x53BA) = 0;
+}
 
 // gl_func_00026D64 — STRUCTURAL PASS (0x398 / 230 words ≈ 0.9KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
