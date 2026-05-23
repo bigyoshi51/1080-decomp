@@ -266,7 +266,28 @@ void game_libs_func_00009BE0(char *a0, int a1) { *(int*)(a0 + 4) = a1; *(unsigne
 
 void game_libs_func_00009BF4(int *a0) { *(int*)((char*)a0 + 0x0) &= 0x7F; }
 
+#ifdef NON_MATCHING
+/* Word-variant sibling of 00009988: copy to a0[5..7] via d[4]; word flag-pack
+ * *(int*)a0 = (*(int*)a0 & ~0x7F) | (a2&0xFF) | ((a3&0xFF)<<3) (lw/sw, mask via
+ * li -0x80). Same modified-param home-spill cap. Faithful decode; INCLUDE_ASM. */
+void game_libs_func_00009C04(int *a0, char *a1, int a2, int a3) {
+    int n = 0;
+    char *d = (char *)a0;
+    char *s = a1;
+    a3 &= 0xFF;
+    a2 &= 0xFF;
+    do {
+        char c = *s;
+        n++;
+        d++;
+        s++;
+        d[4] = c;
+    } while (n != 3);
+    *a0 = (*a0 & ~0x7F) | a2 | (a3 << 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C5C);
 
