@@ -25651,7 +25651,9 @@ void game_libs_func_0004E234(char *a0, int a1) {
     *(int*)(a0 + 0x190) = a1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E23C);
+int game_libs_func_0004E23C(char *a0) {
+    return *(int*)(a0 + 0x190);
+}
 
 // gl_func_0004E244 — STRUCTURAL PASS (0x134 / 80 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
