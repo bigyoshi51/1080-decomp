@@ -173,7 +173,23 @@ void game_libs_func_00009AFC(unsigned char *arg0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B60);
+/* 3-byte transform copy (a2[i]-0x61 -> a0[1..3]) + a0[0]=a1 + a0[4]=a3.
+ * Register-exact from C (counter decl first -> $v0); IDO reorders the 4 setup
+ * moves vs the target (isolated-vs-full-TU scheduling) — closed via a 4-insn
+ * INSN_PATCH positional swap. */
+void game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {
+    int n = 0;
+    char *d = a0;
+    char *s = a2;
+    a0[0] = a1;
+    do {
+        n++;
+        d++;
+        *d = *s - 0x61;
+        s++;
+    } while (n != 3);
+    *(int *)(a0 + 4) = a3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B98);
 

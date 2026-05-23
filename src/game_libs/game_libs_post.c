@@ -1816,7 +1816,21 @@ void gl_func_00020A28(int a0, int a1, float *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020DF4);
+/* Short-array zeroing loop (8 shorts, 4/iter). Register-exact from C; IDO
+ * fills the loop-setup delay differently (li a0,8 vs move v0,0 ordering) —
+ * isolated-vs-full-TU scheduling swap, closed via a 2-insn INSN_PATCH. */
+void game_libs_func_00020DF4(short *a0) {
+    int i = 0;
+    short *p = a0;
+    do {
+        i += 4;
+        p[1] = 0;
+        p[2] = 0;
+        p[3] = 0;
+        p += 4;
+        p[-4] = 0;
+    } while (i != 8);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E24);
 
