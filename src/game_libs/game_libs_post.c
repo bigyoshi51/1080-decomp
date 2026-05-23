@@ -4731,7 +4731,27 @@ int gl_func_000258CC(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025A80);
+// Add a0 to the pointer array a2[0..a1) if its key (a0[1]) isn't already
+// present (matched against a2[i][1]); append + bump count when absent.
+// Returns the resulting count. INSN_PATCH swaps the i=0 init into the leading
+// blez delay slot (2/18 register-exact delay-slot fill).
+int game_libs_func_00025A80(int *a0, int a1, int **a2) {
+    int i = 0;
+    int key = a0[1];
+    if (a1 > 0) {
+        do {
+            if (key == a2[i][1]) {
+                break;
+            }
+            i++;
+        } while (i != a1);
+    }
+    if (i == a1) {
+        a2[a1] = (int)a0;
+        a1++;
+    }
+    return a1;
+}
 
 // gl_func_00025AC8 — STRUCTURAL PASS (0x18C / 99 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
