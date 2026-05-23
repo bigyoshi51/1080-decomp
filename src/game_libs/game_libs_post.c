@@ -22639,7 +22639,14 @@ void game_libs_func_00047AB4(char *a0, char *a1) {
     a0[0x1FB] = a1[3];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047AD8);
+// Convert a Vec3 (a1[0..2]) to 3 signed bytes at a0->0x1F8/0x1F9/0x1FA, scaled
+// by 127.0f (0x42FE0000). The (int) cast is required for trunc.w.s — a (char)
+// cast of a float pulls in the soft-float-to-int helper instead.
+void game_libs_func_00047AD8(char *a0, float *a1) {
+    a0[0x1F8] = (int)(a1[0] * 127.0f);
+    a0[0x1F9] = (int)(a1[1] * 127.0f);
+    a0[0x1FA] = (int)(a1[2] * 127.0f);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047B28);
 
@@ -28540,7 +28547,24 @@ int game_libs_func_0005B630(int *a0) {
     return *(int *)((char *)a0 + 0x24) << 4;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B63C);
+// Walk the circular list (a0->4 = next, terminated when next==a0) and return
+// the max of ((node->0 & 0xFFFFFF) << 4). (Standalone shows a 2/17 max-init /
+// mask-build swap around the leading beq, but the full-TU schedule matches
+// cleanly — no INSN_PATCH needed.)
+int game_libs_func_0005B63C(int *a0) {
+    int *node = (int *)a0[1];
+    int max = 0;
+    if (node != a0) {
+        do {
+            unsigned val = ((unsigned)node[0] & 0xFFFFFF) << 4;
+            if ((unsigned)max < val) {
+                max = val;
+            }
+            node = (int *)node[1];
+        } while (node != a0);
+    }
+    return max;
+}
 
 /* Empty 2-arg stub (sibling of matched timproc_uso_b5_func_0000AC04). */
 void game_libs_func_0005B680(int a0, int a1) {
