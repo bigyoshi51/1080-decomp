@@ -28711,7 +28711,18 @@ void game_libs_func_00057574(int *a0) {
     arr2[1] = 0x69;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000575E0);
+void gl_func_000575E0(int *a0) {
+    int *rec;
+    int idx;
+    int *arr;
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)((int *)a0)[3])[0] + (idx * 8));
+    arr[0] = 0xE9000000;
+    arr[1] = 0;
+    gl_func_00000000(a0, arr);
+}
 
 /* game_libs_func_00057628: doubled record-append with masking. Append 1:
  * arr[0]=0xE7000000, arr[1]=0. Append 2: arr2[0]=((a2-1)&0xFFF)|0xFF100000,
