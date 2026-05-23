@@ -5694,16 +5694,11 @@ void gl_func_000275BC(void) { D_gl275BC = 0; }
 //   jal-0 needs USO reloc infra. Name pre-checked: no extern reuse
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
-extern int D_00000000;
 void gl_func_000275C8(void) {
     char *g = (char *)&D_00000000;
     gl_func_00000000(*(void **)(g + 0x53C8), 0, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000275C8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000275F4);
 
@@ -5762,16 +5757,12 @@ void gl_func_00027704(int a0, int a1) {
 //   needs USO reloc infra. Name pre-checked: no extern reuse
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_00027744(int a0, int a1) {
     int r1 = gl_func_00000000(1);
     gl_func_00000000(a0, a1);
     gl_func_00000000(r1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027744);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027784);
 
@@ -9151,7 +9142,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF98);
 //   STALE 6-jr-bundle comment: grep -c 03E00008 = 1 (.s now single
 //   fn). Real-C STRUCTURAL body below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_0002E06C(char *o) {
     *(unsigned char *)(o + 0x20) = 0;
@@ -9160,9 +9150,6 @@ void gl_func_0002E06C(char *o) {
     *(float *)(o + 4) = 0.0f;
     gl_func_00000000(*(unsigned char *)(o + 0x21));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E06C);
-#endif
 
 void game_libs_func_0002E0A0(char *a0) {
     a0[0x32] = 0xF;
@@ -9645,7 +9632,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F72C);
 //   canned switch dispatch — byte-match needs USO mnemonic disasm
 //   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_0002F8A0(int mode) {
     switch (mode) {
@@ -9664,9 +9650,6 @@ void gl_func_0002F8A0(int mode) {
             break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F8A0);
-#endif
 
 // gl_func_0002F934 — STRUCTURAL PASS (0xA0 / 40 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -12284,7 +12267,6 @@ void gl_func_00034B64(int a0) {
 //   Real-C STRUCTURAL body below for the NAMED leading 1..9
 //   slot-init loop only. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
-#ifdef NON_MATCHING
 void gl_func_00034B98(void *a0) {
     int i;
     (void)a0;
@@ -12292,9 +12274,6 @@ void gl_func_00034B98(void *a0) {
         gl_func_00000000(i);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034B98);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034BDC);
 
