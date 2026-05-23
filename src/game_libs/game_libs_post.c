@@ -2901,7 +2901,32 @@ void game_libs_func_00022F30(int a0, int a1) {
     }
 }
 
+#ifdef NON_MATCHING
+/* Header at a0: a0[0]=s16 count, a0+2=s16 (set to a2), a0+4=int (set to a1).
+ * For each of `count` 16-byte elements (starting at a0), if elem->0x14 != 0 AND
+ * elem->0x18(s8) == 2, add a1 to elem->0x10. Structurally exact (23 of 24 insns
+ * map 1:1 with branch-likely beqzl/bnel skips) EXCEPT the target's leading
+ * `sw a2, 8(sp)` arg-home of a2 (no frame), which C-emit doesn't reproduce
+ * (arg-home-spill cap) — and the remaining loop $t-renumber is permuter-resistant
+ * (loop). Reloc-free. */
+void game_libs_func_00022F60(short *a0, int a1, int a2) {
+    int v0 = 0;
+    char *cursor = (char *)a0;
+    *(short *)((char *)a0 + 2) = a2;
+    *(int *)((char *)a0 + 4) = a1;
+    if (*a0 > 0) {
+        do {
+            v0++;
+            if (*(int *)(cursor + 0x14) != 0 && *(signed char *)(cursor + 0x18) == 2) {
+                *(int *)(cursor + 0x10) += a1;
+            }
+            cursor += 16;
+        } while (v0 < *a0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F60);
+#endif
 
 // gl_func_00022FC0 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
