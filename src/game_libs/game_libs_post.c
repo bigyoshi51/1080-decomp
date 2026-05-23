@@ -1343,7 +1343,17 @@ void game_libs_func_0001FE4C(int *a0, int a1, int a2) {
 
 void game_libs_func_0001FE74(int *a0) { *(int*)((char*)(a0) + 0x10) = 0; *(int*)((char*)(a0) + 0x0) = 0; *(int*)((char*)(a0) + 0x8) = *(int*)((char*)(a0) + 0x4); }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FE88);
+void game_libs_func_0001FE88(short *a0) {
+    int v = *(int *)((char *)a0 + 4);
+    int sum = v + *(int *)((char *)a0 + 0xC);
+    *(int *)((char *)a0 + 0x10) = 0;
+    *(int *)a0 = 0;
+    *(int *)((char *)a0 + 0x20) = sum;
+    a0[0xF] = -1;
+    a0[0x15] = -1;
+    *(int *)((char *)a0 + 8) = v;
+    *(int *)((char *)a0 + 0x14) = v;
+}
 
 void game_libs_func_0001FEB8(int *a0) { *(int*)((char*)a0 + 4) = *(int*)a0; *(int*)((char*)a0 + 0xC) = 0; }
 
