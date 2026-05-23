@@ -479,7 +479,29 @@ void func_000144E0(void *a0, float a1, float a2) {
  * +0.5 literal add + c.lt.s operand-order. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
+#ifdef NON_MATCHING
+int func_000144F4(char *a0, int a1) {
+    int r = 0;
+    float spd = *(float *)(a0 + 0xA8);
+    float pos;
+    if (spd < 16.0f) {
+        *(float *)(a0 + 0xA8) = (float)((double)spd + 0.5);
+    }
+    spd = *(float *)(a0 + 0xA8);
+    *(float *)(a0 + 0x5C) = *(float *)(a0 + 0x5C) + spd;
+    pos = *(float *)(a0 + 0x5C);
+    if ((float)a1 < pos) {
+        r = 1;
+        if (6.0f < spd) {
+            *(float *)(a0 + 0xA8) = -(spd / 4.0f);
+        }
+        *(float *)(a0 + 0x5C) = pos - spd;
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000144F4);
+#endif
 
 /* func_00014598 - verified structural decode (0xB4, 45 insns).
  * INSTRUCTION-IDENTICAL SIBLING of func_00014010 (the in-place
