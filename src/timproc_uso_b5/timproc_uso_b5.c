@@ -1423,9 +1423,11 @@ void timproc_uso_b5_func_00003F5C(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F5C);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003FA0);
 #endif
+
+/* Save-arg sentinel: void f(int a0){} → jr ra; sw a0, 0(sp).
+ * docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body */
+void timproc_uso_b5_func_00003FA0(int a0) {}
 
 void timproc_uso_b5_func_00003FA8(int a0, int a1, int a2, int a3) {
     (void)a0;
@@ -3764,9 +3766,11 @@ void timproc_uso_b5_func_0000B368(char *obj, int unused) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B368);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B61C);
 #endif
+
+/* Save-arg sentinel: void f(int a0){} → jr ra; sw a0, 0(sp).
+ * docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body */
+void timproc_uso_b5_func_0000B61C(int a0) {}
 
 // timproc_uso_b5_func_0000B624 — STRUCTURAL PASS (0x304 / 193 words,
 // no episode). Raw-.word USO form. BOUNDARY NOTE: 4-jr USO bundle
