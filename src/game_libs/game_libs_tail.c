@@ -120,7 +120,31 @@ void game_libs_func_00009978(unsigned char *arg0) {
     *arg0 &= 0x7F;
 }
 
+#ifdef NON_MATCHING
+/* 4-arg string-builder: a0[2..4] = a1[0..2] (3-byte copy); then pack a flag
+ * byte a0[0] = (a0[0] & 0xFF80) | (a2 & 0xFF) | ((a3 & 0xFF) << 3). CAP:
+ * target home-spills the modified params a2,a3 (sw a2,8(sp); sw a3,0xC(sp))
+ * at entry — the modified-param home-spill (same class as 0002BA08) isn't
+ * C-reachable, leaving the build 2 insns short + bitfield register-renumber.
+ * Faithful decode for documentation; INCLUDE_ASM build path. */
+void game_libs_func_00009988(char *a0, char *a1, int a2, int a3) {
+    int n = 0;
+    char *d = a0;
+    char *s = a1;
+    a3 &= 0xFF;
+    a2 &= 0xFF;
+    do {
+        char c = *s;
+        n++;
+        d++;
+        s++;
+        d[1] = c;
+    } while (n != 3);
+    a0[0] = ((int)(unsigned char)a0[0] & 0xFF80) | a2 | (a3 << 3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
+#endif
 
 /* 7-arg string-builder: a0[0]=a1; a0[1]=a2; 3x copy (a3[i]-0x61)->a0[2..4];
  * a0[5..7]=stack args. Register-exact; the 5 setup insns reorder vs target
