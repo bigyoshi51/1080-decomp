@@ -124,7 +124,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000099DC);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00009A2C: 7-insn flag-test returning bool — decoded as
+ *   int f(unsigned char *a0) { return (*a0 & 0x80) != 0; }
+ *
+ * UNMATCHABLE standalone: target uses the verbose -O1-style flag form
+ * `lbu; move v0,0; andi; beqz +3; nop; jr ra; li v0,1` where the `beqz`
+ * for the return-0 path targets offset 0x1C — ONE PAST this function's
+ * own end (into the next function's body / a shared epilogue). C-only
+ * -O2 emit gives the compact `andi; sltu` (4 insns) or an extra `jr ra`
+ * (9 insns with two returns). The cross-function-epilogue tail-merge
+ * can't be expressed from a single standalone C function. Same -O1
+ * compare/flag family as siblings 00009A50/00009A80/00009AB0.
+ * INCLUDE_ASM stays. */
+int game_libs_func_00009A2C(unsigned char *a0) {
+    return (*a0 & 0x80) != 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A2C);
+#endif
 
 void game_libs_func_00009A48(void) {}
 
