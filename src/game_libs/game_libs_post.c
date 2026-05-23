@@ -386,7 +386,18 @@ void game_libs_func_0001D584(void) {}
 
 void game_libs_func_0001D58C(void) {}
 
+#ifdef NON_MATCHING
+/* gbi 2-word command builder (5 args). CAP: word-1 matches exactly; word-2's
+ * temp registers are uniformly +1 vs the target (target $t2-$t5, build
+ * $t1-$t4) — an allocno-numbering difference the build skips $t1 for. No C
+ * lever found (OR-commute, +/|, short-arg all tried). Structure exact. */
+void game_libs_func_0001D594(int *a0, int a1, int a2, int a3, int a4) {
+    a0[0] = (((a1 & 0xFF) << 16) | 0x0C000000) | (a2 & 0xFFFF);
+    a0[1] = (a3 << 16) | (a4 & 0xFFFF);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D594);
+#endif
 
 void game_libs_func_0001D5C8(void) {}
 
@@ -394,7 +405,16 @@ void game_libs_func_0001D5D0(void) {}
 
 void game_libs_func_0001D5D8(void) {}
 
+#ifdef NON_MATCHING
+/* gbi 2-word command builder (5 args), cmd 0x08. Same word-2 allocno cap as
+ * 0001D594. */
+void game_libs_func_0001D5E0(int *a0, int a1, int a2, int a3, int a4) {
+    a0[0] = (((a1 & 0xFF) << 16) | 0x08000000) | (a2 & 0xFFFF);
+    a0[1] = (a3 << 16) | (a4 & 0xFFFF);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D5E0);
+#endif
 
 void game_libs_func_0001D614(void) {}
 
@@ -412,7 +432,16 @@ void game_libs_func_0001D668(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D670);
 
+#ifdef NON_MATCHING
+/* gbi 2-word command builder (5 args), cmd 0x12. Same word-2 allocno cap as
+ * 0001D594. */
+void game_libs_func_0001D694(int *a0, int a1, int a2, int a3, int a4) {
+    a0[0] = (((a1 & 0xFF) << 16) | 0x12000000) | (a2 & 0xFFFF);
+    a0[1] = (a3 << 16) | (a4 & 0xFFFF);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D694);
+#endif
 
 void game_libs_func_0001D6C8(void) {}
 
