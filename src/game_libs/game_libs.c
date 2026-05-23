@@ -179,9 +179,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000A8C);
 
 void game_libs_func_00000B8C(int a0) {}
 
+/* game_libs_func_00000B94: ms->time formatter (a1 / 60000 = minutes, etc.).
+ * Merged 2026-05-23: splat mis-split this at 0xBAC into game_libs_func_00000B94
+ * (head: div a1,60000; v0<<4; multu v0,60000 — no prologue/jr) + gl_func_00000BAC
+ * (body: mflo of B94's multu, prologue, sprintf-style calls, epilogue). The
+ * multu(B94)/mflo(BAC) LO-register dependency proves they are one function;
+ * IDO scheduled the division setup before the addiu sp prologue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B94);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000BAC);
 
 /* gl_func_00000D5C - verified structural decode (0x118, 70 insns,
  * get-or-create constructor + child wiring).
