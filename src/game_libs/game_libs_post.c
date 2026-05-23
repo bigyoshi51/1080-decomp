@@ -24862,7 +24862,10 @@ float game_libs_func_0004DD2C(int a0) {
     return 1.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD3C);
+// Returns 1.0f (built via lui 0x3F80 + mtc1); first arg unused (homed).
+float game_libs_func_0004DD3C(int a0) {
+    return 1.0f;
+}
 
 void game_libs_func_0004DD4C(int a0) {}
 
@@ -30244,7 +30247,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000617A8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061824);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006186C);
+// Store arg to global at segment offset 0x21E04 (lui+sw, offset baked in bytes).
+void game_libs_func_0006186C(int a0) {
+    *(int *)((char *)&D_00000000 + 0x21E04) = a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061878);
 
