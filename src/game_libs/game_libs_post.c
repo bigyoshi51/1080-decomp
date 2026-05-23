@@ -10662,7 +10662,27 @@ void game_libs_func_00031754(int *a0, int a1, int a2, int a3) {
     a0[0x5C / 4] = (int)((char *)&D_00000000 + (((int)v >> 1) << 1));
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031784);
+void game_libs_func_00031784(int *a0) {
+    int v0 = a0[0x54 / 4];
+    int t;
+    if (v0 != 0) {
+        if (v0 != 1) {
+            goto end;
+        }
+        if (a0[0x58 / 4] < a0[0x4C / 4]) {
+            goto end;
+        }
+        a0[0x4C / 4] = a0[0x58 / 4];
+        a0[0x48 / 4] = 0;
+        a0[0x40 / 4] = a0[0x44 / 4];
+    }
+    a0[a0[0x40 / 4]] = a0[0x5C / 4];
+    t = a0[0x40 / 4] + 1;
+    ((volatile int *)a0)[0x40 / 4] = t;
+    a0[0x40 / 4] = t & 0xF;
+end:
+    a0[0x5C / 4] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000317F0);
 
