@@ -2667,7 +2667,54 @@ int gl_func_00022464(char *key) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
 #endif
 
+#ifdef NON_MATCHING
+/* Two-pass countdown/timer processor over the global D record arrays. For each
+ * of count1=D[0x1E10] records (base D[0x1E08], stride 0x10): if rec[14] (a
+ * countdown byte) == 1, set it to 0, store the queue tail D[0x201A] into rec[13],
+ * append the record index into D[0x1E18 + D[0x201A]], bump D[0x201A]. Second pass:
+ * same over count2=D[0x1E0C] records, queue D[0x201B]/D[0x1F18]. Finally
+ * D[0x1E14]=0. Reloc-blind (&D). Byte-match multi-run: branch-likely loops +
+ * register-alloc + the v0-only-increments-on-process loop counter. */
+void game_libs_func_0002266C(void) {
+    int v0 = 0;
+    int a0 = 0;
+    int count = *(int *)((char *)&D_00000000 + 0x1E10);
+    if (count != 0) {
+        do {
+            unsigned char *rec = (unsigned char *)(a0 + *(int *)((char *)&D_00000000 + 0x1E08));
+            unsigned char cd = rec[14];
+            if (cd != 0 && (unsigned char)(cd - 1) == 0) {
+                rec[14] = cd - 1;
+                rec[13] = *(unsigned char *)((char *)&D_00000000 + 0x201A);
+                *(unsigned char *)((char *)&D_00000000 + 0x1E18 + *(unsigned char *)((char *)&D_00000000 + 0x201A)) = v0;
+                *(unsigned char *)((char *)&D_00000000 + 0x201A) += 1;
+                count = *(int *)((char *)&D_00000000 + 0x1E10);
+                v0++;
+            }
+            a0 += 16;
+        } while ((unsigned int)v0 < (unsigned int)count);
+    }
+    count = *(int *)((char *)&D_00000000 + 0x1E0C);
+    if ((unsigned int)v0 < (unsigned int)count) {
+        do {
+            unsigned char *rec = (unsigned char *)(a0 + *(int *)((char *)&D_00000000 + 0x1E08));
+            unsigned char cd = rec[14];
+            if (cd != 0 && (unsigned char)(cd - 1) == 0) {
+                rec[14] = cd - 1;
+                rec[13] = *(unsigned char *)((char *)&D_00000000 + 0x201B);
+                *(unsigned char *)((char *)&D_00000000 + 0x1F18 + *(unsigned char *)((char *)&D_00000000 + 0x201B)) = v0;
+                *(unsigned char *)((char *)&D_00000000 + 0x201B) += 1;
+                count = *(int *)((char *)&D_00000000 + 0x1E0C);
+                v0++;
+            }
+            a0 += 16;
+        } while ((unsigned int)v0 < (unsigned int)count);
+    }
+    *(int *)((char *)&D_00000000 + 0x1E14) = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
+#endif
 
 // gl_func_00022760 — STRUCTURAL PASS (0x33C / 207 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
