@@ -9052,7 +9052,30 @@ void game_uso_func_0000B884(char *dst) {
  * alloc-cascade dead checks + 18-call s0-s2 spill + mtc1-zero FP +
  * beql branch-likely + &D reloc scheduling. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+char *game_uso_func_0000B8D4(char *a0) {
+    char *s2;
+    char *s1;
+    char *sub;
+    float z[3];
+    s2 = a0 ? a0 : (char *)gl_func_00000000(632);
+    if (!s2) return s2;
+    s1 = (char *)gl_func_00000000(180);
+    if (s1) {
+        gl_func_00000000(s1, (char *)&D_00000000 + 3440);
+        *(char **)(s1 + 0x28) = &D_00000000;
+        sub = (char *)gl_func_00000000(4);
+        if (!sub) sub = (char *)gl_func_00000000(4);
+        if (sub) *(int *)sub = 0;
+        gl_func_00000000(s1);
+        z[0] = 0.0f; z[1] = 0.0f; z[2] = 0.0f;
+        gl_func_00000000(s1 + 0x30, z);
+    }
+    return s2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
+#endif
 
 // game_uso_func_0000BB8C — STRUCTURAL PASS (0x3F0 / 252 words,
 // no episode). Raw-.word USO form (single function, game_uso main
