@@ -10546,7 +10546,16 @@ void gl_func_00031710(int arg) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031710);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031754);
+// Read u16 v = D[a2] from the segment-base table, store args to a0->0x54/0x58,
+// and store &D + (v & ~1) (rounded-down even index back into the table) to
+// a0->0x5C. Single segment-base ref (one &D_00000000), real index logic →
+// builds byte-exact as plain C (moves %). No episode (reloc-blind base).
+void game_libs_func_00031754(int *a0, int a1, int a2, int a3) {
+    unsigned short v = *(unsigned short *)((char *)&D_00000000 + a2 * 2);
+    a0[0x58 / 4] = a3;
+    a0[0x54 / 4] = a1;
+    a0[0x5C / 4] = (int)((char *)&D_00000000 + (((int)v >> 1) << 1));
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031784);
 
