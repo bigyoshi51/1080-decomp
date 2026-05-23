@@ -1212,7 +1212,23 @@ void *timproc_uso_b5_func_000032C8(int *a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
 
+#ifdef NON_MATCHING
+/* Zero fields: 0x2B4 (int), 0x164/0x168/0x16C/0x2A0 (float). Faithful decode
+ * but 7/8: the target materializes 0.0f into BOTH $f0 and $f4 (the 2nd mtc1
+ * fills $f0's load-delay slot, and $f4 then feeds the 0x2A0 delay-slot store),
+ * while IDO fills $f0's delay with the int store and reuses $f0 for all floats
+ * (1 insn fewer). 0.0f CSE prevents forcing the 2nd reg; load-delay scheduling
+ * choice, not C-controllable. */
+void timproc_uso_b5_func_00003890(int *a0) {
+    *(int *)((char *)a0 + 0x2B4) = 0;
+    *(float *)((char *)a0 + 0x164) = 0.0f;
+    *(float *)((char *)a0 + 0x168) = 0.0f;
+    *(float *)((char *)a0 + 0x16C) = 0.0f;
+    *(float *)((char *)a0 + 0x2A0) = 0.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003890);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038B0);
 #endif
