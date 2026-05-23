@@ -6820,12 +6820,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029BC8);
 
-#ifdef NON_MATCHING
-/* CAP: indexed double-deref all-$t register cap
- * (docs/IDO_CODEGEN.md#feedback-ido-indexed-double-deref-allt-cap).
- * Structure exact; the 0x44 base pointer allocates to $v0 (named local /
- * inlined-CSE) where the target keeps it in transient $t6 and reuses $t8
- * for the loaded values. 8/11 bytes exact; no C lever found. */
+/* 1.0f init + 3-field pointer copy from a0->0x44. The base pointer + loaded
+ * values renumber ($v0 vs target $t6/$t8 reuse) — allocno cap, closed via
+ * 5-insn INSN_PATCH register fix. */
 void game_libs_func_00029C80(char *a0) {
     int *p = *(int**)(a0 + 0x44);
     *(float*)(a0 + 0x38) = 1.0f;
@@ -6833,9 +6830,6 @@ void game_libs_func_00029C80(char *a0) {
     *(int*)(a0 + 0x84) = p[9];
     *(int*)(a0 + 0x88) = p[10];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029C80);
-#endif
 
 void game_libs_func_00029CAC(char *a0, int a1, int a2) {
     *(char*)a0 = 0;
