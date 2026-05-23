@@ -29081,7 +29081,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005703C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057104);
 
+/* GBI display-list command emitter, gated on flag bits in a1->4. If bit 19
+ * ((flags<<12)<0) OR bit 23 ((flags<<8)<0) is set, append a 2-word command
+ * (0xBA001402, 0x00100000) to the buffer at a0->0xC and bump its entry count
+ * (buf->4). entry = (*buf) + count*8. Logic decoded; NOT byte-exact: target
+ * uses bltz/bgezl branch-likely for the bit tests and the no-emit path is an
+ * -O1 cross-jump to a shared epilogue past this fn's end (tail-merge cap).
+ * Reloc-free (the 0xBA00.../0x10.. luis are GBI literals). INCLUDE_ASM path. */
+#ifdef NON_MATCHING
+void game_libs_func_00057194(int *a0, int *a1) {
+    int flags = a1[1];
+    int *buf;
+    int *base;
+    int *entry;
+    int idx;
+    if (((flags << 12) >= 0) && ((flags << 8) >= 0)) {
+        return;
+    }
+    buf = (int*)a0[3];
+    idx = buf[1];
+    buf[1] = idx + 1;
+    base = (int*)(*(int*)a0[3]);
+    entry = (int*)((char*)base + idx * 8);
+    entry[0] = 0xBA001402;
+    entry[1] = 0x00100000;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00057194);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_000571E4: record-append. rec = a0->0xC; idx = rec[1] (count);
