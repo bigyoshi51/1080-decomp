@@ -525,4 +525,20 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000144F4);
  * sensitive) - same as func_00014010. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
+#ifdef NON_MATCHING
+void func_00014598(char *a0) {
+    char *s = a0 + 0xB4;
+    unsigned int n = (unsigned int)func_00000000(s);
+    unsigned int i = 0;
+    while (i < n) {
+        unsigned char c = s[i];
+        i++;
+        if (c != 0x61 && c != 0x62 && c != 0x20) {
+            s[i - 1] = (char)(0x69 - c);
+        }
+        n = (unsigned int)func_00000000(s);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014598);
+#endif
