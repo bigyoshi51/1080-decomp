@@ -1661,7 +1661,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
  * address-taken-local + sp-slot allocation is not reproduced by clean C
  * (regalloc diverges from insn 0). br=0 but the address-taken-local
  * divergence variant, not the clean-episode subset. INCLUDE_ASM. */
+#ifdef NON_MATCHING
+void gl_func_0000DD44(char *a0, int a1) {
+    int l1 = 1001;
+    int l2 = 1001;
+    char *v1;
+    char *v0;
+    v1 = *(char **)(*(char **)(a0 + 0x44) + a1 * 0x60);
+    v0 = *(char **)(v1 + 0x28);
+    {
+        void (*fn)(char *, int *) = *(void (**)(char *, int *))(v0 + 0x2C);
+        fn((char *)((int)(short)*(short *)(v0 + 0x28) + (int)v1), &l1);
+    }
+    v1 = *(char **)(*(char **)(a0 + 0x44) + (a1 ^ 1) * 0x60);
+    v0 = *(char **)(v1 + 0x28);
+    {
+        void (*fn)(char *, int *) = *(void (**)(char *, int *))(v0 + 0x2C);
+        fn((char *)((int)(short)*(short *)(v0 + 0x28) + (int)v1), &l2);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DD44);
+#endif
 
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DE30/DE80/DED0/0003CB2C).
  * Same shape as DE30 form (inlined dispatch + pad_top[2]/pad_bot[4] frame
