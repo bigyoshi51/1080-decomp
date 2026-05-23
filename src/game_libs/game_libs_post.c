@@ -34100,7 +34100,22 @@ int gl_func_00067F58(int a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
 
+#ifdef NON_MATCHING
+/* strlen: count chars until NUL, return count. Recognized libc, reloc-free.
+ * Byte-match multi-run: target uses the 67xxx-family two-pointer-lag idiom
+ * (v0 = a0 copy per iteration, char read via v0, a0 the live cursor) + a
+ * branch-likely bnezl loop that the clean `while(*s++)` C form (single cursor)
+ * doesn't reproduce. Same family as 67C98 (strncpy) / 67C1C (strcat). */
+int game_libs_func_00067FA4(char *s) {
+    int n = 0;
+    while (*s++) {
+        n++;
+    }
+    return n;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FA4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FD8);
 
