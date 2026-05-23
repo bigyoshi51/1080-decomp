@@ -34408,25 +34408,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E28);
  * scanning continues. Accumulates value += digit, then value *= 10 before the
  * next digit (read-ahead). Logic decoded & correct; NOT yet byte-exact: target
  * uses a single read-char/classify loop with a branch-likely (bnel) on the
- * sign test and a dead duplicate `lbu a1,0(a0)`, so the C structure here
- * (while + for) emits 48 insns vs target 41 (multi-run grind remaining).
- * Reloc-free; INCLUDE_ASM is the build path. */
+ * sign test and a dead duplicate `lbu a1,0(a0)`. This goto form mirrors that
+ * single-loop structure (42 insns vs target 41, 5/41 byte) — closer than the
+ * earlier while+for (48 insns, 2/41). Residual: IDO's char/cursor register
+ * assignment + the bnel sign-test + dead-dup-load aren't reproduced by C.
+ * Reloc-free; INCLUDE_ASM is the build path. Multi-run grind. */
 #ifdef NON_MATCHING
 int game_libs_func_00067E58(char *str) {
     int negative = 0;
     int value = 0;
-    int c = (unsigned char)*str++;
-    while (c < '0' || c > '9') {
+    int c, next;
+loop:
+    c = (unsigned char)*str;
+    str++;
+    if (c < '0' || c >= ':') {
         if (c != '-') return 0;
         negative = 1;
-        c = (unsigned char)*str++;
+        goto loop;
     }
-    for (;;) {
-        value += c - '0';
-        c = (unsigned char)*str;
-        if (c == 0 || c == '.' || c < '0' || c > '9') break;
+    next = (unsigned char)*str;
+    value += c - '0';
+    if (next != 0 && next != '.' && next >= '0' && next < ':') {
         value *= 10;
-        str++;
+        goto loop;
     }
     return negative ? -value : value;
 }
