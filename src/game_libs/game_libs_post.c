@@ -5915,9 +5915,17 @@ void game_libs_func_00027504(char *a0, unsigned char *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027504);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002751C);
+/* Single unsigned-byte copy a1[4] -> a0[0xF]. Reloc-free; temp $t6 (IDO) vs
+ * $t7 (target) register-renumber -> INSN_PATCH 2 reg fields. */
+void game_libs_func_0002751C(unsigned char *a0, unsigned char *a1) {
+    a0[0xF] = a1[4];
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027528);
+/* Single halfword copy a1[2] -> a0[0x10]. Reloc-free; temp $t6 (IDO) vs $t9
+ * (target) register-renumber -> INSN_PATCH 2 reg fields. */
+void game_libs_func_00027528(unsigned short *a0, unsigned short *a1) {
+    a0[0x10] = a1[2];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027534);
 
