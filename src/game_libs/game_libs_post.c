@@ -21452,7 +21452,10 @@ int game_libs_func_00044488(int *a0) {
     return a0[2] - a0[1];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044498);
+int game_libs_func_00044498(char *a0) {
+    int *p = *(int **)a0;
+    return *(int *)(a0 + 4) * 8 + *(int *)(*(int *)((char *)p + 0xC));
+}
 
 /* 5-call unrolled dispatcher. Last call passes only s0 (no a1=s1 reset
  * in DS) — K&R-declared gl_func_00000000 lets IDO omit the a1 setup for
