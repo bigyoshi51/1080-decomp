@@ -10968,7 +10968,38 @@ end:
     a0[0x5C / 4] = 0;
 }
 
+/* Timer/script-step interpreter: decrement the a0->0x48 countdown; while it
+ * hasn't reached 0, return 0. On expiry, read a command halfword from the
+ * a0->0x50 cursor (advance by 2), store it to a0->0x60, and if non-zero read a
+ * following arg halfword (advance) into the countdown a0->0x48; return 1.
+ * Logic decoded & correct; NOT byte-exact (1/19): target is -O1 cross-jumped —
+ * the `return 0` early-exit branches FORWARD to a shared `jr ra` epilogue split
+ * off as game_libs_func_00031834 (right after this fn), with `move v0,zero`
+ * hoisted to insn 2 and `bnez` (vs C's beqz). Reproducing it needs an -O1
+ * flag-split + merge of 31834. Tail-merge cap; INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+int game_libs_func_000317F0(int *a0) {
+    int counter;
+    unsigned short *p;
+    unsigned short cmd;
+    unsigned short arg;
+    counter = *(int*)((char*)a0 + 0x48) - 1;
+    *(int*)((char*)a0 + 0x48) = counter;
+    if (counter != 0) return 0;
+    p = *(unsigned short**)((char*)a0 + 0x50);
+    cmd = *p++;
+    *(unsigned short**)((char*)a0 + 0x50) = p;
+    if (cmd != 0) {
+        arg = *p++;
+        *(unsigned short**)((char*)a0 + 0x50) = p;
+        *(int*)((char*)a0 + 0x48) = arg;
+    }
+    *(unsigned short*)((char*)a0 + 0x60) = cmd;
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000317F0);
+#endif
 
 void game_libs_func_00031834(void) {}
 
