@@ -401,7 +401,36 @@ int gl_func_0001D200(int code, int spec) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D200);
 #endif
 
+#ifdef NON_MATCHING
+/* Display-list emitter: index struct &D[a2*0x158]; for each set flag at +0x118 /
+ * +0x11C emit two DL words (G_? 0x7020000|a1 + payload, then 0x7000C80/0xE20 |
+ * (struct[0x18]<<16) + payload) into a0, advancing. Return advanced a0. Reloc-
+ * blind (&D). Structurally exact through the a2*0x158 index; byte-match capped by
+ * cursor-vs-offset fold (target keeps separate cursors v1/a2 with two +8 advances,
+ * C-emit folds to one +16 with -8/-4 offsets) + $t-renumber. */
+int game_libs_func_0001D3E0(int *a0, int a1, int a2) {
+    char *base = (char *)&D_00000000 + a2 * 0x158;
+    if (*(int *)(base + 0x118) != 0) {
+        a0[0] = (a1 & 0xFFFF) | 0x7020000;
+        a0[1] = *(int *)(base + 0x118);
+        a0 += 2;
+        a0[0] = (*(unsigned char *)(base + 0x18) << 16) | 0x7000C80;
+        a0[1] = *(int *)(base + 0x120);
+        a0 += 2;
+    }
+    if (*(int *)(base + 0x11C) != 0) {
+        a0[0] = (a1 & 0xFFFF) | 0x7020000;
+        a0[1] = *(int *)(base + 0x11C);
+        a0 += 2;
+        a0[0] = (*(unsigned char *)(base + 0x18) << 16) | 0x7000E20;
+        a0[1] = *(int *)(base + 0x124);
+        a0 += 2;
+    }
+    return (int)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D3E0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D4B0);
 
