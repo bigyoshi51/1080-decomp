@@ -33506,7 +33506,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B78);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00067BDC: strcpy returning dst+len (ptr to the copied NUL).
+ * Logic exact; near-miss: target is 16 insns (peeled first iteration + a
+ * redundant per-iteration `move v1,a1; lbu 0(v1)` / `move v0,a0; sb 0(v0)` —
+ * separate pre-increment pointer copies), while clean `*dst++=*src++` do-while
+ * compiles to a tight 7-insn loop. The verbose -O1-ish codegen isn't
+ * reproducible from clean -O2 C. Reloc-free. */
+char *game_libs_func_00067BDC(char *dst, char *src) {
+    char c;
+    do {
+        c = *src++;
+        *dst++ = c;
+    } while (c != 0);
+    return dst - 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067BDC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067C1C);
 
