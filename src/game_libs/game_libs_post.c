@@ -30439,16 +30439,27 @@ int* gl_func_00060370(int *self_or_null) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060370);
 #endif
 
-/* gl_func_00060468: 26-insn 3-call wrapper. Decoded structure:
- *   v = func();
- *   p = a0->[0x44]; p[1] = v;
- *   p[2] += p[1] - p[0];
- *   func(p);
- *   v = func();
- *   p = a0->[0x44]; p[0] = v;
- * Straight C produces 77% (below 80% threshold) — IDO regalloc/scheduler
- * cap. Kept as INCLUDE_ASM. */
+#ifdef NON_MATCHING
+/* gl_func_00060468: 26-insn 3-call record-update. v=func(a0); p=a0->0x44;
+ * p[1]=v; p[2]+=p[1]-p[0]; func(p); v=func(); p=a0->0x44; p[0]=v. Reloc-blind
+ * (jal-0 placeholders, a0->0x44 reloaded inline). Straight C caps at 77% — IDO
+ * regalloc/scheduler divergence across the 3 calls (below the 80% threshold,
+ * documented for completeness; kept INCLUDE_ASM as the build path). */
+void gl_func_00060468(int *a0) {
+    int *p;
+    int v;
+    v = gl_func_00000000(a0);
+    p = (int *)a0[0x44 / 4];
+    p[1] = v;
+    p[2] += p[1] - p[0];
+    gl_func_00000000(p);
+    v = gl_func_00000000();
+    p = (int *)a0[0x44 / 4];
+    p[0] = v;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060468);
+#endif
 
 /* gl_func_000604D0: 23-insn linked-list walk-and-call. Walks a2->[0x18]
  * via [0x14] next-ptrs; calls gl_func(node, a1) on each; stops on first
