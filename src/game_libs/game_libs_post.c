@@ -5713,8 +5713,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274EC);
  * before the =1 store) and renumbers the temps; standalone AND in-tree both
  * reorder 3 insns + renumber 2, which is >half so no episode/INSN_PATCH. */
 void game_libs_func_00027504(char *a0, unsigned char *a1) {
+    int t = a1[4];
     *(short *)(a0 + 0x18) = 1;
-    *(short *)(a0 + 0x14) = a1[4] << 5;
+    *(short *)(a0 + 0x14) = t << 5;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027504);
