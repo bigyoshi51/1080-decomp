@@ -28534,7 +28534,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057104);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00057194);
 
+#ifdef NON_MATCHING
+/* game_libs_func_000571E4: record-append. rec = a0->0xC; idx = rec[1] (count);
+ * rec[1]++; arr = rec[0] (base ptr) + idx*8; arr[0] = 0xBA001402; arr[1] = 0.
+ * The base read re-reads a0->0xC inline (inline-reload lever reproduces the
+ * 2nd lw 0xC(a0)). Logic exact; near-miss on two points: (1) UNFILLED jr-delay
+ * — target stores `sw zero,4(a1); jr ra; nop` but IDO -O2 FILLS the delay
+ * (jr ra; sw zero), 13 vs 14 insns (same unfilled-delay game_libs pattern as
+ * 53348); (2) accompanying register renumber. Reloc-free (the only const is the
+ * 0xBA001402 literal). */
+void game_libs_func_000571E4(int *a0) {
+    int *rec = (int *)((int *)a0)[3];
+    int idx = rec[1];
+    int *arr;
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)((int *)a0)[3])[0] + idx * 8);
+    arr[0] = 0xBA001402;
+    arr[1] = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000571E4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005721C);
 
