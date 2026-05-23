@@ -275,9 +275,17 @@ def patch_one(data, func_name, patches):
     orphan_lo_offsets = set()
     for insn_off, word in patches:
         if not (0 <= insn_off < func_size):
-            raise ValueError(
-                f"{func_name}: offset {insn_off:#x} outside function "
-                f"(size {func_size:#x})")
+            # Offset past the function end happens in the EXPECTED_BASELINE
+            # refresh: the function is INCLUDE_ASM'd at its smaller original
+            # size, while the INSN_PATCH targets the (larger) decomp-build
+            # layout. Skip that patch instead of aborting the whole baseline
+            # build (which would block every land's expected/ refresh), mirroring
+            # the "symbol absent" no-op skip above.
+            print(f"patch-insn-skip: {func_name} offset {insn_off:#x} outside "
+                  f"function (size {func_size:#x}); likely EXPECTED_BASELINE; "
+                  f"no-op for this patch", file=sys.stderr)
+            skipped += 1
+            continue
         if insn_off & 3:
             raise ValueError(
                 f"{func_name}: offset {insn_off:#x} not 4-byte aligned")

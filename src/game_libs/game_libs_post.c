@@ -33510,12 +33510,21 @@ void game_libs_func_000664F0(int *a0, int *a1) {
  */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066514);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006656C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006658C);
-
 #endif
+
+/* Array slot-append: if idx (a0->4) < cap-1 (a0->8 - 1), advance idx and return
+ * &base[idx] (base=a0->0, stride 8); else (full) return 0. Merged: the append
+ * block was splat-split off as game_libs_func_0006658C (UNSHARED); merged back
+ * (0x20 -> 0x38). Inlining a0[2]-1 (no `cap` local) keeps the limit temp in $t6,
+ * matching the target register allocation. */
+int game_libs_func_0006656C(int *a0) {
+    int idx = a0[1];
+    if ((unsigned)idx >= (unsigned)(a0[2] - 1)) {
+        return 0;
+    }
+    a0[1] = idx + 1;
+    return a0[0] + idx * 8;
+}
 
 void game_libs_func_000665A4(int *a0, int a1) { *(int*)a0 = a1; *(int*)((char*)a0 + 8) = 0; *(int*)((char*)a0 + 4) = 0; }
 
