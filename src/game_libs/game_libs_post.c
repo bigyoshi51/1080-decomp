@@ -7543,7 +7543,27 @@ unsigned char game_libs_func_0002A9A4(unsigned char **a0) {
     return v;
 }
 
+#ifdef NON_MATCHING
+/* game_libs_func_0002A9B8: big-endian signed 16-bit reader over a byte-stream
+ * cursor (**a0). Reads two bytes via *p++, storing the advanced cursor back to
+ * *a0 after EACH byte, then returns (short)((b0<<8)|b1). Logic exact; near-miss
+ * on two points: (1) target keeps a REDUNDANT inner sign-extend — lbu b0 then
+ * ((b0<<8)<<16)>>16 = (signed char)b0<<8 — that IDO folds into the outer (short)
+ * here (12 vs 14 insns); writing (signed char)b0 folds, signed-char b0 switches
+ * lbu->lb. (2) the 2nd cursor store is scheduled late (after the shift combine).
+ * Both resist plain-C control. */
+short game_libs_func_0002A9B8(unsigned char **a0) {
+    unsigned char *p = *a0;
+    int b0, b1;
+    b0 = *p++;
+    *a0 = p;
+    b1 = *p++;
+    *a0 = p;
+    return (short)((b0 << 8) | b1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9B8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9F0);
 
