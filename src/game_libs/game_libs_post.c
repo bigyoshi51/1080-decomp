@@ -33821,7 +33821,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067C1C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067C90);
 
+#ifdef NON_MATCHING
+/* strncpy(dst, src, n): copy up to n bytes from src, stop at NUL, pad the
+ * remainder of the n-byte field with zeros, return dst. Algorithm verified
+ * (reloc-free). Byte-match is a multi-run target: target keeps src in saved
+ * $s0 (frame 0x8) because it reuses a1 as the *dst++ store temp (move a1,a0;
+ * sb;..) evicting src from a1; the C-emit path so far keeps src in a $t reg
+ * (no frame, -1(a0) store form) — frame + a1-reuse scheduling pending. */
+char *gl_func_00067C98(char *dst, char *src, int n) {
+    char *ret = dst;
+    int i = 0;
+    if (n > 0) {
+        do {
+            char c = *src++;
+            *dst++ = c;
+            i++;
+            if (c == 0) {
+                while (i < n) {
+                    *dst++ = 0;
+                    i++;
+                }
+                break;
+            }
+        } while (i < n);
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067C98);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00067D18: counts occurrences of byte a1 in the string at a0,
