@@ -34403,7 +34403,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E28);
 // the head, so it's one function (size 0xA4). Caller-set $v1 accumulator
 // (read on entry, *= 10 per digit via multu) — IDO C can't express, stays
 // INCLUDE_ASM. Boundary now correct (one symbol).
+/* Signed decimal string -> int parser (atoi-class, stops at '.'/NUL/non-digit).
+ * Leading char must be a digit or '-' (else returns 0); '-' sets the sign and
+ * scanning continues. Accumulates value += digit, then value *= 10 before the
+ * next digit (read-ahead). Logic decoded & correct; NOT yet byte-exact: target
+ * uses a single read-char/classify loop with a branch-likely (bnel) on the
+ * sign test and a dead duplicate `lbu a1,0(a0)`, so the C structure here
+ * (while + for) emits 48 insns vs target 41 (multi-run grind remaining).
+ * Reloc-free; INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+int game_libs_func_00067E58(char *str) {
+    int negative = 0;
+    int value = 0;
+    int c = (unsigned char)*str++;
+    while (c < '0' || c > '9') {
+        if (c != '-') return 0;
+        negative = 1;
+        c = (unsigned char)*str++;
+    }
+    for (;;) {
+        value += c - '0';
+        c = (unsigned char)*str;
+        if (c == 0 || c == '.' || c < '0' || c > '9') break;
+        value *= 10;
+        str++;
+    }
+    return negative ? -value : value;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E58);
+#endif
 
 /* 9-insn double-return wrapper (split off from 14-insn bundle 2026-05-15
  * via split-fragments.py). Target uses `cvt.d.w` (function 0x21), not
