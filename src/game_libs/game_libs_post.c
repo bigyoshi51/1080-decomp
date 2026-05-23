@@ -1479,9 +1479,29 @@ void *gl_func_0001FD98(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD98);
 #endif
 
+/* Bump/arena allocator. aligned = (n+15) & ~15; if (arena->base + arena->size
+ * < arena->cur + aligned) return 0 (overflow); else old = arena->cur;
+ * arena->cur += aligned; arena->count++ (a0->0xC); return old.
+ * MERGE: the success epilogue (count++; return old) was splat-split off as
+ * game_libs_func_0001FE34 (UNSHARED — only this fn's `b 0x1FE34` reaches it,
+ * verified); merged back here (size 0x40 -> 0x58). Logic decoded & correct;
+ * NOT yet byte-exact: target uses bnez+`b epilogue` (22 insns) where IDO -O2
+ * emits the tighter beqzl-merged form (20). Branch-likely/structure grind
+ * remains. Reloc-free. INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+void *game_libs_func_0001FDF4(int *a0, unsigned int n) {
+    unsigned int aligned = (n + 15) & ~15;
+    int cur = a0[1];
+    if ((unsigned)(a0[0] + a0[2]) < (unsigned)(cur + aligned)) {
+        return 0;
+    }
+    a0[1] = cur + aligned;
+    a0[3] += 1;
+    return (void*)cur;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FDF4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FE34);
+#endif
 
 /* 16-byte-align builder: a0[0]=a0[1]=(a1+0xF)&~0xF; a0[2]=a2-(a1&0xF); a0[3]=0.
  * Register-exact; IDO schedules the `and`(round) and `subu`(offset) — two
