@@ -5500,8 +5500,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274A0);
 /* game_libs_func_000274C0: 8-insn bit-copy. Copies bit 0 of (signed)a1[4]
  * into bit 4 of a0[0]:  *a0 = ((a1[4] << 4) & 0x10) | (*a0 & ~0x10);
  * Logic + structure exact (lb; lbu; sll; andi 0x10; andi 0xFFEF; or; sb).
- * CAP: pure $t-register-numbering cascade — no C form reproduces the
- * target's ascending t5/t6/t7→t8/t9 allocation. Permuter territory. */
+ * CAP: pure $t-register-numbering cascade — 7/8 insns differ by register only;
+ * INSN_PATCH would rewrite nearly the whole function (hand-assembly), so it
+ * stays NM. Permuter territory. */
 void game_libs_func_000274C0(unsigned char *a0, signed char *a1) {
     *a0 = ((a1[4] << 4) & 0x10) | (*a0 & ~0x10);
 }
