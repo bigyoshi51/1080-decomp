@@ -34045,8 +34045,11 @@ int game_libs_func_00067358(char *a0, int a1) {
     return *(int *)((char *)a0 + a1 * 4 + 0x13C8);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067368);
 #endif
+
+int game_libs_func_00067368(char *a0) {
+    return *(unsigned char *)(a0 + 0x13EC);
+}
 
 void gl_func_00067370(void) {
     gl_func_00000000();
