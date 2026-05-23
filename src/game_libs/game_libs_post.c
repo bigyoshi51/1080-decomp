@@ -29588,7 +29588,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F5F0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F984);
 
+#ifdef NON_MATCHING
+/* Copy 16 floats (4 rows x 4) from a1 to a0, returns a0. Faithful decode, but
+ * IDO unrolls this 4-iteration loop (37 insns) while the target keeps it rolled
+ * (24 insns, v0 counter / li a3,4 / bne) — an unroll-heuristic mismatch no
+ * tested loop form avoids. Stays INCLUDE_ASM. */
+float *game_libs_func_0005FC64(float *a0, float *a1) {
+    int i = 0;
+    float *d = a0;
+    do {
+        d[0] = *a1++;
+        d[1] = *a1++;
+        d[2] = *a1++;
+        d[3] = *a1++;
+        d += 4;
+        i++;
+    } while (i != 4);
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FC64);
+#endif
 
 /* 23-insn alloc-or-passthrough + 2-call init wrapper. Sibling of
  * gl_func_0005FDCC. C body produces target shape EXCEPT for IDO's
