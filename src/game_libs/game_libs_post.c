@@ -6403,7 +6403,17 @@ void gl_func_00028C6C(int a0, int n, int s2_arg, int s1_arg) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028C6C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028DA8);
+void game_libs_func_00028DA8(int *a0, int *a1) {
+    if (*a1 != 0) {
+        return;
+    }
+    *a1 = (int)a0;
+    a1[1] = a0[1];
+    *(int *)a0[1] = (int)a1;
+    a0[1] = (int)a1;
+    a0[2] = a0[2] + 1;
+    a1[3] = a0[3];
+}
 
 void game_libs_func_00028DE8(int **a0) {
     int *p = a0[0];
