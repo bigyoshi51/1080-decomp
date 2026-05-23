@@ -3005,44 +3005,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A1C);
 
-#ifdef NON_MATCHING
-/* timproc_uso_b5_func_00008A38/A64/A90: indexed double-deref accessors,
- * same register-allocation cap as _00008C1C/_00008AD4 (verified: structure
- * exact, $t register numbers shifted). See
- * docs/IDO_CODEGEN.md#feedback-ido-indexed-double-deref-allt-cap. */
+/* timproc_uso_b5_func_00008A38/A64/A90: indexed double-deref accessors. The
+ * addu operand-order lever (scaled index FIRST, fully inlined — no named
+ * locals) emits the target's all-$t allocation. */
 int timproc_uso_b5_func_00008A38(int *a0) {
-    int sh = a0[0x3C4 / 4] << 2;
-    int t0 = *(int *)((char *)a0 + sh + 0x3D0);
-    int t8 = *(int *)((char *)a0[0x40C / 4] + sh + 0x40);
-    return *(int *)(t8 + (t0 << 2) + 0x3C);
+    return *(int *)(*(int *)((char *)a0 + *(int *)((char *)a0 + 0x3C4) * 4 + 0x3D0) * 4 + *(int *)(*(int *)((char *)a0 + 0x3C4) * 4 + *(int *)((char *)a0 + 0x40C) + 0x40) + 0x3C);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A38);
-#endif
 
-#ifdef NON_MATCHING
-/* Sibling of _00008A38 (offsets 0x3CC/0x3C); same indexed-double-deref cap. */
+/* Sibling of _00008A38 (offsets 0x3CC/0x3C). */
 int timproc_uso_b5_func_00008A64(int *a0) {
-    int sh = a0[0x3C4 / 4] << 2;
-    int t0 = *(int *)((char *)a0 + sh + 0x3CC);
-    int t8 = *(int *)((char *)a0[0x40C / 4] + sh + 0x3C);
-    return *(int *)(t8 + (t0 << 2) + 0x3C);
+    return *(int *)(*(int *)((char *)a0 + *(int *)((char *)a0 + 0x3C4) * 4 + 0x3CC) * 4 + *(int *)(*(int *)((char *)a0 + 0x3C4) * 4 + *(int *)((char *)a0 + 0x40C) + 0x3C) + 0x3C);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A64);
-#endif
 
-#ifdef NON_MATCHING
-/* Sibling of _00008A38 (offsets 0x3E0/0x40); same indexed-double-deref cap. */
+/* Sibling of _00008A38 (offsets 0x3E0/0x40). */
 int timproc_uso_b5_func_00008A90(int *a0) {
-    int sh = a0[0x3C4 / 4] << 2;
-    int t0 = *(int *)((char *)a0 + sh + 0x3E0);
-    int t8 = *(int *)((char *)a0[0x40C / 4] + sh + 0x40);
-    return *(int *)(t8 + (t0 << 2) + 0x3C);
+    return *(int *)(*(int *)((char *)a0 + *(int *)((char *)a0 + 0x3C4) * 4 + 0x3E0) * 4 + *(int *)(*(int *)((char *)a0 + 0x3C4) * 4 + *(int *)((char *)a0 + 0x40C) + 0x40) + 0x3C);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A90);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_00008ABC: copy a0[idx*4+0x3D0] → a0[idx*4+0x3E0],
@@ -3059,21 +3037,11 @@ void timproc_uso_b5_func_00008ABC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008ABC);
 #endif
 
-#ifdef NON_MATCHING
-/* timproc_uso_b5_func_00008AD4: double-indexed double-deref accessor. Logic
- * exact (10/10 insns); same register-allocation cap as the _00008C1C family
- * — the three input loads land in $v1/$a1/$a2 here vs the target's all-$t
- * ($t7/$t6/$t1), so the dependent sll/addu chain uses different temps.
- * Structurally identical. Permuter-class reg-alloc lever needed. */
+/* timproc_uso_b5_func_00008AD4: double-indexed double-deref accessor. Same
+ * addu operand-order lever (scaled index FIRST, fully inlined). */
 int timproc_uso_b5_func_00008AD4(int *a0) {
-    int i = a0[0x3F0 / 4];
-    int *base = (int *)a0[0x40C / 4];
-    int j = a0[0x3F4 / 4];
-    return *(int *)(*(int *)((char *)base + (i << 2) + 0x40) + (j << 2) + 0x3C);
+    return *(int *)(*(int *)((char *)a0 + 0x3F4) * 4 + *(int *)(*(int *)((char *)a0 + 0x3F0) * 4 + *(int *)((char *)a0 + 0x40C) + 0x40) + 0x3C);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008AD4);
-#endif
 
 // timproc_uso_b5_func_00008AFC — STRUCTURAL PASS (no episode).
 // Raw-.word USO. BOUNDARY NOTE: this .s is a 3-function USO bundle
@@ -3139,18 +3107,11 @@ void timproc_uso_b5_func_00008AFC(char *scr) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008AFC);
 #endif
 
-#ifdef NON_MATCHING
-/* timproc_uso_b5_func_00008C1C: indexed double-deref accessor. Logic exact;
- * register allocation differs by 1 (target loads idx 0x3C4→$t7 / base
- * 0x40C→$t6, this build gets idx→$t6 / base→$t8, flipping the addu operand
- * order base+shifted vs shifted+base). All 7 insns structurally identical;
- * needs a reg-alloc lever (permuter) to flip the first two load targets. */
+/* timproc_uso_b5_func_00008C1C: indexed double-deref accessor. addu operand
+ * order lever: scaled index FIRST (idx*4 + base) emits the target all-$t. */
 int timproc_uso_b5_func_00008C1C(int *a0) {
-    return *(int *)(*(int *)((char *)a0[0x40C / 4] + (a0[0x3C4 / 4] << 2) + 0x40) + 0x6C);
+    return *(int *)(*(int *)(*(int *)((char *)a0 + 0x3C4) * 4 + *(int *)((char *)a0 + 0x40C) + 0x40) + 0x6C);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C1C);
-#endif
 
 int timproc_uso_b5_func_00008C38(char *scr) {
     return *(int *)(*(char **)(scr + 0x40C) + 0x3C);
