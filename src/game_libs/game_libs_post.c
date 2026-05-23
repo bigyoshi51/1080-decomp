@@ -30586,7 +30586,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061B1C);
  * spill ordering are not reproduced by clean C first pass. Medium
  * class (multi-run), not the easy a0-ctor vein subset. INCLUDE_ASM
  * is the correct build path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void gl_func_00061B30(int a0, int a1, int a2, int a3) {
+    char *s0 = (char *)&D_00000000;
+    char buf[8];
+    char *scratch = (char *)(((int)buf + 47) & ~3);
+    gl_func_00000000(s0, 1);
+    *(int *)(s0 + 0x224) = 8;
+    *(int *)(s0 + 0x228) = 8;
+    *(int *)(s0 + 0x220) = *(short *)&D_00000000;
+    *(int *)(s0 + 0x21C) = *(short *)&D_00000000;
+    gl_func_00000000(&D_00000000, 0, a0, scratch);
+    gl_func_00000000(s0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061B30);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00061BC8: 48-insn byte-by-byte copy-to-local-buf + null-term + dispatch (0xC0, frame 0xB0).
