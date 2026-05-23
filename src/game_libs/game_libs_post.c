@@ -9034,7 +9034,9 @@ void game_libs_func_0002E0AC(char *a0) {
     a0[0x32] = 0x1F;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E0B8);
+void game_libs_func_0002E0B8(char *a0) {
+    *(short *)(a0 + 0x1A) = 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E0C4);
 
@@ -21431,7 +21433,9 @@ void game_libs_func_00044460(int *a0, int *a1) { *(int*)a0 = (int)a1; *(int*)((c
 
 void game_libs_func_00044474(int *a0) { int *p = *(int**)a0; *(int*)((char*)a0 + 8) = *(int*)((char*)(*(int*)((char*)p + 0xC)) + 4); }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044488);
+int game_libs_func_00044488(int *a0) {
+    return a0[2] - a0[1];
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044498);
 
@@ -22427,7 +22431,10 @@ void game_libs_func_000478D8(char *a0) {
     *(char **)(a0 + 0xE0) = a0 + 0x60;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000478EC);
+void game_libs_func_000478EC(char *a0) {
+    *(int *)(a0 + 0x1F4) = 0;
+    *(char **)(a0 + 0xE0) = a0 + 0xA0;
+}
 
 // gl_func_000478FC — STRUCTURAL PASS + BOUNDARY NOTE (0x228 / 145 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
@@ -32894,7 +32901,11 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067A90);
+void game_libs_func_00067A90(char *a0, int a1, int a2) {
+    *(int *)(a0 + 0x78) = a1;
+    *(short *)(a0 + 0x76) = a2;
+    *(short *)(a0 + 0x74) = 0;
+}
 
 void game_libs_func_00067AA0(int *a0) {
     a0[8] = 0;
