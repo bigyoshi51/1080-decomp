@@ -8432,7 +8432,31 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
  * the result-object reload - combined FP-regalloc/struct-copy
  * divergence (cf gl_func_00065250). Full body INCLUDE_ASM-preserved.
  * INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void game_uso_func_0000A0E8(char *a0, char *b, char *a2) {
+    char *v0;
+    char *v1;
+    float dx, dy, dz;
+    float sp108[3];
+    float sp188[3];
+    (void)a0;
+    if (a2 == 0) {
+        gl_func_00000000((char *)&D_00000000 + 0x7D4, (char *)&D_00000000 + 0x7E0, 1586);
+    }
+    v0 = a2;
+    dx = *(float *)(v0 + 0x30) - *(float *)(b + 0x30);
+    dy = *(float *)(v0 + 0x38) - *(float *)(b + 0x38);
+    dz = *(float *)(v0 + 0x34) - *(float *)(b + 0x34);
+    sp108[0] = dx; sp108[1] = dy; sp108[2] = dz;
+    sp188[0] = sp108[0]; sp188[1] = sp108[1]; sp188[2] = sp108[2];
+    v1 = (char *)gl_func_00000000(b + 0x30);
+    *(float *)(v1 + 0x0) = sp188[0];
+    *(float *)(v1 + 0x8) = sp188[2];
+    *(float *)(v1 + 0x4) = sp188[1];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
+#endif
 
 #ifdef NON_MATCHING
 /* 86.70% NM. 86.7%: body+control flow match; target has 2 pre-jal a1 spills:
