@@ -1968,7 +1968,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00021130: zero a 0xB00-byte short array, base reloaded inline
+ * per store (inline-base-reload lever, see gl_func_00060CB8). Logic + STRUCTURE
+ * exact: IDO unrolls the simple `for(a1!=0xB00;a1+=2) *(short*)(reload+a1)=0`
+ * loop x4 to the target's 27-insn shape (4 stores at +0/+2/+4/+6, each reloading
+ * *(int*)(a0+0x2140)). Only register allocation diverges (17/27 renumber: hv in
+ * $t6 vs $v1, setup temps shifted, one commutative-add operand flip). Same
+ * register-alloc near-miss class as game_libs_func_00020E78 — straight-line
+ * single-base funcs (26AF8) match clean, but LOOP single-base ones hit this
+ * wall. Permuter candidate. */
+void game_libs_func_00021130(void) {
+    char *base = (char *)&D_00000000;
+    int v0 = *(int *)(base + 0x2084);
+    short hv = *(short *)(base + 0x203E);
+    char *a0 = base + v0 * 4;
+    int a1;
+    *(short *)(base + v0 * 2 + 0x214C) = hv;
+    for (a1 = 0; a1 != 0xB00; a1 += 2) {
+        *(short *)(*(int *)(a0 + 0x2140) + a1) = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);
+#endif
 
 // gl_func_0002119C — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
