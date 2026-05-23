@@ -161,7 +161,7 @@ void game_libs_func_00009BD8(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BE0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BF4);
+void game_libs_func_00009BF4(int *a0) { *(int*)((char*)a0 + 0x0) &= 0x7F; }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C04);
 
