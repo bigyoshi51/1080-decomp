@@ -37046,7 +37046,27 @@ void gl_func_0006F144(int a0, ...) {
 void gl_func_0006F160(int a0, ...) {
 }
 
+#ifdef NON_MATCHING
+/* memcpy: copy a2 bytes from a1 to a0, return a0. Reloc-free. Byte-match cap:
+ * the target is a tight 13-insn non-unrolled byte loop, but IDO -O2 UNROLLS the
+ * C memcpy by 4 (+ remainder) to 28 insns. Same unroll cap as 1FA20/611E4 —
+ * couldn't suppress the unroll from C. */
+void *game_libs_func_0006F17C(char *a0, char *a1, int a2) {
+    char *p = a0;
+    if (a2 != 0) {
+        do {
+            char c = *a1;
+            a2--;
+            p++;
+            a1++;
+            *(p - 1) = c;
+        } while (a2 != 0);
+    }
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F17C);
+#endif
 
 int game_libs_func_0006F1B0(char *a0) {
     char *p = a0;
