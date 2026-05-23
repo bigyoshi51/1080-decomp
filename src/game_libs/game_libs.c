@@ -868,7 +868,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006CDC);
 
 void game_libs_func_00006DB8(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00006DC0);
+void game_libs_func_00006DC0(int a0) {}
 
 extern int gl_func_00000000();
 extern int *gl_ref_00000138;
@@ -970,21 +970,21 @@ void gl_func_000070A0(int a0) {
     gl_func_00000000(a0, -1, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070C4);
+void game_libs_func_000070C4(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070CC);
+void game_libs_func_000070CC(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070D4);
+void game_libs_func_000070D4(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070DC);
+void game_libs_func_000070DC(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070E4);
+void game_libs_func_000070E4(int a0) {}
 
 /* Empty K&R one-arg function: IDO keeps the unused a0 save in the
  * jr-ra delay slot (`sw a0, 0(sp)`). */
 void game_libs_func_000070EC(a0) int a0; {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000070F4);
+void game_libs_func_000070F4(int a0) {}
 
 #ifdef NON_MATCHING
 /* gl_func_000070FC: 0x248 = 146 insns total. Sibling of gl_func_000070A0
@@ -1084,14 +1084,14 @@ common_after:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000070FC);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00007324);
+void game_libs_func_00007324(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000732C);
+void game_libs_func_0000732C(int a0) {}
 
 void game_libs_func_00007334(int a0) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000733C);
+void game_libs_func_0000733C(int a0) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007344);
 
@@ -1099,9 +1099,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007344);
 void game_libs_func_000076C8(int a0) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000076D0);
+void game_libs_func_000076D0(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000076D8);
+void game_libs_func_000076D8(int a0) {}
 
 /* Empty one-arg stub; IDO keeps the caller-slot spill in the return delay. */
 void game_libs_func_000076E0(int a0) {
