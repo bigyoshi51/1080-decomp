@@ -12766,7 +12766,43 @@ int gl_func_00034C7C(void *a0, void *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034C7C);
 #endif
 
+#ifdef NON_MATCHING
+/* Flag-remap: look up a 6-byte table entry at &D[0x11FA + a1->0x34*6]; copy its
+ * bytes [2],[3] to a1[8],a1[9]; then permute the entry's u16 flags word into a
+ * differently-positioned output flag set (a1->0x10) via an andi/beqz/ori chain;
+ * return 1 if input bit 0x4 was set. Reloc-blind (&D table). Byte-match multi-run:
+ * arg-home (unused a0 saved) + andi/branch register-alloc (5703C-family). */
+int game_libs_func_00034CC8(int a0, char *a1) {
+    char *t = (char *)&D_00000000 + 0x11FA + *(int *)(a1 + 0x34) * 6;
+    int v1 = 0;
+    int v0 = 0;
+    int flags;
+    a1[8] = t[2];
+    a1[9] = t[3];
+    flags = *(unsigned short *)t;
+    if (flags & 0x20) v1 = 0x800;
+    if (flags & 0x10) v1 |= 0x1000;
+    if (flags & 0x200) v1 |= 0x1;
+    if (flags & 0x100) v1 |= 0x2;
+    if (flags & 0x800) v1 |= 0x4;
+    if (flags & 0x400) v1 |= 0x8;
+    if (flags & 0x1000) v1 |= 0x40000;
+    if (flags & 0x8000) v1 |= 0x100;
+    if (flags & 0x4000) v1 |= 0x200;
+    if (flags & 0x2000) v1 |= 0x400;
+    if (flags & 0x2) v1 |= 0x10;
+    if (flags & 0x1) v1 |= 0x20;
+    if (flags & 0x8) v1 |= 0x40;
+    if (flags & 0x4) {
+        v0 = 1;
+        v1 |= 0x80;
+    }
+    *(int *)(a1 + 0x10) = v1;
+    return v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034CC8);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00034DBC(int a0) {
