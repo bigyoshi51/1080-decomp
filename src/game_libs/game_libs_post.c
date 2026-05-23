@@ -28581,7 +28581,33 @@ void game_libs_func_00057574(int *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000575E0);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00057628: doubled record-append with masking. Append 1:
+ * arr[0]=0xE7000000, arr[1]=0. Append 2: arr2[0]=((a2-1)&0xFFF)|0xFF100000,
+ * arr2[1]=a1&0xFFFFFF (base re-read a0->0xC inline). Logic exact (29/29 insns)
+ * but 20/29 register renumber + scheduling: the masking expressions create
+ * enough temps that IDO's allocation diverges pervasively (unlike the simpler
+ * 57574 sibling which aligned to byte-exact via separate arr2 var). Early-dec
+ * local didn't help. Register-alloc near-miss (permuter territory). Reloc-free. */
+void game_libs_func_00057628(int *a0, int a1, int a2) {
+    int *rec, *arr, *arr2;
+    int idx;
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)((int *)a0)[3])[0] + idx * 8);
+    arr[0] = 0xE7000000;
+    arr[1] = 0;
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr2 = (int *)(((int *)((int *)a0)[3])[0] + idx * 8);
+    arr2[0] = ((a2 - 1) & 0xFFF) | 0xFF100000;
+    arr2[1] = a1 & 0xFFFFFF;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00057628);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_0005769C: doubled record-append (sibling of 571E4, done twice).
