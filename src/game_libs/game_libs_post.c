@@ -27949,9 +27949,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005313C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053174);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005318C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000531AC);
+/* Conditional table-index: if a0->0x70 (x) != 0, return x + a1*6 + 2; else
+ * return a0->0x64 + a1*4. Merged: the else-branch was splat-split off as
+ * game_libs_func_000531AC (UNSHARED); merged back (0x20 -> 0x34). Writing the
+ * non-zero return as `2 + x + a1*6` matches the addu operand order (x first). */
+int game_libs_func_0005318C(int *a0, int a1) {
+    int x = a0[0x70 / 4];
+    if (x != 0) {
+        return 2 + x + a1 * 6;
+    }
+    return a0[0x64 / 4] + a1 * 4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000531C0);
 
