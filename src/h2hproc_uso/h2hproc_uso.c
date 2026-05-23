@@ -359,7 +359,21 @@ end:
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000620);
+#endif
 
+#ifdef NON_MATCHING
+/* h2hproc_uso_func_000008E4: 2-insn continuation stub — `jr ra; sw a0, 0(sp)`
+ * (store incoming a0 to caller's outgoing-arg slot, then return).
+ *
+ * UNMATCHABLE from standalone C: a void leaf returns `jr ra; nop` (no
+ * spill), and an arg-spill-at-exit isn't something IDO -O2 emits without a
+ * frame. Same pattern + cap as game_uso_func_0000D634 (see its wrap and
+ * feedback_lw_arg_from_stack_no_preceding_sw.md). Likely a continuation
+ * helper called by a sibling that pre-positions sp. INCLUDE_ASM stays. */
+void h2hproc_uso_func_000008E4(int a0) {
+    (void)a0;  /* sw a0, 0(sp) in delay slot — not C-emit-able */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000008E4);
 #endif
 
