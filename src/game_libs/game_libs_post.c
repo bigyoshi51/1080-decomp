@@ -28778,7 +28778,50 @@ void game_libs_func_0005769C(int *a0, int a1) {
     arr[1] = v;
 }
 
+#ifdef NON_MATCHING
+/* Display-list frame flush: append two DL commands (0xE7000000 = G_RDPPIPESYNC,
+ * 0xB8000000 = G_ENDDL) to the a0->0xC record buffer, then for each of six
+ * sub-buffers at a0->{0xC,0x1C,0x2C,0x3C,0x4C,0x5C} call the flush helper if
+ * sub[2] < sub[1] (count past limit). Structurally complete (same 109 insns /
+ * opcodes as target); byte-% capped by pervasive register-renumber + s0 spill
+ * scheduling across the 6 branch-likely blocks (cf. 5703C rigid-head class).
+ * Reloc-blind (flush helper is a runtime-patched jal-0 placeholder). */
+void gl_func_00057700(int *a0) {
+    int *rec;
+    int idx;
+    int *arr;
+    int *p;
+
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)((int *)a0)[3])[0] + (idx * 8));
+    arr[0] = 0xE7000000;
+    arr[1] = 0;
+
+    rec = (int *)((int *)a0)[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)((int *)a0)[3])[0] + (idx * 8));
+    arr[0] = 0xB8000000;
+    arr[1] = 0;
+
+    p = (int *)((int *)a0)[3];
+    if ((unsigned int)p[2] < (unsigned int)p[1]) gl_func_00000000(a0);
+    p = *(int **)((char *)a0 + 0x1C);
+    if ((unsigned int)p[2] < (unsigned int)p[1]) gl_func_00000000(a0);
+    p = *(int **)((char *)a0 + 0x2C);
+    if ((unsigned int)p[2] < (unsigned int)p[1]) gl_func_00000000(a0);
+    p = *(int **)((char *)a0 + 0x3C);
+    if ((unsigned int)p[2] < (unsigned int)p[1]) gl_func_00000000(a0);
+    p = *(int **)((char *)a0 + 0x4C);
+    if ((unsigned int)p[2] < (unsigned int)p[1]) gl_func_00000000(a0);
+    p = *(int **)((char *)a0 + 0x5C);
+    if ((unsigned int)p[2] < (unsigned int)p[1]) gl_func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000578B4);
 
