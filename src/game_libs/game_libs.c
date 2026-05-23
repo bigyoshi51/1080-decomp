@@ -776,7 +776,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006AAC);
  * + bne global-mode branch + gl_func_00000000 reloc call + &D reloc
  * + vtable jalr. Full body INCLUDE_ASM-preserved (.s = source of
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void gl_func_00006B80(char *a0, int a1, int a2) {
+    char *v;
+    *(int *)(a0 + 0x4F8) = a2;
+    *(int *)(a0 + 0x4E0) = 3;
+    *(int *)(a0 + 0x4DC) = 2;
+    gl_func_00000000(&D_00000000, 0);
+    *(int *)(a0 + 0x4EC) = 0;
+    *(int *)(a0 + 0x518) = 0;
+    *(int *)(a0 + 0x4E4) = a1;
+    *(float *)(a0 + 0x54C) = 120.0f;
+    if (*(int *)((char *)&D_00000000 + 0x34) == 2) {
+        *(float *)(a0 + 0x54C) = 60.0f;
+    }
+    *(float *)(a0 + 0x550) = 0.0f;
+    *(int *)(a0 + 0x544) = 255;
+    *(float *)(a0 + 0x554) = 150.0f;
+    v = *(char **)(a0 + 0x28);
+    {
+        void (*fn)(char *) = *(void (**)(char *))(v + 0x7C);
+        fn((char *)((int)(short)*(short *)(v + 0x78) + (int)a0));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006B80);
+#endif
 
 /* gl_func_00006C38: 41-insn struct-init. Sets a0->{0x4F8,0x4E0,0x4DC} from
  * args; calls gl_func_0(&D, 0, a2, orig_a0) (4 args, a3 = saved orig_a0);
