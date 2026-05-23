@@ -30660,7 +30660,9 @@ int game_libs_func_00061ADC(int a0, int a1, int a2) {
     return -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061AF0);
+int game_libs_func_00061AF0(int a0, int a1, int a2) {
+    return -1;
+}
 
 int game_libs_func_00061B04(int a0) {
     return -1;
