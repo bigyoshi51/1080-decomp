@@ -11795,7 +11795,12 @@ void gl_func_00034240(int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343E0);
+// Indexed read from the segment-base int table: return D[a0]. Builds byte-exact
+// as plain C (single &D_00000000 segment-base ref, resolves to addr 0). No
+// episode (reloc-blind base) but the C body is the build path (moves %).
+int game_libs_func_000343E0(int a0) {
+    return *(int *)((char *)&D_00000000 + a0 * 4);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343F4);
 
