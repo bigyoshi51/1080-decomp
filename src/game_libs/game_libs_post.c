@@ -549,14 +549,11 @@ void game_libs_func_0001D660(void) {}
 
 void game_libs_func_0001D668(void) {}
 
-#ifdef NON_MATCHING
 void game_libs_func_0001D670(int *a0, int a1, int a2, int a3) {
     a0[0] = (a3 & 0xFFFF) | 0x11000000;
-    a0[1] = (a1 << 16) | (a2 & 0xFFFF);
+    a0[1] = ((a1 << 15) << 1) | (a2 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D670);
-#endif
+
 
 /* gbi 2-word command builder (5 args), cmd 0x12. Same word-2 INSN_PATCH
  * register-renumber as 0001D594. */
@@ -573,14 +570,11 @@ void game_libs_func_0001D6D0(int *a0, int a1, int a2, int a3) { a0[0] = ((((a2 >
 
 void game_libs_func_0001D6F8(int *a0, int a1, int a2, int a3) { a0[0] = ((((a2 >> 4) & 0xFF) << 16) | 0x15000000) | (a1 & 0xFFFF); a0[1] = a3; }
 
-#ifdef NON_MATCHING
 void game_libs_func_0001D720(int *a0, int a1, int a2) {
     a0[0] = 0x16000000;
-    a0[1] = (a1 << 16) | (a2 & 0xFFFF);
+    a0[1] = ((a1 << 15) << 1) | (a2 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D720);
-#endif
+
 
 void game_libs_func_0001D73C(void) {}
 
@@ -623,14 +617,11 @@ void game_libs_func_0001D7E8(void) {}
 
 void game_libs_func_0001D7F0(void) {}
 
-#ifdef NON_MATCHING
 void game_libs_func_0001D7F8(int *a0, int a1, int a2, int a3) {
     a0[0] = (a3 & 0xFFFF) | 0x03000000;
-    a0[1] = (a1 << 16) | (a2 & 0xFFFF);
+    a0[1] = ((a1 << 15) << 1) | (a2 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D7F8);
-#endif
+
 
 void game_libs_func_0001D81C(void) {}
 
