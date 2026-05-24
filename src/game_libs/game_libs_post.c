@@ -20648,7 +20648,7 @@ void gl_func_00040DE8(char *a0) {
     gl_func_00000000(g, (char *)&D_00000000 + 0x0002F4A0, a0 + 0xDC, 0x3C);
     gl_func_00000000(g, (char *)&D_00000000 + 0x0002F4A8, a0 + 0xB0, 0);
     gl_func_00000000(&D_00000000);
-    gl_func_00000000();
+    gl_func_00000000(a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040DE8);
