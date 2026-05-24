@@ -34340,10 +34340,28 @@ void game_libs_func_000665A4(int *a0, int a1) { *(int*)a0 = a1; *(int*)((char*)a
  *  - 3 internal `jr $ra` (at f1 epilogue 0x66618, f2 head-unlink 0x66648,
  *    f2 middle-unlink 0x66654) + final jr at 0x6666C. Bundle confirmed.
  *  - f2 layout uses 4-insn nodes: Node { int key; Node *next; } — 8 bytes each.
- *  - Splat boundary issue: candidate for split-fragments.py.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ *  - Now split to single fn; decoded 2026-05-24: alloc-retry loop (92.6%).
+ *    SOLE residual = a 2-insn scheduling swap: target does sw v0,4(s0) THEN
+ *    move a0,v0 (call-arg setup); -O2 C schedules move THEN sw. Both depend on
+ *    the alloc result; permuter floored at base score 70 (not crackable). */
+extern int gl_func_00000000();
+int gl_func_000665B4(int a0) {
+    int v1;
+    int v0;
+    do {
+        v1 = *(int *)(a0 + 4);
+        if (v1 == 0) {
+            v1 = gl_func_00000000(0, *(int *)a0);
+            *(int *)(a0 + 4) = v1;
+            *(int *)(a0 + 8) += 1;
+        }
+        v0 = gl_func_00000000(v1);
+        if (v0 == 0) {
+            *(int *)(a0 + 4) = 0;
+        }
+    } while (v0 == 0);
+    return v0;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
 
