@@ -58,7 +58,7 @@ def main():
         capture_output=True, text=True).stdout
 
     import re
-    # Pass 1: collect (addr, insn) and branch/jump target addresses.
+    # Pass 1: collect (addr, insn) and BRANCH target addresses (NOT jal/j calls).
     body = []
     targets = set()
     for ln in dump.splitlines():
@@ -66,12 +66,18 @@ def main():
         if len(parts) >= 3 and ":" in parts[0]:
             addr = int(parts[0].strip().rstrip(":"), 16)
             insn = " ".join(p.strip() for p in parts[2:]).strip()
-            # branch/jal operand: "...,<hex> <sym+off>"  -> capture the hex addr
-            m = re.search(r"\b([0-9a-f]+) <[^>]+>$", insn)
+            mnem = insn.split()[0] if insn else ""
+            m = re.search(r"\b([0-9a-f]+) <([^>]+)>$", insn)
             if m:
-                tgt = int(m.group(1), 16)
-                targets.add(tgt)
-                insn = insn[: m.start()].rstrip() + f".L{tgt:X}"
+                if mnem in ("jal", "j", "jalr", "bal"):
+                    # call/jump to a function: keep the symbol name (strip +off)
+                    sym = m.group(2).split("+")[0]
+                    insn = insn[: m.start()].rstrip() + " " + sym
+                else:
+                    # conditional branch: local .L label
+                    tgt = int(m.group(1), 16)
+                    targets.add(tgt)
+                    insn = insn[: m.start()].rstrip() + f".L{tgt:X}"
             body.append((addr, insn))
 
     lines = [f"glabel {args.func}"]

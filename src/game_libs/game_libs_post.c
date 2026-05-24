@@ -36234,7 +36234,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A420);
  * scripts/disasm-func.py --m2c. 15/16 byte-exact (94%): ONLY the incoming-a0 home
  * `sw a0,0x18(sp)` in the first jal delay slot differs (built nop). That dead
  * arg-home is the recurring IDO codegen cap (not C-forceable at -O2; -g/-g1/-g2
- * make it worse). Prime permuter candidate (single-insn residual). */
+ * make it worse; `(void)a0;` spill-lever doesn't fire since a0 is already used by
+ * the first call -> the cast is DCE'd). Prime permuter candidate (single-insn). */
 extern int gl_func_0001CA10();
 void gl_func_0006A5B0(int a0) {
     if (gl_func_0001CA10(a0) != 0) {
