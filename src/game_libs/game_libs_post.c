@@ -35135,9 +35135,17 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
  *    plus a third at 0x67AB4 (f3 end). 3 jr $ra = 3 functions bundle.
  *  - Splat boundary-issue family per docs/MATCHING_WORKFLOW.md
  *    "too-big-N-function-bundle".
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ *  - Now split to 0x3C (this fn only); decoded 2026-05-24. */
+extern int gl_func_00000000();
+void gl_func_00067A54(int a0, int a1, int a2) {
+    if (a1 == *(int *)(a0 + 0x78)) {
+        return;
+    }
+    if (a2 < *(short *)(a0 + 0x76)) {
+        return;
+    }
+    gl_func_00000000(a0, a1, a2);
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
 
