@@ -9690,6 +9690,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D438);
  * for the unblock path) needed before any decomp attempt. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
+/* game_uso_func_0000D5BC: copies a1/a1+4 (taken via &a1) to a0->0xC8/0xCC.
+ * NON_MATCHING (regalloc-class cap): the multi-use &a1 pointer sits in $v0
+ * (built) vs $t6 (target). Single-use inline-regalloc lever doesn't apply
+ * (pointer is used twice, can't inline without reloading); statement reorder
+ * is a no-op. IDO allocator choice, not C-reachable. */
 #ifdef NON_MATCHING
 void game_uso_func_0000D5BC(char *a0, int a1, int a2) {
     volatile int *p;
