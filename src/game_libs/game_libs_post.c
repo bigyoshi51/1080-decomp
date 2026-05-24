@@ -38707,7 +38707,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FE5C);
  * Target likely had additional source between calls (maybe a side-effecting
  * helper that got inlined away, leaving the spill+s0-use artifact).
  * Remains INCLUDE_ASM at 68.9%; multi-tick / permuter class. */
+#ifdef NON_MATCHING
+/* gl_func_0006FFE4: 19-insn wrapper. Calls the (collapsed) callback with a0,
+ * OR-folds a0 into a global word, then re-invokes the callback with the first
+ * result: r = cb(a0); *D_B = *D_A | a0; cb(r);  (a0 reloaded from its home slot
+ * across the first call). NM (reference decode): two collapsed-placeholder calls
+ * + two collapsed D refs (raw-.word game_libs reloc depression); the distinct
+ * read/write D symbols collapse to D_00000000 here. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_0006FFE4(int a0) {
+    int r = gl_func_00000000(a0);
+    *(int *)&D_00000000 = *(int *)&D_00000000 | a0;
+    gl_func_00000000(r);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FFE4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070030);
 
