@@ -1969,9 +1969,11 @@ void func_0000502C(int *dst) {
  * affect all call sites in TU). Cap class confirmed structural.
  *
  * 2026-05-17 later: `func_00000000(0, a0, a0)` moves the reload before the
- * zero-a0 setup and reaches the target's 14-insn shape. One non-reloc
- * INSN_PATCH rewrites the third-arg delay-slot copy to the target's dead
- * a1 home-store. */
+ * zero-a0 setup and reaches the target's 14-insn shape. The lone residual is the
+ * 2nd-call delay slot: built `or a2,a1` (3rd-arg copy) vs target `sw a1,4(sp)`
+ * (dead outgoing-a1 home). NOT the clean &param arg-home class — &param makes it
+ * worse (13 insns); the permuter only reaches 100 (base 200, 2026-05-24). Genuine
+ * cap (3rd-arg-copy-vs-dead-home). Sibling func_000054A0 identical. */
 extern char D_00007D94;
 #ifdef NON_MATCHING
 void func_00005068(int a0) {
