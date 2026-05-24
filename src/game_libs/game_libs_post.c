@@ -32016,7 +32016,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000608A4);
  * macros + matching ap-slot reservation, can't close the gap. NM
  * wrap kept as plain INCLUDE_ASM for the documentation; promote
  * once varargs idiom is needed elsewhere. */
+#ifdef NON_MATCHING
+/* gl_func_00060A74: 23-insn guarded one-shot init. If a0->0x34 == 0, stash a0
+ * into a global and call the (collapsed) callback with (&global2, 0, a1, ptr)
+ * where ptr is an aligned scratch buffer in this frame ((sp+0x2B)&~3). a0-a3 are
+ * all home-saved on entry. NM (reference decode): two collapsed D refs + a
+ * collapsed-placeholder call (raw-.word game_libs reloc depression); the two
+ * distinct D symbols collapse to D_00000000 and the aligned stack ptr is
+ * approximated by a local buffer. */
+extern int D_00000000;
+extern int gl_func_00000000();
+void gl_func_00060A74(int a0, int a1, int a2, int a3) {
+    if (*(int *)((char *)a0 + 0x34) == 0) {
+        int buf[2];
+        *(int *)&D_00000000 = a0;
+        gl_func_00000000(&D_00000000, 0, a1, buf);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060A74);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00060AD0: 67-insn per-element char-classify + dispatch loop (0x10C, frame 0x30).
