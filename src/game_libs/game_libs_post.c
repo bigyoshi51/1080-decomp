@@ -26870,7 +26870,7 @@ void gl_func_000513CC(int* a0) {
     int* a3;
     int* r2;
     gl_func_00000000(a0);
-    r2 = (int*)gl_func_00000000(0, &gl_data_513CC_addr);
+    r2 = (int*)gl_func_00000000(0, (char *)&D_00000000 + 0xE5C);
     a0[11] = (int)r2;
     a0[3] = (int)r2;
     a0[4] = (int)r2;
