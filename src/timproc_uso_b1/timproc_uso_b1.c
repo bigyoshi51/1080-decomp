@@ -933,6 +933,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000021D4);
 
+/* timproc_uso_b1_func_000024F4: GBI command emitter (8x 0x260000|(D<<3)+N etc).
+ * NON_MATCHING (8 diffs): each `or a1, tN, s1` has tN (computed) first; target
+ * wants s1 (the hoisted 0x260000 constant) first. IDO canonicalizes commutative
+ * `or` operand order — swapping `const | var` to `var | const` in C is a no-op
+ * (verified 2026-05-24), same as FP mul.s/add.d. Which operand becomes rs is the
+ * allocator's choice, not C-reachable. */
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_000024F4(int a0) {
     gl_func_00000000((char *)&D_00000000 + 112,
