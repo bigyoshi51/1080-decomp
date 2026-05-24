@@ -28205,7 +28205,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052674);
 // INCLUDE_ASM-preserved (covers both bundled functions).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000526D0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052918);
+/* game_libs_func_00052918: struct re-initializer — set flag bit 0x800 at +0x8,
+ * zero fields 0x40-0x80 + 0xA0/0xA8/0xAC/0x3C, set 0x98/0xA4 = -1, 0x9C = 1.0f.
+ * BYTE-EXACT (reloc-free; stores in source order, 1.0f in the jr delay slot). */
+void game_libs_func_00052918(void *arg0) {
+    *(int *)((char *)arg0 + 0x8) |= 0x800;
+    *(int *)((char *)arg0 + 0x44) = 0;
+    *(int *)((char *)arg0 + 0x40) = 0;
+    *(int *)((char *)arg0 + 0x48) = 0;
+    *(int *)((char *)arg0 + 0x4C) = 0;
+    *(int *)((char *)arg0 + 0x50) = 0;
+    *(int *)((char *)arg0 + 0x54) = 0;
+    *(int *)((char *)arg0 + 0x58) = 0;
+    *(int *)((char *)arg0 + 0x5C) = 0;
+    *(int *)((char *)arg0 + 0x60) = 0;
+    *(int *)((char *)arg0 + 0x64) = 0;
+    *(int *)((char *)arg0 + 0x68) = 0;
+    *(int *)((char *)arg0 + 0x6C) = 0;
+    *(int *)((char *)arg0 + 0x70) = 0;
+    *(int *)((char *)arg0 + 0x74) = 0;
+    *(int *)((char *)arg0 + 0x78) = 0;
+    *(int *)((char *)arg0 + 0x7C) = 0;
+    *(int *)((char *)arg0 + 0x80) = 0;
+    *(int *)((char *)arg0 + 0x98) = -1;
+    *(int *)((char *)arg0 + 0xA0) = 0;
+    *(int *)((char *)arg0 + 0xA4) = -1;
+    *(int *)((char *)arg0 + 0xA8) = 0;
+    *(int *)((char *)arg0 + 0xAC) = 0;
+    *(int *)((char *)arg0 + 0x3C) = 0;
+    *(float *)((char *)arg0 + 0x9C) = 1.0f;
+}
 
 // gl_func_00052994 — STRUCTURAL PASS (85 words, no episode).
 // Raw-.word USO. realjr=5, regjr=0 → 5-FUNCTION BUNDLE.
