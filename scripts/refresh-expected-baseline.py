@@ -192,11 +192,18 @@ def main():
         # Yay0 repack, no md5sum). This sidesteps the Yay0 ROM-checksum
         # nondeterminism that would abort `make` parallel-builds before
         # all USO .c.o files are produced.
+        #
+        # IMPORTANT: build SERIALLY (-j1). The baseline (expected/) is the
+        # scoring ground truth, and a parallel (-j4) baseline build RACES —
+        # it intermittently fails (exit 2) OR, worse, silently produces a
+        # wrong expected/ that flips a few functions' fuzzy score (observed
+        # 2026-05-24: func_800052F0 + 2 timproc_uso_b1 funcs falsely 100 from
+        # a raced -j4 baseline). Determinism > speed here.
         print("refresh-baseline: make clean")
         subprocess.check_call(["make", "clean"], stdout=subprocess.DEVNULL)
-        print("refresh-baseline: make objects (C objects only, baseline build)")
+        print("refresh-baseline: make objects (C objects only, baseline build, serial)")
         subprocess.check_call(
-            ["make", "-j", "4", "objects", "RUN_CC_CHECK=0",
+            ["make", "-j", "1", "objects", "RUN_CC_CHECK=0",
              "EXPECTED_BASELINE=1"],
             stdout=subprocess.DEVNULL,
         )
