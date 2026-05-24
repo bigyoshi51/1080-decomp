@@ -29114,7 +29114,6 @@ void gl_func_00056FF4(int a0, int *a1) {
     }
 }
 
-#ifdef NON_MATCHING
 /* Flag-decode (a1[1]) → geometry-mode word, then two display-list appends
  * (0xB6000000 = G_CLEARGEOMETRYMODE, 0xB7000000 = G_SETGEOMETRYMODE) to the
  * record buffer at a0->0xC. Structurally exact (all opcodes/immediates/offsets
@@ -29151,9 +29150,7 @@ void game_libs_func_0005703C(int *a0, int *a1) {
     arr[0] = 0xB7000000;
     arr[1] = v0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005703C);
-#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057104);
 
