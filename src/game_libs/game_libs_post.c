@@ -9666,7 +9666,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
 //   Real-C STRUCTURAL body below per the analysis (stop/cancel
 //   counterpart to gl_func_0002E1C0 fire-once trigger). Byte-match
 //   deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_0002E24C(char *o) {
     unsigned char f = *(unsigned char *)(o + 0x16);
@@ -9677,9 +9676,7 @@ void gl_func_0002E24C(char *o) {
     if (k == 2) return;
     gl_func_00000000(0x3D);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
-#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E290);
 
