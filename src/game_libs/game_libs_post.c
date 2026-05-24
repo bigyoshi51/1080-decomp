@@ -12765,7 +12765,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034810);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003485C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003487C);
+/* game_libs_func_0003487C: stores two args to two segment-base globals
+ * (lui at; sw a0,0(at); lui at; jr; sw a1,0(at) — two distinct symbol refs,
+ * filled delay). Two distinct externs force the two separate luis (a single
+ * symbol would reuse one lui). Reloc-blind segment-base convention
+ * (D_3487C_X/Y = 0x0 in undefined_syms). No episode (reloc-blind base). */
+extern int D_3487C_X, D_3487C_Y;
+void game_libs_func_0003487C(int a0, int a1) {
+    D_3487C_X = a0;
+    D_3487C_Y = a1;
+}
 
 // gl_func_00034890 — STRUCTURAL PASS (0x158 / 86 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
