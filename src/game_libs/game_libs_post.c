@@ -15757,7 +15757,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038360);
 //   mnemonic disasm + the node/handler structs typed; structural
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+/* gl_func_00038598: 41-insn list walk. Iterates the list at a0->0x10 (node->4 =
+ * next, node->0 = element); for each non-null element obj, if obj->8 has bit
+ * 0x200 set it calls the (collapsed) callback cb(obj+0x30, obj+0x70), then
+ * dispatches obj->0x28's vtable method (ptr +0x14, signed-halfword bias +0x10)
+ * with (bias + obj). NM (reference decode): collapsed-placeholder call + indirect
+ * jalr + branch-likely (raw-.word game_libs reloc depression). Uses file-scope
+ * extern gl_func_00000000. */
+void gl_func_00038598(int a0) {
+    int *node = *(int **)((char *)a0 + 0x10);
+    while (node != 0) {
+        int obj = node[0];
+        if (obj != 0) {
+            if (*(int *)((char *)obj + 8) & 0x200) {
+                gl_func_00000000(obj + 0x30, obj + 0x70);
+            }
+            {
+                int sub = *(int *)((char *)obj + 0x28);
+                (*(int (**)(int))(sub + 0x14))(*(short *)(sub + 0x10) + obj);
+            }
+        }
+        node = (int *)node[1];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038598);
+#endif
 
 // gl_func_0003863C — STRUCTURAL PASS (0xEC / 59 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
