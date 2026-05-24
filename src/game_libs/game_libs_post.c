@@ -21712,13 +21712,35 @@ void gl_func_00042338(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042338);
 #endif
 
-/* game_libs_func_00042374: 25-insn nested-loop ushort fill.
- * Outer loop (a1=0x64; a1<0x12C; a1+=2) sets up a0 base offset, inner
- * loop (v1=0x32; v1<0x96; v1+=4) writes 0xFFFF to 4 short positions
- * (offsets 0/0x280/0x500/0x780) then advances a0 by 0xA00. Multi-pass
- * decode pending — nested loops resist IDO scheduling without careful
- * intermediate naming. */
+/* game_libs_func_00042374: 25-insn nested-loop ushort grid fill (0xFFFF).
+ * base=*(D+0x240); v0=*(base[0x148]+a0*4+0xF4); for(a1=100;a1!=300;a1+=2){
+ * p=v0+a1+0x7D00; v1=50; do{v1+=4; p[0]=p[0x280]=p[0x500]=p[0x780]=0xFFFF;
+ * p+=0xA00;}while(v1!=150);}. NON_MATCHING: logic exact but IDO -O2 UNROLLS the
+ * inner loop (built 43 insns vs target 25 rolled). Next pass: prevent the unroll
+ * (target keeps it rolled, bne v1,a3). */
+#ifdef NON_MATCHING
+void game_libs_func_00042374(int a0) {
+    int *base = *(int **)((char *)&D_00000000 + 0x240);
+    char *v0 = *(char **)((char *)base[0x148 / 4] + a0 * 4 + 0xF4);
+    int a1, v1;
+    char *p;
+    int val = 0xFFFF;
+    for (a1 = 100; a1 != 300; a1 += 2) {
+        p = v0 + a1 + 0x7D00;
+        v1 = 50;
+        do {
+            v1 += 4;
+            *(short *)(p + 0) = val;
+            *(short *)(p + 0x280) = val;
+            *(short *)(p + 0x500) = val;
+            *(short *)(p + 0x780) = val;
+            p += 0xA00;
+        } while (v1 != 150);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042374);
+#endif
 
 void gl_func_000423D8(void) {
     gl_func_00000000(0);
