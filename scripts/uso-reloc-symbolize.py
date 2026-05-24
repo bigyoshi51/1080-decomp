@@ -73,7 +73,7 @@ def addend_str(sym, addend):
     if addend>0:  return f'{sym} + 0x{addend:X}'
     return f'{sym} - 0x{-addend:X}'
 
-def process_file(path, relmap, apply, symnames=None):
+def process_file(path, relmap, apply, symnames=None, shim=0):
     def name(symidx): return (symnames or {}).get(str(symidx), f'usosym_{symidx}')
     # Pass 1: parse lines, index reloc instructions
     lines=[l for l in open(path)]
@@ -81,8 +81,8 @@ def process_file(path, relmap, apply, symnames=None):
     for i,line in enumerate(lines):
         m=LINE_RE.match(line.rstrip('\n'))
         if not m: continue
-        off=int(m.group(2),16)
-        if off in relmap:
+        off=int(m.group(2),16)+shim   # shim maps a sub-segment's .s offsets (e.g. game_libs)
+        if off in relmap:             # into the parent module's reloc-offset space (bootup.uso)
             parsed.append((i,off,int(m.group(3),16)))
     # Pass 2: compute per-reloc addend. Pair HI16(lui $rX) with the nearest forward
     # LO16 (same symIdx, base reg == lui's rt) to get the full combined addend.
@@ -136,6 +136,10 @@ def main():
     ap.add_argument('--asmdir', default=None)
     ap.add_argument('--symnames', default=None,
                     help='JSON map symIdx->real name from scripts/emu-symdump (else usosym_<N>)')
+    ap.add_argument('--offset-shim', type=lambda x:int(x,0), default=0,
+                    help='add to each .s line offset before reloc lookup; for symbolizing a '
+                         'sub-segment whose .s offsets are relative to its own base but whose '
+                         'relocs live in a parent module (game_libs in bootup.uso: 0x1466C)')
     ap.add_argument('--apply', action='store_true')
     a=ap.parse_args()
     d=open(a.rom,'rb').read()
@@ -153,10 +157,12 @@ def main():
     if symnames:
         named=sum(1 for s in syms if str(s) in symnames)
         print(f'  using real names for {named}/{len(syms)} symbols (rest fall back to usosym_<N>)')
+    if a.offset_shim:
+        print(f'  offset-shim: +{a.offset_shim:#x} (sub-segment .s offsets -> parent reloc space)')
     asmdir=a.asmdir or f'asm/nonmatchings/{a.segment}'
     total=0; files=0
     for f in sorted(glob.glob(os.path.join(asmdir,'*.s'))):
-        c=process_file(f,relmap,a.apply,symnames)
+        c=process_file(f,relmap,a.apply,symnames,a.offset_shim)
         if c: files+=1; total+=c
     print(f'{"APPLIED" if a.apply else "DRY-RUN"}: {total} instructions in {files} .s files'
           f' would be symbolized')
