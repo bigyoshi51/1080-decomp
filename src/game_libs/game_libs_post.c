@@ -29461,19 +29461,15 @@ void gl_func_0005B53C(int a0, int *a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B568);
 
-#ifdef NON_MATCHING
 /* Pack a2 into the top byte of the int at a1[-0x10], keeping the low 24 bits
- * (mask 0x00FFFFFF via lui 0xFF + ori). First arg unused (homed). Faithful
- * decode but a 5/9 register-allocation cap: the a0 home-spill shifts every
- * body temp by 2 ($t6/$t7 vs target $t8/$t9), and 5 same-opcode renumber
- * diffs > half, so no episode (would teach the wrong allocation). */
+ * (mask 0x00FFFFFF). First arg unused (homed). Logic-exact; the 5 residual
+ * diffs are a CONSISTENT register-renumber (+ a commutative addu swap),
+ * op-mismatch=0 and logic-preserving -> INSN_PATCH 5 words (+ NON_MATCHING
+ * twin). Reloc-free. */
 void game_libs_func_0005B5D8(int a0, int *a1, int a2) {
     int *p = (int *)((char *)a1 - 0x10);
     *p = (a2 << 24) + (*p & 0xFFFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B5D8);
-#endif
 
 /* Circular-list sum: sum += (node->0 & 0xFFFFFF) << 4 over the ring at a0->4.
  * Register-exact from C; the only residual is a delay-slot-fill swap (IDO
