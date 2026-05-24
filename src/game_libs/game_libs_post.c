@@ -730,7 +730,30 @@ int game_libs_func_0001D944(int *buf, int a1, int a2, int a3, int idx) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D944);
 #endif
 
+#ifdef NON_MATCHING
+/* Double F3D/GBI command builder -- byte-identical sibling of
+ * game_libs_func_0001D944 (same body; command opcode 0x15 vs 0x14). Writes two
+ * 8-byte commands (4 words) to the $a0 buffer, indexing the 0x158-stride record
+ * table at &D_00000000 by the 5th (stack) arg, reading segment-offset fields
+ * +0x38/+0x3C and KSEG0-biasing, returns buf+16. Same cap as 0001D944: D_ ref
+ * -> objdiff reloc-depressed + IDO dead arg-home-stores (sw a1/a2 to home). */
+int game_libs_func_0001D9E0(int *buf, int a1, int a2, int a3, int idx) {
+    int cmd = (((a3 >> 4) & 0xFF) << 16) | 0x15000000;
+    char *rec;
+    int off;
+    buf[0] = cmd | (a1 & 0xFFFF);
+    rec = (char *)&D_00000000 + idx * 0x158;
+    a2 &= 0xFFFF;
+    off = a2 << 1;
+    buf[1] = *(int *)(rec + 0x38) + off + 0x80000000;
+    buf += 2;
+    buf[0] = cmd | ((a1 + 0x1A0) & 0xFFFF);
+    buf[1] = *(int *)(rec + 0x3C) + off + 0x80000000;
+    return (int)(buf + 2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D9E0);
+#endif
 
 // gl_func_0001DA7C — STRUCTURAL PASS (0x10C / 67 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
