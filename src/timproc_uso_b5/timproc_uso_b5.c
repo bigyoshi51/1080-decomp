@@ -4280,7 +4280,6 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
     *(int*)((char*)a0[0x2B8/4] + 0x138) = 0;
 }
 
-#ifdef NON_MATCHING
 /* 51-insn / 0xCC float clamp + copy. Pattern:
  *   v1 = a0->[0x2B8];
  *   if (v1->[0x134] != 0) {        ; increment branch
@@ -4356,9 +4355,7 @@ void timproc_uso_b5_func_0000C8AC(int *a0) {
     }
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C8AC);
-#endif
+
 
 void timproc_uso_b5_func_0000C978(int *a0, float a1) {
     *(float*)((char*)a0 + 0x2A0) = a1;
