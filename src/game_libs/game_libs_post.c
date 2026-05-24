@@ -29650,6 +29650,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005703C);
 #endif
 
 
+/* gl_func_00057104: F3D/GBI command emitter. Verified decode (m2c via disasm-func.py):
+ *   r = helper(arg1);
+ *   if ((arg1->4 & 0x80000) || (arg1->4 & 0x800000)) extra = helper(arg1, arg1, r);
+ *   dl = arg0->0xC; count = dl->4; dl->4 = count+1;
+ *   buf = arg0->0xC->0;
+ *   buf[count*2]   = 0xB900031D;          // GBI cmd word0
+ *   buf[count*2+1] = r | extra;           // word1
+ * Logic exact but sub-80 (built 38 vs target 36): the flag test compiles to a
+ * bltz + bgezl (branch-LIKELY) pair the explicit `extra` var doesn't reproduce
+ * (v0 is tracked through the register, not a named local), plus arg0-home schedule.
+ * Resume: model the `r|v0` via the call's return register directly + match the
+ * bgezl per docs/IDO_CODEGEN branch-likely recipes — multi-tick. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057104);
 
 /* GBI display-list command emitter, gated on flag bits in a1->4. If bit 19
