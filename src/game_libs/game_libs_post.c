@@ -30404,7 +30404,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BD80);
  * counter (0..3 / cmp 4) + pointer advance. The induction-variable form isn't
  * C-controllable: pointer-advance + manual 4-stmt body makes IDO FULLY unroll
  * (53 insns); indexed i<16 gives the 24-insn rolled form but the element counter.
- * Was INSN_PATCH'd (2 insns, removed 2026-05-23). */
+ * Was INSN_PATCH'd (2 insns, removed 2026-05-23). 2026-05-24 RE-GROUND HARD (4
+ * forms: indexed-i<16 / for-x4 / do-while-x4 / countdown-pointer + 200s permuter,
+ * floored at base score 10 = exactly the 2 counter-constant bytes). CONFIRMED
+ * GENUINE CAP: IDO's counter strength-reduction gives a by-4 element counter on the
+ * x4-auto-unrolled loop (cmp 16), never the target's by-1 trip counter (cmp 4); a
+ * literal 4-trip loop FULLY unrolls instead. Not C-reachable -> stays NM at 99.92%
+ * (honest; better than the removed INSN_PATCH fake). */
 #ifdef NON_MATCHING
 void game_libs_func_0005BDC0(float *src, float *dst) {
     int i;
