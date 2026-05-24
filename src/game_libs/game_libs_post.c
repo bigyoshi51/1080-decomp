@@ -1598,18 +1598,15 @@ void game_libs_func_0001FEB8(int *a0) { *(int*)((char*)a0 + 4) = *(int*)a0; *(in
 //   USO placeholder for the registration routines.
 extern int gl_func_00000000();
 extern int D_00000000;
-#ifdef NON_MATCHING
+/* Byte-exact: inlining the global load `*(int*)(D+4)` into the 2nd call's arg
+ * (vs a named `int g` local) allocates it to $t7 (not $v0) to match. The
+ * gl_func_00000000 calls are jal-0 placeholders = correct ROM bytes; no episode. */
 void gl_func_0001FEC8(int arg) {
     char *D = (char *)&D_00000000;
-    int g;
     gl_func_00000000(D + 0x2188, D, arg);
-    g = *(int *)(D + 4);
-    gl_func_00000000(D + 0x2168, D + arg, g - arg);
+    gl_func_00000000(D + 0x2168, D + arg, *(int *)(D + 4) - arg);
     *(int *)(D + 0x2178) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FEC8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FF28);
 
@@ -27771,7 +27768,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000520B8);
  * $f0; multiplies by (float)a0->halfword[0x20]; truncates to int.
  * Single 1-insn cap on `mul.s` operand order (target: fs=$f0, ft=$f6;
  * IDO emits fs=$f6, ft=$f0 — semantically identical for commutative mul,
- * but encoded bytes differ). Patched via INSN_PATCH at offset 0x2C. */
+ * but encoded bytes differ). NON_MATCHING: IDO canonicalizes mul.s operand
+ * order (C swap is a no-op); fs/ft assignment is the FP allocator choice, not
+ * C-reachable. Was INSN_PATCH'd (removed 2026-05-23). */
 extern float gl_func_returns_float();
 #ifdef NON_MATCHING
 int gl_func_00052104(int *a0) {
