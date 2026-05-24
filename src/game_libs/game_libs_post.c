@@ -28185,7 +28185,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000525F0);
  * $v0 intermediates. Deterministic body → genuine episode once symbols
  * resolved. Deferred this tick (gl_ref_ multi-symbol resolution is the
  * documented involved game_libs path, not a quick win). INCLUDE_ASM. */
+#ifdef NON_MATCHING
+/* game_libs_func_00052674: 7-global initializer (88% under -O2; the remaining
+ * 12% is an -O1 LOWER-OPT cap). Verified 2026-05-24: the target's THREE separate
+ * `ori 0x2000; ori 1; ori 0x8000` (then or-at for 0x20000) is produced by -O1
+ * (which does less constant folding); -O2 folds them to one `ori 0xA001`. -O1
+ * also keeps the value in v0; -O2 uses t8/t9. Full match needs an -O1 OPT_FLAGS
+ * file split. (constant-OR-folding is a NEW lower-opt diagnostic alongside
+ * surviving-redundant-store / addiu+0(reg).) The 7 D_52674_* externs are
+ * distinct (target has 7 separate luis = 7 symbols, no CSE). */
+extern int D_52674_a, D_52674_b, D_52674_c, D_52674_d, D_52674_e, D_52674_f, D_52674_g;
+void game_libs_func_00052674(void) {
+    int *p = &D_52674_a;
+    p[1] = 0;
+    p[0] = 0;
+    *(int *)((char *)&D_52674_d + 4) =
+        *(int *)((char *)&D_52674_b + 4) | 0x2000 | 1 | 0x8000 | 0x20000;
+    D_52674_e = D_52674_c | 1;
+    D_52674_f = 0;
+    D_52674_g = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052674);
+#endif
 
 // gl_func_000526D0 — STRUCTURAL PASS (decl 0x2C4 / 177 words, no
 // episode). Raw-.word USO. realjr=2, regjr=0 → 2-FUNCTION BUNDLE.
