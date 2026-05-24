@@ -13757,6 +13757,11 @@ void game_libs_func_0003582C(int *a0, int a1) {
 extern int func_00000000();
 extern int D_00000000;
 #ifdef NON_MATCHING
+/* gl_func_00035834: indirect-call wrapper (D->0x48)(a1,a2); if <0, call
+ * func_00000000(&D+0x1E64C, a1); return r. 99.38% — residual is a register-renumber:
+ * `r` (the return, spilled across the 2nd call + reloaded) lands in $v1, target uses
+ * $a2. PERMUTER FLOORS at 25 (no crack, 840s total 2026-05-24) — this register-
+ * renumber is permuter-immune (unlike the arg-home class). Genuine near-100 cap. */
 int gl_func_00035834(int a0, int a1, int a2) {
     int r = ((int(*)(int,int))(*(int**)&D_00000000)[0x48/4])(a1, a2);
     if (r < 0) {
