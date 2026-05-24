@@ -1378,8 +1378,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008674);
  *     *(float*)(a0 + 0x550) = -(f550 / 4.0f);
  *   }
  *
- * Exact with a two-word INSN_PATCH for the FPU temp-register assignment in
- * the double add; the natural C emit is otherwise byte-correct. */
+ * NON_MATCHING (2 diffs): FP-temp-register swap in the double add — built does
+ * ldc1->f4 (Dconst) / cvt.d.s->f6 (d550); target wants ldc1->f6 / cvt.d.s->f4.
+ * IDO schedules the memory load (ldc1) first regardless of C operand order
+ * (verified: operand swap is no-op, explicit-var ordering cascades 26 diffs).
+ * Which f-reg holds load vs convert is IDO's FP allocator choice, not
+ * C-reachable. Was INSN_PATCH'd (2 words, removed 2026-05-23). */
 #ifdef NON_MATCHING
 void game_libs_func_000086A0(char *a0) {
     float four = 4.0f;
