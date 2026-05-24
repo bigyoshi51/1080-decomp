@@ -36228,7 +36228,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A304);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A420);
 
+#ifdef NON_MATCHING
+/* gl_func_0006A5B0: poll-loop — call gl_func_0001CA10(a0); if nonzero, spin
+ * calling it until it returns 0; then call it with 293 (0x125). Decoded via
+ * scripts/disasm-func.py --m2c. 15/16 byte-exact (94%): ONLY the incoming-a0 home
+ * `sw a0,0x18(sp)` in the first jal delay slot differs (built nop). That dead
+ * arg-home is the recurring IDO codegen cap (not C-forceable at -O2; -g/-g1/-g2
+ * make it worse). Prime permuter candidate (single-insn residual). */
+extern int gl_func_0001CA10();
+void gl_func_0006A5B0(int a0) {
+    if (gl_func_0001CA10(a0) != 0) {
+        do {
+        } while (gl_func_0001CA10() != 0);
+    }
+    gl_func_0001CA10(293);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A5F0);
 
