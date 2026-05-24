@@ -29941,7 +29941,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005703C);
  * (v0 is tracked through the register, not a named local), plus arg0-home schedule.
  * Resume: model the `r|v0` via the call's return register directly + match the
  * bgezl per docs/IDO_CODEGEN branch-likely recipes — multi-tick. */
+#ifdef NON_MATCHING
+/* gl_func_00057104: 36-insn GBI command emitter. Calls the (collapsed) callback
+ * on a1; if flag bits 19 or 23 of a1->4 are set, calls it again; then appends an
+ * 8-byte display-list command (word0 = 0xB900031D, word1 = the OR of the two call
+ * results) into the buffer referenced by a0->0xC (a {base, count} ctx; count is
+ * post-incremented and the slot is base + count*8). NM (reference decode):
+ * collapsed-placeholder calls + branch-likely bit tests (raw-.word game_libs
+ * reloc depression); the exact bnezl/bgezl shape isn't byte-reproducible. */
+extern int gl_func_00000000();
+void gl_func_00057104(int a0, int a1) {
+    int r = gl_func_00000000(a1);
+    int flags = *(int *)((char *)a1 + 4);
+    int v = r;
+    if ((flags << 12) < 0 || (flags << 8) < 0) {
+        v = gl_func_00000000(a1);
+    }
+    {
+        int *ctx = *(int **)((char *)a0 + 0xC);
+        int idx = ctx[1];
+        int *slot = (int *)(ctx[0] + idx * 8);
+        ctx[1] = idx + 1;
+        slot[0] = 0xB900031D;
+        slot[1] = r | v;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057104);
+#endif
 
 /* GBI display-list command emitter, gated on flag bits in a1->4. If bit 19
  * ((flags<<12)<0) OR bit 23 ((flags<<8)<0) is set, append a 2-word command
