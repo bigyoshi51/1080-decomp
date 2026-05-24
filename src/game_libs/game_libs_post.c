@@ -22757,9 +22757,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044B78);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044B84);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044C9C);
+/* two-global word setter (D_X=a0; D_Y=a1) — two distinct externs force the 2 luis.
+ * Reloc-blind segment-base convention (=0x0 undefined_syms). No episode. */
+extern int D_44C9C_X, D_44C9C_Y;
+void game_libs_func_00044C9C(int a0, int a1) {
+    D_44C9C_X = a0;
+    D_44C9C_Y = a1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044CB0);
+extern int D_44CB0_X, D_44CB0_Y;
+void game_libs_func_00044CB0(int a0, int a1) {
+    D_44CB0_X = a0;
+    D_44CB0_Y = a1;
+}
 
 extern int gl_func_00000000();
 void gl_func_00044CC4(int a0, int a1) {
@@ -32177,7 +32187,13 @@ int game_libs_func_00061B04(int a0) {
 void game_libs_func_00061B10(int a0, int a1) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061B1C);
+/* two-global HALFWORD setter (*(short*)D_X=a0; *(short*)D_Y=a1) — `sh` stores.
+ * Two distinct externs force the 2 luis. Reloc-blind base. No episode. */
+extern short D_61B1C_X, D_61B1C_Y;
+void game_libs_func_00061B1C(int a0, int a1) {
+    D_61B1C_X = a0;
+    D_61B1C_Y = a1;
+}
 
 /* gl_func_00061B30 — verified structural decode (global-subsystem init,
  * 37 insns; arg-spill + (sp+47)&~3 aligned stack scratch + 3 calls =
