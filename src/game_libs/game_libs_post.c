@@ -32425,7 +32425,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061728);
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 #else
+#ifdef NON_MATCHING
+/* gl_func_00061734: 26-insn bounds-checked array append. If a3 >= 0x3F, call the
+ * (collapsed) assert with a fixed message address; read the element count from a
+ * global, store a0 into the global array at index a3, null the slot at count+1,
+ * and write count+1 back as the new count. (The a1/a2 params are clobbered/unused;
+ * the array base and the count word are distinct globals collapsed to D_00000000
+ * here, and the assert msg is a fixed RO address 0x21EB4.) NM (reference decode):
+ * collapsed-placeholder assert call + collapsed D refs (raw-.word game_libs reloc
+ * depression). */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00061734(int a0, int a1, int a2, int a3) {
+    int count;
+    if (a3 >= 0x3F) {
+        gl_func_00000000(0x21EB4);
+    }
+    count = *(int *)&D_00000000;
+    *(int *)((char *)&D_00000000 + a3 * 4) = a0;
+    *(int *)((char *)&D_00000000 + (count + 1) * 4) = 0;
+    *(int *)&D_00000000 = count + 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061734);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006179C);
 #endif
