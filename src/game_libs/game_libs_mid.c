@@ -75,7 +75,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008C3C);
  * 8A40 / the 8944 family. NM (reference decode): four collapsed-placeholder calls
  * + collapsed D refs (raw-.word game_libs reloc depression) AND -O0 codegen. */
 extern int gl_func_00000000();
-extern int D_00000000;
 void gl_func_00008DAC(int a0, int a1, int a2, int a3) {
     int rv;
     gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0xD150);
