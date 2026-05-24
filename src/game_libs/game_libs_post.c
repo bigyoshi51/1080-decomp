@@ -13187,6 +13187,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
 long long gl_func_00035164_inner(int a0);
 
 #ifdef NON_MATCHING
+/* gl_func_00035164: thin (int) wrapper over the long-long inner. NON_MATCHING
+ * (a0-home-spill cap): target spills a0 to its home (sw a0,0x18(sp)) in the
+ * call's delay slot where built has a nop. a0 is BOTH the call arg AND
+ * home-spilled; (void)a0 doesn't trigger it (that lever is for calls taking a
+ * DIFFERENT arg). Twin of gl_func_00066BD4. */
 int gl_func_00035164(int a0) {
     long long r = gl_func_00035164_inner(a0);
     return (int)r;
