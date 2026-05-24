@@ -2166,7 +2166,36 @@ void gl_func_0000E05C(int *self, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E05C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0000E118: getter + flag-gated reset + vtable dispatch (m2c-decoded,
+ * 90.1%). v0 = gl_func(); if (v0 && (v0->4 & 1)) { if ((a0->B4 & 2) && v0->24==1)
+ * { gl_func(a0, v0->1C [, a3 if a2]); v0->24=0; v0->1C=0; } t=a0->28;
+ * (*(short*)(t->70)+a0 passed to *(t->74))(.., a2); }. Residual: IDO spuriously
+ * homes the UNUSED a1 placeholder param (sw a1,0x2C) alongside the live a2/a3
+ * spills -> +1 insn shift; a1 must be declared to keep a2/a3 in $a2/$a3 but can't
+ * be suppressed. The rest is byte-exact. t->70 is a SHORT (lh). */
+extern int gl_func_00000000();
+void gl_func_0000E118(int a0, int a1, int a2, int a3) {
+    int v0 = gl_func_00000000();
+    if (v0 != 0 && (*(int *)(v0 + 4) & 1)) {
+        if ((*(int *)(a0 + 0xB4) & 2) && *(int *)(v0 + 0x24) == 1) {
+            if (a2 != 0) {
+                gl_func_00000000(a0, *(int *)(v0 + 0x1C), a3);
+            } else {
+                gl_func_00000000(a0, *(int *)(v0 + 0x1C));
+            }
+            *(int *)(v0 + 0x24) = 0;
+            *(int *)(v0 + 0x1C) = 0;
+        }
+        {
+            int t = *(int *)(a0 + 0x28);
+            (*(void (**)(int, int))(t + 0x74))(*(short *)(t + 0x70) + a0, a2);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E118);
+#endif
 
 void gl_func_0000E1DC(int *a0, int a1, int a2) {
     int *v = (int*)gl_func_00000000(a0, a1, a2);
