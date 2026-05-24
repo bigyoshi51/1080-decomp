@@ -13229,19 +13229,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
 
 /* gl_func_000351EC: 20-insn vtable dispatch + error helper. Loads
  * function pointer from (*(int**)&D_0)[0x11], calls it with arg1, and
- * if result < 0 calls gl_func(error_string, arg1, rc). */
-#ifdef NON_MATCHING
+ * if result < 0 calls gl_func(error_string, arg1, rc). Byte-exact: inlining
+ * the indirect call (no named table/fn locals) puts the fn ptr in $t9 (canonical
+ * jalr reg) + table in $t6 to match; named locals force $v0/$v1. */
 void gl_func_000351EC(int a0, int a1) {
-    int *table = *(int**)&D_00000000;
-    int (*fn)(int) = (int(*)(int))table[0x44/4];
-    int rc = fn(a1);
+    int rc = ((int(*)(int))(*(int**)&D_00000000)[0x44/4])(a1);
     if (rc < 0) {
         gl_func_00000000((char*)&D_00000000 + 0x1E534, a1, rc);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000351EC);
-#endif
+
 
 extern int gl_func_00000000();
 void gl_func_0003523C(int a0, int a1, int a2) {
