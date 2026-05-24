@@ -178,7 +178,6 @@ build/src/kernel/kernel_056.c.o build/non_matching/src/kernel/kernel_056.c.o: PO
 # Prologue-stolen successors: splice the duplicate lui+addiu prefix that
 # C-emit naturally produces but expected/.o doesn't include in the symbol.
 # Format: <func_name>=<bytes_to_remove>. Multiple entries separated by spaces.
-# See scripts/splice-function-prefix.py and
 # feedback_prologue_stolen_successor_no_recipe.md for context.
 ifndef EXPECTED_BASELINE
 endif
@@ -194,7 +193,6 @@ build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o build/non_matching/src/timpro
 # instruction words in a function body post-cc, without changing function size
 # or any symbol layout. For unmatchable IDO codegen caps where C is correct
 # but 1-2 insns differ (FPU pipeline operand order, scheduler register choice).
-# See scripts/patch-insn-bytes.py and
 # feedback_insn_patch_for_ido_codegen_caps.md.
 ifndef EXPECTED_BASELINE
 endif
@@ -254,13 +252,10 @@ build/src/%.c.o: src/%.c
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
 	@if [ -n "$(REPLACE_FUNC_BODY)" ]; then for spec in $(REPLACE_FUNC_BODY); do 		fn=$$(echo $$spec | cut -d= -f1); 		donor=$$(echo $$spec | cut -d= -f2); 		$(MAKE) $$donor; 		python3 scripts/replace-function-body.py $@ $$fn $$donor; 	done; fi
-	@if [ -n "$(PROLOGUE_STEALS)" ]; then for spec in $(PROLOGUE_STEALS); do 		fn=$$(echo $$spec | cut -d= -f1); 		nb=$$(echo $$spec | cut -d= -f2); 		python3 scripts/splice-function-prefix.py $@ $$fn -n $$nb; 	done; fi
 	@if [ -n "$(PREFIX_BYTES)" ]; then for spec in $(PREFIX_BYTES); do 		fn=$$(echo $$spec | cut -d= -f1); 		words=$$(echo $$spec | cut -d= -f2); 		python3 scripts/inject-prefix-bytes.py $@ $$fn $$words; 	done; fi
 	@if [ -n "$(SUFFIX_BYTES)" ]; then for spec in $(SUFFIX_BYTES); do 		fn=$$(echo $$spec | cut -d= -f1); 		words=$$(echo $$spec | cut -d= -f2); 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words; 	done; fi
 	@if [ -n "$(SUFFIX_BYTES_FORCE)" ]; then for spec in $(SUFFIX_BYTES_FORCE); do 		fn=$$(echo $$spec | cut -d= -f1); 		words=$$(echo $$spec | cut -d= -f2); 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words --allow-natural-epilogue; 	done; fi
 	@if [ -n "$(SUFFIX_BYTES_FORCE_UNTIL_SIZE)" ]; then for spec in $(SUFFIX_BYTES_FORCE_UNTIL_SIZE); do 		fn=$$(echo $$spec | cut -d= -f1); 		rest=$$(echo $$spec | cut -d= -f2); 		size=$$(echo $$rest | cut -d: -f1); 		words=$$(echo $$rest | cut -d: -f2); 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words --allow-natural-epilogue --skip-if-size-ge $$size; 	done; fi
-	@if [ -n "$(INSN_PATCH)" ]; then for spec in $(INSN_PATCH); do 		python3 scripts/patch-insn-bytes.py $@ $$spec; 	done; fi
-	@if [ -n "$(INSN_RELOC_PATCH)" ]; then for spec in $(INSN_RELOC_PATCH); do 		python3 scripts/patch-insn-relocs.py $@ $$spec; 	done; fi
 	@if [ -n "$(POST_INSN_SUFFIX_BYTES)" ]; then for spec in $(POST_INSN_SUFFIX_BYTES); do 		fn=$$(echo $$spec | cut -d= -f1); 		words=$$(echo $$spec | cut -d= -f2); 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words; 	done; fi
 	@if [ -n "$(POST_INSN_SUFFIX_BYTES_FORCE)" ]; then for spec in $(POST_INSN_SUFFIX_BYTES_FORCE); do 		fn=$$(echo $$spec | cut -d= -f1); 		words=$$(echo $$spec | cut -d= -f2); 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words --allow-natural-epilogue; 	done; fi
 	@if [ -n "$(TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(TRUNCATE_TEXT); fi
@@ -294,10 +289,7 @@ build/non_matching/src/%.c.o: src/%.c
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
 	@if [ -n "$(REPLACE_FUNC_BODY)" ]; then for spec in $(REPLACE_FUNC_BODY); do 		fn=$$(echo $$spec | cut -d= -f1); 		donor=$$(echo $$spec | cut -d= -f2); 		$(MAKE) $$donor; 		python3 scripts/replace-function-body.py $@ $$fn $$donor; 	done; fi
-	@if [ -n "$(PROLOGUE_STEALS)" ]; then for spec in $(PROLOGUE_STEALS); do 		fn=$$(echo $$spec | cut -d= -f1); 		nb=$$(echo $$spec | cut -d= -f2); 		python3 scripts/splice-function-prefix.py $@ $$fn -n $$nb; 	done; fi
 	@if [ -n "$(NON_MATCHING_SUFFIX_BYTES_FORCE)" ]; then for spec in $(NON_MATCHING_SUFFIX_BYTES_FORCE); do 		fn=$$(echo $$spec | cut -d= -f1); 		words=$$(echo $$spec | cut -d= -f2); 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words --allow-natural-epilogue; 	done; fi
-	@if [ -n "$(NON_MATCHING_INSN_PATCH)" ]; then for spec in $(NON_MATCHING_INSN_PATCH); do 		python3 scripts/patch-insn-bytes.py $@ $$spec; 	done; fi
-	@if [ -n "$(NON_MATCHING_INSN_RELOC_PATCH)" ]; then for spec in $(NON_MATCHING_INSN_RELOC_PATCH); do 		python3 scripts/patch-insn-relocs.py $@ $$spec; 	done; fi
 	@if [ -n "$(NON_MATCHING_TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(NON_MATCHING_TRUNCATE_TEXT); fi
 	@if [ -n "$(NON_MATCHING_TEXT_CLIP_KEEP_ALIGN)" ]; then python3 scripts/clip-elf-text-keep-align.py $@ $(NON_MATCHING_TEXT_CLIP_KEEP_ALIGN); fi
 endif
