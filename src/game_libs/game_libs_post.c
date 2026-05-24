@@ -5936,7 +5936,6 @@ void game_libs_func_000274E0(char *a0, char *a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274EC);
 
-#ifdef NON_MATCHING
 /* Stores 1 to field 0x18 and (a1[4] << 5) to field 0x14. Faithful decode but
  * a 5/6 cap: the target hoists the a1[4] load to the top (interleaving it
  * before the =1 store) and renumbers the temps; standalone AND in-tree both
@@ -5946,9 +5945,7 @@ void game_libs_func_00027504(char *a0, unsigned char *a1) {
     *(short *)(a0 + 0x18) = 1;
     *(short *)(a0 + 0x14) = t << 5;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027504);
-#endif
+
 
 /* Single unsigned-byte copy a1[4] -> a0[0xF]. Reloc-free; temp $t6 (IDO) vs
  * $t7 (target) register-renumber -> INSN_PATCH 2 reg fields. */
