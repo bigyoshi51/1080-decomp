@@ -2130,7 +2130,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
 
-#ifdef NON_MATCHING
 /* game_libs_func_00021130: zero a 0xB00-byte short array, base reloaded inline
  * per store (inline-base-reload lever, see gl_func_00060CB8). Logic + STRUCTURE
  * exact: IDO unrolls the simple `for(a1!=0xB00;a1+=2) *(short*)(reload+a1)=0`
@@ -2151,9 +2150,7 @@ void game_libs_func_00021130(void) {
         *(short *)(*(int *)(a0 + 0x2140) + a1) = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);
-#endif
+
 
 // gl_func_0002119C — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
