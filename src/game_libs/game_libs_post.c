@@ -35039,6 +35039,12 @@ void *game_libs_func_00067D50(char *a0, int a1, int a2) {
     return a0;
 }
 #else
+/* game_libs_func_00067D50 = memset(char *dst, char val, int count) -> dst (byte
+ * fill loop, returns dst). UNROLL CAP: target is the 12-insn NON-unrolled loop
+ * (no prologue, `v1=v0` reload + dead `a3=a2` per iter) — a lower-opt build. IDO
+ * at -O2 UNROLLS by 4 (22 insns); -O1 adds a prologue+spill. No C form at the
+ * file's -O2 reproduces the non-unrolled no-prologue target (tested 2026-05-24).
+ * Needs a contiguous lower-opt file split (cf. -g3 batch) to match. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D50);
 #endif
 
@@ -37831,6 +37837,9 @@ void *game_libs_func_0006F17C(char *a0, char *a1, int a2) {
     return a0;
 }
 #else
+/* game_libs_func_0006F17C = memcpy(void *dst, u8 *src, int count) -> dst. Same
+ * UNROLL CAP as the memset twin 00067D50: target is the NON-unrolled byte-copy
+ * loop (lower-opt build); IDO -O2 unrolls by 4. Needs a lower-opt file split. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F17C);
 #endif
 
