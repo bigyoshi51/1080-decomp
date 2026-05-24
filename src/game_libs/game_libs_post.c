@@ -30388,6 +30388,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C808);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C810);
 
+/* game_libs_func_0005C8CC: 3x3-matrix x Vec3 transform. Verified decode (m2c):
+ *   v0=arg0[0]; v1=arg0[4]; v2=arg0[8];   (read input vec into temps first)
+ *   arg0[0] = arg1[0]*v0 + arg1[4]*v1 + arg1[8]*v2;
+ *   arg0[4] = arg1[0x10]*v0 + arg1[0x14]*v1 + arg1[0x18]*v2;
+ *   arg0[8] = arg1[0x20]*v0 + arg1[0x24]*v1 + arg1[0x28]*v2;
+ * Logic exact but only ~34% (sub-80, kept INCLUDE_ASM): the temps land in $f0/$f2
+ * where the target uses $f2/$f12/$f14, cascading FP-reg-allocation diffs (33 vs 31
+ * insns). Permuter does NOT converge (scores ~2000, FP-regalloc-immune). Unlike the
+ * compound-*= matrix-SCALE (0005E8B0 matched), the matrix*VECTOR dot-product form is
+ * an FP-reg-allocation cap. Resume if an $f-reg-steering lever is found. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C8CC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C948);
