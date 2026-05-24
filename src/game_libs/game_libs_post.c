@@ -1559,7 +1559,29 @@ void *gl_func_0001FD98(int *a0) {
     return p;
 }
 #else
+#ifdef NON_MATCHING
+/* gl_func_0001FD98: 23-insn alloc-then-zero wrapper. v0 = cb(a0); if v0==0
+ * return 0; else zero bytes from v0 up to the end pointer *(a0+4); return v0.
+ * (a0 reloaded from its home slot across the call; unsigned pointer compare.)
+ * NM (reference decode): collapsed-placeholder call (raw-.word game_libs reloc
+ * depression). */
+extern int gl_func_00000000();
+int gl_func_0001FD98(int a0) {
+    char *p;
+    int v0 = gl_func_00000000(a0);
+    if (v0 == 0) {
+        return 0;
+    }
+    p = (char *)v0;
+    while ((unsigned int)p < (unsigned int)*(int *)((char *)a0 + 4)) {
+        *p = 0;
+        p++;
+    }
+    return v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD98);
+#endif
 #endif
 
 /* Bump/arena allocator. aligned = (n+15) & ~15; if (arena->base + arena->size
