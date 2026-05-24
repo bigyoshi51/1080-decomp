@@ -34164,48 +34164,26 @@ void game_libs_func_000664F0(int *a0, int *a1) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_00066514: too-big-N-function-bundle (declared size 0xA0, 40 words).
- * 3-function bundle for a dynamic-array-like container:
- *   struct DynArr { void *array; int len; int cap; };  // 0xC bytes
- *
- * SUB-FUNCTION 1 (0x66514..0x6656C, 22 insns, 0x58 bytes) — constructor:
- *     DynArr *f1(DynArr *obj, int cap, int element_size_unused) {
- *         if (obj == NULL) {
- *             obj = alloc(0xC);              // alloc the struct itself
- *             if (obj == NULL) return NULL;
- *         }
- *         obj->len = 0;
- *         obj->cap = cap;                    // a1
- *         obj->array = alloc_array(cap * 8); // 8-byte stride elements
- *         return obj;
- *     }
- *
- * SUB-FUNCTION 2 (0x6656C..0x665A4, 14 insns, 0x38 bytes) — append-slot:
- *     void *f2(DynArr *obj) {
- *         int len = obj->len;
- *         if (len >= obj->cap - 1) return NULL;  // unsigned: len < cap-1
- *         void *slot = &obj->array[len];          // 8-byte stride
- *         obj->len = len + 1;
- *         return slot;
- *     }
- *
- * SUB-FUNCTION 3 (0x665A4..0x665B4, 4 insns, 0x10 bytes) — init-with-external:
- *     void f3(DynArr *obj, void *external_array) {
- *         obj->array = external_array;
- *         obj->cap   = 0;
- *         obj->len   = 0;
- *     }
- *
- * Notes:
- *  - 3 internal `jr $ra` at offsets 0x50, 0x88, 0x98 confirm bundle.
- *  - 8-byte stride suggests element-type is {int, int} pair or {void*, int}.
- *  - f2 returns NULL when full; the "cap - 1" guard reserves a sentinel slot.
- *  - f3 zero-init with cap=0 means "borrowed array, can't grow" — paired
- *    DynArr-with-fixed-buffer pattern (no alloc-arr ownership).
- *  - Splat boundary issue: candidate for split-fragments.py.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+/* gl_func_00066514: DynArr{void*array@0; int len@4; int cap@8} constructor
+ * (f1 of the now-split 0xA0 bundle; .s is 0x58 = this fn only). Reloc-blind
+ * jals -> gl_func_00000000 placeholder (alloc(0xC) + alloc_array(cap*8)).
+ * 99.9% (report) -- SPILL-SLOT-OFFSET CAP: the only diff is obj's spill across
+ * the 2nd call: target reuses dead-a0's home slot sw a2,0x18(sp); -O2 C uses
+ * a2's own home sw a2,0x20(sp). Permuter held at base score 10 over 500+ iters
+ * (spill-slot-offset is permuter-immune). 3rd param + goto-to-shared-epilogue
+ * were the levers that got obj into a2 and beqz-to-epilogue. */
+int gl_func_00066514(int a0, int a1, int a2) {
+    a2 = a0;
+    if (a0 == 0) {
+        a2 = gl_func_00000000(0xC);
+        if (a2 == 0) goto ret;
+    }
+    *(int *)(a2 + 4) = 0;
+    *(int *)(a2 + 8) = a1;
+    *(int *)a2 = gl_func_00000000(a1 << 3);
+ret:
+    return a2;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066514);
 #endif
