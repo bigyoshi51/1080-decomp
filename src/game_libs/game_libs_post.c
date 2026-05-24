@@ -506,14 +506,12 @@ void game_libs_func_0001D58C(void) {}
 /* gbi 2-word command builder (5 args). Word-1 register-exact; word-2's temps
  * are uniformly +1 vs the target (allocno-numbering, build uses $t1-$t4 where
  * target uses $t2-$t5) — closed via a 5-insn INSN_PATCH register-renumber. */
-#ifdef NON_MATCHING
+// GBI 2-word command packer (cmd 0x0C000000), sibling of 0001D770/D7A4.
+// (a3<<15)<<1 renumbers the second-word temps to match (t2/t3/t4/t5).
 void game_libs_func_0001D594(int *a0, int a1, int a2, int a3, int a4) {
     a0[0] = (((a1 & 0xFF) << 16) | 0x0C000000) | (a2 & 0xFFFF);
-    a0[1] = (a3 << 16) | (a4 & 0xFFFF);
+    a0[1] = ((a3 << 15) << 1) | (a4 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D594);
-#endif
 
 void game_libs_func_0001D5C8(void) {}
 
@@ -523,14 +521,12 @@ void game_libs_func_0001D5D8(void) {}
 
 /* gbi 2-word command builder (5 args), cmd 0x08. Same word-2 INSN_PATCH
  * register-renumber as 0001D594. */
-#ifdef NON_MATCHING
+// GBI 2-word command packer (cmd 0x08000000), sibling of 0001D770/D7A4.
+// (a3<<15)<<1 renumbers the second-word temps to match (t2/t3/t4/t5).
 void game_libs_func_0001D5E0(int *a0, int a1, int a2, int a3, int a4) {
     a0[0] = (((a1 & 0xFF) << 16) | 0x08000000) | (a2 & 0xFFFF);
-    a0[1] = (a3 << 16) | (a4 & 0xFFFF);
+    a0[1] = ((a3 << 15) << 1) | (a4 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D5E0);
-#endif
 
 void game_libs_func_0001D614(void) {}
 
@@ -564,14 +560,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D670);
 
 /* gbi 2-word command builder (5 args), cmd 0x12. Same word-2 INSN_PATCH
  * register-renumber as 0001D594. */
-#ifdef NON_MATCHING
+// GBI 2-word command packer (cmd 0x12000000), sibling of 0001D770/D7A4.
+// (a3<<15)<<1 renumbers the second-word temps to match (t2/t3/t4/t5).
 void game_libs_func_0001D694(int *a0, int a1, int a2, int a3, int a4) {
     a0[0] = (((a1 & 0xFF) << 16) | 0x12000000) | (a2 & 0xFFFF);
-    a0[1] = (a3 << 16) | (a4 & 0xFFFF);
+    a0[1] = ((a3 << 15) << 1) | (a4 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D694);
-#endif
 
 void game_libs_func_0001D6C8(void) {}
 
