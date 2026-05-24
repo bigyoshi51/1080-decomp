@@ -30968,7 +30968,22 @@ void game_libs_func_0005E87C(char *a0, float *a1) {
     *(float *)(a0 + 0x38) += a1[2];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E8B0);
+/* game_libs_func_0005E8B0: per-axis matrix scale — multiplies each 3-vec row of
+ * arg0 (rows at +0x0,+0x10,+0x20) by arg1's component (+0x0,+0x4,+0x8). BYTE-EXACT
+ * (reloc-free). KEY: the compound `*=` form gives the target's FP load order (dst
+ * loaded into $f4 FIRST); the expanded `dst = dst * src` swaps the operand loads
+ * (arg1 first) -> 18 FP-reg diffs. arg1 component reloaded per multiply. */
+void game_libs_func_0005E8B0(void *arg0, void *arg1) {
+    *(float *)((char *)arg0 + 0x0)  *= *(float *)((char *)arg1 + 0x0);
+    *(float *)((char *)arg0 + 0x4)  *= *(float *)((char *)arg1 + 0x0);
+    *(float *)((char *)arg0 + 0x8)  *= *(float *)((char *)arg1 + 0x0);
+    *(float *)((char *)arg0 + 0x10) *= *(float *)((char *)arg1 + 0x4);
+    *(float *)((char *)arg0 + 0x14) *= *(float *)((char *)arg1 + 0x4);
+    *(float *)((char *)arg0 + 0x18) *= *(float *)((char *)arg1 + 0x4);
+    *(float *)((char *)arg0 + 0x20) *= *(float *)((char *)arg1 + 0x8);
+    *(float *)((char *)arg0 + 0x24) *= *(float *)((char *)arg1 + 0x8);
+    *(float *)((char *)arg0 + 0x28) *= *(float *)((char *)arg1 + 0x8);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E944);
 
