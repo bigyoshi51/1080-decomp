@@ -34434,7 +34434,9 @@ char *game_libs_func_00067C1C(char *dst, char *src) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067C1C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067C90);
+int game_libs_func_00067C90(int a0) {
+    return a0 & 0x5F;
+}
 
 #ifdef NON_MATCHING
 /* strncpy(dst, src, n): copy up to n bytes from src, stop at NUL, pad the
