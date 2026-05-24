@@ -39238,7 +39238,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071864);
  * Target keeps everything on stack — -O0-shaped. Needs file-split per
  * docs/IDO_CODEGEN.md#feedback-ido-o0-loop-stack-reload-signal.
  * Naive -O2 unrolls badly (228B vs 104B); volatile-loop variant adds barriers (124B). Deferred. */
+#ifdef NON_MATCHING
+/* gl_func_000718C0: 26-insn dual checksum over 14 input halfwords (a0[0..0x1A]).
+ * *a1 accumulates the sum of the halfwords; *a2 accumulates the sum of their
+ * bitwise complements (~v); returns 0. RELOC-FREE, so LANDABLE -- but it is an
+ * -O0 function (loop counter i @ sp+0 and tmp @ sp+6 are reloaded from the stack
+ * every iteration; volatile-at-O2 reproduces the frame + first insns but lands
+ * 2 insns long + regalloc-shifted). Match needs an -O0 file split
+ * (game_libs_o0_718C0.c + OPT_FLAGS=-O0 + linker + objdiff.json). Algorithm
+ * below is verified; use it as the -O0 split body. */
+int gl_func_000718C0(short *a0, short *a1, short *a2) {
+    short tmp;
+    int i;
+    tmp = 0;
+    *a2 = 0;
+    *a1 = *(unsigned short *)a2;
+    i = 0;
+    do {
+        tmp = *(short *)((char *)a0 + i);
+        *a1 = *(unsigned short *)a1 + (unsigned short)tmp;
+        *a2 = *(unsigned short *)a2 + ~tmp;
+        i += 2;
+    } while (i < 0x1C);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000718C0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071928);
 
