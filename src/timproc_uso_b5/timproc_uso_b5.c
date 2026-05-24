@@ -3928,6 +3928,7 @@ void timproc_uso_b5_func_0000BB78(int *a0, int unused) {
 /* 16-insn float-quad copy: v0 = a0->_2B8; copies 4 floats from
  * a0->{_25C,_260,_264,_294} into v0->{_114,_118,_110,_11C}, then calls
  * gl_func_00000000. Bundled-leaf trailer split off as 0000BBC8. */
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000BB88(int *a0) {
     int *v0 = *(int**)((char*)a0 + 0x2B8);
     *(float*)((char*)v0 + 0x11C) = *(float*)((char*)a0 + 0x294);
@@ -3936,6 +3937,9 @@ void timproc_uso_b5_func_0000BB88(int *a0) {
     *(float*)((char*)v0 + 0x114) = *(float*)((char*)a0 + 0x25C);
     gl_func_00000000();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BB88);
+#endif
 
 /* 5-insn float store: stores a1 to a0->_2A0 and (a0->_2B8)->_120.
  * Float arg passed in $a1 (int reg), so IDO emits mtc1 to FPU first. */

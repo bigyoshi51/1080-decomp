@@ -19710,8 +19710,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
  * but has 2 leading nops not reachable from std C (`void f(void){}`
  * emits just `jr ra; nop` = 2 insns). PREFIX_BYTES injects those two
  * leading nops post-cc to match the split stub exactly. */
+#ifdef NON_MATCHING
 void game_libs_func_0003ECDC(void) {
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003ECDC);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_0003ECEC(int a0) {
@@ -25532,6 +25536,7 @@ void gl_func_0004D354(int *arg0) {
  * `sw a0, 0x50(a0)` byte at 0x4D3D0 (else-body's first store, also
  * appearing in the beql delay slot — IDO emits it in both places when
  * the if-body uses fresh-load chains). 18/18 exact. */
+#ifdef NON_MATCHING
 void game_libs_func_0004D39C(int *a0, int **a1) {
     if (*a1 != 0) {
         *(int*)((char*)a0 + 0x50) = (int)*a1;
@@ -25544,6 +25549,9 @@ void game_libs_func_0004D39C(int *a0, int **a1) {
         *a1 = a0;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D39C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004D3E4: doubly-linked-list unlink with *a1==0 assert.

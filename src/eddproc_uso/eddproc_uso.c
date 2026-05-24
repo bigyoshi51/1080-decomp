@@ -208,6 +208,7 @@ void eddproc_uso_func_0000038C(char *dst) {
  *      via `((int*)*p_arg0)[0x10]`. Per
  *      feedback_volatile_ptr_to_arg_forces_caller_slot_spill.md +
  *      feedback_arg_load_early_vs_late_swaps_frame_shape.md. */
+#ifdef NON_MATCHING
 void *eddproc_uso_func_000003BC(int *arg0) {
     int *p;
     int *head;
@@ -229,6 +230,9 @@ void *eddproc_uso_func_000003BC(int *arg0) {
     }
     return p;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000003BC);
+#endif
 
 void eddproc_uso_func_0000044C(char *dst) {
     int tmp;

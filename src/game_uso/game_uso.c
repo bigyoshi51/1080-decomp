@@ -11673,6 +11673,7 @@ void game_uso_func_0000FF48(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FF48);
 #endif
 
+#ifdef NON_MATCHING
 void game_uso_func_0000FFB8(int *a0) {
     gl_func_00000000(a0, 0x30001, 5, 6, 1, 1);
     gl_func_00000000(a0,
@@ -11680,6 +11681,9 @@ void game_uso_func_0000FFB8(int *a0) {
         *(int*)((char*)&D_00000000 + 0xE2C),
         6);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FFB8);
+#endif
 
 #ifdef NON_MATCHING
 /* 84.05% NM. 19-insn / 0x4C. Three gl_func_00000000 calls bracketing

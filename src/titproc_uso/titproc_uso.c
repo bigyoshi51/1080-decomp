@@ -26,6 +26,7 @@ extern char D_titproc_C0_a;       /* a1 base (D[0x6C], D[0x148], D[0x40], D[0x44
 extern int D_titproc_C0_table_a[]; /* t3-base table */
 extern int D_titproc_C0_table_b[]; /* v0-base table (return value) */
 
+#ifdef NON_MATCHING
 int titproc_uso_func_000000C0(void) {
     int counter;
     int v;
@@ -58,6 +59,9 @@ int titproc_uso_func_000000C0(void) {
     *(int*)((char*)&D_titproc_C0_a + 0x44) = D_titproc_C0_table_a[counter];
     return D_titproc_C0_table_b[counter];
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000000C0);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000000C0_pad.s")
 
 extern char D_00000194_A;
@@ -492,6 +496,7 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F
 
 /* titproc_uso_func_000016B8: 22-insn field oscillator. In-place field
  * updates keep IDO's branch-likely delay-slot loads and temp registers aligned. */
+#ifdef NON_MATCHING
 void titproc_uso_func_000016B8(int *a0) {
     if (a0[0x30 / 4] == 0) {
         a0[0x2C / 4] += 6;
@@ -505,6 +510,9 @@ void titproc_uso_func_000016B8(int *a0) {
         }
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000016B8);
+#endif
 
 /* titproc_uso_func_00001710 — verified structural decode (FPU lerp, 76
  * insns; div.s/mul.s chain + 3 calls + recovered f16=1.0f stolen prologue

@@ -51,6 +51,7 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000024
 extern int *D_arc5C8_148;
 extern int D_arc5C8_14C;
 extern int D_arc5C8_68;
+#ifdef NON_MATCHING
 void arcproc_uso_func_000005C8(int *a0) {
     int saved1, saved2;
     int s0;
@@ -65,6 +66,9 @@ void arcproc_uso_func_000005C8(int *a0) {
     *(int*)((char*)a0[0] + 0x14) = 4;
     D_arc5C8_68 = 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000005C8);
+#endif
 
 #ifdef NON_MATCHING
 /* arcproc_uso_func_00000688: 48-insn (0xC0) struct-init + zero-loop.
