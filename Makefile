@@ -709,6 +709,26 @@ build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x
 build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH += func_000087A4=0x18:0x3C180000,0x1C:0x3C010000,0x20:0x15E00012,0x24:0x3C020000,0x28:0x8F180000,0x2C:0x24420000,0x30:0x3C08000A,0x38:0xAC390000,0x74:0x10400012,0x94:0x16210005,0xA4:0x10400006,0xB4:0x3C0C0000,0xB8:0x258C0000,0x110:0x13000003,0x134:0x0C000000,0x140:0x3C040000,0x154:0x8C840000
 build/src/bootup_uso/bootup_uso.c.o: INSN_PATCH += func_000087A4=0x18:0x3C180000,0x24:0x3C020000
 build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += func_000087A4=0x00000000,0x00000000,0x00000000
+build/non_matching/src/mgrproc_uso/mgrproc_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += mgrproc_uso_func_0000015C=0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_00010E2C=0x00000000,0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_000114FC=0x00000000,0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_00010DC8=0x00000000,0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_0000FA54=0x00000000,0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_00011368=0x00000000,0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_000113C8=0x00000000,0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_0000FDCC=0x00000000,0x00000000,0x00000000,0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_0000FEC8=0x00000000,0x00000000
+build/non_matching/src/game_uso/game_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_uso_func_000104A4=0x00000000,0x00000000
+build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += gl_func_0002DF38=0x44856000
+build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += gl_func_0002D6C8=0x00803025
+build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += gl_func_0003E0F0=0x27BD0050,0x8C8E0010
+build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += game_libs_func_00073310=0x01E01025
+build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += timproc_uso_b5_func_00003F18=0x8C98023C
+build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += timproc_uso_b5_func_00003F5C=0x03E00008,0xAFA40000
+build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += timproc_uso_b5_func_0000131C=0x00000000,0x00000000,0x00000000
+build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += timproc_uso_b5_func_00001DA4=0x00000000
+build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += timproc_uso_b5_func_000087E8=0x00000000
+build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE += timproc_uso_b5_func_00008940=0x00000000
 build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_INSN_PATCH += func_000087A4=0x18:0x3C180000,0x1C:0x3C010000,0x20:0x15E00012,0x24:0x3C020000,0x28:0x8F180000,0x2C:0x24420000,0x30:0x3C08000A,0x38:0xAC390000,0x74:0x10400012,0x94:0x16210005,0xA4:0x10400006,0xB4:0x3C0C0000,0xB8:0x258C0000,0x110:0x13000003,0x134:0x0C000000,0x140:0x3C040000,0x154:0x8C840000
 build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_INSN_PATCH += func_000087A4=0x18:0x3C180000,0x24:0x3C020000
 FUNC_00007288_INSN_PATCH := func_00007288=0x0C:0x8C8A003C,0x14:0x3C030001,0x18:0x24630001,0x20:0x8C790254,0x28:0xE72600AC,0x2C:0x8C880034,0x30:0x8C690254,0x34:0x44884000,0x40:0xE52A00B0,0x44:0x8C8A003C,0x48:0x3C030001,0x4C:0x24630001,0x50:0x15400011,0x58:0x8C620254,0x64:0x8C4B0078,0x6C:0x356C0004,0x70:0xAC4C0000,0x74:0x8DD80000,0x78:0x8C6D0254,0x7C:0xADB800DC,0x80:0x8DCF0004,0x84:0xADAF00E0,0x88:0x8DD80008,0x8C:0xADB800E4,0x90:0x8DCF000C,0x94:0xADAF00E8
