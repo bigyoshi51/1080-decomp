@@ -8392,27 +8392,28 @@ int gl_func_0002B5F4(char *o, int op) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B5F4);
 #endif
 
-#ifdef NON_MATCHING
 /* game_libs_func_0002BA08: nibble-splitter — store low/high nibble of (arg1&0xFF)
- * to arg0->5 / arg0->6 (skip if zero). The `int *p = &arg1; ...*p` lever (per
- * docs/IDO_CODEGEN arg-home crack) forces the dead arg-home `sw a1,4(sp)` —
- * 8/12 byte-exact now (home solved). Residual: the high-nibble temp lands in
- * $v1, target uses $a1 (consistent register-renumber) — permuter candidate. */
+ * to arg0->5 / arg0->6 (skip if zero). BYTE-EXACT.
+ * `int *p = &arg1; ...*p` forces the dead arg-home `sw a1,4(sp)` (the prologue-less
+ * arg-home, per docs/IDO_CODEGEN). The `v0++; v0--; new_var = hi;` nudges (found by
+ * the permuter, base->0) move the high-nibble temp into $a1 to match the target's
+ * register reuse. No episode (prologue-less reloc-blind context). */
 void game_libs_func_0002BA08(void *arg0, int arg1) {
     int *p = &arg1;
     int v0 = *p & 0xFF;
     int hi;
+    int new_var;
     if ((v0 & 0xF) != 0) {
         *((char *)arg0 + 5) = v0 & 0xF;
     }
     hi = (v0 >> 4) & 0xFF;
     if (hi != 0) {
-        *((char *)arg0 + 6) = hi;
+        v0++;
+        v0--;
+        new_var = hi;
+        *((char *)arg0 + 6) = new_var;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BA08);
-#endif
 
 /* Caps (DEFERRED): stack-byte-spill + byte-load + node-copy
  * idiom + indirect alloc helper. Real-C STRUCTURAL body below per
