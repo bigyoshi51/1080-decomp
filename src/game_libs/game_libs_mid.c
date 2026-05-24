@@ -67,17 +67,25 @@ void gl_func_00008C3C(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008C3C);
 #endif
 
-/* gl_func_00008DAC: 38-insn (0x98) 4-call sequencer. -O0 indicators
- * present: all 4 args spilled at entry (sw a0..a3 0x28..0x34), `b .+8`
- * placeholder branch, unfilled jal delays. Body:
- *   func(&D_A, &D_B + 0x1D150);
- *   func(&D_C, 8, 0, 0);
- *   rv = func(0, a1, a2, a3);   (with args reloaded from caller slots)
- *   func(a0, 1, rv);            (a0 reloaded too)
- * Same -O0 island style as siblings 8A40 and the 8944 family. Promotion
- * likely needs another file split per project_o1o2_split.md plus matching
- * Makefile/linker boundaries. Until then, INCLUDE_ASM is the build path. */
+#ifdef NON_MATCHING
+/* gl_func_00008DAC: 39-insn 4-call init sequencer. -O0 island (all 4 args spilled
+ * at entry, `b .+1` placeholder branch, unfilled jal delays). Promoted from a
+ * doc-comment to a real NM wrap. Match needs an -O0 file split (per
+ * project_o1o2_split.md + Makefile/linker boundaries) -- same class as siblings
+ * 8A40 / the 8944 family. NM (reference decode): four collapsed-placeholder calls
+ * + collapsed D refs (raw-.word game_libs reloc depression) AND -O0 codegen. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00008DAC(int a0, int a1, int a2, int a3) {
+    int rv;
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0xD150);
+    gl_func_00000000(&D_00000000, 8, 0, 0);
+    rv = gl_func_00000000(0, a1, a2, a3);
+    gl_func_00000000(a0, 1, rv);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008DAC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
 
