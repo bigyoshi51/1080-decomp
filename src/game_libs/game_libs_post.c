@@ -32311,7 +32311,41 @@ void gl_func_000619D4(int *a0) {
     a0[1] = 1;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00061A0C: hex-dump printer (16 bytes/line, m2c-decoded, 96.2%). For
+ * each 16-byte chunk: print line prefix (&D+0x21F1C, ptr), then each byte
+ * (&D+0x21F24, *ptr), then newline (&D+0x21F2C); finally &D+0x21F30. Reloc-blind
+ * placeholder calls. SOLE residual = prologue scheduling: target interleaves
+ * `move s4,a2` (s4=count) into the save sequence (after sw s4/s1); -O2 C emits it
+ * after the full prologue. Pure positional, same 52 insns. */
+extern int gl_func_00000000();
+void gl_func_00061A0C(int a0, char *a1, unsigned int a2) {
+    unsigned int s4 = a2;
+    char *s1 = a1;
+    if (a2 != 0) {
+        do {
+            int s2 = 0x10;
+            int s0 = 0;
+            if (s4 < 0x10U) {
+                s2 = s4;
+            }
+            gl_func_00000000((char *)&D_00000000 + 0x21F1C, s1);
+            if (s2 > 0) {
+                do {
+                    gl_func_00000000((char *)&D_00000000 + 0x21F24, *s1);
+                    s0 += 1;
+                    s1 += 1;
+                } while (s0 != s2);
+            }
+            gl_func_00000000((char *)&D_00000000 + 0x21F2C);
+            s4 -= s2;
+        } while (s4 != 0);
+    }
+    gl_func_00000000((char *)&D_00000000 + 0x21F30);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061A0C);
+#endif
 
 int game_libs_func_00061ADC(int a0, int a1, int a2) {
     return -1;
