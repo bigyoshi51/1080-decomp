@@ -29807,11 +29807,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C6C4);
  */
 void gl_func_0005C784(int a0, float *src) {
     extern int D_00000000;
+    float *p;
     int i;
     gl_func_00000000(a0, src);
+    p = src;
     for (i = 0; i < 16; i += 4) {
-        gl_func_00000000((char*)&D_00000000 + 0x21B14, (double)*src);
-        src++;
+        gl_func_00000000((char*)&D_00000000 + 0x21B14, (double)*p);
+        p++;
     }
     gl_func_00000000((char*)&D_00000000 + 0x21B18);
 }
