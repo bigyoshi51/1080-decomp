@@ -34919,7 +34919,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000669B8);
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 #else
+#ifdef NON_MATCHING
+/* gl_func_00066A50: 37-insn panic/hang. Logs an error via the (collapsed)
+ * callback (fmt @ 0x3F160, args 2/&global/0 + stack 0x41310,0xA), writes the
+ * 0x12345678 magic into the canary words at 0x3F310/0x3F314 (the canary SETTER,
+ * sibling of the gl_func_00066AF0 checker), logs again, calls a halt, then loops
+ * forever (b .). NM (reference decode): collapsed-placeholder calls + collapsed
+ * D ref + fixed absolute addresses (raw-.word game_libs reloc depression). */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00066A50(int a0) {
+    gl_func_00000000(0x3F160, 2, &D_00000000, 0, 0x41310, 0xA);
+    *(int *)0x3F310 = 0x12345678;
+    *(int *)0x3F314 = 0x12345678;
+    gl_func_00000000(0x3F160);
+    gl_func_00000000(0, 0);
+    for (;;) {
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066A50);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066AE4);
 #endif
