@@ -15336,20 +15336,38 @@ void gl_func_00037F58(int a0, char *a1) {
     gl_func_00000000(a0, a1 + 0xC);
 }
 
-/* gl_func_00037FAC: 24-insn alloc-or-given pattern with dead-code
- * twin-check on (a0 == 0). Target asm has TWO sequential checks:
- *   1) if (a0 == 0) { a0 = alloc(4); if (a0 == 0) return 0; }
- *   2) if (a0 == 0) { ... }   ← UNREACHABLE but emitted by IDO
- *      because compiler can't prove a0 != 0 across function calls.
- * Inside check #2: another alloc(4) + conditional store.
- * Then: *a0 = 0; *a0 = 0x4E; return a0.
- *
- * 2026-05-15: tried explicit twin-check NM wrap (q = alloc + *q = 0
- * if non-null + a0 = q). Scored 61.8% (up from 56% simple-form).
- * Cap: my emit collapses the (a0 == 0)/(q != 0) nested branches
- * differently from target — built 92 bytes vs target 96 (off by 1
- * insn). Keeping INCLUDE_ASM; documented for future passes. */
+/* gl_func_00037FAC: 24-insn alloc-or-given pattern with dead-code twin-check
+ * on (a0 == 0). 2026-05-24: brought 61.8% -> 99.9% (report) -- 24/24 insns
+ * byte-exact EXCEPT one spill slot. Levers: declare 2nd param a1 + use it as
+ * the working reg (a1 = a0) so the resource lives in a1; goto-to-shared-epilogue
+ * for the two early exits (beqz v0, L_end / beqz v0, L3). SOLE diff = the
+ * SPILL-SLOT-OFFSET CAP (same as gl_func_00066514): a1 spilled across the 2nd
+ * call lands at sw a1,0x1C(sp) (a1's own home) but target reuses dead-a0's home
+ * sw a1,0x18(sp). 1-arg/local-res form regresses (frame -0x20, v1 spill).
+ * Permuter-immune. The unreachable 2nd (a1==0) block is emitted because IDO
+ * can't prove a1!=0 across the calls. */
+#ifdef NON_MATCHING
+int gl_func_00037FAC(int a0, int a1) {
+    int v1;
+    a1 = a0;
+    if (a0 == 0) {
+        a1 = gl_func_00000000(4);
+        if (a1 == 0) goto L_end;
+    }
+    v1 = a1;
+    if (a1 == 0) {
+        v1 = gl_func_00000000(4);
+        if (v1 == 0) goto L3;
+    }
+    *(int *)v1 = 0;
+L3:
+    *(int *)a1 = 0x4E;
+L_end:
+    return a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037FAC);
+#endif
 
 // gl_func_0003800C — STRUCTURAL PASS (0xFC / 63 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
