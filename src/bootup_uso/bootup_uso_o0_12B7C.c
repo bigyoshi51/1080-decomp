@@ -6,10 +6,20 @@ extern int func_00000000();
 extern int D_00000000;
 extern int D_A0000200;
 
-/* func_00012818: 99.73%->100% via INSN_PATCH (2 reg-rename diffs at
- * 0x5C/0x64). IDO -O0 reuses $t5 (the lui base) as the lw destination
- * AND the bne comparand; target uses $t6 for both. Pure regalloc
- * reuse-base-as-dest pattern at -O0; INSN_PATCH overwrites the 2 bytes. */
+/* func_00012818: 99.73% NON_MATCHING. Sole diff (0x5C/0x64): the
+ * `if (D_A0000200 == 0xAC290000)` value-load. IDO -O0 emits
+ *   lui $t5,%hi; lw $t5,%lo($t5); bne $t5,$at   (REUSES the %hi base $t5)
+ * but the target uses a FRESH dest:
+ *   lui $t5,%hi; lw $t6,%lo($t5); bne $t6,$at
+ * Pure -O0 value-load reg-reuse, NOT C-reachable here. Tried:
+ *  - operand swap (0xAC29... == D_A0000200): IDO canonicalizes, no change.
+ *  - struct member at offset 0 (D_A0000200.v): same reuse.
+ *  - array form (D_A0000200[0]): DOES give fresh $t6, but materializes the
+ *    full base (lui+addiu+lw) -> +1 insn, wrong size (0x98 vs 0x94).
+ * No same-size C produces fresh-dest-with-folded-%lo, so this is also
+ * permuter-immune (can't flip the reg without adding an instruction).
+ * (Was an INSN_PATCH target; INSN_PATCH removed 2026-05-23 as match-faking.)
+ * Genuine -O0 codegen cap. */
 #ifdef NON_MATCHING
 void func_00012818(char *a0, char *a1) {
     int i;
