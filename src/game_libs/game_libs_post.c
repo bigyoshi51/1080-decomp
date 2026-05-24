@@ -166,7 +166,6 @@ void gl_func_0001CD64(int a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
 #endif
 
-#ifdef NON_MATCHING
 /* Clears bit 7 of the byte field of consecutive elements in the 2D global
  * table at &D_00000000 (D+0x14 = base ptr, D+0x2070 = row stride, D+0x2040 =
  * s16 element count), column a1, starting at row a0+1, until an element whose
@@ -189,9 +188,7 @@ void game_libs_func_0001CF68(int a0, int a1) {
         } while (v0 < *(short *)((char *)&D_00000000 + 0x2040));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CF68);
-#endif
+
 
 // gl_func_0001CFDC — STRUCTURAL PASS (0xD0 / 52 words, no episode).
 // Raw-.word USO form (game_libs RSP/graphics-library segment).
