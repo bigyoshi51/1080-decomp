@@ -32074,7 +32074,15 @@ int gl_func_00061458() {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061478);
 
+#ifdef NON_MATCHING
+extern int D_6170C_idx;
+extern int D_6170C_arr[];
+int game_libs_func_0006170C(void) {
+    return D_6170C_arr[D_6170C_idx - 1];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006170C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061728);
 
