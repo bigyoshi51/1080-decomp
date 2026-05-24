@@ -31548,17 +31548,17 @@ void game_libs_func_0006080C(int *a0) {
 // Bump field 0x18 by 1 when it's below the (0xC-0x14) span and 0x18+0x14 fits
 // under field 0x20. Faithful decode; t8<->t9 renumber on the inner-compare trio
 // fixed via INSN_PATCH (3/16, register-exact reorder).
-#ifdef NON_MATCHING
-void game_libs_func_00060824(int *a0) {
-    if (a0[6] < a0[3] - a0[5]) {
-        if (a0[5] + a0[6] <= a0[8]) {
-            a0[6]++;
-        }
+void game_libs_func_00060824(int *a0)
+{
+  if (a0[6] < (a0[3] - a0[5]))
+  {
+    if ((a0[8] + 1) > (a0[5] + a0[6]))
+    {
+      a0[6]++;
     }
+  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060824);
-#endif
+
 
 void game_libs_func_00060864(int *a0) {
     int v = *(int*)((char*)a0 + 0x10);
