@@ -26573,22 +26573,24 @@ void gl_func_0004ECE4(int a0) {
  * insns) — overwrites the v0/v1 register-swap diff that IDO's allocno
  * order picks opposite of target. Pure register rename (same family
  * as gl_func_00035834's $v1/$a2 patch). Logic verified before patch. */
-#ifdef NON_MATCHING
-void gl_func_0004ED0C(int *self) {
-    int *iter;
-    int i;
-    i = 0;
-    iter = self;
-    for (; i < self[0x120/4]; i++) {
-        int *v1 = (int*)iter[0x134/4];
-        int *vtable = (int*)v1[0];
-        ((void(*)(int))vtable[0xC/4])(*(short*)((char*)vtable + 0x8) + (int)v1);
-        iter++;
-    }
+void gl_func_0004ED0C(int *self)
+{
+  int *iter;
+  int i;
+  int new_var;
+  i = 0;
+  iter = self;
+  new_var = 0x134;
+  for (; i < self[0x120 / 4]; i++)
+  {
+    int *v1 = (int *) iter[new_var / 4];
+    int *vtable = (int *) ((int *) iter[new_var / 4])[0];
+    ((void (*)(int)) vtable[0xC / 4])((*((short *) (((char *) vtable) + 0x8))) + ((int) v1));
+    iter++;
+  }
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED0C);
-#endif
+
 
 #ifdef NON_MATCHING
 /* gl_func_0004ED7C — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
