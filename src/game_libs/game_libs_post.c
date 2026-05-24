@@ -37732,13 +37732,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC14);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CC14_pad.s")
 
-/* gl_func_0006CC64: 28-insn flag-bit-set via global ptr halfword.
- *   rv = func(a0); p = *(short**)&D; if ((u8)a0) *p |= 0x20; else *p &= ~0x20;
- *   return func(rv);
- * Target uses lbu from stack-spilled a0 byte (offset 0x2B(sp), BE-low-byte).
- * Naive C with (unsigned char)a0 scores 60.7% — IDO doesn't spill a0 to
- * stack for the post-call byte test; it keeps a0 in callee-save reg. Cap. */
+#ifdef NON_MATCHING
+/* gl_func_0006CC64: rv = func(a0); p = *(u16**)&D; if ((u8)a0) *p |= 0x20;
+ * else *p &= ~0x20; func(rv). The &param lever (unsigned char *pa = &a0) forces
+ * the a0 stack-home + post-call lbu reload that the prior 60.7% attempt missed ->
+ * 74.5%. Residual (register-alloc, not C-forceable): target keeps rv in s0
+ * (callee-save) w/ frame -0x28 and homes a0 BEFORE the call; -O2 here keeps rv in
+ * a0 (rv never crosses a call so `register` is ignored) w/ frame -0x18 and homes
+ * a0 in the jal delay slot. */
+extern int gl_func_00000000();
+void gl_func_0006CC64(unsigned char a0) {
+    unsigned char *pa = &a0;
+    int rv = gl_func_00000000();
+    if (*pa != 0) {
+        *(unsigned short *)(*(int *)&D_00000000) |= 0x20;
+    } else {
+        *(unsigned short *)(*(int *)&D_00000000) &= ~0x20;
+    }
+    gl_func_00000000(rv);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC64);
+#endif
 
 /* gl_func_0006CCD4: 20-insn DMA-sync + uncached-read helper. Calls
  * gl_func(src, dst); on success (returns 0), reads *src from the
