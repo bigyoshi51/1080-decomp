@@ -6031,6 +6031,13 @@ void game_libs_func_000274E0(char *a0, char *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274E0);
 #endif
 
+/* game_libs_func_000274EC: CAP (register-renumber, 2026-05-24). Correct C is
+ *   *(short*)(a0+0x16) = a1[4] << 3;  *(short*)(a0+0x1A) = 1;
+ * (write a1[4]<<3 FIRST so the load is pseudo #0 -> load-first order, matching
+ * the target lbu;li;sh 0x1A;sll;jr;sh 0x16). Structure is byte-exact EXCEPT the
+ * register base: target uses t2/t3/t4, every -O2 C form (and -O1/-g3) emits
+ * t6/t7/t8. Permuter floored at base score 30, never 0 (33+ iters). The
+ * contiguous-low-temp t2/t3/t4 allocation is unreachable from isolated C. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274EC);
 
 /* Stores 1 to field 0x18 and (a1[4] << 5) to field 0x14. Faithful decode but

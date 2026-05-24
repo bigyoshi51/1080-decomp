@@ -9420,13 +9420,16 @@ int game_uso_func_0000C3CC(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x30);
 }
 
-#ifdef NON_MATCHING
-int game_uso_func_0000C3E8(int a0) {
-    return *(int*)&D_00000000;
-}
-#else
+/* game_uso_func_0000C3E8: CAP (TU-context-sensitive scheduling, 2026-05-24).
+ * Correct C is `int f(int a0){ return *(int*)&D_00000000; }`. STANDALONE
+ * `cc -O2` (even with -DNON_MATCHING -I include -I src) emits the target
+ * byte-for-byte: lui v0; lw v0,0(v0); jr ra; sw a0,0(sp) (dead a0 homed in the
+ * delay slot, a free filler -- NO lever needed). But IN-TREE the full game_uso.c
+ * TU schedules it lui v0; sw a0,0(sp); jr ra; lw v0,0(v0) (home/load swapped) --
+ * IDO's list scheduler fills the lui->lw gap with the independent home store.
+ * Same compiler, same flags, different TU => unfixable from C here.
+ * (Tried volatile *p=&a0, *p=a0 self-store, reorder, volatile load.) */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor.
