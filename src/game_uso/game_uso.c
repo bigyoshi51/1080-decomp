@@ -902,6 +902,11 @@ void game_uso_func_00001714(int a0, int *a1) {
  * the bnel/beq pattern but introduces a worse mismatch.
  * Tried previously: `goto end;` vs `return;` — both 95 %.
  * Permuter remains the next-step recommendation. */
+/* game_uso_func_0000174C: 16-case (a1==3..18) dispatch. NON_MATCHING (4 diffs):
+ * the goto-chain matches 15/16 comparisons; the LAST case (a1==18) emits bne+goto
+ * where the target keeps beql+beq layout (switch-lowering of the final
+ * if-goto;goto). A real `switch` is WORSE (IDO jump-tables it: 106 diffs vs 4).
+ * Last-case branch-form cap. */
 void game_uso_func_0000174C(int *a0, int a1, int a2) {
     *(int*)((char*)a0 + 0x268) = 0;
     if (a1 == 3)  goto c3;
