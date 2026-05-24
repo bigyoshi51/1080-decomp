@@ -448,7 +448,37 @@ void gl_func_00009FA8(char *a0) {
     } while (i != limit);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000A00C: process two parallel slot-arrays (a0 and a0+0x18), 3 iters
+ * of stride 8: for each slot, if gl_func(slot) != 0, gl_func(slot, a1, a2&0xFF,
+ * a3&0xFF). Reloc-blind placeholder calls. 84.9% (m2c-verified structure):
+ * residual is register-allocation -- target hoists the two `& 0xFF` to the top
+ * (s4=a2&0xFF, s5=a3&0xFF) AND dead-homes raw a2/a3 (sw a2,0x40; sw a3,0x44);
+ * -O2 C keeps the args raw in s-regs and re-masks at each call site, no home.
+ * Naming s3/s4/s5 didn't flip it. Permuter/multi-pass residual. */
+extern int gl_func_00000000();
+void gl_func_0000A00C(int a0, int a1, int a2, int a3) {
+    int s3 = a1;
+    int s4 = a2 & 0xFF;
+    int s5 = a3 & 0xFF;
+    int s0 = a0;
+    int s1 = a0 + 0x18;
+    int s2 = 0;
+    do {
+        if (gl_func_00000000(s0) != 0) {
+            gl_func_00000000(s0, s3, s4, s5);
+        }
+        if (gl_func_00000000(s1) != 0) {
+            gl_func_00000000(s1, s3, s4, s5);
+        }
+        s2 += 8;
+        s0 += 8;
+        s1 += 8;
+    } while (s2 != 0x18);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A00C);
+#endif
 
 /* gl_func_0000A0CC: 25-insn 3-iter loop calling gl_func_00000000 on
  * a0[0], a0+8, a0+0x10. Returns count of non-zero return values. */
