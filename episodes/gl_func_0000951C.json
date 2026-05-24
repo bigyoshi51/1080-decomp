@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0000951C",
+  "project": "1080-agent-e",
+  "model": "claude-o0-accessor",
+  "start_time": "2026-05-24T12:55:49.053116+00:00",
+  "end_time": "2026-05-24T12:55:49.053137+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-24T12:55:49.053130+00:00",
+      "assistant_text": "16-insn -O0 accessor wrapper: scratch + 2 gl_ref calls (resolved). Untrapped from #else in the (now-built) -O0 split file game_libs_o0_949C.c.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 sub-file split out of game_libs.c on 2026-05-07. Holds the\n * 0x949C..0x959C cluster (4 functions, 16 insns / 0x40 each, total 0x100):\n * 4 sibling 2-call accessor wrappers all compiled at -O0 in the original.\n *\n * Pattern: minimal -O0 frame (sp-0x20), arg spill at sp+0x20, scratch local\n * at sp+0x1C, 2 jal calls (first with &scratch, second with arg+0x10),\n * trailing `b +1; nop` BB-end marker. All 4 verified byte-exact at -O0\n * standalone (2026-05-07; .text size 0x100 confirmed via readelf).\n *\n * STATUS \u2014 partial migration. This run created the file with verified C\n * bodies. Full wiring still requires:\n *   1. Update Makefile: shrink game_libs.c TRUNCATE_TEXT 0xEC00 \u2192 0x949C,\n *      add this file with `OPT_FLAGS := -O0` + `TRUNCATE_TEXT := 0x100`,\n *      add a new `game_libs_tail.c` with -O2 + TRUNCATE_TEXT 0x5664.\n *   2. Create `src/game_libs/game_libs_tail.c` containing everything from\n *      `gl_func_0000959C` onwards (~825 lines moved from game_libs.c).\n *   3. Update tenshoe.ld: insert these two .o files between game_libs.c.o\n *      and game_libs_post.c.o.\n *   4. Strip the 4 #ifdef NON_MATCHING wraps + their INCLUDE_ASMs from\n *      game_libs.c (lines ~729-822).\n *   5. Migrate the SUFFIX_BYTES for `gl_func_0000B560` from game_libs.c.o\n *      to game_libs_tail.c.o (function lives in the tail half).\n *\n * Until step 1 lands, this file is dead-storage \u2014 not built, not linked.\n * The default build still uses game_libs.c's INCLUDE_ASM path for the\n * cluster, which emits the correct bytes from the .s. So this commit\n * is forward-progress on the multi-tick split without breaking the\n * current build.\n *\n * Recipe per docs/MATCHING_WORKFLOW.md#feedback-o0-cluster-include-asm-sandwich\n * applies. game_libs is NOT Yay0-compressed, so the per-file -O0 override\n * works (unlike the timproc_uso_b1 / mgrproc_uso siblings which ARE\n * Yay0-compressed and blocked). */\n\nextern int gl_ref_0001CFB0();\nextern int gl_ref_0001CFFC();\nextern int gl_ref_0001D060();\nextern int gl_ref_0001D0AC();\n\nvoid gl_func_0000949C(char *a0) {\n    int scratch;\n    gl_ref_0001CFB0(&scratch);\n    gl_ref_0001CFFC(a0 + 0x10);\n}\n\nvoid gl_func_000094DC(char *a0) {\n    int scratch;\n    gl_ref_0001CFB0(&scratch);\n    gl_ref_0001CFB0(a0 + 0x10);\n}\n\nvoid gl_func_0000951C(char *a0) {\n    int scratch;\n    gl_ref_0001CFB0(&scratch);\n    gl_ref_0001D060(a0 + 0x10);\n}\n\nvoid gl_func_0000955C(char *a0) {\n    int scratch;\n    gl_ref_0001CFB0(&scratch);\n    gl_ref_0001D0AC(a0 + 0x10);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o0_949C.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0000951C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff_byte_exact"
+  }
+}

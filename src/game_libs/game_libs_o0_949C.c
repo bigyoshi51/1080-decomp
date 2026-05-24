@@ -39,42 +39,26 @@ extern int gl_ref_0001CFFC();
 extern int gl_ref_0001D060();
 extern int gl_ref_0001D0AC();
 
-#ifdef NON_MATCHING
 void gl_func_0000949C(char *a0) {
     int scratch;
     gl_ref_0001CFB0(&scratch);
     gl_ref_0001CFFC(a0 + 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000949C);
-#endif
 
-#ifdef NON_MATCHING
 void gl_func_000094DC(char *a0) {
     int scratch;
     gl_ref_0001CFB0(&scratch);
     gl_ref_0001CFB0(a0 + 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000094DC);
-#endif
 
-#ifdef NON_MATCHING
 void gl_func_0000951C(char *a0) {
     int scratch;
     gl_ref_0001CFB0(&scratch);
     gl_ref_0001D060(a0 + 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000951C);
-#endif
 
-#ifdef NON_MATCHING
 void gl_func_0000955C(char *a0) {
     int scratch;
     gl_ref_0001CFB0(&scratch);
     gl_ref_0001D0AC(a0 + 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000955C);
-#endif
