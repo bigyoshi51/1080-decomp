@@ -600,16 +600,13 @@ void game_libs_func_0001D754(int *a0, int a1, int a2) {
 }
 
 // Pack a GBI-style 2-word command: word0 = (a1&0xFF)<<16 | 0x0E000000 |
-// (arg4&0xFFFF); word1 = a2<<16 | (a3&0xFFFF). The second-word temps renumber
-// +1 (t2/t3/t4 vs target t3/t4/t5); not C-nudgeable, INSN_PATCH'd (4/13).
-#ifdef NON_MATCHING
-void game_libs_func_0001D770(int *a0, int a1, int a2, int a3, int arg4) {
-    a0[0] = (((a1 & 0xFF) << 16) | 0x0E000000) | (arg4 & 0xFFFF);
-    a0[1] = (a2 << 16) | (a3 & 0xFFFF);
+// (arg4&0xFFFF); word1 = a2<<16 | (a3&0xFFFF). The (a2<<15)<<1 form makes IDO
+// renumber the second-word temps to match (t3/t4/t5). Permuter match, byte-exact.
+void game_libs_func_0001D770(int *a0, int a1, int a2, int a3, int arg4)
+{
+  a0[0] = (((a1 & 0xFF) << 16) | 0x0E000000) | (arg4 & 0xFFFF);
+  a0[1] = ((a2 << 15) << 1) | (a3 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D770);
-#endif
 
 // GBI 2-word command packer (cmd 0x19000000), sibling of 0001D770:
 // word0 = (arg4&0xFF)<<16 | 0x19000000 | (a3&0xFFFF); word1 = a1<<16 |
