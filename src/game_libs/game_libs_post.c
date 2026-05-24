@@ -19079,7 +19079,7 @@ void* gl_func_0003E0F0(int *arg0) {
 
     obj = (int*)gl_func_00000000(0xB4);
     if (obj != 0) {
-        gl_func_00000000(obj, &D_0002F2E4);
+        gl_func_00000000(obj, (char*)&D_00000000 + 0x1F2E4);
         obj[10] = (int)&D_00000000;
         field2C = (int*)((char*)obj + 0x2C);
         if (field2C == 0) {
