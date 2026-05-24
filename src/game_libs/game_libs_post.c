@@ -18579,7 +18579,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
  * vtable struct: `obj->vt->fn`, `obj->vt->off`) so the dispatch compiles
  * tight, and keep only `a0` + one result var live across calls; or
  * permuter the closest variant. */
+#ifdef NON_MATCHING
+/* gl_func_0003D914: 38-insn vtable-dispatch list walk. Dispatches a0->0x28's
+ * method (ptr at +0x84, signed-halfword bias at +0x80) with (bias + a0, prev),
+ * storing the result into a0->0x34 then a0->0x2C, while walking the list at
+ * a0->0x10 (node->4 = next, node->0 = key); continues while the key is non-zero,
+ * feeding each call the previous result. RELOC-FREE (indirect jalr calls, no
+ * collapsed placeholders) => landable with a focused regalloc/return-type grind;
+ * NM (reference decode) for now. */
+int gl_func_0003D914(int a0) {
+    int iter = *(int *)((char *)a0 + 0x10);
+    int sub = *(int *)((char *)a0 + 0x28);
+    int s0 = (*(int (**)(int, int))(sub + 0x84))(*(short *)(sub + 0x80) + a0, 0);
+    if (s0 == 0) {
+        return 0;
+    }
+    *(int *)((char *)a0 + 0x34) = s0;
+    do {
+        int v1 = 0;
+        int sub2 = *(int *)((char *)a0 + 0x28);
+        *(int *)((char *)a0 + 0x2C) =
+            (*(int (**)(int, int))(sub2 + 0x84))(*(short *)(sub2 + 0x80) + a0, s0);
+        if (iter != 0) {
+            int cur = iter;
+            iter = *(int *)(cur + 4);
+            v1 = *(int *)cur;
+        }
+        s0 = v1;
+    } while (s0 != 0);
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D914);
+#endif
 
 void gl_func_0003D9AC(int *arg0) {
     gl_func_00000000(&D_00000000, (char*)arg0 + 0x48);
