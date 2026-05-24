@@ -134,10 +134,12 @@ extern u32 D_A4600010;
  * this object to the 0x60-byte entry block so func_80005350 remains the
  * separate shared-tail body.
  *
- * Exact via patch-insn-relocs: the direct D_A4600010 C form keeps the required
- * HI16/LO16 relocs, but IDO hoists the first load before the argument spills.
- * The post-cc recipe patches the fixed 0x60-byte prefix and retargets that
- * first relocation pair to the target offsets. */
+ * NON_MATCHING: the direct D_A4600010 C form keeps the required HI16/LO16
+ * relocs, but IDO hoists the first load before the argument spills, so the
+ * 0x60 prefix doesn't byte-match (was force-matched via the now-removed
+ * RELOC_PATCH). Kept INCLUDE_ASM for the exact 0x60 entry block; C preserved
+ * as reference / permuter seed. */
+#ifdef NON_MATCHING
 s32 func_800052F0(OSPiHandle *handle, s32 direction, u32 cartAddr, void *dramAddr, s32 size) {
     u32 status;
     u32 domain;
@@ -196,5 +198,8 @@ s32 func_800052F0(OSPiHandle *handle, s32 direction, u32 cartAddr, void *dramAdd
 
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800052F0);
+#endif
 
 #undef PI_REG

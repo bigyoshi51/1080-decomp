@@ -114,7 +114,6 @@ build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x588F0
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_005.c.o build/non_matching/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1
-FUNC_800052F0_RELOC_PATCH := func_800052F0=0x04:0xAFBF001C,0x08:0xAFA40030,0x0C:0xAFA50034,0x10:0xAFA60038,0x14:0xAFA7003C,0x18:0xAFB00018,0x1C:0x3C0E0000,0x20:0x8DCF0000,0x24:0x31F80003,0x28:0x13000008,0x2C:0xAFAF002C,0x30:0x3C190000,0x34:0x8F280000,0x38:0xAFA8002C,0x3C:0x8FA9002C,0x40:0x312A0003,0x44:0x1540FFFA,0x4C:0x8FAB0030,0x50:0x3C0E8001,0x54:0x916C0009,0x58:0x000C6880,0x5C:0x01CD7021,0x60:0x00000000@0x04:HI16:0x1C,0x08:LO16:0x20
 build/src/kernel/kernel_005.c.o: TEXT_CLIP_KEEP_ALIGN := 0x90 func_800052F0=0x60
 build/non_matching/src/kernel/kernel_005.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x90 func_800052F0=0x60
 build/src/kernel/kernel_007.c.o build/non_matching/src/kernel/kernel_007.c.o: OPT_FLAGS := -O1
