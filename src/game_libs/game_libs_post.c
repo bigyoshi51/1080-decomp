@@ -13270,12 +13270,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035164);
  *   g = *(int**)&D_0; g->[0x74](a0, a1);
  *   g = *(int**)&D_0; rv = g->[0x40](a1);
  *   if (rv < 0) func(&D + 0x1E510, a1, rv);
- * Naive C scored 79.2% (frame -0x20 vs target -0x18; IDO hoists global
- * load to $v0 before sp adjustment; target uses $t6 after sp). Same
- * family as 0003F008's K&R-spill cap. */
+ * 2026-05-24: 79.2% -> 98.4% via the `&param` lever (`int *p = &a0;`): it forces
+ * the dead a0-home (sw a0,0x18) AND pushes the sp-adjust to FIRST so the global
+ * load lands AFTER sp (was hoisted to $v0 before sp). 25/25 insns, structure-exact.
+ * SOLE residual = register-renumber: the global g sits in $v0 (both loads) but
+ * target uses $t6/$t7. Permuter improved 75->55, never 0 (register pool choice for
+ * a short-lived global-into-vtable-base is not C-controllable here). */
 void gl_func_00035188(int a0, int a1) {
     int *g;
     int rv;
+    int *p = &a0;
     g = *(int**)&D_00000000;
     ((void(*)(int, int))g[0x74/4])(a0, a1);
     g = *(int**)&D_00000000;
