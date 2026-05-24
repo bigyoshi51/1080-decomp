@@ -35487,41 +35487,47 @@ extern int gl_func_00000000();
  * order had no effect. Patched 5 insns at 0x54/0x58/0x5C/0x60/0x64 (no
  * reloc-bearing ops, safe per docs/POST_CC_RECIPES.md
  * #feedback-insn-patch-on-reloc-instructions-breaks-byte-verify). */
-#ifdef NON_MATCHING
-void gl_func_000687B8(int *a0) {
-    int outer_offset;
-    unsigned int j_outer;
-    int *s2;
-
-    if (a0[0x34/4] == 0) return;
-
-    s2 = (int*)a0[0x30/4];
-    outer_offset = 0;
-    j_outer = 0;
-    do {
-        unsigned int j;
-        int inner_offset;
-        if (s2[0x08/4] != 0) {
-            j = 0;
-            inner_offset = 0;
-            do {
-                int *vt;
-                int *e = *(int**)((char*)s2[0x04/4] + inner_offset);
-                vt = (int*)e[0x1C/4];
-                ((void(*)(int*))vt[0x24/4])((int*)((char*)e + *(short*)((char*)vt + 0x20)));
-                s2 = (int*)((char*)a0[0x30/4] + outer_offset);
-                j++;
-                inner_offset += 4;
-            } while (j < (unsigned int)s2[0x08/4]);
-        }
-        j_outer++;
-        outer_offset += 0x10;
-        s2 = (int*)((char*)s2 + 0x10);
-    } while (j_outer < (unsigned int)a0[0x34/4]);
+void gl_func_000687B8(int *a0)
+{
+  int outer_offset;
+  int new_var;
+  unsigned int j_outer;
+  int *s2;
+  if (a0[0x34 / 4] == 0)
+  {
+    return;
+  }
+  s2 = (int *) a0[0x30 / 4];
+  outer_offset = 0;
+  j_outer = 0;
+  do
+  {
+    unsigned int j;
+    int inner_offset;
+    if (s2[0x08 / 4] != 0)
+    {
+      j = 0;
+      inner_offset = 0;
+      new_var = 0x04 / 4;
+      do
+      {
+        int *vt;
+        int *e = *((int **) (((char *) s2[new_var]) + inner_offset));
+        vt = (int *) e[0x1C / 4];
+        ((void (*)(int *)) vt[0x24 / 4])((int *) (((char *) (*((int **) (((char *) s2[new_var]) + inner_offset)))) + (*((short *) (((char *) vt) + 0x20)))));
+        s2 = (int *) (((char *) a0[0x30 / 4]) + outer_offset);
+        j++;
+        inner_offset += 4;
+      }
+      while (j < ((unsigned int) s2[0x08 / 4]));
+    }
+    j_outer++;
+    outer_offset += 0x10;
+    s2 = (int *) (((char *) s2) + 0x10);
+  }
+  while (j_outer < ((unsigned int) a0[0x34 / 4]));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000687B8);
-#endif
+
 
 /* gl_func_00068884: 29-insn (0x74) alloc-or-passthrough constructor variant
  * of gl_func_000684AC. Differences from 684AC: takes 2 args (not 3); first
