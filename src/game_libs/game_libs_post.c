@@ -13019,7 +13019,16 @@ void gl_func_00034B98(void *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+extern int D_34BDC_A, D_34BDC_B;
+void game_libs_func_00034BDC(int a0, int *a1, int *a2) {
+    int *p = &a0;
+    *a1 = D_34BDC_A;
+    *a2 = D_34BDC_B;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034BDC);
+#endif
 
 int game_libs_func_00034BFC(int a0) {
     return *(int *)&D_00000000 + 0x80000000;
