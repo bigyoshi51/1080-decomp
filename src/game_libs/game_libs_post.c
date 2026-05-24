@@ -23605,13 +23605,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047B40);
 /* IDO picked $a3 not $a2 for the temp at offset 0x4/0x14 — INSN_PATCH overrides
  * those 2 words in the Makefile. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 int gl_func_00047DD8(int *a0, int a1) {
-    return gl_func_00000000(a1, a0[0x38]);
+    int *self = a0;
+    return gl_func_00000000(a1, self[0x38]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047DD8);
-#endif
+
 
 // gl_func_00047E00 — STRUCTURAL PASS (0x144 / 82 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x90
