@@ -16,6 +16,27 @@ Result for bootup.uso: **1672 symbols** — 1219 `func_<off>` (the call graph),
 248 `D_<off>`, 3 `RO_<off>`, 202 cross-module `import_<addr>`. Validated: every
 resolved `jal` target lands on a real function prologue (`27bdffe0`/`27bdff…`).
 
+## Coverage: `game_libs` is inside bootup.uso's text (one dump covers both)
+
+The project's `game_libs` segment is **not a separate USO** — its functions live
+inside bootup.uso's `.text` section (verified: `game_libs_func_00003298` @ ROM
+0xDE8370 is within bootup text 0xdd0a68–0xE5A378). So game_libs's relocs are in
+the **same** bootup.uso TextReloc table, and its real names are already in
+`bootup_uso.symnames.json` — **no separate dump is needed for game_libs**, which
+holds the largest reloc-collapse-cap class.
+
+Offset mapping (verified): a `game_libs`-segment offset `O` (i.e. the
+`game_libs_func_<O>` name offset) corresponds to bootup project offset
+`O + 0x1466C`. Look up the reloc at `O + 0x1466C` in the bootup TextReloc table to
+get its symIdx → name. Example: `gl_func_000032B0`'s placeholder jal (game_libs
+off 0x333C → bootup proj 0x179A8) resolves to the real callee **`func_0144B4`**;
+game_libs `D_` refs resolve to real `import_<addr>` / `D_<off>` names. This means
+the game_libs symbolize rollout reuses the existing dump + an `+0x1466C` shim.
+
+Other project segments (gui_uso, timproc_uso, mgrproc_uso, …) appear to be their
+own USO modules and would each need their own dump (and the compressed ones need
+decompressed text first).
+
 ## Pipeline
 
 ```
