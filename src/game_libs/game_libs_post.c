@@ -10432,7 +10432,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
    (built sp+0x18 vs target sp+0x1C). Decl-order (cmd-first) does NOT move it
    here (unlike gl_func_000289B0) — the 0x28 frame has 4 local slots and IDO
    takes the lowest for the single spill; the target reserves 0x18 (allocator
-   detail not reachable from C). Was INSN_PATCH'd (removed 2026-05-23). */
+   detail not reachable from C). Was INSN_PATCH'd (removed 2026-05-23).
+   PERMUTER also fails (280s, no improvement, 2026-05-24): the spill-SLOT-offset
+   residual (0x18 vs 0x1c) is permuter-immune — distinct from the arg-home/
+   register-renumber residuals the permuter DOES crack. Genuine cap. */
 #ifdef NON_MATCHING
 void gl_func_0002FA90(int a0, int arg1, int arg2) {
     int cmd;
