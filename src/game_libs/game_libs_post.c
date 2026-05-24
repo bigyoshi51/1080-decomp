@@ -1559,7 +1559,6 @@ void game_libs_func_0001FEB8(int *a0) { *(int*)((char*)a0 + 4) = *(int*)a0; *(in
 //   need USO reloc infra. Name pre-checked: no extern reuse
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder for the registration routines.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0001FEC8(int arg) {
@@ -1570,11 +1569,8 @@ void gl_func_0001FEC8(int arg) {
     gl_func_00000000(D + 0x2168, D + arg, g - arg);
     *(int *)(D + 0x2178) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FEC8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FF28);
-#endif
 
 // gl_func_0001FF34 — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
