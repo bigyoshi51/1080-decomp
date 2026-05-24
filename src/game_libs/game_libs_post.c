@@ -433,6 +433,16 @@ int game_libs_func_0001D3E0(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D3E0);
 #endif
 
+// game_libs_func_0001D4B0 — NOT a standalone function: it is the ORPHANED HEAD
+// of gl_func_0001D4C0 (splat mis-split the function in two). 4 pre-prologue insns:
+//   li t0,0x158; multu a1,t0;  lui/addiu v0,&D_xxxx   (no jr, no mflo)
+// gl_func_0001D4C0 (next symbol) consumes ALL THREE: `mflo t6` (lo from the multu),
+// `addu v1,v0,t6` (v0 = the &D base), and a second `multu a3,t0` (t0 = 0x158) — with
+// no intervening sets. The real function starts at 0x1D4B0 (entry the callers target);
+// 0x1D4C0 is a spurious mid-function symbol. FIX = USO boundary merge (focused session;
+// regenerate game_libs expected/ with one symbol gl_func_0001D4B0 size 0xA4). Until then
+// this stays INCLUDE_ASM (prologue-stolen successor — see docs/MATCHING_WORKFLOW.md;
+// PROLOGUE_STEALS post-cc splice is banned, the only honest fix is the boundary merge).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D4B0);
 
 // gl_func_0001D4C0 — STRUCTURAL PASS (0x3B0 / 236 words, no episode).
@@ -462,17 +472,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D4B0);
 //   word1 = caller arg) then the cursor is advanced by 8 and handed
 //   to the fixed RSP-submit routine 0x0C00C5C6. Sibling of the
 //   game_libs F3D/RSP display-list builder family.
-// Caps (DEFERRED): single jr $ra (the "40-fn unsplit bundle" note is
-//   STALE — .s is 0x94/37 words, ONE function). Glyph-quad DL
-//   emitter of the family: record from a sub-index, visibility gate
-//   (rec->0x1C == 1, bnel-skip), helper call, two F3D command words
-//   packed (v1->0x20 | 0x0C340000, then 0x0C8003E0) into the DL
-//   buffer, second helper, return advanced ptr. Real-C structural
-//   body below; byte-match deferred — two fixed jal targets
-//   (0x31648 / 0x31718) need symbols, and the multu/mflo + bnel
-//   schedule is IDO-sensitive. Name pre-checked: no extern reuse
-//   (collision-safe). gl_func_00000000 = canonical never-defined
-//   USO placeholder for the two fixed helpers.
+// ROOT-CAUSE CAP (CORRECTED 2026-05-24): this is a PROLOGUE-STOLEN SUCCESSOR.
+//   The function's real entry is the preceding symbol game_libs_func_0001D4B0
+//   (li t0,0x158; multu a1,t0; v0=&D_xxxx) — its `mflo t6`, `addu v1,v0,t6`, and
+//   second `multu a3,t0` all consume registers set in that 4-insn head. The C
+//   below MISMODELS this: it takes `int *v0` as an input pointer, but v0 is really
+//   the &D_xxxx base loaded in the head, and the `a1 * 0x158` element-index
+//   computation is absent. That structural gap (not "jal symbols" or "IDO
+//   schedule") is why it's stuck ~10.5%. There is NO C-only fix for a prologue-
+//   stolen successor (PROLOGUE_STEALS post-cc splice is banned as match-faking).
+//   FIX = USO boundary merge: make 0x1D4B0 the function start (one symbol, size
+//   0xA4), re-decode with the index setup + &D base, then the body becomes
+//   matchable. Focused-session task (regenerate game_libs expected/ baseline).
+//   gl_func_00000000 = canonical never-defined USO placeholder for the helpers.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 int gl_func_0001D4C0(int *v0, int ctx, int sub) {
