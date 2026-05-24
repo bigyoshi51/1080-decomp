@@ -1,0 +1,7 @@
+# decomp-permuter config for 1080 (IDO 7.1, asm-processor pipeline).
+# import.py builds the .c with `make PERMUTER=1` (simple IDO cc, no asm-processor);
+# pass CPPFLAGS=-DNON_MATCHING so #ifdef NON_MATCHING C bodies are seen.
+compiler_type = "ido"
+
+[weight_overrides]
+perm_temp_for_expr = 100

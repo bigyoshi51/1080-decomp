@@ -29,3 +29,4 @@ logs/
 # Anchored at root so `asm/nonmatchings/` (the real splat-extracted asm
 # tree) isn't accidentally ignored.
 /nonmatchings/
+nonmatchings/
