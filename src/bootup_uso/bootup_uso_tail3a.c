@@ -9,9 +9,13 @@ typedef struct { int a, b, c, d; } Quad4;
  * 7/8 NM cap structural (IDO -O2 fills jr-ra delay slot with addiu,
  * target had unfilled). Promoted to exact via INSN_PATCH at offsets
  * 0x10/0x14 (Makefile entry, ports the 2-word patch from agent-b). */
+#ifdef NON_MATCHING
 char *func_00010324(char *a0) {
     return a0 + *(int*)(a0 + 0x7C) * 0x28 + 0x84;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010324);
+#endif
 
 void func_00010344(void) {
 }

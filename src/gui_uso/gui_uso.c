@@ -5,6 +5,7 @@ extern char D_00000000;
 /* USO entry-0 trampoline leaf. The previous NM body described the old bundled
  * 0x148-byte glyph dispatch; after splitting, this symbol is just the first
  * 0x24 bytes. PREFIX_BYTES supplies the loader branch and arg-save delay slot. */
+#ifdef NON_MATCHING
 int gui_func_00000000(c)
 int c;
 {
@@ -14,19 +15,30 @@ int c;
     }
     return c & 0xFF;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
+#endif
 
 /* Branch-chain fragment: the predecessor leaves the character in $v0, and the
  * taken path jumps into gui_uso_func_0000003C after using this fragment's
  * delay slot to seed $at. IDO cannot name inherited $v0 from C, so the exact
  * bytes are supplied by the Makefile post-cc recipe. */
+#ifdef NON_MATCHING
 int gui_uso_func_00000024(void) {
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000024);
+#endif
 
 /* Branch-chain sibling of gui_uso_func_00000024. This fragment inherits the
  * character in $v0 and cannot express the compare in C; Makefile
  * INSN_PATCH/SUFFIX_BYTES supplies the exact six target words. */
+#ifdef NON_MATCHING
 int gui_uso_func_0000003C(void) {
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000003C);
+#endif
 
 // gui_uso_func_00000054 — STRUCTURAL PASS (0x18 / 6 words, no episode).
 // Raw-.word USO chained char-mapper entry (one of 10 contiguous entries
@@ -506,6 +518,7 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000168C);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000016A4);
 
+#ifdef NON_MATCHING
 void gui_uso_func_00001794(int a0) {
     int *rec = *(int **)&D_00000000;
     int *sub = (int *)rec[3];
@@ -516,6 +529,9 @@ void gui_uso_func_00001794(int a0) {
     arr[0] = 0xFCFFFFFF;
     arr[1] = 0xFFFCF279;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001794);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000017DC);
 
@@ -839,6 +855,7 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
  * `docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps`. */
 extern int gl_func_00000000();
 extern char D_00000000;
+#ifdef NON_MATCHING
 void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
     typedef struct DLState { int *base; int idx; } DLState;
     typedef struct GameState { char pad[0xC]; DLState *dlp; } GameState;
@@ -852,6 +869,9 @@ void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
     entry[0] = 0xF6000000 | ((a3 & 0x3FF) << 14) | ((arg5 & 0x3FF) << 2);
     entry[1] = ((a1 & 0x3FF) << 14) | ((a2 & 0x3FF) << 2);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003B14);
+#endif
 
 #ifdef NON_MATCHING
 /* gui_func_00003B80: 230-insn / 0x398 RDP DL builder (originally bundled

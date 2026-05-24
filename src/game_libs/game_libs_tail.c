@@ -149,6 +149,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
 /* 7-arg string-builder: a0[0]=a1; a0[1]=a2; 3x copy (a3[i]-0x61)->a0[2..4];
  * a0[5..7]=stack args. Register-exact; the 5 setup insns reorder vs target
  * (isolated-vs-full-TU scheduling) — closed via INSN_PATCH positional swap. */
+#ifdef NON_MATCHING
 void game_libs_func_000099DC(char *a0, int a1, int a2, char *a3, int a4, int a5, int a6) {
     int n = 0;
     char *d = a0;
@@ -165,6 +166,9 @@ void game_libs_func_000099DC(char *a0, int a1, int a2, char *a3, int a4, int a5,
     a0[6] = a5;
     a0[7] = a6;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000099DC);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00009A2C: 7-insn flag-test returning bool — decoded as
@@ -240,6 +244,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
  * Register-exact from C (counter decl first -> $v0); IDO reorders the 4 setup
  * moves vs the target (isolated-vs-full-TU scheduling) — closed via a 4-insn
  * INSN_PATCH positional swap. */
+#ifdef NON_MATCHING
 void game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {
     int n = 0;
     char *d = a0;
@@ -253,6 +258,9 @@ void game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {
     } while (n != 3);
     *(int *)(a0 + 4) = a3;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B60);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B98);
 
@@ -397,6 +405,7 @@ extern int gl_data_0000D434;
  *   a1 = row seed (advances +1/iter, fed to %5)
  *   a2 = col seed (advances +1/iter, fed to signed-%8)
  *   a3 = pointer to sink ints, advancing one word per iter. */
+#ifdef NON_MATCHING
 void gl_func_00009EBC(int x0, int a1, int a2, int* a3) {
     int dst = x0 + 0x18;
     int row = a1;
@@ -415,6 +424,9 @@ void gl_func_00009EBC(int x0, int a1, int a2, int* a3) {
         a3++;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009EBC);
+#endif
 
 /* gl_func_00009FA8: 25-insn 3-iteration loop with 2 cross-USO calls per
  * iter. Calls gl_func(a0+i) and gl_func(a0+0x18+i) for i = 0, 8, 0x10. */
@@ -466,6 +478,7 @@ int gl_func_0000A0CC(char *a0) {
  * 6-insn INSN_PATCH closes the i/p $s-reg swap (target s0=i,s1=p; built
  * s0=p,s1=i — decl-order swap REGRESSES per feedback-sreg-not-decl-driven). */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 int gl_func_0000A130(char *a0) {
     int count = 0;
     int i;
@@ -476,6 +489,9 @@ int gl_func_0000A130(char *a0) {
     }
     return count;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A130);
+#endif
 
 /* game_libs_func_0000A194: 3-insn leaf — return base + a1*8.
  *   sll t6, a1, 3; jr ra; addu v0, a0, t6 (delay).
@@ -510,6 +526,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A2B8);
  * (IDO emits entry-init first; target emits i-init first). 10th in the
  * INSN_PATCH-promotion family. */
 extern int func_00000000();
+#ifdef NON_MATCHING
 int gl_func_0000A4D0(int *a0, int a1) {
     int i;
     char *entry = (char*)a0 + 0x18;
@@ -521,6 +538,9 @@ int gl_func_0000A4D0(int *a0, int a1) {
     }
     return 3;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A4D0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A540);
 
@@ -676,6 +696,7 @@ void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int a
  * immediates.
  */
 extern int D_1D438, D_1D3E8;
+#ifdef NON_MATCHING
 void gl_func_0000AAEC(int *a0) {
     int *self_p = a0;
     int *self2 = &D_1D438;
@@ -688,6 +709,9 @@ void gl_func_0000AAEC(int *a0) {
         data2 = (int*)((char*)data2 + 0x18);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AAEC);
+#endif
 
 extern int gl_func_00000000();
 
@@ -702,6 +726,7 @@ void gl_func_0000AB70(char *a0) {
     }
 }
 
+#ifdef NON_MATCHING
 void gl_func_0000ABBC(char *a0, int a1, unsigned char a2, unsigned char a3, unsigned char *arg4) {
     int i;
     unsigned char *flagp;
@@ -737,6 +762,9 @@ void gl_func_0000ABBC(char *a0, int a1, unsigned char a2, unsigned char a3, unsi
         p += 0x20;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000ABBC);
+#endif
 
 /* gl_func_0000ACBC: 25-insn 3-iter loop, sibling of gl_func_0000A0CC.
  * Calls func_00000000 (NOTE: not gl_-prefixed — target's reloc references
@@ -779,6 +807,7 @@ char *game_libs_func_0000AD20(char *a0, int a1) {
  * prologue setup reorder (s1=a0 / s2=a1 / sw-ra / s0=0 → s2=a1 / sw-ra /
  * s0=0 / s1=a0). 11th in the INSN_PATCH-promotion family. */
 extern int func_00000000();
+#ifdef NON_MATCHING
 int gl_func_0000AD2C(char *a0, int a1) {
     int i;
     for (i = 0; i != 3; i++) {
@@ -787,6 +816,9 @@ int gl_func_0000AD2C(char *a0, int a1) {
     }
     return 3;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD2C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD9C);
 
@@ -853,6 +885,7 @@ int gl_func_0000B290(int *a0) {
  * (not naturally reachable from C with return-at-end). 9th in the
  * INSN_PATCH-promotion family. */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 int gl_func_0000B310(int *a0, int *a1) {
     int count = 0;
     int iter = 0;
@@ -867,6 +900,9 @@ int gl_func_0000B310(int *a0, int *a1) {
     }
     return count;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B310);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_0000B3B0() {
@@ -923,10 +959,14 @@ void gl_func_0000B4A4(int *a0, int a1, char a2, char a3) {
  * prologue setup for successor gl_func_0000B5AC, applied via SUFFIX_BYTES
  * (same recipe class as gl_func_0005FD20 / gl_func_0005FDCC). */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 void gl_func_0000B560(int *p) {
     gl_func_00000000(p[4], p[0]);
     gl_func_00000000(p[4], p[1]);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B560);
+#endif
 
 /* gl_func_0000B5AC: 25-insn function that INHERITS $hi and $v0 from caller +
  * predecessor's SUFFIX_BYTES. Sibling of gl_func_0000B560 (just-landed) — B560
@@ -1026,6 +1066,7 @@ void gl_func_0000B710(int *a0) {
  * gl_func_00000000(s0); gl_func_00000000(&D+0xD4C0, 0x8004); return s0.
  * str addrs: lui 1 + addiu -N → 0x10000-N. */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 void* gl_func_0000B77C(void *a0) {
     void *s0 = a0;
     if (s0 == 0) {
@@ -1058,6 +1099,9 @@ void* gl_func_0000B77C(void *a0) {
 end:
     return s0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B77C);
+#endif
 
 extern int gl_func_00000000();
 extern int gl_data_B884_arg, gl_data_B89C_arg, gl_data_B8AC_arg, gl_data_B8C0_arg;
@@ -1115,6 +1159,7 @@ int gl_func_0000BA6C(int a0) {
  * within own frame at sp+0x20..0x3F. C-unreproducible without
  * compiler-level control over arg-save reuse. */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 void gl_func_0000BB14(int a0) {
     char data[0x20];
     char hash[8];
@@ -1125,6 +1170,9 @@ void gl_func_0000BB14(int a0) {
     gl_func_00000000(hash, data, 0x20, 0xD1265205);
     gl_func_00000000(a0, 0, hash, 8);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BB14);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_0000BBB0(int a0) {
@@ -1272,6 +1320,7 @@ void* gl_func_0000C210(void *arg0) {
 }
 
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 void gl_func_0000C28C(void *arg0, int *arg1) {
     int buf10[4];
     int buf08[2];
@@ -1294,7 +1343,11 @@ void gl_func_0000C28C(void *arg0, int *arg1) {
     gl_func_00000000(arg0, 0x7FF8, buf08, 8);
     gl_func_00000000(arg0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C28C);
+#endif
 
+#ifdef NON_MATCHING
 int gl_func_0000C378(void *arg0) {
     int current16[4];
     int current8[2];
@@ -1317,6 +1370,9 @@ int gl_func_0000C378(void *arg0) {
     }
     return 1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C378);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0000C46C(int a0) {
@@ -1400,6 +1456,7 @@ struct GlExisting {
     void *field_14;
 };
 
+#ifdef NON_MATCHING
 struct GlConstructed *gl_func_0000C5B0(struct GlOrig *orig) {
     struct GlConstructed *ptr;
     struct GlConstructed *ret;
@@ -1420,6 +1477,9 @@ struct GlConstructed *gl_func_0000C5B0(struct GlOrig *orig) {
     }
     return ret;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C5B0);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000C5B0_pad.s")
 
 extern int gl_func_00000000();
@@ -1656,10 +1716,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
  * Per feedback_insn_patch_for_ido_codegen_caps.md, this is the canonical
  * use case for INSN_PATCH (operand-only, same insn count, same size). */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 void gl_func_0000D9B8(int *a0) {
     int *p = (int*)a0[0x1B];
     if (p != 0) gl_func_00000000(p);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D9B8);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000D9E4: 0x150 (84 insns), 0x30-byte stack frame.
@@ -1873,6 +1937,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DD44);
  * Same shape as DE30 form (inlined dispatch + pad_top[2]/pad_bot[4] frame
  * sizing), local = 0x3EA. INSN_PATCH on the same 4 reg-rename insns at
  * 0x24/0x2C/0x34/0x3C makes build/.o byte-equal to expected/.o post-cc. */
+#ifdef NON_MATCHING
 void gl_func_0000DDE0(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3EA;
@@ -1881,12 +1946,16 @@ void gl_func_0000DDE0(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])(
         (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DDE0);
+#endif
 
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0/0003CB2C).
  * 16/20 insns match from C emit; remaining 4-insn diff is a register-shift
  * (v0/t0/t1 ↔ v1/v0/t0) that no C-level lever inside this function
  * reproduces. INSN_PATCH on the 4 reg-shift insns @0x24/0x2C/0x34/0x3C
  * makes build/.o byte-equal to expected/.o post-cc. */
+#ifdef NON_MATCHING
 void gl_func_0000DE30(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3EB;
@@ -1895,6 +1964,9 @@ void gl_func_0000DE30(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])(
         (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
+#endif
 
 /* Sibling of gl_func_0000DDE0/0000DE30/0003CB2C (20-insn indirect dispatcher).
  * local = 0x3EC; otherwise byte-identical to DE30. Same INSN_PATCH recipe:
@@ -1902,6 +1974,7 @@ void gl_func_0000DE30(int **a0, int a1) {
  * to match expected. (The 0x30 word coincidentally byte-matches due to
  * register-rename + same instruction word; runtime semantics flip when the
  * patched 0x2C insn redefines $v0 = p[0x28] before 0x30 reads it.) */
+#ifdef NON_MATCHING
 void gl_func_0000DE80(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3EC;
@@ -1910,12 +1983,16 @@ void gl_func_0000DE80(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])(
         (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
+#endif
 
 /* Sibling of gl_func_0000DDE0/DE30/DE80/0003CB2C (20-insn indirect dispatcher).
  * local = 0x3E9; otherwise byte-identical to DE30/DE80. Same INSN_PATCH recipe:
  * 4 reg-rename diffs at offsets 0x24/0x2C/0x34/0x3C are post-cc patched to
  * match expected. (See DE80 for the byte-identical-bytes-different-semantics
  * mechanism at offset 0x30.) */
+#ifdef NON_MATCHING
 void gl_func_0000DED0(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3E9;
@@ -1924,6 +2001,9 @@ void gl_func_0000DED0(int **a0, int a1) {
     ((void(*)(int, int*))p[0x2C/4])(
         (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DED0);
+#endif
 
 int gl_func_0000DF20_inner(int a0, int a1);
 
@@ -2078,6 +2158,7 @@ void gl_func_0000E1DC(int *a0, int a1, int a2) {
  * target picks $s1=a0/$s2=offset). Pure register rename, same family
  * as gl_func_0004ED0C / gl_func_00035834. */
 extern int func_00000000();
+#ifdef NON_MATCHING
 void gl_func_0000E230(int *a0) {
     int i;
     int offset;
@@ -2089,6 +2170,9 @@ void gl_func_0000E230(int *a0) {
         offset += 0x60;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E230);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E2A4);
 

@@ -361,11 +361,15 @@ void arcproc_uso_func_00000E58(char *a0) {
  * USO splits also break expected/.o. Reverted; bundle stays as-is until
  * the split-script is fixed to write into the right .c. */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 void arcproc_uso_func_00000EBC(int *a0) {
     if (*(int*)((char*)a0 + 0x4F0) & 0x10000) {
         gl_func_00000000();
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EBC);
+#endif
 
 /* arcproc_uso_func_00000F50 + F78 + F9C: 3-function bundle split via
  * scripts/split-fragments.py on 2026-05-07. Per
@@ -562,6 +566,7 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA
  * F3 @ 0x1228-0x1258: same as F2 but |= 0x04 (set bit). */
 extern int gl_func_00000000();
 extern char D_00000000;
+#ifdef NON_MATCHING
 void arcproc_uso_func_00001170(int *a0) {
     int *table_root = *(int**)((char*)&D_00000000 + 0x190);
     int *p;
@@ -581,6 +586,9 @@ void arcproc_uso_func_00001170(int *a0) {
     fn = (void(*)())target[0x90 / 4];
     fn();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001170);
+#endif
 
 /* arcproc_uso_func_0000125C: 139-insn (0x22C) FPU-heavy state-update.
  * Single function (1 jr ra). Frame -0x70 with s0/ra saved.
@@ -1000,6 +1008,7 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001C7
  * documented constructor ceiling. INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001D18);
 
+#ifdef NON_MATCHING
 void arcproc_uso_func_00001F0C(char *a0) {
     if (*(int*)((char*)&D_00000000 + 0x64) == 1) {
         *(int*)(a0 + 0xA0) = 0xC350;
@@ -1010,6 +1019,9 @@ void arcproc_uso_func_00001F0C(char *a0) {
     *(int*)(a0 + 0xA4) = 0;
     gl_func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F0C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F54);
 
@@ -1120,11 +1132,15 @@ void arcproc_uso_func_0000247C(void) {
  * #feedback-suffix-bytes-for-bundled-empty-trailers. */
 extern int gl_func_00000000();
 extern int gl_ref_00000040, gl_ref_00000070, gl_ref_00000074;
+#ifdef NON_MATCHING
 void arcproc_uso_func_000024C0(void) {
     gl_func_00000000(gl_ref_00000070);
     gl_ref_00000040 = 9;
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000024C0);
+#endif
 
 /* arcproc_uso_func_0000251C - verified structural decode; SIBLING of the
  * alloc-cascade ctor family (arcproc_uso_func_0000199C /

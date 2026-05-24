@@ -51,8 +51,12 @@
  * what asm-processor would produce anyway with the correct reg). */
 extern u32 D_A4040010;  /* SP_STATUS_REG */
 
+#ifdef NON_MATCHING
 s32 func_80008030(void) {
     s32 v = 0;
     if ((D_A4040010 & 3) == 0) v |= 1;
     return v;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80008030);
+#endif

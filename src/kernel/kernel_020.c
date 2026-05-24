@@ -57,6 +57,7 @@ void func_80007FC8(void) {}
  *   0x125 = 0x100|0x25 = clr_sig1 + clr_sstep + clr_dma_busy + clr_halt
  *
  * Default build is byte-exact via C body + INSN_PATCH + SUFFIX_BYTES. */
+#ifdef NON_MATCHING
 void func_80008054(void) {
     volatile u32* busy;
     volatile u32* statusReg;
@@ -78,6 +79,9 @@ loop_status:
         goto loop_status;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80008054);
+#endif
 
 #ifdef NON_MATCHING
 /* func_800081D0: callable continuation of func_8000817C's clear-break path.

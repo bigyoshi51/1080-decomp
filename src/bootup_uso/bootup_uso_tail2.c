@@ -14,9 +14,13 @@ typedef struct { int a, b, c, d; } Quad4;
  * (a) IDO -O2 folds /2.0f → *0.5f (different opcode: mul.s vs div.s),
  * and (b) target has 3 strict MIPS-II load-delay nops after each mtc1
  * that IDO -O2 schedules across. Patch overrides both. */
+#ifdef NON_MATCHING
 void func_000102A4(char *a0, int a1) {
     *(float*)(a0 + 0x70) = (float)a1 - ((float)*(int*)(a0 + 0x78) * *(float*)(a0 + 0x74)) / 2.0f;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000102A4);
+#endif
 
 void func_000102E8(void) {
 }

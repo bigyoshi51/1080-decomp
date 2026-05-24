@@ -257,6 +257,7 @@ int gl_func_00001114(char *a0) {
  * 3 format strings by a1's magnitude and calls the cross-USO
  * printf-like gl_func_00000000. Per-arm arg counts/buffers differ. */
 extern int gl_data_00000000;
+#ifdef NON_MATCHING
 void gl_func_00001134(char *a0, int a1) {
     if (a1 < 10) {
         gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC10, a1);
@@ -266,6 +267,9 @@ void gl_func_00001134(char *a0, int a1) {
         gl_func_00000000(a0, (char*)&gl_data_00000000 + 0xCC1C);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001134);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000011A4: 54-insn alloc-or-given + init constructor.
@@ -835,6 +839,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006B80);
  *             sw 0, 4EC; sw 0, 518; sw t8; swc1 f4; lw t9 (D[0x34])
  * Target hoists the a1 reload before the FP setup, then fills load-delay
  * slots with the zero stores. */
+#ifdef NON_MATCHING
 void gl_func_00006C38(int *a0, int a1, int a2) {
     a0[0x4F8/4] = a2;
     a0[0x4E0/4] = 3;
@@ -851,6 +856,9 @@ void gl_func_00006C38(int *a0, int a1, int a2) {
     a0[0x544/4] = 0xFF;
     *(float*)((char*)a0 + 0x554) = 150.0f;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006C38);
+#endif
 
 /* gl_func_00006CDC - verified structural decode (0xEC, ~55 insns +
  * 2 bundled stubs). NEAR-SIBLING of gl_func_00006B80 (same large-
@@ -1289,6 +1297,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00008508);
  *   gl_func(arg0)                       (call 5)
  *
  * Promoted from the previous NM wrap with PROLOGUE_STEALS=8. */
+#ifdef NON_MATCHING
 void gl_func_00008510(int *arg0) {
     char *state = *(char**)((char*)&D_00000000 + 0x134);
     char *p = *(char**)(*(char**)((char*)state + 0xC4) + 0x800);
@@ -1307,7 +1316,11 @@ void gl_func_00008510(int *arg0) {
         (char*)&D_00000000 + 0x170);
     gl_func_00000000(arg0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008510);
+#endif
 
+#ifdef NON_MATCHING
 void gl_func_000085B0(int *arg0, int arg1) {
     char *state;
     char *p;
@@ -1330,15 +1343,22 @@ void gl_func_000085B0(int *arg0, int arg1) {
     gl_func_00000000(arg0);
     *(int*)((char*)arg0 + 0x4F4) = arg1 & 0xFFFF;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000085B0);
+#endif
 
 /* Hidden-register dispatch stub. The real ABI has the dispatcher pointer in
  * $v0 and addend in $v1 while still spilling caller $a0. C emits the same
  * shape with ordinary args; Makefile INSN_PATCH rewrites a1/a2 to v0/v1. */
+#ifdef NON_MATCHING
 int gl_func_00008674(int unused, int *hidden_v0, int hidden_v1) {
     volatile int *spill = &unused;
     (void)spill;
     return ((int (*)(int))hidden_v0[0x64/4])(*(s16*)((char*)hidden_v0 + 0x60) + hidden_v1);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008674);
+#endif
 
 /* game_libs_func_000086A0: 31-insn FPU-only updater on two adjacent floats
  * at a0+0x550 (f550) and a0+0x54C (f54C).
@@ -1360,6 +1380,7 @@ int gl_func_00008674(int unused, int *hidden_v0, int hidden_v1) {
  *
  * Exact with a two-word INSN_PATCH for the FPU temp-register assignment in
  * the double add; the natural C emit is otherwise byte-correct. */
+#ifdef NON_MATCHING
 void game_libs_func_000086A0(char *a0) {
     float four = 4.0f;
     float f550 = *(float*)(a0 + 0x550);
@@ -1376,6 +1397,9 @@ void game_libs_func_000086A0(char *a0) {
         *(float*)(a0 + 0x550) = -(f550 / four);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000086A0);
+#endif
 
 /* gl_func_0000871C: 54-insn (0xD8) FPU updater + conditional indirect-call.
  *   if (a0->f550 < 4.0f) a0->f550 = (float)((double)a0->f550 + D[0xE60]);
@@ -1391,6 +1415,7 @@ void game_libs_func_000086A0(char *a0) {
  * 4-insn INSN_PATCH closes the C-emit's $f6/$f8 reg-swap on the
  * double-add ($f4-pinning via named `four = 4.0f` plus inline D-deref
  * with literal +0xE60 offset gets 50/54 byte-identical). */
+#ifdef NON_MATCHING
 void gl_func_0000871C(int *a0) {
     float four = 4.0f;
     float f550 = *(float*)((char*)a0 + 0x550);
@@ -1412,6 +1437,9 @@ void gl_func_0000871C(int *a0) {
         *(float*)((char*)a0 + 0x550) = -(f550 / four);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000871C);
+#endif
 
 extern int gl_ref_00018770();
 extern int gl_ref_000187AC();
@@ -1534,6 +1562,7 @@ struct GlExisting {
     void *field_14;
 };
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
     struct GlConstructed *ptr;
     struct GlConstructed *ret;
@@ -1554,6 +1583,9 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
     }
     return ret;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
+#endif
 
 /* Cluster 0x8944..0x8A40 (-O0 reader templates + sandwich INCLUDE_ASM
  * for 0x8990) split out to game_libs_o0_8944.c on 2026-05-07.

@@ -54,6 +54,7 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  * is already 100%. Same class as the USO entry-0 trampoline caps
  * (feedback_uso_entry0_trampoline_95pct_cap_class.md) but driven by
  * INSN_PATCH rather than PREFIX_BYTES. */
+#ifdef NON_MATCHING
 int arcproc_uso_func_000000B4(int *a0, int a1) {
     register int *p;
     gl_func_00000000(a0, a1);
@@ -64,3 +65,6 @@ int arcproc_uso_func_000000B4(int *a0, int a1) {
     p[1] += 1;
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000000B4);
+#endif

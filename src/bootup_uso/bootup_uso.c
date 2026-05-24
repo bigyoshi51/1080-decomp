@@ -160,6 +160,7 @@ void func_000003D8(void) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003F8);
 
+#ifdef NON_MATCHING
 func_0000057C(a0, a1, a2)
 int *a0;
 int a1;
@@ -185,6 +186,9 @@ int a2;
     a0[2] = 0;
     func_00000000(*a0, mode, mode, a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000057C);
+#endif
 
 /* func_00000610 - verified structural decode (0x24C, 147 insns,
  * FP parameter normalize / clamp / scale).
@@ -305,6 +309,7 @@ void func_00000A94(int *a0, int a1) {
  * goto-split, ||-fusion) — IDO's allocator always picks $v0 when the value
  * flows to v0 directly. Bridged to byte-correct via INSN_PATCH on 2 fixed
  * offsets (0x30 + 0x74). */
+#ifdef NON_MATCHING
 int func_00000A9C(int a0, int a1) {
     if (a1 == 0)   goto L_AE4;
     if (a1 == 'e') goto L_AEC;
@@ -321,6 +326,9 @@ L_AFC: return 0x40;
 L_B04: return 0x20;
 L_B0C: return 8;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000A9C);
+#endif
 
 void func_00000B14(int **a0, int a1) {
     int *v0 = *a0;
@@ -367,6 +375,7 @@ void func_00000BE0(char *a0) {
  * INSN_PATCH transfer recipe (verified across multiple sibling clusters
  * this session). */
 extern int func_00000000();
+#ifdef NON_MATCHING
 void *func_00000C10(int *arg0) {
     volatile int **vparg = (volatile int **)&arg0;
     int *node;
@@ -389,6 +398,9 @@ void *func_00000C10(int *arg0) {
     (void)vparg;
     return node;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000C10);
+#endif
 
 /* func_00000CA0 - verified structural decode (0xF4, 61 insns,
  * get-or-create constructor + box-corner table generator).
@@ -784,11 +796,15 @@ void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
  * the 1-insn cap is intrinsic to IDO's scheduler. Bridged to byte-correct
  * via INSN_PATCH on offsets 0xC/0x10 — same approach as the sibling
  * func_000020AC (8-byte-pair variant). */
+#ifdef NON_MATCHING
 void func_00002088(char *a0, int a1) {
     int idx = *(int*)(a0 + 0x104);
     *(int*)(a0 + 0x104) = idx + 1;
     *(int*)(a0 + idx * 4 + 0x108) = a1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
+#endif
 
 void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
@@ -799,6 +815,7 @@ void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
  * feedback_ido_sw_before_addu_unreachable.md (10+ C variants tried). Bridged
  * to byte-correct via INSN_PATCH (Makefile: 2 swapped words at 0x1C/0x20).
  * The C body is the sole definition; no INCLUDE_ASM fallback. */
+#ifdef NON_MATCHING
 void func_000020AC(int *a0, int a1, int a2) {
     int idx;
     *(int*)((char*)a0 + *(int*)((char*)a0 + 0xC0) * 8 + 0xC8) = a2;
@@ -806,6 +823,9 @@ void func_000020AC(int *a0, int a1, int a2) {
     *(int*)((char*)a0 + 0xC0) = idx + 1;
     *(int*)((char*)a0 + idx * 8 + 0xC4) = a1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020AC);
+#endif
 
 void func_000020D8(char *a0, int a1) {
     int i;
@@ -858,6 +878,7 @@ void func_00002214(char *a0) {
  * Same volatile-int-pp frame lever + sibling INSN_PATCH transfer recipe from
  * docs/POST_CC_RECIPES.md#feedback-sibling-insn-patch-transfer-mirror-clusters-share-patch-bytes-verbatim. */
 extern int func_00000000();
+#ifdef NON_MATCHING
 void *func_00002244(int *arg0) {
     volatile int **vparg = (volatile int **)&arg0;
     int *node;
@@ -880,6 +901,9 @@ void *func_00002244(int *arg0) {
     (void)vparg;
     return node;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002244);
+#endif
 
 void func_000022E0(int *dst) {
     int buf[2];
@@ -1718,6 +1742,7 @@ extern char D_00000000;
  * 2026-05-08). 22 byte-level register/operand diffs across offsets
  * 0x14..0x84 (built keeps node in $a2; target uses $a0/$v1 with extra
  * `or v1, a0, 0` save). Function shape matches target exactly post-patch. */
+#ifdef NON_MATCHING
 void *func_000046EC(int *arg0) {
     volatile int **vparg = (volatile int **)&arg0;
     int *node;
@@ -1740,6 +1765,9 @@ void *func_000046EC(int *arg0) {
     (void)vparg;
     return node;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000046EC);
+#endif
 
 /* func_0000477C - verified structural decode (0xE0, 56 insns,
  * slider/parameter registration). SIBLING of func_00006734 (same
@@ -1945,10 +1973,14 @@ void func_0000502C(int *dst) {
  * INSN_PATCH rewrites the third-arg delay-slot copy to the target's dead
  * a1 home-store. */
 extern char D_00007D94;
+#ifdef NON_MATCHING
 void func_00005068(int a0) {
     func_00000000(&D_00007D94);
     func_00000000(0, a0, a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005068);
+#endif
 
 /* 33-insn / 0x84 init+alloc+populate.
  *   func_00000000(&D_00007DA4);       ; init call
@@ -1994,6 +2026,7 @@ void func_00005068(int a0) {
  * 2026-05-18: promoted to byte-exact with the existing structural C plus
  * SUFFIX_BYTES_FORCE/INSN_PATCH on the third-call scheduler cap. */
 extern char D_00007DA4;
+#ifdef NON_MATCHING
 int func_000050A0(int a0) {
     float buf[4];
     char pad[24];  /* declared AFTER buf so pad is at lower offset, buf at 0x38 */
@@ -2021,6 +2054,9 @@ int func_000050A0(int a0) {
     }
     return (int)p;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
+#endif
 
 /* func_00005124 - verified structural decode (0xB0, 44 insns,
  * alloc-cascade constructor with defensive-dead-check).
@@ -2165,10 +2201,14 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
  * to materialize a0 for a2; INSN_PATCH at offset 0x24 rewrites a2-copy
  * `or a2,a1,zero` to target's dead `sw a1, 0x4(sp)` home store. */
 extern char D_00007E10;
+#ifdef NON_MATCHING
 void func_000054A0(int a0) {
     func_00000000(&D_00007E10);
     func_00000000(0, a0, a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054A0);
+#endif
 
 extern char D_000078D8;
 
@@ -2355,9 +2395,13 @@ void func_00006194(Vec3 *dst) {
 /* 77% NM cap (target insn order `lui a0; sw ra; jal` vs IDO emit
  * `sw ra; lui a0; jal`). Promoted to exact via INSN_PATCH at offsets
  * 0x4/0x8 — Makefile entry, ports 2-word patch from agent-b. */
+#ifdef NON_MATCHING
 void func_00006204(void) {
     func_00000000(&D_00000000);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006204);
+#endif
 
 void func_00006228(char *a0) {
     func_0000502C((int*)(a0 + 0x3C));
@@ -2622,6 +2666,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007150);
  * swap + base-pointer form for a2 reload. Last of the 3-function
  * bootup_uso regalloc cluster (7C74/7B08/7204) per
  * project_1080_bootup_regalloc_cluster.md. Cluster complete. */
+#ifdef NON_MATCHING
 void func_00007204(int a0, int a1, int a2) {
     int *sp28;
     int sp1C = a2;
@@ -2643,6 +2688,9 @@ void func_00007204(int a0, int a1, int a2) {
     }
     func_00000000(a0 + 0x2C, var_a2, var_a2);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007204);
+#endif
 
 /* func_00007288: 40-insn (0xA0) two-conditional state-init helper.
  *
@@ -2894,6 +2942,7 @@ void func_00007AD8(char *a0) {
  * Function size unchanged so no SUFFIX_BYTES needed. 2nd member of
  * project_1080_bootup_regalloc_cluster.md (7C74 done, 7B08 done, 7204
  * still pending). */
+#ifdef NON_MATCHING
 void *func_00007B08(char *a0) {
     char *ret;
     int *link;
@@ -2916,6 +2965,9 @@ void *func_00007B08(char *a0) {
 
     return ret;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007B08);
+#endif
 
 void func_00007B98(char *a0) {
     int scratch;
@@ -2931,6 +2983,7 @@ void func_00007BC8(char *a0) {
 /* Same dispatcher template as game_uso_func_0000BFDC. The C body is
  * structurally correct; Makefile INSN_PATCH/SUFFIX_BYTES_FORCE closes the
  * fixed branch-likely and register-allocation deltas. */
+#ifdef NON_MATCHING
 int func_00007BF4(char *a0) {
     short *pair = (short*)(a0 + 8);
     short key = pair[1];
@@ -2956,6 +3009,9 @@ int func_00007BF4(char *a0) {
     }
     return fnptr(arg);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);
+#endif
 
 extern float D_000005EC;
 /* func_00007C74: 36-insn alloc/init/link helper.
@@ -2967,6 +3023,7 @@ extern float D_000005EC;
  * tricks. INSN_PATCH rewrites the 6 specific offsets to remap built's
  * sp+24/32 slots to target's sp+32/40 layout. Function size unchanged
  * (36 insns / 0x90 bytes both ways), so no SUFFIX_BYTES needed. */
+#ifdef NON_MATCHING
 void *func_00007C74(char *a0) {
     char *ret;
     int *link;
@@ -2987,6 +3044,9 @@ void *func_00007C74(char *a0) {
 
     return ret;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007C74);
+#endif
 
 /* func_00007D04 - verified structural decode (0x14C, 83 insns,
  * phased animation/timer state machine).
@@ -3407,6 +3467,7 @@ extern void func_00000000_087A4(char *, char *, int, int, float);
  *
  * This captures the lazy arg0->0x40 setup, 0xC8/0x40 allocation
  * fallback, vtable callback, child link, and final flag/callback. */
+#ifdef NON_MATCHING
 void *func_000087A4(char *arg0) {
     char pad2[8];  /* frame target -0x50 vs natural -0x48 */
     int kind;
@@ -3460,6 +3521,9 @@ init_self:
     func_00000000(D_087A4_word0_final, link_arg);
     return child;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000087A4);
+#endif
 
 extern char *D_00000130;
 int func_00008920(int a0) {
@@ -4961,6 +5025,7 @@ void func_0000E660(char *a0) {
 /* func_0000E690: byte-identical mirror of func_00000C10 / func_000046EC.
  * Third member of this constructor-mirror cluster. Same C body
  * (volatile-int-pp lever) + same INSN_PATCH in Makefile. */
+#ifdef NON_MATCHING
 void *func_0000E690(int *arg0) {
     volatile int **vparg = (volatile int **)&arg0;
     int *node;
@@ -4983,6 +5048,9 @@ void *func_0000E690(int *arg0) {
     (void)vparg;
     return node;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E690);
+#endif
 
 void func_0000E720(char *a0) {
     func_00000000(a0 + 0x2C);
@@ -5090,10 +5158,14 @@ void func_0000E9A4(Quad4 *dst) {
 extern char D_func_0000E9FC_arg1;
 extern char D_func_0000E9FC_arg2;
 extern char D_func_00000008_data;
+#ifdef NON_MATCHING
 void func_0000E9FC(void) {
     func_00000000(&D_func_0000E9FC_arg1);
     *(int*)(&D_func_00000008_data + 0x20) = (int)&D_func_0000E9FC_arg2;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E9FC);
+#endif
 
 extern char D_00008D70;
 extern char D_00008D7C;
@@ -5175,6 +5247,7 @@ void func_0000EBB8(char *a0) {
  * conditional-prefix + unconditional-suffix shape.
  *
  * See docs/POST_CC_RECIPES.md#insn_patch-for-frame-regalloc-caps. */
+#ifdef NON_MATCHING
 int *func_0000EBE8(int *caller_a0) {
     int *p = (int*)func_00000000(0x40);
     int *target;
@@ -5193,6 +5266,9 @@ int *func_0000EBE8(int *caller_a0) {
 end:
     return p;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EBE8);
+#endif
 
 void func_0000EC80(int *dst) {
     int buf[2];
@@ -5255,6 +5331,7 @@ void func_0000EE5C(char *a0) {
 /* func_0000EE8C: alloc-cascade constructor, sibling of func_0000EBE8.
  * The remaining outer-branch scheduling/stack-slot artifacts are promoted
  * by the established bootup_uso INSN_PATCH alloc-cascade recipe. */
+#ifdef NON_MATCHING
 void *func_0000EE8C(void *caller_a0) {
     char pad[4];
     void *target;
@@ -5279,6 +5356,9 @@ void *func_0000EE8C(void *caller_a0) {
     }
     return ret;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EE8C);
+#endif
 
 void func_0000EF20(int *dst) {
     int buf[2];

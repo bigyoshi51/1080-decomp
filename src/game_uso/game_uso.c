@@ -52,9 +52,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * patch overwrites the 4 bytes at function offset 0x34. Both forms are
  * semantically identical; the choice is FPU pipeline forwarding-driven and
  * not flippable from C (8+ source variants tried, all worse). */
+#ifdef NON_MATCHING
 float game_uso_func_000000A0(float *a, float *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000A0);
+#endif
 
 #ifdef NON_MATCHING
 /* Cubic B-spline weighted point evaluator (61 insns, FPU-only). 96.95% NM.
@@ -127,11 +131,15 @@ void game_uso_func_00000314(Pair2 *dst) {
  * IDO -O2 picks t6/t7/t8 sequentially for the 3-load chain at function tail;
  * target uses t7/t9/t6 (skipping t8). Per feedback_insn_patch_for_ido_codegen_caps.md
  * the 3 cap insns are patched post-cc by INSN_PATCH in the Makefile. */
+#ifdef NON_MATCHING
 void game_uso_func_0000035C(int *dst) {
     volatile int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000035C);
+#endif
 
 void game_uso_func_0000039C(Quad4 *dst) {
     Quad4 buf;
@@ -248,6 +256,7 @@ void game_uso_func_00000634(int *a0) {
  * boolean in $v0. Target loads into $v0, computes in $v1. Same arith,
  * swapped naming. Not C-flippable; IDO's v0/v1 choice for load-target
  * vs result-target is fixed by expression-tree walker. */
+#ifdef NON_MATCHING
 int game_uso_func_00000674(int *a0) {
     return ((a0[0] == 2 || a0[0] == 3) && a0[1] == 1)
         || ((a0[4] == 2 || a0[4] == 3) && a0[5] == 1)
@@ -255,6 +264,9 @@ int game_uso_func_00000674(int *a0) {
         || a0[10] == 2
         || a0[12] == 2;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000674);
+#endif
 
 /* 89.96% NM. Prior commit 764b62d landed this as "100%" but that was
  * expected-baseline contamination — subsequent refresh-expected-baseline
@@ -270,6 +282,7 @@ int game_uso_func_00000674(int *a0) {
  *       fixable via `int off = cnt*4`, but cascaded reg diff from (1) remains.
  *
  * Further work: inline cnt at its uses; try permuter; or accept as 90% cap. */
+#ifdef NON_MATCHING
 void game_uso_func_00000724(char *a0) {
     int i;
     int cnt;
@@ -300,6 +313,9 @@ void game_uso_func_00000724(char *a0) {
     *(int*)(a0 + 0x38) = *(int*)(a0 + 0x3C);
     *(int*)(a0 + cnt * 4 + 0x3C) = *(int*)(a0 + cnt * 4 + 0x38);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000724);
+#endif
 
 void game_uso_func_000007E0(int *a0) {
     a0[9] = 0;
@@ -1774,6 +1790,7 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
  * for the -8 sentinel. C body rose 57.63% -> 95.40%; remaining stack-slot
  * and scheduler differences are byte-restored with INSN_PATCH per
  * docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps. */
+#ifdef NON_MATCHING
 void *game_uso_func_00002744(void *arg0) {
     void *var_a1;
     void *var_v1;
@@ -1812,6 +1829,9 @@ after_template:
 done:
     return var_a1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
+#endif
 
 /* Mirror of game_uso_func_00001D30 (alloc(0x64) variant; dispatch table at
  * &D_0+0x360). 5-insn arg-spill scheduling permutation patched via INSN_PATCH
@@ -1819,6 +1839,7 @@ done:
  * `or s0, a0, zero` in the bnez delay slot and spill a3 before bnez; expected
  * has the move first and a3 in the delay slot. Logic-identical, byte-correct
  * via post-cc patch. See docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps. */
+#ifdef NON_MATCHING
 char *game_uso_func_00002814(char *a0, int a1, int a2, int a3) {
     register char *p = a0;
     if (p == 0) {
@@ -1836,6 +1857,9 @@ char *game_uso_func_00002814(char *a0, int a1, int a2, int a3) {
 end:
     return p;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002814);
+#endif
 
 void game_uso_func_000028A8(void *a0) {
     *(s32*)((char*)a0 + 0x40) = 0;
@@ -2211,6 +2235,7 @@ extern int D_3A0;
  * In USO context, %hi(0+addend) and %lo(0+addend) both resolve to 0
  * for symbols at 0, and the addend is baked into the patched immediate,
  * so post-strip the bytes are link-correct. */
+#ifdef NON_MATCHING
 int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     int *s = a0;
     if (s == 0) {
@@ -2235,6 +2260,9 @@ int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     }
     return s;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000034A4);
+#endif
 
 /* game_uso_func_00003558: 252-insn (0x3F0) heavy state-builder. Frame -0x100,
  * saves s0/ra and double-FPU $f20/$f21 (sdc1 at 0x18). Sibling of
@@ -2401,6 +2429,7 @@ void game_uso_func_000039F8(char *dst) {
  * AND a frame-size diff (0x20 vs 0x28). Patch covers all 25 differing
  * words including one jal-position swap (+0x1C non-jal→jal, +0x20
  * jal→non-jal) which exercises the orphan R_MIPS_26 strip. */
+#ifdef NON_MATCHING
 int *game_uso_func_00003A28(int *arg0) {
     int *obj;
     int *other;
@@ -2420,6 +2449,9 @@ int *game_uso_func_00003A28(int *arg0) {
     }
     return obj;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003A28);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00003A28_pad.s")
 
 /* game_uso_func_00003AC0: 261-insn (0x414) constructor. Frame -0x70.
@@ -2589,6 +2621,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
  * USO: call -> func_00000000, data -> &D_00000000+off. INSN_PATCH
  * fixes the final f2/f12 register-field allocation cap. */
 extern float gl_func_00000000_f();
+#ifdef NON_MATCHING
 float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
     float unused;
     Vec3 vb;
@@ -2614,6 +2647,9 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
     }
     return ret;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
+#endif
 
 /* game_uso_func_00003FAC: 53-insn (0xD4) FPU-heavy 2D-rotation-like
  * vector builder. Frame -0x20, single cross-USO call.
@@ -2652,6 +2688,7 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
  * INSN_PATCH fixes those same-length codegen caps, matching the existing
  * FPU patch pattern used by nearby game_uso functions. */
 extern float func_00000000_03FAC(float, float);
+#ifdef NON_MATCHING
 void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg4) {
     float orig_scale = arg4 / a3;
     float ratio = orig_scale * orig_scale;
@@ -2671,6 +2708,9 @@ void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg
     a1[1] = 0.0f;
     a1[2] = new_scale * a2[2] + orig_scale * a2[0];
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003FAC);
+#endif
 
 void game_uso_func_00004080(int *dst) {
     int buf[2];
@@ -3753,6 +3793,7 @@ void game_uso_func_000057B8(char *a0) {
 
 /* Semantically compact; Makefile SUFFIX_BYTES_FORCE + INSN_PATCH restores
  * target's branch-expanded selector layout for byte exactness. */
+#ifdef NON_MATCHING
 void game_uso_func_000057D8(char *a0) {
     char *sub;
     char *state;
@@ -3784,6 +3825,9 @@ void game_uso_func_000057D8(char *a0) {
         gl_func_00000000();
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
+#endif
 
 /* game_uso_func_0000591C: 0x1114 (1102 insns, 4.3 KB) — strategy-memo spine
  * candidate #2 (~29 cross-USO calls).  0x1D0-byte stack frame.
@@ -6526,7 +6570,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
  * which is preserved as long as 7A98 and 7ABC are emitted adjacent in the
  * same .c (they are — game_uso.c source order). Pure raw-bytes prefix:
  * no relocs needed (lw/beql/mtc1/lwc1/sub.s are all PC-imm or reg-only). */
+#ifdef NON_MATCHING
 void game_uso_func_00007A98(void) {}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
+#endif
 
 /* 4-insn body `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` — the cross-function
  * tail-share with 7A98 (beql lands at 7ABC+4) which IDO -O2 cannot reproduce
@@ -6543,7 +6591,11 @@ void game_uso_func_00007A98(void) {}
  * 7A98 and external callers declared as `float (void)` get the correct
  * $f0 value via the mov.s). Per feedback_land_script_accepts_byte_verify_
  * for_post_cc_recipes.md — byte-correctness against expected/ IS the gate. */
+#ifdef NON_MATCHING
 void game_uso_func_00007ABC(void) {}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00007ACC: 0x150 (84 insns). Function-table dispatcher.
@@ -9212,6 +9264,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BF7C);
  * branch-likely/register scheduling around the selector fallback; Makefile
  * INSN_PATCH + one suffix nop make the unwrapped body byte-exact. */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 int game_uso_func_0000BFDC(char *a0) {
     short *pair = (short*)(a0 + 8);
     short key = pair[1];
@@ -9237,6 +9290,9 @@ int game_uso_func_0000BFDC(char *a0) {
     }
     return fnptr(arg);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BFDC);
+#endif
 
 void game_uso_func_0000C05C(char *dst) {
     int tmp;
@@ -9266,6 +9322,7 @@ void game_uso_func_0000C0F0(int *dst) {
 /* Struct assignment makes IDO emit the target 3-ints-per-iteration copy loop.
  * The Makefile patch strips relocations from the D_00000000 load and jal
  * words so objdiff sees the same raw .word baseline. */
+#ifdef NON_MATCHING
 void game_uso_func_0000C12C(int *a0) {
     typedef struct {
         int v[16];
@@ -9274,6 +9331,9 @@ void game_uso_func_0000C12C(int *a0) {
     gl_func_00000000(&D_00000000, &buf, 0x40);
     *(I16*)a0 = buf;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C12C);
+#endif
 
 void game_uso_func_0000C194(int *dst) {
     int buf[2];
@@ -9355,9 +9415,13 @@ int game_uso_func_0000C3CC(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x30);
 }
 
+#ifdef NON_MATCHING
 int game_uso_func_0000C3E8(int a0) {
     return *(int*)&D_00000000;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor.
@@ -9590,12 +9654,16 @@ void game_uso_func_0000D418(char *a0) {
 
 /* IDO allocates t6 before t7; target has t7/t6 swapped. INSN_PATCH (2 words)
  * fixes the register-rename diff per feedback_insn_patch_for_ido_codegen_caps.md. */
+#ifdef NON_MATCHING
 void game_uso_func_0000D438(void *a0) {
     *(s32*)((char*)a0 + 0x64) = -1000;
     *(s32*)((char*)a0 + 0x68) = -1000;
     *(s32*)((char*)a0 + 0xC8) = *(s32*)((char*)a0 + 0xC0);
     *(s32*)((char*)a0 + 0xCC) = *(s32*)((char*)a0 + 0xC4);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D438);
+#endif
 
 /* game_uso_func_0000D458: 5-FUNCTION BUNDLE (0x1E4 total / 121 insns).
  * Splat could not separate. Per
@@ -9617,19 +9685,28 @@ void game_uso_func_0000D438(void *a0) {
  * for the unblock path) needed before any decomp attempt. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
+#ifdef NON_MATCHING
 void game_uso_func_0000D5BC(char *a0, int a1, int a2) {
     volatile int *p;
     p = &a1;
     *(int*)(a0 + 0xC8) = p[0];
     *(int*)(a0 + 0xCC) = p[1];
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5BC);
+#endif
 
+#ifdef NON_MATCHING
 void game_uso_func_0000D5DC(char *a0) {
     int *p = (int*)((char*)&D_00000000 + 0xDC8);
     *(int*)(a0 + 0xC8) = p[0];
     *(int*)(a0 + 0xCC) = p[1];
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5DC);
+#endif
 
+#ifdef NON_MATCHING
 void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
     volatile int *p;
     p = &a1;
@@ -9641,6 +9718,9 @@ void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
     *(int*)(a0 + 0xC0) = p[0];
     *(int*)(a0 + 0xC4) = p[1];
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5F8);
+#endif
 
 #ifdef NON_MATCHING
 /* 2-insn split-off (unwrapped from the 0xD458 bundle). Body:
@@ -9663,6 +9743,7 @@ void game_uso_func_0000D634(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D634);
 #endif
 
+#ifdef NON_MATCHING
 void game_uso_func_0000D63C(char *a0, int a1) {
     char *s0 = a0;
     int idx = *(int*)(s0 + 0x100);
@@ -9686,6 +9767,9 @@ void game_uso_func_0000D63C(char *a0, int a1) {
     gl_func_00000000(*(int*)(&D_00000000 + 0x138), *(int*)(s0 + 0xB4), a1);
     *(int*)(s0 + 0x120) = 1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
+#endif
 
 /* 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
  * bit afterward, dispatch a0->0xFC to one of two flag values. Promoted
@@ -9727,6 +9811,7 @@ void game_uso_func_0000D6E4(char *a0) {
  * to 90.6 %. The 92.45 % is the local maximum for $v0/$v1 regalloc choice
  * cap class (per feedback-ido-v0-reuse-via-locals — named locals across
  * function calls compete for $v0/$v1 with IDO's allocno priority). */
+#ifdef NON_MATCHING
 int game_uso_func_0000D74C(char *a0) {
     int result = 0;
     int arg;
@@ -9745,6 +9830,9 @@ int game_uso_func_0000D74C(char *a0) {
     }
     return result;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
+#endif
 
 /* Conditional fall-below-floor update. C-only emit is 43/45 insns; target's
  * third gl_func call uses the same vararg-spill table-call shape as D8A8/FABC
@@ -9752,6 +9840,7 @@ int game_uso_func_0000D74C(char *a0) {
  * direct D+offset derefs and named table/x/y locals, both stayed capped.
  * Makefile INSN_PATCH + SUFFIX_BYTES_FORCE promote the target-only call
  * sequence/epilogue bytes. */
+#ifdef NON_MATCHING
 void game_uso_func_0000D7F4(char *a0) {
     int *data = *(int**)(a0 + 0xB4);
     int *table;
@@ -9766,6 +9855,9 @@ void game_uso_func_0000D7F4(char *a0) {
         }
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
+#endif
 
 /* game_uso_func_0000D8A8: 17-insn conditional 3-call wrapper.
  * Body: t6 = a0->[0xB4]; if (t6->[0x990] != 0) gl_func(a0, *(D+0xE70), *(D+0xE74));
@@ -9773,6 +9865,7 @@ void game_uso_func_0000D7F4(char *a0) {
  * Sibling of game_uso_func_0000FABC (just landed) — same family-cap recipe
  * applies: SUFFIX_BYTES_FORCE adds 8-byte epilogue + INSN_PATCH for varargs
  * spills (sw a1,0x4(sp); sw a2,0x8(sp)) and base-adjust register names. */
+#ifdef NON_MATCHING
 void game_uso_func_0000D8A8(char *a0) {
     register int *t;
     int *t6;
@@ -9785,6 +9878,9 @@ void game_uso_func_0000D8A8(char *a0) {
         gl_func_00000000(a0, v1, v2);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8A8);
+#endif
 
 /* game_uso_func_0000D8EC: 56-insn dispatch + 3-call wrapper.
  * Promoted via branch layout + post-call reload; Makefile
@@ -9809,6 +9905,7 @@ void game_uso_func_0000D8A8(char *a0) {
  *       }
  *   }
  *   L_BC: t6 = v1->[0x9D4]; if (t6 >= 11) gl_func(a0); */
+#ifdef NON_MATCHING
 void game_uso_func_0000D8EC(int *a0) {
     int *v1 = (int*)*(int*)((char*)a0 + 0xB4);
     int *ptr;
@@ -9844,6 +9941,9 @@ L_BC:
         gl_func_00000000(a0);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
+#endif
 
 #ifdef NON_MATCHING
 /* 0.27% NM. game_uso_func_0000D9CC: 0x830 (524 insns), 0x38-byte stack frame.
@@ -10355,6 +10455,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
  * conditional store-in-delay + jr-ra swc1-in-delay + &D reloc. Full
  * body now carried in C. Target's branch-likely/unreachable-store/jr-delay
  * shape is promoted with a Makefile INSN_PATCH/SUFFIX_BYTES_FORCE recipe. */
+#ifdef NON_MATCHING
 void game_uso_func_0000E2D0(char *a0) {
     s16 frame;
     s16 next_frame;
@@ -10388,6 +10489,9 @@ void game_uso_func_0000E2D0(char *a0) {
         *(float*)(parent + 0x31C) += *(float*)(a0 + 0x1E4);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
+#endif
 
 /* game_uso_func_0000E35C - verified structural decode (129-insn EE84-family
  * orchestrator; D-pair sp-args + beql branch-likely + ceil-div-64 + 9 calls
@@ -10692,6 +10796,7 @@ void game_uso_func_0000EDCC(int *a0, int a1) {
  *
  * a2 is an unused 3rd arg saved to caller arg-slot at sp+0x8 by IDO arg-
  * save (per docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save). */
+#ifdef NON_MATCHING
 void game_uso_func_0000EDD4(int *a0, unsigned int a1, int a2) {
     int v0 = 0;
     int *p;
@@ -10706,6 +10811,9 @@ void game_uso_func_0000EDD4(int *a0, unsigned int a1, int a2) {
     p = (int*)((char*)a0[0xB4/4] + 0xA14);
     *p = *p - v0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EDD4);
+#endif
 
 extern char D_00000138;
 void game_uso_func_0000EE30(char *a0, int a1, int a2) {
@@ -10728,6 +10836,7 @@ void game_uso_func_0000EE74(void *a0) {
  * Byte-exact with Makefile INSN_PATCH + SUFFIX_BYTES_FORCE: C emits the
  * correct control flow, but IDO misses the target's outgoing a1/a2 stack
  * spills and picks different scratch regs in the D+0xE98 call tail. */
+#ifdef NON_MATCHING
 void game_uso_func_0000EE84(int *a0) {
     int *p = (int *)a0[0xB4 / 4];
     int a1;
@@ -10745,6 +10854,9 @@ void game_uso_func_0000EE84(int *a0) {
                   *(int *)((char *)&D_00000000 + 0xE9C), 1);
     func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE84);
+#endif
 
 #ifdef NON_MATCHING
 /* 82.20% NM. 4-call wrapper. Logic: call gl_func(a0); call gl_func(a0, D_E40, D_E44);
@@ -11007,6 +11119,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
  * D-base + tail to add the cross-USO varargs spills (`sw a1, 0x4(sp)` /
  * `sw a2, 0x8(sp)`), then SUFFIX_BYTES_FORCE 8 bytes for the trailing
  * jr-ra+nop epilogue. */
+#ifdef NON_MATCHING
 void game_uso_func_0000F49C(int *a0) {
     a0[0x114/4] = 2;
     if (*(int*)((char*)(int*)a0[0xF4/4] + 0x38) & 1) {
@@ -11019,6 +11132,9 @@ void game_uso_func_0000F49C(int *a0) {
         *(int*)((char*)&D_00000000 + 0xDF4));
     gl_func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F49C);
+#endif
 
 /* game_uso_func_0000F514: 37-insn state-init w/ flag-gated branch.
  * gl_func_0(a0); a0->0xB4->0xA68 = 1; check (a0->0xB4)->0x800->0x10 & 0x200:
@@ -11027,6 +11143,7 @@ void game_uso_func_0000F49C(int *a0) {
  * gl_func_0(a0). Promoted with the game_uso call-tail recipe: the C body
  * gives the correct branch layout, and Makefile SUFFIX_BYTES_FORCE +
  * INSN_PATCH restore the target's caller-slot D-pair spills and epilogue. */
+#ifdef NON_MATCHING
 void game_uso_func_0000F514(int *a0) {
     int *sub;
     int **subp;
@@ -11047,6 +11164,9 @@ void game_uso_func_0000F514(int *a0) {
     }
     gl_func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F514);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000F5A8: 45-insn EE84-family two-path orchestrator.
@@ -11296,6 +11416,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
  * #feedback-suffix-plus-insn-patch-grows-and-reshapes). Divergence point
  * shifted from +0x2C (in the 24-insn family) to +0x34 because the extra
  * call-2 body sits at +0x2C..+0x30. */
+#ifdef NON_MATCHING
 void game_uso_func_0000FA54(int *a0) {
     register int *t;
     int v1, v2;
@@ -11306,6 +11427,9 @@ void game_uso_func_0000FA54(int *a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 1);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FA54);
+#endif
 
 /* game_uso_func_0000FABC: 18-insn 3-call wrapper.
  * Body: gl_func(a0); gl_func(a0, *(D+0xE40), *(D+0xE44)); gl_func(a0).
@@ -11318,6 +11442,7 @@ void game_uso_func_0000FA54(int *a0) {
  *    docs/IDO_CODEGEN.md feedback-ido-base-adjust-for-clustered-offsets).
  *  - INSN_PATCH adds `sw a1, 0x4(sp)` and `sw a2, 0x8(sp)` varargs spills
  *    that IDO won't emit naturally with K&R-declared callees. */
+#ifdef NON_MATCHING
 void game_uso_func_0000FABC(int a0) {
     register int *t;
     int v1, v2;
@@ -11328,6 +11453,9 @@ void game_uso_func_0000FABC(int a0) {
     gl_func_00000000(a0, v1, v2);
     gl_func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FABC);
+#endif
 
 /* game_uso_func_0000FB04: 30-insn dispatcher with conditional gate.
  * Promoted from 89.90% NM-wrap to byte-exact via the family-cap recipe
@@ -11336,6 +11464,7 @@ void game_uso_func_0000FABC(int a0) {
  * (`sw a1, 0x4(sp)` / `sw a2, 0x8(sp)`); SUFFIX_BYTES_FORCE adds 8 bytes
  * for the jr-ra+nop epilogue. Branch immediate at 0x28 also patched
  * (built had +0xE for short body; target needs +0x10 after extension). */
+#ifdef NON_MATCHING
 void game_uso_func_0000FB04(int *a0) {
     gl_func_00000000(a0);
     if (a0[0x110/4] != 0) {
@@ -11346,6 +11475,9 @@ void game_uso_func_0000FB04(int *a0) {
             1);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB04);
+#endif
 
 /* game_uso_func_0000FB7C: 31-insn 3-call dispatcher.
  * Promoted from 79.97% NM-wrap to byte-exact via the family-cap recipe
@@ -11354,6 +11486,7 @@ void game_uso_func_0000FB04(int *a0) {
  * varargs spills (sw a1@4(sp), sw a2@8(sp)) and the s0-restore delay-
  * slot trick (or a0,s0,0; sw 0,0x114(s0) before lw ra/s0).
  * SUFFIX_BYTES_FORCE adds 8-byte jr-ra+nop. */
+#ifdef NON_MATCHING
 void game_uso_func_0000FB7C(int *a0) {
     int v = a0[0xFC/4] | 0xA;
     a0[0x108/4] = v;
@@ -11365,6 +11498,9 @@ void game_uso_func_0000FB7C(int *a0) {
     gl_func_00000000(a0);
     a0[0x114/4] = 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB7C);
+#endif
 
 void game_uso_func_0000FBF8(int *a0) {
     int v = *(int*)((char*)a0 + 0xFC);
@@ -11376,6 +11512,7 @@ void game_uso_func_0000FBF8(int *a0) {
  * Pointer-base temporaries preserve the addiu-base pairs and vararg spills. */
 extern int gl_func_00000000();
 extern char D_00000000;
+#ifdef NON_MATCHING
 void game_uso_func_0000FC34(int *a0) {
     char *base = (char*)*(int**)((char*)a0 + 0xB4);
     int *flag_loc = *(int**)(base + 0x800);
@@ -11392,6 +11529,9 @@ void game_uso_func_0000FC34(int *a0) {
     gl_func_00000000(a0, 0x30001, 2, 2, 0x100, 0xA);
     gl_func_00000000(a0, pair_e20[0], pair_e20[1], -1);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000FD04: 50-insn sibling of game_uso_func_0000FC34.
@@ -11467,6 +11607,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FD04);
  * Same K&R-spill pattern (sw $a1, 0x04($sp); sw $a2, 0x08($sp) caller-side
  * spills before gl_func_00000000 calls) as the FC34/FD04 siblings. The C
  * body is promoted by the Makefile SUFFIX_BYTES + INSN_PATCH recipe. */
+#ifdef NON_MATCHING
 void game_uso_func_0000FDCC(int *a0) {
     int *base = *(int**)((char*)a0 + 0xB4);
     if (*(float*)((char*)base + 0x31C) < -1.0f) {
@@ -11486,15 +11627,22 @@ void game_uso_func_0000FDCC(int *a0) {
         }
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FDCC);
+#endif
 
 /* Same SUFFIX_BYTES + INSN_PATCH spill-tail recipe as the 0x10E2C family;
  * target emits caller arg-slot spills before the conditional second call. */
+#ifdef NON_MATCHING
 void game_uso_func_0000FEC8(char *a0) {
     gl_func_00000000(a0, 0x30001, 4, 5, 2, 1);
     if (*(float*)(*(char**)(a0 + 0xB4) + 0x9D0) < 1000.0f) {
         gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE38), *(int*)((char*)&D_00000000 + 0xE3C));
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FEC8);
+#endif
 
 #ifdef NON_MATCHING
 /* 89.18% NM. Built 26 vs expected 28 insns (size 0x68 vs 0x70). 2-call gated
@@ -11626,6 +11774,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001001C);
 #endif
 extern int gl_func_00000000();
 extern char D_00000000;
+#ifdef NON_MATCHING
 void game_uso_func_00010068(int *a0) {
     int t1_field;
     int *outer;
@@ -11654,6 +11803,9 @@ void game_uso_func_00010068(int *a0) {
     /* Call 6 */
     gl_func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010068);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00010128: 105-insn (0x1A4) complex dispatcher.
@@ -11829,6 +11981,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000102CC);
  * the direct D_00000000 load form and omits the late a1/a2 stack spills.
  * Promoted with the same SUFFIX_BYTES + INSN_PATCH call-tail recipe used by
  * nearby game_uso_func_000105DC and the 10E2C family. */
+#ifdef NON_MATCHING
 void game_uso_func_00010408(int *arg0) {
     int *spB4;
 
@@ -11844,10 +11997,14 @@ void game_uso_func_00010408(int *arg0) {
         }
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010408);
+#endif
 
 /* 50-insn sibling of game_uso_func_00010408/105DC family. Initializes
  * a0->0xB4->0xA18, conditionally runs the 0x938-gated path, then emits
  * the same t[0]/t[1] vararg-spill call shape used by nearby wrappers. */
+#ifdef NON_MATCHING
 void game_uso_func_000104A4(char *a0) {
     int *obj;
     int *t;
@@ -11869,6 +12026,9 @@ void game_uso_func_000104A4(char *a0) {
         }
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000104A4);
+#endif
 
 #ifdef NON_MATCHING
 /* 89.18% NM. 5th confirmed member of precall-arg-spill family
@@ -11897,6 +12057,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001056C);
  * next function to inherit). Promoted via SUFFIX_BYTES (4 words: jr ra +
  * nop + lui at + mtc1) + INSN_PATCH (13 insns at offsets 0x30-0x60 with
  * target's t8-base form and varargs spills a1@sp+0x4, a2@sp+0x8). */
+#ifdef NON_MATCHING
 void game_uso_func_000105DC(int *a0) {
     int v1, v2;
     int *t;
@@ -11907,6 +12068,9 @@ void game_uso_func_000105DC(int *a0) {
     game_uso_func_00000000(a0, v1, v2, 1);
     game_uso_func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000105DC);
+#endif
 
 #ifdef NON_MATCHING
 /* 68 % NM wrap. Function uses $f4 directly without setting it — caller-set
@@ -12118,6 +12282,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010AC8);
  * (`sw a1, 0x4(sp)`, `sw a2, 0x8(sp)`).
  * 2nd-call args fixed: a1=0x20002, a2=0x20003 (was reversed), p->0x970
  * passed as a3 (was missing). */
+#ifdef NON_MATCHING
 void game_uso_func_00010B38(int *a0) {
     register int *t;
     int v1, v2;
@@ -12128,7 +12293,11 @@ void game_uso_func_00010B38(int *a0) {
     v2 = t[1];
     gl_func_00000000(a0, v1, v2, -1);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010B38);
+#endif
 
+#ifdef NON_MATCHING
 void game_uso_func_00010BAC(char *a0) {
     char *sub;
     int state;
@@ -12148,7 +12317,11 @@ void game_uso_func_00010BAC(char *a0) {
                          *(int*)((char*)&D_00000000 + 0xE4C));
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010BAC);
+#endif
 
+#ifdef NON_MATCHING
 void game_uso_func_00010C4C(char *a0) {
     char *sub;
 
@@ -12166,7 +12339,11 @@ void game_uso_func_00010C4C(char *a0) {
                          *(int*)((char*)&D_00000000 + 0xE14));
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010C4C);
+#endif
 
+#ifdef NON_MATCHING
 void game_uso_func_00010CF0(char *a0) {
     char *sub;
 
@@ -12185,6 +12362,9 @@ void game_uso_func_00010CF0(char *a0) {
     }
     gl_func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
+#endif
 
 /* Family sibling of game_uso_func_00010E2C / 000114FC: same SUFFIX_BYTES
  * + 12-word INSN_PATCH recipe (per docs/POST_CC_RECIPES.md
@@ -12192,6 +12372,7 @@ void game_uso_func_00010CF0(char *a0) {
  * shape (vs 24-insn for E2C/14FC) so divergence point is +0x30 (one
  * insn later — the additional `move a2, zero` keeps the prologue 12
  * insns long). D-offset 0xE10. */
+#ifdef NON_MATCHING
 void game_uso_func_00010DC8(int a0) {
     register int *t;
     int v1, v2;
@@ -12201,6 +12382,9 @@ void game_uso_func_00010DC8(int a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 1);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
+#endif
 
 /* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000.
  * Promoted to byte-correct via SUFFIX_BYTES (8 trailing nop bytes) +
@@ -12219,6 +12403,7 @@ void game_uso_func_00010DC8(int a0) {
  * reloc-link-fail). The new jal at +0x48 has no reloc — it's literal
  * `jal 0` post-link, which is the standard cross-USO call pattern (USO
  * loader patches at runtime). */
+#ifdef NON_MATCHING
 void game_uso_func_00010E2C(int a0) {
     register int *t;
     int v1, v2;
@@ -12228,6 +12413,9 @@ void game_uso_func_00010E2C(int a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 1);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010E2C);
+#endif
 
 void game_uso_func_00010E8C(int a0) {
     game_uso_func_00000000(a0, 0x70005, 0, 1, 1, 1);
@@ -12255,6 +12443,7 @@ void game_uso_func_00010F7C(int a0) {
  * docs/POST_CC_RECIPES.md#feedback-suffix-skip-path-2-false-positive-on-natural-epilogue)
  * + INSN_PATCH (10 insns overwriting post-mid-body section with target's
  * t0-base form and varargs spills a1@sp+0x4, a2@sp+0x8 before the 2nd jal). */
+#ifdef NON_MATCHING
 void game_uso_func_00010FB8(int *a0) {
     int v1, v2;
     int *t;
@@ -12266,6 +12455,9 @@ void game_uso_func_00010FB8(int *a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010FB8);
+#endif
 
 /* 32-insn / 0x80 dual-call orchestrator on a0->B4-child:
  *   a0->D0 = D[0xF48];
@@ -12286,6 +12478,7 @@ void game_uso_func_00010FB8(int *a0) {
  * outgoing-slot spill family shape that IDO 7.1 does not emit from C. */
 extern int gl_func_00000000();
 extern char D_00000000;
+#ifdef NON_MATCHING
 void game_uso_func_00011024(int *a0) {
     int *p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF48);
@@ -12297,11 +12490,15 @@ void game_uso_func_00011024(int *a0) {
     p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)p_B4 + 0x960) = 0x64;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
+#endif
 
 /* Byte-identical sibling of game_uso_func_00011024 — same 32-insn dual-call
  * orchestrator pattern; only the D-offsets differ (0xF20/0xF24 vs 0xF48/0xF4C).
  * Same promotion recipe as 11024: SUFFIX_BYTES_FORCE restores target size,
  * and INSN_PATCH writes the verified caller-slot spill/register sequence. */
+#ifdef NON_MATCHING
 void game_uso_func_000110A4(int *a0) {
     int *p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF20);
@@ -12313,6 +12510,9 @@ void game_uso_func_000110A4(int *a0) {
     p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)p_B4 + 0x960) = 0x64;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
+#endif
 
 #ifdef NON_MATCHING
 /* 82.2%: 2-call wrapper. First call `gl_func_00000000(a0)`; second call
@@ -12437,6 +12637,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
  * patch rewrites the D-base load, caller-slot spills, bit-clear address form,
  * and epilogue placement to the USO byte pattern. */
 extern int func_00000000();
+#ifdef NON_MATCHING
 void game_uso_func_00011258(int *a0) {
     int *p;
     int *status;
@@ -12451,12 +12652,16 @@ void game_uso_func_00011258(int *a0) {
     status = (int*)((char*)p + 0xA58);
     *status &= ~0x800;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
+#endif
 
 /* game_uso_func_000112E0: 34-insn sibling of game_uso_func_00011258.
  * Byte-identical to 11258 except the first-call magic constant
  * 0x70009 -> 0x70008. Uses the same SUFFIX_BYTES_FORCE + INSN_PATCH
  * promotion recipe as 11258. */
 extern int func_00000000();
+#ifdef NON_MATCHING
 void game_uso_func_000112E0(int *a0) {
     func_00000000(a0, 0x70008, 0, 2, 1, 1);
     func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF18),
@@ -12467,12 +12672,16 @@ void game_uso_func_000112E0(int *a0) {
     func_00000000(a0);
     *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0xA58) &= ~0x800;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000112E0);
+#endif
 
 /* Family sibling #5 of game_uso_func_00010E2C. Promoted from 87.38% NM
  * cap via SUFFIX_BYTES of 2 nops + 12-word INSN_PATCH at +0x2C..+0x58
  * (per docs/POST_CC_RECIPES.md
  * #feedback-suffix-plus-insn-patch-grows-and-reshapes). Differences
  * from 10E2C: D-offset 0xF08 (vs 0xE40), a3=3 (vs 1). */
+#ifdef NON_MATCHING
 void game_uso_func_00011368(int *a0) {
     register int *t;
     int v1, v2;
@@ -12482,11 +12691,15 @@ void game_uso_func_00011368(int *a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 3);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011368);
+#endif
 
 /* Family sibling #6 of game_uso_func_00010E2C — last unmatched member.
  * Same SUFFIX_BYTES + 12-word INSN_PATCH recipe as 11368 (per
  * docs/POST_CC_RECIPES.md#feedback-suffix-plus-insn-patch-grows-and-reshapes).
  * Differences from 11368: D-offset 0xF10 (vs 0xF08), a3=4 (vs 3). */
+#ifdef NON_MATCHING
 void game_uso_func_000113C8(int *a0) {
     register int *t;
     int v1, v2;
@@ -12496,6 +12709,9 @@ void game_uso_func_000113C8(int *a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 4);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000113C8);
+#endif
 
 void game_uso_func_00011428(int *a0) {
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0x74), 4, 1, 1, 1);
@@ -12505,6 +12721,7 @@ void game_uso_func_00011428(int *a0) {
  * then 3 USO calls with D[] arg-pairs (same family as game_uso_func_0000EE84).
  * Promoted via SUFFIX_BYTES_FORCE + INSN_PATCH to restore target's
  * base-register form and caller-slot spills around the two D-pair calls. */
+#ifdef NON_MATCHING
 void game_uso_func_00011460(int *a0) {
     int *p = (int *)a0[0xB4 / 4];
     int a1 = (int)(((unsigned int)p[0x8C4 / 4] % 5U) + 10) | 0x70000;
@@ -12514,10 +12731,14 @@ void game_uso_func_00011460(int *a0) {
     func_00000000(a0, *(int *)((char *)&D_00000000 + 0xF00),
                   *(int *)((char *)&D_00000000 + 0xF04));
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011460);
+#endif
 /* Family sibling of game_uso_func_00010E2C: same SUFFIX_BYTES + 12-word
  * INSN_PATCH recipe (per docs/POST_CC_RECIPES.md
  * #feedback-suffix-plus-insn-patch-grows-and-reshapes), only D-offset
  * differs (0xDB8 here vs 0xE40 there). Bytes match expected/.o. */
+#ifdef NON_MATCHING
 void game_uso_func_000114FC(int *a0) {
     register int *t;
     int v1, v2;
@@ -12527,6 +12748,9 @@ void game_uso_func_000114FC(int *a0) {
     v2 = t[1];
     game_uso_func_00000000(a0, v1, v2, 1);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000114FC);
+#endif
 
 /* game_uso_func_0001155C: 8-byte stolen-prologue donor for game_uso_func_00011564.
  * Body is `lui t6, 0; lw t6, 0x78(t6)` — loads `t6 = *(int*)((char*)&D + 0x78)`
@@ -12580,6 +12804,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
  * reshaping. */
 extern int gl_func_00000000();
 
+#ifdef NON_MATCHING
 void game_uso_func_00011564(int *a0) {
     int val = 100;
     int *p;
@@ -12597,6 +12822,9 @@ void game_uso_func_00011564(int *a0) {
         gl_func_00000000(a0, a0[0xFC/4] | 8, 0, 1, 6, 1);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011564);
+#endif
 
 void game_uso_func_000115DC(void *a0) {
     *(s32*)((char*)*(s32**)((char*)a0 + 0xB4) + 0x960) = 100;
@@ -12615,6 +12843,7 @@ void game_uso_func_000115EC(int *a0, int a1) {
  * D[0xE44],1) else X(s0,D[0xDC8],D[0xDCC],1); s0->0x114=0.
  * bgtzl: >0 case D-pair load in delay; s0->0x114=0 on both paths.
  * USO: call -> func_00000000, data -> &D_00000000+off. */
+#ifdef NON_MATCHING
 void game_uso_func_00011624(int *a0) {
     int *pair;
 
@@ -12628,12 +12857,16 @@ void game_uso_func_00011624(int *a0) {
     gl_func_00000000(a0, pair[0], pair[1], 1);
     a0[0x114 / 4] = 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011624);
+#endif
 
 /* game_uso_func_000116D4: 31-insn (0x7C) flag-gated double-call wrapper.
  * Promoted from 79.97% NM-wrap to byte-exact via the family-cap recipe
  * (10E2C/10B38/F49C/FB04/FB7C). C body unchanged; INSN_PATCH 13 insns
  * at 0x20 + 0x40..0x6C reshapes branch-imm + 2nd-call D-base/tail with
  * cross-USO varargs spills (sw a1@4(sp), sw a2@8(sp)). 7th sibling. */
+#ifdef NON_MATCHING
 void game_uso_func_000116D4(void *a0) {
     void *s0 = a0;
     gl_func_00000000(s0);
@@ -12646,6 +12879,9 @@ void game_uso_func_000116D4(void *a0) {
     }
     *(int *)((char *)s0 + 0x114) = 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000116D4);
+#endif
 
 // game_uso_func_00011750 — STRUCTURAL PASS (0x118 / 70 words,
 // no episode). Raw-.word USO form (single function, game_uso main
@@ -12791,6 +13027,7 @@ void game_uso_func_00011A64(char *dst) {
  * (and func_00000C10, func_0000E690 — see those wrap docs). Cross-segment
  * sibling transfer: same C body + same INSN_PATCH bytes. game_uso uses
  * the gl_func_00000000 cross-segment placeholder for `func` calls. */
+#ifdef NON_MATCHING
 void *game_uso_func_00011A94(int *arg0) {
     volatile int **vparg = (volatile int **)&arg0;
     int *node;
@@ -12813,6 +13050,9 @@ void *game_uso_func_00011A94(int *arg0) {
     (void)vparg;
     return node;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A94);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00011A94_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010648);

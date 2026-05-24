@@ -57,6 +57,7 @@ u32 func_80004730(void* vaddr) {
  * register-rename (target threads accumulator through fresh regs each
  * step: $t8→$t2→$t6→$t0; built pins to $a1 via `register` keyword).
  * 12th INSN_PATCH-promotion this session. */
+#ifdef NON_MATCHING
 u32 func_800047B0(u8 *a0) {
     volatile u32 sb;
     register u32 acc;
@@ -66,3 +67,6 @@ u32 func_800047B0(u8 *a0) {
     acc |= (a0[3] & 0xFF);        sb = acc;
     return acc;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800047B0);
+#endif

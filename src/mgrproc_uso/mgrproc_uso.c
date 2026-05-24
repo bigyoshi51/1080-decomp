@@ -132,28 +132,44 @@ void mgrproc_uso_func_000000F8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F8);
 #endif
 
+#ifdef NON_MATCHING
 int mgrproc_uso_func_00000140(int *a0) {
     if (a0[1] == a0[2]) {
         return 1;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000140);
+#endif
 
+#ifdef NON_MATCHING
 int mgrproc_uso_func_0000015C(void) {
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000015C);
+#endif
 
 void mgrproc_uso_func_00000168(void) {
 }
 
+#ifdef NON_MATCHING
 int mgrproc_uso_func_00000170(int *a0) {
     if (a0[0] == 0) {
         return 1;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000170);
+#endif
 
+#ifdef NON_MATCHING
 int mgrproc_uso_func_00000188(void) {
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000188);
+#endif
 
 /* mgrproc_uso_func_0000019C: 218-insn (0x368) state-machine orchestrator.
  *
@@ -678,6 +694,7 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000119
  * byte-exact (placeholder calls -> addr 0); the first arg's lui-const /
  * (a1-1) addiu schedule-swap (2/66) is INSN_PATCH'd. No episode (reloc-
  * blind call targets), but the plain C body is the build path. */
+#ifdef NON_MATCHING
 void mgrproc_uso_func_000011A4(char *s0, int a1) {
     int *q;
     gl_func_00000000(&D_00000000, (a1 - 1) | 0x200000);
@@ -696,6 +713,9 @@ void mgrproc_uso_func_000011A4(char *s0, int a1) {
     gl_func_00000000(s0 + 0x770, 0x210000 | 0xA);
     gl_func_00000000(s0 + 0x788, 0x210000 | 0xD);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000011A4);
+#endif
 
 void mgrproc_uso_func_000012AC(char *a0) {
     gl_func_00000000(&D_00000000);
@@ -721,6 +741,7 @@ void mgrproc_uso_func_00001304(void) {
  * (v0↔v1 in the early conditional chain, t0↔t9 in the final 0x4F8 reload
  * + flag store + cache store). Per docs/POST_CC_RECIPES.md "Pure
  * register-rename at any scale". */
+#ifdef NON_MATCHING
 int mgrproc_uso_func_00001324(char *arg0) {
     int v;
     if (*(int*)(arg0 + 0x4FC) == 0) {
@@ -740,6 +761,9 @@ int mgrproc_uso_func_00001324(char *arg0) {
     }
     return 1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001324);
+#endif
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_000013C8: 75-insn (0x12C) post-init dispatcher.
@@ -861,6 +885,7 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C
  * `beq v0, at(=3), case_13; nop; b end; lw ra, 0x14(sp) (delay)` form
  * vs IDO's `bnel v0, at, end; lw ra (delay); b case_13; nop`). */
 extern int D_mgr_14F4_a, D_mgr_14F4_b, D_mgr_14F4_c;
+#ifdef NON_MATCHING
 void mgrproc_uso_func_000014F4(int *a0) {
     int v;
     gl_func_00000000((char*)&D_mgr_14F4_a + 0x628, *(int*)((char*)a0 + 0x4D8));
@@ -876,6 +901,9 @@ case_2:
 case_13:
     gl_func_00000000(a0, *(int*)((char*)&D_mgr_14F4_c + 0x170) + 0x26000F);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F4);
+#endif
 
 /* mgrproc_uso_func_00001594: 32-insn (0x80) check-then-vtable-call helper.
  * Decoded:
@@ -898,6 +926,7 @@ case_13:
  *    overwrites those bytes with target's encoding. */
 extern int gl_func_00000000();
 extern int D_mgr_1594_a, D_mgr_1594_c;
+#ifdef NON_MATCHING
 void mgrproc_uso_func_00001594(int *a0) {
     int *p;
     int idx;
@@ -915,6 +944,9 @@ void mgrproc_uso_func_00001594(int *a0) {
     fn = (void(*)())q[0x90 / 4];
     fn();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001594);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001614);
 
@@ -930,6 +962,7 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000161
  *   if (gl_func(&D, 0x40100, a0) == 0) return;
  *   if (gl_func(*(int*)(&D + 0x190)) == 0) return;
  *   a0->[0x7D4] = 1; */
+#ifdef NON_MATCHING
 void mgrproc_uso_func_0000179C(int *a0) {
     if (*(int*)((char*)a0 + 0x7E4) != 1) return;
     if (*(int*)((char*)a0 + 0x7E8) >= 0x2EE) return;
@@ -937,12 +970,16 @@ void mgrproc_uso_func_0000179C(int *a0) {
     if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) == 0) return;
     *(int*)((char*)a0 + 0x7D4) = 1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000179C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001824);
 
 void mgrproc_uso_func_00001A5C(int a0) {
 }
 
+#ifdef NON_MATCHING
 void mgrproc_uso_func_00001A64(int *a0) {
     int *ptr;
     int val0;
@@ -968,6 +1005,9 @@ void mgrproc_uso_func_00001A64(int *a0) {
     *ptr = val3 | 4;
     *(int**)(*(int*)((char*)&D_00000000 + 0x134) + 0x108) = *(int**)((char*)a0 + 0x520);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001A64);
+#endif
 
 /* mgrproc_uso_func_00001AD0: 34-insn (0x88) 5-call orchestrator.
  *
@@ -986,6 +1026,7 @@ void mgrproc_uso_func_00001A64(int *a0) {
  * grows the frame to 0x30; INSN_PATCH closes the frame/stack-slot immediates
  * after compile. */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 void mgrproc_uso_func_00001AD0(int *a0, int a1) {
     int *v0;
     int *p0;
@@ -1003,6 +1044,9 @@ void mgrproc_uso_func_00001AD0(int *a0, int a1) {
     gl_func_00000000(a0);
     *(int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001AD0);
+#endif
 
 /* mgrproc_uso_func_00001B58: 28-insn (0x70) main body + 4 trailing donation
  * insns (= 0x8C declared size, 35 insns total).
@@ -1017,6 +1061,7 @@ void mgrproc_uso_func_00001AD0(int *a0, int a1) {
  *     mgrproc_uso_func_00001BE4 (BE4 reads $a2/$a0/$v1 set up by these
  *     4 trailing insns). */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 void mgrproc_uso_func_00001B58(int *a0) {
     int *p;
     int *t6;
@@ -1031,6 +1076,9 @@ void mgrproc_uso_func_00001B58(int *a0) {
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0, 0);
     a0[0x4F4/4] = 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
+#endif
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00001BE4: 43-insn (0xAC) state-init + 6-call orchestrator.

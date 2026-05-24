@@ -60,6 +60,7 @@ void func_800080D0(s32* arg0, s32* arg1) {
  *
  * func_800081D0 remains a separate externally-callable tail fragment; do not
  * merge-fragments, because that would remove the jal-callable symbol. */
+#ifdef NON_MATCHING
 void func_8000817C(void) {
     s32 saved_a = ((s32 *)&rmonbrk_bss_0000)[0];
 
@@ -85,3 +86,6 @@ void func_8000817C(void) {
         D_8001FEF0 = 0;
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_8000817C);
+#endif

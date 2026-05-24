@@ -10,6 +10,7 @@ extern int D_A0000200;
  * 0x5C/0x64). IDO -O0 reuses $t5 (the lui base) as the lw destination
  * AND the bne comparand; target uses $t6 for both. Pure regalloc
  * reuse-base-as-dest pattern at -O0; INSN_PATCH overwrites the 2 bytes. */
+#ifdef NON_MATCHING
 void func_00012818(char *a0, char *a1) {
     int i;
     register int *unused;
@@ -25,6 +26,9 @@ void func_00012818(char *a0, char *a1) {
         func_00000000(a0);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012818);
+#endif
 
 void func_000128AC(char *a0, char *a1, char *a2) {
     if (a2 != 0) {

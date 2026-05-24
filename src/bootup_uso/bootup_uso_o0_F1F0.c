@@ -48,6 +48,7 @@ void func_0000F288(Quad4 *a0) {
  * Both diffs (s-reg shift + 8-byte offset shift) are pure encoding
  * renames — function logic identical, INSN_PATCH overwrites the 10
  * differing words. */
+#ifdef NON_MATCHING
 void func_0000F2EC(Vec3 *dst) {
     register Vec3 *p1;
     register Vec3 *p2;
@@ -67,3 +68,6 @@ void func_0000F2EC(Vec3 *dst) {
     q = p1;
     (void)q;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F2EC);
+#endif

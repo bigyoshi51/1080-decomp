@@ -136,6 +136,7 @@ extern s32 D_80012D5C;
  *   `register` honors strong reg-class hints but doesn't override the
  *   priority-based $v0/$v1 split when $v0 is reserved for a longer-live
  *   pseudo. Confirms cap is structural, not register-hint-fixable. */
+#ifdef NON_MATCHING
 u32 func_800000B0(u32 size, u32 alignment) {
     u32 mask;
     u32 result;
@@ -154,6 +155,9 @@ u32 func_800000B0(u32 size, u32 alignment) {
     }
     return result;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800000B0);
+#endif
 
 /* Boot init */
 void func_80000118(s32 a0, s32 a1) {
@@ -501,7 +505,11 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800004B8);
  * `s32 func(s32, s32)` — runtime $v0=0 from PREFIX's `or v0,zero,zero` is
  * the actual return value. Args ignored. Per `docs/POST_CC_RECIPES.md`
  * PREFIX+INSN_PATCH combo entry. */
+#ifdef NON_MATCHING
 void func_80000568(void) {}
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80000568);
+#endif
 
 /* uso_stub_ret0 */
 s32 func_8000058C(s32 arg0) {
@@ -538,6 +546,7 @@ s32 func_8000058C(s32 arg0) {
  * The inserted/patched words are all non-relocated register moves/loop
  * instructions, so the earlier "prefix can't carry reloc-pending operands"
  * blocker does not apply to this byte-copy helper. */
+#ifdef NON_MATCHING
 void func_80000598(u8* src, u8* dst, s32 count) {
     register u8* sp;
     register u8* dp;
@@ -562,6 +571,9 @@ void func_80000598(u8* src, u8* dst, s32 count) {
         rem = count--;
     } while (rem != 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
+#endif
 
 /* func_800005DC: 44-insn (0xB0) DMA-aligned bounded read helper.
  * Splat-split into 3 fragments: 800005DC (0x34, 13 insns) + 8000060C
@@ -679,6 +691,7 @@ s32 uso_file_open(FileState* file, u32* arg1) {
  *   0x68: 0x5668FFF0 (bnel s3,t0,-4) → 0x5513FFF0 (bnel t0,s3,-4)
  * Both are semantically identical (beq/bnel symmetric); cosmetic-only
  * register-order diff. See feedback_ido_register.md. */
+#ifdef NON_MATCHING
 s32 uso_skip_to_end(FileState* file) {
     s32 pad;
     u32 header[3];
@@ -693,6 +706,9 @@ s32 uso_skip_to_end(FileState* file) {
     } while (11 != header[0]);
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", uso_skip_to_end);
+#endif
 
 /* uso_file_check — always returns 1 (success) */
 s32 func_800007C4(s32 a0, s32 a1) {
@@ -1170,6 +1186,7 @@ extern s32 func_800015D0(void*, void*);
  * 12-byte header. Promoted from 99.66% NM to exact via 3-word INSN_PATCH
  * at offsets 0x40/0x70/0x74 (split-pad header-offset + addu-operand-order
  * the 3 residual codegen-cap diffs that decl-reorder couldn't reach). */
+#ifdef NON_MATCHING
 void* func_800012BC(void* arg0) {
     void* file;
     s32 header[3];
@@ -1187,6 +1204,9 @@ void* func_800012BC(void* arg0) {
     return file;
     (void)pad;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800012BC);
+#endif
 
 extern void func_80000A88(void*, s32);
 
@@ -1453,6 +1473,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
  * rewrites the +0x20..+0xA4 region (register-rename for the t/a-reg
  * constants, branch offset adjustments after the 2-insn body shift, and
  * one switch-case body reordering at +0x5C..+0x90). */
+#ifdef NON_MATCHING
 int func_800021A4(int *a0) {
     int *v0;
     int v1;
@@ -1504,6 +1525,9 @@ end:
     return 0;
     (void)t3;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800021A4);
+#endif
 
 /* func_800021D0 is now an alabel inside func_800021A4 (merged via splat
  * fragment-merge — the original split-at-0x800021D0 was a splat boundary
@@ -1530,6 +1554,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
  * 2026-05-20: direct-pointer/count-reload variants also emitted the same
  * rotated-register body. Promoted via INSN_PATCH rather than leaving the
  * same-length register cap as an NM wrap. */
+#ifdef NON_MATCHING
 int func_8000235C(int *a0, int a1) {
     int a3;
     int v1;
@@ -1559,6 +1584,9 @@ int func_8000235C(int *a0, int a1) {
 end:
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_8000235C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800023E0);
 
@@ -1729,6 +1757,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80004808);
  * SET then CLEAR around a write to 0xC000000C. The do-while form with the
  * func call in the BODY (not the while-condition) gets IDO to emit plain
  * bnez/beqz instead of branch-likely (which the empty-body form caused). */
+#ifdef NON_MATCHING
 void func_8000487C(void) {
     s32 r = func_80009EA0();
     if ((r & 0x2000) == 0) {
@@ -1744,6 +1773,9 @@ void func_8000487C(void) {
         } while (r & 0x2000);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_8000487C);
+#endif
 
 #ifdef NON_MATCHING
 /* func_800048E8: 52-insn chunked-write driver. Borrows hardware (init via

@@ -9,6 +9,7 @@ extern char D_00000000;
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
 
+#ifdef NON_MATCHING
 void gl_func_00008A40(Vec3 *dst) {
     register Vec3 *p1;
     register Vec3 *p2;
@@ -28,3 +29,6 @@ void gl_func_00008A40(Vec3 *dst) {
     q = p1;
     (void)q;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008A40);
+#endif

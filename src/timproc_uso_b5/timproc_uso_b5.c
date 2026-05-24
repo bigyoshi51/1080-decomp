@@ -120,6 +120,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * docs/POST_CC_RECIPES.md "Pure register-rename at any scale". */
 extern int D_b5_24C_save_v0;
 extern int D_b5_24C_save_v1;
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000024C(int *a0) {
     int *v0;
     int idx;
@@ -142,6 +143,9 @@ void timproc_uso_b5_func_0000024C(int *a0) {
     fn = *(void(**)(void))((char*)v0 + idx * 0x28 + 0x90);
     fn();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000024C);
+#endif
 
 /* Empty body, K&R-style 1-arg signature emits `jr ra; sw a0, 0(sp)` —
  * IDO -O2 keeps the K&R arg-save in the jr delay slot even when unused.
@@ -552,6 +556,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * struct (e.g., a render-state config table at &D + 0x134 with sub-ptr
  * to glyph/texture pool fields). */
 extern char D_00000000;
+#ifdef NON_MATCHING
 void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
     char *self = (char*)a0;
     char *base;
@@ -608,6 +613,9 @@ void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
 end:
     return self;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000131C);
+#endif
 
 // timproc_uso_b5_func_00001460 — STRUCTURAL PASS (0x1F8 / 126 words,
 // no episode). Raw-.word USO form (genuine code; splat can't
@@ -910,9 +918,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001D60);
 
+#ifdef NON_MATCHING
 int timproc_uso_b5_func_00001DA4(void) {
     return 1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001DA4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001DB0);
 
@@ -977,6 +989,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * but different local layout. INSN_PATCH retargets at byte level since
  * the writes to sp+0x38 are still in-frame and the function works
  * correctly post-patch). */
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_000027B0(int *self) {
     char *base = &D_00000000;
     char pad[16];
@@ -993,6 +1006,9 @@ void timproc_uso_b5_func_000027B0(int *self) {
     v = self[0x44/4];
     gl_func_00000000(base, 0, v - 1, 319, v, 0x10001);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000027B0);
+#endif
 
 // timproc_uso_b5_func_0000283C — STRUCTURAL PASS (0x338 / 206 words,
 // no episode). Raw-.word USO form (genuine code, single function).
@@ -1357,12 +1373,16 @@ void timproc_uso_b5_func_00003ED8(char *a0) {
  * insns at 94.12% — neither path needs SUFFIX_BYTES applied
  * (inject-suffix-skip detects existing trailing bytes; non_matching skips
  * the recipe by design). byte_verify passes. */
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_00003F18(char *a0) {
     char *v;
     gl_func_00000000(a0 + 0x194);
     v = *(char**)(a0 + 0x28);
     (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F18);
+#endif
 
 #ifdef NON_MATCHING
 /* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. Byte-correct via 3-knob recipe
@@ -1759,6 +1779,7 @@ void timproc_uso_b5_func_0000685C(char *a0) {
  * comparison is equality against 0.0f; non-zero values take the success
  * return path. */
 extern int gl_func_00000000();
+#ifdef NON_MATCHING
 int timproc_uso_b5_func_0000687C(int *a0) {
     int group = *(int*)((char*)a0 + 0x3C4);
     int group_off = group * 4;
@@ -1786,6 +1807,9 @@ int timproc_uso_b5_func_0000687C(int *a0) {
 ret0:
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000687C);
+#endif
 /* timproc_uso_b5_func_00006900 - verified structural decode (0xE8,
  * 58 insns, "any-entry-active" scan predicate). Returns s32 0/1.
  *   s32 timproc_uso_b5_func_00006900(St *s) {
@@ -2175,6 +2199,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // fast step at 0xD4 when state 1 is active and the normal step at 0xEC
 // otherwise. Two add.s operand-order words are fixed in Makefile
 // INSN_PATCH/NON_MATCHING_INSN_PATCH.
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_000073C0(char *scr) {
     float cur = *(float *)(scr + 0x480);
     int state;
@@ -2195,6 +2220,9 @@ check_target:
         }
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000073C0);
+#endif
 
 // timproc_uso_b5_func_00007430 — exact (0x3A8 / 234 words).
 // Raw-.word USO form (genuine code). Hand-decoded.
@@ -2469,6 +2497,7 @@ void timproc_uso_b5_func_000077D8(char *scr) {
 // table / `func(scr, phase)` chain. C emit is structurally correct but
 // IDO CSEs the fade-step base load one insn shorter; exactness is promoted
 // via SUFFIX_BYTES + INSN_PATCH per docs/POST_CC_RECIPES.md.
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_000079A4(char *scr) {
     char *obj;
     char *node;
@@ -2516,6 +2545,9 @@ void timproc_uso_b5_func_000079A4(char *scr) {
     *(float *)(scr + 0x484) = 1.0f;
     func_00000000(scr, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000079A4);
+#endif
 
 // timproc_uso_b5_func_00007B2C — STRUCTURAL PASS (0x308 / 194 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
@@ -2970,9 +3002,13 @@ int timproc_uso_b5_func_000087D8(void) {
 
 int timproc_uso_b5_func_000087E0(void) { return 3; }
 
+#ifdef NON_MATCHING
 int timproc_uso_b5_func_000087E8(void) {
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087E8);
+#endif
 
 /* Boundary-merged switch predicate. The internal alabels at 0x8834, 0x8844,
  * 0x8854, 0x886C, 0x887C, and 0x8894 are case labels/tail entries, not
@@ -3003,17 +3039,25 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008930);
 
+#ifdef NON_MATCHING
 int timproc_uso_b5_func_00008940(void) {
     return 0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008940);
+#endif
 
 void timproc_uso_b5_func_0000894C(void) {
     func_00000000();
 }
 
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000896C(char *a0) {
     *(float *)0x100002A0 = *(float *)(a0 + 0x480) * *(float *)0x10000234;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000896C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008988);
 
@@ -3043,10 +3087,14 @@ int timproc_uso_b5_func_00008A90(int *a0) {
 // but the target wants base-first (addu v0,a0,t7) — commutative-operand-order
 // only, IDO won't flip it via C, so patched 1/6 (well under the <=half
 // episode-fidelity threshold) per docs/POST_CC_RECIPES.md.
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_00008ABC(int *a0) {
     int *p = &a0[a0[0x3C4 / 4]];
     *(int *)((char *)p + 0x3E0) = *(int *)((char *)p + 0x3D0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008ABC);
+#endif
 
 /* timproc_uso_b5_func_00008AD4: double-indexed double-deref accessor. Same
  * addu operand-order lever (scaled index FIRST, fully inlined). */
@@ -3240,6 +3288,7 @@ void timproc_uso_b5_func_00008D90(int *a0, int a1) {
 //     pick element kinds.
 // Exact via unique D_8DB4_* aliases to break IDO &D CSE plus a scoped
 // INSN_PATCH for frame/reloc/register residuals.
+#ifdef NON_MATCHING
 char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
     extern char D_8DB4_0134_a;
     extern char D_8DB4_01C4_load;
@@ -3296,6 +3345,9 @@ char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
 done:
     return self;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
+#endif
 
 /* Indirect-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
  * declare p2 FIRST with the full deref chain inline (including p1's load),
@@ -4074,6 +4126,7 @@ void timproc_uso_b5_func_0000C1A4(int *a0, int a1) {
  * the alt-entry's 5 insns are byte-for-byte SUFFIX (mtc1 a1,f12; lw t6;
  * swc1 f12,0x2A0(a0); jr ra; swc1 f12,0x120(t6)). */
 extern int func_00000000();
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C1B4(int *a0) {
     int *p = (int*)a0[0x2B8 / 4];
     float a = *(float*)((char*)a0 + 0x294);
@@ -4086,9 +4139,13 @@ void timproc_uso_b5_func_0000C1B4(int *a0) {
     *(float*)((char*)p + 0x114) = d;
     func_00000000();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1B4);
+#endif
 
 extern char D_b5_C208_table0;
 extern char D_b5_C208_table1;
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C208(int *a0, int a1, int a2, int a3) {
     (void)a1;
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, a3,
@@ -4098,6 +4155,9 @@ void timproc_uso_b5_func_0000C208(int *a0, int a1, int a2, int a3) {
                          (char*)&D_b5_C208_table1 + a0[0x1AC/4] * 24, 0xFF);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C208);
+#endif
 
 extern char D_b5_C2C0_table;
 void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
@@ -4325,6 +4385,7 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
  * lever isn't reachable here; this is permuter-territory. */
 extern int gl_func_00000000();
 extern char D_00000000;
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C8AC(int *a0) {
     int *v1;
     float *p128;
@@ -4355,6 +4416,9 @@ void timproc_uso_b5_func_0000C8AC(int *a0) {
     }
     gl_func_00000000();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C8AC);
+#endif
 
 
 void timproc_uso_b5_func_0000C978(int *a0, float a1) {
@@ -4564,6 +4628,7 @@ void timproc_uso_b5_func_0000CC64(int *a0, int a1) {
  *
  * Recipe: same as C1B4 — INSN_PATCH 8 float-reg-rename words +
  * SUFFIX_BYTES 5 alt-entry tail words. Both in Makefile. */
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CC74(int *a0) {
     int *p = (int*)a0[0x2B8 / 4];
     float a = *(float*)((char*)a0 + 0x294);
@@ -4576,6 +4641,9 @@ void timproc_uso_b5_func_0000CC74(int *a0) {
     *(float*)((char*)p + 0x110) = d;
     func_00000000();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CC74);
+#endif
 
 /* timproc_uso_b5_func_0000CCC8: 23-insn (0x5C) 6-arg cross-USO call
  * builder. Computes &D[0x1C0] + idx*24 where idx = a0->[0x1AC] and
@@ -4595,10 +4663,14 @@ void timproc_uso_b5_func_0000CC74(int *a0) {
 extern int gl_func_00000000();
 extern char D_timb5_1C0;
 
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
     char *p = &D_timb5_1C0 + a0[0x1AC/4] * 24;
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, p, 0xFF);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000CD24: 54-insn (0xD8) approach-target-with-decay
@@ -4704,6 +4776,7 @@ void timproc_uso_b5_func_0000CE5C(int *a0, int a1) {
  * register-renumbering cap). Promoted via INSN_PATCH per
  * feedback_insn_patch_for_ido_codegen_caps.md (and SUFFIX_BYTES for
  * trailing prologue-stolen-PREDECESSOR pattern). */
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CE6C(char *a0) {
     char *v;
     float a, b, c, d;
@@ -4718,6 +4791,9 @@ void timproc_uso_b5_func_0000CE6C(char *a0) {
     *(float*)(v + 0x110) = d;
     gl_func_00000000();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE6C);
+#endif
 
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000CE6C_pad.s")
 
@@ -5149,12 +5225,16 @@ void timproc_uso_b5_func_0000E5AC(int a0) {
  * deref uses a typed-as-int* alias `D_E5D8_state` so IDO emits `lui+lw`
  * (matching the stolen-prologue shape) instead of `lui+addiu+lw`. */
 extern int *D_E5D8_state;
+#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000E5D8(int a0) {
     *(float*)((char*)&D_00000000 + 0) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xBC);
     *(float*)((char*)&D_00000000 + 4) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xCC);
     *(float*)((char*)&D_00000000 + 8) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xDC);
     gl_func_00000000(a0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000E5D8);
+#endif
 
 /* C-emit-absorbed orphans (per docs/MATCHING_WORKFLOW.md):
  *   _00006890 + _000068A8 + _000068EC ← _0000687C (decl 0x14, .o 0x84

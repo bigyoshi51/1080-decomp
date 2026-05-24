@@ -70,6 +70,7 @@ extern char D_00000194_A;
  *     that successor 0x1E4 inherits).
  * Per feedback_prologue_stolen_predecessor_no_recipe.md (the recipe this
  * tick built scripts/inject-suffix-bytes.py for). */
+#ifdef NON_MATCHING
 void titproc_uso_func_00000194(void) {
     *(int*)((char*)&D_00000000 + 0x34) = 3;
     *(int*)((char*)&D_00000000 + 0x40) = 0;
@@ -77,9 +78,13 @@ void titproc_uso_func_00000194(void) {
     gl_func_00000000(0xC, 0);
     gl_func_00000000(*(int*)((char*)&D_00000194_A + 0xA8), -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000194);
+#endif
 
 extern char D_000001E4_A;
 
+#ifdef NON_MATCHING
 void titproc_uso_func_000001E4(void) {
     *(int*)((char*)&D_00000000 + 0x34) = 4;
     *(int*)((char*)&D_00000000 + 0x40) = 0;
@@ -87,6 +92,9 @@ void titproc_uso_func_000001E4(void) {
     gl_func_00000000(12, 1);
     gl_func_00000000(*(int*)((char*)&D_000001E4_A + 0xA8), -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000001E4);
+#endif
 
 extern char D_00000230_A;
 
@@ -100,6 +108,7 @@ void titproc_uso_func_00000230(void) {
 
 extern char D_0000028C_A;
 
+#ifdef NON_MATCHING
 void titproc_uso_func_0000028C(void) {
     *(int*)((char*)&D_00000000 + 0x34) = 5;
     *(int*)((char*)&D_00000000 + 0x40) = 0;
@@ -107,6 +116,9 @@ void titproc_uso_func_0000028C(void) {
     gl_func_00000000(12, 3);
     gl_func_00000000(*(int*)((char*)&D_0000028C_A + 0xA8), -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000028C);
+#endif
 
 extern char D_000002D8_A;
 
@@ -166,6 +178,7 @@ void titproc_uso_func_000003D0(void) {
  *
  * Exact via the `_f()` no-arg placeholder (direct jal, f0 return) plus
  * INSN_PATCH for the remaining frame-slot / scheduling codegen cap. */
+#ifdef NON_MATCHING
 int titproc_uso_func_00000418(void) {
     extern float gl_func_00000000_f();
     unsigned short mask = **(unsigned short**)((char*)&D_00000000 + 0x154);
@@ -183,6 +196,9 @@ int titproc_uso_func_00000418(void) {
     selected -= 2;
     return (int)((gl_func_00000000_f() * (float)selected) + 2.0f);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
+#endif
 
 void titproc_uso_func_0000049C(int *dst) {
     int buf[2];
@@ -433,6 +449,7 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000116
  *   return p;                         // v0 = a2
  * }
  */
+#ifdef NON_MATCHING
 int *titproc_uso_func_000015F4(a0)
 int *a0;
 {
@@ -459,6 +476,9 @@ common:
 end:
     return a0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F4);
+#endif
 /* (end verified decode)
  * Struct-typing value: object has int @0x28 (&D base), ptr @0xC (&D+0x4CC),
  * counters @0x2C/0x30 (zeroed; 16B8 sibling does the ±6 wrap on these),
@@ -555,6 +575,7 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000171
  * raising C-only emit to 94.70%. The remaining seven same-size scheduling /
  * spill-slot diffs are patched with INSN_PATCH in the Makefile; actual build
  * bytes match expected. */
+#ifdef NON_MATCHING
 void *titproc_uso_func_00001840(void *a0) {
     void *self = a0;
     void *sub;
@@ -591,12 +612,16 @@ void *titproc_uso_func_00001840(void *a0) {
 end:
     return self;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001840);
+#endif
 
 /* titproc_uso_func_00001950: 106-insn dual-phase display/alpha helper.
  * Decrements/fades through the D+0x60/D+0x78 display blocks while
  * a0->0x38 == 0, then increments/clamps a0->0x2C and dispatches the
  * D+0x90 block. C emit is same length; INSN_PATCH fixes the decrement
  * scheduling, one-word stack-slot shift, and register-choice diffs. */
+#ifdef NON_MATCHING
 void titproc_uso_func_00001950(int *a0) {
     float buf_a[4];
     char pad[20];
@@ -656,6 +681,9 @@ void titproc_uso_func_00001950(int *a0) {
     }
     (void)pad;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
+#endif
 
 void titproc_uso_func_00001AF8(int *a0) {
     a0[0x38 / 4] = 0;
@@ -683,6 +711,7 @@ void titproc_uso_func_00001AF8(int *a0) {
  * 2026-05-17: matched the dead-arm constructor shape used by sibling
  * 0x1D7C: the secondary alloc is unreachable after the primary non-null
  * guard, and the final dispatch is one-argument. */
+#ifdef NON_MATCHING
 void *titproc_uso_func_00001B10(void *a0) {
     char *base = &D_00000000;
     void *self = a0;
@@ -705,6 +734,9 @@ init_self:
 end:
     return self;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
+#endif
 
 /* titproc_uso_func_00001BB8: 42-insn dual-state-bracket helper. Two
  * gl_func dispatches with asymmetric inner-D[0] gates.
@@ -726,6 +758,7 @@ end:
 extern int gl_func_00000000();
 extern char D_titproc_BB8_a, D_titproc_BB8_b, D_titproc_BB8_c, D_titproc_BB8_d;
 extern char D_titproc_BB8_e, D_titproc_BB8_f, D_titproc_BB8_g, D_titproc_BB8_h;
+#ifdef NON_MATCHING
 void titproc_uso_func_00001BB8(int a0) {
     if (gl_func_00000000(&D_titproc_BB8_a, 0x10001) != 0) {
         if (*(int*)&D_titproc_BB8_b != 0) {
@@ -740,6 +773,9 @@ void titproc_uso_func_00001BB8(int a0) {
         }
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001BB8);
+#endif
 
 /* titproc_uso_func_00001C68: 69-insn (0x114) dual-dispatch FPU helper.
  * Sibling of 0x1BB8 (which provides the stolen-prologue $f0 = 1.0f).
@@ -759,6 +795,7 @@ extern int gl_func_00000000();
 extern char D_titproc_C68_A1, D_titproc_C68_A2, D_titproc_C68_A3, D_titproc_C68_A4;
 extern char D_titproc_C68_C1, D_titproc_C68_C2, D_titproc_C68_C3, D_titproc_C68_C4;
 extern int D_titproc_C68_B, D_titproc_C68_D;
+#ifdef NON_MATCHING
 void titproc_uso_func_00001C68(int *a0) {
     float buf[4];
     char pad[24];
@@ -783,6 +820,9 @@ void titproc_uso_func_00001C68(int *a0) {
     gl_func_00000000(&D_titproc_C68_C4 + 0x48, 0xDC, 0x7E, 3);
     (void)pad;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C68);
+#endif
 
 /* titproc_uso_func_00001D7C: 44-insn (0xB0) 2-cascade ctor + 4 floats=1.0f.
  * Sibling of 1840: alloc(0x40) + dead-arm alloc(0x2C), init from
@@ -802,6 +842,7 @@ void titproc_uso_func_00001C68(int *a0) {
  * slot and raised C-only emit to 93.02%. The remaining same-size $v1/$a2
  * and spill-slot diffs are patched with INSN_PATCH in the Makefile, like
  * sibling 0x1840. Default build bytes match expected. */
+#ifdef NON_MATCHING
 void *titproc_uso_func_00001D7C(void *a0) {
     char *base = &D_00000000;
     void *self = a0;
@@ -827,6 +868,9 @@ init_self:
 end:
     return self;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001D7C);
+#endif
 
 extern int gl_func_00000000();
 extern char D_00000000;

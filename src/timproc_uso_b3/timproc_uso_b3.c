@@ -235,29 +235,41 @@ void timproc_uso_b3_func_000006FC(void) {
 /* Chain sibling of 0x790, 0x7D4, 0x818 (state-store + 1-call wrapper,
  * prologue-stolen v0). t7=1 here. Same recipe as b1 chain 0x734-0x800. */
 extern int D_state_b3_74C;
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_0000074C(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 1;
     gl_func_00000000(D_state_b3_74C, -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000074C);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_0000074C_pad.s")
 
 /* Chain sibling: t7=2. */
 extern int D_state_b3_790;
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000790(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 2;
     gl_func_00000000(D_state_b3_790, -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000790);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00000790_pad.s")
 
 /* Chain sibling: t7=3. */
 extern int D_state_b3_7D4;
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_000007D4(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 3;
     gl_func_00000000(D_state_b3_7D4, -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000007D4);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000007D4_pad.s")
 
 /* Prologue-stolen successor: predecessor func_000007D4's tail has lui+addiu
@@ -268,11 +280,15 @@ void timproc_uso_b3_func_000007D4(void) {
  * rather than reusing v0. Per feedback_ido_cse_d_loads_unflippable.md +
  * feedback_usoplaceholder_unique_extern.md. */
 extern int D_state_b3_818;
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000818(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 0xD;
     gl_func_00000000(D_state_b3_818, -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000818);
+#endif
 
 void timproc_uso_b3_func_00000854(int *dst) {
     int buf[2];
@@ -333,6 +349,7 @@ void timproc_uso_b3_func_00000D60(char *a0) {
  *     a0->[0x6A8]->[0x6C]->[0xEC] != 0).
  * F3 @ 0xE54-0xE5C: `return 0;` 3-insn stub. */
 extern int func_00000000();
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000DE4(char *a0) {
     func_00000000(a0 + 0x6B4);
     func_00000000(a0 + 0x6CC);
@@ -340,6 +357,9 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
     func_00000000(a0 + 0x714);
     func_00000000(a0 + 0x6E4);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000DE4);
+#endif
 
 /* timproc_uso_b3_func_00000E60: state-machine dispatcher, sibling of
  * timproc_uso_b1_func_00000EE8 and arcproc_uso_func_00000FA8.
@@ -361,6 +381,7 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
  * dispatch shape (C-only 96.86%). Remaining same-size register/scheduler
  * diffs are promoted with INSN_PATCH in Makefile.
  */
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000E60(char *a0) {
     volatile int *base = (int*)&D_00000000;
     char *saved = a0;
@@ -420,6 +441,9 @@ state1:
         created[0x14 / 4] = (int)link;
         gl_func_00000000(base[0x190 / 4], 1, 1);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000E60);
+#endif
 
 /* timproc_uso_b3_func_00000FF4: F1 (32-insn 0x80) gate-then-update wrapper
  * + SUFFIX bundle (5-insn D[0x40]=9 stub at 0x1074 + 2-insn fragment at
@@ -430,6 +454,7 @@ state1:
  *
  * F1: gate=gl_func(a0->0x528). If non-zero set D[0x40]=0xC,D[0x44]=9.
  *     Else set D[0x40]=9. Tail: if(a0->0x4F8) gl_func(a0,-1,0); else a0->0x504=0. */
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000FF4(char *a0) {
     if (gl_func_00000000(*(char**)(a0 + 0x528)) != 0) {
         *(int*)((char*)&D_00000000 + 0x40) = 0xC;
@@ -443,6 +468,9 @@ void timproc_uso_b3_func_00000FF4(char *a0) {
         gl_func_00000000(a0, -1, 0);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000FF4);
+#endif
 
 void timproc_uso_b3_func_00000000();
 
@@ -463,6 +491,7 @@ void timproc_uso_b3_func_000010B4(int a0) {
  * b3 mirror of timproc_uso_b1_func_00001130 (just promoted this session
  * — see that wrap doc). Same recipe: \`gl_func(5)\` inner call + INSN_PATCH
  * for register-allocator deltas + SUFFIX_BYTES for stolen fall-through. */
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_000010E4(int *self) {
     char *base = &D_00000000;
     int *v0;
@@ -487,6 +516,9 @@ void timproc_uso_b3_func_000010E4(int *self) {
     fn = (void(*)(void))entry[0x90/4];
     fn();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000010E4);
+#endif
 
 /* timproc_uso_b3_func_00001184: 20-insn (func1 of the split bundle).
  *   if (a0->0x4FC == 0) { X(a0->0x6A8,0,1); X(a0->0x6A8); a0->0x4FC=1; }
@@ -551,6 +583,7 @@ extern float D_b3_1240_f0;
 extern float D_b3_1240_f40;
 extern float D_b3_1240_f44;
 extern char *D_b3_1240_ptr138;
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00001240(char *a0) {
     float color[4];
     char pad[32];
@@ -600,6 +633,9 @@ void timproc_uso_b3_func_00001240(char *a0) {
         }
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001240);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000013B8);
 
@@ -677,6 +713,7 @@ void timproc_uso_b3_func_0000183C(int *a0) {
 /* timproc_uso_b3_func_00001870: byte-identical mirror of
  * timproc_uso_b1_func_00001908 (46-insn 0xB8 decrement-and-fire helper).
  * Same SUFFIX_BYTES + INSN_PATCH recipe (mirror of b1's). */
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00001870(int *self) {
     char *base = &D_00000000;
     int *saved;
@@ -706,6 +743,9 @@ void timproc_uso_b3_func_00001870(int *self) {
         gl_func_00000000(saved);
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001870);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00001928: byte-identical mirror of
@@ -730,6 +770,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * setting t6 = *(D+0x64). PROLOGUE_STEALS removes our redundant 8-byte
  * lui+lw prefix. Per feedback_combine_prologue_steals_with_unique_extern.md. */
 extern int D_b3_1C28_state;
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00001C28(char *a0) {
     if (D_b3_1C28_state == 1) {
         *(int*)(a0 + 0xA0) = 50000;
@@ -740,6 +781,9 @@ void timproc_uso_b3_func_00001C28(char *a0) {
     *(int*)(a0 + 0xD8) = 1;
     gl_func_00000000();
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001C28);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001C68);
 
@@ -815,11 +859,15 @@ void timproc_uso_b3_func_000021B0(void) {
 extern char D_b3_21F4_a;
 extern char D_b3_21F4_b;
 extern char D_b3_21F4_c;
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_000021F4(void) {
     gl_func_00000000(*(int*)((char*)&D_b3_21F4_a + 0x208));
     *(int*)((char*)&D_b3_21F4_b + 0x40) = 6;
     gl_func_00000000(*(int*)((char*)&D_b3_21F4_c + 0x20C), -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021F4);
+#endif
 
 #ifdef NON_MATCHING
 /* 97.58 % cap (2026-05-02). Prologue-stolen successor: predecessor
@@ -888,16 +936,21 @@ void timproc_uso_b3_func_00002344(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00002388(void) {
     gl_func_00000000(gl_ref_00000208);
     gl_ref_00000040 = 0xD;
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002388);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
 
 /* Byte-identical sibling of timproc_uso_b1_func_000024F4 (147 insns).
  * Same display-list build pattern. */
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00002700(int a0) {
     gl_func_00000000((char *)&D_00000000 + 112,
                      0x260000 | (*(int *)&D_00000000 << 3));
@@ -938,6 +991,9 @@ void timproc_uso_b3_func_00002700(int a0) {
     gl_func_00000000((char *)&D_00000000 + 496, 0x2F0012);
     (void)a0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002700);
+#endif
 
 /* timproc_uso_b3_func_0000294C - verified structural decode (0xF8,
  * 62 insns, state dispatcher + record-vtable dispatch).
@@ -1086,6 +1142,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * +0x70 table offset into the relocation; the second pointer local keeps the
  * target 0x28-byte frame and sp+0x1C spill slot. */
 extern char D_b3_2EF0_table;
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
     char *entry, *spillee;
     (void)a0;
@@ -1096,6 +1153,9 @@ void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
     gl_func_00000000(entry);
     gl_func_00000000(entry, 0xA0, a2, 3);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002EF0);
+#endif
 
 /* timproc_uso_b3_func_00002F48: 66-insn (0x108) two-pass render-helper.
  * Sibling of recently-NM-wrapped func_00002EF0.
