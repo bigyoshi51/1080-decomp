@@ -21823,7 +21823,30 @@ int gl_func_0004211C(int a0) {
  * spill-divergence changes length (not INSN_PATCH-able). br=0 but the
  * spill-divergence variant, not the clean-episode subset. INCLUDE_ASM
  * (no episode). */
+#ifdef NON_MATCHING
+/* gl_func_00042144: 36-insn diagnostic dump. Runs a sequence of (collapsed)
+ * calls including two printf-like calls with fixed format-string addresses
+ * (0x1F6EC, 0x1F704) and >>10-scaled result/global values (byte->KB style).
+ * NM (reference decode): ~8 collapsed-placeholder calls + several collapsed D
+ * refs (distinct globals/strings collapsed to D_00000000 / literal RO addrs);
+ * raw-.word game_libs reloc depression. Call-result chaining approximated. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void gl_func_00042144(void) {
+    int r2, r3, r5, d4;
+    gl_func_00000000();
+    r2 = gl_func_00000000(&D_00000000);
+    r3 = gl_func_00000000(&D_00000000);
+    gl_func_00000000(0x1F6EC, r2, r3 >> 10, r2 >> 10);
+    r5 = gl_func_00000000(&D_00000000);
+    d4 = *(int *)((char *)&D_00000000 + 0x28);
+    gl_func_00000000(0x1F704, r5 >> 10, d4 >> 10);
+    gl_func_00000000(&D_00000000);
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042144);
+#endif
 
 // gl_func_000421D4 — STRUCTURAL PASS (0xB0 / 45 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
