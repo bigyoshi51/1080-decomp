@@ -38185,6 +38185,16 @@ int gl_func_0006FAD4(int* a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FAD4);
 #endif
 
+/* gl_func_0006FB54: 64-bit-add-carry helper. Verified decode (m2c via disasm-func.py):
+ *   r1 = helper(); r2 = helper();
+ *   helper(r1);
+ *   sum = (r2 - D[0]) + D[1];
+ *   return ((unsigned)sum < (unsigned)D[1]) + D[0];   // carry into the high word
+ * (D[0]=*(int*)&D_00000000, D[1]=*(int*)(&D+4); reads D[0] twice = two luis.)
+ * Logic exact but sub-80: built 25 insns vs target 34 — the target keeps r1 in $s0
+ * across the calls AND spills diff/D[0]/D[1] across the 3rd call (IDO 64-bit-codegen
+ * spill pattern); -O2 C optimizes the spills away. Resume: needs the spill pattern
+ * (more live ranges across the 3rd call) — multi-tick / permuter. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006FBD8);
