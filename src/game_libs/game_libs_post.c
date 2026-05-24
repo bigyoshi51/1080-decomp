@@ -7911,6 +7911,10 @@ void game_libs_func_0002A884(int *a0, int *a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8C4);
 
+/* game_libs_func_0002A8D8: list-node detach using a CALLER-SET $v1 as the list-head
+ * pointer (lw t6,0(v1); sw a0,4(t6); ...; sw 0,0(v1); a0->8--; return v1->8). The
+ * incoming $v1 isn't a standard arg register -> not C-reachable
+ * ([[feedback_caller_set_int_reg_cap_1080_game_libs]]). CAP. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8D8);
 
 // gl_func_0002A904 — STRUCTURAL PASS (0x12C / 75 words, no episode).
@@ -31803,6 +31807,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060ED0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F44);
 
+/* game_libs_func_00060F64: doubly-linked-list INSERT (mirror of the 0x60F90 unlink
+ * sibling) — sets a1->0x38 = $v0, splices a1 into the list at arg0->0x30->0x3C. Uses
+ * a CALLER-SET $v0 (first insn `sw v0,0x38(a1)`, not a standard arg) -> caller-set
+ * cap ([[feedback_caller_set_int_reg_cap_1080_game_libs]]). CAP. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F64);
 
 #ifdef NON_MATCHING
