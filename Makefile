@@ -189,16 +189,13 @@ build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b
 build/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o: OPT_FLAGS := -O0
 build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o: OPT_FLAGS := -O0
 
-# INSN_PATCH := <func>=<offset>:<word>[,<offset>:<word>] — overwrite N specific
-# instruction words in a function body post-cc, without changing function size
-# or any symbol layout. For unmatchable IDO codegen caps where C is correct
-# but 1-2 insns differ (FPU pipeline operand order, scheduler register choice).
-# feedback_insn_patch_for_ido_codegen_caps.md.
-ifndef EXPECTED_BASELINE
-endif
+# INSN_PATCH / RELOC_PATCH / PROLOGUE_STEALS were REMOVED 2026-05-23 as
+# match-faking (post-cc instruction-byte editing). See
+# feedback_no_instruction_forcing_matches_policy. No recipe step applies them.
+# Only genuine data/alignment mechanisms remain: all-zero padding SUFFIX_BYTES,
+# USO-header PREFIX_BYTES, TRUNCATE_TEXT / TEXT_CLIP_KEEP_ALIGN, and the -O0
+# donor splice REPLACE_FUNC_BODY (real -O0 compiler output).
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x00000000,0x00000000
-FUNC_00007288_INSN_PATCH := func_00007288=0x0C:0x8C8A003C,0x14:0x3C030001,0x18:0x24630001,0x20:0x8C790254,0x28:0xE72600AC,0x2C:0x8C880034,0x30:0x8C690254,0x34:0x44884000,0x40:0xE52A00B0,0x44:0x8C8A003C,0x48:0x3C030001,0x4C:0x24630001,0x50:0x15400011,0x58:0x8C620254,0x64:0x8C4B0078,0x6C:0x356C0004,0x70:0xAC4C0000,0x74:0x8DD80000,0x78:0x8C6D0254,0x7C:0xADB800DC,0x80:0x8DCF0004,0x84:0xADAF00E0,0x88:0x8DD80008,0x8C:0xADB800E4,0x90:0x8DCF000C,0x94:0xADAF00E8
-FUNC_00007288_RELOC_PATCH := func_00007288=0x14:0x3C030000,0x18:0x24630000,0x48:0x3C030000,0x4C:0x24630000,0x5C:0x3C0E0000,0x60:0x25CE0018@0x5C:HI16:0x5C,0x60:LO16:0x60
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
@@ -264,23 +261,14 @@ endif
 
 # Non-matching C build: same compile pipeline as the byte-exact rule above
 # but with -DNON_MATCHING so #ifdef NON_MATCHING wraps emit C bodies instead
-# of INCLUDE_ASM stubs. Skips MOST post-cc recipes (TRUNCATE/PREFIX/SUFFIX/
-# INSN_PATCH) — those exist to make C-emit byte-match expected/, which we
-# explicitly DON'T want here (the diffs are the metric).
+# of INCLUDE_ASM stubs. Skips the instruction-forcing recipes entirely (those
+# were removed 2026-05-23 as match-faking).
 #
-# EXCEPTION: PROLOGUE_STEALS DOES run here. Unlike the others, it isn't
-# cheating the metric — it corrects for unavoidable C-emit artifacts
-# (e.g. IDO MUST emit `lui $at; mtc1 $at, $f0` to materialize 1.0f from C
-# when the predecessor's stolen prologue would have set $f0). Without
-# PROLOGUE_STEALS on non_matching, prologue-stolen-successor functions
-# always score 80-97% fuzzy even when build/.o is byte-exact, blocking
-# the land script's exact-match check.
-#
-# NON_MATCHING_INSN_PATCH, NON_MATCHING_INSN_RELOC_PATCH,
-# NON_MATCHING_SUFFIX_BYTES_FORCE, NON_MATCHING_TRUNCATE_TEXT, and
-# NON_MATCHING_TEXT_CLIP_KEEP_ALIGN are opt-in escapes for exact C functions
-# whose object-level split metadata also needs the same boundary/word/reloc
-# fixups for objdiff to read the base object.
+# Only genuine object-split metadata fixups run here, so objdiff can read the
+# base object for functions whose .c.o is a partial-file split:
+# NON_MATCHING_SUFFIX_BYTES_FORCE (all-zero pad), NON_MATCHING_TRUNCATE_TEXT,
+# and NON_MATCHING_TEXT_CLIP_KEEP_ALIGN (boundary/alignment only — no
+# instruction bytes invented).
 ifndef PERMUTER
 build/non_matching/src/%.c.o: src/%.c
 	@mkdir -p $(dir $@) build/non_matching/$(<D)

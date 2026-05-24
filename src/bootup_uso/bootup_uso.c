@@ -2708,6 +2708,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007204);
  * The `func_0000027C + 0x18` is the splat-fold-into-nearest-func pattern
  * (per docs/MATCHING_WORKFLOW.md): a real D_<addr> rodata symbol was folded
  * into the preceding function. */
+#ifdef NON_MATCHING
 void func_00007288(int *a0) {
     int *self;
     if (a0[0x38/4] & 2) {
@@ -2729,6 +2730,9 @@ void func_00007288(int *a0) {
         *(int*)((char*)dst + 0xE8) = src[3];
     }
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
+#endif
 
 /* func_00007328 - verified structural decode (0x1C0, 112 insns,
  * list-search + match-dispatch).
