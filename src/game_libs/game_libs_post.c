@@ -34114,11 +34114,6 @@ void gl_func_00066674(int **head, int data) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066674);
 
-// Setter for the segment-base int global: D = a0. Builds byte-exact as plain C
-// (single &D_00000000 ref resolves to addr 0); C body is the build path (moves
-// %). No episode (reloc-blind base).
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000666F0);
-
 #ifdef NON_MATCHING
 /* Returns the address constant 0x41310 (target: `lui v0,0x4; jr ra; addiu v0,
  * v0,0x1310` — ADDRESS-style lui+addiu). `return 0x41310` emits lui+ORI instead;
@@ -34133,11 +34128,23 @@ int game_libs_func_000666FC(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000666FC);
 #endif
+#endif
 
+/* game_libs_func_000666E4: setter for the segment-base int global (*D = a0).
+ * Byte-exact plain C — the single &D_00000000 ref is offset-0, so objdiff's
+ * reloc-aware compare resolves it to addr 0 and matches the reloc-blind
+ * expected. Plain (compiled in BOTH build paths) so it counts in report.json
+ * (was trapped in the #else branch -> fuzzy=None / uncounted). */
 void game_libs_func_000666E4(int a0) {
     *(int *)&D_00000000 = a0;
 }
-#endif
+
+/* game_libs_func_000666F0: getter for the segment-base int global (return *D).
+ * Byte-exact plain C (offset-0 &D_00000000 ref, reloc-aware match like 000666E4).
+ * Was trapped as INCLUDE_ASM in block A's #else -> fuzzy=None / uncounted. */
+int game_libs_func_000666F0(void) {
+    return *(int *)&D_00000000;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_00066720: 29-insn chunked-transfer loop. Splits a (src, dst, len)
