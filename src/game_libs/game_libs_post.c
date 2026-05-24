@@ -13241,7 +13241,8 @@ long long gl_func_00035164_inner(int a0);
  * home-spilled; (void)a0 doesn't trigger it (that lever is for calls taking a
  * DIFFERENT arg). Twin of gl_func_00066BD4. */
 int gl_func_00035164(int a0) {
-    long long r = gl_func_00035164_inner(a0);
+    int *p = &a0;  /* &param forces the dead arg-home sw a0,0x18(sp) */
+    long long r = gl_func_00035164_inner(*p);
     return (int)r;
 }
 #else
@@ -34478,7 +34479,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066B64);
 /* gl_func_00066BD4: 23-insn 3-call chain with mixed-arg middle call. */
 #ifdef NON_MATCHING
 void gl_func_00066BD4(int a0) {
-    gl_func_00000000(a0);
+    int *p = &a0;  /* &param forces the dead arg-home sw a0,0x20(sp) */
+    gl_func_00000000(*p);
     gl_func_00000000((char*)&D_00000000 + 0x41310, 1, &D_00000000, 0,
                      (char*)&D_00000000 + 0x415C0, 1);
     gl_func_00000000((char*)&D_00000000 + 0x41310);
