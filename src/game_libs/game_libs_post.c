@@ -31101,7 +31101,43 @@ void gl_func_0005E664(float *src, int a1_float_bits, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E664);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0005E718: 53-insn 3x3 matrix multiply into a stack result, then a call.
+ * result[r][c] = sum_k src[r][k] * dst[k][c]  (row stride 4 floats / 0x10 bytes),
+ * computed by 3 nested do-while loops (IDO unrolls the inner dot-product via
+ * beql/bnel + the doubled add.s), then func_00000000(result, savedArg). Sibling
+ * of the gl_func_0005E138 matrix family. NM (reference decode): reloc-depressed
+ * placeholder call (raw-.word game_libs) + the inner branch-likely/unroll +
+ * FP-accumulation reg pattern won't byte-match from straight C. */
+extern int func_00000000();
+void gl_func_0005E718(float *src, float *dst, int arg) {
+    float result[12];
+    float *rrow = result;
+    float *srow = src;
+    do {
+        float *rcell = rrow;
+        int col = 0;
+        do {
+            float *s = srow;
+            float *d = dst + col;
+            int k = 0;
+            *rcell = 0.0f;
+            do {
+                *rcell = *rcell + (*s) * (*d);
+                s++;
+                d += 4;
+            } while (++k != 3);
+            rcell++;
+            col++;
+        } while (col != 3);
+        rrow += 4;
+        srow += 4;
+    } while (rrow != result + 12);
+    func_00000000(result, arg);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E718);
+#endif
 
 // Identity-init a 4x4 matrix: diagonal (0x0/0x14/0x28/0x3C) = 1.0f, the other
 // 12 floats = 0.0f. 1.0f stores written first so 1.0f owns $f0, 0.0f -> $f2
