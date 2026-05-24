@@ -2176,6 +2176,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E2A4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
 
+/* game_libs_func_0000E410..E490: CONTIGUOUS lower-opt (-O1/-g) family. Each is
+ * `int *p=(int*)(a0+0x18); *p OP= BIT; return p;` (E410 |=4|=8, E42C &=~4&=~8,
+ * E450 |=8, E464 &=~8, E47C |=4, E490 &=~4). CAP under -O2: target uses
+ * addiu v0,a0,0x18 + 0(v0) RMW addressing AND keeps redundant stores (E410/E42C),
+ * but -O2 C folds to 0x18(a0) offset-addressing and dead-store-eliminates the
+ * first write (verified 2026-05-24). Whole run wants an -O1/-g OPT_FLAGS file
+ * split (batch-unlock w/ 00052ACC). See project_1080_g3_unfilled_delay_split_2026-05-23. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E410);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E42C);

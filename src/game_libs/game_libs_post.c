@@ -26116,7 +26116,13 @@ end:
 // bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
+#ifdef NON_MATCHING
+void game_libs_func_0004E138(int a0) {
+    *(int *)a0 = (*(int *)((char *)&D_00000000 + 0x14) & 3) == 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E138);
+#endif
 
 /* Vtable-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
  * declare p2 FIRST with p1's load inlined; IDO CSE's the duplicated
@@ -28318,6 +28324,11 @@ void game_libs_func_00052A7C(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A7C);
 #endif
 
+/* game_libs_func_00052ACC: `*(int*)(a0+4) &= ~0x20000;` (lw t2,4(a0); and
+ * ~0x20000; sw t3,4(a0)). CAP: -g/-O1 codegen — target uses t2/t3 + UNFILLED
+ * jr-delay (store before jr ra, nop in slot); -O2 C emits t6/t7 + store-in-delay
+ * (verified 2026-05-24). Needs an opt-flag file split, not a tick fix.
+ * See project_1080_g3_unfilled_delay_split_2026-05-23. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052ACC);
 
 #ifdef NON_MATCHING
