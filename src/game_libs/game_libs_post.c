@@ -29601,7 +29601,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055FB4);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055FB4_pad.s")
 
+#ifdef NON_MATCHING
+/* gl_func_00056084: 5-call sequence on a stack buffer (sp+0x18). Calls a
+ * placeholder (gl_func_00000000) with (buf, a0), (buf, &str1), (buf, a1),
+ * (buf, &str2), (buf). str1/str2 = reloc-blind &D + 0x218C0 / 0x218CC. */
+extern int gl_func_00000000();
+void gl_func_00056084(int a0, int a1) {
+    char buf[0x40];
+    gl_func_00000000(buf, a0);
+    gl_func_00000000(buf, (char *)&D_00000000 + 0x218C0);
+    gl_func_00000000(buf, a1);
+    gl_func_00000000(buf, (char *)&D_00000000 + 0x218CC);
+    gl_func_00000000(buf);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056084);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000560E4);
 
