@@ -1634,7 +1634,35 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
     return ret;
 }
 #else
+#ifdef NON_MATCHING
+/* gl_func_000088B4: 36-insn constructor + list insert. Alloc a 0x40 object; if
+ * non-null, init it (callback) and set obj->0x28 = global, obj->0x3C = 0. Then if
+ * the list head a0->0x40 is non-null, locate the insertion node via the callback
+ * (obj+0x10, head) and link obj into node->0x14 (setting node->0x4 = 1 first if
+ * the slot was occupied). Returns the object. NM (reference decode): collapsed-
+ * placeholder calls + collapsed D ref + a beql (raw-.word game_libs reloc
+ * depression). */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_000088B4(int a0) {
+    int obj = gl_func_00000000(0x40);
+    if (obj != 0) {
+        gl_func_00000000(obj);
+        *(int *)((char *)obj + 0x28) = (int)&D_00000000;
+        *(int *)((char *)obj + 0x3C) = 0;
+    }
+    if (*(int *)((char *)a0 + 0x40) != 0) {
+        int *node = (int *)gl_func_00000000(obj + 0x10, *(int *)((char *)a0 + 0x40));
+        if (*(int *)((char *)node + 0x14) != 0) {
+            *(int *)((char *)node + 0x4) = 1;
+        }
+        *(int *)((char *)node + 0x14) = obj;
+    }
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
+#endif
 #endif
 
 /* Cluster 0x8944..0x8A40 (-O0 reader templates + sandwich INCLUDE_ASM
