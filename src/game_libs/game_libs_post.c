@@ -36200,7 +36200,26 @@ end:
     return p;
 }
 #else
+#ifdef NON_MATCHING
+/* gl_func_000688F8: 26-insn allocate-and-init. p = alloc(0x30); if p==0 return 0;
+ * set p->0x1C to a global pointer; return p. (The target also carries a
+ * compiler-dead alloc(0x20) branch -- unreachable once p!=0 is established -- and
+ * a redundant pre-write of p->0x1C to a first global that the second write
+ * overwrites; both collapse to D_00000000 here.) NM (reference decode): collapsed
+ * call + collapsed D refs (raw-.word game_libs reloc depression). */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_000688F8(int a0) {
+    int p = gl_func_00000000(0x30);
+    if (p == 0) {
+        return 0;
+    }
+    *(int *)((char *)p + 0x1C) = (int)&D_00000000;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000688F8);
+#endif
 #endif
 
 extern int gl_func_00000000();
