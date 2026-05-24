@@ -36236,25 +36236,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A304);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A420);
 
-#ifdef NON_MATCHING
-/* gl_func_0006A5B0: poll-loop — call gl_func_0001CA10(a0); if nonzero, spin
- * calling it until it returns 0; then call it with 293 (0x125). Decoded via
- * scripts/disasm-func.py --m2c. 15/16 byte-exact (94%): ONLY the incoming-a0 home
- * `sw a0,0x18(sp)` in the first jal delay slot differs (built nop). That dead
- * arg-home is the recurring IDO codegen cap (not C-forceable at -O2; -g/-g1/-g2
- * make it worse; `(void)a0;` spill-lever doesn't fire since a0 is already used by
- * the first call -> the cast is DCE'd). Prime permuter candidate (single-insn). */
-extern int gl_func_0001CA10();
+/* gl_func_0006A5B0: poll-loop — call an intra-USO helper(a0); if nonzero, spin
+ * calling it until it returns 0; then call it with 293 (0x125). BYTE-EXACT.
+ * Two keys: (1) `int *p = &a0; ...(*p)` (take the parameter's address) forces the
+ * incoming-a0 home `sw a0,0x18(sp)` in the first jal delay slot — the arg-home that
+ * plain `(a0)` can't produce; found by the PERMUTER (base 215 -> 0). The `&param`
+ * lever CRACKS the used-arg-home cap (see docs/IDO_CODEGEN). (2) the 3 jals are
+ * reloc-blind in expected (baked `0c000000`), so calls use the canonical
+ * gl_func_00000000 placeholder (resolves to 0). No episode (reloc-blind jal-0). */
+extern int gl_func_00000000();
 void gl_func_0006A5B0(int a0) {
-    if (gl_func_0001CA10(a0) != 0) {
+    int *p = &a0;
+    if (gl_func_00000000(*p) != 0) {
         do {
-        } while (gl_func_0001CA10() != 0);
+        } while (gl_func_00000000() != 0);
     }
-    gl_func_0001CA10(293);
+    gl_func_00000000(293);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A5B0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A5F0);
 
