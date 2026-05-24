@@ -536,14 +536,14 @@ void game_libs_func_0001D614(void) {}
 
 void game_libs_func_0001D61C(void) {}
 
-#ifdef NON_MATCHING
-void game_libs_func_0001D624(int *a0, int a1, int a2, int a3) {
-    a0[0] = (a1 & 0xFFFFFF) | 0x0A000000;
-    a0[1] = (a2 << 16) | (a3 & 0xFFFF);
+void game_libs_func_0001D624(int *a0, int a1, int a2, int a3)
+{
+ if (0) { }
+  a0[0] = (a1 & 0xFFFFFF) | 0x0A000000;
+  a0[1] = (a2 << 15) << 1;
+  a0[1] = a0[1] | (a3 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D624);
-#endif
+
 
 void game_libs_func_0001D650(void) {}
 
@@ -614,14 +614,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D770);
 // GBI 2-word command packer (cmd 0x19000000), sibling of 0001D770:
 // word0 = (arg4&0xFF)<<16 | 0x19000000 | (a3&0xFFFF); word1 = a1<<16 |
 // (a2&0xFFFF). Second-word temps renumber +1 -> INSN_PATCH 4/13.
-#ifdef NON_MATCHING
-void game_libs_func_0001D7A4(int *a0, int a1, int a2, int a3, int arg4) {
-    a0[0] = (((arg4 & 0xFF) << 16) | 0x19000000) | (a3 & 0xFFFF);
-    a0[1] = (a1 << 16) | (a2 & 0xFFFF);
+void game_libs_func_0001D7A4(int *a0, int a1, int a2, int a3, int arg4)
+{
+  long long new_var;
+  new_var = 16;
+  a0[0] = (((arg4 & 0xFF) << new_var) | 0x19000000) | (a3 & 0xFFFF);
+  ;
+  a0[1] = ((a1 & 0xFFFF) << 16) | (a2 & 0xFFFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D7A4);
-#endif
+
 
 void game_libs_func_0001D7D8(void) {}
 
