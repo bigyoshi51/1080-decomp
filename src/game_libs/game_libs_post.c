@@ -19704,7 +19704,26 @@ end_zero:
     return 0;
 }
 #else
+#ifdef NON_MATCHING
+/* gl_func_0003EAE0: 23-insn vtable-dispatch wrapper. v1 = cb(a0, a1); if v1==0
+ * return 0; else obj = v1->0x28; tail-call obj's method pointer at obj->0x6C
+ * with (obj->0x68(signed halfword) + v1, a2, a3) -- the original a2/a3 shifted
+ * down into the method's a1/a2. NM (reference decode): collapsed-placeholder
+ * call (raw-.word game_libs reloc depression) + indirect jalr. */
+extern int gl_func_00000000();
+int gl_func_0003EAE0(int a0, int a1, int a2, int a3) {
+    int *obj;
+    int v1 = gl_func_00000000(a0, a1);
+    if (v1 == 0) {
+        return 0;
+    }
+    obj = *(int **)((char *)v1 + 0x28);
+    return (*(int (**)(int, int, int))((char *)obj + 0x6C))(
+        *(short *)((char *)obj + 0x68) + v1, a2, a3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EAE0);
+#endif
 #endif
 
 #ifdef NON_MATCHING
