@@ -38731,7 +38731,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FAD4);
  * across the calls AND spills diff/D[0]/D[1] across the 3rd call (IDO 64-bit-codegen
  * spill pattern); -O2 C optimizes the spills away. Resume: needs the spill pattern
  * (more live ranges across the 3rd call) — multi-tick / permuter. */
+#ifdef NON_MATCHING
+/* gl_func_0006FB54: 33-insn 64-bit accumulator. r0 = cb(); r1 = cb(); cb(r0);
+ * returns a 64-bit global base (hi:lo from two globals) plus the 32-bit delta
+ * (r1 - another global), with the manual sltu carry into the high word (long long
+ * return in v0:v1). NM (reference decode): three collapsed-placeholder calls +
+ * several collapsed D refs (distinct globals collapsed to D_00000000 here);
+ * raw-.word game_libs reloc depression. */
+extern int gl_func_00000000();
+extern int D_00000000;
+long long gl_func_0006FB54(int a0) {
+    int r0 = gl_func_00000000(a0);
+    int r1 = gl_func_00000000(a0);
+    int delta = r1 - *(int *)&D_00000000;
+    long long base = ((long long)*(int *)&D_00000000 << 32) |
+                     (unsigned int)*(int *)((char *)&D_00000000 + 4);
+    gl_func_00000000(r0);
+    return base + delta;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006FBD8);
 
