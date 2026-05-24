@@ -5913,7 +5913,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027488);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274A0);
 
-#ifdef NON_MATCHING
 /* game_libs_func_000274C0: 8-insn bit-copy. Copies bit 0 of (signed)a1[4]
  * into bit 4 of a0[0]:  *a0 = ((a1[4] << 4) & 0x10) | (*a0 & ~0x10);
  * Logic + structure exact (lb; lbu; sll; andi 0x10; andi 0xFFEF; or; sb).
@@ -5923,9 +5922,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274A0);
 void game_libs_func_000274C0(unsigned char *a0, signed char *a1) {
     *a0 = ((a1[4] << 4) & 0x10) | (*a0 & ~0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274C0);
-#endif
+
 
 /* Single signed-byte copy a1[4] -> a0[3]. Reloc-free; IDO allocs the temp as
  * $t6 but target uses $t1 (register-renumber from original non-standalone
