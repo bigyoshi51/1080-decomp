@@ -9501,6 +9501,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD38);
  * which IDO rejects (per feedback_ido_no_gcc_register_asm.md). NM-only. */
 extern int gl_func_00000000();
 
+/* gl_func_0002DD58: GBI-cmd emit. NON_MATCHING (a0-home-spill cap, -1 insn):
+ * target home-saves a0 (sw a0,0x18) AND copies a0->a2, working from a2; built
+ * uses a0 directly (1 short). volatile `*p` forces the spill but via an
+ * address-comp (addiu+lw, wrong form, +2). The direct sw-a0-home + a2-copy
+ * isn't C-reachable (same class as gl_func_00035164/66BD4). */
 void gl_func_0002DD58(int a0) {
     int *p = &a0;
     gl_func_00000000(0x82030000 | ((a0 & 0xFF) << 8), 0x3E8);
