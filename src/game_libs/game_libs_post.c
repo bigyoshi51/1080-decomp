@@ -38917,7 +38917,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070634);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070694);
 
+#ifdef NON_MATCHING
+/* gl_func_000707E8: 26-insn float-forwarding wrapper. Receives 7 floats (a1-a3
+ * in arg regs + 4 on the stack) and a0; builds them into a stack scratch buffer
+ * by calling the (collapsed) callback cb(buf, a1, a2, a3, f5, f6, f7, f8), then
+ * processes it with cb(buf, a0). NM (reference decode): two collapsed-placeholder
+ * calls (raw-.word game_libs reloc depression) + the mtc1/mfc1 float-arg
+ * marshalling and K&R float promotion are not byte-reproducible. */
+extern int gl_func_00000000();
+void gl_func_000707E8(int a0, float a1, float a2, float a3, float a4, float a5, float a6, float a7) {
+    char buf[0x40];
+    gl_func_00000000(buf, a1, a2, a3, a4, a5, a6, a7);
+    gl_func_00000000(buf, a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000707E8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070850);
 
