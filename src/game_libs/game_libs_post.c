@@ -6695,11 +6695,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000288AC);
  * rv = gl_func_0003CF18(a0, a1, sel);   // jal in-segment 0x3CF18
  * if (rv != v1) a0->u8[0xB6] = (rv << 2) + v1;  (bnel sel,255). */
 extern int gl_func_0003CF18();
-#ifdef NON_MATCHING
+/* sel = a1->u8[2]; if (sel==255) sel = (s16)(*(int**)(a1+0x50))->[0x24];
+ * v1 = a0->u8[0x32]; rv = gl_func_0003CF18(a0,a1,sel);
+ * if (rv != v1) a0->u8[0xB6] = (rv<<2)+v1. Byte-exact: declaring v1 FIRST
+ * places its spill at sp+0x1C (first-declared = highest slot) to match. */
 void gl_func_000289B0(int a0, int a1) {
-    int sel = *(unsigned char*)(a1 + 2);
     int v1;
     int rv;
+    int sel = *(unsigned char*)(a1 + 2);
     if (sel == 255) {
         sel = *(short*)((char*)*(int**)(a1 + 0x50) + 0x24);
     }
@@ -6709,9 +6712,6 @@ void gl_func_000289B0(int a0, int a1) {
         *(unsigned char*)(a0 + 0xB6) = (rv << 2) + v1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000289B0);
-#endif
 
 /* game_libs_func_00028A08: 4-insn self-linked-list init. */
 void game_libs_func_00028A08(int *a0) {
