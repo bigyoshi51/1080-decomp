@@ -12813,8 +12813,7 @@ int gl_func_00034C7C(void *a0, void *a1) {
     int r = gl_func_00000000(1);
     gl_func_00000000(a0, a1);
     gl_func_00000000(a0, a1);
-    gl_func_00000000(r);
-    return r;
+    return gl_func_00000000(r);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034C7C);
