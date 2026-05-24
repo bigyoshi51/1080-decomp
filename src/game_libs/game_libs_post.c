@@ -33264,9 +33264,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000635D8);
  *  - f3 is functionally a no-op with arg-save side effect; possibly an
  *    inlining residue (compiler couldn't fully eliminate it because the symbol
  *    is taken by address elsewhere).
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ *  - Now split to 0x50 (this fn only); decoded 2026-05-24. 6-arg passthrough
+ *    with a 3-way AND guard (skip the call when all three fields already match). */
+extern int gl_func_00000000();
+void gl_func_0006366C(int a0, int a1, int a2, int a3, int a4, int a5) {
+    if (a1 == *(int *)(a0 + 0x74) && a2 == *(int *)(a0 + 0x84) &&
+        a3 == *(int *)(a0 + 0x88)) {
+        return;
+    }
+    gl_func_00000000(a0, a1, a2, a3, a4, a5);
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006366C);
 
