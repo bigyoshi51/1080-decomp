@@ -24607,7 +24607,6 @@ void gl_func_0004C214(int *a0) {
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 void gl_func_0004C288(int *self, int a1) {
-    extern int D_204_val;
     int *p;
     int i;
     gl_func_00000000(self, a1);
@@ -24618,7 +24617,7 @@ void gl_func_0004C288(int *self, int a1) {
         gl_func_00000000(p[0x14C / 4], self);
         p = (int*)((char*)p + 4);
     }
-    self[0x144 / 4] = D_204_val;
+    self[0x144 / 4] = *(int*)((char*)&D_00000000 + 0x204);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C288);
