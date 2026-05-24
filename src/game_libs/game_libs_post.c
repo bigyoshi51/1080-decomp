@@ -30064,7 +30064,30 @@ void gl_func_0005B53C(int a0, int *a1) {
     *a1 = 0;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0005B568: walk a circular list (sentinel = a0+0x10, first = a0->0x14),
+ * call gl_func(a0, &node->0x10) for each node whose top byte (node->0 >> 24)
+ * == a1. Loop state (self/sentinel/matchKey/next) in s0-s3 across the call. */
+extern int gl_func_00000000();
+void gl_func_0005B568(int *a0, int a1) {
+    int *sentinel = (int *)((char *)a0 + 0x10);
+    int *self = a0;
+    int *node = (int *)a0[5];
+    int *next;
+    if (node == sentinel) {
+        return;
+    }
+    do {
+        next = (int *)node[1];
+        if (a1 == ((unsigned)node[0] >> 24)) {
+            gl_func_00000000(self, (char *)node + 0x10);
+        }
+        node = next;
+    } while (next != sentinel);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B568);
+#endif
 
 /* Pack a2 into the top byte of the int at a1[-0x10], keeping the low 24 bits
  * (mask 0x00FFFFFF). First arg unused (homed). Logic-exact; the 5 residual
