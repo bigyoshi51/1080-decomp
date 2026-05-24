@@ -6720,10 +6720,10 @@ void game_libs_func_00028A08(int *a0) {
     a0[2] = 0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00028A18: 20-insn 4-call init wrapper for 4 contiguous 0x10-byte
  * blocks. Calls gl_func_0003D074 (alt-entry inside gl_func_0003D068 at +0xC)
- * on each block, then sets each block's [0xC] field to self-reference (= a0). */
+ * on each block, then sets each block's [0xC] field to self-reference (= a0).
+ * Byte-exact: 4 jals resolve to gl_func_0003D074 (0x3D074). */
 extern void gl_func_0003D074();
 void gl_func_00028A18(char *a0) {
     gl_func_0003D074(a0);
@@ -6735,9 +6735,6 @@ void gl_func_00028A18(char *a0) {
     *(int*)(a0 + 0x2C) = (int)a0;
     *(int*)(a0 + 0x3C) = (int)a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A18);
-#endif
 
 // gl_func_00028A68 — STRUCTURAL PASS (0xA4 / 41 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
