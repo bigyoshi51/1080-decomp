@@ -8392,20 +8392,27 @@ int gl_func_0002B5F4(char *o, int op) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B5F4);
 #endif
 
+#ifdef NON_MATCHING
 /* game_libs_func_0002BA08: nibble-splitter — store low/high nibble of (arg1&0xFF)
- * to arg0->5 / arg0->6 (skip if zero). Verified decode (m2c via disasm-func.py):
- *     void f(void *arg0, int arg1) {
- *         int v0 = arg1 & 0xFF;
- *         if ((v0 & 0xF) != 0) *((char*)arg0+5) = v0 & 0xF;
- *         arg1 = (v0 >> 4) & 0xFF;
- *         if (arg1 != 0)       *((char*)arg0+6) = arg1;
- *     }
- * Logic exact but ~50% byte-match (sub-80, kept INCLUDE_ASM): the target homes
- * a1 to caller sp+4 (`sw a1,4(sp)` in the first beq delay slot) with NO prologue,
- * and uses $a1 for the high-nibble temp. CODEGEN CAP: that prologue-less single-arg
- * home isn't reproducible from C at -O2/-O1/-g2/-g3 (all tested 2026-05-24); -g2/-O1
- * add a frame, -O2 drops the home + emits beql. Resume if a home-forcing lever is found. */
+ * to arg0->5 / arg0->6 (skip if zero). The `int *p = &arg1; ...*p` lever (per
+ * docs/IDO_CODEGEN arg-home crack) forces the dead arg-home `sw a1,4(sp)` —
+ * 8/12 byte-exact now (home solved). Residual: the high-nibble temp lands in
+ * $v1, target uses $a1 (consistent register-renumber) — permuter candidate. */
+void game_libs_func_0002BA08(void *arg0, int arg1) {
+    int *p = &arg1;
+    int v0 = *p & 0xFF;
+    int hi;
+    if ((v0 & 0xF) != 0) {
+        *((char *)arg0 + 5) = v0 & 0xF;
+    }
+    hi = (v0 >> 4) & 0xFF;
+    if (hi != 0) {
+        *((char *)arg0 + 6) = hi;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BA08);
+#endif
 
 /* Caps (DEFERRED): stack-byte-spill + byte-load + node-copy
  * idiom + indirect alloc helper. Real-C STRUCTURAL body below per
