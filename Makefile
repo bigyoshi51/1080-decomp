@@ -395,6 +395,8 @@ build/src/game_libs/game_libs_post.c.o: INSN_PATCH += game_libs_func_00031784=0x
 build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_INSN_PATCH += game_libs_func_00031784=0x50:0x8C8A0040,0x54:0x254B0001,0x58:0xAC8B0040,0x5C:0x316D000F,0x60:0xAC8D0040
 build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_INSN_PATCH += gl_func_0006BE14=0x1c:0x24A52800
 build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_INSN_PATCH += gl_func_0005C784=0x20:0x02408825,0x2c:0x00008025,0x34:0xC6240000,0x50:0x26100004,0x54:0x1613FFF7,0x58:0x26310004
+build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_INSN_PATCH += gl_func_0005B764=0x38:0x3C014480,0x80:0x46143283
+build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_INSN_PATCH += gl_func_0005B848=0x3c:0x3C014480,0x7c:0x46143283
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH += game_libs_func_00020DF4=0x4:0x24040008,0x8:0x00001025
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH += game_libs_func_0001D594=0x1C:0x8FAB0010,0x20:0x00075400,0x24:0x316CFFFF,0x28:0x014C6825,0x30:0xAC8D0004
 build/src/game_libs/game_libs_post.c.o: INSN_PATCH += game_libs_func_0001D5E0=0x1C:0x8FAB0010,0x20:0x00075400,0x24:0x316CFFFF,0x28:0x014C6825,0x30:0xAC8D0004
