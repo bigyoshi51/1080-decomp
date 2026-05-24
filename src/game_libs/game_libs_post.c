@@ -32025,7 +32025,32 @@ void gl_func_00060DC4(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060DC4);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00060ED0: walk a circular list (head a0->0x30, next at node->0x38),
+ * call gl_func(a0, node) for each node whose node->0x44 == a1; stop when next
+ * wraps to head. Loop state self/key/node in s0-s2 across the call. Two bnel
+ * (branch-likely) in the target -- structure decoded; bnel residual expected. */
+extern int gl_func_00000000();
+void gl_func_00060ED0(int *a0, int a1) {
+    int *self = a0;
+    int key = a1;
+    int *node = (int *)a0[0xC];
+    if (node == 0) {
+        return;
+    }
+    do {
+        if (key == node[0x11]) {
+            gl_func_00000000(self, node);
+        }
+        node = (int *)node[0xE];
+        if (node == (int *)self[0xC]) {
+            node = 0;
+        }
+    } while (node != 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060ED0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F44);
 
