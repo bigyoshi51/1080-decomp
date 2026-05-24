@@ -15927,7 +15927,12 @@ void game_libs_func_00038B88(int a0) {
     D_38B88 = a0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038B94);
+/* D_X getter — paired with the 00038B88 setter above (reads the same global).
+ * Byte-exact via the reloc-blind segment-base convention (D_38B88 = 0x0 in
+ * undefined_syms, same as the matched setter). No episode (reloc-blind base). */
+int game_libs_func_00038B94(void) {
+    return D_38B88;
+}
 
 /* D_X setter (sibling of matched gl_func_000275B0). */
 extern int D_38BA0;
@@ -15935,7 +15940,10 @@ void game_libs_func_00038BA0(int a0) {
     D_38BA0 = a0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00038BAC);
+/* D_X getter — paired with the 00038BA0 setter above (reads the same global). */
+int game_libs_func_00038BAC(void) {
+    return D_38BA0;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_00038BB8: 19-insn vtable-dispatch + stack-built request struct.
