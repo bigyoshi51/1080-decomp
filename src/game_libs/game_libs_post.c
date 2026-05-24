@@ -19287,7 +19287,32 @@ end:
     return a0;
 }
 #else
+#ifdef NON_MATCHING
+/* gl_func_0003E238: 30-insn alloc-or-given constructor. If a0==0, alloc a 0x38
+ * object (return 0 on failure); run the init callback cb(obj, a1); set obj->0x28
+ * to a global, zero obj->0x30 and obj->0x2C, store a2 to obj->0x34, clear bit 1
+ * of obj->0x18; return obj. NM (reference decode): two collapsed-placeholder
+ * calls + a collapsed D ref (raw-.word game_libs reloc depression). */
+extern int gl_func_00000000();
+extern int D_00000000;
+int gl_func_0003E238(int a0, int a1, int a2) {
+    if (a0 == 0) {
+        a0 = gl_func_00000000(0x38);
+        if (a0 == 0) {
+            return 0;
+        }
+    }
+    gl_func_00000000(a0, a1);
+    *(int *)((char *)a0 + 0x28) = (int)&D_00000000;
+    *(int *)((char *)a0 + 0x30) = 0;
+    *(int *)((char *)a0 + 0x2C) = 0;
+    *(int *)((char *)a0 + 0x34) = a2;
+    *(int *)((char *)a0 + 0x18) &= ~2;
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E238);
+#endif
 #endif
 
 // gl_func_0003E2B0 — STRUCTURAL PASS (0xE8 / 59 words, no episode). Raw-.word
