@@ -28453,7 +28453,27 @@ int game_libs_func_0005318C(int *a0, int a1) {
     return a0[0x64 / 4] + a1 * 4;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_000531C0: element-offset computer. Calls helper(&D+0x21010, arg1, arg0);
+ * then returns arg0->0x58 + idx*0xC where idx = arg0->0x70 ? *(u16*)(arg0->0x70 +
+ * arg1*6) : arg1. Decoded via disasm-func.py --m2c (None->~55%). Logic exact + 3-arg
+ * call + strength-reduced *6/*12 all correct; residual is post-call regalloc (arg1
+ * reloads to a1, target a0) + scheduling around the jal. Permuter improved 320->210
+ * (no crack, 2026-05-24) — multi-tick / C-lever needed for the reload-register +
+ * jal-scheduling. Forward progress: None -> ~55%, logic captured. */
+extern int gl_func_00000000();
+int gl_func_000531C0(void *arg0, int arg1) {
+    unsigned short *p;
+    gl_func_00000000((char *)&D_00000000 + 0x21010, arg1, arg0);
+    p = *(unsigned short **)((char *)arg0 + 0x70);
+    if (p != 0) {
+        return *(int *)((char *)arg0 + 0x58) + p[arg1 * 3] * 0xC;
+    }
+    return *(int *)((char *)arg0 + 0x58) + arg1 * 0xC;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000531C0);
+#endif
 
 /* RGB888 palette lookup-copy. idx = a0->0x70 ? *(u16*)(a0->0x70 + a1*6) : a1;
  * pal = a0->0x5C; if pal != 0, copy 3 bytes pal[idx*3 .. +2] to a2[0..2].
