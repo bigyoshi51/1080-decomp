@@ -16232,7 +16232,25 @@ int *gl_func_00038D64(int *a0) {
     return (int*)((char*)a0 + 0x18);
 }
 #else
+#ifdef NON_MATCHING
+/* gl_func_00038D64: 23-insn sub-object initializer. Runs the (collapsed)
+ * init callback on two sub-structs at a0+0x30 and a0+0x70, clears fields
+ * a0->0x2C and a0->0xB0, then ORs flag bits into a0->0x8 (|0x200) and
+ * a0->0x18 (|0x10). a0 reloaded from its home slot across the calls.
+ * NM (reference decode): two collapsed-placeholder calls (raw-.word game_libs
+ * reloc depression). */
+extern int gl_func_00000000();
+void gl_func_00038D64(int a0) {
+    gl_func_00000000(a0 + 0x30);
+    gl_func_00000000(a0 + 0x70);
+    *(int *)((char *)a0 + 0x2C) = 0;
+    *(int *)((char *)a0 + 0xB0) = 0;
+    *(int *)((char *)a0 + 0x8) |= 0x200;
+    *(int *)((char *)a0 + 0x18) |= 0x10;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038D64);
+#endif
 #endif
 
 #ifdef NON_MATCHING
