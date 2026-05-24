@@ -1183,14 +1183,13 @@ extern void* (*D_80012BF4)(s32, s32);
 extern s32 func_800015D0(void*, void*);
 
 /* uso_open_file: alloc 0x28-byte file struct, init via func_800015D0, read
- * 12-byte header. Promoted from 99.66% NM to exact via 3-word INSN_PATCH
- * at offsets 0x40/0x70/0x74 (split-pad header-offset + addu-operand-order
- * the 3 residual codegen-cap diffs that decl-reorder couldn't reach). */
-#ifdef NON_MATCHING
+ * 12-byte header. Byte-exact: the `char pad[8]` declared BEFORE `header`
+ * makes IDO place header[3] at sp+0x18 (and the 8-byte pad in the 0x24-0x2B
+ * gap) to match the target frame layout. */
 void* func_800012BC(void* arg0) {
     void* file;
+    char pad[8];  /* frame padding to push header to sp+0x18 */
     s32 header[3];
-    char pad[4];  /* +8 bytes frame padding (skill rule) */
 
     file = D_80012BF4(0x28, 8);
     if (func_800015D0(arg0, file) < 0) {
@@ -1204,9 +1203,6 @@ void* func_800012BC(void* arg0) {
     return file;
     (void)pad;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800012BC);
-#endif
 
 extern void func_80000A88(void*, s32);
 
