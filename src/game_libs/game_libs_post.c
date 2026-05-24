@@ -3378,9 +3378,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000231B4);
  *   v = call2(2, v, a1, a2, a3);    // 5-arg, last via stack
  *   if (v == 0) call3(a3, 0, 0);
  *
- * Target has RESOLVED jal targets baked in (0x0C00E05D, 0x0C00E1C3)
- * pointing inside other game_libs functions — needs an INSN_PATCH jal
- * recipe after unwrapping to byte-match the real C build path. */
+ * Target has RESOLVED jal targets baked in (0x0C00E05D -> 0x38174,
+ * 0x0C00E1C3 -> 0x3870C) pointing inside other game_libs functions, but the
+ * C calls gl_func_00000000 (placeholder, addr 0) for all three. objdiff
+ * reloc-blindness reports 100% (FALSE positive) — the linked ROM bytes would
+ * be jal-0, not the resolved targets. Honest fix: declare gl_ref_00038174 /
+ * gl_ref_0003870C aliases (undefined_syms_auto.txt) and call THOSE for the
+ * first two; keep gl_func_00000000 for the 3rd (genuine placeholder). Until
+ * then keep NON_MATCHING — do NOT unwrap (would regress the ROM). */
 #ifdef NON_MATCHING
 void gl_func_00023284(int a0, int a1, int a2, int a3) {
     int v;
@@ -29857,12 +29862,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B5D8);
 #endif
 
 /* Circular-list sum: sum += (node->0 & 0xFFFFFF) << 4 over the ring at a0->4.
- * Register-exact from C; the only residual is a delay-slot-fill swap (IDO
- * fills the beq delay with sum=0 (move v1,0) where the target fills it with
- * the mask's `ori a1` — the lui+ori mask construction is kept adjacent by C,
- * split by the target). Closed via a size-preserving 2-insn INSN_PATCH swap
- * (@0x8/@0x10), no relocs. See Makefile. */
-#ifdef NON_MATCHING
+ * Byte-exact from C (13 insns, no relocs, no patch) — objdiff-verified. */
 int game_libs_func_0005B5FC(int *a0) {
     int *p = (int *)a0[1];
     int sum = 0;
@@ -29874,9 +29874,6 @@ int game_libs_func_0005B5FC(int *a0) {
     }
     return sum;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B5FC);
-#endif
 
 int game_libs_func_0005B630(int *a0) {
     return *(int *)((char *)a0 + 0x24) << 4;
@@ -33586,21 +33583,16 @@ int gl_func_00065DDC(char *a0) {
 }
 
 /* 12-insn wrapper: stack scratch + 2 internal-game_libs jal calls.
- * IDO emits `jal 0` with R_MIPS_26 relocs that the linker resolves to
- * 0x77DB0 and 0x77E28 — same ROM bytes as INCLUDE_ASM, but .o-level bytes
- * differ. INSN_PATCH bakes the resolved jal bytes (0x0C01DF6C, 0x0C01DF8A)
- * into the .o so build/.o == expected/.o byte-for-byte. */
+ * The gl_ref_00077DB0/E28 named refs carry R_MIPS_26 relocs that the linker
+ * resolves to 0x77DB0/0x77E28 (jal 0x0C01DF6C/0x0C01DF8A) — byte-exact ROM.
+ * objdiff is reloc-aware so build/.o matches expected/.o without any patch. */
 extern int gl_ref_00077DB0();
 extern int gl_ref_00077E28();
-#ifdef NON_MATCHING
 void gl_func_00065E0C(char *a0) {
     int local;
     gl_ref_00077DB0(&local);
     gl_ref_00077E28(a0 + 0x10);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065E0C);
-#endif
 
 float game_libs_func_00065E3C(char *a0) {
     return *(float*)(a0 + 0x198);
