@@ -16,10 +16,19 @@ relocator + func_800018F0 un-relocator) and 15543 entries with 0 opcode errors:
   kind: 1=R_MIPS_26 (jal/j), 2=LO16 (addiu/lw/sw/lwc1/...), 3=HI16 (lui)
 
 usosym_<symIdx> symbols must be defined (=0) so the assembled bytes equal the
-runtime placeholders the ROM stores (lui0/addiu0/jal0). Real human names are a
-later drop-in rename once the on-disk Sym name table is decoded.
+runtime placeholders the ROM stores (lui0/addiu0/jal0).
+
+REAL NAMES (--symnames): the on-disk Sym name table can't be decoded statically
+(the loader resolves names->values in-place at load). Instead we recover the
+symIdx->target map empirically by booting the ROM in a headless emulator, dumping
+RDRAM after bootup.uso is loaded+relocated, and correlating the resolved .text
+with the decoded TextReloc table (scripts/emu-symdump/). That yields a JSON map
+symIdx -> {func_<off> | D_<off> | RO_<off> | import_<addr>}. Pass it via
+--symnames to emit the real call graph instead of synthetic usosym_<N>. The
+ASSEMBLED BYTES ARE IDENTICAL either way (undefined/=0 symbols -> placeholder
+bytes); only the reloc symbol NAME changes (jal 0 + R_MIPS_26 -> func_00049AAC).
 """
-import argparse, glob, os, re, struct, sys
+import argparse, glob, json, os, re, struct, sys
 
 GPR = ['zero','at','v0','v1','a0','a1','a2','a3','t0','t1','t2','t3','t4','t5','t6','t7',
        's0','s1','s2','s3','s4','s5','s6','s7','t8','t9','k0','k1','gp','sp','fp','ra']
@@ -64,7 +73,8 @@ def addend_str(sym, addend):
     if addend>0:  return f'{sym} + 0x{addend:X}'
     return f'{sym} - 0x{-addend:X}'
 
-def process_file(path, relmap, apply):
+def process_file(path, relmap, apply, symnames=None):
+    def name(symidx): return (symnames or {}).get(str(symidx), f'usosym_{symidx}')
     # Pass 1: parse lines, index reloc instructions
     lines=[l for l in open(path)]
     parsed=[]   # (idx, off, word) for reloc lines
@@ -97,7 +107,7 @@ def process_file(path, relmap, apply):
     # Pass 3: rewrite
     changed=0
     for i,off,w in parsed:
-        symidx,kind=relmap[off]; sym=f'usosym_{symidx}'; op=w>>26
+        symidx,kind=relmap[off]; sym=name(symidx); op=w>>26
         a=addends.get(off,0); sa=addend_str(sym,a)
         m=LINE_RE.match(lines[i].rstrip('\n')); prefix=m.group(1)
         if kind==1:
@@ -124,9 +134,12 @@ def main():
     ap.add_argument('module', type=lambda x:int(x,0))# ROM offset of module (magic 0x12345678)
     ap.add_argument('--rom', default='baserom.z64')
     ap.add_argument('--asmdir', default=None)
+    ap.add_argument('--symnames', default=None,
+                    help='JSON map symIdx->real name from scripts/emu-symdump (else usosym_<N>)')
     ap.add_argument('--apply', action='store_true')
     a=ap.parse_args()
     d=open(a.rom,'rb').read()
+    symnames=json.load(open(a.symnames)) if a.symnames else None
     secs=walk_dir(d,a.module)
     if not secs or 5 not in secs or 2 not in secs:
         sys.exit(f'no Text/TextReloc at module {a.module:#x}')
@@ -137,17 +150,21 @@ def main():
     syms=sorted({s for s,_ in relmap.values()})
     print(f'{a.segment}: {len(relmap)} relocs, {len(syms)} distinct symbols '
           f'(kinds: {kinds}); usosym range usosym_{syms[0]}..usosym_{syms[-1]}')
+    if symnames:
+        named=sum(1 for s in syms if str(s) in symnames)
+        print(f'  using real names for {named}/{len(syms)} symbols (rest fall back to usosym_<N>)')
     asmdir=a.asmdir or f'asm/nonmatchings/{a.segment}'
     total=0; files=0
     for f in sorted(glob.glob(os.path.join(asmdir,'*.s'))):
-        c=process_file(f,relmap,a.apply)
+        c=process_file(f,relmap,a.apply,symnames)
         if c: files+=1; total+=c
     print(f'{"APPLIED" if a.apply else "DRY-RUN"}: {total} instructions in {files} .s files'
           f' would be symbolized')
-    # emit usosym definitions list
+    # emit symbol definitions list (=0 so assembled bytes match the runtime placeholders)
     if a.apply:
+        def defname(s): return (symnames or {}).get(str(s), f'usosym_{s}')
         with open(f'{a.segment}.usosyms.txt','w') as fo:
-            for s in syms: fo.write(f'usosym_{s} = 0x00000000;\n')
+            for s in syms: fo.write(f'{defname(s)} = 0x00000000;\n')
         print(f'wrote {a.segment}.usosyms.txt ({len(syms)} symbols = 0)')
 
 if __name__=='__main__':
