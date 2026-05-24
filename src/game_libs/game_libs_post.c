@@ -34612,8 +34612,7 @@ int game_libs_func_00067F20(unsigned char *a0) {
 int gl_func_00067F58(int a0) {
     extern int D_00000000;
     int v0;
-    gl_func_00000000(a0);
-    v0 = (int)gl_func_00000000();
+    v0 = (int)gl_func_00000000(gl_func_00000000(a0) + 1);
     if (v0 == 0) {
         gl_func_00000000((char*)&D_00000000 + 0x2AA40);
     }
