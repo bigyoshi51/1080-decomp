@@ -30148,10 +30148,13 @@ float gl_func_0005BD80(float *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BD80);
 #endif
 
-/* game_libs_func_0005BDC0: 24-insn 4x4 reciprocal copier — 99.92% C body
- * promoted to 100% via 2-insn INSN_PATCH for loop-counter encoding
- * (target i++ to 4 vs IDO auto-unrolled i+=4 to 16). Same semantics,
- * different byte encoding at insns 0xC + 0x1C. */
+/* game_libs_func_0005BDC0: 24-insn 4x4 reciprocal copier. NON_MATCHING (2 diffs).
+ * IDO compiles `for(i=0;i<16;i++) dst[i]=1/src[i]` to a rolled 4-iter loop but
+ * with an ELEMENT counter (i: 0,4,8,12 / cmp 16); the target uses an ITERATION
+ * counter (0..3 / cmp 4) + pointer advance. The induction-variable form isn't
+ * C-controllable: pointer-advance + manual 4-stmt body makes IDO FULLY unroll
+ * (53 insns); indexed i<16 gives the 24-insn rolled form but the element counter.
+ * Was INSN_PATCH'd (2 insns, removed 2026-05-23). */
 #ifdef NON_MATCHING
 void game_libs_func_0005BDC0(float *src, float *dst) {
     int i;
