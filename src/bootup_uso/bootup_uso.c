@@ -3259,9 +3259,29 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
  * 2026-05-21: restored the target's D[0x254]->0x70 dereference, used a
  * distinct D-base alias for call-1, folded the func_00000008+0x2C state
  * load, and applied the typed alias-extern recipe for the 7-arg float-stack
- * call. C-only fuzzy improved 75.59% -> 97.87%. Remaining cap: relocation
- * target names differ for the typed alias / D aliases even when bytes are
- * patched identical, so this stays NM until reloc-symbol patching exists. */
+ * call. C-only fuzzy improved 75.59% -> 97.87%.
+ *
+ * 2026-05-24: confirmed this is a pure RELOC-NAME-COLLAPSE cap, not codegen.
+ * The BYTES are complete; the 2.13% is 3 reloc names the decomp collapses to
+ * placeholders. Each of the 3 aliases is LOAD-BEARING FOR THE BYTES, and the
+ * canonical (collapsed) name breaks them -- verified this tick:
+ *   - D_00000000_a (call-1 arg *(int*)&D): forces a FRESH `lui $a0` for the
+ *     offset-0 load. Canonical &D_00000000 makes IDO -O2 CSE it with the held
+ *     D base ($v0) -> `lw $a0,0($v0)` (target has a fresh lui).
+ *   - D_func_00000008_data + 0x2C (gate-3): forces the FOLDED
+ *     `lui %hi(sym+0x2C); lw %lo(sym+0x2C)` (2 insns, addend in the reloc).
+ *     Canonical `(char*)&func_00000008 + 0x2C` -- func_00000008 is a FUNCTION
+ *     symbol -- materializes the address (`lui;addiu;lw`, 3 insns, no fold).
+ *   - func_00000000_082F8 (call-2, 7-arg float): forces single `swc1` stack
+ *     floats + a DIRECT `jal`. Canonical K&R func_00000000 double-promotes
+ *     (cvt.d.s/sdc1); a block-scoped float prototype is rejected by cfe
+ *     (incompatible redecl); a fn-ptr cast turns the call into `jalr $t9`.
+ * So the bytes can't be produced with the collapsed names, and the collapsed
+ * names can't be avoided without distinct symbols. FIX PATH: the emu-symdump
+ * symbolize rollout -- scripts/emu-symdump recovered the REAL bootup.uso
+ * symbol names; symbolizing BOTH expected and base .s to those real distinct
+ * names (call-1 D, gate-3 data sym, call-2 callee) makes both sides agree ->
+ * 100%. Stays NM until that rollout lands. */
 extern int func_00000000_082F8(int, int, int, int, float, int, float);
 extern char D_00000000_a;
 extern char D_func_00000008_data;
