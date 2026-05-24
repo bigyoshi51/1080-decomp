@@ -7149,7 +7149,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000298D8);
 
-#ifdef NON_MATCHING
 /* Phase-accumulator table oscillator: advance a0[1] by (int)a0->0x10f, index
  * the 64-entry s16 table at a0[2] by (acc>>10)&0x3F, return (s16)(table[idx]>>8).
  * Structurally exact (17/17 insns, same opcodes/immediates); ~10 $t-register
@@ -7160,9 +7159,7 @@ int game_libs_func_00029934(int *a0) {
     a0[1] = acc;
     return (short)(((short *)a0[2])[idx] >> 8);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029934);
-#endif
+
 
 // gl_func_00029978 — STRUCTURAL PASS (0x1F4 / 125 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
