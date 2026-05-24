@@ -2233,7 +2233,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E230);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E2A4);
 
+#ifdef NON_MATCHING
+/* gl_func_0000E368: 42-insn gated flag toggle. Returns early unless bit 16 of
+ * (a0->0x50)->0x4F0 is set, a0->0x48 == 2, and the (collapsed) callback succeeds;
+ * then toggles a0->0xB0 between 0/1 and correspondingly clears/sets bit 2 of
+ * a0->0x44->0x60->0x18. NM (reference decode): collapsed-placeholder call +
+ * collapsed D ref + branch-likely tests (raw-.word game_libs reloc depression).
+ * Uses the file-scope extern int D_00000000 / gl_func_00000000. */
+void gl_func_0000E368(int a0) {
+    if ((*(int *)(*(int *)((char *)a0 + 0x50) + 0x4F0) & 0x10000) == 0) {
+        return;
+    }
+    if (*(int *)((char *)a0 + 0x48) != 2) {
+        return;
+    }
+    if (gl_func_00000000(&D_00000000, 0x20, a0) == 0) {
+        return;
+    }
+    if (*(int *)((char *)a0 + 0xB0) != 0) {
+        int v = *(int *)(*(int *)((char *)a0 + 0x44) + 0x60);
+        *(int *)((char *)v + 0x18) &= ~4;
+        *(int *)((char *)a0 + 0xB0) = 0;
+    } else {
+        int v = *(int *)(*(int *)((char *)a0 + 0x44) + 0x60);
+        *(int *)((char *)v + 0x18) |= 4;
+        *(int *)((char *)a0 + 0xB0) = 1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
+#endif
 
 /* game_libs_func_0000E410..E490: CONTIGUOUS lower-opt (-O1/-g) family. Each is
  * `int *p=(int*)(a0+0x18); *p OP= BIT; return p;` (E410 |=4|=8, E42C &=~4&=~8,
