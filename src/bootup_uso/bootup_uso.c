@@ -3018,15 +3018,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);
 #endif
 
 extern float D_000005EC;
-/* func_00007C74: 36-insn alloc/init/link helper.
- *
- * Promoted 2026-05-14 from NM 92.89% to byte-exact via INSN_PATCH on 6
- * frame-adjust insns (addiu sp prologue/epilogue, sw/lw a0 caller-slot,
- * sw/lw a1 spill-slot). The C body emits a 0x20 frame, target wants
- * 0x28 — 8-byte hole that IDO -O2 won't honor from `char pad`/volatile
- * tricks. INSN_PATCH rewrites the 6 specific offsets to remap built's
- * sp+24/32 slots to target's sp+32/40 layout. Function size unchanged
- * (36 insns / 0x90 bytes both ways), so no SUFFIX_BYTES needed. */
+/* func_00007C74: 36-insn alloc/init/link helper. NON_MATCHING (frame-size cap).
+ * The C body emits a 0x20 frame; the target wants 0x28 (8-byte hole). IDO -O2
+ * DCEs an unused `char pad[8]` (verified 2026-05-24: frame stays 0x20), and a
+ * used local would add instructions — so the 8-byte frame gap isn't reachable
+ * from C. Logic is correct (7 residual diffs are all the frame-slot offsets).
+ * Previously force-matched via INSN_PATCH (removed 2026-05-23 as match-faking);
+ * now honestly NM. See feedback_no_instruction_forcing_matches_policy. */
 #ifdef NON_MATCHING
 void *func_00007C74(char *a0) {
     char *ret;
