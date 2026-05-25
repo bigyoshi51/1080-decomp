@@ -39140,20 +39140,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070040);
 #ifdef NON_MATCHING
 /* gl_func_00070194: 44-insn CRC-5 (poly 0x15 = x^5+x^2+1) over the low 16 bits of
  * a0. out=0; 16 iterations: feedback tmp = (out & 0x10) ? 0x15 : 0; shift in a0's
- * bit 10 (a0 shifts left each iter, MSB-first); out = (((out<<1)|bit) ^ tmp) &
- * 0xFF; return out & 0x1F. RELOC-FREE -> landable, but -O0 (out/i/tmp are stack
- * vars reloaded every iteration) so a match needs an -O0 file split (same vein as
- * gl_func_000718C0). Algorithm verified via assemble+objdump; NM (reference) for
- * now, ready as the -O0 split body. */
+ * bit 10 (a0 shifts left each iter, MSB-first); out = (((out<<1)|bit) ^ tmp);
+ * return out & 0x1F. RELOC-FREE -> landable, but needs an -O0 file split (out/tmp
+ * are byte stack vars reloaded each iter).
+ *
+ * 2026-05-25 -O0 body-tuning progress (toward the eventual -O0 carve): the target
+ * stores `out` and `tmp` as BYTES (sb/lbu) -> they are `unsigned char` (NOT int).
+ * With `unsigned char out`/`tmp` the standalone -O0 build is 180 vs target 176
+ * (1 insn off, down from 184). The residual is the RETURN structure: target emits
+ * `(out & 0x1f) & 0xff` via temp+move pairs with an interleaved sp-restore and NO
+ * double-branch-to-epilogue, whereas IDO -O0 of `return out & 0x1F` (int return)
+ * emits an in-place andi + a redundant double `b epilogue`. uchar return type and
+ * separate-statement out-updates both REGRESS. This last -O0 return-codegen insn
+ * needs more reverse-engineering before the carve is worth wiring up. */
 int gl_func_00070194(int a0) {
-    int out;
+    unsigned char out;
     int i;
     a0 &= 0xFFFF;
     out = 0;
     for (i = 0; i < 16; i++) {
-        int tmp = (out & 0x10) ? 0x15 : 0;
+        unsigned char tmp = (out & 0x10) ? 0x15 : 0;
         int bit = (a0 & 0x400) ? 1 : 0;
-        out = (((out << 1) | bit) ^ tmp) & 0xFF;
+        out = ((out << 1) | bit) ^ tmp;
         a0 = (a0 << 1) & 0xFFFF;
     }
     return out & 0x1F;
