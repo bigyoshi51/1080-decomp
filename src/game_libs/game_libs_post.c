@@ -39146,32 +39146,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070040);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
-#else
-#ifdef NON_MATCHING
 /* gl_func_00070194: 44-insn CRC-5 (poly 0x15 = x^5+x^2+1) over the low 16 bits of
- * a0. out=0; 16 iterations: feedback tmp = (out & 0x10) ? 0x15 : 0; shift in a0's
- * bit 10 (a0 shifts left each iter, MSB-first); out = (((out<<1)|bit) ^ tmp);
- * return out & 0x1F. RELOC-FREE -> landable, but needs an -O0 file split (out/tmp
- * are byte stack vars reloaded each iter).
+ * a0. out=0; loop 16 iterations (do-while, NO top guard): tmp = (out&0x10)?0x15:0;
+ * out = out<<1; out = out|bit (bit = (a0&0x400)?1:0); out = out^tmp;
+ * a0 = (a0<<1)&0xFFFF; return out & 0x1F. RELOC-FREE.
  *
- * 2026-05-25 -O0 body-tuning progress (toward the eventual -O0 carve): the target
- * stores `out` and `tmp` as BYTES (sb/lbu) -> they are `unsigned char` (NOT int).
- * With `unsigned char out`/`tmp` the standalone -O0 build is 180 vs target 176
- * (1 insn off, down from 184). The residual is the RETURN structure: target emits
- * `(out & 0x1f) & 0xff` via temp+move pairs with an interleaved sp-restore and NO
- * double-branch-to-epilogue, whereas IDO -O0 of `return out & 0x1F` (int return)
- * emits an in-place andi + a redundant double `b epilogue`. uchar return type and
- * separate-statement out-updates both REGRESS. This last -O0 return-codegen insn
- * needs more reverse-engineering before the carve is worth wiring up.
- * 2026-05-25 (cont.): the residual is specifically a redundant double
- * `b epilogue` in the return path (IDO -O0 routes the return through a
- * separate epilogue block + a dead second branch, vs the target's inline
- * epilogue). FAILED to remove via C surface changes: do-while loop (184),
- * `(out&0x1f)&0xff` double-mask return (184), uchar return type (184),
- * separate-statement out-updates (188). Best remains unsigned-char-out +
- * single-expr + for-loop + `return out&0x1F` (180, 1 insn). Closing this
- * likely needs the permuter at -O0 (which needs the carve first) — a
- * focused-session task, not a 60s tick. */
+ * 2026-05-25 OPT-LEVEL CORRECTION (supersedes a prior wrong "-O0, 1-insn-off"
+ * note): this is NOT an -O0 function. Definitive build-flag matrix vs the target:
+ *   - target: 44 insns, do-while (no top guard), `out`/`tmp`/`i` stack-resident
+ *     (sb/lbu/sw/lw each use), `bit` kept in a register (a1), delay slots FULLY
+ *     filled (only 1 nop, the un-fillable beqz-t7 slot), return via andi->temp->move
+ *     pairs (uchar return) with an inline epilogue.
+ *   - existing matched -O0 fns (e.g. gl_func_00008944) have UNFILLED slots
+ *     (b;nop / jr;nop) -> -O0 is ruled out by the target's filled slots.
+ *   - plain -O1 (no -g): fills slots BUT register-allocates out/tmp/i (no
+ *     residency) -> 37-40 insns, wrong shape.
+ *   - -O1/-O2 -g1/-g2: forces stack residency (debug) BUT leaves slots UNFILLED
+ *     (4 nops) -> wrong (target has them filled).
+ * The target needs residency AND fully-filled slots SIMULTANEOUSLY, which the
+ * project's IDO `cc` cannot emit from any single flag (residency<->-g disables
+ * full fill; full fill<->no-g register-allocates). It is an -O1 build whose
+ * original register pressure spilled out/tmp/i while the assembler still filled
+ * slots -- not reproducible without that exact pressure, and the permuter cannot
+ * add assembler-level delay-slot filling. Permuter at -O1 (volatile base) plateaus
+ * (~1520, degenerate loop-removal optimum) and a volatile base has a structural
+ * extra-reload the target lacks (the `^tmp` reuses the pre-store value, which
+ * volatile forbids). See docs/IDO_CODEGEN.md "stack-residency + filled-delay-slots".
+ * Genuine cap; keep INCLUDE_ASM. The C below is verified-correct (clean for-loop
+ * for readability). */
 int gl_func_00070194(int a0) {
     unsigned char out;
     int i;
@@ -39187,7 +39189,6 @@ int gl_func_00070194(int a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070194);
-#endif
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
@@ -39551,18 +39552,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071864);
 
 /* gl_func_000718C0: 26-insn ones-complement-style checksum loop.
  *   *a2 = 0; *a1 = *a2; for (i = 0; i < 0x1C; i += 2) { v = *(u16*)(a0+i); *a1 += v; *a2 += ~v; }
- * Target keeps everything on stack — -O0-shaped. Needs file-split per
- * docs/IDO_CODEGEN.md#feedback-ido-o0-loop-stack-reload-signal.
- * Naive -O2 unrolls badly (228B vs 104B); volatile-loop variant adds barriers (124B). Deferred. */
+ * Target is stack-resident + fully-filled-delay-slots (-O1 cap class, NOT -O0;
+ * see corrected note on the #ifdef body below + docs/IDO_CODEGEN.md).
+ * Naive -O2 unrolls badly (228B vs 104B); volatile-loop variant adds barriers (124B). Cap. */
 #ifdef NON_MATCHING
 /* gl_func_000718C0: 26-insn dual checksum over 14 input halfwords (a0[0..0x1A]).
  * *a1 accumulates the sum of the halfwords; *a2 accumulates the sum of their
- * bitwise complements (~v); returns 0. RELOC-FREE, so LANDABLE -- but it is an
- * -O0 function (loop counter i @ sp+0 and tmp @ sp+6 are reloaded from the stack
- * every iteration; volatile-at-O2 reproduces the frame + first insns but lands
- * 2 insns long + regalloc-shifted). Match needs an -O0 file split
- * (game_libs_o0_718C0.c + OPT_FLAGS=-O0 + linker + objdiff.json). Algorithm
- * below is verified; use it as the -O0 split body. */
+ * bitwise complements (~v); returns 0. RELOC-FREE.
+ * 2026-05-25 OPT-LEVEL CORRECTION (supersedes a prior wrong "-O0" note): same cap
+ * class as gl_func_00070194 -- target is -O1-style with STACK-RESIDENT locals
+ * (i, tmp reloaded each iter) AND FULLY-filled delay slots (0 nops). This combo is
+ * not emittable by the project cc (residency needs -g which suppresses full fill;
+ * full fill needs no-g which register-allocates). plain -O1=29 insns/1 nop,
+ * -g2=32 insns/2 nops; target=26 insns/0 nops. NOT -O0 (which leaves slots
+ * unfilled). See docs/IDO_CODEGEN.md "stack-residency + filled-delay-slots".
+ * Genuine cap; keep INCLUDE_ASM. Algorithm below verified-correct. */
 int gl_func_000718C0(short *a0, short *a1, short *a2) {
     short tmp;
     int i;
