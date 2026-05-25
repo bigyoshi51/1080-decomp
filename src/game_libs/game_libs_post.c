@@ -37375,11 +37375,14 @@ void gl_func_0006B9B4(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B9B4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006BA04);
 #endif
+/* game_libs_func_0006BA04 (2-word splat mis-split: lui t6,0; lw t6,0(t6))
+ * was the stolen prologue of gl_func_0006BA0C — forward-merged into it
+ * (boundary correction; orphan-function removed). */
 
-#ifdef NON_MATCHING
+/* gl_func_0006BA0C: MATCHED via forward-merge of the orphan prologue (above).
+ * The leading `lui t6,0; lw t6,0(t6)` (= *(int*)&D_00000000 read) was split off
+ * by splat as the fake 2-word function game_libs_func_0006BA04; merged back. */
 void gl_func_0006BA0C(void) {
     int local;
     int pad;
@@ -37388,9 +37391,6 @@ void gl_func_0006BA0C(void) {
     }
     gl_func_00000000(&D_00000000, &local, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BA0C);
-#endif
 
 /* 11-insn passthrough wrapper. Declared size 0x34 includes 2 trailing dead
  * insns (lui t6, 0xA460; lw a2, 0x10(t6) — N64 PI hardware register access)
