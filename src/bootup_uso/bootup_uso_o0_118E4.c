@@ -22,4 +22,28 @@ void func_000118E4(int *head_holder, int data) {
     func_00000000(&D_00000000, node[0]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001195C);
+/* func_0001195C: walk the arg0->0x130 singly-linked list; for the first node
+ * whose func(node->0x0, arg1)==0, unlink it (prev ? prev->0x4 : arg0->0x130 =
+ * node->0x4), call func(&D, node->0x0) + func(node), return. Byte-exact at -O0.
+ * Key -O0 insights: decl `node` before `prev` (slot order 0x1C/0x18); fold the
+ * load into the test `if ((node = ...) != 0)` / `while ((node = node->4) != 0)`
+ * so node is tested in-register (no extra -O0 reload). */
+void func_0001195C(int *arg0, void *arg1) {
+    int *node;
+    int *prev = 0;
+    if ((node = (int *)arg0[0x4C]) != 0) {
+        do {
+            if (func_00000000(((int *)node)[0], arg1) == 0) {
+                if (prev == 0) {
+                    arg0[0x4C] = node[1];
+                } else {
+                    prev[1] = node[1];
+                }
+                func_00000000(&D_00000000, ((int *)node)[0]);
+                func_00000000(node);
+                return;
+            }
+            prev = node;
+        } while ((node = (int *)node[1]) != 0);
+    }
+}
