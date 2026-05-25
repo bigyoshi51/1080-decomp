@@ -257,19 +257,15 @@ int gl_func_00001114(char *a0) {
  * 3 format strings by a1's magnitude and calls the cross-USO
  * printf-like gl_func_00000000. Per-arm arg counts/buffers differ. */
 extern int gl_data_00000000;
-#ifdef NON_MATCHING
 void gl_func_00001134(char *a0, int a1) {
     if (a1 < 10) {
         gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC10, a1);
     } else if (a1 < 100) {
         gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC18);
     } else {
-        gl_func_00000000(a0, (char*)&gl_data_00000000 + 0xCC1C);
+        gl_func_00000000(a0 + 0xE4, (char*)&gl_data_00000000 + 0xCC1C);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001134);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000011A4: 54-insn alloc-or-given + init constructor.
