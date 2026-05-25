@@ -1,6 +1,8 @@
-nonmatching gl_func_0002D620, 0x50
+nonmatching gl_func_0002D620, 0x58
 
 glabel gl_func_0002D620
+    /* E126F0 0002D618 3C0E0000 */  .word 0x3C0E0000
+    /* E126F4 0002D61C 8DCE0000 */  .word 0x8DCE0000
     /* E126F8 0002D620 27BDFFE8 */  .word 0x27BDFFE8
     /* E126FC 0002D624 24010001 */  .word 0x24010001
     /* E12700 0002D628 15C10005 */  .word 0x15C10005
