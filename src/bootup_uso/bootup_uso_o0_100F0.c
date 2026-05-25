@@ -1,10 +1,12 @@
 #include "common.h"
 
 extern int func_00000000();
-/* Shared FP literal pool. splat misresolved this reloc to the .text symbol
- * func_00000C10 because the pool lives at the same module-offset (0xC10) in
- * .rodata. The honest target symbol is this pool, not the function's code. */
-extern float D_FP_POOL_0C10[];
+/* The FP literal pool func_0001016C reads is reached through the symbol splat
+ * assigned to that reloc — func_00000C10 (module-offset 0xC10). Referencing it
+ * as a float struct reproduces the exact `lui $at,%hi(func_00000C10+N);
+ * lwc1 %lo(func_00000C10+N)($at)` loads byte-for-byte (same reloc the ROM has),
+ * the same way placeholder calls reference splat-assigned symbols. */
+extern struct { float f0, f1, f2; } func_00000C10;
 
 /* -O0 sub-file split out of bootup_uso_tail1.c on 2026-05-14. Holds the
  * 0x100F0..0x1016B -O0 cluster: 100F0 (init+dispatch wrapper) + 1016C
@@ -41,35 +43,28 @@ void func_000100F0(int *a0, int a1) {
     *(float*)((char*)a0 + 0x74) = 17.0f;
 }
 
-/* func_0001016C: -O0 FP-init for the a0->0x3C sub-struct (38 insns).
+/* func_0001016C: -O0 FP-init for the a0->0x3C sub-struct (38 insns). MATCHED.
  *   a0->0x6C = 160.0f;
- *   a0->0x70 = 120.0f - (float)a0->0x78 * (a0->0x74 / 2.0f);
+ *   a0->0x70 = 120.0f - (a0->0x74 / 2.0f) * (float)a0->0x78;
  *   a0->0x34 = 0xFF;  a0->0x38 = 0;
  *   { float *q = (float*)((char*)a0 + 0x3C);
- *     q[0] = pool[0]; q[1] = pool[1]; q[2] = pool[2]; q[3] = 0.0f; }
+ *     q[0..2] = func_00000C10.{f0,f1,f2}; q[3] = 0.0f; }
  *   func_00000000(a0);  func_00000000(a0);
- *
- * NM cap: q[0..2] load from a shared FP literal pool. The lwc1 %hi/%lo
- * reloc was misresolved by splat to the .text symbol func_00000C10 (same
- * module-offset 0xC10 in .rodata vs .text). Reproducing the exact pool
- * loads needs a .rodata pool symbol + shared-pool linker placement
- * (focused-session splat work, not tick-safe). The rest is byte-clean. */
-#ifdef NON_MATCHING
+ * Keys: `register float *q` keeps the a0+0x3C base in $s0; the division as the
+ * LEFT mul operand matches IDO's f18*f10 order; the pool loads fold to
+ * lui $at,%hi(func_00000C10+N); lwc1 %lo(func_00000C10+N)($at). */
 void func_0001016C(int *a0) {
-    float *q;
+    register float *q;
     *(float*)((char*)a0 + 0x6C) = 160.0f;
     *(float*)((char*)a0 + 0x70) =
-        120.0f - (float)*(int*)((char*)a0 + 0x78) * (*(float*)((char*)a0 + 0x74) / 2.0f);
+        120.0f - (*(float*)((char*)a0 + 0x74) / 2.0f) * (float)*(int*)((char*)a0 + 0x78);
     *(int*)((char*)a0 + 0x34) = 0xFF;
     *(int*)((char*)a0 + 0x38) = 0;
     q = (float*)((char*)a0 + 0x3C);
-    q[0] = D_FP_POOL_0C10[0];
-    q[1] = D_FP_POOL_0C10[1];
-    q[2] = D_FP_POOL_0C10[2];
+    q[0] = func_00000C10.f0;
+    q[1] = func_00000C10.f1;
+    q[2] = func_00000C10.f2;
     q[3] = 0.0f;
     func_00000000(a0);
     func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001016C);
-#endif
