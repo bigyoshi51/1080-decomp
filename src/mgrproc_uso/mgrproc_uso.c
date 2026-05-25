@@ -9,8 +9,11 @@ typedef struct { int a, b, c, d; } Quad4;
  * Default build never sees these — wrap bodies aren't compiled.
  * MGR_STATE_PTR: pointer to the manager state struct (read into `state`/`s`
  * locals, then deref'd for fields 0x4C/0x6A8/0x6AC). mgrproc_uso D+0x30.
+ * MGR_D_64: int slot — written from q[3], read as an index (`idx = MGR_D_64
+ * - 5`) and OR'd with flag 0xA0000 (positional, mixed use). mgrproc_uso D+0x64.
  */
 #define MGR_STATE_PTR (*(int**)((char*)&D_00000000 + 0x30))
+#define MGR_D_64 (*(int*)((char*)&D_00000000 + 0x64))
 #endif
 
 #ifdef NON_MATCHING
@@ -321,7 +324,7 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
                 /* a0->[8] points to a struct with header; index = header[1] */
                 p = (int*)*(int**)((char*)arg0 + 8);
                 q = p + p[1] * 1;  /* p[1]<<2 then add */
-                *(int*)((char*)&D_00000000 + 0x64) = q[3]; /* +0xC */
+                MGR_D_64 = q[3]; /* +0xC */
                 /* toggle D[0x80] bit 0 (xori) */
                 *(int*)((char*)&D_00000000 + 0x80) =
                     *(int*)((char*)&D_00000000 + 0x80) ^ 1;
@@ -335,8 +338,8 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
                                   ((unsigned char)*((char*)&D_00000000 + 0x17D) * 4) +
                                   0x90);
                 gl_func_00000000(&D_c_4_x, 4,
-                                 *(int*)((char*)&D_00000000 + 0x64), 0);
-                gl_func_00000000(&D_c_4_x, *(int*)((char*)&D_00000000 + 0x64));
+                                 MGR_D_64, 0);
+                gl_func_00000000(&D_c_4_x, MGR_D_64);
                 v0_save = gl_func_00000000(arg0, *(int*)arg0, 1);
                 /* 5-arg: stack arg5 = a0->[0] */
                 s0_save = gl_func_00000000(0, 0x45000000, v0_save,
@@ -1134,7 +1137,7 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B5
  * predecessor-side modifications); kept for grep discoverability and
  * permuter-baseline. */
 void mgrproc_uso_func_00001BE4(int *a2) {
-    int idx = *(int*)((char*)&D_00000000 + 0x64) - 5;
+    int idx = MGR_D_64 - 5;
     *(int*)((char*)a2 + 0x4D8) = 2;
     *(int*)((char*)a2 + 0x7DC) = 0;
     *(int*)((char*)a2 + 0x7E0) = 0;
@@ -1145,7 +1148,7 @@ void mgrproc_uso_func_00001BE4(int *a2) {
     gl_func_00000000(a2);
     gl_func_00000000(a2, 0xA0000, 0, 0);
     gl_func_00000000(0xB, 0, 0);
-    gl_func_00000000(0xB, *(int*)((char*)&D_00000000 + 0x64) - 5, 0);
+    gl_func_00000000(0xB, MGR_D_64 - 5, 0);
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 1);
 }
 #else
@@ -1394,7 +1397,7 @@ void mgrproc_uso_func_00002F10(self, a1, a2, a3, arg5)
         gl_func_00000000(self, 0x47, 0x13, (int)((char*)self + 0x30));
         gl_func_00000000(self, 0x44, 0x26, *(int*)((char*)self + 0x44) + 0x28);
         {
-            int t3 = *(int*)((char*)&D_00000000 + 0x64);
+            int t3 = MGR_D_64;
             int p  = *(int*)((char*)self + 0x4C);
             unsigned char *v1 =
                 (unsigned char *)gl_func_00000000(*(int*)p + t3 * 48, 0);
