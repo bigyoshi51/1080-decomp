@@ -873,10 +873,14 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
 /* gui_uso_func_00003B14: 27-insn / 0x6C RDP G_FILLRECT display-list builder.
  * 0xF6 << 24 = G_FILLRECT command word (per F3DEX2 gbi.h).
  *
- * IDO emits the two final `or` instructions in the OPPOSITE order from target
- * (entry[0] computation first vs target's entry[1] first). 2-insn INSN_PATCH
- * at offsets 0x58/0x5C swaps them — see Makefile. Per
- * `docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps`. */
+ * 98.89% NM. Sole residual: IDO schedules the two final, independent `or`
+ * instructions (entry[0]'s value vs entry[1]'s) in the OPPOSITE order from target
+ * (build: or entry0 then entry1; target: entry1 then entry0) — stores + registers
+ * all match. C reordering (statement swap, temp-split computing entry[1] first)
+ * does NOT move the scheduler (2026-05-25). Permuter improves 40->10 but FLOORS
+ * (150s, no zero) — a partially-perturbable but uncrackable scheduler tie-break on
+ * two independent ops feeding two stores. Genuine scheduling cap; INCLUDE_ASM is
+ * the build path. (Was INSN_PATCH'd pre-2026-05-23; that mechanism is removed.) */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING

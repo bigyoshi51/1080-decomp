@@ -9320,10 +9320,10 @@ void game_uso_func_0000C0F0(int *dst) {
     *dst = buf[0];
 }
 
-/* Struct assignment makes IDO emit the target 3-ints-per-iteration copy loop.
- * The Makefile patch strips relocations from the D_00000000 load and jal
- * words so objdiff sees the same raw .word baseline. */
-#ifdef NON_MATCHING
+/* Struct assignment makes IDO emit the target 3-ints-per-iteration copy loop
+ * (sibling of the promoted game_uso_func_0000C0F0, 0x40 vs 0x4 size). USO call
+ * (gl_func_00000000) + data ref (D_00000000) are runtime-relocated placeholders
+ * (jal 0 / lui 0 in ROM); .text bytes byte-exact vs expected. */
 void game_uso_func_0000C12C(int *a0) {
     typedef struct {
         int v[16];
@@ -9332,9 +9332,6 @@ void game_uso_func_0000C12C(int *a0) {
     gl_func_00000000(&D_00000000, &buf, 0x40);
     *(I16*)a0 = buf;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C12C);
-#endif
 
 void game_uso_func_0000C194(int *dst) {
     int buf[2];
