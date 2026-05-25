@@ -34428,18 +34428,15 @@ void gl_func_0006612C(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006612C);
 #endif
 
-/* 10-insn 1-arg call wrapper that spills caller's a0 to local frame
- * before discarding it; calls gl_func_00000000((int*)0x2246C). The spill
- * suggests function takes 1 arg even though it's discarded. Splat bundled
- * 2 trailing save-arg sentinels at func+0x28/0x30; SUFFIX_BYTES absorbs. */
+/* 10-insn 1-arg call wrapper: arg-homes caller's a0, then calls
+ * gl_func_00000000(&D + 0x2246C). MATCH: the call arg is a SYMBOL reference
+ * (&D_00000000 + 0x2246C) emitting lui %hi; addiu %lo, not a literal
+ * (int*)0x2246C which gives lui; ori. Decode the symbol, don't literal-match
+ * (docs/IDO_CODEGEN.md#feedback-return-const-lui-addiu-vs-lui-ori). Byte-exact. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void gl_func_000661D8(int a0_unused) {
-    gl_func_00000000((int*)0x2246C);
+    gl_func_00000000((char*)&D_00000000 + 0x2246C);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000661D8);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00066210: 21-insn 5-call sequence with buffer + chain helper.
