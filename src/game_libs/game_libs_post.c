@@ -31155,17 +31155,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DFE4);
  *
  * Matrix4 add idiom: 1080's MTX_ADD helper, sibling of mtx mul/inv.
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * 2026-05-24: corrected arg order (a,b are arg0/arg1; the int is arg2) and
+ * register allocation. Operands written `b[i] + a[i]` (commutative) so that
+ * `a` is evaluated first (GCC 2.7.2 evaluates `+` right-to-left) and gets
+ * $v1 like the target. Residual 5 diffs are a pure +8-byte FRAME-SIZE cap:
+ * target reserves frame 0x70 with buf at sp+0x30 (8 dead bytes below a
+ * 64-byte buf), ours is frame 0x68 / buf at sp+0x28. buf[17] reaches frame
+ * 0x70 but buf lands at sp+0x2C (wrong); a struct leading-pad is dropped by
+ * IDO (unused fields). 6600 permuter iterations found no zero — the 8-byte
+ * below-buf local needs a structural insight not yet found. INCLUDE_ASM path.
  */
-void gl_func_0005E030(float *a, int a2, float *b) {
+void gl_func_0005E030(float *a, float *b, int a2) {
     float buf[16];
     int i;
     for (i = 0; i < 16; i += 4) {
-        buf[i + 0] = a[i + 0] + b[i + 0];
-        buf[i + 1] = a[i + 1] + b[i + 1];
-        buf[i + 2] = a[i + 2] + b[i + 2];
-        buf[i + 3] = a[i + 3] + b[i + 3];
+        buf[i + 0] = b[i + 0] + a[i + 0];
+        buf[i + 1] = b[i + 1] + a[i + 1];
+        buf[i + 2] = b[i + 2] + a[i + 2];
+        buf[i + 3] = b[i + 3] + a[i + 3];
     }
     gl_func_00000000(buf, a2);
 }
