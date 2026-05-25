@@ -19,25 +19,33 @@ array of 12-byte big-endian entries:
 ELF reloc type -> Kyoto kind (for the future build-side generator):
     R_MIPS_26 (4) -> 1 ; R_MIPS_LO16 (6) -> 2 ; R_MIPS_HI16 (5) -> 3
 
-STATUS: the encoder + the section round-trip are VALIDATED (15543/15543 entries on
-bootup.uso byte-identical). The remaining pieces of the full fado-equivalent (a
-focused-session refactor, NOT yet done) are:
-  1. Build C with REAL symbols (the recovered call graph) instead of the collapsed
-     gl_func_00000000/D_00000000 placeholders.
-  2. Extract the compiler's ELF relocs (offset, symbol, type) per module.
-  3. Map symbol-name -> Kyoto symIdx. NOTE: bootup_uso.symnames.json has 1672
-     symIdx but only 1611 distinct names (61 collisions) -> name->symIdx is NOT 1:1;
-     the C side must carry the symIdx (e.g. usosym_<N>), not rely on the name.
-  4. encode() the section (this module) and splice it at the module's TextReloc
-     location, REPLACING the current Makefile jal-baking approach (Makefile ~L108).
-  5. Verify the rebuilt module is byte-identical to the ROM (code + reloc section).
-This is a build-approach change (bake-jals -> generate-reloc-section), high blast
-radius; do it on a branch, one module, verify, then scale.
+STATUS: the GENERATE-SIDE of the fado-equivalent is VALIDATED END-TO-END.
+  - encode() + section round-trip: 15543/15543 bootup.uso entries byte-identical.
+  - extract_elf_relocs() + the full pipeline: symbolize a .s with usosym_<N>
+    (uso-reloc-symbolize.py, no --symnames) -> assemble (GNU as + asm-prelude,
+    .set noreorder/noat, strip the `nonmatching`/`endlabel` splat lines) ->
+    extract_elf_relocs(.o, func_base) -> (symIdx, kind, module_offset) reproduces
+    the ROM's Kyoto entries EXACTLY (validated on bootup func_00000008:
+    (73,HI16,0x14),(73,LO16,0x18),(74,R26,0x20) == ROM). So given the symbolized
+    .s the generator regenerates the ROM reloc section.
+The remaining pieces (the BUILD INTEGRATION = a focused-session, high-blast-radius
+refactor, NOT done) are:
+  A. For a whole module: run the above per .s, collect entries, sort by
+     module_offset, encode() -> the module's full TextReloc section.
+  B. Wire into the build: make C/.s use usosym_<N> (the recovered call graph),
+     emit the generated reloc section, and REPLACE the Makefile jal-baking (~L108)
+     -> the rebuilt module (code + generated relocs) is byte-identical to ROM.
+  C. Real names: map usosym_<N> -> bootup_uso.symnames.json for episode display
+     (game_libs uses the +0x1466C shim into bootup's reloc/sym space).
+Do B on a branch, one module, verify the full build green + per-fn byte-exact, then
+scale. NOTE objdiff CANNOT validate USO targets (it's fooled by jal-0 de-collision)
+-- validate against the ROM reloc section + the reloc table, never objdiff.
 """
 import argparse, struct, sys
 
 SEC = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13}
-ELF_TYPE_TO_KIND = {4: 1, 6: 2, 5: 3}  # R_MIPS_26->1, LO16->2, HI16->3
+ELF_TYPE_TO_KIND = {4: 1, 6: 2, 5: 3}  # ELF type NUMBER -> kind (R_MIPS_26=4,LO16=6,HI16=5)
+ELF_NAME_TO_KIND = {'R_MIPS_26': 1, 'R_MIPS_LO16': 2, 'R_MIPS_HI16': 3}  # objdump name -> kind
 
 
 def u32(d, o):
@@ -68,6 +76,35 @@ def encode(entries):
         flag = 0x1 | (0x08000000 if i == 0 else 0)
         out += struct.pack('>III', flag, (symidx << 4) | kind, off)
     return bytes(out)
+
+
+ELF_RE = __import__('re').compile(r'([0-9a-f]+)\s+(R_MIPS_\w+)\s+(\S+)')
+
+
+def extract_elf_relocs(objpath, func_base, objdump='mips-linux-gnu-objdump'):
+    """Read R_MIPS relocs from an assembled .o (built from a usosym-symbolized .s)
+    and return Kyoto entries (symIdx, kind, module_offset) for it.
+
+    The .s must use `usosym_<N>` symbol names (uso-reloc-symbolize.py default, no
+    --symnames) so symIdx is unambiguous (N == symIdx; real NAMES collide -- 61 of
+    1672 -- so the name can't be the key). `func_base` is the function's module-
+    relative byte offset (e.g. 0x8 for bootup func_00000008); module_offset =
+    func_base + elf_reloc_offset. VALIDATED end-to-end on bootup func_00000008:
+    symbolize -> as -> this -> (73,3,0x14),(73,2,0x18),(74,1,0x20) == ROM exactly."""
+    import re as _re
+    import subprocess
+    out = subprocess.run([objdump, '-r', objpath], capture_output=True, text=True).stdout
+    entries = []
+    for line in out.splitlines():
+        m = ELF_RE.match(line)
+        if not m:
+            continue
+        off, typ, sym = int(m.group(1), 16), m.group(2), m.group(3)
+        kind = ELF_NAME_TO_KIND.get(typ)
+        if kind is None or not sym.startswith('usosym_'):
+            continue
+        entries.append((int(sym.split('_')[1]), kind, func_base + off))
+    return entries
 
 
 def decode(d, data, size):
