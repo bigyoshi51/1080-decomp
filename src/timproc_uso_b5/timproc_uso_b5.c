@@ -1363,26 +1363,20 @@ void timproc_uso_b5_func_00003ED8(char *a0) {
     (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
 }
 
-/* Sibling of timproc_uso_b5_func_00003ED8 — same vtable-call wrapper.
- * Promoted from 94.12% NM via SUFFIX_BYTES=0x8C98023C (the trailing
- * `lw t8, 0x23C(a0)` at offset 0x40 is the stolen prologue for SUCCESSOR
- * func_00003F5C; pad-sidecar didn't work because asm-processor aligns the
- * next symbol to 8 bytes, but SUFFIX_BYTES grows our st_size by 4 instead
- * of inserting padding). Default build still INCLUDE_ASMs (which already
- * includes the trailing word), and the non_matching build C-emits 16
- * insns at 94.12% — neither path needs SUFFIX_BYTES applied
- * (inject-suffix-skip detects existing trailing bytes; non_matching skips
- * the recipe by design). byte_verify passes. */
-#ifdef NON_MATCHING
+/* Sibling of timproc_uso_b5_func_00003ED8 — same vtable-call wrapper. MATCHED.
+ * Was 94.12% NM with a trailing orphan `lw t8, 0x23C(a0)` that splat
+ * mis-attributed to this function's range (it is the dead boundary word
+ * between this fn's epilogue and successor func_00003F5C, which does not use
+ * t8). Fixed PROPERLY (replacing the banned SUFFIX_BYTES splice) by a splat
+ * boundary correction: shrank this .s to 16 insns (0x40) and moved the orphan
+ * word into func_00003F5C.s as its leading word. ROM byte sequence preserved
+ * (16+18 = 34 words); 00003F18 now C-emits exactly its 16 real insns. */
 void timproc_uso_b5_func_00003F18(char *a0) {
     char *v;
     gl_func_00000000(a0 + 0x194);
     v = *(char**)(a0 + 0x28);
     (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F18);
-#endif
 
 #ifdef NON_MATCHING
 /* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. Byte-correct via 3-knob recipe
