@@ -21831,16 +21831,15 @@ void game_libs_func_00042080(int a0, int a1) {
     *(int *)((char *)&D_00000000 + 0x3C160) = a1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042090);
-
-/* gl_func_00042098: prologue-stolen successor (PROLOGUE_STEALS=8).
- * Predecessor (gl_func_00041F90) tail ends with `lui t6, 0; lw t6, 0x20(t6)`
- * — those 2 insns belong to THIS function's prologue, preloading t6 from
- * D[0x20]. C emits the same lui+lw at start; splice strips the redundant 8. */
+/* gl_func_00042098: boundary-corrected. The 2-word orphan
+ * game_libs_func_00042090 (`lui t6, 0; lw t6, 0x20(t6)`) was a splat
+ * mis-split of THIS function's prologue (it preloads t6 from D[0x20]);
+ * merged back into gl_func_00042098.s (size 0x50 -> 0x58, words prepended
+ * at 0x42090/0x42094). C emits the same lui+lw at the start, so the merged
+ * boundary matches byte-for-byte. */
 extern int gl_data_42098_msgA;
 extern int gl_data_42098_msgB;
 
-#ifdef NON_MATCHING
 int gl_func_00042098(void *a0) {
     int t6_val = *(int*)((char*)&gl_data_00000000 + 0x20);
     if (a0 != 0) {
@@ -21851,9 +21850,6 @@ int gl_func_00042098(void *a0) {
     *(void**)((char*)&gl_data_00000000 + 0x20) = a0;
     return t6_val;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042098);
-#endif
 
 /* game_libs_func_000420E8: 3-insn leaf getter. Split off from
  * gl_func_00042098 via split-fragments.py 2026-05-17 (was a trailing
