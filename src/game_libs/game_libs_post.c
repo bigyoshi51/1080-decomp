@@ -34938,20 +34938,15 @@ void gl_func_00066794(char *dst, char *src, unsigned int count) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066794);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066808);
 #endif
-
-#ifdef NON_MATCHING
+/* game_libs_func_00066808 (2-word splat mis-split: lui t6,0; lw t6,0(t6)) was
+ * the stolen prologue of gl_func_00066810 — forward-merged into it. */
 void gl_func_00066810(int a0) {
     int v0 = (*(int(**)())((char*)*(void**)&D_00000000 + 0x40))();
     if (v0 < 0) {
         gl_func_00000000((char*)&D_00000000 + 0x20F0, a0, v0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066810);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066850);
 
