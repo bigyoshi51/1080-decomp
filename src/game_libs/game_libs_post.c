@@ -7717,22 +7717,21 @@ void gl_func_0002A4D0(volatile unsigned char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A4D0);
 #endif
 
-/* gl_func_0002A50C: 20-insn obj-deinit helper. Looks up obj_ptr at
- * a0[a1].field_0x50, if non-NULL: calls gl_func(&D_0+0x5368, obj+0x70),
- * gl_func(obj), and clears a0[a1].field_0x50 to NULL. */
-#ifdef NON_MATCHING
-void gl_func_0002A50C(int *a0, int a1) {
-    int *obj_slot = (int*)((char*)a0 + a1 * 4);
-    int *obj = (int*)obj_slot[0x50/4];
+/* gl_func_0002A50C: obj-deinit helper. obj = a0[a1].field_0x50 (slot = a0 + a1*4,
+ * field at +0x50); if non-NULL: gl_func(&D_0+0x5368, obj+0x70), gl_func(obj), then
+ * clear the slot to NULL.
+ * MATCH: indexing a0 as int** with element index (a1 + 0x14)  [0x14 = 0x50/4]
+ * makes IDO pack the two pointer spills tightly (frame -0x20); the char*-pointer-
+ * arithmetic form (a0 + a1*4) left a 4-byte spill gap (-0x28). Array-index vs
+ * char*-arith changes spill-slot frame packing. Byte-exact (80 bytes). */
+void gl_func_0002A50C(int **a0, int a1) {
+    int *obj = a0[a1 + 0x14];
     if (obj != 0) {
         gl_func_00000000((char*)&D_00000000 + 0x5368, (char*)obj + 0x70);
         gl_func_00000000(obj);
-        obj_slot[0x50/4] = 0;
+        a0[a1 + 0x14] = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A50C);
-#endif
 
 // gl_func_0002A55C — STRUCTURAL PASS (0x164 / 89 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
