@@ -1987,36 +1987,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DD44);
  * Same shape as DE30 form (inlined dispatch + pad_top[2]/pad_bot[4] frame
  * sizing), local = 0x3EA. INSN_PATCH on the same 4 reg-rename insns at
  * 0x24/0x2C/0x34/0x3C makes build/.o byte-equal to expected/.o post-cc. */
-#ifdef NON_MATCHING
+/* 20-insn indirect dispatcher (sibling of DE30/DE80/DED0). See gl_func_0000DE30
+ * for the fptr-from-q[0x2C] data flow + the alloc-nudge (empty if + hoist). */
 void gl_func_0000DDE0(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3EA;
-    int pad_bot[4];
+    int pad_bot[2];
+    char *off28;
     int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
-    ((void(*)(int, int*))p[0x2C/4])(
-        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
+    int *q = (int *)p[0x28/4];
+    off28 = (char*)q + 0x28;
+    if (q) {}
+    ((void(*)(int, int*))q[0x2C/4])(*(short*)off28 + (int)p, &local);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DDE0);
-#endif
 
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DDE0/0003CB2C).
  * 16/20 insns match from C emit; remaining 4-insn diff is a register-shift
  * (v0/t0/t1 ↔ v1/v0/t0) that no C-level lever inside this function
  * reproduces. INSN_PATCH on the 4 reg-shift insns @0x24/0x2C/0x34/0x3C
  * makes build/.o byte-equal to expected/.o post-cc. */
-#ifdef NON_MATCHING
+/* 20-insn indirect dispatcher. p = a0[0x44][a1*96]; q = p[0x28];
+ * fptr = q[0x2C]; fptr((short)(q+0x28) + p, &local). The empty `if (q)`
+ * + hoisted short-address are register-allocation nudges (permuter-found)
+ * that put p in $v1 / q in $v0 to match; both are semantically transparent. */
 void gl_func_0000DE30(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3EB;
-    int pad_bot[4];
+    int pad_bot[2];
+    char *off28;
     int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
-    ((void(*)(int, int*))p[0x2C/4])(
-        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
+    int *q = (int *)p[0x28/4];
+    off28 = (char*)q + 0x28;
+    if (q) {}
+    ((void(*)(int, int*))q[0x2C/4])(*(short*)off28 + (int)p, &local);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
-#endif
 
 /* Sibling of gl_func_0000DDE0/0000DE30/0003CB2C (20-insn indirect dispatcher).
  * local = 0x3EC; otherwise byte-identical to DE30. Same INSN_PATCH recipe:
@@ -2024,36 +2028,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE30);
  * to match expected. (The 0x30 word coincidentally byte-matches due to
  * register-rename + same instruction word; runtime semantics flip when the
  * patched 0x2C insn redefines $v0 = p[0x28] before 0x30 reads it.) */
-#ifdef NON_MATCHING
+/* 20-insn indirect dispatcher (sibling of DDE0/DE30/DED0). See gl_func_0000DE30. */
 void gl_func_0000DE80(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3EC;
-    int pad_bot[4];
+    int pad_bot[2];
+    char *off28;
     int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
-    ((void(*)(int, int*))p[0x2C/4])(
-        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
+    int *q = (int *)p[0x28/4];
+    off28 = (char*)q + 0x28;
+    if (q) {}
+    ((void(*)(int, int*))q[0x2C/4])(*(short*)off28 + (int)p, &local);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DE80);
-#endif
 
 /* Sibling of gl_func_0000DDE0/DE30/DE80/0003CB2C (20-insn indirect dispatcher).
  * local = 0x3E9; otherwise byte-identical to DE30/DE80. Same INSN_PATCH recipe:
  * 4 reg-rename diffs at offsets 0x24/0x2C/0x34/0x3C are post-cc patched to
  * match expected. (See DE80 for the byte-identical-bytes-different-semantics
  * mechanism at offset 0x30.) */
-#ifdef NON_MATCHING
+/* 20-insn indirect dispatcher (sibling of DDE0/DE30/DE80). See gl_func_0000DE30. */
 void gl_func_0000DED0(int **a0, int a1) {
     int pad_top[2];
     int local = 0x3E9;
-    int pad_bot[4];
+    int pad_bot[2];
+    char *off28;
     int *p = *(int**)((char*)a0[0x44/4] + a1 * 96);
-    ((void(*)(int, int*))p[0x2C/4])(
-        (int)p + *(short*)((char*)p[0x28/4] + 0x28), &local);
+    int *q = (int *)p[0x28/4];
+    off28 = (char*)q + 0x28;
+    if (q) {}
+    ((void(*)(int, int*))q[0x2C/4])(*(short*)off28 + (int)p, &local);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DED0);
-#endif
 
 int gl_func_0000DF20_inner(int a0, int a1);
 
