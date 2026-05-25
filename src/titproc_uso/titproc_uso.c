@@ -79,7 +79,9 @@ void titproc_uso_func_00000194(void) {
 
 extern char D_000001E4_A;
 
-#ifdef NON_MATCHING
+/* MATCHED via pad-sidecar/orphan boundary correction: leading `lui v0,0; addiu
+ * v0,0` (&D base) was the separate fake-fn func_000001DC; merged into this fn's
+ * .s (0x4C->0x54, starts 0x1DC), orphan-fn + its INCLUDE_ASM removed. */
 void titproc_uso_func_000001E4(void) {
     *(int*)((char*)&D_00000000 + 0x34) = 4;
     *(int*)((char*)&D_00000000 + 0x40) = 0;
@@ -87,9 +89,6 @@ void titproc_uso_func_000001E4(void) {
     gl_func_00000000(12, 1);
     gl_func_00000000(*(int*)((char*)&D_000001E4_A + 0xA8), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000001E4);
-#endif
 
 extern char D_00000230_A;
 
@@ -1271,5 +1270,5 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002A1
  * 0x16E8). C-emit-absorbed variant per docs/MATCHING_WORKFLOW.md. */
 
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C60);
-
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000001DC);
+/* titproc_uso_func_000001DC (2-word orphan: lui v0,0; addiu v0,0) was the stolen
+ * prologue of func_000001E4 — forward-merged into it (orphan-fn removed). */
