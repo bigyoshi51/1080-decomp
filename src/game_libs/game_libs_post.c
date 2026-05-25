@@ -30483,35 +30483,30 @@ int gl_func_0005B764(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B764);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0005B848: sibling of gl_func_0005B764 (same float-format-log
    family). Header-log(&D_00000000+0x21A44) first, then s0=a0->4;
    while (s0 != a0): v=(*s0 & 0xFFFFFF)<<4; f=(float)(unsigned)v/1024;
    log(&D_00000000+0x21A50, s0, (double)f, v); s0=s0->4. void, no count.
-   DEFERRED: same medium FP+sreg cap as gl_func_0005B764 — bnel-likely
-   back-edge (loop-top lw in delay slot), f20=1024.0 / 0x4F800000=2^32
-   const order, $s0-$s3 pinning (a0->$s1), float->double mfc1 pair for
-   the %f arg, plus a stack-spilled 5th int arg (raw v at sp+0x10).
-   Next pass: resolve the two distinct jal relocs (header vs loop body)
-   and grind the sreg/FP-const schedule alongside its 0005B764 twin. */
+   Matched 2026-05-25: the residual mul.s/0x3A80 vs div.s/0x4480 was the
+   literal-/1024.0f -> reciprocal fold; a function-scope named divisor
+   (float d = 1024.0f; v/d) emits div.s (see gl_func_0005B764 twin and
+   docs/IDO_CODEGEN.md feedback-ido-div-2-mul-fold). */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0005B848(int *a0) {
     int *s0;
+    float d = 1024.0f; /* named divisor -> div.s (literal /1024.0f folds to *recip, mul.s) */
     gl_func_00000000((char *)&D_00000000 + 0x21A44);
     s0 = (int *)a0[1];
     if (s0 != a0) {
         do {
             unsigned v = ((unsigned)*s0 & 0xFFFFFF) << 4;
-            float f = (float)v / 1024.0f;
+            float f = (float)v / d;
             gl_func_00000000((char *)&D_00000000 + 0x21A50, s0, (double)f, v);
             s0 = (int *)s0[1];
         } while (s0 != a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B848);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B90C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0005B90C_pad.s")
