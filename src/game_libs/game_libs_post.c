@@ -32906,9 +32906,9 @@ void gl_func_00061E1C(int *dst) {
 extern int gl_ref_0003F020;
 extern int gl_ref_00022038;
 int gl_func_00061E58(int arg0) {
-    gl_func_00000000(&gl_ref_0003F020, &gl_ref_00022038,
+    gl_func_00000000((char *)&D_00000000 + 0x3F020, (char *)&D_00000000 + 0x22038,
                      (arg0 >> 16) & 0xFFFF, arg0 & 0xFFFF);
-    return (int)&gl_ref_0003F020;
+    return (int)((char *)&D_00000000 + 0x3F020);
 }
 
 #ifdef NON_MATCHING
