@@ -256,19 +256,14 @@ void timproc_uso_b3_func_00000790(void) {
     *(int*)((char*)&D_00000000 + 0x44) = 2;
     gl_func_00000000(D_state_b3_790, -1, 0);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_00000790_pad.s")
-
-/* Chain sibling: t7=3. */
+/* Chain sibling: t7=3. MATCHED via pad-sidecar boundary correction (orphan
+ * moved from func_00000790's pad into this fn's .s; 0x3C->0x44, starts 0x7CC). */
 extern int D_state_b3_7D4;
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_000007D4(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 3;
     gl_func_00000000(D_state_b3_7D4, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000007D4);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000007D4_pad.s")
 
 /* Prologue-stolen successor: predecessor func_000007D4's tail has lui+addiu
