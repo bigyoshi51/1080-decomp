@@ -2782,14 +2782,46 @@ void game_uso_func_000041C0(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000041C0);
 #endif
 
-/* game_uso_func_000043D8: 60-insn cell-walk + FPU nearest-select (merged,
- * see 41C0 split). Walk {value@0,next@4} list from a0->0x10; for each
- * node n != a2: d = a1->0x8 - n->0x38; if (d<0) { if (fmax<d){v1=n;
- * fmax=d;} } else { if (d<fmin){v0=n; fmin=d;} } fmin=D[0x94],
- * fmax=D[0x98] init. return v0 ? v0 : v1.
- * No-call same-base cell-walk → reload-CSE cap class (DDC0/120C family).
- * USO: data -> &D_00000000+off. */
+/* game_uso_func_000043D8: 60-insn cell-walk + FPU nearest-select. Walk the
+ * {value@0, next@4} cell list from a0->0x10; for each value n != a2 compute
+ * d = a1->0x8 - n->0x38 and track the nearest-below (largest d<0 -> v1/fmax)
+ * and nearest-above (smallest d>=0 -> v0/fmin), seeded from D[0x94]/D[0x98].
+ * Return v0 ? v0 : v1.
+ * NON_MATCHING cap: no-call same-base cell-walk = reload-CSE class (the dual
+ * sp-slot cursor + branch-likely select aren't C-reproducible) AND the f0/f2
+ * seeds load from the USO FP literal pool (mis-attributed by splat). Real C
+ * body below (un-bailed from doc-comment per docs/IDO_CODEGEN); INCLUDE_ASM is
+ * the byte-exact build path. */
+#ifdef NON_MATCHING
+void *game_uso_func_000043D8(int **a0, int *a1, void *a2) {
+    float fmin = *(float *)((char *)&D_00000000 + 0x94);
+    float fmax = *(float *)((char *)&D_00000000 + 0x98);
+    void *v0 = 0;
+    void *v1 = 0;
+    int *head = a0[4]; /* a0->0x10 */
+    int *cur = (head != 0) ? (int *)head[0] : 0;
+    int *nextcell = (head != 0) ? (int *)head[1] : 0;
+    while (cur != 0) {
+        if ((void *)cur != a2) {
+            float d = *(float *)((char *)a1 + 8) - *(float *)((char *)cur + 0x38);
+            if (d < 0.0f) {
+                if (fmax < d) { v1 = cur; fmax = d; }
+            } else {
+                if (d < fmin) { v0 = cur; fmin = d; }
+            }
+        }
+        if (nextcell != 0) {
+            cur = (int *)nextcell[0];
+            nextcell = (int *)nextcell[1];
+        } else {
+            cur = 0;
+        }
+    }
+    return v0 ? v0 : v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000043D8);
+#endif
 
 void game_uso_func_000044C8(char *a0) {
     game_uso_func_00000000(a0);
