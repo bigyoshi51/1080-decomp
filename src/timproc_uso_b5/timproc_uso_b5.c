@@ -3082,19 +3082,15 @@ int timproc_uso_b5_func_00008A90(int *a0) {
     return *(int *)(*(int *)((char *)a0 + *(int *)((char *)a0 + 0x3C4) * 4 + 0x3E0) * 4 + *(int *)(*(int *)((char *)a0 + 0x3C4) * 4 + *(int *)((char *)a0 + 0x40C) + 0x40) + 0x3C);
 }
 
-// copy a0[idx*4+0x3D0] → a0[idx*4+0x3E0], idx = a0->0x3C4. Faithful decode,
-// all 6 registers match; the scaled-index addu emits index-first (addu v0,t7,a0)
-// but the target wants base-first (addu v0,a0,t7) — commutative-operand-order
-// only, IDO won't flip it via C, so patched 1/6 (well under the <=half
-// episode-fidelity threshold) per docs/POST_CC_RECIPES.md.
-#ifdef NON_MATCHING
+// copy a0[idx*4+0x3D0] -> a0[idx*4+0x3E0], idx = a0->0x3C4.
+// MATCH: the FULLY-array-index form a0[idx + 0xF8] = a0[idx + 0xF4] (offsets as
+// element counts: 0x3E0/4, 0x3D0/4) makes IDO CSE the a0+idx*4 base ONCE and emit
+// the addu base-first (addu v0,a0,t7) with the target's t6/t7/v0/t8 registers.
+// The &a0[idx] + char*-offset form emitted index-first addu (was INSN_PATCH'd,
+// banned 2026-05-23). See docs/IDO_CODEGEN.md#feedback-ido-indexed-double-deref-allt-cap.
 void timproc_uso_b5_func_00008ABC(int *a0) {
-    int *p = &a0[a0[0x3C4 / 4]];
-    *(int *)((char *)p + 0x3E0) = *(int *)((char *)p + 0x3D0);
+    a0[a0[0x3C4 / 4] + 0x3E0 / 4] = a0[a0[0x3C4 / 4] + 0x3D0 / 4];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008ABC);
-#endif
 
 /* timproc_uso_b5_func_00008AD4: double-indexed double-deref accessor. Same
  * addu operand-order lever (scaled index FIRST, fully inlined). */
