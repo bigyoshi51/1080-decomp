@@ -19,6 +19,7 @@ typedef struct { int a, b; } Pair2;
  * together (as args) to gl_func_00000000 across several wraps. game_uso D+0xE10.
  */
 #define GAME_D_E10 (*(int*)((char*)&D_00000000 + 0xE10))
+#define GAME_D_E14 (*(int*)((char*)&D_00000000 + 0xE14))
 #endif
 
 #ifdef NON_MATCHING
@@ -11658,7 +11659,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FEC8);
 void game_uso_func_0000FF48(char *a0) {
     if (*(int*)(*(int**)(a0 + 0xB4) + 0x938 / 4) != 0) {
         gl_func_00000000(a0, 0x30001, 6, 1, 1, 1);
-        gl_func_00000000(a0, GAME_D_E10, *(int*)((char*)&D_00000000 + 0xE14), 1);
+        gl_func_00000000(a0, GAME_D_E10, GAME_D_E14, 1);
     }
 }
 #else
@@ -12304,7 +12305,7 @@ void game_uso_func_00010BAC(char *a0) {
 
     if (*(int*)(a0 + 0xD8) == 0) {
         gl_func_00000000(a0, GAME_D_E10,
-                         *(int*)((char*)&D_00000000 + 0xE14));
+                         GAME_D_E14);
     }
 
     sub = *(char**)(a0 + 0xB4);
@@ -12332,7 +12333,7 @@ void game_uso_func_00010C4C(char *a0) {
     sub = *(char**)(a0 + 0xB4);
     if (*(int*)(sub + 0x9CC) == 0) {
         gl_func_00000000(a0, GAME_D_E10,
-                         *(int*)((char*)&D_00000000 + 0xE14));
+                         GAME_D_E14);
     }
 }
 #else
@@ -12481,7 +12482,7 @@ void game_uso_func_00011024(int *a0) {
     *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF4C);
     *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
     gl_func_00000000(a0, GAME_D_E10,
-                     *(int*)((char*)&D_00000000 + 0xE14));
+                     GAME_D_E14);
     gl_func_00000000(a0);
     p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)p_B4 + 0x960) = 0x64;
@@ -12501,7 +12502,7 @@ void game_uso_func_000110A4(int *a0) {
     *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF24);
     *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
     gl_func_00000000(a0, GAME_D_E10,
-                     *(int*)((char*)&D_00000000 + 0xE14));
+                     GAME_D_E14);
     gl_func_00000000(a0);
     p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)p_B4 + 0x960) = 0x64;
