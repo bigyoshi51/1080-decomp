@@ -39152,7 +39152,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070040);
  * double-branch-to-epilogue, whereas IDO -O0 of `return out & 0x1F` (int return)
  * emits an in-place andi + a redundant double `b epilogue`. uchar return type and
  * separate-statement out-updates both REGRESS. This last -O0 return-codegen insn
- * needs more reverse-engineering before the carve is worth wiring up. */
+ * needs more reverse-engineering before the carve is worth wiring up.
+ * 2026-05-25 (cont.): the residual is specifically a redundant double
+ * `b epilogue` in the return path (IDO -O0 routes the return through a
+ * separate epilogue block + a dead second branch, vs the target's inline
+ * epilogue). FAILED to remove via C surface changes: do-while loop (184),
+ * `(out&0x1f)&0xff` double-mask return (184), uchar return type (184),
+ * separate-statement out-updates (188). Best remains unsigned-char-out +
+ * single-expr + for-loop + `return out&0x1F` (180, 1 insn). Closing this
+ * likely needs the permuter at -O0 (which needs the carve first) — a
+ * focused-session task, not a 60s tick. */
 int gl_func_00070194(int a0) {
     unsigned char out;
     int i;
