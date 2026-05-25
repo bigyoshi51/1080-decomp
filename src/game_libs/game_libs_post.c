@@ -27850,7 +27850,9 @@ void gl_func_000517B8(int *a0, int a1) {
     gl_func_00000000((char*)&D_00000000 + 0x20EB4, a1, a0[1], a0);
 }
 
-#ifdef NON_MATCHING
+/* game_libs_func_000517E4: struct-init/zero. a0->0x44 = &D + 0x20EBC (a SYMBOL
+ * ref -> lui 0x2; addiu 0xEBC, not a literal which gives lui; ori). Decode the
+ * symbol (docs/IDO_CODEGEN.md#feedback-return-const-lui-addiu-vs-lui-ori). Byte-exact. */
 void game_libs_func_000517E4(int *a0) {
     a0[0x48 / 4] = 0;
     a0[0x58 / 4] = 0;
@@ -27867,7 +27869,7 @@ void game_libs_func_000517E4(int *a0) {
     a0[0x34 / 4] = 0;
     a0[0x3C / 4] = 0;
     a0[0x40 / 4] = 0;
-    a0[0x44 / 4] = 0x20EBC;
+    a0[0x44 / 4] = (int)((char *)&D_00000000 + 0x20EBC);
     *(char *)((char *)a0 + 0x32) = 0;
     *(short *)((char *)a0 + 0x30) = 0;
     *(float *)((char *)a0 + 0xC) = 0.0f;
@@ -27876,9 +27878,6 @@ void game_libs_func_000517E4(int *a0) {
     *(float *)((char *)a0 + 0x0) = 0.0f;
     *(float *)((char *)a0 + 0x10) = 1.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000517E4);
-#endif
 
 // gl_func_0005185C — STRUCTURAL PASS (0x148 / 82 words, no episode).
 // Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x28,
