@@ -118,6 +118,75 @@ def decode(d, data, size):
     return out
 
 
+def func_offset_size(objpath, func_name, objdump='mips-linux-gnu-objdump'):
+    """(.text offset, size) of func_name in a (possibly multi-function) .o via objdump -t.
+    Format: `<value> <flags> F .text <size> <name>` (function symbols carry the 'F' flag)."""
+    import subprocess
+    out = subprocess.run([objdump, '-t', objpath], capture_output=True, text=True).stdout
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) < 6 or parts[-1] != func_name or 'F' not in parts[1:4]:
+            continue
+        if '.text' not in parts:
+            continue
+        i = parts.index('.text')
+        return int(parts[0], 16), int(parts[i + 1], 16)
+    return None
+
+
+def validate_func(objpath, func_name, func_module_base, rom, module=0xD9FE28,
+                  objdump='mips-linux-gnu-objdump'):
+    """HONEST per-function USO match check: compare the COMPILER-EMITTED relocs for
+    func_name (from the project build .o) against the ROM TextReloc ground truth.
+
+    This is the gate objdiff CANNOT provide: `objdiff-cli report generate` is reloc-
+    NAME-BLIND (jal 0 == jal 0 for any undefined target) so it scores a WRONG USO call
+    target 100 just like the right one (docs/MATCHING_WORKFLOW.md#feedback-objdiff-
+    report-name-blind-vs-diff-name-aware). Target correctness lives ONLY in the ROM
+    reloc table. The C must reference targets as `usosym_<symIdx>` (or real names mapped
+    to symIdx upstream) so symIdx is recoverable; collapsed placeholders
+    (gl_func_00000000 / D_00000000) carry no symIdx and FAIL this check by design.
+
+    Pair with the land-script `.text` byte_verify (placeholders are byte-exact when
+    usosym=0 -> jal 0 / lui 0). Both passing == a genuine USO match.
+    Returns (ok, c_entries, rom_entries, diag); entries are sorted (mod_off, kind, symIdx)."""
+    import subprocess
+    fo = func_offset_size(objpath, func_name, objdump)
+    if fo is None:
+        return False, [], [], f'{func_name} not found in {objpath} symtab (.text/F)'
+    o_off, size = fo
+    out = subprocess.run([objdump, '-r', objpath], capture_output=True, text=True).stdout
+    c, placeholders = [], []
+    for line in out.splitlines():
+        m = ELF_RE.match(line)
+        if not m:
+            continue
+        roff, typ, sym = int(m.group(1), 16), m.group(2), m.group(3)
+        if not (o_off <= roff < o_off + size):
+            continue
+        kind = ELF_NAME_TO_KIND.get(typ)
+        if kind is None:
+            continue
+        mod_off = func_module_base + (roff - o_off)
+        if sym.startswith('usosym_'):
+            c.append((mod_off, kind, int(sym.split('_')[1])))
+        else:
+            c.append((mod_off, kind, None))
+            placeholders.append((hex(mod_off), sym))
+    d = open(rom, 'rb').read()
+    data, ssize = walk_dir(d, module)[2]
+    rom_e = sorted((off, kind, sidx) for sidx, kind, off in decode(d, data, ssize)
+                   if func_module_base <= off < func_module_base + size)
+    c.sort()
+    ok = (c == rom_e) and not placeholders
+    diag = ''
+    if placeholders:
+        diag = f'C uses non-symIdx placeholder target(s) (no symIdx to validate): {placeholders}'
+    elif c != rom_e:
+        diag = f'reloc set differs: C={c} ROM={rom_e}'
+    return ok, c, rom_e, diag
+
+
 def selftest(rom, mod):
     d = open(rom, 'rb').read()
     secs = walk_dir(d, mod)
@@ -140,7 +209,24 @@ if __name__ == '__main__':
     ap.add_argument('--rom', default='baserom.z64')
     ap.add_argument('--module', type=lambda x: int(x, 0), default=0xD9FE28,
                     help='ROM offset of the USO module (magic 0x12345678); bootup.uso=0xD9FE28')
+    ap.add_argument('--validate-func', metavar='NAME',
+                    help='HONEST per-fn USO match check: compare NAME\'s compiler relocs '
+                         '(--obj) to the ROM TextReloc ground truth (objdiff cannot)')
+    ap.add_argument('--obj', help='build .o containing --validate-func (e.g. build/src/.../<file>.c.o)')
+    ap.add_argument('--base', type=lambda x: int(x, 0),
+                    help='module-relative byte offset of the function '
+                         '(game_libs: name offset + 0x1466C shim)')
     a = ap.parse_args()
     if a.selftest:
         sys.exit(selftest(a.rom, a.module))
+    if a.validate_func:
+        if not a.obj or a.base is None:
+            sys.exit('--validate-func requires --obj and --base')
+        ok, c, rom_e, diag = validate_func(a.obj, a.validate_func, a.base, a.rom, a.module)
+        kn = {1: 'R26', 2: 'LO16', 3: 'HI16'}
+        print(f'{a.validate_func} @ module+{a.base:#x} in {a.obj}')
+        print('  C-build relocs:', [(hex(o), kn[k], s) for o, k, s in c])
+        print('  ROM    relocs:', [(hex(o), kn[k], s) for o, k, s in rom_e])
+        print(f'  => {"MATCH (honest USO target validation PASSED)" if ok else "MISMATCH: " + diag}')
+        sys.exit(0 if ok else 1)
     ap.print_help()
