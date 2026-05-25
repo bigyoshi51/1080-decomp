@@ -36986,10 +36986,14 @@ void gl_func_0006A5B0(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A5F0);
 
 #ifdef NON_MATCHING
-int game_libs_func_0006AD68(volatile int *a0) {
-    int x = *a0;
-    *a0 = *a0;
-    return x;
+/* game_libs_func_0006AD68: v0 = *a0; *a0 = *(int*)v0 (double-deref); return v0.
+ * Corrected from the prior *a0=*a0 mis-decode (asm derefs the loaded value:
+ * lw v0,0(a0); lw,0(v0); sw,0(a0)). Residual: the intermediate lands in $t6
+ * vs the target's $t9 -- a single-temp register-renumber cap (not C-reachable). */
+int game_libs_func_0006AD68(int *a0) {
+    int v0 = *a0;
+    *a0 = *(int *)v0;
+    return v0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD68);
