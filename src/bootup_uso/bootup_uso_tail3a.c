@@ -182,7 +182,83 @@ void func_00010B6C(char *a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010B6C);
 #endif
 
+/* func_00010C8C: -g3 object constructor (216 insns). Inits arg0's struct
+ * fields, builds a temp Vec4-ish stack record (sp6C) passed to a registrar
+ * call, allocates two 0x80 sub-objects (->0xC0/->0xC4), then a sub-record
+ * (->0x154) whose byte/halfword fields drive 4 callbacks + a global flag.
+ *
+ * Honestly NM: (1) sp6C.uC loads from the shared FP literal pool (splat
+ * misresolved the reloc to .text func_00000C10 @ module-offset 0xC10; see
+ * docs/N64_FORENSICS FP-pool fold) and (2) -g3 homed-arg/unfilled-delay
+ * codegen. Real C body documents the struct-field semantics; the build
+ * path stays INCLUDE_ASM (ROM exact). */
+#ifdef NON_MATCHING
+extern int *func_000000F0;
+extern char D_0000C5D0;
+extern char D_0000C5DC;
+extern char D_0000C5E4;
+extern char D_0000C5F0;
+extern float D_FP_POOL_0C10[];
+
+void func_00010C8C(int *arg0, int arg1) {
+    struct { int u0; float u4; float u8; float uC; } sp6C;
+    int *sp68, *sp84, *p, *c0, *c4, *sub;
+
+    *(int *)((char *)arg0 + 0xC) = (int)&D_0000C5D0;
+    *(int *)((char *)arg0 + 0x12C) = arg1;
+    sp68 = (int *)func_00000000(0);
+    p = (int *)&sp6C;
+    if ((p != 0) || (p = (int *)func_00000000(0x10), p != 0)) {
+        p[0] = 0;
+        *(float *)&p[1] = 0.0f;
+        *(float *)&p[2] = 0.0f;
+        *(float *)&p[3] = D_FP_POOL_0C10[3];
+    }
+    func_000000F0 = (int *)func_00000000(0, &D_0000C5DC, 0x10, 0x12C, 0x10, 0x14,
+                                         sp6C.u0, sp6C.u4, sp6C.u8, sp6C.uC);
+    func_00000000(sp68);
+    *(int *)((char *)arg0 + 0x130) = 0;
+    *(int *)((char *)arg0 + 0x2C) = 0;
+    *(int *)((char *)arg0 + 0x38) = 9;
+    *(int *)((char *)arg0 + 0x6C) = -1;
+    *(int *)((char *)arg0 + 0x70) = 0;
+    *(int *)((char *)arg0 + 0x13C) = 0;
+    sp84 = (int *)func_00000000(0);
+    func_00000000(0, &D_0000C5E4);
+    c0 = (int *)func_00000000(0x80);
+    if (c0 != 0) {
+        func_00000000(c0, 1);
+    }
+    *(int *)((char *)arg0 + 0xC0) = (int)c0;
+    c4 = (int *)func_00000000(0x80);
+    if (c4 != 0) {
+        func_00000000(c4, 2);
+    }
+    *(int *)((char *)arg0 + 0xC4) = (int)c4;
+    func_00000000(arg0);
+    *(int *)((char *)arg0 + 0x84) = 0;
+    *(int *)((char *)arg0 + 0x88) = 1;
+    *(int *)((char *)arg0 + 0x18C) = 0;
+    *(int *)((char *)arg0 + 0x134) = (int)func_00000000(0);
+    *(int *)((char *)arg0 + 0x190) = (int)func_00000000(0, 0);
+    *(int *)((char *)arg0 + 0x148) = (int)func_00000000(0);
+    sub = (int *)func_00000000(*(int *)((char *)arg0 + 0x148));
+    *(int *)((char *)arg0 + 0x154) = (int)sub;
+    func_00000000(*(unsigned char *)((char *)sub + 0x12));
+    func_00000000(*(unsigned char *)((char *)sub + 0x13));
+    func_00000000(*(unsigned char *)((char *)sub + 0x14));
+    func_00000000(*(unsigned short *)((char *)sub + 0x4) & 3);
+    *(int *)&D_00000000 = (*(unsigned short *)((char *)sub + 0x4) & 4) == 4;
+    *(int *)((char *)arg0 + 0x164) = *(int *)*(int *)((char *)arg0 + 0x148);
+    *(int *)((char *)arg0 + 0x160) =
+        (int)func_00000000(*(int *)((char *)arg0 + 0x164) << 2);
+    *(int *)((char *)arg0 + 0x150) = (int)func_00000000(0, &D_0000C5F0);
+    func_00000000(sp84);
+    func_00000000(arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010C8C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010FEC);
 
