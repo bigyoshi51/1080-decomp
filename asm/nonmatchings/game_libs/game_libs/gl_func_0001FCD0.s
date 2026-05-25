@@ -1,6 +1,8 @@
-nonmatching gl_func_0001FCD0, 0x50
+nonmatching gl_func_0001FCD0, 0x58
 
 glabel gl_func_0001FCD0
+    /* E04DA0 0001FCC8 3C0E0000 */  .word 0x3C0E0000
+    /* E04DA4 0001FCCC 8DCE2178 */  .word 0x8DCE2178
     /* E04DA8 0001FCD0 27BDFFE8 */  .word 0x27BDFFE8
     /* E04DAC 0001FCD4 AFBF0014 */  .word 0xAFBF0014
     /* E04DB0 0001FCD8 AFA40018 */  .word 0xAFA40018

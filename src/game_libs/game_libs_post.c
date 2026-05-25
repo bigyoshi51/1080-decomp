@@ -1488,13 +1488,16 @@ int gl_func_0001FC78(int *a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FC78);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FCC8);
 #endif
 
 extern int gl_func_00000000();
 
-#ifdef NON_MATCHING
+/* gl_func_0001FCD0: boundary-corrected (orphan-fn delete+merge). The 2-word
+ * orphan game_libs_func_0001FCC8 (`lui t6,0; lw t6,0x2178(t6)`) was a splat
+ * mis-split of THIS function's prologue — it loads *(int*)(&D+0x2178), which the
+ * C reads first (IDO emits it pre-prologue). Merged into gl_func_0001FCD0.s
+ * (0x50 -> 0x58); the NM-wrap C already compiled to build[2:]==expected, so the
+ * merge is byte-exact. */
 int gl_func_0001FCD0(int a0, int a1) {
     int v1 = 0;
     if (*(int*)((char*)&D_00000000 + 0x2178) != 0) {
@@ -1505,9 +1508,6 @@ int gl_func_0001FCD0(int a0, int a1) {
     }
     return v1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FCD0);
-#endif
 
 int gl_func_0001FD20(int a0, int a1) {
     int v = gl_func_00000000(a0);
