@@ -6544,23 +6544,14 @@ void game_uso_func_00007A98(void) {}
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
 #endif
 
-/* 4-insn body `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` — the cross-function
- * tail-share with 7A98 (beql lands at 7ABC+4) which IDO -O2 cannot reproduce
- * from any C source (22 prior variants exhausted; see git history).
- *
- * Promotion recipe (2026-05-05): empty `void f(void) {}` C body emits 2
- * insns (`jr ra; nop` = 8 bytes). PREFIX_BYTES injects 8 leading bytes
- * (`mtc1 $0,$f2; nop`) + INSN_PATCH at offset 0xC overwrites the trailing
- * nop with `mov.s $f0,$f2` (0x46001006). Result: 16 bytes matching expected.
- *
- * The C body is `void` but the function semantically returns float — the
- * post-cc recipe sets $f0 = $f2 = 0.0f at runtime. Type mismatch is
- * harmless: no in-tree callers (the function is reached via `beql` from
- * 7A98 and external callers declared as `float (void)` get the correct
- * $f0 value via the mov.s). Per feedback_land_script_accepts_byte_verify_
- * for_post_cc_recipes.md — byte-correctness against expected/ IS the gate. */
+/* 4-insn body `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` — returns 0.0f, but via
+ * a cross-function tail-share with 7A98 (beql lands at 7ABC+4). IDO -O2 cannot
+ * reproduce the via-$f2 form from any C source: `return 0.0f` always emits
+ * `mtc1 $0,$f0` directly (22+ variants exhausted). Genuine tail-share cap, kept
+ * INCLUDE_ASM (ROM bytes correct; no honest C match). The old PREFIX_BYTES +
+ * INSN_PATCH "promotion" was removed 2026-05-23 (match-faking, banned). */
 #ifdef NON_MATCHING
-void game_uso_func_00007ABC(void) {}
+float game_uso_func_00007ABC(void) { return 0.0f; }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
 #endif
