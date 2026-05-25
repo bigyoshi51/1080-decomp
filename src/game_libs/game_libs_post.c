@@ -30712,8 +30712,11 @@ void gl_func_0005C6C4(int a0, float *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C6C4);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0005C784: 35-insn Vec4-printf w/ cvt.d.s + post-banner (0x8C, frame 0x28).
+ * MATCHED 2026-05-24: after the s0<->s1 swap fix, the residual 2-insn preheader
+ * schedule diff was cracked by indexing src by the loop counter (no explicit
+ * pointer local) — `i` is then the only source IV (test + index) so it wins $s0
+ * and GCC strength-reduces the data pointer into $s1, matching the target.
  *
  * Decoded structure (raw-word disasm):
  *   func1(a0, src);                                  // header call
@@ -30734,21 +30737,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C6C4);
  */
 void gl_func_0005C784(int a0, float *src) {
     extern int D_00000000;
-    float *p;
     int i;
     gl_func_00000000(a0, src);
-    p = src;
     for (i = 0; i < 16; i += 4) {
-        gl_func_00000000((char*)&D_00000000 + 0x21B14, (double)*p);
-        p++;
+        gl_func_00000000((char*)&D_00000000 + 0x21B14, (double)*(float*)((char*)src + i));
     }
     gl_func_00000000((char*)&D_00000000 + 0x21B18);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C784);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C808);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C810);
 
