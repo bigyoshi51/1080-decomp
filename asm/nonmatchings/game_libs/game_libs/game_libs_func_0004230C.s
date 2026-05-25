@@ -1,4 +1,4 @@
-nonmatching game_libs_func_0004230C, 0x2C
+nonmatching game_libs_func_0004230C, 0x28
 
 glabel game_libs_func_0004230C
     /* E273E4 0004230C 00000000 */  .word 0x00000000
@@ -11,5 +11,4 @@ glabel game_libs_func_0004230C
     /* E27400 00042328 00000000 */  .word 0x00000000
     /* E27404 0004232C 00000000 */  .word 0x00000000
     /* E27408 00042330 00000000 */  .word 0x00000000
-    /* E2740C 00042334 44800000 */  .word 0x44800000
 endlabel game_libs_func_0004230C

@@ -22016,29 +22016,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000422AC);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004230C);
 #endif
 
-/* gl_func_00042338: 15-insn prologue-stolen successor of gl_func_000422AC.
- * Predecessor's final `mtc1 zero,$f0` is this function's stolen prologue.
+/* gl_func_00042338: 16-insn FP-zero-init wrapper. MATCHED.
  * Body: gl_func_00000000(&buf, 0.0f x7).
- *
- * Two coupled fixes to reach byte-exact:
- *  1. PROLOGUE_STEALS=4 strips the duplicate leading `mtc1 zero,$f0` that
- *     C emit would otherwise produce (post-cc recipe in POST_CC_RECIPES.md).
- *  2. ALIAS extern `gl_func_00000000_42338` (defined in undefined_syms_auto.txt
- *     as `= 0x00000000;`) lets us redeclare the callee with FLOAT-typed args
- *     in block scope without conflicting with the file-scope K&R
- *     `extern int gl_func_00000000()`. Typed prototype forces:
- *       (a) direct `jal` (vs lui+addiu+jalr indirect for fn-ptr cast)
- *       (b) FLOAT arg passing via swc1 (vs K&R double-promote via sdc1)
- *     Both required for byte-exact match. */
+ * Was 93.3% stolen-prologue near-miss: this fn's leading `mtc1 zero,$f0`
+ * (the f0=0.0f setup) was a trailing orphan in the predecessor padding region
+ * game_libs_func_0004230C (10 nops + the mtc1). Fixed PROPERLY (replacing the
+ * banned PROLOGUE_STEALS) by the mirror boundary correction: shrank 0004230C.s
+ * to its 10 padding nops (0x28), prepended the mtc1 to this fn's .s (now 16
+ * insns / 0x40, starts 0x42334). ROM bytes preserved.
+ * The ALIAS extern `gl_func_00000000_42338` (undefined_syms_auto.txt `= 0`,
+ * i.e. the placeholder resolving to 0) gives a FLOAT-typed prototype in block
+ * scope (without clashing with the file-scope K&R `gl_func_00000000`), forcing
+ * a direct `jal` + float args via swc1 (vs K&R double-promote). */
 extern void gl_func_00000000_42338(void*, float, float, float, float, float, float, float);
-#ifdef NON_MATCHING
 void gl_func_00042338(void) {
     int local[16];
     gl_func_00000000_42338(local, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042338);
-#endif
 
 /* game_libs_func_00042374: 25-insn nested-loop ushort grid fill (0xFFFF).
  * base=*(D+0x240); v0=*(base[0x148]+a0*4+0xF4); for(a1=100;a1!=300;a1+=2){
