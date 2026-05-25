@@ -9655,15 +9655,14 @@ void game_uso_func_0000D5BC(char *a0, int a1, int a2) {
     *(Pair2*)(a0 + 0xC8) = *(Pair2*)&a1;
 }
 
-#ifdef NON_MATCHING
+/* Copy the adjacent global pair D+0xDC8/0xDCC to adjacent a0->0xC8/0xCC.
+ * MATCH: struct-copy lever (*(Pair2*)(a0+0xC8) = *(Pair2*)(&D+0xDC8)) emits
+ * lw/sw/lw/sw via the &D pointer in the target's $t order; separate field copies
+ * gave the wrong $t order. Same lever as D438/D5BC (here the source is a global).
+ * Byte-exact (in-tree verified). */
 void game_uso_func_0000D5DC(char *a0) {
-    int *p = (int*)((char*)&D_00000000 + 0xDC8);
-    *(int*)(a0 + 0xC8) = p[0];
-    *(int*)(a0 + 0xCC) = p[1];
+    *(Pair2*)(a0 + 0xC8) = *(Pair2*)((char*)&D_00000000 + 0xDC8);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5DC);
-#endif
 
 #ifdef NON_MATCHING
 /* Varargs (&a1) sink: if a3==-1 set a0->0x68=a3 else a0->0x64=a3; then copy the
