@@ -30792,7 +30792,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CCF4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
 
+#ifdef NON_MATCHING
+/* gl_func_0005D054: quaternion (Hamilton) product a2 = a0 * a1 (x,y,z,w at
+ * offsets 0,4,8,12). RELOC-FREE -O2; this C is STRUCTURALLY EXACT (56/56 insns)
+ * with only ~14 FP register-allocation/scheduling diffs -> permuter target.
+ * NM until the reg-alloc is cracked. */
+void gl_func_0005D054(float *a0, float *a1, float *a2) {
+    float w = a0[3] * a1[3] - a0[0] * a1[0] - a0[1] * a1[1] - a0[2] * a1[2];
+    float x = a0[3] * a1[0] + a0[0] * a1[3] + a0[1] * a1[2] - a0[2] * a1[1];
+    float y = a0[3] * a1[1] + a0[1] * a1[3] + a0[2] * a1[0] - a0[0] * a1[2];
+    float z = a0[3] * a1[2] + a0[2] * a1[3] + a0[0] * a1[1] - a0[1] * a1[0];
+    a2[0] = x;
+    a2[1] = y;
+    a2[3] = w;
+    a2[2] = z;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D054);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D134);
 
