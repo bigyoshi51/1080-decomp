@@ -30463,10 +30463,11 @@ extern int D_00000000;
 int gl_func_0005B764(int *a0, int a1) {
     int *s0 = (int *)a0[1];
     int count = 0;
+    float d = 1024.0f; /* named divisor -> div.s (a literal /1024.0f folds to *recip, mul.s) */
     if (s0 != a0) {
         do {
             unsigned v = ((unsigned)*s0 & 0xFFFFFF) << 4;
-            float f = (float)v / 1024.0f;
+            float f = (float)v / d;
             gl_func_00000000(a1, (char *)&D_00000000 + 0x21A38, (double)f);
             s0 = (int *)s0[1];
             count++;
