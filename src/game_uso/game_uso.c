@@ -13,6 +13,15 @@ typedef struct { int a, b, c, d; } Quad4;
 typedef struct { int a, b; } Pair2;
 
 #ifdef NON_MATCHING
+/* Macro definitions for NM-wrap bodies. Auto-managed by /struct-name-tick.
+ * Default build never sees these — wrap bodies aren't compiled.
+ * GAME_D_E10: first int of the (0xE10,0xE14) global value pair passed
+ * together (as args) to gl_func_00000000 across several wraps. game_uso D+0xE10.
+ */
+#define GAME_D_E10 (*(int*)((char*)&D_00000000 + 0xE10))
+#endif
+
+#ifdef NON_MATCHING
 /* Cubic B-spline basis evaluator. Computes 4 weights for parameter t
  * (passed in $a1, moved to $f12), writes to out[0..3]. D_00000000 = 1/6.
  *   out[0] = D * (1-t)^3              ; B0(t)
@@ -11649,7 +11658,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FEC8);
 void game_uso_func_0000FF48(char *a0) {
     if (*(int*)(*(int**)(a0 + 0xB4) + 0x938 / 4) != 0) {
         gl_func_00000000(a0, 0x30001, 6, 1, 1, 1);
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10), *(int*)((char*)&D_00000000 + 0xE14), 1);
+        gl_func_00000000(a0, GAME_D_E10, *(int*)((char*)&D_00000000 + 0xE14), 1);
     }
 }
 #else
@@ -12294,7 +12303,7 @@ void game_uso_func_00010BAC(char *a0) {
     gl_func_00000000(a0, state | 7, state | 6, *(int*)(sub + 0xA04), 0, 1);
 
     if (*(int*)(a0 + 0xD8) == 0) {
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10),
+        gl_func_00000000(a0, GAME_D_E10,
                          *(int*)((char*)&D_00000000 + 0xE14));
     }
 
@@ -12322,7 +12331,7 @@ void game_uso_func_00010C4C(char *a0) {
 
     sub = *(char**)(a0 + 0xB4);
     if (*(int*)(sub + 0x9CC) == 0) {
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10),
+        gl_func_00000000(a0, GAME_D_E10,
                          *(int*)((char*)&D_00000000 + 0xE14));
     }
 }
@@ -12471,7 +12480,7 @@ void game_uso_func_00011024(int *a0) {
     *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF48);
     *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF4C);
     *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
-    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10),
+    gl_func_00000000(a0, GAME_D_E10,
                      *(int*)((char*)&D_00000000 + 0xE14));
     gl_func_00000000(a0);
     p_B4 = *(int **)((char*)a0 + 0xB4);
@@ -12491,7 +12500,7 @@ void game_uso_func_000110A4(int *a0) {
     *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF20);
     *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF24);
     *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
-    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE10),
+    gl_func_00000000(a0, GAME_D_E10,
                      *(int*)((char*)&D_00000000 + 0xE14));
     gl_func_00000000(a0);
     p_B4 = *(int **)((char*)a0 + 0xB4);
