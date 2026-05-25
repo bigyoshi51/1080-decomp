@@ -4651,15 +4651,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * builder. Computes &D[0x1C0] + idx*24 where idx = a0->[0x1AC] and
  * passes it as the 5th arg, with 0xFF as the 6th.
  *
- * Promoted from 96.3% NM-wrap to byte-exact via INSN_PATCH 4 insns at
- * 0x30/0x3C/0x40/0x48 to override the leaf-function regalloc cap (idx
- * chain in v0/t6/t7/t8 vs target's t6/t7/t8/t9). The patched offsets
- * have no relocations (pure R-type/li/sw with constant immediates), so
- * INSN_PATCH applies cleanly.
+ * 2026-05-24: the regalloc cap (idx-chain result in $v0 vs target's $t9,
+ * cascading 0xFF $t9→$t0) is now cracked with LEGITIMATE C — inlining the
+ * 5th-arg pointer expression into the call (no named `char *p` local)
+ * makes IDO continue the temp sequence t6/t7/t8/$t9 instead of grabbing
+ * $v0 for the named local. This REPLACES the prior INSN_PATCH (banned
+ * 2026-05-23). Build now has 0 real diffs vs expected.
  *
- * Match keys retained from 96.3% pass:
- * - `extern char D_timb5_1C0;` collapses target's two-addiu split into
- *   the single `addiu t8, t8, 0x1C0` form via R_MIPS_LO16 reloc.
+ * NOT yet episode-able: the sole residual is the reloc-blind `addiu t8,
+ * t8,0x1C0` — `&D_timb5_1C0` is an R_MIPS_LO16 reloc (build .o = `addiu 0`,
+ * expected .o = baked 0x1C0). The land script's byte_verify is a raw
+ * .text compare (not reloc-aware) and objdiff counts it (99.13%). The
+ * `&D_00000000 + 0x1C0` baked form does NOT work here — it splits the
+ * symbol materialization into 3 insns (base + 0x1C0-folded-into-idx)
+ * vs the target's 2-insn single-symbol form. So the symbol reloc is
+ * REQUIRED for correct codegen; this becomes an automatic episode once
+ * the spimdisasm USO-reloc migration makes expected/ reloc-aware.
  * - IDO -O2 natural unused-arg-save handles a1/a2/a3 caller-slot spills
  *   since the function has a jal. */
 extern int gl_func_00000000();
@@ -4667,8 +4674,7 @@ extern char D_timb5_1C0;
 
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
-    char *p = &D_timb5_1C0 + a0[0x1AC/4] * 24;
-    gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, p, 0xFF);
+    gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, &D_timb5_1C0 + a0[0x1AC/4] * 24, 0xFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
