@@ -32518,7 +32518,6 @@ char *game_libs_func_0006110C(char *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006110C);
 #endif
 
-#ifdef NON_MATCHING
 /* pow10-scale: return a0 * 10^(a1-1) (a1<2 returns a0). Reloc-free. The simple
  * loop reproduces IDO's unroll-by-4 + (a1-1)&3 remainder-loop structure EXACTLY
  * through the first multu/mflo; the only mismatch is the target's r4300
@@ -32533,9 +32532,6 @@ int game_libs_func_000611E4(int a0, int a1) {
     }
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000611E4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006126C);
 
