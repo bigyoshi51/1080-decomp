@@ -10603,21 +10603,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FB74);
 
 extern int gl_func_00000000();
 
-#ifdef NON_MATCHING
+/* gl_func_00030504: bias/clamp command emitter. key = (a0 >= 0x101) ? a0&0xFF : a0;
+ * below 0x80 -> submit (0x06000000, (s8)key); at/above -> (0x06000001, (s8)(key-0x80)).
+ * MATCH: modifying the parameter a0 IN PLACE (not a separate `key` local) makes IDO
+ * keep the value in $a2 (the target's reg), not $v0 -- the reuse-param lever, see
+ * docs/IDO_CODEGEN.md#feedback-ido-reuse-param-as-object-caller-slot-spill. Byte-exact. */
 void gl_func_00030504(int a0) {
-    int key = a0;
     if (a0 >= 0x101) {
-        key = a0 & 0xFF;
+        a0 = a0 & 0xFF;
     }
-    if (key >= 0x80) {
-        gl_func_00000000(0x06000001, (signed char)(key - 0x80));
+    if (a0 >= 0x80) {
+        gl_func_00000000(0x06000001, (signed char)(a0 - 0x80));
     } else {
-        gl_func_00000000(0x06000000, (signed char)key);
+        gl_func_00000000(0x06000000, (signed char)a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030504);
-#endif
 
 /* gl_func_00030564: 1-call wrapper. Trailing 12 bytes (lui v0; addiu v0;
  * lw t6, 0x8(v0)) are stolen prologue for SUCCESSOR gl_func_00030598 —
