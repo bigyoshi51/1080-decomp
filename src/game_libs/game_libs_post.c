@@ -25281,8 +25281,9 @@ void gl_func_0004C214(int *a0) {
     p[0x68/4] = ((int*)p[0xC/4])[1] - p[0x64/4];
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0004C288: 30-insn init-call + 2-iter loop + final-set (0x78, frame 0x28).
+ * MATCHED 2026-05-24: s0<->s1 swap fixed by assigning loop counter `i` before
+ * pointer `p` (first-encountered pseudo wins the lower $s register).
  *
  * Decoded structure (raw-word disasm):
  *   func1(self, a1);                                // init call
@@ -25302,11 +25303,12 @@ void gl_func_0004C214(int *a0) {
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 void gl_func_0004C288(int *self, int a1) {
-    int *p;
     int i;
+    int *p;
     gl_func_00000000(self, a1);
+    i = 0;
     p = self;
-    for (i = 0; i < 2; i++) {
+    for (; i < 2; i++) {
         self[0x144 / 4] = i;
         gl_func_00000000(p[0x14C / 4]);
         gl_func_00000000(p[0x14C / 4], self);
@@ -25314,9 +25316,6 @@ void gl_func_0004C288(int *self, int a1) {
     }
     self[0x144 / 4] = *(int*)((char*)&D_00000000 + 0x204);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C288);
-#endif
 
 // gl_func_0004C300 — STRUCTURAL PASS (0x2E0 / 185 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x60
