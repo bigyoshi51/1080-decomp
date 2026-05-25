@@ -30794,18 +30794,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
 
 #ifdef NON_MATCHING
 /* gl_func_0005D054: quaternion (Hamilton) product a2 = a0 * a1 (x,y,z,w at
- * offsets 0,4,8,12). RELOC-FREE -O2; this C is STRUCTURALLY EXACT (56/56 insns)
- * with only ~14 FP register-allocation/scheduling diffs -> permuter target.
- * NM until the reg-alloc is cracked. */
+ * offsets 0,4,8,12). RELOC-FREE -O2. This C is BYTE-EXACT except for ONE
+ * logical diff: GCC assigns x's stack spill-slot to 40(sp) and z's to 32(sp),
+ * where the target has them reversed (x->32, z->40). All 16 mul.s (incl. the
+ * a1[c]*a0[c] operand-order of each last-subtracted term), every add.s/sub.s,
+ * the store order (a2[0],a2[1],a2[2],a2[3]) and the schedule match exactly.
+ *
+ * The lone x<->z spill-slot pair (swc1 0x74/0xb0 + lwc1 0xc0: 32<->40) does
+ * NOT flip under any C structure tried (store-order/decl-order permutations,
+ * inlined stores, ptr-postinc, temp copies, extra refs) -- it's a frame-slot
+ * allocation artifact (slots assigned in pseudo-regno order). The permuter
+ * reports "score 0" here but the BYTES STILL DIFFER: its scorer normalizes
+ * sp-relative offsets, so a pure spill-slot swap is a false positive -- do NOT
+ * log an episode off a permuter zero without a raw byte-compare. Honest cap. */
 void gl_func_0005D054(float *a0, float *a1, float *a2) {
-    float w = a0[3] * a1[3] - a0[0] * a1[0] - a0[1] * a1[1] - a0[2] * a1[2];
-    float x = a0[3] * a1[0] + a0[0] * a1[3] + a0[1] * a1[2] - a0[2] * a1[1];
-    float y = a0[3] * a1[1] + a0[1] * a1[3] + a0[2] * a1[0] - a0[0] * a1[2];
-    float z = a0[3] * a1[2] + a0[2] * a1[3] + a0[0] * a1[1] - a0[1] * a1[0];
+    float w = (((a0[3] * a1[3]) - (a0[0] * a1[0])) - (a0[1] * a1[1])) - (a1[2] * a0[2]);
+    float x = (((a0[3] * a1[0]) + (a0[0] * a1[3])) + (a0[1] * a1[2])) - (a1[1] * a0[2]);
+    float y = (((a0[3] * a1[1]) + (a0[1] * a1[3])) + (a0[2] * a1[0])) - (a1[2] * a0[0]);
+    float z = (((a0[3] * a1[2]) + (a0[2] * a1[3])) + (a0[0] * a1[1])) - (a1[0] * a0[1]);
     a2[0] = x;
     a2[1] = y;
-    a2[3] = w;
     a2[2] = z;
+    a2[3] = w;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D054);
