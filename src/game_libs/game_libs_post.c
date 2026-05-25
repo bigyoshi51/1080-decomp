@@ -9754,7 +9754,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF38);
 #endif
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: IDO cannot emit direct mfc1 from C; stack roundtrip instead */
+/* NON_MATCHING — o32 ABI CAP (verified 2026-05-24). Target receives the int
+ * in $a0 AND the float in $f12 simultaneously (then `mfc1 a1,$f12`). Under
+ * o32 that combination is impossible from C: a float in the 2nd arg position
+ * after an int goes to $a1 (integer reg), not $f12 — confirmed by standalone
+ * test of both `(int,float)` (-> int $a0, float $a1) and `(float,int)`
+ * (-> float $f12, int $a1). int-$a0 + float-$f12 is n32/n64 independent
+ * register allocation, which -32 (o32) does not do. The single residual diff
+ * is our stack-roundtrip (sw a1) vs the target's mfc1; not C-reachable. */
 extern int gl_func_00000000();
 void gl_func_0002DF68(int a0, float a2) {
     gl_func_00000000(0x04000000 | ((a0 & 0xFF) << 8), *(int*)&a2);
