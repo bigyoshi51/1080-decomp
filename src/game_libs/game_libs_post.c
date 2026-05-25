@@ -34316,18 +34316,17 @@ void gl_func_00065D08(int *a0) {
     gl_func_00000000();
 }
 
-#ifdef NON_MATCHING
+/* gl_func_00065D64: 6-call sequence. The two args 0x2240C / 0x22414 are SYMBOL
+ * refs (&D + offset -> lui; addiu), not literals (lui; ori). Decode the symbol
+ * (docs/IDO_CODEGEN.md#feedback-return-const-lui-addiu-vs-lui-ori). Byte-exact. */
 void gl_func_00065D64(int *a0) {
-    gl_func_00000000(&D_00000000, 0x2240C, 0);
-    gl_func_00000000(&D_00000000, 0x22414);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x2240C, 0);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x22414);
     gl_func_00000000((char *)a0 + 0x108, 0);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065D64);
-#endif
 
 extern int gl_ref_00077DB0();
 extern int gl_ref_00077DEC();
