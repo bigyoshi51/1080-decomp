@@ -39085,7 +39085,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070040);
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 #else
+#ifdef NON_MATCHING
+/* gl_func_00070194: 44-insn CRC-5 (poly 0x15 = x^5+x^2+1) over the low 16 bits of
+ * a0. out=0; 16 iterations: feedback tmp = (out & 0x10) ? 0x15 : 0; shift in a0's
+ * bit 10 (a0 shifts left each iter, MSB-first); out = (((out<<1)|bit) ^ tmp) &
+ * 0xFF; return out & 0x1F. RELOC-FREE -> landable, but -O0 (out/i/tmp are stack
+ * vars reloaded every iteration) so a match needs an -O0 file split (same vein as
+ * gl_func_000718C0). Algorithm verified via assemble+objdump; NM (reference) for
+ * now, ready as the -O0 split body. */
+int gl_func_00070194(int a0) {
+    int out;
+    int i;
+    a0 &= 0xFFFF;
+    out = 0;
+    for (i = 0; i < 16; i++) {
+        int tmp = (out & 0x10) ? 0x15 : 0;
+        int bit = (a0 & 0x400) ? 1 : 0;
+        out = (((out << 1) | bit) ^ tmp) & 0xFF;
+        a0 = (a0 << 1) & 0xFFFF;
+    }
+    return out & 0x1F;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070194);
+#endif
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
