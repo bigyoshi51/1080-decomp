@@ -30347,10 +30347,9 @@ void gl_func_0005B53C(int a0, int *a1) {
     *a1 = 0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0005B568: walk a circular list (sentinel = a0+0x10, first = a0->0x14),
  * call gl_func(a0, &node->0x10) for each node whose top byte (node->0 >> 24)
- * == a1. Loop state (self/sentinel/matchKey/next) in s0-s3 across the call. */
+ * == a1. Byte-exact; the callback is a runtime-relocated USO placeholder (jal 0). */
 extern int gl_func_00000000();
 void gl_func_0005B568(int *a0, int a1) {
     int *sentinel = (int *)((char *)a0 + 0x10);
@@ -30368,9 +30367,6 @@ void gl_func_0005B568(int *a0, int a1) {
         node = next;
     } while (next != sentinel);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B568);
-#endif
 
 /* Pack a2 into the top byte of the int at a1[-0x10], keeping the low 24 bits
  * (mask 0x00FFFFFF). First arg unused (homed). Logic-exact; the 5 residual
@@ -32386,11 +32382,10 @@ void gl_func_00060DC4(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060DC4);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00060ED0: walk a circular list (head a0->0x30, next at node->0x38),
  * call gl_func(a0, node) for each node whose node->0x44 == a1; stop when next
- * wraps to head. Loop state self/key/node in s0-s2 across the call. Two bnel
- * (branch-likely) in the target -- structure decoded; bnel residual expected. */
+ * wraps to head. Byte-exact (incl. the branch-likely); the callback is a
+ * runtime-relocated USO placeholder (jal 0). */
 extern int gl_func_00000000();
 void gl_func_00060ED0(int *a0, int a1) {
     int *self = a0;
@@ -32409,9 +32404,6 @@ void gl_func_00060ED0(int *a0, int a1) {
         }
     } while (node != 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060ED0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F44);
 
