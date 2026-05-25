@@ -37,7 +37,17 @@
  * target's reuse-t6 for the second a0 access). Documenting alongside
  * FBCC for grouped migration; FEA0 stays INCLUDE_ASM-sandwich until
  * a future pass solves the t-register reuse cap (likely needs
- * `register char *self = a0` alias). */
+ * `register char *self = a0` alias).
+ *
+ * Note on FD4C (2026-05-25): DECODED + verified standalone -O0 to
+ * 76/85 insns byte-exact via the docs/IDO_CODEGEN "-O0 alloc-cascade
+ * 5-lever recipe" (register void *s0,s1; short-circuit || arms;
+ * saved-reg reuse in tail; struct-field/typed-global direct access for
+ * %hi/%lo($at) folding). RESIDUAL CAP: one un-removable -O0 dead-BB
+ * `b .+1; nop` tail marker (same class as arcproc_uso_func_000000B4)
+ * => ~96% NM even after migration, never a clean match. FC28 is the
+ * SAME -O0 alloc-cascade pattern (0x50/0x50/0x2C arms) — the recipe
+ * applies; expect the same ~96% cap. Both stay INCLUDE_ASM-sandwich. */
 
 #if 0
 extern int func_00000000();
