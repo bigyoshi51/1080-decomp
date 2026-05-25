@@ -18013,13 +18013,22 @@ void game_libs_func_0003CB00(int *a0, int a1, int a2, short a3) {
  * the unchanged `lw t9, 0x2C(v0)` word's runtime semantics flip after
  * the patched 0x1C redefines $v0 from p (built) to q=p[0x28] (target). */
 #ifdef NON_MATCHING
+/* Corrected data flow (sibling of the DE30 family, which DID land): the function
+ * pointer is q[0x2C] where q = p[0x28] (NOT p[0x2C]); the short adj is
+ * *(short*)(q + 0x28); the call arg is adj + (int)p; a1 is stored to a stack
+ * local (arr[1] @ sp+56) and &arr[0] is the 2nd call arg. With the arr[2] +
+ * pad + empty-if(q) regalloc nudge this compiles BYTE-EXACT standalone (permuter
+ * score 0) and the register allocation (p=$v1,q=$v0) matches — but the full-TU
+ * `make` build allocates a larger frame (0x48 vs target 0x40, arr @0x24 vs 0x34):
+ * a TU-context stack-layout divergence (cf. docs/IDO_CODEGEN.md isolated-vs-full-TU).
+ * Standalone-match-only; keep INCLUDE_ASM. Clean readable body below. */
 void gl_func_0003CB2C(int **a0, int a1) {
     int local = 0x14;
-    int saved_a1 = a1;
     int *p = *a0;
-    short adj = *(short*)((char*)p[0x28/4] + 0x28);
-    ((void(*)(int, int*))p[0x2C/4])((int)p + adj, &local);
-    (void)saved_a1;
+    int *q = (int *)p[0x28/4];
+    ((void(*)(int, int*))q[0x2C/4])(
+        *(short*)((char*)q + 0x28) + (int)p, &local);
+    (void)a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CB2C);
