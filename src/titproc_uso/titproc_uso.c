@@ -793,7 +793,11 @@ extern int gl_func_00000000();
 extern char D_titproc_C68_A1, D_titproc_C68_A2, D_titproc_C68_A3, D_titproc_C68_A4;
 extern char D_titproc_C68_C1, D_titproc_C68_C2, D_titproc_C68_C3, D_titproc_C68_C4;
 extern int D_titproc_C68_B, D_titproc_C68_D;
-#ifdef NON_MATCHING
+/* titproc_uso_func_00001C68: boundary-corrected (orphan-fn delete+merge). The
+ * 2-word orphan titproc_uso_func_00001C60 (`lui at,0x3F80; mtc1 at,$f0` = 1.0f)
+ * was a splat mis-split of THIS function's prologue — it materializes the 1.0f
+ * the C writes as buf[0..3]. Merged into titproc_uso_func_00001C68.s; NM-wrap C
+ * already built build[2:]==expected -> byte-exact. */
 void titproc_uso_func_00001C68(int *a0) {
     float buf[4];
     char pad[24];
@@ -818,9 +822,6 @@ void titproc_uso_func_00001C68(int *a0) {
     gl_func_00000000(&D_titproc_C68_C4 + 0x48, 0xDC, 0x7E, 3);
     (void)pad;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C68);
-#endif
 
 /* titproc_uso_func_00001D7C: 44-insn (0xB0) 2-cascade ctor + 4 floats=1.0f.
  * Sibling of 1840: alloc(0x40) + dead-arm alloc(0x2C), init from
@@ -1269,6 +1270,7 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002A1
  * (decl 0x30, .o 0x58 — +0x28 bytes absorb the 40-byte orphan at vram
  * 0x16E8). C-emit-absorbed variant per docs/MATCHING_WORKFLOW.md. */
 
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001C60);
+/* titproc_uso_func_00001C60 (2-word orphan: lui at,0x3F80; mtc1 at,$f0 = 1.0f)
+ * was the stolen prologue of func_00001C68 — forward-merged into it (orphan removed). */
 /* titproc_uso_func_000001DC (2-word orphan: lui v0,0; addiu v0,0) was the stolen
  * prologue of func_000001E4 — forward-merged into it (orphan-fn removed). */
