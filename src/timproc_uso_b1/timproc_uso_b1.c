@@ -147,21 +147,18 @@ void timproc_uso_b1_func_000006F0(void) {
     gl_func_00000000(&D_b1_06F0_b);
     gl_func_00000000(D_b1_06F0_c);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_000006F0_pad.s")
-
-/* Chain sibling of 0x778, 0x7BC, 0x800. Same recipe: PROLOGUE_STEALS for
- * stolen prefix; unique extern at gl_func arg; trailing pad sidecar emits
- * the stolen prologue for the NEXT function (0x778). */
+/* Chain sibling of 0x778, 0x7BC, 0x800. MATCHED via boundary correction
+ * (replacing the banned PROLOGUE_STEALS): the leading `lui v0,0; addiu v0,0`
+ * (&D_00000000 base for the +0x40/+0x44 stores) was emitted as the predecessor
+ * func_000006F0's pad sidecar (stolen prologue); moved it into this fn's .s
+ * (now 17 insns / 0x44, starts 0x72C) and removed that pad pragma. ROM bytes
+ * preserved. (This fn's OWN pad sidecar below still holds 0x778's orphan.) */
 extern int D_state_b1_734;
-#ifdef NON_MATCHING
 void timproc_uso_b1_func_00000734(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 1;
     gl_func_00000000(D_state_b1_734, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000734);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00000734_pad.s")
 
 /* Chain sibling: t7=2. Same recipe as 0x734. */
