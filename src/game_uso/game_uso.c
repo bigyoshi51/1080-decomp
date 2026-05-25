@@ -9675,6 +9675,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5DC);
 #endif
 
 #ifdef NON_MATCHING
+/* Varargs (&a1) sink: if a3==-1 set a0->0x68=a3 else a0->0x64=a3; then copy the
+ * a1/a2 pair to adjacent a0->0xC0/0xC4. The tail now matches via the struct-copy
+ * lever (*(Pair2*)(a0+0xC0)=*(Pair2*)&a1, same as D5BC/D438). Residual (~18B): the
+ * target homes a3 unconditionally at 12(sp) (sw a3 in the bne delay slot) and reads
+ * it via 12(sp); &a1 only homes a1/a2, so a3's home/reload (p[2] -> t6+8 vs sp+12)
+ * still diverges. Varargs-homing scheduling cap; partial NM. */
 void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
     volatile int *p;
     p = &a1;
@@ -9683,8 +9689,7 @@ void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
     } else {
         *(int*)(a0 + 0x64) = p[2];
     }
-    *(int*)(a0 + 0xC0) = p[0];
-    *(int*)(a0 + 0xC4) = p[1];
+    *(Pair2*)(a0 + 0xC0) = *(Pair2*)&a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5F8);
