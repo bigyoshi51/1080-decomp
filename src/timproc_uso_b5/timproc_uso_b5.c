@@ -3402,11 +3402,13 @@ void timproc_uso_b5_func_0000A928(int *a0) {
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000A95C: array-append + count-increment, returns a1.
- * Logic exact (8/8 insns); caps on a 1-pair scheduling swap — target emits
- * `addu t8,a0,t7` (array addr) before `sw t6,0x3C(a0)` (count store); this
- * build emits the count store first. Both stores + return correct; IDO's
- * scheduler picks the count store as soon as t6 is ready. Needs a
- * scheduling lever (permuter) to delay it one slot. */
+ * Logic exact (8/8 insns); genuine IN-TREE scheduling cap on the 0x10/0x14 pair:
+ * target emits `addu t8,a0,t7` (array addr) BEFORE `sw t6,0x3C(a0)` (count store);
+ * the full-TU build emits the count store first. NOTE: a STANDALONE compile of
+ * this body schedules them in the target order (false match) — the full-TU
+ * schedule differs (per MATCHING_WORKFLOW standalone-vs-in-tree caveat), so this
+ * is verified NON_MATCHING in-tree. No C reorder flips it (store-first/array-first
+ * both regress); permuter-class scheduling lever needed. */
 int timproc_uso_b5_func_0000A95C(int *a0, int a1) {
     int v1 = a0[0x3C / 4];
     a0[0x3C / 4] = v1 + 1;
