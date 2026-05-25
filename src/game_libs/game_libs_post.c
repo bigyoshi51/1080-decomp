@@ -25668,8 +25668,10 @@ int gl_func_0004D02C(char *a0) {
  * trivially patchable. Default INCLUDE_ASM remains the build path. */
 extern int gl_func_00000000();
 void gl_func_0004D05C(int a0) {
-    extern char gl_ref_000201B0;
-    gl_func_00000000(&gl_ref_000201B0);
+    /* &D+0x201B0 (defined base) resolves inline, fixing the gl_ref reloc cap;
+     * residual is a 2-byte in-tree prologue swap (sw ra / lui a0), a full-TU
+     * scheduling cap (standalone matches). */
+    gl_func_00000000((char *)&D_00000000 + 0x201B0);
     (void)a0;
 }
 #else
