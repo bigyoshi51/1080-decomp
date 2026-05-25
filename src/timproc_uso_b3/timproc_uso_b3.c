@@ -239,20 +239,15 @@ void timproc_uso_b3_func_000006FC(void) {
     gl_func_00000000(&D_b3_06FC_c);
     gl_func_00000000(D_b3_06FC_d);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000006FC_pad.s")
-
-/* Chain sibling of 0x790, 0x7D4, 0x818 (state-store + 1-call wrapper,
- * prologue-stolen v0). t7=1 here. Same recipe as b1 chain 0x734-0x800. */
+/* Chain sibling of 0x790, 0x7D4, 0x818. MATCHED via pad-sidecar boundary
+ * correction (orphan lui v0,0; addiu v0,0 moved from func_000006FC's pad into
+ * this fn's .s; 0x3C->0x44, starts 0x744). Same recipe as b1 chain 0x734-0x800. */
 extern int D_state_b3_74C;
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_0000074C(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 1;
     gl_func_00000000(D_state_b3_74C, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000074C);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_0000074C_pad.s")
 
 /* Chain sibling: t7=2. */
