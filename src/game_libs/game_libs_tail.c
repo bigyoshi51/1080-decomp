@@ -2083,8 +2083,9 @@ void gl_func_0000DF8C(int a0, int a1, float a2, float a3) {
     }
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000DFC4: 32-insn 3-arg lookup+gate+accumulate (0x80, frame 0x18).
+ * MATCH: the v0[0x1C]==0 guard (was decoded != 0) emits bnel, matching the asm
+ * (store v0[0x20]=0 when v0[0x1C]==0). Byte-exact.
  *
  * Decoded structure (3 short-circuit returns, then conditional accumulate):
  *   v0 = gl_func(a0, a1, a2);                       // lookup, 3-arg
@@ -2108,7 +2109,7 @@ void gl_func_0000DFC4(int *a0, int a1, int a2) {
     if (v0 == 0) return;
     if ((v0[0x4 / 4] & 1) == 0) return;
     if ((a0[0xB4 / 4] & 2) == 0) return;
-    if (v0[0x1C / 4] != 0) {
+    if (v0[0x1C / 4] == 0) {
         v0[0x20 / 4] = 0;
     }
     v0[0x1C / 4] = v0[0x1C / 4] + a2;
@@ -2116,9 +2117,6 @@ void gl_func_0000DFC4(int *a0, int a1, int a2) {
         v0[0x24 / 4] = 1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DFC4);
-#endif
 
 /* 3-insn save-arg sentinel: sw a0,0(sp); jr ra; sw a1,4(sp).
  * Empty-body 2-arg function — args spilled to caller's arg-save slots.
