@@ -168,19 +168,14 @@ void timproc_uso_b1_func_00000778(void) {
     *(int*)((char*)&D_00000000 + 0x44) = 2;
     gl_func_00000000(D_state_b1_778, -1, 0);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00000778_pad.s")
-
-/* Chain sibling: t7=3. Same recipe as 0x734. */
+/* Chain sibling: t7=3. MATCHED via pad-sidecar boundary correction (orphan
+ * moved from func_00000778's pad into this fn's .s; 0x3C->0x44, starts 0x7B4). */
 extern int D_state_b1_7BC;
-#ifdef NON_MATCHING
 void timproc_uso_b1_func_000007BC(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 3;
     gl_func_00000000(D_state_b1_7BC, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000007BC);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_000007BC_pad.s")
 
 /* Byte-identical sibling of timproc_uso_b3_func_00000818. Same recipe:
