@@ -9623,18 +9623,16 @@ void game_uso_func_0000D418(char *a0) {
     gl_func_00000000(a0 + 0x13C);
 }
 
-/* IDO allocates t6 before t7; target has t7/t6 swapped. INSN_PATCH (2 words)
- * fixes the register-rename diff per feedback_insn_patch_for_ido_codegen_caps.md. */
-#ifdef NON_MATCHING
-void game_uso_func_0000D438(void *a0) {
-    *(s32*)((char*)a0 + 0x64) = -1000;
-    *(s32*)((char*)a0 + 0x68) = -1000;
-    *(s32*)((char*)a0 + 0xC8) = *(s32*)((char*)a0 + 0xC0);
-    *(s32*)((char*)a0 + 0xCC) = *(s32*)((char*)a0 + 0xC4);
+/* Set a0->0x64/0x68 = -1000 and copy the 8-byte pair a0->0xC0..0xC7 to 0xC8.
+ * MATCH: copying the adjacent pair as a STRUCT (Pair2) emits lw/lw/sw/sw with the
+ * target's t7/t6 register order; two separate s32 field-copies gave t6/t7 swapped
+ * (was INSN_PATCH'd, banned 2026-05-23). Struct-copy vs separate-field-copy is the
+ * lever for adjacent-field $t-renumber. Byte-exact. */
+void game_uso_func_0000D438(char *a0) {
+    *(s32*)(a0 + 0x64) = -1000;
+    *(s32*)(a0 + 0x68) = -1000;
+    *(Pair2*)(a0 + 0xC8) = *(Pair2*)(a0 + 0xC0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D438);
-#endif
 
 /* game_uso_func_0000D458: 5-FUNCTION BUNDLE (0x1E4 total / 121 insns).
  * Splat could not separate. Per
