@@ -37563,9 +37563,9 @@ void gl_func_0006BE14(void) {
     gl_func_00000000(&gl_data_BE14_b, (char*)&D_00000000 + 0x42800, 1);
     gl_func_00000000(&gl_data_BE14_c, 0, 0);
 }
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006BE64);
-
-#ifdef NON_MATCHING
+/* game_libs_func_0006BE64 (2-word splat mis-split: lui t6,0; lw t6,0(t6)) was
+ * the stolen prologue of gl_func_0006BE6C — forward-merged into it (orphan-fn
+ * removed). gl_func_0006BE6C MATCHED. */
 void gl_func_0006BE6C(void) {
     int local;
     int pad;
@@ -37574,9 +37574,6 @@ void gl_func_0006BE6C(void) {
     }
     gl_func_00000000(&D_00000000, &local, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BE6C);
-#endif
 
 void gl_func_0006BEA8(void) {
     gl_func_00000000(&D_00000000, 0, 0);
