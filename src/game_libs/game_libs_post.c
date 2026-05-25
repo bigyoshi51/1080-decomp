@@ -1,6 +1,16 @@
 #include "common.h"
 
 extern int D_00000000;
+
+#ifdef NON_MATCHING
+/* Macro definitions for NM-wrap bodies. Auto-managed by /struct-name-tick.
+ * Default build never sees these — wrap bodies aren't compiled.
+ * GL_COUNT_2070: element count — read into `count`/`n`/`m` locals and used
+ * as a multiplier in indexing. game_libs D+0x2070.
+ */
+#define GL_COUNT_2070 (*(int*)((char*)&D_00000000 + 0x2070))
+#endif
+
 typedef struct { int a, b, c, d; } Quad4;
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
@@ -58,7 +68,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
  * + register-alloc the first-pass C doesn't reproduce. */
 void game_libs_func_0001CC98(int a0) {
     int i;
-    int count = *(int *)((char *)&D_00000000 + 0x2070);
+    int count = GL_COUNT_2070;
     int a1;
     if (count <= 0) {
         return;
@@ -6471,7 +6481,7 @@ extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00027E24(void) {
     int i;
-    int n = *(int *)((char *)&D_00000000 + 0x2070);
+    int n = GL_COUNT_2070;
     if (n <= 0) return;
     for (i = 0; i < n; i++) {
         char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + i * 0x60;
@@ -6851,7 +6861,7 @@ void gl_func_00028A68(void) {
     int n;
     int i;
     gl_func_00000000((char *)&D_00000000 + 0x5378);
-    n = *(int *)((char *)&D_00000000 + 0x2070);
+    n = GL_COUNT_2070;
     if (n <= 0) return;
     for (i = 0; i < n; i++) {
         char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + i * 0xD0;
@@ -7260,7 +7270,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000291C0);
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00029494(void) {
-    int n = *(int *)((char *)&D_00000000 + 0x2070);
+    int n = GL_COUNT_2070;
     int i;
     char *src;
     if (n <= 0) return;
@@ -8706,7 +8716,7 @@ void gl_func_0002C7A4(char *o) {
     t = (char *)&D_00000000 + ((idx << 2) & 0x3FFC);
     (void)t;
     n = *(short *)((char *)&D_00000000 + 0x2040);
-    m = *(int *)((char *)&D_00000000 + 0x2070);
+    m = GL_COUNT_2070;
     (void)n; (void)m;
 }
 #else
