@@ -9092,18 +9092,16 @@ void gl_func_0002D6A0() {
     D_00000000 = 0;
 }
 
-/* gl_func_0002D6C8: 17-insn 2-call function with 1 trailing dead-code
- * `move a2, a0` (`0x00803025`) appended via SUFFIX_BYTES post-cc.
- * Body decoded:
+/* gl_func_0002D6C8: 17-insn 2-call function. MATCHED.
  *   gl_func_00000000(0xF0000000, a0);
  *   if (a0 >= 2) a0 = 3;
  *   gl_func_00000000(0xF0000000, a0);
- * Built C emits 17 insns; SUFFIX_BYTES injects the trailing `move a2, a0`
- * to bring symbol size to expected's 18 insns. NM build (sans SUFFIX)
- * reports fuzzy 94.4% per the post-cc-recipe scoring quirk
- * (docs/MATCHING_WORKFLOW.md feedback-byte-correct-match-via-include-asm-not-c-body);
- * regular ROM build IS byte-correct against expected/.o. */
-#ifdef NON_MATCHING
+ * Was 94.4% NM with a trailing orphan `move a2, a0` (0x00803025) past this
+ * fn's jr ra; nop — it is the successor gl_func_0002D710's mis-attributed
+ * arg-setup prologue (a2 = a0; 0002D710 uses a2). Fixed PROPERLY (replacing
+ * the banned SUFFIX_BYTES) by a splat boundary correction: shrank this .s to
+ * 17 insns (0x44) and moved the orphan word into gl_func_0002D710.s as its
+ * leading insn. ROM byte sequence preserved. */
 void gl_func_0002D6C8(int a0) {
     gl_func_00000000(0xF0000000, a0);
     if (a0 >= 2) {
@@ -9111,9 +9109,6 @@ void gl_func_0002D6C8(int a0) {
     }
     gl_func_00000000(0xF0000000, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D6C8);
-#endif
 
 /* 14-insn main body + 1-insn SUFFIX (`or $a2, $a0, $zero` = stolen
  * prologue for next fn) — declared size 0x3C / 15 words.
