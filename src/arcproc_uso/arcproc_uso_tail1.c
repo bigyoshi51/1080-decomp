@@ -1012,7 +1012,11 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001C7
  * documented constructor ceiling. INCLUDE_ASM (no episode). */
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001D18);
 
-#ifdef NON_MATCHING
+/* arcproc_uso_func_00001F0C: boundary-corrected (stolen-prologue mirror). The 2
+ * words `lui t6,0; lw t6,0x64(t6)` (preloading D[0x64]) sat PAST func_00001D18's
+ * `jr ra` epilogue — a splat mis-attribution; they are THIS function's prologue.
+ * Shrank func_00001D18.s (0x1F4 -> 0x1EC) and prepended the 2 words here
+ * (0x48 -> 0x50). C emits the same lui+lw, so the merged boundary is byte-exact. */
 void arcproc_uso_func_00001F0C(char *a0) {
     if (*(int*)((char*)&D_00000000 + 0x64) == 1) {
         *(int*)(a0 + 0xA0) = 0xC350;
@@ -1023,9 +1027,6 @@ void arcproc_uso_func_00001F0C(char *a0) {
     *(int*)(a0 + 0xA4) = 0;
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F0C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F54);
 

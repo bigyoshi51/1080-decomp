@@ -1,6 +1,8 @@
-nonmatching arcproc_uso_func_00001F0C, 0x48
+nonmatching arcproc_uso_func_00001F0C, 0x50
 
 glabel arcproc_uso_func_00001F0C
+    /* 5A804C 00001F04 3C0E0000 */  .word 0x3C0E0000
+    /* 5A8050 00001F08 8DCE0064 */  .word 0x8DCE0064
     /* 5A8054 00001F0C 27BDFFE8 */  .word 0x27BDFFE8
     /* 5A8058 00001F10 24010001 */  .word 0x24010001
     /* 5A805C 00001F14 15C10004 */  .word 0x15C10004
