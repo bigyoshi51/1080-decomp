@@ -10527,7 +10527,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
    detail not reachable from C). Was INSN_PATCH'd (removed 2026-05-23).
    PERMUTER also fails (280s, no improvement, 2026-05-24): the spill-SLOT-offset
    residual (0x18 vs 0x1c) is permuter-immune — distinct from the arg-home/
-   register-renumber residuals the permuter DOES crack. Genuine cap. */
+   register-renumber residuals the permuter DOES crack. PAD-ARRAY trick also fails
+   (2026-05-25): `int pad; int cmd;` DOES move the spill to sp+0x1c but grows the
+   frame -0x28 -> -0x30 (target keeps -0x28); the spill must sit at 0x1c WITHIN a
+   -0x28 frame, needing a phantom 0x18 occupant that emits nothing — not reachable
+   from C. Genuine allocator cap. */
 #ifdef NON_MATCHING
 void gl_func_0002FA90(int a0, int arg1, int arg2) {
     int cmd;
