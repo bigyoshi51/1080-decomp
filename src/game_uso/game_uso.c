@@ -9654,21 +9654,15 @@ void game_uso_func_0000D438(char *a0) {
  * for the unblock path) needed before any decomp attempt. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
-/* game_uso_func_0000D5BC: copies a1/a1+4 (taken via &a1) to a0->0xC8/0xCC.
- * NON_MATCHING (regalloc-class cap): the multi-use &a1 pointer sits in $v0
- * (built) vs $t6 (target). Single-use inline-regalloc lever doesn't apply
- * (pointer is used twice, can't inline without reloading); statement reorder
- * is a no-op. IDO allocator choice, not C-reachable. */
-#ifdef NON_MATCHING
+/* game_uso_func_0000D5BC: copies the varargs pair (a1,a2 via &a1) to the
+ * adjacent a0->0xC8/0xCC.
+ * MATCH: a STRUCT copy `*(Pair2*)(a0+0xC8) = *(Pair2*)&a1` homes the args, takes
+ * &a1 into $t6, and emits the lw/sw/lw/sw via the pointer in the target's regs.
+ * The volatile-int-pointer form left the &a1 pointer in $v0 (was a regalloc cap);
+ * struct-copy is the lever (same as game_uso_func_0000D438). Byte-exact. */
 void game_uso_func_0000D5BC(char *a0, int a1, int a2) {
-    volatile int *p;
-    p = &a1;
-    *(int*)(a0 + 0xC8) = p[0];
-    *(int*)(a0 + 0xCC) = p[1];
+    *(Pair2*)(a0 + 0xC8) = *(Pair2*)&a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5BC);
-#endif
 
 #ifdef NON_MATCHING
 void game_uso_func_0000D5DC(char *a0) {
