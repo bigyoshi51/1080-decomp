@@ -7734,11 +7734,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A4D0);
  * makes IDO pack the two pointer spills tightly (frame -0x20); the char*-pointer-
  * arithmetic form (a0 + a1*4) left a 4-byte spill gap (-0x28). Array-index vs
  * char*-arith changes spill-slot frame packing. Byte-exact (80 bytes). */
+extern int gl_ref_0001CA10();
 void gl_func_0002A50C(int **a0, int a1) {
     int *obj = a0[a1 + 0x14];
     if (obj != 0) {
-        gl_func_00000000((char*)&D_00000000 + 0x5368, (char*)obj + 0x70);
-        gl_func_00000000(obj);
+        gl_ref_0001CA10((char*)&D_00000000 + 0x5368, (char*)obj + 0x70);
+        gl_ref_0001CA10(obj);
         a0[a1 + 0x14] = 0;
     }
 }
