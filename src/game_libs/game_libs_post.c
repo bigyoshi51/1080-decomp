@@ -34146,7 +34146,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
  *   (one 0.0f, one struct copy) diverges across the 20-store block
  *   (FP-regalloc/sp-scratch class, not INSN_PATCH-able). INCLUDE_ASM
  *   (no episode). */
+#ifdef NON_MATCHING
+/* gl_func_00065360: 58-insn Vec3 transform initializer. Copies the Vec3 at a1
+ * into a0's transform fields (0xDC..0xE4 and 0xB4..0xBC), zeros a block of float
+ * fields, sets a few to 1.0 defaults, then dispatches a0->0x28's vtable method
+ * (ptr +0x14, signed-halfword bias +0x10) with (bias + a0). RELOC-FREE (FP consts
+ * + indirect jalr) -> landable with an FP/regalloc grind; the target stages the
+ * Vec3 via a stack scratch (omitted here). NM (reference decode). */
+void gl_func_00065360(int a0, float *a1) {
+    int v0;
+    *(float *)((char *)a0 + 0xDC) = a1[0];
+    *(float *)((char *)a0 + 0xE0) = a1[1];
+    *(float *)((char *)a0 + 0xE4) = a1[2];
+    v0 = *(int *)((char *)a0 + 0x28);
+    *(float *)((char *)a0 + 0xB4) = a1[0];
+    *(float *)((char *)a0 + 0xB8) = a1[1];
+    *(float *)((char *)a0 + 0x304) = 0.0f;
+    *(float *)((char *)a0 + 0x300) = 0.0f;
+    *(float *)((char *)a0 + 0x2FC) = 0.0f;
+    *(float *)((char *)a0 + 0xFC) = 0.0f;
+    *(float *)((char *)a0 + 0xF8) = 0.0f;
+    *(float *)((char *)a0 + 0xF4) = 0.0f;
+    *(float *)((char *)a0 + 0xD4) = 0.0f;
+    *(float *)((char *)a0 + 0xD0) = 0.0f;
+    *(float *)((char *)a0 + 0xCC) = 0.0f;
+    *(float *)((char *)a0 + 0x314) = 0.0f;
+    *(float *)((char *)a0 + 0x310) = 0.0f;
+    *(float *)((char *)a0 + 0x30C) = 0.0f;
+    *(float *)((char *)a0 + 0x320) = 0.0f;
+    *(float *)((char *)a0 + 0x31C) = 0.0f;
+    *(float *)((char *)a0 + 0x318) = 0.0f;
+    *(float *)((char *)a0 + 0x308) = 1.0f;
+    *(float *)((char *)a0 + 0x100) = 1.0f;
+    *(float *)((char *)a0 + 0xD8) = 1.0f;
+    *(float *)((char *)a0 + 0xBC) = a1[2];
+    (*(int (**)(int))(v0 + 0x14))(*(short *)(v0 + 0x10) + a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065360);
+#endif
 
 extern int gl_func_00000000();
 
