@@ -5,6 +5,15 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 #ifdef NON_MATCHING
+/* Macro definitions for NM-wrap bodies. Auto-managed by /struct-name-tick.
+ * Default build never sees these — wrap bodies aren't compiled.
+ * MGR_STATE_PTR: pointer to the manager state struct (read into `state`/`s`
+ * locals, then deref'd for fields 0x4C/0x6A8/0x6AC). mgrproc_uso D+0x30.
+ */
+#define MGR_STATE_PTR (*(int**)((char*)&D_00000000 + 0x30))
+#endif
+
+#ifdef NON_MATCHING
 /* 72.47% NM (reverified 2026-05-08). Int-reader (pointer-indirect via
  * volatile buf) with -O0 artifacts: 0x4C (19 insns) vs -O2 template's
  * 15 insns. Three -O0 markers in target:
@@ -557,26 +566,26 @@ void mgrproc_uso_func_00000B20(void) {
  * Multi-pass NM. Default INCLUDE_ASM build remains byte-correct. */
 extern int gl_func_00000000();
 void mgrproc_uso_func_00000B5C(void) {
-    int *state = *(int**)((char*)&D_00000000 + 0x30);
+    int *state = MGR_STATE_PTR;
     int *other = (int*)&D_00000000;
     int v0;
     gl_func_00000000(state);
     v0 = gl_func_00000000(*(int*)((char*)*(int**)((int*)((char*)&D_00000000 + 0x30))[0x6AC/4] + 0x4C));
     if (v0 != 0) {
-        int *s = *(int**)((char*)&D_00000000 + 0x30);
+        int *s = MGR_STATE_PTR;
         s[0x504/4] = 7;
-        s = *(int**)((char*)&D_00000000 + 0x30);
+        s = MGR_STATE_PTR;
         s[0x4E0/4] = 5;
         other[0x40/4] = 3;
         other[0x44/4] = 7;
-        s = *(int**)((char*)&D_00000000 + 0x30);
+        s = MGR_STATE_PTR;
         s[0x7D8/4] = 1;
         gl_func_00000000(*(int*)((char*)&D_00000000 + 0x30));
     } else {
         other[0x40/4] = 3;
         gl_func_00000000(
             *(int*)((char*)&D_00000000 + 0x30),
-            *(int*)((char*)*(int**)((char*)&D_00000000 + 0x30) + 0x6A8 + 0xC),
+            *(int*)((char*)MGR_STATE_PTR + 0x6A8 + 0xC),
             4);
     }
 }
