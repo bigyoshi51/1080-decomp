@@ -12,6 +12,16 @@ func_00000000() {
  * the value; value-using callers get it directly. Same underlying symbol. */
 
 extern char D_00000000;
+
+#ifdef NON_MATCHING
+/* Macro definitions for NM-wrap bodies. Auto-managed by /struct-name-tick.
+ * Default build never sees these — wrap bodies aren't compiled.
+ * BOOT_SELF_PTR: pointer to the self/context struct (read into `self`/`dst`/
+ * `t6` locals across wraps). bootup_uso D+0x254.
+ */
+#define BOOT_SELF_PTR (*(int**)((char*)&D_00000000 + 0x254))
+#endif
+
 void func_00000008(int *dst) {
     int buf[2];
     func_00000000(&D_00000000, buf, 4);
@@ -2714,18 +2724,18 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007204);
 void func_00007288(int *a0) {
     int *self;
     if (a0[0x38/4] & 2) {
-        self = *(int**)((char*)&D_00000000 + 0x254);
+        self = BOOT_SELF_PTR;
         *(float*)((char*)self + 0xAC) = (float)(int)a0[0x30/4];
-        self = *(int**)((char*)&D_00000000 + 0x254);
+        self = BOOT_SELF_PTR;
         *(float*)((char*)self + 0xB0) = (float)(int)a0[0x34/4];
     }
     if (a0[0x3C/4] == 0) {
         int *src = (int*)((char*)&func_0000027C + 0x18);
         int *dst;
-        self = *(int**)((char*)&D_00000000 + 0x254);
+        self = BOOT_SELF_PTR;
         self = (int*)((char*)self + 0x78);
         *self = *self | 4;
-        dst = *(int**)((char*)&D_00000000 + 0x254);
+        dst = BOOT_SELF_PTR;
         *(int*)((char*)dst + 0xDC) = src[0];
         *(int*)((char*)dst + 0xE0) = src[1];
         *(int*)((char*)dst + 0xE4) = src[2];
@@ -3286,7 +3296,7 @@ extern int func_00000000_082F8(int, int, int, int, float, int, float);
 extern char D_00000000_a;
 extern char D_func_00000008_data;
 void func_000082F8(int *a0) {
-    int *t6 = *(int**)((char*)&D_00000000 + 0x254);
+    int *t6 = BOOT_SELF_PTR;
     int *t7 = *(int**)((char*)t6 + 0x70);
     float f0 = *(float*)((char*)&D_00000000 + 0x130);
     float f2 = *(float*)((char*)t7 + 0xA8) * f0;
