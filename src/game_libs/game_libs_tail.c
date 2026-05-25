@@ -551,16 +551,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A2B8);
  *   }
  *   return 3;
  *
- * Promoted from 92.86% NM wrap to EXACT via 2-insn INSN_PATCH for the
- * `addiu s1, a0, 0x18` / `or s0, zero, zero` pair-swap at +0x1C/+0x20
- * (IDO emits entry-init first; target emits i-init first). 10th in the
- * INSN_PATCH-promotion family. */
+ * Matched 2026-05-25: the residual was the entry-init/i-init pair-swap at
+ * +0x1C/+0x20 (build emitted `addiu s1,a0,0x18` then `move s0,zero`; target
+ * emits `move s0,zero` first). Initializing `i` at its declaration (int i = 0;)
+ * BEFORE `entry` makes IDO emit the i-init first -> byte-exact. Replaces the
+ * old banned 2-insn INSN_PATCH. */
 extern int func_00000000();
-#ifdef NON_MATCHING
 int gl_func_0000A4D0(int *a0, int a1) {
-    int i;
+    int i = 0;
     char *entry = (char*)a0 + 0x18;
-    for (i = 0; i < 3; i++) {
+    for (; i < 3; i++) {
         if (func_00000000(entry, a1) != 0) {
             return i;
         }
@@ -568,9 +568,6 @@ int gl_func_0000A4D0(int *a0, int a1) {
     }
     return 3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A4D0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A540);
 
