@@ -1,6 +1,8 @@
-nonmatching timproc_uso_b3_func_00000818, 0x3C
+nonmatching timproc_uso_b3_func_00000818, 0x44
 
 glabel timproc_uso_b3_func_00000818
+    /* 000810 00000810 3C020000 */  .word 0x3C020000
+    /* 000814 00000814 24420000 */  .word 0x24420000
     /* 000818 00000818 27BDFFE8 */  .word 0x27BDFFE8
     /* 00081C 0000081C 240E0008 */  .word 0x240E0008
     /* 000820 00000820 240F000D */  .word 0x240F000D

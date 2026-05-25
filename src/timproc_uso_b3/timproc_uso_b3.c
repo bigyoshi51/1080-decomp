@@ -264,25 +264,16 @@ void timproc_uso_b3_func_000007D4(void) {
     *(int*)((char*)&D_00000000 + 0x44) = 3;
     gl_func_00000000(D_state_b3_7D4, -1, 0);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000007D4_pad.s")
-
-/* Prologue-stolen successor: predecessor func_000007D4's tail has lui+addiu
- * setting v0 = &D_00000000 (offsets 0x810/0x814 in 7D4's .s). Build pipeline
- * splices the redundant 8-byte prefix via PROLOGUE_STEALS in Makefile.
- * Use unique extern `D_state_b3_818` (mapped to 0x0) for the gl_func arg
- * to break IDO's &D-CSE -- target emits a fresh lui+lw at the call site
- * rather than reusing v0. Per feedback_ido_cse_d_loads_unflippable.md +
- * feedback_usoplaceholder_unique_extern.md. */
+/* End of b3 chain. MATCHED via pad-sidecar boundary correction (orphan lui v0,0;
+ * addiu v0,0 moved from func_000007D4's pad into this fn's .s; 0x3C->0x44, starts
+ * 0x810). Unique extern D_state_b3_818 (=0) at the gl_func arg breaks IDO's
+ * &D-CSE so the target's fresh lui+lw at the call site reproduces. */
 extern int D_state_b3_818;
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000818(void) {
     *(int*)((char*)&D_00000000 + 0x40) = 8;
     *(int*)((char*)&D_00000000 + 0x44) = 0xD;
     gl_func_00000000(D_state_b3_818, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000818);
-#endif
 
 void timproc_uso_b3_func_00000854(int *dst) {
     int buf[2];
