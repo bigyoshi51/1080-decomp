@@ -6161,28 +6161,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027534);
  *   packed = 0xFA000000 | ((a0 & 0xFF) << 16) | ((a1 & 0xFF) << 8) | (a2 & 0xFF)
  * (G_SETPRIMCOLOR-like opcode 0xFA + 3 bytes) and calls gl_func_0(packed, 1).
  *
- * Stolen-prologue successor: predecessor gl_func_0002737C's tail at 0x27544
- * has the `andi t6, a0, 0xFF` insn that sets up $t6 for this function's
- * `sll t7, t6, 0x10` at 0x2754C. Per the standard PROLOGUE_STEALS recipe
- * (docs/MATCHING_WORKFLOW.md feedback-prologue-stolen-successor-no-recipe),
- * write the C with the natural `(a0 & 0xFF) << 16` access — IDO emits the
- * andi at function start, and PROLOGUE_STEALS=4 splices off that
- * redundant 4-byte prefix.
- *
- * Earlier comment (now resolved 2026-05-08): claimed this was UNFIXABLE
- * "$t6 is caller-context inherited"; that diagnosis was wrong — the andi
- * is the SUCCESSOR's prologue mis-attributed to the predecessor's symbol
- * (a 4-byte version of the standard 8-byte stolen-prologue case). */
+ * MATCHED via splat boundary correction (stolen-prologue mirror, replacing the
+ * banned PROLOGUE_STEALS). The leading `andi t6, a0, 0xFF` (this fn's prologue
+ * computing a0&0xFF for `sll t7,t6,0x10`) was a trailing orphan in the
+ * PREDECESSOR game_libs_func_00027534's range (past its jr ra; nop). Fixed by
+ * shrinking 00027534.s to its real 4 insns (0x10) and prepending the andi to
+ * this fn's .s (now 18 insns / 0x48, starts at 0x27544). ROM bytes preserved;
+ * the natural C `(a0 & 0xFF) << 16` emits the andi at function start = exact. */
 extern int gl_func_00000000();
 
-#ifdef NON_MATCHING
 void gl_func_00027548(int a0, int a1, int a2) {
     int packed = 0xFA000000 | ((a0 & 0xFF) << 16) | ((a1 & 0xFF) << 8) | (a2 & 0xFF);
     gl_func_00000000(packed, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027548);
-#endif
 
 void gl_func_0002758C(void) {
     gl_func_00000000(0xFA000000, 0);
