@@ -1481,73 +1481,36 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
 #endif
 
 #ifdef NON_MATCHING
-/* 54.14% NM. 54% match. 3x3 matrix-vector multiply: dst = M * v, where M is at
- * (*(a1+0x38))+0x70 with row stride 0x10 (Mat4 top-left 3x3), v is at
- * a1+0x5C..0x68. Result stored to *a0; returns a0.
+/* game_uso_func_000023D4: rotate a Vec3 by the upper-3x3 of a column-major
+ * 4x4 matrix. Input Vec3 at a1+0x5C; matrix at (*(float**)(a1+0x38))+0x70
+ * (column stride 0x10 = 4 floats, row stride 4). Double-buffers through a
+ * stack Vec3 (struct copy in, struct copy out) so a0 may alias the input.
+ * Returns a0.
  *
- * Structural differences from target (not just register allocation):
- *   - Target reads v components via `lwc1 $f6, 0x14(sp)` (direct sp);
- *     our build uses `lwc1 $f0, 0(v1)` (pointer-indirect via v1 = &buf).
- *   - Target computes all 3 results, stores f2/f0 to stack, computes f12,
- *     stores f12, THEN does 3 batched lw/sw copies to *a0.
- *   - Our build: compute-store-copy for each result individually.
- * Tried: `int buf[3]`, Tri3i struct variant. Both produce v1-indirect
- * float loads. Likely needs a more specific pattern (named Vec3 locals
- * independent of buf, or a different expr shape). */
-int* game_uso_func_000023D4(int *a0, char *a1) {
-    int buf[3];
-    float *m;
-    float x, y, z;
-
-    buf[0] = *(int*)(a1 + 0x5C);
-    buf[1] = *(int*)(a1 + 0x60);
-    buf[2] = *(int*)(a1 + 0x64);
-
-    m = (float*)(*(char**)(a1 + 0x38) + 0x70);
-
-    x = *(float*)&buf[0];
-    y = *(float*)&buf[1];
-    z = *(float*)&buf[2];
-
-    *(float*)&buf[0] = m[0]*x + m[4]*y + m[8]*z;
-    *(float*)&buf[1] = m[1]*x + m[5]*y + m[9]*z;
-    *(float*)&buf[2] = m[2]*x + m[6]*y + m[10]*z;
-
-    a0[0] = buf[0];
-    a0[1] = buf[1];
-    a0[2] = buf[2];
-
+ *   out.x = M[0]*v.x + M[4]*v.y + M[8]*v.z   (M = matrix+0x70, in floats)
+ *   out.y = M[1]*v.x + M[5]*v.y + M[9]*v.z
+ *   out.z = M[2]*v.x + M[6]*v.y + M[10]*v.z
+ *
+ * RELOC-FREE. Using a Vec3 STRUCT copy (not int buf[3]) gets the input read
+ * via DIRECT sp (lwc1 $f6,0x14(sp)) instead of v1-indirect, matching the
+ * first 22 insns exactly: 16/50 diffs now (was 39/50 with int buf[3]).
+ * The residual 16 are the FP-reduction final-add operand-order cap applied
+ * to all 3 rows (IDO emits add.s with the still-fused mult subexpr as fs;
+ * target has running-sum as fs), plus the reg-alloc cascade it forces -- see
+ * docs/IDO_CODEGEN.md#feedback-ido-fpu-reduction-operand-order. No C shape
+ * flips it (a named float temp nukes the whole FPU schedule); INSN_PATCH is
+ * banned. Reloc-free permuter/tightening seed. */
+Vec3* game_uso_func_000023D4(Vec3 *a0, char *a1) {
+    Vec3 v = *(Vec3*)(a1 + 0x5C);
+    float *mm = (float*)((char*)(*(void**)(a1 + 0x38)) + 0x70);
+    float X = mm[0]*v.x + mm[4]*v.y + mm[8]*v.z;
+    float Y = mm[1]*v.x + mm[5]*v.y + mm[9]*v.z;
+    float Z = mm[2]*v.x + mm[6]*v.y + mm[10]*v.z;
+    v.x = X; v.y = Y; v.z = Z;
+    *a0 = v;
     return a0;
 }
 #else
-/* game_uso_func_000023D4: 50-insn (0xC8) Vec3 transform helper.
- * Frame -0x20, leaf-style FPU function (no jal calls).
- *
- * Decoded structure:
- *   /* Stage Vec3 from a1->0x5C/0x60/0x64 onto sp+0x14..0x1C *\/
- *   sp[0x14] = a1->0x5C (.x)
- *   sp[0x18] = a1->0x60 (.y)
- *   sp[0x1C] = a1->0x64 (.z)
- *
- *   /* 3x3 matrix-vector multiply against a1->0x38->0x70 (3x3 matrix
- *    * with stride 0x10) using f4/f10/etc. Result accumulated into
- *    * sp+0x14..0x1C (transformed Vec3 in-place). *\/
- *   v0 = a1->0x38                               ; sub-obj ptr (matrix base)
- *   transformed.x = M[0][0]*v.x + M[0][1]*v.y + M[0][2]*v.z + ...
- *   transformed.y = M[1][0]*v.x + M[1][1]*v.y + M[1][2]*v.z + ...
- *   transformed.z = M[2][0]*v.x + M[2][1]*v.y + M[2][2]*v.z + ...
- *
- *   /* Vec3-copy 3 ints from a1+0x?? to a0 (caller's output) *\/
- *   a0[0] = (something)[0]
- *   a0[1] = (something)[1]
- *   a0[2] = (something)[2]
- *
- * 5 args at offsets 0x5C/0x60/0x64 (Vec3 input) + 0x38 (sub-obj/matrix
- * ptr). Output via a0. Likely the per-frame transform helper used by the
- * spine functions that have Vec3-stage entries.
- *
- * Multi-tick refinement target — doc-only this tick. Default INCLUDE_ASM
- * build remains exact. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000023D4);
 #endif
 
