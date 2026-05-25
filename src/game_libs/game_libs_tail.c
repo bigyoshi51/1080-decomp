@@ -1938,50 +1938,26 @@ void gl_func_0000DC90(int *self, int idx) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
 #endif
 
-/* gl_func_0000DD44 - verified structural decode (38-insn br=0
- * deterministic 2x vtable-dispatch; address-taken-local + sp-slot
- * divergence -> INCLUDE_ASM build path; struct-typing reference).
- *   int l1 = 1001;  // sp+52, passed by &
- *   v1 = *(int**)((char*)a0->0x44 + a1*0x60);
- *   v0 = (int*)v1->0x28;
- *   (*(fn)v0->0x2C)( (short)v0->0x28 + (int)v1, &l1 );    // vtable idiom
- *   int l2 = 1001;  // sp+40
- *   v1 = *(int**)((char*)a0->0x44 + (a1^1)*0x60);
- *   v0 = (int*)v1->0x28;
- *   (*(fn)v0->0x2C)( (short)v0->0x28 + (int)v1, &l2 );
- * Struct-typing: a0->0x44 = base of a 0x60-stride entry-pointer array;
- * indexed by a1 then a1^1 (a pair/toggle - e.g. left/right or
- * front/back). Each entry's ->0x28 is a vtable {fn@0x2C, short@0x28}
- * (the documented obj-dispatch idiom, 0x2C/0x28 variant); the handler
- * is called with ((short)vt->0x28 + entry, &scratch) where scratch is a
- * stack int preloaded to 1001 (a default/sentinel out-param). Caps
- * 20/38: target pre-materializes 1001 (li t6,1001 @0x004) and assigns
- * the two scratch locals fixed sp-slots (sp+52, sp+40) with frame -64;
- * address-taken-local + sp-slot allocation is not reproduced by clean C
- * (regalloc diverges from insn 0). br=0 but the address-taken-local
- * divergence variant, not the clean-episode subset. INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* Doubled DE30-family vtable dispatcher (sibling of gl_func_0000DDE0/DE30/DE80/
+ * DED0): runs the same {entry = a0->0x44[idx*0x60]; q = entry->0x28;
+ * (*(fn)q->0x2C)((short)q->0x28 + entry, &scratch);} dispatch twice, for idx=a1
+ * then idx=a1^1 (a pair/toggle), each with a stack scratch int preloaded to 1001.
+ * Matched: pad_top/between/pad_bot arrays pin l1@sp+0x34 / l2@sp+0x28 in the -0x40
+ * frame; deferring l2's assignment defers its li+sw past the first call; the empty
+ * if(v0){} on the 2nd dispatch is the regalloc nudge (permuter-found) that gives
+ * entry->v1 / q->v0 like the target. */
 void gl_func_0000DD44(char *a0, int a1) {
-    int l1 = 1001;
-    int l2 = 1001;
-    char *v1;
-    char *v0;
+    int pad_top[2]; int l1 = 1001; int between[2]; int l2; int pad_bot[2];
+    char *v0, *v1;
     v1 = *(char **)(*(char **)(a0 + 0x44) + a1 * 0x60);
     v0 = *(char **)(v1 + 0x28);
-    {
-        void (*fn)(char *, int *) = *(void (**)(char *, int *))(v0 + 0x2C);
-        fn((char *)((int)(short)*(short *)(v0 + 0x28) + (int)v1), &l1);
-    }
+    (*(void (**)(char *, int *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &l1);
+    l2 = 1001;
     v1 = *(char **)(*(char **)(a0 + 0x44) + (a1 ^ 1) * 0x60);
     v0 = *(char **)(v1 + 0x28);
-    {
-        void (*fn)(char *, int *) = *(void (**)(char *, int *))(v0 + 0x2C);
-        fn((char *)((int)(short)*(short *)(v0 + 0x28) + (int)v1), &l2);
-    }
+    if (v0) {}
+    (*(void (**)(char *, int *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &l2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DD44);
-#endif
 
 /* 20-insn indirect dispatcher (sibling of gl_func_0000DE30/DE80/DED0/0003CB2C).
  * Same shape as DE30 form (inlined dispatch + pad_top[2]/pad_bot[4] frame
