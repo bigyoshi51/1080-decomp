@@ -5,6 +5,15 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 #ifdef NON_MATCHING
+/* Macro definitions for NM-wrap bodies. Auto-managed by /struct-name-tick.
+ * Default build never sees these — wrap bodies aren't compiled.
+ * TIMB3_D_64: int value passed to gl_func_00000000 calls and OR'd with
+ * flag 0x4000 (positional name pending semantics). timproc_uso_b3 D+0x64.
+ */
+#define TIMB3_D_64 (*(int*)((char*)&D_00000000 + 0x64))
+#endif
+
+#ifdef NON_MATCHING
 /* timproc_uso_b3_func_00000000: byte-identical mirror of
  * timproc_uso_b1_func_00000000 (sig=c98ad3f0ab). Standard 4-byte int
  * reader template wrapped in a `b +1` epilogue branch (composite -O0
@@ -85,12 +94,12 @@ void timproc_uso_b3_func_000000B0(int *a0, int a1) {
             done = 1;
             break;
         case 4:
-            gl_func_00000000(a0, 1, *(int*)((char*)&D_00000000 + 0x64));
+            gl_func_00000000(a0, 1, TIMB3_D_64);
             *(int*)((char*)&D_00000000 + 0x40) = 5;
             break;
         case 5:
             gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000 + 4));
-            gl_func_00000000(&D_00000000, 4, *(int*)((char*)&D_00000000 + 0x64), 2);
+            gl_func_00000000(&D_00000000, 4, TIMB3_D_64, 2);
             tmp = gl_func_00000000(a0, *a0, 1);
             tmp = gl_func_00000000(0, 0x410000, tmp, *a0);
             tmp = gl_func_00000000(a0, 0, tmp);
@@ -101,7 +110,7 @@ void timproc_uso_b3_func_000000B0(int *a0, int a1) {
             *(int*)((char*)&D_00000000 + 0x40) = 7;
             break;
         case 7:
-            gl_func_00000000(&D_00000000, 0xA, *(int*)((char*)&D_00000000 + 0x64), 2);
+            gl_func_00000000(&D_00000000, 0xA, TIMB3_D_64, 2);
             tmp = gl_func_00000000(a0, *a0, 1);
             tmp = gl_func_00000000(
                 0, *(int*)((char*)&D_00000000 + 0x170) + 0x1A000F, tmp, *a0);
@@ -139,9 +148,9 @@ void timproc_uso_b3_func_000000B0(int *a0, int a1) {
             done = 1;
             break;
         case 12:
-            tmp = gl_func_00000000(*(int*)((char*)&D_00000000 + 0x64));
+            tmp = gl_func_00000000(TIMB3_D_64);
             gl_func_00000000(
-                a0, (*(int*)((char*)&D_00000000 + 0x64) | 0x4000) | tmp, 0x4000, *a0);
+                a0, (TIMB3_D_64 | 0x4000) | tmp, 0x4000, *a0);
             done = 1;
             break;
         case 13:
