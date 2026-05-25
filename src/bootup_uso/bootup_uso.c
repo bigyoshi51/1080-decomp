@@ -170,35 +170,25 @@ void func_000003D8(void) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003F8);
 
-#ifdef NON_MATCHING
-func_0000057C(a0, a1, a2)
-int *a0;
-int a1;
-int a2;
-{
-    register int mode;
-    int byte = a2;
-
-    *a0 = func_00000000(0x64);
-    mode = 0;
-    switch (a1) {
-    case 0:
-        break;
-    case 1:
-        mode = 1;
-        break;
-    case 2:
-        mode = 2;
-        break;
+/* func_0000057C: alloc obj = func(0x64) into arg0->0x0; switch(arg1) selects
+ * 0/1/2; init obj->0x22=(s8)arg2, obj->0x10=0.0f, arg0->0x8=0; then call obj's
+ * handler with the selector. Byte-exact (incl. the switch branch-likely + dead
+ * store); func_00000000 = cross-segment placeholder (jal 0). Key: `sel=0` must
+ * be set AFTER the alloc call so it stays in $a2 (before-the-call spills it). */
+void func_0000057C(int *arg0, int arg1, int arg2) {
+    int sel;
+    arg0[0] = (int)func_00000000(0x64);
+    sel = 0;
+    switch (arg1) {
+    case 0: break;
+    case 1: sel = 1; break;
+    case 2: sel = 2; break;
     }
-    *(s8*)(*a0 + 0x22) = byte;
-    *(f32*)(*a0 + 0x10) = 0.0f;
-    a0[2] = 0;
-    func_00000000(*a0, mode, mode, a0);
+    *(char *)(arg0[0] + 0x22) = (char)arg2;
+    *(float *)(arg0[0] + 0x10) = 0.0f;
+    arg0[2] = 0;
+    func_00000000(arg0[0], sel);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000057C);
-#endif
 
 /* func_00000610 - verified structural decode (0x24C, 147 insns,
  * FP parameter normalize / clamp / scale).
