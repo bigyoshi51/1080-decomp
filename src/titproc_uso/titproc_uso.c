@@ -62,19 +62,13 @@ int titproc_uso_func_000000C0(void) {
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000000C0);
 #endif
-#pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000000C0_pad.s")
-
 extern char D_00000194_A;
-/* State-setter sibling of 000001E4/00000230/0000028C. Combines:
- *   - PROLOGUE_STEALS=8: splice IDO's auto-emitted &D prologue from the
- *     start (the &D setup actually lives in 0xC0_pad.s, emitted by
- *     predecessor 0xC0).
- *   - SUFFIX_BYTES: append the 8 dead `lui v0; addiu v0` bytes at the tail
- *     (these belong to 0x194's symbol but act as the stolen prologue setup
- *     that successor 0x1E4 inherits).
- * Per feedback_prologue_stolen_predecessor_no_recipe.md (the recipe this
- * tick built scripts/inject-suffix-bytes.py for). */
-#ifdef NON_MATCHING
+/* State-setter sibling of 000001E4/00000230/0000028C. MATCHED via pad-sidecar
+ * boundary correction (replacing the banned PROLOGUE_STEALS/SUFFIX_BYTES): the
+ * leading `lui v0,0; addiu v0,0` (&D_00000000 base for the 0x34/0x40/0x13C
+ * stores) was emitted as predecessor 0xC0's pad sidecar; moved into this fn's
+ * .s (0x48->0x50, starts 0x18C) and removed the pad pragma+.s. (The 0x1E4
+ * orphan lives in the separate func_000001DC.s, fixed when 0x1E4 lands.) */
 void titproc_uso_func_00000194(void) {
     *(int*)((char*)&D_00000000 + 0x34) = 3;
     *(int*)((char*)&D_00000000 + 0x40) = 0;
@@ -82,9 +76,6 @@ void titproc_uso_func_00000194(void) {
     gl_func_00000000(0xC, 0);
     gl_func_00000000(*(int*)((char*)&D_00000194_A + 0xA8), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000194);
-#endif
 
 extern char D_000001E4_A;
 
