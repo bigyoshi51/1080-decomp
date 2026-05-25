@@ -1155,7 +1155,27 @@ void gl_func_0000B8E0(int a0, int a1, int a2, int a3) {
     gl_func_00000000(&gl_data_B938_arg, a2, a3);
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000B958: 69-insn word-array equality predicate. Compares (a3+3)/4
+ * words of a1[] vs a2[]; returns 0 on the first mismatch, 1 if all equal.
+ * RELOC-FREE and -O2, so landable in principle -- but the target is IDO's 4-way
+ * UNROLLED form (Duff's-device andi&3 remainder + the 4-wide body), which a plain
+ * early-exit loop does NOT reproduce (my C compiles to a tight 24-insn loop, no
+ * unroll). Needs the permuter / a hand-unrolled form to match. NM (reference);
+ * verified-correct algorithm. */
+int gl_func_0000B958(int a0, int *a1, int *a2, int a3) {
+    int n = (a3 + 3) / 4;
+    int i;
+    for (i = 0; i < n; i++) {
+        if (a1[i] != a2[i]) {
+            return 0;
+        }
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B958);
+#endif
 
 /* gl_func_0000BA6C: 42-insn save-game checksum verifier (sibling of
  * BB14 — same magic 0xD1265205 + same 4 data chunks).
