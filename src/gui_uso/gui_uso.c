@@ -338,19 +338,43 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000B58);
  * remain TBD; multi-tick decomp expected. */
 extern int gl_func_00000000();
 extern char D_00000000;
+/* Full decode (2026-05-24): kerned text-string renderer. Emits a SETCOMBINE-class
+ * RDP cmd (0xBB000001/0x80008000), then for each of strlen(a3) chars: space ->
+ * advance x by the space glyph's width; else look up glyph = a0->0x20[idx*0x14]
+ * (idx = gl_func(c)), make two per-glyph render calls, advance x by glyph width.
+ * NON_MATCHING cap: reloc-bearing USO calls + (s<<10)/s = 1024 div-trap metrics
+ * + 9-saved-reg allocation (s0-s8) won't byte-match; INCLUDE_ASM stays the build
+ * path. Real body (un-bailed from TODO stub per docs) below. */
 void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
-    /* TODO partial decode - full body 128 insns; stub for grep+wrap discoverability */
-    int *cmd_state = (int*)a0[0x24/4];
-    int *cmd_list = (int*)cmd_state[0xC/4];
+    int *cmd_state = (int *)a0[0x24 / 4];
+    int *cmd_list = (int *)cmd_state[0xC / 4];
+    int scale = a0[0x14 / 4];
     int idx = cmd_list[1];
     int *slot;
+    int count, i, x;
+    char *p = a3;
     cmd_list[1] = idx + 1;
-    slot = (int*)((char*)cmd_list[0] + idx * 8);
+    slot = (int *)((char *)cmd_list[0] + idx * 8);
     slot[0] = 0xBB000001;
     slot[1] = 0x80008000;
-    if (gl_func_00000000(a3) == 0) return;
-    /* TODO: text rendering loop (~100 insns) */
-    (void)a1; (void)a2;
+    count = gl_func_00000000(a3);
+    if (count == 0) return;
+    x = (int)a1;
+    for (i = 0; i < count; i++) {
+        char c = *p;
+        if (c != ' ') {
+            int g = gl_func_00000000((int)c);
+            int *glyph = (int *)((char *)a0[0x20 / 4] + g * 0x14);
+            gl_func_00000000(a0[0x24 / 4], a0[4], a0[0x18 / 4], a0[0x1C / 4],
+                             glyph[0], glyph[1], glyph[2], scale, 0);
+            gl_func_00000000(a0[0x24 / 4], x + glyph[4], a2, glyph[2],
+                             scale, 1024, 1024);
+            x += glyph[3];
+        } else {
+            x += ((int *)a0[0x20 / 4])[3];
+        }
+        p++;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
