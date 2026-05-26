@@ -538,6 +538,12 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000161C);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001670);
 
+/* gui_uso_func_0000168C: 6-insn loop-bottom tail-fragment:
+ *   sra v1,v1,1; bnel v1,zero,-0x18; slt at,a0,v1; li v0,1; jr ra; nop
+ * (caller-set $v0/$v1) + backward branch -0x18 to 0x167C (before this .s
+ * start 0x168C). Splat captured a count-down loop tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ * Needs splat boundary correction (focused-session). */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000168C);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000016A4);
