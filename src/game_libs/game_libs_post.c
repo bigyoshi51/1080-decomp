@@ -3631,6 +3631,13 @@ void gl_func_000233E4(int idx) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
 
+/* game_libs_func_00023494: 2-insn `lui t6, 0; lh t6, 0x23FA(t6)` orphan
+ * with no jr-ra and no prologue. Loads a half from absolute address
+ * 0x000023FA into $t6 then falls THROUGH to the successor function (which
+ * appears caller-set but isn't). Prologue-stolen-PREDECESSOR pattern per
+ * project_1080_orphan_fn_prologue_vein. Not C-matchable as a standalone
+ * 2-insn function (any C body emits its own prologue+epilogue). CAP
+ * class. Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023494);
 #endif
 
