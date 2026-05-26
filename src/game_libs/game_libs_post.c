@@ -39114,6 +39114,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070194);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
 
+/* game_libs_func_00070314: 3-insn `mtc0 a0, $11; jr ra; nop` Compare-register
+ * write. CP0 access (mtc0) is MIPS3 runtime — IDO C can't emit CP0 ops from
+ * standard C. CAP class per reference_1080_mips3_runtime_helpers. Default
+ * INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070314);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070320);
