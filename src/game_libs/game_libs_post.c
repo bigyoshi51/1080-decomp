@@ -26327,11 +26327,12 @@ void gl_func_0004E150(char *a0) {
     (*(int(**)(char*))(p2 + 0xC))(p1 + *(short*)(p2 + 0x8));
 }
 
-/* a0 spill offset cap: target spills/reloads a0 at sp+0x1C (gap at sp+0x18),
- * IDO -O2 picks sp+0x18 when frame=0x20 is reachable. Resolved via INSN_PATCH
- * on 2 words at fixed offsets 0x1C/0x20 (sw/lw a0 spill+reload). 4 prior
- * C-only variants couldn't reproduce; the spill-slot allocator decision is
- * intrinsic to IDO. */
+/* NATURAL CEILING: 99.87% NM (a0 spill-slot-offset cap). Target spills/
+ * reloads a0 at sp+0x1C (gap at sp+0x18); IDO -O2 picks sp+0x18 when
+ * frame=0x20 is reachable. 4 C-only variants couldn't reproduce; the
+ * spill-slot allocator decision is intrinsic to IDO. INSN_PATCH on the
+ * 2 sw/lw a0 words at offsets 0x1C/0x20 was REMOVED 2026-05-23 as
+ * match-faking. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void gl_func_0004E180(char *a0) {
