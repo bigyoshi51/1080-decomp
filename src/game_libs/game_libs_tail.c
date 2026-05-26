@@ -194,19 +194,25 @@ int game_libs_func_00009A2C(unsigned char *a0) {
     return (*a0 & 0x80) != 0;
 }
 #else
+/* game_libs_func_00009A2C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A2C);
 #endif
 
 void game_libs_func_00009A48(void) {}
 
+/* game_libs_func_00009A50: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A50);
 
+/* game_libs_func_00009A6C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A6C);
 
+/* game_libs_func_00009A80: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A80);
 
+/* game_libs_func_00009A9C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A9C);
 
+/* game_libs_func_00009AB0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AB0);
 
 void game_libs_func_00009AD0(void) {}
@@ -269,10 +275,12 @@ void game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B60);
 #endif
 
+/* game_libs_func_00009B98: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B98);
 
 void game_libs_func_00009BB4(void) {}
 
+/* game_libs_func_00009BBC: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BBC);
 
 void game_libs_func_00009BD8(void) {}
@@ -336,10 +344,12 @@ void game_libs_func_00009C5C(int *a0, int a1, unsigned char *a2, int *a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C5C);
 #endif
 
+/* game_libs_func_00009CDC: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CDC);
 
 void game_libs_func_00009CF8(void) {}
 
+/* game_libs_func_00009D00: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D00);
 
 void game_libs_func_00009D1C(void) {}
@@ -625,6 +635,7 @@ void game_libs_func_0000A8B4(int *a0, int a1) {
  * function (shared-tail space optimization). Plain C cannot suppress the
  * trailing epilogue; would need a TRUNCATE_TEXT=8 post-cc strip, not
  * worth it for an 8-byte fn. Keep INCLUDE_ASM (no episode). */
+/* game_libs_func_0000A8D8: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A8D8);
 
 /* empty: jr ra; nop */

@@ -6110,6 +6110,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000273B8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002740C);
 
+/* game_libs_func_00027438: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027438);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002745C);
@@ -7053,10 +7054,12 @@ void game_libs_func_00028DE8(int **a0) {
     }
 }
 
+/* game_libs_func_00028E14: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E14);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E28);
 
+/* game_libs_func_00028E6C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E6C);
 
 void game_libs_func_00028E8C(void) {}
@@ -8046,6 +8049,7 @@ void game_libs_func_0002A884(int *a0, int *a1) {
     a1[3] = a0[3];
 }
 
+/* game_libs_func_0002A8C4: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8C4);
 
 /* game_libs_func_0002A8D8: list-node detach using a CALLER-SET $v1 as the list-head
@@ -12695,6 +12699,7 @@ int game_libs_func_000343E0(int a0) {
     return *(int *)((char *)&D_00000000 + a0 * 4);
 }
 
+/* game_libs_func_000343F4: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343F4);
 
 // Address-of accessors into a 0xC-stride table at segment offset 0x1E3C8
@@ -24087,6 +24092,7 @@ int gl_func_00047F48(int *a0) {
  * 00047F90 retain their own symbols. Equivalent pre-split shape:
  *   a0[0x188/4] = a1; switch (a1) { case 0: a0[0x1E0/4] = 1; break;
  *   case 1: a0[0x1E0/4] = 0; break; } */
+/* game_libs_func_00047F68: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F68);
 
 void game_libs_func_00047F84(s32 *arg0) {
@@ -34648,6 +34654,7 @@ void game_libs_func_00066440(void) {
      * original 32-insn splat-bundled symbol. No standalone C reproduces it. */
 }
 #else
+/* game_libs_func_00066440: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066440);
 #endif
 
@@ -39410,6 +39417,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070B04);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070C44);
 
+/* game_libs_func_00070FA0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FA0);
 
 #ifdef NON_MATCHING
