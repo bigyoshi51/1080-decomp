@@ -2129,9 +2129,11 @@ void gl_func_00020A28(int a0, int a1, float *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
 #endif
 
-/* Short-array zeroing loop (8 shorts, 4/iter). Register-exact from C; IDO
- * fills the loop-setup delay differently (li a0,8 vs move v0,0 ordering) —
- * isolated-vs-full-TU scheduling swap, closed via a 2-insn INSN_PATCH. */
+/* Short-array zeroing loop (8 shorts, 4/iter). NATURAL CEILING: register-
+ * exact from C; IDO fills the loop-setup delay differently (li a0,8 vs
+ * move v0,0 ordering) — isolated-vs-full-TU scheduling swap. Was
+ * previously closed via 2-insn INSN_PATCH — REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_libs_func_00020DF4(short *a0) {
     int i = 0;
