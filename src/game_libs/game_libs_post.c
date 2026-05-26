@@ -39169,7 +39169,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070C44);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FA0);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00070FBC: standard INT-reader at &D_0+0x8 (4 insn / 0x10).
+ * EMITS AS UNFILLED-DELAY: `lui v0,%hi; lw v0,%lo($v0); jr ra; nop` — IDO -O2
+ * normally fills the jr's delay slot with the lw (3-insn 0xC form, as in
+ * sibling game_libs_func_000420E8 at offset 0x20). This one's expected emit
+ * keeps the delay-slot nop. Same C body produces the 3-insn form at -O2;
+ * to land 4-insn would require a per-file -O0/-g split (focused-session
+ * work, not 60s tick). CAP — keep INCLUDE_ASM. */
+int game_libs_func_00070FBC(void) {
+    return *(int*)((char*)&D_00000000 + 0x8);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FBC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FCC);
 
