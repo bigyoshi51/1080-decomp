@@ -29677,13 +29677,12 @@ void gl_func_00055B10(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055B10_pad.s")
 
-/* gl_func_00055B44: 60-insn nested-loop "row × 16-col grid emit" function
- * (likely a memory hex-dump or per-row table renderer). Promoted to
- * byte-correct via INSN_PATCH on 32 register-rename-cascade insns
- * (per Makefile gl_func_00055B44=...) after 8+ C-variant retries hit
- * a structural register-allocator cap at 86.58% fuzzy. The cap was
- * IDO -O2 picking $s0 for byte_array vs target's $s4 — the 32-word
- * INSN_PATCH bridges the cascade. */
+/* gl_func_00055B44: 60-insn nested-loop "row x 16-col grid emit" function
+ * (likely a memory hex-dump or per-row table renderer). NATURAL CEILING:
+ * 86.58% NM after 8+ C-variant retries. Cap: IDO -O2 picks $s0 for
+ * byte_array vs target's $s4 — register-rename cascade across 32 insns.
+ * The historical 32-word INSN_PATCH that bridged the cascade was REMOVED
+ * 2026-05-23 as match-faking. Permuter-class cap. */
 extern int gl_data_00000000;
 #ifdef NON_MATCHING
 void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
