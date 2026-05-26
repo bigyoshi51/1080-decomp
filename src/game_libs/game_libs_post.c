@@ -4555,7 +4555,8 @@ void game_libs_func_00024B8C(void) {}
  *     to absolute target. Per docs/MATCHING_WORKFLOW.md
  *     #reloc-encoding-pinning-structurally-identical-c-body-still-scores-65.
  * (b) Register-name diffs in the struct-copy block (built uses t7/t8/t9
- *     differently than target's t8/t9/t1). Promoted via INSN_PATCH. */
+ *     differently than target's t8/t9/t1). INSN_PATCH promotion was
+ *     REMOVED 2026-05-23 as match-faking; honest 97.55% NM. */
 /* K&R `()` for compat with line 338's `extern int func_00039194(void *a0)`
  * decl — both decls coexist at NM build (IDO rejects type-mismatch). */
 #ifdef NON_MATCHING
