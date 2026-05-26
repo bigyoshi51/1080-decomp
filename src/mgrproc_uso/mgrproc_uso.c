@@ -13,10 +13,14 @@ typedef struct { int a, b, c, d; } Quad4;
  * - 5`) and OR'd with flag 0xA0000 (positional, mixed use). mgrproc_uso D+0x64.
  * MGR_STATE_CODE: int state/mode enum — assigned discrete codes (1,3,4,5,7,8)
  * across the dispatch funcs and read into a `state` local. mgrproc_uso D+0x40.
+ * MGR_D_44: int state-companion slot — set alongside MGR_STATE_CODE/0x48 with
+ * discrete values (2,7), sometimes copied from arg field 0x44. Positional.
+ * mgrproc_uso D+0x44.
  */
 #define MGR_STATE_PTR (*(int**)((char*)&D_00000000 + 0x30))
 #define MGR_D_64 (*(int*)((char*)&D_00000000 + 0x64))
 #define MGR_STATE_CODE (*(int*)((char*)&D_00000000 + 0x40))
+#define MGR_D_44 (*(int*)((char*)&D_00000000 + 0x44))
 #endif
 
 #ifdef NON_MATCHING
@@ -301,13 +305,13 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
         switch (state) {
             case 0:
                 gl_func_00000000(arg0, 1, 0xB, 8);
-                *(int*)((char*)&D_00000000 + 0x44) = 2;
+                MGR_D_44 = 2;
                 *(int*)((char*)&D_00000000 + 0x48) = 8;
                 loop_continue = 1;
                 break;
             case 1:
                 gl_func_00000000(arg0, 1, 7, 4);
-                *(int*)((char*)&D_00000000 + 0x44) = 2;
+                MGR_D_44 = 2;
                 *(int*)((char*)&D_00000000 + 0x48) = 8;
                 loop_continue = 1;
                 break;
@@ -853,7 +857,7 @@ void mgrproc_uso_func_000013C8(int *a0) {
     if (a0[0x4F8 / 4] != 0) return;
     if (gl_func_00000000(a0[0x6A8 / 4]) == 0) return;
     spill_var = 1;
-    *(int*)((char*)&D_00000000 + 0x44) = 7;
+    MGR_D_44 = 7;
     if (*(volatile int*)0xA0000200 != (int)0xAC290000) {
         gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000 + 0x68) - 1);
         t4 = a0[0x7C8 / 4];
@@ -863,7 +867,7 @@ void mgrproc_uso_func_000013C8(int *a0) {
     }
     if (gl_func_00000000(a0[0x6A8 / 4]) == 0) {
         MGR_STATE_CODE = 7;
-        *(int*)((char*)&D_00000000 + 0x44) = a0[0x44 / 4];
+        MGR_D_44 = a0[0x44 / 4];
         spill_var = 1;
     } else {
         if (gl_func_00000000(a0[0x6AC / 4]) == 0) {
