@@ -151,28 +151,6 @@ s32 func_80006C58(s32 arg0) {
 
 /* func_800070A0 - verified structural decode (kernel, 0x120, 72
  * insns, memory-dump / word-stream transmit; rmon-family helper).
- *   void func_800070A0(char *addr, int len) {
- *       u32 n = (len + 3) >> 2;                   // word count
- *       if ((u32)addr & 3) {                      // misaligned base
- *           while (n--) {
- *               func_80006AEC(&tmp, addr, 4);     // unaligned read
- *               func_80005584(tmp);               // send word
- *               addr += 4;
- *           }
- *       } else {                                  // aligned base
- *           while (n--) {
- *               if ((u32)addr >= 0x04000000 &&
- *                   (u32)addr <  0x05000000) {    // cart/PI region
- *                   func_80008FB0(addr, &tmp);    // DMA read
- *                   func_80005584(tmp);
- *               } else {
- *                   func_80005584(*(int*)addr);   // direct read
- *               }
- *               addr += 4;
- *           }
- *       }
- *       func_80005534();                          // flush/finalize
- *   }
  * Struct-typing reference: addr/len are a raw memory range; the
  * routine streams ceil(len/4) 32-bit words out via func_80005584
  * (send-one-word). Addresses in [0x04000000, 0x05000000) are the
@@ -183,10 +161,38 @@ s32 func_80006C58(s32 arg0) {
  * = end-of-stream flush. (Same rmon memory-inspect family as
  * func_80009584 / the __rmon* handlers.) Caps <80: alignment
  * branch + cart-range sltu check + 4 callees + decrement loop with
- * spilled counter/cursor at sp+0x30/0x34. Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule). */
+ * spilled counter/cursor at sp+0x30/0x34. INCLUDE_ASM remains build
+ * path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+extern void func_80006AEC(void *dst, void *src, int n);
+extern void func_80005584(int word);
+extern void func_80008FB0(void *src, void *dst);
+extern void func_80005534(void);
+void func_800070A0(char *addr, int len) {
+    unsigned int n = ((unsigned int)len + 3) >> 2;
+    int tmp;
+    if ((unsigned int)addr & 3) {
+        while (n--) {
+            func_80006AEC(&tmp, addr, 4);
+            func_80005584(tmp);
+            addr += 4;
+        }
+    } else {
+        while (n--) {
+            if ((unsigned int)addr >= 0x04000000U && (unsigned int)addr < 0x05000000U) {
+                func_80008FB0(addr, &tmp);
+                func_80005584(tmp);
+            } else {
+                func_80005584(*(int*)addr);
+            }
+            addr += 4;
+        }
+    }
+    func_80005534();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800070A0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800071C0);
 
