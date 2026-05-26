@@ -13289,18 +13289,14 @@ void gl_func_00034EB4(char *o, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
 #endif
 
-/* gl_func_00035164: 93.3%->100% via INSN_PATCH (1-insn delay-slot fix at 0xC).
- * IDO -O2 leaves jal's delay slot empty (nop); target spills $a0 to caller's
- * arg-save slot (sw a0, 0x18(sp)). Pre-jal arg-save is documented unreachable
- * from C (3 variants tried per feedback_ido_precall_arg_spill_unreachable.md).
- * INSN_PATCH overwrites the nop byte. */
 long long gl_func_00035164_inner(int a0);
 
-/* gl_func_00035164: thin (int) wrapper over the long-long inner. NON_MATCHING
- * (a0-home-spill cap): target spills a0 to its home (sw a0,0x18(sp)) in the
- * call's delay slot where built has a nop. a0 is BOTH the call arg AND
- * home-spilled; (void)a0 doesn't trigger it (that lever is for calls taking a
- * DIFFERENT arg). Twin of gl_func_00066BD4. */
+/* gl_func_00035164: thin (int) wrapper over the long-long inner. LANDED
+ * fuzzy=100 via the `int *p = &a0;` lever — &param forces the dead arg-home
+ * sw a0,0x18(sp) into the jal delay slot (vs the default empty nop). The
+ * historical INSN_PATCH bridge (overwriting the nop byte to spill a0) was
+ * REMOVED 2026-05-23 as match-faking; the &a0 C lever replaces it. Twin of
+ * gl_func_00066BD4. */
 int gl_func_00035164(int a0) {
     int *p = &a0;  /* &param forces the dead arg-home sw a0,0x18(sp) */
     long long r = gl_func_00035164_inner(*p);
