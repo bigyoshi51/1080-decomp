@@ -923,6 +923,7 @@ int timproc_uso_b5_func_00001CF0(int *a0, int a1) {
     return *(int*)((char*)a0 + 0x34 + 4 * (a1 ^ 1));
 }
 #else
+/* timproc_uso_b5_func_00001CF0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001CF0);
 #endif
 
@@ -1819,6 +1820,7 @@ ret0:
     return 0;
 }
 #else
+/* timproc_uso_b5_func_0000687C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000687C);
 #endif
 /* timproc_uso_b5_func_00006900 - verified structural decode (0xE8,
@@ -3002,6 +3004,7 @@ void timproc_uso_b5_func_00008688(char *scr, int mode) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008688);
 #endif
 
+/* timproc_uso_b5_func_000087A0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087A0);
 
 int timproc_uso_b5_func_000087D0(void) {
@@ -3032,6 +3035,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * (falls through into successor's first insn). Cross-fn shared-epilogue
  * tail-merge per feedback_leaf_branch_past_end_is_cross_fn_epilogue.
  * Linker-set offset, unmatchable standalone. CAP class. */
+/* timproc_uso_b5_func_00008834: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008834);
 
 /* 0x88xx cluster: 11 tiny leaves with forward `beq/bne +small` branches

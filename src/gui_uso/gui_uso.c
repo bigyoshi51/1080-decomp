@@ -16,6 +16,7 @@ int c;
     return c & 0xFF;
 }
 #else
+/* gui_func_00000000: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
 #endif
 
@@ -542,6 +543,7 @@ void gui_func_0000161C(int *a0, int a1) {
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000161C);
 
+/* gui_uso_func_00001670: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001670);
 
 /* gui_uso_func_0000168C: 6-insn loop-bottom tail-fragment:

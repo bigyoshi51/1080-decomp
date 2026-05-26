@@ -504,6 +504,7 @@ void titproc_uso_func_000016B8(int *a0) {
     }
 }
 #else
+/* titproc_uso_func_000016B8: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000016B8);
 #endif
 

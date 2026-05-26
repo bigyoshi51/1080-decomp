@@ -6593,6 +6593,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 #ifdef NON_MATCHING
 void game_uso_func_00007A98(void) {}
 #else
+/* game_uso_func_00007A98: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
 #endif
 

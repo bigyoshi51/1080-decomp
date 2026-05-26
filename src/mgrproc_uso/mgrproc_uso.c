@@ -162,6 +162,7 @@ int mgrproc_uso_func_00000140(int *a0) {
     }
 }
 #else
+/* mgrproc_uso_func_00000140: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000140);
 #endif
 
