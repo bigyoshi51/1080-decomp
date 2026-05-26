@@ -34805,6 +34805,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066620);
  * Default INCLUDE_ASM keeps ROM byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066650);
 
+/* game_libs_func_0006665C: 6-insn tail-fragment of a list-walk loop:
+ *   move v1,v0; lw v0,4(v0); bnel v0,zero,-0x34; lw t6,0(v0); jr ra; nop
+ * Caller-set $v0 (loop iterator) + backward branch -0x34 to 0x66634
+ * (BEFORE this .s start 0x6665C — splat boundary error). The actual
+ * function spans from earlier (where the loop top + initial $v0 are) to
+ * here. CAP class — needs splat boundary correction. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006665C);
 #endif
 
