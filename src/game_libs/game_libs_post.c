@@ -36240,9 +36240,13 @@ end:
 }
 
 /* gl_func_000688F8: 26-insn (0x68) double-alloc constructor with redundant
- * post-test on alloc result. Promoted 2026-05-14 from 80.46% NM to
- * byte-exact via 22-entry INSN_PATCH + SUFFIX_BYTES_FORCE (+1 nop) to
- * grow built 24→25 insns + 1 trailing nop.
+ * post-test on alloc result. NATURAL CEILING: 80.46% NM. Was previously
+ * documented (2026-05-14) as promoted to byte-exact via 22-entry
+ * INSN_PATCH + SUFFIX_BYTES_FORCE (+1 nop) to grow built 24->25 insns +
+ * 1 trailing nop — INSN_PATCH and instruction-appending SUFFIX_BYTES
+ * REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM.
  *
  * Old decode comments below — kept for reference. */
 /* gl_func_000688F8 (original wrap):
