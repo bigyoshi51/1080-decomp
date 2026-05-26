@@ -4127,12 +4127,14 @@ void timproc_uso_b5_func_0000C1A4(int *a0, int a1) {
     *(int*)((char*)a0[0x2B8/4] + 0x134) = 0;
 }
 
-/* timproc_uso_b5_func_0000C1B4: 16-insn 4-float copy + cross-USO call,
- * plus a 5-insn alt-entry tail at sp+0x40..0x50 (different `(a0, a1)` arg
- * shape, used by separate caller via jal directly into the post-epilogue
- * region) injected post-cc via SUFFIX_BYTES. C body covers main entry only;
- * the alt-entry's 5 insns are byte-for-byte SUFFIX (mtc1 a1,f12; lw t6;
- * swc1 f12,0x2A0(a0); jr ra; swc1 f12,0x120(t6)). */
+/* timproc_uso_b5_func_0000C1B4: 16-insn 4-float copy + cross-USO call.
+ * NATURAL CEILING: 97.5% NM. The 5-insn alt-entry tail at sp+0x40..0x50
+ * (different `(a0, a1)` arg shape, jal'd directly into the post-epilogue
+ * region by a separate caller — `mtc1 a1,f12; lw t6; swc1 f12,0x2A0(a0);
+ * jr ra; swc1 f12,0x120(t6)`) was previously injected post-cc via
+ * SUFFIX_BYTES; that mechanism was REMOVED 2026-05-23 as match-faking.
+ * The alt-entry bytes now belong to their own symbol. C body covers main
+ * entry only. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C1B4(int *a0) {
