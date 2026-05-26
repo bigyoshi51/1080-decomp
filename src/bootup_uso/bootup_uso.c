@@ -2395,9 +2395,10 @@ void func_00006194(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-/* 77% NM cap (target insn order `lui a0; sw ra; jal` vs IDO emit
- * `sw ra; lui a0; jal`). Promoted to exact via INSN_PATCH at offsets
- * 0x4/0x8 — Makefile entry, ports 2-word patch from agent-b. */
+/* NATURAL CEILING: 77.78% NM. Target insn order "lui a0; sw ra; jal" vs
+ * IDO emit "sw ra; lui a0; jal" — 2-insn scheduling cap unreachable from
+ * C. The 2-word INSN_PATCH at offsets 0x4/0x8 was REMOVED 2026-05-23 as
+ * match-faking. */
 #ifdef NON_MATCHING
 void func_00006204(void) {
     func_00000000(&D_00000000);
