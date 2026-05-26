@@ -11361,14 +11361,15 @@ extern int gl_ref_00045EA8();
  *   - if a0->field_48 == 0: call gl_ref_00045EA8(ret_val)
  *   - return ret_val
  *
- * Matched via INSN_PATCH for 5 diffs:
+ * NATURAL CEILING: 95.86% NM. 5 remaining diffs:
  *  - 3 alt-entry jal targets (0x45DF0, 0x45E5C, 0x45EA8) at offsets
  *    0x1C/0x38/0x54. C-emit produces `jal 0` with R_MIPS_26 placeholder.
  *    Recipe in docs/MATCHING_WORKFLOW.md#alt-entry-jal-in-segment-jal-lands-inside-another-function-with-no-clean-symbol.
- *  - bnez → bnezl (branch-likely) at 0x4C + lw-in-delay vs move-in-delay
+ *  - bnez -> bnezl (branch-likely) at 0x4C + lw-in-delay vs move-in-delay
  *    at 0x50. IDO -O2 emits regular `bnez` regardless of source shape
  *    (verified 2026-05-08 — goto-skip and if-body forms both produce
- *    same emit). Branch-likely cap. */
+ *    same emit). Branch-likely cap.
+ * The 5-diff INSN_PATCH was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 int gl_func_00031898(int *a0) {
     int ret_val = 0;
