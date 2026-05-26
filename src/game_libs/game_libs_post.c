@@ -622,7 +622,9 @@ void game_libs_func_0001D770(int *a0, int a1, int a2, int a3, int arg4)
 
 // GBI 2-word command packer (cmd 0x19000000), sibling of 0001D770:
 // word0 = (arg4&0xFF)<<16 | 0x19000000 | (a3&0xFFFF); word1 = a1<<16 |
-// (a2&0xFFFF). Second-word temps renumber +1 -> INSN_PATCH 4/13.
+// (a2&0xFFFF). Matches byte-exact via `long long new_var = 16` trick that
+// forces IDO to renumber the second-word temps to t3/t4/t5 (no INSN_PATCH
+// needed; the old "INSN_PATCH 4/13" plan was superseded by the C lever).
 void game_libs_func_0001D7A4(int *a0, int a1, int a2, int a3, int arg4)
 {
   long long new_var;
@@ -2677,7 +2679,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
 
 /* Guarded bitfield update: if(a1 && a0->8==a1->4){ a1->4=a0->0xC;
  * *a1 = ((a0[1]<<2)&0xC)|(*a1&~0xC); }. Structure exact; the bitfield
- * intermediates renumber (allocno cap) — 7-insn INSN_PATCH register fix. */
+ * intermediates renumber (allocno cap). CAP: regalloc, stays NM
+ * (INSN_PATCH REMOVED 2026-05-23 per
+ * feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_libs_func_00022398(char *a0, char *a1) {
     if (a1 != 0) {
@@ -5222,8 +5226,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
 
 // Add a0 to the pointer array a2[0..a1) if its key (a0[1]) isn't already
 // present (matched against a2[i][1]); append + bump count when absent.
-// Returns the resulting count. INSN_PATCH swaps the i=0 init into the leading
-// blez delay slot (2/18 register-exact delay-slot fill).
+// Returns the resulting count. CAP: target has i=0 init in the leading blez
+// delay slot (2/18 register-exact delay-slot fill); INSN_PATCH-class, stays
+// NM (INSN_PATCH REMOVED 2026-05-23 per
+// feedback_no_instruction_forcing_matches_policy).
 #ifdef NON_MATCHING
 int game_libs_func_00025A80(int *a0, int a1, int **a2) {
     int i = 0;
@@ -7533,8 +7539,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029BC8);
 
 /* 1.0f init + 3-field pointer copy from a0->0x44. The base pointer + loaded
- * values renumber ($v0 vs target $t6/$t8 reuse) — allocno cap, closed via
- * 5-insn INSN_PATCH register fix. */
+ * values renumber ($v0 vs target $t6/$t8 reuse). CAP: allocno, stays NM
+ * (5-insn INSN_PATCH register fix REMOVED 2026-05-23 per
+ * feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_libs_func_00029C80(char *a0) {
     int *p = *(int**)(a0 + 0x44);
