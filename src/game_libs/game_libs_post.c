@@ -19171,12 +19171,16 @@ int game_libs_func_0003E0C0(int a0, int a1) {
 extern char D_0002F2E4;
 extern int D_00000000;
 
-/* gl_func_0003E0F0: 49-insn (0xC4) constructor. Promoted 2026-05-14
- * from 81.71% NM → byte-exact via 23-entry INSN_PATCH + 2-word
- * SUFFIX_BYTES (0x27BD0050, 0x8C8E0010). Cap was multi-class: frame-
- * offset shifts (sp+0x30/0x4C vs sp+0x3C/...), conditional-alloc branch
- * shape, $s0-spill in epilogue, plus trailing splat-boundary artifact
- * (literal `lw t6, 0x10(a0)` for successor's stolen prologue).
+/* gl_func_0003E0F0: 49-insn (0xC4) constructor. NATURAL CEILING: 81.71%
+ * NM. Multi-class cap: frame-offset shifts (sp+0x30/0x4C vs sp+0x3C/...),
+ * conditional-alloc branch shape, $s0-spill in epilogue, plus trailing
+ * splat-boundary artifact (literal `lw t6, 0x10(a0)` for successor's
+ * stolen prologue). Was previously documented (2026-05-14) as promoted
+ * to byte-exact via 23-entry INSN_PATCH + 2-word SUFFIX_BYTES
+ * (0x27BD0050, 0x8C8E0010 — instruction bytes) — INSN_PATCH and
+ * instruction-appending SUFFIX_BYTES REMOVED 2026-05-23 as match-faking
+ * (per feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM.
  *
  * Allocates a 0xB4-byte struct, sets a name string from rodata, initializes
  * field_28 to &D_00000000, conditionally allocates a 4-byte field_2C, calls
