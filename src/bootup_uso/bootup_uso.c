@@ -5162,23 +5162,6 @@ void func_0000E720(char *a0) {
 
 /* func_0000E740 - verified structural decode (0xB4, 48 insns,
  * 2D strided->packed halfword blit / unswizzle).
- *   void func_0000E740(void *a0, int a1) {
- *       root = *(void**)(func_0000023C + 4);     // global root ptr
- *       vt   = root->0x28;
- *       base = (*(fn)vt->0x64)((s16)vt->0x60 + root);  // vtable call
- *       u16 *src = (u16*)((char*)base + 0x9140);
- *       u16 *dst = (u16*)a0->0x1C;
- *       for (row = 0; row != 0x20; row++) {       // 32 rows
- *           for (col = 0; col != 0x40; col += 4) {// 16 iters (x4)
- *               *dst++ = src[0x00/2];
- *               *dst++ = src[0x08/2];
- *               *dst++ = src[0x10/2];
- *               *dst++ = src[0x18/2];
- *               src += 0x20/2;                    // 0x20-byte stride
- *           }
- *           src += 0xA80/2;                       // row gap
- *       }
- *   }
  * Struct-typing reference: global root *(func_0000023C+4); root->0x28
  * (40) vtable ptr with fn @0x64 (100) + s16 base-adjust @0x60 (96)
  * returning a buffer base; src region at base+0x9140 laid out as
@@ -5186,10 +5169,34 @@ void func_0000E720(char *a0) {
  * dst = a0->0x1C (28) packed u16 output. Grid 32x(16*4)=2048 u16,
  * row stride +0xA80 in src. The obj-0x28 vtable-dispatch idiom
  * (0x64/0x60 variant). Caps <80: vtable jalr + func_0000023C+4
- * reloc data ref + nested strided copy loop (bne loop pair). Full
- * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
- * (no episode; tautology-trap rule). */
+ * reloc data ref + nested strided copy loop (bne loop pair).
+ * INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+void func_0000E740(char *a0, int a1) {
+    char *root = *(char**)((char*)&func_0000023C + 4);
+    int *vt = *(int**)(root + 0x28);
+    char *base;
+    unsigned short *src, *dst;
+    int row, col;
+    base = (char*)((unsigned short (*)(char*))*((unsigned int*)((char*)vt + 0x64)))(
+        (char*)((int)(short)*(short*)((char*)vt + 0x60) + (int)root));
+    src = (unsigned short*)(base + 0x9140);
+    dst = (unsigned short*)*(int*)(a0 + 0x1C);
+    for (row = 0; row != 0x20; row++) {
+        for (col = 0; col != 0x40; col += 4) {
+            *dst++ = src[0];
+            *dst++ = src[4];
+            *dst++ = src[8];
+            *dst++ = src[12];
+            src += 0x10;
+        }
+        src += 0x540;
+    }
+    (void)a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E740);
+#endif
 
 /* func_0000E800 - verified structural decode (0xBC, 47 insns,
  * config-parse + init routine).
