@@ -11400,12 +11400,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
 #endif
 
 /* 26-insn 3-call wrapper, family sibling of 10E2C/14FC/DC8 with one
- * extra pass-through call before the family-pattern body. Promoted from
- * 88.35% NM cap via SUFFIX_BYTES of 2 nops + 12-word INSN_PATCH at
- * +0x34..+0x60 (per docs/POST_CC_RECIPES.md
- * #feedback-suffix-plus-insn-patch-grows-and-reshapes). Divergence point
- * shifted from +0x2C (in the 24-insn family) to +0x34 because the extra
- * call-2 body sits at +0x2C..+0x30. */
+ * extra pass-through call before the family-pattern body. NATURAL CEILING:
+ * 88.35% NM. Divergence point shifted from +0x2C (in the 24-insn family)
+ * to +0x34 because the extra call-2 body sits at +0x2C..+0x30. The
+ * historical SUFFIX_BYTES (2 nops) + 12-word INSN_PATCH promotion was
+ * REMOVED 2026-05-23 as match-faking; docs/POST_CC_RECIPES.md is
+ * DEPRECATED. */
 #ifdef NON_MATCHING
 void game_uso_func_0000FA54(int *a0) {
     register int *t;
