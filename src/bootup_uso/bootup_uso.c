@@ -2107,78 +2107,79 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
  * BYTE-STRUCTURALLY IDENTICAL SIBLING of func_00005124 (same
  * alloc-cascade constructor with defensive-dead-check; the ONLY
  * difference is the init datum D_00007DC4 here vs D_00007DB4 there).
- *   void *func_000051D4(void *arg) {
- *       sub_init(&D_00007DC4);                   // func_00000000 reloc
- *       obj = alloc(0x4C);                       // func_00000000(0x4C)
- *       if (obj == 0) return 0;                  // .L00005270
- *       if (obj != 0) goto have_obj;             // .L0000522C
- *       // provably-dead 0x48-alloc arm (defensive dead check)
- *       tmp = alloc(0x48);
- *       if (tmp == 0) return ...;                // .L00005258
- *       sub2(tmp, arg, 0);
- *   have_obj:
- *       *(void**)((char*)sub + 0x28) = &D_x;
- *       obj->0x28 = &D_y;
- *       obj->0x48 = &D_z;
- *       return obj;
- *   }
  * Struct-typing reference: identical to func_00005124 - object 0x4C
  * bytes, obj->0x28 (40) / obj->0x48 (72) descriptor/vtable ptrs (&D
- * runtime-patched), arg passed through (sp+0x2C/0x1C/0x4) into the
- * dead arm; D_00007DC4 = named init datum. Caps <80: alloc-cascade +
- * defensive-dead-check (bnez-after-beqz unreachable arm) + 3-4
- * func_00000000 reloc + 3x &D-store reloc. Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule). */
+ * runtime-patched). Caps <80: alloc-cascade + defensive-dead-check +
+ * 3-4 reloc calls + 3x &D-store reloc. INCLUDE_ASM remains build path.
+ * NM body captures live behavior only — dead-arm artifacts not
+ * recreated (same convention as func_00005124). */
+extern char D_00007DC4;
+#ifdef NON_MATCHING
+void *func_000051D4(void *arg) {
+    char *obj;
+    func_00000000(&D_00007DC4);
+    obj = (char*)func_00000000(0x4C);
+    if (obj == 0) return 0;
+    *(void**)(obj + 0x28) = &D_00000000;
+    *(void**)(obj + 0x48) = &D_00000000;
+    (void)arg;
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000051D4);
+#endif
 
 /* func_00005284 - verified structural decode (0xB0, 44 insns).
  * THIRD IDENTICAL SIBLING of the func_00005124 / func_000051D4
  * alloc-cascade-ctor family (instruction-for-instruction identical
  * except the init datum D_00007DD4 and local label addresses).
- *   void *func_00005284(void *arg) {
- *       sub_init(&D_00007DD4);                   // func_00000000 reloc
- *       obj = alloc(0x4C);
- *       if (obj == 0) return 0;
- *       if (obj != 0) goto have_obj;             // dead 0x48-alloc arm
- *       ...defensive-dead-check arm (unreachable)...
- *   have_obj:
- *       *(void**)((char*)sub + 0x28) = &D_x;
- *       obj->0x28 = &D_y;  obj->0x48 = &D_z;
- *       return obj;
- *   }
- * Struct-typing reference: identical to func_00005124 - object 0x4C
+ * Struct-typing reference: identical to func_00005124 — object 0x4C
  * bytes, obj->0x28 (40) / obj->0x48 (72) descriptor ptrs (&D runtime-
- * patched), arg passed through (sp+0x2C/0x1C/0x4); D_00007DD4 = named
- * init datum (family: D_00007DB4/DC4/DD4 at +0x10 stride). Caps <80:
- * alloc-cascade + defensive-dead-check + 3-4 func_00000000 reloc +
- * 3x &D-store reloc. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * patched). D_00007DD4 = named init datum (family: D_00007DB4/DC4/DD4
+ * at +0x10 stride). Caps <80: alloc-cascade + defensive-dead-check +
+ * 3-4 reloc calls + 3x &D-store reloc. INCLUDE_ASM remains build path.
+ * NM body captures live behavior only — dead-arm artifacts not
+ * recreated. */
+extern char D_00007DD4;
+#ifdef NON_MATCHING
+void *func_00005284(void *arg) {
+    char *obj;
+    func_00000000(&D_00007DD4);
+    obj = (char*)func_00000000(0x4C);
+    if (obj == 0) return 0;
+    *(void**)(obj + 0x28) = &D_00000000;
+    *(void**)(obj + 0x48) = &D_00000000;
+    (void)arg;
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005284);
+#endif
 
 /* func_00005334 - verified structural decode (0xB4, 45 insns).
  * NEAR-SIBLING of the func_00005124/51D4/5284 alloc-cascade-ctor +
- * defensive-dead-check family (see func_00005124 for the full body).
- * Variant: object size 0x50 (vs 0x4C), init datum D_00007DE8, one
- * extra insn (0xB4 vs 0xB0). Same shape:
- *   void *func_00005334(void *arg) {
- *       sub_init(&D_00007DE8);
- *       obj = alloc(0x50);                       // larger object
- *       if (obj == 0) return 0;
- *       if (obj != 0) goto have_obj;             // dead 0x48-alloc arm
- *       ...defensive-dead-check (unreachable)...
- *   have_obj:
- *       *(void**)((char*)sub + 0x28) = &D_x;
- *       obj->0x28 = &D_y;  obj->0x48 = &D_z;
- *       return obj;
- *   }
+ * defensive-dead-check family. Variant: object size 0x50 (vs 0x4C),
+ * init datum D_00007DE8, one extra insn (0xB4 vs 0xB0).
  * Struct-typing reference: object = 0x50 bytes (this variant);
  * obj->0x28 (40) / obj->0x48 (72) descriptor ptrs (&D runtime-
- * patched), arg passed through (sp+0x2C/0x1C/0x4). Caps <80:
- * alloc-cascade + defensive-dead-check + 3-4 func_00000000 reloc +
- * 3x &D-store reloc. Full body INCLUDE_ASM-preserved (.s = source
- * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * patched). Caps <80: alloc-cascade + defensive-dead-check + 3-4
+ * reloc + 3x &D-store reloc. INCLUDE_ASM remains build path. NM body
+ * captures live behavior only — dead-arm artifacts not recreated. */
+extern char D_00007DE8;
+#ifdef NON_MATCHING
+void *func_00005334(void *arg) {
+    char *obj;
+    func_00000000(&D_00007DE8);
+    obj = (char*)func_00000000(0x50);
+    if (obj == 0) return 0;
+    *(void**)(obj + 0x28) = &D_00000000;
+    *(void**)(obj + 0x48) = &D_00000000;
+    (void)arg;
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
+#endif
 
 /* func_000053E8 - verified structural decode (0xB8, 46 insns).
  * NEAR-SIBLING of the func_00005124/51D4/5284/5334 alloc-cascade-
