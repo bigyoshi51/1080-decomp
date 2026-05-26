@@ -235,31 +235,6 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000745C);
 /* func_80007564 - verified structural decode (kernel, 0x134, rmon
  * thread-list command handler). rmon family (cf. func_8000798C /
  * func_80009584 / func_80007A98; libreultra rmon).
- *   s32 func_80007564(RmonMsg *msg) {
- *       UB *ub = &__rmonUtilityBuffer;
- *       if (msg->0xC == -1) { ub->0xC = 0x3EA; goto send; }
- *       ub->0xC = msg->0xC;
- *       if (msg->0x9 == 1) {                      // single-target
- *           ub->0x10 = 1;                         // count
- *           ub->0x14 = 0x3E8;                     // one entry
- *           goto send;
- *       }
- *       t = func_80009C30();                      // thread-list head
- *       ub->0x10 = 0;
- *       if (t->0x4 == -1) goto send;              // empty list
- *       if (t->0x14 != 0) {
- *           do {                                  // walk chain
- *               ub->0x14[ub->0x10] = t->0x14;     // append id
- *               ub->0x10++;
- *               t = t->0xC;                       // next
- *           } while (t->0x4 != -1);
- *       }
- *       ub->0x4 = (u8)msg->0x4;                    // domain
- *       ub->0x6 = 0;
- *   send:
- *       func_800073F8(ub, ub->0x10 * 4 + 0x14, 1);// __rmonSendHeader
- *       return 0;
- *   }
  * Struct-typing reference: __rmonUtilityBuffer (UB) - UB->0x4 (4)
  * u8 domain, UB->0x6 (6) u16 cleared, UB->0xC (12) s32 status/echo
  * (0x3EA = error code when msg->0xC==-1), UB->0x10 (16) u16 entry
@@ -270,9 +245,45 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000745C);
  * node->0xC (12) next, node->0x14 (20) thread id. func_800073F8 =
  * __rmonSendHeader(buf, len = count*4 + 0x14, flag = 1). Caps <80:
  * rmon utility-buffer build + thread-chain walk + branch-likely +
- * __rmonSendHeader. Full body INCLUDE_ASM-preserved (.s = source
- * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * __rmonSendHeader. INCLUDE_ASM remains build path (no episode;
+ * tautology-trap rule). */
+#ifdef NON_MATCHING
+extern char __rmonUtilityBuffer;
+extern char *func_80009C30(void);
+/* func_800073F8 is forward-declared 0-arg above (fragment stub); cast at
+ * call site to its real 3-arg __rmonSendHeader signature. */
+s32 func_80007564(char *msg) {
+    char *ub = &__rmonUtilityBuffer;
+    char *t;
+    if (*(int*)(msg + 0xC) == -1) {
+        *(int*)(ub + 0xC) = 0x3EA;
+        goto send;
+    }
+    *(int*)(ub + 0xC) = *(int*)(msg + 0xC);
+    if (*(unsigned char*)(msg + 0x9) == 1) {
+        *(unsigned short*)(ub + 0x10) = 1;
+        *(int*)(ub + 0x14) = 0x3E8;
+        goto send;
+    }
+    t = func_80009C30();
+    *(unsigned short*)(ub + 0x10) = 0;
+    if (*(int*)(t + 0x4) == -1) goto send;
+    if (*(int*)(t + 0x14) != 0) {
+        do {
+            ((int*)(ub + 0x14))[*(unsigned short*)(ub + 0x10)] = *(int*)(t + 0x14);
+            *(unsigned short*)(ub + 0x10) += 1;
+            t = *(char**)(t + 0xC);
+        } while (*(int*)(t + 0x4) != -1);
+    }
+    *(unsigned char*)(ub + 0x4) = *(unsigned char*)(msg + 0x4);
+    *(unsigned short*)(ub + 0x6) = 0;
+send:
+    ((void (*)(void*, int, int))func_800073F8)(ub, *(unsigned short*)(ub + 0x10) * 4 + 0x14, 1);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007564);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007698);
 
