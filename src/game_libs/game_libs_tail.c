@@ -108,6 +108,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
 
+/* 0x9xxx leaf-branch-past-end cluster: 12 tiny leaves with forward
+ * `beq/bne +small` branches that target at or past function-end (falling
+ * into successor's first insn). Cross-fn shared-epilogue tail-merges per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offsets,
+ * unmatchable standalone. CAP class. Covers 9920/9944/9A2C/9A50/9A6C/9A80/
+ * 9A9C/9AB0/9B98/9BBC/9CDC/9D00. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009920);
 
 void game_libs_func_0000993C(void) {}
