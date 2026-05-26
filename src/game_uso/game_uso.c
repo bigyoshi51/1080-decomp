@@ -12367,12 +12367,15 @@ void game_uso_func_00010CF0(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
 #endif
 
-/* Family sibling of game_uso_func_00010E2C / 000114FC: same SUFFIX_BYTES
- * + 12-word INSN_PATCH recipe (per docs/POST_CC_RECIPES.md
- * #feedback-suffix-plus-insn-patch-grows-and-reshapes), but 25-insn
- * shape (vs 24-insn for E2C/14FC) so divergence point is +0x30 (one
- * insn later — the additional `move a2, zero` keeps the prologue 12
- * insns long). D-offset 0xE10. */
+/* Family sibling of game_uso_func_00010E2C / 000114FC (same natural-
+ * ceiling cap shape). 25-insn (vs 24-insn for E2C/14FC) so divergence
+ * point is +0x30 (one insn later — the additional `move a2, zero` keeps
+ * the prologue 12 insns long). D-offset 0xE10. Was previously documented
+ * as the "SUFFIX_BYTES + 12-word INSN_PATCH recipe" (per the deprecated
+ * docs/POST_CC_RECIPES.md#feedback-suffix-plus-insn-patch-grows-and-reshapes
+ * entry); both mechanisms REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_00010DC8(int a0) {
     register int *t;
