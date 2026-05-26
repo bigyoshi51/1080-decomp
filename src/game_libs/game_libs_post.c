@@ -10111,6 +10111,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F1B8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F224);
 
+/* game_libs_func_0002F270: 6-insn tail-fragment of a larger function:
+ *   subu v1,v1,a0; addiu a0,a0,1; b -0xAC; sra a0,a0,1; jr ra; or v0,v1,zero
+ * Caller-set $v1 + backward branch target 0x2F1C8 (before this .s's start
+ * at 0x2F270) — splat boundary error. The actual function spans from
+ * earlier (where $v1 is initialized + the backward branch target sits) to
+ * here. CAP class — needs splat boundary correction (focused-session).
+ * Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F270);
 
 // gl_func_0002F288 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
