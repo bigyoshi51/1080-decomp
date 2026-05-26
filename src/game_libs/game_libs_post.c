@@ -33191,6 +33191,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062484);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000624EC);
 
+/* game_libs_func_00062524: 7-insn loop-bottom tail-fragment:
+ *   addiu v1,v1,1; slt at,v1,v0; bne at,zero,-0x2C; addiu a2,a2,0x14;
+ *   li v0,-1; jr ra; nop
+ * Caller-set $v0/$v1/$a2 + backward branch to 0x62504 (before .s start
+ * 0x62524). Splat captured loop tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062524);
 #endif
 
