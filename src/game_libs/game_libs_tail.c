@@ -1749,11 +1749,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D7B8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
 
-/* gl_func_0000D9B8: 98.64%->100% via INSN_PATCH (3 reg-rename diffs at
- * offsets 0x08/0x0C/0x18). IDO emits $a1 for the temp; target uses $a3.
- * The 3 insns are identical in structure, differ only in register field.
- * Per feedback_insn_patch_for_ido_codegen_caps.md, this is the canonical
- * use case for INSN_PATCH (operand-only, same insn count, same size). */
+/* gl_func_0000D9B8: NATURAL CEILING 98.64% NM. 3 reg-rename diffs at
+ * offsets 0x08/0x0C/0x18 — IDO emits $a1 for the temp; target uses $a3.
+ * Identical insn structure, different register field. The previous
+ * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Permuter-class
+ * register-rename cap; no C-reachable fix. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void gl_func_0000D9B8(int *a0) {
