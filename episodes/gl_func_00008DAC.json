@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00008DAC",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-26T00:36:37.874242+00:00",
+  "end_time": "2026-05-26T00:36:37.874266+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-26T00:36:37.874259+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 39,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\nextern int D_8C3C_arg;\nextern char D_8C3C_child_desc;\nextern char D_8C3C_mid_desc;\nextern char D_8C3C_root_desc;\n\n/* Mid section of game_libs.c, split off on 2026-05-07 along with\n * game_libs_o0_8944.c (the 3-fn -O0 cluster at 0x8944..0x8A40).\n * Covers gl_func_00008AE4..gl_func_000093DC (offset 0x8AE4..0x949C).\n * Built at -O2 (default). */\n\n#ifdef NON_MATCHING\n/* gl_func_00008C3C: 92-insn alloc-or-passthrough cascade. The first three\n * calls configure globals, then the root/mid/child chain allocates 0xD4,\n * 0x50, and 0x2C byte nodes through dead-arm passthrough guards.\n *\n * 2026-05-18 deep attempt: default -O2 emits a structurally short stack-temp\n * form; scratch -O0 compile matches the target's 0x38 frame, s0/s1/s2\n * cascade, and most branch layout. Exact promotion likely needs a dedicated\n * -O0 split for this single function (like the adjacent 8AE4/8944 island)\n * plus final constant/reloc cleanup. Default build stays INCLUDE_ASM. */\nvoid gl_func_00008C3C(int *a0, int a1) {\n    register int *root;\n    register int *mid;\n    register int *child;\n\n    gl_func_00000000(&D_00000000, (char*)0x1D138);\n    gl_func_00000000(&D_00000000, D_8C3C_arg);\n    gl_func_00000000(&D_00000000, 7, 0, 0);\n\n    root = 0;\n    if (root == 0) {\n        root = (int*)gl_func_00000000(0xD4);\n    }\n    if (root != 0) {\n        mid = root;\n        if (mid == 0) {\n            mid = (int*)gl_func_00000000(0x50);\n        }\n        if (mid != 0) {\n            child = mid;\n            if (child == 0) {\n                child = (int*)gl_func_00000000(0x2C);\n            }\n            if (child != 0) {\n                gl_func_00000000(child, (char*)0x1D148);\n                child[0x28 / 4] = (int)&D_8C3C_child_desc;\n            }\n\n            mid[0x28 / 4] = (int)&D_8C3C_mid_desc;\n        }\n        root[0x28 / 4] = (int)&D_8C3C_root_desc;\n    }\n    {\n        int *call_root = root;\n        gl_func_00000000(call_root, a0[0]);\n        gl_func_00000000(call_root);\n        root = call_root;\n    }\n    gl_func_00000000(a0, 0, root);\n    (void)a1;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_00008C3C);\n#endif\n\n/* gl_func_00008DAC: 39-insn 4-call init sequencer. -O0 island (file built\n * OPT_FLAGS := -O0: all 4 args spilled at entry, unfilled jal delays, b-to-epilogue).\n * The 2nd arg is the data symbol at offset 0xD150 referenced DIRECTLY as\n * &D_0000D150 (defined = 0x0000D150 in undefined_syms) so -O0 emits the 2-insn\n * %hi/%lo (lui 0x1; addiu -0x2EB0) the target uses -- NOT &D_00000000+0xD150 (3\n * insns at -O0). rv kept in s0 via `register`. */\nextern int gl_func_00000000();\nextern char D_0000D150;\nvoid gl_func_00008DAC(int a0, int a1, int a2, int a3) {\n    register int rv;\n    gl_func_00000000(&D_00000000, &D_0000D150);\n    gl_func_00000000(&D_00000000, 8, 0, 0);\n    rv = gl_func_00000000(0, a1, a2, a3);\n    gl_func_00000000(a0, 1, rv);\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_00008E48);\n\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_00008FFC);\n\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_00009100);\n\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_00009204);\n\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_000092F4);\n\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_000093DC);\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_mid.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00008DAC.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "-O0 island (game_libs_mid.c set OPT_FLAGS:=-O0): all-args-spill + unfilled jal delays + b-to-epilogue. KEY UN-CAP: the 0xD150 data ref is the symbol-value form (lui 0x1; addiu -0x2EB0); referenced DIRECTLY as &D_0000D150 (DEFINED = 0x0000D150, real offset, not the collapsed D_00000000=0) so -O0 emits 2-insn %hi/%lo that resolves+bakes to the target. rv kept in s0 via register. fuzzy=100; clean +1 (1580->1581), no regression"
+  }
+}

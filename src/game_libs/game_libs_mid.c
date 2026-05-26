@@ -67,24 +67,21 @@ void gl_func_00008C3C(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008C3C);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00008DAC: 39-insn 4-call init sequencer. -O0 island (all 4 args spilled
- * at entry, `b .+1` placeholder branch, unfilled jal delays). Promoted from a
- * doc-comment to a real NM wrap. Match needs an -O0 file split (per
- * project_o1o2_split.md + Makefile/linker boundaries) -- same class as siblings
- * 8A40 / the 8944 family. NM (reference decode): four collapsed-placeholder calls
- * + collapsed D refs (raw-.word game_libs reloc depression) AND -O0 codegen. */
+/* gl_func_00008DAC: 39-insn 4-call init sequencer. -O0 island (file built
+ * OPT_FLAGS := -O0: all 4 args spilled at entry, unfilled jal delays, b-to-epilogue).
+ * The 2nd arg is the data symbol at offset 0xD150 referenced DIRECTLY as
+ * &D_0000D150 (defined = 0x0000D150 in undefined_syms) so -O0 emits the 2-insn
+ * %hi/%lo (lui 0x1; addiu -0x2EB0) the target uses -- NOT &D_00000000+0xD150 (3
+ * insns at -O0). rv kept in s0 via `register`. */
 extern int gl_func_00000000();
+extern char D_0000D150;
 void gl_func_00008DAC(int a0, int a1, int a2, int a3) {
-    int rv;
-    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0xD150);
+    register int rv;
+    gl_func_00000000(&D_00000000, &D_0000D150);
     gl_func_00000000(&D_00000000, 8, 0, 0);
     rv = gl_func_00000000(0, a1, a2, a3);
     gl_func_00000000(a0, 1, rv);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008DAC);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
 

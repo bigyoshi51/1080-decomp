@@ -102,6 +102,7 @@ build/src/game_libs/game_libs_o0_8A40.c.o build/non_matching/src/game_libs/game_
 build/src/game_libs/game_libs_o0_8A40.c.o: TRUNCATE_TEXT := 0xA4
 build/src/game_libs/game_libs_o0_8AE4.c.o build/non_matching/src/game_libs/game_libs_o0_8AE4.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_8AE4.c.o: TRUNCATE_TEXT := 0x158
+build/src/game_libs/game_libs_mid.c.o build/non_matching/src/game_libs/game_libs_mid.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_mid.c.o: TRUNCATE_TEXT := 0x860
 build/src/game_libs/game_libs_o0_949C.c.o build/non_matching/src/game_libs/game_libs_o0_949C.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
