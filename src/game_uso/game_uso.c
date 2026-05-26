@@ -2210,15 +2210,16 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
 #endif
 
 extern int D_3A0;
-/* 45-insn alloc-or-passthrough constructor. Promoted via 23-word
- * INSN_PATCH (per Makefile) covering the IDO scheduler's prologue-
- * deferred-move + mid-body mtc1/lw-t8 reordering. The patch swaps two
- * relocation-bearing words at +0x34 (lui→addiu) and +0x3C (addiu→or);
- * patch-insn-bytes.py auto-strips the orphan HI16/LO16 relocs (since
- * 2026-05-07 — same machinery as the R_MIPS_26 jal-→non-jal strip).
- * In USO context, %hi(0+addend) and %lo(0+addend) both resolve to 0
- * for symbols at 0, and the addend is baked into the patched immediate,
- * so post-strip the bytes are link-correct. */
+/* 45-insn alloc-or-passthrough constructor. NATURAL CEILING. Was
+ * previously documented as "Promoted via 23-word INSN_PATCH (per
+ * Makefile) covering the IDO scheduler's prologue-deferred-move + mid-
+ * body mtc1/lw-t8 reordering ... patch swaps two relocation-bearing
+ * words at +0x34 (lui->addiu) and +0x3C (addiu->or); patch-insn-bytes.py
+ * auto-strips the orphan HI16/LO16 relocs". INSN_PATCH +
+ * patch-insn-bytes infrastructure REMOVED 2026-05-23 as match-faking
+ * (per feedback_no_instruction_forcing_matches_policy). The mid-body
+ * mtc1/lw-t8 reordering + prologue-deferred-move shape is unreachable
+ * from C; default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     int *s = a0;
