@@ -325,12 +325,13 @@ void timproc_uso_b3_func_00000D60(char *a0) {
     gl_func_00000000(a0 + 0x6E4, 0x00210009);
 }
 
-/* timproc_uso_b3_func_00000DE4: F1 (19-insn 5-call wrapper) + F2 + F3
- * splat-bundled sub-functions (0x7C total).
+/* timproc_uso_b3_func_00000DE4: F1 (19-insn 5-call wrapper) only.
  *
- * 2026-05-07: promoted via SUFFIX_BYTES recipe (12 words / 0x30 bytes
- * absorbing F2 + F3) — sibling family of arcproc_uso_func_00000EBC,
- * gl_func_000070A0.
+ * The 2026-05-07 SUFFIX_BYTES recipe (absorbing 12 words / 0x30 bytes for
+ * F2 + F3) was REMOVED 2026-05-23 as instruction-byte match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Current state: symbol
+ * is 0x4C / 19 insns (F1 only); F2 and F3 are tracked as separate
+ * symbols. Function lands at fuzzy=100 naturally with just F1's C.
  *
  * F1 @ 0xDE4-0xE2C: 5-call passthrough wrapper.
  * F2 @ 0xE30-0xE50: triple-deref non-null check (returns 0/1 on
