@@ -9863,9 +9863,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
 /* game_uso_func_0000D8A8: 17-insn conditional 3-call wrapper.
  * Body: t6 = a0->[0xB4]; if (t6->[0x990] != 0) gl_func(a0, *(D+0xE70), *(D+0xE74));
  *
- * Sibling of game_uso_func_0000FABC (just landed) — same family-cap recipe
- * applies: SUFFIX_BYTES_FORCE adds 8-byte epilogue + INSN_PATCH for varargs
- * spills (sw a1,0x4(sp); sw a2,0x8(sp)) and base-adjust register names. */
+ * NATURAL CEILING. Sibling of game_uso_func_0000FABC; same family-cap shape
+ * (varargs spills `sw a1,0x4(sp); sw a2,0x8(sp)` + base-adjust register
+ * names + 8-byte epilogue). Was previously promoted via SUFFIX_BYTES_FORCE
+ * + INSN_PATCH — both REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_0000D8A8(char *a0) {
     register int *t;
