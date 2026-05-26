@@ -28068,13 +28068,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052104);
  * of {4.0f, 2.0f, 1.0f, 0.5f} or default-arm (cross-USO call + 0.0f).
  * Sibling of gl_func_00052104.
  *
- * Promoted via 17-insn INSN_PATCH bundle: the C-emit picks $v0 for state
- * and $a2 for saved-a0, plus IDO's switch-normalization sort emits cases
- * in ascending order (0x110/0x120/0x304/0x308/0x408/0x508/0x608); target
- * uses $a2 for state, $a3 for saved-a0, and BEQ-chain order
- * 0x120/0x110/0x308/0x408/0x508/0x608/0x304. INSN_PATCH at 0x08-0x44 +
- * 0x98 bakes target's exact bytes (registers + case order). Logic-
- * identical to the C body, byte-correct via post-cc patch. */
+ * NATURAL CEILING: ~62% NM. Was previously documented as "Promoted via
+ * 17-insn INSN_PATCH bundle" — INSN_PATCH REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Real diffs:
+ *   (a) Regalloc: C-emit picks $v0 for state and $a2 for saved-a0;
+ *       target uses $a2 for state, $a3 for saved-a0 (caller-set or
+ *       global-allocator priority diff).
+ *   (b) Switch-case order: IDO normalizes to ascending
+ *       (0x110/0x120/0x304/0x308/0x408/0x508/0x608); target emits a BEQ-
+ *       chain in source order 0x120/0x110/0x308/0x408/0x508/0x608/0x304.
+ * Logic identical; reaching target bytes via C-only requires regalloc
+ * nudge + reorder bypassing IDO's switch-normalize sort. Default build
+ * is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 float gl_func_00052144(int *a0) {
     int state = *(int*)((char*)a0 + 0x24);
