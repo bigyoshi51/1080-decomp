@@ -792,11 +792,12 @@ void func_00002060(char *a0, int a1, int a2, int a3, int a4, int a5) {
 void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
 
 /* append to count+entries list at 0x104 (count) + 0x108 (4-byte entries).
- * 16+ C variants couldn't reach the target's `addu`-before-`sw count`
- * scheduling at -O2 (per feedback_ido_sw_before_addu_unreachable.md);
- * the 1-insn cap is intrinsic to IDO's scheduler. Bridged to byte-correct
- * via INSN_PATCH on offsets 0xC/0x10 — same approach as the sibling
- * func_000020AC (8-byte-pair variant). */
+ * NATURAL CEILING: 71.43% NM (~10 of 7 insns match; structural). 16+ C
+ * variants couldn't reach the target's `addu`-before-`sw count` scheduling
+ * at -O2 (per feedback_ido_sw_before_addu_unreachable.md); 1-insn cap
+ * intrinsic to IDO's scheduler. INSN_PATCH bridge (offsets 0xC/0x10) was
+ * REMOVED 2026-05-23 as match-faking. Same sibling cap class as
+ * func_000020AC (81.8%, 8-byte-pair variant). */
 #ifdef NON_MATCHING
 void func_00002088(char *a0, int a1) {
     int idx = *(int*)(a0 + 0x104);
@@ -810,12 +811,11 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
 void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
 /* append-pair to a count+entries list at offset 0xC0 (count) + 0xC4 (pairs
- * of 8). C body produces 10/11 insns match (~91% fuzzy). The 1-insn
- * structural cap (IDO -O2 schedules `sw t9,0xC0(a0)` before `addu t1,a0,t0`
- * but target has the swapped order) is documented in
- * feedback_ido_sw_before_addu_unreachable.md (10+ C variants tried). Bridged
- * to byte-correct via INSN_PATCH (Makefile: 2 swapped words at 0x1C/0x20).
- * The C body is the sole definition; no INCLUDE_ASM fallback. */
+ * of 8). NATURAL CEILING: 81.82% NM. The 1-insn structural cap (IDO -O2
+ * schedules `sw t9,0xC0(a0)` before `addu t1,a0,t0` but target has the
+ * swapped order) is documented in feedback_ido_sw_before_addu_unreachable.md
+ * (10+ C variants tried). INSN_PATCH bridge (Makefile: 2 swapped words at
+ * 0x1C/0x20) was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 void func_000020AC(int *a0, int a1, int a2) {
     int idx;
