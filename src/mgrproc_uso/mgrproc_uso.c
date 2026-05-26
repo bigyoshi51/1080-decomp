@@ -191,6 +191,11 @@ int mgrproc_uso_func_00000170(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000170);
 #endif
 
+/* 3-insn unfilled-delay leaf: `move v0,zero; jr ra; nop` (size 0xC). At -O2
+ * IDO fills the delay slot to size 0x8 = `jr ra; move v0,zero`. The unfilled
+ * form needs per-file -g3/-O0 OPT_FLAGS override per
+ * feedback_unfilled_delay_int_reader_needs_o0_split — focused-session work
+ * (whole-file split), not a tick fix. CAP. */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00000188(void) {
     return 0;
