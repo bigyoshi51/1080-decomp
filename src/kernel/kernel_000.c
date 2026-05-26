@@ -94,14 +94,16 @@ extern u32 D_8000A2D8;
 extern u32 D_8000A2DC;
 extern s32 D_80012D5C;
 
-/* Bump allocator with alignment + bookkeeping. Promoted 2026-05-14 from
- * 91.15% NM → byte-exact via 17-entry INSN_PATCH + 1-word
- * SUFFIX_BYTES_FORCE (4 bytes). Cap class: "preemptive set + nop delay"
- * structural shape — target emits `or v0, v1, 0` before the bounds-check
- * branch (separating the move from the branch delay), making the function
- * 1 insn larger than IDO's natural emit. 11+ negative C-shape attempts
- * confirmed the cap was unreachable from naturally-emitted C; INSN_PATCH
- * + grow-by-1-insn is the post-cc solution.
+/* Bump allocator with alignment + bookkeeping. NATURAL CEILING: 91.15% NM.
+ * Was previously documented (2026-05-14) as "Promoted from 91.15% NM ->
+ * byte-exact via 17-entry INSN_PATCH + 1-word SUFFIX_BYTES_FORCE (4 bytes)"
+ * — INSN_PATCH + grow-by-1-insn SUFFIX_BYTES_FORCE REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Cap class: "preemptive set + nop delay" structural shape — target emits
+ * `or v0, v1, 0` before the bounds-check branch (separating the move from
+ * the branch delay), making the function 1 insn larger than IDO's natural
+ * emit. 11+ negative C-shape attempts confirmed the cap is unreachable
+ * from naturally-emitted C; default build is INCLUDE_ASM.
  *   D_8000A2D8 = current heap top (bumps on each call)
  *   D_8000A2DC = heap end limit (returns NULL when exceeded)
  *   D_80012D5C = running total of bytes allocated
