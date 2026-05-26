@@ -76,31 +76,19 @@ extern int D_00000148;
 extern int D_0000014C;
 extern int D_00000068;
 
-/* 46-insn allocator-wrapper (0xB8). Logic decoded; compiled through the
- * timproc_uso_b1_o0_5A4 donor body and spliced into the compressed block.
+/* 46-insn -O0 allocator-wrapper (0xB8). LANDED 2026-05-25 via splice-import-
+ * donor-relocs recipe — compiled through donor file timproc_uso_b1_o0_5A4.c,
+ * spliced in via REPLACE_FUNC_BODY; the updated splice (commit 8d1b9c93a in
+ * scripts/replace-function-body.py) now imports the donor's HI16/LO16/26
+ * relocs into the destination .o instead of dropping them. Combined with
+ * D_00000148/0x14C/0x68 defined in undefined_syms_auto.txt = their offsets,
+ * objdiff resolves the relocs to the same bytes expected/.o has post-link.
+ * fuzzy=100. See feedback_splice_import_donor_relocs_recipe + the
+ * project_1080_reloc_blind_caps_are_unlockable parent breakthrough.
  *
- * Logic:
- *   handle = gl_func(2);
- *   new = gl_func(0, D[0x148], 1, arg2);
- *   *arg0 = new;
- *   D[0x14C] = new;
- *   gl_func(handle);
- *   if (arg1 != 0) (*arg0)->[0x14] = 1; else (*arg0)->[0x14] = 0;
- *   D[0x68] = 0;
- *
- * -O0 indicators (matching sibling func_00000000 BLOCKED note):
- *   1. Unfilled jal delay slots (0x5C4/0x5E4/0x604 are nops) — -O2 fills.
- *   2. `move s0, v0` for new_obj despite live range not crossing any call
- *      — -O0 conservatively saves return values.
- *   3. Redundant `b epilogue; nop` at 0x640-0x644 immediately before the
- *      epilogue at 0x648 — -O0 explicit-jump pattern.
- *   4. Frame -0x28 with s0 save despite single short-lived use — -O0 reserves
- *      callee-save space upfront.
- *
- * The direct D_00000148/D_0000014C/D_00000068 externs force 2-insn
- * lui+load/store forms at -O0; Makefile INSN_PATCH bakes the USO-local low
- * immediates in the donor before replacement. */
-#ifdef NON_MATCHING
+ * -O0 indicators preserved (the donor IS compiled at -O0):
+ *   1. Unfilled jal delay slots, 2. `move s0, v0` save, 3. trailing `b
+ *   epilogue; nop` before the epilogue, 4. Frame -0x28 with s0 save. */
 void timproc_uso_b1_func_000005A4(int **arg0, int arg1, int arg2) {
     int handle = gl_func_00000000(2);
     register int new_obj = gl_func_00000000(0, D_00000148, 1, arg2);
@@ -114,21 +102,14 @@ void timproc_uso_b1_func_000005A4(int **arg0, int arg1, int arg2) {
     }
     D_00000068 = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000005A4);
-#endif
 
-/* -O0 helper body compiled through timproc_uso_b1_o0_65C.c and spliced into
- * the compressed block, mirroring the 0x5A4 donor-body recipe. */
-#ifdef NON_MATCHING
+/* 21-insn -O0 helper. Sibling of 0x5A4 — same splice-import-donor-relocs
+ * recipe + defined-symbol resolution lands it byte-exact. */
 void timproc_uso_b1_func_0000065C(int *a0) {
     gl_func_00000000((int*)a0[0], 3);
     a0[0] = 0;
     *(int*)((char*)&D_00000000 + 0x14C) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_0000065C);
-#endif
 
 extern int D_b1_06B0_a;
 extern char *D_b1_06B0_b;
