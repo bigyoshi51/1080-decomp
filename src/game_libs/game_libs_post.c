@@ -15296,10 +15296,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037CE0);
  *   fbuf[0..2] = (float)tmp[0..2];
  *   func(&D, fbuf, 12);
  *
- * Promoted from 96.42% NM wrap to EXACT via 12-insn INSN_PATCH
- * covering addressing-mode + tmp/fbuf slot reshuffle (built uses
- * sp-direct + lwc1-via-\$v0; target uses tmp@sp+0x24 / fbuf@sp+0x38
- * sp-direct fp loads/stores). 7th in the INSN_PATCH family. */
+ * NATURAL CEILING: 96.42% NM. The 12-insn diff covers addressing-mode +
+ * tmp/fbuf slot reshuffle (build uses sp-direct + lwc1-via-$v0; target
+ * uses tmp@sp+0x24 / fbuf@sp+0x38 sp-direct fp loads/stores). Was
+ * previously documented as INSN_PATCH-promoted to EXACT; INSN_PATCH
+ * REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void gl_func_00037D48(int *a0) {
     volatile int pad[2];
