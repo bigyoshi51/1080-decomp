@@ -5,6 +5,16 @@ extern char D_00000000;
 extern char D_00000000_a;
 typedef struct { int a, b, c, d; } Quad4;
 
+#ifdef NON_MATCHING
+/* Macro definitions for NM-wrap bodies. Auto-managed by /struct-name-tick.
+ * Default build never sees these — wrap bodies aren't compiled.
+ * TIMB5_F_3A0: float value (a default scale or constant) broadcast to three
+ * adjacent grandchild fields (0x108/0x10C/0x110 — looks like Vec3 init).
+ * Positional. timproc_uso_b5 D+0x3A0.
+ */
+#define TIMB5_F_3A0 (*(float*)((char*)&D_00000000 + 0x3A0))
+#endif
+
 extern char D_b5_0_a;
 extern char D_b5_0_b;
 extern char D_b5_0_c;
@@ -4952,9 +4962,9 @@ int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, int arg3,
                              zero, zero, zero);
             *(int*)(grandchild + 0x120) = 0xFFFF;
             *(int*)(grandchild + 0x28) = (int)&D_00000000;
-            *(float*)(grandchild + 0x108) = *(float*)((char*)&D_00000000 + 0x3A0);
-            *(float*)(grandchild + 0x10C) = *(float*)((char*)&D_00000000 + 0x3A0);
-            *(float*)(grandchild + 0x110) = *(float*)((char*)&D_00000000 + 0x3A0);
+            *(float*)(grandchild + 0x108) = TIMB5_F_3A0;
+            *(float*)(grandchild + 0x10C) = TIMB5_F_3A0;
+            *(float*)(grandchild + 0x110) = TIMB5_F_3A0;
             *(float*)(grandchild + 0x124) = 1.0f;
         }
 
