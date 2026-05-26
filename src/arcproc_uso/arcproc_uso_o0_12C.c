@@ -34,9 +34,8 @@ extern int gl_func_00000000();
  * any if/else chain that has explicit early return inside the if-arm,
  * regardless of how the else-arm is written. The expected shape (NO
  * join-point, both arms branch directly to epilogue) requires dataflow
- * normalization that IDO -O0 doesn't perform. INSN_PATCH-blocked: would
- * need to grow expected/.o by +8 bytes, which post-cc tooling can't do
- * (only shrink via PROLOGUE_STEALS or overwrite via INSN_PATCH).
+ * normalization that IDO -O0 doesn't perform. Historical PROLOGUE_STEALS
+ * / INSN_PATCH workarounds were REMOVED 2026-05-23 as match-faking.
  *
  * 2026-05-08 5th variant: single-return shape `return *a0 == 0;` —
  * REGRESSED 92.86% -> 77.68% (-15pp). The boolean cast emits extra
