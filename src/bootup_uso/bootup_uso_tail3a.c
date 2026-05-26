@@ -309,20 +309,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000116C8);
 
 /* func_000117FC - verified structural decode (0xE8, 58 insns,
  * handle replace-with-validation + re-init).
- *   void func_000117FC(St *a0, void *a1) {
- *       old = a0->0x2C;
- *       if (old == 0) return;
- *       if (validate(a1, old) == 0) return;       // func_00000000
- *       if (a0->0x2C != 0)
- *           reloc_free(&D_x, a0->0x2C);           // tear down old
- *       reloc_a(3);
- *       h = reloc_b(3);                           // -> sp+0x1C
- *       reloc_c(&D_y, 1);
- *       reloc_c(&D_z, a1);
- *       reloc_c(&D_w, 0);
- *       reloc_finalize(h);
- *       a0->0x2C = a1;                            // commit new handle
- *   }
  * Struct-typing reference: a0->0x2C (44) = the live handle/resource
  * slot (NULL = nothing to replace). a1 = the candidate replacement.
  * validate(a1, old) (func_00000000) gates the swap; on success the
@@ -333,11 +319,27 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000116C8);
  * slot is updated to a1. NOTE: this file (bootup_uso_tail3a.c) is
  * the TRUNCATE_TEXT 3x-compile stitch (Makefile L85-100) - any
  * future C match must also respect that offset tuning, not just the
- * reloc caps. Caps <80: ~10x func_00000000 reloc calls + multiple
- * &D relocs + the tail3a TRUNCATE_TEXT stitch. Full body
- * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode; tautology-trap rule). */
+ * reloc caps. Caps <80: ~10x reloc calls + multiple &D relocs +
+ * the tail3a TRUNCATE_TEXT stitch. INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+void func_000117FC(char *a0, void *a1) {
+    void *old = *(void**)(a0 + 0x2C);
+    void *h;
+    if (old == 0) return;
+    if (func_00000000(a1, old) == 0) return;
+    if (*(void**)(a0 + 0x2C) != 0)
+        func_00000000(&D_00000000, *(void**)(a0 + 0x2C));
+    func_00000000(3);
+    h = (void*)func_00000000(3);
+    func_00000000(&D_00000000, 1);
+    func_00000000(&D_00000000, a1);
+    func_00000000(&D_00000000, 0);
+    func_00000000(h);
+    *(void**)(a0 + 0x2C) = a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000117FC);
+#endif
 
 /* func_000118E4 + func_0001195C split out to bootup_uso_o0_118E4.c on
  * 2026-05-14 for -O0 build (func_000118E4 was previously NM-wrapped at
