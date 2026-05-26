@@ -831,9 +831,12 @@ char *game_libs_func_0000AD20(char *a0, int a1) {
  *   }
  *   return 3;
  *
- * Promoted from 92.14% NM wrap to EXACT via 4-insn INSN_PATCH for
- * prologue setup reorder (s1=a0 / s2=a1 / sw-ra / s0=0 → s2=a1 / sw-ra /
- * s0=0 / s1=a0). 11th in the INSN_PATCH-promotion family. */
+ * NATURAL CEILING: 92.14% NM. The 4-insn prologue-setup reorder (target:
+ * s2=a1 / sw-ra / s0=0 / s1=a0  vs  IDO emit: s1=a0 / s2=a1 / sw-ra /
+ * s0=0) was previously documented as INSN_PATCH-promoted to EXACT —
+ * INSN_PATCH REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 int gl_func_0000AD2C(char *a0, int a1) {
