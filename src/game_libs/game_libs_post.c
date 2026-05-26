@@ -9714,11 +9714,11 @@ void gl_func_0002DED0(void) {
 
 /* 10-insn body single-call wrapper, sibling of gl_func_0002DF68 (same
  * 0xTTTT0000 | ((a0 & 0xFF) << 8) bit-packing pattern but without the
- * mfc1 issue — args are pure int). Tag = 0x82020000.
- *
- * Declared size 0x38 includes 2 trailing dead insns (lui t6, 0; lw t6,
- * 0x2D00(t6)) — stolen prologue setup for the successor. Closed via
- * SUFFIX_BYTES. */
+ * mfc1 issue — args are pure int). Tag = 0x82020000. LANDED fuzzy=100.
+ * The historical SUFFIX_BYTES recipe (absorbing 2 trailing stolen-prologue
+ * insns for the successor) was REMOVED 2026-05-23 as match-faking; those
+ * 2 insns are now tracked as separate symbols (function lands at 0x30
+ * naturally). The 0x38 declared size in the prior comment is stale. */
 void gl_func_0002DF00(int a0) {
     gl_func_00000000(0x82020000 | ((a0 & 0xFF) << 8), 0);
 }
