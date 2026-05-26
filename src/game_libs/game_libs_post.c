@@ -6527,6 +6527,11 @@ void gl_func_00027E24(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
 #endif
 
+/* game_libs_func_0002831C: 6-insn `lbu t6,1(a0); slt at,a1,t6; beql at,zero,+4;
+ * lbu t7,2(a0); jr ra; addiu v0,a0,8`. The `beql at,zero,+4` branches to
+ * 0x2833C — past function end (0x28334) into successor. Cross-fn
+ * shared-epilogue tail-merge per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. CAP class. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002831C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028334);
