@@ -18403,9 +18403,12 @@ int *gl_func_0003D5BC(int *a0) {
  *     tmp[0..2] = p[0..2]; a0->[0x30..0x38] = (float)tmp[0..2];
  *   } else { func(); }
  *
- * Promoted from 96.96% NM wrap to EXACT via 13-insn INSN_PATCH
- * (register-alloc + addressing-mode + frame-slot reshuffle: built
- * uses $t6/$v0/sp+0x1C, target uses $v0/$t7/sp+0x24-via-$t6). */
+ * NATURAL CEILING: 96.96% NM. The 13-insn diff covers register-alloc +
+ * addressing-mode + frame-slot reshuffle (build uses $t6/$v0/sp+0x1C;
+ * target uses $v0/$t7/sp+0x24-via-$t6). Was previously documented as
+ * INSN_PATCH-promoted to EXACT; INSN_PATCH REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void gl_func_0003D620(int *a0, int *a1) {
