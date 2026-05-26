@@ -11502,12 +11502,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB04);
 #endif
 
 /* game_uso_func_0000FB7C: 31-insn 3-call dispatcher.
- * Promoted from 79.97% NM-wrap to byte-exact via the family-cap recipe
- * (same as 10E2C/10B38/F49C/FB04). C body unchanged; INSN_PATCH 14 insns
- * at 0x38..0x70 reshapes the 2nd-call D-base + tail for cross-USO
- * varargs spills (sw a1@4(sp), sw a2@8(sp)) and the s0-restore delay-
- * slot trick (or a0,s0,0; sw 0,0x114(s0) before lw ra/s0).
- * SUFFIX_BYTES_FORCE adds 8-byte jr-ra+nop. */
+ * NATURAL CEILING: 79.97% NM. Same family-cap shape as 10E2C/10B38/F49C/
+ * FB04: the 2nd-call D-base + tail needs cross-USO varargs spills
+ * (sw a1@4(sp), sw a2@8(sp)) and the s0-restore delay-slot trick
+ * (or a0,s0,0; sw 0,0x114(s0) before lw ra/s0), plus an 8-byte jr-ra+
+ * nop epilogue. Was previously promoted via 14-insn INSN_PATCH +
+ * SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_0000FB7C(int *a0) {
     int v = a0[0xFC/4] | 0xA;
