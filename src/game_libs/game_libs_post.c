@@ -2436,6 +2436,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D2C);
 
+/* game_libs_func_00021D70: 5-insn loop-bottom tail-fragment:
+ *   bne at,zero,-0x2C; addiu a1,a1,0xC; move v0,zero; jr ra; nop
+ * Caller-set $at (set by an slt/sltu in the predecessor loop body) +
+ * backward branch -0x2C targets 0x21D48 (before this .s start 0x21D70).
+ * Splat captured a do-while loop tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ * Needs splat boundary correction (focused-session). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D70);
 
 /* gl_func_00021D84: 33-insn slot-register helper.
