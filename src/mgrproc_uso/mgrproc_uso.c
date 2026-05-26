@@ -165,6 +165,9 @@ int mgrproc_uso_func_00000140(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000140);
 #endif
 
+/* Identical pattern to _00000188: 3-insn unfilled-delay `move v0,zero; jr ra;
+ * nop` return-0 leaf (size 0xC). -O2 fills delay to size 0x8. Needs per-file
+ * -g3 split per feedback_unfilled_delay_int_reader_needs_o0_split. CAP. */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_0000015C(void) {
     return 0;
