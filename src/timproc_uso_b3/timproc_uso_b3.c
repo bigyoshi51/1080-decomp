@@ -1113,9 +1113,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  *   gl_func(entry);
  *   gl_func(entry, 0xA0, a2, 3);
  *
- * Exact via PROLOGUE_STEALS=4. Unique extern D_b3_2EF0_table bakes the
- * +0x70 table offset into the relocation; the second pointer local keeps the
- * target 0x28-byte frame and sp+0x1C spill slot. */
+ * NATURAL CEILING: 95.45% NM. Unique extern D_b3_2EF0_table bakes the
+ * +0x70 table offset into the relocation; the second pointer local keeps
+ * the target 0x28-byte frame and sp+0x1C spill slot. The historical
+ * PROLOGUE_STEALS=4 promotion was REMOVED 2026-05-23 as match-faking. */
 extern char D_b3_2EF0_table;
 #ifdef NON_MATCHING
 void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
