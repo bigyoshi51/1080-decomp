@@ -21,8 +21,12 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
 
 /* Branch-chain fragment: the predecessor leaves the character in $v0, and the
  * taken path jumps into gui_uso_func_0000003C after using this fragment's
- * delay slot to seed $at. IDO cannot name inherited $v0 from C, so the exact
- * bytes are supplied by the Makefile post-cc recipe. */
+ * delay slot to seed $at. IDO cannot name inherited $v0 from C. Was
+ * previously documented as "Makefile post-cc recipe" promotion — those
+ * recipes (INSN_PATCH/instruction-appending SUFFIX_BYTES) were REMOVED
+ * 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default INCLUDE_ASM
+ * remains byte-exact. */
 #ifdef NON_MATCHING
 int gui_uso_func_00000024(void) {
 }
@@ -31,8 +35,10 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000024);
 #endif
 
 /* Branch-chain sibling of gui_uso_func_00000024. This fragment inherits the
- * character in $v0 and cannot express the compare in C; Makefile
- * INSN_PATCH/SUFFIX_BYTES supplies the exact six target words. */
+ * character in $v0 and cannot express the compare in C. Was previously
+ * documented as Makefile INSN_PATCH/SUFFIX_BYTES — both REMOVED 2026-05-23
+ * as match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default INCLUDE_ASM remains byte-exact. */
 #ifdef NON_MATCHING
 int gui_uso_func_0000003C(void) {
 }
