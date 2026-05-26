@@ -972,8 +972,11 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD
  *
  * 2026-05-20: direct `*fp` tests plus a direct function-pointer call raise
  * the C body to 94.16% and make it same-size with the target. Remaining
- * fixed-offset diffs are IDO branch-likely/scheduler/register artifacts, so
- * Makefile INSN_PATCH promotes the body to byte-exact. */
+ * fixed-offset diffs are IDO branch-likely/scheduler/register artifacts.
+ * Makefile INSN_PATCH previously took the body to byte-exact; INSN_PATCH
+ * REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — fn rolled back to NM-wrap;
+ * NATURAL CEILING 94.16% NM. */
 #ifdef NON_MATCHING
 void h2hproc_uso_func_00001204(char *a0) {
     char *p1;

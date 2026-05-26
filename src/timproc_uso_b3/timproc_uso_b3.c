@@ -364,7 +364,10 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
  *
  * 2026-05-21: inverted the state-1 guard to recover the target beq+default
  * dispatch shape (C-only 96.86%). Remaining same-size register/scheduler
- * diffs are promoted with INSN_PATCH in Makefile.
+ * diffs were closed with INSN_PATCH in Makefile; INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — fn rolled back to NM-wrap;
+ * NATURAL CEILING 96.86% NM.
  */
 #ifdef NON_MATCHING
 void timproc_uso_b3_func_00000E60(char *a0) {

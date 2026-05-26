@@ -522,8 +522,9 @@ int gl_func_0000A0CC(char *a0) {
  *   count = 0; for (p = a0+0x18; p != a0+0x30; p += 8)
  *       if (FUNC1(p) != 0) count++;
  *   return count;
- * 6-insn INSN_PATCH closes the i/p $s-reg swap (target s0=i,s1=p; built
- * s0=p,s1=i — decl-order swap REGRESSES per feedback-sreg-not-decl-driven). */
+ * CAP: i/p $s-reg swap stays NM (target s0=i,s1=p; built s0=p,s1=i —
+ * decl-order swap REGRESSES per feedback-sreg-not-decl-driven). INSN_PATCH
+ * REMOVED 2026-05-23 per feedback_no_instruction_forcing_matches_policy. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 int gl_func_0000A130(char *a0) {

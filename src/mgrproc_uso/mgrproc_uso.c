@@ -1069,8 +1069,9 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001A6
  *   a0->[0x4F4] = a1 & 0xFFFF;
  *
  * IDO can hit the right instruction shape with explicit p0/p1 locals, but
- * grows the frame to 0x30; INSN_PATCH closes the frame/stack-slot immediates
- * after compile. */
+ * grows the frame to 0x30. CAP: frame-grow stays NM (INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy). */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void mgrproc_uso_func_00001AD0(int *a0, int a1) {

@@ -1549,8 +1549,9 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
  *
  * C structure is correct, but natural IDO -O2 rotates the saved original arg,
  * loop counter, entry pointer, and loaded type word through v0/v1/a2/a3
- * instead of the target's a3/v1/a2/v0 layout. The emitted body is same-size
- * and byte-exact after the Makefile INSN_PATCH register-allocation fix.
+ * instead of the target's a3/v1/a2/v0 layout. The emitted body is same-size;
+ * Makefile INSN_PATCH previously closed the register-allocation diff. INSN_PATCH
+ * REMOVED 2026-05-23 (see lower note).
  *
  * 2026-05-17: tested `register int saved_a1 = a1;` + renamed locals (p, v,
  * i) — fuzzy unchanged at 91.06%. IDO's register-priority formula is driven
