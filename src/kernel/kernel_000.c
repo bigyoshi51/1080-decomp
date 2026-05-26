@@ -1398,24 +1398,6 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001ADC);
  * must target the -0x20 prologue and the predecessor must own the
  * +0x50 word (split-fragments / undefined_syms boundary fix needed
  * before this can be byte-matched).
- *   s32 func_80001CF4(St *s) {                // real entry, frame -0x20
- *       if (s->0x54 != 0) {
- *           if (func_80001EDC(s->0x54, s->0x48, s->0x10) != 0)
- *               return -0xE;
- *           func_80000518(s->0x54, s->0x1C);   // note: order is
- *       }                                      //  EDC then 518; ret
- *       if (s->0x50 != 0) {                    //  check on EDC result
- *           if (func_80001EDC(s->0x50, s->0x44, s->0xC) != 0)
- *               return -0xF;
- *           func_80000518(s->0x50, s->0x18);
- *       }
- *       if (s->0x4C != 0) {
- *           if (func_80001EDC(s->0x4C, s->0x40, s->0x8) != 0)
- *               return -0x10;
- *           func_80000518(s->0x4C, s->0x14);
- *       }
- *       return 0;
- *   }
  * Struct-typing reference: s = a 3-slot resource/handle holder.
  * Parallel field groups, slot i in {0,1,2}: handle s->{0x54,0x50,
  * 0x4C} (84/80/76), paramA s->{0x48,0x44,0x40} (72/68/64), paramB
@@ -1424,10 +1406,32 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001ADC);
  * validate; nonzero = failure -> abort with -0xE/-0xF/-0x10 for
  * slots 0/1/2), then func_80000518(handle, paramC) (commit/apply).
  * Caps <80: leaked predecessor prologue word (boundary) + beql
- * branch-likely chain + 2 callees. Full body INCLUDE_ASM-preserved
- * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
- * rule + unresolved head boundary). */
+ * branch-likely chain + 2 callees. INCLUDE_ASM remains build path
+ * (no episode; tautology-trap rule + unresolved head boundary). */
+#ifdef NON_MATCHING
+extern int func_80001EDC(int handle, int paramA, int paramB);
+extern void func_80000518(int handle, int paramC);
+s32 func_80001CF4(char *s) {
+    if (*(int*)(s + 0x54) != 0) {
+        if (func_80001EDC(*(int*)(s + 0x54), *(int*)(s + 0x48), *(int*)(s + 0x10)) != 0)
+            return -0xE;
+        func_80000518(*(int*)(s + 0x54), *(int*)(s + 0x1C));
+    }
+    if (*(int*)(s + 0x50) != 0) {
+        if (func_80001EDC(*(int*)(s + 0x50), *(int*)(s + 0x44), *(int*)(s + 0xC)) != 0)
+            return -0xF;
+        func_80000518(*(int*)(s + 0x50), *(int*)(s + 0x18));
+    }
+    if (*(int*)(s + 0x4C) != 0) {
+        if (func_80001EDC(*(int*)(s + 0x4C), *(int*)(s + 0x40), *(int*)(s + 0x8)) != 0)
+            return -0x10;
+        func_80000518(*(int*)(s + 0x4C), *(int*)(s + 0x14));
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001CF4);
+#endif
 
 /* func_80001DD0 - verified structural decode (kernel, 0xF8, 62
  * insns). SIBLING of func_80001CF4 (same 3-slot resource init/
