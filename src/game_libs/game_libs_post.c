@@ -26886,10 +26886,12 @@ void gl_func_0004ECE4(int a0) {
  *     ((void(*)(int))v1[0]->[0xC])((s16)v1[0]->[0x8] + (int)v1);
  *   }
  *
- * Promoted from 98.75% NM wrap to EXACT via Makefile INSN_PATCH (6
- * insns) — overwrites the v0/v1 register-swap diff that IDO's allocno
- * order picks opposite of target. Pure register rename (same family
- * as gl_func_00035834's $v1/$a2 patch). Logic verified before patch. */
+ * NATURAL CEILING: 98.75% NM. The 6-insn diff is a pure v0/v1 register
+ * swap (IDO's allocno order picks opposite of target). Same family as
+ * gl_func_00035834's $v1/$a2 diff. Was previously documented as
+ * INSN_PATCH-promoted via Makefile; INSN_PATCH REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 void gl_func_0004ED0C(int *self)
 {
   int *iter;
