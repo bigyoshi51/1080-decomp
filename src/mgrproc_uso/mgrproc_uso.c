@@ -727,9 +727,11 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000119
  * / 0x1E0000 = variants OR'd with a per-element index or a global
  * value from &D_x/&D_y). ~10x gl_func_00000000 reloc calls + lui/ori
  * packed-constant builds + a branch on the queue range. C body builds
- * byte-exact (placeholder calls -> addr 0); the first arg's lui-const /
- * (a1-1) addiu schedule-swap (2/66) is INSN_PATCH'd. No episode (reloc-
- * blind call targets), but the plain C body is the build path. */
+ * builds at ~97% NM (64/66 byte-exact, placeholder calls -> addr 0). The
+ * remaining 2-of-66 diff is a schedule-swap between the first arg's lui-
+ * const and the `(a1-1)` addiu — previously INSN_PATCH'd; INSN_PATCH
+ * REMOVED 2026-05-23 (per feedback_no_instruction_forcing_matches_policy).
+ * No episode (reloc-blind call targets); default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void mgrproc_uso_func_000011A4(char *s0, int a1) {
     int *q;
