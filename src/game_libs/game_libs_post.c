@@ -10054,6 +10054,12 @@ int game_libs_func_0002E320(void) { return 8; }
 
 int game_libs_func_0002E328(void) { return 10; }
 
+/* game_libs_func_0002E330: 9-insn comparison loop-bottom tail-fragment:
+ *   sll v0,v0,1; andi v0,v0,0xFF; and v1,a1,v0; andi a1,v1,0xFF;
+ *   bnel a1,zero,-0xA4; slti at,a1,0x21; move v0,zero; jr ra; nop
+ * Caller-set $v0/$a1 + backward branch to 0x2E2A0 (before .s start
+ * 0x2E330). Splat captured loop tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
 
 // gl_func_0002E354 — STRUCTURAL PASS (0xF34 / 973 words ≈ 3.9KB, no
