@@ -997,12 +997,14 @@ void timproc_uso_b5_func_00001F14(char *st) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001F14);
 #endif
 
-/* 35-insn (0x8C) state==2 init helper. Promoted 2026-05-14 from 99.86%
- * NM to byte-exact via 5-entry INSN_PATCH for buf-offset shift (target
- * buf at sp+0x38, C-emit places it at sp+0x24 — same frame size 0x48
- * but different local layout. INSN_PATCH retargets at byte level since
- * the writes to sp+0x38 are still in-frame and the function works
- * correctly post-patch). */
+/* 35-insn (0x8C) state==2 init helper. NATURAL CEILING: 99.86% NM. The
+ * 5-entry diff is a buf-offset shift (target buf at sp+0x38, C-emit
+ * places it at sp+0x24 — same frame size 0x48 but different local
+ * layout). Was previously documented (2026-05-14) as INSN_PATCH-promoted
+ * to byte-exact — INSN_PATCH REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). The function works
+ * correctly under default INCLUDE_ASM; the 0.14% NM gap is the stack-
+ * slot shift IDO cannot be coaxed to emit. */
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_000027B0(int *self) {
     char *base = &D_00000000;
