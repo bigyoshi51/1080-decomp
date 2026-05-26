@@ -12664,11 +12664,11 @@ void game_uso_func_000112E0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000112E0);
 #endif
 
-/* Family sibling #5 of game_uso_func_00010E2C. Promoted from 87.38% NM
- * cap via SUFFIX_BYTES of 2 nops + 12-word INSN_PATCH at +0x2C..+0x58
- * (per docs/POST_CC_RECIPES.md
- * #feedback-suffix-plus-insn-patch-grows-and-reshapes). Differences
- * from 10E2C: D-offset 0xF08 (vs 0xE40), a3=3 (vs 1). */
+/* Family sibling #5 of game_uso_func_00010E2C. NATURAL CEILING: 87.38%
+ * NM (same constant-address-fold cap as 10E2C). Differences from 10E2C:
+ * D-offset 0xF08 (vs 0xE40), a3=3 (vs 1). 2-nop SUFFIX_BYTES + 12-word
+ * INSN_PATCH at +0x2C..+0x58 was REMOVED 2026-05-23 as match-faking;
+ * docs/POST_CC_RECIPES.md is DEPRECATED. */
 #ifdef NON_MATCHING
 void game_uso_func_00011368(int *a0) {
     register int *t;
