@@ -11345,9 +11345,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F8E8);
  *
  * 1. First 18 insns: same family fold-cap as 10E2C/10DC8/14FC. IDO
  *    collapses `lui+addiu+lw` 4-insn target form to `lui+lw` 2-insn
- *    direct form. SUFFIX+INSN_PATCH recipe should promote (per
- *    docs/POST_CC_RECIPES.md#feedback-suffix-plus-insn-patch-grows-and-reshapes)
- *    once the body structure matches.
+ *    direct form. CAP: stays NM (SUFFIX+INSN_PATCH recipe in
+ *    docs/POST_CC_RECIPES.md was deprecated 2026-05-23 as match-faking
+ *    per feedback_no_instruction_forcing_matches_policy).
  *
  * 2. Body: target has TWO intermediate stack copies of the scaled Vec3
  *    (sp+0x48 → sp+0x5C → sp+0x74). My C "Vec3 a/b/c" with 3 separate
@@ -12734,9 +12734,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011368);
 #endif
 
 /* Family sibling #6 of game_uso_func_00010E2C — last unmatched member.
- * Same SUFFIX_BYTES + 12-word INSN_PATCH recipe as 11368 (per
- * docs/POST_CC_RECIPES.md#feedback-suffix-plus-insn-patch-grows-and-reshapes).
- * Differences from 11368: D-offset 0xF10 (vs 0xF08), a3=4 (vs 3). */
+ * Was previously promoted via SUFFIX_BYTES + 12-word INSN_PATCH recipe (same
+ * as 11368). Both REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy; docs/POST_CC_RECIPES.md
+ * DEPRECATED. Differences from 11368: D-offset 0xF10 (vs 0xF08), a3=4
+ * (vs 3). NATURAL CEILING NM. */
 #ifdef NON_MATCHING
 void game_uso_func_000113C8(int *a0) {
     register int *t;
@@ -12773,10 +12775,11 @@ void game_uso_func_00011460(int *a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011460);
 #endif
-/* Family sibling of game_uso_func_00010E2C: same SUFFIX_BYTES + 12-word
- * INSN_PATCH recipe (per docs/POST_CC_RECIPES.md
- * #feedback-suffix-plus-insn-patch-grows-and-reshapes), only D-offset
- * differs (0xDB8 here vs 0xE40 there). Bytes match expected/.o. */
+/* Family sibling of game_uso_func_00010E2C: was previously promoted via
+ * SUFFIX_BYTES + 12-word INSN_PATCH recipe. Both REMOVED 2026-05-23 as
+ * match-faking per feedback_no_instruction_forcing_matches_policy;
+ * docs/POST_CC_RECIPES.md DEPRECATED. D-offset differs (0xDB8 here vs 0xE40
+ * elsewhere). NATURAL CEILING NM. */
 #ifdef NON_MATCHING
 void game_uso_func_000114FC(int *a0) {
     register int *t;
@@ -12810,9 +12813,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000114FC);
  *   2. Update undefined_syms_auto.txt: `game_uso_func_0001155C = 0x1155C;`
  *      (re-export for any external callers).
  *   3. Update splat config so successor's symbol covers 0x1155C..0x115DC.
- * Same family as the chained-SUFFIX inheritance recipe in
- * docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-only-splice-restriction
- * (5th finding) — but with predecessor symbol-rename instead of SUFFIX_BYTES. */
+ * Same family as the chained-SUFFIX inheritance recognizer (docs/POST_CC_RECIPES.md
+ * was DEPRECATED 2026-05-23 along with INSN_PATCH/PROLOGUE_STEALS/instruction-
+ * appending SUFFIX_BYTES; only the recognizer pattern remains useful). The
+ * predecessor-symbol-rename path here uses splat boundary correction (genuine
+ * mechanism) instead of any banned splice. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
 
 /* game_uso_func_00011564: 30-insn (0x78) flag-gated 100-or-0 store + dispatch.

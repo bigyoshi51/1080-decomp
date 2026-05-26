@@ -878,9 +878,13 @@ void func_00002214(char *a0) {
     func_00001C10((int*)(a0 + 0x10));
 }
 
-/* func_00002244: byte-identical mirror of func_00000C10 / func_000046EC.
- * Same volatile-int-pp frame lever + sibling INSN_PATCH transfer recipe from
- * docs/POST_CC_RECIPES.md#feedback-sibling-insn-patch-transfer-mirror-clusters-share-patch-bytes-verbatim. */
+/* func_00002244: mirror of func_00000C10 / func_000046EC. Was previously
+ * byte-identical via the volatile-int-pp frame lever + sibling INSN_PATCH
+ * transfer recipe (docs/POST_CC_RECIPES.md). INSN_PATCH REMOVED 2026-05-23
+ * as match-faking per feedback_no_instruction_forcing_matches_policy;
+ * docs/POST_CC_RECIPES.md DEPRECATED. Rolled back to NM-wrap with the
+ * volatile-int-pp frame-match lever still in place; NATURAL CEILING
+ * (register-allocator deltas stay NM). */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void *func_00002244(int *arg0) {
@@ -5277,7 +5281,9 @@ void func_0000EBB8(char *a0) {
  * both branches of `if (target->0x14 != 0)` — natural emit from the
  * conditional-prefix + unconditional-suffix shape.
  *
- * See docs/POST_CC_RECIPES.md#insn_patch-for-frame-regalloc-caps. */
+ * (Old recipe pointer: docs/POST_CC_RECIPES.md#insn_patch-for-frame-regalloc-caps;
+ * DEPRECATED 2026-05-23. INSN_PATCH for frame/regalloc caps REMOVED as
+ * match-faking per feedback_no_instruction_forcing_matches_policy.) */
 #ifdef NON_MATCHING
 int *func_0000EBE8(int *caller_a0) {
     int *p = (int*)func_00000000(0x40);
