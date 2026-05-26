@@ -1619,9 +1619,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FDF4);
 #endif
 
 /* 16-byte-align builder: a0[0]=a0[1]=(a1+0xF)&~0xF; a0[2]=a2-(a1&0xF); a0[3]=0.
- * Register-exact; IDO schedules the `and`(round) and `subu`(offset) — two
- * independent ALU ops feeding different stores — in the opposite order from the
- * target (a 2-insn positional swap), closed via INSN_PATCH. */
+ * LANDED fuzzy=100. The previously-documented 2-insn positional swap (and/subu
+ * scheduling) closed naturally without the historical INSN_PATCH bridge —
+ * INSN_PATCH was REMOVED 2026-05-23 as match-faking and the function still
+ * matches; the scheduling difference apparently resolved via incremental
+ * codegen changes upstream. */
 void game_libs_func_0001FE4C(int *a0, int a1, int a2) {
     int up = (a1 + 0xF) & ~0xF;
     a0[0] = up;
