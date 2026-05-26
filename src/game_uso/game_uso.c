@@ -10843,9 +10843,12 @@ void game_uso_func_0000EE74(void *a0) {
  * beql: ==0 case (|=0x1D) load in delay slot. USO: call->func_00000000,
  * data->&D_00000000+off.
  *
- * Byte-exact with Makefile INSN_PATCH + SUFFIX_BYTES_FORCE: C emits the
- * correct control flow, but IDO misses the target's outgoing a1/a2 stack
- * spills and picks different scratch regs in the D+0xE98 call tail. */
+ * NATURAL CEILING: C emits the correct control flow but IDO misses the
+ * target's outgoing a1/a2 stack spills and picks different scratch regs
+ * in the D+0xE98 call tail. Was previously promoted to byte-exact via
+ * Makefile INSN_PATCH + SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_0000EE84(int *a0) {
     int *p = (int *)a0[0xB4 / 4];
