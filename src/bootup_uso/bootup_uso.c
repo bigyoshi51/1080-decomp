@@ -2071,22 +2071,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
 
 /* func_00005124 - verified structural decode (0xB0, 44 insns,
  * alloc-cascade constructor with defensive-dead-check).
- *   void *func_00005124(void *arg) {
- *       sub_init(&D_00007DB4);                   // func_00000000 reloc
- *       obj = alloc(0x4C);                       // func_00000000(0x4C)
- *       if (obj == 0) return 0;                  // .L000051C0
- *       if (obj != 0) goto have_obj;             // .L0000517C
- *       // --- provably-dead 0x48-alloc arm (defensive dead check;
- *       //     obj is non-0 here, so this never runs) ---
- *       tmp = alloc(0x48);
- *       if (tmp == 0) return ...;                // .L000051A8
- *       sub2(tmp, arg, 0);                       // func_00000000
- *   have_obj:
- *       *(void**)((char*)sub + 0x28) = &D_x;     // sub-obj descriptor
- *       obj->0x28 = &D_y;                        // descriptor reloc
- *       obj->0x48 = &D_z;                        // descriptor reloc
- *       return obj;
- *   }
  * Struct-typing reference: object = 0x4C bytes; obj->0x28 (40) and
  * obj->0x48 (72) descriptor/vtable ptrs (&D, runtime-patched); arg
  * passed through (spilled sp+0x2C / sp+0x1C / sp+0x4) into the dead
@@ -2099,10 +2083,25 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
  * names live only in the USO reloc sidecar, not recoverable from the .s
  * alone; (b) the redundant-goto + dead-0x48-arm written out so -g -O2
  * keeps it; (c) the obj->0x28 double-write (&D_x then &D_y) kept (no
- * dead-store elim under -g). Blocked on (a). Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule). */
+ * dead-store elim under -g). Blocked on (a). INCLUDE_ASM remains build
+ * path (no episode; tautology-trap rule). NM body below captures the
+ * live behavior only — the provably-dead 0x48 arm and the double-write
+ * dead-store survive only under -g and are not recreated here. */
+extern char D_00007DB4;
+#ifdef NON_MATCHING
+void *func_00005124(void *arg) {
+    char *obj;
+    func_00000000(&D_00007DB4);
+    obj = (char*)func_00000000(0x4C);
+    if (obj == 0) return 0;
+    *(void**)(obj + 0x28) = &D_00000000;
+    *(void**)(obj + 0x48) = &D_00000000;
+    (void)arg;
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
+#endif
 
 /* func_000051D4 - verified structural decode (0xB0, 44 insns).
  * BYTE-STRUCTURALLY IDENTICAL SIBLING of func_00005124 (same
