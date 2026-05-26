@@ -34729,6 +34729,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066620);
 
+/* game_libs_func_00066650: 3-insn `v1[1] = v0[1]; return` field-copy.
+ * No prologue — both $v0 and $v1 are caller-set state-ptr args. IDO C
+ * can't emit functions that read v0/v1 as inputs (the calling convention
+ * is a0..a3). CAP class per feedback_caller_set_int_reg_cap_1080_game_libs.
+ * Default INCLUDE_ASM keeps ROM byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066650);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006665C);
