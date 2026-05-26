@@ -556,29 +556,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000038F4);
 
 /* gl_func_00003B1C - verified structural decode (0xF0, 60 insns,
  * free-slot allocator + initializer).
- *   void *gl_func_00003B1C(void *a0, int a1, int a2, int a3) {
- *       v1 = a0; off = 0;
- *       do {
- *           off += 4;
- *           slot = v1->0x2C;                      // candidate
- *           if (slot->0x94 == 0) {                // free -> claim
- *               slot->0x94 = 5;
- *               slot->0x9C = a3 ? 32 : 0;
- *               gl_func_00000000(slot, 161, a2 + 90, 1.0f);
- *               slot->0x78 = 255;
- *               slot->0xA0 = 0;
- *               slot->0x98 = a1;
- *               slot->0x80 = 0;
- *               slot->0x84 = -18;
- *               slot->0xA8 = 0.0f;
- *               slot->0xB0 = ((S*)a0)->0x54;
- *               gl_func_00000000(slot + 0xB4, more_args);
- *               return slot;
- *           }
- *           v1 += 4;
- *       } while (off != LIMIT);                    // 0x10000-13056
- *       return 0;
- *   }
  * Struct-typing reference: a0 = a table of slot-pointer entries
  * (stride 4); each entry's slot = entry->0x2C. Slot fields: 0x94
  * (148) s32 state (0 = free, 5 = claimed), 0x9C (156) s32 = 32 or
@@ -588,10 +565,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000038F4);
  * copied in), slot+0xB4 (180) = a sub-struct passed to a second
  * reloc init. gl_func_00000000(slot,161,a2+90,1.0f) = primary
  * init (arg2 a2+90, f32 1.0). Caps <80: scan loop + FP-const
- * (mfc1/swc1 1.0) + 2x gl_func_00000000 reloc + large sentinel
- * limit constant. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * (mfc1/swc1 1.0) + 2x reloc + large sentinel limit constant.
+ * INCLUDE_ASM remains build path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void *gl_func_00003B1C(char *a0, int a1, int a2, int a3) {
+    char *v1 = a0;
+    int off = 0;
+    char *slot;
+    do {
+        off += 4;
+        slot = *(char**)(v1 + 0x2C);
+        if (*(int*)(slot + 0x94) == 0) {
+            *(int*)(slot + 0x94) = 5;
+            *(int*)(slot + 0x9C) = a3 ? 32 : 0;
+            gl_func_00000000(slot, 161, a2 + 90, 1.0f);
+            *(int*)(slot + 0x78) = 255;
+            *(int*)(slot + 0xA0) = 0;
+            *(int*)(slot + 0x98) = a1;
+            *(int*)(slot + 0x80) = 0;
+            *(int*)(slot + 0x84) = -18;
+            *(float*)(slot + 0xA8) = 0.0f;
+            *(int*)(slot + 0xB0) = *(int*)(a0 + 0x54);
+            gl_func_00000000(slot + 0xB4);  /* additional args truncated in decode */
+            return slot;
+        }
+        v1 += 4;
+    } while (off != 0x10000);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003B1C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003C0C);
 
