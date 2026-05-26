@@ -498,13 +498,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #endif
 
 /* timproc_uso_b5_func_0000131C: 81-insn (0x144) optional-alloc + multi-link
- * constructor. Promoted from 86.88% NM cap via SUFFIX_BYTES of 3 nops +
- * 55-word INSN_PATCH (per docs/POST_CC_RECIPES.md
- * #feedback-suffix-plus-insn-patch-grows-and-reshapes — large-scope variant).
- * The cap was structural register-allocation throughout the body; the
- * patch covers ~70% of the function with mostly opcode-preserving
- * register/offset renames. Original NM analysis kept below for the
- * decoded-body context.
+ * constructor. NATURAL CEILING: 86.87% NM cap (structural register-allocation
+ * throughout the body). The prior "SUFFIX_BYTES of 3 nops + 55-word
+ * INSN_PATCH" promotion (covering ~70% of the function with register/offset
+ * renames) was REMOVED 2026-05-23 as instruction-byte match-faking (see
+ * feedback_no_instruction_forcing_matches_policy). Now back at honest 86.87%.
+ * Future work: permuter / focused-session register-rename grind. Old NM
+ * decode analysis kept below for body context.
  *
  * (Old NM analysis follows.)
  *
