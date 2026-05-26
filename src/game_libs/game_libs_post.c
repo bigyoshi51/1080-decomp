@@ -35809,6 +35809,11 @@ int game_libs_func_00067D80(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D8C);
 
+/* game_libs_func_00067E28: 12-insn comparison loop-bottom tail-fragment.
+ * Has caller-set $v0/$a1/$a2 + a `bnel a2,zero,-0x80` backward branch to
+ * 0x67DCC (before .s start 0x67E28). Splat captured loop tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ * Needs splat boundary correction (focused-session). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E28);
 
 // Merged fragment: splat split this string-to-int parser at the mid-function
