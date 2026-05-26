@@ -226,10 +226,13 @@ extern char D_00000000;
  * baselines). Cap behavior unchanged.
  *
  * (22) NOT-APPLICABLE 2026-05-05: post-discovery of the PREFIX_BYTES +
- * INSN_PATCH combo (per `docs/POST_CC_RECIPES.md` and
- * feedback_prefix_bytes_plus_insn_patch_breaks_documented_caps.md, which
- * landed func_80007FC8 / 7ABC / 7A98 / func_80000568 with 4-16 byte
- * combos). Re-evaluated whether the combo could byte-correct THIS function.
+ * INSN_PATCH combo (per `docs/POST_CC_RECIPES.md` [DEPRECATED 2026-05-23]
+ * and feedback_prefix_bytes_plus_insn_patch_breaks_documented_caps.md, which
+ * landed func_80007FC8 / 7ABC / 7A98 / func_80000568 with 4-16 byte combos
+ * — all four functions were subsequently rolled back when INSN_PATCH +
+ * instruction-appending PREFIX/SUFFIX were REMOVED 2026-05-23 as
+ * match-faking per feedback_no_instruction_forcing_matches_policy).
+ * Re-evaluated whether the combo could byte-correct THIS function.
  * Diagnosis: the combo fits when target shape is
  *   `<K leading byte-fixed insns>` + `<jr_ra_or_minimal_C>` +
  *   `<≤4 trailing patched insns>`.
