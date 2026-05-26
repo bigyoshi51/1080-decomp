@@ -11163,11 +11163,13 @@ void gl_func_00031560(void) {
     gl_func_00000000();
 }
 
-/* game_libs_func_00031580: 15-insn (+ 2-insn stolen-prologue tail = 17-insn /
- * 0x44) array-init loop. Sets per-record fields in &D+0x368[0..1] (2 records
- * of 0x64 stride). Trailing 2 insns at 0x315BC-0x315C0 are R-type stolen-
- * prologue donation to successor gl_func_000315C4 (`sll t7, a0, 2;
- * subu t7, t7, a0` = a0*3) — emitted via SUFFIX_BYTES recipe. */
+/* game_libs_func_00031580: 15-insn (0x3C) array-init loop. Sets per-record
+ * fields in &D+0x368[0..1] (2 records of 0x64 stride). LANDED fuzzy=100.
+ * The 2-insn stolen-prologue tail at 0x315BC-0x315C0 (R-type donation to
+ * successor gl_func_000315C4: sll/subu = a0*3) was historically absorbed
+ * via SUFFIX_BYTES recipe — REMOVED 2026-05-23 as match-faking. Those
+ * 2 insns are now tracked as separate symbols (function size 0x3C, not
+ * the previously-documented 0x44). */
 void game_libs_func_00031580(void) {
     int i;
     char *base = (char *)&D_00000000 + 0x368;
