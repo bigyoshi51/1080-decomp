@@ -3027,6 +3027,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * standalone C-callable functions. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087F4);
 
+/* timproc_uso_b5_func_00008834: 4-insn `beq t9,zero,+0x10; andi t0,t0,4;
+ * jr ra; li v0,2`. The `beq +3*4=+0xC` branches to 0x8844 = function end
+ * (falls through into successor's first insn). Cross-fn shared-epilogue
+ * tail-merge per feedback_leaf_branch_past_end_is_cross_fn_epilogue.
+ * Linker-set offset, unmatchable standalone. CAP class. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008834);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008844);
