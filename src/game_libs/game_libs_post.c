@@ -10134,6 +10134,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F1B8);
 
+/* game_libs_func_0002F224: 19-insn middle-fragment of a larger function
+ * with backward branch to 0x2F1C8 (before .s start 0x2F224). Sibling of
+ * game_libs_func_0002F270 (also branches to 0x2F1C8). Splat captured
+ * BOTH 0x2F224 AND 0x2F270 as separate symbols when they're actually
+ * sub-fragments of one function that starts at/before 0x2F1C8. Splat
+ * boundary error per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ * Focused-session: merge 0x2F1C8+0x2F224+0x2F270 into one function. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F224);
 
 /* game_libs_func_0002F270: 6-insn tail-fragment of a larger function:
