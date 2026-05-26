@@ -23998,8 +23998,12 @@ void game_libs_func_00047F84(s32 *arg0) {
     arg0[0x78] = 1;
 }
 
-/* Natural C emits the zero-store in the jr delay slot; Makefile INSN_PATCH +
- * EXPECTED_BASELINE-guarded SUFFIX_BYTES_FORCE restores target sw/jr/nop. */
+/* NATURAL CEILING: natural C emits the zero-store in the jr delay slot;
+ * target uses sw/jr/nop (unfilled delay). Was previously promoted via
+ * Makefile INSN_PATCH + EXPECTED_BASELINE-guarded SUFFIX_BYTES_FORCE —
+ * both REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_libs_func_00047F90(s32 *arg0) {
     arg0[0x78] = 0;
