@@ -1,0 +1,32 @@
+{
+  "function_name": "timproc_uso_b1_func_0000065C",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-26T03:36:14.270176+00:00",
+  "end_time": "2026-05-26T03:36:14.270195+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-26T03:36:14.270190+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern int D_0000014C;\n\n/* RELOC-BLIND CAP (residual 0.05% = one instruction field).\n * Target: `lui at,0; sw s0,0x14c(at)` \u2014 a 2-insn symbol-store with 0x14C baked\n * into the %lo field. The reloc-blind expected/.o is post-link (relocs applied\n * then stripped), so that field is literal 0x14C.\n * Our donor splice drops relocs (matching reloc-blind expected, same as the\n * `jal 0` which baked to 0 and DOES match). So the residual field must come from\n * the unlinked instruction itself. No IDO-emittable C produces 2-insn-with-field\n * -0x14C:\n *   - `D_0000014C` (extern symbol)  -> 2 insns but field=0 (offset is in the\n *     symbol value, applied by the dropped reloc).  [used here, best form]\n *   - `&D_00000000 + 0x14C`         -> 3 insns at -O0 (base materialized first).\n *   - `*(int*)0x14C`                -> 1 insn (zero-relative, lui dropped).\n * Real fix is the spimdisasm USO-reloc migration (expected/ becomes reloc-aware),\n * not a per-fn C change. See docs/MATCHING_WORKFLOW.md reloc-blind-donor entry. */\nvoid timproc_uso_b1_func_0000065C(int *a0) {\n    register int zero;\n    gl_func_00000000((int*)a0[0], 3);\n    zero = 0;\n    a0[0] = zero;\n    D_0000014C = zero;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-e/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_0000065C.s",
+    "segment": "timproc_uso_b1",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "function_name": "timproc_uso_b1_func_000005A4",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-26T03:36:14.010542+00:00",
+  "end_time": "2026-05-26T03:36:14.010564+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-26T03:36:14.010557+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 46,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern int D_00000148;\nextern int D_0000014C;\nextern int D_00000068;\n\nvoid timproc_uso_b1_func_000005A4(int **arg0, int arg1, int arg2) {\n    int handle = gl_func_00000000(2);\n    register int new_obj = gl_func_00000000(0, D_00000148, 1, arg2);\n    *arg0 = (int*)new_obj;\n    D_0000014C = new_obj;\n    gl_func_00000000(handle);\n    if (arg1 != 0) {\n        *(int*)((char*)*arg0 + 0x14) = 1;\n    } else {\n        *(int*)((char*)*arg0 + 0x14) = 0;\n    }\n    D_00000068 = 0;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-e/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_000005A4.s",
+    "segment": "timproc_uso_b1",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+  }
+}
