@@ -22662,10 +22662,13 @@ void gl_func_00043EAC(int a0) {
 }
 
 /* game_libs_func_00043EF0: 11-insn struct-init leaf. Sets a0[0x10/0x14]
- * = (a2,a3) and copies 4 ints from a1[0..3] to a0[0..3]. Promoted from
- * 96.36% NM wrap to EXACT via 8-insn INSN_PATCH for $t-register
- * alternation (built picks t6/t7/t8/t9 distinct; target alternates
- * t7/t6). */
+ * = (a2,a3) and copies 4 ints from a1[0..3] to a0[0..3]. NATURAL CEILING:
+ * 96.36% NM. The 8-insn diff is a $t-register alternation (build picks
+ * t6/t7/t8/t9 distinct; target alternates t7/t6). Was previously
+ * documented as INSN_PATCH-promoted to EXACT; INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_libs_func_00043EF0(int *a0, int *a1, int a2, int a3) {
     a0[0x10/4] = a2;
