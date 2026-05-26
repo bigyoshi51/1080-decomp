@@ -40,14 +40,17 @@ void func_0000F288(Quad4 *a0) {
  * (per per-file Makefile override). Body uses 4 register-typed locals
  * (Vec3* p1/p2/q, float* src) + Tri3i raw + Tri3i tmp on stack.
  *
- * Exact match via 10-insn INSN_PATCH at 0x24/0x34/0x38/0x3C/0x58/0x5C/
- * 0x64/0x6C/0x74/0x78. IDO -O0 picks $s0 for the first reg-local; target
- * picks $s1 (one-slot shift across all 4 reg-locals). Stack layout
- * is the same size (0x58 frame) but the 3-Tri3i scratch slots sit at
- * different sp offsets in target (sp+0x34/0x48 vs IDO's sp+0x2C/0x40).
- * Both diffs (s-reg shift + 8-byte offset shift) are pure encoding
- * renames — function logic identical, INSN_PATCH overwrites the 10
- * differing words. */
+ * NATURAL CEILING: ~75% NM. Was previously documented as "Exact match via
+ * 10-insn INSN_PATCH at 0x24/0x34/0x38/0x3C/0x58/0x5C/0x64/0x6C/0x74/0x78"
+ * — INSN_PATCH REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Real diffs:
+ *   (a) IDO -O0 picks $s0 for the first reg-local; target picks $s1
+ *       (one-slot shift across all 4 reg-locals — regalloc-renumber cap).
+ *   (b) Stack layout same size (0x58 frame) but the 3-Tri3i scratch slots
+ *       sit at sp+0x34/0x48 in target vs IDO's sp+0x2C/0x40 (8-byte offset
+ *       shift across 3 slots).
+ * Both diffs are pure encoding renames — function logic identical — but
+ * C-only IDO emit can't reach them. Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void func_0000F2EC(Vec3 *dst) {
     register Vec3 *p1;
