@@ -4,6 +4,16 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
+#ifdef NON_MATCHING
+/* Macro definitions for NM-wrap bodies. Auto-managed by /struct-name-tick.
+ * Default build never sees these — wrap bodies aren't compiled.
+ * H2H_D_44/H2H_D_48: a coupled int state-pair, always written together as
+ * (0x44=5, 0x48=6) across the dispatch wraps. Positional. h2hproc_uso D+0x44/0x48.
+ */
+#define H2H_D_44 (*(int*)((char*)&D_00000000 + 0x44))
+#define H2H_D_48 (*(int*)((char*)&D_00000000 + 0x48))
+#endif
+
 /* USO entry-0: leading `beq zero,zero,+0x1BC00` trampoline (loader-patched
  * at runtime) followed by an empty void body. The 4-byte trampoline is
  * injected post-cc via PREFIX_BYTES (Makefile + scripts/inject-prefix-bytes.py).
@@ -71,26 +81,26 @@ void h2hproc_uso_func_0000002C(int *a0, int a1) {
             case 1:
                 gl_func_00000000(a0, 2, 7, 1);
                 flag = 1;
-                *(int*)((char*)&D_00000000 + 0x44) = 5;
-                *(int*)((char*)&D_00000000 + 0x48) = 6;
+                H2H_D_44 = 5;
+                H2H_D_48 = 6;
                 break;
             case 2:
                 gl_func_00000000(a0, 2, 7, 1);
                 flag = 1;
-                *(int*)((char*)&D_00000000 + 0x44) = 5;
-                *(int*)((char*)&D_00000000 + 0x48) = 6;
+                H2H_D_44 = 5;
+                H2H_D_48 = 6;
                 break;
             case 3:
                 gl_func_00000000(a0, 2, 7, 2);
                 flag = 1;
-                *(int*)((char*)&D_00000000 + 0x44) = 5;
-                *(int*)((char*)&D_00000000 + 0x48) = 6;
+                H2H_D_44 = 5;
+                H2H_D_48 = 6;
                 break;
             case 4:
                 gl_func_00000000(a0, 2, 7, 4);
                 flag = 1;
-                *(int*)((char*)&D_00000000 + 0x44) = 5;
-                *(int*)((char*)&D_00000000 + 0x48) = 6;
+                H2H_D_44 = 5;
+                H2H_D_48 = 6;
                 break;
             case 5:
                 gl_func_00000000(&D_00000000, 4,
