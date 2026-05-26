@@ -11680,6 +11680,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F20);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F4C);
 
+/* game_libs_func_00032884: 44-insn middle-fragment with backward branch
+ * to 0x31EF4 (well before .s start 0x32884 — a ~0x990 byte gap!). Splat
+ * captured a large-function middle/tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ * The function genuinely starts around 0x31EF4 (or wherever the gap
+ * lives in the .s inventory). Needs splat boundary correction. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032884);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032934);
