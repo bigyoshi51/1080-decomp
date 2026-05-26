@@ -39111,9 +39111,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070850);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070954);
 
-/* 12-insn 2-call wrapper using a 0x40-byte stack buffer.
- * Trailing 2 insns (lui $at, 0x3780; mtc1 $at, $f0) are stolen prologue
- * for the successor (float-constant load); absorbed via SUFFIX_BYTES. */
+/* 12-insn 2-call wrapper using a 0x40-byte stack buffer (0x30). LANDED
+ * fuzzy=100. The 2 trailing stolen-prologue insns for the successor
+ * (lui $at,0x3780; mtc1 $at,$f0 — float-constant load) were historically
+ * absorbed via SUFFIX_BYTES; mechanism REMOVED 2026-05-23 as match-faking. */
 void gl_func_000709DC(int a0) {
     char buf[0x40];
     gl_func_00000000(buf);
