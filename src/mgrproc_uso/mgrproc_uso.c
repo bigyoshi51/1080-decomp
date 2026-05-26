@@ -11,9 +11,12 @@ typedef struct { int a, b, c, d; } Quad4;
  * locals, then deref'd for fields 0x4C/0x6A8/0x6AC). mgrproc_uso D+0x30.
  * MGR_D_64: int slot — written from q[3], read as an index (`idx = MGR_D_64
  * - 5`) and OR'd with flag 0xA0000 (positional, mixed use). mgrproc_uso D+0x64.
+ * MGR_STATE_CODE: int state/mode enum — assigned discrete codes (1,3,4,5,7,8)
+ * across the dispatch funcs and read into a `state` local. mgrproc_uso D+0x40.
  */
 #define MGR_STATE_PTR (*(int**)((char*)&D_00000000 + 0x30))
 #define MGR_D_64 (*(int*)((char*)&D_00000000 + 0x64))
+#define MGR_STATE_CODE (*(int*)((char*)&D_00000000 + 0x40))
 #endif
 
 #ifdef NON_MATCHING
@@ -310,11 +313,11 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
                 break;
             case 2:
                 gl_func_00000000(arg0);
-                *(int*)((char*)&D_00000000 + 0x40) = 3;
+                MGR_STATE_CODE = 3;
                 break;
             case 3:
                 gl_func_00000000(arg0, *(int*)((char*)&D_00000000 + 0x68));
-                *(int*)((char*)&D_00000000 + 0x40) = 4;
+                MGR_STATE_CODE = 4;
                 break;
             case 4: {
                 int *p;
@@ -361,11 +364,11 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
             }
             case 6:
                 gl_func_00000000(arg0);
-                *(int*)((char*)&D_00000000 + 0x40) = 1;
+                MGR_STATE_CODE = 1;
                 break;
             case 7:
                 gl_func_00000000(arg0);
-                *(int*)((char*)&D_00000000 + 0x40) = 8;
+                MGR_STATE_CODE = 8;
                 break;
             case 8: {
                 /* gl_func(0,1,0) → s0; gl_func(&D+0x10, s0);
@@ -382,7 +385,7 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
             default:
                 break;
         }
-        state = *(int*)((char*)&D_00000000 + 0x40);
+        state = MGR_STATE_CODE;
     } while (!loop_continue);
 }
 #else
@@ -859,17 +862,17 @@ void mgrproc_uso_func_000013C8(int *a0) {
         return;
     }
     if (gl_func_00000000(a0[0x6A8 / 4]) == 0) {
-        *(int*)((char*)&D_00000000 + 0x40) = 7;
+        MGR_STATE_CODE = 7;
         *(int*)((char*)&D_00000000 + 0x44) = a0[0x44 / 4];
         spill_var = 1;
     } else {
         if (gl_func_00000000(a0[0x6AC / 4]) == 0) {
             t4 = a0[0x6AC / 4];
             if (gl_func_00000000(t4 + 0x4C / 4) != 0) {
-                *(int*)((char*)&D_00000000 + 0x40) = 5;
+                MGR_STATE_CODE = 5;
                 spill_var = 0;
             } else {
-                *(int*)((char*)&D_00000000 + 0x40) = 7;
+                MGR_STATE_CODE = 7;
             }
             a0[0x7D8 / 4] = 1;
         }
