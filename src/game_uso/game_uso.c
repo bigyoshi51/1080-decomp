@@ -11477,12 +11477,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FABC);
 #endif
 
 /* game_uso_func_0000FB04: 30-insn dispatcher with conditional gate.
- * Promoted from 89.90% NM-wrap to byte-exact via the family-cap recipe
- * (10E2C/10B38/F49C): INSN_PATCH 12 insns at 0x28..0x6C reshapes the
- * 3rd-call tail with separate addiu+lw+lw form + cross-USO varargs spills
- * (`sw a1, 0x4(sp)` / `sw a2, 0x8(sp)`); SUFFIX_BYTES_FORCE adds 8 bytes
- * for the jr-ra+nop epilogue. Branch immediate at 0x28 also patched
- * (built had +0xE for short body; target needs +0x10 after extension). */
+ * NATURAL CEILING: 89.90% NM. Same family-cap shape as
+ * 10E2C/10B38/F49C: the 3rd-call tail needs separate addiu+lw+lw form
+ * + cross-USO varargs spills (`sw a1, 0x4(sp)` / `sw a2, 0x8(sp)`),
+ * 8-byte jr-ra+nop epilogue, and a branch immediate at 0x28 (built +0xE
+ * for short body vs target +0x10 after extension). Was previously
+ * promoted via 12-insn INSN_PATCH + SUFFIX_BYTES_FORCE — both REMOVED
+ * 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_0000FB04(int *a0) {
     gl_func_00000000(a0);
