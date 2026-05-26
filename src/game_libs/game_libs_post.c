@@ -28109,9 +28109,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000520B8);
  * $f0; multiplies by (float)a0->halfword[0x20]; truncates to int.
  * Single 1-insn cap on `mul.s` operand order (target: fs=$f0, ft=$f6;
  * IDO emits fs=$f6, ft=$f0 — semantically identical for commutative mul,
- * but encoded bytes differ). NON_MATCHING: IDO canonicalizes mul.s operand
- * order (C swap is a no-op); fs/ft assignment is the FP allocator choice, not
- * C-reachable. Was INSN_PATCH'd (removed 2026-05-23). */
+ * but encoded bytes differ). NON_MATCHING: a simple source swap is a no-op
+ * (IDO canonicalizes a fresh-temp mul.s to fs=short,ft=scale). 2026-05-25
+ * RE-GROUND (9 forms + 200s permuter, floored at score 5): the COMPOUND form
+ * `scale *= (float)short` DOES flip the order to the target's fs=$f0,ft=$f6 —
+ * but couples the mul-result reg to $f2 (target $f8) + cascades trunc/mfc1, so
+ * it trades 1 diff for 3. No form yields BOTH the fresh-temp dest ($f8) AND the
+ * compound operand order ($f0,$f6) — they're coupled in IDO's FP allocator.
+ * Genuine micro-cap; not C-reachable, permuter-resistant. Was INSN_PATCH'd
+ * (removed 2026-05-23). Stays NM. */
 extern float gl_func_returns_float();
 #ifdef NON_MATCHING
 int gl_func_00052104(int *a0) {
