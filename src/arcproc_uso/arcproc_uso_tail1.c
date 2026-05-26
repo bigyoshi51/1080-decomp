@@ -540,12 +540,12 @@ void arcproc_uso_func_00000FA8(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA8);
 #endif
 
-/* arcproc_uso_func_00001170: F1 (32-insn dispatcher + indirect call) +
- * F2 + F3 splat-bundled sub-functions (0xEC total).
- *
- * 2026-05-07: promoted via SUFFIX_BYTES recipe (28 words / 0x70 bytes
- * absorbing F2 + F3) — sibling family of arcproc_uso_func_00000EBC,
- * gl_func_000070A0, timproc_uso_b3_func_00000DE4.
+/* arcproc_uso_func_00001170: F1 (32-insn dispatcher + indirect call) only.
+ * NATURAL CEILING: 97.03% NM. The 2026-05-07 SUFFIX_BYTES recipe (28 words
+ * / 0x70 bytes absorbing F2 + F3) was REMOVED 2026-05-23 as match-faking.
+ * Symbol is now 0x80 / 32 insns (F1 only); F2 and F3 are separate symbols.
+ * Sibling family of arcproc_uso_func_00000EBC, gl_func_000070A0,
+ * timproc_uso_b3_func_00000DE4 (all same recipe-cleanup pattern).
  *
  * F1 @ 0x1170-0x11EC: gate + indirect callback via vtable.
  *   if (gl_func(D[0x190], a0)) {
