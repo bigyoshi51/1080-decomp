@@ -39306,6 +39306,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000710F8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071114);
 
+/* game_libs_func_00071130: 3-insn `lwc1 f0, 0x2520($at); jr ra; nop`.
+ * Sibling of game_libs_func_0006A2F8 — same prologue-stolen-successor
+ * CAP ($at set by predecessor's `lui $at, %hi(SYM)` tail). Standalone
+ * C-emit would emit its own lui+lwc1 (2 insns) → 4-insn func vs target's
+ * 3-insn. Was previously PROLOGUE_STEALS-promotable, REMOVED 2026-05-23.
+ * Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071130);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070C44_pad.s")
 
