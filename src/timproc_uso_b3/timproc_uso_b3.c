@@ -1039,13 +1039,16 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  *                   gl_func(entry); gl_func(entry, x, y, 0);
  *   4. Trailing `sll t6, a1, 2` at offset 0xFC sets t6 = a1*4 — this is
  *      the prologue-stolen successor donation to func_00002EF0 (see its
- *      wrap comment); it lives in 00002DF0's symbol footprint per
- *      docs/POST_CC_RECIPES.md#feedback-suffix-bytes-unblocks-4byte-stolen-prologue.
+ *      wrap comment); it lives in 00002DF0's symbol footprint.
  *
- * Match path (per 00002EF0 wrap path (a)): SUFFIX_BYTES on this function
- * with 0x00057080 to put the trailing sll back after C-emit. C body
- * matching first (any %), then SUFFIX_BYTES, then the successor matches
- * naturally without needing PROLOGUE_STEALS.
+ * Old recipe: docs/POST_CC_RECIPES.md "SUFFIX_BYTES on this function with
+ * 0x00057080 to put the trailing sll back after C-emit; then successor
+ * matches without PROLOGUE_STEALS." Instruction-appending SUFFIX_BYTES
+ * REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy;
+ * docs/POST_CC_RECIPES.md DEPRECATED. Real fix needs splat boundary
+ * correction so the trailing sll belongs to func_00002EF0's symbol — not
+ * tick-safe.
  *
  * 2026-05-15 status: 61.83%. buf-copy switched to the pointer-walk form
  * (`int *src = &D+0x4A0; buf[i]=src[i]`) — that IS the target shape

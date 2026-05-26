@@ -1124,13 +1124,16 @@ void arcproc_uso_func_0000247C(void) {
  * with no callers in src/ or undefined_syms_auto.txt (dead splat-
  * bundled stubs).
  *
- * Promoted 2026-05-17 with plain-C F1 body + SUFFIX_BYTES for the three
+ * Was promoted 2026-05-17 with plain-C F1 body + SUFFIX_BYTES for the three
  * empty trailers + INSN_PATCH on the three cross-USO data ref HI/LO pairs
- * so the object carries the baked 0x70/0x40/0x74 offsets expected by the
- * pure-asm baseline.
- *
- * See docs/POST_CC_RECIPES.md
- * #feedback-suffix-bytes-for-bundled-empty-trailers. */
+ * so the object carried the baked 0x70/0x40/0x74 offsets expected by the
+ * pure-asm baseline. Instruction-appending SUFFIX_BYTES + INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy; docs/POST_CC_RECIPES.md
+ * DEPRECATED. The all-zero/data SUFFIX_BYTES mechanism for genuine padding
+ * is still allowed; here the empty trailers are jr-ra-stubs (instructions),
+ * so the suffix was instruction-bytes. NATURAL CEILING: F1 body C-only
+ * (plus byte-exact-via-includes for trailers via splat coverage). */
 extern int gl_func_00000000();
 extern int gl_ref_00000040, gl_ref_00000070, gl_ref_00000074;
 void arcproc_uso_func_000024C0(void) {

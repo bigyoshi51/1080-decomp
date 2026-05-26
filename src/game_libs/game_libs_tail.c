@@ -1081,10 +1081,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000B628);
  *   return;
  *
  * BLOCKED for prototype-based C — same class as B5AC. Inherited $v0
- * varies per call site; no uniform PREFIX_BYTES recipe. Stays INCLUDE_ASM
- * for now. Per docs/POST_CC_RECIPES.md
+ * varies per call site; no uniform PREFIX_BYTES recipe. Stays INCLUDE_ASM.
+ * (Old recognizer reference: docs/POST_CC_RECIPES.md
  * #feedback-insn-patch-for-ido-codegen-caps "HI/LO register inheritance
- * (chained-SUFFIX-div pattern, 2026-05-05)" — same recognition pattern. */
+ * (chained-SUFFIX-div pattern, 2026-05-05)". docs/POST_CC_RECIPES.md
+ * DEPRECATED 2026-05-23; the recognition pattern still applies but the
+ * recipe is no longer accessible.) */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B638);
 
 extern int gl_func_00000000();
