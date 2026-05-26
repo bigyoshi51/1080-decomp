@@ -33752,17 +33752,13 @@ void gl_func_000640E4(int a0, int *a1) {
  *    regs; needs the source's original distinct sub-expression (likely
  *    a variable, not a literal) — unknown.
  *  - The 0x50 symbol's trailing `mtc1 zero,$f0` is the SUCCESSOR's
- *    stolen prologue; byte_verify needs it via SUFFIX_BYTES.
- *    UPDATE 2026-05-17: gl_func_00064174 (successor) already has
- *    PROLOGUE_STEALS=4 + 10-insn INSN_PATCH landed (2026-05-16).
- *    A SUFFIX_BYTES on this predecessor would need to add TWO words
- *    (mtc1 $f4=0.0 + mtc1 $f0=0.0) to reach target's 20-insn size,
- *    AND the body needs the 0x144 store moved into the jr-ra delay
- *    slot using $f4. SUFFIX-only can't reorder middle insns, so it
- *    won't reach exact alone. Multi-step: TRUNCATE_TEXT + larger
- *    SUFFIX could shape the trailing region, but the C-level
- *    distinct-$f4-for-0.0 source is also missing. Multi-blocker;
- *    defer until a separate insn-insert mechanism exists.
+ *    stolen prologue — historically captured via SUFFIX_BYTES on this
+ *    predecessor and PROLOGUE_STEALS/INSN_PATCH on the successor
+ *    gl_func_00064174. All of those mechanisms were REMOVED 2026-05-23
+ *    as match-faking. The C-level distinct-$f4-for-0.0 lever is also
+ *    missing. Multi-blocker; needs splat boundary correction (focused-
+ *    session work) for the trailing-stolen-prologue piece, plus a real
+ *    C source for the distinct-$f4 sub-expression.
  *
  *  2026-05-17: tested `float zero2 = 0.0f;` named-local lever (per
  *  docs/IDO_CODEGEN.md#feedback-ido-named-float-const-pins-fp-reg-across-body)
