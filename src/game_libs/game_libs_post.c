@@ -9333,9 +9333,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
  * 2026-05-08 (later, after game_uso_func_00001DDC `0.0f*0.0f` → memory-load
  * +0.73pp finding): no zero-term cite-applicable here — this function uses
  * integer args (0x41010000 etc as int constants, not float-zero terms).
- * 2026-05-11: promoted with the measured C body plus
- * SUFFIX_BYTES_FORCE + INSN_PATCH. The C emits the four-call body; the
- * post-cc recipe covers the predecessor-stolen store and successor suffix. */
+ * 2026-05-11: had promoted with the measured C body plus
+ * SUFFIX_BYTES_FORCE + INSN_PATCH; both mechanisms REMOVED 2026-05-23 as
+ * match-faking. Now at honest 87.04% NM (4-call body C-emit is correct;
+ * the predecessor-stolen store + successor suffix bytes diverge from
+ * target without the banned post-cc recipes). */
 extern int D_2D7D0_arr;
 #ifdef NON_MATCHING
 void gl_func_0002D7D0(void) {
