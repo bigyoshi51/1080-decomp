@@ -10,12 +10,12 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 
 | Segment                | Functions         | Code matched           | Matched    | Fuzzy      | Notes                                          |
 |------------------------|-------------------|------------------------|------------|------------|------------------------------------------------|
-| `kernel`               | 101 / 212         | 9.8 KB / 39.4 KB       | 24.96 %    | 33.97 %    | libultra + USO loader + audio (`0x80000000`)   |
-| `bootup_uso`           | 200 / 335         | 12.2 KB / 79.3 KB      | 15.35 %    | 28.30 %    | Giles Goddard's libgdl engine                  |
-| `game_libs`            | 770 / 2029        | 36.9 KB / 406.6 KB     | 9.07 %     | 24.37 %    | Support libraries                              |
-| `gui_uso`              | 10 / 42           | 0.8 KB / 14.1 KB       | 5.92 %     | 11.97 %    | GUI/menu helpers                               |
-| `titproc_uso`          | 23 / 47           | 2.0 KB / 10.5 KB       | 18.72 %    | 52.85 %    | Title-screen process                           |
-| `arcproc_uso`          | 24 / 51           | 1.8 KB / 10.4 KB       | 17.66 %    | 40.28 %    | Arcade-mode process                            |
+| `kernel`               | 101 / 213         | 9.8 KB / 39.4 KB       | 24.94 %    | 34.02 %    | libultra + USO loader + audio (`0x80000000`)   |
+| `bootup_uso`           | 219 / 359         | 13.7 KB / 81.6 KB      | 16.84 %    | 29.88 %    | Giles Goddard's libgdl engine                  |
+| `game_libs`            | 834 / 2119        | 41.8 KB / 412.2 KB     | 10.14 %    | 25.14 %    | Support libraries                              |
+| `gui_uso`              | 10 / 48           | 0.8 KB / 17.8 KB       | 4.70 %     | 10.31 %    | GUI/menu helpers                               |
+| `titproc_uso`          | 27 / 45           | 2.6 KB / 10.5 KB       | 24.48 %    | 53.34 %    | Title-screen process                           |
+| `arcproc_uso`          | 27 / 51           | 2.0 KB / 10.1 KB       | 19.95 %    | 41.34 %    | Arcade-mode process                            |
 | `h2hproc_uso`          | 24 / 41           | 1.5 KB / 6.8 KB        | 22.76 %    | 80.25 %    | Head-to-head process                           |
 | `eddproc_uso`          | 12 / 15           | 0.7 KB / 1.1 KB        | 64.46 %    | 91.53 %    | Edit-mode process                              |
 | `n64proc_uso`          | 2 / 7             | 0.1 KB / 1.0 KB        | 6.02 %     | 88.33 %    | N64-specific process                           |
@@ -24,11 +24,11 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 | `boarder3_uso`         | 6 / 6             | 0.4 KB / 0.4 KB        | 100.00 %   | 100.00 %   | Per-character snowboarder USO                  |
 | `boarder4_uso`         | 6 / 6             | 0.4 KB / 0.4 KB        | 100.00 %   | 100.00 %   | Per-character snowboarder USO                  |
 | `boarder5_uso`         | 5 / 6             | 0.3 KB / 0.4 KB        | 83.84 %    | 98.99 %    | Last snowboarder USO — 1 function left         |
-| `mgrproc_uso`          | 17 / 60           | 1.0 KB / 13.0 KB       | 7.99 %     | 34.45 %    | Manager process (Yay0-decompressed)            |
-| `game_uso`             | 97 / 243          | 5.7 KB / 71.6 KB       | 7.90 %     | 42.10 %    | Main game loop (Yay0-decompressed)             |
-| `timproc_uso`          | 159 / 336         | 8.6 KB / 81.2 KB       | 10.65 %    | 31.73 %    | Timer process (Yay0; variants b1/b3/b5)        |
+| `mgrproc_uso`          | 18 / 60           | 1.2 KB / 13.0 KB       | 8.92 %     | 34.61 %    | Manager process (Yay0-decompressed)            |
+| `game_uso`             | 100 / 243         | 5.7 KB / 70.9 KB       | 8.10 %     | 42.84 %    | Main game loop (Yay0-decompressed)             |
+| `timproc_uso`          | 178 / 336         | 10.2 KB / 81.1 KB      | 12.55 %    | 33.78 %    | Timer process (Yay0; variants b1/b3/b5)        |
 | `map4_data_uso`        | 3 / 3             | 0.2 KB / 0.2 KB        | 100.00 %   | 100.00 %   | Map-4 data block                               |
-| **Total**              | **1,471 / 3,451** | **83.2 KB / 737.0 KB** | **11.29 %** | **29.33 %** |                                                |
+| **Total**              | **1,584 / 3,570** | **92.2 KB / 747.6 KB** | **12.33 %** | **30.09 %** |                                                |
 
 Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
