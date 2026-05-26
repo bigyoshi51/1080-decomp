@@ -9,8 +9,11 @@ typedef struct { int a, b, c, d; } Quad4;
  * Default build never sees these — wrap bodies aren't compiled.
  * TIMB3_D_64: int value passed to gl_func_00000000 calls and OR'd with
  * flag 0x4000 (positional name pending semantics). timproc_uso_b3 D+0x64.
+ * TIMB3_D_48: int state-companion slot, set to 0xD alongside D+0x44=4 across
+ * the dispatch wraps. Positional. timproc_uso_b3 D+0x48.
  */
 #define TIMB3_D_64 (*(int*)((char*)&D_00000000 + 0x64))
+#define TIMB3_D_48 (*(int*)((char*)&D_00000000 + 0x48))
 #endif
 
 #ifdef NON_MATCHING
@@ -72,25 +75,25 @@ void timproc_uso_b3_func_000000B0(int *a0, int a1) {
         case 0:
             gl_func_00000000(a0, 1, 7, 1);
             *(int*)((char*)&D_00000000 + 0x44) = 4;
-            *(int*)((char*)&D_00000000 + 0x48) = 0xD;
+            TIMB3_D_48 = 0xD;
             done = 1;
             break;
         case 1:
             gl_func_00000000(a0, 1, 7, 1);
             *(int*)((char*)&D_00000000 + 0x44) = 4;
-            *(int*)((char*)&D_00000000 + 0x48) = 0xD;
+            TIMB3_D_48 = 0xD;
             done = 1;
             break;
         case 2:
             gl_func_00000000(a0, 1, 7, 2);
             *(int*)((char*)&D_00000000 + 0x44) = 4;
-            *(int*)((char*)&D_00000000 + 0x48) = 0xD;
+            TIMB3_D_48 = 0xD;
             done = 1;
             break;
         case 3:
             gl_func_00000000(a0, 1, 7, 4);
             *(int*)((char*)&D_00000000 + 0x44) = 4;
-            *(int*)((char*)&D_00000000 + 0x48) = 0xD;
+            TIMB3_D_48 = 0xD;
             done = 1;
             break;
         case 4:
