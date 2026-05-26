@@ -10626,11 +10626,11 @@ void gl_func_00030504(int a0) {
     }
 }
 
-/* gl_func_00030564: 1-call wrapper. Trailing 12 bytes (lui v0; addiu v0;
- * lw t6, 0x8(v0)) are stolen prologue for SUCCESSOR gl_func_00030598 —
- * appended via SUFFIX_BYTES so st_size matches expected (0x34).
- * Per memo feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md
- * (extended to 12-byte case). */
+/* gl_func_00030564: 1-call wrapper (0x28). LANDED fuzzy=100. The 12-byte
+ * SUFFIX_BYTES recipe (`lui v0; addiu v0; lw t6,0x8(v0)` — stolen prologue
+ * for SUCCESSOR gl_func_00030598) was REMOVED 2026-05-23 as match-faking.
+ * Those bytes belong to separate symbols now. (Previously-documented 0x34
+ * size is stale.) */
 void gl_func_00030564(void) {
     gl_func_00000000(0x06000801, 1);
 }
