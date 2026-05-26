@@ -17,9 +17,14 @@ typedef struct { int a, b; } Pair2;
  * Default build never sees these — wrap bodies aren't compiled.
  * GAME_D_E10: first int of the (0xE10,0xE14) global value pair passed
  * together (as args) to gl_func_00000000 across several wraps. game_uso D+0xE10.
+ * GAME_D_F18/F1C: a second (0xF18,0xF1C) int pair passed together to
+ * func_00000000 as `(a0, F18, F1C, 2, F18, F1C)` (the pair repeated) in the
+ * func_00011258/112E0 sibling wraps. Positional. game_uso D+0xF18/0xF1C.
  */
 #define GAME_D_E10 (*(int*)((char*)&D_00000000 + 0xE10))
 #define GAME_D_E14 (*(int*)((char*)&D_00000000 + 0xE14))
+#define GAME_D_F18 (*(int*)((char*)&D_00000000 + 0xF18))
+#define GAME_D_F1C (*(int*)((char*)&D_00000000 + 0xF1C))
 #endif
 
 #ifdef NON_MATCHING
@@ -12639,11 +12644,11 @@ void game_uso_func_00011258(int *a0) {
     int *p;
     int *status;
     func_00000000(a0, 0x70009, 0, 2, 1, 1);
-    func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF18),
-                      *(int*)((char*)&D_00000000 + 0xF1C),
+    func_00000000(a0, GAME_D_F18,
+                      GAME_D_F1C,
                       2,
-                      *(int*)((char*)&D_00000000 + 0xF18),
-                      *(int*)((char*)&D_00000000 + 0xF1C));
+                      GAME_D_F18,
+                      GAME_D_F1C);
     func_00000000(a0);
     p = *(int**)((char*)a0 + 0xB4);
     status = (int*)((char*)p + 0xA58);
@@ -12661,11 +12666,11 @@ extern int func_00000000();
 #ifdef NON_MATCHING
 void game_uso_func_000112E0(int *a0) {
     func_00000000(a0, 0x70008, 0, 2, 1, 1);
-    func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF18),
-                      *(int*)((char*)&D_00000000 + 0xF1C),
+    func_00000000(a0, GAME_D_F18,
+                      GAME_D_F1C,
                       2,
-                      *(int*)((char*)&D_00000000 + 0xF18),
-                      *(int*)((char*)&D_00000000 + 0xF1C));
+                      GAME_D_F18,
+                      GAME_D_F1C);
     func_00000000(a0);
     *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0xA58) &= ~0x800;
 }
