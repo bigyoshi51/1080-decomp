@@ -22042,8 +22042,11 @@ void gl_func_000423D8(void) {
 
 /* game_libs_func_00042400: 10-insn leaf, table-driven pack:
  *   entry = D[a1 * 8]; return (a0 << entry[0]) + entry[1];
- * Promoted from 97.5% NM wrap to EXACT via 4-insn INSN_PATCH for
- * $t-register rename ($t9/$t8/$t0 → $t8/$t0/$t9). */
+ * NATURAL CEILING: 97.5% NM. The 4-insn diff is a $t-register rename
+ * ($t9/$t8/$t0 -> $t8/$t0/$t9). Was previously documented as
+ * INSN_PATCH-promoted; INSN_PATCH REMOVED 2026-05-23 as match-faking
+ * (per feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 unsigned short game_libs_func_00042400(int a0, int a1) {
     int *entry = (int*)((char*)&D_00000000 + a1 * 8);
