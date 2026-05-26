@@ -31501,14 +31501,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FC64);
 #endif
 
 /* 23-insn alloc-or-passthrough + 2-call init wrapper. Sibling of
- * gl_func_0005FDCC. C body produces target shape EXCEPT for IDO's
- * register choice ($v1 instead of target's $a1) for the persistent `p`
- * variable, which cascades into 8-byte frame over-allocation (-0x20 vs
- * target's -0x18) and shifted spill offsets. Promoted via 11-word
- * INSN_PATCH covering frame-addiu words + the 4 stack-offset accesses +
- * the 5 register-rename insns. Per docs/POST_CC_RECIPES.md
- * #feedback-insn-patch-for-ido-codegen-caps "Frame-size + stack-offset
- * + reg-rename combos" (recipe added 2026-05-05). */
+ * gl_func_0005FDCC. NATURAL CEILING: C body produces target shape EXCEPT
+ * for IDO's register choice ($v1 instead of target's $a1) for the
+ * persistent `p` variable, which cascades into 8-byte frame
+ * over-allocation (-0x20 vs target's -0x18) and shifted spill offsets.
+ * Was previously documented as promoted via 11-word INSN_PATCH per the
+ * "Frame-size + stack-offset + reg-rename combos" recipe in
+ * docs/POST_CC_RECIPES.md (added 2026-05-05) — INSN_PATCH REMOVED
+ * 2026-05-23 and POST_CC_RECIPES.md deprecated (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int gl_func_0005FCC4(int *a0) {
     int *p;
