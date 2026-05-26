@@ -32450,6 +32450,8 @@ void gl_func_00060ED0(int *a0, int a1) {
     } while (node != 0);
 }
 
+/* game_libs_func_00060F44: leaf-branch-past-end CAP per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F44);
 
 /* game_libs_func_00060F64: doubly-linked-list INSERT (mirror of the 0x60F90 unlink
@@ -32507,6 +32509,8 @@ void game_libs_func_00061030(int *a0) { *(int*)((char*)a0 + 0x18) ^= 0x4; }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061040);
 
+/* game_libs_func_000610F4: leaf-branch-past-end CAP per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000610F4);
 
 #ifdef NON_MATCHING
@@ -34844,6 +34848,8 @@ int gl_func_000665B4(int a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
 
+/* game_libs_func_00066620: leaf-branch-past-end CAP per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066620);
 
 /* game_libs_func_00066650: 3-insn `v1[1] = v0[1]; return` field-copy.
@@ -38702,6 +38708,8 @@ int game_libs_func_0006F1B0(char *a0) {
     return p - a0;
 }
 
+/* game_libs_func_0006F1D8: leaf-branch-past-end CAP per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F1D8);
 
 /* game_libs_func_0006F1FC: 7-insn string-walk loop-bottom tail-fragment:
