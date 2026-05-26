@@ -9887,9 +9887,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8A8);
 #endif
 
 /* game_uso_func_0000D8EC: 56-insn dispatch + 3-call wrapper.
- * Promoted via branch layout + post-call reload; Makefile
- * SUFFIX_BYTES_FORCE/INSN_PATCH handles the remaining caller-slot spill and
- * D-base scheduling family cap, same as D7F4/D8A8.
+ * NATURAL CEILING via C-shape (branch layout + post-call reload). The
+ * remaining caller-slot spill + D-base scheduling family cap (same as
+ * D7F4/D8A8) was previously promoted via Makefile SUFFIX_BYTES_FORCE/
+ * INSN_PATCH — both REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM.
  *
  * Mixed control flow:
  *   if (a0->[0xB4]->[0x938] == 0) {  ; v1->[0x938] gate
