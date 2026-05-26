@@ -38401,10 +38401,13 @@ int gl_func_0006EEE4(int a0, int a1, int a2) {
  *   if (rv >= 0) a0[rv] = 0;
  *   return rv;
  *
- * Promoted from 89.77% NM wrap to EXACT via 13-insn INSN_PATCH for
- * frame-size shift (built emits 0x18 frame; target uses 0x20). C-only
- * \`char pad[8]\` and \`volatile int pad[2]\` both elided by IDO -O2,
- * so frame must be patched in. 14th INSN_PATCH-promotion this session. */
+ * NATURAL CEILING: 89.77% NM. The 13-insn diff is a frame-size shift
+ * (build emits 0x18 frame; target uses 0x20). C-only `char pad[8]` and
+ * `volatile int pad[2]` are both elided by IDO -O2, so the natural emit
+ * cannot grow the frame. Was previously documented as INSN_PATCH-promoted
+ * to EXACT; INSN_PATCH REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 extern int func_00000000();
 extern int D_00000000;
 #ifdef NON_MATCHING
