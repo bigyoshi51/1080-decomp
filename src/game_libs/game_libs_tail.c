@@ -799,7 +799,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000ABBC);
  * the intra-segment `func_00000000` symbol, not `gl_func_00000000`).
  * Returns non-zero hit count. Source structurally identical to A0CC;
  * stride/limit immediates differ (0x20/0x60 vs 0x8/0x18) and callee
- * reloc name. Byte-exact via sibling INSN_PATCH transfer logic. */
+ * reloc name. NATURAL CEILING: previously documented as "Byte-exact via
+ * sibling INSN_PATCH transfer logic" — INSN_PATCH REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 extern int func_00000000();
 int gl_func_0000ACBC(char *a0) {
     char *p;
