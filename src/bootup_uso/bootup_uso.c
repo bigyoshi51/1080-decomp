@@ -370,11 +370,14 @@ void func_00000BE0(char *a0) {
     func_00000008((int*)(a0 + 0x10));
 }
 
-/* func_00000C10: byte-identical mirror of func_000046EC. Same recipe:
- * volatile-int-pp lever for frame match + 22-word INSN_PATCH for
- * register-allocator deltas. Per docs/POST_CC_RECIPES.md sibling
- * INSN_PATCH transfer recipe (verified across multiple sibling clusters
- * this session). */
+/* func_00000C10: mirror of func_000046EC. Was previously byte-identical via
+ * a "volatile-int-pp lever for frame match + 22-word INSN_PATCH for
+ * register-allocator deltas" recipe (docs/POST_CC_RECIPES.md sibling-INSN_PATCH
+ * transfer). INSN_PATCH REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy; docs/POST_CC_RECIPES.md
+ * DEPRECATED. Function rolled back to NM-wrap with the volatile-int-pp
+ * frame-match lever still in place; NATURAL CEILING (register-allocator
+ * deltas stay NM). */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void *func_00000C10(int *arg0) {

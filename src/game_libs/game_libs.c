@@ -1536,10 +1536,12 @@ int gl_func_00008884(char *a0) {
  *   }
  *   return ptr;
  *
- * Promotion to exact requires INSN_PATCH for the 3 jal targets (all encoded
- * as 0x0C000000 placeholders, runtime-resolved by USO loader). Recipe:
- * docs/POST_CC_RECIPES.md#feedback-jal-insn-patch-to-match-include-asm-derived-expected.
- * Beql for `if (existing->field_14 != 0)` followed by `existing->field_14 = ptr`
+ * (Old recipe: "INSN_PATCH for the 3 jal targets (all encoded as 0x0C000000
+ * placeholders, runtime-resolved by USO loader); recipe at
+ * docs/POST_CC_RECIPES.md". docs/POST_CC_RECIPES.md is DEPRECATED and
+ * INSN_PATCH REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy.) Beql for
+ * `if (existing->field_14 != 0)` followed by `existing->field_14 = ptr`
  * relies on the duplicate-store IDO emit pattern; the C body above triggers
  * it (write same value in both branches → IDO speculates via delay-likely).
  *
