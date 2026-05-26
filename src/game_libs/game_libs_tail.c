@@ -982,10 +982,12 @@ void gl_func_0000B4A4(int *a0, int a1, char a2, char a3) {
     }
 }
 
-/* 14-insn 2-call wrapper at 0xB560-0xB594. The 4 trailing bytes at
- * 0xB59C-0xB5A8 (`sll/subu/addiu/div` computing (a1*3)/5) are stolen
- * prologue setup for successor gl_func_0000B5AC, applied via SUFFIX_BYTES
- * (same recipe class as gl_func_0005FD20 / gl_func_0005FDCC). */
+/* 15-insn 2-call wrapper (0x3C). LANDED fuzzy=100. The historical 4-byte
+ * SUFFIX_BYTES tail (`sll/subu/addiu/div` computing (a1*3)/5, supplying
+ * stolen-prologue setup for successor gl_func_0000B5AC) was REMOVED
+ * 2026-05-23 as match-faking; those bytes now belong to B5AC's own symbol.
+ * Successor B5AC is at fuzzy=NULL (still needs predecessor-fall-through
+ * decode) — see its header just below. */
 extern int gl_func_00000000();
 void gl_func_0000B560(int *p) {
     gl_func_00000000(p[4], p[0]);
