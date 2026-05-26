@@ -2499,9 +2499,10 @@ void timproc_uso_b5_func_000077D8(char *scr) {
 // 2026-05-20 Codex pass: corrected the mode gate (`D+0x34`, not
 // `scr+0x34`), countdown gate polarity, post-deactivate branch polarity,
 // vtable call arg shape (`a1 = 0`), and the re-init tail's local phase
-// table / `func(scr, phase)` chain. C emit is structurally correct but
-// IDO CSEs the fade-step base load one insn shorter; exactness is promoted
-// via SUFFIX_BYTES + INSN_PATCH per docs/POST_CC_RECIPES.md.
+// table / `func(scr, phase)` chain. NATURAL CEILING: 98.32% NM (IDO CSEs
+// the fade-step base load one insn shorter than target). The historical
+// SUFFIX_BYTES + INSN_PATCH promotion was REMOVED 2026-05-23 as
+// match-faking (docs/POST_CC_RECIPES.md is DEPRECATED).
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_000079A4(char *scr) {
     char *obj;
