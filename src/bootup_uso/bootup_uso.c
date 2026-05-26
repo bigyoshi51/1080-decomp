@@ -4826,65 +4826,82 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DDCC);
 
 /* func_0000DF04 - verified structural decode (0x110, 68 insns,
  * Vec3 fetch-and-store fan-out).
- *   void func_0000DF04(St *s0) {
- *       if (s0->0xA58 & 0x80) {
- *           v = fetch(&D_00000000, 0x11);          // func_00000000
- *           *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;       // copy [0,4,8]
- *           v = fetch(&D_00000000, 0x12);
- *           *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
- *       } else {
- *           v = fetch(&D_00000000, 0x14);
- *           *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;
- *           v = fetch(&D_00000000, 0x15);
- *           *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
- *       }
- *       v = fetch(&D_00000000, 0x16);
- *       *(Vec3i*)s0->0x8FC = *(Vec3i*)v;
- *   }
  * Struct-typing reference: s0->0xA58 (2648) u32 flags, bit 7 (0x80)
  * selects which source-id pair feeds the two slots; s0->0x8F4
  * (2292) / s0->0x8F8 (2296) / s0->0x8FC (2300) = pointers to
  * destination Vec3i (3x int at +0/+4/+8) buffers. fetch =
  * func_00000000(&D, id) returns a pointer to a Vec3i source record
  * for the given id; ids 0x11/0x12 (flag set) or 0x14/0x15 (flag
- * clear) fill 0x8F4/0x8F8, id 0x16 always fills 0x8FC. Pure
- * fetch-then-3-word-copy per slot. Caps <80: 3-5 func_00000000
- * reloc calls + &D reloc + flag branch + per-slot 3-word struct
- * copies. Full body INCLUDE_ASM-preserved (.s = source of truth).
- * INCLUDE_ASM (no episode; tautology-trap rule). */
+ * clear) fill 0x8F4/0x8F8, id 0x16 always fills 0x8FC.
+ * Caps <80: 3-5 reloc calls + &D reloc + flag branch + per-slot
+ * 3-word struct copies. INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+void func_0000DF04(char *s0) {
+    int *v;
+    int *d;
+    if (*(unsigned int*)(s0 + 0xA58) & 0x80) {
+        v = (int*)func_00000000(&D_00000000, 0x11);
+        d = *(int**)(s0 + 0x8F4);
+        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        v = (int*)func_00000000(&D_00000000, 0x12);
+        d = *(int**)(s0 + 0x8F8);
+        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+    } else {
+        v = (int*)func_00000000(&D_00000000, 0x14);
+        d = *(int**)(s0 + 0x8F4);
+        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        v = (int*)func_00000000(&D_00000000, 0x15);
+        d = *(int**)(s0 + 0x8F8);
+        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+    }
+    v = (int*)func_00000000(&D_00000000, 0x16);
+    d = *(int**)(s0 + 0x8FC);
+    d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DF04);
+#endif
 
 /* func_0000E014 - verified structural decode (0x110, 68 insns).
  * NEAR-SIBLING of func_0000DF04 (same Vec3 fetch-and-store fan-out,
  * same s0 struct); variant: the first id of each pair comes from a
  * signed-half field on s0 instead of a constant.
- *   void func_0000E014(St *s0) {
- *       if (s0->0xA58 & 0x80) {
- *           v = fetch(&D_00000000, (s16)s0->0x902);
- *           *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;
- *           v = fetch(&D_00000000, 8);
- *           *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
- *       } else {
- *           v = fetch(&D_00000000, (s16)s0->0x900);
- *           *(Vec3i*)s0->0x8F4 = *(Vec3i*)v;
- *           v = fetch(&D_00000000, 5);
- *           *(Vec3i*)s0->0x8F8 = *(Vec3i*)v;
- *       }
- *       v = fetch(&D_00000000, 6);
- *       *(Vec3i*)s0->0x8FC = *(Vec3i*)v;
- *   }
  * Struct-typing reference: same layout as func_0000DF04 -
  * s0->0xA58 (2648) u32 flags bit 7 (0x80) selector; s0->0x8F4
  * (2292) / 0x8F8 (2296) / 0x8FC (2300) Vec3i dest pointers (3x int
  * @ +0/+4/+8). NEW fields here: s0->0x902 (2306) and s0->0x900
  * (2304) = s16 dynamic source-id selectors (the first fetch id is
  * read from the object, not hardcoded), with constant ids 8 / 5 /
- * 6 for the second-slot and final fetches. fetch = func_00000000
- * (&D, id) -> Vec3i source ptr. Caps <80: 3-5 func_00000000 reloc
- * calls + &D reloc + flag branch + lh dynamic-id + per-slot 3-word
- * struct copies. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * 6 for the second-slot and final fetches.
+ * Caps <80: 3-5 reloc calls + &D reloc + flag branch + lh
+ * dynamic-id + per-slot 3-word struct copies. INCLUDE_ASM remains
+ * build path. */
+#ifdef NON_MATCHING
+void func_0000E014(char *s0) {
+    int *v;
+    int *d;
+    if (*(unsigned int*)(s0 + 0xA58) & 0x80) {
+        v = (int*)func_00000000(&D_00000000, *(short*)(s0 + 0x902));
+        d = *(int**)(s0 + 0x8F4);
+        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        v = (int*)func_00000000(&D_00000000, 8);
+        d = *(int**)(s0 + 0x8F8);
+        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+    } else {
+        v = (int*)func_00000000(&D_00000000, *(short*)(s0 + 0x900));
+        d = *(int**)(s0 + 0x8F4);
+        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        v = (int*)func_00000000(&D_00000000, 5);
+        d = *(int**)(s0 + 0x8F8);
+        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+    }
+    v = (int*)func_00000000(&D_00000000, 6);
+    d = *(int**)(s0 + 0x8FC);
+    d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E014);
+#endif
 
 /* func_0000E124 - verified structural decode (0x14C, 83 insns,
  * left/right mirror-flip toggle).
