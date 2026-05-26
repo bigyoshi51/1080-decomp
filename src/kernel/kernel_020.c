@@ -45,18 +45,21 @@ void func_80007FC8(void) {}
  *     *SP_STATUS_REG = 0x125;            // clear sig1+sig0+sstep+dma_busy+halt
  *     return;
  *
- * Exact-match path: compile entry 0 from C, use INSN_PATCH to force the
- * hand-scheduled non-branch-likely poll loops (same SP_STATUS cap family as
- * func_80008030), then append `jr ra; nop` + the two raw relocation-free
- * alt-entry tails with SUFFIX_BYTES. This keeps one expected 0x7C-byte symbol
- * while making the default build path C+recipe instead of INCLUDE_ASM.
+ * NATURAL CEILING: ~entry-0-only NM at ~50% (the alt-entries 1 and 2 are
+ * not reachable from a single-entry C body). Was previously documented
+ * as "Exact-match path: compile entry 0 from C, use INSN_PATCH to force
+ * the hand-scheduled non-branch-likely poll loops (same SP_STATUS cap
+ * family as func_80008030), then append jr ra; nop + the two raw
+ * relocation-free alt-entry tails with SUFFIX_BYTES" — INSN_PATCH +
+ * instruction-appending SUFFIX_BYTES REMOVED 2026-05-23 as match-faking
+ * (per feedback_no_instruction_forcing_matches_policy).
  *
  * SP_STATUS write bit decode (SP_STATUS write = SET/CLR bit pairs):
  *   0x82  = 0x80 | 0x02 = set_sig0 + clr_broke
  *   0xC5  = 0xC0 | 0x05 = set_sig1 + set_intr_break + clr_dma_busy + clr_halt
  *   0x125 = 0x100|0x25 = clr_sig1 + clr_sstep + clr_dma_busy + clr_halt
  *
- * Default build is byte-exact via C body + INSN_PATCH + SUFFIX_BYTES. */
+ * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void func_80008054(void) {
     volatile u32* busy;
