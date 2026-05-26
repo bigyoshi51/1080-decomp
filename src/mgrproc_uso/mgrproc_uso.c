@@ -969,11 +969,14 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000159
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001614);
 
-/* mgrproc_uso_func_0000179C: 30-insn (0x78) gated state-set + 2 trailing
- * 2-insn alt-entry stubs (mgrproc_uso_func_00001814 / 0000181C, each
- * `jr ra; sw a0, 0(sp)`). Total bundled symbol size 0x88.
- * 16 trailing bytes appended via SUFFIX_BYTES in Makefile to cover the
- * 4 trailing-stub instructions that aren't part of F1's C body.
+/* mgrproc_uso_func_0000179C: 30-insn (0x78) gated state-set.
+ * Adjacent 2-insn alt-entry stubs (mgrproc_uso_func_00001814 / 0000181C,
+ * each `jr ra; sw a0, 0(sp)`) used to be bundled into the symbol via a
+ * 16-byte SUFFIX_BYTES recipe; that recipe was REMOVED 2026-05-23 as
+ * instruction-byte-appending match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). The function still
+ * lands at fuzzy=100 — the alt-entry stubs are tracked as separate
+ * symbols now (their bytes come from .s).
  *
  * Decoded:
  *   if (a0->[0x7E4] != 1) return;
