@@ -1830,22 +1830,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000477C);
 
 /* func_0000485C - verified structural decode (0xB8, 46 insns,
  * FP transform/draw helper).
- *   void func_0000485C(Obj *a0) {                // a2 = a0 (reloaded)
- *       reloc_fn(&func_00000080[0x20]);          // func_00000000(str)
- *       // build param block #1 at sp+0x40 from a0 floats:
- *       f12 = a0->0x30; f2 = a0->0x34;
- *       sp[0x48]=f12; sp[0x40]=f12; sp[0x44]=f2;
- *       reloc_fn(&func_00000080[0x20], &sp[0x40]);
- *       g  = *(Obj**)&D_a;  v0 = g->0x70;        // global root ->0x70
- *       // scale g->0x70 vector by D_b constants:
- *       x = v0->0xA0 * Dc->0x128;
- *       y = v0->0xA4 * Dc->0x12C;
- *       z = v0->0xA8 * Dc->0x130;
- *       sp[0x20]=x; sp[0x28]=z;
- *       sp[0x24]= y + a0->0x2C;                  // add.s f16,f18
- *       reloc_fn(&func_00000080[0x20], &sp[0x20]);
- *       reloc_fn(a0);                            // func_00000000(a0)
- *   }
  * Struct-typing reference: a0 = object; a0->0x2C/0x30/0x34 (44/48/52)
  * f32 source vector components; global root *(&D_a) ->0x70 (112) ptr
  * to a transform/state obj whose ->0xA0/0xA4/0xA8 (160/164/168) is an
@@ -1853,10 +1837,33 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000477C);
  * f32 scale constants; func_00000080+0x20 = static string/param datum
  * passed to the reloc draw/print helper. Caps <80: FP-heavy mul.s/
  * add.s chains + 4x func_00000000 reloc calls + 2x &D reloc +
- * func_00000080+0x20 cross-symbol data ref. Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule). */
+ * func_00000080+0x20 cross-symbol data ref. INCLUDE_ASM remains build
+ * path. */
+extern void func_00000080();  /* used as data-symbol base */
+#ifdef NON_MATCHING
+void func_0000485C(char *a0) {
+    char *str = (char*)&func_00000080 + 0x20;
+    float sp_block1[4];
+    float sp_block2[4];
+    char *root;
+    char *v0;
+    func_00000000(str);
+    sp_block1[0] = *(float*)(a0 + 0x30);  /* sp[0x40] */
+    sp_block1[1] = *(float*)(a0 + 0x34);  /* sp[0x44] */
+    sp_block1[2] = *(float*)(a0 + 0x30);  /* sp[0x48] */
+    func_00000000(str, &sp_block1[0]);
+    root = *(char**)&D_00000000;
+    v0 = *(char**)(root + 0x70);
+    sp_block2[0] = *(float*)(v0 + 0xA0) * *(float*)((char*)&D_00000000 + 0x128);
+    sp_block2[1] = *(float*)(v0 + 0xA4) * *(float*)((char*)&D_00000000 + 0x12C);
+    sp_block2[1] += *(float*)(a0 + 0x2C);
+    sp_block2[2] = *(float*)(v0 + 0xA8) * *(float*)((char*)&D_00000000 + 0x130);
+    func_00000000(str, &sp_block2[0]);
+    func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000485C);
+#endif
 
 void func_00004914(char *a0, int a1, char *a2) {
     *(float*)(a0 + 0x60) = *(float*)(a2 + 0x30);
