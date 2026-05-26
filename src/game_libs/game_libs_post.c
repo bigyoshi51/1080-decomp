@@ -30583,6 +30583,12 @@ void gl_func_0005BBCC(void) {
     gl_func_00000000();
 }
 
+/* game_libs_func_0005BBEC: 6-insn FP fabs-like:
+ *   c.lt.s f14, f12; nop; bc1fl +0x4; neg.s f0, f14; jr ra; mov.s f0, f14
+ * The `bc1fl +0x4` branches PAST function end (target 0x5BC08, size 0x18
+ * → end 0x5BC04) — cross-fn shared-epilogue tail-merge per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offset,
+ * unmatchable standalone. CAP class. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BBEC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC04);
