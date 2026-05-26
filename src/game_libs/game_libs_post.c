@@ -21038,11 +21038,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040070);
  *   a0->vec[0..2] += (dx, dy, dz);  // floats at offsets 0xB4/B8/BC
  *   gl_func(&a0->vec[0], &a0->[0x30], a0);
  *
- * Promoted from 97.75% NM wrap to EXACT via 6-insn INSN_PATCH that
- * reorders the lwc1/add.s/swc1 cluster: built emits B4→B8→BC, target
- * uses B8→B4-via-addiu→BC. Pure load/store order swap (and matching
- * fpu-reg renames) — same recipe family as the s/v register-swap
- * patches (gl_func_0004ED0C / gl_func_0000E230). */
+ * NATURAL CEILING: 97.75% NM. The 6-insn diff reorders the lwc1/add.s/
+ * swc1 cluster: build emits B4->B8->BC; target uses B8->B4-via-addiu->BC
+ * (pure load/store order swap + matching fpu-reg renames). Was previously
+ * documented as INSN_PATCH-promotable (same recipe family as
+ * gl_func_0004ED0C / gl_func_0000E230); INSN_PATCH REMOVED 2026-05-23
+ * as match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void gl_func_000402A4(int *a0, float dx, float dy, float dz) {
