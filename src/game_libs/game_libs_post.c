@@ -30756,6 +30756,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CA78);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CAEC);
 
+/* game_libs_func_0005CB5C: 3-insn `move v0,zero; jr ra; nop` return-0 stub
+ * (size 0xC, unfilled-delay form). IDO -O2 emits `return 0` as `jr ra;
+ * move v0,zero` (size 0x8). The 0xC unfilled-delay form needs per-file
+ * -g3/-O0 split per feedback_unfilled_delay_int_reader_needs_o0_split.
+ * Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CB5C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CB68);
