@@ -22,13 +22,14 @@ extern char D_8C3C_root_desc;
  * cascade, and most branch layout. Exact promotion likely needs a dedicated
  * -O0 split for this single function (like the adjacent 8AE4/8944 island)
  * plus final constant/reloc cleanup. Default build stays INCLUDE_ASM. */
+extern char D_0000D138, D_0000D148, D_8C3C_v0;
 void gl_func_00008C3C(int *a0, int a1) {
     register int *root;
     register int *mid;
     register int *child;
 
-    gl_func_00000000(&D_00000000, (char*)0x1D138);
-    gl_func_00000000(&D_00000000, D_8C3C_arg);
+    gl_func_00000000(&D_00000000, &D_0000D138);
+    gl_func_00000000(&D_00000000, *(int*)&D_8C3C_v0);
     gl_func_00000000(&D_00000000, 7, 0, 0);
 
     root = 0;
@@ -46,7 +47,7 @@ void gl_func_00008C3C(int *a0, int a1) {
                 child = (int*)gl_func_00000000(0x2C);
             }
             if (child != 0) {
-                gl_func_00000000(child, (char*)0x1D148);
+                gl_func_00000000(child, &D_0000D148);
                 child[0x28 / 4] = (int)&D_8C3C_child_desc;
             }
 
