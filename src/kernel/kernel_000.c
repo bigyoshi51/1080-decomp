@@ -684,13 +684,12 @@ s32 uso_file_open(FileState* file, u32* arg1) {
 
 /* uso_skip_to_end: reads USO section headers until End (type 11).
  *
- * Promoted from 99.4% NM via INSN_PATCH at offsets 0x50 and 0x68 — IDO's
- * `beq` operand order normalization picks $s-register-first while target
- * has $t-first. The 2-word patch overwrites:
- *   0x50: 0x124E0004 (beq s2,t6,+4) → 0x11D20004 (beq t6,s2,+4)
- *   0x68: 0x5668FFF0 (bnel s3,t0,-4) → 0x5513FFF0 (bnel t0,s3,-4)
- * Both are semantically identical (beq/bnel symmetric); cosmetic-only
- * register-order diff. See feedback_ido_register.md. */
+ * NATURAL CEILING: 99.44% NM (beq/bnel operand-order cap). IDO's `beq`
+ * operand order normalization picks $s-register-first; target has $t-first.
+ * Cosmetic-only register-order diff at offsets 0x50 (beq) and 0x68 (bnel)
+ * — both are semantically identical (beq/bnel symmetric). See
+ * docs/IDO_CODEGEN.md `beq` operand order entry / feedback_ido_register.md.
+ * The 2-word INSN_PATCH bridge was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 s32 uso_skip_to_end(FileState* file) {
     s32 pad;
@@ -1548,8 +1547,9 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
  * Permuter-class register-allocation cap.
  *
  * 2026-05-20: direct-pointer/count-reload variants also emitted the same
- * rotated-register body. Promoted via INSN_PATCH rather than leaving the
- * same-length register cap as an NM wrap. */
+ * rotated-register body. The INSN_PATCH promotion was REMOVED 2026-05-23
+ * as match-faking; the function is now at honest 91.06% NM (permuter-class
+ * register-allocation cap). */
 #ifdef NON_MATCHING
 int func_8000235C(int *a0, int a1) {
     int a3;
