@@ -35677,6 +35677,10 @@ void gl_func_00067AE8(int a0, ...) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
 
+/* game_libs_func_00067B40: 14-insn loop-bottom tail-fragment with backward
+ * branch -0x24 to 0x67B1C (before .s start 0x67B40). Splat captured loop
+ * tail per feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ * Needs splat boundary correction (focused-session). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B40);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B78);
