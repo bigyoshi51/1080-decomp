@@ -12900,10 +12900,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011624);
 #endif
 
 /* game_uso_func_000116D4: 31-insn (0x7C) flag-gated double-call wrapper.
- * Promoted from 79.97% NM-wrap to byte-exact via the family-cap recipe
- * (10E2C/10B38/F49C/FB04/FB7C). C body unchanged; INSN_PATCH 13 insns
- * at 0x20 + 0x40..0x6C reshapes branch-imm + 2nd-call D-base/tail with
- * cross-USO varargs spills (sw a1@4(sp), sw a2@8(sp)). 7th sibling. */
+ * NATURAL CEILING: 79.97% NM. 7th sibling of the
+ * 10E2C/10B38/F49C/FB04/FB7C family-cap shape: the branch-imm at 0x20
+ * + 2nd-call D-base/tail at 0x40..0x6C need cross-USO varargs spills
+ * (sw a1@4(sp), sw a2@8(sp)). Was previously promoted via 13-insn
+ * INSN_PATCH — REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_000116D4(void *a0) {
     void *s0 = a0;
