@@ -2663,13 +2663,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006808);
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007150);
 
-/* func_00007204: 33-insn alloc/link helper. Promoted 2026-05-14 from 90.15%
- * NM to byte-exact via SUFFIX_BYTES_FORCE (+8 bytes, 2 nops) + 31-entry
- * INSN_PATCH. Built emits 0x28 frame / 31 insns; target needs 0x30 frame /
- * 33 insns with defensive a2 dead-spill at jal-delay + a1↔a2 regalloc
- * swap + base-pointer form for a2 reload. Last of the 3-function
- * bootup_uso regalloc cluster (7C74/7B08/7204) per
- * project_1080_bootup_regalloc_cluster.md. Cluster complete. */
+/* func_00007204: 33-insn alloc/link helper. NATURAL CEILING: 90.15% NM.
+ * Built emits 0x28 frame / 31 insns; target needs 0x30 frame / 33 insns
+ * with defensive a2 dead-spill at jal-delay + a1<->a2 regalloc swap +
+ * base-pointer form for a2 reload. The historical SUFFIX_BYTES_FORCE
+ * (+8 bytes, 2 nops) + 31-entry INSN_PATCH promotion was REMOVED
+ * 2026-05-23 as match-faking. Last of the 3-function bootup_uso regalloc
+ * cluster (7C74/7B08/7204) per project_1080_bootup_regalloc_cluster.md. */
 #ifdef NON_MATCHING
 void func_00007204(int a0, int a1, int a2) {
     int *sp28;
