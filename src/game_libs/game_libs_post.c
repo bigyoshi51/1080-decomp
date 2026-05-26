@@ -36120,13 +36120,12 @@ extern int gl_func_00000000();
  *   (b) Loop counters declared `unsigned int` to emit sltu (matching
  *       target) instead of slt.
  *
- * Final 5-insn cap promoted to byte-exact via INSN_PATCH (2026-05-08):
- * v0/v1 register-swap in the inner-body block — target uses v1 for `e`
- * and v0 for `vt`; built has them swapped. Both vars have 2 refs each;
- * IDO's allocator picks first-encountered → lower-numbered. Declaration-
- * order had no effect. Patched 5 insns at 0x54/0x58/0x5C/0x60/0x64 (no
- * reloc-bearing ops, safe per docs/POST_CC_RECIPES.md
- * #feedback-insn-patch-on-reloc-instructions-breaks-byte-verify). */
+ * LANDED fuzzy=100. The final 5-insn v0/v1 register-swap cap in the
+ * inner-body block (target uses v1 for `e` and v0 for `vt`; built had
+ * them swapped) was historically promoted via INSN_PATCH at offsets
+ * 0x54..0x64; that mechanism was REMOVED 2026-05-23 as match-faking,
+ * and the function still lands — the register-swap apparently resolved
+ * naturally via accumulated upstream codegen changes. */
 void gl_func_000687B8(int *a0)
 {
   int outer_offset;
