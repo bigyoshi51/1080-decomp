@@ -124,10 +124,14 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Asm RE-LOADS fn after the two global stores because $v0 was clobbered
  * by the second `sw v0, 0(at)`. The recompute is structural, not redundant.
  *
- * Promoted from 96.43% NM to byte-correct via 18-word INSN_PATCH covering
- * the post-jal vtable-dispatch chain (target uses $v0/$v1/$t6-$t9/$t0-$t2
- * cascade; built uses $a2/$a3/$v1/$a0/$a1/etc.). Per
- * docs/POST_CC_RECIPES.md "Pure register-rename at any scale". */
+ * NATURAL CEILING: 96.43% NM. The 18-word diff covers the post-jal
+ * vtable-dispatch chain register cascade (target uses
+ * $v0/$v1/$t6-$t9/$t0-$t2; built uses $a2/$a3/$v1/$a0/$a1/etc.). Was
+ * previously documented as INSN_PATCH-promotable per
+ * docs/POST_CC_RECIPES.md "Pure register-rename at any scale" —
+ * INSN_PATCH REMOVED 2026-05-23 and docs/POST_CC_RECIPES.md deprecated
+ * (per feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 extern int D_b5_24C_save_v0;
 extern int D_b5_24C_save_v1;
 #ifdef NON_MATCHING
