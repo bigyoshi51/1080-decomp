@@ -9469,9 +9469,11 @@ void gl_func_0002D8D8(void) {
  * EPILOGUE (insns 219-220 @ 0x2DC64-0x2DC70):
  *   lw ra, 0x14(sp); addiu sp, 0x18; jr ra; nop
  *
- * Plus 2 trailing prefix-bytes for SUCCESSOR (0x2DC74/0x2DC78: `lui $t6, 0;
- * lw $t6, 0($t6)`) — gl_func_0002DC7C inherits this $t6 setup. Already
- * captured via SUFFIX_BYTES on 0002D910 in Makefile.
+ * Plus 2 trailing prefix-bytes for SUCCESSOR (0x2DC74/0x2DC78: `lui $t6,0;
+ * lw $t6,0($t6)`) — gl_func_0002DC7C inherits this $t6 setup. Historically
+ * captured via SUFFIX_BYTES on 0002D910 in Makefile; that mechanism was
+ * REMOVED 2026-05-23 as match-faking. Those 2 insns belong to a separate
+ * symbol now.
  *
  * Multi-tick decomp expected: 5+ arms × ~10 insns of dispatch each.
  * Default INCLUDE_ASM keeps ROM exact; partial C body provides
