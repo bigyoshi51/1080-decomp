@@ -774,11 +774,14 @@ void mgrproc_uso_func_00001304(void) {
  * cascade. Sets arg0[0x4FC]=1 (guard) + arg0[0x7D0]=arg0[0x4F8] (cached
  * state). Returns 1.
  *
- * Promoted from 80.5% NM to byte-correct via 8-word INSN_PATCH at
- * 0x28/0x30/0x48/0x64/0x80/0x84/0x88/0x8c — register-rename diffs
- * (v0↔v1 in the early conditional chain, t0↔t9 in the final 0x4F8 reload
- * + flag store + cache store). Per docs/POST_CC_RECIPES.md "Pure
- * register-rename at any scale". */
+ * NATURAL CEILING: 80.5% NM. The 8-word diff at 0x28/0x30/0x48/0x64/0x80/
+ * 0x84/0x88/0x8C is a pure register-rename (v0<->v1 in the early
+ * conditional chain, t0<->t9 in the final 0x4F8 reload + flag store +
+ * cache store). Was previously documented as INSN_PATCH-promotable per
+ * docs/POST_CC_RECIPES.md "Pure register-rename at any scale" — INSN_PATCH
+ * REMOVED 2026-05-23 and docs/POST_CC_RECIPES.md deprecated (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00001324(char *arg0) {
     int v;
