@@ -6261,6 +6261,11 @@ void gl_func_000275C8(void) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000275F4);
 
+/* 0x276xx leaf-branch-past-end cluster: 3 tiny leaves with forward
+ * `beq/bne +small` branches that target at or past function-end (falling
+ * into successor's first insn). Cross-fn shared-epilogue tail-merges per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Covers
+ * game_libs_func_0002765C, _00027684, _00027694. CAP class. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002765C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027684);
