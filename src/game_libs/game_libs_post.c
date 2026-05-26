@@ -25578,11 +25578,10 @@ void gl_func_0004CFD4(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CFD4);
 #endif
 
-/* 6-insn indexed read leaf. C-emit picks $v1/$a1/$t1/$t9 for the chain
- * where target uses $t7/$t6/$t8/$t9; promoted via INSN_PATCH 4 insns at
- * 0x00..0x0C to override the register-name diff. No relocations on the
- * patched offsets (pure arith/lw with constant immediates), so the patch
- * cleanly overrides without conflict. */
+/* 6-insn indexed read leaf. NATURAL CEILING: 95.83% NM (register-rename
+ * cap). C-emit picks $v1/$a1/$t1/$t9 for the chain where target uses
+ * $t7/$t6/$t8/$t9. The 4-insn INSN_PATCH at 0x00..0x0C that overrode the
+ * register-name diff was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 int game_libs_func_0004D014(int *a0) {
     return *(int*)((char*)((int*)a0[0x148/4]) + (a0[0x144/4]) * 4 + 0xF4);
