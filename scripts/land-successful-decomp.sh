@@ -10,9 +10,12 @@ This script only lands verified exact decompiles. For each named function it
 requires:
 - byte-correctness against expected/.o (via fuzzy=100.0, OR byte-verify of
   build/<unit>.c.o vs expected/<unit>.c.o when fuzzy is None or < 100 — this
-  covers post-cc-recipe-driven matches like PREFIX_BYTES / INSN_PATCH /
-  SUFFIX_BYTES / PROLOGUE_STEALS, where the byte-correct ROM is exact even
-  though the non_matching fuzzy score is < 100 by dual-build design)
+  covers the surviving data/alignment mechanisms PREFIX_BYTES (USO header) /
+  all-zero SUFFIX_BYTES / TRUNCATE_TEXT, where the byte-correct ROM is exact
+  even though the non_matching fuzzy score is < 100 by dual-build design.
+  Instruction-byte-editing mechanisms INSN_PATCH / PROLOGUE_STEALS / instruction-
+  appending SUFFIX_BYTES were REMOVED 2026-05-23 as match-faking — see
+  feedback_no_instruction_forcing_matches_policy.)
 - no INCLUDE_ASM fallback still present in src/
 - episodes/<function_name>.json exists and passes the canonical schema validator
 EOF
@@ -125,9 +128,11 @@ def byte_verify(name):
     # the circular tautology documented at
     # docs/MATCHING_WORKFLOW.md#feedback-include-asm-tautology-trap.
     # build/non_matching/.o defines -DNON_MATCHING=1 and actually compiles
-    # the C body, making the comparison meaningful. For post-cc-recipe paths
-    # (INSN_PATCH/SUFFIX_BYTES/PROLOGUE_STEALS) where no NM wrap exists, the
-    # default build/.o still holds.
+    # the C body, making the comparison meaningful. For the surviving data-only
+    # mechanisms (all-zero SUFFIX_BYTES padding, USO-header PREFIX_BYTES,
+    # TRUNCATE_TEXT) where no NM wrap exists, the default build/.o still holds.
+    # (INSN_PATCH / PROLOGUE_STEALS / instruction-appending SUFFIX_BYTES are
+    # banned 2026-05-23, removed from build/.)
     pat = re.compile(rf'INCLUDE_ASM\([^)]*\b{re.escape(name)}\b')
     has_include_asm = False
     for src in glob.glob("src/**/*.c", recursive=True):
@@ -167,11 +172,13 @@ for name in want:
     if fuzzy == 100.0:
         continue
     # fuzzy != 100 (None, or any number < 100). The function may still be
-    # byte-exact in the actual ROM build via post-cc recipes (PREFIX_BYTES,
-    # INSN_PATCH, SUFFIX_BYTES, PROLOGUE_STEALS) that build/non_matching/
-    # deliberately excludes — the dual-build design keeps fuzzy as a "C-only"
-    # metric. Byte-correctness against expected/ is the actual landing
-    # criterion; fuzzy is just an advisory partial-progress score.
+    # byte-exact in the actual ROM build via the surviving data-only mechanisms
+    # (USO-header PREFIX_BYTES, all-zero SUFFIX_BYTES padding, TRUNCATE_TEXT)
+    # that build/non_matching/ deliberately excludes — the dual-build design
+    # keeps fuzzy as a "C-only" metric. Byte-correctness against expected/ is
+    # the actual landing criterion; fuzzy is just an advisory partial-progress
+    # score. (INSN_PATCH / PROLOGUE_STEALS / instruction-appending SUFFIX_BYTES
+    # were removed 2026-05-23 as match-faking.)
     # See feedback_uso_entry0_trampoline_95pct_cap_class.md.
     if byte_verify(name):
         continue
