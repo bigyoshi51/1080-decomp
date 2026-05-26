@@ -10461,7 +10461,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
  * gate), parent+0x31C (796) f32 accumulator. Caps <80: branch-likely
  * conditional store-in-delay + jr-ra swc1-in-delay + &D reloc. Full
  * body now carried in C. Target's branch-likely/unreachable-store/jr-delay
- * shape is promoted with a Makefile INSN_PATCH/SUFFIX_BYTES_FORCE recipe. */
+ * shape was previously promoted with a Makefile INSN_PATCH/
+ * SUFFIX_BYTES_FORCE recipe — both REMOVED 2026-05-23 as match-faking
+ * (per feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_0000E2D0(char *a0) {
     s16 frame;
