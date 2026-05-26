@@ -1460,14 +1460,15 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
 
 
 /* func_800021A4: 43-insn entry-list walker (absorbed func_800021D0 fragment
- * via merge-fragments). Promoted via 27-word INSN_PATCH + SUFFIX_BYTES of
- * 8 trailing nops (per docs/POST_CC_RECIPES.md
- * #feedback-suffix-plus-insn-patch-grows-and-reshapes). My emit produces
- * 41 insns; target needs 43, with the 2-insn extra being end-of-body
- * cleanup that IDO's scheduler folds into the goto-chain. INSN_PATCH
- * rewrites the +0x20..+0xA4 region (register-rename for the t/a-reg
- * constants, branch offset adjustments after the 2-insn body shift, and
- * one switch-case body reordering at +0x5C..+0x90). */
+ * via merge-fragments). NATURAL CEILING: ~85% NM. Was previously documented
+ * as "Promoted via 27-word INSN_PATCH + SUFFIX_BYTES of 8 trailing nops" —
+ * both mechanisms REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Real cap structure: my
+ * emit produces 41 insns vs target's 43 (the 2-insn extra is end-of-body
+ * cleanup that IDO's scheduler folds into the goto-chain); the +0x20..+0xA4
+ * region needs register-rename for t/a-reg constants, branch offset
+ * adjustments after the body shift, and one switch-case body reordering at
+ * +0x5C..+0x90. C-only path can't reach this; default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int func_800021A4(int *a0) {
     int *v0;
