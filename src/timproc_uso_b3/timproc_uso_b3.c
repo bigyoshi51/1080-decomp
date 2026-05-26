@@ -431,10 +431,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 #endif
 
 /* timproc_uso_b3_func_00000FF4: F1 (32-insn 0x80) gate-then-update wrapper
- * + SUFFIX bundle (5-insn D[0x40]=9 stub at 0x1074 + 2-insn fragment at
- * 0x1088, latter is the start of the next function whose first 2 words got
- * pulled into this .s by splat). Promoted via SUFFIX_BYTES recipe (7 words /
- * 0x1C bytes) — sibling family of timproc_uso_b3_func_00000DE4 /
+ * only. The 2026-05-07 SUFFIX_BYTES recipe (absorbing 7 words / 0x1C bytes
+ * for the trailing D[0x40]=9 stub at 0x1074 and the 2-word splat-pulled
+ * fragment at 0x1088) was REMOVED 2026-05-23 as instruction-byte
+ * match-faking. Symbol is now 0x80 / 32 insns (F1 only); the absorbed
+ * pieces are tracked as separate symbols. Function lands at fuzzy=100
+ * naturally — same pattern as timproc_uso_b3_func_00000DE4 /
  * arcproc_uso_func_00000EBC.
  *
  * F1: gate=gl_func(a0->0x528). If non-zero set D[0x40]=0xC,D[0x44]=9.
