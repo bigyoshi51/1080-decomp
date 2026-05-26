@@ -496,17 +496,23 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800004B8);
  * CALLER's saved s0-s3/ra slots — unreproducible from standard C since
  * any function definition emits its own prologue.
  *
- * Promotion via PREFIX_BYTES + INSN_PATCH combo (3rd application after
- * 7ABC and 7A98). Empty `void f(void) {}` C body emits 2 insns
- * (jr ra; nop = 8 bytes), then PREFIX_BYTES injects the 7 leading insns
- * (nop; or v0,zero,zero; lw ra/s0/s1/s2/s3 reloads), and INSN_PATCH @0x20
- * overwrites the trailing nop with `addiu sp,sp,+0x28`. 9 insns / 36
- * bytes byte-match expected.
+ * NATURAL CEILING: empty-stub C body emits only `jr ra; nop` (2 insns /
+ * 8 bytes) but the target shape walks the CALLER's saved s0-s3/ra slots
+ * and is 9 insns / 36 bytes. The function has no prologue — any C
+ * function definition emits its own prologue, so this shape is
+ * unreproducible from standard C. Was previously documented as
+ * "Promotion via PREFIX_BYTES + INSN_PATCH combo (3rd application after
+ * 7ABC and 7A98)" — the instruction-injecting PREFIX_BYTES form
+ * (prologue-stealing) plus INSN_PATCH overwriting trailing nop with
+ * `addiu sp,sp,+0x28` was REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy; only genuine all-zero
+ * SUFFIX_BYTES, USO-header PREFIX_BYTES, and TRUNCATE_TEXT remain).
+ * docs/POST_CC_RECIPES.md is deprecated.
  *
  * Type signature is `void` here but callers declare/expect
- * `s32 func(s32, s32)` — runtime $v0=0 from PREFIX's `or v0,zero,zero` is
- * the actual return value. Args ignored. Per `docs/POST_CC_RECIPES.md`
- * PREFIX+INSN_PATCH combo entry. */
+ * `s32 func(s32, s32)` — runtime $v0=0 from the target's
+ * `or v0,zero,zero` is the actual return value. Args ignored. Default
+ * build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void func_80000568(void) {}
 #else
