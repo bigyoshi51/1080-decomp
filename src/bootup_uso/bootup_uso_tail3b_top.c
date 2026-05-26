@@ -85,28 +85,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012244);
 
 /* func_000122C4 - verified structural decode (0x12C, 75 insns,
  * scripted-sequence step gate).
- *   void func_000122C4(St *a0, int a1) {
- *       int tbl[3];                               // sp+0x24
- *       tbl[0] = D_0000C69C[0]; tbl[1] = D_0000C69C[1];
- *       tbl[2] = D_0000C69C[2];
- *       st = a0->0x154;
- *       if (st->0x2 < 4) {                        // u16 step counter
- *           if (a1 + 1 == st->0x2) {              // re-read
- *               st->0x2 += 1;
- *               func_00000000(a0);                // advance step
- *           }
- *           return;
- *       }
- *       // st->0x2 >= 4 path:
- *       if (a1 != 2) return;
- *       c = a0->0x154->0x2;
- *       if (c < 4 || c >= 5) return;              // i.e. only c == 4
- *       if (a0->0x4C + 1 ==
- *           *(int*)((char*)tbl + (c*4) - 0x10)) { // tbl[c-4]
- *           a0->0x154->0x2 += 1;
- *           func_00000000(a0);
- *       }
- *   }
  * Struct-typing reference: a0->0x154 (340) = ptr to a sequence-state
  * struct; state->0x2 (2) u16 = the current step counter (advanced
  * 0->...). a0->0x4C (76) s32 = a progress/score value gate-checked
@@ -117,7 +95,33 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012244);
  * requires a1==2 and the 0x4C-vs-table match. func_00000000(a0) =
  * the "advance to next scripted step" callback. Caps <80: u16
  * counter compares + re-read pattern + 3-word table copy + slti
- * range tests + reloc call. Full body INCLUDE_ASM-preserved (.s =
- * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * range tests + reloc call. INCLUDE_ASM remains build path. */
+extern int D_0000C69C[3];
+#ifdef NON_MATCHING
+void func_000122C4(char *a0, int a1) {
+    int tbl[3];
+    char *st;
+    int c;
+    tbl[0] = D_0000C69C[0];
+    tbl[1] = D_0000C69C[1];
+    tbl[2] = D_0000C69C[2];
+    st = *(char**)(a0 + 0x154);
+    if (*(unsigned short*)(st + 0x2) < 4) {
+        if (a1 + 1 == *(unsigned short*)(st + 0x2)) {
+            *(unsigned short*)(st + 0x2) += 1;
+            func_00000000(a0);
+        }
+        return;
+    }
+    if (a1 != 2) return;
+    c = *(unsigned short*)((*(char**)(a0 + 0x154)) + 0x2);
+    if (c < 4 || c >= 5) return;
+    if (*(int*)(a0 + 0x4C) + 1 == *(int*)((char*)tbl + (c * 4) - 0x10)) {
+        *(unsigned short*)((*(char**)(a0 + 0x154)) + 0x2) += 1;
+        func_00000000(a0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000122C4);
+#endif
 
