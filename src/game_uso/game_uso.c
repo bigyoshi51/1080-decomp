@@ -11156,9 +11156,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F49C);
  * gl_func_0(a0); a0->0xB4->0xA68 = 1; check (a0->0xB4)->0x800->0x10 & 0x200:
  *   if set:  gl_func_0(a0); gl_func_0(a0, 1, 1);
  *   else:    gl_func_0(a0, D[0xED8], D[0xEDC]);
- * gl_func_0(a0). Promoted with the game_uso call-tail recipe: the C body
- * gives the correct branch layout, and Makefile SUFFIX_BYTES_FORCE +
- * INSN_PATCH restore the target's caller-slot D-pair spills and epilogue. */
+ * gl_func_0(a0). NATURAL CEILING: the C body gives the correct branch
+ * layout but cannot reach the target's caller-slot D-pair spills and
+ * epilogue. Was previously promoted via the game_uso call-tail recipe
+ * (Makefile SUFFIX_BYTES_FORCE + INSN_PATCH) — both REMOVED 2026-05-23
+ * as match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_0000F514(int *a0) {
     int *sub;
