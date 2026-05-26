@@ -3073,6 +3073,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008988);
 
+/* timproc_uso_b5_func_000089DC: 16-insn loop-bottom tail-fragment with
+ * backward branch to 0x89B0 (before .s start 0x89DC). Splat captured
+ * loop tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ * Needs splat boundary correction (focused-session). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000089DC);
 
 /* timproc_uso_b5_func_00008A1C: 7-insn loop-bottom tail-fragment:
