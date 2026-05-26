@@ -3169,31 +3169,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007C74);
 
 /* func_00007D04 - verified structural decode (0x14C, 83 insns,
  * phased animation/timer state machine).
- *   void func_00007D04(St *s0) {
- *       root = *(void**)(func_0000023C + 0x18);
- *       v = root->0x28;
- *       s0->0x64 = (*(fn)v->0x64)((s16)v->0x60 + root); // vtable
- *       int a3;                                   // next-state out
- *       switch (s0->0x5C) {                       // current state
- *       case 0:
- *           if (s0->0x60++ >= 0x1F) a3 = 2; else a3 = old;
- *           break;
- *       case 1:
- *           if (s0->0x60++ >= 0x3D) { a3 = 2; s0->0x58 -= 0xA; }
- *           break;
- *       case 2:
- *           if (s0->0x60++ >= 0x5B) {
- *               a3 = (int)(rand01() * 3.0f);      // func_00000000
- *               s0->0x60 = 0;  s0->0x58 = 0x18;
- *           }
- *           break;
- *       default: break;
- *       }
- *       o  = s0->0x40;  ml = o->0x84;
- *       func_00000000(s0, ml[0]->0x1C, 0, a3);
- *       func_00000000(s0, ml[1]->0x1C, 1, a3);
- *       s0->0x5C = a3;
- *   }
  * Struct-typing reference: s0->0x5C (92) s32 = animation state /
  * next-state (0/1/2 phases); s0->0x60 (96) s32 = per-phase frame
  * counter (thresholds 0x1F / 0x3D / 0x5B per state); s0->0x58 (88)
@@ -3206,10 +3181,49 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007C74);
  * arg = next state a3). State 2 wrap randomizes the next state
  * via rand01()*3.0. Caps <80: obj-0x28 vtable jalr + switch
  * (beq/beql chain) + FP rand*3.0 trunc + func_0000023C+0x18
- * reloc + reloc dispatch calls. Full body INCLUDE_ASM-preserved
- * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
- * rule). */
+ * reloc + reloc dispatch calls. INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+void func_00007D04(char *s0) {
+    char *root = *(char**)((char*)&func_0000023C + 0x18);
+    int *v = *(int**)(root + 0x28);
+    int a3 = *(int*)(s0 + 0x5C);  /* default: keep current */
+    char *o;
+    int **ml;
+    *(int*)(s0 + 0x64) =
+        ((int (*)(char*))*((unsigned int*)((char*)v + 0x64)))(
+            (char*)((int)(short)*(short*)((char*)v + 0x60) + (int)root));
+    switch (*(int*)(s0 + 0x5C)) {
+    case 0:
+        *(int*)(s0 + 0x60) += 1;
+        if (*(int*)(s0 + 0x60) >= 0x1F) a3 = 2;
+        break;
+    case 1:
+        *(int*)(s0 + 0x60) += 1;
+        if (*(int*)(s0 + 0x60) >= 0x3D) {
+            a3 = 2;
+            *(int*)(s0 + 0x58) -= 0xA;
+        }
+        break;
+    case 2:
+        *(int*)(s0 + 0x60) += 1;
+        if (*(int*)(s0 + 0x60) >= 0x5B) {
+            a3 = (int)((float)func_00000000() * 3.0f);
+            *(int*)(s0 + 0x60) = 0;
+            *(int*)(s0 + 0x58) = 0x18;
+        }
+        break;
+    default:
+        break;
+    }
+    o = *(char**)(s0 + 0x40);
+    ml = *(int***)(o + 0x84);
+    func_00000000(s0, *(int*)((char*)ml[0] + 0x1C), 0, a3);
+    func_00000000(s0, *(int*)((char*)ml[1] + 0x1C), 1, a3);
+    *(int*)(s0 + 0x5C) = a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007D04);
+#endif
 
 void func_00007E50(int *a0) {
     *(int*)((char*)a0 + 0x68) = 0;
