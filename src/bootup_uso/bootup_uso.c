@@ -2829,23 +2829,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000074E8);
 
 /* func_00007620 - verified structural decode (0xD4, 53 insns,
  * enable/disable toggle on a substate object).
- *   void func_00007620(void *a0, int a1) {
- *       st = a0->0x40;
- *       if (st == 0) return;                      // beql guard
- *       reloc_notify(a1);                         // func_00000000(a1)
- *       if (a1 != 0 || st->0xBC != 0) {           // ENABLE
- *           st = a0->0x40;
- *           *(int*)((char*)st + 0x18) |= 0x8;
- *           *(int*)((char*)st + 0x18) |= 0x4;
- *           st->0x4C = D_000005E8;                // f32 const
- *           st->0x48 = a1;
- *       } else {                                  // DISABLE (a1==0,
- *           st = a0->0x40;                        //  st->0xBC==0)
- *           *(int*)((char*)st + 0x18) &= ~0x8;
- *           *(int*)((char*)st + 0x18) &= ~0x4;
- *           st->0x4C = 0.0f;
- *       }
- *   }
  * Struct-typing reference: a0->0x40 (64) = substate object (NULL =
  * no-op). substate->0x18 (24) flags word: bit 2 (0x4) and bit 3
  * (0x8) = the enable pair (set together on enable, cleared on
@@ -2854,9 +2837,29 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000074E8);
  * substate->0xBC (188) = a gate that forces the enable path even
  * when a1==0. D_000005E8 = f32 constant (default value). Caps <80:
  * beql/bnel branch-likely + mtc1/swc1 FP + D_000005E8 f32 reloc +
- * func_00000000 reloc call. Full body INCLUDE_ASM-preserved (.s =
- * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * reloc notify call. INCLUDE_ASM remains build path. */
+extern float D_000005E8;
+#ifdef NON_MATCHING
+void func_00007620(char *a0, int a1) {
+    char *st = *(char**)(a0 + 0x40);
+    if (st == 0) return;
+    func_00000000(a1);
+    if (a1 != 0 || *(int*)(st + 0xBC) != 0) {
+        st = *(char**)(a0 + 0x40);
+        *(int*)(st + 0x18) |= 0x8;
+        *(int*)(st + 0x18) |= 0x4;
+        *(float*)(st + 0x4C) = D_000005E8;
+        *(int*)(st + 0x48) = a1;
+    } else {
+        st = *(char**)(a0 + 0x40);
+        *(int*)(st + 0x18) &= ~0x8;
+        *(int*)(st + 0x18) &= ~0x4;
+        *(float*)(st + 0x4C) = 0.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007620);
+#endif
 
 /* func_000076F4 - verified structural decode (0xDC, 55 insns).
  * Same FP transform/draw family as func_0000485C (shared globals:
