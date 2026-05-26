@@ -1389,17 +1389,18 @@ void timproc_uso_b5_func_00003F18(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. Byte-correct via 3-knob recipe
- * unblocked by the 2026-05-06 splice-function-prefix.py LW-opcode extension:
- *   PROLOGUE_STEALS += timproc_uso_b5_func_00003F5C=4
- *     strips the leading `lw t6, 0x23C(a0)` (that insn lives in predecessor
- *     0x3F18's symbol via SUFFIX_BYTES). The splice fires because my
- *     C-emit's first insn is LW (opcode 0x23), now in the accepted set.
- *   SUFFIX_BYTES += timproc_uso_b5_func_00003F5C=0x03E00008,0xAFA40000
- *     appends the trailing alt-entry stub `jr ra; sw a0, 0(sp)`.
- *   `char pad[24]` bumps frame from 0x10 → 0x28 to match target.
+/* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. NATURAL CEILING: 85.39% NM.
  *
- * Original cap notes (before unblock) preserved below for posterity:
+ * The historical "3-knob recipe" (PROLOGUE_STEALS=4 + SUFFIX_BYTES alt-entry
+ * stub + char pad[24] frame bump) was BANNED 2026-05-23 as match-faking
+ * (per feedback_no_instruction_forcing_matches_policy). The predecessor
+ * 0x3F18's SUFFIX_BYTES that fed this fn's stolen prologue is also gone.
+ * Current state: plain C body at 85.39%, three structural diffs that
+ * combine multiplicatively (see (A)/(B)/(C) below). Real fix needs a splat
+ * boundary correction so 0x3F18's tail bytes belong to 3F5C's symbol;
+ * focused-session work, not 60s-tick safe.
+ *
+ * Original cap notes (post-mortem) preserved below for posterity:
  *
  * Bytewise diff (post-PROLOGUE_STEALS=4 + SUFFIX_BYTES, before frame fix):
  *   Build C-emit (18 insns, frame 0x10):
