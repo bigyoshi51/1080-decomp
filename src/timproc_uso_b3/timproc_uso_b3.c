@@ -558,9 +558,13 @@ void timproc_uso_b3_func_0000120C(int *a0) {
  *     gl_func(a0, 140, a0->0x6A8->0x44->0x14);
  *   }
  *
- * Exact via targeted INSN_PATCH for IDO register/scheduling deltas:
- * D-reloc offsets on unique externs, mtc1/lwc1 order, saved stack slot
- * offset, and the final nested pointer temp registers. */
+ * NATURAL CEILING: NM only. Was previously documented as "Exact via
+ * targeted INSN_PATCH for IDO register/scheduling deltas: D-reloc offsets
+ * on unique externs, mtc1/lwc1 order, saved stack slot offset, and the
+ * final nested pointer temp registers" — INSN_PATCH REMOVED 2026-05-23
+ * as match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Unique-extern split (D_b3_1240_*) is retained to keep the structural
+ * decode honest in the NM body. Default build is INCLUDE_ASM. */
 extern char D_b3_1240_base;
 extern float D_b3_1240_f0;
 extern float D_b3_1240_f40;
