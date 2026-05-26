@@ -280,29 +280,6 @@ s32 func_800092B0(s32 a0) {
 /* func_80009314 - verified structural decode (kernel, 0x160, rmon
  * register-dump command handler). rmon family (cf. func_80009584 /
  * func_80007564; func_800073F8 = __rmonSendHeader).
- *   s32 func_80009314(RmonMsg *s0) {
- *       if (func_80008430() == 0) return -4;     // precondition
- *       hdr.type   = s0->0xC;                     // sp+0x30
- *       hdr.flags  = 0;                           // sp+0x2A
- *       hdr.domain = s0->0x4;                     // sp+0x28
- *       func_80009148(0);                         // bracket begin
- *       for (i = 0; i < 0x20; i++) {              // 32 entries
- *           func_80009030(0x2B, i);
- *           func_80008498();
- *           buf[i] = func_80006A98(0x04000000);   // RDRAM reg read
- *       }
- *       func_800091F0(0);                         // bracket end
- *       blk[0] = func_80006A98(0x04040004);
- *       blk[1] = func_80006A98(0x04040000);
- *       blk[2] = func_80006A98(0x04040008);
- *       blk[3] = func_80006A98(0x04080000) + 0x04001000;  // SP+bias
- *       blk[4] = func_80006A98(0x0404000C);
- *       blk[5] = func_80006A98(0x04040010);
- *       blk[6] = func_80006A98(0x04040014);
- *       blk[7] = func_80006A98(0x04040018);
- *       func_800073F8(&hdr, 0xB0, 1);             // __rmonSendHeader
- *       return 0;
- *   }
  * Struct-typing reference: s0 = RmonMsg (s0->0x4 u8 domain, s0->0xC
  * type - same family layout as func_80007564/func_80009584).
  * func_80006A98(addr) = a single MMIO/coprocessor register read
@@ -310,14 +287,43 @@ s32 func_800092B0(s32 a0) {
  * 0x04080000 SP PC, plus 0x04000000 RDRAM-config; the +0x04001000
  * applied to the SP read is the DP/PI command-region bias). The
  * 32-iteration loop (func_80009030(0x2B,i) + func_80008498 +
- * func_80006A98(RDRAM)) snapshots a 32-entry register window into
- * the reply at sp+0x24+0x34; then 8 fixed RSP/RDP regs follow at
- * +0x90.. The whole 0xB0-byte buffer is shipped via
- * __rmonSendHeader (func_800073F8), flag 1. Caps <80: rmon
- * stack-buffer build + 32x callee loop + 8 MMIO-read calls + 7
- * distinct callees. Full body INCLUDE_ASM-preserved (.s = source
- * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * func_80006A98(RDRAM)) snapshots a 32-entry register window;
+ * 8 fixed RSP/RDP regs follow. Shipped via __rmonSendHeader
+ * (func_800073F8), flag 1.
+ * Caps <80: rmon stack-buffer build + 32x callee loop + 8 MMIO-
+ * read calls + 7 distinct callees. INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+extern int func_80009030(int cmd, int i);
+extern int func_80006A98(unsigned int addr);
+s32 func_80009314(char *s0) {
+    int hdr[4];
+    int buf[40];  /* 32-entry register window + 8 fixed regs */
+    int i;
+    if (((int (*)(void))func_80008430)() == 0) return -4;
+    hdr[0] = *(int*)(s0 + 0xC);
+    *(unsigned char*)((char*)hdr + 0xA) = *(unsigned char*)(s0 + 0x4);
+    *(unsigned short*)((char*)hdr + 0x6) = 0;
+    func_80009148(0);
+    for (i = 0; i < 0x20; i++) {
+        func_80009030(0x2B, i);
+        func_80008498();
+        buf[i] = func_80006A98(0x04000000U);
+    }
+    func_800091F0(0);
+    buf[0x20] = func_80006A98(0x04040004U);
+    buf[0x21] = func_80006A98(0x04040000U);
+    buf[0x22] = func_80006A98(0x04040008U);
+    buf[0x23] = func_80006A98(0x04080000U) + 0x04001000;
+    buf[0x24] = func_80006A98(0x0404000CU);
+    buf[0x25] = func_80006A98(0x04040010U);
+    buf[0x26] = func_80006A98(0x04040014U);
+    buf[0x27] = func_80006A98(0x04040018U);
+    ((void (*)(void*, int, int))func_800073F8)(hdr, 0xB0, 1);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009314);
+#endif
 
 /* func_80009474 split out to kernel_054.c (-O1, NON_MATCHING) */
 
