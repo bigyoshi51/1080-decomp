@@ -4771,22 +4771,44 @@ void timproc_uso_b5_func_0000CD24(int *a0, float a1) {
  * timproc_uso_b5_func_0000C710 (same FP slew-limiter; the ONLY
  * difference is the global constant offsets - &D+0x900 default /
  * +0x904 step-up / +0x908 step-down here, vs +0x872/+0x876/+0x880
- * in C710). See C710 (and CB40) for the full family decode:
- *   target = (a0->0x2A4 == 0) ? 0.0f
- *          : (a0->0x2B8->0x130 != 0) ? 1.0f : D_<dflt@+0x900>;
- *   slew a0->0x2B8->0x124 one step (&D+0x904 up / +0x908 down)
- *   toward target, clamp at target.
- * Struct-typing reference: identical layout to C710 - a0->0x2A4
- * (676) f32 enable, a0->0x2B8 (696) slew-state ptr, state->0x124
- * (292) f32 slewed value, state->0x130 (304) s32 force-1.0 gate.
- * This instance uses a distinct constant triple (different
- * default/step pair), i.e. a second independently-tuned slew
- * channel sharing the same state object shape. Caps <80: FP
+ * in C710). Struct-typing reference: identical layout to C710 -
+ * a0->0x2A4 (676) f32 enable, a0->0x2B8 (696) slew-state ptr,
+ * state->0x124 (292) f32 slewed value, state->0x130 (304) s32
+ * force-1.0 gate. This instance uses a distinct constant triple
+ * (different default/step pair), i.e. a second independently-tuned
+ * slew channel sharing the same state object shape. Caps <80: FP
  * c.eq.s/c.lt.s/add.s/sub.s + bc1fl/bc1f branch-likely + 3x &D
- * global const reloc + dual jr-ra. Full body INCLUDE_ASM-preserved
- * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
- * rule). */
+ * global const reloc + dual jr-ra. INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_0000CD24(char *a0, float a1u) {
+    float target;
+    float *st;
+    if (*(float *)(a0 + 0x2A4) == 0.0f) {
+        target = 0.0f;
+    } else {
+        st = *(float **)(a0 + 0x2B8);
+        target = (*(int *)((char *)st + 0x130) != 0) ? 1.0f
+                 : *(float *)(&D_00000000 + 0x900);
+    }
+    st = *(float **)(a0 + 0x2B8);
+    if (*(float *)((char *)st + 0x124) < target) {
+        *(float *)((char *)st + 0x124) += *(float *)(&D_00000000 + 0x904);
+        st = *(float **)(a0 + 0x2B8);
+        if (target < *(float *)((char *)st + 0x124)) {
+            *(float *)((char *)st + 0x124) = target;
+        }
+    } else {
+        *(float *)((char *)st + 0x124) -= *(float *)(&D_00000000 + 0x908);
+        st = *(float **)(a0 + 0x2B8);
+        if (*(float *)((char *)st + 0x124) < target) {
+            *(float *)((char *)st + 0x124) = target;
+        }
+    }
+    (void)a1u;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CD24);
+#endif
 
 /* timproc_uso_b5_func_0000CDC8: TAIL-FRAGMENT of CD24 via forward
  * bc1f-past-declared-end ($f0-variant: compare/store use $f0 instead
