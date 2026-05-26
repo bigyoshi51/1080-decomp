@@ -11563,12 +11563,9 @@ int gl_func_00031DA4(void) {
 //   deferred (USO boundary re-split + data/ucode reclassification
 //   needs spimdisasm-USO migration). Name pre-checked: no extern
 //   reuse.
-#ifdef NON_MATCHING
 void gl_func_00031DD8(void) {
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031DD8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031DF8);
 
@@ -11579,7 +11576,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F4C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032884);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032934);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00031DD8_pad.s")
 
 extern int gl_func_00000000();
@@ -20642,7 +20638,6 @@ int gl_func_0003F8E8(void *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8E8);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0003F96C: 22-insn (0x58) two-call wrapper with stack buffer.
  *
  * 184-byte frame (sp+0x18 buf area used). Decoded structure:
@@ -20677,11 +20672,8 @@ int gl_func_0003F96C(int a0, int a1, int a2) {
     gl_func_00000000(&D_03F96C_extern, a1, a2);
     return a2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F96C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003F9BC);
-#endif
 
 // gl_func_0003F9C4 — STRUCTURAL PASS (0x8C / 36 words, no episode). Raw-.word
 // USO. realjr=1, single prologue frame 0xC0 (saves ra) → ONE clean function.
@@ -21539,7 +21531,6 @@ void gl_func_00041768(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041768);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_000417CC: 21-insn 2-vtable-call dispatcher.
  *   gl_func_00000000();   // unrelated jal
  *   p = a0->0x28;        // vtable ptr (reloaded twice)
@@ -21568,11 +21559,8 @@ void gl_func_000417CC(int *a0) {
     p = (int*)a0[0x28/4];
     ((void(*)(int))p[0x84/4])(*(short*)((char*)p + 0x80) + (int)a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000417CC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00041820);
-#endif
 
 // gl_func_0004182C — STRUCTURAL PASS (0x244 / 146 words, no episode). Raw-.word
 // USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
@@ -30473,7 +30461,6 @@ void gl_func_0005BAF4(float *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BAF4);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0005BBCC: trivial single-call wrapper. frame 0x18, saves
    only $ra, one jal reloc, args passed through unchanged.
    BUNDLE BOUNDARY (DEFERRED USO RE-SPLIT): the .s declares size 0x108
@@ -30491,8 +30478,6 @@ extern int gl_func_00000000();
 void gl_func_0005BBCC(void) {
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BBCC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BBEC);
 
@@ -30503,7 +30488,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC24);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BCAC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BCCC);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005BCD4: 43-insn 2D-rotation transform (0xAC, frame 0x30).
@@ -33501,7 +33485,6 @@ void gl_func_000635D8(int *self, int a1, int a2, int a3, int a4, int a5) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000635D8);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0006366C: too-big-N-function-bundle (declared size 0xA0, 40 words).
  * Splat grouped 3 distinct functions under one symbol — 3 jr $ra terminators.
  * Candidate for split-fragments.py.
@@ -33560,12 +33543,9 @@ void gl_func_0006366C(int a0, int a1, int a2, int a3, int a4, int a5) {
     }
     gl_func_00000000(a0, a1, a2, a3, a4, a5);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006366C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000636BC);
 
-#endif
 
 void game_libs_func_00063704(int a0) {}
 
@@ -35446,7 +35426,6 @@ void gl_func_00067A10(char *a0, int a1, int a2) {
     gl_func_00000000(&gl_ref_00022604, *(int*)(a0 + 0x34));
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00067A54: too-big-N-function-bundle (declared size 0x74, 29 words).
  * Splat grouped 3 distinct functions + a 3-insn trailing fragment under one symbol.
  * Candidate for split-fragments.py — needs the script to recurse on each newly-
@@ -35502,11 +35481,8 @@ void gl_func_00067A54(int a0, int a1, int a2) {
     }
     gl_func_00000000(a0, a1, a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067A54);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067ABC);
-#endif
 
 void game_libs_func_00067A90(char *a0, int a1, int a2) {
     *(int *)(a0 + 0x78) = a1;
