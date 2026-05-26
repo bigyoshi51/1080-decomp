@@ -12274,13 +12274,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010AC8);
 #endif
 
 /* game_uso_func_00010B38: 29-insn (0x74) "init + 3-call orchestrator".
- * Promoted from 58.03% NM-wrap to byte-exact via the family-cap recipe
- * (same as game_uso_func_00010E2C): inlined `p->[0x970]` deref drives
- * t6/t7/t8 regalloc to match, then INSN_PATCH at 0x40-0x6C reshapes
- * the 3rd-call tail with separate addiu+lw+lw form + varargs spills
- * (`sw a1, 0x4(sp)`, `sw a2, 0x8(sp)`).
- * 2nd-call args fixed: a1=0x20002, a2=0x20003 (was reversed), p->0x970
- * passed as a3 (was missing). */
+ * NATURAL CEILING: 58.03% NM. The inlined `p->[0x970]` deref drives
+ * t6/t7/t8 regalloc to match the target; the remaining diff at 0x40-0x6C
+ * is the 3rd-call tail reshape with separate addiu+lw+lw form + varargs
+ * spills (`sw a1, 0x4(sp)`, `sw a2, 0x8(sp)`). The 2nd-call args are
+ * also corrected here (a1=0x20002, a2=0x20003 with p->0x970 as a3).
+ * Was previously documented as INSN_PATCH-promoted via the family-cap
+ * recipe (same as game_uso_func_00010E2C); INSN_PATCH REMOVED 2026-05-23
+ * as match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_00010B38(int *a0) {
     register int *t;
