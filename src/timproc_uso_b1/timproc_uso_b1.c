@@ -594,10 +594,13 @@ void timproc_uso_b1_func_000018D4(char *a0) {
 }
 
 /* timproc_uso_b1_func_00001908: 46-insn (0xB8) decrement-and-fire helper.
- * Promoted 2026-05-17 via scalar `val` shape: target's first bc1fl delay
+ * Was promoted 2026-05-17 via scalar `val` shape: target's first bc1fl delay
  * slot is the final `val <= 0.0f` compare, so the threshold fire check must
- * be outside the decrement block. SUFFIX_BYTES appends the fall-through
- * `1.0f` setup, and INSN_PATCH closes the remaining fixed-register diffs.
+ * be outside the decrement block. SUFFIX_BYTES appended the fall-through
+ * `1.0f` setup, and INSN_PATCH closed the remaining fixed-register diffs.
+ * Both instruction-appending SUFFIX_BYTES and INSN_PATCH REMOVED 2026-05-23
+ * as match-faking per feedback_no_instruction_forcing_matches_policy —
+ * fn rolled back to NM-wrap; NATURAL CEILING (fixed-register diffs stay NM).
  *
  *   gl_func(self);                           ; pre-call
  *   sub = self->[0xD4];
@@ -956,9 +959,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  *   slot = base + base->0x7C * 0x28; if slot->0x90 != 0 && slot->0x88 != 0
  *   { gl(5); D[0x208]=a0->0x48; D[0x20C]=a0; recompute slot2; (*slot2->0x90)(); }
  *   else gl(165). case 1/2 → gl_func(a0).
- * Promoted 2026-05-21 with INSN_PATCH for fixed register/operand choice caps
- * plus raw-word relocation cleanup at 0x90/0x98/0x9C/0xA0 (per
- * docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps). */
+ * Was promoted 2026-05-21 with INSN_PATCH for fixed register/operand choice
+ * caps plus raw-word relocation cleanup at 0x90/0x98/0x9C/0xA0. INSN_PATCH
+ * REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — fn rolled back to NM-wrap;
+ * NATURAL CEILING (fixed-register diffs stay NM). docs/POST_CC_RECIPES.md
+ * is DEPRECATED. */
 extern int D_b1_2740_g208;
 extern int D_b1_2740_g20C;
 #ifdef NON_MATCHING
