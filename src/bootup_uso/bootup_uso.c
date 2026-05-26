@@ -1395,27 +1395,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
 #endif
 
 /* func_000034E8 - verified structural decode (0x150, 84 insns,
- * tagged-arg-block object builder + wire).
- *   void *func_000034E8(St *a0, int *a1, int a2) {
- *       // copy a global Vec3 (+0 pad) into a global slot:
- *       g = (f32*)(func_00000008 + 0x28);
- *       g[0] = *(f32*)(func_000003F8 + 0x140);
- *       g[1] = *(f32*)(func_000003F8 + 0x144);
- *       g[2] = *(f32*)(func_000003F8 + 0x148);
- *       g[3] = 0.0f;
- *       // pack a tagged arg block (sp+0x10..0x4C): pairs of a
- *       // small id tag + a value pulled from a1[]:
- *       //   {2, 0x6E, a1[0], a1[1], 0x6F, a1[2], a1[3], 0x70,
- *       //    a1[6]|2, 0x71, 1, 0x73, a1[4], 0x74, a1[5], 0}
- *       r = func_00000000(0, 0x64, &D_000074D0, 0x6D, block...);
- *       *(void**)(func_00000008 + 0x24) = r;
- *       func_00000000(func_00000008 + 0x24, r);   // register
- *       r->0x70 = a2;
- *       if (a0->0x84 != 0) func_00000000(r);
- *       if (a0->0x80 != 0) func_00000000(r);
- *       func_00000000(a0, r);                      // final wire
- *       return r;
- *   }
+ * tagged-arg-block object builder + wire). Cross-symbol data refs:
+ * func_00000008+0x28 (global Vec3 slot), func_00000008+0x24 (global
+ * pointer slot), func_000003F8+0x140 (source Vec3). The C body uses
+ * &func_NNNNNNNN + offset casts to recreate the data references.
  * Struct-typing reference: func_000003F8+0x140 = a global source
  * Vec3 (3 f32) copied (with a 0.0 4th lane) into the global slot
  * func_00000008+0x28. a1 = an int[] params source: indices 0,1,2,
@@ -1426,12 +1409,35 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
  * and r is published to the global func_00000008+0x24. a0->0x84
  * (132) / a0->0x80 (128) = optional-callback gates; final
  * func_00000000(a0, r) attaches r to a0. D_000074D0 = builder
- * datum. Caps <80: ~5 func_00000000 reloc + big tagged stack-arg
- * block + FP global Vec copy + cross-symbol (func_00000008/
- * 000003F8) refs + beql branch-likely gates. Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule). */
+ * datum. Caps <80: ~5 reloc + big tagged stack-arg block + FP global
+ * Vec copy + cross-symbol (func_00000008/000003F8) refs + beql
+ * branch-likely gates. INCLUDE_ASM remains build path. */
+extern char D_000074D0;
+extern void func_00000008();  /* used as data-symbol base */
+extern void func_000003F8();  /* used as data-symbol base */
+#ifdef NON_MATCHING
+void *func_000034E8(char *a0, int *a1, int a2) {
+    float *g = (float*)((char*)&func_00000008 + 0x28);
+    void *r;
+    g[0] = *(float*)((char*)&func_000003F8 + 0x140);
+    g[1] = *(float*)((char*)&func_000003F8 + 0x144);
+    g[2] = *(float*)((char*)&func_000003F8 + 0x148);
+    g[3] = 0.0f;
+    r = (void*)func_00000000(0, 0x64, &D_000074D0, 0x6D,
+                              2, 0x6E, a1[0], a1[1], 0x6F, a1[2], a1[3],
+                              0x70, a1[6] | 2, 0x71, 1, 0x73, a1[4],
+                              0x74, a1[5], 0);
+    *(void**)((char*)&func_00000008 + 0x24) = r;
+    func_00000000((char*)&func_00000008 + 0x24, r);
+    *(int*)((char*)r + 0x70) = a2;
+    if (*(int*)(a0 + 0x84) != 0) func_00000000(r);
+    if (*(int*)(a0 + 0x80) != 0) func_00000000(r);
+    func_00000000(a0, r);
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000034E8);
+#endif
 
 /* func_00003638 - verified structural decode (0xFC, 63 insns,
  * object factory + link + notify).
