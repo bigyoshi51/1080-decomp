@@ -53,10 +53,14 @@ u32 func_80004730(void* vaddr) {
  * variants or INSN_PATCH; only a targeted long permuter run could help. */
 /* Unaligned big-endian u32 load. Register-chain accumulator with a
  * speculative volatile-sink store to sp+4 after every OR step.
- * Promoted from 92.73% NM wrap to EXACT via 19-insn INSN_PATCH for
- * register-rename (target threads accumulator through fresh regs each
- * step: $t8→$t2→$t6→$t0; built pins to $a1 via `register` keyword).
- * 12th INSN_PATCH-promotion this session. */
+ * NATURAL CEILING: 92.73% NM. Target threads the accumulator through fresh
+ * regs each step ($t8 -> $t2 -> $t6 -> $t0); the C `register u32 acc`
+ * pins to $a1 every step. The 19-insn register-rename diff was previously
+ * documented as INSN_PATCH-promotable to EXACT — INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy; see also the contradicting
+ * earlier comment block above which already flagged INSN_PATCH as invalid
+ * here per the tautology trap). Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 u32 func_800047B0(u8 *a0) {
     volatile u32 sb;
