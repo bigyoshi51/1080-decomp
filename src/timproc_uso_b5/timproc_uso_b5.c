@@ -3034,6 +3034,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Linker-set offset, unmatchable standalone. CAP class. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008834);
 
+/* 0x88xx cluster: 11 tiny leaves with forward `beq/bne +small` branches
+ * that target at or past function-end (falling into successor). All are
+ * cross-fn shared-epilogue tail-merges per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offsets,
+ * unmatchable standalone. CAP class. Covers 8844/8854/886C/887C/8894/
+ * 88A0/88E0/88F8/8908/8920/8930. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008844);
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008854);
