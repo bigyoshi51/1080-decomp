@@ -7699,9 +7699,10 @@ int gl_func_0002A3AC(char *base, int idx) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
 #endif
 
-/* gl_func_0002A4D0: 97.67%->100% via INSN_PATCH (5 reg-rename diffs at
- * offsets 0x18/0x1C/0x20/0x24/0x28). IDO emits $v0/$t6 for val/val|0x40;
- * target uses $t9/$t0. Pure regalloc swap, INSN_PATCH-able. */
+/* gl_func_0002A4D0: NATURAL CEILING 97.67% NM. 5 reg-rename diffs at
+ * offsets 0x18/0x1C/0x20/0x24/0x28 — IDO emits $v0/$t6 for val/val|0x40;
+ * target uses $t9/$t0. Pure regalloc swap. INSN_PATCH promotion was
+ * REMOVED 2026-05-23 as match-faking. */
 extern int gl_func_00000000();
 
 #ifdef NON_MATCHING
