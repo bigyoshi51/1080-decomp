@@ -1328,7 +1328,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00008508);
  *   gl_func(p, D[0x168], D[0x164], &D + 0x170)  (call 4)
  *   gl_func(arg0)                       (call 5)
  *
- * Promoted from the previous NM wrap with PROLOGUE_STEALS=8. */
+ * Was promoted from the previous NM wrap with PROLOGUE_STEALS=8;
+ * PROLOGUE_STEALS REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — fn rolled back to NM. */
 #ifdef NON_MATCHING
 void gl_func_00008510(int *arg0) {
     char *state = *(char**)((char*)&D_00000000 + 0x134);
@@ -1448,9 +1450,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000086A0);
  *     a0->f54C -= a0->f550;
  *     a0->f550 = -(a0->f550 / 4.0f);
  *   }
- * 4-insn INSN_PATCH closes the C-emit's $f6/$f8 reg-swap on the
- * double-add ($f4-pinning via named `four = 4.0f` plus inline D-deref
- * with literal +0xE60 offset gets 50/54 byte-identical). */
+ * CAP: C-emit's $f6/$f8 reg-swap on the double-add stays NM ($f4-pinning
+ * via named `four = 4.0f` plus inline D-deref with literal +0xE60 offset
+ * gets 50/54 byte-identical; INSN_PATCH REMOVED 2026-05-23 per
+ * feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void gl_func_0000871C(int *a0) {
     float four = 4.0f;
@@ -1576,10 +1579,11 @@ int gl_func_00008884(char *a0) {
  * for this local: build/non_matching emitted byte-identical code to the
  * baseline (ptr still lives in a2, same beqzl early-exit). Reverted.
  *
- * 2026-05-11 Codex pass: promoted with default-build INSN_PATCH. C-only emit
- * remains capped by the same a2/v1 allocator split and one-block schedule
- * shift, but build/src/game_libs/game_libs.c.o is byte-exact against
- * expected/src/game_libs/game_libs.c.o. */
+ * 2026-05-11 Codex pass: was promoted with default-build INSN_PATCH.
+ * INSN_PATCH REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — fn rolled back to NM-wrap.
+ * C-only emit caps at the a2/v1 allocator split + one-block schedule shift
+ * + 3 jal-target relocs; NATURAL CEILING, stays NM. */
 struct GlConstructed {
     char pad[0x10];          /* embedded array passed to link() */
     char pad2[0x18];
