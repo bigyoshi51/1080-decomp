@@ -11103,12 +11103,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
 #endif
 
 /* game_uso_func_0000F49C: 30-insn state-init.
- * Promoted to byte-exact via the family-cap recipe (same as 10B38/10E2C):
- * inlined `flags_ptr` and `sub` derefs drive t7/t8/t9/t1/t0 regalloc to
- * match, then INSN_PATCH 10 insns at 0x38..0x6C reshapes the 2nd-call
- * D-base + tail to add the cross-USO varargs spills (`sw a1, 0x4(sp)` /
- * `sw a2, 0x8(sp)`), then SUFFIX_BYTES_FORCE 8 bytes for the trailing
- * jr-ra+nop epilogue. */
+ * NATURAL CEILING: ~70% NM. The inlined `flags_ptr`/`sub` derefs drive
+ * t7/t8/t9/t1/t0 regalloc to match the target; the remaining diff is
+ * (a) 10 insns at 0x38..0x6C reshaping the 2nd-call D-base + tail to add
+ * cross-USO varargs spills `sw a1, 0x4(sp)` / `sw a2, 0x8(sp)`, and
+ * (b) 8 trailing bytes for the jr-ra+nop epilogue. Both were previously
+ * documented as INSN_PATCH + SUFFIX_BYTES_FORCE (the family-cap recipe,
+ * same as 10B38/10E2C) — REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_0000F49C(int *a0) {
     a0[0x114/4] = 2;
