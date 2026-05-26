@@ -293,8 +293,11 @@ s32 func_800092B0(s32 a0) {
  * Caps <80: rmon stack-buffer build + 32x callee loop + 8 MMIO-
  * read calls + 7 distinct callees. INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
-extern int func_80009030(int cmd, int i);
-extern int func_80006A98(unsigned int addr);
+extern void func_800073F8();  /* fn-ptr-cast at call site */
+extern void func_80009148(int x);
+extern void func_80008498(void);
+extern void func_800091F0(int x);
+/* func_80006A98 / func_80009030 already file-scope-declared at top. */
 s32 func_80009314(char *s0) {
     int hdr[4];
     int buf[40];  /* 32-entry register window + 8 fixed regs */
@@ -307,17 +310,17 @@ s32 func_80009314(char *s0) {
     for (i = 0; i < 0x20; i++) {
         func_80009030(0x2B, i);
         func_80008498();
-        buf[i] = func_80006A98(0x04000000U);
+        buf[i] = func_80006A98(0x04000000);
     }
     func_800091F0(0);
-    buf[0x20] = func_80006A98(0x04040004U);
-    buf[0x21] = func_80006A98(0x04040000U);
-    buf[0x22] = func_80006A98(0x04040008U);
-    buf[0x23] = func_80006A98(0x04080000U) + 0x04001000;
-    buf[0x24] = func_80006A98(0x0404000CU);
-    buf[0x25] = func_80006A98(0x04040010U);
-    buf[0x26] = func_80006A98(0x04040014U);
-    buf[0x27] = func_80006A98(0x04040018U);
+    buf[0x20] = func_80006A98(0x04040004);
+    buf[0x21] = func_80006A98(0x04040000);
+    buf[0x22] = func_80006A98(0x04040008);
+    buf[0x23] = func_80006A98(0x04080000) + 0x04001000;
+    buf[0x24] = func_80006A98(0x0404000C);
+    buf[0x25] = func_80006A98(0x04040010);
+    buf[0x26] = func_80006A98(0x04040014);
+    buf[0x27] = func_80006A98(0x04040018);
     ((void (*)(void*, int, int))func_800073F8)(hdr, 0xB0, 1);
     return 0;
 }
