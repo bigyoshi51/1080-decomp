@@ -38100,10 +38100,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC64);
 /* gl_func_0006CCD4: 20-insn DMA-sync + uncached-read helper. Calls
  * gl_func(src, dst); on success (returns 0), reads *src from the
  * KSEG1-uncached mirror (a0 | 0xA0000000) and writes to *dst. Returns
- * 0 on success, -1 on failure. Fresh decode 2026-05-14 → byte-exact
- * via 12-entry INSN_PATCH + 1-word SUFFIX_BYTES_FORCE: IDO fills the
- * beqz delay slot with the success-path's first lw (delay-slot-fill-
- * by-reorg.c); target leaves it as nop. Pure delay-slot-fill cap. */
+ * 0 on success, -1 on failure. NATURAL CEILING: pure delay-slot-fill
+ * cap — IDO fills the beqz delay slot with the success-path's first lw
+ * (delay-slot-fill-by-reorg.c); target leaves it as nop. Was previously
+ * documented (fresh decode 2026-05-14) as byte-exact via 12-entry
+ * INSN_PATCH + 1-word SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int gl_func_0006CCD4(int *src, int *dst) {
     int rc = gl_func_00000000(src, dst);
