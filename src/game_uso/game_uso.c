@@ -3808,8 +3808,11 @@ void game_uso_func_000057B8(char *a0) {
     game_uso_func_00000000(a0 + 0xE4);
 }
 
-/* Semantically compact; Makefile SUFFIX_BYTES_FORCE + INSN_PATCH restores
- * target's branch-expanded selector layout for byte exactness. */
+/* NATURAL CEILING: NM only. C body is semantically compact; target's
+ * branch-expanded selector layout was previously restored via Makefile
+ * SUFFIX_BYTES_FORCE + INSN_PATCH — both REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_000057D8(char *a0) {
     char *sub;
