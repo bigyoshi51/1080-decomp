@@ -888,9 +888,10 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
  * 0xF6 << 24 = G_FILLRECT command word (per F3DEX2 gbi.h).
  *
  * IDO emits the two final `or` instructions in the OPPOSITE order from target
- * (entry[0] computation first vs target's entry[1] first). 2-insn INSN_PATCH
- * at offsets 0x58/0x5C swaps them — see Makefile. Per
- * `docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps`. */
+ * (entry[0] computation first vs target's entry[1] first). CAP: 2-insn
+ * order-swap at offsets 0x58/0x5C stays NM (INSN_PATCH REMOVED 2026-05-23
+ * as match-faking per feedback_no_instruction_forcing_matches_policy;
+ * docs/POST_CC_RECIPES.md DEPRECATED). */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING

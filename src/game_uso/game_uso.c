@@ -1771,8 +1771,10 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
  * 2026-05-17 Codex: real control flow is "init var_v1, then always run the
  * sub-init call on either a1+8 or alloc(0x18)"; prior NM only ran that block
  * for the -8 sentinel. C body rose 57.63% -> 95.40%; remaining stack-slot
- * and scheduler differences are byte-restored with INSN_PATCH per
- * docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps. */
+ * and scheduler differences were byte-restored with INSN_PATCH. INSN_PATCH
+ * REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy; docs/POST_CC_RECIPES.md
+ * DEPRECATED. NATURAL CEILING 95.40% NM. */
 #ifdef NON_MATCHING
 void *game_uso_func_00002744(void *arg0) {
     void *var_a1;
@@ -2406,14 +2408,13 @@ void game_uso_func_000039F8(char *dst) {
 }
 
 /* game_uso_func_00003A28: 36-insn alloc + conditional-init + registry-link
- * wrapper with branch-likely tail-merge. Promoted from 89.22% NM cap via
- * 25-word INSN_PATCH (per docs/POST_CC_RECIPES.md
- * #feedback-suffix-plus-insn-patch-grows-and-reshapes — same recipe family,
- * SUFFIX-less variant since size already matches). The cap was IDO's
- * register-allocation pick ($a1/$a2 for obj/other vs target's $v0/$v1)
- * AND a frame-size diff (0x20 vs 0x28). Patch covers all 25 differing
- * words including one jal-position swap (+0x1C non-jal→jal, +0x20
- * jal→non-jal) which exercises the orphan R_MIPS_26 strip. */
+ * wrapper with branch-likely tail-merge. Was previously promoted from 89.22%
+ * NM cap via 25-word INSN_PATCH. INSN_PATCH REMOVED 2026-05-23 as match-
+ * faking per feedback_no_instruction_forcing_matches_policy;
+ * docs/POST_CC_RECIPES.md DEPRECATED. NATURAL CEILING 89.22% NM.
+ * Underlying caps: IDO's register-allocation pick ($a1/$a2 for obj/other vs
+ * target's $v0/$v1) AND a frame-size diff (0x20 vs 0x28), plus a
+ * jal-position swap (+0x1C non-jal→jal, +0x20 jal→non-jal). */
 #ifdef NON_MATCHING
 int *game_uso_func_00003A28(int *arg0) {
     int *obj;
