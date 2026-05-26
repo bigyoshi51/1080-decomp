@@ -11,12 +11,12 @@ typedef struct { float x, y, z; } Vec3;
 
 #ifdef NON_MATCHING
 void gl_func_00008A40(Vec3 *dst) {
+    register Vec3 *q;
     register Vec3 *p1;
     register Vec3 *p2;
-    register Vec3 *q;
-    Tri3i raw;
-    int pad_mid[2];
     Tri3i tmp;
+    int pad_mid[2];
+    Tri3i raw;
     register float *src;
     gl_func_00000000(&D_00000000, &raw, 12);
     p1 = dst;
