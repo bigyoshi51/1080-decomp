@@ -737,12 +737,11 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B1
 #endif
 
 /* titproc_uso_func_00001BB8: 42-insn dual-state-bracket helper. Two
- * gl_func dispatches with asymmetric inner-D[0] gates.
- *
- * Trailing bundled bytes 0xA8-0xAF are the SUCCESSOR (0x1C68) stolen
- * prologue: `lui $at, 0x3F80; mtc1 $at, $f0` ($f0=1.0f setup that 0x1C68
- * stores via `swc1 $f0, 0x30(sp)` immediately after its prologue). Handled
- * via SUFFIX_BYTES + scripts/inject-suffix-bytes.py.
+ * gl_func dispatches with asymmetric inner-D[0] gates. LANDED fuzzy=100
+ * at size 0xA8. The previously-documented 8-byte SUFFIX_BYTES tail for
+ * SUCCESSOR (0x1C68)'s stolen prologue is no longer in the Makefile —
+ * the bytes now correctly belong to 0x1C68's own symbol (verified
+ * 2026-05-26: no SUFFIX_BYTES match for func_00001BB8, no .o size change).
  *
  * Each lui+addiu/lw pair in the target is a distinct R_MIPS_HI16/LO16
  * reloc — 8 fresh loads of `&D_*` rather than CSE through $s0. To match,
