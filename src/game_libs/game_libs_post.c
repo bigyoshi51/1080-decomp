@@ -31482,14 +31482,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FCC4);
 
 /* 3-call printf-style debug logger logging two Vec3s as 6 floats.
  * Format strings at offsets 0x21B6C/0x21B88/0x21BA4 (28 bytes apart).
- * Declared 0xAC (43 insns) including 3 trailing dead insns
- * (nop; lui a2, 0; lw a2, 0(a2)) — stolen prologue setup for successor
- * gl_func_0005FDCC which uses $a2 as a base register without setting it.
- * Closed via SUFFIX_BYTES (same recipe class as FDCC's $v1 stolen prologue).
- *
- * Per docs/POST_CC_RECIPES.md SUFFIX_BYTES recipe — the prior NM-wrap doc
- * worried this would "break INCLUDE_ASM build", but unwrapping (always C)
- * + SUFFIX recipe is exactly how FDCC works (just-landed sibling). */
+ * LANDED fuzzy=100 at 0xA0. The historical SUFFIX_BYTES recipe (3 trailing
+ * stolen-prologue insns for successor gl_func_0005FDCC's $a2 base) was
+ * REMOVED 2026-05-23 as match-faking; those insns belong to separate
+ * symbols now. (Previously-documented 0xAC size is stale.) */
 extern int gl_func_00000000();
 void gl_func_0005FD20(float *a0) {
     (void)gl_func_00000000((char*)&D_00000000 + 0x21B6C, a0,
@@ -31500,9 +31496,11 @@ void gl_func_0005FD20(float *a0) {
         (double)a0[2], (double)a0[5]);
 }
 
-/* 18-insn 2-call wrapper with early-return guard. Declared size 0x50 includes
- * 2 trailing dead insns (lui v1, 0; lw v1, 0(v1)) — stolen prologue setup
- * for the successor. Closed via SUFFIX_BYTES. */
+/* 18-insn 2-call wrapper with early-return guard (0x48). LANDED fuzzy=100.
+ * The historical SUFFIX_BYTES recipe (2 trailing stolen-prologue insns
+ * for the successor's $v1 base) was REMOVED 2026-05-23 as match-faking;
+ * those insns belong to separate symbols. (Previously-documented 0x50
+ * size is stale.) */
 int gl_func_0005FDCC(int a0, int a1, int a2) {
     if (a2 != 0) {
         gl_func_00000000(a1, a2);
