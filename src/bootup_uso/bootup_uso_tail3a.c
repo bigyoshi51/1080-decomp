@@ -6,9 +6,13 @@ typedef struct { int a, b, c, d; } Quad4;
 
 
 /* Array-indexing utility: return a0 + a0->field_7C * 0x28 + 0x84.
- * 7/8 NM cap structural (IDO -O2 fills jr-ra delay slot with addiu,
- * target had unfilled). Promoted to exact via INSN_PATCH at offsets
- * 0x10/0x14 (Makefile entry, ports the 2-word patch from agent-b). */
+ * NATURAL CEILING: 98.75% NM (7/8 insns). IDO -O2 fills the jr-ra delay
+ * slot with addiu; target leaves it unfilled — same -g/-O0 unfilled-delay
+ * cap class as game_libs_func_00070FBC (see
+ * feedback_unfilled_delay_int_reader_needs_o0_split). The prior
+ * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking; no
+ * Makefile entry now. A per-file -g/-O0 split could land it (focused-
+ * session work, not 60s-tick safe). */
 #ifdef NON_MATCHING
 char *func_00010324(char *a0) {
     return a0 + *(int*)(a0 + 0x7C) * 0x28 + 0x84;
