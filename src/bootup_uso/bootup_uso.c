@@ -3317,7 +3317,6 @@ void func_000082F8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000082F8);
 #endif
 
-#ifdef NON_MATCHING
 /* func_000083D0: 30-insn (0x78) 5-call init/dispatch wrapper. Callee
  * func_00000000 is the K&R cross-USO placeholder.
  *
@@ -3352,9 +3351,6 @@ void func_000083D0(int *a0) {
  * `.L00007FD4` segment data symbol at the value that bakes 0x7FC4 in
  * %lo (account for %hi carry), not the flat extern. Reloc word →
  * INSN_PATCH-unsafe. One-word symbol-form cap; rest byte-exact. */
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000083D0);
-#endif
 
 void func_00008448(char *a0) {
     func_00000000((int*)(a0 + 0x3C));

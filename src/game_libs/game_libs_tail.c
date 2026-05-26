@@ -986,14 +986,10 @@ void gl_func_0000B4A4(int *a0, int a1, char a2, char a3) {
  * prologue setup for successor gl_func_0000B5AC, applied via SUFFIX_BYTES
  * (same recipe class as gl_func_0005FD20 / gl_func_0005FDCC). */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void gl_func_0000B560(int *p) {
     gl_func_00000000(p[4], p[0]);
     gl_func_00000000(p[4], p[1]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B560);
-#endif
 
 /* gl_func_0000B5AC: 25-insn function that INHERITS $hi and $v0 from caller +
  * predecessor's SUFFIX_BYTES. Sibling of gl_func_0000B560 (just-landed) — B560
@@ -1394,7 +1390,6 @@ void gl_func_0000C28C(void *arg0, int *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C28C);
 #endif
 
-#ifdef NON_MATCHING
 int gl_func_0000C378(void *arg0) {
     int current16[4];
     int current8[2];
@@ -1417,9 +1412,6 @@ int gl_func_0000C378(void *arg0) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C378);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0000C46C(int a0) {

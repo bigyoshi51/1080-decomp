@@ -3465,7 +3465,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000231B4);
  * gl_ref_0003870C aliases (undefined_syms_auto.txt) and call THOSE for the
  * first two; keep gl_func_00000000 for the 3rd (genuine placeholder). Until
  * then keep NON_MATCHING — do NOT unwrap (would regress the ROM). */
-#ifdef NON_MATCHING
 void gl_func_00023284(int a0, int a1, int a2, int a3) {
     int v;
     v = gl_func_00000000(2, a0);
@@ -3474,9 +3473,6 @@ void gl_func_00023284(int a0, int a1, int a2, int a3) {
         gl_func_00000000(a3, 0, 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023284);
-#endif
 
 // gl_func_000232E8 — STRUCTURAL PASS (0xFC / 63 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
@@ -6756,14 +6752,10 @@ int gl_func_0002886C(int a0) {
 //   FP helper now lives elsewhere). Real-C STRUCTURAL body below per
 //   the analysis: tail-call thunk forwarding (a0, 7). Byte-match
 //   deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_0002888C(int a0) {
     gl_func_00000000(a0, 7);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002888C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000288AC);
 
@@ -7105,7 +7097,6 @@ end:
     return r;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00029078: 20-insn cross-USO + alt-entry helper. Calls cross-USO
  * gl_func(a0+0x10, a1), then if non-NULL calls alt-entry gl_func_0003D66C
  * (inside gl_func_0003D620 at +0x4C), then cross-USO gl_func(a0+0x20, result).
@@ -7119,9 +7110,6 @@ int gl_func_00029078(int a0, int a1) {
 end:
     return v0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029078);
-#endif
 
 /* gl_func_000290C8: 62-insn (0xF8) sibling of gl_func_00029078 (just
  * landed 6b9ad3ee). 0x38-byte stack frame, calls gl_func_0003D480
@@ -9704,13 +9692,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DEA4);
  * (sll/addu/addiu @0x2DEF4-0x2DEFC) are dead-code alt-entry shared with
  * the next function (gl_func_0002DF00); appended via SUFFIX_BYTES recipe
  * to bridge the C-emit/expected size mismatch. */
-#ifdef NON_MATCHING
 void gl_func_0002DED0(void) {
     gl_func_00000000((void*)0x82000000, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DED0);
-#endif
 
 /* 10-insn body single-call wrapper, sibling of gl_func_0002DF68 (same
  * 0xTTTT0000 | ((a0 & 0xFF) << 8) bit-packing pattern but without the
@@ -9719,13 +9703,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DED0);
  * Declared size 0x38 includes 2 trailing dead insns (lui t6, 0; lw t6,
  * 0x2D00(t6)) — stolen prologue setup for the successor. Closed via
  * SUFFIX_BYTES. */
-#ifdef NON_MATCHING
 void gl_func_0002DF00(int a0) {
     gl_func_00000000(0x82020000 | ((a0 & 0xFF) << 8), 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF00);
-#endif
 
 /* gl_func_0002DF38: 11-insn (0x30) signed-test guard wrapper. Mid-chain in
  * the 0x2DF00 stolen-prologue chain:
@@ -10629,13 +10609,9 @@ void gl_func_00030504(int a0) {
  * appended via SUFFIX_BYTES so st_size matches expected (0x34).
  * Per memo feedback_suffix_bytes_unblocks_4byte_stolen_prologue.md
  * (extended to 12-byte case). */
-#ifdef NON_MATCHING
 void gl_func_00030564(void) {
     gl_func_00000000(0x06000801, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030564);
-#endif
 
 #ifdef NON_MATCHING
 /* Gate function — calls gl_func_00000000 if both D[8] and D[0xC] zero.
@@ -11174,7 +11150,6 @@ void gl_func_00031560(void) {
  * of 0x64 stride). Trailing 2 insns at 0x315BC-0x315C0 are R-type stolen-
  * prologue donation to successor gl_func_000315C4 (`sll t7, a0, 2;
  * subu t7, t7, a0` = a0*3) — emitted via SUFFIX_BYTES recipe. */
-#ifdef NON_MATCHING
 void game_libs_func_00031580(void) {
     int i;
     char *base = (char *)&D_00000000 + 0x368;
@@ -11188,9 +11163,6 @@ void game_libs_func_00031580(void) {
         *(int *)(rec + 0x5C) = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031580);
-#endif
 
 /* gl_func_000315C4: 17-insn (0x44) array-element-call helper.
  * Stolen-prologue successor — predecessor game_libs_func_00031580's tail at
@@ -11280,14 +11252,10 @@ void gl_func_000316CC(int a0) {
 //   grep -c 03E00008 = 1 (.s now single fn). Real-C STRUCTURAL body
 //   below per the analysis. Byte-match deferred. Name pre-checked:
 //   no extern reuse.
-#ifdef NON_MATCHING
 void gl_func_00031710(int arg) {
     gl_func_00000000((char *)&D_00000000 + 0x430, 0, arg + 0x17F, 0x7F);
     gl_func_00000000((char *)&D_00000000 + 0x430);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031710);
-#endif
 
 // Read u16 v = D[a2] from the segment-base table, store args to a0->0x54/0x58,
 // and store &D + (v & ~1) (rounded-down even index back into the table) to
@@ -13100,16 +13068,12 @@ void gl_func_00034B98(void *a0) {
     }
 }
 
-#ifdef NON_MATCHING
 extern int D_34BDC_A, D_34BDC_B;
 void game_libs_func_00034BDC(int a0, int *a1, int *a2) {
     int *p = &a0;
     *a1 = D_34BDC_A;
     *a2 = D_34BDC_B;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034BDC);
-#endif
 
 int game_libs_func_00034BFC(int a0) {
     return *(int *)&D_00000000 + 0x80000000;
@@ -13178,16 +13142,12 @@ void gl_func_00034C44(int a0, int a1) {
 //   mnemonic disasm + boundary re-split. Real-C STRUCTURAL body
 //   below for the NAMED leading 4-callback orchestration wrapper
 //   only. Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 int gl_func_00034C7C(void *a0, void *a1) {
     int r = gl_func_00000000(1);
     gl_func_00000000(a0, a1);
     gl_func_00000000(a0, a1);
     return gl_func_00000000(r);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034C7C);
-#endif
 
 #ifdef NON_MATCHING
 /* Flag-remap: look up a 6-byte table entry at &D[0x11FA + a1->0x34*6]; copy its
@@ -13324,7 +13284,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
  * INSN_PATCH overwrites the nop byte. */
 long long gl_func_00035164_inner(int a0);
 
-#ifdef NON_MATCHING
 /* gl_func_00035164: thin (int) wrapper over the long-long inner. NON_MATCHING
  * (a0-home-spill cap): target spills a0 to its home (sw a0,0x18(sp)) in the
  * call's delay slot where built has a nop. a0 is BOTH the call arg AND
@@ -13335,9 +13294,6 @@ int gl_func_00035164(int a0) {
     long long r = gl_func_00035164_inner(*p);
     return (int)r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035164);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00035188: 25-insn 2-vtable-call + conditional assert.
@@ -20848,16 +20804,12 @@ void gl_func_0003FB0C(int a0) {
  * Trailing 2 insns (andi t7, a1, 0xFF; multu t7, a3) are stolen-prologue
  * for successor gl_func_0003FB6C (which uses mflo at its start) — added
  * via SUFFIX_BYTES. */
-#ifdef NON_MATCHING
 void gl_func_0003FB38(int a0) {
     char pad[0x98];
     int pad2, scratch;
     scratch = 0x21;
     gl_func_00000000(&scratch);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FB38);
-#endif
 
 // gl_func_0003FB6C — STRUCTURAL PASS (0x90 / 37 words, no episode). Raw-.word
 // USO. realjr=1, single prologue frame 0xC0 (saves ra) → ONE clean function.
@@ -21248,7 +21200,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040CAC);
 // Caps (DEFERRED): object struct, the &D_0002F49x string table and cb
 //   signatures inferred from call shape. Real-C STRUCTURAL body below.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 extern int D_00000000;
 void gl_func_00040DE8(char *a0) {
     char *g = (char *)&D_00000000;
@@ -21259,9 +21210,6 @@ void gl_func_00040DE8(char *a0) {
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040DE8);
-#endif
 
 // gl_func_00040E90 — STRUCTURAL PASS (0x170 / 94 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
@@ -21428,13 +21376,9 @@ int gl_func_00041258() {
  * the SUCCESSOR. Closed via SUFFIX_BYTES (per
  * feedback_prologue_stolen_predecessor_no_recipe.md): grows the symbol's
  * st_size by 8 bytes and appends the dead bytes at the new tail. */
-#ifdef NON_MATCHING
 void gl_func_00041278(void) {
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041278);
-#endif
 
 #ifdef NON_MATCHING
 /* Sibling/successor of gl_func_00041278 (which uses SUFFIX_BYTES to
@@ -21946,7 +21890,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042144);
 // Caps (DEFERRED): scratch layout, &D_g global and cb signatures
 //   untyped. Real-C STRUCTURAL body below. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 extern int D_00000000;
 void gl_func_000421D4(void) {
     char scr[0x40];
@@ -21962,9 +21905,6 @@ void gl_func_000421D4(void) {
         gl_func_00000000(&D_00000000, h, v);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000421D4);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00042288() {
@@ -22755,16 +22695,12 @@ void gl_func_00043FFC(char *a0) {
 //   can be decoded under its own symbol. Real-C STRUCTURAL body below —
 //   the named fn (3-call register wrapper) only. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_00044034(void *a0) {
     gl_func_00000000(a0);
     gl_func_00000000((char *)a0 + 0x10);
     gl_func_00000000((char *)a0 + 0x14);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044034);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004406C);
 
@@ -26371,13 +26307,9 @@ end:
 // bundle re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
 
-#ifdef NON_MATCHING
 void game_libs_func_0004E138(int a0) {
     *(int *)a0 = (*(int *)((char *)&D_00000000 + 0x14) & 3) == 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E138);
-#endif
 
 /* Vtable-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
  * declare p2 FIRST with p1's load inlined; IDO CSE's the duplicated
@@ -26575,15 +26507,11 @@ void gl_func_0004E4E8(int *dst) {
  * stolen prologue prefix for the SUCCESSOR gl_func_0004E584; injected via
  * SUFFIX_BYTES so they end up inside this function's symbol per the
  * baseline. */
-#ifdef NON_MATCHING
 void gl_func_0004E524(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E524);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004E584: 31-insn / 0x7C 3-stage chained alloc-or-passthrough.
@@ -27719,15 +27647,11 @@ void gl_func_000515C0(int *dst) {
  * insns (0x58) + 2 trailing SUFFIX bytes (0x60 declared total). The 2
  * trailing insns (lui v0, 0; addiu v1, v0, 0) are stolen-prologue setup
  * for successor gl_func_0005165C (which inherits $v1 from this fn's tail). */
-#ifdef NON_MATCHING
 void gl_func_000515FC(Quad4 *dst) {
     volatile Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = *(Quad4*)&buf;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000515FC);
-#endif
 
 /* gl_func_0005165C: 14-insn function INHERITS $v1 from predecessor
  * gl_func_000515FC's trailing SUFFIX_BYTES. Predecessor's last 2 insns
@@ -29823,7 +29747,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055FB4);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055FB4_pad.s")
 
-#ifdef NON_MATCHING
 /* gl_func_00056084: 5-call sequence on a stack buffer (sp+0x18). Calls a
  * placeholder (gl_func_00000000) with (buf, a0), (buf, &str1), (buf, a1),
  * (buf, &str2), (buf). str1/str2 = reloc-blind &D + 0x218C0 / 0x218CC. */
@@ -29836,9 +29759,6 @@ void gl_func_00056084(int a0, int a1) {
     gl_func_00000000(buf, (char *)&D_00000000 + 0x218CC);
     gl_func_00000000(buf);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056084);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000560E4);
 
@@ -30451,7 +30371,6 @@ int game_libs_func_0005B73C(int *a0) {
     return n;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0005B764: circular-list float-format-log iterator. s0=a0->4;
    while (s0 != a0): v=(*s0 & 0xFFFFFF)<<4; f=(float)(unsigned)v/1024;
    log(a1, &D_00000000+0x21A38, (double)f); s0=s0->4; count++. After
@@ -30484,9 +30403,6 @@ int gl_func_0005B764(int *a0, int a1) {
     gl_func_00000000(a1, (char *)&D_00000000 + 0x21A40);
     return count;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B764);
-#endif
 
 /* gl_func_0005B848: sibling of gl_func_0005B764 (same float-format-log
    family). Header-log(&D_00000000+0x21A44) first, then s0=a0->4;
@@ -31574,7 +31490,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FCC4);
  * worried this would "break INCLUDE_ASM build", but unwrapping (always C)
  * + SUFFIX recipe is exactly how FDCC works (just-landed sibling). */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void gl_func_0005FD20(float *a0) {
     (void)gl_func_00000000((char*)&D_00000000 + 0x21B6C, a0,
         (double)a0[0], (double)a0[3]);
@@ -31583,14 +31498,10 @@ void gl_func_0005FD20(float *a0) {
     (void)gl_func_00000000((char*)&D_00000000 + 0x21BA4, a0,
         (double)a0[2], (double)a0[5]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FD20);
-#endif
 
 /* 18-insn 2-call wrapper with early-return guard. Declared size 0x50 includes
  * 2 trailing dead insns (lui v1, 0; lw v1, 0(v1)) — stolen prologue setup
  * for the successor. Closed via SUFFIX_BYTES. */
-#ifdef NON_MATCHING
 int gl_func_0005FDCC(int a0, int a1, int a2) {
     if (a2 != 0) {
         gl_func_00000000(a1, a2);
@@ -31599,9 +31510,6 @@ int gl_func_0005FDCC(int a0, int a1, int a2) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FDCC);
-#endif
 
 #ifdef NON_MATCHING
 /* Append-and-return-slot wrapper (24 insns, prologue-stolen).
@@ -32513,15 +32421,11 @@ int gl_func_00061458() {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061478);
 
-#ifdef NON_MATCHING
 extern int D_6170C_idx;
 extern int D_6170C_arr[];
 int game_libs_func_0006170C(void) {
     return D_6170C_arr[D_6170C_idx - 1];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006170C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061728);
 
@@ -35155,7 +35059,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066B64);
 #endif
 
 /* gl_func_00066BD4: 23-insn 3-call chain with mixed-arg middle call. */
-#ifdef NON_MATCHING
 void gl_func_00066BD4(int a0) {
     int *p = &a0;  /* &param forces the dead arg-home sw a0,0x20(sp) */
     gl_func_00000000(*p);
@@ -35163,9 +35066,6 @@ void gl_func_00066BD4(int a0) {
                      (char*)&D_00000000 + 0x415C0, 1);
     gl_func_00000000((char*)&D_00000000 + 0x41310);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066BD4);
-#endif
 
 /* 8-insn: stores arg to D_00000000, calls gl_func_00000000(0).
  * Splat originally bundled 2 trailing empty (jr ra; nop) leaves —
@@ -35982,7 +35882,6 @@ void game_libs_func_00068338(int a0) {}
 void game_libs_func_00068340(int a0) {}
 void game_libs_func_00068348(int a0) {}
 
-#ifdef NON_MATCHING
 /* gl_func_00068350: 29-insn (0x74) vtable-dispatch + flag-gated init.
  * 2026-05-13 tightened 64.07% → 99.59% via three fixes:
  *   1. Offset is (s16)vtable->field_8, NOT self->field_8 — target reads via $v0.
@@ -36020,9 +35919,6 @@ void gl_func_00068350(int *self) {
         self[1] = gl_func_00000000(&D_00000000, 1, 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068350);
-#endif
 
 /* Split off from gl_func_00068350 bundle 2026-05-08: 4-insn field setter. */
 void game_libs_func_000683C4(int *a0, int a1) {
@@ -37386,13 +37282,9 @@ void gl_func_0006BA0C(void) {
 /* 11-insn passthrough wrapper. Declared size 0x34 includes 2 trailing dead
  * insns (lui t6, 0xA460; lw a2, 0x10(t6) — N64 PI hardware register access)
  * — stolen prologue setup for the successor. Closed via SUFFIX_BYTES. */
-#ifdef NON_MATCHING
 void gl_func_0006BA48(void) {
     gl_func_00000000(&D_00000000, 0, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BA48);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006BA7C: 19-insn (0x4C) PI-DMA-wait + uncached-cart-read.
@@ -39227,15 +39119,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070954);
 /* 12-insn 2-call wrapper using a 0x40-byte stack buffer.
  * Trailing 2 insns (lui $at, 0x3780; mtc1 $at, $f0) are stolen prologue
  * for the successor (float-constant load); absorbed via SUFFIX_BYTES. */
-#ifdef NON_MATCHING
 void gl_func_000709DC(int a0) {
     char buf[0x40];
     gl_func_00000000(buf);
     gl_func_00000000(buf, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000709DC);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00070A14: too-big-N-function-bundle (declared 0xEC, 59 words) — 3 functions.

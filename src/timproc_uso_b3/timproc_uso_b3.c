@@ -337,7 +337,6 @@ void timproc_uso_b3_func_00000D60(char *a0) {
  *     a0->[0x6A8]->[0x6C]->[0xEC] != 0).
  * F3 @ 0xE54-0xE5C: `return 0;` 3-insn stub. */
 extern int func_00000000();
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000DE4(char *a0) {
     func_00000000(a0 + 0x6B4);
     func_00000000(a0 + 0x6CC);
@@ -345,9 +344,6 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
     func_00000000(a0 + 0x714);
     func_00000000(a0 + 0x6E4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000DE4);
-#endif
 
 /* timproc_uso_b3_func_00000E60: state-machine dispatcher, sibling of
  * timproc_uso_b1_func_00000EE8 and arcproc_uso_func_00000FA8.
@@ -442,7 +438,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  *
  * F1: gate=gl_func(a0->0x528). If non-zero set D[0x40]=0xC,D[0x44]=9.
  *     Else set D[0x40]=9. Tail: if(a0->0x4F8) gl_func(a0,-1,0); else a0->0x504=0. */
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_00000FF4(char *a0) {
     if (gl_func_00000000(*(char**)(a0 + 0x528)) != 0) {
         *(int*)((char*)&D_00000000 + 0x40) = 0xC;
@@ -456,9 +451,6 @@ void timproc_uso_b3_func_00000FF4(char *a0) {
         gl_func_00000000(a0, -1, 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000FF4);
-#endif
 
 void timproc_uso_b3_func_00000000();
 
@@ -847,15 +839,11 @@ void timproc_uso_b3_func_000021B0(void) {
 extern char D_b3_21F4_a;
 extern char D_b3_21F4_b;
 extern char D_b3_21F4_c;
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_000021F4(void) {
     gl_func_00000000(*(int*)((char*)&D_b3_21F4_a + 0x208));
     *(int*)((char*)&D_b3_21F4_b + 0x40) = 6;
     gl_func_00000000(*(int*)((char*)&D_b3_21F4_c + 0x20C), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021F4);
-#endif
 
 #ifdef NON_MATCHING
 /* 97.58 % cap (2026-05-02). Prologue-stolen successor: predecessor
@@ -924,15 +912,11 @@ void timproc_uso_b3_func_00002344(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_00002388(void) {
     gl_func_00000000(gl_ref_00000208);
     gl_ref_00000040 = 0xD;
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002388);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
 

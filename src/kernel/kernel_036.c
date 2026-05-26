@@ -68,7 +68,6 @@ void __rmonSendHeader(void) {
  * including the relocatable `jal func_80009C30`. The Makefile then zeros the
  * first two successor-body words and clips the .text section to preserve the
  * historical 0x1C symbol boundary and 8 bytes of padding. */
-#ifdef NON_MATCHING
 RmonThreadNode* func_800073DC(s32 threadId) {
     register RmonThreadNode* node;
 
@@ -86,6 +85,3 @@ RmonThreadNode* func_800073DC(s32 threadId) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800073DC);
-#endif

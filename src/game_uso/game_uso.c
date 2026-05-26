@@ -9328,7 +9328,6 @@ void game_uso_func_0000C0F0(int *dst) {
 /* Struct assignment makes IDO emit the target 3-ints-per-iteration copy loop.
  * The Makefile patch strips relocations from the D_00000000 load and jal
  * words so objdiff sees the same raw .word baseline. */
-#ifdef NON_MATCHING
 void game_uso_func_0000C12C(int *a0) {
     typedef struct {
         int v[16];
@@ -9337,9 +9336,6 @@ void game_uso_func_0000C12C(int *a0) {
     gl_func_00000000(&D_00000000, &buf, 0x40);
     *(I16*)a0 = buf;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C12C);
-#endif
 
 void game_uso_func_0000C194(int *dst) {
     int buf[2];
@@ -10794,7 +10790,6 @@ void game_uso_func_0000EDCC(int *a0, int a1) {
  *
  * a2 is an unused 3rd arg saved to caller arg-slot at sp+0x8 by IDO arg-
  * save (per docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save). */
-#ifdef NON_MATCHING
 void game_uso_func_0000EDD4(int *a0, unsigned int a1, int a2) {
     int v0 = 0;
     int *p;
@@ -10809,9 +10804,6 @@ void game_uso_func_0000EDD4(int *a0, unsigned int a1, int a2) {
     p = (int*)((char*)a0[0xB4/4] + 0xA14);
     *p = *p - v0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EDD4);
-#endif
 
 extern char D_00000138;
 void game_uso_func_0000EE30(char *a0, int a1, int a2) {
@@ -12970,7 +12962,6 @@ void game_uso_func_00011888(int *a0) {
  * goto-chain recipe doesn't apply (target is a genuine jr-jumptable, not a
  * beq chain). NM wrap; INCLUDE_ASM build path (no episode; the .rodata
  * jtbl C neither links nor byte-matches — tautology-trap rule). */
-#ifdef NON_MATCHING
 void game_uso_func_0001189C(int *a0, int a1, int a2) {
     int *s0 = a0;
     int s1 = a2;
@@ -12997,9 +12988,6 @@ void game_uso_func_0001189C(int *a0, int a1, int a2) {
         break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001189C);
-#endif
 
 void game_uso_func_000119D4(char *dst) {
     int tmp;

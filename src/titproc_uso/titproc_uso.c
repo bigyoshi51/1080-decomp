@@ -756,7 +756,6 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B1
 extern int gl_func_00000000();
 extern char D_titproc_BB8_a, D_titproc_BB8_b, D_titproc_BB8_c, D_titproc_BB8_d;
 extern char D_titproc_BB8_e, D_titproc_BB8_f, D_titproc_BB8_g, D_titproc_BB8_h;
-#ifdef NON_MATCHING
 void titproc_uso_func_00001BB8(int a0) {
     if (gl_func_00000000(&D_titproc_BB8_a, 0x10001) != 0) {
         if (*(int*)&D_titproc_BB8_b != 0) {
@@ -771,9 +770,6 @@ void titproc_uso_func_00001BB8(int a0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001BB8);
-#endif
 
 /* titproc_uso_func_00001C68: 69-insn (0x114) dual-dispatch FPU helper.
  * Sibling of 0x1BB8 (which provides the stolen-prologue $f0 = 1.0f).

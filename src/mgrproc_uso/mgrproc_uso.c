@@ -981,7 +981,6 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000161
  *   if (gl_func(&D, 0x40100, a0) == 0) return;
  *   if (gl_func(*(int*)(&D + 0x190)) == 0) return;
  *   a0->[0x7D4] = 1; */
-#ifdef NON_MATCHING
 void mgrproc_uso_func_0000179C(int *a0) {
     if (*(int*)((char*)a0 + 0x7E4) != 1) return;
     if (*(int*)((char*)a0 + 0x7E8) >= 0x2EE) return;
@@ -989,9 +988,6 @@ void mgrproc_uso_func_0000179C(int *a0) {
     if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) == 0) return;
     *(int*)((char*)a0 + 0x7D4) = 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000179C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001824);
 

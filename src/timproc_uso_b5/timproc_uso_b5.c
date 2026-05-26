@@ -4151,7 +4151,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 extern char D_b5_C208_table0;
 extern char D_b5_C208_table1;
-#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C208(int *a0, int a1, int a2, int a3) {
     (void)a1;
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, a3,
@@ -4161,9 +4160,6 @@ void timproc_uso_b5_func_0000C208(int *a0, int a1, int a2, int a3) {
                          (char*)&D_b5_C208_table1 + a0[0x1AC/4] * 24, 0xFF);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C208);
-#endif
 
 extern char D_b5_C2C0_table;
 void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
@@ -4676,13 +4672,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 extern int gl_func_00000000();
 extern char D_timb5_1C0;
 
-#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, &D_timb5_1C0 + a0[0x1AC/4] * 24, 0xFF);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CCC8);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000CD24: 54-insn (0xD8) approach-target-with-decay

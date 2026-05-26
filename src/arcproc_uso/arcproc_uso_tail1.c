@@ -365,15 +365,11 @@ void arcproc_uso_func_00000E58(char *a0) {
  * USO splits also break expected/.o. Reverted; bundle stays as-is until
  * the split-script is fixed to write into the right .c. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void arcproc_uso_func_00000EBC(int *a0) {
     if (*(int*)((char*)a0 + 0x4F0) & 0x10000) {
         gl_func_00000000();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EBC);
-#endif
 
 /* arcproc_uso_func_00000F50 + F78 + F9C: 3-function bundle split via
  * scripts/split-fragments.py on 2026-05-07. Per
@@ -1137,15 +1133,11 @@ void arcproc_uso_func_0000247C(void) {
  * #feedback-suffix-bytes-for-bundled-empty-trailers. */
 extern int gl_func_00000000();
 extern int gl_ref_00000040, gl_ref_00000070, gl_ref_00000074;
-#ifdef NON_MATCHING
 void arcproc_uso_func_000024C0(void) {
     gl_func_00000000(gl_ref_00000070);
     gl_ref_00000040 = 9;
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000024C0);
-#endif
 
 /* arcproc_uso_func_0000251C - verified structural decode; SIBLING of the
  * alloc-cascade ctor family (arcproc_uso_func_0000199C /

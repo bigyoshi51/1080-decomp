@@ -829,15 +829,11 @@ void timproc_uso_b1_func_00001FA0(void) {
 extern char D_b1_1FE4_a;
 extern char D_b1_1FE4_b;
 extern char D_b1_1FE4_c;
-#ifdef NON_MATCHING
 void timproc_uso_b1_func_00001FE4(void) {
     gl_func_00000000(*(int*)((char*)&D_b1_1FE4_a + 0x208));
     *(int*)((char*)&D_b1_1FE4_b + 0x40) = 6;
     gl_func_00000000(*(int*)((char*)&D_b1_1FE4_c + 0x20C), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001FE4);
-#endif
 
 /* Dual-branch state setter (sibling of timproc_uso_b3_func_00002240,
  * byte-identical). Pure register-allocator cap from C; INSN_PATCH'd
@@ -883,15 +879,11 @@ void timproc_uso_b1_func_00002134(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
-#ifdef NON_MATCHING
 void timproc_uso_b1_func_00002178(void) {
     gl_func_00000000(gl_ref_00000208);
     gl_ref_00000040 = 0xD;
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002178);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000021D4);
 
