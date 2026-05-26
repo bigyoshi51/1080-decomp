@@ -39260,6 +39260,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070320);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070398);
 
+/* game_libs_func_00070508: 72-insn (0x120) middle-fragment with backward
+ * branch to 0x704D8 (just before .s start 0x70508). Splat captured the
+ * tail of a larger function — predecessor 00070398 is sibling middle-
+ * fragment of the same function. Splat boundary error per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ * Needs splat boundary correction (focused-session). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070508);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070244_pad.s")
 
