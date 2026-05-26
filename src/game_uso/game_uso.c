@@ -12383,22 +12383,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
 #endif
 
 /* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000.
- * Promoted to byte-correct via SUFFIX_BYTES (8 trailing nop bytes) +
- * 13-word INSN_PATCH (per Makefile game_uso_func_00010E2C=...) after
- * the documented family cap (target uses 4-insn base+ofs lui+addiu+lw+lw
- * load form, IDO -O2 always folds to 2-insn direct lui+lw because 0xE40
- * fits in 16-bit signed immediate — see
- * docs/IDO_CODEGEN.md#feedback-ido-constant-address-load-fold-inevitable).
- *
- * Patch reshapes the +0x2C..+0x5C tail: lui v0 → lui t8, addiu lo0 →
- * addiu lo0xE40, lw fold → 4-insn split with `sw a1/a2` shadow-spills
- * interleaved across the 2nd jal's delay slot. The patched jal at +0x40
- * (was reloc'd) becomes `sw a1, 0x4(sp)` (no reloc) — orphan R_MIPS_26
- * relocation auto-stripped by patch-insn-bytes.py per the 2026-05-07
- * fix (docs/POST_CC_RECIPES.md#feedback-insn-patch-jal-to-non-jal-orphan-
- * reloc-link-fail). The new jal at +0x48 has no reloc — it's literal
- * `jal 0` post-link, which is the standard cross-USO call pattern (USO
- * loader patches at runtime). */
+ * NATURAL CEILING: 87.38% NM. Family cap: target uses 4-insn
+ * base+ofs lui+addiu+lw+lw load form for the D-table at 0xE40, but
+ * IDO -O2 always folds to 2-insn direct lui+lw because 0xE40 fits in
+ * 16-bit signed immediate (see docs/IDO_CODEGEN.md
+ * #feedback-ido-constant-address-load-fold-inevitable). The historical
+ * 8-byte SUFFIX_BYTES + 13-word INSN_PATCH promotion was REMOVED
+ * 2026-05-23 as match-faking; docs/POST_CC_RECIPES.md is DEPRECATED. */
 #ifdef NON_MATCHING
 void game_uso_func_00010E2C(int a0) {
     register int *t;
