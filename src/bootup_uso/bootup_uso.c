@@ -2026,8 +2026,9 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005068);
  * feedback-game-uso-precall-spill-family / docs/IDO_CODEGEN.md
  * feedback-ido-volatile-local-frame-placement.
  *
- * 2026-05-18: promoted to byte-exact with the existing structural C plus
- * SUFFIX_BYTES_FORCE/INSN_PATCH on the third-call scheduler cap. */
+ * 2026-05-18: had promoted to byte-exact via SUFFIX_BYTES_FORCE / INSN_PATCH
+ * on the third-call scheduler cap; both mechanisms REMOVED 2026-05-23 as
+ * match-faking. Function is at honest 89.45% NM now. */
 extern char D_00007DA4;
 #ifdef NON_MATCHING
 int func_000050A0(int a0) {
