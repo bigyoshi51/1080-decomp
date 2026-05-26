@@ -646,10 +646,48 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000E68);
  * (296/300/304) (the func_0000485C scale triple). a0->0x2C/0x30/
  * 0x34 (44/48/52) s32 -> converted to f32 draw params; 1.0f
  * const. Caps <80: FP-heavy cvt.s.w/mul.s + global gate + 2x &D
- * + func_00000000 reloc draw + list-append (count bump + 8-byte
- * stride). Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * + reloc draw + list-append (count bump + 8-byte stride).
+ * INCLUDE_ASM remains build path. */
+extern void func_00000188();  /* used as data-symbol base */
+#ifdef NON_MATCHING
+void func_00001A44(char *a0) {
+    char *st;
+    char *n;
+    char *e;
+    char *base;
+    int stride6;
+    char *root;
+    char *v0;
+    float sx, sy, sz;
+    char *l;
+    int i;
+    int *cmd;
+    if (*(int*)((char*)&func_00000188 + 0x3C) & 0x2) return;
+    st = *(char**)((char*)(*(int**)&D_00000000) + 0x254);
+    n = *(char**)(st + 0x158);
+    e = *(char**)(n + 0x3C);
+    base = *(char**)(e + 0x0);
+    stride6 = *(int*)(e + 0x4) << 6;
+    root = *(char**)&D_00000000;
+    v0 = *(char**)(root + 0x70);
+    sx = *(float*)(v0 + 0xA0) * *(float*)((char*)&D_00000000 + 0x128);
+    sy = *(float*)(v0 + 0xA4) * *(float*)((char*)&D_00000000 + 0x12C);
+    sz = *(float*)(v0 + 0xA8) * *(float*)((char*)&D_00000000 + 0x130);
+    func_00000000(base + stride6,
+                  (float)*(int*)(a0 + 0x2C),
+                  (float)*(int*)(a0 + 0x30),
+                  (float)*(int*)(a0 + 0x34),
+                  1.0f, sx, sy, sz);
+    l = *(char**)(n + 0xC);
+    i = *(int*)(l + 0x4);
+    *(int*)(l + 0x4) = i + 1;
+    cmd = (int*)(*(char**)(l + 0x0) + i * 8);
+    cmd[0] = 0x01020040;
+    /* entry payload writes follow (truncated in decode comment) */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001A44);
+#endif
 
 void func_00001C10(int *dst) {
     int buf[2];
