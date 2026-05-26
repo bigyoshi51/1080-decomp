@@ -915,11 +915,14 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C
  *
  * Always-call gl_func_0(D + 0x628, a0->[0x4D8]) at entry.
  *
- * Exact match via 3-extern split (D_mgr_14F4_a/b/c, all aliased to 0x0)
- * + 4-insn INSN_PATCH at 0x4C/0x50/0x54/0x58 for the third equality
- * test's branch-likely-vs-beq+goto-epilogue diff (target's
- * `beq v0, at(=3), case_13; nop; b end; lw ra, 0x14(sp) (delay)` form
- * vs IDO's `bnel v0, at, end; lw ra (delay); b case_13; nop`). */
+ * NATURAL CEILING: ~90% NM. Was previously documented as "exact via 3-extern
+ * split + 4-insn INSN_PATCH at 0x4C/0x50/0x54/0x58" — INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * The remaining cap is the third equality test's branch-likely-vs-beq+goto-
+ * epilogue diff: target emits `beq v0,at(=3),case_13; nop; b end; lw ra (delay)`
+ * vs IDO's `bnel v0,at,end; lw ra (delay); b case_13; nop`. The 3-extern split
+ * (D_mgr_14F4_a/b/c, all aliased to 0x0) is retained to keep the lui/lo
+ * structural decode honest in the NM body; default build is INCLUDE_ASM. */
 extern int D_mgr_14F4_a, D_mgr_14F4_b, D_mgr_14F4_c;
 #ifdef NON_MATCHING
 void mgrproc_uso_func_000014F4(int *a0) {
