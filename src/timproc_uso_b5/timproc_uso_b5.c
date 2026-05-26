@@ -3075,6 +3075,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000089DC);
 
+/* timproc_uso_b5_func_00008A1C: 7-insn loop-bottom tail-fragment:
+ *   addiu v1,v1,1; slt at,v1,a3; bne at,zero,-0x2C; addiu a0,a0,4;
+ *   move v0,zero; jr ra; nop
+ * Caller-set $v1/$a3 + backward branch to 0x89FC (before this .s start
+ * 0x8A1C). Splat captured loop tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A1C);
 
 /* timproc_uso_b5_func_00008A38/A64/A90: indexed double-deref accessors. The
