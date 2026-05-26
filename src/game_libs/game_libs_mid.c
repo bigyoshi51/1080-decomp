@@ -94,4 +94,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009204);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000092F4);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000093DC);
+/* gl_func_000093DC: -O0 init/dispatch (scalar-only, no struct locals = no
+ * frame-offset ceiling). Real direct-global symbols D_w0 (offset 0) / D_w134
+ * (0x134) give the 2-insn at-macro/fold loads; &D+0x10 base = 3-insn; register
+ * vars give the s0/s1/s2 usage. fuzzy=100. */
+extern int D_w0, D_w134;
+void gl_func_000093DC(int a0, int a1, int *a2) {
+    register int *obj;    /* s0 = a2 */
+    register char *base;  /* s1 = &D */
+    register char *p;     /* s2 */
+    D_w0 = gl_func_00000000(a2, a1);
+    obj = a2;
+    base = (char *)&D_00000000;
+    p = base + 0x10;
+    gl_func_00000000(p, obj);
+    if (*(int *)((char *)obj + 0x14) != 0) {
+        *(int *)((char *)obj + 0x4) = 1;
+    }
+    p = base;
+    *(int *)((char *)obj + 0x14) = (int)p;
+    obj = a2;
+    gl_func_00000000(D_w0, obj);
+    gl_func_00000000(D_w134);
+    (void)a0;
+}
