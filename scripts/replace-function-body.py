@@ -172,6 +172,118 @@ class Elf:
             self.write_section_header(i)
         self.write_elf_header()
 
+    # ---- section-growth + symbol-import helpers (for import_donor_relocs) ----
+    def _grow_section(self, sec_idx, extra_bytes):
+        """Insert extra_bytes of 0 at the end of section sec_idx. Shift later
+        sections + e_shoff. Returns the byte offset within self.data where the
+        new (zeroed) range starts (i.e. old end of the section)."""
+        sec = self.sections[sec_idx]
+        old_end = sec[4] + sec[5]
+        self.data[old_end:old_end] = b"\x00" * extra_bytes
+        sec[5] += extra_bytes
+        for i, other in enumerate(self.sections):
+            if i != sec_idx and other[4] >= old_end:
+                other[4] += extra_bytes
+        if self.e_shoff >= old_end:
+            self.e_shoff += extra_bytes
+        for i in range(self.e_shnum):
+            self.write_section_header(i)
+        self.write_elf_header()
+        return old_end
+
+    def _strtab_find(self, strtab_idx, name):
+        """Search strtab for an exact (NUL-terminated) match. Returns offset
+        or None if not present."""
+        sec = self.sections[strtab_idx]
+        blob = bytes(self.data[sec[4]:sec[4] + sec[5]])
+        needle = name.encode("ascii") + b"\x00"
+        idx = blob.find(needle)
+        if idx < 0:
+            return None
+        # Must be NUL-preceded (or at index 0) to be a real start, not a tail match
+        if idx > 0 and blob[idx - 1] != 0:
+            return None
+        return idx
+
+    def _strtab_add(self, strtab_idx, name):
+        """Return offset of name in strtab; append if missing."""
+        existing = self._strtab_find(strtab_idx, name)
+        if existing is not None:
+            return existing
+        encoded = name.encode("ascii") + b"\x00"
+        sec = self.sections[strtab_idx]
+        new_off = sec[5]  # current end (relative to section start)
+        start_abs = self._grow_section(strtab_idx, len(encoded))
+        self.data[start_abs:start_abs + len(encoded)] = encoded
+        return new_off
+
+    def find_or_add_global_undef_symbol(self, name):
+        """Return the symbol-table index of a GLOBAL UND symbol with this name.
+        If absent, append a new entry (and matching strtab string)."""
+        symtab_idx = self.find_section(".symtab")
+        strtab_idx = self.sections[symtab_idx][6]
+        for sym_idx, fields in self.iter_symtab(symtab_idx):
+            if self.strtab_string(strtab_idx, fields[0]) == name:
+                return sym_idx
+        # Append new symbol: STB_GLOBAL=1, STT_NOTYPE=0 -> st_info=(1<<4)|0=0x10;
+        # st_other=0, st_shndx=SHN_UNDEF=0, st_value=0, st_size=0.
+        name_off = self._strtab_add(strtab_idx, name)
+        symtab = self.sections[symtab_idx]
+        ent = symtab[9]
+        new_idx = symtab[5] // ent
+        new_abs = self._grow_section(symtab_idx, ent)
+        struct.pack_into(SYM_FMT, self.data, new_abs, name_off, 0, 0, 0x10, 0, 0)
+        return new_idx
+
+    def append_text_relocs(self, new_entries):
+        """Append (r_off, r_info) entries to .rel.text, creating it if needed.
+        Used for import_donor_relocs."""
+        if not new_entries:
+            return
+        if not self.has_section(".rel.text"):
+            raise RuntimeError(".rel.text section missing — cannot append relocs")
+        rel_idx = self.find_section(".rel.text")
+        ent = self.sections[rel_idx][9]
+        bytes_per_entry = struct.calcsize(REL_FMT)
+        if ent != bytes_per_entry:
+            raise RuntimeError(f".rel.text ent_size {ent} != {bytes_per_entry}")
+        start_abs = self._grow_section(rel_idx, ent * len(new_entries))
+        for i, (r_off, r_info) in enumerate(new_entries):
+            struct.pack_into(REL_FMT, self.data, start_abs + i * ent, r_off, r_info)
+
+    def import_donor_relocs(self, donor, donor_func_start, donor_func_size, dest_func_start):
+        """Read donor's .rel.text relocs that fall within the donor function's
+        byte range, remap their symbol indices to dest's symbol table (adding
+        missing symbols), remap their offsets to the destination function, and
+        append them to dest's .rel.text. Companion to fix_relocations which
+        drops the dest's own relocs in the replaced range — this re-adds the
+        ones from the donor compile so linker resolution still works (without
+        this, externs the donor referenced silently zero out the field bytes)."""
+        if not donor.has_section(".rel.text"):
+            return 0
+        d_rel_idx = donor.find_section(".rel.text")
+        d_sec = donor.sections[d_rel_idx]
+        d_off, d_size, d_ent = d_sec[4], d_sec[5], d_sec[9]
+        d_symtab_idx = donor.find_section(".symtab")
+        d_strtab_idx = donor.sections[d_symtab_idx][6]
+        donor_limit = donor_func_start + donor_func_size
+        new_entries = []
+        for i in range(d_size // d_ent):
+            entry_off = d_off + i * d_ent
+            r_off, r_info = struct.unpack(REL_FMT, donor.data[entry_off:entry_off + d_ent])
+            if not (donor_func_start <= r_off < donor_limit):
+                continue
+            r_type = r_info & 0xFF
+            d_sym_idx = r_info >> 8
+            d_sym = list(donor.iter_symtab(d_symtab_idx))[d_sym_idx][1]
+            sym_name = donor.strtab_string(d_strtab_idx, d_sym[0])
+            dest_sym_idx = self.find_or_add_global_undef_symbol(sym_name)
+            dest_r_off = (r_off - donor_func_start) + dest_func_start
+            dest_r_info = (dest_sym_idx << 8) | r_type
+            new_entries.append((dest_r_off, dest_r_info))
+        self.append_text_relocs(new_entries)
+        return len(new_entries)
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -192,11 +304,18 @@ def main():
         print(f"replace-body-skip: {args.func} already matches donor")
         return
 
+    # Find donor function range for reloc import (before replace_text_range, so
+    # we can still query donor cleanly).
+    _, donor_fields, _ = donor.find_symbol(args.func)
+    donor_func_start, donor_func_size = donor_fields[1], donor_fields[2]
+
     delta = dest.replace_text_range(old_start, old_size, payload)
     dest.fix_symbols(args.func, old_start, old_size, len(payload), delta)
     dest.fix_relocations(old_start, old_size, delta)
+    imported = dest.import_donor_relocs(donor, donor_func_start, donor_func_size, old_start)
     dest_path.write_bytes(dest.data)
-    print(f"replace-body: {args.func} {old_size:#x}->{len(payload):#x} in {dest_path}")
+    suffix = f" + imported {imported} donor reloc(s)" if imported else ""
+    print(f"replace-body: {args.func} {old_size:#x}->{len(payload):#x} in {dest_path}{suffix}")
 
 
 if __name__ == "__main__":
