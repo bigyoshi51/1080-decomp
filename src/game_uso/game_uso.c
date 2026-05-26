@@ -12472,9 +12472,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010FB8);
  * double `lw a0, 0x18(sp)` at insns 24/25 (jal-delay + post-jal) —
  * scheduler quirk likely.
  *
- * Promoted to exact with SUFFIX_BYTES_FORCE + full-function INSN_PATCH:
- * natural C is 0x6C bytes, target is 0x80 bytes with the precall a1/a2
- * outgoing-slot spill family shape that IDO 7.1 does not emit from C. */
+ * NATURAL CEILING: structural shape only. Natural C is 0x6C bytes;
+ * target is 0x80 bytes with the precall a1/a2 outgoing-slot spill family
+ * shape that IDO 7.1 does not emit from C. Was previously documented as
+ * "Promoted to exact with SUFFIX_BYTES_FORCE + full-function INSN_PATCH"
+ * — both mechanisms REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
