@@ -2945,12 +2945,14 @@ void func_00007AD8(char *a0) {
  *   init(ret + 0x10, link); if (link->field_14) link->field_04 = 1;
  *   link->field_14 = ret; } return ret.
  *
- * Promoted 2026-05-14 from 89.31% NM to byte-exact via 25-entry INSN_PATCH.
- * Same recipe family as the just-landed func_00007C74: shifted frame
- * layout (0x20 → 0x28) + register-alloc swap (built $a2 → target $a0/$v1).
- * Function size unchanged so no SUFFIX_BYTES needed. 2nd member of
- * project_1080_bootup_regalloc_cluster.md (7C74 done, 7B08 done, 7204
- * still pending). */
+ * NATURAL CEILING: 89.31% NM (size-preserving). Same recipe family as
+ * func_00007C74: shifted frame layout (0x20 -> 0x28) + register-alloc
+ * swap (built $a2 -> target $a0/$v1). 2nd member of the
+ * project_1080_bootup_regalloc_cluster (7C74 / 7B08 / 7204). Was
+ * previously documented (2026-05-14) as promoted to byte-exact via
+ * 25-entry INSN_PATCH; INSN_PATCH REMOVED 2026-05-23 as match-faking
+ * (per feedback_no_instruction_forcing_matches_policy). Default build
+ * is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void *func_00007B08(char *a0) {
     char *ret;
