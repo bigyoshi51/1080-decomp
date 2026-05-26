@@ -17365,6 +17365,11 @@ void game_libs_func_0003AA40(float *dst) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA5C);
 
+/* game_libs_func_0003AC50: 3-insn `sb t2, 0x3(a0); jr ra; nop` byte-store.
+ * No prologue — $t2 is caller-set as a value-arg (calling convention is
+ * a0..a3). IDO C can't emit functions taking $t2 as input. CAP class per
+ * feedback_caller_set_int_reg_cap_1080_game_libs. Default INCLUDE_ASM
+ * remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AC50);
 
 #ifdef NON_MATCHING
