@@ -147,8 +147,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
 #endif
 
 /* 7-arg string-builder: a0[0]=a1; a0[1]=a2; 3x copy (a3[i]-0x61)->a0[2..4];
- * a0[5..7]=stack args. Register-exact; the 5 setup insns reorder vs target
- * (isolated-vs-full-TU scheduling) — closed via INSN_PATCH positional swap. */
+ * a0[5..7]=stack args. NATURAL CEILING: 80% NM. Register-exact; the 5
+ * setup insns reorder vs target (isolated-vs-full-TU scheduling cap). The
+ * INSN_PATCH positional swap was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 void game_libs_func_000099DC(char *a0, int a1, int a2, char *a3, int a4, int a5, int a6) {
     int n = 0;
