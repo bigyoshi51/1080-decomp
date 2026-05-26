@@ -2,19 +2,20 @@
 """inject-suffix-bytes.py — append N bytes at the end of a function in a .o
 file, then grow the function's st_size and shift everything after by +N.
 
-Mirror of inject-prefix-bytes.py for the prologue-stolen-PREDECESSOR class:
-when a successor function uses PROLOGUE_STEALS=N (its &D-load prologue lives
-in the predecessor's tail), the predecessor's expected st_size INCLUDES those
-N trailing dead bytes (they're inside the predecessor's symbol but executed
-as part of the successor's logical entry). IDO emits the predecessor's body
-WITHOUT trailing dead code, so the predecessor's st_size is N bytes short of
-expected.
+**SCOPE 2026-05-25:** the instruction-appending use of this script (combined
+with INSN_PATCH / PROLOGUE_STEALS) was REMOVED 2026-05-23 as match-faking; see
+`feedback_no_instruction_forcing_matches_policy`. The only sanctioned current
+use is **appending all-zero data-padding bytes** (matches genuine trailing-zero
+data in the ROM symbol, no instruction-byte editing).
 
-This script appends the N stolen-prologue bytes at the predecessor's tail
-post-cc, grows its st_size, and shifts subsequent symbols/relocs by +N.
+Historical context (no longer applicable as a pipeline):
+  ~ Mirror of inject-prefix-bytes.py for the prologue-stolen-PREDECESSOR class:
+  ~ when a successor function used PROLOGUE_STEALS=N (its &D-load prologue
+  ~ lived in the predecessor's tail), the predecessor's expected st_size
+  ~ INCLUDED those N trailing dead bytes... PROLOGUE_STEALS is now banned.
 
-Operations on the .o:
-  1. .text section: insert n_bytes (the stolen-prologue word(s)) at the END
+Operations on the .o (mechanism unchanged):
+  1. .text section: insert n_bytes (the suffix word(s)) at the END
      of the function (st_value + st_size). Following bytes shift by +n_bytes.
   2. Symbol table: leave func's st_value unchanged. Grow func's st_size by
      n_bytes. Shift any other text-section symbol with st_value >=
@@ -24,11 +25,10 @@ Operations on the .o:
   4. Section header table: grow .text sh_size by n_bytes; shift sh_offset of
      subsequent sections by +n_bytes.
 
-Recommended use with PROLOGUE_STEALS for the same predecessor:
-  - PROLOGUE_STEALS=N for predecessor splices IDO's auto-emitted &D prologue
-    from the START of the predecessor (so its body bytes start at func_addr).
-  - SUFFIX_BYTES=N for the same predecessor appends the N dead `lui+addiu`
-    bytes at the new tail (so its symbol claims them, matching expected).
+Sanctioned use today: SUFFIX_BYTES=N where N bytes are all zeros, matching
+trailing-zero data within the function's ROM symbol (e.g. word-aligned padding
+the .s declares as part of the function but IDO doesn't emit). NOT for
+instruction-bytes that complete a partial codegen (banned).
 
 Detect-and-skip: if the bytes at (func_addr + func_size_old - n_bytes) already
 match the suffix words (e.g. INCLUDE_ASM build path where the .s already
@@ -311,9 +311,12 @@ def main():
     ap.add_argument("--allow-natural-epilogue", action="store_true",
                     help="Bypass skip-path-2 (the INCLUDE_ASM-build false-"
                          "positive on natural-jr-ra-nop epilogue C bodies). "
-                         "Use when SUFFIX_BYTES + INSN_PATCH together overwrite "
-                         "the body's last 2 insns. See "
-                         "docs/POST_CC_RECIPES.md.")
+                         "[Historical: was used when SUFFIX_BYTES + INSN_PATCH "
+                         "together overwrote the body's last 2 insns. "
+                         "INSN_PATCH was removed 2026-05-23 as match-faking; "
+                         "this flag is now only relevant for the all-zero "
+                         "data-padding case where the genuine padding shares "
+                         "those last 2 byte positions.]")
     ap.add_argument("--skip-if-size-ge", type=lambda s: int(s, 0),
                     help="No-op when the function symbol is already at least "
                          "this size. Useful for C builds that need a forced "
