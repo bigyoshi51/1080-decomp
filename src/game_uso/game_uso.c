@@ -12786,11 +12786,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
  *   }
  *
  * 2026-05-08: flipped the C to the target's flag-clear-first layout and added
- * PROLOGUE_STEALS for non_matching scoring. Fuzzy improves 17.93% -> 51.10%.
+ * PROLOGUE_STEALS for non_matching scoring. Fuzzy improved 17.93% -> 51.10%.
  *
- * 2026-05-17: exact via PROLOGUE_STEALS=8, D_game_11564_flag/table aliases
- * to defeat D-base CSE, and INSN_PATCH for the remaining caller-slot/register
- * reshaping. */
+ * 2026-05-17: had reached "exact via PROLOGUE_STEALS=8 + INSN_PATCH" using
+ * D_game_11564_flag/table aliases (to defeat D-base CSE) + caller-slot/
+ * register reshaping. Both PROLOGUE_STEALS and INSN_PATCH were REMOVED
+ * 2026-05-23 as match-faking. The aliases survive (they defeat real CSE in
+ * the C body). Function is at honest 81.93% NM. */
 extern int gl_func_00000000();
 
 #ifdef NON_MATCHING
