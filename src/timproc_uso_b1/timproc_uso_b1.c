@@ -295,6 +295,17 @@ void timproc_uso_b1_func_00000DA0(char *a0) {
 }
 
 #ifdef NON_MATCHING
+/* 98.57% — 5 register-position word-diffs only (regalloc-renumber).
+ * NOT the splice-donor recipe class: tested 2026-05-26 with -O0 donor
+ * (emitted 0x78 / 30 insn — 9 over target) and -O1 donor (emitted 0x5C /
+ * 23 insn — 2 over target with early stack-spill); target is 0x54 / 21
+ * insn at -O2-style register coloring but with FRESH temps (t7, t9, t8)
+ * per reload of saved-a0 rather than reuse of a3. IDO 7.1 at any -O*
+ * level reuses a3 after the first jal saves it; the "reload into fresh
+ * temp" allocator decision is not C-reachable for our toolchain binary.
+ * See feedback_splice_import_donor_relocs_recipe for the working sibling
+ * (5A4/65C) cases, and project_1080_other_diff_nearmiss_vein for the
+ * regalloc-renumber cap class. CAP — keep INCLUDE_ASM. */
 int timproc_uso_b1_func_00000DEC(char *a0) {
     if (*(int*)(a0 + 0x4FC) == 0) {
         gl_func_00000000(*(int*)(a0 + 0x6A8), 0, 1, a0);
