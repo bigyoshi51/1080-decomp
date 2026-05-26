@@ -49,27 +49,6 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80004B10);
 /* func_80004BE0 - verified structural decode (kernel, 0x138, 80
  * insns) = libultra osRecvMesg. Reference: libreultra
  * src/os/recvmesg.c / sendmesg.c (OSMesgQueue, __os* thread ops).
- *   s32 func_80004BE0(OSMesgQueue *mq, OSMesg *msg, s32 flag) {
- *       s = __osDisableInt();                     // func_800066B0
- *       while (mq->validCount == 0) {             // mq->0x8
- *           if (flag == OS_MESG_NOBLOCK) {        // arg2 == 0
- *               __osRestoreInt(s);                // func_800066D0
- *               return -1;
- *           }
- *           __osRunningThread->state = 8;         // D_8000A420->0x10
- *           __osEnqueueAndYield(&mq->mtqueue?);   // func_80003D0C
- *       }
- *       if (msg != NULL) {
- *           *msg = mq->msg[mq->first];            // 0x14[0xC]
- *           mq->first = (mq->first + 1) % mq->msgCount; // 0xC/0x10
- *       }
- *       mq->validCount--;
- *       if (mq->fullqueue->next != NULL)          // mq->0x4 ->0x0
- *           __osEnqueueThread(&__osRunQueue,
- *               __osPopThread(&mq->fullqueue));   // 3E54 / A110
- *       __osRestoreInt(s);
- *       return 0;
- *   }
  * Struct-typing reference: mq = OSMesgQueue - 0x4 fullqueue
  * (blocked-sender list), 0x8 validCount, 0xC first, 0x10 msgCount,
  * 0x14 msg[] (OSMesg array). func_800066B0/_800066D0 =
@@ -80,12 +59,41 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80004B10);
  * `addiu at,-1; bne t4,at; lui at,0x8000; bne t2,at; break 6` is
  * the IDO signed `%` div0/INT_MIN-overflow guard pair on the ring
  * index - documented C-unsuppressible (docs/IDO_CODEGEN.md
- * #feedback-ido-signed-mod-break-pair); the target libultra code
- * has these too, so a plain `% mq->msgCount` is correct - this caps
- * <100 only via that scoring quirk + the interrupt bracket /
- * yield-loop shape. Full body INCLUDE_ASM-preserved (.s = source
- * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * #feedback-ido-signed-mod-break-pair). INCLUDE_ASM remains build
+ * path (sub-100 cap via scoring quirk + interrupt bracket / yield-
+ * loop shape; no episode; tautology-trap rule). */
+extern int func_800066B0(void);
+extern void func_800066D0(int s);
+extern void func_80003D0C(int *q);
+extern int *func_80003E54(int *q);
+extern void func_8000A110(int *q, int *t);
+extern int *D_8000A420;
+extern int __osRunQueue;
+#ifdef NON_MATCHING
+s32 func_80004BE0(int *mq, int *msg, s32 flag) {
+    int s = func_800066B0();
+    while (*(int*)((char*)mq + 0x8) == 0) {
+        if (flag == 0) {
+            func_800066D0(s);
+            return -1;
+        }
+        *(int*)((char*)D_8000A420 + 0x10) = 8;
+        func_80003D0C(mq);
+    }
+    if (msg != 0) {
+        *msg = *(int*)((char*)mq + 0x14 + *(int*)((char*)mq + 0xC) * 4);
+        *(int*)((char*)mq + 0xC) =
+            (*(int*)((char*)mq + 0xC) + 1) % *(int*)((char*)mq + 0x10);
+    }
+    *(int*)((char*)mq + 0x8) -= 1;
+    if (*(int**)((char*)mq + 0x4) != 0)
+        func_8000A110(&__osRunQueue, func_80003E54((int*)((char*)mq + 0x4)));
+    func_800066D0(s);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80004BE0);
+#endif
 
 
 
