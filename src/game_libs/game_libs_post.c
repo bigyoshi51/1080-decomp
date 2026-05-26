@@ -37268,9 +37268,11 @@ void gl_func_0006BA0C(void) {
     gl_func_00000000(&D_00000000, &local, 1);
 }
 
-/* 11-insn passthrough wrapper. Declared size 0x34 includes 2 trailing dead
- * insns (lui t6, 0xA460; lw a2, 0x10(t6) — N64 PI hardware register access)
- * — stolen prologue setup for the successor. Closed via SUFFIX_BYTES. */
+/* 11-insn passthrough wrapper (0x2C). LANDED fuzzy=100. The 2 trailing
+ * stolen-prologue insns for the successor (lui t6,0xA460; lw a2,0x10(t6)
+ * — N64 PI_STATUS_REG read setup) historically absorbed via SUFFIX_BYTES;
+ * mechanism REMOVED 2026-05-23 as match-faking. Those insns belong to
+ * separate symbols now. (Previously-documented 0x34 size is stale.) */
 void gl_func_0006BA48(void) {
     gl_func_00000000(&D_00000000, 0, 0);
 }
