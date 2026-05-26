@@ -342,8 +342,10 @@ void gl_func_0000127C(char *a0) {
  * Structural-decode note 2026-05-18: was 1-line "Multi-pass decode pending"
  * doc-marker (the bail pattern per feedback_doc_marker_is_bail.md).
  * Replaced with substantive structural decode + caller-set-float-cap class
- * attribution. INCLUDE_ASM path holds; promotion would need INSN_PATCH for
- * the $f4/$f6/$f0 calling convention which IDO C cannot emit.
+ * attribution. INCLUDE_ASM path holds. CAP: $f4/$f6/$f0 caller-set float
+ * calling convention is unreachable from IDO C; promotion via INSN_PATCH
+ * REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — stays NM.
  */
 void gl_func_000012B4(int *self) {
     /* Real C below documents the body shape. Cannot byte-match due to

@@ -28,11 +28,12 @@ typedef struct { int a, b, c, d; } Quad4;
  *
  * Until step 1 lands, this file is dead-storage — not built, not linked.
  *
- * Recipe per docs/POST_CC_RECIPES.md
- * #feedback-jal-insn-patch-to-match-include-asm-derived-expected:
- * once wired, INSN_PATCH the jal targets to match expected/.o (which is
- * INCLUDE_ASM-derived). For gl_func_00000000 (callee=0), the resolved
- * jal target is 0x0C000000 itself, so no patch needed for those.
+ * (Old recipe step: docs/POST_CC_RECIPES.md "INSN_PATCH the jal targets to
+ * match expected/.o". docs/POST_CC_RECIPES.md is DEPRECATED and INSN_PATCH
+ * was REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy. For gl_func_00000000
+ * (callee=0), the resolved jal target is 0x0C000000 itself so no patching
+ * would have been needed anyway.)
  *
  * Verified standalone at -O0 (2026-05-07):
  *   gl_func_00008944: 19 insns / 0x4C, byte-exact.

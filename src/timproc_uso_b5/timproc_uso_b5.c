@@ -2210,8 +2210,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // timproc_uso_b5_func_000073C0 — ramp-UP twin of 000072D0's leading
 // decoded body. It increments scr->0x480 toward scr->0x484, using the
 // fast step at 0xD4 when state 1 is active and the normal step at 0xEC
-// otherwise. Two add.s operand-order words are fixed in Makefile
-// INSN_PATCH/NON_MATCHING_INSN_PATCH.
+// otherwise. Two add.s operand-order words were previously fixed in
+// Makefile INSN_PATCH/NON_MATCHING_INSN_PATCH; INSN_PATCH REMOVED
+// 2026-05-23 as match-faking per
+// feedback_no_instruction_forcing_matches_policy — CAP: add.s
+// operand-order stays NM.
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_000073C0(char *scr) {
     float cur = *(float *)(scr + 0x480);
