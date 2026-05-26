@@ -9710,10 +9710,12 @@ void gl_func_0002DEA4(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DEA4);
 #endif
 
-/* gl_func_0002DED0: single-call wrapper. The 3 trailing insns
- * (sll/addu/addiu @0x2DEF4-0x2DEFC) are dead-code alt-entry shared with
- * the next function (gl_func_0002DF00); appended via SUFFIX_BYTES recipe
- * to bridge the C-emit/expected size mismatch. */
+/* gl_func_0002DED0: single-call wrapper (0x24). LANDED fuzzy=100. The 3
+ * trailing insns (sll/addu/addiu @0x2DEF4-0x2DEFC) are dead-code alt-entry
+ * shared with the next function (gl_func_0002DF00); historically appended
+ * via SUFFIX_BYTES recipe to bridge the C-emit/expected size mismatch.
+ * Mechanism REMOVED 2026-05-23 as match-faking; alt-entry now belongs to
+ * separate symbols. */
 void gl_func_0002DED0(void) {
     gl_func_00000000((void*)0x82000000, 0);
 }
