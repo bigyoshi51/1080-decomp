@@ -6042,6 +6042,11 @@ int game_libs_func_00027300(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027300);
 #endif
 
+/* game_libs_func_00027348: 3-insn `addiu v0,zero,-1; jr ra; nop` return-(-1)
+ * stub (size 0xC, unfilled-delay form). IDO -O2 emits `return -1` as
+ * `jr ra; addiu v0,zero,-1` (size 0x8). The 0xC form needs per-file
+ * -g3/-O0 split per feedback_unfilled_delay_int_reader_needs_o0_split.
+ * Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027348);
 
 signed char game_libs_func_00027354(int a0, int a1) {
