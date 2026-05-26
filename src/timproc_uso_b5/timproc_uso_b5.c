@@ -4780,10 +4780,10 @@ void timproc_uso_b5_func_0000CE5C(int *a0, int a1) {
     *(int*)((char*)a0[0x2B8/4] + 0x138) = 0;
 }
 
-/* 4-float load-batched store + jal. Was 97.2% NM (8-insn float
- * register-renumbering cap). Promoted via INSN_PATCH per
- * feedback_insn_patch_for_ido_codegen_caps.md (and SUFFIX_BYTES for
- * trailing prologue-stolen-PREDECESSOR pattern). */
+/* 4-float load-batched store + jal. NATURAL CEILING: 97.5% NM (8-insn
+ * float register-renumbering cap). The historical INSN_PATCH (operand
+ * cap) + SUFFIX_BYTES (trailing prologue-stolen-PREDECESSOR pattern)
+ * promotion was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CE6C(char *a0) {
     char *v;
