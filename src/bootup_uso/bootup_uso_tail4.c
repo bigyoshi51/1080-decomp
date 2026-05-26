@@ -113,26 +113,6 @@ int func_00013980(float *a0) {
 
 /* func_000139B0 - verified structural decode (0x170, 92 insns,
  * 2D grid reset + random scatter).
- *   void func_000139B0(St *s1, int a1, int a2) {
- *       s1->0x68 = a2;
- *       if (a2 == 0) { s1->0x6C = 1; s1->0x70 = 3; }
- *       else         { s1->0x6C = 0; }
- *       if (a1 == s1->0x40) return;
- *       s1->0x40 = a1;
- *       s1->0x44 = 4;
- *       s1->0x74 = 0;
- *       for (r = 0; r < s1->0x60; r++)            // clear grid
- *           for (c = 0; c < s1->0x5C; c++)
- *               ((f32*)s1->0x58)[c] = 0.0f;
- *       for (k = 0; k < 5; k++) {                 // scatter 5 pts
- *           x = (int)(rand01() * 32.0f);
- *           y = (int)(rand01() * 32.0f);
- *           v =       rand01() * D_00000C64;
- *           *(f32*)((char*)s1->0x58 + x*4 + (y << 7)) = v;
- *       }
- *       func_00000000(s1);                        // finalize
- *       s1->0x48 = 0.0f;
- *   }
  * (rand01 = func_00000000() with no args -> f0, a 0..1 RNG.)
  * Struct-typing reference: s1->0x58 (88) = base ptr of a 2D f32
  * grid, s1->0x5C (92) s32 columns, s1->0x60 (96) s32 rows (row
@@ -145,10 +125,44 @@ int func_00013980(float *a0) {
  * scattered amplitude. Looks like a randomized snow/terrain
  * height-field seed. Caps <80: FP-heavy mul.s/trunc.w.s +
  * f20/f22/f24 sdc1/ldc1 double-saves + D_00000C64 reloc + 3x
- * func_00000000 RNG calls + nested clear loop + bnel
- * branch-likely. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * RNG calls + nested clear loop + bnel branch-likely.
+ * INCLUDE_ASM remains build path. */
+extern float D_00000C64;
+#ifdef NON_MATCHING
+void func_000139B0(char *s1, int a1, int a2) {
+    int r, c, k;
+    int x, y;
+    float v;
+    float *grid;
+    *(int*)(s1 + 0x68) = a2;
+    if (a2 == 0) {
+        *(int*)(s1 + 0x6C) = 1;
+        *(int*)(s1 + 0x70) = 3;
+    } else {
+        *(int*)(s1 + 0x6C) = 0;
+    }
+    if (a1 == *(int*)(s1 + 0x40)) return;
+    *(int*)(s1 + 0x40) = a1;
+    *(int*)(s1 + 0x44) = 4;
+    *(int*)(s1 + 0x74) = 0;
+    grid = *(float**)(s1 + 0x58);
+    for (r = 0; r < *(int*)(s1 + 0x60); r++) {
+        for (c = 0; c < *(int*)(s1 + 0x5C); c++) {
+            grid[c] = 0.0f;
+        }
+    }
+    for (k = 0; k < 5; k++) {
+        x = (int)((float)func_00000000() * 32.0f);
+        y = (int)((float)func_00000000() * 32.0f);
+        v = (float)func_00000000() * D_00000C64;
+        *(float*)((char*)*(int*)(s1 + 0x58) + x * 4 + (y << 7)) = v;
+    }
+    func_00000000(s1);
+    *(float*)(s1 + 0x48) = 0.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000139B0);
+#endif
 
 /* func_00013B20 - verified structural decode (0x144, 84 insns,
  * LUT index->value remap with all-ones fallback).
