@@ -3294,8 +3294,11 @@ void timproc_uso_b5_func_00008D90(int *a0, int a1) {
 //     dispatcher (alloc / factory / attach). Param triples (mode,
 //     a, b) like (0,1,1,0x3C), (0,1,2,0x29), and (0,2,3,0x29)
 //     pick element kinds.
-// Exact via unique D_8DB4_* aliases to break IDO &D CSE plus a scoped
-// INSN_PATCH for frame/reloc/register residuals.
+// NATURAL CEILING: high-NM via the unique D_8DB4_* aliases that break
+// IDO &D CSE. The frame/reloc/register residuals were previously
+// documented as a scoped INSN_PATCH — INSN_PATCH REMOVED 2026-05-23 as
+// match-faking (per feedback_no_instruction_forcing_matches_policy).
+// Default build is INCLUDE_ASM.
 #ifdef NON_MATCHING
 char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
     extern char D_8DB4_0134_a;
