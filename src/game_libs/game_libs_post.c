@@ -38665,6 +38665,12 @@ int game_libs_func_0006F1B0(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F1D8);
 
+/* game_libs_func_0006F1FC: 7-insn string-walk loop-bottom tail-fragment:
+ *   lbu v1,1(a0); addiu a0,a0,1; bne v0,v1,-0x1C; nop; move v0,a0;
+ *   jr ra; nop
+ * Caller-set $v0 + backward branch to 0x6F1EC (before .s start 0x6F1FC).
+ * Splat captured loop tail per
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F1FC);
 
 #ifdef NON_MATCHING
