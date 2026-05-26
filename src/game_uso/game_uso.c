@@ -11741,12 +11741,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001001C);
 #endif
 
 /* game_uso_func_00010068: 48-insn (0xC0) 6-call dispatcher.
- * Promoted from 79.13% NM-wrap to byte-exact via the family-cap recipe
- * (10E2C/10B38/F49C/FB04/FB7C/116D4). C body unchanged; INSN_PATCH 31
- * insns at 0x34..0xAC reshapes the post-1st-call tail with cross-USO
- * varargs spills + s0 epilogue restoration; SUFFIX_BYTES_FORCE 16 bytes
- * for the trailing 4-insn lw-s0/addiu-sp/jr-ra/nop epilogue.
- * 8th sibling, larger patch surface due to the 6-call body. */
+ * NATURAL CEILING: 79.13% NM. 8th sibling of the
+ * 10E2C/10B38/F49C/FB04/FB7C/116D4 family-cap shape with a larger
+ * surface due to the 6-call body: post-1st-call tail needs cross-USO
+ * varargs spills + s0 epilogue restoration; trailing 4-insn lw-s0/
+ * addiu-sp/jr-ra/nop epilogue. Was previously promoted via 31-insn
+ * INSN_PATCH + 16-byte SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23
+ * as match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 #if 0  /* original wrap doc preserved below */
 /* game_uso_func_00010068: 48-insn (0xC0) 6-call dispatcher.
  *
