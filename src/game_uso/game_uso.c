@@ -12707,8 +12707,9 @@ void game_uso_func_00011428(int *a0) {
 
 /* game_uso_func_00011460: 39-insn — a1 = ((u)a0->0xB4->0x8C4 % 5)+10 | 0x70000;
  * then 3 USO calls with D[] arg-pairs (same family as game_uso_func_0000EE84).
- * Promoted via SUFFIX_BYTES_FORCE + INSN_PATCH to restore target's
- * base-register form and caller-slot spills around the two D-pair calls. */
+ * NATURAL CEILING: 83.18% NM. Cap: target uses base-register form for the
+ * D-pair calls + caller-slot spills around them. SUFFIX_BYTES_FORCE +
+ * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 void game_uso_func_00011460(int *a0) {
     int *p = (int *)a0[0xB4 / 4];
