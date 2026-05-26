@@ -2206,10 +2206,13 @@ void gl_func_0000E1DC(int *a0, int a1, int a2) {
  *     func(a0, *(int*)((char*)a0->[0x44] + off), 1, 0);
  *   }
  *
- * Promoted from 98.45% NM wrap to EXACT via 8-insn INSN_PATCH that
- * overwrites the s1/s2 register-swap diff (IDO picks $s2=a0/$s1=offset;
- * target picks $s1=a0/$s2=offset). Pure register rename, same family
- * as gl_func_0004ED0C / gl_func_00035834. */
+ * NATURAL CEILING: 98.45% NM. The 8-insn diff is a pure s1/s2 register-
+ * swap (IDO picks $s2=a0/$s1=offset; target picks $s1=a0/$s2=offset) —
+ * same family as gl_func_0004ED0C / gl_func_00035834. Was previously
+ * documented as INSN_PATCH-promotable to EXACT; INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void gl_func_0000E230(int *a0) {
