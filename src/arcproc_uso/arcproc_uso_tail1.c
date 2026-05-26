@@ -323,16 +323,16 @@ void arcproc_uso_func_00000E58(char *a0) {
     arcproc_uso_func_00000000(a0 + 0x764);
 }
 
-/* arcproc_uso_func_00000EBC: F1 (11-insn bit-test wrapper) + F2..F6
- * splat-bundled sub-functions + 2-word stolen-prologue tail for F50.
+/* arcproc_uso_func_00000EBC: F1 (11-insn bit-test wrapper) ONLY.
  *
- * 2026-05-07: promoted via SUFFIX_BYTES recipe (25 words / 0x64 bytes
- * absorbing F2..F6 + trailing stolen prologue) — same family as
- * gl_func_000070A0 (matched 2026-05-07).
+ * The 2026-05-07 "SUFFIX_BYTES recipe" (25 words / 0x64 bytes absorbing
+ * F2..F6 + stolen prologue) was REMOVED 2026-05-23 as instruction-byte
+ * match-faking (see feedback_no_instruction_forcing_matches_policy).
+ * Current state: this symbol is 0x30 / 12 insns (F1 only); F2..F6 are
+ * tracked as separate symbols (split via scripts/split-fragments.py).
+ * Function lands at fuzzy=100 naturally — no recipe needed.
  *
- * SUPERSEDED — original "splitting risks" doc preserved below for
- * context. The recipe absorbs F2..F6 as raw post-cc bytes rather than
- * splitting the symbol.
+ * F2..F6 historical sub-function decode preserved below for reference.
  *
  * ORIGINAL DOC:
  * 6-FUNCTION BUNDLE (0x94 / 37 insns).
