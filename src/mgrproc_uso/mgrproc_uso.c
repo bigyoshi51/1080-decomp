@@ -151,6 +151,10 @@ void mgrproc_uso_func_000000F8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F8);
 #endif
 
+/* 99.29% NM (1-insn diff: bne offset). Target's `bne +4` branches past
+ * function end (into successor's first insn) — cross-function shared-
+ * epilogue tail-merge per feedback_leaf_branch_past_end_is_cross_fn_epilogue.
+ * Unmatchable standalone; the offset is set by the LINKER, not C. CAP. */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00000140(int *a0) {
     if (a0[1] == a0[2]) {
