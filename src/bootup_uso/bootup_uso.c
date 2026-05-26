@@ -2182,30 +2182,31 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
 #endif
 
 /* func_000053E8 - verified structural decode (0xB8, 46 insns).
- * NEAR-SIBLING of the func_00005124/51D4/5284/5334 alloc-cascade-
- * ctor + defensive-dead-check family (see func_00005124 for the
- * full body). Variant: object 0x50 (like func_00005334), init
- * datum D_00007DFC, 0xB8 (one extra descriptor store vs 5334's
- * 0xB4; uses t2 reg where 5124 uses t1). Same shape:
- *   void *func_000053E8(void *arg) {
- *       sub_init(&D_00007DFC);
- *       obj = alloc(0x50);
- *       if (obj == 0) return 0;
- *       if (obj != 0) goto have_obj;             // dead 0x48-alloc arm
- *       ...defensive-dead-check (unreachable)...
- *   have_obj:
- *       *(void**)((char*)sub + 0x28) = &D_x;
- *       obj->0x28 = &D_y;  obj->0x48 = &D_z;
- *       return obj;
- *   }
+ * NEAR-SIBLING of the func_00005124/51D4/5284/5334 alloc-cascade-ctor
+ * family. Variant: object 0x50 (like func_00005334), init datum
+ * D_00007DFC, 0xB8 (one extra descriptor store vs 5334's 0xB4; uses
+ * t2 reg where 5124 uses t1).
  * Struct-typing reference: object = 0x50 bytes; obj->0x28 (40) /
- * obj->0x48 (72) descriptor ptrs (&D runtime-patched), arg passed
- * through (sp+0x2C/0x1C/0x4); D_00007DFC = named init datum (family
- * data run D_00007DB4/DC4/DD4/DE8/DFC). Caps <80: alloc-cascade +
- * defensive-dead-check + 3-4 func_00000000 reloc + &D-store reloc.
- * Full body INCLUDE_ASM-preserved (.s = source of truth).
- * INCLUDE_ASM (no episode; tautology-trap rule). */
+ * obj->0x48 (72) descriptor ptrs (&D runtime-patched); D_00007DFC =
+ * named init datum (family data run D_00007DB4/DC4/DD4/DE8/DFC).
+ * Caps <80: alloc-cascade + defensive-dead-check + 3-4 reloc calls +
+ * &D-store reloc. INCLUDE_ASM remains build path. NM body captures
+ * live behavior only — dead-arm artifacts not recreated. */
+extern char D_00007DFC;
+#ifdef NON_MATCHING
+void *func_000053E8(void *arg) {
+    char *obj;
+    func_00000000(&D_00007DFC);
+    obj = (char*)func_00000000(0x50);
+    if (obj == 0) return 0;
+    *(void**)(obj + 0x28) = &D_00000000;
+    *(void**)(obj + 0x48) = &D_00000000;
+    (void)arg;
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
+#endif
 
 /* func_000054A0: 14-insn 2-call wrapper. Sibling of func_00005068 (same
  * recipe). The third `a0` arg in `func_00000000(0, a0, a0)` forces IDO
