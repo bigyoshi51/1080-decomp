@@ -1439,24 +1439,6 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001CF4);
  * and threads an extra arg `a1` via the sp+0x10 stack-arg slot.
  * Clean prologue here (NO leaked-predecessor-word artifact, unlike
  * func_80001CF4).
- *   s32 func_80001DD0(St *s, int a1) {
- *       if (s->0x54 != 0) {
- *           if (func_80001CF0(s->0x54, s->0x48, s->0x10, a1) != 0)
- *               return -0xE;
- *           func_80000518(s->0x54, s->0x1C);
- *       }
- *       if (s->0x50 != 0) {
- *           if (func_80001CF0(s->0x50, s->0x44, s->0xC, a1) != 0)
- *               return -0xF;
- *           func_80000518(s->0x50, s->0x18);
- *       }
- *       if (s->0x4C != 0) {
- *           if (func_80001CF0(s->0x4C, s->0x40, s->0x8, a1) != 0)
- *               return -0x10;
- *           func_80000518(s->0x4C, s->0x14);
- *       }
- *       return 0;
- *   }
  * Struct-typing reference: identical 3-slot layout to func_80001CF4
  * - slot i in {0,1,2}: handle s->{0x54,0x50,0x4C} (84/80/76),
  * paramA s->{0x48,0x44,0x40} (72/68/64), paramB s->{0x10,0xC,0x8}
@@ -1466,9 +1448,30 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001CF4);
  * commits. func_80001CF0 here vs func_80001EDC in CF4 = the
  * with-extra-arg variant of the same init helper. Caps <80: beql
  * branch-likely chain + 2 callees + sp+0x10 stack-arg passing.
- * Full body INCLUDE_ASM-preserved (.s = source of truth).
- * INCLUDE_ASM (no episode; tautology-trap rule). */
+ * INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+extern int func_80001CF0(int handle, int paramA, int paramB, int a1);
+s32 func_80001DD0(char *s, int a1) {
+    if (*(int*)(s + 0x54) != 0) {
+        if (func_80001CF0(*(int*)(s + 0x54), *(int*)(s + 0x48), *(int*)(s + 0x10), a1) != 0)
+            return -0xE;
+        func_80000518(*(int*)(s + 0x54), *(int*)(s + 0x1C));
+    }
+    if (*(int*)(s + 0x50) != 0) {
+        if (func_80001CF0(*(int*)(s + 0x50), *(int*)(s + 0x44), *(int*)(s + 0xC), a1) != 0)
+            return -0xF;
+        func_80000518(*(int*)(s + 0x50), *(int*)(s + 0x18));
+    }
+    if (*(int*)(s + 0x4C) != 0) {
+        if (func_80001CF0(*(int*)(s + 0x4C), *(int*)(s + 0x40), *(int*)(s + 0x8), a1) != 0)
+            return -0x10;
+        func_80000518(*(int*)(s + 0x4C), *(int*)(s + 0x14));
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001DD0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
 
