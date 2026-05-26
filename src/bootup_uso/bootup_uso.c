@@ -2991,9 +2991,12 @@ void func_00007BC8(char *a0) {
     func_00000000(a0);
 }
 
-/* Same dispatcher template as game_uso_func_0000BFDC. The C body is
- * structurally correct; Makefile INSN_PATCH/SUFFIX_BYTES_FORCE closes the
- * fixed branch-likely and register-allocation deltas. */
+/* Same dispatcher template as game_uso_func_0000BFDC. NATURAL CEILING:
+ * the C body is structurally correct; the fixed branch-likely and
+ * register-allocation deltas were previously closed via Makefile
+ * INSN_PATCH/SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23 as match-faking
+ * (per feedback_no_instruction_forcing_matches_policy). Default build
+ * is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int func_00007BF4(char *a0) {
     short *pair = (short*)(a0 + 8);
