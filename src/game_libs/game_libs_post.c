@@ -9351,11 +9351,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D7D0);
 #endif
 
 /* gl_func_0002D838: 12-insn prologue-stolen-successor (sibling of 0002D8A8,
- * 0002D870). Predecessor's tail (`lui $t6, 0; lw $t6, 0(t6)`) loads
- * $t6=*(int*)D_2D838_X; this function uses $t6 as an array index into
- * D_2D838_Y. C body emits the lui+lw pair which PROLOGUE_STEALS=8 splices
- * off. Trailing 2 words are stolen-prologue for successor 0002D870 — added
- * via SUFFIX_BYTES (`lui t6, 0; lw t6, 0(t6)`).
+ * 0002D870). NATURAL CEILING: 83.33% NM. Predecessor's tail
+ * (`lui $t6,0; lw $t6,0(t6)`) loads $t6=*(int*)D_2D838_X; this function
+ * uses $t6 as an array index into D_2D838_Y. C body emits the lui+lw pair
+ * which the historical PROLOGUE_STEALS=8 spliced off; trailing 2 words
+ * were stolen-prologue for successor 0002D870 added via SUFFIX_BYTES.
+ * Both mechanisms REMOVED 2026-05-23 as match-faking.
  *
  * Calls gl_func_00000000(0x41030000, D_2D838_Y[D_2D838_X]) — passes float
  * bits 8.1875f as a0 and indexed table value as a1. */
