@@ -6107,6 +6107,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027438);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002745C);
 
+/* game_libs_func_00027488: 6-insn `lb v0,4(a1); lbu t1,4(a0);
+ * beq v0,t1,+0x2A; nop; jr ra; sb v0,4(a0)` byte-compare-then-copy.
+ * The bne offset +0x2A * 4 = +0xA8 branches PAST function end into the
+ * successor — cross-function shared-epilogue tail-merge per
+ * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offset,
+ * unmatchable standalone. CAP class. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027488);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274A0);
