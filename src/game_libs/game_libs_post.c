@@ -17979,12 +17979,15 @@ void game_libs_func_0003CB00(int *a0, int a1, int a2, short a3) {
 
 /* 16-insn indirect dispatcher. Sibling of gl_func_0000DE30/DE80/DED0
  * (same `*p->[0x2C](*p->[0x28]+0x28+(int)p, &local)` shape; this variant
- * reads `lw v1, 0(a0)` directly instead of vtable+96*idx). Frame -0x40
- * (target) vs IDO -O2's natural -0x28; promoted via 9-word INSN_PATCH
- * covering frame + stack offsets + reg-rename ($v1=p, $v0=q vs built's
- * $v0=p, $t7=q). Same lucky-coincidence mechanism as DE80 at offset 0x20:
- * the unchanged `lw t9, 0x2C(v0)` word's runtime semantics flip after
- * the patched 0x1C redefines $v0 from p (built) to q=p[0x28] (target). */
+ * reads `lw v1, 0(a0)` directly instead of vtable+96*idx). NATURAL CEILING:
+ * frame -0x40 (target) vs IDO -O2's natural -0x28 + reg-rename ($v1=p,
+ * $v0=q vs built's $v0=p, $t7=q). Was previously promoted via 9-word
+ * INSN_PATCH covering frame + stack offsets + reg-rename (with a "lucky-
+ * coincidence" mechanism — the unchanged `lw t9, 0x2C(v0)` runtime
+ * semantics flip after the patched 0x1C redefines $v0 from p to
+ * q=p[0x28]) — INSN_PATCH REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 /* Corrected data flow (sibling of the DE30 family, which DID land): the function
  * pointer is q[0x2C] where q = p[0x28] (NOT p[0x2C]); the short adj is
