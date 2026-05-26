@@ -36036,14 +36036,16 @@ void gl_func_00068524(int *a0, int a1) {
  * with 3 assertion-call sites. Sibling of matched gl_func_00068524
  * (constructor for the same table).
  *
- * Matched via INSN_PATCH for 8 stack-slot offset diffs (0x3C/0x40/0x78/
- * 0x7C/0x84/0x8C/0x90/0x98). The C body emits correct logic but IDO -O2
- * spills v1/a2/a3 at sp+0x18/0x1C/0x20 (bottom-up) while expected spills
- * at sp+0x1C/0x20/0x24 (slot 0x18 reserved-unused). Both have frame
- * size 0x30. Cap: "frame must be 0x30 AND slot 0x18 reserved" — mutually
- * exclusive at IDO -O2 because spill slots fill bottom-up within the
- * locals area. Verified C-unreachable across volatile-pad-first/last
- * variants and explicit-local insertions (all grow frame to 0x38). */
+ * NATURAL CEILING: 99.85% NM (8 stack-slot offset diffs at
+ * 0x3C/0x40/0x78/0x7C/0x84/0x8C/0x90/0x98). C body logic correct but
+ * IDO -O2 spills v1/a2/a3 at sp+0x18/0x1C/0x20 (bottom-up) while
+ * expected spills at sp+0x1C/0x20/0x24 (slot 0x18 reserved-unused).
+ * Both frames are 0x30. Cap: "frame must be 0x30 AND slot 0x18
+ * reserved" — mutually exclusive at IDO -O2 because spill slots fill
+ * bottom-up within the locals area. Verified C-unreachable across
+ * volatile-pad-first/last variants and explicit-local insertions (all
+ * grow frame to 0x38). The 8-diff INSN_PATCH was REMOVED 2026-05-23
+ * as match-faking. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void gl_func_000685C0(int *a0, unsigned int a1) {
