@@ -6142,7 +6142,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274C0);
 
 /* Single signed-byte copy a1[4] -> a0[3]. Reloc-free; IDO allocs the temp as
  * $t6 but target uses $t1 (register-renumber from original non-standalone
- * context) -> INSN_PATCH the 2 register fields. */
+ * context). CAP: register-renumber, stays NM (INSN_PATCH REMOVED 2026-05-23
+ * per feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_libs_func_000274E0(char *a0, char *a1) {
     a0[3] = a1[4];
@@ -6176,7 +6177,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027504);
 
 
 /* Single unsigned-byte copy a1[4] -> a0[0xF]. Reloc-free; temp $t6 (IDO) vs
- * $t7 (target) register-renumber -> INSN_PATCH 2 reg fields. */
+ * $t7 (target) register-renumber. CAP: stays NM (INSN_PATCH REMOVED
+ * 2026-05-23 per feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_libs_func_0002751C(unsigned char *a0, unsigned char *a1) {
     a0[0xF] = a1[4];
@@ -6186,7 +6188,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002751C);
 #endif
 
 /* Single halfword copy a1[2] -> a0[0x10]. Reloc-free; temp $t6 (IDO) vs $t9
- * (target) register-renumber -> INSN_PATCH 2 reg fields. */
+ * (target) register-renumber. CAP: stays NM (INSN_PATCH REMOVED 2026-05-23
+ * per feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_libs_func_00027528(unsigned short *a0, unsigned short *a1) {
     a0[0x10] = a1[2];
@@ -9199,10 +9202,11 @@ void gl_func_0002D6C8(int a0) {
  * luis at 0x4 and 0x8 to $at, breaking the second's value. Untrivial.
  * Defer to next pass; current wrap captures the structural fix.
  *
- * 2026-05-11: promoted with the measured C body plus INSN_PATCH. The C
- * body carries the semantics; the post-cc recipe removes the unused-$a1
- * spill/schedule artifact and restores the target's trailing successor
- * setup word. */
+ * 2026-05-11: was promoted with the measured C body plus INSN_PATCH
+ * (post-cc unused-$a1-spill rewrite + trailing successor setup word).
+ * INSN_PATCH REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — fn rolled back to
+ * NM-wrap. NATURAL CEILING: unused-arg-save residual stays NM. */
 extern int D_2D710_store;
 extern int D_2D710_load;
 #ifdef NON_MATCHING
@@ -9227,8 +9231,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
  * docs/IDO_CODEGEN.md feedback-ido-unused-arg-save). Same cap class
  * as sibling 0x2D710.
  *
- * 2026-05-11: promoted with the same measured INSN_PATCH class as sibling
- * gl_func_0002D710, changing only the call constant to 0x41000000. */
+ * 2026-05-11: was promoted with the same measured INSN_PATCH class as
+ * sibling gl_func_0002D710 (call constant 0x41000000). INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — fn rolled back to
+ * NM-wrap. NATURAL CEILING: unused-arg-save residual stays NM. */
 extern int D_2D74C_store;
 extern int D_2D74C_load;
 #ifdef NON_MATCHING
@@ -9279,9 +9286,12 @@ extern int D_2D788_b;
  * actual cap is the unused-arg-save not the &D shared-base — splitting
  * the externs solves the wrong problem here.
  *
- * 2026-05-11: promoted with the same measured INSN_PATCH family as
- * gl_func_0002D710/gl_func_0002D74C, plus SUFFIX_BYTES for the 3 words
- * after the C body's natural epilogue. */
+ * 2026-05-11: was promoted with the same measured INSN_PATCH family as
+ * gl_func_0002D710/gl_func_0002D74C, plus instruction-appending SUFFIX_BYTES
+ * for the 3 words after the C body's natural epilogue. Both INSN_PATCH and
+ * instruction-appending SUFFIX_BYTES REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy — fn rolled back to
+ * NM-wrap. NATURAL CEILING: unused-arg-save + alt-entry stay NM. */
 #ifdef NON_MATCHING
 void gl_func_0002D788(int a0, int unused_a1, int a2) {
     D_2D788_a = a0;
