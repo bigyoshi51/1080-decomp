@@ -21381,11 +21381,11 @@ int gl_func_00041258() {
     return gl_func_00000000();
 }
 
-/* 8-insn passthrough wrapper. Declared size 0x28 includes 2 trailing dead
- * insns (lui t6, 0x4; lw t6, 0xC160(t6)) — the stolen prologue setup for
- * the SUCCESSOR. Closed via SUFFIX_BYTES (per
- * feedback_prologue_stolen_predecessor_no_recipe.md): grows the symbol's
- * st_size by 8 bytes and appends the dead bytes at the new tail. */
+/* 8-insn passthrough wrapper (0x20). LANDED fuzzy=100. The historical
+ * SUFFIX_BYTES recipe (absorbing 2 trailing stolen-prologue insns for the
+ * SUCCESSOR — `lui t6,0x4; lw t6,0xC160(t6)`) was REMOVED 2026-05-23 as
+ * match-faking. Those insns belong to separate symbols now; the previously-
+ * documented 0x28 size is stale. */
 void gl_func_00041278(void) {
     gl_func_00000000();
 }
