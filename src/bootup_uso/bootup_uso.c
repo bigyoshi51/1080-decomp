@@ -5200,30 +5200,35 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E740);
 
 /* func_0000E800 - verified structural decode (0xBC, 47 insns,
  * config-parse + init routine).
- *   void func_0000E800(void) {
- *       reloc_init();                            // func_00000000()
- *       int x = 0, y = 0, z = 0;                 // sp+0x24/0x20/0x28
- *       parse(&D_a, &D_00008D34, &x);            // func_00000000
- *       parse(&D_b, &D_00008D48, &y);
- *       parse(&D_c, &D_00008D5C, &z);
- *       reloc_use(x, z, y);                      // (sp24, sp28, sp20)
- *       reloc_fn(&D_d);
- *       *(void**)(func_00000008 + 0x20) = &D_e;  // global register
- *       root = *(void**)&D_f;
- *       vt   = root->0x28;
- *       (*(fn)vt->0x5C)((s16)vt->0x58 + root);   // obj-0x28 dispatch
- *   }
  * Struct-typing reference: D_00008D34 / D_00008D48 / D_00008D5C =
  * three config-key data (string/descriptor) parsed by the reloc
  * helper into a (x,y,z) triple on the stack, then consumed in
- * (x,z,y) order. func_00000008+0x20 = global slot set to &D_e
+ * (x,z,y) order. func_00000008+0x20 = global slot set to &D
  * (registration). Tail uses the engine-wide obj-0x28 vtable-dispatch
- * idiom, 0x5C/0x58 variant (root *(&D_f) ->0x28 -> {fn@0x5C,
- * s16@0x58}). Caps <80: 7x func_00000000 reloc calls + 5x &D reloc
- * + func_00000008+0x20 cross-symbol data store + vtable jalr. Full
- * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
- * (no episode; tautology-trap rule). */
+ * idiom, 0x5C/0x58 variant (root *(&D) ->0x28 -> {fn@0x5C,
+ * s16@0x58}). Caps <80: 7x reloc + 5x &D reloc + func_00000008+0x20
+ * cross-symbol data store + vtable jalr.
+ * INCLUDE_ASM remains build path. */
+extern char D_00008D34, D_00008D48, D_00008D5C;
+#ifdef NON_MATCHING
+void func_0000E800(void) {
+    int x = 0, y = 0, z = 0;
+    char *root;
+    int *vt;
+    func_00000000();
+    func_00000000(&D_00000000, &D_00008D34, &x);
+    func_00000000(&D_00000000, &D_00008D48, &y);
+    func_00000000(&D_00000000, &D_00008D5C, &z);
+    func_00000000(x, z, y);
+    func_00000000(&D_00000000);
+    *(void**)((char*)&func_00000008 + 0x20) = &D_00000000;
+    root = *(char**)&D_00000000;
+    vt = *(int**)(root + 0x28);
+    (*(void (**)(char*))((char*)vt + 0x5C))((char*)((int)(short)*(short*)((char*)vt + 0x58) + (int)root));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E800);
+#endif
 
 void func_0000E8BC(int *dst) {
     int buf[2];
