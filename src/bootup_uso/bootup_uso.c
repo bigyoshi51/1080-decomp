@@ -1733,16 +1733,16 @@ extern char D_00000000;
 
 /* func_000046EC: 36-insn (0x90) entry-list constructor.
  *
- * Promoted 2026-05-14 from 89.31% NM to byte-exact via 22-entry INSN_PATCH
- * (same recipe family as the bootup_uso regalloc cluster 7C74/7B08/7204).
- * Size-preserving variant — function size unchanged (35 insns / 0x90 bytes
- * both ways) so no SUFFIX_BYTES needed.
- *
- * Cap structure: built frame 0x28, target 0x28 (already match thanks to
- * the `volatile int **vparg = (volatile int **)&arg0;` lever from
- * 2026-05-08). 22 byte-level register/operand diffs across offsets
- * 0x14..0x84 (built keeps node in $a2; target uses $a0/$v1 with extra
- * `or v1, a0, 0` save). Function shape matches target exactly post-patch. */
+ * NATURAL CEILING: 89.31% NM (size-preserving — 35 insns / 0x90 bytes both
+ * ways). The 22 byte-level register/operand diffs across 0x14..0x84 are
+ * the regalloc family cap (build keeps node in $a2; target uses $a0/$v1
+ * with extra `or v1, a0, 0` save), same cluster as 7C74/7B08/7204. Built
+ * frame 0x28 already matches target 0x28 thanks to the `volatile int **vparg
+ * = (volatile int **)&arg0;` lever from 2026-05-08. Was previously
+ * documented (2026-05-14) as promoted to byte-exact via 22-entry
+ * INSN_PATCH — INSN_PATCH REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void *func_000046EC(int *arg0) {
     volatile int **vparg = (volatile int **)&arg0;
