@@ -8863,10 +8863,12 @@ void gl_func_0002D064(char *a0) {
  *       s1 += 4;
  *   }
  *
- * Promoted from 90.74% NM wrap to EXACT via 16-insn INSN_PATCH for
- * prologue scheduler order + inner-loop register rename (built uses
- * \$a0/\$v1 counter+ptr; target uses \$v1/\$v0). 13th INSN_PATCH-
- * promotion this session. */
+ * NATURAL CEILING: 90.74% NM. The 16-insn diff covers prologue scheduler
+ * order + inner-loop register rename (build uses $a0/$v1 counter+ptr;
+ * target uses $v1/$v0). Was previously documented as INSN_PATCH-promoted
+ * to EXACT; INSN_PATCH REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void gl_func_0002D130(int a0) {
     char *base = &D_00000000;
