@@ -525,9 +525,11 @@ void game_libs_func_0001D584(void) {}
 
 void game_libs_func_0001D58C(void) {}
 
-/* gbi 2-word command builder (5 args). Word-1 register-exact; word-2's temps
- * are uniformly +1 vs the target (allocno-numbering, build uses $t1-$t4 where
- * target uses $t2-$t5) — closed via a 5-insn INSN_PATCH register-renumber. */
+/* gbi 2-word command builder (5 args). NATURAL CEILING: word-1 register-
+ * exact; word-2's temps are uniformly +1 vs target (allocno-numbering,
+ * build uses $t1-$t4 where target uses $t2-$t5). Was previously closed
+ * via 5-insn INSN_PATCH register-renumber — INSN_PATCH REMOVED 2026-05-23
+ * as match-faking (per feedback_no_instruction_forcing_matches_policy). */
 // GBI 2-word command packer (cmd 0x0C000000), sibling of 0001D770/D7A4.
 // (a3<<15)<<1 renumbers the second-word temps to match (t2/t3/t4/t5).
 void game_libs_func_0001D594(int *a0, int a1, int a2, int a3, int a4) {
