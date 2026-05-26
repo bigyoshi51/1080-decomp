@@ -911,10 +911,12 @@ int gl_func_0000B290(int *a0) {
  *   }
  *   return count;
  *
- * Promoted from 92.93% NM wrap to EXACT via 14-insn INSN_PATCH for
- * IDO scheduler's "or v0, s2, 0" insertion into bnel/beq delay slots
- * (not naturally reachable from C with return-at-end). 9th in the
- * INSN_PATCH-promotion family. */
+ * NATURAL CEILING: 92.93% NM. The 14-insn diff is IDO scheduler's
+ * `or v0, s2, 0` insertion into bnel/beq delay slots — not naturally
+ * reachable from C with return-at-end. Was previously documented as
+ * INSN_PATCH-promotable to EXACT; INSN_PATCH REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 int gl_func_0000B310(int *a0, int *a1) {
