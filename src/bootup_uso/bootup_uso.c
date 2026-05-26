@@ -302,13 +302,14 @@ void func_00000A94(int *a0, int a1) {
     a0[2] = a1;
 }
 
-/* IDO -O2 register-pick cap (was 97.8% NM) — IDO emits `addiu v0,zero,8` in
- * the 'n' case's delay slot; target uses `addiu v1,zero,8` then `or v0,v1,zero`
- * at the shared return. Pure regalloc swap with the value flowing to the
- * return register. 5+ variants tried (named local, register hint, volatile,
- * goto-split, ||-fusion) — IDO's allocator always picks $v0 when the value
- * flows to v0 directly. Bridged to byte-correct via INSN_PATCH on 2 fixed
- * offsets (0x30 + 0x74). */
+/* NATURAL CEILING: 97.83% NM (register-pick cap). IDO emits
+ * `addiu v0,zero,8` in the 'n' case's delay slot; target uses
+ * `addiu v1,zero,8` then `or v0,v1,zero` at the shared return — pure
+ * regalloc swap with the value flowing to the return register. 5+
+ * variants tried (named local, register hint, volatile, goto-split,
+ * ||-fusion); IDO's allocator always picks $v0 when the value flows to
+ * v0 directly. The previous INSN_PATCH bridge (2 fixed offsets 0x30 +
+ * 0x74) was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 int func_00000A9C(int a0, int a1) {
     if (a1 == 0)   goto L_AE4;
