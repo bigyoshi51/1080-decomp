@@ -12620,9 +12620,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
  *   a0->[0xB4]->[0xA58] &= ~0x800;   // bit-clear (probably an
  *                                       SP/RSP status mask)
  *
- * Exact via SUFFIX_BYTES + INSN_PATCH: C emits the right control flow; the
- * patch rewrites the D-base load, caller-slot spills, bit-clear address form,
- * and epilogue placement to the USO byte pattern. */
+ * NATURAL CEILING: 89.26% NM. C emits the right control flow but IDO's
+ * D-base load shape + caller-slot spills + bit-clear address form + epilogue
+ * placement diverge from the USO byte pattern. The historical SUFFIX_BYTES +
+ * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void game_uso_func_00011258(int *a0) {
@@ -12645,8 +12646,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
 
 /* game_uso_func_000112E0: 34-insn sibling of game_uso_func_00011258.
  * Byte-identical to 11258 except the first-call magic constant
- * 0x70009 -> 0x70008. Uses the same SUFFIX_BYTES_FORCE + INSN_PATCH
- * promotion recipe as 11258. */
+ * 0x70009 -> 0x70008. NATURAL CEILING: 89.26% NM (same cap class as
+ * 11258). SUFFIX_BYTES_FORCE + INSN_PATCH recipe was REMOVED 2026-05-23. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void game_uso_func_000112E0(int *a0) {
