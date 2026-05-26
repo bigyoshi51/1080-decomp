@@ -170,8 +170,11 @@ void titproc_uso_func_000003D0(void) {
  * set low bit, a1 becomes the 1-based bit index; after the loop it calls
  * gl_func_00000000(8), treats f0 as the float return, and scales by a1 - 2.
  *
- * Exact via the `_f()` no-arg placeholder (direct jal, f0 return) plus
- * INSN_PATCH for the remaining frame-slot / scheduling codegen cap. */
+ * NATURAL CEILING via the `_f()` no-arg placeholder (direct jal, f0
+ * return). The remaining frame-slot / scheduling codegen cap was
+ * previously closed via INSN_PATCH — INSN_PATCH REMOVED 2026-05-23 as
+ * match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int titproc_uso_func_00000418(void) {
     extern float gl_func_00000000_f();
