@@ -12820,8 +12820,10 @@ void game_uso_func_00011564(int *a0) {
         p = (int*)a0[0xB4/4];
         p[0x960/4] = 0;
         table = &D_game_11564_table;
-        /* Duplicate args force the target-sized placeholder-call setup;
-         * INSN_PATCH rewrites this block to the caller-slot spill form. */
+        /* Duplicate args force the target-sized placeholder-call setup.
+         * INSN_PATCH that previously rewrote this block to caller-slot
+         * spill form was REMOVED 2026-05-23 (match-faking); the dup-arg
+         * shape stands as honest structural decode of the target call. */
         gl_func_00000000(a0, table[0], table[1], table[0], table[1]);
     } else {
         p = (int*)a0[0xB4/4];
