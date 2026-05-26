@@ -7507,6 +7507,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029D08);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029FDC);
 
+/* game_libs_func_00029FFC: 3-insn `mov.s f0, f2; jr ra; nop` float move.
+ * No prologue — $f2 is a caller-set float arg (calling convention is
+ * $f12/$f14, not $f2). IDO C can't emit functions taking $f2 as input.
+ * CAP class per feedback_caller_set_int_reg_cap_1080_game_libs (extends
+ * to floats). Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029FFC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00029B6C_pad.s")
 
