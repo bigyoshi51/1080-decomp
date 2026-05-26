@@ -12526,10 +12526,13 @@ void game_uso_func_00011024(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
 #endif
 
-/* Byte-identical sibling of game_uso_func_00011024 — same 32-insn dual-call
- * orchestrator pattern; only the D-offsets differ (0xF20/0xF24 vs 0xF48/0xF4C).
- * Same promotion recipe as 11024: SUFFIX_BYTES_FORCE restores target size,
- * and INSN_PATCH writes the verified caller-slot spill/register sequence. */
+/* NATURAL CEILING sibling of game_uso_func_00011024 — same 32-insn dual-
+ * call orchestrator pattern; only the D-offsets differ (0xF20/0xF24 vs
+ * 0xF48/0xF4C). Same family-cap shape (precall a1/a2 outgoing-slot spill +
+ * trailing epilogue bytes IDO 7.1 does not emit from C). Was previously
+ * promoted via SUFFIX_BYTES_FORCE + INSN_PATCH — both REMOVED 2026-05-23
+ * as match-faking (per feedback_no_instruction_forcing_matches_policy).
+ * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_000110A4(int *a0) {
     int *p_B4 = *(int **)((char*)a0 + 0xB4);
