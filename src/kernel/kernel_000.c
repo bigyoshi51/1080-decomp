@@ -550,10 +550,12 @@ s32 func_8000058C(s32 arg0) {
  * (CRT/libc-style) where the dead ARGV-passthrough ors are remnants of
  * an inline-tail-call ABI dance. Stays NM.
  *
- * 2026-05-17: exact via PREFIX_BYTES + INSN_PATCH + SUFFIX_BYTES_FORCE.
- * The inserted/patched words are all non-relocated register moves/loop
- * instructions, so the earlier "prefix can't carry reloc-pending operands"
- * blocker does not apply to this byte-copy helper. */
+ * 2026-05-17: was previously promoted to exact via PREFIX_BYTES +
+ * INSN_PATCH + SUFFIX_BYTES_FORCE — all three instruction-injecting
+ * mechanisms REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy; only genuine all-zero
+ * SUFFIX_BYTES, USO-header PREFIX_BYTES, and TRUNCATE_TEXT remain).
+ * Reverted to "stays NM" — default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void func_80000598(u8* src, u8* dst, s32 count) {
     register u8* sp;
