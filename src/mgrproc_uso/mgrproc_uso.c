@@ -958,16 +958,18 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F
  *   p = a0[0x48/4]; idx = p[0x7C/4];
  *   ((void(*)())p[idx*0xA + 0x24])();
  *
- * Exact match via two recipes:
+ * NATURAL CEILING: high-NM via recipe (1) only:
  * 1. feedback-ido-cse-bust-via-distinct-externs (docs/IDO_CODEGEN.md):
  *    D_mgr_1594_a + D_mgr_1594_c are distinct externs both aliased to
  *    0x00000000 in undefined_syms_auto.txt. The split forces IDO to
  *    emit 2 separate `lui rN, 0` instead of caching `&D` across both
  *    use sites — matches target's no-cache pattern.
- * 2. INSN_PATCH for 14 register-renamed insns at 0x28-0x68 (the post-jal
- *    multu chain). IDO -O2 prefers $a2/$v1/{t6..t8} for the constant-40
- *    + idx-load + multu chain; target uses $v1/{t6..t9}. INSN_PATCH
- *    overwrites those bytes with target's encoding. */
+ * 2. The 14-insn register-rename at 0x28-0x68 (the post-jal multu chain
+ *    — IDO -O2 prefers $a2/$v1/{t6..t8}; target uses $v1/{t6..t9}) was
+ *    previously documented as INSN_PATCH-promotable; INSN_PATCH REMOVED
+ *    2026-05-23 as match-faking (per
+ *    feedback_no_instruction_forcing_matches_policy). Default build is
+ *    INCLUDE_ASM. */
 extern int gl_func_00000000();
 extern int D_mgr_1594_a, D_mgr_1594_c;
 #ifdef NON_MATCHING
