@@ -8870,31 +8870,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
  * precision easing/animation update; ldc1/c.lt.d/div.d/mul.d + bc1tl/bc1fl
  * branch-likely + 4 calls = documented heavy-double-FPU sub-80 ceiling →
  * INCLUDE_ASM build path; struct-typing reference).
- *   s1 = &D_00000000;
- *   if ((double)*(float*)(s1+0x2A0) > *(double*)(&D+0x120)) return;
- *   sp.vec = {s0->0xA0, s0->0xA4, s0->0xA8};
- *   if (gl_func_00000000(*(int*)(s1+0x254), &sp.vec, 1, 0) == 0) return;
- *   s0->0xD0 = (int)trunc(sp.vec[0]);  s0->0xD4 = (int)trunc(sp.vec[1]);
- *   gl_func_00000000(s1, s0+0xDC);
- *   s0->0xD8 = *(int*)(s1+0x254);
- *   s0->0xC8 = s0->0xCC;
- *   if (*(double*)(&D+0x128) < (double)*(float*)(s1+0x2A0)) {
- *     d = ((double)*(float*)(s1+0x2A0) - *(double*)(&D+0x128))
- *           / *(double*)(&D+0x130);
- *     s0->0xC8 = (float)((double)s0->0xC8 * (0.0 - d));   // 1.0 const loaded, unused-here
- *   }
- *   if (*(double*)(&D+0x138) < (double)s0->0xC8) return;
- *   gl_func_00000000(s0);
- *   { int *v0 = &D + 0xA0; v0->0x30=s0->0xA0; v0->0x34=s0->0xA4;
- *     v0->0x38=s0->0xA8; }
- *   r = s0->0x134 * s0->0xC8;
- *   gl_func_00000000(s1, s0+0x164);
- *   t2 = s0->0xC4;
- *   *(short*)(t2+0xC0) = s0->0x14C;
- *   *(float*)(s0->0xC4 + 0xB0) = r;  *(float*)(s0->0xC4 + 0xB4) = r;
- *   v1 = s0->0xC4; vt = (int*)v1->0x28;
- *   (*(fn)vt->0x1C)( (short)vt->0x18 + (int)v1 );   // SAME vtable idiom as
- *                                                   // timproc_uso_b1_2A8C
  * Struct-typing: s0->0xA0/0xA4/0xA8 source vec3 (float), s0->0xC8 eased
  * progress, 0xCC its reset value, 0xD0/0xD4 int-trunc'd vec, 0xD8 handle,
  * 0xC4 child obj (vtable @+0x28→{fn@0x1C, short@0x18}; +0xB0/0xB4 float
@@ -8902,8 +8877,48 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
  * global ctx: +0x2A0 float timer, +0x254 handle. D-double consts @0x120/
  * 0x128/0x130/0x138 (thresholds + ease divisor). Caps <80: double-prec
  * FPU chain + bc1tl/bc1fl branch-likely + &D %hi/%lo reloc + 4-call
- * spill. INCLUDE_ASM is the correct build path (no episode; tautology). */
+ * spill. INCLUDE_ASM remains build path (no episode; tautology). */
+#ifdef NON_MATCHING
+void game_uso_func_0000B274(char *s0) {
+    char *s1 = (char*)&D_00000000;
+    float vec[3];
+    float r;
+    char *t2;
+    char *v1;
+    int *vt;
+    if ((double)*(float*)(s1 + 0x2A0) > *(double*)(s1 + 0x120)) return;
+    vec[0] = *(float*)(s0 + 0xA0);
+    vec[1] = *(float*)(s0 + 0xA4);
+    vec[2] = *(float*)(s0 + 0xA8);
+    if (gl_func_00000000(*(int*)(s1 + 0x254), &vec[0], 1, 0) == 0) return;
+    *(int*)(s0 + 0xD0) = (int)vec[0];
+    *(int*)(s0 + 0xD4) = (int)vec[1];
+    gl_func_00000000(s1, s0 + 0xDC);
+    *(int*)(s0 + 0xD8) = *(int*)(s1 + 0x254);
+    *(float*)(s0 + 0xC8) = *(float*)(s0 + 0xCC);
+    if (*(double*)(s1 + 0x128) < (double)*(float*)(s1 + 0x2A0)) {
+        double d = ((double)*(float*)(s1 + 0x2A0) - *(double*)(s1 + 0x128))
+                   / *(double*)(s1 + 0x130);
+        *(float*)(s0 + 0xC8) = (float)((double)*(float*)(s0 + 0xC8) * (0.0 - d));
+    }
+    if (*(double*)(s1 + 0x138) < (double)*(float*)(s0 + 0xC8)) return;
+    gl_func_00000000(s0);
+    *(int*)(s1 + 0xA0 + 0x30) = *(int*)(s0 + 0xA0);
+    *(int*)(s1 + 0xA0 + 0x34) = *(int*)(s0 + 0xA4);
+    *(int*)(s1 + 0xA0 + 0x38) = *(int*)(s0 + 0xA8);
+    r = *(float*)(s0 + 0x134) * *(float*)(s0 + 0xC8);
+    gl_func_00000000(s1, s0 + 0x164);
+    t2 = *(char**)(s0 + 0xC4);
+    *(short*)(t2 + 0xC0) = *(short*)(s0 + 0x14C);
+    *(float*)(*(char**)(s0 + 0xC4) + 0xB0) = r;
+    *(float*)(*(char**)(s0 + 0xC4) + 0xB4) = r;
+    v1 = *(char**)(s0 + 0xC4);
+    vt = *(int**)(v1 + 0x28);
+    (*(void (**)(char*))((char*)vt + 0x1C))((char*)((int)(short)*(short*)((char*)vt + 0x18) + (int)v1));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
+#endif
 
 #ifdef NON_MATCHING
 /* 53.10% NM. 29-insn FPU helper. Init local Vec3 buffer at sp+0x24..0x2C with 3
