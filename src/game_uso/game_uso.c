@@ -1817,11 +1817,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
 #endif
 
 /* Mirror of game_uso_func_00001D30 (alloc(0x64) variant; dispatch table at
- * &D_0+0x360). 5-insn arg-spill scheduling permutation patched via INSN_PATCH
- * in Makefile (offsets 0x08/0x0C/0x10/0x14/0x1C) — IDO chooses to put
- * `or s0, a0, zero` in the bnez delay slot and spill a3 before bnez; expected
- * has the move first and a3 in the delay slot. Logic-identical, byte-correct
- * via post-cc patch. See docs/POST_CC_RECIPES.md#feedback-insn-patch-for-ido-codegen-caps. */
+ * &D_0+0x360). NATURAL CEILING: 92.97% NM (5-insn arg-spill scheduling cap).
+ * IDO chooses to put `or s0, a0, zero` in the bnez delay slot and spill a3
+ * before bnez; expected has the move first and a3 in the delay slot.
+ * Logic-identical but C-unreachable scheduling permutation. The historical
+ * INSN_PATCH at offsets 0x08/0x0C/0x10/0x14/0x1C was REMOVED 2026-05-23 as
+ * match-faking. */
 #ifdef NON_MATCHING
 char *game_uso_func_00002814(char *a0, int a1, int a2, int a3) {
     register char *p = a0;
