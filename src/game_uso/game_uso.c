@@ -12046,11 +12046,13 @@ void game_uso_func_0001056C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001056C);
 #endif
 
-/* 27-insn 3-call sibling of 10E2C/11368/FA54 family, with a 2-insn trailing
- * alt-entry stub (`lui at, 0x3F80; mtc1 at, $f4` — sets $f4 = 1.0f for the
- * next function to inherit). Promoted via SUFFIX_BYTES (4 words: jr ra +
- * nop + lui at + mtc1) + INSN_PATCH (13 insns at offsets 0x30-0x60 with
- * target's t8-base form and varargs spills a1@sp+0x4, a2@sp+0x8). */
+/* 27-insn 3-call sibling of 10E2C/11368/FA54 family. NATURAL CEILING:
+ * 88.78% NM. Cap shape: target's t8-base form for the D-table reload + 2
+ * varargs spills (a1@sp+0x4, a2@sp+0x8) around the second call, plus a
+ * 2-insn trailing alt-entry stub at offset 0x68 (lui at,0x3F80; mtc1 at,$f4
+ * — sets $f4 = 1.0f for next function to inherit). The 4-word SUFFIX_BYTES
+ * (jr ra + nop + lui + mtc1) + 13-insn INSN_PATCH at 0x30..0x60 promotion
+ * was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 void game_uso_func_000105DC(int *a0) {
     int v1, v2;
