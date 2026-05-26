@@ -2543,14 +2543,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000063B4);
 
 /* func_00006734 - verified structural decode (0xD4, 53 insns,
  * 4-entry registration/builder).
- *   void func_00006734(void *a0) {
- *       reg(&D_x, &D_00007EA4, 0);                // entry 0
- *       reg(&D_x, &D_00007EA8, a0+0xB8, 0, 0x7F, 1);
- *       reg(&D_x, &D_00007EAC, a0+0xC0, 0, 0x7F, 1);
- *       reg(&D_x, &D_00007EB0, a0+0xBC, 0, 0x59, 0);
- *       reloc_finalize(&D_y);                     // func_00000000
- *       reloc_finalize2(a0);                      // func_00000000
- *   }
  * (reg = func_00000000; the 5th/6th args are passed on the stack at
  * sp+0x10 / sp+0x14, the documented IDO stack-arg slots.)
  * Struct-typing reference: D_00007EA4/EA8/EAC/EB0 = four registration
@@ -2558,11 +2550,21 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000063B4);
  * a0->0xB8 (184), a0->0xC0 (192), a0->0xBC (188) respectively (entry
  * 0 binds no target). Per-entry trailing params: (a3=0, 0x7F, 1) for
  * EA8/EAC and (a3=0, 0x59, 0) for EB0 - look like {range/limit, flag}
- * pairs. Caps <80: 6x func_00000000 reloc calls + 4x &D reloc +
- * 5th/6th stack-arg passing (sp+0x10/0x14). Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule). */
+ * pairs. Caps <80: 6x reloc calls + 4x &D reloc + 5th/6th stack-arg
+ * passing (sp+0x10/0x14). INCLUDE_ASM remains build path. */
+extern char D_00007EA4, D_00007EA8, D_00007EAC, D_00007EB0;
+#ifdef NON_MATCHING
+void func_00006734(char *a0) {
+    func_00000000(&D_00000000, &D_00007EA4, 0);
+    func_00000000(&D_00000000, &D_00007EA8, a0 + 0xB8, 0, 0x7F, 1);
+    func_00000000(&D_00000000, &D_00007EAC, a0 + 0xC0, 0, 0x7F, 1);
+    func_00000000(&D_00000000, &D_00007EB0, a0 + 0xBC, 0, 0x59, 0);
+    func_00000000(&D_00000000);
+    func_00000000(a0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006734);
+#endif
 
 // func_00006808 — STRUCTURAL PASS (0x948 / 594 insns, no episode).
 // Large scene/screen constructor, bracketed by a global mode-flag
