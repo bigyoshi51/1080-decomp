@@ -6262,6 +6262,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276B8);
 
 int game_libs_func_000276D0(void) { return 0; }
 
+/* game_libs_func_000276D8: 3-insn `move v0,zero; jr ra; nop` return-0 stub
+ * (size 0xC, unfilled-delay form). Sibling of 000276D0 (filled-delay,
+ * size 0x8, already matched as `int f(void){return 0;}`). The 0xC form
+ * needs per-file -g3/-O0 split per
+ * feedback_unfilled_delay_int_reader_needs_o0_split. Default INCLUDE_ASM
+ * remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276D8);
 
 extern int gl_func_0003B1AC();
