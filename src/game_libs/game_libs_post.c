@@ -11411,6 +11411,11 @@ void game_libs_func_00031834(void) {}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003183C);
 
+/* game_libs_func_00031880: 6-insn tail-fragment of a do-while loop:
+ *   lw v0,0x44(a0); lw t5,0x40(a0); bnel v0,t5,-0x34; sll t7,v0,2; jr ra; nop
+ * Backward branch -0x34 targets before this .s start (0x31880) — splat
+ * boundary error, the actual function spans from earlier (where the
+ * loop top sits). CAP class — needs splat boundary correction. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031880);
 
 extern int gl_ref_00045DF0();
