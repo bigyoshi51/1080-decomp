@@ -12425,11 +12425,11 @@ void game_uso_func_00010F7C(int a0) {
 }
 
 /* 27-insn 2-call sibling of the 0x10E2C/11368/113C8 24-insn family.
- * Promoted via SUFFIX_BYTES_FORCE (8-byte epilogue extension, bypasses the
- * skip-path-2 false-positive on natural-epilogue C bodies — see
- * docs/POST_CC_RECIPES.md#feedback-suffix-skip-path-2-false-positive-on-natural-epilogue)
- * + INSN_PATCH (10 insns overwriting post-mid-body section with target's
- * t0-base form and varargs spills a1@sp+0x4, a2@sp+0x8 before the 2nd jal). */
+ * NATURAL CEILING: 82.15% NM. Cap: target uses t0-base form for the
+ * D-table reload + 2 varargs spills (a1@sp+0x4, a2@sp+0x8) before the
+ * 2nd jal. The historical 8-byte SUFFIX_BYTES_FORCE epilogue extension
+ * + 10-insn INSN_PATCH was REMOVED 2026-05-23 as match-faking;
+ * docs/POST_CC_RECIPES.md is DEPRECATED. */
 #ifdef NON_MATCHING
 void game_uso_func_00010FB8(int *a0) {
     int v1, v2;
