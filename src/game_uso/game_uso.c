@@ -10782,11 +10782,15 @@ void game_uso_func_0000EDCC(int *a0, int a1) {
  * else-if chain (20% match). WITHOUT v0=0 pre-init, IDO emits redundant
  * `or v0, zero, zero` in the default arm before/after the jump (70.95%).
  *
- * Exact via Makefile INSN_PATCH on the jumptable `lui/lw` pair: C emits a
- * local .rodata table at +0x4, while target raw-asm bytes address +0x224.
- * The same-word `lui` patch strips the stale HI16 reloc; the `lw` patch sets
- * the expected LO16 immediate and strips its reloc. The explicit char-pointer
- * add keeps IDO from folding the final `addiu v1, v1, 0xA14` into the store.
+ * NATURAL CEILING: high-NM (the case-fall-through C + v0=0 pre-init gets
+ * IDO to emit a sltiu+jumptable shape). The remaining diff is on the
+ * jumptable `lui/lw` pair: C emits a local .rodata table at +0x4 while
+ * target raw-asm bytes address +0x224. Was previously documented as
+ * "Exact via Makefile INSN_PATCH" patching the lui/lw HI16/LO16 pair —
+ * INSN_PATCH REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). The explicit char-
+ * pointer add keeps IDO from folding the final `addiu v1, v1, 0xA14`
+ * into the store. Default build is INCLUDE_ASM.
  *
  * a2 is an unused 3rd arg saved to caller arg-slot at sp+0x8 by IDO arg-
  * save (per docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save). */
