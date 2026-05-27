@@ -1390,9 +1390,10 @@ void gl_func_0001FAE8(int a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FBCC);
-#endif
 
 // gl_func_0001FBD4 — STRUCTURAL PASS (0x7C / 31 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -1753,9 +1754,10 @@ void gl_func_0001FF34(int arg) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FF34);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FFAC);
-#endif
 
 // gl_func_0001FFB8 — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -1798,9 +1800,10 @@ void gl_func_0001FFB8(int arg) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FFB8);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020030);
-#endif
 
 // gl_func_0002003C — STRUCTURAL PASS (0xC4 / 49 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -1854,9 +1857,10 @@ void gl_func_0002003C(int *obj) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002003C);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000200F4);
-#endif
 
 // gl_func_00020100 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -2076,9 +2080,10 @@ void gl_func_00020914(int mode, void *target) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020A20);
-#endif
 
 // gl_func_00020A28 — STRUCTURAL PASS (0x4A8 / 298 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
@@ -3307,9 +3312,10 @@ int gl_func_00022FC0(int idx, int arg) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023070);
-#endif
 
 /* gl_func_00023078: 22-insn prologue-stolen successor of gl_func_00022FC0.
  * Predecessor tail `lui t6,0; lhu t6,0x202C(t6)` (= u16 *(&D+0x202C))
@@ -3649,6 +3655,8 @@ void gl_func_000233E4(int idx) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
+#endif
+
 
 /* game_libs_func_00023494: 2-insn `lui t6, 0; lh t6, 0x23FA(t6)` orphan
  * with no jr-ra and no prologue. Loads a half from absolute address
@@ -3658,7 +3666,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
  * 2-insn function (any C body emits its own prologue+epilogue). CAP
  * class. Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023494);
-#endif
 
 // gl_func_0002349C — STRUCTURAL PASS (0xAC / 43 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -3723,9 +3730,10 @@ void gl_func_0002349C(int id) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002353C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00023548: 16-insn body + 3-insn donated alt-entry-prologue tail.
@@ -3756,9 +3764,10 @@ void gl_func_00023548(int a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023548);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002358C);
-#endif
 
 /* gl_func_00023598: 19-insn slot writer with global gate. Matched
  * via three compiler-side levers:
@@ -5162,9 +5171,10 @@ int gl_func_00025504(int a0, int a1, int a2, int a3) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000258C0);
-#endif
 
 // gl_func_000258CC — STRUCTURAL PASS (0x1FC / 127 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
@@ -7703,9 +7713,10 @@ int gl_func_0002A080(unsigned int op, char *a1, int a2, int a3) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A258);
-#endif
 
 // gl_func_0002A260 — STRUCTURAL PASS (0x14C / 83 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -8827,9 +8838,10 @@ void gl_func_0002C7A4(char *o) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002CF60);
-#endif
 
 // gl_func_0002CF70 — STRUCTURAL PASS (0xA4 / 41 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -9102,9 +9114,10 @@ void gl_func_0002D2F4(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D2F4);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D36C);
-#endif
 
 // gl_func_0002D37C — STRUCTURAL PASS (0x2A4 / 169 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -9632,9 +9645,10 @@ void gl_func_0002D910(int a0, int a1, int a2, int a3) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D910);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DC74);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0002DC7C: 32-insn float-clamping helper that calls
@@ -9843,9 +9857,10 @@ void gl_func_0002DE24(int a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DE24);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DE9C);
-#endif
 
 /* gl_func_0002DEA4: prologue-stolen successor (predecessor 0x2DE24's tail
  * has the lui+lw of *(D+0x2E60) into t6). PROLOGUE_STEALS=8 splices the
@@ -10310,9 +10325,10 @@ void gl_func_0002F288(char *o) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F578);
-#endif
 
 // gl_func_0002F584 — STRUCTURAL PASS (0xAC / 43 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -10420,9 +10436,10 @@ void gl_func_0002F638(int a0, int sel, int arg3, int arg4, int stk_43) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F638);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F720);
-#endif
 
 // gl_func_0002F72C — STRUCTURAL PASS (0x174 / 93 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -10911,9 +10928,10 @@ void gl_func_0003061C(char *lim, int val, int m, int kind) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000307A8);
-#endif
 
 // gl_func_000307B0 — STRUCTURAL PASS (0x118 / 70 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -10974,9 +10992,10 @@ void gl_func_000307B0(int reset) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000308AC);
-#endif
 
 // gl_func_000308C8 — STRUCTURAL PASS (0xDC / 55 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -12361,9 +12380,10 @@ void gl_func_00033880(int id, int a1, unsigned flags, int d) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033880);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00033940);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003395C: prologue-stolen successor of gl_func_00033880.
@@ -12633,9 +12653,10 @@ void gl_func_00033EB8(void *a, unsigned flags) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034180);
-#endif
 
 // gl_func_00034188 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
@@ -13127,9 +13148,10 @@ char *gl_func_00034890(char *o) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000349E0);
-#endif
 
 /* Caps (DEFERRED): leading `D[0] |= 4` needs `lw _,0(&D)` that the
  * target hoisted into the predecessor (uninit t6 read at 0x014) —
@@ -14435,9 +14457,10 @@ void gl_func_00035DAC(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035E5C);
-#endif
 
 // gl_func_00035E6C — STRUCTURAL PASS + small BUNDLE BOUNDARY NOTE
 // (0x168 / 90 words, no episode). Raw-.word USO form (game_libs).
@@ -14556,6 +14579,8 @@ void gl_func_0003604C(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003604C);
+#endif
+
 
 // game_libs_func_00036074 — STRUCTURAL PASS / BOUNDARY NOTE
 // (0x14 / 5 words, no episode). Raw-.word USO form (game_libs).
@@ -14586,7 +14611,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003604C);
 // (tautology-trap; and this is not a function). Body
 // INCLUDE_ASM-preserved (.s = source of truth).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00036074);
-#endif
 
 // gl_func_00036088 — STRUCTURAL PASS (0x19C / 103 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, has
@@ -22239,9 +22263,9 @@ end:
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000422AC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004230C);
-#endif
 
 /* gl_func_00042338: 16-insn FP-zero-init wrapper. MATCHED.
  * Body: gl_func_00000000(&buf, 0.0f x7).
@@ -22376,9 +22400,10 @@ void gl_func_00042440(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042440);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004247C);
-#endif
 
 /* gl_func_00042484: PROLOGUE-STOLEN successor of gl_func_00042440.
  * The 2 insns
@@ -22578,9 +22603,10 @@ float gl_func_00042778(void *a0, char *a1, char *a2) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042778);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042938);
-#endif
 
 // gl_func_00042944 — STRUCTURAL PASS (0x78C / 488 words, no episode). Raw-.word
 // USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
@@ -23218,9 +23244,10 @@ void gl_func_00044AEC(int* a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044AEC);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044B78);
-#endif
 
 // gl_func_00044B84 — STRUCTURAL PASS + BOUNDARY NOTE (0x13C / 80 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0. Two N64_FORENSICS signatures:
@@ -23931,9 +23958,10 @@ void gl_func_00046FA8(char *a0, int a1, int a2, int a3) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046FA8);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000470E4);
-#endif
 
 // gl_func_000470FC — STRUCTURAL PASS (0x294 / 172 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
@@ -23974,9 +24002,10 @@ void gl_func_000470FC(char *a0, char *a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000470FC);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047394);
-#endif
 
 // gl_func_000473AC — STRUCTURAL PASS (0x294 / 166 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
@@ -24925,9 +24954,10 @@ void gl_func_0004A6E8(int *self) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A6E8);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004A7C4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004A7CC: global-queue append with optional bound assert.
@@ -25744,9 +25774,10 @@ end:
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CCB4);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDB0);
-#endif
 
 int game_libs_func_0004CDA4(int a0) {
     return 0;
@@ -25802,9 +25833,10 @@ void gl_func_0004CDB8(void *a0, int idx) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CEFC);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004CF04 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
@@ -26739,9 +26771,10 @@ void gl_func_0004E244(char *src) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E37C);
-#endif
 
 #ifdef NON_MATCHING
 /* Append-to-array-with-bounds-check (28 insns, prologue-stolen).
@@ -27330,9 +27363,10 @@ void gl_func_0004F0E0(char *dst, char *a1, char *a2) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F2DC);
-#endif
 
 // gl_func_0004F2F4 — STRUCTURAL PASS (0x40C / 260 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large FP builder). Single
@@ -27589,9 +27623,10 @@ char *gl_func_0004FBA4(char *a0, int a1, char *a2) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FBA4);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004FD00);
-#endif
 
 // gl_func_0004FD18 — STRUCTURAL PASS (0x3D0 / 245 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
@@ -29192,9 +29227,10 @@ void game_libs_func_00054144(int *a0, float *a1, int a2) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054144);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054210);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00054228: 15-insn function INHERITS $t9 and $t1 from predecessor
@@ -31222,9 +31258,10 @@ void gl_func_0005D20C(float *out, float *q) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D304);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005D30C: Euler-angles -> quaternion composer. Inits out to
@@ -31292,9 +31329,10 @@ void gl_func_0005D414(int* a0, int bx_bits, int by_bits, int bz_bits) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D414);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D474);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005D480: 30-insn Vec3-scale + 3-call cascade (0x78, frame 0x50).
@@ -32628,9 +32666,10 @@ void gl_func_00060AD0(int *self, int *a1, int a2, int count, char *src) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060AD0);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060BD4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060BDC);
 
@@ -33523,6 +33562,8 @@ int gl_func_00062484(int *self) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062484);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000624EC);
 
@@ -33533,7 +33574,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000624EC);
  * 0x62524). Splat captured loop tail per
  * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062524);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00062540: 47-insn alloc-slot + initialize-or-evict (0xBC, frame 0x28).
@@ -34222,9 +34262,10 @@ void gl_func_00063E84(char *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00063F34);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063F40);
 
@@ -35186,6 +35227,8 @@ int gl_func_000665B4(int a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
+#endif
+
 
 /* game_libs_func_00066620: leaf-branch-past-end CAP per
  * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
@@ -35205,7 +35248,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066650);
  * function spans from earlier (where the loop top + initial $v0 are) to
  * here. CAP class — needs splat boundary correction. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006665C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00066674: 27-insn append-to-linked-list + 3-stub BUNDLE (0xAC declared,
@@ -37644,9 +37686,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
  */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B048);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B0F0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B0FC);
 
@@ -38098,9 +38141,10 @@ int gl_func_0006C084(int a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C084);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C110);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006C11C: 39-insn tagged-record-stream decoder loop (size 0x9C, frame 0x10).
@@ -38203,9 +38247,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C11C);
  */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C1B8);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C2A4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006C2AC: 52-insn caller-set-$t6 gate + multi-byte/word global init (0xD0, frame 0x20).
@@ -38416,6 +38461,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C8AC);
  */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C90C);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C9A8);
 
@@ -38426,7 +38473,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C9D4);
  * standard C. CAP class per reference_1080_mips3_runtime_helpers. Default
  * INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C9E4);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C90C_pad.s")
 
 #ifdef NON_MATCHING
@@ -38726,9 +38772,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D554);
  */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D6F4);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006D7C4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D7CC);
 
@@ -38886,9 +38933,10 @@ void gl_func_0006E1A4(int idx, int a, int b) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006E1A4);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006E20C);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006E1A4_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006E224);
@@ -38966,9 +39014,10 @@ int gl_func_0006EF64(int a0, void *a1, int a2) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF64);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F038);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006F088: 47-insn N64 PI DOM2 setup + buffer-init dispatch (0xBC, frame 0x20).
@@ -39270,9 +39319,10 @@ void gl_func_0006F634(int a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F634);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F684);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F69C);
 
@@ -39748,11 +39798,12 @@ void gl_func_000709DC(int a0) {
  */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070A14);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070AC0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070AE4);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070A14_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070B04);
@@ -40173,9 +40224,10 @@ int gl_func_00073034(int a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073034);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073074);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0007307C: 18-insn PI DMA-write helper. If (a2 & 3), spin-wait
@@ -40206,9 +40258,10 @@ int gl_func_0007307C(int a0, int a1, int a2) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000730C4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
 
@@ -40392,9 +40445,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
  */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000743C4);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000744C4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000744CC: 31-insn divide-correction helper w/ IDO trap prologue (0x7C, frame 0x08).
@@ -40481,6 +40535,8 @@ int gl_func_000747F4(void *a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000747F4);
+#endif
+
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074840);
 
@@ -40489,7 +40545,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074850);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074860);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0007488C);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000747F4_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000748A4);

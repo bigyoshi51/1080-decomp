@@ -1270,6 +1270,8 @@ int *titproc_uso_func_00002980(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002980);
+#endif
+
 
 /* titproc_uso_func_00002A10: SAVE-ARG-SENTINEL + TRAILING-DATA boundary issue.
  *
@@ -1295,7 +1297,6 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000298
  * `.data` symbol). Focused-session task (splat YAML edit + symbol-table
  * cleanup). INCLUDE_ASM remains build path (byte-correct as raw asm). */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002A10);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_00002980_pad.s")
 
 /* titproc_uso_func_000016E8: orphan absorbed by C-emit of _000016B8
