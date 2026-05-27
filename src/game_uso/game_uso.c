@@ -9742,7 +9742,10 @@ void game_uso_func_0000D5DC(char *a0) {
  * lever (*(Pair2*)(a0+0xC0)=*(Pair2*)&a1, same as D5BC/D438). Residual (~18B): the
  * target homes a3 unconditionally at 12(sp) (sw a3 in the bne delay slot) and reads
  * it via 12(sp); &a1 only homes a1/a2, so a3's home/reload (p[2] -> t6+8 vs sp+12)
- * still diverges. Varargs-homing scheduling cap; partial NM. */
+ * still diverges. Varargs-homing scheduling cap; partial NM.
+ * 2026-05-27 retest: hoisting `int homed_a3 = p[2];` before the if regressed
+ * 86% → 0% — the early read forced a different addressing pattern that lost
+ * the entire shape. Can't force a3 home without breaking other parts. */
 void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
     volatile int *p;
     p = &a1;
