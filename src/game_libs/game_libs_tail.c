@@ -2236,11 +2236,13 @@ void gl_func_0000E1DC(int *a0, int a1, int a2) {
  *
  * NATURAL CEILING: 98.45% NM. The 8-insn diff is a pure s1/s2 register-
  * swap (IDO picks $s2=a0/$s1=offset; target picks $s1=a0/$s2=offset) —
- * same family as gl_func_0004ED0C / gl_func_00035834. Was previously
- * documented as INSN_PATCH-promotable to EXACT; INSN_PATCH REMOVED
- * 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+ * same family as gl_func_0004ED0C / gl_func_00035834. 2026-05-27 retest:
+ * decl-order swap (offset before i, init offset=0 before i=0) — no
+ * effect on allocno priority (19/29 byte-match unchanged). The priority
+ * formula favors a0 due to higher ref-count but live-length also matters;
+ * neither C-shape lever flips the $s assignment. INSN_PATCH was the
+ * previous lever; REMOVED 2026-05-23 as match-faking. Default build
+ * INCLUDE_ASM. Permuter-class. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void gl_func_0000E230(int *a0) {
