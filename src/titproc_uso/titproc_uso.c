@@ -621,8 +621,10 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000184
 /* titproc_uso_func_00001950: 106-insn dual-phase display/alpha helper.
  * Decrements/fades through the D+0x60/D+0x78 display blocks while
  * a0->0x38 == 0, then increments/clamps a0->0x2C and dispatches the
- * D+0x90 block. C emit is same length; INSN_PATCH fixes the decrement
- * scheduling, one-word stack-slot shift, and register-choice diffs. */
+ * D+0x90 block. C emit is same length; previously INSN_PATCH closed the
+ * decrement scheduling, one-word stack-slot shift, and register-choice
+ * diffs. INSN_PATCH REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy; now an honest NM cap. */
 #ifdef NON_MATCHING
 void titproc_uso_func_00001950(int *a0) {
     float buf_a[4];

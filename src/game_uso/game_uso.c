@@ -2651,9 +2651,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
  * inner call to a typed zero-address alias returning float, and fixed a0[2]
  * to use -orig_scale instead of ratio. Fuzzy: 52.43% -> 98.23%.
  * 2026-05-21 refinement: promoted the C body. The tight-frame variant below
- * leaves five non-reloc FPU operand/register encoding diffs; Makefile
- * INSN_PATCH fixes those same-length codegen caps, matching the existing
- * FPU patch pattern used by nearby game_uso functions. */
+ * leaves five non-reloc FPU operand/register encoding diffs; previously
+ * Makefile INSN_PATCH closed those caps. INSN_PATCH REMOVED 2026-05-23
+ * as match-faking per feedback_no_instruction_forcing_matches_policy.
+ * Now an honest NM cap (5 FPU operand-encoding diffs, permuter-class). */
 extern float func_00000000_03FAC(float, float);
 #ifdef NON_MATCHING
 void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg4) {

@@ -738,8 +738,9 @@ void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int a
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
  * feedback_doc_marker_is_bail.md. 2026-05-21: C body is structurally correct;
- * INSN_PATCH fixes IDO's unreachable setup scheduling and raw USO data
- * immediates.
+ * INSN_PATCH was the previous lever for IDO's unreachable setup scheduling
+ * and raw USO data immediates. INSN_PATCH REMOVED 2026-05-23 as match-faking
+ * per feedback_no_instruction_forcing_matches_policy. Now an honest NM cap.
  */
 extern int D_1D438, D_1D3E8;
 #ifdef NON_MATCHING
