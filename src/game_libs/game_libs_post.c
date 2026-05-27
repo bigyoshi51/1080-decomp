@@ -18076,6 +18076,45 @@ int gl_func_0003C43C(char *o, char *r, float s, char *a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C43C);
 #endif
 
+// game_libs_func_0003C7A4 — STRUCTURAL PASS (0x70 / 28 insns, no episode).
+//
+// Walks v0->items[] (each item = 0xC bytes wide) iterating up to n items,
+// checking items[i].field_04 (a float) for == 0.0f, and on equal stores
+// -1 (as short) at parallel-array (a0->[0x2C])[off+4].
+//
+// Pseudo-C (decoded 2026-05-27 PM):
+//   void game_libs_func_0003C7A4(int *a0) {
+//       int *v0 = *(int**)((char*)a0 + 0x84);
+//       unsigned int i = 0;
+//       int n, off = 0;
+//       if (v0 == 0) return;
+//       n = *(int*)((char*)v0 + 0x44);
+//       if (n == 0) return;
+//       do {
+//           float *items = *(float**)((char*)v0 + 0x54);
+//           i++;
+//           if (*(float*)((char*)items + off + 4) == 0.0f) {
+//               *(short*)(*(int*)((char*)a0 + 0x2C) + off + 4) = -1;
+//           }
+//           v0 = *(int**)((char*)a0 + 0x84);
+//           n = *(int*)((char*)v0 + 0x44);
+//           off += 0xC;
+//       } while (i < (unsigned int)n);
+//   }
+//
+// Standalone-cc matches this @ ~71% (22 of 28 insns) — control flow,
+// bc1fl branch-likely, sltu emit, register-cloning all reproduced. Two
+// remaining caps: (1) register allocation (target uses $v1/$a1/$a3/$t0
+// where this C gets $a1/$v1/$a2/$a3 — no clean live-range / priority
+// lever to flip the assignment); (2) loop-tail emit: target uses
+// non-likely `bne ... / addiu $a3, $a3, 0xC` (delay-slot increment); this
+// C emits `bnezl ... / lw $v1, 0x54($v0)` (delay-slot next-iter hoist).
+// IDO chooses likely-with-hoist when the loop-header load is reachable
+// in the delay annul-window; no C structure I tried (do-while / goto /
+// for / volatile-reload) suppresses the hoist.
+//
+// Body left INCLUDE_ASM; pseudo-C above is documentation only (below the
+// 80% NM-wrap-promote threshold per CLAUDE.md).
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003C7A4);
 
 /* gl_func_0003C814: 22-insn optional-alloc + init constructor (sibling of
