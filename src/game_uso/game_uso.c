@@ -9233,7 +9233,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
  *      are independent in the dataflow graph; IDO's scheduler picks
  *      register-numerical order (s0 before s2) while target picks
  *      use-order (s2 used in bne, s0 used in delay-slot). No C-level
- *      lever found to swap these. */
+ *      lever found to swap these.
+ * 2026-05-27 retest: tried reordering `p = base+0xB8; i = 0;` (instead
+ * of `i=0; p=base+0xB8;`) to flip allocation order. Result: p moved to
+ * $s0 (was $s1) and i moved to $s1 (was $s0) — full var↔$s swap,
+ * regressing 91% → 67%. Decl-order shifts var-to-reg, not insn order. */
 void game_uso_func_0000BF7C(char *a0) {
     char *base = a0;
     int i;
