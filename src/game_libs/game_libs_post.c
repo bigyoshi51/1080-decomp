@@ -9673,6 +9673,14 @@ void game_libs_func_0002DD38(int a0) {
     D_2DD38_const = 0xD2;
 }
 #else
+/* game_libs_func_0002DD38: 8-insn 2-global setter.
+ *   D_a = a0 & 0xFF;
+ *   D_b = 0xD2;
+ *
+ * Documented arg-shadow-spill cap (full-TU strips the `int *p = &a0;
+ * (void)p;` lever that worked standalone — in-tree IDO inlines the
+ * andi to t6 and drops the home spill). Sibling of 2DDBC but the
+ * lever doesn't transfer in-tree. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD38);
 #endif
 
