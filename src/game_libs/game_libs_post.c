@@ -13075,6 +13075,22 @@ void game_libs_func_0003487C(int a0, int a1) {
 //   / 0x0001E1B0 unsymbolized) — byte-match needs USO mnemonic
 //   disasm + 3 structs typed. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+//
+// 2026-05-27 goto-out RETESTS (BOTH NEGATIVE):
+//  - UNIFIED variant (`if (X) goto out; ... out: return a;`): 40.88% → 34.68% (-6pp).
+//    The naive `{ a = 0; goto out; }` form for the b/c failure arms forces
+//    `a = 0` assignment that target doesn't emit (target uses different
+//    epilogue-source-register on b/c-fail vs a-fail).
+//  - SPLIT variant (explicit `ret = 0; ... ret = a; out: return ret;`): same
+//    40.88% → 34.73% (-6pp). The `ret = 0` initialization adds an early
+//    `or v0, $0, $0` setup that target doesn't have.
+//  Both variants regress because the target's asm has a structure (decoded
+//  partially) where the b/c-failure-path doesn't zero `a` — it returns a
+//  different value (likely uses goto to a SHARED epilogue but with a
+//  different value-source-register). Without full asm decode, the goto-out
+//  lever doesn't apply cleanly. Pre-condition for goto-out: check target
+//  asm to identify the EXACT epilogue shape (UNIFIED vs SPLIT vs FALL-THROUGH)
+//  before applying, per docs/IDO_CODEGEN.md#feedback-ido-goto-epilogue.
 #ifdef NON_MATCHING
 char *gl_func_00034890(char *o) {
     char *a;
