@@ -15326,7 +15326,7 @@ char *gl_func_00037AF0(int a0) {
     float zero[3];
     gl_func_00000000(a0);
     o = (char *)gl_func_00000000(0xB4);
-    if (o == 0) return 0;
+    if (o == 0) goto out;
     gl_func_00000000(o, (char *)&D_00000000 + 0x0001EBE4);
     *(char **)(o + 0x28) = (char *)&D_00000000;
     s1 = (int *)gl_func_00000000(0x04);
@@ -15337,6 +15337,7 @@ char *gl_func_00037AF0(int a0) {
     zero[1] = 0.0f;
     zero[2] = 0.0f;
     gl_func_00000000(o, zero);
+out:
     return o;
 }
 #else
