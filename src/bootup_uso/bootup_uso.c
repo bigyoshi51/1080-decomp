@@ -1198,28 +1198,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000027E8);
 /* func_00002C94 - verified structural decode (0x110, 68 insns,
  * subsystem init: scratch-vec setup + global flag config + table
  * walk).
- *   void func_00002C94(void *a0, void *a1) {
- *       f32 k = *(f32*)(func_000003F8 + 0xF8);    // data const
- *       f32 *dst = (f32*)(func_000000F0 + 0x38);  // scratch vec3
- *       void *src = (void*)(func_00000080 + 0x68);
- *       dst[0] = dst[1] = dst[2] = k;
- *       reloc_a(src);
- *       reloc_b(src, dst);
- *       *(int*)&D_mode = 6;
- *       *(int*)&D_flags &= ~0x8;                   // clear bit 3
- *       cfg = *(int*)(func_00000000 + 4);
- *       cfg = (cfg & ~0x2) | 0x2000 | 0x80000;
- *       *(int*)(func_00000000 + 4) = cfg;
- *       reloc_c(&D_000073E8, 0);
- *       if (*(int*)&D_gate != 0) {
- *           int *p = (int*)&D_tbl;
- *           do {
- *               reloc_d(&D_ctx, p[0], p[1]);
- *               p += 2;                            // stride 8 bytes
- *           } while (p[0] != 0);                   // terminator
- *           reloc_e();
- *       }
- *   }
  * Struct-typing reference: func_000003F8+0xF8 = f32 default value;
  * func_000000F0+0x38 = a global scratch Vec3 (set to (k,k,k));
  * func_00000080+0x68 = a paired context object (reloc setup args).
@@ -1228,12 +1206,41 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000027E8);
  * (clears bit1, sets the 0x2000 and 0x80000 feature bits). &D_tbl =
  * a {int a; int b;} stride-8 table (next-probe reads p[0] after the
  * advance) walked until a zero terminator, each (a,b) passed to the
- * reloc helper with a fixed &D_ctx. D_000073E8 = init datum. Caps <80: ~6 func_00000000
- * reloc calls + cross-symbol data refs (func_000003F8/000000F0/
- * 00000080/00000000+off) + multi-global flag RMW + table-walk
- * branch-likely. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * reloc helper with a fixed &D_ctx. D_000073E8 = init datum.
+ * Caps <80: ~6 reloc calls + cross-symbol data refs (func_000003F8/
+ * 000000F0/00000080/00000000+off) + multi-global flag RMW + table-
+ * walk branch-likely. INCLUDE_ASM remains build path. */
+extern char D_000073E8;
+extern void func_000003F8();  /* used as data-symbol base */
+#ifdef NON_MATCHING
+void func_00002C94(void *a0, void *a1) {
+    float k = *(float*)((char*)&func_000003F8 + 0xF8);
+    float *dst = (float*)((char*)&func_000000F0 + 0x38);
+    void *src = (void*)((char*)&func_00000080 + 0x68);
+    int *cfg_word = (int*)((char*)&func_00000000 + 4);
+    int *p;
+    dst[0] = k;
+    dst[1] = k;
+    dst[2] = k;
+    func_00000000(src);
+    func_00000000(src, dst);
+    *(int*)&D_00000000 = 6;                    /* D_mode */
+    *(int*)&D_00000000 &= ~0x8;                /* D_flags */
+    *cfg_word = (*cfg_word & ~0x2) | 0x2000 | 0x80000;
+    func_00000000(&D_000073E8, 0);
+    if (*(int*)&D_00000000 != 0) {             /* D_gate */
+        p = (int*)&D_00000000;                 /* D_tbl */
+        do {
+            func_00000000(&D_00000000, p[0], p[1]);  /* D_ctx */
+            p += 2;
+        } while (p[0] != 0);
+        func_00000000();
+    }
+    (void)a0; (void)a1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002C94);
+#endif
 
 /* func_00002DA4 - verified structural decode (0x1EC, 123 insns,
  * subsystem-init + 12-way jump-table dispatcher).
