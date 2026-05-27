@@ -31333,38 +31333,37 @@ void gl_func_0005E0B4(float *a, float *b, int a2) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_0005E138: 22-insn 4x4 float matrix transpose + 1 call.
+/* gl_func_0005E138: 22-insn 4x4 float matrix transpose + dispatch.
  *   for i in 0..3: dst[i*4 + j] = src[i + j*4] for j in 0..3;
- *   func(&dst);
+ *   gl_func_0001CA10(&dst[0]);
  *
- * Target asm uses pointer-increment idiom (v0 += 16, v1 += 4 per iter)
- * for the inner unrolled loop, with a single bne loop on the dst pointer
- * reaching sp+0x68 (= dst + 16*4 bytes).
- *
- * 80.95% cap. Remaining diffs (2026-05-15):
- *  - target copies src→v1 (`or v1,a0,0`) + uses $a0 as the loop
- *    sentinel (sp+0x68); mine keeps src in $a0 and computes the
- *    sentinel in $t6 from the dst base. Reg-alloc choice.
- *  - frame -96 vs target -104 (same volatile-pad/frame coupling cap
- *    class — POST_CC_RECIPES.md#feedback-volatile-pad-frame-offset-coupling).
- *  NEGATIVE: a `float *end = dst+16;` loop-bound local makes IDO fully
- *  UNROLL the 4-iter loop into a 16x giant (unscorable). Do NOT add a
- *  named loop-bound local; the `p != dst + 16` inline form is required
- *  to keep the rolled loop. Reordering reads to src[0];src++;src[3/7/11]
- *  is neutral (IDO normalizes back). Both remaining diffs are
- *  reg-alloc/frame, INSN_PATCH-class. */
+ * 2026-05-27: goto-loop + char-cast-end + register-keyword on src
+ * BREAKS IDO's full-unroll and gives the target's exact rolled loop.
+ * Frame matches (-0x68) via single `volatile int pad`. Register
+ * allocation matches target: src→v1, end→a0 (reuses input arg reg),
+ * p→v0. 1-insn diff remains: extra `addiu a1,sp,0x28` to share
+ * dst-base across {p init, jal arg-pass}, where target recomputes
+ * `addiu a0,sp,0x28` in the jal delay slot. The hoist is cost-model
+ * IDO-internal and not flippable from C. Tight near-miss; was 80.95%
+ * cap pre-2026-05-27. */
 extern int func_00000000();
-void gl_func_0005E138(float *src) {
+void gl_func_0005E138(float *src_arg) {
     float dst[16];
-    float *p = dst;
-    do {
-        p[0] = src[0];
-        p[1] = src[4];
-        p[2] = src[8];
-        p[3] = src[12];
-        p += 4;
-        src += 1;
-    } while (p != dst + 16);
+    volatile int pad;
+    register float *src;
+    float *p;
+    char *end;
+    p = dst;
+    end = (char*)dst + 64;
+    src = src_arg;
+loop:
+    p[0] = src[0];
+    p[1] = src[4];
+    p[2] = src[8];
+    p[3] = src[12];
+    p += 4;
+    src += 1;
+    if ((char*)p != end) goto loop;
     func_00000000(dst);
 }
 #else
