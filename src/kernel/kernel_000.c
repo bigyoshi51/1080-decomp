@@ -709,7 +709,14 @@ s32 uso_file_open(FileState* file, u32* arg1) {
  * Cosmetic-only register-order diff at offsets 0x50 (beq) and 0x68 (bnel)
  * — both are semantically identical (beq/bnel symmetric). See
  * docs/IDO_CODEGEN.md `beq` operand order entry / feedback_ido_register.md.
- * The 2-word INSN_PATCH bridge was REMOVED 2026-05-23 as match-faking. */
+ * The 2-word INSN_PATCH bridge was REMOVED 2026-05-23 as match-faking.
+ *
+ * 2026-05-27 retest: tried `header[0] != 8` (vs original `8 != header[0]`)
+ *   — emits identical bytes (IDO normalizes the `!=` comparand-order
+ *   regardless of source order, and then picks $s-first for the resulting
+ *   `beq`). The cap is in IDO's emit normalization, not in C-expression
+ *   order. Confirmed non-fixable from C without forcing a non-`beq`
+ *   instruction sequence (which would change the function's structure). */
 #ifdef NON_MATCHING
 s32 uso_skip_to_end(FileState* file) {
     s32 pad;
