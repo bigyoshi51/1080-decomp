@@ -2297,7 +2297,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E410);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E42C);
 
+/* game_libs_func_0000E450: 5-insn `or-flag setter`.
+ *   int *p = a0 + 0x18; *p |= 8; return p;
+ *
+ * Target uses v0 (= p) as both load AND store base; mine uses direct
+ * a0+0x18 for both (IDO CSE folds *p back to a0-relative). Base-reg
+ * choice cap; structure correct, register-cascade differs. */
+#ifdef NON_MATCHING
+int *game_libs_func_0000E450(int *a0) {
+    int *p = (int*)((char*)a0 + 0x18);
+    *p |= 8;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E450);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E464);
 
