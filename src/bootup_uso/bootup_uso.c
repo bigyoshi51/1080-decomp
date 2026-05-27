@@ -790,18 +790,6 @@ void *func_00001E08(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001E08);
 #endif
 
-#ifdef NON_MATCHING
-/* 98 %: IDO always picks $a1 to save `a0` across the jal; target chooses $a3.
- * Same bytes except for the 3-bit register field. See
- * feedback_ido_arg_save_reg_pick.md — 7+ C variants can't flip it. */
-void func_00001F78(char *a0) {
-    char *new_node = (char*)func_00000000(0);
-    *(char**)(new_node + 0x44) = *(char**)(*(char**)(a0 + 0x74) + 0x44);
-    *(char**)(*(char**)(a0 + 0x74) + 0x44) = new_node;
-    *(char**)(a0 + 0x74) = new_node;
-    *(int*)(a0 + 0x78) += 1;
-}
-#else
 // Linked-list insert-head: alloc node via func_00000000(0), splice after
 // obj->0x74 (head), advance head, bump obj->0x78 count. Body byte-matches at
 // 98%; the sole diff is IDO -O2 saving obj across the jal in $a1 while the
@@ -818,7 +806,6 @@ void func_00001F78(void *obj) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001F78);
-#endif
 #endif
 
 void *func_00001FC8(char *a0, int a1) {
