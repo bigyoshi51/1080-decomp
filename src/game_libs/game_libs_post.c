@@ -31088,8 +31088,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C960);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C9BC);
 
+/* game_libs_func_0005CA78 (size 0x74, 29 insns): VERIFIED STRUCTURAL DECODE
+ * 6-axis short-circuit AABB-overlap-like test returning 1 if all 6 inequalities
+ * pass, otherwise FALLS THROUGH (via beql cross-jump) into the BODY of
+ * game_libs_func_0005CAEC's tail-merge fail path. The pair (CA78 + CAEC + CB5C)
+ * is almost certainly a single source function compiled as
+ *   return (test_A(a0,a1)) || (test_B(a0,a1));
+ * where || short-circuits and the compiler inlined both tests into one body
+ * with shared 0-return tail at 0005CB5C.
+ *
+ * CA78 phase 1 tests (signed-int compare):
+ *   a0->[0]  < a1->[C]   (a0 lo-x < a1 hi-x)
+ *   a1->[0]  < a0->[C]   (a1 lo-x < a0 max-extent)
+ *   a0->[8]  < a1->[14]  (a0 lo-y < a1 hi-y)
+ *   a1->[8]  < a0->[C]   (a1 lo-y < a0 max-extent)
+ *   a0->[4]  < a1->[10]  (a0 lo-z < a1 hi-z)
+ *   a1->[4]  < a0->[C]   (a1 lo-z < a0 max-extent)
+ * Returns 1 if all pass.
+ *
+ * BLOCKER: each beql failure target is +4 INTO game_libs_func_0005CAEC (i.e.,
+ * past CAEC's first `lw v0, 0xC(a0)` insn). IDO cannot emit cross-function
+ * fall-through from standard C — these three .s files are almost certainly a
+ * single source function that splat split because of the merged-tail pattern.
+ * Proper fix needs a splat boundary correction merging CA78+CAEC+CB5C; deferred
+ * (would require a co-located edit of the splat YAML segment text-end + the
+ * .s decompiler to emit one .s instead of three). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CA78);
 
+/* game_libs_func_0005CAEC (size 0x70, 28 insns): phase 2 of the CA78 OR-test
+ * pair (see CA78's comment). Standalone entry runs `lw v0, 0xC(a0)` at 0x5CAEC
+ * before the comparisons; cross-fn entry from CA78 lands at 0x5CAF0 (skipping
+ * that lw because v0=a0->[C] is already set by CA78's beql delay-slot reloads).
+ * Each beql failure here targets 0x5CB60 (the jr ra of CB5C — i.e., return 0
+ * with v0=0 set by the beql's annulled-on-fall-through `move v0, zero` delay).
+ *
+ * Conclusion: CA78+CAEC+CB5C are one source function. Same splat-boundary
+ * blocker as CA78 above; standalone NM-wrap for CAEC has the caller-set-v1 cap
+ * (slt at, v0, v1 at second insn uses v1 from caller). Deferred. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CAEC);
 
 /* game_libs_func_0005CB5C: 3-insn `move v0,zero; jr ra; nop` return-0 stub
