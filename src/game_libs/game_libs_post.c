@@ -30813,7 +30813,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C43C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C4CC);
 
+/* game_libs_func_0005C4F0: 22-insn 3-float-neg-copy + 1+3 init pattern.
+ *   a1[0..2] = -(a2, a3, a4)   (3 negated floats)
+ *   a0[0] = 1.0f;
+ *   for (i = 1; i < 4; i++) a0[i] = 0.0f;
+ *
+ * Byte-exact 2026-05-27 via float-typed-args sig (mtc1 a2/a3, $f12/$f14
+ * at entry; lwc1 sp+0x10 for 5th arg per O32 stack-args convention). */
+#ifdef NON_MATCHING
+void game_libs_func_0005C4F0(float *a0, float *a1, float a2, float a3, float a4) {
+    int i;
+    a1[0] = -a2;
+    a1[1] = -a3;
+    a1[2] = -a4;
+    a0[0] = 1.0f;
+    for (i = 1; i < 4; i++) a0[i] = 0.0f;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C4F0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C548);
 
