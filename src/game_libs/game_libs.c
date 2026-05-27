@@ -697,13 +697,19 @@ void gl_func_000040BC(char *a0) {
 /* Body is 4 insns (addiu t6, a0, 4; li t7, 1; jr ra; sllv v0, t7, t6),
  * but symbol coverage includes 2 leading nops at 0x40EC/0x40F0 (artifact
  * of split-fragments.py including inter-function alignment pad in the
- * split-off symbol). The 8-byte leading nop prefix is injected post-cc via
- * PREFIX_BYTES (the inject-prefix-bytes.py script grows st_size at the
- * front to absorb the prepended bytes — same mechanism as USO trampolines,
- * just nops here instead of a beq). */
+ * split-off symbol). Previously matched via PREFIX_BYTES (8-byte leading-
+ * nop injection). PREFIX_BYTES REMOVED 2026-05-27 (was missed by
+ * 2026-05-23 sweep) per feedback_no_instruction_forcing_matches_policy
+ * — leading-nop injection on a non-USO-header function is instruction-
+ * appending match-faking. Function stays NM-wrapped (INCLUDE_ASM build
+ * path covers the 2 leading nops + body bytes); honest unmatched. */
+#ifdef NON_MATCHING
 int game_libs_func_000040EC(int a0) {
     return 1 << (a0 + 4);
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000040EC);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00004104(int *dst) {
