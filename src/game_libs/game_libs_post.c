@@ -29881,6 +29881,7 @@ void gl_func_0005534C(int **a0, int a1, int a2, int a3) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005534C);
+#endif
 
 #ifdef NON_MATCHING
 /* Command-stream block-skipper with nesting depth. a0[0] points to a stream
@@ -29919,7 +29920,6 @@ void game_libs_func_000553E8(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000553E8);
-#endif
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055470);
@@ -35292,6 +35292,7 @@ void gl_func_00066674(int **head, int data) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066674);
+#endif
 
 #ifdef NON_MATCHING
 /* Returns the address constant 0x41310 (target: `lui v0,0x4; jr ra; addiu v0,
@@ -35306,7 +35307,6 @@ int game_libs_func_000666FC(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000666FC);
-#endif
 #endif
 
 /* game_libs_func_000666E4: setter for the segment-base int global (*D = a0).
@@ -36337,6 +36337,7 @@ int gl_func_00067F58(int a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
+#endif
 
 #ifdef NON_MATCHING
 /* strlen: count chars until NUL, return count. Recognized libc, reloc-free.
@@ -36358,7 +36359,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FA4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FD8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068004);
-#endif
 
 /* gl_func_00068048: 107-insn (0x1AC) FPU-heavy float clamp/range chain.
  * Single function (1 jr ra). Stack frame -0x28 with sdc1 f22/f20 (callee-

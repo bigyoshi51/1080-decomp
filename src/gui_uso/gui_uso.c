@@ -542,6 +542,7 @@ void gui_func_0000161C(int *a0, int a1) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000161C);
+#endif
 
 /* gui_uso_func_00001670: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001670);
@@ -582,7 +583,6 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001EF4);
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00002334);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000025B4);
-#endif
 
 extern int gl_func_00000000();
 extern int gui_ref_00000150;
