@@ -31247,7 +31247,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DFE4);
 #endif
 
 
-#ifdef NON_MATCHING
 /* gl_func_0005E030: 33-insn 4x4 matrix add + dispatch (0x84, frame 0x70).
  *
  * Decoded structure (raw-word disasm):
@@ -31279,6 +31278,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DFE4);
  */
 void gl_func_0005E030(float *a, float *b, int a2) {
     float buf[16];
+    /* 8 dead bytes BELOW buf via volatile ints (no (void) cast) —
+     * forces frame size from 0x68 → 0x70 and lifts buf to sp+0x30.
+     * CRACKED 2026-05-27 via volatile-pad lever (see
+     * docs/IDO_CODEGEN.md). Previously documented as "6600 permuter
+     * iterations found no zero" cap. */
+    volatile int below_a, below_b;
     int i;
     for (i = 0; i < 16; i += 4) {
         buf[i + 0] = b[i + 0] + a[i + 0];
@@ -31288,9 +31293,6 @@ void gl_func_0005E030(float *a, float *b, int a2) {
     }
     gl_func_00000000(buf, a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E030);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005E0B4: 33-insn 4x4 matrix subtract + dispatch (0x84, frame 0x70).
