@@ -38662,11 +38662,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC64);
  * 0 on success, -1 on failure. NATURAL CEILING: pure delay-slot-fill
  * cap — IDO fills the beqz delay slot with the success-path's first lw
  * (delay-slot-fill-by-reorg.c); target leaves it as nop.
- * 2026-05-27 retest: tried `goto fail; ... fail: return -1;` form to
- * move the -1 return out-of-line and disrupt the delay-slot fill —
- * regressed 80.65% → 25% (goto-out moves the entire body to put the
- * fail block after success, swapping the function layout). The natural
- * if/return-here form is the closest reachable shape.
+ * 2026-05-27 retests (both regressed):
+ *   (a) `goto fail; ... fail: return -1;` form — moves -1 return
+ *       out-of-line. Regressed 80.65% → 25% (goto-out moves fail block
+ *       after success, swapping layout).
+ *   (b) `register int rc = ...` hint — IDO ignored at -O2 and shifted
+ *       the rc allocation. Regressed 80.65% → 35%.
+ * Natural if/return-here form is the closest reachable.
  * Was previously documented (fresh decode 2026-05-14) as byte-exact via
  * 12-entry INSN_PATCH + 1-word SUFFIX_BYTES_FORCE — both REMOVED
  * 2026-05-23 as match-faking (per
