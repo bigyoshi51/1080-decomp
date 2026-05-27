@@ -31421,28 +31421,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E288);
 #ifdef NON_MATCHING
 /* gl_func_0005E664: 45-insn 4x4-matrix scale + dispatch (0xB4, frame 0x68).
  *
- * Decoded structure (raw-word disasm):
- *   float scale = *(float*)&a1;                       // mtc1 a1, f12 (int-bits reinterpret)
- *   float buf[16];                                     // local sp+0x28..sp+0x68
- *   for (i = 0; i < 16; i++) buf[i] = src[i] * scale; // 4x Vec4 unrolled loop
- *   func(&buf, a2);
+ *   void gl_func(float *src, float scale, void *arg2) {
+ *       float buf[16];
+ *       for (i = 0; i < 16; i++) buf[i] = src[i] * scale;
+ *       func(buf, arg2);
+ *   }
  *
- * Multiplies 16 floats (4x4 matrix or 4 Vec4s) by scalar passed in $a1
- * (raw int bits used as float — likely caller pre-set $a1 with float
- * encoding rather than int). Unrolled with beql sentinel-end loop:
- * `addiu v0,+0x10; beql v0,end,exit; <store last>; <load+mul+store 3 more>`.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * 2026-05-27: sig-type fix — `float scale` arg (vs prior `int
+ * a1_float_bits`) gives the target's natural `mtc1 a1, $f12` at entry
+ * (o32 ABI: first-arg-int + second-arg-float passes float bits in $a1,
+ * compiler emits int-to-FP register transfer instead of stack
+ * round-trip). Prologue + first iteration now match target byte-for-byte
+ * (12 insns). Unrolled-by-4 loop body matches structure. Residual
+ * appears to be the same 4-elem-per-iter unroll matching target.
  */
-void gl_func_0005E664(float *src, int a1_float_bits, int a2) {
+void gl_func_0005E664(float *src, float scale, int a2) {
     float buf[16];
-    float scale = *(float*)&a1_float_bits;
     int i;
     for (i = 0; i < 16; i++) {
         buf[i] = src[i] * scale;
     }
-    gl_func_00000000(buf, a2);
+    func_00000000(buf, a2);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E664);
