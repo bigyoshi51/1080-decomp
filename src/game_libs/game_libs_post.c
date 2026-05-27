@@ -30649,8 +30649,10 @@ void gl_func_0005B568(int *a0, int a1) {
 /* Pack a2 into the top byte of the int at a1[-0x10], keeping the low 24 bits
  * (mask 0x00FFFFFF). First arg unused (homed). Logic-exact; the 5 residual
  * diffs are a CONSISTENT register-renumber (+ a commutative addu swap),
- * op-mismatch=0 and logic-preserving -> INSN_PATCH 5 words (+ NON_MATCHING
- * twin). Reloc-free. */
+ * op-mismatch=0 and logic-preserving. 2026-05-27 retest: addu operand swap
+ * `(*p & 0xFFFFFF) + (a2 << 24)` no-op (IDO canonicalizes). INSN_PATCH was
+ * the previous lever but REMOVED 2026-05-23 (match-faking, banned). Stays
+ * NM. Reloc-free. */
 #ifdef NON_MATCHING
 void game_libs_func_0005B5D8(int a0, int *a1, int a2) {
     int *p = (int *)((char *)a1 - 0x10);
