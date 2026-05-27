@@ -14263,12 +14263,13 @@ char *gl_func_00035B1C(char *o, int a1, int a2, int a3) {
     (void)a1; (void)a2;
     if (o == 0) {
         o = (char *)gl_func_00000000(0x10);
-        if (o == 0) return 0;
+        if (o == 0) goto out;
     }
     *(int *)(o + 0x0C) = (int)&D_00000000;
     sub = (int *)gl_func_00000000(0x04);
     if (sub != 0) *sub = 0;
     *(int *)(o + 0x08) = a3;
+out:
     return o;
 }
 #else
