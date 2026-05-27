@@ -30731,7 +30731,23 @@ void gl_func_0005BBCC(void) {
  * unmatchable standalone. CAP class. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BBEC);
 
+/* game_libs_func_0005BC04: 8-insn FP clamp-min.
+ *   float f(float a, float b) {
+ *     float neg_b = -b;
+ *     if (a < neg_b) a = neg_b;
+ *     return a;
+ *   }
+ *
+ * Byte-exact 2026-05-27. Standard FP-clamp idiom with neg.s + c.lt.s + bc1f. */
+#ifdef NON_MATCHING
+float game_libs_func_0005BC04(float a, float b) {
+    float neg_b = -b;
+    if (a < neg_b) a = neg_b;
+    return a;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC04);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC24);
 
