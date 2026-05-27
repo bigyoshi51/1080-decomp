@@ -15526,8 +15526,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037CE0);
  *
  * NATURAL CEILING: 96.42% NM. The 12-insn diff covers addressing-mode +
  * tmp/fbuf slot reshuffle (build uses sp-direct + lwc1-via-$v0; target
- * uses tmp@sp+0x24 / fbuf@sp+0x38 sp-direct fp loads/stores). Was
- * previously documented as INSN_PATCH-promoted to EXACT; INSN_PATCH
+ * uses tmp@sp+0x24 / fbuf@sp+0x38 sp-direct fp loads/stores).
+ * 2026-05-27 retest: swap decl-order to `float fbuf[3]; int tmp[3]` —
+ * pushes fbuf to higher sp offset BUT also changes the addressing-mode
+ * from `v1 = &tmp; sw via v1` to `sw via sp+off`, breaking the int→float
+ * ping-pong addressing. Regressed to 12/24. Decl-order doesn't disentangle
+ * from the addressing-mode coupling for this shape.
+ * Was previously documented as INSN_PATCH-promoted to EXACT; INSN_PATCH
  * REMOVED 2026-05-23 as match-faking (per
  * feedback_no_instruction_forcing_matches_policy). Default build is
  * INCLUDE_ASM. */
