@@ -278,21 +278,26 @@ void gl_func_00001134(char *a0, int a1) {
 
 #ifdef NON_MATCHING
 /* gl_func_000011A4: 54-insn alloc-or-given + init constructor.
- * 50/54 = 92.6% match. Cap class: dead-inner-alloc emission — target has
- * a 4-insn dead `alloc(0x10C)` block at offset 0x2C-0x38 that's
- * provably unreachable (s0 always non-zero post-merge) but emitted by
- * the original C. Tried docs/PATTERNS.md feedback-alloc-or-passthrough-
- * cascade-includes-dead-arms recipe (sub = self; if (sub == 0) alloc):
- * REGRESSED to 61 insns (+7 over target) because the named `sub` local
- * forced an extra $s reg + spill pair. The dead-arm in target uses ONE
- * $s reg (s0) for both 'self' and 'sub'-like role — unreachable from
- * 2-var C without inline-asm.
+ * Current fuzzy: 37.31% (216-byte function). Cap class: dead-inner-alloc
+ * emission — target has a 4-insn dead `alloc(0x10C)` block at offset
+ * 0x2C-0x38 that's provably unreachable (s0 always non-zero post-merge)
+ * but emitted by the original C. Tried docs/PATTERNS.md feedback-
+ * alloc-or-passthrough-cascade-includes-dead-arms recipe (sub = self;
+ * if (sub == 0) alloc): REGRESSED to 61 insns (+7 over target) because
+ * the named `sub` local forced an extra $s reg + spill pair. The
+ * dead-arm in target uses ONE $s reg (s0) for both 'self' and
+ * 'sub'-like role — unreachable from 2-var C without inline-asm.
  * 2026-05-17 tested goto-end form (alloc-fail jumps to shared epilogue
- * `return self;`) — REGRESSED 92.6% → 46.2% (the long body's regalloc
- * uses $s-regs for self/intermediate values; merging via goto changes
- * the live-range across the 11-store body and IDO picks a totally
- * different $s allocation). The simple `return 0` early-exit form is
- * actually the local maximum for this function class.
+ * `return self;`) — REGRESSED (the long body's regalloc uses $s-regs
+ * for self/intermediate values; merging via goto changes the live-range
+ * across the 11-store body and IDO picks a totally different $s
+ * allocation). The simple `return 0` early-exit form is actually the
+ * local maximum for this function class.
+ * 2026-05-27 reconfirmed: alloc-or-null sibling family's goto-out
+ * lever (which landed gl_func_0001FD98 100% and improved 36E74/3D16C/
+ * 37AF0/35B1C +10-34pp) does NOT apply here — the dead-inner-alloc
+ * + long-body $s-reg promotion makes this function a different cap
+ * class from the simpler alloc-or-null siblings.
  * Stays NM-wrap; default INCLUDE_ASM exact. */
 extern int gl_data_00000000;
 int* gl_func_000011A4(int *a0) {
