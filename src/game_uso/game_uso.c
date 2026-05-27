@@ -60,13 +60,16 @@ void game_uso_func_00000000(out, t)
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
 #endif
 
-/* 4-element dot product. C body 99.38% on its own; 1 insn (the second-to-last
- * add.s operand order) is fixed by INSN_PATCH in the Makefile per
- * feedback_insn_patch_for_ido_codegen_caps.md. IDO chooses
- * `add.s f8, f16, f4` (built) but target wants `add.s f8, f4, f16`; the
- * patch overwrites the 4 bytes at function offset 0x34. Both forms are
- * semantically identical; the choice is FPU pipeline forwarding-driven and
- * not flippable from C (8+ source variants tried, all worse). */
+/* 4-element dot product. C body NATURAL CAP 99.375% (1 insn diff).
+ * IDO emits `add.s f8, f16, f4` for the second-to-last add; target wants
+ * `add.s f8, f4, f16`. Both forms are semantically identical; the choice
+ * is FPU pipeline forwarding-driven and not flippable from C (8+ source
+ * variants tried, all worse).
+ * INSN_PATCH was REMOVED 2026-05-23 (match-faking, banned per
+ * feedback_no_instruction_forcing_matches_policy). The 100% match this
+ * function had pre-removal was via post-cc byte editing — not a real
+ * compile. Permanent NM cap until a permuter-found C shape produces the
+ * exact operand order. */
 #ifdef NON_MATCHING
 float game_uso_func_000000A0(float *a, float *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
@@ -143,9 +146,13 @@ void game_uso_func_00000314(Pair2 *dst) {
 }
 
 /* Int-reader template with pointer-indirect load (volatile int buf[2] trick).
- * IDO -O2 picks t6/t7/t8 sequentially for the 3-load chain at function tail;
- * target uses t7/t9/t6 (skipping t8). Per feedback_insn_patch_for_ido_codegen_caps.md
- * the 3 cap insns are patched post-cc by INSN_PATCH in the Makefile. */
+ * NATURAL CAP 98.125% (3 insn diff). IDO -O2 picks t6/t7/t8 sequentially
+ * for the 3-load chain at function tail; target uses t7/t9/t6 (skipping
+ * t8). Register-allocation order is not C-controllable for this shape.
+ * INSN_PATCH was REMOVED 2026-05-23 (match-faking, banned per
+ * feedback_no_instruction_forcing_matches_policy). The prior 100% match
+ * was post-cc byte editing of the 3 cap insns. Permanent NM cap until a
+ * permuter-found C shape produces the t7/t9/t6 sequence. */
 #ifdef NON_MATCHING
 void game_uso_func_0000035C(int *dst) {
     volatile int buf[2];
