@@ -522,19 +522,24 @@ int gl_func_0000A0CC(char *a0) {
 }
 
 /* gl_func_0000A130: 25-insn 3-iter loop counting non-zero callee returns.
- *   count = 0; for (p = a0+0x18; p != a0+0x30; p += 8)
- *       if (FUNC1(p) != 0) count++;
- *   return count;
- * CAP: i/p $s-reg swap stays NM (target s0=i,s1=p; built s0=p,s1=i —
- * decl-order swap REGRESSES per feedback-sreg-not-decl-driven). INSN_PATCH
- * REMOVED 2026-05-23 per feedback_no_instruction_forcing_matches_policy. */
+ * CRACKED 2026-05-27 via first-assignment-order lever:
+ *   - `int i, count; char *p;` (decl)
+ *   - `count = 0;` then `i = 0;` then `p = a0 + 0x18;` (assignment order)
+ *   - `for (; i != 24; i += 8)` (empty for-init since i already set)
+ * The decl-order said "register-priority isn't decl-driven", but the
+ * ASSIGNMENT ORDER controls the emit order of the `or sX, zero, zero`
+ * init insns. Target emits `or s2, zero` (count) BEFORE `or s0, zero`
+ * (i); source-order `count = 0; i = 0;` (count assigned first) produces
+ * exactly that. Bytes 25/25. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 int gl_func_0000A130(char *a0) {
-    int count = 0;
-    int i;
-    char *p = a0 + 0x18;
-    for (i = 0; i != 24; i += 8) {
+    int i, count;
+    char *p;
+    count = 0;
+    i = 0;
+    p = a0 + 0x18;
+    for (; i != 24; i += 8) {
         if (gl_func_00000000(p) != 0) count++;
         p += 8;
     }

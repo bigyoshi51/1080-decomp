@@ -1,0 +1,29 @@
+{
+  "function_name": "gl_func_0000A130",
+  "project": "1080 Snowboarding (USA)",
+  "model": "manual",
+  "start_time": "2026-05-27T22:29:47.106175+00:00",
+  "end_time": "2026-05-27T22:29:47.106199+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-27T22:29:47.106191+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "int gl_func_0000A130(char *a0) {\n    int i, count;\n    char *p;\n    count = 0;\n    i = 0;\n    p = a0 + 0x18;\n    for (; i != 24; i += 8) {\n        if (gl_func_00000000(p) != 0) count++;\n        p += 8;\n    }\n    return count;\n}",
+  "metadata": {
+    "size": 100,
+    "lever": "source-order swap of init-to-0 statements"
+  }
+}
