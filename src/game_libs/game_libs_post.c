@@ -22220,43 +22220,30 @@ int gl_func_00042288() {
     return gl_func_00000000(gl_func_00000000);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_000422AC: alloc-if-null + conditional sub-alloc. p = a0 ?:
  * alloc(12); if(!p) return p; q = p+4; if (p == (void*)-4) { q =
  * alloc(8); if(!q) return p; } q[1]=0; q[0]=0; return p.
- *
- * 68.46% (goto-end shared epilogue: 46->68). Residual caps:
- *  - Frame -0x18 (target) vs -0x20 (C-emit): target spills `p` (a1)
- *    across the alloc(8) call into the CALLER arg-save slot sp+0x18
- *    (caller-slot-borrow, same family as gl_func_0000BB14); no C knob,
- *    no buffer to resize. INSN_PATCH-class.
- *  - The 0x8C symbol spans body(0x5C) + zero-pad + trailing
- *    `mtc1 zero,$f0` @0x88 = gl_func_00042338's stolen prologue.
- *    byte_verify needs that suffix; SUFFIX_BYTES on 422AC + the pad —
- *    but 42338 is itself NM-capped (mtc1 splice-script limitation, see
- *    its note), so promoting 422AC alone yields no episode benefit for
- *    the pair. Deferred. NM kept; INCLUDE_ASM is the build path. */
+ * Lever: reuse the `a0` parameter as the resource (no fresh `void *p =
+ * a0;` local) so the working-pseudo descends from `a0` and IDO uses the
+ * minimal -0x18 frame with the spill at 0x18 (a0's home). See
+ * docs/IDO_CODEGEN.md#feedback-ido-reuse-param-as-object-caller-slot-spill. */
 extern int gl_func_00000000();
 void* gl_func_000422AC(void *a0) {
-    void *p = a0;
     char *q;
-    if (p == 0) {
-        p = (void*)gl_func_00000000(12);
-        if (p == 0) goto end;
+    if (a0 == 0) {
+        a0 = (void*)gl_func_00000000(12);
+        if (a0 == 0) goto end;
     }
-    q = (char*)p + 4;
-    if (p == (void*)-4) {
+    q = (char*)a0 + 4;
+    if (a0 == (void*)-4) {
         q = (void*)gl_func_00000000(8);
         if (q == 0) goto end;
     }
     *(int*)(q + 4) = 0;
     *(int*)(q + 0) = 0;
 end:
-    return p;
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000422AC);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004230C);
 
