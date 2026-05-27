@@ -10608,33 +10608,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
 //   bias/clamp index — byte-match needs USO mnemonic disasm +
 //   reloc-pad jal infra. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-/* Command-stream builder. op=(a0==0)?1:5; cmd=0x06000000|((op&0xFF)<<8);
-   idx=clamp(arg2+0x40, 0x7F). Two USO-callback submits (cmd|2, idx) then
-   (cmd|1, sign-ext(arg1+8)). NON_MATCHING: lone residual is the cmd spill slot
-   (built sp+0x18 vs target sp+0x1C). Decl-order (cmd-first) does NOT move it
-   here (unlike gl_func_000289B0) — the 0x28 frame has 4 local slots and IDO
-   takes the lowest for the single spill; the target reserves 0x18 (allocator
-   detail not reachable from C). Was INSN_PATCH'd (removed 2026-05-23).
-   PERMUTER also fails (280s, no improvement, 2026-05-24): the spill-SLOT-offset
-   residual (0x18 vs 0x1c) is permuter-immune — distinct from the arg-home/
-   register-renumber residuals the permuter DOES crack. PAD-ARRAY trick also fails
-   (2026-05-25): `int pad; int cmd;` DOES move the spill to sp+0x1c but grows the
-   frame -0x28 -> -0x30 (target keeps -0x28); the spill must sit at 0x1c WITHIN a
-   -0x28 frame, needing a phantom 0x18 occupant that emits nothing — not reachable
-   from C. Genuine allocator cap. */
-#ifdef NON_MATCHING
+/* CRACKED 2026-05-27 (byte-exact): same remove-local-and-recompute-inline
+ * lever as gl_func_0004E180. The `int cmd;` local made IDO spill cmd to
+ * sp+0x18 (lowest in-frame slot, pre-jal). Inlining the
+ * `0x06000000|((op&0xFF)<<8)` recompute lets IDO CSE it AND schedule the
+ * spill into the jal delay slot at sp+0x1C — matches target exactly.
+ *
+ * Verified byte-equal at .o level (32 instructions identical). Previous
+ * "Genuine allocator cap" doc was wrong — the cap was the explicit local,
+ * not the IDO allocator. See docs/IDO_CODEGEN.md "Remove an obvious
+ * idiomatic local..." entry. */
+extern int gl_func_00000000();
 void gl_func_0002FA90(int a0, int arg1, int arg2) {
-    int cmd;
     int op = (a0 == 0) ? 1 : 5;
     int idx = arg2 + 0x40;
-    cmd = 0x06000000 | ((op & 0xFF) << 8);
     if (idx >= 0x80) idx = 0x7F;
-    gl_func_00000000(cmd | 2, (signed char)idx);
-    gl_func_00000000(cmd | 1, (signed char)(arg1 + 8));
+    gl_func_00000000((0x06000000 | ((op & 0xFF) << 8)) | 2, (signed char)idx);
+    gl_func_00000000((0x06000000 | ((op & 0xFF) << 8)) | 1, (signed char)(arg1 + 8));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FA90);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0002FB10(int a0) {
