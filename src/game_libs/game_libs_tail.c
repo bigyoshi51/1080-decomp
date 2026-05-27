@@ -1120,42 +1120,37 @@ void gl_func_0000B710(int *a0) {
  * gl_func_00000000(s0); gl_func_00000000(&D+0xD4C0, 0x8004); return s0.
  * str addrs: lui 1 + addiu -N → 0x10000-N. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void* gl_func_0000B77C(void *a0) {
-    void *s0 = a0;
-    if (s0 == 0) {
-        s0 = (void*)gl_func_00000000(8);
-        if (s0 == 0) {
+    if (a0 == 0) {
+        a0 = (void*)gl_func_00000000(8);
+        if (a0 == 0) {
             goto end;
         }
     }
-    *(int*)s0 = 6400;
+    *(int*)a0 = 6400;
     gl_func_00000000((char*)&D_00000000 + 0xD43C);
-    if (gl_func_00000000(s0) == 0) {
+    if (gl_func_00000000(a0) == 0) {
         gl_func_00000000((char*)&D_00000000 + 0xD460);
-        gl_func_00000000(s0);
+        gl_func_00000000(a0);
     }
-    if (gl_func_00000000(s0) == 0) {
+    if (gl_func_00000000(a0) == 0) {
         gl_func_00000000((char*)&D_00000000 + 0xD478);
-        gl_func_00000000(s0);
+        gl_func_00000000(a0);
     }
-    if (gl_func_00000000(s0) == 0) {
+    if (gl_func_00000000(a0) == 0) {
         gl_func_00000000((char*)&D_00000000 + 0xD490);
-        gl_func_00000000(s0);
+        gl_func_00000000(a0);
     }
-    if (gl_func_00000000(s0) == 0) {
+    if (gl_func_00000000(a0) == 0) {
         gl_func_00000000((char*)&D_00000000 + 0xD4A8);
-        gl_func_00000000(s0);
+        gl_func_00000000(a0);
     }
-    gl_func_00000000(s0);
-    gl_func_00000000(s0);
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
     gl_func_00000000((char*)&D_00000000 + 0xD4C0, 0x8004);
 end:
-    return s0;
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B77C);
-#endif
 
 extern int gl_func_00000000();
 extern int gl_data_B884_arg, gl_data_B89C_arg, gl_data_B8AC_arg, gl_data_B8C0_arg;
