@@ -7589,9 +7589,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029BC8);
 
 /* 1.0f init + 3-field pointer copy from a0->0x44. The base pointer + loaded
- * values renumber ($v0 vs target $t6/$t8 reuse). CAP: allocno, stays NM
- * (5-insn INSN_PATCH register fix REMOVED 2026-05-23 per
- * feedback_no_instruction_forcing_matches_policy). */
+ * values renumber ($v0 vs target $t6, alternating t7/t8 vs t7/t6).
+ *
+ * 2026-05-27 retest: struct-assign lever (3-int struct copy) regressed to
+ * 4/11 — alternation became t7/t6 (vs target t8/t7) AND base stayed $v0
+ * (vs target $t6). The base-pointer-as-$t6 needs the p-load to NOT pick
+ * $v0; IDO's allocator preference for $v0 as the function-local pointer
+ * isn't overrideable from C. Permuter-class. */
 #ifdef NON_MATCHING
 void game_libs_func_00029C80(char *a0) {
     int *p = *(int**)(a0 + 0x44);
