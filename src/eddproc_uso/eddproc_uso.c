@@ -9,7 +9,17 @@ typedef struct { float x, y, z; } Vec3;
 /* USO entry-0: leading `beq zero,zero,+0x6F00` trampoline (loader-patched
  * at runtime) followed by the standard -O2 int-reader template body. The
  * trampoline word is injected post-cc via PREFIX_BYTES (see Makefile +
- * scripts/inject-prefix-bytes.py). */
+ * scripts/inject-prefix-bytes.py).
+ *
+ * 2026-05-27: confirmed bytes IDENTICAL with expected/.o (objdump -d
+ * both shows the same 16 instructions @ 0x00 — trampoline + body). The
+ * 93.75% fuzzy in report.json comes from RELOC-PRESENCE diff, not
+ * byte-diff: our .o emits R_MIPS_HI16/LO16/26 for D_00000000 +
+ * gl_func_00000000; expected/.o has no relocs (captured pre-reloc — raw
+ * .word USO form). Same uso_raw_word-vs-reloc cap class as other USO
+ * func_00000000 entries. Real fix needs USO spimdisasm migration
+ * (focused-session per project_1080_uso_spimdisasm_migration_todo). No
+ * C lever; do NOT re-grind. */
 void eddproc_uso_func_00000000(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
