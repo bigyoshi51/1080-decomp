@@ -2954,8 +2954,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
  * callees + nested branch-likely (bnel) + obj-0x28 vtable jalr +
  * reloc dispatch. INCLUDE_ASM remains build path. */
 extern char D_00007F90;
-extern int func_00005EF8(int *out);
-extern int func_0000502C(int *out);
+/* func_00005EF8 / func_0000502C already file-scope-declared. */
 #ifdef NON_MATCHING
 void func_00007328(char *s3) {
     int it = 0;
