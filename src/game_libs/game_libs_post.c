@@ -31294,7 +31294,6 @@ void gl_func_0005E030(float *a, float *b, int a2) {
     gl_func_00000000(buf, a2);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0005E0B4: 33-insn 4x4 matrix subtract + dispatch (0x84, frame 0x70).
  *
  * BYTE-IDENTICAL to gl_func_0005E030 except `add.s` (function code 0x00)
@@ -31317,8 +31316,12 @@ void gl_func_0005E030(float *a, float *b, int a2) {
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
-void gl_func_0005E0B4(float *a, int a2, float *b) {
+/* CRACKED 2026-05-27 (byte-exact): same volatile-pad-below-buf lever
+ * as sibling gl_func_0005E030 (MTX_ADD). Original C had wrong param
+ * order — fixed to (float *a, float *b, int a2) matching sibling. */
+void gl_func_0005E0B4(float *a, float *b, int a2) {
     float buf[16];
+    volatile int below_a, below_b;
     int i;
     for (i = 0; i < 16; i += 4) {
         buf[i + 0] = a[i + 0] - b[i + 0];
@@ -31328,9 +31331,6 @@ void gl_func_0005E0B4(float *a, int a2, float *b) {
     }
     gl_func_00000000(buf, a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E0B4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005E138: 22-insn 4x4 float matrix transpose + 1 call.
