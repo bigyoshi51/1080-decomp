@@ -998,20 +998,22 @@ void timproc_uso_b5_func_00001F14(char *st) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001F14);
 #endif
 
-/* 35-insn (0x8C) state==2 init helper. NATURAL CEILING: 99.86% NM. The
- * 5-entry diff is a buf-offset shift (target buf at sp+0x38, C-emit
- * places it at sp+0x24 — same frame size 0x48 but different local
- * layout). Was previously documented (2026-05-14) as INSN_PATCH-promoted
- * to byte-exact — INSN_PATCH REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). The function works
- * correctly under default INCLUDE_ASM; the 0.14% NM gap is the stack-
- * slot shift IDO cannot be coaxed to emit. */
-#ifdef NON_MATCHING
+/* CRACKED 2026-05-27 (byte-exact): the lever is "declare `float buf[4]`
+ * FIRST so it gets the highest stack slot (sp+0x38) per IDO -O2's
+ * first-declared-highest rule". Previous C placed `char pad[16]` first,
+ * pushing buf to sp+0x24 — 99.86% near-miss. Reordering buf to be the
+ * first local makes it land at sp+0x38, matching target exactly.
+ *
+ * Verified byte-equal at .o level (35 instructions identical).
+ *
+ * Generalizes: when a stack-buffer near-miss has "frame size matches
+ * but buf at lower offset than target", reorder the decl so buf is the
+ * FIRST local. */
 void timproc_uso_b5_func_000027B0(int *self) {
-    char *base = &D_00000000;
-    char pad[16];
     float buf[4];
+    char *base = &D_00000000;
     int v;
+    char pad[16];
     (void)pad;
     gl_func_00000000(self);
     if (self[0x30/4] != 2) return;
@@ -1023,9 +1025,6 @@ void timproc_uso_b5_func_000027B0(int *self) {
     v = self[0x44/4];
     gl_func_00000000(base, 0, v - 1, 319, v, 0x10001);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000027B0);
-#endif
 
 // timproc_uso_b5_func_0000283C — STRUCTURAL PASS (0x338 / 206 words,
 // no episode). Raw-.word USO form (genuine code, single function).
