@@ -26490,9 +26490,13 @@ void gl_func_0004E150(char *a0) {
 
 /* NATURAL CEILING: 99.87% NM (a0 spill-slot-offset cap). Target spills/
  * reloads a0 at sp+0x1C (gap at sp+0x18); IDO -O2 picks sp+0x18 when
- * frame=0x20 is reachable. 4 C-only variants couldn't reproduce; the
- * spill-slot allocator decision is intrinsic to IDO. INSN_PATCH on the
- * 2 sw/lw a0 words at offsets 0x1C/0x20 was REMOVED 2026-05-23 as
+ * frame=0x20 is reachable. 4+5 C-only variants couldn't reproduce (alias,
+ * &a0-home, a0=a0 reuse, int[2]/static-pad placeholders, (void)a0 hint,
+ * decl-order swap + pad-int local — adds bloat the frame to 0x28 or
+ * leaves the spill at 0x18; the 0x20-frame-with-0x1C-spill needs a
+ * phantom 0x18 occupant that emits nothing, not reachable from C). Same
+ * cap family as gl_func_0002FA90 ("Genuine allocator cap"). INSN_PATCH
+ * on the 2 sw/lw a0 words at offsets 0x1C/0x20 was REMOVED 2026-05-23 as
  * match-faking. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
