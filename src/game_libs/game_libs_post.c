@@ -6165,7 +6165,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274E0);
  * register base: target uses t2/t3/t4, every -O2 C form (and -O1/-g3) emits
  * t6/t7/t8. Permuter floored at base score 30, never 0 (33+ iters). The
  * contiguous-low-temp t2/t3/t4 allocation is unreachable from isolated C. */
+/* game_libs_func_000274EC: 6-insn 2-field setter.
+ *   a0[0x1A](short) = 1;
+ *   a0[0x16](short) = (a1[4] << 3);   // a1 = u8*
+ *
+ * 6-insn match structurally; reg-rename cap (target uses $t2/$t4/$t3;
+ * mine v0/t6/t7). Permuter-class register-allocation diff. */
+#ifdef NON_MATCHING
+void game_libs_func_000274EC(int *a0, unsigned char *a1) {
+    unsigned int v = a1[4];
+    *(short*)((char*)a0 + 0x1A) = 1;
+    *(short*)((char*)a0 + 0x16) = v << 3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274EC);
+#endif
 
 /* Stores 1 to field 0x18 and (a1[4] << 5) to field 0x14. Faithful decode but
  * a 5/6 cap: the target hoists the a1[4] load to the top (interleaving it
