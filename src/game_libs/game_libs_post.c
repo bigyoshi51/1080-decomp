@@ -35112,30 +35112,24 @@ void game_libs_func_000664F0(int *a0, int *a1) {
     a0[1] = (int)a1;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00066514: DynArr{void*array@0; int len@4; int cap@8} constructor
  * (f1 of the now-split 0xA0 bundle; .s is 0x58 = this fn only). Reloc-blind
  * jals -> gl_func_00000000 placeholder (alloc(0xC) + alloc_array(cap*8)).
- * 99.9% (report) -- SPILL-SLOT-OFFSET CAP: the only diff is obj's spill across
- * the 2nd call: target reuses dead-a0's home slot sw a2,0x18(sp); -O2 C uses
- * a2's own home sw a2,0x20(sp). Permuter held at base score 10 over 500+ iters
- * (spill-slot-offset is permuter-immune). 3rd param + goto-to-shared-epilogue
- * were the levers that got obj into a2 and beqz-to-epilogue. */
-int gl_func_00066514(int a0, int a1, int a2) {
-    a2 = a0;
+ * IDO still picks $a2 as the working register (param→$a2 copy) but with the
+ * a0-source pseudo the spill of $a2 across the 2nd alloc lands at 0x18 (a0's
+ * home), not 0x20 (a2's home). Lever: drop the unused 3rd param; reuse a0.
+ * See docs/IDO_CODEGEN.md#feedback-ido-drop-working-reg-param-spill-follows-source-pseudo. */
+int gl_func_00066514(int a0, int a1) {
     if (a0 == 0) {
-        a2 = gl_func_00000000(0xC);
-        if (a2 == 0) goto ret;
+        a0 = gl_func_00000000(0xC);
+        if (a0 == 0) goto ret;
     }
-    *(int *)(a2 + 4) = 0;
-    *(int *)(a2 + 8) = a1;
-    *(int *)a2 = gl_func_00000000(a1 << 3);
+    *(int *)(a0 + 4) = 0;
+    *(int *)(a0 + 8) = a1;
+    *(int *)a0 = gl_func_00000000(a1 << 3);
 ret:
-    return a2;
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066514);
-#endif
 
 /* Array slot-append: if idx (a0->4) < cap-1 (a0->8 - 1), advance idx and return
  * &base[idx] (base=a0->0, stride 8); else (full) return 0. Merged: the append
