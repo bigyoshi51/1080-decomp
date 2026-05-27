@@ -11078,24 +11078,65 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F284);
 #endif
 
 #ifdef NON_MATCHING
-/* game_uso_func_0000F360: 49-insn float-compare-gated state update.
- * Entry (~10 insns decoded):
- *   v0 = a0->0xE4 (short)
- *   if (v0 <= 0) { a0->0xE4 = 0; v0 = 0; }
- *   f6 = (short)v0; sub = a0->0xB4; thresh = a0->0x1B4 (float)
- *   t6 = sub->0x9CC (some flag)
- *   if (sub->0x9CC == 0) goto skip
- *   ... compares f4=thresh vs f8=(float)v0, branches based on c.le.s ...
+/* game_uso_func_0000F360: 49-insn float-compare-gated state-mux update.
  *
- * Body proper is float-comparison + neg.s sequences + 2 cross-USO calls +
- * struct-store finalize. Multi-pass NM placeholder. */
+ * Decoded structure (full body, 2026-05-27 multi-pass continuation):
+ *   v0_short = a0->0xE4 (signed)
+ *   if (v0_short < 0) { a0->0xE4 = 0; v0_short = 0; }
+ *   f6 = (float)v0_short  (via mtc1 + cvt.s.w)
+ *   p = a0->0xB4 (sub-state ptr)
+ *   thresh = a0->0x1B4 (float)
+ *   f2 = thresh * (float)v0_short
+ *
+ *   if (p->0x9CC != 0) {
+ *       f0 = *(float*)(p + 0x780) + f2;
+ *   } else {
+ *       f0 = *(float*)(p + 0x798) + f2;
+ *   }
+ *
+ *   if ((short)p->0x9A2 == 0x62) {
+ *       f0 = (float)((double)f0 * D_240);    // D_240 is a double constant
+ *   }
+ *
+ *   f8 = *(float*)(p + 0x520);                // scale
+ *   *(float*)(p + 0x31C) += f8 * f0;          // accumulate
+ *   a0->0xF0 = 0;
+ *
+ *   // 2 cross-USO calls (placeholder relocs):
+ *   gl_func(a0->0xB4 + 0x808);  // (1st jal; spills a1 = a0)
+ *   gl_func(a0);                 // (2nd jal; reloads a1)
+ *
+ * The if/else branch shape compiles to a BNEL t6,$0,+6 with delay-likely
+ * lwc1 f16 (= the t6!=0 arm) + b +3 trailing the t6==0 arm. The byte-exact
+ * match requires this exact if-then-else expression form. There is an
+ * apparently-dead `lwc1 f16, 0x10(v0=v1+0x770)` at 0xF3B8 between the b's
+ * delay slot and BNEL target — likely IDO's scheduler artifact.
+ *
+ * Multi-pass NM placeholder. */
+extern char D_00000000;
 void game_uso_func_0000F360(int *a0) {
-    short v0 = *(short*)((char*)a0 + 0xE4);
-    if (v0 <= 0) {
+    short v0_s = *(short*)((char*)a0 + 0xE4);
+    int *p;
+    float thresh, f2, f0;
+    if (v0_s < 0) {
         *(short*)((char*)a0 + 0xE4) = 0;
+        v0_s = 0;
     }
-    /* TODO 0x24-0xC4: float compare + neg branch + 2 dispatches + final stores */
-    (void)v0;
+    p = *(int**)((char*)a0 + 0xB4);
+    thresh = *(float*)((char*)a0 + 0x1B4);
+    f2 = thresh * (float)v0_s;
+    if (*(int*)((char*)p + 0x9CC) != 0) {
+        f0 = *(float*)((char*)p + 0x780) + f2;
+    } else {
+        f0 = *(float*)((char*)p + 0x798) + f2;
+    }
+    if (*(short*)((char*)p + 0x9A2) == 0x62) {
+        f0 = (float)((double)f0 * *(double*)((char*)&D_00000000 + 0x240));
+    }
+    *(float*)((char*)p + 0x31C) += *(float*)((char*)p + 0x520) * f0;
+    *(int*)((char*)a0 + 0xF0) = 0;
+    gl_func_00000000(*(char**)((char*)a0 + 0xB4) + 0x808);
+    gl_func_00000000(a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F360);
