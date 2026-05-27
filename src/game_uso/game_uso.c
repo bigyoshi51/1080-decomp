@@ -13094,24 +13094,30 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000116D4);
 //   pre-checked: no extern reuse. D_00000000 reuses file-scope
 //   extern char (no redeclaration).
 #ifdef NON_MATCHING
+/* 2026-05-27 logic fix: the slti/bne emits branch-when-count<3 (skip body),
+ * so body runs when count REACHES threshold. Prior C had inverted return
+ * condition. Also: sh always increments (delay slot), then body either
+ * runs or branches past. */
 void game_uso_func_00011750(char *obj) {
     char *s = *(char **)(obj + 0xB4);
     short cnt;
     int e;
     if (*(float *)(s + 0xA38) < -30.0f) {
-        *(int *)(obj + 0x130) = 0;
-    } else {
-        cnt = *(short *)(obj + 0x130);
-        if ((int)(cnt + 1) >= 3) return;
-        *(short *)(obj + 0x130) = cnt + 1;
-        *(int *)(obj + 0x130) = 0;
-        if (*(int *)((char *)&D_00000000 + 0x9CC) == 0x100) {
-        }
-        gl_func_00000000(0x100, 5, *(int *)(obj + 0xFC), 0x24);
-        e = *(int *)((char *)&D_00000000 + 0xEA0);
-        gl_func_00000000(e, obj, -1, *(int *)((char *)&D_00000000 + 0xEA4));
+        *(short *)(obj + 0x130) = 0;
+        return;
+    }
+    cnt = *(short *)(obj + 0x130);
+    *(short *)(obj + 0x130) = cnt + 1;
+    if ((int)(cnt + 1) < 3) return;
+    /* counter reached 3: fire the wipeout/effect sequence and clear counter */
+    s = *(char **)(obj + 0xB4);  /* reload after the short store */
+    *(short *)(obj + 0x130) = 0;
+    if (*(int *)(s + 0x9CC) != 0x100) {
         gl_func_00000000(0x100, 5, *(int *)(obj + 0xFC), 0x24);
     }
+    e = *(int *)((char *)&D_00000000 + 0xEA0);
+    gl_func_00000000(e, obj, -1, *(int *)((char *)&D_00000000 + 0xEA4));
+    gl_func_00000000(0x100, 5, *(int *)(obj + 0xFC), 0x24);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
