@@ -31135,9 +31135,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C8CC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C948);
 
-/* gl_func_0005C960: 23-insn FPU helper. mul.s, sub.s, c.lt.s with
- * paired f4/f6/f8/f10 manipulation, sw f8 at sp+0x8 for callee arg.
- * Likely a magnitude/clamp helper. Structural decode pending. */
+/* gl_func_0005C960: 23-insn FPU 3D cross-product helper. CALLER-SET-FPU
+ * cap — function reads $f2, $f4, $f6, $f8, $f10, $f12, $f14, $f16 as
+ * inputs at entry (no prologue loads). Writes 3 cross-product components
+ * to a2[0/4/8]:
+ *   a2[0] = $f4 - $f14*$f16
+ *   a2[4] = $f14*$f8_orig - $f10*$f12  (with stack-shuffle of f8/f10)
+ *   a2[8] = $f8*$f16 - $f2*$f4
+ * The 8 caller-set FPU args exceed O32 ABI (only $f12/$f14 pass floats),
+ * so no standard C function call shape produces this entry state. Likely
+ * inlined by IDO from a hand-written inline-asm caller site. Permanent
+ * NM cap (cf. feedback_caller_set_int_reg_cap_1080_game_libs.md — same
+ * class, FPU variant). Default INCLUDE_ASM byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C960);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C9BC);
