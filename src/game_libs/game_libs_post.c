@@ -31405,7 +31405,26 @@ void gl_func_0005D480(int a0, float *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D480);
 #endif
 
+// gl_func_0005D4F8 — 4-component normalize (quaternion / 4-float vector).
+//   Loads 4 floats from a0[0..3], sums squares, calls sqrtf, divides 1.0 by
+//   the length, scales all 4 back into a0. Reloc-free jal -> sqrtf (libc).
+//   STRUCTURAL pass 97.22% fuzzy. Logic exact; 14 register-renumber diffs
+//   between target's float-reg picks ($f0,$f2,$f14,$f16) and full-TU's
+//   ($f2,$f14,$f16,$f0). Documented cap: TU-context-sensitive scheduling.
+//   Permuter-class for full byte-match.
+#ifdef NON_MATCHING
+extern float sqrtf(float);
+void gl_func_0005D4F8(float *a0) {
+    float len = sqrtf(a0[0]*a0[0] + a0[1]*a0[1] + a0[2]*a0[2] + a0[3]*a0[3]);
+    float inv = 1.0f / len;
+    a0[0] *= inv;
+    a0[1] *= inv;
+    a0[2] *= inv;
+    a0[3] *= inv;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
+#endif
 
 /* Vec3 cross product (xyz) + dot product (w) of a1 and a2 into a 4-float a0:
  *   a0[0..2] = a1 x a2 ; a0[3] = a1 . a2
