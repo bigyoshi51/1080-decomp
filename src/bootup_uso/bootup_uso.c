@@ -2942,24 +2942,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
 
 /* func_00007328 - verified structural decode (0x1C0, 112 insns,
  * list-search + match-dispatch).
- *   void func_00007328(St *s3) {
- *       int it = 0;                               // sp+0x54
- *       func_00005EF8(&it);                       // init iterator
- *       if (it == 0) return;
- *       func_0000502C(&key2);                     // sp+0x50
- *       Node *n = s3->0x2C;                        // list head
- *       Node *match = NULL;
- *       while (n != NULL) {
- *           cur = n;  n = n->0x4 ? *(Node**)n->0x4 : n->0x0;
- *           if (it_val == cur->key) { match = cur->0x0; break; }
- *       }
- *       if (match != NULL) {
- *           func_00000000(&D_00007F90, (char*)match + 4);
- *           o = match->0x0;
- *           v = o->0x28;
- *           (*(fn)v->...)(...);                   // vtable dispatch
- *       }
- *   }
  * Struct-typing reference: s3->0x2C (44) = head of a node list;
  * node->0x0 (0) = next/payload ptr, node->0x4 (4) = key/sub-list
  * ptr (the walk follows 0x4 when set, else 0x0). func_00005EF8 /
@@ -2968,12 +2950,44 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
  * On a match, the found node's payload (match->0x0) is dispatched:
  * func_00000000(&D_00007F90, &match[1]) then the engine-wide
  * obj->0x28 vtable call on payload->0x28. D_00007FA0 / D_00007F90
- * = dispatch datums. Caps <80: linked-list walk + 3 iterator
- * reloc callees + nested branch-likely (bnel) + obj-0x28 vtable
- * jalr + reloc dispatch. Full body INCLUDE_ASM-preserved (.s =
- * source of truth). INCLUDE_ASM (no episode; tautology-trap
- * rule). */
+ * = dispatch datums. Caps <80: linked-list walk + 3 iterator reloc
+ * callees + nested branch-likely (bnel) + obj-0x28 vtable jalr +
+ * reloc dispatch. INCLUDE_ASM remains build path. */
+extern char D_00007F90;
+extern int func_00005EF8(int *out);
+extern int func_0000502C(int *out);
+#ifdef NON_MATCHING
+void func_00007328(char *s3) {
+    int it = 0;
+    int key2;
+    char *n;
+    char *match = 0;
+    char *cur;
+    char *o;
+    int *v;
+    func_00005EF8(&it);
+    if (it == 0) return;
+    func_0000502C(&key2);
+    n = *(char**)(s3 + 0x2C);
+    while (n != 0) {
+        cur = n;
+        n = *(int*)(n + 0x4) != 0 ? *(char**)*(int**)(n + 0x4) : *(char**)n;
+        if (it == *(int*)(cur + 0x8)) {  /* key compared (placeholder offset) */
+            match = *(char**)cur;
+            break;
+        }
+    }
+    if (match != 0) {
+        func_00000000(&D_00007F90, match + 4);
+        o = *(char**)match;
+        v = *(int**)(o + 0x28);
+        /* vtable dispatch (offset truncated in decode) */
+        (*(void (**)(char*))((char*)v + 0x14))(o);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007328);
+#endif
 
 /* func_000074E8 - verified structural decode (0x138, 78 insns,
  * guarded constructor + list-link + vtable + finalize).
