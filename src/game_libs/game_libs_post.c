@@ -1638,6 +1638,17 @@ void game_libs_func_0001FE4C(int *a0, int a1, int a2) {
 
 void game_libs_func_0001FE74(int *a0) { *(int*)((char*)(a0) + 0x10) = 0; *(int*)((char*)(a0) + 0x0) = 0; *(int*)((char*)(a0) + 0x8) = *(int*)((char*)(a0) + 0x4); }
 
+/* 97.08% NM. 12-insn 8-store struct init with 2-reg-rename diff (-1 const
+ * lands in $a1 vs target's $v1; sum lands in $v1 vs target's $t7).
+ *
+ * 2026-05-27 NEGATIVE: tried inlining the `sum` computation
+ * (`*(int*)(a0+0x20) = v + *(int*)(a0+0xC);` directly, no named local) —
+ * STANDALONE compile produces byte-exact target emit (sum→$t7, -1→$v1),
+ * but the in-tree game_libs_post.c compile still emits sum→$v1, -1→$a1.
+ * Documented TU-context-sensitive-scheduling cap per
+ * docs/IDO_CODEGEN.md#feedback-ido-tu-context-sensitive-scheduling — the
+ * surrounding TU's allocator state differs from isolated compile.
+ * Permuter would need to be run in-tree to crack. */
 #ifdef NON_MATCHING
 void game_libs_func_0001FE88(short *a0) {
     int v = *(int *)((char *)a0 + 4);
