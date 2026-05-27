@@ -1,0 +1,30 @@
+{
+  "function_name": "game_libs_func_0005C4CC",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-7",
+  "start_time": "2026-05-27T07:07:00Z",
+  "end_time": "2026-05-27T07:09:00Z",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-27T07:09:00Z",
+      "assistant_text": "9-insn 2D cross-product `a*d - b*c`. 4-float-arg sig: args 1-2 in $f12/$f14, args 3-4 in $a2/$a3 (int regs per O32) with stack round-trip (sw+lwc1) to FP regs. Byte-exact first-try from C `return a*d - b*c;`.",
+      "tool_calls": [], "match_percent": 100.0, "compiled": true, "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 9,
+  "initial_m2c_source": null,
+  "final_source": "float game_libs_func_0005C4CC(float a, float b, float c, float d) {\n    return a * d - b * c;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0005C4CC.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+  },
+  "verification": "byte-exact .o disasm matches expected/.o (9/9 insns)"
+}
