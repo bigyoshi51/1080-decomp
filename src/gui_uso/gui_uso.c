@@ -978,25 +978,69 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
  * Per-packet idiom (×7): g=(ctx*)a0->0xC; i=g->idx; g->idx=i+1;
  *   slot=(int*)g->buf + i*2; slot[0]=w0; slot[1]=w1;  (a0->0xC reloaded
  *   TWICE per packet in target — once for ->idx, once for ->buf).
- * Packets (w0,w1):
- *  1: ((a2-1)&0xfff)|0xFD100000 ; a1                       (G_SETTIMG-class)
- *  2: t1 = ((((arg6<<1)+7)>>3 &0x1ff)<<9)|0xF5100000|((arg8<<8)&0x1ff)
- *     ; 0x07020080                                          (G_SETTILE)
- *  3: 0xE6000000 ; 0                                        (G_RDPLOADSYNC)
- *  4: ((arg4<<2 &0xfff)<<12)|0xF4000000|((arg5<<2)&0xfff)
- *     ; (((arg4+arg6-1)<<2 &0xfff)<<12)|0x07000000|(((arg5+arg7-1)<<2)&0xfff)
- *                                                           (G_LOADTILE)
- *  5: 0xE7000000 ; 0                                        (G_RDPPIPESYNC)
- *  6: t1 (reused) ; ((arg8&7)<<24)|0x00020000|0x80          (G_SETTILE var)
- *  7: 0xF2000000 ; ((arg8&7)<<24)|(((arg6-1)<<2 &0xfff)<<12)|(((arg7-1)<<2)&0xfff)
- *                                                           (G_SETTILESIZE)
  * Forensics: this is a texture-load DL fragment (SETTIMG→SETTILE→LOADSYNC→
  * LOADTILE→PIPESYNC→SETTILE→SETTILESIZE). t1 is CSE'd across packets 2&6;
- * arg6=texW, arg7=texH-ish, arg8=tile fmt/palette. Caps far <80: the
- * a0->0xC double-reload GfxCtx idiom ×7 + cross-packet CSE drive a regalloc
- * cascade no first-pass C reproduces (multi-run target). INCLUDE_ASM is the
- * correct build path (no episode; tautology-trap rule). */
+ * arg6=texW, arg7=texH-ish, arg8=tile fmt/palette.
+ * Caps far <80: the a0->0xC double-reload GfxCtx idiom ×7 + cross-packet
+ * CSE drive a regalloc cascade no first-pass C reproduces (multi-run
+ * target). INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+void gui_uso_func_0000413C(char **a0, int a1, int a2, int a3,
+                            int arg4, int arg5, int arg6, int arg7, int arg8) {
+    char *g;
+    int i;
+    int *slot;
+    int t1;
+    (void)a3;
+    t1 = (((((arg6 << 1) + 7) >> 3) & 0x1FF) << 9) | 0xF5100000 | ((arg8 << 8) & 0x1FF);
+    /* packet 1: G_SETTIMG */
+    g = *(char**)((char*)a0 + 0xC);
+    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
+    slot = (int*)(*(char**)g) + i * 2;
+    slot[0] = ((a2 - 1) & 0xFFF) | 0xFD100000;
+    slot[1] = a1;
+    /* packet 2: G_SETTILE */
+    g = *(char**)((char*)a0 + 0xC);
+    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
+    slot = (int*)(*(char**)g) + i * 2;
+    slot[0] = t1;
+    slot[1] = 0x07020080;
+    /* packet 3: G_RDPLOADSYNC */
+    g = *(char**)((char*)a0 + 0xC);
+    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
+    slot = (int*)(*(char**)g) + i * 2;
+    slot[0] = 0xE6000000;
+    slot[1] = 0;
+    /* packet 4: G_LOADTILE */
+    g = *(char**)((char*)a0 + 0xC);
+    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
+    slot = (int*)(*(char**)g) + i * 2;
+    slot[0] = (((arg4 << 2) & 0xFFF) << 12) | 0xF4000000 | ((arg5 << 2) & 0xFFF);
+    slot[1] = ((((arg4 + arg6 - 1) << 2) & 0xFFF) << 12) | 0x07000000 |
+              (((arg5 + arg7 - 1) << 2) & 0xFFF);
+    /* packet 5: G_RDPPIPESYNC */
+    g = *(char**)((char*)a0 + 0xC);
+    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
+    slot = (int*)(*(char**)g) + i * 2;
+    slot[0] = 0xE7000000;
+    slot[1] = 0;
+    /* packet 6: G_SETTILE var */
+    g = *(char**)((char*)a0 + 0xC);
+    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
+    slot = (int*)(*(char**)g) + i * 2;
+    slot[0] = t1;
+    slot[1] = ((arg8 & 7) << 24) | 0x00020000 | 0x80;
+    /* packet 7: G_SETTILESIZE */
+    g = *(char**)((char*)a0 + 0xC);
+    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
+    slot = (int*)(*(char**)g) + i * 2;
+    slot[0] = 0xF2000000;
+    slot[1] = ((arg8 & 7) << 24) | ((((arg6 - 1) << 2) & 0xFFF) << 12) |
+              (((arg7 - 1) << 2) & 0xFFF);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000413C);
+#endif
 
 #ifdef NON_MATCHING
 /* gui_uso_func_00004354: 133-insn (0x214) Gfx-display-list builder.
