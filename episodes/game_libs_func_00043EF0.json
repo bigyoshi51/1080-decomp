@@ -1,0 +1,29 @@
+{
+  "function_name": "game_libs_func_00043EF0",
+  "project": "1080 Snowboarding (USA)",
+  "model": "manual",
+  "start_time": "2026-05-27T20:45:57.084550+00:00",
+  "end_time": "2026-05-27T20:45:57.084587+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-27T20:45:57.084576+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "struct game_libs_func_00043EF0_Four { int a, b, c, d; };\nvoid game_libs_func_00043EF0(struct game_libs_func_00043EF0_Four *a0, struct game_libs_func_00043EF0_Four *a1, int a2, int a3) {\n    ((int*)a0)[0x10/4] = a2;\n    ((int*)a0)[0x14/4] = a3;\n    *a0 = *a1;\n}",
+  "metadata": {
+    "size": 44,
+    "lever": "struct-assign for canonical $t-alternation"
+  }
+}

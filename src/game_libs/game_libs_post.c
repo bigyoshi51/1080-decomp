@@ -22950,21 +22950,17 @@ void gl_func_00043EAC(int a0) {
 }
 
 /* game_libs_func_00043EF0: 11-insn struct-init leaf. Sets a0[0x10/0x14]
- * = (a2,a3) and copies 4 ints from a1[0..3] to a0[0..3]. NATURAL CEILING:
- * 96.36% NM. The 8-insn diff is a $t-register alternation (build picks
- * t6/t7/t8/t9 distinct; target alternates t7/t6). Was previously
- * documented as INSN_PATCH-promoted to EXACT; INSN_PATCH REMOVED
- * 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+ * = (a2,a3) and copies 4 ints from a1[0..3] to a0[0..3].
+ * Applied struct-assign lever per
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-copy-vs-field-copy-treg-order
+ * for the 4-int copy. Separate field-copies produced t6/t7/t8/t9 distinct;
+ * struct-copy gives the canonical $t7/$t6 alternating pattern. */
 #ifdef NON_MATCHING
-void game_libs_func_00043EF0(int *a0, int *a1, int a2, int a3) {
-    a0[0x10/4] = a2;
-    a0[0x14/4] = a3;
-    a0[0] = a1[0];
-    a0[1] = a1[1];
-    a0[2] = a1[2];
-    a0[3] = a1[3];
+struct game_libs_func_00043EF0_Four { int a, b, c, d; };
+void game_libs_func_00043EF0(struct game_libs_func_00043EF0_Four *a0, struct game_libs_func_00043EF0_Four *a1, int a2, int a3) {
+    ((int*)a0)[0x10/4] = a2;
+    ((int*)a0)[0x14/4] = a3;
+    *a0 = *a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00043EF0);
