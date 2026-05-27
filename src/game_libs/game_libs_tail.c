@@ -255,8 +255,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
 
 /* 3-byte transform copy (a2[i]-0x61 -> a0[1..3]) + a0[0]=a1 + a0[4]=a3.
  * Register-exact from C (counter decl first -> $v0); IDO reorders the 4 setup
- * moves vs the target (isolated-vs-full-TU scheduling) — closed via a 4-insn
- * INSN_PATCH positional swap. */
+ * moves vs the target (isolated-vs-full-TU scheduling). Was previously
+ * closed via a 4-insn INSN_PATCH positional swap; INSN_PATCH REMOVED
+ * 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Now an honest NM
+ * cap (permuter-class). */
 #ifdef NON_MATCHING
 void game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {
     int n = 0;
