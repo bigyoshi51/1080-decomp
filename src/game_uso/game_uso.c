@@ -2898,6 +2898,23 @@ void game_uso_func_000044C8(char *a0) {
  * stems from CSE-folded `&D_00000000` accesses. Multi-pass continuation
  * is research-only — primary decomp goal already met.
  *
+ * 2026-05-27 retest: prologue mismatch is INTERLOCKED between three knobs:
+ *   - `volatile int a1_sp = a1; a2_sp = a2;` puts the spills at sp+0x34/0x30
+ *     (LOCAL stack) — current state, scores 70.03%.
+ *   - `(void)&a0; (void)&a1; (void)&a2;` flips the spills to sp+0xE0/0xE4/0xE8
+ *     (CALLER's outgoing-arg shadow) BUT drops 8 bytes of frame (volatile
+ *     locals gone) → frame 0xE0 not 0xE8 → regression to 69.55%.
+ *   - Keeping `_pad[168]` after the (void)&aN switch restores frame 0xE8 with
+ *     a0/a1/a2 at sp+0xE8/0xEC/0xF0 (matching target's lines 1/6/8) → but
+ *     ra/s0/s1 stay at sp+0x1c/0x18/0x14 instead of target's sp+0x24/0x1c/0x18
+ *     because target SAVES s2 too (`sw s2, 0x20(sp)`) and our C has no
+ *     $s2-class variable. Net 69.56% — the +0x8 shift on every downstream
+ *     sp-relative ref loses more than the a0/a1/a2 fix gains.
+ * Cracking the prologue needs (a) take-addr-of-args for shadow spills AND
+ * (b) a fourth s-class variable live across calls so IDO allocates $s2 at
+ * sp+0x20. Without (b), the (a) win is a net negative. Focused-session
+ * task — defer until a meaningful s2-pseudo is identified in the body. */
+ *
  * EXTENDED DECODE @ 0x4580-0x45F8 (insns 25-50, sub-object init loop):
  *   // After s1 setup (s1 = main+0xE4 sub-region or alloc(0x3E0)):
  *   t0 = &D + 0x6D8;             // sub-region template ptr
