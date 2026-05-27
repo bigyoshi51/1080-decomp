@@ -18346,7 +18346,7 @@ char *gl_func_0003D16C(char *o, int a1, int a2) {
     int *sub;
     if (o == 0) {
         o = (char *)gl_func_00000000(0x48);
-        if (o == 0) return 0;
+        if (o == 0) goto out;
     }
     gl_func_00000000(o, (char *)&D_00000000 + 0x0001F2B8);
     *(char **)(o + 0x28) = (char *)&D_00000000;
@@ -18354,6 +18354,7 @@ char *gl_func_0003D16C(char *o, int a1, int a2) {
     if (sub) *sub = 0;
     *(int *)(o + 0x2C) = a1;
     *(int *)(o + 0x34) = -1;
+out:
     return o;
 }
 #else
