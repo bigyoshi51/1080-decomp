@@ -1395,25 +1395,28 @@ void* gl_func_0000C210(void *arg0) {
 
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
-void gl_func_0000C28C(void *arg0, int *arg1) {
-    int buf10[4];
+/* Struct-assign lever per docs/IDO_CODEGEN.md#feedback-ido-struct-copy-vs-field-copy-treg-order
+ * (dest-pointer-reuses-call-arg variant): the initial 4-int copy from
+ * arg1 into buf10 needs `addiu a2, sp, X` + lw/sw via a2 pattern so a2
+ * is reused as call arg-2 for the `gl_func(arg0, 0x218, buf10, 0x10)`
+ * call. */
+struct gl_func_0000C28C_Four { int a, b, c, d; };
+void gl_func_0000C28C(void *arg0, struct gl_func_0000C28C_Four *arg1) {
+    struct gl_func_0000C28C_Four buf10;
     int buf08[2];
 
-    buf10[0] = arg1[0];
-    buf10[1] = arg1[1];
-    buf10[2] = arg1[2];
-    buf10[3] = arg1[3];
-    buf10[2] = 0;
+    buf10 = *arg1;
+    buf10.c = 0;
 
-    *(int*)((char*)arg0 + 4) = arg1[0];
-    gl_func_00000000(arg0, 0x218, buf10, 0x10);
+    *(int*)((char*)arg0 + 4) = arg1->a;
+    gl_func_00000000(arg0, 0x218, &buf10, 0x10);
     if (gl_func_00000000(arg1) != 0) {
-        gl_func_00000000(arg0, 0x230, arg1[2], arg1[1] * 4);
+        gl_func_00000000(arg0, 0x230, arg1->c, arg1->b * 4);
     }
 
-    gl_func_00000000(buf08, buf10, 0x10, 0xDEADBBAD);
+    gl_func_00000000(buf08, &buf10, 0x10, 0xDEADBBAD);
     gl_func_00000000(arg0, 0x228, buf08, 8);
-    gl_func_00000000(arg0, 0x7FE8, buf10, 0x10);
+    gl_func_00000000(arg0, 0x7FE8, &buf10, 0x10);
     gl_func_00000000(arg0, 0x7FF8, buf08, 8);
     gl_func_00000000(arg0);
 }
