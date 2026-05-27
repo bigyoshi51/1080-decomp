@@ -1584,18 +1584,34 @@ out:
  * arena->cur += aligned; arena->count++ (a0->0xC); return old.
  * MERGE: the success epilogue (count++; return old) was splat-split off as
  * game_libs_func_0001FE34 (UNSHARED — only this fn's `b 0x1FE34` reaches it,
- * verified); merged back here (size 0x40 -> 0x58). Logic decoded & correct;
- * NOT yet byte-exact: target uses bnez+`b epilogue` (22 insns) where IDO -O2
- * emits the tighter beqzl-merged form (20). Branch-likely/structure grind
- * remains. Reloc-free. INCLUDE_ASM is the build path. */
+ * verified); merged back here (size 0x40 -> 0x58).
+ *
+ * 2026-05-27: 73.09% → 89.23% via INVERTED-COND + `goto success` recipe.
+ * The natural `if (overflow) return 0;` form let IDO merge both paths into
+ * a `beqzl + load-hoist` tail (20 insns); the inverted `if (!overflow) {
+ * a0[1] = newcur; goto success; } return 0; success: ...` shape forces
+ * the target's structure (bnez + b success + separate fail jr-ra + success
+ * jr-ra epi, 21 insns). 1 missing insn remains: target fills the bnez
+ * delay slot with `move v1, a2` (saving cur for the later return) where
+ * mine emits `nop` — IDO doesn't split cur's live range across the branch
+ * because mine loads cur directly into v1 (no separate save needed).
+ * The split needs cur loaded into $a2 first, then moved to $v1 — no clean
+ * C lever (verified-ineffective: register-asm rejected by IDO; multi-decl
+ * cur_ret CSE-folds; aliased-base loads). Last 1-insn diff is permuter-
+ * class.
+ *
+ * INCLUDE_ASM remains the build path (function not yet byte-exact). */
 #ifdef NON_MATCHING
 void *game_libs_func_0001FDF4(int *a0, unsigned int n) {
     unsigned int aligned = (n + 15) & ~15;
-    int cur = a0[1];
-    if ((unsigned)(a0[0] + a0[2]) < (unsigned)(cur + aligned)) {
-        return 0;
+    unsigned int cur = a0[1];
+    unsigned int newcur = cur + aligned;
+    if ((unsigned int)(a0[0] + a0[2]) >= newcur) {
+        a0[1] = newcur;
+        goto success;
     }
-    a0[1] = cur + aligned;
+    return 0;
+success:
     a0[3] += 1;
     return (void*)cur;
 }
