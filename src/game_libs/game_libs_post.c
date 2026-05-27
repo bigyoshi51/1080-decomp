@@ -26488,27 +26488,29 @@ void gl_func_0004E150(char *a0) {
     (*(int(**)(char*))(p2 + 0xC))(p1 + *(short*)(p2 + 0x8));
 }
 
-/* NATURAL CEILING: 99.87% NM (a0 spill-slot-offset cap). Target spills/
- * reloads a0 at sp+0x1C (gap at sp+0x18); IDO -O2 picks sp+0x18 when
- * frame=0x20 is reachable. 4+5 C-only variants couldn't reproduce (alias,
- * &a0-home, a0=a0 reuse, int[2]/static-pad placeholders, (void)a0 hint,
- * decl-order swap + pad-int local — adds bloat the frame to 0x28 or
- * leaves the spill at 0x18; the 0x20-frame-with-0x1C-spill needs a
- * phantom 0x18 occupant that emits nothing, not reachable from C). Same
- * cap family as gl_func_0002FA90 ("Genuine allocator cap"). INSN_PATCH
- * on the 2 sw/lw a0 words at offsets 0x1C/0x20 was REMOVED 2026-05-23 as
- * match-faking. */
+/* CRACKED 2026-05-27 (byte-exact): the lever is "no explicit local —
+ * recompute `a0 + 0xA0` inline at each use". With an explicit
+ * `char *newA0 = a0 + 0xA0;` local, IDO -O2 spills newA0 to the LOWEST
+ * in-frame slot (sp+0x18) and the implicit-saved-a0 to caller-shadow
+ * (sp+0x20) — 99.87% near-miss. Inlining the recompute and removing
+ * the local makes IDO CSE it AND schedule the spill into the jal delay
+ * slot at sp+0x1C — exactly matching target's layout.
+ *
+ * Verified byte-equal at .o level via objdump -d (16 instructions
+ * identical). Companion technique to the "no explicit local for jal
+ * delay-slot CSE" pattern.
+ *
+ * This is the previously-documented "spill-slot offset cap" — but the
+ * cap was wrong. Tooling diary: 9-variant grind (alias, &a0-home,
+ * pad arrays, register, volatile, decl-order, K&R, etc.) didn't try
+ * the simplest case: removing the local entirely. The "obvious"
+ * idiomatic local was actually the blocker. See docs/IDO_CODEGEN.md. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void gl_func_0004E180(char *a0) {
-    char *newA0 = a0 + 0xA0;
-    *(char**)(a0 + 0xE0) = newA0;
-    gl_func_00000000(newA0);
-    *(char**)(a0 + 0xE0) = newA0;
+    *(char**)(a0 + 0xE0) = a0 + 0xA0;
+    gl_func_00000000(a0 + 0xA0);
+    *(char**)(a0 + 0xE0) = a0 + 0xA0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E180);
-#endif
 
 /* gl_func_0004E1BC: 22-insn queue-append helper. If a0->[0x1C0] >= 10,
  * flush via gl_func(a0, a1). Then push a1 to a0->[0x198 + count*4] and
