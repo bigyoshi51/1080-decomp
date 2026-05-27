@@ -11820,19 +11820,22 @@ extern void *memcpy(void *, const void *, unsigned);
 void *gl_func_00032E18(int a, int b, int c, int d) {
     char *o;
     char *s;
+    void *ret = 0;
     if (a != 0) {
         o = (char *)gl_func_00000000(0x150);
     } else {
         o = (char *)gl_func_00000000(0x150);
     }
-    if (o == 0) return 0;
+    if (o == 0) goto out;
     s = (char *)gl_func_00000000(0xB4);
-    if (s == 0) return 0;
+    if (s == 0) goto out;
     memcpy(s, (void *)0x0001E178, 0xB4);
     *(int *)(s + 0x28) = (int)&D_00000000;
     gl_func_00000000(s + 0x2C);
+    ret = o;
+out:
     (void)b; (void)c; (void)d;
-    return o;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00032E18);
