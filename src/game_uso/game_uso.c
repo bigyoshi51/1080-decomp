@@ -12250,30 +12250,64 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
 #endif
 
 #ifdef NON_MATCHING
-/* game_uso_func_00010840: 67-insn (0x10C) state-init + dispatch sibling of
- * 10694 (just above). Entry: reads sub=a0->0xB4, sets sub->0x3DC=1,
- * 2 cross-USO dispatches, float compare on (sub->0x970) vs 0.0,
- * conditional dispatch with `bc1f` branch (a1=0x00020008, a2=0, a3=1, t0=6).
+/* game_uso_func_00010840: 67-insn (0x10C) state-init + 2-stage dispatch
+ * sibling of 10694. 2026-05-27 extended decode (full body):
  *
- * Decoded ~12 entry insns. Body proper (0x50-0x10C, ~55 more insns) is a
- * conditional-call chain on the float compare — TODO. Default INCLUDE_ASM
- * keeps ROM exact. Multi-pass NM. */
+ *   sub = a0->0xB4
+ *   sub->0x3DC = 1
+ *   gl_func(a0); gl_func(a0);              // 2 init dispatches
+ *   sub = a0->0xB4 (reload after calls)
+ *   saved_f0 = sub->0x970                  // velocity?
+ *   if (saved_f0 < 0.0f)                   // first dispatch (early-arm)
+ *       gl_func(a0, 0x00020008, 0, 1);
+ *
+ *   // STAGE 2 — abs+threshold compare
+ *   abs_f0 = (saved_f0 < 0) ? -saved_f0 : saved_f0;
+ *   if (D[0x258 double] < (double)abs_f0) {
+ *       // BELOW-THRESHOLD path
+ *       gl_func(a0, 0x20002, 0x20003,
+ *               (int)saved_f0, 0, 1);       // bits packed
+ *   } else {
+ *       // ABOVE-THRESHOLD path: same args, but t0=6 stack-arg
+ *       gl_func(a0, 0x20002, 0x20003,
+ *               (int)saved_f0, 6, 1);
+ *   }
+ *   gl_func(a0);                            // unconditional follow-up
+ *
+ *   // STAGE 3 — sub-state gated final call
+ *   sub = a0->0xB4 (reload)
+ *   if (sub->0x9CC == 0)                    // not-busy gate
+ *       gl_func(a0, D[0xE10], D[0xE14], ...);
+ *   // epilogue
+ *
+ * Body is ~67 insns; the bc1fl-likely abs.s pattern + double-precision
+ * threshold + 2-path 5-arg dispatch is the spine pattern. Multi-pass
+ * NM placeholder — INCLUDE_ASM remains the build path. */
 void game_uso_func_00010840(int *a0) {
     int *sub = (int*)a0[0xB4/4];
     float saved_f0;
+    float abs_f0;
     sub[0x3DC/4] = 1;
     gl_func_00000000(a0);
     gl_func_00000000(a0);
-    /* @ 0x28-0x54: reload sub, save f0=sub->0x970, c.lt.s f0,0; setup
-     * args for conditional dispatch (a1=0x00020008, a2=0, a3=1, t0=6). */
     sub = (int*)a0[0xB4/4];
     saved_f0 = *(float*)((char*)sub + 0x970);
     if (saved_f0 < 0.0f) {
-        /* Path 1 — bc1f-not-taken arm: a1=0x00020008, a2=0, a3=1, t0=6. */
         gl_func_00000000(a0, 0x00020008, 0, 1);
     }
-    /* TODO 0x60-0x10C: ~40 more insns of bc1f-taken arm + final tail. */
-    (void)saved_f0;
+    abs_f0 = (saved_f0 < 0.0f) ? -saved_f0 : saved_f0;
+    if (*(double*)((char*)&D_00000000 + 0x258) < (double)abs_f0) {
+        gl_func_00000000(a0, 0x20002, 0x20003, *(int*)&saved_f0, 0, 1);
+    } else {
+        gl_func_00000000(a0, 0x20002, 0x20003, *(int*)&saved_f0, 6, 1);
+    }
+    gl_func_00000000(a0);
+    sub = (int*)a0[0xB4/4];
+    if (sub[0x9CC/4] == 0) {
+        gl_func_00000000(a0,
+                         *(int*)((char*)&D_00000000 + 0xE10),
+                         *(int*)((char*)&D_00000000 + 0xE14));
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
