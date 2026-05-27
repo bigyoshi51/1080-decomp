@@ -35,8 +35,12 @@ build/src/boarder5_uso/boarder5_uso.c.o: PREFIX_BYTES := boarder5_uso_func_00000
 build/src/eddproc_uso/eddproc_uso.c.o: PREFIX_BYTES := eddproc_uso_func_00000000=0x10006F00
 build/src/n64proc_uso/n64proc_uso.c.o: PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
-build/src/game_libs/game_libs_post.c.o: PREFIX_BYTES := game_libs_func_0003ECDC=0x00000000,0x00000000 game_libs_func_0005AFB0=0x00000000
-build/src/kernel/kernel_020.c.o: PREFIX_BYTES := func_80007FC8=0x1000FFFF,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000
+# 2026-05-27: removed instruction-appending PREFIX_BYTES for game_libs_func_0003ECDC,
+# game_libs_func_0005AFB0, kernel func_80007FC8 — all were leading-nop / self-branch
+# instruction-faking that violated the 2026-05-23 no-instruction-forcing-matches policy
+# (per feedback_no_instruction_forcing_matches_policy). USO-header PREFIX_BYTES for
+# n64proc_uso_func_00000000 / h2hproc_uso_func_00000000 above stay (genuine USO segment
+# entry header data, not instruction-appending).
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o: TRUNCATE_TEXT := 0xDC
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_12C.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso_o0_12C.c.o: TRUNCATE_TEXT := 0x114

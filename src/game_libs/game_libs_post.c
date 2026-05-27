@@ -20114,8 +20114,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
 
 /* 4-insn function: `nop; nop; jr ra; nop`. Body is structurally empty
  * but has 2 leading nops not reachable from std C (`void f(void){}`
- * emits just `jr ra; nop` = 2 insns). PREFIX_BYTES injects those two
- * leading nops post-cc to match the split stub exactly. */
+ * emits just `jr ra; nop` = 2 insns). Previously matched via PREFIX_BYTES
+ * (2 leading-nop injection); PREFIX_BYTES REMOVED 2026-05-27 (was
+ * missed by 2026-05-23 sweep) per feedback_no_instruction_forcing_matches_policy
+ * — leading-nop injection was instruction-appending match-faking.
+ * Stays NM. */
 #ifdef NON_MATCHING
 void game_libs_func_0003ECDC(void) {
 }
@@ -30345,10 +30348,13 @@ void gl_func_0005AF64(int *a0, char *a1) {
 
 /* 9-insn (0x24) doubly-linked-list insert-before-anchor with leading nop.
  * C-emit produces the 8-insn body (offsets 0x04..0x24, byte-identical).
- * PREFIX_BYTES injects the leading nop. inject-prefix-bytes.py whitelist
- * extended this tick to accept opcode 0x2B (sw) as a valid entry insn —
- * the link-list insert's first store (`sw a2, 4(a0)`) was previously
- * rejected. See docs/POST_CC_RECIPES.md inject-prefix-bytes whitelist. */
+ * Target has a leading nop at offset 0; C body lacks it (88.89% fuzzy
+ * residual). Previously matched via PREFIX_BYTES (single leading-nop
+ * injection); PREFIX_BYTES REMOVED 2026-05-27 (was missed by 2026-05-23
+ * sweep) per feedback_no_instruction_forcing_matches_policy — leading-
+ * nop injection was instruction-appending match-faking. Body stays NM-
+ * wrapped (INCLUDE_ASM build path); honest 88.89%. */
+#ifdef NON_MATCHING
 void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
     a0[1] = (int)a2;
     a0[2] = a2[2];
@@ -30356,6 +30362,9 @@ void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
     ((int*)a0[2])[1] = (int)a0;
     a0[0] = a1;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005AFB0);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005AFD4: 39-insn dual-struct init (likely freelist/pool).

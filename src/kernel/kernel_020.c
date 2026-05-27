@@ -15,11 +15,17 @@ extern void func_80005350(void*, s32);
  * Target: `b self; nop; nop; nop; nop; nop; jr ra; nop`.
  *
  * IDO -O2 can't emit the 6-leading-nop layout from any C body (`while(1){}`
- * produces 10 insns). Recipe: empty body + PREFIX_BYTES of 6 leading insns
- * (b -1 + 5 nops). Empty `void f(void) {}` emits 2-insn `jr ra; nop` tail
- * matching target. Total 8 insns post-prefix. b -1 (0x1000FFFF) is PC-
- * relative self-branch, valid at any function start address. */
+ * produces 10 insns). Previously matched via `void f(void){}` + PREFIX_BYTES
+ * (6-insn instruction-appending prefix). PREFIX_BYTES REMOVED 2026-05-27
+ * (cleanup of policy violation, was missed by 2026-05-23 sweep) per
+ * feedback_no_instruction_forcing_matches_policy — was instruction-appending
+ * match-faking, not USO-header data. Function stays NM (INCLUDE_ASM build
+ * path); honest unmatched. */
+#ifdef NON_MATCHING
 void func_80007FC8(void) {}
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80007FC8);
+#endif
 
 
 
