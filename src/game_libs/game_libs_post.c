@@ -14941,7 +14941,7 @@ extern int D_00000000;
 char *gl_func_00036E74(char *o, int a1, int a2) {
     if (o == 0) {
         o = (char *)gl_func_00000000(0x50);
-        if (o == 0) return 0;
+        if (o == 0) goto out;
     }
     gl_func_00000000(o, (char *)&D_00000000 + 0x0001EA10);
     *(char **)(o + 0x28) = (char *)&D_00000000;
@@ -14952,6 +14952,7 @@ char *gl_func_00036E74(char *o, int a1, int a2) {
     *(float *)(o + 0x30) = -90.0f;
     *(float *)(o + 0x34) = 180.0f;
     *(float *)(o + 0x38) = 0.0f;
+out:
     return o;
 }
 #else
