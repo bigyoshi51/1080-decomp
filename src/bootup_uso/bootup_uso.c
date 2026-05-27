@@ -1525,26 +1525,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003638);
  * (same alloc-0x80 + tagged-arg func_00000000 builder family,
  * idx*0x1C descriptor table, link via ->0x14/->0x4, r->0x8DC =
  * result).
- *   void func_00003734(St *s1, int a1) {
- *       s0 = alloc(0x80); if (!s0) return;
- *       init(s0, 0);  register(&D, s0);
- *       cfg = s1->0x98;
- *       r1 = build(s1, 2, 1, &func_00000080[0x14],
- *                  s0, s1->0x80, cfg->0xC4, cfg->0xCC,
- *                  0x58005, 0x1B);              // tagged block
- *       r2 = build(s1, 0, s1->0x80, r1);
- *       r3 = build(s1, 1, s1->0x80, r1);
- *       row = (char*)&D + a1 * 0x1C;            // 28-byte stride
- *       r4 = build(s1, row, r2);
- *       sub = alloc(0x80); if (!sub) return;
- *       init(sub, 1);
- *       r5 = build(0, sub, r1, r4, r2, r3);
- *       p  = s1->0x84;
- *       func_00000000((char*)p + 0x10, r5);
- *       if (r5->0x14 != 0) r5->0x4 = 1;         // beql link
- *       r5->0x14 = p;
- *       r1->0x8DC = r4;
- *   }
  * Struct-typing reference (same family as func_000038C0): s1->0x80
  * (128) handle passed through; s1->0x98 (152) -> cfg with f32
  * 0xC4 (196)/0xCC (204) builder params; s1->0x84 (132) = parent
@@ -1553,11 +1533,44 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003638);
  * idx-table build result r4. &D + a1*0x1C = a 28-byte descriptor
  * table indexed by a1; func_00000080+0x14 = a static datum.
  * func_00000000 = the tagged-vararg builder (tags 2/1/0/0x58005/
- * 0x1B). Caps <80: ~12 func_00000000 reloc + FP stack-arg + a1*
- * 0x1C index (sll/subu/sll) + beql link-guard + 2 alloc(0x80).
- * Full body INCLUDE_ASM-preserved (.s = source of truth).
- * INCLUDE_ASM (no episode; tautology-trap rule). */
+ * 0x1B). Caps <80: ~12 reloc + FP stack-arg + a1*0x1C index
+ * (sll/subu/sll) + beql link-guard + 2 alloc(0x80).
+ * INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+void func_00003734(char *s1, int a1) {
+    char *s0;
+    char *sub;
+    char *cfg;
+    char *r1, *r2, *r3, *r4, *r5;
+    char *row;
+    char *p;
+    s0 = (char*)func_00000000(0x80);
+    if (s0 == 0) return;
+    func_00000000(s0, 0);
+    func_00000000(&D_00000000, s0);
+    cfg = *(char**)(s1 + 0x98);
+    r1 = (char*)func_00000000(s1, 2, 1, (char*)&func_00000080 + 0x14,
+                              s0, *(int*)(s1 + 0x80),
+                              *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
+                              0x58005, 0x1B);
+    r2 = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), r1);
+    r3 = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), r1);
+    (void)r3;
+    row = (char*)&D_00000000 + a1 * 0x1C;
+    r4 = (char*)func_00000000(s1, row, r2);
+    sub = (char*)func_00000000(0x80);
+    if (sub == 0) return;
+    func_00000000(sub, 1);
+    r5 = (char*)func_00000000(0, sub, r1, r4, r2, r3);
+    p = *(char**)(s1 + 0x84);
+    func_00000000(p + 0x10, r5);
+    if (*(int*)(r5 + 0x14) != 0) *(int*)(r5 + 0x4) = 1;
+    *(char**)(r5 + 0x14) = p;
+    *(char**)(r1 + 0x8DC) = r4;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003734);
+#endif
 
 /* func_000038C0 - verified structural decode (0x118, 70 insns,
  * composite constructor + 3-stage builder chain).
