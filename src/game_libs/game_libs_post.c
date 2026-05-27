@@ -16920,30 +16920,26 @@ void gl_func_00039A9C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A9C);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00039B0C: 19-insn float-Vec3-copy + 2 alt-entry jal dispatches.
  *   Copies a0->{0x5C,0x60,0x64} to local Vec3 buf.
  *   Calls func_0004C3B4(&buf, a0);
  *   Calls func_0004C414(a0 + 0x6C, a0);
  *
- * 2026-05-14 improvement: switched extern naming from gl_ref_X to unprefixed
- * func_X per docs/MATCHING_WORKFLOW.md#feedback-cross-segment-extern-naming-unprefixed,
- * brought 99.26% → 99.58% (jal-name diffs resolved). Stack-offset cap
- * remains (buf at sp+0x18 C-emit vs sp+0x24 target — needs 12 bytes of
- * unused stack between ra and buf, no clean C trigger found). */
+ * CRACKED 2026-05-27 (byte-exact): 3 volatile ints AFTER buf fill the
+ * "12 bytes of unused stack between ra and buf" that the previous doc
+ * said had "no clean C trigger". Same volatile-pad-below-buf lever as
+ * gl_func_0005E030/0x5E0B4. */
 extern int func_0004C3B4();
 extern int func_0004C414();
 void gl_func_00039B0C(int *a0) {
     float buf[3];
+    volatile int p0, p1, p2;
     buf[0] = *(float*)((char*)a0 + 0x5C);
     buf[1] = *(float*)((char*)a0 + 0x60);
     buf[2] = *(float*)((char*)a0 + 0x64);
     func_0004C3B4(buf, a0);
     func_0004C414((char*)a0 + 0x6C, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B0C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00039B58: 77-insn switch on a1[0] (states 7, 19, default).
