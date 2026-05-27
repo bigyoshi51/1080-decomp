@@ -31086,12 +31086,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
  * within each product + the dot's commuted final add (op-mismatch=0; products are
  * commutative so patching the loads is logic-preserving) -> INSN_PATCH 9 words
  * (+ NON_MATCHING twin so it counts). Reloc-free. */
+/* 2026-05-27: 9-diff regalloc cap reduced to 1-line residual via two
+ * operand swaps:
+ *   - The negated second product in each cross row: `- a2[K]*a1[J]`
+ *     instead of `- a1[J]*a2[K]` matches IDO's RTL operand-eval order.
+ *   - The last term of the dot product swapped to `a2[2]*a1[2]` to put
+ *     a1[2] in the lwc1-second slot.
+ * Residual 1-line: the final `add.s $f4, $f8, $f6` operand order (target
+ * has fs=running-sum=$f8, ours has fs=last=$f6) is the docs/IDO_CODEGEN.md
+ * "final reduction operand order" doc'd cap — can't flip without changing
+ * load order. NM at 99.97% (was 98.70%). */
 #ifdef NON_MATCHING
 void game_libs_func_0005D588(float *a0, float *a1, float *a2) {
-    a0[0] = a1[1]*a2[2] - a1[2]*a2[1];
-    a0[1] = a1[2]*a2[0] - a1[0]*a2[2];
-    a0[2] = a1[0]*a2[1] - a1[1]*a2[0];
-    a0[3] = a1[0]*a2[0] + a1[1]*a2[1] + a1[2]*a2[2];
+    a0[0] = a1[1]*a2[2] - a2[1]*a1[2];
+    a0[1] = a1[2]*a2[0] - a2[2]*a1[0];
+    a0[2] = a1[0]*a2[1] - a2[0]*a1[1];
+    a0[3] = a1[0]*a2[0] + a1[1]*a2[1] + a2[2]*a1[2];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D588);
