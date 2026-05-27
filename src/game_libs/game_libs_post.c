@@ -5752,7 +5752,11 @@ void gl_func_00026C48(int a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 91% — target has `or a2, a1, zero` + sll from a2 that IDO C won't emit */
+/* NON_MATCHING: 91% — target has `or a2, a1, zero` + sll from a2 that IDO C won't emit.
+ * 2026-05-27 retest: `int copy = a1; local = copy << 24;` (named copy of a1)
+ * regressed 90% → 8% — lost the a1 home-spill that mine relies on. The
+ * `int *dummy = &a1` trick spills a1 to caller's outgoing arg slot,
+ * matching the target's frame layout. */
 extern int gl_ref_0003B244();
 void gl_func_00026C6C(int a0, int a1) {
     int local;
