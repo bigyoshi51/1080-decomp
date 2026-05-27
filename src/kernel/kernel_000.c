@@ -137,7 +137,17 @@ extern s32 D_80012D5C;
  *   $v0 allocation: emit unchanged ($v1 still selected for mask). IDO's
  *   `register` honors strong reg-class hints but doesn't override the
  *   priority-based $v0/$v1 split when $v0 is reserved for a longer-live
- *   pseudo. Confirms cap is structural, not register-hint-fixable. */
+ *   pseudo. Confirms cap is structural, not register-hint-fixable.
+ *
+ * 2026-05-27 retest #4 — split-jr-ra-via-goto-out lever (the same lever
+ *   that landed gl_func_0001FD98 / improved gl_func_00036E74 + 0003D16C):
+ *   `if (new_top < D_8000A2DC) goto succ; return 0; succ: return result;`.
+ *   Standalone-cc shows mine still places `or v0, v1, $0` in the bnez
+ *   delay slot rather than target's BEFORE-sltu position. The goto-out
+ *   lever splits the jr-ra into two but doesn't move the preemptive set
+ *   out of the delay slot — same root structural-cap as variants (a)/(b).
+ *   The cap is the position of the v0=v1 copy, not the number of jr-ra
+ *   blocks. */
 #ifdef NON_MATCHING
 u32 func_800000B0(u32 size, u32 alignment) {
     u32 mask;
