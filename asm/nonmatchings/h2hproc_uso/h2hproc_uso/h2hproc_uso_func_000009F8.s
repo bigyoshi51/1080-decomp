@@ -1,4 +1,4 @@
-nonmatching h2hproc_uso_func_000009F8, 0x90
+nonmatching h2hproc_uso_func_000009F8, 0x88
 
 glabel h2hproc_uso_func_000009F8
     /* 5AC0A8 000009F8 27BDFFE8 */  .word 0x27BDFFE8
@@ -35,6 +35,4 @@ glabel h2hproc_uso_func_000009F8
     /* 5AC124 00000A74 27BD0018 */  .word 0x27BD0018
     /* 5AC128 00000A78 03E00008 */  .word 0x03E00008
     /* 5AC12C 00000A7C 00000000 */  .word 0x00000000
-    /* 5AC130 00000A80 03E00008 */  .word 0x03E00008
-    /* 5AC134 00000A84 AC800504 */  .word 0xAC800504
 endlabel h2hproc_uso_func_000009F8
