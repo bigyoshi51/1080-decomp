@@ -33816,7 +33816,37 @@ void gl_func_0006366C(int a0, int a1, int a2, int a3, int a4, int a5) {
     gl_func_00000000(a0, a1, a2, a3, a4, a5);
 }
 
+/* game_libs_func_000636BC: 18-insn struct-setter with 2 conditional state changes.
+ *   void f(int *a0, int a1, int a2, float a3, int a4, int a5) {
+ *     int old_98 = a0[0x98];
+ *     a0[0x8C] = a1; a0[0x90] = a2; a0[0x94] = a3 (float);
+ *     if (old_98 & 0x100)  a0[0x6C] = a5;
+ *     if (!(a4 & 0x100))   a0[0x70] = 0;
+ *     a0[0x98] = a4 | 0x80;
+ *   }
+ *
+ * 2026-05-27: NM-wrap added with float-typed a3 (sig-type-fix lever).
+ * 18-insn match in count but register-rename + scheduling diffs from
+ * target's bnel-shared-tail pattern (TWO lw a4 reloads with branch-likely).
+ * `int *p4 = &a4` lever produces the bnel form but reg cascade differs. */
+#ifdef NON_MATCHING
+void game_libs_func_000636BC(int *a0, int a1, int a2, float a3, int a4, int a5) {
+    int old_98 = a0[0x98 / 4];
+    int *p4 = &a4;
+    a0[0x8C / 4] = a1;
+    a0[0x90 / 4] = a2;
+    *(float*)((char*)a0 + 0x94) = a3;
+    if (old_98 & 0x100) {
+        a0[0x6C / 4] = a5;
+    }
+    if (!((*p4) & 0x100)) {
+        a0[0x70 / 4] = 0;
+    }
+    a0[0x98 / 4] = (*p4) | 0x80;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000636BC);
+#endif
 
 
 void game_libs_func_00063704(int a0) {}
