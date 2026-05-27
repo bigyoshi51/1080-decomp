@@ -1559,44 +1559,25 @@ int gl_func_0001FD5C(int a0, int a1) {
 //   reloc infra + beql/bnel clear-loop schedule. Name pre-checked:
 //   no extern reuse (collision-safe). gl_func_00000000 = canonical
 //   never-defined USO placeholder for the allocator.
-#ifdef NON_MATCHING
+/* 23-insn alloc-then-zero-fill. CRACKED 2026-05-27 via goto-out lever:
+ * `if (p == 0) goto out;` (instead of `return 0;`) routes the early-exit
+ * through the SAME epilogue as the loop-completion path, allowing IDO to
+ * emit `beq v0,$0,+0xC` directly to epilogue (with delay slot saving
+ * a1=v0=0 as return value) — no intermediate `b skip; or v0,$0,$0` setup
+ * needed. The shared epilogue lever (docs/IDO_CODEGEN.md
+ * #feedback-ido-goto-epilogue-shared-saves-redundant-set) saves 2 insns
+ * vs the if/return form. */
 extern int gl_func_00000000();
 void *gl_func_0001FD98(int *a0) {
     char *p = (char *)gl_func_00000000(a0);
     char *c;
-    if (p == 0) {
-        return 0;
-    }
+    if (p == 0) goto out;
     for (c = p; c < (char *)a0[1]; c++) {
         *c = 0;
     }
+out:
     return p;
 }
-#else
-#ifdef NON_MATCHING
-/* gl_func_0001FD98: 23-insn alloc-then-zero wrapper. v0 = cb(a0); if v0==0
- * return 0; else zero bytes from v0 up to the end pointer *(a0+4); return v0.
- * (a0 reloaded from its home slot across the call; unsigned pointer compare.)
- * NM (reference decode): collapsed-placeholder call (raw-.word game_libs reloc
- * depression). */
-extern int gl_func_00000000();
-int gl_func_0001FD98(int a0) {
-    char *p;
-    int v0 = gl_func_00000000(a0);
-    if (v0 == 0) {
-        return 0;
-    }
-    p = (char *)v0;
-    while ((unsigned int)p < (unsigned int)*(int *)((char *)a0 + 4)) {
-        *p = 0;
-        p++;
-    }
-    return v0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FD98);
-#endif
-#endif
 
 /* Bump/arena allocator. aligned = (n+15) & ~15; if (arena->base + arena->size
  * < arena->cur + aligned) return 0 (overflow); else old = arena->cur;
