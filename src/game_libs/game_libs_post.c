@@ -18690,10 +18690,16 @@ int *gl_func_0003D5BC(int *a0) {
  *
  * NATURAL CEILING: 96.96% NM. The 13-insn diff covers register-alloc +
  * addressing-mode + frame-slot reshuffle (build uses $t6/$v0/sp+0x1C;
- * target uses $v0/$t7/sp+0x24-via-$t6). Was previously documented as
- * INSN_PATCH-promoted to EXACT; INSN_PATCH REMOVED 2026-05-23 as
- * match-faking (per feedback_no_instruction_forcing_matches_policy).
- * Default build is INCLUDE_ASM. */
+ * target uses $v0/$t7/sp+0x24-via-$t6).
+ * 2026-05-27 retest: tried struct-cast lever on both halves of the
+ * ping-pong (struct ThreeI tmp = *p; struct ThreeF out = struct ThreeF tmp;)
+ * — IDO collapses to direct int-store-without-float-reinterpret,
+ * regressing to 11/27. The int→float bit reinterpret REQUIRES the
+ * explicit `*(float*)&tmp[N]` cast to preserve the stack ping-pong.
+ * Was previously documented as INSN_PATCH-promoted to EXACT; INSN_PATCH
+ * REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy). Default build is
+ * INCLUDE_ASM. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void gl_func_0003D620(int *a0, int *a1) {
