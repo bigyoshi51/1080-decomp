@@ -247,8 +247,9 @@ extern void func_80009030(s32, s32);
  *
  * Promotion path remains: needs a C shape that splits the andi off the
  * call arg WITHOUT introducing scheduler perturbations elsewhere, OR
- * permuter discovery. The 3 prologue caps can be INSN_PATCH'd once size
- * matches. Deferred. */
+ * permuter discovery. (INSN_PATCH was the previous size-matched bridge
+ * but REMOVED 2026-05-23 as match-faking per
+ * feedback_no_instruction_forcing_matches_policy.) Deferred. */
 #ifdef NON_MATCHING
 s32 func_80009474(s32* msg) {
     register s32* p;
