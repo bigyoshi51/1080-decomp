@@ -167,8 +167,15 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000014
 #endif
 
 /* Identical pattern to _00000188: 3-insn unfilled-delay `move v0,zero; jr ra;
- * nop` return-0 leaf (size 0xC). -O2 fills delay to size 0x8. Needs per-file
- * -g3 split per feedback_unfilled_delay_int_reader_needs_o0_split. CAP. */
+ * nop` return-0 leaf (size 0xC). -O2 fills delay to size 0x8.
+ *
+ * PERMANENTLY BLOCKED by Yay0 pipeline (same blocker as sibling 000000B0):
+ * mgrproc_uso is Yay0-compressed (one .o → one compressed block), so the
+ * per-file -g3 split recipe used by bootup_uso/arcproc_uso/n64proc_uso
+ * doesn't apply here. Default INCLUDE_ASM matches; the C wrap is for grep
+ * discoverability + future-PC-port reference, not for promotion.
+ * Unblock would require `ld -r` pre-merge before yay0 compression
+ * (infrastructure work, deferred — see feedback_yay0_uso_blocks_file_split_recipe). */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_0000015C(void) {
     return 0;
@@ -196,10 +203,13 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000017
 #endif
 
 /* 3-insn unfilled-delay leaf: `move v0,zero; jr ra; nop` (size 0xC). At -O2
- * IDO fills the delay slot to size 0x8 = `jr ra; move v0,zero`. The unfilled
- * form needs per-file -g3/-O0 OPT_FLAGS override per
- * feedback_unfilled_delay_int_reader_needs_o0_split — focused-session work
- * (whole-file split), not a tick fix. CAP. */
+ * IDO fills the delay slot to size 0x8 = `jr ra; move v0,zero`.
+ *
+ * PERMANENTLY BLOCKED by Yay0 pipeline (same as sibling 000000B0 / 0000015C):
+ * mgrproc_uso is Yay0-compressed (one .o → one compressed block), so the
+ * per-file -g3 split recipe used by bootup_uso/arcproc_uso/n64proc_uso
+ * doesn't apply. Unblock requires `ld -r` pre-merge before yay0 compression
+ * (infrastructure work; see feedback_yay0_uso_blocks_file_split_recipe). */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00000188(void) {
     return 0;
