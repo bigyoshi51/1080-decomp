@@ -21667,28 +21667,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000415A4);
  *   vtable = self->[0x28];
  *   vtable->[0x34]((s16)vtable->[0x30] + self, &local);
  *
- * 99.92% (pad[3] = correct -48 frame). Sole residual: `local` spills
- * to sp+0x28, target sp+0x24 (4-byte in-frame shift). Same pad/frame
- * coupling as gl_func_00039A9C: pad[3]→-48 frame + local@0x28;
- * pad[2]→-40 frame (wrong) + local@0x20 (worse, 6 diffs). No pad value
- * yields BOTH -48 frame AND local@0x24 — INSN_PATCH-only (1 sw + 1
- * addiu offset). C-level dead-end confirmed 2026-05-15. */
-#ifdef NON_MATCHING
+ * CRACKED 2026-05-27 (byte-exact): VOLATILE-PAD-SANDWICH lever.
+ * Sandwich `local` between an upper volatile pad and lower volatile
+ * pads:
+ *   volatile int pad_upper;  (one slot above local — at sp+0x28)
+ *   int local;               (at sp+0x24, matching target)
+ *   volatile int pad_lo_a, pad_lo_b;  (below — at sp+0x20, sp+0x1C)
+ * AND DROP `(void)pad;` cast (otherwise emits extra discard `lw zero`
+ * reads at epilogue). The volatile decl alone reserves the slot
+ * without emitting any read/write — purely a layout hint.
+ *
+ * Previous doc claimed "INSN_PATCH-only" and "no pad value yields
+ * both -48 frame AND local@0x24" — wrong; the SANDWICH layout works
+ * because IDO -O2 places locals first-declared-highest, so pad_upper
+ * gets 0x28, local gets 0x24, the lower pads fill 0x20/0x1C. See
+ * docs/IDO_CODEGEN.md "volatile-pad sandwich" entry. */
 void gl_func_00041768(int *self) {
     int *vtable;
+    volatile int pad_upper;
     int local;
-    volatile int pad[3];
+    volatile int pad_lo_a, pad_lo_b;
     func_00000000((char*)&D_00000000 + 0x1F5E4);
     vtable = (int*)self[0x28/4];
     ((void(*)(int))vtable[0x14/4])(*(short*)((char*)vtable + 0x10) + (int)self);
     local = 9;
     vtable = (int*)self[0x28/4];
     ((void(*)(int, int*))vtable[0x34/4])(*(short*)((char*)vtable + 0x30) + (int)self, &local);
-    (void)pad;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041768);
-#endif
 
 /* gl_func_000417CC: 21-insn 2-vtable-call dispatcher.
  *   gl_func_00000000();   // unrelated jal
