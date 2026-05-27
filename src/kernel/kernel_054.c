@@ -185,7 +185,12 @@ extern void func_800091F0(s32);
  *
  * Both v12 and v13 confirm: prologue-store-order is decoupled from C-level
  * decl/use order at -O1. The s0/s1 store order is set by IDO's allocno-id
- * tiebreaker, which we can't influence from C. Permuter only. */
+ * tiebreaker, which we can't influence from C. Permuter only.
+ * 2026-05-27 v14 retest: tried `register s32* p = msg;` (replacing the
+ * unreachable post-return `p = msg;`) — IDO emits extra `or s0, a0, zero`
+ * insn, shifting the entire body by 1 insn → 2/49. The unreachable
+ * `p = msg;` is the documented form that doesn't introduce extra emit.
+ * Permuter only. */
 #ifdef NON_MATCHING
 s32 func_8000969C(s32* msg) {
     register s32* p;
