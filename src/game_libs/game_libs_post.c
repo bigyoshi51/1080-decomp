@@ -12487,6 +12487,10 @@ int gl_func_00033B28(int a0, int a1, int a2) {{
 }}
 
 // gl_func_00033B6C — STRUCTURAL PASS (0x78 / 30 words, no episode).
+// 2026-05-27 lever pass: decl-order swap (f30 first) brought 24/30→26/30.
+// Reverse-decl (end first) regressed to 22/30. Remaining 4 diffs are
+// addiu-scheduling within the lui+addiu sequence (target schedules in
+// reverse-lui order; mine in lui order). Permuter-class.
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
 // prologue). A sweep / reset-all over the &D_0 registry table —
 // the teardown counterpart to gl_func_000337AC / gl_func_00033880.
