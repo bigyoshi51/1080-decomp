@@ -31110,7 +31110,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
  * allocation artifact (slots assigned in pseudo-regno order). The permuter
  * reports "score 0" here but the BYTES STILL DIFFER: its scorer normalizes
  * sp-relative offsets, so a pure spill-slot swap is a false positive -- do NOT
- * log an episode off a permuter zero without a raw byte-compare. Honest cap. */
+ * log an episode off a permuter zero without a raw byte-compare. Honest cap.
+ *
+ * 2026-05-27 retest: preload-all-components form (lift all a0[0..3]+a1[0..3]
+ * into top-of-function locals before any multiply) compiles to a 48-insn body
+ * WITH ZERO spills — fundamentally shorter than target's 53-insn body. Drops
+ * to 99.94% (worse). Confirms target's shape REQUIRES the 3 spills; the cap
+ * is intrinsic to the form that produces 53 insns. No-spill variant isn't a
+ * lever. */
 void gl_func_0005D054(float *a0, float *a1, float *a2) {
     float w = (((a0[3] * a1[3]) - (a0[0] * a1[0])) - (a0[1] * a1[1])) - (a1[2] * a0[2]);
     float x = (((a0[3] * a1[0]) + (a0[0] * a1[3])) + (a0[1] * a1[2])) - (a1[1] * a0[2]);
