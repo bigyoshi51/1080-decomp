@@ -65,9 +65,7 @@ void func_8000817C(void) {
     s32 saved_a = ((s32 *)&rmonbrk_bss_0000)[0];
 
     if (saved_a != 0) {
-        s32 inst = *(s32 *)saved_a;
-
-        if ((inst & 0xFC00003F) == 0xD) {
+        if ((*(s32 *)saved_a & 0xFC00003F) == 0xD) {
             *(s32 *)((s32 *)&rmonbrk_bss_0000)[0] = ((s32 *)&rmonbrk_bss_0000)[1];
             func_800031F0((void *)((s32 *)&rmonbrk_bss_0000)[0], 4);
             func_80005350((void *)((s32 *)&rmonbrk_bss_0000)[0], 4);
