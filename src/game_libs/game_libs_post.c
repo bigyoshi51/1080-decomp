@@ -9719,7 +9719,29 @@ extern int gl_func_00042428();
 int gl_func_0002DD90(int a0, int a1) {
     return gl_func_00042428(a0 & 0xFF, a1, 0, 0x3F800000);
 }
+/* game_libs_func_0002DDBC: 12-insn 4-global setter. Stores (a0&0xFF, a1,
+ * a2) to 3 int D-symbols + a3 (float bits via mtc1) to a 4th D-symbol.
+ *
+ * Byte-exact 2026-05-27 via sig-type-fix (a3 as float → mtc1 a3, $f12)
+ * + arg-shadow-spill recipe (`int *p = &a0; a0 &= 0xFF;` mutates a0
+ * in-place, IDO emits `sw a0, 0(sp)` at offset 0 using caller's arg
+ * shadow space, no frame allocation). All 4 D-symbols are placeholder
+ * externs resolving to 0x0 (4 distinct names break IDO's CSE on the
+ * lui+sw pair — per feedback-ido-cse-bust-via-distinct-externs). */
+extern char D_2DDBC_a, D_2DDBC_b, D_2DDBC_c, D_2DDBC_d;
+#ifdef NON_MATCHING
+void game_libs_func_0002DDBC(int a0, int a1, int a2, float a3) {
+    int *p = &a0;
+    a0 &= 0xFF;
+    *(int*)&D_2DDBC_a = a0;
+    *(int*)&D_2DDBC_b = a1;
+    *(int*)&D_2DDBC_c = a2;
+    *(float*)&D_2DDBC_d = a3;
+    (void)p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DDBC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DDEC);
 
