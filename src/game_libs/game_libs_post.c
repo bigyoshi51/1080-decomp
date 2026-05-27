@@ -12526,9 +12526,9 @@ int gl_func_00033B28(int a0, int a1, int a2) {{
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_00033B6C(void) {
+    char *f30 = (char *)&D_00000000 + 0x30;
     char *rec = (char *)&D_00000000;
     char *f18 = (char *)&D_00000000 + 0x18;
-    char *f30 = (char *)&D_00000000 + 0x30;
     char *end = (char *)&D_00000000 + 0x2D8;
     do {
         *(int *)(rec + 0x3C) = 0;
