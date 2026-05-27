@@ -1623,28 +1623,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CB58);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0000CB9C: 24-insn bounds-check + dispatch (0%→70%).
+/* gl_func_0000CB9C: 22-insn bounds-check + dispatch. Body:
  *   if (a0[0x30] < a0[0x34]) return 0;
- *   p = a0[0x78];
- *   v = a0[0x34] - 8;
- *   if (p != 0) { func(p); a0[0x30] = v; }
+ *   if (a0[0x78]) { func(a0[0x78]); a0[0x30] = a0[0x34] - 8; }
  *   return 1;
- * Remaining cap: frame -0x20 vs target -0x18, extra spills of v/target
- * locals, and IDO chooses $a1 for preserving a0 vs target's $a2. */
+ * Target frame is -0x18 (only ra spilled).
+ *
+ * MNEMONIC-FUZZY CEILING 80% (report.json) vs OPERAND-LEVEL ~22% (objdiff).
+ * Verified 2026-05-27:
+ *   - Inlined-no-locals form (no goto, no rv var): 21.57% operand.
+ *   - Unified-rv goto-end form: 9.90% operand (worse — extra spill of rv).
+ *   - Original local-var goto end_zero form: similar to inlined.
+ * The mnemonic-fuzzy 80% is misleading; real diff is large.
+ *
+ * Target asm forensics: target uses `bnezl at, EPILOGUE` with delay
+ * `or v0, zero, zero` for the early-exit; IDO -O2 from any of the tried
+ * C shapes emits `beqzl` or pair-of-branches instead, missing the
+ * bnezl-merged-into-epilogue idiom. ALSO target has a DEAD `move v0,zero`
+ * at +0x40, between the b's delay (li v0,1) and the epilogue — vestigial
+ * from an optimizer-tail-merged null-ptr return-0 path that no clean C
+ * source reproduces. Both caps stack; documented NM only. */
 extern int gl_func_00000000();
 int gl_func_0000CB9C(int *a0) {
-    int *target;
-    int v;
-    if (a0[0x30/4] < a0[0x34/4]) goto end_zero;
-    target = (int*)a0[0x78/4];
-    v = a0[0x34/4] - 8;
-    if (target != 0) {
-        gl_func_00000000(target);
-        a0[0x30/4] = v;
+    if (a0[0x30/4] < a0[0x34/4]) return 0;
+    if (a0[0x78/4]) {
+        gl_func_00000000(a0[0x78/4]);
+        a0[0x30/4] = a0[0x34/4] - 8;
     }
     return 1;
-end_zero:
-    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CB9C);
