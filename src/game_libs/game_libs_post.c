@@ -31154,7 +31154,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C948);
  * class, FPU variant). Default INCLUDE_ASM byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C960);
 
+// gl_func_0005C9BC — 3-component normalize with epsilon-degenerate fallback.
+//   If |a0|² < D[0x2034], snap to (0,0,1) and return 0; otherwise normalize
+//   in place and return 1. Sibling of gl_func_0005D4F8.
+//   STRUCTURAL pass 98.40% fuzzy. 11 register-renumber diffs in load order
+//   (TU-context-sensitive scheduling). Reloc-free jal -> sqrtf.
+//   Permuter-class for byte-match.
+#ifdef NON_MATCHING
+extern int D_00000000;
+extern float sqrtf(float);
+int gl_func_0005C9BC(float *a0) {
+    float s = a0[0]*a0[0] + a0[1]*a0[1] + a0[2]*a0[2];
+    if (s < *(float *)((char *)&D_00000000 + 0x2034)) {
+        a0[1] = 0.0f;
+        a0[0] = 0.0f;
+        a0[2] = 1.0f;
+        return 0;
+    }
+    {
+        float inv = 1.0f / sqrtf(s);
+        a0[0] *= inv;
+        a0[1] *= inv;
+        a0[2] *= inv;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C9BC);
+#endif
 
 /* game_libs_func_0005CA78 (size 0x74, 29 insns): VERIFIED STRUCTURAL DECODE
  * 6-axis short-circuit AABB-overlap-like test returning 1 if all 6 inequalities
