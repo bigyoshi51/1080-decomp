@@ -5754,7 +5754,25 @@ int gl_func_00026C9C(int a0, int a1) {
     return gl_func_0003B244(a0, &local, a1);
 }
 #else
+/* gl_func_00026C9C: 12-insn 1-call helper. Computes `a1 << 16` into a
+ * stack local then calls gl_ref_0003B244(a0, &local).
+ *
+ * 1-insn off (mine 11, target 12): target has `or a2, a1, 0` + `sll t6, a2, 16`
+ * (explicit copy a1→a2 before shift); mine emits `sll t7, a1, 16` direct.
+ * Same a0-home-spill+copy-to-a2 cap class as gl_func_0002DD58 — IDO C can't
+ * emit the explicit move-then-shift from clean source. */
+extern int gl_ref_0003B244();
+#ifdef NON_MATCHING
+void gl_func_00026C9C(int a0, int a1) {
+    int local;
+    int *p = &a1;
+    local = a1 << 16;
+    gl_ref_0003B244(a0, &local);
+    (void)p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C9C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026CCC);
 #endif
