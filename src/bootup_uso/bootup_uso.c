@@ -1625,20 +1625,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000038C0);
  * func_00003734 builder-chain family (same alloc-0x80 + tagged-arg
  * func_00000000 builder pattern; flags = global|1|0x10000|0x40000,
  * tag 0x1B; s2 source, cfg = s2->0x98).
- *   void func_000039D8(St *s2, int a1) {
- *       o1 = alloc(0x80); if (!o1) return; init(o1, 1);
- *       o2 = alloc(0x80); if (!o2) return; init(o2, 0);
- *       register(&D, o1);  register(&D, o2, o1);
- *       register(&D, o1, o2);
- *       flags = (D_g->0x50 | 1) | 0x10000 | 0x40000;
- *       cfg = s2->0x98;
- *       r = build(s2, 0, D_g->0x4C, D_g->0x54,
- *                 o1, s2->0x80, cfg->0xC4, cfg->0xCC,
- *                 flags, 0x1B);                   // tagged block
- *       ... (chain continues: more build() stages wiring o1/o2,
- *           a1*0x1C-indexed descriptor table, final list-link &
- *           r->0x8DC = result, as in func_00003734).
- *   }
  * Struct-typing reference (same family as func_000038C0 /
  * func_00003734): s2->0x80 (128) pass-through handle; s2->0x98
  * (152) -> cfg with f32 0xC4 (196) / 0xCC (204) builder params;
@@ -1646,12 +1632,40 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000038C0);
  * 0x1|0x10000|0x40000 feature bits, ->0x4C (76) / ->0x54 (84)
  * global build params. o1/o2 = 0x80-byte builder objects
  * cross-wired through the tagged func_00000000 builder. a1 indexes
- * a 0x1C-stride descriptor table (per the family pattern). Caps
- * <80: ~12 func_00000000 reloc + FP stack-arg passing + packed-
- * flag lui/ori + a1*0x1C index + list-link beql. Full body
- * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode; tautology-trap rule). */
+ * a 0x1C-stride descriptor table (per the family pattern).
+ * Caps <80: ~12 reloc + FP stack-arg passing + packed-flag lui/ori
+ * + a1*0x1C index + list-link beql. INCLUDE_ASM remains build path. */
+#ifdef NON_MATCHING
+void func_000039D8(char *s2, int a1) {
+    char *o1 = (char*)func_00000000(0x80);
+    char *o2;
+    char *cfg;
+    char *Dg = &D_00000000;  /* D_g (placeholder) */
+    char *r;
+    int flags;
+    if (o1 == 0) return;
+    func_00000000(o1, 1);
+    o2 = (char*)func_00000000(0x80);
+    if (o2 == 0) return;
+    func_00000000(o2, 0);
+    func_00000000(&D_00000000, o1);
+    func_00000000(&D_00000000, o2, o1);
+    func_00000000(&D_00000000, o1, o2);
+    flags = (*(int*)(Dg + 0x50) | 1) | 0x10000 | 0x40000;
+    cfg = *(char**)(s2 + 0x98);
+    r = (char*)func_00000000(s2, 0, *(int*)(Dg + 0x4C), *(int*)(Dg + 0x54),
+                             o1, *(int*)(s2 + 0x80),
+                             *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
+                             flags, 0x1B);
+    (void)r; (void)a1;
+    /* Chain continues per family-shared shape (~6 more build() stages
+     * wiring o1/o2, a1*0x1C-indexed descriptor table walks, final
+     * list-link & r->0x8DC = result, as in func_00003734).
+     * Truncated in decode. */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
+#endif
 
 /* func_00003B78 - verified structural decode (0x1C4, 113 insns,
  * multi-stage builder chain). MEMBER of the func_000038C0 /
