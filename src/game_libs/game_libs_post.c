@@ -4126,22 +4126,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023B44);
 /* game_libs_func_00023B98: 3-case dispatch returning USO data fields.
  * MERGED 2026-05-26: absorbed shared-tail fragments _00023BC0, _00023BC8,
  * _00023BD0 (each a 2-3 insn `jr ra; lw v0, OFFSET($v1)` epilogue, branch
- * target from this function's beq's). 0x28 -> 0x44 bytes. Shared-tails are
- * not callable externally — zero refs in asm/ before merge.
+ * target from this function's beq's). 0x28 -> 0x44 bytes.
  *
- * Semantic decode:
- *   int game_libs_func_00023B98(int idx) {
- *     if (idx == 0) return *(int*)((char*)&D_00000000 + 0x201C);
- *     if (idx == 1) return *(int*)((char*)&D_00000000 + 0x2020);
- *     if (idx == 2) return *(int*)((char*)&D_00000000 + 0x2024);
- *     return 0;
- *   }
- * IDO -O2 emits the if-else form with `bne` early-skip + inline jr; the
- * target uses `beq` jumps to SEPARATE per-case shared-tails with the `lui`
- * hoisted into the beq's delay slot. Same insn count (17) but a different
- * scheduling choice; not yet C-reproducible. Match-grind candidate — keep
- * INCLUDE_ASM until codegen-coaxable. */
+ * Semantic decode (CORRECTED 2026-05-27 — prior doc had off-by-one
+ * case mapping; verified against asm at 0x28E0/0x28E8/0x28F0 dispatch
+ * targets):
+ *   if (idx == 0) return D[0x201C];
+ *   if (idx == 1) return D[0x2020];
+ *   if (idx == 2) return D[0x2024];
+ *   return 0;
+ *
+ * NM-wrap form below produces 25% match — IDO -O2 emits `bne` early-skip
+ * with inline-jr per case; target uses `beq` to SEPARATE shared-tail
+ * blocks with `lui` hoisted into the beq's delay slot. Different shape;
+ * not C-reproducible (the shared-tail pattern requires goto-out + label
+ * which IDO can't merge at the lui-delay level). Default INCLUDE_ASM
+ * is byte-exact. */
+#ifdef NON_MATCHING
+int game_libs_func_00023B98(int idx) {
+    if (idx == 0) return *(int*)((char*)&D_00000000 + 0x201C);
+    if (idx == 1) return *(int*)((char*)&D_00000000 + 0x2020);
+    if (idx == 2) return *(int*)((char*)&D_00000000 + 0x2024);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023B98);
+#endif
 
 // gl_func_00023BDC — STRUCTURAL PASS (0x284 / 161 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
