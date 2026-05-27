@@ -7921,8 +7921,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
  * (a0[5]->p[7], a0[3]->p[3], a0[2]->p[2]) where p = *(int*)(a0 + 56 + i*4).
  * RELOC-FREE → episode target. IDO unrolls the loop by 4 (matched, 59 vs 62);
  * byte-match capped by the arg-home (sw a1 saved), the v0-step-4 unroll counter
- * vs i-step-1, and $t-renumber. Re-attempt with the permuter or explicit
- * nested-by-4 loop in a focused pass. */
+ * vs i-step-1, and $t-renumber. 2026-05-27 retest: `unsigned short s = a1; s>>=1`
+ * regressed 90.73% → 80.89% (changed scratch reg from $v0 to $v0+$v1 split).
+ * Re-attempt with the permuter or explicit nested-by-4 loop in a focused pass. */
 void game_libs_func_0002A5C8(char *a0, int a1) {
     int i;
     a1 &= 0xFFFF;
