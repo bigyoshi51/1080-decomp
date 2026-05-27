@@ -8918,7 +8918,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002CF70);
  * 75 % byte-exact. Built has bnezl-likely → my `> 0` produces blezl which
  * is correct; remaining diff is loop-iteration register pick (built uses
  * v0 for the loop counter, target uses t7→t8). Source 1 (sibling cluster
- * of recently-promoted 0x2D6C8). */
+ * of recently-promoted 0x2D6C8). 2026-05-27 retest: split into two locals
+ * `loaded = *p; n = loaded - 1;` REGRESSED to 15/20 (load picked $v1, dec
+ * picked $v0 — still not $t7/$t8). The $tN-vs-$vN preference is an
+ * allocator-weight cap; permuter-class. */
 extern int gl_ref_00040E10();    /* mid-body alt-entry, see undefined_syms_auto.txt */
 void gl_func_0002D014(int *a0) {
     register int *s0 = a0;
