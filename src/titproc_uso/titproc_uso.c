@@ -1271,6 +1271,29 @@ int *titproc_uso_func_00002980(int *a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002980);
 
+/* titproc_uso_func_00002A10: SAVE-ARG-SENTINEL + TRAILING-DATA boundary issue.
+ *
+ * The function's CODE is only 2 insns (8 bytes), exactly the
+ * `void f(int a0) {}` save-arg sentinel pattern at -O2:
+ *     03E00008  jr ra
+ *     AFA40000  sw a0, 0(sp)      (delay slot, writes caller's outgoing-arg shadow)
+ *
+ * Splat declared the symbol size as 0x1C, so the .s file contains 5
+ * additional trailing words that are NOT part of the function:
+ *     00000000 00000000           (2 nops — alignment padding)
+ *     00000001 000007F8 08006508  (3 data words — looks like {flag=1,
+ *                                  count=0x7F8, jump=j 0x19414} struct,
+ *                                  or just const segment trailer)
+ *
+ * This is the LAST function in the titproc_uso segment (segment ends at
+ * ROM 0x59C6FC; function start 0x59C6DC + declared 0x1C = 0x59C6F8;
+ * +4 more bytes hit segment end). The trailing 0x14 bytes are
+ * segment-tail data that splat misclassified as function body.
+ *
+ * Fixing this needs a splat boundary correction (shrink declared size
+ * to 0x8, declare 0x14 trailing bytes as a separate `.rodata` or
+ * `.data` symbol). Focused-session task (splat YAML edit + symbol-table
+ * cleanup). INCLUDE_ASM remains build path (byte-correct as raw asm). */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002A10);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_00002980_pad.s")
