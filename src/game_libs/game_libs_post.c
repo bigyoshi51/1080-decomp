@@ -28372,14 +28372,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051ED8);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051F5C);
 
-/* gl_func_000520B8: 19-insn float-mul wrapper. Sibling of recently-matched
- * gl_func_00052104 — same shape but multiplies by (a0->[0x20] * a0->[0x22])
- * (two halfwords combined as int product) instead of just one halfword. */
+/* gl_func_000520B8: 19-insn float-mul wrapper. Sibling of gl_func_00052104
+ * (also NM cap). Multiplies scale by (a0->[0x20] * a0->[0x22]) — two
+ * halfwords combined as int product. 2026-05-27: operand swap in the
+ * source (write `a0->[0x22] * a0->[0x20]` to make IDO load 0x20 first
+ * into $t6) brought 16/19 → 18/19 byte match. Remaining 1 diff is the
+ * mul.s fresh-temp operand-order cap (target $f0,$f6; mine $f6,$f0) —
+ * permuter-immune per 0x52104's doc'd retest. */
 extern float gl_func_returns_float();
 #ifdef NON_MATCHING
 int gl_func_000520B8(int *a0) {
     float scale = gl_func_returns_float(a0);
-    return (int)(scale * (float)(*(short*)((char*)a0 + 0x20) * *(short*)((char*)a0 + 0x22)));
+    return (int)(scale * (float)(*(short*)((char*)a0 + 0x22) * *(short*)((char*)a0 + 0x20)));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000520B8);
