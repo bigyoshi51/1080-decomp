@@ -2913,7 +2913,7 @@ void game_uso_func_000044C8(char *a0) {
  * Cracking the prologue needs (a) take-addr-of-args for shadow spills AND
  * (b) a fourth s-class variable live across calls so IDO allocates $s2 at
  * sp+0x20. Without (b), the (a) win is a net negative. Focused-session
- * task — defer until a meaningful s2-pseudo is identified in the body. */
+ * task — defer until a meaningful s2-pseudo is identified in the body.
  *
  * EXTENDED DECODE @ 0x4580-0x45F8 (insns 25-50, sub-object init loop):
  *   // After s1 setup (s1 = main+0xE4 sub-region or alloc(0x3E0)):
@@ -2943,11 +2943,11 @@ void game_uso_func_000044C8(char *a0) {
  * branch. Each sub-object is 0x18 bytes, indexed via s0 += 8 (so s0 is
  * a TABLE-of-pointers stride, not the object stride).
  *
- * NEXT PASS: decode the sub-object loop's tail (set-and-link to parent's
+ * NEXT PASS: decode the sub-object loops tail (set-and-link to parents
  * 0x38 chain), and the second template-table iteration (~16 sub-objects).
  *
  * 2026-05-04 EXTENDED DECODE @ 0x45E0-0x4710 (insns 50-128, 4 iterations of
- * the sub-object init group). The body is NOT a simple loop — it's an
+ * the sub-object init group). The body is NOT a simple loop — its an
  * UNROLLED chain of per-template-entry init groups. Each group is ~30
  * insns and follows this pattern (group 1 @ 0x45E0-0x4604 reproduced for
  * 0x4640-0x4664, 0x46A8-0x46CC, 0x4710-0x... — 4 occurrences seen):
@@ -2986,7 +2986,7 @@ void game_uso_func_000044C8(char *a0) {
  * tlist offset increases by 4 each group (D+0x6E8, +0x6EC, +0x6F0, +0x6F4).
  * Float constants step by 4 (D+0x9C through 0xA8). Sentinel stride pattern
  * is irregular: -8, -0xE0, -0xC8, -0xB0 — implies negative offsets in the
- * struct layout (sub-objects placed BEFORE the parent's a0 in memory layout?
+ * struct layout (sub-objects placed BEFORE the parents a0 in memory layout?
  * or sentinel = (-base+offset) form for the 'use cached if existing' check).
  *
  * Total of ~16 such groups suggested by the original spine analysis. Linear
@@ -3005,7 +3005,7 @@ void game_uso_func_000044C8(char *a0) {
  *     emit interleaved with the standard init: f10 = -800.0f
  *     (bit pattern 0xC4480000 → -800.0f). This float is loaded but its
  *     consumer is later in the function — likely a per-group threshold
- *     or scale factor for the sub-object's FPU state, NOT consumed by
+ *     or scale factor for the sub-objects FPU state, NOT consumed by
  *     gl_func_00000000(...) directly.
  *   Group 6 @ 0x473C-0x47B0: stride=0x68, sentinel=-0x80, tlist=D+0x6FC,
  *     float=D+0xA8 (same as group 4? or 5? the asm is dense). Standard
@@ -3026,7 +3026,7 @@ void game_uso_func_000044C8(char *a0) {
  *     float=D+0xAC. Standard pattern.
  *   Group 8 @ 0x4804-0x4868: stride=0x98, sentinel=-0x98, tlist=D+0x700.
  *     PATTERN SHIFT: float is an INLINE literal (`lui at,0xC57A; mtc1 at,$f4`)
- *     = -4000.0f, NOT a D-table lookup. This changes IDO's codegen pattern
+ *     = -4000.0f, NOT a D-table lookup. This changes IDOs codegen pattern
  *     for the float store (mtc1+swc1 pair instead of lwc1+swc1).
  *   Group 9 @ 0x486C-0x48D0: stride=0xB0, sentinel=-0xB0, tlist=D+0x704.
  *     INLINE float = -8000.0f (`lui at,0xC5FA; mtc1 at,$f6`).
@@ -3081,7 +3081,7 @@ void game_uso_func_000044C8(char *a0) {
  * sequential D+0x714, +0x718, +0x71C. Floats D+0xBC, +0xC0.
  *
  * Total groups decoded so far: 0-15 (16 of estimated ~28 total).
- * Cumulative stride from start: 0x140 = 320 bytes (vs s1's expected
+ * Cumulative stride from start: 0x140 = 320 bytes (vs s1s expected
  * coverage of ~0x3E0-byte child obj).
  *
  * NEXT PASS: continue from 0x4B40; expect ~13 more groups before
@@ -3116,7 +3116,7 @@ void game_uso_func_000044C8(char *a0) {
  * Tlists D+0x72C, +0x730, +0x734. Cumulative stride: 464 bytes.
  * Inline-float pattern returns at group 20 (1200.0f) — second occurrence
  * after groups 8-9 (-4000.0f, -8000.0f). Suggests inline floats correspond
- * to specific velocity/threshold sub-objects that aren't D-table indexed.
+ * to specific velocity/threshold sub-objects that arent D-table indexed.
  *
  * NEXT PASS: continue from 0x4D80; expect ~6 more groups before
  * linkage/finalize phase.
