@@ -65,6 +65,10 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * `add.s f8, f4, f16`. Both forms are semantically identical; the choice
  * is FPU pipeline forwarding-driven and not flippable from C (8+ source
  * variants tried, all worse).
+ * 2026-05-27 retest: `b[3]*a[3] + (a[0]*b[0] + a[1]*b[1] + a[2]*b[2])`
+ * form (swap final operand to move last-product to LEFT of `+`) regressed
+ * to 11/16 — the parenthesized reorder broke the entire register cascade,
+ * not just the final add.s.
  * INSN_PATCH was REMOVED 2026-05-23 (match-faking, banned per
  * feedback_no_instruction_forcing_matches_policy). The 100% match this
  * function had pre-removal was via post-cc byte editing — not a real
