@@ -29492,7 +29492,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054D04);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054E78);
 
+/* game_libs_func_000550A0: 11-insn "change-detector" float setter.
+ *   if (a0[0x124/4] != a1) { a0[0x128/4] = 1; a0[0x124/4] = a1; }
+ *
+ * Byte-exact 2026-05-27 via float-typed arg (mtc1 a1, $f12 at entry).
+ * Note the bc1t form (branch IF equal → skip) yields the `!=` C test. */
+#ifdef NON_MATCHING
+void game_libs_func_000550A0(int *a0, float a1) {
+    if (*(float*)((char*)a0 + 0x124) != a1) {
+        *(int*)((char*)a0 + 0x128) = 1;
+        *(float*)((char*)a0 + 0x124) = a1;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000550A0);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000550CC — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
