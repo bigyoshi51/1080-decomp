@@ -15505,28 +15505,15 @@ void gl_func_00037C70(Vec3 *dst) {
 
 #ifdef NON_MATCHING
 /* gl_func_00037CE0: 26-insn read-into-local-then-copy-to-arg.
- *   func(&D, buf, 24);          // populate 24-byte local buf
- *   for (i in 0..5) a0[i] = buf[i];
- *
- * 85.1% NM. Cap: target uses named src/dst base pointers with
- * a0 reloaded from caller-slot (`lw t6, 0x30(sp)`). My emit uses
- * a0 directly + stack temps with different reg names. Tested
- * 2026-05-15: explicit `int *src = buf; int *dst = a0;` REGRESSED
- * to 20-diff/26 (IDO assigns different $s-regs due to first-use
- * order changes).
- * 2026-05-16: tested src-only named base (`int *src = buf;` without
- * a dst alias) — slight regression 85.12% → 85.0%. C-unreproducible
- * without permuter; cap is the move-a3-a0-then-spill prologue shape
- * vs target's spill-a0-directly. */
-void gl_func_00037CE0(int *a0) {
-    int buf[6];
-    func_00000000(&D_00000000, buf, 24);
-    a0[0] = buf[0];
-    a0[1] = buf[1];
-    a0[2] = buf[2];
-    a0[3] = buf[3];
-    a0[4] = buf[4];
-    a0[5] = buf[5];
+ * Mirror of byte-matched gl_func_00037DA8 (which copies a0→local then
+ * calls). This one calls then copies local→a0. Apply struct-assign
+ * lever per docs/IDO_CODEGEN.md#feedback-ido-struct-copy-vs-field-copy-treg-order
+ * for the 6-int copy. */
+struct gl_func_00037CE0_Six { int a, b, c, d, e, f; };
+void gl_func_00037CE0(struct gl_func_00037CE0_Six *a0) {
+    struct gl_func_00037CE0_Six buf;
+    func_00000000(&D_00000000, &buf, 24);
+    *a0 = buf;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037CE0);
