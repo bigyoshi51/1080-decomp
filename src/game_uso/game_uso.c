@@ -1808,34 +1808,25 @@ done:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
 #endif
 
-/* Mirror of game_uso_func_00001D30 (alloc(0x64) variant; dispatch table at
- * &D_0+0x360). NATURAL CEILING: 92.97% NM (5-insn arg-spill scheduling cap).
- * IDO chooses to put `or s0, a0, zero` in the bnez delay slot and spill a3
- * before bnez; expected has the move first and a3 in the delay slot.
- * Logic-identical but C-unreachable scheduling permutation. The historical
- * INSN_PATCH at offsets 0x08/0x0C/0x10/0x14/0x1C was REMOVED 2026-05-23 as
- * match-faking. */
-#ifdef NON_MATCHING
+/* Mirror of game_uso_func_00001D30 (alloc(0x64) variant; dispatch table
+ * at &D_0+0x360). Lever: reuse a0 (drop the `register char *p = a0`
+ * fresh local). */
 char *game_uso_func_00002814(char *a0, int a1, int a2, int a3) {
-    register char *p = a0;
-    if (p == 0) {
-        p = (char*)gl_func_00000000(0x64);
-        if (p == 0) goto end;
+    if (a0 == 0) {
+        a0 = (char*)gl_func_00000000(0x64);
+        if (a0 == 0) goto end;
     }
-    gl_func_00000000(p, &D_00000000 + 0x360);
-    *(int*)(p + 0x28) = (int)&D_00000000;
-    gl_func_00000000(p + 0x44);
+    gl_func_00000000(a0, &D_00000000 + 0x360);
+    *(int*)(a0 + 0x28) = (int)&D_00000000;
+    gl_func_00000000(a0 + 0x44);
     if (a3 != 0) {
-        gl_func_00000000(p, 1, a3);
+        gl_func_00000000(a0, 1, a3);
     }
-    *(int*)(p + 0x38) = a1;
-    *(int*)(p + 0x3C) = a2;
+    *(int*)(a0 + 0x38) = a1;
+    *(int*)(a0 + 0x3C) = a2;
 end:
-    return p;
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002814);
-#endif
 
 void game_uso_func_000028A8(void *a0) {
     *(s32*)((char*)a0 + 0x40) = 0;
