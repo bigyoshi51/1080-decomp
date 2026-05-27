@@ -37108,7 +37108,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A5F0);
 /* game_libs_func_0006AD68: v0 = *a0; *a0 = *(int*)v0 (double-deref); return v0.
  * Corrected from the prior *a0=*a0 mis-decode (asm derefs the loaded value:
  * lw v0,0(a0); lw,0(v0); sw,0(a0)). Residual: the intermediate lands in $t6
- * vs the target's $t9 -- a single-temp register-renumber cap (not C-reachable). */
+ * vs the target's $t9 -- a single-temp register-renumber cap.
+ *
+ * 2026-05-26 (re-screened): exhaustive variant grind confirms C-unreachable.
+ * Tried 6 forms — all emit $t6 (or $t7 with comma-expr extra-temp):
+ *   - int t = *(int*)v0; *a0 = t;             → $a1 (worse)
+ *   - unsigned int*  a0;                       → $t6
+ *   - *(volatile int *)a0 / *(volatile int *)v0 → $t6
+ *   - (*a0 = *(int*)(*a0)), *(int*)*a0         → $t7
+ *   - int **a0; (int*)*v0                      → $t6
+ *   - register int t asm("$t9")                → IDO syntax error
+ * Target's $t9 is from a different IDO state (likely surrounding-function
+ * allocator-context spill), unreachable from a standalone C body. */
 int game_libs_func_0006AD68(int *a0) {
     int v0 = *a0;
     *a0 = *(int *)v0;
