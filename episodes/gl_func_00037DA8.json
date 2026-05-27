@@ -1,0 +1,29 @@
+{
+  "function_name": "gl_func_00037DA8",
+  "project": "1080 Snowboarding (USA)",
+  "model": "manual",
+  "start_time": "2026-05-27T20:11:06.282473+00:00",
+  "end_time": "2026-05-27T20:11:06.282499+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-27T20:11:06.282490+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "struct gl_func_00037DA8_Six { int a, b, c, d, e, f; };\nvoid gl_func_00037DA8(struct gl_func_00037DA8_Six *a0) {\n    struct gl_func_00037DA8_Six local;\n    local = *a0;\n    gl_func_00000000(&D_00000000, &local, 0x18);\n}",
+  "metadata": {
+    "size": 92,
+    "lever": "struct-assign for pointer-via-arg dest"
+  }
+}
