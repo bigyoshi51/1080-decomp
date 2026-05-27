@@ -375,9 +375,8 @@ void game_uso_func_000007EC(int *arg0) {
  * (delay-likely + post-fall-through), 1 insn larger than expected `beq a2,
  * zero, +5; sw zero, 0x24C(a0) [in delay slot]`. Built/expected size delta
  * = +4 bytes (42 vs 41 insns). Tried: store ordering, register hint, if-curly
- * vs if-no-curly, goto-skip — all produced beql. INSN_PATCH blocked by size
- * delta per feedback_insn_patch_size_diff_blocked.md. Promotion-path is to
- * find a C lever that flips IDO to `beq` (puts arg7 in $a2).
+ * vs if-no-curly, goto-skip — all produced beql. Promotion-path is to find
+ * a C lever that flips IDO to `beq` (puts arg7 in $a2).
  *
  * 2026-05-04 retry: tried `int flag = arg7; int slot1 = arg1; int slot6 = arg6;`
  * captured-early-locals to raise arg7's register-allocation priority — same
@@ -399,8 +398,9 @@ void game_uso_func_000007EC(int *arg0) {
  *
  * Confirms the prior conclusion: the cap is allocator-weight-driven and
  * unreachable from C-level reordering or goto-conversion. Next promotion
- * path requires either decomp-permuter (random allocno-priority shifts)
- * or a post-cc INSN_PATCH after finding a recipe for size-delta tolerance. */
+ * path is decomp-permuter (random allocno-priority shifts). INSN_PATCH
+ * was REMOVED 2026-05-23 as match-faking (per
+ * feedback_no_instruction_forcing_matches_policy) — not an option. */
 extern int *gl_alloc_858(int size);
 extern void gl_init_858(int *dst, int a, int b, int c, float f);
 extern void gl_setflag_858(int *dst, int flag);
@@ -2060,8 +2060,8 @@ void game_uso_func_00000B14(void *a0) {
  * to dislodge it diverges harder. The logic/control-flow is already faithful;
  * only $s-register assignment + stack-slot scheduling remain. Realistic next
  * step is the permuter (register-allocation search) on the CURRENT
- * single-`sub` body — treat as a permuter/INSN_PATCH-class cap, NOT a hand
- * structural-rewrite candidate. */
+ * single-`sub` body — permuter-class cap, NOT a hand structural-rewrite
+ * candidate. (INSN_PATCH was REMOVED 2026-05-23 as match-faking.) */
 void* game_uso_func_00003018(void* arg0) {
     void *s0;
     void *v1;
