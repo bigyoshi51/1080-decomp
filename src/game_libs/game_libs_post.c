@@ -10865,16 +10865,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
  *
  * Body: clamp a0 to signed [0..0x7F] then call func(0x03000800, (s8)t). */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
+/* Clamp a0 to [0, 0x7F] then call gl_func_00000000(0x03000800, (s8)a0).
+ * Lever: reuse `a0` (no fresh `int a2 = a0;` local) — IDO then picks $a2
+ * as the working register instead of $v0, matching the target. */
 void gl_func_000305CC(int a0) {
-    int a2 = a0;
-    if (a0 < 0) a2 = 0;
-    if (a2 >= 0x80) a2 = 0x7F;
-    gl_func_00000000(0x03000800, (s8)a2);
+    if (a0 < 0) a0 = 0;
+    if (a0 >= 0x80) a0 = 0x7F;
+    gl_func_00000000(0x03000800, (s8)a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000305CC);
-#endif
 
 // gl_func_0003061C — STRUCTURAL PASS (0x194 / 101 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
