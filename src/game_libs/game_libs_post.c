@@ -17710,7 +17710,25 @@ void gl_func_0003B01C(char *o) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B01C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003B198);
+/* game_libs_func_0003B198: 4-insn `return 0.0f` with both arg-saves spilled
+ * to caller's outgoing-arg slots (no frame). Boundary fix 2026-05-27: the
+ * splat .s was 0x14 (5 insns); the trailing `lw v1, 0x8C(a0)` was an
+ * alt-entry prologue for the successor (gl_func_0003B1AC enters with $v1
+ * uninitialised, so callers route through the +0x10 alt-entry that sets
+ * v1 from arg-struct field 0x8C). Split into game_libs_func_0003B1A8 via
+ * scripts/split-fragments.py. */
+float game_libs_func_0003B198(int a0, int a1) {
+    (void)a0;
+    (void)a1;
+    return 0.0f;
+}
+
+/* game_libs_func_0003B1A8: 1-insn alt-entry prologue for gl_func_0003B1AC.
+ * Sets $v1 = a0->[0x8C] then falls through into 3B1AC body (which expects
+ * v1 pre-set). Cannot be expressed in C as a standalone function (no jr ra,
+ * no frame, arg-reg-only side effect) — INCLUDE_ASM permanent. See split
+ * boundary correction note on 3B198. */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003B1A8);
 
 // gl_func_0003B1AC — STRUCTURAL PASS (0x140 / 80 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
