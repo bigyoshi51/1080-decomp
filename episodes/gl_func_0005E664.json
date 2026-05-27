@@ -1,0 +1,35 @@
+{
+  "function_name": "gl_func_0005E664",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-7",
+  "start_time": "2026-05-27T05:50:00Z",
+  "end_time": "2026-05-27T06:35:00Z",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-27T06:30:00Z",
+      "assistant_text": "Sig-type-fix lever: target had `mtc1 a1, $f12` at entry (int-bits-as-float arg transfer per O32 ABI). Prior NM body used `void f(float *src, int a1_float_bits, int a2)` with `float scale = *(float*)&a1_float_bits;` — taking address of int arg homed it to sp and forced lwc1 reload per iter (62 insns vs 45 target). Sig-type-fix: declare second arg as `float scale` directly — IDO emits natural `mtc1 a1, $f12` at prologue, single int-to-FP register move, $f12 persists. 4x4 matrix scale + dispatch in 45 insns byte-exact.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 45,
+  "initial_m2c_source": null,
+  "final_source": "extern int func_00000000();\n\nvoid gl_func_0005E664(float *src, float scale, int a2) {\n    float buf[16];\n    int i;\n    for (i = 0; i < 16; i++) {\n        buf[i] = src[i] * scale;\n    }\n    func_00000000(buf, a2);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0005E664.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "lever": "sig-type-fix (float-arg-via-int-reg, defeats int-reinterpret-cast trap)",
+    "docs_ref": "docs/IDO_CODEGEN.md#feedback-ido-o32-float-in-int-reg"
+  },
+  "verification": "byte-exact .o disasm matches expected/.o byte-for-byte (45/45 insns)"
+}
