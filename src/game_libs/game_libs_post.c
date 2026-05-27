@@ -10863,7 +10863,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
  *       size. The trailing words are LITERAL — no relocations — so
  *       SUFFIX_BYTES alone works without paired PROLOGUE_STEALS on 3061C.
  *
- * Body: clamp a0 to signed [0..0x7F] then call func(0x03000800, (s8)t). */
+ * Body: clamp a0 to signed [0..0x7F] then call func(0x03000800, (s8)t).
+ *
+ * 2026-05-27 retest: `register int a2 = a0;` does NOT flip the temp from
+ * $v0 to $a2 — IDO ignores the hint at -O2 for this shape. Still 12/17.
+ * The 5-insn $v0↔$a2 rename is allocator-weight-driven; permuter-class. */
 extern int gl_func_00000000();
 /* Clamp a0 to [0, 0x7F] then call gl_func_00000000(0x03000800, (s8)a0).
  * Lever: reuse `a0` (no fresh `int a2 = a0;` local) — IDO then picks $a2
