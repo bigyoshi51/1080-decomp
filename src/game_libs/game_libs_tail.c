@@ -1793,8 +1793,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
  * offsets 0x08/0x0C/0x18 — IDO emits $a1 for the temp; target uses $a3.
  * Identical insn structure, different register field. The previous
  * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Permuter-class
- * register-rename cap; no C-reachable fix. */
+ * feedback_no_instruction_forcing_matches_policy).
+ * 2026-05-27 retest: 4-arg sig `(int *a0, int u1, int u2, int *p)` adds
+ * `sw a1, 0x1c(sp); sw a2, 0x20(sp)` unused-leading-arg spills per the
+ * documented Multiple-unused-leading-params wrinkle, regressing 9/11 →
+ * 2/11. Permuter-class register-rename cap; no C-reachable fix. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void gl_func_0000D9B8(int *a0) {
