@@ -1243,6 +1243,7 @@ void *timproc_uso_b5_func_000032C8(int *a0) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
+#endif
 
 #ifdef NON_MATCHING
 /* Zero fields: 0x2B4 (int), 0x164/0x168/0x16C/0x2A0 (float). Faithful decode
@@ -1263,7 +1264,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038B0);
-#endif
 
 /* timproc_uso_b5_func_000038D0: 47-insn FPU-heavy function with NON-O32
  * float-in-$fN-callee convention. Uses $f6/$f8/$f10/$f12 from caller — not
