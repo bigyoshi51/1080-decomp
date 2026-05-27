@@ -22111,31 +22111,42 @@ void gl_func_00042338(void) {
     gl_func_00000000_42338(local, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-/* game_libs_func_00042374: 25-insn nested-loop ushort grid fill (0xFFFF).
+/* game_libs_func_00042374: 24-insn nested-loop ushort grid fill (0xFFFF).
  * base=*(D+0x240); v0=*(base[0x148]+a0*4+0xF4); for(a1=100;a1!=300;a1+=2){
  * p=v0+a1+0x7D00; v1=50; do{v1+=4; p[0]=p[0x280]=p[0x500]=p[0x780]=0xFFFF;
- * p+=0xA00;}while(v1!=150);}. NON_MATCHING: logic exact but IDO -O2 UNROLLS the
- * inner loop (built 43 insns vs target 25 rolled). Next pass: prevent the unroll
- * (target keeps it rolled, bne v1,a3). */
+ * p+=0xA00;}while(v1!=150);}.
+ *
+ * 2026-05-27: goto-lever + register-keyword applied. Inner loop now ROLLS
+ * (was fully unrolled at 43 insns; now 6-insn body, total 25 insns vs
+ * target 24). Residual diffs (1-insn off, structural):
+ *  - mine const-folds `v0 + a1 + 0x7D00` to `addiu a2, v1, 32100`;
+ *    target keeps separate `addu a0, v0, a1; addiu a0, 0x7D00`
+ *  - mine emits `bne` for outer test; target uses `bnel` (branch-likely)
+ *    with `addu a0, v0, a1` (= next-iter's p_init) in delay-likely slot
+ * Both diffs are cost-model IDO-internal — `volatile int a1_init`
+ * defeats the const-fold but adds frame + 2 spill insns (net regression).
+ * Likely a permuter-only flip at this point. */
 #ifdef NON_MATCHING
 void game_libs_func_00042374(int a0) {
     int *base = *(int **)((char *)&D_00000000 + 0x240);
     char *v0 = *(char **)((char *)base[0x148 / 4] + a0 * 4 + 0xF4);
-    int a1, v1;
-    char *p;
-    int val = 0xFFFF;
-    for (a1 = 100; a1 != 300; a1 += 2) {
-        p = v0 + a1 + 0x7D00;
-        v1 = 50;
-        do {
-            v1 += 4;
-            *(short *)(p + 0) = val;
-            *(short *)(p + 0x280) = val;
-            *(short *)(p + 0x500) = val;
-            *(short *)(p + 0x780) = val;
-            p += 0xA00;
-        } while (v1 != 150);
-    }
+    int a1 = 100;
+    int v1;
+    register char *p;
+    register int val = 0xFFFF;
+outer:
+    p = v0 + a1 + 0x7D00;
+    v1 = 50;
+inner:
+    v1 += 4;
+    *(short *)(p + 0) = val;
+    *(short *)(p + 0x280) = val;
+    *(short *)(p + 0x500) = val;
+    *(short *)(p + 0x780) = val;
+    p += 0xA00;
+    if (v1 != 150) goto inner;
+    a1 += 2;
+    if (a1 != 300) goto outer;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042374);
