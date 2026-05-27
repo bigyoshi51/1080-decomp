@@ -5,21 +5,19 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 
-/* Array-indexing utility: return a0 + a0->field_7C * 0x28 + 0x84.
- * NATURAL CEILING: 98.75% NM (7/8 insns). IDO -O2 fills the jr-ra delay
- * slot with addiu; target leaves it unfilled — same -g/-O0 unfilled-delay
- * cap class as game_libs_func_00070FBC (see
- * feedback_unfilled_delay_int_reader_needs_o0_split). The prior
- * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking; no
- * Makefile entry now. A per-file -g/-O0 split could land it (focused-
- * session work, not 60s-tick safe). */
-#ifdef NON_MATCHING
+/* CRACKED 2026-05-27 (byte-exact): array-indexing form `((Row28*)base)[i].d`
+ * combined with the file's existing `OPT_FLAGS := -O2 -g3` Makefile override
+ * (which disables delay-slot fill, leaving the jr-ra delay as nop matching
+ * target).
+ *
+ * The lever was the ARRAY FORM (`((Row28*)(a0+0x84))[idx].d`) per
+ * docs/IDO_CODEGEN.md "addu operand order" entry — gives `addu v0, a0, t7`
+ * (base-first) instead of the arithmetic form's `addu v0, t7, a0`
+ * (idx-first). Verified byte-equal at .o level (all 8 instructions). */
+typedef struct { char d[0x28]; } Row10324;
 char *func_00010324(char *a0) {
-    return a0 + *(int*)(a0 + 0x7C) * 0x28 + 0x84;
+    return ((Row10324*)(a0 + 0x84))[*(int*)(a0 + 0x7C)].d;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010324);
-#endif
 
 void func_00010344(void) {
 }
