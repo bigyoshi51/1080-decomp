@@ -2293,9 +2293,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
  * but -O2 C folds to 0x18(a0) offset-addressing and dead-store-eliminates the
  * first write (verified 2026-05-24). Whole run wants an -O1/-g OPT_FLAGS file
  * split (batch-unlock w/ 00052ACC). See project_1080_g3_unfilled_delay_split_2026-05-23. */
+/* game_libs_func_0000E410: 7-insn `set-bit-2-then-set-bit-3` (|=4 then |=8)
+ * with target keeping the intermediate store. Family head — see comment above.
+ *   int *p = a0 + 0x18; *p |= 4; *p |= 8; return p;
+ *
+ * IDO -O2 folds both ors into a single `| 0xC` and DSE's the first store.
+ * Same base-reg-choice + redundant-write family cap. */
+#ifdef NON_MATCHING
+int *game_libs_func_0000E410(int *a0) {
+    int *p = (int*)((char*)a0 + 0x18);
+    *p |= 4;
+    *p |= 8;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E410);
+#endif
 
+/* game_libs_func_0000E42C: 8-insn `clear-bit-2-then-clear-bit-3` (mask -5 then -9)
+ * with TARGET keeping the intermediate store (does NOT DCE the first sw).
+ *   int *p = a0 + 0x18; *p &= ~4; *p &= ~8; return p;
+ *
+ * Target: addiu v0,a0,0x18; lw 0(v0); li at,-5; and t7,t6,at; li at,-9;
+ *   sw t7,0(v0); and t9,t7,at; jr ra; sw t9,0(v0) (delay).
+ * IDO -O2 dead-store-eliminates the first `*p &= ~4` (folds the two masks
+ * into a single `& ~0xC`) and folds 0x18 back to base+imm. Whole family
+ * (E410-E490) wants -O1/-g per-file split. See E410 header. */
+#ifdef NON_MATCHING
+int *game_libs_func_0000E42C(int *a0) {
+    int *p = (int*)((char*)a0 + 0x18);
+    *p &= ~4;
+    *p &= ~8;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E42C);
+#endif
 
 /* game_libs_func_0000E450: 5-insn `or-flag setter`.
  *   int *p = a0 + 0x18; *p |= 8; return p;
@@ -2313,11 +2346,53 @@ int *game_libs_func_0000E450(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E450);
 #endif
 
+/* game_libs_func_0000E464: 5-insn `clear-bit-3` sibling of E450 (|=8 → &=~8).
+ *   int *p = a0 + 0x18; *p &= ~8; return p;
+ * Same base-reg-choice cap as E450/E490. See E410 family header. */
+#ifdef NON_MATCHING
+int *game_libs_func_0000E464(int *a0) {
+    int *p = (int*)((char*)a0 + 0x18);
+    *p &= ~8;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E464);
+#endif
 
+/* game_libs_func_0000E47C: 5-insn `set-bit-2` sibling of E450 (|=8 → |=4).
+ *   int *p = a0 + 0x18; *p |= 4; return p;
+ * Same base-reg-choice cap. The 0x35CF0004 is `ori t7,t6,4` (1-cycle
+ * faster than li+and; bit-set fits andi/ori immediate). See E410 family
+ * header for the OPT_FLAGS-split path. */
+#ifdef NON_MATCHING
+int *game_libs_func_0000E47C(int *a0) {
+    int *p = (int*)((char*)a0 + 0x18);
+    *p |= 4;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E47C);
+#endif
 
+/* game_libs_func_0000E490: 5-insn `clear-bit-2` sibling of E450 (|=8 → &=~4).
+ *   int *p = a0 + 0x18; *p &= ~4; return p;
+ *
+ * Same family cap as E450 (base-reg-choice). Target: addiu v0,a0,0x18 →
+ * 0(v0) RMW. Mine: addiu v0,a0,0x18 emitted (return ptr) BUT the lw/sw
+ * fold back to 0x18(a0) since the single bitop at offset 0 doesn't
+ * prevent IDO -O2 from CSE'ing the pointer alias back to the base+imm
+ * form. 3-of-5 insns byte-equal; structure correct. Whole 0xE410-E490
+ * run wants a per-file -O1/-g OPT_FLAGS split (see family header at
+ * E410). */
+#ifdef NON_MATCHING
+int *game_libs_func_0000E490(int *a0) {
+    int *p = (int*)((char*)a0 + 0x18);
+    *p &= ~4;
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E490);
+#endif
 
 void gl_func_0000E4A8(int *a0) {
     int r;
