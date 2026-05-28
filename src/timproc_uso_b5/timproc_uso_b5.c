@@ -2213,7 +2213,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // Makefile INSN_PATCH/NON_MATCHING_INSN_PATCH; INSN_PATCH REMOVED
 // 2026-05-23 as match-faking per
 // feedback_no_instruction_forcing_matches_policy — CAP: add.s
-// operand-order stays NM.
+// operand-order stays NM. 2026-05-28: confirmed the 2 diffs are add.s fs/ft
+// swaps (`cur+step` -> mine f8,fcur,fstep; target f8,fstep,fcur); swapping the
+// C operands to `step+cur` is INERT (still 2 diffs) — order is FPU-scheduler-
+// driven off which reg holds cur(f6/f10) vs step(f0), not source order. Same
+// class as game_uso_func_000000A0 / 00003FAC FPU operand caps.
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_000073C0(char *scr) {
     float cur = *(float *)(scr + 0x480);
