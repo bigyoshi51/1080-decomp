@@ -6915,7 +6915,59 @@ void gl_func_0002888C(int a0) {
     gl_func_00000000(a0, 7);
 }
 
+/* game_libs_func_000288AC: 65-insn FP threshold-classifier (fresh decode 2026-05-28,
+ * mnemonic disasm — m2c can't read raw-.word USO). Clamps a2 to >=128, computes a
+ * weight f2 from a1->0x30 (scaled by a1->0x28+1 when a1->0x20!=0 && a1->0x28>0),
+ * classifies it against 3 thresholds in the D[] float table at +0xFD4.. → tier
+ * v1 (0/1/2/3) with a per-tier multiplier, writes back a1->0x30 *= multiplier,
+ * stores a2 and v1 as bytes to a0->0x31/0x32, and a0->0xC0 =
+ * D_table[a2] + (v1<<7). Returns v1. 75.08% as of 2026-05-28.
+ * RESIDUAL CAP (~25%): target RE-MATERIALIZES the FP-threshold-table base
+ * (`lui at,0`) before EACH lwc1 (65 insns); my `&D_00000000 + offset` addend
+ * idiom CSEs the base into one reg + plain offsets (59 insns) — the documented
+ * inverse/extern-base-CSE cap (the original likely used separate per-threshold
+ * symbols giving per-access %hi/%lo). Plus bc1fl-vs-bc1f (branch-likely from the
+ * if/else-if classifier) and mul.s fs/ft order (IDO-canonicalized, swap no-op).
+ * Reloc-free otherwise. Real wrap (correct logic); stays NM. */
+#ifdef NON_MATCHING
+int game_libs_func_000288AC(char *a0, char *a1, int a2) {
+    float f0, f2, f4;
+    int v1 = 0;
+
+    if (a2 < 128) {
+        a2 = 128;
+    }
+    f0 = *(float*)(a1 + 0x30);
+    f2 = f0;
+    if (*(unsigned char*)(a1 + 0x20) != 0) {
+        float f12 = *(float*)(a1 + 0x28);
+        if (f12 > 0.0f) {
+            f2 = f2 * (f12 + 1.0f);
+        }
+    }
+    if (f2 < *(float*)((char*)&D_00000000 + 0xFD4)) {
+        v1 = 0;
+        f2 = *(float*)((char*)&D_00000000 + 0xFD8);
+    } else if (f2 < *(float*)((char*)&D_00000000 + 0xFDC)) {
+        v1 = 1;
+        f2 = *(float*)((char*)&D_00000000 + 0xFE0);
+    } else if (f2 < *(float*)((char*)&D_00000000 + 0xFE4)) {
+        v1 = 2;
+        f2 = *(float*)((char*)&D_00000000 + 0xFE8);
+    } else {
+        v1 = 3;
+        f2 = *(float*)((char*)&D_00000000 + 0xFEC);
+    }
+    f4 = f0 * f2;
+    *(float*)(a1 + 0x30) = f4;
+    a0[0x31] = (char)a2;
+    a0[0x32] = (char)v1;
+    *(int*)(a0 + 0xC0) = *(int*)((char*)&D_00000000 + a2 * 4 - 0x200) + (v1 << 7);
+    return v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000288AC);
+#endif
 
 /* gl_func_000289B0: 22-insn. sel = a1->u8[2]; if (sel==255) sel =
  * (s16)(*(int**)(a1+0x50))->[0x24]; v1 = a0->u8[0x32];
