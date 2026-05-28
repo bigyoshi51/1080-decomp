@@ -928,6 +928,12 @@ void timproc_uso_b3_func_00002388(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
+/* 000023CC/23D4/23DC: 3 empty stubs RECOVERED 2026-05-28 from the Yay0 gap
+ * (no .s, missing from build; bytes from block_3). void f(void){} -> jr ra;nop. */
+void timproc_uso_b3_func_000023CC(void) {}
+void timproc_uso_b3_func_000023D4(void) {}
+void timproc_uso_b3_func_000023DC(void) {}
+
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
 
 /* Byte-identical sibling of timproc_uso_b1_func_000024F4 (147 insns).

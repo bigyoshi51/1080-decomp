@@ -899,6 +899,12 @@ void timproc_uso_b1_func_00002178(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
+/* 000021BC/21C4/21CC: 3 empty stubs RECOVERED 2026-05-28 from the Yay0 gap
+ * (no .s, missing from build; bytes from block_1). void f(void){} -> jr ra;nop. */
+void timproc_uso_b1_func_000021BC(void) {}
+void timproc_uso_b1_func_000021C4(void) {}
+void timproc_uso_b1_func_000021CC(void) {}
+
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000021D4);
 
 /* timproc_uso_b1_func_000024F4: GBI command emitter (8x 0x260000|(D<<3)+N etc).
