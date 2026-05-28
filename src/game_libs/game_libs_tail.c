@@ -408,8 +408,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D24);
  *  - Loop exit at counter = 0x24 (=36 bytes = 3 × 12-byte records) confirms
  *    fixed 3-iter shape.
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ *    feedback_doc_marker_is_bail.md.
+ *
+ * 2026-05-28: converted the comment-only bail into a real C body, 38.9%. 3-iter
+ * loop (i: 0,12,24; exit at 36) over 12-byte records; each iter computes ia%5
+ * (div + IDO break-6/7 safety traps), a signed floor-adjust on ib, a grid index,
+ * and a 7-arg hook call (out_p, grid_idx, 0, ctx, *src, *(src+1), *(src+2)) where
+ * ctx = &D+0xD430. The div/break traps, the floor-adjust, the 7-arg call shape and
+ * the loop bounds match.
+ * RESIDUAL (~61%, regalloc): the 5 loop-carried values get SCRAMBLED s-register
+ * assignments — target s0=src,s1=out_p,s2=ia,s3=ib,s4=i; mine s0=src,s1=ib,s2=i,
+ * s3=ia,s4=out_p. The global allocator's allocno-priority order isn't matched, and
+ * since the whole loop body addresses through these s-regs the mismatch cascades.
+ * Hard loop-regalloc puzzle (correct-logic/divergent-regalloc cap); real
+ * compilable/permuter-able wrap now, not a comment bail. Stays NM. */
+extern int gl_func_00000000();
+void gl_func_00009DB8(int *out_p, int ia, int ib, int *src) {
+    int *ctx = (int*)((char*)&D_00000000 + 0xD430);
+    int i;
+
+    for (i = 0; i != 36; i += 12) {
+        int rem = ia % 5;
+        int v0 = src[0];
+        int v1 = src[1];
+        int v2 = src[2];
+        int adj = (ib < 0 && (ib & 7) != 0) ? ((ib & 7) - 8) : 0;
+        int grid_idx = rem + (adj << 3);
+        gl_func_00000000(out_p, grid_idx, 0, ctx, v0, v1, v2);
+        src += 3;
+        out_p += 2;
+        ia++;
+        ib++;
+    }
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009DB8);
 #endif
