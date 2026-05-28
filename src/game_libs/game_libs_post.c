@@ -23146,16 +23146,12 @@ void gl_func_00043EAC(int a0) {
  * docs/IDO_CODEGEN.md#feedback-ido-struct-copy-vs-field-copy-treg-order
  * for the 4-int copy. Separate field-copies produced t6/t7/t8/t9 distinct;
  * struct-copy gives the canonical $t7/$t6 alternating pattern. */
-#ifdef NON_MATCHING
 struct game_libs_func_00043EF0_Four { int a, b, c, d; };
 void game_libs_func_00043EF0(struct game_libs_func_00043EF0_Four *a0, struct game_libs_func_00043EF0_Four *a1, int a2, int a3) {
     ((int*)a0)[0x10/4] = a2;
     ((int*)a0)[0x14/4] = a3;
     *a0 = *a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00043EF0);
-#endif
 
 extern int gl_func_00000000();
 extern int *gl_ref_00000254;
@@ -29902,16 +29898,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054E78);
  *
  * Byte-exact 2026-05-27 via float-typed arg (mtc1 a1, $f12 at entry).
  * Note the bc1t form (branch IF equal → skip) yields the `!=` C test. */
-#ifdef NON_MATCHING
 void game_libs_func_000550A0(int *a0, float a1) {
     if (*(float*)((char*)a0 + 0x124) != a1) {
         *(int*)((char*)a0 + 0x128) = 1;
         *(float*)((char*)a0 + 0x124) = a1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000550A0);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000550CC — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
@@ -31140,15 +31132,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BBEC);
  *   }
  *
  * Byte-exact 2026-05-27. Standard FP-clamp idiom with neg.s + c.lt.s + bc1f. */
-#ifdef NON_MATCHING
 float game_libs_func_0005BC04(float a, float b) {
     float neg_b = -b;
     if (a < neg_b) a = neg_b;
     return a;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC04);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC24);
 
