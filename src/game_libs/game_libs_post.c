@@ -31242,13 +31242,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C43C);
  * Byte-exact 2026-05-27. 4-float-arg sig: a/b in $f12/$f14 directly,
  * c/d as int bits in $a2/$a3 (O32 ABI — float args 3+ go in integer
  * regs and IDO uses stack round-trip sw+lwc1 to load into FP regs). */
-#ifdef NON_MATCHING
 float game_libs_func_0005C4CC(float a, float b, float c, float d) {
     return a * d - b * c;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C4CC);
-#endif
 
 /* game_libs_func_0005C4F0: 22-insn 3-float-neg-copy + 1+3 init pattern.
  *   a1[0..2] = -(a2, a3, a4)   (3 negated floats)
