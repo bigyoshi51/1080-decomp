@@ -31253,7 +31253,6 @@ float game_libs_func_0005C4CC(float a, float b, float c, float d) {
  *
  * Byte-exact 2026-05-27 via float-typed-args sig (mtc1 a2/a3, $f12/$f14
  * at entry; lwc1 sp+0x10 for 5th arg per O32 stack-args convention). */
-#ifdef NON_MATCHING
 void game_libs_func_0005C4F0(float *a0, float *a1, float a2, float a3, float a4) {
     int i;
     a1[0] = -a2;
@@ -31262,9 +31261,6 @@ void game_libs_func_0005C4F0(float *a0, float *a1, float a2, float a3, float a4)
     a0[0] = 1.0f;
     for (i = 1; i < 4; i++) a0[i] = 0.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C4F0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C548);
 
