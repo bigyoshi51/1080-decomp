@@ -394,28 +394,23 @@ void arcproc_uso_func_00000EBC(int *a0) {
 }
 
 /* arcproc_uso_func_00000EEC: 12-insn triple-deref non-null check, RECOVERED
- * 2026-05-28 from the 00000EBC bundle gap (was dropped — no .s, missing from
- * build). Self-contained (internal beql tail-share to its own return-0 path,
- * resolves within 0xEEC-0xF1C). Returns 1 iff a0->0x6AC->0x6C is non-null and
- * its 0xEC field is non-zero. NM: the two early-return beql (branch-likely
- * with v0=0 in the delay slot) emit as bnel from C → 14 insns vs target's 12
- * (same branch-likely-idiom cap as titproc_uso_func_000016B8). Build uses
- * INCLUDE_ASM (byte-correct). (Siblings 00000F1C/00000F40 + a 00000F50
- * alt-entry at 0xF48 remain in the gap — focused-session backlog.) */
-#ifdef NON_MATCHING
+ * from the 00000EBC bundle gap. Returns 1 iff a0->0x6AC->0x6C is non-null
+ * and its 0xEC field is non-zero. MATCHED 2026-05-28: `goto ret0` to a
+ * shared `return 0` emits the beql branch-likely idiom (12 insns); the
+ * plain `if(...)return 0` form emitted bnel and grew to 14 (the prior cap).
+ * Same fix as timproc_uso_b3_func_00000E30. */
 int arcproc_uso_func_00000EEC(int *a0) {
     int *p = (int*)((int*)a0[0x6AC / 4])[0x6C / 4];
     if (p == 0) {
-        return 0;
+        goto ret0;
     }
     if (*(int*)((char*)p + 0xEC) == 0) {
-        return 0;
+        goto ret0;
     }
     return 1;
+ret0:
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EEC);
-#endif
 
 /* arcproc_uso_func_00000F1C: 9-insn flag setter, RECOVERED 2026-05-28 from
  * the same bundle gap. a0->0x504 = (a0->0x6B8 != 0) ? 4 : 0, via bnel with
