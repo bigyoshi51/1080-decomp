@@ -2898,8 +2898,26 @@ void game_uso_func_000044C8(char *a0) {
  *     sp-relative ref loses more than the a0/a1/a2 fix gains.
  * Cracking the prologue needs (a) take-addr-of-args for shadow spills AND
  * (b) a fourth s-class variable live across calls so IDO allocates $s2 at
- * sp+0x20. Without (b), the (a) win is a net negative. Focused-session
- * task — defer until a meaningful s2-pseudo is identified in the body.
+ * sp+0x20. Without (b), the (a) win is a net negative.
+ *
+ * 2026-05-28: the s2-pseudo IS now identified — disassembling expected/.o
+ * shows `addiu s2, sp, 0x2c` (insn @0x45a0) materialized ONCE, then 38×
+ * `sw t?, 0(s2)` / `lw a2, 0(s2)` pairs: $s2 holds the ADDRESS of the
+ * per-iter marshalling scratch at sp+0x2C (the template ptr is stored
+ * there then reloaded as the 3rd arg `a2` of each init call). BLOCKER
+ * confirmed not-yet-crackable: declaring `char *_s2_buf; char *s2 = &_s2_buf;`
+ * at function scope + `(void)&aN` home-slot spills builds, but IDO FOLDS
+ * `*s2` into direct `sw v0, 0xD0(sp)` (sp+const addressing) and never keeps
+ * the address in a register → no $s2, frame stays 0xE0, net 70.04% (a 0.49pp
+ * REGRESSION vs the 70.53% volatile-local baseline). Making `_s2_buf`
+ * volatile forces the memory roundtrip but STILL uses direct sp-relative (no
+ * $s2). Register-indirect via a held $s2 is strictly worse codegen than
+ * direct addressing for a known sp+const, so IDO won't emit it from a plain
+ * `&local`. The target's register-indirect $s2 must come from the original
+ * source giving the marshalling slot an address IDO can't prove is sp+const
+ * (e.g. a pointer param threaded through, or an aliased struct field) —
+ * reverse-engineering that provenance is the multi-day task. Baseline
+ * (volatile a1_sp/a2_sp local spills, inner-block s2) restored at 70.53%.
  *
  * EXTENDED DECODE @ 0x4580-0x45F8 (insns 25-50, sub-object init loop):
  *   // After s1 setup (s1 = main+0xE4 sub-region or alloc(0x3E0)):
