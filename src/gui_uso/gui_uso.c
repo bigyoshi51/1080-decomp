@@ -544,16 +544,25 @@ void gui_func_0000161C(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000161C);
 #endif
 
-/* gui_uso_func_00001670: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001670);
+/* 0x1670 is a single alignment nop between gui_func_0000161C and the real
+ * function at 0x1674 — splat mis-placed the gui_uso_func_00001670 symbol on the
+ * pad (and over-split the loop tail into 0000168C). Declared as a local pad; the
+ * true function is gui_uso_func_00001674 below. */
+#pragma GLOBAL_ASM("asm/nonmatchings/gui_uso/gui_uso/gui_func_0000161C_pad.s")
 
-/* gui_uso_func_0000168C: 6-insn loop-bottom tail-fragment:
- *   sra v1,v1,1; bnel v1,zero,-0x18; slt at,a0,v1; li v0,1; jr ra; nop
- * (caller-set $v0/$v1) + backward branch -0x18 to 0x167C (before this .s
- * start 0x168C). Splat captured a count-down loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * Needs splat boundary correction (focused-session). */
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000168C);
+/* gui_uso_func_00001674: highest-set-bit / mask-down scan. Returns the largest
+ * power-of-two <= a0 (walking 0x8000 down), or 1 if a0 < 1. Merged from the
+ * mis-split 00001670 body + 0000168C loop tail. */
+int gui_uso_func_00001674(int a0) {
+    int v1 = 0x8000;
+    do {
+        if (!(a0 < v1)) {
+            return v1;
+        }
+        v1 >>= 1;
+    } while (v1 != 0);
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000016A4);
 
