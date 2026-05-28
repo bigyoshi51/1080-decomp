@@ -2369,8 +2369,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E2A4);
 /* gl_func_0000E368: 42-insn gated flag toggle. Returns early unless bit 16 of
  * (a0->0x50)->0x4F0 is set, a0->0x48 == 2, and the (collapsed) callback succeeds;
  * then toggles a0->0xB0 between 0/1 and correspondingly clears/sets bit 2 of
- * a0->0x44->0x60->0x18. NM (reference decode): collapsed-placeholder call +
- * collapsed D ref + branch-likely tests (raw-.word game_libs reloc depression).
+ * a0->0x44->0x60->0x18.
+ * 2026-05-28: 95.2% → 98.45%. LEVER: the RMW on v->0x18 byte-matches the target's
+ * `lw 24(v); addiu v,24; sw 0(v)` (advance-then-store-at-0) form ONLY when the base
+ * pointer is explicitly REASSIGNED (`int t = v[0x18]; v = (char*)v+0x18; *v = t|4;`),
+ * not via the natural `v->0x18 |= 4` (which folds to sw 24(v)). This REFINES
+ * feedback_rmw_pointer_local_folds_to_offset_addressing: a *field*-pointer folds,
+ * but reassigning the *base* pointer does force addiu+sw-0.
+ * RESIDUAL (~1.5%, register-renumber): the read temp lands in $v1 (mine) vs $t2
+ * (target), cascading t3/t4/t5 renames — permuter-resistant regalloc cap. NM.
  * Uses the file-scope extern int D_00000000 / gl_func_00000000. */
 void gl_func_0000E368(int a0) {
     if ((*(int *)(*(int *)((char *)a0 + 0x50) + 0x4F0) & 0x10000) == 0) {
@@ -2383,12 +2390,16 @@ void gl_func_0000E368(int a0) {
         return;
     }
     if (*(int *)((char *)a0 + 0xB0) != 0) {
-        int v = *(int *)(*(int *)((char *)a0 + 0x44) + 0x60);
-        *(int *)((char *)v + 0x18) &= ~4;
+        int *v = (int *)(*(int *)(*(int *)((char *)a0 + 0x44) + 0x60));
+        int t = *(int *)((char *)v + 0x18);
+        v = (int *)((char *)v + 0x18);
+        *v = t & ~4;
         *(int *)((char *)a0 + 0xB0) = 0;
     } else {
-        int v = *(int *)(*(int *)((char *)a0 + 0x44) + 0x60);
-        *(int *)((char *)v + 0x18) |= 4;
+        int *v = (int *)(*(int *)(*(int *)((char *)a0 + 0x44) + 0x60));
+        int t = *(int *)((char *)v + 0x18);
+        v = (int *)((char *)v + 0x18);
+        *v = t | 4;
         *(int *)((char *)a0 + 0xB0) = 1;
     }
 }
