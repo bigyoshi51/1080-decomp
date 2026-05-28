@@ -12679,13 +12679,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010FB8);
  * double `lw a0, 0x18(sp)` at insns 24/25 (jal-delay + post-jal) —
  * scheduler quirk likely.
  *
- * NATURAL CEILING: structural shape only. Natural C is 0x6C bytes;
- * target is 0x80 bytes with the precall a1/a2 outgoing-slot spill family
- * shape that IDO 7.1 does not emit from C. Was previously documented as
- * "Promoted to exact with SUFFIX_BYTES_FORCE + full-function INSN_PATCH"
- * — both mechanisms REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+ * 2026-05-28: the precall a1/a2 home-stores ARE reproducible via struct-by-value
+ * (gl_func(a0, *(Pair2*)(&D+0xE10))) — applied, 65.84% -> 74.03%. Residual is
+ * NOT the spill cap: (1) the p_B4->0xA58 RMW uses target's addiu-base+0(base)
+ * write vs mine's offset write, and (2) a0 is reloaded TWICE around the 2nd jal
+ * (jal-delay + after) which IDO won't emit from C here. 31 vs 32 insns. These
+ * are scheduling/RMW-addressing residuals, not the (now-solved) home-store cap.
+ * See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
@@ -12694,8 +12694,7 @@ void game_uso_func_00011024(int *a0) {
     *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF48);
     *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF4C);
     *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
-    gl_func_00000000(a0, GAME_D_E10,
-                     GAME_D_E14);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     gl_func_00000000(a0);
     p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)p_B4 + 0x960) = 0x64;
