@@ -26162,8 +26162,12 @@ void gl_func_0004D354(int *arg0) {
  * This matches target's "reload base 4×" emit and produces an extra
  * `sw a0, 0x50(a0)` byte at 0x4D3D0 (else-body's first store, also
  * appearing in the beql delay slot — IDO emits it in both places when
- * the if-body uses fresh-load chains). 18/18 exact. */
-#ifdef NON_MATCHING
+ * the if-body uses fresh-load chains).
+ *
+ * MATCHED 2026-05-28 (boundary fix): the .s was truncated to 0x34 (13
+ * insns), dropping the 5-insn else-body at 0x4D3D0 (uncovered gap). The C
+ * was already 18/18 exact; restoring the .s to the true 0x48 made it a
+ * byte-exact match. */
 void game_libs_func_0004D39C(int *a0, int **a1) {
     if (*a1 != 0) {
         *(int*)((char*)a0 + 0x50) = (int)*a1;
@@ -26176,9 +26180,6 @@ void game_libs_func_0004D39C(int *a0, int **a1) {
         *a1 = a0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D39C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004D3E4: doubly-linked-list unlink with *a1==0 assert.
