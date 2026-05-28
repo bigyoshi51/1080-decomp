@@ -1047,20 +1047,17 @@ void game_uso_func_00001DC4(void *a0) {
 /* game_uso_func_00001DDC: 0x5FC (383 insns) — strategy-memo spine candidate,
  * confirmed single function (grep -c 03E00008 = 1, not a bundle).
  *
- * 38% CEILING ROOT CAUSE (decoded 2026-05-28): the prologue diverges at insn 0
- * and cascades. TARGET saves ONLY $ra (frame 0x180) and keeps the entity ptr in
- * caller-saved $a2 spilled to its home slot sp+0x180 (`move a2,a0; sw a2,0x180`,
- * reloaded each use). MINE saves $ra+$s0+$s1 (frame 0x1A8) and promotes the
- * entity ptr to $s0. Root: the `register int *ctx = a0;` local (18 uses across
- * many jals) — IDO promotes a heavily-used-across-call pointer to a callee-saved
- * $s, the OPPOSITE of target's caller-saved+reload strategy. TESTED 2026-05-28:
- * dropping the register local, unifying ctx->a0, and adding `(void)&a0` does NOT
- * flip it (still $s0/$s1, fuzzy unchanged 38.25%) — IDO's $s-promotion of the
- * 18-use ptr is not C-suppressible. Same register-strategy cap as
- * game_uso_func_000044F4's $s2. The whole-function regalloc cascade is gated on
- * this; not fixable until a way to force caller-saved+reload is found (permuter
- * on a 383-insn fn is impractical). Real matching needs the missing 135 insns
- * decoded first anyway — multi-pass.
+ * PROLOGUE / ENTITY-PTR REGALLOC (decoded 2026-05-28): the prologue diverges at
+ * insn 0 and cascades. TARGET saves ONLY $ra (frame 0x180) and keeps the entity
+ * ptr in caller-saved $a2 spilled to home slot sp+0x180, reloaded each use.
+ * MINE originally promoted it to $s0/$s1 (frame 0x1A8) via `register int *ctx`.
+ * FIX (partial, +0.88pp → 39.13%): changed `register int *ctx` to
+ * `int * volatile ctx = a0;` — the volatile-ptr-local knob (docs gl_func_00072550
+ * knob 3) forces home-slot reload each use instead of $s-promotion. This dropped
+ * $s1 (now only $s0 saved) and spilled the ptr to the stack. Residual: spill
+ * lands at sp+0xFC (a local slot) not target's sp+0x180 home slot, frame still
+ * 0x1A8, one $s0 remains. Further gains need the missing 135 insns decoded
+ * (mine 247 vs target 382) so IDO's allocno set matches — multi-pass.
  * ENTRY DISPATCH (first ~35 insns decoded):
  *   key = a0[0x40]  ; dispatch key
  *   if (key == 0) goto final_exit (very far forward, single-ra-restore)
@@ -1159,7 +1156,7 @@ void game_uso_func_00001DDC(int *a0) {
      * the inline-vs-spill scale-mul site). Future passes will replace
      * `frame_pad` with typed locals as they're decoded. */
     char frame_pad[168];
-    register int *ctx = a0;
+    int * volatile ctx = a0; /* volatile ptr local -> home-slot reload each use, not $s0 (docs gl_func_00072550 knob 3) */
     int key = a0[0x40 / 4];
     (void)frame_pad;
     if (key == 0) goto end;
