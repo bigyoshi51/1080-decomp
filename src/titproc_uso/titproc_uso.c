@@ -102,17 +102,18 @@ void titproc_uso_func_00000230(void) {
 
 extern char D_0000028C_A;
 
-#ifdef NON_MATCHING
-void titproc_uso_func_0000028C(void) {
+/* MATCHED 2026-05-28 (boundary fix): the .s was mislocated 8 bytes late as
+ * "0000028C", dropping the `lui v0; addiu v0` &D base-load at 0x284..0x288
+ * into an uncovered gap (prologue-stolen successor). Renamed to the true
+ * entry 00000284 + restored the prefix words; the C (mirror of matched
+ * sibling 00000230) then matches. */
+void titproc_uso_func_00000284(void) {
     *(int*)((char*)&D_00000000 + 0x34) = 5;
     *(int*)((char*)&D_00000000 + 0x40) = 0;
     *(int*)((char*)&D_00000000 + 0x13C) = 3;
     gl_func_00000000(12, 3);
     gl_func_00000000(*(int*)((char*)&D_0000028C_A + 0xA8), -1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000028C);
-#endif
 
 extern char D_000002D8_A;
 
