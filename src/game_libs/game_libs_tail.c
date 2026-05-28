@@ -267,15 +267,21 @@ void game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B60);
 #endif
 
-/* game_libs_func_00009B98: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B98);
+/* Flag/compare-test accessor family (sibling of 00009A2C): splat split each
+ * return-0 tail into the following empty-stub symbol; merged each is one fn. */
+int game_libs_func_00009B98(unsigned char *a0) {
+    if (*a0 & 0x80) {
+        return 1;
+    }
+    return 0;
+}
 
-void game_libs_func_00009BB4(void) {}
-
-/* game_libs_func_00009BBC: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009BBC);
-
-void game_libs_func_00009BD8(void) {}
+int game_libs_func_00009BBC(int *a0, int a1) {
+    if (a0[1] < a1) {
+        return 1;
+    }
+    return 0;
+}
 
 void game_libs_func_00009BE0(char *a0, int a1) { *(int*)(a0 + 4) = a1; *(unsigned char*)a0 |= 0x80; }
 
@@ -336,15 +342,19 @@ void game_libs_func_00009C5C(int *a0, int a1, unsigned char *a2, int *a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C5C);
 #endif
 
-/* game_libs_func_00009CDC: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009CDC);
+int game_libs_func_00009CDC(int *a0) {
+    if (a0[0] & 0x80) {
+        return 1;
+    }
+    return 0;
+}
 
-void game_libs_func_00009CF8(void) {}
-
-/* game_libs_func_00009D00: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D00);
-
-void game_libs_func_00009D1C(void) {}
+int game_libs_func_00009D00(int *a0, int a1) {
+    if (a0[7] < a1) {
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D24);
 
