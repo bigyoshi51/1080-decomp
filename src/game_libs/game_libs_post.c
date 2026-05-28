@@ -18958,58 +18958,30 @@ void gl_func_0003D9AC(int *arg0) {
     gl_func_00000000(arg0);
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_0003D9E4: 12-insn no-prologue leaf split from
- * gl_func_0003D9AC parent. Indexed linked-list lookup:
- *   if (list[0x34] == 0) return 0;
- *   count = 0; node = list[0x34];
- *   while (count != key) {
- *       node = node[0x2C];
- *       count++;
- *       if (node == 0) break;
- *   }
- *   return node;
+/* game_libs_func_0003D9E4: 12-insn count-limited linked-list walk.
+ *   v1 = a0->0x34; reuse-a0-as-counter i = 0;
+ *   if (v1) while (i != a1) { v1 = v1->0x2C; i++; if (!v1) break; }
+ *   return v1;
  *
- * Cap: no-prologue leaf — IDO -O2 always emits addiu sp + sw ra prologue
- * (5+ extra insns vs target). Same chain-state-fragment class as
- * game_libs_func_000664D4/000664F0 — unreachable from standalone C. */
-int* game_libs_func_0003D9E4(int *list, int key) {
-    int *v1 = (int*)list[0x34/4];
-    int count = 0;
-    if (v1 == 0) return 0;
-    while (count != key) {
-        v1 = (int*)v1[0x2C/4];
-        count++;
-        if (v1 == 0) break;
-    }
+ * CRACKED 2026-05-27 via the goto-loop + reuse-a0-as-counter form:
+ * `a0 = 0; if (v1 == 0) goto end; loop: ... if (v1 != 0) goto loop; end:`
+ * pattern emits the exact 12-insn target body with $a0 as the counter
+ * register (vs $v0 from the natural `int i = 0` form). The goto-end is the
+ * key — it prevents IDO from emitting the dead-arm branch-likely shape that
+ * the while/break form produces, AND from optimizing `a0 == a1` into
+ * `beqz a1` (since a0's history is opaque through the goto). */
+int* game_libs_func_0003D9E4(int a0, int a1) {
+    int *v1 = *(int**)(a0 + 0x34);
+    a0 = 0;
+    if (v1 == 0) goto end;
+loop:
+    if (a0 == a1) goto end;
+    v1 = (int*)v1[0x2C/4];
+    a0++;
+    if (v1 != 0) goto loop;
+end:
     return v1;
 }
-#else
-/* game_libs_func_0003D9E4: 12-insn count-limited linked-list walk.
- *   v1 = a0->0x34; i = 0;
- *   if (v1) while (i != a1) { v1 = v1->0x2C; i++; if (!v1) break; }
- *   return v1;  (node at index a1, or 0 if list shorter)
- *
- * DECODE PROVEN CORRECT. Compiling the body below IN ISOLATION with the
- * EXACT project flags
- *   cc -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul -O2 -mips2 -32 \
- *      -I include -I src -DNON_MATCHING
- * yields the target shape byte-for-byte EXCEPT the loop counter register
- * (target reuses $a0 the dead param; isolated picks $v0). 12 insns,
- * plain beq/bne, nop delays — matches target 1:1 modulo that one reg.
- *
- * BUT the full-TU `make non_matching_objects` build of game_libs_post.c
- * compiles THIS SAME function (asm-processor phase-1 output is identical
- * to source — verified) to 17 insns with beql/bnel + loop rotation
- * (3.75% fuzzy). Same C, same flags, same -O2 — the divergence is an
- * isolated-vs-full-TU IDO -O2 codegen difference (TU-context-dependent
- * optimizer behavior). NOT a logic problem; do NOT re-derive the C.
- * Next: permuter, or a TU-context-robust loop form; counter→$a0 needs
- * recycling the dead a0 param as the index. See
- * docs/IDO_CODEGEN.md#feedback-isolated-vs-full-tu-o2-divergence.
- * USO data convention: a0[off]. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D9E4);
-#endif
 
 // game_libs_func_0003DA14 — STRUCTURAL PASS (0x128 / 74 words, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION.
