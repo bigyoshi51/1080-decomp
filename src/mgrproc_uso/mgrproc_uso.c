@@ -1079,29 +1079,16 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001A6
 #endif
 
 /* mgrproc_uso_func_00001AD0: 34-insn (0x88) 5-call orchestrator.
- *
- * Decoded:
- *   gl_func(a0, a1);                                  // call 1
- *   v0 = D[0x134];
- *   n0 = v0->[0xC4]->[0x800];
- *   n1 = v0->[0xCC]->[0x800];
- *   gl_func(n0, 0);                                   // call 2
- *   gl_func(n0, D[0x168], D[0x170]);                  // call 3
- *   gl_func(n1, n1->[0x34]);                          // call 4
- *   gl_func(a0);                                      // call 5
- *   a0->[0x4F4] = a1 & 0xFFFF;
- *
- * IDO can hit the right instruction shape with explicit p0/p1 locals, but
- * grows the frame to 0x30. CAP: frame-grow stays NM (INSN_PATCH REMOVED
- * 2026-05-23 as match-faking per
- * feedback_no_instruction_forcing_matches_policy). */
+ * Interleaving the int/pointer local declarations (v0, n0, p0, n1, p1) makes
+ * IDO assign the n0/n1 spill slots to the same 8-aligned 0x18/0x20 offsets the
+ * target uses, matching the 0x28 frame. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void mgrproc_uso_func_00001AD0(int *a0, int a1) {
     int *v0;
+    int n0;
     int *p0;
+    int n1;
     int *p1;
-    int n0, n1;
     gl_func_00000000(a0, a1);
     v0 = *(int**)((char*)&D_00000000 + 0x134);
     p0 = (int*)v0[0xC4 / 4];
@@ -1114,9 +1101,6 @@ void mgrproc_uso_func_00001AD0(int *a0, int a1) {
     gl_func_00000000(a0);
     *(int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001AD0);
-#endif
 
 /* mgrproc_uso_func_00001B58: 28-insn (0x70) main body + 4 trailing donation
  * insns (= 0x8C declared size, 35 insns total).
