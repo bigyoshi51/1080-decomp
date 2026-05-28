@@ -1859,12 +1859,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
  * documented in MATCHING_WORKFLOW.md, except absorbed by a C body
  * instead of a Makefile recipe. */
 
-/* game_libs_func_00047F84 split 2026-05-19 from game_libs_func_00047F68;
- * decompiled in game_libs_post.c next to the parent. */
-
-/* game_libs_func_00047F90 split from game_libs_func_00047F68; INCLUDE_ASM
- * lives in game_libs_post.c next to the parent. */
-
 /* game_libs_func_00066200 + game_libs_func_00066208 + game_libs_func_0002D7C0:
  * SUFFIX_BYTES-absorbed orphans whose bytes are emitted by the post-cc
  * recipes on adjacent gl_func_* entries in game_libs_post.c.o (see Makefile:

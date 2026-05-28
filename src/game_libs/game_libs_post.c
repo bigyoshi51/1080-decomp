@@ -24311,44 +24311,23 @@ int gl_func_00047F48(int *a0) {
     return func_00000000(*(int*)((char*)a0 + 0xE0));
 }
 
-/* game_libs_func_00047F68: 13-insn 3-arm dispatcher split off from
- * gl_func_00047F48 bundle 2026-05-14. EXACT (objdiff 100.0).
- *   a0->[0x188] = a1; then:
- *     a1 == 0  → a0->[0x1E0] = 1
- *     a1 == 1  → a0->[0x1E0] = 0
- *     else     → leave 0x1E0 untouched
- * MATCH KEY: must be a 2-case switch(a1){case 0; case 1;}, NOT if/else-if.
- * if/else-if emits plain bne/nop; only switch emits the beq a1,zero +
- * beql a1,at dispatch with sw in the beql delay slot. For exactly 2
- * sparse cases (0,1) IDO emits NO .rodata jumptable, so switch IS
- * reachable here — corrects IDO_CODEGEN.md#feedback-ido-sparse-switch-
- * beql-preload-unreachable (that cap is the lw-preload / denser variant,
- * not the 2-case store variant). */
-/* game_libs_func_00047F68 boundary note: the pre-split switch C emitted the
- * two leaf bodies inline. Keep the split asm so game_libs_func_00047F84 /
- * 00047F90 retain their own symbols. Equivalent pre-split shape:
- *   a0[0x188/4] = a1; switch (a1) { case 0: a0[0x1E0/4] = 1; break;
- *   case 1: a0[0x1E0/4] = 0; break; } */
-/* game_libs_func_00047F68: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F68);
-
-void game_libs_func_00047F84(s32 *arg0) {
-    arg0[0x78] = 1;
+/* game_libs_func_00047F68: 13-insn 2-arm store dispatcher. A 2-case
+ * switch(a1) emits the target's `beq a1,zero` + `beql a1,1` dispatch with the
+ * zero-store in the beql delay (if/else-if emits plain bne/nop instead). A
+ * prior pass split this into matched case-body stubs 00047F84/00047F90;
+ * re-merged here as the one true function (the stubs were switch-case bodies
+ * reached via the dispatch branches, not standalone functions). */
+void game_libs_func_00047F68(int *a0, int a1) {
+    a0[0x188 / 4] = a1;
+    switch (a1) {
+    case 0:
+        a0[0x1E0 / 4] = 1;
+        break;
+    case 1:
+        a0[0x1E0 / 4] = 0;
+        break;
+    }
 }
-
-/* NATURAL CEILING: natural C emits the zero-store in the jr delay slot;
- * target uses sw/jr/nop (unfilled delay). Was previously promoted via
- * Makefile INSN_PATCH + EXPECTED_BASELINE-guarded SUFFIX_BYTES_FORCE —
- * both REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-#ifdef NON_MATCHING
-void game_libs_func_00047F90(s32 *arg0) {
-    arg0[0x78] = 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047F90);
-#endif
 
 // gl_func_00047F9C — STRUCTURAL PASS + BOUNDARY NOTE (0x3B4 / 238 words, no
 // episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
