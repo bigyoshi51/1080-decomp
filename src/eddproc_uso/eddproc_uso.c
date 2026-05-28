@@ -207,34 +207,34 @@ void eddproc_uso_func_0000038C(char *dst) {
 }
 
 /* 36-insn / 0x90 constructor: alloc 0x40, init via gl_func, conditional
- * list-insert into arg0->field_40 if non-NULL. Required two layered
- * matching tricks:
- *   1. Logic fix (2026-05-04 prior pass): post-call check is on
- *      `head->0x14 != 0`, not the call's return value. Moved head-insert
- *      OUT of the `if (p != 0)` block (asm runs it unconditionally).
- *   2. Frame-spill fix (2026-05-04 this pass): use the volatile-ptr-to-arg
- *      pattern (`volatile int **p_arg0 = (volatile int**)&arg0`) to force
- *      IDO to spill arg0 to its caller-slot at entry. Reload `head` LATE
- *      via `((int*)*p_arg0)[0x10]`. Per
- *      feedback_volatile_ptr_to_arg_forces_caller_slot_spill.md +
- *      feedback_arg_load_early_vs_late_swaps_frame_shape.md. */
+ * list-insert into arg0->field_40 if non-NULL.
+ *
+ * 2026-05-28: fixed a logic bug — the `if (head->0x14 != 0)` body writes
+ * `head->0x4 = 1` (target: `sw t9, 0x4(a1)`, a1=head), NOT `p->0x4`.
+ * Also dropped the `volatile int **p_arg0` trick: arg0 is naturally live
+ * across the first gl_func call (used as arg0->0x40), so IDO homes it
+ * without the trick — same byte result, cleaner C.
+ *
+ * Residual (~94% fuzzy, frame -0x20 vs target -0x28): the target SPILLS
+ * its cross-call temporaries (p, head, arg0) to stack slots 0x1C/0x20/0x24
+ * and reloads, using NO $s registers (no prologue $s save). IDO-from-C at
+ * this opt level prefers keeping them in regs, giving a smaller frame.
+ * The spill-not-saved-reg shape isn't C-controllable here. NM. */
 #ifdef NON_MATCHING
 void *eddproc_uso_func_000003BC(int *arg0) {
     int *p;
     int *head;
-    volatile int **p_arg0;
-    p_arg0 = (volatile int**)&arg0;
     p = (int*)gl_func_00000000(0x40);
     if (p != 0) {
         gl_func_00000000(p);
         *(int*)((char*)p + 0x28) = (int)&D_00000000;
         *(int*)((char*)p + 0x3C) = 0;
     }
-    head = (int*)((int*)*p_arg0)[0x10];
+    head = (int*)arg0[0x40 / 4];
     if (head != 0) {
         gl_func_00000000((char*)p + 0x10, head);
         if (*(int*)((char*)head + 0x14) != 0) {
-            *(int*)((char*)p + 0x4) = 1;
+            *(int*)((char*)head + 0x4) = 1;
         }
         *(int*)((char*)head + 0x14) = (int)p;
     }
