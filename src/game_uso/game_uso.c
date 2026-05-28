@@ -11818,18 +11818,14 @@ void game_uso_func_0000FDCC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FDCC);
 #endif
 
-/* Same SUFFIX_BYTES + INSN_PATCH spill-tail recipe as the 0x10E2C family;
- * target emits caller arg-slot spills before the conditional second call. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28 via struct-by-value (E38/E3C pair homes a1,a2). See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_0000FEC8(char *a0) {
     gl_func_00000000(a0, 0x30001, 4, 5, 2, 1);
     if (*(float*)(*(char**)(a0 + 0xB4) + 0x9D0) < 1000.0f) {
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE38), *(int*)((char*)&D_00000000 + 0xE3C));
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE38));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FEC8);
-#endif
 
 /* MATCHED 2026-05-28. 2-call gated dispatcher. The 2nd call's target home-stores
  * (sw a1,4(sp); sw a2,8(sp)) — long mislabeled a "precall-arg-spill cap" — are
