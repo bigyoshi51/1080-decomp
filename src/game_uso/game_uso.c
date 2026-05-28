@@ -6257,9 +6257,10 @@ trunk:
      *
      * Status 2026-05-17: 58.686047% via `objdiff-cli report generate`
      * after rebuilding build/non_matching/src/game_uso/game_uso.c.o.
-     * Full project link is currently blocked by unrelated bootup/game_libs
-     * linker issues (`D_A0000200`, `D_35360_X`, `D_6F614_X`), but this
-     * unit compiles and the object-level NM score is current.
+     * (2026-05-28 update: the earlier "full project link blocked by
+     * D_A0000200/D_35360_X/D_6F614_X" note is STALE — `make RUN_CC_CHECK=0`
+     * now links build/tenshoe.elf cleanly; the only residual is the
+     * documented pre-existing ~0x550-byte ROM_MISMATCH, not a link error.)
      *
      * Status 2026-05-08 (later): 48.97% (drift from 48.81% earlier same day; +0.16pp
      * is upstream parallel-agent activity reshuffling expected/.o baselines, NOT a
