@@ -768,6 +768,10 @@ void timproc_uso_b3_func_00001870(int *self) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001870);
 #endif
 
+/* timproc_uso_b3_func_00001920: 2-insn alt-entry (set f0=1.0f, falls into
+ * 00001928). RECOVERED 2026-05-28 from the Yay0 block_3 gap — INCLUDE_ASM. */
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001920);
+
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00001928: byte-identical mirror of
  * arcproc_uso_func_00001C74 (sig=739fd8d1d3, 41-insn 0xA4 counter+
