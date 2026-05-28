@@ -1245,6 +1245,14 @@ void arcproc_uso_func_000024C0(void) {
     gl_func_00000000(gl_ref_00000074, -1, 0);
 }
 
+/* arcproc_uso_func_00002504/250C/2514: 3 empty `jr ra; nop` stubs RECOVERED
+ * 2026-05-28 from the 000024C0 bundle gap (dropped — no .s, missing from
+ * build). `void f(void){}` compiles to exactly `jr ra; nop` (0x8) at -O2 —
+ * byte-exact matches (the prior SUFFIX_BYTES fake is unnecessary). */
+void arcproc_uso_func_00002504(void) {}
+void arcproc_uso_func_0000250C(void) {}
+void arcproc_uso_func_00002514(void) {}
+
 /* arcproc_uso_func_0000251C - verified structural decode; SIBLING of the
  * alloc-cascade ctor family (arcproc_uso_func_0000199C /
  * timproc_uso_b1_func_000016F8) + 24F4-style registration tail.
