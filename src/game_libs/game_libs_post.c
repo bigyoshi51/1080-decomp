@@ -13,6 +13,7 @@ extern int D_00000000;
 
 typedef struct { int a, b, c, d; } Quad4;
 typedef struct { int a, b, c; } Tri3i;
+typedef struct { int a, b; } Pair2;
 typedef struct { float x, y, z; } Vec3;
 
 // gl_func_0001CA10 — STRUCTURAL PASS (0x354 / 213 words, no episode).
@@ -723,20 +724,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D870);
  * Writes two 8-byte commands (4 words) to the $a0 DList buffer, indexing the
  * 0x158-stride record table at &D_00000000 by the 5th (stack) arg, reading the
  * segment-offset fields +0x38/+0x3C and KSEG0-biasing them. Returns buf+16.
- * NM: structurally complete; objdiff reloc-depressed (D_ ref in a raw-.word
- * game_libs .s) + IDO dead arg-home-stores (sw a1,4(sp)/a2,8(sp)). */
+ *
+ * 2026-05-28: declaring the (a1,a2) arg pair as a Pair2 struct-by-value param
+ * (the RECEIVING-side analog of the struct-by-value arg-home lever) forces the
+ * `sw a1,4(sp); sw a2,8(sp)` dead home-stores the target has, fixing the
+ * instruction count (39==39). Remaining 25 diffs are pure register allocation:
+ * cmd lands in $v1 vs target $t0 (cascades), and p.b is reloaded from its home
+ * slot vs the target keeping a2 in $6. The struct-by-value frontend treats
+ * members as memory so it reloads; the target uses the incoming register AND
+ * has a dead home store — a combo neither pure struct-by-value nor (void)&aN
+ * reproduces. Permuter candidate (logic + count correct, regalloc only).
+ * See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 extern int D_00000000;
-int game_libs_func_0001D944(int *buf, int a1, int a2, int a3, int idx) {
+int game_libs_func_0001D944(int *buf, Pair2 p, int a3, int idx) {
     int cmd = (((a3 >> 4) & 0xFF) << 16) | 0x14000000;
     char *rec;
     int off;
-    buf[0] = cmd | (a1 & 0xFFFF);
+    buf[0] = cmd | (p.a & 0xFFFF);
     rec = (char *)&D_00000000 + idx * 0x158;
-    a2 &= 0xFFFF;
-    off = a2 << 1;
+    off = (p.b & 0xFFFF) << 1;
     buf[1] = *(int *)(rec + 0x38) + off + 0x80000000;
     buf += 2;
-    buf[0] = cmd | ((a1 + 0x1A0) & 0xFFFF);
+    buf[0] = cmd | ((p.a + 0x1A0) & 0xFFFF);
     buf[1] = *(int *)(rec + 0x3C) + off + 0x80000000;
     return (int)(buf + 2);
 }
