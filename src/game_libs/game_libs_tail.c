@@ -1789,18 +1789,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D288);
  *       a0->0xA0 += a1->0x88 * 1000;               // tail: *1000 via shift-add (t1*125<<3)
  *   }
  * div.s forced via named-local denom (else IDO folds 235.0/255.0 to lwc1-pool).
- * 92.11% as of 2026-05-28 (fresh decode: 0% → 75% → 92%). Levers: (1) `if (cond)
- * {body}` positive shape + void return (not `if(!cond) return 0;`) → `beqz t7,
- * epilogue` direct, no separate `move v0,zero` block; (2) the second call's two
- * trailing floats must stay SINGLE — a K&R call promotes them to double
- * (cvt.d.s + sdc1, +8 frame), so it's cast to a float-param prototype.
- * RESIDUAL CAP (~8%): that prototyped cast forces an INDIRECT `jalr t9`
- * (lui/addiu/jalr) vs the target's direct `jal` — and gl_func_00000000 can't be
- * globally prototyped (call1/call3 use other signatures), so single-float +
- * direct-jal can't both be had from C here (K&R-float-call cap, cf.
- * feedback_ido_knr_float_call). Plus minor FP-reg (f4/f12, f6/f8) + tail
- * int-reg (t9/t3) allocation nuances. Stays NM. */
+ * 96.17% as of 2026-05-28 (fresh decode: 0% → 75% → 92% → 96%). Levers:
+ *  (1) positive `if(cond){body}` + void return (not `if(!cond) return 0;`) →
+ *      direct `beqz t7, epilogue`, no separate `move v0,zero` block.
+ *  (2) the 2nd call's two trailing floats must stay SINGLE — a K&R call promotes
+ *      them to double (cvt.d.s + sdc1, +8 frame). FIXED with the differently-named
+ *      prototyped extern `gl_proto_D318` (resolves via R_MIPS_26 to the same jal-0
+ *      target) → direct `jal` + single floats, per
+ *      docs/IDO_CODEGEN.md#feedback-ido-knr-float-call. (A function-pointer cast
+ *      also keeps singles but emits indirect `jalr t9`; the named-proto avoids that.)
+ * RESIDUAL CAP (~4%, FP/int regalloc, not C-forceable): the target materializes
+ * the 0.0f constant in THREE distinct FP regs (f4 pre-call for ->0xAC, f16 as the
+ * 0/255 div numerator, f12 post-call for ->0xA8/0xA4); IDO CSEs mine into one
+ * fewer mtc1-zero, which cascades the FP-reg numbering (f4/f6/f8 vs f6/f8/f10) and
+ * shifts the epilogue by 4. Plus tail int-reg renumber (t9/t2 vs t0/t1). Stays NM. */
 extern int gl_func_00000000();
+/* Differently-named prototyped extern: resolves via R_MIPS_26 to the SAME jal-0
+ * target as gl_func_00000000, but lets the trailing float args stay SINGLE with a
+ * DIRECT `jal` — avoids both K&R float→double promotion AND the fn-ptr-cast
+ * `jalr $t9`. Per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call verified workaround. */
+extern int gl_proto_D318(void*, int, int, float, float);
 void gl_func_0000D318(int *a0, int *a1) {
     int *obj;
     float denom;
@@ -1808,11 +1816,7 @@ void gl_func_0000D318(int *a0, int *a1) {
     if (a0[0xB4 / 4] & 8) {
         obj = (int*)gl_func_00000000(a0[0x6C / 4], a1[0x88 / 4], 0, 1);
         *(float*)((char*)obj + 0xAC) = 0.0f;
-        /* Prototyped cast: keeps the two trailing floats SINGLE (arg3→a3 via
-         * mfc1, arg4→stack swc1) instead of K&R-promoting them to double
-         * (cvt.d.s + sdc1, which also bloats the frame). */
-        ((void (*)(void*, int, int, float, float))gl_func_00000000)(
-            obj, 0xDC, 0x78, 1.0f, 1.0f);
+        gl_proto_D318(obj, 0xDC, 0x78, 1.0f, 1.0f);
         denom = 255.0f;
         *(float*)((char*)obj + 0xA8) = 0.0f;
         *(float*)((char*)obj + 0xA4) = 0.0f;
