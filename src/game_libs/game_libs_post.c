@@ -35135,72 +35135,42 @@ void gl_func_00066404(int *dst) {
 }
 
 #ifdef NON_MATCHING
-/* game_libs_func_00066440: 8-insn fragment (0x20). NO prologue, NO frame
- * (jr ra at 0x18 with 'move v0, zero' delay slot). Reads a0/v1/a1 as
- * pre-set registers from the predecessor (chain-state fragment).
- *
- * Body decoded:
- *   v1 = a0[1]; a1 = a0[0];
- *   if (v1 != a1) { a1[1] = v1; }    ; bnel-style annulled delay-slot store
- *   if (a0 != a1) { a1[1] = v1; }    ; same store, different cond
- *   return 0;                         ; move v0, zero in jr-ra delay
- *
- * STRUCTURAL BLOCKER: Without a prologue/epilogue, no standalone C function
- * can compile to these 8 raw insns — IDO always emits at minimum
- * `addiu sp, -N; sw ra; ...; lw ra; addiu sp, N; jr ra` for any non-empty
- * function. Per feedback_splat_fragment_via_register_flow.md, fragments
- * without prologue should be MERGED back into the predecessor (here:
- * gl_func_00066404). But the predecessor is a clean 15-insn int-reader
- * that doesn't have these 8 trailing insns as part of its C body.
- *
- * The original 32-insn splat-bundled symbol gl_func_00066404 contained
- * [int-reader 15 insns] + [these 8 insns] + [game_libs_func_00066460's 9 insns]
- * as data, with cross-fragment register flow that no IDO -O2 C compilation
- * can reproduce. Per feedback_uso_split_fragments_breaks_expected_match.md,
- * splitting was the expedient choice; matching the fragment exactly is
- * unreachable from C. INCLUDE_ASM-tautology stays. */
-void game_libs_func_00066440(void) {
-    /* see gl_func_00066404 above — this is a chain-state fragment of the
-     * original 32-insn splat-bundled symbol. No standalone C reproduces it. */
+/* game_libs_func_00066440: self-contained circular doubly-linked-list
+ * remove-self (17 insns; the 00066460 tail is splat's jr-ra over-split of the
+ * v1==prev==a0 early return, merged back here). CORRECTION: the prior note
+ * claimed this was a fragment of a 32-insn int-reader bundle — wrong. The
+ * predecessor gl_func_00066404 ends `jr ra; nop` (a complete separate
+ * int-reader); 66440 reads a0 fresh and is its own function.
+ *   if (next==prev && a0==prev) return 0;       // both bnel fall through
+ *   prev->next = next; next->prev = prev;        // unlink
+ *   r = a0->prev; a0->prev = a0; a0->next = a0;  // reset to self
+ *   return r;
+ * NM at 2 diffs: the unlink's `next->prev = prev` loads a0->0 before a0->4 in
+ * the target, but IDO -O2 schedules the opposite load order here and no C form
+ * flips it (verified ~10 variants; the double-bnel store-in-delay DOES match).
+ * Permuter-territory; INCLUDE_ASM (merged .s) stays meanwhile. */
+int game_libs_func_00066440(int *a0) {
+    int *next = (int*)a0[1];
+    int *prev = (int*)a0[0];
+    if (next != prev) {
+        goto unlink;
+    }
+    if (a0 != prev) {
+        goto unlink;
+    }
+    return 0;
+unlink:
+    prev[1] = (int)next;
+    ((int*)a0[1])[0] = a0[0];
+    {
+        int old_prev = a0[0];
+        a0[0] = (int)a0;
+        a0[1] = (int)a0;
+        return old_prev;
+    }
 }
 #else
-/* game_libs_func_00066440: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066440);
-#endif
-
-#ifdef NON_MATCHING
-/* game_libs_func_00066460: 9-insn fragment (0x24). NO prologue, NO frame
- * (jr ra at 0x1C with nop delay slot). Reads a0/v1/a1 as pre-set registers
- * from the predecessor — chain-state fragment of the original 32-insn
- * splat-bundled gl_func_00066404 (sibling of game_libs_func_00066440).
- *
- * Body decoded:
- *   a1[1] = v1;            ; pre-set v1 + a1 from predecessor
- *   t6 = a0[0]; t7 = a0[1];
- *   t7[0] = t6;            ; *a0->[1] = a0->[0]    (data move via deref)
- *   v0 = a0[0];            ; load result
- *   a0[0] = a0;            ; self-link a0->[0] = a0
- *   a0[1] = a0;            ; self-link a0->[1] = a0
- *   return v0;             ; ($v0 holds a0[0] from line above)
- *
- * Looks like a doubly-linked-list "remove-and-reset" tail: the chain-state
- * fragment removes the node by patching neighbours' links, then re-points
- * the node's own next/prev to itself (free-state).
- *
- * STRUCTURAL BLOCKER: same as game_libs_func_00066440 above — no standalone
- * C function can compile to raw insns without prologue/epilogue. INCLUDE_ASM
- * stays. Documented for grep discoverability + future-recipe reference.
- *
- * Per feedback_uso_split_fragments_breaks_expected_match.md and
- * docs/MATCHING_WORKFLOW.md fragment merge docs: a future merge that folds
- * 66404 + 66440 + 66460 back into a single 32-insn function would be
- * required to get a clean C match. Not pursued here. */
-void game_libs_func_00066460(void) {
-    /* see gl_func_00066404 above — this is a chain-state fragment of the
-     * original 32-insn splat-bundled symbol. No standalone C reproduces it. */
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066460);
 #endif
 
 #ifdef NON_MATCHING
