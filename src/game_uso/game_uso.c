@@ -10993,23 +10993,14 @@ void game_uso_func_0000EE84(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE84);
 #endif
 
-#ifdef NON_MATCHING
-/* 82.20% NM. 4-call wrapper. Logic: call gl_func(a0); call gl_func(a0, D_E40, D_E44);
- * call gl_func(a0); call gl_func(a0). Hits precall arg-spill cap per
- * feedback_ido_precall_arg_spill_unreachable.md — target spills a1/a2 to
- * sp+4/sp+8 around the second jal (sw a1,4(sp); sw a2,8(sp)) but IDO -O2
- * with K&R-declared gl_func_00000000 won't emit those spills. Mine: 16
- * insns / 0x40. Target: 20 insns / 0x50. Logic correct. */
+/* MATCHED 2026-05-28 via struct-by-value (E40/E44 pair homes a1,a2). See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_0000EF20(int a0) {
-    int *p = (int*)((char*)&D_00000000 + 0xE40);
     gl_func_00000000(a0);
-    gl_func_00000000(a0, p[0], p[1]);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE40));
     gl_func_00000000(a0);
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF20);
-#endif
 
 /* game_uso_func_0000EF70 — verified decode (EE84-family branchy, reload-CSE cap).
  * void f(int *a0){
