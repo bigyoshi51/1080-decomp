@@ -37,6 +37,13 @@ FALSE POSITIVES — always `grep src/` for the gap's function FIRST:
     = block_1, block_1[0x179C] == 27BDFFE8). Read gap bytes from that block at
     the .s offset directly, create the .s, recover as usual. (First done
     2026-05-28: mgrproc_uso 00001814/0000181C save-arg sentinels.)
+    GOTCHA — ALT-ENTRIES (2-insn no-jr-ra stubs that FALL THROUGH into the next
+    function, e.g. `lui at,0x3F80; mtc1 at,$f0`): recover as INCLUDE_ASM ONLY
+    when the NEXT function is also INCLUDE_ASM/NM-wrapped. If the next function
+    is unconditional compiled C, asm-processor merges the no-jr-ra label into
+    that C function's symbol (no separate symbol emitted) — leave such
+    alt-entries unrecovered. (2026-05-28: timproc_b3 00001920 recovered fine
+    before NM 00001928; 00002238 failed before compiled-C 00002240.)
 
 Usage: python3 scripts/find-uso-coverage-gaps.py [segment_substr]
 """
