@@ -19782,42 +19782,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E238);
 #endif
 #endif
 
-// gl_func_0003E2B0 — STRUCTURAL PASS (0xE8 / 59 words, no episode). Raw-.word
-// USO. realjr=1, single prologue frame 0x40 (saves ra + s0..s3) → ONE clean
-// function. Diagnostic/trace serialization family (contiguous helper trio
-// H_01459B / H_0145A8 / H_0145B5, jal-encoded fixed intra-USO targets; cb =
-// jal 0 USO-relocated emit callback).
-//
-//   void gl_func_0003E2B0(Obj a0) {
-//     Node n = a0->p2C;                 // intrusive list head at a0->0x2C
-//     void *g = &D_reloc;               // global emit base (lui/addiu s1)
-//     if (!n) goto done;
-//     do {
-//       if (n->p10 != 0) {              // skip nodes with empty p10
-//         H_0145A8(&n->p2C);            // begin/emit record for this node
-//         cb(g, 1, 0);                  // open bracket
-//         int saved = H_01459B(scratchA);// scratchA = sp+0x34
-//         Vtbl vt = n->p28;             // per-node vtable at n->0x28
-//         short k = (short)vt->p40;
-//         (*(fnptr)vt->p44)(k + n);     // virtual dispatch, arg = k + node
-//         cb(g, 1, 0);
-//         a2 = saved;                   // forward saved emit handle
-//         int span = a2 - saved_v0 - 4; // subu/addiu -4 (record length adj)
-//         cb(g, 0, span);  scratchB = span;   // scratchB = sp+0x30
-//         H_01459B(scratchB);
-//         cb(g, 1, scratchB);           // close bracket with span
-//       }
-//       n = n->p30;                     // advance via node->0x30
-//     } while (n);                      // bnel loop-back (branch-likely)
-//   done:
-//     scratchC = 0;                     // sp+0x38 = 0
-//     H_0145B5(scratchC);               // terminator/flush
-//   }
-// Family: same H_0145xx record-emit trio + cb open/value/close idiom as the
-// diagnostic/trace serializers already structural-passed in this segment.
-// Caps: list/node + vtable struct untyped; H_0145xx / cb signatures inferred
-// from call shape; FP-pool n/a here. Full body INCLUDE_ASM-preserved.
+// gl_func_0003E2B0 — NM WRAP 95.8% (2026-05-28, was documented-only).
+// Diagnostic/trace serializer: list-walk + per-node vtable dispatch bracketed
+// by emit-callback open/value/close. Helper trio H_0145A8/H_01459B/H_0145B5 are
+// HARDCODED mid-function jals (0x516a0/0x5166c/0x516d4 land INSIDE
+// gl_func_00051694 / gl_func_0005165C — no symbol, baked-not-reloc'd) → the
+// documented hardcoded-jal cap (reference_1080_hardcoded_jal_addresses); the
+// wrap uses gl_func_00000000 placeholders for them, which is the ~4% residual.
+// Other residual: frame 0x48 vs 0x40 (8-byte spill-slot-allocator diff, decl
+// order already matches the term>hA>hB slot order) + vt/fn in v1/a1 vs v0/t9.
+// Logic/control-flow/arg-threading exact. Family: same H_0145xx record-emit
+// trio + cb open/value/close as sibling serializers gl_func_00040640 / 00040974.
+#ifdef NON_MATCHING
+void gl_func_0003E2B0(void *a0) {
+    int *node = *(int**)((char*)a0 + 0x2C);   /* s0 - list head */
+    char *g = (char*)&D_00000000;              /* s1 - emit base */
+    int term;   /* sp+0x38 (highest local) */
+    int hA;     /* s2 = &hA (sp+0x34) */
+    int hB;     /* s3 = &hB (sp+0x30) */
+
+    if (node != 0) {
+        do {
+            if (*(int*)((char*)node + 0x10) != 0) {
+                int rc;
+                int *vt;
+                int (*fn)();
+                gl_func_00000000((char*)node + 0x2C);   /* H_0145A8 (hardcoded jal) */
+                gl_func_00000000(g, 1, 0);               /* cb open */
+                hA = gl_func_00000000(&hA);              /* H_01459B (hardcoded jal) */
+                vt = *(int**)((char*)node + 0x28);
+                fn = *(int(**)())((char*)vt + 0x44);
+                fn(*(short*)((char*)vt + 0x40) + (int)node);  /* virtual dispatch */
+                rc = gl_func_00000000(g, 1, 0);          /* cb */
+                hB = rc - hA - 4;
+                gl_func_00000000(g, 0, hA);              /* cb(g,0,hA) */
+                gl_func_00000000(&hB);                   /* H_01459B (hardcoded jal) */
+                gl_func_00000000(g, 1, hB);              /* cb(g,1,hB) */
+            }
+            node = *(int**)((char*)node + 0x30);
+        } while (node != 0);
+    }
+    term = 0;
+    gl_func_00000000(&term);                             /* H_0145B5 (hardcoded jal) */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
+#endif
 
 // gl_func_0003E39C — STRUCTURAL PASS (0x1AC / 108 words, no episode). Raw-.word
 // USO. realjr=2 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends at jr 0x3E51C;
