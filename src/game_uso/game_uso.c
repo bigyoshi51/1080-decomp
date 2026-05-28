@@ -10553,7 +10553,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
  * shape was previously promoted with a Makefile INSN_PATCH/
  * SUFFIX_BYTES_FORCE recipe — both REMOVED 2026-05-23 as match-faking
  * (per feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+ * INCLUDE_ASM.
+ *
+ * 2026-05-28 BOUNDARY FIX: the .s was truncated to 0x80 (32 insns); the
+ * function is really 0x8C (35 insns) — its `bnez t3, 0xE354` targets its
+ * own dropped tail (sh t4,0xE4(a0); jr ra; nop at 0xE350..0xE358, from
+ * Yay0 block_1), NOT a cross-fn cap. Restored the full .s (segment was
+ * short 3 words). C is still a ~30% partial (33/35, 24 diffs) — FPU body
+ * decode pending; correctly bounded now for a future pass. */
 #ifdef NON_MATCHING
 void game_uso_func_0000E2D0(char *a0) {
     s16 frame;
