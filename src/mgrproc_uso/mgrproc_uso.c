@@ -218,6 +218,11 @@ int mgrproc_uso_func_00000188(void) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000188);
 #endif
 
+/* mgrproc_uso_func_00000194: empty stub RECOVERED 2026-05-28 from the
+ * 00000188 Yay0 gap (no .s, missing from build; bytes from block_1).
+ * `void f(void){}` -> `jr ra; nop` byte-exact at -O2. */
+void mgrproc_uso_func_00000194(void) {}
+
 /* mgrproc_uso_func_0000019C: 218-insn (0x368) state-machine orchestrator.
  *
  * Per-state init dispatcher: 9-way jump-table on a1 (state index), each case
