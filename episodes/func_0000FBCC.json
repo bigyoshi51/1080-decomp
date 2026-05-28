@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000FBCC",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-28T18:18:49.448933+00:00",
+  "end_time": "2026-05-28T18:18:49.448962+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-28T18:18:49.448953+00:00",
+      "assistant_text": "Migrated func_0000FBCC out of the -O2 bootup_uso_tail1.c into a dedicated -O0 sub-file (3-way split: tail1 F81C-FAE8 / o0_FBCC / tail1_bot FC28-FEE8). At -O2 the constant-folded set=0 dead branch is eliminated; at -O0 IDO keeps both arms + the dead 'b .+1; nop' BB marker, reproducing the 23-insn target. -O0 emits 24 insns; trailing nop clipped via TRUNCATE_TEXT:=0x5C. tail1_bot TRUNCATE:=0x4C8 keeps FEE8 ending at bootup 0x100F0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 23,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* bootup_uso 0xFBCC \u2014 split off bootup_uso_tail1.c (which builds -O2) into\n * this -O0 sub-file on 2026-05-28 so the function compiles byte-exact.\n *\n * func_0000FBCC: single-block bit-clear, 23 insns / 0x5C. Constant-folded\n * `set = 0` flag makes the `if (set)` branch dead; at -O0 IDO keeps both\n * arms + the dead `b .+1; nop` BB marker, reproducing the target exactly.\n * -O0 emit is 24 insns (0x60); the trailing nop past 0x5C is clipped by\n * TRUNCATE_TEXT := 0x5C. (At -O2 the dead branch folds away \u2014 hence the\n * file split.) */\n\nvoid func_0000FBCC(int *a0) {\n    register int *p1, *p2;\n    register int set;\n    register int *t;\n    p1 = (int*)((char*)a0[0x48/4] + 0x18);\n    p2 = p1;\n    set = 0;\n    if (set) { t = p2; *t = *t | 8; }\n    else     { t = p2; *t = *t & ~8; }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_FBCC.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0000FBCC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "byte-exact: region [0xF81C,0x100F0) ELF-identical pre/post split; o0_FBCC.c.o .text 0x5C == target asm; report.json fuzzy=100.0"
+  }
+}
