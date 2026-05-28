@@ -4203,6 +4203,15 @@ void timproc_uso_b5_func_0000C1B4(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1B4);
 #endif
 
+/* timproc_uso_b5_func_0000C1F4: 5-insn float-store, RECOVERED 2026-05-28
+ * from the Yay0 gap (no .s, missing from build; bytes from block_5). o32
+ * float-after-int arg arrives in $a1 -> mtc1; inline-deref of a0->0x2B8
+ * keeps the dest pointer in $t6 (byte-exact). */
+void timproc_uso_b5_func_0000C1F4(int *a0, float val) {
+    *(float*)((char*)a0 + 0x2A0) = val;
+    *(float*)((char*)*(int**)((char*)a0 + 0x2B8) + 0x120) = val;
+}
+
 extern char D_b5_C208_table0;
 extern char D_b5_C208_table1;
 void timproc_uso_b5_func_0000C208(int *a0, int a1, int a2, int a3) {
@@ -4700,6 +4709,13 @@ void timproc_uso_b5_func_0000CC74(int *a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CC74);
 #endif
+
+/* timproc_uso_b5_func_0000CCB4: sibling of 0000C1F4 (last store at 0x11C
+ * instead of 0x120), RECOVERED 2026-05-28 from the Yay0 gap. */
+void timproc_uso_b5_func_0000CCB4(int *a0, float val) {
+    *(float*)((char*)a0 + 0x2A0) = val;
+    *(float*)((char*)*(int**)((char*)a0 + 0x2B8) + 0x11C) = val;
+}
 
 /* timproc_uso_b5_func_0000CCC8: 23-insn (0x5C) 6-arg cross-USO call
  * builder. Computes &D[0x1C0] + idx*24 where idx = a0->[0x1AC] and
