@@ -9987,7 +9987,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF68);
  * - if (*(int*)&D_0 != 0) gl_func(a1 & 0xFF) — log/notify if global set
  *
  * No prologue-stolen complications. Sibling of 0002DF00 in
- * sibling-chain context (source 2 of /decompile). */
+ * sibling-chain context (source 2 of /decompile).
+ *
+ * NATURAL CEILING ~98% (+1 insn): the three 1.0f stores at 0x54/0x58/0x5C.
+ * Target materializes 1.0f into TWO fp regs (`mtc1 at,$f2` AND `mtc1 at,$f4`)
+ * and stores $f2->0x54/0x58, $f4->0x5C; IDO's natural emit CSE-folds the
+ * immediate into ONE reg ($f2) for all three (1 insn shorter). 2026-05-28:
+ * NOT fixable — FP-IMMEDIATE-constant CSE has no C handle (unlike the
+ * symbol-address CSE that distinct-externs busts, see docs/IDO_CODEGEN.md
+ * feedback-ido-fp-immediate-cse-not-bustable). `float last=1.0f` is
+ * value-numbered back into the literal (49-diff regression); `volatile
+ * float last=1.0f` forces a stack roundtrip (swc1/lwc1, wrong shape vs
+ * target's mtc1). Permanent NM. */
 extern int gl_func_00000000();
 void gl_func_0002DF98(unsigned char *a0, int a1) {
     a0[0x21] = a1;
