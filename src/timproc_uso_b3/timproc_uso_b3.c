@@ -458,6 +458,18 @@ void timproc_uso_b3_func_00000FF4(char *a0) {
     }
 }
 
+/* 00001074/00001088: RECOVERED 2026-05-28 from the Yay0 block_3 gap (no .s,
+ * missing from build — segment was 7 words short). 00001074: MATCHED —
+ * D[0x40]=9 setter with unused-arg save; the global-store-in-delay-slot
+ * vs arg-save order matches in-tree (standalone diverged, see
+ * MATCHING_WORKFLOW.md#feedback-standalone-false-convergence-verify-in-tree).
+ * 00001088: 2-insn alt-entry that loads a1 and falls through into 00001090
+ * — INCLUDE_ASM only. */
+void timproc_uso_b3_func_00001074(int a0) {
+    *(int*)((char*)&D_00000000 + 0x40) = 9;
+}
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001088);
+
 void timproc_uso_b3_func_00000000();
 
 void timproc_uso_b3_func_00001090(int a0, char *a1) {
