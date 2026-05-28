@@ -1790,7 +1790,11 @@ void timproc_uso_b5_func_0000685C(char *a0) {
  * comparison is equality against 0.0f; non-zero values take the success
  * return path. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28 (Yay0 boundary fix): the .s was truncated to 0x14 (5
+ * insns); the function is really 0x84 (33 insns) — the `bnez v0, 0x6890`
+ * branched into its own dropped body (Yay0 block_5 gap), NOT a cross-fn
+ * cap. Restored the .s + inlined the `item` deref (shifts $v0->$t0 to match
+ * the float-load base register). 33/33 byte-exact. */
 int timproc_uso_b5_func_0000687C(int *a0) {
     int group = *(int*)((char*)a0 + 0x3C4);
     int group_off = group * 4;
@@ -1798,7 +1802,6 @@ int timproc_uso_b5_func_0000687C(int *a0) {
     int idx;
     int byte_off;
     register int *cursor;
-    register char *item;
     if (group == 0) return 1;
 
     count = *(int*)((char*)a0 + 0x3D0 + group_off);
@@ -1810,18 +1813,13 @@ int timproc_uso_b5_func_0000687C(int *a0) {
     byte_off = idx * 4;
     cursor = (int*)((char*)*(int*)((char*)*(int**)((char*)a0 + 0x40C) + group_off + 0x40) + byte_off);
     do {
-        item = (char*)*(int*)((char*)cursor + 0x3C);
         byte_off -= 4;
-        if (*(float*)(item + 0x2A4) != 0.0f) return 1;
+        if (*(float*)((char*)*(int*)((char*)cursor + 0x3C) + 0x2A4) != 0.0f) return 1;
         cursor = (int*)((char*)cursor - 4);
     } while (byte_off >= 0);
 ret0:
     return 0;
 }
-#else
-/* timproc_uso_b5_func_0000687C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000687C);
-#endif
 /* timproc_uso_b5_func_00006900 - verified structural decode (0xE8,
  * 58 insns, "any-entry-active" scan predicate). Returns s32 0/1.
  *   s32 timproc_uso_b5_func_00006900(St *s) {
