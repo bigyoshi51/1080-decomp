@@ -28869,22 +28869,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  *
- * build/non_matching test 2026-05-19: 31 vs 33 (count -2).
- * Algorithm/structure exact; residual is codegen-shaping: the
- * a0/a2 arg-save ordering (target `or a2,a0,0; or a3,a2,0` saving
- * BOTH self and target before the lazy-init branch), the cached
- * factory-result reuse (obj kept in a reg across the 2nd cb, not
- * respilled), and the bne→shared-epilogue convergence. Also: the
- * `D_BASE` here is a placeholder — a real promote must use
- * `(char*)&D_00000000 + 0x20FC0` (the generic seg symbol; D_BASE
- * is undefined and would link-fail). Documented-hard shaping —
- * deferred to a focused pass; INCLUDE_ASM build path.
- */
+ * 2026-05-28: 89.7% → 99.55%. KEY FIX: the lazy factory call is 3-arg
+ * `gl_func_00000000(0, &D_00000000+0x20FC0, self)` — a0=0, a1=config, a2=self
+ * (NOT `(self, config)`; the prior 2-arg decode mis-shuffled the args, and that
+ * `self`-in-a2 setup is also why the target saves self/target in a2/a3 before
+ * the branch). With that, structure is byte-exact (33=33). RESIDUAL (~0.5%):
+ * a single $v0-vs-$v1 register-renumber on obj's finalizer reload (mine $v1,
+ * target $v0) — permuter-resistant regalloc cap. Lesson: match the asm's exact
+ * a0/a1/a2 arg setup, don't assume arg order/count. Stays NM. */
 void gl_func_000525F0(int *self, int *target) {
     extern int D_00000000;
     int *obj = (int*)self[0x2C / 4];
     if (obj == 0) {
-        obj = (int*)gl_func_00000000(self, (char*)&D_00000000 + 0x20FC0);
+        obj = (int*)gl_func_00000000(0, (char*)&D_00000000 + 0x20FC0, self);
         self[0x2C / 4] = (int)obj;
     }
     gl_func_00000000((char*)obj + 0x10, target);
