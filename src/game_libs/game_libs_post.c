@@ -6637,16 +6637,24 @@ void gl_func_00027E24(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
 #endif
 
-/* game_libs_func_0002831C: 6-insn `lbu t6,1(a0); slt at,a1,t6; beql at,zero,+4;
- * lbu t7,2(a0); jr ra; addiu v0,a0,8`. The `beql at,zero,+4` branches to
- * 0x2833C — past function end (0x28334) into successor. Cross-fn
- * shared-epilogue tail-merge per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. CAP class. */
+/* game_libs_func_0002831C: range-bucket lookup returning a0+8/+16/+24. splat
+ * mis-split the two later branch targets into 00028334/00028350; merged here.
+ * NM at 2 diffs: target holds a0+24 in $v1 and returns via `move v0,v1`; mine
+ * computes a0+24 directly into $v0. Regalloc-class — permuter floored (best 60,
+ * no zero in 120s), and no C form pins the value to $v1 then moves. */
+#ifdef NON_MATCHING
+char *game_libs_func_0002831C(char *a0, int a1) {
+    if (a1 < *(unsigned char*)(a0 + 1)) {
+        return a0 + 8;
+    }
+    if (*(unsigned char*)(a0 + 2) >= a1) {
+        return a0 + 16;
+    }
+    return a0 + 24;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002831C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028334);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028350);
+#endif
 
 // gl_func_00028358 — STRUCTURAL PASS (0xD4 / 53 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
