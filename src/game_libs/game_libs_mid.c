@@ -140,7 +140,50 @@ int gl_func_00008FFC(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008FFC);
 #endif
 
+/* gl_func_00009100: -O0 init sequence (fresh decode 2026-05-28). Near-twin of
+ * gl_func_00008FFC: 3 byte-field copies (D[0x179..0x17B] → D[0x181..0x183]), a
+ * call with a duplicated arg (D[0x4C]), a constructor call (a2=4, a3=incoming
+ * a2), then the identical obj-register/link tail (call(obj base), set obj->0x4=1
+ * if obj->0x14!=0, link obj->0x14=&D, final call(&D,0)); returns obj.
+ * base/obj/scratch held in s0/s1/s2 via `register` locals (the -O0 lever from
+ * the 8FFC sibling). &D_00000000+offset addend idiom; builds -O0.
+ * 79.85% as of 2026-05-28 (0→77→80; inlining the call1 duplicated arg dropped
+ * the named-temp home roundtrip). RESIDUAL (~20%, -O0 codegen, hard to steer):
+ * the 3 byte-copies share ONE &D base (lui+addiu) where the target re-materializes
+ * lui per access (the -O0 base-CSE nuance, cf. 8FFC), plus the same obj
+ * spill-timing/return-from-home as the 8FFC sibling. Real wrap, correct logic. */
+#ifdef NON_MATCHING
+int gl_func_00009100(int a0, int a1, int a2) {
+    register char *base;     /* s0 */
+    register int *obj;       /* s1 */
+    register char *tmp;      /* s2 */
+
+    *(unsigned char*)((char*)&D_00000000 + 0x181) =
+        *(unsigned char*)((char*)&D_00000000 + 0x179);
+    *(unsigned char*)((char*)&D_00000000 + 0x182) =
+        *(unsigned char*)((char*)&D_00000000 + 0x17A);
+    *(unsigned char*)((char*)&D_00000000 + 0x183) =
+        *(unsigned char*)((char*)&D_00000000 + 0x17B);
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4C),
+                     *(int*)((char*)&D_00000000 + 0x4C));
+    obj = (int*)gl_func_00000000(&D_00000000,
+                                 *(int*)((char*)&D_00000000 + 0x64), 4, a2);
+    base = (char*)&D_00000000;
+    tmp = base + 0x10;
+    gl_func_00000000(tmp, obj);
+    if (obj[0x14 / 4] != 0) {
+        obj[0x4 / 4] = 1;
+    }
+    tmp = base;
+    obj[0x14 / 4] = (int)tmp;
+    gl_func_00000000(&D_00000000, 0);
+    (void)a0;
+    (void)a1;
+    return (int)obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009100);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009204);
 
