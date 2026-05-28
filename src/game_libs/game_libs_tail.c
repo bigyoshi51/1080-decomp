@@ -2557,23 +2557,25 @@ void gl_func_0000E53C(int *a0) {
  * and 0xC are tier breakpoints — sets [0xD4]=8 at tier-1 entry, [0xE8]=4
  * at tier-2 entry.
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ * 2026-05-28: 94% → 95.64%. Re-deref self->0x60 INLINE in each check (no cached
+ * `factory` local): the store through the pointer between the checks defeats CSE,
+ * so IDO re-reads self->0x60->0 each time (matching the target's two lw 96(v1)).
+ * Structure now fully matches (39=39 insns). RESIDUAL (~4%): pure register-renumber
+ * — target self/factory in $v1/$v0, mine in $a1/$v1; read temp $a0 vs $t9/$t2.
+ * Permuter-resistant regalloc cap. Stays NM. */
 void gl_func_0000E5D0(int *self) {
     extern int D_A;
     int *factory = (int*)gl_func_00000000(0, &D_A, 0xC0, 0xB, 0xC, 1);
-    int first;
     self[0x60 / 4] = (int)factory;
     gl_func_00000000(factory, -2);
-    factory = (int*)self[0x60 / 4];
-    first = factory[0];
-    if (first >= 0xB) {
-        ((int*)factory[0x20 / 4])[0xD4 / 4] = 8;
-        first = factory[0];
+    /* re-deref self->0x60 inline (not a cached `factory` local): the store
+     * through the pointer between the two checks defeats IDO's CSE, so it
+     * re-reads self->0x60->0 each time (target keeps self in $v1, factory in $v0). */
+    if (((int*)self[0x60 / 4])[0] >= 0xB) {
+        ((int*)((int*)self[0x60 / 4])[0x20 / 4])[0xD4 / 4] = 8;
     }
-    if (first >= 0xC) {
-        ((int*)factory[0x20 / 4])[0xE8 / 4] = 4;
+    if (((int*)self[0x60 / 4])[0] >= 0xC) {
+        ((int*)((int*)self[0x60 / 4])[0x20 / 4])[0xE8 / 4] = 4;
     }
 }
 #else
