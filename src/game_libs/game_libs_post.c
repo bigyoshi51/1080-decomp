@@ -18952,25 +18952,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
  * storing the result into a0->0x34 then a0->0x2C, while walking the list at
  * a0->0x10 (node->4 = next, node->0 = key); continues while the key is non-zero,
  * feeding each call the previous result. RELOC-FREE (indirect jalr calls, no
- * collapsed placeholders) => landable with a focused regalloc/return-type grind;
- * NM (reference decode) for now. */
-int gl_func_0003D914(int a0) {
-    int iter = *(int *)((char *)a0 + 0x10);
-    int sub = *(int *)((char *)a0 + 0x28);
-    int s0 = (*(int (**)(int, int))(sub + 0x84))(*(short *)(sub + 0x80) + a0, 0);
+ * collapsed placeholders).
+ * 2026-05-28: now typed with minimal-cast structs (D914Vt/D914Node/D914Obj) —
+ * this is the documented "NEXT: minimal-cast struct typing" lever, and it
+ * CRACKS THE SIZE BARRIER: emits exactly 38 insns / 0x98 (target size; prior
+ * cast variants were 43/47). BUT fuzzy% is UNCHANGED at 16.37% — so the entire
+ * residual is pure register allocation: target keeps the list cursor in a STACK
+ * slot (0x24sp, reloaded each iter) with exactly 2 s-regs (s1=a0, s0=result),
+ * whereas the cc promotes the cursor to an s-reg. Typing/casts do NOT move this.
+ * This is the SAME stack-residency cap class as gl_func_000718C0 / 00070194 (see
+ * docs/IDO_CODEGEN.md "stack-residency + filled-delay-slots") — NOT a clean -O0
+ * candidate. Struct-typing lever now TESTED-NEGATIVE; genuine regalloc cap. Kept
+ * the typed body as the better reference (named vtable/node/object layout). */
+typedef struct D914Vt { char _p[0x80]; short off; int (*fn)(int, int); } D914Vt;
+typedef struct D914Node { int key; struct D914Node *next; } D914Node;
+typedef struct D914Obj {
+    char _a[0x10];
+    D914Node *list;     /* 0x10 */
+    char _b[0x14];
+    D914Vt *vt;         /* 0x28 */
+    int field_2C;       /* 0x2C */
+    char _c[4];
+    int field_34;       /* 0x34 */
+} D914Obj;
+
+int gl_func_0003D914(D914Obj *a0) {
+    D914Node *iter = a0->list;
+    int s0 = a0->vt->fn((int)((char *)a0 + a0->vt->off), 0);
     if (s0 == 0) {
         return 0;
     }
-    *(int *)((char *)a0 + 0x34) = s0;
+    a0->field_34 = s0;
     do {
         int v1 = 0;
-        int sub2 = *(int *)((char *)a0 + 0x28);
-        *(int *)((char *)a0 + 0x2C) =
-            (*(int (**)(int, int))(sub2 + 0x84))(*(short *)(sub2 + 0x80) + a0, s0);
+        a0->field_2C = a0->vt->fn((int)((char *)a0 + a0->vt->off), s0);
         if (iter != 0) {
-            int cur = iter;
-            iter = *(int *)(cur + 4);
-            v1 = *(int *)cur;
+            D914Node *cur = iter;
+            iter = cur->next;
+            v1 = cur->key;
         }
         s0 = v1;
     } while (s0 != 0);
