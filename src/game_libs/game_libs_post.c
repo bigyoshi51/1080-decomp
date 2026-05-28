@@ -28371,7 +28371,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051F5C);
  * source (write `a0->[0x22] * a0->[0x20]` to make IDO load 0x20 first
  * into $t6) brought 16/19 → 18/19 byte match. Remaining 1 diff is the
  * mul.s fresh-temp operand-order cap (target $f0,$f6; mine $f6,$f0) —
- * permuter-immune per 0x52104's doc'd retest. */
+ * permuter-immune per 0x52104's doc'd retest. 2026-05-28: ALSO tried
+ * swapping the FLOAT multiply source order (`product * scale` instead of
+ * `scale * product`) — NO change. IDO canonicalizes the fresh-temp as fs
+ * regardless of C operand order. Confirmed 1-insn permanent NM cap. */
 extern float gl_func_returns_float();
 #ifdef NON_MATCHING
 int gl_func_000520B8(int *a0) {
