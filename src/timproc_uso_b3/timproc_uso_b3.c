@@ -346,6 +346,25 @@ void timproc_uso_b3_func_00000DE4(char *a0) {
     func_00000000(a0 + 0x6E4);
 }
 
+/* timproc_uso_b3_func_00000E30: triple-deref non-null check RECOVERED +
+ * MATCHED 2026-05-28 from the Yay0 block_3 gap. Returns 1 iff a0->0x6A8->
+ * 0x6C is non-null and its 0xEC field is non-zero. KEY: `goto ret0` to a
+ * shared `return 0` produces the beql branch-likely idiom (v0=0 in the
+ * delay slot) — the plain `if(...)return 0` form emits bnel and grows to
+ * 14 insns (the cap that NM'd sibling arcproc_uso_func_00000EEC). */
+int timproc_uso_b3_func_00000E30(int *a0) {
+    int *p = (int*)((int*)a0[0x6A8 / 4])[0x6C / 4];
+    if (p == 0) {
+        goto ret0;
+    }
+    if (*(int*)((char*)p + 0xEC) == 0) {
+        goto ret0;
+    }
+    return 1;
+ret0:
+    return 0;
+}
+
 /* timproc_uso_b3_func_00000E60: state-machine dispatcher, sibling of
  * timproc_uso_b1_func_00000EE8 and arcproc_uso_func_00000FA8.
  *
