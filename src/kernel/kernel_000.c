@@ -716,7 +716,9 @@ s32 uso_file_open(FileState* file, u32* arg1) {
  *   regardless of source order, and then picks $s-first for the resulting
  *   `beq`). The cap is in IDO's emit normalization, not in C-expression
  *   order. Confirmed non-fixable from C without forcing a non-`beq`
- *   instruction sequence (which would change the function's structure). */
+ *   instruction sequence (which would change the function's structure).
+ *   2026-05-28: permuter also floors (base 20 -> best 10, no zero) — beq
+ *   operand-order is a structural cap class, not scheduling. Don't re-run. */
 #ifdef NON_MATCHING
 s32 uso_skip_to_end(FileState* file) {
     s32 pad;
