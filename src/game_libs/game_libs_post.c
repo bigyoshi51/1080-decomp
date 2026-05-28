@@ -37421,6 +37421,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A1BC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A1C4);
 
+/* game_libs_func_0006A2C0: 7-insn double-precision polynomial leaf.
+ *   f8  = f2 * $f12   ; $f12 = arg0 (double)
+ *   f18 = f8 * $f14   ; $f14 = arg1 (double)
+ *   f16 = f18 + f2
+ *   return -(float)f16   = -(float)(f2*arg0*arg1 + f2)
+ * CAP: $f2 is CALLER-SET (read at entry, never loaded) — not an O32 FP arg
+ * register ($f12/$f14 only). IDO C can't source $f2 as input. Same
+ * caller-set-float subclass as feedback_caller_set_int_reg_cap_1080_game_libs.
+ * Sibling of game_libs_func_000710F8 (same shape, caller-set $f2 + $f16).
+ * Permanent INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A2C0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A2DC);
@@ -39896,6 +39906,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FBC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FCC);
 
+/* game_libs_func_000710F8: 7-insn double-precision polynomial leaf.
+ *   f8 = f2 * $f14   ; f4 = f8 * $f16 ; f6 = f4 + f2
+ *   return -(float)f6
+ * CAP: $f2 (and $f16) are CALLER-SET (read at entry, never loaded). IDO C
+ * can't source $f2 as input. Sibling of game_libs_func_0006A2C0 (same
+ * caller-set-$f2 double polynomial shape). Permanent INCLUDE_ASM —
+ * caller-set-float subclass, feedback_caller_set_int_reg_cap_1080_game_libs. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000710F8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071114);
