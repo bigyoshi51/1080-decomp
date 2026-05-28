@@ -12123,27 +12123,16 @@ void game_uso_func_0001056C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001056C);
 #endif
 
-/* 27-insn 3-call sibling of 10E2C/11368/FA54 family. NATURAL CEILING:
- * 88.78% NM. Cap shape: target's t8-base form for the D-table reload + 2
- * varargs spills (a1@sp+0x4, a2@sp+0x8) around the second call, plus a
- * 2-insn trailing alt-entry stub at offset 0x68 (lui at,0x3F80; mtc1 at,$f4
- * — sets $f4 = 1.0f for next function to inherit). The 4-word SUFFIX_BYTES
- * (jr ra + nop + lui + mtc1) + 13-insn INSN_PATCH at 0x30..0x60 promotion
- * was REMOVED 2026-05-23 as match-faking. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (E00/E04 pair). 27-insn 3-call
+ * sibling of 10E2C/11368/FA54 family. The "t8-base + varargs spills" cap
+ * was the un-homed pair; symbol size is exactly 27 insns (the old
+ * "trailing alt-entry stub" worry was a separate symbol, not this one).
+ * See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_000105DC(int *a0) {
-    int v1, v2;
-    int *t;
     game_uso_func_00000000(a0, 0x10025, 0, 1, 1, 1);
-    t = (int*)((char*)&D_00000000 + 0xE00);
-    v1 = t[0];
-    v2 = t[1];
-    game_uso_func_00000000(a0, v1, v2, 1);
+    game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE00), 1);
     game_uso_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000105DC);
-#endif
 
 #ifdef NON_MATCHING
 /* 68 % NM wrap. Function uses $f4 directly without setting it — caller-set
