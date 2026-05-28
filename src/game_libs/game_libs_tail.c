@@ -2714,8 +2714,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E84C);
  * by field offsets 0x60/0x78/0x7C and 2-arg factory call.
  *
  * Decoded structure (raw-word disasm):
- *   self->[0x7C] = a3_int_ptr;                       // save arg ptr
- *   if (self->[0x60] == 0) func1_init();             // lazy init
+ *   if (self->[0x60] == 0) { self->[0x7C] = a3_int_ptr; func1_init(); }  // lazy init
  *   obj = func2(0, self->[0x60]);                    // 2-arg factory
  *   self->[0x78] = obj;
  *   func3(obj, *(int*)self->[0x7C]);                 // int-deref (vs E6E8's float→int)
@@ -2724,13 +2723,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E84C);
  *   if (obj->[0x14] != 0) obj->[0x4] = 1;            // back-link-with-flag finalizer
  *   obj->[0x14] = self;
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ * 2026-05-28: 89.3% → 90.39%. The `self->0x7C = a3` store is CONDITIONAL — inside
+ * the `if (self->0x60 == 0)` lazy-init block (target stores it in the fall-through,
+ * skipped when self->0x60 != 0), not unconditional. RESIDUAL (~10%): target homes
+ * a3 at entry + reloads it in the alloc block (2 insns mine lacks — IDO keeps a3 in
+ * $a3 across the branch); the resulting register cascade. -O2 param-homing/regalloc
+ * nuance, not C-steerable. Stays NM. */
 void gl_func_0000E910(int *self, int a1, int a2, int *a3_int_ptr) {
     int *obj;
-    self[0x7C / 4] = (int)a3_int_ptr;
     if (self[0x60 / 4] == 0) {
+        self[0x7C / 4] = (int)a3_int_ptr;
         gl_func_00000000();
     }
     obj = (int*)gl_func_00000000(0, self[0x60 / 4]);
