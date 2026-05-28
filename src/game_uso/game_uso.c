@@ -3264,7 +3264,9 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
     char *s0;       /* loop pointer for sub-object init */
-    char _pad[168]; /* grow frame to 0xE8 to match target's stack layout */
+    char _pad[160]; /* grow frame to 0xE8 (232) to match target's prologue
+                     * `addiu sp,-232`. Was 168 (gave frame 240, off by 8) —
+                     * other-local churn shifted the math; 160 is correct now. */
     char *_t_buf[1];  /* per-iter sp+0xE0 store-load scratch */
     volatile int a1_sp = a1; /* force late finalizer args through stack locals */
     volatile int a2_sp = a2;
@@ -3718,8 +3720,10 @@ after_head_template:
      *   2. Changed s2 from `a0 + 0x2C` (struct member) to a stack-temp
      *      via `char *_s2_buf; char *s2 = (char*)&_s2_buf;`. Target
      *      had `addiu s2, sp, 0x2C` not `addiu s2, a0, 0x2C`. (+0.35pp)
-     *   3. Added `char _pad[168];` to grow frame from 0x38 to 0xE8
-     *      (matching target). a0/a1/a2 now spill at sp+0xE8/0xEC/0xF0
+     *   3. Added `char _pad[N];` to grow frame from 0x38 to 0xE8 (matching
+     *      target). 2026-05-28: N is now 160 (was 168 → frame 0xF0/240, off by
+     *      8 after later local churn); 160 gives `addiu sp,-232`. a0/a1/a2
+     *      spill at sp+0xE8/0xEC/0xF0
      *      (matches target). +0.005pp.
      *
      * Result: 63.33% → 69.79%. Still ~30pp short.
