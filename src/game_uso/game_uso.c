@@ -9965,31 +9965,15 @@ void game_uso_func_0000D7F4(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D7F4);
 #endif
 
-/* game_uso_func_0000D8A8: 17-insn conditional 3-call wrapper.
- * Body: t6 = a0->[0xB4]; if (t6->[0x990] != 0) gl_func(a0, *(D+0xE70), *(D+0xE74));
- *
- * NATURAL CEILING. Sibling of game_uso_func_0000FABC; same family-cap shape
- * (varargs spills `sw a1,0x4(sp); sw a2,0x8(sp)` + base-adjust register
- * names + 8-byte epilogue). Was previously promoted via SUFFIX_BYTES_FORCE
- * + INSN_PATCH — both REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (E70/E74 pair) + inlined B4-deref.
+ * The named t6 local landed the B4-child in $v0; inlining the deref into
+ * the condition shifts it to $t6 (target's contiguous t6/t7/t8 numbering).
+ * See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_0000D8A8(char *a0) {
-    register int *t;
-    int *t6;
-    int v1, v2;
-    t6 = *(int**)(a0 + 0xB4);
-    t = (int*)((char*)&D_00000000 + 0xE70);
-    if (*(int*)((char*)t6 + 0x990) != 0) {
-        v1 = t[0];
-        v2 = t[1];
-        gl_func_00000000(a0, v1, v2);
+    if (*(int*)((char*)*(int**)(a0 + 0xB4) + 0x990) != 0) {
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE70));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8A8);
-#endif
 
 /* game_uso_func_0000D8EC: 56-insn dispatch + 3-call wrapper.
  * NATURAL CEILING via C-shape (branch layout + post-call reload). The
