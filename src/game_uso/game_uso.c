@@ -11569,31 +11569,14 @@ void game_uso_func_0000FA54(int *a0) {
     game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE40), 1);
 }
 
-/* game_uso_func_0000FABC: 18-insn 3-call wrapper.
- * Body: gl_func(a0); gl_func(a0, *(D+0xE40), *(D+0xE44)); gl_func(a0).
- * Sibling of just-matched game_uso_func_0000FA54 (same family — uses
- * `register int *t` base-adjust pattern for clustered loads).
- *
- * Match recipe: family-cap pattern from FA54/FB04:
- *  - `register int *t = &D + 0xE40` enables addiu base-adjust + clustered
- *    lw at offset 0 and 4 (per
- *    docs/IDO_CODEGEN.md feedback-ido-base-adjust-for-clustered-offsets).
- *  - INSN_PATCH adds `sw a1, 0x4(sp)` and `sw a2, 0x8(sp)` varargs spills
- *    that IDO won't emit naturally with K&R-declared callees. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (E40/E44 pair). 18-insn 3-call
+ * wrapper, sibling of game_uso_func_0000FA54. See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_0000FABC(int a0) {
-    register int *t;
-    int v1, v2;
     gl_func_00000000(a0);
-    t = (int*)((char*)&D_00000000 + 0xE40);
-    v1 = t[0];
-    v2 = t[1];
-    gl_func_00000000(a0, v1, v2);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE40));
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FABC);
-#endif
 
 /* game_uso_func_0000FB04: 30-insn dispatcher with conditional gate.
  * NATURAL CEILING: 89.90% NM. Same family-cap shape as
@@ -12551,27 +12534,16 @@ void game_uso_func_00010F7C(int a0) {
     game_uso_func_00000000(a0, 0x70004, 0, 1, 1, 1);
 }
 
-/* 27-insn 2-call sibling of the 0x10E2C/11368/113C8 24-insn family.
- * NATURAL CEILING: 82.15% NM. Cap: target uses t0-base form for the
- * D-table reload + 2 varargs spills (a1@sp+0x4, a2@sp+0x8) before the
- * 2nd jal. The historical 8-byte SUFFIX_BYTES_FORCE epilogue extension
- * + 10-insn INSN_PATCH was REMOVED 2026-05-23 as match-faking;
- * docs/POST_CC_RECIPES.md is DEPRECATED. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (F58/F5C pair). 27-insn 2-call
+ * sibling of the 0x10E2C/11368/113C8 family. The "t0-base form + varargs
+ * spills" cap was the un-homed pair — *(Pair2*) by value reproduces both.
+ * See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_00010FB8(int *a0) {
-    int v1, v2;
-    int *t;
     game_uso_func_00000000(a0, 0x70000, 0, 1, 1, 1);
     *(int*)((char*)a0 + 0x114) = 0;
     *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0x960) = 100;
-    t = (int*)((char*)&D_00000000 + 0xF58);
-    v1 = t[0];
-    v2 = t[1];
-    game_uso_func_00000000(a0, v1, v2);
+    game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF58));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010FB8);
-#endif
 
 /* 32-insn / 0x80 dual-call orchestrator on a0->B4-child:
  *   a0->D0 = D[0xF48];
