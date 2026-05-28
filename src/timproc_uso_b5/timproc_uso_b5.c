@@ -2517,6 +2517,13 @@ void timproc_uso_b5_func_000077D8(char *scr) {
 // the fade-step base load one insn shorter than target). The historical
 // SUFFIX_BYTES + INSN_PATCH promotion was REMOVED 2026-05-23 as
 // match-faking (docs/POST_CC_RECIPES.md is DEPRECATED).
+// 2026-05-28: the CSE-bust-via-distinct-externs lever (that landed 39C8C)
+// was tried here — `&D_79A4_eps + 0x1D0` for the fade-step load — and
+// REGRESSED to 75 diffs / +2 insns. This fn references &D_00000000 in 3
+// spots (0x34 gate, 0x1D0 fade, 0xA4+slot array); splitting one base
+// shatters the shared-base CSE web and reshuffles the whole allocation.
+// The lever only works for ISOLATED single-&D loads (39C8C), not entangled
+// multi-ref ones. Stays a permanent 98.32% cap.
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_000079A4(char *scr) {
     char *obj;
