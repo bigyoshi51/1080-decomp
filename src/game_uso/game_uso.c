@@ -12383,30 +12383,16 @@ void game_uso_func_00010AC8(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010AC8);
 #endif
 
-/* game_uso_func_00010B38: 29-insn (0x74) "init + 3-call orchestrator".
- * NATURAL CEILING: 58.03% NM. The inlined `p->[0x970]` deref drives
- * t6/t7/t8 regalloc to match the target; the remaining diff at 0x40-0x6C
- * is the 3rd-call tail reshape with separate addiu+lw+lw form + varargs
- * spills (`sw a1, 0x4(sp)`, `sw a2, 0x8(sp)`). The 2nd-call args are
- * also corrected here (a1=0x20002, a2=0x20003 with p->0x970 as a3).
- * Was previously documented as INSN_PATCH-promoted via the family-cap
- * recipe (same as game_uso_func_00010E2C); INSN_PATCH REMOVED 2026-05-23
- * as match-faking (per feedback_no_instruction_forcing_matches_policy).
- * Default build is INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (E60/E64 pair). 29-insn init +
+ * 3-call orchestrator. The 3rd call's "tail reshape + varargs spills"
+ * cap was the un-homed pair; *(Pair2*) by value reproduces the whole
+ * tail. Inlined p->0x970 deref keeps the 2nd-call t6/t7/t8 regalloc.
+ * See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_00010B38(int *a0) {
-    register int *t;
-    int v1, v2;
     gl_func_00000000(a0);
     gl_func_00000000(a0, 0x20002, 0x20003, ((int*)a0[0xB4/4])[0x970/4], 0x100, 5);
-    t = (int*)((char*)&D_00000000 + 0xE60);
-    v1 = t[0];
-    v2 = t[1];
-    gl_func_00000000(a0, v1, v2, -1);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE60), -1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010B38);
-#endif
 
 /* MATCHED 2026-05-28: struct-by-value arg-pass for the E10/E14 and E48/E4C
  * pairs (homes a1,a2), PLUS inlining the `sub = a0->0xB4` deref (named local
