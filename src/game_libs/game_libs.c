@@ -155,27 +155,86 @@ void game_libs_func_000009A8(int *a0, int a1, int a2) {
  * caller's struct shape is known. Default INCLUDE_ASM keeps ROM correct. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000009B4);
 
-/* gl_func_00000A8C: 72-insn nested-alloc-and-init function (0x120).
- * .word-only encoded. Hand-decoded prologue:
- *   - Frame -0x28, saves s0/ra
- *   - s0 = arg0 (early s0 anchor)
- *   - if (arg0 == 0) { s0 = alloc(0xD4); }   (212-byte allocation)
- *   - if (s0 == 0) goto epilog;
- *   - a2 = s0; alloc'd_inner = alloc(0xC4); (196-byte sub-object)
- *   - if (alloc'd_inner == 0) skip rest of init
- *   - a1 = 0x10000 + (-0x347C) = 0xCB84  (intra-USO data ref;
- *     looks like the splat-fold-into-nearest pattern — there should
- *     be a proper D_0000CB84 rodata symbol but splat fold the offset)
- *   - jal init(arg2_or_alloc'd_outer, &D_0000CB84, ...)
- *   - ... (more init)
+#ifdef NON_MATCHING
+/* gl_func_00000A8C: 64-insn (0x100) nested-alloc + color-normalize
+ * constructor. Full hand-decode 2026-05-28 (m2c can't parse the raw-.word
+ * USO format). Same alloc-cascade family as gl_func_000001CC / func_0000FC28.
  *
- * Two-level alloc constructor: outer 0xD4-byte struct + inner
- * 0xC4-byte sub-object. The 0xCB84 reference suggests a rodata
- * config table.
+ * Structure (verified from asm 0x0A8C-0x0B88):
+ *   obj = a0;
+ *   if (obj == 0) { obj = alloc(0xD4); if (!obj) return 0; }    // 212-byte
+ *   sub = obj;
+ *   if (sub == 0) { sub = alloc(0xC4); if (!sub) goto colors; } // 196-byte (defensive)
+ *   init(sub, &gl_ref_0000CB84, sub);   // jal @0xADC
+ *   sub->0x28 = &D_00000000;
+ *   init2(sub + 0x2C);                  // jal @0xAF4
+ * colors:
+ *   obj->0x94 = 235.0f/255.0f;  obj->0x98 = 80.0f/255.0f;       // RGBA normalize
+ *   obj->0x9C = 80.0f/255.0f;   obj->0xA0 = 0.0f/255.0f;
+ *   obj->0xC  = &gl_ref_0000CB8C;       // type/vtable
+ *   obj->0xA4 = 0; obj->0xA8 = 255;
+ *   obj->0xAC = a1_saved; obj->0xB0 = a2_saved;
+ *   gl_func(obj, 0x59, 2);              // jal @0xB64 (89, 2)
+ *   obj->0xC4 = 0; obj->0xC8 = 1;
+ *   return obj;
  *
- * Multi-pass decomp candidate. Default INCLUDE_ASM keeps ROM correct;
- * this comment is structural context for the next agent. */
+ * The 0xCB84 / 0xCB8C data refs are %hi/%lo with sign-extended %lo (lui 1 +
+ * addiu negative folds to 0x0000CB84). Reloc-bearing → objdiff-aware compare.
+ *
+ * 91.61% as of 2026-05-28 (fresh decode this tick: 0% → 64% → 91.6%).
+ * Two key levers found: (1) `denom = 255.0f; x = 235.0f/denom;` FORCES a
+ * runtime div.s — writing `235.0f/255.0f` directly lets IDO constant-fold it
+ * to an lwc1 from a rodata pool (wrong; target divides at runtime). (2)
+ * `if (alloc==0) goto ret;` to the shared epilogue instead of `return 0;`
+ * (which emits a separate `move v0,zero` block). Removing the explicit
+ * a1_saved/a2_saved locals (home the params directly) fixed the 0x30→0x28
+ * frame size.
+ * RESIDUAL CAP (~8%, regalloc, not C-fixable): the `sub` pointer allocates to
+ * $a3 (mine) vs $a2 (target) — since it's passed as BOTH the 1st and 3rd arg
+ * of the init call, the $a3 home forces an extra `move a2,a3`; target keeps it
+ * in $a2 so only `move a0,a2` is needed. Plus `move s0,a0` prologue-scheduling
+ * placement (target hoists it before `sw ra`). Both are IDO allocno-ordering
+ * (deterministic, permuter-resistant per docs/TOOLING_DECOMP.md). Stays NM. */
+extern int gl_func_00000000();
+extern char gl_ref_0000CB84;
+extern char gl_ref_0000CB8C;
+int gl_func_00000A8C(int *a0, int a1, int a2) {
+    int *obj = a0;
+    int *sub;
+    float denom;
+
+    if (obj == 0) {
+        obj = (int*)gl_func_00000000(0xD4);
+        if (obj == 0) goto ret;
+    }
+    sub = obj;
+    if (sub == 0) {
+        sub = (int*)gl_func_00000000(0xC4);
+        if (sub == 0) goto colors;
+    }
+    gl_func_00000000(sub, &gl_ref_0000CB84, sub);
+    *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+    gl_func_00000000((char*)sub + 0x2C);
+colors:
+    denom = 255.0f;
+    *(float*)((char*)obj + 0x94) = 235.0f / denom;
+    *(float*)((char*)obj + 0x98) = 80.0f / denom;
+    *(float*)((char*)obj + 0x9C) = 80.0f / denom;
+    *(float*)((char*)obj + 0xA0) = 0.0f / denom;
+    *(int*)((char*)obj + 0x0C) = (int)&gl_ref_0000CB8C;
+    *(int*)((char*)obj + 0xA4) = 0;
+    *(int*)((char*)obj + 0xA8) = 255;
+    *(int*)((char*)obj + 0xAC) = a1;
+    *(int*)((char*)obj + 0xB0) = a2;
+    gl_func_00000000(obj, 0x59, 2);
+    *(int*)((char*)obj + 0xC4) = 0;
+    *(int*)((char*)obj + 0xC8) = 1;
+ret:
+    return (int)obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000A8C);
+#endif
 
 void game_libs_func_00000B8C(int a0) {}
 
