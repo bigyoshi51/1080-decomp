@@ -6123,11 +6123,15 @@ int game_libs_func_00027300(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027300);
 #endif
 
-/* game_libs_func_00027348: 3-insn `addiu v0,zero,-1; jr ra; nop` return-(-1)
- * stub (size 0xC, unfilled-delay form). IDO -O2 emits `return -1` as
- * `jr ra; addiu v0,zero,-1` (size 0x8). The 0xC form needs per-file
- * -g3/-O0 split per feedback_unfilled_delay_int_reader_needs_o0_split.
- * Default INCLUDE_ASM remains byte-exact. */
+/* game_libs_func_00027348: NOT a standalone -g3 return-(-1) stub — it is
+ * game_libs_func_00027300's `-1` tail (its `beqzl t9,zero` at 0x27330 branches
+ * to 0x2734C = this symbol's `jr ra`, with `li v0,-1` in the beqzl delay).
+ * splat's jr-ra heuristic over-split it. The true 21-insn function is one unit;
+ * keeping it INCLUDE_ASM because the merged C is a regalloc cap (~47%: target's
+ * $v1/$t8/$t9 numbering through the *352-stride body doesn't match cc's, plus
+ * the cross-fn -1 epilogue). Do NOT spend -g3 infra on this — it's not an
+ * unfilled-delay stub. (Boundary not physically merged: merge gains nothing
+ * while the body stays a regalloc cap.) */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027348);
 
 signed char game_libs_func_00027354(int a0, int a1) {
