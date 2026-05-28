@@ -22162,10 +22162,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041A9C);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041D40);
 
-// gl_func_00041EDC — STRUCTURAL PASS (0xB0 / 45 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
-// (saves ra). cb-scoped list-iterate-and-dispatch (cb = jal 0 USO-relocated;
-// scope name &D_0002F6D0).
+// gl_func_00041EDC — NM WRAP 80.2% (2026-05-28, was documented-only). cb-scoped
+// list-iterate-and-dispatch over an intrusive {cur,next} cursor pair.
 //
 //   void gl_func_00041EDC(void *a0) {
 //     cb1(&D_0002F6D0);                            // open named scope
@@ -22193,10 +22191,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041D40);
 // from the node's 0x28 vtable, arg = (short)node->0x18 + node), all bracketed
 // by a cb1/cb2 named-scope open/close. Family: cb-scope + list-walk +
 // vtable-dispatch (sibling of gl_func_0003E2B0 / 00040640 / 00040974).
-// Cursor-advance bookkeeping representative; the scope key, list root, the
-// 0x18&4 gate and the 0x28-vtable dispatch shape are exact. Caps: node/vtable
-// struct + cb signatures untyped. Full body INCLUDE_ASM-preserved.
+// Levers that got it to 80.2%: cursor pair modeled as `int *cursor[2]` (forces
+// the sp+0x18/0x1C stack-resident two-slot form, no s-reg promotion); SEPARATE
+// entry_chk (v1, entry test) vs cont (v0, loop continue) vars; `&self` to keep
+// self stack-homed+reloaded across the first call (not promoted to an s-reg).
+// RESIDUAL (~20%): `cont` still lands in s0 (target keeps it a v0 temp) and the
+// frame is 0x28 vs target 0x20 — a no-s-reg-at-all regalloc the C can't fully
+// force. Logic/structure exact; stays NM pending a regalloc lever.
+#ifdef NON_MATCHING
+void gl_func_00041EDC(void *self) {
+    int *cursor[2];  /* sp+0x18 = cursor[0] (cur), sp+0x1C = cursor[1] (next) */
+    int entry_chk;   /* v1 - entry test only */
+    int cont;        /* v0 - loop-continue */
+    void **selfp = &self;  /* force self stack-resident (homed+reloaded, no s-reg) */
+
+    (void)selfp;
+    gl_func_00000000((char*)&D_00000000 + 0x1F6D0);
+    cursor[0] = *(int**)((char*)self + 0x2C);
+    cursor[1] = cursor[0];
+    entry_chk = 0;
+    if (cursor[0] != 0) {
+        cursor[1] = *(int**)((char*)cursor[0] + 4);
+        entry_chk = *(int*)cursor[0];
+    }
+    if (entry_chk != 0) {
+        do {
+            int *o = *(int**)cursor[0];
+            if (*(int*)((char*)o + 0x18) & 4) {
+                int *vt = *(int**)((char*)o + 0x28);
+                int (*fn)() = *(int(**)())((char*)vt + 0x1C);
+                fn(*(short*)((char*)vt + 0x18) + (int)o);
+            }
+            cont = 0;
+            if (cursor[1] != 0) {
+                cursor[0] = cursor[1];
+                cursor[1] = *(int**)((char*)cursor[0] + 4);
+                cont = *(int*)cursor[0];
+            }
+        } while (cont != 0);
+    }
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041EDC);
+#endif
 
 // gl_func_00041F90 — STRUCTURAL PASS (0x100 / 66 words, no episode). Raw-.word
 // USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
