@@ -11379,27 +11379,15 @@ void game_uso_func_0000F5A8(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F5A8);
 #endif
 
-#ifdef NON_MATCHING
-/* 88.10% NM. 26 insns built vs 28 expected (size 0x6C vs 0x70).
- * 3-call dispatcher:
- *   gl_func(a0, a0->0xF4->0x20, 2, 3, 1, 1);    // 6 args
- *   gl_func(a0, D_EC8, D_ECC, 3);               // 4 args
- *   gl_func(a0, 0);
- * Same precall-arg-spill cap as game_uso_func_0000EF20 / _0000F8E8 family —
- * IDO -O2 with K&R gl_func_00000000 won't emit the `sw a1,4(sp); sw a2,8(sp)`
- * spills target has around the second jal. Also picks $v0 for the
- * D_EC8 base reg vs target $t9, and $v0 for *(a0+0xF4) vs target $t6.
- * Size mismatch blocks INSN_PATCH. Tried typed varargs extern in sibling
- * (no effect there either). Logic correct, decode preserved for reference. */
+/* MATCHED 2026-05-28: struct-by-value (EC8/ECC pair homes a1,a2) + inlining the
+ * a0->0xF4 deref (named local -> $v0; inline -> $t6 like target). The
+ * "precall-arg-spill cap" was wrong. See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_0000F664(char *a0) {
-    char *t6 = *(char**)(a0 + 0xF4);
-    gl_func_00000000(a0, *(int*)(t6 + 0x20), 2, 3, 1, 1);
-    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xEC8), *(int*)((char*)&D_00000000 + 0xECC), 3);
+    gl_func_00000000(a0, *(int*)(*(char**)(a0 + 0xF4) + 0x20), 2, 3, 1, 1);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xEC8), 3);
     gl_func_00000000(a0, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F664);
-#endif
 
 /* game_uso_func_0000F6D4 - verified structural decode; SIBLING of
  * game_uso_func_0000E35C (the EE84-family node-process orchestrator;
