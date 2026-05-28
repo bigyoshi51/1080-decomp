@@ -162,7 +162,14 @@ s32 func_80006C58(s32 arg0) {
  * func_80009584 / the __rmon* handlers.) Caps <80: alignment
  * branch + cart-range sltu check + 4 callees + decrement loop with
  * spilled counter/cursor at sp+0x30/0x34. INCLUDE_ASM remains build
- * path (no episode; tautology-trap rule). */
+ * path (no episode; tautology-trap rule).
+ * 2026-05-28 opt-level probe (NEGATIVE): the entry double arg-home-spill
+ * (sw a1;lw / sw a0;lw) + stack-spilled loop vars look like an -O1/-g
+ * marker, but building this TU at -O1 is WORSE (7% raw vs -O2's 15%); -O2
+ * is correct. The gap is loop-STRUCTURE (the goto-based aligned/cart/
+ * misaligned three-way control flow + stack-resident n/addr), not opt
+ * level. Improving it needs a structural C rewrite to mirror the target's
+ * exact basic-block layout — not an opt-flag or file-split. */
 #ifdef NON_MATCHING
 extern void func_80006AEC(void *dst, void *src, int n);
 extern void func_80005584(int word);
