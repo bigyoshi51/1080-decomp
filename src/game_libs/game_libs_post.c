@@ -32921,15 +32921,26 @@ void gl_func_00060ED0(int *a0, int a1) {
     } while (node != 0);
 }
 
-/* game_libs_func_00060F44: leaf-branch-past-end CAP per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F44);
-
-/* game_libs_func_00060F64: doubly-linked-list INSERT (mirror of the 0x60F90 unlink
- * sibling) — sets a1->0x38 = $v0, splices a1 into the list at arg0->0x30->0x3C. Uses
- * a CALLER-SET $v0 (first insn `sw v0,0x38(a1)`, not a standard arg) -> caller-set
- * cap ([[feedback_caller_set_int_reg_cap_1080_game_libs]]). CAP. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F64);
+/* game_libs_func_00060F44: circular doubly-linked-list insert. splat's jr-ra
+ * heuristic mis-split the head==0 early-return tail into 00060F64; both were
+ * mislabeled caps (head "leaf-branch-past-end", tail "caller-set $v0" — but $v0
+ * is arg0->0x30 set in the head, not caller-set). Merged: empty list -> a1
+ * points to itself; else splice a1 before head (the 3x arg0->0x30 reloads are
+ * forced by the intervening stores). */
+void game_libs_func_00060F44(int *a0, int *a1) {
+    int *v0 = (int*)a0[0x30 / 4];
+    if (v0 == 0) {
+        a1[0x3C / 4] = (int)a1;
+        a1[0x38 / 4] = (int)a1;
+        a0[0x30 / 4] = (int)a1;
+        a0[0x2C / 4] = (int)a1;
+    } else {
+        a1[0x38 / 4] = (int)v0;
+        a1[0x3C / 4] = ((int*)a0[0x30 / 4])[0x3C / 4];
+        ((int*)((int*)a0[0x30 / 4])[0x3C / 4])[0x38 / 4] = (int)a1;
+        ((int*)a0[0x30 / 4])[0x3C / 4] = (int)a1;
+    }
+}
 
 #ifdef NON_MATCHING
 /* game_libs_func_00060F90: doubly-linked-list unlink of node a1, with head/tail
