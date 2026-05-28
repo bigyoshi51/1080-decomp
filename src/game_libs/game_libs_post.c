@@ -34954,6 +34954,13 @@ void gl_func_000661D8(int a0_unused) {
     gl_func_00000000((char*)&D_00000000 + 0x2246C);
 }
 
+/* gl_func_00066200/00066208: 2 save-arg-sentinel stubs RECOVERED 2026-05-28
+ * from the 000661D8 gap (dropped — no .s, missing from build). `void f(int
+ * a0){}` compiles byte-exact to `jr ra; sw a0, 0(sp)` at -O2
+ * (docs/IDO_CODEGEN.md#feedback-ido-empty-int-arg-fn-save-arg-sentinel). */
+void gl_func_00066200(int a0) {}
+void gl_func_00066208(int a0) {}
+
 #ifdef NON_MATCHING
 /* gl_func_00066210: 21-insn 5-call sequence with buffer + chain helper.
  * Cap (2026-05-14): target doesn't reset $a0 between calls 1 and 2.
