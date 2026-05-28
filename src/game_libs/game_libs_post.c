@@ -4756,20 +4756,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024C08);
 //   &D_2ACC0 blob). Real-C STRUCTURAL body below per the analysis
 //   (jal-0 reloc1(obj->0xC); jal-0 reloc2(obj+0x30, obj+0x48, 1);
 //   fixed 0x38604(obj+0x4C, 0, 0, [stack: obj->0xC, a1, obj+0x30,
-//   *(byte)obj, &D_2AFCC])). Byte-match deferred — placeholder jal-0
-//   builders + fixed init need USO reloc infra + stack-arg schedule.
-//   Name pre-checked: no extern reuse (collision-safe).
+//   *(byte)obj, &D_2AFCC])). Name pre-checked: no extern reuse.
 //   gl_func_00000000 = canonical never-defined USO placeholder.
+// 2026-05-28: 91.8% → 99.94%. Fixed the 3rd call's arg list (9 args, was
+//   missing the a3 = obj->0x8 positional + had the wrong const): it's
+//   f(obj+0x4C, 0, 0, obj->0x8, obj->0xC, a1, obj+0x30, (u8)obj, &D+0x1AFCC).
+//   The const is &D_00000000+0x1AFCC (lui 0x2; addiu 0xAFCC), NOT +0x2AFCC.
+//   RESIDUAL (~0.06%): (a) the 3rd call is a CONCRETE jal 0x38604 (a real
+//   internal fn); modeled as gl_func_00038604 (undefined_syms = 0x38604) but
+//   objdiff can't credit a R_MIPS_26 reloc against the raw-word baked jal —
+//   the concrete-jal cap (needs spimdisasm USO-reloc migration). (b) the
+//   obj+0x30 save spills to sp+0x38 vs target sp+0x3C (stack-slot assignment).
+//   Both infra/regalloc caps; structure byte-exact otherwise. Stays NM.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+extern int gl_func_00038604();
 extern int D_00000000;
 void gl_func_00024D90(char *obj, int a1) {
     char *g = (char *)&D_00000000;
     gl_func_00000000(*(int *)(obj + 0xC));
     gl_func_00000000(obj + 0x30, obj + 0x48, 1);
-    gl_func_00000000(obj + 0x4C, 0, 0,
+    gl_func_00038604(obj + 0x4C, 0, 0, *(int *)(obj + 0x8),
                      *(int *)(obj + 0xC), a1, obj + 0x30,
-                     *(unsigned char *)obj, g + 0x2AFCC);
+                     *(unsigned char *)obj, g + 0x1AFCC);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024D90);
