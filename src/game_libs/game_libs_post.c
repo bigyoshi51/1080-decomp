@@ -31276,11 +31276,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D1F0);
    $f12/$f14, so the entry-spill order cannot be reproduced from C
    (see feedback_caller_set_int_reg_cap_1080_game_libs — caller-set-
    float subclass). The body below is the standard quat->mat shape
-   for algorithm reference; exact IDO FP-op coefficient/scheduling
-   and the caller-set-float entry are the multi-pass grind. Next
-   pass: identify the producing predecessor that sets $f4/$f6, then
-   PROLOGUE/INSN-patch the spill prefix per docs/POST_CC_RECIPES.md
-   and grind the dense FP schedule. */
+   for algorithm reference. PERMANENT INCLUDE_ASM cap: the caller-set
+   $f4/$f6 entry cannot be produced from IDO C (it always materialises
+   the first FP params in $f12/$f14). The former "PROLOGUE/INSN-patch
+   the spill prefix per docs/POST_CC_RECIPES.md" plan is VOID —
+   instruction-byte patching was banned 2026-05-23 as match-faking
+   (feedback_no_instruction_forcing_matches_policy). Only a splat
+   boundary correction that reattributes the predecessor's $f4/$f6
+   producer, or a permuter campaign, could legitimately advance this;
+   neither is a single tick. */
 void gl_func_0005D20C(float *out, float *q) {
     float x = q[0], y = q[1], z = q[2], w = q[3];
     float xx = x * x, yy = y * y, zz = z * z;
