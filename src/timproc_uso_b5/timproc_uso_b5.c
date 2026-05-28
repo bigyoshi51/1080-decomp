@@ -3080,13 +3080,11 @@ void timproc_uso_b5_func_0000894C(void) {
     func_00000000();
 }
 
-#ifdef NON_MATCHING
+extern float D_b5_896C_234;
+extern float D_b5_896C_2A0;
 void timproc_uso_b5_func_0000896C(char *a0) {
-    *(float *)0x100002A0 = *(float *)(a0 + 0x480) * *(float *)0x10000234;
+    D_b5_896C_2A0 = *(float *)(a0 + 0x480) * D_b5_896C_234;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000896C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008988);
 
