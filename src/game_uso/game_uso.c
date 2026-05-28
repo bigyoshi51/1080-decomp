@@ -12546,28 +12546,13 @@ void game_uso_func_00010CF0(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
 #endif
 
-/* Family sibling of game_uso_func_00010E2C / 000114FC (same natural-
- * ceiling cap shape). 25-insn (vs 24-insn for E2C/14FC) so divergence
- * point is +0x30 (one insn later — the additional `move a2, zero` keeps
- * the prologue 12 insns long). D-offset 0xE10. Was previously documented
- * as the "SUFFIX_BYTES + 12-word INSN_PATCH recipe" (per the deprecated
- * docs/POST_CC_RECIPES.md#feedback-suffix-plus-insn-patch-grows-and-reshapes
- * entry); both mechanisms REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (E10/E14 pair). Family sibling of
+ * game_uso_func_00010E2C/000114FC. See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_00010DC8(int a0) {
-    register int *t;
-    int v1, v2;
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0xFC) | 0x9, 0, 1, 1, 1);
-    t = (int*)((char*)&D_00000000 + 0xE10);
-    v1 = t[0];
-    v2 = t[1];
-    game_uso_func_00000000(a0, v1, v2, 1);
+    game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10), 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
-#endif
 
 /* MATCHED 2026-05-28: struct-by-value (E40/E44 pair). The prior "constant-
  * address-load-fold" cap framing was wrong — the 4-insn base+ofs load form is
@@ -12848,44 +12833,21 @@ void game_uso_func_000112E0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000112E0);
 #endif
 
-/* Family sibling #5 of game_uso_func_00010E2C. NATURAL CEILING: 87.38%
- * NM (same constant-address-fold cap as 10E2C). Differences from 10E2C:
- * D-offset 0xF08 (vs 0xE40), a3=3 (vs 1). 2-nop SUFFIX_BYTES + 12-word
- * INSN_PATCH at +0x2C..+0x58 was REMOVED 2026-05-23 as match-faking;
- * docs/POST_CC_RECIPES.md is DEPRECATED. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (F08/F0C pair). Family sibling #5 of
+ * game_uso_func_00010E2C. See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_00011368(int *a0) {
-    register int *t;
-    int v1, v2;
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0x74), 2, 3, 1, 1);
-    t = (int*)((char*)&D_00000000 + 0xF08);
-    v1 = t[0];
-    v2 = t[1];
-    game_uso_func_00000000(a0, v1, v2, 3);
+    game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF08), 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011368);
-#endif
 
-/* Family sibling #6 of game_uso_func_00010E2C — last unmatched member.
- * Was previously promoted via SUFFIX_BYTES + 12-word INSN_PATCH recipe (same
- * as 11368). Both REMOVED 2026-05-23 as match-faking per
- * feedback_no_instruction_forcing_matches_policy; docs/POST_CC_RECIPES.md
- * DEPRECATED. Differences from 11368: D-offset 0xF10 (vs 0xF08), a3=4
- * (vs 3). NATURAL CEILING NM. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (F10/F14 pair). Family sibling #6 of
+ * game_uso_func_00010E2C. See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_000113C8(int *a0) {
-    register int *t;
-    int v1, v2;
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0x74), 3, 4, 1, 1);
-    t = (int*)((char*)&D_00000000 + 0xF10);
-    v1 = t[0];
-    v2 = t[1];
-    game_uso_func_00000000(a0, v1, v2, 4);
+    game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF10), 4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000113C8);
-#endif
 
 void game_uso_func_00011428(int *a0) {
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0x74), 4, 1, 1, 1);
@@ -12909,24 +12871,13 @@ void game_uso_func_00011460(int *a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011460);
 #endif
-/* Family sibling of game_uso_func_00010E2C: was previously promoted via
- * SUFFIX_BYTES + 12-word INSN_PATCH recipe. Both REMOVED 2026-05-23 as
- * match-faking per feedback_no_instruction_forcing_matches_policy;
- * docs/POST_CC_RECIPES.md DEPRECATED. D-offset differs (0xDB8 here vs 0xE40
- * elsewhere). NATURAL CEILING NM. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (DB8/DBC pair). Family sibling of
+ * game_uso_func_00010E2C. See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_000114FC(int *a0) {
-    register int *t;
-    int v1, v2;
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0x74), 2, 1, 1, 1);
-    t = (int*)((char*)&D_00000000 + 0xDB8);
-    v1 = t[0];
-    v2 = t[1];
-    game_uso_func_00000000(a0, v1, v2, 1);
+    game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xDB8), 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000114FC);
-#endif
 
 /* game_uso_func_0001155C: 8-byte stolen-prologue donor for game_uso_func_00011564.
  * Body is `lui t6, 0; lw t6, 0x78(t6)` — loads `t6 = *(int*)((char*)&D + 0x78)`
