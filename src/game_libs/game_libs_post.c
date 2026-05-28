@@ -15469,12 +15469,14 @@ void gl_func_00037938(char *o) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
 #endif
 
-/* game_libs_func_00037A90: 3-insn `nop; jr ra; nop` empty stub (size 0xC,
- * unfilled-delay form). IDO -O2 emits `void f(void){}` as `jr ra; nop`
- * (size 0x8). The 0xC unfilled-delay form needs per-file -g3/-O0 OPT_FLAGS
- * split per feedback_unfilled_delay_int_reader_needs_o0_split — focused-
- * session work. Default INCLUDE_ASM remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00037A90);
+/* 0x37A90 is a single alignment nop (NOT an unfilled-delay stub — the prior
+ * -g3 note was wrong). The empty function is at 0x37A94; splat mis-placed the
+ * symbol on the leading pad nop. Declared the nop as a local pad; the real
+ * `void f(void){}` (jr ra; nop) is below. */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00037938_pad.s")
+
+void game_libs_func_00037A94(void) {
+}
 
 /* gl_func_00037A9C: 21-insn count-bounded loop. Calls
  * gl_func(&D_0 + 0x1EBDC) `count` times if count > 0. */
