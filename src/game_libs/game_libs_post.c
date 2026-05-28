@@ -40596,8 +40596,70 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
  *    likely incomplete next function fragment. Variant of
  *    feedback_splat_too_big_incomplete_fragment_tail.md.
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ *    feedback_doc_marker_is_bail.md.
+ *
+ * 2026-05-28: converted the comment-only bail into a real C body, 54.77%
+ * (mnemonic disasm confirms the structure). KEY 64-bit-on-mips2 finding:
+ * extracting hi/lo from a long-long call return via `(int)(r>>32)` compiles to
+ * a CALL to a 64-bit-shift runtime helper (huge bloat: 0x214). Use the UNION
+ * idiom instead — `union{long long ll; struct{int hi,lo;} w;}` — which stores
+ * v0:v1 to the stack and reads the words back, exactly matching the target's
+ * `sw v0,32(sp); sw v1,36(sp); lw ...` roundtrip (got 40%→55%). All 64-bit
+ * arithmetic is manual int hi/lo (subu/sltu/subu), NOT long-long ops.
+ * RESIDUAL (~45%, multi-tick): (a) frame 0x40 vs 0x30 — the two union temps
+ * use extra stack; the target reuses ONE result area (sp+0x20..0x2C) that the
+ * call result stores into DIRECTLY (needs aliasing result[0..1] with the call
+ * return). (b) the result→out_obj copy: target uses a t0=&sp[0x20] pointer
+ * loop, mine does indexed loads. (c) dispatch-branch ordering. Real wrap now
+ * (compilable / permuter-able / correct logic), not a comment bail. */
+/* long-long-returning view of the jal-0 placeholder (returns 64-bit in v0:v1).
+ * Used ONLY to capture the pair; all arithmetic is manual int hi/lo to emit the
+ * target's subu/sltu/subu (long-long shifts emulate to bloated/MIPS3 ops on -mips2). */
+extern long long gl_ret64_743C4();
+typedef union { long long ll; struct { int hi; int lo; } w; } Pair64;
+void gl_func_000743C4(int *out_obj, int a1, int a2, int a3, int b_hi, int b_lo) {
+    int result[4];
+    Pair64 r1, r2;
+    int r1_hi, r1_lo, r2_hi, r2_lo;
+    int diff_hi, diff_lo;
+
+    r1.ll = gl_ret64_743C4(a2, a3, b_hi, b_lo);
+    r1_hi = r1.w.hi;
+    r1_lo = r1.w.lo;
+    r2.ll = gl_ret64_743C4(b_hi, b_lo, r1_lo, r1_hi);
+    r2_hi = r2.w.hi;
+    r2_lo = r2.w.lo;
+
+    /* diff = {a2:a3} - {r2_hi:r2_lo}  (manual 64-bit subtract) */
+    diff_hi = a2 - r2_hi - ((unsigned int)a3 < (unsigned int)r2_lo);
+    diff_lo = a3 - r2_lo;
+
+    result[0] = r1_hi;
+    result[1] = r1_lo;
+    result[2] = diff_hi;
+    result[3] = diff_lo;
+
+    if (r1_hi < 0) {
+        if (diff_hi > 0 || (diff_hi == 0 && diff_lo != 0)) {
+            /* saturating-increment r1 */
+            int nlo = r1_lo + 1;
+            int nhi = r1_hi + (nlo == 0);
+            /* diff -= {b_hi:b_lo} */
+            int nd_hi = diff_hi - b_hi - ((unsigned int)diff_lo < (unsigned int)b_lo);
+            int nd_lo = diff_lo - b_lo;
+            result[0] = nhi;
+            result[1] = nlo;
+            result[2] = nd_hi;
+            result[3] = nd_lo;
+        }
+    }
+
+    out_obj[0] = result[0];
+    out_obj[1] = result[1];
+    out_obj[2] = result[2];
+    out_obj[3] = result[3];
+    (void)a1;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000743C4);
 #endif
