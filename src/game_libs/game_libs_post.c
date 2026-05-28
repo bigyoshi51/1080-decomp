@@ -36703,21 +36703,20 @@ void gl_func_00068524(int *a0, int a1) {
  * with 3 assertion-call sites. Sibling of matched gl_func_00068524
  * (constructor for the same table).
  *
- * NATURAL CEILING: 99.85% NM (8 stack-slot offset diffs at
- * 0x3C/0x40/0x78/0x7C/0x84/0x8C/0x90/0x98). C body logic correct but
- * IDO -O2 spills v1/a2/a3 at sp+0x18/0x1C/0x20 (bottom-up) while
- * expected spills at sp+0x1C/0x20/0x24 (slot 0x18 reserved-unused).
- * Both frames are 0x30. Cap: "frame must be 0x30 AND slot 0x18
- * reserved" — mutually exclusive at IDO -O2 because spill slots fill
- * bottom-up within the locals area. Verified C-unreachable across
- * volatile-pad-first/last variants and explicit-local insertions (all
- * grow frame to 0x38). The 8-diff INSN_PATCH was REMOVED 2026-05-23
- * as match-faking. */
+ * NEAR-MISS: 6 stack-slot offset diffs (was 8). Declaring key_l BEFORE
+ * key_h (decl-order spill-slot lever, see docs/IDO_CODEGEN.md
+ * #feedback-ido-interleave-decl-spill-slot-alignment) fixes a2's slot
+ * (0x20 in both), dropping 8→6. Residual: target reserves slot 0x18
+ * unused and spills v1@0x1C/a2@0x20/a3@0x24; mine packs v1@0x18/a3@0x1C
+ * /a2@0x20. Both frames 0x30. The reserved 0x18 needs IDO to allocate a
+ * 4th (phantom, never-stored) spill slot at the bottom — no C structure
+ * induces it: adding a real spilled local regresses to 13 diffs; pad/
+ * explicit-local insertions grow the frame to 0x38. Stays NM. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void gl_func_000685C0(int *a0, unsigned int a1) {
-    unsigned int key_h = (a1 >> 16) & 0xFFFF;
     unsigned int key_l = a1 & 0xFFFF;
+    unsigned int key_h = (a1 >> 16) & 0xFFFF;
     int *row;
 
     if (!(key_h < (unsigned int)a0[0x34/4])) {
