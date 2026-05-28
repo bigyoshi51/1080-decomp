@@ -562,7 +562,6 @@ int gl_func_0000A0CC(char *a0) {
  * (i); source-order `count = 0; i = 0;` (count assigned first) produces
  * exactly that. Bytes 25/25. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 int gl_func_0000A130(char *a0) {
     int i, count;
     char *p;
@@ -575,9 +574,6 @@ int gl_func_0000A130(char *a0) {
     }
     return count;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A130);
-#endif
 
 /* game_libs_func_0000A194: 3-insn leaf — return base + a1*8.
  *   sll t6, a1, 3; jr ra; addu v0, a0, t6 (delay).
