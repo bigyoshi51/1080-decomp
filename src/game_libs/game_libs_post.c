@@ -7854,19 +7854,24 @@ int gl_func_0002A3AC(char *base, int idx) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
 #endif
 
-/* gl_func_0002A4D0: NATURAL CEILING 97.67% NM. 5 reg-rename diffs at
- * offsets 0x18/0x1C/0x20/0x24/0x28 — IDO emits $v0/$t6 for val/val|0x40;
- * target uses $t9/$t0. Pure regalloc swap. INSN_PATCH promotion was
+/* gl_func_0002A4D0: NATURAL CEILING 97.67% NM (5 diffs). Structure now matches
+ * target: it keeps the RAW load, the masked value, and val|0x40 in THREE
+ * distinct registers — splitting `raw` from `val` (was one reused `val`) gets
+ * the 3-register shape. Residual is a pure register-NUMBER choice: mine emits
+ * $v1/$v0/$t6 (IDO prefers $v0/$v1 for post-call temps), target uses the
+ * non-consecutive $t6/$t9/$t0. Permuter floored at score 40 (90s, -j4, 2026-05-28),
+ * no crack — genuine post-call $v-vs-$t regalloc cap. INSN_PATCH promotion was
  * REMOVED 2026-05-23 as match-faking. */
 extern int gl_func_00000000();
 
 #ifdef NON_MATCHING
 void gl_func_0002A4D0(volatile unsigned char *a0) {
+    unsigned int raw;
     unsigned int val;
     if (a0 == 0) return;
     gl_func_00000000((void*)a0);
-    val = *a0;
-    val &= 0xFF7F;
+    raw = *a0;
+    val = raw & 0xFF7F;
     *a0 = val;
     *a0 = val | 0x40;
 }
