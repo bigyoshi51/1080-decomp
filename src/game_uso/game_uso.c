@@ -8009,9 +8009,18 @@ int game_uso_func_00009B88(a0, a1, a2)
     }
 
     /* Dispatch 1: write Vec3 XZ-projection to local_190 (sp+0x190).
-     * IDO emits as `out = ptr ? ptr : alloc(12)` ternary via bnel; both
-     * arms eventually write the same body. ptr=stack-addr → bnel always
-     * taken → alloc path is dead. Stores order: y, z, x (IDO interleaving). */
+     * TARGET (decoded 2026-05-28; this is the FIRST divergence / cascade root):
+     *   addiu v1,sp,0x190; bnezl v1,+6; [delay-likely] lw v0,0x1B0(sp);  // a2 reload
+     *   jal alloc; li a0,12; beqz v0,+9; move v1,v0; lw v0,0x1B0(sp); ...body
+     * The bnezl's delay-LIKELY slot is filled with the BODY's first insn
+     * (a2's home-slot reload at sp+0x1B0), NOT a `move v1,ptr` passthrough.
+     * NEGATIVE RESULTS (do not repeat): the documented alloc-ternary recipe
+     * `out = p ? p : alloc(12)` — both bare-cast and named-temp forms — emits
+     * plain `beqz; nop; b; move; jal` (non-likely, +6 insns) NOT bnezl, because
+     * IDO sees &local_190 as a known-non-null constant. Adding `(void)&a2` to
+     * force a2's home spill didn't flip it either. The branch-likely here is
+     * reorg-pass-driven off the a2-reload-in-delay and isn't reachable from
+     * these C shapes; needs a fresh idea or the permuter. Kept as if-form. */
     out = (int*)local_190;
     if (out == 0) {  /* dead arm */
         out = (int*)gl_func_00000000(0xC);
