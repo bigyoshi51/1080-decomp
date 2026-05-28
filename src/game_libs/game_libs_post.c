@@ -17023,39 +17023,33 @@ int *gl_func_00039A04(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A04);
 #endif
 
-/* gl_func_00039A9C: 28-insn helper.
- *   gl_ref_0004C2DC(&buf);              alt-entry into gl_func_0004C288
- *   a0->[0x5C..0x64] = buf[0..2]         Vec3 copy
- *   gl_ref_0004C34C(a0 + 0x6C);         alt-entry into gl_func_0004C300
+/* gl_func_00039A9C: 28-insn helper. MATCHED 2026-05-28.
+ *   func_0004C2DC(&buf);              alt-entry into gl_func_0004C288
+ *   a0->[0x5C..0x64] = buf[0..2]       Vec3 copy
+ *   func_0004C34C(a0 + 0x6C);          alt-entry into gl_func_0004C300
  *   vt = a0->[0x28];
  *   (vt->[0x2C])((short)vt->[0x28] + a0, &sp_arg=19)
  *
- * Added gl_ref_0004C2DC = 0x0004C2DC; gl_ref_0004C34C = 0x0004C34C;
- * to undefined_syms_auto.txt for the alt-entry call resolution.
- *
- * Caps (99.8%, 2026-05-15 — frame size now MATCHES at -64 via pad[4]):
- *  - Stack in-frame layout: target buf@sp+0x28, sp_arg@sp+0x34; mine
- *    buf@sp+0x24, sp_arg@sp+0x20 (4-byte shift + sp_arg below buf vs
- *    target's sp_arg above buf). pad-size tuning does NOT fix it:
- *    pad[N] moves buf to 0x34-4N, so pad[4]→0x24, pad[5]→0x20 (worse),
- *    and the frame-size is coupled to N — there is no pad value that
- *    yields BOTH -64 frame AND buf@0x28. The 16 bytes of dead space sit
- *    4 bytes lower than target's. Confirmed C-level dead-end; INSN_PATCH
- *    of the affected lwc1/sw/addiu offsets is the only route.
- *  - Jal-target byte-encoding: expected/.o pre-bakes the resolved jal
- *    bytes (0x0C0130B7 / 0x0C0130D3). My C-emit leaves R_MIPS_26 +
- *    `0c000000` since the .o-level diff is pre-link. Would need
- *    INSN_PATCH at offsets 0x10, 0x34 to make .o byte-match. ROM
- *    post-link is correct via the new undefined_syms entries.
- * Net: 99.8% NM cap; both residual diffs are INSN_PATCH-only. */
+ * The "INSN_PATCH-only cap" the prior note claimed was a false dead-end:
+ *  - Stack layout (target buf@sp+0x28, sp_arg@sp+0x34, sp_arg ABOVE buf):
+ *    fixed by declaration ORDER, not pad SIZE. First-declared local gets
+ *    the highest offset, so `pad_top[2]; sp_arg; buf[3]; pad_bot[2]` splits
+ *    the 16 bytes of dead space 8-above + 8-below, holding frame at -0x40
+ *    while placing sp_arg@0x34 and buf@0x28.
+ *  - `(void)&a0` spills a0 to its home slot sp+0x40, reloaded into $a2 each
+ *    use (matches target's or/sw/lw pattern).
+ *  - The two `jal` words are R_MIPS_26 relocs to func_0004C2DC/func_0004C34C
+ *    (defined =0x4C2DC/0x4C34C in undefined_syms_auto.txt); objdiff is
+ *    reloc-aware and scores them as matched — NOT a byte diff. */
 extern int func_0004C2DC();
 extern int func_0004C34C();
-#ifdef NON_MATCHING
 void gl_func_00039A9C(int *a0) {
-    volatile int pad[4];
-    float buf[3];
-    int sp_arg;
-    (void)pad;
+    volatile int pad_top[2]; /* highest -> 0x38..0x3F, pushes block down to 0x34 */
+    int sp_arg;          /* -> sp+0x34 */
+    float buf[3];        /* -> sp+0x28 */
+    volatile int pad_bot[2]; /* lowest -> 0x20..0x27 dead space (16 total) */
+    (void)pad_bot; (void)pad_top;
+    (void)&a0;           /* spill a0 to its home slot (sp+0x40), reload each use */
     func_0004C2DC(buf);
     *(float*)((char*)a0 + 0x5C) = buf[0];
     *(float*)((char*)a0 + 0x60) = buf[1];
@@ -17067,9 +17061,6 @@ void gl_func_00039A9C(int *a0) {
         ((void(*)(int, int*))vt[0x2C/4])(*(short*)((char*)vt + 0x28) + (int)a0, &sp_arg);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039A9C);
-#endif
 
 /* gl_func_00039B0C: 19-insn float-Vec3-copy + 2 alt-entry jal dispatches.
  *   Copies a0->{0x5C,0x60,0x64} to local Vec3 buf.
