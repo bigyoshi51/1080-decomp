@@ -32911,23 +32911,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060A74);
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
-void gl_func_00060AD0(int *self, int *a1, int a2, int count, char *src) {
-    /* 3-way per-char loop: newline, in-range, out-of-range dispatch.
-     * Real body has intricate index math + 2 jals per iter. Approximate
-     * structural decode; cap class: format-translation needs source-data
-     * knowledge for exact byte-match. */
-    int i;
-    if (count <= 0) return;
-    for (i = 0; i < count; i++) {
-        char ch = src[i];
-        if (ch == 10) {
-            gl_func_00000000(self, *(int*)((char*)a1[0] + i * 4));
-        } else if (i < (int)a1[2]) {
-            gl_func_00000000(self, *(int*)((char*)a1[0] + i * 4));
-        } else {
-            a1[1]++;
-        }
+/* 2026-05-28 REWRITE: replaced the wrong i*4-indexed approximation with the
+ * disasm-accurate body. Per-byte word-wrap into a "line record"
+ * rec = self[0] + self->0x20 * 8 (self->0x20 = current line index, advanced by
+ * the newline/overflow callbacks). cursor is a BYTE pointer over src[0..count),
+ * advancing +1 normally and -1 on overflow. Returns 1.
+ * 0% (wrong i*4 approximation) → 75.89%. Lever: compute each call's store address
+ * BEFORE the jal (so the sb lands in the delay slot) — keeps `rec` in caller-save
+ * $v1 instead of promoting it to $s1 (the prior body kept rec live across the jal).
+ * RESIDUAL (~24%, regalloc): s-reg assignment order (`end`→$s4 mine vs $s2 target,
+ * cascading the prologue save order) + the rec[0]/rec[1] read order in the newline
+ * path. Allocno-priority/operand-order, not C-steerable. Stays NM. */
+int gl_func_00060AD0(int *self, int a1, char *src, int count) {
+    char *cursor = src;
+    char *end = src + count;
+    int *rec;
+
+    if (count > 0) {
+        do {
+            unsigned char ch = *cursor;
+            rec = (int*)(self[0] + self[0x20 / 4] * 8);
+            if (ch == 10) {
+                char *dst = (char*)(rec[0] + rec[1]);
+                gl_func_00000000(self);
+                *dst = 0;
+                cursor++;
+            } else {
+                int x = rec[1];
+                if (x < self[8 / 4]) {
+                    rec[1] = x + 1;
+                    *(char*)(rec[0] + x) = ch;
+                    cursor++;
+                } else {
+                    char *dst = (char*)(rec[0] + x);
+                    gl_func_00000000(self);
+                    *dst = 0;
+                    cursor--;
+                }
+            }
+        } while (cursor < end);
     }
+    rec = (int*)(self[0] + self[0x20 / 4] * 8);
+    *(char*)(rec[0] + rec[1]) = 0;
+    (void)a1;
+    return 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060AD0);
