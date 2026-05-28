@@ -35,13 +35,35 @@ void arcproc_uso_func_00001B88(int *a0) {
  * and target struct, dispatch to one of 11 state transitions, each calling
  * the renderer/animator helper with different constants.
  *
- * Per feedback_ido_switch_rodata_jumptable.md: IDO -O2 emits a .rodata
- * jumptable for switch w/ ≥4 dense cases. Without explicit .rodata
- * preservation in the linker script for arcproc_uso, the function may be
- * permanently INCLUDE_ASM (the jumptable address can't be reproduced).
+ * CONTROL STRUCTURE FULLY DECODED 2026-05-28 (was mislabeled a one-shot switch):
+ * it is a STATE-MACHINE DO-WHILE LOOP, not a single dispatch:
+ *   sp+0x40 = done_flag = 0;            // prologue `sw zero,0x40(sp)`
+ *   do {
+ *     state = *(sp+0x4C);               // reload a1-home (= current state)
+ *     if ((u)state >= 11) break;        // sltiu at,state,11; beqz at,epilogue
+ *     switch (state) {                  // jr via D_rodata[state*4]
+ *       case 0:  func1B88(a0,1,3,1); D[0x44]=3; D[0x48]=10; done_flag=1; break;
+ *       case 1:  func1B88(a0,1,3,1); D[0x44]=4; D[0x48]=9;  done_flag=1; break;
+ *       case 2:  func1B88(a0,1,3,2); D[0x44]=4; D[0x48]=9;  done_flag=1; break;
+ *       case 3:  func1B88(a0);       D[0x40]=4;            break; // no done -> loops
+ *       case 4:  func1B88(a0);       D[0x40]=5;            break; // no done -> loops
+ *       cases 5..10: struct-walk + multi-call + done_flag=1 (per-case TBD)
+ *     }
+ *     *(sp+0x4C) = D[0x40];             // loop tail: next state from D[0x40]
+ *   } while (done_flag == 0);
+ * KEY INSIGHT: cases that set D[0x40] but NOT done_flag re-dispatch on the new
+ * state (the loop) — that's why cases 3/4 chain into other states. done_flag
+ * (sp+0x40) is the loop exit condition. func_00001B88 is a K&R-variadic helper
+ * called with 1..5 args across cases (declare `extern int func();`).
  *
- * Multi-tick: full case decode + verification of jumptable matchability
- * deferred. Default build INCLUDE_ASM remains exact. */
+ * Per feedback_ido_switch_rodata_jumptable.md: IDO -O2 emits a .rodata
+ * jumptable for switch w/ >=4 dense cases. Without explicit .rodata
+ * preservation in the linker script for arcproc_uso, the jr-via-rodata dispatch
+ * can't be reproduced — likely permanent INCLUDE_ASM even after full decode.
+ *
+ * Multi-tick FOCUSED-SESSION item: cases 5..10 (struct-walks, s0-saved multi-
+ * calls) need per-case decode; control skeleton above is ready to fill in.
+ * Default build INCLUDE_ASM remains exact. */
 void arcproc_uso_func_00000240(void) {
 }
 #else
