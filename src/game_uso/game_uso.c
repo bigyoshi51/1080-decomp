@@ -6643,7 +6643,21 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
  * same .c (they are — game_uso.c source order). Pure raw-bytes prefix:
  * no relocs needed (lw/beql/mtc1/lwc1/sub.s are all PC-imm or reg-only). */
 #ifdef NON_MATCHING
-void game_uso_func_00007A98(void) {}
+/* Decoded 2026-05-28 (was an empty stub): returns the float delta
+ *   v0 = a0->0x30; v1 = v0->0x908;
+ *   if (v1 == 0) return 0.0f;            // beql v1,0 -> shared 7ABC epilogue
+ *   return v1->0xBC - v0->0xBC;
+ * Cross-fn tail-share cap stands (the null path uses 7ABC's `jr ra; mov.s f0,f2`
+ * via beql-past-end; C-emit always adds a separate null-path jr ra = 12 insns),
+ * but this body is a faithful reference vs the prior `void f(void){}` stub. */
+float game_uso_func_00007A98(int *a0) {
+    int *v0 = (int *)a0[0x30 / 4];
+    int *v1 = (int *)v0[0x908 / 4];
+    if (v1 == 0) {
+        return 0.0f;
+    }
+    return *(float *)((char *)v1 + 0xBC) - *(float *)((char *)v0 + 0xBC);
+}
 #else
 /* game_uso_func_00007A98: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
