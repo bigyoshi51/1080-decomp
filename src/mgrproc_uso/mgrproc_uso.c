@@ -1030,6 +1030,14 @@ void mgrproc_uso_func_0000179C(int *a0) {
     *(int*)((char*)a0 + 0x7D4) = 1;
 }
 
+/* mgrproc_uso_func_00001814/0000181C: 2 save-arg-sentinel stubs RECOVERED
+ * 2026-05-28 (the alt-entry stubs the 0000179C comment references — they had
+ * NO .s and were missing from the build, not "tracked" as it claimed).
+ * `void f(int a0){}` -> `jr ra; sw a0, 0(sp)` at -O2, byte-exact. First
+ * recovered functions in a Yay0 segment (bytes from the decompressed block). */
+void mgrproc_uso_func_00001814(int a0) {}
+void mgrproc_uso_func_0000181C(int a0) {}
+
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001824);
 
 void mgrproc_uso_func_00001A5C(int a0) {
