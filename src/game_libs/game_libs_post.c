@@ -25161,7 +25161,39 @@ void gl_func_0004A84C(char *a0) {
 // re-split deferred. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A890);
 
+/* game_libs_func_0004A9F0: 40-insn nested-loop stream→grid byte copier (fresh
+ * decode 2026-05-28, mnemonic disasm). Reads a -1-terminated halfword stream
+ * (cursor): outer halfword = idx1 (src base a1+idx1*4); inner halfwords = idx2;
+ * for each, copies 3 bytes from src into grid cell at base+(self->0xD4 + idx2)*16
+ * + 0xC, where base = **(D[0x214]->0x1C). bnel inner/outer loops (branch-likely
+ * from the while-with-delay-slot-reload). &D_00000000+offset addend idiom.
+ * 76.48% as of 2026-05-28 (fresh decode). The loop structure, bnel inner/outer,
+ * the idx1*4 src base, the (self->0xD4 + idx2)<<4 cell index, and the 3-byte copy
+ * all match. RESIDUAL (~24%, regalloc): target is a FRAMELESS LEAF holding `self`
+ * in $a3 (caller-save — valid, no calls), while IDO promotes self to $s0 (long
+ * live range across the inner loop), forcing a stack frame + s0 save/restore;
+ * that cascades the t-reg names. The callee-save-vs-leaf choice for a loop-live
+ * value isn't C-steerable (cf. game_uso_func_00007538 s0-vs-leaf). Stays NM. */
+#ifdef NON_MATCHING
+void game_libs_func_0004A9F0(short *self, char *a1, short *cursor) {
+    short idx1, idx2;
+
+    while ((idx1 = *cursor++) != -1) {
+        char *src = a1 + idx1 * 4;
+        while ((idx2 = *cursor++) != -1) {
+            int *vt = *(int**)((char*)&D_00000000 + 0x214);
+            int *node = *(int**)((char*)vt + 0x1C);
+            int g = *(short*)((char*)self + 0xD4);
+            char *cell = (char*)(*(int*)node + (g << 4) + (idx2 << 4));
+            cell[0xC] = src[0];
+            cell[0xD] = src[1];
+            cell[0xE] = src[2];
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004A9F0);
+#endif
 
 void gl_func_0004AA90(int *a0, int a1) {
     int v0 = a0[0x30/4];
