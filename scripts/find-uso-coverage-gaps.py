@@ -30,6 +30,13 @@ FALSE POSITIVES — always `grep src/` for the gap's function FIRST:
   - YAY0 segments (game_uso/timproc*/mgrproc/map4_data): the .s ROM column is
     the UNCOMPRESSED offset, so byte reads from baserom are WRONG (compressed
     data). Gap arithmetic is valid but the CODE/data classification is bogus.
+    TO RECOVER A YAY0 GAP: `python3 scripts/extract-uso-yay0.py --write` dumps
+    decompressed blocks to assets/<seg>_block_<N>.bin. The .text lives in ONE
+    block (NOT a simple concat — early blocks can be data/header); probe which
+    block has the .s's first prologue AT the .s offset (e.g. mgrproc_uso .text
+    = block_1, block_1[0x179C] == 27BDFFE8). Read gap bytes from that block at
+    the .s offset directly, create the .s, recover as usual. (First done
+    2026-05-28: mgrproc_uso 00001814/0000181C save-arg sentinels.)
 
 Usage: python3 scripts/find-uso-coverage-gaps.py [segment_substr]
 """
