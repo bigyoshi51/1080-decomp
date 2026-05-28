@@ -19,6 +19,18 @@ not reported. Small (1-3 word) gaps are usually legit trailing data/padding;
 LARGE gaps and gaps whose bytes decode as code (prologue / jr ra) are the
 real bugs.
 
+FALSE POSITIVES — always `grep src/` for the gap's function FIRST:
+  - matched-C functions have NO .s (they're unconditional C compiled
+    directly), so their region shows as an uncovered "gap" though the build
+    has them (e.g. game_libs_func_000683C4). NOT a bug — skip.
+  - a TRUNCATED .s (e.g. game_libs_func_0004D39C: .s 0x34 but real fn 0x48)
+    shows the dropped tail as a gap AFTER the function. If src already has a
+    full NM/matched C body, just extend the .s to the true size + unwrap —
+    often an instant match (the C was already exact, only the .s was short).
+  - YAY0 segments (game_uso/timproc*/mgrproc/map4_data): the .s ROM column is
+    the UNCOMPRESSED offset, so byte reads from baserom are WRONG (compressed
+    data). Gap arithmetic is valid but the CODE/data classification is bogus.
+
 Usage: python3 scripts/find-uso-coverage-gaps.py [segment_substr]
 """
 import os, re, glob, struct, sys
