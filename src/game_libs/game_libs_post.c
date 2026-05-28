@@ -23915,16 +23915,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046BC4);
 //   }
 // Computes an integer dimension product (obj->0x0C * obj->0x10, or the
 // a1->0x20/0x22 short pair on the !(a1->0x28&0x10) branch), promotes it to
-// float, applies an f0 scale factor and truncates back to int (a
-// fixed-point / aspect-ratio scale), bracketed by cb1/cb2. Family: FP
-// scale-compute (relates to the segment's geometry routines). The
-// a1->0x28&0x10 gate, the two product sources (0x0C*0x10 vs 0x20*0x22),
-// the cvt.s.w -> mul.s -> trunc.w.s scale pipeline and the cb1/cb2 bracket
-// are exact; the post-scale use is representative. Trailing 3 functions =
-// deferred re-split. Caps: Cfg/obj struct, the f0 scale constant and cb
-// signatures untyped; bundle re-split deferred. Full body
-// INCLUDE_ASM-preserved.
+// float, applies an f0 scale factor and truncates back to int.
+//
+// 2026-05-28 FULL DECODE (the .s is now a single 0x100 fn — the old "0x32C
+// bundle" note above is STALE post-split). Mnemonic disasm confirms:
+//   scale = cb(a1);                       // jal-0 placeholder, returns FLOAT in f0
+//   if (a1->0x28 & 0x10) { obj = a1->0x1C; scaled = (int)(scale * (obj->0xC * obj->0x10)); }
+//   else                 {                 scaled = (int)(scale * ((short)a1->0x20 * (short)a1->0x22)); }
+//   type = a1->0x24;
+//   if (type==0x508 || type==0x608) { h(*(int*)s0 + 8, scaled); h(*(int*)s0 + 0xC, 0x200); }
+//   else                            { h(s0, scaled); }
+// where s0 = a1->0x1C (gate set) else a1+0x1C, and h = a CONCRETE jal 0x578F0.
+//
+// 2026-05-28: 99.61% (fresh decode this tick, 0 → 99.61%). Levers: multiply
+// operand-load order swapped to match (obj[0x10]*[0xC]; short 0x22*0x20),
+// inlined scale/type locals (removed an extra spill slot → frame 0x38→0x30
+// matches). RESIDUAL CAP (3 insns): (a) `addiu s0,a1,0x1C` vs target's
+// `addiu s0,a0,0x1C` — target reuses the a0:=a1 copy made for the call arg
+// (IDO scheduling, 1 reg-source insn); (b)(c) the two `mul.s` put the cvt'd
+// product as fs where the target uses the call-return scale (f0) as fs — the
+// documented mul.s fs/ft operand-canonicalization cap (cf. gl_func_000520B8 /
+// 00052104), not C-flippable. Stays NM. The float-return `cb` is modeled via
+// gl_retf_46C4C (float-returning view of the jal-0 placeholder); h via gl_fn_578F0.
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern float gl_retf_46C4C();      /* float-returning view of the jal-0 placeholder (cb) */
+extern void gl_fn_578F0();         /* concrete jal target 0x578F0 (h) */
+void gl_func_00046C4C(int *a0, int *a1) {
+    int *s0;
+    int scaled;
+
+    s0 = (int*)((char*)a1 + 0x1C);
+    if (a1[0x28 / 4] & 0x10) {
+        int *obj = (int*)a1[0x1C / 4];
+        s0 = obj;
+        scaled = (int)(gl_retf_46C4C(a1) * (float)(obj[0x10 / 4] * obj[0xC / 4]));
+    } else {
+        scaled = (int)(gl_retf_46C4C(a1) * (float)(*(short*)((char*)a1 + 0x22) *
+                                                   *(short*)((char*)a1 + 0x20)));
+    }
+    if (a1[0x24 / 4] == 0x508 || a1[0x24 / 4] == 0x608) {
+        gl_fn_578F0(*(int*)s0 + 8, scaled);
+        gl_fn_578F0(*(int*)s0 + 0xC, 0x200);
+    } else {
+        gl_fn_578F0(s0, scaled);
+    }
+    (void)a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046C4C);
+#endif
 
 // Convert Vec3 a2[0..2] to 3 signed bytes at a1[0..2], scaled by 127.0f.
 // Sibling of 0x47AD8 (dest a1 / src a2, first arg unused+homed). (int) cast
