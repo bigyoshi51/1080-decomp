@@ -12833,14 +12833,18 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011124);
  *       gl_func_00000000(a0, D[0xF38+0], D[0xF38+4], 1);
  *   }
  *
- * The 4 inner calls share signature (a0, scalar, scalar, 1). Each call's
- * arg-load pattern emits `sw a1,4(sp); sw a2,8(sp)` outgoing-arg-slot
- * stores (precall-arg-spill — see feedback_ido_precall_arg_spill_unreachable.md
- * for context). */
+ * The 4 inner calls share signature (a0, Pair2-by-value, 1). The target's
+ * `sw a1,4(sp); sw a2,8(sp)` outgoing home-stores are NOT a "precall-arg-spill
+ * cap" (feedback_ido_precall_arg_spill_unreachable was WRONG): they come from
+ * passing the adjacent int pair AS A STRUCT BY VALUE — `gl_func(a0, *(Pair2*)p,
+ * 1)`. IDO places the 2-int struct in a1,a2 AND homes them to sp+4/sp+8, exactly
+ * matching the target. Two separate int args (p[0],p[1]) do NOT home them.
+ * This lifted 61.2% -> 93.92% (2026-05-28). Residual ~6% is a $v0-vs-$v1 &D-base
+ * register-renumber (target holds &D in $v0; single-base-pointer local
+ * regressed). See docs/IDO_CODEGEN.md struct-by-value-homes-arg-pair. */
 void game_uso_func_00011168(int *a0) {
     int flag, t2;
     int t8;
-    int *def_base = (int*)((char*)&D_00000000 + 0xF40);
 
     gl_func_00000000(a0);
     flag = ((int*)a0[0xB4 / 4])[0xA54 / 4];
@@ -12848,23 +12852,23 @@ void game_uso_func_00011168(int *a0) {
     if (flag == 1) {
         t8 = *(int*)((char*)&D_00000000 + 0x7C);
         if (t8 != 0) {
-            int *b = (int*)((char*)&D_00000000 + 0xF28);
-            gl_func_00000000(a0, b[0], b[1], 1);
+            /* struct-by-value pass homes a1,a2 to sp+4/sp+8 (the target's
+             * `sw a1,4(sp); sw a2,8(sp)`) — NOT reachable from two int args.
+             * This solved the prior "precall-arg-spill cap" (was 61%, now 94%). */
+            gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF28), 1);
             return;
         }
         t2 = *(int*)((char*)&D_00000000 + 0x64);
         if (t2 < 2) {
-            int *b = (int*)((char*)&D_00000000 + 0xF30);
-            gl_func_00000000(a0, b[0], b[1], 1);
+            gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF30), 1);
         } else {
-            int *b = (int*)((char*)&D_00000000 + 0xF38);
-            gl_func_00000000(a0, b[0], b[1], 1);
+            gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF38), 1);
         }
         return;
     }
     /* flag != 1: default path. Placed last so IDO emits BNEL-skip-to-here
      * with delay-load (matching asm 0x11198 bnel t7,at,+0x26). */
-    gl_func_00000000(a0, def_base[0], def_base[1], 1);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF40), 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
