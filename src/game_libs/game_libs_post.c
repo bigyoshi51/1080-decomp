@@ -37873,8 +37873,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF0C);
  *    in the search-not-found-target path (not shown — actually no, only 4 jal
  *    are visible in the raw asm).
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ *    feedback_doc_marker_is_bail.md.
+ *
+ * 2026-05-28: converted the comment-only bail to a real C body, 38%. call1/call3
+ * are no-arg (a0 left as-is), call2(target->8, target), call4(prelim). Walk the
+ * D[0] singleton list (sentinel tag==-1) to unlink target. Logic verified vs
+ * disasm. RESIDUAL (~62%, regalloc): the target makes `target` STACK-RESIDENT
+ * (homed at sp+0x38, reloaded into a fresh $t reg at each of its ~5 uses across
+ * the 4 calls) and uses s0/s1/s2 for prelim + the list-walk curr/next; IDO instead
+ * promotes `target` to a callee-save $s reg (survives the calls without reload),
+ * giving a smaller frame + fewer insns (57 vs 65). This is the stack-residency-vs-
+ * s-reg-promotion cap (cf. gl_func_000718C0/00070194) — not reliably C-forceable
+ * (volatile over-corrects). Real compilable wrap with correct logic; stays NM. */
+extern int gl_func_00000000();
+void gl_func_0006AF44(int *target) {
+    int prelim;
+    int *head;
+    int *curr;
+
+    prelim = gl_func_00000000();
+    if (target != 0) {
+        if (*(unsigned short*)((char*)target + 0x10) != 1) {
+            gl_func_00000000(*(int*)((char*)target + 8), target);
+        }
+    } else {
+        target = *(int**)&D_00000000;
+    }
+    head = *(int**)&D_00000000;
+    if (head == target) {
+        *(int**)&D_00000000 = (int*)head[0xC / 4];
+    } else {
+        curr = *(int**)&D_00000000;
+        while (curr[0x4 / 4] != -1) {
+            if ((int*)curr[0xC / 4] == target) {
+                curr[0xC / 4] = target[0xC / 4];
+                break;
+            }
+            curr = (int*)curr[0xC / 4];
+        }
+    }
+    if (target == *(int**)&D_00000000) {
+        gl_func_00000000();
+    }
+    gl_func_00000000(prelim);
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
 #endif
