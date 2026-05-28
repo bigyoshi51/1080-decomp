@@ -9,10 +9,26 @@
  * and link-safe — no duplicate-symbol conflict with bootup_uso_tail1.c's
  * existing wraps until full migration lands.
  *
- * Verified standalone at -O0 (2026-05-07):
- *   func_0000FBCC: 23 insns / 0x5C, byte-exact (dead `if (0) ... else`
- *     pattern from constant-folded `set = 0` flag — 4 register-typed
- *     locals p1/p2/set/t).
+ * Verified standalone at -O0 (2026-05-07; RE-VERIFIED 2026-05-28):
+ *   func_0000FBCC: 23 insns / 0x5C, byte-exact for all 23 target insns
+ *     (dead `if (0) ... else` pattern from constant-folded `set = 0` flag —
+ *     4 register-typed locals p1/p2/set/t). 2026-05-28 re-test: -O0 emit is
+ *     24 insns (96B); the 1 EXTRA trailing nop (past the 0x5C target) is
+ *     removed by TRUNCATE_TEXT. So FBCC is a CLEAN landable match once
+ *     migrated — the lone clean one of this group (FC28/FD4C/FEA0 keep
+ *     ~96% dead-BB / t-reg-reuse caps per the notes below).
+ *   bootup_uso is NOT Yay0-compressed → refresh-expected-baseline.py is
+ *     UNBLOCKED for this migration (unlike game_uso/timproc/mgrproc USOs).
+ *   LAYOUT-MATH CAVEAT (resolve before step 1): the checklist below assumes
+ *     tail1 starts at 0xF8A4 (→ tail1 TRUNCATE 0x328), but the CURRENT tail1
+ *     TRUNCATE_TEXT is 0xA30 and o0_100F0.c immediately follows tail1 in
+ *     tenshoe.ld. Recompute from the linker layout: tail1_end = 0x100F0;
+ *     func offsets FBCC@0xFBCC FC28@0xFC28 FD4C@0xFD4C FEA0@0xFEA0
+ *     FEE8@0xFEE8. Derive tail1 TRUNCATE = 0xFBCC - tail1_start; o0_FBCC
+ *     covers 0xFBCC..0xFEE8 (0x31C, holds FBCC+FC28+FD4C+FEA0); tail1_bot
+ *     covers 0xFEE8..0x100F0 (0x208, holds FEE8). After migrating, VERIFY
+ *     each function's bytes against the ORIGINAL baserom.z64 at its absolute
+ *     offset — a regenerated expected/.o would mask a layout error.
  *
  * Migration checklist (from #feedback-stage-0-file-needs-if-zero-bracket
  * in docs/MATCHING_WORKFLOW.md):
