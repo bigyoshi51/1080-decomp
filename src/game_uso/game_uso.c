@@ -2658,7 +2658,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
  * leaves five non-reloc FPU operand/register encoding diffs; previously
  * Makefile INSN_PATCH closed those caps. INSN_PATCH REMOVED 2026-05-23
  * as match-faking per feedback_no_instruction_forcing_matches_policy.
- * Now an honest NM cap (5 FPU operand-encoding diffs, permuter-class). */
+ * 2026-05-28: confirmed genuine cap. The 5 diffs decode as 3 commutative
+ * mul/add operand swaps (insns 20/39/44, fs<->ft) + 2 coupled FP register-
+ * number diffs ($f8<->$f10, insns 24/27). Manual add-operand swap (writing
+ * `B + A` for the 3 vector exprs) REGRESSES 5->15 diffs — it re-rolls the
+ * whole FPU eval cascade, same as the game_uso_func_000000A0 dot-product cap.
+ * Permuter floored at base score 45 (100s, -j4). Same FPU-pipeline operand-
+ * order class that is not C-reachable. Honest NM cap. */
 extern float func_00000000_03FAC(float, float);
 #ifdef NON_MATCHING
 void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg4) {
