@@ -487,24 +487,36 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F
  * base stores, and the Makefile retargets one %lo relocation for final
  * scheduling. */
 
-/* titproc_uso_func_000016B8: 22-insn field oscillator. In-place field
- * updates keep IDO's branch-likely delay-slot loads and temp registers aligned. */
+/* titproc_uso_func_000016B8: 22-insn field oscillator (a0->0x2C counter,
+ * a0->0x30 direction flag). +6 when flag==0 until >=0xFA, -6 otherwise
+ * until <0x41, flipping the flag at each bound (branch-likely bnel idiom).
+ *
+ * 2026-05-28: BOUNDARY FIX. The .s was truncated to 0x30 (12 insns); the
+ * function is actually 0x58 (22 insns) — its two conditional branches
+ * (->0x16EC, ->0x1708) target the dropped 0x16E8..0x170C region, which no
+ * .s covered (a 40-byte build gap, NOT a cross-fn epilogue cap as the old
+ * comment claimed). Rewrote the .s to the true 0x58. C logic + insn count
+ * now exact (22==22); remaining 15 diffs are pure register allocation
+ * (loads land in $v0/$v1 vs target's $t2/$t7/$t8). Permuter candidate. */
 #ifdef NON_MATCHING
 void titproc_uso_func_000016B8(int *a0) {
     if (a0[0x30 / 4] == 0) {
-        a0[0x2C / 4] += 6;
-        if (a0[0x2C / 4] >= 250) {
+        int cur = a0[0x2C / 4];
+        int nv = cur + 6;
+        a0[0x2C / 4] = nv;
+        if (nv >= 250) {
             a0[0x30 / 4] ^= 1;
         }
     } else {
-        a0[0x2C / 4] -= 6;
-        if (a0[0x2C / 4] < 65) {
+        int cur = a0[0x2C / 4];
+        int nv = cur - 6;
+        a0[0x2C / 4] = nv;
+        if (nv < 65) {
             a0[0x30 / 4] ^= 1;
         }
     }
 }
 #else
-/* titproc_uso_func_000016B8: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000016B8);
 #endif
 
