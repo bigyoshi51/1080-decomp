@@ -9124,7 +9124,14 @@ void game_uso_func_0000B710(char *a0) {
  * is a fn-ptr called with (+0x18 + s0). D globals: out vec @0xD0/D4/D8,
  * double gate @0x158. Caps <80: FPU temp/reg allocation, bc1fl branch-likely
  * to epilogue, double-const ldc1 + &D %hi/%lo scheduling. INCLUDE_ASM is the
- * correct build path (no episode; tautology-trap rule). */
+ * correct build path (no episode; tautology-trap rule).
+ * 2026-05-28 regalloc note: mine over-promotes BOTH a0->$s0 and a1(s0)->$s1;
+ * target promotes only a1->$s0 and keeps a0 caller-saved (register early,
+ * spilled+reloaded only around calls, frame -0x58). The volatile-ptr knob on
+ * a0 (`char * volatile a0 = a0_arg`) DE-promotes it but REGRESSES 71.26->67.53%
+ * — it forces reload on EVERY a0 use, whereas target keeps a0 in $a0 until the
+ * first call. Knob over-corrects here (same nuance as game_uso_func_000043D8);
+ * no C knob expresses "register early, reload-after-call-only". */
 #ifdef NON_MATCHING
 void game_uso_func_0000B750(char *a0, char *s0, float *a2, float *a3, float arg4) {
     int flags = *(int *)(a0 + 0x1C);
