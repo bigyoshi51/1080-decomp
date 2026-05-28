@@ -17174,6 +17174,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B58);
  * (which is set to &D_00000000 at function entry). 1-insn delta per
  * such load. ~30 insns differ out of 102 (~70% match). */
 extern int gl_func_00000000();
+extern char D_39C8C_max;  /* distinct base (=0) so the 0x1A80 max-bound load
+                             gets a fresh lui+lwc1 instead of CSE-reusing $s0 */
 void gl_func_00039C8C(int *a0) {
     extern int gl_proto_39C8C(void*, void*, void*, float, float, int);
     gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x1ECFC, 0);
@@ -17183,7 +17185,7 @@ void gl_func_00039C8C(int *a0) {
     gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED14, (char*)a0 + 0x78, -180.0f, 180.0f, 1);
     gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED1C, (char*)a0 + 0x7C, -180.0f, 180.0f, 1);
     gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED24, (char*)a0 + 0x6C, -500.0f, 500.0f, 1);
-    gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED2C, (char*)a0 + 0x80, 0.0f, *(float*)((char*)&D_00000000 + 0x1A80), 1);
+    gl_proto_39C8C(&D_00000000, (char*)&D_00000000 + 0x1ED2C, (char*)a0 + 0x80, 0.0f, *(float*)((char*)&D_39C8C_max + 0x1A80), 1);
     gl_func_00000000(&D_00000000, 0, 0);
     gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x1ED34, (char*)a0 + 0x2C, 0);
     gl_func_00000000(&D_00000000);
