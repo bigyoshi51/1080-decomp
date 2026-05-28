@@ -12520,29 +12520,22 @@ void game_uso_func_00010B38(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010B38);
 #endif
 
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value arg-pass for the E10/E14 and E48/E4C
+ * pairs (homes a1,a2), PLUS inlining the `sub = a0->0xB4` deref (named local
+ * put it in $v1; inline keeps it in $t6 like target). See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_00010BAC(char *a0) {
-    char *sub;
-    int state;
-
-    sub = *(char**)(a0 + 0xB4);
-    state = *(int*)(a0 + 0xFC);
-    gl_func_00000000(a0, state | 7, state | 6, *(int*)(sub + 0xA04), 0, 1);
+    int state = *(int*)(a0 + 0xFC);
+    gl_func_00000000(a0, state | 7, state | 6, *(int*)(*(char**)(a0 + 0xB4) + 0xA04), 0, 1);
 
     if (*(int*)(a0 + 0xD8) == 0) {
-        gl_func_00000000(a0, GAME_D_E10,
-                         GAME_D_E14);
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     }
 
-    sub = *(char**)(a0 + 0xB4);
-    if (*(int*)(sub + 0x9CC) != 0) {
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE48),
-                         *(int*)((char*)&D_00000000 + 0xE4C));
+    if (*(int*)(*(char**)(a0 + 0xB4) + 0x9CC) != 0) {
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE48));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010BAC);
-#endif
 
 #ifdef NON_MATCHING
 void game_uso_func_00010C4C(char *a0) {
