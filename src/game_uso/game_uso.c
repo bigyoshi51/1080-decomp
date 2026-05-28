@@ -11559,27 +11559,15 @@ void game_uso_func_0000F948(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
 #endif
 
-/* 26-insn 3-call wrapper, family sibling of 10E2C/14FC/DC8 with one
- * extra pass-through call before the family-pattern body. NATURAL CEILING:
- * 88.35% NM. Divergence point shifted from +0x2C (in the 24-insn family)
- * to +0x34 because the extra call-2 body sits at +0x2C..+0x30. The
- * historical SUFFIX_BYTES (2 nops) + 12-word INSN_PATCH promotion was
- * REMOVED 2026-05-23 as match-faking; docs/POST_CC_RECIPES.md is
- * DEPRECATED. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (E40/E44 pair). 26-insn 3-call
+ * wrapper, family sibling of 10E2C/14FC/DC8 with one extra pass-through
+ * call before the family-pattern body. See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_0000FA54(int *a0) {
-    register int *t;
-    int v1, v2;
     game_uso_func_00000000(a0, *(int*)((char*)a0 + 0xFC), 2, 1, 1, 1);
     game_uso_func_00000000(a0);
-    t = (int*)((char*)&D_00000000 + 0xE40);
-    v1 = t[0];
-    v2 = t[1];
-    game_uso_func_00000000(a0, v1, v2, 1);
+    game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE40), 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FA54);
-#endif
 
 /* game_uso_func_0000FABC: 18-insn 3-call wrapper.
  * Body: gl_func(a0); gl_func(a0, *(D+0xE40), *(D+0xE44)); gl_func(a0).
