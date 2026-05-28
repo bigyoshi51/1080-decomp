@@ -417,6 +417,35 @@ int arcproc_uso_func_00000EEC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000EEC);
 #endif
 
+/* arcproc_uso_func_00000F1C: 9-insn flag setter, RECOVERED 2026-05-28 from
+ * the same bundle gap. a0->0x504 = (a0->0x6B8 != 0) ? 4 : 0, via bnel with
+ * the set-4 store in the delay slot (+ a dead duplicate at 0xF34, the
+ * branch-likely natural-position artifact). NM (bnel idiom not C-reachable);
+ * build uses INCLUDE_ASM. */
+#ifdef NON_MATCHING
+void arcproc_uso_func_00000F1C(int *a0) {
+    if (*(int*)((char*)a0 + 0x6B8) != 0) {
+        *(int*)((char*)a0 + 0x504) = 4;
+    } else {
+        *(int*)((char*)a0 + 0x504) = 0;
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F1C);
+#endif
+
+/* arcproc_uso_func_00000F40: 2-insn store stub, RECOVERED 2026-05-28.
+ * a0->0x504 = 0 (store in the jr-ra delay slot). */
+void arcproc_uso_func_00000F40(int *a0) {
+    *(int*)((char*)a0 + 0x504) = 0;
+}
+
+/* arcproc_uso_func_00000F48: 2-insn alternate entry, RECOVERED 2026-05-28.
+ * `lui a1; lw a1, 0x170(a1)` pre-loads a1 from a USO data symbol then FALLS
+ * THROUGH into arcproc_uso_func_00000F50 (no jr ra of its own). Not a
+ * standalone C function — INCLUDE_ASM only. */
+INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F48);
+
 /* arcproc_uso_func_00000F50 + F78 + F9C: 3-function bundle split via
  * scripts/split-fragments.py on 2026-05-07. Per
  * docs/MATCHING_WORKFLOW.md split-fragments.py wrong-file-placement
