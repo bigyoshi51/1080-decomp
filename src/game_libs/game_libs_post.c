@@ -35186,21 +35186,13 @@ void gl_func_00066404(int *dst) {
     *dst = buf[0];
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_00066440: self-contained circular doubly-linked-list
- * remove-self (17 insns; the 00066460 tail is splat's jr-ra over-split of the
- * v1==prev==a0 early return, merged back here). CORRECTION: the prior note
- * claimed this was a fragment of a 32-insn int-reader bundle — wrong. The
- * predecessor gl_func_00066404 ends `jr ra; nop` (a complete separate
- * int-reader); 66440 reads a0 fresh and is its own function.
- *   if (next==prev && a0==prev) return 0;       // both bnel fall through
- *   prev->next = next; next->prev = prev;        // unlink
- *   r = a0->prev; a0->prev = a0; a0->next = a0;  // reset to self
- *   return r;
- * NM at 2 diffs: the unlink's `next->prev = prev` loads a0->0 before a0->4 in
- * the target, but IDO -O2 schedules the opposite load order here and no C form
- * flips it (verified ~10 variants; the double-bnel store-in-delay DOES match).
- * Permuter-territory; INCLUDE_ASM (merged .s) stays meanwhile. */
+/* game_libs_func_00066440: circular doubly-linked-list remove-self (17 insns;
+ * the 00066460 tail was splat's jr-ra over-split of the v1==prev==a0 early
+ * return, merged back here). The predecessor gl_func_00066404 ends `jr ra; nop`
+ * (a complete separate int-reader), so this reads a0 fresh and is its own fn.
+ * The combined self-link `a0[0] = (a0[1] = a0)` is the permuter-found form that
+ * schedules the unlink's `next->prev = prev` to load a0->0 before a0->4 (no
+ * plain-statement C variant flips that load order). */
 int game_libs_func_00066440(int *a0) {
     int *next = (int*)a0[1];
     int *prev = (int*)a0[0];
@@ -35216,14 +35208,10 @@ unlink:
     ((int*)a0[1])[0] = a0[0];
     {
         int old_prev = a0[0];
-        a0[0] = (int)a0;
-        a0[1] = (int)a0;
+        a0[0] = (a0[1] = (int)a0);
         return old_prev;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066440);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00066484: 20-insn doubly-linked-list insert-before. Split from
