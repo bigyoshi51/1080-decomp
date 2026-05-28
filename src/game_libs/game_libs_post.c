@@ -15626,7 +15626,6 @@ void gl_func_00037C70(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00037CE0: 26-insn read-into-local-then-copy-to-arg.
  * Mirror of byte-matched gl_func_00037DA8 (which copies a0→local then
  * calls). This one calls then copies local→a0. Apply struct-assign
@@ -15638,9 +15637,6 @@ void gl_func_00037CE0(struct gl_func_00037CE0_Six *a0) {
     func_00000000(&D_00000000, &buf, 24);
     *a0 = buf;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037CE0);
-#endif
 
 /* gl_func_00037D48: 24-insn 3-int→3-float reinterpret + call wrapper.
  *   tmp[0..2] = a0[0..2];        // int copies via stack
@@ -15682,7 +15678,6 @@ void gl_func_00037D48(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037D48);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00037DA8: 23-insn copy-6-ints + send-buffer helper. Copies
  * a0[0..5] into stack local then calls gl_func(&D_0, local, 24).
  * Target uses `addiu a1, sp, 0x18; sw via a1+off` pattern (a1 = call
@@ -15696,9 +15691,6 @@ void gl_func_00037DA8(struct gl_func_00037DA8_Six *a0) {
     local = *a0;
     gl_func_00000000(&D_00000000, &local, 0x18);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037DA8);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_00037E04(int *dst) {
