@@ -2580,7 +2580,6 @@ void gl_func_0000E5D0(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E5D0);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0000E66C: 31-insn lazy-init + 4-arg + linked-set (0x7C, frame 0x28).
  *
  * Decoded structure (raw-word disasm):
@@ -2595,25 +2594,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E5D0);
  * jal block when self->[0x58] is already non-zero; if zero, runs the
  * init call then reloads a1 from self->[0x58] for the 4-arg main call.
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path. */
+ * 2026-05-28 MATCHED (byte-exact). The key was finalizing on the MAIN-call result
+ * (the object) — held across the 3rd call (spilled + reloaded), with the 3rd call's
+ * return DISCARDED — NOT on the 3rd call's return (the prior wrong decode). Same
+ * back-link-finalizer family shape as gl_func_0003FF44. */
 void gl_func_0000E66C(int *self) {
-    int *v1;
-    int v0;
+    int *obj;
     if (self[0x58 / 4] == 0) {
         gl_func_00000000(self);
     }
-    v0 = gl_func_00000000(0, self[0x58 / 4], self[0x5C / 4], self[0x54 / 4]);
-    self[0x6C / 4] = v0;
-    v1 = (int*)gl_func_00000000((char*)self + 0x10, v0);
-    if (v1[0x14 / 4] != 0) {
-        v1[0x4 / 4] = 1;
+    obj = (int*)gl_func_00000000(0, self[0x58 / 4], self[0x5C / 4], self[0x54 / 4]);
+    self[0x6C / 4] = (int)obj;
+    gl_func_00000000((char*)self + 0x10, obj);
+    if (obj[0x14 / 4] != 0) {
+        obj[0x4 / 4] = 1;
     }
-    v1[0x14 / 4] = (int)self;
+    obj[0x14 / 4] = (int)self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E66C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000E6E8: 45-insn lazy-init + 4-call chain + linked-set finalizer (0xB4, frame 0x30).
