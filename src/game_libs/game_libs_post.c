@@ -8156,14 +8156,22 @@ void game_libs_func_0002A884(int *a0, int *a1) {
     a1[3] = a0[3];
 }
 
-/* game_libs_func_0002A8C4: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8C4);
-
-/* game_libs_func_0002A8D8: list-node detach using a CALLER-SET $v1 as the list-head
- * pointer (lw t6,0(v1); sw a0,4(t6); ...; sw 0,0(v1); a0->8--; return v1->8). The
- * incoming $v1 isn't a standard arg register -> not C-reachable
- * ([[feedback_caller_set_int_reg_cap_1080_game_libs]]). CAP. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A8D8);
+/* game_libs_func_0002A8C4: doubly-linked-list node detach. splat's jr-ra
+ * heuristic mis-split this into 0002A8C4 (the v1==a0 early-return preamble)
+ * and 0002A8D8 (the detach body, reached via the bnel over the early return);
+ * both were mislabeled caps. Merged it is one function: $v1 is a0->next set in
+ * the preamble, NOT caller-set. */
+int game_libs_func_0002A8C4(void *a0) {
+    void *v1 = *(void**)a0;
+    if (v1 == a0) {
+        return 0;
+    }
+    *(void**)((char*)*(void**)v1 + 4) = a0;
+    *(void**)a0 = *(void**)v1;
+    *(void**)v1 = 0;
+    *(int*)((char*)a0 + 8) = *(int*)((char*)a0 + 8) - 1;
+    return *(int*)((char*)v1 + 8);
+}
 
 // gl_func_0002A904 — STRUCTURAL PASS (0x12C / 75 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
