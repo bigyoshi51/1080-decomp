@@ -1,7 +1,23 @@
 #include "common.h"
 
 /* -O0 Vec3 reader at 0x8A40. Mirrors bootup_uso func_0000F2EC:
- * same logical body, same s-reg/stack-offset encoding patch class. */
+ * same logical body, same s-reg/stack-offset encoding patch class.
+ *
+ * NATURAL CEILING 99.90% — 4 `addiu rX, sp, OFF` diffs: target places
+ * `raw` at sp+0x48 and `tmp` at sp+0x34 within a 0x58 frame; this C shape
+ * puts them at 0x2c/0x40. Declaration-reorder/padding variants tested
+ * 2026-05-28 (all NEGATIVE, still 4 diffs or worse):
+ *   - swap raw<->tmp decl order: relative order corrects but whole group
+ *     shifts -8 (raw=0x40 vs 0x48) — same 4 diffs.
+ *   - swap + `int pad_bot[2]` after tmp: fixes the 4 local offsets BUT
+ *     grows frame 0x58->0x60 (4 NEW frame-size diffs at prologue/epilogue/
+ *     ra-save). Net 4 diffs, just relocated.
+ *   - swap + `int pad_top[2]` first: WORSE (8 diffs — frame AND offsets).
+ * The 0x58 frame is tightly packed (outgoing-arg area + 2 structs + ra);
+ * target's exact raw-high/tmp-low-in-0x58 layout is unreachable by add/
+ * remove-padding from C. Permuter won't help (its scorer normalizes
+ * sp-relative offsets — feedback-permuter-score-0-sp-offset-false-positive).
+ * Permanent NM sp-layout cap. */
 
 extern int gl_func_00000000();
 extern char D_00000000;
