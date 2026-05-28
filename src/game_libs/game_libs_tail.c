@@ -643,11 +643,14 @@ void game_libs_func_0000A8B4(int *a0, int a1) {
  * function (shared-tail space optimization). Plain C cannot suppress the
  * trailing epilogue; would need a TRUNCATE_TEXT=8 post-cc strip, not
  * worth it for an 8-byte fn. Keep INCLUDE_ASM (no episode). */
-/* game_libs_func_0000A8D8: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A8D8);
-
-/* empty: jr ra; nop */
-void game_libs_func_0000A8F8(void) {}
+/* game_libs_func_0000A8D8: bit-test accessor; splat split the return-0 tail
+ * into the 0000A8F8 empty stub (sibling of the 00009A2C family). Merged. */
+int game_libs_func_0000A8D8(int *a0) {
+    if ((a0[0] >> 5) & 1) {
+        return 32;
+    }
+    return 0;
+}
 
 /* setter: bit 5 ← (a1 & 0x20) */
 void game_libs_func_0000A900(int *a0, int a1) {
