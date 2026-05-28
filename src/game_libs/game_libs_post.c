@@ -12859,7 +12859,16 @@ int game_libs_func_0003443C(void) {
     return (int)((char *)&D_00000000 + 0x1E3E0);
 }
 
+/* game_libs_func_00034448: returns &D_0 + 0x1E3EC. Target has UNFILLED delay
+ * slot (3-insn body + nop, 4 total); -O2 C-emit fills delay with the addiu
+ * (3 insns total). Same -g-needed cap class as siblings 0003443C/00034430. */
+#ifdef NON_MATCHING
+int game_libs_func_00034448(void) {
+    return (int)((char *)&D_00000000 + 0x1E3EC);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034448);
+#endif
 
 // gl_func_00034458 — STRUCTURAL PASS (0xF0 / 60 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
