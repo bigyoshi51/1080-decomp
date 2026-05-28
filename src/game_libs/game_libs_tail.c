@@ -1762,7 +1762,61 @@ void gl_func_0000D288(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D288);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0000D318: 64-insn (0x100) conditional sub-object builder + color init.
+ * Fresh hand-decode 2026-05-28 (raw-.word USO, m2c can't parse).
+ *
+ * Structure (asm 0xD318-0xD414):
+ *   if (a0->0xB4 & 8) {
+ *       obj = gl_func(a0->0x6C, a1->0x88, 0, 1);   // jal @0xD344
+ *       obj->0xAC = 0.0f;
+ *       gl_func(obj, 0xDC, 0x78, 1.0f, 1.0f);      // jal @0xD370, K&R float args
+ *                                                  //   (4th arg 1.0f via mfc1->a3, 5th on stack)
+ *       obj->0xA8 = 0.0f;  obj->0xA4 = 0.0f;       // color/param normalize (÷255)
+ *       obj->0x64 = 235.0f/255; obj->0x68 = 80.0f/255;
+ *       obj->0x6C = 80.0f/255;  obj->0x70 = 0.0f/255;
+ *       gl_func(0x17, a0->0xA0 / 1000);            // jal @0xD3D4
+ *       a0->0xA0 += a1->0x88 * 1000;               // tail: *1000 via shift-add (t1*125<<3)
+ *   }
+ * div.s forced via named-local denom (else IDO folds 235.0/255.0 to lwc1-pool).
+ * 92.11% as of 2026-05-28 (fresh decode: 0% → 75% → 92%). Levers: (1) `if (cond)
+ * {body}` positive shape + void return (not `if(!cond) return 0;`) → `beqz t7,
+ * epilogue` direct, no separate `move v0,zero` block; (2) the second call's two
+ * trailing floats must stay SINGLE — a K&R call promotes them to double
+ * (cvt.d.s + sdc1, +8 frame), so it's cast to a float-param prototype.
+ * RESIDUAL CAP (~8%): that prototyped cast forces an INDIRECT `jalr t9`
+ * (lui/addiu/jalr) vs the target's direct `jal` — and gl_func_00000000 can't be
+ * globally prototyped (call1/call3 use other signatures), so single-float +
+ * direct-jal can't both be had from C here (K&R-float-call cap, cf.
+ * feedback_ido_knr_float_call). Plus minor FP-reg (f4/f12, f6/f8) + tail
+ * int-reg (t9/t3) allocation nuances. Stays NM. */
+extern int gl_func_00000000();
+void gl_func_0000D318(int *a0, int *a1) {
+    int *obj;
+    float denom;
+
+    if (a0[0xB4 / 4] & 8) {
+        obj = (int*)gl_func_00000000(a0[0x6C / 4], a1[0x88 / 4], 0, 1);
+        *(float*)((char*)obj + 0xAC) = 0.0f;
+        /* Prototyped cast: keeps the two trailing floats SINGLE (arg3→a3 via
+         * mfc1, arg4→stack swc1) instead of K&R-promoting them to double
+         * (cvt.d.s + sdc1, which also bloats the frame). */
+        ((void (*)(void*, int, int, float, float))gl_func_00000000)(
+            obj, 0xDC, 0x78, 1.0f, 1.0f);
+        denom = 255.0f;
+        *(float*)((char*)obj + 0xA8) = 0.0f;
+        *(float*)((char*)obj + 0xA4) = 0.0f;
+        *(float*)((char*)obj + 0x64) = 235.0f / denom;
+        *(float*)((char*)obj + 0x68) = 80.0f / denom;
+        *(float*)((char*)obj + 0x6C) = 80.0f / denom;
+        *(float*)((char*)obj + 0x70) = 0.0f / denom;
+        gl_func_00000000(0x17, a0[0xA0 / 4] / 1000);
+        a0[0xA0 / 4] = a0[0xA0 / 4] + a1[0x88 / 4] * 1000;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D318);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D418);
 
