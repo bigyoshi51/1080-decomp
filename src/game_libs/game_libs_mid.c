@@ -18,10 +18,19 @@ extern char D_8C3C_root_desc;
  * 0x50, and 0x2C byte nodes through dead-arm passthrough guards.
  *
  * 2026-05-18 deep attempt: default -O2 emits a structurally short stack-temp
- * form; scratch -O0 compile matches the target's 0x38 frame, s0/s1/s2
- * cascade, and most branch layout. Exact promotion likely needs a dedicated
- * -O0 split for this single function (like the adjacent 8AE4/8944 island)
- * plus final constant/reloc cleanup. Default build stays INCLUDE_ASM. */
+ * form; scratch -O0 matches the target's 0x38 frame, s0/s1/s2 cascade, branches.
+ *
+ * 2026-05-28 PRECISE DIAGNOSIS (supersedes the old "needs -O0 split" note — this
+ * file is ALREADY -O0): the wrap is 99.793%, and the SOLE residual is ONE
+ * stack-temp slot. `call_root`'s home is sp+0x28 (mine) vs sp+0x34 (target) —
+ * everything else (ra@0x24, s0/s1/s2 saves@0x18/0x1C/0x20, a0@0x38, a1@0x3C arg
+ * homes, all 3 data-ref relocs, every branch) is byte/reloc-exact. The temp
+ * region is 0x28..0x34; IDO -O0 puts call_root's home at the BOTTOM (0x28),
+ * target at the TOP (0x34). TESTED-NEGATIVE 2026-05-28: removing the call_root
+ * indirection regresses to 96.4% (it's load-bearing); declaring call_root at
+ * function scope vs inner-block is score-neutral (still 0x28). The slot is an
+ * -O0 temp-allocator artifact, NOT C-steerable — same class as the
+ * gl_func_0005D054 spill-slot swap. Honest cap at 99.79%; stays INCLUDE_ASM. */
 extern char D_0000D138, D_0000D148, D_8C3C_v0;
 void gl_func_00008C3C(int *a0, int a1) {
     register int *root;
