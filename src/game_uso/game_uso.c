@@ -307,7 +307,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000674);
  *   (3) Operand order `addu v0,t7,s2` vs target `addu v1,s2,t7` — partially
  *       fixable via `int off = cnt*4`, but cascaded reg diff from (1) remains.
  *
- * Further work: inline cnt at its uses; try permuter; or accept as 90% cap. */
+ * 2026-05-28: both suggested next-steps now TRIED and failed. Inlining `cnt`
+ * at its uses (removing the local, repeating `*(int*)(a0+0x34)`) REGRESSES to
+ * 18 diffs — the loop-cond + after-loop reads each add a reload, same failure
+ * mode as func_00007C74's multi-use-across-call inline. Permuter floored at
+ * base score 410 (100s, -j4), no crack. Accept as ~90% regalloc+scheduling
+ * cap (cnt $v0/$v1 + sw-in-jal-delay + addu operand order, all coupled). */
 #ifdef NON_MATCHING
 void game_uso_func_00000724(char *a0) {
     int i;
