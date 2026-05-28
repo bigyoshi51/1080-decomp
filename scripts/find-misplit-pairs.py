@@ -24,6 +24,19 @@ CAVEATS:
     Mine NON-Yay0 segments first (game_libs, gui_uso non-char-mapper, kernel).
   - gui_uso 0x00..~0xCC is the documented char-mapper fallthrough chain
     (reference_1080_chained_char_mapper_fallthrough) — NM-only, skip.
+  - A flagged group whose successor pieces are ALREADY decompiled as separate
+    C functions / matched empty-`void f(void){}` stubs is a PRIOR OVER-SPLIT
+    (an earlier pass cut the true function to inflate symbol-count). STILL worth
+    re-merging IF the unified function byte-matches: decomp.dev scores matched
+    *bytes*, not function count, so folding stub-tails + an unmatched head into
+    one matched function raises the byte-metric even though the count drops.
+    Delete the merged-away episodes too. (Verified game_libs_func_00047F68: a
+    2-case store dispatcher split into 47F84/47F90 stubs; re-merged +40 bytes.)
+  - 2-case sparse switch shape: `a0->X = a1; switch(a1){case 0:...; case 1:...;}`
+    emits the target `beq a1,zero` + `beql a1,1` dispatch (store in the beql
+    delay) with NO .rodata jumptable. if/else-if emits plain bne/nop instead —
+    use switch. (This 2-case store variant IS reachable, unlike the denser
+    lw-preload sparse switch in IDO_CODEGEN.md#feedback-ido-sparse-switch-...)
 
 MERGE RECIPE (verified game_libs_func_0002A8C4, 00009A2C):
   1. Append successor pieces' `.word` lines into the head .s before `endlabel`;
