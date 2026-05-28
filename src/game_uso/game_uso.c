@@ -1046,6 +1046,21 @@ void game_uso_func_00001DC4(void *a0) {
 
 /* game_uso_func_00001DDC: 0x5FC (383 insns) — strategy-memo spine candidate,
  * confirmed single function (grep -c 03E00008 = 1, not a bundle).
+ *
+ * 38% CEILING ROOT CAUSE (decoded 2026-05-28): the prologue diverges at insn 0
+ * and cascades. TARGET saves ONLY $ra (frame 0x180) and keeps the entity ptr in
+ * caller-saved $a2 spilled to its home slot sp+0x180 (`move a2,a0; sw a2,0x180`,
+ * reloaded each use). MINE saves $ra+$s0+$s1 (frame 0x1A8) and promotes the
+ * entity ptr to $s0. Root: the `register int *ctx = a0;` local (18 uses across
+ * many jals) — IDO promotes a heavily-used-across-call pointer to a callee-saved
+ * $s, the OPPOSITE of target's caller-saved+reload strategy. TESTED 2026-05-28:
+ * dropping the register local, unifying ctx->a0, and adding `(void)&a0` does NOT
+ * flip it (still $s0/$s1, fuzzy unchanged 38.25%) — IDO's $s-promotion of the
+ * 18-use ptr is not C-suppressible. Same register-strategy cap as
+ * game_uso_func_000044F4's $s2. The whole-function regalloc cascade is gated on
+ * this; not fixable until a way to force caller-saved+reload is found (permuter
+ * on a 383-insn fn is impractical). Real matching needs the missing 135 insns
+ * decoded first anyway — multi-pass.
  * ENTRY DISPATCH (first ~35 insns decoded):
  *   key = a0[0x40]  ; dispatch key
  *   if (key == 0) goto final_exit (very far forward, single-ra-restore)
