@@ -29064,48 +29064,44 @@ void game_libs_func_00052918(void *arg0) {
     *(float *)((char *)arg0 + 0x9C) = 1.0f;
 }
 
-// gl_func_00052994 — STRUCTURAL PASS (85 words, no episode).
-// Raw-.word USO. realjr=5, regjr=0 → 5-FUNCTION BUNDLE.
-// BOUNDARY NOTE (DEFERRED USO RE-SPLIT): the declared symbol holds a
-// command handler (insns 1..46, prologue 27BDFFE8 frame 0x18, saves
-// ra) followed by FOUR no-frame leaf helpers (ADDENDUM-18b: each
-// reads caller-set a0/a1 with no 27BDFF prologue, own jr ra). splat
-// could not see the boundaries on relocatable USO; a future re-split
-// should cut at the jr-ra ends: 0x00052A44 / 0x00052A5C / 0x00052A74
-// / 0x00052AC4 / 0x00052AE0.
-// (1) gl_func_00052994 — command handler, 2 jal-0 USO callbacks:
-//   void gl_func_00052994(void *self, int *msg) {
-//     switch (*msg) {
-//       case 0xC: {                                // flag-bit op
-//         t = self->field_30; obj = msg[1];
-//         if (t & 0x40) self->field_A4 = obj->4;
-//         else {                          // set/clear bit 0x80 of obj->0
-//                if (cond) obj->0 |= 0x80;
-//                else      obj->0 &= ~0x80; }
-//         break; }
-//       case 0x1:                         // analogous: obj->0 |= 0x80 / clear bit-7
-//         break;
-//       default:  return;
-//     }
-//     if (msg[1]->field_4C == 8) cb_a(); else cb_b();  // USO dispatch
-//   }
-// (2) leaf @0x00052A48:  return ((char**)self->field_84)[i]->field_32;
-// (3) leaf @0x00052A60:  return ((short**)self->field_84)[i]->field_30;
-// (4) leaf @0x00052A78:  // toggle bit 0x20000000 of rec->4
-//     // if (i) rec = self->field_34; rec->4 |= 0x20000000 (or &= ~)
-// (5) leaf @0x00052AC8:  rec->4 |= 0x20000;  // (or &= ~0x20000)
-// Family: jump-table/if-chain command handler (1) + accessor &
-// flag-bit-toggle leaf helpers (2..5) — recurring game_libs families.
-// The bundle boundaries, the frame (0x18 / no-frame leaves), the
-// *msg switch (0xC / 1 / default), the field_30&0x40 guarded
-// obj->0 bit-0x80 set/clear + field_A4 store, the field_4C==8
-// cb_a/cb_b dispatch, and the four leaf shapes (field_84[i] indirect
-// byte/half accessors at +0x32/+0x30, and the ori/andi-inverse
-// 0x20000000 / 0x20000 bit toggles on rec->4) are exact; the 2 cb
-// prototypes and the exact set/clear conditions are representative.
-// Caps: structs + cb prototypes untyped (USO-relocated); bundle
-// awaits re-split. Full body INCLUDE_ASM-preserved (all 5 fns).
+// gl_func_00052994 — NM wrap 82.6% (2026-05-28, was documented-only). command
+// handler dispatching on msg->0 (46 insns). case 0xC: flag op gated by
+// self->0x30&0x40 (self->0xA4 = obj->4, or set/clear bit 0x80 of *(self+0x18)
+// by obj->4); case 1: if (obj->0x4C != 8) callback; default: callback.
+// goto-chain (not switch/if-else) gives the target's "beq v0,12 →body; b def"
+// dispatch layout. Residual: obj ptr in v0 vs target v1 (cascades), the
+// addiu+0(reg) base-pointer RMW form on *(self+0x18) (not C-forceable, see
+// rmw_pointer_local_folds_to_offset_addressing), and beql-vs-bne on case 1.
+// (The old comment's 5-fn-bundle note was stale — leaves already split out.)
+#ifdef NON_MATCHING
+void gl_func_00052994(int *a0, int *a1) {
+    int *v1;
+    int v0 = a1[0];
+    if (v0 == 12) goto c12;
+    if (v0 == 1) goto c1;
+    goto def;
+c12:
+    v1 = (int*)a1[1];
+    if (a0[0x30/4] & 0x40) {
+        a0[0xA4/4] = v1[1];
+    } else if (v1[1] != 0) {
+        *(int*)((char*)a0 + 0x18) |= 0x80;
+    } else {
+        *(int*)((char*)a0 + 0x18) &= ~0x80;
+    }
+    return;
+c1:
+    v1 = (int*)a1[1];
+    if (v1[0x4C/4] != 8) {
+        gl_func_00000000();
+    }
+    return;
+def:
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052994);
+#endif
 
 unsigned char game_libs_func_00052A4C(char *a0, int a1) {
     return *(unsigned char *)(*(int *)(*(int *)(a0 + 0x84) + a1 * 4) + 0x32);
