@@ -181,23 +181,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000009B4);
  * The 0xCB84 / 0xCB8C data refs are %hi/%lo with sign-extended %lo (lui 1 +
  * addiu negative folds to 0x0000CB84). Reloc-bearing → objdiff-aware compare.
  *
- * 91.61% as of 2026-05-28 (fresh decode this tick: 0% → 64% → 91.6%).
- * Two key levers found: (1) `denom = 255.0f; x = 235.0f/denom;` FORCES a
- * runtime div.s — writing `235.0f/255.0f` directly lets IDO constant-fold it
- * to an lwc1 from a rodata pool (wrong; target divides at runtime). (2)
- * `if (alloc==0) goto ret;` to the shared epilogue instead of `return 0;`
- * (which emits a separate `move v0,zero` block). Removing the explicit
- * a1_saved/a2_saved locals (home the params directly) fixed the 0x30→0x28
- * frame size.
- * RESIDUAL CAP (~8%, regalloc, not C-fixable): the `sub` pointer allocates to
- * $a3 (mine) vs $a2 (target) — since it's passed as BOTH the 1st and 3rd arg
- * of the init call, the $a3 home forces an extra `move a2,a3`; target keeps it
- * in $a2 so only `move a0,a2` is needed. Plus `move s0,a0` prologue-scheduling
- * placement (target hoists it before `sw ra`). Both are IDO allocno-ordering
- * (deterministic, permuter-resistant per docs/TOOLING_DECOMP.md). Stays NM. */
+ * 95.91% as of 2026-05-28 (fresh decode this session: 0% → 64% → 91.6% → 95.9%).
+ * Four levers found:
+ *  (1) `denom = 255.0f; x = 235.0f/denom;` FORCES a runtime div.s — the literal
+ *      `235.0f/255.0f` lets IDO constant-fold it to lwc1-from-rodata-pool
+ *      (the documented named-local-divisor lever, IDO_CODEGEN.md
+ *      #feedback-ido-div-2-mul-fold-and-mtc1-load-delay-nops).
+ *  (2) `if (alloc==0) goto ret;` to a shared epilogue instead of `return 0;`
+ *      (which emits a separate `move v0,zero` block).
+ *  (3) Home the a1/a2 PARAMS directly (no a1_saved/a2_saved locals) → 0x30→0x28
+ *      frame.
+ *  (4) The first init call is 2-arg `init(sub, &ref)`, NOT 3-arg `(sub,&ref,sub)`
+ *      — sub is live across the call (used after for ->0x28 + the 2nd call) so it
+ *      stays in $a2 and is homed; writing it as a 3rd arg forced an extra
+ *      `move a2,a3` (+1 insn, $a3 vs $a2). This was the 91.6%→95.9% jump.
+ *  Data refs use the `(char*)&D_00000000 + 0xCB84` ADDEND idiom (NOT a separate
+ *  gl_ref_XXXX extern): the addend rides in the .o reloc so objdiff matches it
+ *  against the raw-word expected baseline; an undefined gl_ref symbol resolves
+ *  to 0 and does NOT match (undefined_syms_auto.txt is link-time-only).
+ * RESIDUAL CAP (~4%, scheduling/stack-slot, not C-fixable): (a) `move s0,a0` is
+ * scheduled into the bnez delay slot (mine) vs hoisted before `sw ra` (target);
+ * (b) the `sub` spill homes to sp+0x20 (mine) vs sp+0x24 (target). Both are
+ * IDO scheduler/stack-slot-order choices, deterministic + permuter-resistant.
+ * Stays NM. */
 extern int gl_func_00000000();
-extern char gl_ref_0000CB84;
-extern char gl_ref_0000CB8C;
 int gl_func_00000A8C(int *a0, int a1, int a2) {
     int *obj = a0;
     int *sub;
@@ -212,7 +219,7 @@ int gl_func_00000A8C(int *a0, int a1, int a2) {
         sub = (int*)gl_func_00000000(0xC4);
         if (sub == 0) goto colors;
     }
-    gl_func_00000000(sub, &gl_ref_0000CB84, sub);
+    gl_func_00000000(sub, (char*)&D_00000000 + 0xCB84);
     *(int*)((char*)sub + 0x28) = (int)&D_00000000;
     gl_func_00000000((char*)sub + 0x2C);
 colors:
@@ -221,7 +228,7 @@ colors:
     *(float*)((char*)obj + 0x98) = 80.0f / denom;
     *(float*)((char*)obj + 0x9C) = 80.0f / denom;
     *(float*)((char*)obj + 0xA0) = 0.0f / denom;
-    *(int*)((char*)obj + 0x0C) = (int)&gl_ref_0000CB8C;
+    *(int*)((char*)obj + 0x0C) = (int)((char*)&D_00000000 + 0xCB8C);
     *(int*)((char*)obj + 0xA4) = 0;
     *(int*)((char*)obj + 0xA8) = 255;
     *(int*)((char*)obj + 0xAC) = a1;
