@@ -448,6 +448,11 @@ void timproc_uso_b1_func_00001130(int *self) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001130);
 #endif
 
+/* timproc_uso_b1_func_000011D0: 2-insn alt-entry (lui at,0x3F80; mtc1 at,$f0
+ * = set f0=1.0f) that falls through into 000011D8. RECOVERED 2026-05-28 from
+ * the Yay0 block_1 gap (no .s, segment was 2 words short) — INCLUDE_ASM. */
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D0);
+
 /* timproc_uso_b1_func_000011D8 — verified structural decode (EE84-family,
  * 90 insns, 4% LEN-DIFF; branch-likely + FPU compares + D-consts + multi-
  * call = documented sub-80 ceiling → INCLUDE_ASM build path; struct ref).
