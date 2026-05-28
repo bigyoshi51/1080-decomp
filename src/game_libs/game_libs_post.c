@@ -29289,9 +29289,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005323C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053294);
 
+/* game_libs_func_0005330C: 2-branch indexed table lookup (boundary merged —
+ * 00053348 was splat's beqzl-over-split v1==0 tail, folded back into this one
+ * symbol). Decoded shape for a future match pass:
+ *   u16 f(int *a0,int a1,int a2){ int v1=a0[0x70/4];
+ *     if(v1==0) return *(u16*)((char*)a0[0x68/4]+(a1<<3)+(a2<<1)+2);
+ *     u16 idx = *(u16*)((char*)a0[0x68/4]+(a1<<3)+(a2<<1)+2);
+ *     return *(u16*)(v1 + idx*6); }
+ * Logic verified but the beqzl-to-end arm LAYOUT resists C (best 15 diffs) and
+ * the permuter floors (≥885) — a branch-likely-layout cap. INCLUDE_ASM stays. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005330C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053348);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053368);
 
