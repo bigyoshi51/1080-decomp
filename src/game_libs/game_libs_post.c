@@ -14709,33 +14709,20 @@ void gl_func_00035FD4(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035FD4);
 #endif
 
-#ifdef NON_MATCHING
-/* 9-insn 1-call wrapper. Trailing 5 dead bytes split off 2026-05-17 via
- * split-fragments.py into game_libs_func_00036074 (stolen prologue for
- * successor gl_func_00036088: mtc1 0,$f0; lui v0,0; addiu v0,v0,0;
- * lui at,0x3F80; mtc1 at,$f4 — setting $f0=0.0, $v0=&D, $f4=1.0).
- *
- * 2026-05-05: cap on the body itself: target has frame 0x20 with a dead
- * `sw t6, 0x1C(sp)` spill of t6 BEFORE the jal (t6 then used directly in
- * delay slot via `addiu a1, t6, 0x30`). Variants tried:
- *   (a) `int t = a0[5]; gl_func(a0, t+0x30);` → no spill, frame 0x18
- *   (b) `volatile int t = a0[5];` → spill emitted at sp+0x1C BUT also
- *       extra reload `lw a1, 0x1C(sp)` (volatile re-reads), so a1 = t,
- *       then `addiu a1, a1, 0x30` instead of target's `addiu a1, t6, 0x30`.
- *       1 extra insn, frame matches.
- *   (c) `register int t = a0[5]; char pad[4];` → no spill, frame 0x18
- *
- * Volatile gets closest (frame matches + spill emitted) but adds an
- * extra reload. No clean C produces the dead-spill-without-reload form.
- * Cap class "non-volatile dead spill". */
+/* 9-insn 1-call wrapper. Target has a dead `sw t6,0x1C(sp)` spill of t6
+ * before the jal, with t6 then used directly in the delay slot
+ * (`addiu a1,t6,0x30`). The dead-spill-without-reload form is produced by
+ * taking the address of the local (`int *p = &t`): IDO homes t to its
+ * stack slot but keeps the register copy live for `t+0x30` (no reload —
+ * unlike `volatile`, which forces a re-read). Cracks the old "non-volatile
+ * dead spill" cap. */
 extern int gl_func_00000000();
 void gl_func_0003604C(int *a0) {
-    volatile int t = a0[5];
+    int t = a0[5];
+    int *p = &t;
     gl_func_00000000(a0, t + 0x30);
+    (void)p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003604C);
-#endif
 
 
 // game_libs_func_00036074 — STRUCTURAL PASS / BOUNDARY NOTE
