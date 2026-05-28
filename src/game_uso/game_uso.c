@@ -12569,27 +12569,14 @@ void game_uso_func_00010DC8(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010DC8);
 #endif
 
-/* game_uso_func_00010E2C: 24-insn double-call into game_uso_func_00000000.
- * NATURAL CEILING: 87.38% NM. Family cap: target uses 4-insn
- * base+ofs lui+addiu+lw+lw load form for the D-table at 0xE40, but
- * IDO -O2 always folds to 2-insn direct lui+lw because 0xE40 fits in
- * 16-bit signed immediate (see docs/IDO_CODEGEN.md
- * #feedback-ido-constant-address-load-fold-inevitable). The historical
- * 8-byte SUFFIX_BYTES + 13-word INSN_PATCH promotion was REMOVED
- * 2026-05-23 as match-faking; docs/POST_CC_RECIPES.md is DEPRECATED. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28: struct-by-value (E40/E44 pair). The prior "constant-
+ * address-load-fold" cap framing was wrong — the 4-insn base+ofs load form is
+ * the struct-by-value home-store, not a jumptable. See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_00010E2C(int a0) {
-    register int *t;
-    int v1, v2;
     game_uso_func_00000000(a0, 0, 0, 1, 1, 1);
-    t = (int*)((char*)&D_00000000 + 0xE40);
-    v1 = t[0];
-    v2 = t[1];
-    game_uso_func_00000000(a0, v1, v2, 1);
+    game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE40), 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010E2C);
-#endif
 
 void game_uso_func_00010E8C(int a0) {
     game_uso_func_00000000(a0, 0x70005, 0, 1, 1, 1);
