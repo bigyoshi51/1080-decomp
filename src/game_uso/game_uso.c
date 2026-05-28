@@ -2818,7 +2818,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000041C0);
  * sp-slot cursor + branch-likely select aren't C-reproducible) AND the f0/f2
  * seeds load from the USO FP literal pool (mis-attributed by splat). Real C
  * body below (un-bailed from doc-comment per docs/IDO_CODEGEN); INCLUDE_ASM is
- * the byte-exact build path. */
+ * the byte-exact build path.
+ * 2026-05-28 regalloc detail: with NO calls in the body, mine promotes `a1` to
+ * $s0 (tiny frame -8), but target keeps a1 in caller-saved $a3 with a bigger
+ * frame (-0x18) spilling head/nextcell to sp+0/+4. The volatile-ptr knob
+ * (gl_func_00072550) does NOT apply — it forces STACK reload, but target keeps
+ * a1 in a REGISTER ($a3); there's no C knob to pin a loop-long value to a
+ * caller-saved reg instead of $s. Whole-function allocation-strategy cap. */
 #ifdef NON_MATCHING
 void *game_uso_func_000043D8(int **a0, int *a1, void *a2) {
     float fmin = *(float *)((char *)&D_00000000 + 0x94);
