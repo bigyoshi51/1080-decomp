@@ -40018,6 +40018,29 @@ int gl_func_00070194(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070194);
 #endif
 
+/* gl_func_00070244: bit-serial CRC (poly 0x85) over 32 input bytes + 1 flush.
+ * FULLY DECODED — the exact C is:
+ *   int gl_func_00070244(unsigned char *a0) {
+ *       int j, i; unsigned char r = 0;
+ *       for (j = 0; j < 33; j++) {                 // j==32 = trailing flush
+ *           for (i = 7; i >= 0; i--) {             // MSB-first bits of *a0
+ *               unsigned char poly = (r & 0x80) ? 0x85 : 0;
+ *               r = r << 1;
+ *               if (j == 32) r = r & 0xFF;
+ *               else r |= (*a0 & (1 << i)) ? 1 : 0;
+ *               r = r ^ poly;
+ *           }
+ *           a0++;
+ *       }
+ *       return r;
+ *   }
+ * This is an -O1 FUNCTION (all locals stack-resident, reloaded each use). At
+ * default -O2 it register-promotes (36 insns, 35%); at -O0 it's 64 insns; at
+ * -O1 it's 53 insns vs target 52 with the instruction SEQUENCE matching — the
+ * only residual is the spill-slot offsets (target r@sp+15/poly@14/j@8/i@4 vs
+ * my 7/6/12/8). MATCHABLE via a per-file `OPT_FLAGS := -O1` split + decl-order
+ * tuning (focused-session: carve game_libs_post.c at 0x70244, cf. the existing
+ * game_libs_o0_* splits). Stays INCLUDE_ASM until then. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
 
 /* game_libs_func_00070314: 3-insn `mtc0 a0, $11; jr ra; nop` Compare-register
