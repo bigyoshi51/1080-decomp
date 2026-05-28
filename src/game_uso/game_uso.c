@@ -11503,25 +11503,23 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { float x, y, z; } F948_Vec3;
 void game_uso_func_0000F948(int *a0) {
-    /* 2026-05-08 frame_pad addition: built emitted -0x58, target -0x80;
-     * char[40] grows the frame to 0x80 without shifting $s allocation
-     * (per docs/IDO_CODEGEN.md feedback-ido-buf-array-alignment). Got +2
-     * insns matching (9/62 -> 11/62). Remaining diffs are family-cap
-     * pattern at 0x2C-0x4C (cross-USO call varargs spills, same as FB04
-     * family) + FPU body scheduling. */
+    /* 2026-05-28: the family-cap pair component is now SOLVED via
+     * struct-by-value (E58/E5C homed to a1,a2 — see
+     * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair),
+     * which cleared the same cap across all 11 E2C-family siblings. F948
+     * is the lone family member with a genuine FPU body beyond the pair:
+     * the a->vb->vc Vec3 copy chain is scheduled differently from target
+     * and the frame is -0x88 (mine) vs -0x80 (target). 64 vs 67 insns.
+     * These FPU/frame residuals are a separate multi-tick problem, NOT the
+     * (now-cleared) pair cap. */
     char frame_pad[40];
     int *b;
     float scale;
     volatile F948_Vec3 a, vb;
     F948_Vec3 vc;
-    register int *t;
-    int v1, v2;
 
     gl_func_00000000(a0, *(int*)((char*)a0 + 0xFC), 0, 2, 1, 1);
-    t = (int*)((char*)&D_00000000 + 0xE58);
-    v1 = t[0];
-    v2 = t[1];
-    gl_func_00000000(a0, v1, v2, 2);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE58), 2);
 
     b = (int*)a0[0xB4 / 4];
     scale = *(float*)((char*)a0 + 0x1FC);
