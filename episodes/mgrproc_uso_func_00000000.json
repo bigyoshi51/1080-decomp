@@ -1,0 +1,33 @@
+{
+  "function_name": "mgrproc_uso_func_00000000",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-28T23:17:13.016589+00:00",
+  "end_time": "2026-05-28T23:17:13.016619+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-28T23:17:13.016610+00:00",
+      "assistant_text": "Int-reader accessor at -O0 (19 insns, 0x4C). Unblocked the Yay0 file-split via binary-concat-before-compress: carved func_00000000 into its own -O0 sub-unit (mgrproc_uso_o0_0.c, region0) and concatenated its truncated .text with the -O2 main object before crunch64 compression. Same accessor template as arcproc_uso_func_00000050. Blob verified byte-identical to pre-split baseline.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 19,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\n\n/* Int-reader compiled at -O0 (0x4C / 19 insns) \u2014 the -O2 template is 15 insns.\n * Carved into its own -O0 sub-unit (region 0 of the Yay0 block); concatenated\n * with the -O2 main object before crunch64 compression. See the\n * mgrproc_uso_block1_yay0 rule in the Makefile. */\nvoid mgrproc_uso_func_00000000(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n",
+  "metadata": {
+    "source_path": "src/mgrproc_uso/mgrproc_uso_o0_0.c",
+    "asm_path": "asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00000000.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "fuzzy=100.0 in report.json (mgrproc_uso_o0_0 unit); blob byte-identical to baseline"
+  }
+}

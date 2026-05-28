@@ -198,6 +198,16 @@ build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b
 build/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o: OPT_FLAGS := -O0
 build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o: OPT_FLAGS := -O0
 
+# mgrproc_uso (Yay0-compressed): func_00000000 is an -O0 int-reader carved into
+# its own sub-unit (region 0, 0x4C). The -O2 main object (region 1) supplies the
+# rest. Both .text sections are objcopy'd to raw binary and concatenated in
+# address order before crunch64 compression (see the block1 yay0 rule). This is
+# the Yay0 file-split infra: binary-concat-before-compress, the analogue of the
+# direct multi-.o link used by the non-Yay0 USOs (bootup/arcproc).
+build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: OPT_FLAGS := -O0
+build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0x4C
+build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x4C
+
 # INSN_PATCH / RELOC_PATCH / PROLOGUE_STEALS were REMOVED 2026-05-23 as
 # match-faking (post-cc instruction-byte editing). See
 # feedback_no_instruction_forcing_matches_policy. No recipe step applies them.
@@ -302,10 +312,17 @@ build/assets/%.bin.o: assets/%.bin
 	$(OBJCOPY) -I binary -O elf32-tradbigmips $< $@
 
 # Yay0-compressed USO blocks: compile C → extract .text → crunch64 compress → wrap as bin
-# mgrproc_uso block 1: text 0x3420 bytes uncompressed
-build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso.c.o
+# mgrproc_uso block 1: text 0x3410 bytes uncompressed. Split into region0 =
+# mgrproc_uso_o0_0.c.o (func_00000000, -O0, 0x4C) + region1 = mgrproc_uso.c.o
+# (-O2, rest). Each truncated .text is objcopy'd to raw binary and concatenated
+# in address order before Yay0 compression. Binary-concat keeps each region's
+# bytes verbatim (USO jals are addend-0 reloc-carried / objdiff reloc-aware).
+build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/src/mgrproc_uso/mgrproc_uso.c.o
 	@mkdir -p $(dir $@)
-	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
+	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
+	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
+	python3 -c "import sys; f=sys.argv[1]; d=open(f,'rb').read(); open(f,'ab').write(b'\x00'*((-len(d))%16))" $(@:.bin=.text.bin)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 # game_uso block 1: text 0x11B30 bytes uncompressed, 200 functions
