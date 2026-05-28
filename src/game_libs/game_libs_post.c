@@ -21369,12 +21369,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
 //   }
 // Resets/initialises self (publishes a cb2 handle into self->0xC/0x10 via a
 // zeroed-float formatted log), then conditionally resolves self->0x3C->0x10
-// and links a cb3-produced value into that node's 0x14 slot (with a 0x4
-// dirty-flag when overwriting). Family: cb-driven staged-serialize +
-// node-registration (siblings 0003F7A8/F8E8/F9C4/FB6C). Caps: self/sub/node
-// struct, &D_0002F488 format string, cbN signatures inferred from call shape.
-// Full body INCLUDE_ASM-preserved.
+// and links it into self->0x10's 0x14 slot (with a 0x4 dirty-flag when overwriting).
+// Family: cb-driven staged-serialize + node-registration (siblings 0003F7A8/F8E8/F9C4/FB6C).
+//
+// 2026-05-28: converted the //-comment bail to a real C body. cb2 takes 3 SINGLE
+// float-zero args (a2/a3 via mfc1 + stack swc1) — modeled with a float-param
+// prototype (gl_proto_FF44) so the floats stay single + direct jal, per
+// docs/IDO_CODEGEN.md#feedback-ido-knr-float-call. Refinement vs the old comment:
+// node->0x14 is set to n (=self->0x3C->0x10), NOT cb3's return (cb3's v0 is
+// discarded — the post-call v0 is the reloaded n).
+// 95.68%. RESIDUAL (~4%, regalloc/spill): in the finalizer, target keeps node
+// (self->0x10) in $a1 and n in $v0 with spills at sp+0x28/0x2C; mine permutes the
+// regs and spills at sp+0x2C/0x30 → frame 0x38 vs 0x30. Spill-slot/reg-assignment
+// nuance (cf. gl_func_0000E6E8), not C-steerable. Stays NM.
+#ifdef NON_MATCHING
+extern int gl_proto_FF44(int, void*, float, float, float);
+void gl_func_0003FF44(int *self) {
+    int handle;
+    int *node;
+    int n;
+
+    gl_func_00000000(self);
+    handle = gl_proto_FF44(0, (char*)&D_00000000 + 0x1F488, 0.0f, 0.0f, 0.0f);
+    self[0xC / 4] = handle;
+    self[0x10 / 4] = handle;
+    if (self[0x38 / 4] != 0) {
+        node = (int*)self[0x10 / 4];
+        n = ((int*)self[0x3C / 4])[0x10 / 4];
+        gl_func_00000000(n + 0x10);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+        }
+        node[0x14 / 4] = n;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FF44);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0003FFDC(int *dst) {
@@ -37543,6 +37574,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00069F50);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069F64);
 
+/* game_libs_func_0006A09C: __osSetIntMask-style interrupt-mask updater. ARCHITECTURAL
+ * CAP (mfc0/mtc0, not C-emittable): reads CP0 Status $12 (mfc0), rebuilds the SR/RCP
+ * interrupt-enable bits from a global mask word + an MI_INTR_MASK read/write at
+ * 0xA430000C, and writes Status back (mtc0 $12). The mfc0/mtc0 + the SR bit-twiddling
+ * cannot be produced by IDO C (cf. reference_1080_mips3_runtime_helpers). Permanent
+ * INCLUDE_ASM; the .s is the source of truth. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A09C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A144);
@@ -37874,13 +37911,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
  *  - This is the IDO-canonical bzero emission (4-align prefix, 32-byte unroll
  *    of 8 sw $zero, 4-byte cleanup, 1-byte tail). Standard libc pattern.
  *  - Symbol prefix `game_libs_func_` (not `gl_func_`) suggests this was a libc
- *    function exported into the game_libs USO at compile time — the leading
- *    3 nops could be a function-start alignment artifact for the call-by-
- *    absolute-address calling convention.
+ *    function exported into the game_libs USO at compile time.
  *  - Splat boundary issue: candidate for split-fragments.py.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ *
+ * 2026-05-28 CLASSIFICATION: this is the libc `bzero`, which is HAND-WRITTEN
+ * ASSEMBLY in every reference (libreultra/oot/papermario all ship src/.../bzero.s,
+ * NOT a .c) — the swl unaligned-head + 8×sw unrolled block are hand-coded, not
+ * compiler output. Per the /decompile skill's handwritten-libc rule, it is NOT
+ * C-decompilable and stays INCLUDE_ASM permanently (the .s is the source of
+ * truth). Do NOT attempt a C body. */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B048);
 #endif
@@ -40002,6 +40041,12 @@ void gl_func_000709DC(int a0) {
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 #else
+/* gl_func_00070A14: 4x2 nested-loop packed-short→float converter. ARCHITECTURAL CAP
+ * (caller-set $f0): each inner iter recombines halfwords from two src cursors (a1, a1+0x20),
+ * cvt.s.w to float, and multiplies by $f0 — but $f0 is read with NO preceding load and is
+ * NOT an o32 float-arg reg (f12/f14), so it is a caller-set float the C calling convention
+ * can't express (cf. feedback_caller_set_int_reg / caller-set-float cap). Permanent
+ * INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070A14);
 #endif
 
