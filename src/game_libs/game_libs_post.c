@@ -36568,7 +36568,6 @@ int game_libs_func_00067F20(unsigned char *a0) {
     return 0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00067F58: 18-insn 4-call cascade + 5-stub BUNDLE (0xF0 declared,
  * real fn is 18 insns = 0x4C; rest are 5 small leaf utilities).
  *
@@ -36604,9 +36603,6 @@ int gl_func_00067F58(int a0) {
     gl_func_00000000(v0, a0);
     return v0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067F58);
-#endif
 
 #ifdef NON_MATCHING
 /* strlen: count chars until NUL, return count. Recognized libc, reloc-free.
