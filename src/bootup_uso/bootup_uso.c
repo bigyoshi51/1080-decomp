@@ -3248,13 +3248,21 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);
 #endif
 
 extern float D_000005EC;
-/* func_00007C74: 36-insn alloc/init/link helper. NON_MATCHING (frame-size cap).
- * The C body emits a 0x20 frame; the target wants 0x28 (8-byte hole). IDO -O2
- * DCEs an unused `char pad[8]` (verified 2026-05-24: frame stays 0x20), and a
- * used local would add instructions — so the 8-byte frame gap isn't reachable
- * from C. Logic is correct (7 residual diffs are all the frame-slot offsets).
- * Previously force-matched via INSN_PATCH (removed 2026-05-23 as match-faking);
- * now honestly NM. See feedback_no_instruction_forcing_matches_policy. */
+/* func_00007C74: 36-insn alloc/init/link helper. NON_MATCHING (spill-slot cap).
+ * 6 residual diffs, all frame-slot offsets. ROOT CAUSE (re-decoded 2026-05-28):
+ * BOTH mine and target spill `ret` to sp+0x1C; the ONLY difference is the
+ * `link` spill slot — mine reuses the gap BELOW ret (sp+0x18, frame 0x20),
+ * target allocates a FRESH HIGHER slot (sp+0x20) leaving 0x18 empty (frame 0x28).
+ * This is IDO's spill-slot reuse-vs-fresh choice, not a missing pad.
+ * NEGATIVE RESULTS (do not repeat): `volatile int pad[2]` is DCE'd (no &-anchor,
+ * frame stays 0x20); `(void)&ret` is a no-op (ret already spilled); the
+ * remove-local-inline-recompute lever REGRESSES to 19 diffs / 38 insns because
+ * `link` has 4 uses across a jal so IDO adds a reload instead of CSE-ing to one
+ * spill. PERMUTER tried 2026-05-28 (150s, -j4): floored at base score 10 (the
+ * 6 spill-slot diffs), no crack — the higher-slot allocation is genuinely not
+ * reachable. Member of project_1080_bootup_regalloc_cluster (7C74/7B08/7204).
+ * Previously INSN_PATCH'd (removed 2026-05-23 as match-faking); now honestly NM.
+ * See feedback_no_instruction_forcing_matches_policy. */
 #ifdef NON_MATCHING
 void *func_00007C74(char *a0) {
     char *ret;
