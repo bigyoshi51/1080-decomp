@@ -95,7 +95,50 @@ void gl_func_00008DAC(int a0, int a1, int a2, int a3) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
 
+/* gl_func_00008FFC: -O0 init sequence (fresh decode 2026-05-28, mnemonic disasm).
+ * Five callee calls bracketing a global-state mask + a constructor: configures
+ * two globals, masks D[0x50] to bit 0x20, builds an object via call3 (returns
+ * obj, a3=incoming a2), registers it (call4), links obj into D's list (obj->0x14),
+ * sets obj->0x4=1 if obj->0x14 was non-null, then a final call5; returns obj.
+ * Data refs use the &D_00000000+offset addend idiom; builds -O0 (game_libs_mid).
+ * 82.38% as of 2026-05-28 (fresh decode 0→67→82). Lever: the target holds base
+ * (&D), obj, and a scratch in s0/s1/s2 across the calls — at -O0 that means
+ * `register` locals (declared base/obj/tmp in s0/s1/s2 order). RESIDUAL (~18%,
+ * -O0 codegen, hard to steer): (a) base re-materialization order — target emits
+ * `lui a0;addiu a0` for call1's arg0 separately from the t6 used for the +8 load,
+ * mine shares one base via `move a0,t6` (the -O0 inverse of base-CSE); (b) obj
+ * spill-timing — target stores the call3 result to obj's home (sw v0,0x34) +
+ * reloads into s1, and RETURNS from the home (lw v0,0x34), whereas mine uses
+ * `move s1,v0` + returns s1 directly. Real wrap, correct logic; stays NM. */
+#ifdef NON_MATCHING
+int gl_func_00008FFC(int a0, int a1, int a2) {
+    register char *base;     /* s0 */
+    register int *obj;       /* s1 */
+    register char *tmp;      /* s2 */
+
+    gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000 + 8));
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4C),
+                     *(unsigned char*)((char*)&D_00000000 + 0x17D));
+    *(int*)((char*)&D_00000000 + 0x50) =
+        *(int*)((char*)&D_00000000 + 0x50) & 0x20;
+    obj = (int*)gl_func_00000000(&D_00000000,
+                                 *(int*)((char*)&D_00000000 + 0x64), 5, a2);
+    base = (char*)&D_00000000;
+    tmp = base + 0x10;
+    gl_func_00000000(tmp, obj);
+    if (obj[0x14 / 4] != 0) {
+        obj[0x4 / 4] = 1;
+    }
+    tmp = base;
+    obj[0x14 / 4] = (int)tmp;
+    gl_func_00000000(&D_00000000, 0);
+    (void)a0;
+    (void)a1;
+    return (int)obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008FFC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009100);
 
