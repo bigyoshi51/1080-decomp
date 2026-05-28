@@ -11843,17 +11843,13 @@ void game_uso_func_0000FF48(char *a0) {
     }
 }
 
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-28 via struct-by-value arg-pass (sibling of FF48): the 2nd
+ * call homes the E28/E2C pair to a1/a2 by passing *(Pair2*)(&D+0xE28). See
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 void game_uso_func_0000FFB8(int *a0) {
     gl_func_00000000(a0, 0x30001, 5, 6, 1, 1);
-    gl_func_00000000(a0,
-        *(int*)((char*)&D_00000000 + 0xE28),
-        *(int*)((char*)&D_00000000 + 0xE2C),
-        6);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE28), 6);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FFB8);
-#endif
 
 #ifdef NON_MATCHING
 /* 84.05% NM. 19-insn / 0x4C. Three gl_func_00000000 calls bracketing
