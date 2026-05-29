@@ -1153,10 +1153,19 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000136
  *  - Each iter's `tag` call must inline-reload self->[OFF] (lw) instead of
  *    reusing the named sub local (which IDO cached in a saved reg -> extra
  *    move). init() keeps the fresh alloc result (v0); tag/bind reload.
- *  REMAINING (~40 raw diffs, reg-alloc + iter3): src=self->0x44 lands in v1
- *  vs target t0 (cascades a t1/t2->t0/t1 counter-reg shift in iters 1-2);
- *  iter3's 5-arg init float handling (idx81+) diverges. Multi-tick; not yet
- *  byte-exact. Default INCLUDE_ASM exact.
+ *  2026-05-29 (cont, ~18 raw diffs): iter3's 5th init arg is an INT-form
+ *  reload (*(int*)(src+0x6C)), NOT a float — the old *(float*) double-promoted
+ *  through K&R gl_func (cvt.d.s, +1 insn). Cut 40->18.
+ *  REMAINING (~18 raw diffs, both local-alloc / K&R, NOT logic):
+ *   - src=self->0x44 lands in v1 in iters 1-2 (target t0), cascading a
+ *     t1/t2->t0/t1 shift (~12-14 diffs). Fine-grained -O2 local-alloc; separate
+ *     per-iter src vars REGRESSED (18->20); fn-ptr cast broke the jal. Permuter
+ *     target.
+ *   - iter3 5th float arg wants single lwc1/swc1 (2 diffs); K&R gl_func gives
+ *     lw/sw. Fix via alias-extern recipe
+ *     (docs/MATCHING_WORKFLOW.md#feedback-alias-extern-via-undefined-syms) — but
+ *     verify net fuzzy (func_000087A4 net-regressed on the same fix).
+ *  Multi-tick; not yet byte-exact. Default INCLUDE_ASM exact.
  *
  * Sets up vtable + 4 floats=1.0f, then if (a1->[0x4F0] bit 16 SET)
  * runs 3 sub-init iterations, each:
@@ -1224,7 +1233,7 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     src = (int*)*(int*)((char*)self + 0x44);
     sub3 = (int*)*(int*)((char*)self + 0x80);
     gl_func_00000000(sub3, *(int*)((char*)src + 0x8), *(int*)((char*)src + 0xC),
-                     *(int*)((char*)src + 0x68), *(float*)((char*)src + 0x6C));
+                     *(int*)((char*)src + 0x68), *(int*)((char*)src + 0x6C));
     sub3 = (int*)*(int*)((char*)self + 0x80);
     gl_func_00000000(sub3, *(int*)((char*)self + 0x38),
                      *(int*)((char*)self + 0x3C), *(int*)((char*)self + 0x40));
