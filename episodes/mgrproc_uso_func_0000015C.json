@@ -1,0 +1,33 @@
+{
+  "function_name": "mgrproc_uso_func_0000015C",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-05-29T18:13:19.196321+00:00",
+  "end_time": "2026-05-29T18:13:19.196358+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-29T18:13:19.196345+00:00",
+      "assistant_text": "return 0 with UNFILLED jr-delay (move v0,zero; jr ra; nop). Plain -O2 fills the slot; -O2 -g3 disables reorg delay-fill. Whole head.c sub-unit flipped to -g3 (its only other compiled funcs are empty stubs, jr ra;nop, which are -g3-invariant); INCLUDE_ASM funcs unaffected.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 3,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* [0xF8, 0x19C) of the mgrproc_uso Yay0 block (region 1, -O2): the func_000000F8\n * bundle + the small leaves between the two -O0 runs. Carved out so the -O0 run\n * at [0x19C, 0xAE0) can be its own -O0 sub-unit (mgrproc_uso_o0_19C.c). The\n * empty stubs func_00000168/_00000194 (`void f(){}` = jr ra; nop) are -g3-\n * invariant. This .o is built -O2 -g3 (see Makefile): -g3 disables the reorg\n * delay-slot filler so the return-0 leaves func_0000015C/_00000188 emit their\n * UNFILLED `move v0,zero; jr ra; nop` target form; the empty stubs and the\n * INCLUDE_ASM funcs are unaffected. See the mgrproc_uso_block1_yay0 rule. */\n\nextern int gl_func_00000000();\n\n/* 5-function bundle (splat can't separate); INCLUDE_ASM keeps all 5 matching. */\n#ifdef NON_MATCHING\nvoid mgrproc_uso_func_000000F8(int *a0) {\n    a0[0]--;\n    gl_func_00000000(a0);\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_000000F8);\n#endif\n\n/* leaf-branch-past-end CAP (bne offset is linker-set, branches past fn end). */\n#ifdef NON_MATCHING\nint mgrproc_uso_func_00000140(int *a0) {\n    if (a0[1] == a0[2]) {\n        return 1;\n    }\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000140);\n#endif\n\n/* return-0 leaf, size 0xC (`move v0,zero; jr ra; nop`, UNFILLED jr-delay) \u2014\n * matched via the file-wide -O2 -g3 build (see Makefile). */\nint mgrproc_uso_func_0000015C(void) {\n    return 0;\n}\n\nvoid mgrproc_uso_func_00000168(void) {\n}\n\n/* leaf-branch-past-end CAP (same as _00000140). */\n#ifdef NON_MATCHING\nint mgrproc_uso_func_00000170(int *a0) {\n    if (a0[0] == 0) {\n        return 1;\n    }\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/mgrproc_uso/mgrproc_uso\", mgrproc_uso_func_00000170);\n#endif\n\n/* return-0 leaf, size 0xC (UNFILLED jr-delay) \u2014 matched via -O2 -g3. */\nint mgrproc_uso_func_00000188(void) {\n    return 0;\n}\n\nvoid mgrproc_uso_func_00000194(void) {}\n",
+  "metadata": {
+    "source_path": "src/mgrproc_uso/mgrproc_uso_head.c",
+    "asm_path": "asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_0000015C.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff report 100.0; mgrproc_uso_head.c.o .text byte-identical to reference at -g3."
+  }
+}

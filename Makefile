@@ -208,8 +208,11 @@ build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o build/non_matching/src/timpro
 build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: OPT_FLAGS := -O0
 build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0xF8
 build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xF8
-# region1 = -O2 head [0xF8,0x19C); matching build (INCLUDE_ASM) is exactly 0xA4.
+# region1 = head [0xF8,0x19C); matching build is exactly 0xA4. Built -O2 -g3 so
+# the return-0 leaves func_0000015C/_00000188 emit their UNFILLED jr-delay form
+# (move v0,zero; jr ra; nop); empty stubs + INCLUDE_ASM funcs are -g3-invariant.
 # No NON_MATCHING_TRUNCATE_TEXT (NM bodies diverge; objdiff scores per-function).
+build/src/mgrproc_uso/mgrproc_uso_head.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_head.c.o: OPT_FLAGS := -O2 -g3
 build/src/mgrproc_uso/mgrproc_uso_head.c.o: TRUNCATE_TEXT := 0xA4
 # region2 = -O0 run [0x19C,0xAE0) (func_0000019C..A14; func_000009A8 matched).
 build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o: OPT_FLAGS := -O0
