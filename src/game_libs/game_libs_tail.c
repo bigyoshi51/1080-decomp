@@ -2374,7 +2374,22 @@ void gl_func_0000E230(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E230);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E2A4);
+/* gl_func_0000E2A4: destructor — conditionally release 8 sub-objects of `o`.
+ * For each of fields 0x6C, 0x70, 0x8C, 0x78, 0x80, 0x84, 0x94, 0x98: if
+ * non-null, cb(field). MATCHED 2026-05-29 (fresh decode, first attempt): the
+ * `if (o->field) cb(o->field)` chain emits the beqzl-with-next-load-in-delay
+ * idiom; cb is the gl_func_00000000 release placeholder. */
+extern int gl_func_00000000();
+void gl_func_0000E2A4(int *o) {
+    if (o[0x6C / 4]) gl_func_00000000(o[0x6C / 4]);
+    if (o[0x70 / 4]) gl_func_00000000(o[0x70 / 4]);
+    if (o[0x8C / 4]) gl_func_00000000(o[0x8C / 4]);
+    if (o[0x78 / 4]) gl_func_00000000(o[0x78 / 4]);
+    if (o[0x80 / 4]) gl_func_00000000(o[0x80 / 4]);
+    if (o[0x84 / 4]) gl_func_00000000(o[0x84 / 4]);
+    if (o[0x94 / 4]) gl_func_00000000(o[0x94 / 4]);
+    if (o[0x98 / 4]) gl_func_00000000(o[0x98 / 4]);
+}
 
 #ifdef NON_MATCHING
 /* gl_func_0000E368: 42-insn gated flag toggle. Returns early unless bit 16 of
