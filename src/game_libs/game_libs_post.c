@@ -21890,7 +21890,50 @@ int gl_func_00041124() {
 // keys and the u32->float/1024 conversion are exact. Caps: &D_g/0x4C160
 // globals, the &D_0002F5xx strings and cbN signatures untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+/* gl_func_00041148: debug-instrumented allocator. size = arg0 (+arg1 align pad);
+ * dispatch on D+0x20 state (1/7 vs other) to two allocators; on failure logs
+ * (D+0x1F57C, size>>10); if D+0x3C160 debug-flag set, format-logs (D+0x1F598,
+ * blk, (blk[-4]>>24), size, arg1, (double)((float)(unsigned)size/1024)); finally
+ * aligns the result up to arg1. Fresh decode 2026-05-29 (m2c-assisted): 95.88%,
+ * body byte-exact. Used the variable-divisor lever (`float div=1024.0f`) to
+ * force runtime div.s (literal /1024.0f folds to *reciprocal). RESIDUAL (5
+ * diffs): the conditional-reassign of `s1` (size) defers its `move s1,a0` save
+ * past the ra/s0 stores and canonicalizes the `addu s1,a0,a1` operand order —
+ * the same save-scheduling cap as gl_func_00062368. */
+extern int gl_func_00000000();
+extern void gl_proto_41148(int, int, int, int, int, double);
+extern int D_00000000;
+int gl_func_00041148(unsigned int arg0, int arg1) {
+    unsigned int s1 = arg0;
+    int *s0;
+    float div = 1024.0f;
+    if (arg1 != 0) {
+        s1 = arg1 + arg0;
+    }
+    if (*(int *)((char *)&D_00000000 + 0x20) == 1 ||
+        *(int *)((char *)&D_00000000 + 0x20) == 7) {
+        s0 = (int *)gl_func_00000000(&D_00000000, s1);
+    } else {
+        s0 = (int *)gl_func_00000000(&D_00000000, s1);
+    }
+    if (s0 == 0) {
+        gl_func_00000000();
+        gl_func_00000000((char *)&D_00000000 + 0x1F57C, s1 >> 10);
+    }
+    if (*(int *)((char *)&D_00000000 + 0x3C160) != 0) {
+        gl_proto_41148((int)((char *)&D_00000000 + 0x1F598), (int)s0,
+                       (int)((unsigned int)s0[-4] >> 24), (int)s1, arg1,
+                       (double)((float)(unsigned int)s1 / div));
+    }
+    if (arg1 != 0) {
+        s0 = (int *)(((int)s0 + arg1) & ~(arg1 - 1));
+    }
+    return (int)s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041148);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00041258() {
