@@ -4136,7 +4136,80 @@ void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
  * Initial wrap is doc-only (no C body) until table dispatch is decoded.
  * Default INCLUDE_ASM build matches via the bundled symbol. */
 #endif
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000BDEC: two-arrow UI draw. Base x = arg1->0x8C, y =
+ * arg1->0x414->0xC->0xC4 + arg1->0xA4, alpha = (int)(255.0f*arg1->0x4A0). Draws a
+ * center icon (0x6E8) then a left arrow (x-0x1E, 0x700) and right arrow (x+0x1E,
+ * 0x718), each with a {c,c,c,1}/255 color Vec at &sp54 — c = 192/255 when the
+ * arg0->0x2B4 bit-17 "dim" flag is clear else 64/255; the left arrow only draws on
+ * (arg2 & 8) when undimmed. Variable divisor (float denom=255.0f) -> runtime div.s.
+ * Fresh decode 2026-05-29 (m2c-confirmed). 62.3% reg-blind (structure aligned —
+ * target holds 255.0 in callee-saved $f20 via sdc1 for both div + alpha-mul; my
+ * denom matches that shape). Residual is mostly saved-reg/FP-reg allocation + a few
+ * Vec-store insns. Caps: structs + cb prototypes untyped (USO-reloc). NON_MATCHING. */
+extern int gl_func_00000000();
+void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
+    float sp60;
+    float sp5C;
+    float sp58;
+    float sp54;
+    float sp40;
+    float denom = 255.0f;
+    float c;
+    float f2;
+    int s2;
+
+    s2 = *(int *)(*(char **)(*(char **)(arg1 + 0x414) + 0xC) + 0xC4);
+    gl_func_00000000(*(int *)(arg1 + 0x8C), s2 + *(int *)(arg1 + 0xA4), 0x6E8,
+                     (int)(denom * *(float *)(arg1 + 0x4A0)));
+    if (*(int *)(arg0 + 0x2B4) & 0x20000) {
+        c = 192.0f / denom;
+        f2 = 255.0f / denom;
+        sp54 = c;
+        sp58 = c;
+        sp5C = c;
+        sp60 = f2;
+        if (arg2 & 8) {
+            sp40 = f2;
+            gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) - 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
+                             &sp54, 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
+            goto block_4;
+        }
+    } else {
+        c = 64.0f / denom;
+        f2 = 255.0f / denom;
+        sp54 = c;
+        sp58 = c;
+        sp5C = c;
+        sp60 = f2;
+        sp40 = f2;
+        gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) - 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
+                         &sp54, 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
+    block_4:
+        f2 = sp40;
+    }
+    sp60 = f2;
+    if (!(*(int *)(arg0 + 0x2B4) & 0x20000)) {
+        c = 192.0f / denom;
+        sp54 = c;
+        sp58 = c;
+        sp5C = c;
+        if (arg2 & 8) {
+            gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) + 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
+                             &sp54, 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
+        }
+    } else {
+        c = 64.0f / denom;
+        sp54 = c;
+        sp58 = c;
+        sp5C = c;
+        gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) + 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
+                         &sp54, 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BDEC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C044);
 
