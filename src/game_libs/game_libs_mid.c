@@ -214,7 +214,36 @@ int gl_func_00009204(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009204);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_000092F4: module-init/registration, sibling of gl_func_00009204.
+ * cb(a, *(b+8)); cb(*(c+0x4C), *(c+0x4C)); node = cb(d, 8, 2, a1); cb(g+0x10,
+ * node); if (node->0x14) node->4=1; node->0x14 = g; cb(f, 0); return node.
+ * Distinct &D globals (no CSE). Fresh decode 2026-05-29: 73%, structure + the
+ * distinct &D refs match. RESIDUAL (same as gl_func_00009204): target promotes
+ * node/g to callee-saved $s1/$s0 (frame -56); my C keeps them in t-regs/spills
+ * (frame -40) — s-reg-promotion cap. */
+extern int gl_func_00000000();
+extern int D_92f_a, D_92f_b, D_92f_c, D_92f_d, D_92f_e, D_92f_f;
+int gl_func_000092F4(int a0, int a1) {
+    int *node;
+    char *g;
+    int t;
+    gl_func_00000000(&D_92f_a, *(int *)((char *)&D_92f_b + 8));
+    t = *(int *)((char *)&D_92f_c + 0x4C);
+    gl_func_00000000(t, t);
+    node = (int *)gl_func_00000000(&D_92f_d, 8, 2, a1);
+    g = (char *)&D_92f_e;
+    gl_func_00000000(g + 0x10, node);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
+    }
+    node[0x14 / 4] = (int)g;
+    gl_func_00000000(&D_92f_f, 0);
+    return (int)node;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000092F4);
+#endif
 
 /* gl_func_000093DC: -O0 init/dispatch (scalar-only, no struct locals = no
  * frame-offset ceiling). Real direct-global symbols D_w0 (offset 0) / D_w134
