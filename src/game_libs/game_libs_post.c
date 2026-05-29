@@ -6231,7 +6231,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274C0);
  * context). CAP: register-renumber, stays NM (INSN_PATCH REMOVED 2026-05-23
  * per feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
-void game_libs_func_000274E0(char *a0, char *a1) {
+void game_libs_func_000274E0(char *a0, signed char *a1) {
+    /* a1 is signed char -> `lb` (was `char`=unsigned -> `lbu`). Residual: the
+     * load/store temp lands in $t6 vs target $t1 (allocator register-rename;
+     * the 3 sibling stubs 2751C/27528 use t7/t9 too — TU-context-internal). */
     a0[3] = a1[4];
 }
 #else
