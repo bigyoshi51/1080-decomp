@@ -1890,7 +1890,46 @@ void gl_func_0000D6A0(char *a0, int a1) {
     }
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000D6E8: build+init a sub-object. Requires o->0x6C (node) non-null
+ * and (o->0xB4 & 2); else returns. Calls cb(node, a1, 0, 1) -> obj, then inits
+ * obj fields: 0x44 += 70, 0x5C = 70, 0xA4/A8/AC = 0, color 0x64/68/6C/70 =
+ * {250,219,68,255}/255, 0x9C = 30, 0xA0 = node + 0x138. Fresh decode 2026-05-29.
+ *
+ * KEY: the four color divisions are RUNTIME `div.s` in the target, not folded
+ * constants. Writing `250.0f / 255.0f` makes IDO 7.1 -O2 constant-fold to a
+ * rodata literal-pool load; using a VARIABLE divisor (`float inv = 255.0f`)
+ * forces the runtime div.s with 255.0 CSE'd into one $f reg. Likewise the 0xA0
+ * store re-reads `o->0x6C` (the cb call may clobber memory) rather than caching
+ * `node`, which homes `o` across the call.
+ *
+ * 78.5%, logic-complete. RESIDUAL: FP constant-materialization / div.s / store
+ * SCHEDULE interleave (list-scheduler), frame -32 vs -48 (extra dead node-spill
+ * slot the target reserves), and `255.0f/inv` reusing inv's reg vs a fresh
+ * 255.0. All codegen-form, not logic — multi-tick FP-schedule grind. */
+extern int gl_func_00000000();
+void gl_func_0000D6E8(int *o, int a1) {
+    int node = o[0x6C / 4];
+    int *obj;
+    float inv = 255.0f;
+    if (node == 0) return;
+    if ((o[0xB4 / 4] & 2) == 0) return;
+    obj = (int *)gl_func_00000000(node, a1, 0, 1);
+    *(float *)((char *)obj + 0x44) += 70.0f;
+    *(float *)((char *)obj + 0x5C) = 70.0f;
+    *(float *)((char *)obj + 0xA4) = 0.0f;
+    *(float *)((char *)obj + 0xA8) = 0.0f;
+    *(float *)((char *)obj + 0xAC) = 0.0f;
+    *(float *)((char *)obj + 0x64) = 250.0f / inv;
+    *(float *)((char *)obj + 0x68) = 219.0f / inv;
+    *(float *)((char *)obj + 0x6C) = 68.0f / inv;
+    *(float *)((char *)obj + 0x70) = 255.0f / inv;
+    *(int *)((char *)obj + 0x9C) = 30;
+    *(int *)((char *)obj + 0xA0) = o[0x6C / 4] + 0x138;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D6E8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D7B8);
 
