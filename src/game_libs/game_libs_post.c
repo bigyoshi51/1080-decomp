@@ -15999,7 +15999,46 @@ void game_libs_func_00038294(int a0) {
 //   mnemonic disasm + the structs/templates typed; structural
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+/* gl_func_0003829C: alloc-cascade constructor (fresh decode 2026-05-29, first
+ * pass). Saves arg0->0xC, allocates a 0x10 node `a2`; if non-null builds an
+ * inner node `v1` (= a2 in the common path) — sets vtable ptr &D+0x1EB10 at
+ * offset 0, back-link arg0 at +4, and a 2-word blob from &D+0x1EA30 at +8/+0xC
+ * — then stamps a2's vtable &D+0x1EB40 at offset 0; finally cb(&D_0, savedC, a2).
+ * The pointers round-trip through stack slots (sp+0x20/0x1C) so IDO can't fold
+ * the redundant null-retests, emitting (effectively dead) retry-alloc branches —
+ * the alloc-cascade idiom. 98.71%, size-exact (49==49), all cascade branches +
+ * control flow match. RESIDUAL: (a) frame -40 vs target -48 (8B of extra
+ * pointer-spill slack the stack-juggle uses; mostly sp-normalized by objdiff);
+ * (b) the &D+0x1EA30 table read: IDO folds it to a shared base &D+0x18000 +
+ * 0x6A30 offset, target materializes &D+0x1EA30 directly and loads 0(t0)/4(t0)
+ * — a %hi/%lo split-form diff (block-scoped base local did NOT defeat the fold;
+ * likely USO-reloc-form-determined). Both regalloc/reloc-form, not logic. */
+void gl_func_0003829C(int *arg0) {
+    int saved = arg0[3];
+    int *a2 = (int *)gl_func_00000000(0x10);
+    int *v1, *a0v, *p2, *p3;
+    if (a2 != 0) {
+        v1 = a2;
+        if (a2 != 0 || (p2 = (int *)gl_func_00000000(0x10), v1 = p2, p2 != 0)) {
+            a0v = v1;
+            if (v1 != 0 || (p3 = (int *)gl_func_00000000(4), a0v = p3, p3 != 0)) {
+                *a0v = (int)((char *)&D_00000000 + 0x1EB10);
+            }
+            v1[1] = (int)arg0;
+            {
+                int *tbl = (int *)((char *)&D_00000000 + 0x1EA30);
+                v1[2] = tbl[0];
+                v1[3] = tbl[1];
+            }
+        }
+        *a2 = (int)((char *)&D_00000000 + 0x1EB40);
+    }
+    gl_func_00000000((char *)&D_00000000, saved, a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003829C);
+#endif
 
 // gl_func_00038360 — STRUCTURAL PASS (0x238 / 142 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
