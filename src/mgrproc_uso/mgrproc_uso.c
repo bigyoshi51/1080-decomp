@@ -782,7 +782,98 @@ void mgrproc_uso_func_00001C90(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C90);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00001F30: physics/bounce animation step (gated on arg0->0x4F0
+ * bit-16). By state arg0->0x4E0: state 1 integrates 0x7A8 with dbl-precision vel
+ * 0x7B8 (+&D+0x5E0), bounce off 36.0 floor; state 3 (sub-state 0x4F8) integrates
+ * up to a 160-(2*w-2) ceiling (+&D+0x5E8) or decays 0x7A4. Draws cb(arg0, x, y, w).
+ * If 0x7C4 set: a second axis (0x7B0/0x7B4 with dbl vel 0x7C0 +&D+0x5F8, clamp 256)
+ * + (if w==0) a scale pulse 0x55C/0x560 (+&D+0x600, sound cb(0x31) over threshold)
+ * and two more draws. dbl consts via ldc1 from &D pool; /4.0f reciprocal-folds.
+ * Fresh decode 2026-05-29 (m2c-confirmed). 41.8% reg-blind first-pass. Applied:
+ * variable divisor (`float four`) so /4.0 emits div.s (target's form, not the
+ * reciprocal mul.s); distinct externs D_dbl_5E0/5E8/5F8/600 to bust &D-CSE so each
+ * ldc1 re-materializes its base via $at (matching target). Remaining gap: float &D
+ * loads (5F0) + pervasive double-conversion FP reg-alloc. Caps: structs + cb proto
+ * untyped (USO-reloc). NON_MATCHING. */
+extern int gl_func_00000000();
+extern double D_dbl_5E0, D_dbl_5E8, D_dbl_5F8, D_dbl_600;
+void mgrproc_uso_func_00001F30(char *arg0) {
+    float f0;
+    float f2;
+    float four;
+    int v0;
+    int t;
+
+    if (*(int *)(arg0 + 0x4F0) & 0x10000) {
+        four = 4.0f;
+        v0 = *(int *)(arg0 + 0x4E0);
+        if (v0 == 1) {
+            *(float *)(arg0 + 0x7B8) = (float)((double)*(float *)(arg0 + 0x7B8) + D_dbl_5E0);
+            f0 = *(float *)(arg0 + 0x7B8);
+            *(float *)(arg0 + 0x7A8) = *(float *)(arg0 + 0x7A8) - f0;
+            f2 = *(float *)(arg0 + 0x7A8);
+            if (f2 < 36.0f) {
+                *(float *)(arg0 + 0x7A8) = f2 + f0;
+                *(float *)(arg0 + 0x7B8) = -(f0 / four);
+            }
+            v0 = *(int *)(arg0 + 0x4E0);
+        }
+        if (v0 == 3) {
+            t = *(int *)(arg0 + 0x4F8);
+            if ((t != 0) && (t != 2)) {
+                *(float *)(arg0 + 0x7B8) = (float)((double)*(float *)(arg0 + 0x7B8) + D_dbl_5E8);
+                f0 = *(float *)(arg0 + 0x7B8);
+                *(float *)(arg0 + 0x7A8) = *(float *)(arg0 + 0x7A8) + f0;
+                f2 = *(float *)(arg0 + 0x7A8);
+                if ((160.0f - (float)((*(int *)(arg0 + 0x7C8) * 2) - 2)) < f2) {
+                    *(float *)(arg0 + 0x7A8) = f2 - f0;
+                    *(float *)(arg0 + 0x7B8) = -(f0 / four);
+                }
+            } else {
+                f0 = *(float *)(arg0 + 0x7A4);
+                if (f0 > 0.0f) {
+                    *(float *)(arg0 + 0x7A4) = f0 - *(float *)((char *)&D_00000000 + 0x5F0);
+                    if (*(float *)(arg0 + 0x7A4) < 0.0f) {
+                        *(float *)(arg0 + 0x7A4) = 0.0f;
+                    }
+                }
+            }
+        }
+        gl_func_00000000(arg0, (int)*(float *)(arg0 + 0x7A8), (int)*(float *)(arg0 + 0x7AC), *(int *)(arg0 + 0x7C8));
+        if (*(int *)(arg0 + 0x7C4) != 0) {
+            *(float *)(arg0 + 0x7B0) = *(float *)(arg0 + 0x7B0) + *(float *)(arg0 + 0x7BC);
+            *(float *)(arg0 + 0x7C0) = (float)((double)*(float *)(arg0 + 0x7C0) + D_dbl_5F8);
+            *(float *)(arg0 + 0x7B4) = *(float *)(arg0 + 0x7B4) + *(float *)(arg0 + 0x7C0);
+            if (*(float *)(arg0 + 0x7B4) > 256.0f) {
+                *(float *)(arg0 + 0x7B4) = 256.0f;
+                *(float *)(arg0 + 0x7C0) = 0.0f;
+            }
+            gl_func_00000000(arg0, (int)*(float *)(arg0 + 0x7B0), (int)*(float *)(arg0 + 0x7B4), 1);
+            if (*(int *)(arg0 + 0x7C8) == 0) {
+                f0 = *(float *)(arg0 + 0x560);
+                if (f0 < 8.0f) {
+                    *(float *)(arg0 + 0x560) = (float)((double)f0 + D_dbl_600);
+                }
+                *(float *)(arg0 + 0x55C) = *(float *)(arg0 + 0x55C) + *(float *)(arg0 + 0x560);
+                if (*(float *)(arg0 + 0x564) < *(float *)(arg0 + 0x55C)) {
+                    if (*(float *)(arg0 + 0x560) > 6.0f) {
+                        gl_func_00000000(0x31);
+                        *(float *)(arg0 + 0x554) = 300.0f;
+                    }
+                    *(float *)(arg0 + 0x55C) = *(float *)(arg0 + 0x55C) - *(float *)(arg0 + 0x560);
+                    *(float *)(arg0 + 0x560) = -(*(float *)(arg0 + 0x560) / four);
+                }
+                gl_func_00000000(0, 0xFF, arg0 + 0x3C8, arg0 + 0x3EC);
+                gl_func_00000000(arg0 + 0x690);
+                gl_func_00000000(arg0 + 0x690, (int)*(float *)(arg0 + 0x558), (int)*(float *)(arg0 + 0x55C), 3);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001F30);
+#endif
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00002294: 36-insn (0x90) FPU-gated state-update.
