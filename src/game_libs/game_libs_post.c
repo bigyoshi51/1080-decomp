@@ -9921,7 +9921,6 @@ int gl_func_0002DD90(int a0, int a1) {
  * externs resolving to 0x0 (4 distinct names break IDO's CSE on the
  * lui+sw pair — per feedback-ido-cse-bust-via-distinct-externs). */
 extern char D_2DDBC_a, D_2DDBC_b, D_2DDBC_c, D_2DDBC_d;
-#ifdef NON_MATCHING
 void game_libs_func_0002DDBC(int a0, int a1, int a2, float a3) {
     int *p = &a0;
     a0 &= 0xFF;
@@ -9931,9 +9930,6 @@ void game_libs_func_0002DDBC(int a0, int a1, int a2, float a3) {
     *(float*)&D_2DDBC_d = a3;
     (void)p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DDBC);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DDEC);
 
@@ -31984,7 +31980,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E190);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E288);
 
-#ifdef NON_MATCHING
 /* gl_func_0005E664: 45-insn 4x4-matrix scale + dispatch (0xB4, frame 0x68).
  *
  *   void gl_func(float *src, float scale, void *arg2) {
@@ -32009,9 +32004,6 @@ void gl_func_0005E664(float *src, float scale, int a2) {
     }
     func_00000000(buf, a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E664);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005E718: 53-insn 3x3 matrix multiply into a stack result, then a call.
