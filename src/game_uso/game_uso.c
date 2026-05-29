@@ -10690,43 +10690,71 @@ void game_uso_func_0000E2D0(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
 #endif
 
-/* game_uso_func_0000E35C - verified structural decode (129-insn EE84-family
- * orchestrator; D-pair sp-args + beql branch-likely + ceil-div-64 + 9 calls
- * = documented sub-80 ceiling -> INCLUDE_ASM build path; struct-typing ref).
- *   s0 = a0;
- *   if (s0->0xF0 == 0) return 0;
- *   func_00000000(s0->0xF0 -> 0x30);            // X1, a1 = (s0->0xF0)->0x30
- *   if ((s0->0xB4 -> 0xA58) & 0x20) {
- *       n = ((s0->0xF0)->0x3C << 6 ... ) ;       // ceil-div-64: (d+63)>>6
- *       func_00000000(&D, ..., ceil(n/64));      // X2
- *   } else {
- *       func_00000000(&D, ..., ceil((s0->0xF0 - D_glob)/64));  // X2'
- *   }
- *   s0->0x100 += 1;  s0->0xF0 = 0;  s0->0xF4 = old;
- *   s0->0xF8 = (old != s0->0xF8) ? old : (s0->0x100=0, old);
- *   func_00000000(s0);                            // X3
- *   if ((s0->0xB4 -> 0xA58) & 0x40) {
- *       v = s0->0xF4;
- *       v->0x20 = v->0x28 ? v->0x28 : v->0x24;
- *       if (v->0x38 & 2) {
- *           func_00000000(s0, v->0x20, 0, sp:1,1, 2);   // X4 (D-pair sp)
- *           func_00000000(s0, D[0xEC0], D[0xEC4]);          // X5
- *       } else {
- *           func_00000000(s0, v->0x20, 0, sp:1,1, 3);   // X6
- *           func_00000000(s0, D[0xEC8], D[0xECC]);          // X7
- *       }
- *   }
- *   func_00000000(s0, D[0xED0], D[0xED4]);          // X8
- *   return 1;
- * Struct-typing: s0->0xF0 active node (->0x30 arg, ->0x3C size), s0->0xB4
- * obj (->0xA58 mode bits 0x20=node-local / 0x40=configure), s0->0xF4
- * current (->0x20/0x24/0x28 ptr-trio, ->0x38 flag bit 0x2), s0->0xF8 prev,
- * s0->0x100 counter (reset when prev wraps). D-pair consts @0xEC0/EC4,
- * 0xEC8/ECC, 0xED0/ED4. The (d+63)>>6 is signed ceil-div-by-64. Caps <80:
- * beql/bgez branch-likely + D-pair sp-spill arg shape + &D reloc + ceil
- * idiom scheduling - documented EE84-family ceiling. INCLUDE_ASM is the
- * correct build path (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+/* game_uso_func_0000E35C: slot/queue advance. If arg0->0xF0 (current) != NULL:
+ * cb(cur->0x30,1); compute its array index (vs base *(int*)&D, /64) — two forms
+ * by arg0->0xB4->0xA58 bit-5; advance the queue (0x100 counter++, 0xF0=NULL, 0xF4/
+ * 0xF8 = prev, reset counter if prev==0xF8); cb(arg0); set prev->0x20 from ->0x28
+ * (if 0xB4->0xA58 bit-6 & nonzero) else ->0x24; then by prev->0x38 bit-1 emit a
+ * 2-call or 3-call pair using &D+0xEC0/0xEC8/0xED0 tables; cb(arg0, &D+0xED0..).
+ * Returns 1; else 0. Fresh decode 2026-05-29 (m2c-confirmed), upgraded from
+ * structural ceiling marker. Caps: structs + cb prototypes untyped (USO-reloc),
+ * pointer-diff index math + &D tables not symbolized. NON_MATCHING. */
+extern int gl_func_00000000();
+int game_uso_func_0000E35C(char *arg0) {
+    char *cur;
+    char *b4;
+    char *prev;
+    char *f4;
+    int v1;
+
+    cur = *(char **)(arg0 + 0xF0);
+    if (cur != 0) {
+        gl_func_00000000(*(int *)(cur + 0x30), 1);
+        b4 = *(char **)(arg0 + 0xB4);
+        if (*(int *)(b4 + 0xA58) & 0x20) {
+            int base = *(int *)&D_00000000;
+            gl_func_00000000(*(int *)((char *)&D_00000000 + 0x138), b4,
+                (int)((base + (*(int *)(*(char **)(arg0 + 0xF0) + 0x3C) << 6)) - base) / 64);
+        } else {
+            gl_func_00000000(*(int *)((char *)&D_00000000 + 0x138), b4,
+                (int)((int)*(char **)(arg0 + 0xF0) - *(int *)&D_00000000) / 64);
+        }
+        prev = *(char **)(arg0 + 0xF0);
+        *(int *)(arg0 + 0x100) = *(int *)(arg0 + 0x100) + 1;
+        *(char **)(arg0 + 0xF0) = 0;
+        *(char **)(arg0 + 0xF4) = prev;
+        if (prev == *(char **)(arg0 + 0xF8)) {
+            *(int *)(arg0 + 0x100) = 0;
+        }
+        *(char **)(arg0 + 0xF8) = prev;
+        gl_func_00000000(arg0);
+        if ((*(int *)(*(char **)(arg0 + 0xB4) + 0xA58) & 0x40) &&
+            (f4 = *(char **)(arg0 + 0xF4), v1 = *(int *)(f4 + 0x28), (v1 != 0))) {
+            *(int *)(f4 + 0x20) = v1;
+        } else {
+            f4 = *(char **)(arg0 + 0xF4);
+            *(int *)(f4 + 0x20) = *(int *)(f4 + 0x24);
+        }
+        f4 = *(char **)(arg0 + 0xF4);
+        if (*(int *)(f4 + 0x38) & 2) {
+            gl_func_00000000(arg0, *(int *)(f4 + 0x20), 0, 2, 1, 1);
+            gl_func_00000000(arg0, *(int *)((char *)&D_00000000 + 0xEC0),
+                             *(int *)((char *)&D_00000000 + 0xEC4), 2);
+        } else {
+            gl_func_00000000(arg0, *(int *)(f4 + 0x20), 0, 3, 1, 1);
+            gl_func_00000000(arg0, *(int *)((char *)&D_00000000 + 0xEC8),
+                             *(int *)((char *)&D_00000000 + 0xECC), 3);
+        }
+        gl_func_00000000(arg0, *(int *)((char *)&D_00000000 + 0xED0),
+                         *(int *)((char *)&D_00000000 + 0xED4));
+        return 1;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E35C);
+#endif
 
 void game_uso_func_0000E564(int *a0) {
     int v0 = ((int*)a0[0xF4/4])[0x2C/4];
