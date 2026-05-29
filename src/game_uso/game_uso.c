@@ -2697,41 +2697,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
  * 2026-05-20 refinement: corrected a3 to mixed-mode float, switched the
  * inner call to a typed zero-address alias returning float, and fixed a0[2]
  * to use -orig_scale instead of ratio. Fuzzy: 52.43% -> 98.23%.
- * 2026-05-21 refinement: promoted the C body. The tight-frame variant below
- * leaves five non-reloc FPU operand/register encoding diffs; previously
- * Makefile INSN_PATCH closed those caps. INSN_PATCH REMOVED 2026-05-23
- * as match-faking per feedback_no_instruction_forcing_matches_policy.
- * 2026-05-28: confirmed genuine cap. The 5 diffs decode as 3 commutative
- * mul/add operand swaps (insns 20/39/44, fs<->ft) + 2 coupled FP register-
- * number diffs ($f8<->$f10, insns 24/27). Manual add-operand swap (writing
- * `B + A` for the 3 vector exprs) REGRESSES 5->15 diffs — it re-rolls the
- * whole FPU eval cascade, same as the game_uso_func_000000A0 dot-product cap.
- * Permuter floored at base score 45 (100s, -j4). Same FPU-pipeline operand-
- * order class that is not C-reachable. Honest NM cap. */
+ * 2026-05-29: MATCHED. The 5 residual diffs (3 commutative mul operand swaps +
+ * the $f8<->$f10 neg_scale/coord allocation pair) all close by forcing each
+ * scale factor into a register AT the multiply via an assignment-expression:
+ * `coord * (tmp = scale)` makes IDO take the scale as the mul's fs (the default
+ * for `scale * coord` after a fresh coord load is coord-as-fs), and for
+ * neg_scale it also lands the target's $f8. The tmp vars (ns/os/nsd/neg) are
+ * write-only operand-ordering levers. Found via decomp-permuter, then minimized. */
 extern float func_00000000_03FAC(float, float);
-#ifdef NON_MATCHING
 void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg4) {
     float orig_scale = arg4 / a3;
+    float ns, os, nsd, neg;
     float ratio = orig_scale * orig_scale;
-    float new_scale;
-    float neg_scale;
-
-    /* Inner call gets `(1 - ratio)` as f12 + `a3` as f14. */
-    new_scale = func_00000000_03FAC(1.0f - ratio, a3);
+    float new_scale = func_00000000_03FAC(1.0f - ratio, a3);
     (void)ratio;
-
-    a0[0] = orig_scale * a2[2] + new_scale * a2[0];
+    a0[0] = (orig_scale * a2[2]) + (a2[0] * (ns = new_scale));
     a0[1] = 0.0f;
-    neg_scale = -orig_scale;
-    a0[2] = new_scale * a2[2] + neg_scale * a2[0];
-
-    a1[0] = new_scale * a2[0] - a2[2] * orig_scale;
+    a0[2] = (new_scale * a2[2]) + (a2[0] * (neg = -orig_scale));
+    a1[0] = (new_scale * a2[0]) - (a2[2] * (os = orig_scale));
     a1[1] = 0.0f;
-    a1[2] = new_scale * a2[2] + orig_scale * a2[0];
+    a1[2] = (new_scale * a2[2]) + (a2[0] * (nsd = orig_scale));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003FAC);
-#endif
 
 void game_uso_func_00004080(int *dst) {
     int buf[2];
