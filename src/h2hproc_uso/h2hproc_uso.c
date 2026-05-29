@@ -1145,7 +1145,20 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000136
 /* h2hproc_uso_func_000015F0: 108-insn (0x1B0) constructor with 3 sub-alloc
  * "alloc + init + tag + bind to parent" iterations.
  *
- * Sets up vtable + 4 floats=1.0f, then if (a1->[0x4F0] bit 16 == 0)
+ * 2026-05-29 PROGRESS (94.3% -> ~40 raw diffs, two bugs fixed):
+ *  - BIT SENSE was BACKWARDS: body runs when a1->[0x4F0] bit 16 is SET, not
+ *    clear. Target: `sll t9,x,15; bgezl t9,end` (return when bit16 clear).
+ *    Fixed to `if ((int)(a1[0x4F0/4] << 15) >= 0) return;` (matches bgezl;
+ *    the old `(unsigned)>>31` added a stray srl + wrong branch).
+ *  - Each iter's `tag` call must inline-reload self->[OFF] (lw) instead of
+ *    reusing the named sub local (which IDO cached in a saved reg -> extra
+ *    move). init() keeps the fresh alloc result (v0); tag/bind reload.
+ *  REMAINING (~40 raw diffs, reg-alloc + iter3): src=self->0x44 lands in v1
+ *  vs target t0 (cascades a t1/t2->t0/t1 counter-reg shift in iters 1-2);
+ *  iter3's 5-arg init float handling (idx81+) diverges. Multi-tick; not yet
+ *  byte-exact. Default INCLUDE_ASM exact.
+ *
+ * Sets up vtable + 4 floats=1.0f, then if (a1->[0x4F0] bit 16 SET)
  * runs 3 sub-init iterations, each:
  *   sub = alloc(0, size);
  *   self->[OFFSET] = sub;
@@ -1182,13 +1195,13 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     *(float*)((char*)self + 0xC4) = 1.0f;
     *(float*)((char*)self + 0xC0) = 1.0f;
     *(float*)((char*)self + 0xBC) = 1.0f;
-    if (((unsigned)a1[0x4F0/4] << 15) >> 31) return;  /* bit 16 set, skip */
+    if ((int)(a1[0x4F0 / 4] << 15) >= 0) return;  /* bit 16 clear: skip */
     self_p10 = (char*)self + 0x10;
     sub1 = (int*)gl_func_00000000(0, 90);
     src = (int*)*(int*)((char*)self + 0x44);
     *(int*)((char*)self + 0xE8) = (int)sub1;
     gl_func_00000000(sub1, *(int*)((char*)src + 0x28));
-    gl_func_00000000(sub1, 68, 21);
+    gl_func_00000000(*(int*)((char*)self + 0xE8), 68, 21);
     sub1 = (int*)*(int*)((char*)self + 0xE8);
     gl_func_00000000(self_p10, sub1);
     if (*(int*)((char*)sub1 + 0x14) != 0) *(int*)((char*)sub1 + 0x4) = 1;
@@ -1198,7 +1211,7 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     src = (int*)*(int*)((char*)self + 0x44);
     *(int*)((char*)self + 0xEC) = (int)sub2;
     gl_func_00000000(sub2, *(int*)((char*)src + 0x88));
-    gl_func_00000000(sub2, 68, 130);
+    gl_func_00000000(*(int*)((char*)self + 0xEC), 68, 130);
     sub2 = (int*)*(int*)((char*)self + 0xEC);
     gl_func_00000000(self_p10, sub2);
     if (*(int*)((char*)sub2 + 0x14) != 0) *(int*)((char*)sub2 + 0x4) = 1;
