@@ -21000,20 +21000,25 @@ int gl_func_0003F730(int *a0, int a1, int a2) {
 //
 // Caps (DEFERRED): scratch-buffer layout + cbN signatures inferred from
 //   call shape; arg-struct untyped. Real-C STRUCTURAL body below.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
+//   Name pre-checked: no extern reuse.
+// 2026-05-29: 74.67% -> 81.18%. Applied the gl_func_0003F8E8 lesson — the tag
+//   is a WORD store (sw 0x23), so `int tag` not `char tagbuf[]` (was sb).
+//   RESIDUAL: exact scratch-buffer stack offsets (tag@0x18/buf@0x20, status =
+//   buf+0x48), the a4 5th-arg early-load+spill, and a dead home of the unused
+//   a1 param — all stack-layout brute-force, deferred.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 int gl_func_0003F7A8(void *a0, int a1, int a2, int a3, int a4) {
-    char buf[0xA0];
-    char tagbuf[0x10];
+    int tag;
+    char buf[0x90];
     int st;
-    tagbuf[0] = 0x23;
+    tag = 0x23;
     gl_func_00000000(&buf[0], a4);
-    gl_func_00000000(&tagbuf[0]);
+    gl_func_00000000(&tag);
     gl_func_00000000(&buf[0], a2);
-    gl_func_00000000(&tagbuf[0]);
+    gl_func_00000000(&tag);
     gl_func_00000000(a0);
-    gl_func_00000000(&tagbuf[0]);
+    gl_func_00000000(&tag);
     st = *(int *)&buf[0x48];
     if (st != 0) {
         gl_func_00000000(a3, &buf[0]);
