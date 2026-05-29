@@ -11373,7 +11373,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
  * same as 10B38/10E2C) — REMOVED 2026-05-23 as match-faking (per
  * feedback_no_instruction_forcing_matches_policy). Default build is
  * INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* MATCHED via struct-by-value arg-home: D[0xDF0]/D[0xDF4] pair passed as
+ * `*(Pair2*)(&D+0xDF0)` homes a1,a2 to sp+4/sp+8. */
 void game_uso_func_0000F49C(int *a0) {
     a0[0x114/4] = 2;
     if (*(int*)((char*)(int*)a0[0xF4/4] + 0x38) & 1) {
@@ -11381,14 +11382,9 @@ void game_uso_func_0000F49C(int *a0) {
     }
     ((int*)a0[0xB4/4])[0xA18/4] = 1;
     a0[0xF4/4] = 0;
-    gl_func_00000000(a0,
-        *(int*)((char*)&D_00000000 + 0xDF0),
-        *(int*)((char*)&D_00000000 + 0xDF4));
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xDF0));
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F49C);
-#endif
 
 /* game_uso_func_0000F514: 37-insn state-init w/ flag-gated branch.
  * gl_func_0(a0); a0->0xB4->0xA68 = 1; check (a0->0xB4)->0x800->0x10 & 0x200:
@@ -11670,20 +11666,15 @@ void game_uso_func_0000FABC(int a0) {
  * 2026-05-23 as match-faking (per
  * feedback_no_instruction_forcing_matches_policy). Default build is
  * INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* MATCHED via struct-by-value arg-home: D[0xE40]/D[0xE44] pair passed as
+ * `*(Pair2*)(&D+0xE40)` homes a1,a2 to sp+4/sp+8. */
 void game_uso_func_0000FB04(int *a0) {
     gl_func_00000000(a0);
     if (a0[0x110/4] != 0) {
         gl_func_00000000(a0, a0[0x108/4], 2, 1, 1, 1);
-        gl_func_00000000(a0,
-            *(int*)((char*)&D_00000000 + 0xE40),
-            *(int*)((char*)&D_00000000 + 0xE44),
-            1);
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE40), 1);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB04);
-#endif
 
 /* game_uso_func_0000FB7C: 31-insn 3-call dispatcher.
  * NATURAL CEILING: 79.97% NM. Same family-cap shape as 10E2C/10B38/F49C/
@@ -12199,27 +12190,14 @@ void game_uso_func_000104A4(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000104A4);
 #endif
 
-#ifdef NON_MATCHING
-/* 89.18% NM. 5th confirmed member of precall-arg-spill family
- * (F664/F8E8/EF20/FF48/1056C). Built 26 vs expected 28 insns: target emits
- * `sw a1,4(sp); sw a2,8(sp)` defensive spills around the second jal that
- * IDO -O2 K&R extern doesn't reproduce. INSN_PATCH ineligible (size diff
- * blocks it per feedback_insn_patch_size_diff_blocked.md).
- *
- * Logic:
- *   gl_func_00000000(a0, 0x10025, 0, 0, 0x100, 5);
- *   gl_func_00000000(a0, *(int*)(D + 0xE08), *(int*)(D + 0xE0C), -1);
- *   *(float*)(a0 + 0x11C) = *(float*)(a0 + 0x154);
- *
- * Note this variant has a final FLOAT COPY tail not seen in the others. */
+/* MATCHED via struct-by-value arg-home: the adjacent D[0xE08]/D[0xE0C] pair
+ * passed as `*(Pair2*)(&D+0xE08)` homes a1,a2 to sp+4/sp+8. Has a final float
+ * copy tail. (The "precall-arg-spill family / INSN_PATCH ineligible" cap was wrong.) */
 void game_uso_func_0001056C(char *a0) {
     gl_func_00000000(a0, 0x10025, 0, 0, 0x100, 5);
-    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE08), *(int*)((char*)&D_00000000 + 0xE0C), -1);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE08), -1);
     *(float*)(a0 + 0x11C) = *(float*)(a0 + 0x154);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001056C);
-#endif
 
 /* MATCHED 2026-05-28: struct-by-value (E00/E04 pair). 27-insn 3-call
  * sibling of 10E2C/11368/FA54 family. The "t8-base + varargs spills" cap
@@ -12458,28 +12436,16 @@ void game_uso_func_00010A0C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010A0C);
 #endif
 
-#ifdef NON_MATCHING
-/* 89.18% NM. 6th member of precall-arg-spill family
- * (F664/F8E8/EF20/FF48/1056C/10AC8). Built 26 vs expected 28 insns
- * — missing `sw a1,4(sp); sw a2,8(sp)` defensive spills around the
- * 3rd jal. Logic decoded:
- *   gl_func_00000000(a0);  // initial call (no extra args)
- *   v0 = a0->0xFC;
- *   gl_func_00000000(a0, v0|2, v0|3, a0->0xB4->0x970, 0x100, 10);
- *   gl_func_00000000(a0, D_E40, D_E44, -1);  // precall-spill cap site
- *
- * INSN_PATCH ineligible (size diff). Same blocker as the family
- * per feedback_uso_3unique_extern_inline_store_before_jal_combo.md. */
+/* MATCHED via struct-by-value arg-home: the adjacent D[0xE40]/D[0xE44] pair
+ * passed as `*(Pair2*)(&D+0xE40)` homes a1,a2 to sp+4/sp+8 (the target's
+ * `sw a1,4(sp); sw a2,8(sp)`) — the "precall-arg-spill family" cap was wrong. */
 void game_uso_func_00010AC8(char *a0) {
     int v0;
     gl_func_00000000(a0);
     v0 = *(int*)(a0 + 0xFC);
     gl_func_00000000(a0, v0 | 2, v0 | 3, *(int*)(*(char**)(a0 + 0xB4) + 0x970), 0x100, 10);
-    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE40), *(int*)((char*)&D_00000000 + 0xE44), -1);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE40), -1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010AC8);
-#endif
 
 /* MATCHED 2026-05-28: struct-by-value (E60/E64 pair). 29-insn init +
  * 3-call orchestrator. The 3rd call's "tail reshape + varargs spills"
