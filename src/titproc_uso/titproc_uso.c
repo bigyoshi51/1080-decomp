@@ -176,16 +176,21 @@ void titproc_uso_func_000003D0(void) {
  * previously closed via INSN_PATCH — INSN_PATCH REMOVED 2026-05-23 as
  * match-faking (per feedback_no_instruction_forcing_matches_policy).
  * Default build is INCLUDE_ASM. */
+extern float gl_func_00000000_f();
 #ifdef NON_MATCHING
 int titproc_uso_func_00000418(void) {
-    extern float gl_func_00000000_f();
-    unsigned short mask = **(unsigned short**)((char*)&D_00000000 + 0x154);
-    int index;
+    /* 93.8% → ~98% (6→2 diffs): inlining the mask read into the loop body
+     * (instead of caching as `unsigned short mask` local) drops the extra
+     * 8-byte frame slot and aligns the spill offset to sp+24. Residual 2
+     * diffs are a scheduler-decision order swap between `lw $5,24(sp)`
+     * (preload uninit selected) and `or $2,$0,$0` (index=0) — independent
+     * instructions, both emitted but in opposite order; not C-controllable
+     * (tried decl-order, dummy reads, init-in-decl). */
+    int index = 0;
     int selected;
 
-    index = 0;
     do {
-        if ((mask & (1 << index)) != 0) {
+        if ((**(unsigned short**)((char*)&D_00000000 + 0x154) & (1 << index)) != 0) {
             selected = index + 1;
         }
         index++;
