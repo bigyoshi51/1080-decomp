@@ -942,25 +942,29 @@ void timproc_uso_b3_func_000023DC(void) {}
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
 
 /* Byte-identical sibling of timproc_uso_b1_func_000024F4 (147 insns).
- * Same display-list build pattern. */
-#ifdef NON_MATCHING
+ * Same display-list build pattern. The 0x260000-series `or a1, s1, tN` wants
+ * the hoisted constant (s1) as rs; IDO defaults to value-as-rs. Forced via the
+ * assignment-expression operand-order lever `value | (t = 0x260000)` (pins the
+ * const as rs at the op; CSE keeps the single lui). See
+ * docs/IDO_CODEGEN.md#feedback-ido-commutative-op-operand-order. */
 void timproc_uso_b3_func_00002700(int a0) {
+    int t;
     gl_func_00000000((char *)&D_00000000 + 112,
-                     0x260000 | (*(int *)&D_00000000 << 3));
+                     (*(int *)&D_00000000 << 3) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 136,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 1));
+                     ((*(int *)&D_00000000 << 3) + 1) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 160,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 2));
+                     ((*(int *)&D_00000000 << 3) + 2) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 184,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 3));
+                     ((*(int *)&D_00000000 << 3) + 3) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 208,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 4));
+                     ((*(int *)&D_00000000 << 3) + 4) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 232,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 5));
+                     ((*(int *)&D_00000000 << 3) + 5) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 256,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 6));
+                     ((*(int *)&D_00000000 << 3) + 6) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 280,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 7));
+                     ((*(int *)&D_00000000 << 3) + 7) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 16, 0x280000);
     gl_func_00000000((char *)&D_00000000 + 40, 0x280000 | 1);
     gl_func_00000000((char *)&D_00000000 + 64, 0x280000 | 2);
@@ -984,9 +988,6 @@ void timproc_uso_b3_func_00002700(int a0) {
     gl_func_00000000((char *)&D_00000000 + 496, 0x2F0012);
     (void)a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002700);
-#endif
 
 /* timproc_uso_b3_func_0000294C - verified structural decode (0xF8,
  * 62 insns, state dispatcher + record-vtable dispatch).

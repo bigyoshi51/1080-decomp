@@ -886,29 +886,30 @@ void timproc_uso_b1_func_000021CC(void) {}
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000021D4);
 
 /* timproc_uso_b1_func_000024F4: GBI command emitter (8x 0x260000|(D<<3)+N etc).
- * NON_MATCHING (8 diffs): each `or a1, tN, s1` has tN (computed) first; target
- * wants s1 (the hoisted 0x260000 constant) first. IDO canonicalizes commutative
- * `or` operand order — swapping `const | var` to `var | const` in C is a no-op
- * (verified 2026-05-24), same as FP mul.s/add.d. Which operand becomes rs is the
- * allocator's choice, not C-reachable. */
-#ifdef NON_MATCHING
+ * The 0x260000-series `or a1, s1, tN` wants the hoisted constant (s1) as rs;
+ * IDO defaults to value-as-rs. The old "not C-reachable" claim was WRONG —
+ * forced via the assignment-expression operand-order lever `value | (t = const)`
+ * (pins the const as rs at the op; CSE keeps the single lui). Byte-identical
+ * sibling of timproc_uso_b3_func_00002700. See
+ * docs/IDO_CODEGEN.md#feedback-ido-commutative-op-operand-order. */
 void timproc_uso_b1_func_000024F4(int a0) {
+    int t;
     gl_func_00000000((char *)&D_00000000 + 112,
-                     0x260000 | (*(int *)&D_00000000 << 3));
+                     (*(int *)&D_00000000 << 3) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 136,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 1));
+                     ((*(int *)&D_00000000 << 3) + 1) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 160,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 2));
+                     ((*(int *)&D_00000000 << 3) + 2) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 184,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 3));
+                     ((*(int *)&D_00000000 << 3) + 3) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 208,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 4));
+                     ((*(int *)&D_00000000 << 3) + 4) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 232,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 5));
+                     ((*(int *)&D_00000000 << 3) + 5) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 256,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 6));
+                     ((*(int *)&D_00000000 << 3) + 6) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 280,
-                     0x260000 | ((*(int *)&D_00000000 << 3) + 7));
+                     ((*(int *)&D_00000000 << 3) + 7) | (t = 0x260000));
     gl_func_00000000((char *)&D_00000000 + 16, 0x280000);
     gl_func_00000000((char *)&D_00000000 + 40, 0x280000 | 1);
     gl_func_00000000((char *)&D_00000000 + 64, 0x280000 | 2);
@@ -931,9 +932,6 @@ void timproc_uso_b1_func_000024F4(int a0) {
                      ((*(int *)&D_00000000 + 45) << 16) | 6);
     gl_func_00000000((char *)&D_00000000 + 496, 0x2F0012);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000024F4);
-#endif
 
 /* timproc_uso_b1_func_00002740 — 95.69% → 99.35% (2026-05-18) via distinct
  * externs D_b1_2740_g208/g20C for the &D+0x208/+0x20C absolute stores so each
