@@ -21732,7 +21732,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040974);
 // mul/add operand pairing is not fully decoded) — the op dispatch (6/7/def),
 // node/obj field offsets, and Vec3 store-back targets are exact. Caps:
 // Cmd/Node/obj struct untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+/* gl_func_00040CAC: Vec3 transform dispatch on *a1. case 6: add src(a1->4)
+ * vector (at +0xEC) to a0's 0xDC and 0xB4 vectors; case 7: SET a0's 0xDC and
+ * 0xB4 vectors from src(a1->4) at +0, then cb(); default: cb(). Fresh decode
+ * 2026-05-29: 83.5%, logic exact (the Vec3 add/set + dispatch). RESIDUAL: the
+ * scratch-buf access form (target copies the Vec3 via a held pointer but reads
+ * it back sp-direct; my C does the reverse) + the beq/beql switch dispatch +
+ * frame -64 vs -80 — codegen-form, not logic. */
+extern int gl_func_00000000();
+void gl_func_00040CAC(char *a0, int *a1) {
+    int buf7[3];
+    int buf6[3];
+    if (*a1 == 6) {
+        int *src = (int *)a1[1];
+        buf6[0] = src[0xEC / 4];
+        buf6[1] = src[0xF0 / 4];
+        buf6[2] = src[0xF4 / 4];
+        *(float *)(a0 + 0xDC) = *(float *)(a0 + 0xDC) + *(float *)&buf6[0];
+        *(float *)(a0 + 0xE0) = *(float *)(a0 + 0xE0) + *(float *)&buf6[1];
+        *(float *)(a0 + 0xE4) = *(float *)(a0 + 0xE4) + *(float *)&buf6[2];
+        *(float *)(a0 + 0xB4) = *(float *)(a0 + 0xB4) + *(float *)&buf6[0];
+        *(float *)(a0 + 0xB8) = *(float *)(a0 + 0xB8) + *(float *)&buf6[1];
+        *(float *)(a0 + 0xBC) = *(float *)(a0 + 0xBC) + *(float *)&buf6[2];
+    } else if (*a1 == 7) {
+        int *src = (int *)a1[1];
+        buf7[0] = src[0];
+        buf7[1] = src[1];
+        buf7[2] = src[2];
+        *(float *)(a0 + 0xDC) = *(float *)&buf7[0];
+        *(float *)(a0 + 0xE0) = *(float *)&buf7[1];
+        *(float *)(a0 + 0xE4) = *(float *)&buf7[2];
+        src = (int *)a1[1];
+        buf7[0] = src[0];
+        buf7[1] = src[1];
+        buf7[2] = src[2];
+        *(float *)(a0 + 0xB4) = *(float *)&buf7[0];
+        *(float *)(a0 + 0xB8) = *(float *)&buf7[1];
+        *(float *)(a0 + 0xBC) = *(float *)&buf7[2];
+        gl_func_00000000();
+    } else {
+        gl_func_00000000();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040CAC);
+#endif
 
 // gl_func_00040DE8 — STRUCTURAL PASS (0xA4 / 42 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x18
