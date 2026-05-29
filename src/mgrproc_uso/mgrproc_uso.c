@@ -1009,7 +1009,100 @@ void mgrproc_uso_func_00002AFC(int *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00002B7C: number/glyph display dispatcher (switch arg0->0xD4->
+ * 0x7E4). Case 1: draw two labeled rows (cb-nested alpha pattern) at &sp60 strings
+ * 0x658/0x66C. Case 3: a 16-glyph loop — for each i, fetch the glyph string ptr
+ * ((char**)&D)[a3->0x7DC + i], digit = *str - '0', inner switch picks a sub-object
+ * (a3+0x458/0x47C/0x4A0), draw it + the string at x=s2 (s2 = -1-a3->0x7E0, +=0x10);
+ * then if a3->0x7E8 < 0x96 fade arg0->0x170 + draw a panel. Case 4: same fade+panel.
+ * cb-nested form: cb(h, cb(h,0xA0,p), v, p). Fresh decode 2026-05-29 (m2c-confirmed).
+ * 76.6% reg-blind. Residual: the spA4..B0 {1,1,1,1} float Vec is set but its
+ * consumer cb is undetermined so IDO DCEs the 4 stores here (~4 insns) + regalloc.
+ * Caps: structs + cb prototypes untyped (USO-reloc), &D glyph table not symbolized.
+ * NON_MATCHING. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_00002B7C(char *arg0) {
+    float spB0;
+    float spAC;
+    float spA8;
+    float spA4;
+    void *s3;
+    char sp60[12];
+    char *a3;
+    int s0;
+    int s2;
+    char *s1;
+    char *s1_2;
+    int v1;
+
+    spA4 = 1.0f;
+    spA8 = 1.0f;
+    spAC = 1.0f;
+    spB0 = 1.0f;
+    a3 = *(char **)(arg0 + 0xD4);
+    switch (*(int *)(a3 + 0x7E4)) {
+    case 1:
+        gl_func_00000000(*(int *)(a3 + 0x568), a3);
+        gl_func_00000000(0, 0xFF, a3 + 0x490 + 0x10);
+        gl_func_00000000(&sp60, 0x658);
+        gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
+                         gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, &sp60), 0x46, &sp60);
+        gl_func_00000000(&sp60, 0x66C);
+        gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
+                         gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, &sp60), 0x64, &sp60);
+        return;
+    case 3:
+        s2 = -1 - *(int *)(a3 + 0x7E0);
+        gl_func_00000000(*(int *)(a3 + 0x568), a3);
+        s0 = 0;
+        s3 = s3;
+        do {
+            a3 = *(char **)(arg0 + 0xD4);
+            s1 = *(char **)((char *)&D_00000000 + (*(int *)(a3 + 0x7DC) + s0) * 4);
+            s1_2 = s1 + 1;
+            v1 = *s1 - 0x30;
+            switch (v1) {
+            case 0:
+                s3 = a3 + 0x458;
+                break;
+            case 1:
+                s3 = a3 + 0x47C;
+                break;
+            case 2:
+                s3 = a3 + 0x4A0;
+                break;
+            }
+            gl_func_00000000(0, 0xFF, s3, a3);
+            gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
+                             gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, s1_2), s2, s1_2);
+            s0 += 1;
+            s2 += 0x10;
+        } while (s0 != 0x10);
+        if (*(int *)(*(char **)(arg0 + 0xD4) + 0x7E8) < 0x96) {
+            if (*(int *)(arg0 + 0x170) >= 0x79) {
+                *(int *)(arg0 + 0x170) = *(int *)(arg0 + 0x170) - 1;
+            }
+            gl_func_00000000(0, 0xFF, *(char **)(arg0 + 0xD4) + 0x4C4, *(char **)(arg0 + 0xD4));
+            gl_func_00000000(0x18);
+            gl_func_00000000(0x18, 0xA0, *(int *)(arg0 + 0x170), 3);
+            return;
+        }
+        return;
+    case 4:
+        if (*(int *)(arg0 + 0x170) >= 0x79) {
+            *(int *)(arg0 + 0x170) = *(int *)(arg0 + 0x170) - 1;
+            a3 = *(char **)(arg0 + 0xD4);
+        }
+        gl_func_00000000(0, 0xFF, a3 + 0x4C4, a3);
+        gl_func_00000000(0x18);
+        gl_func_00000000(0x18, 0xA0, *(int *)(arg0 + 0x170), 3);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7C);
+#endif
 
 /* mgrproc_uso_func_00002E34: orphan absorbed by C-emit of _00002B7C
  * (decl 0x2B8, .o 0x2C0 — +2 insns absorb the 8-byte orphan at vram
