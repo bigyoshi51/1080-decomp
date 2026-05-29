@@ -1137,10 +1137,14 @@ typedef struct { float x, y, z; } Vec3f;
  * NM body does not inject an artificial `or a3, a1, zero` path. */
 void game_uso_func_00001DDC(int *a0) {
     /* Frame-padding fix 2026-05-08: built was emitting sp -= 0xC8 vs
-     * target sp -= 0x180 (184-byte gap). The key==3 Vec3 temporaries now
-     * account for 16 bytes, so `char frame_pad[168];` preserves the target
-     * frame — IDO -O2 keeps the stack space even when unused. Now first 3
-     * prologue insns are byte-correct.
+     * target sp -= 0x180 (184-byte gap). RE-TRIMMED 2026-05-28: as the
+     * branch_88 Vec3 locals (~76 bytes) were decoded since, pad[168] over-shot
+     * to frame 0x1A8 (-424); the correct value is now `frame_pad[128]`, which
+     * lands the frame exactly at target 0x180 (-384) — insn 0 byte-exact again.
+     * (Fuzzy stays ~39.13%: the residual ra@28+s0+a0-spill prologue vs target's
+     * ra@20-only + entity-ptr-in-a2 is interlocked with the still-undecoded
+     * ~135 body insns — IDO's s0 promotion only drops once the full allocno set
+     * is present. Multi-pass, per prior analysis above.)
      *
      * 2026-05-08 (later) — objdiff confirms TARGET and BASE both 407 insns
      * (insn-count match achieved). Fuzzy 18.26% (after `local_xz[1]*[1]`
@@ -1155,7 +1159,7 @@ void game_uso_func_00001DDC(int *a0) {
      * PERM_LINESWAP on the multi-Vec3 fanout copies and PERM_GENERAL on
      * the inline-vs-spill scale-mul site). Future passes will replace
      * `frame_pad` with typed locals as they're decoded. */
-    char frame_pad[168];
+    char frame_pad[128];
     int * volatile ctx = a0; /* volatile ptr local -> home-slot reload each use, not $s0 (docs gl_func_00072550 knob 3) */
     int key = a0[0x40 / 4];
     (void)frame_pad;
@@ -11523,7 +11527,7 @@ void game_uso_func_0000F948(int *a0) {
      * and the frame is -0x88 (mine) vs -0x80 (target). 64 vs 67 insns.
      * These FPU/frame residuals are a separate multi-tick problem, NOT the
      * (now-cleared) pair cap. */
-    char frame_pad[40];
+    char frame_pad[128];
     int *b;
     float scale;
     volatile F948_Vec3 a, vb;
