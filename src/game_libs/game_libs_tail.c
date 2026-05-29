@@ -638,7 +638,31 @@ void gl_func_0000A768(char *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000A7B4: 8-slot loop over obj (stride 0x30). For each slot, if
+ * cb(slot) || cb(slot+0x18), set bit i in *flags; then cb(slot, a1, c2, c3).
+ * c2/c3 are unsigned char args (homed + zero-extended once before the loop).
+ * Fresh decode 2026-05-29: size-exact (49==49), control flow + homes + hoisted
+ * masks all exact. Residual = pure 3-register cyclic renumber: target puts
+ * a1/c2/c3 in s3/s4/s5; IDO here gives c2/c3/a1 s3/s4/s5 because a1 is born at
+ * entry (longer live range) while the char masks are born later (shorter range,
+ * higher allocno priority) and grab the lower s-regs. Documented reg-renumber
+ * cap. */
+extern int gl_func_00000000();
+void gl_func_0000A7B4(char *obj, int a1, unsigned char c2, unsigned char c3, unsigned char *flags) {
+    char *p = obj;
+    int i;
+    for (i = 0; i != 8; i++) {
+        if (gl_func_00000000(p) != 0 || gl_func_00000000(p + 0x18) != 0) {
+            *flags |= (1 << i);
+        }
+        gl_func_00000000(p, a1, c2, c3);
+        p += 0x30;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A7B4);
+#endif
 
 /* Bitfield getter/setter cluster — gl_func_0000A7B4's tail-extracted micros.
  * Each get returns a sub-field; each set replaces it in place. */
