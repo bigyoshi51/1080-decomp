@@ -803,31 +803,47 @@ void arcproc_uso_func_000014A8(void) {
     gl_func_00000000();
 }
 
-/* arcproc_uso_func_000014C8: 79-insn (0x13C) FPU-driven scoring update.
- * Frame -0x58, FPU-heavy with c.lt.s/bc1fl gate chain.
- *
- * ENTRY DECODE (insns 0-12):
- *   f0 = 1.0f                            ; constant init at fn entry
- *   sp[0x48/4C/50/54] = 0.0f x 4         ; init scratch 4-float buffer
- *   t6 = a0->0x500                       ; load state field
- *   s0 = a0                              ; saved
- *   if (t6 == 0) goto far_exit @ 0x15F0  ; bnel-likely (delay-likely lw ra)
- *
- * BODY structure (insns 12-79):
- *   - Load D[0x77C] (current scoring float)
- *   - c.lt.s f4, f6 (compare scoring vs threshold)
- *   - Branch +0x37 (~13 insns to early-exit)
- *   - Multi-stage scoring update with chained c.lt.s gates
- *   - Increment counter at a0->0x508 via (lw t8, lw a0[0x528], addiu, sw)
- *   - Cross-USO call (jal func_00000000) with state-update args
- *   - Branch +0x1F to convergence
- *
- * Pattern fingerprint: per-frame scoring update with float-threshold gates
- * and a counter-driven cross-USO callback. Same -O2 form as
- * arcproc_uso_func_0000125C (sibling FPU-state functions).
- *
- * Multi-tick refinement target. Default INCLUDE_ASM build remains exact. */
+#ifdef NON_MATCHING
+/* arcproc_uso_func_000014C8: gated HUD fade/draw. Sets a {1,1,1,1} Vec4 (sp48..54).
+ * If arg0->0x500 != 0 && *(float*)&D <= 0.0f: fade 0x77C up by &D+0x40 (clamp <
+ * &D+0x3C); 0x508++; if cb(arg0->0x528): draw a panel at 0x2F0 with alpha (int)
+ * (255*0x77C), draw arg0+0x764, and on (0x508 & 8) draw it + cb(arg0, 0xA0, arg0->
+ * 0x6AC->0x44->0x14); else just that last cb. Fresh decode 2026-05-29 (m2c-
+ * confirmed). Caps: structs + cb prototypes untyped (USO-reloc), &D float consts
+ * not symbolized. NON_MATCHING. */
+extern int gl_func_00000000();
+void arcproc_uso_func_000014C8(char *arg0) {
+    float sp54;
+    float sp50;
+    float sp4C;
+    float sp48;
+    float f0;
+
+    sp48 = 1.0f;
+    sp4C = 1.0f;
+    sp50 = 1.0f;
+    sp54 = 1.0f;
+    if ((*(int *)(arg0 + 0x500) != 0) && (*(float *)&D_00000000 <= 0.0f)) {
+        f0 = *(float *)(arg0 + 0x77C);
+        if (f0 < *(float *)((char *)&D_00000000 + 0x3C)) {
+            *(float *)(arg0 + 0x77C) = f0 + *(float *)((char *)&D_00000000 + 0x40);
+        }
+        *(int *)(arg0 + 0x508) = *(int *)(arg0 + 0x508) + 1;
+        if (gl_func_00000000(*(int *)(arg0 + 0x528)) != 0) {
+            gl_func_00000000(0, (int)(255.0f * *(float *)(arg0 + 0x77C)), arg0 + 0x2F0, arg0 + 0x314);
+            gl_func_00000000(arg0 + 0x764);
+            if (*(int *)(arg0 + 0x508) & 8) {
+                gl_func_00000000(arg0 + 0x764, 0xA0, 0xB4, 3);
+                gl_func_00000000(arg0, 0xA0, *(int *)(*(char **)(*(char **)(arg0 + 0x6AC) + 0x44) + 0x14));
+            }
+        } else {
+            gl_func_00000000(arg0, 0xA0, *(int *)(*(char **)(*(char **)(arg0 + 0x6AC) + 0x44) + 0x14));
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000014C8);
+#endif
 
 /* arcproc_uso_func_00001604: 60-insn (0xF0) state-machine update with
  * two-stage gate (a0->0x4FC entry, a0->0x4F8 path-select), three outcomes
