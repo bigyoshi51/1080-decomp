@@ -717,7 +717,70 @@ void mgrproc_uso_func_00001BE4(int *a2) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BE4);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00001C90: UI fade/draw step (gated on arg0->0x4F0 bit-16).
+ * Fade counter: if arg0->0x4E4>=0xB, ramp 0x7A0/0x7A4 up toward &D+0x5CC by
+ * &D+0x5D0/5D4; else ramp 0x7A0 down by &D+0x5D8. Draws several elements scaled
+ * by alpha (int)(255.0f*arg0->0x7A0): a white quad (&sp50), then panels at 0x380/
+ * 0x260; computes a centered layout x (sp48 = 0xA0 - (w6D8+w6F0+4)/2); and by
+ * arg0->0x6A8->8 == ->4+1 chooses the draw order of the two number widgets at
+ * 0x6C8/0x6E0. Fresh decode 2026-05-29 (m2c-confirmed). 69.5% reg-blind (widget
+ * width fields at +0x20 are SHORTs/lh). Residuals: the &D float-const loads
+ * re-materialize the base per-use via $at (mine CSEs into a reg — the documented
+ * &D-CSE cap) + a ~0x30 frame-buffer reserve. Caps: structs + cb prototypes
+ * untyped (USO-reloc), &D float consts not symbolized. NON_MATCHING. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_00001C90(char *arg0) {
+    float sp50;
+    float sp54;
+    float sp58;
+    float sp5C;
+    int sp48;
+    char *p6a8;
+
+    if (*(int *)(arg0 + 0x4F0) & 0x10000) {
+        sp50 = 1.0f;
+        sp54 = 1.0f;
+        sp58 = 1.0f;
+        sp5C = 1.0f;
+        if (*(int *)(arg0 + 0x4E4) >= 0xB) {
+            float max = *(float *)((char *)&D_00000000 + 0x5CC);
+            if (*(float *)(arg0 + 0x7A0) < max) {
+                *(float *)(arg0 + 0x7A0) = *(float *)(arg0 + 0x7A0) + *(float *)((char *)&D_00000000 + 0x5D0);
+            }
+            if (*(float *)(arg0 + 0x7A4) < max) {
+                *(float *)(arg0 + 0x7A4) = *(float *)(arg0 + 0x7A4) + *(float *)((char *)&D_00000000 + 0x5D4);
+            }
+        } else {
+            if (*(float *)(arg0 + 0x7A0) > 0.0f) {
+                *(float *)(arg0 + 0x7A0) = *(float *)(arg0 + 0x7A0) - *(float *)((char *)&D_00000000 + 0x5D8);
+            }
+        }
+        gl_func_00000000(0, (int)(255.0f * *(float *)(arg0 + 0x7A0)), &sp50);
+        gl_func_00000000(0);
+        gl_func_00000000(0, 0xA0, 0x9C, 3);
+        gl_func_00000000(0, (int)(255.0f * *(float *)(arg0 + 0x7A0)), arg0 + 0x380, arg0 + 0x3A4);
+        gl_func_00000000(arg0 + 0x6B0);
+        gl_func_00000000(arg0 + 0x6B0, 0xA0, 0xB0, 3);
+        sp48 = 0xA0 - ((*(short *)(*(char **)(arg0 + 0x6D8) + 0x20) + *(short *)(*(char **)(arg0 + 0x6F0) + 0x20) + 4) / 2);
+        gl_func_00000000(0, (int)(255.0f * *(float *)(arg0 + 0x7A0)), arg0 + 0x260, arg0 + 0x284);
+        p6a8 = *(char **)(arg0 + 0x6A8);
+        if (*(int *)(p6a8 + 8) == (*(int *)(p6a8 + 4) + 1)) {
+            gl_func_00000000(arg0 + 0x6E0);
+            gl_func_00000000(arg0 + 0x6E0, sp48, 0x88, 2);
+            gl_func_00000000(arg0 + 0x6C8);
+            gl_func_00000000(arg0 + 0x6C8, sp48 + *(short *)(*(char **)(arg0 + 0x6F0) + 0x20) + 4, 0x88, 2);
+            return;
+        }
+        gl_func_00000000(arg0 + 0x6C8);
+        gl_func_00000000(arg0 + 0x6C8, sp48, 0x88, 2);
+        gl_func_00000000(arg0 + 0x6E0);
+        gl_func_00000000(arg0 + 0x6E0, sp48 + *(short *)(*(char **)(arg0 + 0x6D8) + 0x20) + 4, 0x88, 2);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C90);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001F30);
 
