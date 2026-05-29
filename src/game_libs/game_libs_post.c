@@ -31549,6 +31549,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BD80);
 #ifdef NON_MATCHING
 void game_libs_func_0005BDC0(float *src, float *dst) {
     int i;
+    /* 99.92% — 2 diffs are the loop trip-counter representation only: IDO
+     * emits this 4x-unrolled body byte-identical, but scales the residual
+     * trip counter to (0,4,8,12 < 16, +4) where the target counts groups
+     * (0..3 < 4, +1). Verified not C-controllable: element-loop `i<16;i++`,
+     * grouped-unroll `i<4` + ptr+=4, and `i*4+k` indexing ALL emit the same
+     * scaled counter. IDO loop-IV-representation cap. */
     for (i = 0; i < 16; i++) {
         dst[i] = 1.0f / src[i];
     }
@@ -32052,6 +32058,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
  * "final reduction operand order" doc'd cap — can't flip without changing
  * load order. NM at 99.97% (was 98.70%). */
 #ifdef NON_MATCHING
+/* 99.75% — single diff is the final dot-product add.s operand ORDER:
+ * target `add.s $f4,$f8,$f6` (fs=running-sum) vs ours `$f4,$f6,$f8`
+ * (fs=last-product). Same registers, pure fs/ft encoding swap. The
+ * assignment-expr operand-order lever (docs/IDO_CODEGEN.md
+ * #feedback-ido-fp-commutative-operand-order-assignment-lever) does NOT
+ * extend to float reduction final-adds where both operands are already
+ * computed temps — verified-fail: grouped-swap, `(t=sum)+p3`,
+ * `sum+(t=p3)`, named-local, AND permuter (160s, no zero). Confirms the
+ * standing FP-reduction cap (#feedback-ido-fpu-reduction-operand-order). */
 void game_libs_func_0005D588(float *a0, float *a1, float *a2) {
     a0[0] = a1[1]*a2[2] - a2[1]*a1[2];
     a0[1] = a1[2]*a2[0] - a2[2]*a1[0];
