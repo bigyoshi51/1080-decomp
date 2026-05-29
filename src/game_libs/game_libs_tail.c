@@ -2726,25 +2726,30 @@ void gl_func_0000E66C(int *self) {
  * pattern across 1080's game_libs.
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * feedback_doc_marker_is_bail.md. 2026-05-29: 99.27% -> 99.82% by applying the
+ * gl_func_0000E84C pattern (store factory result straight to self->0x70, re-read
+ * self->0x70 inline per call, dedicated `q` spanning func5+final) — this fixed
+ * the reloaded-obj register (was $a3, now $a1). RESIDUAL (8 frame-cascade diffs):
+ * target frame -48 has an 8-byte UNUSED alignment gap that IDO here packs away
+ * (-40); a named float local for the cast forces -48 but then stack-homes the
+ * float (wrong, target keeps it in $f4) and regresses to 99.49%. Genuine
+ * frame-alignment cap. INCLUDE_ASM remains build path.
  */
 void gl_func_0000E6E8(int *self, int a1, int a2, float *a3_float) {
-    int *obj;
+    int *q;
     self[0x74 / 4] = (int)a3_float;
     if (self[0x60 / 4] == 0) {
         gl_func_00000000();
     }
-    obj = (int*)gl_func_00000000(0, self[0x60 / 4]);
-    self[0x70 / 4] = (int)obj;
-    gl_func_00000000(obj, (int)*(float*)self[0x74 / 4]);
-    obj = (int*)self[0x70 / 4];
-    gl_func_00000000(obj, a1, a2);
-    obj = (int*)self[0x70 / 4];
-    gl_func_00000000((char*)self + 0x10, obj);
-    if (obj[0x14 / 4] != 0) {
-        obj[0x4 / 4] = 1;
+    self[0x70 / 4] = gl_func_00000000(0, self[0x60 / 4]);
+    gl_func_00000000((int *)self[0x70 / 4], (int)*(float *)self[0x74 / 4]);
+    gl_func_00000000((int *)self[0x70 / 4], a1, a2);
+    q = (int *)self[0x70 / 4];
+    gl_func_00000000((char *)self + 0x10, q);
+    if (q[0x14 / 4] != 0) {
+        q[0x4 / 4] = 1;
     }
-    obj[0x14 / 4] = (int)self;
+    q[0x14 / 4] = (int)self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E6E8);
