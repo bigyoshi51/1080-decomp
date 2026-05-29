@@ -938,7 +938,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD9C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);
 
+#ifdef NON_MATCHING
+/* gl_func_0000B0A8: constructor. obj = arg0 ?: alloc(0x18); obj->0x10=arg1,
+ * obj->0x14=0; obj->0=cb(arg1); obj->4=cb(obj->0x10); obj->8=cb(obj->0x10);
+ * if (arg3==-1) arg3=cb(obj->8); v=cb(obj->8,arg2,arg3); if (v==0) {
+ * cb(obj->8,0); obj->8->4=0; if(obj->8->8) cb(obj->8->8); obj->8->8=0; }.
+ * Fresh decode 2026-05-29 (m2c-assisted): 95.05%, 58==58, structure exact.
+ * Levers used: alloc-fail `goto end` (shared return), cleanup via index form
+ * ((int*)obj->8)[2] for the 8(reg) addressing + re-read. RESIDUAL (11 diffs):
+ * deferred `move s0,a0` save (conditional-reassign), flag spill slot sp+32 vs
+ * +36, cleanup reload reg $v1 vs $v0 — reg/slot-alloc caps. */
+extern int gl_func_00000000();
+int gl_func_0000B0A8(int *arg0, int arg1, int arg2, int arg3) {
+    int *s0 = arg0;
+    int v1;
+    if (arg0 == 0) {
+        s0 = (int *)gl_func_00000000(0x18);
+        if (s0 == 0) goto end;
+    }
+    s0[0x10 / 4] = arg1;
+    s0[0x14 / 4] = 0;
+    s0[0] = gl_func_00000000(arg1);
+    s0[1] = gl_func_00000000(s0[0x10 / 4]);
+    s0[2] = gl_func_00000000(s0[0x10 / 4]);
+    if (arg3 == -1) {
+        arg3 = gl_func_00000000(s0[2]);
+    }
+    v1 = 0;
+    if (gl_func_00000000(s0[2], arg2, arg3) != 0) {
+        v1 = 1;
+    }
+    if (v1 == 0) {
+        gl_func_00000000(s0[2], 0);
+        ((int *)s0[2])[1] = 0;
+        if (((int *)s0[2])[2] != 0) {
+            gl_func_00000000(((int *)s0[2])[2]);
+        }
+        ((int *)s0[2])[2] = 0;
+    }
+end:
+    return (int)s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B0A8);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0000B190(int *a0, int a1) {
