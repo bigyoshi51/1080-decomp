@@ -135,25 +135,39 @@ void game_libs_func_000009A8(int *a0, int a1, int a2) {
     a0[0x8C/4] = a2;
 }
 
-/* gl_func_000009B4: 54-insn render-setup-style function (0xD8). .word-only
- * encoded; hand-decoded structure:
- *   - Frame -0x48, saves s0/ra
- *   - s0 = arg0 (context struct)
- *   - 5+ field accesses: arg0->0xA8/0xA4/0xAC/0xB0/0xB4/0xBC/0xB0/0x44/
- *     0x5C/0x74/0x8C
- *   - Float ops: cvt.s.w (int-to-float), neg.s, mul.s, c.lt.s
- *     (compare-less-than-single)
- *   - 2 unique `&D_X` extern refs (lui+lwc1 from address 0)
- *   - 4+ jal calls to runtime-patched callees with mixed int/float args
- *
- * Likely converts world-coord values to NDC/screen-coords or some
- * per-frame transform. The c.lt.s + cvt.s.w pattern suggests a
- * camera-frustum-culling or scaling check.
- *
- * Multi-pass decomp candidate. .word encoding requires byte-by-byte
- * decoding which is tedious for 54 insns; defer to a tick where the
- * caller's struct shape is known. Default INCLUDE_ASM keeps ROM correct. */
+#ifdef NON_MATCHING
+/* gl_func_000009B4: render-setup updater. 6 callbacks driving two sub-objects
+ * (arg0->0xAC and arg0->0xB0). For each: cb(obj), then cb(obj, (int)((float)
+ * arg0->0xA8 * scale), arg0+0x94, arg0->0xA4) where scale = *(float*)&D_00000000
+ * (int->float via cvt.s.w, *scale, trunc.w.s, mfc1-passed), then cb(obj, fieldsum,
+ * fieldsum, arg0+0xB4/0xBC). Fresh decode 2026-05-29 (m2c-confirmed), upgraded
+ * from deferred-decode marker. 74.1% reg-blind, exact 54-insn count. Residuals:
+ * frame size (target reserves ~0x20 unused stack, like gl_func_000628EC), FP-temp
+ * regalloc swap (f4/f6), minor t-reg scheduling. Caps: arg0 struct + 6 cb prototypes
+ * untyped (USO-reloc), scale-const not symbolized. NON_MATCHING. */
+extern int gl_func_00000000();
+void gl_func_000009B4(char *arg0) {
+    char *a2;
+
+    gl_func_00000000(*(int *)(arg0 + 0xAC));
+    a2 = arg0 + 0x94;
+    gl_func_00000000(*(int *)(arg0 + 0xAC),
+                     (int)((float)*(int *)(arg0 + 0xA8) * *(float *)&D_00000000),
+                     a2, *(int *)(arg0 + 0xA4));
+    gl_func_00000000(*(int *)(arg0 + 0xAC), *(int *)(arg0 + 0x44),
+                     *(int *)(arg0 + 0x5C), arg0 + 0xB4);
+    gl_func_00000000(*(int *)(arg0 + 0xB0));
+    gl_func_00000000(*(int *)(arg0 + 0xB0),
+                     (int)((float)*(int *)(arg0 + 0xA8) * *(float *)&D_00000000),
+                     a2, *(int *)(arg0 + 0xA4));
+    gl_func_00000000(*(int *)(arg0 + 0xB0),
+                     *(int *)(arg0 + 0x44) + *(int *)(arg0 + 0x74),
+                     *(int *)(arg0 + 0x5C) + *(int *)(arg0 + 0x8C),
+                     arg0 + 0xBC);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000009B4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00000A8C: 64-insn (0x100) nested-alloc + color-normalize
