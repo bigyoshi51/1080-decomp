@@ -1102,7 +1102,77 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * documented state-dispatch ceiling. Full per-state call lists are
  * INCLUDE_ASM-preserved (the .s is the source of truth for the exact
  * sequence). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+/* timproc_uso_b1_func_00002838: HUD draw dispatcher (switch arg0->0x50, cases
+ * 0/1/2). cb(); decrement arg0->0x5C by 0x10. Each non-0 case draws a row of
+ * panels (0x1F0/0x1C0/0x160/0x148/0x178 sprites via cb(id);cb(id);cb(id,0xA0,
+ * g,3) triples) and a value at arg0->0x68 adjusted by a global flag *(int*)&D
+ * and the *(u8*)(&D+0x178) digit. Case 2 falls through to case 0 (return). Fresh
+ * decode 2026-05-29 (m2c-confirmed; both 0x178 loads are lbu; the draw-target IDs
+ * 0x1F0/1C0/160/148/178 are &D-relative ADDRESSES = lui+addiu, not literals).
+ * 78.8% reg-blind (148/149 insns). Residual: target promotes arg0 to $s0 (saved
+ * reg) while mine spills it to stack — allocator choice. Caps: structs + cb
+ * prototypes untyped (USO-reloc), &D not symbolized. NON_MATCHING. */
+extern int gl_func_00000000();
+void timproc_uso_b1_func_00002838(char *arg0) {
+    int v0;
+    int a2;
+    int t1;
+
+    gl_func_00000000();
+    *(int *)(arg0 + 0x5C) = *(int *)(arg0 + 0x5C) - 0x10;
+    switch (*(int *)(arg0 + 0x50)) {
+    case 1:
+        gl_func_00000000(0);
+        gl_func_00000000((char *)&D_00000000 + 0x1F0);
+        gl_func_00000000((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
+        gl_func_00000000(arg0, 0x25);
+        gl_func_00000000(arg0, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
+        gl_func_00000000((char *)&D_00000000 + 0x1C0);
+        gl_func_00000000((char *)&D_00000000 + 0x1C0);
+        gl_func_00000000((char *)&D_00000000 + 0x1C0, 0xA0, 0x69, 3);
+        t1 = *(int *)&D_00000000;
+        v0 = *(int *)(arg0 + 0x68);
+        if (t1 != 0) {
+            v0 += 0xA;
+        }
+        a2 = v0 - 0x27;
+        if (t1 != 0) {
+            a2 -= 0xE;
+        }
+        gl_func_00000000((char *)&D_00000000 + 0x148);
+        gl_func_00000000((char *)&D_00000000 + 0x148);
+        gl_func_00000000((char *)&D_00000000 + 0x148, 0xA0, a2, 3);
+        gl_func_00000000(arg0, v0 - 0x14);
+        return;
+    case 2:
+        gl_func_00000000(0);
+        gl_func_00000000((char *)&D_00000000 + 0x1F0);
+        gl_func_00000000((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
+        gl_func_00000000(arg0, 0x25);
+        gl_func_00000000(arg0, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
+        gl_func_00000000((char *)&D_00000000 + 0x1C0);
+        gl_func_00000000((char *)&D_00000000 + 0x1C0);
+        gl_func_00000000((char *)&D_00000000 + 0x1C0, 0xA0, 0x69, 3);
+        gl_func_00000000((char *)&D_00000000 + 0x160);
+        gl_func_00000000((char *)&D_00000000 + 0x160);
+        gl_func_00000000((char *)&D_00000000 + 0x160, 0xA0, 0x8E, 3);
+        v0 = *(int *)(arg0 + 0x68);
+        if (*(int *)&D_00000000 != 0) {
+            v0 -= 8;
+        }
+        gl_func_00000000((char *)&D_00000000 + 0x178);
+        gl_func_00000000((char *)&D_00000000 + 0x178);
+        gl_func_00000000((char *)&D_00000000 + 0x178, 0xA0, v0 - 0x13, 3);
+        gl_func_00000000(arg0, v0);
+        break;
+    case 0:
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002838);
+#endif
 
 /* timproc_uso_b1_func_00002A8C — sequence of gl_func_00000000(&D, mask)
  * gates toggling s0->0x58, then a recurring vtable-dispatch tail:
