@@ -2003,33 +2003,41 @@ void timproc_uso_b5_func_00006C00(char *scr) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006C00);
 #endif
 
-/* timproc_uso_b5_func_00006D30: 54-insn poll-loop. FULLY DECODED 2026-05-28
- * (was a sketch). X = timproc_uso_b5_func_00000000 (all 5 jals; cross-USO
- * placeholder). Exact C, ready to splice once matchable:
- *   void f(int *self) {
- *       int i = 0;
- *       if (*(float*)((char*)X(self) + 0x2A4) == 0.0f) {        // f20=0.0; c.eq.s
- *           int cnt = X(self);
- *           if (cnt > 0) {
- *               do {
- *                   int idx = self[0x3C4/4];
- *                   int *p = (int*)((char*)self + idx*4 + 0x3D0);
- *                   *p = *p + 1;
- *                   int r = X(self);
- *                   int idx2 = self[0x3C4/4];
- *                   int *q = (int*)((char*)self + idx2*4 + 0x3D0);
- *                   if (*q >= r) *q = 0;                         // slt; bne; sw zero
- *                   { int *v = (int*)X(self); i++;
- *                     if (*(float*)((char*)v + 0x2A4) != 0.0f) break; }
- *                   cnt = X(self);
- *               } while (i < cnt);                               // bnel s1<v0
- *           }
- *       }
- *   }
- * MATCH PATH: timproc_uso_b5 is -O0-in-a-Yay0-block, so a -O2 C build won't
- * match — use the REPLACE_FUNC_BODY -O0 donor-object splice (see
- * MATCHING_WORKFLOW.md#feedback-replace-func-body-o0-donor). Focused-session. */
+/* timproc_uso_b5_func_00006D30: 54-insn poll-loop over a record table.
+ * X = timproc_uso_b5_func_00000000 (cross-USO placeholder, all 5 jals).
+ * 2026-05-28 CORRECTION: this is an ORDINARY -O2 function (NOT the prior
+ * "-O0-in-Yay0, can't match at -O2" claim — that was wrong). At default -O2
+ * the C below builds to 53 insns vs target 54 with the s0=self/s1=i/$f20=0.0
+ * register promotion matching; residuals are prologue save/jal scheduling +
+ * index-temp register-rename. NM wrap, no donor splice. */
+#ifdef NON_MATCHING
+void timproc_uso_b5_func_00006D30(int *self) {
+    int i = 0;
+    int cnt;
+    if (*(float*)((char*)gl_func_00000000(self) + 0x2A4) == 0.0f) {
+        cnt = gl_func_00000000(self);
+        if (cnt > 0) {
+            do {
+                int idx = self[0x3C4 / 4];
+                int *p = (int*)((char*)self + idx * 4 + 0x3D0);
+                int r, idx2;
+                int *q, *v;
+                *p = *p + 1;
+                r = gl_func_00000000(self);
+                idx2 = self[0x3C4 / 4];
+                q = (int*)((char*)self + idx2 * 4 + 0x3D0);
+                if (*q >= r) *q = 0;
+                v = (int*)gl_func_00000000(self);
+                i++;
+                if (*(float*)((char*)v + 0x2A4) != 0.0f) break;
+                cnt = gl_func_00000000(self);
+            } while (i < cnt);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006D30);
+#endif
 
 // timproc_uso_b5_func_00006E08 — STRUCTURAL PASS (0x270 / 156 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
