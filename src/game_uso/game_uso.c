@@ -12650,8 +12650,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
  * that the current IDO 7.1 build doesn't reproduce. Cap at 82.18% holds. */
 void game_uso_func_00011124(int *a0) {
     gl_func_00000000(a0);
-    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xF50),
-                          *(int*)((char*)&D_00000000 + 0xF54), 1);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF50), 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011124);
