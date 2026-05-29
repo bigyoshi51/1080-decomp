@@ -1642,6 +1642,22 @@
       }
     },
     {
+      "name": "src/timproc_uso_b1/timproc_uso_b1_o0_0",
+      "target_path": "expected/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o",
+      "base_path": "build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o",
+      "metadata": {
+        "source_path": "src/timproc_uso_b1/timproc_uso_b1_o0_0.c",
+        "progress_categories": [
+          "timproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
       "name": "src/timproc_uso_b3/timproc_uso_b3",
       "target_path": "expected/src/timproc_uso_b3/timproc_uso_b3.c.o",
       "base_path": "build/non_matching/src/timproc_uso_b3/timproc_uso_b3.c.o",
@@ -1655,6 +1671,22 @@
         "platform": "n64",
         "compiler": "ido7.1",
         "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/timproc_uso_b3/timproc_uso_b3_o0_0",
+      "target_path": "expected/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o",
+      "base_path": "build/non_matching/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o",
+      "metadata": {
+        "source_path": "src/timproc_uso_b3/timproc_uso_b3_o0_0.c",
+        "progress_categories": [
+          "timproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
       }
     },
     {

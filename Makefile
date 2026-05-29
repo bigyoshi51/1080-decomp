@@ -209,6 +209,22 @@ build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/non_matching/src/mgrproc_uso/mg
 build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0xF8
 build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xF8
 
+# timproc_uso_b1 / b3 (Yay0-compressed): same opening -O0 run (int-reader 0x4C +
+# Quad4-reader 0x64 = 0xB0) carved into a region-0 sub-unit, same concat infra.
+build/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o: OPT_FLAGS := -O0
+build/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o: TRUNCATE_TEXT := 0xB0
+build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xB0
+build/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o: OPT_FLAGS := -O0
+build/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o: TRUNCATE_TEXT := 0xB0
+build/non_matching/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xB0
+
+# Final Yay0 block .text size (fixed per block; the concat is zero-padded up to
+# it before compression). NOT a 16-align rule — block sizes vary (e.g. b1 is
+# 4-aligned via its donor-splice). These equal the pre-split single-.o .text.
+build/assets/mgrproc_uso_block1_yay0.bin: YAY0_TEXT_SIZE := 0x3410
+build/assets/timproc_uso_block1_yay0.bin: YAY0_TEXT_SIZE := 0x2ED4
+build/assets/timproc_uso_block3_yay0.bin: YAY0_TEXT_SIZE := 0x30E0
+
 # INSN_PATCH / RELOC_PATCH / PROLOGUE_STEALS were REMOVED 2026-05-23 as
 # match-faking (post-cc instruction-byte editing). See
 # feedback_no_instruction_forcing_matches_policy. No recipe step applies them.
@@ -323,7 +339,7 @@ build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso_o0_0
 	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
 	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
 	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
-	python3 -c "import sys; f=sys.argv[1]; d=open(f,'rb').read(); open(f,'ab').write(b'\x00'*((-len(d))%16))" $(@:.bin=.text.bin)
+	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 # game_uso block 1: text 0x11B30 bytes uncompressed, 200 functions
@@ -332,15 +348,23 @@ build/assets/game_uso_block1_yay0.bin: build/src/game_uso/game_uso.c.o
 	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
-# timproc_uso code blocks (1: 55 fn, 3: 55 fn, 5: 99 fn)
-build/assets/timproc_uso_block1_yay0.bin: build/src/timproc_uso_b1/timproc_uso_b1.c.o
+# timproc_uso code blocks (1: 55 fn, 3: 55 fn, 5: 99 fn). Blocks 1 and 3 each
+# open with a contiguous -O0 run (0x0..0xB0) carved into a region-0 sub-unit;
+# concatenated with the -O2 main object before compression (Yay0 split infra).
+build/assets/timproc_uso_block1_yay0.bin: build/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o build/src/timproc_uso_b1/timproc_uso_b1.c.o
 	@mkdir -p $(dir $@)
-	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
+	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
+	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
+	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
-build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b3.c.o
+build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o build/src/timproc_uso_b3/timproc_uso_b3.c.o
 	@mkdir -p $(dir $@)
-	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
+	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
+	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
+	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 build/assets/timproc_uso_block5_yay0.bin: build/src/timproc_uso_b5/timproc_uso_b5.c.o

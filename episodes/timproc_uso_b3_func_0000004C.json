@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b3_func_0000004C",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-05-29T00:24:55.679906+00:00",
+  "end_time": "2026-05-29T00:24:55.679926+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-29T00:24:55.679920+00:00",
+      "assistant_text": "Quad4-reader accessor at -O0 (25 insns), opening -O0 run sub-unit via Yay0 binary-concat split. Same template as mgrproc_uso_o0_0.c.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 25,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n/* Contiguous -O0 run at the start of the timproc_uso_b3 Yay0 block (0x0..0xB0).\n * Carved into a dedicated -O0 sub-unit (region 0); its truncated .text is\n * concatenated with the -O2 main object before crunch64 compression. See the\n * timproc_uso_block3_yay0 rule in the Makefile. Same accessor templates as\n * mgrproc_uso_o0_0.c / timproc_uso_b1_o0_0.c. */\n\n/* int-reader (0x4C / 19 insns) */\nvoid timproc_uso_b3_func_00000000(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\n/* Quad4-reader (0x64 / 25 insns) */\nvoid timproc_uso_b3_func_0000004C(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b3/timproc_uso_b3_o0_0.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_0000004C.s",
+    "segment": "timproc_uso_b3",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "fuzzy=100.0 (timproc_uso_b3_o0_0 unit); blob byte-identical to baseline"
+  }
+}

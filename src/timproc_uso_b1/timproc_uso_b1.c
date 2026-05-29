@@ -4,37 +4,10 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
-/* Int-reader accessor variant. The natural C body is the standard accessor;
- * Makefile post-cc patch/suffix bytes reproduce the ROM's -O0 scheduling
- * inside this Yay0-compressed single-object USO. */
-/* K&R def so same-TU callers passing varying arg counts type-check in
- * NON_MATCHING build. See feedback_knr_def_for_inconsistent_arg_callers.md. */
-#ifdef NON_MATCHING
-void timproc_uso_b1_func_00000000(dst) int *dst; {
-    int buf[2];
-    gl_func_00000000(&D_00000000, buf, 4);
-    *dst = buf[0];
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000000);
-#endif
-
-#ifdef NON_MATCHING
-/* Quad4-reader template at -O0 (25 insns, 0x64) — byte-identical asm to
- * mgrproc_uso_func_0000004C. Standard 16-byte accessor compiled at -O0.
- *
- * BLOCKED: timproc_uso_b1 is Yay0-compressed (per
- * feedback_uso_yay0_compressed.md); the file-split recipe for -O0 override
- * doesn't apply because the Yay0 rule consumes only one .o. Same blocker
- * as the int-reader sibling at func_00000000. */
-void timproc_uso_b1_func_0000004C(Quad4 *dst) {
-    volatile Quad4 buf;
-    gl_func_00000000(&D_00000000, &buf, 16);
-    *(Quad4*)dst = *(Quad4*)&buf;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_0000004C);
-#endif
+/* timproc_uso_b1_func_00000000 / _0000004C (contiguous -O0 run, 0x0..0xB0) live
+ * in timproc_uso_b1_o0_0.c — carved into a dedicated -O0 sub-unit and
+ * concatenated into the Yay0 block (region 0) before compression. See the
+ * timproc_uso_block1_yay0 rule in the Makefile. */
 
 #ifdef NON_MATCHING
 /* timproc_uso_b1_func_000000B0: 0x4F4 (317 insns), 0x40-byte stack frame.
