@@ -28746,45 +28746,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
  * cascade with per-step null-bail (IDO emits the inner bails as complementary
  * branches → m2c's `||`-with-side-effects); installs 0x20740 vtable + the
  * 0x20630/0x20634 handler pair + 0x20D88; finalizes by name. Fresh decode
- * 2026-05-29 (m2c-assisted), upgraded from structural-comment marker. Logic
- * complete; below promote threshold — caps: self struct + 6 USO cb prototypes
- * untyped (USO-relocated), 0x20xxx string/handler-table offsets not symbolized,
- * nested-alloc dead-branch emission order. Kept NON_MATCHING. */
+ * 2026-05-29 (m2c-assisted), upgraded from structural-comment marker. 77.6%
+ * reg-blind (75/77 insns) after rewriting the alloc cascade as the m2c-faithful
+ * ||/&&-with-side-effects form (the clean nested-if optimized the dead bails away
+ * — 62%; verbatim short-circuit restores them). Residual: 2 insns + regalloc.
+ * Caps: self struct + 6 USO cb prototypes untyped (USO-relocated), 0x20xxx
+ * string/handler-table offsets not symbolized. Kept NON_MATCHING. */
 extern int gl_func_00000000();
 void gl_func_000519A4(char *self) {
     char name[256];
     int fmtSel;
-    int *o3;
-    int *o2;
-    int *o1;
+    int *a2;
+    int *v1;
+    int *a0p;
+    int *o;
 
     fmtSel = 0x20EEC;
     if (*(int *)(self + 0x38) & 0x400000) {
         fmtSel = 0x20EE8;
     }
-    if (*(int *)(self + 0x14) == 0) {
-        return;
-    }
-    if (*(int *)(self + 0x4C) != 0) {
-        gl_func_00000000(name, 0x20EF0, *(int *)(self + 0x18), self + 0x58, fmtSel);
-    } else {
-        gl_func_00000000(name, 0x20F04, *(int *)(self + 0x18), self + 0x58, fmtSel);
-    }
-    o3 = (int *)gl_func_00000000(0x10);
-    if (o3 != 0) {
-        o2 = (int *)gl_func_00000000(0x10);
-        if (o2 != 0) {
-            o1 = (int *)gl_func_00000000(4);
-            if (o1 != 0) {
-                *o1 = 0x20740;
-            }
-            o2[1] = (int)self;
-            o2[2] = *(int *)0x20630;
-            o2[3] = *(int *)0x20634;
+    if (*(int *)(self + 0x14) != 0) {
+        if (*(int *)(self + 0x4C) != 0) {
+            gl_func_00000000(name, 0x20EF0, *(int *)(self + 0x18), self + 0x58, fmtSel);
+        } else {
+            gl_func_00000000(name, 0x20F04, *(int *)(self + 0x18), self + 0x58, fmtSel);
         }
-        *o3 = 0x20D88;
+        o = (int *)gl_func_00000000(0x10);
+        a2 = o;
+        if (o != 0) {
+            v1 = o;
+            if ((o != 0) || (a2 = o, v1 = (int *)gl_func_00000000(0x10), (v1 != 0))) {
+                a0p = v1;
+                if ((v1 != 0) || (a0p = (int *)gl_func_00000000(4), (a0p != 0))) {
+                    *a0p = 0x20740;
+                }
+                v1[1] = (int)self;
+                v1[2] = *(int *)0x20630;
+                v1[3] = *(int *)0x20634;
+            }
+            *a2 = 0x20D88;
+        }
+        gl_func_00000000(0, name, a2);
     }
-    gl_func_00000000(0, name, o3);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000519A4);
