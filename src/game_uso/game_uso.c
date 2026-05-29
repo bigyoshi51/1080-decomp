@@ -12696,23 +12696,17 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011124);
  * register-renumber (target holds &D in $v0; single-base-pointer local
  * regressed). See docs/IDO_CODEGEN.md struct-by-value-homes-arg-pair. */
 void game_uso_func_00011168(int *a0) {
-    int flag, t2;
-    int t8;
-
     gl_func_00000000(a0);
-    flag = ((int*)a0[0xB4 / 4])[0xA54 / 4];
 
-    if (flag == 1) {
-        t8 = *(int*)((char*)&D_00000000 + 0x7C);
-        if (t8 != 0) {
+    if (((int*)a0[0xB4 / 4])[0xA54 / 4] == 1) {
+        if (*(int*)((char*)&D_00000000 + 0x7C) != 0) {
             /* struct-by-value pass homes a1,a2 to sp+4/sp+8 (the target's
              * `sw a1,4(sp); sw a2,8(sp)`) — NOT reachable from two int args.
              * This solved the prior "precall-arg-spill cap" (was 61%, now 94%). */
             gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF28), 1);
             return;
         }
-        t2 = *(int*)((char*)&D_00000000 + 0x64);
-        if (t2 < 2) {
+        if (*(int*)((char*)&D_00000000 + 0x64) < 2) {
             gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF30), 1);
         } else {
             gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF38), 1);
