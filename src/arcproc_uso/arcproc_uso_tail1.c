@@ -867,11 +867,40 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000014C
  * both are per-frame state-driver functions with bnel-likely entry gates and
  * cross-USO callback dispatch. Default INCLUDE_ASM build remains exact.
  *
- * Multi-tick refinement target — the bnel-likely + delay-slot v1 setup +
- * 3-way switch with shared 0x4FC store is a known IDO-O2 pattern stack
- * (see feedback_ido_beql_speculative_store_double_emit.md and
- * feedback_unique_extern_breaks_shared_base.md). */
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001604);
+ * MATCHED 2026-05-29 (m2c-assisted): two levers cracked it — (1) hoist `int v1
+ * = 0;` to the top (target inits v1 before the entry gate, not per-path); (2)
+ * re-read p = s0->0x6A8 INSIDE each of the v1==1/v1==2 branches (not a hoisted
+ * local) — that triggers the target's `bnel` (branch-likely) with the p-reload
+ * in the delay slot. cb = gl_func_00000000. */
+void arcproc_uso_func_00001604(int *s0) {
+    int v1 = 0;
+    if (s0[0x4FC / 4] != 0) {
+        return;
+    }
+    if (s0[0x4F8 / 4] == 0) {
+        if (gl_func_00000000(s0[0x6A8 / 4], ((int *)((int *)s0[0x6AC / 4])[0x44 / 4])[0x14 / 4]) != 0) {
+            v1 = 1;
+        } else {
+            s0[0x6B8 / 4] = 1;
+        }
+    } else {
+        if (gl_func_00000000(s0[0x6A8 / 4], ((int *)((int *)s0[0x6AC / 4])[0x44 / 4])[0x14 / 4]) != 0) {
+            v1 = 2;
+        } else {
+            s0[0x6B8 / 4] = 1;
+        }
+    }
+    if (v1 != 0) {
+        if (v1 == 1) {
+            int *p = (int *)s0[0x6A8 / 4];
+            gl_func_00000000(s0[0x6AC / 4], (char *)p + 0x20, p[8 / 4]);
+        } else {
+            int *p = (int *)s0[0x6A8 / 4];
+            gl_func_00000000(s0[0x6AC / 4], (char *)p + 0x20, p[4 / 4] + 1);
+        }
+    }
+    s0[0x4FC / 4] = 1;
+}
 
 /* arcproc_uso_func_000016F4 - verified structural decode (~170-insn FPU
  * render/update orchestrator; full s-reg save + 255.0f scale + 12
