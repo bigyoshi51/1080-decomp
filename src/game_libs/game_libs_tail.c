@@ -1482,7 +1482,31 @@ void gl_func_0000C01C(void *arg0, int *arg1, int arg2, int arg3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C01C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C0EC);
+/* gl_func_0000C0EC: record-pair load/compare/store, sibling of gl_func_0000BC84
+ * /BEB8 (same 0xDEADBBAD-sentinel structure; 96-byte records, keys 400/496 then
+ * 0x7F60/0x7FC0). Fresh decode 2026-05-29 via the BC84 template. */
+extern int gl_func_00000000();
+int gl_func_0000C0EC(int *s0) {
+    char bufA[96];
+    char bufB[8];
+    char cmp[8];
+    char bufC[96];
+    char bufD[8];
+    gl_func_00000000(s0, bufA, 400, 96);
+    gl_func_00000000(s0, bufB, 496, 8);
+    gl_func_00000000(cmp, bufA, 96, 0xDEADBBAD);
+    if (gl_func_00000000(cmp, bufB) == 0) {
+        gl_func_00000000(s0, bufC, 0x7F60, 96);
+        gl_func_00000000(s0, bufD, 0x7FC0, 8);
+        gl_func_00000000(cmp, bufC, 96, 0xDEADBBAD);
+        if (gl_func_00000000(cmp, bufD) == 0) {
+            return 0;
+        }
+        gl_func_00000000(s0, 400, bufC, 96);
+        gl_func_00000000(s0, 496, bufD, 8);
+    }
+    return 1;
+}
 
 extern int gl_func_00000000();
 void gl_func_0000C1E0(int a0) {
