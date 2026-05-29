@@ -1322,7 +1322,37 @@ void gl_func_0000BBF0(int a0, int a1) {
     gl_func_00000000(a0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BC84);
+/* gl_func_0000BC84: record-pair load/compare/store with 0xDEADBBAD sentinel.
+ * Loads two records (504/528) into stack bufs, builds a compare block, compares;
+ * if first pair matches returns 1, else tries a second pair (0x7FC8/0x7FE0) and
+ * on match stores it back + returns 1, else returns 0. MATCHED 2026-05-29 (fresh
+ * decode): the key was structuring the second-pair logic UNDER `if (cmp1 == 0)`
+ * with a SHARED `return 1` at the end — the target jumps to that shared exit via
+ * bnez (an inline `if (cmp1 != 0) return 1;` emits beqz + a duplicated block).
+ * Buffer sizes (24/8) from the cb args; layout bufA@0x50/bufB@0x48/cmp@0x40/
+ * bufC@0x28/bufD@0x20 falls out of declaration order. */
+extern int gl_func_00000000();
+int gl_func_0000BC84(int *s0) {
+    char bufA[24];
+    char bufB[8];
+    char cmp[8];
+    char bufC[24];
+    char bufD[8];
+    gl_func_00000000(s0, bufA, 504, 24);
+    gl_func_00000000(s0, bufB, 528, 8);
+    gl_func_00000000(cmp, bufA, 24, 0xDEADBBAD);
+    if (gl_func_00000000(cmp, bufB) == 0) {
+        gl_func_00000000(s0, bufC, 0x7FC8, 24);
+        gl_func_00000000(s0, bufD, 0x7FE0, 8);
+        gl_func_00000000(cmp, bufC, 24, 0xDEADBBAD);
+        if (gl_func_00000000(cmp, bufD) == 0) {
+            return 0;
+        }
+        gl_func_00000000(s0, 504, bufC, 24);
+        gl_func_00000000(s0, 528, bufD, 8);
+    }
+    return 1;
+}
 
 extern int gl_func_00000000();
 void gl_func_0000BD78(int a0) {
