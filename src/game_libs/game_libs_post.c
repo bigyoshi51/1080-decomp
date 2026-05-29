@@ -18975,7 +18975,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D71C);
  * twice), then INSN_PATCH the bne→bnel + delay-load + register renames
  * (all same-length word overwrites; jal orphan-reloc auto-stripped).
  * USO convention: call -> func_00000000, data -> &D+off. */
+#ifdef NON_MATCHING
+/* gl_func_0003D7F8: constructor. obj = a0 ?: alloc(88); cb(obj, a1, a2);
+ * obj->0x28 = &D vtable; if a3 null set default transform (0,0 / 1,1 at
+ * 0x4C/0x50/0x48/0x54) else copy 4 words from a3 into 0x48..0x54; return obj.
+ * Fresh decode 2026-05-29: 73%. Reassigning the `a0` param directly (no `obj`
+ * local) keeps obj in $a0 spilled across the cb call (matches target; an `obj`
+ * local promotes to $s0, frame -32 vs -24). RESIDUAL: target uses bnezl
+ * (branch-likely) re-reading a3 twice (test + copy base) and a prologue
+ * arg-home schedule mine doesn't reproduce — branch-likely/re-read caps. */
+extern int gl_func_00000000();
+extern int D_00000000;
+int *gl_func_0003D7F8(int *a0, int a1, int a2, int *a3) {
+    if (a0 == 0) {
+        a0 = (int *)gl_func_00000000(88);
+        if (a0 == 0) goto end;
+    }
+    gl_func_00000000(a0, a1, a2);
+    a0[0x28 / 4] = (int)&D_00000000;
+    if (a3 == 0) {
+        *(float *)((char *)a0 + 0x4C) = 0.0f;
+        *(float *)((char *)a0 + 0x50) = 0.0f;
+        *(float *)((char *)a0 + 0x48) = 1.0f;
+        *(float *)((char *)a0 + 0x54) = 1.0f;
+    } else {
+        a0[0x48 / 4] = a3[0];
+        a0[0x4C / 4] = a3[1];
+        a0[0x50 / 4] = a3[2];
+        a0[0x54 / 4] = a3[3];
+    }
+end:
+    return a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
+#endif
 
 /* gl_func_0003D8A8: 27-insn — X1(0); v1=a0->0x40; if(v1){ ret=X2(ret+0x10,v1);
  *   if (v1->0x14 != 0) v1->0x4 = 1; v1->0x14 = ret; } return ret;
