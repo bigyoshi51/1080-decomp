@@ -2222,21 +2222,18 @@ void timproc_uso_b5_func_000072D0(char *scr) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000072D0);
 #endif
 
-// timproc_uso_b5_func_000073C0 — ramp-UP twin of 000072D0's leading
-// decoded body. It increments scr->0x480 toward scr->0x484, using the
-// fast step at 0xD4 when state 1 is active and the normal step at 0xEC
-// otherwise. Two add.s operand-order words were previously fixed in
-// Makefile INSN_PATCH/NON_MATCHING_INSN_PATCH; INSN_PATCH REMOVED
-// 2026-05-23 as match-faking per
-// feedback_no_instruction_forcing_matches_policy — CAP: add.s
-// operand-order stays NM. 2026-05-28: confirmed the 2 diffs are add.s fs/ft
-// swaps (`cur+step` -> mine f8,fcur,fstep; target f8,fstep,fcur); swapping the
-// C operands to `step+cur` is INERT (still 2 diffs) — order is FPU-scheduler-
-// driven off which reg holds cur(f6/f10) vs step(f0), not source order. Same
-// class as game_uso_func_000000A0 / 00003FAC FPU operand caps.
-#ifdef NON_MATCHING
+// timproc_uso_b5_func_000073C0 — ramp-UP twin of 000072D0's leading body.
+// Increments scr->0x480 toward scr->0x484, using the fast step at 0xD4 when
+// state 1 is active and the normal step at 0xEC otherwise.
+// MATCH KEY (2026-05-29): the two `cur + step` adds emit `add.s fd, step, cur`
+// (the freshly-loaded step as fs) instead of the target's `add.s fd, cur, step`.
+// A plain operand swap (`step + cur`) is INERT (IDO canonicalizes). The
+// assignment-expr lever forces cur as fs: `step + (curf = cur)` — same lever
+// that cracked game_uso_func_00003FAC's mul.s operand caps. (Old "add.s
+// operand-order stays NM / FPU-scheduler cap" comment was wrong.)
 void timproc_uso_b5_func_000073C0(char *scr) {
     float cur = *(float *)(scr + 0x480);
+    float curf;
     int state;
     int done_state;
 
@@ -2244,10 +2241,10 @@ void timproc_uso_b5_func_000073C0(char *scr) {
         state = *(int *)(scr + 0x3CC);
         done_state = 9;
         if (state == 1) goto fast_step;
-        *(float *)(scr + 0x480) = cur + *(float *)(scr + 0xEC);
+        *(float *)(scr + 0x480) = *(float *)(scr + 0xEC) + (curf = cur);
         goto check_target;
 fast_step:
-        *(float *)(scr + 0x480) = cur + *(float *)(scr + 0xD4);
+        *(float *)(scr + 0x480) = *(float *)(scr + 0xD4) + (curf = cur);
 check_target:
         if (*(float *)(scr + 0x484) < *(float *)(scr + 0x480)) {
             *(float *)(scr + 0x480) = *(float *)(scr + 0x484);
@@ -2255,9 +2252,6 @@ check_target:
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000073C0);
-#endif
 
 // timproc_uso_b5_func_00007430 — exact (0x3A8 / 234 words).
 // Raw-.word USO form (genuine code). Hand-decoded.
