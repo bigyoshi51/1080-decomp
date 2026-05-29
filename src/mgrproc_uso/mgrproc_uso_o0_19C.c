@@ -8,7 +8,8 @@
  * INCLUDE_ASM caps (NM bodies kept for objdiff scoring / grep). */
 
 extern int gl_func_00000000();
-extern char D_00000000;
+extern int D_00000000;
+extern int D_00000148;
 extern int D_0000014C;
 
 #define MGR_D_64 (*(int*)((char*)&D_00000000 + 0x64))
@@ -114,26 +115,27 @@ void mgrproc_uso_func_0000019C(char *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000019C);
 #endif
 
-#ifdef NON_MATCHING
-/* 51-insn allocator+init wrapper. 4 cross-USO calls + branch on D[0] sentinel. */
+/* 51-insn allocator+init wrapper, byte-matched at -O0. v3 is `register` (s0,
+ * the target's callee-saved result reg); the dead `v3 = (int)&D_00000000`
+ * reproduces the target's lui/addiu of &D in s0; the sentinel read uses the
+ * direct int symbol D_00000000 for the $at-fused load. D_00000148/_0000014C are
+ * fused stores/loads whose %lo bakes into the blob (bake-data-relocs). */
 void mgrproc_uso_func_00000504(int *a0) {
-    int v1 = gl_func_00000000(2);
-    int v2 = gl_func_00000000(0x3C);
-    int v3;
-    a0[2] = v2;
-    v3 = gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), -1, -1);
+    int v1;
+    register int v3;
+    v1 = gl_func_00000000(2);
+    a0[2] = gl_func_00000000(0x3C);
+    v3 = gl_func_00000000(0, D_00000148, -1, -1);
     a0[0] = v3;
-    *(int*)((char*)&D_00000000 + 0x14C) = v3;
+    D_0000014C = v3;
     gl_func_00000000(v1);
-    if (*(int*)&D_00000000 == 0x17D7) {
+    v3 = (int)&D_00000000;
+    if (D_00000000 == 0x17D7) {
         *(int*)((char*)a0[0] + 0x14) = 1;
     } else {
         *(int*)((char*)a0[0] + 0x14) = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000504);
-#endif
 
 #ifdef NON_MATCHING
 /* 76-insn (0x130) random-unique-ID assignment: fills 4 entries at
