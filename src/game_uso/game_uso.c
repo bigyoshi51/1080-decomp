@@ -1511,38 +1511,20 @@ branch_88: {
     (void)excess;
 }
 late_label:
-    /* convergence point — the key==3 path's entity transform (asm 0x4A0-0x5E4,
-     * ~80 insns, decoded 2026-05-29 — structural, ready for incremental C-lift).
-     * Mirrors branch_88's tail (Vec3 scale + subtract-into-ctx). Data flow:
-     *   1. fanout copy a Vec3 (a3<-t9, then t2<-a3)                  ; 0x4A0-0x4C0
-     *   2. scaleA: sp[0x48..0x50] = sp[0x48? src 0x48-0x50 @72/76/80]
-     *              * ctx->0x10C (f0 = a2[268])                       ; 0x4C4-0x4F0
-     *      i.e. vecB = vecA * *(float*)((char*)a0 + 0x10C);
-     *   3. fanout copy Vec3 (v1<-t5, t8<-v1)                          ; 0x4F4-0x520
-     *   4. copy Vec3 sp[0x74..0x7C]@116/120/124 -> sp[0x120..0x128]@288/292/296
-     *   5. v0 = sp[0x12C]@300 (a node ptr); jal gl_func(v0 + 0x30)    ; 0x53C-0x548
-     *      (f18 = sp[0x108]@264 spilled across the call; a2 homed @sp+0x180)
-     *   6. scaleD: sp[0x24..0x2C]@36/40/44 = sp[0x110..0x118]@272/276/280 * f18
-     *   7. fanout copy that scaled Vec3: sp36 -> sp[0xFC]@252 -> sp[0x148]@328
-     *   8. subtract-into-ctx (THE EFFECT, mirrors branch_88):
-     *        *(float*)((char*)a0 + 0x2C) -= scaledD.x;   ; a2[44] -= sp328
-     *        *(float*)((char*)a0 + 0x30) -= scaledD.y;   ; a2[48] -= sp332
-     *        *(float*)((char*)a0 + 0x34) -= scaledD.z;   ; a2[52] -= sp336
-     * SOURCE TRACE (2026-05-29, prereq for the lift): the convergence inputs
-     * are function-wide working slots, not late_label-private:
-     *   - node ptr  = sp+0x12C, set at insn 36 (sw t7,300(sp)) in the ENTRY
-     *     dispatch — the entity sub-node selected up front.
-     *   - f18       = sp+0x108, a scalar spilled across the convergence jal
-     *     (swc1 @337, reloaded @340) — the per-frame scale factor.
-     *   - workingVec= sp+0x110 (272/276/280), the shared XZ working buffer
-     *     written at insns 81-87 AND 239-242 (both dispatch arms) and read by
-     *     scaleD. In the current C this is the `local_xz`-class buffer.
-     * So scaleD = workingVec * f18; ctx->0x2C/0x30/0x34 -= scaleD — i.e. the
-     * key==3 path applies the SAME per-frame scaled-delta to the entity as
-     * branch_88 does. NEXT PASS: lift steps 2/6/8 to real C (the two scales +
-     * the ctx subtract) reusing the branch_88 Vec3f/scratch idioms; sources now
-     * mapped, so the lift can be written correctly without guessing. The fanout
-     * copies (1/3/4/7) are the IDO-O2 raw-word redistribution the body models. */
+    /* CORRECTION 2026-05-29: this label is correctly EMPTY. The prior two
+     * commits (structural-decode + source-trace of an "~80-insn late_label
+     * convergence") were WRONG — verified via the entry control flow:
+     *   insn 5  beqzl v0,0x5ec   key==0 -> epilogue (end)
+     *   insn 7  bnel  v0,at,0x88 key!=3 -> branch_88 (insns 34..377)
+     *   insns 8-30  key==3 Vec3 copy, then
+     *   insn 31 `b 0x5e8`        -> insn 378 = the EPILOGUE, directly.
+     * So the key==3 path returns straight after its copy; there is NO key==3
+     * convergence/scale/subtract. The asm region 0x4A0-0x5E4 (insns 296-377) I
+     * mis-attributed here is in fact branch_88's OWN tail (the AI-homing
+     * scale + ctx-subtract), which is already represented in the branch_88
+     * block above. `late_label` is just the C fall-through join to `end:` and
+     * needs no body. The 122-insn build gap is reg-alloc / fanout-scheduling
+     * WITHIN branch_88, not a missing late_label block. */
 end:
     return;
 }
