@@ -185,7 +185,34 @@ int gl_func_00009100(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009100);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00009204: module-init/registration. cb(A, *(B+8)); cb(*(C+0x4C),
+ * *(D+0x58)); node = cb(E, *(F+0x64), 6, a2); cb(G+0x10, node); if (node->0x14)
+ * node->4=1; node->0x14 = G; cb(H, 0); return node. The &D globals are distinct
+ * (no CSE). Fresh decode 2026-05-29: 74%, structure + the 8 distinct &D refs
+ * match. RESIDUAL: target promotes node/G/(G+0x10) to callee-saved $s1/$s0/$s2
+ * (frame -56); my C keeps fewer in s-regs (spills node, frame -32) — an
+ * s-reg-promotion/allocation difference. */
+extern int gl_func_00000000();
+extern int D_9204_a, D_9204_b, D_9204_c, D_9204_d, D_9204_e, D_9204_f, D_9204_g, D_9204_h;
+int gl_func_00009204(int a0, int a1, int a2) {
+    int *node;
+    char *g;
+    gl_func_00000000(&D_9204_a, *(int *)((char *)&D_9204_b + 8));
+    gl_func_00000000(*(int *)((char *)&D_9204_c + 0x4C), *(int *)((char *)&D_9204_d + 0x58));
+    node = (int *)gl_func_00000000(&D_9204_e, *(int *)((char *)&D_9204_f + 0x64), 6, a2);
+    g = (char *)&D_9204_g;
+    gl_func_00000000(g + 0x10, node);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
+    }
+    node[0x14 / 4] = (int)g;
+    gl_func_00000000(&D_9204_h, 0);
+    return (int)node;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009204);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000092F4);
 
