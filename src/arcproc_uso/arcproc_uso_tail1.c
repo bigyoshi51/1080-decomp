@@ -1046,22 +1046,41 @@ void arcproc_uso_func_00001B04(int *arg) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001B04);
 #endif
 
-/* arcproc_uso_func_00001BBC: 46-insn declared (0xB8) but the REAL function
- * is 0xB0 / 44 insns — it ends jr-ra+nop at 0x1C64/0x1C68. The trailing 2
- * words @0x1C6C/0x1C70 (`lui at,0x3f80; mtc1 at,$f0` = f0=1.0f) are the
- * STOLEN PROLOGUE of the successor arcproc_uso_func_00001C74 (which reads
- * $f0 uninitialized at its +0xC `swc1 f0,72(sp)`). FPU variant of the
- * docs/MATCHING_WORKFLOW forward-merge stolen-leading-insn pattern.
- * BOUNDARY FIX DEFERRED (unsafe to forward-merge here): 1C74 is
- * clone-canonical — referenced by timproc_uso_b1/b3 byte-identical-clone
- * stubs (sig 739fd8d1d3) — so renaming/merging it breaks those
- * cross-segment refs. Both are #else INCLUDE_ASM so the linked ROM is
- * already correct (bytes laid contiguously; runtime f0=1.0 precedes
- * 0x1C74). Proper decomp fix = SUFFIX_BYTES(1BBC += 0x3C013F80,0x44810000)
- * + PROLOGUE_STEALS(1C74=8) pair — multi-tick infra, NOT a clean decode.
- * Body itself is FPU-heavy (bc1fl ×3, sub.s, c.lt.s/c.le.s) — decode the
- * 0xB0 region only when tackling the SUFFIX/PROLOGUE pair. */
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00001BBC: float-gated decay updater. cb(arg0); reads
+ * arg0->0xD4->0x77C; if > 0: subtract const *(float*)(&D+0x44), clamp to >=0,
+ * cb(sub, 0x8C, sub->0x6B0, arg0), reload; if (value <= 0) cb(arg0). Fresh decode
+ * 2026-05-29 (m2c-confirmed), upgraded from boundary bail-marker. The .s
+ * over-extends 2 words (0x1C6C/0x1C70 = the stolen f0=1.0f prologue of successor
+ * 0x1C74); the function proper is 44 insns ending jr-ra at 0x1C64 — those 2 tail
+ * words are not part of this body, an irreducible boundary residual (1C74 is
+ * clone-canonical, can't be merged). Caps: arg0/sub structs + cb prototypes
+ * untyped (USO-reloc), decay-const not symbolized. NON_MATCHING. */
+extern int gl_func_00000000();
+void arcproc_uso_func_00001BBC(char *arg0) {
+    char *t;
+    float f0;
+
+    gl_func_00000000(arg0);
+    t = *(char **)(arg0 + 0xD4);
+    f0 = *(float *)(t + 0x77C);
+    if (f0 > 0.0f) {
+        *(float *)(t + 0x77C) = *(float *)(t + 0x77C) - *(float *)((char *)&D_00000000 + 0x44);
+        t = *(char **)(arg0 + 0xD4);
+        if (*(float *)(t + 0x77C) < 0.0f) {
+            *(float *)(t + 0x77C) = 0.0f;
+        }
+        gl_func_00000000(*(char **)(arg0 + 0xD4), 0x8C,
+                         *(int *)(*(char **)(arg0 + 0xD4) + 0x6B0), arg0);
+        f0 = *(float *)(*(char **)(arg0 + 0xD4) + 0x77C);
+    }
+    if (f0 <= 0.0f) {
+        gl_func_00000000(arg0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001BBC);
+#endif
 
 #ifdef NON_MATCHING
 /* arcproc_uso_func_00001C74: 41-insn (0xA4) counter+conditional-scale wrapper.
