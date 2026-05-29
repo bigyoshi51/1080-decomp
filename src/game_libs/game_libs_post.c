@@ -31953,13 +31953,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
    call reloc3(&D_00000000+0x21B28) (singular-matrix warning); then
    divide all 16 floats of the matrix at m by s (loop unrolled as
    four blocks of 4, stride 0x10, store-in-delay-slot).
-   DEFERRED: documented-hard medium cap — c.lt.s/bc1fl abs idiom and a
-   second c.lt.s/bc1fl epsilon test (branch-likely), THREE unresolved
-   jal relocs (setup / scale / warning), an FP const loaded from
-   &D_00000000+0x204C, and the 4x-unrolled divide loop with its two
-   back-edges (top beq + body bne). Next pass: resolve the 3 relocs
-   and grind the FP-compare-branch + unroll schedule per
-   docs/IDO_CODEGEN.md. */
+   2026-05-28: 98.26% -> 99.87%. Fixed call 1 to PASS a0 — it is
+   reloc1(a0), not reloc1() — so the incoming int is consumed by the call
+   instead of being needlessly homed; size now matches target (62 insns,
+   was 63). RESIDUAL (2 caps, both known/not-C-controllable):
+   (a) frame 0x20 vs target 0x28 (8-byte spill-slot delta for `s` across
+       the warning call; a `char _pad[8]` doesn't take — allocator-driven,
+       not paddable), cascading the a1 home 0x24->0x2C;
+   (b) the 16-float divide loop gets IDO's by-4 ELEMENT counter (li 16 /
+       addiu v1,4) vs the target's by-1 TRIP counter (li 4 / addiu v1,1) —
+       the identical induction-variable cap as gl_func_0005BDC0 (4 loop
+       forms confirmed, IDO won't emit the trip counter on an x4-unrolled
+       loop). Stays NM at 99.87%. */
 extern int gl_func_00000000();
 extern float gl_func_0005E190_scale();
 extern int D_00000000;
@@ -31967,7 +31972,7 @@ void gl_func_0005E190(int a0, float *m) {
     float s;
     float as;
     int i;
-    gl_func_00000000();
+    gl_func_00000000(a0);
     s = gl_func_0005E190_scale(m);
     as = (s < 0.0f) ? -s : s;
     if (as < *(float *)((char *)&D_00000000 + 0x204C)) {
