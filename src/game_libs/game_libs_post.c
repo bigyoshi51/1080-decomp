@@ -37945,7 +37945,65 @@ int* gl_func_000695F4(int *self_or_null, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000695F4);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00069688: constructor — stores arg1 at self->0x38 (logs via cb(0x2C5B0)
+ * if already set), allocates 3 buffers sized n*6/n*6/n*2 (n=arg2->0x40) into
+ * self->0x3C/0x40/0x30, zeros self->0x94, then a per-element loop: writes 100 to
+ * self->0x30[i] and copies a 3-short (6-byte) record from arg2->0x60 to self->0x3C;
+ * stores arg2 at self->0x34, inits via cb(self), wires cb(arg1+0x70, self+0x50)
+ * and back-links self->0x34->0xA8/0xAC. Returns self->0x34. Fresh decode 2026-05-29
+ * (m2c-confirmed). 87.3% reg-blind (same 79-insn count). Residual: tail regalloc
+ * — target reloads arg1 into the dead arg2 reg (s1) and increments in-place,
+ * spilling a1ptr to 32(sp); my clean form spills p instead → +16-byte frame +
+ * cascaded sp-offsets (forcing arg1 in-place promotes it to an extra saved reg,
+ * worse). Also 0x2C5B0 wants lui+addiu (symbol-reloc) not lui+ori (literal).
+ * Caps: self/arg2 structs + 3 cb prototypes untyped (USO-reloc). Kept NON_MATCHING. */
+extern int gl_func_00000000();
+void *gl_func_00069688(char *self, char *arg1, char *arg2) {
+    unsigned int i;
+    int j;
+    int k;
+    short *src;
+    short *dst;
+    char *a1ptr;
+    char *p;
+
+    if (*(int *)(self + 0x38) != 0) {
+        gl_func_00000000(0x2C5B0);
+    }
+    *(int *)(self + 0x38) = (int)arg1;
+    *(int *)(self + 0x3C) = gl_func_00000000(*(int *)(arg2 + 0x40) * 6);
+    *(int *)(self + 0x40) = gl_func_00000000(*(int *)(arg2 + 0x40) * 6);
+    *(int *)(self + 0x30) = gl_func_00000000(*(int *)(arg2 + 0x40) * 2);
+    *(int *)(self + 0x94) = 0;
+    i = 0;
+    j = 0;
+    k = 0;
+    if (*(int *)(arg2 + 0x40) != 0) {
+        do {
+            i += 1;
+            *(short *)(*(char **)(self + 0x30) + j) = 100;
+            j += 2;
+            src = (short *)(*(char **)(arg2 + 0x60) + k);
+            dst = (short *)(*(char **)(self + 0x3C) + k);
+            k += 6;
+            dst[0] = src[0];
+            dst[1] = src[1];
+            dst[2] = src[2];
+        } while (i < (unsigned int)*(int *)(arg2 + 0x40));
+    }
+    *(char **)(self + 0x34) = arg2;
+    gl_func_00000000(self);
+    a1ptr = self + 0x50;
+    p = arg1 + 0x70;
+    gl_func_00000000(p, a1ptr);
+    *(char **)(*(char **)(self + 0x34) + 0xA8) = a1ptr;
+    *(char **)(*(char **)(self + 0x34) + 0xAC) = p;
+    return *(char **)(self + 0x34);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069688);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
 
