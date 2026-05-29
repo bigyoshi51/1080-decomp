@@ -28955,7 +28955,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
  * the branch). With that, structure is byte-exact (33=33). RESIDUAL (~0.5%):
  * a single $v0-vs-$v1 register-renumber on obj's finalizer reload (mine $v1,
  * target $v0) — permuter-resistant regalloc cap. Lesson: match the asm's exact
- * a0/a1/a2 arg setup, don't assume arg order/count. Stays NM. */
+ * a0/a1/a2 arg setup, don't assume arg order/count. Stays NM.
+ *
+ * 2026-05-29: the E84C re-read lever (drop the `obj` local, re-read self->0x2C
+ * inline for the func call + finalizer) REGRESSES here (34 vs 33 insns, obj
+ * spills through the stack into a2/a3) — unlike the E6E8/EAAC family this one
+ * caches at self->0x2C with a lazy-init, so re-reading forces extra spills. Keep
+ * the cached-`obj` form; the $v0/$v1 renumber is the genuine residual. Don't
+ * retry the re-read. */
 void gl_func_000525F0(int *self, int *target) {
     extern int D_00000000;
     int *obj = (int*)self[0x2C / 4];
