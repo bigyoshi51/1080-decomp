@@ -61,19 +61,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
 #endif
 
 /* 4-element dot product. C body NATURAL CAP 99.375% (1 insn diff).
- * IDO emits `add.s f8, f16, f4` for the second-to-last add; target wants
- * `add.s f8, f4, f16`. Both forms are semantically identical; the choice
- * is FPU pipeline forwarding-driven and not flippable from C (8+ source
- * variants tried, all worse).
- * 2026-05-27 retest: `b[3]*a[3] + (a[0]*b[0] + a[1]*b[1] + a[2]*b[2])`
- * form (swap final operand to move last-product to LEFT of `+`) regressed
- * to 11/16 — the parenthesized reorder broke the entire register cascade,
- * not just the final add.s.
+ * The SINGLE diff is the FINAL add.s (insn 15): IDO emits `add.s f0,f10,f8`
+ * (p3 + sum) where target wants `add.s f0,f8,f10` (sum + p3); f8=sum of the
+ * first three products, f10=the 4th product. The earlier "second-to-last add"
+ * note is stale — insn 13 (`add f8,f4,f16`) now matches; only the outermost
+ * commutative add differs. IDO commutes `sum + p3` to `p3 + sum` regardless of
+ * source operand order — it is FPU instruction-selection, not C-controllable.
+ * EXHAUSTIVE NEGATIVE RESULT (2026-05-28, 8 fresh variants, all >= baseline's
+ * 1 diff so none adopted):
+ *   a[i]*b[i] all-ab .................. 3   (a[0]*b[0]+..+a[3]*b[3])
+ *   (sum3) + a[3]*b[3] parens ......... 3
+ *   right-assoc a[0]*b[0]+(a[1]*b[1]+..) 8
+ *   b[i]*a[i] all-ba .................. 7
+ *   float p3=b[3]*a[3]; sum+p3 ........ 15  (temp spills, reschedules all)
+ *   float p3=a[3]*b[3]; sum+p3 ........ 15
+ *   float s=sum3; s + b[3]*a[3] ....... 8
+ *   float s=sum3; s + a[3]*b[3] ....... 8
+ * Current `a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+b[3]*a[3]` (1 diff) is optimal.
  * INSN_PATCH was REMOVED 2026-05-23 (match-faking, banned per
  * feedback_no_instruction_forcing_matches_policy). The 100% match this
- * function had pre-removal was via post-cc byte editing — not a real
- * compile. Permanent NM cap until a permuter-found C shape produces the
- * exact operand order. */
+ * function had pre-removal was via post-cc byte editing — not a real compile.
+ * Permanent NM cap; only a permuter run with register-pressure injection (this
+ * straight-line body has none) could plausibly flip the commutation. */
 #ifdef NON_MATCHING
 float game_uso_func_000000A0(float *a, float *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
