@@ -28738,46 +28738,57 @@ void game_libs_func_000517E4(int *a0) {
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
 
-// gl_func_000519A4 — STRUCTURAL PASS (0x134 / 77 words, no episode).
-// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Large frame
-// 0x140 (sp+0x40 name buffer), saves ra + s0. 6 jal-0 = USO-relocated
-// callbacks. Near-sibling of gl_func_0005185C — name-formatting
-// constructor / cb-registration driver. Shape:
-//   void gl_func_000519A4(void *self) {
-//     // pick fmt by self->field_38 bit-22 (bgez of t<<9):
-//     fmtSel = (self->field_38 & BIT22) ? 0x20EE8 : 0x20EEC;
-//     if (self->field_14 == 0) return;             // beql early-out
-//     char name[..];                               // sp+0x40
-//     if (self->field_4C != 0)
-//       cb_sprintf(name, "fmt_0x20EF0", self->field_18,
-//                  self->field_4C + 0x58, fmtSel);
-//     else
-//       cb_sprintf(name, "fmt_0x20F04", self->field_18,
-//                  self + 0x58, fmtSel);
-//     o1 = cb_alloc(.., 0x10);  if (!o1) return;
-//     o2 = cb_alloc(o1, 0x10);  if (!o2) return;
-//     o3 = cb_alloc(o2, 4);     if (!o3) return;
-//     *(void**)o3       = (void*)0x20740;          // vtable
-//     *(void**)(o3 + 4) = self;                    // back-ref
-//     w  = *(int*)0x20630; *(int*)(o3 + 8) = w;    // handler triple
-//     w2 = *(int*)0x20634; *(int*)(o3 + 0xC) = w2;
-//     *(void**)o2       = (void*)0x20D88;
-//     cb_finalize(&D_base, name);                  // register by name
-//   }
-// Family: lazy multi-subobject constructor + cb-registration driver
-// (direct sibling of gl_func_0005185C; this variant formats an
-// instance name into the large sp+0x40 stack buffer first and
-// finalizes by that name). The frame, the saved-reg set, the 6 USO
-// callback sites, the field_38 bit-22 (bgez t<<9) fmt-select, the
-// field_14==0 early-out, the dual field_4C-conditional cb_sprintf into
-// the sp+0x40 buffer, the 0x10/0x10/4 alloc-by-selector cascade with
-// per-step null-return, the 0x20740 / 0x20630-loaded triple / 0x20D88
-// vtable-handler installs and the cb_finalize(&D_base, name) tail are
-// exact; the 6 cb prototypes, the format strings and the exact
-// alloc/handler struct layout are representative. Caps: self struct +
-// all 6 USO cb prototypes untyped (USO-relocated); string-table
-// offsets not symbolized. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+/* gl_func_000519A4: name-formatting constructor + cb-registration driver
+ * (sibling of gl_func_0005185C). Frame 0x140 (sp+0x40 name buffer), saves
+ * ra+s0. fmtSel by self->0x38 bit-22; early-out on self->0x14==0; dual
+ * field_4C-conditional sprintf into the buffer; nested 0x10/0x10/4 alloc
+ * cascade with per-step null-bail (IDO emits the inner bails as complementary
+ * branches → m2c's `||`-with-side-effects); installs 0x20740 vtable + the
+ * 0x20630/0x20634 handler pair + 0x20D88; finalizes by name. Fresh decode
+ * 2026-05-29 (m2c-assisted), upgraded from structural-comment marker. Logic
+ * complete; below promote threshold — caps: self struct + 6 USO cb prototypes
+ * untyped (USO-relocated), 0x20xxx string/handler-table offsets not symbolized,
+ * nested-alloc dead-branch emission order. Kept NON_MATCHING. */
+extern int gl_func_00000000();
+void gl_func_000519A4(char *self) {
+    char name[256];
+    int fmtSel;
+    int *o3;
+    int *o2;
+    int *o1;
+
+    fmtSel = 0x20EEC;
+    if (*(int *)(self + 0x38) & 0x400000) {
+        fmtSel = 0x20EE8;
+    }
+    if (*(int *)(self + 0x14) == 0) {
+        return;
+    }
+    if (*(int *)(self + 0x4C) != 0) {
+        gl_func_00000000(name, 0x20EF0, *(int *)(self + 0x18), self + 0x58, fmtSel);
+    } else {
+        gl_func_00000000(name, 0x20F04, *(int *)(self + 0x18), self + 0x58, fmtSel);
+    }
+    o3 = (int *)gl_func_00000000(0x10);
+    if (o3 != 0) {
+        o2 = (int *)gl_func_00000000(0x10);
+        if (o2 != 0) {
+            o1 = (int *)gl_func_00000000(4);
+            if (o1 != 0) {
+                *o1 = 0x20740;
+            }
+            o2[1] = (int)self;
+            o2[2] = *(int *)0x20630;
+            o2[3] = *(int *)0x20634;
+        }
+        *o3 = 0x20D88;
+    }
+    gl_func_00000000(0, name, o3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000519A4);
+#endif
 
 // gl_func_00051AD8 — STRUCTURAL PASS (0x3C0 / 240 words, no episode).
 // Raw-.word USO. realjr=1 (epilogue), regjr=1 = the JUMP-TABLE
