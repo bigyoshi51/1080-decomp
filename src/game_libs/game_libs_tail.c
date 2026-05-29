@@ -1787,7 +1787,68 @@ void gl_func_0000C714(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000C784: constructor. Allocs self (0xB8) if arg0==NULL; inits via
+ * cb(self, 0xD678); sets self->0x28 = &D_00000000; zeros ~17 scalar fields;
+ * allocs a 0x300 buffer into self->0x44; a 2-iteration do-while loop (v1 += 0x180,
+ * bound 0x300) zeros 8 records in the buffer (re-reading self->0x44 per store, no
+ * CSE); then cb(self), cb(*(int*)(&D+0x134), self), cb(self). Returns self. Fresh
+ * decode 2026-05-29 (m2c-confirmed, m2c-faithful short-circuit head). 93.5% reg-
+ * blind, exact 77-insn count. Residuals: (a) move s0,a0 / bnez ordering (IDO
+ * schedules the branch first; a scheduling choice not C-drivable); (b) the 0xD678
+ * arg — target bakes it as a literal lui 0x1; addiu -10632 (USO-relocated data
+ * address baked at disasm time), so `&D_0000D678` gets the right lui+addiu FORM but
+ * emits R_MIPS_HI16/LO16 relocs the literal baseline lacks — a splat-symbolization
+ * cap, not C-fixable. Caps: self struct + 3 cb prototypes untyped. NON_MATCHING. */
+extern int gl_func_00000000();
+extern char D_0000D678;
+void *gl_func_0000C784(char *arg0) {
+    char *self;
+    int v1;
+
+    self = arg0;
+    if ((self != 0) || (self = (char *)gl_func_00000000(0xB8), (self != 0))) {
+        gl_func_00000000(self, &D_0000D678);
+        *(char **)(self + 0x28) = (char *)&D_00000000;
+        *(int *)(self + 0x4C) = 0;
+        *(int *)(self + 0xB4) = 0;
+        *(int *)(self + 0x5C) = 0;
+        *(int *)(self + 0x58) = 0;
+        *(int *)(self + 0x54) = 0;
+        *(int *)(self + 0x68) = 0;
+        *(int *)(self + 0x64) = 0;
+        *(int *)(self + 0x60) = 0;
+        *(int *)(self + 0x6C) = 0;
+        *(int *)(self + 0x70) = 0;
+        *(int *)(self + 0x8C) = 0;
+        *(int *)(self + 0x78) = 0;
+        *(int *)(self + 0x80) = 0;
+        *(int *)(self + 0x84) = 0;
+        *(int *)(self + 0x94) = 0;
+        *(int *)(self + 0x98) = 0;
+        *(int *)(self + 0x48) = 0;
+        *(int *)(self + 0x44) = gl_func_00000000(0x300);
+        v1 = 0;
+        do {
+            *(int *)(*(char **)(self + 0x44) + v1) = 0;
+            *(int *)(*(char **)(self + 0x44) + v1 + 4) = 0;
+            *(int *)(*(char **)(self + 0x44) + v1 + 0x60) = 0;
+            *(int *)(*(char **)(self + 0x44) + v1 + 0x64) = 0;
+            *(int *)(*(char **)(self + 0x44) + v1 + 0xC0) = 0;
+            *(int *)(*(char **)(self + 0x44) + v1 + 0xC4) = 0;
+            *(int *)(*(char **)(self + 0x44) + v1 + 0x120) = 0;
+            *(int *)(*(char **)(self + 0x44) + v1 + 0x124) = 0;
+            v1 += 0x180;
+        } while (v1 != 0x300);
+        gl_func_00000000(self);
+        gl_func_00000000(*(int *)((char *)&D_00000000 + 0x134), self);
+        gl_func_00000000(self);
+    }
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C784);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C8B8);
 
