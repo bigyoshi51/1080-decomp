@@ -862,7 +862,64 @@ void mgrproc_uso_func_00002924(int *a0) {
     *(float *)((char *)a0 + 0x554) = 170.0f;
 }
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00002940: constructor. 4-level nested alloc-if-null cascade
+ * (0x174/0xD4/0x50/0x2C — IDO emits the inner bails as complementary dead blocks,
+ * m2c-faithful ||/&& form preserves them); innermost cb(obj, 0x650, self) + zeroes
+ * ->0x28 at each level. Then field inits (0x60=arg2, 0xE0/E4/D8/DC/E8/EC color-ish
+ * consts, 0x16C=0, 0x168=1.0f, 0xD4=arg1), cb(0x18,7,self), 0x170=0xFA, four
+ * cb(self+sub, 0x23000N) installs, and a final cb(self+0x150, packed &D-derived
+ * id). Returns self. Fresh decode 2026-05-29 (m2c-confirmed). 77.3% reg-blind, 109/
+ * 111 insns. NOTE: the per-level ->0x28 stores are &D_00000000 (a ptr), not 0 — m2c
+ * rendered the reloc as 0. Residual: 2 insns from inner-alloc dead-block partial
+ * fold + spill regalloc. Caps: self struct + cb prototypes untyped (USO-reloc),
+ * &D literals not symbolized. NON_MATCHING. */
+extern int gl_func_00000000();
+void *mgrproc_uso_func_00002940(char *arg0, int arg1, int arg2) {
+    char *s0 = arg0;
+    char *a2;
+    char *v1;
+    char *a0;
+
+    if ((arg0 != 0) || (s0 = (char *)gl_func_00000000(0x174), (s0 != 0))) {
+        a2 = s0;
+        if ((s0 != 0) || (a2 = (char *)gl_func_00000000(0xD4), (a2 != 0))) {
+            v1 = a2;
+            if ((a2 != 0) || (v1 = (char *)gl_func_00000000(0x50), (v1 != 0))) {
+                a0 = v1;
+                if ((v1 != 0) || (a0 = (char *)gl_func_00000000(0x2C), (a0 != 0))) {
+                    gl_func_00000000(a0, 0x650, a2);
+                    *(char **)(a0 + 0x28) = (char *)&D_00000000;
+                }
+                *(char **)(v1 + 0x28) = (char *)&D_00000000;
+            }
+            *(char **)(a2 + 0x28) = (char *)&D_00000000;
+        }
+        *(char **)(s0 + 0x28) = (char *)&D_00000000;
+        *(int *)(s0 + 0x60) = arg2;
+        *(int *)(s0 + 0xE0) = 0xA0;
+        *(int *)(s0 + 0xE4) = 0x1D;
+        *(int *)(s0 + 0xD8) = 0xA0;
+        *(int *)(s0 + 0xDC) = 0x82;
+        *(int *)(s0 + 0xE8) = 0xA0;
+        *(int *)(s0 + 0xEC) = 0x69;
+        *(int *)(s0 + 0x16C) = 0;
+        *(float *)(s0 + 0x168) = 1.0f;
+        *(int *)(s0 + 0xD4) = arg1;
+        gl_func_00000000(0x18, 7, a2);
+        *(int *)(s0 + 0x170) = 0xFA;
+        gl_func_00000000(s0 + 0xF0, 0x230004);
+        gl_func_00000000(s0 + 0x108, 0x230003);
+        gl_func_00000000(s0 + 0x120, 0x230005);
+        gl_func_00000000(s0 + 0x138, 0x230006);
+        gl_func_00000000(s0 + 0x150,
+                         ((*(int *)&D_00000000 + 0x23) << 16) | (*(int *)((char *)&D_00000000 + 0x68) - 1));
+    }
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002940);
+#endif
 
 /* mgrproc_uso_func_00002AFC: 32-insn (0x80) FP step-decrement-and-notify
  * helper on a0->0x168 (float). If positive, decrement by D[0x614] and
