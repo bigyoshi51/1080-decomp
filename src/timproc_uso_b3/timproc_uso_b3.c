@@ -1238,7 +1238,73 @@ void timproc_uso_b3_func_0000294C(char *a2) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000294C);
 #endif
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_00002A44: HUD draw dispatcher (near-exact clone of
+ * timproc_uso_b1_func_00002838; only the middle panel ID differs 0x1C0->0x1D8).
+ * switch arg0->0x50 (0/1/2); draw-target IDs are &D-relative addresses; both
+ * 0x178 loads are lbu; case 2 falls through to case 0 (return). Fresh decode
+ * 2026-05-29 (m2c-confirmed). Caps: structs + cb prototypes untyped (USO-reloc),
+ * &D not symbolized. NON_MATCHING. */
+extern int gl_func_00000000();
+void timproc_uso_b3_func_00002A44(char *arg0) {
+    int v0;
+    int a2;
+    int t1;
+
+    gl_func_00000000();
+    *(int *)(arg0 + 0x5C) = *(int *)(arg0 + 0x5C) - 0x10;
+    switch (*(int *)(arg0 + 0x50)) {
+    case 1:
+        gl_func_00000000(0);
+        gl_func_00000000((char *)&D_00000000 + 0x1F0);
+        gl_func_00000000((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
+        gl_func_00000000(arg0, 0x25);
+        gl_func_00000000(arg0, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
+        gl_func_00000000((char *)&D_00000000 + 0x1D8);
+        gl_func_00000000((char *)&D_00000000 + 0x1D8);
+        gl_func_00000000((char *)&D_00000000 + 0x1D8, 0xA0, 0x69, 3);
+        t1 = *(int *)&D_00000000;
+        v0 = *(int *)(arg0 + 0x68);
+        if (t1 != 0) {
+            v0 += 0xA;
+        }
+        a2 = v0 - 0x27;
+        if (t1 != 0) {
+            a2 -= 0xE;
+        }
+        gl_func_00000000((char *)&D_00000000 + 0x148);
+        gl_func_00000000((char *)&D_00000000 + 0x148);
+        gl_func_00000000((char *)&D_00000000 + 0x148, 0xA0, a2, 3);
+        gl_func_00000000(arg0, v0 - 0x14);
+        return;
+    case 2:
+        gl_func_00000000(0);
+        gl_func_00000000((char *)&D_00000000 + 0x1F0);
+        gl_func_00000000((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
+        gl_func_00000000(arg0, 0x25);
+        gl_func_00000000(arg0, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
+        gl_func_00000000((char *)&D_00000000 + 0x1D8);
+        gl_func_00000000((char *)&D_00000000 + 0x1D8);
+        gl_func_00000000((char *)&D_00000000 + 0x1D8, 0xA0, 0x69, 3);
+        gl_func_00000000((char *)&D_00000000 + 0x160);
+        gl_func_00000000((char *)&D_00000000 + 0x160);
+        gl_func_00000000((char *)&D_00000000 + 0x160, 0xA0, 0x8E, 3);
+        v0 = *(int *)(arg0 + 0x68);
+        if (*(int *)&D_00000000 != 0) {
+            v0 -= 8;
+        }
+        gl_func_00000000((char *)&D_00000000 + 0x178);
+        gl_func_00000000((char *)&D_00000000 + 0x178);
+        gl_func_00000000((char *)&D_00000000 + 0x178, 0xA0, v0 - 0x13, 3);
+        gl_func_00000000(arg0, v0);
+        break;
+    case 0:
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002A44);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002C98);
 
