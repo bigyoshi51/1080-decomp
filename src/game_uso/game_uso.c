@@ -10101,37 +10101,30 @@ void game_uso_func_0000D8A8(char *a0) {
  *   L_BC: t6 = v1->[0x9D4]; if (t6 >= 11) gl_func(a0); */
 #ifdef NON_MATCHING
 void game_uso_func_0000D8EC(int *a0) {
-    int *v1 = (int*)*(int*)((char*)a0 + 0xB4);
-    int *ptr;
     int *v0;
-    int t8, a1;
+    int a1;
 
-    if (*(int*)((char*)v1 + 0x938) == 0) goto L_BC;
-    ptr = *(int**)&D_00000000;
-    if (ptr != 0) {
-        t8 = *(int*)((char*)a0 + 0x118);
+    if (*(int*)((char*)(int*)*(int*)((char*)a0 + 0xB4) + 0x938) == 0) goto L_BC;
+    if (*(int**)&D_00000000 != 0) {
         a1 = 0;
-        if (t8 != 0) {
-            v0 = (int*)*(int*)((char*)v1 + 0x800);
+        if (*(int*)((char*)a0 + 0x118) != 0) {
+            v0 = (int*)*(int*)((char*)(int*)*(int*)((char*)a0 + 0xB4) + 0x800);
             if ((*(int*)((char*)v0 + 0x18) & 0x100) != 0) a1 = 1;
         } else {
-            v0 = (int*)*(int*)((char*)v1 + 0x800);
+            v0 = (int*)*(int*)((char*)(int*)*(int*)((char*)a0 + 0xB4) + 0x800);
             if ((*(int*)((char*)v0 + 0x10) & 0x100) != 0) a1 = 1;
         }
         if (a1 != 0) {
-            register int *t = (int*)((char*)&D_00000000 + 0xEB8);
-            gl_func_00000000(a0, t[0], t[1]);
+            gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xEB8));
             *(short*)((char*)a0 + 0xE4) = 0;
             *(int*)((char*)a0 + 0x118) = 0;
-            v1 = (int*)*(int*)((char*)a0 + 0xB4);
         }
     } else {
         *(short*)((char*)a0 + 0xE4) = 0;
         gl_func_00000000(a0);
-        v1 = (int*)*(int*)((char*)a0 + 0xB4);
     }
 L_BC:
-    if (*(int*)((char*)v1 + 0x9D4) >= 11) {
+    if (*(int*)((char*)(int*)*(int*)((char*)a0 + 0xB4) + 0x9D4) >= 11) {
         gl_func_00000000(a0);
     }
 }
