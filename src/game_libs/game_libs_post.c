@@ -21096,26 +21096,32 @@ int gl_func_0003F8B0(int a0) {
 //
 // Caps (DEFERRED): scratch-buffer layout, the two D_g* globals and cbN
 //   signatures inferred from call shape; arg-struct untyped. Real-C
-//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
+//   STRUCTURAL body below. Name pre-checked: no extern reuse.
+// 2026-05-29: 87.48% -> 96.0%. Three fixes: (1) the two module globals are
+//   DISTINCT (separate lui each) -> distinct externs D_f8e8_g1/g2 = 0x0; (2) the
+//   tag is a WORD (sw 0x1D), so `int tag` not `char tag[]` (was sb); (3) status
+//   reads from bufB+8 (sp+0x68), not bufA. RESIDUAL (~4%): exact stack-buffer
+//   offsets (tag@0x18/bufA@0x20/bufB@0x60) need layout brute-force — my locals
+//   land +8/+12 shifted — plus a 1-insn dead home of the unused a1 param the
+//   target omits. Structural/regalloc, not logic.
 #ifdef NON_MATCHING
-extern int D_00000000;
+extern int D_f8e8_g1, D_f8e8_g2;
 int gl_func_0003F8E8(void *a0, int a1, int a2) {
+    int tag;
     char bufA[0x40];
-    char bufB[0x40];
-    char tag[0x10];
+    char bufB[0x50];
     int st;
     int r;
     gl_func_00000000(&bufA[0]);
     gl_func_00000000(&bufB[0], a2);
-    tag[0] = 0x1D;
-    gl_func_00000000(&tag[0]);
-    gl_func_00000000(&tag[0]);
-    st = *(int *)&bufA[0x48];
+    tag = 0x1D;
+    gl_func_00000000(&tag);
+    gl_func_00000000(&tag);
+    st = *(int *)&bufB[8];
     if (st == -1) return 0;
     r = gl_func_00000000(a0);
-    *(int *)((char *)&D_00000000 + 0x4) = r;
-    *(int *)((char *)&D_00000000 + 0x8) = 1;
+    D_f8e8_g1 = r;
+    D_f8e8_g2 = 1;
     return 1;
 }
 #else
