@@ -12613,8 +12613,12 @@ int gl_func_00033B28(int a0, int a1, int a2) {{
 // gl_func_00033B6C — STRUCTURAL PASS (0x78 / 30 words, no episode).
 // 2026-05-27 lever pass: decl-order swap (f30 first) brought 24/30→26/30.
 // Reverse-decl (end first) regressed to 22/30. Remaining 4 diffs are
-// addiu-scheduling within the lui+addiu sequence (target schedules in
-// reverse-lui order; mine in lui order). Permuter-class.
+// addiu-scheduling within the lui+addiu sequence (target schedules the 4
+// loop-invariant pointer-setup addiu in reverse-reg order s3,s2,s1,s0; mine
+// in s0,s1,s2,s3). 2026-05-29: PERMUTER CONFIRMED RESISTANT (ran -j4, 28k
+// iters, floored at base score 85, never below) AND manual decl/advance/
+// body reorderings don't flip it — the preheader address-setup ordering is a
+// deterministic IDO scheduler choice, not C-reachable. Permanent 98.67% cap.
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
 // prologue). A sweep / reset-all over the &D_0 registry table —
 // the teardown counterpart to gl_func_000337AC / gl_func_00033880.
