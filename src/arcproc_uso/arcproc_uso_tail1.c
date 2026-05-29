@@ -1194,7 +1194,121 @@ void arcproc_uso_func_00001F0C(char *a0) {
     gl_func_00000000(a0);
 }
 
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00001F54: UI animation/draw orchestrator (sibling of the
+ * mgrproc per-frame steps). Gate arg0->0xBC bit-16 && ->0x4DC==1: bump 0x30,
+ * decrement 0xA0 by 0x21 (floor 0 + cleanup). Then if gated: optional 4-draw
+ * block; ramp arg0->0xA8 toward arg0->0x44->0x18 by 0xFA/0x32/0x19/1; draw; in
+ * states 0/1 three more draws (one with a 0.0f float arg via gl_proto_1f54); if
+ * arg0->0x44->0x1C: enable a sub-widget (0x94) + ramp its 0x20 by 0x32/5/1, else
+ * disable; in state 2 (0x4F8==0) blink 0x8C by (0xAC++ & 8). cb(arg0) tail. Fresh
+ * decode 2026-05-29 (m2c-confirmed). 80.6% reg-blind. Residual: float-call mfc1
+ * arg setup + spill regalloc. Caps: structs + cb prototypes untyped (USO-reloc).
+ * NON_MATCHING. */
+extern int gl_proto_1f54(void *, int, int, float, float);
+void arcproc_uso_func_00001F54(char *arg0) {
+    char *bc;
+    char *p44;
+    char *p94;
+    char *p8c;
+    int a1;
+    int rem;
+    int v0;
+    int t8;
+    int t2;
+    int a;
+    int r;
+
+    bc = *(char **)(arg0 + 0xBC);
+    if ((*(int *)(bc + 0x4F0) & 0x10000) && (*(int *)(bc + 0x4DC) == 1)) {
+        *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;
+        gl_func_00000000();
+        gl_func_00000000(arg0);
+        t2 = *(int *)(arg0 + 0xA0) - 0x21;
+        *(int *)(arg0 + 0xA0) = t2;
+        if (t2 < 0) {
+            *(int *)(arg0 + 0xA0) = 0;
+            gl_func_00000000(*(int *)(arg0 + 0x84), 0, 0);
+            gl_func_00000000(*(int *)(arg0 + 0xBC));
+            *(int *)(arg0 + 0x2C) = 0;
+        }
+    }
+    gl_func_00000000(arg0);
+    bc = *(char **)(arg0 + 0xBC);
+    if (*(int *)(bc + 0x4F0) & 0x10000) {
+        if ((*(int *)(bc + 0x4DC) == 1) && (*(int *)(*(char **)(arg0 + 0x44) + 0x34) != 0)) {
+            gl_func_00000000(arg0);
+            gl_func_00000000(arg0, *(int *)(arg0 + 0xA0));
+            gl_func_00000000(*(int *)(arg0 + 0x84), *(int *)(arg0 + 0xA0), 0);
+            gl_func_00000000(*(int *)(arg0 + 0xBC));
+        }
+        a1 = *(int *)(arg0 + 0xA8);
+        rem = *(int *)(*(char **)(arg0 + 0x44) + 0x18) - a1;
+        if (rem >= 0xFA) {
+            a1 += 0xFA;
+            *(int *)(arg0 + 0xA8) = a1;
+        } else if (rem >= 0x32) {
+            a1 += 0x32;
+            *(int *)(arg0 + 0xA8) = a1;
+        } else if (rem >= 0x19) {
+            a1 += 0x19;
+            *(int *)(arg0 + 0xA8) = a1;
+        } else if (rem > 0) {
+            a1 += 1;
+            *(int *)(arg0 + 0xA8) = a1;
+        }
+        gl_func_00000000(*(int *)(arg0 + 0x8C), a1);
+        v0 = *(int *)(*(char **)(arg0 + 0xBC) + 0x4DC);
+        if ((v0 == 1) || (v0 == 0)) {
+            gl_func_00000000(*(int *)(arg0 + 0x84), *(int *)(arg0 + 0xA0), 1);
+            gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 0x30), 0);
+            p44 = *(char **)(arg0 + 0x44);
+            gl_proto_1f54(*(int *)(arg0 + 0x80), *(int *)(p44 + 8), *(int *)(p44 + 0xC), 0.0f, 0.0f);
+        }
+        if (*(int *)(*(char **)(arg0 + 0x44) + 0x1C) != 0) {
+            gl_proto_1f54(*(int *)(arg0 + 0x94), 0xA0, 0x46, 1.0f, 1.0f);
+            *(int *)(*(char **)(arg0 + 0x94) + 0x78) = 0xFF;
+            p94 = *(char **)(arg0 + 0x94);
+            *(int *)(p94 + 0x18) = *(int *)(p94 + 0x18) | 4;
+            p44 = *(char **)(arg0 + 0x44);
+            a = *(int *)(p44 + 0x20);
+            r = *(int *)(p44 + 0x1C) - a;
+            if (r >= 0x32) {
+                *(int *)(p44 + 0x20) = *(int *)(p44 + 0x20) + 0x32;
+                gl_func_00000000(0x20, 0x32);
+                a = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
+            } else if (r >= 5) {
+                *(int *)(p44 + 0x20) = *(int *)(p44 + 0x20) + 5;
+                gl_func_00000000(0x20, 5);
+                a = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
+            } else if (r > 0) {
+                *(int *)(p44 + 0x20) = *(int *)(p44 + 0x20) + 1;
+                gl_func_00000000(0x20, 1);
+                a = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
+            }
+            gl_func_00000000(*(int *)(arg0 + 0x94), a);
+        } else {
+            p94 = *(char **)(arg0 + 0x94);
+            *(int *)(p94 + 0x18) = *(int *)(p94 + 0x18) & ~4;
+        }
+        bc = *(char **)(arg0 + 0xBC);
+        if ((*(int *)(bc + 0x4DC) == 2) && (*(int *)(bc + 0x4F8) == 0)) {
+            t8 = *(int *)(arg0 + 0xAC) + 1;
+            *(int *)(arg0 + 0xAC) = t8;
+            if (t8 & 8) {
+                p8c = *(char **)(arg0 + 0x8C);
+                *(int *)(p8c + 0x18) = *(int *)(p8c + 0x18) & ~4;
+            } else {
+                p8c = *(char **)(arg0 + 0x8C);
+                *(int *)(p8c + 0x18) = *(int *)(p8c + 0x18) | 4;
+            }
+        }
+    }
+    gl_func_00000000(arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F54);
+#endif
 
 void arcproc_uso_func_000022A4(char *dst) {
     int tmp;
