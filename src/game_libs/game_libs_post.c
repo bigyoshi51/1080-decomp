@@ -31257,19 +31257,21 @@ void gl_func_0005C66C(int a0, float *vec) {
    first; then for each of 4 rows (row ptr advances 0x10 = 4 floats):
    for each of 4 cols log(&D_00000000+0x21B0C, (double)row[col]); then
    log(&D_00000000+0x21B10) as the row separator.
-   DEFERRED: FP+varargs+sreg medium cap — cvt.d.s/mfc1 double pair for
-   the %f arg, two nested bne-counter loops (inner s0!=0x10 step 4,
-   outer s4!=4), heavy $s0-$s7 callee-save pinning (a1->$s5 row base,
-   const fmts in $s2/$s6), frame 0x38, three distinct jal relocs
-   (header / per-cell / row-sep). Next pass: resolve the relocs and
-   grind the sreg/loop-induction schedule (matrix-printer twin of the
-   0005Bxxx float-format-log family). */
+   2026-05-28: 97.75% -> 99.96%. Fixed call 1 to PASS a0 — the header
+   log is header(a0), not header(); the argless form made IDO needlessly
+   home the live incoming a0 (the +1-insn `sw a0` cap). Size now matches
+   (48 insns). RESIDUAL (2 diffs): the OUTER loop's induction variable —
+   IDO strength-reduces `p = a1 + row*4` so the row counter counts by 16
+   to 64 (li s7,64 / addiu s4,16) vs the target's by-1 trip counter to 4
+   (li s7,4 / addiu s4,1) alongside a separate +16 row-base pointer. The
+   same induction cap as gl_func_0005BDC0; a separate advancing `p` (p+=4)
+   only swaps the s4/s5 roles and regresses to 8 diffs. Stays NM 99.96%. */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0005C6C4(int a0, float *a1) {
     int row, col;
     float *p;
-    gl_func_00000000();
+    gl_func_00000000(a0);
     for (row = 0; row < 4; row++) {
         p = a1 + row * 4;
         for (col = 0; col < 4; col++) {
