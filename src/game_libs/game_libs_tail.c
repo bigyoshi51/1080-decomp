@@ -2196,7 +2196,52 @@ void gl_func_0000D6E8(int *o, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D6E8);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0000D7B8: gated initializer. Guarded by arg0->0x6C != 0 && (arg0->0xB4
+ * & 2): calls cb(0x27, arg1+arg2), then cb2(arg0->0x6C, arg1, 0, 1) -> v0; writes
+ * float fields (70.0f, three 0.0f, and the 250/235/100/255-over-255 ratios via
+ * runtime div.s), int 14, arg0->0x6C+0x108, calls cb3(v0, 1.0f, 1.0f) (float args
+ * via mfc1/int-reg, hence the gl_proto_d7b8 typed alias), sets v0->0x78=255. Then
+ * a second gate arg0->0x6C != 0 && (arg0->0xB4 & 1) calls cb(arg0->0x6C). Fresh
+ * decode 2026-05-29 (m2c-confirmed). 87.7% reg-blind. KEY: the x/255 ratios use a
+ * VARIABLE divisor (`float denom = 255.0f`) to force the 4 runtime div.s — written
+ * as literal `250.0f/255.0f`, IDO constant-folds to a precomputed lwc1 pool (63%);
+ * the variable divisor restored div.s and jumped it to 88%. Residuals: 255/255
+ * numerator reg (f6 vs f0 CSE), v0 spill-slot offset, float-pass reg — deep
+ * regalloc/scheduling. Caps: arg0/v0 structs + cb prototypes untyped. NON_MATCHING. */
+extern int gl_func_00000000();
+extern int gl_proto_d7b8(void *, float, float);
+void gl_func_0000D7B8(char *arg0, int arg1, int arg2) {
+    int a3;
+    char *v0;
+    float denom;
+
+    a3 = *(int *)(arg0 + 0x6C);
+    if ((a3 != 0) && (*(int *)(arg0 + 0xB4) & 2)) {
+        gl_func_00000000(0x27, arg1 + arg2);
+        v0 = (char *)gl_func_00000000(*(int *)(arg0 + 0x6C), arg1, 0, 1);
+        denom = 255.0f;
+        *(float *)(v0 + 0x5C) = 70.0f;
+        *(float *)(v0 + 0xA4) = 0.0f;
+        *(float *)(v0 + 0xA8) = 0.0f;
+        *(float *)(v0 + 0xAC) = 0.0f;
+        *(float *)(v0 + 0x64) = 250.0f / denom;
+        *(float *)(v0 + 0x68) = 235.0f / denom;
+        *(float *)(v0 + 0x6C) = 100.0f / denom;
+        *(float *)(v0 + 0x70) = 255.0f / denom;
+        *(int *)(v0 + 0x9C) = 14;
+        *(int *)(v0 + 0xA0) = *(int *)(arg0 + 0x6C) + 0x108;
+        gl_proto_d7b8(v0, 1.0f, 1.0f);
+        *(int *)(v0 + 0x78) = 255;
+        a3 = *(int *)(arg0 + 0x6C);
+    }
+    if ((a3 != 0) && (*(int *)(arg0 + 0xB4) & 1)) {
+        gl_func_00000000(a3);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D7B8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
 
