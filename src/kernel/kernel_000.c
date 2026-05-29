@@ -150,22 +150,21 @@ extern s32 D_80012D5C;
  *   blocks. */
 #ifdef NON_MATCHING
 u32 func_800000B0(u32 size, u32 alignment) {
-    u32 mask;
-    u32 result;
+    u32 v;  /* reused: mask, then the returned heap ptr — shares $v0 like target */
     u32 new_top;
 
-    mask = alignment - 1;
-    if (size & mask) {
-        size = (size + alignment) & ~mask;
+    v = alignment - 1;
+    if (size & v) {
+        size = (size + alignment) & ~v;
     }
-    result = D_8000A2D8;
-    new_top = result + size;
+    v = D_8000A2D8;
+    new_top = v + size;
     D_8000A2D8 = new_top;
     D_80012D5C += size;
     if (new_top >= D_8000A2DC) {
         return 0U;
     }
-    return result;
+    return v;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800000B0);
