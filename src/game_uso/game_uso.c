@@ -11062,20 +11062,16 @@ void game_uso_func_0000EE74(void *a0) {
  * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void game_uso_func_0000EE84(int *a0) {
-    int *p = (int *)a0[0xB4 / 4];
     int a1;
-    *(float *)((char *)p + 0xA74) = 0.0f;
-    p = (int *)a0[0xB4 / 4];
-    *(float *)((char *)p + 0xA70) = 0.0f;
-    p = (int *)a0[0xB4 / 4];
-    if (*(int *)((char *)p + 0x9CC) != 0) {
+    *(float *)((char *)(int *)a0[0xB4 / 4] + 0xA74) = 0.0f;
+    *(float *)((char *)(int *)a0[0xB4 / 4] + 0xA70) = 0.0f;
+    if (*(int *)((char *)(int *)a0[0xB4 / 4] + 0x9CC) != 0) {
         a1 = a0[0xFC / 4] | 0x24;
     } else {
         a1 = a0[0xFC / 4] | 0x1D;
     }
     func_00000000(a0, a1, 0, 1, 1, 1);
-    func_00000000(a0, *(int *)((char *)&D_00000000 + 0xE98),
-                  *(int *)((char *)&D_00000000 + 0xE9C), 1);
+    func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xE98), 1);
     func_00000000(a0);
 }
 #else
@@ -12171,22 +12167,17 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010408);
  * the same t[0]/t[1] vararg-spill call shape used by nearby wrappers. */
 #ifdef NON_MATCHING
 void game_uso_func_000104A4(char *a0) {
-    int *obj;
-    int *t;
 
     gl_func_00000000(a0);
-    obj = *(int **)(a0 + 0xB4);
-    obj[0x286] = 1;
+    (*(int **)(a0 + 0xB4))[0x286] = 1;
     gl_func_00000000(a0, 0);
 
     if (gl_func_00000000(a0) == 0) {
-        obj = *(int **)(a0 + 0xB4);
-        if (obj[0x24E] != 0) {
+        if ((*(int **)(a0 + 0xB4))[0x24E] != 0) {
             gl_func_00000000(a0, 1);
             gl_func_00000000(a0);
             gl_func_00000000(a0, *(int *)(a0 + 0xFC) | 0x19, 5, 1, 1, 1);
-            t = (int *)((char *)&D_00000000 + 0xE10);
-            gl_func_00000000(a0, t[0], t[1], 1);
+            gl_func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xE10), 1);
             gl_func_00000000(a0);
         }
     }
@@ -12482,20 +12473,15 @@ void game_uso_func_00010BAC(char *a0) {
 
 #ifdef NON_MATCHING
 void game_uso_func_00010C4C(char *a0) {
-    char *sub;
-
-    sub = *(char**)(a0 + 0xB4);
-    gl_func_00000000(a0, 0x20007, 0x20006, *(int*)(sub + 0xA04), 0, 1);
+    gl_func_00000000(a0, 0x20007, 0x20006,
+                     *(int*)(*(char**)(a0 + 0xB4) + 0xA04), 0, 1);
 
     if (*(int*)(a0 + 0xD8) == 0) {
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE48),
-                         *(int*)((char*)&D_00000000 + 0xE4C));
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE48));
     }
 
-    sub = *(char**)(a0 + 0xB4);
-    if (*(int*)(sub + 0x9CC) == 0) {
-        gl_func_00000000(a0, GAME_D_E10,
-                         GAME_D_E14);
+    if (*(int*)(*(char**)(a0 + 0xB4) + 0x9CC) == 0) {
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     }
 }
 #else
@@ -12828,13 +12814,11 @@ void game_uso_func_00011428(int *a0) {
  * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 void game_uso_func_00011460(int *a0) {
-    int *p = (int *)a0[0xB4 / 4];
-    int a1 = (int)(((unsigned int)p[0x8C4 / 4] % 5U) + 10) | 0x70000;
+    int v = (int)((unsigned int)((int *)a0[0xB4 / 4])[0x8C4 / 4] % 5U);
+    int a1 = (v + 10) | 0x70000;
     func_00000000(a0, a1, 0, 2, 1, 1);
-    func_00000000(a0, *(int *)((char *)&D_00000000 + 0xEF8),
-                  *(int *)((char *)&D_00000000 + 0xEFC), 2);
-    func_00000000(a0, *(int *)((char *)&D_00000000 + 0xF00),
-                  *(int *)((char *)&D_00000000 + 0xF04));
+    func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xEF8), 2);
+    func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xF00));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011460);
