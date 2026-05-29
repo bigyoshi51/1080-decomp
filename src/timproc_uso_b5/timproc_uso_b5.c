@@ -1243,23 +1243,21 @@ void *timproc_uso_b5_func_000032C8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
 #endif
 
-#ifdef NON_MATCHING
-/* Zero fields: 0x2B4 (int), 0x164/0x168/0x16C/0x2A0 (float). Faithful decode
- * but 7/8: the target materializes 0.0f into BOTH $f0 and $f4 (the 2nd mtc1
- * fills $f0's load-delay slot, and $f4 then feeds the 0x2A0 delay-slot store),
- * while IDO fills $f0's delay with the int store and reuses $f0 for all floats
- * (1 insn fewer). 0.0f CSE prevents forcing the 2nd reg; load-delay scheduling
- * choice, not C-controllable. */
+/* Zero fields: 0x2B4 (int), 0x164/0x168/0x16C/0x2A0 (float). The target uses
+ * TWO zero FP regs — $f0 for the first three stores, $f4 for the 0x2A0
+ * delay-slot store. Plain `0.0f` CSEs to a single reg (1 insn short); storing
+ * INT 0 through a separate `float*` variable for the last store defeats the
+ * CSE and forces the 2nd `mtc1 zero,$f4`. (permuter-found; the old "0.0f CSE
+ * not C-controllable" note was wrong.) */
 void timproc_uso_b5_func_00003890(int *a0) {
+    float *p;
     *(int *)((char *)a0 + 0x2B4) = 0;
     *(float *)((char *)a0 + 0x164) = 0.0f;
     *(float *)((char *)a0 + 0x168) = 0.0f;
     *(float *)((char *)a0 + 0x16C) = 0.0f;
-    *(float *)((char *)a0 + 0x2A0) = 0.0f;
+    p = (float *)((char *)a0 + 0x2A0);
+    *p = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003890);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038B0);
 
