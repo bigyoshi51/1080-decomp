@@ -34517,7 +34517,68 @@ int gl_func_0006280C(int *self, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006280C);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_000628EC: 5-arg constructor (arg4 stack-passed). Allocs self (0x130)
+ * if arg0==NULL; inits via cb(self, 0x22128); clears low bit of self->0x110;
+ * homes arg4->0x10C, arg1->0x54, arg3->0x48; OR's 0x1000 into self->8; zeros a
+ * block of float fields (0xF0/EC/E8/D8/D4/D0/78/74/70/60/5C/58) and sets 1.0f in
+ * another (0xF4/DC/E0/E4/7C/64/68/6C); finalizes via cb(arg2+0x30, self). Returns
+ * self. Fresh decode 2026-05-29 (m2c-confirmed, m2c-faithful short-circuit form).
+ * 52.5% reg-blind, exact 80-insn count. Residuals: (a) target reserves a ~120-byte
+ * stack region (frame 0x98) that nothing writes — an unreconstructable local from
+ * this function alone, so my frame is 0x38 and every sp-offset is shifted; (b) FP
+ * constant regalloc swap (mine 0.0f->f2/1.0f->f0, target f0/f2 — IDO assigns the
+ * lui-loaded 1.0 vs free 0.0 opposite to use order, not C-drivable); (c) the
+ * self->0x110 null-check/sub-alloc dead blocks (same family as gl_func_000519A4).
+ * Caps: self struct + 2 cb prototypes untyped (USO-reloc). Kept NON_MATCHING. */
+extern int gl_func_00000000();
+void *gl_func_000628EC(char *arg0, int arg1, int arg2, int arg3, int arg4) {
+    char *self;
+    int *a1p;
+    int *v1p;
+    int *a0p;
+
+    self = arg0;
+    if ((arg0 != 0) || (self = (char *)gl_func_00000000(0x130), (self != 0))) {
+        gl_func_00000000(self, 0x22128);
+        a1p = (int *)(self + 0x110);
+        v1p = a1p;
+        if (((self != (char *)-0x110) || (v1p = (int *)gl_func_00000000(4, a1p), (v1p != 0))) &&
+            ((a0p = v1p, (v1p != 0)) || (a0p = (int *)gl_func_00000000(4, a1p), (a0p != 0)))) {
+            *a0p = 0;
+        }
+        *(int *)(self + 0x10C) = arg4;
+        *(int *)(self + 8) |= 0x1000;
+        *(int *)(self + 0x54) = arg1;
+        *(int *)(self + 0x48) = arg3;
+        *a1p &= ~1;
+        *(float *)(self + 0xF0) = 0.0f;
+    *(float *)(self + 0xEC) = 0.0f;
+    *(float *)(self + 0xE8) = 0.0f;
+    *(float *)(self + 0xD8) = 0.0f;
+    *(float *)(self + 0xD4) = 0.0f;
+    *(float *)(self + 0xD0) = 0.0f;
+    *(float *)(self + 0x78) = 0.0f;
+    *(float *)(self + 0x74) = 0.0f;
+    *(float *)(self + 0x70) = 0.0f;
+    *(float *)(self + 0x60) = 0.0f;
+    *(float *)(self + 0x5C) = 0.0f;
+    *(float *)(self + 0x58) = 0.0f;
+    *(float *)(self + 0xF4) = 1.0f;
+    *(float *)(self + 0xDC) = 1.0f;
+    *(float *)(self + 0xE0) = 1.0f;
+    *(float *)(self + 0xE4) = 1.0f;
+    *(float *)(self + 0x7C) = 1.0f;
+    *(float *)(self + 0x64) = 1.0f;
+    *(float *)(self + 0x68) = 1.0f;
+    *(float *)(self + 0x6C) = 1.0f;
+        gl_func_00000000(arg2 + 0x30, self);
+    }
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000628EC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062A2C);
 
