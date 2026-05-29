@@ -24321,10 +24321,10 @@ void gl_func_00046C4C(int *a0, int *a1) {
     if (a1[0x28 / 4] & 0x10) {
         int *obj = (int*)a1[0x1C / 4];
         s0 = obj;
-        scaled = (int)(gl_retf_46C4C(a1) * (float)(obj[0x10 / 4] * obj[0xC / 4]));
+        scaled = (int)((float)(obj[0xC / 4] * obj[0x10 / 4]) * gl_retf_46C4C(a1));
     } else {
-        scaled = (int)(gl_retf_46C4C(a1) * (float)(*(short*)((char*)a1 + 0x22) *
-                                                   *(short*)((char*)a1 + 0x20)));
+        scaled = (int)((float)(*(short*)((char*)a1 + 0x20) *
+                               *(short*)((char*)a1 + 0x22)) * gl_retf_46C4C(a1));
     }
     if (a1[0x24 / 4] == 0x508 || a1[0x24 / 4] == 0x608) {
         gl_fn_578F0(*(int*)s0 + 8, scaled);
@@ -28932,14 +28932,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051F5C);
  * `scale * product`) — NO change. IDO canonicalizes the fresh-temp as fs
  * regardless of C operand order. Confirmed 1-insn permanent NM cap. */
 extern float gl_func_returns_float();
-#ifdef NON_MATCHING
 int gl_func_000520B8(int *a0) {
     float scale = gl_func_returns_float(a0);
-    return (int)(scale * (float)(*(short*)((char*)a0 + 0x22) * *(short*)((char*)a0 + 0x20)));
+    float t;
+    return (int)((float)(*(short*)((char*)a0 + 0x20) * *(short*)((char*)a0 + 0x22)) * (t = scale));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000520B8);
-#endif
 
 /* 16-insn float scale + truncate. Calls gl_func(a0) returning float in
  * $f0; multiplies by (float)a0->halfword[0x20]; truncates to int.
@@ -28955,14 +28952,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000520B8);
  * Genuine micro-cap; not C-reachable, permuter-resistant. Was INSN_PATCH'd
  * (removed 2026-05-23). Stays NM. */
 extern float gl_func_returns_float();
-#ifdef NON_MATCHING
 int gl_func_00052104(int *a0) {
     float scale = gl_func_returns_float(a0);
-    return (int)(scale * (float)*(short*)((char*)a0 + 0x20));
+    float t;
+    return (int)((float)*(short*)((char*)a0 + 0x20) * (t = scale));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052104);
-#endif
 
 /* 45-insn float-returning state-code dispatcher: a0->[0x24] selects one
  * of {4.0f, 2.0f, 1.0f, 0.5f} or default-arm (cross-USO call + 0.0f).
