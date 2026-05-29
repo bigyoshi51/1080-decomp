@@ -22453,19 +22453,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041EDC);
 // staging size and the 0xC-stride relink into a0+0x3C are exact. Caps:
 // record struct, &D_g globals and cb signatures untyped. Full body
 // INCLUDE_ASM-preserved.
-#ifdef NON_MATCHING
 /* gl_func_00041F90: cb1(owner0,1); if (cb2(owner1, a1, &D+0x1F6E0)) { fill a 68B
  * scratch via cb3(owner2,&buf,68); copy it into obj+0x3C; cb4(owner3); then 4
  * format calls cb(obj+0x3C / &D+0x1F6E4 / &D+0x1F6E8, buf2). The owner args are
- * 4 distinct &D globals (no CSE). Fresh decode 2026-05-29: 99.75%, structure
- * byte-exact — distinct owner symbols (D_41f_o0..o3) defeat the &D CSE (4 separate
- * lui) and the 68-byte struct copy unrolls correctly. RESIDUAL: frame -160 vs
- * -168, an 8-byte spill-slot alignment gap (v1 spill at sp+0x18 vs 0x1C) — the
- * same frame-alignment cap as the E6E8 finalizer family. */
+ * 4 distinct &D globals (no CSE). MATCHED 2026-05-29 (byte-exact): distinct owner
+ * symbols (D_41f_o0..o3) defeat the &D CSE (4 separate lui), the 68-byte struct
+ * copy unrolls correctly, and a `volatile int pad` declared FIRST (highest slot,
+ * per IDO first-declared-highest) fixes the 8-byte frame-alignment gap — pushes
+ * buf/buf2 +4 and the frame 0xA0->0xA8, landing all &local/spill offsets exactly.
+ * The volatile-pad-sandwich lever (docs/IDO_CODEGEN feedback-ido-volatile-pad-
+ * sandwich) cracked the E6E8-family "frame-alignment cap" here. */
 extern int gl_func_00000000();
 extern int D_00000000, D_41f_o0, D_41f_o1, D_41f_o2, D_41f_o3;
 typedef struct { int w[17]; } B68;
 void gl_func_00041F90(char *obj, int a1) {
+    volatile int pad;
     B68 buf;
     char buf2[64];
     gl_func_00000000(&D_41f_o0, 1);
@@ -22479,9 +22481,6 @@ void gl_func_00041F90(char *obj, int a1) {
         gl_func_00000000((char *)&D_00000000 + 0x1F6E8, buf2);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041F90);
-#endif
 
 // Store a1 to global at segment offset 0x3C160; first arg unused (homed).
 // (Standalone shows a 2/4 home/store delay-slot swap, but the full-TU

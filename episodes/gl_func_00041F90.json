@@ -1,0 +1,46 @@
+{
+  "function_name": "gl_func_00041F90",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-29T23:26:05.183739+00:00",
+  "end_time": "2026-05-29T23:26:05.183760+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-29T23:26:05.183754+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 60,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nextern int D_00000000, D_41f_o0, D_41f_o1, D_41f_o2, D_41f_o3;\ntypedef struct { int w[17]; } B68;\nvoid gl_func_00041F90(char *obj, int a1) {\n    volatile int pad;\n    B68 buf;\n    char buf2[64];\n    gl_func_00000000(&D_41f_o0, 1);\n    if (gl_func_00000000(&D_41f_o1, a1, (char *)&D_00000000 + 0x1F6E0) != 0) {\n        gl_func_00000000(&D_41f_o2, &buf, 68);\n        *(B68 *)(obj + 60) = buf;\n        gl_func_00000000(&D_41f_o3);\n        gl_func_00000000(obj + 60, buf2);\n        gl_func_00000000((char *)&D_00000000 + 0x1F6E4, buf2);\n        gl_func_00000000(obj + 60, buf2);\n        gl_func_00000000((char *)&D_00000000 + 0x1F6E8, buf2);\n    }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/41f90.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00041F90.s",
+    "segment": "game_libs",
+    "compiler": "ido_7.1",
+    "compiler_flags": "-O2 -G0 -mips2"
+  },
+  "final_c": "extern int gl_func_00000000();\nextern int D_00000000, D_41f_o0, D_41f_o1, D_41f_o2, D_41f_o3;\ntypedef struct { int w[17]; } B68;\nvoid gl_func_00041F90(char *obj, int a1) {\n    volatile int pad;\n    B68 buf;\n    char buf2[64];\n    gl_func_00000000(&D_41f_o0, 1);\n    if (gl_func_00000000(&D_41f_o1, a1, (char *)&D_00000000 + 0x1F6E0) != 0) {\n        gl_func_00000000(&D_41f_o2, &buf, 68);\n        *(B68 *)(obj + 60) = buf;\n        gl_func_00000000(&D_41f_o3);\n        gl_func_00000000(obj + 60, buf2);\n        gl_func_00000000((char *)&D_00000000 + 0x1F6E4, buf2);\n        gl_func_00000000(obj + 60, buf2);\n        gl_func_00000000((char *)&D_00000000 + 0x1F6E8, buf2);\n    }\n}\n",
+  "matched": true,
+  "attempts": [
+    {
+      "c_code": "extern int gl_func_00000000();\nextern int D_00000000, D_41f_o0, D_41f_o1, D_41f_o2, D_41f_o3;\ntypedef struct { int w[17]; } B68;\nvoid gl_func_00041F90(char *obj, int a1) {\n    volatile int pad;\n    B68 buf;\n    char buf2[64];\n    gl_func_00000000(&D_41f_o0, 1);\n    if (gl_func_00000000(&D_41f_o1, a1, (char *)&D_00000000 + 0x1F6E0) != 0) {\n        gl_func_00000000(&D_41f_o2, &buf, 68);\n        *(B68 *)(obj + 60) = buf;\n        gl_func_00000000(&D_41f_o3);\n        gl_func_00000000(obj + 60, buf2);\n        gl_func_00000000((char *)&D_00000000 + 0x1F6E4, buf2);\n        gl_func_00000000(obj + 60, buf2);\n        gl_func_00000000((char *)&D_00000000 + 0x1F6E8, buf2);\n    }\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2 -G0 -mips2",
+      "notes": "byte-exact; volatile-pad-first frame-align crack"
+    }
+  ],
+  "has_branches": true,
+  "has_calls": true
+}
