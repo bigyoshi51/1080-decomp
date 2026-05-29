@@ -31275,37 +31275,33 @@ void gl_func_0005C66C(int a0, float *vec) {
                      (double)vec[0], (double)vec[1], (double)vec[2]);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0005C6C4: 4x4 float-matrix pretty-printer. header-log()
-   first; then for each of 4 rows (row ptr advances 0x10 = 4 floats):
-   for each of 4 cols log(&D_00000000+0x21B0C, (double)row[col]); then
-   log(&D_00000000+0x21B10) as the row separator.
-   2026-05-28: 97.75% -> 99.96%. Fixed call 1 to PASS a0 — the header
-   log is header(a0), not header(); the argless form made IDO needlessly
-   home the live incoming a0 (the +1-insn `sw a0` cap). Size now matches
-   (48 insns). RESIDUAL (2 diffs): the OUTER loop's induction variable —
-   IDO strength-reduces `p = a1 + row*4` so the row counter counts by 16
-   to 64 (li s7,64 / addiu s4,16) vs the target's by-1 trip counter to 4
-   (li s7,4 / addiu s4,1) alongside a separate +16 row-base pointer. The
-   same induction cap as gl_func_0005BDC0; a separate advancing `p` (p+=4)
-   only swaps the s4/s5 roles and regresses to 8 diffs. Stays NM 99.96%. */
+/* gl_func_0005C6C4: 4x4 float-matrix pretty-printer. header-log(a0) first;
+   then for each of 4 rows: for each of 4 cols log(&D+0x21B0C, (double)row[col]);
+   then log(&D+0x21B10) as the row separator.
+   MATCHED 2026-05-29 (was a documented induction-var cap @ 99.96%). The fix was
+   to give BOTH loops the target's two-IV shape: a trip counter PLUS a separate
+   advancing pointer — outer (row 0..4 / rowp += 16), inner (col 0..16 byte
+   counter / p += 4) — with the COUNTER inited before the pointer so it wins the
+   lower $s-reg (s4/s0 vs s5/s1). `p = a1 + row*4` had strength-reduced to one
+   by-16 counter; the prior "p += 4" attempt swapped roles because it inited the
+   pointer first. The comma-init `for (i=0,q=...; ...; i++,q++)` form then cracked
+   the residual prologue scheduler tie (address addius before the var-init moves).
+   Same recipe should crack the sibling gl_func_0005BDC0. */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0005C6C4(int a0, float *a1) {
     int row, col;
-    float *p;
+    float *rowp, *p;
+    char *addr1 = (char *)&D_00000000 + 0x21B0C;
+    char *addr2 = (char *)&D_00000000 + 0x21B10;
     gl_func_00000000(a0);
-    for (row = 0; row < 4; row++) {
-        p = a1 + row * 4;
-        for (col = 0; col < 4; col++) {
-            gl_func_00000000((char *)&D_00000000 + 0x21B0C, (double)p[col]);
+    for (row = 0, rowp = a1; row != 4; row++, rowp += 4) {
+        for (col = 0, p = rowp; col != 16; col += 4, p++) {
+            gl_func_00000000(addr1, (double)*p);
         }
-        gl_func_00000000((char *)&D_00000000 + 0x21B10);
+        gl_func_00000000(addr2);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C6C4);
-#endif
 
 /* gl_func_0005C784: 35-insn Vec4-printf w/ cvt.d.s + post-banner (0x8C, frame 0x28).
  * MATCHED 2026-05-24: after the s0<->s1 swap fix, the residual 2-insn preheader
