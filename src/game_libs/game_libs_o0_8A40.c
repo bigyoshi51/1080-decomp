@@ -17,7 +17,18 @@
  * target's exact raw-high/tmp-low-in-0x58 layout is unreachable by add/
  * remove-padding from C. Permuter won't help (its scorer normalizes
  * sp-relative offsets — feedback-permuter-score-0-sp-offset-false-positive).
- * Permanent NM sp-layout cap. */
+ *
+ * 2026-05-29 IMPROVED 4 -> 2 diffs (not the documented "permanent cap"): decl
+ * order `Tri3i raw; Tri3i tmp; int pad_mid[2];` (raw first/highest, tmp adjacent
+ * below, the 8-byte dead pad LAST/lowest) lands tmp@0x34 EXACTLY and keeps frame
+ * 0x58 — only &raw remains @0x40 vs target 0x48 (+8). The residual: target wants
+ * an 8-byte GAP between tmp-top(0x40) and raw(0x48) with the block pinned to the
+ * frame top (raw just below the a0-home@0x58), but every C layout either (a) puts
+ * the gap between them and drops the whole block -8 (pad_mid-between = 4 diffs),
+ * or (b) packs raw/tmp adjacent at the top (pad-bottom = this, tmp exact, raw -8).
+ * The 8-byte top-slack (home->raw) is an -O0 alignment artifact not C-drivable via
+ * decl/pad. A standalone-IDO decl-permutation campaign or a real 3rd local in the
+ * gap could finish it; near-miss at 2 diffs. */
 
 extern int gl_func_00000000();
 extern char D_00000000;
@@ -30,9 +41,9 @@ void gl_func_00008A40(Vec3 *dst) {
     register Vec3 *q;
     register Vec3 *p1;
     register Vec3 *p2;
+    Tri3i raw;
     Tri3i tmp;
     int pad_mid[2];
-    Tri3i raw;
     register float *src;
     gl_func_00000000(&D_00000000, &raw, 12);
     p1 = dst;
