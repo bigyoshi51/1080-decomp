@@ -21381,10 +21381,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
 // docs/IDO_CODEGEN.md#feedback-ido-knr-float-call. Refinement vs the old comment:
 // node->0x14 is set to n (=self->0x3C->0x10), NOT cb3's return (cb3's v0 is
 // discarded — the post-call v0 is the reloaded n).
-// 95.68%. RESIDUAL (~4%, regalloc/spill): in the finalizer, target keeps node
-// (self->0x10) in $a1 and n in $v0 with spills at sp+0x28/0x2C; mine permutes the
-// regs and spills at sp+0x2C/0x30 → frame 0x38 vs 0x30. Spill-slot/reg-assignment
-// nuance (cf. gl_func_0000E6E8), not C-steerable. Stays NM.
+// 2026-05-28: 95.68% -> 98.18%. The real shortfall was a MISSING reload, not
+// just regalloc: target does `lw node, 0x10(self)` (reload) where mine CSE'd
+// node with the just-stored `handle` (self->0x10 = handle, so IDO reused the
+// register, -1 insn). Forcing the reload via a volatile-qualified read
+// `node = (int*)((volatile int*)self)[0x10/4]` busts the CSE -> both loads
+// emit, size matches (38 insns). RESIDUAL (~2%, regalloc/spill): target keeps
+// node in $a1 / n in $v0 (spills sp+0x28/0x2C); mine lands node in $v1 / n in
+// $a1 (spills sp+0x30/0x2C) -> frame 0x38 vs 0x30. The reg-assignment +
+// 8-byte frame are the spill-slot nuance (cf. gl_func_0000E6E8). Stays NM.
 #ifdef NON_MATCHING
 extern int gl_proto_FF44(int, void*, float, float, float);
 void gl_func_0003FF44(int *self) {
@@ -21397,7 +21402,7 @@ void gl_func_0003FF44(int *self) {
     self[0xC / 4] = handle;
     self[0x10 / 4] = handle;
     if (self[0x38 / 4] != 0) {
-        node = (int*)self[0x10 / 4];
+        node = (int*)((volatile int*)self)[0x10 / 4];
         n = ((int*)self[0x3C / 4])[0x10 / 4];
         gl_func_00000000(n + 0x10);
         if (node[0x14 / 4] != 0) {
