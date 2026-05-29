@@ -22785,7 +22785,41 @@ void gl_func_00042648(int *dst) {
 // constants, the 3-call cb shape, the +4 count-bump and the base + n*8 slot
 // math are exact. Caps: Desc/Tbl struct + cb signatures untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+/* gl_func_00042684: copies a1's 2 words into a local cfg, twiddles flag bits
+ * (clear 0xF00, set 0x400, clear 0x80000, clear 8), runs 4 callbacks, then
+ * appends a display-list color command to s0->0xC: entry[0]=0xFA000000,
+ * entry[1]=RGB555->RGBA8888(col) with col=(short)a2. Fresh decode 2026-05-29,
+ * first pass 54.36% (compilable; was a structural-comment bail). RESIDUALS for a
+ * later pass: cfg accessed via a held &cfg pointer with the flag-word RE-READ
+ * from the stack (mine CSEs a1[1] direct); color-pack operand/temp order (target
+ * extracts red before green); frame -56 vs -72 + cfg slot at sp+0x40 not 0x30. */
+extern int gl_func_00000000();
+void gl_func_00042684(int *s0, int *a1, int a2) {
+    int cfg[2];
+    int *list;
+    int idx;
+    int *entry;
+    int col;
+    cfg[0] = a1[0];
+    cfg[1] = a1[1];
+    cfg[1] = ((cfg[1] & ~0xF00) | 0x400) & ~0x80000 & ~8;
+    gl_func_00000000(s0, cfg);
+    gl_func_00000000(s0, cfg);
+    gl_func_00000000(s0, cfg);
+    gl_func_00000000(s0, cfg);
+    list = (int *)s0[0xC / 4];
+    idx = list[1];
+    list[1] = idx + 1;
+    entry = (int *)(((int *)s0[0xC / 4])[0] + idx * 8);
+    col = (short)a2;
+    entry[0] = 0xFA000000;
+    entry[1] = ((col >> 10) << 27) | ((((col >> 5) << 3) & 0xFF) << 16) |
+               (((col << 3) & 0xFF) << 8) | 0xFF;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042684);
+#endif
 
 // gl_func_00042778 — STRUCTURAL PASS (0x1BC / 115 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
