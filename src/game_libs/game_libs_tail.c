@@ -3051,6 +3051,17 @@ void gl_func_0000E66C(int *self) {
  * (-40); a named float local for the cast forces -48 but then stack-homes the
  * float (wrong, target keeps it in $f4) and regresses to 99.49%. Genuine
  * frame-alignment cap. INCLUDE_ASM remains build path.
+ *
+ * 2026-05-29 PRECISE CHARACTERIZATION (exhaustive pad grind): a `volatile double`
+ * or `volatile int pad[2]` unused local DOES crack the frame SIZE (0x28->0x30) with
+ * zero extra instructions — that removes the prologue + a1/a2-home cascade, leaving
+ * ONLY 2 diffs: the a1 spill-reload (insns 32-33) lands at 0x24 (mine) vs 0x2C
+ * (target). Root cause: IDO lays named locals (the pad) ABOVE compiler-generated
+ * spills, so the pad takes 0x28-0x2F and the spill drops to 0x24; the target instead
+ * has the spill HIGH (0x2C) with the 8-byte unused gap BELOW it (0x24-0x2B). That
+ * inverted ordering (unused-low, spill-high) is NOT producible from a named C local
+ * — confirmed via volatile double/int/int[2], all leave the spill at 0x24. Genuine
+ * irreducible 2-insn spill-position cap; pad omitted (no exact gain, keeps C clean).
  */
 void gl_func_0000E6E8(int *self, int a1, int a2, float *a3_float) {
     int *q;
