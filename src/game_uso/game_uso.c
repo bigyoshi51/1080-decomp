@@ -942,11 +942,16 @@ void game_uso_func_00001714(int a0, int *a1) {
  * the bnel/beq pattern but introduces a worse mismatch.
  * Tried previously: `goto end;` vs `return;` — both 95 %.
  * Permuter remains the next-step recommendation. */
-/* game_uso_func_0000174C: 16-case (a1==3..18) dispatch. NON_MATCHING (4 diffs):
- * the goto-chain matches 15/16 comparisons; the LAST case (a1==18) emits bne+goto
- * where the target keeps beql+beq layout (switch-lowering of the final
- * if-goto;goto). A real `switch` is WORSE (IDO jump-tables it: 106 diffs vs 4).
- * Last-case branch-form cap. */
+/* game_uso_func_0000174C: 16-case (a1==3..18) dispatch. NON_MATCHING (4 diffs).
+ * PRECISE DIAGNOSIS: goto-chain matches 15/16 tests; the LAST test (a1==18) is
+ * the sole residual — target emits `beq a1,at,c18 / nop / b end / lw ra(b-delay)`
+ * (epilogue reload fills the unconditional `b end` delay), but IDO annuls ours
+ * into `bnel a1,at,end` (pulls `lw ra` into the beq delay). Same logic; purely
+ * reorg's choice of WHICH branch gets the epilogue in its delay slot — not
+ * C-steerable on this fixed byte layout. TESTED-NEGATIVE 2026-05-29: if-else-if
+ * chain regresses to 98 diffs (IDO reorders the whole dispatch); `switch`
+ * jump-tables (106 diffs); decomp-permuter 500+ iters never beat base score 400
+ * (the 4-diff floor). goto-chain IS the floor. Genuine reorg-annul cap. */
 void game_uso_func_0000174C(int *a0, int a1, int a2) {
     *(int*)((char*)a0 + 0x268) = 0;
     if (a1 == 3)  goto c3;
