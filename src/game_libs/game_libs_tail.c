@@ -2843,7 +2843,8 @@ void gl_func_0000E84C(int *s0, int a1, int a2, int a3) {
  * by field offsets 0x60/0x78/0x7C and 2-arg factory call.
  *
  * Decoded structure (raw-word disasm):
- *   if (self->[0x60] == 0) { self->[0x7C] = a3_int_ptr; func1_init(); }  // lazy init
+ *   if (self->[0x60] == 0) func1_init();             // lazy init (no body store)
+ *   self->[0x7C] = a3_int_ptr;                        // UNCONDITIONAL (after the if)
  *   obj = func2(0, self->[0x60]);                    // 2-arg factory
  *   self->[0x78] = obj;
  *   func3(obj, *(int*)self->[0x7C]);                 // int-deref (vs E6E8's float→int)
@@ -2852,29 +2853,29 @@ void gl_func_0000E84C(int *s0, int a1, int a2, int a3) {
  *   if (obj->[0x14] != 0) obj->[0x4] = 1;            // back-link-with-flag finalizer
  *   obj->[0x14] = self;
  *
- * 2026-05-28: 89.3% → 90.39%. The `self->0x7C = a3` store is CONDITIONAL — inside
- * the `if (self->0x60 == 0)` lazy-init block (target stores it in the fall-through,
- * skipped when self->0x60 != 0), not unconditional. RESIDUAL (~10%): target homes
- * a3 at entry + reloads it in the alloc block (2 insns mine lacks — IDO keeps a3 in
- * $a3 across the branch); the resulting register cascade. -O2 param-homing/regalloc
- * nuance, not C-steerable. Stays NM. */
+ * 2026-05-29: 90.39% → 99.77%. PRIOR DECODE WAS WRONG: the `self->0x7C = a3`
+ * store is UNCONDITIONAL, not inside the lazy-init `if` — the target's `bnez`
+ * lands BEFORE that store (both paths execute it). Moving it after the `if` makes
+ * a3 live across func1() so IDO homes it at entry (sw a3) + reloads — exactly the
+ * "2 insns mine lacks" the old comment misattributed to a regalloc cap. Also
+ * applied the gl_func_0000E84C pattern (factory result straight to self->0x78,
+ * re-read inline per call, dedicated `q`). RESIDUAL = the SAME 8-byte
+ * frame-alignment gap as E6E8/E79C (target -48 vs -40); family spill-slot cap. */
 void gl_func_0000E910(int *self, int a1, int a2, int *a3_int_ptr) {
-    int *obj;
+    int *q;
     if (self[0x60 / 4] == 0) {
-        self[0x7C / 4] = (int)a3_int_ptr;
         gl_func_00000000();
     }
-    obj = (int*)gl_func_00000000(0, self[0x60 / 4]);
-    self[0x78 / 4] = (int)obj;
-    gl_func_00000000(obj, *(int*)self[0x7C / 4]);
-    obj = (int*)self[0x78 / 4];
-    gl_func_00000000(obj, a1, a2);
-    obj = (int*)self[0x78 / 4];
-    gl_func_00000000((char*)self + 0x10, obj);
-    if (obj[0x14 / 4] != 0) {
-        obj[0x4 / 4] = 1;
+    self[0x7C / 4] = (int)a3_int_ptr;
+    self[0x78 / 4] = gl_func_00000000(0, self[0x60 / 4]);
+    gl_func_00000000((int *)self[0x78 / 4], *(int *)self[0x7C / 4]);
+    gl_func_00000000((int *)self[0x78 / 4], a1, a2);
+    q = (int *)self[0x78 / 4];
+    gl_func_00000000((char *)self + 0x10, q);
+    if (q[0x14 / 4] != 0) {
+        q[0x4 / 4] = 1;
     }
-    obj[0x14 / 4] = (int)self;
+    q[0x14 / 4] = (int)self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E910);
