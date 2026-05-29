@@ -189,7 +189,11 @@ void mgrproc_uso_func_000009A8(int *a0) {
 
 #ifdef NON_MATCHING
 /* 48-insn -O0 aggregator: total=f(*a0); f(*a0,buf); sum|=f(buf[i]) loop;
- * *a1=buf[0]; return sum. (tail buf[0] folding still off — kept INCLUDE_ASM) */
+ * *a1=buf[0]; return sum. VALUE-RETURN -O0 CAP (see docs/IDO_CODEGEN.md
+ * #feedback-ido-o0-value-return-extra-branch): this toolchain emits an extra
+ * return-branch the target doesn't have. Got to 50 vs 48 insns — buf[0]'s
+ * direct lw 0x30(sp) load via a `union { int buf[8]; int first; }` alias
+ * (u.first), but the trailing `b epilogue` is irreducible. Kept INCLUDE_ASM. */
 extern int func_00000000();
 int mgrproc_uso_func_00000A14(int **a0, int *a1) {
     int buf[8];
