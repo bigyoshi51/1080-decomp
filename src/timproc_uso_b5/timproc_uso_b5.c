@@ -1321,7 +1321,45 @@ void timproc_uso_b5_func_00003A28(int *a0, int *a1, int a2) {
  *
  * Multi-tick decomp; structural wrap only this tick. INCLUDE_ASM keeps
  * ROM byte-correct. */
+#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00003A4C: two-sprite HUD draw with table-indexed offsets.
+ * Copies two 0x2C-byte tables from &D+0x11B0 / &D+0x11DC onto the stack (sp84/sp58
+ * — IDO unrolls each as a 3x12-byte loop + 2-word tail). If arg4!=0: draw sprite
+ * 0x10 twice at arg1+arg7->0x338 / +sp58[arg4], y=arg2+arg7->0x350, using its
+ * looked-up dimension (cb(0x10)->0x10->0x20). Then cb(0,0xFF,arg6); draw arg3 at
+ * arg1-arg7->0x308 / arg2-arg7->0x320; cb(0,0xFF,arg5); draw sprite 0x28 twice at
+ * arg1 / +sp84[arg4] with its dimension. Fresh decode 2026-05-29 (m2c-confirmed).
+ * Caps: structs + cb prototypes untyped (USO-reloc), &D tables not symbolized,
+ * sprite-dim return-deref + table-copy unroll. NON_MATCHING. */
+extern int gl_func_00000000();
+struct B5Tbl3A4C { int w[11]; };
+void timproc_uso_b5_func_00003A4C(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, char *arg7) {
+    struct B5Tbl3A4C sp84 = *(struct B5Tbl3A4C *)((char *)&D_00000000 + 0x11B0);
+    struct B5Tbl3A4C sp58 = *(struct B5Tbl3A4C *)((char *)&D_00000000 + 0x11DC);
+    char *objA;
+    char *objB;
+    int sz;
+
+    if (arg4 != 0) {
+        gl_func_00000000(0, *(int *)(arg7 + 0x368), arg5);
+        objA = (char *)gl_func_00000000(0x10);
+        gl_func_00000000(0x10, arg1 + *(int *)(arg7 + 0x338), arg2 + *(int *)(arg7 + 0x350), 0, sp58.w[arg4]);
+        gl_func_00000000(0x10, arg1 + *(int *)(arg7 + 0x338) + sp58.w[arg4], arg2 + *(int *)(arg7 + 0x350),
+                         *(int *)(*(char **)(objA + 0x10) + 0x20) - 0x20, 0x20);
+    }
+    gl_func_00000000(0, 0xFF, arg6);
+    gl_func_00000000(arg3);
+    gl_func_00000000(arg3, arg1 - *(int *)(arg7 + 0x308), arg2 - *(int *)(arg7 + 0x320), 0);
+    gl_func_00000000(0, 0xFF, arg5);
+    objB = (char *)gl_func_00000000(0x28);
+    gl_func_00000000(0x28, arg1, arg2, 0, sp84.w[arg4]);
+    gl_func_00000000(0, *(int *)(arg7 + 0x380), arg5);
+    sz = sp84.w[arg4];
+    gl_func_00000000(0x28, arg1 + sz, arg2, sz, *(int *)(*(char **)(objB + 0x10) + 0x20) - sz);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003A4C);
+#endif
 
 // timproc_uso_b5_func_00003C8C — STRUCTURAL PASS (0x24C / 147 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
