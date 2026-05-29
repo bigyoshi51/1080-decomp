@@ -9769,12 +9769,89 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
  * ->0x31C floats, ->0x800 sub), a3->0x120 reset-flag, a3->0x138 child
  * (->0xB4 mode bits 0x4/0x3), a3->0x114 state, a3->0xC8/0xCA/0xCE
  * short-trio @+200/202/206, a3->0x74 / 0x104 / 0x58 dispatch fields.
- * D[0x1F4] threshold float, D 0x1399.. / -100.. compare consts, D-pair
- * @0x109C, scan-table @0xDC8. Caps <80: t6 read UNINITIALIZED at entry
- * (stolen-base, predecessor sets it - boundary analysis needed) +
- * bc1fl/bc1tl/bnel/beql branch-likely + table-scan loop + vtable jalr +
- * FP-compare + reloc scheduling - deep sub-80. INCLUDE_ASM (no episode). */
+ * D[0x1F4] threshold float, D 700.0/-100.0 compare consts, D-pair
+ * @0x109C, scan-table @0xDC8. 2026-05-29: pseudo-C LIFTED to a real NM body
+ * (47.4%; was bare INCLUDE_ASM). Residual <80 is the documented deep-cap stack:
+ * bc1fl/bc1tl/bnel/beql branch-likely (the two FP clamps + the table-scan loop
+ * + the dispatch ladder), the vtable `jalr` dispatch, and reloc scheduling.
+ * Logic verified against the build .o disasm; the float-clamp `0x120=0` store is
+ * on the `f0 < thresh` path and the child mode-mask is `& ~3` (corrected from the
+ * earlier comment's `!(...)` / `~4`). Future tightening = per-block RE. */
+#ifdef NON_MATCHING
+void game_uso_func_0000D204(int *a0) {
+    int *a3 = a0;
+    int *obj;
+    int *child;
+    int *v0;
+    int *v1;
+    float thresh = *(float*)((char*)&D_00000000 + 0x1F4);
+
+    if (*(int*)((char*)&D_00000000 + 0x64) == 0) {
+        obj = *(int**)((char*)a3 + 0xB4);
+        if (*(float*)((char*)obj + 0xBC) < thresh) {
+            *(int*)((char*)a3 + 0x120) = 0;
+        }
+        obj = *(int**)((char*)a3 + 0xB4);
+        if (*(float*)((char*)obj + 0xBC) < thresh) {
+            child = *(int**)((char*)&D_00000000 + 0x138);
+            *(int*)((char*)child + 0xB4) &= ~3;
+        } else if (*(int*)((char*)a3 + 0x120) == 0) {
+            child = *(int**)((char*)&D_00000000 + 0x138);
+            *(int*)((char*)child + 0xB4) |= 3;
+        } else {
+            child = *(int**)((char*)&D_00000000 + 0x138);
+            *(int*)((char*)child + 0xB4) &= ~3;
+        }
+    }
+
+    v0 = *(int**)((char*)a3 + 0xB4);
+    if (*(int*)((char*)v0 + 0x938) == 0
+        && *(float*)((char*)v0 + 0x9D0) < 700.0f
+        && *(float*)((char*)v0 + 0x31C) < -100.0f) {
+        gl_func_00000000(*(int*)((char*)v0 + 0x800),
+                         (char*)&D_00000000 + 0x109C, 1);
+    }
+
+    if (*(int*)((char*)a3 + 0x114) == 0) {
+        gl_func_00000000(a3);
+    }
+
+    v1 = (int*)((char*)a3 + 200);
+    {
+        int *tbl = (int*)((char*)&D_00000000 + 0xDC8);
+        if (v1[0] == tbl[0] && v1[1] == tbl[1]) {
+            if (*(short*)((char*)a3 + 0xCA) >= 0) {
+                char *base = (char*)a3 + *(short*)((char*)a3 + 0xC8);
+                int sel;
+                int *row;
+                int (*fn)();
+                if (v1[1] != 0 || *(short*)((char*)v1 + 0) != 0) {
+                    sel = v1[1];
+                } else {
+                    sel = 40;
+                }
+                row = *(int**)(base + sel);
+                row = (int*)((char*)row + (*(short*)((char*)v1 + 2) << 3));
+                fn = (int(*)())row[1];
+                fn((char*)a3 + *(short*)((char*)row + 0));
+            } else {
+                gl_func_00000000(a3, v1[1]);
+            }
+        }
+    }
+
+    gl_func_00000000(a3);
+    if (*(int*)((char*)a3 + 0x74) != 0) {
+        gl_func_00000000(*(int*)((char*)a3 + 0x58));
+        if (*(int*)((char*)a3 + 0x74) != *(int*)((char*)a3 + 0x104)) {
+            *(int*)((char*)a3 + 0x104) = *(int*)((char*)a3 + 0x74);
+        }
+    }
+    gl_func_00000000(a3);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D204);
+#endif
 
 void game_uso_func_0000D418(char *a0) {
     gl_func_00000000(a0 + 0x13C);
