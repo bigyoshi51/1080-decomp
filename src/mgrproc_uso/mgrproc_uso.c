@@ -474,7 +474,63 @@ void mgrproc_uso_func_00001594(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001594);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00001614: state-machine step (switch arg0->0x504, cases 0/1/4
+ * as an if-else chain). Case 0: cb(&D+0x190,3,1), set state=1, cb(7,0,0). Case 1:
+ * if cb(&D+0x190,1,1): set 0x4D8=1, several inits, alloc a node into arg0->0x524,
+ * link it into the 0x56C list (header+0x10), conditional flag, register via
+ * cb(arg0->0x6A8, node) and on success set node->0x60=2 + cb(arg0); then cb(&D+
+ * 0x190,1,1). Case 4: cb(arg0, 4, indexed-entry from arg0->0x6A8). Fresh first-pass
+ * decode 2026-05-29 (m2c-confirmed). Caps: arg0/node structs + ~14 cb prototypes
+ * untyped (USO-reloc), &D-relative literals not symbolized. 91.8% reg-blind, exact
+ * 98-insn count — the `switch` (not if-else chain) matched the target's up-front
+ * compare-dispatch (beqz/beq/beql/b). Residual: deep spill-slot regalloc. NON_MATCHING. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_00001614(char *arg0) {
+    int state = *(int *)(arg0 + 0x504);
+    void *node;
+    int hdr;
+
+    switch (state) {
+    case 0:
+        gl_func_00000000(*(int *)((char *)&D_00000000 + 0x190), 3, 1);
+        *(int *)(arg0 + 0x504) = 1;
+        gl_func_00000000(7, 0, 0);
+        break;
+    case 1:
+        if (gl_func_00000000(*(int *)((char *)&D_00000000 + 0x190), state, 1) != 0) {
+            *(int *)(arg0 + 0x4D8) = 1;
+            gl_func_00000000(7, 0, 0);
+            gl_func_00000000(0);
+            gl_func_00000000(arg0);
+            gl_func_00000000(arg0, *(int *)((char *)&D_00000000 + 0x170) + 0x26000F);
+            *(void **)(arg0 + 0x524) = (void *)gl_func_00000000(0, arg0, *(int *)(arg0 + 0x7D8));
+            gl_func_00000000(*(void **)(arg0 + 0x524), *(int *)(arg0 + 0x528));
+            hdr = *(int *)(arg0 + 0x56C);
+            node = *(void **)(arg0 + 0x524);
+            gl_func_00000000(hdr + 0x10, node);
+            if (*(int *)((char *)node + 0x14) != 0) {
+                *(int *)((char *)node + 4) = 1;
+            }
+            *(int *)((char *)node + 0x14) = hdr;
+            if (gl_func_00000000(*(int *)(arg0 + 0x6A8), node) != 0) {
+                *(int *)((char *)*(void **)(arg0 + 0x524) + 0x60) = 2;
+                gl_func_00000000(arg0);
+            }
+            gl_func_00000000(*(int *)((char *)&D_00000000 + 0x190), 1, 1);
+        }
+        break;
+    case 4:
+        {
+            char *p = *(char **)(arg0 + 0x6A8);
+            gl_func_00000000(arg0, 4, *(int *)(p + (*(int *)(p + 4) * 4) + 0x10));
+        }
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001614);
+#endif
 
 /* mgrproc_uso_func_0000179C: 30-insn (0x78) gated state-set.
  * Adjacent 2-insn alt-entry stubs (mgrproc_uso_func_00001814 / 0000181C,
