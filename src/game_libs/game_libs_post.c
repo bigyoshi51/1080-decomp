@@ -27115,7 +27115,71 @@ end:
 // 0xF00-mask | 0x400|2|1|0x10 flag pack and the 1.0f scale triple at
 // 0x128/0x12C/0x130 are exact. Caps: self struct + cb signatures untyped;
 // bundle re-split deferred. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+/* gl_func_0004E00C: big-object constructor. Zeros 0x1C8/0x0; inits 3 sub-objects
+ * (cb at +0xA0/+0x60/+0x20); twiddles flag word +0x144 ((&0xF00)|0x400|2|1|0x10
+ * with intermediate stores); sets 1.0f at +0x128/12C/130; inits 2 more
+ * (cb +0xE8, cb(+0xE8,+0x128)); zeros +0x1CC/18C, 0.0f at +0x1D0/D4/D8, 0.5f at
+ * +0x1DC; zeros +0x148 region + a +0x160 16-byte x2 loop; cb(s0,0). Fresh decode
+ * 2026-05-29 (m2c-assisted). Logic complete; ~74% reg-blind. Residuals: (a) the
+ * +0x140 flag word holds a base ptr (writes 4(v0)) with compute-ahead scheduling
+ * IDO won't reproduce from the cached-OR chain; (b) the +0x148 sub-array uses a
+ * runtime-index (li 1; sll; addu) form, not a folded constant offset; (c) frame
+ * size. Below promote threshold — kept NON_MATCHING. */
+extern int gl_func_00000000();
+void gl_func_0004E00C(int *s0) {
+    int *v;
+    int x;
+    int *q;
+    int *p;
+    int i;
+    s0[0x1C8 / 4] = 0;
+    s0[0] = 0;
+    gl_func_00000000((char *)s0 + 0xA0);
+    gl_func_00000000((char *)s0 + 0x60);
+    gl_func_00000000((char *)s0 + 0x20);
+    s0[0xE4 / 4] = 0;
+    v = (int *)((char *)s0 + 0x140);
+    x = (v[1] & 0xF00) | 0x400;
+    v[1] = x;
+    x |= 2;
+    v[1] = x;
+    x |= 1;
+    v[1] = x;
+    v[1] = x;
+    v[1] = x | 0x10;
+    *(float *)((char *)s0 + 0x130) = 1.0f;
+    *(float *)((char *)s0 + 0x12C) = 1.0f;
+    *(float *)((char *)s0 + 0x128) = 1.0f;
+    gl_func_00000000((char *)s0 + 0xE8);
+    gl_func_00000000((char *)s0 + 0xE8, (char *)s0 + 0x128);
+    s0[0x1CC / 4] = 0;
+    s0[0x18C / 4] = 0;
+    *(float *)((char *)s0 + 0x1D0) = 0.0f;
+    *(float *)((char *)s0 + 0x1D4) = 0.0f;
+    *(float *)((char *)s0 + 0x1D8) = 0.0f;
+    *(float *)((char *)s0 + 0x1DC) = 0.5f;
+    *(int *)((char *)s0 + 0x148) = 0;
+    q = (int *)((char *)s0 + 0x148 + 4);
+    q[0] = 0;
+    q[1] = 0;
+    q[2] = 0;
+    q[3] = 0;
+    *(int *)((char *)s0 + 0x15C) = 0;
+    p = (int *)((char *)s0 + 0x160);
+    for (i = 0; i != 8; i += 4) {
+        p[0] = 0;
+        p[1] = 0;
+        p[2] = 0;
+        p[3] = 0;
+        p += 4;
+    }
+    *(int *)((char *)s0 + 0x180) = 0;
+    gl_func_00000000(s0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E00C);
+#endif
 
 void game_libs_func_0004E138(int a0) {
     *(int *)a0 = (*(int *)((char *)&D_00000000 + 0x14) & 3) == 0;
