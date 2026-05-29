@@ -1628,8 +1628,9 @@ void gl_func_0000871C(int *a0) {
     float four = 4.0f;
     float f550 = *(float*)((char*)a0 + 0x550);
     if (f550 < four) {
+        double t;
         *(float*)((char*)a0 + 0x550) =
-            (float)((double)f550 + *(double*)((char*)&D_00000000 + 0xE60));
+            (float)(*(double*)((char*)&D_00000000 + 0xE60) + (t = (double)f550));
         f550 = *(float*)((char*)a0 + 0x550);
     }
     *(float*)((char*)a0 + 0x54C) = *(float*)((char*)a0 + 0x54C) + f550;
