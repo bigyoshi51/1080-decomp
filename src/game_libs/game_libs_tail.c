@@ -1339,7 +1339,34 @@ int gl_func_0000BDA8(int a0) {
     return tmp;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_0000BDE8: copies a 384-byte struct from src into a stack buffer, then
+ * runs 7 callbacks marshalling buf1 (384B) and buf2 (8B) with a 0xDEADBBAD
+ * sentinel and the field constants 8/384/392/0x7DD8/0x7F58. Fresh decode
+ * 2026-05-29: 96.15%, everything exact (the 3-word-unrolled 384B copy, all 7
+ * calls + args, buffer layout buf1@sp+0x28/buf2@sp+0x20) EXCEPT a 2-instruction
+ * prologue scheduler tie — target emits `move t9,a0` (copy-cursor init) before
+ * `sw ra,28(sp)`; IDO here emits the ra-save first. List-scheduler ordering of
+ * two independent prologue insns; local-decl-order swap regressed (broke the
+ * buffer layout). NM-wrap. */
+extern int gl_func_00000000();
+struct B384 { int w[96]; };
+struct B8 { int w[2]; };
+void gl_func_0000BDE8(int s0, struct B384 *src) {
+    struct B384 buf1;
+    struct B8 buf2;
+    buf1 = *src;
+    gl_func_00000000(&buf1);
+    gl_func_00000000(s0, 8, &buf1, 384);
+    gl_func_00000000(&buf2, &buf1, 384, 0xDEADBBAD);
+    gl_func_00000000(s0, 392, &buf2, 8);
+    gl_func_00000000(s0, 0x7DD8, &buf1, 384);
+    gl_func_00000000(s0, 0x7F58, &buf2, 8);
+    gl_func_00000000(s0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BDE8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BEB8);
 
