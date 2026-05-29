@@ -31222,7 +31222,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BE20);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C284);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C43C);
+/* gl_func_0005C43C: cross-of-callee-results. cb(float,float,int,int)->float
+ * applied 3 ways over the 9 args; returns a0*r3 - a3*r1 + a6*r2. Matched
+ * 2026-05-29 (fresh decode). cb is the float-typed alias (undefined_syms
+ * gl_func_00000000_c43c) so the f12/f14 float args pass single-precision (not
+ * K&R double-promote); call 2 passes a4/a5's raw bits in the int regs
+ * (reinterpret, not convert); _pad reserves the 0x28 frame slot. */
+extern float gl_func_00000000_c43c(float, float, int, int);
+float gl_func_0005C43C(float a0, float a1, float a2, float a3, float a4, float a5, float a6, int a7, int a8) {
+    int _pad;
+    float r1 = gl_func_00000000_c43c(a1, a2, a7, a8);
+    float r2 = gl_func_00000000_c43c(a1, a2, *(int*)&a4, *(int*)&a5);
+    float r3 = gl_func_00000000_c43c(a4, a5, a7, a8);
+    (void)_pad;
+    return r3 * a0 - a3 * r1 + a6 * r2;
+}
 
 /* game_libs_func_0005C4CC: 9-insn 2D cross-product `a*d - b*c`.
  *   float f(float a, float b, float c, float d) { return a*d - b*c; }
