@@ -2883,7 +2883,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E910);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E9C0);
 
-#ifdef NON_MATCHING
 /* gl_func_0000EAAC: 35-insn 4-arg create-and-link (0x8C, frame 0x28).
  *
  * Decoded structure (raw-word disasm):
@@ -2897,30 +2896,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E9C0);
  *   node->[0x14] = self;                            // back-link
  *
  * The tail (last 2 stmts) is the same back-link-with-conditional-flag
- * pattern as gl_func_0000E66C — likely shared linked-set finalizer used
- * across these helpers.
+ * pattern as gl_func_0000E66C — shared linked-set finalizer family.
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * MATCHED 2026-05-29 via the gl_func_0000E84C pattern: store the factory result
+ * straight to self->0x98, re-read self->0x98 inline for each call (don't cache
+ * the node in an $s-reg), and use a dedicated `q` spanning the link call + the
+ * finalizer. The simplest family member (no lazy-init, no a3-home-across-call)
+ * so it has no frame-alignment gap — full byte match.
  */
 void gl_func_0000EAAC(int *self, int a1, int a2, int a3) {
-    int *node;
-    int *target;
+    int *q;
     self[0x9C / 4] = a3;
-    node = (int*)gl_func_00000000(0, 0x4B);
-    self[0x98 / 4] = (int)node;
-    target = (int*)self[0x9C / 4];
-    gl_func_00000000(node, *target);
-    gl_func_00000000(node, a1, a2);
-    gl_func_00000000((char*)self + 0x10, node);
-    if (node[0x14 / 4] != 0) {
-        node[0x4 / 4] = 1;
+    self[0x98 / 4] = gl_func_00000000(0, 0x4B);
+    gl_func_00000000((int *)self[0x98 / 4], *(int *)self[0x9C / 4]);
+    gl_func_00000000((int *)self[0x98 / 4], a1, a2);
+    q = (int *)self[0x98 / 4];
+    gl_func_00000000((char *)self + 0x10, q);
+    if (q[0x14 / 4] != 0) {
+        q[0x4 / 4] = 1;
     }
-    node[0x14 / 4] = (int)self;
+    q[0x14 / 4] = (int)self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000EAAC);
-#endif
 
 extern int gl_ref_00020CB0();
 int gl_func_0000EB38(char *a0) {
