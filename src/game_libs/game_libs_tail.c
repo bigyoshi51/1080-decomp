@@ -2796,7 +2796,35 @@ void gl_func_0000E79C(int *self, int a1, int a2, int *a3_int_ptr) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E79C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E84C);
+/* gl_func_0000E84C: constructor. obj = cb(0, a3); s0->0x80 = obj. Then marshals
+ * obj with: cb(obj, 0.0f, 0.0f); cb(obj, f38, f3C, f38, f3C) [floats as raw bits
+ * in int regs/stack via mfc1]; cb(obj, i38, i3C, i40) [same fields as int];
+ * cb(obj, a1, a2); cb(s0+0x10, obj). Ends: if (obj->0x14) obj->4 = 1; obj->0x14
+ * = s0. MATCHED 2026-05-29 (fresh decode). Three levers: (1) float-typed aliases
+ * (gl_func_00000000_e84c2/4 in undefined_syms) so the float args pass via mfc1
+ * (O32 float-after-int → int reg) instead of a stack roundtrip from
+ * `*(int*)&f`; (2) re-read s0->0x80 from memory each call (don't cache obj in an
+ * s-reg) — `q` spans the cb6 call (spilled+reloaded), matching the target; (3)
+ * INLINE the 0x38/0x3C float reads in the cb call (no named float locals) —
+ * named locals reserved a dead 8-byte stack slot, bloating the frame -48 -> -56;
+ * IDO CSEs the inlined reads into single f0/f2 loads. */
+extern int gl_func_00000000();
+extern void gl_func_00000000_e84c2(int, float, float);
+extern void gl_func_00000000_e84c4(int, float, float, float, float);
+void gl_func_0000E84C(int *s0, int a1, int a2, int a3) {
+    int *q;
+    s0[0x80 / 4] = gl_func_00000000(0, a3);
+    gl_func_00000000_e84c2(s0[0x80 / 4], 0.0f, 0.0f);
+    gl_func_00000000_e84c4(s0[0x80 / 4], *(float *)&s0[0x38 / 4], *(float *)&s0[0x3C / 4], *(float *)&s0[0x38 / 4], *(float *)&s0[0x3C / 4]);
+    gl_func_00000000((int *)s0[0x80 / 4], s0[0x38 / 4], s0[0x3C / 4], s0[0x40 / 4]);
+    gl_func_00000000((int *)s0[0x80 / 4], a1, a2);
+    q = (int *)s0[0x80 / 4];
+    gl_func_00000000((char *)s0 + 0x10, q);
+    if (q[0x14 / 4] != 0) {
+        q[0x4 / 4] = 1;
+    }
+    q[0x14 / 4] = (int)s0;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_0000E910: 44-insn lazy-init + 4-call chain + linked-set finalizer (0xB0, frame 0x30).
