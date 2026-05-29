@@ -1117,42 +1117,66 @@ void arcproc_uso_func_00001C74(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001C74);
 #endif
 
-/* arcproc_uso_func_00001D18 — verified structural decode (124-insn widget
- * constructor; double-prec FP div chain + 10 setup calls + arg-spill +
- * child-build + list-link tail = documented constructor sub-80 ceiling →
- * INCLUDE_ASM build path; struct-typing reference). Sibling-shape of
- * timproc_uso_b1_func_00001A64.
- * void f(int *a0, int a1, int a2, int a3, [sp+88]=arg4){
- *   s0 = a0;
- *   a0->0xC  = &D+0x3E4;  a0->0xBC = a1;  a0->0xB8 = a3;
- *   a0->0x54 = a2;  a0->0xD0 = 255;  a0->0xD4 = 0;  a0->0x4C = arg4;
- *   a0->0xC8 = a0->0xC0 = 195.0f/255.0f;  a0->0xC4 = 195.0f/255.0f;
- *   a0->0xCC = 0.0f/255.0f;                       // f20 = 255.0 divisor
- *   if (((int*)a1)->0x4F0 << 15 >= 0) {           // bgezl gate
- *     gl_func_00000000(s0, 232, 19, s0->0x44 + 16);
- *     gl_func_00000000(s0, 105, 17, s0 + 160);
- *     gl_func_00000000(s0, 291, 225, 1);
- *     gl_func_00000000(s0, 33, 19, s0 + 168);
- *     gl_func_00000000(s0->0x8C, ((int*)s0->0xB8)->0x34);
- *     v0 = gl_func_00000000(0, s0->0x58);  s0->0x94 = v0;
- *     gl_func_00000000(v0, 0);
- *     gl_func_00000000(s0->0x94, 160, 70, 1.0f);
- *     w = s0->0x94; w->0x18 = (w->0x18 & ~4) ... ; many @s0->0x94 + 0x64
- *       float writes = {250.0,235.5,100.0}/255.0, +0xC = saved f2;
- *     s0->0x94->0xA0 = s0->0x6C + 264;
- *     s0->0x94->0x80 = 0;  s0->0x94->0x84 = -18;
- *     a1x = s0->0x94; if (a1x->0x14 == 0) a1x->0x4 = 1;  a1x->0x14 = s0;
- *   }
- * }
- * Struct-typing: a0 widget — ptr @0xC (&D+0x3E4), @0xBC=a1, @0xB8=a3,
- * @0x54=a2, @0x4C=arg4(sp+88), @0xD0=255, @0xD4=0, float quad
- * @0xC0..0xCC = {195,195,195,0}/255, @0x44 sub-region, @0x8C handle,
- * @0x58 id, @0x94 built child (its +0x64 float quad, +0x80/84 ints,
- * +0xA0 ptr, +0x14 list-link, +0x4 first-flag). a1->0x4F0 bit gates
- * configure. Caps <80: div.s-by-f20 chain + sdc1/$f20 callee-save +
- * 10-call spill + bgezl/beql branch-likely + &D reloc scheduling —
- * documented constructor ceiling. INCLUDE_ASM (no episode). */
+#ifdef NON_MATCHING
+/* arcproc_uso_func_00001D18: widget constructor. Field inits (0xC=0x3E4, 0xBC=
+ * arg1, 0xB8=arg3, 0x54=arg2, 0xD0=0xFF, 0xD4=0, 0x4C=arg4); float quad @0xC0/C4/
+ * C8/CC = {192,255,192,0}/255 (variable-divisor `float denom=255.0f` → runtime
+ * div.s held in $f20). Gated on arg1->0x4F0 bit-16: 5 cb setup calls, alloc a
+ * child into arg0->0x94, init it (its own {250,235,100,0}/255 quad at +0x64..+0x70,
+ * +0x80/84 ints, +0xA0 ptr, clear bit 4 of +0x18, float cb via gl_proto_1d18) and
+ * link into the arg0+0x10 list. Fresh decode 2026-05-29 (m2c-confirmed), upgraded
+ * from structural ceiling marker. Caps: structs + cb prototypes untyped (USO-reloc).
+ * NON_MATCHING. */
+extern int gl_proto_1d18(void *, int, int, float, float);
+void arcproc_uso_func_00001D18(char *arg0, char *arg1, int arg2, char *arg3, int arg4) {
+    float denom = 255.0f;
+    float r192 = 192.0f / denom;
+    float r0;
+    char *sub;
+
+    *(int *)(arg0 + 0xC) = 0x3E4;
+    *(char **)(arg0 + 0xBC) = arg1;
+    *(char **)(arg0 + 0xB8) = arg3;
+    *(int *)(arg0 + 0x54) = arg2;
+    *(int *)(arg0 + 0xD0) = 0xFF;
+    *(int *)(arg0 + 0xD4) = 0;
+    *(int *)(arg0 + 0x4C) = arg4;
+    *(float *)(arg0 + 0xC8) = r192;
+    *(float *)(arg0 + 0xC0) = r192;
+    r0 = 0.0f / denom;
+    *(float *)(arg0 + 0xC4) = 255.0f / denom;
+    *(float *)(arg0 + 0xCC) = r0;
+    if (*(int *)(arg1 + 0x4F0) & 0x10000) {
+        gl_func_00000000();
+        gl_func_00000000(arg0, 0xE8, 0x13, *(int *)(arg0 + 0x44) + 0x10);
+        gl_func_00000000(arg0, 0x69, 0x11, arg0 + 0xA0);
+        gl_func_00000000(arg0, 0x123, 0xE1, 1);
+        gl_func_00000000(arg0, 0x21, 0x13, arg0 + 0xA8);
+        gl_func_00000000(*(int *)(arg0 + 0x8C), *(int *)(*(char **)(arg0 + 0xB8) + 0x34));
+        *(char **)(arg0 + 0x94) = (char *)gl_func_00000000(0, *(int *)(arg0 + 0x58));
+        gl_func_00000000(*(char **)(arg0 + 0x94), 0);
+        gl_proto_1d18(*(char **)(arg0 + 0x94), 0xA0, 0x46, 1.0f, 1.0f);
+        sub = *(char **)(arg0 + 0x94);
+        *(int *)(sub + 0x18) = *(int *)(sub + 0x18) & ~4;
+        sub = *(char **)(arg0 + 0x94);
+        *(float *)(sub + 0x64) = 250.0f / denom;
+        *(float *)(sub + 0x68) = 235.0f / denom;
+        *(float *)(sub + 0x6C) = 100.0f / denom;
+        *(float *)(sub + 0x70) = r0;
+        *(int *)(*(char **)(arg0 + 0x94) + 0xA0) = *(int *)(arg0 + 0x6C) + 0x108;
+        *(int *)(*(char **)(arg0 + 0x94) + 0x80) = 0;
+        *(int *)(*(char **)(arg0 + 0x94) + 0x84) = -0x12;
+        sub = *(char **)(arg0 + 0x94);
+        gl_func_00000000(arg0 + 0x10, sub);
+        if (*(int *)(sub + 0x14) != 0) {
+            *(int *)(sub + 4) = 1;
+        }
+        *(char **)(sub + 0x14) = arg0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001D18);
+#endif
 
 /* arcproc_uso_func_00001F0C: boundary-corrected (stolen-prologue mirror). The 2
  * words `lui t6,0; lw t6,0x64(t6)` (preloading D[0x64]) sat PAST func_00001D18's
