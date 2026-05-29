@@ -1738,6 +1738,17 @@
       }
     },
     {
+      "name": "src/timproc_uso_b5/timproc_uso_b5_g3_1DA4",
+      "target_path": "expected/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o",
+      "base_path": "build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o",
+      "metadata": {
+        "source_path": "src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c",
+        "progress_categories": [
+          "timproc_uso"
+        ]
+      }
+    },
+    {
       "name": "src/map4_data_uso_b2/map4_data_uso_b2",
       "target_path": "expected/src/map4_data_uso_b2/map4_data_uso_b2.c.o",
       "base_path": "build/non_matching/src/map4_data_uso_b2/map4_data_uso_b2.c.o",

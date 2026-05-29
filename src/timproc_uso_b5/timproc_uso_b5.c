@@ -933,23 +933,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001D60);
 
-#ifdef NON_MATCHING
-/* Target is `return 1` but with an UNFILLED jr-delay slot:
- *   li v0,1 / jr ra / nop   (vs -O2 emit `jr ra / li v0,1`).
- * Verified 2026-05-29: `-O2 -g3` reproduces the exact target bytes
- * (li/jr/nop) per docs/IDO_CODEGEN.md#feedback-ido-g3-disables-delay-slot-fill.
- * BUT can't apply -g3 file-wide: timproc_uso_b5.c has 150+ matched
- * compiled-C functions with normal FILLED delay slots that would regress.
- * 0x1DA4 sits mid-block (neighbors 0x1D60/0x1DB0 are INCLUDE_ASM, immune,
- * but the compiled matches throughout are not), so a clean match needs a
- * 3-way concat file-split (before / g3-only / after) like block3's
- * o0_0 + main concat — focused-session plumbing, not tick-safe. */
-int timproc_uso_b5_func_00001DA4(void) {
-    return 1;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001DA4);
-#endif
+/* timproc_uso_b5_func_00001DA4 (`return 1`, unfilled jr-delay) is carved into
+ * its own -O2 -g3 sub-unit src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c and
+ * spliced back into block5 at offset 0x1DA4 — see the timproc_uso_block5_yay0
+ * rule. -g3 unfills the delay slot (li/jr/nop) without -O0 bloat; can't apply
+ * file-wide here (150+ filled-delay matches would regress). */
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001DB0);
 
