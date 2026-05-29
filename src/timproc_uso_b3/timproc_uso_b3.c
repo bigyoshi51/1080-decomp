@@ -757,7 +757,77 @@ void timproc_uso_b3_func_00001928(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001928);
 #endif
 
+#ifdef NON_MATCHING
+/* timproc_uso_b3_func_000019CC: widget constructor (clone of arcproc_uso_func_
+ * 00001D18). Field inits (0xC=0x3E4, 0xB8/0x50=arg1, 0x4C=arg3, 0xAC=0). Gated on
+ * arg1->0x4F0 bit-16: sets 0x54=arg2, 0xD0=0xFF, 0xD4=0, 1.0f quad at 0xC0/C4/C8/
+ * CC; 5 cb setup calls; allocs child 0xBC (from a 0x30-stride table indexed by
+ * *(int*)(&D+0x64)) + links it; allocs child 0x94, inits its {250,235,100,0}/255
+ * color quad (var-divisor div.s) + ints/ptr + float cb (gl_proto_19cc) + links it.
+ * Fresh decode 2026-05-29 (m2c-confirmed). 82.8% reg-blind (148/149 insns).
+ * Residual: float-call mfc1 setup + spill regalloc. Caps: structs + cb prototypes
+ * untyped (USO-reloc), &D not symbolized. NON_MATCHING. */
+extern int gl_proto_19cc(void *, int, int, float, float);
+void timproc_uso_b3_func_000019CC(char *arg0, char *arg1, int arg2, int *arg3) {
+    char *sp44;
+    char *o;
+    char *sub;
+    float denom = 255.0f;
+
+    *(int *)(arg0 + 0xC) = 0x3E4;
+    *(char **)(arg0 + 0xB8) = arg1;
+    *(char **)(arg0 + 0x50) = arg1;
+    *(int **)(arg0 + 0x4C) = arg3;
+    *(int *)(arg0 + 0xAC) = 0;
+    if (*(int *)(arg1 + 0x4F0) & 0x10000) {
+        *(int *)(arg0 + 0x54) = arg2;
+        *(int *)(arg0 + 0xD0) = 0xFF;
+        *(int *)(arg0 + 0xD4) = 0;
+        *(float *)(arg0 + 0xCC) = 1.0f;
+        *(float *)(arg0 + 0xC8) = 1.0f;
+        *(float *)(arg0 + 0xC4) = 1.0f;
+        *(float *)(arg0 + 0xC0) = 1.0f;
+        gl_func_00000000();
+        gl_func_00000000(arg0, 0xE8, 0x13, *(int *)(arg0 + 0x44) + 0x10);
+        gl_func_00000000(arg0, 0x69, 0x11, arg0 + 0xA0);
+        gl_func_00000000(arg0, 0x123, 0xE1, 1);
+        gl_func_00000000(arg0, 0x21, 0x13, arg0 + 0xA8);
+        gl_func_00000000(*(int *)(arg0 + 0x8C), 0);
+        sp44 = (char *)gl_func_00000000(*(int *)(*(int **)(arg0 + 0x4C)) + (*(int *)((char *)&D_00000000 + 0x64) * 0x30), 0);
+        o = (char *)gl_func_00000000(0, *(int *)(arg0 + 0x60));
+        *(char **)(arg0 + 0xBC) = o;
+        gl_func_00000000(o, *(int *)(sp44 + 4));
+        gl_func_00000000(*(char **)(arg0 + 0xBC), 0x35, 0xD6);
+        gl_func_00000000(arg0 + 0x10, *(char **)(arg0 + 0xBC));
+        if (*(int *)(*(char **)(arg0 + 0xBC) + 0x14) != 0) {
+            *(int *)(*(char **)(arg0 + 0xBC) + 4) = 1;
+        }
+        *(char **)(*(char **)(arg0 + 0xBC) + 0x14) = arg0;
+        sub = (char *)gl_func_00000000(0, *(int *)(arg0 + 0x58), *(char **)(arg0 + 0xBC));
+        *(char **)(arg0 + 0x94) = sub;
+        gl_func_00000000(sub, 0);
+        gl_proto_19cc(*(char **)(arg0 + 0x94), 0xA0, 0x46, 1.0f, 1.0f);
+        sub = *(char **)(arg0 + 0x94);
+        *(int *)(sub + 0x18) = *(int *)(sub + 0x18) & ~4;
+        sub = *(char **)(arg0 + 0x94);
+        *(float *)(sub + 0x64) = 250.0f / denom;
+        *(float *)(sub + 0x68) = 235.0f / denom;
+        *(float *)(sub + 0x6C) = 100.0f / denom;
+        *(float *)(sub + 0x70) = 0.0f / denom;
+        *(int *)(*(char **)(arg0 + 0x94) + 0xA0) = *(int *)(arg0 + 0x6C) + 0x108;
+        *(int *)(*(char **)(arg0 + 0x94) + 0x80) = 0;
+        *(int *)(*(char **)(arg0 + 0x94) + 0x84) = -0x12;
+        sub = *(char **)(arg0 + 0x94);
+        gl_func_00000000(arg0 + 0x10, sub, sub + 0x64);
+        if (*(int *)(sub + 0x14) != 0) {
+            *(int *)(sub + 4) = 1;
+        }
+        *(char **)(sub + 0x14) = arg0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000019CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001C20);
 
