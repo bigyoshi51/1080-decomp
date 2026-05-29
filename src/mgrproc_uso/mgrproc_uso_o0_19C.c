@@ -1,0 +1,211 @@
+#include "common.h"
+
+/* Contiguous -O0 run [0x19C, 0xAE0) of the mgrproc_uso Yay0 block, carved into
+ * a dedicated -O0 sub-unit (region 2) and concatenated with the -O2 objects
+ * before crunch64 compression. See the mgrproc_uso_block1_yay0 rule in the
+ * Makefile. func_000009A8 is byte-matched at -O0 (its D_0000014C store's %lo is
+ * baked into the blob by scripts/bake-data-relocs.py); the rest are still
+ * INCLUDE_ASM caps (NM bodies kept for objdiff scoring / grep). */
+
+extern int gl_func_00000000();
+extern char D_00000000;
+extern int D_0000014C;
+
+#define MGR_D_64 (*(int*)((char*)&D_00000000 + 0x64))
+#define MGR_STATE_CODE (*(int*)((char*)&D_00000000 + 0x40))
+#define MGR_D_44 (*(int*)((char*)&D_00000000 + 0x44))
+
+#ifdef NON_MATCHING
+/* 218-insn (0x368) jump-table state-machine dispatcher; 9 cases on a1, common
+ * tail reloads a1 from D[0x40] and repeats while the sp[0x48] marker stays 0.
+ * Won't byte-match (USO jump-table reloc shape); full decode scores ~37.9%. */
+extern char D_a_4_x;
+extern int D_b_4_x[];
+extern char D_c_4_x;
+extern char D_8_x;
+void mgrproc_uso_func_0000019C(char *a0, int a1) {
+    volatile char *arg0 = a0;
+    volatile int state = a1;
+    volatile int loop_continue;
+    int v0_save;
+    int s0_save;
+    loop_continue = 0;
+    do {
+        switch (state) {
+            case 0:
+                gl_func_00000000(arg0, 1, 0xB, 8);
+                MGR_D_44 = 2;
+                *(int*)((char*)&D_00000000 + 0x48) = 8;
+                loop_continue = 1;
+                break;
+            case 1:
+                gl_func_00000000(arg0, 1, 7, 4);
+                MGR_D_44 = 2;
+                *(int*)((char*)&D_00000000 + 0x48) = 8;
+                loop_continue = 1;
+                break;
+            case 2:
+                gl_func_00000000(arg0);
+                MGR_STATE_CODE = 3;
+                break;
+            case 3:
+                gl_func_00000000(arg0, *(int*)((char*)&D_00000000 + 0x68));
+                MGR_STATE_CODE = 4;
+                break;
+            case 4: {
+                int *p;
+                int *q;
+                gl_func_00000000(&D_a_4_x, D_b_4_x[1]);
+                p = (int*)*(int**)((char*)arg0 + 8);
+                q = p + p[1] * 1;
+                MGR_D_64 = q[3];
+                *(int*)((char*)&D_00000000 + 0x80) =
+                    *(int*)((char*)&D_00000000 + 0x80) ^ 1;
+                p = (int*)*(int**)((char*)arg0 + 8);
+                q = p + p[1] * 1;
+                *((char*)&D_00000000 + 0x17D) = (char)q[9];
+                *((char*)&D_00000000 + 0x17F) =
+                    (char)*(int*)((char*)&D_00000000 +
+                                  ((unsigned char)*((char*)&D_00000000 + 0x17D) * 4) +
+                                  0x90);
+                gl_func_00000000(&D_c_4_x, 4, MGR_D_64, 0);
+                gl_func_00000000(&D_c_4_x, MGR_D_64);
+                v0_save = gl_func_00000000(arg0, *(int*)arg0, 1);
+                s0_save = gl_func_00000000(0, 0x45000000, v0_save,
+                                           *(int*)((char*)arg0 + 8),
+                                           *(int*)arg0);
+                gl_func_00000000(arg0, 0, s0_save);
+                loop_continue = 1;
+                break;
+            }
+            case 5: {
+                int buf;
+                int v0_local = gl_func_00000000(arg0, &buf);
+                gl_func_00000000(arg0, (buf | 0x2000) | v0_local, 0x2000,
+                                 *(int*)arg0);
+                loop_continue = 1;
+                break;
+            }
+            case 6:
+                gl_func_00000000(arg0);
+                MGR_STATE_CODE = 1;
+                break;
+            case 7:
+                gl_func_00000000(arg0);
+                MGR_STATE_CODE = 8;
+                break;
+            case 8: {
+                int *s0_p = (int*)gl_func_00000000(0, 1, 0);
+                gl_func_00000000((char*)&D_00000000 + 0x10, s0_p);
+                if (s0_p[0x14 / 4] != 0) {
+                    s0_p[1] = 1;
+                }
+                s0_p[0x14 / 4] = (int)&D_00000000;
+                loop_continue = 1;
+                break;
+            }
+            default:
+                break;
+        }
+        state = MGR_STATE_CODE;
+    } while (!loop_continue);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000019C);
+#endif
+
+#ifdef NON_MATCHING
+/* 51-insn allocator+init wrapper. 4 cross-USO calls + branch on D[0] sentinel. */
+void mgrproc_uso_func_00000504(int *a0) {
+    int v1 = gl_func_00000000(2);
+    int v2 = gl_func_00000000(0x3C);
+    int v3;
+    a0[2] = v2;
+    v3 = gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), -1, -1);
+    a0[0] = v3;
+    *(int*)((char*)&D_00000000 + 0x14C) = v3;
+    gl_func_00000000(v1);
+    if (*(int*)&D_00000000 == 0x17D7) {
+        *(int*)((char*)a0[0] + 0x14) = 1;
+    } else {
+        *(int*)((char*)a0[0] + 0x14) = 0;
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000504);
+#endif
+
+#ifdef NON_MATCHING
+/* 76-insn (0x130) random-unique-ID assignment: fills 4 entries at
+ * (a0->8)->[idx*4 + 0x24] with 4 unique random IDs in {0..4}. */
+typedef float (*FloatFn)(void);
+void mgrproc_uso_func_000005D0(char *a0) {
+    int count = 0;
+    int result = -1;
+    int candidate;
+    int idx;
+    int *arr;
+
+    while (count < 4) {
+        while (result == -1) {
+            candidate = ((int)(((FloatFn)gl_func_00000000)() *
+                               *(float*)((char*)&D_00000000 + 0x24))
+                         + *(int*)((char*)&D_00000000 + 0x4C) + 1) % 5;
+            arr = *(int**)(a0 + 8);
+            for (idx = 0; idx < count; idx++) {
+                if (*(int*)((char*)arr + idx * 4 + 0x24) == candidate) break;
+            }
+            if (idx == count) {
+                result = candidate;
+            }
+        }
+        arr = *(int**)(a0 + 8);
+        *(int*)((char*)arr + count * 4 + 0x24) = result;
+        count++;
+        result = -1;
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D0);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000700);
+
+/* 27-insn -O0 cleanup wrapper, byte-matched at -O0. The `register int z=0`
+ * lands in callee-saved s0 (the target's shared-zero reg); D_0000014C (defined
+ * = 0x14C) gives the $at-fused `lui at; sw %lo(D_0000014C)(at)` store, whose
+ * %lo (0x14c) is baked into the blob by scripts/bake-data-relocs.py. */
+void mgrproc_uso_func_000009A8(int *a0) {
+    register int z;
+    gl_func_00000000(a0[2]);
+    a0[2] = 0;
+    gl_func_00000000(a0[0], 3);
+    z = 0;
+    a0[0] = z;
+    D_0000014C = z;
+}
+
+#ifdef NON_MATCHING
+/* 48-insn -O0 aggregator: total=f(*a0); f(*a0,buf); sum|=f(buf[i]) loop;
+ * *a1=buf[0]; return sum. (tail buf[0] folding still off — kept INCLUDE_ASM) */
+extern int func_00000000();
+int mgrproc_uso_func_00000A14(int **a0, int *a1) {
+    int buf[8];
+    int total;
+    int sum;
+    int i;
+    sum = 0;
+    total = func_00000000(*a0);
+    func_00000000(*a0, buf);
+    for (i = 0; i < total; i++) {
+        sum |= func_00000000(buf[i]);
+    }
+    *a1 = buf[0];
+    return sum;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000A14);
+/* func_00000A14_pad (0xC trailing block-alignment zeros) is added by the
+ * block1 yay0 concat rule's intermediate pad-to-0xAE0, not a GLOBAL_ASM here:
+ * asm-processor rejects the 3-word pad block as "too short". */
+#endif

@@ -1610,6 +1610,38 @@
       }
     },
     {
+      "name": "src/mgrproc_uso/mgrproc_uso_head",
+      "target_path": "expected/src/mgrproc_uso/mgrproc_uso_head.c.o",
+      "base_path": "build/non_matching/src/mgrproc_uso/mgrproc_uso_head.c.o",
+      "metadata": {
+        "source_path": "src/mgrproc_uso/mgrproc_uso_head.c",
+        "progress_categories": [
+          "mgrproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/mgrproc_uso/mgrproc_uso_o0_19C",
+      "target_path": "expected/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o",
+      "base_path": "build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o",
+      "metadata": {
+        "source_path": "src/mgrproc_uso/mgrproc_uso_o0_19C.c",
+        "progress_categories": [
+          "mgrproc_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
       "name": "src/game_uso/game_uso",
       "target_path": "expected/src/game_uso/game_uso.c.o",
       "base_path": "build/non_matching/src/game_uso/game_uso.c.o",

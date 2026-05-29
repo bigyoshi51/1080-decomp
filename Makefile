@@ -208,6 +208,12 @@ build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o build/non_matching/src/timpro
 build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: OPT_FLAGS := -O0
 build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0xF8
 build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xF8
+# region1 = -O2 head [0xF8,0x19C); matching build (INCLUDE_ASM) is exactly 0xA4.
+# No NON_MATCHING_TRUNCATE_TEXT (NM bodies diverge; objdiff scores per-function).
+build/src/mgrproc_uso/mgrproc_uso_head.c.o: TRUNCATE_TEXT := 0xA4
+# region2 = -O0 run [0x19C,0xAE0) (func_0000019C..A14; func_000009A8 matched).
+build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o: OPT_FLAGS := -O0
+build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o: TRUNCATE_TEXT := 0x938
 
 # timproc_uso_b1 / b3 (Yay0-compressed): same opening -O0 run (int-reader 0x4C +
 # Quad4-reader 0x64 = 0xB0) carved into a region-0 sub-unit, same concat infra.
@@ -329,16 +335,31 @@ build/assets/%.bin.o: assets/%.bin
 	$(OBJCOPY) -I binary -O elf32-tradbigmips $< $@
 
 # Yay0-compressed USO blocks: compile C → extract .text → crunch64 compress → wrap as bin
-# mgrproc_uso block 1: text 0x3410 bytes uncompressed. Split into region0 =
-# mgrproc_uso_o0_0.c.o (func_00000000, -O0, 0x4C) + region1 = mgrproc_uso.c.o
-# (-O2, rest). Each truncated .text is objcopy'd to raw binary and concatenated
-# in address order before Yay0 compression. Binary-concat keeps each region's
-# bytes verbatim (USO jals are addend-0 reloc-carried / objdiff reloc-aware).
-build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/src/mgrproc_uso/mgrproc_uso.c.o
+# mgrproc_uso block 1: text 0x3410 bytes uncompressed. Split into 4 regions
+# concatenated in address order before Yay0 compression:
+#   region0 = mgrproc_uso_o0_0.c.o   (-O0, [0x0,0xF8))  func_00000000/4C/B0
+#   region1 = mgrproc_uso_head.c.o   (-O2, [0xF8,0x19C)) func_000000F8 + leaves
+#   region2 = mgrproc_uso_o0_19C.c.o (-O0, [0x19C,0xAE0)) func_0000019C..A14
+#   region3 = mgrproc_uso.c.o        (-O2, [0xAE0,end))  the rest
+# Each region's .text is objcopy'd to raw binary; bake-data-relocs.py then bakes
+# HI16/LO16 data relocs (e.g. func_000009A8's D_0000014C %lo) into the bytes —
+# objcopy leaves them raw (pre-link) but the USO ships them baked. R_MIPS_26
+# jals stay raw (USO load-time relocs). Pad to the exact block size; the 0xC
+# gap before region3 (func_00000A14's trailing block-align pad) is the
+# intermediate pad-to-0xAE0.
+build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/src/mgrproc_uso/mgrproc_uso_head.c.o build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o build/src/mgrproc_uso/mgrproc_uso.c.o
 	@mkdir -p $(dir $@)
 	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
+	python3 scripts/bake-data-relocs.py $(word 1,$^) $(@:.bin=.text0.bin) undefined_syms_auto.txt
 	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
-	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
+	python3 scripts/bake-data-relocs.py $(word 2,$^) $(@:.bin=.text1.bin) undefined_syms_auto.txt
+	$(OBJCOPY) -O binary --only-section=.text $(word 3,$^) $(@:.bin=.text2.bin)
+	python3 scripts/bake-data-relocs.py $(word 3,$^) $(@:.bin=.text2.bin) undefined_syms_auto.txt
+	$(OBJCOPY) -O binary --only-section=.text $(word 4,$^) $(@:.bin=.text3.bin)
+	python3 scripts/bake-data-relocs.py $(word 4,$^) $(@:.bin=.text3.bin) undefined_syms_auto.txt
+	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) $(@:.bin=.text2.bin) > $(@:.bin=.pre.bin)
+	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.pre.bin) 0xAE0
+	cat $(@:.bin=.pre.bin) $(@:.bin=.text3.bin) > $(@:.bin=.text.bin)
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
