@@ -2777,25 +2777,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E6E8);
  * sibling — per feedback_1080_linked_set_finalizer_tail_idiom memo).
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * feedback_doc_marker_is_bail.md. 2026-05-29: applied the gl_func_0000E84C
+ * pattern (factory result straight to self->0x84, re-read inline per call,
+ * dedicated `q` spanning func5+final) -> 99.82%, fixing the reloaded-obj reg
+ * ($a3 -> $a1). RESIDUAL = the SAME 8-byte frame-alignment gap as E6E8 (target
+ * -48 vs -40); present even though func3 here is an int deref (no float), so the
+ * gap is a consistent family spill-slot-packing cap, not float-related.
+ * INCLUDE_ASM remains build path.
  */
 void gl_func_0000E79C(int *self, int a1, int a2, int *a3_int_ptr) {
-    int *obj;
+    int *q;
     self[0x88 / 4] = (int)a3_int_ptr;
     if (self[0x64 / 4] == 0) {
         gl_func_00000000();
     }
-    obj = (int*)gl_func_00000000(0, self[0x64 / 4], self[0x68 / 4]);
-    self[0x84 / 4] = (int)obj;
-    gl_func_00000000(obj, *(int*)self[0x88 / 4], 1);
-    obj = (int*)self[0x84 / 4];
-    gl_func_00000000(obj, a1, a2);
-    obj = (int*)self[0x84 / 4];
-    gl_func_00000000((char*)self + 0x10, obj);
-    if (obj[0x14 / 4] != 0) {
-        obj[0x4 / 4] = 1;
+    self[0x84 / 4] = gl_func_00000000(0, self[0x64 / 4], self[0x68 / 4]);
+    gl_func_00000000((int *)self[0x84 / 4], *(int *)self[0x88 / 4], 1);
+    gl_func_00000000((int *)self[0x84 / 4], a1, a2);
+    q = (int *)self[0x84 / 4];
+    gl_func_00000000((char *)self + 0x10, q);
+    if (q[0x14 / 4] != 0) {
+        q[0x4 / 4] = 1;
     }
-    obj[0x14 / 4] = (int)self;
+    q[0x14 / 4] = (int)self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E79C);
