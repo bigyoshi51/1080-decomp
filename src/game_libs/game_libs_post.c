@@ -33909,7 +33909,37 @@ void gl_func_000622D8(int *self, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000622D8);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_00062368: array allocator/initializer. obj = a0 ?: alloc(8); store
+ * count at obj->4 and an alloc(count*20) array at obj->0; init each 20-byte
+ * element: [0]=cb(a2), [4]=-1, [8]=0, [12]=0. Returns obj. Fresh decode
+ * 2026-05-29: 95.09%, body byte-exact (the alloc-fail `goto end` shares the
+ * final return, the per-element stores re-read obj->0, two-IV loop). RESIDUAL
+ * (5 diffs): IDO defers the `move s2,a0` save past the ra/s3/s1 stores (target
+ * does it first) because s2 is conditionally reassigned to the alloc result —
+ * a prologue save-scheduling cap. */
+extern int gl_func_00000000();
+int gl_func_00062368(int *a0, int count, int a2) {
+    int *s2 = a0;
+    int i, off;
+    if (a0 == 0) {
+        s2 = (int *)gl_func_00000000(8);
+        if (s2 == 0) goto end;
+    }
+    s2[1] = count;
+    s2[0] = gl_func_00000000(count * 20);
+    for (i = 0, off = 0; i < s2[1]; i++, off += 20) {
+        *(int *)(s2[0] + off) = gl_func_00000000(a2);
+        *(int *)(s2[0] + off + 4) = -1;
+        *(int *)(s2[0] + off + 8) = 0;
+        *(int *)(s2[0] + off + 12) = 0;
+    }
+end:
+    return (int)s2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062368);
+#endif
 
 void game_libs_func_00062444(int *a0) {
     int v0 = 0;
