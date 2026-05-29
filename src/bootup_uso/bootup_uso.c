@@ -5492,9 +5492,14 @@ extern char D_func_0000E9FC_arg1;
 extern char D_func_0000E9FC_arg2;
 extern char D_func_00000008_data;
 #ifdef NON_MATCHING
+/* 83.3% → ~91% (3→2 diffs): offset corrected 0x20 → 0x28 (was a wrong
+ * constant). Residual 2 diffs are a prologue lui-$4 / sw-$31 SCHEDULING
+ * swap — target hoists the call-arg lui before the ra-save; IDO ugen with
+ * our C emits ra-save first. Tried local-arg variant; no change. Prologue
+ * instruction-scheduling cap. */
 void func_0000E9FC(void) {
     func_00000000(&D_func_0000E9FC_arg1);
-    *(int*)(&D_func_00000008_data + 0x20) = (int)&D_func_0000E9FC_arg2;
+    *(int*)(&D_func_00000008_data + 0x28) = (int)&D_func_0000E9FC_arg2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E9FC);
