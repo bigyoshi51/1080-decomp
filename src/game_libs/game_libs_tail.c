@@ -2026,7 +2026,62 @@ void gl_func_0000D318(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D318);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0000D418: priority-queue threshold update. mgr=arg0->0x44; cur=mgr->0x54.
+ * If cur and cur->0x64 <= mgr->0xC (threshold f0): pick the next node — if
+ * cur->0x84 (alt) is null, advance to mgr->0x58 (clearing it); else choose
+ * whichever of alt/mgr->0x58 is closer to f0 (by ->0x64). Then dispatch
+ * cb(arg0,cur,arg0), gated on cur->0xC8&1 and a cur->0x5C vs mgr->8 compare.
+ * Fresh decode 2026-05-29 (m2c-assisted): 94.54%, structure exact (all FP
+ * compares/branches/dispatch). RESIDUAL: the target keeps arg0 in caller-saved
+ * $a2 the whole function (move a2,a0 at entry; re-reads arg0->0x44 via a2; cb
+ * a0=a2) — the documented entity-ptr-in-$a2 cap (feedback-ido-game-uso-entity-
+ * ptr-a2-cap); IDO C uses $a0/an $s-reg instead. Not C-reachable. */
+extern int gl_func_00000000();
+void gl_func_0000D418(int *arg0) {
+    int *v1 = (int *)arg0[0x44 / 4];
+    int *v0 = (int *)v1[0x54 / 4];
+    float f0;
+    if (v0 == 0) return;
+    f0 = *(float *)((char *)v1 + 0xC);
+    if (!(*(float *)((char *)v0 + 0x64) <= f0)) return;
+    {
+        int *a0 = (int *)v0[0x84 / 4];
+        if (a0 == 0) {
+            int *nx = (int *)v1[0x58 / 4];
+            if (nx == 0) {
+                v1[0x54 / 4] = 0;
+            } else {
+                v1[0x54 / 4] = (int)nx;
+                ((int *)arg0[0x44 / 4])[0x58 / 4] = 0;
+            }
+        } else {
+            int *nx = (int *)v1[0x58 / 4];
+            if ((*(float *)((char *)a0 + 0x64) - f0) < (*(float *)((char *)nx + 0x64) - f0)) {
+                v1[0x54 / 4] = (int)a0;
+            } else {
+                v1[0x54 / 4] = (int)nx;
+                ((int *)arg0[0x44 / 4])[0x58 / 4] = (int)a0;
+            }
+        }
+    }
+    if (v0[0xC8 / 4] & 1) {
+        if (*(float *)((char *)arg0[0x44 / 4] + 8) <= *(float *)((char *)v0 + 0x5C)) {
+            gl_func_00000000(arg0, v0, arg0);
+            return;
+        }
+        gl_func_00000000(arg0, v0, arg0);
+        return;
+    }
+    if (*(float *)((char *)v0 + 0x5C) <= *(float *)((char *)arg0[0x44 / 4] + 8)) {
+        gl_func_00000000(arg0, v0, arg0);
+        return;
+    }
+    gl_func_00000000(arg0, v0, arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D418);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D548);
 
