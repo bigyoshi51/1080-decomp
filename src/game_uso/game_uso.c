@@ -1511,7 +1511,26 @@ branch_88: {
     (void)excess;
 }
 late_label:
-    /* convergence point — final exit setup */
+    /* convergence point — the key==3 path's entity transform (asm 0x4A0-0x5E4,
+     * ~80 insns, decoded 2026-05-29 — structural, ready for incremental C-lift).
+     * Mirrors branch_88's tail (Vec3 scale + subtract-into-ctx). Data flow:
+     *   1. fanout copy a Vec3 (a3<-t9, then t2<-a3)                  ; 0x4A0-0x4C0
+     *   2. scaleA: sp[0x48..0x50] = sp[0x48? src 0x48-0x50 @72/76/80]
+     *              * ctx->0x10C (f0 = a2[268])                       ; 0x4C4-0x4F0
+     *      i.e. vecB = vecA * *(float*)((char*)a0 + 0x10C);
+     *   3. fanout copy Vec3 (v1<-t5, t8<-v1)                          ; 0x4F4-0x520
+     *   4. copy Vec3 sp[0x74..0x7C]@116/120/124 -> sp[0x120..0x128]@288/292/296
+     *   5. v0 = sp[0x12C]@300 (a node ptr); jal gl_func(v0 + 0x30)    ; 0x53C-0x548
+     *      (f18 = sp[0x108]@264 spilled across the call; a2 homed @sp+0x180)
+     *   6. scaleD: sp[0x24..0x2C]@36/40/44 = sp[0x110..0x118]@272/276/280 * f18
+     *   7. fanout copy that scaled Vec3: sp36 -> sp[0xFC]@252 -> sp[0x148]@328
+     *   8. subtract-into-ctx (THE EFFECT, mirrors branch_88):
+     *        *(float*)((char*)a0 + 0x2C) -= scaledD.x;   ; a2[44] -= sp328
+     *        *(float*)((char*)a0 + 0x30) -= scaledD.y;   ; a2[48] -= sp332
+     *        *(float*)((char*)a0 + 0x34) -= scaledD.z;   ; a2[52] -= sp336
+     * NEXT PASS: lift steps 2/6/8 to real C (the two scales + the ctx subtract)
+     * using the branch_88 Vec3f/scratch local idioms; the fanout copies (1/3/4/7)
+     * are the IDO-O2 raw-word redistribution the existing body already models. */
 end:
     return;
 }
