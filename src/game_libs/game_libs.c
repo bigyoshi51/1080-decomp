@@ -1591,14 +1591,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008674);
  * (verified: operand swap is no-op, explicit-var ordering cascades 26 diffs).
  * Which f-reg holds load vs convert is IDO's FP allocator choice, not
  * C-reachable. Was INSN_PATCH'd (2 words, removed 2026-05-23). */
-#ifdef NON_MATCHING
 void game_libs_func_000086A0(char *a0) {
     float four = 4.0f;
     float f550 = *(float*)(a0 + 0x550);
 
     if (f550 < four) {
-        double d550 = (double)f550;
-        *(float*)(a0 + 0x550) = (float)(*(double*)((char*)&D_00000000 + 0xE58) + d550);
+        double t;
+        *(float*)(a0 + 0x550) = (float)(*(double*)((char*)&D_00000000 + 0xE58) + (t = (double)f550));
         f550 = *(float*)(a0 + 0x550);
     }
 
@@ -1608,9 +1607,6 @@ void game_libs_func_000086A0(char *a0) {
         *(float*)(a0 + 0x550) = -(f550 / four);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000086A0);
-#endif
 
 /* gl_func_0000871C: 54-insn (0xD8) FPU updater + conditional indirect-call.
  *   if (a0->f550 < 4.0f) a0->f550 = (float)((double)a0->f550 + D[0xE60]);
