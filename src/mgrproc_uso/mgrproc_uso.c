@@ -1040,7 +1040,78 @@ void mgrproc_uso_func_00002F10(self, a1, a2, a3, arg5)
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002F10);
 #endif
 
+#ifdef NON_MATCHING
+/* mgrproc_uso_func_00003074: per-frame step gated on arg0->0xBC->0x4F0 bit-16 &&
+ * ->0x4DC==1. Bumps arg0->0x30 by 0x21 if gated; cb(arg0,sub). Then (if gated):
+ * a 3-way dispatch on arg0->0x44->0x94 (0/1/else) when ->0x34 set; a mod-0x33
+ * frame counter at arg0->0xDC; periodic cb(0x135,0) when arg0->0x98->0xC4>=0xC;
+ * cb(sub) when arg0->0x98->0xC8<=0. Final block (if still gated && ->0x4DC==1 &&
+ * cb()!=0): cb(sub), sub->0x554=200.0f, arg0->0x2C=0; then two cb(arg0->0x80, ...)
+ * from arg0->0x44 fields. cb(arg0) tail. Fresh decode 2026-05-29 (m2c-confirmed).
+ * 89.7% reg-blind. Residuals: the 3-way ->0x94 dispatch emits redundant arg-moves
+ * (3 identical placeholder bodies; real targets differ), and the last cb's 5th arg
+ * (arg0->0x44->0x6C) is a FLOAT passed on the stack (lwc1/swc1) — m2c showed it as
+ * int; needs a float-typed call alias. Caps: arg0/sub structs + cb prototypes
+ * untyped (USO-reloc). NON_MATCHING. */
+extern int gl_func_00000000();
+void mgrproc_uso_func_00003074(char *arg0) {
+    char *a1;
+    int v0;
+    char *p;
+    int v1;
+    int t4;
+
+    a1 = *(char **)(arg0 + 0xBC);
+    if ((*(int *)(a1 + 0x4F0) & 0x10000) && (*(int *)(a1 + 0x4DC) == 1)) {
+        *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;
+    }
+    gl_func_00000000(arg0, a1);
+    a1 = *(char **)(arg0 + 0xBC);
+    v0 = *(int *)(a1 + 0x4F0) & 0x10000;
+    if ((v0 != 0) && (*(int *)(a1 + 0x4DC) == 1)) {
+        p = *(char **)(arg0 + 0x44);
+        if (*(int *)(p + 0x34) != 0) {
+            v1 = *(int *)(p + 0x94);
+            if (v1 == 0) {
+                gl_func_00000000(a1, a1);
+            } else if (v1 == 1) {
+                gl_func_00000000(a1, a1);
+            } else {
+                gl_func_00000000(a1, a1);
+            }
+        }
+        t4 = *(int *)(arg0 + 0xDC) + 1;
+        *(int *)(arg0 + 0xDC) = t4;
+        if (t4 >= 0x33) {
+            *(int *)(arg0 + 0xDC) = 0;
+        }
+        p = *(char **)(arg0 + 0x98);
+        if ((p != 0) && (*(int *)(p + 0xC4) >= 0xC) && (*(int *)(arg0 + 0xDC) == 0)) {
+            gl_func_00000000(0x135, 0);
+        }
+        if (*(int *)(*(char **)(arg0 + 0x98) + 0xC8) <= 0) {
+            gl_func_00000000(*(int *)(arg0 + 0xBC));
+        }
+        v0 = *(int *)(*(char **)(arg0 + 0xBC) + 0x4F0) & 0x10000;
+    }
+    if (v0 != 0) {
+        if ((*(int *)(*(char **)(arg0 + 0xBC) + 0x4DC) == 1) &&
+            (gl_func_00000000(arg0, *(int *)(arg0 + 0xBC)) != 0)) {
+            gl_func_00000000(*(int *)(arg0 + 0xBC));
+            *(float *)(*(char **)(arg0 + 0xBC) + 0x554) = 200.0f;
+            *(int *)(arg0 + 0x2C) = 0;
+        }
+        p = *(char **)(arg0 + 0x44);
+        gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(p + 0x30), *(int *)(p + 0x90));
+        p = *(char **)(arg0 + 0x44);
+        gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(p + 8), *(int *)(p + 0xC),
+                         *(int *)(p + 0x68), *(int *)(p + 0x6C));
+    }
+    gl_func_00000000(arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003074);
+#endif
 
 /* mgrproc_uso_func_00003240: state-gated 3-call dispatch. Reads
  * a0->[0xBC]->[0x4E0] (state field). If state in {0,1,2} OR either of two
