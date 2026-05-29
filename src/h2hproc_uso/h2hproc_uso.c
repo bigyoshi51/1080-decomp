@@ -720,25 +720,28 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C1
  *
  * First-pass decode; not byte-matched. Default build INCLUDE_ASM unchanged. */
 void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
-    int *root;
     int *slotC4, *slotCC;
     int *r1, *r2;
 
     gl_func_00000000(a0, a1);
 
-    root = *(int**)((char*)&D_00000000 + 0x134);
-    slotC4 = *(int**)((char*)root + 0xC4);
-    *(int*)((char*)slotC4 + 0x8DC) = *(int*)((char*)root + 0x108);
-    r1 = *(int**)((char*)slotC4 + 0x800);
-    gl_func_00000000(r1);
-    gl_func_00000000(r1, *(int*)((char*)root + 0x168), *(int*)((char*)root + 0x170));
+    {
+        int *root = *(int**)((char*)&D_00000000 + 0x134);
+        slotC4 = *(int**)((char*)root + 0xC4);
+        *(int*)((char*)slotC4 + 0x8DC) = *(int*)((char*)root + 0x108);
+        r1 = *(int**)((char*)slotC4 + 0x800);
+        gl_func_00000000(r1);
+        gl_func_00000000(r1, *(int*)((char*)root + 0x168), *(int*)((char*)root + 0x170));
+    }
 
-    root = *(int**)((char*)&D_00000000 + 0x134);
-    slotCC = *(int**)((char*)root + 0xCC);
-    *(int*)((char*)slotCC + 0x8DC) = *(int*)((char*)root + 0x108);
-    r2 = *(int**)((char*)slotCC + 0x800);
-    gl_func_00000000(r2);
-    gl_func_00000000(r2, *(int*)((char*)root + 0x16C), *(int*)((char*)root + 0x174));
+    {
+        int *root = *(int**)((char*)&D_00000000 + 0x134);
+        slotCC = *(int**)((char*)root + 0xCC);
+        *(int*)((char*)slotCC + 0x8DC) = *(int*)((char*)root + 0x108);
+        r2 = *(int**)((char*)slotCC + 0x800);
+        gl_func_00000000(r2);
+        gl_func_00000000(r2, *(int*)((char*)root + 0x16C), *(int*)((char*)root + 0x174));
+    }
 
     gl_func_00000000(a0);
     *(unsigned int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;
