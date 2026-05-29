@@ -2243,7 +2243,41 @@ void gl_func_0000D7B8(char *arg0, int arg1, int arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D7B8);
 #endif
 
+#ifdef NON_MATCHING
+/* gl_func_0000D8E0: simpler 2-arg sibling of gl_func_0000D7B8. Gated by arg0->0x6C
+ * != 0 && (arg0->0xB4 & 2): cb(0x22), cb2(arg0->0x6C, arg1, 0, 0) -> v0; writes
+ * 70.0f + the four x/255 color ratios (250/235/100/255-over-255) via runtime div.s
+ * (variable divisor `float denom=255.0f` — see gl_func_0000D7B8 / docs IDO_CODEGEN
+ * both-literal pool-fold note). Trailing gate arg0->0x6C != 0 && (arg0->0xB4 & 1)
+ * calls cb(arg0->0x6C). Fresh decode 2026-05-29 (m2c-confirmed). 90.6% reg-blind.
+ * Residual: the 255/255 ratio — target loads 255.0 twice (f6 numerator + f0 denom),
+ * IDO CSEs mine to f0/f0 (same numerator-CSE cap as gl_func_0000D7B8). Caps: arg0/v0
+ * structs + cb prototypes untyped (USO-reloc). NON_MATCHING. */
+extern int gl_func_00000000();
+void gl_func_0000D8E0(char *arg0, int arg1) {
+    int a2;
+    char *v0;
+    float denom;
+
+    a2 = *(int *)(arg0 + 0x6C);
+    if ((a2 != 0) && (*(int *)(arg0 + 0xB4) & 2)) {
+        gl_func_00000000(0x22);
+        v0 = (char *)gl_func_00000000(*(int *)(arg0 + 0x6C), arg1, 0, 0);
+        denom = 255.0f;
+        *(float *)(v0 + 0x5C) = 70.0f;
+        *(float *)(v0 + 0x64) = 250.0f / denom;
+        *(float *)(v0 + 0x68) = 235.0f / denom;
+        *(float *)(v0 + 0x6C) = 100.0f / denom;
+        *(float *)(v0 + 0x70) = 255.0f / denom;
+        a2 = *(int *)(arg0 + 0x6C);
+    }
+    if ((a2 != 0) && (*(int *)(arg0 + 0xB4) & 1)) {
+        gl_func_00000000(a2);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
+#endif
 
 /* gl_func_0000D9B8: NATURAL CEILING 98.64% NM. 3 reg-rename diffs at
  * offsets 0x08/0x0C/0x18 — IDO emits $a1 for the temp; target uses $a3.
