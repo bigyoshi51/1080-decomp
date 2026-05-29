@@ -879,7 +879,7 @@ extern s32 func_8000275C();
 extern s32 D_8000A314;
 extern s32 D_8000A328;
 extern s32* func_800008B8(void*, void*, void*);
-extern s32 func_80000A98(void);
+extern s32 func_80000A98();
 
 s32 func_800008F0(s32 a0) {
     s32 s2;
@@ -1032,7 +1032,73 @@ s32 func_80000C88(void) {
     return 0;
 }
 
+/* func_80000D2C: name-lookup. If D_80012D60[id] is set, strcpy its name (at
+ * +0x72) into out and return 2. Else iterate the D_8000A2E0 list (0x14 stride):
+ * for each entry, enumerate via func_80000880/func_80000A98; on an entry whose
+ * +0x4 field == id, copy its name (func_800005DC, src=entry+0xC) and return 1;
+ * func_80000B34<0 aborts with D_80013004. Logic-complete, size-exact NM wrap
+ * (75/75 insns, ~83%). The merged-TU 2-arg-call-vs-4-arg-def conflict on
+ * func_800005DC (which forced a cast emitting lui+addiu+jalr) is solved via an
+ * alias symbol (DSC, below) → direct jal. Residual (not yet matched): frame is
+ * 0x98 vs target 0x90 (an 8-byte spill/temp slot this C structure allocates and
+ * the target doesn't), the entry+0x4==id test canonicalizes to swapped bne
+ * operands, and the list-continue flag lands in v1 vs target t3. */
+extern s32 func_8000098C(void*);
+extern s32 func_80000B34(void*);
+/* func_800005DC is defined 4-arg earlier in this merged TU; call it 2-arg here
+ * via an alias symbol (undefined_syms_auto.txt: func_800005DC_d2c = 0x800005DC)
+ * so the redecl is legal and emits a direct jal (not the cast's lui+addiu+jalr).
+ * See docs/MATCHING_WORKFLOW.md#feedback-alias-extern-via-undefined-syms. */
+extern s32 func_800005DC_d2c(void*, void*);
+#define DSC func_800005DC_d2c
+#ifdef NON_MATCHING
+s32 func_80000D2C(u8 *out, s32 id) {
+    u8 iter[0x2C];   /* sp+0x64 */
+    u8 entry[0x2C];  /* sp+0x38; +0x4 = id field, +0xC = name */
+    s32 *list;
+    u8 *tbl;
+    s32 i;
+    u8 c;
+
+    tbl = (u8 *)D_80012D60[id];
+    list = (s32 *)D_8000A2E0;
+    if (tbl != NULL) {
+        c = tbl[0x72];
+        i = 0;
+        out[0] = c;
+        if (c != 0) {
+            do {
+                i++;
+                c = ((u8 *)D_80012D60[id])[i + 0x72];
+                out[i] = c;
+            } while (c != 0);
+        }
+        return 2;
+    }
+    if (*list != 0) {
+        do {
+            func_80000880(iter, list);
+            if (func_80000A98(iter, entry) != 0) {
+                do {
+                    if (*(s32 *)(entry + 0x4) == id) {
+                        DSC(out, entry + 0xC);
+                        return 1;
+                    }
+                    if (func_80000B34(iter) < 0) {
+                        return D_80013004;
+                    }
+                } while (func_80000A98(iter, entry) != 0);
+            }
+            func_8000098C(iter);
+            i = *(s32 *)((u8 *)list + 0x14);
+            list = (s32 *)((u8 *)list + 0x14);
+        } while (i != 0);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000D2C);
+#endif
 
 void func_80000E58(void) {
     D_80012C44(&D_8000A32C, &D_8000A340);

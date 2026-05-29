@@ -191,6 +191,7 @@ D_8000A828 = 0x8000A828;
 D_8000A830 = 0x8000A830;
 func_80000518 = 0x80000518;
 func_800005DC = 0x800005DC;
+func_800005DC_d2c = 0x800005DC;  /* alias: 2-arg typed redecl for func_80000D2C (avoids 4-arg-def cast) */
 func_8000060C = 0x8000060C;
 func_8000098C = 0x8000098C;
 func_800009D8 = 0x800009D8;
