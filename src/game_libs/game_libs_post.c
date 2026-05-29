@@ -29801,10 +29801,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
  * pointer). Float constants 8000.0 (0x45FA0000) and 1000.0 (0x447A0000)
  * are upper-bound clamps for sliders.
  *
- * Not NM-wrapped yet: K&R-style gl_func_00000000 calls with mixed
- * int+float args need careful prototype handling
- * (feedback_ido_knr_float_call.md) before compilable C exists. */
+ * 2026-05-29: NM-wrapped at 97.78%. Two levers: (1) a float-typed alias
+ * (gl_func_00000000_54a = (int,int,int,int,float,int)) so calls 2/3 pass the
+ * single-precision 8000.0/1000.0 slider clamps via swc1 on the stack (a K&R call
+ * would double-promote); (2) the per-call owner arg (a0) is materialized fresh
+ * `lui;addiu` EACH call in the target (no CSE) — modeled with 5 DISTINCT owner
+ * symbols (D_54a_o0..o4 = 0x0 in undefined_syms) so IDO can't CSE them into one
+ * callee-saved reg, which also frees $s0 for the incoming arg (matching the
+ * target's single-$s allocation). RESIDUAL (2 diffs): calls 2/3 emit a3=0 as
+ * `move a3,zero` vs target `li a3,0` (addiu) — a body-vs-delay-slot 0-arg
+ * instruction-selection cap. */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern void gl_func_00000000_54a(int, int, int, int, float, int);
+extern int D_00000000, D_54a_o0, D_54a_o1, D_54a_o2, D_54a_o3, D_54a_o4;
+void gl_func_00054A14(int *s0) {
+    gl_func_00000000((int)&D_54a_o0, (int)((char *)&D_00000000 + 0x21090), 0);
+    gl_func_00000000_54a((int)&D_54a_o1, (int)((char *)&D_00000000 + 0x2109C), (int)((char *)s0 + 0xC8), 0, 8000.0f, 1);
+    gl_func_00000000_54a((int)&D_54a_o2, (int)((char *)&D_00000000 + 0x210A4), (int)((char *)s0 + 0xCC), 0, 1000.0f, 1);
+    gl_func_00000000((int)&D_54a_o3, (int)((char *)&D_00000000 + 0x210AC), (int)((char *)s0 + 0xD0), 0);
+    gl_func_00000000((int)((char *)s0 + 0x10C), 0);
+    gl_func_00000000((int)&D_54a_o4);
+    gl_func_00000000(s0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00054AEC: command-token decoder (clean single fn).
