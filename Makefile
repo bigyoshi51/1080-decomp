@@ -198,15 +198,16 @@ build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b
 build/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o: OPT_FLAGS := -O0
 build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o: OPT_FLAGS := -O0
 
-# mgrproc_uso (Yay0-compressed): func_00000000 is an -O0 int-reader carved into
-# its own sub-unit (region 0, 0x4C). The -O2 main object (region 1) supplies the
-# rest. Both .text sections are objcopy'd to raw binary and concatenated in
-# address order before crunch64 compression (see the block1 yay0 rule). This is
-# the Yay0 file-split infra: binary-concat-before-compress, the analogue of the
-# direct multi-.o link used by the non-Yay0 USOs (bootup/arcproc).
+# mgrproc_uso (Yay0-compressed): a contiguous -O0 run at the block start
+# (func_00000000/4C/B0, 0x0..0xF8) is carved into its own sub-unit (region 0).
+# The -O2 main object (region 1) supplies the rest. Both .text sections are
+# objcopy'd to raw binary and concatenated in address order before crunch64
+# compression (see the block1 yay0 rule). This is the Yay0 file-split infra:
+# binary-concat-before-compress, the analogue of the direct multi-.o link used
+# by the non-Yay0 USOs (bootup/arcproc).
 build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: OPT_FLAGS := -O0
-build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0x4C
-build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x4C
+build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0xF8
+build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xF8
 
 # INSN_PATCH / RELOC_PATCH / PROLOGUE_STEALS were REMOVED 2026-05-23 as
 # match-faking (post-cc instruction-byte editing). See

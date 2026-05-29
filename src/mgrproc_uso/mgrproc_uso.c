@@ -23,64 +23,10 @@ typedef struct { int a, b, c, d; } Quad4;
 #define MGR_D_44 (*(int*)((char*)&D_00000000 + 0x44))
 #endif
 
-/* mgrproc_uso_func_00000000 (int-reader, -O0) lives in mgrproc_uso_o0_0.c —
- * carved into a dedicated -O0 sub-unit and concatenated into the Yay0 block
- * (region 0) before compression. See the block1 yay0 rule in the Makefile. */
-
-#ifdef NON_MATCHING
-/* Quad4-reader template at -O0 (25 insns, 0x64) — sibling of
- * mgrproc_uso_func_00000000 (int reader at -O0). Per
- * feedback_uso_accessor_template_reuse.md, this is the standard 16-byte
- * accessor compiled at -O0 vs -O2 (15 insns).
- *
- * -O0 markers in target:
- *   (a) `sw ra` BEFORE `sw a0` in prologue (-O2 opposite)
- *   (b) unfilled jal delay slot (`jal 0; nop`) — -O2 fills with `addiu a2,16`
- *   (c) pointer-indirect reload (`lw t6,0x28(sp); addiu t7,sp,0x18`) instead
- *       of -O2's direct `lw tN,0x18(sp)`
- *   (d) trailing `b +1; nop` (dead branch to next insn) before epilogue
- *
- * BLOCKED: mgrproc_uso is Yay0-compressed (per feedback_uso_yay0_compressed.md);
- * the file-split recipe for -O0 override (works for bootup_uso/arcproc_uso)
- * doesn't apply because the Yay0 rule consumes only one .o. Same blocker as
- * mgrproc_uso_func_00000000 (int-reader sibling). Unblock requires `ld -r`
- * pre-merge step before yay0 compression — infrastructure work, deferred. */
-void mgrproc_uso_func_0000004C(Quad4 *dst) {
-    volatile Quad4 buf;
-    gl_func_00000000(&D_00000000, &buf, 16);
-    *(Quad4*)dst = *(Quad4*)&buf;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000004C);
-#endif
-
-#ifdef NON_MATCHING
-/* Refcount-increment wrapper (18 insns, 0x48). -O0 style matching
- * mgrproc_uso_func_00000000 (int reader at -O0).
- *
- * Body: increment a0->field_04 (as int), then call gl_func_00000000(a0).
- *
- * -O0 tells in target:
- *   (a) shadow-space save of a0 at sp+0x28, then reload into $s0 at 0xC0
- *       (`lw s0, 0x28(sp)`) AND ANOTHER reload into $a0 at 0xD0
- *       (`lw a0, 0x28(sp)`) — -O0 never shares the reload
- *   (b) unfilled jal delay slot (`jal 0; nop`)
- *   (c) dead `b +1; nop` immediately before epilogue (basic-block boundary
- *       marker per feedback_ido_o0_empty_stub.md)
- *
- * BLOCKED PERMANENTLY by Yay0 pipeline: mgrproc_uso is Yay0-compressed
- * (one .o → one compressed block), so the -O0 file-split recipe used by
- * bootup_uso/arcproc_uso/n64proc_uso doesn't apply here. Same blocker as
- * mgrproc_uso_func_000009A8 sibling (line ~245). Default INCLUDE_ASM
- * matches; the C wrap is for grep discoverability + future-PC-port
- * reference, not for promotion. Don't re-attempt the split. */
-void mgrproc_uso_func_000000B0(int *a0) {
-    a0[1]++;
-    gl_func_00000000(a0);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000B0);
-#endif
+/* mgrproc_uso_func_00000000 / _0000004C / _000000B0 (contiguous -O0 run,
+ * 0x0..0xF8) live in mgrproc_uso_o0_0.c — carved into a dedicated -O0 sub-unit
+ * and concatenated into the Yay0 block (region 0) before compression. See the
+ * block1 yay0 rule in the Makefile. */
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_000000F8: 5-function BUNDLE (0xA4 / 41 insns total).
