@@ -1574,7 +1574,11 @@ void arcproc_uso_func_00002864(void) {
  *    2026-05-29 — none flips it (9 or worse). NEXT: use the regalloc dump
  *    (-Wo,-zdbug:6 -> ./uoptlist, see project_1080_regalloc_dump memo) to read the
  *    exact coloring and craft the live-range tweak; this is the systematic tool
- *    for renumber caps. NM-wrapped pending that pass. */
+ *    for renumber caps. ADDITIONAL FAILED (2026-05-30, in-tree): base-relative
+ *    buffer source (base+0x490 to raise base's ref count -> priority) and the
+ *    regalloc dump itself (now WORKING in-worktree, 105-line uoptlist) — but the
+ *    uopt candidate-number format needs dedicated study to map to s4/s5. Swap
+ *    persists. Genuinely a dedicated-session crack, not a loop-tick. */
 typedef struct { int w[5]; } Arc2884Buf;
 #ifdef NON_MATCHING
 void arcproc_uso_func_00002884(void *a0) {
