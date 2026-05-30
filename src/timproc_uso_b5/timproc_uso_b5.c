@@ -5452,28 +5452,24 @@ void timproc_uso_b5_func_0000E5AC(int a0) {
     gl_func_00000000(a0);
 }
 
-#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000E5AC_pad.s")
-
-/* Prologue-stolen successor (per E5AC's _pad.s): the 2-insn `lui v0;
- * lw v0, 0(v0)` preceding E5D8 sets v0 = *D_00000000 (a state pointer).
- * Body copies 3 floats from `(*D_0)->0x70`'s fields (0xBC/0xCC/0xDC)
- * into D_0+0/+4/+8, then calls gl_func_00000000(a0). C-emit duplicates
- * the lui+lw at start; PROLOGUE_STEALS=8 strips the redundant 8-byte
- * prefix post-cc per feedback_prologue_stolen_successor_no_recipe.md.
- * Per feedback_prologue_steals_with_dangling_register_use.md, the inner
- * deref uses a typed-as-int* alias `D_E5D8_state` so IDO emits `lui+lw`
- * (matching the stolen-prologue shape) instead of `lui+addiu+lw`. */
-extern int *D_E5D8_state;
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000E5D8: the `lui v0; lw v0,0(v0)` load of *(&D) (a state
+ * pointer) is THIS function's real pre-prologue, mis-split into the E5AC _pad.s;
+ * boundary-corrected 2026-05-30 by merging those 2 words into E5D8.s (0x48 ->
+ * 0x50, start 0x0000E5D0), same fix as gl_func_0001FC78/000601DC. The old
+ * PROLOGUE_STEALS=8 note is obsolete (that mechanism was banned 2026-05-23).
+ * Body copies 3 floats from (*&D)->0x70's fields (0xBC/0xCC/0xDC) into
+ * &D+0/+4/+8, then calls gl_func(a0). Load lands in $v0 (IDO's first-temp) =
+ * the target's register, so no register-renumber residual. */
+extern int D_b5_E5D8_base;  /* distinct &D=0 alias (undefined_syms) so the base read
+                             * compiles to the compact lui v0; lw v0,0(v0) instead of
+                             * CSE-ing &D with the dst stores (which forces lui+addiu+lw). */
 void timproc_uso_b5_func_0000E5D8(int a0) {
-    *(float*)((char*)&D_00000000 + 0) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xBC);
-    *(float*)((char*)&D_00000000 + 4) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xCC);
-    *(float*)((char*)&D_00000000 + 8) = *(float*)((char*)D_E5D8_state[0x70/4] + 0xDC);
+    int *base = (int*)D_b5_E5D8_base;
+    *(float*)((char*)&D_00000000 + 0) = *(float*)((char*)base[0x70/4] + 0xBC);
+    *(float*)((char*)&D_00000000 + 4) = *(float*)((char*)base[0x70/4] + 0xCC);
+    *(float*)((char*)&D_00000000 + 8) = *(float*)((char*)base[0x70/4] + 0xDC);
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000E5D8);
-#endif
 
 /* C-emit-absorbed orphans (per docs/MATCHING_WORKFLOW.md):
  *   _00006890 + _000068A8 + _000068EC ← _0000687C (decl 0x14, .o 0x84
