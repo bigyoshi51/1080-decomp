@@ -23388,10 +23388,9 @@ void game_libs_func_00043EF0(struct game_libs_func_00043EF0_Four *a0, struct gam
 }
 
 extern int gl_func_00000000();
-extern int *gl_ref_00000254;
 
 void gl_func_00043F1C(short *a0) {
-    gl_func_00000000(gl_ref_00000254[0x56], a0[9], a0[0xB], a0);
+    gl_func_00000000((*(int **)((char *)&D_00000000 + 0x254))[0x56], a0[9], a0[0xB], a0);
 }
 
 #ifdef NON_MATCHING
