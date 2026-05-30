@@ -1275,13 +1275,16 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
  * `void(void)` to `s32 func_80000568()` (callable) so this can DIRECT-`jal` it
  * instead of the jalr-emitting func-ptr cast — that took it 3%->55% (func_80000568
  * stays INCLUDE_ASM/EXACT in the default build; the cast-callers at ~482/886 still
- * compile). REMAINING (~25 diffs, multi-tick): (a) frame 0x38 vs target 0x60 — the
- * target reserves ~0x28 more stack (likely stack-local buffers in the original C
- * not yet identified); (b) the 3 loop-invariant table pointers (q/p/end) get s0/s1/s2
- * in a different lui/addiu emission order (encounter-order — try the docs/IDO_CODEGEN
- * "UCODE-encounter order" lever); (c) the found-flag return tail (move v0,zero;
- * bnez vs li v0,-17 order). Kernel-C-decode vein now ENABLED via the func_80000568
- * unlock; iterate (a)-(c) next. */
+ * compile). REMAINING (~25 diffs, multi-tick — HARD, investigated 2026-05-30):
+ * (a) frame 0x38 vs target 0x60 — the target has ~0x2C of UNUSED stack (0x30-0x5C
+ * never accessed) = a "ghost" DCE'd local the original C declared. `volatile s32
+ * ghost[10]` reproduces the 0x60 frame but ADDS a spurious access (net 27, WORSE);
+ * needs the right address-taken-but-unused local, NOT volatile. (b) q/p/end
+ * lui/addiu is EMISSION-SCHEDULING order (ugen backend) — the q=s0/p=s1/end=s2
+ * coloring already matches; only the setup ORDER differs (same hard class as
+ * 2884/33B6C residuals, NOT encounter-order-fixable). (c) found-flag return tail.
+ * All hard backend-scheduling/ghost-frame. Kernel-C vein ENABLED (func_80000568
+ * unlock); THIS fn's residual is hard — pursue the other cast-callers first. */
 #ifdef NON_MATCHING
 extern char D_8000A368, D_80013112, D_80018356;
 s32 uso_find_file(void *arg0, void *arg1) {
