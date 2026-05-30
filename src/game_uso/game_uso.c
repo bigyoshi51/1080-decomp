@@ -11465,30 +11465,22 @@ void game_uso_func_0000F49C(int *a0) {
  * (Makefile SUFFIX_BYTES_FORCE + INSN_PATCH) — both REMOVED 2026-05-23
  * as match-faking (per feedback_no_instruction_forcing_matches_policy).
  * Default build is INCLUDE_ASM. */
-#ifdef NON_MATCHING
 void game_uso_func_0000F514(int *a0) {
-    int *sub;
-    int **subp;
     int *p2;
     gl_func_00000000(a0);
-    sub = (int*)a0[0xB4/4];
-    sub[0xA68/4] = 1;
-    sub = (int*)a0[0xB4/4];
-    subp = (int**)((char*)sub + 0x800);
-    p2 = *subp;
+    /* inline `sub` (a0[0xB4], read twice) so it takes $t-regs, but NAME p2 so it
+     * claims $v0 like the target (same lever as game_uso_func_00010068). */
+    ((int*)a0[0xB4/4])[0xA68/4] = 1;
+    p2 = *(int**)((char*)(int*)a0[0xB4/4] + 0x800);
     if (!(p2[0x10/4] & 0x200)) {
         gl_func_00000000(a0,
-            *(int*)((char*)&D_00000000 + 0xED8),
-            *(int*)((char*)&D_00000000 + 0xEDC));
+            *(Pair2*)((char*)&D_00000000 + 0xED8));
     } else {
         gl_func_00000000(a0);
         gl_func_00000000(a0, 1, 1);
     }
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F514);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000F5A8: 45-insn EE84-family two-path orchestrator.
@@ -12080,14 +12072,12 @@ void game_uso_func_00010128(int *a0) {
     outer_ptr = (int*)outer[0x800 / 4];
     if ((outer_ptr[0x18 / 4] & 0x400) != 0) {
         gl_func_00000000(a0,
-                         *(int*)((char*)&D_00000000 + 0xDE0),
-                         *(int*)((char*)&D_00000000 + 0xDE4));
+                         *(Pair2*)((char*)&D_00000000 + 0xDE0));
     }
     if (*(float*)((char*)outer + 0x9D0) < 1000.0f) {
         if (outer[0x938 / 4] != 0) {
             gl_func_00000000(a0,
-                             *(int*)((char*)&D_00000000 + 0xDE8),
-                             *(int*)((char*)&D_00000000 + 0xDEC));
+                             *(Pair2*)((char*)&D_00000000 + 0xDE8));
         }
         inner = (int*)a0[0xF4 / 4];
         if (inner != 0) {
@@ -12106,8 +12096,7 @@ void game_uso_func_00010128(int *a0) {
                              0, 5, 5, 0, 0);
         }
         gl_func_00000000(a0,
-                         *(int*)((char*)&D_00000000 + 0xDF0),
-                         *(int*)((char*)&D_00000000 + 0xDF4),
+                         *(Pair2*)((char*)&D_00000000 + 0xDF0),
                          3);
         gl_func_00000000(a0);
         gl_func_00000000(a0, 0);
@@ -12316,8 +12305,7 @@ void game_uso_func_00010694(int *a0) {
         /* table walk: a2 = &D[0xE48], step-by-8 entries, max 8 iters.
          * For each entry: load (a2+0)+(a2+4) as args, call gl_func, advance. */
         gl_func_00000000(a0,
-                         *(int*)((char*)&D_00000000 + 0xE48),
-                         *(int*)((char*)&D_00000000 + 0xE4C));
+                         *(Pair2*)((char*)&D_00000000 + 0xE48));
     }
 
     /* TODO 0xF8-0x1A8: remaining table-walk loop + final 2 cross-USO calls
@@ -12385,8 +12373,7 @@ void game_uso_func_00010840(int *a0) {
     sub = (int*)a0[0xB4/4];
     if (sub[0x9CC/4] == 0) {
         gl_func_00000000(a0,
-                         *(int*)((char*)&D_00000000 + 0xE10),
-                         *(int*)((char*)&D_00000000 + 0xE14));
+                         *(Pair2*)((char*)&D_00000000 + 0xE10));
     }
 }
 #else
@@ -12514,28 +12501,22 @@ void game_uso_func_00010C4C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010C4C);
 #endif
 
-#ifdef NON_MATCHING
 void game_uso_func_00010CF0(char *a0) {
     char *sub;
 
     sub = *(char**)(a0 + 0xB4);
     if (*(int*)(sub + 0x9CC) != 0) {
         gl_func_00000000(a0, 0x20004, 0x20005, *(int*)(sub + 0x970), 0x100, 10);
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE78),
-                         *(int*)((char*)&D_00000000 + 0xE7C), -1);
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE78), -1);
     } else {
         int state;
 
         state = *(int*)(a0 + 0xFC);
         gl_func_00000000(a0, state | 4, state | 5, *(int*)(sub + 0x970), 0x100, 10);
-        gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0xE80),
-                         *(int*)((char*)&D_00000000 + 0xE84), -1);
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE80), -1);
     }
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010CF0);
-#endif
 
 /* MATCHED 2026-05-28: struct-by-value (E10/E14 pair). Family sibling of
  * game_uso_func_00010E2C/000114FC. See
@@ -12636,8 +12617,7 @@ void game_uso_func_000110A4(int *a0) {
     *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF20);
     *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF24);
     *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
-    gl_func_00000000(a0, GAME_D_E10,
-                     GAME_D_E14);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     gl_func_00000000(a0);
     p_B4 = *(int **)((char*)a0 + 0xB4);
     *(int*)((char*)p_B4 + 0x960) = 0x64;
