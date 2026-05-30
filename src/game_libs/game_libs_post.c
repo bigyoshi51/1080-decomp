@@ -40753,7 +40753,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071144);
 /* gl_func_00071304: 27-insn 2-call wrapper. Three distinct extern POINTERS
  * (D_71304_A/B/C), each loaded via lui+lw, then stored to via offset.
  * Applied unique-extern recipe per
- * docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs. */
+ * docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs.
+ *
+ * NEAR-MISS (88%, SIZE-MISMATCH: mine 24 insns vs target 27). Logic is exact;
+ * the body, store order (a0->D_A+0x10, a1->D_B+0x14, a2->D_C+2), arg-home/reload
+ * and the three hoisted lui's all match. The ONLY divergence: the 1st call's
+ * result `rv` (passed as the 2nd call's a0). TARGET parks rv in callee-saved
+ * $s0 (`or s0,v0` / `or a0,s0`), paying +1 move + `sw/lw s0` + frame 0x18->0x28.
+ * Natural -O2 C keeps rv in $v0 and does `move a0,v0` (no s0, frame 0x18) -- a
+ * SHORTER, more-optimized body than the target. IDO only promotes a cross-call
+ * value to a callee-saved REGISTER when it's used 2+ times after the call; rv is
+ * used 0 times after the 2nd call, so no C structure induces the s0 round-trip.
+ * NEGATIVE RESULTS (do not repeat, all 2026-05-30, standalone IDO 7.1 -O2):
+ *   - `register int rv` / `register int rv asm("$16")`: hint ignored / IDO rejects
+ *     gcc register-asm (feedback_ido_no_gcc_register_asm). Still $v0.
+ *   - `return rv` (rv live across 2nd call): IDO SPILLS TO STACK (sw $2,28(sp) +
+ *     lw), frame 0x20, NOT s0 -- and target doesn't return rv anyway.
+ *   - -O1: also stack-spills rv (frame 0x20), not s0.
+ *   - rv used twice (stored to D_A AND passed), 2-arg 2nd call, tail-return,
+ *     1st-call-takes-(a0,a1,a2), rv-as-pointer-base: all keep rv in $v0 / frame
+ *     0x18. The s0-for-single-use-cross-call-arg form is not -O2-reachable. NM. */
 extern int *D_71304_A;
 extern int *D_71304_B;
 extern short *D_71304_C;
