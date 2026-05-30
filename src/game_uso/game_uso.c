@@ -12592,13 +12592,11 @@ extern char D_00000000;
 #ifdef NON_MATCHING
 void game_uso_func_00011024(int *a0) {
     int *p_B4 = *(int **)((char*)a0 + 0xB4);
-    *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF48);
-    *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF4C);
+    *(Pair2*)((char*)a0 + 0xD0) = *(Pair2*)((char*)&D_00000000 + 0xF48);
     *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     gl_func_00000000(a0);
-    p_B4 = *(int **)((char*)a0 + 0xB4);
-    *(int*)((char*)p_B4 + 0x960) = 0x64;
+    ((int*)*(int **)((char*)a0 + 0xB4))[0x960 / 4] = 0x64;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
@@ -12614,13 +12612,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
 #ifdef NON_MATCHING
 void game_uso_func_000110A4(int *a0) {
     int *p_B4 = *(int **)((char*)a0 + 0xB4);
-    *(int*)((char*)a0 + 0xD0) = *(int*)((char*)&D_00000000 + 0xF20);
-    *(int*)((char*)a0 + 0xD4) = *(int*)((char*)&D_00000000 + 0xF24);
+    *(Pair2*)((char*)a0 + 0xD0) = *(Pair2*)((char*)&D_00000000 + 0xF20);
     *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     gl_func_00000000(a0);
-    p_B4 = *(int **)((char*)a0 + 0xB4);
-    *(int*)((char*)p_B4 + 0x960) = 0x64;
+    ((int*)*(int **)((char*)a0 + 0xB4))[0x960 / 4] = 0x64;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
