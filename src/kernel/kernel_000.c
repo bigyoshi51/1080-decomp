@@ -1265,6 +1265,18 @@ loop:
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
 #endif
 
+/* uso_find_file(arg0, arg1): load the USO directory (func_80000660(arg0, &D_80012FC0,
+ * &D_80012F80)), verify it (func_800008B8(arg1, &D_80012FC0, &D_8000A368) != 0 else
+ * return -0x11), then walk a parallel key/record table (stride 0x9C: keys from
+ * D_80013112, records from D_800130A0, end D_80018356), comparing each key via a
+ * DIRECT `jal func_80000568(key, &D_80012F80)`; on match copy record->[0x94] into
+ * arg1->[4], set found, return 0; else -0x11. Logic decoded 2026-05-30 (m2c +
+ * hand-trace). BLOCKER: func_80000568 is defined `void(void)` in this file (the
+ * shared-epilogue stub convention, see line ~526 + the func-ptr casts at ~482/886);
+ * the real call is a DIRECT jal, but a (s32(*)(void*,void*)) cast emits jalr+ptr-load
+ * (+5 insns, 3% match). Needs the stub-vs-direct-call convention resolved (a proper
+ * typed forward-decl that doesn't collide with the local void(void) def) before this
+ * matches — kernel-C-decode vein, deferred. */
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_find_file);
 
 /* uso_get_error — returns last error code */
