@@ -44,17 +44,34 @@ for u in rep["units"]:
         p = l.split()
         if len(p) >= 4 and p[2] in ("t", "T"):
             built[p[3]] = int(p[1], 16) // 4
+    # disasm once to flag a `cvt.d.s` near a `jal` per function (K&R float->double
+    # promotion signature — see docs/IDO_CODEGEN.md; clean +delta fix via a
+    # float-prototyped alias, not a regalloc cap)
+    dis = subprocess.run(
+        ["mips-linux-gnu-objdump", "-d", "--no-show-raw-insn", oo],
+        capture_output=True, text=True,
+    ).stdout.splitlines()
+    promo = set()
+    cur = None
+    for i, l in enumerate(dis):
+        mm = re.match(r"^[0-9a-f]+ <([^>]+)>:", l)
+        if mm:
+            cur = mm.group(1)
+        if "cvt.d.s" in l and cur and "jal" in "\n".join(dis[max(0, i - 2):i + 3]):
+            promo.add(cur)
     for f in u.get("functions") or []:
         fp = f.get("fuzzy_match_percent", 0)
         if not (isinstance(fp, (int, float)) and minf <= fp < maxf):
             continue
         bi, ti = built.get(f["name"]), target_insns(seg, fdir, f["name"])
         if bi and ti and bi != ti:
-            rows.append((abs(bi - ti), bi - ti, bi, ti, fp, f["name"], seg))
+            rows.append((abs(bi - ti), bi - ti, bi, ti, fp, f["name"], seg,
+                         f["name"] in promo))
 
 rows.sort(reverse=True)
-for _, delta, bi, ti, fp, n, seg in rows:
+for _, delta, bi, ti, fp, n, seg, promo in rows:
     kind = "OVER (control-flow/redundancy)" if delta > 0 else "UNDER (missing logic)"
-    print(f"delta={delta:+4d} (built {bi}/tgt {ti}) fuzzy={fp:5.1f}  {n} [{seg}]  {kind}")
+    tag = "  <<K&R-FLOAT-PROMOTION? cvt.d.s near jal — float-prototyped-alias fix>>" if (promo and delta > 0) else ""
+    print(f"delta={delta:+4d} (built {bi}/tgt {ti}) fuzzy={fp:5.1f}  {n} [{seg}]  {kind}{tag}")
 print(f"\n{len(rows)} size-mismatch functions (fuzzy {minf:g}-{maxf:g}). "
       f"OVER (+) ~ convergence/redundancy fix; UNDER (-) ~ complete the decode.")
