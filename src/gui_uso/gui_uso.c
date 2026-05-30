@@ -168,6 +168,24 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000055C);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000006B8);
 
+/* gui_uso_func_000008C0 (0x8C0..0x914, 0x58): F3DEX2 DL-builder HEAD. Clean entry
+ * `lw v0,0x24(a0)` (state ptr = a0->[0x24]), builds 2 Gfx command pairs
+ * (G_SETOTHERMODE 0xB900031D / 0x00404240, G_SETCOMBINE 0xFC309661...), loads 1.0f
+ * (lui 0x3F80; mtc1). It has NO prologue and NO `jr ra`: it RUNS OFF THE END into
+ * gui_func_00000918 (0x918), whose first insn is a prologue `addiu sp,-0x10` and
+ * which then does `lw v1,0xC(v0)` -- reading the SAME v0 this head set.
+ *
+ * RESOLVES the open question in gui_func_00000918's note ("implicit v0-input
+ * convention -- investigate the caller"): v0 is NOT a caller convention; it is set
+ * HERE at 0x8C0 (`lw v0,0x24(a0)`) and the body at 0x918 is the fall-through
+ * continuation. 000008C0 + 00000918 are one logical routine that splat split at the
+ * mid-function prologue (a dual-entry / fall-through-into-prologue shape).
+ * MERGE-SAFETY (2026-05-30): no static C or asm reference to gui_func_00000918 /
+ * 0x918 exists, so a boundary merge into a single 0x298-byte unit is byte-safe AND
+ * would let the body be decoded with `a0` as the real arg. NOT merged yet: the
+ * fall-through-into-prologue could mean 0x918 is also an independent API entry
+ * (called via a runtime-relocated table, invisible to a static grep); verify the
+ * original doesn't dispatch 0x918 separately before collapsing the two labels. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000008C0);
 
 #ifdef NON_MATCHING
