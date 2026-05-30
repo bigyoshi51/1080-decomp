@@ -40,6 +40,18 @@ void func_00011D70(void) {
  * blocks 2-insn blocks). See docs/MATCHING_WORKFLOW.md
  * #feedback-asmproc-o0-min-insn-count-blocks-2insn-include-asm.
  *
+ * 2026-05-30 RETEST (with nested-positive/register/struct-copy -O0 levers
+ * from func_000122C4): best is the INVERTED compound-expr no-locals form
+ * `if(a0->18C==0){return *p;} return 0.0f;` -> 17 insns / 7 diffs at -O0
+ * (vs the documented 13-insn no-pair form). Remaining 7: (a) the addu is
+ * `t8+a0` not target's `a0+t8` (operand-order, docs#ido-addu-operand-order),
+ * (b) the dead jr-ra/nop pair lands AFTER the zero block (mine: main, zero,
+ * 2x dead) not BETWEEN (target: main, 1x dead, zero). The dead-pair
+ * PLACEMENT is the -O0 inter-block artifact — natural/inverted/goto/ternary/
+ * if-else all fail to put it between main-return and the hoisted zero block.
+ * Single-gate shape, so the multi-gate nested-positive lever doesn't apply.
+ * Confirmed irreducible from C.
+ *
  * Status: NM-cap-class -O0-inter-block-dead-pair. */
 float func_00011D78(int *a0) {
     int idx;
