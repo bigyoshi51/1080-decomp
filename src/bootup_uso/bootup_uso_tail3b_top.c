@@ -23,19 +23,20 @@ typedef struct { int a, b, c, d; } Quad4;
  * counter compares + re-read pattern + 3-word table copy + slti
  * range tests + reloc call. INCLUDE_ASM remains build path.
  *
- * -O0 PROGRESS (2026-05-30): file flipped to -O0 (it isolates this fn);
- * NM body rewritten for the -O0 shape -> 69.4% (was 34.4% at -O2-g3).
- * Three structural keys found: (1) the tbl copy is a 12-byte STRUCT copy
- * (`Tbl3 tbl = D_0000C69C`) so &tbl/&D materialize once and reuse, not
- * per-element; (2) NO cached `st`/`c` locals — every st=a0->0x154 and
- * st->2 read is inline-fresh (target reloads a0 from 0x30(sp) + re-derefs
- * each use); (3) the gate exits are `goto ret` to a shared label, NOT
- * `return` (return generates a beq+b split; goto gives the target's direct
- * bne/bnez/beqz-to-epilogue). Table index = `*(int*)((char*)&tbl + c*4 -
- * 0x10)` with c the fresh re-read. REMAINING gap (~76 vs 75 insns +
- * register cascade): the chained-branch epilogue (target `b 0x110`->`b
- * 0x118`->ret, a -O0 nested-block-exit artifact) and -O0 temp renumbering.
- * Next: match the chained-exit + temp numbering. Same vein as 188/244. */
+ * -O0 PROGRESS (2026-05-30): file at -O0 (it isolates this fn); NM body
+ * rewritten for the -O0 shape -> 88.7% (was 34.4% at -O2-g3, then 69.4%).
+ * Structure now EXACT (75/75 insns). Keys: (1) tbl copy is a 12-byte STRUCT
+ * copy (Tbl3 tbl = D_0000C69C) so &tbl/&D materialize once; (2) all
+ * st=a0->0x154 / st->2 reads inline-fresh (target reloads a0 each use);
+ * (3) the gates are NESTED POSITIVE conditions if(a1==2){if(c>=4){if(c<5)
+ * -- a flat if(!cond)return/goto inverts to a beq+b split; nested positive
+ * gives the target's direct bne/bnez/beqz to the shared exit (see
+ * docs/IDO_CODEGEN.md#ido-o0-nested-positive-gates); (4) the range
+ * c>=4 && c<5 reads c ONCE via register int c (plain re-reads, +3 insns).
+ * REMAINING ~11% = -O0 register cascade: target holds the range c in a TEMP
+ * and the RMW st ptr in $s0, but register-c forces c into $s0 and leaves st
+ * in a temp; c-in-temp-read-once AND st-in-$s0 together isn't reachable from
+ * C. -O0 register-renumber cap; structure is otherwise byte-exact. */
 typedef struct { int a, b, c; } Tbl3;
 extern Tbl3 D_0000C69C;
 #ifdef NON_MATCHING
@@ -47,17 +48,20 @@ void func_000122C4(char *a0, int a1) {
             *(unsigned short*)(*(char**)(a0 + 0x154) + 2) += 1;
             func_00000000(a0);
         }
-        goto ret;
+    } else {
+        if (a1 == 2) {
+            register int c = *(unsigned short*)(*(char**)(a0 + 0x154) + 2);
+            if (c >= 4) {
+                if (c < 5) {
+                    if (*(int*)(a0 + 0x4C) + 1 ==
+                        *(int*)((char*)&tbl + (*(unsigned short*)(*(char**)(a0 + 0x154) + 2)) * 4 - 0x10)) {
+                        *(unsigned short*)(*(char**)(a0 + 0x154) + 2) += 1;
+                        func_00000000(a0);
+                    }
+                }
+            }
+        }
     }
-    if (a1 != 2) goto ret;
-    if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) < 4) goto ret;
-    if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) >= 5) goto ret;
-    if (*(int*)(a0 + 0x4C) + 1 ==
-        *(int*)((char*)&tbl + (*(unsigned short*)(*(char**)(a0 + 0x154) + 2)) * 4 - 0x10)) {
-        *(unsigned short*)(*(char**)(a0 + 0x154) + 2) += 1;
-        func_00000000(a0);
-    }
-ret: ;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000122C4);
