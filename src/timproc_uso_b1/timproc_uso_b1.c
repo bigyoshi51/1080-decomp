@@ -364,7 +364,7 @@ extern int gl_ref_00000208;
 extern int gl_ref_0000020C;
 
 void timproc_uso_b1_func_00001100(int a0) {
-    gl_ref_00000040 = 9;
+    *(int *)((char *)&D_00000000 + 0x40) = 9;
     gl_func_00000000(a0, -1, 0);
 }
 
