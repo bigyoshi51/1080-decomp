@@ -5045,8 +5045,13 @@ void func_0000DDC4(int a0) {
  * an early func_00000000(s0) delegate-and-return; other states run
  * the fan-out with id pair 0xE/0xF (flag set) or 0xA/0xB (clear)
  * plus final id 0xC. fetch = func_00000000(&D, id) -> Vec3i src.
- * Caps <80: state switch (beq/bnel) + flag branch + 3-5 reloc +
- * &D reloc + per-slot 3-word struct copies.
+ * 2026-05-30: now 98.08% (size-EXACT 78 insns). Residual is a pure register-
+ * cascade cap: each Vec3i dest `d = *(int**)(s0+OFF)` lands in $v1 (because $v0
+ * holds the just-returned func_00000000 result), while the target puts each `d`
+ * in a fresh $t reg ($t8/$t1/$t4/$t7/$t0) and the copied values shift accordingly
+ * ($t0/$t3/$t6/$t9/$t2 vs mine's $t8/$t9/...). Same $v0/$v1-region allocation cap
+ * as gl_func_0004E384 etc. — using distinct C locals per `d` does not move IDO off
+ * the $v1 reuse (the load is post-call so $v1 is the next free caller-saved reg).
  * INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
 void func_0000DDCC(char *s0) {
