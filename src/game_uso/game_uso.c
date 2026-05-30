@@ -11877,32 +11877,23 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FD04);
  * bc1fl skips the body if (base->0x31C) >= -1.0f.
  * Inner constants: lui $at, 0x447A → f10 = 1000.0f.
  *
- * Same K&R-spill pattern (sw $a1, 0x04($sp); sw $a2, 0x08($sp) caller-side
- * spills before gl_func_00000000 calls) as the FC34/FD04 siblings. The C
- * body is promoted by the Makefile SUFFIX_BYTES + INSN_PATCH recipe. */
-#ifdef NON_MATCHING
+ * BYTE-EXACT: the two &D+0xE28/0xE30 pair args passed as `*(Pair2*)` BY VALUE
+ * produce both the cluster bases AND the `sw a1,4(sp); sw a2,8(sp)` caller-side
+ * spills — cracking the precall-spill "cap" (see docs/PATTERNS.md). Replaces the
+ * banned SUFFIX_BYTES + INSN_PATCH recipe. */
 void game_uso_func_0000FDCC(int *a0) {
     int *base = *(int**)((char*)a0 + 0xB4);
     if (*(float*)((char*)base + 0x31C) < -1.0f) {
         if (*(float*)((char*)base + 0x9D0) < 1000.0f) {
             gl_func_00000000(a0, 0x30001, 6, 6, 0x100, 0x14);
-            gl_func_00000000(a0,
-                             *(int*)((char*)&D_00000000 + 0xE28),
-                             *(int*)((char*)&D_00000000 + 0xE2C),
-                             -1);
+            gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE28), -1);
             gl_func_00000000(a0);
         } else {
             gl_func_00000000(a0, 0x30001, 3, 4, 1, 1);
-            gl_func_00000000(a0,
-                             *(int*)((char*)&D_00000000 + 0xE30),
-                             *(int*)((char*)&D_00000000 + 0xE34),
-                             4);
+            gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE30), 4);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FDCC);
-#endif
 
 /* MATCHED 2026-05-28 via struct-by-value (E38/E3C pair homes a1,a2). See
  * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
