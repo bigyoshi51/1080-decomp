@@ -1596,7 +1596,15 @@ extern int gl_func_00000000();
  * (dest-pointer-reuses-call-arg variant): the initial 4-int copy from
  * arg1 into buf10 needs `addiu a2, sp, X` + lw/sw via a2 pattern so a2
  * is reused as call arg-2 for the `gl_func(arg0, 0x218, buf10, 0x10)`
- * call. */
+ * call.
+ *
+ * RESIDUAL (99.83%, 1 register = 2 insns): the `*(arg0+4) = arg1->a` load/store
+ * lands in $t8 vs the target's $t9 (`lw t8,0(a1); sw t8,4(a0)` vs `t9`). Pure
+ * register-rename. Verified irreducible 2026-05-30 across 6 C variants:
+ * use-buf10.a (regresses, +frame), store-first/store-after-c0 (7-23 half-diffs),
+ * tmp-a local (19 half-diffs) — none flip t8->t9, all the others only worsen the
+ * surrounding allocation. Genuine register-renumber cap (same class as the
+ * 274E0/8000969C t-reg caps); stays NM. */
 struct gl_func_0000C28C_Four { int a, b, c, d; };
 void gl_func_0000C28C(void *arg0, struct gl_func_0000C28C_Four *arg1) {
     struct gl_func_0000C28C_Four buf10;
