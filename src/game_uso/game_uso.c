@@ -11779,8 +11779,18 @@ void game_uso_func_0000FBF8(int *a0) {
         *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0x970), 0, 1);
 }
 
-/* game_uso_func_0000FC34: 52-insn (0xD0) FPU-heavy 3-jal orchestrator.
- * Pointer-base temporaries preserve the addiu-base pairs and vararg spills. */
+/* game_uso_func_0000FC34: 52-insn (0xD0) FPU-heavy 3-jal orchestrator. 82.5% NM.
+ * Residual is register-PRESSURE-driven, not address-form: the two pair-arg
+ * cluster loads (D+0xE10, D+0xE20) want the target's shared `lui;addiu base;
+ * lw 0(base); lw 4(base)` form, but in-tree IDO re-materializes the base per
+ * access (two `lui`s). A distinct-extern base (`extern int D_00000E10; &D_..`)
+ * DOES produce the shared `lui+addiu` form STANDALONE (verified) but STILL
+ * splits to two luis IN-TREE (+0.04% only) — the full function's register
+ * pressure prevents keeping the base live. Same root as the field_770 base-fold
+ * (`lwc1 1920(v1)` vs target `addiu a3,v1,1904; lwc1 16(a3)`) and the missing
+ * vararg `sw a1,4(sp)` spills. Fix needs reducing function-wide pressure first
+ * (regalloc-dump session), NOT the cluster address-form. Distinct-extern cluster
+ * fix verified NEUTRAL in-tree 2026-05-30 — don't re-try it here. */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
