@@ -3262,7 +3262,20 @@ extern float D_000005EC;
  * 6 spill-slot diffs), no crack — the higher-slot allocation is genuinely not
  * reachable. Member of project_1080_bootup_regalloc_cluster (7C74/7B08/7204).
  * Previously INSN_PATCH'd (removed 2026-05-23 as match-faking); now honestly NM.
- * See feedback_no_instruction_forcing_matches_policy. */
+ * See feedback_no_instruction_forcing_matches_policy.
+ *
+ * 2026-05-30 UCODE regalloc-dump (-Wo,-zdbug:6 -> uoptlist) — first application
+ * of the unlocked dump to this cap. CONFIRMS the mechanism at UCODE level: the
+ * fn has exactly 3 spilled live ranges (rlods=3 rstrs=3 numcalls=3), surfacing
+ * as "-ve save" candidates 23/24/25 in the reg-alloc-prep section, plus the
+ * param a0 (cand 12) "split out 26". The 3 spills are ret (across all 3 calls),
+ * a0 (across the first 2 calls, until `link = *(a0+0x40)` is loaded), and link
+ * (across the 3rd call). a0 spills to 0x18 then DIES at the link-load; mine
+ * REUSES a0's freed 0x18 slot for link, target ABANDONS 0x18 and gives link a
+ * fresh 0x20 (frame 0x28). This reuse-vs-abandon of a dead spill slot is pure
+ * IDO spill-slot-coalescing policy, NOT C-reachable: loading link earlier to
+ * change its candidate number would hoist its `lw` before the calls, breaking
+ * instruction order. Dump-confirmed intractable; leave NM. */
 #ifdef NON_MATCHING
 void *func_00007C74(char *a0) {
     char *ret;
