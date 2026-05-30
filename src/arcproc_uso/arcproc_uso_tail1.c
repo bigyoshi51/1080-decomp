@@ -130,26 +130,17 @@ void arcproc_uso_func_00000688(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000688);
 #endif
 
-#ifdef NON_MATCHING
-/* 27-insn cleanup wrapper. Calls gl_func twice (a0->8, a0->0); zeroes
- * a0->8, a0->0, and D[0x14C]. -O0 indicators in target asm: unfilled
- * jal delay slots (0x20, 0x80) + `b +1; nop` BBL marker at 0x98. The
- * standard -O2 form below produces the right logic but mismatches on
- * delay-slot fill + missing BBL marker (~50% cap). Per the bootup_uso
- * O0-runs pattern (see project_1080_bootup_uso_o0_runs.md), this would
- * need per-function -O0 override + file split. Keep wrap for grep
- * discoverability + reference. Mirror of h2hproc_uso_func_00000274.
- *
- * 2026-05-04: arcproc_uso ALREADY has -O0 file split infrastructure
- * (arcproc_uso_o0_50.c, arcproc_uso_o0_12C.c with OPT_FLAGS := -O0 in
- * Makefile). Adding arcproc_uso_o0_748.c is feasible — would need:
- *   1. Move this function to new file with -O0 override
- *   2. Add `build/src/arcproc_uso/arcproc_uso_o0_748.c.o: OPT_FLAGS := -O0`
- *      and TRUNCATE_TEXT for layout
- *   3. Insert into tenshoe.ld between arcproc_uso_o0_12C and tail1
- *   4. Trim tail1's TRUNCATE_TEXT to exclude 0x748+
- * Defer to a layout-budgeted tick — this tick's budget is reading not
- * restructuring. */
+/* 27-insn -O0 cleanup wrapper, byte-identical sibling of the matched
+ * mgrproc_uso_func_000009A8. Matched 2026-05-30 via the -O0 REPLACE_FUNC_BODY
+ * donor splice (donor src/arcproc_uso/arcproc_uso_o0_748.c). arcproc is
+ * non-Yay0, but the donor-splice still works: relocatable USO functions have
+ * link-offset-independent bytes (jal-0 + relocs, self-relative branches), so
+ * the 18->27-insn size change in tail1.c.o doesn't break downstream functions
+ * (verified: arcproc held 33->34 matched, no regressions). This -O2 body is
+ * what the main object compiles; the donor's -O0 bytes are spliced over it.
+ * The donor splice avoided a risky 3-way file split of tail1 around a mid-file
+ * function. Unblocked by the replace-function-body.py realign fix (2026-05-30).
+ * See docs/MATCHING_WORKFLOW.md#feedback-replace-func-body-o0-donor. */
 void arcproc_uso_func_00000748(int *a0) {
     gl_func_00000000((int*)a0[2]);
     a0[2] = 0;
@@ -157,9 +148,6 @@ void arcproc_uso_func_00000748(int *a0) {
     a0[0] = 0;
     *(int*)((char*)&D_00000000 + 0x14C) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000748);
-#endif
 
 void arcproc_uso_func_000007B4(void) {
     gl_func_00000000(*(int*)&D_00000000);

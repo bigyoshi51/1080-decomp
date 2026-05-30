@@ -1,0 +1,33 @@
+{
+  "function_name": "arcproc_uso_func_00000748",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-05-30T14:48:53.866799+00:00",
+  "end_time": "2026-05-30T14:48:53.866827+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-30T14:48:53.866819+00:00",
+      "assistant_text": "-O0 donor-splice match (REPLACE_FUNC_BODY), sibling of mgrproc_uso_func_000009A8. First donor-splice on a NON-Yay0 USO: relocatable-USO functions have link-offset-independent bytes, so the 18->27-insn size change in the packed tail1.c.o didn't break downstream functions. Avoided a 3-way file split of tail1. Donor C: register int z; gl(a0[2]); a0[2]=0; gl(a0[0],3); z=0; a0[0]=z; D_0000014C=z; compiled -O0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 27,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern int D_0000014C;\n\n/* -O0 donor for arcproc_uso_func_00000748 \u2014 byte-identical sibling of the\n * matched mgrproc_uso_func_000009A8 (27-insn -O0 cleanup wrapper). Spliced into\n * the -O2 main object via REPLACE_FUNC_BODY (real -O0 compiler output). arcproc\n * is non-Yay0, so the imported R_MIPS HI16/LO16 vs D_0000014C (=0x14C) is\n * resolved by the linker. `register int z` lands in the target's shared-zero\n * $s0. See docs/MATCHING_WORKFLOW.md#feedback-replace-func-body-o0-donor. */\nvoid arcproc_uso_func_00000748(int *a0) {\n    register int z;\n    gl_func_00000000(a0[2]);\n    a0[2] = 0;\n    gl_func_00000000(a0[0], 3);\n    z = 0;\n    a0[0] = z;\n    D_0000014C = z;\n}\n",
+  "metadata": {
+    "source_path": "src/arcproc_uso/arcproc_uso_o0_748.c",
+    "asm_path": "asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_00000748.s",
+    "segment": "arcproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff report.json fuzzy_match_percent=100.0; arcproc held 33->34 matched (no downstream regression); built .o carries R_MIPS_HI16/LO16 vs D_0000014C (=0x14C) which the linker bakes; byte-identical .s to matched sibling mgrproc_uso_func_000009A8."
+  }
+}
