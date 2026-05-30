@@ -81,8 +81,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * INSN_PATCH was REMOVED 2026-05-23 (match-faking, banned per
  * feedback_no_instruction_forcing_matches_policy). The 100% match this
  * function had pre-removal was via post-cc byte editing — not a real compile.
- * Permanent NM cap; only a permuter run with register-pressure injection (this
- * straight-line body has none) could plausibly flip the commutation. */
+ * Permanent NM cap. 2026-05-30: PERMUTER TESTED (decomp-permuter -j4, 150s) — 0
+ * candidates. Confirmed the final `add.s $f0,$f8,$f10` (sum,product) vs mine
+ * `$f0,$f10,$f8` is COUPLED to the body schedule: every C form that flips the add
+ * to the target order (product-first, named sum/p3 temps) also reschedules the 15
+ * body insns (body no longer matches), and the only body-exact form forces the
+ * swapped add. Not independently controllable — the commutative canonicalization
+ * follows term order, which also drives the dot-product schedule. The permuter
+ * can't isolate the flip either. Genuine 1-insn commutative cap. */
 #ifdef NON_MATCHING
 float game_uso_func_000000A0(float *a, float *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
