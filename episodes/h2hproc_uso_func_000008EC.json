@@ -1,0 +1,46 @@
+{
+  "function_name": "h2hproc_uso_func_000008EC",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-30T00:09:47.220928+00:00",
+  "end_time": "2026-05-30T00:09:47.220948+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-30T00:09:47.220943+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "void h2hproc_uso_func_000008EC(char *a0, int a1) {\n    *(int*)(a0 + 0x6B8) = a1;\n    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8), a1);\n    if (a1 == 0) {\n        gl_func_h2hproc_8EC_f(a0);\n    } else {\n        gl_func_h2hproc_8EC_t(a0);\n    }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/h8ec.c",
+    "asm_path": "asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_000008EC.s",
+    "segment": "h2hproc_uso",
+    "compiler": "ido_7.1",
+    "compiler_flags": "-O2 -G0 -mips2"
+  },
+  "final_c": "void h2hproc_uso_func_000008EC(char *a0, int a1) {\n    *(int*)(a0 + 0x6B8) = a1;\n    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8), a1);\n    if (a1 == 0) {\n        gl_func_h2hproc_8EC_f(a0);\n    } else {\n        gl_func_h2hproc_8EC_t(a0);\n    }\n}\n",
+  "matched": true,
+  "attempts": [
+    {
+      "c_code": "void h2hproc_uso_func_000008EC(char *a0, int a1) {\n    *(int*)(a0 + 0x6B8) = a1;\n    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8), a1);\n    if (a1 == 0) {\n        gl_func_h2hproc_8EC_f(a0);\n    } else {\n        gl_func_h2hproc_8EC_t(a0);\n    }\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2 -G0 -mips2",
+      "notes": "byte-exact; 2-arg call1 keeps a1 live in $a1 for post-jal reload"
+    }
+  ],
+  "has_branches": true,
+  "has_calls": true
+}

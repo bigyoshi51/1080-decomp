@@ -441,35 +441,31 @@ extern int gl_func_h2hproc_8EC_f();
  * elimination idea is unreachable from C — IDO either keeps the volatile's
  * spill (what we want, 94%) or eliminates the local entirely (89.5%).
  * No middle ground. */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-29: the documented 89.5-94% reload-register cap was a
+ * MISSING ARG — call1 takes (lw, a1), not (lw). Passing a1 as a genuine
+ * 2nd arg keeps it live in $a1 across the call so the post-jal reload
+ * goes to $a1 (matching) instead of $t7. No volatile/spill-shaping needed.
+ * (Lever: faithful arg count from the asm beats reg-alloc grinding.) */
 void h2hproc_uso_func_000008EC(char *a0, int a1) {
     *(int*)(a0 + 0x6B8) = a1;
-    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8));
+    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8), a1);
     if (a1 == 0) {
         gl_func_h2hproc_8EC_f(a0);
     } else {
         gl_func_h2hproc_8EC_t(a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000008EC);
-#endif
 
-/* Sibling of h2hproc_uso_func_000008EC — byte-identical asm. Same INSN_PATCH
- * spec applies (same 7 offsets/words). */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-29: byte-identical sibling of 000008EC; same 2-arg-call1 fix. */
 void h2hproc_uso_func_00000944(char *a0, int a1) {
     *(int*)(a0 + 0x6B8) = a1;
-    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8));
+    gl_func_h2hproc_8EC_pre(*(int*)(a0 + 0x6A8), a1);
     if (a1 == 0) {
         gl_func_h2hproc_8EC_f(a0);
     } else {
         gl_func_h2hproc_8EC_t(a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000944);
-#endif
 
 void h2hproc_uso_func_0000099C(int *a0) {
     int v;
