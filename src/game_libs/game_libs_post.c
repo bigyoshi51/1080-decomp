@@ -3741,38 +3741,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002353C);
-
-#ifdef NON_MATCHING
-/* gl_func_00023548: 16-insn body + 3-insn donated alt-entry-prologue tail.
- *
- * Predecessor gl_func_0002349C donates its tail (lui v0; addiu v0,0; lw t6,0x215C(v0))
- * — sets $v0=&D_00000000 and $t6=D[0x215C] before fall-through. So this function
- * reads $t6 and $v0 at entry without setting them.
- *
- * Decoded:
- *   void gl_func_00023548(int a0) {
- *       if (D[0x215C] != 0) return;
- *       // a0*352 = a0*11*32 via sll/subu chain
- *       *(int*)(&D + a0*352 + 0x2DDC) = 0;
- *       gl_func_00037C50(a0);
- *   }
- *
- * This function ALSO donates its tail (lui v0; addiu v0; lw t6,0x215C(v0)) to
- * successor gl_func_00023598 — same 3-insn pattern as the predecessor.
- *
- * Cap class: chained PROLOGUE_STEALS=12 (absorb predecessor's tail) +
- * SUFFIX_BYTES=12 (emit donation to successor). Both recipes apply; this is
- * a permuter / multi-step recipe target. */
+/* game_libs_func_0002353C (0x50): orphan-prologue MERGE of the 0xC stub at
+ * 0x2353C (`lui v0,0; addiu v0,0; lw t6,0x215C(v0)` = materialize &D_00000000 and
+ * read D[0x215C]) + the 0x44 body formerly mislabeled gl_func_00023548. The two
+ * are ONE routine: IDO hoists the leading global load above the prologue to
+ * 0x2353C, and the body reuses $v0(=&D) as the store base (`addu t8,v0,t7`) — &D
+ * is CSE-shared across the D[0x215C] read and the a0*0x160 store. Predecessor
+ * gl_func_0002349C ends with its own jr ra, so 0x2353C is the true entry (not a
+ * donated tail). The earlier note framed this as a now-banned PROLOGUE_STEALS/
+ * SUFFIX cap; the clean symbol-merge is the real fix (cf. game_uso_func_00010648).
+ * a0*0x160 = ((a0*4 - a0)*4 - a0)*32 (sll/subu chain). */
 extern int gl_func_00037C50();
-void gl_func_00023548(int a0) {
-    if (*(int*)((char*)&D_00000000 + 0x215C) != 0) return;
+int game_libs_func_0002353C(int a0) {
+    if (*(int*)((char*)&D_00000000 + 0x215C) != 0) return 0;
     *(int*)((char*)&D_00000000 + a0 * 0x160 + 0x2DDC) = 0;
-    gl_func_00037C50(a0);
+    return gl_func_00037C50(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023548);
-#endif
 
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002358C);
