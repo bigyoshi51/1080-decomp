@@ -20520,7 +20520,6 @@ void gl_func_0003ED8C(int *a0) {
  * INSN_PATCH closes the local-slot offset (sp+0x1C → sp+0x28), the
  * &gl_ref_0001F398 reloc-vs-literal split, jr-ra delay-slot fill
  * (`li v0, 1` moved into delay slot), and v0/v1 register choice. */
-extern char gl_ref_0001F398;
 #ifdef NON_MATCHING
 int gl_func_0003EDBC(int *a0) {
     char buf[168];
@@ -20529,7 +20528,7 @@ int gl_func_0003EDBC(int *a0) {
     func_00000000(&local);
     func_00000000(&local);
     if (local != 1) {
-        func_00000000(&gl_ref_0001F398, local);
+        func_00000000((char*)&D_00000000 + 0x1F398, local);
     }
     *a0 |= 1;
     return 1;
