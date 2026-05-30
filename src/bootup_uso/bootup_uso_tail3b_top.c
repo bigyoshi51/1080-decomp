@@ -23,40 +23,41 @@ typedef struct { int a, b, c, d; } Quad4;
  * counter compares + re-read pattern + 3-word table copy + slti
  * range tests + reloc call. INCLUDE_ASM remains build path.
  *
- * NEXT-TICK LEAD (2026-05-30): this is an -O0 function (entry spills both
- * args sw a0,0x30 / sw a1,0x34; saves s0; `addiu $14,sp,0x24` = &tbl on
- * stack; 75 insns, frame 0x30). tail3b_top.c now contains ONLY this fn
- * (188/244 moved to o0_120A8), so flip this file's OPT_FLAGS to -O0 (no
- * file move). Current C at -O0 = 84 insns / 79 diffs (9 too long) — the
- * gate re-reads st->0x2 FRESH each test (don't cache `c`), and the table
- * index is `*(int*)(sp + c*4 + 0x14)` = tbl[c] with tbl at sp+0x24 (so the
- * C's `(char*)tbl + c*4 - 0x10` form is right). Grind the early-return /
- * gate structure to shed the 9 extra insns. Multi-tick -O0 structural RE,
- * same vein as func_00012188/func_00012244. */
-extern int D_0000C69C[3];
+ * -O0 PROGRESS (2026-05-30): file flipped to -O0 (it isolates this fn);
+ * NM body rewritten for the -O0 shape -> 69.4% (was 34.4% at -O2-g3).
+ * Three structural keys found: (1) the tbl copy is a 12-byte STRUCT copy
+ * (`Tbl3 tbl = D_0000C69C`) so &tbl/&D materialize once and reuse, not
+ * per-element; (2) NO cached `st`/`c` locals — every st=a0->0x154 and
+ * st->2 read is inline-fresh (target reloads a0 from 0x30(sp) + re-derefs
+ * each use); (3) the gate exits are `goto ret` to a shared label, NOT
+ * `return` (return generates a beq+b split; goto gives the target's direct
+ * bne/bnez/beqz-to-epilogue). Table index = `*(int*)((char*)&tbl + c*4 -
+ * 0x10)` with c the fresh re-read. REMAINING gap (~76 vs 75 insns +
+ * register cascade): the chained-branch epilogue (target `b 0x110`->`b
+ * 0x118`->ret, a -O0 nested-block-exit artifact) and -O0 temp renumbering.
+ * Next: match the chained-exit + temp numbering. Same vein as 188/244. */
+typedef struct { int a, b, c; } Tbl3;
+extern Tbl3 D_0000C69C;
 #ifdef NON_MATCHING
 void func_000122C4(char *a0, int a1) {
-    int tbl[3];
-    char *st;
-    int c;
-    tbl[0] = D_0000C69C[0];
-    tbl[1] = D_0000C69C[1];
-    tbl[2] = D_0000C69C[2];
-    st = *(char**)(a0 + 0x154);
-    if (*(unsigned short*)(st + 0x2) < 4) {
-        if (a1 + 1 == *(unsigned short*)(st + 0x2)) {
-            *(unsigned short*)(st + 0x2) += 1;
+    Tbl3 tbl;
+    tbl = D_0000C69C;
+    if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) < 4) {
+        if (a1 + 1 == *(unsigned short*)(*(char**)(a0 + 0x154) + 2)) {
+            *(unsigned short*)(*(char**)(a0 + 0x154) + 2) += 1;
             func_00000000(a0);
         }
-        return;
+        goto ret;
     }
-    if (a1 != 2) return;
-    c = *(unsigned short*)((*(char**)(a0 + 0x154)) + 0x2);
-    if (c < 4 || c >= 5) return;
-    if (*(int*)(a0 + 0x4C) + 1 == *(int*)((char*)tbl + (c * 4) - 0x10)) {
-        *(unsigned short*)((*(char**)(a0 + 0x154)) + 0x2) += 1;
+    if (a1 != 2) goto ret;
+    if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) < 4) goto ret;
+    if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) >= 5) goto ret;
+    if (*(int*)(a0 + 0x4C) + 1 ==
+        *(int*)((char*)&tbl + (*(unsigned short*)(*(char**)(a0 + 0x154) + 2)) * 4 - 0x10)) {
+        *(unsigned short*)(*(char**)(a0 + 0x154) + 2) += 1;
         func_00000000(a0);
     }
+ret: ;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000122C4);
