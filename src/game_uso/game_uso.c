@@ -2643,9 +2643,18 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
 /* game_uso_func_00003ED4: 54-insn FPU geometry. Copy a1 Vec3->vb, X(&vb);
  * copy a0 Vec3->va, X(&va); X(); r = X3ret / D[0x90];
  * if ((va.z*vb.x) < (va.x*vb.z)) r = -r; if (a2) *a2 = 0; return r.
- * USO: call -> func_00000000, data -> &D_00000000+off. INSN_PATCH
- * fixes the final f2/f12 register-field allocation cap. */
+ * USO: call -> func_00000000, data -> &D_00000000+off.
+ * 2026-05-30: 92.5% -> 99.44%. The +1 was a stray K&R float->double promotion:
+ * the `r=...` callee returns float but `gl_func_00000000_f()` is K&R (also called
+ * with 3 pointers @0x4309), so the float arg promoted -> a `cvt.d.s`. Fixed via a
+ * float-PROTOTYPED alias `gl_func_00000000_ff(float)` (=0x0 in undefined_syms_auto)
+ * — removes the cvt.d.s AND lands the add.s result directly in $f12, size-exact 54.
+ * Residual 0.56% = a float register swap: div result `r` in $f2 / `ret` in $f12,
+ * target has them reversed ($f12/$f2). Tried ternary, combined call/div, and
+ * a<b->b>a comparison swap — none flip it (float-regalloc cap; INSN_PATCH that
+ * previously "fixed" it was removed 2026-05-23 as match-faking). Honest NM. */
 extern float gl_func_00000000_f();
+extern float gl_func_00000000_ff(float);  /* float-prototyped alias of _f (=0x0): avoids K&R float->double arg promotion */
 #ifdef NON_MATCHING
 float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
     float unused;
@@ -2661,7 +2670,7 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
     gl_func_00000000(&vb);
     va = *a0;
     gl_func_00000000(&va);
-    r = gl_func_00000000_f(va.x * vb.x + va.z * vb.z);
+    r = gl_func_00000000_ff(va.x * vb.x + va.z * vb.z);
     r = r / *(float*)((char*)&D_00000000 + 0x90);
     ret = r;
     if ((va.z * vb.x) < (va.x * vb.z)) {
