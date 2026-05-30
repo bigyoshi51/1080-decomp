@@ -1555,30 +1555,24 @@ void arcproc_uso_func_00002864(void) {
 }
 
 /* arcproc_uso_func_00002884: 62-insn double-loop initializer (fresh decode
- * 2026-05-29, ~85% / 9-diff). Copies a 5-int table from &D+0x4A0 to a stack
+ * 2026-05-29 -> ~92% / 5-diff). Copies a 5-int table from &D+0x4A0 to a stack
  * buffer, then for each outer step (s3: 16..208 step 32) iterates the 5 buffer
  * entries (s0: 0..256 step 64), computing s1 = &D+0x10 + buf[i]*24 and calling
- * 3 funcs: f(s1); f(s1); f(s1, s0, s3, 0). Logic byte-faithful; structure +
- * saved-reg count (8) now match. Progress notes:
- *  - explicit `char *base` local -> 9th saved reg (s8); index-form `buf.w[i]`
- *    (not pointer `*p++`) drops it back to 8 (lets IDO recompute the buffer
- *    ptr via `addiu s2,sp,84` each outer iter instead of holding it in a reg).
- *  - REMAINING 9 diffs are a register SWAP: target has base=s4 / 24-mult=s5,
- *    mine has base=s5 / 24=s4, plus the s0/s2 loop-init order. ROOT CAUSE
- *    (priority formula floor_log2(refs)*refs/live_length): `base` is defined at
- *    function top and live across the whole double loop -> LONG live_length ->
- *    LOW priority; the `24` literal's pseudo is born at the inner multiply ->
- *    SHORT live_length -> HIGH priority -> grabs the lower reg s4. Expected wants
- *    base in s4, so base needs higher priority than 24. Expression-order variants
- *    (24*buf[i], buf[i]*24+base, explicit `int stride=24` early, tmp-v) all tried
- *    2026-05-29 — none flips it (9 or worse). NEXT: use the regalloc dump
- *    (-Wo,-zdbug:6 -> ./uoptlist, see project_1080_regalloc_dump memo) to read the
- *    exact coloring and craft the live-range tweak; this is the systematic tool
- *    for renumber caps. ADDITIONAL FAILED (2026-05-30, in-tree): base-relative
- *    buffer source (base+0x490 to raise base's ref count -> priority) and the
- *    regalloc dump itself (now WORKING in-worktree, 105-line uoptlist) — but the
- *    uopt candidate-number format needs dedicated study to map to s4/s5. Swap
- *    persists. Genuinely a dedicated-session crack, not a loop-tick. */
+ * 3 funcs: f(s1); f(s1); f(s1, s0, s3, 0). Logic byte-faithful; saved-reg
+ * count (8) matches. Two levers got it 62-diff -> 5-diff:
+ *  - index-form `buf.w[i]` (not pointer `*p++`) keeps the buffer base out of a
+ *    9th saved reg (IDO recomputes `addiu s2,sp,84` each outer iter).
+ *  - REG-SWAP CRACKED via the regalloc dump (2026-05-30): the base/24-mult
+ *    s4<->s5 swap was an ENCOUNTER-ORDER tiebreak. Promoted loop-invariants get
+ *    saved regs in UCODE-encounter order; `s1 = base + buf[i]*24` references 24
+ *    (the umpy) BEFORE base (the uadd), so 24 grabbed s4. Writing `s1 = base;
+ *    s1 += buf[i]*24;` references base FIRST -> base=s4, 24=s5 (matches). [dump
+ *    method: cc -Wo,-zdbug:6 -> ./uoptlist; promoted consts = the candidates
+ *    created in reg-alloc-prep, regs map 14..21 = $s0..$s7.]
+ *  - REMAINING 5 diffs: pure instruction-SCHEDULING order (values all correct) —
+ *    3 swapped pairs where target emits the address setup (addiu s4 base / addiu
+ *    s2 bufptr) BEFORE the counter init (li s3 / move s0). Resists init-statement
+ *    reordering (scheduler is in ugen backend, not uopt). Stays NM at 92%. */
 typedef struct { int w[5]; } Arc2884Buf;
 #ifdef NON_MATCHING
 void arcproc_uso_func_00002884(void *a0) {
@@ -1593,7 +1587,7 @@ void arcproc_uso_func_00002884(void *a0) {
         i = 0;
         s0 = 0;
         do {
-            char *s1 = base + buf.w[i] * 24;
+            char *s1 = base; s1 += buf.w[i] * 24;
             gl_func_00000000(s1);
             gl_func_00000000(s1);
             gl_func_00000000(s1, s0, s3, 0);
