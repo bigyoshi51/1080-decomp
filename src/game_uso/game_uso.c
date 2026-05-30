@@ -5979,8 +5979,12 @@ void game_uso_func_0000751C(char *a0) {
 /* game_uso_func_00007538: 0x560 (344 insns) — largest residue of the split-up
  * 0x7424 bundle. Per-frame event dispatcher + per-bit timer decrementer.
  *
- * Partial C body below: 58.69% as of 2026-05-17 after the bit-0x80
- * branch-target audit (was 38.83% pre-bit-0x80-table rewrite).
+ * Partial C body below: 63.27% as of 2026-05-30 after replacing the s64
+ * return `(ll)ret_hi<<32 | ret_lo` (which compiled to an __ll_lshift CALL,
+ * forcing a frame + $a0->$s0 promotion) with a hi:lo union build — the target
+ * is a frameless LEAF (no jal). That single change took it 58.69%->63.27% and
+ * removed the long-documented "built saves $s0" frame divergence at entry.
+ * Was 58.69% (2026-05-17, bit-0x80 audit), 38.83% pre-bit-0x80-table rewrite.
  * Captures prelude + dispatch outline + epilogue + bit-0x80 trunk arm.
  * Many arm bodies are TODO-stubbed with correct control-flow targets but
  * no per-bit state mutations yet.
@@ -6660,7 +6664,18 @@ ret:
     *(float*)&((int*)((int*)a0[0x30 / 4])[0x800 / 4])[0x48 / 4] = f2;
     /* Reload outer (target's 0x7A88-0x7A8C reload before jr ra+sw delay) */
     ((int*)((int*)a0[0x30 / 4])[0x800 / 4])[0x40 / 4] = ret_lo;
-    return ((long long)ret_hi << 32) | (unsigned int)ret_lo;
+    /* Build the s64 return as hi:lo words directly (big-endian v0:v1) rather
+     * than `(ll)ret_hi << 32 | ret_lo` — the explicit `<< 32` compiles to an
+     * __ll_lshift runtime CALL, which forces a stack frame + ra-save and the
+     * $a0->$s0 callee-saved promotion (a0 must survive the call). The target is
+     * a frameless LEAF (no jal); the union places ret_hi/ret_lo into the two
+     * return registers with no shift. */
+    {
+        union { long long ll; struct { int hi; int lo; } w; } _r;
+        _r.w.hi = ret_hi;
+        _r.w.lo = ret_lo;
+        return _r.ll;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
