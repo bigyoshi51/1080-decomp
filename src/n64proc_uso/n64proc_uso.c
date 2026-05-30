@@ -424,9 +424,21 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000001
  *       existing doc references "x = prev; if (!x) { ... }" pattern with
  *       dead arms and other agents will look for that form.
  *
- * Both confirm the cap is at IDO's RTL allocator level, not at the C
+ * Both confirm the [register] cap is at IDO's RTL allocator level, not at the C
  * source-form level. No further C-textual variant will shift register
- * allocation for this function. */
+ * allocation for this function.
+ *
+ * 2026-05-30 — 88.04% -> 95.01% via a STRUCTURAL control-flow fix the regalloc
+ * analysis above had missed: the 2nd/3rd alloc failure arms must NOT `goto end`
+ * (early-return) — the target CONVERGES them into the init sequence. The 0x50-alloc
+ * failure jumps to the `p->0x28 = ...` write (label Lp28, target 0x90) and the
+ * 0x2C-alloc failure jumps to the `q->0x28 = ...` write (label Lq28, target 0x84),
+ * because those sub-object-pointer 0x28 stores are SHARED tails reached both by the
+ * success path (fall-through) and the alloc-failure path. Splitting the single
+ * 0x28-writes block into Lq28/Lp28 labeled tails + retargeting the dead-arm gotos
+ * fixed every branch target. Residual ~5% is now PURELY the regalloc/frame cap
+ * documented above (q/r in $v1+stack-spill@0x28/0x2C vs target $a3/$a0@0x24/0x20;
+ * frame 0x30 vs 0x28). Real allocator cap; structure is exact. */
 extern int gl_func_00000000();
 void *n64proc_uso_func_00000100(void *a0) {
     void *p;
@@ -441,18 +453,26 @@ void *n64proc_uso_func_00000100(void *a0) {
     q = p;
     if (q == 0) {
         q = (void*)gl_func_00000000(0x50);
-        if (q == 0) goto end;
+        if (q == 0) goto Lp28;
     }
     r = q;
     if (r == 0) {
         r = (void*)gl_func_00000000(0x2C);
-        if (r == 0) goto end;
+        if (r == 0) goto Lq28;
     }
     {
-        extern char D_n64_100_a, D_n64_100_b, D_n64_100_c, D_n64_100_d, D_n64_100_e;
+        extern char D_n64_100_a, D_n64_100_b;
         gl_func_00000000(r, (char*)&D_n64_100_a + 0xB0);
         *(int*)((char*)r + 0x28) = (int)&D_n64_100_b;
+    }
+Lq28:
+    {
+        extern char D_n64_100_c;
         *(int*)((char*)q + 0x28) = (int)&D_n64_100_c;
+    }
+Lp28:
+    {
+        extern char D_n64_100_d, D_n64_100_e;
         *(int*)((char*)p + 0x28) = (int)((char*)&D_n64_100_d + 0x18);
         *(int*)((char*)p + 0xC)  = (int)((char*)&D_n64_100_e + 0xB8);
     }
