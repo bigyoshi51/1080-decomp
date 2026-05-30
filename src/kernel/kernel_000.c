@@ -1874,16 +1874,18 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
  * splat mis-split at 0x800047E4. Symbol kept as alt-entry via
  * undefined_syms_auto.txt for direct callers (jal func_800047E4). */
 
-/* ===== -O0 TAIL (func_80004808 .. func_800049B8) — needs an -O0 SUB-FILE SPLIT =====
- * CONFIRMED 2026-05-30: these last 4 functions of kernel_000.c are -O0 in the target
- * (regular bnez/beqz, stack-spill locals, no $s caching). At the file's -O2 they emit
- * branch-LIKELY (bnezl/beqzl) + $s-promotion and won't match. PROVED: the same C at
- * -O0 with the exact flags (`-O0 -mips2 -32 -G0 -non_shared -Xcpluscomm -Wab,-r4300_mul`)
- * gives the target's regular branches; -O2 gives bnezl. PLAN: carve func_80004808/
- * 8000487C/800048E8/800049B8 into src/kernel/kernel_000_o0.c (Makefile OPT_FLAGS:=-O0),
- * insert `build/src/kernel/kernel_000_o0.c.o(.text);` in tenshoe.ld right AFTER
- * kernel_000.c.o (contiguous: kernel_000 ends 0x49B8, kernel_045 follows). Then
- * func_8000487C (busy-wait, decoded) lands byte-exact + the other 3. Kernel-C vein payoff. */
+/* ===== tail func_80004808..func_800049B8: branch-LIKELY-emission cap (NOT -O0) =====
+ * CORRECTION 2026-05-30: an -O0 split was tried and REVERTED — it does NOT match.
+ * The target is -O2-COMPACT (e.g. func_8000487C = 27 insns) but with REGULAR
+ * bnez/beqz (no branch-likely). Measured (exact flags -mips2 -32 -G0 -non_shared
+ * -Xcpluscomm -Wab,-r4300_mul): -O2 = 28 insns + 2 bnezl (branch-LIKELY); -O1 = 36
+ * insns regular; -O0 = 38 insns regular. So -O0/-O1 are BLOATED (worse), and -O2 is
+ * compact-but-branch-likely. The target = -O2-size WITHOUT branch-likely — i.e. an
+ * -O2 branch-likely-EMISSION cap, not an opt-level mismatch. The func-call-in-body
+ * do-while form (this code) still emits bnezl; the C-structure lever doesn't suppress
+ * it here. Genuine branch-likely cap (needs a -Wo branch-likely-disable flag if one
+ * exists, or stays NM). [Earlier "confirmed -O0" was an error: I matched branch-TYPE
+ * but ignored instruction COUNT — -O0 regular branches come WITH +10 insns of spills.] */
 #ifdef NON_MATCHING
 void func_80004808(u8* arg0, u32 arg1) {
     u8 sp4;
