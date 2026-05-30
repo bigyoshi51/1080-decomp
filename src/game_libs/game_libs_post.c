@@ -22854,13 +22854,10 @@ int gl_func_000424D8() {
 }
 
 extern int gl_func_00000000();
-extern int gl_ref_00000214;
-extern char *gl_ref_00000240;
-
 void gl_func_000424FC(void) {
-    gl_func_00000000(gl_ref_00000214);
-    gl_func_00000000(*(int*)(gl_ref_00000240 + 0x180));
-    gl_func_00000000(*(int*)(gl_ref_00000240 + 0x184));
+    gl_func_00000000(*(int *)((char *)&D_00000000 + 0x214));
+    gl_func_00000000(*(int *)(*(int *)((char *)&D_00000000 + 0x240) + 0x180));
+    gl_func_00000000(*(int *)(*(int *)((char *)&D_00000000 + 0x240) + 0x184));
 }
 
 extern int gl_func_00000000();
