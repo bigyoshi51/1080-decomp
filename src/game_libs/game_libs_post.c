@@ -32958,49 +32958,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000600A4);
 void gl_func_000601B4(int a0) {
     gl_func_00000000(a0, 1);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000601B4_pad.s")
-
 #ifdef NON_MATCHING
-/* gl_func_000601DC: 28-insn lazy-init + state-update + dispatch (0x70, frame 0x20).
+/* gl_func_000601DC: 28-insn lazy-init + state-update + dispatch (now 0x78, frame
+ * 0x20). The `lui t6; lw t6,0(t6)` load of *(&D) (a global state pointer) is THIS
+ * function's real pre-prologue, mis-split into gl_func_000601B4_pad.s; boundary-
+ * corrected 2026-05-30 by merging those 2 words into gl_func_000601DC.s
+ * (0x70 -> 0x78, start 0x601D4), same fix as gl_func_0001FC78/FCD0. The old
+ * "caller-set $t6" note was wrong — t6 is loaded here, not by the caller.
  *
- * CALLER-SET $t6 CONVENTION (intra-USO non-O32): the first instruction
- * `lw $v1, 0x40($t6)` reads through $t6 which is not set anywhere in this
- * function — caller pre-loads $t6 with a state pointer before jal. Same
- * cap class as the caller-set-float family (gl_func_00010650).
- *
- * Decoded structure (raw-word disasm):
- *   v1 = caller_t6->[0x40];                          // state sub-pointer
- *   if (v1 == 0) {
- *       func1((char*)&D_00000000 + 0x21CA4);              // lazy-init w/ string sym
- *       v1 = caller_t6->[0x40];                       // (reload via spill/load)
- *   }
- *   v0 = func2((char*)&D_00000000 + 0x21CA4);             // 2nd dispatch call (size)
- *   v1->[0x4] = v0;
- *   v1->[0x8] = v1->[0x8] + v0 - v1->[0];             // advance position
- *   *(int*)((char*)*D_globalX + 0x40) = v1->[0x20];   // commit to global
- *   return v1->[0x8];
- *
- * Marker said "33-insn" but actual size is 28-insn × 4 = 0x70 (marker
- * was stale; size mismatch noted in commit).
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path
- * (caller-set $t6 is unreproducible from standard C).
- */
+ * Decoded structure:
+ *   int *base = *(int**)&D;        // stolen prologue
+ *   int *v1 = base[0x40/4];
+ *   if (v1 == 0) func((char*)&D + 0x21CA4);
+ *   v0 = func((char*)&D + 0x21CA4);
+ *   v1[1] = v0;
+ *   v1[2] = v1[2] + v0 - v1[0];
+ *   (*(int**)&D)[0x40/4] = v1[0x20/4];   // reload base for commit
+ *   return v1[2];
+ * RESIDUAL: register/spill allocation around the two calls (v1 spilled to
+ * 0x1C(sp)) differs from C-emit; ~partial. */
 int gl_func_000601DC(void) {
     extern int D_00000000;
-    extern int **D_globalX;
-    extern int *t6_caller_state;
-    int *v1 = (int*)t6_caller_state[0x40 / 4];
+    int *base = *(int**)&D_00000000;
+    int *v1 = (int*)base[0x40 / 4];
     int v0;
     if (v1 == 0) {
         gl_func_00000000((char*)&D_00000000 + 0x21CA4);
-        v1 = (int*)t6_caller_state[0x40 / 4];
     }
     v0 = (int)gl_func_00000000((char*)&D_00000000 + 0x21CA4);
     v1[0x4 / 4] = v0;
     v1[0x8 / 4] = v1[0x8 / 4] + v0 - v1[0];
-    (*D_globalX)[0x40 / 4] = v1[0x20 / 4];
+    (*(int**)&D_00000000)[0x40 / 4] = v1[0x20 / 4];
     return v1[0x8 / 4];
 }
 #else
