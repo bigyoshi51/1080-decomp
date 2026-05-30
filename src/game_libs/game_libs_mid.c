@@ -250,6 +250,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000092F4);
  * (0x134) give the 2-insn at-macro/fold loads; &D+0x10 base = 3-insn; register
  * vars give the s0/s1/s2 usage. fuzzy=100. */
 extern int D_w0, D_w134;
+/* 2026-05-29: 1-diff cap (lw a0,0 vs lw a0,0x134 on the D_w134 load). D_w134
+ * is a direct global at &D+0x134; expected is `lui a0; lw a0,0x134(a0)` (fresh,
+ * independent). The placeholder D_w134 (link-resolved) bakes %lo=0 in the .o.
+ * The &D+0x134 ADDEND form (which works for isolated loads, e.g. gl_func_00006DC8)
+ * REGRESSES here: this function also materializes &D into `base`(s1) for other
+ * uses, so IDO CSE-forces a full `lui;addiu;lw 0x134` (extra addiu) instead of the
+ * fresh `lui;lw 0x134`. Array-index form same. Tooling-blocked (.o-unverifiable);
+ * link-correct. See docs/MATCHING_WORKFLOW.md addend-vs-symbol caveat. */
 void gl_func_000093DC(int a0, int a1, int *a2) {
     register int *obj;    /* s0 = a2 */
     register char *base;  /* s1 = &D */
