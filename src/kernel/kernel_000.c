@@ -462,7 +462,7 @@ void func_80000480(Struct00480Dst* dst, Struct00480Src* src) {
  * directly. Deferred — current structure documents the algorithm. */
 extern s32 D_80012C70[];
 extern int func_80000880();
-extern void func_80000568(void);
+extern s32 func_80000568();
 
 s32 *func_800004B8(s32 a0, s32 a1, s32 a2) {
     s32 s1 = 0;
@@ -523,7 +523,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800004B8);
  * `or v0,zero,zero` is the actual return value. Args ignored. Default
  * build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
-void func_80000568(void) {}
+s32 func_80000568() { return 0; }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000568);
 #endif
@@ -1271,13 +1271,45 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
  * D_80013112, records from D_800130A0, end D_80018356), comparing each key via a
  * DIRECT `jal func_80000568(key, &D_80012F80)`; on match copy record->[0x94] into
  * arg1->[4], set found, return 0; else -0x11. Logic decoded 2026-05-30 (m2c +
- * hand-trace). BLOCKER: func_80000568 is defined `void(void)` in this file (the
- * shared-epilogue stub convention, see line ~526 + the func-ptr casts at ~482/886);
- * the real call is a DIRECT jal, but a (s32(*)(void*,void*)) cast emits jalr+ptr-load
- * (+5 insns, 3% match). Needs the stub-vs-direct-call convention resolved (a proper
- * typed forward-decl that doesn't collide with the local void(void) def) before this
- * matches — kernel-C-decode vein, deferred. */
+ * hand-trace). ~55% NM. UNLOCK (2026-05-30): func_80000568's decl changed from
+ * `void(void)` to `s32 func_80000568()` (callable) so this can DIRECT-`jal` it
+ * instead of the jalr-emitting func-ptr cast — that took it 3%->55% (func_80000568
+ * stays INCLUDE_ASM/EXACT in the default build; the cast-callers at ~482/886 still
+ * compile). REMAINING (~25 diffs, multi-tick): (a) frame 0x38 vs target 0x60 — the
+ * target reserves ~0x28 more stack (likely stack-local buffers in the original C
+ * not yet identified); (b) the 3 loop-invariant table pointers (q/p/end) get s0/s1/s2
+ * in a different lui/addiu emission order (encounter-order — try the docs/IDO_CODEGEN
+ * "UCODE-encounter order" lever); (c) the found-flag return tail (move v0,zero;
+ * bnez vs li v0,-17 order). Kernel-C-decode vein now ENABLED via the func_80000568
+ * unlock; iterate (a)-(c) next. */
+#ifdef NON_MATCHING
+extern char D_8000A368, D_80013112, D_80018356;
+s32 uso_find_file(void *arg0, void *arg1) {
+    char *q;
+    char *p;
+    s32 found;
+    func_80000660(arg0, &D_80012FC0, &D_80012F80);
+    if (func_800008B8(arg1, &D_80012FC0, &D_8000A368) == 0) {
+        return -0x11;
+    }
+    found = 0;
+    q = &D_80013112;
+    p = (char *)&D_800130A0;
+    do {
+        s32 r = func_80000568(q, &D_80012F80);
+        q += 0x9C;
+        if (r == 0) {
+            ((s32 *)arg1)[1] = *(s32 *)(p + 0x94);
+            found = 1;
+            break;
+        }
+        p += 0x9C;
+    } while (q != &D_80018356);
+    return (found != 0) ? 0 : -0x11;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_find_file);
+#endif
 
 /* uso_get_error — returns last error code */
 s32 func_800012AC(s32 arg0) {
