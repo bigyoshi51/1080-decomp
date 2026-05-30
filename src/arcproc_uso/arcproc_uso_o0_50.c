@@ -43,17 +43,22 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  * shape. Cap-source: IDO -O0 statement-list-end marker that even the
  * compiler's own dead-code elim doesn't strip.
  *
- * Byte-correct status (verified 2026-05-04): the function IS exact in
- * the actual ROM build. The Makefile's INSN_PATCH overwrites 7 specific
- * bytes (0x40, 0x5C, 0x64-0x74) post-cc to collapse the dead BB-marker
- * into the truncated tail (per feedback_insn_patch_collapses_dead_bb_into_truncated_tail.md
- * + TRUNCATE_TEXT 0xDC). The 93.33% fuzzy is the C-only score under
- * build/non_matching/, which (by the dual-build design in
- * feedback_non_matching_build_for_fuzzy_scoring.md) deliberately excludes
- * post-cc tricks. So 93.33% is the structural fuzzy cap; ROM byte-match
- * is already 100%. Same class as the USO entry-0 trampoline caps
- * (feedback_uso_entry0_trampoline_95pct_cap_class.md) but driven by
- * INSN_PATCH rather than PREFIX_BYTES. */
+ * Byte-correct status (CORRECTED 2026-05-30): the ROM build is exact via the
+ * INCLUDE_ASM #else path (the .s bytes), NOT via INSN_PATCH — the INSN_PATCH
+ * that used to collapse the dead BB was REMOVED 2026-05-23 as match-faking (see
+ * Makefile line ~253 + feedback_no_instruction_forcing_matches_policy). So the
+ * 93.33% is the genuine C-only cap, not a scoring artifact.
+ *
+ * The diff is one dead BB: IDO -O0 always emits a function-end `b +1` BBL
+ * marker; the target MERGES the `return 0` branch into it (`move v0,zero; b+1;
+ * nop; epilogue` = 30 insns), but our IDO emits the return-0's own `b epilogue`
+ * THEN a separate dead `b+1` marker (32 insns). 8 C variants tested 2026-05-30
+ * (register-ptr / direct a0[1]++ / p-for-all / inverted-if / goto-exit /
+ * else-block / single-return r): every s0-using form (the target uses s0 for
+ * the increment-path pointer, needs `register int *p`) is 32 insns WITH the dead
+ * BB; every 30-insn form drops the s0 save and uses t-regs (wrong). The
+ * s0+merged-marker combination is not reachable — an IDO -O0 BBL-emission
+ * artifact (likely original-IDO-version-specific). Genuine cap; stays NM. */
 #ifdef NON_MATCHING
 int arcproc_uso_func_000000B4(int *a0, int a1) {
     register int *p;
