@@ -1564,9 +1564,17 @@ void arcproc_uso_func_00002864(void) {
  *    (not pointer `*p++`) drops it back to 8 (lets IDO recompute the buffer
  *    ptr via `addiu s2,sp,84` each outer iter instead of holding it in a reg).
  *  - REMAINING 9 diffs are a register SWAP: target has base=s4 / 24-mult=s5,
- *    mine has base=s5 / 24=s4, plus the s0/s2 loop-init order. An allocno-order
- *    tiebreak — needs a decl/expression tweak to flip base<->mult priority.
- * NM-wrapped pending that reg-swap pass. */
+ *    mine has base=s5 / 24=s4, plus the s0/s2 loop-init order. ROOT CAUSE
+ *    (priority formula floor_log2(refs)*refs/live_length): `base` is defined at
+ *    function top and live across the whole double loop -> LONG live_length ->
+ *    LOW priority; the `24` literal's pseudo is born at the inner multiply ->
+ *    SHORT live_length -> HIGH priority -> grabs the lower reg s4. Expected wants
+ *    base in s4, so base needs higher priority than 24. Expression-order variants
+ *    (24*buf[i], buf[i]*24+base, explicit `int stride=24` early, tmp-v) all tried
+ *    2026-05-29 — none flips it (9 or worse). NEXT: use the regalloc dump
+ *    (-Wo,-zdbug:6 -> ./uoptlist, see project_1080_regalloc_dump memo) to read the
+ *    exact coloring and craft the live-range tweak; this is the systematic tool
+ *    for renumber caps. NM-wrapped pending that pass. */
 typedef struct { int w[5]; } Arc2884Buf;
 #ifdef NON_MATCHING
 void arcproc_uso_func_00002884(void *a0) {
