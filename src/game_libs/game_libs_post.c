@@ -1473,30 +1473,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FBD4);
 void gl_func_0001FC50(void) {
     gl_func_00000000();
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0001FC50_pad.s")
-
 #ifdef NON_MATCHING
-/* 22-insn 2-call wrapper. Predecessor (gl_func_0001FC50) has pad-sidecar
- * setting $t6 = *(D + 0x2178) before this function runs; the body reads
- * $t6 directly without re-loading. C-emit can't express "use upstream
- * $t6 directly" — IDO will emit its own lui+lw load, adding 2 insns
- * mid-body that target lacks. Same class as the gl_func_0001FCD0 family
- * which use PROLOGUE_STEALS=8 (Makefile) but for SUCCESSORS — here the
- * "stolen" register is read mid-body, not at the prologue start.
+/* 22-insn 2-call wrapper. The `lui t6; lw t6,0x2178(t6)` load of *(&D+0x2178)
+ * is THIS function's real prologue (IDO emits a global-load pre-prologue when
+ * it's read before any stack use). It was mis-split into gl_func_0001FC50_pad.s;
+ * boundary-corrected 2026-05-30 by merging those 2 words into gl_func_0001FC78.s
+ * (0x50 -> 0x58, start 0x1FC78 -> 0x1FC70), same fix as the adjacent
+ * gl_func_0001FCD0. The C body below now structurally matches the target
+ * (if(t6!=0){...}else{v1=0;} -> beqz + save-a1 in delay slot + 2-arg 2nd call).
  *
- * Decoded body (mid-body $t6 read can't be elided from C):
- *   int t6 = *(D + 0x2178);  // upstream-set, mid-body read
- *   if (t6 == 0) return 0;
- *   v1 = gl_func_00000000(&D + 0x2178, a1);
- *   if (v1 == 0) v1 = gl_func_00000000(a0);
- *   return v1; */
+ * RESIDUAL CAP: the loaded value lands in $v0 (IDO's first-temp) vs the target's
+ * $t6 — a register-renumber from the original's fuller register pressure (the
+ * value is read once at the beqz then dead, so it's a caller-saved temp either
+ * way). Not C-forceable standalone; permuter/ugen-phase territory. ~88% NM. */
 int gl_func_0001FC78(int *a0, int a1) {
     int v1;
     int t6 = *(int*)((char*)&D_00000000 + 0x2178);
-    if (t6 == 0) return 0;
-    v1 = gl_func_00000000((char*)&D_00000000 + 0x2178, a1);
-    if (v1 == 0) {
-        v1 = gl_func_00000000(a0);
+    if (t6 != 0) {
+        v1 = gl_func_00000000((char*)&D_00000000 + 0x2178, a1);
+        if (v1 == 0) {
+            v1 = gl_func_00000000(a0, a1);
+        }
+    } else {
+        v1 = 0;
     }
     return v1;
 }
