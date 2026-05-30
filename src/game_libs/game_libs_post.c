@@ -27716,12 +27716,11 @@ void gl_func_0004ECE4(int a0) {
  *     ((void(*)(int))v1[0]->[0xC])((s16)v1[0]->[0x8] + (int)v1);
  *   }
  *
- * NATURAL CEILING: 98.75% NM. The 6-insn diff is a pure v0/v1 register
- * swap (IDO's allocno order picks opposite of target). Same family as
- * gl_func_00035834's $v1/$a2 diff. Was previously documented as
- * INSN_PATCH-promoted via Makefile; INSN_PATCH REMOVED 2026-05-23 as
- * match-faking (per feedback_no_instruction_forcing_matches_policy).
- * Default build is INCLUDE_ASM. */
+ * MATCHED (byte-exact, episode logged) — this plain-C body compiles to the
+ * target. The old "98.75% / 6-insn v0/v1 swap / INSN_PATCH / default INCLUDE_ASM"
+ * note is STALE: the function is no longer NM-wrapped and the default build IS
+ * this C (verified 0-diff vs expected 2026-05-30). Do not re-attempt. (Distinct
+ * from still-capped caller-saved-temp renumbers like gl_func_00035834 $v1/$a2.) */
 void gl_func_0004ED0C(int *self)
 {
   int *iter;
