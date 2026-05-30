@@ -11,7 +11,16 @@
 
 extern int gl_func_00000000();
 
-/* leaf-branch-past-end CAP (bne offset is linker-set, branches past fn end). */
+/* branch-into-adjacent-return-0-leaf CAP. The bne (.word 15CF0004) offset is
+ * SELF-RELATIVE / link-independent (NOT "linker-set") — it branches +4 past
+ * this fn's end into func_0000015C, the `move v0,0; jr ra` return-0 leaf below
+ * (no jal/data xref). The target shape (regular bne, NOP delay, two separate
+ * jr-ra blocks) needs the return-0 to be a SEPARATE adjacent fn the guard
+ * branches into; the cross-fn branch blocks the optimizer. C can't reproduce:
+ * merging `if(eq)return 1;return 0;` -> preset-default (move v0,0;bne;li v0,1,
+ * 9 insns); `goto ret0` -> branch-LIKELY (bnel+ret0 in delay, 9 insns). Both
+ * collapse the two blocks. INCLUDE_ASM is the faithful path. Verified
+ * 2026-05-30; see docs/IDO_CODEGEN.md#branch-into-adjacent-return-leaf-cap. */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00000140(int *a0) {
     if (a0[1] == a0[2]) {
@@ -31,7 +40,8 @@ int mgrproc_uso_func_0000015C(void) {
 void mgrproc_uso_func_00000168(void) {
 }
 
-/* leaf-branch-past-end CAP (same as _00000140). */
+/* branch-into-adjacent-return-0-leaf CAP (same as _00000140); its bnez
+ * (.word 15C00004) branches +4 into func_00000188, the return-0 leaf below. */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00000170(int *a0) {
     if (a0[0] == 0) {
