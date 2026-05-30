@@ -191,6 +191,40 @@ class Elf:
         self.write_elf_header()
         return old_end
 
+    def realign_sections(self):
+        """Final pass: ensure every section's sh_offset is a multiple of its
+        sh_addralign by inserting zero padding before it (shifting that section
+        and all later ones, plus e_shoff). Size-changing splices grow .text by
+        a non-16-multiple, which `replace_text_range` propagates as a flat
+        offset shift — leaving later sections (e.g. align-16 .data/.rodata) at
+        non-aligned offsets. objdump tolerates this but objdiff's stricter
+        `object`-crate parser rejects the whole object, aborting `report
+        generate`. This pass restores alignment; it is idempotent (no-op on
+        already-aligned objects), invisible to the linker (inter-section gaps
+        are ignored), and never touches section *content* (.text bytes are
+        unchanged, so matched-ness is preserved). See
+        docs/MATCHING_WORKFLOW.md#feedback-replace-func-body-o0-donor."""
+        # Process in ascending file-offset order so each insertion's +pad is
+        # already reflected in later sections' offsets when we reach them.
+        for i in sorted(range(self.e_shnum), key=lambda j: self.sections[j][4]):
+            sec = self.sections[i]
+            sh_type, sh_off, align = sec[1], sec[4], sec[8]
+            if sh_type in (0, 8) or align <= 1:  # SHT_NULL / SHT_NOBITS / no align
+                continue
+            rem = sh_off % align
+            if rem == 0:
+                continue
+            pad = align - rem
+            self.data[sh_off:sh_off] = b"\x00" * pad
+            for other in self.sections:
+                if other[4] >= sh_off:
+                    other[4] += pad
+            if self.e_shoff >= sh_off:
+                self.e_shoff += pad
+        for i in range(self.e_shnum):
+            self.write_section_header(i)
+        self.write_elf_header()
+
     def _strtab_find(self, strtab_idx, name):
         """Search strtab for an exact (NUL-terminated) match. Returns offset
         or None if not present."""
@@ -313,6 +347,7 @@ def main():
     dest.fix_symbols(args.func, old_start, old_size, len(payload), delta)
     dest.fix_relocations(old_start, old_size, delta)
     imported = dest.import_donor_relocs(donor, donor_func_start, donor_func_size, old_start)
+    dest.realign_sections()
     dest_path.write_bytes(dest.data)
     suffix = f" + imported {imported} donor reloc(s)" if imported else ""
     print(f"replace-body: {args.func} {old_size:#x}->{len(payload):#x} in {dest_path}{suffix}")

@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b3_func_0000065C",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-05-30T14:40:26.864141+00:00",
+  "end_time": "2026-05-30T14:40:26.864169+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-30T14:40:26.864163+00:00",
+      "assistant_text": "-O0 donor-splice match (REPLACE_FUNC_BODY), mirror of timproc_uso_b1_func_0000065C. Unblocked by fixing replace-function-body.py to re-align post-.text sections after the +0x1C size-growing splice (objdiff previously rejected the misaligned object). Donor C: register int zero; gl_func(a0[0],3); a0[0]=zero; D_0000014C=zero; compiled -O0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern int D_0000014C;\n\n/* -O0 donor for timproc_uso_b3_func_0000065C \u2014 byte-identical sibling of\n * timproc_uso_b1_func_0000065C (same 21-insn -O0 cleanup wrapper at the same\n * 0x65C offset). Spliced into the -O2 main object via REPLACE_FUNC_BODY (real\n * -O0 compiler output, not instruction-forcing). The `D_0000014C` extern form\n * gives the 2-insn symbol-store whose %lo field the reloc-blind expected/.o\n * bakes literal; see timproc_uso_b1_o0_65C.c for the full reloc-blind-donor\n * rationale and docs/MATCHING_WORKFLOW.md#feedback-replace-func-body-o0-donor. */\nvoid timproc_uso_b3_func_0000065C(int *a0) {\n    register int zero;\n    gl_func_00000000((int*)a0[0], 3);\n    zero = 0;\n    a0[0] = zero;\n    D_0000014C = zero;\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b3/timproc_uso_b3_o0_65C.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_0000065C.s",
+    "segment": "timproc_uso_b3",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff report.json fuzzy_match_percent=100.0; built .o carries R_MIPS_HI16/LO16 vs D_0000014C (=0x14C) which the linker bakes to the target 0xAC30014C; byte-identical .s to landed sibling timproc_uso_b1_func_0000065C."
+  }
+}

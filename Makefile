@@ -197,6 +197,10 @@ TIMPROC_B1_65C_DONOR := build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o
 build/src/timproc_uso_b1/timproc_uso_b1.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1.c.o: REPLACE_FUNC_BODY := timproc_uso_b1_func_000005A4=$(TIMPROC_B1_5A4_DONOR) timproc_uso_b1_func_0000065C=$(TIMPROC_B1_65C_DONOR)
 build/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c.o: OPT_FLAGS := -O0
 build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o build/non_matching/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o: OPT_FLAGS := -O0
+# timproc_uso_b3_func_0000065C: byte-identical sibling of the b1 0x65C donor.
+TIMPROC_B3_65C_DONOR := build/src/timproc_uso_b3/timproc_uso_b3_o0_65C.c.o
+build/src/timproc_uso_b3/timproc_uso_b3.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3.c.o: REPLACE_FUNC_BODY := timproc_uso_b3_func_0000065C=$(TIMPROC_B3_65C_DONOR)
+build/src/timproc_uso_b3/timproc_uso_b3_o0_65C.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3_o0_65C.c.o: OPT_FLAGS := -O0
 
 # mgrproc_uso (Yay0-compressed): a contiguous -O0 run at the block start
 # (func_00000000/4C/B0, 0x0..0xF8) is carved into its own sub-unit (region 0).
@@ -248,7 +252,7 @@ build/assets/timproc_uso_block3_yay0.bin: YAY0_TEXT_SIZE := 0x30E0
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x00000000,0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
-C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
+C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 

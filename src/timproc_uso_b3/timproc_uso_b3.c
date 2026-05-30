@@ -174,36 +174,19 @@ void timproc_uso_b3_func_000005A4(int **arg0, int arg1, int arg2) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000005A4);
 #endif
 
-#ifdef NON_MATCHING
 /* 21-insn -O0 cleanup wrapper. Single gl_func + zero a0[0] + zero D[0x14C].
- * -O0 indicators: unfilled jal delay + `b +1; nop` BBL marker.
  * Byte-identical .s to the EXACT timproc_uso_b1_func_0000065C (same 0x65C).
- *
- * REAL BLOCKER (diagnosed 2026-05-30, NOT "Yay0 file-split doesn't apply"):
- * the b1 0x65C REPLACE_FUNC_BODY donor splice DOES work here — mirroring it
- * (donor timproc_uso_b3_o0_65C.c at -O0 + Makefile wiring) produces the
- * byte-PERFECT -O0 target (verified via objdump: addiu sp,-40 / ... / b +1 /
- * matches the .s exactly, 3 donor relocs imported). What blocks LANDING is
- * scripts/replace-function-body.py: the splice grows .text 0x38->0x54 (+0x1C,
- * not a multiple of 16) and shifts every later section's sh_offset by +0x1C
- * WITHOUT re-aligning, so 7 sections land at non-sh_addralign offsets. objdiff's
- * strict ELF parser then rejects the object ("Invalid ELF section header
- * offset/size/alignment"), breaking `report generate` entirely (so the land
- * script can't verify). b1's identical +0x1C splice happens to leave only 1
- * misaligned section, which objdiff tolerates — that's why b1 lands and b3
- * doesn't. FIX (focused-session, shared-script): make replace-function-body.py
- * insert file padding to re-align post-.text sections after a non-16-multiple
- * .text growth. Affects ~30 existing donor splices, so test carefully. Until
- * then default build INCLUDE_ASM matches; this -O2 body is the splice source.
- * Same -O0-cap class as arcproc_uso_func_00000748 / mgrproc_uso_func_000009A8. */
+ * Matched 2026-05-30 via the -O0 REPLACE_FUNC_BODY donor splice (donor
+ * src/timproc_uso_b3/timproc_uso_b3_o0_65C.c). This was unblocked by fixing
+ * scripts/replace-function-body.py to re-align post-.text sections after the
+ * size-growing (+0x1C) splice — previously the misaligned sections made
+ * objdiff reject the object. This -O2 body is what the main object compiles;
+ * the donor's -O0 bytes are spliced over it. */
 void timproc_uso_b3_func_0000065C(int *a0) {
     gl_func_00000000((int*)a0[0], 3);
     a0[0] = 0;
     *(int*)((char*)&D_00000000 + 0x14C) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000065C);
-#endif
 
 extern int D_b3_06B0_a;
 extern int *D_b3_06B0_b;     /* pointer-typed: 2nd call passes (*D_b3_06B0_b)[0x6A8/4] */
