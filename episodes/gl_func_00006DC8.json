@@ -1,28 +1,46 @@
 {
   "function_name": "gl_func_00006DC8",
-  "asm_text": "nonmatching gl_func_00006DC8, 0x30\n\nglabel gl_func_00006DC8\n    /* DEBEA0 00006DC8 27BDFFE8 */  .word 0x27BDFFE8\n    /* DEBEA4 00006DCC AFBF0014 */  .word 0xAFBF0014\n    /* DEBEA8 00006DD0 240501E0 */  .word 0x240501E0\n    /* DEBEAC 00006DD4 0C000000 */  .word 0x0C000000\n    /* DEBEB0 00006DD8 00003025 */  .word 0x00003025\n    /* DEBEB4 00006DDC 3C020000 */  .word 0x3C020000\n    /* DEBEB8 00006DE0 8C420138 */  .word 0x8C420138\n    /* DEBEBC 00006DE4 AC4000B4 */  .word 0xAC4000B4\n    /* DEBEC0 00006DE8 8FBF0014 */  .word 0x8FBF0014\n    /* DEBEC4 00006DEC 27BD0018 */  .word 0x27BD0018\n    /* DEBEC8 00006DF0 03E00008 */  .word 0x03E00008\n    /* DEBECC 00006DF4 00000000 */  .word 0x00000000\nendlabel gl_func_00006DC8\n",
-  "m2c_output": "",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-30T00:35:27.727442+00:00",
+  "end_time": "2026-05-30T00:35:27.727464+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-30T00:35:27.727457+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 12,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_00006DC8(int a0) {\n    int *p;\n    gl_func_00000000(a0, 0x1E0, 0);\n    p = *(int **)((char *)&D_00000000 + 0x138);\n    p[45] = 0;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/6dc8.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00006DC8.s",
+    "segment": "game_libs",
+    "compiler": "ido_7.1",
+    "compiler_flags": "-O2 -G0 -mips2"
+  },
+  "final_c": "void gl_func_00006DC8(int a0) {\n    int *p;\n    gl_func_00000000(a0, 0x1E0, 0);\n    p = *(int **)((char *)&D_00000000 + 0x138);\n    p[45] = 0;\n}\n",
+  "matched": true,
   "attempts": [
     {
-      "c_code": "extern int gl_func_00000000();\nextern int *gl_ref_00000138;\n\nvoid gl_func_00006DC8(int a0) {\n    int *p;\n    gl_func_00000000(a0, 0x1E0, 0);\n    p = gl_ref_00000138;\n    p[45] = 0;\n}",
+      "c_code": "void gl_func_00006DC8(int a0) {\n    int *p;\n    gl_func_00000000(a0, 0x1E0, 0);\n    p = *(int **)((char *)&D_00000000 + 0x138);\n    p[45] = 0;\n}\n",
       "matched": true,
       "diff_count": 0,
       "diff_details": [],
-      "compiler_flags": "",
-      "notes": "flags: -O2 -g2"
+      "compiler_flags": "-O2 -G0 -mips2",
+      "notes": "byte-exact; &D_00000000+0x138 bakes lw 0x138(v0) (vs gl_ref placeholder=0)"
     }
   ],
-  "final_c": "extern int gl_func_00000000();\nextern int *gl_ref_00000138;\n\nvoid gl_func_00006DC8(int a0) {\n    int *p;\n    gl_func_00000000(a0, 0x1E0, 0);\n    p = gl_ref_00000138;\n    p[45] = 0;\n}",
-  "matched": true,
-  "instruction_count": 12,
-  "has_branches": false,
-  "has_calls": false,
-  "timestamp": 1776605123.0348783,
-  "game": "glover",
-  "compiler": "gcc_2.7.2_kmc",
-  "compiler_flags": "-O2 -g2",
-  "nearby_decompiled": [],
-  "called_functions": [],
-  "referenced_data": [],
-  "segment": "game_libs"
+  "has_calls": true,
+  "has_branches": false
 }

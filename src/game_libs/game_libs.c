@@ -1118,7 +1118,7 @@ extern int *gl_ref_00000138;
 void gl_func_00006DC8(int a0) {
     int *p;
     gl_func_00000000(a0, 0x1E0, 0);
-    p = gl_ref_00000138;
+    p = *(int **)((char *)&D_00000000 + 0x138);
     p[45] = 0;
 }
 
@@ -1164,7 +1164,7 @@ void gl_func_00006EE0(int *a0) {
 void gl_func_00006F60(int a0) {
     int *p;
     gl_func_00000000(a0, 0x1E0, 5);
-    p = gl_ref_00000138;
+    p = *(int **)((char *)&D_00000000 + 0x138);
     p[45] = 0;
 }
 
