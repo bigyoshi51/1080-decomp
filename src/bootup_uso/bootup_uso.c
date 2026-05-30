@@ -3481,6 +3481,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
 #ifdef NON_MATCHING
 /* func_000082F8: 54-insn (0xD8) FP-gated 3-call dispatch. Sibling of the
  * adjacent func_000083D0 family (cross-USO call orchestrators in bootup_uso).
+ * SIBLING LEVER STATUS (2026-05-30): the inline-single-use-deref lever that
+ * lifted THIS to 98.6% does NOT extend to the family — func_000083D0 is already
+ * 100%, func_000087A4 (93.9%) residual is a ugen lui-hoist-above-branch SCHEDULE
+ * diff (not coloring), func_00007288 (94.6%) has 29 diffs. Project-wide scan for
+ * the "base-in-treg vs $v0 + ≤6 diffs" inline signature returns only the
+ * alt-entry-jal-capped gl_func_0002D014. Inline-lever vein = this fn only.
  *
  * Decoded shape:
  *   /* shared loads at entry *\/
