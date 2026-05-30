@@ -4761,27 +4761,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024C08);
 //   missing the a3 = obj->0x8 positional + had the wrong const): it's
 //   f(obj+0x4C, 0, 0, obj->0x8, obj->0xC, a1, obj+0x30, (u8)obj, &D+0x1AFCC).
 //   The const is &D_00000000+0x1AFCC (lui 0x2; addiu 0xAFCC), NOT +0x2AFCC.
-//   RESIDUAL (~0.06%): (a) the 3rd call is a CONCRETE jal 0x38604 (a real
-//   internal fn); modeled as gl_func_00038604 (undefined_syms = 0x38604) but
-//   objdiff can't credit a R_MIPS_26 reloc against the raw-word baked jal —
-//   the concrete-jal cap (needs spimdisasm USO-reloc migration). (b) the
-//   obj+0x30 save spills to sp+0x38 vs target sp+0x3C (stack-slot assignment).
-//   Both infra/regalloc caps; structure byte-exact otherwise. Stays NM.
-#ifdef NON_MATCHING
+// MATCHED 2026-05-30 (99.94% -> 100%). The last residual was the a0 spill slot
+//   (0x38 vs target 0x3c): dropping the `g = &D` local and inlining
+//   `(char*)&D+0x1AFCC` as the 9th arg freed the 0x38 slot the target leaves
+//   empty, shifting the spill to 0x3c. The 3rd call is a concrete `jal 0x38604`
+//   (a mid-function alt-entry inside gl_func_00038598, gl_func_00038604 =
+//   0x38604 in undefined_syms) — objdiff resolves that R_MIPS_26 reloc, so it
+//   credits 100%. Byte-exact (no-alias verified).
 extern int gl_func_00000000();
 extern int gl_func_00038604();
 extern int D_00000000;
 void gl_func_00024D90(char *obj, int a1) {
-    char *g = (char *)&D_00000000;
     gl_func_00000000(*(int *)(obj + 0xC));
     gl_func_00000000(obj + 0x30, obj + 0x48, 1);
     gl_func_00038604(obj + 0x4C, 0, 0, *(int *)(obj + 0x8),
                      *(int *)(obj + 0xC), a1, obj + 0x30,
-                     *(unsigned char *)obj, g + 0x1AFCC);
+                     *(unsigned char *)obj, (char *)&D_00000000 + 0x1AFCC);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024D90);
-#endif
 
 void game_libs_func_00024E14(int a0, int a1, int a2, int a3) {
 }
