@@ -10092,16 +10092,18 @@ int game_uso_func_0000D74C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
 #endif
 
-/* Conditional fall-below-floor update. NATURAL CEILING: C-only emit is
- * 43/45 insns; target's third gl_func call uses the same vararg-spill
- * table-call shape as D8A8/FABC (`sw a1, 4(sp)` / `sw a2, 8(sp)` before
- * `jal`). Two C variants tried: direct D+offset derefs and named
- * table/x/y locals, both stayed capped. The target-only call sequence
- * + epilogue bytes were previously promoted via Makefile INSN_PATCH +
- * SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+/* Conditional fall-below-floor update. CEILING ~86%. The E90 table cluster
+ * base is now CORRECT: using the distinct extern `&D_00000E90` (not the folded
+ * `&D_00000000 + 0xE90`) emits the target's `lui; addiu base,0xE90; lw 0(base);
+ * lw 4(base)` form (reloc-verified in-tree) instead of `addiu 0; lw 0xE90; lw
+ * 0xE94`. Residual (both documented caps): (a) the base lands in $v0 vs target
+ * $t9 — a caller-saved-temp register-renumber (permuter-immune class, see
+ * project_1080_regalloc_dump memo); (b) the third call's vararg pre-spills
+ * `sw a1,4(sp)` / `sw a2,8(sp)` (same as D8A8/FABC) are the precall-arg-spill
+ * cap — not C-reachable. Once those two classes are cracked, the C is ready.
+ * (Previously force-promoted via banned INSN_PATCH + SUFFIX_BYTES_FORCE.) */
 #ifdef NON_MATCHING
+extern int D_00000E90;
 void game_uso_func_0000D7F4(char *a0) {
     int *data = *(int**)(a0 + 0xB4);
     int *table;
@@ -10109,7 +10111,7 @@ void game_uso_func_0000D7F4(char *a0) {
         if (*(int*)((char*)data + 0x938) != 0) {
             gl_func_00000000(a0, 1, 2);
             gl_func_00000000(a0, *(int*)(a0 + 0xFC) | 0x16, 0, 1, 1, 1);
-            table = (int*)((char*)&D_00000000 + 0xE90);
+            table = &D_00000E90;
             gl_func_00000000(a0, table[0], table[1], 1);
             gl_func_00000000(a0);
             *(int*)(a0 + 0x114) = 0;
