@@ -9545,15 +9545,24 @@ int game_uso_func_0000C3CC(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x30);
 }
 
-/* game_uso_func_0000C3E8: CAP (TU-context-sensitive scheduling, 2026-05-24).
- * Correct C is `int f(int a0){ return *(int*)&D_00000000; }`. STANDALONE
- * `cc -O2` (even with -DNON_MATCHING -I include -I src) emits the target
- * byte-for-byte: lui v0; lw v0,0(v0); jr ra; sw a0,0(sp) (dead a0 homed in the
- * delay slot, a free filler -- NO lever needed). But IN-TREE the full game_uso.c
- * TU schedules it lui v0; sw a0,0(sp); jr ra; lw v0,0(v0) (home/load swapped) --
- * IDO's list scheduler fills the lui->lw gap with the independent home store.
- * Same compiler, same flags, different TU => unfixable from C here.
- * (Tried volatile *p=&a0, *p=a0 self-store, reorder, volatile load.) */
+/* game_uso_func_0000C3E8: CAP (IDO dead-arg-home delay-slot fill, not TU-context).
+ * Correct C is `int f(int a0){ return *(int*)&D_00000000; }`.
+ * TARGET: lui v0; lw v0,0(v0); jr ra; sw a0,0(sp) (the dead a0 home fills the jr
+ * delay slot, load stays before jr).
+ * 2026-05-30 CORRECTION (disproves the old TU-context claim): compiling this C
+ * ALONE (its own .o, project -O2 flags, objdump'd) does NOT match -- it emits
+ * lui v0; sw a0,0(sp); jr ra; lw v0,0(v0), with the LOAD in the delay slot and
+ * the home store before jr (the exact opposite delay-slot pick from target). So
+ * the divergence is NOT TU-context-sensitive and NOT a Yay0 file-split candidate
+ * (isolation reproduces the same miss). It is IDO's dead-arg-home scheduling: the
+ * home `sw a0,0(sp)` is independent and ready immediately, so IDO/the assembler
+ * floats the LOAD into the jr delay and emits the store early. To match, IDO must
+ * emit `lui; lw; sw; j` (store last) so the assembler delay-fills with the store;
+ * no C structure forces a dead-arg home to schedule after the return load.
+ * NEGATIVE (2026-05-30, standalone IDO 7.1 -O2, objdump-verified): `__asm__("")`
+ * barrier -> full stack frame (breaks leaf); `volatile int*` load -> 5-insn la+lw
+ * pointer form (lui+addiu+lw, wrong); `v+a0-a0` -> addu/subu kept (wrong). Prior
+ * tries (volatile *p=&a0, self-store, reorder) also negative. Genuine NM cap. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
 
 #ifdef NON_MATCHING
