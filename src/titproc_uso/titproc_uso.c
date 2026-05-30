@@ -514,27 +514,22 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F
  * comment claimed). Rewrote the .s to the true 0x58. C logic + insn count
  * now exact (22==22); remaining 15 diffs are pure register allocation
  * (loads land in $v0/$v1 vs target's $t2/$t7/$t8). Permuter candidate. */
-#ifdef NON_MATCHING
+/* In-place `a0[0x2C] += 6` (NOT `cur=...; nv=cur+6; a0[0x2C]=nv`) is what
+ * matches: the named-temp form CSEs the field read into $v0/$v1; reading the
+ * field fresh per access makes IDO use $t2/$t7/$t8 like the target. */
 void titproc_uso_func_000016B8(int *a0) {
     if (a0[0x30 / 4] == 0) {
-        int cur = a0[0x2C / 4];
-        int nv = cur + 6;
-        a0[0x2C / 4] = nv;
-        if (nv >= 250) {
+        a0[0x2C / 4] += 6;
+        if (a0[0x2C / 4] >= 250) {
             a0[0x30 / 4] ^= 1;
         }
     } else {
-        int cur = a0[0x2C / 4];
-        int nv = cur - 6;
-        a0[0x2C / 4] = nv;
-        if (nv < 65) {
+        a0[0x2C / 4] -= 6;
+        if (a0[0x2C / 4] < 65) {
             a0[0x30 / 4] ^= 1;
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000016B8);
-#endif
 
 /* titproc_uso_func_00001710 — verified structural decode (FPU lerp, 76
  * insns; div.s/mul.s chain + 3 calls + recovered f16=1.0f stolen prologue
