@@ -2726,36 +2726,27 @@ void gl_func_0000E1DC(int *a0, int a1, int a2) {
     gl_func_00000000(a0, a2);
 }
 
-/* gl_func_0000E230: 29-insn count-loop calling func per element.
- *   for (i = 0, off = 0; i < a0->[0x48]; i++, off += 0x60) {
- *     func(a0, *(int*)((char*)a0->[0x44] + off), 1, 0);
- *   }
- *
- * NATURAL CEILING: 98.45% NM. The 8-insn diff is a pure s1/s2 register-
- * swap (IDO picks $s2=a0/$s1=offset; target picks $s1=a0/$s2=offset) —
- * same family as gl_func_0004ED0C / gl_func_00035834. 2026-05-27 retest:
- * decl-order swap (offset before i, init offset=0 before i=0) — no
- * effect on allocno priority (19/29 byte-match unchanged). The priority
- * formula favors a0 due to higher ref-count but live-length also matters;
- * neither C-shape lever flips the $s assignment. INSN_PATCH was the
- * previous lever; REMOVED 2026-05-23 as match-faking. Default build
- * INCLUDE_ASM. Permuter-class. */
+/* gl_func_0000E230: BYTE-EXACT (2026-05-30). 29-insn count-loop calling func
+ * per element: for each i (0..a0->0x48), call func(a0, *(a0->0x44 + i*0x60), 1, 0).
+ * Was a documented 98.45% s1/s2 reg-swap cap (a0 vs offset swapped). CRACKED via
+ * the UCODE-encounter-order lever: the target's `blez` guard reads a0->0x48 and
+ * sets offset=0 in the delay slot, so a0 is ENCOUNTERED BEFORE offset → a0=$s1,
+ * offset=$s2. The old plain-`while` form put `offset=0` before the first a0 ref,
+ * so offset grabbed $s1. Rewriting as `if (a0->0x48 > 0) { offset=0; do{...} }`
+ * (guard references a0 first) flips the coloring to match. See
+ * docs/IDO_CODEGEN.md "Promoted loop-invariants ... UCODE-encounter order". */
 extern int func_00000000();
-#ifdef NON_MATCHING
 void gl_func_0000E230(int *a0) {
-    int i;
-    int offset;
-    i = 0;
-    offset = 0;
-    while (i < a0[0x48/4]) {
-        func_00000000(a0, *(int*)((char*)a0[0x44/4] + offset), 1, 0);
-        i++;
-        offset += 0x60;
+    int i = 0;
+    if (a0[0x48/4] > 0) {
+        int offset = 0;
+        do {
+            func_00000000(a0, *(int*)((char*)a0[0x44/4] + offset), 1, 0);
+            i++;
+            offset += 0x60;
+        } while (i < a0[0x48/4]);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E230);
-#endif
 
 /* gl_func_0000E2A4: destructor — conditionally release 8 sub-objects of `o`.
  * For each of fields 0x6C, 0x70, 0x8C, 0x78, 0x80, 0x84, 0x94, 0x98: if

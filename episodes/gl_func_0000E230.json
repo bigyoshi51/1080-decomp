@@ -1,0 +1,46 @@
+{
+  "function_name": "gl_func_0000E230",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-05-30T14:42:53.605331+00:00",
+  "end_time": "2026-05-30T14:42:53.605354+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-30T14:42:53.605347+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 29,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_0000E230(int *a0) {\n    int i = 0;\n    if (a0[0x48/4] > 0) {\n        int offset = 0;\n        do {\n            func_00000000(a0, *(int*)((char*)a0[0x44/4] + offset), 1, 0);\n            i++;\n            offset += 0x60;\n        } while (i < a0[0x48/4]);\n    }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/e230.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0000E230.s",
+    "segment": "game_libs",
+    "compiler": "ido_7.1",
+    "compiler_flags": "-O2 -G0 -mips2"
+  },
+  "final_c": "void gl_func_0000E230(int *a0) {\n    int i = 0;\n    if (a0[0x48/4] > 0) {\n        int offset = 0;\n        do {\n            func_00000000(a0, *(int*)((char*)a0[0x44/4] + offset), 1, 0);\n            i++;\n            offset += 0x60;\n        } while (i < a0[0x48/4]);\n    }\n}\n",
+  "matched": true,
+  "attempts": [
+    {
+      "c_code": "void gl_func_0000E230(int *a0) {\n    int i = 0;\n    if (a0[0x48/4] > 0) {\n        int offset = 0;\n        do {\n            func_00000000(a0, *(int*)((char*)a0[0x44/4] + offset), 1, 0);\n            i++;\n            offset += 0x60;\n        } while (i < a0[0x48/4]);\n    }\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "diff_details": [],
+      "compiler_flags": "-O2 -G0 -mips2",
+      "notes": "byte-exact; UCODE-encounter-order lever: guard if(a0->0x48>0) references a0 before offset=0 -> a0=s1,offset=s2 (was s1/s2 swap cap)"
+    }
+  ],
+  "has_calls": true,
+  "has_branches": true
+}
