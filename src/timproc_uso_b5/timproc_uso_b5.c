@@ -2951,7 +2951,18 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * call shape (v0->[0x28]->[0x64] + v0->[0x28]->[0x60]) is repeated
  * across timproc family — likely a shared "boarder/effect manager" type.
  * Multi-tick: full byte match needs typed-struct decl + correct
- * fn-ptr signature. */
+ * fn-ptr signature.
+ * 2026-05-30 OVER-6 diagnosis (built 41 vs target 35): two structural diffs,
+ * both branch-likely-driven, NOT a clean redundancy collapse. (1) The outer
+ * `if (f0<f2)` compiles to `c.lt.s f0,f2; bc1fl else` (FP branch-LIKELY) and
+ * IDO RE-EMITS the `c.lt.s f0,f2` inside the taken body (between `sub.s f6`
+ * and `swc1 f6,0x480`) — my C produces that extra compare. (2) The outer
+ * ELSE block (idx-lookup: a0->0x3F0=a0->0x3C4; a0->0x3F4=a0[0x3D0+idx*4]) is
+ * emitted by my C AFTER the loop-body-arm's `jalr` (8 extra insns: lw 0x3C4/
+ * sll/addu/sw 0x3F0/lw 0x3D0/sw 0x3F4 + a `b`), whereas the target hoists
+ * that else to offset 0x58 (reached only via the bc1fl) so the loop-body-arm
+ * returns directly. Fix needs the bc1fl-shaped C (annulled-delay first store)
+ * + the else hoisted above the inner arms — a branch-likely-layout grind. */
 extern int gl_func_00000000();
 void timproc_uso_b5_func_000085E0(int *a0) {
     float f0, f2, f6, f8;
