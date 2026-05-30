@@ -12235,34 +12235,19 @@ void game_uso_func_000105DC(int *a0) {
     game_uso_func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
-/* 68 % NM wrap. Function uses $f4 directly without setting it — caller-set
- * float convention not reproducible from standard C signature `f(int, float)`,
- * which puts float arg in $a1 → mtc1 $a1, $f12 → swc1 $f12 (target uses $f4).
- *
- * Body structure: store caller's $f4 to a0+0x11C, then call gl_func_00000000
- * twice. Target's first call passes a0, *(D+0xDF8), *(D+0xDFC) — extracted
- * via `addiu base,&D,0xDF8; lw a1,0(base); lw a2,4(base)` (named base
- * pointer pattern, see feedback_ido_named_base_forces_addiu_split.md).
- * Target also spills a1/a2 to sp+0x4/sp+0x8 (likely callsite-arg-slots for
- * variadic or wider call signature).
- *
- * THIS IS THE ORIGIN CASE for feedback_uso_float_in_f4_callee.md (intra-USO
- * non-O32 float-in-$f4 convention). IDO has no C-level mechanism to receive
- * a float in $f4 directly — `register float f asm("$f4")` is GCC-only and
- * IDO's cfe rejects it (per feedback_ido_no_gcc_register_asm.md). Cap holds.
- */
-void game_uso_func_00010650(void *a0, float arg1) {
-    int x, y;
-    *(float*)((char*)a0 + 0x11C) = arg1;
-    x = *(int*)((char*)&D_00000000 + 0xDF8);
-    y = *(int*)((char*)&D_00000000 + 0xDFC);
-    gl_func_00000000(a0, x, y);
+/* game_uso_func_00010648 (0x4C): orphan-prologue MERGE of the 0x8-byte stub at
+ * 0x10648 (`lui at,0x3F80; mtc1 at,$f4` = load 1.0f) + the 0x44 body formerly
+ * mislabeled game_uso_func_00010650 (0x10650). The two are ONE routine: the stub
+ * loads 1.0f into $f4, which IDO HOISTS above the prologue, and the body stores
+ * it via `swc1 $f4,0x11C(a0)`. The earlier "caller-set float-in-$f4 cap" note was
+ * wrong — $f4 is not a caller convention, it's this function's own 1.0f constant.
+ * First call passes a 2-int struct BY VALUE (homes a1->sp+4, a2->sp+8); the named
+ * base `&D+0xDF8` keeps the addiu split (lw 0(t6)/4(t6)). Byte-exact. */
+void game_uso_func_00010648(void *a0) {
+    *(float*)((char*)a0 + 0x11C) = 1.0f;
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xDF8));
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010650);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00010694: 0x1AC (107 insns), 0x30-byte stack frame, saves
@@ -13166,5 +13151,3 @@ void *game_uso_func_00011A94(int *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A94);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00011A94_pad.s")
-
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010648);
