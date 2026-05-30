@@ -12838,85 +12838,24 @@ void game_uso_func_000114FC(int *a0) {
     game_uso_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xDB8), 1);
 }
 
-/* game_uso_func_0001155C: 8-byte stolen-prologue donor for game_uso_func_00011564.
- * Body is `lui t6, 0; lw t6, 0x78(t6)` — loads `t6 = *(int*)((char*)&D + 0x78)`
- * which the successor at 0x11564 reads via `bnez t6, +0xC` at its first insn.
- *
- * Standalone-uncompilable: the function has NO prologue (no addiu sp), NO
- * epilogue (no jr ra), and just 2 setup insns. Any C body would emit at
- * minimum prologue+jr ra+nop = 4 insns (16 bytes), exceeding the 8-byte
- * symbol size. Stays INCLUDE_ASM.
- *
- * Promotion path: drop this INCLUDE_ASM line entirely, then move the symbol
- * boundary so game_uso_func_00011564 starts 8 bytes earlier (at 0x1155C).
- * The successor's natural C-emit produces `lui t6, 0; lw t6, 0x78(t6)` as
- * the first 8 bytes (since its body opens with the t6 read). Then
- * PROLOGUE_STEALS is NOT needed — the successor's emit naturally covers
- * both the predecessor's 8 bytes and its own. Requires:
- *   1. Remove this INCLUDE_ASM line.
- *   2. Update undefined_syms_auto.txt: `game_uso_func_0001155C = 0x1155C;`
- *      (re-export for any external callers).
- *   3. Update splat config so successor's symbol covers 0x1155C..0x115DC.
- * Same family as the chained-SUFFIX inheritance recognizer (docs/POST_CC_RECIPES.md
- * was DEPRECATED 2026-05-23 along with INSN_PATCH/PROLOGUE_STEALS/instruction-
- * appending SUFFIX_BYTES; only the recognizer pattern remains useful). The
- * predecessor-symbol-rename path here uses splat boundary correction (genuine
- * mechanism) instead of any banned splice. */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001155C);
-
-/* game_uso_func_00011564: 30-insn (0x78) flag-gated 100-or-0 store + dispatch.
- * STOLEN-PROLOGUE SUCCESSOR — predecessor game_uso_func_0001155C's 8-byte body
- * sets `t6 = *(int*)(&D + 0x78)`; this function reads t6 in its first body insn
- * (`bnez t6, +0xC`) without re-loading.
- *
- * Decoded structure:
- *   if (*(int*)(&D + 0x78) != 0) {
- *       // then-arm — flag set: store 100 + multi-arg dispatch
- *       p = (int*)a0[0xB4/4];
- *       p[0x960/4] = 100;
- *       gl_func_00000000(a0, a0[0xFC/4] | 8, 0, 1, 6, 1);
- *       // a1 = a0[0xFC] | 8 (ori in delay slot), a2 = 0, a3 = 1
- *       // stack args at sp+0x10/0x14 = 6, 1
- *   } else {
- *       // else-arm — flag clear: store 0 + dispatch via D-base
- *       p = (int*)a0[0xB4/4];
- *       p[0x960/4] = 0;
- *       gl_func_00000000(a0, *(int*)(&D + 0xE40), *(int*)(&D + 0xE44));
- *   }
- *
- * 2026-05-08: flipped the C to the target's flag-clear-first layout and added
- * PROLOGUE_STEALS for non_matching scoring. Fuzzy improved 17.93% -> 51.10%.
- *
- * 2026-05-17: had reached "exact via PROLOGUE_STEALS=8 + INSN_PATCH" using
- * D_game_11564_flag/table aliases (to defeat D-base CSE) + caller-slot/
- * register reshaping. Both PROLOGUE_STEALS and INSN_PATCH were REMOVED
- * 2026-05-23 as match-faking. The aliases survive (they defeat real CSE in
- * the C body). Function is at honest 81.93% NM. */
+/* game_uso_func_0001155C (0x80): orphan-prologue MERGE of the 0x8 stub at 0x1155C
+ * (lui t6,0; lw t6,0x78(t6) = load the &D+0x78 flag) + the 0x78 flag-dispatch body
+ * formerly mislabeled game_uso_func_00011564. Sibling of game_uso_func_00010648.
+ * The global flag-load is IDO-hoisted above the prologue, landing at 0x1155C.
+ * Single-entry: the merge is byte-exact, so it is one function (not dual-entry).
+ * else-arm uses Pair2-by-value (&D+0xE40); a0->0xB4 is recomputed per-arm to match
+ * the target register allocation. */
 extern int gl_func_00000000();
-
-#ifdef NON_MATCHING
-void game_uso_func_00011564(int *a0) {
+void game_uso_func_0001155C(int *a0) {
     int val = 100;
-    int *p;
-    int *table;
-    if (D_game_11564_flag == 0) {
-        p = (int*)a0[0xB4/4];
-        p[0x960/4] = 0;
-        table = &D_game_11564_table;
-        /* Duplicate args force the target-sized placeholder-call setup.
-         * INSN_PATCH that previously rewrote this block to caller-slot
-         * spill form was REMOVED 2026-05-23 (match-faking); the dup-arg
-         * shape stands as honest structural decode of the target call. */
-        gl_func_00000000(a0, table[0], table[1], table[0], table[1]);
+    if (*(int*)((char*)&D_00000000 + 0x78) == 0) {
+        ((int*)a0[0xB4/4])[0x960/4] = 0;
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE40));
     } else {
-        p = (int*)a0[0xB4/4];
-        p[0x960/4] = val;
+        ((int*)a0[0xB4/4])[0x960/4] = val;
         gl_func_00000000(a0, a0[0xFC/4] | 8, 0, 1, 6, 1);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011564);
-#endif
 
 void game_uso_func_000115DC(void *a0) {
     *(s32*)((char*)*(s32**)((char*)a0 + 0xB4) + 0x960) = 100;
