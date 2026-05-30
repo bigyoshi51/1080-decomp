@@ -3554,10 +3554,11 @@ extern int func_00000000_082F8(int, int, int, int, float, int, float);
 extern char D_00000000_a;
 extern char D_func_00000008_data;
 void func_000082F8(int *a0) {
-    int *t6 = BOOT_SELF_PTR;
-    int *t7 = *(int**)((char*)t6 + 0x70);
+    /* Inline the two single-use pointer derefs (no named t6/t7): named locals
+     * grab $v0/$v1, but the target keeps the multiply-referenced &D base in $v0
+     * and these derefs in $t-regs (regalloc-dump-identified, scripts/regalloc-dump.sh). */
     float f0 = *(float*)((char*)&D_00000000 + 0x130);
-    float f2 = *(float*)((char*)t7 + 0xA8) * f0;
+    float f2 = *(float*)((char*)*(int**)((char*)BOOT_SELF_PTR + 0x70) + 0xA8) * f0;
     float f12 = *(float*)((char*)a0 + 0x38) * f0;
 
     if (f12 < f2) {
