@@ -1013,6 +1013,7 @@ void timproc_uso_b1_func_000024F4(int a0) {
     gl_func_00000000((char *)&D_00000000 + 424,
                      ((*(int *)&D_00000000 + 45) << 16) | 6);
     gl_func_00000000((char *)&D_00000000 + 496, 0x2F0012);
+    (void)a0;
 }
 
 /* timproc_uso_b1_func_00002740 — 95.69% → 99.35% (2026-05-18) via distinct
