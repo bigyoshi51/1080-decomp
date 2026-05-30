@@ -41549,8 +41549,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000747F4);
 #endif
 
 
+/* game_libs_func_00074840 (0x10): RSP SP_STATUS (0xA4040010) WRITE accessor.
+ * Body: `nop; lui t6,0xA404; jr ra; sw a0,0x10(t6)` = `*(volatile int*)0xA4040010 = a0`.
+ * game_libs_func_00074850 (below) is the matching READ. CAP — the LEADING NOP is not
+ * C-reproducible: a hardware-access hazard idiom (nop before the SP register touch).
+ * Plain C `*(volatile int*)0xA4040010 = a0;` emits `lui t6; jr ra; sw a0,0x10(t6)` (no
+ * leading nop). IDO has no inline-asm to inject a bare nop: `__asm__("nop")` compiles
+ * to a JAL to a symbol `nop` (not an emitted nop), and `__asm__ volatile(...)` is a cfe
+ * syntax error (feedback_ido_no_gcc_register_asm). Same leading-nop cap class as the VI
+ * accessors (00069F50 etc.). Stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074840);
 
+/* game_libs_func_00074850 (0x10): RSP SP_STATUS (0xA4040010) READ accessor (pair of
+ * 00074840). Body: `nop; lui v0,0xA404; jr ra; lw v0,0x10(v0)` = `return
+ * *(volatile int*)0xA4040010`. Same leading-nop hardware-hazard CAP — see 00074840. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074850);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074860);
