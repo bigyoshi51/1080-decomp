@@ -123,6 +123,13 @@ int gui_uso_func_00000104(int v0) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000104);
 #endif
 
+/* CALLER-SET-$v0 CAP (digit '0'-'9' -> value, else passthrough). Target reads
+ * the arg from $v0 (`slti $1,$2,48`), NOT $a0 — caller-set-register convention
+ * (cf. caller_set_int_reg_cap), so a C `(int v0)` arg lands in $a0 and diverges.
+ * Also the out-of-range path SHARES the return (`jr ra; andi $2,$4,0xff`)
+ * returning the incoming $4&0xff (a 2nd caller-set/preserved reg), so there's
+ * no explicit `return 0`; my C's `return 0` adds a `move $2,$0` + 2nd jr ra
+ * (the +2 OVER in find-size-mismatch). Not C-reachable — INCLUDE_ASM stays. */
 #ifdef NON_MATCHING
 int gui_uso_func_00000124(int v0) {
     if (v0 >= 0x30 && v0 < 0x3A) { int a0 = (v0 - 0x30) & 0xFF; return a0 & 0xFF; }
