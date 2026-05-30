@@ -9947,6 +9947,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DDEC);
  * Per feedback_lw_arg_from_stack_no_preceding_sw.md class. Stays
  * INCLUDE_ASM.
  *
+ * 2026-05-30 — DUAL-ENTRY pair, NOT a mergeable stolen-prologue. The 0x8 orphan
+ * at 0x2DDEC (game_libs_func_0002DDEC = `lui at,0x3F80; mtc1 at,$f4` = 1.0f, no
+ * jr ra) falls into THIS body — it is the "default value = 1.0f" entry. So $f4 is
+ * 1.0f when entered via 0x2DDEC, or a caller's float when entered directly here.
+ * Tested the orphan->body merge (`void f(int a0){ *(float*)&D=1.0f; func_00042490(
+ * a0&0xFF,0); }`): IDO correctly hoists the 1.0f load above the prologue, but the
+ * result is 13 insns vs target 14 -- it MISSES the dead `sw a0,0x18(sp)` home that
+ * 0x2DDF4 emits. That dead a0-home is 0x2DDF4's OWN standalone-prologue artifact; a
+ * single merged function (entered at 0x2DDEC) has different a0 dataflow and won't
+ * emit it (confirmed both standalone AND in-tree). That mismatch is the proof these
+ * are two entry points to a shared body, not one split function -- do NOT merge
+ * (it would drop the 0x2DDF4 direct-entry). Contrast game_uso_func_00010648, which
+ * DID merge+match because it is single-entry. Both stay INCLUDE_ASM.
+ *
  * Doc-only stub for grep discoverability. */
 extern int func_00042490();
 extern int D_DDF4_X;
