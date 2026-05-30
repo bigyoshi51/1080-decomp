@@ -21,7 +21,18 @@ typedef struct { int a, b, c, d; } Quad4;
  * requires a1==2 and the 0x4C-vs-table match. func_00000000(a0) =
  * the "advance to next scripted step" callback. Caps <80: u16
  * counter compares + re-read pattern + 3-word table copy + slti
- * range tests + reloc call. INCLUDE_ASM remains build path. */
+ * range tests + reloc call. INCLUDE_ASM remains build path.
+ *
+ * NEXT-TICK LEAD (2026-05-30): this is an -O0 function (entry spills both
+ * args sw a0,0x30 / sw a1,0x34; saves s0; `addiu $14,sp,0x24` = &tbl on
+ * stack; 75 insns, frame 0x30). tail3b_top.c now contains ONLY this fn
+ * (188/244 moved to o0_120A8), so flip this file's OPT_FLAGS to -O0 (no
+ * file move). Current C at -O0 = 84 insns / 79 diffs (9 too long) — the
+ * gate re-reads st->0x2 FRESH each test (don't cache `c`), and the table
+ * index is `*(int*)(sp + c*4 + 0x14)` = tbl[c] with tbl at sp+0x24 (so the
+ * C's `(char*)tbl + c*4 - 0x10` form is right). Grind the early-return /
+ * gate structure to shed the 9 extra insns. Multi-tick -O0 structural RE,
+ * same vein as func_00012188/func_00012244. */
 extern int D_0000C69C[3];
 #ifdef NON_MATCHING
 void func_000122C4(char *a0, int a1) {
