@@ -754,13 +754,17 @@ void game_libs_func_00003F08(int *a0, int a1, int a2) {
     cur = (int *)((char *)a0 + idx * 4);
     prev = (int *)((char *)a0 + ((idx - 1) & 3) * 4);
     prevbc = prev[0xBC / 4];
+    /* NB: the cur[0xAC]=160 store is a SHARED TAIL of both arms (cur is
+     * recomputed to the same a0+idx*4 in the <15 arm), so it lives once after
+     * the if — collapsing it into both arms emits a redundant `beq zero,zero`
+     * (63 vs 60 insns). Target still beats this by 1 idiom: it folds the else
+     * store into a `beql` delay slot (90.7% residual = that beql + the prev/cur
+     * pointer register cascade $a3 vs $v1). */
     if (cur[0xBC / 4] - prevbc < 15) {
         cur[0xBC / 4] = prevbc + 16;
         cur = (int *)((char *)a0 + a0[0x7C / 4] * 4);
-        cur[0xAC / 4] = 160;
-    } else {
-        cur[0xAC / 4] = 160;
     }
+    cur[0xAC / 4] = 160;
     next = (a0[0x7C / 4] + 1) & 3;
     a0[0x88 / 4] += 16;
     if (a0[0x80 / 4] == next) {
