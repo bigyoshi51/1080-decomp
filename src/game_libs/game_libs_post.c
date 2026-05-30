@@ -41620,7 +41620,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00075260);
  *     by 1 (target uses t7/t8; mine t6/t7). Mismatch.
  *
  * Cap: ~85 % via the volatile-int form. Real fix needs a way to allocate
- * frame without stack use — which IDO doesn't expose. */
+ * frame without stack use — which IDO doesn't expose.
+ *
+ * 2026-05-30 — DUAL-ENTRY context: the predecessor orphan game_libs_func_00075260
+ * (`nop; lui t6,0xA404; lw a1,0x10(t6)`, no jr ra) loads this body's `flag` (a1)
+ * from the RSP register 0xA4040010 (SP_STATUS read), then falls through. So the fn
+ * is an RSP-poll: entered via 0x75260, flag = SP_STATUS; entered directly here,
+ * flag = caller's. NOT an orphan-merge candidate — (a) dual-entry (body callable
+ * with caller flag), and (b) the merged single-entry C reads SP_STATUS into $v0 and
+ * emits a different leaf shape (no frame), so it can't reproduce the body's frame.
+ * The hw write target 0xA4080000 = SP_PC_REG (RSP program counter). Both INCLUDE_ASM. */
 int gl_func_0007526C(unsigned int pc, int flag) {
     volatile int x = 0;
     if ((flag & 1) == 0) {
