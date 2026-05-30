@@ -5,39 +5,9 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 
-/* func_00012188 (0x12188, struct initializer) matched at -O0 and moved to
+/* func_00012188 (0x12188, struct initializer) and func_00012244 (0x12244,
+ * -O0 set-bit-and-call helper) matched at -O0 and moved to
  * bootup_uso_o0_120A8.c (the adjacent -O0 run-8 file). See that file. */
-
-#ifdef NON_MATCHING
-/* func_00012244: 32-insn set-bit-and-call-if-not-set helper.
- *   short *p = a0->field_154;
- *   if ((*p & (1 << a1)) == 0) {
- *       *p |= (1 << a1);
- *       func_00000000(a0);
- *   }
- *
- * 36% NM at -O2 -g3 (file's default). This function is in one of the
- * scattered -O0 runs documented in project_1080_bootup_uso_o0_runs.md —
- * target asm has both args spilled at entry (sw a0, 0x28(sp); sw a1,
- * 0x2C(sp)) and every variable reloaded via stack at use sites, classic
- * -O0 emit pattern (32 insns, frame 0x28). My -O2 emit collapses to 14
- * insns with frame 0x18.
- *
- * To match: split this function into a separate .c file with OPT_FLAGS
- * := -O0 per the -O0-cluster recipe in
- * docs/IDO_CODEGEN.md#feedback-o0-cluster-split-with-layout-shim.
- * Needs paired predecessor + successor layout shim. Multi-tick effort. */
-extern int func_00000000();
-void func_00012244(int *a0, int a1) {
-    unsigned short *p = (unsigned short*)a0[0x154/4];
-    if ((*p & (1 << a1)) == 0) {
-        *p = *p | (1 << a1);
-        func_00000000(a0);
-    }
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012244);
-#endif
 
 /* func_000122C4 - verified structural decode (0x12C, 75 insns,
  * scripted-sequence step gate).

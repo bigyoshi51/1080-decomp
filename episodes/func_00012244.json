@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00012244",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-05-30T16:49:30.290591+00:00",
+  "end_time": "2026-05-30T16:49:30.290612+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-30T16:49:30.290606+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Run 8 of bootup_uso's -O0 region (0x120A8..0x122C3). 5 functions.\n * See project_1080_bootup_uso_o0_runs.md + feedback_ido_o0_empty_stub.md.\n * func_00012188 (0x12188, 0xBC) moved here from bootup_uso_tail3b_top.c:\n * it is -O0 codegen (fresh addiu rN,zero,1 per `=1` store, stack-stored\n * loop counter `sw zero,4(sp)`, unfilled-delay epilogue). `register int v`\n * reuses $a1 across the value-pair stores; plain `for` keeps `i` on stack.\n * func_00012244 (0x12244, 0x80) also moved here from tail3b_top: -O0 void\n * set-bit-and-call helper. Match needs the body's RMW pointer in $s0 \u2014 a\n * `register unsigned short *q` forces that (the condition's deref stays an\n * inline fresh temp; a shared/stack `p` regresses). Byte-exact at -O0;\n * trailing align nop dropped by TRUNCATE 0x21C. */\n\nextern int func_00000000();\nextern int D_00000150;\n\nvoid func_000120A8(char *a0, int a1, int a2, int a3) {\n    *(int*)(a0 + 0x13C) = a1;\n    *(int*)(a0 + 0x144) = a2;\n    func_00000000(*(int*)(a0 + 0x13C), *(int*)(a0 + 0x144), 0);\n    *(int*)(a0 + 0x144) = 0;\n}\n\nvoid func_00012110(int a0) {\n    func_00000000(D_00000150);\n    func_00000000(7);\n}\n\nvoid func_00012150(char *a0) {\n    func_00000000(*(int*)(a0 + 0x148), *(int*)(a0 + 0x154));\n}\n\nvoid func_00012188(char *a0) {\n    int i;\n    register int v;\n    *(s32*)(a0 + 0x68) = 0;\n    *(s32*)(a0 + 0x4C) = 1;\n    *(s32*)(a0 + 0x50) = 0;\n    *(s32*)(a0 + 0x54) = 1;\n    *(s32*)(a0 + 0x58) = 1;\n    *(s32*)(a0 + 0x5C) = 0;\n    *(s32*)(a0 + 0x60) = 1;\n    *(s32*)(a0 + 0x64) = 2;\n    *(s32*)(a0 + 0x80) = 0;\n    for (i = 0; i < 3; i++) { *(a0 + i + 0x158) = 0x2A; }\n    *(s32*)(a0 + 0x15C) = 0;\n    v = 4; *(s32*)(a0 + 0x90) = v; *(s32*)(a0 + 0xB4) = v;\n    v = 3; *(s32*)(a0 + 0x94) = v; *(s32*)(a0 + 0xB0) = v;\n    v = 1; *(s32*)(a0 + 0x98) = v; *(s32*)(a0 + 0xA8) = v;\n    v = 2; *(s32*)(a0 + 0x9C) = v; *(s32*)(a0 + 0xAC) = v;\n    v = 5; *(s32*)(a0 + 0xA0) = v; *(s32*)(a0 + 0xA4) = v;\n}\n\nvoid func_00012244(int *a0, int a1) {\n    if ((**(unsigned short**)((char*)a0 + 0x154) & (1 << a1)) == 0) {\n        register unsigned short *q = *(unsigned short**)((char*)a0 + 0x154);\n        *q = *q | (1 << a1);\n        func_00000000(a0);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_120A8.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00012244.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff fuzzy=100; build/src byte-exact 32/32 words"
+  }
+}
