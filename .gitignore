@@ -35,3 +35,4 @@ nonmatchings/
 # scripts/uso-reloc-symbolize.py (not used by the current build — would
 # be needed for the spimdisasm USO-reloc migration; regenerate on demand).
 *.usosyms.txt
+uoptlist
