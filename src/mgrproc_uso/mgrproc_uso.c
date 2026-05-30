@@ -794,11 +794,13 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C9
  * Applied: variable divisor (`float four`) so /4.0 emits div.s (target's form, not
  * the reciprocal mul.s); distinct externs D_dbl_5E0/5E8/5F8/600 to bust &D-CSE so
  * each ldc1 re-materializes its base via $at (matching target). Remaining gap
- * (verified 2026-05-30): a `mtc1 zero,$f2` (a 0.0 double literal in my C) where the
- * target does `lwc1 $f0,0x7A4(arg0)` — i.e. my C uses 0.0 somewhere it should read
- * the arg0->0x7A4 field; that 0.0->field is the C-fixable residual. Plus float &D
- * loads (5F0) + pervasive double-conversion FP reg-alloc ($f4 vs $f10) = caps.
- * Structs + cb proto untyped (USO-reloc). NON_MATCHING. */
+ * (re-verified 2026-05-30, CORRECTING an earlier misread): NOT a logic bug. The
+ * `mtc1 zero,$f2` is the 0.0 operand for `if (f0 > 0.0f)` in the else-arm; my C DOES
+ * read arg0->0x7A4 (the f0). The only diff is which insn IDO hoists into the
+ * `beql v0,..` delay slot — mine the 0.0-load, target the field-load `lwc1 $f0,0x7A4`.
+ * That is an instruction-SCHEDULING cap (branch-likely delay fill), not C-controllable
+ * — same family as the double-conversion FP reg-alloc ($f4 vs $f10) + float &D 5F0
+ * load. All caps. Structs + cb proto untyped (USO-reloc). NON_MATCHING. */
 extern int gl_func_00000000();
 extern double D_dbl_5E0, D_dbl_5E8, D_dbl_5F8, D_dbl_600;
 void mgrproc_uso_func_00001F30(char *arg0) {
