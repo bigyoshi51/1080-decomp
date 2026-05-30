@@ -1554,5 +1554,44 @@ void arcproc_uso_func_00002864(void) {
     arcproc_uso_func_00000000();
 }
 
+/* arcproc_uso_func_00002884: 62-insn double-loop initializer (fresh decode
+ * 2026-05-29, ~85% / 9-diff). Copies a 5-int table from &D+0x4A0 to a stack
+ * buffer, then for each outer step (s3: 16..208 step 32) iterates the 5 buffer
+ * entries (s0: 0..256 step 64), computing s1 = &D+0x10 + buf[i]*24 and calling
+ * 3 funcs: f(s1); f(s1); f(s1, s0, s3, 0). Logic byte-faithful; structure +
+ * saved-reg count (8) now match. Progress notes:
+ *  - explicit `char *base` local -> 9th saved reg (s8); index-form `buf.w[i]`
+ *    (not pointer `*p++`) drops it back to 8 (lets IDO recompute the buffer
+ *    ptr via `addiu s2,sp,84` each outer iter instead of holding it in a reg).
+ *  - REMAINING 9 diffs are a register SWAP: target has base=s4 / 24-mult=s5,
+ *    mine has base=s5 / 24=s4, plus the s0/s2 loop-init order. An allocno-order
+ *    tiebreak — needs a decl/expression tweak to flip base<->mult priority.
+ * NM-wrapped pending that reg-swap pass. */
+typedef struct { int w[5]; } Arc2884Buf;
+#ifdef NON_MATCHING
+void arcproc_uso_func_00002884(void *a0) {
+    Arc2884Buf buf;
+    int i;
+    int s0;
+    int s3;
+    char *base = (char *)&D_00000000 + 0x10;
+    buf = *(Arc2884Buf *)((char *)&D_00000000 + 0x4A0);
+    s3 = 16;
+    do {
+        i = 0;
+        s0 = 0;
+        do {
+            char *s1 = base + buf.w[i] * 24;
+            gl_func_00000000(s1);
+            gl_func_00000000(s1);
+            gl_func_00000000(s1, s0, s3, 0);
+            s0 += 64;
+            i++;
+        } while (s0 != 320);
+        s3 += 32;
+    } while (s3 != 240);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00002884);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_00002884_pad.s")
