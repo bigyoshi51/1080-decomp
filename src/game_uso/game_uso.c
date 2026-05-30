@@ -5985,6 +5985,19 @@ void game_uso_func_0000751C(char *a0) {
  * is a frameless LEAF (no jal). That single change took it 58.69%->63.27% and
  * removed the long-documented "built saves $s0" frame divergence at entry.
  * Was 58.69% (2026-05-17, bit-0x80 audit), 38.83% pre-bit-0x80-table rewrite.
+ *
+ * NEXT BLOCKER (2026-05-30): residual is a 2-word $a2/$a3 SPILL frame (build
+ * `addiu sp,-88; sw a3,0(sp); sw a2,4(sp)`; target has NO frame) + ~15 still-
+ * stubbed insns. Root cause is an INVERTED arg-register assignment: the target
+ * keeps ret_lo/ret_hi in $v0/$v1 the whole function (it inits `move v0,zero;
+ * move v1,zero`, returns from there with no final move) which pushes
+ * counter->$a2 and a1_saved->$a3; OUR build puts a1_saved->$v0, counter->$v1
+ * (the union return computes ret_lo/ret_hi in $a2/$a3 then moves to $v0/$v1 at
+ * the end), so $a2/$a3 are needed for the returns and the long-lived
+ * counter/a1_saved spill. The lever to try next: pin ret_lo/ret_hi into $v0/$v1
+ * across the body (so counter/a1_saved naturally take $a2/$a3) — e.g. keep the
+ * running return halves in vars IDO won't displace, or restructure so the
+ * return regs are written early and never reused. Until then the spill caps it.
  * Captures prelude + dispatch outline + epilogue + bit-0x80 trunk arm.
  * Many arm bodies are TODO-stubbed with correct control-flow targets but
  * no per-bit state mutations yet.
@@ -6172,8 +6185,7 @@ long long game_uso_func_00007538(int *a0, int a1) {
 
     counter = a0[0x50 / 4];
     if (counter > 0) a0[0x50 / 4] = counter - 1;
-    flags = a0[0x48 / 4];
-    if (flags > 0) a0[0x48 / 4] = flags - 1;
+    if ((int)a0[0x48 / 4] > 0) a0[0x48 / 4] -= 1;
 
     flag2 = a0[0x6C / 4];
     if (flag2 != 0) goto trunk;
