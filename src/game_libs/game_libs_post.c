@@ -36527,11 +36527,10 @@ void game_libs_func_000671D4(short *a0, int a1, int a2) {
  * emit the copy from plain C, and `register T asm("$7")` (GCC extension) is
  * not supported by IDO cfe. */
 extern int gl_func_00000000();
-extern char gl_ref_000416E0;
 void gl_func_000671E4(char *a0) {
     *(int*)(a0 + 0x13E8) = 0;
-    *(int*)&gl_ref_000416E0 = 1;
-    gl_func_00000000(a0 + 0x11B0, &gl_ref_000416E0, 1);
+    *(int*)((char*)&D_00000000 + 0x416E0) = 1;
+    gl_func_00000000(a0 + 0x11B0, (char*)&D_00000000 + 0x416E0, 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000671E4);
