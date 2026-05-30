@@ -34696,19 +34696,24 @@ void game_libs_func_00062F08(int *a0) {
 
 #ifdef NON_MATCHING
 /* game_libs_func_00062F58: 3-insn save-arg sentinel — `sw a0,0(sp); jr ra; nop`
- * (UNFILLED delay slot variant). Sibling of timproc_uso_b5_func_00000770
- * (2-insn FILLED variant) but cap is different:
+ * (UNFILLED delay slot variant). The store homes a0 to its O32 arg slot with
+ * NO frame; the body below (`int *p=&a0; (void)p;`) is what produces that `sw`
+ * (the old `(void)a0` produced an EMPTY function — no store at all).
  *
- * Target: sw a0,0(sp); jr ra; nop  (12 bytes, unfilled)
- * Build:  jr ra; sw a0,0(sp)       (8 bytes, IDO -O2 fills delay slot)
+ * EXACT-MATCH RECIPE (verified 2026-05-30): this body at -O2 **-g3** compiles
+ * byte-exact to the 0xC target (`AFA40000 03E00008 00000000`). At plain -O2 IDO
+ * fills the delay slot -> `jr ra; sw a0,0(sp)` (8 bytes, FILLED) which is why
+ * the C-only fuzzy is low. Per docs/IDO_CODEGEN.md#feedback-ido-g3-disables-
+ * delay-slot-fill the -g3 gives the unfilled form.
  *
- * Per docs/IDO_CODEGEN.md#feedback-ido-g3-disables-delay-slot-fill, the fix
- * is `OPT_FLAGS := -O2 -g3` per-file. But game_libs_post.c contains hundreds
- * of -O2 (filled-delay) functions; switching whole-file to -g3 would break
- * them. Splitting just this 3-insn into its own .c with -g3 is overscope
- * for a single sentinel. Deferred — needs companion functions to make the
- * split worthwhile. */
-void game_libs_func_00062F58(int a0) { (void)a0; }
+ * BLOCKER (why not landed): -g3 needs a per-function override (donor-splice or
+ * file-split), and the -g3 body is 0xC vs the file's -O2 compile 0x8 (+4). A
+ * size-growing splice in game_libs_post.c.o shifts downstream functions, which
+ * is the DOCUMENTED 60-function-break (game_libs_post is offset-sensitive — see
+ * docs/MATCHING_WORKFLOW.md "size change breaks a packed mixed file"). So it
+ * needs a CONTIGUOUS -g3 region split with companion -g3-needing neighbours,
+ * not a lone splice. Deferred until such a cluster is found. */
+void game_libs_func_00062F58(int a0) { int *p = &a0; (void)p; }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062F58);
 #endif
