@@ -5994,10 +5994,16 @@ void game_uso_func_0000751C(char *a0) {
  * counter->$a2 and a1_saved->$a3; OUR build puts a1_saved->$v0, counter->$v1
  * (the union return computes ret_lo/ret_hi in $a2/$a3 then moves to $v0/$v1 at
  * the end), so $a2/$a3 are needed for the returns and the long-lived
- * counter/a1_saved spill. The lever to try next: pin ret_lo/ret_hi into $v0/$v1
- * across the body (so counter/a1_saved naturally take $a2/$a3) — e.g. keep the
- * running return halves in vars IDO won't displace, or restructure so the
- * return regs are written early and never reused. Until then the spill caps it.
+ * counter/a1_saved spill. REGALLOC-DUMP CONFIRMED (2026-05-30, `cc -Wo,-zdbug:6`
+ * -> uoptlist, see docs/IDO_CODEGEN.md): a1_saved colors to $v0 and counter to
+ * $v1 because their decls (`a1_saved=a1`, `counter=a0[0x50]`) are REAL early
+ * USES encountered before ret_lo/ret_hi's first meaningful use — ret_lo/ret_hi
+ * are `=0` constants until an arm ORs them, so their candidates are created late
+ * and lose the $v0/$v1 colors. Lever (per the dump's reorder-first-use rule):
+ * give ret_lo/ret_hi an earlier non-constant first-use so they're colored before
+ * a1_saved/counter; tried-and-pending (no natural early use — they're genuinely 0
+ * until the arms). A focused regalloc session should drive this via the uoptlist
+ * candidate order. Until then the spill caps it.
  * Captures prelude + dispatch outline + epilogue + bit-0x80 trunk arm.
  * Many arm bodies are TODO-stubbed with correct control-flow targets but
  * no per-bit state mutations yet.
