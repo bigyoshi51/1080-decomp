@@ -3083,9 +3083,18 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * move into jr-ra's delay slot → `jr ra; move v0,zero` (0x8, 2 insns) —
  * verified 2026-05-29. The filled siblings 87D8/87E0 (`jr ra; li v0,N`)
  * DO match at -O2 (their value-insn fills the slot), so this region is
- * -O2-with-reorder; reproducing 87E8's unfilled form needs a per-function
- * -O0/-g split that would break the adjacent filled siblings. Not a quick
- * tick. (Same unfilled-jr-delay class as feedback_unfilled_delay_*.) */
+ * -O2-with-reorder. (Same unfilled-jr-delay class as feedback_unfilled_delay_*.)
+ *
+ * 2026-05-30 DONOR-SPLICE FAILS for this class: our IDO -O0 compiles
+ * `int f(){return 0;}` to 0x1c (7 insns: `move v0,zero; jr ra; nop` THEN two
+ * redundant `jr ra; nop` epilogue pairs), NOT the target's clean 0xC. So the
+ * -O0 donor body is bigger than target and doesn't match — and since even a
+ * file-split -O0 build would emit the same 0x1c, this function is NOT
+ * -O0-matchable at all (our toolchain's -O0 return-stub codegen diverges from
+ * the original's). Attempted the donor splice (regressed the build to 1708),
+ * reverted. Trivial return-N stubs in the unfilled-jr-delay form are a genuine
+ * toolchain cap — do NOT donor-splice them (works only for the multi-insn -O0
+ * cleanup-wrapper family like arcproc_748/mgrproc_009A8). */
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_000087E8(void) {
     return 0;
@@ -3135,6 +3144,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008930);
 
+/* Unfilled-jr-delay `return 0` (move v0,zero; jr ra; nop) — identical cap to
+ * timproc_uso_b5_func_000087E8 (see its comment): our IDO -O0 emits 0x1c with
+ * redundant epilogues, not the target's 0xC, so NOT donor-splice-able. */
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_00008940(void) {
     return 0;
