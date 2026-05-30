@@ -40092,7 +40092,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F3B0);
  * the plain leafy variant; still NM. See
  * feedback_ido_sp_frame_without_stack_use.md — 30+ variants tested
  * 2026-04-20, the target's idiom (sp=-8 with no sw/lw) isn't reachable
- * from standard IDO -O2 C. Likely alloca/setjmp or per-file pragma. */
+ * from standard IDO -O2 C. Likely alloca/setjmp or per-file pragma.
+ *
+ * 2026-05-30 flag-matrix + frame-forcing sweep (14 new variants, all NEGATIVE):
+ *  - opt/debug matrix {-O0,-O1,-O2} x {plain,-g,-g2,-g3}: EVERY combo is
+ *    frameless-leaf (no addiu sp). The doc's "-O1 -g3?" speculation is FALSE
+ *    (frameless). -g/-g2/-g3 only add/remove trailing alignment nops + an
+ *    extra `jr ra`, never a frame.
+ *  - frame-forcing tricks that avoid memory access {unused int[2], unused
+ *    char[5], unused volatile int, addr-of-local sink}: ALL DCE'd by IDO -O2
+ *    -> still frameless. IDO -O2 removes unused locals incl. their frame.
+ *  - alloca(8) IS the only trick that forces a frame AND flips the andi dest
+ *    to $t7 (target's reg!) — but it drags in `jal alloca` + a0 stack-reload
+ *    (frame -24, sw ra/a0), structurally wrong. Confirms the target frame is
+ *    real (not a pad) but has NO clean C trigger: sp=-8 + a0-used-direct +
+ *    result-in-t7 needs a frame source IDO won't DCE yet that emits no sw/lw.
+ *    None exists in standard C. Genuine cap; INCLUDE_ASM build emits correct
+ *    bytes. */
 int gl_func_0006F3BC(int a0) {
     volatile int x = a0 & 3;
     if (x != 0) return 1;
