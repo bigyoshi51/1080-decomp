@@ -12227,29 +12227,22 @@ void game_uso_func_000102CC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000102CC);
 #endif
 
-/* Small state-dispatch helper. C emits the correct control flow but IDO uses
- * the direct D_00000000 load form and omits the late a1/a2 stack spills.
- * Promoted with the same SUFFIX_BYTES + INSN_PATCH call-tail recipe used by
- * nearby game_uso_func_000105DC and the 10E2C family. */
-#ifdef NON_MATCHING
+/* Small state-dispatch helper. BYTE-EXACT (was force-promoted via banned
+ * SUFFIX_BYTES + INSN_PATCH). Two legit levers: (1) pass the &D+0xDF8 pair as a
+ * `*(Pair2*)` BY VALUE — the by-value struct both clusters the base (lui;addiu;
+ * lw 0/4) and homes a1/a2 to sp+4/sp+8 (the late spills IDO omits for separate
+ * int args); (2) inline the single-use spB4 deref (no named local) so it takes
+ * a $t-reg instead of $v0. Same Pair2-by-value idiom as game_uso_func_00010648. */
 void game_uso_func_00010408(int *arg0) {
-    int *spB4;
-
     gl_func_00000000(arg0, *(int*)((char*)arg0 + 0xFC) | 0x19, 4, 5, 1, 1);
     gl_func_00000000(arg0, 0);
     if (gl_func_00000000(arg0) == 0) {
-        spB4 = *(int**)((char*)arg0 + 0xB4);
-        if (spB4[0x938 / 4] != 0) {
-            gl_func_00000000(arg0,
-                             *(int*)((char*)&D_00000000 + 0xDF8),
-                             *(int*)((char*)&D_00000000 + 0xDFC));
+        if ((*(int**)((char*)arg0 + 0xB4))[0x938 / 4] != 0) {
+            gl_func_00000000(arg0, *(Pair2*)((char*)&D_00000000 + 0xDF8));
             gl_func_00000000(arg0);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010408);
-#endif
 
 /* 50-insn sibling of game_uso_func_00010408/105DC family. Initializes
  * a0->0xB4->0xA18, conditionally runs the 0x938-gated path, then emits
