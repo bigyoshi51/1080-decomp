@@ -3759,36 +3759,21 @@ int game_libs_func_0002353C(int a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002358C);
-
-/* gl_func_00023598: 19-insn slot writer with global gate. Matched
- * via three compiler-side levers:
- *  - PROLOGUE_STEALS=12 in Makefile splices the 12-byte prefix that
- *    the predecessor's tail emits (lui v0,0; addiu v0,v0,0; lw t6,...)
- *  - `extern char D_23598_char;` (data-decl alias of D_00000000) makes
- *    IDO emit the lui+addiu materialization ONCE and keep v0=&D live
- *    across the strength-reduction math, then reuse v0 in the
- *    addu t8,v0,t7 for the store. Recipe in
- *    docs/IDO_CODEGEN.md#feedback-ido-extern-char-vs-extern-fn-folds-lo-offset.
- *  - INSN_PATCH at post-splice offset 0x34 rewrites the jal-target
- *    placeholder `jal gl_func_00000000` (resolves to 0) into
- *    `jal 0x37C50`. The target lands INSIDE gl_func_00037BEC at offset
- *    0x64 — no clean splat symbol exists, so the cross-USO placeholder
- *    pattern can't reach it directly. Recipe in
- *    docs/MATCHING_WORKFLOW.md#alt-entry-jal-in-segment-jal-lands-inside-another-function-with-no-clean-symbol. */
-extern int gl_func_00000000();
-extern char D_23598_char;
-#ifdef NON_MATCHING
-int gl_func_00023598(int a0, int a1, int a2) {
-    if (*(int*)(&D_23598_char + 0x215C) != 0) {
-        return 0;
-    }
-    *(int*)(&D_23598_char + 0x2DDC + a0 * 0x160) = a2;
-    return gl_func_00000000(a0, a1, 0);
+/* game_libs_func_0002358C (0x58): orphan-prologue MERGE — sibling of
+ * game_libs_func_0002353C (identical 0xC donor stub `lui v0; addiu v0; lw
+ * t6,0x215C(v0)`, same a0*0x160 chain) but stores a2 at the slot instead of 0.
+ * The former gl_func_00023598 body (0x23598) is absorbed; entry moved to
+ * 0x2358C. This replaces the previously-banned PROLOGUE_STEALS=12 + INSN_PATCH
+ * jal-rewrite with the legitimate merge: the donor prologue belongs to this
+ * function, and the intra-segment jal target resolves via gl_func_00037C50 =
+ * 0x37C50 in undefined_syms_auto.txt (the mid-blob alt-entry, added with 2353C).
+ * int-return shape gives the beq-to-work + inline `move v0,0` early-exit. */
+extern int gl_func_00037C50();
+int game_libs_func_0002358C(int a0, int a1, int a2) {
+    if (*(int*)((char*)&D_00000000 + 0x215C) != 0) return 0;
+    *(int*)((char*)&D_00000000 + a0 * 0x160 + 0x2DDC) = a2;
+    return gl_func_00037C50(a0, a1, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023598);
-#endif
 
 // gl_func_000235E4 — STRUCTURAL PASS (0x148 / 82 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
