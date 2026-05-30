@@ -451,7 +451,17 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000116
  *   gl_func_00000000(p);
  *   return p;                         // v0 = a2
  * }
- */
+ *
+ * 2026-05-29: 95.9% (2-word diff), same size. The ONLY residual is an
+ * instruction-scheduling SWAP at the first post-call3 `p->0x28 = &D` store:
+ * build emits `lw a2,0x20(sp)` (p reload) then `addiu t6` (&D LO16); expected
+ * emits `addiu t6` then `lw a2` (and the target even double-reloads p into both
+ * a0@0x1648 and a2@0x1654). Two independent insns; pure scheduler tiebreak,
+ * not C-controllable here. NEGATIVE: a faithful single-`p` rewrite (collapsing
+ * the tmp/a0 split into one var) REGRESSES to 41 diffs — IDO eliminates the
+ * dead-guard spill and re-lays the whole frame. The tmp/a0 split IS load-bearing;
+ * keep it. Arg-count-lever check (per the 8EC win): a2 here is the object
+ * pointer held across the calls, NOT an under-counted arg — lever N/A. */
 #ifdef NON_MATCHING
 int *titproc_uso_func_000015F4(a0)
 int *a0;
