@@ -11776,18 +11776,15 @@ void game_uso_func_0000FBF8(int *a0) {
         *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0x970), 0, 1);
 }
 
-/* game_uso_func_0000FC34: 52-insn (0xD0) FPU-heavy 3-jal orchestrator. 82.5% NM.
- * Residual is register-PRESSURE-driven, not address-form: the two pair-arg
- * cluster loads (D+0xE10, D+0xE20) want the target's shared `lui;addiu base;
- * lw 0(base); lw 4(base)` form, but in-tree IDO re-materializes the base per
- * access (two `lui`s). A distinct-extern base (`extern int D_00000E10; &D_..`)
- * DOES produce the shared `lui+addiu` form STANDALONE (verified) but STILL
- * splits to two luis IN-TREE (+0.04% only) — the full function's register
- * pressure prevents keeping the base live. Same root as the field_770 base-fold
- * (`lwc1 1920(v1)` vs target `addiu a3,v1,1904; lwc1 16(a3)`) and the missing
- * vararg `sw a1,4(sp)` spills. Fix needs reducing function-wide pressure first
- * (regalloc-dump session), NOT the cluster address-form. Distinct-extern cluster
- * fix verified NEUTRAL in-tree 2026-05-30 — don't re-try it here. */
+/* game_uso_func_0000FC34: 52-insn (0xD0) FPU-heavy 3-jal orchestrator. 96.6% NM.
+ * BREAKTHROUGH 2026-05-30: the two pair-arg calls (D+0xE10, D+0xE20) are now
+ * `*(Pair2*)(&D+off)` BY VALUE — the by-value struct both clusters the base AND
+ * homes a1/a2 to sp+4/sp+8, cracking BOTH the cluster-form AND the precall-spill
+ * residuals at once (82.5->96.6%). The old "register-pressure cap" diagnosis was
+ * WRONG — it was the wrong C shape (separate int args). Remaining ~2 residuals:
+ * the field_770 single-field base-fold (`lwc1 1920(v1)` vs `addiu a3,v1,1904;
+ * lwc1 16(a3)`) + an FP-reg cascade in the double mul/add (f2/f4 choice for `v`)
+ * — ugen FP-scheduling, not coloring. */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
@@ -11796,16 +11793,14 @@ void game_uso_func_0000FC34(int *a0) {
     int *flag_loc = *(int**)(base + 0x800);
     char *field_770 = base + 0x770;
     float *field_31C = (float*)(base + 0x31C);
-    int *pair_e10 = (int*)((char*)&D_00000000 + 0xE10);
-    int *pair_e20 = (int*)((char*)&D_00000000 + 0xE20);
     if ((flag_loc[0x10/4] & 0x100) == 0) {
         float v = *(float*)(field_770 + 0x10);
         double dconst = *(double*)((char*)&D_00000000 + 0x248);
         *field_31C = (float)((double)*field_31C + (double)v * dconst);
-        gl_func_00000000(a0, pair_e10[0], pair_e10[1]);
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     }
     gl_func_00000000(a0, 0x30001, 2, 2, 0x100, 0xA);
-    gl_func_00000000(a0, pair_e20[0], pair_e20[1], -1);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE20), -1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
