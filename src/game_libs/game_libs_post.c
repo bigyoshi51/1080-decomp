@@ -27315,10 +27315,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E37C);
  * gl_func with format ptr + a1, reload idx; a0[3] = idx + 1;
  * a0[0][idx] = a1.
  *
- * Match blocked: target uses 3-save pattern for original a0 (copy to $a2,
- * spill, reload) which uses $v1 for idx. IDO -O2 picks $v0 for idx since
- * the simpler 2-save pattern (spill $a0 directly) suffices. Reg-rename
- * grind needed. */
+ * 2026-05-30 — ORPHAN-MERGE READY, blocked by a single $v0/$v1 regalloc cap.
+ * The predecessor game_libs_func_0004E37C (0x8: `lui t6,0; lw t6,0x1C4(t6)`) is
+ * the stolen prologue that loads the &D+0x1C4 flag into $t6. Verified: writing the
+ * body as below, the flag-load HOISTS above the prologue and reproduces the orphan
+ * bytes exactly (same mechanism as game_uso_func_0001155C). The 30-insn body then
+ * matches the target REGISTER-FOR-REGISTER except `idx` (= a0[3]) lands in $v0,
+ * where the target uses $v1 (6 insns differ only in that one reg; target leaves $v0
+ * entirely unused). Root cause: at the post-call reload the target treats $v0 as
+ * live (the discarded call RESULT), so idx avoids it; the merged C frees $v0 and
+ * idx takes it. NOT C-reachable: tried ptr-local, bound-first-decl, register int,
+ * dead-assign-reload, unsigned idx, recompute-per-arm, and using the call result
+ * (the only thing that flips idx->$v1, but it changes the a2-reload semantics) —
+ * plus decomp-permuter -j4 for 180s (0 candidates). So the orphan-merge (prepend
+ * the 2 orphan words to this body's .s as game_libs_func_0004E37C, delete the body
+ * symbol) is ready and would land the moment the $v0/$v1 is solved — but it is a
+ * genuine allocator cap today. Leave both INCLUDE_ASM. */
 void gl_func_0004E384(int *a0, int a1) {
     int v1;
     if ((*(int*)((char*)&D_00000000 + 0x1C4) & 1) == 0) {
