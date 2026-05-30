@@ -11,16 +11,6 @@
 
 extern int gl_func_00000000();
 
-/* 5-function bundle (splat can't separate); INCLUDE_ASM keeps all 5 matching. */
-#ifdef NON_MATCHING
-void mgrproc_uso_func_000000F8(int *a0) {
-    a0[0]--;
-    gl_func_00000000(a0);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000000F8);
-#endif
-
 /* leaf-branch-past-end CAP (bne offset is linker-set, branches past fn end). */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00000140(int *a0) {

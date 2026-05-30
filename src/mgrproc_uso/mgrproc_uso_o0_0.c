@@ -32,3 +32,13 @@ void mgrproc_uso_func_000000B0(int *a0) {
     p[1]++;
     gl_func_00000000(a0);
 }
+
+/* refcount-decrement wrapper (0x48 / 18 insns), exact sibling of _000000B0
+ * (decrement of [0] vs increment of [1]). The `register` pointer lands in
+ * callee-saved s0 — the target's pointer base — under -O0. Moved here from
+ * mgrproc_uso_head.c (region extended 0xF8->0x140) so it builds at -O0. */
+void mgrproc_uso_func_000000F8(int *a0) {
+    register int *p = a0;
+    p[0]--;
+    gl_func_00000000(a0);
+}

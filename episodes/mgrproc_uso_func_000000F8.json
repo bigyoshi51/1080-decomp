@@ -1,0 +1,33 @@
+{
+  "function_name": "mgrproc_uso_func_000000F8",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-05-30T15:05:15.061494+00:00",
+  "end_time": "2026-05-30T15:05:15.061521+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-05-30T15:05:15.061513+00:00",
+      "assistant_text": "Refcount-decrement wrapper, exact sibling of mgrproc_uso_func_000000B0. register int *p=a0 forces the pointer into callee-saved s0 (target's base) under -O0; p[0]-- then gl_func(a0). Landed by EXTENDING the contiguous -O0 region o0_0 (0xF8->0x140) to absorb F8 instead of donor-splice \u2014 F8 sits immediately after the o0_0 run. head region trimmed 0xA4->0x5C.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 18,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n/* Contiguous -O0 run at the start of the mgrproc_uso Yay0 block (0x0..0xF8).\n * Carved into a dedicated -O0 sub-unit (region 0); its truncated .text is\n * concatenated with the -O2 main object before crunch64 compression. See the\n * mgrproc_uso_block1_yay0 rule in the Makefile. The -O0 emit (vs the -O2\n * accessor template's 15 insns) shows: sw-ra-before-sw-a0, unfilled jal delay,\n * pointer-indirect reload, and a trailing dead `b +1; nop`. */\n\n/* int-reader (0x4C / 19 insns) */\nvoid mgrproc_uso_func_00000000(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\n/* Quad4-reader (0x64 / 25 insns) */\nvoid mgrproc_uso_func_0000004C(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\n/* refcount-increment wrapper (0x48 / 18 insns). The `register` pointer lands in\n * callee-saved s0 \u2014 the target's pointer base \u2014 under -O0. */\nvoid mgrproc_uso_func_000000B0(int *a0) {\n    register int *p = a0;\n    p[1]++;\n    gl_func_00000000(a0);\n}\n\n/* refcount-decrement wrapper (0x48 / 18 insns), exact sibling of _000000B0\n * (decrement of [0] vs increment of [1]). The `register` pointer lands in\n * callee-saved s0 \u2014 the target's pointer base \u2014 under -O0. Moved here from\n * mgrproc_uso_head.c (region extended 0xF8->0x140) so it builds at -O0. */\nvoid mgrproc_uso_func_000000F8(int *a0) {\n    register int *p = a0;\n    p[0]--;\n    gl_func_00000000(a0);\n}\n",
+  "metadata": {
+    "source_path": "src/mgrproc_uso/mgrproc_uso_o0_0.c",
+    "asm_path": "asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_000000F8.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff report.json fuzzy=100.0; built o0_0.c.o F8 bytes byte-identical to target .s (18 insns 0x48); no downstream regressions (1717->1718)."
+  }
+}

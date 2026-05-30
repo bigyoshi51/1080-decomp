@@ -217,14 +217,14 @@ build/src/arcproc_uso/arcproc_uso_o0_748.c.o build/non_matching/src/arcproc_uso/
 # binary-concat-before-compress, the analogue of the direct multi-.o link used
 # by the non-Yay0 USOs (bootup/arcproc).
 build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: OPT_FLAGS := -O0
-build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0xF8
-build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xF8
+build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0x140
+build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x140
 # region1 = head [0xF8,0x19C); matching build is exactly 0xA4. Built -O2 -g3 so
 # the return-0 leaves func_0000015C/_00000188 emit their UNFILLED jr-delay form
 # (move v0,zero; jr ra; nop); empty stubs + INCLUDE_ASM funcs are -g3-invariant.
 # No NON_MATCHING_TRUNCATE_TEXT (NM bodies diverge; objdiff scores per-function).
 build/src/mgrproc_uso/mgrproc_uso_head.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_head.c.o: OPT_FLAGS := -O2 -g3
-build/src/mgrproc_uso/mgrproc_uso_head.c.o: TRUNCATE_TEXT := 0xA4
+build/src/mgrproc_uso/mgrproc_uso_head.c.o: TRUNCATE_TEXT := 0x5C
 # region2 = -O0 run [0x19C,0xAE0) (func_0000019C..A14; func_000009A8 matched).
 build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o: OPT_FLAGS := -O0
 build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o: TRUNCATE_TEXT := 0x938
