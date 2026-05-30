@@ -1874,9 +1874,16 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
  * splat mis-split at 0x800047E4. Symbol kept as alt-entry via
  * undefined_syms_auto.txt for direct callers (jal func_800047E4). */
 
-/* NON_MATCHING: stack data packing is correct, but IDO still chooses a
- * different local layout (`-0x10` frame with `lwl/lwr`) instead of the
- * target's tight `-0x8` frame and aligned `lw` from `sp+4`. */
+/* ===== -O0 TAIL (func_80004808 .. func_800049B8) — needs an -O0 SUB-FILE SPLIT =====
+ * CONFIRMED 2026-05-30: these last 4 functions of kernel_000.c are -O0 in the target
+ * (regular bnez/beqz, stack-spill locals, no $s caching). At the file's -O2 they emit
+ * branch-LIKELY (bnezl/beqzl) + $s-promotion and won't match. PROVED: the same C at
+ * -O0 with the exact flags (`-O0 -mips2 -32 -G0 -non_shared -Xcpluscomm -Wab,-r4300_mul`)
+ * gives the target's regular branches; -O2 gives bnezl. PLAN: carve func_80004808/
+ * 8000487C/800048E8/800049B8 into src/kernel/kernel_000_o0.c (Makefile OPT_FLAGS:=-O0),
+ * insert `build/src/kernel/kernel_000_o0.c.o(.text);` in tenshoe.ld right AFTER
+ * kernel_000.c.o (contiguous: kernel_000 ends 0x49B8, kernel_045 follows). Then
+ * func_8000487C (busy-wait, decoded) lands byte-exact + the other 3. Kernel-C vein payoff. */
 #ifdef NON_MATCHING
 void func_80004808(u8* arg0, u32 arg1) {
     u8 sp4;
