@@ -790,12 +790,15 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C9
  * If 0x7C4 set: a second axis (0x7B0/0x7B4 with dbl vel 0x7C0 +&D+0x5F8, clamp 256)
  * + (if w==0) a scale pulse 0x55C/0x560 (+&D+0x600, sound cb(0x31) over threshold)
  * and two more draws. dbl consts via ldc1 from &D pool; /4.0f reciprocal-folds.
- * Fresh decode 2026-05-29 (m2c-confirmed). 41.8% reg-blind first-pass. Applied:
- * variable divisor (`float four`) so /4.0 emits div.s (target's form, not the
- * reciprocal mul.s); distinct externs D_dbl_5E0/5E8/5F8/600 to bust &D-CSE so each
- * ldc1 re-materializes its base via $at (matching target). Remaining gap: float &D
- * loads (5F0) + pervasive double-conversion FP reg-alloc. Caps: structs + cb proto
- * untyped (USO-reloc). NON_MATCHING. */
+ * Fresh decode 2026-05-29 (m2c-confirmed); 41.8% first-pass -> now 93.1% (size -3).
+ * Applied: variable divisor (`float four`) so /4.0 emits div.s (target's form, not
+ * the reciprocal mul.s); distinct externs D_dbl_5E0/5E8/5F8/600 to bust &D-CSE so
+ * each ldc1 re-materializes its base via $at (matching target). Remaining gap
+ * (verified 2026-05-30): a `mtc1 zero,$f2` (a 0.0 double literal in my C) where the
+ * target does `lwc1 $f0,0x7A4(arg0)` — i.e. my C uses 0.0 somewhere it should read
+ * the arg0->0x7A4 field; that 0.0->field is the C-fixable residual. Plus float &D
+ * loads (5F0) + pervasive double-conversion FP reg-alloc ($f4 vs $f10) = caps.
+ * Structs + cb proto untyped (USO-reloc). NON_MATCHING. */
 extern int gl_func_00000000();
 extern double D_dbl_5E0, D_dbl_5E8, D_dbl_5F8, D_dbl_600;
 void mgrproc_uso_func_00001F30(char *arg0) {
