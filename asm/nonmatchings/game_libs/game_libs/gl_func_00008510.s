@@ -1,6 +1,8 @@
-nonmatching gl_func_00008510, 0xA0
+nonmatching gl_func_00008510, 0xA8
 
 glabel gl_func_00008510
+    /* DED5E0 00008508 3C030000 */  .word 0x3C030000
+    /* DED5E4 0000850C 8C630134 */  .word 0x8C630134
     /* DED5E8 00008510 27BDFFD8 */  .word 0x27BDFFD8
     /* DED5EC 00008514 AFBF0014 */  .word 0xAFBF0014
     /* DED5F0 00008518 AFA40028 */  .word 0xAFA40028

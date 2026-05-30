@@ -1484,13 +1484,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000083CC);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00008508);
-
-/* gl_func_00008510: 40-insn dispatcher with prologue-stolen 8 bytes from
- * gl_func_000083CC (predecessor's tail loads `state = D[0x134]` into v1
- * and the function body uses v1 across its prologue). PROLOGUE_STEALS=8
- * splices the 8-byte lui+lw at function start that C-emit naturally
- * produces. After splice, function bytes 0x8512..0x85AC.
+/* gl_func_00008510: 42-insn dispatcher. ORPHAN-MERGED 2026-05-30: the 8-byte
+ * stolen prologue (`lui v1,0; lw v1,0x134(v1)` = load `state = D[0x134]`),
+ * formerly the separate orphan symbol game_libs_func_00008508 at 0x8508, is now
+ * the first 2 words of this function's .s (entry moved 0x8510 -> 0x8508, size
+ * 0xA0 -> 0xA8). This is the LEGITIMATE form of the previously-banned
+ * PROLOGUE_STEALS=8 (removed 2026-05-23): the bytes belong to this function, so
+ * the boundary is corrected rather than the match faked. The C below already
+ * emits the state load.
+ *
+ * RESIDUAL CAP (blocks byte-exact): the merged target keeps `state` in $v1 (the
+ * donated register) and reuses $v0 as scratch for the state->0xC4/0xCC reloads;
+ * IDO -O2 puts our named `state` local in $v0 (highest-priority pseudo -> lowest
+ * reg) and the reloads in $t-regs, giving a $v0/$v1 + cascade register-renumber
+ * delta (~14/42 insns). Same class as the documented permuter register-rename
+ * caps; not C-reachable without the regalloc dump. Stays NM until then.
  *
  * Structure:
  *   state = D[0x134]                    (predecessor-loaded into v1)
@@ -1505,9 +1513,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00008508);
  *   gl_func(p, D[0x168], D[0x164], &D + 0x170)  (call 4)
  *   gl_func(arg0)                       (call 5)
  *
- * Was promoted from the previous NM wrap with PROLOGUE_STEALS=8;
- * PROLOGUE_STEALS REMOVED 2026-05-23 as match-faking per
- * feedback_no_instruction_forcing_matches_policy — fn rolled back to NM. */
+ * History: once promoted via PROLOGUE_STEALS=8 (banned 2026-05-23 as match-
+ * faking), rolled back to NM, now orphan-MERGED (the correct boundary fix). */
 #ifdef NON_MATCHING
 void gl_func_00008510(int *arg0) {
     char *state = *(char**)((char*)&D_00000000 + 0x134);
