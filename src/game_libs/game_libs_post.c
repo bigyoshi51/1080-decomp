@@ -36536,12 +36536,17 @@ void game_libs_func_000671D4(short *a0, int a1, int a2) {
 #ifdef NON_MATCHING
 /* NON_MATCHING: expected copies a0 to a3 via `or a3, a0, zero`; IDO does not
  * emit the copy from plain C, and `register T asm("$7")` (GCC extension) is
- * not supported by IDO cfe. */
+ * not supported by IDO cfe. (Sole residual at 92.7%.)
+ * DO NOT rewrite the `&gl_ref_000416E0` alias to `&D_00000000 + 0x416E0`: the
+ * distinct alias CSEs the address into ONE register (shared by the `*p=1` store
+ * and the call arg, matching the target's single `lui a1`); the &D+offset form
+ * makes IDO re-materialize it twice (two luis) and regresses this to 67.7%. */
 extern int gl_func_00000000();
+extern int gl_ref_000416E0;
 void gl_func_000671E4(char *a0) {
     *(int*)(a0 + 0x13E8) = 0;
-    *(int*)((char*)&D_00000000 + 0x416E0) = 1;
-    gl_func_00000000(a0 + 0x11B0, (char*)&D_00000000 + 0x416E0, 1);
+    *(int*)&gl_ref_000416E0 = 1;
+    gl_func_00000000(a0 + 0x11B0, &gl_ref_000416E0, 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000671E4);
