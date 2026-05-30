@@ -602,13 +602,13 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00002334);
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000025B4);
 
 extern int gl_func_00000000();
-extern int gui_ref_00000150;
+extern char D_00000000;
 
 void gui_func_0000267C(char *a0, int a1) {
     int saved;
     *(int*)(a0 + 0x14) = a1;
     saved = gl_func_00000000(7);
-    *(int*)(a0 + 0x10) = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));
+    *(int*)(a0 + 0x10) = gl_func_00000000((*(int *)((char *)&D_00000000 + 0x150)), *(int*)(a0 + 0x14));
     gl_func_00000000(saved);
 }
 
@@ -618,11 +618,11 @@ void gui_func_000026CC(int *a0, int a1) {
 }
 
 extern int gui_func_00000000();
-extern int gui_ref_00000150;
+extern char D_00000000;
 
 void gui_func_000026D8(char *a0) {
     if (*(int*)(a0 + 0x10) != 0) {
-        gui_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14), a0);
+        gui_func_00000000((*(int *)((char *)&D_00000000 + 0x150)), *(int*)(a0 + 0x14), a0);
     }
     *(int*)(a0 + 0x10) = 0;
 }
@@ -636,10 +636,10 @@ void gui_func_0000271C(char *a0) {
         *(int*)(a0 + 0x14) = 0;
     }
     saved = gl_func_00000000(7);
-    v0 = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));
+    v0 = gl_func_00000000((*(int *)((char *)&D_00000000 + 0x150)), *(int*)(a0 + 0x14));
     v1 = *(int*)(a0 + 0x10);
     if (v1 == 0 || v0 != v1) {
-        *(int*)(a0 + 0x10) = gl_func_00000000(gui_ref_00000150, *(int*)(a0 + 0x14));
+        *(int*)(a0 + 0x10) = gl_func_00000000((*(int *)((char *)&D_00000000 + 0x150)), *(int*)(a0 + 0x14));
     }
     gl_func_00000000(saved);
 }

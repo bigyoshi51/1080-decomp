@@ -11057,9 +11057,8 @@ void game_uso_func_0000EDD4(int *a0, unsigned int a1, int a2) {
     *p = *p - v0;
 }
 
-extern char D_00000138;
 void game_uso_func_0000EE30(char *a0, int a1, int a2) {
-    int *dptr = (int*)&D_00000138;
+    int *dptr = (int*)((char*)&D_00000000 + 0x138);
     gl_func_00000000(*dptr, *(int*)(a0 + 0xB4), a1 * a2);
 }
 
