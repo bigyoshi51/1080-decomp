@@ -11754,21 +11754,14 @@ void game_uso_func_0000FB04(int *a0) {
  * SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23 as match-faking (per
  * feedback_no_instruction_forcing_matches_policy). Default build is
  * INCLUDE_ASM. */
-#ifdef NON_MATCHING
 void game_uso_func_0000FB7C(int *a0) {
     int v = a0[0xFC/4] | 0xA;
     a0[0x108/4] = v;
     gl_func_00000000(a0, v, 0, 2, 1, 1);
-    gl_func_00000000(a0,
-        *(int*)((char*)&D_00000000 + 0xE88),
-        *(int*)((char*)&D_00000000 + 0xE8C),
-        2);
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE88), 2);
     gl_func_00000000(a0);
     a0[0x114/4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FB7C);
-#endif
 
 void game_uso_func_0000FBF8(int *a0) {
     int v = *(int*)((char*)a0 + 0xFC);
@@ -11999,27 +11992,21 @@ void game_uso_func_0001001C(int *a0) {
 #endif
 extern int gl_func_00000000();
 extern char D_00000000;
-#ifdef NON_MATCHING
 void game_uso_func_00010068(int *a0) {
-    int t1_field;
-    int *outer;
     /* Call 1: 6-arg w/ 2 stack args */
     gl_func_00000000(a0,
                      *(int*)((char*)a0 + 0xFC) | 0x19,
                      0, 2,
                      0x100, 10);
     /* Call 2: 4-arg with D[0xDD8/0xDDC] */
-    gl_func_00000000(a0,
-                     *(int*)((char*)&D_00000000 + 0xDD8),
-                     *(int*)((char*)&D_00000000 + 0xDDC),
-                     -1);
-    /* Conditional Call 3 */
-    outer = (int*)*(int**)((char*)a0 + 0xB4);
-    t1_field = ((int*)outer[0x800 / 4])[0x18 / 4];
-    if (t1_field & 0x400) {
-        gl_func_00000000(a0,
-                         *(int*)((char*)&D_00000000 + 0xDE0),
-                         *(int*)((char*)&D_00000000 + 0xDE4));
+    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xDD8), -1);
+    /* Conditional Call 3 — inline `outer` (arg0[0xB4]) so it takes $t1 not $v0,
+     * but NAME the middle pointer `mid` so it claims $v0 like the target. */
+    {
+        int *mid = (int*)((int*)*(int**)((char*)a0 + 0xB4))[0x800 / 4];
+        if (mid[0x18 / 4] & 0x400) {
+            gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xDE0));
+        }
     }
     /* Call 4 */
     gl_func_00000000(a0);
@@ -12028,9 +12015,6 @@ void game_uso_func_00010068(int *a0) {
     /* Call 6 */
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010068);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00010128: 105-insn (0x1A4) complex dispatcher.
