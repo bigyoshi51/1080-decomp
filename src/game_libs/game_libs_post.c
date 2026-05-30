@@ -22774,16 +22774,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042438);
  *   gl_func_00000000(&gl_data_42440_arg, 0x110, sub[0xF0/4],
  *                    p[0xB8/4], p[0xBC/4])
  *
- * Full match would require:
- *   (a) PROLOGUE_STEALS=8 to splice off C-emit's leading lui+lw for `p`
- *   (b) SUFFIX_BYTES with the trailing stolen-prologue setup
- *   (c) unique-extern alias for the gl_func_00000000 first arg
- *
- * NOT yet wired up — requires the predecessor (gl_func_000423D8) to also be
- * decompiled or kept INCLUDE_ASM-stable, AND careful coordination of the
- * dual stolen-prologue chain. Future-pass work. NM wrap captures the
- * structural decode for grep discoverability per
- * feedback_partial_decode_with_stub_body.md. */
+ * 2026-05-30 — ORPHAN-MERGE tested (PROLOGUE_STEALS is banned; the real fix is the
+ * boundary merge that landed game_uso_func_0001155C). Prepending the 0x8 orphan
+ * (game_libs_func_00042438) to this body's .s and writing `int *p =
+ * *(int**)((char*)&D_00000000 + 0x240)` DOES hoist the p-load above the prologue
+ * and reproduces the orphan exactly. BUT the body carries a $v1/$t6 regalloc cap:
+ * `sub = p[0x148/4]` lands in $v1 (both standalone AND in-tree), where the target
+ * uses $t6 — a 4-insn shift (sub:$v1->$t6, p[0xBC]:$t6->$t0) because IDO assigns the
+ * call-arg intermediate to the return-reg $v1 while the target skips it. Same cap
+ * class as gl_func_0004E384 (idx $v0/$v1). Merge yields 98.82% (16/17 region), not
+ * 100%; permuter unlikely (failed on 0004E384's twin). Leave both INCLUDE_ASM until
+ * the $v0/$v1-skip lever is found. (A stale /tmp byte-cmp falsely showed exact —
+ * ALWAYS confirm orphan merges via in-tree objdiff, not a standalone byte compare.) */
 extern int *D_state_0042440;
 extern char gl_data_42440_arg;
 void gl_func_00042440(void) {
