@@ -3078,6 +3078,14 @@ int timproc_uso_b5_func_000087D8(void) {
 
 int timproc_uso_b5_func_000087E0(void) { return 3; }
 
+/* timproc_uso_b5_func_000087E8: 3-word UNFILLED-jr-delay cap. Target is
+ * `move v0,zero; jr ra; nop` (0xC). At -O2 IDO's reorg pulls the single
+ * move into jr-ra's delay slot → `jr ra; move v0,zero` (0x8, 2 insns) —
+ * verified 2026-05-29. The filled siblings 87D8/87E0 (`jr ra; li v0,N`)
+ * DO match at -O2 (their value-insn fills the slot), so this region is
+ * -O2-with-reorder; reproducing 87E8's unfilled form needs a per-function
+ * -O0/-g split that would break the adjacent filled siblings. Not a quick
+ * tick. (Same unfilled-jr-delay class as feedback_unfilled_delay_*.) */
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_000087E8(void) {
     return 0;
