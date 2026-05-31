@@ -27335,7 +27335,7 @@ end:
  * size. Below promote threshold — kept NON_MATCHING. */
 extern int gl_func_00000000();
 void gl_func_0004E00C(int *s0) {
-    int *v;
+    volatile int *v;
     int x;
     int *q;
     int *p;
@@ -27346,7 +27346,7 @@ void gl_func_0004E00C(int *s0) {
     gl_func_00000000((char *)s0 + 0x60);
     gl_func_00000000((char *)s0 + 0x20);
     s0[0xE4 / 4] = 0;
-    v = (int *)((char *)s0 + 0x140);
+    v = (volatile int *)((char *)s0 + 0x140);
     x = (v[1] & 0xF00) | 0x400;
     v[1] = x;
     x |= 2;
