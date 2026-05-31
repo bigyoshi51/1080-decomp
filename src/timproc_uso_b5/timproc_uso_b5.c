@@ -4229,10 +4229,14 @@ void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
  * 0x718), each with a {c,c,c,1}/255 color Vec at &sp54 — c = 192/255 when the
  * arg0->0x2B4 bit-17 "dim" flag is clear else 64/255; the left arrow only draws on
  * (arg2 & 8) when undimmed. Variable divisor (float denom=255.0f) -> runtime div.s.
- * Fresh decode 2026-05-29 (m2c-confirmed). 62.3% reg-blind (structure aligned —
- * target holds 255.0 in callee-saved $f20 via sdc1 for both div + alpha-mul; my
- * denom matches that shape). Residual is mostly saved-reg/FP-reg allocation + a few
- * Vec-store insns. Caps: structs + cb prototypes untyped (USO-reloc). NON_MATCHING. */
+ * Fresh decode 2026-05-29 (m2c-confirmed). 76.0 -> 78.32 (2026-05-31): the icon/
+ * arrow IDs 0x6E8/0x700/0x718 are ADDRESSES `&D_00000000 + 0xN` (passed to the cb),
+ * not literals — literal emits `addiu aN,zero,N`, the target's address form emits
+ * `lui aN; addiu aN,N`. Residual: a ~23-insn DRAW block the C body still omits (a
+ * third color-div + Vec-store + cb at &D+0x718, gated on the &D+0x700 dispatch
+ * table indexed by a1->0x2B4 upper bits — a multi-pass structural decode) + the
+ * 255.0/$f20 FP-reg allocation + an 8-byte frame reserve. Caps: structs + cb
+ * prototypes untyped (USO-reloc). NON_MATCHING. */
 extern int gl_func_00000000();
 void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
     float sp60;
@@ -4246,7 +4250,7 @@ void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
     int s2;
 
     s2 = *(int *)(*(char **)(*(char **)(arg1 + 0x414) + 0xC) + 0xC4);
-    gl_func_00000000(*(int *)(arg1 + 0x8C), s2 + *(int *)(arg1 + 0xA4), 0x6E8,
+    gl_func_00000000(*(int *)(arg1 + 0x8C), s2 + *(int *)(arg1 + 0xA4), (char *)&D_00000000 + 0x6E8,
                      (int)(denom * *(float *)(arg1 + 0x4A0)));
     if (*(int *)(arg0 + 0x2B4) & 0x20000) {
         c = 192.0f / denom;
@@ -4258,7 +4262,7 @@ void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
         if (arg2 & 8) {
             sp40 = f2;
             gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) - 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
-                             &sp54, 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
+                             &sp54, (char *)&D_00000000 + 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
             goto block_4;
         }
     } else {
@@ -4270,7 +4274,7 @@ void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
         sp60 = f2;
         sp40 = f2;
         gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) - 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
-                         &sp54, 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
+                         &sp54, (char *)&D_00000000 + 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
     block_4:
         f2 = sp40;
     }
@@ -4282,7 +4286,7 @@ void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
         sp5C = c;
         if (arg2 & 8) {
             gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) + 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
-                             &sp54, 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
+                             &sp54, (char *)&D_00000000 + 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
         }
     } else {
         c = 64.0f / denom;
@@ -4290,7 +4294,7 @@ void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
         sp58 = c;
         sp5C = c;
         gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) + 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
-                         &sp54, 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
+                         &sp54, (char *)&D_00000000 + 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
     }
 }
 #else
