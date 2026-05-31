@@ -2406,11 +2406,37 @@ void gl_func_0000DB34(int a0, int a1, int a2) {
  * data layout. Likely a "process entity by type-code" pattern. */
 extern int gl_func_00000000();
 void gl_func_0000DB80(int *a0, int a1) {
-    /* Partial decode: 3-way switch on a2->0x48 (original a0->0x48), each
-     * branch loads a different table-of-vtables and calls *t->0x2C(t->0x28+t, ...).
-     * Default build uses INCLUDE_ASM. */
-    (void)a0;
-    (void)a1;
+    int local1 = 1000;
+    char *tbl;
+    int *vt;
+    int *sub;
+
+    tbl = *(char **)((char *)a0 + 0x44);
+    vt = *(int **)(tbl + a1 * 96);
+    sub = *(int **)((char *)vt + 0x28);
+    ((void (*)())*(int *)((char *)sub + 0x2C))(
+        (char *)vt + *(short *)((char *)sub + 0x28), &local1);
+
+    if (*(int *)((char *)a0 + 0x48) == 2) {
+        int idx = a1 ^ 1;
+        char *tbl2 = *(char **)((char *)a0 + 0x44);
+        int *vt2;
+        int *sub2;
+        if (*(int *)((char *)&D_00000000 + 0x34) == 3 ||
+            *(int *)((char *)&D_00000000 + 0x34) == 2) {
+            int la = 1001;
+            vt2 = *(int **)(tbl2 + idx * 96);
+            sub2 = *(int **)((char *)vt2 + 0x28);
+            ((void (*)())*(int *)((char *)sub2 + 0x2C))(
+                (char *)vt2 + *(short *)((char *)sub2 + 0x28), &la);
+        } else {
+            int lb = 1000;
+            vt2 = *(int **)(tbl2 + idx * 96);
+            sub2 = *(int **)((char *)vt2 + 0x28);
+            ((void (*)())*(int *)((char *)sub2 + 0x2C))(
+                (char *)vt2 + *(short *)((char *)sub2 + 0x28), &lb);
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
