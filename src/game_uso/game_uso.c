@@ -10945,7 +10945,22 @@ void game_uso_func_0000E564(int *a0) {
 
 // game_uso_func_0000E5C8 — STRUCTURAL PASS (0x354 / 213 words,
 // no episode). Raw-.word USO form (single function, game_uso main
-// game-logic). Pure bitfield work (1 call, no FP).
+// game-logic). Pure bitfield work (1 call, no FP). 78.2% NM.
+//
+// 2026-05-31 DECODE FINDING (do NOT "fix" the switch to a cascade — it
+// REGRESSES). The 0x12C-gated dispatch on obj->0xE8 (cases 5,6,2,1,4,3)
+// is emitted by the TARGET as an if-else CASCADE (li-const + `beq`,
+// reloading `lw 232(a3)` fresh before each compare), NOT the jumptable
+// our `switch` currently produces. BUT rewriting it as the matching
+// `if (E8==5)... else if (E8==6)...` cascade recovers the 4 cascade insns
+// yet DROPS fuzzy 78.2%->76.2%: the else-if caches E8 in one reg (vs the
+// target's reload-per-compare), and that register choice churns the
+// downstream allocation more than the structural gain is worth. The
+// jumptable `switch` form is the HIGHER-SCORING decode; keep it until a
+// reload-forcing cascade form (one that reproduces the per-compare
+// `lw 232`) is found. The function is also ~17 insns short overall vs
+// target (213 vs 196) — multi-run structural work remains beyond the
+// dispatch (the e8&0x4 bit-clear block + the stride-64 search tail).
 //
 // State-flag remapper: tests bits in a source flag word and
 // bit-permutes them into the object's internal flag field obj->0xE8.
