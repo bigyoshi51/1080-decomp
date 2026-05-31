@@ -17406,18 +17406,20 @@ int gl_func_0003A014(char *a0) {
  *     fn = entry[1]
  *     fn(base + adjust)
  *
- * Initial NM wrap with structure decoded. Future passes tighten reg
- * allocation + delay slots. */
+ * 2026-05-31: 44.2%->69.5% by collapsing the two per-branch fn() calls into ONE
+ * shared call site (fn(arg) after the if/else) — the target shares the single jalr
+ * (both branches converge there). Residual is the register-allocation cascade ($t7 vs
+ * $a3 etc.) + the target's v1=a0+8 base-ptr for the else-branch field loads (a base-ptr
+ * C form REGRESSED to 63%, direct-offset is closer). Documented regalloc cap. */
 void gl_func_0003A044(int *a0) {
-    int adjusted_base = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
+    int arg = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
     int (*fn)(int);
     if (*(short*)((char*)a0 + 0xA) < 0) {
         fn = (int(*)(int))a0[0xC/4];
-        fn(adjusted_base);
     } else {
         int idx;
         int *table;
-        int *entry;
+        char *entry;
         if (a0[0xC/4] != 0) {
             idx = a0[0xC/4];
         } else if (*(short*)((char*)a0 + 0x8) != 0) {
@@ -17425,11 +17427,12 @@ void gl_func_0003A044(int *a0) {
         } else {
             idx = 0x28;
         }
-        table = *(int**)((char*)adjusted_base + idx);
-        entry = table + ((*(short*)((char*)a0 + 0xA) << 3) >> 2);
-        fn = (int(*)(int))entry[1];
-        fn(adjusted_base + *(short*)entry);
+        table = *(int**)((char*)arg + idx);
+        entry = (char*)table + *(short*)((char*)a0 + 0xA) * 8;
+        fn = (int(*)(int))*(int*)(entry + 4);
+        arg = *(short*)entry + arg;
     }
+    fn(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A044);
