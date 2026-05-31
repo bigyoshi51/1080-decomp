@@ -1,9 +1,28 @@
-# USO reloc-blind cap flip — execution plan (user-authorized 2026-05-31)
+# USO reloc-blind cap flip — execution plan
 
-Goal: flip the ~150 reloc-blind near-miss caps to byte-match by making `expected/*.o`
-reloc-aware (reloc-form) instead of raw-`.word` baked, so it compares equal to the
-build's reloc-form `.o`. Validated mechanism; the existing symbolize tool covers only
-part of it — see the extension below.
+> **STOPPED 2026-05-31 (user decision) — DO NOT PURSUE FOR decomp.dev %.** Verified
+> empirically that the flip moves the headline metric by **ZERO**. objdiff (which
+> generates report.json → decomp.dev) is RELOC-AWARE: it matches the build's
+> reloc-form (`sw 0` + reloc) against the ROM's baked literal (`sw 4`) as EQUIVALENT,
+> so the reloc-blind "caps" are ALREADY scored 100%. Proof: flipped
+> `eddproc_uso_func_0000015C` (commit a69be69c) → eddproc matched_code UNCHANGED
+> (884/1148), project matched_code UNCHANGED (114160); 015C reports
+> `fuzzy_match_percent: 100.0` both before and after. Only the land-script's RAW-byte
+> `byte_verify` fails on these — which matters ONLY for episode-eligibility (a separate
+> deferred decision), NOT for code-%. This was already documented in
+> docs/MATCHING_WORKFLOW.md ("objdiff is reloc-aware … do NOT mass-convert for a score
+> gain (there is none)"). **CORRECTED near-miss methodology:** to find GENUINE
+> uncounted near-misses, use objdiff per-function `fuzzy_match_percent` from a fresh
+> `objdiff-cli report generate`, NOT a raw build-vs-expected `.o` byte-diff (which
+> over-reports reloc-blind functions objdiff already counts). The genuine sub-100
+> near-misses are real instruction-field diffs (register-renumber, -O0 spill/stack-slot,
+> scheduler, FP-operand) — the hard structural caps. The plan below is retained only as
+> the (now moot) mechanism record.
+
+Goal (MOOT — see STOPPED note above): flip the ~150 reloc-blind near-miss caps to
+byte-match by making `expected/*.o` reloc-aware (reloc-form) instead of raw-`.word`
+baked, so it compares equal to the build's reloc-form `.o`. Validated mechanism; the
+existing symbolize tool covers only part of it — see the extension below.
 
 ## Why the existing tool is insufficient
 
