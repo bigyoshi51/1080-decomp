@@ -39333,25 +39333,26 @@ void gl_func_0006BEA8(void) {
 #ifdef NON_MATCHING
 extern int D_00000000;
 void gl_func_0006BF34(int *a0, int a1, int a2, int a3, int arg5, int arg6) {
+    int *volatile self = a0;                        /* force reload of base each write */
     int v0_save;
     int x = 0x3FFF01;
-    *(int*)((char*)a0 + 0x14) = a1;
-    *(int*)((char*)a0 + 0x4) = arg5;
-    *(int*)((char*)a0 + 0x0) = 0;
-    *(int*)((char*)a0 + 0x8) = 0;
-    *(int*)((char*)a0 + 0x11C) = a2;
-    *(long long*)((char*)a0 + 0x38) = (long long)a3;
-    *(long long*)((char*)a0 + 0xF0) = (long long)(arg6 - 16);
-    *(long long*)((char*)a0 + 0x100) = (long long)(int)&D_00000000;
-    *(int*)((char*)a0 + 0x118) = 0xFF03;
-    *(int*)((char*)a0 + 0x128) = (x & 0x3F0000) >> 16;
-    *(int*)((char*)a0 + 0x12C) = 0x01000800;
-    *(int*)((char*)a0 + 0x18) = 0;
-    *(short*)((char*)a0 + 0x10) = 1;
-    *(short*)((char*)a0 + 0x12) = 0;
+    *(int*)((char*)self + 0x14) = a1;
+    *(int*)((char*)self + 0x4) = arg5;
+    *(int*)((char*)self + 0x0) = 0;
+    *(int*)((char*)self + 0x8) = 0;
+    *(int*)((char*)self + 0x11C) = a2;
+    *(long long*)((char*)self + 0x38) = (long long)a3;
+    *(long long*)((char*)self + 0xF0) = (long long)(arg6 - 16);
+    *(long long*)((char*)self + 0x100) = (long long)(int)&D_00000000;
+    *(int*)((char*)self + 0x118) = 0xFF03;
+    *(int*)((char*)self + 0x128) = (x & 0x3F0000) >> 16;
+    *(int*)((char*)self + 0x12C) = 0x01000800;
+    *(int*)((char*)self + 0x18) = 0;
+    *(short*)((char*)self + 0x10) = 1;
+    *(short*)((char*)self + 0x12) = 0;
     v0_save = gl_func_00000000();
-    *(int*)((char*)a0 + 0xC) = D_00000000;
-    D_00000000 = (int)a0;
+    *(int*)((char*)self + 0xC) = D_00000000;
+    D_00000000 = (int)self;
     gl_func_00000000(v0_save);
 }
 #else
