@@ -35748,7 +35748,13 @@ void gl_func_00066208(int a0) {}
  * function name AND no arg-share-across-calls optimization. The K&R-
  * float-call workaround doesn't extend to "share int arg between
  * adjacent calls" because the typed extern still produces independent
- * call sites with full arg setup. */
+ * call sites with full arg setup.
+ * 95.0% / +4 CAP (2026-05-31): build emits a SECOND `addiu a0,1` for the second
+ * `gl_func(1)` call; target sets a0=1 ONCE and REUSES it across both calls (the
+ * second call's a0=1 survives the first jal in target's schedule). Tried swapping
+ * the two calls (saved= first) -> 16 diffs WORSE; IDO re-emits a0=1 regardless of
+ * call order. Deep IDO delay-slot/const-reuse scheduling, not C-controllable here.
+ * Also a saved/buf stack-slot swap (sp+24<->28). Do not re-grind the call order. */
 int gl_func_00066210(int a0, int a1) {
     int saved;
     int buf;
