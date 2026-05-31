@@ -12668,52 +12668,18 @@ void game_uso_func_000110A4(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
 #endif
 
-#ifdef NON_MATCHING
-/* 82.2%: 2-call wrapper. First call `gl_func_00000000(a0)`; second call
- * `gl_func_00000000(a0, *(D+0xF50), *(D+0xF54), 1)`. Target has pre-call
- * arg-spill pattern between the two jals:
- *   sw $a1, 4($sp)  pre-2nd-jal  (a1-slot spill)
- *   sw $a2, 8($sp)  in 2nd jal delay slot (a2-slot spill)
- * Also uses $t6 as shared base for the two adjacent loads (0(t6), 4(t6))
- * with addiu $t6, $t6, 0xF50 — rather than direct-offset loads.
- *
- * Variants tested 2026-04-20:
- *   - base via `*(int*)((char*)&D_0 + 0xF50)` direct: v0 + 0xF50 offset (no split)
- *   - base via named local `int *base = ...; base[0], base[1]`: IDO folds offset back
- *   - base via `struct { int f0, f4; } D_11124_pair` mapped to 0xF50: splits to
- *     `lui v0; addiu v0, 0; lw a1, 0(v0); lw a2, 4(v0)` — reloc-equivalent to
- *     target's `lui t6; addiu t6, 0xF50; lw a1, 0(t6); lw a2, 4(t6)`. But still
- *     uses $v0 not $t6, and missing the a1/a2 stack spills (pre-call arg spill
- *     class — see feedback_ido_precall_arg_spill_unreachable.md).
- *   - Unique extern `gl_func_00011124_b()` for 2nd call: no spill emitted either.
- *
- * Same class as game_uso_func_0000A374 (also 86.7% cap, precall arg spill).
- * Also has unfilled jr-ra delay slot (could be -g3 but orthogonal to arg spill).
- *
- * 2026-05-05 5th variant tried: `volatile int a1, a2` named locals to force
- * IDO to materialize and spill. Result: REGRESSED to 15/17 diffs (size grew
- * to 0x4C, 19 insns vs target 17). Volatile spilled to wrong slots and
- * added an extra reload+ldelay pair. Confirms target's spills aren't
- * volatile-driven; they're IDO's older-version pre-call spill convention
- * that the current IDO 7.1 build doesn't reproduce. Cap at 82.18% holds.
- *
- * 2026-05-31 6th variant (motivated by the callee being a varargs sink — see
- * game_uso_func_0000D5F8 which reads a1/a2/a3 from its frameless arg-home):
- * declared the callee `extern void f(int *a0, ...)` and called it with scalar
- * args, hypothesizing the varargs ABI would make THIS caller pre-home a1/a2 to
- * 4(sp)/8(sp) (= the callee's incoming arg-home). FAILED — IDO 7.1 emits NO
- * caller-side spill for a varargs callee (the callee homes its own incoming
- * args; the caller passes in registers only), and it also regressed the base
- * to two separate `lui a1; lui a2` loads. So the pre-call spill is NOT a
- * varargs-caller behavior in IDO 7.1 — it's a genuine older-build convention.
- * Same negative applies to the whole pre-call-spill class (A374 etc.). */
+/* BYTE-EXACT 2026-05-31. 2-call wrapper: gl_func(a0); gl_func(a0, D[0xF50],
+ * D[0xF54], 1). The documented "82.18% pre-call-spill cap" was STALE — passing
+ * the adjacent D[] pair AS A STRUCT BY VALUE (`*(Pair2*)(&D+0xF50)`) makes IDO
+ * home a1/a2 to the outgoing arg slots (sw a1,4(sp); sw a2,8(sp)) AND keep the
+ * single $t6 base, matching the target exactly (this is the struct-by-value
+ * lever from docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair,
+ * which the stale comment's pre-2026-05-28 variants predate). .text 68/68 bytes
+ * identical to expected/.o; residual fuzzy<100 is the usual uso reloc-presence. */
 void game_uso_func_00011124(int *a0) {
     gl_func_00000000(a0);
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF50), 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011124);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00011168: 60-insn 4-way dispatcher, 0xF0 size, frame 0x18.
