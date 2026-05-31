@@ -3078,7 +3078,7 @@ int gl_func_00022D68(int a0) {
     if (a0 == 0xFF) {
         return 1;
     }
-    if (*(unsigned char *)(st + a0) < 2) {
+    if (*(unsigned char *)(st + a0) >= 2) {
         return 1;
     }
     r = gl_func_00000000(1);
@@ -3132,7 +3132,7 @@ int gl_func_00022DE0(int a0) {
     if (a0 == 0xFF) {
         return 1;
     }
-    if (*(unsigned char *)(st + a0) < 2) {
+    if (*(unsigned char *)(st + a0) >= 2) {
         return 1;
     }
     r = gl_func_00000000(0);
@@ -3190,7 +3190,7 @@ int gl_func_00022E58(int a0) {
     if (a0 == 0xFF) {
         return 1;
     }
-    if (*(unsigned char *)(st + a0) < 2) {
+    if (*(unsigned char *)(st + a0) >= 2) {
         return 1;
     }
     r = gl_func_00000000(2);
