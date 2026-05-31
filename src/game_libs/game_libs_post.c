@@ -40317,8 +40317,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
  *      (t8/t9/t1/t4/t5/t8) with lui/lw HOISTED + interleaved with other
  *      globals' stores; ours reuses $v0 sequentially. Distinct named pointer
  *      locals declared early did NOT fix it (IDO still collapsed to 32 insns
- *      vs 38 — 6 short). Exact hoist/interleave is the hard part; focused
- *      multi-pass grind, not a 60s tick. */
+ *      vs 38 — 6 short). Exact hoist/interleave is the hard part.
+ *  LIKELY PERMANENT ~18% (2026-05-31, deeper look): the target REUSES scratch
+ *  temps across globals (e.g. t6/t7 hold 0 for D_a's stores @0x04/08 then are
+ *  reused as D_g's loaded fields @0x68/6C) AND heavily hoists/interleaves the
+ *  lui/lw — both scheduler/allocator-determined, same C-uncontrollable class as
+ *  the instruction-scheduler swaps. Correct logic; don't expect a 100% match
+ *  from C. */
 extern int D_fbd8_a, D_fbd8_b, D_fbd8_d;
 extern int *D_fbd8_c, *D_fbd8_e, *D_fbd8_f, *D_fbd8_g, *D_fbd8_h, *D_fbd8_i;
 void game_libs_func_0006FBD8(void) {
