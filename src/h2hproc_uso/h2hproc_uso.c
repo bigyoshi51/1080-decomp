@@ -267,9 +267,16 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
 
 #ifdef NON_MATCHING
 /* h2hproc_uso_func_00000620: 178-insn / 0x2CC orchestrator constructor.
- * Initial decode pass — 46.04% fuzzy. Applies the triple alloc-cascade
+ * Decode pass — 74.07% fuzzy (was 57.5). Applies the triple alloc-cascade
  * recipe from feedback_alloc_or_passthrough_cascade_includes_dead_arms.md
  * (verified +4.64pp on n64proc_uso_func_00000100 sibling).
+ * 2026-05-31 (+16.6pp): added the missing p[0x48] sub-object config block —
+ * after z[0x14]=p, the seq is func(p, a1); sub=func(0); p[0x48]=sub;
+ * func(sub, p); func(p[0x48], (G+3)<<16, -1, &G2); func(p[0x48],
+ * ((G+3)<<16)|8, -1, &G2); p[0x48]->0x30 = p[0x568]; func(p[0x48]);
+ * func(p+0x10, p[0x48]). (G/G2 are deferred-pool &D+offset globals,
+ * approximated.) Residual <100 = frame 0x48 vs 0x38 + register-renumber +
+ * deferred-pool offsets. INCLUDE_ASM stays the build path.
  *
  * Frame -0x38, saves s0+ra (2 callee-saves), spills 3 args (a1→0x3C,
  * a2→0x40, a3→0x44). 5C-byte epilogue tail at 0x2B0+.
@@ -355,8 +362,20 @@ void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
     z = *(int**)((char*)p + 0x6B0);
     if (z[0x14/4] != 0) z[1] = 1;
     z[0x14/4] = (int)p;
-    gl_func_00000000(0, p);
-    *(int*)((char*)p + 0x48) = (int)gl_func_00000000(0);
+    gl_func_00000000(p, a1);
+    {
+        void *sub = (void*)gl_func_00000000(0);
+        *(int*)((char*)p + 0x48) = (int)sub;
+        gl_func_00000000(sub, p);
+        gl_func_00000000(*(int*)((char*)p + 0x48),
+                         (*(int*)(base + 0x3E0) + 3) << 16, -1, base + 0x3E8);
+        gl_func_00000000(*(int*)((char*)p + 0x48),
+                         ((*(int*)(base + 0x3E0) + 3) << 16) | 8, -1, base + 0x3E8);
+        *(int*)((char*)*(int**)((char*)p + 0x48) + 0x30) =
+            *(int*)((char*)p + 0x568);
+        gl_func_00000000(*(int*)((char*)p + 0x48));
+        gl_func_00000000((char*)p + 0x10, *(int*)((char*)p + 0x48));
+    }
 
     /* z = D[0x190]; helper(p+0x10, z); if (z[0x14]) z[1]=1; z[0x14]=p; */
     gl_func_00000000((char*)p + 0x10, *(int*)((char*)&D_00000000 + 0x190));
