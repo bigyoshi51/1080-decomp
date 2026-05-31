@@ -14330,28 +14330,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000359C4);
  * Same single-shared-jalr structure: one call site after the if/else (69.5%); residual
  * is the same regalloc cascade. See the gl_func_0003A044 note. */
 #ifdef NON_MATCHING
-void gl_func_00035A18(int *a0) {
-    int arg = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
-    int (*fn)(int);
-    if (*(short*)((char*)a0 + 0xA) < 0) {
-        fn = (int(*)(int))a0[0xC/4];
+int gl_func_00035A18(char *a0) {
+    short *pair = (short*)(a0 + 8);
+    short key = pair[1];
+    short offset = pair[0];
+    char *arg = *(char**)(a0 + 4);
+    char *entry;
+    int (*fnptr)(char *);
+
+    arg += offset;
+    if (key < 0) {
+        fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int idx;
-        int *table;
-        char *entry;
-        if (a0[0xC/4] != 0) {
-            idx = a0[0xC/4];
-        } else if (*(short*)((char*)a0 + 0x8) != 0) {
-            idx = 0;
-        } else {
-            idx = 0x28;
+        int selector = *(int*)(pair + 2);
+        a0 = (char*)selector;
+        if (selector == 0) {
+            if (pair[0] == 0) {
+                a0 = (char*)0x28;
+            }
         }
-        table = *(int**)((char*)arg + idx);
-        entry = (char*)table + *(short*)((char*)a0 + 0xA) * 8;
-        fn = (int(*)(int))*(int*)(entry + 4);
-        arg = *(short*)entry + arg;
+        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
+        arg += *(short*)entry;
+        fnptr = *(int (**)(char *))(entry + 4);
     }
-    fn(arg);
+    return fnptr(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035A18);
@@ -17416,28 +17418,30 @@ int gl_func_0003A014(char *a0) {
  * (both branches converge there). Residual is the register-allocation cascade ($t7 vs
  * $a3 etc.) + the target's v1=a0+8 base-ptr for the else-branch field loads (a base-ptr
  * C form REGRESSED to 63%, direct-offset is closer). Documented regalloc cap. */
-void gl_func_0003A044(int *a0) {
-    int arg = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
-    int (*fn)(int);
-    if (*(short*)((char*)a0 + 0xA) < 0) {
-        fn = (int(*)(int))a0[0xC/4];
+int gl_func_0003A044(char *a0) {
+    short *pair = (short*)(a0 + 8);
+    short key = pair[1];
+    short offset = pair[0];
+    char *arg = *(char**)(a0 + 4);
+    char *entry;
+    int (*fnptr)(char *);
+
+    arg += offset;
+    if (key < 0) {
+        fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int idx;
-        int *table;
-        char *entry;
-        if (a0[0xC/4] != 0) {
-            idx = a0[0xC/4];
-        } else if (*(short*)((char*)a0 + 0x8) != 0) {
-            idx = 0;
-        } else {
-            idx = 0x28;
+        int selector = *(int*)(pair + 2);
+        a0 = (char*)selector;
+        if (selector == 0) {
+            if (pair[0] == 0) {
+                a0 = (char*)0x28;
+            }
         }
-        table = *(int**)((char*)arg + idx);
-        entry = (char*)table + *(short*)((char*)a0 + 0xA) * 8;
-        fn = (int(*)(int))*(int*)(entry + 4);
-        arg = *(short*)entry + arg;
+        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
+        arg += *(short*)entry;
+        fnptr = *(int (**)(char *))(entry + 4);
     }
-    fn(arg);
+    return fnptr(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A044);
@@ -20328,28 +20332,30 @@ int gl_func_0003EBAC(char *a0) {
 #ifdef NON_MATCHING
 /* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044/00035A18/0003EC5C — same vtable
  * dispatch. Applied the proven 3A044 single-shared-jalr body (69.5%). */
-void gl_func_0003EBDC(int *a0) {
-    int arg = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
-    int (*fn)(int);
-    if (*(short*)((char*)a0 + 0xA) < 0) {
-        fn = (int(*)(int))a0[0xC/4];
+int gl_func_0003EBDC(char *a0) {
+    short *pair = (short*)(a0 + 8);
+    short key = pair[1];
+    short offset = pair[0];
+    char *arg = *(char**)(a0 + 4);
+    char *entry;
+    int (*fnptr)(char *);
+
+    arg += offset;
+    if (key < 0) {
+        fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int idx;
-        int *table;
-        char *entry;
-        if (a0[0xC/4] != 0) {
-            idx = a0[0xC/4];
-        } else if (*(short*)((char*)a0 + 0x8) != 0) {
-            idx = 0;
-        } else {
-            idx = 0x28;
+        int selector = *(int*)(pair + 2);
+        a0 = (char*)selector;
+        if (selector == 0) {
+            if (pair[0] == 0) {
+                a0 = (char*)0x28;
+            }
         }
-        table = *(int**)((char*)arg + idx);
-        entry = (char*)table + *(short*)((char*)a0 + 0xA) * 8;
-        fn = (int(*)(int))*(int*)(entry + 4);
-        arg = *(short*)entry + arg;
+        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
+        arg += *(short*)entry;
+        fnptr = *(int (**)(char *))(entry + 4);
     }
-    fn(arg);
+    return fnptr(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
@@ -20393,28 +20399,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
 /* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044/00035A18 — same single-shared-jalr
  * vtable dispatch. The old body did the table lookup in BOTH branches; the hi<0 path
  * is actually a DIRECT fn=a0->0xC call. Applied the proven 3A044 body (69.5%). */
-void gl_func_0003EC5C(int *a0) {
-    int arg = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
-    int (*fn)(int);
-    if (*(short*)((char*)a0 + 0xA) < 0) {
-        fn = (int(*)(int))a0[0xC/4];
+int gl_func_0003EC5C(char *a0) {
+    short *pair = (short*)(a0 + 8);
+    short key = pair[1];
+    short offset = pair[0];
+    char *arg = *(char**)(a0 + 4);
+    char *entry;
+    int (*fnptr)(char *);
+
+    arg += offset;
+    if (key < 0) {
+        fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int idx;
-        int *table;
-        char *entry;
-        if (a0[0xC/4] != 0) {
-            idx = a0[0xC/4];
-        } else if (*(short*)((char*)a0 + 0x8) != 0) {
-            idx = 0;
-        } else {
-            idx = 0x28;
+        int selector = *(int*)(pair + 2);
+        a0 = (char*)selector;
+        if (selector == 0) {
+            if (pair[0] == 0) {
+                a0 = (char*)0x28;
+            }
         }
-        table = *(int**)((char*)arg + idx);
-        entry = (char*)table + *(short*)((char*)a0 + 0xA) * 8;
-        fn = (int(*)(int))*(int*)(entry + 4);
-        arg = *(short*)entry + arg;
+        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
+        arg += *(short*)entry;
+        fnptr = *(int (**)(char *))(entry + 4);
     }
-    fn(arg);
+    return fnptr(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
