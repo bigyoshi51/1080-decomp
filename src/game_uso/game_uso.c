@@ -5552,19 +5552,31 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
  * Multi-tick decompile in scope; this captures structural decode of the
  * entry + Vec3 staging stage. Default INCLUDE_ASM matches via the asm. */
 extern int gl_func_00000000();
+typedef struct { float x, y, z; } V3_6A30;
 void game_uso_func_00006A30(int *a0) {
-    int *sub;
-    int local_9C[3];
-    int flag = 0;
-    if (a0[0x80/4] == 0) goto end;
-    sub = (int*)a0[0x30/4];
-    local_9C[0] = sub[0xB4/4];
-    local_9C[1] = sub[0xB8/4];
-    local_9C[2] = sub[0xBC/4];
-    /* TODO: ~155 insns of FPU math + cross-USO calls */
-    (void)local_9C;
-end:
-    (void)flag;
+    int *s0 = a0;
+    int result = 0;
+    if (a0[0x80 / 4] != 0) {
+        int *sub = (int *)a0[0x30 / 4];
+        float f0 = *(float *)((char *)a0 + 0xA8);
+        V3_6A30 va, scaled, c1, c2;
+        /* va = sub->{0xB4,0xB8,0xBC} (int-bit copy of floats), then va += scaled */
+        *(int *)&va.x = sub[0xB4 / 4];
+        *(int *)&va.y = sub[0xB8 / 4];
+        *(int *)&va.z = sub[0xBC / 4];
+        scaled.x = *(float *)((char *)sub + 0x318) * f0;
+        scaled.y = *(float *)((char *)sub + 0x31C) * f0;
+        scaled.z = *(float *)((char *)sub + 0x320) * f0;
+        c1 = scaled;
+        c2 = c1;
+        va.x = va.x + c2.x;
+        va.y = va.y + c2.y;
+        va.z = va.z + c2.z;
+        /* TODO(multi-tick): ~110 more insns — staged calls + div.s/neg.s chains */
+        (void)va;
+    }
+    (void)result;
+    (void)s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
