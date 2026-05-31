@@ -33309,8 +33309,8 @@ void gl_func_00060468(int *a0) {
     int *p;
     int v;
     v = gl_func_00000000(a0);
+    ((int *)a0[0x44 / 4])[1] = v;
     p = (int *)a0[0x44 / 4];
-    p[1] = v;
     p[2] += p[1] - p[0];
     gl_func_00000000(p);
     v = gl_func_00000000();
