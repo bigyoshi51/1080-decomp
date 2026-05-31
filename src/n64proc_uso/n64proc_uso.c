@@ -637,92 +637,12 @@ end:
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000268);
 #endif
 
-#ifdef NON_MATCHING
-/* (NEW 2026-05-04) INSN_PATCH eligibility check: built 50 insns vs expected
- * 51 (+1 delta) + 21 differing insns. Size mismatch blocks INSN_PATCH per
- * feedback_insn_patch_size_diff_blocked.md. The IDO k0/k1 block-reorder is
- * a structural shift, not a per-offset rename. Wrap doc's "~98% via unique
- * externs (mechanical)" path remains the only forward move. Stays at 95.51%.
- *
- * Dual-branch sub-struct dispatcher (51 insns, 0xCC after prologue-stolen fix).
- * Prior "MYSTERY" (swc1 $f0 without preceding mtc1) resolved 2026-04-20:
- * splat had mis-attributed the function's base-pointer prologue
- * `lui $at, 0x3F80; mtc1 $at, $f0` to the predecessor (func_00000268)'s
- * trailing bytes. Reverse-merged so this function now starts at 0x35C
- * with $f0 = 1.0f initialized up-front, then stored to buf[4] at sp+0x34.
- * See feedback_splat_prologue_stolen_by_predecessor.md.
- *
- * UPDATE 2026-04-21: the "lui+mtc1 not reproducible" claim was WRONG.
- * With this NM body (`buf[0] = buf[1] = buf[2] = buf[3] = 1.0f`), IDO
- * emits `lui $at, 0x3F80; mtc1 $at, $f0` BEFORE `addiu sp` — matching
- * target's pre-prologue pattern.
- *
- * UPDATE 2026-05-03: re-measured at 95.51 % (was 94.86 %); small drift from
- * unrelated source changes. Re-measure 2026-05-03 (later): 94.86 % again
- * (drifted back). Tried `char *spill_a0 = a0 + 0x58;` named-local variant
- * inside both k0/k1 blocks to force a0 spill location — REGRESSED to
- * 95.27 %. The named local pulls computation forward into a slot that
- * conflicts with IDO's natural a0 reuse, breaking 1 byte but unlocking 0.
- *
- * UPDATE 2026-05-02: applied the suggested fix (explicit `goto k0/k1/end`
- * + split pad layout). Match jumped 79.7 % → 94.86 %.
- *   - `char pad1[4]` BEFORE buf[4] + `char pad2[12]` AFTER all locals
- *     gives frame=0x48 with buf at sp+0x34 (matches target). Pad before
- *     buf shifts buf 4 bytes UP (consumes 4 bytes of top-of-frame), and
- *     pad2[12] keeps total padding at 16 bytes (16-byte alignment-rounded
- *     to 0x10 frame growth from 0x38 → 0x48).
- *   - Goto-style emits `beq v0,zero,k0; beq v0,at,k1; b epi` exactly
- *     as target wants for the dispatch.
- *
- * Remaining 4 mismatches (all structural, IDO basic-block reorder):
- *   1. IDO swaps k0/k1 BLOCK ORDER in emit: emits k1 body at 0x39C and k0
- *      body at 0x3D8. Target wants k0 first (0x3A4) then k1 (0x3E0).
- *      Inverts second branch from `beq v0,at,k1` to `bne v0,at,end`
- *      because k1 becomes fall-through after the bne. Source order has
- *      k0 body FIRST in C source — IDO reorders blocks anyway, likely
- *      because the `else` arm of the second test is a single fall-through
- *      whereas k1 body is "longer".
- *   2. Spill of a0 across third jal at sp+0x1c (mine) vs sp+0x18 (target).
- *      4 bytes off — `pad2[8]` collapses frame to 0x40, regressing other
- *      offsets. Spill location depends on where IDO finds free local slot;
- *      can't directly control without changing local layout.
- *   3-4. Two `jal gl_func_00000000` and two `lui/addiu D_00000000` symbol
- *      reloc diffs — same usoplaceholder issue affecting many wrapped
- *      functions; would need per-call extern aliases per
- *      feedback_usoplaceholder_unique_extern.md.
- *
- * No further C-level structural variation will flip IDO's k0/k1 block
- * reorder — that's reorg.c-equivalent post-RTL behavior. Marginal gains
- * may come from per-call unique externs (mechanical), bringing it to ~98 %.
- * Keep NM.
- *
- * 2026-05-06: tested per-call unique externs (6 gl_func_n64_035C_k{0,1}_{a,b,c}
- * + 2 D_n64_035C_k{0,1}, all mapped to 0x0). Result: 95.51% UNCHANGED.
- * The remaining diffs are NOT reloc-related; they're structural (k0/k1
- * block reorder + spill slot location). The doc-claimed "marginal gains
- * via unique externs" hypothesis was wrong — unique externs help when
- * IDO CSEs same-symbol accesses; here each call/access is in a different
- * basic block so no CSE happens regardless of symbol identity.
- *
- * (5) TRIED 2026-05-07: swap k0/k1 BLOCK ORDER in source (write k1 body
- * BEFORE k0 body) to test whether IDO's reorder is "always-flip-source"
- * (in which case swapped source → emit-k0-first matching target) or
- * "always-emit-k1-first" (independent of source). Result: emit was
- * k1-first regardless of source order. Confirms IDO's reorder is
- * destination-order-driven (heuristic prefers k1's specific shape),
- * NOT source-order-flippable. Both source-orderings produce identical
- * output structure with k1 emitted first. Reverted to source-order
- * matching target (k0 first) for code clarity since output is identical.
- * Rules out source-reorder as a lever for the k0/k1 block-emit cap. */
-/* 95.5% near-miss (21 diffs). Residual PRECISELY characterized 2026-05-30:
- *  (1) key==1 dispatch: mine `bne key,1,end` vs target `beq key,1,k1` (arm
- *      polarity — target branches TO k1 early at 0x4c, mine branches AWAY).
- *  (2) a0 spilled to sp+0x1C vs target sp+0x18 (4-byte slot offset).
- *  (3) a 1-insn cascade after 0x8c from the block ordering.
- * FAILED levers (all REGRESSED — do not re-try): if/else-if form (23.5%),
- * k1-first block reorder (43%), pad1 size 0/8 (build-break / 52.9%). The goto
- * form below is optimal; the fix needs a finer arm/slot lever (likely a switch
- * or a goto arrangement that keeps this shape but flips the key==1 polarity). */
+/* n64proc_uso_func_0000035C: MATCHED 2026-05-31. key-dispatch on *(a0+0x50):
+ * case 0 inits a0+0x58 subobject, case 1 inits a0+0x70, both from a 4x1.0f buf.
+ * Cracked the key==1 branch-polarity cap with a `switch` — the if/goto chain
+ * emitted `bne key,1,end` (k1 as fall-through); the switch emits the target's
+ * `beq key,1,k1` dispatch. Frame layout via pad1[4]/pad2[12] around buf[4].
+ * See docs/IDO_CODEGEN.md#switch-vs-if-goto-dispatch-polarity. */
 void n64proc_uso_func_0000035C(char *a0) {
     char pad1[4];
     float buf[4];
@@ -734,25 +654,20 @@ void n64proc_uso_func_0000035C(char *a0) {
     buf[2] = 1.0f;
     buf[3] = 1.0f;
     key = *(int*)(a0 + 0x50);
-    if (key == 0) goto k0;
-    if (key == 1) goto k1;
-    goto end;
-k0:
-    val = *(int*)(a0 + 0x54);
-    gl_func_00000000(&D_00000000, val, buf);
-    gl_func_00000000(a0 + 0x58);
-    gl_func_00000000(a0 + 0x58, 0xA0, 0x78, 3);
-    goto end;
-k1:
-    val = *(int*)(a0 + 0x54);
-    gl_func_00000000(&D_00000000, val, buf);
-    gl_func_00000000(a0 + 0x70);
-    gl_func_00000000(a0 + 0x70, 0xA0, 0x78, 3);
-end:
-    ;
+    switch (key) {
+    case 0:
+        val = *(int*)(a0 + 0x54);
+        gl_func_00000000(&D_00000000, val, buf);
+        gl_func_00000000(a0 + 0x58);
+        gl_func_00000000(a0 + 0x58, 0xA0, 0x78, 3);
+        break;
+    case 1:
+        val = *(int*)(a0 + 0x54);
+        gl_func_00000000(&D_00000000, val, buf);
+        gl_func_00000000(a0 + 0x70);
+        gl_func_00000000(a0 + 0x70, 0xA0, 0x78, 3);
+        break;
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000035C);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso/n64proc_uso_func_0000035C_pad.s")
 
