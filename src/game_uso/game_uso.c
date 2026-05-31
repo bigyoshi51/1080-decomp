@@ -13170,27 +13170,39 @@ void game_uso_func_000116D4(void *a0) {
 /* 2026-05-27 logic fix: the slti/bne emits branch-when-count<3 (skip body),
  * so body runs when count REACHES threshold. Prior C had inverted return
  * condition. Also: sh always increments (delay slot), then body either
- * runs or branches past. */
+ * runs or branches past.
+ * 2026-05-31 structural completion 53.3->71.1%: fixed 4 errors — (1) the FP
+ * gate is INVERTED (reset+return when s->0xA38 >= -30, i.e. NOT a hard hit;
+ * the counter/fire body runs when < -30), (2) counter test is `cnt < 3` not
+ * `cnt+1 < 3`, (3) the state gate is `s->0x9CC != 0` not `!= 0x100`, (4) the
+ * fire sequence is a TWO-ARM branch (s->0x9CC!=0 vs ==0) each with a 6-arg
+ * event call (obj, obj->0xFC|{0x24,0x1D}, 0, 0, 0x100, 5) + a 4-arg FX call
+ * (obj, D[0xEA0], D[0xEA1], -1), then a trailing call(obj). Residual (71->100)
+ * is the FP-compare form (c.le.s vs target c.lt.s+bc1fl) + reset-store
+ * placement + &D reloc scheduling + the 4/8(sp) D-spill — codegen caps. */
 void game_uso_func_00011750(char *obj) {
     char *s = *(char **)(obj + 0xB4);
     short cnt;
-    int e;
-    if (*(float *)(s + 0xA38) < -30.0f) {
+    int *e;
+    if (!(*(float *)(s + 0xA38) < -30.0f)) {      /* not a hard hit: reset + return */
         *(short *)(obj + 0x130) = 0;
         return;
     }
     cnt = *(short *)(obj + 0x130);
     *(short *)(obj + 0x130) = cnt + 1;
-    if ((int)(cnt + 1) < 3) return;
-    /* counter reached 3: fire the wipeout/effect sequence and clear counter */
-    s = *(char **)(obj + 0xB4);  /* reload after the short store */
+    if (cnt < 3) return;                          /* not yet armed */
+    s = *(char **)(obj + 0xB4);                   /* reload after the short store */
     *(short *)(obj + 0x130) = 0;
-    if (*(int *)(s + 0x9CC) != 0x100) {
-        gl_func_00000000(0x100, 5, *(int *)(obj + 0xFC), 0x24);
+    if (*(int *)(s + 0x9CC) != 0) {
+        gl_func_00000000(obj, *(int *)(obj + 0xFC) | 0x24, 0, 0, 0x100, 5);
+        e = (int *)((char *)&D_00000000 + 0xEA0);
+        gl_func_00000000(obj, e[0], e[1], -1);
+    } else {
+        gl_func_00000000(obj, *(int *)(obj + 0xFC) | 0x1D, 0, 0, 0x100, 5);
+        e = (int *)((char *)&D_00000000 + 0xEA0);
+        gl_func_00000000(obj, e[0], e[1], -1);
     }
-    e = *(int *)((char *)&D_00000000 + 0xEA0);
-    gl_func_00000000(e, obj, -1, *(int *)((char *)&D_00000000 + 0xEA4));
-    gl_func_00000000(0x100, 5, *(int *)(obj + 0xFC), 0x24);
+    gl_func_00000000(obj);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
