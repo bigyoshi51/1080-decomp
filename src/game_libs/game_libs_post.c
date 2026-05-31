@@ -19143,22 +19143,7 @@ int game_libs_func_0003D538(int a0, int a1, int a2) {
  * gl_func_0003D550 into its own 0x4 symbol; gl_func_0003D550 read t6
  * uninitialized. Merged into one 0x70 function at the true entry 0x3D54C
  * (predecessor 0003D538 is a complete 5-insn arg-home stub). */
-extern void game_libs_func_0003D514(void *);
-extern void game_libs_func_0003D970(void *);
-extern void game_libs_func_0003B380(void *);
-void game_libs_func_0003D54C(void *a0) {
-    game_libs_func_0003D514(a0);
-    if (*(int *)(*(int *)((char *)a0 + 8)) == 2) {
-        game_libs_func_0003D970(a0);
-        game_libs_func_0003B380(a0);
-    }
-    if (*(int *)(*(int *)((char *)a0 + 8)) == 3) {
-        game_libs_func_0003D970(a0);
-        if (*(int *)(*(int *)((char *)a0 + 8)) == 3) {
-            game_libs_func_0003B380(a0);
-        }
-    }
-}
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D54C);
 
 /* 25-insn alloc-if-null + init + zero-Vec3. Promoted 81.6%→100% via:
  * (1) `||` short-circuit alloc form (per gl_func_000378D0 recipe);
