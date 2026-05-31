@@ -2106,50 +2106,19 @@ void func_0000502C(int *dst) {
     *dst = buf[0];
 }
 
-/* 14-insn / 0x38: 2-call wrapper — calls func(D_7D94) (likely a printf-fmt
- * string) then func(0, a0). 13/14 insns match; target has an extra
- * `sw a1, 0x4(sp)` in the 2nd jal's delay slot (a1-spill to local slot,
- * not outgoing-arg area). IDO -O2 won't emit this dead spill from std C
- * since a1 isn't reused after the jal. Cap holds.
- *
- * 2026-05-15: re-verified C-emit @ 52 bytes / 13 insns (no spill).
- * Earlier `-DNON_MATCHING` "match" was tautology trap — the Makefile
- * doesn't honor CFLAGS_EXTRA on a per-target rebuild, so the build
- * silently used the #else INCLUDE_ASM branch, which is byte-tautological
- * with expected. Confirmed by unwrapping and checking actual C-only
- * build: 52 bytes vs target 56.
- *
- * Prior cap notes:
- * 2026-05-05: tried `void func(int a0, int a1) { (void)a1; ... }` —
- * (void)a1 DCE'd by IDO, no extra spill emitted.
- * 2026-05-07: tried 4 variadic-decl variants — none triggered the spill.
- * IDO's outgoing-arg homing only fires when the CALLEE is variadic AND
- * the args are sourced from spilled registers. With 2-fixed-args +
- * tail variadic there's nothing to spill BACK out.
- * 2026-05-07 (later): volatile slot grows frame; aliasing into existing
- * slot via cast adds a base-register hop. The dead-spill at sp+0x4
- * with frame-stays-0x18 is genuinely unreachable from natural C.
- * 2026-05-17: tested `int (*vfn)(int,...) = (int(*)(int,...))func`;
- * `vfn(0, a0)` — REGRESSES to indirect `lui+addiu+jalr t9` instead of
- * direct `jal func` (function-pointer cast pessimizes call shape).
- * Direct variadic decl `extern int func(int, ...)` not tested (would
- * affect all call sites in TU). Cap class confirmed structural.
- *
- * 2026-05-17 later: `func_00000000(0, a0, a0)` moves the reload before the
- * zero-a0 setup and reaches the target's 14-insn shape. The lone residual is the
- * 2nd-call delay slot: built `or a2,a1` (3rd-arg copy) vs target `sw a1,4(sp)`
- * (dead outgoing-a1 home). NOT the clean &param arg-home class — &param makes it
- * worse (13 insns); the permuter only reaches 100 (base 200, 2026-05-24). Genuine
- * cap (3rd-arg-copy-vs-dead-home). Sibling func_000054A0 identical. */
+/* BYTE-EXACT 2026-05-31. 2-call wrapper: func(&D_7D94); func(0, a0). The
+ * documented "3rd-arg-copy-vs-dead-home cap" was wrong — it never tried
+ * struct-by-value. The target homes a1 to its outgoing slot (`sw a1,4(sp)`,
+ * dead) which a single-int STRUCT-BY-VALUE arg (`func(0, *(struct OneI*)&a0)`)
+ * reproduces exactly (same lever as the game_uso pair-homing, applied to one
+ * int). Sibling func_000054A0 identical. See docs/IDO_CODEGEN.md
+ * #feedback-ido-struct-by-value-homes-arg-pair. */
 extern char D_00007D94;
-#ifdef NON_MATCHING
+struct OneI { int x; };
 void func_00005068(int a0) {
     func_00000000(&D_00007D94);
-    func_00000000(0, a0, a0);
+    func_00000000(0, *(struct OneI*)&a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005068);
-#endif
 
 /* 33-insn / 0x84 init+alloc+populate.
  *   func_00000000(&D_00007DA4);       ; init call
@@ -2372,14 +2341,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
  * to materialize a0 for a2; INSN_PATCH at offset 0x24 rewrites a2-copy
  * `or a2,a1,zero` to target's dead `sw a1, 0x4(sp)` home store. */
 extern char D_00007E10;
-#ifdef NON_MATCHING
 void func_000054A0(int a0) {
     func_00000000(&D_00007E10);
-    func_00000000(0, a0, a0);
+    func_00000000(0, *(struct OneI*)&a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054A0);
-#endif
 
 extern char D_000078D8;
 
