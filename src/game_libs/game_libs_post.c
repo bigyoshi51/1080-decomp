@@ -22657,24 +22657,12 @@ unsigned short game_libs_func_00042428(int a0, int a1) {
     return (a0 << 3) | a1;
 }
 
-// game_libs_func_00042438 — STRUCTURAL PASS + BOUNDARY NOTE (0x8 / 2 words, no
-// episode). Raw-.word USO. NOT a function: only 2 words, no prologue, no jr
-// (realjr=0, regjr=0):
-//     lui  v0, 0            // 3C020000  (reloc hi of a &D_ global)
-//     lw   v0, 0x240(v0)    // 8C420240  (reloc lo: v0 = *(&D_g + 0x240))
-// This is a HEAD-FRAGMENT — the first two instructions of the NEXT symbol's
-// entry (a load of a module global into v0 with no return), mis-split off by
-// the USO disassembler at a wrong boundary. It has no own prologue and the
-// chain that consumes v0 lives in the following symbol. DEFERRED USO
-// RE-SPLIT: the genuine fix is a boundary correction in the USO disasm
-// (mnemonic split/merge does not work on relocatable USO with reloc-split
-// lui/lw pairs — see docs/N64_FORENSICS HEAD-fragment notes); not 60s-tick
-// safe. No pseudo-C: these two words belong to the next function, not to
-// this symbol. Full body INCLUDE_ASM-preserved.
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042438);
-
-#ifdef NON_MATCHING
-/* gl_func_00042440: 17-insn (0x44) single-call wrapper with PROLOGUE-STEALS-PREDECESSOR
+/* game_libs_func_00042438 (cross... same-TU orphan merge, MATCHED 2026-05-30): the
+ * orphan game_libs_func_00042438 (lui v0; lw v0,0x240 = p) was merged into this
+ * body .s; INCLUDE_ASM removed. The old note's $v1/$t6 cap on `sub` is CRACKED:
+ * INLINE the (p->0x148)->0xF0 deref (don't name `sub`) so it lands in the throwaway
+ * $t6, not the named-local $v1 — the inline-deref-throwaway lever (cf gl_func_0002E24C).
+ * (old) gl_func_00042440: 17-insn (0x44) single-call wrapper with PROLOGUE-STEALS-PREDECESSOR
  * pattern. Predecessor gl_func_000423D8's tail sets `$v0 = *(D + 0x240)` via
  * `lui v0, 0; lw v0, 0x240(v0)` — those 2 insns logically belong to this
  * function's prologue. Trailing 8 bytes (lui v1, 0; lw v1, 0x240(v1)) form
@@ -22698,16 +22686,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042438);
  * 100%; permuter unlikely (failed on 0004E384's twin). Leave both INCLUDE_ASM until
  * the $v0/$v1-skip lever is found. (A stale /tmp byte-cmp falsely showed exact —
  * ALWAYS confirm orphan merges via in-tree objdiff, not a standalone byte compare.) */
-extern int *D_state_0042440;
-extern char gl_data_42440_arg;
-void gl_func_00042440(void) {
+extern int *D_state_0042440;     /* = &D+0x240 (undefined_syms); the merged orphan's p-load */
+extern char gl_data_42440_arg;   /* = &D (undefined_syms); the call's a0 */
+#ifdef NON_MATCHING
+void game_libs_func_00042438(void) {
     int *p = D_state_0042440;
-    int *sub = (int*)p[0x148 / 4];
-    gl_func_00000000(&gl_data_42440_arg, 0x110, sub[0xF0 / 4],
+    gl_func_00000000(&gl_data_42440_arg, 0x110, ((int*)p[0x148 / 4])[0xF0 / 4],
                      p[0xB8 / 4], p[0xBC / 4]);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042440);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042438);
 #endif
 
 
