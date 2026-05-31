@@ -16089,25 +16089,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003800C);
 //   object subsystem; the 0x0001EBF8..0x0001EC1C strings form a
 //   deferred contiguous string-data symbolization block (a message
 //   table to type together).
-// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 printf cbs +
-//   contiguous fixed string-data table + object-chain deref; string
-//   table / object struct untyped. Real-C STRUCTURAL body below.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
+// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 printf cbs.
+//   2026-05-31 structure completed 52.4->53.5%: the rotated control flow is
+//   a1==0 vs a1!=0 (NOT a simple `if(a1)`): a1==0 -> report(EBF8,EC00,&D,0),
+//   bail if 0, p=&D; else p=a2. Then report(EC08,p); if(report(EC1C,p)){ r=
+//   o->0x28; (*(r->0x4C))((short)r->0x48+o); report(&D); }; if(a1==0){ r=
+//   o->0x28; (*(r->0xC))((short)r->0x8+o); }. Two jalr vtable blocks + the
+//   a1 split were missing. RESIDUAL: low gain because `p=&D` promotes &D to
+//   s0 (target recomputes &D inline each printf) + the exact printf format/arg
+//   ordering + placeholder jals. Regalloc/printf-CSE cap. Name pre-checked.
 #ifdef NON_MATCHING
 extern int D_00000000;
 void gl_func_00038108(char *o, int a1, int a2) {
     char *r;
+    char *p;
     gl_func_00000000(&D_00000000);
-    if (a1 != 0) {
-        if (gl_func_00000000((char *)&D_00000000 + 0x0001EBF8,
-                             (char *)&D_00000000 + 0x0001EC00,
-                             &D_00000000)) {
-            gl_func_00000000((char *)&D_00000000 + 0x0001EC08, &D_00000000);
-            if (gl_func_00000000((char *)&D_00000000 + 0x0001EC1C)) {
-                r = *(char **)(o + 0x28);
-                gl_func_00000000(*(int *)(r + 0x4C), *(short *)(r + 0x48));
-            }
+    if (a1 == 0) {
+        if (gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0001EBF8,
+                             (char *)&D_00000000 + 0x0001EC00, &D_00000000, 0) == 0) {
+            return;
         }
+        p = &D_00000000;
+    } else {
+        p = (char *)a2;
+    }
+    gl_func_00000000((char *)&D_00000000 + 0x0001EC08, p);
+    if (gl_func_00000000(&D_00000000, p, (char *)&D_00000000 + 0x0001EC1C)) {
+        r = *(char **)(o + 0x28);
+        (*(void (**)(char *))(r + 0x4C))(*(short *)(r + 0x48) + o);
+        gl_func_00000000(&D_00000000);
+    }
+    if (a1 == 0) {
+        r = *(char **)(o + 0x28);
+        (*(void (**)(char *))(r + 0xC))(*(short *)(r + 0x8) + o);
     }
 }
 #else
