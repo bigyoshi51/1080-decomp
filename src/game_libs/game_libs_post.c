@@ -20326,29 +20326,30 @@ int gl_func_0003EBAC(char *a0) {
 //   each ordering). Real-C STRUCTURAL body below. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_0003EBDC(char *a0) {
-    short hi = *(short *)(a0 + 0xA);
-    short lo = *(short *)(a0 + 0x8);
-    char *base = *(char **)(a0 + 0x4);
-    int sel;
-    char *tbl;
-    char *e;
-    short bias;
-    void (*h)(char *);
-    if (hi < 0) {
-        base = base + lo;
-        sel = *(int *)(a0 + 0xC);
+/* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044/00035A18/0003EC5C — same vtable
+ * dispatch. Applied the proven 3A044 single-shared-jalr body (69.5%). */
+void gl_func_0003EBDC(int *a0) {
+    int arg = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
+    int (*fn)(int);
+    if (*(short*)((char*)a0 + 0xA) < 0) {
+        fn = (int(*)(int))a0[0xC/4];
     } else {
-        void *v = *(void **)(a0 + 0xC);
-        if (v != 0) sel = (int)v;
-        else if (lo != 0) sel = lo;
-        else sel = 0x28;
+        int idx;
+        int *table;
+        char *entry;
+        if (a0[0xC/4] != 0) {
+            idx = a0[0xC/4];
+        } else if (*(short*)((char*)a0 + 0x8) != 0) {
+            idx = 0;
+        } else {
+            idx = 0x28;
+        }
+        table = *(int**)((char*)arg + idx);
+        entry = (char*)table + *(short*)((char*)a0 + 0xA) * 8;
+        fn = (int(*)(int))*(int*)(entry + 4);
+        arg = *(short*)entry + arg;
     }
-    tbl = *(char **)(base + sel);
-    e = tbl + hi * 8;
-    bias = *(short *)e;
-    h = *(void (**)(char *))(e + 4);
-    h(base + bias);
+    fn(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
@@ -20389,29 +20390,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
 //   same C body. Real-C STRUCTURAL body below. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_0003EC5C(char *a0) {
-    short hi = *(short *)(a0 + 0xA);
-    short lo = *(short *)(a0 + 0x8);
-    char *base = *(char **)(a0 + 0x4);
-    int sel;
-    char *tbl;
-    char *e;
-    short bias;
-    void (*h)(char *);
-    if (hi < 0) {
-        base = base + lo;
-        sel = *(int *)(a0 + 0xC);
+/* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044/00035A18 — same single-shared-jalr
+ * vtable dispatch. The old body did the table lookup in BOTH branches; the hi<0 path
+ * is actually a DIRECT fn=a0->0xC call. Applied the proven 3A044 body (69.5%). */
+void gl_func_0003EC5C(int *a0) {
+    int arg = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
+    int (*fn)(int);
+    if (*(short*)((char*)a0 + 0xA) < 0) {
+        fn = (int(*)(int))a0[0xC/4];
     } else {
-        void *v = *(void **)(a0 + 0xC);
-        if (v != 0) sel = (int)v;
-        else if (lo != 0) sel = lo;
-        else sel = 0x28;
+        int idx;
+        int *table;
+        char *entry;
+        if (a0[0xC/4] != 0) {
+            idx = a0[0xC/4];
+        } else if (*(short*)((char*)a0 + 0x8) != 0) {
+            idx = 0;
+        } else {
+            idx = 0x28;
+        }
+        table = *(int**)((char*)arg + idx);
+        entry = (char*)table + *(short*)((char*)a0 + 0xA) * 8;
+        fn = (int(*)(int))*(int*)(entry + 4);
+        arg = *(short*)entry + arg;
     }
-    tbl = *(char **)(base + sel);
-    e = tbl + hi * 8;
-    bias = *(short *)e;
-    h = *(void (**)(char *))(e + 4);
-    h(base + bias);
+    fn(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
