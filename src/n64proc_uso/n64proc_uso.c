@@ -506,132 +506,55 @@ void n64proc_uso_func_00000230(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* (e) TRIED 2026-05-04: INSN_PATCH eligibility check — built 60 insns vs
- * expected 61 (+1 insn delta), and 52 of 60 insns differ due to register
- * cascade. The +1 delta comes from the second dispatch: built picks
- * `bnel v0,at,end` with `lw ra,20(sp)` epilogue-prep in delay slot;
- * expected picks `beql v0,at,c1` with `lw t5,84(a3)` c1-body-preload in
- * delay slot. Same branch target, opposite polarity. The body-preload
- * cascades through register choices (expected uses t6/t5/t8 throughout
- * c1 body where built uses v0/t9/etc). INSN_PATCH can't repair: size
- * differs AND each subsequent insn has different opcode bits (not just
- * register renames at fixed offsets). Stays at 93.57%.
+/* n64proc_uso_func_00000268: state machine on a0->0x50 (key dispatch).
+ *   case 0: decrement a0->0x3C; if <16, decay a0->0x54 by 16 (clamp>=0);
+ *           when a0->0x3C hits 0, transition to mode 1 + reset a0->0x3C=100.
+ *   case 1: ramp a0->0x54 by 8 (clamp<=255); decrement a0->0x3C; on 0 OR
+ *           (a0->0x3C<0x55 && gl_func(&D,0x40100)!=0), set D[0x40]=1, call gl_func(a0,0,0).
  *
- * State machine on a0->0x50:
- *   case 0: decrement a0->0x3C; if dropped below 16, decay a0->0x54 by 16
- *           (clamp >= 0); when a0->0x3C hits 0, transition to mode 1
- *           (a0->0x50 = 1) and reset a0->0x3C = 100.
- *   case 1: ramp a0->0x54 by 8 (clamp <= 255); decrement a0->0x3C; on 0,
- *           OR if (a0->0x3C < 0x55 AND gl_func(&D, 0x40100) != 0), set
- *           D[0x40] = 1 and call gl_func(a0, 0, 0).
+ * 2026-05-31: `switch (key)` -> 97.30%, BEATING the prior goto-chain (93.57%) and
+ * if-else-if (regressed). The old note's claim that 'goto-chain is strictly better'
+ * was wrong — it never tried `switch`. Same crack as the 0035C sibling: the switch
+ * emits the target's beql-to-case dispatch polarity + body-preload delay-slot fill
+ * that the if/goto chain inverted (bnel-skip-to-end). See
+ * docs/IDO_CODEGEN.md#switch-vs-if-goto-dispatch-polarity.
  *
- * 2026-05-02: applied goto-chain dispatch per
- * feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md.
- * Match jumped from 85.25% (if-else-if form) to 93.57%.
- *
- * Remaining 6.4% diff (verified 2026-05-02 via objdump -M no-aliases):
- *   1. First dispatch beql preload IS reached: mine `beql v0,zero,c0_body`
- *      + delay-slot `lw v0, 60(a3)` matches target's beql + lw t6, 60(a3)
- *      shape; only the destination register differs ($v0 vs $t6).
- *   2. Second dispatch IDO picks bnel-skip-to-end (with `lw ra` epilogue
- *      restore in delay slot) where target picks beql-jump-to-c1-body
- *      (with `lw t5, 0x54(a3)` body-preload). Both arms have valid
- *      delay-slot fillers so IDO chooses based on internal heuristic
- *      (likely "early-return is hotter than body").
- *   3. The body-register cascade: target uses fresh $t6/$t7/$t9/$t3/$t4/
- *      $t0/$t2/$t5/$t8 throughout each body. Mine reuses $v0 because the
- *      dispatch loaded into $v0 (single-use of `t = a0[0x3C/4] - 1` as one
- *      expression collapses both load + subtract into $v0).
- *
- * 2026-05-02: tried 4 more variants. None promote.
- *   (a) Split `t = a0[0x3C/4] - 1` into `int load = ...; int decr = load - 1;`
- *       — IDO picked $v1+$v0 (not $t6+$t7) for the named locals; promoted
- *       a couple constants to $t-regs but lost the $t-reg promotion for
- *       the body's primary load. Net: regressed body register choice.
- *   (b) Replace `goto end` with `return` — byte-identical output. Same
- *       early-return optimization either way.
- *   (c) Reorder bodies (c1 before c0 in source) — case-1 body becomes the
- *       fall-through after dispatch chain, but second dispatch STILL emits
- *       bnel-skip-to-end. The body-block placement doesn't influence the
- *       branch-likely arm choice.
- *   (d) Clean if-else-if (no goto): `if (v==0){...} else if (v==1){...}`
- *       — fully regressed; IDO loses the beql + body-preload pattern
- *       entirely, emits plain `bne v0,zero,+X`. Goto-chain is strictly
- *       better for this shape.
- *
- * Per feedback_ido_sparse_switch_beql_preload_unreachable.md (and the
- * 4 attempts above), no further C-level lever flips IDO's bnel/beql
- * choice on the second dispatch. Stays at 93.57 %.
- *
- * 2026-05-03 re-measure: 93.34 % (slight drift from parallel-agent commits
- * affecting siblings; nothing structural).
- *
- * 2026-05-04: re-measure 93.57 % (back to original). Two more variants
- * tried, both no-op:
- *   (e) `register int t` qualifier on the body's working local — no
- *       effect on body cascade $t-reg picks. IDO already promotes `t`
- *       past stack; the `register` hint is redundant. % unchanged.
- *   (f) Inline dispatch reads `if (a0[0x50/4] == 0) goto c0;` (no named
- *       `v` local) — IDO still picks the same bnel-skip-to-end at the
- *       second dispatch. The named-vs-inline distinction (per
- *       feedback_ido_inline_deref_v0.md / feedback_ido_v0_reuse_via_locals.md)
- *       affects $v0/$t-reg destination, not the dispatch arm choice.
- *       % unchanged at 93.57 %.
- *
- * Six C-form variants tried total ((a)-(f)). Cap stands at 93.57 %.
- *
- * 2026-05-04 (NEW): four more variants tried, all 52/61 word diffs (no
- * promotion). Cap reconfirmed:
- *   (g) Goto-form for c1 inner (`if (t == 0) goto fire;` + early-out
- *       gotos for the && short-circuit condition) instead of compound
- *       `||`/`&&` form — same diff count.
- *   (m) Unique externs (D_n64proc_268_a / _b at 0x0) for the &D loads
- *       to break possible CSE — no effect; the bottleneck isn't &D-CSE
- *       (only 2 sites total; CSE wasn't happening to begin with).
- *   (n) Inline dispatch (no `v` local; `if (a0[0x50/4]==0) goto c0;`
- *       repeated) — per memo `feedback_ido_inline_deref_v0.md` should
- *       affect $v0/$t-reg destination but didn't here. Same 52 diffs.
- *   (o) `char pad[4]` to grow stack frame — IDO optimized it away
- *       (unused). Frame stays at 0x18.
- *
- * Total: 10 variants tried ((a)-(f) + (g)/(m)/(n)/(o)). Cap holds at
- * 93.57 %. The first-instruction divergence at 0x18 is `lw $t6` (target)
- * vs `lw $v0` (build) — IDO's allocator reuses the dispatch register
- * for the body's first load, where target uses a fresh $t-reg. No
- * C-level lever found to force the fresh-$t allocation. */
+ * Residual ~2.7% (12 diffs, register-renumber only, sizes now match 61=61): the
+ * body RMWs collapse to $v0 where the target uses fresh $t6/$t7/$t5/$t9 temps
+ * (read-into-one, modify-into-another). Split-load (`int cur=a0[X]; t=cur-1;`)
+ * does NOT change it (IDO re-fuses). Genuine body-regalloc cap — see the
+ * find-or-create / RMW-fresh-temp cap class. */
 void n64proc_uso_func_00000268(int *a0) {
     int v;
     int t;
 
     v = a0[0x50/4];
-    if (v == 0) goto c0;
-    if (v == 1) goto c1;
-    goto end;
-c0:
-    t = a0[0x3C/4] - 1;
-    a0[0x3C/4] = t;
-    if (t < 0x10) {
-        t = a0[0x54/4] - 0x10;
-        a0[0x54/4] = t;
-        if (t < 0) a0[0x54/4] = 0;
-        if (a0[0x3C/4] == 0) {
-            a0[0x50/4] = 1;
-            a0[0x3C/4] = 0x64;
+    switch (v) {
+    case 0:
+        t = a0[0x3C/4] - 1;
+        a0[0x3C/4] = t;
+        if (t < 0x10) {
+            t = a0[0x54/4] - 0x10;
+            a0[0x54/4] = t;
+            if (t < 0) a0[0x54/4] = 0;
+            if (a0[0x3C/4] == 0) {
+                a0[0x50/4] = 1;
+                a0[0x3C/4] = 0x64;
+            }
         }
+        break;
+    case 1:
+        t = a0[0x54/4] + 8;
+        a0[0x54/4] = t;
+        if (t >= 0x100) a0[0x54/4] = 0xFF;
+        t = a0[0x3C/4] - 1;
+        a0[0x3C/4] = t;
+        if (t == 0 || (t < 0x55 && gl_func_00000000(&D_00000000, 0x40100) != 0)) {
+            *(int*)((char*)&D_00000000 + 0x40) = 1;
+            gl_func_00000000(a0, 0, 0);
+        }
+        break;
     }
-    goto end;
-c1:
-    t = a0[0x54/4] + 8;
-    a0[0x54/4] = t;
-    if (t >= 0x100) a0[0x54/4] = 0xFF;
-    t = a0[0x3C/4] - 1;
-    a0[0x3C/4] = t;
-    if (t == 0 || (t < 0x55 && gl_func_00000000(&D_00000000, 0x40100) != 0)) {
-        *(int*)((char*)&D_00000000 + 0x40) = 1;
-        gl_func_00000000(a0, 0, 0);
-    }
-end:
-    ;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000268);
