@@ -3928,6 +3928,10 @@ void game_uso_func_000057B8(char *a0) {
  * match-faking (per feedback_no_instruction_forcing_matches_policy).
  * Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
+void game_uso_func_0000591C(int *a0);
+void game_uso_func_00006A30(int *a0);
+void game_uso_func_00006CF0(int *a0);
+void game_uso_func_000071E0(int *a0);
 void game_uso_func_000057D8(char *a0) {
     char *sub;
     char *state;
@@ -3956,10 +3960,10 @@ void game_uso_func_000057D8(char *a0) {
     mode = *(s32 *)(a0 + 0x64);
     *(f32 *)(a0 + 0x3C) = 0.0f;
     switch (mode) {
-        case 0: gl_func_00000000(); break;
-        case 1: gl_func_00000000(); break;
-        case 2: gl_func_00000000(); break;
-        case 3: gl_func_00000000(); break;
+        case 0: game_uso_func_0000591C((int *)a0); break;
+        case 1: game_uso_func_00006A30((int *)a0); break;
+        case 2: game_uso_func_00006CF0((int *)a0); break;
+        case 3: game_uso_func_000071E0((int *)a0); break;
     }
 }
 #else
