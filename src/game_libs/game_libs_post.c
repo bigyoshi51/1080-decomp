@@ -21949,9 +21949,13 @@ void gl_func_00041278(void) {
     gl_func_00000000();
 }
 
-#ifdef NON_MATCHING
-/* Sibling/successor of gl_func_00041278 (which uses SUFFIX_BYTES to
- * absorb the `lui t6, 4; lw t6, 0xC160(t6)` setup that this function
+/* game_libs_func_00041298 (cross-TU orphan merge): orphan lui t6,4; lw t6,0xC160
+ * = the global flag at &D+0x3C160 (NOT 0x4C160 — the old decode was wrong; lui
+ * 0x4 + sign-ext low 0xC160 = 0x3C160). Orphan was in game_libs.c, merged FORWARD
+ * into the body .s; reading the flag inline at the != 0 test hoists the lui;lw
+ * above the prologue. MATCHED 2026-05-30. Historical note below kept for context:
+ * (old) Sibling/successor of gl_func_00041278 (SUFFIX_BYTES absorbed the
+ * `lui t6, 4; lw t6, 0xC160(t6)` setup that this function
  * needs at entry). 412A0's body uses the pre-loaded t6 value:
  *   if (D[0x4C160] != 0) f(0x1F5B8, a0);
  *   f(&D, a0);
@@ -21966,16 +21970,12 @@ void gl_func_00041278(void) {
  * splat lumped into 412A0 — would need splat re-run to break out, but
  * USO splits break expected/.o per feedback_uso_split_fragments_breaks_expected_match.md. */
 extern int gl_func_00000000();
-void gl_func_000412A0(int a0) {
-    if (*(int*)((char*)&D_00000000 + 0x4C160) != 0) {
+void game_libs_func_00041298(int a0) {
+    if (*(int*)((char*)&D_00000000 + 0x3C160) != 0) {
         gl_func_00000000((char*)&D_00000000 + 0x1F5B8, a0);
     }
     gl_func_00000000(&D_00000000, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412A0);
-
-#endif
 
 void game_libs_func_000412E0(void) {}
 
