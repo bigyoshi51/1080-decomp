@@ -1034,7 +1034,8 @@ void gui_uso_func_0000413C(char **a0, int a1, int a2, int a3,
     int *slot;
     int t1;
     (void)a3;
-    t1 = (((((arg6 << 1) + 7) >> 3) & 0x1FF) << 9) | 0xF5100000 | ((arg8 << 8) & 0x1FF);
+    t1 = ((((((arg4 + arg6) - arg4) << 1) + 7) >> 3) & 0x1FF) << 9 | 0xF5100000 |
+         ((arg8 << 8) & 0x1FF);
     /* packet 1: G_SETTIMG */
     g = *(char**)((char*)a0 + 0xC);
     i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
