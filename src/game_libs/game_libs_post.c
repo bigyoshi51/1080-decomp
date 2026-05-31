@@ -11449,22 +11449,40 @@ void game_libs_func_000315BC(int a0, int a1) {
     gl_ref_00045DC0(&gl_ref_00000368 + a0 * 100, 1, a1, 0x7F);
 }
 
-/* Caps (DEFERRED): 4-way state-machine dispatch enumeration — but
- * the final call shape is known from sibling gl_func_000315C4 /
- * gl_func_000316CC. Real-C STRUCTURAL body below per the analysis
- * (top-level globals + final dispatch only — full 4-way branch
- * enumeration deferred). Byte-match deferred. Name pre-checked: no
- * extern reuse. */
+/* gl_func_00031608: full decode 2026-05-31 (was 33.8% stub). Gated on D[0]==4,
+ * dispatches on b21/b22 to compute `val`, then writes *(short*)(ptr+0x62)=val and
+ * calls gl_ref_00045DC0(ptr, 1, (val<<6)+a1, 0x7F) where ptr=&gl_ref_00000368 +
+ * b21*100 (same strength-reduced index as sibling game_libs_func_000315BC). The
+ * inner g-recheck (D[0]==1/2/3/5) is logically dead after the ==4 gate but the
+ * target reloads g from memory so IDO can't fold it (cf. eddproc_uso_func_0000025C). */
 #ifdef NON_MATCHING
 extern char gl_ref_00000368;
-void gl_func_00031608(char *a0) {
-    unsigned char b21 = *(unsigned char *)(a0 + 0x21);
+void gl_func_00031608(char *a0, int a1) {
     unsigned char b22 = *(unsigned char *)(a0 + 0x22);
-    int g = *(int *)((char *)&D_00000000 + 0);
-    if (g == 4) {
-        (void)b22;
+    unsigned char b21 = *(unsigned char *)(a0 + 0x21);
+    char *ptr;
+    int val;
+    if (*(int *)((char *)&D_00000000 + 0) != 4) {
+        return;
     }
-    gl_ref_00045DC0(&gl_ref_00000368 + b21 * 100, 1, 0x7F);
+    val = b22 - 1;
+    if (b22 < 6) {
+        if (b21 == 2) {
+            int g2 = *(int *)((char *)&D_00000000 + 0);
+            if (g2 == 1) return;
+            if (g2 == 2) return;
+            if (g2 == 3) return;
+            if (g2 == 5) return;
+        }
+    } else {
+        if (b21 != 8) {
+            return;
+        }
+        val = 5;
+    }
+    ptr = &gl_ref_00000368 + b21 * 100;
+    *(short *)(ptr + 0x62) = val;
+    gl_ref_00045DC0(ptr, 1, (val << 6) + a1, 0x7F);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031608);
