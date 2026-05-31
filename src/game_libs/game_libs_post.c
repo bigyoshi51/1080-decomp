@@ -14761,10 +14761,19 @@ void game_libs_func_00035FCC(void) {}
  * shared K&R decl. Documented float-vararg single-precision
  * divergence class. Real-C STRUCTURAL body below per the existing
  * decode. Byte-match deferred. Name pre-checked: no extern reuse. */
+/* 2026-05-31 71.3%->91.2%: fixed call args — addresses are address-style
+ * (&D+0x1E9F4 / &D+0x1EA00 -> lui+addiu, were literals 0x1E9B4/0x1E9C0 ->
+ * lui+ori AND off by 0x40), and call 2's 10.0f/400.0f are 32-bit floats
+ * (a3 raw-int + swc1) NOT doubles — the K&R `gl_func_00000000()` promotes
+ * them (cvt.d.s/sdc1), so a fn-ptr cast supplies the float prototype.
+ * Residual (2 insns): the cast emits an INDIRECT call (lui t9;jalr) vs the
+ * target's direct jal — can't give the reused placeholder callee a direct-
+ * call float prototype without the multi-signature conflict. */
 #ifdef NON_MATCHING
 void gl_func_00035FD4(char *a0) {
-    gl_func_00000000(&D_00000000, 0x1E9B4, 0);
-    gl_func_00000000(&D_00000000, 0x1E9C0, (int)a0 + 0x44, 10.0f, 400.0f, 0);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1E9F4, 0);
+    ((int (*)(char *, char *, int, float, float, int))gl_func_00000000)(
+        &D_00000000, (char *)&D_00000000 + 0x1EA00, (int)a0 + 0x44, 10.0f, 400.0f, 0);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0);
 }
