@@ -10011,21 +10011,27 @@ void game_uso_func_0000D5DC(char *a0) {
 
 #ifdef NON_MATCHING
 /* Varargs (&a1) sink: if a3==-1 set a0->0x68=a3 else a0->0x64=a3; then copy the
- * a1/a2 pair to adjacent a0->0xC0/0xC4. The tail now matches via the struct-copy
- * lever (*(Pair2*)(a0+0xC0)=*(Pair2*)&a1, same as D5BC/D438). Residual (~18B): the
- * target homes a3 unconditionally at 12(sp) (sw a3 in the bne delay slot) and reads
- * it via 12(sp); &a1 only homes a1/a2, so a3's home/reload (p[2] -> t6+8 vs sp+12)
- * still diverges. Varargs-homing scheduling cap; partial NM.
- * 2026-05-27 retest: hoisting `int homed_a3 = p[2];` before the if regressed
- * 86% → 0% — the early read forced a different addressing pattern that lost
- * the entire shape. Can't force a3 home without breaking other parts. */
+ * a1/a2 pair to adjacent a0->0xC0/0xC4 via the struct-copy lever
+ * (*(Pair2*)(a0+0xC0)=*(Pair2*)&a1, same as D5BC/D438).
+ *
+ * 2026-05-31: the "can't force a3 home without breaking other parts" note was
+ * WRONG. Reading the else-arm as `*(volatile int*)&a3` DOES home a3 (`sw a3,
+ * 0xC(sp)` in the bne delay) and shifts a2's home before the branch — the first
+ * 7 insns now match the target EXACTLY (li/sw a1/sw a2/bne/sw a3,0xC/b/sw a3,
+ * 0x68). The SOLE residual is one inserted insn: the else-arm a3 read is
+ * `addiu t7,sp,0xC; lw 0(t7)` (pointer-materialize) where the target spill-
+ * reloads direct `lw 0xC(sp)` (15 vs 16 insns; the +1 cascades the branch
+ * offset + tail by a slot). That direct sp-relative SPILL reload is allocator-
+ * only — every C form of the read is one of: register (named a3 / non-volatile
+ * `(&a1)[2]` copy-propagate to $a3), or pointer-materialize (any volatile/&-
+ * deref → addiu+lw). Genuine varargs-home + direct-spill-reload artifact: not
+ * C-reachable as a leaf. (Varargs `(char*,int,...)` is OUT — it adds a -8 frame
+ * and v0/v1/bnel, diverging entirely.) Body below is the 7-insn-exact reference. */
 void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
-    volatile int *p;
-    p = &a1;
     if (a3 == -1) {
         *(int*)(a0 + 0x68) = a3;
     } else {
-        *(int*)(a0 + 0x64) = p[2];
+        *(int*)(a0 + 0x64) = *(volatile int*)&a3;
     }
     *(Pair2*)(a0 + 0xC0) = *(Pair2*)&a1;
 }
