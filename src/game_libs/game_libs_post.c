@@ -16328,25 +16328,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003863C);
 //   object subsystem (same list/collection the gl_func_00033228
 //   enlist / gl_func_00034458 / 00035C6C family operate on; the
 //   &D_0-base mask is a global enable/category gate).
-// Caps (DEFERRED): raw-word USO + intrusive-list walk + multi-flag
-//   conjunction gate (incl. &D_0 mask) + USO-relocated jal-0 cbs;
-//   node struct untyped. Real-C STRUCTURAL body below. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// Caps (DEFERRED): raw-word USO + intrusive-list walk + USO-relocated
+//   jal-0 cbs. 2026-05-31: body completed to full logic 41.2->64.4%.
+//   The earlier sketch was WRONG in 4 ways, now fixed: (1) mask is a
+//   LITERAL 0x20000 (lui s1,0x2 / no load), not *(int*)&D; (2) the loop
+//   PREFETCHES next=cursor->4 before the body and breaks when obj==0
+//   (rotated do-while w/ delay-slot loads — NOT a nested loop, that was a
+//   delay-slot misread); (3) post-cb2 it back-links obj->0x14=o iff
+//   obj->4!=0; (4) a VTABLE dispatch (*(obj->0x28->0x24))(obj +
+//   (short)obj->0x28->0x20) + a final cb_final(). RESIDUAL (64->100) is
+//   regalloc: target spills the cursor/next chain to stack 40/44(sp) (3
+//   saved regs, frame 0x30); IDO here keeps them in regs (4 saved regs,
+//   frame 0x28), shifting the frame + insns. Permuter candidate.
 #ifdef NON_MATCHING
-extern int D_00000000;
 void gl_func_00038728(char *o) {
-    char *n;
-    int mask = *(int *)&D_00000000;
-    gl_func_00000000(*(char **)(o + 0x0C));
-    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
-        char *node = *(char **)n;
-        if ((*(int *)(node + 0x18) & 8) &&
-            (*(int *)(node + 0x08) & 0x200) &&
-            !(*(int *)(node + 0x08) & mask) &&
-            !(*(int *)(node + 0x2C) & 1)) {
-            gl_func_00000000((float *)(node + 0x30), (float *)(node + 0x70));
+    char *cursor, *next, *obj, *disp;
+    gl_func_00000000(*(char **)(o + 0x0C));                  /* cb1(o->0x0C) */
+    for (cursor = *(char **)(o + 0x10); cursor != 0; cursor = next) {
+        next = *(char **)(cursor + 0x04);                    /* prefetch next BEFORE body */
+        obj = *(char **)cursor;
+        if (obj == 0) {
+            break;
+        }
+        if ((*(int *)(obj + 0x18) & 8) &&
+            (*(int *)(obj + 0x08) & 0x200) &&
+            !(*(int *)(obj + 0x08) & 0x20000) &&            /* mask is literal 0x20000 (lui 0x2) */
+            !(*(int *)(obj + 0x2C) & 1)) {
+            gl_func_00000000((float *)(obj + 0x30), (float *)(obj + 0x70));   /* cb2 */
+            if (*(char **)(obj + 0x04) != 0) {
+                *(char **)(obj + 0x14) = o;                  /* back-link if obj has a next */
+            }
+            disp = *(char **)(obj + 0x28);                   /* vtable dispatch */
+            (*(void (*)())(*(int *)(disp + 0x24)))(obj + *(short *)(disp + 0x20));
         }
     }
+    gl_func_00000000();                                      /* cb_final() */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
