@@ -411,17 +411,13 @@ ret0:
  * the set-4 store in the delay slot (+ a dead duplicate at 0xF34, the
  * branch-likely natural-position artifact). NM (bnel idiom not C-reachable);
  * build uses INCLUDE_ASM. */
-#ifdef NON_MATCHING
 void arcproc_uso_func_00000F1C(int *a0) {
-    if (*(int*)((char*)a0 + 0x6B8) != 0) {
-        *(int*)((char*)a0 + 0x504) = 4;
-    } else {
+    if (*(int*)((char*)a0 + 0x6B8) == 0) {
         *(int*)((char*)a0 + 0x504) = 0;
+    } else {
+        *(int*)((char*)a0 + 0x504) = 4;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F1C);
-#endif
 
 /* arcproc_uso_func_00000F40: 2-insn store stub, RECOVERED 2026-05-28.
  * a0->0x504 = 0 (store in the jr-ra delay slot). */
