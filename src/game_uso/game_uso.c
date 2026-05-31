@@ -12627,8 +12627,11 @@ extern char D_00000000;
 #ifdef NON_MATCHING
 void game_uso_func_00011024(int *a0) {
     int *p_B4 = *(int **)((char*)a0 + 0xB4);
+    int v;
     *(Pair2*)((char*)a0 + 0xD0) = *(Pair2*)((char*)&D_00000000 + 0xF48);
-    *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
+    v = *(int*)((char*)p_B4 + 0xA58);
+    p_B4 = (int*)((char*)p_B4 + 0xA58);
+    *p_B4 = v & ~4;
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     gl_func_00000000(a0);
     ((int*)*(int **)((char*)a0 + 0xB4))[0x960 / 4] = 0x64;
@@ -12637,18 +12640,25 @@ void game_uso_func_00011024(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
 #endif
 
-/* NATURAL CEILING sibling of game_uso_func_00011024 — same 32-insn dual-
- * call orchestrator pattern; only the D-offsets differ (0xF20/0xF24 vs
- * 0xF48/0xF4C). Same family-cap shape (precall a1/a2 outgoing-slot spill +
- * trailing epilogue bytes IDO 7.1 does not emit from C). Was previously
- * promoted via SUFFIX_BYTES_FORCE + INSN_PATCH — both REMOVED 2026-05-23
- * as match-faking (per feedback_no_instruction_forcing_matches_policy).
- * Default build is INCLUDE_ASM. */
+/* Sibling of game_uso_func_00011024 — same 32-insn dual-call orchestrator;
+ * only the D-offsets differ (0xF20/0xF24 vs 0xF48/0xF4C). 2026-05-31: the
+ * "precall-arg-spill + trailing-epilogue cap" was stale — struct-by-value
+ * (*(Pair2*)) homes a1/a2 and the `p_B4->field_A58 &= ~4` RMW written as
+ * load-via-offset + pointer-advance + store-via-0(p) (`v = p[A58]; p =
+ * p+A58; *p = v & ~4;`) recovers the target's `addiu v0; sw 0(v0)` so the
+ * body is now SIZE-EXACT + STRUCTURE-EXACT. Residual is a pure register
+ * renumber (10 diffs): the RMW value lands in $v1 (named local) where the
+ * target uses $t9, cascading the &D-E10 base $t0->$t1 and the tail $t3/$t4->
+ * $t4/$t5. Both siblings share it. Needs the permuter or an allocno tweak
+ * that births the loaded value in $t9; not a frame/structure problem. */
 #ifdef NON_MATCHING
 void game_uso_func_000110A4(int *a0) {
     int *p_B4 = *(int **)((char*)a0 + 0xB4);
+    int v;
     *(Pair2*)((char*)a0 + 0xD0) = *(Pair2*)((char*)&D_00000000 + 0xF20);
-    *(int*)((char*)p_B4 + 0xA58) = *(int*)((char*)p_B4 + 0xA58) & ~4;
+    v = *(int*)((char*)p_B4 + 0xA58);
+    p_B4 = (int*)((char*)p_B4 + 0xA58);
+    *p_B4 = v & ~4;
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     gl_func_00000000(a0);
     ((int*)*(int **)((char*)a0 + 0xB4))[0x960 / 4] = 0x64;
