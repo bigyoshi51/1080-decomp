@@ -34875,15 +34875,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006280C);
  * block of float fields (0xF0/EC/E8/D8/D4/D0/78/74/70/60/5C/58) and sets 1.0f in
  * another (0xF4/DC/E0/E4/7C/64/68/6C); finalizes via cb(arg2+0x30, self). Returns
  * self. Fresh decode 2026-05-29 (m2c-confirmed, m2c-faithful short-circuit form).
- * 52.5% reg-blind, exact 80-insn count. Residuals: (a) target reserves a ~120-byte
- * stack region (frame 0x98) that nothing writes — an unreconstructable local from
- * this function alone, so my frame is 0x38 and every sp-offset is shifted; (b) FP
- * constant regalloc swap (mine 0.0f->f2/1.0f->f0, target f0/f2 — IDO assigns the
- * lui-loaded 1.0 vs free 0.0 opposite to use order, not C-drivable); (c) the
- * self->0x110 null-check/sub-alloc dead blocks (same family as gl_func_000519A4).
- * Caps: self struct + 2 cb prototypes untyped (USO-reloc). Kept NON_MATCHING. */
+ * 88.7 -> ~89.5 (2026-05-31): (a) the init cb's 2nd arg 0x22128 is the ADDRESS
+ * `&D_00000000 + 0x22128` not the literal — literal emits `ori a1,0x2128`,
+ * address emits `addiu a1,8488` (matching target); +0.74pp. (b) the ~96-byte
+ * stack reserve (frame 0x98 vs 0x38) that nothing writes is now reconstructed
+ * with `volatile char _pad[96]` — an unused volatile local reserves the space
+ * with NO stores (matching the target's unwritten region), making frame -152 and
+ * aligning the incoming-arg homes (a1@156 etc.). The metric barely moves because
+ * objdiff weights the offset shifts low and the dominant residual is a cap.
+ * Residual (caps): (b') a 4-byte spill-slot offset the _pad doesn't nail (32 vs
+ * 36) — the real reserve's exact partition is unknown; (c) FP constant regalloc
+ * swap (mine 0.0f->f2/1.0f->f0, target f0/f2 — IDO assigns the lui-loaded 1.0 vs
+ * free 0.0 opposite to use order, not C-drivable); (d) self->0x110 dead blocks +
+ * prologue s0=arg0-move-vs-test scheduling tie. Caps: self struct + 2 cb
+ * prototypes untyped (USO-reloc). Kept NON_MATCHING. */
 extern int gl_func_00000000();
 void *gl_func_000628EC(char *arg0, int arg1, int arg2, int arg3, int arg4) {
+    volatile char _pad[96];
     char *self;
     int *a1p;
     int *v1p;
@@ -34891,7 +34899,7 @@ void *gl_func_000628EC(char *arg0, int arg1, int arg2, int arg3, int arg4) {
 
     self = arg0;
     if ((arg0 != 0) || (self = (char *)gl_func_00000000(0x130), (self != 0))) {
-        gl_func_00000000(self, 0x22128);
+        gl_func_00000000(self, (char *)&D_00000000 + 0x22128);
         a1p = (int *)(self + 0x110);
         v1p = a1p;
         if (((self != (char *)-0x110) || (v1p = (int *)gl_func_00000000(4, a1p), (v1p != 0))) &&
