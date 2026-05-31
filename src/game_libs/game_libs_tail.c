@@ -2911,6 +2911,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E450);
  *   int *p = a0 + 0x18; *p &= ~8; return p;
  * Same base-reg-choice cap as E450/E490. See E410 family header. */
 #ifdef NON_MATCHING
+/* 4-diff residual (2026-05-31): the &-field RMW + return-pointer. Target
+ * materializes v0=a0+0x18 FIRST and does the RMW through 0(v0) (lw/sw 0(v0)),
+ * then returns v0; IDO with our C loads/stores DIRECT (24(a0)) and only
+ * materializes v0 LATE for the return — it won't compute the pointer before a
+ * foldable offset access. `*p &= ~8` and `volatile int *p; *p=*p&~8` both
+ * give the direct form. Pointer-form-vs-index-form resist (cf game_libs tiny
+ * leaves). Same shape across the E4xx sibling family (E410/E450/E464/E47C/E490
+ * — |=/&= bit variants). Not C-controllable here. */
 int *game_libs_func_0000E464(int *a0) {
     int *p = (int*)((char*)a0 + 0x18);
     *p &= ~8;
