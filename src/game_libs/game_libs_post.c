@@ -26103,13 +26103,14 @@ int* gl_func_0004C190(int *a0, int a1, int a2_unused, int a3) {
     int aligned;
     if (s0 == 0) {
         s0 = (int*)gl_func_00000000(0x1CC);
-        if (s0 == 0) return 0;
+        if (s0 == 0) goto end;
     }
     gl_func_00000000(s0);
     s0[0x28/4] = (int)&D_00000000;
     aligned = ((int)buf + 0x33) & ~3;
     gl_func_00000000(s0, a1, aligned);
     gl_func_00000000(s0);
+end:
     return s0;
 }
 #else
