@@ -211,42 +211,41 @@ void eddproc_uso_func_0000038C(char *dst) {
 }
 
 /* 36-insn / 0x90 constructor: alloc 0x40, init via gl_func, conditional
- * list-insert into arg0->field_40 if non-NULL.
+ * list-insert into arg0->field_40 if non-NULL. BYTE-EXACT 2026-05-30.
  *
- * 2026-05-28: fixed a logic bug — the `if (head->0x14 != 0)` body writes
- * `head->0x4 = 1` (target: `sw t9, 0x4(a1)`, a1=head), NOT `p->0x4`.
- * Also dropped the `volatile int **p_arg0` trick: arg0 is naturally live
- * across the first gl_func call (used as arg0->0x40), so IDO homes it
- * without the trick — same byte result, cleaner C.
- *
- * Residual (~94% fuzzy, frame -0x20 vs target -0x28): the target SPILLS
- * its cross-call temporaries (p, head, arg0) to stack slots 0x1C/0x20/0x24
- * and reloads, using NO $s registers (no prologue $s save). IDO-from-C at
- * this opt level prefers keeping them in regs, giving a smaller frame.
- * The spill-not-saved-reg shape isn't C-controllable here. NM. */
-#ifdef NON_MATCHING
+ * The old "~94% cap (frame -0x20 vs -0x28, spill-not-saved-reg)" was NOT a
+ * cap — the target spills the object pointer as TWO live ranges (frame 0x28).
+ * Cracked via: (1) p1/p2 split so the block1 (init) and block2 (link) uses of
+ * the pointer become two webs -> the second spill slot + frame 0x28; (2) the
+ * permuter found that REUSING p1 to hold arg0 after the split lets IDO place
+ * the pointer in $a0(block1)/$v1(block2) instead of $a2; (3) declaration order
+ * p2,head,p1 fixes the spill-slot offsets (IDO assigns int slots in decl order,
+ * see docs/IDO_CODEGEN.md interleave-decl-spill-slot); (4) re-loading the
+ * arg0[0x40] condition (`if((int*)p1[0x40/4]!=0)`) puts head in $v0 + a plain
+ * beqz. Do not "simplify" the variable reuse or the re-load — they're load-
+ * bearing for the register/slot allocation. */
 void *eddproc_uso_func_000003BC(int *arg0) {
-    int *p;
+    int *p2;
     int *head;
-    p = (int*)gl_func_00000000(0x40);
-    if (p != 0) {
-        gl_func_00000000(p);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p + 0x3C) = 0;
+    int *p1;
+    p1 = (int*)gl_func_00000000(0x40);
+    if (p1 != 0) {
+        gl_func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    head = (int*)arg0[0x40 / 4];
-    if (head != 0) {
-        gl_func_00000000((char*)p + 0x10, head);
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        gl_func_00000000((char*)p2 + 0x10, head);
         if (*(int*)((char*)head + 0x14) != 0) {
             *(int*)((char*)head + 0x4) = 1;
         }
-        *(int*)((char*)head + 0x14) = (int)p;
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    return p;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_000003BC);
-#endif
 
 void eddproc_uso_func_0000044C(char *dst) {
     int tmp;
