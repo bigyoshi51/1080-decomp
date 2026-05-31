@@ -37987,12 +37987,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000693A4);
 int* gl_func_000695F4(int *self_or_null, int a1, int a2) {
     extern int D_00000000;
     extern int D_sym_695F4;
-    int *obj;
+    int *obj = self_or_null;
     if (self_or_null == 0) {
         obj = (int*)gl_func_00000000(0x98);
         if (obj == 0) return 0;
-    } else {
-        obj = self_or_null;
     }
     gl_func_00000000(obj, (char*)&D_00000000 + 0x2C5A8);
     obj[0x28 / 4] = (int)&D_sym_695F4;
