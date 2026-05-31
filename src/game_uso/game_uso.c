@@ -9388,24 +9388,27 @@ void game_uso_func_0000B884(char *dst) {
  * beql branch-likely + &D reloc scheduling. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
 #ifdef NON_MATCHING
-char *game_uso_func_0000B8D4(char *a0) {
+char *game_uso_func_0000B8D4(char *a0, int a1, char *a2) {
     char *s2;
     char *s1;
     char *sub;
     float z[3];
+    (void)a1;
     s2 = a0 ? a0 : (char *)gl_func_00000000(632);
     if (!s2) return s2;
     s1 = (char *)gl_func_00000000(180);
     if (s1) {
         gl_func_00000000(s1, (char *)&D_00000000 + 3440);
         *(char **)(s1 + 0x28) = &D_00000000;
-        sub = (char *)gl_func_00000000(4);
+        sub = (char *)(s1 + 0x2C);
         if (!sub) sub = (char *)gl_func_00000000(4);
         if (sub) *(int *)sub = 0;
         gl_func_00000000(s1);
         z[0] = 0.0f; z[1] = 0.0f; z[2] = 0.0f;
         gl_func_00000000(s1 + 0x30, z);
     }
+    *(char **)(s2 + 0x28) = &D_00000000;
+    *(char **)(s2 + 0x220) = a2;
     return s2;
 }
 #else
