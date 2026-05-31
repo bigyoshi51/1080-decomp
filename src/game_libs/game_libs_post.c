@@ -35681,14 +35681,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
  * (ptr +0x14, signed-halfword bias +0x10) with (bias + a0). RELOC-FREE (FP consts
  * + indirect jalr) -> landable with an FP/regalloc grind; the target stages the
  * Vec3 via a stack scratch (omitted here). NM (reference decode). */
+struct V3i_65360 { int a, b, c; };
 void gl_func_00065360(int a0, float *a1) {
     int v0;
-    *(float *)((char *)a0 + 0xDC) = a1[0];
-    *(float *)((char *)a0 + 0xE0) = a1[1];
-    *(float *)((char *)a0 + 0xE4) = a1[2];
+    struct V3i_65360 tmp;
+    tmp = *(struct V3i_65360 *)a1;
+    *(float *)((char *)a0 + 0xDC) = *(float *)&tmp.a;
+    *(float *)((char *)a0 + 0xE0) = *(float *)&tmp.b;
+    *(float *)((char *)a0 + 0xE4) = *(float *)&tmp.c;
     v0 = *(int *)((char *)a0 + 0x28);
-    *(float *)((char *)a0 + 0xB4) = a1[0];
-    *(float *)((char *)a0 + 0xB8) = a1[1];
+    tmp = *(struct V3i_65360 *)a1;
+    *(float *)((char *)a0 + 0xB4) = *(float *)&tmp.a;
+    *(float *)((char *)a0 + 0xB8) = *(float *)&tmp.b;
     *(float *)((char *)a0 + 0x304) = 0.0f;
     *(float *)((char *)a0 + 0x300) = 0.0f;
     *(float *)((char *)a0 + 0x2FC) = 0.0f;
