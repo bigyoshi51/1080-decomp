@@ -3884,33 +3884,48 @@ void gl_func_0002372C(int a0) {
 //   a payload, word e->0x10 a pointer. The "obtain & dereference a
 //   resource handle of class 2" entry in the game_libs resource
 //   subsystem.
-// Caps (DEFERRED): CLEAN single jr $ra. "Obtain & dereference a
-//   class-2 resource handle" entry of the game_libs resource
-//   subsystem. Real-C STRUCTURAL body below per the analysis (chain
-//   fixed USO-reloc 0x38204(2) / 0x38174(2) / 0x381B0(2,j); if ok,
-//   jal-0 USO-reloc acquire(j,2); resolved j selects a 0x10-stride
-//   table entry; type tag e->0x19==4 special-cases payload e->0x18
-//   else pointer e->0x10). Byte-match deferred — placeholder jal
-//   chain / jal-0 acquire need USO reloc infra + branch schedule.
-//   Name pre-checked: no extern reuse (collision-safe).
+// 2026-05-31: body completed + register-matched 44.0->91.2%. The sketch
+//   was wrong in several ways, now fixed: (1) the FIRST call's result r0 =
+//   38204(2) is the TABLE BASE (e = r0 + j*0x10), not a separate func(j)
+//   call; (2) ok-polarity is INVERTED — if ok!=0 the acquire path runs and
+//   returns early (acquire(j,2); *out=0; return v), only ok==0 reaches the
+//   table lookup; (3) param0 is passed to 38174 while param1 is the OUTPUT
+//   pointer; (4) the non-type-4 arm calls 37f80(2,j,&local) and branches on
+//   its result; (5) the ==4 and the res==0 arms both return e->0x10 (delay-
+//   slot load). KEY LEVER: reusing the PARAM var x to hold j (x = 38174(2,x))
+//   extends its live range across all calls -> IDO promotes it to saved reg
+//   s0, fixing the whole register cascade (72->91%). RESIDUAL (91->100) is
+//   the 4 baked-jal placeholders (38204/38174/381b0/37f80 — USO-reloc cap,
+//   ~7%) + a minor frame-packing diff. Name pre-checked: no extern reuse.
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
-int gl_func_00023760(int *dst, int a1) {
-    int j = gl_func_00000000(2);
-    int ok = gl_func_00000000(2, j);
+int gl_func_00023760(int x, int *out) {
+    int r0 = gl_func_00000000(2);            /* 38204(2) - table base */
+    int ok;
     char *e;
-    if (ok == 0) {
-        return 0;
+    x = gl_func_00000000(2, x);              /* x := j = 38174(2, x); reuse param -> s0 */
+    ok = gl_func_00000000(2, x);             /* 381b0(2, j) */
+    if (ok != 0) {
+        int v = gl_func_00000000(x, 2);      /* acquire(j, 2) - jal 0 */
+        *out = 0;
+        return v;
     }
-    gl_func_00000000(j, 2);
-    e = (char *)gl_func_00000000(j) + j * 0x10;
-    if (*(unsigned char *)(e + 0x19) == 4) {
-        *dst = *(unsigned char *)(e + 0x18);
-    } else {
-        *dst = *(int *)(e + 0x10);
+    e = (char *)r0 + x * 0x10;
+    if (*(signed char *)(e + 0x19) == 4) {
+        *out = *(signed char *)(e + 0x18);
+        return *(int *)(e + 0x10);
     }
-    return 1;
+    {
+        int local;
+        int res = gl_func_00000000(2, x, &local);   /* 37f80(2, j, &local) */
+        if (res != 0) {
+            *out = 0;
+            return res;
+        }
+    }
+    *out = *(signed char *)(e + 0x18);
+    return *(int *)(e + 0x10);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023760);
