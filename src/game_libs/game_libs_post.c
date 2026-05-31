@@ -18638,10 +18638,21 @@ void gl_func_0003D114(Quad4 *dst) {
 //     o->p_28 = &D_0;                              // global root
 //     int *sub = alloc(0x04);                      // sub-block @0x2C
 //     if (sub) *sub = 0;
-//     *(int*)(o + 0x2C) = a1;                       // store arg
-//     o->w_? = -1;                                  // sentinel
+//     *(int*)(o + 0x2C) = a1;                       // store arg1
+//     o->0x38 = 0; o->0x3C = 0;                      // VERIFIED 2026-05-31
+//     *(int*)(o + 0x40) = a2;                        //   (3rd param, unused
+//     *(int*)(o + 0x44) = -1;                        //    in NM body below)
 //     return o;
 //   }
+//   NM-body note (2026-05-31): the body below uses a simplified
+//   `*(o+0x34) = -1` placeholder. The VERIFIED init is the four fields
+//   above (0x38=0, 0x3C=0, 0x40=a2, 0x44=-1; a2 is the unused 3rd param).
+//   Completing them REGRESSES fuzzy 69.7->67.6: adding the writes shifts
+//   `o` from a2 (target, `or a2,a0` after homing the 3rd arg) to a3 (free
+//   reg), renumbering downstream, AND the target has an uncaptured
+//   `bne o,-44` always-taken block (insns 19-23) the body doesn't model.
+//   Byte-match needs the o->a2 coloring + that block solved; kept the
+//   higher-fuzzy placeholder body until then.
 //
 // Struct-typing reference: a constructor of the game_libs object
 //   subsystem's factory family. Allocate-or-reuses a 0x48-byte
@@ -34120,48 +34131,31 @@ int gl_func_00061E58(int arg0) {
     return (int)((char *)&D_00000000 + 0x3F020);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00061E9C: 31-insn lookup + assert + 5-arg dispatch (0x7C, frame 0x28).
- *
- * Decoded structure (raw-word disasm):
- *   self = func1(arg0);                              // 1st call (lookup)
- *   if (self->[0x14] == 0) func2(0x22040);           // assert / error log
- *   ptrptr = (int**)self[0];                          // va_arg-style pop
- *   p = *ptrptr;
- *   *ptrptr = p + 1;                                  // advance
- *   val = *p;
- *   self->[0x4] = val;
- *   related = (int*)self->[0x3C];
- *   result = func3(0, related->[0x10], self->[0x14], 0, val);  // 5-arg
- *   self->[0x10] = result;
- *   self->[0xC]  = 0;
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ * MATCHED 2026-05-31. Keys: (1) self IS arg0, not the func1 return — func1(arg0)
+ * is called for side effect with its result discarded (`or s0,a0` fills the call
+ * delay slot, promoting self to s0); (2) the 0x22040 assert arg is address-style
+ * (&D+0x22040 -> lui+addiu), not a literal (lui+ori); (3) inline `related` (no
+ * named local) to color its temp t8 not t1. 70.3% -> 100%. */
 void gl_func_00061E9C(int *arg0) {
-    int *self = (int*)gl_func_00000000(arg0);
+    int *self = arg0;
     int **ptrptr;
     int *p;
     int val;
-    int *related;
     int result;
+    gl_func_00000000(arg0);
     if (self[0x14 / 4] == 0) {
-        gl_func_00000000(0x22040);
+        gl_func_00000000((char *)&D_00000000 + 0x22040);
     }
     ptrptr = (int**)self[0];
     p = *ptrptr;
     *ptrptr = p + 1;
     val = *p;
     self[0x4 / 4] = val;
-    related = (int*)self[0x3C / 4];
-    result = (int)gl_func_00000000(0, related[0x10 / 4], self[0x14 / 4], 0, val);
+    result = (int)gl_func_00000000(0, ((int*)self[0x3C / 4])[0x10 / 4], self[0x14 / 4], 0, val);
     self[0x10 / 4] = result;
     self[0xC / 4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061E9C);
-#endif
 
 /* Quad4 reader template — 4th in this loop's mass-match pass after
  * 0003A9E8/0000975C/00037E40. Standard 22-insn body. */
