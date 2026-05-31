@@ -3104,11 +3104,16 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * (`return 1`, unfilled-delay), already landed via its -g3 carve-out
  * src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c. (Donor-splice fails because it
  * uses -O0; -g3 is the right tool, not -O0.)
- * TO LAND: carve 87E8 into a -O2 -g3 sub-unit (template: g3_1DA4.c), delete it
- * from this TU, and EXTEND the block5 Yay0 splice (Makefile ~L413) to insert at
- * BOTH 0x1DA4 and 0x87E8 (two offset-ordered splice points; TRUNCATE_TEXT 0x18).
- * Same for sibling 8894. Deferred from this tick only to avoid touching the
- * shared block5 build rule mid-session; it is a mechanical, proven landing. */
+ * TO LAND (attempted 2026-05-31, reverted): the -g3 sub-unit g3_87E8.c WORKS —
+ * it produces the EXACT 0xC target bytes (verified). But the block5 splice is
+ * NOT a simple "delete 0xC, pad tail, reinsert": deleting 87E8 from the TU
+ * shrank main .text by 0x10 (not 0xC) and left a real epilogue + 8 zeros at the
+ * tail, not clean 0x18 zeros. So the main .c.o .text length / padding mechanism
+ * (how 1DA4's removal currently yields exactly 0xe620 with 0xC tail zeros) must
+ * be reverse-engineered before extending the splice — guessing it corrupts the
+ * shared block5 build. The CRACK is proven (g3 bytes exact); the remaining piece
+ * is the precise splice-padding RE — a focused task, not a quick tick. Same for
+ * sibling 8894. */
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_000087E8(void) {
     return 0;
