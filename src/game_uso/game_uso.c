@@ -2657,10 +2657,20 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
  * with 3 pointers @0x4309), so the float arg promoted -> a `cvt.d.s`. Fixed via a
  * float-PROTOTYPED alias `gl_func_00000000_ff(float)` (=0x0 in undefined_syms_auto)
  * — removes the cvt.d.s AND lands the add.s result directly in $f12, size-exact 54.
- * Residual 0.56% = a float register swap: div result `r` in $f2 / `ret` in $f12,
- * target has them reversed ($f12/$f2). Tried ternary, combined call/div, and
- * a<b->b>a comparison swap — none flip it (float-regalloc cap; INSN_PATCH that
- * previously "fixed" it was removed 2026-05-23 as match-faking). Honest NM. */
+ * Residual 0.56% = an FP register swap on exactly 4 insns ([34] div.s, [42] mov.s,
+ * [45] neg.s, [51] mov.s): div result `r` in $f2 / `ret` in $f12, target reversed
+ * ($f12/$f2). The div result wants $f12 because $f12 held the call ARG (computed in
+ * the jal delay slot [29] add.s f12) and IDO reuses it post-call; mine picks $f2.
+ * 2026-05-30 grind (12 variants total, NONE flip it): ternary, combined call/div,
+ * a<b comparison swap, swap decl order, if/else arms, swap r/ret ROLES (div->ret,
+ * return r), swap roles + decl, temp-local for call result, neg-uses-ret (ret=-ret),
+ * `register float` hints on r and ret (IDO ignores), remove `unused` (REGRESSES to
+ * 99.15 — the leading float local is load-bearing for frame/alloc). Pure IDO FP-
+ * allocator coloring, not C-reachable (the per-function-RE cap class, cf.
+ * project_1080_cap_analysis). Next tool: permuter, or rebuild scripts/regalloc-dump
+ * (ecvt patch to tools/ido-static-recomp, gitignored) for the FP candidate ordering.
+ * INSN_PATCH that previously "fixed" this was removed 2026-05-23 as match-faking.
+ * Honest NM. */
 extern float gl_func_00000000_f();
 extern float gl_func_00000000_ff(float);  /* float-prototyped alias of _f (=0x0): avoids K&R float->double arg promotion */
 #ifdef NON_MATCHING
