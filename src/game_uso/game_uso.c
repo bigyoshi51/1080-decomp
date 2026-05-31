@@ -13204,12 +13204,10 @@ void game_uso_func_00011750(char *obj) {
     *(short *)(obj + 0x130) = 0;
     if (*(int *)(s + 0x9CC) != 0) {
         gl_func_00000000(obj, *(int *)(obj + 0xFC) | 0x24, 0, 0, 0x100, 5);
-        e = (int *)((char *)&D_00000000 + 0xEA0);
-        gl_func_00000000(obj, e[0], e[1], -1);
+        gl_func_00000000(obj, *(F5A8Pair *)((char *)&D_00000000 + 0xEA0), -1);
     } else {
         gl_func_00000000(obj, *(int *)(obj + 0xFC) | 0x1D, 0, 0, 0x100, 5);
-        e = (int *)((char *)&D_00000000 + 0xEA0);
-        gl_func_00000000(obj, e[0], e[1], -1);
+        gl_func_00000000(obj, *(F5A8Pair *)((char *)&D_00000000 + 0xEA0), -1);
     }
     gl_func_00000000(obj);
 }
