@@ -8445,21 +8445,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9F0);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_0002AA30(char *o) {
-    int s = *(int *)o;
+    int v0 = *(int *)o;
     short c;
     int r;
-    if (s < 0) return;
+    if (v0 >= 0) return;                       /* srl+beql sign gate: proceed only if negative */
     c = *(short *)(o + 8);
     if (c >= 2) {
+        if ((v0 << 2) < 0) return;             /* bltz (v0<<2) */
         *(short *)(o + 8) = c - 1;
         if (*(short *)(o + 0xA) < *(short *)(o + 8)) return;
     }
-    gl_func_00000000();
+    gl_func_00000000();                         /* pre() */
     *(unsigned char *)o = *(unsigned char *)o | 0x20;
-    gl_func_00000000(o);
-    r = gl_func_00000000(o);
+    gl_func_00000000(o);                        /* 3f1a0 */
+    r = gl_func_00000000(o);                    /* 3f388 */
     if (r == -1) return;
-    gl_func_00000000(o);
+    r = gl_func_00000000(o, r);                 /* 3fc60(o, r) */
+    if (r == -1) return;
+    r = gl_func_00000000(o, r);                 /* 3f708(o, r) */
+    if (r != -1) {
+        gl_func_00000000(o);                    /* 3f22c(o) */
+    }
+    v0 = *(int *)o;                             /* re-read o->0 for second gate */
+    if ((v0 << 2) >= 0) return;
+    if (*(int *)(o + 0x2C) != 0 || (v0 << 3) < 0) {
+        gl_func_00000000(o);                    /* final cb */
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
