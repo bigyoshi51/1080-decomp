@@ -3323,23 +3323,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023070);
-
-/* gl_func_00023078: 22-insn prologue-stolen successor of gl_func_00022FC0.
- * Predecessor tail `lui t6,0; lhu t6,0x202C(t6)` (= u16 *(&D+0x202C))
- * belongs to this entry — PROLOGUE_STEALS=8 splices the C-emit dup.
- *   lim = *(u16*)(&D+0x202C);
- *   if (a0 < (int)lim) {
- *     if (a1 & 2) gl_func_00000000(a0, &local);
- *     if (a1 & 1) gl_func_00037D98();   // jal in-segment 0x37D98
- *   }
- * No v0 set → void. */
+/* game_libs_func_00023070 — bounds-gated dual-flag dispatch. The orphan
+ * game_libs_func_00023070 (lui t6,0; lhu t6,0x202C(t6) = (u16)*(&D+0x202C))
+ * was the stolen prologue of gl_func_00023078: it loads the limit compared
+ * at the top (a0 < limit). Merged FORWARD (one 0x60 symbol at 0x23070,
+ * successor .s deleted) and reading the limit inline at the comparison makes
+ * IDO hoist the lui;lhu above the prologue — the prologue-steal is C-
+ * reachable (same recipe as game_libs_func_00026B40). The 2nd flag check
+ * uses plain `a1 & 1` — the compiler preserves a1 across the a1&2 call by
+ * itself (emits `or a2,a1,zero` + spill); an explicit `int a2=a1` copy
+ * instead ADDS a frame slot (+8) and breaks the match. jal 0x37D98 resolves
+ * via gl_func_00037D98=0x37D98 in undefined_syms. MATCHED 2026-05-30. */
 extern int gl_func_00000000();
 extern int gl_func_00037D98();
-#ifdef NON_MATCHING
-void gl_func_00023078(int a0, int a1) {
+void game_libs_func_00023070(int a0, int a1) {
     int local[2];
-    if (a0 < (int)*(unsigned short*)((char*)&D_00000000 + 0x202C)) {
+    if (a0 < (int)*(unsigned short *)((char *)&D_00000000 + 0x202C)) {
         if (a1 & 2) {
             gl_func_00000000(a0, local);
         }
@@ -3348,9 +3347,6 @@ void gl_func_00023078(int a0, int a1) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023078);
-#endif
 
 // gl_func_000230D0 — STRUCTURAL PASS (0xE4 / 57 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
