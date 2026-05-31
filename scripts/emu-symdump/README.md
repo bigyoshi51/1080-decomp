@@ -114,9 +114,50 @@ emulator. Re-run steps 2–3 for other USO modules (different `--module`).
   which is fine: the module is loaded + relocated well before the hang, and the
   timer-based dump catches it.
 
+## Gameplay USOs (`--real-render`, 2026-05-30)
+
+The dummy-plugin path above only catches USOs loaded **during boot** (bootup,
+game_libs). Mode-specific USOs (game_uso, titproc, timproc, h2hproc, …) load
+later, so the game must actually run with **real** plugins:
+
+```bash
+# real video-rice (GFX) + rsp-hle (RSP) under a virtual display + software GL:
+tools/mupen64plus/xvfb-extract/usr/bin/Xvfb :99 -screen 0 640x480x24 &
+DISPLAY=:99 python3 scripts/emu-symdump/uso-emu-dump.py --real-render --module 0x595408 ...
+```
+
+- **The fix that makes real plugins work**: the frontend must call each plugin's
+  `PluginStartup(coreHandle, …)` **before** `CoreAttachPlugin` (it resolves the
+  core's VidExt fns). Dummy plugins no-op it so the old code worked; real plugins
+  SIGSEGV in `InitiateGFX` on a NULL VidExt without it. Baked into `uso-emu-dump.py`.
+- **One dump covers every USO resident at that game state.** The game_uso dump
+  reached the title, so **titproc** (uncompressed) was also resident — dumped via
+  `walk_dir`+`uso-correlate.py` against the *same* `/tmp` dump, no second run.
+- **Compressed USOs** (game_uso, timproc, mgrproc) have their Sym/TextReloc *inside*
+  the Yay0 blocks, so `uso-correlate` (which reads the ROM TextReloc) can't be used.
+  Instead **diff** the Yay0-decompressed CODE block (`extract-uso-yay0.py --write`)
+  against the resolved RAM Text: every differing word is a reloc site, the RAM word
+  is the resolved target (`game-uso-reloc-diff.py` → `game-uso-name-join.py`).
+- **Naming external targets**: `enrich-uso-imports.py` rewrites `import_<addr>` to
+  real names via bootup's symname table + its voted RAM textbase (0x95e50).
+- **BLOCKER for race procs (timproc/h2hproc/mgrproc/n64proc/eddproc)**: starting a
+  race needs **menu navigation (button presses)**; the dummy INPUT plugin sends
+  nothing, so passive idling stays in the title/menu (verified: a 300s real-render
+  run never loaded a race proc). These need a **scripted INPUT plugin or an in-mode
+  save-state** — a focused task, not a passive dump. titproc was free only because
+  the title is reached without input.
+- **Verify residency with a ≥64-byte probe** (or a multi-probe consistent-tbase
+  test), never a single 32-byte slice: a 32-byte match can be coincidental (a
+  timproc block falsely "appeared" resident in the demo dump; 64-byte probes and a
+  unique-tbase vote both confirmed it absent). A genuine relocated module shows a
+  *constant* tbase across many unique probes + 0 jal-0 placeholders in RAM.
+
 ## Files
 
-- `uso-emu-dump.py` — boot + dump driver (self-contained signature from the ROM).
-- `uso-correlate.py` — dump + reloc table → `symnames.json`.
+- `uso-emu-dump.py` — boot + dump driver (`--real-render` for gameplay USOs).
+- `uso-correlate.py` — dump + ROM reloc table → `symnames.json` (uncompressed USOs).
+- `game-uso-reloc-diff.py` — on-disk-vs-RAM Text diff for COMPRESSED USOs.
+- `game-uso-name-join.py` / `enrich-uso-imports.py` — `import_<addr>` → real names.
 - `dummy-plugin.c` / `dummy-rsp.c` — no-op plugin sources (build per step 1b).
-- `bootup_uso.symnames.json` — the recovered bootup.uso map (1672 names).
+- `bootup_uso.symnames.json` (1672), `game_uso.symnames.json` (1508 sites),
+  `titproc_uso.symnames.json` (102) — recovered maps.
