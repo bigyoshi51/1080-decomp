@@ -460,26 +460,34 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * obj (->0x14 bit 0x1), 0x4FC flag, 0x6E4 sub-obj (gl arg), 0x6A8 obj
  * (->0x30), 0x2F0/0x314 out bufs. D consts: [0]/[0x40]/[0x44] floats,
  * [0x138] global ptr. The 255.0f*x trunc.w.s is a float→u8 quantize.
- * Caps <80: beql/bc1fl branch-likely, c.le.s/c.lt.s FP compare, &D
- * %hi/%lo reloc + spill scheduling — documented EE84-family ceiling.
- * INCLUDE_ASM is the correct build path (no episode; tautology-trap). */
+ * 75.88 -> 82.34 (2026-05-31): the &D FP consts (&D+0/0x40/0x44) + the +0x138
+ * pointer use DISTINCT externs (D_b1_11d8_0/40/44 float + D_b1_11d8_138 int) to
+ * bust the &D-base CSE; and the v0 = (a && b && c) guard is inlined into the `if`
+ * (removes the sltu boolean-materialization). Same family as the now-EXACT
+ * mgrproc_uso_func_00002294. DEFERRED decode corrections (identified via the
+ * branch-likely bytes, but they REGRESS the metric until the whole structural set
+ * is fixed together — multi-tick): (1) the D[0] gate should be the body-WRAP form
+ * `if (D[0] <= 0) { ... }` (target c.le.s; bc1fl), not the early `if(<=0)return`;
+ * (2) the &D+0x138 chain is `*(*(p1+0x44)+0x38)` not `*(p1)+0x7C` (target
+ * lw 0x138; lw 0x44; lw 0x38); (3) a missing {?}x4 Vec color buffer at sp+0x50
+ * (frame -96 vs -48, 4 swc1 $f0). Still NON_MATCHING. */
+extern float D_b1_11d8_0, D_b1_11d8_40, D_b1_11d8_44;
+extern int D_b1_11d8_138;
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_000011D8(char *a0) {
     char *s0 = a0;
     float fv;
-    int v0;
     int saved;
     if (*(int *)(a0 + 0x500) == 0) return;
-    if (*(float *)&D_00000000 <= 0.0f) return;
+    if (D_b1_11d8_0 <= 0.0f) return;
     fv = *(float *)(a0 + 0x72C);
-    if (fv < *(float *)((char *)&D_00000000 + 0x40)) {
-        *(float *)(a0 + 0x72C) = fv + *(float *)((char *)&D_00000000 + 0x44);
+    if (fv < D_b1_11d8_40) {
+        *(float *)(a0 + 0x72C) = fv + D_b1_11d8_44;
     }
     *(int *)(s0 + 0x508) = *(int *)(s0 + 0x508) + 1;
-    v0 = ((*(int *)(*(char **)(s0 + 0x528) + 0x14) & 1) &&
-          *(int *)(s0 + 0x4FC) &&
-          *(int *)(*(int *)(*(int *)((char *)&D_00000000 + 0x138)) + 0x44 + 0x38) < 3);
-    if (v0) {
+    if ((*(int *)(*(char **)(s0 + 0x528) + 0x14) & 1) &&
+        *(int *)(s0 + 0x4FC) &&
+        *(int *)(*(int *)(D_b1_11d8_138) + 0x44 + 0x38) < 3) {
         saved = (int)gl_func_00000000(s0 + 0x6E4);
         gl_func_00000000(saved, (int)(255.0f * *(float *)(s0 + 0x72C)),
                          s0 + 0x2F0, s0 + 0x314);
