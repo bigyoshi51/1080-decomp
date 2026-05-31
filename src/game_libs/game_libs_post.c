@@ -9592,15 +9592,11 @@ void game_libs_func_0002D830(void) {
  *
  * Calls gl_func_00000000(0x41010000, D_2D870_Y[D_2D870_X]) — passes float
  * bits 8.0625f as a0 and indexed table value as a1. */
-extern int *D_2D870_X;
+extern int D_2D870_X;
 extern int D_2D870_Y[];
-#ifdef NON_MATCHING
-void gl_func_0002D870(void) {
-    gl_func_00000000(0x41010000, D_2D870_Y[(int)D_2D870_X]);
+void game_libs_func_0002D868(void) {
+    gl_func_00000000(0x41010000, D_2D870_Y[D_2D870_X]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D870);
-#endif
 
 /* gl_func_0002D8A8: 12-insn prologue-stolen-successor of gl_func_0002D870.
  * Predecessor's tail (`lui $t6, 0; lw $t6, 0(t6)`) loads $t6=*(int*)D_2D870_X
@@ -9611,11 +9607,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D870);
  *
  * Calls gl_func_00000000(0x41000000, D_2D870_Y[D_2D870_X[0]]) — passes the
  * float bits of 8.0f as a0 and an indexed table value as a1. */
-extern int *D_2D870_X;        /* index source — set by predecessor's stolen tail */
-extern int D_2D870_Y[];        /* table indexed by D_2D870_X[0] */
 #ifdef NON_MATCHING
 void gl_func_0002D8A8(void) {
-    gl_func_00000000(0x41000000, D_2D870_Y[(int)D_2D870_X]);
+    gl_func_00000000(0x41000000, D_2D870_Y[D_2D870_X]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D8A8);
