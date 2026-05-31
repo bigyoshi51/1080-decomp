@@ -70,6 +70,12 @@ void arcproc_uso_func_00000240(void) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000240);
 #endif
 
+/* arcproc_uso_func_000005C8: CAP (verified 2026-05-31, structure is EXACT). The C
+ * below matches the target's logic insn-for-insn, but stays ~43% because the target
+ * is -g3/-O0 codegen: all 6 jals have UNFILLED delay slots (nop), s0 is saved/used for
+ * the alloc result, frame is 0x28 — my -O2 fills the delays, keeps the result in v0,
+ * frame 0x20. Needs a per-file -g3 split (Yay0-split infra) AND the raw-word jal relocs
+ * are placeholder gl_func_00000000 (USO reloc-presence). Don't re-grind at -O2. */
 extern int *D_arc5C8_148;
 extern int D_arc5C8_14C;
 extern int D_arc5C8_68;
