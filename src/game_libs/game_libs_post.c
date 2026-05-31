@@ -1473,35 +1473,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FBD4);
 void gl_func_0001FC50(void) {
     gl_func_00000000();
 }
-#ifdef NON_MATCHING
-/* 22-insn 2-call wrapper. The `lui t6; lw t6,0x2178(t6)` load of *(&D+0x2178)
- * is THIS function's real prologue (IDO emits a global-load pre-prologue when
- * it's read before any stack use). It was mis-split into gl_func_0001FC50_pad.s;
- * boundary-corrected 2026-05-30 by merging those 2 words into gl_func_0001FC78.s
- * (0x50 -> 0x58, start 0x1FC78 -> 0x1FC70), same fix as the adjacent
- * gl_func_0001FCD0. The C body below now structurally matches the target
- * (if(t6!=0){...}else{v1=0;} -> beqz + save-a1 in delay slot + 2-arg 2nd call).
- *
- * RESIDUAL CAP: the loaded value lands in $v0 (IDO's first-temp) vs the target's
- * $t6 — a register-renumber from the original's fuller register pressure (the
- * value is read once at the beqz then dead, so it's a caller-saved temp either
- * way). Not C-forceable standalone; permuter/ugen-phase territory. ~88% NM. */
-int gl_func_0001FC78(int *a0, int a1) {
-    int v1;
-    int t6 = *(int*)((char*)&D_00000000 + 0x2178);
-    if (t6 != 0) {
-        v1 = gl_func_00000000((char*)&D_00000000 + 0x2178, a1);
-        if (v1 == 0) {
-            v1 = gl_func_00000000(a0, a1);
-        }
-    } else {
-        v1 = 0;
+/* gl_func_0001FC78: MATCHED 2026-05-31 — byte-identical to gl_func_0001FCD0; applied
+ * its body (init v1=0; if(D[0x2178]) v1=cb(&D+0x2178); if(!v1) v1=cb(a0,a1); return v1). */
+/* 2026-05-31: BYTE-IDENTICAL to the now-100% gl_func_0001FCD0 — applied its body. */
+int gl_func_0001FC78(int a0, int a1) {
+    int v1 = 0;
+    if (*(int*)((char*)&D_00000000 + 0x2178) != 0) {
+        v1 = gl_func_00000000((char*)&D_00000000 + 0x2178);
+    }
+    if (v1 == 0) {
+        v1 = gl_func_00000000(a0, a1);
     }
     return v1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FC78);
-#endif
 
 extern int gl_func_00000000();
 
