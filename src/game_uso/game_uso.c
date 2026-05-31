@@ -11215,11 +11215,10 @@ void game_uso_func_0000EF20(int a0) {
  *     }
  *   }
  * }
- * Structure verified vs .s. Caps sub-80: no-call same-base s0->0xB4 re-derefs +
- * branch-likely D-pair loads (beql at 0x8C) — the documented reload-CSE class
- * (docs/IDO_CODEGEN.md#feedback-intervening-call-forces-reload-vs-cse-cap). No C
- * form defeats it; INCLUDE_ASM is the correct build path (avoids tautology trap). */
-#ifdef NON_MATCHING
+ * Structure verified vs .s. MATCHED 2026-05-31 (74.65% -> 100%): the three
+ * D-pair calls (DF8/DFC, E60/E64, E40/E44) pass the float-pair BY VALUE as
+ * *(Pair2*) — the "reload-CSE / sub-80 cap" was the un-homed pair all along
+ * (same lever as 10AC8/F284, docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair). */
 extern int gl_func_00000000();
 void game_uso_func_0000EF70(int *a0) {
     int *s0 = a0;
@@ -11228,27 +11227,18 @@ void game_uso_func_0000EF70(int *a0) {
     gl_func_00000000(s0);
     if (((int *)s0[0xB4 / 4])[0x938 / 4] == 0) {
         gl_func_00000000(s0);
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xDF8),
-            *(int *)((char *)&D_00000000 + 0xDFC));
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xDF8));
     } else {
         gl_func_00000000(s0, 1);
         if (((int *)s0[0xB4 / 4])[0x9CC / 4] != 0) {
-            gl_func_00000000(s0,
-                *(int *)((char *)&D_00000000 + 0xE60),
-                *(int *)((char *)&D_00000000 + 0xE64));
+            gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE60));
             gl_func_00000000(s0);
         } else {
-            gl_func_00000000(s0,
-                *(int *)((char *)&D_00000000 + 0xE40),
-                *(int *)((char *)&D_00000000 + 0xE44));
+            gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE40));
             gl_func_00000000(s0);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF70);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000F060: 55-insn flag-dispatch (EE84-family, 5 calls).
