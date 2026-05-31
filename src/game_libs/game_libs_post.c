@@ -37958,31 +37958,67 @@ void game_libs_func_00068BF4(int *a0) {
  *   D_global->[0] = saved_a2 + i*4;                   // global update
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * feedback_doc_marker_is_bail.md.
+ *
+ * 2026-05-31: body completed to full logic (40.7->47.6% fuzzy): two read-advance-
+ * conditional-log blocks, 3-arg sub-init, child wiring via self->0x3C, func_d, the
+ * linked-set finalizer, and the D_global[count1] indexed store. Logic now CORRECT
+ * (build 63 insns vs 65 expected, same operations). RESIDUAL is purely register
+ * allocation: the target SPILLS count1 to stack slot 52(sp) (frame 0x38), while
+ * IDO here promotes count1 (a call-surviving value) to saved reg s1 (frame 0x40),
+ * shifting every subsequent insn. Saved-reg-vs-stack-spill cap (count1 can't be
+ * recomputed — it's a consumed buffer read — so the inline-recompute lever doesn't
+ * apply). Permuter candidate. INCLUDE_ASM remains build path.
  */
 void gl_func_00068C14(int *self) {
     extern int D_00000000;
     extern int D_global_00068C14;
+    int *bufstruct;
+    int *p;
+    int count1, count2;
     int *obj;
-    gl_func_00000000(self);
-    /* Ext buf write 1: */
-    {
-        int **bufp = (int**)&self[0];
-        int *p = *bufp;
-        *bufp = p + 1;
-        p[0] = (int)((char*)&D_00000000 + 0x3C4F4);
-        p[1] = (int)((char*)&D_00000000 + 0x3C508);
+    int *child;
+    int *cf;
+
+    gl_func_00000000(self);                         /* pre(self) */
+
+    /* block 1: advance buffer pos by one int, read count, conditional overflow log */
+    bufstruct = (int *)self[0];
+    p = (int *)bufstruct[0];
+    bufstruct[0] = (int)(p + 1);
+    count1 = p[0];
+    self[1] = count1;                               /* self->4 = count1 */
+    if (count1 >= 4) {
+        gl_func_00000000((char *)&D_00000000 + 0x2C4F4, (char *)&D_00000000 + 0x2C508, 221);
     }
-    /* Sub-init + linked-set: */
-    obj = (int*)gl_func_00000000(0);
-    self[0x18 / 4] = (int)obj;
+
+    /* block 2: advance again, read count2, conditional log */
+    bufstruct = (int *)self[0];
+    p = (int *)bufstruct[0];
+    bufstruct[0] = (int)(p + 1);
+    count2 = p[0];
+    self[1] = count2;                               /* self->4 = count2 */
+    if (count2 == 0) {
+        gl_func_00000000((char *)&D_00000000 + 0x2C538, count1);
+    }
+
+    /* sub-init returning the child object */
+    obj = (int *)gl_func_00000000(0, self[0x14 / 4], count2);
+    child = (int *)self[0x3C / 4];
+    child[0x18 / 4] = (int)obj;                     /* (self->0x3C)->0x18 = obj */
     self[0x10 / 4] = (int)obj;
-    obj[0x10 / 4]++;
+    self[0x18 / 4] = (int)obj;
+    cf = (int *)((int *)self[0x3C / 4])[0x10 / 4];  /* (self->0x3C)->0x10 */
+    gl_func_00000000((char *)cf + 0x10);            /* func_d(cf + 0x10) */
+
+    /* linked-set finalizer */
     if (obj[0x14 / 4] != 0) {
         obj[0x4 / 4] = 1;
     }
-    obj[0x14 / 4] = (int)self;
-    (void)D_global_00068C14;
+    obj[0x14 / 4] = (int)cf;
+
+    /* D_global indexed store: D_global[count1] = self->0x18 (obj) */
+    *(int *)((char *)&D_global_00068C14 + count1 * 4) = self[0x18 / 4];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068C14);
