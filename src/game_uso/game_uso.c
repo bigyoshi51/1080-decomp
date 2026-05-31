@@ -12695,7 +12695,18 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
  * to 0x4C, 19 insns vs target 17). Volatile spilled to wrong slots and
  * added an extra reload+ldelay pair. Confirms target's spills aren't
  * volatile-driven; they're IDO's older-version pre-call spill convention
- * that the current IDO 7.1 build doesn't reproduce. Cap at 82.18% holds. */
+ * that the current IDO 7.1 build doesn't reproduce. Cap at 82.18% holds.
+ *
+ * 2026-05-31 6th variant (motivated by the callee being a varargs sink — see
+ * game_uso_func_0000D5F8 which reads a1/a2/a3 from its frameless arg-home):
+ * declared the callee `extern void f(int *a0, ...)` and called it with scalar
+ * args, hypothesizing the varargs ABI would make THIS caller pre-home a1/a2 to
+ * 4(sp)/8(sp) (= the callee's incoming arg-home). FAILED — IDO 7.1 emits NO
+ * caller-side spill for a varargs callee (the callee homes its own incoming
+ * args; the caller passes in registers only), and it also regressed the base
+ * to two separate `lui a1; lui a2` loads. So the pre-call spill is NOT a
+ * varargs-caller behavior in IDO 7.1 — it's a genuine older-build convention.
+ * Same negative applies to the whole pre-call-spill class (A374 etc.). */
 void game_uso_func_00011124(int *a0) {
     gl_func_00000000(a0);
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF50), 1);
