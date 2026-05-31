@@ -27199,10 +27199,6 @@ void gl_func_0004E244(char *src) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
 #endif
-
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E37C);
-
 #ifdef NON_MATCHING
 /* Append-to-array-with-bounds-check (28 insns, prologue-stolen).
  * Predecessor gl_func_0004E244 tail loads a flag from &D + 0x1C4. If
@@ -27226,7 +27222,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E37C);
  * the 2 orphan words to this body's .s as game_libs_func_0004E37C, delete the body
  * symbol) is ready and would land the moment the $v0/$v1 is solved — but it is a
  * genuine allocator cap today. Leave both INCLUDE_ASM. */
-void gl_func_0004E384(int *a0, int a1) {
+void game_libs_func_0004E37C(int *a0, int a1) {
     int v1;
     if ((*(int*)((char*)&D_00000000 + 0x1C4) & 1) == 0) {
         v1 = a0[3];
@@ -27239,7 +27235,7 @@ void gl_func_0004E384(int *a0, int a1) {
     }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E384);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E37C);
 #endif
 
 extern int gl_ref_000623D0();
