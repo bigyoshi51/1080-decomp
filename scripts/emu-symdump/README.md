@@ -16,6 +16,27 @@ Result for bootup.uso: **1672 symbols** — 1219 `func_<off>` (the call graph),
 248 `D_<off>`, 3 `RO_<off>`, 202 cross-module `import_<addr>`. Validated: every
 resolved `jal` target lands on a real function prologue (`27bdffe0`/`27bdff…`).
 
+## Status — USOs dumped (2026-05-30)
+
+| USO | how | symname map |
+|-----|-----|-------------|
+| bootup_uso (+ game_libs inside it) | boot dummy-plugin dump | `bootup_uso.symnames.json` (1672) |
+| game_uso | `--real-render` (title), block-diff | `game_uso.symnames.json` (1508 sites) |
+| titproc_uso | resident in the game_uso dump, uso-correlate | `titproc_uso.symnames.json` (102) |
+| mgrproc_uso | scripted-input (menu-manager), block-diff | `mgrproc_uso.symnames.json` (436 sites) |
+| timproc_uso **b5** | scripted-input SI_EXPLORE, block-diff | `timproc_uso_b5.symnames.json` (1772 sites) |
+
+Remaining: timproc **b1/b3** and **h2hproc** (2P). b1/b3 are NOT boot-resident
+(b5 is) and the menu-sweep doesn't sustain a full race, so they need an in-progress
+Time-Attack race (a save-state or longer sustained input) to load; h2hproc needs 2P VS.
+
+**ROI note:** most USO functions already report **100%** (their `.text` byte-matches
+WITH the `jal 0`/`lui 0` placeholders — e.g. 203 timproc functions are already 100%).
+So the symname dumps' main payoff is **real names for episode/call-graph quality**,
+NOT match-% — only the handful of byte-equal residuals stuck just under 100% (the
+`-O0` symbol-value cases) actually flip to 100% via symbolize. Weigh the cost of
+driving the emulator to a specific mode against that incremental value.
+
 ## Coverage: `game_libs` is inside bootup.uso's text (one dump covers both)
 
 The project's `game_libs` segment is **not a separate USO** — its functions live
