@@ -6722,45 +6722,62 @@ ret:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 #endif
 
-/* 9-insn body with cross-function `beql v1, zero, +7` to 7ABC+4 — same
- * tail-share family as 7ABC. C-emit always produces 12 insns (separate null
- * path with own jr ra) and can't be coaxed to use the cross-function branch.
- *
- * Promotion recipe (sibling of 7ABC's PREFIX_BYTES + INSN_PATCH combo):
- * empty void C body (2 insns: jr ra; nop) + PREFIX_BYTES injecting the 7
- * leading body insns + INSN_PATCH overwriting the trailing nop with
- * mov.s $f0, $f2. Final 9 insns byte-match expected. The cross-function
- * `beql` (offset +7 = .+0x1C from delay slot) lands at 7A98+0x28 = 7ABC+4
- * which is preserved as long as 7A98 and 7ABC are emitted adjacent in the
- * same .c (they are — game_uso.c source order). Pure raw-bytes prefix:
- * no relocs needed (lw/beql/mtc1/lwc1/sub.s are all PC-imm or reg-only). */
+/* 9-insn body with cross-function `beql v1, zero, +7` to 7ABC+4 — see the
+ * detailed note inside the NON_MATCHING block below (via-f2 form is C-reachable;
+ * residual is the whole-file cross-jump into 7ABC's mis-split tail). The old
+ * PREFIX_BYTES + INSN_PATCH "promotion recipe" that was here is removed — that
+ * mechanism was banned 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
-/* Decoded 2026-05-28 (was an empty stub): returns the float delta
+/* Decoded 2026-05-28; via-f2 form found 2026-05-31. Returns the float delta:
  *   v0 = a0->0x30; v1 = v0->0x908;
  *   if (v1 == 0) return 0.0f;            // beql v1,0 -> shared 7ABC epilogue
  *   return v1->0xBC - v0->0xBC;
- * Cross-fn tail-share cap stands (the null path uses 7ABC's `jr ra; mov.s f0,f2`
- * via beql-past-end; C-emit always adds a separate null-path jr ra = 12 insns),
- * but this body is a faithful reference vs the prior `void f(void){}` stub. */
+ *
+ * UPDATE 2026-05-31: the old "C can't reproduce the via-$f2 tail" claim was
+ * WRONG. A single-return NAMED LOCAL (`float ret; if(v1==0) ret=0; else
+ * ret=sub; return ret;`) makes IDO route the result through $f2 and emit
+ * exactly `sub.s f2,f4,f6 ; jr ra ; mov.s f0,f2` (non-null) and `mtc1 zero,f2
+ * ; jr ra ; mov.s f0,f2` (null) — register-identical to the target. The
+ * residual is ONLY layout: target is 9 insns (null path uses a forward `beql`
+ * into 7ABC's shared `jr ra; mov.s f0,f2`); C-emit gives 12 (bnezl-skip with
+ * its own inline null epilogue). 7ABC has NO independent callers (verified:
+ * no jal/reloc/symname references it) — it is 7A98's MIS-SPLIT 0.0f-return
+ * tail. The 9-insn form needs IDO's whole-file cross-jump to merge 7A98's null
+ * tail into 7ABC, which requires 7ABC's body to ALSO be `mtc1 zero,f2; jr ra;
+ * mov.s f0,f2` — but a constant-0 return copy-propagates to $f0 (probed
+ * named-local/volatile/int-store 2026-05-31, all give `mtc1 zero,f0` or a
+ * stack ping-pong, never $f2). So the cross-jump can't bootstrap from C as two
+ * separate functions; the real fix is a boundary MERGE of 7ABC into 7A98 +
+ * emitting the dead-`mtc1`@7ABC epilogue artifact (a future focused boundary
+ * tick). Body below is the via-f2 reference (closer than the prior direct-f0). */
 float game_uso_func_00007A98(int *a0) {
     int *v0 = (int *)a0[0x30 / 4];
     int *v1 = (int *)v0[0x908 / 4];
+    float ret;
     if (v1 == 0) {
-        return 0.0f;
+        ret = 0.0f;
+    } else {
+        ret = *(float *)((char *)v1 + 0xBC) - *(float *)((char *)v0 + 0xBC);
     }
-    return *(float *)((char *)v1 + 0xBC) - *(float *)((char *)v0 + 0xBC);
+    return ret;
 }
 #else
 /* game_uso_func_00007A98: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
 #endif
 
-/* 4-insn body `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` — returns 0.0f, but via
- * a cross-function tail-share with 7A98 (beql lands at 7ABC+4). IDO -O2 cannot
- * reproduce the via-$f2 form from any C source: `return 0.0f` always emits
- * `mtc1 $0,$f0` directly (22+ variants exhausted). Genuine tail-share cap, kept
- * INCLUDE_ASM (ROM bytes correct; no honest C match). The old PREFIX_BYTES +
- * INSN_PATCH "promotion" was removed 2026-05-23 (match-faking, banned). */
+/* 4-insn body `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` — returns 0.0f via $f2.
+ * NOT an independent function: NOTHING calls 7ABC (no jal/reloc/symname ref,
+ * verified 2026-05-31). It is the MIS-SPLIT shared 0.0f-return tail of 7A98 —
+ * 7A98's null path `beql v1,0` lands at 7ABC+4 (0x7AC0), reusing this
+ * `jr ra; mov.s f0,f2`; the `mtc1 $0,$f2`@7ABC itself is dead (the beql delay
+ * slot already set $f2). `return 0.0f` in isolation emits `mtc1 $0,$f0`
+ * (direct) — the $f2 form is purely a consequence of IDO's whole-file
+ * cross-jump unifying this tail with 7A98's $f2 tail, which C can't bootstrap
+ * (see 7A98's note: 7ABC-isolation always copy-propagates to $f0). Real match
+ * needs a boundary MERGE into 7A98, not a per-function C body. Kept INCLUDE_ASM
+ * (ROM bytes correct). PREFIX_BYTES/INSN_PATCH promotion removed 2026-05-23
+ * (match-faking, banned). */
 #ifdef NON_MATCHING
 float game_uso_func_00007ABC(void) { return 0.0f; }
 #else
