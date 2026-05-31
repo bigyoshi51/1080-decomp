@@ -891,36 +891,29 @@ void mgrproc_uso_func_00001F30(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001F30);
 #endif
 
-#ifdef NON_MATCHING
-/* mgrproc_uso_func_00002294: 36-insn (0x90) FPU-gated state-update.
- *
- * Body:
- *   if (a0->[0x500] == 0) return;
- *   if (D[0] > 0.0f) return;                    // NB: weird gate — only proceeds when D[0] <= 0
- *   if (a0->[0x7A0] < D[0x608])
- *       a0->[0x7A0] += D[0x60C];
- *   if (D[0x610] >= a0->[0x7A0])
- *       gl_func_00000000();
- *
- * Initial wrap ~33/36 insns matched. Cap class: target uses `$at` register
- * for the &D base (`lui at, 0; lwc1 fX, 0(at)` with %lo folded into the
- * lwc1 immediate), C-emit uses `$v0` with separate lui+addiu+lwc1. This is
- * an inverse of the extern-char-folds-%lo recipe and the at-vs-v0
- * regalloc choice isn't reachable from natural C. Permuter or INSN_PATCH
- * to reshape the at-base accesses. */
+/* mgrproc_uso_func_00002294: 36-insn (0x90) FPU-gated state-update. MATCHED
+ * 2026-05-31 (78.2 -> 100%). Three fixes over the prior cap-wrap: (1) the &D FP
+ * consts (&D+0/0x608/0x60C/0x610) use DISTINCT externs (D_b0_2294/D_00000608/
+ * D_0000060C/D_00000610, valued at the offset in undefined_syms_auto.txt) so each
+ * lwc1 re-materializes its own `lui at` instead of CSE'ing the base into $v0 —
+ * the old comment called the at-vs-v0 choice "not reachable from natural C"; the
+ * distinct-extern lever busts it. (2) the gate is `if (D[0] <= 0.0f) { body }`
+ * (proceed when <=0), matching the target's `c.le.s; bc1fl` rather than an early
+ * `if (D[0]>0) return`. (3) the final guard was DECODED WRONG — the bc1fl
+ * branch-likely calls gl_func when `D[0x610] < a0->0x7A0` (target), NOT `>=` as
+ * the old pseudocode said. */
+extern float D_b0_2294, D_00000608, D_0000060C, D_00000610;
 void mgrproc_uso_func_00002294(int *a0) {
     if (a0[0x500/4] == 0) return;
-    if (*(float*)&D_00000000 > 0.0f) return;
-    if (*(float*)((char*)a0 + 0x7A0) >= *(float*)((char*)&D_00000000 + 0x608)) goto check_max;
-    *(float*)((char*)a0 + 0x7A0) += *(float*)((char*)&D_00000000 + 0x60C);
-check_max:
-    if (*(float*)((char*)&D_00000000 + 0x610) >= *(float*)((char*)a0 + 0x7A0)) {
-        gl_func_00000000();
+    if (D_b0_2294 <= 0.0f) {
+        if (*(float*)((char*)a0 + 0x7A0) < D_00000608) {
+            *(float*)((char*)a0 + 0x7A0) += D_0000060C;
+        }
+        if (D_00000610 < *(float*)((char*)a0 + 0x7A0)) {
+            gl_func_00000000();
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002294);
-#endif
 
 /* mgrproc_uso_func_00002324 - verified structural decode (0xD8,
  * 54 insns, one-shot FP state-advance / transition trigger).
