@@ -30363,6 +30363,8 @@ void gl_func_00054AEC(int *self, int *strm) {
         *(float *)((char *)self + 0xCC) = (float)*p;
         break;
     case 0x68:
+        gl_func_00000000(strm, (char *)self + 0x124);
+        break;
     case 0x69:
         p = (int *)strm[1]; strm[1] += 4;
         idx = *p;
@@ -30371,10 +30373,9 @@ void gl_func_00054AEC(int *self, int *strm) {
         }
         *(int *)((char *)self + 0xD4) =
             *(int *)((char *)&D_00000000 + idx * 4);
-        gl_func_00000000(self);
         break;
     default:
-        gl_func_00000000(self);
+        gl_func_00000000(self, strm);
         break;
     }
 }
