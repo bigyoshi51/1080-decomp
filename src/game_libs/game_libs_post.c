@@ -34775,7 +34775,7 @@ void *gl_func_00062E80(void *a0, int a1) {
     void *s0 = a0;
     if (a0 == 0) {
         s0 = (void *)func_00000000(0xB0);
-        if (s0 == 0) return s0;
+        if (s0 == 0) goto end;
     }
     func_00000000(s0, (char *)&D_00000000 + 0x22178);
     *(void **)((char *)s0 + 0x28) = (char *)&D_00000000 + 0;
@@ -34790,6 +34790,7 @@ void *gl_func_00062E80(void *a0, int a1) {
 L64:
     func_00000000(s0);
     *(int *)((char *)s0 + 0x58) = a1;
+end:
     return s0;
 }
 #else
