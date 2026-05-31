@@ -22770,7 +22770,12 @@ int gl_func_0004211C(int a0) {
  * as `lui 0x2; addiu -0x914` vs GCC `lui 0x1; ori 0xF6EC`. The
  * spill-divergence changes length (not INSN_PATCH-able). br=0 but the
  * spill-divergence variant, not the clean-episode subset. INCLUDE_ASM
- * (no episode). */
+ * (no episode).
+ * 2026-05-31 RULED OUT: the lone diff is `srl a1,a1` (target) vs `srl a3,a1`
+ * (here) — r2>>10 lands in a1 vs a3. Reshaping the call to 3-arg
+ * f(fmt, r2>>10, r3>>10) does NOT fix it: it moves the spill schedule and
+ * REGRESSES 99.86->88.9%. Register-renumber cap (a1 vs a3); also placeholder
+ * jal => never byte-exact anyway. Don't re-try the arg-reshape. */
 #ifdef NON_MATCHING
 /* gl_func_00042144: 36-insn diagnostic dump. Runs a sequence of (collapsed)
  * calls including two printf-like calls with fixed format-string addresses
