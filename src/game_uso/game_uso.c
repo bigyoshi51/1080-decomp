@@ -10869,10 +10869,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
  * 2-call or 3-call pair using &D+0xEC0/0xEC8/0xED0 tables; cb(arg0, &D+0xED0..).
  * Returns 1; else 0. 75.5% -> 91.6%: the three D-pair calls (EC0/EC4, EC8/ECC,
  * ED0/ED4) pass BY VALUE as *(Pair2*), homing a1,a2 (same lever as EF70,
- * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair). Residual:
- * regalloc-renumber + the `base` global address materialized lui+addiu vs
- * target's folded lui+lw (+2 insns) — documented cap classes. NON_MATCHING. */
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair). 91.6 ->
+ * 95.14 (2026-05-31): the &D+0x138 access (both branches) uses the distinct
+ * extern `D_00000138` instead of `*(int*)(&D+0x138)`, so it no longer shares
+ * IDO's CSE'd &D base register with `base` (&D+0) — each re-materializes its own
+ * lui, matching the target. Same fix as the sibling F6D4. Residual (~5%):
+ * regalloc-renumber + the `base` (&D+0) load placement + one commutative addu +
+ * the prev-write/v0-keep scheduling — documented cap classes. NON_MATCHING. */
 extern int gl_func_00000000();
+extern int D_00000138;
 int game_uso_func_0000E35C(char *arg0) {
     char *cur;
     char *b4;
@@ -10886,10 +10891,10 @@ int game_uso_func_0000E35C(char *arg0) {
         b4 = *(char **)(arg0 + 0xB4);
         if (*(int *)(b4 + 0xA58) & 0x20) {
             int base = *(int *)&D_00000000;
-            gl_func_00000000(*(int *)((char *)&D_00000000 + 0x138), b4,
+            gl_func_00000000(D_00000138, b4,
                 (int)((base + (*(int *)(*(char **)(arg0 + 0xF0) + 0x3C) << 6)) - base) / 64);
         } else {
-            gl_func_00000000(*(int *)((char *)&D_00000000 + 0x138), b4,
+            gl_func_00000000(D_00000138, b4,
                 (int)((int)*(char **)(arg0 + 0xF0) - *(int *)&D_00000000) / 64);
         }
         prev = *(char **)(arg0 + 0xF0);
