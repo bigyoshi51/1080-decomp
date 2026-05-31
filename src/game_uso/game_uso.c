@@ -5828,30 +5828,39 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
  * Multi-tick refinement target. Default INCLUDE_ASM build remains exact
  * via the asm. Skeleton kept for grep discoverability of struct field
  * offsets and the per-frame compute call-graph. */
+typedef struct { float x, y, z; } V3_6FA8;
 void game_uso_func_00006FA8(int *a0) {
-    /* First-pass structural decode (2026-05-31): float gate -> 2 staged calls
-     * -> two Vec3 diffs (r1->0x30 / r2->0x30 minus s0->0x30+0xB4) -> compare
-     * squared magnitudes -> result(local) = (dot2<dot1)?11:10. The intermediate
-     * stack-copy shuffle + FP scheduling are not yet byte-exact (multi-tick). */
+    /* Structural decode (2026-05-31, 1.1%->53%): float gate (`<0` -> c.lt.s/bc1fl)
+     * -> 2 staged calls -> two Vec3 diffs (r1->0x30 / r2->0x30 minus s0->0x30+0xB4)
+     * each copied through a 2-deep struct-copy chain (d->c_a->c_b; IDO -O2 keeps
+     * the redundant 3-lw/3-sw copies) -> compare squared magnitudes ->
+     * result(local) = (dot2<dot1)?11:10. REMAINING (~34 insns, frame -144 vs -192):
+     * more stack temps/copies + FP scheduling + the no-reloc D+0x570/574 globals. */
     int *s0 = a0;
     int result = 0;
     int *r1, *r2;
-    if (gl_func_00000000_f() >= 0.0f) {
-        return;
-    }
-    r1 = (int *)gl_func_00000000(s0, *(int *)(*(int *)((char *)&D_00000000 + 0x570)),
-                                 (char *)s0[0x30 / 4] + 0xB4);
-    r2 = (int *)gl_func_00000000(s0, *(int *)(*(int *)((char *)&D_00000000 + 0x574)),
-                                 (char *)s0[0x30 / 4] + 0xB4);
-    if (r1 != 0 && r2 != 0) {
-        float *q = (float *)((char *)s0[0x30 / 4] + 0xB4);
-        float *p1 = (float *)((char *)r1 + 0x30);
-        float *p2 = (float *)((char *)r2 + 0x30);
-        float a0d = p1[0] - q[0], a1d = p1[1] - q[1], a2d = p1[2] - q[2];
-        float b0d = p2[0] - q[0], b1d = p2[1] - q[1], b2d = p2[2] - q[2];
-        float dot1 = a0d * a0d + a1d * a1d + a2d * a2d;
-        float dot2 = b0d * b0d + b1d * b1d + b2d * b2d;
-        result = (dot2 < dot1) ? 11 : 10;
+    if (gl_func_00000000_f() < 0.0f) {
+        r1 = (int *)gl_func_00000000(s0, *(int *)(*(int *)((char *)&D_00000000 + 0x570)),
+                                     (char *)s0[0x30 / 4] + 0xB4);
+        r2 = (int *)gl_func_00000000(s0, *(int *)(*(int *)((char *)&D_00000000 + 0x574)),
+                                     (char *)s0[0x30 / 4] + 0xB4);
+        if (r1 != 0 && r2 != 0) {
+            V3_6FA8 d1, c1a, c1b, d2, c2a, c2b;
+            V3_6FA8 *q = (V3_6FA8 *)((char *)s0[0x30 / 4] + 0xB4);
+            V3_6FA8 *p1 = (V3_6FA8 *)((char *)r1 + 0x30);
+            float dot1, dot2;
+            d1.x = p1->x - q->x; d1.y = p1->y - q->y; d1.z = p1->z - q->z;
+            c1a = d1; c1b = c1a;
+            {
+                V3_6FA8 *p2 = (V3_6FA8 *)((char *)r2 + 0x30);
+                V3_6FA8 *q2 = (V3_6FA8 *)((char *)s0[0x30 / 4] + 0xB4);
+                d2.x = p2->x - q2->x; d2.y = p2->y - q2->y; d2.z = p2->z - q2->z;
+            }
+            c2a = d2; c2b = c2a;
+            dot1 = c1b.x * c1b.x + c1b.y * c1b.y + c1b.z * c1b.z;
+            dot2 = c2b.x * c2b.x + c2b.y * c2b.y + c2b.z * c2b.z;
+            result = (dot2 < dot1) ? 11 : 10;
+        }
     }
     (void)result;
 }
