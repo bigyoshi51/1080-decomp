@@ -29278,35 +29278,36 @@ void game_libs_func_00052918(void *arg0) {
 // handler dispatching on msg->0 (46 insns). case 0xC: flag op gated by
 // self->0x30&0x40 (self->0xA4 = obj->4, or set/clear bit 0x80 of *(self+0x18)
 // by obj->4); case 1: if (obj->0x4C != 8) callback; default: callback.
-// goto-chain (not switch/if-else) gives the target's "beq v0,12 →body; b def"
-// dispatch layout. Residual: obj ptr in v0 vs target v1 (cascades), the
-// addiu+0(reg) base-pointer RMW form on *(self+0x18) (not C-forceable, see
-// rmw_pointer_local_folds_to_offset_addressing), and beql-vs-bne on case 1.
-// (The old comment's 5-fn-bundle note was stale — leaves already split out.)
+// 2026-05-31: `switch` (NOT goto-chain) wins — 82.63%->86.93%. The old note's
+// "goto-chain gives the dispatch layout" was wrong: switch fixes the beql-vs-bne
+// case-1 polarity (cases 1/12 are sparse so switch emits beq compares, no jumptable).
+// See docs/IDO_CODEGEN.md#switch-vs-if-goto-dispatch-polarity. Residual (~13%): the
+// addiu+0(reg) base-pointer RMW form on *(self+0x18) (mine folds to direct 0x18(a0),
+// target re-derives addiu v0,a0,0x18 + 0(v0) per branch — the missing 3 insns,
+// not C-forceable, see rmw_pointer_local_folds_to_offset_addressing) + switch tests
+// case 1 before 12 (IDO sorts ascending) where target tests 12 first + obj-ptr regalloc.
 #ifdef NON_MATCHING
 void gl_func_00052994(int *a0, int *a1) {
     int *v1;
     int v0 = a1[0];
-    if (v0 == 12) goto c12;
-    if (v0 == 1) goto c1;
-    goto def;
-c12:
-    v1 = (int*)a1[1];
-    if (a0[0x30/4] & 0x40) {
-        a0[0xA4/4] = v1[1];
-    } else if (v1[1] != 0) {
-        *(int*)((char*)a0 + 0x18) |= 0x80;
-    } else {
-        *(int*)((char*)a0 + 0x18) &= ~0x80;
+    switch (v0) {
+    case 12:
+        v1 = (int*)a1[1];
+        if (a0[0x30/4] & 0x40) {
+            a0[0xA4/4] = v1[1];
+        } else if (v1[1] != 0) {
+            *(int*)((char*)a0 + 0x18) |= 0x80;
+        } else {
+            *(int*)((char*)a0 + 0x18) &= ~0x80;
+        }
+        return;
+    case 1:
+        v1 = (int*)a1[1];
+        if (v1[0x4C/4] != 8) {
+            gl_func_00000000();
+        }
+        return;
     }
-    return;
-c1:
-    v1 = (int*)a1[1];
-    if (v1[0x4C/4] != 8) {
-        gl_func_00000000();
-    }
-    return;
-def:
     gl_func_00000000();
 }
 #else
