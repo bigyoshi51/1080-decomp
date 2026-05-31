@@ -1377,6 +1377,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FA20);
 //   callbacks need USO reloc infra + s0-s5 loop schedule. Name
 //   pre-checked: no extern reuse (collision-safe). gl_func_00000000
 //   = canonical never-defined USO placeholder for the callbacks.
+// 2026-05-31: 61.39% -> 65.61% via LOGIC CORRECTIONS (prior body was WRONG):
+//   guard is `a0 == rec->b_0x33` (not `==0`); the 3 callbacks pass `rec` not a0
+//   and there are THREE (cb(rec), cb(rec), cb(&D+0x5378, rec)); record stride is
+//   0xD0 (not 0x158); rec->0x44 is RELOADED between the &~0x80 and |0x40 stores.
+//   Capped ~65%: target uses regular bne/beq (not branch-likely) on conds 2/3,
+//   andi 0xff7f (not and-reg ~0x80), and a tighter s-reg allocation — codegen
+//   caps, not missing logic.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
@@ -1390,15 +1397,19 @@ void gl_func_0001FAE8(int a0) {
     idx = 0;
     for (i = 0; i < n; i++) {
         char *rec = *(char **)(g + 0x2CFC) + idx;
-        if (*(char *)(rec + 0x33) == 0 && *(char *)(rec + 0x34) == 0 &&
-            *(char *)(rec + 0x30) != 0) {
-            char *p = *(char **)(rec + 0x44);
+        if (*(unsigned char *)(rec + 0x33) == a0 &&
+            *(unsigned char *)(rec + 0x34) == 0 &&
+            *(unsigned char *)(rec + 0x30) != 0) {
+            char *p;
+            p = *(char **)(rec + 0x44);
             *p &= ~0x80;
+            p = *(char **)(rec + 0x44);
             *p |= 0x40;
-            gl_func_00000000(a0);
-            gl_func_00000000(a0);
+            gl_func_00000000(rec);
+            gl_func_00000000(rec);
+            gl_func_00000000((char *)&D_00000000 + 0x5378, rec);
         }
-        idx += 0x158;
+        idx += 0xD0;
     }
 }
 #else
