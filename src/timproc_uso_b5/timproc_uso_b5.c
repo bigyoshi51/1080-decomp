@@ -3113,7 +3113,19 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * be reverse-engineered before extending the splice — guessing it corrupts the
  * shared block5 build. The CRACK is proven (g3 bytes exact); the remaining piece
  * is the precise splice-padding RE — a focused task, not a quick tick. Same for
- * sibling 8894. */
+ * sibling 8894.
+ * 2026-05-31 RE PROGRESS (narrows the focused task): the 0x10 shrink = 0xC code
+ * + 0x4 asm-processor INCLUDE_ASM-boundary alignment (the asm-processor pads the
+ * compiled-C/INCLUDE_ASM region boundary to 8 bytes; carving 87E8 removes its 0xC
+ * AND collapses a 0x4 boundary pad). 87E8 builds at .text offset 0x87DC, i.e.
+ * VRAM 0x87E8 minus the 0xC the 1DA4 carve already shifts everything after 0x1DA4.
+ * So the multi-offset splice must: (1) insert g3_87E8 at post-1DA4-splice offset
+ * 0x87E8, AND (2) absorb the 0x4 boundary-pad delta (either emit g3_87E8 as 0x10
+ * = 0xC + 0x4 zeros and verify the target has no 0x4 gap before 87F4 [it doesn't:
+ * 87F4 = 87E8+0xC], OR keep the boundary pad in main by carving 87E8 WITHOUT
+ * collapsing the adjacent INCLUDE_ASM-boundary align). Verify against build/src
+ * .text == target for the whole 0x87xx..0x89xx range, not just 87E8, before the
+ * Yay0 recompress — a wrong delta silently corrupts the shared block5. */
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_000087E8(void) {
     return 0;
