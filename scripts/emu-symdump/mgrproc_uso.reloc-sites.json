@@ -1,0 +1,3224 @@
+{
+"tbase": 2509456,
+"text_sz": 13344,
+"n_sites": 436,
+"class_counts": {
+"import": 383,
+"func": 41,
+"unpaired": 11,
+"data": 1
+},
+"sites": [
+{
+"off": 12,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 16
+},
+{
+"off": 28,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 88,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 92
+},
+{
+"off": 104,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 212,
+"kind": "jal",
+"resolved": 2509776,
+"class": "func",
+"name": "func_00000140"
+},
+{
+"off": 284,
+"kind": "jal",
+"resolved": 2509824,
+"class": "func",
+"name": "func_00000170"
+},
+{
+"off": 464,
+"kind": "hi16",
+"resolved": 2149989776,
+"class": "import",
+"name": "import_80263D90",
+"lo_off": 472
+},
+{
+"off": 500,
+"kind": "jal",
+"resolved": 733088,
+"class": "import",
+"name": "import_000B2FA0"
+},
+{
+"off": 512,
+"kind": "hi16",
+"resolved": 2147614940,
+"class": "import",
+"name": "import_800200DC",
+"lo_off": 516
+},
+{
+"off": 524,
+"kind": "hi16",
+"resolved": 2147614944,
+"class": "import",
+"name": "import_800200E0",
+"lo_off": 528
+},
+{
+"off": 564,
+"kind": "jal",
+"resolved": 733088,
+"class": "import",
+"name": "import_000B2FA0"
+},
+{
+"off": 576,
+"kind": "hi16",
+"resolved": 2147614940,
+"class": "import",
+"name": "import_800200DC",
+"lo_off": 580
+},
+{
+"off": 588,
+"kind": "hi16",
+"resolved": 2147614944,
+"class": "import",
+"name": "import_800200E0",
+"lo_off": 592
+},
+{
+"off": 616,
+"kind": "jal",
+"resolved": 2510740,
+"class": "func",
+"name": "func_00000504"
+},
+{
+"off": 628,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 632
+},
+{
+"off": 648,
+"kind": "hi16",
+"resolved": 2147614976,
+"class": "import",
+"name": "import_80020100",
+"lo_off": 652
+},
+{
+"off": 656,
+"kind": "jal",
+"resolved": 2511248,
+"class": "func",
+"name": "func_00000700"
+},
+{
+"off": 668,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 672
+},
+{
+"off": 684,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 688
+},
+{
+"off": 692,
+"kind": "hi16",
+"resolved": 2147958000,
+"class": "import",
+"name": "import_80073CF0",
+"lo_off": 696
+},
+{
+"off": 704,
+"kind": "jal",
+"resolved": 685876,
+"class": "import",
+"name": "import_000A7734"
+},
+{
+"off": 736,
+"kind": "hi16",
+"resolved": 2147614972,
+"class": "import",
+"name": "import_800200FC",
+"lo_off": 740
+},
+{
+"off": 744,
+"kind": "hi16",
+"resolved": 2147615000,
+"class": "import",
+"name": "import_80020118",
+"lo_off": 748
+},
+{
+"off": 756,
+"kind": "hi16",
+"resolved": 2147615000,
+"class": "import",
+"name": "import_80020118",
+"lo_off": 760
+},
+{
+"off": 788,
+"kind": "hi16",
+"resolved": 2147615253,
+"class": "import",
+"name": "import_80020215",
+"lo_off": 792
+},
+{
+"off": 796,
+"kind": "hi16",
+"resolved": 2147615253,
+"class": "import",
+"name": "import_80020215",
+"lo_off": 800
+},
+{
+"off": 808,
+"kind": "hi16",
+"resolved": 2147615016,
+"class": "import",
+"name": "import_80020128",
+"lo_off": 816
+},
+{
+"off": 820,
+"kind": "hi16",
+"resolved": 2147615255,
+"class": "import",
+"name": "import_80020217",
+"lo_off": 824
+},
+{
+"off": 828,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 832
+},
+{
+"off": 840,
+"kind": "hi16",
+"resolved": 2147614972,
+"class": "import",
+"name": "import_800200FC",
+"lo_off": 844
+},
+{
+"off": 852,
+"kind": "jal",
+"resolved": 687864,
+"class": "import",
+"name": "import_000A7EF8"
+},
+{
+"off": 860,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 864
+},
+{
+"off": 868,
+"kind": "hi16",
+"resolved": 2147614972,
+"class": "import",
+"name": "import_800200FC",
+"lo_off": 872
+},
+{
+"off": 876,
+"kind": "jal",
+"resolved": 688276,
+"class": "import",
+"name": "import_000A8094"
+},
+{
+"off": 900,
+"kind": "jal",
+"resolved": 734392,
+"class": "import",
+"name": "import_000B34B8"
+},
+{
+"off": 940,
+"kind": "jal",
+"resolved": 2513044,
+"class": "func",
+"name": "func_00000E04"
+},
+{
+"off": 964,
+"kind": "jal",
+"resolved": 735384,
+"class": "import",
+"name": "import_000B3898"
+},
+{
+"off": 996,
+"kind": "jal",
+"resolved": 2512036,
+"class": "func",
+"name": "func_00000A14"
+},
+{
+"off": 1040,
+"kind": "jal",
+"resolved": 733800,
+"class": "import",
+"name": "import_000B3268"
+},
+{
+"off": 1068,
+"kind": "jal",
+"resolved": 2511928,
+"class": "func",
+"name": "func_000009A8"
+},
+{
+"off": 1080,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 1084
+},
+{
+"off": 1100,
+"kind": "jal",
+"resolved": 2511928,
+"class": "func",
+"name": "func_000009A8"
+},
+{
+"off": 1112,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 1116
+},
+{
+"off": 1140,
+"kind": "jal",
+"resolved": 678812,
+"class": "import",
+"name": "import_000A5B9C"
+},
+{
+"off": 1152,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 1156
+},
+{
+"off": 1172,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 1224,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 1228
+},
+{
+"off": 1304,
+"kind": "jal",
+"resolved": 968012,
+"class": "import",
+"name": "import_000EC54C"
+},
+{
+"off": 1320,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 1340,
+"kind": "hi16",
+"resolved": 2147615200,
+"class": "import",
+"name": "import_800201E0",
+"lo_off": 1344
+},
+{
+"off": 1356,
+"kind": "jal",
+"resolved": 742756,
+"class": "import",
+"name": "import_000B5564"
+},
+{
+"off": 1376,
+"kind": "hi16",
+"resolved": 2147615204,
+"class": "import",
+"name": "import_800201E4",
+"lo_off": 1380
+},
+{
+"off": 1388,
+"kind": "jal",
+"resolved": 968012,
+"class": "import",
+"name": "import_000EC54C"
+},
+{
+"off": 1396,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 1400
+},
+{
+"off": 1404,
+"kind": "hi16",
+"resolved": 2147484432,
+"class": "import",
+"name": "import_80000310",
+"lo_off": 1408
+},
+{
+"off": 1528,
+"kind": "jal",
+"resolved": 1097012,
+"class": "import",
+"name": "import_0010BD34"
+},
+{
+"off": 1536,
+"kind": "hi16",
+"resolved": 2149974244,
+"class": "import",
+"name": "import_802600E4",
+"lo_off": 1560
+},
+{
+"off": 1556,
+"kind": "hi16",
+"resolved": 2147614948,
+"class": "import",
+"name": "import_800200E4",
+"lo_off": 1560
+},
+{
+"off": 1888,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 1892
+},
+{
+"off": 2028,
+"kind": "jal",
+"resolved": 2510944,
+"class": "func",
+"name": "func_000005D0"
+},
+{
+"off": 2144,
+"kind": "jal",
+"resolved": 2510944,
+"class": "func",
+"name": "func_000005D0"
+},
+{
+"off": 2152,
+"kind": "hi16",
+"resolved": 2147614948,
+"class": "import",
+"name": "import_800200E4",
+"lo_off": 2156
+},
+{
+"off": 2296,
+"kind": "jal",
+"resolved": 2510944,
+"class": "func",
+"name": "func_000005D0"
+},
+{
+"off": 2304,
+"kind": "hi16",
+"resolved": 2147614948,
+"class": "import",
+"name": "import_800200E4",
+"lo_off": 2308
+},
+{
+"off": 2324,
+"kind": "hi16",
+"resolved": 2147615212,
+"class": "import",
+"name": "import_800201EC",
+"lo_off": 2328
+},
+{
+"off": 2372,
+"kind": "hi16",
+"resolved": 2147615212,
+"class": "import",
+"name": "import_800201EC",
+"lo_off": 2376
+},
+{
+"off": 2496,
+"kind": "jal",
+"resolved": 964436,
+"class": "import",
+"name": "import_000EB754"
+},
+{
+"off": 2524,
+"kind": "jal",
+"resolved": 742988,
+"class": "import",
+"name": "import_000B564C"
+},
+{
+"off": 2544,
+"kind": "hi16",
+"resolved": 2147615204,
+"class": "import",
+"name": "import_800201E4",
+"lo_off": 2548
+},
+{
+"off": 2612,
+"kind": "jal",
+"resolved": 743244,
+"class": "import",
+"name": "import_000B574C"
+},
+{
+"off": 2636,
+"kind": "jal",
+"resolved": 743372,
+"class": "import",
+"name": "import_000B57CC"
+},
+{
+"off": 2676,
+"kind": "jal",
+"resolved": 714160,
+"class": "import",
+"name": "import_000AE5B0"
+},
+{
+"off": 2792,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 2800
+},
+{
+"off": 2796,
+"kind": "jal",
+"resolved": 678200,
+"class": "import",
+"name": "import_000A5938"
+},
+{
+"off": 2804,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 2808
+},
+{
+"off": 2812,
+"kind": "jal",
+"resolved": 755980,
+"class": "import",
+"name": "import_000B890C"
+},
+{
+"off": 2820,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 2828
+},
+{
+"off": 2824,
+"kind": "jal",
+"resolved": 687840,
+"class": "import",
+"name": "import_000A7EE0"
+},
+{
+"off": 2856,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 2864
+},
+{
+"off": 2860,
+"kind": "jal",
+"resolved": 726092,
+"class": "import",
+"name": "import_000B144C"
+},
+{
+"off": 2868,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 2876
+},
+{
+"off": 2872,
+"kind": "jal",
+"resolved": 678200,
+"class": "import",
+"name": "import_000A5938"
+},
+{
+"off": 2880,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 2888
+},
+{
+"off": 2884,
+"kind": "jal",
+"resolved": 687840,
+"class": "import",
+"name": "import_000A7EE0"
+},
+{
+"off": 2912,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 2916
+},
+{
+"off": 2924,
+"kind": "jal",
+"resolved": 678428,
+"class": "import",
+"name": "import_000A5A1C"
+},
+{
+"off": 2932,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 2936
+},
+{
+"off": 2948,
+"kind": "jal",
+"resolved": 743532,
+"class": "import",
+"name": "import_000B586C"
+},
+{
+"off": 2956,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 2964
+},
+{
+"off": 2976,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 2988
+},
+{
+"off": 3024,
+"kind": "jal",
+"resolved": 678200,
+"class": "import",
+"name": "import_000A5938"
+},
+{
+"off": 3044,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 3048
+},
+{
+"off": 3068,
+"kind": "jal",
+"resolved": 677796,
+"class": "import",
+"name": "import_000A57A4"
+},
+{
+"off": 3096,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 3100
+},
+{
+"off": 3108,
+"kind": "jal",
+"resolved": 678428,
+"class": "import",
+"name": "import_000A5A1C"
+},
+{
+"off": 3116,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 3120
+},
+{
+"off": 3132,
+"kind": "jal",
+"resolved": 743532,
+"class": "import",
+"name": "import_000B586C"
+},
+{
+"off": 3140,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 3148
+},
+{
+"off": 3160,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 3172
+},
+{
+"off": 3204,
+"kind": "jal",
+"resolved": 678200,
+"class": "import",
+"name": "import_000A5938"
+},
+{
+"off": 3220,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 3224
+},
+{
+"off": 3244,
+"kind": "jal",
+"resolved": 677796,
+"class": "import",
+"name": "import_000A57A4"
+},
+{
+"off": 3280,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 3284
+},
+{
+"off": 3292,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 3340,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 3344
+},
+{
+"off": 3352,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 3400,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 3404
+},
+{
+"off": 3412,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 3488,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 3492
+},
+{
+"off": 3504,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 3620,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 3644,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 3672,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 3708,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 3728,
+"kind": "hi16",
+"resolved": 2149992920,
+"class": "import",
+"name": "import_802649D8",
+"lo_off": 3732
+},
+{
+"off": 3740,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 3752,
+"kind": "hi16",
+"resolved": 2147957528,
+"class": "import",
+"name": "import_80073B18",
+"lo_off": 3756
+},
+{
+"off": 3772,
+"kind": "hi16",
+"resolved": 2147957632,
+"class": "import",
+"name": "import_80073B80",
+"lo_off": 3776
+},
+{
+"off": 3784,
+"kind": "hi16",
+"resolved": 2147960312,
+"class": "import",
+"name": "import_800745F8",
+"lo_off": 3788
+},
+{
+"off": 3796,
+"kind": "jal",
+"resolved": 714496,
+"class": "import",
+"name": "import_000AE700"
+},
+{
+"off": 3804,
+"kind": "hi16",
+"resolved": 2149992576,
+"class": "import",
+"name": "import_80264880",
+"lo_off": 3808
+},
+{
+"off": 3820,
+"kind": "hi16",
+"resolved": 2149992928,
+"class": "import",
+"name": "import_802649E0",
+"lo_off": 3824
+},
+{
+"off": 3836,
+"kind": "jal",
+"resolved": 724412,
+"class": "import",
+"name": "import_000B0DBC"
+},
+{
+"off": 3864,
+"kind": "jal",
+"resolved": 2513964,
+"class": "func",
+"name": "func_0000119C"
+},
+{
+"off": 3936,
+"kind": "hi16",
+"resolved": 2149992944,
+"class": "import",
+"name": "import_802649F0",
+"lo_off": 3944
+},
+{
+"off": 3964,
+"kind": "jal",
+"resolved": 1090912,
+"class": "import",
+"name": "import_0010A560"
+},
+{
+"off": 3972,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 3976
+},
+{
+"off": 3980,
+"kind": "jal",
+"resolved": 687820,
+"class": "import",
+"name": "import_000A7ECC"
+},
+{
+"off": 3988,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 4004,
+"kind": "jal",
+"resolved": 748608,
+"class": "import",
+"name": "import_000B6C40"
+},
+{
+"off": 4016,
+"kind": "hi16",
+"resolved": 2149992448,
+"class": "import",
+"name": "import_80264800",
+"lo_off": 4020
+},
+{
+"off": 4032,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 4048
+},
+{
+"off": 4068,
+"kind": "jal",
+"resolved": 2521472,
+"class": "func",
+"name": "func_00002EF0"
+},
+{
+"off": 4112,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 4148,
+"kind": "jal",
+"resolved": 724808,
+"class": "import",
+"name": "import_000B0F48"
+},
+{
+"off": 4156,
+"kind": "jal",
+"resolved": 679224,
+"class": "import",
+"name": "import_000A5D38"
+},
+{
+"off": 4172,
+"kind": "jal",
+"resolved": 679744,
+"class": "import",
+"name": "import_000A5F40"
+},
+{
+"off": 4180,
+"kind": "hi16",
+"resolved": 2147615276,
+"class": "import",
+"name": "import_8002022C",
+"lo_off": 4184
+},
+{
+"off": 4188,
+"kind": "hi16",
+"resolved": 2149995888,
+"class": "import",
+"name": "import_80265570",
+"lo_off": 4192
+},
+{
+"off": 4208,
+"kind": "jal",
+"resolved": 682428,
+"class": "import",
+"name": "import_000A69BC"
+},
+{
+"off": 4216,
+"kind": "hi16",
+"resolved": 2147615276,
+"class": "import",
+"name": "import_8002022C",
+"lo_off": 4220
+},
+{
+"off": 4224,
+"kind": "hi16",
+"resolved": 2149995952,
+"class": "import",
+"name": "import_802655B0",
+"lo_off": 4228
+},
+{
+"off": 4248,
+"kind": "jal",
+"resolved": 682428,
+"class": "import",
+"name": "import_000A69BC"
+},
+{
+"off": 4256,
+"kind": "hi16",
+"resolved": 2147615276,
+"class": "import",
+"name": "import_8002022C",
+"lo_off": 4260
+},
+{
+"off": 4264,
+"kind": "hi16",
+"resolved": 2149996012,
+"class": "import",
+"name": "import_802655EC",
+"lo_off": 4268
+},
+{
+"off": 4288,
+"kind": "jal",
+"resolved": 682428,
+"class": "import",
+"name": "import_000A69BC"
+},
+{
+"off": 4296,
+"kind": "hi16",
+"resolved": 2147615276,
+"class": "import",
+"name": "import_8002022C",
+"lo_off": 4300
+},
+{
+"off": 4304,
+"kind": "hi16",
+"resolved": 2149996196,
+"class": "import",
+"name": "import_802656A4",
+"lo_off": 4308
+},
+{
+"off": 4328,
+"kind": "jal",
+"resolved": 682428,
+"class": "import",
+"name": "import_000A69BC"
+},
+{
+"off": 4348,
+"kind": "jal",
+"resolved": 679868,
+"class": "import",
+"name": "import_000A5FBC"
+},
+{
+"off": 4364,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 4400,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 4404
+},
+{
+"off": 4412,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 4428,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 4464
+},
+{
+"off": 4460,
+"kind": "jal",
+"resolved": 694272,
+"class": "import",
+"name": "import_000A9800"
+},
+{
+"off": 4468,
+"kind": "jal",
+"resolved": 1091216,
+"class": "import",
+"name": "import_0010A690"
+},
+{
+"off": 4480,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 4484
+},
+{
+"off": 4508,
+"kind": "hi16",
+"resolved": 2147614976,
+"class": "import",
+"name": "import_80020100",
+"lo_off": 4512
+},
+{
+"off": 4532,
+"kind": "hi16",
+"resolved": 2149989680,
+"class": "import",
+"name": "import_80263D30",
+"lo_off": 4552
+},
+{
+"off": 4548,
+"kind": "jal",
+"resolved": 2421288,
+"class": "import",
+"name": "import_0024F228"
+},
+{
+"off": 4556,
+"kind": "hi16",
+"resolved": 2147614972,
+"class": "import",
+"name": "import_800200FC",
+"lo_off": 4560
+},
+{
+"off": 4572,
+"kind": "jal",
+"resolved": 2421288,
+"class": "import",
+"name": "import_0024F228"
+},
+{
+"off": 4584,
+"kind": "jal",
+"resolved": 2421288,
+"class": "import",
+"name": "import_0024F228"
+},
+{
+"off": 4632,
+"kind": "jal",
+"resolved": 2421288,
+"class": "import",
+"name": "import_0024F228"
+},
+{
+"off": 4648,
+"kind": "jal",
+"resolved": 2421288,
+"class": "import",
+"name": "import_0024F228"
+},
+{
+"off": 4656,
+"kind": "hi16",
+"resolved": 2147614956,
+"class": "import",
+"name": "import_800200EC",
+"lo_off": 4660
+},
+{
+"off": 4672,
+"kind": "jal",
+"resolved": 2421288,
+"class": "import",
+"name": "import_0024F228"
+},
+{
+"off": 4688,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 4704,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 4720,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 4736,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 4752,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 4792,
+"kind": "hi16",
+"resolved": 2149989680,
+"class": "import",
+"name": "import_80263D30",
+"lo_off": 4800
+},
+{
+"off": 4796,
+"kind": "jal",
+"resolved": 2421380,
+"class": "import",
+"name": "import_0024F284"
+},
+{
+"off": 4808,
+"kind": "jal",
+"resolved": 2421380,
+"class": "import",
+"name": "import_0024F284"
+},
+{
+"off": 4820,
+"kind": "jal",
+"resolved": 2421380,
+"class": "import",
+"name": "import_0024F284"
+},
+{
+"off": 4832,
+"kind": "jal",
+"resolved": 2421380,
+"class": "import",
+"name": "import_0024F284"
+},
+{
+"off": 4844,
+"kind": "jal",
+"resolved": 2421380,
+"class": "import",
+"name": "import_0024F284"
+},
+{
+"off": 4876,
+"kind": "jal",
+"resolved": 2514236,
+"class": "func",
+"name": "func_000012AC"
+},
+{
+"off": 4932,
+"kind": "jal",
+"resolved": 750324,
+"class": "import",
+"name": "import_000B72F4"
+},
+{
+"off": 4956,
+"kind": "jal",
+"resolved": 2509632,
+"class": "func",
+"name": "func_000000B0"
+},
+{
+"off": 4980,
+"kind": "jal",
+"resolved": 2509704,
+"class": "func",
+"name": "func_000000F8"
+},
+{
+"off": 4988,
+"kind": "jal",
+"resolved": 2509824,
+"class": "func",
+"name": "func_00000170"
+},
+{
+"off": 5008,
+"kind": "jal",
+"resolved": 743532,
+"class": "import",
+"name": "import_000B586C"
+},
+{
+"off": 5096,
+"kind": "jal",
+"resolved": 2509776,
+"class": "func",
+"name": "func_00000140"
+},
+{
+"off": 5116,
+"kind": "hi16",
+"resolved": 2147614940,
+"class": "import",
+"name": "import_800200DC",
+"lo_off": 5124
+},
+{
+"off": 5140,
+"kind": "hi16",
+"resolved": 2147614976,
+"class": "import",
+"name": "import_80020100",
+"lo_off": 5152
+},
+{
+"off": 5148,
+"kind": "hi16",
+"resolved": 2147614976,
+"class": "import",
+"name": "import_80020100",
+"lo_off": 5152
+},
+{
+"off": 5160,
+"kind": "jal",
+"resolved": 688404,
+"class": "import",
+"name": "import_000A8114"
+},
+{
+"off": 5184,
+"kind": "jal",
+"resolved": 2509824,
+"class": "func",
+"name": "func_00000170"
+},
+{
+"off": 5200,
+"kind": "hi16",
+"resolved": 2147614940,
+"class": "import",
+"name": "import_800200DC",
+"lo_off": 5204
+},
+{
+"off": 5208,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 5216
+},
+{
+"off": 5220,
+"kind": "hi16",
+"resolved": 2147614940,
+"class": "import",
+"name": "import_800200DC",
+"lo_off": 5228
+},
+{
+"off": 5244,
+"kind": "jal",
+"resolved": 2509824,
+"class": "func",
+"name": "func_00000170"
+},
+{
+"off": 5264,
+"kind": "jal",
+"resolved": 743532,
+"class": "import",
+"name": "import_000B586C"
+},
+{
+"off": 5284,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 5288
+},
+{
+"off": 5300,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 5304
+},
+{
+"off": 5380,
+"kind": "hi16",
+"resolved": 2149992952,
+"class": "import",
+"name": "import_802649F8",
+"lo_off": 5384
+},
+{
+"off": 5388,
+"kind": "jal",
+"resolved": 912588,
+"class": "import",
+"name": "import_000DECCC"
+},
+{
+"off": 5404,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 5456
+},
+{
+"off": 5460,
+"kind": "jal",
+"resolved": 694272,
+"class": "import",
+"name": "import_000A9800"
+},
+{
+"off": 5484,
+"kind": "hi16",
+"resolved": 2147615240,
+"class": "import",
+"name": "import_80020208",
+"lo_off": 5488
+},
+{
+"off": 5500,
+"kind": "jal",
+"resolved": 2516320,
+"class": "func",
+"name": "func_00001AD0"
+},
+{
+"off": 5536,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 5540
+},
+{
+"off": 5544,
+"kind": "jal",
+"resolved": 694224,
+"class": "import",
+"name": "import_000A97D0"
+},
+{
+"off": 5568,
+"kind": "hi16",
+"resolved": 2149989728,
+"class": "import",
+"name": "import_80263D60",
+"lo_off": 5600
+},
+{
+"off": 5672,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 5716
+},
+{
+"off": 5692,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 5716
+},
+{
+"off": 5720,
+"kind": "jal",
+"resolved": 694272,
+"class": "import",
+"name": "import_000A9800"
+},
+{
+"off": 5744,
+"kind": "jal",
+"resolved": 614360,
+"class": "import",
+"name": "import_00095FD8"
+},
+{
+"off": 5760,
+"kind": "jal",
+"resolved": 694132,
+"class": "import",
+"name": "import_000A9774"
+},
+{
+"off": 5788,
+"kind": "jal",
+"resolved": 614296,
+"class": "import",
+"name": "import_00095F98"
+},
+{
+"off": 5796,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 5804
+},
+{
+"off": 5800,
+"kind": "jal",
+"resolved": 687968,
+"class": "import",
+"name": "import_000A7F60"
+},
+{
+"off": 5808,
+"kind": "jal",
+"resolved": 731272,
+"class": "import",
+"name": "import_000B2888"
+},
+{
+"off": 5816,
+"kind": "hi16",
+"resolved": 2147615240,
+"class": "import",
+"name": "import_80020208",
+"lo_off": 5820
+},
+{
+"off": 5836,
+"kind": "jal",
+"resolved": 2516320,
+"class": "func",
+"name": "func_00001AD0"
+},
+{
+"off": 5852,
+"kind": "jal",
+"resolved": 2520016,
+"class": "func",
+"name": "func_00002940"
+},
+{
+"off": 5868,
+"kind": "jal",
+"resolved": 8381672,
+"class": "import",
+"name": "import_007FE4E8"
+},
+{
+"off": 5892,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 5932,
+"kind": "jal",
+"resolved": 2509776,
+"class": "func",
+"name": "func_00000140"
+},
+{
+"off": 5956,
+"kind": "jal",
+"resolved": 2516580,
+"class": "func",
+"name": "func_00001BD4"
+},
+{
+"off": 5964,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 5968
+},
+{
+"off": 5976,
+"kind": "jal",
+"resolved": 694272,
+"class": "import",
+"name": "import_000A9800"
+},
+{
+"off": 6016,
+"kind": "jal",
+"resolved": 677796,
+"class": "import",
+"name": "import_000A57A4"
+},
+{
+"off": 6076,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 6080
+},
+{
+"off": 6100,
+"kind": "jal",
+"resolved": 687184,
+"class": "import",
+"name": "import_000A7C50"
+},
+{
+"off": 6116,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 6120
+},
+{
+"off": 6124,
+"kind": "jal",
+"resolved": 694132,
+"class": "import",
+"name": "import_000A9774"
+},
+{
+"off": 6196,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 6200
+},
+{
+"off": 6204,
+"kind": "jal",
+"resolved": 686992,
+"class": "import",
+"name": "import_000A7B90"
+},
+{
+"off": 6216,
+"kind": "jal",
+"resolved": 614952,
+"class": "import",
+"name": "import_00096228"
+},
+{
+"off": 6280,
+"kind": "hi16",
+"resolved": 2149991240,
+"class": "import",
+"name": "import_80264348",
+"lo_off": 6288
+},
+{
+"off": 6332,
+"kind": "jal",
+"resolved": 614700,
+"class": "import",
+"name": "import_0009612C"
+},
+{
+"off": 6416,
+"kind": "jal",
+"resolved": 614360,
+"class": "import",
+"name": "import_00095FD8"
+},
+{
+"off": 6432,
+"kind": "jal",
+"resolved": 614296,
+"class": "import",
+"name": "import_00095F98"
+},
+{
+"off": 6480,
+"kind": "jal",
+"resolved": 614700,
+"class": "import",
+"name": "import_0009612C"
+},
+{
+"off": 6560,
+"kind": "jal",
+"resolved": 743532,
+"class": "import",
+"name": "import_000B586C"
+},
+{
+"off": 6576,
+"kind": "jal",
+"resolved": 731272,
+"class": "import",
+"name": "import_000B2888"
+},
+{
+"off": 6592,
+"kind": "jal",
+"resolved": 614296,
+"class": "import",
+"name": "import_00095F98"
+},
+{
+"off": 6600,
+"kind": "hi16",
+"resolved": 2147615240,
+"class": "import",
+"name": "import_80020208",
+"lo_off": 6604
+},
+{
+"off": 6620,
+"kind": "jal",
+"resolved": 2516320,
+"class": "func",
+"name": "func_00001AD0"
+},
+{
+"off": 6636,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 6652
+},
+{
+"off": 6688,
+"kind": "jal",
+"resolved": 694272,
+"class": "import",
+"name": "import_000A9800"
+},
+{
+"off": 6704,
+"kind": "hi16",
+"resolved": 2147614936,
+"class": "import",
+"name": "import_800200D8",
+"lo_off": 6708
+},
+{
+"off": 6720,
+"kind": "jal",
+"resolved": 677796,
+"class": "import",
+"name": "import_000A57A4"
+},
+{
+"off": 6764,
+"kind": "hi16",
+"resolved": 2147615180,
+"class": "import",
+"name": "import_800201CC",
+"lo_off": 6848
+},
+{
+"off": 6876,
+"kind": "jal",
+"resolved": 724808,
+"class": "import",
+"name": "import_000B0F48"
+},
+{
+"off": 6884,
+"kind": "hi16",
+"resolved": 2147615180,
+"class": "import",
+"name": "import_800201CC",
+"lo_off": 6888
+},
+{
+"off": 6916,
+"kind": "jal",
+"resolved": 1120440,
+"class": "import",
+"name": "import_001118B8"
+},
+{
+"off": 6924,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 6928
+},
+{
+"off": 6940,
+"kind": "jal",
+"resolved": 1121996,
+"class": "import",
+"name": "import_00111ECC"
+},
+{
+"off": 6952,
+"kind": "jal",
+"resolved": 1120440,
+"class": "import",
+"name": "import_001118B8"
+},
+{
+"off": 6960,
+"kind": "jal",
+"resolved": 731940,
+"class": "import",
+"name": "import_000B2B24"
+},
+{
+"off": 7008,
+"kind": "jal",
+"resolved": 724808,
+"class": "import",
+"name": "import_000B0F48"
+},
+{
+"off": 7016,
+"kind": "hi16",
+"resolved": 2147615180,
+"class": "import",
+"name": "import_800201CC",
+"lo_off": 7020
+},
+{
+"off": 7048,
+"kind": "jal",
+"resolved": 731940,
+"class": "import",
+"name": "import_000B2B24"
+},
+{
+"off": 7060,
+"kind": "jal",
+"resolved": 1120440,
+"class": "import",
+"name": "import_001118B8"
+},
+{
+"off": 7072,
+"kind": "jal",
+"resolved": 1120440,
+"class": "import",
+"name": "import_001118B8"
+},
+{
+"off": 7080,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 7084
+},
+{
+"off": 7092,
+"kind": "jal",
+"resolved": 753648,
+"class": "import",
+"name": "import_000B7FF0"
+},
+{
+"off": 7128,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 7132
+},
+{
+"off": 7160,
+"kind": "hi16",
+"resolved": 2149992896,
+"class": "import",
+"name": "import_802649C0",
+"lo_off": 7180
+},
+{
+"off": 7184,
+"kind": "hi16",
+"resolved": 2149992908,
+"class": "import",
+"name": "import_802649CC",
+"lo_off": 7196
+},
+{
+"off": 7208,
+"kind": "jal",
+"resolved": 687968,
+"class": "import",
+"name": "import_000A7F60"
+},
+{
+"off": 7216,
+"kind": "jal",
+"resolved": 2516212,
+"class": "func",
+"name": "func_00001A64"
+},
+{
+"off": 7228,
+"kind": "jal",
+"resolved": 2516456,
+"class": "func",
+"name": "func_00001B58"
+},
+{
+"off": 7244,
+"kind": "jal",
+"resolved": 614360,
+"class": "import",
+"name": "import_00095FD8"
+},
+{
+"off": 7252,
+"kind": "hi16",
+"resolved": 2147614972,
+"class": "import",
+"name": "import_800200FC",
+"lo_off": 7256
+},
+{
+"off": 7268,
+"kind": "jal",
+"resolved": 614296,
+"class": "import",
+"name": "import_00095F98"
+},
+{
+"off": 7276,
+"kind": "hi16",
+"resolved": 2147615272,
+"class": "import",
+"name": "import_80020228",
+"lo_off": 7280
+},
+{
+"off": 7288,
+"kind": "jal",
+"resolved": 694272,
+"class": "import",
+"name": "import_000A9800"
+},
+{
+"off": 7384,
+"kind": "hi16",
+"resolved": 2149974016,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 7396,
+"kind": "hi16",
+"resolved": 2149974016,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 7432,
+"kind": "hi16",
+"resolved": 2149974016,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 7480,
+"kind": "hi16",
+"resolved": 2149960440,
+"class": "import",
+"name": "import_8025CAF8",
+"lo_off": 7528
+},
+{
+"off": 7524,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 7528
+},
+{
+"off": 7548,
+"kind": "jal",
+"resolved": 2418184,
+"class": "import",
+"name": "import_0024E608"
+},
+{
+"off": 7556,
+"kind": "hi16",
+"resolved": 2149989680,
+"class": "import",
+"name": "import_80263D30",
+"lo_off": 7564
+},
+{
+"off": 7560,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 7568,
+"kind": "hi16",
+"resolved": 2149989680,
+"class": "import",
+"name": "import_80263D30",
+"lo_off": 7572
+},
+{
+"off": 7584,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 7604,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 7608
+},
+{
+"off": 7632,
+"kind": "jal",
+"resolved": 2419360,
+"class": "import",
+"name": "import_0024EAA0"
+},
+{
+"off": 7644,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 7664,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 7692,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 7696
+},
+{
+"off": 7764,
+"kind": "jal",
+"resolved": 2419360,
+"class": "import",
+"name": "import_0024EAA0"
+},
+{
+"off": 7804,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 7824,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 7836,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 7872,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 7888,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 7908,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 7920,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 7956,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 8036,
+"kind": "hi16",
+"resolved": 2149991280,
+"class": "import",
+"name": "import_80264370",
+"lo_off": 8040
+},
+{
+"off": 8176,
+"kind": "hi16",
+"resolved": 2149991288,
+"class": "import",
+"name": "import_80264378",
+"lo_off": 8180
+},
+{
+"off": 8308,
+"kind": "hi16",
+"resolved": 2149974016,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 8408,
+"kind": "jal",
+"resolved": 2519776,
+"class": "func",
+"name": "func_00002850"
+},
+{
+"off": 8452,
+"kind": "hi16",
+"resolved": 2149991304,
+"class": "import",
+"name": "import_80264388",
+"lo_off": 8460
+},
+{
+"off": 8560,
+"kind": "jal",
+"resolved": 2519776,
+"class": "func",
+"name": "func_00002850"
+},
+{
+"off": 8592,
+"kind": "hi16",
+"resolved": 2149991312,
+"class": "import",
+"name": "import_80264390",
+"lo_off": 8612
+},
+{
+"off": 8700,
+"kind": "jal",
+"resolved": 614700,
+"class": "import",
+"name": "import_0009612C"
+},
+{
+"off": 8756,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 8760
+},
+{
+"off": 8772,
+"kind": "jal",
+"resolved": 2419360,
+"class": "import",
+"name": "import_0024EAA0"
+},
+{
+"off": 8784,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 8824,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 8864,
+"kind": "hi16",
+"resolved": 2147942400,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 8884,
+"kind": "hi16",
+"resolved": 2149974016,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 8912,
+"kind": "hi16",
+"resolved": 2149974016,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 8948,
+"kind": "hi16",
+"resolved": 2149974016,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 8972,
+"kind": "jal",
+"resolved": 2518668,
+"class": "func",
+"name": "func_000023FC"
+},
+{
+"off": 9116,
+"kind": "jal",
+"resolved": 614700,
+"class": "import",
+"name": "import_0009612C"
+},
+{
+"off": 9276,
+"kind": "hi16",
+"resolved": 2149989680,
+"class": "import",
+"name": "import_80263D30",
+"lo_off": 9280
+},
+{
+"off": 9284,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 9324,
+"kind": "jal",
+"resolved": 2418184,
+"class": "import",
+"name": "import_0024E608"
+},
+{
+"off": 9344,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 9364,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 9368
+},
+{
+"off": 9392,
+"kind": "jal",
+"resolved": 2419360,
+"class": "import",
+"name": "import_0024EAA0"
+},
+{
+"off": 9420,
+"kind": "jal",
+"resolved": 2509776,
+"class": "func",
+"name": "func_00000140"
+},
+{
+"off": 9456,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 9476,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 9492,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 9512,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 9540,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 9560
+},
+{
+"off": 9576,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 9580
+},
+{
+"off": 9756,
+"kind": "jal",
+"resolved": 2419360,
+"class": "import",
+"name": "import_0024EAA0"
+},
+{
+"off": 9768,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 9804,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 9812,
+"kind": "hi16",
+"resolved": 2149992976,
+"class": "import",
+"name": "import_80264A10",
+"lo_off": 9816
+},
+{
+"off": 9832,
+"kind": "jal",
+"resolved": 1151940,
+"class": "import",
+"name": "import_001193C4"
+},
+{
+"off": 9840,
+"kind": "jal",
+"resolved": 1123424,
+"class": "import",
+"name": "import_00112460"
+},
+{
+"off": 9932,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 10092,
+"kind": "jal",
+"resolved": 2422620,
+"class": "import",
+"name": "import_0024F75C"
+},
+{
+"off": 10156,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 10168
+},
+{
+"off": 10208,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 10212
+},
+{
+"off": 10236,
+"kind": "jal",
+"resolved": 2419360,
+"class": "import",
+"name": "import_0024EAA0"
+},
+{
+"off": 10252,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 10284,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 10392,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 10404
+},
+{
+"off": 10420,
+"kind": "jal",
+"resolved": 2418184,
+"class": "import",
+"name": "import_0024E608"
+},
+{
+"off": 10432,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 10480,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 10588,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 10612,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 10640,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 10676,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 10700,
+"kind": "hi16",
+"resolved": 2149992992,
+"class": "import",
+"name": "import_80264A20",
+"lo_off": 10704
+},
+{
+"off": 10716,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 10728,
+"kind": "hi16",
+"resolved": 2147957528,
+"class": "import",
+"name": "import_80073B18",
+"lo_off": 10732
+},
+{
+"off": 10748,
+"kind": "hi16",
+"resolved": 2147957632,
+"class": "import",
+"name": "import_80073B80",
+"lo_off": 10752
+},
+{
+"off": 10760,
+"kind": "hi16",
+"resolved": 2155870848,
+"class": "data",
+"name": "D_807FFA80",
+"lo_off": 10764
+},
+{
+"off": 10772,
+"kind": "hi16",
+"resolved": 2149991688,
+"class": "import",
+"name": "import_80264508",
+"lo_off": 10776
+},
+{
+"off": 10820,
+"kind": "hi16",
+"resolved": 2149989704,
+"class": "import",
+"name": "import_80263D48",
+"lo_off": 10852
+},
+{
+"off": 10864,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 10888,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 10904,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 10920,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 10936,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 10944,
+"kind": "hi16",
+"resolved": 2147615276,
+"class": "import",
+"name": "import_8002022C",
+"lo_off": 10948
+},
+{
+"off": 10952,
+"kind": "hi16",
+"resolved": 2147614976,
+"class": "import",
+"name": "import_80020100",
+"lo_off": 10956
+},
+{
+"off": 10976,
+"kind": "jal",
+"resolved": 2421368,
+"class": "import",
+"name": "import_0024F278"
+},
+{
+"off": 11012,
+"kind": "jal",
+"resolved": 2521284,
+"class": "func",
+"name": "func_00002E34"
+},
+{
+"off": 11028,
+"kind": "hi16",
+"resolved": 2149974016,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 11108,
+"kind": "jal",
+"resolved": 8383464,
+"class": "import",
+"name": "import_007FEBE8"
+},
+{
+"off": 11224,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 11260
+},
+{
+"off": 11244,
+"kind": "jal",
+"resolved": 2412808,
+"class": "import",
+"name": "import_0024D108"
+},
+{
+"off": 11256,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 11260
+},
+{
+"off": 11268,
+"kind": "jal",
+"resolved": 2418184,
+"class": "import",
+"name": "import_0024E608"
+},
+{
+"off": 11280,
+"kind": "hi16",
+"resolved": 2149993000,
+"class": "import",
+"name": "import_80264A28",
+"lo_off": 11284
+},
+{
+"off": 11288,
+"kind": "jal",
+"resolved": 1151940,
+"class": "import",
+"name": "import_001193C4"
+},
+{
+"off": 11308,
+"kind": "jal",
+"resolved": 2416736,
+"class": "import",
+"name": "import_0024E060"
+},
+{
+"off": 11332,
+"kind": "jal",
+"resolved": 2414340,
+"class": "import",
+"name": "import_0024D704"
+},
+{
+"off": 11340,
+"kind": "hi16",
+"resolved": 2149993020,
+"class": "import",
+"name": "import_80264A3C",
+"lo_off": 11344
+},
+{
+"off": 11348,
+"kind": "jal",
+"resolved": 1151940,
+"class": "import",
+"name": "import_001193C4"
+},
+{
+"off": 11368,
+"kind": "jal",
+"resolved": 2416736,
+"class": "import",
+"name": "import_0024E060"
+},
+{
+"off": 11392,
+"kind": "jal",
+"resolved": 2414340,
+"class": "import",
+"name": "import_0024D704"
+},
+{
+"off": 11416,
+"kind": "jal",
+"resolved": 2412808,
+"class": "import",
+"name": "import_0024D108"
+},
+{
+"off": 11436,
+"kind": "hi16",
+"resolved": 2149960440,
+"class": "import",
+"name": "import_8025CAF8",
+"lo_off": 11452
+},
+{
+"off": 11440,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 11452
+},
+{
+"off": 11540,
+"kind": "jal",
+"resolved": 2418184,
+"class": "import",
+"name": "import_0024E608"
+},
+{
+"off": 11560,
+"kind": "jal",
+"resolved": 2416736,
+"class": "import",
+"name": "import_0024E060"
+},
+{
+"off": 11584,
+"kind": "jal",
+"resolved": 2414340,
+"class": "import",
+"name": "import_0024D704"
+},
+{
+"off": 11616,
+"kind": "hi16",
+"resolved": 2149894904,
+"class": "import",
+"name": "import_8024CAF8",
+"lo_off": 11620
+},
+{
+"off": 11668,
+"kind": "jal",
+"resolved": 2418184,
+"class": "import",
+"name": "import_0024E608"
+},
+{
+"off": 11676,
+"kind": "hi16",
+"resolved": 2149989704,
+"class": "import",
+"name": "import_80263D48",
+"lo_off": 11680
+},
+{
+"off": 11684,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 11704,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 11752,
+"kind": "jal",
+"resolved": 2418184,
+"class": "import",
+"name": "import_0024E608"
+},
+{
+"off": 11760,
+"kind": "hi16",
+"resolved": 2149989704,
+"class": "import",
+"name": "import_80263D48",
+"lo_off": 11764
+},
+{
+"off": 11768,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 11788,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 11880,
+"kind": "jal",
+"resolved": 743108,
+"class": "import",
+"name": "import_000B56C4"
+},
+{
+"off": 11912,
+"kind": "jal",
+"resolved": 2421448,
+"class": "import",
+"name": "import_0024F2C8"
+},
+{
+"off": 11956,
+"kind": "jal",
+"resolved": 2417544,
+"class": "import",
+"name": "import_0024E388"
+},
+{
+"off": 11988,
+"kind": "jal",
+"resolved": 2421580,
+"class": "import",
+"name": "import_0024F34C"
+},
+{
+"off": 12060,
+"kind": "hi16",
+"resolved": 2149993048,
+"class": "import",
+"name": "import_80264A58",
+"lo_off": 12064
+},
+{
+"off": 12168,
+"kind": "jal",
+"resolved": 756644,
+"class": "import",
+"name": "import_000B8BA4"
+},
+{
+"off": 12188,
+"kind": "jal",
+"resolved": 757000,
+"class": "import",
+"name": "import_000B8D08"
+},
+{
+"off": 12208,
+"kind": "jal",
+"resolved": 757196,
+"class": "import",
+"name": "import_000B8DCC"
+},
+{
+"off": 12232,
+"kind": "jal",
+"resolved": 757608,
+"class": "import",
+"name": "import_000B8F68"
+},
+{
+"off": 12240,
+"kind": "hi16",
+"resolved": 2147614972,
+"class": "import",
+"name": "import_800200FC",
+"lo_off": 12244
+},
+{
+"off": 12272,
+"kind": "jal",
+"resolved": 738896,
+"class": "import",
+"name": "import_000B4650"
+},
+{
+"off": 12288,
+"kind": "jal",
+"resolved": 698556,
+"class": "import",
+"name": "import_000AA8BC"
+},
+{
+"off": 12316,
+"kind": "jal",
+"resolved": 698976,
+"class": "import",
+"name": "import_000AAA60"
+},
+{
+"off": 12332,
+"kind": "jal",
+"resolved": 695856,
+"class": "import",
+"name": "import_000A9E30"
+},
+{
+"off": 12348,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 12468,
+"kind": "jal",
+"resolved": 749740,
+"class": "import",
+"name": "import_000B70AC"
+},
+{
+"off": 12544,
+"kind": "jal",
+"resolved": 725636,
+"class": "import",
+"name": "import_000B1284"
+},
+{
+"off": 12576,
+"kind": "jal",
+"resolved": 725812,
+"class": "import",
+"name": "import_000B1334"
+},
+{
+"off": 12592,
+"kind": "jal",
+"resolved": 725684,
+"class": "import",
+"name": "import_000B12B4"
+},
+{
+"off": 12668,
+"kind": "jal",
+"resolved": 614732,
+"class": "import",
+"name": "import_0009614C"
+},
+{
+"off": 12692,
+"kind": "jal",
+"resolved": 725916,
+"class": "import",
+"name": "import_000B139C"
+},
+{
+"off": 12740,
+"kind": "jal",
+"resolved": 749656,
+"class": "import",
+"name": "import_000B7058"
+},
+{
+"off": 12756,
+"kind": "jal",
+"resolved": 726220,
+"class": "import",
+"name": "import_000B14CC"
+},
+{
+"off": 12796,
+"kind": "jal",
+"resolved": 707080,
+"class": "import",
+"name": "import_000ACA08"
+},
+{
+"off": 12828,
+"kind": "jal",
+"resolved": 707132,
+"class": "import",
+"name": "import_000ACA3C"
+},
+{
+"off": 12836,
+"kind": "jal",
+"resolved": 928740,
+"class": "import",
+"name": "import_000E2BE4"
+},
+{
+"off": 12908,
+"kind": "hi16",
+"resolved": 2147942400,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 12920,
+"kind": "hi16",
+"resolved": 2147942400,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 12960,
+"kind": "jal",
+"resolved": 755552,
+"class": "import",
+"name": "import_000B8760"
+},
+{
+"off": 12968,
+"kind": "jal",
+"resolved": 756044,
+"class": "import",
+"name": "import_000B894C"
+},
+{
+"off": 12976,
+"kind": "jal",
+"resolved": 750128,
+"class": "import",
+"name": "import_000B7230"
+},
+{
+"off": 13012,
+"kind": "jal",
+"resolved": 2512724,
+"class": "func",
+"name": "func_00000CC4"
+},
+{
+"off": 13024,
+"kind": "jal",
+"resolved": 2512724,
+"class": "func",
+"name": "func_00000CC4"
+},
+{
+"off": 13060,
+"kind": "jal",
+"resolved": 2512724,
+"class": "func",
+"name": "func_00000CC4"
+},
+{
+"off": 13072,
+"kind": "jal",
+"resolved": 2512784,
+"class": "func",
+"name": "func_00000D00"
+},
+{
+"off": 13108,
+"kind": "jal",
+"resolved": 2512724,
+"class": "func",
+"name": "func_00000CC4"
+},
+{
+"off": 13120,
+"kind": "jal",
+"resolved": 2512844,
+"class": "func",
+"name": "func_00000D3C"
+},
+{
+"off": 13156,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 13172,
+"kind": "jal",
+"resolved": 948856,
+"class": "import",
+"name": "import_000E7A78"
+},
+{
+"off": 13184,
+"kind": "hi16",
+"resolved": 2147937664,
+"class": "import",
+"name": "import_8006ED80",
+"lo_off": 13188
+},
+{
+"off": 13228,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 13300,
+"kind": "jal",
+"resolved": 2512724,
+"class": "func",
+"name": "func_00000CC4"
+},
+{
+"off": 13312,
+"kind": "jal",
+"resolved": 2512932,
+"class": "func",
+"name": "func_00000D94"
+}
+]
+}
