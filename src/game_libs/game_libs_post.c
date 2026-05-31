@@ -9330,20 +9330,20 @@ void gl_func_0002D224(char *a0) {
     char *v1;
     int i;
     v1 = a0;
-    for (i = 0; i < 16; i += 4) {
+    for (i = 0; i != 16; i += 4) {
         *(int*)(v1 + 0x3C) = (int)(base + 0x5280);
         *(int*)(v1 + 0x40) = (int)(base + 0x5280);
         *(int*)(v1 + 0x44) = (int)(base + 0x5280);
         v1 += 16;
         *(int*)(v1 + 0x28) = (int)(base + 0x5280);
     }
-    *(char*)a0 &= 0x7F;
+    *(char*)a0 &= ~0x80;
     *(char*)a0 &= 0xDF;
     *(char*)a0 &= 0xF7;
     *(char*)a0 &= 0xEF;
     *(char*)a0 &= 0xFE;
     v1 = a0;
-    for (i = 0; i < 8; i += 4) {
+    for (i = 0; i != 8; i += 4) {
         *(char*)(v1 + 0x159) = -1;
         *(char*)(v1 + 0x15A) = -1;
         *(char*)(v1 + 0x15B) = -1;
