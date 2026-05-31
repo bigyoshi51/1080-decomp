@@ -3714,27 +3714,30 @@ void timproc_uso_b5_func_0000AAF4(char *a0) {
  * doesn't have). Reverted. The cap class IS purely the v1-vs-a2
  * register pick for the cross-jal-preserve slot of `p`, not reachable
  * via K&R arg-list manipulation. */
-void *timproc_uso_b5_func_0000AB24(void *arg0) {
-    char pad[8];
-    void *p;
-    void *r;
-    void *q;
+/* 2026-05-31: BYTE-IDENTICAL to game_uso_func_00011A94@89% (vparg-lever variant of the
+ * eddproc-3BC constructor). Applied its body — the old one inserted into the call RESULT
+ * q instead of HEAD, and lacked the vparg spill. */
+void *timproc_uso_b5_func_0000AB24(int *arg0) {
+    volatile int **vparg = (volatile int **)&arg0;
+    int *node;
+    int *head;
 
-    p = (void*)gl_func_00000000(0x40);
-    if (p != 0) {
-        gl_func_00000000(p);
-        *(void**)((char*)p + 0x28) = (void*)&D_00000000;
-        *(int*)((char*)p + 0x3C) = 0;
+    node = (int*)gl_func_00000000(0x40);
+    if (node != 0) {
+        gl_func_00000000(node);
+        node[10] = (int)&D_00000000;
+        node[15] = 0;
     }
-    r = *(void**)((char*)arg0 + 0x40);
-    if (r != 0) {
-        q = (void*)gl_func_00000000((char*)p + 0x10, r);
-        if (*(int*)((char*)q + 0x14) != 0) {
-            *(int*)((char*)q + 0x4) = 1;
+    head = (int*)arg0[16];
+    if (head != 0) {
+        gl_func_00000000(node + 4, head);
+        if (head[5] != 0) {
+            head[1] = 1;
         }
-        *(void**)((char*)q + 0x14) = p;
+        head[5] = (int)node;
     }
-    return p;
+    (void)vparg;
+    return node;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AB24);
