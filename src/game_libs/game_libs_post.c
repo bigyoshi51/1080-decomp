@@ -18774,12 +18774,31 @@ int game_libs_func_0003D480(int a0) {
 #ifdef NON_MATCHING
 extern int D_00000000;
 void gl_func_0003D48C(char *o) {
-    char *n;
-    gl_func_00000000(&D_00000000, o, 1);
-    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
-        gl_func_00000000(*(char **)n);
+    char *volatile cur;
+    char *volatile next;
+    int v0;
+    char *t;
+    gl_func_00000000(&D_00000000, o + 0x2C, 1);
+    t = *(char **)(o + 0x10);
+    next = t;
+    v0 = 0;
+    if (t != 0) {
+        cur = t;
+        next = *(char **)(t + 4);
+        v0 = *(int *)t;
+    }
+    while (v0 != 0) {
+        gl_func_00000000(*(char **)cur);
+        t = next;
+        v0 = 0;
+        if (t != 0) {
+            cur = t;
+            next = *(char **)(t + 4);
+            v0 = *(int *)t;
+        }
     }
     gl_func_00000000(&D_00000000);
+    gl_func_00000000();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D48C);
