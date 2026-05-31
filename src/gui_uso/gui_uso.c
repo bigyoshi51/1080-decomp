@@ -374,9 +374,12 @@ extern char D_00000000;
  * RDP cmd (0xBB000001/0x80008000), then for each of strlen(a3) chars: space ->
  * advance x by the space glyph's width; else look up glyph = a0->0x20[idx*0x14]
  * (idx = gl_func(c)), make two per-glyph render calls, advance x by glyph width.
- * NON_MATCHING cap: reloc-bearing USO calls + (s<<10)/s = 1024 div-trap metrics
- * + 9-saved-reg allocation (s0-s8) won't byte-match; INCLUDE_ASM stays the build
- * path. Real body (un-bailed from TODO stub per docs) below. */
+ * The two `1024` packet metrics are REDUNDANT signed divisions in the target:
+ * (scale<<10)/scale and (glyph[2]<<10)/glyph[2] (each ==1024 but IDO emits the
+ * div + the div-by-0 / -1<<31-overflow break-traps). Modeling both + the byte-4
+ * a0 field + the re-deref'd cmd_list[0] lifts the body 45.3 -> 71%. Residual cap:
+ * 9-saved-reg allocation (s0-s8) numbering + frame-size/scheduling; INCLUDE_ASM
+ * stays the build path. */
 void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
     int *cmd_state = (int *)a0[0x24 / 4];
     int *cmd_list = (int *)cmd_state[0xC / 4];
@@ -386,7 +389,7 @@ void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
     int count, i, x;
     char *p = a3;
     cmd_list[1] = idx + 1;
-    slot = (int *)((char *)cmd_list[0] + idx * 8);
+    slot = (int *)((char *)((int *)cmd_state[0xC / 4])[0] + idx * 8);
     slot[0] = 0xBB000001;
     slot[1] = 0x80008000;
     count = gl_func_00000000(a3);
@@ -397,10 +400,10 @@ void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
         if (c != ' ') {
             int g = gl_func_00000000((int)c);
             int *glyph = (int *)((char *)a0[0x20 / 4] + g * 0x14);
-            gl_func_00000000(a0[0x24 / 4], a0[4], a0[0x18 / 4], a0[0x1C / 4],
+            gl_func_00000000(a0[0x24 / 4], a0[0x4 / 4], a0[0x18 / 4], a0[0x1C / 4],
                              glyph[0], glyph[1], glyph[2], scale, 0);
-            gl_func_00000000(a0[0x24 / 4], x + glyph[4], a2, glyph[2],
-                             scale, 1024, 1024);
+            gl_func_00000000(a0[0x24 / 4], x + glyph[4], a2, glyph[2], scale,
+                             (glyph[2] * 1024) / glyph[2], (scale * 1024) / scale);
             x += glyph[3];
         } else {
             x += ((int *)a0[0x20 / 4])[3];
