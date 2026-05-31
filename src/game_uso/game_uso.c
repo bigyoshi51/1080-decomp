@@ -10739,12 +10739,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
 //   body below — threshold-gated event/effect trigger skeleton.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void game_uso_func_0000E1FC(char *obj, char *a1, char *a2) {
+typedef struct { int a, b; } E1FCPair;
+void game_uso_func_0000E1FC(char *obj) {
     char *s = *(char **)(obj + 0xB4);
     char *ctx;
     float m;
     double t;
-    if (!(*(float *)(s + 0x348) < *(float *)(s + 0x10))) return;
+    if (!(*(float *)(s + 0x348) < *(float *)(s + 0x750))) return;
     ctx = *(char **)(obj + 0x800);
     if (!(*(int *)(ctx + 0x18) & 0x2000)) return;
     if (*(int *)(s + 0x9CC) != 0) return;
@@ -10752,9 +10753,9 @@ void game_uso_func_0000E1FC(char *obj, char *a1, char *a2) {
     if (m < 0.0f) m = -m;
     t = *(double *)((char *)&D_00000000 + 0x00000E68 + 0x208);
     if ((double)m < t) {
-        func_00000000(*(int *)a1, *(int *)a2);
+        func_00000000(obj, *(E1FCPair *)((char *)&D_00000000 + 0xE50));
     } else {
-        func_00000000(*(int *)a1, *(int *)(a2 + 0x4));
+        func_00000000(obj, *(E1FCPair *)((char *)&D_00000000 + 0xE68));
     }
 }
 #else
