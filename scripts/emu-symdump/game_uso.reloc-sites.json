@@ -1,0 +1,11080 @@
+{
+"tbase": 8309408,
+"text_sz": 72496,
+"n_sites": 1508,
+"class_counts": {
+"unpaired": 19,
+"import": 624,
+"func": 408,
+"data": 457
+},
+"sites": [
+{
+"off": 0,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 480,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 484
+},
+{
+"off": 496,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 592,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 596
+},
+{
+"off": 604,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 652,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 656
+},
+{
+"off": 664,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 712,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 716
+},
+{
+"off": 724,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 800,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 804
+},
+{
+"off": 812,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 872,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 876
+},
+{
+"off": 884,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 936,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 940
+},
+{
+"off": 948,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 1476,
+"kind": "jal",
+"resolved": 8309876,
+"class": "func",
+"name": "func_000001D4"
+},
+{
+"off": 1484,
+"kind": "jal",
+"resolved": 8309876,
+"class": "func",
+"name": "func_000001D4"
+},
+{
+"off": 1492,
+"kind": "jal",
+"resolved": 8309876,
+"class": "func",
+"name": "func_000001D4"
+},
+{
+"off": 1500,
+"kind": "jal",
+"resolved": 8309988,
+"class": "func",
+"name": "func_00000244"
+},
+{
+"off": 1508,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 1516,
+"kind": "jal",
+"resolved": 8309876,
+"class": "func",
+"name": "func_000001D4"
+},
+{
+"off": 1556,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 1848,
+"kind": "jal",
+"resolved": 8310108,
+"class": "func",
+"name": "func_000002BC"
+},
+{
+"off": 1856,
+"kind": "jal",
+"resolved": 8310108,
+"class": "func",
+"name": "func_000002BC"
+},
+{
+"off": 1864,
+"kind": "jal",
+"resolved": 8310196,
+"class": "func",
+"name": "func_00000314"
+},
+{
+"off": 1872,
+"kind": "jal",
+"resolved": 8310196,
+"class": "func",
+"name": "func_00000314"
+},
+{
+"off": 1880,
+"kind": "jal",
+"resolved": 8310268,
+"class": "func",
+"name": "func_0000035C"
+},
+{
+"off": 1888,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 1916,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 1928,
+"kind": "jal",
+"resolved": 8310420,
+"class": "func",
+"name": "func_000003F4"
+},
+{
+"off": 1936,
+"kind": "jal",
+"resolved": 8310872,
+"class": "func",
+"name": "func_000005B8"
+},
+{
+"off": 2052,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 2080,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 2160,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 2196,
+"kind": "jal",
+"resolved": 905940,
+"class": "import",
+"name": "import_000DD2D4"
+},
+{
+"off": 2212,
+"kind": "hi16",
+"resolved": 2155865968,
+"class": "data",
+"name": "D_807FE770",
+"lo_off": 2216
+},
+{
+"off": 2240,
+"kind": "jal",
+"resolved": 927172,
+"class": "import",
+"name": "import_000E25C4"
+},
+{
+"off": 2320,
+"kind": "jal",
+"resolved": 8319816,
+"class": "func",
+"name": "func_000028A8"
+},
+{
+"off": 2332,
+"kind": "jal",
+"resolved": 8317028,
+"class": "func",
+"name": "func_00001DC4"
+},
+{
+"off": 2344,
+"kind": "jal",
+"resolved": 8311776,
+"class": "func",
+"name": "func_00000940"
+},
+{
+"off": 2400,
+"kind": "hi16",
+"resolved": 2155870500,
+"class": "data",
+"name": "D_807FF924",
+"lo_off": 2408
+},
+{
+"off": 2420,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 2424
+},
+{
+"off": 2508,
+"kind": "hi16",
+"resolved": 2155870528,
+"class": "data",
+"name": "D_807FF940",
+"lo_off": 2516
+},
+{
+"off": 2584,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 2588
+},
+{
+"off": 2632,
+"kind": "hi16",
+"resolved": 2155870552,
+"class": "data",
+"name": "D_807FF958",
+"lo_off": 2640
+},
+{
+"off": 2724,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 2728
+},
+{
+"off": 2772,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 2844,
+"kind": "jal",
+"resolved": 8312284,
+"class": "func",
+"name": "func_00000B3C"
+},
+{
+"off": 2852,
+"kind": "jal",
+"resolved": 931956,
+"class": "import",
+"name": "import_000E3874"
+},
+{
+"off": 2920,
+"kind": "jal",
+"resolved": 8311776,
+"class": "func",
+"name": "func_00000940"
+},
+{
+"off": 3160,
+"kind": "jal",
+"resolved": 8319412,
+"class": "func",
+"name": "func_00002714"
+},
+{
+"off": 3188,
+"kind": "jal",
+"resolved": 8319412,
+"class": "func",
+"name": "func_00002714"
+},
+{
+"off": 3240,
+"kind": "jal",
+"resolved": 8321640,
+"class": "func",
+"name": "func_00002FC8"
+},
+{
+"off": 3268,
+"kind": "jal",
+"resolved": 8321640,
+"class": "func",
+"name": "func_00002FC8"
+},
+{
+"off": 3500,
+"kind": "hi16",
+"resolved": 2155870576,
+"class": "data",
+"name": "D_807FF970",
+"lo_off": 3508
+},
+{
+"off": 3536,
+"kind": "jal",
+"resolved": 8319412,
+"class": "func",
+"name": "func_00002714"
+},
+{
+"off": 3560,
+"kind": "jal",
+"resolved": 8321640,
+"class": "func",
+"name": "func_00002FC8"
+},
+{
+"off": 3616,
+"kind": "jal",
+"resolved": 8319412,
+"class": "func",
+"name": "func_00002714"
+},
+{
+"off": 3640,
+"kind": "jal",
+"resolved": 8321640,
+"class": "func",
+"name": "func_00002FC8"
+},
+{
+"off": 3696,
+"kind": "jal",
+"resolved": 8319412,
+"class": "func",
+"name": "func_00002714"
+},
+{
+"off": 3720,
+"kind": "jal",
+"resolved": 8321640,
+"class": "func",
+"name": "func_00002FC8"
+},
+{
+"off": 3772,
+"kind": "jal",
+"resolved": 8319412,
+"class": "func",
+"name": "func_00002714"
+},
+{
+"off": 3796,
+"kind": "jal",
+"resolved": 8321640,
+"class": "func",
+"name": "func_00002FC8"
+},
+{
+"off": 3884,
+"kind": "jal",
+"resolved": 8309408,
+"class": "func",
+"name": "func_00000000"
+},
+{
+"off": 4144,
+"kind": "jal",
+"resolved": 8309632,
+"class": "func",
+"name": "func_000000E0"
+},
+{
+"off": 4400,
+"kind": "jal",
+"resolved": 8309632,
+"class": "func",
+"name": "func_000000E0"
+},
+{
+"off": 4708,
+"kind": "jal",
+"resolved": 8309632,
+"class": "func",
+"name": "func_000000E0"
+},
+{
+"off": 4868,
+"kind": "jal",
+"resolved": 8309568,
+"class": "func",
+"name": "func_000000A0"
+},
+{
+"off": 5092,
+"kind": "jal",
+"resolved": 8309632,
+"class": "func",
+"name": "func_000000E0"
+},
+{
+"off": 5112,
+"kind": "jal",
+"resolved": 8318580,
+"class": "func",
+"name": "func_000023D4"
+},
+{
+"off": 5276,
+"kind": "jal",
+"resolved": 8310732,
+"class": "func",
+"name": "func_0000052C"
+},
+{
+"off": 5616,
+"kind": "jal",
+"resolved": 8311060,
+"class": "func",
+"name": "func_00000674"
+},
+{
+"off": 5724,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 5752,
+"kind": "jal",
+"resolved": 8310952,
+"class": "func",
+"name": "func_00000608"
+},
+{
+"off": 5764,
+"kind": "jal",
+"resolved": 8310996,
+"class": "func",
+"name": "func_00000634"
+},
+{
+"off": 5772,
+"kind": "jal",
+"resolved": 8311236,
+"class": "func",
+"name": "func_00000724"
+},
+{
+"off": 5808,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 5832,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 5844,
+"kind": "jal",
+"resolved": 8311424,
+"class": "func",
+"name": "func_000007E0"
+},
+{
+"off": 5852,
+"kind": "jal",
+"resolved": 8311436,
+"class": "func",
+"name": "func_000007EC"
+},
+{
+"off": 5940,
+"kind": "jal",
+"resolved": 8311708,
+"class": "func",
+"name": "func_000008FC"
+},
+{
+"off": 6124,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6148,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6164,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6180,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6196,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6212,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6228,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6244,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6260,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6276,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6292,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6308,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6324,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6340,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6356,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6372,
+"kind": "jal",
+"resolved": 8312204,
+"class": "func",
+"name": "func_00000AEC"
+},
+{
+"off": 6416,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 6440,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 6456,
+"kind": "hi16",
+"resolved": 2155866376,
+"class": "data",
+"name": "D_807FE908",
+"lo_off": 6460
+},
+{
+"off": 6504,
+"kind": "hi16",
+"resolved": 2155866384,
+"class": "data",
+"name": "D_807FE910",
+"lo_off": 6524
+},
+{
+"off": 6664,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 6696,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 6708,
+"kind": "hi16",
+"resolved": 2155865632,
+"class": "data",
+"name": "D_807FE620",
+"lo_off": 6712
+},
+{
+"off": 6780,
+"kind": "hi16",
+"resolved": 2155866388,
+"class": "data",
+"name": "D_807FE914",
+"lo_off": 6784
+},
+{
+"off": 6808,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 6840,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 6856,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 6860
+},
+{
+"off": 6876,
+"kind": "hi16",
+"resolved": 2155866392,
+"class": "data",
+"name": "D_807FE918",
+"lo_off": 6880
+},
+{
+"off": 6904,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 6936,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 6952,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 6956
+},
+{
+"off": 6972,
+"kind": "hi16",
+"resolved": 2155866396,
+"class": "data",
+"name": "D_807FE91C",
+"lo_off": 6976
+},
+{
+"off": 7000,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 7032,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 7048,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 7052
+},
+{
+"off": 7068,
+"kind": "hi16",
+"resolved": 2155866400,
+"class": "data",
+"name": "D_807FE920",
+"lo_off": 7072
+},
+{
+"off": 7096,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 7128,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 7144,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 7148
+},
+{
+"off": 7164,
+"kind": "hi16",
+"resolved": 2155866404,
+"class": "data",
+"name": "D_807FE924",
+"lo_off": 7168
+},
+{
+"off": 7192,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 7224,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 7240,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 7244
+},
+{
+"off": 7260,
+"kind": "hi16",
+"resolved": 2155866408,
+"class": "data",
+"name": "D_807FE928",
+"lo_off": 7264
+},
+{
+"off": 7288,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 7320,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 7336,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 7340
+},
+{
+"off": 7356,
+"kind": "hi16",
+"resolved": 2155866412,
+"class": "data",
+"name": "D_807FE92C",
+"lo_off": 7360
+},
+{
+"off": 7384,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 7416,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 7432,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 7436
+},
+{
+"off": 7504,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 7520,
+"kind": "hi16",
+"resolved": 2155866416,
+"class": "data",
+"name": "D_807FE930",
+"lo_off": 7524
+},
+{
+"off": 7528,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 7536,
+"kind": "hi16",
+"resolved": 2155866088,
+"class": "data",
+"name": "D_807FE7E8",
+"lo_off": 7540
+},
+{
+"off": 7548,
+"kind": "jal",
+"resolved": 8315804,
+"class": "func",
+"name": "func_000018FC"
+},
+{
+"off": 7576,
+"kind": "jal",
+"resolved": 927172,
+"class": "import",
+"name": "import_000E25C4"
+},
+{
+"off": 7848,
+"kind": "jal",
+"resolved": 8318580,
+"class": "func",
+"name": "func_000023D4"
+},
+{
+"off": 8004,
+"kind": "jal",
+"resolved": 1073288,
+"class": "import",
+"name": "import_00106088"
+},
+{
+"off": 8016,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 8424,
+"kind": "jal",
+"resolved": 1084728,
+"class": "import",
+"name": "import_00108D38"
+},
+{
+"off": 8996,
+"kind": "jal",
+"resolved": 1084728,
+"class": "import",
+"name": "import_00108D38"
+},
+{
+"off": 9380,
+"kind": "jal",
+"resolved": 917800,
+"class": "import",
+"name": "import_000E0128"
+},
+{
+"off": 9584,
+"kind": "jal",
+"resolved": 8318580,
+"class": "func",
+"name": "func_000023D4"
+},
+{
+"off": 9708,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 10028,
+"kind": "jal",
+"resolved": 8318812,
+"class": "func",
+"name": "func_000024BC"
+},
+{
+"off": 10068,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 10096,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 10116,
+"kind": "hi16",
+"resolved": 2155866436,
+"class": "data",
+"name": "D_807FE944",
+"lo_off": 10120
+},
+{
+"off": 10132,
+"kind": "hi16",
+"resolved": 2155866444,
+"class": "data",
+"name": "D_807FE94C",
+"lo_off": 10136
+},
+{
+"off": 10164,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 10200,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 10220,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 10224
+},
+{
+"off": 10292,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 10308,
+"kind": "hi16",
+"resolved": 2155866448,
+"class": "data",
+"name": "D_807FE950",
+"lo_off": 10312
+},
+{
+"off": 10316,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 10324,
+"kind": "hi16",
+"resolved": 2155866184,
+"class": "data",
+"name": "D_807FE848",
+"lo_off": 10328
+},
+{
+"off": 10336,
+"kind": "jal",
+"resolved": 8319460,
+"class": "func",
+"name": "func_00002744"
+},
+{
+"off": 10364,
+"kind": "jal",
+"resolved": 927172,
+"class": "import",
+"name": "import_000E25C4"
+},
+{
+"off": 10544,
+"kind": "jal",
+"resolved": 8318580,
+"class": "func",
+"name": "func_000023D4"
+},
+{
+"off": 10772,
+"kind": "jal",
+"resolved": 1073288,
+"class": "import",
+"name": "import_00106088"
+},
+{
+"off": 10784,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 10860,
+"kind": "jal",
+"resolved": 1084728,
+"class": "import",
+"name": "import_00108D38"
+},
+{
+"off": 11284,
+"kind": "jal",
+"resolved": 1073288,
+"class": "import",
+"name": "import_00106088"
+},
+{
+"off": 11296,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 11372,
+"kind": "jal",
+"resolved": 1084728,
+"class": "import",
+"name": "import_00108D38"
+},
+{
+"off": 11440,
+"kind": "jal",
+"resolved": 917800,
+"class": "import",
+"name": "import_000E0128"
+},
+{
+"off": 11560,
+"kind": "jal",
+"resolved": 8318580,
+"class": "func",
+"name": "func_000023D4"
+},
+{
+"off": 12256,
+"kind": "jal",
+"resolved": 8320872,
+"class": "func",
+"name": "func_00002CC8"
+},
+{
+"off": 12288,
+"kind": "jal",
+"resolved": 931956,
+"class": "import",
+"name": "import_000E3874"
+},
+{
+"off": 12332,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 12356,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 12372,
+"kind": "hi16",
+"resolved": 2155866468,
+"class": "data",
+"name": "D_807FE964",
+"lo_off": 12376
+},
+{
+"off": 12396,
+"kind": "hi16",
+"resolved": 2155866476,
+"class": "data",
+"name": "D_807FE96C",
+"lo_off": 12420
+},
+{
+"off": 12572,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 12604,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 12616,
+"kind": "hi16",
+"resolved": 2155865632,
+"class": "data",
+"name": "D_807FE620",
+"lo_off": 12620
+},
+{
+"off": 12688,
+"kind": "hi16",
+"resolved": 2155866480,
+"class": "data",
+"name": "D_807FE970",
+"lo_off": 12692
+},
+{
+"off": 12716,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 12748,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 12764,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 12768
+},
+{
+"off": 12784,
+"kind": "hi16",
+"resolved": 2155866484,
+"class": "data",
+"name": "D_807FE974",
+"lo_off": 12788
+},
+{
+"off": 12812,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 12844,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 12860,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 12864
+},
+{
+"off": 12880,
+"kind": "hi16",
+"resolved": 2155866488,
+"class": "data",
+"name": "D_807FE978",
+"lo_off": 12884
+},
+{
+"off": 12908,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 12940,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 12956,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 12960
+},
+{
+"off": 12976,
+"kind": "hi16",
+"resolved": 2155866492,
+"class": "data",
+"name": "D_807FE97C",
+"lo_off": 12980
+},
+{
+"off": 13004,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 13036,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 13052,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 13056
+},
+{
+"off": 13072,
+"kind": "hi16",
+"resolved": 2155866496,
+"class": "data",
+"name": "D_807FE980",
+"lo_off": 13076
+},
+{
+"off": 13100,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 13132,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 13148,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 13152
+},
+{
+"off": 13168,
+"kind": "hi16",
+"resolved": 2155866500,
+"class": "data",
+"name": "D_807FE984",
+"lo_off": 13172
+},
+{
+"off": 13196,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 13228,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 13244,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 13248
+},
+{
+"off": 13264,
+"kind": "hi16",
+"resolved": 2155866504,
+"class": "data",
+"name": "D_807FE988",
+"lo_off": 13268
+},
+{
+"off": 13292,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 13324,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 13340,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 13344
+},
+{
+"off": 13360,
+"kind": "hi16",
+"resolved": 2155866508,
+"class": "data",
+"name": "D_807FE98C",
+"lo_off": 13364
+},
+{
+"off": 13388,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 13420,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 13436,
+"kind": "hi16",
+"resolved": 2155865608,
+"class": "data",
+"name": "D_807FE608",
+"lo_off": 13440
+},
+{
+"off": 13508,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 13524,
+"kind": "hi16",
+"resolved": 2155866512,
+"class": "data",
+"name": "D_807FE990",
+"lo_off": 13528
+},
+{
+"off": 13532,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 13540,
+"kind": "hi16",
+"resolved": 2155866280,
+"class": "data",
+"name": "D_807FE8A8",
+"lo_off": 13544
+},
+{
+"off": 13552,
+"kind": "jal",
+"resolved": 8321720,
+"class": "func",
+"name": "func_00003018"
+},
+{
+"off": 13580,
+"kind": "jal",
+"resolved": 927172,
+"class": "import",
+"name": "import_000E25C4"
+},
+{
+"off": 14192,
+"kind": "jal",
+"resolved": 1073288,
+"class": "import",
+"name": "import_00106088"
+},
+{
+"off": 14240,
+"kind": "jal",
+"resolved": 1084728,
+"class": "import",
+"name": "import_00108D38"
+},
+{
+"off": 14248,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 14344,
+"kind": "jal",
+"resolved": 1073288,
+"class": "import",
+"name": "import_00106088"
+},
+{
+"off": 14356,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 14636,
+"kind": "jal",
+"resolved": 1084728,
+"class": "import",
+"name": "import_00108D38"
+},
+{
+"off": 14672,
+"kind": "jal",
+"resolved": 917800,
+"class": "import",
+"name": "import_000E0128"
+},
+{
+"off": 14708,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 14720,
+"kind": "jal",
+"resolved": 8309988,
+"class": "func",
+"name": "func_00000244"
+},
+{
+"off": 14756,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 14768,
+"kind": "jal",
+"resolved": 8309876,
+"class": "func",
+"name": "func_000001D4"
+},
+{
+"off": 14804,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 14816,
+"kind": "jal",
+"resolved": 8310332,
+"class": "func",
+"name": "func_0000039C"
+},
+{
+"off": 14852,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 14864,
+"kind": "jal",
+"resolved": 8310048,
+"class": "func",
+"name": "func_00000280"
+},
+{
+"off": 14900,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 14916,
+"kind": "jal",
+"resolved": 948856,
+"class": "import",
+"name": "import_000E7A78"
+},
+{
+"off": 14928,
+"kind": "hi16",
+"resolved": 2147937664,
+"class": "import",
+"name": "import_8006ED80",
+"lo_off": 14932
+},
+{
+"off": 14972,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 15044,
+"kind": "hi16",
+"resolved": 2155867248,
+"class": "data",
+"name": "D_807FEC70",
+"lo_off": 15048
+},
+{
+"off": 15072,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15104,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15112,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15116
+},
+{
+"off": 15132,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15140,
+"kind": "hi16",
+"resolved": 2155867252,
+"class": "data",
+"name": "D_807FEC74",
+"lo_off": 15144
+},
+{
+"off": 15156,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15188,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15196,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15200
+},
+{
+"off": 15216,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15224,
+"kind": "hi16",
+"resolved": 2155867256,
+"class": "data",
+"name": "D_807FEC78",
+"lo_off": 15228
+},
+{
+"off": 15240,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15272,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15280,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15284
+},
+{
+"off": 15300,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15308,
+"kind": "hi16",
+"resolved": 2155867260,
+"class": "data",
+"name": "D_807FEC7C",
+"lo_off": 15312
+},
+{
+"off": 15324,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15356,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15364,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15368
+},
+{
+"off": 15384,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15392,
+"kind": "hi16",
+"resolved": 2155867264,
+"class": "data",
+"name": "D_807FEC80",
+"lo_off": 15396
+},
+{
+"off": 15408,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15440,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15448,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15452
+},
+{
+"off": 15468,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15476,
+"kind": "hi16",
+"resolved": 2155867268,
+"class": "data",
+"name": "D_807FEC84",
+"lo_off": 15480
+},
+{
+"off": 15492,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15524,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15532,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15536
+},
+{
+"off": 15552,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15560,
+"kind": "hi16",
+"resolved": 2155867272,
+"class": "data",
+"name": "D_807FEC88",
+"lo_off": 15564
+},
+{
+"off": 15576,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15608,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15616,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15620
+},
+{
+"off": 15636,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15644,
+"kind": "hi16",
+"resolved": 2155867276,
+"class": "data",
+"name": "D_807FEC8C",
+"lo_off": 15648
+},
+{
+"off": 15660,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15692,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15700,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15704
+},
+{
+"off": 15720,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15728,
+"kind": "hi16",
+"resolved": 2155867280,
+"class": "data",
+"name": "D_807FEC90",
+"lo_off": 15732
+},
+{
+"off": 15744,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15776,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15784,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15788
+},
+{
+"off": 15804,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15812,
+"kind": "hi16",
+"resolved": 2155867284,
+"class": "data",
+"name": "D_807FEC94",
+"lo_off": 15816
+},
+{
+"off": 15828,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15860,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15868,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15872
+},
+{
+"off": 15888,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15896,
+"kind": "hi16",
+"resolved": 2155867288,
+"class": "data",
+"name": "D_807FEC98",
+"lo_off": 15900
+},
+{
+"off": 15912,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 15944,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 15952,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 15956
+},
+{
+"off": 15972,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 15980,
+"kind": "hi16",
+"resolved": 2155867292,
+"class": "data",
+"name": "D_807FEC9C",
+"lo_off": 15984
+},
+{
+"off": 15996,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 16028,
+"kind": "jal",
+"resolved": 949428,
+"class": "import",
+"name": "import_000E7CB4"
+},
+{
+"off": 16036,
+"kind": "hi16",
+"resolved": 2155866792,
+"class": "data",
+"name": "D_807FEAA8",
+"lo_off": 16040
+},
+{
+"off": 16056,
+"kind": "jal",
+"resolved": 953792,
+"class": "import",
+"name": "import_000E8DC0"
+},
+{
+"off": 16124,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 16160,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 16196,
+"kind": "jal",
+"resolved": 1130880,
+"class": "import",
+"name": "import_00114180"
+},
+{
+"off": 16204,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 16348,
+"kind": "jal",
+"resolved": 1148624,
+"class": "import",
+"name": "import_001186D0"
+},
+{
+"off": 16524,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 16528
+},
+{
+"off": 16536,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 16584,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 16588
+},
+{
+"off": 16596,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 16644,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 16648
+},
+{
+"off": 16660,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 16756,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 16760
+},
+{
+"off": 16768,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 16844,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 16860,
+"kind": "jal",
+"resolved": 948856,
+"class": "import",
+"name": "import_000E7A78"
+},
+{
+"off": 16872,
+"kind": "hi16",
+"resolved": 2155866984,
+"class": "data",
+"name": "D_807FEB68",
+"lo_off": 16876
+},
+{
+"off": 16900,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 16928,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 16948,
+"kind": "hi16",
+"resolved": 2155867296,
+"class": "data",
+"name": "D_807FECA0",
+"lo_off": 16952
+},
+{
+"off": 16964,
+"kind": "hi16",
+"resolved": 2155867316,
+"class": "data",
+"name": "D_807FECB4",
+"lo_off": 16968
+},
+{
+"off": 16996,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 17032,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 17056,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 17060
+},
+{
+"off": 17076,
+"kind": "hi16",
+"resolved": 2155867320,
+"class": "data",
+"name": "D_807FECB8",
+"lo_off": 17080
+},
+{
+"off": 17108,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 17144,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 17160,
+"kind": "hi16",
+"resolved": 2155866624,
+"class": "data",
+"name": "D_807FEA00",
+"lo_off": 17164
+},
+{
+"off": 17180,
+"kind": "hi16",
+"resolved": 2155867324,
+"class": "data",
+"name": "D_807FECBC",
+"lo_off": 17184
+},
+{
+"off": 17212,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 17244,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 17256,
+"kind": "hi16",
+"resolved": 2155866624,
+"class": "data",
+"name": "D_807FEA00",
+"lo_off": 17260
+},
+{
+"off": 17304,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 17372,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 17384,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 17616,
+"kind": "jal",
+"resolved": 949064,
+"class": "import",
+"name": "import_000E7B48"
+},
+{
+"off": 17628,
+"kind": "jal",
+"resolved": 917800,
+"class": "import",
+"name": "import_000E0128"
+},
+{
+"off": 17688,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 17704,
+"kind": "hi16",
+"resolved": 2155867328,
+"class": "data",
+"name": "D_807FECC0",
+"lo_off": 17708
+},
+{
+"off": 17712,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 17724,
+"kind": "hi16",
+"resolved": 2155867080,
+"class": "data",
+"name": "D_807FEBC8",
+"lo_off": 17728
+},
+{
+"off": 17752,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 17776,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 17792,
+"kind": "hi16",
+"resolved": 2155867336,
+"class": "data",
+"name": "D_807FECC8",
+"lo_off": 17796
+},
+{
+"off": 17808,
+"kind": "hi16",
+"resolved": 2155867352,
+"class": "data",
+"name": "D_807FECD8",
+"lo_off": 17812
+},
+{
+"off": 17848,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 17880,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 17888,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 17892
+},
+{
+"off": 17904,
+"kind": "hi16",
+"resolved": 2155867356,
+"class": "data",
+"name": "D_807FECDC",
+"lo_off": 17920
+},
+{
+"off": 17916,
+"kind": "hi16",
+"resolved": 2155867356,
+"class": "data",
+"name": "D_807FECDC",
+"lo_off": 17920
+},
+{
+"off": 17952,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 17984,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 17992,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 17996
+},
+{
+"off": 18008,
+"kind": "hi16",
+"resolved": 2155867360,
+"class": "data",
+"name": "D_807FECE0",
+"lo_off": 18024
+},
+{
+"off": 18020,
+"kind": "hi16",
+"resolved": 2155867360,
+"class": "data",
+"name": "D_807FECE0",
+"lo_off": 18024
+},
+{
+"off": 18056,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18088,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18096,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18100
+},
+{
+"off": 18112,
+"kind": "hi16",
+"resolved": 2155867364,
+"class": "data",
+"name": "D_807FECE4",
+"lo_off": 18128
+},
+{
+"off": 18124,
+"kind": "hi16",
+"resolved": 2155867364,
+"class": "data",
+"name": "D_807FECE4",
+"lo_off": 18128
+},
+{
+"off": 18160,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18192,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18208,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18212
+},
+{
+"off": 18228,
+"kind": "hi16",
+"resolved": 2155867368,
+"class": "data",
+"name": "D_807FECE8",
+"lo_off": 18232
+},
+{
+"off": 18264,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18296,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18304,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18308
+},
+{
+"off": 18320,
+"kind": "hi16",
+"resolved": 2155867372,
+"class": "data",
+"name": "D_807FECEC",
+"lo_off": 18336
+},
+{
+"off": 18332,
+"kind": "hi16",
+"resolved": 2155867372,
+"class": "data",
+"name": "D_807FECEC",
+"lo_off": 18336
+},
+{
+"off": 18368,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18400,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18408,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18412
+},
+{
+"off": 18424,
+"kind": "hi16",
+"resolved": 2155867376,
+"class": "data",
+"name": "D_807FECF0",
+"lo_off": 18440
+},
+{
+"off": 18436,
+"kind": "hi16",
+"resolved": 2155867376,
+"class": "data",
+"name": "D_807FECF0",
+"lo_off": 18440
+},
+{
+"off": 18472,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18504,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18520,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18524
+},
+{
+"off": 18540,
+"kind": "hi16",
+"resolved": 2155867380,
+"class": "data",
+"name": "D_807FECF4",
+"lo_off": 18544
+},
+{
+"off": 18576,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18608,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18624,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18628
+},
+{
+"off": 18644,
+"kind": "hi16",
+"resolved": 2155867384,
+"class": "data",
+"name": "D_807FECF8",
+"lo_off": 18648
+},
+{
+"off": 18680,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18712,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18720,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18724
+},
+{
+"off": 18736,
+"kind": "hi16",
+"resolved": 2155867388,
+"class": "data",
+"name": "D_807FECFC",
+"lo_off": 18752
+},
+{
+"off": 18748,
+"kind": "hi16",
+"resolved": 2155867388,
+"class": "data",
+"name": "D_807FECFC",
+"lo_off": 18752
+},
+{
+"off": 18784,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18816,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18824,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18828
+},
+{
+"off": 18840,
+"kind": "hi16",
+"resolved": 2155867392,
+"class": "data",
+"name": "D_807FED00",
+"lo_off": 18856
+},
+{
+"off": 18852,
+"kind": "hi16",
+"resolved": 2155867392,
+"class": "data",
+"name": "D_807FED00",
+"lo_off": 18856
+},
+{
+"off": 18888,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 18920,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 18928,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 18932
+},
+{
+"off": 18944,
+"kind": "hi16",
+"resolved": 2155867396,
+"class": "data",
+"name": "D_807FED04",
+"lo_off": 18960
+},
+{
+"off": 18956,
+"kind": "hi16",
+"resolved": 2155867396,
+"class": "data",
+"name": "D_807FED04",
+"lo_off": 18960
+},
+{
+"off": 18992,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19024,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19032,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19036
+},
+{
+"off": 19048,
+"kind": "hi16",
+"resolved": 2155867400,
+"class": "data",
+"name": "D_807FED08",
+"lo_off": 19064
+},
+{
+"off": 19060,
+"kind": "hi16",
+"resolved": 2155867400,
+"class": "data",
+"name": "D_807FED08",
+"lo_off": 19064
+},
+{
+"off": 19096,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19128,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19136,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19140
+},
+{
+"off": 19152,
+"kind": "hi16",
+"resolved": 2155867404,
+"class": "data",
+"name": "D_807FED0C",
+"lo_off": 19168
+},
+{
+"off": 19164,
+"kind": "hi16",
+"resolved": 2155867404,
+"class": "data",
+"name": "D_807FED0C",
+"lo_off": 19168
+},
+{
+"off": 19200,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19232,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19240,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19244
+},
+{
+"off": 19256,
+"kind": "hi16",
+"resolved": 2155867408,
+"class": "data",
+"name": "D_807FED10",
+"lo_off": 19272
+},
+{
+"off": 19268,
+"kind": "hi16",
+"resolved": 2155867408,
+"class": "data",
+"name": "D_807FED10",
+"lo_off": 19272
+},
+{
+"off": 19304,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19336,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19344,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19348
+},
+{
+"off": 19360,
+"kind": "hi16",
+"resolved": 2155867412,
+"class": "data",
+"name": "D_807FED14",
+"lo_off": 19376
+},
+{
+"off": 19372,
+"kind": "hi16",
+"resolved": 2155867412,
+"class": "data",
+"name": "D_807FED14",
+"lo_off": 19376
+},
+{
+"off": 19408,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19440,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19448,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19452
+},
+{
+"off": 19464,
+"kind": "hi16",
+"resolved": 2155867416,
+"class": "data",
+"name": "D_807FED18",
+"lo_off": 19480
+},
+{
+"off": 19476,
+"kind": "hi16",
+"resolved": 2155867416,
+"class": "data",
+"name": "D_807FED18",
+"lo_off": 19480
+},
+{
+"off": 19512,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19544,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19552,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19556
+},
+{
+"off": 19568,
+"kind": "hi16",
+"resolved": 2155867420,
+"class": "data",
+"name": "D_807FED1C",
+"lo_off": 19584
+},
+{
+"off": 19580,
+"kind": "hi16",
+"resolved": 2155867420,
+"class": "data",
+"name": "D_807FED1C",
+"lo_off": 19584
+},
+{
+"off": 19616,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19648,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19656,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19660
+},
+{
+"off": 19672,
+"kind": "hi16",
+"resolved": 2155867424,
+"class": "data",
+"name": "D_807FED20",
+"lo_off": 19688
+},
+{
+"off": 19684,
+"kind": "hi16",
+"resolved": 2155867424,
+"class": "data",
+"name": "D_807FED20",
+"lo_off": 19688
+},
+{
+"off": 19720,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19752,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19768,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19772
+},
+{
+"off": 19788,
+"kind": "hi16",
+"resolved": 2155867428,
+"class": "data",
+"name": "D_807FED24",
+"lo_off": 19792
+},
+{
+"off": 19824,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19856,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19872,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19876
+},
+{
+"off": 19892,
+"kind": "hi16",
+"resolved": 2155867432,
+"class": "data",
+"name": "D_807FED28",
+"lo_off": 19896
+},
+{
+"off": 19928,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 19960,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 19976,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 19980
+},
+{
+"off": 19996,
+"kind": "hi16",
+"resolved": 2155867436,
+"class": "data",
+"name": "D_807FED2C",
+"lo_off": 20000
+},
+{
+"off": 20032,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20064,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20080,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20084
+},
+{
+"off": 20100,
+"kind": "hi16",
+"resolved": 2155867440,
+"class": "data",
+"name": "D_807FED30",
+"lo_off": 20104
+},
+{
+"off": 20136,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20168,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20184,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20188
+},
+{
+"off": 20204,
+"kind": "hi16",
+"resolved": 2155867444,
+"class": "data",
+"name": "D_807FED34",
+"lo_off": 20208
+},
+{
+"off": 20240,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20272,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20288,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20292
+},
+{
+"off": 20308,
+"kind": "hi16",
+"resolved": 2155867448,
+"class": "data",
+"name": "D_807FED38",
+"lo_off": 20312
+},
+{
+"off": 20344,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20376,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20392,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20396
+},
+{
+"off": 20412,
+"kind": "hi16",
+"resolved": 2155867452,
+"class": "data",
+"name": "D_807FED3C",
+"lo_off": 20416
+},
+{
+"off": 20448,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20480,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20488,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20492
+},
+{
+"off": 20504,
+"kind": "hi16",
+"resolved": 2155867456,
+"class": "data",
+"name": "D_807FED40",
+"lo_off": 20520
+},
+{
+"off": 20516,
+"kind": "hi16",
+"resolved": 2155867456,
+"class": "data",
+"name": "D_807FED40",
+"lo_off": 20520
+},
+{
+"off": 20552,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20584,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20600,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20604
+},
+{
+"off": 20620,
+"kind": "hi16",
+"resolved": 2155867460,
+"class": "data",
+"name": "D_807FED44",
+"lo_off": 20624
+},
+{
+"off": 20656,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20688,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20704,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20708
+},
+{
+"off": 20724,
+"kind": "hi16",
+"resolved": 2155867464,
+"class": "data",
+"name": "D_807FED48",
+"lo_off": 20728
+},
+{
+"off": 20760,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20792,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20808,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20812
+},
+{
+"off": 20828,
+"kind": "hi16",
+"resolved": 2155867468,
+"class": "data",
+"name": "D_807FED4C",
+"lo_off": 20832
+},
+{
+"off": 20864,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 20896,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 20912,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 20916
+},
+{
+"off": 20932,
+"kind": "hi16",
+"resolved": 2155867472,
+"class": "data",
+"name": "D_807FED50",
+"lo_off": 20936
+},
+{
+"off": 20968,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21000,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21008,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21012
+},
+{
+"off": 21024,
+"kind": "hi16",
+"resolved": 2155867476,
+"class": "data",
+"name": "D_807FED54",
+"lo_off": 21040
+},
+{
+"off": 21036,
+"kind": "hi16",
+"resolved": 2155867476,
+"class": "data",
+"name": "D_807FED54",
+"lo_off": 21040
+},
+{
+"off": 21072,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21104,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21112,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21116
+},
+{
+"off": 21128,
+"kind": "hi16",
+"resolved": 2155867480,
+"class": "data",
+"name": "D_807FED58",
+"lo_off": 21144
+},
+{
+"off": 21140,
+"kind": "hi16",
+"resolved": 2155867480,
+"class": "data",
+"name": "D_807FED58",
+"lo_off": 21144
+},
+{
+"off": 21176,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21208,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21216,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21220
+},
+{
+"off": 21232,
+"kind": "hi16",
+"resolved": 2155867484,
+"class": "data",
+"name": "D_807FED5C",
+"lo_off": 21248
+},
+{
+"off": 21244,
+"kind": "hi16",
+"resolved": 2155867484,
+"class": "data",
+"name": "D_807FED5C",
+"lo_off": 21248
+},
+{
+"off": 21280,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21312,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21328,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21332
+},
+{
+"off": 21348,
+"kind": "hi16",
+"resolved": 2155867488,
+"class": "data",
+"name": "D_807FED60",
+"lo_off": 21352
+},
+{
+"off": 21384,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21416,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21432,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21436
+},
+{
+"off": 21452,
+"kind": "hi16",
+"resolved": 2155867492,
+"class": "data",
+"name": "D_807FED64",
+"lo_off": 21456
+},
+{
+"off": 21488,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21520,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21536,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21540
+},
+{
+"off": 21556,
+"kind": "hi16",
+"resolved": 2155867496,
+"class": "data",
+"name": "D_807FED68",
+"lo_off": 21560
+},
+{
+"off": 21592,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21624,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21640,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21644
+},
+{
+"off": 21660,
+"kind": "hi16",
+"resolved": 2155867500,
+"class": "data",
+"name": "D_807FED6C",
+"lo_off": 21664
+},
+{
+"off": 21696,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21728,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21744,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21748
+},
+{
+"off": 21764,
+"kind": "hi16",
+"resolved": 2155867504,
+"class": "data",
+"name": "D_807FED70",
+"lo_off": 21768
+},
+{
+"off": 21800,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21832,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21848,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21852
+},
+{
+"off": 21868,
+"kind": "hi16",
+"resolved": 2155867508,
+"class": "data",
+"name": "D_807FED74",
+"lo_off": 21872
+},
+{
+"off": 21904,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 21936,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 21952,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 21956
+},
+{
+"off": 21972,
+"kind": "hi16",
+"resolved": 2155867512,
+"class": "data",
+"name": "D_807FED78",
+"lo_off": 21976
+},
+{
+"off": 22008,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 22040,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 22056,
+"kind": "hi16",
+"resolved": 2155866552,
+"class": "data",
+"name": "D_807FE9B8",
+"lo_off": 22060
+},
+{
+"off": 22104,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 22136,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 22168,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 22216,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 22248,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 22412,
+"kind": "hi16",
+"resolved": 2155867080,
+"class": "data",
+"name": "D_807FEBC8",
+"lo_off": 22416
+},
+{
+"off": 22432,
+"kind": "jal",
+"resolved": 964436,
+"class": "import",
+"name": "import_000EB754"
+},
+{
+"off": 22464,
+"kind": "jal",
+"resolved": 917800,
+"class": "import",
+"name": "import_000E0128"
+},
+{
+"off": 22740,
+"kind": "jal",
+"resolved": 8332220,
+"class": "func",
+"name": "func_0000591C"
+},
+{
+"off": 22756,
+"kind": "jal",
+"resolved": 8336592,
+"class": "func",
+"name": "func_00006A30"
+},
+{
+"off": 22772,
+"kind": "jal",
+"resolved": 8337296,
+"class": "func",
+"name": "func_00006CF0"
+},
+{
+"off": 22788,
+"kind": "jal",
+"resolved": 8338560,
+"class": "func",
+"name": "func_000071E0"
+},
+{
+"off": 22812,
+"kind": "hi16",
+"resolved": 2147614992,
+"class": "import",
+"name": "import_80020110",
+"lo_off": 22816
+},
+{
+"off": 22840,
+"kind": "hi16",
+"resolved": 2147938120,
+"class": "import",
+"name": "import_8006EF48",
+"lo_off": 22844
+},
+{
+"off": 22872,
+"kind": "jal",
+"resolved": 8351332,
+"class": "func",
+"name": "func_0000A3C4"
+},
+{
+"off": 22896,
+"kind": "jal",
+"resolved": 8351908,
+"class": "func",
+"name": "func_0000A604"
+},
+{
+"off": 22920,
+"kind": "jal",
+"resolved": 8352408,
+"class": "func",
+"name": "func_0000A7F8"
+},
+{
+"off": 23140,
+"kind": "jal",
+"resolved": 8340844,
+"class": "func",
+"name": "func_00007ACC"
+},
+{
+"off": 23188,
+"kind": "jal",
+"resolved": 8340792,
+"class": "func",
+"name": "func_00007A98"
+},
+{
+"off": 23528,
+"kind": "jal",
+"resolved": 8341180,
+"class": "func",
+"name": "func_00007C1C"
+},
+{
+"off": 23640,
+"kind": "jal",
+"resolved": 8345464,
+"class": "func",
+"name": "func_00008CD8"
+},
+{
+"off": 23752,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 23808,
+"kind": "jal",
+"resolved": 8325492,
+"class": "func",
+"name": "func_00003ED4"
+},
+{
+"off": 24136,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 24208,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 24352,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 24420,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 24788,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 24860,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 25004,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 25072,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 25444,
+"kind": "hi16",
+"resolved": 2147614992,
+"class": "import",
+"name": "import_80020110",
+"lo_off": 25464
+},
+{
+"off": 25564,
+"kind": "jal",
+"resolved": 8339320,
+"class": "func",
+"name": "func_000074D8"
+},
+{
+"off": 25676,
+"kind": "jal",
+"resolved": 8339388,
+"class": "func",
+"name": "func_0000751C"
+},
+{
+"off": 25780,
+"kind": "jal",
+"resolved": 8339320,
+"class": "func",
+"name": "func_000074D8"
+},
+{
+"off": 25892,
+"kind": "jal",
+"resolved": 8339176,
+"class": "func",
+"name": "func_00007448"
+},
+{
+"off": 26296,
+"kind": "jal",
+"resolved": 8339140,
+"class": "func",
+"name": "func_00007424"
+},
+{
+"off": 26344,
+"kind": "jal",
+"resolved": 8349224,
+"class": "func",
+"name": "func_00009B88"
+},
+{
+"off": 26364,
+"kind": "jal",
+"resolved": 8352376,
+"class": "func",
+"name": "func_0000A7D8"
+},
+{
+"off": 26404,
+"kind": "jal",
+"resolved": 8350600,
+"class": "func",
+"name": "func_0000A0E8"
+},
+{
+"off": 26424,
+"kind": "jal",
+"resolved": 8353336,
+"class": "func",
+"name": "func_0000AB98"
+},
+{
+"off": 26460,
+"kind": "jal",
+"resolved": 8338500,
+"class": "func",
+"name": "func_000071A4"
+},
+{
+"off": 26468,
+"kind": "jal",
+"resolved": 8337992,
+"class": "func",
+"name": "func_00006FA8"
+},
+{
+"off": 27156,
+"kind": "jal",
+"resolved": 8339416,
+"class": "func",
+"name": "func_00007538"
+},
+{
+"off": 27412,
+"kind": "jal",
+"resolved": 8340844,
+"class": "func",
+"name": "func_00007ACC"
+},
+{
+"off": 27448,
+"kind": "jal",
+"resolved": 8341180,
+"class": "func",
+"name": "func_00007C1C"
+},
+{
+"off": 27508,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 27564,
+"kind": "jal",
+"resolved": 8325492,
+"class": "func",
+"name": "func_00003ED4"
+},
+{
+"off": 27800,
+"kind": "jal",
+"resolved": 8379204,
+"class": "func",
+"name": "func_000110A4"
+},
+{
+"off": 27840,
+"kind": "jal",
+"resolved": 8379204,
+"class": "func",
+"name": "func_000110A4"
+},
+{
+"off": 27860,
+"kind": "jal",
+"resolved": 8339416,
+"class": "func",
+"name": "func_00007538"
+},
+{
+"off": 28192,
+"kind": "jal",
+"resolved": 8379076,
+"class": "func",
+"name": "func_00011024"
+},
+{
+"off": 28248,
+"kind": "jal",
+"resolved": 8379076,
+"class": "func",
+"name": "func_00011024"
+},
+{
+"off": 28272,
+"kind": "jal",
+"resolved": 8339416,
+"class": "func",
+"name": "func_00007538"
+},
+{
+"off": 28308,
+"kind": "jal",
+"resolved": 8338500,
+"class": "func",
+"name": "func_000071A4"
+},
+{
+"off": 28316,
+"kind": "jal",
+"resolved": 8337880,
+"class": "func",
+"name": "func_00006F38"
+},
+{
+"off": 28332,
+"kind": "jal",
+"resolved": 8337992,
+"class": "func",
+"name": "func_00006FA8"
+},
+{
+"off": 28400,
+"kind": "jal",
+"resolved": 8338500,
+"class": "func",
+"name": "func_000071A4"
+},
+{
+"off": 28408,
+"kind": "jal",
+"resolved": 8337880,
+"class": "func",
+"name": "func_00006F38"
+},
+{
+"off": 28424,
+"kind": "jal",
+"resolved": 8337992,
+"class": "func",
+"name": "func_00006FA8"
+},
+{
+"off": 28472,
+"kind": "hi16",
+"resolved": 2155866936,
+"class": "data",
+"name": "D_807FEB38",
+"lo_off": 28476
+},
+{
+"off": 28504,
+"kind": "jal",
+"resolved": 8351252,
+"class": "func",
+"name": "func_0000A374"
+},
+{
+"off": 28600,
+"kind": "jal",
+"resolved": 8340792,
+"class": "func",
+"name": "func_00007A98"
+},
+{
+"off": 28612,
+"kind": "hi16",
+"resolved": 2155866976,
+"class": "data",
+"name": "D_807FEB60",
+"lo_off": 28632
+},
+{
+"off": 28656,
+"kind": "jal",
+"resolved": 8351252,
+"class": "func",
+"name": "func_0000A374"
+},
+{
+"off": 28664,
+"kind": "hi16",
+"resolved": 2155866980,
+"class": "data",
+"name": "D_807FEB64",
+"lo_off": 28668
+},
+{
+"off": 28696,
+"kind": "jal",
+"resolved": 8351252,
+"class": "func",
+"name": "func_0000A374"
+},
+{
+"off": 29120,
+"kind": "jal",
+"resolved": 8339320,
+"class": "func",
+"name": "func_000074D8"
+},
+{
+"off": 29184,
+"kind": "jal",
+"resolved": 8352408,
+"class": "func",
+"name": "func_0000A7F8"
+},
+{
+"off": 29488,
+"kind": "jal",
+"resolved": 8340844,
+"class": "func",
+"name": "func_00007ACC"
+},
+{
+"off": 29524,
+"kind": "jal",
+"resolved": 8341180,
+"class": "func",
+"name": "func_00007C1C"
+},
+{
+"off": 29584,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 29640,
+"kind": "jal",
+"resolved": 8325492,
+"class": "func",
+"name": "func_00003ED4"
+},
+{
+"off": 29704,
+"kind": "jal",
+"resolved": 8339416,
+"class": "func",
+"name": "func_00007538"
+},
+{
+"off": 29744,
+"kind": "jal",
+"resolved": 8353336,
+"class": "func",
+"name": "func_0000AB98"
+},
+{
+"off": 30684,
+"kind": "hi16",
+"resolved": 2155867176,
+"class": "data",
+"name": "D_807FEC28",
+"lo_off": 30688
+},
+{
+"off": 31000,
+"kind": "hi16",
+"resolved": 2155867176,
+"class": "data",
+"name": "D_807FEC28",
+"lo_off": 31004
+},
+{
+"off": 31468,
+"kind": "hi16",
+"resolved": 2155867552,
+"class": "data",
+"name": "D_807FEDA0",
+"lo_off": 31488
+},
+{
+"off": 31484,
+"kind": "hi16",
+"resolved": 2155867552,
+"class": "data",
+"name": "D_807FEDA0",
+"lo_off": 31488
+},
+{
+"off": 31500,
+"kind": "jal",
+"resolved": 907628,
+"class": "import",
+"name": "import_000DD96C"
+},
+{
+"off": 31520,
+"kind": "hi16",
+"resolved": 2155866936,
+"class": "data",
+"name": "D_807FEB38",
+"lo_off": 31528
+},
+{
+"off": 31552,
+"kind": "jal",
+"resolved": 8351252,
+"class": "func",
+"name": "func_0000A374"
+},
+{
+"off": 31736,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 31868,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 31920,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 32068,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 32124,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 32276,
+"kind": "jal",
+"resolved": 8340792,
+"class": "func",
+"name": "func_00007A98"
+},
+{
+"off": 32372,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 32416,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 32464,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 32648,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 32728,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 32748,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 32804,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 33756,
+"kind": "jal",
+"resolved": 1148624,
+"class": "import",
+"name": "import_001186D0"
+},
+{
+"off": 33812,
+"kind": "jal",
+"resolved": 8325708,
+"class": "func",
+"name": "func_00003FAC"
+},
+{
+"off": 33888,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 33948,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 34076,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 34160,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 34180,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 34232,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 35192,
+"kind": "jal",
+"resolved": 1148624,
+"class": "import",
+"name": "import_001186D0"
+},
+{
+"off": 35240,
+"kind": "jal",
+"resolved": 8325708,
+"class": "func",
+"name": "func_00003FAC"
+},
+{
+"off": 35656,
+"kind": "jal",
+"resolved": 1148624,
+"class": "import",
+"name": "import_001186D0"
+},
+{
+"off": 35728,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 35764,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 35800,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 36100,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 36168,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 36308,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 36348,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 36416,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 36592,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 37132,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 37200,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 37364,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 37516,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 37584,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 37840,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 37872,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 37996,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 38120,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 38548,
+"kind": "hi16",
+"resolved": 2155870752,
+"class": "data",
+"name": "D_807FFA20",
+"lo_off": 38556
+},
+{
+"off": 38744,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 38940,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 39012,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 39108,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 39344,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 39520,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 39580,
+"kind": "jal",
+"resolved": 1148624,
+"class": "import",
+"name": "import_001186D0"
+},
+{
+"off": 39840,
+"kind": "hi16",
+"resolved": 2155867576,
+"class": "data",
+"name": "D_807FEDB8",
+"lo_off": 39848
+},
+{
+"off": 39844,
+"kind": "hi16",
+"resolved": 2155867576,
+"class": "data",
+"name": "D_807FEDB8",
+"lo_off": 39848
+},
+{
+"off": 39856,
+"kind": "jal",
+"resolved": 907628,
+"class": "import",
+"name": "import_000DD96C"
+},
+{
+"off": 39876,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 39936,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 40092,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 40184,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 40396,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 40456,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 40592,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 40720,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 40848,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 40976,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 41216,
+"kind": "hi16",
+"resolved": 2155867600,
+"class": "data",
+"name": "D_807FEDD0",
+"lo_off": 41224
+},
+{
+"off": 41220,
+"kind": "hi16",
+"resolved": 2155867600,
+"class": "data",
+"name": "D_807FEDD0",
+"lo_off": 41224
+},
+{
+"off": 41232,
+"kind": "jal",
+"resolved": 907628,
+"class": "import",
+"name": "import_000DD96C"
+},
+{
+"off": 41376,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 41548,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 41608,
+"kind": "jal",
+"resolved": 1148624,
+"class": "import",
+"name": "import_001186D0"
+},
+{
+"off": 41640,
+"kind": "jal",
+"resolved": 1148624,
+"class": "import",
+"name": "import_001186D0"
+},
+{
+"off": 41688,
+"kind": "jal",
+"resolved": 1148624,
+"class": "import",
+"name": "import_001186D0"
+},
+{
+"off": 41856,
+"kind": "hi16",
+"resolved": 2147938120,
+"class": "import",
+"name": "import_8006EF48",
+"lo_off": 41868
+},
+{
+"off": 41872,
+"kind": "jal",
+"resolved": 954196,
+"class": "import",
+"name": "import_000E8F54"
+},
+{
+"off": 41900,
+"kind": "jal",
+"resolved": 8326776,
+"class": "func",
+"name": "func_000043D8"
+},
+{
+"off": 41972,
+"kind": "hi16",
+"resolved": 2155866936,
+"class": "data",
+"name": "D_807FEB38",
+"lo_off": 41984
+},
+{
+"off": 42012,
+"kind": "jal",
+"resolved": 8351252,
+"class": "func",
+"name": "func_0000A374"
+},
+{
+"off": 42032,
+"kind": "hi16",
+"resolved": 2155867640,
+"class": "data",
+"name": "D_807FEDF8",
+"lo_off": 42040
+},
+{
+"off": 42036,
+"kind": "hi16",
+"resolved": 2155867640,
+"class": "data",
+"name": "D_807FEDF8",
+"lo_off": 42040
+},
+{
+"off": 42052,
+"kind": "jal",
+"resolved": 907628,
+"class": "import",
+"name": "import_000DD96C"
+},
+{
+"off": 42096,
+"kind": "hi16",
+"resolved": 2155866936,
+"class": "data",
+"name": "D_807FEB38",
+"lo_off": 42112
+},
+{
+"off": 42140,
+"kind": "jal",
+"resolved": 8351252,
+"class": "func",
+"name": "func_0000A374"
+},
+{
+"off": 42160,
+"kind": "hi16",
+"resolved": 2155867680,
+"class": "data",
+"name": "D_807FEE20",
+"lo_off": 42168
+},
+{
+"off": 42164,
+"kind": "hi16",
+"resolved": 2155867680,
+"class": "data",
+"name": "D_807FEE20",
+"lo_off": 42168
+},
+{
+"off": 42180,
+"kind": "jal",
+"resolved": 907628,
+"class": "import",
+"name": "import_000DD96C"
+},
+{
+"off": 42220,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 42280,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 42344,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 42552,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 42736,
+"kind": "jal",
+"resolved": 8351252,
+"class": "func",
+"name": "func_0000A374"
+},
+{
+"off": 42772,
+"kind": "jal",
+"resolved": 8349224,
+"class": "func",
+"name": "func_00009B88"
+},
+{
+"off": 42796,
+"kind": "jal",
+"resolved": 8350600,
+"class": "func",
+"name": "func_0000A0E8"
+},
+{
+"off": 42976,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 43044,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 43232,
+"kind": "jal",
+"resolved": 8351252,
+"class": "func",
+"name": "func_0000A374"
+},
+{
+"off": 43272,
+"kind": "jal",
+"resolved": 8350600,
+"class": "func",
+"name": "func_0000A0E8"
+},
+{
+"off": 43372,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 43440,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 43584,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 43644,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 43936,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 43972,
+"kind": "jal",
+"resolved": 8325920,
+"class": "func",
+"name": "func_00004080"
+},
+{
+"off": 43984,
+"kind": "jal",
+"resolved": 8325980,
+"class": "func",
+"name": "func_000040BC"
+},
+{
+"off": 44020,
+"kind": "jal",
+"resolved": 8325920,
+"class": "func",
+"name": "func_00004080"
+},
+{
+"off": 44032,
+"kind": "jal",
+"resolved": 8326040,
+"class": "func",
+"name": "func_000040F8"
+},
+{
+"off": 44068,
+"kind": "jal",
+"resolved": 8325920,
+"class": "func",
+"name": "func_00004080"
+},
+{
+"off": 44080,
+"kind": "jal",
+"resolved": 8326152,
+"class": "func",
+"name": "func_00004168"
+},
+{
+"off": 44116,
+"kind": "jal",
+"resolved": 8325920,
+"class": "func",
+"name": "func_00004080"
+},
+{
+"off": 44128,
+"kind": "jal",
+"resolved": 8325920,
+"class": "func",
+"name": "func_00004080"
+},
+{
+"off": 44164,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44180,
+"kind": "jal",
+"resolved": 948856,
+"class": "import",
+"name": "import_000E7A78"
+},
+{
+"off": 44192,
+"kind": "hi16",
+"resolved": 2147937664,
+"class": "import",
+"name": "import_8006ED80",
+"lo_off": 44196
+},
+{
+"off": 44236,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+},
+{
+"off": 44316,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 44320
+},
+{
+"off": 44328,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 44376,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 44380
+},
+{
+"off": 44388,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 44436,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 44440
+},
+{
+"off": 44448,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 44524,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 44528
+},
+{
+"off": 44536,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 44592,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44620,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44636,
+"kind": "hi16",
+"resolved": 2155868992,
+"class": "data",
+"name": "D_807FF340",
+"lo_off": 44640
+},
+{
+"off": 44644,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 44652,
+"kind": "hi16",
+"resolved": 2148033160,
+"class": "import",
+"name": "import_80086288",
+"lo_off": 44656
+},
+{
+"off": 44676,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44700,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44720,
+"kind": "jal",
+"resolved": 930336,
+"class": "import",
+"name": "import_000E3220"
+},
+{
+"off": 44748,
+"kind": "jal",
+"resolved": 1084728,
+"class": "import",
+"name": "import_00108D38"
+},
+{
+"off": 44760,
+"kind": "hi16",
+"resolved": 2155868748,
+"class": "data",
+"name": "D_807FF24C",
+"lo_off": 44764
+},
+{
+"off": 44788,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44812,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44840,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44860,
+"kind": "hi16",
+"resolved": 2155867704,
+"class": "data",
+"name": "D_807FEE38",
+"lo_off": 44864
+},
+{
+"off": 44876,
+"kind": "hi16",
+"resolved": 2155867696,
+"class": "data",
+"name": "D_807FEE30",
+"lo_off": 44880
+},
+{
+"off": 44904,
+"kind": "hi16",
+"resolved": 2155868724,
+"class": "data",
+"name": "D_807FF234",
+"lo_off": 44908
+},
+{
+"off": 44932,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44956,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 44972,
+"kind": "hi16",
+"resolved": 2155868996,
+"class": "data",
+"name": "D_807FF344",
+"lo_off": 44976
+},
+{
+"off": 44988,
+"kind": "hi16",
+"resolved": 2155869004,
+"class": "data",
+"name": "D_807FF34C",
+"lo_off": 44992
+},
+{
+"off": 45016,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 45048,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 45064,
+"kind": "hi16",
+"resolved": 2155867728,
+"class": "data",
+"name": "D_807FEE50",
+"lo_off": 45068
+},
+{
+"off": 45084,
+"kind": "hi16",
+"resolved": 2155869008,
+"class": "data",
+"name": "D_807FF350",
+"lo_off": 45088
+},
+{
+"off": 45112,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 45144,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 45160,
+"kind": "hi16",
+"resolved": 2155867728,
+"class": "data",
+"name": "D_807FEE50",
+"lo_off": 45164
+},
+{
+"off": 45180,
+"kind": "hi16",
+"resolved": 2155869012,
+"class": "data",
+"name": "D_807FF354",
+"lo_off": 45184
+},
+{
+"off": 45208,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 45240,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 45260,
+"kind": "hi16",
+"resolved": 2155867728,
+"class": "data",
+"name": "D_807FEE50",
+"lo_off": 45264
+},
+{
+"off": 45280,
+"kind": "hi16",
+"resolved": 2155869016,
+"class": "data",
+"name": "D_807FF358",
+"lo_off": 45284
+},
+{
+"off": 45308,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 45340,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 45352,
+"kind": "hi16",
+"resolved": 2155867752,
+"class": "data",
+"name": "D_807FEE68",
+"lo_off": 45356
+},
+{
+"off": 45380,
+"kind": "hi16",
+"resolved": 2155869020,
+"class": "data",
+"name": "D_807FF35C",
+"lo_off": 45384
+},
+{
+"off": 45468,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 45500,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 45512,
+"kind": "hi16",
+"resolved": 2155867776,
+"class": "data",
+"name": "D_807FEE80",
+"lo_off": 45516
+},
+{
+"off": 45568,
+"kind": "hi16",
+"resolved": 2147872364,
+"class": "import",
+"name": "import_8005EE6C",
+"lo_off": 45576
+},
+{
+"off": 45604,
+"kind": "hi16",
+"resolved": 2147872364,
+"class": "import",
+"name": "import_8005EE6C",
+"lo_off": 45608
+},
+{
+"off": 45620,
+"kind": "jal",
+"resolved": 930328,
+"class": "import",
+"name": "import_000E3218"
+},
+{
+"off": 45628,
+"kind": "hi16",
+"resolved": 2155868692,
+"class": "data",
+"name": "D_807FF214",
+"lo_off": 45632
+},
+{
+"off": 45636,
+"kind": "jal",
+"resolved": 1006300,
+"class": "import",
+"name": "import_000F5ADC"
+},
+{
+"off": 45692,
+"kind": "hi16",
+"resolved": 2147860744,
+"class": "import",
+"name": "import_8005C108",
+"lo_off": 45696
+},
+{
+"off": 45704,
+"kind": "hi16",
+"resolved": 2155870784,
+"class": "data",
+"name": "D_807FFA40",
+"lo_off": 45708
+},
+{
+"off": 45776,
+"kind": "jal",
+"resolved": 1021316,
+"class": "import",
+"name": "import_000F9584"
+},
+{
+"off": 45828,
+"kind": "jal",
+"resolved": 1017464,
+"class": "import",
+"name": "import_000F8678"
+},
+{
+"off": 45844,
+"kind": "hi16",
+"resolved": 2155870792,
+"class": "data",
+"name": "D_807FFA48",
+"lo_off": 45848
+},
+{
+"off": 45864,
+"kind": "hi16",
+"resolved": 2155870800,
+"class": "data",
+"name": "D_807FFA50",
+"lo_off": 45892
+},
+{
+"off": 45940,
+"kind": "hi16",
+"resolved": 2155870808,
+"class": "data",
+"name": "D_807FFA58",
+"lo_off": 45944
+},
+{
+"off": 45968,
+"kind": "jal",
+"resolved": 931152,
+"class": "import",
+"name": "import_000E3550"
+},
+{
+"off": 45980,
+"kind": "hi16",
+"resolved": 2147860904,
+"class": "import",
+"name": "import_8005C1A8",
+"lo_off": 45984
+},
+{
+"off": 46028,
+"kind": "jal",
+"resolved": 988576,
+"class": "import",
+"name": "import_000F15A0"
+},
+{
+"off": 46120,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 46156,
+"kind": "jal",
+"resolved": 1073544,
+"class": "import",
+"name": "import_00106188"
+},
+{
+"off": 46176,
+"kind": "jal",
+"resolved": 1073544,
+"class": "import",
+"name": "import_00106188"
+},
+{
+"off": 46208,
+"kind": "jal",
+"resolved": 931956,
+"class": "import",
+"name": "import_000E3874"
+},
+{
+"off": 46240,
+"kind": "jal",
+"resolved": 917800,
+"class": "import",
+"name": "import_000E0128"
+},
+{
+"off": 46264,
+"kind": "hi16",
+"resolved": 2147861320,
+"class": "import",
+"name": "import_8005C348",
+"lo_off": 46268
+},
+{
+"off": 46288,
+"kind": "hi16",
+"resolved": 2155868852,
+"class": "data",
+"name": "D_807FF2B4",
+"lo_off": 46292
+},
+{
+"off": 46316,
+"kind": "hi16",
+"resolved": 2155868854,
+"class": "data",
+"name": "D_807FF2B6",
+"lo_off": 46320
+},
+{
+"off": 46412,
+"kind": "hi16",
+"resolved": 2155868856,
+"class": "data",
+"name": "D_807FF2B8",
+"lo_off": 46416
+},
+{
+"off": 46820,
+"kind": "hi16",
+"resolved": 2155870824,
+"class": "data",
+"name": "D_807FFA68",
+"lo_off": 46824
+},
+{
+"off": 46876,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 47012,
+"kind": "hi16",
+"resolved": 2147860904,
+"class": "import",
+"name": "import_8005C1A8",
+"lo_off": 47020
+},
+{
+"off": 47024,
+"kind": "hi16",
+"resolved": 2155870840,
+"class": "data",
+"name": "D_807FFA78",
+"lo_off": 47116
+},
+{
+"off": 47168,
+"kind": "hi16",
+"resolved": 2147860744,
+"class": "import",
+"name": "import_8005C108",
+"lo_off": 47172
+},
+{
+"off": 47188,
+"kind": "jal",
+"resolved": 988576,
+"class": "import",
+"name": "import_000F15A0"
+},
+{
+"off": 47248,
+"kind": "jal",
+"resolved": 8353712,
+"class": "func",
+"name": "func_0000AD10"
+},
+{
+"off": 47256,
+"kind": "jal",
+"resolved": 8353712,
+"class": "func",
+"name": "func_0000AD10"
+},
+{
+"off": 47264,
+"kind": "jal",
+"resolved": 8353772,
+"class": "func",
+"name": "func_0000AD4C"
+},
+{
+"off": 47272,
+"kind": "jal",
+"resolved": 8353832,
+"class": "func",
+"name": "func_0000AD88"
+},
+{
+"off": 47280,
+"kind": "jal",
+"resolved": 8353772,
+"class": "func",
+"name": "func_0000AD4C"
+},
+{
+"off": 47288,
+"kind": "jal",
+"resolved": 8353712,
+"class": "func",
+"name": "func_0000AD10"
+},
+{
+"off": 47352,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47376,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47392,
+"kind": "hi16",
+"resolved": 2155869024,
+"class": "data",
+"name": "D_807FF360",
+"lo_off": 47396
+},
+{
+"off": 47400,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 47408,
+"kind": "hi16",
+"resolved": 2148033160,
+"class": "import",
+"name": "import_80086288",
+"lo_off": 47412
+},
+{
+"off": 47432,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47456,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47476,
+"kind": "jal",
+"resolved": 930336,
+"class": "import",
+"name": "import_000E3220"
+},
+{
+"off": 47504,
+"kind": "jal",
+"resolved": 1084728,
+"class": "import",
+"name": "import_00108D38"
+},
+{
+"off": 47512,
+"kind": "hi16",
+"resolved": 2155868888,
+"class": "data",
+"name": "D_807FF2D8",
+"lo_off": 47516
+},
+{
+"off": 47540,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47564,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47580,
+"kind": "hi16",
+"resolved": 2155869032,
+"class": "data",
+"name": "D_807FF368",
+"lo_off": 47584
+},
+{
+"off": 47596,
+"kind": "hi16",
+"resolved": 2155869052,
+"class": "data",
+"name": "D_807FF37C",
+"lo_off": 47600
+},
+{
+"off": 47624,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47656,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 47664,
+"kind": "hi16",
+"resolved": 2155867728,
+"class": "data",
+"name": "D_807FEE50",
+"lo_off": 47668
+},
+{
+"off": 47680,
+"kind": "hi16",
+"resolved": 2155869056,
+"class": "data",
+"name": "D_807FF380",
+"lo_off": 47696
+},
+{
+"off": 47692,
+"kind": "hi16",
+"resolved": 2155869056,
+"class": "data",
+"name": "D_807FF380",
+"lo_off": 47696
+},
+{
+"off": 47720,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47752,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 47760,
+"kind": "hi16",
+"resolved": 2155867728,
+"class": "data",
+"name": "D_807FEE50",
+"lo_off": 47764
+},
+{
+"off": 47776,
+"kind": "hi16",
+"resolved": 2155869060,
+"class": "data",
+"name": "D_807FF384",
+"lo_off": 47792
+},
+{
+"off": 47788,
+"kind": "hi16",
+"resolved": 2155869060,
+"class": "data",
+"name": "D_807FF384",
+"lo_off": 47792
+},
+{
+"off": 47816,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 47848,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 47860,
+"kind": "hi16",
+"resolved": 2155867728,
+"class": "data",
+"name": "D_807FEE50",
+"lo_off": 47864
+},
+{
+"off": 47880,
+"kind": "hi16",
+"resolved": 2155869064,
+"class": "data",
+"name": "D_807FF388",
+"lo_off": 47884
+},
+{
+"off": 47888,
+"kind": "hi16",
+"resolved": 2155868692,
+"class": "data",
+"name": "D_807FF214",
+"lo_off": 47896
+},
+{
+"off": 47900,
+"kind": "jal",
+"resolved": 1006300,
+"class": "import",
+"name": "import_000F5ADC"
+},
+{
+"off": 47932,
+"kind": "jal",
+"resolved": 8356272,
+"class": "func",
+"name": "func_0000B710"
+},
+{
+"off": 47976,
+"kind": "jal",
+"resolved": 927172,
+"class": "import",
+"name": "import_000E25C4"
+},
+{
+"off": 48064,
+"kind": "hi16",
+"resolved": 2148040104,
+"class": "import",
+"name": "import_80087DA8",
+"lo_off": 48092
+},
+{
+"off": 48136,
+"kind": "jal",
+"resolved": 1076616,
+"class": "import",
+"name": "import_00106D88"
+},
+{
+"off": 48196,
+"kind": "hi16",
+"resolved": 2147860744,
+"class": "import",
+"name": "import_8005C108",
+"lo_off": 48200
+},
+{
+"off": 48468,
+"kind": "jal",
+"resolved": 1076856,
+"class": "import",
+"name": "import_00106E78"
+},
+{
+"off": 48608,
+"kind": "hi16",
+"resolved": 2155870856,
+"class": "data",
+"name": "D_807FFA88",
+"lo_off": 48612
+},
+{
+"off": 48660,
+"kind": "hi16",
+"resolved": 2155870864,
+"class": "data",
+"name": "D_807FFA90",
+"lo_off": 48724
+},
+{
+"off": 48772,
+"kind": "jal",
+"resolved": 988576,
+"class": "import",
+"name": "import_000F15A0"
+},
+{
+"off": 48812,
+"kind": "jal",
+"resolved": 988260,
+"class": "import",
+"name": "import_000F1464"
+},
+{
+"off": 48824,
+"kind": "hi16",
+"resolved": 2155870872,
+"class": "data",
+"name": "D_807FFA98",
+"lo_off": 48828
+},
+{
+"off": 48924,
+"kind": "jal",
+"resolved": 8356336,
+"class": "func",
+"name": "func_0000B750"
+},
+{
+"off": 48944,
+"kind": "jal",
+"resolved": 8356336,
+"class": "func",
+"name": "func_0000B750"
+},
+{
+"off": 49044,
+"kind": "jal",
+"resolved": 917800,
+"class": "import",
+"name": "import_000E0128"
+},
+{
+"off": 49052,
+"kind": "jal",
+"resolved": 8353920,
+"class": "func",
+"name": "func_0000ADE0"
+},
+{
+"off": 49072,
+"kind": "jal",
+"resolved": 8356644,
+"class": "func",
+"name": "func_0000B884"
+},
+{
+"off": 49256,
+"kind": "jal",
+"resolved": 8353772,
+"class": "func",
+"name": "func_0000AD4C"
+},
+{
+"off": 49268,
+"kind": "jal",
+"resolved": 8353712,
+"class": "func",
+"name": "func_0000AD10"
+},
+{
+"off": 49304,
+"kind": "jal",
+"resolved": 8353772,
+"class": "func",
+"name": "func_0000AD4C"
+},
+{
+"off": 49316,
+"kind": "jal",
+"resolved": 8353920,
+"class": "func",
+"name": "func_0000ADE0"
+},
+{
+"off": 49352,
+"kind": "jal",
+"resolved": 8353772,
+"class": "func",
+"name": "func_0000AD4C"
+},
+{
+"off": 49364,
+"kind": "jal",
+"resolved": 8353832,
+"class": "func",
+"name": "func_0000AD88"
+},
+{
+"off": 49404,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 49408
+},
+{
+"off": 49416,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 49464,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 49468
+},
+{
+"off": 49476,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 49568,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 49572
+},
+{
+"off": 49580,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 49628,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 49632
+},
+{
+"off": 49640,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 49688,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 49692
+},
+{
+"off": 49704,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 49800,
+"kind": "hi16",
+"resolved": 2147862240,
+"class": "import",
+"name": "import_8005C6E0",
+"lo_off": 49804
+},
+{
+"off": 49812,
+"kind": "jal",
+"resolved": 915708,
+"class": "import",
+"name": "import_000DF8FC"
+},
+{
+"off": 49892,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 49908,
+"kind": "hi16",
+"resolved": 2155870220,
+"class": "data",
+"name": "D_807FF80C",
+"lo_off": 49912
+},
+{
+"off": 49916,
+"kind": "jal",
+"resolved": 926920,
+"class": "import",
+"name": "import_000E24C8"
+},
+{
+"off": 49928,
+"kind": "hi16",
+"resolved": 2155869932,
+"class": "data",
+"name": "D_807FF6EC",
+"lo_off": 49932
+},
+{
+"off": 49956,
+"kind": "jal",
+"resolved": 927172,
+"class": "import",
+"name": "import_000E25C4"
+},
+{
+"off": 49988,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 49992
+},
+{
+"off": 50012,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 50016
+},
+{
+"off": 50040,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 50044
+},
+{
+"off": 50068,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 50072
+},
+{
+"off": 50096,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 50100
+},
+{
+"off": 50124,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 50128
+},
+{
+"off": 50152,
+"kind": "hi16",
+"resolved": 2155871172,
+"class": "data",
+"name": "D_807FFBC4",
+"lo_off": 50156
+},
+{
+"off": 50176,
+"kind": "hi16",
+"resolved": 2155871172,
+"class": "data",
+"name": "D_807FFBC4",
+"lo_off": 50180
+},
+{
+"off": 50204,
+"kind": "jal",
+"resolved": 8358800,
+"class": "func",
+"name": "func_0000C0F0"
+},
+{
+"off": 50216,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50228,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 50232
+},
+{
+"off": 50256,
+"kind": "jal",
+"resolved": 8358860,
+"class": "func",
+"name": "func_0000C12C"
+},
+{
+"off": 50352,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50372,
+"kind": "jal",
+"resolved": 1102652,
+"class": "import",
+"name": "import_0010D33C"
+},
+{
+"off": 50384,
+"kind": "hi16",
+"resolved": 2155870028,
+"class": "data",
+"name": "D_807FF74C",
+"lo_off": 50388
+},
+{
+"off": 50412,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50436,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50452,
+"kind": "hi16",
+"resolved": 2155870228,
+"class": "data",
+"name": "D_807FF814",
+"lo_off": 50456
+},
+{
+"off": 50468,
+"kind": "hi16",
+"resolved": 2155870236,
+"class": "data",
+"name": "D_807FF81C",
+"lo_off": 50472
+},
+{
+"off": 50508,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50540,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 50548,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 50552
+},
+{
+"off": 50564,
+"kind": "hi16",
+"resolved": 2155870240,
+"class": "data",
+"name": "D_807FF820",
+"lo_off": 50580
+},
+{
+"off": 50576,
+"kind": "hi16",
+"resolved": 2155870240,
+"class": "data",
+"name": "D_807FF820",
+"lo_off": 50580
+},
+{
+"off": 50612,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50644,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 50652,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 50656
+},
+{
+"off": 50676,
+"kind": "hi16",
+"resolved": 2155870244,
+"class": "data",
+"name": "D_807FF824",
+"lo_off": 50680
+},
+{
+"off": 50712,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50744,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 50752,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 50756
+},
+{
+"off": 50776,
+"kind": "hi16",
+"resolved": 2155870248,
+"class": "data",
+"name": "D_807FF828",
+"lo_off": 50780
+},
+{
+"off": 50812,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50844,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 50852,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 50856
+},
+{
+"off": 50876,
+"kind": "hi16",
+"resolved": 2155870252,
+"class": "data",
+"name": "D_807FF82C",
+"lo_off": 50880
+},
+{
+"off": 50912,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 50944,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 50952,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 50956
+},
+{
+"off": 50968,
+"kind": "hi16",
+"resolved": 2155870256,
+"class": "data",
+"name": "D_807FF830",
+"lo_off": 50984
+},
+{
+"off": 50980,
+"kind": "hi16",
+"resolved": 2155870256,
+"class": "data",
+"name": "D_807FF830",
+"lo_off": 50984
+},
+{
+"off": 51016,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51048,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51056,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 51060
+},
+{
+"off": 51080,
+"kind": "hi16",
+"resolved": 2155870260,
+"class": "data",
+"name": "D_807FF834",
+"lo_off": 51084
+},
+{
+"off": 51116,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51148,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51164,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 51168
+},
+{
+"off": 51184,
+"kind": "hi16",
+"resolved": 2155870264,
+"class": "data",
+"name": "D_807FF838",
+"lo_off": 51188
+},
+{
+"off": 51220,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51252,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51268,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 51272
+},
+{
+"off": 51288,
+"kind": "hi16",
+"resolved": 2155870268,
+"class": "data",
+"name": "D_807FF83C",
+"lo_off": 51292
+},
+{
+"off": 51324,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51356,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51364,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 51368
+},
+{
+"off": 51388,
+"kind": "hi16",
+"resolved": 2155870272,
+"class": "data",
+"name": "D_807FF840",
+"lo_off": 51392
+},
+{
+"off": 51424,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51456,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51468,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 51472
+},
+{
+"off": 51488,
+"kind": "hi16",
+"resolved": 2155870276,
+"class": "data",
+"name": "D_807FF844",
+"lo_off": 51492
+},
+{
+"off": 51524,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51556,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51572,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 51576
+},
+{
+"off": 51592,
+"kind": "hi16",
+"resolved": 2155870280,
+"class": "data",
+"name": "D_807FF848",
+"lo_off": 51596
+},
+{
+"off": 51628,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51660,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51676,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 51680
+},
+{
+"off": 51696,
+"kind": "hi16",
+"resolved": 2155870284,
+"class": "data",
+"name": "D_807FF84C",
+"lo_off": 51700
+},
+{
+"off": 51732,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51764,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51780,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 51784
+},
+{
+"off": 51800,
+"kind": "hi16",
+"resolved": 2155870288,
+"class": "data",
+"name": "D_807FF850",
+"lo_off": 51804
+},
+{
+"off": 51836,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51868,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51884,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 51888
+},
+{
+"off": 51904,
+"kind": "hi16",
+"resolved": 2155870292,
+"class": "data",
+"name": "D_807FF854",
+"lo_off": 51908
+},
+{
+"off": 51940,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 51972,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 51988,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 51992
+},
+{
+"off": 52008,
+"kind": "hi16",
+"resolved": 2155870296,
+"class": "data",
+"name": "D_807FF858",
+"lo_off": 52012
+},
+{
+"off": 52044,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52076,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52092,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 52096
+},
+{
+"off": 52112,
+"kind": "hi16",
+"resolved": 2155870300,
+"class": "data",
+"name": "D_807FF85C",
+"lo_off": 52116
+},
+{
+"off": 52148,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52180,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52196,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 52200
+},
+{
+"off": 52216,
+"kind": "hi16",
+"resolved": 2155870304,
+"class": "data",
+"name": "D_807FF860",
+"lo_off": 52220
+},
+{
+"off": 52252,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52284,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52300,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 52304
+},
+{
+"off": 52320,
+"kind": "hi16",
+"resolved": 2155870308,
+"class": "data",
+"name": "D_807FF864",
+"lo_off": 52324
+},
+{
+"off": 52356,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52388,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52404,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 52408
+},
+{
+"off": 52424,
+"kind": "hi16",
+"resolved": 2155870312,
+"class": "data",
+"name": "D_807FF868",
+"lo_off": 52428
+},
+{
+"off": 52460,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52492,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52508,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 52512
+},
+{
+"off": 52528,
+"kind": "hi16",
+"resolved": 2155870316,
+"class": "data",
+"name": "D_807FF86C",
+"lo_off": 52532
+},
+{
+"off": 52564,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52596,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52612,
+"kind": "hi16",
+"resolved": 2155869544,
+"class": "data",
+"name": "D_807FF568",
+"lo_off": 52616
+},
+{
+"off": 52632,
+"kind": "hi16",
+"resolved": 2155870320,
+"class": "data",
+"name": "D_807FF870",
+"lo_off": 52636
+},
+{
+"off": 52668,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52700,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52708,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 52712
+},
+{
+"off": 52728,
+"kind": "hi16",
+"resolved": 2155870324,
+"class": "data",
+"name": "D_807FF874",
+"lo_off": 52732
+},
+{
+"off": 52764,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52796,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52804,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 52808
+},
+{
+"off": 52824,
+"kind": "hi16",
+"resolved": 2155870328,
+"class": "data",
+"name": "D_807FF878",
+"lo_off": 52828
+},
+{
+"off": 52860,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52892,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52900,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 52904
+},
+{
+"off": 52920,
+"kind": "hi16",
+"resolved": 2155870332,
+"class": "data",
+"name": "D_807FF87C",
+"lo_off": 52924
+},
+{
+"off": 52956,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 52988,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 52996,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 53000
+},
+{
+"off": 53016,
+"kind": "hi16",
+"resolved": 2155870336,
+"class": "data",
+"name": "D_807FF880",
+"lo_off": 53020
+},
+{
+"off": 53052,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 53084,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 53092,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 53096
+},
+{
+"off": 53116,
+"kind": "hi16",
+"resolved": 2155870340,
+"class": "data",
+"name": "D_807FF884",
+"lo_off": 53120
+},
+{
+"off": 53152,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 53184,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 53192,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 53196
+},
+{
+"off": 53216,
+"kind": "hi16",
+"resolved": 2155870344,
+"class": "data",
+"name": "D_807FF888",
+"lo_off": 53220
+},
+{
+"off": 53252,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 53284,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 53292,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 53296
+},
+{
+"off": 53316,
+"kind": "hi16",
+"resolved": 2155870348,
+"class": "data",
+"name": "D_807FF88C",
+"lo_off": 53320
+},
+{
+"off": 53352,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 53384,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 53392,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 53396
+},
+{
+"off": 53416,
+"kind": "hi16",
+"resolved": 2155870352,
+"class": "data",
+"name": "D_807FF890",
+"lo_off": 53420
+},
+{
+"off": 53452,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 53484,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 53492,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 53496
+},
+{
+"off": 53516,
+"kind": "hi16",
+"resolved": 2155870356,
+"class": "data",
+"name": "D_807FF894",
+"lo_off": 53520
+},
+{
+"off": 53552,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 53584,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 53592,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 53596
+},
+{
+"off": 53616,
+"kind": "hi16",
+"resolved": 2155870360,
+"class": "data",
+"name": "D_807FF898",
+"lo_off": 53620
+},
+{
+"off": 53652,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 53684,
+"kind": "jal",
+"resolved": 917464,
+"class": "import",
+"name": "import_000DFFD8"
+},
+{
+"off": 53692,
+"kind": "hi16",
+"resolved": 2155869616,
+"class": "data",
+"name": "D_807FF5B0",
+"lo_off": 53696
+},
+{
+"off": 53728,
+"kind": "jal",
+"resolved": 8363768,
+"class": "func",
+"name": "func_0000D458"
+},
+{
+"off": 53764,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 53768
+},
+{
+"off": 53796,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 53968,
+"kind": "hi16",
+"resolved": 2155869836,
+"class": "data",
+"name": "D_807FF68C",
+"lo_off": 53972
+},
+{
+"off": 53996,
+"kind": "jal",
+"resolved": 1122064,
+"class": "import",
+"name": "import_00111F10"
+},
+{
+"off": 54024,
+"kind": "jal",
+"resolved": 8365164,
+"class": "func",
+"name": "func_0000D9CC"
+},
+{
+"off": 54040,
+"kind": "hi16",
+"resolved": 2155869112,
+"class": "data",
+"name": "D_807FF3B8",
+"lo_off": 54044
+},
+{
+"off": 54212,
+"kind": "jal",
+"resolved": 8370056,
+"class": "func",
+"name": "func_0000ECE8"
+},
+{
+"off": 54240,
+"kind": "jal",
+"resolved": 1101000,
+"class": "import",
+"name": "import_0010CCC8"
+},
+{
+"off": 54272,
+"kind": "jal",
+"resolved": 1102920,
+"class": "import",
+"name": "import_0010D448"
+},
+{
+"off": 54304,
+"kind": "jal",
+"resolved": 917800,
+"class": "import",
+"name": "import_000E0128"
+},
+{
+"off": 54384,
+"kind": "jal",
+"resolved": 1135888,
+"class": "import",
+"name": "import_00115510"
+},
+{
+"off": 54440,
+"kind": "jal",
+"resolved": 1102788,
+"class": "import",
+"name": "import_0010D3C4"
+},
+{
+"off": 54480,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 54488,
+"kind": "jal",
+"resolved": 1102880,
+"class": "import",
+"name": "import_0010D420"
+},
+{
+"off": 54496,
+"kind": "hi16",
+"resolved": 2147614924,
+"class": "import",
+"name": "import_800200CC",
+"lo_off": 54500
+},
+{
+"off": 54508,
+"kind": "hi16",
+"resolved": 2155869096,
+"class": "data",
+"name": "D_807FF3A8",
+"lo_off": 54516
+},
+{
+"off": 54520,
+"kind": "hi16",
+"resolved": 2155869088,
+"class": "data",
+"name": "D_807FF3A0",
+"lo_off": 54524
+},
+{
+"off": 54544,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 54576,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 54584,
+"kind": "jal",
+"resolved": 913616,
+"class": "import",
+"name": "import_000DF0D0"
+},
+{
+"off": 54600,
+"kind": "jal",
+"resolved": 908912,
+"class": "import",
+"name": "import_000DDE70"
+},
+{
+"off": 54664,
+"kind": "hi16",
+"resolved": 2155869104,
+"class": "data",
+"name": "D_807FF3B0",
+"lo_off": 54668
+},
+{
+"off": 54688,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 54748,
+"kind": "hi16",
+"resolved": 2155869112,
+"class": "data",
+"name": "D_807FF3B8",
+"lo_off": 54752
+},
+{
+"off": 54900,
+"kind": "hi16",
+"resolved": 2155870132,
+"class": "data",
+"name": "D_807FF7B4",
+"lo_off": 54920
+},
+{
+"off": 54924,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 54948
+},
+{
+"off": 54944,
+"kind": "jal",
+"resolved": 755352,
+"class": "import",
+"name": "import_000B8698"
+},
+{
+"off": 54964,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 54968
+},
+{
+"off": 54976,
+"kind": "jal",
+"resolved": 755156,
+"class": "import",
+"name": "import_000B85D4"
+},
+{
+"off": 55048,
+"kind": "jal",
+"resolved": 671604,
+"class": "import",
+"name": "import_000A3F74"
+},
+{
+"off": 55152,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 55168,
+"kind": "jal",
+"resolved": 8370292,
+"class": "func",
+"name": "func_0000EDD4"
+},
+{
+"off": 55224,
+"kind": "jal",
+"resolved": 8381244,
+"class": "func",
+"name": "func_0001189C"
+},
+{
+"off": 55236,
+"kind": "jal",
+"resolved": 8380556,
+"class": "func",
+"name": "func_000115EC"
+},
+{
+"off": 55248,
+"kind": "jal",
+"resolved": 8364252,
+"class": "func",
+"name": "func_0000D63C"
+},
+{
+"off": 55348,
+"kind": "jal",
+"resolved": 8370292,
+"class": "func",
+"name": "func_0000EDD4"
+},
+{
+"off": 55388,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 55396,
+"kind": "hi16",
+"resolved": 2155869312,
+"class": "data",
+"name": "D_807FF480",
+"lo_off": 55400
+},
+{
+"off": 55424,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 55432,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 55476,
+"kind": "hi16",
+"resolved": 2155869280,
+"class": "data",
+"name": "D_807FF460",
+"lo_off": 55480
+},
+{
+"off": 55508,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 55544,
+"kind": "hi16",
+"resolved": 2155869828,
+"class": "data",
+"name": "D_807FF684",
+"lo_off": 55560
+},
+{
+"off": 55576,
+"kind": "hi16",
+"resolved": 2155869352,
+"class": "data",
+"name": "D_807FF4A8",
+"lo_off": 55588
+},
+{
+"off": 55668,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 55700,
+"kind": "jal",
+"resolved": 8371712,
+"class": "func",
+"name": "func_0000F360"
+},
+{
+"off": 55732,
+"kind": "jal",
+"resolved": 8374972,
+"class": "func",
+"name": "func_0001001C"
+},
+{
+"off": 55912,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56056,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56080,
+"kind": "hi16",
+"resolved": 2155871000,
+"class": "data",
+"name": "D_807FFB18",
+"lo_off": 56112
+},
+{
+"off": 56316,
+"kind": "hi16",
+"resolved": 2155871008,
+"class": "data",
+"name": "D_807FFB20",
+"lo_off": 56320
+},
+{
+"off": 56384,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56572,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56640,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56708,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56764,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56828,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56892,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 56952,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 57032,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 57104,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 57168,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 57216,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 57236,
+"kind": "jal",
+"resolved": 8370284,
+"class": "func",
+"name": "func_0000EDCC"
+},
+{
+"off": 57320,
+"kind": "hi16",
+"resolved": 2155869836,
+"class": "data",
+"name": "D_807FF68C",
+"lo_off": 57344
+},
+{
+"off": 57364,
+"kind": "jal",
+"resolved": 1122124,
+"class": "import",
+"name": "import_00111F4C"
+},
+{
+"off": 57424,
+"kind": "jal",
+"resolved": 8381244,
+"class": "func",
+"name": "func_0001189C"
+},
+{
+"off": 57452,
+"kind": "jal",
+"resolved": 8370292,
+"class": "func",
+"name": "func_0000EDD4"
+},
+{
+"off": 57512,
+"kind": "jal",
+"resolved": 8364252,
+"class": "func",
+"name": "func_0000D63C"
+},
+{
+"off": 57584,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 57592,
+"kind": "hi16",
+"resolved": 2155869304,
+"class": "data",
+"name": "D_807FF478",
+"lo_off": 57596
+},
+{
+"off": 57620,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 57644,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 57652,
+"kind": "hi16",
+"resolved": 2155869312,
+"class": "data",
+"name": "D_807FF480",
+"lo_off": 57656
+},
+{
+"off": 57680,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 57688,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 57768,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 57776,
+"kind": "hi16",
+"resolved": 2155869112,
+"class": "data",
+"name": "D_807FF3B8",
+"lo_off": 57780
+},
+{
+"off": 57804,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 57824,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 57916,
+"kind": "hi16",
+"resolved": 2155869272,
+"class": "data",
+"name": "D_807FF458",
+"lo_off": 57928
+},
+{
+"off": 57920,
+"kind": "hi16",
+"resolved": 2155869272,
+"class": "data",
+"name": "D_807FF458",
+"lo_off": 57928
+},
+{
+"off": 57940,
+"kind": "hi16",
+"resolved": 2155869248,
+"class": "data",
+"name": "D_807FF440",
+"lo_off": 57944
+},
+{
+"off": 58012,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 58040,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 58064,
+"kind": "hi16",
+"resolved": 2155869828,
+"class": "data",
+"name": "D_807FF684",
+"lo_off": 58068
+},
+{
+"off": 58236,
+"kind": "jal",
+"resolved": 8370384,
+"class": "func",
+"name": "func_0000EE30"
+},
+{
+"off": 58248,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 58276
+},
+{
+"off": 58272,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 58276
+},
+{
+"off": 58284,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 58288
+},
+{
+"off": 58320,
+"kind": "jal",
+"resolved": 754968,
+"class": "import",
+"name": "import_000B8518"
+},
+{
+"off": 58344,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 58348
+},
+{
+"off": 58372,
+"kind": "jal",
+"resolved": 754968,
+"class": "import",
+"name": "import_000B8518"
+},
+{
+"off": 58428,
+"kind": "jal",
+"resolved": 8368132,
+"class": "func",
+"name": "func_0000E564"
+},
+{
+"off": 58556,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 58564,
+"kind": "hi16",
+"resolved": 2155869360,
+"class": "data",
+"name": "D_807FF4B0",
+"lo_off": 58568
+},
+{
+"off": 58592,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 58616,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 58624,
+"kind": "hi16",
+"resolved": 2155869368,
+"class": "data",
+"name": "D_807FF4B8",
+"lo_off": 58628
+},
+{
+"off": 58652,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 58660,
+"kind": "hi16",
+"resolved": 2155869376,
+"class": "data",
+"name": "D_807FF4C0",
+"lo_off": 58664
+},
+{
+"off": 58684,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 58764,
+"kind": "jal",
+"resolved": 616228,
+"class": "import",
+"name": "import_00096724"
+},
+{
+"off": 58800,
+"kind": "jal",
+"resolved": 616196,
+"class": "import",
+"name": "import_00096704"
+},
+{
+"off": 59056,
+"kind": "jal",
+"resolved": 8369556,
+"class": "func",
+"name": "func_0000EAF4"
+},
+{
+"off": 59072,
+"kind": "hi16",
+"resolved": 2155872256,
+"class": "unpaired",
+"name": null
+},
+{
+"off": 59484,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 59500
+},
+{
+"off": 59732,
+"kind": "jal",
+"resolved": 8369556,
+"class": "func",
+"name": "func_0000EAF4"
+},
+{
+"off": 59816,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 59820
+},
+{
+"off": 59856,
+"kind": "jal",
+"resolved": 616228,
+"class": "import",
+"name": "import_00096724"
+},
+{
+"off": 59876,
+"kind": "hi16",
+"resolved": 2155869408,
+"class": "data",
+"name": "D_807FF4E0",
+"lo_off": 59880
+},
+{
+"off": 59916,
+"kind": "jal",
+"resolved": 616196,
+"class": "import",
+"name": "import_00096704"
+},
+{
+"off": 59936,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 59940
+},
+{
+"off": 59976,
+"kind": "jal",
+"resolved": 616228,
+"class": "import",
+"name": "import_00096724"
+},
+{
+"off": 59996,
+"kind": "hi16",
+"resolved": 2155869408,
+"class": "data",
+"name": "D_807FF4E0",
+"lo_off": 60000
+},
+{
+"off": 60036,
+"kind": "jal",
+"resolved": 616196,
+"class": "import",
+"name": "import_00096704"
+},
+{
+"off": 60080,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 60112,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 60120,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 60676,
+"kind": "hi16",
+"resolved": 2155871024,
+"class": "data",
+"name": "D_807FFB30",
+"lo_off": 60684
+},
+{
+"off": 60904,
+"kind": "hi16",
+"resolved": 2155871044,
+"class": "data",
+"name": "D_807FFB44",
+"lo_off": 60912
+},
+{
+"off": 61004,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 61008
+},
+{
+"off": 61020,
+"kind": "jal",
+"resolved": 754816,
+"class": "import",
+"name": "import_000B8480"
+},
+{
+"off": 61148,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 61156,
+"kind": "hi16",
+"resolved": 2155869320,
+"class": "data",
+"name": "D_807FF488",
+"lo_off": 61160
+},
+{
+"off": 61184,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 61192,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 61224,
+"kind": "jal",
+"resolved": 8364420,
+"class": "func",
+"name": "func_0000D6E4"
+},
+{
+"off": 61232,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 61236
+},
+{
+"off": 61256,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 61264,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 61272,
+"kind": "jal",
+"resolved": 8376628,
+"class": "func",
+"name": "func_00010694"
+},
+{
+"off": 61308,
+"kind": "jal",
+"resolved": 8364420,
+"class": "func",
+"name": "func_0000D6E4"
+},
+{
+"off": 61320,
+"kind": "jal",
+"resolved": 671936,
+"class": "import",
+"name": "import_000A40C0"
+},
+{
+"off": 61328,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 61356,
+"kind": "jal",
+"resolved": 8376628,
+"class": "func",
+"name": "func_00010694"
+},
+{
+"off": 61364,
+"kind": "hi16",
+"resolved": 2155869160,
+"class": "data",
+"name": "D_807FF3E8",
+"lo_off": 61368
+},
+{
+"off": 61388,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 61404,
+"kind": "jal",
+"resolved": 8364252,
+"class": "func",
+"name": "func_0000D63C"
+},
+{
+"off": 61416,
+"kind": "hi16",
+"resolved": 2155869264,
+"class": "data",
+"name": "D_807FF450",
+"lo_off": 61428
+},
+{
+"off": 61420,
+"kind": "hi16",
+"resolved": 2155869264,
+"class": "data",
+"name": "D_807FF450",
+"lo_off": 61428
+},
+{
+"off": 61460,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 61468,
+"kind": "jal",
+"resolved": 8377056,
+"class": "func",
+"name": "func_00010840"
+},
+{
+"off": 61500,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 61508,
+"kind": "jal",
+"resolved": 8376628,
+"class": "func",
+"name": "func_00010694"
+},
+{
+"off": 61552,
+"kind": "jal",
+"resolved": 8381224,
+"class": "func",
+"name": "func_00011888"
+},
+{
+"off": 61616,
+"kind": "jal",
+"resolved": 8371712,
+"class": "func",
+"name": "func_0000F360"
+},
+{
+"off": 61664,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 61672,
+"kind": "hi16",
+"resolved": 2155869344,
+"class": "data",
+"name": "D_807FF4A0",
+"lo_off": 61676
+},
+{
+"off": 61700,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 61728,
+"kind": "jal",
+"resolved": 616108,
+"class": "import",
+"name": "import_000966AC"
+},
+{
+"off": 61828,
+"kind": "jal",
+"resolved": 8371712,
+"class": "func",
+"name": "func_0000F360"
+},
+{
+"off": 61856,
+"kind": "hi16",
+"resolved": 2155871064,
+"class": "data",
+"name": "D_807FFB58",
+"lo_off": 61896
+},
+{
+"off": 61956,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 61976,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 62000,
+"kind": "jal",
+"resolved": 8374972,
+"class": "func",
+"name": "func_0001001C"
+},
+{
+"off": 62016,
+"kind": "hi16",
+"resolved": 2155869336,
+"class": "data",
+"name": "D_807FF498",
+"lo_off": 62036
+},
+{
+"off": 62056,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 62104,
+"kind": "jal",
+"resolved": 616152,
+"class": "import",
+"name": "import_000966D8"
+},
+{
+"off": 62120,
+"kind": "hi16",
+"resolved": 2155869264,
+"class": "data",
+"name": "D_807FF450",
+"lo_off": 62132
+},
+{
+"off": 62168,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 62188,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 62192
+},
+{
+"off": 62224,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 62240,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 62276,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 62412,
+"kind": "hi16",
+"resolved": 2155871072,
+"class": "data",
+"name": "D_807FFB60",
+"lo_off": 62416
+},
+{
+"off": 62468,
+"kind": "jal",
+"resolved": 616564,
+"class": "import",
+"name": "import_00096874"
+},
+{
+"off": 62476,
+"kind": "jal",
+"resolved": 8374972,
+"class": "func",
+"name": "func_0001001C"
+},
+{
+"off": 62584,
+"kind": "jal",
+"resolved": 8367472,
+"class": "func",
+"name": "func_0000E2D0"
+},
+{
+"off": 62596,
+"kind": "jal",
+"resolved": 8368232,
+"class": "func",
+"name": "func_0000E5C8"
+},
+{
+"off": 62656,
+"kind": "jal",
+"resolved": 8364420,
+"class": "func",
+"name": "func_0000D6E4"
+},
+{
+"off": 62676,
+"kind": "hi16",
+"resolved": 2155869152,
+"class": "data",
+"name": "D_807FF3E0",
+"lo_off": 62688
+},
+{
+"off": 62708,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 62716,
+"kind": "jal",
+"resolved": 8375660,
+"class": "func",
+"name": "func_000102CC"
+},
+{
+"off": 62752,
+"kind": "jal",
+"resolved": 8371908,
+"class": "func",
+"name": "func_0000F424"
+},
+{
+"off": 62768,
+"kind": "hi16",
+"resolved": 2155869384,
+"class": "data",
+"name": "D_807FF4C8",
+"lo_off": 62780
+},
+{
+"off": 62820,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 62836,
+"kind": "jal",
+"resolved": 8381224,
+"class": "func",
+"name": "func_00011888"
+},
+{
+"off": 62852,
+"kind": "jal",
+"resolved": 8370384,
+"class": "func",
+"name": "func_0000EE30"
+},
+{
+"off": 62860,
+"kind": "jal",
+"resolved": 8364524,
+"class": "func",
+"name": "func_0000D74C"
+},
+{
+"off": 62920,
+"kind": "jal",
+"resolved": 8364524,
+"class": "func",
+"name": "func_0000D74C"
+},
+{
+"off": 62932,
+"kind": "hi16",
+"resolved": 2155869392,
+"class": "data",
+"name": "D_807FF4D0",
+"lo_off": 62936
+},
+{
+"off": 62956,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 62964,
+"kind": "jal",
+"resolved": 8372596,
+"class": "func",
+"name": "func_0000F6D4"
+},
+{
+"off": 63004,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 63012,
+"kind": "hi16",
+"resolved": 2155869400,
+"class": "data",
+"name": "D_807FF4D8",
+"lo_off": 63016
+},
+{
+"off": 63040,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 63048,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 63116,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 63124,
+"kind": "hi16",
+"resolved": 2155869368,
+"class": "data",
+"name": "D_807FF4B8",
+"lo_off": 63128
+},
+{
+"off": 63152,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 63164,
+"kind": "jal",
+"resolved": 8368232,
+"class": "func",
+"name": "func_0000E5C8"
+},
+{
+"off": 63224,
+"kind": "jal",
+"resolved": 8364420,
+"class": "func",
+"name": "func_0000D6E4"
+},
+{
+"off": 63244,
+"kind": "jal",
+"resolved": 8370384,
+"class": "func",
+"name": "func_0000EE30"
+},
+{
+"off": 63256,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 63284
+},
+{
+"off": 63280,
+"kind": "hi16",
+"resolved": 2155871168,
+"class": "data",
+"name": "D_807FFBC0",
+"lo_off": 63284
+},
+{
+"off": 63292,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 63296
+},
+{
+"off": 63328,
+"kind": "jal",
+"resolved": 754968,
+"class": "import",
+"name": "import_000B8518"
+},
+{
+"off": 63352,
+"kind": "hi16",
+"resolved": 2147615184,
+"class": "import",
+"name": "import_800201D0",
+"lo_off": 63356
+},
+{
+"off": 63380,
+"kind": "jal",
+"resolved": 754968,
+"class": "import",
+"name": "import_000B8518"
+},
+{
+"off": 63436,
+"kind": "jal",
+"resolved": 8368132,
+"class": "func",
+"name": "func_0000E564"
+},
+{
+"off": 63564,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 63572,
+"kind": "hi16",
+"resolved": 2155869360,
+"class": "data",
+"name": "D_807FF4B0",
+"lo_off": 63576
+},
+{
+"off": 63600,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 63624,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 63632,
+"kind": "hi16",
+"resolved": 2155869368,
+"class": "data",
+"name": "D_807FF4B8",
+"lo_off": 63636
+},
+{
+"off": 63660,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 63668,
+"kind": "hi16",
+"resolved": 2155869376,
+"class": "data",
+"name": "D_807FF4C0",
+"lo_off": 63672
+},
+{
+"off": 63692,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 63756,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 63764,
+"kind": "hi16",
+"resolved": 2155869248,
+"class": "data",
+"name": "D_807FF440",
+"lo_off": 63768
+},
+{
+"off": 63792,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 63852,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 63860,
+"kind": "hi16",
+"resolved": 2155869256,
+"class": "data",
+"name": "D_807FF448",
+"lo_off": 63864
+},
+{
+"off": 63888,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 64120,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 64128,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 64136,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 64140
+},
+{
+"off": 64164,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 64196,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 64204,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 64208
+},
+{
+"off": 64228,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 64236,
+"kind": "jal",
+"resolved": 8376628,
+"class": "func",
+"name": "func_00010694"
+},
+{
+"off": 64268,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 64320,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 64328,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 64332
+},
+{
+"off": 64356,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 64428,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 64436,
+"kind": "hi16",
+"resolved": 2155869304,
+"class": "data",
+"name": "D_807FF478",
+"lo_off": 64440
+},
+{
+"off": 64464,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 64472,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 64540,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 64608,
+"kind": "hi16",
+"resolved": 2155871080,
+"class": "data",
+"name": "D_807FFB68",
+"lo_off": 64612
+},
+{
+"off": 64632,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 64636
+},
+{
+"off": 64672,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 64712,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 64720,
+"kind": "hi16",
+"resolved": 2155869200,
+"class": "data",
+"name": "D_807FF410",
+"lo_off": 64724
+},
+{
+"off": 64748,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 64836,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 64844,
+"kind": "hi16",
+"resolved": 2155869192,
+"class": "data",
+"name": "D_807FF408",
+"lo_off": 64848
+},
+{
+"off": 64872,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 64880,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 65092,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 65100,
+"kind": "hi16",
+"resolved": 2155869208,
+"class": "data",
+"name": "D_807FF418",
+"lo_off": 65104
+},
+{
+"off": 65128,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 65136,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 65160,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 65168,
+"kind": "hi16",
+"resolved": 2155869216,
+"class": "data",
+"name": "D_807FF420",
+"lo_off": 65172
+},
+{
+"off": 65196,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 65264,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 65288,
+"kind": "hi16",
+"resolved": 2155869224,
+"class": "data",
+"name": "D_807FF428",
+"lo_off": 65292
+},
+{
+"off": 65328,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 65404,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 65412,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 65416
+},
+{
+"off": 65440,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 65504,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 65512,
+"kind": "hi16",
+"resolved": 2155869208,
+"class": "data",
+"name": "D_807FF418",
+"lo_off": 65516
+},
+{
+"off": 65540,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 65576,
+"kind": "jal",
+"resolved": 8381224,
+"class": "func",
+"name": "func_00011888"
+},
+{
+"off": 65584,
+"kind": "hi16",
+"resolved": 2155869120,
+"class": "data",
+"name": "D_807FF3C0",
+"lo_off": 65588
+},
+{
+"off": 65608,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 65616,
+"kind": "jal",
+"resolved": 8375048,
+"class": "func",
+"name": "func_00010068"
+},
+{
+"off": 65684,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 65692,
+"kind": "hi16",
+"resolved": 2155869128,
+"class": "data",
+"name": "D_807FF3C8",
+"lo_off": 65696
+},
+{
+"off": 65720,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 65732,
+"kind": "hi16",
+"resolved": 2155869136,
+"class": "data",
+"name": "D_807FF3D0",
+"lo_off": 65736
+},
+{
+"off": 65776,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 65784,
+"kind": "jal",
+"resolved": 8367472,
+"class": "func",
+"name": "func_0000E2D0"
+},
+{
+"off": 65796,
+"kind": "jal",
+"resolved": 8368232,
+"class": "func",
+"name": "func_0000E5C8"
+},
+{
+"off": 65804,
+"kind": "jal",
+"resolved": 8367612,
+"class": "func",
+"name": "func_0000E35C"
+},
+{
+"off": 65852,
+"kind": "hi16",
+"resolved": 2155869136,
+"class": "data",
+"name": "D_807FF3D0",
+"lo_off": 65868
+},
+{
+"off": 65904,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 65964,
+"kind": "hi16",
+"resolved": 2155869144,
+"class": "data",
+"name": "D_807FF3D8",
+"lo_off": 65968
+},
+{
+"off": 65996,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 66072,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 66108,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 66136,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 66144,
+"kind": "hi16",
+"resolved": 2155869152,
+"class": "data",
+"name": "D_807FF3E0",
+"lo_off": 66148
+},
+{
+"off": 66172,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 66180,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 66192,
+"kind": "jal",
+"resolved": 8368232,
+"class": "func",
+"name": "func_0000E5C8"
+},
+{
+"off": 66200,
+"kind": "jal",
+"resolved": 8367612,
+"class": "func",
+"name": "func_0000E35C"
+},
+{
+"off": 66216,
+"kind": "jal",
+"resolved": 8367472,
+"class": "func",
+"name": "func_0000E2D0"
+},
+{
+"off": 66224,
+"kind": "jal",
+"resolved": 8380912,
+"class": "func",
+"name": "func_00011750"
+},
+{
+"off": 66264,
+"kind": "jal",
+"resolved": 8367472,
+"class": "func",
+"name": "func_0000E2D0"
+},
+{
+"off": 66304,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 66352,
+"kind": "hi16",
+"resolved": 2155869144,
+"class": "data",
+"name": "D_807FF3D8",
+"lo_off": 66356
+},
+{
+"off": 66392,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 66408,
+"kind": "hi16",
+"resolved": 2155869136,
+"class": "data",
+"name": "D_807FF3D0",
+"lo_off": 66412
+},
+{
+"off": 66448,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 66460,
+"kind": "jal",
+"resolved": 8368232,
+"class": "func",
+"name": "func_0000E5C8"
+},
+{
+"off": 66468,
+"kind": "jal",
+"resolved": 8367612,
+"class": "func",
+"name": "func_0000E35C"
+},
+{
+"off": 66488,
+"kind": "hi16",
+"resolved": 2155869160,
+"class": "data",
+"name": "D_807FF3E8",
+"lo_off": 66492
+},
+{
+"off": 66524,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 66532,
+"kind": "jal",
+"resolved": 8376132,
+"class": "func",
+"name": "func_000104A4"
+},
+{
+"off": 66540,
+"kind": "jal",
+"resolved": 8380912,
+"class": "func",
+"name": "func_00011750"
+},
+{
+"off": 66612,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 66624,
+"kind": "jal",
+"resolved": 8368232,
+"class": "func",
+"name": "func_0000E5C8"
+},
+{
+"off": 66632,
+"kind": "jal",
+"resolved": 8367612,
+"class": "func",
+"name": "func_0000E35C"
+},
+{
+"off": 66652,
+"kind": "hi16",
+"resolved": 2155869160,
+"class": "data",
+"name": "D_807FF3E8",
+"lo_off": 66656
+},
+{
+"off": 66688,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 66696,
+"kind": "jal",
+"resolved": 8376132,
+"class": "func",
+"name": "func_000104A4"
+},
+{
+"off": 66736,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 66760,
+"kind": "jal",
+"resolved": 8368232,
+"class": "func",
+"name": "func_0000E5C8"
+},
+{
+"off": 66768,
+"kind": "jal",
+"resolved": 8367612,
+"class": "func",
+"name": "func_0000E35C"
+},
+{
+"off": 66804,
+"kind": "jal",
+"resolved": 8364252,
+"class": "func",
+"name": "func_0000D63C"
+},
+{
+"off": 66812,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 66852,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 66860,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 66864
+},
+{
+"off": 66888,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 66896,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 66964,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 66972,
+"kind": "hi16",
+"resolved": 2155869176,
+"class": "data",
+"name": "D_807FF3F8",
+"lo_off": 66976
+},
+{
+"off": 67000,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 67076,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 67084,
+"kind": "hi16",
+"resolved": 2155869168,
+"class": "data",
+"name": "D_807FF3F0",
+"lo_off": 67088
+},
+{
+"off": 67112,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 67120,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 67160,
+"kind": "hi16",
+"resolved": 2155869160,
+"class": "data",
+"name": "D_807FF3E8",
+"lo_off": 67164
+},
+{
+"off": 67188,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 67196,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 67284,
+"kind": "jal",
+"resolved": 8367260,
+"class": "func",
+"name": "func_0000E1FC"
+},
+{
+"off": 67300,
+"kind": "jal",
+"resolved": 8364872,
+"class": "func",
+"name": "func_0000D8A8"
+},
+{
+"off": 67308,
+"kind": "jal",
+"resolved": 8364940,
+"class": "func",
+"name": "func_0000D8EC"
+},
+{
+"off": 67324,
+"kind": "hi16",
+"resolved": 2155871088,
+"class": "data",
+"name": "D_807FFB70",
+"lo_off": 67356
+},
+{
+"off": 67420,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 67448,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 67460,
+"kind": "hi16",
+"resolved": 2155869240,
+"class": "data",
+"name": "D_807FF438",
+"lo_off": 67464
+},
+{
+"off": 67496,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 67504,
+"kind": "jal",
+"resolved": 8369084,
+"class": "func",
+"name": "func_0000E91C"
+},
+{
+"off": 67512,
+"kind": "jal",
+"resolved": 8380912,
+"class": "func",
+"name": "func_00011750"
+},
+{
+"off": 67528,
+"kind": "hi16",
+"resolved": 2155869112,
+"class": "data",
+"name": "D_807FF3B8",
+"lo_off": 67536
+},
+{
+"off": 67620,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 67672,
+"kind": "jal",
+"resolved": 8364872,
+"class": "func",
+"name": "func_0000D8A8"
+},
+{
+"off": 67680,
+"kind": "jal",
+"resolved": 8364940,
+"class": "func",
+"name": "func_0000D8EC"
+},
+{
+"off": 67704,
+"kind": "hi16",
+"resolved": 2155871096,
+"class": "data",
+"name": "D_807FFB78",
+"lo_off": 67748
+},
+{
+"off": 67804,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 67824,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 67832,
+"kind": "jal",
+"resolved": 8367260,
+"class": "func",
+"name": "func_0000E1FC"
+},
+{
+"off": 67844,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 67848
+},
+{
+"off": 67880,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 67888,
+"kind": "jal",
+"resolved": 8380912,
+"class": "func",
+"name": "func_00011750"
+},
+{
+"off": 67960,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 67972,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 67976
+},
+{
+"off": 68008,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 68024,
+"kind": "hi16",
+"resolved": 2155869280,
+"class": "data",
+"name": "D_807FF460",
+"lo_off": 68028
+},
+{
+"off": 68056,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 68064,
+"kind": "jal",
+"resolved": 8369084,
+"class": "func",
+"name": "func_0000E91C"
+},
+{
+"off": 68072,
+"kind": "jal",
+"resolved": 8364940,
+"class": "func",
+"name": "func_0000D8EC"
+},
+{
+"off": 68080,
+"kind": "jal",
+"resolved": 8364692,
+"class": "func",
+"name": "func_0000D7F4"
+},
+{
+"off": 68156,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 68168,
+"kind": "hi16",
+"resolved": 2155869240,
+"class": "data",
+"name": "D_807FF438",
+"lo_off": 68172
+},
+{
+"off": 68204,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 68220,
+"kind": "hi16",
+"resolved": 2155869280,
+"class": "data",
+"name": "D_807FF460",
+"lo_off": 68224
+},
+{
+"off": 68252,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 68260,
+"kind": "jal",
+"resolved": 8364940,
+"class": "func",
+"name": "func_0000D8EC"
+},
+{
+"off": 68268,
+"kind": "jal",
+"resolved": 8364692,
+"class": "func",
+"name": "func_0000D7F4"
+},
+{
+"off": 68304,
+"kind": "jal",
+"resolved": 8364940,
+"class": "func",
+"name": "func_0000D8EC"
+},
+{
+"off": 68348,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 68356,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 68360
+},
+{
+"off": 68384,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 68416,
+"kind": "jal",
+"resolved": 8364940,
+"class": "func",
+"name": "func_0000D8EC"
+},
+{
+"off": 68464,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 68472,
+"kind": "hi16",
+"resolved": 2155869264,
+"class": "data",
+"name": "D_807FF450",
+"lo_off": 68476
+},
+{
+"off": 68500,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 68564,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 68576,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 68580
+},
+{
+"off": 68612,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 68628,
+"kind": "hi16",
+"resolved": 2155869240,
+"class": "data",
+"name": "D_807FF438",
+"lo_off": 68632
+},
+{
+"off": 68660,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 68728,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 68740,
+"kind": "hi16",
+"resolved": 2155869240,
+"class": "data",
+"name": "D_807FF438",
+"lo_off": 68744
+},
+{
+"off": 68776,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 68792,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 68796
+},
+{
+"off": 68824,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 68916,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 68924,
+"kind": "hi16",
+"resolved": 2155869288,
+"class": "data",
+"name": "D_807FF468",
+"lo_off": 68928
+},
+{
+"off": 68952,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 68992,
+"kind": "jal",
+"resolved": 1104760,
+"class": "import",
+"name": "import_0010DB78"
+},
+{
+"off": 69000,
+"kind": "hi16",
+"resolved": 2155869296,
+"class": "data",
+"name": "D_807FF470",
+"lo_off": 69004
+},
+{
+"off": 69028,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 69036,
+"kind": "jal",
+"resolved": 8369084,
+"class": "func",
+"name": "func_0000E91C"
+},
+{
+"off": 69104,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 69112,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 69116
+},
+{
+"off": 69140,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 69200,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 69208,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 69212
+},
+{
+"off": 69236,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 69296,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 69356,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 69416,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 69476,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 69536,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 69596,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 69612,
+"kind": "hi16",
+"resolved": 2155869512,
+"class": "data",
+"name": "D_807FF548",
+"lo_off": 69624
+},
+{
+"off": 69644,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 69672,
+"kind": "hi16",
+"resolved": 2155869496,
+"class": "data",
+"name": "D_807FF538",
+"lo_off": 69680
+},
+{
+"off": 69704,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 69708
+},
+{
+"off": 69748,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 69756,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 69800,
+"kind": "hi16",
+"resolved": 2155869456,
+"class": "data",
+"name": "D_807FF510",
+"lo_off": 69808
+},
+{
+"off": 69832,
+"kind": "hi16",
+"resolved": 2155869184,
+"class": "data",
+"name": "D_807FF400",
+"lo_off": 69836
+},
+{
+"off": 69876,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 69884,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 69932,
+"kind": "jal",
+"resolved": 8378968,
+"class": "func",
+"name": "func_00010FB8"
+},
+{
+"off": 69940,
+"kind": "hi16",
+"resolved": 2155869504,
+"class": "data",
+"name": "D_807FF540",
+"lo_off": 69944
+},
+{
+"off": 69968,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70000,
+"kind": "jal",
+"resolved": 8378968,
+"class": "func",
+"name": "func_00010FB8"
+},
+{
+"off": 70016,
+"kind": "hi16",
+"resolved": 2147614872,
+"class": "import",
+"name": "import_80020098",
+"lo_off": 70028
+},
+{
+"off": 70024,
+"kind": "hi16",
+"resolved": 2155872408,
+"class": "import",
+"name": "import_80800098",
+"lo_off": 70028
+},
+{
+"off": 70052,
+"kind": "hi16",
+"resolved": 2155869464,
+"class": "data",
+"name": "D_807FF518",
+"lo_off": 70056
+},
+{
+"off": 70084,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70104,
+"kind": "hi16",
+"resolved": 2155869480,
+"class": "data",
+"name": "D_807FF528",
+"lo_off": 70120
+},
+{
+"off": 70108,
+"kind": "hi16",
+"resolved": 2155869480,
+"class": "data",
+"name": "D_807FF528",
+"lo_off": 70120
+},
+{
+"off": 70144,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70176,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70208,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70272,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 70280,
+"kind": "hi16",
+"resolved": 2155869448,
+"class": "data",
+"name": "D_807FF508",
+"lo_off": 70284
+},
+{
+"off": 70308,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70316,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 70408,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 70416,
+"kind": "hi16",
+"resolved": 2155869448,
+"class": "data",
+"name": "D_807FF508",
+"lo_off": 70420
+},
+{
+"off": 70444,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70452,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 70540,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 70548,
+"kind": "hi16",
+"resolved": 2155869432,
+"class": "data",
+"name": "D_807FF4F8",
+"lo_off": 70552
+},
+{
+"off": 70576,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70636,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 70644,
+"kind": "hi16",
+"resolved": 2155869440,
+"class": "data",
+"name": "D_807FF500",
+"lo_off": 70648
+},
+{
+"off": 70672,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70728,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 70816,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 70824,
+"kind": "hi16",
+"resolved": 2155869416,
+"class": "data",
+"name": "D_807FF4E8",
+"lo_off": 70828
+},
+{
+"off": 70852,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 70860,
+"kind": "hi16",
+"resolved": 2155869424,
+"class": "data",
+"name": "D_807FF4F0",
+"lo_off": 70864
+},
+{
+"off": 70884,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 70944,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 70952,
+"kind": "hi16",
+"resolved": 2155869096,
+"class": "data",
+"name": "D_807FF3A8",
+"lo_off": 70956
+},
+{
+"off": 70980,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 71004,
+"kind": "hi16",
+"resolved": 2147614992,
+"class": "import",
+"name": "import_80020110",
+"lo_off": 71008
+},
+{
+"off": 71032,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 71036
+},
+{
+"off": 71056,
+"kind": "jal",
+"resolved": 8364124,
+"class": "func",
+"name": "func_0000D5BC"
+},
+{
+"off": 71108,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 71160,
+"kind": "jal",
+"resolved": 8380612,
+"class": "func",
+"name": "func_00011624"
+},
+{
+"off": 71168,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 71180,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 71216,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 71252,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 71264,
+"kind": "hi16",
+"resolved": 2155869112,
+"class": "data",
+"name": "D_807FF3B8",
+"lo_off": 71276
+},
+{
+"off": 71268,
+"kind": "hi16",
+"resolved": 2155869112,
+"class": "data",
+"name": "D_807FF3B8",
+"lo_off": 71276
+},
+{
+"off": 71312,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 71348,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 71392,
+"kind": "jal",
+"resolved": 8381192,
+"class": "func",
+"name": "func_00011868"
+},
+{
+"off": 71436,
+"kind": "jal",
+"resolved": 1104680,
+"class": "import",
+"name": "import_0010DB28"
+},
+{
+"off": 71444,
+"kind": "hi16",
+"resolved": 2155869232,
+"class": "data",
+"name": "D_807FF430",
+"lo_off": 71448
+},
+{
+"off": 71472,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 71632,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 71640,
+"kind": "hi16",
+"resolved": 2155869328,
+"class": "data",
+"name": "D_807FF490",
+"lo_off": 71644
+},
+{
+"off": 71668,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 71700,
+"kind": "jal",
+"resolved": 1104532,
+"class": "import",
+"name": "import_0010DA94"
+},
+{
+"off": 71708,
+"kind": "hi16",
+"resolved": 2155869328,
+"class": "data",
+"name": "D_807FF490",
+"lo_off": 71712
+},
+{
+"off": 71736,
+"kind": "jal",
+"resolved": 8364184,
+"class": "func",
+"name": "func_0000D5F8"
+},
+{
+"off": 71744,
+"kind": "jal",
+"resolved": 8364156,
+"class": "func",
+"name": "func_0000D5DC"
+},
+{
+"off": 71876,
+"kind": "hi16",
+"resolved": 2155871104,
+"class": "data",
+"name": "D_807FFB80",
+"lo_off": 71884
+},
+{
+"off": 71900,
+"kind": "hi16",
+"resolved": 2155869836,
+"class": "data",
+"name": "D_807FF68C",
+"lo_off": 71904
+},
+{
+"off": 71912,
+"kind": "jal",
+"resolved": 1122124,
+"class": "import",
+"name": "import_00111F4C"
+},
+{
+"off": 71928,
+"kind": "jal",
+"resolved": 616336,
+"class": "import",
+"name": "import_00096790"
+},
+{
+"off": 71948,
+"kind": "hi16",
+"resolved": 2155869852,
+"class": "data",
+"name": "D_807FF69C",
+"lo_off": 71952
+},
+{
+"off": 71960,
+"kind": "jal",
+"resolved": 1122124,
+"class": "import",
+"name": "import_00111F4C"
+},
+{
+"off": 71976,
+"kind": "jal",
+"resolved": 616260,
+"class": "import",
+"name": "import_00096744"
+},
+{
+"off": 71996,
+"kind": "hi16",
+"resolved": 2155869844,
+"class": "data",
+"name": "D_807FF694",
+"lo_off": 72000
+},
+{
+"off": 72008,
+"kind": "jal",
+"resolved": 1122124,
+"class": "import",
+"name": "import_00111F4C"
+},
+{
+"off": 72024,
+"kind": "jal",
+"resolved": 616260,
+"class": "import",
+"name": "import_00096744"
+},
+{
+"off": 72044,
+"kind": "hi16",
+"resolved": 2155869872,
+"class": "data",
+"name": "D_807FF6B0",
+"lo_off": 72048
+},
+{
+"off": 72056,
+"kind": "jal",
+"resolved": 1122124,
+"class": "import",
+"name": "import_00111F4C"
+},
+{
+"off": 72072,
+"kind": "jal",
+"resolved": 616412,
+"class": "import",
+"name": "import_000967DC"
+},
+{
+"off": 72092,
+"kind": "hi16",
+"resolved": 2155869900,
+"class": "data",
+"name": "D_807FF6CC",
+"lo_off": 72096
+},
+{
+"off": 72104,
+"kind": "jal",
+"resolved": 1122124,
+"class": "import",
+"name": "import_00111F4C"
+},
+{
+"off": 72120,
+"kind": "jal",
+"resolved": 616488,
+"class": "import",
+"name": "import_00096828"
+},
+{
+"off": 72160,
+"kind": "jal",
+"resolved": 8358964,
+"class": "func",
+"name": "func_0000C194"
+},
+{
+"off": 72172,
+"kind": "jal",
+"resolved": 8359024,
+"class": "func",
+"name": "func_0000C1D0"
+},
+{
+"off": 72208,
+"kind": "jal",
+"resolved": 8358964,
+"class": "func",
+"name": "func_0000C194"
+},
+{
+"off": 72220,
+"kind": "jal",
+"resolved": 8359084,
+"class": "func",
+"name": "func_0000C20C"
+},
+{
+"off": 72256,
+"kind": "jal",
+"resolved": 8358964,
+"class": "func",
+"name": "func_0000C194"
+},
+{
+"off": 72268,
+"kind": "jal",
+"resolved": 8359196,
+"class": "func",
+"name": "func_0000C27C"
+},
+{
+"off": 72304,
+"kind": "jal",
+"resolved": 8358964,
+"class": "func",
+"name": "func_0000C194"
+},
+{
+"off": 72316,
+"kind": "jal",
+"resolved": 8358964,
+"class": "func",
+"name": "func_0000C194"
+},
+{
+"off": 72352,
+"kind": "jal",
+"resolved": 964000,
+"class": "import",
+"name": "import_000EB5A0"
+},
+{
+"off": 72368,
+"kind": "jal",
+"resolved": 948856,
+"class": "import",
+"name": "import_000E7A78"
+},
+{
+"off": 72380,
+"kind": "hi16",
+"resolved": 2147937664,
+"class": "import",
+"name": "import_8006ED80",
+"lo_off": 72384
+},
+{
+"off": 72424,
+"kind": "jal",
+"resolved": 1116976,
+"class": "import",
+"name": "import_00110B30"
+}
+]
+}
