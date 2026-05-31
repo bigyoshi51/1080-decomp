@@ -5358,18 +5358,43 @@ int game_libs_func_00025A80(int *a0, int a1, int **a2) {
 //   USO reloc infra + loop schedule. Name pre-checked: no extern
 //   reuse (collision-safe). gl_func_00000000 = canonical
 //   never-defined USO placeholder.
+//
+// 2026-05-31 FULL DECODE + completion 49.6->95.3%: the fn has TWO loops, not
+//   one. Loop 1 (over rec->1 count): r=pred(idx,i); if(r) acc=fold(r->4,acc,a1)
+//   — the fold arg is the PREDICATE RESULT's ->4, NOT rec->4. Loop 2 (over
+//   rec->0 count): r=pred(idx,i); if(r){ if(r->1) acc=fold(r->8,..); if(r->2!=
+//   127) acc=fold(r->24,..); acc=fold(r->16,..) [always] }. Structure now
+//   EXACT (77=77 insns). RESIDUAL (95->100): consistent saved-reg renumber
+//   (acc/i/n2/idx slot order) + the 4 placeholder jals (jal 0 vs baked 0x3A0EC
+//   — USO-reloc cap, blocks byte-exact regardless). 95.3% is the ceiling
+//   without USO-reloc infra.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_00025AC8(int idx, int a1) {
     char *g = (char *)&D_00000000;
     char *rec = *(char **)(g + 0x2030) + idx * 0x14;
-    int n = *(unsigned char *)(rec + 1);
+    int n2 = *(unsigned char *)(rec + 1);
+    int n1 = *(unsigned char *)(rec + 0);
     int acc = 0;
     int i;
-    for (i = 0; i < n; i++) {
-        if (gl_func_00000000(idx, i)) {
-            acc = gl_func_00000000(*(void **)(rec + 4), acc, a1);
+    char *r;
+    for (i = 0; i < n2; i++) {
+        r = (char *)gl_func_00000000(idx, i);
+        if (r != 0) {
+            acc = gl_func_00000000(*(void **)(r + 4), acc, a1);
+        }
+    }
+    for (i = 0; i < n1; i++) {
+        r = (char *)gl_func_00000000(idx, i);
+        if (r != 0) {
+            if (*(unsigned char *)(r + 1) != 0) {
+                acc = gl_func_00000000(*(void **)(r + 8), acc, a1);
+            }
+            if (*(unsigned char *)(r + 2) != 127) {
+                acc = gl_func_00000000(*(void **)(r + 24), acc, a1);
+            }
+            acc = gl_func_00000000(*(void **)(r + 16), acc, a1);
         }
     }
     return acc;
