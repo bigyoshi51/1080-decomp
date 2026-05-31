@@ -22827,7 +22827,12 @@ extern int *D_state_0042440;     /* = &D+0x240 (undefined_syms); the merged orph
 extern char gl_data_42440_arg;   /* = &D (undefined_syms); the call's a0 */
 #ifdef NON_MATCHING
 void game_libs_func_00042438(void) {
-    int *p = D_state_0042440;
+    /* p loaded from &D+0x240 (lw v0,576(v0)); reloc must be base+0x240, not
+     * the separate D_state_0042440 undefined-sym (which resolved %lo=0 ->
+     * lw v0,0(v0)). Fixed 2026-05-31. Residual: the 5th (stack) arg temp is
+     * t0 in target vs t7/v1 here — pure allocno-coloring regalloc-renumber
+     * (named-local -> v1, inline -> t7; neither colors to t0). 2-diff cap. */
+    int *p = *(int **)((char *)&D_00000000 + 0x240);
     gl_func_00000000(&gl_data_42440_arg, 0x110, ((int*)p[0x148 / 4])[0xF0 / 4],
                      p[0xB8 / 4], p[0xBC / 4]);
 }
