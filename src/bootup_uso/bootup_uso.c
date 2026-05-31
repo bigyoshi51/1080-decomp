@@ -4257,11 +4257,14 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 //     func_00000148 (writable table), func_000089FC+0x2C /
 //     func_00008A40+0x8/+0x14 (name/string data), func_000083D0+0x70
 //     (vtable).
-// Caps (DEFERRED): 186-insn lazy-init + table-register + multi-dispatch
-//   — byte-match blocked by deferred pool symbolization. Real-C
-//   STRUCTURAL body below — sound/resource-bank lazy loader skeleton.
-//   Name pre-checked: no extern reuse. D_00000000 reuses file-scope
-//   extern char.
+// Caps (DEFERRED): 186-insn lazy-init + table-register + multi-dispatch.
+//   2026-05-31 partial completion 55.9->67.1%: added the two sentinel-keyed
+//   sub-allocs (alloc(8)->s+0x34={0,0} guarded by s==-52; alloc(4)->s+0x58={0}
+//   guarded by s==-88, dead-arm passthrough form) and fixed the clamps to
+//   UNSIGNED (sltiu: (unsigned)idx>=0xA, (unsigned)cat>=9). RESIDUAL (67->100):
+//   args-home-spill frame (target 0x80 spills a0-a3 to home slots; ours 0x40)
+//   + the r/s alloc-or-passthrough dead-arm retry cascades + register alloc.
+//   Big multi-cascade fn; remaining is focused-RE/frame work. Name pre-checked.
 #ifdef NON_MATCHING
 void func_0000B1B4(int cat, int idx, int a2, int a3) {
     char *r;
@@ -4270,8 +4273,8 @@ void func_0000B1B4(int cat, int idx, int a2, int a3) {
     int n;
     char *e;
     char *sp34;
-    if (idx >= 0xA) idx = 9;
-    if (cat >= 9)  cat = 8;
+    if ((unsigned int)idx >= 0xA) idx = 9;
+    if ((unsigned int)cat >= 9)  cat = 8;
     if (cat == 7 || cat == 6) {
         if (*(int *)((char *)&D_00000000 + 0x148) == 0) {
             func_00000000((char *)&D_00000000 + 0x2C);
@@ -4279,6 +4282,25 @@ void func_0000B1B4(int cat, int idx, int a2, int a3) {
             if (r) {
                 s = (char *)func_00000000(0x60);
                 *(char **)(s + 0x5C) = &D_00000000;
+                {
+                    int *t8 = (int *)(s + 0x34);
+                    if (s == (char *)0xFFFFFFCC) {
+                        t8 = (int *)func_00000000(8);
+                        if (t8 == 0) goto sub8_done;
+                    }
+                    t8[1] = 0;
+                    t8[0] = 0;
+                }
+            sub8_done:;
+                {
+                    int *t4 = (int *)(s + 0x58);
+                    if (s == (char *)0xFFFFFFA8) {
+                        t4 = (int *)func_00000000(4);
+                        if (t4 == 0) goto sub4_done;
+                    }
+                    t4[0] = 0;
+                }
+            sub4_done:;
                 func_00000000(s);
                 *(int *)(r + 0x24) = 0x110;
                 *(char **)(r + 0x5C) = (char *)&D_00000000 + 0x70;
