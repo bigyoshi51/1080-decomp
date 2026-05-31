@@ -1883,9 +1883,16 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
  * compact-but-branch-likely. The target = -O2-size WITHOUT branch-likely — i.e. an
  * -O2 branch-likely-EMISSION cap, not an opt-level mismatch. The func-call-in-body
  * do-while form (this code) still emits bnezl; the C-structure lever doesn't suppress
- * it here. Genuine branch-likely cap (needs a -Wo branch-likely-disable flag if one
- * exists, or stays NM). [Earlier "confirmed -O0" was an error: I matched branch-TYPE
- * but ignored instruction COUNT — -O0 regular branches come WITH +10 insns of spills.] */
+ * it here. Genuine branch-likely cap. [Earlier "confirmed -O0" was an error: I matched
+ * branch-TYPE but ignored instruction COUNT — -O0 regular branches come WITH +10 insns
+ * of spills.]
+ * VERIFIED 2026-05-31: NO branch-likely-disable flag exists in IDO 7.1 cc — the bnezl
+ * emission is internal to ugen (`f_emit_branch_rrll`), not exposed via any -Wo/-W
+ * command-line option (checked the cc binary strings). So this stays NM; the only
+ * theoretical fixes are a C shape that makes the branch-target's first insn
+ * non-delay-slot-fillable (so ugen falls back to regular bnez+nop) — not found despite
+ * the do-while/call-in-body tries — or a ugen patch (out of scope). Applies to the whole
+ * func_80004808..49B8 tail + other -O2 branch-likely near-misses (e.g. gl_func_0006AF0C). */
 #ifdef NON_MATCHING
 void func_80004808(u8* arg0, u32 arg1) {
     u8 sp4;
