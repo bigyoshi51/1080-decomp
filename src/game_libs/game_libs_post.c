@@ -37431,8 +37431,7 @@ void game_libs_func_000683C4(int *a0, int a1) {
 extern int gl_func_00000000();
 
 void gl_func_000683D4(int *self) {
-    int i;
-    int count;
+    unsigned int i;
     int *parent;
     int *instance;
     int (*ctor)(int *);
@@ -37442,10 +37441,9 @@ void gl_func_000683D4(int *self) {
     int *finalize_vt;
 
     gl_func_00000000(self + 2);                       /* self + 8 */
-    count = self[2];                                   /* self->[8] */
-    self[1] = gl_func_00000000(count * 4);            /* alloc */
+    self[1] = gl_func_00000000(self[2] * 4);          /* alloc */
 
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < (unsigned int)self[2]; i++) {
         parent = (int *)((int *)self[3])[10];          /* self->[0xC]->[0x28] */
         ctor = (int (*)(int *))parent[23];             /* parent->[0x5C] */
         ctor_off = ((short *)parent)[44];              /* (lh) parent->[0x58] */
