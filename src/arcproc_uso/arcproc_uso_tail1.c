@@ -803,10 +803,10 @@ void arcproc_uso_func_000014A8(void) {
  * not symbolized. NON_MATCHING. */
 extern int gl_func_00000000();
 void arcproc_uso_func_000014C8(char *arg0) {
-    float sp54;
-    float sp50;
-    float sp4C;
-    float sp48;
+    volatile float sp54;
+    volatile float sp50;
+    volatile float sp4C;
+    volatile float sp48;
     float f0;
 
     sp48 = 1.0f;
