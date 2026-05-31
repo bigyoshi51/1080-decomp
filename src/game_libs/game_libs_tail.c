@@ -2852,8 +2852,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
  * E450 |=8, E464 &=~8, E47C |=4, E490 &=~4). CAP under -O2: target uses
  * addiu v0,a0,0x18 + 0(v0) RMW addressing AND keeps redundant stores (E410/E42C),
  * but -O2 C folds to 0x18(a0) offset-addressing and dead-store-eliminates the
- * first write (verified 2026-05-24). Whole run wants an -O1/-g OPT_FLAGS file
- * split (batch-unlock w/ 00052ACC). See project_1080_g3_unfilled_delay_split_2026-05-23. */
+ * first write (verified 2026-05-24).
+ * OPT-SPLIT DEAD END (verified 2026-05-31): the "-O1/-g OPT_FLAGS split would
+ * batch-unlock this" idea is WRONG. Tested E464's body at -O1, -O1-g, -O1-g3,
+ * -O2-g: ALL add a `addiu sp,sp,-8` FRAME and SPILL the pointer
+ * (sw/lw 4(sp); lw/sw 0(reg)) — frame-size mismatch, worse than -O2's direct
+ * form. The target is -O2-SIZE (no frame) with pointer-in-v0 (addiu v0,a0,0x18;
+ * 0(v0) RMW); NO opt level produces that. Genuine cap — do NOT attempt the
+ * OPT_FLAGS split. */
 /* game_libs_func_0000E410: 7-insn `set-bit-2-then-set-bit-3` (|=4 then |=8)
  * with target keeping the intermediate store. Family head — see comment above.
  *   int *p = a0 + 0x18; *p |= 4; *p |= 8; return p;
