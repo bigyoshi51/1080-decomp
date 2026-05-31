@@ -12097,17 +12097,11 @@ void game_uso_func_0000FD04(int *a0) {
     int *flags = *(int**)((char*)base + 0x800);
 
     if ((flags[0x10 / 4] & 0x100) == 0) {
-        int *pair_e18;
-        volatile int pair0;
-        volatile int pair1;
         float *base_788;
         float *base_31C;
         float *base_2FC;
         gl_func_00000000(a0, 0x30001, 2, 3, 1, 1);
-        pair_e18 = (int*)((char*)&D_00000000 + 0xE18);
-        pair0 = pair_e18[0];
-        pair1 = pair_e18[1];
-        gl_func_00000000(a0, pair0, pair1, 3);
+        gl_func_00000000(a0, *(F5A8Pair *)((char *)&D_00000000 + 0xE18), 3);
         gl_func_00000000(a0);
 
         base = *(int**)((char*)a0 + 0xB4);
