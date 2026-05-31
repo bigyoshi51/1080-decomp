@@ -12862,28 +12862,24 @@ void game_uso_func_000115EC(int *a0, int a1) {
     game_uso_func_00000000(a0);
 }
 
-/* game_uso_func_00011624: 44-insn (EE84-family). X1(a0); s0=a0;
- * X2(s0, s0->0x108, 0,1,1,1); if (s0->0xB4->0xA14 > 0) X(s0,D[0xE40],
- * D[0xE44],1) else X(s0,D[0xDC8],D[0xDCC],1); s0->0x114=0.
- * bgtzl: >0 case D-pair load in delay; s0->0x114=0 on both paths.
- * USO: call -> func_00000000, data -> &D_00000000+off. */
-#ifdef NON_MATCHING
+/* game_uso_func_00011624: 44-insn (EE84-family). MATCHED 2026-05-31
+ * (70.6% -> 100%). Two levers: (1) the D-pair passes BY VALUE as *(Pair2*)
+ * (homes a1,a2); (2) the call must be DUPLICATED inside each if-arm (loading
+ * the pair directly from D in each branch) — selecting a pointer/value then
+ * calling once builds a redundant local-copy + misses the bgtzl branch-likely.
+ * (3) arms SWAPPED to `<= 0` first so IDO emits `bgtzl` (>0 case as branch
+ * target, its D-pair load in the delay slot) matching the target polarity +
+ * t0/t3 base-pointer order. docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair */
 void game_uso_func_00011624(int *a0) {
-    int *pair;
-
     gl_func_00000000(a0);
     gl_func_00000000(a0, a0[0x108 / 4], 0, 1, 1, 1);
-    if (((int *)a0[0xB4 / 4])[0xA14 / 4] > 0) {
-        pair = (int *)((char *)&D_00000000 + 0xE40);
+    if (((int *)a0[0xB4 / 4])[0xA14 / 4] <= 0) {
+        gl_func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xDC8), 1);
     } else {
-        pair = (int *)((char *)&D_00000000 + 0xDC8);
+        gl_func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xE40), 1);
     }
-    gl_func_00000000(a0, pair[0], pair[1], 1);
     a0[0x114 / 4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011624);
-#endif
 
 /* game_uso_func_000116D4: 31-insn (0x7C) flag-gated double-call wrapper.
  * MATCHED 2026-05-31 (79.97% -> 100%): the "cross-USO varargs spills
