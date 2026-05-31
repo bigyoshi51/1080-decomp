@@ -31515,30 +31515,37 @@ float gl_func_0005BD80(float *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BD80);
 #endif
 
-/* game_libs_func_0005BDC0: 24-insn 4x4 reciprocal copier. NON_MATCHING (2 diffs).
- * IDO compiles `for(i=0;i<16;i++) dst[i]=1/src[i]` to a rolled 4-iter loop but
- * with an ELEMENT counter (i: 0,4,8,12 / cmp 16); the target uses an ITERATION
- * counter (0..3 / cmp 4) + pointer advance. The induction-variable form isn't
- * C-controllable: pointer-advance + manual 4-stmt body makes IDO FULLY unroll
- * (53 insns); indexed i<16 gives the 24-insn rolled form but the element counter.
- * Was INSN_PATCH'd (2 insns, removed 2026-05-23). 2026-05-24 RE-GROUND HARD (4
- * forms: indexed-i<16 / for-x4 / do-while-x4 / countdown-pointer + 200s permuter,
- * floored at base score 10 = exactly the 2 counter-constant bytes). CONFIRMED
- * GENUINE CAP: IDO's counter strength-reduction gives a by-4 element counter on the
- * x4-auto-unrolled loop (cmp 16), never the target's by-1 trip counter (cmp 4); a
- * literal 4-trip loop FULLY unrolls instead. Not C-reachable -> stays NM at 99.92%
- * (honest; better than the removed INSN_PATCH fake). */
+/* game_libs_func_0005BDC0: 24-insn 4x4 reciprocal copier. NON_MATCHING (3 diffs).
+ * "LOOP-IV CAP" DISPROVEN 2026-05-30: the old note (below) called the by-4 vs
+ * by-1 counter a genuine cap. It is NOT — the right shape is a NESTED 4x4 loop:
+ * the INNER 4-loop fully unrolls (pointer pre-advance + negative offsets), and
+ * the OUTER stays a 4-trip ROLLED loop with the target's exact by-1 trip counter
+ * (cmp 4). `int i=0,j; float *d=dst,*s=src;` (d before s, i=0 first) also pins
+ * the registers EXACTLY: counter->$v0, dst->$v1, src->$a2, bound->$a0. The flat
+ * 16-trip loop was the wrong shape (it 4x-unrolls to a by-4 ELEMENT counter).
+ * REMAINING: 3 diffs are a ugen-backend SCHEDULING rotation of the three
+ * independent setup moves (the target orders them bound,counter,dst; IDO emits
+ * counter,dst,bound). NOT C-reachable through ~12 loop/decl forms tried, and a
+ * 480s permuter floors at the base score (it permutes C, not the deterministic
+ * ugen scheduler). This is a ugen instruction-order residual, not a loop-IV cap.
+ * Stays NM until the ugen scheduling order is cracked (permuter w/ PERM_ macros
+ * or ugen study). [OLD NOTE, now superseded:] "...IDO's counter strength-reduction
+ * gives a by-4 element counter... never the by-1 trip counter; a literal 4-trip
+ * loop fully unrolls." (The literal-4-trip claim holds; the NESTED form is the
+ * out the old grind missed.) */
 #ifdef NON_MATCHING
 void game_libs_func_0005BDC0(float *src, float *dst) {
-    int i;
-    /* 99.92% — 2 diffs are the loop trip-counter representation only: IDO
-     * emits this 4x-unrolled body byte-identical, but scales the residual
-     * trip counter to (0,4,8,12 < 16, +4) where the target counts groups
-     * (0..3 < 4, +1). Verified not C-controllable: element-loop `i<16;i++`,
-     * grouped-unroll `i<4` + ptr+=4, and `i*4+k` indexing ALL emit the same
-     * scaled counter. IDO loop-IV-representation cap. */
-    for (i = 0; i < 16; i++) {
-        dst[i] = 1.0f / src[i];
+    int i = 0, j;
+    float *d = dst, *s = src;
+    /* NESTED 4x4: the inner 4-loop unrolls (pointer pre-advance + negative
+     * offsets), the outer stays a 4-trip rolled loop with a by-1 trip counter
+     * — exactly the target's form (the old "loop-IV cap" was the wrong shape:
+     * a flat 16-trip loop 4x-unrolls to a by-4 element counter). d-before-s +
+     * i=0-first pins the counter->$v0, dst->$v1, src->$a2 like the target. */
+    for (; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            *d++ = 1.0f / (*s++);
+        }
     }
 }
 #else
