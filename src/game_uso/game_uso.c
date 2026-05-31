@@ -9479,46 +9479,26 @@ void game_uso_func_0000BB8C(char *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BB8C);
 #endif
 
-#ifdef NON_MATCHING
-/* 2026-05-07: $s0/$s1 swap FIXED via init-statement order (17 diffs → 3).
- * Previously `p = base + 0xB8; i = 0;` made p the first-defined pseudo,
- * allocating s0=p, s1=i. Reversed to `i = 0; p = base + 0xB8;` flips
- * allocation to target: s0=i, s1=p. Retires the previous "stmt order
- * doesn't flip allocno" claim — for IDO -O2, INIT-STATEMENT order in
- * the function body DOES affect allocation (priority queue ties broken
- * by first-RTL-pseudo-emit, which follows assignment order, not declaration
- * order).
- *
- * Remaining 3 diffs:
- *   1× linker-symbol baseline diff (jal-to-ADE0 resolved in expected/.o
- *      but not in NM-build/.o — capture-bloat artifact)
- *   2× schedule swap in loop pre-header — target emits
- *      `li s2, 0x168; move s0, $0`, ours emits the reverse. Both insns
- *      are independent in the dataflow graph; IDO's scheduler picks
- *      register-numerical order (s0 before s2) while target picks
- *      use-order (s2 used in bne, s0 used in delay-slot). No C-level
- *      lever found to swap these.
- * 2026-05-27 retest: tried reordering `p = base+0xB8; i = 0;` (instead
- * of `i=0; p=base+0xB8;`) to flip allocation order. Result: p moved to
- * $s0 (was $s1) and i moved to $s1 (was $s0) — full var↔$s swap,
- * regressing 91% → 67%. Decl-order shifts var-to-reg, not insn order. */
+/* MATCHED 2026-05-31. The prior "no C-level lever to swap the loop-pre-header
+ * schedule (li s2,0x168 / move s0,$0)" verdict was cracked by the FOR-LOOP
+ * COMMA-INIT form: `for (i = 0, p = base + 0xB8; ...)` emits the bound
+ * materialization before the counter init, matching the target — where the
+ * do-while with separate `i = 0; p = ...;` statements emitted the reverse.
+ * (The two are independent in the dataflow graph; the comma-init's evaluation
+ * order pins IDO's schedule.) The remaining diffs were placeholder callees:
+ * the real targets are game_uso_func_04A2D8 (setup) and game_uso_func_0000B884
+ * (per-element, 0x24 stride over 0xF entries from base+0xB8). Byte-exact. */
+extern void game_uso_func_04A2D8();
 void game_uso_func_0000BF7C(char *a0) {
     char *base = a0;
     int i;
     char *p;
-    game_uso_func_00000000(base + 0x224);
+    game_uso_func_04A2D8(base + 0x224);
     game_uso_func_0000ADE0((int*)(base + 0x274));
-    i = 0;
-    p = base + 0xB8;
-    do {
-        game_uso_func_00000000(p);
-        p += 0x24;
-        i += 0x24;
-    } while (i != 0x168);
+    for (i = 0, p = base + 0xB8; i != 0x168; p += 0x24, i += 0x24) {
+        game_uso_func_0000B884(p);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BF7C);
-#endif
 
 /* game_uso_func_0000BFDC: 32-insn (0x80) sign-dispatched table-lookup wrapper
  * + indirect jalr. Reads two signed shorts from a0+0x8/0xA and a ptr from
