@@ -2587,7 +2587,11 @@ void func_00006228(char *a0) {
  * D_00007E74/7E7C/7E84/7E98 = init datums.
  * Caps <80: get-or-create + ~8 reloc + &D descriptors + defensive-
  * dead alloc guards + FP Vec3 + bnel branch-likely. INCLUDE_ASM
- * remains build path. */
+ * remains build path.
+ * 2026-05-31: applied the alloc-or-passthrough cascade dead-arm form to the
+ * child alloc (c = s+0x2C; if(s==-44) c=alloc(4); if(!c) c=alloc(4); if(c)
+ * *c=0) -> 64.9->67.3%. Remaining residual is the sub-object saved-reg(s1)-
+ * vs-stack-spill(76sp) choice + the ~8 &D %hi/%lo reloc scheduling. */
 extern char D_00007E74, D_00007E7C, D_00007E84, D_00007E98;
 #ifdef NON_MATCHING
 void *func_00006254(char *a0, int a1, int a2, int a3, int a4) {
@@ -2603,7 +2607,9 @@ void *func_00006254(char *a0, int a1, int a2, int a3, int a4) {
         func_00000000(s, &D_00007E74);
         *(void**)(s + 0x28) = &D_00000000;
         {
-            int *c = (int*)func_00000000(4);
+            int *c = (int*)(s + 0x2C);
+            if (s == (char*)0xFFFFFFD4) c = (int*)func_00000000(4);
+            if (c == 0) c = (int*)func_00000000(4);
             if (c != 0) *c = 0;
         }
         func_00000000(s);
