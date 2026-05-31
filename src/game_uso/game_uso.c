@@ -8767,13 +8767,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
  * My IDO -O2 build doesn't emit either spill. Variants tested 2026-04-20:
  *   (a) `extern int gl_func_00000000_va();` (K&R alias) — no spill
  *   (b) `extern int gl_func_00000000_va(int, ...);` (varargs) — no spill
- * Same class as feedback_ido_precall_arg_spill_unreachable.md. Cap 86.7%. */
-extern int gl_func_00000000_va();
+ * Same class as feedback_ido_precall_arg_spill_unreachable.md. Cap 86.7%.
+ * 2026-05-31: RESOLVED the placeholder callees to real targets (was
+ * gl_func_00000000_va / &D_00000000): loads *import_8006EF48, calls
+ * game_uso_func_053104(that, a1) [varargs], on nonzero tail-calls
+ * game_uso_func_000043D8(r, a2, 0). Decode-accurate; a1-spill residual unchanged
+ * (documented cap). */
 
+extern int game_uso_func_053104(int, ...);
+extern int import_8006EF48;
 int game_uso_func_0000A374(int a0, int a1, int a2) {
-    int r = gl_func_00000000_va(*(int*)&D_00000000, a1);
+    int r = game_uso_func_053104(*(int *)&import_8006EF48, a1);
     if (r == 0) return 0;
-    return gl_func_00000000_va(r, a2, 0);
+    return (int)game_uso_func_000043D8((int **)r, (int *)a2, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
