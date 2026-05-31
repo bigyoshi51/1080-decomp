@@ -13385,25 +13385,52 @@ void game_libs_func_0003487C(int a0, int a1) {
 //  partially) where the b/c-failure-path doesn't zero `a` — it returns a
 //  different value (likely uses goto to a SHARED epilogue but with a
 //  different value-source-register). Without full asm decode, the goto-out
-//  lever doesn't apply cleanly. Pre-condition for goto-out: check target
-//  asm to identify the EXACT epilogue shape (UNIFIED vs SPLIT vs FALL-THROUGH)
-//  before applying, per docs/IDO_CODEGEN.md#feedback-ido-goto-epilogue.
+//  lever doesn't apply cleanly.
+//
+// 2026-05-31 FULL DECODE + completion 40.9->53.1%: the 2nd/3rd allocs are DEAD
+//  cascade arms (the object is a SINGLE alloc `a`; b/c never run — bne a,zero
+//  skips them since a!=0 post-check). The gap was the missing TAIL: after the
+//  single-object vtable wiring (a->0=0x1E1E8 then 0x1E238, a->4=o, a->8/0xC =
+//  *0x1E1B0 / *0x1E1B4), a call gl_func(&D, o->0x18 & 2), a rotated list-walk
+//  loop over o->0x10 (cb(obj) per node), and a final gl_func(&D). Also: the
+//  o->0x0C alloc arg is a WORD (lw), not a short; and a==0 CONTINUES to the
+//  tail (doesn't return). RESIDUAL (53->100): the dead-arm cascade exact emit
+//  (IDO DCEs my passthrough form b=a; target keeps the dead allocs + stack-
+//  spills the chain) + saved-reg(s0)-vs-stack. Documented alloc-cascade cap.
 #ifdef NON_MATCHING
 char *gl_func_00034890(char *o) {
-    char *a;
-    char *b;
-    char *c;
-    a = (char *)gl_func_00000000(0x10, *(short *)(o + 0x0C));
-    if (a == 0) return 0;
-    b = (char *)gl_func_00000000(0x10);
-    if (b == 0) return 0;
-    c = (char *)gl_func_00000000(0x04);
-    if (c == 0) return 0;
-    *(int *)c = 0x0001E1E8;
-    *(int *)(b + 0x4) = (int)o;
-    *(int *)b = 0x0001E1B0;
-    *(int *)a = (int)b;
-    *(int *)(a + 0x4) = (int)c;
+    char *a, *b, *c;
+    char *cursor, *next, *obj;
+    a = (char *)gl_func_00000000(0x10, *(int *)(o + 0x0C));
+    if (a != 0) {
+        b = a;
+        if (b == 0) {                               /* dead alloc-or-passthrough arm */
+            b = (char *)gl_func_00000000(0x10);
+            if (b == 0) goto wire_tail;
+        }
+        c = b;
+        if (c == 0) {                               /* dead arm */
+            c = (char *)gl_func_00000000(0x04);
+            if (c == 0) goto wire_o;
+        }
+        *(int *)c = 0x0001E1E8;
+    wire_o:
+        *(int *)(b + 0x4) = (int)o;
+        *(int *)(b + 0x8) = *(int *)0x0001E1B0;
+        *(int *)(b + 0xC) = *(int *)0x0001E1B4;
+        *(int *)a = 0x0001E238;
+    }
+wire_tail:
+    gl_func_00000000(&D_00000000, *(int *)(o + 0x18) & 2);
+    for (cursor = *(char **)(o + 0x10); cursor != 0; cursor = next) {
+        next = *(char **)(cursor + 4);
+        obj = *(char **)cursor;
+        if (obj == 0) {
+            break;
+        }
+        gl_func_00000000(obj);
+    }
+    gl_func_00000000(&D_00000000);
     return a;
 }
 #else
