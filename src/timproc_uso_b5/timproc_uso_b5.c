@@ -902,9 +902,9 @@ void timproc_uso_b5_func_00001C08(char *st) {
     c = *(char **)(r + 0x40C);
     d = *(char **)(c + 0x48) + *(int *)(r + 0x3D8) * 4;
     func_00000000(7, *(char **)(*(char **)(d + 0x3C) + 0x2B0));
-    n = *(int *)(st + 0x30);
-    for (s0 = 0; s0 < n; s0++) {
-        func_00000000(*(char **)(*(char **)(st + s0 * 4) + 0x34), 1);
+    (void)n;
+    for (s0 = 0; s0 < *(int *)(st + 0x30); s0++) {
+        func_00000000(*(char **)((char *)st + s0 * 4 + 0x34), (s0 == i) ? 1 : 0);
     }
 }
 #else
