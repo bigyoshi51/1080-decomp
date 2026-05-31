@@ -1316,7 +1316,7 @@ extern int gl_func_00000000();
 int *titproc_uso_func_00002980(int *a0) {
     int *p = (int*)gl_func_00000000(0x40);
     int *q;
-    if (p == 0) return 0;
+    if (p == 0) goto end;
     gl_func_00000000(p);
     p[0x28/4] = (int)&D_00000000;
     p[0x3C/4] = 0;
@@ -1326,6 +1326,7 @@ int *titproc_uso_func_00002980(int *a0) {
         if (q[0x14/4] != 0) q[0x4/4] = 1;
         q[0x14/4] = (int)p;
     }
+end:
     return p;
 }
 #else
