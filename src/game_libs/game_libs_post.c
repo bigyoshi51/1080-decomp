@@ -9983,17 +9983,17 @@ void gl_func_0002DF00(int a0) {
  *   - SUCCESSOR (gl_func_0002DF68) needs $f12 set up via mtc1; this
  *     function's trailing 4 bytes (mtc1 a1, $f12) are that setup.
  *
- * PROLOGUE_STEALS=8 + SUFFIX_BYTES=4 (single word) recipe — first time
- * applying SUFFIX_BYTES with a single word vs the typical 2-word lui+lw. */
-#ifdef NON_MATCHING
-void gl_func_0002DF38(void) {
+ * MATCHED 2026-05-31 via cross-TU orphan merge. The orphan game_libs_func_0002DF30
+ * (lui t6; lw t6,0x2D00 = D[0x2D00]) in game_libs.c was merged into this body .s
+ * (one 0x34 symbol). Reading D[0x2D00] inline at the >>31 sign-bit test hoists the
+ * lui;lw above the prologue (same recipe as game_libs_func_0002DE9C). The trailing
+ * mtc1 a1,$f12 (0x2DF64, the next function's stolen prologue that splat lumped into
+ * DF38's symbol) was split off as game_libs_func_0002DF64 (1 word). */
+void game_libs_func_0002DF30(void) {
     if ((unsigned int)*(int*)((char*)&D_00000000 + 0x2D00) >> 31) {
         gl_func_00000000(0x83000000, 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF38);
-#endif
 
 #ifdef NON_MATCHING
 /* NON_MATCHING — o32 ABI CAP (verified 2026-05-24). Target receives the int
