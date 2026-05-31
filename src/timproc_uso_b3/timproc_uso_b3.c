@@ -835,7 +835,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * a0->0xD8 = 1 (the SAME literal 1 IDO materializes for the `== 1` test, in v0,
  * stored in the jal delay slot — NOT the call return). MATCHED 2026-05-30. */
 void timproc_uso_b3_func_00001C20(char *a0) {
-    if (TIMB3_D_64 == 1) {
+    if (*(int*)((char*)&D_00000000 + 0x64) == 1) {
         *(int*)(a0 + 0xA0) = 50000;
     } else {
         *(int*)(a0 + 0xA0) = 30000;
