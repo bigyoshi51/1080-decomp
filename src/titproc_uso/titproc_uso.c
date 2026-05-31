@@ -1175,46 +1175,81 @@ void titproc_uso_func_000026D0(int *a0) {
  * (->0x3C int offset clamped 0..255 / 256→720 / -16 / ≥0→0; ->0x28
  * vtable {fn@0x64, short@0x60}), 0x4F0 flag word (bit-17, &0xffff),
  * 0x4F4 derived counter, 0x528 list, D[0x134] global.
- * Caps <80: dense branch-likely (beql/bnel/bgtzl/bgezl/blez) + 8-call
- * spill + &D reloc scheduling. INCLUDE_ASM remains build path. */
+ * 2026-05-31 FULL DECODE: the previously-truncated else-branch (func(s0);
+ * func(root[0xC4][0x800], 0); func(arg, o528[8][8], o528[8][4]); func(s0);
+ * 0x4F4 = 0x4F0 & 0xffff), the dec_path (0x4F4>0 → 6BC[0x3C] -= 16, clamp ≥0),
+ * and the tail (6AC->0x44->0x34 gate → func(6C0); func(s0,-1,0)) are now
+ * decoded. Two merge labels: `final` (28a4 = func(s0)) vs `ret` (28ac,
+ * else-branch skips the final call). Structure now byte-aligns (113/107);
+ * residual is frame 0x38 vs 0x30 (extra locals) + register-renumber + &D
+ * deferred-pool scheduling — a regalloc/symbolization ceiling, not structural.
+ * INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
 void titproc_uso_func_000026FC(char *s0) {
     char *v1;
     int *vt;
     int a1;
+    int a0v;
+
     if (*(int*)(s0 + 0x6C0) != 0 && *(int*)(s0 + 0x6C4) == 2) {
         gl_func_00000000(*(int*)(s0 + 0x6B8));
     }
-    if (*(int*)(s0 + 0x6C4) == 0) goto tail_check;
-    if (*(int*)(*(int**)(s0 + 0x6AC) + 0x44 / 4) == 0) {
-        /* gated, but the inner s0->0x4F4 > 0 dec_path branch is
-         * truncated in decode; see asm */
+    if (*(int*)(s0 + 0x6C4) == 0) goto tail;
+
+    if (*(int*)((char*)*(int**)((char*)*(int**)(s0 + 0x6AC) + 0x44) + 0x34) == 0) {
+        if (*(int*)(s0 + 0x4F4) > 0) goto dec_path;
     }
     v1 = *(char**)(s0 + 0x6BC);
     if (*(int*)(v1 + 0x3C) < 255) {
         *(int*)(v1 + 0x3C) += 16;
-        if (*(int*)(*(char**)(s0 + 0x6BC) + 0x3C) < 256) goto end;
+        if (*(int*)(*(char**)(s0 + 0x6BC) + 0x3C) < 256) goto final;
         *(int*)(*(char**)(s0 + 0x6BC) + 0x3C) = 720;
+        goto final;
     }
     a1 = *(int*)(s0 + 0x4F0);
     if ((a1 << 14) >= 0) {
         vt = *(int**)(*(char**)(s0 + 0x6BC) + 0x28);
         (*(void (**)(char*))((char*)vt + 0x64))(
             (char*)((int)(short)*(short*)((char*)vt + 0x60) + (int)*(char**)(s0 + 0x6BC)));
+        goto final;
     } else {
+        char *rc4 = *(char**)(*(char**)((char*)&D_00000000 + 0x134) + 0xC4);
+        int arg = *(int*)(rc4 + 0x800);
+        char *o528;
         gl_func_00000000(s0);
-        /* tail truncated in decode: t9=&D[0x134]; v0=t9->0xC4; a0=v0->0x800;
-         * sequence of gl_func calls then s0->0x4F4 = s0->0x4F0 & 0xFFFF. */
+        gl_func_00000000(arg, 0);
+        o528 = *(char**)(s0 + 0x528);
+        gl_func_00000000(arg, *(int*)(*(char**)(o528 + 8) + 8),
+                         *(int*)(*(char**)(o528 + 8) + 4));
+        gl_func_00000000(s0);
         *(int*)(s0 + 0x4F4) = *(int*)(s0 + 0x4F0) & 0xFFFF;
-        goto end;
+        goto ret;
     }
-tail_check:
-    if (*(int*)(*(int**)(s0 + 0x6AC) + 0x44 / 4) == 0 && *(int*)(s0 + 0x4F4) <= 0) {
-        if (*(int*)(s0 + 0x6C0) != 0) gl_func_00000000(s0);
-        gl_func_00000000(s0, -1, 0);
+
+dec_path:
+    v1 = *(char**)(s0 + 0x6BC);
+    if (*(int*)(v1 + 0x3C) > 0) {
+        *(int*)(v1 + 0x3C) -= 16;
+        v1 = *(char**)(s0 + 0x6BC);
+        if (*(int*)(v1 + 0x3C) < 0) *(int*)(v1 + 0x3C) = 0;
     }
-end:
+    goto final;
+
+tail:
+    if (*(int*)((char*)*(int**)((char*)*(int**)(s0 + 0x6AC) + 0x44) + 0x34) == 0 &&
+        *(int*)(s0 + 0x4F4) > 0) {
+        goto final;
+    }
+    a0v = *(int*)(s0 + 0x6C0);
+    if (a0v != 0) {
+        gl_func_00000000(a0v);
+    }
+    gl_func_00000000(s0, -1, 0);
+
+final:
     gl_func_00000000(s0);
+ret:
+    ;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000026FC);
