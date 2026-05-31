@@ -1546,9 +1546,20 @@ void gl_func_000085B0(int *arg0, int arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000085B0);
 #endif
 
-/* Hidden-register dispatch stub. The real ABI has the dispatcher pointer in
- * $v0 and addend in $v1 while still spilling caller $a0. C emits the same
- * shape with ordinary args; Makefile INSN_PATCH rewrites a1/a2 to v0/v1. */
+/* Hidden-register dispatch stub — GENUINE caller-set-int-reg CAP (98.6%).
+ * The real ABI hands the dispatcher pointer in $v0 and the addend in $v1
+ * (both caller-set, see feedback_caller_set_int_reg_cap_1080_game_libs)
+ * while still spilling caller $a0. Verified 2026-05-31: 8674 has NO jal/
+ * reloc/symname reference anywhere — it's reached only by an indirect
+ * (function-pointer) call whose caller pre-loads v0/v1, AND it has its own
+ * `addiu sp,-24` prologue (not a mergeable fallthrough fragment). The only
+ * residual vs target is register naming: the build reads base/value from
+ * a1/a2 (the ordinary param slots C must use) where the target reads v0/v1.
+ * C cannot declare a parameter that arrives in $v0/$v1, so this is not
+ * coaxable — the body below is the exact-shape reference. (Prior comment
+ * claimed a Makefile INSN_PATCH rewrote a1/a2->v0/v1; INSN_PATCH was REMOVED
+ * 2026-05-23 as match-faking and is BANNED — there is no patch, the function
+ * honestly ships INCLUDE_ASM.) */
 #ifdef NON_MATCHING
 int gl_func_00008674(int unused, int *hidden_v0, int hidden_v1) {
     volatile int *spill = &unused;
