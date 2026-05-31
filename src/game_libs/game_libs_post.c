@@ -40242,7 +40242,7 @@ long long gl_func_0006FB54(int a0) {
     long long base = ((long long)*(int *)&D_00000000 << 32) |
                      (unsigned int)*(int *)((char *)&D_00000000 + 4);
     gl_func_00000000(r0);
-    return base + delta;
+    return base + (unsigned int)delta;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
