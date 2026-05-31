@@ -38414,6 +38414,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ *
+ * 2026-05-31: logic verified CORRECT (the cb(obj,self,self->0x3C) walk + the
+ * self->0x38==0 bnel-guarded init cb are right). Residual at 52.5% is the
+ * cursor/next rotated-loop saved-reg-vs-stack-spill cap (same family as
+ * gl_func_00038728). RULED OUT: rewriting to the rotated-prefetch C form
+ * (next=cursor->4; obj=*cursor; if(!obj)break) REGRESSES this fn to 51.3%
+ * (measured) — the plain while-loop here is closer; do NOT re-try the rotated
+ * form. Needs focused regalloc grinding, not a quick lever.
  */
 void gl_func_00069B94(int *self) {
     extern int D_00000000;
