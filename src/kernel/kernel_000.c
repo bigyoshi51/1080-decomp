@@ -1042,7 +1042,16 @@ s32 func_80000C88(void) {
  * alias symbol (DSC, below) → direct jal. Residual (not yet matched): frame is
  * 0x98 vs target 0x90 (an 8-byte spill/temp slot this C structure allocates and
  * the target doesn't), the entry+0x4==id test canonicalizes to swapped bne
- * operands, and the list-continue flag lands in v1 vs target t3. */
+ * operands, and the list-continue flag lands in v1 vs target t3.
+ * 2026-05-31 TOOL ATTEMPTS (all failed, don't repeat): (1) permuter 28k iters
+ * "improved" to score 15 but its scorer NORMALIZES sp-offsets, so it's BLIND to
+ * the frame-size diff (the dominant blocker) and actually GREW the frame to 0xA0
+ * — permuter cannot crack a frame-size cap here; (2) `c = tbl[i+0x72]` in the
+ * strcpy (vs re-reading D_80012D60[id]) REGRESSES to 72 diffs — the target
+ * genuinely re-reads, original is correct; (3) swapping the bne operands
+ * (`id == *(entry+4)`) is a NO-OP — IDO normalizes operand order ($s-first),
+ * same cap as uso_skip_to_end. So this fn is IDO-emit-blocked from C regardless
+ * of the frame; not permuter-crackable (scorer blind spot). */
 extern s32 func_8000098C(void*);
 extern s32 func_80000B34(void*);
 /* func_800005DC is defined 4-arg earlier in this merged TU; call it 2-arg here
