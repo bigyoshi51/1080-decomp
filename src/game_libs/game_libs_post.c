@@ -29407,50 +29407,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052AE8);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_00052BBC: bbox/extent min-max scan (clean leaf, NO
- * calls). Decoded from bare stub 2026-05-19. Frame 0x20, saves
- * s0 only. Seeds min=max=0x7530 (two u16 axes tracked in stack
- * scratch sp+0xC/0xE/0x10/0x12), iterates the a0->0x68 directory
- * (entry → a0->0x64 record at idx*6, two u16 coords at +0/+2),
- * updating per-axis min/max, returns a count/flag in v1.
- *   int f(void *a0, int n) {
- *     int lo0=0x7530, hi0=0x7530, lo1=0x7530, hi1=0x7530;
- *     int r = 0;
- *     for (i = 0; i != n; i++) {
- *       rec = a0->0x64 + (u16 a0->0x68[i].field_2) * 6;
- *       x = (u16)rec[0]; y = (u16)rec[1];
- *       if (x < lo0) lo0 = x;  if (x > hi0) hi0 = x;   // axis 0
- *       if (y < lo1) lo1 = y;  if (y > hi1) hi1 = y;   // axis 1
- *       r = ...;
- *     }
- *     return r;
- *   }
- * Multi-idiom (focused pass): the min/max is the IDO
- * slt/andi 1/beq/sh conditional-store idiom (not cmov), the
- * record stride is `li t2,6; multu` ×6, the directory index is
- * reloaded per iter, and the dual-axis tracking lives in 4
- * stack-scratch halfwords (sp+0xC..0x12). Exact slt-arm order,
- * the andi-mask-1 guards and the bne back-edge need a focused
- * .s pass. Real decoded C documents the algorithm/offsets;
- * INCLUDE_ASM build path. */
-int gl_func_00052BBC(int *a0, int n) {
-    int i;
-    int lo0 = 0x7530, hi0 = 0x7530;
-    int lo1 = 0x7530, hi1 = 0x7530;
-    int r = 0;
-    for (i = 0; i != n; i++) {
-        unsigned short idx =
-            *(unsigned short *)((char *)a0[0x68 / 4] + i * 8 + 2);
-        short *rec = (short *)((char *)a0[0x64 / 4] + idx * 6);
-        int x = (unsigned short)rec[0];
-        int y = (unsigned short)rec[1];
-        if (x < lo0) lo0 = x;
-        if (x > hi0) hi0 = x;
-        if (y < lo1) lo1 = y;
-        if (y > hi1) hi1 = y;
-        r = hi0;
+/* gl_func_00052BBC: dual-row directory min/max scan (clean leaf, NO calls).
+ * RE-DECODED 2026-05-31 (was a wrong 0%% 2-arg stub): actually 5 args
+ * f(a0, row1, row2, flagX, flagY). Seeds lo=hi=0x7530, v1=-1; loops dir offset
+ * t0 = 0/2/4, processing TWO rows (row1*8+t0, row2*8+t0) per iter: idx = u16 at
+ * a0->0x68[row*8 + t0 + 2]; rec = a0->0x64 + idx*4; x=rec[0], y=rec[1]; when
+ * (x>=lo)!=flagX AND (y>=hi)!=flagY, set lo=x, hi=y, v1=idx. Returns v1 (last idx).
+ * flagX/flagY are min-vs-max direction selectors. 0%%->44.5%%: logic/sig/structure
+ * exact; residual is the stack-resident-shorts spill layout (target spills lo/hi @
+ * sp+16/18 + x/y scratch @ sp+12/14 and reloads per-iter via sh/lh; mine is more
+ * register-efficient => fewer insns — the no-spill-shorter-than-target cap class). */
+int gl_func_00052BBC(int *a0, int a1, int a2, int a3, int a4) {
+    short sc;
+    short lo;
+    short hi;
+    int v1 = -1;
+    int t0;
+    lo = 0x7530;
+    hi = 0x7530;
+    for (t0 = 0; t0 != 6; t0 += 2) {
+        unsigned short idx1 = *(unsigned short *)((char *)a0[0x68 / 4] + a1 * 8 + t0 + 2);
+        short *rec1 = (short *)((char *)a0[0x64 / 4] + idx1 * 4);
+        sc = rec1[0];
+        if ((sc >= lo) != a3) {
+            short scy = rec1[1];
+            if ((scy >= hi) != a4) {
+                lo = sc;
+                hi = scy;
+                v1 = idx1;
+            }
+        }
+        {
+            unsigned short idx2 = *(unsigned short *)((char *)a0[0x68 / 4] + a2 * 8 + t0 + 2);
+            short *rec2 = (short *)((char *)a0[0x64 / 4] + idx2 * 4);
+            sc = rec2[0];
+            if ((sc >= lo) != a3) {
+                short scy = rec2[1];
+                if ((scy >= hi) != a4) {
+                    lo = sc;
+                    hi = scy;
+                    v1 = idx2;
+                }
+            }
+        }
     }
-    return r;
+    return v1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
