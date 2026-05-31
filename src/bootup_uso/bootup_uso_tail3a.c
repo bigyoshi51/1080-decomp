@@ -319,15 +319,16 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000116C8);
  * future C match must also respect that offset tuning, not just the
  * reloc caps. Caps <80: ~10x reloc calls + multiple &D relocs +
  * the tail3a TRUNCATE_TEXT stitch. INCLUDE_ASM remains build path.
- * 2026-05-31 RE-DIAGNOSED: the C body is STRUCTURALLY CORRECT (matches expected
- * asm op-for-op). The 49.9% is NOT the reloc cap — it's the -O0/unfilled-delay
- * cap: the target leaves all 8 jal delay slots as nop (compiled -O0, reorg off),
- * but this file is -O2 -g3 so the compiler's reorg FILLS every jal delay (verified
- * 8/8 filled in build vs 0/8 in target). FIX = move func_000117FC to its own -O0
- * split file (OPT_FLAGS := -O0 + TRUNCATE_TEXT), like the existing o0_118E4 /
- * o0_11A34 / o0_11C70 / tail3a_mid splits. Same for sibling bootup low-% big-gap
- * fns (func_0000F9E8, func_00010B6C, func_00010AB0) — all structurally-done,
- * -O0-split-needing. Focused task (fragile TRUNCATE_TEXT tuning), not a loop edit. */
+ * 2026-05-31: the target has UNFILLED jal delay slots (8/8 nop) while this -O2 -g3
+ * file FILLS them (compiler reorg). HOWEVER — CORRECTION: this is NOT a clean
+ * -O0/-g flag fix. Standalone-cc of the C body byte-compares vs expected (232B):
+ *   -O0 -> 256B (spills t7, bigger frame), -O2 -g2/-g1/-g -> 224B, -O2 -> 176B.
+ * NONE match 232B. So the residual is more than delay-slot filling: the frame
+ * size + ~2 insns + the C-body structure all differ, AND no standard opt/-g level
+ * reproduces it. (Standalone-cc can false-cap vs full-TU, so the exact flag is not
+ * proven, but -O0 over-produces, so a plain -O0 split is NOT the answer.) Genuine
+ * unverified cap — needs deeper per-fn RE (exact flag + C-body match), not a quick
+ * split. INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
 void func_000117FC(char *a0, void *a1) {
     void *old = *(void**)(a0 + 0x2C);
