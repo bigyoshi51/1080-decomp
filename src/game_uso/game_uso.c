@@ -12682,8 +12682,12 @@ void game_uso_func_00011124(int *a0) {
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF50), 1);
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_00011168: 60-insn 4-way dispatcher, 0xF0 size, frame 0x18.
+/* BYTE-EXACT 2026-05-31 (stale-cap catch): the struct-by-value body below was
+ * already correct; the prior "~6% $v0-vs-$v1 &D-base residual" closed (game_uso
+ * symbolization aligned the &D reloc) but the wrap was never removed. .text
+ * 240/240 bytes identical to expected/.o.
+ *
+ * game_uso_func_00011168: 60-insn 4-way dispatcher, 0xF0 size, frame 0x18.
  * 61.23% NM (up from 12.33% stub). Re-decoded 2026-05-05 — prior wrap doc
  * had 2 errors:
  *   - "t7 == 0" branch used `t8->0x64` (wrong); asm reads `D[0x64]` directly.
@@ -12750,9 +12754,6 @@ void game_uso_func_00011168(int *a0) {
      * with delay-load (matching asm 0x11198 bnel t7,at,+0x26). */
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF40), 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011168);
-#endif
 
 /* game_uso_func_00011258: 34-insn (0x88) init+register-clear helper.
  * Structure:
