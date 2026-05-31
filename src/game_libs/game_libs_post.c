@@ -7059,14 +7059,20 @@ void gl_func_0002888C(int a0) {
  * classifies it against 3 thresholds in the D[] float table at +0xFD4.. → tier
  * v1 (0/1/2/3) with a per-tier multiplier, writes back a1->0x30 *= multiplier,
  * stores a2 and v1 as bytes to a0->0x31/0x32, and a0->0xC0 =
- * D_table[a2] + (v1<<7). Returns v1. 75.08% as of 2026-05-28.
- * RESIDUAL CAP (~25%): target RE-MATERIALIZES the FP-threshold-table base
- * (`lui at,0`) before EACH lwc1 (65 insns); my `&D_00000000 + offset` addend
- * idiom CSEs the base into one reg + plain offsets (59 insns) — the documented
- * inverse/extern-base-CSE cap (the original likely used separate per-threshold
- * symbols giving per-access %hi/%lo). Plus bc1fl-vs-bc1f (branch-likely from the
- * if/else-if classifier) and mul.s fs/ft order (IDO-canonicalized, swap no-op).
- * Reloc-free otherwise. Real wrap (correct logic); stays NM. */
+ * D_table[a2] + (v1<<7). Returns v1. 75.08 -> 99.92 (2026-05-31): the 7 FP
+ * threshold consts (&D+0xFD4..0xFEC) AND the D_table base now use DISTINCT
+ * externs (D_00000FD4.. + D_tbl_288ac in undefined_syms_auto.txt) so each lwc1
+ * re-materializes its own `lui at` instead of CSE'ing the base into one reg —
+ * the comment's own "separate per-threshold symbols" hypothesis was right; the
+ * distinct-extern lever busts it (+24.6pp). The `f12+1.0f` scale named into a
+ * local `float s` fixed the mul.s ft operand (+0.07pp). RESIDUAL (1 insn, cap):
+ * `mul.s $f2,$f0,$f8` vs target `$f2,$f2,$f8` — f0 and f2 hold the SAME value
+ * (f2=f0 init), and IDO uses the live original f0 as fs where the target reuses
+ * the f2 copy; a register-aliasing choice not C-drivable (the lwc1 `,0(at)` vs
+ * `,4052(at)` and branch-address diffs are reloc-blind/position, already matched).
+ * Real wrap (correct logic); stays NM. */
+extern float D_00000FD4, D_00000FD8, D_00000FDC, D_00000FE0, D_00000FE4, D_00000FE8, D_00000FEC;
+extern char D_tbl_288ac;
 #ifdef NON_MATCHING
 int game_libs_func_000288AC(char *a0, char *a1, int a2) {
     float f0, f2, f4;
@@ -7080,27 +7086,28 @@ int game_libs_func_000288AC(char *a0, char *a1, int a2) {
     if (*(unsigned char*)(a1 + 0x20) != 0) {
         float f12 = *(float*)(a1 + 0x28);
         if (f12 > 0.0f) {
-            f2 = f2 * (f12 + 1.0f);
+            float s = f12 + 1.0f;
+            f2 = f2 * s;
         }
     }
-    if (f2 < *(float*)((char*)&D_00000000 + 0xFD4)) {
+    if (f2 < D_00000FD4) {
         v1 = 0;
-        f2 = *(float*)((char*)&D_00000000 + 0xFD8);
-    } else if (f2 < *(float*)((char*)&D_00000000 + 0xFDC)) {
+        f2 = D_00000FD8;
+    } else if (f2 < D_00000FDC) {
         v1 = 1;
-        f2 = *(float*)((char*)&D_00000000 + 0xFE0);
-    } else if (f2 < *(float*)((char*)&D_00000000 + 0xFE4)) {
+        f2 = D_00000FE0;
+    } else if (f2 < D_00000FE4) {
         v1 = 2;
-        f2 = *(float*)((char*)&D_00000000 + 0xFE8);
+        f2 = D_00000FE8;
     } else {
         v1 = 3;
-        f2 = *(float*)((char*)&D_00000000 + 0xFEC);
+        f2 = D_00000FEC;
     }
     f4 = f0 * f2;
     *(float*)(a1 + 0x30) = f4;
     a0[0x31] = (char)a2;
     a0[0x32] = (char)v1;
-    *(int*)(a0 + 0xC0) = *(int*)((char*)&D_00000000 + a2 * 4 - 0x200) + (v1 << 7);
+    *(int*)(a0 + 0xC0) = *(int*)((char*)&D_tbl_288ac + a2 * 4 - 0x200) + (v1 << 7);
     return v1;
 }
 #else
