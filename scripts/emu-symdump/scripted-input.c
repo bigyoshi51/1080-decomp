@@ -25,14 +25,17 @@
 
 #define BTN_START 0x0010u
 #define BTN_A     0x0080u
+#define BTN_DDOWN 0x0004u   /* D_DPAD = bit2 */
 
 static int g_frame = 0;
-static int g_idle, g_start, g_mash;
+static int g_idle, g_start, g_down, g_mash, g_downs;
 
 static int envi(const char *k, int d){ const char *v=getenv(k); return v?atoi(v):d; }
 
 EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle h, void *ctx, void (*dbg)(void*,int,const char*)){
-  g_idle =envi("SI_IDLE",150); g_start=envi("SI_START",320); g_mash=envi("SI_MASH",1600);
+  g_idle =envi("SI_IDLE",150); g_start=envi("SI_START",280);
+  g_down =envi("SI_DOWN",360); g_mash =envi("SI_MASH",1600);
+  g_downs=envi("SI_DOWNS",1);   /* # of DPAD-down presses to select a non-top menu item (Time Attack=1) */
   return M64ERR_SUCCESS;
 }
 EXPORT m64p_error CALL PluginShutdown(void){return M64ERR_SUCCESS;}
@@ -50,9 +53,13 @@ EXPORT void CALL GetKeys(int n, BUTTONS *k){
   k->Value=0;
   if(n!=0){ return; }
   int f=g_frame++;
-  unsigned pulse = ((f % 16) < 5);                 /* on 5 of every 16 frames */
+  int pulse = ((f % 16) < 5);                      /* on 5 of every 16 frames */
   if(f>=g_idle && f<g_start)      { if(pulse) k->Value=BTN_START; }
-  else if(f>=g_start && f<g_mash) { if(pulse) k->Value=BTN_A; }
+  else if(f>=g_start && f<g_down) {                /* select a non-top menu item */
+    int idx=(f-g_start)/16;                        /* which pulse # in this window */
+    if(pulse && idx<g_downs) k->Value=BTN_DDOWN;
+  }
+  else if(f>=g_down && f<g_mash)  { if(pulse) k->Value=BTN_A; }
   /* else idle (0) */
 }
 EXPORT void CALL ControllerCommand(int n,unsigned char*d){}
