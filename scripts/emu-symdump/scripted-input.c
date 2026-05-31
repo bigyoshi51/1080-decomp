@@ -57,7 +57,10 @@ EXPORT void CALL GetKeys(int n, BUTTONS *k){
   if(f>=g_idle && f<g_start)      { if(pulse) k->Value=BTN_START; }
   else if(f>=g_start && f<g_down) {                /* select a non-top menu item */
     int idx=(f-g_start)/16;                        /* which pulse # in this window */
-    if(pulse && idx<g_downs) k->Value=BTN_DDOWN;
+    if(pulse && idx<g_downs){
+      k->Value=BTN_DDOWN;                           /* DPAD-down ... */
+      k->Y_AXIS=-80;                                /* ...AND analog-down (1080 menus read the stick) */
+    }
   }
   else if(f>=g_down && f<g_mash)  { if(pulse) k->Value=BTN_A; }
   /* else idle (0) */
