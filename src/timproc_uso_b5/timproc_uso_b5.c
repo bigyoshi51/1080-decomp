@@ -3096,16 +3096,19 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * DO match at -O2 (their value-insn fills the slot), so this region is
  * -O2-with-reorder. (Same unfilled-jr-delay class as feedback_unfilled_delay_*.)
  *
- * 2026-05-30 DONOR-SPLICE FAILS for this class: our IDO -O0 compiles
- * `int f(){return 0;}` to 0x1c (7 insns: `move v0,zero; jr ra; nop` THEN two
- * redundant `jr ra; nop` epilogue pairs), NOT the target's clean 0xC. So the
- * -O0 donor body is bigger than target and doesn't match — and since even a
- * file-split -O0 build would emit the same 0x1c, this function is NOT
- * -O0-matchable at all (our toolchain's -O0 return-stub codegen diverges from
- * the original's). Attempted the donor splice (regressed the build to 1708),
- * reverted. Trivial return-N stubs in the unfilled-jr-delay form are a genuine
- * toolchain cap — do NOT donor-splice them (works only for the multi-insn -O0
- * cleanup-wrapper family like arcproc_748/mgrproc_009A8). */
+ * NOT A CAP (corrected 2026-05-31). The prior "genuine toolchain cap" verdict
+ * only tried -O0 (which bloats `return 0` to 0x1c). It MISSED -O2 -g3: PROVEN
+ * that `int f(void){return 0;}` at -O2 -g3 emits EXACTLY `move v0,zero; jr ra;
+ * nop` (0xC, clean) — -g3 disables the reorg delay-slot filler while keeping
+ * -O2. This is the IDENTICAL case to the sibling timproc_uso_b5_func_00001DA4
+ * (`return 1`, unfilled-delay), already landed via its -g3 carve-out
+ * src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c. (Donor-splice fails because it
+ * uses -O0; -g3 is the right tool, not -O0.)
+ * TO LAND: carve 87E8 into a -O2 -g3 sub-unit (template: g3_1DA4.c), delete it
+ * from this TU, and EXTEND the block5 Yay0 splice (Makefile ~L413) to insert at
+ * BOTH 0x1DA4 and 0x87E8 (two offset-ordered splice points; TRUNCATE_TEXT 0x18).
+ * Same for sibling 8894. Deferred from this tick only to avoid touching the
+ * shared block5 build rule mid-session; it is a mechanical, proven landing. */
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_000087E8(void) {
     return 0;
