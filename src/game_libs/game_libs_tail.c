@@ -250,6 +250,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
  * feedback_no_instruction_forcing_matches_policy). Now an honest NM
  * cap (permuter-class). */
 #ifdef NON_MATCHING
+/* 4-diff residual (2026-05-31): scheduler ORDER of the loop-limit `li a1,3`
+ * vs the 3 setup moves (v0=0 / v1=a0 / t0=a2). Target hoists `li a1,3` right
+ * after the `sb a1,0(a0)` (a1's last use); IDO with this C emits it LAST. The
+ * reuse-param-reg lever (`a1 = 3; ... while (n != a1)`) + decl-reorder REGRESS
+ * (14 diffs / size grows). Same scheduler-limit-ordering class as
+ * game_libs_func_00020DF4; not C-controllable. */
 void game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {
     int n = 0;
     char *d = a0;
