@@ -3,15 +3,15 @@ nonmatching mgrproc_uso_func_00000AE0, 0x40
 glabel mgrproc_uso_func_00000AE0
     /* 000AE0 00000AE0 27BDFFE8 */  .word 0x27BDFFE8
     /* 000AE4 00000AE4 AFBF0014 */  .word 0xAFBF0014
-    /* 000AE8 00000AE8 3C040000 */  .word 0x3C040000
-    /* 000AEC 00000AEC 0C000000 */  .word 0x0C000000
+    lui $a0, %hi(import_80263D60)   /* 000AE8 3C040000 -> import_80263D60 */
+    jal import_000A5938   /* 000AEC 0C000000 -> import_000A5938 */
     /* 000AF0 00000AF0 8C840030 */  .word 0x8C840030
-    /* 000AF4 00000AF4 3C0E0000 */  .word 0x3C0E0000
+    lui $t6, %hi(import_80263D60)   /* 000AF4 3C0E0000 -> import_80263D60 */
     /* 000AF8 00000AF8 8DCE0030 */  .word 0x8DCE0030
-    /* 000AFC 00000AFC 0C000000 */  .word 0x0C000000
+    jal mgrproc_uso_func_022ABC   /* 000AFC 0C000000 -> mgrproc_uso_func_022ABC */
     /* 000B00 00000B00 8DC406AC */  .word 0x8DC406AC
-    /* 000B04 00000B04 3C040000 */  .word 0x3C040000
-    /* 000B08 00000B08 0C000000 */  .word 0x0C000000
+    lui $a0, %hi(import_80020098)   /* 000B04 3C040000 -> import_80020098 */
+    jal import_000A7EE0   /* 000B08 0C000000 -> import_000A7EE0 */
     /* 000B0C 00000B0C 24840000 */  .word 0x24840000
     /* 000B10 00000B10 8FBF0014 */  .word 0x8FBF0014
     /* 000B14 00000B14 27BD0018 */  .word 0x27BD0018

@@ -26,15 +26,16 @@ def reg(n): return ["zero","at","v0","v1","a0","a1","a2","a3","t0","t1","t2","t3
 LO_OPS={0x09:"addiu",0x0D:"ori",0x23:"lw",0x2B:"sw",0x21:"lh",0x25:"lhu",0x20:"lb",0x24:"lbu",
         0x28:"sb",0x29:"sh",0x31:"lwc1",0x39:"swc1",0x35:"ldc1",0x3D:"sdc1"}
 
-def localname(name):
-    # internal func_/D_/RO_ -> game_uso-prefixed (avoid bootup global-namespace clash)
-    if re.match(r'(func|D|RO)_[0-9A-Fa-f]+$', name): return "game_uso_"+name
+def localname(name, prefix):
+    # internal func_/D_/RO_ -> segment-prefixed (avoid bootup/other-USO namespace clash)
+    if re.match(r'(func|D|RO)_[0-9A-Fa-f]+$', name): return prefix+name
     return name   # import_<addr> / real cross-module names stay
 
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument('--s', required=True); ap.add_argument('--symnames', required=True)
     ap.add_argument('--out'); ap.add_argument('--defs'); ap.add_argument('--apply', action='store_true')
+    ap.add_argument('--prefix', default='game_uso_', help='segment prefix for internal func_/D_ names (e.g. mgrproc_uso_)')
     a=ap.parse_args()
     sym=json.load(open(a.symnames)); names=sym.get('names',sym)
     lines=open(a.s).read().splitlines(); out=[]; changed=[]; defs=set()
@@ -45,7 +46,7 @@ def main():
         key=hex(modoff); nm=names.get(key)
         if nm is None or nm.startswith('unpaired'): out.append(l); continue
         op=w>>26; rt=(w>>16)&0x1f; rs=(w>>21)&0x1f; imm=w&0xffff
-        ins=None; name=localname(nm)
+        ins=None; name=localname(nm, a.prefix)
         if op==3 and (w&0x3ffffff)==0:                 # jal 0 placeholder
             ins=f"jal {name}"
         elif op==0x0F and imm==0:                      # lui rt,0

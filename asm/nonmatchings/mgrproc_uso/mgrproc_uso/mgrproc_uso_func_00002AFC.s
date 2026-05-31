@@ -3,7 +3,7 @@ nonmatching mgrproc_uso_func_00002AFC, 0x80
 glabel mgrproc_uso_func_00002AFC
     /* 002AFC 00002AFC 27BDFFE8 */  .word 0x27BDFFE8
     /* 002B00 00002B00 AFBF0014 */  .word 0xAFBF0014
-    /* 002B04 00002B04 0C000000 */  .word 0x0C000000
+    jal mgrproc_uso_func_00002E34   /* 002B04 0C000000 -> mgrproc_uso_func_00002E34 */
     /* 002B08 00002B08 AFA40018 */  .word 0xAFA40018
     /* 002B0C 00002B0C 8FA40018 */  .word 0x8FA40018
     /* 002B10 00002B10 44801000 */  .word 0x44801000
@@ -27,7 +27,7 @@ glabel mgrproc_uso_func_00002AFC
     /* 002B58 00002B58 00000000 */  .word 0x00000000
     /* 002B5C 00002B5C 45020004 */  .word 0x45020004
     /* 002B60 00002B60 8FBF0014 */  .word 0x8FBF0014
-    /* 002B64 00002B64 0C000000 */  .word 0x0C000000
+    jal import_007FEBE8   /* 002B64 0C000000 -> import_007FEBE8 */
     /* 002B68 00002B68 00000000 */  .word 0x00000000
     /* 002B6C 00002B6C 8FBF0014 */  .word 0x8FBF0014
     /* 002B70 00002B70 27BD0018 */  .word 0x27BD0018

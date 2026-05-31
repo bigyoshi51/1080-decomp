@@ -3,7 +3,7 @@ nonmatching mgrproc_uso_func_00001A64, 0x6C
 glabel mgrproc_uso_func_00001A64
     /* 001A64 00001A64 8C82051C */  .word 0x8C82051C
     /* 001A68 00001A68 2401FFF7 */  .word 0x2401FFF7
-    /* 001A6C 00001A6C 3C0D0000 */  .word 0x3C0D0000
+    lui $t5, %hi(import_800201CC)   /* 001A6C 3C0D0000 -> import_800201CC */
     /* 001A70 00001A70 8C4E0018 */  .word 0x8C4E0018
     /* 001A74 00001A74 24420018 */  .word 0x24420018
     /* 001A78 00001A78 01C17824 */  .word 0x01C17824

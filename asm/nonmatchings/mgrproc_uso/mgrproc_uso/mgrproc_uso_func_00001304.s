@@ -3,7 +3,7 @@ nonmatching mgrproc_uso_func_00001304, 0x20
 glabel mgrproc_uso_func_00001304
     /* 001304 00001304 27BDFFE8 */  .word 0x27BDFFE8
     /* 001308 00001308 AFBF0014 */  .word 0xAFBF0014
-    /* 00130C 0000130C 0C000000 */  .word 0x0C000000
+    jal mgrproc_uso_func_000012AC   /* 00130C 0C000000 -> mgrproc_uso_func_000012AC */
     /* 001310 00001310 00000000 */  .word 0x00000000
     /* 001314 00001314 8FBF0014 */  .word 0x8FBF0014
     /* 001318 00001318 27BD0018 */  .word 0x27BD0018
