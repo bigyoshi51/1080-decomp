@@ -649,7 +649,23 @@ void h2hproc_uso_func_00000BAC(int *a0) {
  * Extensive use of unique D_-base addrs for D->0x134, D->0x108, D->0x10C, etc.
  *
  * First-pass decode; structure preserved without byte-match attempt this run.
- * Default build still uses INCLUDE_ASM. Multi-pass refinement expected. */
+ * Default build still uses INCLUDE_ASM. Multi-pass refinement expected.
+ *
+ * 2026-05-31 TAIL DECODE CORRECTION (current body's tail below is WRONG; this is
+ * the verified asm, L0x118-0x1d0, for a focused pass — gap-38, build 85 vs 123):
+ *   retbind = gl_func(root, &D+0x1C, s518_ret);  a0->0x51C = retbind;
+ *   alloc2  = gl_func(0x80);                       root->0x108 = alloc2;  // UNCOND,
+ *     NOT gated on retbind->0x14; stores to root->0x108 (264), not retbind->0x14
+ *   if (alloc2 != 0) {
+ *     r1 = gl_func(alloc2, 1);                      // func1(alloc2, 1)
+ *     r2 = gl_func(0, alloc2, slot, retbind, s518_ret, bound);  // 6-arg, stack a4/a5
+ *     q  = gl_func(root->0x84 + 0x10, r2);          // 2-arg
+ *     if (q->0x14 == 0) { q->0x14 = ...; q->0x4 = 1; ... }   // (the alloc-link block)
+ *     gl_func(a0->0x51C);                            // func(retbind)
+ *   }
+ *   a0->0x4F0 &= 0xFEFFFFFF;
+ * Also: the first flag-set is on root->0xC4->0xA58 (a0->0xC4), and root->0xCC->0xA58;
+ * register residual is s2=slot promotion. Complex 6-arg cross-USO calls = focused-RE. */
 void h2hproc_uso_func_00000C18(int *a0) {
     int *slot;
     int idx;
