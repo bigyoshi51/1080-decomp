@@ -10166,57 +10166,33 @@ void game_libs_func_0002E1A8(unsigned char *a0) {
     a0[0x16] &= ~0x20;
 }
 
-// gl_func_0002E1C0 — STRUCTURAL PASS (0x8C / 35 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A one-shot event / sound trigger.
-//
-//   void gl_func_0002E1C0(O *o) {
-//     byte f = o->b_16;
-//     if (f & 0x01) return;                             // disabled
-//     if (f & 0x20) return;                             // already fired
-//     o->b_16 = f | 0x20;                                // latch fired
-//     if (o->b_16 & 0x01) return;
-//     int kind = o->b_14;
-//     if (kind == 1) {
-//       jal 0x443E4(o->b_28, 0x29, 0, 80.0f);            // 0x0C010EF9
-//     } else {
-//       jal 0x443E4(o->b_28, 0x2A, 0, 80.0f);            // 0x0C010EF9
-//     }
-//   }
-//
-// Struct-typing reference: a fire-once trigger. Byte o->0x16 is a
-//   flag set — bit0 = disabled, bit5 = already-fired latch (set here
-//   so the event only emits once). Byte o->0x14 selects the variant
-//   (kind 1 vs other), byte o->0x28 carries an id/index argument.
-//   On the first eligible call it invokes the fixed event/sound
-//   submit routine 0x0C010EF9 (≈0x443E4) with a fixed event id
-//   (0x29 / 0x2A by kind), the o->0x28 argument, and the float
-//   constant 80.0f (0x42A00000). A one-shot SFX/event-emit leaf in
-//   the game_libs object subsystem (the 0x0C010EF9 submit is the same
-//   one other event helpers in this file use).
-// Caps (DEFERRED): raw-word USO + fixed-target event submit
-//   (0x443E4) — byte-match needs USO mnemonic disasm + reloc-pad
-//   jal infra. Real-C STRUCTURAL body below per the analysis.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
+// MATCHED 2026-05-30. Fire-once event trigger (counterpart to the
+//   gl_func_0002E24C stop). Flag byte o->0x16: bit0 = disabled, bit5 =
+//   already-fired latch (set here so the event emits once). After
+//   latching, a 2nd gate on o->0x1C bit0 (NOT o->0x16 — the prior decode
+//   had this wrong), then variant byte o->0x14 (==1 vs other) picks event
+//   id 0x29 vs 0x2A. The submit call passes o IN a0 (unchanged), the event
+//   id in a1, 0 in a2, 80.0f in a3, and o->0x28 as the 5th (stack sp+16)
+//   arg — the prior decode mis-placed o->0x28 as a0. The jal 0x0C010EF9
+//   resolves to 0x43BE4, which is the bare `jr ra` epilogue tail of
+//   gl_func_000437C0 used as a no-op event stub (this build stubs the
+//   submit). Named via undefined_syms_auto.txt gl_func_00043BE4 = 0x43BE4
+//   so the reloc resolves — same intra-segment-jal recipe as gl_func_00037C50.
+//   Float in a3 lands as raw 0x42A00000 thanks to the float-PROTOTYPED extern
+//   (a0-a2 int, so arg4 float goes to the a3 GPR; K&R would double-promote it).
+extern void gl_func_00043BE4(char *o, int event, int zero, float vol, int idx);
 void gl_func_0002E1C0(char *o) {
     unsigned char f = *(unsigned char *)(o + 0x16);
-    int kind;
     if (f & 0x01) return;
     if (f & 0x20) return;
     *(unsigned char *)(o + 0x16) = f | 0x20;
-    if (*(unsigned char *)(o + 0x16) & 0x01) return;
-    kind = *(unsigned char *)(o + 0x14);
-    if (kind == 1) {
-        gl_func_00000000(*(unsigned char *)(o + 0x28), 0x29, 0, 80.0f);
+    if (*(unsigned char *)(o + 0x1C) & 0x01) return;
+    if (*(unsigned char *)(o + 0x14) == 1) {
+        gl_func_00043BE4(o, 0x29, 0, 80.0f, *(unsigned char *)(o + 0x28));
     } else {
-        gl_func_00000000(*(unsigned char *)(o + 0x28), 0x2A, 0, 80.0f);
+        gl_func_00043BE4(o, 0x2A, 0, 80.0f, *(unsigned char *)(o + 0x28));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
-#endif
 
 // gl_func_0002E24C — STRUCTURAL PASS (0x108 / 66 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 10-jr USO bundle
