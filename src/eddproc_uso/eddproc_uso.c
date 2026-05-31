@@ -52,9 +52,13 @@ void eddproc_uso_func_000000D4(Vec3 *dst) {
 }
 
 void eddproc_uso_func_00000144(int a0, int a1) {
+    (void)&a0;
+    (void)&a1;
 }
 
 void eddproc_uso_func_00000150(int a0, int a1) {
+    (void)&a0;
+    (void)&a1;
 }
 
 extern int D_00000004;
