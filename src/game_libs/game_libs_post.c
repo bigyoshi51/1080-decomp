@@ -4467,52 +4467,84 @@ void game_libs_func_00024948(void) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_0002495C: 115-insn (0x1CC) byte-string slot manager. Sibling of
- * recently-matched gl_func_00024330 family (same VRAM neighborhood).
+/* gl_func_0002495C: 115-insn (0x1CC) record/slot manager. Sibling of
+ * recently-matched gl_func_00024B94 (both call func_00039194, the alt-entry
+ * lookup at 0x39194 inside gl_func_00039094). FULL DECODE 2026-05-31:
+ * 2.85% (TODO stub) -> 84.91%.
  *
- * Decoded structure (asm 0x2495C-0x24B24):
- *   prologue: sp -= 0x28; save ra/s0; spill a0/a1 to sp+0x28/0x2C; s0 = a2
- *   sub_a1 = (char)caller_a1[0x2F]   ; high byte of arg1 (probably a tag)
- *   v0 = func_00039194(a0)            ; lookup or alloc
- *   if (v0 == 0) {
- *       *s0 = 0;                       ; clear slot
- *       goto end;
- *   }
- *   tmp = (sub_a1 << 4) >> 6 << 2 + sub_a1 ... ; bit-extract index calc
- *   t0 = v0[0]
- *   t1 = (sub_a1 << 24) >> 28          ; nibble extract
- *   if (t1 == 2) {                     ; tag dispatch
- *       *s0 = (char)tmp;                ; write index
- *       goto end;
- *   }
- *   ...continues with table indexing on D[0x1578]/D[0x1590]/D[0x157C], byte
- *   packing into v0[0x14..0x2C], second func_00000000 call with a3=t8&...,
- *   tag-2 dispatch + tag-3 dispatch, post-call byte writes to s0+0/1/2 ...
+ * obj = func_00039194(a0); if (!obj) { *s0 = 0; return -1; }
+ * tag2 = (obj[0]<<4)>>30 (bits 26-27);  if (tag2==0) { *s0 = 2; return 0; }
+ * rec = &D + D[0x1578]*100 + 0x157C;     // 100-byte record indexed by D[0x1578]
+ * if (rec[0x14]==3) rec[0x14]=0;
+ * rec[0x20]=obj[0]; rec[0x24]=obj[1]; rec[0x1C]=(int)s0; rec[0x2C]=obj[3];
+ * r = gl_func_00000000(obj[0]&0xFFFFFF, (int)a0, obj[1], (s8)tag2);
+ * if (r==0) { rec[0xC]=0;  if (tag2==1 || obj[0]>>28==2) *s0=0; else *s0=3; return -1; }
+ * rec[0x14]=1; rec[0x18]=((obj[0]&0xFFFFFF)+15)&~15; rec[0x10]=rec[0xC];
+ * rec[8]=obj[1]; rec[0]=(s8)tag2; rec[1]=(s8)a0; rec[2]=(s8)a1;
+ * if (tag2==1) rec[4] = *(s16*)(D[0x2024]+2);
+ * D[0x1578] ^= 1; return 0;
  *
- * 115 insns of bit-pack + table-lookup + dispatch. Structure-only first
- * pass; per skill multi-run grind will tighten. The two `jal` calls are
- * `func_00039194` (intra-segment helper at fixed offset, sibling) and
- * `gl_func_00000000` placeholder (cross-USO).
- *
- * Signature inferred: returns void or int; takes (void *a0, int *a1, char *a2)
- * — but a1 is read at +0x2F as byte (so probably a struct ptr cast as
- * argument). Initial wrap stays light on body to avoid breaking build with
- * wrong type. */
+ * Residual <100 = register-renumber (the &D base lands in t2 vs target's t1,
+ * cascading) + the a1-low-byte read (target lbu sp+47 vs our lw+sb) + frame
+ * 0x40 vs 0x28 (named locals counter/callret/tag give the best % at 0x40;
+ * inlining them shrinks the frame to 0x28 but regresses regalloc to 79%).
+ * Deferred-pool &D offsets (0x1578/0x157C/0x1590/0x2024) keep it sub-100.
+ * INCLUDE_ASM stays the build path. */
 extern int gl_func_00000000();
 extern int func_00039194();  /* K&R unspec to allow both 1-arg and 2-arg call sites */
-void gl_func_0002495C(void *a0, void *a1, char *a2) {
-    /* TODO: full decode. Fields touched:
-     *   sub_a1 = ((char*)a1)[0x2F]                                ; tag byte
-     *   v0 = func_00039194(a0)                                    ; jal#1
-     *   if (v0 == 0) { *a2 = 0; return; }
-     *   ... 2-tier dispatch on (sub_a1>>4)&3:
-     *      case 2: a2[0] = packed_idx; (clear path)
-     *      case 3: a2[0] = packed_idx; jal gl_func_00000000(...)
-     *      else: writes to v0[0x14..0x2C], dispatch, clear path
-     *   ... table lookup via D[0x1578]/D[0x1590]/D[0x157C]
-     *   ... byte writes to a2+0/1/2 with caller's a1[0x2F]&0xFF
-     *   bumps D[0x1578] by 1. */
-    (void)a0; (void)a1; (void)a2;
+int gl_func_0002495C(void *a0, int a1, char *s0) {
+    int *t0;
+    int counter;
+    char *rec;
+    int callret;
+    int tag;
+
+    t0 = (int *)func_00039194(a0);
+    if (t0 == 0) {
+        *s0 = 0;
+        return -1;
+    }
+    if ((((unsigned int)(t0[0] << 4)) >> 30) == 0) {
+        *s0 = 2;
+        return 0;
+    }
+    counter = *(int *)((char *)&D_00000000 + 0x1578);
+    rec = (char *)&D_00000000 + counter * 100 + 0x157C;
+    if (*(int *)(rec + 0x14) == 3) {
+        *(int *)(rec + 0x14) = 0;
+    }
+    *(int *)(rec + 0x20) = t0[0];
+    *(int *)(rec + 0x24) = t0[1];
+    *(int *)(rec + 0x1C) = (int)s0;
+    *(int *)(rec + 0x2C) = t0[3];
+    callret = gl_func_00000000(t0[0] & 0xFFFFFF, (int)a0, t0[1],
+                               (signed char)(((unsigned int)(t0[0] << 4)) >> 30));
+    if (callret == 0) {
+        *(int *)(rec + 0xC) = 0;
+        if ((((unsigned int)(t0[0] << 4)) >> 30) == 1) {
+            *s0 = 0;
+            return -1;
+        }
+        if (((unsigned int)t0[0] >> 28) == 2) {
+            *s0 = 0;
+            return -1;
+        }
+        *s0 = 3;
+        return -1;
+    }
+    *(int *)(rec + 0x14) = 1;
+    *(int *)(rec + 0x18) = ((t0[0] & 0xFFFFFF) + 15) & ~15;
+    *(int *)(rec + 0x10) = *(int *)(rec + 0xC);
+    *(int *)(rec + 0x8) = t0[1];
+    tag = (int)(((unsigned int)(t0[0] << 4)) >> 30);
+    *(char *)(rec + 0) = (char)tag;
+    *(char *)(rec + 1) = (char)(int)a0;
+    *(char *)(rec + 2) = (char)a1;
+    if ((tag & 0xFF) == 1) {
+        *(int *)(rec + 4) = *(short *)((char *)*(int *)((char *)&D_00000000 + 0x2024) + 2);
+    }
+    *(int *)((char *)&D_00000000 + 0x1578) ^= 1;
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002495C);
