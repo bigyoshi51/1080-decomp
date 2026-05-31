@@ -26,6 +26,13 @@ resolved `jal` target lands on a real function prologue (`27bdffe0`/`27bdff…`)
 | mgrproc_uso | scripted-input (menu-manager), block-diff | `mgrproc_uso.symnames.json` (436 sites) |
 | timproc_uso **b5** | scripted-input SI_EXPLORE, block-diff | `timproc_uso_b5.symnames.json` (1772 sites) |
 
+**bootup/game_libs**: their `.s` are ALREADY symbolized (real `%hi/%lo/jal func_<off>`
+names from prior work — bootup 0 placeholders, game_libs 1). What remains is the
+`.c`-SIDE: the hand-written C bodies still call the collapsed `func_00000000`
+placeholder (bootup.c: 731×) — renaming each call site to its real target needs a
+C-source↔object-reloc mapping (the deferred build-wiring), a focused engineering
+effort, not a bulk `.s` rollout. Don't re-attempt as a loop rollout.
+
 Remaining: timproc **b1/b3** and **h2hproc** (2P). b1/b3 are NOT boot-resident
 (b5 is) and the menu-sweep doesn't sustain a full race, so they need an in-progress
 Time-Attack race (a save-state or longer sustained input) to load; h2hproc needs 2P VS.
