@@ -655,16 +655,26 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * frame-size diff (target 0x20 vs C-emit 0x28). INSN_PATCH-blocked per
  * size mismatch.
  *
+ * 2026-05-31: completed the missing field-init block 38.2->56.3%. The sketch
+ * had ONLY the alloc cascade + 0x28 vtable sets; added p1->0x60=a2, the
+ * {0xD8:160,0xDC:130,0xE0:160,0xE4:29,0xE8:160,0xEC:105} field set, two 1.0f
+ * stores (p1->0x108 and a1->0x72C), p1->0xD4=a1, the final dispatch call
+ * gl_func(p1+0xF0, ((D[0]+35)<<16)|(a1->0x6B0+7)), and return p1. Logic now
+ * complete. RESIDUAL (56->100) is the alloc-or-passthrough cascade dead-arm
+ * form (build 70 vs 90 insns — target emits the defensive passthrough arms per
+ * docs/PATTERNS.md#feedback-alloc-or-passthrough-cascade-includes-dead-arms)
+ * + the 8-byte frame-size cap. INCLUDE_ASM remains build path.
+ *
  * Default INCLUDE_ASM build matches; this wrap is for grep/discoverability. */
 extern int gl_func_00000000();
 extern char D_00000000;
-void timproc_uso_b3_func_00001660(int *a0, int a1, int a2) {
+int *timproc_uso_b3_func_00001660(int *a0, char *a1, int a2) {
     int *p1 = a0;
     int *p2;
     int *p3;
     if (p1 == 0) {
         p1 = (int*)gl_func_00000000(0x10C);
-        if (p1 == 0) return;
+        if (p1 == 0) return 0;
     }
     p2 = (int*)gl_func_00000000(0xD4, p1, a1);
     if (p2 != 0) {
@@ -676,6 +686,19 @@ void timproc_uso_b3_func_00001660(int *a0, int a1, int a2) {
         *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
     }
     *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)p1 + 0x60) = a2;
+    *(int*)((char*)p1 + 0xE0) = 160;
+    *(int*)((char*)p1 + 0xE4) = 29;
+    *(int*)((char*)p1 + 0xD8) = 160;
+    *(int*)((char*)p1 + 0xDC) = 130;
+    *(int*)((char*)p1 + 0xE8) = 160;
+    *(int*)((char*)p1 + 0xEC) = 105;
+    *(float*)((char*)p1 + 0x108) = 1.0f;
+    *(int*)((char*)p1 + 0xD4) = (int)a1;
+    *(float*)(a1 + 0x72C) = 1.0f;
+    gl_func_00000000((char*)p1 + 0xF0,
+        ((*(int*)&D_00000000 + 35) << 16) | (*(int*)(a1 + 0x6B0) + 7));
+    return p1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001660);
