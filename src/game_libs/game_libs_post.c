@@ -12480,24 +12480,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000334E8);
 //   deferred data-segment template-symbolization sites).
 // Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + &D_0
 //   record-array (0x44 stride) + fixed data-seg templates
-//   (0x0001E2C0/0x0001E2D8 unsymbolized) — byte-match needs USO
-//   mnemonic disasm + record struct typed. Real-C STRUCTURAL body
-//   below per the analysis. Byte-match deferred. Name pre-checked:
-//   no extern reuse.
+//   (0x0001E2C0/0x0001E2D8 unsymbolized).
+// 2026-05-31: 59.02% -> 79.0% by fixing: (1) 2nd guard is `c & 1` not `flags & 1`;
+//   (2) the 4th call is gl_func(rec, 0, 0, c, flags, c, rec+0x18) [7 args] not
+//   (rec+0x18, 0, 0); (3) trailing stores rec->0x34=flags, rec->0x38=c, rec->0x40=1;
+//   (4) templates via &D+0x1E2C0/0x1E2D8 (lui+addiu) not literal (lui+ori).
+//   Remaining ~21% = USO reloc + register alloc. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_000337AC(int id, unsigned flags, int b, int c) {
     char *rec;
     (void)b;
     if (flags & 7) {
-        gl_func_00000000((void *)0x0001E2C0, id);
+        gl_func_00000000((char *)&D_00000000 + 0x0001E2C0, id);
     }
-    if (flags & 1) {
-        gl_func_00000000((void *)0x0001E2D8, c);
+    if (c & 1) {
+        gl_func_00000000((char *)&D_00000000 + 0x0001E2D8, c);
     }
     rec = (char *)&D_00000000 + id * 0x44;
     *(int *)(rec + 0x3C) = 1;
     gl_func_00000000(flags, c);
-    gl_func_00000000(rec + 0x18, 0, 0);
+    gl_func_00000000(rec, 0, 0, c, flags, c, rec + 0x18);
+    *(int *)(rec + 0x34) = flags;
+    *(int *)(rec + 0x38) = c;
+    *(int *)(rec + 0x40) = 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000337AC);
