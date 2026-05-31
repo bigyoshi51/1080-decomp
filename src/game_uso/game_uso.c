@@ -9176,28 +9176,34 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
 #endif
 
 #ifdef NON_MATCHING
-/* 53.10% NM. 29-insn FPU helper. Init local Vec3 buffer at sp+0x24..0x2C with 3
- * floats (first 2 from f0 = uninit/0?, third from D_0+0x140), call
- * gl_func(D_0+0x11C, &buf28, &buf2C, a0); call again gl_func(a0,
- * &buf24, &buf2C, D_0+0x104); writes 3 float results from buf24/28/2C
- * into a0+0x60/0x64/0x68.
+/* 96.55% NM. 29-insn FPU helper. Init local Vec3 buffer at sp+0x24..0x2C with 3
+ * floats (first 2 = 0.0, third = D_0+0x140), call gl_func(D_0+0x11C, &buf28,
+ * &buf2C); call again gl_func(D_0+0x104, &buf24, &buf2C); writes 3 float
+ * results from buf24/28/2C into a0+0x60/0x64/0x68.
  *
- * Likely a "lerp Vec3 toward target with timestep" kind of helper.
- * NM-wrap captures structure for next pass; FPU sched is fragile. */
+ * FRAME FIX 2026-05-31: target frame is -48 with the live buf at sp+0x24..0x2C
+ * (8 phantom bytes / 2 unused float slots below it). Declaring `float buf[5]`
+ * and using only [2..4] reserves those 2 low slots (GCC can't partially-elide a
+ * single array), forcing frame -48 and the exact 0x24/0x28/0x2C offsets — a
+ * plain `float buf[3]` gave -40 and shifted every stack offset by 8 (96.03%).
+ * RESIDUAL (1 insn): target stores `swc1 $f0,buf[2]/buf[3]` with NO
+ * `mtc1 zero,$f0` anywhere — it relies on $f0 already holding 0.0 from calling
+ * context (full-TU artifact). In isolation GCC must materialize the zero
+ * (`mtc1 zero,$f0`), the lone extra insn. Isolated-vs-full-TU cap. */
 extern float D_b424_140;  /* &D_0 + 0x140 */
 extern void game_uso_func_070338(float f, float *p1, float *p2);
 extern void game_uso_func_04DA24(int *a0);
 void game_uso_func_0000B424(int *a0) {
-    float buf[3];
-    buf[0] = 0.0f;
-    buf[1] = 0.0f;
-    buf[2] = D_b424_140;      /* sp+0x2C = D[0x140] */
+    float buf[5];
+    buf[2] = 0.0f;
+    buf[3] = 0.0f;
+    buf[4] = D_b424_140;      /* sp+0x2C = D[0x140] */
     /* float-first arg (-> $f12); a0 is saved across the calls, not passed */
-    game_uso_func_070338(*(float*)((char*)a0 + 0x11C), &buf[1], &buf[2]);
-    game_uso_func_070338(*(float*)((char*)a0 + 0x104), &buf[0], &buf[2]);
-    *(float*)((char*)a0 + 0x60) = buf[0];
-    *(float*)((char*)a0 + 0x64) = buf[1];
-    *(float*)((char*)a0 + 0x68) = buf[2];
+    game_uso_func_070338(*(float*)((char*)a0 + 0x11C), &buf[3], &buf[4]);
+    game_uso_func_070338(*(float*)((char*)a0 + 0x104), &buf[2], &buf[4]);
+    *(float*)((char*)a0 + 0x60) = buf[2];
+    *(float*)((char*)a0 + 0x64) = buf[3];
+    *(float*)((char*)a0 + 0x68) = buf[4];
     game_uso_func_04DA24(a0);
 }
 #else
