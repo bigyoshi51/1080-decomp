@@ -1444,14 +1444,20 @@ void gl_func_000083CC(int *a0) {
     }
     {
         int v0_call3 = gl_func_00000000(0x80);
+        int *obj;
+        int *side;
         *(int*)((char*)state + 0x108) = v0_call3;
         if (v0_call3 != 0) {
             gl_func_00000000(v0_call3, 1);
         }
-        gl_func_00000000(0, v0_call3,
+        obj = (int*)gl_func_00000000(0, v0_call3,
                          *(int*)((char*)state + 0xC4),
                          *(int*)((char*)a0 + 0x51C),
                          t7, v0_call1);
+        side = *(int**)((char*)state + 0x84);
+        gl_func_00000000((char*)side + 0x10, obj);
+        if (*(int*)((char*)obj + 0x14) != 0) *(int*)((char*)obj + 4) = 1;
+        *(int*)((char*)obj + 0x14) = (int)side;
     }
 }
 #else
