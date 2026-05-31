@@ -12096,24 +12096,24 @@ void game_uso_func_00010068(int *a0) {
  *     at sp+0x10 and sp+0x14
  *   - Branch-likely inside float-compare arm
  *
- * Default INCLUDE_ASM path keeps ROM matching while structural decode
- * lives here for grep discoverability + multi-tick refinement. */
+ * 2026-05-31: 73.8%->79.0% by INLINING a0->0xB4 (outer) at each use instead of
+ * caching it in a local — the target reloads a0->0xB4 per access (the cache forced an
+ * extra saved-reg + frame slot). Residual is the register-allocation cascade (t0/t1,
+ * v0/v1 renumbering) + frame 0x30 vs 0x28 — the documented regalloc cap. Sibling
+ * game_uso_func_00010068 (the shared outer->0x800->0x18&0x400 pattern) is now 100%. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void game_uso_func_00010128(int *a0) {
-    int *outer = (int*)a0[0xB4 / 4];
-    int *outer_ptr;
     int *inner;
     int v0;
 
-    outer[0xA18 / 4] = 1;
-    outer_ptr = (int*)outer[0x800 / 4];
-    if ((outer_ptr[0x18 / 4] & 0x400) != 0) {
+    ((int*)a0[0xB4 / 4])[0xA18 / 4] = 1;
+    if ((((int*)((int*)a0[0xB4 / 4])[0x800 / 4])[0x18 / 4] & 0x400) != 0) {
         gl_func_00000000(a0,
                          *(Pair2*)((char*)&D_00000000 + 0xDE0));
     }
-    if (*(float*)((char*)outer + 0x9D0) < 1000.0f) {
-        if (outer[0x938 / 4] != 0) {
+    if (*(float*)((char*)(int*)a0[0xB4 / 4] + 0x9D0) < 1000.0f) {
+        if (((int*)a0[0xB4 / 4])[0x938 / 4] != 0) {
             gl_func_00000000(a0,
                              *(Pair2*)((char*)&D_00000000 + 0xDE8));
         }
