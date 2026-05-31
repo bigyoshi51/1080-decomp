@@ -40302,8 +40302,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
  * D_fbd8_b/d, and re-links several global list heads (each `*D_x` is a node
  * pointer): D_c node self-links (n->4=n); D_e n->0=n->4; D_f n->0x10=0,n->0x14=0;
  * D_g copies n->0x10/0x14 to n->8/0xC; D_h n->0x18=0; D_i n->0x1C=0. Symbols are
- * placeholder externs (real D_ names unknown in raw-.word form). % partial:
- * straight-line scheduler order of the hoisted lui/lw not yet pinned. */
+ * placeholder externs (real D_ names unknown in raw-.word form).
+ *
+ * 18% partial — NEXT-PASS RESIDUAL ANALYSIS (side-by-side 2026-05-31):
+ *  (1) Direct globals (D_a struct, D_b/D_d): target is at-FUSED `lui at,%hi;
+ *      sw t,OFF(at)` with the zero pre-loaded into a REGISTER (`li t6,0;
+ *      li t7,0`), ours is base-local `lui v1; addiu v1,v1,0; sw zero,OFF(v1)`
+ *      (extra addiu + sw $zero). Needs inline-symbol-arith + named zero temps
+ *      (docs feedback-ido-inline-symbol-arith-vs-base-local).
+ *  (2) Pointer globals: target keeps each `*D_x` in a DISTINCT reg
+ *      (t8/t9/t1/t4/t5/t8) with lui/lw HOISTED + interleaved with other
+ *      globals' stores; ours reuses $v0 sequentially. Distinct named pointer
+ *      locals declared early did NOT fix it (IDO still collapsed to 32 insns
+ *      vs 38 — 6 short). Exact hoist/interleave is the hard part; focused
+ *      multi-pass grind, not a 60s tick. */
 extern int D_fbd8_a, D_fbd8_b, D_fbd8_d;
 extern int *D_fbd8_c, *D_fbd8_e, *D_fbd8_f, *D_fbd8_g, *D_fbd8_h, *D_fbd8_i;
 void game_libs_func_0006FBD8(void) {
