@@ -10193,7 +10193,6 @@ void game_uso_func_0000D8A8(char *a0) {
  *       }
  *   }
  *   L_BC: t6 = v1->[0x9D4]; if (t6 >= 11) gl_func(a0); */
-#ifdef NON_MATCHING
 void game_uso_func_0000D8EC(int *a0) {
     int *v0;
     int a1;
@@ -10222,9 +10221,6 @@ L_BC:
         gl_func_00000000(a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D8EC);
-#endif
 
 #ifdef NON_MATCHING
 /* 0.27% NM. game_uso_func_0000D9CC: 0x830 (524 insns), 0x38-byte stack frame.
@@ -11174,7 +11170,6 @@ void game_uso_func_0000EE74(void *a0) {
  * Makefile INSN_PATCH + SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23 as
  * match-faking (per feedback_no_instruction_forcing_matches_policy).
  * Default build is INCLUDE_ASM. */
-#ifdef NON_MATCHING
 void game_uso_func_0000EE84(int *a0) {
     int a1;
     *(float *)((char *)(int *)a0[0xB4 / 4] + 0xA74) = 0.0f;
@@ -11188,9 +11183,6 @@ void game_uso_func_0000EE84(int *a0) {
     func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xE98), 1);
     func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EE84);
-#endif
 
 /* MATCHED 2026-05-28 via struct-by-value (E40/E44 pair homes a1,a2). See
  * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
@@ -12241,7 +12233,6 @@ void game_uso_func_00010408(int *arg0) {
 /* 50-insn sibling of game_uso_func_00010408/105DC family. Initializes
  * a0->0xB4->0xA18, conditionally runs the 0x938-gated path, then emits
  * the same t[0]/t[1] vararg-spill call shape used by nearby wrappers. */
-#ifdef NON_MATCHING
 void game_uso_func_000104A4(char *a0) {
 
     gl_func_00000000(a0);
@@ -12258,9 +12249,6 @@ void game_uso_func_000104A4(char *a0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000104A4);
-#endif
 
 /* MATCHED via struct-by-value arg-home: the adjacent D[0xE08]/D[0xE0C] pair
  * passed as `*(Pair2*)(&D+0xE08)` homes a1,a2 to sp+4/sp+8. Has a final float
@@ -12832,7 +12820,6 @@ void game_uso_func_00011428(int *a0) {
  * NATURAL CEILING: 83.18% NM. Cap: target uses base-register form for the
  * D-pair calls + caller-slot spills around them. SUFFIX_BYTES_FORCE +
  * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking. */
-#ifdef NON_MATCHING
 void game_uso_func_00011460(int *a0) {
     int v = (int)((unsigned int)((int *)a0[0xB4 / 4])[0x8C4 / 4] % 5U);
     int a1 = (v + 10) | 0x70000;
@@ -12840,9 +12827,6 @@ void game_uso_func_00011460(int *a0) {
     func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xEF8), 2);
     func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xF00));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011460);
-#endif
 /* MATCHED 2026-05-28: struct-by-value (DB8/DBC pair). Family sibling of
  * game_uso_func_00010E2C. See
  * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */

@@ -17208,7 +17208,6 @@ void gl_func_00039B58(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039B58);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00039C8C: 102-insn 12-call helper, "register float-bounded
  * field" callback orchestrator.
  *   gl_func(&D_0, "string", 0)             init
@@ -17250,9 +17249,6 @@ void gl_func_00039C8C(int *a0) {
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039C8C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00039E24: 48-insn helper with conditional FPU post-update.

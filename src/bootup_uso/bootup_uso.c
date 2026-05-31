@@ -2728,7 +2728,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000063B4);
  * pairs. Caps <80: 6x reloc calls + 4x &D reloc + 5th/6th stack-arg
  * passing (sp+0x10/0x14). INCLUDE_ASM remains build path. */
 extern char D_00007EA4, D_00007EA8, D_00007EAC, D_00007EB0;
-#ifdef NON_MATCHING
 void func_00006734(char *a0) {
     func_00000000(&D_00000000, &D_00007EA4, 0);
     func_00000000(&D_00000000, &D_00007EA8, a0 + 0xB8, 0, 0x7F, 1);
@@ -2737,9 +2736,6 @@ void func_00006734(char *a0) {
     func_00000000(&D_00000000);
     func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006734);
-#endif
 
 // func_00006808 — STRUCTURAL PASS (0x948 / 594 insns, no episode).
 // Large scene/screen constructor, bracketed by a global mode-flag
