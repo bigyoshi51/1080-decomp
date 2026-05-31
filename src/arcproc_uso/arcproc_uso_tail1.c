@@ -799,9 +799,19 @@ void arcproc_uso_func_000014A8(void) {
  * &D+0x3C); 0x508++; if cb(arg0->0x528): draw a panel at 0x2F0 with alpha (int)
  * (255*0x77C), draw arg0+0x764, and on (0x508 & 8) draw it + cb(arg0, 0xA0, arg0->
  * 0x6AC->0x44->0x14); else just that last cb. Fresh decode 2026-05-29 (m2c-
- * confirmed). Caps: structs + cb prototypes untyped (USO-reloc), &D float consts
- * not symbolized. NON_MATCHING. */
+ * confirmed). 85.6 -> 92.0 (2026-05-31): (1) the panel draw's 1st arg is
+ * &D_00000000 (data-base draw context), not literal 0 (m2c reloc-blindness);
+ * (2) the &D float consts (&D+0 compare, &D+0x3C clamp, &D+0x40 step) use
+ * distinct externs (D_flt_arc0/D_0000003C/D_00000040 in undefined_syms_auto.txt)
+ * to bust the &D-base CSE — each lwc1 re-materializes its own lui. Same cocktail
+ * as mgrproc_uso_func_00001C90. Residual (~8%): the {1,1,1,1} Vec4 is volatile
+ * (write-only — read by a callee via the stack, so no &-arg to make it an
+ * address-taken array), and the target reserves ~0x20 extra frame placing it at
+ * sp+0x48..0x54 (frame -88) vs mine at sp+0x28 (frame -56); the oversized-
+ * volatile-array trick doesn't reproduce the layout (regressed to 90.4%). Plus
+ * a0/s0 regalloc + FP-load scheduling. NON_MATCHING. */
 extern int gl_func_00000000();
+extern float D_flt_arc0, D_0000003C, D_00000040;
 void arcproc_uso_func_000014C8(char *arg0) {
     volatile float sp54;
     volatile float sp50;
@@ -813,14 +823,14 @@ void arcproc_uso_func_000014C8(char *arg0) {
     sp4C = 1.0f;
     sp50 = 1.0f;
     sp54 = 1.0f;
-    if ((*(int *)(arg0 + 0x500) != 0) && (*(float *)&D_00000000 <= 0.0f)) {
+    if ((*(int *)(arg0 + 0x500) != 0) && (D_flt_arc0 <= 0.0f)) {
         f0 = *(float *)(arg0 + 0x77C);
-        if (f0 < *(float *)((char *)&D_00000000 + 0x3C)) {
-            *(float *)(arg0 + 0x77C) = f0 + *(float *)((char *)&D_00000000 + 0x40);
+        if (f0 < D_0000003C) {
+            *(float *)(arg0 + 0x77C) = f0 + D_00000040;
         }
         *(int *)(arg0 + 0x508) = *(int *)(arg0 + 0x508) + 1;
         if (gl_func_00000000(*(int *)(arg0 + 0x528)) != 0) {
-            gl_func_00000000(0, (int)(255.0f * *(float *)(arg0 + 0x77C)), arg0 + 0x2F0, arg0 + 0x314);
+            gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)(arg0 + 0x77C)), arg0 + 0x2F0, arg0 + 0x314);
             gl_func_00000000(arg0 + 0x764);
             if (*(int *)(arg0 + 0x508) & 8) {
                 gl_func_00000000(arg0 + 0x764, 0xA0, 0xB4, 3);
