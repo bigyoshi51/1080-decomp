@@ -12889,29 +12889,21 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011624);
 #endif
 
 /* game_uso_func_000116D4: 31-insn (0x7C) flag-gated double-call wrapper.
- * NATURAL CEILING: 79.97% NM. 7th sibling of the
- * 10E2C/10B38/F49C/FB04/FB7C family-cap shape: the branch-imm at 0x20
- * + 2nd-call D-base/tail at 0x40..0x6C need cross-USO varargs spills
- * (sw a1@4(sp), sw a2@8(sp)). Was previously promoted via 13-insn
- * INSN_PATCH — REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-#ifdef NON_MATCHING
+ * MATCHED 2026-05-31 (79.97% -> 100%): the "cross-USO varargs spills
+ * (sw a1@4(sp), sw a2@8(sp))" that the old INSN_PATCH faked are exactly the
+ * struct-by-value home stores — the D[0xE40]/E44 pair passes BY VALUE as
+ * *(Pair2*), reproducing them HONESTLY. The "79.97% natural ceiling" was the
+ * un-homed pair (same lever as EF70/F284).
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair */
 void game_uso_func_000116D4(void *a0) {
     void *s0 = a0;
     gl_func_00000000(s0);
     if (*(int *)((char *)s0 + 0x110) != 0) {
         gl_func_00000000(s0, *(int *)((char *)s0 + 0x108), 2, 1, 1, 1);
-        gl_func_00000000(s0,
-                         *(int *)((char *)&D_00000000 + 0xE40),
-                         *(int *)((char *)&D_00000000 + 0xE44),
-                         1);
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE40), 1);
     }
     *(int *)((char *)s0 + 0x114) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000116D4);
-#endif
 
 // game_uso_func_00011750 — STRUCTURAL PASS (0x118 / 70 words,
 // no episode). Raw-.word USO form (single function, game_uso main
