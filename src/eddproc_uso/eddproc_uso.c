@@ -123,67 +123,41 @@ void eddproc_uso_func_000001E8(char *a0) {
  * pattern requires careful arrangement of the 3 conditional alloc paths.
  * Stub body documented; default build INCLUDE_ASM matches.
  *
- * (current: 61.26 %, 2026-05-02). Attempted variations:
- *   - `int *` return: 59.66 % (added load+return overhead, regressed)
- *   - Ternary `(p1 != 0) ? call : 0` w/ goto chain: 52.02 % (added bne
- *     guards but wrong delay-slot fills)
- *   - Mutate a0 in-place vs `int *p1 = a0`: 60.44 % (no real diff)
- *   - 2026-05-02: alloc-or-init goto pattern (per
- *     feedback_alloc_or_init_goto_pattern.md) applied to all 3 stages:
- *     58.92 % (regressed — pattern works for SINGLE alloc-then-init,
- *     not for multi-stage with branched init blocks). Goto only on
- *     stage 1 + if-else for stages 2-3: 60.44 %. The memo's recipe
- *     is single-stage only.
- *
- * Target's structure has TWO defensive null checks (a2 != 0, v1 != 0)
- * that branch over the next jal — these are dead code in normal flow
- * (a2 is provably non-zero at that point) but IDO emits them anyway.
- * Probably came from `p2 = (p1 != 0) ? call(p1) : 0` style ternaries
- * in the source, which IDO evaluates as bne+delay+call instead of just
- * call. Frame size diff: target 0x20 (3 spill slots: 0x18/0x1C/0x20),
- * mine 0x28 (over-allocates).
- *
- * 2026-05-04: re-confirmed cap. The 8-byte frame-size diff (0x28 vs 0x20)
- * is a structural blocker that INSN_PATCH cannot fix (per
- * feedback_insn_patch_size_diff_blocked.md — INSN_PATCH only patches
- * operand bytes, not insn count or stack frame). To match would require:
- * (a) source restructure to eliminate one spill slot, OR
- * (b) prefix-bytes tooling that grows/shrinks the frame addiu while
- *     preserving downstream relocs (no such tool exists yet).
- * Defer to permuter random-mode or sibling-found-pattern.
- *
- * 2026-05-05: tested two more variants to attempt $s-reg promotion of
- * p1/p2/p3 (target uses s0/s1/s2 saved at 0x18/0x1C/0x20, frame 0x20):
- *   (a) `register int *p1 = a0;` — IDO ignores the hint; emits same
- *       0x28 frame with p1 spill at sp+0x24. The register keyword
- *       doesn't promote a pseudo whose first def is a relabel of an
- *       arg-reg.
- *   (b) split init: `register int *p1; if (a0 == 0) p1 = alloc; else
- *       p1 = a0;` — gives p1 a fresh definition, but still emits 0x28
- *       frame with p1 spilled to sp+0x24. The allocator's weight calc
- *       sees p1's live range as too short / refs too low to claim $s.
- * Confirms (per docs/IDO_CODEGEN.md "$s allocator") that for this
- * function shape, $s-reg promotion needs more refs/longer live range
- * than the natural 3-stage alloc dispatch provides. The cap is
- * structural at 61.26 %; INSN_PATCH-blocked by frame-size mismatch. */
-void eddproc_uso_func_0000025C(int *a0, int *a1) {
-    int *p1 = a0;
-    int *p2;
-    int *p3;
-    if (p1 == 0) {
-        p1 = (int*)gl_func_00000000(0x54);
-        if (p1 == 0) return;
-    }
-    p2 = (int*)gl_func_00000000(0x50, p1, a1);
-    if (p2 != 0) {
-        p3 = (int*)gl_func_00000000(0x2C);
-        if (p3 != 0) {
-            gl_func_00000000(p3, (char*)&D_00000000 + 0x22C);
-            *(int*)((char*)p3 + 0x28) = (int)&D_00000000;
-        }
-        *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
-    }
-    *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+ * NOT A CAP (2026-05-30). Prior analysis was WRONG on two counts:
+ *  (1) The old C body had the WRONG control flow — it called gl_func(0x50)
+ *      UNCONDITIONALLY with 3 args. The target is a CONDITIONAL 3-stage
+ *      find-or-create cascade (each stage allocs only if the prior slot is
+ *      null, one arg each). The body below is the corrected structure.
+ *  (2) The target does NOT use $s0/s1/s2 — it spills a2/v1 (caller-saved)
+ *      to stack, frame 0x20, reusing the INCOMING ARG-HOME slots (sp+0x20,
+ *      sp+0x24 for the dead a0/a1) instead of new in-frame slots. The
+ *      "needs $s promotion" conclusion was false.
+ * Frame is now EXACT 0x20: reuse the dead `a0` param to hold the stage-3
+ * object (no third local → no extra slot), and `(void)&a1` for a1's dead
+ * home. Fuzzy 61.26→61.48 with the correct structure.
+ * REMAINING (register-chain, not a cap): the first object lands in $a3 vs
+ * target's $a2, cascading through the chain. The permuter is UNRELIABLE
+ * here — its scorer NORMALIZES sp-relative offsets, so it cannot see the
+ * frame-size regression and wanders to 0x28 variants (floored 520). Crack
+ * via manual register-chain RE (decl order / a2-vs-a3 seed) keeping the
+ * frame at 0x20, NOT by trusting the permuter's best score. */
+void *eddproc_uso_func_0000025C(int *a0, int *a1) {
+    int *a2;
+    int *v1;
+    (void)&a1;
+    a2 = a0;
+    if (a0 == 0) { a2 = (int*)gl_func_00000000(0x54); if (a2 == 0) return a2; }
+    v1 = a2;
+    if (a2 == 0) { v1 = (int*)gl_func_00000000(0x50); if (v1 == 0) goto Sa2; }
+    a0 = v1;
+    if (v1 == 0) { a0 = (int*)gl_func_00000000(0x2C); if (a0 == 0) goto Sv1; }
+    gl_func_00000000(a0, (char*)&D_00000000 + 0x22C);
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+Sv1:
+    *(int*)((char*)v1 + 0x28) = (int)&D_00000000;
+Sa2:
+    *(int*)((char*)a2 + 0x28) = (int)&D_00000000;
+    return a2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000025C);
