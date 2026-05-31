@@ -18766,29 +18766,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D2C8);
 //   construct-then-bring-up node of the game_libs object subsystem
 //   (0x0001F2C0 is a deferred data-segment template-symbolization
 //   site).
-// Caps (DEFERRED): raw-word USO + fixed intra-USO helper (0x01458C)
-//   + USO-relocated jal-0 init cb + data-seg template + jalr through
-//   handler vtable (o->0x28 + 0x5C / 0x4C); object/vtable structs
-//   untyped. Real-C STRUCTURAL body below. Byte-match deferred. Name
-//   pre-checked: no extern reuse.
+// 2026-05-31: 58.77% -> 92.83% by adding the MISSING LOOP (prior body ran the
+//   dispatch ONCE). Real flow: o->0x10=0; helper(&count) [out-param fills count];
+//   init(0x1F2C0, o+0x2C); if(count==0) return; for(s2=0; s2<count; s2++){
+//   h=o->0x28; s0=(*h->0x5C)(h->h0x58 + o); cb(o, s0); s0->0xC = o+0x2C;
+//   h2=s0->0x28; (*h2->0x4C)(h2->h0x48 + s0); }. Two vtable dispatches per
+//   iteration (first on o->0x28 producing s0, second on s0->0x28). Remaining
+//   ~7% = USO reloc/regalloc. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
 void gl_func_0003D3C4(char *o) {
-    char *out;
+    int count;
+    char *s3 = o + 0x2C;
+    char *s0;
     char *h;
-    void (*fp5C)(int);
+    char *(*fp5C)(int);
     void (*fp4C)(int);
+    int s2;
     *(int *)(o + 0x10) = 0;
-    out = (char *)gl_func_00000000(&out);
+    gl_func_00000000(&count);
     gl_func_00000000((char *)&D_00000000 + 0x0001F2C0, (float *)(o + 0x2C));
-    if (out == 0) return;
-    h = *(char **)(o + 0x28);
-    fp5C = *(void (**)(int))(h + 0x5C);
-    fp5C(*(short *)(h + 0x58) + (int)o);
-    gl_func_00000000(o);
-    *(char **)(o + 0x0C) = o + 0x2C;
-    fp4C = *(void (**)(int))(h + 0x4C);
-    fp4C(*(short *)(h + 0x48) + (int)o);
+    if (count == 0) {
+        return;
+    }
+    s2 = 0;
+    do {
+        h = *(char **)(o + 0x28);
+        fp5C = *(char *(**)(int))(h + 0x5C);
+        s0 = fp5C(*(short *)(h + 0x58) + (int)o);
+        gl_func_00000000(o, s0);
+        *(char **)(s0 + 0x0C) = s3;
+        h = *(char **)(s0 + 0x28);
+        fp4C = *(void (**)(int))(h + 0x4C);
+        fp4C(*(short *)(h + 0x48) + (int)s0);
+        s2++;
+    } while (s2 < count);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D3C4);
