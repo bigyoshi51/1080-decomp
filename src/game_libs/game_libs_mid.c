@@ -101,28 +101,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
  * obj, a3=incoming a2), registers it (call4), links obj into D's list (obj->0x14),
  * sets obj->0x4=1 if obj->0x14 was non-null, then a final call5; returns obj.
  * Data refs use the &D_00000000+offset addend idiom; builds -O0 (game_libs_mid).
- * 82.38% as of 2026-05-28 (fresh decode 0→67→82). Lever: the target holds base
- * (&D), obj, and a scratch in s0/s1/s2 across the calls — at -O0 that means
- * `register` locals (declared base/obj/tmp in s0/s1/s2 order). RESIDUAL (~18%,
- * -O0 codegen, hard to steer): (a) base re-materialization order — target emits
- * `lui a0;addiu a0` for call1's arg0 separately from the t6 used for the +8 load,
- * mine shares one base via `move a0,t6` (the -O0 inverse of base-CSE); (b) obj
- * spill-timing — target stores the call3 result to obj's home (sw v0,0x34) +
- * reloads into s1, and RETURNS from the home (lw v0,0x34), whereas mine uses
- * `move s1,v0` + returns s1 directly. Real wrap, correct logic; stays NM. */
+ * 82.38% -> 91.08% (2026-05-31). Lever: the target holds base (&D), obj, and a
+ * scratch in s0/s1/s2 across the calls — at -O0 that means `register` locals
+ * (declared base/obj/tmp in s0/s1/s2 order). The base-CSE residual (target
+ * re-materializes &D per global VALUE read; mine shared the s0 base) was busted
+ * by routing the +8/+0x4C/+0x17D/+0x50/+0x64 reads through DISTINCT externs
+ * (D_00000008.. valued at the offset in undefined_syms_auto.txt) — each read now
+ * gets its own lui base, matching the target (+8.7pp). Same distinct-extern
+ * lever as the USO &D-CSE busts; works at -O0 too. The bare `&D_00000000` call
+ * args + the `base`/`tmp` register pointer correctly stay on the shared s0 base.
+ * RESIDUAL (~9%, genuine -O0 caps): obj home-spill — target stores the call3
+ * result to obj's home (sw v0,0x34), reloads into s1, RETURNS from the home
+ * (lw v0,0x34); `register int *obj` keeps it in s1 (no home), and a plain
+ * `int *obj` regresses to 85.5% (loses the s1 deref allocation). Plus -O0 temp
+ * reg-renumber. Real wrap, correct logic; stays NM. */
+extern int D_00000008, D_0000004C, D_00000050, D_00000064;
+extern unsigned char D_0000017D;
 #ifdef NON_MATCHING
 int gl_func_00008FFC(int a0, int a1, int a2) {
     register char *base;     /* s0 */
     register int *obj;       /* s1 */
     register char *tmp;      /* s2 */
 
-    gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000 + 8));
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4C),
-                     *(unsigned char*)((char*)&D_00000000 + 0x17D));
-    *(int*)((char*)&D_00000000 + 0x50) =
-        *(int*)((char*)&D_00000000 + 0x50) & 0x20;
-    obj = (int*)gl_func_00000000(&D_00000000,
-                                 *(int*)((char*)&D_00000000 + 0x64), 5, a2);
+    gl_func_00000000(&D_00000000, D_00000008);
+    gl_func_00000000(D_0000004C, D_0000017D);
+    D_00000050 = D_00000050 & 0x20;
+    obj = (int*)gl_func_00000000(&D_00000000, D_00000064, 5, a2);
     base = (char*)&D_00000000;
     tmp = base + 0x10;
     gl_func_00000000(tmp, obj);
