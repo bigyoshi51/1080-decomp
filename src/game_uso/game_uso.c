@@ -11341,9 +11341,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
 #ifdef NON_MATCHING
 /* game_uso_func_0000F284: 55-insn EE84-family branchy, beql-selected mode+D-pair.
  * `m` is saved to a stack slot in each branch and reused in the final 6-arg
- * call. Cross-USO jal-0 → gl_func_00000000, float-pairs → &D_00000000+off.
- * Caps via EE84-family beql-scheduling + precall-arg-spill + jal-0 ceiling;
- * NM body documents the decode. */
+ * call. Cross-USO jal-0 → gl_func_00000000. 62.5% -> 99.95%: the two D-pair
+ * calls (0xE60/E64, 0xE40/E44) pass the float-pair BY VALUE as *(Pair2*) —
+ * the "precall-arg-spill cap" was the un-homed pair (same lever as 10AC8/
+ * 10B38, docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
+ * Residual (5 diffs, ALL one cause): `m`'s spill slot is sp+44 in target,
+ * sp+40 here (frame 0x30, slot 40 unused in target / 44 unused here) — a
+ * -O2 spill-slot-placement detail, not C-controllable. */
 extern int gl_func_00000000();
 void game_uso_func_0000F284(int *a0) {
     int *s0 = a0;
@@ -11351,14 +11355,10 @@ void game_uso_func_0000F284(int *a0) {
     gl_func_00000000((char *)s0[0xB4 / 4] + 0x808);
     if (*(int *)((char *)s0[0xB4 / 4] + 0x9CC) != 0) {
         m = 0x20008;
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xE60),
-            *(int *)((char *)&D_00000000 + 0xE64), -1);
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE60), -1);
     } else {
         m = s0[0xFC / 4] | 8;
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xE40),
-            *(int *)((char *)&D_00000000 + 0xE44), -1);
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE40), -1);
     }
     s0[0x118 / 4] = 1;
     gl_func_00000000(s0);
