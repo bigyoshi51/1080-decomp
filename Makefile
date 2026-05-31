@@ -31,10 +31,15 @@ build/src/arcproc_uso/arcproc_uso_o0_50.c.o build/non_matching/src/arcproc_uso/a
 build/src/arcproc_uso/arcproc_uso.c.o build/non_matching/src/arcproc_uso/arcproc_uso.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
 build/src/arcproc_uso/arcproc_uso.c.o: PREFIX_BYTES := arcproc_uso_func_00000000=0x10006F00
+build/non_matching/src/arcproc_uso/arcproc_uso.c.o: NON_MATCHING_PREFIX_BYTES := arcproc_uso_func_00000000=0x10006F00
 build/src/boarder5_uso/boarder5_uso.c.o: PREFIX_BYTES := boarder5_uso_func_00000000=0x1000736F
+build/non_matching/src/boarder5_uso/boarder5_uso.c.o: NON_MATCHING_PREFIX_BYTES := boarder5_uso_func_00000000=0x1000736F
 build/src/eddproc_uso/eddproc_uso.c.o: PREFIX_BYTES := eddproc_uso_func_00000000=0x10006F00
+build/non_matching/src/eddproc_uso/eddproc_uso.c.o: NON_MATCHING_PREFIX_BYTES := eddproc_uso_func_00000000=0x10006F00
 build/src/n64proc_uso/n64proc_uso.c.o: PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
+build/non_matching/src/n64proc_uso/n64proc_uso.c.o: NON_MATCHING_PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
+build/non_matching/src/h2hproc_uso/h2hproc_uso.c.o: NON_MATCHING_PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
 # 2026-05-27: removed instruction-appending PREFIX_BYTES for game_libs_func_0003ECDC,
 # game_libs_func_0005AFB0, kernel func_80007FC8 — all were leading-nop / self-branch
 # instruction-faking that violated the 2026-05-23 no-instruction-forcing-matches policy
@@ -338,6 +343,7 @@ build/non_matching/src/%.c.o: src/%.c
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
 	@if [ -n "$(REPLACE_FUNC_BODY)" ]; then for spec in $(REPLACE_FUNC_BODY); do 		fn=$$(echo $$spec | cut -d= -f1); 		donor=$$(echo $$spec | cut -d= -f2); 		$(MAKE) $$donor; 		python3 scripts/replace-function-body.py $@ $$fn $$donor; 	done; fi
+	@if [ -n "$(NON_MATCHING_PREFIX_BYTES)" ]; then for spec in $(NON_MATCHING_PREFIX_BYTES); do 		fn=$$(echo $$spec | cut -d= -f1); 		words=$$(echo $$spec | cut -d= -f2); 		python3 scripts/inject-prefix-bytes.py $@ $$fn $$words; 	done; fi
 	@if [ -n "$(NON_MATCHING_SUFFIX_BYTES_FORCE)" ]; then for spec in $(NON_MATCHING_SUFFIX_BYTES_FORCE); do 		fn=$$(echo $$spec | cut -d= -f1); 		words=$$(echo $$spec | cut -d= -f2); 		python3 scripts/inject-suffix-bytes.py $@ $$fn $$words --allow-natural-epilogue; 	done; fi
 	@if [ -n "$(NON_MATCHING_TRUNCATE_TEXT)" ]; then python3 scripts/truncate-elf-text.py $@ $(NON_MATCHING_TRUNCATE_TEXT); fi
 	@if [ -n "$(NON_MATCHING_TEXT_CLIP_KEEP_ALIGN)" ]; then python3 scripts/clip-elf-text-keep-align.py $@ $(NON_MATCHING_TEXT_CLIP_KEEP_ALIGN); fi
