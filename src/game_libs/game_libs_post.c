@@ -5245,11 +5245,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
 // delay slot (2/18 register-exact delay-slot fill); INSN_PATCH-class, stays
 // NM (INSN_PATCH REMOVED 2026-05-23 per
 // feedback_no_instruction_forcing_matches_policy).
-#ifdef NON_MATCHING
 int game_libs_func_00025A80(int *a0, int a1, int **a2) {
     int i = 0;
-    int key = a0[1];
     if (a1 > 0) {
+        int key = a0[1];
         do {
             if (key == a2[i][1]) {
                 break;
@@ -5263,9 +5262,6 @@ int game_libs_func_00025A80(int *a0, int a1, int **a2) {
     }
     return a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025A80);
-#endif
 
 // gl_func_00025AC8 — STRUCTURAL PASS (0x18C / 99 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
