@@ -12552,16 +12552,25 @@ void game_uso_func_00010694(int *a0) {
     /* @ 0xC8-0xF8: reload sub; check sub->0x9CC == 0; if so, sub-call with
      * D[0xE48..0x10F0] table walk pair. Common pattern from sibling 10840. */
     sub = (int*)a0[0xB4/4];
-    if (sub[0x9CC/4] == 0) {
-        /* table walk: a2 = &D[0xE48], step-by-8 entries, max 8 iters.
-         * For each entry: load (a2+0)+(a2+4) as args, call gl_func, advance. */
-        gl_func_00000000(a0,
-                         *(Pair2*)((char*)&D_00000000 + 0xE48));
+    if (sub[0x9CC/4] != 0) {
+        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE48));
     }
-
-    /* TODO 0xF8-0x1A8: remaining table-walk loop + final 2 cross-USO calls
-     * + epilogue. Loop iterates 8 entries from D[0xE48], stops on first
-     * non-null cb_result. */
+    gl_func_00000000(a0);
+    gl_func_00000000(a0);
+    /* cache 0xB4->0x938 into 0xDC, then match 0xD0[0..1] against D[0xDC8][0..1] */
+    *(int*)((char*)a0 + 0xDC) = ((int*)a0[0xB4/4])[0x938/4];
+    {
+        int *p = (int*)((char*)a0 + 0xD0);
+        int *t = (int*)((char*)&D_00000000 + 0xDC8);
+        int found = 1;
+        int i;
+        for (i = 0; i < 2; i++) {
+            if (p[i] != t[i]) { found = 0; break; }
+        }
+        if (found) {
+            gl_func_00000000(a0, *(Pair2*)((char*)a0 + 0xD0));
+        }
+    }
     (void)saved_f0;
 }
 #else
