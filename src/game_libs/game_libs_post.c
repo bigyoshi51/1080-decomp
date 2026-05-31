@@ -9578,15 +9578,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D7D0);
  *
  * Calls gl_func_00000000(0x41030000, D_2D838_Y[D_2D838_X]) — passes float
  * bits 8.1875f as a0 and indexed table value as a1. */
-extern int *D_2D838_X;
+extern int D_2D838_X;
 extern int D_2D838_Y[];
-#ifdef NON_MATCHING
-void gl_func_0002D838(void) {
-    gl_func_00000000(0x41030000, D_2D838_Y[(int)D_2D838_X]);
+void game_libs_func_0002D830(void) {
+    gl_func_00000000(0x41030000, D_2D838_Y[D_2D838_X]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D838);
-#endif
 
 /* gl_func_0002D870: 12-insn prologue-stolen-successor (sibling of 0002D838,
  * 0002D8A8). Predecessor's tail loads $t6 = *(int*)D_2D870_X; this function
