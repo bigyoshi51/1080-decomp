@@ -14714,26 +14714,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035C6C);
 //   game_libs object subsystem's collections (the same lists the
 //   gl_func_00033228 enlist / gl_func_00034458 process family
 //   touch).
-// Caps (DEFERRED): raw-word USO + fixed intra-USO iterator API
-//   calls (0x012844 begin + 0x012853 step) + nested 4-byte-stride
-//   loop — byte-match needs USO mnemonic disasm + iterator struct
-//   typed. Real-C STRUCTURAL body below per the analysis (sibling
-//   of gl_func_00035C6C). Byte-match deferred. Name pre-checked:
-//   no extern reuse.
+// Caps (DEFERRED): raw-word USO + fixed intra-USO iterator API.
+//   2026-05-31: body completed 40.0->62.1%. The sketch passed &it (base)
+//   to ALL calls; the real fn precomputes FIVE field-address pointers into
+//   saved regs and passes a SPECIFIC field addr per call: init(&a[5]),
+//   step(&a[4]) [sets counter], inner step(&a[3]). Loop: *a[5]=0; init;
+//   *a[6]=-1; *a[0]=*a[6]; while(*a[0]!=*a[5]){ step(&a[4]); if(*a[4])
+//   do{ step(&a[3]); *a[4]-=4; }while(*a[4]); *a[5]=0; }. Logic correct.
+//   RESIDUAL: IDO folds *pN to direct sp-relative access + recomputes the
+//   call-arg pointers inline -> only 3 of 5 field-pointers reach saved regs;
+//   target hoists all 5 addiu sN,sp,off to the top. Address-folding/saved-
+//   reg-promotion regalloc cap. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_00035DAC(void) {
-    char it[0x18];
-    int n;
-    *(int *)(it + 0x14) = 0;
-    gl_func_00000000(&it);
-    *(int *)(it + 0x18 - 4) = -1;
-    while (*(int *)(it + 0x14) != *(int *)(it + 0)) {
-        n = *(int *)(it + 0x10);
-        do {
-            gl_func_00000000(&it);
-            n -= 4;
-        } while (n != 0);
-        *(int *)(it + 0x14) = 0;
+    int a[7];
+    int *p3 = &a[3];      /* s0 = sp+64 */
+    int *p5 = &a[5];      /* s1 = sp+72 (end / init arg) */
+    int *p0 = &a[0];      /* s2 = sp+52 (current) */
+    int *p6 = &a[6];      /* s3 = sp+76 (sentinel) */
+    int *p4 = &a[4];      /* s4 = sp+68 (counter) */
+    *p5 = 0;
+    gl_func_00000000(p5);             /* iterator init(&end) */
+    *p6 = -1;
+    *p0 = *p6;
+    while (*p0 != *p5) {
+        gl_func_00000000(p4);         /* step -> sets counter *p4 */
+        if (*p4 != 0) {
+            do {
+                gl_func_00000000(p3); /* inner step */
+                *p4 -= 4;
+            } while (*p4 != 0);
+        }
+        *p5 = 0;
     }
 }
 #else
