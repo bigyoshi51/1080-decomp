@@ -12452,9 +12452,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001094C);
 #ifdef NON_MATCHING
 /* game_uso_func_00010A0C: 45-insn EE84-family, near-twin of 0001094C
  * (constant first-call args 0x20004/0x20005, D[0xE48] pair, INVERTED t2
- * test: calls X3 when t2==0). Cross-USO jal-0 → gl_func_00000000,
- * float-pairs → &D_00000000+off. Same EE84-family precall-arg-spill +
- * jal-0 placeholder ceiling; NM body documents the decode. */
+ * test: calls X3 when t2==0). Cross-USO jal-0 → gl_func_00000000.
+ * 67.9% -> 93.4%: the two D-pair calls (0xE48/0xE4C, 0xE70/0xE74) are
+ * passed BY VALUE as *(Pair2*) — the "precall-arg-spill cap" was the
+ * un-homed pair (same lever as 10AC8/10B38, see
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
+ * Residual is pure regalloc-renumber (temp regs t6/t7/t9/t3 vs the
+ * target's v0/t6/t8/t1 + a deferred `or s0,a0`); same logic, not
+ * C-reachable for our IDO binary. */
 extern int gl_func_00000000();
 void game_uso_func_00010A0C(int *a0) {
     int *s0 = a0;
@@ -12463,16 +12468,12 @@ void game_uso_func_00010A0C(int *a0) {
     gl_func_00000000(s0, 0x20004, 0x20005, p[0x970 / 4], 0, 1);
     p = (int *)s0[0xB4 / 4];
     if (p[0x990 / 4] == 0) {
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xE48),
-            *(int *)((char *)&D_00000000 + 0xE4C));
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE48));
         p = (int *)s0[0xB4 / 4];
     }
     t2 = p[0x9CC / 4];
     if (t2 == 0) {
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xE70),
-            *(int *)((char *)&D_00000000 + 0xE74));
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE70));
     }
     gl_func_00000000(s0);
     gl_func_00000000(s0);
