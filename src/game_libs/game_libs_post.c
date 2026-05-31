@@ -23456,44 +23456,37 @@ void gl_func_000444B4(int* a0, int a1) {
 void game_libs_func_00044534(int a0, int a1) {
 }
 
-// game_libs_func_00044540 — STRUCTURAL PASS + BOUNDARY NOTE (0x8 / 2 words, no
-// episode). Raw-.word USO. NOT a function: only 2 words, no prologue, no jr
-// (realjr=0, regjr=0):
-//     lui  v0, 0            // 3C020000  (reloc hi of a &D_ global)
-//     lw   v0, 0x214(v0)    // 8C420214  (reloc lo: v0 = *(&D_g + 0x214))
-// HEAD-FRAGMENT — same class as game_libs_func_00042438: the first two
-// instructions of the NEXT symbol's entry (a reloc-split load of a module
-// global into v0, no return), mis-split off at a wrong USO boundary; the
-// chain that consumes v0 lives in the following symbol. DEFERRED USO
-// RE-SPLIT: needs a USO-disasm boundary correction (mnemonic split/merge
-// does not work on reloc-split lui/lw pairs on relocatable USO — see
-// docs/N64_FORENSICS HEAD-fragment notes); not 60s-tick safe. No pseudo-C:
-// these two words belong to the next function. Full body INCLUDE_ASM-preserved.
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
-
-#ifdef NON_MATCHING
-/* gl_func_00044548: 25-insn DList/RDP-cmd appender.
- *   rv = func(*(a0->[0xC]) + a0[0] * 8);   // call uses a0's element
- *   counter = a1->[0xC]->[0x4];
- *   a1->[0xC]->[0x4] = counter + 1;
- *   entry = a1->[0xC]->[0] + counter * 8;
- *   entry[0] = 0x06000000;   // DList tag
- *   entry[1] = rv;
- * The 0x06000000 constant is the F3DEX2 G_DL command opcode marker. */
+/* game_libs_func_00044540: 25-insn DList/RDP-cmd appender. The orphan
+ * game_libs_func_00044540 (lui v0; lw v0,0x214(v0) = *(void**)(&D+0x214))
+ * was the stolen prologue of gl_func_00044548 — it loads `self`, the base
+ * used at the top (self->0xC). The prior decode wrongly read this as a0->0xC;
+ * it is the global at &D+0x214. Merged FORWARD (one 0x6C symbol at 0x44540,
+ * successor .s deleted; no jal targets). Reading &D+0x214 inline makes IDO
+ * hoist the lui;lw above the prologue (same recipe as game_libs_func_00026B40);
+ * v0 is reused for the call return (rv). The 0x06000000 is the F3DEX2 G_DL
+ * command opcode marker. 2026-05-30: orphan-merge + decode fix (a0->self) +
+ * store-before-base-read reorder + a0[0]*8-first operand order → STRUCTURE
+ * EXACT (27/27 opcodes/order). Residual = a 2nd-block regalloc renumber: the
+ * target reuses $a0 (dead first param) for `counter` and keeps a1->0xC in
+ * $v1/$t1; mine puts counter in $t2 and a1->0xC in $a0 — same opcodes, swapped
+ * regs (caller-saved-temp class, not lever-crackable). Stays NM. */
 extern int gl_func_00000000();
-void gl_func_00044548(int *a0, int **a1) {
+extern int D_00000000;
+#ifdef NON_MATCHING
+void game_libs_func_00044540(int *a0, int **a1) {
     int rv;
     int counter;
     int *base;
-    rv = gl_func_00000000((char*)((int**)a0[0xC/4])[0] + a0[0] * 8);
+    int *self = *(int **)((char *)&D_00000000 + 0x214);
+    rv = gl_func_00000000((char*)(a0[0] * 8 + (int)((int**)self[0xC/4])[0]));
     counter = ((int*)a1[0xC/4])[0x4/4];
-    base = (int*)((int*)a1[0xC/4])[0];
     ((int*)a1[0xC/4])[0x4/4] = counter + 1;
+    base = (int*)((int*)a1[0xC/4])[0];
     base[counter * 2 + 0] = 0x06000000;
     base[counter * 2 + 1] = rv;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044548);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
 #endif
 
 // gl_func_000445AC — STRUCTURAL PASS (0x368 / 219 words, no episode). Raw-.word
