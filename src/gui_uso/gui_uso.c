@@ -594,15 +594,12 @@ int gui_uso_func_00001674(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000016A4);
 
-/* NATURAL CEILING ~97% (2-insn): the two store constants 0xFCFFFFFF (arr[0])
- * and 0xFFFCF279 (arr[1]) are each materialized via lui+ori. Target schedules
- * t1's (arr[1]) ori BEFORE t0's (arr[0]) ori — splitting t0's lui/ori around
- * t1's full materialization + a load. Ours completes t0 first. 2026-05-28:
- * NOT source-controllable — swapping the two stores AND naming the constants
- * arr[1]-value-first both leave 2 diffs. The ori interleave is an IDO
- * scheduler decision driven by the surrounding lw latencies, not C statement
- * order. Permanent NM (constant-materialization scheduling-order cap). */
-#ifdef NON_MATCHING
+/* MATCHED 2026-05-31 via decomp-permuter (the prior "permanent NM constant-
+ * materialization scheduling-order cap" was WRONG — it was cracked, not by
+ * manual C swaps, but by the permuter: putting the two arr[] stores on a SINGLE
+ * source line shifts IDO's lui/ori scheduling to interleave t1's ori before
+ * t0's, matching the target. Byte-exact. Lesson: 2-diff load/schedule-ORDER
+ * residuals are permuter-crackable even when manual statement-reorder fails. */
 void gui_uso_func_00001794(int a0) {
     int *rec = *(int **)&D_00000000;
     int *sub = (int *)rec[3];
@@ -610,12 +607,8 @@ void gui_uso_func_00001794(int a0) {
     int *arr;
     sub[1] = count + 1;
     arr = (int *)(((int *)rec[3])[0] + count * 8);
-    arr[0] = 0xFCFFFFFF;
-    arr[1] = 0xFFFCF279;
+    arr[0] = 0xFCFFFFFF; arr[1] = 0xFFFCF279;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001794);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000017DC);
 
