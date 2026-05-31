@@ -3808,15 +3808,17 @@ int game_libs_func_0002358C(int a0, int a1, int a2) {
 //   selected record, then walks that record's associated buffer run.
 //   The cross-cutting "process record together with its stream"
 //   operation that links the registry/record and buffer-run families.
-// Caps (DEFERRED): CLEAN single jr $ra. Cross-cutting "process record
-//   together with its stream" op linking the gl_func_0001FBD4 record
-//   table and the gl_func_00022FC0 buffer-run families. Real-C
-//   STRUCTURAL body below per the analysis (bufIdx range-check vs
-//   &D_0+0x202C; rec = &D_0+0x2D00 + recIdx-scaled stride; jal-0
-//   USO-reloc processor(rec); then walk the &D_0+0x2028 buf[bufIdx]
-//   run-length byte stream). Byte-match deferred — placeholder jal-0
-//   processor needs USO reloc infra + stride-shift / run-loop
-//   schedule. Name pre-checked: no extern reuse (collision-safe).
+// Caps (DEFERRED): CLEAN single jr $ra. Cross-cutting record+stream op.
+//   2026-05-31 FULL DECODE + completion 42.7->76.0%: fixed the stride
+//   (recIdx*0x160 = 352 via shift-sub, NOT 0x180), the limit load (lhu
+//   unsigned, not lh), and added the whole missing TAIL: after the run-loop
+//   (last=buf[cur] per elem; cb37ea4(last)), if(cb37d98(bufIdx)==0) return 0;
+//   proc2(rec); then 8 rec field writes (rec->5=last, rec->0x18=cur,
+//   rec->0|=0x80, rec->0x78=cur, rec->0x90=0, rec->0x10=0, rec->0&=0xBF,
+//   rec->4=bufIdx); proc3(rec); return 16. RESIDUAL (76->100): consistent
+//   saved-reg renumber (&D base s3 vs my v0, last/cur slots) + return-loop
+//   form (IDO folds my do{i+=4}while(i!=16) to `li 16`; target keeps the loop)
+//   + the placeholder jals. Name pre-checked: no extern reuse.
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
@@ -3824,23 +3826,45 @@ extern int D_00000000;
 int gl_func_000235E4(int recIdx, int bufIdx, int arg) {
     char *g = (char *)&D_00000000;
     char *rec;
-    short *buf;
+    unsigned char *buf;
     int cur, cnt;
-    if (bufIdx >= *(short *)(g + 0x202C)) {
+    int last = 255;
+    int i;
+    if (bufIdx >= *(unsigned short *)(g + 0x202C)) {
         return 0;
     }
-    rec = g + 0x2D00 + ((recIdx * 3) << 2 << 5);
+    rec = g + 0x2D00 + recIdx * 0x160;
     gl_func_00000000(rec);
-    buf = *(short **)(g + 0x2028);
-    cur = buf[bufIdx];
-    cnt = *((unsigned char *)buf + cur);
+    buf = *(unsigned char **)(g + 0x2028);
+    cur = *(unsigned short *)(buf + bufIdx * 2);
+    cnt = *(unsigned char *)(buf + cur);
+    cur++;
+    if (cnt > 0) {
+        do {
+            last = *(unsigned char *)(buf + cur);
+            cur++;
+            gl_func_00000000(last);
+            cnt--;
+        } while (cnt > 0);
+    }
+    if (gl_func_00000000(bufIdx) == 0) {
+        return 0;
+    }
+    gl_func_00000000(rec);
+    *(unsigned char *)(rec + 5) = (unsigned char)last;
+    *(int *)(rec + 0x18) = cur;
+    *(unsigned char *)(rec + 0) |= 0x80;
+    *(int *)(rec + 0x78) = cur;
+    *(unsigned char *)(rec + 0x90) = 0;
+    *(short *)(rec + 0x10) = 0;
+    *(unsigned char *)(rec + 0) &= 0xBF;
+    *(unsigned char *)(rec + 4) = (unsigned char)bufIdx;
+    gl_func_00000000(rec);
+    i = 0;
     do {
-        cur++;
-        gl_func_00000000(*((unsigned char *)buf + cur), arg);
-        cnt--;
-    } while (cnt > 0);
-    buf[bufIdx] = (short)cur;
-    return cur;
+        i += 4;
+    } while (i != 16);
+    return i;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000235E4);
