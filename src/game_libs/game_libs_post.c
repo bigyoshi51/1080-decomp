@@ -6725,31 +6725,53 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028358);
 //   different sub-count field of the same record — and forwards the
 //   arg via $a2. The two are the per-sub-field-class select/resolve
 //   entries for the registry current-item state.
-// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc lookup — byte-match
-//   needs USO mnemonic disasm + reloc-pad jal infra. Real-C
-//   STRUCTURAL body below per the analysis (placeholder calls /
-//   fields). Byte-match deferred.
+// 2026-05-31: 56.05% -> 88.25% by COMPLETING the logic (prior sketch was
+//   semantically WRONG — it did `if(r!=0) {store r; return r;}` then a bogus
+//   packed+1 path). Real flow (from expected asm): a0==0xFF -> ret 0; else
+//   r=lookup(a0,a1); if r==0 -> store a0+0x10000000, ret 0; else
+//   rec=*(&D+0x2030)+a0*0x14; if a1>=rec->b1 (cap) -> store (a0<<8)+a1+0x4000000,
+//   ret 0; else v1=rec->0xC; if (u32)v1<0x80000000 -> ret 0; else
+//   val=*(v1+a1*4); if val!=0 ret val; else store (a0<<8)+a1+0x5000000, ret 0.
+//   The three lui-flags (0x1000/0x400/0x500 <<16) are state-class bits OR'd in.
+//   REMAINING (~88%): IDO emits the a0==0xFF check BEFORE the ra-save (target
+//   saves ra first / routes the early return through the shared epilogue) +
+//   register allocation; goto-shared-ret0 and result-var forms both scored LOWER
+//   (64.7% / frame-grew) — early-returns is the best C form. Apply this complete
+//   flow to the siblings gl_func_00028358 / gl_func_00028510 (same shape).
 //   Name pre-checked: no extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_0002842C(int a0, int a1) {
     int r;
-    char *rec;
-    unsigned char cap;
-    int packed;
-    if (a0 == 0xFF) return 0;
-    r = gl_func_00000000(a0, a1);
-    if (r != 0) {
-        *(int *)((char *)&D_00000000 + 0x2158) = r;
-        return r;
+    int *rec;
+    int v1;
+    int *p;
+    int val;
+    if (a0 == 0xFF) {
+        return 0;
     }
-    rec = *(char **)((char *)&D_00000000 + 0x2030) + a0 * 0x14;
-    cap = *(unsigned char *)(rec + 1);
-    packed = (a0 << 8) | a1;
-    if (a1 < cap) packed += 1;
-    *(int *)((char *)&D_00000000 + 0x2158) = packed;
-    return packed;
+    r = gl_func_00000000(a0, a1);
+    if (r == 0) {
+        *(int *)((char *)&D_00000000 + 0x2158) = a0 + 0x10000000;
+        return 0;
+    }
+    rec = (int *)(*(int *)((char *)&D_00000000 + 0x2030) + a0 * 0x14);
+    if (a1 >= *(unsigned char *)((char *)rec + 1)) {
+        *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x4000000;
+        return 0;
+    }
+    v1 = *(int *)((char *)rec + 0xC);
+    if ((unsigned int)v1 < 0x80000000U) {
+        return 0;
+    }
+    p = (int *)(v1 + a1 * 4);
+    val = *p;
+    if (val != 0) {
+        return val;
+    }
+    *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x5000000;
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002842C);
