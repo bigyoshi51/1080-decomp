@@ -714,6 +714,15 @@ INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_0000026
  * output structure with k1 emitted first. Reverted to source-order
  * matching target (k0 first) for code clarity since output is identical.
  * Rules out source-reorder as a lever for the k0/k1 block-emit cap. */
+/* 95.5% near-miss (21 diffs). Residual PRECISELY characterized 2026-05-30:
+ *  (1) key==1 dispatch: mine `bne key,1,end` vs target `beq key,1,k1` (arm
+ *      polarity — target branches TO k1 early at 0x4c, mine branches AWAY).
+ *  (2) a0 spilled to sp+0x1C vs target sp+0x18 (4-byte slot offset).
+ *  (3) a 1-insn cascade after 0x8c from the block ordering.
+ * FAILED levers (all REGRESSED — do not re-try): if/else-if form (23.5%),
+ * k1-first block reorder (43%), pad1 size 0/8 (build-break / 52.9%). The goto
+ * form below is optimal; the fix needs a finer arm/slot lever (likely a switch
+ * or a goto arrangement that keeps this shape but flips the key==1 polarity). */
 void n64proc_uso_func_0000035C(char *a0) {
     char pad1[4];
     float buf[4];
