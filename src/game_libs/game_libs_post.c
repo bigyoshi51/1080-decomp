@@ -827,18 +827,22 @@ int gl_func_0001DA7C(int a0, int a1, int a2, int a3) {
     char *rec = (char *)&D_00000000 + si * 0x158;
     int *dl;
     if (*(unsigned char *)(rec + 0x1C) == 1) {
-        dl = (int *)gl_func_00000000(a0, a1, a2, a3);
+        dl = (int *)gl_func_00000000(a0, a1, si, (short)a3);
     } else {
-        dl = (int *)gl_func_00000000(a0, a1, a2, a3);
+        dl = (int *)gl_func_00000000(a0, a1, si, (short)a3);
     }
     dl[0] = *(unsigned short *)(rec + 0x22) | 0x0C340000;
     dl[1] = 0x0C800940;
     dl[2] = ((*(unsigned short *)(rec + 0x24) + 0x8000) & 0xFFFF) | 0x0C340000;
     dl[3] = 0x0C800C80;
-    if (*(unsigned short *)(rec + 0x28) == 0 && *(unsigned short *)(rec + 0x2A) != 0) {
-        dl = (int *)gl_func_00000000(&dl[4], si);
+    {
+        int *e = &dl[4];
+        if (*(unsigned short *)(rec + 0x28) != 0 ||
+            *(unsigned short *)(rec + 0x2A) != 0) {
+            e = (int *)gl_func_00000000(&dl[4], si);
+        }
+        return (int)e;
     }
-    return (int)dl;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DA7C);
