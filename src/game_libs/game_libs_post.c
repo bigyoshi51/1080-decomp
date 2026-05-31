@@ -6669,31 +6669,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002831C);
 //   stores the packed (a0<<8)|a1 (with a clamp adjustment) into the
 //   selection slot. The "select / resolve handle" entry feeding the
 //   registry subsystem's current-item state.
-// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc lookup — byte-match
-//   needs USO mnemonic disasm + reloc-pad jal infra. Real-C
-//   STRUCTURAL body below per the analysis (placeholder calls /
-//   fields). Byte-match deferred.
-//   Name pre-checked: no extern reuse (collision-safe).
+// 2026-05-31: 54.9% -> 85.47% via the gl_func_0002842C complete-flow (prior
+//   sketch was semantically WRONG). This variant: cap = rec->byte_0 (not b_1),
+//   sub-table = rec->8 (not 0xC), NO v1 bounds-check, uses a1 directly (no a2
+//   copy), flags 0x300 (cap-exceeded) / 0x100 (final). Remaining ~14%: prologue
+//   ra-save ordering + register alloc (same as 2842C). Sibling 28510 has a more
+//   intricate tail (halfword cap rec->h4, sub-stride a2*8, v1-load epilogue) —
+//   deferred. Name pre-checked: no extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_00028358(int a0, int a1) {
     int r;
-    char *rec;
-    unsigned char cap;
-    int packed;
-    if (a0 == 0xFF) return 0;
-    r = gl_func_00000000(a0, a1);
-    if (r != 0) {
-        *(int *)((char *)&D_00000000 + 0x2158) = r;
-        return r;
+    int *rec;
+    int *p;
+    int v1;
+    if (a0 == 0xFF) {
+        return 0;
     }
-    rec = *(char **)((char *)&D_00000000 + 0x2030) + a0 * 0x14;
-    cap = *(unsigned char *)rec;
-    packed = (a0 << 8) | a1;
-    if (a1 < cap) packed += 1;
-    *(int *)((char *)&D_00000000 + 0x2158) = packed;
-    return packed;
+    r = gl_func_00000000(a0, a1);
+    if (r == 0) {
+        *(int *)((char *)&D_00000000 + 0x2158) = a0 + 0x10000000;
+        return 0;
+    }
+    rec = (int *)(*(int *)((char *)&D_00000000 + 0x2030) + a0 * 0x14);
+    if (a1 >= *(unsigned char *)rec) {
+        *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x3000000;
+        return 0;
+    }
+    p = (int *)(*(int *)((char *)rec + 8) + a1 * 4);
+    v1 = *p;
+    if (v1 != 0) {
+        return v1;
+    }
+    *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x1000000;
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028358);
