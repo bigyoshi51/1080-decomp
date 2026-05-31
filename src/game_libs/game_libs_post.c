@@ -21959,7 +21959,8 @@ extern int gl_func_00000000();
 void gl_func_00040CAC(char *a0, int *a1) {
     int buf7[3];
     int buf6[3];
-    if (*a1 == 6) {
+    switch (*a1) {
+    case 6: {
         int *src = (int *)a1[1];
         buf6[0] = src[0xEC / 4];
         buf6[1] = src[0xF0 / 4];
@@ -21970,7 +21971,9 @@ void gl_func_00040CAC(char *a0, int *a1) {
         *(float *)(a0 + 0xB4) = *(float *)(a0 + 0xB4) + *(float *)&buf6[0];
         *(float *)(a0 + 0xB8) = *(float *)(a0 + 0xB8) + *(float *)&buf6[1];
         *(float *)(a0 + 0xBC) = *(float *)(a0 + 0xBC) + *(float *)&buf6[2];
-    } else if (*a1 == 7) {
+        break;
+    }
+    case 7: {
         int *src = (int *)a1[1];
         buf7[0] = src[0];
         buf7[1] = src[1];
@@ -21986,8 +21989,11 @@ void gl_func_00040CAC(char *a0, int *a1) {
         *(float *)(a0 + 0xB8) = *(float *)&buf7[1];
         *(float *)(a0 + 0xBC) = *(float *)&buf7[2];
         gl_func_00000000();
-    } else {
+        break;
+    }
+    default:
         gl_func_00000000();
+        break;
     }
 }
 #else
