@@ -22500,14 +22500,14 @@ int gl_func_0004211C(int a0) {
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00042144(void) {
-    int r2, r3, r5, d4;
+    unsigned int r2, r3, r5;
     gl_func_00000000();
     r2 = gl_func_00000000(&D_00000000);
     r3 = gl_func_00000000(&D_00000000);
-    gl_func_00000000(0x1F6EC, r2, r3 >> 10, r2 >> 10);
+    gl_func_00000000((int)((char *)&D_00000000 + 0x1F6EC), r2, r3 >> 10, r2 >> 10);
     r5 = gl_func_00000000(&D_00000000);
-    d4 = *(int *)((char *)&D_00000000 + 0x28);
-    gl_func_00000000(0x1F704, r5 >> 10, d4 >> 10);
+    gl_func_00000000((int)((char *)&D_00000000 + 0x1F704), r5 >> 10,
+                     *(unsigned int *)((char *)&D_00000000 + 0x28) >> 10);
     gl_func_00000000(&D_00000000);
     gl_func_00000000();
 }
