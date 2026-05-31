@@ -2470,39 +2470,63 @@ void func_00005EF8(int *dst) {
     *dst = buf[0];
 }
 
-/* func_00005F34 - verified structural decode (0x1CC, 115 insns,
- * 3-element list builder + back-link). Same builder+link family
- * as func_00003638 / func_000038C0.
- * Struct-typing reference: s1 = a container object built from
- * D_00007E6C; s1+0x10 (16) = its child list/attach point. Each
- * element built from a1/a2/a3 (arg payloads) via the tagged
- * func_00000000 builder, attached to the list, then back-linked:
- * elem->0x14 (20) = owner (s1, 0 = unlinked), elem->0x4 (4) = 1
- * (linked flag). The a3 register carries an angle/index constant
- * 0x5A / 0xB4 / 0x10E (90/180/270 deg) per element - a 3-way
- * radial placement (e.g. a podium / multi-slot layout).
- * Caps <80: ~9 reloc + &D + beql back-link guards + spilled arg
- * shuffling. INCLUDE_ASM remains build path. */
+/* func_00005F34 - full decode (0x1CC, 115 insns, 95.52% NM, was 42.2%).
+ * It is a SIX-element list builder (not 3): 7 params (a0 unused +
+ * a1,a2,a3 in regs + a4,a5,a6 on the caller stack at sp+80/84/88).
+ * s1 = a container object built from D_00007E6C; list = s1+0x10 is its
+ * child attach point. Per element: r = func_00000000(0, payload, A2, A3, 0)
+ * with an angle constant threaded into a3 (0/90/180/270) for elements
+ * 0-3 and into a2 (-90/90) for elements 4-5; then func_00000000(list, r)
+ * attaches it (return discarded), then back-link: if (r->0x14 != 0)
+ * r->0x4 = 1 (linked flag), r->0x14 = s1 (owner). Element 5 (a6) is gated
+ * on a6 != 0 and uses a beql back-link (duplicated store) since it precedes
+ * the epilogue. Returns s1.
+ * Residual <100 = IDO dead-arg-home: the target homes the UNUSED a0 to its
+ * caller home slot (frame 64 vs 56) and emits a dead `or a3,a0,zero` copy
+ * (a3 overwritten with 0 before any read) — a +1-insn prologue shuffle that
+ * shifts the whole alignment. Same dead-arg-home cap class as C3E8; not
+ * C-reachable. INCLUDE_ASM remains build path. */
 extern char D_00007E6C;
 #ifdef NON_MATCHING
-void func_00005F34(int a0, int a1, int a2, int a3) {
+char *func_00005F34(int a0, int a1, int a2, int a3, int a4, int a5, int a6) {
     char *s1 = (char*)func_00000000(0, &D_00007E6C, 0);
-    char *list = s1 + 0x10;
-    char *e;
+    char *list;
     char *r;
     (void)a0;
-    /* element 0 from a1 */
+    /* element 0 from a1, angle 0 */
     r = (char*)func_00000000(0, a1, 0, 0, 0);
-    e = (char*)func_00000000(list, r);
-    if (*(int*)(e + 0x14) == 0) { *(int*)(e + 0x4) = 1; *(void**)(e + 0x14) = s1; }
-    /* element 1 from a2 */
-    r = (char*)func_00000000(0, a2, 0, 0, 0);
-    e = (char*)func_00000000(list, r);
-    if (*(int*)(e + 0x14) == 0) { *(int*)(e + 0x4) = 1; *(void**)(e + 0x14) = s1; }
-    /* element 2 from a3 */
-    r = (char*)func_00000000(0, a3, 0, 0, 0);
-    e = (char*)func_00000000(list, r);
-    if (*(int*)(e + 0x14) == 0) { *(int*)(e + 0x4) = 1; *(void**)(e + 0x14) = s1; }
+    list = s1 + 0x10;
+    func_00000000(list, r);
+    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
+    *(void**)(r + 0x14) = s1;
+    /* element 1 from a2, angle 90 */
+    r = (char*)func_00000000(0, a2, 0, 90, 0);
+    func_00000000(list, r);
+    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
+    *(void**)(r + 0x14) = s1;
+    /* element 2 from a3, angle 180 */
+    r = (char*)func_00000000(0, a3, 0, 180, 0);
+    func_00000000(list, r);
+    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
+    *(void**)(r + 0x14) = s1;
+    /* element 3 from a4, angle 270 */
+    r = (char*)func_00000000(0, a4, 0, 270, 0);
+    func_00000000(list, r);
+    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
+    *(void**)(r + 0x14) = s1;
+    /* element 4 from a5, angle -90 (a2 slot) */
+    r = (char*)func_00000000(0, a5, -90, 0, 0);
+    func_00000000(list, r);
+    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
+    *(void**)(r + 0x14) = s1;
+    /* element 5 from a6, angle 90 (a2 slot), only when a6 != 0 */
+    if (a6 != 0) {
+        r = (char*)func_00000000(0, a6, 90, 0, 0);
+        func_00000000(list, r);
+        if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
+        *(void**)(r + 0x14) = s1;
+    }
+    return s1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005F34);
