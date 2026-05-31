@@ -1579,7 +1579,10 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001CF4);
  * commits. func_80001CF0 here vs func_80001EDC in CF4 = the
  * with-extra-arg variant of the same init helper. Caps <80: beql
  * branch-likely chain + 2 callees + sp+0x10 stack-arg passing.
- * INCLUDE_ASM remains build path. */
+ * INCLUDE_ASM remains build path.
+ * 2026-05-31 RULED OUT: adding a leading `s` arg to func_80001CF0 (making it
+ * 5-arg func(s,handle,paramA,paramB,a1)) REGRESSES 62.7->56.9%. The 4-arg
+ * form below is correct; do not re-try the 5-arg form. */
 #ifdef NON_MATCHING
 extern int func_80001CF0(int handle, int paramA, int paramB, int a1);
 s32 func_80001DD0(char *s, int a1) {

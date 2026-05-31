@@ -976,7 +976,12 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F
  * Caps <80: 4-level alloc cascade with defensive `if(ptr!=0)skip` dead
  * checks + heavy stack-spill round each gl_ call + &D %hi/%lo reloc
  * materialization scheduling. INCLUDE_ASM is the correct build path
- * (no episode; tautology-trap rule). */
+ * (no episode; tautology-trap rule).
+ * 2026-05-31 RULED OUT: converting to the dead-arm PASSTHROUGH cascade
+ * (p2=s0; if(!p2) p2=alloc; ... goto init_pN) REGRESSES 59.9->46.6%. The
+ * sub-objects ARE genuinely alloc'd (current `p2=alloc(212); if(p2){...}`
+ * nested-if form is correct); the bne-skip arms are NOT passthrough. Do not
+ * re-try the passthrough form. */
 #ifdef NON_MATCHING
 char *arcproc_uso_func_0000199C(char *a0, char *a1, int a2) {
     char *s0;
