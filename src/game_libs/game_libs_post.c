@@ -3959,32 +3959,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023760);
 //   stack scratch slot, then the pair is committed via the fixed
 //   routine 0x0C00DFE0 (≈0x37F80). The "decode & apply a record's
 //   two code fields" entry of the game_libs registry subsystem.
-// Caps (DEFERRED): CLEAN single jr $ra. "Decode & apply a record's
-//   two code fields" entry of the game_libs registry subsystem.
-//   Real-C STRUCTURAL body below per the analysis (j = poll
-//   0x38174(1); rec = &D_0+0x2030 + j*0x14; each non-0xFF code byte
-//   +2/+3 decoded via fixed 0x37DCC into a stack scratch; commit the
-//   pair via fixed 0x37F80(1,j,..,x,y)). Byte-match deferred —
-//   placeholder jal chain needs USO reloc infra + branch schedule.
-//   Name pre-checked: no extern reuse (collision-safe).
+// 2026-05-31: body completed to full logic 49.7->85.0%. The sketch was
+//   wrong in several ways, now fixed: (1) 38174 takes (1, a0) — the param
+//   is the 2nd arg, not dropped; (2) the table base is *(int*)(&D_0+0x2030)
+//   — a POINTER LOADED from that slot, NOT the address &D_0+0x2030 itself;
+//   (3) the 37dcc results + out-params + saved c2/c3 form ONE stack struct
+//   int buf[7] @32..56(sp) — buf[0]=c2 buf[1]=c3 buf[2/3]=decode results
+//   buf[4/5]=decode out-slots buf[6]=37f80 out; (4) the whole tail is
+//   missing: res=37f80(1,j,&buf[6]); if(res==0) return 0; if(buf[6]==1)
+//   39b70(j,res,&buf[0],0); return res (the buf is passed by ptr to 39b70,
+//   which is why the buf[2..5] stores aren't dead). Logic correct (55=55
+//   insns). RESIDUAL: 5 baked-jal placeholders (USO-reloc cap ~9%) + a
+//   regalloc/slot-base diff (target keeps c2/c3 in a0/a2; build uses temps
+//   + a 4-byte-lower frame). Name pre-checked: no extern reuse.
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_00023838(int a0) {
-    char *g = (char *)&D_00000000;
-    int j = gl_func_00000000(1);
-    char *rec = g + 0x2030 + j * 0x14;
-    unsigned char c2 = *(unsigned char *)(rec + 2);
-    unsigned char c3 = *(unsigned char *)(rec + 3);
-    int x = 0, y = 0;
-    if (c2 != 0xFF) {
-        gl_func_00000000(c2, &x);
+int gl_func_00023838(int a0) {
+    int j = gl_func_00000000(1, a0);                         /* 38174(1, a0) */
+    char *rec = *(char **)((char *)&D_00000000 + 0x2030) + j * 0x14;
+    int buf[7];                                              /* stack struct @32..56(sp) */
+    int res;
+    buf[0] = *(unsigned char *)(rec + 2);                    /* c2 */
+    buf[1] = *(unsigned char *)(rec + 3);                    /* c3 */
+    if (buf[0] != 0xFF) {
+        buf[2] = gl_func_00000000(buf[0], &buf[4]);          /* 37dcc(c2, &xo) */
+    } else {
+        buf[2] = 0;
     }
-    if (c3 != 0xFF) {
-        gl_func_00000000(c3, &y);
+    if (buf[1] != 0xFF) {
+        buf[3] = gl_func_00000000(buf[1], &buf[5]);          /* 37dcc(c3, &yo) */
+    } else {
+        buf[3] = 0;
     }
-    gl_func_00000000(1, j, a0, x, y);
+    res = gl_func_00000000(1, j, &buf[6]);                   /* 37f80(1, j, &zo) */
+    if (res == 0) {
+        return 0;
+    }
+    if (buf[6] == 1) {
+        gl_func_00000000(j, res, &buf[0], 0);                /* 39b70(j, res, &pair, 0) */
+    }
+    return res;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023838);
