@@ -2269,17 +2269,15 @@ skip_template:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
 #endif
 
-extern int D_3A0;
-/* 45-insn alloc-or-passthrough constructor. NATURAL CEILING. Was
- * previously documented as "Promoted via 23-word INSN_PATCH (per
- * Makefile) covering the IDO scheduler's prologue-deferred-move + mid-
- * body mtc1/lw-t8 reordering ... patch swaps two relocation-bearing
- * words at +0x34 (lui->addiu) and +0x3C (addiu->or); patch-insn-bytes.py
- * auto-strips the orphan HI16/LO16 relocs". INSN_PATCH +
- * patch-insn-bytes infrastructure REMOVED 2026-05-23 as match-faking
- * (per feedback_no_instruction_forcing_matches_policy). The mid-body
- * mtc1/lw-t8 reordering + prologue-deferred-move shape is unreachable
- * from C; default build is INCLUDE_ASM. */
+/* 45-insn alloc-or-passthrough constructor. 2026-05-31: fixed the bogus
+ * `&D_3A0` (undefined extern → addiu 0) to `(char*)&D_00000000 + 0x3A0` so the
+ * +0x34 `lui;addiu a1,0x3A0` reloc word now matches the target FROM C — this is
+ * the relocation word the removed 23-word INSN_PATCH used to fake (per
+ * feedback_no_instruction_forcing_matches_policy). REMAINING CAP (unreachable
+ * from C): the IDO scheduler's prologue-deferred `or s0,a0` (target sets it
+ * before the arg-homes + bne; C defers it to the bne delay slot) + the mid-body
+ * float-store / mtc1 reordering. fuzzy% stays ~77.6 (objdiff alignment is pinned
+ * by the prologue shift) but the bytes are now more correct. Default INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
     int *s = a0;
@@ -2287,7 +2285,7 @@ int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
         s = (int*)gl_func_00000000(0x138);
     }
     if (s != 0) {
-        gl_func_00000000(s, &D_3A0);
+        gl_func_00000000(s, (char *)&D_00000000 + 0x3A0);
         *(int*)((char*)s + 0x28) = (int)&D_00000000;
         gl_func_00000000((int*)((char*)s + 0x50));
         if (a3 != 0) {
