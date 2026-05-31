@@ -13176,6 +13176,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034448);
 //   fn-ptr is the RECORD's vtable slot (constant), not per-node; nodes link via
 //   +0xC and the -1 sentinel is at node->+4. Remaining ~13% = USO reloc/regalloc.
 //   Name pre-checked: no extern reuse.
+extern char D_0001E3F4, D_0001E400;
 #ifdef NON_MATCHING
 void gl_func_00034458(void) {
     char *n = *(char **)((char *)&D_00000000 + 0);
@@ -13184,14 +13185,14 @@ void gl_func_00034458(void) {
     int outA, outB;
     int s1;
     int vB;
-    gl_func_00000000((void *)0x0001E3F4);
+    gl_func_00000000(&D_0001E3F4);
     while (*(int *)(n + 4) != -1) {
         r = *(char **)((char *)&D_00000000 + 0);
         f = *(int (**)(int, int *, int *))(r + 0x70);
         f(*(int *)(n + 0x11C), &outA, &outB);
         s1 = gl_func_00000000(*(int *)(n + 0x14));
         vB = gl_func_00000000(*(unsigned short *)(n + 0x10));
-        gl_func_00000000((void *)0x0001E400, s1, *(int *)(n + 0x14), vB,
+        gl_func_00000000(&D_0001E400, s1, *(int *)(n + 0x14), vB,
                          outA, outB, *(int *)(n + 0x11C));
         n = *(char **)(n + 0xC);
     }
