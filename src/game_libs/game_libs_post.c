@@ -29385,16 +29385,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
 void gl_func_0005256C(int *a0, int **a1) {
     int op = *(int*)a1;
     int *p;
-    if (op == 0x6A) {
+    switch (op) {
+    case 0x6A:
         p = a1[1];
         a1[1] = p + 1;
         a0[0x30 / 4] |= *p;
-    } else if (op == 0x6B) {
+        break;
+    case 0x6B:
         p = a1[1];
         a1[1] = p + 1;
         a0[0x30 / 4] &= ~(*p);
-    } else {
+        break;
+    default:
         gl_func_00000000();
+        break;
     }
 }
 #else
