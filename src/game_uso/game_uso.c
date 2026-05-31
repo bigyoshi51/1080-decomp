@@ -9113,24 +9113,20 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
  * Likely a "lerp Vec3 toward target with timestep" kind of helper.
  * NM-wrap captures structure for next pass; FPU sched is fragile. */
 extern float D_b424_140;  /* &D_0 + 0x140 */
-extern float D_b424_11C;  /* &D_0 + 0x11C */
-extern float D_b424_104;  /* &D_0 + 0x104 */
+extern void game_uso_func_070338(float f, float *p1, float *p2);
+extern void game_uso_func_04DA24(int *a0);
 void game_uso_func_0000B424(int *a0) {
     float buf[3];
-    float zero;
-    /* Init buf */
-    zero = 0.0f;
-    buf[0] = zero;            /* sp+0x24 */
-    buf[1] = zero;            /* sp+0x28 */
-    buf[2] = D_b424_140;      /* sp+0x2C */
-    /* Call 1 */
-    gl_func_00000000(D_b424_11C, &buf[1], &buf[2]);
-    /* Call 2 */
-    gl_func_00000000(D_b424_104, &buf[0], &buf[2]);
-    /* Write back to a0 */
+    buf[0] = 0.0f;
+    buf[1] = 0.0f;
+    buf[2] = D_b424_140;      /* sp+0x2C = D[0x140] */
+    /* float-first arg (-> $f12); a0 is saved across the calls, not passed */
+    game_uso_func_070338(*(float*)((char*)a0 + 0x11C), &buf[1], &buf[2]);
+    game_uso_func_070338(*(float*)((char*)a0 + 0x104), &buf[0], &buf[2]);
     *(float*)((char*)a0 + 0x60) = buf[0];
     *(float*)((char*)a0 + 0x64) = buf[1];
     *(float*)((char*)a0 + 0x68) = buf[2];
+    game_uso_func_04DA24(a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B424);
