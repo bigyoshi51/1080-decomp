@@ -11295,10 +11295,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
  *   if (s0->0x184 < v0) func_00000000(s0, D[0xEA8], D[0xEAC]);
  * Struct-typing: s0->0xB4 object (->0x800->0x10 bits 0x100/0x200, ->0x938
  * flag, ->0x970 float), s0->0xE6 short counter, s0->0x184 bound, D double
- * gate @0x238, D-pair @0xEA8/EAC. Caps <80: beql/bc1fl/bnel branch-likely,
- * neg.s/mov.s abs idiom, ldc1 double-const + cvt.d.s compare, multi-arg
- * sp-spill D-pair calls — documented EE84-family ceiling. INCLUDE_ASM is
- * the correct build path (no episode; tautology-trap rule). */
+ * gate @0x238, D-pair @0xEA8/EAC. 65.05% -> 71.35%: the D-pair @0xEA8/EAC now
+ * passes BY VALUE as *(Pair2*) (homes a1,a2; same lever as EF70). Residual
+ * (78 diffs): the FP-dispatch over-spills the frame (sp-0x40 here vs target
+ * sp-0x28, +24) + uncached o->0x10/v1->0x938 reloads + beql/bc1fl branch-likely
+ * + neg.s/mov.s abs idiom — documented EE84-family FP ceiling. INCLUDE_ASM. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void game_uso_func_0000F13C(int *a0) {
@@ -11323,9 +11324,7 @@ void game_uso_func_0000F13C(int *a0) {
         short v0 = *(short *)((char *)s0 + 0xE6);
         *(short *)((char *)s0 + 0xE6) = v0 + 1;
         if (s0[0x184 / 4] < v0) {
-            gl_func_00000000(s0,
-                *(int *)((char *)&D_00000000 + 0xEA8),
-                *(int *)((char *)&D_00000000 + 0xEAC));
+            gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xEA8));
         }
     }
 }
