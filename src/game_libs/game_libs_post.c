@@ -34673,7 +34673,55 @@ void gl_func_00062F64(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062F8C);
 
+#ifdef NON_MATCHING
+/* STRUCTURAL first-pass 2026-05-31 (raw-.word USO decode). 64-insn list-walk
+ * constructor. Guards: return if self->0xA0 != 0, or self->0x74 == 0. Allocs
+ * via base = self->0x58 + 0x40 (shared a0 for both calls): self->0x44 =
+ * f(base, self->0x34); self->0x48 = f(base, self->0x38). Then walks the linked
+ * list at self->0x30 (node[0]=value-ptr, node[1]=next): for each node, with
+ * off = ((int*)node[0])->0x10C * 14, calls f(self->0x44 + off, self->0x48 +
+ * off, self->0x54, self->0xAC, self->0xA8 (float)). Finally self->0xA0 =
+ * self->0xA4. % partial: exact list-walk reg/slot allocation (sp+0x2C node /
+ * sp+0x30 next) not yet pinned. */
+extern int gl_func_00000000();
+void gl_func_0006337C(int *self) {
+    int base;
+    void **node;
+    void **next;
+    int val;
+    if (self[0xA0 / 4] != 0) {
+        return;
+    }
+    if (self[0x74 / 4] == 0) {
+        return;
+    }
+    base = self[0x58 / 4] + 0x40;
+    self[0x44 / 4] = gl_func_00000000(base, self[0x34 / 4]);
+    self[0x48 / 4] = gl_func_00000000(base, self[0x38 / 4]);
+    node = (void **)self[0x30 / 4];
+    val = 0;
+    if (node != 0) {
+        next = (void **)node[1];
+        val = (int)node[0];
+    }
+    while (val != 0) {
+        int *obj = (int *)val;
+        int off = obj[0x10C / 4] * 14;
+        gl_func_00000000(self[0x44 / 4] + off, self[0x48 / 4] + off,
+                         self[0x54 / 4], self[0xAC / 4],
+                         *(float *)&self[0xA8 / 4]);
+        node = next;
+        val = 0;
+        if (node != 0) {
+            next = (void **)node[1];
+            val = (int)node[0];
+        }
+    }
+    self[0xA0 / 4] = self[0xA4 / 4];
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006337C);
+#endif
 
 void game_libs_func_0006347C(int *a0, int a1) {
     if (a1 != *(int*)((char*)a0 + 0xA4)) {
