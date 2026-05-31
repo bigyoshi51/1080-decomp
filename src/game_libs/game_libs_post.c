@@ -13035,28 +13035,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034448);
 //   (init/constructor) and gl_func_00034188 (device tick) over the
 //   same &D_0-rooted record; the gl_func_00033B6C registry sweep
 //   resets the slots this pass walks.
-// Caps (DEFERRED): raw-word USO + jalr through element vtable slot
-//   (node+0x70) + USO-reloc jal-0 callbacks + fixed data-seg
-//   templates (0x0001E3F4/0x0001E400 unsymbolized) — byte-match
-//   needs USO mnemonic disasm + node/record structs typed.
-//   Real-C STRUCTURAL body below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// 2026-05-31: 56.0% -> 86.7% by COMPLETING the logic (prior sketch was WRONG:
+//   extra no-arg call, missing the cbB(n->h16) call, wrong cbC args, and used
+//   node->0x70 for the fn-ptr when the asm reloads r=*(&D) and uses r->0x70).
+//   Real loop: n=*(&D) (first node); while(n->4 != -1){ r=*(&D); f=r->0x70;
+//   f(n->0x11C,&outA,&outB); s1=cb(n->0x14); vB=cb(n->h0x10);
+//   cb(0x1E400, s1, n->0x14, vB, outA, outB, n->0x11C); n=n->0xC; }. Note the
+//   fn-ptr is the RECORD's vtable slot (constant), not per-node; nodes link via
+//   +0xC and the -1 sentinel is at node->+4. Remaining ~13% = USO reloc/regalloc.
+//   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_00034458(void) {
-    char *r = *(char **)((char *)&D_00000000 + 0);
-    char *n;
+    char *n = *(char **)((char *)&D_00000000 + 0);
+    char *r;
     int (*f)(int, int *, int *);
     int outA, outB;
+    int s1;
+    int vB;
     gl_func_00000000((void *)0x0001E3F4);
-    n = *(char **)(r + 0x04);
-    while ((int)n != -1) {
-        f = *(int (**)(int, int *, int *))(n + 0x70);
-        f(*(int *)(r + 0x11C), &outA, &outB);
-        gl_func_00000000();
-        gl_func_00000000(*(int *)(r + 0x14));
-        gl_func_00000000(*(short *)(r + 0x10), outA,
-                         *(int *)(r + 0x14));
-        n = *(char **)(n + 0);
+    while (*(int *)(n + 4) != -1) {
+        r = *(char **)((char *)&D_00000000 + 0);
+        f = *(int (**)(int, int *, int *))(r + 0x70);
+        f(*(int *)(n + 0x11C), &outA, &outB);
+        s1 = gl_func_00000000(*(int *)(n + 0x14));
+        vB = gl_func_00000000(*(unsigned short *)(n + 0x10));
+        gl_func_00000000((void *)0x0001E400, s1, *(int *)(n + 0x14), vB,
+                         outA, outB, *(int *)(n + 0x11C));
+        n = *(char **)(n + 0xC);
     }
 }
 #else
