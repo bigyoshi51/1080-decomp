@@ -11133,10 +11133,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 //     (reset then recomputed). tgt/a2 = target + mode args. Clamp
 //     bounds ±7 (fast) / ±2 / ±3 (slow). Snowboard steering/lean
 //     input smoothing.
-// Caps (DEFERRED): raw-word USO — clamp/branch tree fully
-//   enumerable from .s in a future pass. Real-C STRUCTURAL body
-//   below — steering/lean input integrator with rate-clamping
-//   skeleton. Byte-match deferred. Name pre-checked: no extern reuse.
+// CORRECTED 2026-05-31 (field semantics, +0.5pp): the steering target is
+//   ctx->0x7C (NOT the `tgt` param); obj->0x124 is set to the raw target
+//   ctx->0x7C; the clamped delta d ACCUMULATES into obj->0x128 (+=, not =0);
+//   d = (cur!=0) ? ctx->0x7C-cur : 0. STILL WRONG / needs full re-decode: the
+//   clamp is a REFLECTION tree not a simple min/max (asm: slti 8 -> 7-d; slti
+//   -7 -> -7-d; slti 3/-2 -> 0), an obj->0x126 saturating counter (++ until 6),
+//   and a ctx->0x18-flag dispatch setting obj->0x12C to -1/1/5/6 (bits 0x10000/
+//   0x4000/0x2000/0x8000) + a second half at ec94+/ed04+. Multi-tick.
 #ifdef NON_MATCHING
 void game_uso_func_0000EAF4(char *obj, int tgt, int a2) {
     char *s = *(char **)(obj + 0xB4);
@@ -11149,7 +11153,7 @@ void game_uso_func_0000EAF4(char *obj, int tgt, int a2) {
         return;
     }
     cur = *(short *)(obj + 0x124);
-    d = tgt - cur;
+    d = (cur != 0) ? (*(short *)(ctx + 0x7C) - cur) : 0;
     if (a2) {
         hi = 3; lo = -2;
     } else {
@@ -11157,12 +11161,13 @@ void game_uso_func_0000EAF4(char *obj, int tgt, int a2) {
     }
     if (d > hi) d = hi;
     if (d < lo) d = lo;
-    *(short *)(obj + 0x124) = (short)(cur + d);
-    *(short *)(obj + 0x128) = 0;
+    *(short *)(obj + 0x128) = *(short *)(obj + 0x128) + d;
+    *(short *)(obj + 0x124) = *(short *)(ctx + 0x7C);
     *(int *)(obj + 0x12C) = 0;
     if (*(unsigned int *)(ctx + 0x18) & 0x4000) {
         *(int *)(obj + 0x12C) = d * 2;
     }
+    (void)tgt;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
