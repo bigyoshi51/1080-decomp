@@ -72,6 +72,7 @@ def main():
     ap.add_argument('--out', default='/tmp/rdram.bin')
     ap.add_argument('--found', default='/tmp/found.json')
     ap.add_argument('--deadline', type=int, default=200, help='max seconds to wait for the module to appear')
+    ap.add_argument('--real-render', action='store_true', help='use real GFX(video-rice)+RSP(rsp-hle) so the game reaches gameplay (needs Xvfb+DISPLAY); for GAMEPLAY USOs (timproc/game_uso). Dummy default = boot USOs only.')
     a=ap.parse_args()
 
     rom=open(a.rom,'rb').read()
@@ -90,9 +91,25 @@ def main():
     core.ConfigSetParameter(sec, b'R4300Emulator', 1, C.byref(iv))
     buf=C.create_string_buffer(rom,len(rom))
     if core.CoreDoCommand(1,len(rom),buf)!=0: sys.exit('ROM_OPEN failed')   # M64CMD_ROM_OPEN
-    for fn,t in [('dummy-GFX.so',2),('dummy-AUDIO.so',3),('dummy-INPUT.so',4),('dummy-RSP.so',1)]:
-        h=C.CDLL(os.path.join(a.plugins,fn), mode=C.RTLD_GLOBAL)
-        if core.CoreAttachPlugin(t,h._handle)!=0: sys.exit(f'attach {fn} failed (after ROM_OPEN?)')
+    # --real-render: use the bundle's real video-rice (GFX) + rsp-hle (RSP) so the
+    # game advances PAST boot into the attract demo / menu and loads GAMEPLAY USOs
+    # (timproc/game_uso/...). Needs a display (Xvfb :N + DISPLAY=:N) + software GL.
+    # Boot-loaded USOs (bootup/game_libs) work with the dummy default.
+    if a.real_render:
+        plist=[(a.bundle+'/mupen64plus-video-rice.so',2),(os.path.join(a.plugins,'dummy-AUDIO.so'),3),
+               (os.path.join(a.plugins,'dummy-INPUT.so'),4),(a.bundle+'/mupen64plus-rsp-hle.so',1)]
+    else:
+        plist=[(os.path.join(a.plugins,'dummy-GFX.so'),2),(os.path.join(a.plugins,'dummy-AUDIO.so'),3),
+               (os.path.join(a.plugins,'dummy-INPUT.so'),4),(os.path.join(a.plugins,'dummy-RSP.so'),1)]
+    for fn,t in plist:
+        h=C.CDLL(fn, mode=C.RTLD_GLOBAL)
+        # CRITICAL: the FRONTEND must call the plugin's PluginStartup (so the plugin
+        # resolves the core's functions, incl. VidExt) BEFORE CoreAttachPlugin. The
+        # dummy plugins have a no-op PluginStartup so the old code worked; REAL plugins
+        # crash in InitiateGFX on a NULL VidExt ptr without it. (gdb-confirmed.)
+        try: h.PluginStartup(core._handle, None, dbgcb)
+        except AttributeError: pass
+        if core.CoreAttachPlugin(t,h._handle)!=0: sys.exit(f'attach {os.path.basename(fn)} failed (after ROM_OPEN?)')
     print('plugins attached; executing', flush=True)
     threading.Thread(target=lambda: core.CoreDoCommand(5,0,None), daemon=True).start()  # M64CMD_EXECUTE
 
