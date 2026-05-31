@@ -11133,41 +11133,89 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 //     (reset then recomputed). tgt/a2 = target + mode args. Clamp
 //     bounds ±7 (fast) / ±2 / ±3 (slow). Snowboard steering/lean
 //     input smoothing.
-// CORRECTED 2026-05-31 (field semantics, +0.5pp): the steering target is
-//   ctx->0x7C (NOT the `tgt` param); obj->0x124 is set to the raw target
-//   ctx->0x7C; the clamped delta d ACCUMULATES into obj->0x128 (+=, not =0);
-//   d = (cur!=0) ? ctx->0x7C-cur : 0. STILL WRONG / needs full re-decode: the
-//   clamp is a REFLECTION tree not a simple min/max (asm: slti 8 -> 7-d; slti
-//   -7 -> -7-d; slti 3/-2 -> 0), an obj->0x126 saturating counter (++ until 6),
-//   and a ctx->0x18-flag dispatch setting obj->0x12C to -1/1/5/6 (bits 0x10000/
-//   0x4000/0x2000/0x8000) + a second half at ec94+/ed04+. Multi-tick.
+// FULLY RE-DECODED 2026-05-31 (20.9% -> 70.86%): complete logic-exact decode.
+//   Returns int (=v1). Steering target = ctx->0x7C; d = (cur!=0)?tgt-cur:0;
+//   REFLECTION clamp (d>=8 -> 7-d; d<-7 -> -7-d; keep only [-2,2] else 0);
+//   obj->0x126 first-frame init (=1, zero 0x128/0x12C); when d==0 a ctx->0x18
+//   flag dispatch sets d=-1/+1 (0x10000/0x4000) or obj->0x12C=5/6 (0x2000/0x8000);
+//   obj->0x128 += d; obj->0x124 = tgt. Then: counter saturates at >=6 (sets v0);
+//   if v0 (enable-zero OR saturated): clear 0x126, param-gated negations of 0x128
+//   (a1 && 0xB4->0xA58&0x80; a2), then obj->0x128 -> obj->0x12C dispatch
+//   (>=3:4, >0:3, <-2:2, <0:1, 0:0) returned as v1. RESIDUAL: pure
+//   regalloc-renumber (every insn matches modulo register names; logic exact).
 #ifdef NON_MATCHING
-void game_uso_func_0000EAF4(char *obj, int tgt, int a2) {
-    char *s = *(char **)(obj + 0xB4);
-    char *ctx = *(char **)(s + 0x800);
-    int cur;
+int game_uso_func_0000EAF4(char *obj, int a1, int a2) {
+    char *ctx = *(char **)(*(char **)(obj + 0xB4) + 0x800);
+    int tgt = *(short *)(ctx + 0x7C);
+    int v0 = 0;
+    int v1 = 0;
     int d;
-    int hi, lo;
-    if (*(short *)(ctx + 0x7C) == 0) {
-        *(short *)(obj + 0x124) = 0;
-        return;
-    }
-    cur = *(short *)(obj + 0x124);
-    d = (cur != 0) ? (*(short *)(ctx + 0x7C) - cur) : 0;
-    if (a2) {
-        hi = 3; lo = -2;
+    int sval;
+    if (tgt != 0) {
+        int cur = *(short *)(obj + 0x124);
+        d = 0;
+        if (cur != 0) {
+            d = tgt - cur;
+        }
+        if (d >= 8) d = 7 - d;
+        if (d < -7) d = -7 - d;
+        if (d < 3) {
+            if (d < -2) d = 0;
+        } else {
+            d = 0;
+        }
+        if (*(short *)(obj + 0x126) == 0) {
+            *(short *)(obj + 0x126) = 1;
+            *(short *)(obj + 0x128) = 0;
+            *(int *)(obj + 0x12C) = 0;
+        }
+        if (d == 0) {
+            unsigned int fl = *(unsigned int *)(ctx + 0x18);
+            if (fl & 0x10000) {
+                d = -1;
+            } else if (fl & 0x4000) {
+                d = 1;
+            } else if (fl & 0x2000) {
+                *(int *)(obj + 0x12C) = 5;
+            } else if (fl & 0x8000) {
+                *(int *)(obj + 0x12C) = 6;
+            }
+        }
+        *(short *)(obj + 0x128) = *(short *)(obj + 0x128) + d;
+        tgt = *(short *)(ctx + 0x7C);
     } else {
-        hi = 7; lo = -7;
+        v0 = 1;
     }
-    if (d > hi) d = hi;
-    if (d < lo) d = lo;
-    *(short *)(obj + 0x128) = *(short *)(obj + 0x128) + d;
-    *(short *)(obj + 0x124) = *(short *)(ctx + 0x7C);
-    *(int *)(obj + 0x12C) = 0;
-    if (*(unsigned int *)(ctx + 0x18) & 0x4000) {
-        *(int *)(obj + 0x12C) = d * 2;
+    *(short *)(obj + 0x124) = tgt;
+    if (*(short *)(obj + 0x126) != 0) {
+        if ((int)*(short *)(obj + 0x126) >= 6) {
+            *(short *)(obj + 0x126) = *(short *)(obj + 0x126) + 1;
+            v0 = 1;
+        }
     }
-    (void)tgt;
+    if (v0 == 0) return v1;
+    if (*(short *)(obj + 0x126) == 0) return v1;
+    *(short *)(obj + 0x126) = 0;
+    if (a1 != 0) {
+        if (*(int *)(*(char **)(obj + 0xB4) + 0xA58) & 0x80) {
+            *(short *)(obj + 0x128) = -*(short *)(obj + 0x128);
+        }
+    }
+    if (a2 != 0) {
+        *(short *)(obj + 0x128) = -*(short *)(obj + 0x128);
+    }
+    sval = *(short *)(obj + 0x128);
+    if (sval >= 3) {
+        v1 = 4;
+    } else if (sval > 0) {
+        v1 = 3;
+    } else if (sval < -2) {
+        v1 = 2;
+    } else if (sval < 0) {
+        v1 = 1;
+    }
+    *(int *)(obj + 0x12C) = v1;
+    return v1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
