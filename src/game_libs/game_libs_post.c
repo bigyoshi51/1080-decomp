@@ -16512,22 +16512,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 //   family (node->0x2C / 0x34 here vs node->0x28+0x14 in 00038598,
 //   node->0x28+0x1C in 0003863C). A per-frame dual-pass collection
 //   driver of the game_libs object subsystem.
-// Caps (DEFERRED): raw-word USO + intrusive-list walk + two
-//   jalr-through-node-vtable dispatches per element; node/handler
-//   structs untyped. Real-C STRUCTURAL body below. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// Caps (DEFERRED): raw-word USO + intrusive-list walk. 2026-05-31:
+//   body corrected 52.2->58.5%. The sketch had 2 errors, now fixed:
+//   (1) the fn-ptrs come from the HANDLER h=obj->0x28 (h->0x2C / h->0x34),
+//   NOT the node; (2) the call args are SWAPPED — asm is f(obj+(short)off,
+//   ctx), not f(ctx, off+node). Same rotated-loop prefetch shape as 38728
+//   (delay-slot obj loads). RESIDUAL: cursor/next saved-reg-vs-stack-spill
+//   (target spills cursor/next to 40/44(sp) using 3 saved regs; IDO here
+//   promotes them to s3/s2 -> 5 saved regs), same cap as gl_func_00038728.
+//   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_00038964(char *o, void *ctx) {
-    char *n;
-    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
-        char *node = *(char **)n;
-        char *h = *(char **)(node + 0x28);
-        void (*f1)(void *, int);
-        void (*f2)(void *, int);
-        f1 = *(void (**)(void *, int))(node + 0x2C);
-        f1(ctx, *(short *)(h + 0x28) + (int)node);
-        f2 = *(void (**)(void *, int))(node + 0x34);
-        f2(ctx, *(short *)(h + 0x30) + (int)node);
+    char *cursor, *next, *obj, *h;
+    for (cursor = *(char **)(o + 0x10); cursor != 0; cursor = next) {
+        next = *(char **)(cursor + 0x04);                    /* prefetch next BEFORE body */
+        obj = *(char **)cursor;
+        if (obj == 0) {
+            break;
+        }
+        h = *(char **)(obj + 0x28);                          /* handler */
+        (*(void (**)(char *, void *))(h + 0x2C))(obj + *(short *)(h + 0x28), ctx);
+        obj = *(char **)cursor;                              /* re-read obj for 2nd call */
+        h = *(char **)(obj + 0x28);
+        (*(void (**)(char *, void *))(h + 0x34))(obj + *(short *)(h + 0x30), ctx);
     }
 }
 #else
