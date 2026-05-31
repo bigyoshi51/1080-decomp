@@ -8802,29 +8802,47 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode). */
 #ifdef NON_MATCHING
+typedef struct { float x, y, z; } V3_A3C4;
 void game_uso_func_0000A3C4(char *a0) {
     char *a3 = a0;
     char *ent;
-    char *slot;
+    char *slot1, *slot2;
     int idx;
+    V3_A3C4 vref, v1c, v2c;
+    float *ref;
+    float d1x, d1z, d2x, d2z, dist2, dist1;
     *(int *)(a0 + 0x68) &= ~2;
     if (*(int *)(*(char **)(a0 + 0x30) + 0x908) == 0) return;
+    /* block 1: slot at a0->0x40 */
     idx = *(int *)(a0 + 0x40);
     ent = *(char **)((char *)&D_00000000 + 0x548 + idx * 4);
-    slot = (char *)func_00000000(*(int *)ent, 0,
-                                 *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
-    if (slot == 0) {
+    slot1 = (char *)func_00000000(*(int *)ent, 0,
+                                  *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
+    if (slot1 == 0) {
         func_00000000((char *)&D_00000000 + 0x7EC, (char *)&D_00000000 + 0x808, 1104);
     }
-    if (*(int *)(slot + 0x84) & 0x10) slot = *(char **)(slot + 0x2C);
-    idx = *(int *)(a0 + 0x124);
+    if (*(int *)(slot1 + 0x84) & 0x10) slot1 = *(char **)(slot1 + 0x2C);
+    /* block 2: slot at a3->0x7C */
+    idx = *(int *)(a3 + 0x7C);
     ent = *(char **)((char *)&D_00000000 + 0x548 + idx * 4);
-    slot = (char *)func_00000000(*(int *)ent, 0,
-                                 *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
-    if (slot == 0) {
-        func_00000000((char *)&D_00000000 + 0x7EC, (char *)&D_00000000 + 0x808, 1104);
+    slot2 = (char *)func_00000000(*(int *)ent, 0,
+                                  *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
+    if (slot2 == 0) {
+        func_00000000((char *)&D_00000000 + 0x814, (char *)&D_00000000 + 0x830, 1115);
     }
-    if (*(int *)(slot + 0x84) & 0x10) slot = *(char **)(slot + 0x2C);
+    if (*(int *)(slot2 + 0x84) & 0x10) slot2 = *(char **)(slot2 + 0x2C);
+    /* {x,0,z} vecs: reference + both slots */
+    ref = (float *)(*(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
+    vref.x = ref[0]; vref.y = 0.0f; vref.z = ref[2];
+    v1c.y = 0.0f; v1c.z = *(float *)(slot1 + 0x38); v1c.x = *(float *)(slot1 + 0x30);
+    v2c.y = 0.0f; v2c.z = *(float *)(slot2 + 0x38); v2c.x = *(float *)(slot2 + 0x30);
+    d1x = vref.x - v2c.x; d1z = vref.z - v2c.z;
+    d2x = vref.x - v1c.x; d2z = vref.z - v1c.z;
+    dist2 = d1x * d1x + d1z * d1z;
+    dist1 = d2x * d2x + d2z * d2z;
+    if (dist2 < dist1) {
+        *(int *)(a3 + 0x40) = *(int *)(a3 + 0x7C);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
