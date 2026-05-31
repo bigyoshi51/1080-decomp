@@ -38039,19 +38039,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
  */
 void gl_func_00069B94(int *self) {
     extern int D_00000000;
-    int *p;
-    if (self[0x38 / 4] != 3) {
-        gl_func_00000000((char*)&D_00000000 + 0x3C5F0);
+    int *node;
+    if (self[0x38 / 4] == 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x2C5F0);
     }
-    p = (int*)self[0x48 / 4];
-    while (p != 0) {
-        if (p[0] != 0) {
-            int *q = (int*)gl_func_00000000(self[0x3C / 4], p[0]);
-            while (q != 0) {
-                q = (int*)q[1];
-            }
-        }
-        p = (int*)p[1];
+    node = (int*)self[0x48 / 4];
+    while (node != 0 && node[0] != 0) {
+        gl_func_00000000(node[0], self, self[0x3C / 4]);
+        node = (int*)node[1];
     }
 }
 #else
