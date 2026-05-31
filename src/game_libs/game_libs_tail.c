@@ -328,9 +328,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C04);
 #ifdef NON_MATCHING
 /* game_libs_func_00009C5C: a0->0 = a1&0xFF; then a 3-iter char-transform loop
  * (a0[5..7] bytes = a2[0..2] - 0x61) + a block-copy from a3 (a0->8=a3->4,
- * a0->C/0x10/0x14/0x18 = a3->8/C/0x10/0x14, a0->8 byte=5, a0->0x1C=a3->0).
+ * a0->C/0x10/0x14/0x18 = a3->8/C/0x10/0x14, a0->4 byte=5, a0->0x1C=a3->0).
+ * Byte-5 store corrected 2026-05-31: was `(char*)(a0+1)+4` (byte 8, clobbering
+ * a0[2] LSB) -> `(char*)a0+4` (byte 4 = a0[1] flag), matching `sb t5,4(a0)`.
  * Logic exact; near-miss (28/32): the loop's register allocation diverges AND
- * the block-copy's a3+4 cursor folds to offset addressing (4 insns short). */
+ * the block-copy uses a SHARED strength-reduced offset (`v0=1; v1=v0<<2;
+ * a1=a0+v1; a2=a3+v1`, then constant offsets from a1/a2) that C can't force —
+ * GCC -O2 folds `a3+1`/`a0+1` pointers back to direct constant offsets, so the
+ * shared `1<<2` index register never materializes (4 insns short). */
 void game_libs_func_00009C5C(int *a0, int a1, unsigned char *a2, int *a3) {
     unsigned char *dst = (unsigned char *)a0;
     unsigned char *src = a2;
@@ -350,7 +355,7 @@ void game_libs_func_00009C5C(int *a0, int a1, unsigned char *a2, int *a3) {
     q[3] = a3[3];
     q[4] = a3[4];
     q[5] = a3[5];
-    *((char *)q + 4) = 5;
+    *((char *)a0 + 4) = 5;
     a0[7] = a3[0];
 }
 #else
