@@ -4576,7 +4576,6 @@ void game_libs_func_00024B8C(void) {}
  *     99.83% objdiff. Only the reloc-encoding cap (a) remains. */
 /* K&R `()` for compat with line 338's `extern int func_00039194(void *a0)`
  * decl — both decls coexist at NM build (IDO rejects type-mismatch). */
-#ifdef NON_MATCHING
 struct gl_func_00024B94_Four { int a, b, c, d; };
 void gl_func_00024B94(int *a0) {
     struct gl_func_00024B94_Four *v0;
@@ -4587,9 +4586,6 @@ void gl_func_00024B94(int *a0) {
     ((int*)v0)[1] = a0[4];
     *(char*)v0 &= ~0x0C;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024B94);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00024C08: 98-insn two-slot state pump. Sibling of the recently
