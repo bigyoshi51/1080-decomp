@@ -153,16 +153,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
 #endif
 
 /* 7-arg string-builder: a0[0]=a1; a0[1]=a2; 3x copy (a3[i]-0x61)->a0[2..4];
- * a0[5..7]=stack args. NATURAL CEILING: 80% NM. Register-exact; the 5
- * setup insns reorder vs target (isolated-vs-full-TU scheduling cap). The
- * INSN_PATCH positional swap was REMOVED 2026-05-23 as match-faking. */
+ * a0[5..7]=stack args. 90% NM. Splitting the local decls from their
+ * initializers (declare n/d/s, THEN store a0[0]/a0[1], THEN init) hoists
+ * both byte-stores to the top together, matching the target (was 80% when
+ * the `int n=0; char *d=a0; char *s=a3;` inits preceded the stores).
+ * Residual single diff: the loop-bound const `addiu a1,zero,3` schedules
+ * after the n/d/s setup-moves vs before them in the target — a scheduling
+ * tie (the const reuses dead param reg a1, has no data dep on the moves, so
+ * its position among them is a priority tie GCC breaks the other way).
+ * The old INSN_PATCH positional swap was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 void game_libs_func_000099DC(char *a0, int a1, int a2, char *a3, int a4, int a5, int a6) {
-    int n = 0;
-    char *d = a0;
-    char *s = a3;
+    int n;
+    char *d;
+    char *s;
     a0[0] = a1;
     a0[1] = a2;
+    n = 0;
+    d = a0;
+    s = a3;
     do {
         n++;
         d++;
