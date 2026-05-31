@@ -11634,11 +11634,15 @@ void game_uso_func_0000F664(char *a0) {
     gl_func_00000000(a0, 0);
 }
 
-/* game_uso_func_0000F6D4 - verified structural decode; SIBLING of
- * game_uso_func_0000E35C (the EE84-family node-process orchestrator;
- * same shape, this instance's specifics). Documented sub-80 ceiling
- * (D-pair sp-args + beql branch-likely + ceil-div-64 + ~10 calls) ->
- * INCLUDE_ASM build path; struct-typing reference.
+/* game_uso_func_0000F6D4 - SIBLING of game_uso_func_0000E35C (same
+ * node-process/queue-advance shape). 36% -> 86.53% 2026-05-31: the prior body
+ * was INCOMPLETE (58 vs 133 insns) — missing E35C's whole tail (the 0xA58&0x40
+ * flag-set + 0x38&2 D-pair dispatch with EC0/EC8/ED0 pairs) AND had a wrong
+ * index-calc (was `*64`/`>>6` 2-arg; target is the E35C base-cancellation
+ * `((base+(x<<6))-base)/64` with a0=*(&D+0x138), a1=s0->0xB4). Added both +
+ * the Pair2 struct-by-value for the 3 tail D-pairs. Residual (~13%, len 130 vs
+ * 133): regalloc-renumber + first-call unfilled-delay + the base/a0 no-reloc
+ * shared-&D-base codegen (E5C8-class; literal `*(int*)0` form tested = no gain).
  *   s0 = a0;
  *   if (((int*)s0->0xF4)->0x38 & 1) func_00000000(s0->0xF0);   // pre-flush
  *   func_00000000(s0, (s0->0xF0)->0x30, 1);
@@ -11666,17 +11670,19 @@ void game_uso_func_0000F664(char *a0) {
 void game_uso_func_0000F6D4(char *a0) {
     char *s0 = a0;
     char *old;
-    int n;
     if (*(int *)(*(char **)(s0 + 0xF4) + 0x38) & 1) {
         func_00000000(*(char **)(s0 + 0xF0));
     }
     func_00000000(s0, *(int *)(*(char **)(s0 + 0xF0) + 0x30), 1);
-    if (*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x20) {
-        n = (*(int *)(*(char **)(s0 + 0xF0) + 0x3C) * 64 + 63) >> 6;
-        func_00000000(&D_00000000, n);
-    } else {
-        n = ((int)*(char **)(s0 + 0xF0) - *(int *)&D_00000000 + 63) >> 6;
-        func_00000000(&D_00000000, n);
+    {
+        int base = *(int *)&D_00000000;
+        if (*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x20) {
+            func_00000000(*(int *)((char *)&D_00000000 + 0x138), *(char **)(s0 + 0xB4),
+                (int)((base + (*(int *)(*(char **)(s0 + 0xF0) + 0x3C) << 6)) - base) / 64);
+        } else {
+            func_00000000(*(int *)((char *)&D_00000000 + 0x138), *(char **)(s0 + 0xB4),
+                (int)((int)*(char **)(s0 + 0xF0) - base) / 64);
+        }
     }
     *(int *)(s0 + 0x100) += 1;
     old = *(char **)(s0 + 0xF4);
@@ -11689,6 +11695,25 @@ void game_uso_func_0000F6D4(char *a0) {
         *(char **)(s0 + 0xF8) = old;
     }
     func_00000000(s0);
+    {
+        char *f4;
+        if ((*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x40) &&
+            (f4 = *(char **)(s0 + 0xF4), *(int *)(f4 + 0x28) != 0)) {
+            *(int *)(f4 + 0x20) = *(int *)(f4 + 0x28);
+        } else {
+            f4 = *(char **)(s0 + 0xF4);
+            *(int *)(f4 + 0x20) = *(int *)(f4 + 0x24);
+        }
+        f4 = *(char **)(s0 + 0xF4);
+        if (*(int *)(f4 + 0x38) & 2) {
+            func_00000000(s0, *(int *)(f4 + 0x20), 4, 2, 1, 1);
+            func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xEC0), 2);
+        } else {
+            func_00000000(s0, *(int *)(f4 + 0x20), 4, 3, 1, 1);
+            func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xEC8), 3);
+        }
+        func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xED0));
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F6D4);
