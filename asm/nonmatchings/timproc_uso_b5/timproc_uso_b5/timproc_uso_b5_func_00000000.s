@@ -1,17 +1,17 @@
 nonmatching timproc_uso_b5_func_00000000, 0x40
 
 glabel timproc_uso_b5_func_00000000
-    /* 000000 00000000 3C0E0000 */  .word 0x3C0E0000
+    lui $t6, %hi(timproc_uso_b5_D_807FF480)   /* 000000 3C0E0000 -> timproc_uso_b5_D_807FF480 */
     /* 000004 00000004 8DCE0000 */  .word 0x8DCE0000
     /* 000008 00000008 27BDFFE8 */  .word 0x27BDFFE8
     /* 00000C 0000000C AFBF0014 */  .word 0xAFBF0014
     /* 000010 00000010 8DCF007C */  .word 0x8DCF007C
-    /* 000014 00000014 3C010000 */  .word 0x3C010000
-    /* 000018 00000018 3C040000 */  .word 0x3C040000
+    lui $at, %hi(import_8001F484)   /* 000014 3C010000 -> import_8001F484 */
+    lui $a0, %hi(timproc_uso_b5_D_807FF484)   /* 000018 3C040000 -> timproc_uso_b5_D_807FF484 */
     /* 00001C 0000001C 8C840004 */  .word 0x8C840004
     /* 000020 00000020 2405FFFF */  .word 0x2405FFFF
     /* 000024 00000024 00003025 */  .word 0x00003025
-    /* 000028 00000028 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_00F954   /* 000028 0C000000 -> timproc_uso_b5_func_00F954 */
     /* 00002C 0000002C AC2F0064 */  .word 0xAC2F0064
     /* 000030 00000030 8FBF0014 */  .word 0x8FBF0014
     /* 000034 00000034 27BD0018 */  .word 0x27BD0018

@@ -2,7 +2,7 @@ nonmatching timproc_uso_b5_func_00008D38, 0x40
 
 glabel timproc_uso_b5_func_00008D38
     /* 008D38 00008D38 AFA40000 */  .word 0xAFA40000
-    /* 008D3C 00008D3C 3C040000 */  .word 0x3C040000
+    lui $a0, %hi(import_800201EC)   /* 008D3C 3C040000 -> import_800201EC */
     /* 008D40 00008D40 24020018 */  .word 0x24020018
     /* 008D44 00008D44 8C840154 */  .word 0x8C840154
     /* 008D48 00008D48 00001825 */  .word 0x00001825

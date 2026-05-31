@@ -32,7 +32,7 @@ glabel timproc_uso_b5_func_0000B154
     /* 00B1C4 0000B1C4 AC8F0004 */  .word 0xAC8F0004
     /* 00B1C8 0000B1C8 AC880000 */  .word 0xAC880000
     /* 00B1CC 0000B1CC AC580008 */  .word 0xAC580008
-    /* 00B1D0 0000B1D0 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_071028   /* 00B1D0 0C000000 -> timproc_uso_b5_func_071028 */
     /* 00B1D4 0000B1D4 AC980008 */  .word 0xAC980008
     /* 00B1D8 0000B1D8 44801000 */  .word 0x44801000
     /* 00B1DC 0000B1DC 3C013F80 */  .word 0x3C013F80
@@ -48,7 +48,7 @@ glabel timproc_uso_b5_func_0000B154
     /* 00B204 0000B204 27A50048 */  .word 0x27A50048
     /* 00B208 0000B208 E7A20050 */  .word 0xE7A20050
     /* 00B20C 0000B20C E7A2004C */  .word 0xE7A2004C
-    /* 00B210 0000B210 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_071AE0   /* 00B210 0C000000 -> timproc_uso_b5_func_071AE0 */
     /* 00B214 0000B214 E7AC0048 */  .word 0xE7AC0048
     /* 00B218 0000B218 C600010C */  .word 0xC600010C
     /* 00B21C 0000B21C 44801000 */  .word 0x44801000
@@ -59,7 +59,7 @@ glabel timproc_uso_b5_func_0000B154
     /* 00B230 0000B230 27A50038 */  .word 0x27A50038
     /* 00B234 0000B234 E7A20038 */  .word 0xE7A20038
     /* 00B238 0000B238 E7A2003C */  .word 0xE7A2003C
-    /* 00B23C 0000B23C 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_071AE0   /* 00B23C 0C000000 -> timproc_uso_b5_func_071AE0 */
     /* 00B240 0000B240 E7AC0040 */  .word 0xE7AC0040
     /* 00B244 0000B244 C6000114 */  .word 0xC6000114
     /* 00B248 0000B248 44801000 */  .word 0x44801000
@@ -70,11 +70,11 @@ glabel timproc_uso_b5_func_0000B154
     /* 00B25C 0000B25C 27A5002C */  .word 0x27A5002C
     /* 00B260 0000B260 E7A2002C */  .word 0xE7A2002C
     /* 00B264 0000B264 E7A20034 */  .word 0xE7A20034
-    /* 00B268 0000B268 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_071AE0   /* 00B268 0C000000 -> timproc_uso_b5_func_071AE0 */
     /* 00B26C 0000B26C E7AC0030 */  .word 0xE7AC0030
     /* 00B270 0000B270 C6000118 */  .word 0xC6000118
     /* 00B274 0000B274 44801000 */  .word 0x44801000
-    /* 00B278 0000B278 3C040000 */  .word 0x3C040000
+    lui $a0, %hi(import_8005C108)   /* 00B278 3C040000 -> import_8005C108 */
     /* 00B27C 0000B27C E60000E8 */  .word 0xE60000E8
     /* 00B280 0000B280 E60000EC */  .word 0xE60000EC
     /* 00B284 0000B284 E60000F0 */  .word 0xE60000F0
@@ -84,10 +84,10 @@ glabel timproc_uso_b5_func_0000B154
     /* 00B294 0000B294 E7A200A0 */  .word 0xE7A200A0
     /* 00B298 0000B298 E7A2009C */  .word 0xE7A2009C
     /* 00B29C 0000B29C E7A20098 */  .word 0xE7A20098
-    /* 00B2A0 0000B2A0 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_05B750   /* 00B2A0 0C000000 -> timproc_uso_b5_func_05B750 */
     /* 00B2A4 0000B2A4 E7A000A4 */  .word 0xE7A000A4
     /* 00B2A8 0000B2A8 8E040108 */  .word 0x8E040108
-    /* 00B2AC 0000B2AC 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_06970C   /* 00B2AC 0C000000 -> timproc_uso_b5_func_06970C */
     /* 00B2B0 0000B2B0 3C053F00 */  .word 0x3C053F00
     /* 00B2B4 0000B2B4 C6000128 */  .word 0xC6000128
     /* 00B2B8 0000B2B8 C604012C */  .word 0xC604012C
@@ -97,7 +97,7 @@ glabel timproc_uso_b5_func_0000B154
     /* 00B2C8 0000B2C8 46083282 */  .word 0x46083282
     /* 00B2CC 0000B2CC 460A0401 */  .word 0x460A0401
     /* 00B2D0 0000B2D0 44058000 */  .word 0x44058000
-    /* 00B2D4 0000B2D4 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_06970C   /* 00B2D4 0C000000 -> timproc_uso_b5_func_06970C */
     /* 00B2D8 0000B2D8 00000000 */  .word 0x00000000
     /* 00B2DC 0000B2DC 8E020144 */  .word 0x8E020144
     /* 00B2E0 0000B2E0 24490001 */  .word 0x24490001
@@ -118,7 +118,7 @@ glabel timproc_uso_b5_func_0000B154
     /* 00B31C 0000B31C 8C480018 */  .word 0x8C480018
     /* 00B320 0000B320 24420018 */  .word 0x24420018
     /* 00B324 0000B324 35090004 */  .word 0x35090004
-    /* 00B328 0000B328 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_054CAC   /* 00B328 0C000000 -> timproc_uso_b5_func_054CAC */
     /* 00B32C 0000B32C AC490000 */  .word 0xAC490000
     /* 00B330 0000B330 8E0A0140 */  .word 0x8E0A0140
     /* 00B334 0000B334 2401FFFB */  .word 0x2401FFFB

@@ -6,7 +6,7 @@ glabel timproc_uso_b5_func_000087A0
     /* 0087A8 000087A8 1020000F */  .word 0x1020000F
     /* 0087AC 000087AC AFA40000 */  .word 0xAFA40000
     /* 0087B0 000087B0 000E7080 */  .word 0x000E7080
-    /* 0087B4 000087B4 3C010000 */  .word 0x3C010000
+    lui $at, %hi(timproc_uso_b5_D_807FF1F4)   /* 0087B4 3C010000 -> timproc_uso_b5_D_807FF1F4 */
     /* 0087B8 000087B8 002E0821 */  .word 0x002E0821
     /* 0087BC 000087BC 8C2E01D4 */  .word 0x8C2E01D4
     /* 0087C0 000087C0 01C00008 */  .word 0x01C00008

@@ -3,7 +3,7 @@ nonmatching timproc_uso_b5_func_0000894C, 0x20
 glabel timproc_uso_b5_func_0000894C
     /* 00894C 0000894C 27BDFFE8 */  .word 0x27BDFFE8
     /* 008950 00008950 AFBF0014 */  .word 0xAFBF0014
-    /* 008954 00008954 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_000088A0   /* 008954 0C000000 -> timproc_uso_b5_func_000088A0 */
     /* 008958 00008958 00000000 */  .word 0x00000000
     /* 00895C 0000895C 8FBF0014 */  .word 0x8FBF0014
     /* 008960 00008960 27BD0018 */  .word 0x27BD0018

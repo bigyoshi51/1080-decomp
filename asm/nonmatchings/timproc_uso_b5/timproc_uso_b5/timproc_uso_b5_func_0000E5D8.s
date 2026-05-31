@@ -1,12 +1,12 @@
 nonmatching timproc_uso_b5_func_0000E5D8, 0x50
 
 glabel timproc_uso_b5_func_0000E5D8
-    /* 00E5D0 0000E5D0 3C020000 */  .word 0x3C020000
+    lui $v0, %hi(import_80087DA8)   /* 00E5D0 3C020000 -> import_80087DA8 */
     /* 00E5D4 0000E5D4 8C420000 */  .word 0x8C420000
     /* 00E5D8 0000E5D8 27BDFFE8 */  .word 0x27BDFFE8
     /* 00E5DC 0000E5DC AFBF0014 */  .word 0xAFBF0014
     /* 00E5E0 0000E5E0 8C4E0070 */  .word 0x8C4E0070
-    /* 00E5E4 0000E5E4 3C030000 */  .word 0x3C030000
+    lui $v1, %hi(timproc_uso_b5_D_807FFBB0)   /* 00E5E4 3C030000 -> timproc_uso_b5_D_807FFBB0 */
     /* 00E5E8 0000E5E8 24630000 */  .word 0x24630000
     /* 00E5EC 0000E5EC C5C400BC */  .word 0xC5C400BC
     /* 00E5F0 0000E5F0 E4640000 */  .word 0xE4640000
@@ -15,7 +15,7 @@ glabel timproc_uso_b5_func_0000E5D8
     /* 00E5FC 0000E5FC E4660004 */  .word 0xE4660004
     /* 00E600 0000E600 8C580070 */  .word 0x8C580070
     /* 00E604 0000E604 C70800DC */  .word 0xC70800DC
-    /* 00E608 0000E608 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_04CCA8   /* 00E608 0C000000 -> timproc_uso_b5_func_04CCA8 */
     /* 00E60C 0000E60C E4680008 */  .word 0xE4680008
     /* 00E610 0000E610 8FBF0014 */  .word 0x8FBF0014
     /* 00E614 0000E614 27BD0018 */  .word 0x27BD0018

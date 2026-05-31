@@ -2,7 +2,7 @@ nonmatching timproc_uso_b5_func_00008C44, 0xF4
 
 glabel timproc_uso_b5_func_00008C44
     /* 008C44 00008C44 27BDFFD8 */  .word 0x27BDFFD8
-    /* 008C48 00008C48 3C030000 */  .word 0x3C030000
+    lui $v1, %hi(import_800201EC)   /* 008C48 3C030000 -> import_800201EC */
     /* 008C4C 00008C4C 8C630154 */  .word 0x8C630154
     /* 008C50 00008C50 AFBF0024 */  .word 0xAFBF0024
     /* 008C54 00008C54 AFB30020 */  .word 0xAFB30020
@@ -18,9 +18,9 @@ glabel timproc_uso_b5_func_00008C44
     /* 008C7C 00008C7C 24520001 */  .word 0x24520001
     /* 008C80 00008C80 1A400011 */  .word 0x1A400011
     /* 008C84 00008C84 00008825 */  .word 0x00008825
-    /* 008C88 00008C88 3C100000 */  .word 0x3C100000
+    lui $s0, %hi(timproc_uso_b5_D_807FE78C)   /* 008C88 3C100000 -> timproc_uso_b5_D_807FE78C */
     /* 008C8C 00008C8C 26100F1C */  .word 0x26100F1C
-    /* 008C90 00008C90 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_00008A38   /* 008C90 0C000000 -> timproc_uso_b5_func_00008A38 */
     /* 008C94 00008C94 02602025 */  .word 0x02602025
     /* 008C98 00008C98 8C4F02B0 */  .word 0x8C4F02B0
     /* 008C9C 00008C9C 8E0E0000 */  .word 0x8E0E0000
@@ -32,7 +32,7 @@ glabel timproc_uso_b5_func_00008C44
     /* 008CB4 00008CB4 26310001 */  .word 0x26310001
     /* 008CB8 00008CB8 1632FFF5 */  .word 0x1632FFF5
     /* 008CBC 00008CBC 26100004 */  .word 0x26100004
-    /* 008CC0 00008CC0 3C030000 */  .word 0x3C030000
+    lui $v1, %hi(import_800201EC)   /* 008CC0 3C030000 -> import_800201EC */
     /* 008CC4 00008CC4 8C630154 */  .word 0x8C630154
     /* 008CC8 00008CC8 9079000E */  .word 0x9079000E
     /* 008CCC 00008CCC 240100FC */  .word 0x240100FC
@@ -46,7 +46,7 @@ glabel timproc_uso_b5_func_00008C44
     /* 008CEC 00008CEC 24010007 */  .word 0x24010007
     /* 008CF0 00008CF0 5521000A */  .word 0x5521000A
     /* 008CF4 00008CF4 00001025 */  .word 0x00001025
-    /* 008CF8 00008CF8 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_00008A38   /* 008CF8 0C000000 -> timproc_uso_b5_func_00008A38 */
     /* 008CFC 00008CFC 02602025 */  .word 0x02602025
     /* 008D00 00008D00 8C4A02B0 */  .word 0x8C4A02B0
     /* 008D04 00008D04 24010004 */  .word 0x24010004

@@ -5,7 +5,7 @@ glabel timproc_uso_b5_func_00003F18
     /* 003F1C 00003F1C AFBF0014 */  .word 0xAFBF0014
     /* 003F20 00003F20 00802825 */  .word 0x00802825
     /* 003F24 00003F24 AFA50018 */  .word 0xAFA50018
-    /* 003F28 00003F28 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_04A2D8   /* 003F28 0C000000 -> timproc_uso_b5_func_04A2D8 */
     /* 003F2C 00003F2C 24840194 */  .word 0x24840194
     /* 003F30 00003F30 8FA50018 */  .word 0x8FA50018
     /* 003F34 00003F34 8CA20028 */  .word 0x8CA20028

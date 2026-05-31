@@ -12,7 +12,7 @@ glabel timproc_uso_b5_func_0000B9F0
     /* 00BA10 0000BA10 AFB80014 */  .word 0xAFB80014
     /* 00BA14 0000BA14 AFAF0010 */  .word 0xAFAF0010
     /* 00BA18 0000BA18 24060003 */  .word 0x24060003
-    /* 00BA1C 0000BA1C 0C000000 */  .word 0x0C000000
+    jal timproc_uso_b5_func_077C44   /* 00BA1C 0C000000 -> timproc_uso_b5_func_077C44 */
     /* 00BA20 0000BA20 24070002 */  .word 0x24070002
     /* 00BA24 0000BA24 8FA20020 */  .word 0x8FA20020
     /* 00BA28 0000BA28 24190002 */  .word 0x24190002

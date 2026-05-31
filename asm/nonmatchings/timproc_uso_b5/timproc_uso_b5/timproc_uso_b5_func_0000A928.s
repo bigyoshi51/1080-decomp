@@ -1,7 +1,7 @@
 nonmatching timproc_uso_b5_func_0000A928, 0x34
 
 glabel timproc_uso_b5_func_0000A928
-    /* 00A928 0000A928 3C020000 */  .word 0x3C020000
+    lui $v0, %hi(import_80020098)   /* 00A928 3C020000 -> import_80020098 */
     /* 00A92C 0000A92C 24420000 */  .word 0x24420000
     /* 00A930 0000A930 8C4E0134 */  .word 0x8C4E0134
     /* 00A934 0000A934 8DCF0084 */  .word 0x8DCF0084
