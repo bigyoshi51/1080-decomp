@@ -3565,18 +3565,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #endif
 
 #ifdef NON_MATCHING
-/* 72.21% NM. 23-insn loop with branch-likely preload (bnezl at 0x50 with delay-slot
- * `lw v1, 0x40(s2)` preloading v1 for next iteration's body at 0x2C).
- *
- * Logic: for i in [0, a0->0x3C): call (a0->0x40)->0x28->0x4C as fn ptr,
- * arg = (signed short)(a0->0x40)->0x28->0x48 + (a0->0x40). Plus an
- * unused $s1 pointer that increments by 4 per iteration (dead but live
- * in IDO's view).
- *
- * Cap likely structural: the branch-likely with off-loop-body delay-slot
- * preload isn't reachable from std do-while C. The loop body at 0x2C
- * starts WITHOUT a lw v1 — it's pre-loaded by the previous iteration's
- * branch-likely delay slot (or by the initial lw at 0x28). */
+/* 72.21 -> 98.75 (2026-05-31). 23-insn loop. Template family with A9EC/D06C/D0DC
+ * (same shape, different fn-table offsets). KEY DECODE FIX: the per-iteration read
+ * is through the incrementing CURSOR `p` (`*(int**)(p + 0x40)`), NOT a fixed
+ * `a0 + 0x40` — the cursor `p += 4` is NOT dead (the old comment's "unused $s1
+ * pointer" was wrong); it's the read base, so each iter reads a different slot.
+ * Reading via `p` makes the cursor live (gets a saved reg, frame -40 w/ s2) and
+ * the loop matches. Also init `i=0; p=a0;` (i before p) to assign i->s0/p->s1.
+ * Residual: the v0/v1 caller-save swap (target preloads the cursor-read into v1
+ * via the branch-likely delay slot; IDO-emit uses v0) — a register-renumber cap. */
 void timproc_uso_b5_func_0000A97C(char *a0) {
     int i;
     char *p;
@@ -3584,10 +3581,10 @@ void timproc_uso_b5_func_0000A97C(char *a0) {
     int *v0;
 
     if (*(int*)(a0 + 0x3C) <= 0) return;
-    p = a0;
     i = 0;
+    p = a0;
     do {
-        v1 = *(int**)(a0 + 0x40);
+        v1 = *(int**)(p + 0x40);
         v0 = *(int**)((char*)v1 + 0x28);
         (*(int(**)())((char*)v0 + 0x4C))(*(short*)((char*)v0 + 0x48) + (int)v1);
         i++;
@@ -3612,10 +3609,10 @@ void timproc_uso_b5_func_0000A9EC(char *a0) {
     int *v0;
 
     if (*(int*)(a0 + 0x3C) <= 0) return;
-    p = a0;
     i = 0;
+    p = a0;
     do {
-        v1 = *(int**)(a0 + 0x40);
+        v1 = *(int**)(p + 0x40);
         v0 = *(int**)((char*)v1 + 0x28);
         (*(int(**)())((char*)v0 + 0x64))(*(short*)((char*)v0 + 0x60) + (int)v1);
         i++;
@@ -5120,10 +5117,10 @@ void timproc_uso_b5_func_0000D06C(char *a0) {
     int *v0;
 
     if (*(int*)(a0 + 0x6C) <= 0) return;
-    p = a0;
     i = 0;
+    p = a0;
     do {
-        v1 = *(int**)(a0 + 0x3C);
+        v1 = *(int**)(p + 0x3C);
         v0 = *(int**)((char*)v1 + 0x28);
         (*(int(**)())((char*)v0 + 0x4C))(*(short*)((char*)v0 + 0x48) + (int)v1);
         i++;
@@ -5146,10 +5143,10 @@ void timproc_uso_b5_func_0000D0DC(char *a0) {
     int *v0;
 
     if (*(int*)(a0 + 0x6C) <= 0) return;
-    p = a0;
     i = 0;
+    p = a0;
     do {
-        v1 = *(int**)(a0 + 0x3C);
+        v1 = *(int**)(p + 0x3C);
         v0 = *(int**)((char*)v1 + 0x28);
         (*(int(**)())((char*)v0 + 0xE4))(*(short*)((char*)v0 + 0xE0) + (int)v1);
         i++;
