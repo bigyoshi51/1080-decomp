@@ -1,8 +1,8 @@
 nonmatching titproc_uso_func_000002D8, 0x54
 
 glabel titproc_uso_func_000002D8
-    /* 599FA4 000002D8 3C020000 */  .word 0x3C020000
-    /* 599FA8 000002DC 24420000 */  .word 0x24420000
+    /* 599FA4 000002D8 3C020000 */  lui        $v0, %hi(import_00020098)
+    /* 599FA8 000002DC 24420000 */  addiu      $v0, $v0, %lo(import_00020098)
     /* 599FAC 000002E0 27BDFFE8 */  .word 0x27BDFFE8
     /* 599FB0 000002E4 AFBF0014 */  .word 0xAFBF0014
     /* 599FB4 000002E8 240E0002 */  .word 0x240E0002
@@ -11,12 +11,12 @@ glabel titproc_uso_func_000002D8
     /* 599FC0 000002F4 AC400040 */  .word 0xAC400040
     /* 599FC4 000002F8 AC4F013C */  .word 0xAC4F013C
     /* 599FC8 000002FC 2404000C */  .word 0x2404000C
-    /* 599FCC 00000300 0C000000 */  .word 0x0C000000
+    /* 599FCC 00000300 0C000000 */  jal        titproc_uso_func_0002FC
     /* 599FD0 00000304 24050004 */  .word 0x24050004
-    /* 599FD4 00000308 3C040000 */  .word 0x3C040000
-    /* 599FD8 0000030C 8C8400A8 */  .word 0x8C8400A8
+    /* 599FD4 00000308 3C040000 */  lui        $a0, %hi(import_00263D30 + 0xA8)
+    /* 599FD8 0000030C 8C8400A8 */  lw         $a0, %lo(import_00263D30 + 0xA8)($a0)
     /* 599FDC 00000310 2405FFFF */  .word 0x2405FFFF
-    /* 599FE0 00000314 0C000000 */  .word 0x0C000000
+    /* 599FE0 00000314 0C000000 */  jal        titproc_uso_func_00F954
     /* 599FE4 00000318 00003025 */  .word 0x00003025
     /* 599FE8 0000031C 8FBF0014 */  .word 0x8FBF0014
     /* 599FEC 00000320 27BD0018 */  .word 0x27BD0018
