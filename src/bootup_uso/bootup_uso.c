@@ -2820,17 +2820,27 @@ void *func_00007150(char *a0) {
     char *o = a0;
     if (a0 == 0) {
         o = (char*)func_00000000(0x44);
-        if (o == 0) return 0;
+        if (o == 0) goto end;
     }
     func_00000000(o, &D_00007F84);
     *(void**)(o + 0x28) = &D_00000000;
-    *(int*)(o + 0x2C) = 0;
+    {
+        int *v1 = (int *)(o + 0x2C);
+        if (v1 == 0) {
+            int *r = (int *)func_00000000(4);
+            if (r == 0) goto after_v1;
+            v1 = r;
+        }
+        *v1 = 0;
+    after_v1:;
+    }
     *(int*)(o + 0x18) &= ~8;
     *(int*)(o + 0x40) = 0;
     *(int*)(o + 0x3C) = 0;
     *(int*)(o + 0x30) = 4;
     *(int*)(o + 0x34) = 0xB00;
     *(int*)(o + 0x38) = 1;
+end:
     return o;
 }
 #else
