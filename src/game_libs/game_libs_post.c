@@ -26320,13 +26320,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004BAF4);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0004C190: 25-insn alloc-or-given constructor with aligned stack
- * buf. If a0 is null, allocates 0x1CC bytes. Then calls func(self),
- * stores &D at self[0xA], calls func(self, a1, aligned_sp_buf), calls
- * func(self). Returns self. Multi-tick decomp (alignment+frame math). */
+/* gl_func_0004C190: 25-insn alloc-or-given VARARGS constructor. If a0 is
+ * null, allocates 0x1CC bytes. Then calls func(self), stores &D at
+ * self[0xA], calls func(self, a1, aligned_scratch), calls func(self).
+ * Returns self. 91.42% NM.
+ *
+ * 2026-05-31 STRUCTURE NAILED (was a 4-args-homed/-0x40-frame draft, now
+ * the target's varargs-home shape): the target homes a1,a2,a3 to their
+ * caller SHADOW slots (sp+0x2c/0x30/0x34) and reuses that region as an
+ * aligned scratch buffer `(sp+0x33)&~3 = sp+0x30 = &a2_shadow`. Forcing
+ * the shadow homes via `&a2_unused` + `(void)a2_unused;(void)a3;` removes
+ * the bogus `char buf[0x14]` local and reproduces the `or a2,sp; addiu
+ * 0x33; and ~3` buffer form + the 3 shadow `sw a1/a2/a3` exactly in shape.
+ * RESIDUAL (9 diffs, frame -0x20 vs target -0x28): the target reserves 8
+ * extra frame bytes AND bases the scratch at sp+0 (`or a2,sp` = offset-0
+ * local, overlapping the outgoing-arg area). No C buf size lands a local
+ * at sp+0 with a 0x28 frame: buf[8]->0x30 (over), no-buf->0x20 (under),
+ * none hits 0x28-with-sp0-base. The sp+0 overlapping-scratch placement is
+ * an IDO allocator artifact (the scratch shares the outgoing-arg slot).
+ * Next lever to try: an alloca/union form, or a donor splice. */
 int* gl_func_0004C190(int *a0, int a1, int a2_unused, int a3) {
     int *s0 = a0;
-    char buf[0x14];
     int aligned;
     if (s0 == 0) {
         s0 = (int*)gl_func_00000000(0x1CC);
@@ -26334,9 +26348,10 @@ int* gl_func_0004C190(int *a0, int a1, int a2_unused, int a3) {
     }
     gl_func_00000000(s0);
     s0[0x28/4] = (int)&D_00000000;
-    aligned = ((int)buf + 0x33) & ~3;
+    aligned = ((int)&a2_unused + 3) & ~3;
     gl_func_00000000(s0, a1, aligned);
     gl_func_00000000(s0);
+    (void)a3;
 end:
     return s0;
 }
