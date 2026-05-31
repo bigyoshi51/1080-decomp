@@ -3955,8 +3955,11 @@ void game_uso_func_000057D8(char *a0) {
 
     mode = *(s32 *)(a0 + 0x64);
     *(f32 *)(a0 + 0x3C) = 0.0f;
-    if ((u32)mode < 4U) {
-        gl_func_00000000();
+    switch (mode) {
+        case 0: gl_func_00000000(); break;
+        case 1: gl_func_00000000(); break;
+        case 2: gl_func_00000000(); break;
+        case 3: gl_func_00000000(); break;
     }
 }
 #else
