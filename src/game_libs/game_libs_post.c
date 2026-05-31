@@ -29077,12 +29077,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
  * cascade with per-step null-bail (IDO emits the inner bails as complementary
  * branches → m2c's `||`-with-side-effects); installs 0x20740 vtable + the
  * 0x20630/0x20634 handler pair + 0x20D88; finalizes by name. Fresh decode
- * 2026-05-29 (m2c-assisted), upgraded from structural-comment marker. 77.6%
- * reg-blind (75/77 insns) after rewriting the alloc cascade as the m2c-faithful
- * ||/&&-with-side-effects form (the clean nested-if optimized the dead bails away
- * — 62%; verbatim short-circuit restores them). Residual: 2 insns + regalloc.
- * Caps: self struct + 6 USO cb prototypes untyped (USO-relocated), 0x20xxx
- * string/handler-table offsets not symbolized. Kept NON_MATCHING. */
+ * 2026-05-29 (m2c-assisted), upgraded from structural-comment marker.
+ * 86.2 -> 97.88 (2026-05-31): the 0x20XXX data-section refs (format-string
+ * addrs 0x20EEC/0x20EE8/0x20EF0/0x20F04, vtable 0x20740, handler-pair 0x20630/
+ * 0x20634, 0x20D88) are ADDRESSES `&D_00000000 + 0xN`, not int literals — the
+ * literal form makes GCC emit `lui+ori` (zero-extend, build) where the target's
+ * address form is `lui+addiu` (sign-extend); +9.6pp. Plus the final cb's 1st arg
+ * is &D_00000000 not literal 0 (+2pp). Residual (~2%): the 0x20630/0x20634
+ * handler pair won't cluster (target `addiu base,0x630; lw 0/4` vs mine folded
+ * `lw 1584/1588`) — the name[256] buffer keeps register pressure too high for the
+ * base to stay live (FC34-class) + the spill slots land 4 bytes off + one
+ * fmtSel branch IDO folds. Caps: self struct + USO cb prototypes untyped.
+ * Kept NON_MATCHING. */
 extern int gl_func_00000000();
 void gl_func_000519A4(char *self) {
     char name[256];
@@ -29092,15 +29098,15 @@ void gl_func_000519A4(char *self) {
     int *a0p;
     int *o;
 
-    fmtSel = 0x20EEC;
+    fmtSel = (int)((char *)&D_00000000 + 0x20EEC);
     if (*(int *)(self + 0x38) & 0x400000) {
-        fmtSel = 0x20EE8;
+        fmtSel = (int)((char *)&D_00000000 + 0x20EE8);
     }
     if (*(int *)(self + 0x14) != 0) {
         if (*(int *)(self + 0x4C) != 0) {
-            gl_func_00000000(name, 0x20EF0, *(int *)(self + 0x18), self + 0x58, fmtSel);
+            gl_func_00000000(name, (char *)&D_00000000 + 0x20EF0, *(int *)(self + 0x18), self + 0x58, fmtSel);
         } else {
-            gl_func_00000000(name, 0x20F04, *(int *)(self + 0x18), self + 0x58, fmtSel);
+            gl_func_00000000(name, (char *)&D_00000000 + 0x20F04, *(int *)(self + 0x18), self + 0x58, fmtSel);
         }
         o = (int *)gl_func_00000000(0x10);
         a2 = o;
@@ -29109,15 +29115,18 @@ void gl_func_000519A4(char *self) {
             if ((o != 0) || (a2 = o, v1 = (int *)gl_func_00000000(0x10), (v1 != 0))) {
                 a0p = v1;
                 if ((v1 != 0) || (a0p = (int *)gl_func_00000000(4), (a0p != 0))) {
-                    *a0p = 0x20740;
+                    *a0p = (int)((char *)&D_00000000 + 0x20740);
                 }
                 v1[1] = (int)self;
-                v1[2] = *(int *)0x20630;
-                v1[3] = *(int *)0x20634;
+                {
+                    int *h = (int *)((char *)&D_00000000 + 0x20630);
+                    v1[2] = h[0];
+                    v1[3] = h[1];
+                }
             }
-            *a2 = 0x20D88;
+            *a2 = (int)((char *)&D_00000000 + 0x20D88);
         }
-        gl_func_00000000(0, name, a2);
+        gl_func_00000000(&D_00000000, name, a2);
     }
 }
 #else
