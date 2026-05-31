@@ -9955,20 +9955,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DE24);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DE9C);
-
-/* gl_func_0002DEA4: prologue-stolen successor (predecessor 0x2DE24's tail
- * has the lui+lw of *(D+0x2E60) into t6). PROLOGUE_STEALS=8 splices the
- * 8-byte lui+lw prefix off the post-cc emit. */
-#ifdef NON_MATCHING
-void gl_func_0002DEA4(void) {
+/* game_libs_func_0002DE9C: sign-bit-gated call. The orphan game_libs_func_0002DE9C
+ * (lui t6; lw t6,0x2E60(t6) = *(int*)(&D+0x2E60)) was the stolen prologue of
+ * gl_func_0002DEA4 — it loads the global whose sign bit gates the call
+ * (srl t7,t6,31). Merged FORWARD (one 0x34 symbol at 0x2DE9C, successor .s
+ * deleted). Reading &D+0x2E60 inline at the `>> 31` test makes IDO hoist the
+ * lui;lw above the prologue (same recipe as game_libs_func_00026B40/00023070).
+ * MATCHED 2026-05-30. */
+extern int gl_func_00000000();
+extern int D_00000000;
+void game_libs_func_0002DE9C(void) {
     if ((unsigned int)*(int*)((char*)&D_00000000 + 0x2E60) >> 31) {
         gl_func_00000000(0x83010000, 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DEA4);
-#endif
 
 /* gl_func_0002DED0: single-call wrapper (0x24). LANDED fuzzy=100. The 3
  * trailing insns (sll/addu/addiu @0x2DEF4-0x2DEFC) are dead-code alt-entry
