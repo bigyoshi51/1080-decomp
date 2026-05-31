@@ -651,8 +651,10 @@ void h2hproc_uso_func_00000BAC(int *a0) {
  * First-pass decode; structure preserved without byte-match attempt this run.
  * Default build still uses INCLUDE_ASM. Multi-pass refinement expected.
  *
- * 2026-05-31 TAIL DECODE CORRECTION (current body's tail below is WRONG; this is
- * the verified asm, L0x118-0x1d0, for a focused pass — gap-38, build 85 vs 123):
+ * 2026-05-31 TAIL RECONSTRUCTED 52->56.4% (gap 38->20): the body's tail now matches
+ * the verified asm structure below (alloc2 uncond -> root->0x108; if(alloc2) chain +
+ * finalizer). RESIDUAL is regalloc (s0/s1/s2 promotion) + the exact 6-arg func2 stack-
+ * arg ordering + placeholder jals. Reference decode (L0x118-0x1d0):
  *   retbind = gl_func(root, &D+0x1C, s518_ret);  a0->0x51C = retbind;
  *   alloc2  = gl_func(0x80);                       root->0x108 = alloc2;  // UNCOND,
  *     NOT gated on retbind->0x14; stores to root->0x108 (264), not retbind->0x14
@@ -709,19 +711,27 @@ void h2hproc_uso_func_00000C18(int *a0) {
         *(int*)((char*)p10C + 0x18) = v & ~0x4;
     }
 
-    /* Bind retval, post-setup calls. */
+    /* Bind retval; alloc2 -> root->0x108 unconditionally; if alloc2, run the
+       per-side setup chain + linked-set finalizer. */
     {
         int *retbind = (int*)gl_func_00000000(root, &D_00000000 + 0x1C, s518_ret);
+        int *alloc2;
         *(int*)((char*)a0 + 0x51C) = (int)retbind;
-        *(int*)((char*)root + 0x108) = (int)retbind;
-
-        if (*(int*)((char*)retbind + 0x14) == 0) {
-            int *alloc2 = (int*)gl_func_00000000(root, 0x80);
-            *(int*)((char*)retbind + 0x14) = (int)alloc2;
-            *(int*)((char*)alloc2 + 0x4) = 1;
-            *(int*)((char*)alloc2 + 0x14) = (int)retbind;
+        alloc2 = (int*)gl_func_00000000(0x80);
+        *(int*)((char*)root + 0x108) = (int)alloc2;
+        if (alloc2 != 0) {
+            int b84 = *(int*)((char*)root + 0x84);
+            int *r2;
+            int *q;
+            gl_func_00000000(alloc2, 1);
+            r2 = (int*)gl_func_00000000(0, alloc2, slot, retbind, s518_ret, bound);
+            q = (int*)gl_func_00000000(b84 + 0x10, r2);
+            if (*(int*)((char*)q + 0x14) != 0) {
+                *(int*)((char*)q + 0x4) = 1;
+            }
+            *(int*)((char*)q + 0x14) = b84;
+            gl_func_00000000(retbind);
         }
-        gl_func_00000000(root, a0, *(int*)((char*)root + 0x84) + 0x10);
     }
 
     /* Final flag clear. */
