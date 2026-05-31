@@ -570,11 +570,13 @@ void h2hproc_uso_func_00000A88(int *a0) {
     int *s0 = a0;
     int state = *(int*)((char*)s0 + 0x504);
     char *base = &D_00000000;
-    if (state == 0) {
+    switch (state) {
+    case 0:
         gl_func_00000000(*(int*)(base + 0x190), 3, 1);
         *(int*)((char*)s0 + 0x504) = 1;
         gl_func_00000000(7, 0, 0);
-    } else if (state == 1) {
+        break;
+    case 1: {
         int *p;
         int a3;
         unsigned diff_a, diff_b, min;
@@ -595,6 +597,8 @@ void h2hproc_uso_func_00000A88(int *a0) {
         }
         *(int*)((char*)p + 0x14) = a3;
         gl_func_00000000(*(int*)(base + 0x190), 1, 1);
+        break;
+    }
     }
 }
 #else
