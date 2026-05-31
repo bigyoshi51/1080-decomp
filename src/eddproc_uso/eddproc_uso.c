@@ -134,19 +134,22 @@ void eddproc_uso_func_000001E8(char *a0) {
  *      "needs $s promotion" conclusion was false.
  * Frame is now EXACT 0x20: reuse the dead `a0` param to hold the stage-3
  * object (no third local → no extra slot), and `(void)&a1` for a1's dead
- * home. Fuzzy 61.26→61.48 with the correct structure.
- * REMAINING (register-chain, not a cap): the first object lands in $a3 vs
- * target's $a2, cascading through the chain. The permuter is UNRELIABLE
- * here — its scorer NORMALIZES sp-relative offsets, so it cannot see the
- * frame-size regression and wanders to 0x28 variants (floored 520). Crack
- * via manual register-chain RE (decl order / a2-vs-a3 seed) keeping the
- * frame at 0x20, NOT by trusting the permuter's best score. */
+ * home. The stage-1 null-return GOTOs the shared epilogue (`goto Ret`) not
+ * `return a2` — `return` emits a separate epilogue + branch; `goto` shares
+ * the one at the end (this alone was +9pp). Fuzzy 61.26→70.58, correct shape.
+ * REMAINING (single register, not a cap): the object lands in $a3 not the
+ * target's $a2 — it is BOTH the working value AND the return, so IDO routes
+ * it $a3→$a2→$v0 (one extra `move a2,a3`) where the target keeps it $a2→$v0.
+ * This $a-class renumber resists decl-order, (void)&a1 on/off, dead-a1-reuse,
+ * and obj/prev role-swap (all tried). Permuter is no help (its scorer
+ * normalizes sp-offsets → can't see frame size, wanders to 0x28, floored 520).
+ * Needs the C form that makes IDO born the object directly in $a2 — last mile. */
 void *eddproc_uso_func_0000025C(int *a0, int *a1) {
     int *a2;
     int *v1;
     (void)&a1;
     a2 = a0;
-    if (a0 == 0) { a2 = (int*)gl_func_00000000(0x54); if (a2 == 0) return a2; }
+    if (a0 == 0) { a2 = (int*)gl_func_00000000(0x54); if (a2 == 0) goto Ret; }
     v1 = a2;
     if (a2 == 0) { v1 = (int*)gl_func_00000000(0x50); if (v1 == 0) goto Sa2; }
     a0 = v1;
@@ -157,6 +160,7 @@ Sv1:
     *(int*)((char*)v1 + 0x28) = (int)&D_00000000;
 Sa2:
     *(int*)((char*)a2 + 0x28) = (int)&D_00000000;
+Ret:
     return a2;
 }
 #else
