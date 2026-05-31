@@ -3706,29 +3706,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023494);
 //   reset it to -1; walk the &D_0+0x2308 node list, 0xC stride,
 //   bound = the &D_0+0x2308 count, clearing every node->0x1E owning
 //   id matching `id` to -1; then jal-0 USO-reloc free(id)).
-//   Byte-match deferred — placeholder jal-0 free needs USO reloc
-//   infra + bnel unlink-loop schedule. Name pre-checked: no extern
-//   reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder for free.
+//   2026-05-31: fixed the structure 3.5%->70.8%. The old body cleared
+//   0x23FA UNCONDITIONALLY; correct is `if(id==D[0x23FA]) D[0x23FA]=-1;
+//   else if(id==D[0x2406]) D[0x2406]=-1;` + a do-while node loop whose
+//   count D[0x2308] is RELOADED per-iter (uncached). Residual: the
+//   D[0x23FA] compare-load (lui t6; lh t6,0x23FA) is a STOLEN PROLOGUE in
+//   the predecessor — my C emits it inline (+2 insns); needs an orphan
+//   merge for the last mile. Plus the bnel unlink-loop schedule + reg
+//   alloc. Name pre-checked: gl_func_00000000 = USO placeholder for free.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0002349C(int id) {
     char *g = (char *)&D_00000000;
-    int n = *(int *)(g + 0x2308);
-    *(short *)(g + 0x23FA) = -1;
-    if (*(short *)(g + 0x2406) == id) {
+    int n;
+    if (id == *(short *)(g + 0x23FA)) {
+        *(short *)(g + 0x23FA) = -1;
+    } else if (id == *(short *)(g + 0x2406)) {
         *(short *)(g + 0x2406) = -1;
     }
+    n = *(int *)(g + 0x2308);
     if (n != 0) {
         char *e = g + 0x2308;
-        int i;
-        for (i = 0; i < n; i++) {
-            if (*(short *)(e + 0x1E) == id) {
+        int i = 0;
+        do {
+            if (id == *(short *)(e + 0x1E)) {
                 *(short *)(e + 0x1E) = -1;
             }
+            i++;
             e += 0xC;
-        }
+        } while ((unsigned)i < *(unsigned int *)(g + 0x2308));
     }
     gl_func_00000000(id);
 }
