@@ -3,7 +3,7 @@ nonmatching game_uso_func_0000D418, 0x20
 glabel game_uso_func_0000D418
     /* 00D418 0000D418 27BDFFE8 */  .word 0x27BDFFE8
     /* 00D41C 0000D41C AFBF0014 */  .word 0xAFBF0014
-    /* 00D420 0000D420 0C000000 */  .word 0x0C000000
+    jal game_uso_func_04A2D8   /* 00D420 0C000000 -> game_uso_func_04A2D8 */
     /* 00D424 0000D424 2484013C */  .word 0x2484013C
     /* 00D428 0000D428 8FBF0014 */  .word 0x8FBF0014
     /* 00D42C 0000D42C 27BD0018 */  .word 0x27BD0018

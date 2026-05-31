@@ -3,9 +3,9 @@ nonmatching game_uso_func_00000B14, 0x28
 glabel game_uso_func_00000B14
     /* 000B14 00000B14 27BDFFE8 */  .word 0x27BDFFE8
     /* 000B18 00000B18 AFBF0014 */  .word 0xAFBF0014
-    /* 000B1C 00000B1C 0C000000 */  .word 0x0C000000
+    jal game_uso_func_00000B3C   /* 000B1C 0C000000 -> game_uso_func_00000B3C */
     /* 000B20 00000B20 AFA40018 */  .word 0xAFA40018
-    /* 000B24 00000B24 0C000000 */  .word 0x0C000000
+    jal game_uso_func_04DA24   /* 000B24 0C000000 -> game_uso_func_04DA24 */
     /* 000B28 00000B28 8FA40018 */  .word 0x8FA40018
     /* 000B2C 00000B2C 8FBF0014 */  .word 0x8FBF0014
     /* 000B30 00000B30 27BD0018 */  .word 0x27BD0018

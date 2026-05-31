@@ -2,7 +2,7 @@ nonmatching game_uso_func_000110A4, 0x80
 
 glabel game_uso_func_000110A4
     /* 0110A4 000110A4 27BDFFE8 */  .word 0x27BDFFE8
-    /* 0110A8 000110A8 3C0E0000 */  .word 0x3C0E0000
+    lui $t6, %hi(game_uso_D_807FF510)   /* 0110A8 3C0E0000 -> game_uso_D_807FF510 */
     /* 0110AC 000110AC AFBF0014 */  .word 0xAFBF0014
     /* 0110B0 000110B0 25CE0F20 */  .word 0x25CE0F20
     /* 0110B4 000110B4 8DD80000 */  .word 0x8DD80000
@@ -10,7 +10,7 @@ glabel game_uso_func_000110A4
     /* 0110BC 000110BC 2401FFFB */  .word 0x2401FFFB
     /* 0110C0 000110C0 AC9800D0 */  .word 0xAC9800D0
     /* 0110C4 000110C4 8DCF0004 */  .word 0x8DCF0004
-    /* 0110C8 000110C8 3C090000 */  .word 0x3C090000
+    lui $t1, %hi(game_uso_D_807FF400)   /* 0110C8 3C090000 -> game_uso_D_807FF400 */
     /* 0110CC 000110CC 25290E10 */  .word 0x25290E10
     /* 0110D0 000110D0 AC8F00D4 */  .word 0xAC8F00D4
     /* 0110D4 000110D4 8C590A58 */  .word 0x8C590A58
@@ -21,9 +21,9 @@ glabel game_uso_func_000110A4
     /* 0110E8 000110E8 AFA50004 */  .word 0xAFA50004
     /* 0110EC 000110EC 8D260004 */  .word 0x8D260004
     /* 0110F0 000110F0 AFA40018 */  .word 0xAFA40018
-    /* 0110F4 000110F4 0C000000 */  .word 0x0C000000
+    jal game_uso_func_0000D5BC   /* 0110F4 0C000000 -> game_uso_func_0000D5BC */
     /* 0110F8 000110F8 AFA60008 */  .word 0xAFA60008
-    /* 0110FC 000110FC 0C000000 */  .word 0x0C000000
+    jal game_uso_func_00011868   /* 0110FC 0C000000 -> game_uso_func_00011868 */
     /* 011100 00011100 8FA40018 */  .word 0x8FA40018
     /* 011104 00011104 8FA40018 */  .word 0x8FA40018
     /* 011108 00011108 240C0064 */  .word 0x240C0064

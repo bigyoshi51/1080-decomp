@@ -1,7 +1,7 @@
 nonmatching game_uso_func_0000D5DC, 0x1C
 
 glabel game_uso_func_0000D5DC
-    /* 00D5DC 0000D5DC 3C0E0000 */  .word 0x3C0E0000
+    lui $t6, %hi(game_uso_D_807FF3B8)   /* 00D5DC 3C0E0000 -> game_uso_D_807FF3B8 */
     /* 00D5E0 0000D5E0 25CE0DC8 */  .word 0x25CE0DC8
     /* 00D5E4 0000D5E4 8DD80000 */  .word 0x8DD80000
     /* 00D5E8 0000D5E8 AC9800C8 */  .word 0xAC9800C8

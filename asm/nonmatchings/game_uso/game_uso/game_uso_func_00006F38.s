@@ -1,7 +1,7 @@
 nonmatching game_uso_func_00006F38, 0x70
 
 glabel game_uso_func_00006F38
-    /* 006F38 00006F38 3C0E0000 */  .word 0x3C0E0000
+    lui $t6, %hi(game_uso_D_807FEB38)   /* 006F38 3C0E0000 -> game_uso_D_807FEB38 */
     /* 006F3C 00006F3C 8DCE0548 */  .word 0x8DCE0548
     /* 006F40 00006F40 27BDFFC0 */  .word 0x27BDFFC0
     /* 006F44 00006F44 AFBF0014 */  .word 0xAFBF0014
@@ -9,7 +9,7 @@ glabel game_uso_func_00006F38
     /* 006F4C 00006F4C AFA5003C */  .word 0xAFA5003C
     /* 006F50 00006F50 AFA50004 */  .word 0xAFA50004
     /* 006F54 00006F54 8C860030 */  .word 0x8C860030
-    /* 006F58 00006F58 0C000000 */  .word 0x0C000000
+    jal game_uso_func_0000A374   /* 006F58 0C000000 -> game_uso_func_0000A374 */
     /* 006F5C 00006F5C 24C600B4 */  .word 0x24C600B4
     /* 006F60 00006F60 0002182B */  .word 0x0002182B
     /* 006F64 00006F64 1060000D */  .word 0x1060000D
