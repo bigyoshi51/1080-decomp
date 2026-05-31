@@ -925,14 +925,12 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
 /* gui_uso_func_00003B14: 27-insn / 0x6C RDP G_FILLRECT display-list builder.
  * 0xF6 << 24 = G_FILLRECT command word (per F3DEX2 gbi.h).
  *
- * IDO emits the two final `or` instructions in the OPPOSITE order from target
- * (entry[0] computation first vs target's entry[1] first). CAP: 2-insn
- * order-swap at offsets 0x58/0x5C stays NM (INSN_PATCH REMOVED 2026-05-23
- * as match-faking per feedback_no_instruction_forcing_matches_policy;
- * docs/POST_CC_RECIPES.md DEPRECATED). */
+ * MATCHED 2026-05-31 via decomp-permuter. The prior "2-insn order-swap CAP"
+ * (target emits entry[1]'s `or` before entry[0]'s) was cracked: putting the two
+ * entry[] stores on a SINGLE source line shifts IDO's `or` scheduling to match.
+ * Byte-exact. (Same crack as gui_uso_func_00001794.) */
 extern int gl_func_00000000();
 extern char D_00000000;
-#ifdef NON_MATCHING
 void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
     typedef struct DLState { int *base; int idx; } DLState;
     typedef struct GameState { char pad[0xC]; DLState *dlp; } GameState;
@@ -943,12 +941,8 @@ void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
     (void)a0;
     dlp->idx = idx + 1;
     entry = gs->dlp->base + idx * 2;
-    entry[0] = 0xF6000000 | ((a3 & 0x3FF) << 14) | ((arg5 & 0x3FF) << 2);
-    entry[1] = ((a1 & 0x3FF) << 14) | ((a2 & 0x3FF) << 2);
+    entry[0] = 0xF6000000 | ((a3 & 0x3FF) << 14) | ((arg5 & 0x3FF) << 2); entry[1] = ((a1 & 0x3FF) << 14) | ((a2 & 0x3FF) << 2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003B14);
-#endif
 
 #ifdef NON_MATCHING
 /* gui_func_00003B80: 230-insn / 0x398 RDP DL builder (originally bundled
