@@ -25780,12 +25780,11 @@ void gl_func_0004ACD4(int *self) {
     int i;
     int count = self[0x40 / 4] * 10;
     self[0xD0 / 4] = gl_func_00000000(&D_00000000, count * 2);
-    if (count <= 0) {
-        return;
-    }
     for (i = 0; i < count; i++) {
         ((short *)self[0xD0 / 4])[i] = -1;
     }
+    *(short *)((char *)self + 0xD4) =
+        *(int *)((char *)(*(int *)((char *)(*(int *)((char *)&D_00000000 + 0x214)) + 0x1C)) + 4);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ACD4);
