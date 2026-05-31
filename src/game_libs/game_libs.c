@@ -1274,7 +1274,7 @@ void gl_func_000070FC(int *a0) {
      * The 4/5 cases (TODO @ 0x71B0+) follow a similar shape: load D[0x34]/etc,
      * dispatch a parameterized call(a1, a2, a3), then b common_after. */
     mode = *(int*)((char*)&D_00000000 + 0x34);
-    if (mode == 6) {
+    if (mode == 5 || mode == 4 || mode == 6) {
         sub_state = *(int*)((char*)&D_00000000 + 0x7C);
         if (sub_state != 1) {
             gl_func_00000000(5, 1, 1);
@@ -1282,17 +1282,11 @@ void gl_func_000070FC(int *a0) {
             gl_func_00000000(5, 1, 2);
         }
         goto common_after;
-    }
-    /* TODO @ 0x71B0-0x7320 (~85 insns): mode==4 / mode==5 / default arms +
-     * common_after merge block. (4 trailing 2-insn alt-entry stubs at
-     * 0x228..0x240 are now separate symbols, not absorbed — see header.) */
-    if (mode == 5) {
-        /* TODO arm body */
-    } else if (mode == 4) {
-        /* TODO arm body */
     } else {
-        /* TODO default branch */
+        gl_func_00000000(1, 1);
     }
+    /* TODO @ 0x71C4-0x7320 (~80 insns): the second D[0x34] dispatch
+     * (mode==6/5 -> obj 0x138 sub-call tree) + common_after merge + epilogue. */
 common_after:
     /* TODO common merge block + epilogue */
     return;
