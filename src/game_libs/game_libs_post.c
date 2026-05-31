@@ -25365,6 +25365,8 @@ void gl_func_0004A6E8(int *self) {
                     *(short *)((char *)self + 0xD4); i++) {
         dst[i] = *(short *)(*(int *)((char *)self + 0xD0) + i * 2);
     }
+    gl_func_00000000(&D_00000000, *(int *)((char *)self + 0xD0));
+    *(int *)((char *)self + 0xD0) = (int)dst;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A6E8);
