@@ -10792,9 +10792,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
  * 0xF8 = prev, reset counter if prev==0xF8); cb(arg0); set prev->0x20 from ->0x28
  * (if 0xB4->0xA58 bit-6 & nonzero) else ->0x24; then by prev->0x38 bit-1 emit a
  * 2-call or 3-call pair using &D+0xEC0/0xEC8/0xED0 tables; cb(arg0, &D+0xED0..).
- * Returns 1; else 0. Fresh decode 2026-05-29 (m2c-confirmed), upgraded from
- * structural ceiling marker. Caps: structs + cb prototypes untyped (USO-reloc),
- * pointer-diff index math + &D tables not symbolized. NON_MATCHING. */
+ * Returns 1; else 0. 75.5% -> 91.6%: the three D-pair calls (EC0/EC4, EC8/ECC,
+ * ED0/ED4) pass BY VALUE as *(Pair2*), homing a1,a2 (same lever as EF70,
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair). Residual:
+ * regalloc-renumber + the `base` global address materialized lui+addiu vs
+ * target's folded lui+lw (+2 insns) — documented cap classes. NON_MATCHING. */
 extern int gl_func_00000000();
 int game_uso_func_0000E35C(char *arg0) {
     char *cur;
@@ -10834,15 +10836,12 @@ int game_uso_func_0000E35C(char *arg0) {
         f4 = *(char **)(arg0 + 0xF4);
         if (*(int *)(f4 + 0x38) & 2) {
             gl_func_00000000(arg0, *(int *)(f4 + 0x20), 0, 2, 1, 1);
-            gl_func_00000000(arg0, *(int *)((char *)&D_00000000 + 0xEC0),
-                             *(int *)((char *)&D_00000000 + 0xEC4), 2);
+            gl_func_00000000(arg0, *(Pair2 *)((char *)&D_00000000 + 0xEC0), 2);
         } else {
             gl_func_00000000(arg0, *(int *)(f4 + 0x20), 0, 3, 1, 1);
-            gl_func_00000000(arg0, *(int *)((char *)&D_00000000 + 0xEC8),
-                             *(int *)((char *)&D_00000000 + 0xECC), 3);
+            gl_func_00000000(arg0, *(Pair2 *)((char *)&D_00000000 + 0xEC8), 3);
         }
-        gl_func_00000000(arg0, *(int *)((char *)&D_00000000 + 0xED0),
-                         *(int *)((char *)&D_00000000 + 0xED4));
+        gl_func_00000000(arg0, *(Pair2 *)((char *)&D_00000000 + 0xED0));
         return 1;
     }
     return 0;
