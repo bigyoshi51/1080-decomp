@@ -5829,12 +5829,31 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
  * via the asm. Skeleton kept for grep discoverability of struct field
  * offsets and the per-frame compute call-graph. */
 void game_uso_func_00006FA8(int *a0) {
-    /* Outline only — multi-tick decomp scope. The 7-stage compute (call,
-     * float gate, 2 staged calls, Vec3 stage, FPU chain, Vec3 copy, conditional
-     * tail) needs careful arg passing + register allocation to byte-match.
-     * Skeleton kept for the per-frame compute's struct-typing pass. */
-    int *sub = *(int**)((char*)a0 + 0x30);
-    (void)sub;
+    /* First-pass structural decode (2026-05-31): float gate -> 2 staged calls
+     * -> two Vec3 diffs (r1->0x30 / r2->0x30 minus s0->0x30+0xB4) -> compare
+     * squared magnitudes -> result(local) = (dot2<dot1)?11:10. The intermediate
+     * stack-copy shuffle + FP scheduling are not yet byte-exact (multi-tick). */
+    int *s0 = a0;
+    int result = 0;
+    int *r1, *r2;
+    if (gl_func_00000000_f() >= 0.0f) {
+        return;
+    }
+    r1 = (int *)gl_func_00000000(s0, *(int *)(*(int *)((char *)&D_00000000 + 0x570)),
+                                 (char *)s0[0x30 / 4] + 0xB4);
+    r2 = (int *)gl_func_00000000(s0, *(int *)(*(int *)((char *)&D_00000000 + 0x574)),
+                                 (char *)s0[0x30 / 4] + 0xB4);
+    if (r1 != 0 && r2 != 0) {
+        float *q = (float *)((char *)s0[0x30 / 4] + 0xB4);
+        float *p1 = (float *)((char *)r1 + 0x30);
+        float *p2 = (float *)((char *)r2 + 0x30);
+        float a0d = p1[0] - q[0], a1d = p1[1] - q[1], a2d = p1[2] - q[2];
+        float b0d = p2[0] - q[0], b1d = p2[1] - q[1], b2d = p2[2] - q[2];
+        float dot1 = a0d * a0d + a1d * a1d + a2d * a2d;
+        float dot2 = b0d * b0d + b1d * b1d + b2d * b2d;
+        result = (dot2 < dot1) ? 11 : 10;
+    }
+    (void)result;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006FA8);
