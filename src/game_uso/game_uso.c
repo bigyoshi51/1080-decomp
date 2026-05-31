@@ -12160,11 +12160,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
  *       func_00000000(s0);                                  // X9
  *   }
  * Struct-typing: s0->0xFC flag word, s0->0xB4 object (float @0x31C, float
- * @0x9D0, ptr @0x800 whose +0x18 has bit 0x400, int @0x938). D-pair consts
- * @0xDE0/DE4, 0xDE8/DEC, 0xDF8/DFC (each passed via sp+4/sp+8 — the
- * EE84-family D[]-pair-arg shape). Caps <80: bc1fl/beql/bnel branch-likely
- * delay-slot dup + short-circuit && layout — documented EE84-family ceiling.
- * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
+ * @0x9D0, ptr @0x800 whose +0x18 has bit 0x400, int @0x938). 78.57% -> 98.61%:
+ * the three D-pair consts (0xDE0/DE4, 0xDE8/DEC, 0xDF8/DFC) pass BY VALUE as
+ * *(Pair2*) — the "sp+4/sp+8 EE84 D-pair shape cap" was the un-homed pair
+ * (same lever as EF70, docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
+ * Residual (18 diffs, all regalloc-renumber): the s0->0xB4 reload lands in v1
+ * here vs v0 in target (cascades); same logic, len 79=79. INCLUDE_ASM build. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void game_uso_func_000102CC(int *a0) {
@@ -12176,23 +12177,17 @@ void game_uso_func_000102CC(int *a0) {
     v0 = (int *)s0[0xB4 / 4];
     if (*(float *)((char *)v0 + 0x31C) < 0.0f &&
         *(float *)((char *)v0 + 0x9D0) < 1000.0f) {
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xDE8),
-            *(int *)((char *)&D_00000000 + 0xDEC));
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xDE8));
         v0 = (int *)s0[0xB4 / 4];
     }
     if (*(int *)((char *)*(int *)((char *)v0 + 0x800) + 0x18) & 0x400) {
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xDE0),
-            *(int *)((char *)&D_00000000 + 0xDE4));
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xDE0));
     }
     gl_func_00000000(s0, 0);
     if (gl_func_00000000(s0) == 0) {
         t = (int *)s0[0xB4 / 4];
         if (t[0x938 / 4] != 0) {
-            gl_func_00000000(s0,
-                *(int *)((char *)&D_00000000 + 0xDF8),
-                *(int *)((char *)&D_00000000 + 0xDFC));
+            gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xDF8));
             gl_func_00000000(s0);
         }
         gl_func_00000000(s0);
