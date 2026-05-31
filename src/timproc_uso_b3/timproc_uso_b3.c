@@ -996,7 +996,6 @@ void timproc_uso_b3_func_000020BC(char *dst) {
     timproc_uso_b3_func_000008CC((Quad4*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
 /* timproc_uso_b3_func_000020EC: 36-insn (0x90) constructor — BYTE-IDENTICAL
  * mirror of eddproc_uso_func_000003BC family (5th clone). Apply the
  * eddproc lever (volatile-ptr-to-arg + late head reload) per
@@ -1005,29 +1004,27 @@ void timproc_uso_b3_func_000020BC(char *dst) {
  * docs/IDO_CODEGEN.md#feedback-ido-file-context-affects-frame-size
  * (timproc_uso_b3.c is a large multi-function file). */
 void *timproc_uso_b3_func_000020EC(int *arg0) {
-    int *p;
+    int *p2;
     int *head;
-    volatile int **p_arg0;
-    p_arg0 = (volatile int**)&arg0;
-    p = (int*)gl_func_00000000(0x40);
-    if (p != 0) {
-        gl_func_00000000(p);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p + 0x3C) = 0;
+    int *p1;
+    p1 = (int*)gl_func_00000000(0x40);
+    if (p1 != 0) {
+        gl_func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    head = (int*)((int*)*p_arg0)[0x10];
-    if (head != 0) {
-        gl_func_00000000((char*)p + 0x10, head);
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        gl_func_00000000((char*)p2 + 0x10, head);
         if (*(int*)((char*)head + 0x14) != 0) {
-            *(int*)((char*)p + 0x4) = 1;
+            *(int*)((char*)head + 0x4) = 1;
         }
-        *(int*)((char*)head + 0x14) = (int)p;
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    return p;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000020EC);
-#endif
 
 void timproc_uso_b3_func_0000217C(char *dst) {
     int tmp;

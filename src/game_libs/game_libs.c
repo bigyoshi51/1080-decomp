@@ -1798,21 +1798,27 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
  * depression). */
 extern int gl_func_00000000();
 extern int D_00000000;
-int gl_func_000088B4(int a0) {
-    int obj = gl_func_00000000(0x40);
-    if (obj != 0) {
-        gl_func_00000000(obj);
-        *(int *)((char *)obj + 0x28) = (int)&D_00000000;
-        *(int *)((char *)obj + 0x3C) = 0;
+void *gl_func_000088B4(int *arg0) {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)gl_func_00000000(0x40);
+    if (p1 != 0) {
+        gl_func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    if (*(int *)((char *)a0 + 0x40) != 0) {
-        int *node = (int *)gl_func_00000000(obj + 0x10, *(int *)((char *)a0 + 0x40));
-        if (*(int *)((char *)node + 0x14) != 0) {
-            *(int *)((char *)node + 0x4) = 1;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        gl_func_00000000((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
         }
-        *(int *)((char *)node + 0x14) = obj;
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    return obj;
+    return p2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);

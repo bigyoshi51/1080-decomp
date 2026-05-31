@@ -1338,7 +1338,6 @@ void arcproc_uso_func_00002304(char *dst) {
     arcproc_uso_func_00000974((Quad4*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
 /* arcproc_uso_func_00002334: 36-insn (0x90) constructor — BYTE-IDENTICAL
  * mirror of eddproc_uso_func_000003BC and h2hproc_uso_func_00001A6C
  * (verified via signature match, sig=f167638a8a). Same alloc + init +
@@ -1362,24 +1361,28 @@ void arcproc_uso_func_00002304(char *dst) {
  * ~60% NM cap inherited from sibling — register allocation differs
  * ($v0/$v1 chain vs target's $t-regs) and frame layout. Multi-tick
  * decomp; mirror of eddproc_03BC wrap. */
-int *arcproc_uso_func_00002334(int *a0) {
-    int *p = (int*)gl_func_00000000(0x40);
-    int *q;
-    if (p == 0) return 0;
-    gl_func_00000000(p);
-    p[0x28/4] = (int)&D_00000000;
-    p[0x3C/4] = 0;
-    q = (int*)a0[0x40/4];
-    if (q != 0) {
-        gl_func_00000000((char*)p + 0x10, q);
-        if (q[0x14/4] != 0) q[0x4/4] = 1;
-        q[0x14/4] = (int)p;
+void *arcproc_uso_func_00002334(int *arg0) {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)gl_func_00000000(0x40);
+    if (p1 != 0) {
+        gl_func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    return p;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        gl_func_00000000((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p2;
+    }
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00002334);
-#endif
 
 void arcproc_uso_func_000023C4(char *dst) {
     int tmp;

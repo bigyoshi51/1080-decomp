@@ -1394,7 +1394,6 @@ void h2hproc_uso_func_00001A3C(char *dst) {
     h2hproc_uso_func_00000558((Quad4*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
 /* h2hproc_uso_func_00001A6C: 36-insn (0x90) constructor — BYTE-IDENTICAL
  * mirror of eddproc_uso_func_000003BC (verified 2026-05-03 via .word diff).
  * Same alloc + init + list-add structure with beql speculative double-store.
@@ -1443,30 +1442,28 @@ void h2hproc_uso_func_00001A3C(char *dst) {
  * function-count. The cap class (alloc-and-link-to-list) seems to
  * legitimately need the `_pad[8]` + `if (p != NULL) {init}` form here,
  * not the matched titproc/mgrproc form. Reverted; defer to permuter. */
-int *h2hproc_uso_func_00001A6C(int *arg0) {
-    char _pad[8];  /* grow frame from 0x20 to 0x28 to match target */
-    int *p = (int*)gl_func_00000000(0x40);
-    (void)_pad;
-    if (p != NULL) {
-        gl_func_00000000(p);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p + 0x3C) = 0;
-        {
-            int *next = (int*)arg0[0x40 / 4];
-            if (next != NULL) {
-                gl_func_00000000((char*)p + 0x10, next);
-                if (next[0x14 / 4] != 0) {
-                    next[0x4 / 4] = 1;
-                }
-                next[0x14 / 4] = (int)p;
-            }
-        }
+void *h2hproc_uso_func_00001A6C(int *arg0) {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)gl_func_00000000(0x40);
+    if (p1 != 0) {
+        gl_func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    return p;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        gl_func_00000000((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p2;
+    }
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001A6C);
-#endif
 
 extern int h2hproc_uso_func_h2h_4DC();
 extern int h2hproc_uso_func_h2h_5AC();
