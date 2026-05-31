@@ -318,7 +318,16 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000116C8);
  * the TRUNCATE_TEXT 3x-compile stitch (Makefile L85-100) - any
  * future C match must also respect that offset tuning, not just the
  * reloc caps. Caps <80: ~10x reloc calls + multiple &D relocs +
- * the tail3a TRUNCATE_TEXT stitch. INCLUDE_ASM remains build path. */
+ * the tail3a TRUNCATE_TEXT stitch. INCLUDE_ASM remains build path.
+ * 2026-05-31 RE-DIAGNOSED: the C body is STRUCTURALLY CORRECT (matches expected
+ * asm op-for-op). The 49.9% is NOT the reloc cap — it's the -O0/unfilled-delay
+ * cap: the target leaves all 8 jal delay slots as nop (compiled -O0, reorg off),
+ * but this file is -O2 -g3 so the compiler's reorg FILLS every jal delay (verified
+ * 8/8 filled in build vs 0/8 in target). FIX = move func_000117FC to its own -O0
+ * split file (OPT_FLAGS := -O0 + TRUNCATE_TEXT), like the existing o0_118E4 /
+ * o0_11A34 / o0_11C70 / tail3a_mid splits. Same for sibling bootup low-% big-gap
+ * fns (func_0000F9E8, func_00010B6C, func_00010AB0) — all structurally-done,
+ * -O0-split-needing. Focused task (fragile TRUNCATE_TEXT tuning), not a loop edit. */
 #ifdef NON_MATCHING
 void func_000117FC(char *a0, void *a1) {
     void *old = *(void**)(a0 + 0x2C);
