@@ -31515,42 +31515,27 @@ float gl_func_0005BD80(float *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BD80);
 #endif
 
-/* game_libs_func_0005BDC0: 24-insn 4x4 reciprocal copier. NON_MATCHING (3 diffs).
- * "LOOP-IV CAP" DISPROVEN 2026-05-30: the old note (below) called the by-4 vs
- * by-1 counter a genuine cap. It is NOT — the right shape is a NESTED 4x4 loop:
- * the INNER 4-loop fully unrolls (pointer pre-advance + negative offsets), and
- * the OUTER stays a 4-trip ROLLED loop with the target's exact by-1 trip counter
- * (cmp 4). `int i=0,j; float *d=dst,*s=src;` (d before s, i=0 first) also pins
- * the registers EXACTLY: counter->$v0, dst->$v1, src->$a2, bound->$a0. The flat
- * 16-trip loop was the wrong shape (it 4x-unrolls to a by-4 ELEMENT counter).
- * REMAINING: 3 diffs are a ugen-backend SCHEDULING rotation of the three
- * independent setup moves (the target orders them bound,counter,dst; IDO emits
- * counter,dst,bound). NOT C-reachable through ~12 loop/decl forms tried, and a
- * 480s permuter floors at the base score (it permutes C, not the deterministic
- * ugen scheduler). This is a ugen instruction-order residual, not a loop-IV cap.
- * Stays NM until the ugen scheduling order is cracked (permuter w/ PERM_ macros
- * or ugen study). [OLD NOTE, now superseded:] "...IDO's counter strength-reduction
- * gives a by-4 element counter... never the by-1 trip counter; a literal 4-trip
- * loop fully unrolls." (The literal-4-trip claim holds; the NESTED form is the
- * out the old grind missed.) */
-#ifdef NON_MATCHING
+/* game_libs_func_0005BDC0: 24-insn 4x4 reciprocal copier. BYTE-EXACT 2026-05-30.
+ * Long documented as a "genuine loop-IV cap" (by-4 element vs by-1 trip counter,
+ * 4 forms + permuter). Cracked: nested-4x4 (inner unrolls, outer trip-counts) +
+ * the comma-`for` prologue-schedule lever. No such thing as a cap. */
 void game_libs_func_0005BDC0(float *src, float *dst) {
-    int i = 0, j;
-    float *d = dst, *s = src;
-    /* NESTED 4x4: the inner 4-loop unrolls (pointer pre-advance + negative
-     * offsets), the outer stays a 4-trip rolled loop with a by-1 trip counter
-     * — exactly the target's form (the old "loop-IV cap" was the wrong shape:
-     * a flat 16-trip loop 4x-unrolls to a by-4 element counter). d-before-s +
-     * i=0-first pins the counter->$v0, dst->$v1, src->$a2 like the target. */
-    for (; i < 4; i++) {
+    int i, j;
+    float *d, *s;
+    /* NESTED 4x4 + comma-`for` = BYTE-EXACT. Inner 4-loop unrolls (pointer
+     * pre-advance + negative offsets); outer stays a 4-trip rolled by-1 trip
+     * counter. The comma-init `for (i=0, d=dst, s=src; ...)` in THAT order
+     * (counter, dst, src) schedules the 3 setup moves exactly like the target
+     * (a0=4 bound, v0=0 counter, v1=dst) — the residual the old note called an
+     * "allocator-internal cap" is just the comma-`for` prologue-schedule lever
+     * (same crack as gl_func_0005C6C4). Reordering the comma-inits gives 12
+     * diffs; this order gives 0. */
+    for (i = 0, d = dst, s = src; i < 4; i++) {
         for (j = 0; j < 4; j++) {
             *d++ = 1.0f / (*s++);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BDC0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BE20);
 
