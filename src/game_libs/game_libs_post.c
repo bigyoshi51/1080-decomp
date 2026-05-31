@@ -25575,10 +25575,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AAF0);
  *   self->0xC4 = 0;
  * Differences vs the 0004AAF0 s16 variant: field 0xC4 (not 0xC0),
  * record stride idx*4 (not *6), 3 BYTE copies to slot+0xC/0xD/0xE
- * (not s16 +0/+2/+4), assert strings 0x2008C/0x200AC, and the
- * assert path has TWO cb calls. Same multi-idiom family (bnel/beql
- * -likely, multu/sll idx-scale, resolved-base chain, per-iter
- * count reload, i+t0 advance) — documented-hard, focused-pass.
+ * (not s16 +0/+2/+4). Call structure (corrected 2026-05-31): the
+ * t6==0 ERROR path is ONE call cb(&D+0x2008C) then return; the
+ * t6!=0 WORK path opens with a leading cb(&D+0x200AC) (the string
+ * loaded in the bne's delay slot) before the blit loop. Residual
+ * cap: regalloc — the target homes `self` in a1 (spilled around the
+ * one work-path call, sw/lw a1,0x18(sp)) whereas the build promotes
+ * it to s0 (frame 0x20 vs 0x18), renumbering every downstream reg;
+ * plus the loop body reloads self->0xC4+idx*4 per byte (target) vs
+ * the cached `rec` here. Same multi-idiom family (bnel/beql-likely,
+ * sll idx-scale, resolved-base chain, per-iter count reload). 25%.
  * Real decoded C preserved; INCLUDE_ASM build path. */
 extern int gl_func_00000000();
 extern int D_00000000;
@@ -25588,9 +25594,9 @@ void gl_func_0004ABD8(int *self) {
     int d4;
     if (*(int *)((char *)self + 0xC4) == 0) {
         gl_func_00000000((char *)&D_00000000 + 0x2008C);
-        gl_func_00000000();
         return;
     }
+    gl_func_00000000((char *)&D_00000000 + 0x200AC);
     d4 = *(short *)((char *)self + 0xD4);
     for (i = 0, t0 = 0;
          i < *(short *)((char *)self + 0xD6) - d4;
@@ -40440,6 +40446,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FC78);
  */
 extern int D_global_val;
 extern unsigned int D_X_low;
+/* 64-bit-add helper. X passed as a long long in a0:a1 (hi:lo); adds the
+ * 32-bit global D_X_low (zero-extended) producing a 64-bit sum spilled to
+ * sp+0x20/0x24. Residual cap: the target spills sum_hi/sum_lo and passes only
+ * sum_lo (a0) to the third call (sum_hi spilled-but-dead), which the clean
+ * `unsigned long long` add form can't reproduce — the long-long param makes the
+ * 64-bit add itself match (carry chain + literal-0 hi word) but reshapes the
+ * call convention and global-store ordering (63% vs 74% manual form below). */
 void gl_func_0006FDE8(int a0_hi, unsigned int a1_lo) {
     int v0_2;
     unsigned int low;
