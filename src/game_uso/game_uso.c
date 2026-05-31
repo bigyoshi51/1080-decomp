@@ -12901,11 +12901,7 @@ extern int func_00000000();
 #ifdef NON_MATCHING
 void game_uso_func_000112E0(int *a0) {
     func_00000000(a0, 0x70008, 0, 2, 1, 1);
-    func_00000000(a0, GAME_D_F18,
-                      GAME_D_F1C,
-                      2,
-                      GAME_D_F18,
-                      GAME_D_F1C);
+    func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF18), 2);
     func_00000000(a0);
     *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0xA58) &= ~0x800;
 }
