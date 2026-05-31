@@ -5572,7 +5572,14 @@ void game_uso_func_00006A30(int *a0) {
         va.x = va.x + c2.x;
         va.y = va.y + c2.y;
         va.z = va.z + c2.z;
-        /* TODO(multi-tick): ~110 more insns — staged calls + div.s/neg.s chains */
+        {
+            int sp148 = 0;
+            int *r = (int *)game_uso_func_00007ACC(s0, &sp148, (int)&va, (int *)0);
+            if (r != 0) {
+                /* TODO(multi-tick): 7C1C call + div.s/neg.s FP tail (~100 insns) */
+                (void)r;
+            }
+        }
         (void)va;
     }
     (void)result;
