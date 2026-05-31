@@ -6553,21 +6553,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027C48);
 extern int gl_func_00000000();
 void gl_func_00027D00(int *obj) {
     int *p = *(int **)((char *)obj + 0x44);
-    int *t;
+    int *tmpl;
     if (*(unsigned char *)((char *)p + 0x18) != 0) {
-        gl_func_00000000((char *)obj + 0x36, *(int *)((char *)p + 0x1C));
+        gl_func_00000000((char *)obj + 0x60, *(int *)((char *)p + 0x1C),
+                         (char *)obj + 0x36);
     } else {
-        gl_func_00000000((char *)obj + 0x60, *(int *)((char *)p + 0x1C));
+        gl_func_00000000((char *)obj + 0x60,
+                         *(int *)(*(char **)((char *)p + 0x50) + 0x90),
+                         (char *)obj + 0x36);
     }
-    t = *(int **)((char *)p + 0x50);
     *(unsigned char *)((char *)obj + 0x34) = 0;
     *(unsigned char *)((char *)obj + 0x60) =
         (*(unsigned char *)((char *)obj + 0x60) & 0xF0) | 1;
-    *(int *)((char *)obj + 0xB0) = t[0];
-    *(int *)((char *)obj + 0xB4) = t[1];
-    *(int *)((char *)obj + 0xB8) = t[2];
-    *(int *)((char *)obj + 0xBC) = t[3];
-    *(float *)((char *)obj + 0x70) = 0.0f;
+    tmpl = (int *)&D_00000000;
+    *(int *)((char *)obj + 0xB0) = tmpl[0];
+    *(int *)((char *)obj + 0xB4) = tmpl[1];
+    *(int *)((char *)obj + 0xB8) = tmpl[2];
+    *(int *)((char *)obj + 0xBC) = tmpl[3];
+    *(int *)((char *)obj + 0xC0) = tmpl[4];
+    *(int *)((char *)obj + 0xC4) = tmpl[5];
+    *(int *)((char *)obj + 0xC8) = tmpl[6];
+    *(int *)((char *)obj + 0xCC) = tmpl[7];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027D00);
