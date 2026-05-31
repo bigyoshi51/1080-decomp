@@ -137,13 +137,19 @@ void eddproc_uso_func_000001E8(char *a0) {
  * home. The stage-1 null-return GOTOs the shared epilogue (`goto Ret`) not
  * `return a2` — `return` emits a separate epilogue + branch; `goto` shares
  * the one at the end (this alone was +9pp). Fuzzy 61.26→70.58, correct shape.
- * REMAINING (single register, not a cap): the object lands in $a3 not the
- * target's $a2 — it is BOTH the working value AND the return, so IDO routes
- * it $a3→$a2→$v0 (one extra `move a2,a3`) where the target keeps it $a2→$v0.
- * This $a-class renumber resists decl-order, (void)&a1 on/off, dead-a1-reuse,
- * and obj/prev role-swap (all tried). Permuter is no help (its scorer
- * normalizes sp-offsets → can't see frame size, wanders to 0x28, floored 520).
- * Needs the C form that makes IDO born the object directly in $a2 — last mile. */
+ * REMAINING (re-diagnosed 2026-05-31, the prior "$a2-vs-$a3 single-register
+ * renumber, last mile" note was WRONG): the diff is STRUCTURAL, not a renumber.
+ * Mine emits 52 insns vs target 50, with the stage-2/stage-3 branch SENSES flipped
+ * (target `beq v0,zero,storeA2` where mine `bne v0,zero,...` + 2 extra `lui v1;beq`).
+ * Root cause: the target re-checks the SAME running value 3× (0x1C beq v0, 0x24 bne
+ * a2, 0x44 bne v1) and keeps all three "provably-dead" stage branches, because it
+ * SPILLS the value to stack and RELOADS it across each call — and IDO's nonzero
+ * value-tracking does NOT survive a spill/reload across a jal, so it can't fold the
+ * dead null-checks. My build keeps the value in a register, proves it nonzero, and
+ * FOLDS stage-2/3 → fewer/differently-sensed branches. The $a3 vs $a2 is a symptom.
+ * UNTESTED HYPOTHESIS for next attempt: force the running value through memory (e.g.
+ * keep it as a field of `a1`/a stack object so each null-check reads a fresh load
+ * IDO can't prove nonzero) to reproduce the target's kept-dead-branch shape. */
 void *eddproc_uso_func_0000025C(int *a0, int *a1) {
     int *a2;
     int *v1;
