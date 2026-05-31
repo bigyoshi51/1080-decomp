@@ -12530,7 +12530,11 @@ void game_uso_func_00010BAC(char *a0) {
     }
 }
 
-#ifdef NON_MATCHING
+/* BYTE-EXACT 2026-05-31 (stale-cap catch). Sibling of game_uso_func_00010BAC;
+ * the struct-by-value arg-pass (*(Pair2*)(&D+0xE48/0xE10)) homes the pairs to
+ * the outgoing arg slots, byte-exact — the 2026-05-28 struct-by-value sweep
+ * landed 10BAC but missed this sibling, leaving it needlessly NM-wrapped.
+ * .text identical to expected/.o. See docs/IDO_CODEGEN.md STALE-CAP CATCH. */
 void game_uso_func_00010C4C(char *a0) {
     gl_func_00000000(a0, 0x20007, 0x20006,
                      *(int*)(*(char**)(a0 + 0xB4) + 0xA04), 0, 1);
@@ -12543,9 +12547,6 @@ void game_uso_func_00010C4C(char *a0) {
         gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010C4C);
-#endif
 
 void game_uso_func_00010CF0(char *a0) {
     char *sub;
