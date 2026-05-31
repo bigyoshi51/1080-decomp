@@ -10921,10 +10921,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
  * orchestrator, ~118 insns; switch + flag-set + D-pair calls = documented
  * sub-80 ceiling → INCLUDE_ASM build path; struct-typing reference).
  *
- * Caps (DEFERRED): documented EE84-family beql/beq switch dispatch +
- *   branch-likely + D-pair sp-arg shape ceiling. Real-C STRUCTURAL
- *   body below — full switch + flag-set decoded. Byte-match deferred.
- *   Name pre-checked: no extern reuse. */
+ * 52.9% -> 69.63%: the four switch-case D-pairs (EF0/EF4, E40/E44) pass BY
+ *   VALUE as *(Pair2*) in MEMORY order (the old reversed two-arg form was the
+ *   un-homed pair; same lever as EF70). Residual: target builds each pair as a
+ *   LOCAL struct copy high in a 0x48 frame (sp+56) — by-pointer (&tmp) tested
+ *   WORSE (68.78); by-value 69.63 is best — plus the beql/beq switch dispatch +
+ *   branch-likely. Documented EE84-family switch ceiling.
+ *   docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair */
 #ifdef NON_MATCHING
 void game_uso_func_0000E91C(char *a0, int a1) {
     char *s0 = a0;
@@ -10937,27 +10940,19 @@ void game_uso_func_0000E91C(char *a0, int a1) {
         switch (*(int *)(s0 + 0x12C)) {
             case 1:
                 *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x18;
-                func_00000000(o + 0x808,
-                              *(int *)((char *)&D_00000000 + 0xEF4),
-                              *(int *)((char *)&D_00000000 + 0xEF0));
+                func_00000000(o + 0x808, *(Pair2 *)((char *)&D_00000000 + 0xEF0));
                 break;
             case 2:
                 *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1B;
-                func_00000000(o + 0x808,
-                              *(int *)((char *)&D_00000000 + 0xE44),
-                              *(int *)((char *)&D_00000000 + 0xE40));
+                func_00000000(o + 0x808, *(Pair2 *)((char *)&D_00000000 + 0xE40));
                 break;
             case 3:
                 *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1A;
-                func_00000000(o + 0x808,
-                              *(int *)((char *)&D_00000000 + 0xEF4),
-                              *(int *)((char *)&D_00000000 + 0xEF0));
+                func_00000000(o + 0x808, *(Pair2 *)((char *)&D_00000000 + 0xEF0));
                 break;
             case 4:
                 *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1C;
-                func_00000000(o + 0x808,
-                              *(int *)((char *)&D_00000000 + 0xE44),
-                              *(int *)((char *)&D_00000000 + 0xE40));
+                func_00000000(o + 0x808, *(Pair2 *)((char *)&D_00000000 + 0xE40));
                 break;
         }
     }
