@@ -5755,10 +5755,17 @@ void game_uso_func_00006F28(int *a0) {
  *
  * The 2 dead a1 spills are not reproducible from natural C — they're
  * artifacts of how IDO scheduled the load BEFORE the jal. Body logic
- * decoded; need a multi-stage variant tester or accept ~41% cap. */
+ * decoded; need a multi-stage variant tester or accept ~41% cap.
+ * 2026-05-31: callee RESOLVED to the real game_uso_func_0000A374 (was the
+ * gl_func_00000000 placeholder). The residual is its VARARGS ABI: target
+ * homes the 4th arg `v` to sp+4 and allocates a -64 frame, but A374's existing
+ * 3-arg prototype `(int,int,int)` blocks declaring it `(int,int,int,...)` here
+ * (redeclaration conflict), and a fn-ptr varargs cast forces an indirect jalr.
+ * Cracking it needs A374's def itself made varargs (risks A374's own 86.7%). */
+extern int game_uso_func_0000A374();
 int game_uso_func_00006F38(int *a0) {
     int v = **(int**)((char*)&D_00000000 + 0x548);
-    int *r = (int*)gl_func_00000000(a0, v, *(int*)((char*)a0 + 0x30) + 0xB4, v);
+    int *r = (int*)game_uso_func_0000A374(a0, v, *(int*)((char*)a0 + 0x30) + 0xB4, v);
     int *p;
     if (r == 0) return 0;
     if ((*(int*)((char*)r + 0x84) & 0x400) != 0) return 1;
