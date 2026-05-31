@@ -11331,35 +11331,29 @@ void game_uso_func_0000F13C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
 #endif
 
-#ifdef NON_MATCHING
 /* game_uso_func_0000F284: 55-insn EE84-family branchy, beql-selected mode+D-pair.
- * `m` is saved to a stack slot in each branch and reused in the final 6-arg
- * call. Cross-USO jal-0 → gl_func_00000000. 62.5% -> 99.95%: the two D-pair
- * calls (0xE60/E64, 0xE40/E44) pass the float-pair BY VALUE as *(Pair2*) —
- * the "precall-arg-spill cap" was the un-homed pair (same lever as 10AC8/
- * 10B38, docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
- * Residual (5 diffs, ALL one cause): `m`'s spill slot is sp+44 in target,
- * sp+40 here (frame 0x30, slot 40 unused in target / 44 unused here) — a
- * -O2 spill-slot-placement detail, not C-controllable. */
+ * The two D-pair calls pass the float-pair BY VALUE as *(Pair2*) (struct-by-value
+ * homes the arg pair, docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
+ * The final spill-slot residual (`m` wanted sp+44 in a 0x30 frame, build emitted
+ * sp+40) was cracked by REMOVING the idiomatic `int *s0 = a0;` alias and using a0
+ * directly: dropping the redundant local shifts the pseudo-numbering so `m`'s spill
+ * bumps to the higher slot (docs/IDO_CODEGEN.md remove-idiomatic-local lever —
+ * invalidates the "spill-slot placement not C-controllable" cap). BYTE-EXACT. */
 extern int gl_func_00000000();
 void game_uso_func_0000F284(int *a0) {
-    int *s0 = a0;
     int m;
-    gl_func_00000000((char *)s0[0xB4 / 4] + 0x808);
-    if (*(int *)((char *)s0[0xB4 / 4] + 0x9CC) != 0) {
+    gl_func_00000000((char *)a0[0xB4 / 4] + 0x808);
+    if (*(int *)((char *)a0[0xB4 / 4] + 0x9CC) != 0) {
         m = 0x20008;
-        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE60), -1);
+        gl_func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xE60), -1);
     } else {
-        m = s0[0xFC / 4] | 8;
-        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE40), -1);
+        m = a0[0xFC / 4] | 8;
+        gl_func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xE40), -1);
     }
-    s0[0x118 / 4] = 1;
-    gl_func_00000000(s0);
-    gl_func_00000000(s0, m, 0, 0, 0x100, s0[0x19C / 4]);
+    a0[0x118 / 4] = 1;
+    gl_func_00000000(a0);
+    gl_func_00000000(a0, m, 0, 0, 0x100, a0[0x19C / 4]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F284);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000F360: 49-insn float-compare-gated state-mux update.
