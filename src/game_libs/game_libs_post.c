@@ -11445,12 +11445,19 @@ void game_libs_func_00031580(void) {
 extern int gl_ref_00045DC0();
 extern char gl_ref_00000368;
 
+/* game_libs_func_000315BC (cross-TU orphan merge): the orphan game_libs_func_000315BC
+ * (sll t7,a0,2; subu t7,t7,a0 = a0*3) was in game_libs.c; merged into the body .s
+ * (one 0x4C symbol), INCLUDE_ASM removed. The index a0*100 = ((a0*3)*8 + a0)*4
+ * HOISTS the first sll;subu (a0*3) above the prologue. Residual = the hoist-breaks-
+ * reuse regalloc cap: target reuses ONE $t7 through the whole a0*3->24->25->100
+ * chain; mine breaks to $t8/$t9 at the +a0 (same class as timproc_uso_b3_func_00002EEC;
+ * mul/shift/mutate variants 12-14/19). Stays NM. */
 #ifdef NON_MATCHING
-void gl_func_000315C4(int a0, int a1) {
-    gl_ref_00045DC0(&gl_ref_00000368 + a0 * 100, 1, a1, 0x7F);
+void game_libs_func_000315BC(int a0, int a1) {
+    gl_ref_00045DC0(&gl_ref_00000368 + ((a0 * 3) * 8 + a0) * 4, 1, a1, 0x7F);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000315C4);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000315BC);
 #endif
 
 /* Caps (DEFERRED): 4-way state-machine dispatch enumeration — but
