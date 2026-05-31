@@ -176,10 +176,16 @@ void game_uso_func_00000314(Pair2 *dst) {
  * NATURAL CAP 98.125% (3 insn diff). IDO -O2 picks t6/t7/t8 sequentially
  * for the 3-load chain at function tail; target uses t7/t9/t6 (skipping
  * t8). Register-allocation order is not C-controllable for this shape.
- * INSN_PATCH was REMOVED 2026-05-23 (match-faking, banned per
- * feedback_no_instruction_forcing_matches_policy). The prior 100% match
- * was post-cc byte editing of the 3 cap insns. Permanent NM cap until a
- * permuter-found C shape produces the t7/t9/t6 sequence. */
+ * ROOT CAUSE (regalloc dump -Wo,-zdbug:6, 2026-05-30): `dst` is a live
+ * range SPLIT across the gl_func call ("live range 0:0 split out 6") —
+ * the pre-call arg-spill piece and the post-call reload piece are distinct
+ * pieces. Target coalesces the reload piece to the low temp t6; IDO -O2
+ * here colors it a fresh high temp (t8). 10 C variants 2026-05-30 (access-
+ * form *buf/dst[0], named value, ptr-copy `int*d=dst`, buf shape [2]/[3]/
+ * single, register param, volatile-store cast, buf[1] touch) — NONE flip
+ * the split-piece coloring; all 98.125% or worse. Confirmed coloring
+ * artifact, not C-reachable. INSN_PATCH was REMOVED 2026-05-23 (match-
+ * faking). NM cap until a permuter-found C shape produces t7/t9/t6. */
 #ifdef NON_MATCHING
 void game_uso_func_0000035C(int *dst) {
     volatile int buf[2];
