@@ -11710,30 +11710,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031898);
 //   bank is the gl_func_0002F638 / 0002F9D4 emitter family with a
 //   0x02xx sub-bank; the query helper 0x0117C1 is shared with the
 //   gl_func_00031710 table cluster).
-// Caps (DEFERRED): raw-word USO + fixed intra-USO query (0x0117C1)
-//   + USO-reloc jal-0 callbacks + dual-block state gate — byte-
-//   match needs USO mnemonic disasm + reloc-pad jal infra.
-//   Real-C STRUCTURAL body below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// 2026-05-31 FULL DECODE 45.0->95.66%: it is THREE identical blocks (not
+//   two), bases 0x06020004/0x104/0x204, checks &D+0x368/0x3CC/0x430,
+//   state halfwords &D+0x3C8/0x42C/0x490, sign bytes &D+0x3CB/0x42F/0x493.
+//   The branch polarity was inverted in the old draft: `if (s == 0)` (the
+//   FALL-THROUGH, emits `bne s,0,else`) does { func(A,-1); func(A2,0) };
+//   `else` (s != 0) does { func(A,(s8)s); func(A,(s8)byte) }. Writing it
+//   `if(s!=0)` emits `beq` and mis-aligns the whole block — match the
+//   target's fall-through. Residual ~4%: the check jal is a CONCRETE
+//   alt-entry at 0x45f04 (gl_func_000628EC+0x64) but C emits the generic
+//   gl_func_00000000 reloc (alt-entry-jal cap, cf. func_00039194) + s in
+//   v1-vs-v0 renumber + last-block beql. INCLUDE_ASM stays the build path.
 #ifdef NON_MATCHING
 void gl_func_0003190C(void) {
     if (gl_func_00000000((char *)&D_00000000 + 0x368)) {
         unsigned short s = *(unsigned short *)((char *)&D_00000000 + 0x3C8);
-        if (s != 0) {
+        if (s == 0) {
             gl_func_00000000(0x06020004, -1);
-            gl_func_00000000(0x06020004, 0);
-        } else {
-            gl_func_00000000(0x06020000,
-                             *(signed char *)((char *)&D_00000000 + 0x3CB));
             gl_func_00000000(0x06020000, 0);
+        } else {
+            gl_func_00000000(0x06020004, (signed char)s);
+            gl_func_00000000(0x06020004,
+                             *(signed char *)((char *)&D_00000000 + 0x3CB));
         }
     }
     if (gl_func_00000000((char *)&D_00000000 + 0x3CC)) {
         unsigned short s = *(unsigned short *)((char *)&D_00000000 + 0x42C);
-        if (s != 0) {
+        if (s == 0) {
             gl_func_00000000(0x06020104, -1);
-        } else {
             gl_func_00000000(0x06020100, 0);
+        } else {
+            gl_func_00000000(0x06020104, (signed char)s);
+            gl_func_00000000(0x06020104,
+                             *(signed char *)((char *)&D_00000000 + 0x42F));
+        }
+    }
+    if (gl_func_00000000((char *)&D_00000000 + 0x430)) {
+        unsigned short s = *(unsigned short *)((char *)&D_00000000 + 0x490);
+        if (s == 0) {
+            gl_func_00000000(0x06020204, -1);
+            gl_func_00000000(0x06020200, 0);
+        } else {
+            gl_func_00000000(0x06020204, (signed char)s);
+            gl_func_00000000(0x06020204,
+                             *(signed char *)((char *)&D_00000000 + 0x493));
         }
     }
 }
