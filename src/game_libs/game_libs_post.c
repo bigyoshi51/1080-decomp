@@ -36818,13 +36818,19 @@ void game_libs_func_00066C60(void) {}
  * (relative to slot base).
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * feedback_doc_marker_is_bail.md. 84.1 -> 85.12 (2026-05-31): the 3rd arg of
+ * func2 is the ADDRESS `&D_00000000 + 0x416B0`, not the literal `(char*)0x416B0`
+ * — the literal emits `ori a2,a2,0x16B0`, the address form `addiu a2,a2,5808`
+ * (matching target). NOTE: only the ARG; routing the `*(int*)0x416B0=2` store
+ * through &D too CSEs the base and regresses (79.9%) — leave the store a literal.
+ * Residual: at-vs-t7 store-base regalloc + ra-save/field-init block scheduling.
+ * INCLUDE_ASM remains build path.
  */
 void gl_func_00066C74(char *self) {
     *(volatile int*)0x000416B0 = 2;
     *(int*)(self + 0x13E8) = 0;
     gl_func_00000000(self + 0x11B0, self + 0x11C8, 4);
-    gl_func_00000000(5, self + 0x11B0, (char*)0x000416B0);
+    gl_func_00000000(5, self + 0x11B0, (char*)&D_00000000 + 0x416B0);
     *(int*)(self + 0x13F0) = 0;
     {
         int i;
