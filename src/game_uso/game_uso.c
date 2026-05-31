@@ -98,6 +98,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * can't be pinned without rescheduling. Still a permuter/PERM_-macro target, not
  * a permanent cap — but the simple levers are genuinely exhausted here. */
 #ifdef NON_MATCHING
+/* 1-diff FP-REDUCTION operand-order cap (final add: target `f0=sum3+p3` with
+ * sum3 as fs; ours swaps to p3 as fs). RE-CONFIRMED 2026-05-31: the
+ * assignment-expr lever `... + (t = b[3]*a[3])` REGRESSES to 15 diffs — pinning
+ * p3 reschedules the whole reduction (sum3 is a multi-op chain, can't be the
+ * pinned operand). Same class as game_libs_func_0005D588. Genuine cap; do not
+ * re-grind with the assignment-expr lever. */
 float game_uso_func_000000A0(float *a, float *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
 }
