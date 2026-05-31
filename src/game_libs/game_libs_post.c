@@ -5649,45 +5649,37 @@ void game_libs_func_00026AF8(int a0, int a1) {
     *(float *)(p + 0x2D20) = 0.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026B40);
-
-// gl_func_00026B48 — verified structural decode (global-block init, 35
-//   insns). DEFERRED: stolen-$v0-base prologue cap.
-//     D[0x53C0..0x53C2] = 0,0,0;   // 3 byte flags
-//     D[0x53C8] = &D+0x53D0;  D[0x53CC] = &D+0x53E8;
-//     D[0x53C4] = &D+0x53C0;
-//     gl_func_00000000(&D+0x53D0, &D+0x5418, 1);
-//     gl_func_00000000(D[0x53CC],  &D+0x5420, 4);
-//     gl_func_00000000(D[0x53C4],  &D+0x541C, 1);
-//   A global-table init (3 byte-flags + 3 self-referential ptr fields
-//   + 3 sub-init calls). Blocker: the first block (0x024-0x038)
-//   addresses D via $v0 used UNINITIALIZED at entry — lui v0,0; addiu
-//   v0 is hoisted into the predecessor (stolen-base prologue); later
-//   blocks re-materialize lui v0,0; addiu v0 at 0x048/0x064. Clean C
-//   *(char*)((char*)&D+N)=0 emits lui at; sb zero,N(at) ($at base),
-//   not the target's $v0 base for the first block -> won't match
-//   without a PROLOGUE_STEALS-style recipe + predecessor boundary
-//   analysis. NOT the easy clean-wrapper subset. Documents the D
-//   global-table layout (@0x53C0 flags / 0x53C4/8/C ptr trio).
-//   Name pre-checked: no extern reuse (collision-safe).
-//   gl_func_00000000 = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
+// game_libs_func_00026B40 — global-table init (was the stolen-$v0-base
+//   prologue cap). The orphan game_libs_func_00026B40 (lui v0,0; addiu v0,v0,0
+//   = v0 = &D_00000000) was the hoisted base for the first store block; it has
+//   been merged FORWARD into this function (formerly gl_func_00026B48) so the
+//   symbol starts at 0x26B40 and the base-load is the function's own first two
+//   words. Block1's 6 stores share that base via a NAMED pointer `p` (so IDO
+//   keeps the &D base in $v0 and reuses it, rather than the $at-per-store form);
+//   block2/3 re-materialize &D inline. Corrected offsets vs the old decode:
+//   the byte flags are at 0x53B8/B9/BA (not 0x53C0) and D[0x53C4] = &D+0x5400.
+//   STATUS: orphan-merge + hoist cracked the prologue-steal cap (0% -> 76%,
+//   29/38). The hoisted lui v0;addiu v0 base + v0-base block1 + all offsets/
+//   calls match. Residual 9 diffs = the three &D-pointer temps use t6/t7/t8
+//   (target) vs a0/t6/t7 (mine), plus the sw-ra schedule slot — a regalloc-
+//   renumber on the pointer temps (named-q1/q2/q3 variant didn't flip it).
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_00026B48(void) {
-    char *D = (char *)&D_00000000;
-    *(char *)(D + 0x53C0) = 0;
-    *(char *)(D + 0x53C1) = 0;
-    *(char *)(D + 0x53C2) = 0;
-    *(char **)(D + 0x53C8) = D + 0x53D0;
-    *(char **)(D + 0x53CC) = D + 0x53E8;
-    *(char **)(D + 0x53C4) = D + 0x53C0;
-    gl_func_00000000(D + 0x53D0, D + 0x5418, 1);
-    gl_func_00000000(*(char **)(D + 0x53CC), D + 0x5420, 4);
-    gl_func_00000000(*(char **)(D + 0x53C4), D + 0x541C, 1);
+#ifdef NON_MATCHING
+void game_libs_func_00026B40(void) {
+    char *p = (char *)&D_00000000;
+    p[0x53B8] = 0;
+    p[0x53B9] = 0;
+    p[0x53BA] = 0;
+    *(char **)(p + 0x53C8) = p + 0x53D0;
+    *(char **)(p + 0x53CC) = p + 0x53E8;
+    *(char **)(p + 0x53C4) = p + 0x5400;
+    gl_func_00000000(p + 0x53D0, p + 0x5418, 1);
+    gl_func_00000000(*(char **)((char *)&D_00000000 + 0x53CC), (char *)&D_00000000 + 0x5420, 4);
+    gl_func_00000000(*(char **)((char *)&D_00000000 + 0x53C4), (char *)&D_00000000 + 0x541C, 1);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026B48);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026B40);
 #endif
 
 /* game_libs_func_00026BD8: ring-buffer push. head=u8 D[0x53B8],
