@@ -11282,28 +11282,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
  * compare a < v->0x960 (a > threshold check), gate on v->0x938; write
  * a0->0x110/0x10C with b stored at v+0x960. */
 void game_uso_func_0000ECEC(char *obj, int idx) {
-    int a = 0, b = 0;
+    int ab[2];
     int *v;
     int *base;
     if (idx == 0) return;
-    if ((unsigned int)(idx - 1) >= 5) return;
     switch (idx - 1) {
-        case 0: a = *(int *)(obj + 0x43C); b = *(int *)(obj + 0x3AC); break;
-        case 1: a = *(int *)(obj + 0x43C); b = *(int *)(obj + 0x3C4); break;
-        case 2: a = *(int *)(obj + 0x43C); b = *(int *)(obj + 0x3DC); break;
-        case 3: a = *(int *)(obj + 0x424); b = *(int *)(obj + 0x3F4); break;
-        case 4: a = *(int *)(obj + 0x424); b = *(int *)(obj + 0x40C); break;
+        case 0: ab[1] = *(int *)(obj + 0x43C); ab[0] = *(int *)(obj + 0x3AC); break;
+        case 1: ab[1] = *(int *)(obj + 0x43C); ab[0] = *(int *)(obj + 0x3C4); break;
+        case 2: ab[1] = *(int *)(obj + 0x43C); ab[0] = *(int *)(obj + 0x3DC); break;
+        case 3: ab[1] = *(int *)(obj + 0x424); ab[0] = *(int *)(obj + 0x3F4); break;
+        case 4: ab[1] = *(int *)(obj + 0x424); ab[0] = *(int *)(obj + 0x40C); break;
     }
     v = *(int **)(obj + 0xB4);
     base = (int *)((char *)v + 0x960);
-    if (a < *(int *)((char *)v + 0x960)) {
+    if (ab[1] < *(int *)((char *)v + 0x960)) {
         /* threshold-exceeded path: gated by v->0x938 */
         if (v[0x938 / 4] != 0) {
             *(int *)(obj + 0x10C) = 0;
             *(int *)(obj + 0x110) = 1;
         } else {
             /* accumulate b into v->0x960 */
-            *base = *base + b;
+            *base = *base + ab[0];
             *(int *)(obj + 0x110) = 0;
         }
     }
