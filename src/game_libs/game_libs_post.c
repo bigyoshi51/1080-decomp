@@ -32596,30 +32596,39 @@ int gl_func_0005FDCC(int a0, int a1, int a2) {
     return 0;
 }
 
-#ifdef NON_MATCHING
-/* Append-and-return-slot wrapper (24 insns, prologue-stolen).
+/* game_libs_func_0005FE14: append-and-return-slot (cross-TU orphan merge).
+ * Orphan game_libs_func_0005FE14 (lui v1; lw v1,0 = p = *&D) was in game_libs.c;
+ * merged into the body .s (one 0x68 symbol), INCLUDE_ASM removed. Reading *&D
+ * inline hoists the lui;lw above the prologue. The `q = p + 0x2C` base-adjust
+ * (target's $v1 += 0x2C, scheduled into the bne delay slot) makes the later
+ * loads use 0xC/0 offsets instead of 0x38/0x2C. MATCHED 2026-05-30.
+ * (old) Append-and-return-slot wrapper (24 insns, prologue-stolen).
  * p = *&D (pred-loaded). count = p[0x38]; capacity = p[0x34].
  * If count >= capacity, gl_func_00000000(&D+0x21C40, count) (alloc/grow);
  *   reload count.
  * p[0x38] = count + 1; return p[0x2C] + count * 68.
  *
- * Target uses $v1 += 0x2C trick (base register adjustment) to make
- * subsequent loads use 0xC, 0(...) etc. instead of 0x38, 0x2C(v1+0). IDO
- * doesn't generate this base-adjust trick from natural C — uses original
- * $v1 with full-offset loads. Also bnel vs bne. Reg-rename grind. */
-char *gl_func_0005FE1C(int a0) {
+ * The $v1 += 0x2C base-adjust IS C-reachable: MUTATE the pointer (p += 0x2C),
+ * which the compiler can't fold back to full offsets (unlike q = p + 0x2C).
+ * That + the orphan hoist gives STRUCTURE EXACT (26/26 opcodes, bne not bnel).
+ * Residual = a caller-saved-temp regalloc renumber (capacity $v0 mine vs $t6
+ * target, cascading the $t6-$t9 chain down by one; mine reuses the $v0 return
+ * reg for capacity). swap-decl/inline-cap regressed. Stays NM. */
+#ifdef NON_MATCHING
+char *game_libs_func_0005FE14(int a0) {
     char *p = *(char**)&D_00000000;
     int capacity = *(int*)(p + 0x34);
     int count = *(int*)(p + 0x38);
+    p += 0x2C;
     if (count >= capacity) {
         gl_func_00000000((char*)&D_00000000 + 0x21C40, count);
-        count = *(int*)(p + 0x38);
+        count = *(int*)(p + 0xC);
     }
-    *(int*)(p + 0x38) = count + 1;
-    return *(char**)(p + 0x2C) + count * 68;
+    *(int*)(p + 0xC) = count + 1;
+    return *(char**)(p + 0) + count * 68;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE1C);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FE14);
 #endif
 
 #ifdef NON_MATCHING
