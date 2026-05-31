@@ -30018,6 +30018,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
  * `move a3,zero` vs target `li a3,0` (addiu) — a body-vs-delay-slot 0-arg
  * instruction-selection cap. */
 #ifdef NON_MATCHING
+/* 2-diff residual (2026-05-31): both diffs are the 4th-arg `0` on the two
+ * PROTOTYPED `_54a(...,float,...)` calls — IDO emits `move a3,zero` (or) where
+ * the target has `li a3,0` (addiu). The K&R-call zeros (gl_func_00000000) match
+ * (li). So a prototyped call that also carries a float arg materializes a zero
+ * int arg as `move` not `li`. NOT C-fixable here: the float arg REQUIRES the
+ * prototype (K&R promotes float->double = swc1->sdc1, and passing the float's
+ * int BITS via K&R regressed 38/diff — target genuinely uses swc1). Stuck on
+ * the prototype<->li/move coupling. */
 extern int gl_func_00000000();
 extern void gl_func_00000000_54a(int, int, int, int, float, int);
 extern int D_00000000, D_54a_o0, D_54a_o1, D_54a_o2, D_54a_o3, D_54a_o4;
