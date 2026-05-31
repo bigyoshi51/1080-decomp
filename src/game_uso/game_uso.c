@@ -172,29 +172,28 @@ void game_uso_func_00000314(Pair2 *dst) {
     *dst = buf;
 }
 
-/* Int-reader template with pointer-indirect load (volatile int buf[2] trick).
- * NATURAL CAP 98.125% (3 insn diff). IDO -O2 picks t6/t7/t8 sequentially
- * for the 3-load chain at function tail; target uses t7/t9/t6 (skipping
- * t8). Register-allocation order is not C-controllable for this shape.
- * ROOT CAUSE (regalloc dump -Wo,-zdbug:6, 2026-05-30): `dst` is a live
- * range SPLIT across the gl_func call ("live range 0:0 split out 6") —
- * the pre-call arg-spill piece and the post-call reload piece are distinct
- * pieces. Target coalesces the reload piece to the low temp t6; IDO -O2
- * here colors it a fresh high temp (t8). 10 C variants 2026-05-30 (access-
- * form *buf/dst[0], named value, ptr-copy `int*d=dst`, buf shape [2]/[3]/
- * single, register param, volatile-store cast, buf[1] touch) — NONE flip
- * the split-piece coloring; all 98.125% or worse. Confirmed coloring
- * artifact, not C-reachable. INSN_PATCH was REMOVED 2026-05-23 (match-
- * faking). NM cap until a permuter-found C shape produces t7/t9/t6. */
-#ifdef NON_MATCHING
-void game_uso_func_0000035C(int *dst) {
-    volatile int buf[2];
+/* Int-reader template, BYTE-EXACT 2026-05-31 (.text identical to expected/.o;
+ * residual fuzzy<100 is the known uso_raw_word-vs-reloc artifact — expected/.o
+ * is missing the LO16 on the &D addiu because game-uso-symbolize-s.py named the
+ * %hi lui but not its paired %lo addiu, same class as eddproc_uso_func_00000000).
+ *
+ * NOT A REGALLOC CAP — the old "t6/t7/t8 vs t7/t9/t6, split-piece coloring,
+ * permuter-only" note was WRONG. The target's post-call sequence
+ *   addiu t7,sp,0x18 ; lw t9,0(t7) ; lw t6,0x20(sp) ; sw t9,0(t6)
+ * is a single-WORD STRUCT COPY (`*dst = *(One1*)buf`), not a scalar read.
+ * A scalar `*dst = buf[0]` emits the DIRECT-index form (`lw t6,0x18(sp)`, like
+ * eddproc_uso_func_00000000). The struct-copy form makes IDO re-materialize the
+ * source address into a register (t7) and walk it with offset-0 loads — which is
+ * exactly the target. The `int buf[2]` (8 bytes) keeps the buffer at sp+0x18
+ * (frame 0x20); copying only the first word out as a 1-int struct yields the
+ * one-word t7/t9/t6 sequence. (Sibling 039C below is the same struct-copy form,
+ * 4 words.) See docs/IDO_CODEGEN.md struct-copy-recompute-vs-scalar-index. */
+typedef struct { int a; } One1;
+void game_uso_func_0000035C(One1 *dst) {
+    int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
-    *dst = buf[0];
+    *dst = *(One1*)buf;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000035C);
-#endif
 
 void game_uso_func_0000039C(Quad4 *dst) {
     Quad4 buf;
