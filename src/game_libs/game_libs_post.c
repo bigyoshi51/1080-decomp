@@ -16511,30 +16511,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
 //   gl_func_000332B4 (which keyed tag 0x69 and o->0xF4); together
 //   they are the externalized arms of the gl_func_0002FB74
 //   interpreter for specific opcodes.
-// Caps (DEFERRED): raw-word USO + command-tag switch + flag-bit RMW
-//   on object state + USO-relocated jal-0 cb; command/object structs
-//   untyped. Real-C STRUCTURAL body below. Byte-match deferred. Name
-//   pre-checked: no extern reuse.
+// Caps (DEFERRED): raw-word USO + command-tag switch + USO-reloc jal-0 cb.
+//   2026-05-31 FULL DECODE + completion 49.3->84.6%: the sketch had the case
+//   bodies WRONG. Correct dispatch (tags 0xC/0xD/0xE/0x2):
+//     0xC: payload=c->4; if(payload->4) o->0x18|=0x80; else o->0x18&=~0x80;
+//     0xD: if(cb(o->0xC, *(int*)c->4)==0) c->8 = o;
+//     0xE: if(o->0x1C == (short)(c->4)->4) c->8 = o;
+//     0x2: if(c->4) o->0x18|=0x4; else &=~0x4;  if(c->4) o->0x18|=0x8; else &=~0x8;
+//   (the sketch's 0xD CLEAR / 0xE cb were misassigned; 0xC missing the else;
+//   0x2 was a stub.) RESIDUAL (84->100): o->s0 saved-reg promotion (target
+//   frame 0x20 w/ s0=o; ours 0x18, o stays caller-save) + IDO switch-case
+//   lowering order (target tests 12,13,14,2 w/ beql-last; ours 2-first) + the
+//   placeholder jal. Regalloc/switch-lowering cap. Name pre-checked: no reuse.
 #ifdef NON_MATCHING
 void gl_func_00038830(char *o, char *c) {
-    int tag = *(int *)c;
     char *payload;
-    switch (tag) {
+    switch (*(int *)c) {
         case 0xC:
             payload = *(char **)(c + 0x4);
             if (*(int *)(payload + 0x4) != 0) {
                 *(int *)(o + 0x18) |= 0x80;
+            } else {
+                *(int *)(o + 0x18) &= ~0x80;
             }
             break;
         case 0xD:
-            *(int *)(o + 0x18) &= ~0x80;
+            payload = *(char **)(c + 0x4);
+            if (gl_func_00000000(*(char **)(o + 0x0C), *(int *)payload) == 0) {
+                *(char **)(c + 0x8) = o;
+            }
             break;
         case 0xE:
-            payload = *(char **)(c + 0x4);
-            gl_func_00000000(*(char **)(o + 0x0C), *(int *)payload);
+            if (*(int *)(o + 0x1C) == *(short *)(*(char **)(c + 0x4) + 0x4)) {
+                *(char **)(c + 0x8) = o;
+            }
             break;
         case 0x2:
-            gl_func_00000000(o, c);
+            if (*(char **)(c + 0x4) != 0) {
+                *(int *)(o + 0x18) |= 0x4;
+            } else {
+                *(int *)(o + 0x18) &= ~0x4;
+            }
+            if (*(char **)(c + 0x4) != 0) {
+                *(int *)(o + 0x18) |= 0x8;
+            } else {
+                *(int *)(o + 0x18) &= ~0x8;
+            }
             break;
         default:
             break;
