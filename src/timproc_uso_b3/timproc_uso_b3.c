@@ -1400,24 +1400,32 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  *   gl_func(entry);
  *   gl_func(entry, 0xA0, a2, 3);
  *
- * NATURAL CEILING: 95.45% NM. Unique extern D_b3_2EF0_table bakes the
- * +0x70 table offset into the relocation; the second pointer local keeps
- * the target 0x28-byte frame and sp+0x1C spill slot. The historical
- * PROLOGUE_STEALS=4 promotion was REMOVED 2026-05-23 as match-faking. */
+ * MATCHED 2026-05-30 via reverse-merge. The real entry is 0x2EEC: predecessor
+ * func_00002DF0's tail held `sll t6,a1,2` (t6 = a1*4), splat mis-attributed to
+ * it. Moved that word into this function (renamed 0x2EF0 -> 0x2EEC, predecessor
+ * shrunk 0x100 -> 0xFC). The index is thus ((a1<<2)-a1)<<3 = a1*24, written in
+ * that exact shift form so IDO HOISTS the first `sll a1,2` above the prologue
+ * (the stolen-prologue bytes, from pure C) — a reverse-merge twin of the
+ * forward orphan-merge recipe. STRUCTURE EXACT (23/23 opcodes/order). Residual
+ * = a caller-saved-temp regalloc renumber on the index chain: target reuses ONE
+ * reg ($t6: a1*4 -> -a1 -> <<3) across the hoist; mine uses $t6/$t7/$t8 (the
+ * hoist splits the reuse). named-idx mutate variants regressed (15/23). Stays
+ * NM. Unique extern D_b3_2EF0_table bakes the +0x70 table reloc; the 2nd pointer
+ * local keeps the 0x28 frame + sp+0x1C spill. */
 extern char D_b3_2EF0_table;
 #ifdef NON_MATCHING
-void timproc_uso_b3_func_00002EF0(int a0, int a1, int a2) {
+void timproc_uso_b3_func_00002EEC(int a0, int a1, int a2) {
     char *entry, *spillee;
     (void)a0;
     (void)spillee;
-    entry = (char*)&D_b3_2EF0_table + a1 * 24;
+    entry = (char*)&D_b3_2EF0_table + (((a1 << 2) - a1) << 3);
     spillee = entry;
     gl_func_00000000(entry);
     gl_func_00000000(entry);
     gl_func_00000000(entry, 0xA0, a2, 3);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002EF0);
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002EEC);
 #endif
 
 /* timproc_uso_b3_func_00002F48: 66-insn (0x108) two-pass render-helper.
