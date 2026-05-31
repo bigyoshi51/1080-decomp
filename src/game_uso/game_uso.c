@@ -10975,11 +10975,11 @@ void game_uso_func_0000E5C8(char *a0, int a1) {
     /* stride-64 search over the &D table when 0xEC exceeds the 0x214 bound */
     {
         int t0 = *(int *)(a3 + 0xEC);
-        if (*(int *)(a3 + 0xEC) > *(int *)(a3 + 0x214)) {
-            int count = *(int *)&D_00000000;
+        if (*(unsigned int *)(a3 + 0xEC) > *(unsigned int *)(a3 + 0x214)) {
+            unsigned int count = *(unsigned int *)&D_00000000;
             char *tbl = *(char **)((char *)&D_00000000 + 0x15D0);
             char *obj = *(char **)(a3 + 0xB4);
-            int v1;
+            unsigned int v1;
             char *e = tbl;
             for (v1 = 0; v1 < count; v1++, e += 64) {
                 if ((*(int *)(obj + 0x8C0) & *(int *)(e + 0x34)) == 0) continue;
