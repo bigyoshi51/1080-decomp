@@ -10889,17 +10889,16 @@ void game_uso_func_0000E564(int *a0) {
 //   Pure bit-permutation: each source bit maps to a distinct
 //     internal bit (input/state translation table, unrolled).
 //   func_00000000 = USO placeholder dispatcher (1 trailing call).
-// PARTIAL RE-TRACE 2026-05-31 (11.79% -> 27.52%): the prior body was a WRONG
+// FULL RE-TRACE 2026-05-31 (11.79% -> 77.93%): the prior body was a WRONG
 //   skeleton (tested obj->0xB4 not a0->0xF4; local dst not 0xE8-RMW; 5/7 table
-//   entries). Corrected first half is now exact-structured & validated (only
-//   early divergence is the `or a3,a0,zero` materialization, which the target
-//   emits BECAUSE the not-yet-written loop reuses a0 — confirms the decode).
-//   Done: condition+src, full 7-block mask->outbit table, A58-gated call, the
-//   0x12C-gated switch on 0xE8, the 0xEC counter. TODO(next tick): the
-//   a3->0xF4->0x2C-gated bit-clearing (e7f0-e89c) + the stride-64 search loop
-//   (e8c0-e96c) over the table at *(&D_00000000 + 0x15D0) (=D_807FFBC0; basis:
-//   D_807FF430 == &D+0xE40) with count from a second &D global. Full structure:
-//   memory project_1080_e5c8_full_decode_211insn. Target 213 insns.
+//   entries). Now fully structured: condition+src (a0->0xF4 picks ->0x18/->0x10),
+//   full 7-block mask->outbit table, A58-gated call, 0x12C-gated switch on 0xE8,
+//   bit-clearing (0xE8&0x4 + a3->0xF4->0x2C bits 0x5000/0xa000/0xc000/0x100000/
+//   0x200000), 0xEC counter, and the stride-64 search loop over the table at
+//   *(&D_00000000 + 0x15D0) (count = *(int*)&D_00000000), tail 0xE8 &= 0x6.
+//   Residual (~22%, len 196 vs 213): regalloc-renumber + the A58-call sltu-bool
+//   materialization + the count-global no-reloc lui0 codegen. Full structure +
+//   offsets: memory project_1080_e5c8_full_decode_211insn.
 #ifdef NON_MATCHING
 void game_uso_func_0000E5C8(char *a0, int a1) {
     char *a3 = a0;
@@ -10939,15 +10938,69 @@ void game_uso_func_0000E5C8(char *a0, int a1) {
         }
     }
 
+    /* bit-clearing, gated by 0xE8 bit 0x4 and a3->0xF4->0x2C flags */
+    {
+        unsigned int e8 = *(unsigned int *)(a3 + 0xE8);
+        if (e8 & 0x4) {
+            char *f4 = *(char **)(a3 + 0xF4);
+            *(unsigned int *)(a3 + 0xE8) = e8 & 0x3F007;
+            if (f4 != 0) {
+                unsigned int m = *(unsigned int *)(f4 + 0x2C);
+                if (m & 0x5000) {
+                    *(unsigned int *)(a3 + 0xE8) &= 0xFFFF5FFF;
+                    m = *(unsigned int *)(*(char **)(a3 + 0xF4) + 0x2C);
+                }
+                if (m & 0xA000) {
+                    *(unsigned int *)(a3 + 0xE8) &= 0xFFFFAFFF;
+                    m = *(unsigned int *)(*(char **)(a3 + 0xF4) + 0x2C);
+                }
+                if (m & 0xC000) {
+                    if (m & 0x100000) {
+                        *(unsigned int *)(a3 + 0xE8) |= 0x200000;
+                    } else if (!(m & 0x200000)) {
+                        *(unsigned int *)(a3 + 0xE8) |= 0x100000;
+                    }
+                }
+            }
+        }
+    }
+
     /* counter advance: 0xEC++ while 0xE8 nonzero, else reset */
     if (*(int *)(a3 + 0xE8) != 0) {
         *(int *)(a3 + 0xEC) += 1;
     } else {
         *(int *)(a3 + 0xEC) = 0;
     }
-    /* TODO(next tick): bit-clearing (a3->0xF4->0x2C gated) + stride-64 search
-     * loop over the &D table (unknown global offsets) — see
-     * project_1080_e5c8_full_decode_211insn. */
+
+    /* stride-64 search over the &D table when 0xEC exceeds the 0x214 bound */
+    {
+        int t0 = *(int *)(a3 + 0xEC);
+        if (*(int *)(a3 + 0xEC) > *(int *)(a3 + 0x214)) {
+            int count = *(int *)&D_00000000;
+            char *tbl = *(char **)((char *)&D_00000000 + 0x15D0);
+            char *obj = *(char **)(a3 + 0xB4);
+            int v1;
+            char *e = tbl;
+            for (v1 = 0; v1 < count; v1++, e += 64) {
+                if ((*(int *)(obj + 0x8C0) & *(int *)(e + 0x34)) == 0) continue;
+                if (*(int *)(e + 0x2C) != *(int *)(a3 + 0xE8)) continue;
+                if ((*(int *)(e + 0x38) & 0x4) && (*(int *)(obj + 0x9A8) & 0x1)) continue;
+                if (*(int *)(obj + 0x938) != 0) continue;
+                *(char **)(a3 + 0xF0) = tbl + v1 * 64;
+                *(int *)(a3 + 0xE8) = 0;
+                *(int *)(a3 + 0x12C) = 0;
+                *(int *)(a3 + 0xEC) = 0;
+                t0 = 0;
+                break;
+            }
+        }
+        if (t0 < 21) {
+            *(int *)(a3 + 0xE8) &= 0x6;
+        } else {
+            *(int *)(a3 + 0xEC) = 0;
+            *(int *)(a3 + 0xE8) = 0;
+        }
+    }
     (void)a1;
 }
 #else
