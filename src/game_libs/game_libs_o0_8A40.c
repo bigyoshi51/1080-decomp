@@ -37,6 +37,14 @@ typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
 
 #ifdef NON_MATCHING
+/* 99.95% (2 diffs). Residual PRECISELY characterized 2026-05-31: &raw is at
+ * sp+0x40, target sp+0x48 (raw needs +8). Target -O0 layout (by offset):
+ * tmp@0x34, pad_mid@0x40, raw@0x48 — i.e. pad_mid sits in the 8-byte gap
+ * BETWEEN tmp and raw. Mine packs tmp@0x34, raw@0x40, pad_mid@0x4C (raw/pad
+ * swapped). RULED OUT (all REGRESSED to 4-8 diffs, do not re-try): all 6 decl
+ * orderings of {raw,tmp,pad_mid}; pad as Tri3i / int[4] / two structs; pad
+ * before raw. -O0 packs these same-type structs non-obviously and no C-level
+ * decl/type lever swaps raw and pad_mid. Needs a finer -O0 layout insight. */
 void gl_func_00008A40(Vec3 *dst) {
     register Vec3 *q;
     register Vec3 *p1;
