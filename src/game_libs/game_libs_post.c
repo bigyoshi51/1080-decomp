@@ -9598,22 +9598,15 @@ void game_libs_func_0002D868(void) {
     gl_func_00000000(0x41010000, D_2D870_Y[D_2D870_X]);
 }
 
-/* gl_func_0002D8A8: 12-insn prologue-stolen-successor of gl_func_0002D870.
- * Predecessor's tail (`lui $t6, 0; lw $t6, 0(t6)`) loads $t6=*(int*)D_2D870_X
- * and 0x2D8A8 immediately uses $t6 as an array index. C body emits the same
- * lui+lw pair which PROLOGUE_STEALS=8 splices off, leaving the remaining
- * body byte-identical (the runtime $t6 from predecessor's tail is what
- * the indexed-load actually uses).
- *
- * Calls gl_func_00000000(0x41000000, D_2D870_Y[D_2D870_X[0]]) — passes the
- * float bits of 8.0f as a0 and an indexed table value as a1. */
-#ifdef NON_MATCHING
-void gl_func_0002D8A8(void) {
+/* game_libs_func_0002D8A0: table-dispatch, third sibling of 0002D830/0002D868
+ * (cross-TU orphan merge). Orphan game_libs_func_0002D8A0 (lui t6; lw t6,0 =
+ * the index) was in game_libs.c; merged into the body .s (one 0x38 symbol),
+ * INCLUDE_ASM removed from game_libs.c. a0 = 0x41000000 (8.0f). Index/table via
+ * the shared D_2D870_X / D_2D870_Y (all the X/Y unique externs resolve to &D+0;
+ * the names just force separate lui materializations, not CSE). MATCHED 2026-05-30. */
+void game_libs_func_0002D8A0(void) {
     gl_func_00000000(0x41000000, D_2D870_Y[D_2D870_X]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D8A8);
-#endif
 
 /* gl_func_0002D8D8: 14-insn sibling of 0002D838/0002D870/0002D8A8.
  * Stolen prologue (lui t6, 0; lw t6, 0(t6)) lives INSIDE this symbol's
