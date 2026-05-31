@@ -8154,14 +8154,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
 //   0x0C00FADE (≈0x3EB78) for all 8 sub-elements. The
 //   reinit-existing-slot counterpart to the gl_func_0002A55C
 //   construct-fresh path.
-// Caps (DEFERRED): raw-word USO + fixed-target per-element inits
-//   (0x3EB78) — byte-match needs USO mnemonic disasm + reloc-pad
-//   jal infra. Real-C STRUCTURAL body below per the analysis.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
+// 2026-05-31: 72.58% -> 93.39% by fixing two errors: (1) the flag byte o->0 is
+//   stored TWICE — `o->0 = f|0x80` then `o->0 = (f|0x80)&~0x40` (set bit7, then
+//   clear bit6, as separate stores), not one combined store; (2) the per-element
+//   loop is CONDITIONAL — `if ((o + i*4)->0x50 != 0) initElem(o, i)` — not
+//   unconditional. Remaining ~7% = USO reloc + register alloc.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_0002A740(char *base, int idx, int a2) {
     char *o;
+    char *p;
     unsigned char f;
     int i;
     idx &= 0xFF;
@@ -8169,10 +8171,16 @@ void gl_func_0002A740(char *base, int idx, int a2) {
     f = *(unsigned char *)o;
     *(unsigned char *)(o + 0x88) = 0;
     *(int *)(o + 0x70) = a2;
-    *(unsigned char *)o = (f | 0x80) & ~0x40;
+    f = f | 0x80;
+    *(unsigned char *)o = f;
+    *(unsigned char *)o = f & ~0x40;
     *(short *)(o + 0x1E) = 0;
+    p = o;
     for (i = 0; i < 8; i++) {
-        gl_func_00000000(o, i);
+        if (*(int *)(p + 0x50) != 0) {
+            gl_func_00000000(o, i);
+        }
+        p += 4;
     }
 }
 #else
