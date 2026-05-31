@@ -13445,31 +13445,41 @@ int gl_func_00034A54() {
 //   0x0004B8Fx config block is a deferred absolute-symbol site —
 //   `gl_ref_0004B8Fx` extern candidates per
 //   docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data).
-// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 init callbacks +
-//   fixed absolute-address config block (0x0004B8Fx) + KSEG1
-//   0xA8000000 buffer base — byte-match needs USO mnemonic disasm
-//   + absolute config block symbolized (gl_ref_0004B8Fx externs
-//   per docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data).
-//   Real-C STRUCTURAL body below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 init callbacks.
+//   2026-05-31: body completed to full logic 44.8->63.2%. The sketch
+//   was WRONG in several ways, now fixed: (1) config block is at
+//   0x0003B8Fx NOT 0x0004B8Fx (off by 0x10000 -> lui 0x4 vs lui 0x5);
+//   (2) the gate is *(int*)0x3B8FC != 0xA8000000, NOT state!=3 (it
+//   tests whether the KSEG1 base is already installed); (3) cb3 ALSO
+//   takes the saved a0; (4) added missing stores (0x3B8F6=13,
+//   0x3B8F9=1, 0x3B900=0), two trailing cbs (0x3B904,96 / 0x3B8F0),
+//   and the ALWAYS-run self-pointer *(int*)0x3B8EC = 0x3B8F0.
+//   RESIDUAL (63->100): IDO CSEs the twice-referenced 0x3B8FC (gate
+//   load + store) into a lui+ori const register; the target recomputes
+//   it as lui 0x4 + (-18180) each time (no CSE). Address-CSE-form cap
+//   on a compile-time-constant address (can't break — constant-folded).
+//   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_00034A78(int a0) {
-    char *r;
-    int state = *(int *)((char *)&D_00000000 + 0);
-    gl_func_00000000();
-    gl_func_00000000();
-    gl_func_00000000();
-    gl_func_00000000(a0);
-    r = *(char **)((char *)&D_00000000 + 0);
-    *(int *)(r + 0x8C) = (int)&D_00000000;
-    *(int *)(r + 0x90) = (int)&D_00000000;
-    if (state != 3) {
-        *(signed char *)0x0004B8F4 = 3;
-        *(int *)0x0004B8FC = 0xA8000000;
-        *(signed char *)0x0004B8F5 = 5;
-        *(signed char *)0x0004B8F8 = 0xC;
-        *(signed char *)0x0004B8F7 = 2;
+    gl_func_00000000();                                 /* cb1 (a0 saved in delay) */
+    gl_func_00000000();                                 /* cb2 */
+    gl_func_00000000(a0);                               /* cb3(a0) */
+    gl_func_00000000(a0);                               /* cb4(a0) */
+    *(int *)(*(char **)((char *)&D_00000000 + 0) + 0x8C) = (int)&D_00000000;
+    *(int *)(*(char **)((char *)&D_00000000 + 0) + 0x90) = (int)&D_00000000;
+    if (*(int *)0x0003B8FC != (int)0xA8000000) {        /* config block at 0x3B8Fx (lui 0x4) */
+        *(signed char *)0x0003B8F4 = 3;
+        *(int *)0x0003B8FC = (int)0xA8000000;           /* KSEG1 uncached buffer base */
+        *(signed char *)0x0003B8F5 = 5;
+        *(signed char *)0x0003B8F8 = 12;
+        *(signed char *)0x0003B8F6 = 13;
+        *(signed char *)0x0003B8F7 = 2;
+        *(signed char *)0x0003B8F9 = 1;
+        *(int *)0x0003B900 = 0;
+        gl_func_00000000((char *)0x0003B904, 96);
+        gl_func_00000000((char *)0x0003B8F0);
     }
+    *(int *)0x0003B8EC = 0x0003B8F0;                    /* self-pointer (always) */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034A78);
