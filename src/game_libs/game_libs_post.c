@@ -40331,7 +40331,7 @@ void gl_func_0006F534(int *thread, int pri) {
     if (thread[1] != pri) {
         thread[1] = pri;
         cur = *(int**)&D_6F534_run;
-        if (thread != cur && *(short*)((char*)thread + 0x10) != 1) {
+        if (thread != cur && *(unsigned short*)((char*)thread + 0x10) != 1) {
             gl_func_0001CA10(thread[2], thread);
             gl_func_0001CA10(thread[2], thread);
         }
