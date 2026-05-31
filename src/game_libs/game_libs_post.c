@@ -40296,7 +40296,40 @@ long long gl_func_0006FB54(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
 #endif
 
+#ifdef NON_MATCHING
+/* STRUCTURAL first-pass 2026-05-31 (raw-.word USO decode). Straight-line
+ * global-state reset: zeroes a struct at &D_fbd8_a (words 0,4) + scalars
+ * D_fbd8_b/d, and re-links several global list heads (each `*D_x` is a node
+ * pointer): D_c node self-links (n->4=n); D_e n->0=n->4; D_f n->0x10=0,n->0x14=0;
+ * D_g copies n->0x10/0x14 to n->8/0xC; D_h n->0x18=0; D_i n->0x1C=0. Symbols are
+ * placeholder externs (real D_ names unknown in raw-.word form). % partial:
+ * straight-line scheduler order of the hoisted lui/lw not yet pinned. */
+extern int D_fbd8_a, D_fbd8_b, D_fbd8_d;
+extern int *D_fbd8_c, *D_fbd8_e, *D_fbd8_f, *D_fbd8_g, *D_fbd8_h, *D_fbd8_i;
+void game_libs_func_0006FBD8(void) {
+    int *n;
+    (&D_fbd8_a)[1] = 0;
+    (&D_fbd8_a)[0] = 0;
+    D_fbd8_b = 0;
+    D_fbd8_d = 0;
+    n = D_fbd8_c;
+    n[1] = (int)n;
+    n = D_fbd8_e;
+    n[0] = n[1];
+    n = D_fbd8_f;
+    n[0x10 / 4] = 0;
+    n[0x14 / 4] = 0;
+    n = D_fbd8_g;
+    n[8 / 4] = n[0x10 / 4];
+    n[0xC / 4] = n[0x14 / 4];
+    n = D_fbd8_h;
+    n[0x18 / 4] = 0;
+    n = D_fbd8_i;
+    n[0x1C / 4] = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006FBD8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006FC70);
 
