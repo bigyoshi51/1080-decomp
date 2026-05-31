@@ -151,27 +151,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008FFC);
  * if obj->0x14!=0, link obj->0x14=&D, final call(&D,0)); returns obj.
  * base/obj/scratch held in s0/s1/s2 via `register` locals (the -O0 lever from
  * the 8FFC sibling). &D_00000000+offset addend idiom; builds -O0.
- * 79.85% as of 2026-05-28 (0→77→80; inlining the call1 duplicated arg dropped
- * the named-temp home roundtrip). RESIDUAL (~20%, -O0 codegen, hard to steer):
- * the 3 byte-copies share ONE &D base (lui+addiu) where the target re-materializes
- * lui per access (the -O0 base-CSE nuance, cf. 8FFC), plus the same obj
- * spill-timing/return-from-home as the 8FFC sibling. Real wrap, correct logic. */
+ * 79.85 -> 93.54 (2026-05-31): routed every &D byte/word access through DISTINCT
+ * externs (D_00000179/17A/17B/181/182/183 unsigned char + D_0000004C/D_00000064
+ * int, valued at the offset in undefined_syms_auto.txt) so each re-materializes
+ * its own lui base — the build was CSE'ing the 3 byte-copies onto one shared base
+ * where the target re-materializes per access. The old comment called this the
+ * "-O0 base-CSE nuance hard to steer"; the distinct-extern lever busts it at -O0
+ * too (same fix as the 8FFC sibling, +13.69pp). RESIDUAL (~6%): only the obj
+ * spill-timing/return-from-home -O0 cap remains (target sw v0,0x34 + reload s1 +
+ * return-from-home; register int *obj keeps it in s1) — identical to 8FFC. */
+extern unsigned char D_00000179, D_0000017A, D_0000017B, D_00000181, D_00000182, D_00000183;
+extern int D_0000004C, D_00000064;
 #ifdef NON_MATCHING
 int gl_func_00009100(int a0, int a1, int a2) {
     register char *base;     /* s0 */
     register int *obj;       /* s1 */
     register char *tmp;      /* s2 */
 
-    *(unsigned char*)((char*)&D_00000000 + 0x181) =
-        *(unsigned char*)((char*)&D_00000000 + 0x179);
-    *(unsigned char*)((char*)&D_00000000 + 0x182) =
-        *(unsigned char*)((char*)&D_00000000 + 0x17A);
-    *(unsigned char*)((char*)&D_00000000 + 0x183) =
-        *(unsigned char*)((char*)&D_00000000 + 0x17B);
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x4C),
-                     *(int*)((char*)&D_00000000 + 0x4C));
-    obj = (int*)gl_func_00000000(&D_00000000,
-                                 *(int*)((char*)&D_00000000 + 0x64), 4, a2);
+    D_00000181 = D_00000179;
+    D_00000182 = D_0000017A;
+    D_00000183 = D_0000017B;
+    gl_func_00000000(D_0000004C, D_0000004C);
+    obj = (int*)gl_func_00000000(&D_00000000, D_00000064, 4, a2);
     base = (char*)&D_00000000;
     tmp = base + 0x10;
     gl_func_00000000(tmp, obj);
