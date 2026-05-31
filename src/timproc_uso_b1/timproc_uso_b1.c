@@ -76,8 +76,17 @@ void timproc_uso_b1_func_000005A4(int **arg0, int arg1, int arg2) {
     D_00000068 = 0;
 }
 
-/* 21-insn -O0 helper. Sibling of 0x5A4 — same splice-import-donor-relocs
- * recipe + defined-symbol resolution lands it byte-exact. */
+/* 21-insn -O0 helper. Sibling of 0x5A4. RELOC-BLIND CAP (residual 1 insn,
+ * NOT byte-exact — corrected 2026-05-31). The donor (timproc_uso_b1_o0_65C.c,
+ * spliced via REPLACE_FUNC_BODY) drops relocs to mirror the reloc-blind
+ * expected/.o, but the final store `sw s0,0x14C(at)` needs 0x14C baked into the
+ * %lo field — and no IDO-emittable C produces a 2-insn scalar store with the
+ * offset literal in .text (the offset lives in the reloc-filled %lo; `D_0000014C`
+ * gives field=0, `&D+0x14C` gives 3 insns at -O0). Real fix = spimdisasm USO-reloc
+ * migration (expected/ becomes reloc-aware), per the donor comment + the
+ * project's USO-reloc-migration TODO. Distinct from game_uso_func_0000D7F4, which
+ * landed only because its 0xE90 baked into an ADDIU (struct-by-value base-
+ * materialization), not a load/store %lo. Default build = donor splice. */
 void timproc_uso_b1_func_0000065C(int *a0) {
     gl_func_00000000((int*)a0[0], 3);
     a0[0] = 0;
