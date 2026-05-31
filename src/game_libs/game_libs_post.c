@@ -10245,26 +10245,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E1C0);
 //   o->0x21 through the table at &D_0+0x1660 (another entry in the
 //   game_libs &D_0+0x16xx dispatch-table bank) — left for the
 //   deferred USO re-split.
-// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc stop — byte-match
-//   needs USO mnemonic disasm + reloc-pad jal infra. STALE 10-jr
-//   bundle comment: grep -c 03E00008 = 1 (.s now single fn).
-//   Real-C STRUCTURAL body below per the analysis (stop/cancel
-//   counterpart to gl_func_0002E1C0 fire-once trigger). Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// MATCHED 2026-05-30. Stop/cancel counterpart to the gl_func_0002E1C0
+//   fire-once trigger: if the fired-latch bit5 of o->0x16 is set, clear it
+//   and (unless variant o->0x21 == 2) invoke the USO-relocated stop routine
+//   (gl_func_00000000 at jal-0) with event id 0x3D, passing the object.
+//   Reg-alloc crack: inline the o->0x21 deref (k → throwaway $t8) + a SEPARATE
+//   named local for the masked store value (→ $t7), leaving f in $v0.
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void gl_func_0002E24C(char *o) {
     unsigned char f = *(unsigned char *)(o + 0x16);
-    unsigned char k;
+    unsigned char nf;
     if (!(f & 0x20)) return;
-    k = *(unsigned char *)(o + 0x21);
-    *(unsigned char *)(o + 0x16) = f & ~0x20;
-    if (k == 2) return;
-    gl_func_00000000(0x3D);
+    nf = f & ~0x20;
+    *(unsigned char *)(o + 0x16) = nf;
+    if (*(unsigned char *)(o + 0x21) == 2) return;
+    gl_func_00000000(o, 0x3D);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E24C);
-#endif
 
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E290);
