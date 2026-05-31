@@ -10889,28 +10889,65 @@ void game_uso_func_0000E564(int *a0) {
 //   Pure bit-permutation: each source bit maps to a distinct
 //     internal bit (input/state translation table, unrolled).
 //   func_00000000 = USO placeholder dispatcher (1 trailing call).
-// Caps (DEFERRED): raw-word USO + placeholder call; USO mnemonic
-//   disasm limitation prevents byte-match — full (mask -> outbit)
-//   table is enumerable from .s in a future pass. Real-C STRUCTURAL
-//   body below — input/state flag-translation skeleton (representative
-//   mask→outbit pairs). Byte-match deferred. Name pre-checked: no
-//   extern reuse.
+// PARTIAL RE-TRACE 2026-05-31 (11.79% -> 27.52%): the prior body was a WRONG
+//   skeleton (tested obj->0xB4 not a0->0xF4; local dst not 0xE8-RMW; 5/7 table
+//   entries). Corrected first half is now exact-structured & validated (only
+//   early divergence is the `or a3,a0,zero` materialization, which the target
+//   emits BECAUSE the not-yet-written loop reuses a0 — confirms the decode).
+//   Done: condition+src, full 7-block mask->outbit table, A58-gated call, the
+//   0x12C-gated switch on 0xE8, the 0xEC counter. TODO(next tick): the
+//   a3->0xF4->0x2C-gated bit-clearing (e7f0-e89c) + the stride-64 search loop
+//   (e8c0-e96c) over the table at *(&D_00000000 + 0x15D0) (=D_807FFBC0; basis:
+//   D_807FF430 == &D+0xE40) with count from a second &D global. Full structure:
+//   memory project_1080_e5c8_full_decode_211insn. Target 213 insns.
 #ifdef NON_MATCHING
-void game_uso_func_0000E5C8(char *obj, int a1) {
+void game_uso_func_0000E5C8(char *a0, int a1) {
+    char *a3 = a0;
     unsigned int src;
-    unsigned int dst = 0;
-    if (*(char **)(obj + 0xB4) != 0) {
-        src = *(unsigned int *)(*(char **)(*(char **)(obj + 0xB4) + 0x800) + 0x10);
-        dst |= *(unsigned int *)(*(char **)(obj + 0xB4) + 0xA58);
+    char *sub;
+    unsigned int v0;
+
+    /* src = a0->0xB4->0x800->(0x18 if a0->0xF4 else 0x10) */
+    if (*(int *)(a0 + 0xF4) != 0) {
+        src = *(unsigned int *)(*(char **)(*(char **)(a0 + 0xB4) + 0x800) + 0x18);
     } else {
-        src = *(unsigned int *)(obj + 0x18);
+        src = *(unsigned int *)(*(char **)(*(char **)(a0 + 0xB4) + 0x800) + 0x10);
     }
-    if (src & 0x200)  dst |= 0x02;
-    if (src & 0x1000) dst |= 0x04;
-    if (src & 0x4000) dst |= 0x01;
-    if (src & 0x2000) dst |= 0x10;
-    if (src & 0x8000) dst |= 0x40;
-    *(unsigned int *)(obj + 0xE8) = dst;
+    /* unrolled mask->outbit permutation into a3->0xE8 (read-modify-write) */
+    if (src & 0x200)   *(int *)(a3 + 0xE8) |= 0x2;
+    if (src & 0x1000)  *(int *)(a3 + 0xE8) |= 0x4;
+    if (src & 0x400)   *(int *)(a3 + 0xE8) |= 0x1;
+    if (src & 0x10000) *(int *)(a3 + 0xE8) |= 0x10;
+    if (src & 0x4000)  *(int *)(a3 + 0xE8) |= 0x20;
+    if (src & 0x2000)  *(int *)(a3 + 0xE8) |= 0x40;
+    if (src & 0x8000)  *(int *)(a3 + 0xE8) |= 0x80;
+
+    sub = *(char **)(a3 + 0xB4);
+    v0 = *(unsigned int *)(sub + 0xA58);
+    if (v0 & 0x20) {
+        func_00000000(a3, (v0 & 0x40) != 0, v0 & 0x20);
+    }
+
+    if (*(int *)(a3 + 0x12C) != 0) {
+        switch (*(int *)(a3 + 0xE8)) {
+            case 5: *(int *)(a3 + 0xE8) |= 0x20000; break;
+            case 6: *(int *)(a3 + 0xE8) |= 0x10000; break;
+            case 2: *(int *)(a3 + 0xE8) |= 0x4000;  break;
+            case 1: *(int *)(a3 + 0xE8) |= 0x1000;  break;
+            case 4: *(int *)(a3 + 0xE8) |= 0x8000;  break;
+            case 3: *(int *)(a3 + 0xE8) |= 0x2000;  break;
+        }
+    }
+
+    /* counter advance: 0xEC++ while 0xE8 nonzero, else reset */
+    if (*(int *)(a3 + 0xE8) != 0) {
+        *(int *)(a3 + 0xEC) += 1;
+    } else {
+        *(int *)(a3 + 0xEC) = 0;
+    }
+    /* TODO(next tick): bit-clearing (a3->0xF4->0x2C gated) + stride-64 search
+     * loop over the &D table (unknown global offsets) — see
+     * project_1080_e5c8_full_decode_211insn. */
     (void)a1;
 }
 #else
