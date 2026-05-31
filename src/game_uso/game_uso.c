@@ -88,7 +88,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * body insns (body no longer matches), and the only body-exact form forces the
  * swapped add. Not independently controllable — the commutative canonicalization
  * follows term order, which also drives the dot-product schedule. The permuter
- * can't isolate the flip either. Genuine 1-insn commutative cap. */
+ * can't isolate the flip either. RE-CONFIRMED 2026-05-30 (no-caps re-grind): the
+ * docs#feedback-ido-fp-commutative-operand-order-assignment-lever `X + (t = Y)`
+ * lever RESCHEDULES here (the fs operand is a 3-mul CHAIN, not a simple value as
+ * in 00003FAC — pinning it moves the muls, 8 diffs); reassociation 8-12 diffs;
+ * source mul order a3*b3 vs b3*a3 is identical; 180s permuter floored at score 10
+ * (no 0). The assignment-expr lever's SCOPE LIMIT: it only decouples operand order
+ * when the pinned operand is a SINGLE load/value; a multi-op reduction operand
+ * can't be pinned without rescheduling. Still a permuter/PERM_-macro target, not
+ * a permanent cap — but the simple levers are genuinely exhausted here. */
 #ifdef NON_MATCHING
 float game_uso_func_000000A0(float *a, float *b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
