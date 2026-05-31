@@ -11253,9 +11253,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EF70);
 #ifdef NON_MATCHING
 /* game_uso_func_0000F060: 55-insn flag-dispatch (EE84-family, 5 calls).
  * Early-return gated by a beql-chain boolean: v->0x938 set AND NOT
- * (0x100-bit set AND 0x200-bit clear). Cross-USO jal-0 → gl_func_00000000,
- * float-pair → &D_00000000+off. Caps via EE84-family beql-chain scheduling
- * + precall-arg-spill + jal-0 ceiling; NM body documents the decode. */
+ * (0x100-bit set AND 0x200-bit clear). Cross-USO jal-0 → gl_func_00000000.
+ * 61.7% -> 70.1%: the D-pair call (0xEB0/EB4) now passes the float-pair BY
+ * VALUE as *(Pair2*) (struct-by-value lever, homes a1,a2). Remaining residual
+ * is the EE84 beql-chain flag dispatch: target reads p->0x10 and v1->0x938
+ * UNCACHED (multiple reloads) and evaluates 0x100/0x200/0x938 in p-first
+ * order; this C caches p/v1 + checks 0x938 first. Inline-uncached + ternary
+ * reorder both REGRESSED (27%) — the beql-chain scheduling is the cap.
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair */
 extern int gl_func_00000000();
 void game_uso_func_0000F060(int *a0) {
     int *s0 = a0;
@@ -11271,9 +11276,7 @@ void game_uso_func_0000F060(int *a0) {
         return;
     }
     gl_func_00000000(s0, 0x10011, 0, 0, 0x100, s0[0x16C / 4]);
-    gl_func_00000000(s0,
-        *(int *)((char *)&D_00000000 + 0xEB0),
-        *(int *)((char *)&D_00000000 + 0xEB4), -1);
+    gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xEB0), -1);
     *(short *)((char *)s0 + 0xE6) = 0;
     *(short *)((char *)s0 + 0xE4) = *(short *)((char *)s0 + 0xE4) + 1;
     gl_func_00000000((char *)s0[0xB4 / 4] + 0x808);
