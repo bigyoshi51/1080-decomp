@@ -10141,18 +10141,21 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
 #endif
 
 /* Conditional fall-below-floor update. BYTE-EXACT. The E90 table pair is passed
- * as `*(Pair2*)&D_00000E90` BY VALUE: this both clusters the base (lui; addiu
- * base,0xE90; lw 0; lw 4) AND homes a1/a2 to sp+4/sp+8 — the "precall-arg-spill
- * cap" I'd flagged here was FALSE; the by-value struct produces those spills.
- * (Previously force-promoted via banned INSN_PATCH + SUFFIX_BYTES_FORCE.) */
-extern int D_00000E90;
+ * BY VALUE as `*(Pair2*)((char*)&D_00000000 + 0xE90)`: the base+offset ADDEND form
+ * (NOT a separate `&D_00000E90` symbol) emits `lui %hi; addiu base,0xE90; lw 0; lw 4`
+ * with the 0xE90 baked into the addiu as a literal addend (matching the target's
+ * HI16-only reloc) AND homes a1/a2 to sp+4/sp+8 via the struct-by-value spill —
+ * same proven form as the byte-exact neighbor game_uso_func_0000D8A8 (uses +0xE70).
+ * The old `&D_00000E90` form emitted a HI16+LO16 pair → addiu imm=0 (1-diff residual
+ * after the banned INSN_PATCH that previously faked it was removed 2026-05-23).
+ * See docs/MATCHING_WORKFLOW.md addend form. */
 void game_uso_func_0000D7F4(char *a0) {
     int *data = *(int**)(a0 + 0xB4);
     if (*(float*)((char*)data + 0xA38) < -20.0f) {
         if (*(int*)((char*)data + 0x938) != 0) {
             gl_func_00000000(a0, 1, 2);
             gl_func_00000000(a0, *(int*)(a0 + 0xFC) | 0x16, 0, 1, 1, 1);
-            gl_func_00000000(a0, *(Pair2*)&D_00000E90, 1);
+            gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE90), 1);
             gl_func_00000000(a0);
             *(int*)(a0 + 0x114) = 0;
         }
