@@ -826,15 +826,16 @@ void timproc_uso_b3_func_000019CC(char *arg0, char *arg1, int arg2, int *arg3) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000019CC);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001C20);
-
-/* Prologue-stolen successor: predecessor func_000019CC's tail has lui+lw
- * setting t6 = *(D+0x64). PROLOGUE_STEALS removes our redundant 8-byte
- * lui+lw prefix. Per feedback_combine_prologue_steals_with_unique_extern.md. */
-extern int D_b3_1C28_state;
-#ifdef NON_MATCHING
-void timproc_uso_b3_func_00001C28(char *a0) {
-    if (D_b3_1C28_state == 1) {
+/* timproc_uso_b3_func_00001C20: orphan-merge of a stolen-prologue. The orphan
+ * timproc_uso_b3_func_00001C20 (lui t6; lw t6,0x64(t6) = TIMB3_D_64) was the
+ * stolen prologue of func_00001C28 — it loads the global compared to 1 at the
+ * top. Merged FORWARD (one 0x48 symbol; successor .s deleted, no jal targets).
+ * Reading TIMB3_D_64 inline at the `== 1` test hoists the lui;lw above the
+ * prologue (same recipe as game_libs_func_00026B40). Also fixed the old decode:
+ * a0->0xD8 = 1 (the SAME literal 1 IDO materializes for the `== 1` test, in v0,
+ * stored in the jal delay slot — NOT the call return). MATCHED 2026-05-30. */
+void timproc_uso_b3_func_00001C20(char *a0) {
+    if (TIMB3_D_64 == 1) {
         *(int*)(a0 + 0xA0) = 50000;
     } else {
         *(int*)(a0 + 0xA0) = 30000;
@@ -843,9 +844,6 @@ void timproc_uso_b3_func_00001C28(char *a0) {
     *(int*)(a0 + 0xD8) = 1;
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001C28);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00001C68: UI animation/draw orchestrator (sibling of
