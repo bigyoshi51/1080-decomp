@@ -40267,11 +40267,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FC78);
  * IDO's standard expansion for `(s64)X = (s64)D + (s64)(a0,a1)` when args
  * 0-1 are an int64 pair (a0=hi, a1=lo).
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * 2026-05-31: 47.9%->73.9% by removing a PHANTOM D_X_hi global (the high part is
+ * literal 0, not a global read) + branchless carry. Residual: the 3rd call passes
+ * `high` via the stack (sp+0x20) not a1 — the 64-bit-stack-arg convention (frame
+ * 0x28 vs 0x20). INCLUDE_ASM remains build path.
  */
 extern int D_global_val;
-extern unsigned int D_X_low, D_X_hi;
+extern unsigned int D_X_low;
 void gl_func_0006FDE8(int a0_hi, unsigned int a1_lo) {
     int v0_2;
     unsigned int low;
@@ -40280,9 +40282,8 @@ void gl_func_0006FDE8(int a0_hi, unsigned int a1_lo) {
     v0_2 = gl_func_00000000();
     D_global_val = v0_2;
     low = D_X_low + a1_lo;
-    high = D_X_hi + (low < a1_lo ? 1 : 0) + a0_hi;
-    /* Pass (low, high) to 3rd call — high is callsite-stack arg at sp+0x20. */
-    gl_func_00000000(low, /*high via stack*/ high);
+    high = (low < a1_lo) + a0_hi;
+    gl_func_00000000(low, high);
     gl_func_00000000(v0_2);
 }
 #else
