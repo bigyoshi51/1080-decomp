@@ -25294,7 +25294,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A6E8);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004A7C4);
 
 #ifdef NON_MATCHING
 /* gl_func_0004A7CC: global-queue append with optional bound assert.
@@ -25316,10 +25315,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004A7C4);
  * register + 0x22C/0x2003C). Real decoded C preserved. */
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0004A7CC(int a0) {
+void game_libs_func_0004A7C4(int a0) {
     int *q;
     int idx;
-    if (a0 & 1) {
+    if (*(int *)((char *)&D_00000000 + 0x1C4) & 1) {
         return;
     }
     q = *(int **)((char *)&D_00000000 + 0x22C);
@@ -25332,7 +25331,7 @@ void gl_func_0004A7CC(int a0) {
     gl_func_00000000(a0);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A7CC);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004A7C4);
 #endif
 
 extern int gl_func_00000000();
