@@ -35917,13 +35917,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065F08);
 void gl_func_0006612C(int *self) {
     /* a2 incoming = 0x12340000 magic-base (caller-set int-reg convention). */
     int v;
-    do {
+    v = (int)gl_func_00000000(self, (char*)self[0x28 / 4] + 8);
+    while (v != 0x12340004) {
         v = (int)gl_func_00000000(self, (char*)self[0x28 / 4] + 8);
-    } while (v != 0x12340004);
+    }
     gl_func_00000000(self, (char*)self[0x28 / 4] + 8, 0x12340002);
-    do {
+    v = (int)gl_func_00000000(self, (char*)self[0x28 / 4] + 8);
+    while (v != 0x12340003) {
         v = (int)gl_func_00000000(self, (char*)self[0x28 / 4] + 8);
-    } while (v != 0x12340003);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006612C);
