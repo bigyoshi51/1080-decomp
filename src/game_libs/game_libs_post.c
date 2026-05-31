@@ -11434,31 +11434,20 @@ void game_libs_func_00031580(void) {
     }
 }
 
-/* gl_func_000315C4: 17-insn (0x44) array-element-call helper.
- * Stolen-prologue successor — predecessor game_libs_func_00031580's tail at
- * 0x315BC/0x315C0 has `sll t7, a0, 2; subu t7, t7, a0` (= a0 * 3) which
- * this function multiplies further to a0 * 100 (record stride) and uses
- * to index into &gl_ref_00000368 array, calling helper at 0x045DC0.
- *
- * R-type PROLOGUE_STEALS=8 variant per
- * docs/POST_CC_RECIPES.md#second-extension. */
+/* game_libs_func_000315BC: array-element-call helper. Indexes &gl_ref_00000368
+ * by a0 * 100 (record stride) and calls helper at 0x045DC0 with (ptr, 1, a1, 0x7F). */
 extern int gl_ref_00045DC0();
 extern char gl_ref_00000368;
 
-/* game_libs_func_000315BC (cross-TU orphan merge): the orphan game_libs_func_000315BC
- * (sll t7,a0,2; subu t7,t7,a0 = a0*3) was in game_libs.c; merged into the body .s
- * (one 0x4C symbol), INCLUDE_ASM removed. The index a0*100 = ((a0*3)*8 + a0)*4
- * HOISTS the first sll;subu (a0*3) above the prologue. Residual = the hoist-breaks-
- * reuse regalloc cap: target reuses ONE $t7 through the whole a0*3->24->25->100
- * chain; mine breaks to $t8/$t9 at the +a0 (same class as timproc_uso_b3_func_00002EEC;
- * mul/shift/mutate variants 12-14/19). Stays NM. */
-#ifdef NON_MATCHING
+/* game_libs_func_000315BC (cross-TU orphan merge, MATCHED 2026-05-31): the orphan
+ * (sll t7,a0,2; subu t7,t7,a0 = a0*3) was in game_libs.c; merged into the body .s.
+ * Cracked the "hoist-breaks-reuse" cap by writing the stride as `a0 * 100` and letting
+ * IDO strength-reduce it — that emits the single-$t7 reuse chain (a0*3->24->25->100)
+ * hoisted above the prologue. Hand-expanded shift chains (`t<<=2; t-=a0; ...`) break
+ * to fresh $t8/$t9 pseudos (96.8%). See docs/IDO_CODEGEN.md#strength-reduce-multiply. */
 void game_libs_func_000315BC(int a0, int a1) {
-    gl_ref_00045DC0(&gl_ref_00000368 + ((a0 * 3) * 8 + a0) * 4, 1, a1, 0x7F);
+    gl_ref_00045DC0(&gl_ref_00000368 + a0 * 100, 1, a1, 0x7F);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000315BC);
-#endif
 
 /* Caps (DEFERRED): 4-way state-machine dispatch enumeration — but
  * the final call shape is known from sibling gl_func_000315C4 /
