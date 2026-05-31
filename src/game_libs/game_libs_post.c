@@ -14326,23 +14326,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000359C4);
 //   needs USO mnemonic disasm + record/table structs typed. Real-C
 //   STRUCTURAL body below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
+/* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044 (same vtable-dispatch, diff address).
+ * Same single-shared-jalr structure: one call site after the if/else (69.5%); residual
+ * is the same regalloc cascade. See the gl_func_0003A044 note. */
 #ifdef NON_MATCHING
-int gl_func_00035A18(char *r, int a1) {
-    short i = *(short *)(r + 0x0A);
-    short j = *(short *)(r + 0x08);
-    char *base = *(char **)(r + 0x04);
-    char *tbl;
-    short hw;
-    int (*f)(int);
-    if (i >= 0) {
-        a1 = j + (int)base;
-        return a1;
+void gl_func_00035A18(int *a0) {
+    int arg = a0[0x4/4] + *(short*)((char*)a0 + 0x8);
+    int (*fn)(int);
+    if (*(short*)((char*)a0 + 0xA) < 0) {
+        fn = (int(*)(int))a0[0xC/4];
+    } else {
+        int idx;
+        int *table;
+        char *entry;
+        if (a0[0xC/4] != 0) {
+            idx = a0[0xC/4];
+        } else if (*(short*)((char*)a0 + 0x8) != 0) {
+            idx = 0;
+        } else {
+            idx = 0x28;
+        }
+        table = *(int**)((char*)arg + idx);
+        entry = (char*)table + *(short*)((char*)a0 + 0xA) * 8;
+        fn = (int(*)(int))*(int*)(entry + 4);
+        arg = *(short*)entry + arg;
     }
-    tbl = *(char **)(r + 0x0C);
-    hw = *(short *)(tbl + j * 8);
-    f = *(int (**)(int))(tbl + j * 8 + 4);
-    a1 = hw + a1;
-    return f(a1);
+    fn(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035A18);
