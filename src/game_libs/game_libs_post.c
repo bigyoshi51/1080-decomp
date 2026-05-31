@@ -36483,7 +36483,8 @@ void gl_func_00066C74(char *self) {
         }
     }
     gl_func_00000000(self);
-    gl_func_00000000(self + 0x1000, 6, self);
+    gl_func_00000000(self + 0x1000, 6, (char*)&D_00000000, self, self + 0x1000, 14);
+    gl_func_00000000(self + 0x1000);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066C74);
