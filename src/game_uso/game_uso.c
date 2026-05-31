@@ -11523,27 +11523,27 @@ void game_uso_func_0000F514(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* game_uso_func_0000F5A8: 45-insn EE84-family two-path orchestrator.
- * Decoded structure (cross-USO jal-0 placeholders → gl_func_00000000,
- * float-pair globals → &D_00000000+off). Caps below exact via the
- * runtime-patched jal targets + arg-marshal details; NM body documents
- * the control flow for a future tightening pass. a1 passes through to
- * the first callee. */
+/* game_uso_func_0000F5A8: 47-insn EE84-family two-path orchestrator (sibling
+ * of F664). 76.6% -> 96.6% via the struct-by-value lever (the EE0/EE4 and
+ * EE8/EEC pairs are passed by value, which homes a1,a2 to 4(sp)/8(sp) and
+ * materializes the pair address with addiu+0/4 instead of a folded-offset
+ * lw). See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair.
+ * Residual (1 insn): the target hoists the shared a2=3/a3=1 constant loads
+ * above the `beq` (GCSE'd — both the then-cond-call gl(a0,a1,3,1) and the
+ * else-first-call gl(s0,X,3,1,1,1) use args 3,1), leaving the cond-call's
+ * delay slot an unfilled nop. IDO won't hoist them from this C shape. */
 extern int gl_func_00000000();
+typedef struct { int a, b; } F5A8Pair;
 void game_uso_func_0000F5A8(int *a0, int a1) {
     int *s0 = a0;
     if (s0[0xF0 / 4] != 0) {
         if (gl_func_00000000(a0, a1, 3, 1) == 0) {
-            gl_func_00000000(s0,
-                *(int *)((char *)&D_00000000 + 0xEE0),
-                *(int *)((char *)&D_00000000 + 0xEE4));
+            gl_func_00000000(s0, *(F5A8Pair *)((char *)&D_00000000 + 0xEE0));
             gl_func_00000000(s0);
         }
     } else {
         gl_func_00000000(s0, *(int *)((char *)s0[0xF4 / 4] + 0x20), 3, 1, 1, 1);
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xEE8),
-            *(int *)((char *)&D_00000000 + 0xEEC), 1);
+        gl_func_00000000(s0, *(F5A8Pair *)((char *)&D_00000000 + 0xEE8), 1);
         gl_func_00000000(s0);
     }
 }
