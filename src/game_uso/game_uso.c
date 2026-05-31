@@ -11767,9 +11767,17 @@ void game_uso_func_0000F664(char *a0) {
  * flag-set + 0x38&2 D-pair dispatch with EC0/EC8/ED0 pairs) AND had a wrong
  * index-calc (was `*64`/`>>6` 2-arg; target is the E35C base-cancellation
  * `((base+(x<<6))-base)/64` with a0=*(&D+0x138), a1=s0->0xB4). Added both +
- * the Pair2 struct-by-value for the 3 tail D-pairs. Residual (~13%, len 130 vs
- * 133): regalloc-renumber + first-call unfilled-delay + the base/a0 no-reloc
- * shared-&D-base codegen (E5C8-class; literal `*(int*)0` form tested = no gain).
+ * the Pair2 struct-by-value for the 3 tail D-pairs. 86.53 -> 90.11 on
+ * 2026-05-31: (a) the &D+0x138 access uses the distinct extern `D_00000138`
+ * (extern int, already in undefined_syms) instead of `*(int*)(&D+0x138)`, so it
+ * no longer shares IDO's CSE'd &D base register with `base` (the E5C8-class
+ * shared-base codegen the old note called a cap — the distinct-extern lever
+ * busts it, +2.28pp); (b) factored the prev-wrap `s0->0xF8 = old` out of both
+ * if/else arms (both wrote it) to `if (old==prev) counter=0; prev=old;`,
+ * matching the target's single-write form (+1.3pp). Residual (~10%, len 129 vs
+ * 133): regalloc-renumber + first-call unfilled-delay + the `base` (&D+0) load
+ * placement (re-materialized per branch in target vs hoisted) + one commutative
+ * addu. Per-branch distinct externs for 0x138 tested = no further gain.
  *   s0 = a0;
  *   if (((int*)s0->0xF4)->0x38 & 1) func_00000000(s0->0xF0);   // pre-flush
  *   func_00000000(s0, (s0->0xF0)->0x30, 1);
@@ -11793,6 +11801,7 @@ void game_uso_func_0000F664(char *a0) {
  * E35C - beql/bgez branch-likely + D-pair sp-spill + &D reloc + ceil
  * scheduling. Full per-instance call args/D-offsets are INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
+extern int D_00000138;
 #ifdef NON_MATCHING
 void game_uso_func_0000F6D4(char *a0) {
     char *s0 = a0;
@@ -11804,10 +11813,10 @@ void game_uso_func_0000F6D4(char *a0) {
     {
         int base = *(int *)&D_00000000;
         if (*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x20) {
-            func_00000000(*(int *)((char *)&D_00000000 + 0x138), *(char **)(s0 + 0xB4),
+            func_00000000(D_00000138, *(char **)(s0 + 0xB4),
                 (int)((base + (*(int *)(*(char **)(s0 + 0xF0) + 0x3C) << 6)) - base) / 64);
         } else {
-            func_00000000(*(int *)((char *)&D_00000000 + 0x138), *(char **)(s0 + 0xB4),
+            func_00000000(D_00000138, *(char **)(s0 + 0xB4),
                 (int)((int)*(char **)(s0 + 0xF0) - base) / 64);
         }
     }
@@ -11815,12 +11824,10 @@ void game_uso_func_0000F6D4(char *a0) {
     old = *(char **)(s0 + 0xF4);
     *(int *)(s0 + 0xF0) = 0;
     *(char **)(s0 + 0xF4) = old;
-    if (old != *(char **)(s0 + 0xF8)) {
-        *(char **)(s0 + 0xF8) = old;
-    } else {
+    if (old == *(char **)(s0 + 0xF8)) {
         *(int *)(s0 + 0x100) = 0;
-        *(char **)(s0 + 0xF8) = old;
     }
+    *(char **)(s0 + 0xF8) = old;
     func_00000000(s0);
     {
         char *f4;
