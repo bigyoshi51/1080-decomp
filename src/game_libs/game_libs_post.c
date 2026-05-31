@@ -8863,9 +8863,13 @@ void gl_func_0002BAAC(char *o, int op) {
         *(short *)(o + 0x24) = 1;
         *(int *)(o + 0x48) = 2;
     } else {
-        a = (short)gl_func_00000000(o + 0x8C);
-        if (a != 0) *(short *)(o + 0x24) = (short)a;
-        *(unsigned char *)o = *(unsigned char *)o & ~0x08;
+        a = gl_func_00000000(o, op, o + 0x48, o + 0x8C);
+        *(short *)(o + 0x24) = (short)a;
+        if ((short)a == 0) {
+            *(unsigned char *)o = *(unsigned char *)o & ~0x08;
+        } else {
+            *(unsigned char *)o = *(unsigned char *)o | 0x08;
+        }
     }
 }
 #else
