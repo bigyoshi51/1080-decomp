@@ -12418,9 +12418,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
 
 #ifdef NON_MATCHING
 /* game_uso_func_0001094C: 47-insn EE84-family (near-twin of 10A0C).
- * Cross-USO jal-0 → gl_func_00000000, float-pair globals → &D_00000000+off.
- * Caps below exact via the EE84-family precall arg-spill + jal-0 placeholder
- * ceiling; NM body documents the decode for a future tightening pass. */
+ * Cross-USO jal-0 → gl_func_00000000. 68.1% -> 93.1%: the two conditional
+ * D-pair calls (0xE10/0xE14, 0xE70/0xE74) pass the float-pair BY VALUE as
+ * *(Pair2*) — the "precall arg-spill cap" was the un-homed pair (same lever
+ * as twin 10A0C, docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
+ * Residual is regalloc-renumber only (target sets s0=a0 early + uses
+ * t6/t7/t9/t3; ours defers `or s0,a0` + uses v0/v1/t8/t1; same logic). */
 extern int gl_func_00000000();
 void game_uso_func_0001094C(int *a0) {
     int *s0 = a0;
@@ -12430,16 +12433,12 @@ void game_uso_func_0001094C(int *a0) {
     gl_func_00000000(s0, v | 4, v | 5, p[0x970 / 4], 0, 1);
     p = (int *)s0[0xB4 / 4];
     if (p[0x990 / 4] == 0) {
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xE10),
-            *(int *)((char *)&D_00000000 + 0xE14));
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE10));
         p = (int *)s0[0xB4 / 4];
     }
     t2 = p[0x9CC / 4];
     if (t2 != 0) {
-        gl_func_00000000(s0,
-            *(int *)((char *)&D_00000000 + 0xE70),
-            *(int *)((char *)&D_00000000 + 0xE74));
+        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE70));
     }
     gl_func_00000000(s0);
     gl_func_00000000(s0);
