@@ -972,6 +972,7 @@ gl_func_00000000_ff = 0x00000000;
 gl_func_00000000_c43c = 0x00000000;  /* (float,float,int,int) cb for gl_func_0005C43C */
 gl_func_00000000_f54c = 0x00000000;  /* (float)->float cb for gl_func_0005F54C */
 gl_func_00000000_695c = 0x00000000;  /* (float)->float sqrt-helper for gl_func_0003695C */
+gl_func_00000000_f704 = 0x00000000;  /* (float)->float sqrt for gl_func_0004F704 */
 gl_func_00000000_e84c2 = 0x00000000;  /* (int,float,float) cb for gl_func_0000E84C */
 gl_func_00000000_e84c4 = 0x00000000;  /* (int,float,float,float,float) cb for gl_func_0000E84C */
 gl_func_00000000_54a = 0x00000000;  /* (int,int,int,int,float,int) cb for gl_func_00054A14 */

@@ -29141,13 +29141,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F2F4);
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern float sqrtf(float);
-float gl_func_0004F704(char *a0, float px, float py, float pz) {
+/* Whole-body decode 2026-06-01 (prior body returned early w/ wrong sig). o=a0->
+ * 0x70; d=o->0xA0/0xA4/0xA8 - {px,py,pz}; dist=sqrt(|d|^2), store to *out. If
+ * a0[a1]->0x98 <= dist-arg7 return 0. Else normalize d and dot it with o->0xBC/
+ * 0xCC/0xDC; return dot >= a0->0x80. */
+extern float gl_func_00000000_f704(float);
+int gl_func_0004F704(char *a0, int a1, float px, float py, float pz, float *out, float arg7) {
     char *o = *(char **)(a0 + 0x70);
-    float dx = px - *(float *)(o + 0xA0);
-    float dy = py - *(float *)(o + 0xA4);
-    float dz = pz - *(float *)(o + 0xA8);
+    float dx = *(float *)(o + 0xA0) - px;
+    float dy = *(float *)(o + 0xA4) - py;
+    float dz = *(float *)(o + 0xA8) - pz;
     float d2 = dx * dx + dy * dy + dz * dz;
-    return sqrtf(d2);
+    float dist = gl_func_00000000_f704(d2);
+    float inv, dot;
+
+    if (out != 0) {
+        *out = dist;
+    }
+    if (*(float *)(a0 + a1 * 4 + 0x98) <= dist - arg7) {
+        return 0;
+    }
+    inv = 1.0f / gl_func_00000000_f704(d2);
+    dx = dx * inv;
+    dy = dy * inv;
+    dz = dz * inv;
+    dot = dx * *(float *)(o + 0xBC) + dy * *(float *)(o + 0xCC) + dz * *(float *)(o + 0xDC);
+    if (dot < *(float *)(a0 + 0x80)) {
+        return 0;
+    }
+    return 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
