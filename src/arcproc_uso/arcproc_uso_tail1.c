@@ -623,7 +623,14 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA
  *   *(a0->[0x6AC]->[0x6C] + 0x18) &= ~0x04;
  *   *(a0->[0x6AC]->[0x94] + 0x18) &= ~0x04;
  *
- * F3 @ 0x1228-0x1258: same as F2 but |= 0x04 (set bit). */
+ * F3 @ 0x1228-0x1258: same as F2 but |= 0x04 (set bit).
+ *
+ * 2026-06-01 source=2 sibling pass: direct-calling the vtable load
+ * improves 0x1170 from 97.03% to 97.34% by keeping the final jalr target
+ * in $t9. Remaining diffs are register coloring: target uses $v1 for the
+ * 0x28 stride and $t6/$t0 for the two table indices; IDO still colors the
+ * stride as $a0 and the indices as $v1. `register void (*fn)()` regressed
+ * the call back to $a0. */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
@@ -632,7 +639,6 @@ void arcproc_uso_func_00001170(int *a0) {
     int *p;
     int idx;
     int *target;
-    void (*fn)();
 
     if (gl_func_00000000(table_root, a0) == 0) return;
     p = (int*)a0[0x48 / 4];
@@ -643,8 +649,7 @@ void arcproc_uso_func_00001170(int *a0) {
     p = (int*)a0[0x48 / 4];
     idx = *(int*)((char*)p + 0x7C);
     target = (int*)((char*)p + idx * 0x28);
-    fn = (void(*)())target[0x90 / 4];
-    fn();
+    ((void(*)())target[0x90 / 4])();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001170);
