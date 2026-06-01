@@ -8946,7 +8946,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
  * divergence (cf gl_func_00065250). Full body INCLUDE_ASM-preserved.
  * INCLUDE_ASM (no episode; tautology-trap rule). */
 #ifdef NON_MATCHING
-void game_uso_func_0000A0E8(char *a0, char *b, char *a2) {
+int game_uso_func_0000A0E8(char *a0, char *b, char *a2) {
     char *v0;
     char *v1;
     float dx, dy, dz;
@@ -9107,22 +9107,56 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 #ifdef NON_MATCHING
 void game_uso_func_0000A604(char *obj) {
     char *w = *(char **)(obj + 0x30);
-    float scratch[3];
-    int r;
-    scratch[0] = *(float *)(w + 0x318) * *(float *)(w + 0xA8);
-    scratch[1] = *(float *)(w + 0x31C) * *(float *)(w + 0xA8);
-    scratch[2] = *(float *)(w + 0x320) * *(float *)(w + 0xA8);
-    r = func_00000000(*(char **)(w + 0x548 + *(int *)(obj + 0x5C) * 4), scratch);
-    if (r != 0) {
-        if (func_00000000(*(char **)(obj + 0x2C), scratch) != 0) {
-            if (*(float *)(obj + 0x84) > 250.0f) {
-                *(float *)(obj + 0x60) = *(float *)(obj + 0x54);
-                *(int *)(obj + 0x40) = 0;
+    float s = *(float *)(obj + 0xA8);
+    float tbuf[3];
+    float scaled[3];
+    float copy1[3];
+    float copy2[3];
+    char *rec;
+    char *a1arg;
+    char *v0;
+    int counter;
+    int field2c;
+    float f0;
+
+    tbuf[0] = *(float *)(w + 0xB4);
+    tbuf[1] = *(float *)(w + 0xB8);
+    tbuf[2] = *(float *)(w + 0xBC);
+    scaled[0] = *(float *)(w + 0x318) * s;
+    scaled[1] = *(float *)(w + 0x31C) * s;
+    scaled[2] = *(float *)(w + 0x320) * s;
+    copy1[0] = scaled[0]; copy1[1] = scaled[1]; copy1[2] = scaled[2];
+    copy2[0] = copy1[0]; copy2[1] = copy1[1]; copy2[2] = copy1[2];
+    tbuf[0] = tbuf[0] + copy2[0];
+    tbuf[1] = tbuf[1] + copy2[1];
+    tbuf[2] = tbuf[2] + copy2[2];
+
+    counter = *(int *)(obj + 0x5C);
+    rec = *(char **)((char *)&D_00000000 + 0x548 + counter * 4);
+    a1arg = *(char **)rec;
+    v0 = (char *)game_uso_func_0000A374((int)obj, (int)a1arg, (int)tbuf);
+    if (v0 != 0) {
+        field2c = *(int *)(v0 + 0x2C);
+        if (field2c != 0) {
+            if (game_uso_func_00009B88(obj, v0, field2c) != 0) {
+                if (game_uso_func_0000A0E8(obj, v0, (char *)field2c) != 0) {
+                    f0 = tbuf[2] - *(float *)(v0 + 0x38);
+                    if (f0 < 0.0f) {
+                        f0 = f0 + 250.0f * *(float *)(v0 + 0x54);
+                        if (0.0f <= f0 && f0 < *(float *)(obj + 0x60)) {
+                            *(float *)(obj + 0x60) = f0;
+                            *(int *)(obj + 0x40) = *(int *)(obj + 0x5C);
+                        }
+                    }
+                }
             }
         }
     }
-    if (++*(int *)(obj + 0x5C) >= 0xA) *(int *)(obj + 0x5C) = 0;
-    *(int *)(obj + 0x68) &= ~2;
+    counter = *(int *)(obj + 0x5C) + 1;
+    *(int *)(obj + 0x5C) = counter;
+    if (counter >= 0xA) {
+        *(int *)(obj + 0x68) &= ~2;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
