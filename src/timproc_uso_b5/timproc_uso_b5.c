@@ -3076,8 +3076,28 @@ void timproc_uso_b5_func_00008688(char *scr, int mode) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008688);
 #endif
 
-/* timproc_uso_b5_func_000087A0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
+/* timproc_uso_b5_func_000087A0: 12-insn table tail-dispatcher, sibling of the
+ * 87E8/8894/8940 small-leaf exact-match cluster. Computes idx = a1 - 1; if
+ * idx >= 8, returns 0; otherwise tail-jumps to
+ * *(timproc_uso_b5_D_807FF1F4 + 0x1D4 + idx*4). Source=2 pass 2026-06-01:
+ * C body documents the real dispatch. The target uses a raw `jr t6` tail jump
+ * with no frame; normal C is expected to stay NM unless IDO emits the same
+ * tail-call shape. Tried both named function-pointer local and inline call
+ * expression: both emit a 0x18 frame + `jalr` + epilogue (0x48 bytes), not
+ * the target frame-free `jr t6` tail call (0x30 bytes). */
+#ifdef NON_MATCHING
+extern char timproc_uso_b5_D_807FF1F4;
+int timproc_uso_b5_func_000087A0(int a0, int a1) {
+    int idx = a1 - 1;
+    (void)a0;
+    if ((unsigned)idx >= 8) {
+        return 0;
+    }
+    return (*(int (**)(void))(&timproc_uso_b5_D_807FF1F4 + 0x1D4 + idx * 4))();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087A0);
+#endif
 
 int timproc_uso_b5_func_000087D0(void) {
     return 1;
