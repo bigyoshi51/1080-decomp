@@ -1086,6 +1086,42 @@ S_self:
         vt = (int *)r6b0[0x28 / 4];
         ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)r6b0);
     }
+    gl_func_00000000((char *)p + 0x10, (int *)p[0x6B0 / 4]);
+    {
+        int *n = (int *)p[0x6B0 / 4];
+        if (n[0x14 / 4] != 0) {
+            n[0x4 / 4] = 1;
+        }
+        n[0x14 / 4] = (int)p;
+    }
+    p[0x6B4 / 4] = (int)gl_func_00000000(0);
+    {
+        int *n = (int *)p[0x6B4 / 4];
+        int *vt;
+        n[0x38 / 4] = 1;
+        n[0x2C / 4] = 0;
+        vt = (int *)n[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)n);
+    }
+    gl_func_00000000((char *)p + 0x10, (int *)p[0x6B4 / 4]);
+    {
+        int *n = (int *)p[0x6B4 / 4];
+        if (n[0x14 / 4] != 0) {
+            n[0x4 / 4] = 1;
+            n[0x14 / 4] = (int)p;
+        } else {
+            p[0x6B4 / 4] = 0;
+        }
+    }
+    p[0x6BC / 4] = (int)gl_func_00000000(0);
+    gl_func_00000000((char *)p + 0x10, (int *)p[0x6BC / 4]);
+    {
+        int *n = (int *)p[0x6BC / 4];
+        if (n[0x14 / 4] != 0) {
+            n[0x4 / 4] = 1;
+        }
+        n[0x14 / 4] = (int)p;
+    }
     return (void *)p;
 }
 #else
