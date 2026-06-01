@@ -935,6 +935,16 @@ void titproc_uso_func_00001E2C(char *a0) {
 #ifdef NON_MATCHING
 /* titproc_uso_func_00001E9C: 245-insn titproc constructor for ~0x6C8-byte object.
  *
+ * 2026-06-01 (18.67 -> 27.64): confirmed SIBLING of timproc_uso_b3_func_00000994
+ * / timproc_uso_b1_func_0000097C (0x6A8-alloc constructor family). The prior
+ * "multi-write to p->0x28" reading was WRONG — it's the standard cascade's 4
+ * distinct vtable stores (n3/n2/n1/self ->0x28 = t6/t7/t8/t9). Ported the proven
+ * cascade + field-init structure (goto-chain dead-guards + distinct externs
+ * D_tit_1E9C_v0..3; self alloc 0x6C8, D-template 0x514/0x51C/0x530, self->0x6ac).
+ * Removed the broken `_TODO_loop` placeholder call. TBD: titproc's tail is a
+ * UNIQUE double-buffering sub-loop (NOT shared with 994) — needs per-fn decode
+ * from /tmp/ttit.txt (insns ~78-245).
+ *
  * Frame: -0x40, saves ra/s0/s1, spills a1/a2/a3 to caller slots at +0x44/+0x48/+0x4C.
  *
  * STRUCTURE (decoded ~120/245 insns):
@@ -1015,55 +1025,44 @@ void titproc_uso_func_00001E2C(char *a0) {
  * with the highest structural confidence; remaining ~120 insns of the
  * sub-loop tail are stubbed as TODO. */
 extern void *titproc_uso_func_00001E9C_TODO_loop(void *p, void *sub, void *a1, void *a2, void *a3);
+extern char D_tit_1E9C_v0;
+extern char D_tit_1E9C_v1;
+extern char D_tit_1E9C_v2;
+extern char D_tit_1E9C_v3;
 void *titproc_uso_func_00001E9C(void *a0, void *a1, void *a2, void *a3) {
-    void *p, *q, *r, *sub;
-
-    /* Stage 1: alloc main 0x6C8 if a0 == NULL */
-    p = a0;
-    if (p == NULL) {
-        p = (void*)gl_func_00000000(0x6C8);
-        if (p == NULL) goto end;
+    int *p = (int *)a0;
+    int *n1, *n2, *n3;
+    /* 5-stage get-or-create cascade (sibling of timproc_uso_b3_func_00000994 /
+     * timproc_uso_b1_func_0000097C; self alloc 0x6C8 here, D-template 0x514).
+     * goto-chain dead-guards + distinct-extern vtable stores (CSE-bust). */
+    if (a0 == NULL) {
+        p = (int *)gl_func_00000000(0x6C8);
+        if (p == NULL) return (void *)p;
     }
-
-    /* Stage 2 (dead-path alloc compiled in source): if (q == NULL) alloc(0x6A8) */
-    q = p;
-    if (q == NULL) {
-        q = (void*)gl_func_00000000(0x6A8);
-        if (q == NULL) goto end;
-    }
-
-    /* Stage 3 (dead-path): if (r == NULL) alloc(0x50) */
-    r = q;
-    if (r == NULL) {
-        r = (void*)gl_func_00000000(0x50);
-        if (r == NULL) goto end;
-    }
-
-    /* Sub-init stage: alloc 0x2C sub-struct */
-    sub = (void*)gl_func_00000000(0x2C);
-    if (sub != NULL) {
-        gl_func_00000000(sub, (char*)&D_00000000 + 0x514);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p + 0x28) = (int)((char*)&D_00000000 + 0);  /* multi-write */
-        *(int*)((char*)p + 0x28) = (int)sub;
-        gl_func_00000000((char*)p + 0x50);
-
-        /* Cross-USO init chain — produces ptrs stored at p->0x528/0x6AC */
-        *(int*)((char*)p + 0x528) = gl_func_00000000(
-            (char*)&D_00000000 + 0x51C, a1, a2, p);
-        gl_func_00000000((char*)&D_00000000 + 0x530, 0);
-        gl_func_00000000(&D_00000000, 0);
-        gl_func_00000000(0);
-        *(int*)((char*)p + 0x6AC) = (int)q;       /* p->0x6AC = inner ptr */
-        *(int*)((char*)&D_00000000 + 0x138) = (int)q;  /* global flag */
-
-        /* Sub-loop: 2 sub-init blocks for objects at +0x10 and at base.
-         * ~120 more insns of sub-init, double-buffered with back-pointer
-         * patching at sub->0x4 / sub->0x14. Deferred to TODO. */
-        return titproc_uso_func_00001E9C_TODO_loop(p, sub, a1, a2, a3);
-    }
-end:
-    return p;
+    n1 = p;
+    if (p == NULL) { n1 = (int *)gl_func_00000000(0x6A8); if (n1 == NULL) goto S_self; }
+    n2 = n1;
+    if (n1 == NULL) { n2 = (int *)gl_func_00000000(0x50); if (n2 == NULL) goto S_n1; }
+    n3 = n2;
+    if (n2 == NULL) { n3 = (int *)gl_func_00000000(0x2C); if (n3 == NULL) goto S_n2; }
+    gl_func_00000000(n3, (char *)&D_00000000 + 0x514);
+    n3[0x28 / 4] = (int)&D_tit_1E9C_v0;
+S_n2:
+    n2[0x28 / 4] = (int)&D_tit_1E9C_v1;
+S_n1:
+    n1[0x28 / 4] = (int)&D_tit_1E9C_v2;
+    gl_func_00000000((char *)n1 + 0x50);
+S_self:
+    p[0x28 / 4] = (int)&D_tit_1E9C_v3;
+    p[0x568 / 4] = 0;
+    gl_func_00000000(p, a1, (char *)&D_00000000 + 0x51C, a2);
+    p[0x528 / 4] = (int)a3;
+    gl_func_00000000(p);
+    gl_func_00000000((char *)&D_00000000 + 0x530, 0);
+    gl_func_00000000(&D_00000000, 0);
+    p[0x6AC / 4] = (int)gl_func_00000000(0);
+    *(int *)((char *)&D_00000000 + 0x138) = p[0x6AC / 4];
+    return (void *)p;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001E9C);
