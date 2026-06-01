@@ -15636,19 +15636,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036694);
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern float sqrtf(float);
-void gl_func_0003695C(float *out, int unused, float *p) {
-    float s = p[6];
-    float dx = (p[0] - p[1]) / s;
-    float dy = (p[2] - p[3]) / s;
+/* Whole-body decode 2026-06-01 (prior body had wrong sig/condition). Individual
+ * float args (not a pointer): dx=(x0-x1)/scale, dy=(y0-y1)/scale, len2=dx^2+dy^2.
+ * If 1.0<len2: inv=1/sqrt(len2), out=(dx*inv, dy*inv, 0). Else out=(dx, dy,
+ * gl(1.0-len2)). Returns out. */
+extern float gl_func_00000000_695c(float);
+int gl_func_0003695C(float *out, int a1, float x0, float y0, float u1,
+                     float x1, float y1, float u2, float scale) {
+    float dx = (x0 - x1) / scale;
+    float dy = (y0 - y1) / scale;
     float len2 = dx * dx + dy * dy;
-    float len = sqrtf(len2);
-    float inv;
-    if (len < 1e-6f) {
-        gl_func_00000000();
+    float res[3];
+    res[0] = dx;
+    res[1] = dy;
+    if (1.0f < len2) {
+        float inv = 1.0f / gl_func_00000000_695c(len2);
+        res[0] = dx * inv;
+        res[1] = dy * inv;
+        res[2] = 0.0f;
+    } else {
+        res[2] = gl_func_00000000_695c(1.0f - len2);
     }
-    inv = 1.0f / len;
-    out[0] = dx * inv;
-    out[1] = dy * inv;
+    out[0] = res[0];
+    out[1] = res[1];
+    out[2] = res[2];
+    return (int)out;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003695C);
