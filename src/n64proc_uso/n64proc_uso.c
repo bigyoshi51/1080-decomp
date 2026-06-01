@@ -505,38 +505,26 @@ void n64proc_uso_func_00000230(char *a0) {
     gl_func_00000000(a0 + 0x70, 3);
 }
 
-#ifdef NON_MATCHING
-/* n64proc_uso_func_00000268: state machine on a0->0x50 (key dispatch).
+/* n64proc_uso_func_00000268: MATCHED 2026-06-01. State machine on a0->0x50
+ * (key dispatch).
  *   case 0: decrement a0->0x3C; if <16, decay a0->0x54 by 16 (clamp>=0);
  *           when a0->0x3C hits 0, transition to mode 1 + reset a0->0x3C=100.
  *   case 1: ramp a0->0x54 by 8 (clamp<=255); decrement a0->0x3C; on 0 OR
  *           (a0->0x3C<0x55 && gl_func(&D,0x40100)!=0), set D[0x40]=1, call gl_func(a0,0,0).
  *
- * 2026-05-31: `switch (key)` -> 97.30%, BEATING the prior goto-chain (93.57%) and
- * if-else-if (regressed). The old note's claim that 'goto-chain is strictly better'
- * was wrong — it never tried `switch`. Same crack as the 0035C sibling: the switch
- * emits the target's beql-to-case dispatch polarity + body-preload delay-slot fill
- * that the if/goto chain inverted (bnel-skip-to-end). See
- * docs/IDO_CODEGEN.md#switch-vs-if-goto-dispatch-polarity.
- *
- * Residual ~2.7% (12 diffs, register-renumber only, sizes now match 61=61): the
- * body RMWs collapse to $v0 where the target uses fresh $t6/$t7/$t5/$t9 temps
- * (read-into-one, modify-into-another). Split-load (`int cur=a0[X]; t=cur-1;`)
- * does NOT change it (IDO re-fuses). Genuine body-regalloc cap — see the
- * find-or-create / RMW-fresh-temp cap class. */
+ * Switch form emits the target's beql-to-case dispatch polarity; in-place RMW
+ * on the counters makes IDO re-read fields into fresh $t regs instead of
+ * collapsing named temporaries into $v0. */
 void n64proc_uso_func_00000268(int *a0) {
     int v;
-    int t;
 
     v = a0[0x50/4];
     switch (v) {
     case 0:
-        t = a0[0x3C/4] - 1;
-        a0[0x3C/4] = t;
-        if (t < 0x10) {
-            t = a0[0x54/4] - 0x10;
-            a0[0x54/4] = t;
-            if (t < 0) a0[0x54/4] = 0;
+        a0[0x3C/4]--;
+        if (a0[0x3C/4] < 0x10) {
+            a0[0x54/4] -= 0x10;
+            if (a0[0x54/4] < 0) a0[0x54/4] = 0;
             if (a0[0x3C/4] == 0) {
                 a0[0x50/4] = 1;
                 a0[0x3C/4] = 0x64;
@@ -544,21 +532,16 @@ void n64proc_uso_func_00000268(int *a0) {
         }
         break;
     case 1:
-        t = a0[0x54/4] + 8;
-        a0[0x54/4] = t;
-        if (t >= 0x100) a0[0x54/4] = 0xFF;
-        t = a0[0x3C/4] - 1;
-        a0[0x3C/4] = t;
-        if (t == 0 || (t < 0x55 && gl_func_00000000(&D_00000000, 0x40100) != 0)) {
+        a0[0x54/4] += 8;
+        if (a0[0x54/4] >= 0x100) a0[0x54/4] = 0xFF;
+        a0[0x3C/4]--;
+        if (a0[0x3C/4] == 0 || (a0[0x3C/4] < 0x55 && gl_func_00000000(&D_00000000, 0x40100) != 0)) {
             *(int*)((char*)&D_00000000 + 0x40) = 1;
             gl_func_00000000(a0, 0, 0);
         }
         break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000268);
-#endif
 
 /* n64proc_uso_func_0000035C: MATCHED 2026-05-31. key-dispatch on *(a0+0x50):
  * case 0 inits a0+0x58 subobject, case 1 inits a0+0x70, both from a 4x1.0f buf.
@@ -593,4 +576,3 @@ void n64proc_uso_func_0000035C(char *a0) {
     }
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso/n64proc_uso_func_0000035C_pad.s")
-
