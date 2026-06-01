@@ -76,11 +76,11 @@ void timproc_uso_b5_func_00000050(void) {
 extern char D_b5_058_v0;
 extern char D_b5_058_v1;
 extern char D_b5_058_v2;
-void timproc_uso_b5_func_00000058(int *a0) {
+int *timproc_uso_b5_func_00000058(int *a0) {
     int *s3, *s0, *s1;
     if (a0 == 0) {
         s3 = (int*)gl_func_00000000(0x50);
-        if (s3 == 0) return;
+        if (s3 == 0) return s3;
     } else {
         s3 = a0;
     }
@@ -119,7 +119,23 @@ skip_init:
         int *vt = (int *)((int *)s3[0x48 / 4])[0x28 / 4];
         ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + s3[0x48 / 4]);
     }
-    /* TODO: gl(s3+0x10, s3->0x48) + dance + tail (insns 86+). */
+    {
+        int *n = (int *)s3[0x48 / 4];
+        if (n[0x14 / 4] != 0) {
+            n[0x4 / 4] = 1;
+        }
+        n[0x14 / 4] = (int)s3;
+    }
+    {
+        int *node = *(int **)((char *)&D_00000000 + 0x190);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+        }
+        node[0x14 / 4] = (int)s3;
+    }
+    s3[0x30 / 4] = 1;
+    s3[0x2C / 4] = 0;
+    return s3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
