@@ -3923,6 +3923,17 @@ after_head_template:
      * delay slot and raises direct objdiff to 78.73047%. Still not exact:
      * built uses local `sp+0x2C` reloads and stores the fifth arg at `0x10(sp)`;
      * target keeps the marshalling pointer in `$s2` and stores `a2` at `0x8(sp)`.
+     *
+     * 2026-06-01 SOURCE=5 negative retests:
+     *   - Replacing the duplicate fifth arg with a 4-arg call plus `(void)arg2`
+     *     does NOT force the target caller-home store. IDO drops the delay-slot
+     *     stack store, moves the scratch to a lower local slot, and regresses
+     *     report score to 72.63262%.
+     *   - Moving `_t_buf[1]` inside each unrolled macro expansion does create
+     *     descending per-iteration stack slots, but it over-allocates the frame
+     *     to 0x230 bytes and regresses to 79.56223%. Keep the shared `_t_buf`
+     *     plus pad[152] baseline until the sp+0x2C pointer can be promoted
+     *     without changing frame size.
      */
     (void)s0;
 
