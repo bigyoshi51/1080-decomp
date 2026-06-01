@@ -6109,7 +6109,13 @@ void game_uso_func_00007424(void *a0) {
  * direct offsets (~27 insns produced vs target 36 insns). Target also
  * pre-computes `a3 = a0 + 0x35C` at insn 3 and uses `lwc1 f18, 0x10(a3)`
  * for the 3rd scale_y access — probably a struct-field access in source.
- * 27/36 insns match structurally; body is semantically correct. */
+ * 27/36 insns match structurally; body is semantically correct.
+ * 2026-06-01: struct-field form `((struct{char pad[0x10];float f;}*)(table+OFF))->f`
+ * ALSO folds to direct offset (still 27 insns) — IDO merges base+0x10 to a single
+ * lwc1 regardless of C shape (named-base, struct-field, both tried). The 9-insn
+ * gap (target's addiu base; lwc1 0x10(base) cursor pairs + per-access table
+ * reload + the a3=a0+0x35C precompute) is an IDO base-materialization cap not
+ * reachable from C. Stays NM. */
 void game_uso_func_00007448(char *a0) {
     char *table = *(char**)(a0 + 0x30);
     float sx = *(float*)(a0 + 0x33C);
