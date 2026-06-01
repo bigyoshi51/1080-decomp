@@ -3015,6 +3015,12 @@ void game_uso_func_000044C8(char *a0) {
  * (b) a fourth s-class variable live across calls so IDO allocates $s2 at
  * sp+0x20. Without (b), the (a) win is a net negative.
  *
+ * 2026-06-01 SOURCE=5 remeasure: current C path scores 79.56824%. A stale
+ * pad[160] had drifted back to frame 0xF0; pad[152] restores target frame
+ * 0xE8 and moves the score from 79.56223 to 79.56824. The remaining prologue
+ * mismatch is still the known $s2 marshalling-base problem plus local-vs-home
+ * arg spills, not a frame-size issue.
+ *
  * 2026-05-28: the s2-pseudo IS now identified — disassembling expected/.o
  * shows `addiu s2, sp, 0x2c` (insn @0x45a0) materialized ONCE, then 38×
  * `sw t?, 0(s2)` / `lw a2, 0(s2)` pairs: $s2 holds the ADDRESS of the
@@ -3350,9 +3356,9 @@ void *game_uso_func_000044F4(char *a0, int a1, int a2) {
     char *self;
     char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
     char *s0;       /* loop pointer for sub-object init */
-    char _pad[160]; /* grow frame to 0xE8 (232) to match target's prologue
-                     * `addiu sp,-232`. Was 168 (gave frame 240, off by 8) —
-                     * other-local churn shifted the math; 160 is correct now. */
+    char _pad[152]; /* grow frame to 0xE8 (232) to match target's prologue.
+                     * SOURCE=5 audit 2026-06-01: current pad[160] re-grew
+                     * the frame to 0xF0; pad[152] restores target size. */
     char *_t_buf[1];  /* per-iter sp+0xE0 store-load scratch */
     volatile int a1_sp = a1; /* force late finalizer args through stack locals */
     volatile int a2_sp = a2;
