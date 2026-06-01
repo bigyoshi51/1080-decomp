@@ -27947,15 +27947,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E584);
  * structural decode only. */
 extern int gl_func_00000000();
 int *gl_func_0004E600(int *a0) {
+    int *s0 = a0;
+    int *v1;
     if (a0 == 0) {
-        a0 = (int*)gl_func_00000000(0x144);
-        if (a0 == 0) return 0;
+        s0 = (int*)gl_func_00000000(0x144);
+        if (s0 == 0) return 0;
     }
-    gl_func_00000000(a0, (char*)&D_00000000 + 0x205CC);
-    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
-    /* TODO: 5 sub-region init calls (decode pending). */
-    gl_func_00000000(a0);
-    return a0;
+    gl_func_00000000(s0, (char*)&D_00000000 + 0x205CC);
+    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    if (s0 == (int*)-120) { v1 = (int*)gl_func_00000000(4); if (v1 == 0) goto sub2; }
+    else v1 = (int*)((char*)s0 + 0x78);
+    if (v1 == 0) { v1 = (int*)gl_func_00000000(4); if (v1 == 0) goto sub2; }
+    *v1 = 0;
+sub2:
+    if (s0 == (int*)-256) { v1 = (int*)gl_func_00000000(8); if (v1 == 0) goto sub3; }
+    else v1 = (int*)((char*)s0 + 0x100);
+    if (v1 == 0) { v1 = (int*)gl_func_00000000(8); if (v1 == 0) goto sub3; }
+    v1[1] = 0;
+    v1[0] = 0;
+sub3:
+    if (s0 == (int*)-276) { v1 = (int*)gl_func_00000000(4); if (v1 == 0) goto sub4; }
+    else v1 = (int*)((char*)s0 + 0x114);
+    if (v1 == 0) { v1 = (int*)gl_func_00000000(4); if (v1 == 0) goto sub4; }
+    *v1 = 0;
+sub4:
+    if (s0 == (int*)-280) { v1 = (int*)gl_func_00000000(4); if (v1 == 0) goto fin; }
+    else v1 = (int*)((char*)s0 + 0x118);
+    if (v1 == 0) { v1 = (int*)gl_func_00000000(4); if (v1 == 0) goto fin; }
+    *v1 = 0;
+fin:
+    gl_func_00000000(s0);
+    return s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E600);
