@@ -4078,31 +4078,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023838);
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
-int gl_func_00023914(int a0, int a1, int a2) {
-    int h = gl_func_00000000(a0, a1, a2);
-    char *e;
-    int typ;
-    if (h == 0) {
+int gl_func_00023914(int a0, int a1, int *a2) {
+    int s0 = gl_func_00000000(a0, a1, a2);
+    char *base, *v1;
+    int aligned, b18, typ, t4, a1c;
+    if (s0 == 0) {
+        a2[0] = 0;
         return 2;
     }
-    gl_func_00000000(a0);
-    e = (char *)gl_func_00000000(h) + h * 0x10;
-    typ = *(unsigned char *)(e + 0x19);
-    if ((unsigned)typ >= 5) {
-        return 0;
+    base = (char *)gl_func_00000000();
+    v1 = base + a1 * 0x10;
+    aligned = (*(int *)(v1 + 0x14) + 0xF) & ~0xF;
+    b18 = *(signed char *)(v1 + 0x18);
+    typ = *(signed char *)(v1 + 0x19);
+    t4 = *(int *)(v1 + 0x10);
+    if ((unsigned)typ < 5) {
+        switch (typ) {
+        case 0: s0 = gl_func_00000000(a0, a1, aligned); if (s0 == 0) return s0; break;
+        case 1: s0 = gl_func_00000000(a0, aligned, 1, a1); if (s0 == 0) return s0; break;
+        case 2: s0 = gl_func_00000000(a0, aligned, 0, a1); if (s0 == 0) return s0; break;
+        case 3: s0 = gl_func_00000000(a0, aligned, 2, a1); if (s0 == 0) return s0; break;
+        }
     }
-    switch (typ) {
-    case 0:
-        gl_func_00000000(*(int *)(e + 0x10), (*(int *)(e + 0x14) + 0xF) & ~0xF);
-        break;
-    case 1:
-        gl_func_00000000(*(unsigned char *)(e + 0x18));
-        break;
-    default:
-        gl_func_00000000(e, typ);
-        break;
+    a2[0] = 1;
+    if (b18 == 1) {
+        gl_func_00000000(t4, s0, aligned, *(short *)(base + 2));
+    } else {
+        gl_func_00000000(t4, s0, aligned, b18);
     }
-    return 1;
+    a1c = (typ != 0) ? 2 : 5;
+    if (a0 == 0) {
+        gl_func_00000000(a1, a1c);
+    } else if (a0 == 1) {
+        gl_func_00000000(a1, a1c);
+    } else if (a0 == 2) {
+        gl_func_00000000(a1, a1c);
+    }
+    return s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023914);
