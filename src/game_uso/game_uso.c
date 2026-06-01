@@ -3403,7 +3403,10 @@ after_head_template:
                 s0 = (char*)gl_func_00000000(0x18);
                 if (s0 == NULL) goto epi;
             }
-            gl_func_00000000(s0, s1, *(char**)s2, 1);
+            {
+                char *arg2 = *(char**)s2;
+                gl_func_00000000(s0, s1, arg2, 1);
+            }
             *(char**)(s0 + 0xC) = (char*)&D_44F4_typtag + 0x3C8;
             *(int*)(s0 + 0x14) = 0;
             *(float*)(s0 + 0x10) = *(float*)((char*)&D_44F4_iter0 + 0x9C);
@@ -3423,7 +3426,10 @@ after_head_template:
                 s0 = (char*)gl_func_00000000(0x18); \
                 if (s0 == NULL) goto epi; \
             } \
-            gl_func_00000000(s0, s1, *(char**)s2, 1); \
+            { \
+                char *arg2 = *(char**)s2; \
+                gl_func_00000000(s0, s1, arg2, 1); \
+            } \
             *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
             *(int*)(s0 + 0x14) = 0; \
             *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
@@ -3461,7 +3467,10 @@ after_head_template:
                 s0 = (char*)gl_func_00000000(0x18); \
                 if (s0 == NULL) goto epi; \
             } \
-            gl_func_00000000(s0, s1, *(char**)s2, 1); \
+            { \
+                char *arg2 = *(char**)s2; \
+                gl_func_00000000(s0, s1, arg2, 1); \
+            } \
             *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
             *(int*)(s0 + 0x14) = 0; \
             *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
@@ -3891,6 +3900,17 @@ after_head_template:
      * stores through stack-resident values. Fresh objdiff after rebuilding
      * build/non_matching/src/game_uso/game_uso.c.o moved the C body from
      * 69.311584% to 69.577680%. */
+    /*
+     * 2026-06-01 SOURCE=5 improvement: split the init-call's third argument
+     * into an explicit `char *arg2 = *(char**)s2;` local in iter0 and both
+     * INIT_ITER macro bodies. This nudges IDO to materialize the template
+     * reload before the call instead of keeping the `a3=1` setup as the call
+     * delay-slot candidate. Direct objdiff improved 69.72618% -> 71.84635%;
+     * refreshed report.json scores the function at 72.638626%. Still NM: the
+     * long-lived sp+0x2C marshalling pointer is not promoted to $s2, so the
+     * target's `lw a2,0(s2); ...; jal; sw a2,8(sp)` shape is only partly
+     * recovered.
+     */
     (void)s0;
 
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
