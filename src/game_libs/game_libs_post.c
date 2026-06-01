@@ -3217,17 +3217,82 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
+/* Whole-body decode 2026-06-01 (was 12% first-alloc-only stub). Block-pool
+ * initializer: alloc the base arena (s4=D+0x2198, size (n<<6)*sz), then two
+ * sub-block alloc loops (N*3*sz then N entries; each gl(s4,*(D+0x2068)) +
+ * gl(blk,..) + zero entry fields, bumping the *(D+0x1E0C) index), interleaved
+ * with byte-table free-list init (D+0x1E18[i]=i, entry[i]->13=i) and a clear
+ * of the table tail to 0. n=*(D+0x2070), sz=*(D+0x2034). */
 void gl_func_00022A9C(void) {
     char *g = (char *)&D_00000000;
+    char *s4 = g + 0x2198;
     int n = *(int *)(g + 0x2070);
     int sz = *(short *)(g + 0x2034);
-    int tot = (n << 6) * sz;
-    char *blk;
+    int s2, cnt, count, v1;
+    char *s0;
+    void *blk;
+
     *(int *)(g + 0x2068) = *(int *)(g + 0x2060);
-    blk = (char *)gl_func_00000000(g + 0x2198, tot);
-    *(char **)(g + 0x1E08) = blk;
-    *(char **)(g + 0x1E0C) = blk;
-    *(char **)(g + 0x1E10) = blk + tot;
+    *(int *)(g + 0x1E08) = gl_func_00000000(s4, (n << 6) * sz);
+    cnt = (n * 3) * sz;
+    s2 = 0;
+    if (cnt > 0) {
+        do {
+            s0 = (char *)((*(int *)(g + 0x1E0C) << 4) + *(int *)(g + 0x1E08));
+            blk = (void *)gl_func_00000000(s4, *(int *)(g + 0x2068));
+            *(int *)s0 = (int)blk;
+            if (blk == 0) {
+                s2 = 0;
+                break;
+            }
+            gl_func_00000000(blk, *(int *)(g + 0x2068));
+            *(int *)(s0 + 4) = 0;
+            *(short *)(s0 + 8) = 0;
+            *(signed char *)(s0 + 12) = 0;
+            *(signed char *)(s0 + 14) = 0;
+            *(short *)(s0 + 10) = *(int *)(g + 0x2068);
+            *(int *)(g + 0x1E0C) = *(int *)(g + 0x1E0C) + 1;
+            s2++;
+            cnt = (n * 3) * sz;
+        } while (s2 < cnt);
+        s2 = 0;
+    }
+    count = *(int *)(g + 0x1E0C);
+    if (count != 0) {
+        v1 = 0;
+        for (s2 = 0; (unsigned)s2 < (unsigned)count; s2++, v1 += 16) {
+            *(unsigned char *)(g + 0x1E18 + s2) = s2;
+            *(signed char *)(*(int *)(g + 0x1E08) + v1 + 13) = s2;
+        }
+    }
+    if (count < 256) {
+        for (s2 = count; s2 < 256; s2++) {
+            *(signed char *)(g + 0x1E18 + s2) = 0;
+        }
+    }
+    *(signed char *)(g + 0x2018) = 0;
+    *(signed char *)(g + 0x201A) = count;
+    *(int *)(g + 0x1E10) = count;
+    *(int *)(g + 0x2068) = *(int *)(g + 0x2064);
+    s2 = 0;
+    if (n > 0) {
+        do {
+            s0 = (char *)((*(int *)(g + 0x1E0C) << 4) + *(int *)(g + 0x1E08));
+            blk = (void *)gl_func_00000000(s4, *(int *)(g + 0x2068));
+            *(int *)s0 = (int)blk;
+            if (blk == 0) {
+                break;
+            }
+            gl_func_00000000(blk, *(int *)(g + 0x2068));
+            *(int *)(s0 + 4) = 0;
+            *(short *)(s0 + 8) = 0;
+            *(signed char *)(s0 + 12) = 0;
+            *(signed char *)(s0 + 14) = 0;
+            *(short *)(s0 + 10) = *(int *)(g + 0x2068);
+            *(int *)(g + 0x1E0C) = *(int *)(g + 0x1E0C) + 1;
+            s2++;
+        } while (s2 < n);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
