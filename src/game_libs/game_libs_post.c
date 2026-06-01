@@ -5320,10 +5320,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
 
 // Add a0 to the pointer array a2[0..a1) if its key (a0[1]) isn't already
 // present (matched against a2[i][1]); append + bump count when absent.
-// Returns the resulting count. CAP: target has i=0 init in the leading blez
-// delay slot (2/18 register-exact delay-slot fill); INSN_PATCH-class, stays
-// NM (INSN_PATCH REMOVED 2026-05-23 per
-// feedback_no_instruction_forcing_matches_policy).
+// Returns the resulting count. BYTE-EXACT: current C emits the target's
+// leading blez delay-slot init naturally; no instruction patching.
 int game_libs_func_00025A80(int *a0, int a1, int **a2) {
     int i = 0;
     if (a1 > 0) {
