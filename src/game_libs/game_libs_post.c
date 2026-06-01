@@ -31081,13 +31081,17 @@ int gl_func_0005591C(int *a0, int a1, int a2, int a3) {
     int v0;
     /* Setup call: printf-like fmt at D+0x211B8 */
     gl_func_00000000((char*)&gl_data_00000000 + 0x211B8);
-    /* Clear 4 D-base globals at offsets 0/4/8/0xC (different relocs, hence
-     * the 4 separate `lui at; sw zero` pairs in target asm) */
-    *(int*)((char*)&gl_data_00000000 + 0x0) = 0;
-    *(int*)((char*)&gl_data_00000000 + 0x0) = 0;  /* second slot via different reloc */
-    *(int*)((char*)&gl_data_00000000 + 0x4) = 0;
-    *(int*)((char*)&gl_data_00000000 + 0x8) = 0;
-    *(int*)((char*)&gl_data_00000000 + 0xC) = 0;
+    /* Clear 5 D-base globals (offsets 0/0/4/8/0xC) — the target uses a SEPARATE
+     * `lui at; sw zero` per clear, so route each through a DISTINCT extern to
+     * bust IDO's base CSE (else they all share one lui). */
+    {
+        extern int D_5591C_z0a, D_5591C_z0b, D_5591C_z4, D_5591C_z8, D_5591C_zc;
+        D_5591C_z0a = 0;
+        D_5591C_z0b = 0;
+        *(int*)((char*)&D_5591C_z4 + 0x4) = 0;
+        *(int*)((char*)&D_5591C_z8 + 0x8) = 0;
+        *(int*)((char*)&D_5591C_zc + 0xC) = 0;
+    }
     if (a0 == 0) {
         v0 = 0;
     } else {
