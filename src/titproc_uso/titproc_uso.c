@@ -1287,9 +1287,38 @@ void titproc_uso_func_0000240C(char *s0) {
             } else {
                 gl_func_00000000(*(int *)(s0 + 0x6C0));
                 gl_func_00000000(5);
+                v1 = *(char **)(s0 + 0x6C0);
+                if (*(int *)(v1 + *(int *)(v1 + 0x7C) * 40 + 0x90) == 0) return;
+                *(int *)((char *)&D_00000000 + 0xA8) = (int)s0;
+                *(int *)((char *)&D_00000000 + 0x84) = *(int *)(*(char **)(s0 + 0x6C0) + 0x7C);
+                if ((*(int *)(s0 + 0x4F0) << 4) < 0) {
+                    if (*(int *)(s0 + 0x528) != 0) {
+                        gl_func_00000000(*(int *)(s0 + 0x528), 3);
+                    }
+                    *(int *)(s0 + 0x528) = 0;
+                    *(int *)((char *)&D_00000000 + 0x14C) = 0;
+                }
+                v1 = *(char **)(s0 + 0x6C0);
+                (*(void (**)(void))(v1 + *(int *)(v1 + 0x7C) * 40 + 0x90))();
             }
             break;
         case 2:
+            gl_func_00000000(5);
+            {
+                int *d154 = *(int **)((char *)&D_00000000 + 0x154);
+                unsigned short v = *(unsigned short *)((char *)d154 + 4);
+                gl_func_00000000((char *)&D_00000000);
+                *(short *)((char *)d154 + 4) = (short)(v & 0xFFF7);
+            }
+            gl_func_00000000(*(int *)(s0 + 0x6B8));
+            v1 = *(char **)(s0 + 0x6C0);
+            {
+                char *vt = *(char **)(v1 + 0x28);
+                void (*fn)(char *) = *(void (**)(char *))(vt + 0x5C);
+                short base = *(short *)(vt + 0x58);
+                if (fn) fn((char *)((int)base + (int)v1));
+            }
+            *(int *)(s0 + 0x6C4) = 1;
             break;
         default:
             return;
