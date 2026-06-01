@@ -9729,7 +9729,13 @@ int game_uso_func_0000C3CC(int a0, int a1) {
  * barrier -> full stack frame (breaks leaf); `volatile int*` load -> 5-insn la+lw
  * pointer form (lui+addiu+lw, wrong); `v+a0-a0` -> addu/subu kept (wrong). Prior
  * tries (volatile *p=&a0, self-store, reorder) also negative. Genuine NM cap. */
+#ifdef NON_MATCHING
+int game_uso_func_0000C3E8(int a0) {
+    return *(int*)&D_00000000;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
+#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor.
