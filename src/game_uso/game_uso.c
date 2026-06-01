@@ -3405,7 +3405,7 @@ after_head_template:
             }
             {
                 char *arg2 = *(char**)s2;
-                gl_func_00000000(s0, s1, arg2, 1);
+                gl_func_00000000(s0, s1, arg2, 1, arg2);
             }
             *(char**)(s0 + 0xC) = (char*)&D_44F4_typtag + 0x3C8;
             *(int*)(s0 + 0x14) = 0;
@@ -3428,7 +3428,7 @@ after_head_template:
             } \
             { \
                 char *arg2 = *(char**)s2; \
-                gl_func_00000000(s0, s1, arg2, 1); \
+                gl_func_00000000(s0, s1, arg2, 1, arg2); \
             } \
             *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
             *(int*)(s0 + 0x14) = 0; \
@@ -3469,7 +3469,7 @@ after_head_template:
             } \
             { \
                 char *arg2 = *(char**)s2; \
-                gl_func_00000000(s0, s1, arg2, 1); \
+                gl_func_00000000(s0, s1, arg2, 1, arg2); \
             } \
             *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
             *(int*)(s0 + 0x14) = 0; \
@@ -3910,6 +3910,13 @@ after_head_template:
      * long-lived sp+0x2C marshalling pointer is not promoted to $s2, so the
      * target's `lw a2,0(s2); ...; jal; sw a2,8(sp)` shape is only partly
      * recovered.
+     *
+     * 2026-06-01 SOURCE=5 follow-up: pass that same template pointer as a
+     * duplicate fifth arg (`..., 1, arg2`) for iter0 and both INIT_ITER macro
+     * bodies. This makes IDO emit the missing outgoing stack store in the call
+     * delay slot and raises direct objdiff to 78.73047%. Still not exact:
+     * built uses local `sp+0x2C` reloads and stores the fifth arg at `0x10(sp)`;
+     * target keeps the marshalling pointer in `$s2` and stores `a2` at `0x8(sp)`.
      */
     (void)s0;
 
