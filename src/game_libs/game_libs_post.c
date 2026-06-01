@@ -16652,6 +16652,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 //   (delay-slot obj loads). RESIDUAL: cursor/next saved-reg-vs-stack-spill
 //   (target spills cursor/next to 40/44(sp) using 3 saved regs; IDO here
 //   promotes them to s3/s2 -> 5 saved regs), same cap as gl_func_00038728.
+//   2026-05-31: the remove-local/inline-recompute lever does NOT apply here
+//   — it reduces saved-reg pressure by inlining SHORT-LIVED locals, but the
+//   saved-reg culprits are cursor/next (the loop vars that survive BOTH jalr
+//   calls), not obj/h (already body-local temps that don't reach $s regs).
+//   Inlining obj/h can't drop the 5->3 saved-reg count; cursor's loop-carried
+//   live range forces its $s promotion regardless. Genuine spill-strategy cap.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_00038964(char *o, void *ctx) {
