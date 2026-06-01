@@ -669,7 +669,40 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001EF4);
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00002334);
 
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000025B4);
+/* SOURCE=4 decode (2026-06-01): display-list rectangle command writer.
+ * Uses the global GUI context at D[0] -> ctx, appends one 2-word command at
+ * ctx->dl[ctx->cursor++] and packs x/y coordinates as 12-bit fixed-point
+ * values after multiplying by 4. The target stores a0 into its caller arg slot
+ * and reads the fifth arg from sp+0x10; the address-taken K&R arg keeps that
+ * shape in the NM body. */
+void gui_uso_func_000025B4(a0, x0, y0, x1, y1)
+    int a0;
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+{
+    int *global = *(int **)&D_00000000;
+    int *ctx = *(int **)((char *)global + 0xC);
+    int cursor = *(int *)((char *)ctx + 4);
+    int *dst;
+    int sx0;
+    int sy0;
+    int sx1;
+    int sy1;
+
+    (void)&a0;
+    *(int *)((char *)ctx + 4) = cursor + 1;
+    dst = (int *)(*(int *)((char *)*(int **)((char *)global + 0xC) + 0) + (cursor << 3));
+
+    sx0 = (int)((float)x0 * 4.0f) & 0xFFF;
+    sy0 = (int)((float)y0 * 4.0f) & 0xFFF;
+    sx1 = (int)((float)x1 * 4.0f) & 0xFFF;
+    sy1 = (int)((float)y1 * 4.0f) & 0xFFF;
+
+    dst[0] = 0xED000000 | (sx0 << 12) | sy0;
+    dst[1] = (sx1 << 12) | sy1;
+}
 
 extern int gl_func_00000000();
 extern char D_00000000;
