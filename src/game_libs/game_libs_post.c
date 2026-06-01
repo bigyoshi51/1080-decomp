@@ -28284,20 +28284,55 @@ int game_libs_func_0004E23C(char *a0) {
 //   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
+/* Whole-body decode 2026-06-01 (prior body was structurally wrong). Build a
+ * 3-word header {src, -1, src->0xC-1} in a stack buffer (the alloc(0xC) is the
+ * dead null-fallback), copy it twice (hdr->buf1->buf2), then iterate entries
+ * src[idx] for idx in (-1, src->0xC-1], dispatching entry->0x28->0x1c
+ * (entry + entry->0x28->0x18) per entry. */
 void gl_func_0004E244(char *src) {
-    int scrA[3];
-    int scrB[3];
-    char *n;
-    gl_func_00000000(src, scrA);
-    n = (char *)gl_func_00000000(0xC);
-    if (n == 0) return;
-    *(char **)n = src;
+    int hdr[3];
+    int buf1[3];
+    int buf2[3];
+    int *arr;
+    int idx, count;
+    char *a0;
+    char *n = (char *)hdr;
+
+    if (n == 0) {
+        n = (char *)gl_func_00000000(0xC);
+        if (n == 0) {
+            return;
+        }
+    }
     *(int *)(n + 0x4) = -1;
+    *(int *)(n + 0x0) = (int)src;
     *(int *)(n + 0x8) = *(int *)(src + 0xC) - 1;
-    scrB[0] = scrA[0];
-    scrB[1] = scrA[1];
-    scrB[2] = scrA[2];
-    gl_func_00000000(n, scrB);
+    buf1[0] = hdr[0];
+    buf1[1] = hdr[1];
+    buf1[2] = hdr[2];
+    buf2[0] = buf1[0];
+    buf2[1] = buf1[1];
+    buf2[2] = buf1[2];
+    arr = (int *)buf2[0];
+    idx = buf2[1];
+    count = buf2[2];
+    if (idx < count) {
+        idx++;
+        a0 = (char *)(arr + idx);
+    } else {
+        a0 = 0;
+    }
+    while (a0 != 0) {
+        char *entry = (char *)*(int *)a0;
+        int *vt = *(int **)(entry + 0x28);
+        ((void (*)(int))*(int *)((char *)vt + 0x1C))((int)entry + *(short *)((char *)vt + 0x18));
+        if (idx < count) {
+            idx++;
+            a0 = (char *)(arr + idx);
+        } else {
+            a0 = 0;
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
