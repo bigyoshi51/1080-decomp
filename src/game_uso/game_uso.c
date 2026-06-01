@@ -1060,9 +1060,74 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000174C);
  *
  * Multi-tick decomp expected. Stub body keeps wrap parsable; default
  * INCLUDE_ASM build matches. */
+extern int game_uso_func_055750();
+extern int game_uso_func_04A188();
+extern char game_uso_D_807FE908, game_uso_D_807FE910, game_uso_D_807FE914,
+            game_uso_D_807FE918, game_uso_D_807FE91C, game_uso_D_807FE920,
+            game_uso_D_807FE924, game_uso_D_807FE928, game_uso_D_807FE92C,
+            game_uso_D_807FE608, game_uso_D_807FE620;
+/* Whole-body decode 2026-06-01 (was 3.83% stub). alloc(0xD0)+q-node init, an
+ * FP stack-buffer setup, then 8 dead-sentinel-guarded sub-object stages
+ * (s0+8/40/64/88/112/136/160/184; guard `s0==-off` never true so IDO emits the
+ * dead alloc arms — 41C0/cascade family), each func_04A188(obj,s0,*D9xx,1) +
+ * template ptr + FP/Vec3 init. FP stack-buffer copies approximate; ~multi-tick. */
 void *game_uso_func_000018FC(void *a0) {
-    if (a0 == 0) return gl_func_00000000(0xD0);
-    return a0;
+    char *s0 = (char *)a0;
+    int *q;
+    float vbuf[3];
+
+    if (s0 == 0) {
+        s0 = (char *)game_uso_func_055750(0xD0);
+        if (s0 == 0) return 0;
+    }
+    q = (int *)s0;
+    if (s0 == 0) {
+        q = (int *)game_uso_func_055750(8);
+        if (q == 0) goto fp;
+    }
+    q[0] = (int)((char *)&game_uso_D_807FE908 + 0x318);
+    q[1] = 0;
+fp:
+    vbuf[0] = 0.0f;
+    vbuf[1] = 64.0f;
+    vbuf[2] = 0.0f;
+
+    /* stage 1: s0+8, alloc(0x20), template D_807FE620+48, Vec3 init */
+    {
+        int *obj = (int *)(s0 + 8);
+        if (s0 == (char *)-8) {
+            obj = (int *)game_uso_func_055750(0x20);
+            if (obj == 0) goto end;
+        }
+        game_uso_func_04A188(obj, s0, *(int *)((char *)&game_uso_D_807FE910 + 0x320), 1);
+        obj[0xC / 4] = (int)((char *)&game_uso_D_807FE620 + 48);
+        obj[0x1C / 4] = 0;
+        *(float *)((char *)obj + 0x10) = vbuf[0];
+        *(float *)((char *)obj + 0x14) = vbuf[1];
+        *(float *)((char *)obj + 0x18) = vbuf[2];
+    }
+#define STAGE(OFF, SYM, TVAL) \
+    { \
+        int *obj = (int *)(s0 + (OFF)); \
+        if (s0 == (char *)-(OFF)) { \
+            obj = (int *)game_uso_func_055750(0x18); \
+            if (obj == 0) goto end; \
+        } \
+        game_uso_func_04A188(obj, s0, *(int *)((char *)&(SYM) + (TVAL)), 1); \
+        obj[0xC / 4] = (int)((char *)&game_uso_D_807FE608 + 24); \
+        obj[0x14 / 4] = 0; \
+        *(float *)((char *)obj + 0x10) = 0.0f; \
+    }
+    STAGE(40,  game_uso_D_807FE914, 0x324)
+    STAGE(64,  game_uso_D_807FE918, 0x328)
+    STAGE(88,  game_uso_D_807FE91C, 0x32C)
+    STAGE(112, game_uso_D_807FE920, 0x330)
+    STAGE(136, game_uso_D_807FE924, 0x334)
+    STAGE(160, game_uso_D_807FE928, 0x338)
+    STAGE(184, game_uso_D_807FE92C, 0x33C)
+#undef STAGE
+end:
+    return s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000018FC);
