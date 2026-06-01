@@ -2696,29 +2696,67 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
 //   Name pre-checked: no extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int D_00000000;
+/* Whole-body decode 2026-06-01 (was 6.1% over-simplified stub). Nested-loop
+ * table dispatcher: outer over count=(*(D+0x2020))->0 entries (stride 20 in the
+ * table at *(D+0x2030)); match an entry when its byte[2] or byte[3] == key->2,
+ * or key->2==0; on match, two gl gates then two inner loops dispatching
+ * gl_func_00036A04(key, sub->field) per sub-record. */
+extern int gl_func_00036A04();
 int gl_func_000221D8(char *key) {
     char *g = (char *)&D_00000000;
-    int n = *(int *)(g + 0x2020);
-    char *tbl;
-    unsigned char kb;
-    int i, result;
-    if (n <= 0) {
+    char *s3 = key;
+    int count = *(short *)(*(int *)(g + 0x2020));
+    int s5, s4;
+
+    if (count <= 0) {
         return 0;
     }
-    tbl = *(char **)(g + 0x2030);
-    kb = *(unsigned char *)(key + 2);
-    result = 0;
-    for (i = 0; i < n; i++) {
-        char *e = tbl + i;
-        unsigned char t2 = *(unsigned char *)(e + 2);
-        if (t2 == 0xFF) {
-            return i;
-        }
-        if (t2 == kb) {
-            result = i;
+    s4 = 0;
+    for (s5 = 0; s5 != count; s5++, s4 += 20) {
+        char *e = (char *)*(int *)(g + 0x2030) + s4;
+        int kb = *(signed char *)(s3 + 2);
+        unsigned char v1 = *(unsigned char *)(e + 2);
+        unsigned char a0b = *(unsigned char *)(e + 3);
+        int matched;
+
+        if (v1 != 0xFF && v1 == kb) matched = 1;
+        else if (a0b != 0xFF && a0b == kb) matched = 1;
+        else if (kb == 0) matched = 1;
+        else matched = 0;
+        if (!matched) continue;
+
+        if (gl_func_00000000(1, 2, s5) == 0) continue;
+        if (gl_func_00000000(s5) == 0) continue;
+        {
+            int s1, s2;
+            int cnt1 = *(unsigned char *)((char *)*(int *)(g + 0x2030) + s4);
+            for (s1 = 0; s1 < cnt1; s1++) {
+                int *sub = (int *)gl_func_00000000(s5, s1);
+                if (sub != 0) {
+                    if (*(unsigned char *)((char *)sub + 1) != 0) {
+                        gl_func_00036A04(s3, sub[8 / 4]);
+                    }
+                    if (*(unsigned char *)((char *)sub + 2) == 127) {
+                        gl_func_00036A04(s3, sub[16 / 4]);
+                    } else {
+                        gl_func_00036A04(s3, sub[24 / 4]);
+                    }
+                }
+                cnt1 = *(unsigned char *)((char *)*(int *)(g + 0x2030) + s4);
+            }
+            {
+                int cnt2 = *(unsigned char *)((char *)*(int *)(g + 0x2030) + s4 + 1);
+                for (s2 = 0; s2 < cnt2; s2++) {
+                    int *sub = (int *)gl_func_00000000(s5, s2);
+                    if (sub != 0) {
+                        gl_func_00036A04(s3, sub[4 / 4]);
+                    }
+                    cnt2 = *(unsigned char *)((char *)*(int *)(g + 0x2030) + s4 + 1);
+                }
+            }
         }
     }
-    return result;
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
