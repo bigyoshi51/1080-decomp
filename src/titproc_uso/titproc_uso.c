@@ -177,12 +177,14 @@ void titproc_uso_func_000003D0(void) {
  * set low bit, a1 becomes the 1-based bit index; after the loop it calls
  * gl_func_00000000(8), treats f0 as the float return, and scales by a1 - 2.
  *
- * NATURAL CEILING via the `_f()` no-arg placeholder (direct jal, f0
- * return). The remaining frame-slot / scheduling codegen cap was
+ * NATURAL CEILING via the no-arg placeholder (direct jal, f0 return).
+ * Use target-named externs in the NM body so reloc names match expected.
+ * The remaining frame-slot / scheduling codegen cap was
  * previously closed via INSN_PATCH — INSN_PATCH REMOVED 2026-05-23 as
  * match-faking (per feedback_no_instruction_forcing_matches_policy).
  * Default build is INCLUDE_ASM. */
-extern float gl_func_00000000_f();
+extern char import_00020098;
+extern float titproc_uso_func_075EE4();
 #ifdef NON_MATCHING
 int titproc_uso_func_00000418(void) {
     /* 93.8% → ~98% (6→2 diffs): inlining the mask read into the loop body
@@ -191,21 +193,22 @@ int titproc_uso_func_00000418(void) {
      * diffs are a scheduler-decision order swap between `lw $5,24(sp)`
      * (preload uninit selected) and `or $2,$0,$0` (index=0) — independent
      * instructions, both emitted but in opposite order. SOURCE=1 re-audit
-     * 2026-06-01 confirmed the live NON_MATCHING object still differs only
-     * by this swapped pair (plus cosmetic reloc names); IDO_CODEGEN documents
-     * a 97k-iteration permuter run that could not move the pair. */
+     * 2026-06-01 re-audit switched the NM body to target-named externs,
+     * removing cosmetic reloc-name differences. The live object still differs
+     * only by this swapped pair; IDO_CODEGEN documents a 97k-iteration
+     * permuter run that could not move it. */
     int index = 0;
     int selected;
 
     do {
-        if ((**(unsigned short**)((char*)&D_00000000 + 0x154) & (1 << index)) != 0) {
+        if ((**(unsigned short**)((char*)&import_00020098 + 0x154) & (1 << index)) != 0) {
             selected = index + 1;
         }
         index++;
     } while (index != 8);
 
     selected -= 2;
-    return (int)((gl_func_00000000_f() * (float)selected) + 2.0f);
+    return (int)((titproc_uso_func_075EE4() * (float)selected) + 2.0f);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
