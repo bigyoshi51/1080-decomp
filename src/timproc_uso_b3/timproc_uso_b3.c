@@ -1471,7 +1471,52 @@ void timproc_uso_b3_func_00002A44(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002A44);
 #endif
 
+#ifdef NON_MATCHING
+/* Full structural decode 2026-06-01. 4-stage state dispatcher on obj->0x58:
+ * each stage queries gl_func(&D, flag); on hit, conditionally toggles
+ * obj->0x58 or fires a virtual method ((*vt->0x5C)((short)obj->0x58 +
+ * obj->0x48)) on the obj->0x48 sub-object. All cross-USO calls are the
+ * gl_func_00000000 import. */
+void timproc_uso_b3_func_00002C98(char *obj) {
+    char *o48;
+    char *vt;
+
+    if (gl_func_00000000((char *)&D_00000000, 0x10001) != 0 && *(int *)(obj + 0x58) != 0) {
+        gl_func_00000000(1);
+        *(int *)(obj + 0x58) = 0;
+    }
+    if (gl_func_00000000((char *)&D_00000000, 0x4002) != 0 && *(int *)(obj + 0x58) == 0) {
+        gl_func_00000000(1);
+        *(int *)(obj + 0x58) = 1;
+    }
+    if (gl_func_00000000((char *)&D_00000000, 0x40100) != 0) {
+        if (*(int *)(obj + 0x58) == 0) {
+            gl_func_00000000(5);
+            gl_func_00000000((char *)&D_00000000, 2);
+            *(int *)(*(char **)(obj + 0x48) + 0xD8) = 0;
+            o48 = *(char **)(obj + 0x48);
+            *(int *)(obj + 0x50) = 0;
+            vt = *(char **)(o48 + 0x28);
+            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)o48);
+        } else {
+            gl_func_00000000(0x802);
+            o48 = *(char **)(obj + 0x48);
+            *(int *)(obj + 0x50) = 0;
+            vt = *(char **)(o48 + 0x28);
+            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)o48);
+        }
+    }
+    if (gl_func_00000000((char *)&D_00000000, 0x200) != 0) {
+        gl_func_00000000(0x802);
+        o48 = *(char **)(obj + 0x48);
+        *(int *)(obj + 0x50) = 0;
+        vt = *(char **)(o48 + 0x28);
+        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)o48);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002C98);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00002DF0: 64-insn (0x100) grid-render setup.
