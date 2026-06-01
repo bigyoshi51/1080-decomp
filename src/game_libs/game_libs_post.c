@@ -8063,22 +8063,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000295BC);
 //   STRUCTURAL body below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* Whole-body decode 2026-06-01 (prior body looped + wrong increment). When
+ * obj->0x12 != 0: step obj->0x1C += obj->0x20 (clamp [0,1]), set obj->0|=4, dec
+ * obj->0x12; if it hit 0 and obj->1==2, gl(obj) and return. Then if bit26 of
+ * obj->0 set, obj->0x30 = obj->0x1C * obj->0x2C. Finally a 16-slot loop: e =
+ * *(p+0x38) for p=obj..obj+60 step 4; if *e<0 (sign) call gl_3dc30(e, bit26 of
+ * obj->0, obj->0&1). Clear obj->0&~4. */
+extern int gl_func_0003DC30();
 void gl_func_0002978C(char *obj) {
-    int n = *(unsigned short *)(obj + 0x12);
-    int i;
-    if (n == 0) return;
-    for (i = 0; i < n; i++) {
-        float v = *(float *)(obj + 0x1C);
-        float lim = *(float *)(obj + 0x20);
-        v += 1.0f;
-        *(unsigned char *)obj = *(unsigned char *)obj | 0x04;
-        if (v < lim) {
-            *(float *)(obj + 0x1C) = v;
-        } else {
+    char *p = obj;
+    int s0;
+
+    if (*(unsigned short *)(obj + 0x12) != 0) {
+        *(float *)(obj + 0x1C) = *(float *)(obj + 0x1C) + *(float *)(obj + 0x20);
+        *(unsigned char *)obj |= 4;
+        if (1.0f < *(float *)(obj + 0x1C)) {
+            *(float *)(obj + 0x1C) = 1.0f;
+        }
+        if (*(float *)(obj + 0x1C) < 0.0f) {
             *(float *)(obj + 0x1C) = 0.0f;
         }
-        n = *(unsigned short *)(obj + 0x12);
+        *(unsigned short *)(obj + 0x12) = *(unsigned short *)(obj + 0x12) - 1;
+        if (*(unsigned short *)(obj + 0x12) == 0 && *(unsigned char *)(obj + 1) == 2) {
+            gl_func_00000000(obj);
+            return;
+        }
     }
+    if ((int)(*(int *)obj << 5) < 0) {
+        *(float *)(obj + 0x30) = *(float *)(obj + 0x1C) * *(float *)(obj + 0x2C);
+    }
+    for (s0 = 0; s0 != 64; s0 += 4) {
+        char *e = *(char **)(p + 0x38);
+        if (((unsigned)*(int *)e >> 31) == 1) {
+            gl_func_0003DC30(e, (unsigned)(*(int *)obj << 5) >> 31, *(unsigned char *)obj & 1);
+        }
+        p += 4;
+    }
+    *(unsigned char *)obj &= ~4;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
