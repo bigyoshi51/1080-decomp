@@ -307,17 +307,23 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
  * TBD (multi-tick): the remaining MERGE TAIL (after the reg-loop conditional):
  *   self->0x4f4 = arg1 & 0xffff;  self->0x48 = 0;  node = D[0x190];
  *   gl(self+0x10, node);  beql node->0x14 dance;  gl(node,1,0);  gl().
- * CAUTION (confirmed 2026-06-01, gated twice): adding the merge tail — even a
- * conservative version omitting the final no-arg gl() — REGRESSES 65.72 -> 21.6.
- * Root cause: `arg1 & 0xffff` at the function END extends arg1's live range
- * across the WHOLE body, forcing a different spill/frame layout that misaligns
- * every offset (NOT the no-arg call). The target instead RELOADS arg1 from its
- * home slot sp+0x3c right before the andi (lw t5,0x3c(sp); andi t9,t5,0xffff),
- * so arg1 is NOT kept live. NEXT-TICK LEVER: force the reload — spill/reload
- * arg1 through a `volatile`-ish sink or read it via its home, so IDO doesn't
- * pin it live. Until that's solved the merge tail stays out. The reg loop's
- * per-call D[0] re-load may also need distinct externs (CSE-bust). Build now
- * ~190/243 insns; s0-vs-s1 self-reg renumber is a global offset. */
+ * CAUTION (confirmed 2026-06-01, gated 3×): adding the merge tail — even a
+ * conservative version, and even with `(void)&a1` to force arg1 homing —
+ * REGRESSES 65.72 -> 21.6. So arg1 live-range is NOT the (sole) cause.
+ *
+ * THE REAL BLOCKER (precisely located 2026-06-01): build frame is -0x40 vs
+ * target -0x38 (8 bytes too big). The extra 8 bytes is ONE extra in-frame spill
+ * slot at sp+0x38(56): the build spills the cascade node n2 (a2) to a FRESH
+ * slot 56 across the stage-3 alloc, where the target REUSES 0x30(48)/0x34(52)
+ * for the cascade a2/a3 spills. That single extra slot shifts the framesize,
+ * hence EVERY arg-home (a1/a2/a3 at 0x44/0x48/0x4c vs target 0x3c/0x40/0x44)
+ * and stack offset by 8 — a global diff that caps the present body AND makes
+ * the merge tail (which adds more spills) blow the layout up further. NEXT
+ * APPROACH: drive the cascade spill slots down to reuse 0x30/0x34 (fewer
+ * simultaneously-live cascade locals, or the `-Wo,-zdbug:6` regalloc dump per
+ * project_1080_regalloc_dump_unlocked to see the exact slot coloring). The reg
+ * loop's per-call D[0] re-load may also need distinct externs (CSE-bust). Build
+ * 207/243 insns; self IS in s0 (matches target). */
 #ifdef NON_MATCHING
 extern char D_b3_994_v0;
 extern char D_b3_994_v1;
