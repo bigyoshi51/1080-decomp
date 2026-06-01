@@ -1128,14 +1128,30 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001BB
  *     ...
  *   }
  *
- * REMAINING: ~26 insns of conditional body — likely the buf-fill +
- * gl_func call + epilogue. First-pass decode only; multi-tick.
+ * FULL DECODE 2026-06-01: semantic body below matches the control flow and
+ * call sequence. O2 residual: target has a 0x58 frame and stores incoming $f0
+ * to sp+0x48..0x54 before the counter increment; straight C wants either an
+ * explicit zeroing mtc1 + 0x38 frame, or worse uninitialized-local reloads.
+ * Padding/local-scale probes regressed frame/offsets; keep this NM unless a
+ * new IDO stack-shape lever appears.
  *
  * Per scripts/find-byte-identical-clones.py — sig=739fd8d1d3 has 3 plain
  * clones (this + b1_19C0 + b3_1928). Future runs can mirror this wrap. */
 void arcproc_uso_func_00001C74(int *a0) {
-    /* Stub — see decoded structure in comment above. */
-    (void)a0;
+    float buf[4];
+
+    buf[0] = 0.0f;
+    buf[1] = 0.0f;
+    buf[2] = 0.0f;
+    buf[3] = 0.0f;
+    *(int *)((char *)a0 + 0x68) += 1;
+    if (gl_func_00000000(*(int *)((char *)a0 + 0x50)) != 0) {
+        gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)((char *)a0 + 0x108)), buf);
+        gl_func_00000000((char *)a0 + 0xF0);
+        if ((*(int *)((char *)a0 + 0x68) & 8) != 0) {
+            gl_func_00000000((char *)a0 + 0xF0, 0xA0, 0x7C, 3);
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001C74);
