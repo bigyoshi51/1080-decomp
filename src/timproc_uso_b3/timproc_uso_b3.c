@@ -294,18 +294,21 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
  * 2026-06-01b (44.91 -> 49.33): post-cascade field-init block corrected —
  * func(self, a1, &D+0x3c0, a2) (was gl(&D,a1,a2)); added gl(self) call after
  * self->0x528=a3; sub vtable via distinct extern D_b3_994_v4.
- * TBD (multi-tick, decoded from /tmp/t994.txt insns ~95-243): a VTABLE-DISPATCH
- * block sits BETWEEN `D[0x138]=sub` and the registration loop:
- *   sub->0xb4 = ((self->0x4f0 << 15) < 0) ? 11 : 0;   // bgezl
- *   gl(sub, self, self->0x568, self->0x528);
- *   vt = (int*)sub->0x28; ((void(*)(int))vt[0x5c/4])(*(short*)(vt+0x58) + sub); // jalr
- *   gl(self+0x10, sub);
- *   if (sub->0x14 != 0) sub->0x4 = 1;  sub->0x14 = self;   // beql
- *   then a 2nd `self->0x4f0<<15` bgez guards a big block: self->0x48=gl(0);
- *   gl(self->0x48, self); self->0x48->0x30 = self->0x568; then the reg loop
- *   (each call re-loads D[0] FRESH = lui;lw;addiu+3;sll;ori — may need a
- *   distinct-extern per call to bust the D[0] read CSE). Current build 146/243
- *   insns; frame/self-reg (s0 vs build s1) renumber is a global offset. */
+ * 2026-06-01c (49.33 -> 59.28): added the VTABLE-DISPATCH block between
+ * `D[0x138]=sub` and the reg loop: sub->0xb4 = ((self->0x4f0<<15)<0)?11:0;
+ * gl(sub,self,self->0x568,self->0x528); virtual call
+ * ((void(*)(int))((int*)sub->0x28)[0x5c/4])(*(short*)(vt+0x58)+sub) [jalr];
+ * gl(self+0x10,sub); beql sub->0x14 dance.
+ * TBD (multi-tick): the registration loop should be WRAPPED in a 2nd
+ * `if ((self->0x4f0<<15) < 0)` block (preamble self->0x48=gl(0); gl(self->0x48,
+ * self); self->0x48->0x30=self->0x568) + a post-loop self->0x48->0x14 dance,
+ * THEN a merge tail (self->0x4f4 = a1&0xffff; self->0x48=0; node=D[0x190];
+ * gl(self+0x10,node); beql node->0x14 dance; gl(node,1,0); gl()). CAUTION:
+ * adding the conditional+tail merge WHOLESALE regressed to 22% (2026-06-01) —
+ * the tail-merge block disrupts global allocation; add it piece-by-piece with
+ * a build-measure gate each step. The reg loop's per-call D[0] re-load may need
+ * distinct externs (CSE-bust). Build now ~170/243 insns; s0-vs-s1 self-reg
+ * renumber is a global offset that may resolve once the full body is present. */
 #ifdef NON_MATCHING
 extern char D_b3_994_v0;
 extern char D_b3_994_v1;
@@ -352,6 +355,24 @@ S_self:
     }
     self[0x6A8 / 4] = (int)sub;
     *(int **)((char *)&D_00000000 + 0x138) = sub;
+
+    /* vtable-dispatch block */
+    if ((self[0x4F0 / 4] << 15) >= 0) {
+        sub[0xB4 / 4] = 0;
+    } else {
+        sub[0xB4 / 4] = 11;
+    }
+    gl_func_00000000(sub, self, self[0x568 / 4], self[0x528 / 4]);
+    {
+        int *vt = (int *)sub[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)sub);
+    }
+    gl_func_00000000((char *)self + 0x10, sub);
+    if (sub[0x14 / 4] != 0) {
+        sub[0x4 / 4] = 1;
+    }
+    sub[0x14 / 4] = (int)self;
+
     gl_func_00000000(self[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
     gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
     gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
