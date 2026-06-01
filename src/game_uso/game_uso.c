@@ -6166,16 +6166,77 @@ void game_uso_func_000071A4(int *a0) {
  * Multi-tick refinement target. Default INCLUDE_ASM build remains exact
  * via the asm. Skeleton kept for grep discoverability of struct field
  * offsets and the per-frame compute call-graph. */
+extern void game_uso_func_0000A7F8(char *);
+extern int game_uso_func_00007ACC();
+extern int game_uso_func_00007C1C();
+extern long long game_uso_func_00007538(int *, int);
 void game_uso_func_000071E0(int *a0) {
-    /* Outline only — multi-tick decomp scope. The 10-stage compute
-     * (flag-gate, float-gate, counter increment with reset, 4-Vec3 stage,
-     * 3 cross-USO calls, conditional Vec3 store) needs careful arg-passing
-     * + register-allocation reconstruction to byte-match. Documented for
-     * the per-frame compute's struct-typing pass. */
-    int *sub = *(int**)((char*)a0 + 0x30);
-    int flag = *(int*)((char*)a0 + 0x68);
-    (void)sub;
-    (void)flag;
+    /* Full structural decode 2026-06-01. Per-frame compute: flag-gate ->
+     * float-gate counter (reset at 30) -> if state(0x64)==3 do the
+     * scale-Vec3 + transform-compose (A604 family) + 3 cross-USO calls +
+     * conditional yaw store. All cross-USO calls are gl_func_00000000. */
+    char *obj = (char *)a0;
+    char *w;
+    int counter;
+    int flag256;
+    float s;
+    float scaled[3], c1[3], c2[3], xf[3], outpos[3], rec[3], pt[3];
+    char *r1, *r2;
+    float yaw, fr;
+
+    if (*(int *)(obj + 0x68) & 4) {
+        game_uso_func_0000A7F8(obj);
+        return;
+    }
+    w = *(char **)(obj + 0x30);
+    if (30.0f <= *(float *)(w + 0x348)) {
+        counter = *(int *)(obj + 0x54) + 1;
+        if (counter < 30) {
+            *(int *)(obj + 0x54) = counter;
+        } else {
+            *(int *)(obj + 0x64) = 0;
+            *(int *)(obj + 0x54) = 0;
+        }
+    } else {
+        *(int *)(obj + 0x54) = 0;
+    }
+    if (*(int *)(obj + 0x64) != 3) {
+        return;
+    }
+
+    flag256 = 0;
+    xf[0] = *(float *)(w + 0xB4);
+    xf[1] = *(float *)(w + 0xB8);
+    xf[2] = *(float *)(w + 0xBC);
+    s = *(float *)(obj + 0xA8);
+    scaled[0] = *(float *)(w + 0x318) * s;
+    scaled[1] = *(float *)(w + 0x31C) * s;
+    scaled[2] = *(float *)(w + 0x320) * s;
+    c1[0] = scaled[0]; c1[1] = scaled[1]; c1[2] = scaled[2];
+    c2[0] = c1[0]; c2[1] = c1[1]; c2[2] = c1[2];
+    xf[0] = xf[0] + c2[0];
+    xf[1] = xf[1] + c2[1];
+    xf[2] = xf[2] + c2[2];
+
+    r1 = (char *)game_uso_func_00007ACC(obj, outpos, xf, 0);
+    if (r1 != 0) {
+        r2 = (char *)game_uso_func_00007C1C(c1, obj, r1, *(int *)outpos, xf, 0);
+        pt[0] = *(float *)r2;
+        pt[1] = *(float *)(r2 + 4);
+        pt[2] = *(float *)(r2 + 8);
+        rec[0] = *(float *)(w + 0x3C8);
+        rec[2] = *(float *)(w + 0x3D0);
+        rec[1] = 0.0f;
+        yaw = game_uso_func_00003ED4((Vec3 *)rec, (Vec3 *)pt, 0);
+        fr = -yaw * 6.0f;
+        *(float *)(obj + 0x3C) = fr;
+        if (*(int *)(obj + 0x6C) == 0) {
+            if (*(int *)(w + 0x938) != 0) {
+                flag256 = 256;
+            }
+        }
+        game_uso_func_00007538(obj, flag256);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000071E0);
@@ -7677,7 +7738,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
  * Default emit remains INCLUDE_ASM until C-body grind reaches >=80%.
  * Decode doc unblocks future single-tick C-write attempts (36 named
  * blocks let a future pass write C piecemeal block-by-block). */
-void game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
+int game_uso_func_00007C1C(int a0, int a1, int a2, int a3, double *arg5) {
     if (arg5 != 0) {
         *arg5 = 0.0;
     }
