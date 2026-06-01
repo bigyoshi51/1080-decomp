@@ -188,14 +188,17 @@ void timproc_uso_b1_func_0000090C(Vec3 *dst) {
  * This is a SIBLING of timproc_uso_b3_func_00000994 (same constructor in a
  * different USO; sub-node alloc is 0xE0 here vs 0xDC there, else near-identical).
  *
- * FRAME-SIZE IS NOT SCORED (confirmed 2026-06-01): removing 3 dead locals shrank
- * the build frame -0x48 -> -0x40 (toward target -0x38) with ZERO change to the
- * fuzzy (59.71552 both ways). objdiff NORMALIZES sp-relative offsets, so the
- * whole family's "frame -0x40 vs -0x38 / extra cascade spill slot" residual is a
- * RED HERRING for the metric — the real 60-74% residual across 994/097C/titproc/
- * h2hproc is REGISTER ALLOCATION (which-reg, not which-slot), the documented
- * register-renumber cap. Don't chase the frame; chase the register diffs (per-fn,
- * or accept the cap). Dead locals removed for hygiene (smaller frame, cleaner).
+ * FRAME PARTIAL-FIX DOESN'T MOVE THE METRIC (2026-06-01): removing 3 dead locals
+ * shrank the build frame -0x48 -> -0x40 with ZERO fuzzy change (59.71552 both).
+ * NOT because sp-offsets are unscored (they ARE — cf. 8A40's scored addiu-sp
+ * diff) but because -0x40 is STILL != target -0x38, so the prologue/arg-home/
+ * spill insns stay diffs either way. To move the metric the frame must hit -0x38
+ * EXACTLY, which needs the cascade to use one fewer spill slot (target 4 work
+ * slots, build 5). That extra slot is a register-allocation artifact of the 4
+ * simultaneously-live cascade pointers (self/n1/n2/n3); reducing it needs the
+ * regalloc dump (-Wo,-zdbug:6) or a per-fn structure change, not dead-local
+ * removal. Dead locals removed for hygiene anyway. The family's 60-74% residual
+ * is this slot-count + register-renumber, the documented hard cap.
  * 2026-06-01 (31.97 -> 59.71): ported 994's corrected structure block-by-block
  * (build-gated each step per docs/MATCHING_WORKFLOW.md incremental method):
  *   cascade  37.43 (5-stage goto-chain + distinct externs D_b1_097C_v0..3)
