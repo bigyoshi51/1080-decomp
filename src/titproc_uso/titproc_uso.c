@@ -190,8 +190,10 @@ int titproc_uso_func_00000418(void) {
      * 8-byte frame slot and aligns the spill offset to sp+24. Residual 2
      * diffs are a scheduler-decision order swap between `lw $5,24(sp)`
      * (preload uninit selected) and `or $2,$0,$0` (index=0) — independent
-     * instructions, both emitted but in opposite order; not C-controllable
-     * (tried decl-order, dummy reads, init-in-decl). */
+     * instructions, both emitted but in opposite order. SOURCE=1 re-audit
+     * 2026-06-01 confirmed the live NON_MATCHING object still differs only
+     * by this swapped pair (plus cosmetic reloc names); IDO_CODEGEN documents
+     * a 97k-iteration permuter run that could not move the pair. */
     int index = 0;
     int selected;
 
