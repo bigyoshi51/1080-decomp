@@ -8437,21 +8437,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
+/* Whole-body decode 2026-06-01 (prior init was a 1-store stub). Alloc/reuse the
+ * node at slot+0x50 (gl(&D+0x5368) if empty; -1 on fail). Init: node->0x50=base,
+ * node->0x18=base->0x8C, an 8-step flag cascade on node->0 (|0x80 then clear bits
+ * 0x40..0x01 one at a time, each stored — volatile), node->0x1c=base->0x90, then
+ * ~20 field clears + node->3=128, node->5=64, node->2=255, node->0x30/0x34=1.0,
+ * node->0x38=0.0. */
 int gl_func_0002A3AC(char *base, int idx) {
     char *slot = base + idx * 4;
     char *no;
+    volatile unsigned char *p;
+    int c;
+
     if (*(int *)(slot + 0x50) != 0) {
-        return 0;
+        gl_func_00000000(*(char **)(slot + 0x50));
+    } else {
+        no = (char *)gl_func_00000000((char *)&D_00000000 + 0x5368);
+        if (no == 0) {
+            *(int *)(slot + 0x50) = 0;
+            return -1;
+        }
+        *(int *)(slot + 0x50) = (int)no;
     }
-    no = (char *)gl_func_00000000((char *)&D_00000000 + 0x5368);
-    if (no == 0) {
-        *(int *)(slot + 0x50) = 0;
-        return -1;
-    }
-    *(int *)(slot + 0x50) = (int)no;
-    gl_func_00000000(no);
-    *(unsigned char *)no = (*(unsigned char *)no | 0x80) & ~0x40;
+    no = *(char **)(slot + 0x50);
+    *(int *)(no + 0x50) = (int)base;
     *(int *)(no + 0x18) = *(int *)(base + 0x8C);
+    p = (volatile unsigned char *)no;
+    c = *p;
+    c |= 0x80;  *p = c;
+    c &= ~0x40; *p = c;
+    c &= ~0x20; *p = c;
+    c &= ~0x10; *p = c;
+    c &= ~0x08; *p = c;
+    c &= ~0x04; *p = c;
+    *(int *)(no + 0x1C) = *(int *)(base + 0x90);
+    c &= ~0x02; *p = c;
+    *(unsigned char *)(no + 0x18) = 0;
+    c &= ~0x01; *p = c;
+    *(unsigned char *)(no + 1) = 0;
+    *(unsigned char *)(no + 0x20) = 0;
+    *(unsigned char *)(no + 0x6C) = 0;
+    *(unsigned char *)(no + 3) = 128;
+    *(unsigned char *)(no + 5) = 64;
+    *(short *)(no + 0x10) = 0;
+    *(short *)(no + 8) = 0;
+    *(short *)(no + 0xA) = 0;
+    *(short *)(no + 0xC) = 0;
+    *(int *)(no + 0x2C) = 0;
+    *(int *)(no + 0x48) = 0;
+    *(unsigned char *)(no + 2) = 255;
+    *(float *)(no + 0x30) = 1.0f;
+    *(float *)(no + 0x34) = 1.0f;
+    *(float *)(no + 0x38) = 0.0f;
     return 0;
 }
 #else
