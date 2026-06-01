@@ -285,14 +285,12 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
  * sub-node -> self->0x6A8 (+ D[0x138]=it); a 6-iter unrolled registration loop
  * gl(self->0x48, ((D+3)<<16)|N, -1) for N in {0,1,4,3,2,5}; tail cmd calls.
  * Returns self. NM wrap (m2c can't read raw-.word USO; decoded from objdump).
- * &D template offsets collapsed; the nested-alloc dead-block cascade + exact
- * per-call args + arg-home-spill scheduling are TBD (multi-tick). */
+ * &D template offsets collapsed; the nested-alloc dead-block cascade +
+ * vtable-dispatch block + arg-home-spill scheduling are TBD (multi-tick). 32%. */
 #ifdef NON_MATCHING
 void *timproc_uso_b3_func_00000994(int *a0, int a1, int a2, int a3) {
     int *self = a0;
     int *sub;
-    int i;
-    static const int order[6] = {0, 1, 4, 3, 2, 5};
     if (self == 0) {
         self = (int *)gl_func_00000000(0x730);
         if (self == 0) {
@@ -311,11 +309,13 @@ void *timproc_uso_b3_func_00000994(int *a0, int a1, int a2, int a3) {
     }
     self[0x6A8 / 4] = (int)sub;
     *(int **)((char *)&D_00000000 + 0x138) = sub;
-    for (i = 0; i < 6; i++) {
-        gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | order[i], -1);
-    }
-    gl_func_00000000(self[0x190 / 4]);
-    gl_func_00000000();
+    gl_func_00000000(self[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
+    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
+    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
+    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
+    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
+    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
+    gl_func_00000000(self[0x48 / 4]);
     return self;
 }
 #else
