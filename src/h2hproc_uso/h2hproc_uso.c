@@ -224,7 +224,14 @@ void h2hproc_uso_func_0000045C(void) {
  * Not reachable from C (no standalone function signature for an
  * alt-entry that falls through). Per feedback_split_fragments_unreachable_tail
  * class — leave INCLUDE_ASM. */
+void h2hproc_uso_func_000004A4(char *a0);
+#ifdef NON_MATCHING
+void h2hproc_uso_func_0000049C(void) {
+    h2hproc_uso_func_000004A4(*(char **)&D_00000000);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000049C);
+#endif
 
 void h2hproc_uso_func_000004A4(char *a0) {
     gl_func_00000000(a0, *(int*)(a0 + 0x6B4) ^ 1);
