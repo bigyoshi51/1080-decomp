@@ -26338,7 +26338,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004BAF4);
  * at sp+0 with a 0x28 frame: buf[8]->0x30 (over), no-buf->0x20 (under),
  * none hits 0x28-with-sp0-base. The sp+0 overlapping-scratch placement is
  * an IDO allocator artifact (the scratch shares the outgoing-arg slot).
- * Next lever to try: an alloca/union form, or a donor splice. */
+ * 2026-05-31 RULED OUT alloca: `__builtin_alloca(8)` emits a FRAME-POINTER
+ * prologue (`or $fp,$sp; addiu $sp,-8` dynamic adjust; `or $sp,$fp` restore)
+ * — nothing like the target's STATIC `addiu sp,-0x28` + `or a2,sp; addiu
+ * 0x33`. The target's sp+0 scratch is a static local overlapping the
+ * outgoing-arg area, not a dynamic alloca. Remaining lever: a donor splice
+ * (the static sp+0 overlap is not C-expressible). */
 int* gl_func_0004C190(int *a0, int a1, int a2_unused, int a3) {
     int *s0 = a0;
     int aligned;
