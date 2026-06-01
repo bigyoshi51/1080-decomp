@@ -4604,18 +4604,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023BDC);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-int gl_func_00023E60(int a0, int a1, int sz) {
+/* Whole-body decode 2026-06-01 (prior body had no loop + missing a3). Chunked
+ * DMA: n=(sz+15)&~15; gl(a1,n); then process n in 1024-byte chunks —
+ * gl_38604(D+0x1DF0, 1, 0, src, dst, 1024, D+0x1DD4, a3, D+0x2ACC0) + gl(D+0x1DD4,
+ * 0, 1), advancing src/dst by 1024; a final partial chunk uses count=n and
+ * tag D+0x2ACCC. */
+extern int gl_func_00038604();
+int gl_func_00023E60(int a0, int a1, int sz, int a3) {
     char *g = (char *)&D_00000000;
-    int n = (sz + 0xF) & ~0xF;
-    void *b = (void *)gl_func_00000000(n);
-    char *t3 = g + 0x1DD4;
-    char *t4 = g + 0x2ACC0;
-    char *t6 = g + 0x1DF0;
-    if (n < 0x400) {
-        n = 0x400;
+    char *s3 = g + 0x1DD4;
+    char *s4 = g + 0x2ACC0;
+    char *s6 = g + 0x1DF0;
+    int s0 = (sz + 0xF) & ~0xF;
+    int s2 = a0;
+    int s1 = a1;
+    gl_func_00000000(a1, s0);
+    while (s0 >= 0x400) {
+        gl_func_00038604(s6, 1, 0, s2, s1, 0x400, s3, a3, s4);
+        gl_func_00000000(s3, 0, 1);
+        s0 -= 0x400;
+        s2 += 0x400;
+        s1 += 0x400;
     }
-    gl_func_00000000(b, 1, 0, a0, a1, n, t3, t4, t6);
-    return (int)b;
+    if (s0 != 0) {
+        gl_func_00038604(s6, 1, 0, s2, s1, s0, s3, a3, g + 0x2ACCC);
+        gl_func_00000000(s3, 0, 1);
+    }
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023E60);
