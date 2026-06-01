@@ -281,6 +281,7 @@ extern char D_arc_A3C_v0;
 extern char D_arc_A3C_v1;
 extern char D_arc_A3C_v2;
 extern char D_arc_A3C_v3;
+extern char D_arc_A3C_v4;
 void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3, int a4) {
     int *s1 = a0;
     int *n1, *n2, *n3;
@@ -315,7 +316,22 @@ S_self:
     *(float *)&s1[0x77C / 4] = 0.0f;
     gl_func_00000000((char*)&D_00000000 + 0x3D0, 0);
     gl_func_00000000(&D_00000000, 0);
-    /* TODO: sub=gl(0xD8) + sub-node vtable + vtable-dispatch + sub-loop. Multi-tick. */
+    {
+        int *sub = (int*)gl_func_00000000(0xD8);
+        if (sub != 0) {
+            gl_func_00000000(sub);
+            sub[0x28 / 4] = (int)&D_arc_A3C_v4;
+            s1[0x6AC / 4] = (int)sub;
+            *(int**)((char*)&D_00000000 + 0x138) = sub;
+            sub[0xB4 / 4] = 7;
+            gl_func_00000000(sub, s1, s1[0x568 / 4], s1[0x6A8 / 4], s1[0x528 / 4]);
+            {
+                int *vt = (int*)sub[0x28 / 4];
+                ((void(*)(int))vt[0x5C / 4])(*(short*)((char*)vt + 0x58) + (int)sub);
+            }
+        }
+    }
+    /* TODO: post-dispatch sub-loop (insns 108-205). Multi-tick. */
     return (void*)s1;
 }
 #else
