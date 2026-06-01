@@ -3125,7 +3125,12 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * 87F4 = 87E8+0xC], OR keep the boundary pad in main by carving 87E8 WITHOUT
  * collapsing the adjacent INCLUDE_ASM-boundary align). Verify against build/src
  * .text == target for the whole 0x87xx..0x89xx range, not just 87E8, before the
- * Yay0 recompress — a wrong delta silently corrupts the shared block5. */
+ * Yay0 recompress — a wrong delta silently corrupts the shared block5.
+ * SOURCE=3 RETEST (2026-06-01): still the first size-sort candidate
+ * (`uv run python -m decomp.main discover --sort-by size`). Boundary is one
+ * 0xC leaf with one `jr ra`; no fragment repair applies. Current C remains the
+ * useful logic body, but the exact path is the -g3 carve plus padding RE above,
+ * not post-cc instruction forcing. */
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_000087E8(void) {
     return 0;
