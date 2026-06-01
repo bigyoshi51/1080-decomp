@@ -294,6 +294,11 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
  * 2026-06-01b (44.91 -> 49.33): post-cascade field-init block corrected —
  * func(self, a1, &D+0x3c0, a2) (was gl(&D,a1,a2)); added gl(self) call after
  * self->0x528=a3; sub vtable via distinct extern D_b3_994_v4.
+ * 2026-06-01d (59.28 -> 65.72): wrapped the registration loop in the 2nd
+ * `if ((self->0x4f0<<15) < 0)` block with preamble (self->0x48=gl(0);
+ * gl(self->0x48,self); self->0x48->0x30=self->0x568) + post-loop gl(self+0x10,
+ * self->0x48) + beql self->0x48->0x14 dance. The earlier 22% regression was
+ * confined to the MERGE-TAIL block (added separately, gated).
  * 2026-06-01c (49.33 -> 59.28): added the VTABLE-DISPATCH block between
  * `D[0x138]=sub` and the reg loop: sub->0xb4 = ((self->0x4f0<<15)<0)?11:0;
  * gl(sub,self,self->0x568,self->0x528); virtual call
@@ -373,13 +378,23 @@ S_self:
     }
     sub[0x14 / 4] = (int)self;
 
-    gl_func_00000000(self[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
-    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
-    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
-    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
-    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
-    gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
-    gl_func_00000000(self[0x48 / 4]);
+    if ((self[0x4F0 / 4] << 15) < 0) {
+        self[0x48 / 4] = (int)gl_func_00000000(0);
+        gl_func_00000000(self[0x48 / 4], self);
+        *(int *)((char *)self[0x48 / 4] + 0x30) = self[0x568 / 4];
+        gl_func_00000000(self[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
+        gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
+        gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
+        gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
+        gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
+        gl_func_00000000(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
+        gl_func_00000000(self[0x48 / 4]);
+        gl_func_00000000((char *)self + 0x10, self[0x48 / 4]);
+        if (*(int *)((char *)self[0x48 / 4] + 0x14) != 0) {
+            *(int *)((char *)self[0x48 / 4] + 0x4) = 1;
+        }
+        *(int *)((char *)self[0x48 / 4] + 0x14) = (int)self;
+    }
     return self;
 }
 #else
