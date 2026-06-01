@@ -11667,24 +11667,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000307A8);
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
+/* Whole-body decode 2026-06-01 (prior body pointer-chased &D + wrong offsets;
+ * &D is the struct base directly). reset==0 path resets g+8/g+12 if *(int*)g==5.
+ * Then a 3-way timer step on the g+16 float: if g+8!=0 ramp up by g+24 capped
+ * at 1.0; elif g+12!=0 just decrement; else ramp down by g+28 floored at g+20.
+ * Finally gl(0x1000800, bits of g+16). (reset arrives in caller-set t6 — the
+ * `bne a0` here is the one unavoidable mismatch.) */
 void gl_func_000307B0(int reset) {
-    char *g = *(char **)((char *)&D_00000000 + 0);
-    (void)reset;
-    if (*(int *)(g + 0x4) != 5) {
-        return;
-    }
-    *(float *)(g + 0xC) = 0.0f;
-    *(int *)(g + 8) = 0;
-    if (*(int *)(g + 8) != 0) {
-        *(int *)(g + 8) -= 1;
-        *(float *)(g + 0x10) += *(float *)(g + 0x18);
-        if (*(float *)(g + 0x10) > 1.0f) {
-            *(float *)(g + 0x10) = 1.0f;
+    char *g = (char *)&D_00000000;
+    if (reset == 0) {
+        if (*(int *)g != 5) {
+            return;
         }
-    } else if (*(int *)(g + 0xC) != 0) {
-        *(int *)(g + 0xC) -= 1;
+        *(int *)(g + 12) = 0;
+        *(int *)(g + 8) = 0;
     }
-    (void)*(float *)((char *)&D_00000000 + 0x1868);
+    if (*(int *)(g + 8) != 0) {
+        *(int *)(g + 8) = *(int *)(g + 8) - 1;
+        *(float *)(g + 16) += *(float *)(g + 24);
+        if (1.0f < *(float *)(g + 16)) {
+            *(float *)(g + 16) = 1.0f;
+        }
+    } else if (*(int *)(g + 12) != 0) {
+        *(int *)(g + 12) = *(int *)(g + 12) - 1;
+    } else {
+        *(float *)(g + 16) -= *(float *)(g + 28);
+        if (*(float *)(g + 16) < *(float *)(g + 20)) {
+            *(float *)(g + 16) = *(float *)(g + 20);
+        }
+    }
+    gl_func_00000000(0x1000800, *(int *)(g + 16));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
