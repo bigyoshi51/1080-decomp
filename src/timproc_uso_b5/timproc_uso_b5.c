@@ -3975,10 +3975,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 extern int gl_func_00000000();
 extern char D_00000000;
 void timproc_uso_b5_func_0000B154(int *a0) {
-    (void)a0;
-    /* TODO: full body decode. See block-comment above for the 5-section
-     * structure. Each section has 1-2 jals to gl_func_00000000 with
-     * args from per-axis stack-local Vec3 scratch buffers. */
+    int *s0 = a0;
+    float *src = (float *)((char *)a0 + 0xDC);
+    float dx = src[0] - *(float *)&D_00000000;
+    float dy = src[1] - *(float *)((char *)&D_00000000 + 4);
+    float dz = src[2] - *(float *)((char *)&D_00000000 + 8);
+    src[0] = dx;
+    src[1] = dy;
+    src[2] = dz;
+    *(float *)((char *)s0 + 0xF4) = 0.0f;
+    *(float *)((char *)s0 + 0xF8) = 0.0f;
+    *(float *)((char *)s0 + 0xFC) = 0.0f;
+    *(float *)((char *)s0 + 0x100) = 1.0f;
+    *(float *)((char *)s0 + 0xE8) = *(float *)((char *)s0 + 0x118);
+    *(float *)((char *)s0 + 0xEC) = *(float *)((char *)s0 + 0x118);
+    *(float *)((char *)s0 + 0xF0) = *(float *)((char *)s0 + 0x118);
+    /* TODO: per-axis quaternion rotate calls + stack Vec3 scratch (insns 41+). */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B154);
