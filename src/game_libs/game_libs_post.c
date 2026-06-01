@@ -9879,7 +9879,7 @@ void gl_func_0002D8D8(void) {
  *
  * Initial pass — entry dispatch + structural TODO only. Default emit
  * remains INCLUDE_ASM. */
-extern int D_2C1BC, D_2C1C0, D_2C1CC;
+extern int D_2C1BC, D_2C1C0, D_2C1C4, D_2C1C8, D_2C1CC, D_2C1D0, D_2C1D4;
 
 void gl_func_0002D910(int a0, int a1, int a2, int a3) {
     int mode = *(int*)&D_00000000;
@@ -9912,9 +9912,28 @@ void gl_func_0002D910(int a0, int a1, int a2, int a3) {
     }
     D_2C1BC = a0;
     D_2C1C0 = a1;
-    /* TODO: step-counter logic + bounds clamp + play_sound (insns 73+) */
-    (void)a2;
-    (void)a3;
+    {
+        int v0 = (D_2C1C4 + a2) / 2;
+        int t4 = (D_2C1C8 + a3) / 2;
+        if (D_2C1D4 == 0) {
+            D_2C1C8 = t4;
+            D_2C1CC = -1;
+            if (v0 < -8) {
+                D_2C1D4 = -1;
+                D_2C1D0 = v0;
+                D_2C1C4 = v0;
+            }
+            if (v0 >= 9) {
+                D_2C1D4 = 1;
+                D_2C1D0 = v0;
+                D_2C1C4 = v0;
+            }
+            gl_func_00000000(0x06010F02, (char)D_2C1C8);
+            /* TODO: post-play_sound continuation (insns 127+) */
+        } else {
+            /* TODO: alt step-counter arm (D_2C1D4 != 0, insns 0x204+) */
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D910);
