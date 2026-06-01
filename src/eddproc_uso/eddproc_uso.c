@@ -137,37 +137,63 @@ void eddproc_uso_func_000001E8(char *a0) {
  * home. The stage-1 null-return GOTOs the shared epilogue (`goto Ret`) not
  * `return a2` — `return` emits a separate epilogue + branch; `goto` shares
  * the one at the end (this alone was +9pp). Fuzzy 61.26→70.58, correct shape.
- * REMAINING (re-diagnosed 2026-05-31, the prior "$a2-vs-$a3 single-register
- * renumber, last mile" note was WRONG): the diff is STRUCTURAL, not a renumber.
- * Mine emits 52 insns vs target 50, with the stage-2/stage-3 branch SENSES flipped
- * (target `beq v0,zero,storeA2` where mine `bne v0,zero,...` + 2 extra `lui v1;beq`).
- * Root cause: the target re-checks the SAME running value 3× (0x1C beq v0, 0x24 bne
- * a2, 0x44 bne v1) and keeps all three "provably-dead" stage branches, because it
- * SPILLS the value to stack and RELOADS it across each call — and IDO's nonzero
- * value-tracking does NOT survive a spill/reload across a jal, so it can't fold the
- * dead null-checks. My build keeps the value in a register, proves it nonzero, and
- * FOLDS stage-2/3 → fewer/differently-sensed branches. The $a3 vs $a2 is a symptom.
- * UNTESTED HYPOTHESIS for next attempt: force the running value through memory (e.g.
- * keep it as a field of `a1`/a stack object so each null-check reads a fresh load
- * IDO can't prove nonzero) to reproduce the target's kept-dead-branch shape. */
+ *
+ * BREAKTHROUGH 2026-06-01 (70.58 -> 96.0, +25.4pp). The prior "fold the dead
+ * branches by routing the running value through memory" hypothesis was the
+ * WRONG diagnosis. The real root cause of the fold was IDO CSE-ing the vtable
+ * address: the three `obj->0x28 = &D_00000000` stores share ONE `&D` materialize
+ * (a single hoisted `lui v1;addiu v1` reused for all three sw), and that shared
+ * register is what merged the control flow and let IDO fold the stage-2/3
+ * guards. Two coupled fixes recover the target shape:
+ *   (1) THREE DISTINCT vtable externs (D_edd_vt0/1/2) — busts the address CSE so
+ *       IDO re-materializes the vtable per store (target's t6/t7/t8 = 3 separate
+ *       `lui;addiu;sw`). This ALSO un-folds the dead guards: with no shared reg
+ *       the stage-2/3 `bne` guards reappear and the alloc checks flip to the
+ *       target's fail-branches-forward `beq v0,zero,store` sense. Recipe per
+ *       timproc_uso_b3_func_000021F4 (EXACT, 2026-05-03).
+ *   (2) REUSE the `a0` param as the obj0 accumulator (not a fresh `a2` local) so
+ *       its cross-jal spill homes at sp+0x20 (a0's incoming arg slot), matching
+ *       target's spill layout obj0->0x20 / v1->0x1c / obj2->0x18.
+ * REMAINING 4% = a 3-insn scheduler reorder in the obj2 vtable block only:
+ *   mine    `lui t6; lw v1; lw a2; addiu t6; sw t6`
+ *   target  `lui t6; addiu t6; lw v1; lw a2; sw t6`
+ * IDO's scheduler hoists the two cross-jal reloads (lw v1, lw a2) into the
+ * lui->addiu gap; target keeps the materialize adjacent. No C-level lever found
+ * for this single 3-window reorder (the reloads are mandatory — v1/a2 are
+ * caller-saved and live across the final jal). Final-mile scheduler cap. */
+extern char D_edd_vt0;
+extern char D_edd_vt1;
+extern char D_edd_vt2;
 void *eddproc_uso_func_0000025C(int *a0, int *a1) {
-    int *a2;
-    int *v1;
+    int *v1, *obj2;
     (void)&a1;
-    a2 = a0;
-    if (a0 == 0) { a2 = (int*)gl_func_00000000(0x54); if (a2 == 0) goto Ret; }
-    v1 = a2;
-    if (a2 == 0) { v1 = (int*)gl_func_00000000(0x50); if (v1 == 0) goto Sa2; }
-    a0 = v1;
-    if (v1 == 0) { a0 = (int*)gl_func_00000000(0x2C); if (a0 == 0) goto Sv1; }
-    gl_func_00000000(a0, (char*)&D_00000000 + 0x22C);
-    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    /* obj0 is the reused `a0` param (homes its spill at sp+0x20 = a0 arg-slot,
+     * matching target). goto-chain dispatch keeps the dead stage-guards as
+     * `bne` (target shape). Three DISTINCT vtable externs bust IDO's address
+     * CSE so the `&D` vtable materializes 3× (t6/t7/t8) per store instead of a
+     * single hoisted reg — recipe per timproc_uso_b3_func_000021F4 (EXACT). */
+    if (a0 != 0) goto have0;
+    a0 = (int*)gl_func_00000000(0x54);
+    if (a0 == 0) goto Ret;
+have0:
+    v1 = a0;
+    if (a0 != 0) goto have1;
+    v1 = (int*)gl_func_00000000(0x50);
+    if (v1 == 0) goto Sa2;
+have1:
+    obj2 = v1;
+    if (v1 != 0) goto have2;
+    obj2 = (int*)gl_func_00000000(0x2C);
+    if (obj2 == 0) goto Sv1;
+have2:
+    gl_func_00000000(obj2, (char*)&D_00000000 + 0x22C);
+    *(int*)((char*)obj2 + 0x28) = (int)&D_edd_vt0;
 Sv1:
-    *(int*)((char*)v1 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)v1 + 0x28) = (int)&D_edd_vt1;
 Sa2:
-    *(int*)((char*)a2 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)a0 + 0x28) = (int)&D_edd_vt2;
 Ret:
-    return a2;
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000025C);
