@@ -6410,19 +6410,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000271D8);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
+/* Whole-body decode 2026-06-01. First call is the resolved gl_func_0003B844,
+ * not a placeholder. Guard on *(D+0x2CF0); inside, r=gl(a0), early-return if
+ * a0==*(D+0x2CF1) or r>=3, else gl(*(D+0x53C4),&local,1). The tail (3B844 +
+ * two F9000000 cmd emits) is OUTSIDE the if — also reached on the ==0 path. */
+extern int gl_func_0003B844();
 void gl_func_0002722C(int a0) {
     char *g = (char *)&D_00000000;
-    gl_func_00000000(a0);
+    gl_func_0003B844(a0);
     if (*(unsigned char *)(g + 0x2CF0) != 0) {
+        int local;
         int r = gl_func_00000000(a0);
         unsigned char ss = *(unsigned char *)(g + 0x2CF1);
-        int local = 0;
-        if (ss != r && r < 3) {
-            gl_func_00000000(*(void **)(g + 0x53C4), &local, 1);
+        if (a0 == ss) {
+            return;
         }
-        gl_func_00000000(a0);
-        gl_func_00000000((void *)0xF9000000);
+        if (r >= 3) {
+            return;
+        }
+        gl_func_00000000(*(void **)(g + 0x53C4), &local, 1);
     }
+    gl_func_0003B844(a0);
+    gl_func_00000000((void *)0xF9000000, a0);
+    gl_func_00000000((void *)0xF9000000);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002722C);
