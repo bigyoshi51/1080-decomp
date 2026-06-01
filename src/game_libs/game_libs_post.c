@@ -41596,17 +41596,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070040);
  * volatile forbids). See docs/IDO_CODEGEN.md "stack-residency + filled-delay-slots".
  * Genuine cap; keep INCLUDE_ASM. The C below is verified-correct (clean for-loop
  * for readability). */
+/* Whole-body decode 2026-06-01 (was 0% — locals stayed in regs). 16-step LFSR:
+ * out (sp+15) and i (sp+8) are STACK-resident (reloaded each access), so out's
+ * update is three separate stores (<<1, |bit, ^tmp) with tmp at sp+14. Forced
+ * via volatile so IDO emits the per-substep sb/lbu the target has. */
 int gl_func_00070194(int a0) {
-    unsigned char out;
-    int i;
-    a0 &= 0xFFFF;
+    volatile unsigned char out;
+    volatile int i;
+    volatile unsigned char tmp;
+    int bit;
+    a0 = a0 & 0xFFFF;
     out = 0;
-    for (i = 0; i < 16; i++) {
-        unsigned char tmp = (out & 0x10) ? 0x15 : 0;
-        int bit = (a0 & 0x400) ? 1 : 0;
-        out = ((out << 1) | bit) ^ tmp;
+    i = 0;
+    do {
+        tmp = (out & 0x10) ? 21 : 0;
+        out = out << 1;
+        bit = (a0 & 0x400) ? 1 : 0;
+        out = out | bit;
+        out = out ^ tmp;
         a0 = (a0 << 1) & 0xFFFF;
-    }
+        i = i + 1;
+    } while (i < 16);
     return out & 0x1F;
 }
 #else
