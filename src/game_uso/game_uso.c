@@ -5792,6 +5792,21 @@ void game_uso_func_00006A30(int *a0) {
                 if (*(int *)(obj + 0x6C) == 0) {
                     *(float *)(obj + 0x3C) = val;
                 }
+                w = *(char **)(obj + 0x30);
+                if (*(int *)(w + 0x938) != 0 && *(int *)(w + 0xA54) != 0) {
+                    int v0 = *(int *)(obj + 0x70);
+                    if (v0 < 60) {
+                        if (*(float *)(w + 0x348) <= 30.0f) {
+                            gl_func_00000000(*(int *)(w + 0x840));
+                            *(int *)(obj + 0x70) = 61;
+                        } else {
+                            *(int *)(obj + 0x70) = v0 + 1;
+                        }
+                    } else if (v0 == 60) {
+                        gl_func_00000000(*(int *)(w + 0x840));
+                        *(int *)(obj + 0x70) = 61;
+                    }
+                }
                 game_uso_func_00007538((int *)obj, flag);
             }
         }
