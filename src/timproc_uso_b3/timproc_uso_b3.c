@@ -285,18 +285,48 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
  * sub-node -> self->0x6A8 (+ D[0x138]=it); a 6-iter unrolled registration loop
  * gl(self->0x48, ((D+3)<<16)|N, -1) for N in {0,1,4,3,2,5}; tail cmd calls.
  * Returns self. NM wrap (m2c can't read raw-.word USO; decoded from objdump).
- * &D template offsets collapsed; the nested-alloc dead-block cascade +
- * vtable-dispatch block + arg-home-spill scheduling are TBD (multi-tick). 32%. */
+ *
+ * 2026-06-01 (32.32 -> 44.91): the function's PROLOGUE is a 5-stage eddproc-style
+ * get-or-create cascade (alloc self 0x730 / n1 0x6a8 / n2 0x50 / n3 0x2c, dead
+ * stage-guards kept via goto-chain, each node->0x28 = vtable via distinct extern
+ * to bust the &D address CSE) — NOT the single self-alloc the old body assumed.
+ * Cascade now reproduced (frame -0x38, target t6/t7/t8/t9 vtable stores). TBD
+ * (multi-tick): the post-cascade field-init block differs from the old tail —
+ * target does func(self, a1_home, &D+0x3c0) (not gl(&D,a1,a2)), and the
+ * arg-home-spill scheduling + registration-loop &D forms need re-derivation
+ * against /tmp/t994.txt (full big-endian objdump of the raw .word target). */
 #ifdef NON_MATCHING
+extern char D_b3_994_v0;
+extern char D_b3_994_v1;
+extern char D_b3_994_v2;
+extern char D_b3_994_v3;
 void *timproc_uso_b3_func_00000994(int *a0, int a1, int a2, int a3) {
     int *self = a0;
+    int *n1, *n2, *n3;
     int *sub;
-    if (self == 0) {
+    /* 5-stage get-or-create cascade (eddproc-style): alloc self(0x730) /
+     * n1(0x6a8) / n2(0x50) / n3(0x2c); dead stage-guards kept via goto-chain;
+     * each obtained node->0x28 = vtable via a DISTINCT extern (CSE-bust so IDO
+     * re-materializes lui;addiu per store = target t6/t7/t8/t9). */
+    if (a0 == 0) {
         self = (int *)gl_func_00000000(0x730);
-        if (self == 0) {
-            return self;
-        }
+        if (self == 0) return self;
     }
+    n1 = self;
+    if (self == 0) { n1 = (int *)gl_func_00000000(0x6a8); if (n1 == 0) goto S_self; }
+    n2 = n1;
+    if (n1 == 0) { n2 = (int *)gl_func_00000000(0x50); if (n2 == 0) goto S_n1; }
+    n3 = n2;
+    if (n2 == 0) { n3 = (int *)gl_func_00000000(0x2c); if (n3 == 0) goto S_n2; }
+    gl_func_00000000(n3, (char *)&D_00000000 + 0x3b8);
+    n3[0x28 / 4] = (int)&D_b3_994_v0;
+S_n2:
+    n2[0x28 / 4] = (int)&D_b3_994_v1;
+S_n1:
+    n1[0x28 / 4] = (int)&D_b3_994_v2;
+    gl_func_00000000((char *)n1 + 0x50);
+S_self:
+    self[0x28 / 4] = (int)&D_b3_994_v3;
     self[0x568 / 4] = 0;
     gl_func_00000000(&D_00000000, a1, a2);
     self[0x528 / 4] = a3;
