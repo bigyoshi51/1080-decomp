@@ -7203,6 +7203,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
  * Multi-pass — initial body, expect ~30-50% on first build. Reloads from
  * s0->0x30 in asm aren't cached (each access re-reads), which the compiler
  * will reproduce when expressed as direct field accesses below. */
+extern void game_uso_func_047B1C();
+extern int game_uso_func_071028();
 int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
     int v;
     int *r;
@@ -7211,12 +7213,12 @@ int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
     *a1 = 0;
     v = a0[0x40 / 4];
     if (v < 0 || v >= 12) {
-        gl_func_00000000((char*)&D_00000000 + 0x78C,
+        game_uso_func_047B1C((char*)&D_00000000 + 0x78C,
                          (char*)&D_00000000 + 0x7B0, 0x609);
     }
     /* Re-load v from a0[0x40] for the table-lookup — matches asm 0x7B1C
      * which has an independent lw v0,0x40(s0) after the assertion jal. */
-    r = (int*)gl_func_00000000(a0,
+    r = (int*)game_uso_func_0000A374(a0,
                                *(int*)(*(int*)((char*)&D_00000000 + 0x548 + a0[0x40 / 4] * 4)),
                                arg3, arg4);
     if (r == 0) return 0;
@@ -7241,7 +7243,7 @@ int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
     *(float*)((char*)a0[0x30 / 4] + 0x9C0) =
         *(float*)((char*)a0[0x30 / 4] + 0xBC)
         - *(float*)((char*)*(int*)((char*)a0[0x30 / 4] + 0x958) + 0x38);
-    gl_func_00000000((char*)a0[0x30 / 4] + 0x9B8);
+    game_uso_func_071028((char*)a0[0x30 / 4] + 0x9B8);
     return (int)r;
 }
 #else
