@@ -2412,16 +2412,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D9B8);
  * together. Multi-tick decomp expected. */
 extern int gl_func_h2hproc_8EC_pre();  /* placeholder — actual callee unknown */
 void gl_func_0000D9E4(int *a0, int a1) {
-    /* Entry: 3 guards must all pass to reach body. */
     int *sub = (int*)a0[0x6C / 4];
-    int flags = a0[0xB4 / 4];
-    int *globalp = *(int**)((char*)&D_00000000 + 0x64);
+    int *v0;
     if (sub == 0) return;
-    if ((flags & 2) == 0) return;
-    if (globalp == 0) return;
-    /* TODO: 60+ insns of FPU math + cross-USO calls. */
-    (void)a1;
-    (void)gl_func_h2hproc_8EC_pre();
+    if ((a0[0xB4 / 4] & 2) == 0) return;
+    if (*(int **)((char *)&D_00000000 + 0x64) == 0) return;
+    v0 = (int *)gl_func_00000000(sub, (int)((float)a1 / 1000.0f * 100.0f), 0, 1);
+    v0[0x9C / 4] = 230;
+    v0[0x7C / 4] = 0;
+    *(float *)((char *)v0 + 0xAC) = 0.0f;
+    gl_func_00000000(v0, 160, 140, 1.0f, 1.0f);
+    *(float *)((char *)v0 + 0xA8) = 0.0f;
+    *(float *)((char *)v0 + 0xA4) = 0.0f;
+    *(float *)((char *)v0 + 0x64) = 100.0f / 255.0f;
+    *(float *)((char *)v0 + 0x6C) = 100.0f / 255.0f;
+    *(float *)((char *)v0 + 0x68) = 235.0f / 255.0f;
+    *(float *)((char *)v0 + 0x70) = 255.0f / 255.0f;
+    v0[0xA0 / 4] = (int)((char *)a0[0x6C / 4] + 0x120);
+    if (a0[0x6C / 4] != 0 && (a0[0xB4 / 4] & 1)) {
+        gl_func_00000000(a0[0x6C / 4]);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D9E4);
