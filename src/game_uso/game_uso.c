@@ -1513,10 +1513,13 @@ branch_88: {
              * 2026-05-20 Codex pass: moved the duplicated Y-scale arm, late
              * gl_func dispatch, local_xz re-scale, and saved-old subtract into
              * real C. This raised the NM body from 19.18% to 37.70%.
-             * Follow-up in this pass added the mid-body Vec3 dispatch at the
-             * 0x20B4 join and lifted the verified NM score to 38.25%; remaining
-             * gap is mostly stack-slot layout, saved-register pressure, and
-             * missing fanout-copy exact scheduling. */
+             * Follow-up in that pass added the mid-body Vec3 dispatch at the
+             * 0x20B4 join and lifted the verified NM score to 38.25%.
+             * 2026-06-01 source=5 checkpoint: current verified score is 39.16%
+             * after the key==3 stack-copy work. The full asm is characterized
+             * end-to-end; the remaining gap is stack-slot layout, saved-register
+             * pressure, and fanout-copy load-delay scheduling inside branch_88,
+             * not missing late_label logic. */
             {
                 Vec3f call_stage;
                 Vec3f post_scaled;
