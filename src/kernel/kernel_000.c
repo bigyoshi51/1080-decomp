@@ -564,7 +564,16 @@ s32 func_8000058C(s32 arg0) {
  * mechanisms REMOVED 2026-05-23 as match-faking (per
  * feedback_no_instruction_forcing_matches_policy; only genuine all-zero
  * SUFFIX_BYTES, USO-header PREFIX_BYTES, and TRUNCATE_TEXT remain).
- * Reverted to "stays NM" — default build is INCLUDE_ASM. */
+ * Reverted to "stays NM" — default build is INCLUDE_ASM.
+ *
+ * 2026-05-31 PERMUTER TRIED (was un-tried; now ruled out): the residual is
+ * a SIZE mismatch — target keeps 2 redundant `or` ABI-dance moves (16 insns,
+ * no frame) that -O2 coalesces (mine=14) while -O1 ADDS a frame (18 insns).
+ * decomp-permuter -j2 ~200s FLOORED at score ~230 (base 310), NEVER reached
+ * 0 — finds closer variants but no C structure reproduces the exact 2
+ * redundant moves at -O2-no-frame. Genuine redundant-move/size cap; not
+ * permuter-crackable. (Kernel = non-asm-processor so the permuter runs
+ * cleanly here, unlike the game_libs asm-processor floor.) */
 #ifdef NON_MATCHING
 void func_80000598(u8* src, u8* dst, s32 count) {
     register u8* sp;
