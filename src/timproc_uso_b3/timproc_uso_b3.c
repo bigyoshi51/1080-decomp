@@ -304,16 +304,20 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
  * gl(sub,self,self->0x568,self->0x528); virtual call
  * ((void(*)(int))((int*)sub->0x28)[0x5c/4])(*(short*)(vt+0x58)+sub) [jalr];
  * gl(self+0x10,sub); beql sub->0x14 dance.
- * TBD (multi-tick): the registration loop should be WRAPPED in a 2nd
- * `if ((self->0x4f0<<15) < 0)` block (preamble self->0x48=gl(0); gl(self->0x48,
- * self); self->0x48->0x30=self->0x568) + a post-loop self->0x48->0x14 dance,
- * THEN a merge tail (self->0x4f4 = a1&0xffff; self->0x48=0; node=D[0x190];
- * gl(self+0x10,node); beql node->0x14 dance; gl(node,1,0); gl()). CAUTION:
- * adding the conditional+tail merge WHOLESALE regressed to 22% (2026-06-01) —
- * the tail-merge block disrupts global allocation; add it piece-by-piece with
- * a build-measure gate each step. The reg loop's per-call D[0] re-load may need
- * distinct externs (CSE-bust). Build now ~170/243 insns; s0-vs-s1 self-reg
- * renumber is a global offset that may resolve once the full body is present. */
+ * TBD (multi-tick): the remaining MERGE TAIL (after the reg-loop conditional):
+ *   self->0x4f4 = arg1 & 0xffff;  self->0x48 = 0;  node = D[0x190];
+ *   gl(self+0x10, node);  beql node->0x14 dance;  gl(node,1,0);  gl().
+ * CAUTION (confirmed 2026-06-01, gated twice): adding the merge tail — even a
+ * conservative version omitting the final no-arg gl() — REGRESSES 65.72 -> 21.6.
+ * Root cause: `arg1 & 0xffff` at the function END extends arg1's live range
+ * across the WHOLE body, forcing a different spill/frame layout that misaligns
+ * every offset (NOT the no-arg call). The target instead RELOADS arg1 from its
+ * home slot sp+0x3c right before the andi (lw t5,0x3c(sp); andi t9,t5,0xffff),
+ * so arg1 is NOT kept live. NEXT-TICK LEVER: force the reload — spill/reload
+ * arg1 through a `volatile`-ish sink or read it via its home, so IDO doesn't
+ * pin it live. Until that's solved the merge tail stays out. The reg loop's
+ * per-call D[0] re-load may also need distinct externs (CSE-bust). Build now
+ * ~190/243 insns; s0-vs-s1 self-reg renumber is a global offset. */
 #ifdef NON_MATCHING
 extern char D_b3_994_v0;
 extern char D_b3_994_v1;
