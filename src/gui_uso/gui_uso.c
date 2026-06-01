@@ -1054,21 +1054,31 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
  * (=1032) literal materialized at insn 0x4C is likely a viewport scale
  * factor used in the per-vertex-emit loop (~280 insns deferred). */
 void gui_func_00002DE0(int *a0, int a1, int a2, int a3) {
-    int *ctx;
-    int *p;
-    int slot, idx;
-    (void)a1; (void)a2; (void)a3;
-    ctx = *(int**)((char*)&D_00000000);  /* s0 = D_GUI_CTX[0] */
-    idx = ctx[0xC / 4];                   /* dl-counter container */
-    slot = ((int*)idx)[1];                /* current cursor */
-    ((int*)idx)[1] = slot + 1;            /* bump */
-    p = (int*)((*(int**)idx)[0]) + (slot << 1);
-    p[0] = 0xBB000001;                    /* RDP G_SETSCISSOR opcode */
-    p[1] = (int)0x80008000;               /* RDRAM segment-0 marker */
-    /* TODO: ~280 more insns of body — likely scissor/viewport/vertex
-     * setup using a0 widget args + 0x408 (1032) scale factor.
-     * Multi-pass NM remains. */
-    (void)a0; (void)ctx;
+    int *ctx = *(int **)&D_00000000;
+    /* first DL emit: G_SETSCISSOR */
+    {
+        int *v0 = (int *)ctx[0xC / 4];
+        int idx = v0[1];
+        v0[1] = idx + 1;
+        {
+            int *slot = (int *)(((int *)ctx[0xC / 4])[0]) + idx * 2;
+            slot[0] = 0xBB000001;
+            slot[1] = (int)0x80008000;
+        }
+    }
+    {
+        int *t0 = (int *)a0[0x10 / 4];
+        int w = *(short *)((char *)t0 + 0x20);
+        int h = *(short *)((char *)t0 + 0x22);
+        int mode = t0[0x24 / 4];
+        if (mode == 1032 || mode == 288 || mode == 272) {
+            gl_func_00000000(ctx[0], t0[8 / 4], w, h, 0, 0, w, h, 0);
+        }
+        (void)a1; (void)a2; (void)a3;
+    }
+    /* TODO: the shared FP TEXRECT perspective-coordinate render path
+     * (insns 76-303) — intricate cvt.s.w/div.s/trunc + RDP coord bit-packing;
+     * a dedicated multi-tick FP decode (harder than the integer DL builders). */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
