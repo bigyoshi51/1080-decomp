@@ -533,6 +533,12 @@ void game_libs_func_00001800(int *a0, int a1, int a2, int a3, int a4) {
     a0[0xBC/4] = a4;
 }
 
+/* game_libs_func_00001818: 2-insn FPU preload fragment, not a standalone
+ * function. SOURCE=3 audit 2026-06-01: 0x1818 has no prologue and no
+ * `jr ra` (`grep -c 03E00008` = 0); it materializes $f0 = 1.0f and falls
+ * through into gl_func_00001820, whose entry stores incoming $f0 to the
+ * local float buffer at sp+0x80..0x8C. No honest C wrapper can express this
+ * caller-visible FPU-register seed, so keep INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00001818);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001820);
