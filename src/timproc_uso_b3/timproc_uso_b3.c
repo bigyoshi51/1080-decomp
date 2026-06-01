@@ -449,8 +449,11 @@ void timproc_uso_b3_func_00000FF4(char *a0) {
  * D[0x40]=9 setter with unused-arg save; the global-store-in-delay-slot
  * vs arg-save order matches in-tree (standalone diverged, see
  * MATCHING_WORKFLOW.md#feedback-standalone-false-convergence-verify-in-tree).
- * 00001088: 2-insn alt-entry that loads a1 and falls through into 00001090
- * — INCLUDE_ASM only. */
+ * 00001088: 2-insn alt-entry that loads a1 and falls through into 00001090.
+ * SOURCE=4 audit 2026-06-01: not an accessor-template miss. This mirrors
+ * timproc_uso_b1_func_000010D4: the fragment seeds $a1 from D[0x170], while
+ * the successor's C body consumes that inherited $a1 before adding 0x220000.
+ * Keep INCLUDE_ASM; there is no standalone C body for the preload fragment. */
 void timproc_uso_b3_func_00001074(int a0) {
     *(int*)((char*)&D_00000000 + 0x40) = 9;
 }
