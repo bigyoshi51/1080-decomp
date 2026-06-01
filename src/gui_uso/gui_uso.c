@@ -889,8 +889,19 @@ void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
             a2 -= a1_h >> 1;
         }
     }
-    /* TODO: 220-insn body — display-list builder for the adjusted
-     * (a1, a2) coordinates, using a0->[0x10]->[various] glyph metrics. */
+    {
+        int *gctx = *(int **)&D_00000000;
+        int *dl = (int *)gctx[0xC / 4];
+        int idx = dl[1];
+        dl[1] = idx + 1;
+        {
+            int *slot = (int *)(((int *)gctx[0xC / 4])[0]) + idx * 2;
+            slot[0] = 0xBB000001;
+            slot[1] = (int)0x80008000;
+        }
+    }
+    /* TODO: ~200-insn body — scissor-mode switch (a0->0x10->0x24) + glyph
+     * DL emit loop for the adjusted (a1, a2) coordinates. */
     (void)a0; (void)a1; (void)a2;
 }
 #else
