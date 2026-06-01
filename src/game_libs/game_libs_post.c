@@ -40166,13 +40166,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C2A4);
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+/* Whole-body decode 2026-06-01. Guard on caller-set t6 == 0xA6000000; if not,
+ * return D_result. Else init a D-state block (bytes at +4=1,+5=64,+6=7,+7=2,
+ * +8=7,+9=0; words at +0xC=0xA6000000,+0x10=0), call gl(st+0x14, 0x60) + gl(),
+ * then a tail (copy a D word, store a D ptr, gl(saved)) and return D_result. */
 int gl_func_0006C2AC(void) {
     extern int t6_caller_state_0006C2AC;
-    extern int D_result_sym_0006C2AC, D_init_arg_0006C2AC;
-    if (t6_caller_state_0006C2AC != (int)0xA6000000) return D_result_sym_0006C2AC;
-    /* Init globals — exact field roles need typing pass: */
-    gl_func_00000000((char*)&D_init_arg_0006C2AC + 0x14, 0x60);
-    gl_func_00000000();
+    extern int D_result_sym_0006C2AC;
+    extern char D_state_0006C2AC;
+    extern int D_tailsrc_0006C2AC, D_taildst_0006C2AC, D_tailptr_0006C2AC;
+    char *st = &D_state_0006C2AC;
+    int saved;
+    if (t6_caller_state_0006C2AC != (int)0xA6000000) {
+        return D_result_sym_0006C2AC;
+    }
+    *(char *)(st + 4) = 1;
+    *(int *)(st + 0xC) = (int)0xA6000000;
+    *(char *)(st + 5) = 64;
+    *(char *)(st + 8) = 7;
+    *(char *)(st + 6) = 7;
+    *(char *)(st + 7) = 2;
+    *(char *)(st + 9) = 0;
+    *(int *)(st + 0x10) = 0;
+    gl_func_00000000(st + 0x14, 0x60);
+    saved = gl_func_00000000();
+    D_taildst_0006C2AC = D_tailsrc_0006C2AC;
+    D_tailptr_0006C2AC = (int)&D_state_0006C2AC;
+    gl_func_00000000(saved);
     return D_result_sym_0006C2AC;
 }
 #else
