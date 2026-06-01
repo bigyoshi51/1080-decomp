@@ -46,6 +46,9 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  *     adds an extra jump-over-else block (86.5%). Inverting to
  *     `if (a0[2] != a0[1] + 1)` changes the key branch to `beq` and drops to
  *     71.17%, so the original equality/early-return shape is still best.
+ *   - 2026-06-01 source=1 follow-up 2: `a0[2] - 1 == a0[1]` compiles
+ *     byte-identically to the current best load/order shape and still keeps
+ *     the extra dead BBL marker; no new leverage.
  *
  * The dead `b epilogue; nop` appears to be unconditional from C in this
  * shape. Cap-source: IDO -O0 statement-list-end marker that even the
