@@ -1417,6 +1417,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
 #endif
 
 
+/* game_libs_func_0001FBCC: 2-insn non-standalone preload fragment.
+ * SOURCE=3 audit 2026-06-01: no prologue and no `jr ra`
+ * (`grep -c 03E00008` = 0). It loads v0 from the halfword bound at
+ * D+0x2048, then falls into gl_func_0001FBD4. The successor reloads the
+ * same bound in its loop at 0x1FC20 before comparing, so this entry is
+ * not a clean C wrapper or accessor; keep INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FBCC);
 
 // gl_func_0001FBD4 — STRUCTURAL PASS (0x7C / 31 words, no episode).
