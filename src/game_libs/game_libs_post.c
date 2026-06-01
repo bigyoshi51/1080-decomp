@@ -34681,16 +34681,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F8C);
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 int gl_func_00062194(int *self, int a1, int a2, int a3) {
-    extern int D_sym_a, D_sym_b, D_sym_c, D_sym_d;
-    if (self[0x8 / 4] != 0) {
-        gl_func_00000000(&D_sym_a, 1);
+    extern int D_62194_a, D_62194_b, D_62194_c, D_62194_d;
+    int t0 = self[0x8 / 4];
+    if (t0 != 0) {
+        unsigned int v0 = ((unsigned)((*(short *)self << 3) - *(short *)self)) << 1;
+        gl_func_00000000(t0 + v0 * (unsigned)a2, a1, v0 * (unsigned)a3);
+        return -1;
     }
-    gl_func_00000000(&D_sym_b, self[0x3C / 4]);
-    /* 64-bit-multiply scale block 1 */
-    gl_func_00000000(&D_sym_c, /* scaled args */ a1, a2);
-    if (a3 == 0) return -1;
-    /* 64-bit-multiply scale block 2 */
-    gl_func_00000000(&D_sym_d, a1, a2, a3);
+    gl_func_00000000(&D_62194_a, 1);
+    gl_func_00000000(&D_62194_b, ((int *)self[0x18 / 4])[0x3C / 4]);
+    {
+        unsigned int v0 = ((unsigned)((*(short *)self << 3) - *(short *)self)) << 1;
+        gl_func_00000000(&D_62194_c, 0, self[0x14 / 4] + v0 * (unsigned)a2);
+        gl_func_00000000(&D_62194_d, a1, v0 * (unsigned)a3);
+    }
     return -1;
 }
 #else
