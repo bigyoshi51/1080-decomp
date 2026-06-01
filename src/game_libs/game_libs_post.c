@@ -16320,20 +16320,28 @@ int *gl_func_000378D0(int *a0, int a1, float a2) {
 //   skeleton only. Byte-match deferred. Name pre-checked: no extern
 //   reuse.
 #ifdef NON_MATCHING
+/* Whole-body decode 2026-06-01 (prior body had wrong math + wrong call). s=o->
+ * 0x14, t=o->0x2C. a={s->0xA0,0xA4,0xA8}, b={t->0xA0,(t+0x70)->0x34,0x38}.
+ * diff = b - a (all 3); scaled = diff * o->0x30; gl(s+0x30, scaled). */
 void gl_func_00037938(char *o) {
     char *s = *(char **)(o + 0x14);
     char *t = *(char **)(o + 0x2C);
-    float a0 = *(float *)(s + 0xA0);
-    float a1 = *(float *)(s + 0xA4);
-    float a2 = *(float *)(s + 0xA8);
-    float b0 = *(float *)(t + 0xA0);
-    float b1 = *(float *)(t + 0x70 + 0x34);
-    float b2 = *(float *)(t + 0x70 + 0x38);
-    float scratch[3];
-    scratch[0] = a0 + b0;
-    scratch[1] = a1 - b1;
-    scratch[2] = a2 - b2;
-    gl_func_00000000(o, scratch);
+    float scalar = *(float *)(o + 0x30);
+    float a[3], b[3], diff[3], scaled[3];
+
+    a[0] = *(float *)(s + 0xA0);
+    a[1] = *(float *)(s + 0xA4);
+    a[2] = *(float *)(s + 0xA8);
+    b[0] = *(float *)(t + 0xA0);
+    b[1] = *(float *)(t + 0x70 + 0x34);
+    b[2] = *(float *)(t + 0x70 + 0x38);
+    diff[0] = b[0] - a[0];
+    diff[1] = b[1] - a[1];
+    diff[2] = b[2] - a[2];
+    scaled[0] = diff[0] * scalar;
+    scaled[1] = diff[1] * scalar;
+    scaled[2] = diff[2] * scalar;
+    gl_func_00000000(s + 0x30, scaled);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
