@@ -24476,17 +24476,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
 #ifdef NON_MATCHING
 void gl_func_00045E20(void *a0, char *a1, char *a2) {
     int m = *(int *)(a2 + 0x38);
-    char *g = *(char **)(a1 + 0x0C);
-    int i;
-    unsigned int *p;
-    unsigned int arg = 0x000C0000;
-    if (m & (1 << (31 - 0xB))) arg = 0x00040000;
-    if (m & (1 << (31 - 0x7))) arg = 0x00080000;
-    i = *(int *)(g + 0x4);
-    *(int *)(g + 0x4) = i + 1;
-    p = (unsigned int *)(*(char **)g + i * 8);
-    p[0] = 0xB7000000;
-    p[1] = arg;
+    char *g;
+    int i, a1v;
+    (void)a0;
+    if ((m << 0xB) >= 0) goto Lcc;
+    if ((m << 0x7) >= 0) goto L70;
+    g = *(char **)(a1 + 0x0C);
+    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
+    *(unsigned int *)(*(char **)g + i * 8) = 0xB7000000;
+    *(unsigned int *)(*(char **)g + i * 8 + 4) = 0x000C0000;
+    goto La0;
+L70:
+    g = *(char **)(a1 + 0x0C);
+    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
+    *(unsigned int *)(*(char **)g + i * 8) = 0xB7000000;
+    *(unsigned int *)(*(char **)g + i * 8 + 4) = 0x00040000;
+La0:
+    if (*(short *)(a2 + 0x20) == 64) {
+        *(int *)(a2 + 0x28) = *(int *)(a2 + 0x28) | 0x1100;
+        a1v = 3968;
+    } else {
+        a1v = 1984;
+    }
+    goto L104;
+Lcc:
+    g = *(char **)(a1 + 0x0C);
+    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
+    *(unsigned int *)(*(char **)g + i * 8) = 0xB6000000;
+    *(unsigned int *)(*(char **)g + i * 8 + 4) = 0x00040000;
+    a1v = 0xFFFF;
+L104:
+    g = *(char **)(a1 + 0x0C);
+    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
+    *(unsigned int *)(*(char **)g + i * 8) = 0xBB040801;
+    *(unsigned int *)(*(char **)g + i * 8 + 4) = (a1v << 16) | (a1v & 0xFFFF);
+    if (a2 != 0) {
+        int s1 = 0, s2 = 0;
+        do {
+            *(int *)(a2 + 0x3C) = s1;
+            s1++;
+            gl_func_00000000(a1, a2, s2);
+            if (gl_func_00000000(a2) >= 0) {
+                s2 += gl_func_00000000() >> 3;
+            }
+            a2 = *(char **)(a2 + 0x40);
+        } while (a2 != 0);
+    }
+    g = *(char **)(a1 + 0x0C);
+    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
+    *(unsigned int *)(*(char **)g + i * 8) = 0xE7000000;
+    *(unsigned int *)(*(char **)g + i * 8 + 4) = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045E20);
