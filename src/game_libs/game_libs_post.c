@@ -10519,6 +10519,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
 //   below per the analysis (top-level early-out + state-machine
 //   sketch only — full per-mode body summarised in the comment
 //   above). Byte-match deferred. Name pre-checked: no extern reuse.
+// SOURCE=2 REFINEMENT (2026-06-01): early cfg==4 sub-state block now matches
+//   the observed signed-byte gates (`lb o+0x1C`, `lb o+0x21`) and includes the
+//   missing side effect `o->0x54 = 0.0f` when setting sub-state byte 0x21 to 2.
+//   Remaining body is still only a prefix sketch; target has 0x80 frame, saved
+//   s0, initialized float locals, and ~900 words of FP/update/draw logic.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
@@ -10530,16 +10535,14 @@ void gl_func_0002E354(char *o, int a1) {
         return;
     }
     if (cfg == 4) {
-        (void)cfg;
-    }
-    st = *(int *)((char *)&D_00000000 + 4);
-    switch (st) {
-        case 1: case 2: case 3:
-            break;
-    }
-    if (*(unsigned char *)(o + 0x1C) == 1) {
-        if (*(unsigned char *)(o + 0x21) == 0) {
-            *(unsigned char *)(o + 0x21) = 2;
+        st = *(int *)((char *)&D_00000000 + 0);
+        if (st == 1 || st == 2 || st == 3) {
+            if (*(signed char *)(o + 0x1C) == 1) {
+                if (*(signed char *)(o + 0x21) == 0) {
+                    *(signed char *)(o + 0x21) = 2;
+                    *(float *)(o + 0x54) = 0.0f;
+                }
+            }
         }
     }
     gl_func_00000000(o);
