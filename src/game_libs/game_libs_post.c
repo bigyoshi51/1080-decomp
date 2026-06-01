@@ -3136,26 +3136,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
 //   pre-checked: no extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int D_00000000;
+/* Whole-body decode 2026-06-01 (was 11% over-simplified scan). Arena free-block
+ * finder: scan block table (base *(D+0x1E08), entries [*(D+0x1E10), *(D+0x1E0C)),
+ * stride 16) for one where requested s1 fits in entry->4 and (entry->0xA - size)
+ * covers the slack; on hit mark entry->0xE=32, write the index to *a3, and
+ * return entry->0 + s1 - entry->4. The byte-table free-list recycle (entry->0xE==0
+ * compaction) + the second-arena/split path (D+0x8216 free-list, gl_func_00038604)
+ * are structural; multi-tick remainder. */
 void *gl_func_00022760(void *a0, int size, void *arena, char *a3) {
     char *g = (char *)&D_00000000;
-    char *base = *(char **)(g + 0x1E08);
-    char *end = *(char **)(g + 0x1E10);
-    int idx;
-    if (arena == 0 && a3 != 0 && *(unsigned char *)a3 < (int)end) {
-        /* default-arena bounds adjust (structural) */
-    }
-    for (idx = 0;; idx++) {
-        char *b = base + idx * 0x10;
-        if (b >= end) {
-            return 0;
-        }
-        if (size <= *(int *)(b + 4)) {
-            short cap = *(short *)(b + 0xA);
-            if (cap - size >= 0) {
-                return b;
+    int s1 = (int)a0;
+    int s0 = size;
+    char *base;
+    int a0i, a1, a2;
+
+    (void)arena;
+    a2 = *(int *)(g + 0x1E10);
+    a1 = *(int *)(g + 0x1E0C);
+    if (a2 < a1) {
+        base = (char *)*(int *)(g + 0x1E08);
+        for (a0i = a2; a0i < a1; a0i++) {
+            char *v1 = base + a0i * 16;
+            int avail = s1 - *(int *)(v1 + 4);
+            if (avail < 0) {
+                continue;
             }
+            if ((unsigned)(*(unsigned short *)(v1 + 10) - s0) < (unsigned)avail) {
+                continue;
+            }
+            *(unsigned char *)(v1 + 14) = 32;
+            *a3 = a0i;
+            return (void *)(*(int *)v1 + s1 - *(int *)(v1 + 4));
         }
     }
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
