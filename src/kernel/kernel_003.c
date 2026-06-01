@@ -93,6 +93,16 @@ extern s32 func_800030D0(s32*, s32);
 
 #define IO_WRITE(addr, val) (*(volatile s32*)(addr) = (val))
 
+/* func_80004E50: 94.8% NM (global-init + PI-BSD-DOM HW-reg writes). The
+ * expected/.o carries D_A4600024/28/2C/30 relocs (splat symbolized the PI
+ * regs) while this C bakes the 0xA46000xx literals — but DO NOT "fix" that:
+ * objdiff is reloc-aware and ALREADY counts the baked literal == the symbol
+ * reloc (both resolve to 0xA46000xx), so the IO_WRITE form is NOT a diff.
+ * Verified 2026-05-31: converting the 4 IO_WRITEs to `extern volatile s32
+ * D_A46000xx; D_A46000xx = v;` REGRESSES 94.8%->68.7% (the volatile-lvalue
+ * assignment re-allocates/re-schedules the whole function). The real 5.2%
+ * residual is store-scheduling (the D_800195Dx constant-load/store order +
+ * frame-setup placement differs from the target), an IDO -O1 scheduling cap. */
 void* func_80004E50(void) {
     s32 sr;
     D_800195D4 = 2;
