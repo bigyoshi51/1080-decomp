@@ -33476,10 +33476,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F534);
  * exact f-reg schedule. INCLUDE_ASM remains build path (no episode). */
 #ifdef NON_MATCHING
 extern float gl_xform_f14, gl_xform_f6;  /* caller-set floats */
+extern float gl_func_00000000_f54c(float);
 void gl_func_0005F54C(float *a0, int unused_a1, float near, float r, float l) {
     float t = gl_xform_f14 / gl_xform_f6;
-    float c1 = gl_func_00000000(t);
-    float c2 = gl_func_00000000(c1);
+    /* float-returning placeholder (distinct name per the gl_func_00000000_c43c
+     * convention) so the helper takes/returns float — direct jal + swc1/lwc1,
+     * no int cvt the default `int` decl forces. */
+    float c1 = gl_func_00000000_f54c(t);
+    float c2 = gl_func_00000000_f54c(c1);
     float q = c2 / c1;
     float d = r - l;
     float s = r + l;
