@@ -176,7 +176,16 @@ void mgrproc_uso_func_00000D94(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000E04);
 
+/* Alternate entry point for mgrproc_uso_func_000011A4: loads a1 from D+0x68
+ * and falls through into 11A4 with caller-provided a0. No standalone jr-ra. */
+void mgrproc_uso_func_000011A4(char *s0, int a1);
+#ifdef NON_MATCHING
+void mgrproc_uso_func_0000119C(char *a0) {
+    mgrproc_uso_func_000011A4(a0, *(int *)((char *)&D_00000000 + 0x68));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000119C);
+#endif
 
 /* mgrproc_uso_func_000011A4 - verified structural decode (0x108,
  * 66 insns, sub-object registration table builder).
