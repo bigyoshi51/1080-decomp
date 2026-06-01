@@ -239,6 +239,14 @@ void arcproc_uso_func_000009CC(Vec3 *dst) {
 /* arcproc_uso_func_00000A3C: 205 insns (0x334) — 4-stage allocator/initializer
  * constructor. Sibling of 0x880 family in arcproc_uso_tail1.c.
  *
+ * 2026-06-01 (23.72 -> 27.62): confirmed member of the 0x6A8-alloc constructor
+ * family (siblings: timproc_b3 994, timproc_b1 097C, titproc 1E9C). Ported the
+ * proven 5-stage cascade (goto-chain dead-guards + distinct externs
+ * D_arc_A3C_v0..3; self alloc 0x780, D-template 0x3B8 same as 994) + the early
+ * field-init. arcproc takes a 5TH arg (a4 -> self->0x528; a3 -> self->0x6a8),
+ * unlike the 4-arg siblings, and has a unique sub-loop tail. TBD: sub=gl(0xD8)
+ * node + vtable-dispatch + the arcproc sub-loop (insns ~78-205 of /tmp/tarc.txt).
+ *
  * ENTRY DECODE (0xA3C-0xB04, ~50 insns characterized 2026-05-04):
  *   - Frame: addiu sp,-0x40; saves s0/s1/ra at 0x1C/0x20/0x24; spills
  *     a1/a2/a3 at 0x44/0x48/0x4C (caller-preserved args).
@@ -269,35 +277,46 @@ extern int gl_func_arc_alloc();
 extern char D_arc_table_3B8[];
 extern char D_arc_table_3D0[];
 extern char D_arc_link_E;
-void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3) {
+extern char D_arc_A3C_v0;
+extern char D_arc_A3C_v1;
+extern char D_arc_A3C_v2;
+extern char D_arc_A3C_v3;
+void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3, int a4) {
     int *s1 = a0;
-    int *s0;
-    void *alloc3;
-    void *alloc4;
-    if (s1 == 0) {
+    int *n1, *n2, *n3;
+    /* 5-stage get-or-create cascade (994/097C/titproc_1E9C sibling; self alloc
+     * 0x780 here, D-template 0x3B8 same as 994). goto-chain dead-guards +
+     * distinct-extern vtable stores (CSE-bust -> target t7/t8/t0/t1). */
+    if (a0 == 0) {
         s1 = (int*)gl_func_00000000(0x780);
-        if (s1 == 0) goto end;
+        if (s1 == 0) return (void*)s1;
     }
-    s0 = (int*)gl_func_00000000(0x6A8);
-    if (s0 == 0) goto end;
-    alloc3 = (void*)gl_func_00000000(0x50);
-    if (alloc3 != 0) {
-        gl_func_00000000(alloc3, &D_arc_table_3B8);
-        *(int*)((char*)alloc3 + 0x28) = (int)&D_arc_link_E;
-    }
-    alloc4 = (void*)gl_func_00000000(0x2C);
-    if (alloc4 != 0) {
-        gl_func_00000000(alloc4, &D_arc_table_3B8);
-        *(int*)((char*)alloc4 + 0x28) = (int)&D_arc_link_E;
-    }
-    /* TODO: ~150 more insns (0xB04-0xD6C) — sub-allocator stages, fan-out
-     * stores at offsets 0x528/0x568/0x6A8/0x6AC/0x77C, dispatch via
-     * D_arc_table_3D0 with conditional init, final s1 return. Multi-tick. */
-    *(int*)((char*)s0 + 0x28) = (int)&D_arc_link_E;
-    *(int*)((char*)s1 + 0x28) = (int)&D_arc_link_E;
-end:
-    return s1;
-    (void)a1; (void)a2; (void)a3;
+    n1 = s1;
+    if (s1 == 0) { n1 = (int*)gl_func_00000000(0x6A8); if (n1 == 0) goto S_self; }
+    n2 = n1;
+    if (n1 == 0) { n2 = (int*)gl_func_00000000(0x50); if (n2 == 0) goto S_n1; }
+    n3 = n2;
+    if (n2 == 0) { n3 = (int*)gl_func_00000000(0x2C); if (n3 == 0) goto S_n2; }
+    gl_func_00000000(n3, (char*)&D_00000000 + 0x3B8);
+    n3[0x28 / 4] = (int)&D_arc_A3C_v0;
+S_n2:
+    n2[0x28 / 4] = (int)&D_arc_A3C_v1;
+S_n1:
+    n1[0x28 / 4] = (int)&D_arc_A3C_v2;
+    gl_func_00000000((char*)n1 + 0x50);
+S_self:
+    s1[0x28 / 4] = (int)&D_arc_A3C_v3;
+    s1[0x568 / 4] = 0;
+    gl_func_00000000(s1, a1, (char*)&D_00000000 + 0x3C0, a2);
+    s1[0x528 / 4] = a4;
+    s1[0x6B8 / 4] = 0;
+    s1[0x6A8 / 4] = a3;
+    gl_func_00000000(s1);
+    *(float *)&s1[0x77C / 4] = 0.0f;
+    gl_func_00000000((char*)&D_00000000 + 0x3D0, 0);
+    gl_func_00000000(&D_00000000, 0);
+    /* TODO: sub=gl(0xD8) + sub-node vtable + vtable-dispatch + sub-loop. Multi-tick. */
+    return (void*)s1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3C);
