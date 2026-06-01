@@ -9567,7 +9567,13 @@ void game_uso_func_0000BF7C(char *a0) {
  *
  * 2026-05-17: C body emits 87% before post-cc. Remaining cap is local
  * branch-likely/register scheduling around the selector fallback; Makefile
- * INSN_PATCH + one suffix nop make the unwrapped body byte-exact. */
+ * INSN_PATCH + one suffix nop made the old unwrapped body byte-exact, but
+ * instruction patching is banned now.
+ *
+ * 2026-06-01 sibling pass from BF7C exact: explicit `goto dispatch` for the
+ * selector fallback still emitted `bnel` for both selector tests, and worsened
+ * short-path register choices (fnptr moved from a2 to v1). Keep the nested
+ * selector form unless a new branch-likely suppression lever appears. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 int game_uso_func_0000BFDC(char *a0) {
