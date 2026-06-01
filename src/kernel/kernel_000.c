@@ -146,8 +146,12 @@ extern s32 D_80012D5C;
  *   delay slot rather than target's BEFORE-sltu position. The goto-out
  *   lever splits the jr-ra into two but doesn't move the preemptive set
  *   out of the delay slot — same root structural-cap as variants (a)/(b).
- *   The cap is the position of the v0=v1 copy, not the number of jr-ra
- *   blocks. */
+ *   The cap is the position of the v0=v1 copy, not the number of jr-ra blocks.
+ *
+ * 2026-06-01 retest #5 — explicit `ret = v; __asm__(""); if (...) return`
+ *   barrier is invalid for this IDO/asm-processor path: empty `__asm__` emits
+ *   a real jal to `__asm__`, adds a frame/spills, and drops this function to
+ *   29.04%. Do not use the asm-barrier lever here. */
 #ifdef NON_MATCHING
 u32 func_800000B0(u32 size, u32 alignment) {
     u32 v;  /* reused: mask, then the returned heap ptr — shares $v0 like target */
