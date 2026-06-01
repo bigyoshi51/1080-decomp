@@ -22,48 +22,57 @@ void titproc_uso_func_00000098(void) {
     gl_func_00000000(&D_00000000 + 0x60, 1);
 }
 
-extern char D_titproc_C0_a;       /* a1 base (D[0x6C], D[0x148], D[0x40], D[0x44]) */
-extern int D_titproc_C0_table_a[]; /* t3-base table */
-extern int D_titproc_C0_table_b[]; /* v0-base table (return value) */
+extern char import_00020098;       /* a1 base (D[0x6C], D[0x148], D[0x40], D[0x44]) */
+extern int titproc_uso_D_0000EC[]; /* t3-base table */
+extern int titproc_uso_D_000100[]; /* v0-base table (return value) */
+extern int titproc_uso_func_01EEE4();
 
 #ifdef NON_MATCHING
 /* SOURCE=1 refinement (2026-06-01): use a K&R dummy parameter for `counter`.
  * IDO colors the live state counter to $a0 through the branch-likely tests and
  * final table index, matching the target's main register choice better than a
- * plain local (which stayed in $v1). Residual is temp-register coloring around
- * the initial load/increments and final table-base load; still NM. */
+ * plain local (which stayed in $v1).
+ *
+ * SOURCE=1 re-audit 2026-06-01: align the NM body's symbol names with the
+ * target relocs (`import_00020098`, `titproc_uso_func_01EEE4`,
+ * `titproc_uso_D_0000EC`, `titproc_uso_D_000100`). Objdiff's reloc-aware
+ * score remains 98.13725%, but no-alias objdump now shows the same callee/table
+ * names as expected. Residual is temp-register coloring around the initial
+ * load/increments and final table-base load. Negative probes: splitting the
+ * initial `D+0x6C` load into `raw` moved it to `$v1` instead of target `$t6`;
+ * naming the final constant `four` compiled identically. Still NM. */
 int titproc_uso_func_000000C0(counter)
     int counter;
 {
     int v;
 
-    counter = *(int*)((char*)&D_titproc_C0_a + 0x6C) + 1;
-    *(int*)((char*)&D_titproc_C0_a + 0x6C) = counter;
+    counter = *(int*)((char*)&import_00020098 + 0x6C) + 1;
+    *(int*)((char*)&import_00020098 + 0x6C) = counter;
     if (counter >= 5) {
-        *(int*)((char*)&D_titproc_C0_a + 0x6C) = 0;
+        *(int*)((char*)&import_00020098 + 0x6C) = 0;
         counter = 0;
     }
 
     if (counter == 0) {
-        v = gl_func_00000000(*(int*)((char*)&D_titproc_C0_a + 0x148) + 4);
+        v = titproc_uso_func_01EEE4(*(int*)((char*)&import_00020098 + 0x148) + 4);
         if (v != 2) {
-            *(int*)((char*)&D_titproc_C0_a + 0x6C) =
-                *(int*)((char*)&D_titproc_C0_a + 0x6C) + 1;
+            *(int*)((char*)&import_00020098 + 0x6C) =
+                *(int*)((char*)&import_00020098 + 0x6C) + 1;
         }
-        counter = *(int*)((char*)&D_titproc_C0_a + 0x6C);
+        counter = *(int*)((char*)&import_00020098 + 0x6C);
     }
     if (counter == 1) {
-        v = gl_func_00000000(*(int*)((char*)&D_titproc_C0_a + 0x148) + 4);
+        v = titproc_uso_func_01EEE4(*(int*)((char*)&import_00020098 + 0x148) + 4);
         if (v != 1) {
-            *(int*)((char*)&D_titproc_C0_a + 0x6C) =
-                *(int*)((char*)&D_titproc_C0_a + 0x6C) + 1;
+            *(int*)((char*)&import_00020098 + 0x6C) =
+                *(int*)((char*)&import_00020098 + 0x6C) + 1;
         }
-        counter = *(int*)((char*)&D_titproc_C0_a + 0x6C);
+        counter = *(int*)((char*)&import_00020098 + 0x6C);
     }
 
-    *(int*)((char*)&D_titproc_C0_a + 0x40) = 4;
-    *(int*)((char*)&D_titproc_C0_a + 0x44) = D_titproc_C0_table_a[counter];
-    return D_titproc_C0_table_b[counter];
+    *(int*)((char*)&import_00020098 + 0x40) = 4;
+    *(int*)((char*)&import_00020098 + 0x44) = titproc_uso_D_0000EC[counter];
+    return titproc_uso_D_000100[counter];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000000C0);
