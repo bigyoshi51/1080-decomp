@@ -14752,32 +14752,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
 //   (paired counterpart to gl_func_00035370). Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_00035440(char *o, int a2) {
-    int r;
-    char *h;
-    int (*f)(int, int);
-    int cfg;
+/* Whole-body decode 2026-06-01 (prior body returned void, mis-stored to o->0x20).
+ * Dispatch on o->4 setting a3: case1 a3=(*(&D))->0x50(o->0x20, a2); case0
+ * a3=gl(&D,a2); case2 a3=a2 after a sequence of emits + a *(0x3B8E8)+=a2 counter
+ * bump; default a3=0. Converge: if a3<0, gl(0x1E5DC, a3). Return a3. */
+int gl_func_00035440(char *o, int a2) {
+    int a3 = 0;
     switch (*(int *)(o + 4)) {
-        case 1:
-            h = *(char **)((char *)&D_00000000 + 0);
-            f = *(int (**)(int, int))(h + 0x50);
-            r = f(*(int *)(o + 0x20), a2);
-            *(int *)(o + 0x20) = r;
-            break;
-        case 0:
-            r = gl_func_00000000(&D_00000000, a2);
-            *(int *)(o + 0x20) = r;
-            break;
-        case 2:
-            cfg = *(int *)0x0004B8E8;
-            gl_func_00000000((char *)0x0001E5AC, a2, cfg);
-            if (a2) {
-                gl_func_00000000(a2);
-            }
-            break;
-        default:
-            break;
+    case 1: {
+        char *h = *(char **)&D_00000000;
+        int (*f)(int, int) = *(int (**)(int, int))(h + 0x50);
+        a3 = f(*(int *)(o + 0x20), a2);
+        break;
     }
+    case 0:
+        a3 = gl_func_00000000(&D_00000000, a2);
+        break;
+    case 2: {
+        int cfg = *(int *)0x0003B8E8;
+        char buf[36];
+        gl_func_00000000((char *)0x0001E5AC, a2, cfg);
+        if (a2 != 0) {
+            if ((cfg & 7) != 0) {
+                gl_func_00000000((char *)0x0001E5C8);
+            }
+            gl_func_00000000(&buf[20], &buf[16], 1);
+            *(int *)(buf + 28) = (int)&buf[20];
+            *(signed char *)(buf + 26) = 0;
+            *(int *)(buf + 40) = a2;
+            *(int *)(buf + 36) = *(int *)0x0003B8E8;
+            *(int *)(buf + 32) = cfg;
+            gl_func_00000000(*(int *)0x0003B8E4, &buf[24], 0);
+            gl_func_00000000(&buf[20], 0, 1);
+            gl_func_00000000(cfg, a2);
+        }
+        *(int *)0x0003B8E8 = *(int *)0x0003B8E8 + a2;
+        a3 = a2;
+        break;
+    }
+    default:
+        break;
+    }
+    if (a3 < 0) {
+        gl_func_00000000((char *)0x0001E5DC, a3);
+    }
+    return a3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035440);
