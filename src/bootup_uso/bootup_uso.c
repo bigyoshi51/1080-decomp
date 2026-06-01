@@ -1512,7 +1512,41 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000034E8);
  * passing + beql branch-likely link guard + flags-bit branch.
  * Full body INCLUDE_ASM-preserved (.s = source of truth).
  * INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+/* func_00003638: 5-call orchestrator. All 10 args home-spilled at entry; calls
+ * cb(&D_74DC); node = cb(0, arg1, arg2+1, arg3+1, arg4, arg6, arg7, arg8|2, arg9);
+ * cb(arg5+0x10, node); if (arg5->0x14) arg5->0x4=1; arg5->0x14 = arg4(0x4C slot);
+ * then by (arg8|2)&0xC cb(arg0, node, 0/1); cb(); return node. m2c-assisted.
+ * 49.6% NM (from-scratch). Residual: arg home-spill layout — target homes a0-a3
+ * at entry but keeps the 6 stack-passed args (a4..a9 incl. the f32 pair at
+ * sp+0x50/0x54) in their caller slots; this C re-homes them (frame -64 vs -56)
+ * and computes arg8|2 at the top vs the target's deferred ori. Multi-tick: needs
+ * the exact stack-arg passthrough form. Logic correct; stays NM. */
+extern char D_000074DC;
+void *func_00003638(int *arg0, void *arg1, int arg2, int arg3, int arg4, int arg5,
+                    float arg6, float arg7, int arg8, int arg9) {
+    void *node;
+    int *p;
+    arg8 |= 2;
+    func_00000000(&D_000074DC);
+    node = func_00000000(0, arg1, arg2 + 1, arg3 + 1, arg4, arg6, arg7, arg8, arg9);
+    func_00000000(arg5 + 0x10, node);
+    p = (int *)arg5;
+    if (p[0x14 / 4] != 0) {
+        p[0x4 / 4] = 1;
+    }
+    p[0x14 / 4] = arg4;
+    if (arg8 & 0xC) {
+        func_00000000(arg0, node, 0);
+    } else {
+        func_00000000(arg0, node, 1);
+    }
+    func_00000000();
+    return node;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003638);
+#endif
 
 /* func_00003734 - verified structural decode (0x18C, 99 insns,
  * multi-stage builder chain). LARGER SIBLING of func_000038C0
