@@ -263,31 +263,40 @@ void mgrproc_uso_func_00001304(void) {
  * cascade. Sets arg0[0x4FC]=1 (guard) + arg0[0x7D0]=arg0[0x4F8] (cached
  * state). Returns 1.
  *
- * NATURAL CEILING: 80.5% NM. The 8-word diff at 0x28/0x30/0x48/0x64/0x80/
- * 0x84/0x88/0x8C is a pure register-rename (v0<->v1 in the early
- * conditional chain, t0<->t9 in the final 0x4F8 reload + flag store +
- * cache store). Was previously documented as INSN_PATCH-promotable per
- * docs/POST_CC_RECIPES.md "Pure register-rename at any scale" — INSN_PATCH
- * REMOVED 2026-05-23 and docs/POST_CC_RECIPES.md deprecated (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+ * 2026-06-01 SOURCE=4 retest: 99.63% NM. Resolved stale placeholder
+ * callees to import_000B72F4 / mgrproc_uso_func_000000B0 / 000000F8 /
+ * 00000170 / 01FA1C, then reversed the final two source stores:
+ *   arg0[0x7D0] = arg0[0x4F8]; arg0[0x4FC] = 1;
+ * IDO schedules that as the target order (`sw 1,0x4FC`; `sw state,0x7D0`)
+ * while also assigning the target t9/t0 registers. Remaining diff is the
+ * early state local only: IDO picks v1 where target uses v0 for
+ * `lw state,0x4F8(s0); bne state,zero; beq state,2`. Tried
+ * `register int v asm("$2")` (IDO syntax error) and inverted if nesting
+ * (`if (v != 0) ... else ...`, regressed to 88.66%). INSN_PATCH was removed
+ * 2026-05-23 as match-faking, so this stays an honest NM cap until a
+ * C-level v0 allocation lever is found. Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
+extern int import_000B72F4();
+extern int mgrproc_uso_func_000000B0();
+extern int mgrproc_uso_func_000000F8();
+extern int mgrproc_uso_func_00000170();
+extern int mgrproc_uso_func_01FA1C();
 int mgrproc_uso_func_00001324(char *arg0) {
     int v;
     if (*(int*)(arg0 + 0x4FC) == 0) {
-        gl_func_00000000(*(int*)(arg0 + 0x6AC), 0, 1);
+        import_000B72F4(*(int*)(arg0 + 0x6AC), 0, 1);
         v = *(int*)(arg0 + 0x4F8);
         if (v == 0) {
-            gl_func_00000000(*(int*)(arg0 + 0x6A8));
+            mgrproc_uso_func_000000B0(*(int*)(arg0 + 0x6A8));
         } else if (v != 2) {
-            gl_func_00000000(*(int*)(arg0 + 0x6A8));
+            mgrproc_uso_func_000000F8(*(int*)(arg0 + 0x6A8));
         }
-        if (gl_func_00000000(*(int*)(arg0 + 0x6A8)) != 0 &&
-            gl_func_00000000(*(int*)(*(int*)(arg0 + 0x6AC) + 0x4C)) != 0) {
+        if (mgrproc_uso_func_00000170(*(int*)(arg0 + 0x6A8)) != 0 &&
+            mgrproc_uso_func_01FA1C(*(int*)(*(int*)(arg0 + 0x6AC) + 0x4C)) != 0) {
             *(int*)(arg0 + 0x4EC) = -0x258;
         }
-        *(int*)(arg0 + 0x4FC) = 1;
         *(int*)(arg0 + 0x7D0) = *(int*)(arg0 + 0x4F8);
+        *(int*)(arg0 + 0x4FC) = 1;
     }
     return 1;
 }
