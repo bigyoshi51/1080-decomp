@@ -1224,18 +1224,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 int *gl_func_0001F248(int *dst, int *a1, int *a2, int a3) {
+    int *s0 = dst;
     int w = a1[0];
-    int typ = (w << 11) >> 30;
+    int b6 = *(unsigned char *)((char *)a1 + 6);
+    int typ = (unsigned)(w << 11) >> 30;
+    int v1 = a2[8 / 4];
     if (typ != 0) {
         int sz = (a3 * 2 + 0xF) & ~0xF;
-        int src = a2[8 / 4] | 0x80000000;
-        gl_func_00000000(dst, 0x580, sz, src);
-        dst += 2;
-        dst[0] = 0x14080580;
-        dst[1] = a2[0x10 / 4];
-        dst += 2;
+        int dp = *(int *)((char *)&D_00000000 + 0x20);
+        gl_func_00000000(s0, 0x580, sz, dp + 0x80000000);
+        *(int *)((char *)&D_00000000 + 0x20) = dp + a3 * 4;
+        return s0 + 2;
     }
-    return dst;
+    s0[0] = 0x14080580;
+    s0[1] = a1[0x10 / 4] + 0x80000000;
+    s0 += 2;
+    if (b6 != 0) {
+        unsigned int num = (unsigned int)v1 * *(unsigned char *)((char *)&D_00000000 + (b6 >> 2));
+        v1 = num / *(unsigned char *)((char *)&D_00000000 + (b6 & 3));
+    }
+    v1 &= 0x3f;
+    {
+        int avail = 0x40 - v1;
+        if (avail < a3) {
+            int n = (a3 - avail + 0x3f) >> 6;
+            if (n != 0) {
+                s0[0] = 0x09000000 | ((n & 0xff) << 16) | 0x580;
+                s0[1] = 0x06000080;
+                s0 += 2;
+                a2[8 / 4] = v1;
+            }
+        }
+    }
+    return s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
