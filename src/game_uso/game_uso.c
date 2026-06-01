@@ -3833,6 +3833,13 @@ after_head_template:
      *     `sw ra,0x1c(sp)`, `sw s1,0x18(sp)`, `sw s0,0x14(sp)`; no
      *     `sw s2,0x20(sp)`. Do not retry without a separate live-range
      *     change.
+     *   - Slot-shift via `_s2_buf[3]; s2 = &_s2_buf[2]`. TRIED 2026-06-01:
+     *     with `_pad[160]`, frame stayed 0xE8 but IDO still used direct
+     *     `sp+0x24` stores/loads for the marshalling slot (no `sp+0x2c`,
+     *     no `$s2`). With `_pad[152]`, frame shrank to 0xE0 and moved
+     *     caller-arg spills to sp+0xE0/0xE4/0xE8, a clear regression.
+     *     Reverted; array indexing does not force the target stack slot
+     *     or promotion.
      *   - decomp-permuter with PERM_RANDOMIZE around the macros
      *
      * 2026-05-05 (later): FIXED iter-G-NN macro bug. The macro at
