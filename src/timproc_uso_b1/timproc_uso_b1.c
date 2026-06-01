@@ -359,7 +359,9 @@ void timproc_uso_b1_func_000010C0(int a0) {
  * fragment (sets $a1 = *(D+0x170) for successor 010DC). NOT C-emit-absorbed —
  * the earlier prune was mistaken (010C0 is a 5-insn `*(D+0x40)=9`, doesn't
  * emit these bytes); restored to keep the 8 bytes at vram 0x10D4-0x10DB in
- * the linked layout. INCLUDE_ASM (uninitialized-reg fragment, no standalone C). */
+ * the linked layout. SOURCE=4 audit 2026-06-01: not an accessor-template miss;
+ * it mirrors timproc_uso_b3_func_00001088 and has no standalone C body.
+ * INCLUDE_ASM (uninitialized-reg fragment, no standalone C). */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010D4);
 
 void timproc_uso_b1_func_00000000();
@@ -432,7 +434,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 
 /* timproc_uso_b1_func_000011D0: 2-insn alt-entry (lui at,0x3F80; mtc1 at,$f0
  * = set f0=1.0f) that falls through into 000011D8. RECOVERED 2026-05-28 from
- * the Yay0 block_1 gap (no .s, segment was 2 words short) — INCLUDE_ASM. */
+ * the Yay0 block_1 gap (no .s, segment was 2 words short). SOURCE=4 audit
+ * 2026-06-01: not an accessor-template miss; this is a float-constant preload
+ * fragment for the successor. INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D0);
 
 /* timproc_uso_b1_func_000011D8 — verified structural decode (EE84-family,

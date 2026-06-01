@@ -762,7 +762,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 #endif
 
 /* timproc_uso_b3_func_00001920: 2-insn alt-entry (set f0=1.0f, falls into
- * 00001928). RECOVERED 2026-05-28 from the Yay0 block_3 gap — INCLUDE_ASM. */
+ * 00001928). RECOVERED 2026-05-28 from the Yay0 block_3 gap. SOURCE=4 audit
+ * 2026-06-01: not an accessor-template miss; this mirrors
+ * timproc_uso_b1_func_000011D0's float-constant preload. INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001920);
 
 #ifdef NON_MATCHING
