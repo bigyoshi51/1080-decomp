@@ -8409,13 +8409,69 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A258);
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
+/* Whole-body decode 2026-06-01 (prior body had ~5 stores). Object reset: skip
+ * the &D+0x5280 sentinel. 7-step clear cascade on obj->0 (drop 0x80..0x02, each
+ * stored via volatile), ~30 field inits, a -1 fill at obj+0xD5..0xDB, then a
+ * final obj->0 &= ~1 and gl(obj+0x94). */
 void gl_func_0002A260(char *obj) {
-    if (obj == (char *)&D_00000000 + 0x5280) return;
-    *(unsigned char *)obj = *(unsigned char *)obj & 0x01;
-    *(short *)(obj + 0x14) = 0xF0;
-    *(short *)(obj + 0x10) = 0;
+    volatile unsigned char *p;
+    int c, i;
+    char *v1;
+
+    if (obj == (char *)&D_00000000 + 0x5280) {
+        return;
+    }
+    p = (volatile unsigned char *)obj;
+    c = *p;
+    c &= ~0x80; *p = c;
+    c &= ~0x40; *p = c;
+    c &= ~0x20; *p = c;
+    c &= ~0x10; *p = c;
+    c &= ~0x08; *p = c;
+    c &= ~0x04; *p = c;
+    *(short *)(obj + 0x14) = 2048;
+    *(short *)(obj + 0x10) = 2048;
     *(short *)(obj + 0x26) = 0;
-    *(unsigned char *)(obj + 0x9) = 0xFF;
+    c &= ~0x02; *p = c;
+    *(unsigned char *)(obj + 9) = 0;
+    *(unsigned char *)(obj + 0xE0) = 0;
+    *(unsigned char *)(obj + 1) = 255;
+    *(unsigned char *)(obj + 0x88) = 0;
+    *(unsigned char *)(obj + 0xA) = 64;
+    *(unsigned char *)(obj + 0xB) = 128;
+    *(unsigned char *)(obj + 0xD) = 0;
+    *(unsigned char *)(obj + 0xE) = 0;
+    *(int *)(obj + 0x40) = 0;
+    *(unsigned char *)(obj + 8) = 0;
+    *(unsigned char *)(obj + 4) = 0;
+    *(unsigned char *)(obj + 0xC) = 0;
+    *(unsigned char *)(obj + 5) = 3;
+    *(unsigned char *)(obj + 6) = 1;
+    *(short *)(obj + 0x1E) = 0;
+    *(int *)(obj + 0x90) = (int)&D_00000000;
+    *(unsigned char *)(obj + 0x8C) = 240;
+    *(unsigned char *)(obj + 0x8D) = 0;
+    *(short *)(obj + 0x16) = 0;
+    *(short *)(obj + 0x12) = 0;
+    *(short *)(obj + 0x18) = 0;
+    *(short *)(obj + 0x1A) = 0;
+    *(short *)(obj + 0x1C) = 0;
+    *(int *)(obj + 0xDC) = 0;
+    *(short *)(obj + 0x20) = 0;
+    *(unsigned char *)(obj + 0xF) = 0;
+    *(float *)(obj + 0x2C) = 1.0f;
+    *(float *)(obj + 0x28) = 1.0f;
+    *(float *)(obj + 0x38) = 1.0f;
+    v1 = obj;
+    for (i = 0; i != 8; i += 4) {
+        *(signed char *)(v1 + 0xD5) = -1;
+        *(signed char *)(v1 + 0xD6) = -1;
+        *(signed char *)(v1 + 0xD7) = -1;
+        v1 += 4;
+    }
+    *(signed char *)(v1 + 0xD0) = -1;
+    *(unsigned char *)obj = *(unsigned char *)obj & ~1;
+    gl_func_00000000(obj + 0x94);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
