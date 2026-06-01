@@ -10402,7 +10402,44 @@ void gl_func_0002E24C(char *o) {
 }
 
 
+#ifdef NON_MATCHING
+/* Sibling of the matched gl_func_0002E1C0/gl_func_0002E24C event helpers.
+ * Selector byte 0x31 dispatches through the table at D+0x1660 for values
+ * 1..32, selector 0x40 shares the nearby return-10 leaf, and other values
+ * run the bit-mask loop tail split out as game_libs_func_0002E330. */
+int game_libs_func_0002E290(char *o) {
+    typedef int (*Dispatch)(void);
+    Dispatch *dispatch;
+    unsigned char selector;
+    int mask;
+    unsigned int idx;
+
+    dispatch = (Dispatch *)((char *)&D_00000000 + 0x1660);
+    selector = *(unsigned char *)(o + 0x31);
+    mask = -1;
+
+    while (selector != 0) {
+        if (selector < 0x21) {
+            idx = (unsigned int)(selector - 1);
+            if (idx < 0x20) {
+                return dispatch[idx]();
+            }
+        } else if (selector == 0x40) {
+            return 10;
+        }
+
+        mask = (mask << 1) & 0xFF;
+        selector &= mask;
+    }
+
+    if (*(unsigned char *)(o + 0x14) == 1) {
+        return (*(unsigned char *)(o + 0x15) + 0xC) & 0xFF;
+    }
+    return 16;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E290);
+#endif
 
 int game_libs_func_0002E2F8(void) { return 16; }
 
