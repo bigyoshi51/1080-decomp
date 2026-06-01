@@ -33,7 +33,24 @@
  * 2026-06-01 retest on current body: moving `pad_mid[2]` between raw and tmp
  * (`raw; pad_mid; tmp`) keeps the frame 0x58 but regresses tmp from sp+0x34 to
  * sp+0x2C while raw stays at sp+0x40. The residual is not solved by placing the
- * existing dead pad between the structs. */
+ * existing dead pad between the structs.
+ *
+ * 2026-06-01 NEW MECHANISM (isolates the residual exactly; does NOT crack it).
+ * The reason a pad can't land BETWEEN raw and tmp is that they are the SAME type
+ * (Tri3i) so -O0 POOLS them adjacent and ejects any pad to an end. Giving them
+ * DISTINCT struct types (`Tri3j raw; Tri3i tmp;`, identical layout) breaks the
+ * pool — a pad declared between them DOES land between them. With distinct types
+ * + raw-first/tmp-last + an 8-byte `pad_mid` between + a LAST-declared bottom pad
+ * (`int pad_bot;`), the standalone -O0 emit lands &raw@sp+0x48 and &tmp@sp+0x34
+ * EXACTLY (target offsets, 0 offset diffs!) — BUT the bottom pad grows the frame
+ * 0x58 -> 0x60 (prologue/epilogue/a0-home shift +8 = MORE diffs than the current
+ * 2). Without the bottom pad the offsets drop 8 low (raw@0x40/tmp@0x2c, 4 diffs).
+ * So the cap is now precise: target pins the raw/tmp/pad block to frame-TOP with
+ * a 12-byte dead gap (0x28-0x33) BELOW tmp inside a 0x58 frame, but every C layout
+ * either (a) grows the frame to supply that bottom gap, or (b) packs the block 8
+ * low. Genuine -O0 frame-packing cap; the distinct-type pooling-break is the right
+ * gap lever but can't coexist with the 0x58 frame. See docs/IDO_CODEGEN.md
+ * "distinct struct types break -O0 same-type stack pooling". */
 
 extern int gl_func_00000000();
 extern char D_00000000;
