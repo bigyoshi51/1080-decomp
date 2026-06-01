@@ -176,8 +176,12 @@ void mgrproc_uso_func_00000D94(Vec3 *dst) {
 
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000E04);
 
-/* Alternate entry point for mgrproc_uso_func_000011A4: loads a1 from D+0x68
- * and falls through into 11A4 with caller-provided a0. No standalone jr-ra. */
+/* mgrproc_uso_func_0000119C: 2-insn alternate entry for
+ * mgrproc_uso_func_000011A4. SOURCE=4 audit 2026-06-01: 0x119C has
+ * no prologue and no `jr ra` (`grep -c 03E00008` = 0); it only loads
+ * a1 from import_80020100+0x68, then falls through into 11A4 with
+ * caller-provided a0. This is an alternate entry, not a missed accessor
+ * template, and has no honest standalone C body. */
 void mgrproc_uso_func_000011A4(char *s0, int a1);
 #ifdef NON_MATCHING
 void mgrproc_uso_func_0000119C(char *a0) {
