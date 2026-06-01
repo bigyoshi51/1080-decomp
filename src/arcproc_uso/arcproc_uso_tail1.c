@@ -651,32 +651,30 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000117
 #endif
 
 /* arcproc_uso_func_000011F0: 14-insn dual-field bit-clear, RECOVERED
- * 2026-05-28 from the 00001170 bundle gap (dropped — no .s, missing from
- * build). Clears bit 2 of the 0x18 field on both a0->0x6AC->0x6C and
- * a0->0x6AC->0x94. Build uses INCLUDE_ASM. */
-#ifdef NON_MATCHING
+ * 2026-05-28 from the 00001170 bundle gap. Clears bit 2 of the 0x18 field
+ * on both a0->0x6AC->0x6C and a0->0x6AC->0x94. Exact 2026-06-01: using an
+ * explicit field pointer forces IDO to materialize `addiu v0, v0, 0x18`
+ * before the store, matching the target's `sw ..., 0(v0)` shape. */
 void arcproc_uso_func_000011F0(int *a0) {
     int *p = (int*)((int*)a0[0x6AC / 4])[0x6C / 4];
-    *(int*)((char*)p + 0x18) &= ~4;
+    p = (int*)((char*)p + 0x18);
+    *p &= ~4;
     p = (int*)((int*)a0[0x6AC / 4])[0x94 / 4];
-    *(int*)((char*)p + 0x18) &= ~4;
+    p = (int*)((char*)p + 0x18);
+    *p &= ~4;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000011F0);
-#endif
 
-/* arcproc_uso_func_00001228: 9-insn dual-field bit-set, RECOVERED
- * 2026-05-28 (sibling of 000011F0, sets bit 2 instead of clearing). */
-#ifdef NON_MATCHING
+/* arcproc_uso_func_00001228: 13-insn dual-field bit-set, RECOVERED
+ * 2026-05-28 (sibling of 000011F0, sets bit 2 instead of clearing). Exact
+ * 2026-06-01 via the same explicit field-pointer shape. */
 void arcproc_uso_func_00001228(int *a0) {
     int *p = (int*)((int*)a0[0x6AC / 4])[0x6C / 4];
-    *(int*)((char*)p + 0x18) |= 4;
+    p = (int*)((char*)p + 0x18);
+    *p |= 4;
     p = (int*)((int*)a0[0x6AC / 4])[0x94 / 4];
-    *(int*)((char*)p + 0x18) |= 4;
+    p = (int*)((char*)p + 0x18);
+    *p |= 4;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001228);
-#endif
 
 /* arcproc_uso_func_0000125C: 139-insn (0x22C) FPU-heavy state-update.
  * Single function (1 jr ra). Frame -0x70 with s0/ra saved.
