@@ -773,10 +773,24 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * conditional-scale wrapper).
  *
  * Per scripts/find-byte-identical-clones.py — see arcproc_uso_func_00001C74's
- * wrap for canonical decode. Stub here for grep discoverability. */
+ * wrap for canonical decode. Mirrored source=4 2026-06-01; expected to share
+ * the canonical O2 residual (target 0x58 frame + incoming-$f0 stores vs C's
+ * explicit-zero smaller frame). */
 void timproc_uso_b3_func_00001928(int *a0) {
-    /* Stub — see canonical decode in arcproc_uso_func_00001C74 wrap. */
-    (void)a0;
+    float buf[4];
+
+    buf[0] = 0.0f;
+    buf[1] = 0.0f;
+    buf[2] = 0.0f;
+    buf[3] = 0.0f;
+    *(int *)((char *)a0 + 0x68) += 1;
+    if (gl_func_00000000(*(int *)((char *)a0 + 0x50)) != 0) {
+        gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)((char *)a0 + 0x108)), buf);
+        gl_func_00000000((char *)a0 + 0xF0);
+        if ((*(int *)((char *)a0 + 0x68) & 8) != 0) {
+            gl_func_00000000((char *)a0 + 0xF0, 0xA0, 0x7C, 3);
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001928);
