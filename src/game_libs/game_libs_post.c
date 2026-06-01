@@ -31100,9 +31100,26 @@ int gl_func_0005591C(int *a0, int a1, int a2, int a3) {
             gl_func_00000000((char*)&gl_data_00000000 + 0x211C8);
         }
     }
-    /* TODO: 50-insn circular-buffer middle section */
-    gl_func_00000000(a0, a1, a2, a3);
-    gl_func_00000000();
+    if (v0 != 0) {
+        int buf[18];
+        int out[18];
+        int i;
+        if (a3 != 0) {
+            for (i = 0; i < 18; i++) buf[i] = ((int *)a3)[i];
+        }
+        buf[0] = (int)&a0;
+        buf[3] = a1;
+        buf[4] = a1;
+        buf[5] = a2;
+        buf[6] = 0;
+        buf[10] = 0;
+        buf[13] = 0;
+        buf[14] = 1;
+        buf[15] = 0;
+        for (i = 0; i < 18; i++) out[i] = buf[i];
+        gl_func_00000000(out[0], out[1], out[2], out[3]);
+        gl_func_00000000();
+    }
     return 1;
 }
 #else
