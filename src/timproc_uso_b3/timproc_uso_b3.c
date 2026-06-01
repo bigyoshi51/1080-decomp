@@ -278,7 +278,51 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+/* timproc_uso_b3_func_00000994: 243-insn constructor (cb = func_000000B0, the
+ * cross-USO placeholder, called K&R-style with 1-9 args). Alloc self (0x730) if
+ * a0==NULL, return NULL on fail; field inits self->0x568=0, self->0x528=arg3,
+ * self->0x72C=0.0f; alloc 0xDC sub-node -> self->0x6A8 (+ D[0x138]=it); a 6-iter
+ * unrolled registration loop cb(self->0x48, ((D+3)<<16)|N, -1) for N in
+ * {0,1,4,3,2,5}; tail cmd calls. Returns self. First-pass NM wrap (m2c can't read
+ * raw-.word USO; decoded from objdump). &D template offsets collapsed; exact
+ * per-call args + the nested-alloc dead-block cascade + arg-home-spill scheduling
+ * are TBD (multi-tick). Uses a local K&R cb pointer to sidestep the typed 2-arg
+ * proto of func_000000B0 at line 35. */
+#ifdef NON_MATCHING
+void *timproc_uso_b3_func_00000994(int *a0, int a1, int a2, int a3) {
+    void *(*cb)() = (void *(*)())timproc_uso_b3_func_000000B0;
+    int *self = a0;
+    int *sub;
+    int i;
+    static const int order[6] = {0, 1, 4, 3, 2, 5};
+    if (self == 0) {
+        self = (int *)cb(0x730);
+        if (self == 0) {
+            return self;
+        }
+    }
+    self[0x568 / 4] = 0;
+    cb(&D_00000000, a1, a2);
+    self[0x528 / 4] = a3;
+    *(float *)&self[0x72C / 4] = 0.0f;
+    cb((char *)&D_00000000 + 0x3D0, 0);
+    cb(&D_00000000, 0);
+    sub = (int *)cb(0xDC);
+    if (sub != 0) {
+        sub[0x28 / 4] = (int)&D_00000000;
+    }
+    self[0x6A8 / 4] = (int)sub;
+    *(int **)((char *)&D_00000000 + 0x138) = sub;
+    for (i = 0; i < 6; i++) {
+        cb(self[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | order[i], -1);
+    }
+    cb(self[0x190 / 4]);
+    cb();
+    return self;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000994);
+#endif
 
 /* timproc_uso_b3_func_00000D60: 33-insn (0x84) 5-call gl_func_00000000
  * dispatcher with computed (s0+offset, immediate-or-globalload) args.
