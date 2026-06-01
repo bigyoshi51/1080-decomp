@@ -456,19 +456,20 @@ void game_uso_func_000007EC(int *arg0) {
  * path is decomp-permuter (random allocno-priority shifts). INSN_PATCH
  * was REMOVED 2026-05-23 as match-faking (per
  * feedback_no_instruction_forcing_matches_policy) — not an option. */
-extern int *gl_alloc_858(int size);
-extern void gl_init_858(int *dst, int a, int b, int c, float f);
-extern void gl_setflag_858(int *dst, int flag);
+extern char game_uso_D_807FE770;
+extern int game_uso_func_055750();
+extern void game_uso_func_047484(int *dst, int a, int b, int c, float f);
+extern void game_uso_func_04C774(int *dst, int flag);
 
 int *game_uso_func_00000858(int *a0, int arg1, int arg2, int arg3, int arg4, float arg5, int arg6, int arg7) {
     if (a0 == 0) {
-        a0 = gl_alloc_858(0x27C);
+        a0 = (int *)game_uso_func_055750(0x27C);
         if (a0 == 0) goto out;
     }
-    gl_init_858(a0, arg2, arg3, arg4, arg5);
-    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    game_uso_func_047484(a0, arg2, arg3, arg4, arg5);
+    *(int*)((char*)a0 + 0x28) = (int)&game_uso_D_807FE770;
     *(int*)((char*)a0 + 0x1D0) = 0;
-    if (arg7 != 0) gl_setflag_858(a0, 1);
+    if (arg7 != 0) game_uso_func_04C774(a0, 1);
     *(int*)((char*)a0 + 0x24C) = 0;
     *(int*)((char*)a0 + 0x150) = arg1;
     *(int*)((char*)a0 + 0x26C) = 0;
