@@ -18244,22 +18244,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A044);
 //   the named leading dispatcher only (clone of gl_func_00035A18).
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* Whole-body decode 2026-06-01 (prior body conflated the two paths). i=r->0xA,
+ * j=r->8, base=r->4. If i<0: base+=j and the fn ptr is r->0xC directly. Else:
+ * pick an offset (r->0xC, or 40 when both r->0xC and j are 0), load a table at
+ * base+off, index by i*8, add table[idx]->0 to base and take table[idx]->4 as
+ * the fn ptr. Then call fp(base, r->0x10, r->0x14). */
 int gl_func_0003A0C4(char *r) {
     short i = *(short *)(r + 0xA);
     short j = *(short *)(r + 0x8);
     char *base = *(char **)(r + 0x4);
-    char *tbl;
-    char *e;
-    short hw;
     int (*fp)(int, int, int);
     if (i < 0) {
         base = base + j;
+        fp = *(int (**)(int, int, int))(r + 0xC);
+    } else {
+        int off = *(int *)(r + 0xC);
+        char *e;
+        if (off == 0 && j == 0) {
+            off = 40;
+        }
+        e = *(char **)(base + off) + i * 8;
+        fp = *(int (**)(int, int, int))(e + 4);
+        base = base + *(short *)e;
     }
-    tbl = *(char **)(r + 0xC);
-    e = tbl + j * 8;
-    hw = *(short *)e;
-    fp = *(int (**)(int, int, int))(e + 4);
-    return fp(hw + (int)base, *(int *)(r + 0x10), *(int *)(r + 0x14));
+    return fp((int)base, *(int *)(r + 0x10), *(int *)(r + 0x14));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A0C4);
