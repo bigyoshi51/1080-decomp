@@ -2337,9 +2337,9 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
 #endif
 
 /* func_000054A0: 14-insn 2-call wrapper. Sibling of func_00005068 (same
- * recipe). The third `a0` arg in `func_00000000(0, a0, a0)` forces IDO
- * to materialize a0 for a2; INSN_PATCH at offset 0x24 rewrites a2-copy
- * `or a2,a1,zero` to target's dead `sw a1, 0x4(sp)` home store. */
+ * struct-by-value one-int recipe). Passing `*(struct OneI*)&a0` homes the
+ * value to the outgoing a1 slot and reproduces the target's dead
+ * `sw a1, 0x4(sp)` without instruction patching. */
 extern char D_00007E10;
 void func_000054A0(int a0) {
     func_00000000(&D_00007E10);
