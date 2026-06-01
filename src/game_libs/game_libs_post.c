@@ -19998,16 +19998,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
-char *gl_func_0003DB3C(char *o, int unused) {
-    float best = *(float *)((char *)&D_00000000 + 0x1AC4);
+/* Whole-body decode 2026-06-01. best=a1->0x38 (the D+0x1AC4 load is dead code
+ * branched over), bound=D+0x1AC8. Two-level list walk over o->0x10: each entry
+ * has node ptr at +0, next at +4; pick the node with the smallest 0x38 value in
+ * (best, bound). */
+char *gl_func_0003DB3C(char *o, char *a1) {
+    float best = *(float *)(a1 + 0x38);
     float bound = *(float *)((char *)&D_00000000 + 0x1AC8);
     char *r = 0;
-    char *n;
-    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
-        float v = *(float *)(n + 0x38);
+    char *iter = *(char **)(o + 0x10);
+    char *node;
+
+    if (iter != 0) {
+        node = *(char **)iter;
+        iter = *(char **)(iter + 4);
+    } else {
+        node = 0;
+    }
+    while (node != 0) {
+        float v = *(float *)(node + 0x38);
         if (best < v && v < bound) {
-            r = n;
+            r = node;
             bound = v;
+        }
+        if (iter != 0) {
+            node = *(char **)iter;
+            iter = *(char **)(iter + 4);
+        } else {
+            node = 0;
         }
     }
     return r;
