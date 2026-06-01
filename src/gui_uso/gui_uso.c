@@ -1440,12 +1440,65 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00004354);
  * Default INCLUDE_ASM keeps ROM exact. Wrap captures entry signature
  * and TEXRECT shape for the next pass. */
 extern int gl_func_00000000();
-void gui_func_00004568(int *a0, int a1, int a2, int a3, int y_hi) {
-    /* Stub: structural decode of 198-insn TEXRECT DL builder. The
-     * complex coord-packing + dual-cmd DL emit + 2 conditional skips
-     * need multi-pass decode; this NM wrap captures the 5-arg
-     * signature and entry guards as a first-pass anchor. */
-    (void)a0; (void)a1; (void)a2; (void)a3; (void)y_hi;
+/* Whole-body decode 2026-06-01 (was 1.35% stub). 7-arg TEXRECT DL builder.
+ * Main path (a1>=0 && a2>=0): emit 3 RDP cmds — 0xE4 (G_TEXRECT) with
+ * 10.2 fixed-point coords ((a1+a3)<<2 etc, mask 0xfff), 0xB4, 0xB3. Alt path
+ * (a1<0 || a2<0): same cmds but each coord 16-bit-sign-extended then clamped
+ * to >0, plus a multiply-scale on the 0xB4 (approximate). Cmd-emit idiom:
+ * st=ctx->0xc; slot=(ctx->0xc->0)+idx*8; bump st->4. Multi-tick tail. */
+void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) {
+    int *s0 = a0;
+    int *st, *slot, idx;
+
+    if (a1 >= 0 && a2 >= 0) {
+        st = (int *)s0[0xC / 4];
+        idx = st[1];
+        st[1] = idx + 1;
+        slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
+        slot[0] = 0xE4000000 | ((((a1 + a3) << 2) & 0xFFF) << 12) | (((a2 + a4) << 2) & 0xFFF);
+        slot[1] = (((a1 << 2) & 0xFFF) << 12) | ((a2 << 2) & 0xFFF);
+
+        st = (int *)s0[0xC / 4];
+        idx = st[1];
+        st[1] = idx + 1;
+        slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
+        slot[0] = 0xB4000000;
+        slot[1] = 0;
+
+        st = (int *)s0[0xC / 4];
+        idx = st[1];
+        st[1] = idx + 1;
+        slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
+        slot[0] = 0xB3000000;
+        slot[1] = (a5 << 16) | (a6 & 0xFFFF);
+    } else {
+        int x1, y1, x0, y0;
+        x1 = (short)((a1 + a3) << 2); if (x1 <= 0) x1 = 0;
+        y1 = (short)((a2 + a4) << 2); if (y1 <= 0) y1 = 0;
+        x0 = (short)(a1 << 2);        if (x0 <= 0) x0 = 0;
+        y0 = (short)(a2 << 2);        if (y0 <= 0) y0 = 0;
+
+        st = (int *)s0[0xC / 4];
+        idx = st[1];
+        st[1] = idx + 1;
+        slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
+        slot[0] = 0xE4000000 | ((x1 & 0xFFF) << 12) | (y1 & 0xFFF);
+        slot[1] = ((x0 & 0xFFF) << 12) | (y0 & 0xFFF);
+
+        st = (int *)s0[0xC / 4];
+        idx = st[1];
+        st[1] = idx + 1;
+        slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
+        slot[0] = 0xB4000000;
+        slot[1] = 0;
+
+        st = (int *)s0[0xC / 4];
+        idx = st[1];
+        st[1] = idx + 1;
+        slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
+        slot[0] = 0xB3000000;
+        slot[1] = (a5 << 16) | (a6 & 0xFFFF);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00004568);
