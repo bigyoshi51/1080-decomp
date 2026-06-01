@@ -1271,6 +1271,23 @@ void titproc_uso_func_0000240C(char *s0) {
             }
             break;
         case 1:
+            if (*(int *)(*(char **)(s0 + 0x6BC) + 0x3C) == 0 &&
+                gl_func_00000000((char *)&D_00000000, 0x200) != 0) {
+                gl_func_00000000(0x802);
+                gl_func_00000000(*(int *)(s0 + 0x6C0));
+                v1 = *(char **)(s0 + 0x6B4);
+                if (v1 != 0) {
+                    char *vt = *(char **)(v1 + 0x28);
+                    void (*fn)(char *) = *(void (**)(char *))(vt + 0x5C);
+                    short base = *(short *)(vt + 0x58);
+                    if (fn) fn((char *)((int)base + (int)v1));
+                }
+                if (*(int *)(s0 + 0x6B0) != 0) gl_func_00000000(*(int *)(s0 + 0x6B0));
+                *(int *)(s0 + 0x6C4) = 0;
+            } else {
+                gl_func_00000000(*(int *)(s0 + 0x6C0));
+                gl_func_00000000(5);
+            }
             break;
         case 2:
             break;
