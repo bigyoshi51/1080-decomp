@@ -3188,20 +3188,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000887C);
 
-/* Same unfilled-jr-delay `return 0` cap as timproc_uso_b5_func_000087E8:
- * target is `move v0,zero; jr ra; nop`, while IDO fills the delay slot.
- * Keep INCLUDE_ASM as the byte-correct build path.
- *
- * SOURCE=3 RETEST (2026-06-01): next size-sort candidate after 87E8. Boundary
- * is a single 0xC leaf with one `jr ra`; no merge/split opportunity. Same
- * unfilled-delay-slot cap, so C stays NM-only. */
-#ifdef NON_MATCHING
-int timproc_uso_b5_func_00008894(void) {
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008894);
-#endif
+/* timproc_uso_b5_func_00008894 moved to the -O2 -g3 carve-out
+ * timproc_uso_b5_g3_8894.c. It is the same 0xC unfilled-jr-delay return-zero
+ * leaf as timproc_uso_b5_func_000087E8; keeping it in the main TU makes plain
+ * -O2 fill the delay slot (`jr ra; move v0,zero`). */
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088A0);
 

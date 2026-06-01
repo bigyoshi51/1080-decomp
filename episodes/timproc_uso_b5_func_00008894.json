@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00008894",
+  "project": "1080 Snowboarding (USA)",
+  "model": "codex",
+  "start_time": "2026-06-01T04:51:48.968351+00:00",
+  "end_time": "2026-06-01T04:51:48.968370+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-01T04:51:48.968365+00:00",
+      "assistant_text": "Promoted the 0xC unfilled-delay return-zero sibling with the same -O2 -g3 carve-out pattern as timproc_uso_b5_func_000087E8. Removed the main-TU copy, added timproc_uso_b5_g3_8894.c, and extended the block5 splice at original offset 0x8894.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 3,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Mid-block -O2 -g3 carve-out for timproc_uso_b5_func_00008894.\n *\n * Same unfilled-jr-delay return-zero leaf as 000087E8:\n *   move v0,zero / jr ra / nop\n * Plain -O2 fills the delay slot, while -O2 -g3 preserves the unfilled target\n * form. The block5 Makefile rule splices this 0xC-byte sub-unit back at offset\n * 0x8894 after the earlier 1DA4 and 87E8 carve-outs. */\nint timproc_uso_b5_func_00008894(void) {\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5_g3_8894.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00008894.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff-cli reports 100.0 for src/timproc_uso_b5/timproc_uso_b5_g3_8894; refresh-report reports timproc_uso_b5_func_00008894 at 100.0"
+  }
+}
