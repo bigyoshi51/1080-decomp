@@ -589,17 +589,30 @@ void mgrproc_uso_func_0000181C(int a0) {}
 /* Full structural decode 2026-06-01. Per-frame state machine: sub-state
  * gate on s0->0x7D4, a 5-case timer-countdown dispatch on s0->0x7E4 (each
  * decrements the s0->0x7E8 timer and transitions at 0), and a phase-1 init
- * block. All cross-USO calls are the gl_func_00000000 import. */
+ * block. Calls/data refs resolved to their real import/intra-segment
+ * symbols (was gl_func_00000000/&D placeholders). */
+extern int import_000A7B90();
+extern int import_00096228();
+extern int import_000B2888();
+extern char import_80020098;
+extern char import_80020208;
+extern char import_800200D8;
+extern int mgrproc_uso_func_0002DC();
+extern int mgrproc_uso_func_000188();
+extern int mgrproc_uso_func_000148();
+extern int mgrproc_uso_func_01FA1C();
+extern void mgrproc_uso_func_00001AD0(int *, int);
+extern int mgrproc_uso_func_0139B0();
+extern int mgrproc_uso_func_00F954();
 void mgrproc_uso_func_00001824(char *s0) {
     char *v0;
-    char *d = (char *)&D_00000000;
     char *r;
     char *vt;
     int phase;
     int state;
 
-    v0 = (char *)gl_func_00000000(d, 1);
-    gl_func_00000000(*(signed char *)(v0 + 8), *(signed char *)(v0 + 9));
+    v0 = (char *)import_000A7B90(&import_80020098, 1);
+    import_00096228(*(signed char *)(v0 + 8), *(signed char *)(v0 + 9));
     *(int *)(s0 + 0x7EC) = *(int *)(s0 + 0x7EC) + 1;
     phase = *(int *)(s0 + 0x7D4);
     if (phase == 0) {
@@ -609,7 +622,7 @@ void mgrproc_uso_func_00001824(char *s0) {
                 if (--*(int *)(s0 + 0x7E8) == 0) {
                     *(int *)(s0 + 0x7E4) = 1;
                     *(int *)(s0 + 0x7E8) = 1050;
-                    gl_func_00000000(512);
+                    mgrproc_uso_func_0002DC(512);
                 }
             } else if (state == 1) {
                 if (--*(int *)(s0 + 0x7E8) == 0) {
@@ -619,15 +632,15 @@ void mgrproc_uso_func_00001824(char *s0) {
                 if (--*(int *)(s0 + 0x7E8) == 0) {
                     *(int *)(s0 + 0x7E4) = 3;
                     *(int *)(s0 + 0x7E8) = 1650;
-                    gl_func_00000000(13, 0, 0);
-                    gl_func_00000000(13, 0, 0);
+                    mgrproc_uso_func_000188(13, 0, 0);
+                    mgrproc_uso_func_000148(13, 0, 0);
                 }
             } else if (state == 3) {
                 int n;
                 if (--*(int *)(s0 + 0x7E8) == 0) {
                     *(int *)(s0 + 0x7E8) = 300;
                     *(int *)(s0 + 0x7E4) = 4;
-                    gl_func_00000000(512);
+                    mgrproc_uso_func_0002DC(512);
                 }
                 n = *(int *)(s0 + 0x7E0) + 1;
                 if (n >= 16) {
@@ -643,21 +656,21 @@ void mgrproc_uso_func_00001824(char *s0) {
             }
         }
     } else if (phase == 1) {
-        r = (char *)gl_func_00000000(*(int *)(s0 + 0x528));
+        r = (char *)mgrproc_uso_func_01FA1C(*(int *)(s0 + 0x528));
         if (r != 0) {
-            gl_func_00000000(s0);
-            gl_func_00000000(7, 0, 0);
-            gl_func_00000000(s0, *(int *)(d + 368) + 0x26000F);
-            vt = (char *)&D_00000000;
+            import_000B2888(s0);
+            mgrproc_uso_func_000148(7, 0, 0);
+            mgrproc_uso_func_00001AD0(s0, *(int *)(&import_80020208 + 368) + 0x26000F);
+            vt = (char *)&import_80020098;
             *(int *)(s0 + 0x4D8) = 3;
             *(int *)(*(char **)(s0 + 0x524) + 0x60) = 1;
             *(int *)(vt + 0x40) = 5;
             *(int *)(vt + 0x44) = 7;
             *(float *)(s0 + 0x7A4) = 0.0f;
-            gl_func_00000000(*(int *)(vt + 0x190), 1, 1);
+            mgrproc_uso_func_0139B0(*(int *)(vt + 0x190), 1, 1);
         } else {
-            *(int *)(d + 0x40) = 7;
-            gl_func_00000000(s0, 0, 0);
+            *(int *)(&import_800200D8 + 0x40) = 7;
+            mgrproc_uso_func_00F954(s0, 0, 0);
         }
     }
 }
