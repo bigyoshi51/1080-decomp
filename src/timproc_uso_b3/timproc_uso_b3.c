@@ -290,16 +290,28 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
  * get-or-create cascade (alloc self 0x730 / n1 0x6a8 / n2 0x50 / n3 0x2c, dead
  * stage-guards kept via goto-chain, each node->0x28 = vtable via distinct extern
  * to bust the &D address CSE) — NOT the single self-alloc the old body assumed.
- * Cascade now reproduced (frame -0x38, target t6/t7/t8/t9 vtable stores). TBD
- * (multi-tick): the post-cascade field-init block differs from the old tail —
- * target does func(self, a1_home, &D+0x3c0) (not gl(&D,a1,a2)), and the
- * arg-home-spill scheduling + registration-loop &D forms need re-derivation
- * against /tmp/t994.txt (full big-endian objdump of the raw .word target). */
+ * Cascade reproduced (frame -0x38, target t6/t7/t8/t9 vtable stores).
+ * 2026-06-01b (44.91 -> 49.33): post-cascade field-init block corrected —
+ * func(self, a1, &D+0x3c0, a2) (was gl(&D,a1,a2)); added gl(self) call after
+ * self->0x528=a3; sub vtable via distinct extern D_b3_994_v4.
+ * TBD (multi-tick, decoded from /tmp/t994.txt insns ~95-243): a VTABLE-DISPATCH
+ * block sits BETWEEN `D[0x138]=sub` and the registration loop:
+ *   sub->0xb4 = ((self->0x4f0 << 15) < 0) ? 11 : 0;   // bgezl
+ *   gl(sub, self, self->0x568, self->0x528);
+ *   vt = (int*)sub->0x28; ((void(*)(int))vt[0x5c/4])(*(short*)(vt+0x58) + sub); // jalr
+ *   gl(self+0x10, sub);
+ *   if (sub->0x14 != 0) sub->0x4 = 1;  sub->0x14 = self;   // beql
+ *   then a 2nd `self->0x4f0<<15` bgez guards a big block: self->0x48=gl(0);
+ *   gl(self->0x48, self); self->0x48->0x30 = self->0x568; then the reg loop
+ *   (each call re-loads D[0] FRESH = lui;lw;addiu+3;sll;ori — may need a
+ *   distinct-extern per call to bust the D[0] read CSE). Current build 146/243
+ *   insns; frame/self-reg (s0 vs build s1) renumber is a global offset. */
 #ifdef NON_MATCHING
 extern char D_b3_994_v0;
 extern char D_b3_994_v1;
 extern char D_b3_994_v2;
 extern char D_b3_994_v3;
+extern char D_b3_994_v4;
 void *timproc_uso_b3_func_00000994(int *a0, int a1, int a2, int a3) {
     int *self = a0;
     int *n1, *n2, *n3;
@@ -328,14 +340,15 @@ S_n1:
 S_self:
     self[0x28 / 4] = (int)&D_b3_994_v3;
     self[0x568 / 4] = 0;
-    gl_func_00000000(&D_00000000, a1, a2);
+    gl_func_00000000(self, a1, (char *)&D_00000000 + 0x3C0, a2);
     self[0x528 / 4] = a3;
+    gl_func_00000000(self);
     *(float *)&self[0x72C / 4] = 0.0f;
     gl_func_00000000((char *)&D_00000000 + 0x3D0, 0);
     gl_func_00000000(&D_00000000, 0);
     sub = (int *)gl_func_00000000(0xDC);
     if (sub != 0) {
-        sub[0x28 / 4] = (int)&D_00000000;
+        sub[0x28 / 4] = (int)&D_b3_994_v4;
     }
     self[0x6A8 / 4] = (int)sub;
     *(int **)((char *)&D_00000000 + 0x138) = sub;
