@@ -6906,9 +6906,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
  * mov.s f0,f2` — but a constant-0 return copy-propagates to $f0 (probed
  * named-local/volatile/int-store 2026-05-31, all give `mtc1 zero,f0` or a
  * stack ping-pong, never $f2). So the cross-jump can't bootstrap from C as two
- * separate functions; the real fix is a boundary MERGE of 7ABC into 7A98 +
- * emitting the dead-`mtc1`@7ABC epilogue artifact (a future focused boundary
- * tick). Body below is the via-f2 reference (closer than the prior direct-f0). */
+ * separate functions. A combined 7A98+7ABC merge sandbox was already tested and
+ * failed (see docs/MATCHING_WORKFLOW.md cross-function-tail-share unmatchable
+ * standalone note); do not retry the merge path without a genuinely new
+ * mechanism. Body below is the via-f2 reference (closer than the prior
+ * direct-f0). */
 float game_uso_func_00007A98(int *a0) {
     int *v0 = (int *)a0[0x30 / 4];
     int *v1 = (int *)v0[0x908 / 4];
@@ -6933,15 +6935,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
  * slot already set $f2). `return 0.0f` in isolation emits `mtc1 $0,$f0`
  * (direct) — the $f2 form is purely a consequence of IDO's whole-file
  * cross-jump unifying this tail with 7A98's $f2 tail, which C can't bootstrap
- * (see 7A98's note: 7ABC-isolation always copy-propagates to $f0). Real match
- * needs a boundary MERGE into 7A98, not a per-function C body. Kept INCLUDE_ASM
- * (ROM bytes correct). PREFIX_BYTES/INSN_PATCH promotion removed 2026-05-23
- * (match-faking, banned).
+ * (see 7A98's note: 7ABC-isolation always copy-propagates to $f0). A combined
+ * 7A98+7ABC merge was tested and failed; keep this as an honest standalone NM
+ * tail-share cap. Kept INCLUDE_ASM (ROM bytes correct). PREFIX_BYTES/INSN_PATCH
+ * promotion removed 2026-05-23 (match-faking, banned).
  *
  * SOURCE=3 audit 2026-06-01: this is still the first discover-by-size result.
  * report.json shows 58.75% for the isolated NM body, and no jal/reloc/symname
- * caller has appeared. Treat it as a boundary-merge candidate, not a small
- * unstarted function. */
+ * caller has appeared. This is not a small unstarted function; it is the known
+ * cross-tail-share standalone cap. */
 #ifdef NON_MATCHING
 float game_uso_func_00007ABC(void) { return 0.0f; }
 #else
