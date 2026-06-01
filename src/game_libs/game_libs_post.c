@@ -7600,18 +7600,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028A68);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_00028B0C(char *obj, int a1, int a2, int a3, int mode) {
-    char *sub;
-    char *tbl;
-    (void)a1; (void)a2; (void)a3;
-    switch (mode) {
-        case 0:  sub = obj;        tbl = (char *)&D_00000000 + 0x53A8; break;
-        case 1:  sub = obj + 0x10; tbl = (char *)&D_00000000 + 0x5398; break;
-        case 2:  sub = obj + 0x20; tbl = (char *)&D_00000000 + 0x5388; break;
-        case 3:  sub = obj + 0x30; tbl = (char *)&D_00000000 + 0x5378; break;
-        default: sub = obj + 0x40; tbl = (char *)&D_00000000 + 0x5378; break;
+/* Whole-body decode 2026-06-01 (prior body was a single switch, reversed tbls).
+ * Loop over 4 modes s3=0..3: sub=obj+s3*16, tbl=&D+(0x5378+s3*16); drain the
+ * linked list at sub->4 — while head != sub (and != 0): gl(head), gl(tbl, head),
+ * re-read head=sub->4. */
+void gl_func_00028B0C(char *obj) {
+    int s3;
+    char *sub, *tbl, *head;
+
+    for (s3 = 0; s3 != 4; s3++) {
+        switch (s3) {
+        case 0:  sub = obj;        tbl = (char *)&D_00000000 + 0x5378; break;
+        case 1:  sub = obj + 0x10; tbl = (char *)&D_00000000 + 0x5388; break;
+        case 2:  sub = obj + 0x20; tbl = (char *)&D_00000000 + 0x5398; break;
+        case 3:  sub = obj + 0x30; tbl = (char *)&D_00000000 + 0x53A8; break;
+        default: sub = obj + 0x30; tbl = (char *)&D_00000000 + 0x53A8; break;
+        }
+        head = *(char **)(sub + 4);
+        while (head != sub) {
+            if (head == 0) {
+                break;
+            }
+            gl_func_00000000(head);
+            gl_func_00000000(tbl, head);
+            head = *(char **)(sub + 4);
+        }
     }
-    gl_func_00000000(sub, tbl);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028B0C);
