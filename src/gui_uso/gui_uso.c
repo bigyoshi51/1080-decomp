@@ -309,12 +309,16 @@ void gui_func_00000B58(int *a0, int a1, int a2, int a3) {
     int s2 = a1;                /* x position (advances per char) */
     int s3 = a0[0x14 / 4];      /* glyph height/scale */
     int s8 = 0x14;              /* glyph-table stride (20 bytes per entry) */
+    int s5;
 
     v0 = gl_func_00000000(a3);  /* string length */
     if (v0 == 0) return;
     s7 = 0;
     do {
         unsigned char c = *s6;
+        /* s5 = (s3<<10)/s3 (=1024) recomputed each iter at loop top — target
+         * emits the div + break-checks here, not a folded literal. */
+        s5 = (s3 << 10) / s3;
         if (c == ' ') {
             s2 += s1[8 / 4];     /* space-width advance */
         } else {
@@ -325,9 +329,9 @@ void gui_func_00000B58(int *a0, int a1, int a2, int a3) {
             /* RDP cmd 1: 6-arg gl_func (s4 in args, s3, plus 2 stack slots) */
             gl_func_00000000(s1[0x24 / 4], s1[4 / 4], s1[0x18 / 4], s1[0x1C / 4],
                              /* sp+0x10 */ g0, g1, g2, s3, 0);
-            /* RDP cmd 2: glyph render - s2/saved_a2 with s5=1024 scaling */
+            /* RDP cmd 2: glyph render - s2/saved_a2 with s5 scaling */
             gl_func_00000000(s1[0x24 / 4], s2, a2, g2,
-                             /* sp+0x10 */ s3, /*s5=*/1024, /*1024=*/1024);
+                             /* sp+0x10 */ s3, s5, s5);
             s2 += *(int*)((char*)s1[0x20 / 4] + (s4 / s8) * 4 + 8);  /* glyph width advance */
         }
         s6++;
