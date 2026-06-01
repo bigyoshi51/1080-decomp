@@ -9879,7 +9879,7 @@ void gl_func_0002D8D8(void) {
  *
  * Initial pass — entry dispatch + structural TODO only. Default emit
  * remains INCLUDE_ASM. */
-extern int D_2C1BC, D_2C1CC;
+extern int D_2C1BC, D_2C1C0, D_2C1CC;
 
 void gl_func_0002D910(int a0, int a1, int a2, int a3) {
     int mode = *(int*)&D_00000000;
@@ -9900,10 +9900,19 @@ void gl_func_0002D910(int a0, int a1, int a2, int a3) {
             gl_func_00000000(0x06010F00, 0);
             D_2C1CC = 0;
         }
-        /* TODO: rest of edge-detection arm */
     }
-    /* TODO: secondary key (a1) edge-detection + step-counter logic +
-     * 3 more play_sound calls + sl/srl indexing into 32-byte struct */
+    if (D_2C1C0 != a1) {
+        if (D_2C1CC == 1 && a1 == 0) {
+            gl_func_00000000(0x06010F00, 2);
+            D_2C1CC = -1;
+        } else if (a1 == 1) {
+            gl_func_00000000(0x06010F00, 1);
+            D_2C1CC = 1;
+        }
+    }
+    D_2C1BC = a0;
+    D_2C1C0 = a1;
+    /* TODO: step-counter logic + bounds clamp + play_sound (insns 73+) */
     (void)a2;
     (void)a3;
 }
