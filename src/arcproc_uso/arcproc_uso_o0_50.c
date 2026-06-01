@@ -38,6 +38,10 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  *   - `p[1]++` vs `p[1] += 1` - identical
  *   - `return p[1]++ , 0;` comma operator - identical
  *   - `int rv; ... rv = 0; return rv;` - adds spill/reload (worse)
+ *   - 2026-06-01: `ret = 0;` with no final return improves layout to 97.83%
+ *     but stores zero to a dead stack slot instead of returning it; not a
+ *     valid C body. `return ret;` (plain/register) regresses via spill/reload
+ *     or extra s1 save, so no honest route to the merged marker.
  *
  * The dead `b epilogue; nop` appears to be unconditional from C in this
  * shape. Cap-source: IDO -O0 statement-list-end marker that even the
