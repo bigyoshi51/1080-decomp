@@ -1232,7 +1232,43 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7
  * pick a0+312/+288 by v0; X(that); X(.., trunc(255.0*a0->0x168), &..);
  * if (a0->0x68 & 8) X(.., 160, 124, 3). Decode only when the Yay0/-O0
  * pipeline + the chained FPU-prologue pair are tackled together. */
+#ifdef NON_MATCHING
+void mgrproc_uso_func_00002E3C(char *a0) {
+    float rgba[4];
+    char pad[0x18];
+    char *target;
+    int state;
+    int alpha;
+
+    (void)pad;
+    rgba[0] = 0.0f;
+    rgba[1] = 0.0f;
+    rgba[2] = 0.0f;
+    rgba[3] = 0.0f;
+
+    *(int *)(a0 + 0x68) = *(int *)(a0 + 0x68) + 1;
+    state = gl_func_00000000(*(int *)(a0 + 0x50));
+    if (state == 0) {
+        return;
+    }
+
+    if (state == 1) {
+        target = a0 + 0x120;
+    } else {
+        target = a0 + 0x138;
+    }
+
+    gl_func_00000000(target);
+    alpha = (int)(*(float *)(a0 + 0x168) * 255.0f);
+    gl_func_00000000(target, alpha, rgba, 0xFF);
+
+    if ((*(int *)(a0 + 0x68) & 8) != 0) {
+        gl_func_00000000(target, 0xA0, 0x7C, 3);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3C);
+#endif
 
 /* mgrproc_uso_func_00002EF0 (0x20, no prologue/no jr): the 8-insn stolen
  * FPU-const prologue of the successor mgrproc_uso_func_00002F10 — lui/mtc1
