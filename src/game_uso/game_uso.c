@@ -9496,35 +9496,31 @@ void game_uso_func_0000B498(char *a0) {
 //   skeleton (terrain/height-map lookup; snowboard ground
 //   sampling). Byte-match deferred. Name pre-checked: no extern
 //   reuse.
+extern short game_uso_D_807FF2B4[];
 #ifdef NON_MATCHING
-float game_uso_func_0000B4B8(char *obj) {
+/* Re-decoded 2026-06-01 (prior bilinear-interp body was a total fabrication,
+ * 0%). Counts how many neighbor cells (offsets from the {dy,dx} short table
+ * game_uso_D_807FF2B4) hold the 0xFFFC sentinel in the height/collision grid
+ * (data = (D->0x240->0x148)->0xF0; dims grid->0xB8/0xBC). Returns the count. */
+int game_uso_func_0000B4B8(char *obj) {
     char *c = *(char **)((char *)&D_00000000 + 0x240);
-    int W = *(int *)(obj + 0xD0);
-    int H = *(int *)(obj + 0xD4);
-    unsigned short *grid = *(unsigned short **)(obj + 0xD8);
-    int x = *(int *)(c + 0x148);
-    int y = *(int *)(c + 0xB8);
+    char *grid = *(char **)(obj + 0xD8);
+    unsigned short *data = *(unsigned short **)(*(char **)(c + 0x148) + 0xF0);
+    short *tbl = game_uso_D_807FF2B4;
+    int y = *(int *)(obj + 0xD4);
+    int x = *(int *)(obj + 0xD0);
+    int w = *(int *)(grid + 0xB8);
+    int h = *(int *)(grid + 0xBC);
+    int count = 0;
+    int i;
     int idx;
-    float u, v;
-    float c00, c01, c10, c11;
-    float r;
-    if (x < 0 || x >= W || y < 0 || y >= H) {
-        *(float *)(obj + 0xCC) = 0.0f;
-        return 0.0f;
+    for (i = 0; i < 9; i++) {
+        idx = (y + tbl[2 * i]) * w + x + tbl[2 * i + 1];
+        if (idx > 0 && idx < w * h && data[idx] == 0xFFFC) {
+            count++;
+        }
     }
-    idx = y * W + x;
-    c00 = (float)grid[idx];
-    c01 = (float)grid[idx + 1];
-    c10 = (float)grid[idx + W];
-    c11 = (float)grid[idx + W + 1];
-    u = *(float *)(obj + 0xB8);
-    v = *(float *)(obj + 0xBC);
-    r = c00 * (1.0f - u) * (1.0f - v)
-      + c01 * u         * (1.0f - v)
-      + c10 * (1.0f - u) * v
-      + c11 * u         * v;
-    *(float *)(obj + 0xCC) = r;
-    return r;
+    return count;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B4B8);
