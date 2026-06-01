@@ -104,7 +104,48 @@ void gl_func_0000975C(Quad4 *dst) {
 
 /* 0x97B4..0x9DB8 gap moved here from truncated game_libs.c on 2026-05-21. */
 
+/* game_libs_func_000097B4: checksum-pair writer. out spilled to sp+0; sum the
+ * len/4 words at src; out[0]=0xF251F205-sum; out[1]=a3-(out[0]-sum). IDO unrolls
+ * the word-sum x4 with an (count&3) remainder pre-loop. 47.84% (logic correct,
+ * loop-body insn order + spill diverge) — permuter target. */
+#ifdef NON_MATCHING
+void game_libs_func_000097B4(int *out, int *src, int len, int a3) {
+    int count = len / 4;
+    int sum = 0;
+    int i = 0;
+    int rem;
+    int chk;
+    if (count > 0) {
+        rem = count & 3;
+        if (rem != 0) {
+            do {
+                sum += *src;
+                i++;
+                src++;
+            } while (rem != i);
+        }
+        if (i != count) {
+            do {
+                int a = src[0];
+                int b = src[1];
+                int c = src[2];
+                int d = src[3];
+                src += 4;
+                sum += a;
+                i += 4;
+                sum += b;
+                sum += c;
+                sum += d;
+            } while (i != count);
+        }
+    }
+    chk = 0xF251F205 - sum;
+    out[0] = chk;
+    out[1] = a3 - (chk - sum);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
 
