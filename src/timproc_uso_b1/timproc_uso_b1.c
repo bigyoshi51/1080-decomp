@@ -1050,7 +1050,18 @@ void timproc_uso_b1_func_000024F4(int a0) {
  * REMOVED 2026-05-23 as match-faking per
  * feedback_no_instruction_forcing_matches_policy — fn rolled back to NM-wrap;
  * NATURAL CEILING (fixed-register diffs stay NM). docs/POST_CC_RECIPES.md
- * is DEPRECATED. */
+ * is DEPRECATED.
+ *
+ * 2026-05-31 MIGRATION-VALUE NOTE: this fn is the canonical MIXED-cap case —
+ * 7 real diffs = 2 reloc-blind (`sw $8,0x208($1)`/`sw $6,0x20C($1)`: the
+ * D_b1_2740_g208/g20C scalar %lo stores expected bakes but C-emit relocs,
+ * NOT C-bakeable per MATCHING_WORKFLOW#addend-only-folds-in-addiu) PLUS 5
+ * register-renumber/operand-order ($2/$3, addu $2+$15 vs $15+$2). So the
+ * USO-reloc migration would only DROP the 2 reloc diffs (98.9%->~99.x), NOT
+ * land it — the register caps remain. General finding: near-100 USO fns are
+ * typically mixed reloc-blind + regalloc, so the migration helps only fns
+ * whose SOLE residual is reloc-blind; it does not credit the mixed near-100
+ * band. C here is already CORRECT (right symbols); nothing to fix in C. */
 extern int D_b1_2740_g208;
 extern int D_b1_2740_g20C;
 #ifdef NON_MATCHING
