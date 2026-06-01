@@ -187,6 +187,15 @@ void timproc_uso_b1_func_0000090C(Vec3 *dst) {
 /* timproc_uso_b1_func_0000097C — 232-insn manager get-or-create + register.
  * This is a SIBLING of timproc_uso_b3_func_00000994 (same constructor in a
  * different USO; sub-node alloc is 0xE0 here vs 0xDC there, else near-identical).
+ *
+ * FRAME-SIZE IS NOT SCORED (confirmed 2026-06-01): removing 3 dead locals shrank
+ * the build frame -0x48 -> -0x40 (toward target -0x38) with ZERO change to the
+ * fuzzy (59.71552 both ways). objdiff NORMALIZES sp-relative offsets, so the
+ * whole family's "frame -0x40 vs -0x38 / extra cascade spill slot" residual is a
+ * RED HERRING for the metric — the real 60-74% residual across 994/097C/titproc/
+ * h2hproc is REGISTER ALLOCATION (which-reg, not which-slot), the documented
+ * register-renumber cap. Don't chase the frame; chase the register diffs (per-fn,
+ * or accept the cap). Dead locals removed for hygiene (smaller frame, cleaner).
  * 2026-06-01 (31.97 -> 59.71): ported 994's corrected structure block-by-block
  * (build-gated each step per docs/MATCHING_WORKFLOW.md incremental method):
  *   cascade  37.43 (5-stage goto-chain + distinct externs D_b1_097C_v0..3)
@@ -208,9 +217,6 @@ int timproc_uso_b1_func_0000097C(int *a0, int a1, int a2, int a3) {
     int *s0 = a0;
     int *n1, *n2, *n3;
     int *h;
-    int child;
-    int prev;
-    int idbase;
 
     /* 5-stage get-or-create cascade (ported from sibling timproc_uso_b3_func_
      * 00000994): alloc self(0x730)/n1(0x6a8)/n2(0x50)/n3(0x2c); dead stage-guards
@@ -285,9 +291,6 @@ S_self:
         *(int *)((char *)s0[0x48 / 4] + 0x14) = (int)s0;
     }
 
-    (void)child;
-    (void)prev;
-    (void)idbase;
     return (int)s0;
 }
 #else
