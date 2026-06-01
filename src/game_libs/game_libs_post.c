@@ -10468,7 +10468,14 @@ int game_libs_func_0002E328(void) { return 10; }
  *   bnel a1,zero,-0xA4; slti at,a1,0x21; move v0,zero; jr ra; nop
  * Caller-set $v0/$a1 + backward branch to 0x2E2A0 (before .s start
  * 0x2E330). Splat captured loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
+ * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
+ *
+ * SOURCE=2 AUDIT (2026-06-01): immediate decode confirms the branch target:
+ * 0x2E340 + 4 + signext(0xFFD7)*4 = 0x2E2A0, inside the selector body at
+ * game_libs_func_0002E290. The incoming `$v0` mask and `$a1` selector are
+ * live-in registers set by that caller path. This is not a standalone C
+ * function and cannot be merged contiguously without swallowing the valid
+ * return-value leaves at 2E2F8..2E328. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
 
 // gl_func_0002E354 — STRUCTURAL PASS (0xF34 / 973 words ≈ 3.9KB, no
