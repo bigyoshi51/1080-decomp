@@ -20640,29 +20640,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DE48);
 //   extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
-char *gl_func_0003DF5C(char *a0, char *a1, char *a2_stop) {
-    float ref = a1 ? *(float *)(a1 + 0x64) : *(float *)((char *)&D_00000000 + 0x1AD0);
-    float lim = *(float *)((char *)&D_00000000 + 0x1AD4);
+/* Whole-body decode 2026-06-01 (prior body had one-level walk + wrong cond/update).
+ * Two passes over the a0->0x38 list of {node@0, next@4} entries. Pass 1 (only if
+ * the list is non-empty): track the node with max 0x64 value in (lim1, ref1).
+ * Pass 2: track min 0x64 in (ref2, lim2). Both update lim (not ref). Returns the
+ * shared best. ref = a1->0x64 or a &D default; the four &D bounds differ per pass. */
+char *gl_func_0003DF5C(char *a0, char *a1) {
     char *best = 0;
-    char *n;
-    for (n = *(char **)(a0 + 0x38); n != 0; n = *(char **)(n + 0x04)) {
-        float v;
-        if (n == a2_stop) break;
-        v = *(float *)(n + 0x64);
-        if (v < ref && v < lim) {
-            best = n;
-            ref = v;
+    char *iter, *node;
+    float ref, lim, v;
+
+    iter = *(char **)(a0 + 0x38);
+    if (iter != 0) {
+        ref = a1 ? *(float *)(a1 + 0x64) : *(float *)((char *)&D_00000000 + 0x1AD0);
+        lim = *(float *)((char *)&D_00000000 + 0x1AD4);
+        node = *(char **)iter;
+        iter = *(char **)(iter + 4);
+        while (node != 0) {
+            v = *(float *)(node + 0x64);
+            if (v < ref && lim < v) {
+                best = node;
+                lim = v;
+            }
+            if (iter != 0) {
+                node = *(char **)iter;
+                iter = *(char **)(iter + 4);
+            } else {
+                node = 0;
+            }
         }
     }
     ref = a1 ? *(float *)(a1 + 0x64) : *(float *)((char *)&D_00000000 + 0x1AD8);
     lim = *(float *)((char *)&D_00000000 + 0x1ADC);
-    for (n = *(char **)(a0 + 0x38); n != 0; n = *(char **)(n + 0x04)) {
-        float v;
-        if (n == a2_stop) break;
-        v = *(float *)(n + 0x64);
-        if (v < ref && v < lim) {
-            best = n;
-            ref = v;
+    iter = *(char **)(a0 + 0x38);
+    if (iter != 0) {
+        node = *(char **)iter;
+        iter = *(char **)(iter + 4);
+    } else {
+        node = 0;
+    }
+    while (node != 0) {
+        v = *(float *)(node + 0x64);
+        if (ref < v && v < lim) {
+            best = node;
+            lim = v;
+        }
+        if (iter != 0) {
+            node = *(char **)iter;
+            iter = *(char **)(iter + 4);
+        } else {
+            node = 0;
         }
     }
     return best;
