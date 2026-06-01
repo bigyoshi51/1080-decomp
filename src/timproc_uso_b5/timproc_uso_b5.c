@@ -3193,6 +3193,13 @@ int timproc_uso_b5_func_00008844(int t0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008844);
 #endif
 
+/* timproc_uso_b5_func_00008854 (+ 8908/8920/8930/8988 cluster): chained
+ * fall-through flag dispatch that splat mis-split into separate symbols. Each
+ * leaf does `v0 = a0->0x3C0; if (v0 & BIT) return 2; else <falls into the next
+ * symbol>` — the beq/beql targets land in the SUCCESSOR function's body (e.g.
+ * 8854's `beq t1,zero,886C`). CROSS-FN SHARED-EPILOGUE CAP class (same as the
+ * game_libs 0x99xx leaf-branch-past-end cluster): unmatchable standalone since
+ * the branch destination is a linker-set offset into the next function. Skip. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008854);
 
 #ifdef NON_MATCHING
