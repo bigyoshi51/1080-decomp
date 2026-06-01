@@ -2088,29 +2088,52 @@ int gl_func_000208BC(int a0, int a1, int a2) {
 //   extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int D_00000000;
-void gl_func_00020914(int mode, void *target) {
+/* Whole-body decode 2026-06-01 (prior body was wrong float math). int
+ * record-lookup: select a per-mode descriptor base (D+0x21F8/0x2308/0x2418),
+ * v1 = base+0xD4. flag==0: probe v1->0x1E (set v1->0=1, return v1->0x14) or
+ * v1->0x2A (set v1->0=0, return v1->0x20), else 0. flag!=0: scan base[count]
+ * records (stride 12) for key==rec->0x1E returning rec->0x14; on miss, if
+ * flag==2 call gl(mode,0) and return 0. */
+int gl_func_00020914(int mode, int flag, int key) {
     char *D = (char *)&D_00000000;
-    char *desc;
-    char *rec;
-    if (mode == 0) {
-        desc = D + 0x21F8;
-    } else if (mode == 1) {
-        desc = D + 0x2308;
-    } else if (mode == 2) {
-        desc = D + 0x2418;
-    } else {
-        desc = D + 0x21F8;
+    char *base;
+    char *v1;
+    char *uninit;
+    int v0;
+
+    switch (mode) {
+    case 0:  base = D + 0x21F8; break;
+    case 1:  base = D + 0x2308; break;
+    case 2:  base = D + 0x2418; break;
+    default: base = uninit;     break;  /* target reads an uninit sp slot here */
     }
-    rec = desc + 0xD4;
-    if (target == 0) {
-        float f;
-        if (*(int *)(rec + 0) == 0) {
-            *(int *)(rec + 0) = 1;
+    v1 = base + 0xD4;
+    if (flag == 0) {
+        if (key == *(short *)(v1 + 0x1E)) {
+            *(int *)v1 = 1;
+            return *(int *)(v1 + 0x14);
         }
-        f = *(float *)(D + 0xE78);
-        *(float *)(rec + 0x14) = f * *(short *)(rec + 0x1E);
-        *(short *)(rec + 0x2A) = (short)*(int *)(rec + 0x20);
+        if (key == *(short *)(v1 + 0x2A)) {
+            *(int *)v1 = 0;
+            return *(int *)(v1 + 0x20);
+        }
+        return 0;
     }
+    v0 = 0;
+    if (*(int *)base != 0) {
+        v1 = base;
+        do {
+            if (key == *(short *)(v1 + 0x1E)) {
+                return *(int *)(v1 + 0x14);
+            }
+            v0++;
+            v1 += 12;
+        } while ((unsigned)v0 < (unsigned)*(int *)base);
+    }
+    if (flag == 2) {
+        gl_func_00000000(mode, 0);
+    }
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
