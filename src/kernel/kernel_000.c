@@ -151,7 +151,11 @@ extern s32 D_80012D5C;
  * 2026-06-01 retest #5 — explicit `ret = v; __asm__(""); if (...) return`
  *   barrier is invalid for this IDO/asm-processor path: empty `__asm__` emits
  *   a real jal to `__asm__`, adds a frame/spills, and drops this function to
- *   29.04%. Do not use the asm-barrier lever here. */
+ *   29.04%. Do not use the asm-barrier lever here.
+ *
+ * 2026-06-01 retest #6 — GCC-style explicit register locals for the target
+ *   `$t9/$t1/$t3` allocation, e.g. `register u32 new_top asm("$25");`, are not
+ *   accepted by IDO cfe (`Syntax Error` at `asm`). This lever is unavailable. */
 #ifdef NON_MATCHING
 u32 func_800000B0(u32 size, u32 alignment) {
     u32 v;  /* reused: mask, then the returned heap ptr — shares $v0 like target */
