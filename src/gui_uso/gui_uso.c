@@ -868,6 +868,7 @@ void gui_func_0000271C(char *a0) {
  * signed (lh, not lhu).
  *
  * 220+ insns of body still TODO. Default INCLUDE_ASM keeps ROM exact. */
+extern int D_27A0_fn1032, D_27A0_fn272, D_27A0_fn288, D_27A0_fndef;
 void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
     int *p;
     int a1_h;
@@ -900,9 +901,43 @@ void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
             slot[1] = (int)0x80008000;
         }
     }
-    /* TODO: ~200-insn body — scissor-mode switch (a0->0x10->0x24) + glyph
-     * DL emit loop for the adjusted (a1, a2) coordinates. */
-    (void)a0; (void)a1; (void)a2;
+    {
+        int *gctx = *(int **)&D_00000000;
+        int *a3v = (int *)a0[0x10 / 4];
+        int mode = a3v[0x24 / 4];
+        int (*render_fn)();
+        int v1, w, h;
+        if (mode == 1032) { v1 = 4096; render_fn = (int (*)())&D_27A0_fn1032; }
+        else if (mode == 272) { v1 = 2048; render_fn = (int (*)())&D_27A0_fn272; }
+        else if (mode == 288) { v1 = 1024; render_fn = (int (*)())&D_27A0_fn288; }
+        else { v1 = 2048; render_fn = (int (*)())&D_27A0_fndef; }
+        w = *(short *)((char *)a3v + 0x20);
+        h = *(short *)((char *)a3v + 0x22);
+        if (v1 >= w * h) {
+            render_fn((*gctx), a3v[8 / 4], w, h, 0, 0, w, h, 0);
+            gl_func_00000000((*gctx), a1, a2, w, h, (w << 10) / w, (h << 10) / h);
+        } else {
+            int cols = v1 / h;
+            int s1 = gl_func_00000000();
+            int s0 = w;
+            int s4 = (h << 10) / h;
+            if (w != 0) {
+                while (s1 < s0) {
+                    int s3 = (s1 << 10) / s1;
+                    render_fn((*gctx), a1, a2, s1, h, s1, 0, 0);
+                    gl_func_00000000((*gctx), a1, a2, s1, h, s3, s4);
+                    a1 += s1;
+                    s0 -= s1;
+                    s1 = cols;
+                }
+                if (s0 != 0) {
+                    int t8 = (s0 << 10) / s0;
+                    render_fn((*gctx), a1, a2, s0, h, s0, 0, 0);
+                    gl_func_00000000((*gctx), a1, a2, s0, h, t8, s4);
+                }
+            }
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
