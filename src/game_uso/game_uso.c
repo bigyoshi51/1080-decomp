@@ -232,17 +232,29 @@ void game_uso_func_0000039C(Quad4 *dst) {
  * that returns 0.0, or compiler-arranged via inline expansion). Plain C
  * `0.0f` literals would emit `mtc1 $zero, $fX` instead.
  *
- * Codegen pattern per Vec3 assignment (4 Vec3 writes total): build literal
- * on stack scratch (sp+0x54 / 0x48 / 0x3C / 0x30), memcpy via int regs to
- * sp+0xC, then load floats from sp+0xC and store to a0+offset. This
- * double-copy is what IDO emits for `*p = (Vec3){...}` struct-literal
- * assignment. Multi-tick decomp: matching the FPU/scheduling exactly is
- * a register-renaming grind on top of the $f0 quirk. Stub body so the wrap
- * parses; default build uses INCLUDE_ASM. */
+ * Codegen pattern per Vec3 assignment (4 Vec3 writes total): build scalar
+ * locals on stack scratch, copy via int regs, then store to a0+offset.
+ * 2026-06-01: Replaced the old struct-literal form (IDO used .data constant
+ * copies, 21.32%) with scalar-initialized local Vec3s (27.36%). Explicit
+ * `tmp` copy-through-temp regressed to 16.49%; an uninitialized `float z`
+ * to model entry-$f0 scored only 27.38% and would be undefined C, so it was
+ * rejected. Remaining gap is target's caller-arranged $f0 zero source and
+ * deeper stack double-copy scheduling, not the high-level field map. Default
+ * build still uses INCLUDE_ASM. */
 void game_uso_func_000003F8(void *a0) {
-    Vec3 zero = {0.0f, 0.0f, 0.0f};
-    Vec3 fwd  = {0.0f, 0.0f, -1000.0f};
-    Vec3 up   = {0.0f, 1.0f, 0.0f};
+    Vec3 zero;
+    Vec3 fwd;
+    Vec3 up;
+
+    zero.x = 0.0f;
+    zero.y = 0.0f;
+    zero.z = 0.0f;
+    fwd.x = 0.0f;
+    fwd.y = 0.0f;
+    fwd.z = -1000.0f;
+    up.x = 0.0f;
+    up.y = 1.0f;
+    up.z = 0.0f;
     *(Vec3 *)((char *)a0 + 0x00) = zero;
     *(Vec3 *)((char *)a0 + 0x0C) = fwd;
     *(Vec3 *)((char *)a0 + 0x18) = up;
