@@ -3751,24 +3751,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000230D0);
 //   never-defined USO placeholder.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
-int gl_func_000231B4(int handle, int depth) {
+/* Whole-body decode 2026-06-01. depth>=0x7F: only depth==0x7F does work
+ * (n=gl(handle,a2); gl_3773c(n->4,handle)); else return 0. depth<0x7F:
+ * n=gl(handle); if(!n) return -1; if n->1!=0 gl_3773c(n->8,handle); always
+ * gl_3773c(n->0x10,handle); if n->2!=0x7F gl_3773c(n->0x18,handle). The prior
+ * body had the n->1 branch backwards and used the placeholder for 0x3773c. */
+extern int gl_func_0003773C();
+int gl_func_000231B4(int handle, int depth, int a2) {
     int *n;
-    if (depth >= 0x7F) {
+    if (depth < 0x7F) {
+        n = (int *)gl_func_00000000(handle);
+        if (n == 0) {
+            return -1;
+        }
+        if (*((unsigned char *)n + 1) != 0) {
+            gl_func_0003773C(n[8 / 4], handle);
+        }
+        gl_func_0003773C(n[0x10 / 4], handle);
+        if (*((unsigned char *)n + 2) != 0x7F) {
+            gl_func_0003773C(n[0x18 / 4], handle);
+        }
         return 0;
     }
-    n = (int *)gl_func_00000000(handle);
+    if (depth != 0x7F) {
+        return 0;
+    }
+    n = (int *)gl_func_00000000(handle, a2);
     if (n == 0) {
         return -1;
     }
-    if (*((unsigned char *)n + 1) == 0) {
-        gl_func_00000000(n[0x10 / 4], handle);
-        gl_func_00000000(n[0x10 / 4], handle);
-    } else {
-        gl_func_00000000(n[8 / 4], handle);
-    }
-    if (*((unsigned char *)n + 2) != 0x7F) {
-        gl_func_00000000(n[0x18 / 4], handle);
-    }
+    gl_func_0003773C(n[4 / 4], handle);
     return 0;
 }
 #else
