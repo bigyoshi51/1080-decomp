@@ -189,10 +189,14 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000006B8);
  * mid-function prologue (a dual-entry / fall-through-into-prologue shape).
  * MERGE-SAFETY (2026-05-30): no static C or asm reference to gui_func_00000918 /
  * 0x918 exists, so a boundary merge into a single 0x298-byte unit is byte-safe AND
- * would let the body be decoded with `a0` as the real arg. NOT merged yet: the
- * fall-through-into-prologue could mean 0x918 is also an independent API entry
- * (called via a runtime-relocated table, invisible to a static grep); verify the
- * original doesn't dispatch 0x918 separately before collapsing the two labels. */
+ * would let the body be decoded with `a0` as the real arg.
+ *
+ * SOURCE=4 AUDIT (2026-06-01): kept split. 0x8C0 has 0 `jr ra` insns, and
+ * `scripts/find-misplit-pairs.py gui_uso --max-insn 220` still reports 0 closed
+ * groups. A fresh static search found no current source/asm callers of 0x918
+ * beyond this note and the preserved INCLUDE_ASM, but report/episode snapshots
+ * are not runtime dispatch proof. Do not merge until the USO symbol/export table
+ * proves 0x918 is not also an independent runtime entry. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000008C0);
 
 #ifdef NON_MATCHING
