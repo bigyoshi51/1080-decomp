@@ -1100,7 +1100,93 @@ void timproc_uso_b1_func_000021BC(void) {}
 void timproc_uso_b1_func_000021C4(void) {}
 void timproc_uso_b1_func_000021CC(void) {}
 
+#ifdef NON_MATCHING
+/* Full structural decode 2026-06-01. Constructor: 3-stage find-or-create
+ * cascade (sizes 0x6C/0x50/0x2C, all collapse to obj since arg!=0), vtable
+ * wiring (->0x28 = &D, ->0xC = &D+0x4C0), 7 config calls (((D[0]+3)<<16)|N
+ * for N in {1,6,7,4,3,2,5}), a 6-arg setup call, an indirect vtable call,
+ * a PI-domain region check (0xA0000184/0x200 vs 0xAC29), and field init.
+ * All cross-USO calls are the gl_func_00000000 import. */
+void *timproc_uso_b1_func_000021D4(char *obj) {
+    char *d = (char *)&D_00000000;
+    char *o1, *o2;
+    char *rec;
+    char *vt;
+    char *d190;
+
+    if (obj != 0) goto have0;
+    obj = (char *)gl_func_00000000(0x6C);
+    if (obj == 0) goto Ret;
+have0:
+    o1 = obj;
+    if (obj != 0) goto have1;
+    o1 = (char *)gl_func_00000000(0x50);
+    if (o1 == 0) goto Svt0;
+have1:
+    o2 = o1;
+    if (o1 != 0) goto have2;
+    o2 = (char *)gl_func_00000000(0x2C);
+    if (o2 == 0) goto Svt1;
+have2:
+    gl_func_00000000(o2, d + 0x4B8);
+    *(int *)(o2 + 0x28) = (int)d;
+Svt1:
+    *(int *)(o1 + 0x28) = (int)d;
+Svt0:
+    *(int *)(obj + 0x28) = (int)d;
+    *(int *)(obj + 0xC) = (int)(d + 0x4C0);
+
+    gl_func_00000000(obj);
+    *(int *)(obj + 0x60) = 0x78;
+    *(int *)(obj + 0x64) = 0xA1;
+    *(int *)(obj + 0x68) = 0xBF;
+    *(int *)(obj + 0x48) = gl_func_00000000(0);
+    gl_func_00000000(*(int *)(obj + 0x48), obj);
+
+    gl_func_00000000(*(int *)(obj + 0x48), ((*(int *)d + 3) << 16) | 1, -1, d);
+    gl_func_00000000(*(int *)(obj + 0x48), ((*(int *)d + 3) << 16) | 6, -1, d);
+    gl_func_00000000(*(int *)(obj + 0x48), ((*(int *)d + 3) << 16) | 7, -1, d);
+    gl_func_00000000(*(int *)(obj + 0x48), ((*(int *)d + 3) << 16) | 4, -1, d);
+    gl_func_00000000(*(int *)(obj + 0x48), ((*(int *)d + 3) << 16) | 3, -1, d);
+    gl_func_00000000(*(int *)(obj + 0x48), ((*(int *)d + 3) << 16) | 2, -1, d);
+    gl_func_00000000(*(int *)(obj + 0x48), ((*(int *)d + 3) << 16) | 5, -1, d);
+
+    *(int *)(*(int *)(obj + 0x48) + 0x30) =
+        gl_func_00000000(0, d, 0x48, 0xDD, 3, 0xD);
+    gl_func_00000000(*(int *)(obj + 0x48));
+    gl_func_00000000(*(int *)(obj + 0x48), 0x8C);
+
+    vt = *(char **)(*(char **)(obj + 0x48) + 0x28);
+    ((void (*)(int))(*(int *)(vt + 0x5C)))(*(unsigned short *)(vt + 0x58) + *(int *)(obj + 0x48));
+
+    rec = (char *)gl_func_00000000(obj + 0x10, *(int *)(obj + 0x48));
+    if (*(int *)(rec + 0x14) != 0) {
+        *(int *)(rec + 0x4) = 1;
+    }
+    *(int *)(rec + 0x14) = (int)obj;
+    if (*(int *)0xA0000184 != 0) {
+        if (*(int *)0xA0000200 != 0xAC290000) {
+            *(int *)(*(char **)(obj + 0x48) + 0xD8) = 0;
+        }
+    }
+    d190 = *(char **)(d + 0x190);
+    gl_func_00000000(d190);
+    if (*(int *)(d190 + 0x14) != 0) {
+        *(int *)(d190 + 0x4) = 1;
+    }
+    *(int *)(d190 + 0x14) = (int)obj;
+    gl_func_00000000(*(int *)(d + 0x190), 1, 0);
+
+    *(int *)(obj + 0x54) = 0;
+    *(int *)(obj + 0x50) = 0;
+    *(int *)(obj + 0x30) = 1;
+    *(int *)(obj + 0x2C) = 0;
+Ret:
+    return obj;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000021D4);
+#endif
 
 /* timproc_uso_b1_func_000024F4: GBI command emitter (8x 0x260000|(D<<3)+N etc).
  * The 0x260000-series `or a1, s1, tN` wants the hoisted constant (s1) as rs;
