@@ -602,73 +602,65 @@ int arcproc_uso_func_00000F78(int *a0) {
  * Initial decode 2026-05-05 — first-pass NM. ~80 insns of body (cases
  * 0/1/4) sketched as TODO; full decode requires multiple passes. */
 extern int gl_func_00000000();
+/* Whole-body decode 2026-06-01. State dispatch on s0 = a0->0x504 (beql/beq
+ * order 0,1,4). The prior pass mis-mapped the cases: what it labeled "case 1"
+ * (gl(D[0x190],3,1); 0x504=1) is actually case 0's TAIL, and the real case 1
+ * (s0==1) is a ~40-insn list-registration block. Search loop in case 0 breaks
+ * when a0->0x6B0 (updated by the callee) diverges from list->0x1C. */
 void arcproc_uso_func_00000FA8(char *a0) {
     int s0 = *(int*)(a0 + 0x504);
     char *s1 = a0;
-    int *list, *iter;
-    int count, i;
 
     if (s0 == 0) {
-        /* case 0 @ 0xFEC-0x1048 (24 insns): traverse list at
-         * a0->[0x6AC], looking for an entry whose [0x1C] matches
-         * a0->[0x528]. Loop counter starts at list->[0x44]->[0x40]-1.
-         *
-         * Decoded asm shape:
-         *   list = a0->[0x6AC];
-         *   a0->[0x6B0] = list->[0x44]->[0x14];
-         *   count = list->[0x44]->[0x40];
-         *   a0->[0x6B4] = count;
-         *   for (i = count - 1; i >= 0; i--) {
-         *       t0 = a0->[0x528];
-         *       gl_func_00000000(t0->[0x4], i, ...);  // cross-USO
-         *       p = a0->[0x6B0];
-         *       if (p->[0x1C] == t0) break;          // bnel exit
-         *       a0->[0x6B4] = a0->[0x6B4] - 1;
-         *   }
-         *   a0->[0x4D8] = 1;
-         *   goto end;
-         */
-        list = (int*)*(int**)(s1 + 0x6AC);
+        int *list = *(int**)(s1 + 0x6AC);
+        int count, i;
         *(int*)(s1 + 0x6B0) = *(int*)(*(char**)((char*)list + 0x44) + 0x14);
         count = *(int*)(*(char**)((char*)list + 0x44) + 0x40);
-        *(int*)(s1 + 0x6B4) = count;
-        for (i = count - 1; i >= 0; i--) {
-            char *t0 = *(char**)(s1 + 0x528);
-            gl_func_00000000(*(int*)(t0 + 0x4), i);
-            iter = *(int**)(s1 + 0x6B0);
-            if (*(int**)((char*)iter + 0x1C) == (int*)t0) break;
-            *(int*)(s1 + 0x6B4) = *(int*)(s1 + 0x6B4) - 1;
+        i = count - 1;
+        if (i >= 0) {
+            *(int*)(s1 + 0x6B4) = count;
+            do {
+                char *t0 = *(char**)(s1 + 0x528);
+                gl_func_00000000(*(int*)(t0 + 0x4), i);
+                if (*(int*)(s1 + 0x6B0) != *(int*)((char*)list + 0x1C)) break;
+                *(int*)(s1 + 0x6B4) = *(int*)(s1 + 0x6B4) - 1;
+                i--;
+            } while (i >= 0);
         }
         *(int*)(s1 + 0x4D8) = 1;
-        return;
-    }
-    if (s0 == 1) {
-        /* case 1 @ 0x1058-0x1074 (8 insns): state-1 transition.
-         *   gl_func_00000000(D[0x190], 3, 1);
-         *   a0->[0x504] = 1;  (store in delay slot of `b end`)
-         *   goto end;
-         * Decoded 2026-05-08 from .s file. */
+        gl_func_00000000(7, 0, 0);
         gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3, 1);
         *(int*)(s1 + 0x504) = 1;
         return;
     }
-    if (s0 == 4) {
-        /* case 4 @ 0x1078-0x115C (~57 insns): state-4 setup.
-         * Builds an sp+0x20 buffer, makes 6+ cross-USO calls
-         * (sequence numbers + table indices), updates a0->[0x504],
-         * a0->[0x524], and various sub-fields.
-         *
-         * Decoded entry:
-         *   v0 = a0->[0x6A8];   // delay-likely loaded shortcut
-         *   t8 = v0->[0x190];
-         *   if (t8 != 0) ...
-         *
-         * Full decode TBD — multi-tick refinement target. */
-        int *p = *(int**)(s1 + 0x6A8);
-        (void)p;
+    if (s0 == 1) {
+        int v0;
+        char *node, *buf;
+        if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) == 0) return;
+        gl_func_00000000(s1);
+        gl_func_00000000(&D_00000000);
+        gl_func_00000000(s1);
+        gl_func_00000000(7, 0, 0);
+        gl_func_00000000(s1, *(int*)((char*)&D_00000000 + 0x170) + 0x26000F);
+        v0 = gl_func_00000000(0, s1, 0);
+        *(int*)(s1 + 0x524) = v0;
+        gl_func_00000000(v0, *(int*)(s1 + 0x528));
+        buf = *(char**)(s1 + 0x56C);
+        node = *(char**)(s1 + 0x524);
+        gl_func_00000000(buf + 16, node);
+        if (*(int*)(node + 0x14) != 0) {
+            *(int*)(node + 0x4) = 1;
+        }
+        *(int*)(node + 0x14) = (int)buf;
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 1);
         return;
     }
-    /* default: no-op return */
+    if (s0 == 4) {
+        int *v0 = *(int**)(s1 + 0x6A8);
+        int idx = *(int*)((char*)v0 + 0x4);
+        gl_func_00000000(s1, 4, *(int*)((char*)v0 + idx * 4 + 0x10));
+        return;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA8);
