@@ -242,25 +242,34 @@ void game_uso_func_0000039C(Quad4 *dst) {
  * deeper stack double-copy scheduling, not the high-level field map. Default
  * build still uses INCLUDE_ASM. */
 void game_uso_func_000003F8(void *a0) {
-    Vec3 zero;
-    Vec3 fwd;
-    Vec3 up;
+    /* Each Vec3 store routes through a common temp v0 (target's sp+12): each
+     * source built at a distinct stack slot, copied (int lw/sw) to v0, then
+     * copied (float lwc1/swc1) to a0+off. Interleaved build+store order. */
+    Vec3 zero, fwd, up, zero2;
+    Vec3 v0;
 
     zero.x = 0.0f;
     zero.y = 0.0f;
     zero.z = 0.0f;
+    v0 = zero;
+    *(Vec3 *)((char *)a0 + 0x00) = v0;
     fwd.x = 0.0f;
     fwd.y = 0.0f;
     fwd.z = -1000.0f;
+    v0 = fwd;
+    *(Vec3 *)((char *)a0 + 0x0C) = v0;
     up.x = 0.0f;
     up.y = 1.0f;
     up.z = 0.0f;
-    *(Vec3 *)((char *)a0 + 0x00) = zero;
-    *(Vec3 *)((char *)a0 + 0x0C) = fwd;
-    *(Vec3 *)((char *)a0 + 0x18) = up;
+    v0 = up;
+    *(Vec3 *)((char *)a0 + 0x18) = v0;
     *(float *)((char *)a0 + 0x24) = 85.0f;
     *(int *)((char *)a0 + 0x28) = 15;
-    *(Vec3 *)((char *)a0 + 0x2C) = zero;
+    zero2.x = 0.0f;
+    zero2.y = 0.0f;
+    zero2.z = 0.0f;
+    v0 = zero2;
+    *(Vec3 *)((char *)a0 + 0x2C) = v0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
