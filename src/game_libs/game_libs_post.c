@@ -2701,23 +2701,78 @@ void gl_func_00021EA8(int a0, int a1) {
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
+/* Whole-body decode 2026-06-01 (was 14% front-only stub w/ inverted post-gate).
+ * Two gl gates; only on a non-zero return does it scan region arrays for an
+ * overlap with [s2,s3) (s3=*desc reload, s2=*head), marking free slots, then
+ * allocates the next descriptor at D+0x294C+idx*20. Overlap branch directions
+ * + bound arithmetic approximate; multi-loop allocator, multi-tick remainder. */
+extern int gl_func_00036844();
 int gl_func_00021F40(void *arg) {
     char *g = (char *)&D_00000000;
-    char *desc = g + 0x294C;
-    int *head = (int *)(g + 0x2950);
-    int save, r;
-    r = gl_func_00000000(desc, arg);
-    if (r != 0) {
-        return r;
+    int s3, s2, s5, s1, r, save, a3, cnt;
+    char *a2, *s0;
+
+    s3 = *(int *)(g + 0x2950);
+    r = gl_func_00000000(g + 0x294C, arg);
+    if (r == 0) {
+        save = *(int *)(g + 0x2950);
+        *(int *)(g + 0x2950) = *(int *)(g + 0x294C);
+        r = gl_func_00000000(g + 0x294C, arg);
+        if (r == 0) {
+            *(int *)(g + 0x2950) = save;
+            return 0;
+        }
     }
-    save = *head;
-    *head = *(int *)desc;
-    r = gl_func_00000000(desc, arg);
-    if (r != 0) {
-        *head = save;
-        return r;
+    s3 = *(int *)(g + 0x294C);
+    a3 = *(int *)(g + 0x1034);
+    s2 = *(int *)(g + 0x2950);
+    s5 = -1;
+    if (a3 > 0) {
+        for (a2 = g; a2 < g + a3 * 20; a2 += 20) {
+            char *rr = a2 + 1584;
+            int base, top;
+            if (*(int *)(a2 + 1600) != 0) {
+                continue;
+            }
+            base = *(int *)(rr + 8);
+            top = base + (*(int *)*(int *)(rr + 4) & 0xFFFFFF) - 1;
+            if ((unsigned)top < (unsigned)s3 && (unsigned)base < (unsigned)s3) {
+                continue;
+            }
+            if ((unsigned)top < (unsigned)s2 || (unsigned)base < (unsigned)s2) {
+                *(int *)(rr + 16) = 1;
+                a3 = *(int *)(g + 0x1034);
+            }
+        }
     }
-    return 0;
+    cnt = *(int *)(g + 0x2BDC);
+    if (cnt > 0) {
+        for (s1 = 0, s0 = g + 0x294C; s1 < cnt; s1++, s0 += 20) {
+            int base = *(int *)(s0 + 24);
+            int top = *(int *)(s0 + 32) + base - 1;
+            if ((unsigned)top < (unsigned)s3 || (unsigned)base < (unsigned)s3) {
+                continue;
+            }
+            if ((unsigned)top < (unsigned)s2 || (unsigned)base < (unsigned)s2) {
+                continue;
+            }
+            gl_func_00036844(s0 + 16);
+            if (s5 == -1) {
+                s5 = s1;
+            }
+            cnt = *(int *)(g + 0x2BDC);
+        }
+    }
+    if (s5 == -1) {
+        int idx = *(int *)(g + 0x2BDC);
+        char *v1 = g + 0x294C + idx * 20;
+        *(int *)(g + 0x2BDC) = idx + 1;
+        *(signed char *)(v1 + 16) = 1;
+        *(int *)(v1 + 24) = r;
+        *(int *)(v1 + 32) = (int)arg;
+        return (int)(v1 + 16);
+    }
+    return *(int *)(g + 0x2BDC);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021F40);
