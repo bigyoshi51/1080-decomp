@@ -3855,6 +3855,17 @@ after_head_template:
      *     caller-arg spills to sp+0xE0/0xE4/0xE8, a clear regression.
      *     Reverted; array indexing does not force the target stack slot
      *     or promotion.
+     *   - SOURCE=5 retest 2026-06-01 on current branch:
+     *     `(void)&a0; (void)&a1; (void)&a2;` with the volatile finalizer
+     *     locals was ignored by IDO for this shape: match stayed 69.72618%,
+     *     prologue still stored a1/a2 to local slots sp+0x34/sp+0x30, and
+     *     still saved only s0/s1/ra. Removing volatile from a1_sp/a2_sp did
+     *     force caller-shadow homes for a1/a2 at sp+0xEC/sp+0xF0, but regressed
+     *     to 69.25751% and still emitted no s2 save. Hoisting `_s2_buf`/`s2`
+     *     to function scope on top of that shrank the frame to 0xD8 and
+     *     regressed to 69.248924%. Keep the volatile-local baseline until a
+     *     real alias source for the long-lived sp+0x2C marshalling pointer is
+     *     found.
      *   - decomp-permuter with PERM_RANDOMIZE around the macros
      *
      * 2026-05-05 (later): FIXED iter-G-NN macro bug. The macro at
