@@ -1200,14 +1200,18 @@ void titproc_uso_func_00002270(int a0, int *a1) {
  * Likely a per-frame "submit N display lists, then reset slot 0x128".
  * Multi-tick decomp expected. Stub body so wrap parses; default build
  * matches via INCLUDE_ASM. */
-void titproc_uso_func_000022BC(int a0) {
-    int i;
-    /* TODO: decode 7 iterations of indexed cross-USO call setup +
-     * tail bnel-likely conditional store. */
-    for (i = 0; i < 7; i++) {
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x6C0));
+void titproc_uso_func_000022BC(char *s0) {
+    gl_func_00000000(*(int *)(s0 + 0x6C0));
+    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 1, 0, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 2, 1, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 3, 2, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 6, 3, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 4, 4, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 7, 5, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 5, 6, &D_00000000);
+    if (gl_func_00000000(*(int *)((char *)&D_00000000 + 0xC4)) != 0) {
+        *(int *)(*(int *)(s0 + 0x6C0) + 0x128) = 0;
     }
-    (void)a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000022BC);
