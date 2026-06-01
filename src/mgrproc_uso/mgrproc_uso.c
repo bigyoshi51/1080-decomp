@@ -1294,7 +1294,14 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3
  * pairs materializing f2=255.0, f4=192.0, f6=255.0, f10=0.0 then
  * `div.s f0, f4, f2` (= 192/255). 2F10 reads these registers uninitialized.
  * This is the chained-FPU-stolen-prologue fragment flagged in the 2E3C note;
- * leave INCLUDE_ASM (its bytes belong logically to 2F10's prologue). */
+ * leave INCLUDE_ASM (its bytes belong logically to 2F10's prologue).
+ *
+ * 2026-06-01 source=4 boundary audit: `grep -c 03E00008` = 0 and
+ * `scripts/find-misplit-pairs.py mgrproc_uso` does not flag a closed
+ * merge group for 2EF0/2F10. This is not a branch-past-end pair the
+ * mnemonic merge-fragments tooling can safely repair; it is a raw Yay0
+ * USO head-fragment / stolen-FPU-register dependency. No honest standalone
+ * C wrapper exists for this symbol, so keep byte-correct INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF0);
 
 #ifdef NON_MATCHING
