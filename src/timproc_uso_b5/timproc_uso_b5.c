@@ -3214,16 +3214,9 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008930);
 
-/* Unfilled-jr-delay `return 0` (move v0,zero; jr ra; nop) — identical cap to
- * timproc_uso_b5_func_000087E8 (see its comment): our IDO -O0 emits 0x1c with
- * redundant epilogues, not the target's 0xC, so NOT donor-splice-able. */
-#ifdef NON_MATCHING
-int timproc_uso_b5_func_00008940(void) {
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008940);
-#endif
+/* timproc_uso_b5_func_00008940 moved to the -O2 -g3 carve-out
+ * timproc_uso_b5_g3_8940.c. It is another 0xC unfilled-jr-delay
+ * return-zero leaf in the 87E8/8894 family. */
 
 void timproc_uso_b5_func_0000894C(void) {
     func_00000000();
