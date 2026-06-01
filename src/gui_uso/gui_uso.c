@@ -1172,9 +1172,61 @@ void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
  * D_GUI_CTX deref + cursor bump on ctx[0xC]->[1] + RDP 0xBB000001 +
  * 0x80008000 segment-marker emit at slot 0. ~230 insns of body to
  * decode in next pass. Multi-pass NM remains. */
+extern int D_3B80_f0, D_3B80_f1, D_3B80_f2;
+/* Whole-body decode 2026-06-01 (was 1.81% stub). Paginated RDP texture-DL
+ * builder: D_GUI_CTX deref + RDP 0xBB000001/0x80008000 marker emit, switch on
+ * a0->0xc selecting a row-emit fn-ptr (sp+92) + max-bytes-per-page, then split
+ * a0->8 (height) into pages of (max/height) rows — per-page frow(ctx,..)+gl(..)
+ * calls, with a single-page fast path when width*height fits. Stack-arg/loop
+ * details approximate; multi-tick remainder. */
 void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
-    /* TODO: full body decode. ~230 insns. */
-    (void)a0; (void)a1; (void)a2; (void)a3;
+    int *s7 = (int *)&D_00000000;
+    int *ctx = *(int **)s7;
+    int *s5 = a0;
+    int s8 = 0;
+    int s2, s0, s3, s1;
+    int max;
+    void (*frow)();
+
+    {
+        int *v0 = (int *)ctx[0xC / 4];
+        int idx = v0[1];
+        v0[1] = idx + 1;
+        {
+            int *slot = (int *)(((int *)ctx[0xC / 4])[0]) + idx * 2;
+            slot[0] = 0xBB000001;
+            slot[1] = (int)0x80008000;
+        }
+    }
+    switch (a0[0xC / 4]) {
+    case 0:  frow = (void (*)())&D_3B80_f0; max = 4096; break;
+    case 1:  frow = (void (*)())&D_3B80_f1; max = 2048; break;
+    case 2:  frow = (void (*)())&D_3B80_f2; max = 1024; break;
+    default: frow = 0;                      max = a3;   break;
+    }
+    s2 = a0[4 / 4];   /* width  */
+    s0 = a0[8 / 4];   /* height */
+    if (s2 * s0 > max) {
+        s1 = gl_func_00000000(max / s0);   /* rows per page */
+        s3 = s0;                            /* height */
+        s0 = a0[4 / 4];                     /* width as page counter */
+        while (s0 != 0) {
+            if (s1 < s0) {
+                frow(ctx, a0[0], s2, a0[8 / 4], 0, s8, 0, s1, s3, 0);
+                gl_func_00000000(ctx, a1, a2, s1, s3, (s1 << 10) / s1, (s3 << 10) / s3);
+                s8 += s1;
+                s0 -= s1;
+                a1 += s1;
+            } else {
+                frow(ctx, a0[0], s2, a0[8 / 4], 0, s8, 0, s0, s3, 0);
+                gl_func_00000000(ctx, a1, a2, s0, s3, (s0 << 10) / s0);
+                s0 -= s1;
+            }
+        }
+    } else {
+        frow(ctx, a0[0], s2, s0, 0, 0, s2, s0, 0);
+        gl_func_00000000(ctx, a1, a2, s2, s0, (s2 << 10) / s2, (s0 << 10) / s0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003B80);
