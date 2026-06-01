@@ -2,6 +2,14 @@
 
 extern char D_00000000;
 
+/* SOURCE=4 audit 2026-06-01: this cluster is not a missed accessor-template
+ * candidate. The 0x0..0x148 char mapper is an over-split early-return chain;
+ * the fragments look like leaf-branch-past-end/caller-set-register caps only
+ * because predecessor tests branch into later entries while carrying $v0/$a0.
+ * find-misplit-pairs.py does not flag it because each split entry has its own
+ * jr ra. Proper recovery is a deliberate full-cluster merge, not per-fragment
+ * C bodies. */
+
 /* USO entry-0 trampoline leaf. The previous NM body described the old bundled
  * 0x148-byte glyph dispatch; after splitting, this symbol is just the first
  * 0x24 bytes. PREFIX_BYTES supplies the loader branch and arg-save delay slot. */
