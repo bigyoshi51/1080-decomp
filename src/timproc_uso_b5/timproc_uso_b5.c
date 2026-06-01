@@ -3126,18 +3126,11 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * collapsing the adjacent INCLUDE_ASM-boundary align). Verify against build/src
  * .text == target for the whole 0x87xx..0x89xx range, not just 87E8, before the
  * Yay0 recompress — a wrong delta silently corrupts the shared block5.
- * SOURCE=3 RETEST (2026-06-01): still the first size-sort candidate
- * (`uv run python -m decomp.main discover --sort-by size`). Boundary is one
- * 0xC leaf with one `jr ra`; no fragment repair applies. Current C remains the
- * useful logic body, but the exact path is the -g3 carve plus padding RE above,
- * not post-cc instruction forcing. */
-#ifdef NON_MATCHING
-int timproc_uso_b5_func_000087E8(void) {
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087E8);
-#endif
+ * SOURCE=3 RETEST (2026-06-01): promoted with the same -O2 -g3 carve-out
+ * mechanism as sibling 1DA4. The compiled sub-unit lives in
+ * src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c and is spliced into block5 at
+ * offset 0x87E8, preserving the unfilled delay slot without instruction
+ * patching. */
 
 /* Boundary-merged switch predicate. The internal alabels at 0x8834, 0x8844,
  * 0x8854, 0x886C, 0x887C, and 0x8894 are case labels/tail entries, not

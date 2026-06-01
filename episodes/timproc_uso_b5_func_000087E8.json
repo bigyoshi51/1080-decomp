@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_000087E8",
+  "project": "projects/1080-agent-r",
+  "model": "codex-gpt-5",
+  "start_time": "2026-06-01T04:38:40.488528+00:00",
+  "end_time": "2026-06-01T04:38:40.488550+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-01T04:38:40.488544+00:00",
+      "assistant_text": "Promoted the 0xC return-zero leaf by moving it into an -O2 -g3 carve-out and extending the block5 splice to preserve the unfilled jr delay slot without instruction patching.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 3,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Mid-block -O2 -g3 carve-out for timproc_uso_b5_func_000087E8.\n *\n * The target is `return 0` with an unfilled jr-delay slot:\n *   move v0,zero / jr ra / nop\n * Plain -O2 fills the delay slot, while -O2 -g3 keeps the optimized leaf shape\n * but disables the reorg filler. The block5 Makefile rule splices this 0xC-byte\n * sub-unit back at offset 0x87E8. */\nint timproc_uso_b5_func_000087E8(void) {\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c",
+    "asm_path": "projects/1080-agent-r/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_000087E8.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff report shows timproc_uso_b5_func_000087E8 fuzzy_match_percent=100.0 in src/timproc_uso_b5/timproc_uso_b5_g3_87E8; direct objdiff JSON is 100%; disassembly is move v0,zero / jr ra / nop; block5 splice window at 0x87E8 matches decompressed target."
+  }
+}
