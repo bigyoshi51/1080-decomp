@@ -952,10 +952,20 @@ void mgrproc_uso_func_00002294(int *a0) {
  * {200,160,-64,0,120}. Caps <80: FP div.s/add.s/sub.s + many
  * lui+mtc1 const loads + bnel branch-likely (x2) + gl_func_00000000
  * reloc call. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * truth). INCLUDE_ASM (no episode; tautology-trap rule).
+ *
+ * 2026-06-01 sibling pass from exact 02294: `float two = 2.0f; ... / two`
+ * is a real promotion over literal `/ 2.0f`: keeps frame 0x18, emits the
+ * target-like `bnel` early returns, and forces `div.s` by a 2.0f literal
+ * instead of strength-reducing to multiply by 0.5f. `volatile float two`
+ * also forces `div.s` but grows the frame to 0x28 and reschedules heavily.
+ * Reordering the main stores to put 0x7C4/0x7C8 earlier regressed the
+ * constant-load/FPU-store sequence; keep the cleaner nonvolatile-divisor
+ * order. */
 #ifdef NON_MATCHING
 void mgrproc_uso_func_00002324(char *a0) {
     float x, y;
+    float two = 2.0f;
     if (*(int *)(a0 + 0x7C4) != 0) return;
     x = *(float *)(a0 + 0x7A8);
     y = *(float *)(a0 + 0x7AC);
@@ -963,7 +973,7 @@ void mgrproc_uso_func_00002324(char *a0) {
     *(float *)(a0 + 0x7B4) = y;
     *(float *)(a0 + 0x7A8) = x + 4.0f;
     *(float *)(a0 + 0x7AC) = y - 4.0f;
-    *(float *)(a0 + 0x7BC) = *(float *)(a0 + 0x7B8) / 2.0f;
+    *(float *)(a0 + 0x7BC) = *(float *)(a0 + 0x7B8) / two;
     *(float *)(a0 + 0x7C0) = 1.0f;
     *(int *)(a0 + 0x7C4) = 1;
     *(int *)(a0 + 0x7C8) -= 1;
