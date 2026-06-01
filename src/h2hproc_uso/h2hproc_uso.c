@@ -866,7 +866,11 @@ void h2hproc_uso_func_00000F60(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* h2hproc_uso_func_00000FD0: 141-insn (0x234) alloc-cascade constructor.
+/* h2hproc_uso_func_00000FD0: 141-insn (0x234) alloc-cascade constructor. 93.86%.
+ * 2026-06-01 (64.59→93.86): inline-recompute lever — un-hoisted `sub`
+ * (=self->0x30), `packed` (=(*base+3)<<16) and `*base` so IDO re-materializes
+ * them per call instead of spilling + burning a 2nd saved reg; plus goto-end
+ * for the alloc-fail path. Residual ~6% = frame -0x48 vs -0x30 (regalloc cap).
  * Allocates a 0x9C (156-byte) self-struct if caller didn't supply one,
  * runs an init helper, populates 5 fields from helper-call returns, then
  * does a 5-call register-handler sequence with packed-flag args followed
@@ -921,46 +925,48 @@ void *h2hproc_uso_func_00000FD0(void *a0, int *a1) {
     char *base = &D_00000000;
     void *self = a0;
     int saved_a1 = (int)a1;
-    int *sub;
-    int packed;
-    int handle;
 
     if (self == 0) {
         self = (void*)gl_func_00000000(0x9C);
-        if (self == 0) return 0;
+        if (self == 0) goto end;  /* fall through to `return self` (self==0) — the
+                                     target uses beq v0,zero,end, not a separate
+                                     `or v0,zero,zero` return-0 path */
     }
     gl_func_00000000(self, base + 0x3F4);
     *(int*)((char*)self + 0x28) = (int)base;
     *(int*)((char*)self + 0x2C) = saved_a1;
     *(int*)((char*)self + 0x34) = gl_func_00000000(0);
     *(int*)((char*)self + 0x30) = gl_func_00000000(0);
-    sub = (int*)*(int*)((char*)self + 0x30);
-    gl_func_00000000(sub, saved_a1);
-    packed = (*(int*)base + 3) << 16;
-    gl_func_00000000(sub, packed | 0x1, -1, base);
-    gl_func_00000000(sub, packed | 0x4, -1, base);
-    gl_func_00000000(sub, packed | 0x3, -1, base);
-    gl_func_00000000(sub, packed | 0x2, -1, base);
-    gl_func_00000000(sub, packed | 0x5, -1, base);
-    handle = gl_func_00000000(0, base, 72, 221, 3, 13);
-    *(int*)((char*)sub + 0x30) = handle;
-    gl_func_00000000(sub);
-    gl_func_00000000(sub, 174);
+    /* sub = self->0x30 is NOT cached and packed = (*base+3)<<16 is NOT hoisted —
+     * the target re-materializes both at each call (per-call lui/lw/sll/ori +
+     * lw a0,0x30(self)); a hoisted local spills (sw 60(sp)) and burns a 2nd
+     * saved reg, growing the frame -0x30→-0x50. Inline-recompute lever
+     * (feedback_remove_local_recompute_inline_lever). */
+    gl_func_00000000(*(int*)((char*)self + 0x30), saved_a1);
+    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x1, -1, base);
+    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x4, -1, base);
+    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x3, -1, base);
+    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x2, -1, base);
+    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x5, -1, base);
+    *(int*)((char*)*(int*)((char*)self + 0x30) + 0x30) = gl_func_00000000(0, base, 72, 221, 3, 13);
+    gl_func_00000000(*(int*)((char*)self + 0x30));
+    gl_func_00000000(*(int*)((char*)self + 0x30), 174);
     {
-        int *nested = (int*)*(int*)((char*)sub + 0x28);
+        int *nested = (int*)*(int*)((char*)*(int*)((char*)self + 0x30) + 0x28);
         void (*fn)(int) = (void(*)(int))nested[0x5C / 4];
         short off = *(short*)((char*)nested + 0x58);
-        fn(((int)sub) + off);
+        fn((*(int*)((char*)self + 0x30)) + off);
     }
-    gl_func_00000000((char*)self + 0x10, sub);
-    if (*(int*)((char*)sub + 0x14) != 0) {
-        *(int*)((char*)sub + 0x4) = 1;
+    gl_func_00000000((char*)self + 0x10, *(int*)((char*)self + 0x30));
+    if (*(int*)((char*)*(int*)((char*)self + 0x30) + 0x14) != 0) {
+        *(int*)((char*)*(int*)((char*)self + 0x30) + 0x4) = 1;
     }
-    *(int*)((char*)sub + 0x14) = (int)self;
+    *(int*)((char*)*(int*)((char*)self + 0x30) + 0x14) = (int)self;
     gl_func_00000000((char*)self + 0x10, *(int*)(base + 0x4C) | (0x1D << 16));
     gl_func_00000000((char*)self + 0x50, *(int*)(base + 0x54) | (0x1E << 16));
     gl_func_00000000((char*)self + 0x68, *(int*)(base + 0x58) | (0x1D << 16));
     gl_func_00000000((char*)self + 0x80, *(int*)(base + 0x60) | (0x1E << 16));
+end:
     return self;
 }
 #else
