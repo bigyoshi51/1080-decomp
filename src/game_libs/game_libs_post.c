@@ -33742,26 +33742,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE7C);
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+/* Whole-body decode 2026-06-01. ratio = (raw<0 ? raw+2^32 : raw)/1024 stored to
+ * a0->0xC; sprintf-style gl(buf, &D+0x21C7C, a0+0x24, (double)ratio); then
+ * gl(&D, buf, 0), an a0->0x18 list walk gl(s0)/s0=s0->0x14, and gl(&D). The
+ * prior body had wrong call args (passed a0/truncated instead of buf/a0+0x24)
+ * and omitted the a0->0xC store. */
 void gl_func_0005FF14(int *a0) {
     extern int D_00000000;
+    char buf[64];
     int raw = a0[0x8 / 4];
     float ratio;
-    int truncated;
     int *s0;
     if (raw < 0) {
         ratio = ((float)raw + 4294967296.0f) / 1024.0f;
     } else {
         ratio = (float)raw / 1024.0f;
     }
-    truncated = (int)ratio;
-    gl_func_00000000((char*)&D_00000000 + 0x21C7C, a0, truncated, (double)ratio);
-    gl_func_00000000(a0, &D_00000000);
+    *(float *)((char *)a0 + 0xC) = ratio;
+    gl_func_00000000(buf, (char *)&D_00000000 + 0x21C7C, (char *)a0 + 0x24, (double)ratio);
+    gl_func_00000000(&D_00000000, buf, 0);
     s0 = (int*)a0[0x18 / 4];
     while (s0 != 0) {
-        gl_func_00000000(s0, a0);
+        gl_func_00000000(s0);
         s0 = (int*)s0[0x14 / 4];
     }
-    gl_func_00000000(&D_00000000, a0);
+    gl_func_00000000(&D_00000000);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FF14);
