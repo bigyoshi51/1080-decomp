@@ -1185,6 +1185,13 @@ void game_uso_func_00001DDC(int *a0) {
      * ~135 body insns — IDO's s0 promotion only drops once the full allocno set
      * is present. Multi-pass, per prior analysis above.)
      *
+     * 2026-06-01 strategy pass: key==3's Vec3 copy now uses a volatile stack
+     * temp. This makes IDO emit the target-like store/reload scaffold for the
+     * short copy path instead of writing both destinations directly from FPU
+     * registers. Direct object diff: 39.1335% -> 39.1649%. The temp lands at
+     * sp+0xE4 instead of target's sp+0x174, so this is only a local structural
+     * improvement; the larger frame/local-layout problem remains.
+     *
      * 2026-05-08 (later) — objdiff confirms TARGET and BASE both 407 insns
      * (insn-count match achieved). Fuzzy 18.26% (after `local_xz[1]*[1]`
      * +0.73pp tweak) means register allocation / operand ordering account
@@ -1209,15 +1216,16 @@ void game_uso_func_00001DDC(int *a0) {
     {
         int *t6 = (int*)a0[0x14 / 4];
         int *v1 = (int*)a0[0x3C / 4];
-        float x = *(float*)((char*)v1 + 0xA0);
-        float y = *(float*)((char*)v1 + 0xA4);
-        float z = *(float*)((char*)v1 + 0xA8);
-        *(float*)((char*)t6 + 0x60) = x;
-        *(float*)((char*)t6 + 0x64) = y;
-        *(float*)((char*)t6 + 0x68) = z;
-        *(float*)((char*)t6 + 0xA0) = x;
-        *(float*)((char*)t6 + 0xA4) = y;
-        *(float*)((char*)t6 + 0xA8) = z;
+        volatile Vec3f tmp;
+        tmp.x = *(float*)((char*)v1 + 0xA0);
+        tmp.y = *(float*)((char*)v1 + 0xA4);
+        tmp.z = *(float*)((char*)v1 + 0xA8);
+        *(float*)((char*)t6 + 0x60) = tmp.x;
+        *(float*)((char*)t6 + 0x64) = tmp.y;
+        *(float*)((char*)t6 + 0x68) = tmp.z;
+        *(float*)((char*)t6 + 0xA0) = tmp.x;
+        *(float*)((char*)t6 + 0xA4) = tmp.y;
+        *(float*)((char*)t6 + 0xA8) = tmp.z;
         goto late_label;
     }
 branch_88: {
