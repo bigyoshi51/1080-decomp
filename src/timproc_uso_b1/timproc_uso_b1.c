@@ -185,70 +185,109 @@ void timproc_uso_b1_func_0000090C(Vec3 *dst) {
 
 #ifdef NON_MATCHING
 /* timproc_uso_b1_func_0000097C — 232-insn manager get-or-create + register.
- * FIRST-PASS NM decode (cascade control flow approximate; the id-registration
- * loop and return are decoded exactly). Acquires/builds the object, fills its
- * fields, performs a virtual call (jalr through a fetched fn-ptr) to build the
- * child into ->0x48, registers 6 entries with computed ids
- * ((*(D)+3)<<16)|{0,1,4,3,2,5}, links into lists, returns the object.
- * Cross-USO jal-0 → gl_func_00000000. Caps via cascade/branch-likely +
- * jalr virtual dispatch + 11-call spill + deep pointer-chain scheduling. */
+ * This is a SIBLING of timproc_uso_b3_func_00000994 (same constructor in a
+ * different USO; sub-node alloc is 0xE0 here vs 0xDC there, else near-identical).
+ * 2026-06-01 (31.97 -> 59.71): ported 994's corrected structure block-by-block
+ * (build-gated each step per docs/MATCHING_WORKFLOW.md incremental method):
+ *   cascade  37.43 (5-stage goto-chain + distinct externs D_b1_097C_v0..3)
+ *   field    42.84 (gl(self,a1,&D+0x3c0,a2); self->0x528=a3; gl(self); 0x72c=0)
+ *   vtable   47.40 (sub->0x28=v4; D[0x138]=sub; sub->0xb4 cond; jalr dispatch;
+ *                   gl(self+0x10,sub); beql sub->0x14 dance)
+ *   regcond  59.71 (reg loop wrapped in `if((self->0x4f0<<15)<0)` + preamble +
+ *                   post-loop beql dance)
+ * TBD (same as 994): the MERGE TAIL (self->0x4f4=arg1&0xffff; node=D[0x190]; ...)
+ * regresses when added — frame -0x40 vs target -0x38 (extra cascade spill slot).
+ * See timproc_uso_b3_func_00000994's note for the full blocker analysis. */
 extern int gl_func_00000000();
+extern char D_b1_097C_v0;
+extern char D_b1_097C_v1;
+extern char D_b1_097C_v2;
+extern char D_b1_097C_v3;
+extern char D_b1_097C_v4;
 int timproc_uso_b1_func_0000097C(int *a0, int a1, int a2, int a3) {
     int *s0 = a0;
+    int *n1, *n2, *n3;
     int *h;
     int child;
     int prev;
     int idbase;
 
-    /* get-or-allocate the manager object (typed-lookup cascade) */
-    if (s0 == 0) {
+    /* 5-stage get-or-create cascade (ported from sibling timproc_uso_b3_func_
+     * 00000994): alloc self(0x730)/n1(0x6a8)/n2(0x50)/n3(0x2c); dead stage-guards
+     * via goto-chain; each node->0x28 = vtable via DISTINCT extern (CSE-bust). */
+    if (a0 == 0) {
         s0 = (int *)gl_func_00000000(0x730);
-        if (s0 == 0) {
-            return 0;
-        }
+        if (s0 == 0) return 0;
     }
-    h = s0;
-    if (h == 0) {
-        h = (int *)gl_func_00000000(0x6A8);
-    }
-    if (h == 0) {
-        h = (int *)gl_func_00000000(0x50);
-        if (h == 0) {
-            h = (int *)gl_func_00000000(0x2C);
-        }
-        if (h != 0) {
-            s0[0x28 / 4] = (int)((char *)&D_00000000 + 0x3B8);
-        }
-    }
-    s0[0x28 / 4] = (int)((char *)&D_00000000 + 0x3B8);
+    n1 = s0;
+    if (s0 == 0) { n1 = (int *)gl_func_00000000(0x6A8); if (n1 == 0) goto S_self; }
+    n2 = n1;
+    if (n1 == 0) { n2 = (int *)gl_func_00000000(0x50); if (n2 == 0) goto S_n1; }
+    n3 = n2;
+    if (n2 == 0) { n3 = (int *)gl_func_00000000(0x2C); if (n3 == 0) goto S_n2; }
+    gl_func_00000000(n3, (char *)&D_00000000 + 0x3B8);
+    n3[0x28 / 4] = (int)&D_b1_097C_v0;
+S_n2:
+    n2[0x28 / 4] = (int)&D_b1_097C_v1;
+S_n1:
+    n1[0x28 / 4] = (int)&D_b1_097C_v2;
+    gl_func_00000000((char *)n1 + 0x50);
+S_self:
+    s0[0x28 / 4] = (int)&D_b1_097C_v3;
     s0[0x568 / 4] = 0;
-    gl_func_00000000(s0, a1, a2, a3);
-    s0[0x528 / 4] = (int)((char *)&D_00000000 + 0x3C0);
-    *(float *)((char *)s0 + 0x72C) = (float)gl_func_00000000((char *)&D_00000000 + 0x3D0, 0);
+    gl_func_00000000(s0, a1, (char *)&D_00000000 + 0x3C0, a2);
+    s0[0x528 / 4] = a3;
+    gl_func_00000000(s0);
+    *(float *)&s0[0x72C / 4] = 0.0f;
     gl_func_00000000((char *)&D_00000000 + 0x3D0, 0);
+    gl_func_00000000(&D_00000000, 0);
 
-    /* build the child object via virtual dispatch, store handle at ->0x48 */
     h = (int *)gl_func_00000000(0xE0);
     if (h != 0) {
-        s0[0x28 / 4] = (int)h;
+        h[0x28 / 4] = (int)&D_b1_097C_v4;
     }
-    s0[0x6A8 / 4] = (int)s0;
-    child = gl_func_00000000(s0[0x48 / 4]);
+    s0[0x6A8 / 4] = (int)h;
+    *(int **)((char *)&D_00000000 + 0x138) = h;
+
+    /* vtable-dispatch block */
+    if ((s0[0x4F0 / 4] << 15) >= 0) {
+        h[0xB4 / 4] = 0;
+    } else {
+        h[0xB4 / 4] = 11;
+    }
+    gl_func_00000000(h, s0, s0[0x568 / 4], s0[0x528 / 4]);
+    {
+        int *vt = (int *)h[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)h);
+    }
+    gl_func_00000000((char *)s0 + 0x10, h);
+    if (h[0x14 / 4] != 0) {
+        h[0x4 / 4] = 1;
+    }
+    h[0x14 / 4] = (int)s0;
+
+    /* registration block (only when self->0x4f0 bit16 set) */
+    if ((s0[0x4F0 / 4] << 15) < 0) {
+        s0[0x48 / 4] = (int)gl_func_00000000(0);
+        gl_func_00000000(s0[0x48 / 4], s0);
+        *(int *)((char *)s0[0x48 / 4] + 0x30) = s0[0x568 / 4];
+        gl_func_00000000(s0[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
+        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
+        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
+        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
+        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
+        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
+        gl_func_00000000(s0[0x48 / 4]);
+        gl_func_00000000((char *)s0 + 0x10, s0[0x48 / 4]);
+        if (*(int *)((char *)s0[0x48 / 4] + 0x14) != 0) {
+            *(int *)((char *)s0[0x48 / 4] + 0x4) = 1;
+        }
+        *(int *)((char *)s0[0x48 / 4] + 0x14) = (int)s0;
+    }
+
     (void)child;
-
-    /* register 6 entries with computed ids ((*(D)+3)<<16)|N */
-    idbase = ((*(int *)&D_00000000) + 3) << 16;
-    gl_func_00000000(s0[0x48 / 4], idbase, -1, (int)((char *)&D_00000000));
-    gl_func_00000000(s0[0x48 / 4], idbase | 1, -1, (int)((char *)&D_00000000));
-    gl_func_00000000(s0[0x48 / 4], idbase | 4, -1, (int)((char *)&D_00000000));
-    gl_func_00000000(s0[0x48 / 4], idbase | 3, -1, (int)((char *)&D_00000000));
-    gl_func_00000000(s0[0x48 / 4], idbase | 2, -1, (int)((char *)&D_00000000));
-    gl_func_00000000(s0[0x48 / 4], idbase | 5, -1, (int)((char *)&D_00000000));
-    gl_func_00000000(s0[0x48 / 4], s0[0x48 / 4]);
-
-    /* list link */
-    prev = gl_func_00000000(0x190);
     (void)prev;
+    (void)idbase;
     return (int)s0;
 }
 #else
