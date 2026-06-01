@@ -104,7 +104,22 @@ skip_init:
     s3[0x28 / 4] = (int)&D_b5_058_v2;
     s3[0x0C / 4] = (int)((char *)&D_00000000 + 0xA0);
     s3[0x48 / 4] = (int)gl_func_00000000(0);
-    /* TODO: registration loop + 6-arg call + virtual dispatch (insns 44+). */
+    {
+        int *d134 = *(int **)((char *)&D_00000000 + 0x134);
+        int *node = (int *)d134[0x70 / 4];
+        int i;
+        for (i = 0; i < d134[0x78 / 4]; i++) {
+            gl_func_00000000(s3[0x48 / 4], node, -1, &D_00000000);
+            node = (int *)node[0x44 / 4];
+        }
+    }
+    *(int *)((char *)s3[0x48 / 4] + 0x30) =
+        (int)gl_func_00000000(0, (char *)&D_00000000, 0x48, 0xDD, 3, 13);
+    {
+        int *vt = (int *)((int *)s3[0x48 / 4])[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + s3[0x48 / 4]);
+    }
+    /* TODO: gl(s3+0x10, s3->0x48) + dance + tail (insns 86+). */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
