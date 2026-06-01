@@ -5303,27 +5303,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024E34);
 //   no extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int D_00000000;
-void *gl_func_00024F30(int a0, int a1, int a2) {
-    char *base = (char *)&D_00000000 + 0x1038;
-    int off;
-    for (off = 0; off != 0x540; off += 0x54) {
-        if (*(char *)(base + off) == 0) {
+/* Whole-body decode 2026-06-01 (prior init was incomplete + missing 4 args).
+ * Find a free 0x54-stride slot in [&D+0x1038, &D+0x1578); if none return 0. Init
+ * s+0=1, s+4=a1, s+0xC=a1, s+0x10=a2, s+8=a0; scale s+0x14 = 4096 if a0==0 else
+ * (a2/a0+255)&~0xFF floored at 256; s+1=3, s+2=a3, s+0x1C=arg6, s+0x18=arg7;
+ * gl(s+0x20, s+0x38, 1); return s. */
+void *gl_func_00024F30(int a0, int a1, int a2, int a3, int arg5, int arg6, int arg7) {
+    char *base = (char *)&D_00000000;
+    char *v0;
+    char *s = 0;
+    (void)arg5;
+    for (v0 = base; v0 != base + 0x540; v0 += 0x54) {
+        if (*(char *)(v0 + 0x1038) == 0) {
+            s = v0 + 0x1038;
             break;
         }
     }
-    if (off == 0x540) {
+    if (v0 == base + 0x540) {
         return 0;
     }
-    {
-        char *s = base + off;
-        *(char *)(s + 0) = 1;
-        *(int *)(s + 4) = a1;
-        *(int *)(s + 8) = a0;
-        *(int *)(s + 0xC) = a1;
-        *(int *)(s + 0x10) = a2;
-        *(int *)(s + 0x14) = 0;
-        return s;
+    *(char *)(s + 0) = 1;
+    *(int *)(s + 4) = a1;
+    *(int *)(s + 0xC) = a1;
+    *(int *)(s + 0x10) = a2;
+    *(int *)(s + 8) = a0;
+    if (a0 == 0) {
+        *(int *)(s + 0x14) = 4096;
+    } else {
+        int v = ((a2 / a0) + 255) & ~0xFF;
+        *(int *)(s + 0x14) = v;
+        if (v < 256) {
+            *(int *)(s + 0x14) = 256;
+        }
     }
+    *(char *)(s + 1) = 3;
+    *(char *)(s + 2) = a3;
+    *(int *)(s + 0x1C) = arg6;
+    *(int *)(s + 0x18) = arg7;
+    gl_func_00000000(s + 0x20, s + 0x38, 1);
+    return s;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
