@@ -5746,6 +5746,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
  * Multi-tick decompile in scope; this captures structural decode of the
  * entry + Vec3 staging stage. Default INCLUDE_ASM matches via the asm. */
 extern int gl_func_00000000();
+extern int game_uso_func_00007C1C();
+extern long long game_uso_func_00007538(int *, int);
 typedef struct { float x, y, z; } V3_6A30;
 void game_uso_func_00006A30(int *a0) {
     int *s0 = a0;
@@ -5767,11 +5769,30 @@ void game_uso_func_00006A30(int *a0) {
         va.y = va.y + c2.y;
         va.z = va.z + c2.z;
         {
-            int sp148 = 0;
-            int *r = (int *)game_uso_func_00007ACC(s0, &sp148, (int)&va, (int *)0);
-            if (r != 0) {
-                /* TODO(multi-tick): 7C1C call + div.s/neg.s FP tail (~100 insns) */
-                (void)r;
+            char *obj = (char *)a0;
+            char *w = (char *)sub;
+            float outpos[3], rec[3], pt[3];
+            char *r1, *r2;
+            float yaw, val;
+            int flag = 16;
+            r1 = (char *)game_uso_func_00007ACC(s0, outpos, (int)&va, (int *)0);
+            if (r1 != 0) {
+                r2 = (char *)game_uso_func_00007C1C((int)rec, (int)obj, (int)r1, *(int *)outpos, (double *)&va);
+                pt[0] = *(float *)r2;
+                pt[1] = *(float *)(r2 + 4);
+                pt[2] = *(float *)(r2 + 8);
+                rec[0] = *(float *)(w + 0x3C8);
+                rec[2] = *(float *)(w + 0x3D0);
+                rec[1] = 0.0f;
+                yaw = game_uso_func_00003ED4((Vec3 *)rec, (Vec3 *)pt, 0);
+                w = *(char **)(obj + 0x30);
+                val = (-yaw * (1.0f + *(float *)(w + 0x348) / *(float *)(obj + 0xB0)) *
+                       *(float *)(obj + 0xAC)) /
+                      *(float *)(w + 0x708);
+                if (*(int *)(obj + 0x6C) == 0) {
+                    *(float *)(obj + 0x3C) = val;
+                }
+                game_uso_func_00007538((int *)obj, flag);
             }
         }
         (void)va;
