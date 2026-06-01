@@ -1122,6 +1122,50 @@ S_self:
         }
         n[0x14 / 4] = (int)p;
     }
+    if (((int)a1 << 8) >= 0) {
+        p[0x6C0 / 4] = 0;
+    } else {
+        int *n6b8 = (int *)gl_func_00000000(0);
+        p[0x6B8 / 4] = (int)n6b8;
+        gl_func_00000000((char *)p + 0x10, n6b8);
+        if (n6b8[0x14 / 4] != 0) {
+            n6b8[0x4 / 4] = 1;
+        }
+        n6b8[0x14 / 4] = (int)p;
+        p[0x6C0 / 4] = (int)gl_func_00000000(0);
+        gl_func_00000000((int *)p[0x6C0 / 4], p);
+        gl_func_00000000(p);
+        {
+            int *n6c0 = (int *)p[0x6C0 / 4];
+            n6c0[0x30 / 4] = (int)gl_func_00000000(0, (char *)&D_00000000, 0x48, 0xDD, 3, 13);
+            *(float *)((char *)n6c0 + 0x74) = 17.0f;
+        }
+        gl_func_00000000((int *)p[0x6C0 / 4]);
+        gl_func_00000000((int *)p[0x6C0 / 4]);
+        *(int *)((char *)p[0x6C0 / 4] + 0x7C) = *(int *)((char *)&D_00000000 + 0x84);
+        gl_func_00000000((char *)p + 0x10, (int *)p[0x6C0 / 4]);
+        {
+            int *n = (int *)p[0x6C0 / 4];
+            if (n[0x14 / 4] != 0) {
+                n[0x4 / 4] = 1;
+                n[0x14 / 4] = (int)p;
+            } else {
+                p[0x6C0 / 4] = 0;
+            }
+        }
+    }
+    p[0x6C4 / 4] = 0;
+    {
+        int *node = *(int **)((char *)&D_00000000 + 0x190);
+        gl_func_00000000((char *)p + 0x10, node);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+            node[0x14 / 4] = (int)p;
+        }
+        gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0);
+        gl_func_00000000();
+        gl_func_00000000(&D_00000000, 0);
+    }
     return (void *)p;
 }
 #else
