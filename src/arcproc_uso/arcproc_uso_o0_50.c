@@ -42,6 +42,10 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  *     but stores zero to a dead stack slot instead of returning it; not a
  *     valid C body. `return ret;` (plain/register) regresses via spill/reload
  *     or extra s1 save, so no honest route to the merged marker.
+ *   - 2026-06-01 source=1 follow-up: explicit `else { ... } return 0;`
+ *     adds an extra jump-over-else block (86.5%). Inverting to
+ *     `if (a0[2] != a0[1] + 1)` changes the key branch to `beq` and drops to
+ *     71.17%, so the original equality/early-return shape is still best.
  *
  * The dead `b epilogue; nop` appears to be unconditional from C in this
  * shape. Cap-source: IDO -O0 statement-list-end marker that even the
