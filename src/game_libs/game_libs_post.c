@@ -15538,23 +15538,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035E5C);
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_00035E6C(char *o) {
-    float px, py, pz;
-    float tx, ty, tz;
-    float w;
-    int ok;
+    float point[3];
+    float result[4];
+    float scaled[3];
+    float lerp;
+    float scale;
     char *ctx = *(char **)((char *)&D_00000000 + 0);
     if (ctx == 0) return;
-    px = *(float *)(o + 0x30);
-    py = *(float *)(o + 0x34);
-    pz = *(float *)(o + 0x38);
-    ok = gl_func_00000000(ctx, px, py, pz, 1000.0f, &tx, &ty, &tz, &w);
-    if (!ok) return;
-    if (w < 200.0f) {
-        (void)w;
+    point[0] = *(float *)(o + 0x30);
+    point[1] = *(float *)(o + 0x34);
+    point[2] = *(float *)(o + 0x38);
+    if (gl_func_00000000(ctx, point, 1000.0f, result) == 0) return;
+    if (result[3] < 200.0f) {
+        scale = -(result[3] - 200.0f);
+        scaled[0] = result[0] * scale;
+        scaled[1] = result[1] * scale;
+        scaled[2] = result[2] * scale;
+        point[0] = point[0] + scaled[0];
+        point[1] = point[1] + scaled[1];
+        point[2] = point[2] + scaled[2];
+        lerp = *(float *)((char *)&D_00000000 + 6624);
+        *(float *)(o + 0x30) = *(float *)(o + 0x30) + (point[0] - *(float *)(o + 0x30)) * lerp;
+        *(float *)(o + 0x34) = *(float *)(o + 0x34) + (point[1] - *(float *)(o + 0x34)) * lerp;
+        *(float *)(o + 0x38) = *(float *)(o + 0x38) + (point[2] - *(float *)(o + 0x38)) * lerp;
     }
-    *(float *)(o + 0x3C) = -tx;
-    *(float *)(o + 0x4C) = -ty;
-    *(float *)(o + 0x5C) = -tz;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
