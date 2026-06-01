@@ -7815,16 +7815,42 @@ end:
  * Byte-match deferred. Name pre-checked: no extern reuse. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
-void gl_func_000290C8(char *a0, char *a1) {
-    int field50 = *(int *)(a1 + 0x50);
-    int r;
-    char sp24[8];
-    r = gl_func_00000000(a0 + 0x20, *(unsigned char *)(a1 + 5),
-                         field50, sp24, 0x10, 0x10);
-    if (r == 0) {
-        gl_func_00000000(a0 + 0x20, *(unsigned char *)(a1 + 0x30),
-                         field50, sp24, 0x10, 0x10);
+/* Whole-body decode 2026-06-01 (prior body was heavily oversimplified). Two
+ * gl_3d480 lookups keyed on (*(a1->0x50))->5: v1=lookup(a0+0x20,k),
+ * v0=lookup(a0+0x30,k); track their 0x30 fields (default 16). If both null
+ * return 0. If v0->0x30 < v1->0x30: register the v0 entry (gl(s0), gl_3d638,
+ * gl(a0+0x20,s0)) and set its 0x30; else link v1->0x48=a1 and set v1->0x30.
+ * Returns the chosen entry. */
+extern int gl_func_0003D480();
+extern int gl_func_0003D638();
+int gl_func_000290C8(char *a0, char *a1) {
+    char *s0 = a0;
+    char *saved = a0 + 0x20;
+    int t2 = 16, t3 = 16;
+    int *v1, *v0;
+
+    v1 = (int *)gl_func_0003D480(a0 + 0x20, *(unsigned char *)(*(char **)(a1 + 0x50) + 5));
+    if (v1 != 0) {
+        t3 = *(unsigned char *)((char *)v1 + 0x30);
     }
+    v0 = (int *)gl_func_0003D480(s0 + 0x30, *(unsigned char *)(*(char **)(a1 + 0x50) + 5));
+    if (v0 != 0) {
+        s0 = (char *)v0;
+        t2 = *(unsigned char *)((char *)v0 + 0x30);
+    }
+    if (v1 == 0 && v0 == 0) {
+        return 0;
+    }
+    if (t2 < t3) {
+        gl_func_00000000(s0);
+        gl_func_0003D638(s0, a1);
+        gl_func_00000000(saved, s0);
+        *(unsigned char *)(s0 + 0x30) = *(unsigned char *)(*(char **)(a1 + 0x50) + 5);
+        return (int)s0;
+    }
+    *(int *)((char *)v1 + 0x48) = (int)a1;
+    *(unsigned char *)((char *)v1 + 0x30) = *(unsigned char *)(*(char **)(a1 + 0x50) + 5);
+    return (int)v1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
