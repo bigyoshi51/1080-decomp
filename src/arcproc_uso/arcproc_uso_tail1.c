@@ -630,7 +630,10 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA
  * in $t9. Remaining diffs are register coloring: target uses $v1 for the
  * 0x28 stride and $t6/$t0 for the two table indices; IDO still colors the
  * stride as $a0 and the indices as $v1. `register void (*fn)()` regressed
- * the call back to $a0. */
+ * the call back to $a0. 2026-06-01 source=2 sibling retest: named `stride`
+ * and named `offset` locals compile identically (still `$a0` stride /
+ * `$v1` index), so the residual is allocator coloring rather than an
+ * expression-tree issue. */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
@@ -638,17 +641,20 @@ void arcproc_uso_func_00001170(int *a0) {
     int *table_root = *(int**)((char*)&D_00000000 + 0x190);
     int *p;
     int idx;
+    int offset;
     int *target;
 
     if (gl_func_00000000(table_root, a0) == 0) return;
     p = (int*)a0[0x48 / 4];
     idx = *(int*)((char*)p + 0x7C);
-    target = (int*)((char*)p + idx * 0x28);
+    offset = idx * 0x28;
+    target = (int*)((char*)p + offset);
     if (target[0x90 / 4] == 0) return;
     *(int*)&D_00000000 = (int)a0;
     p = (int*)a0[0x48 / 4];
     idx = *(int*)((char*)p + 0x7C);
-    target = (int*)((char*)p + idx * 0x28);
+    offset = idx * 0x28;
+    target = (int*)((char*)p + offset);
     ((void(*)())target[0x90 / 4])();
 }
 #else
