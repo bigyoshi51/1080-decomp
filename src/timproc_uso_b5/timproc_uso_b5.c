@@ -3144,8 +3144,19 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * (falls through into successor's first insn). Cross-fn shared-epilogue
  * tail-merge per feedback_leaf_branch_past_end_is_cross_fn_epilogue.
  * Linker-set offset, unmatchable standalone. CAP class. */
-/* timproc_uso_b5_func_00008834: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
+/* Caller-set-register fragment: real input is $t9, and the false path falls
+ * through into the next symbol after seeding $t0 = $v0 & 4 in the delay slot.
+ * A standalone C function can only document the true arm. */
+#ifdef NON_MATCHING
+int timproc_uso_b5_func_00008834(int t9) {
+    if (t9 != 0) {
+        return 2;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008834);
+#endif
 
 /* 0x88xx cluster: 11 tiny leaves with forward `beq/bne +small` branches
  * that target at or past function-end (falling into successor). All are
