@@ -6925,7 +6925,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
  * (see 7A98's note: 7ABC-isolation always copy-propagates to $f0). Real match
  * needs a boundary MERGE into 7A98, not a per-function C body. Kept INCLUDE_ASM
  * (ROM bytes correct). PREFIX_BYTES/INSN_PATCH promotion removed 2026-05-23
- * (match-faking, banned). */
+ * (match-faking, banned).
+ *
+ * SOURCE=3 audit 2026-06-01: this is still the first discover-by-size result.
+ * report.json shows 58.75% for the isolated NM body, and no jal/reloc/symname
+ * caller has appeared. Treat it as a boundary-merge candidate, not a small
+ * unstarted function. */
 #ifdef NON_MATCHING
 float game_uso_func_00007ABC(void) { return 0.0f; }
 #else
