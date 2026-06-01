@@ -7655,18 +7655,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028B0C);
 //   fields). Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
-void gl_func_00028C6C(int a0, int n, int s2_arg, int s1_arg) {
-    int i;
-    int mode = 0;
+/* Whole-body decode 2026-06-01 (prior switch was a placeholder). gl(a0); for
+ * each of 4 modes s4=0..3: tmpl=&D+0x5378+s4*16, dst=a0+s4*16; a shared inner
+ * counter s0 drains gl(tmpl)→v (break when v==0) then gl(dst,v), s0++ while s0<n. */
+void gl_func_00028C6C(int a0, int n) {
+    char *s5 = (char *)a0;
+    char *g = (char *)&D_00000000;
+    int s4, s0;
+    char *s2, *s1;
+
     gl_func_00000000(a0);
-    if (n <= 0) return;
-    for (i = 0; i < n; i++) {
-        switch (mode) {
-            case 1: gl_func_00000000(a0, s2_arg, s1_arg); break;
-            case 2: gl_func_00000000(a0, s2_arg, s1_arg); break;
-            case 3: gl_func_00000000(a0, s2_arg, s1_arg); break;
-            case 4: gl_func_00000000(a0, s2_arg, s1_arg); break;
-            default: gl_func_00000000(a0, s2_arg, s1_arg); break;
+    if (n <= 0) {
+        return;
+    }
+    s0 = 0;
+    s2 = 0;
+    s1 = 0;
+    for (s4 = 0; s4 != 4; s4++) {
+        switch (s4) {
+        case 0: s1 = g + 21368; s2 = s5;      break;
+        case 1: s1 = g + 21384; s2 = s5 + 16; break;
+        case 2: s1 = g + 21400; s2 = s5 + 32; break;
+        case 3: s1 = g + 21416; s2 = s5 + 48; break;
+        }
+        while (s0 < n) {
+            int v = gl_func_00000000(s1);
+            if (v == 0) {
+                break;
+            }
+            gl_func_00000000(s2, v);
+            s0++;
         }
     }
 }
