@@ -973,27 +973,49 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
  *
  * Frame -0x70 (saves s0-s7, s8 + ra). 5th arg `a4_stack` arrives via
  * sp[0x80] (caller arg-save slot 5). a2 spilled to sp+0x78. */
-void gui_func_00002BB0(int *a0, int a1, int a2, int a3, int a4_stack) {
-    int *ctx;
-    int *p;
-    int slot, idx;
-    int sub_ctx_field;  /* a0->[0x10]->[0x20] (s16) */
-    (void)a3; (void)a4_stack; (void)a1;
-    /* DL-command emit: RDP 0xBB000001 + 0x80008000 (segment-0 marker) */
-    ctx = *(int**)((char*)&D_00000000);  /* s7 = &D_GUI_CTX; ctx = s7[0] */
-    idx = ctx[0xC / 4];  /* dl-counter container */
-    slot = ((int*)idx)[1];  /* current cursor */
-    ((int*)idx)[1] = slot + 1;  /* bump */
-    p = (int*)((*(int**)idx)[0]) + (slot << 1);
-    p[0] = 0xBB000001;
-    p[1] = (int)0x80008000;
-    /* Sub-context load + early exit on a4_stack == 0 */
-    sub_ctx_field = *(short*)((char*)a0[0x10 / 4] + 0x20);
-    (void)sub_ctx_field;
-    /* TODO: ~100 more insns of body — second DL command + per-iteration
-     * loop emitting tile/vertex/scissor commands using a4_stack as the
-     * tile count. Multi-pass NM remains. */
-    (void)ctx; (void)a2;
+void gui_func_00002BB0(int *a0, int a1, int a2, int a3, int a4) {
+    int *s7 = (int *)&D_00000000;
+    int *ctx = *(int **)s7;
+    int s5 = a1, s4 = a3, s1 = a4;
+    int field58, s0, s8;
+    int *v1, *tex;
+    /* first DL emit: G_SETSCISSOR (BB000001 / 80008000) */
+    {
+        int *v0 = (int *)ctx[0xC / 4];
+        int idx = v0[1];
+        v0[1] = idx + 1;
+        {
+            int *slot = (int *)(((int *)ctx[0xC / 4])[0]) + idx * 2;
+            slot[0] = 0xBB000001;
+            slot[1] = (int)0x80008000;
+        }
+    }
+    {
+        int *s2 = (int *)a0[0x10 / 4];
+        field58 = *(short *)((char *)s2 + 0x20);
+        if (a4 == 0) return;
+        s0 = *(short *)((char *)s2 + 0x22);
+    }
+    s8 = (s0 << 10) / s0;
+    do {
+        v1 = (int *)a0[0x10 / 4];
+        if (s1 >= 33) {
+            int s6 = (32 << 10) / 32;
+            tex = (int *)v1[8 / 4];
+            gl_func_00000000((*s7), tex, field58, s0, s4, 0, 32, s0, 0);
+            gl_func_00000000((*s7), s5, a2, 32, s0, s6, s8);
+            s5 += 32;
+            s4 += 32;
+            s1 -= 32;
+        } else {
+            int s3div;
+            tex = (int *)v1[8 / 4];
+            gl_func_00000000((*s7), tex, field58, s0, s4, 0, s1, s0, 0);
+            s3div = (s1 << 10) / s1;
+            gl_func_00000000((*s7), s5, a2, s1, s0, s3div, s8);
+            s1 = 0;
+        }
+    } while (s1 != 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
