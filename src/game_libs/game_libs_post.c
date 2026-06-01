@@ -10406,7 +10406,15 @@ void gl_func_0002E24C(char *o) {
 /* Sibling of the matched gl_func_0002E1C0/gl_func_0002E24C event helpers.
  * Selector byte 0x31 dispatches through the table at D+0x1660 for values
  * 1..32, selector 0x40 shares the nearby return-10 leaf, and other values
- * run the bit-mask loop tail split out as game_libs_func_0002E330. */
+ * run the bit-mask loop tail split out as game_libs_func_0002E330.
+ *
+ * SOURCE=2 AUDIT (2026-06-01): boundary/codegen cap, not a simple sibling
+ * port. The target is frameless and uses `jr t6` to tail-jump through the
+ * dispatch table; the C body emits a 0x18 frame plus `jalr t9`/return epilogue.
+ * The invalid-selector path branches from 0x2E2B0 over the valid leaf returns
+ * (2E2F8..2E328) into game_libs_func_0002E330+4, so a normal contiguous merge
+ * would swallow real jump-table leaves. Keep INCLUDE_ASM until the non-contiguous
+ * selector-tail layout is represented explicitly. */
 int game_libs_func_0002E290(char *o) {
     typedef int (*Dispatch)(void);
     Dispatch *dispatch;
