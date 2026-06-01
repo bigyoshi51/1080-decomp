@@ -8652,23 +8652,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
 //   mnemonic disasm. Real-C STRUCTURAL body below per the analysis.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_0002ABC0(char *o) {
+int gl_func_0002ABC0(char *o, int a1) {
     int w = *(int *)o;
-    char *list = *(char **)(o + 0x4C);
-    int e;
-    int typ;
-    int sub;
-    if ((w << 2) < 0) {
-        (void)w;
-    }
-    if (list != 0) {
-        e = *(int *)list;
-        typ = (unsigned)e >> 28;
-        sub = ((unsigned)(e << 4)) >> 30;
-        if (typ == 2 && sub == 0) {
-            *(unsigned char *)o = *(unsigned char *)o | 0x20;
+    if ((w << 2) >= 0) {
+        char *list = *(char **)(o + 0x4C);
+        if (list != 0) {
+            int e0 = *(int *)(*(int **)list);
+            if ((unsigned)e0 >> 28 == 2 && ((unsigned)(e0 << 4) >> 30) != 0) {
+                *(unsigned char *)o = *(unsigned char *)o | 0x20;
+                return -1;
+            }
         }
     }
+    if ((((unsigned)w >> 28) & 1) == 1) {
+        if ((((unsigned)(w << 6)) >> 31) == 1) {
+            return 0;
+        }
+        {
+            char *a2 = *(char **)(o + 0x2C);
+            if (a2 != 0 && (w << 4) < 0 && a1 == 1 && o == *(char **)(a2 + 0x44)) {
+                if (*(char **)(o + 0x4C) != 0) {
+                    gl_func_00000000(*(char **)(o + 0x2C), o);
+                } else {
+                    gl_func_00000000(a2, o);
+                }
+            }
+        }
+    }
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002ABC0);
