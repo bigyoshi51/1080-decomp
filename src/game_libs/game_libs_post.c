@@ -2380,15 +2380,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0002119C(void) {
+/* Whole-body decode 2026-06-01 (was 10.96% case-0-only stub). 5-case jr-via-
+ * rodata jumptable state machine on st=(*(D+0x2CF0))-1, returning state>=3.
+ * md = (*(D+0x2034)==2)?2:1 drives the per-case `N/md` timer reload at D+0x2CF4.
+ * Cases dispatch sub-handlers (35668/3579C/36AD0/35B04) + a record sweep over
+ * D+0x2070 entries (stride 208 from *(D+0x2CFC)). Jumptable can't byte-match
+ * w/o rodata but case bodies score (per jumptable-not-a-skip-reason). */
+extern int gl_func_00035668();
+extern int gl_func_0003579C();
+extern int gl_func_00036AD0();
+extern int gl_func_00035B04();
+int gl_func_0002119C(void) {
     char *g = (char *)&D_00000000;
     int md = (*(short *)(g + 0x2034) == 2) ? 2 : 1;
     int st = *(unsigned char *)(g + 0x2CF0) - 1;
     int n, i;
     char *rec;
-    (void)md;
+
     if ((unsigned)st >= 5) {
-        return;
+        goto end;
     }
     switch (st) {
     case 0:
@@ -2399,10 +2409,67 @@ void gl_func_0002119C(void) {
             n = *(short *)(g + 0x2048);
             rec += 0x160;
         }
+        *(int *)(g + 0x2CF4) = 2 / md;
+        *(unsigned char *)(g + 0x2CF0) = *(unsigned char *)(g + 0x2CF0) - 1;
         break;
-    default:
+    case 1:
+        if (*(int *)(g + 0x2CF4) != 0) {
+            gl_func_00035668();
+            *(int *)(g + 0x2CF4) = *(int *)(g + 0x2CF4) - 1;
+            goto end;
+        }
+        n = *(int *)(g + 0x2070);
+        for (i = 0; i < n; i++) {
+            int *r = (int *)(*(int *)(g + 0x2CFC) + i * 208);
+            if (((unsigned)r[176 / 4] >> 31) != 0 &&
+                (*(unsigned char *)((char *)r + 96) & 0xF) != 0) {
+                *(float *)((char *)r + 108) = *(float *)(g + 0x2050);
+                r = (int *)(*(int *)(g + 0x2CFC) + i * 208);
+                *(unsigned char *)((char *)r + 96) =
+                    (*(unsigned char *)((char *)r + 96) & 0xEF) | 0x10;
+            }
+            n = *(int *)(g + 0x2070);
+        }
+        *(int *)(g + 0x2CF4) = 8 / md;
+        *(unsigned char *)(g + 0x2CF0) = *(unsigned char *)(g + 0x2CF0) - 1;
+        break;
+    case 2:
+        if (*(int *)(g + 0x2CF4) != 0) {
+            gl_func_00035668();
+            *(int *)(g + 0x2CF4) = *(int *)(g + 0x2CF4) - 1;
+            goto end;
+        }
+        *(int *)(g + 0x2CF4) = 2 / md;
+        *(unsigned char *)(g + 0x2CF0) = *(unsigned char *)(g + 0x2CF0) - 1;
+        break;
+    case 3:
+        gl_func_0003579C();
+        if (*(int *)(g + 0x2CF4) != 0) {
+            *(int *)(g + 0x2CF4) = *(int *)(g + 0x2CF4) - 1;
+        } else {
+            *(unsigned char *)(g + 0x2CF0) = *(unsigned char *)(g + 0x2CF0) - 1;
+            gl_func_00036AD0();
+            goto end;
+        }
+        break;
+    case 4:
+        gl_func_00035B04();
+        *(unsigned char *)(g + 0x2CF0) = 0;
+        for (i = 0; i < 12; i += 4) {
+            int v0;
+            *(short *)(g + 0x214C + i / 2) = *(short *)(g + 0x203C);
+            for (v0 = 0; v0 != 2816; v0 += 8) {
+                short *b = (short *)(*(int *)(g + 0x2140 + i) + v0);
+                b[0] = 0;
+                b[1] = 0;
+                b[2] = 0;
+                b[3] = 0;
+            }
+        }
         break;
     }
+end:
+    return *(unsigned char *)(g + 0x2CF0) >= 3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
