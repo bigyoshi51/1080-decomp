@@ -1062,6 +1062,30 @@ S_self:
     gl_func_00000000(&D_00000000, 0);
     p[0x6AC / 4] = (int)gl_func_00000000(0);
     *(int *)((char *)&D_00000000 + 0x138) = p[0x6AC / 4];
+
+    /* tail: node init + virtual dispatch (insns 78-108) */
+    gl_func_00000000(p[0x6AC / 4]);
+    {
+        int *node = (int *)p[0x6AC / 4];
+        gl_func_00000000((char *)p + 0x10, node);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+        }
+        node[0x14 / 4] = (int)p;
+    }
+    gl_func_00000000(p, a1);
+    p[0x48 / 4] = 0;
+    p[0x4F4 / 4] = (int)a1 & 0xFFFF;
+    if (((int)a1 << 6) < 0) {
+        p[0x6B4 / 4] = 0;
+    }
+    {
+        int *r6b0 = (int *)gl_func_00000000(0);
+        int *vt;
+        p[0x6B0 / 4] = (int)r6b0;
+        vt = (int *)r6b0[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)r6b0);
+    }
     return (void *)p;
 }
 #else
