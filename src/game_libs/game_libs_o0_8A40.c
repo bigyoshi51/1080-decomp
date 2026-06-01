@@ -28,7 +28,12 @@
  * or (b) packs raw/tmp adjacent at the top (pad-bottom = this, tmp exact, raw -8).
  * The 8-byte top-slack (home->raw) is an -O0 alignment artifact not C-drivable via
  * decl/pad. A standalone-IDO decl-permutation campaign or a real 3rd local in the
- * gap could finish it; near-miss at 2 diffs. */
+ * gap could finish it; near-miss at 2 diffs.
+ *
+ * 2026-06-01 retest on current body: moving `pad_mid[2]` between raw and tmp
+ * (`raw; pad_mid; tmp`) keeps the frame 0x58 but regresses tmp from sp+0x34 to
+ * sp+0x2C while raw stays at sp+0x40. The residual is not solved by placing the
+ * existing dead pad between the structs. */
 
 extern int gl_func_00000000();
 extern char D_00000000;
