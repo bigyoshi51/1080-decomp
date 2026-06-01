@@ -5791,6 +5791,15 @@ void game_uso_func_00006A30(int *a0) {
                       *(float *)(w + 0x708);
                 if (*(int *)(obj + 0x6C) == 0) {
                     *(float *)(obj + 0x3C) = val;
+                    if (*(int *)outpos != 0) {
+                        if (80.0f <= *(float *)(w + 0x348)) {
+                            flag = 8;
+                        } else if (*(int *)(obj + 0x6C) != 0) {
+                            /* dead */
+                        } else {
+                            flag = 16;
+                        }
+                    }
                 }
                 w = *(char **)(obj + 0x30);
                 if (*(int *)(w + 0x938) != 0 && *(int *)(w + 0xA54) != 0) {
