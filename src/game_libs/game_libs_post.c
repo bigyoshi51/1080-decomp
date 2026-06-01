@@ -11112,20 +11112,20 @@ void game_libs_func_0002F630(void) {
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+/* Whole-body decode 2026-06-01 (prior dispatch was wrong). op = a0?6:2;
+ * v1 = op<<8; cmd3 = 0x03000000|v1; cmd6 = 0x06000000|v1. Always emit
+ * gl(cmd3, (s8)stk_43). Then sel in {0,8,12} → gl(cmd6|6,(s8)arg4),
+ * gl(cmd6|1,(s8)(sel+arg3)); otherwise → gl(cmd6|5,(s8)arg4),
+ * gl(cmd6,(s8)(sel+arg3)). */
 void gl_func_0002F638(int a0, int sel, int arg3, int arg4, int stk_43) {
-    int op = a0 ? 6 : 2;
-    int sub = op & 0xFF;
-    int cmd3 = 0x03000000 | (sub << 8);
-    int cmd6;
-    gl_func_00000000(cmd3, (signed char)stk_43);
-    if (sel == 0) {
-        gl_func_00000000(cmd3, arg3);
-    } else if (sel == 8) {
-        gl_func_00000000(cmd3 | 8, arg3);
-    } else if (sel == 0xC) {
-        cmd6 = 0x06000000 | sub;
-        gl_func_00000000(cmd6 | 6, (signed char)arg4);
-        gl_func_00000000(cmd6 | 1, (signed char)(sel + arg3));
+    int v1 = (((a0 == 0) ? 2 : 6) & 0xFF) << 8;
+    gl_func_00000000(0x03000000 | v1, (signed char)stk_43);
+    if (sel == 0 || sel == 8 || sel == 12) {
+        gl_func_00000000((0x06000000 | v1) | 6, (signed char)arg4);
+        gl_func_00000000((0x06000000 | v1) | 1, (signed char)(sel + arg3));
+    } else {
+        gl_func_00000000((0x06000000 | v1) | 5, (signed char)arg4);
+        gl_func_00000000((0x06000000 | v1), (signed char)(sel + arg3));
     }
 }
 #else
