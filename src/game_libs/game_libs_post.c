@@ -22967,7 +22967,12 @@ int gl_func_0004211C(int a0) {
  * (0x1F6EC, 0x1F704) and >>10-scaled result/global values (byte->KB style).
  * NM (reference decode): ~8 collapsed-placeholder calls + several collapsed D
  * refs (distinct globals/strings collapsed to D_00000000 / literal RO addrs);
- * raw-.word game_libs reloc depression. Call-result chaining approximated. */
+ * raw-.word game_libs reloc depression. Call-result chaining approximated.
+ * 99.86% CAP (2026-06-01): the sole diff is `srl a1,a1` (target) vs `srl a3,a1`
+ * (build) — the unused-4th-arg-save spill (sw v0,0x1C(sp)) assigns the in-place
+ * shift to a1 vs a3. The 4-arg form (r2 spilled) is required for the spill;
+ * dropping to 3 args regresses to 88.89%, swapping arg order to 99.72%. The
+ * a1/a3 pick is a register-renumber cap, not C-controllable. */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00042144(void) {
