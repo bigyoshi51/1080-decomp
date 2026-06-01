@@ -27,8 +27,14 @@ extern int D_titproc_C0_table_a[]; /* t3-base table */
 extern int D_titproc_C0_table_b[]; /* v0-base table (return value) */
 
 #ifdef NON_MATCHING
-int titproc_uso_func_000000C0(void) {
+/* SOURCE=1 refinement (2026-06-01): use a K&R dummy parameter for `counter`.
+ * IDO colors the live state counter to $a0 through the branch-likely tests and
+ * final table index, matching the target's main register choice better than a
+ * plain local (which stayed in $v1). Residual is temp-register coloring around
+ * the initial load/increments and final table-base load; still NM. */
+int titproc_uso_func_000000C0(counter)
     int counter;
+{
     int v;
 
     counter = *(int*)((char*)&D_titproc_C0_a + 0x6C) + 1;
