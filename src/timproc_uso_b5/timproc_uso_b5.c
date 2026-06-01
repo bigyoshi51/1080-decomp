@@ -3161,7 +3161,16 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000887C);
 
+/* Same unfilled-jr-delay `return 0` cap as timproc_uso_b5_func_000087E8:
+ * target is `move v0,zero; jr ra; nop`, while IDO fills the delay slot.
+ * Keep INCLUDE_ASM as the byte-correct build path. */
+#ifdef NON_MATCHING
+int timproc_uso_b5_func_00008894(void) {
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008894);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088A0);
 
