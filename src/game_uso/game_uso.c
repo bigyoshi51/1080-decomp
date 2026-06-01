@@ -10041,74 +10041,54 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
  *
  * The C body below is a compile-only placeholder so the wrap parses;
  * default build uses INCLUDE_ASM and matches. */
-extern void *game_uso_func_0000C48C_TODO(void *parent, int sub_idx, int chunk_addr);
+/* Whole-body decode 2026-06-01 (was 8.3%; prior body's chunk/bump-offset model
+ * was wrong). Cascade-family constructor (same shape as game_uso_func_000018FC /
+ * 0000AE1C): alloc(0x444) main obj + init + vtable, then a dead-sentinel-guarded
+ * sub-region s1 (=p+0x13C or alloc 0x308) whose first 8 bytes get a type-ptr,
+ * then an UNROLLED run of ~30 sub-objects at s1+8+N*24, each guarded by
+ * `s1==-(8+N*24)` (dead, so IDO emits the alloc arms), registered via
+ * init_sub(sub,s1,*D[0x122C+N*4],1) with template D[0xF78+N*8], 0x14=0, and
+ * FP field D[0x1EC+N*4]. Contiguous prefix of 12 sub-inits decoded; the
+ * remaining ~19 are the multi-tick tail. */
 void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
-    void *p;
-    int *chunk;
-    int *sub;
-    void *parent;
+    char *p;
+    int *s1;
+    int val;
 
-    /* Entry: alloc main object if a0 == 0. */
-    p = a0;
+    p = (char *)a0;
     if (p == 0) {
-        p = (void*)gl_func_00000000(0x444);
+        p = (char *)gl_func_00000000(0x444);
         if (p == 0) goto end;
     }
-    gl_func_00000000(p, a1);   /* gl_init(p, a1) — main-object init */
-    *(int*)((char*)p + 0x28) = (int)&D_00000000;  /* main template ptr */
+    gl_func_00000000(p, a1);
+    *(int *)(p + 0x28) = (int)&D_00000000;
 
-    /* First sub-region: alloc 0x308 if cached chunk addr ≠ s1+0x13C
-     * (bump-allocator dispatch). Subsequent iterations reuse parent+offset. */
-    parent = p;
-    if (a2 != 0) {
-        /* a2 was passed by caller as pre-existing chunk; use if matches */
-        chunk = (int*)a2;
-    } else {
-        chunk = (int*)gl_func_00000000(0x308);
-        if (chunk == 0) goto end;
+    s1 = (int *)(p + 0x13C);
+    if (p == (char *)-0x13C) {
+        s1 = (int *)gl_func_00000000(0x308);
+        if (s1 == 0) goto end;
     }
+    s1[0] = (int)((char *)&D_00000000 + 0x1224);
+    s1[1] = 0;
 
-    /* Sub-init #0: alloc 0x18 sub, bind to chunk+0x8, then gl_init_sub. */
-    sub = (int*)gl_func_00000000(0x18);
-    if (sub != 0) {
-        chunk[0] = (int)((char*)&D_00000000 + 0x1224);  /* TEMPLATE_TYPE_PTR_1 */
-        chunk[1] = 0;
-        gl_func_00000000(sub, parent, 1);              /* gl_init_sub */
-        sub[3] = (int)((char*)&D_00000000 + 0xF78);    /* sub->0xC = TEMPLATE_PTR_2 */
-        sub[5] = 0;                                     /* sub->0x14 = 0 */
-        /* sub->0x10 from float template (lwc1 $f4, gl_data+0x1EC); copied via $f4 */
-        *(float*)((char*)sub + 0x10) = *(float*)((char*)&D_00000000 + 0x1EC);
+#define SUBINIT(N) \
+    val = *(int *)((char *)&D_00000000 + (0x122C + (N) * 4)); \
+    { \
+        int *sub = (int *)((char *)s1 + (8 + (N) * 24)); \
+        if (s1 == (int *)-(8 + (N) * 24)) { \
+            sub = (int *)gl_func_00000000(0x18); \
+            if (sub == 0) goto end; \
+        } \
+        gl_func_00000000(sub, s1, val, 1); \
+        sub[0xC / 4] = (int)((char *)&D_00000000 + (0xF78 + (N) * 8)); \
+        sub[0x14 / 4] = 0; \
+        *(float *)((char *)sub + 0x10) = *(float *)((char *)&D_00000000 + (0x1EC + (N) * 4)); \
     }
-
-    /* Sub-init #1: same pattern, different template offsets.
-     * Decoded asm pattern at ~0xC5xx range:
-     *   chunk1 = parent + 0x44 + 0x308 (or similar bump-offset)
-     *   sub1 = alloc(0x18); chunk1[0] = D+0x1228 (TEMPLATE_TYPE_PTR_2);
-     *   gl_init_sub(sub1, parent, 2); sub1[3] = D+0xF80; sub1[5] = 0;
-     *   sub1->0x10 = D->0x1F0 float
-     * Per memo's per-iteration table: each sub uses different
-     * (template_type_ptr at chunk[0], sub-template at sub[3], size at sub[0x10]).
-     * Iteration index N controls table base offsets:
-     *   chunk[0] = D + 0x1224 + N*4   (table of TEMPLATE_TYPE_PTRs)
-     *   sub[3]   = D + 0xF78 + N*8    (table of sub-template ptrs)
-     *   sub[0x10] = D->(0x1EC + N*4) (float-template table) */
-    chunk = (int*)((char*)parent + 0x44 + 0x308);  /* approximate bump offset */
-    sub = (int*)gl_func_00000000(0x18);
-    if (sub != 0) {
-        chunk[0] = (int)((char*)&D_00000000 + 0x1228);
-        chunk[1] = 0;
-        gl_func_00000000(sub, parent, 2);
-        sub[3] = (int)((char*)&D_00000000 + 0xF80);
-        sub[5] = 0;
-        *(float*)((char*)sub + 0x10) = *(float*)((char*)&D_00000000 + 0x1F0);
-    }
-
-    /* TODO: ~13 more sub-region iterations follow same pattern with different
-     * (template_idx, sub_idx) tuples. Per feedback_partial_decode_with_stub_body.md,
-     * call out to TODO stub for the remaining ~550 insns. Default build
-     * matches via INCLUDE_ASM. */
-    return game_uso_func_0000C48C_TODO(parent, /*sub_idx*/2, /*chunk_addr*/(int)chunk);
-
+    SUBINIT(0)  SUBINIT(1)  SUBINIT(2)  SUBINIT(3)
+    SUBINIT(4)  SUBINIT(5)  SUBINIT(6)  SUBINIT(7)
+    SUBINIT(8)  SUBINIT(9)  SUBINIT(10) SUBINIT(11)
+#undef SUBINIT
+    (void)a2;
 end:
     return p;
 }
