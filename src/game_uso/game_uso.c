@@ -3819,7 +3819,12 @@ after_head_template:
      *     but did NOT change allocation — still goes to $tN. Confirmed
      *     via objdump: prologue still saves only s0/s1/ra, no s2.
      *     Conclusion: IDO's `register` hint is too weak to override
-     *     the global allocator's priority calc here.
+     *     the global allocator's priority calc here. RETEST 2026-06-01
+     *     on the current 0xE8-frame body: same result. `register char *s2`
+     *     rebuilt cleanly, but no-alias objdump still emitted only
+     *     `sw ra,0x1c(sp)`, `sw s1,0x18(sp)`, `sw s0,0x14(sp)`; no
+     *     `sw s2,0x20(sp)`. Do not retry without a separate live-range
+     *     change.
      *   - decomp-permuter with PERM_RANDOMIZE around the macros
      *
      * 2026-05-05 (later): FIXED iter-G-NN macro bug. The macro at
