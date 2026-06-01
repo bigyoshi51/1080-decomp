@@ -331,7 +331,46 @@ S_self:
             }
         }
     }
-    /* TODO: post-dispatch sub-loop (insns 108-205). Multi-tick. */
+    {
+        int *q = (int *)((int *)s1[0x6AC / 4])[0x44 / 4];
+        q[0x18 / 4] = *(int *)((char *)s1[0x6A8 / 4] + 0x34);
+        q[0x14 / 4] = *(int *)((char *)s1[0x6A8 / 4] + 0x34);
+    }
+    gl_func_00000000((char *)s1 + 0x10, (int *)s1[0x6AC / 4]);
+    {
+        int *sub = (int *)s1[0x6AC / 4];
+        if (sub[0x14 / 4] != 0) {
+            sub[0x4 / 4] = 1;
+            sub[0x14 / 4] = (int)s1;
+        }
+    }
+    gl_func_00000000(s1, a1);
+    s1[0x48 / 4] = (int)gl_func_00000000(0);
+    gl_func_00000000(s1[0x48 / 4], s1);
+    gl_func_00000000(s1[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
+    gl_func_00000000(s1[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 9, -1, &D_00000000);
+    gl_func_00000000(s1[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
+    *(int *)((char *)s1[0x48 / 4] + 0x30) = s1[0x568 / 4];
+    gl_func_00000000(s1[0x48 / 4]);
+    gl_func_00000000((char *)s1 + 0x10, (int *)s1[0x48 / 4]);
+    {
+        int *n = (int *)s1[0x48 / 4];
+        if (n[0x14 / 4] != 0) {
+            n[0x4 / 4] = 1;
+        }
+        n[0x14 / 4] = (int)s1;
+    }
+    {
+        int *node = *(int **)((char *)&D_00000000 + 0x190);
+        gl_func_00000000((char *)s1 + 0x10, node);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+            node[0x14 / 4] = (int)s1;
+        }
+        gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0);
+        gl_func_00000000();
+    }
+    *(int *)((char *)&D_00000000 + 0x40) = 5;
     return (void*)s1;
 }
 #else
