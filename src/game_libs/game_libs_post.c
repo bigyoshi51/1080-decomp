@@ -40527,17 +40527,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F038);
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 int gl_func_0006F088(void) {
-    extern unsigned char D_sym_a_0006F088;     /* 9-byte buffer */
-    extern int D_arg_sym_0006F088, D_zero_sym_0006F088, D_result_0006F088;
+    /* distinct externs to bust IDO's &D base CSE — target re-materializes the
+     * lui per buffer-byte access (separate lui;lbu each). */
+    extern unsigned char D_6F088_b9, D_6F088_b8, D_6F088_b6, D_6F088_b7;
+    extern int D_6F088_z10, D_6F088_arg, D_6F088_g, D_6F088_h, D_6F088_i, D_6F088_res;
+    int r;
+    (&D_6F088_b9)[9] = 1;
     *(volatile int*)0xA4600024 = 3;
-    *(volatile int*)0xA4600028 = (&D_sym_a_0006F088)[8];
-    *(volatile int*)0xA460002C = (&D_sym_a_0006F088)[6];
-    *(volatile int*)0xA4600030 = (&D_sym_a_0006F088)[7];
-    (&D_sym_a_0006F088)[9] = 1;
-    D_zero_sym_0006F088 = 0;
-    gl_func_00000000((char*)&D_arg_sym_0006F088 + 0x14, 0x60);
-    gl_func_00000000();
-    return D_result_0006F088;
+    *(volatile int*)0xA4600028 = (&D_6F088_b8)[8];
+    *(volatile int*)0xA460002C = (&D_6F088_b6)[6];
+    *(volatile int*)0xA4600030 = (&D_6F088_b7)[7];
+    *(int*)((char*)&D_6F088_z10 + 0x10) = 0;
+    gl_func_00000000((char*)&D_6F088_arg + 0x14, 0x60);
+    r = gl_func_00000000();
+    D_6F088_g = D_6F088_h;
+    D_6F088_i = (int)&D_6F088_res;
+    *(int*)((char*)&D_6F088_z10 + 0x14) = (int)&D_6F088_res;
+    gl_func_00000000(r);
+    return (int)&D_6F088_res;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F088);
