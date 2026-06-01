@@ -73,6 +73,9 @@ void timproc_uso_b5_func_00000050(void) {
  * empty stub with the documented 3-stage alloc-cascade body — each
  * stage either uses the input ptr or alloc()s a fresh struct, with
  * goto exits when a later alloc fails. */
+extern char D_b5_058_v0;
+extern char D_b5_058_v1;
+extern char D_b5_058_v2;
 void timproc_uso_b5_func_00000058(int *a0) {
     int *s3, *s0, *s1;
     if (a0 == 0) {
@@ -94,11 +97,14 @@ void timproc_uso_b5_func_00000058(int *a0) {
         s1 = s0;
     }
     gl_func_00000000(s1, (char*)&D_00000000 + 0x98);
-    /* TODO: ~95 insns of body — more init via s1 result + writes to s3/s0
-     * slots. Multi-pass NM remains. */
+    s1[0x28 / 4] = (int)&D_b5_058_v0;
 skip_more:
+    s0[0x28 / 4] = (int)&D_b5_058_v1;
 skip_init:
-    (void)s3; (void)s0;
+    s3[0x28 / 4] = (int)&D_b5_058_v2;
+    s3[0x0C / 4] = (int)((char *)&D_00000000 + 0xA0);
+    s3[0x48 / 4] = (int)gl_func_00000000(0);
+    /* TODO: registration loop + 6-arg call + virtual dispatch (insns 44+). */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000058);
