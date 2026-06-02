@@ -1329,7 +1329,78 @@ void timproc_uso_b3_func_000023CC(void) {}
 void timproc_uso_b3_func_000023D4(void) {}
 void timproc_uso_b3_func_000023DC(void) {}
 
+/* Alloc-cascade ctor (sibling of arcproc_uso_func_0000251C): alloc 108/80/44
+ * + ->0x28=&D + &D+1160/1168 descriptors, then a registration tail. Decoded
+ * 2026-06-02. */
+#ifdef NON_MATCHING
+char *timproc_uso_b3_func_000023E4(char *a0) {
+    char *s0;
+    char *p2;
+    char *p3;
+    s0 = a0 ? a0 : (char *)gl_func_00000000(108);
+    if (!s0) return s0;
+    p2 = (char *)gl_func_00000000(80);
+    if (p2) {
+        p3 = (char *)gl_func_00000000(44);
+        if (p3) {
+            gl_func_00000000(p3, (char *)&D_00000000 + 1160);
+            *(char **)(p3 + 0x28) = &D_00000000;
+        }
+        *(char **)(p2 + 0x28) = &D_00000000;
+    }
+    *(char **)(s0 + 0x28) = &D_00000000;
+    *(char **)(s0 + 0xC) = (char *)&D_00000000 + 1168;
+    gl_func_00000000(s0);
+    *(int *)(s0 + 96) = 120;
+    *(int *)(s0 + 100) = 161;
+    *(int *)(s0 + 104) = 191;
+    *(int *)(s0 + 72) = gl_func_00000000(0);
+    gl_func_00000000(*(int *)(s0 + 72), s0);
+    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 6, -1, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 7, -1, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
+    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
+    *(int *)(*(int *)(s0 + 72) + 48) =
+        gl_func_00000000(0, &D_00000000, 72, 221, 3, 13);
+    gl_func_00000000(*(int *)(s0 + 72));
+    gl_func_00000000(*(int *)(s0 + 72), 140);
+    {
+        char *v0 = *(char **)(s0 + 72);
+        char *vt = *(char **)(v0 + 40);
+        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v0);
+    }
+    gl_func_00000000(s0 + 16, *(int *)(s0 + 72));
+    {
+        char *a3 = *(char **)(s0 + 72);
+        if (*(int *)(a3 + 0x14) != 0) {
+            *(int *)(a3 + 0x4) = 1;
+        }
+        *(int *)(a3 + 0x14) = (int)s0;
+    }
+    if (*(int *)((char *)&D_00000000 + 388) == 0 || *(int *)&D_00000000 != 0x17D7) {
+        *(int *)(*(int *)(s0 + 72) + 0xD8) = 0;
+    }
+    gl_func_00000000(s0 + 16, *(int *)((char *)&D_00000000 + 400));
+    {
+        char *a3 = *(char **)((char *)&D_00000000 + 400);
+        if (*(int *)(a3 + 0x14) != 0) {
+            *(int *)(a3 + 0x4) = 1;
+        }
+        *(int *)(a3 + 0x14) = (int)s0;
+    }
+    gl_func_00000000(*(int *)((char *)&D_00000000 + 400));
+    *(int *)(s0 + 84) = 0;
+    *(int *)(s0 + 80) = 0;
+    *(int *)(s0 + 48) = 1;
+    *(int *)(s0 + 44) = 0;
+    return s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
+#endif
 
 /* Byte-identical sibling of timproc_uso_b1_func_000024F4 (147 insns).
  * Same display-list build pattern. The 0x260000-series `or a1, s1, tN` wants
