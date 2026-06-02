@@ -121,6 +121,16 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001034C);
  * parent struct so accesses are p->field) PLUS residual regalloc grinding.
  * That's a multi-hour focused task, NOT a loop tick. Standalone harness:
  * compile this body with `cc ... -O0` and diff via disasm-func.py --obj.
+ * 2026-06-02 TICK-12 PROGRESS: typed-struct body (Obj + Quad g3C/g4C/g5C
+ * 16-byte int groups copied by struct-assignment + Elem[0x28] array at
+ * +0x84 + Node for the unk30 callee return) gets the STRUCTURE right
+ * (int lw/sw copy w/ single base; element addressing). Remaining ~250
+ * diffs are pure -O0 TEMP-REGISTER NUMBERING (t0 vs t1 ...) that cascade
+ * from the FIRST divergence: `if (i != arg0->unk7C)` -- IDO evaluates the
+ * complex operand (arg0->unk7C, 2 loads) before the simple local i, so it
+ * emits beq(unk7C,i); target loads i first -> beq(i,unk7C). Must be fixed
+ * top-down (each fix realigns downstream regs). A dedicated session should
+ * start from the tick-12 typed-struct body and grind the cascade.
  * NOTE: only commit the -O0 split if it byte-matches EXACTLY -- it makes
  * the compiled C the default build path, so a non-match would corrupt the
  * segment (unlike this NM wrap, whose #else INCLUDE_ASM stays byte-exact).
