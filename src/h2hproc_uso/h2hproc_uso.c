@@ -788,7 +788,14 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C1
  * Same 0xC4/0xCC pair structure as func_00000C18; D->0x168/0x170 paired
  * with D->0x16C/0x174 (likely (x0,y0) for left side, (x1,y1) for right).
  *
- * First-pass decode; not byte-matched. Default build INCLUDE_ASM unchanged. */
+ * 2026-06-02 RECONSTRUCT 75.2->98.6% (+23.4pp): three fixes.
+ *   (1) the 0x168/0x170/0x16C/0x174 args read from &D DIRECTLY (D->0xNNN via
+ *       s0=&D), NOT from root (D->0x134) — old C read root->0xNNN.
+ *   (2) gl_func(r1)/gl_func(r2) are 2-arg: gl_func(r1, 0) (the `a1=0` setup).
+ *   (3) root reloaded per side-block (matches target's 2x lw 0x134(s0)).
+ * RESIDUAL 1.4%: v0<->v1 coloring on the root/slot loads (root=v1/slot=v0 in
+ * target, swapped in build) + r1 spill slot 0x28 vs 0x24. Pure regalloc/stack
+ * renumber — the v0-reuse-after-void-call cap (permuter-only). INCLUDE_ASM. */
 void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     int *slotC4, *slotCC;
     int *r1, *r2;
@@ -800,8 +807,8 @@ void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
         slotC4 = *(int**)((char*)root + 0xC4);
         *(int*)((char*)slotC4 + 0x8DC) = *(int*)((char*)root + 0x108);
         r1 = *(int**)((char*)slotC4 + 0x800);
-        gl_func_00000000(r1);
-        gl_func_00000000(r1, *(int*)((char*)root + 0x168), *(int*)((char*)root + 0x170));
+        gl_func_00000000(r1, 0);
+        gl_func_00000000(r1, *(int*)((char*)&D_00000000 + 0x168), *(int*)((char*)&D_00000000 + 0x170));
     }
 
     {
@@ -809,8 +816,8 @@ void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
         slotCC = *(int**)((char*)root + 0xCC);
         *(int*)((char*)slotCC + 0x8DC) = *(int*)((char*)root + 0x108);
         r2 = *(int**)((char*)slotCC + 0x800);
-        gl_func_00000000(r2);
-        gl_func_00000000(r2, *(int*)((char*)root + 0x16C), *(int*)((char*)root + 0x174));
+        gl_func_00000000(r2, 0);
+        gl_func_00000000(r2, *(int*)((char*)&D_00000000 + 0x16C), *(int*)((char*)&D_00000000 + 0x174));
     }
 
     gl_func_00000000(a0);
