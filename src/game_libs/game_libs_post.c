@@ -7424,7 +7424,18 @@ void gl_func_0002888C(int a0) {
  * (f2=f0 init), and IDO uses the live original f0 as fs where the target reuses
  * the f2 copy; a register-aliasing choice not C-drivable (the lwc1 `,0(at)` vs
  * `,4052(at)` and branch-address diffs are reloc-blind/position, already matched).
- * Real wrap (correct logic); stays NM. */
+ * Real wrap (correct logic); stays NM.
+ *
+ * 2026-06-01 re-confirmed + extra levers ruled out. The target loads a1->0x30
+ * exactly ONCE (`lwc1 f0,0x30(a1)` @0x288C0), keeping f0 as the long-lived
+ * "original" through the final `f4 = f0 * f2`; f2 is the short-lived working
+ * copy (`f2 = f0`). So `f2 = f2 * s` value-numbers f2's source to the live f0
+ * (build `mul.s f2,f0,f8`) where the target re-reads the f2 copy
+ * (`mul.s f2,f2,f8`). Do NOT retry: (a) independent double-load of a1->0x30
+ * for the working copy — target single-loads, a 2nd lwc1 diverges; (b) f0/f2
+ * role-swap / rename — pure relabel, IDO allocates by live-range so f0 stays
+ * the long-lived reg; (c) `s * f2` operand swap — value-numbering still pulls
+ * f0. Live-range-bound FP value-numbering, irreducible from C. */
 extern float D_00000FD4, D_00000FD8, D_00000FDC, D_00000FE0, D_00000FE4, D_00000FE8, D_00000FEC;
 extern char D_tbl_288ac;
 #ifdef NON_MATCHING
