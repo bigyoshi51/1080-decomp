@@ -234,7 +234,59 @@ Lvt0:
     *(float *)(o0 + 0x7AC) = 211.0f;
     *(float *)(o0 + 0x7A8) = 192.0f - (float)(n * 2 - 2);
     gl_func_00000000(d + 1568, 0);
-    gl_func_00000000(0, 0);
+    gl_func_00000000(d, 0);
+
+    {
+        char *o5;
+        char *rec;
+        char *vt;
+        o5 = (char *)gl_func_00000000(224);
+        if (o5 != 0) {
+            gl_func_00000000(o5);
+            *(int *)(o5 + 0x28) = (int)d;
+        }
+        *(int *)(o0 + 0x6AC) = (int)o5;
+        *(int *)(d + 312) = (int)o5;
+
+        gl_func_00000000(*(int *)(o0 + 0x6AC), o0, *(int *)(o0 + 0x568),
+                         *(int *)(o0 + 0x6A8), *(int *)(o0 + 0x528));
+
+        rec = *(char **)(o0 + 0x6AC);
+        vt = *(char **)(rec + 0x28);
+        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)rec);
+
+        rec = (char *)gl_func_00000000(o0 + 16, *(int *)(o0 + 0x6AC));
+        if (*(int *)(rec + 0x14) != 0) {
+            *(int *)(rec + 0x4) = 1;
+        }
+        *(int *)(rec + 0x14) = (int)o0;
+
+        *(int *)(o0 + 0x48) = gl_func_00000000(0);
+        gl_func_00000000(*(int *)(o0 + 0x48), o0);
+
+        gl_func_00000000(*(int *)(o0 + 0x48), (*(int *)d + 3) << 16, -1, d);
+        gl_func_00000000(*(int *)(o0 + 0x48), ((*(int *)d + 3) << 16) | 8, -1, d);
+        gl_func_00000000(*(int *)(o0 + 0x48), ((*(int *)d + 3) << 16) | 9, -1, d);
+        gl_func_00000000(*(int *)(o0 + 0x48), ((*(int *)d + 3) << 16) | 5, -1, d);
+
+        *(int *)(*(int *)(o0 + 0x48) + 0x30) = *(int *)(o0 + 0x568);
+        gl_func_00000000(*(int *)(o0 + 0x48));
+
+        rec = (char *)gl_func_00000000(o0 + 16, *(int *)(o0 + 0x48));
+        if (*(int *)(rec + 0x14) != 0) {
+            *(int *)(rec + 0x4) = 1;
+        }
+        *(int *)(rec + 0x14) = (int)o0;
+
+        rec = (char *)gl_func_00000000(o0 + 16, *(int *)(d + 400));
+        if (*(int *)(rec + 0x14) != 0) {
+            *(int *)(rec + 0x4) = 1;
+        }
+        *(int *)(rec + 0x14) = (int)o0;
+
+        gl_func_00000000(*(int *)(d + 400), 1, 0);
+        *(int *)(d + 0x40) = 4;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000E04);
