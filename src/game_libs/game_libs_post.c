@@ -8229,7 +8229,33 @@ void gl_func_0002978C(char *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_000298D8: accumulate-and-scale. Adds the two u16 fields at
+ * a0+2 and a0+4, stores the sum back to a0+2, takes (sum>>8)&0xFF (arith sra),
+ * clamps it to 127 (and zeroes byte a0+0 when clamped), then returns
+ * (floatTable[v] - 1.0f) * a0->8 + 1.0f. floatTable at D+0x200, indexed by v.
+ * 98.48% NM: the `r` result-temp + `h[2]+h[1]` operand order pin the return
+ * path (add->f2; mov f0,f2) and the u16 load order. Residual = FP-temp
+ * renumber (table[v] in $f4 target vs $f6, the $f8/$f4 mul operands swapped)
+ * + one int-reg name ($t9 vs $t8) — permuter-class; sub-into-temp regresses. */
+float game_libs_func_000298D8(void *a0) {
+    unsigned short *h = (unsigned short *)a0;
+    int v = h[2] + h[1];
+    h[1] = (unsigned short)v;
+    v = (v >> 8) & 0xFF;
+    if ((unsigned int)v >= 127) {
+        v = 127;
+        *(char *)a0 = 0;
+    }
+    {
+        float r = (*(float *)((char *)&D_00000000 + 0x200 + v * 4) - 1.0f)
+                  * *(float *)((char *)a0 + 8) + 1.0f;
+        return r;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000298D8);
+#endif
 
 /* Phase-accumulator table oscillator: advance a0[1] by (int)a0->0x10f, index
  * the 64-entry s16 table at a0[2] by (acc>>10)&0x3F, return (s16)(table[idx]>>8).
