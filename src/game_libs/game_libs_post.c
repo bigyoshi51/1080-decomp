@@ -33625,7 +33625,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DDE4);
 
+#ifdef NON_MATCHING
+/* game_libs_func_0005DF64: copy 16 floats a0[] -> a1[] (e.g. a 4x4 matrix).
+ * 45% NM. Correct logic; the gap is an IDO unroll-ADDRESSING variant. Both
+ * `a1[i]=a0[i]` and `*a1++=*a0++` compile to a TIGHT 18-insn 4x-unroll
+ * (advance dst by 16/group, -16(v1)/-12/-8/-4 offsets). The target is a
+ * VERBOSE 32-insn 4x-unroll that re-copies the induction pointer to a temp
+ * before each access (`or a1,v0; lwc1 0(a1); v0+=4` per element, counter by 4).
+ * No clean C reaches that form: struct copy -> 25% (ldc1/sdc1), manual 4x ->
+ * size blow-up (fuzzy None). Documented IDO unroll-residual addressing cap. */
+void game_libs_func_0005DF64(float *a0, float *a1) {
+    int i;
+    for (i = 0; i < 16; i++) {
+        a1[i] = a0[i];
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DF64);
+#endif
 
 /* Copy a 3x3 float block from a0 to a1, row stride 16 bytes (4th column of
  * each 4-wide row skipped). Logic-exact; 12/19 diffs are a consistent
