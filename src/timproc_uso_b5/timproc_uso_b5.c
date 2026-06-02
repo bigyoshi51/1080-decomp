@@ -5641,7 +5641,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   + owner-attach + derived-offset stamp skeleton (sibling of
 //   0000D884 with descriptor variant). Byte-match deferred. Name
 //   pre-checked: no extern reuse.
-/* 2026-06-02 HEAD RE-DECODE NEEDED (current body 10.42% is partly mis-decoded;
+/* 2026-06-02 UPDATE: applying the head re-decode below (single-r, owner=a0,
+ * func(r), arg-stamp a1/a2) is METRIC-NEUTRAL (tested: 10.42%->10.10%) — the
+ * head is <10% of this 422-word function, so ONLY decoding the ~400-word FP
+ * factory tail moves the %. Don't bother re-decoding the head in isolation;
+ * the tail (alloc 324/364/...; func(child,&D+desc,0.0f,0.0f via mtc1/mfc1) +
+ * int/float field stamps + distinct descriptor symbols) is the sole lever.
+ * HEAD RE-DECODE NEEDED (current body 10.42% is partly mis-decoded;
  * verified against disasm): the alloc(0x2B8)/`s` is the DEAD arm of an
  * alloc-or-passthrough — sp+84 is always r, so the sub-record init
  * (s->0x28=&D, func(s+0x2C/0x194), s->0xC) is actually on r (single object,
