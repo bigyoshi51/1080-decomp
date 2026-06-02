@@ -1243,6 +1243,19 @@ void mgrproc_uso_func_000023FC(char *s3) {
             }
         }
     }
+    if ((c & 8) && (*(int *)(*(int *)(s3 + 0x528) + 0x14) & 1)) {
+        char *reg = *(char **)((char *)&D_00000000 + 312);
+        int t = *(int *)(reg + 0x30);
+        int mins = t / 60000;
+        int secs;
+        int cs;
+        t = t - mins * 60000;
+        secs = t / 1000;
+        t = t - secs * 1000;
+        cs = t / 10;
+        gl_func_00000000((int)(255.0f * *(float *)(s3 + 0x7A0)), s3 + 680, s3 + 716, mins);
+        gl_func_00000000(s3 + 1928, secs, cs);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000023FC);
