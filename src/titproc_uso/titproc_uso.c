@@ -256,6 +256,25 @@ void titproc_uso_func_0000056C(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+/* titproc_uso_func_000005DC STRUCTURE MAP (2026-06-02, for a budgeted decode).
+ * 356-insn do-while + 12-case jr-table switch (last fresh pure-integer switch;
+ * jr-rodata reproduces per PATTERNS). Skeleton:
+ *   void f(char *a0, int a1) {
+ *     char *d=&D(s0), *arg=a0(s2), *d16=&D+16(s8); int done=0(s6), s7=1, s5;
+ *     do { if((u)a1<12) switch(a1){...}  a1 = *(int*)(d+0x40); } while(!done);
+ *   }
+ * Tail @0x554: `if(done(s6)==0) goto dispatch; a1 = d->0x40`. Cases set done=1
+ * (terminal) or d->0x40 (next-state, loops). Cross-case saved reg s5 is the
+ * tricky bit: read from sp+92 at entry, set to 0x800000 in case 3, written
+ * back to sp+92 at epilogue (560) — model as a persistent local.
+ * Cases decoded so far:
+ *   c0: gl(&D,0,0,0); done=1; D->0x68=0; D->0x8C=0x820000; sub=gl(&D,2,9,1);
+ *       a1=gl(&D+16); if(sub->0x14)sub->4=1; gl(0,sub); sub->0x14=&D; gl(arg,0)
+ *   c1: gl(arg,-1); gl(arg,0x9FFF0,0x10000,arg->0); D->0x44=2; done=1
+ *   c3: a4=D->0x44; D->0x44=0; s5=0x800000; D->0x40=a4  (loops)
+ *   c2 @0x124 ambiguous (jal with stale a0 — re-check). c4+/c5+ are the
+ *   sub-object + s5/s6 setup cases (multi-call). Decode all 12 for the dense
+ *   jr-table, then SUB_*-style per-case bodies. Multi-tick. */
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000005DC);
 
 /* titproc_uso_func_00000B6C: 40-insn (0xA0) 3-call alloc-and-link wrapper.
