@@ -26354,38 +26354,158 @@ int *gl_func_00048A74(int *a0, int a1, int a2, int a3) {
     return a0;
 }
 
-// gl_func_00048AEC — STRUCTURAL PASS (0x81C / 519 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function (very large top-level driver).
-// Single prologue frame 0x160 (saves ra, s0, s1). Per-frame render/process
-// orchestrator (cb = jal 0 USO-relocated).
-//
-//   void gl_func_00048AEC(void *a0) {
-//     *(void**)0x4C7C4 = 0;                          // clear global registry
-//                                                    //   head (the slot
-//                                                    //   gl_func_00043BEC
-//                                                    //   patches/inserts into)
-//     void *g = &D_reloc;                              // module global base
-//     if (a0->p30 & 0x80) cb1(g->p254, ...);           // state-flag dispatch
-//     if ((*(int*)(g + 0x1C4) & 1)) return;            // bnel big skip-out
-//     if (g->pE4 == 0) goto tail;                       // beqz guard
-//     // main body: a long sequence of cb-driven passes — FP processing,
-//     // intrusive-list walks, GfxCtx DL-build emits and per-object
-//     // dispatch — driving this subsystem's per-frame work using the
-//     // g->0x254 GfxCtx and the g->0xE4.. state.
-//   tail: ;
-//   }
-// Top-level per-frame driver for the subsystem: resets the 0x4C7C4 global
-// registry head (consumed by the gl_func_00043BEC registry-insert), branches
-// on the a0->0x30 bit-7 and the g(&D_reloc)+0x1C4 bit-0 state flags, then
-// runs the bulk render/update work (cb dispatch + FP + list-walk + DL build)
-// against the &D_reloc-rooted GfxCtx/state. Family: cb-driven orchestrator
-// (the per-frame entry that ties together the segment's registration /
-// dispatch / DL-builder routines). Per-pass body not decoded (519-word
-// driver) — the *0x4C7C4 clear, the &D_reloc base, the a0->0x30&0x80 and
-// +0x1C4&1 state gates and the g->0x254 GfxCtx path are exact; the inner
-// pass sequence is representative. Caps: a0/&D_reloc struct, the 0x4C7C4
-// global and cb signatures untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+/* gl_func_00048AEC - STRUCTURAL PASS (big-swing 2026-06-02).
+ * Top-level per-frame render/update driver for the subsystem, 0x81C (519
+ * insns). Resets the 0x4C7C4 registry head, gates on arg0->unk30 bit-7 and
+ * the g(&D_00000000)+0x1C4 bit-0/bit-1 state flags, then builds F3DEX2
+ * display lists into the global GfxCtx at *DPP(0x254). Sole callee
+ * gl_func_0001CA10 (matrix copy / DL-segment-resolve / get-or-alloc /
+ * per-mode helper -- file-wide K&R placeholder, returns int).
+ *
+ * Folded refs: DI/DF/DPP = (char*)&D_00000000 + off. Gfx command words
+ * confirmed from asm: 0x01020040 (gSPMatrix), 0x06000000 (gSPDisplayList),
+ * 0xFA000000 + 0xFFFF00FF (gDPSetPrimColor). The recurring DL-append idiom
+ * is: list = ctx->field; n = list->unk4; list->unk4 = n+1;
+ *     ent = list->unk0 + n*stride; ent->unk0 = CMD; ent->unk4 = data.
+ *
+ * NOT matched (constructor/DL-builder cap: folded-pool refs + ~18 calls +
+ * the matrix mul written here as a clean nested loop where the target
+ * unrolls it). Iterators/dispatch follow the asm structure; this documents
+ * the full architecture for the next pass. Consider /decompile-f3dex2. */
+#define DI(o) (*(int *)((char *)&D_00000000 + (o)))
+#define DF(o) (*(float *)((char *)&D_00000000 + (o)))
+#define DPP(o) (*(void **)((char *)&D_00000000 + (o)))
+#define FI(p, o) (*(int *)((char *)(p) + (o)))
+#define FF(p, o) (*(float *)((char *)(p) + (o)))
+#define FP(p, o) (*(void **)((char *)(p) + (o)))
+
+extern int gl_func_0001CA10();
+
+/* emit an 8-byte Gfx command (w0,w1) into ctx's gfx list (ctx->unkC) */
+static void *gl_dl_emit(void *ctx, int w0, int w1) {
+    void *list = FP(ctx, 0xC);
+    int n = FI(list, 0x4);
+    void *ent;
+    FI(list, 0x4) = n + 1;
+    ent = (char *)FP(list, 0x0) + (n * 8);
+    FI(ent, 0x0) = w0;
+    FI(ent, 0x4) = w1;
+    return ent;
+}
+
+void gl_func_00048AEC(void *arg0) {
+    float mtx[16];
+    void *ctx;
+    void *list;
+    void *slot;
+    void *src;
+    void *node;
+    int n;
+    int i;
+
+    DI(0x3C7C4) = 0;
+    if (FI(arg0, 0x30) & 0x80) {
+        gl_func_0001CA10(DF(0x254), arg0);
+    }
+    if (!(DI(0x1C4) & 1)) {
+        src = DPP(0xE4);
+        if (src != NULL) {
+            float *a = (float *)((char *)&D_00000000 + 0xA0);
+            int r, c;
+            for (r = 0; r < 4; r++) {
+                float *b = (float *)src;
+                for (c = 0; c < 4; c++) {
+                    mtx[r * 4 + c] = a[0] * b[0] + a[1] * FF(b, 0x10)
+                                   + a[2] * FF(b, 0x1C) + a[3] * FF(b, 0x2C);
+                    b += 1;
+                }
+                a += 4;
+            }
+            gl_func_0001CA10(0, 0, &mtx[0], (char *)&D_00000000 + 0x3C8A0, 0x10, 0);
+            ctx = FP(DPP(0x254), 0x158);
+            list = FP(ctx, 0x3C);
+            n = FI(list, 0x4);
+            FI(list, 0x4) = n + 1;
+            slot = (char *)FP(list, 0x0) + (n << 6);
+            gl_func_0001CA10(&mtx[0], slot);
+            gl_dl_emit(ctx, 0x01020040, gl_func_0001CA10(slot));
+        } else {
+            ctx = FP(DPP(0x254), 0x158);
+            list = FP(ctx, 0x3C);
+            n = FI(list, 0x4);
+            FI(list, 0x4) = n + 1;
+            slot = (char *)FP(list, 0x0) + (n << 6);
+            gl_func_0001CA10(FP(ctx, 0x158), slot);
+            gl_dl_emit(ctx, 0x01020040, gl_func_0001CA10(slot));
+        }
+        gl_func_0001CA10(FP(DPP(0x254), 0x158));
+        if (DI(0x1C4) & 2) {
+            void *model;
+            if ((FI(arg0, 0x30) & 8) && (model = FP(arg0, 0x14)) != NULL) {
+                void *listobj = (char *)arg0 + 0x84;
+                int cnt = FI(listobj, 0xC);
+                gl_func_0001CA10(FP(DPP(0x254), 0x158), (char *)arg0 + 0x34, (char *)model + 0x1E);
+                for (i = 0; i < cnt; i++) {
+                    void *bone = FP(FP(listobj, 0x0), i * 4);
+                    if (FP(bone, 0x6C) != NULL) {
+                        void *dl = (char *)FP(FP(bone, 0x6C), 0xC) + (FI(bone, 0x8A) * 8);
+                        ctx = FP(DPP(0x254), 0x158);
+                        gl_dl_emit(ctx, 0x06000000, gl_func_0001CA10(dl));
+                    }
+                }
+            }
+        } else if ((FI(FP(arg0, 0x14), 0x18) & 0x80) && DPP(0x0) != NULL) {
+            void *listobj = (char *)arg0 + 0x84;
+            int cnt = FI(listobj, 0xC);
+            int rs = (FI(arg0, 0x90) & ~0xF00) | 0x400;
+            rs &= 0xFFF7FFFF;
+            (void)rs;
+            gl_func_0001CA10(FP(DPP(0x254), 0x158));
+            gl_func_0001CA10(FP(DPP(0x254), 0x158));
+            gl_func_0001CA10(FP(DPP(0x254), 0x158));
+            gl_func_0001CA10(FP(DPP(0x254), 0x158));
+            ctx = FP(DPP(0x254), 0x158);
+            gl_dl_emit(ctx, 0xFA000000, 0xFFFF00FF);
+            for (i = 0; i < cnt; i++) {
+                void *bone = FP(FP(listobj, 0x0), i * 4);
+                if (FP(bone, 0x6C) != NULL) {
+                    void *dl = (char *)FP(FP(bone, 0x6C), 0xC) + (FI(bone, 0x8A) * 8);
+                    ctx = FP(DPP(0x254), 0x158);
+                    gl_dl_emit(ctx, 0x06000000, gl_func_0001CA10(dl));
+                }
+            }
+        } else {
+            void *p = FP(arg0, 0xA8);
+            void *listobj;
+            int cnt;
+            if (p != NULL) {
+                int flags = FI(arg0, 0x38);
+                gl_func_0001CA10(FF(arg0, 0xAC), p, flags & 0x20000000, flags);
+            }
+            /* walk the node list, dispatch each through its vtable (unk5C->unk2C) */
+            listobj = (char *)arg0 + 0x84;
+            cnt = FI(listobj, 0xC);
+            for (i = 0; i < cnt; i++) {
+                node = FP(FP(listobj, 0x0), i * 4);
+                {
+                    void *vt = FP(node, 0x5C);
+                    void (*fn)() = (void (*)())FP(vt, 0x2C);
+                    fn((char *)node + FI(vt, 0x28), arg0, vt, node);
+                }
+            }
+        }
+    }
+}
+#undef DI
+#undef DF
+#undef DPP
+#undef FI
+#undef FF
+#undef FP
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048AEC);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00049308: per-record out-of-bounds scan. Decoded from
