@@ -1476,7 +1476,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * each stage queries gl_func(&D, flag); on hit, conditionally toggles
  * obj->0x58 or fires a virtual method ((*vt->0x5C)((short)obj->0x58 +
  * obj->0x48)) on the obj->0x48 sub-object. All cross-USO calls are the
- * gl_func_00000000 import. */
+ * gl_func_00000000 import.
+ *
+ * 98.26% — RESIDUAL IS A v0/v1 ALLOCATOR CAP (15 word-diffs, 3 identical
+ * call sites, verified 2026-06-01). The vtable-call tail
+ *   o48 = obj->0x48; vt = o48->0x28;
+ *   (*(vt->0x5C))(*(short*)(vt->0x58) + (int)o48)
+ * compiles to the EXACT target instruction sequence but shifted up one GPR:
+ * target keeps o48 in v0 (reusing the dead v0 from the preceding void
+ * gl_func(...) test) and vt in v1; build puts o48 in v1, vt in a1, with
+ * t9/t1 rebased on a1. Every one of the 15 diffs is this single coloring
+ * decision cascading through `lw o48 / lw vt / lw 0x5C / lh 0x58 / addu`,
+ * ×3 sites. Tried & rejected (all in-tree, no improvement): move obj->0x50=0
+ * after vt (18), before o48 (15); `register` on o48/vt (15, no-op as on the
+ * sibling 00000014); o48 as `int` with single-load 0xD8 (19). Same class as
+ * n64proc_uso_func_00000100's q/r register cap — unreachable from C-source.
+ * Next attempt: permuter (the v0<->v1 swap is a pure-coloring target). */
 void timproc_uso_b3_func_00002C98(char *obj) {
     char *o48;
     char *vt;
