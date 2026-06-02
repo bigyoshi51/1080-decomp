@@ -9473,7 +9473,24 @@ void* game_uso_func_0000AE1C(void* arg0) {
     gl_func_00000000(sub, (char*)&D_00000000 + 0xD50);
 skip_init:
     *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
-    /* Remaining ~200 insns TBD: stages 5-N — cross-USO inits + struct fills */
+    {
+        void *sub2 = (char *)s0 + 44;
+        if (sub2 == NULL) {
+            sub2 = (void *)gl_func_00000000(4);
+            if (sub2 == NULL) goto after2;
+        }
+        *(int *)sub2 = 0;
+    }
+after2:
+    gl_func_00000000(s0);
+    {
+        float v[3];
+        v[0] = 0.0f;
+        v[1] = 0.0f;
+        v[2] = 0.0f;
+        gl_func_00000000((char *)s0 + 48, v);
+    }
+    /* Remaining ~190 insns TBD: deeper nested sub-allocs + struct fills */
     return s0;
 }
 #else
