@@ -34,16 +34,16 @@ void func_00010540(Obj *arg0) {
                         *(f32*)&arg0->g3C.c = *(f32*)&arg0->g3C.c / 2.0f;
                     }
                     if (arg0->elem[i].f0 != NULL) {
-                        ((F324)func_00010324)(arg0->unk30);
-                        ((F324)func_00010324)(arg0->unk30, arg0->unk34, &arg0->g3C, 0);
+                        func_00010324(arg0->unk30);
+                        func_00010324(arg0->unk30, arg0->unk34, &arg0->g3C, 0);
                         node = (Node *)arg0->unk30;
-                        ((F324)func_00010324)(node,
-                            ((F324)func_00010324)(arg0->unk30, arg0->unk6C, arg0->elem[i].f0),
+                        func_00010324(node,
+                            func_00010324(arg0->unk30, arg0->unk6C, arg0->elem[i].f0),
                             pos - node->unk10 / 2, arg0->elem[i].f0);
                     } else {
-                        ((F324)func_00010324)(&arg0->elem[i].f10);
-                        ((F324)func_00010324)(&arg0->elem[i].f10, arg0->unk34, &arg0->g3C, 0);
-                        ((F324)func_00010324)(&arg0->elem[i].f10, arg0->unk6C, pos, 3);
+                        func_00010324(&arg0->elem[i].f10);
+                        func_00010324(&arg0->elem[i].f10, arg0->unk34, &arg0->g3C, 0);
+                        func_00010324(&arg0->elem[i].f10, arg0->unk6C, pos, 3);
                     }
                 }
                 i++;
@@ -58,17 +58,17 @@ void func_00010540(Obj *arg0) {
         }
         if (arg0->unk38 & 8) {
             if (arg0->elem[arg0->unk7C].f0 != NULL) {
-                ((F324)func_00010324)(arg0->unk30);
-                ((F324)func_00010324)(arg0->unk30, arg0->unk34, &arg0->g3C, arg0->unk38);
+                func_00010324(arg0->unk30);
+                func_00010324(arg0->unk30, arg0->unk34, &arg0->g3C, arg0->unk38);
                 node = (Node *)arg0->unk30;
-                ((F324)func_00010324)(node,
-                    ((F324)func_00010324)(arg0->unk30, arg0->unk6C, arg0->elem[arg0->unk7C].f0),
+                func_00010324(node,
+                    func_00010324(arg0->unk30, arg0->unk6C, arg0->elem[arg0->unk7C].f0),
                     pos - node->unk10 / 2, arg0->elem[arg0->unk7C].f0);
             } else {
                 i = arg0->unk7C;
-                ((F324)func_00010324)(&arg0->elem[i].f10);
-                ((F324)func_00010324)(&arg0->elem[i].f10, arg0->unk34, &arg0->g3C, arg0->unk38);
-                ((F324)func_00010324)(&arg0->elem[i].f10, arg0->unk6C, pos, 3);
+                func_00010324(&arg0->elem[i].f10);
+                func_00010324(&arg0->elem[i].f10, arg0->unk34, &arg0->g3C, arg0->unk38);
+                func_00010324(&arg0->elem[i].f10, arg0->unk6C, pos, 3);
             }
         }
     }
