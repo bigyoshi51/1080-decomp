@@ -10363,7 +10363,13 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
  *   - s1 find-or-create at +0x48: `lw t9,200(sp); addiu at,-316; bne t9,-316;
  *     addiu s1,t9,316; a0=776(0x308); jal; beq v0,0,end; or s1,v0; bne s1,0`.
  * Matching the spill-to-sp+200/208 + s0=a1 entry shape should realign the +28
- * insns. Regalloc-class but structural enough to attempt. */
+ * insns. Regalloc-class but structural enough to attempt.
+ * 2026-06-01 TRIED (no help, do not re-try): function-scope `int *sub` reused
+ * across all SUB_* blocks (to mirror target's s0-reuse) -> 48.05% (slightly
+ * worse); IDO allocates by live-range, not C scope. Also noted target
+ * round-trips the init template through an s2 stack scratch (sw t0,0(s2);
+ * lw a2,0(s2)) where this C passes `val` directly. The +28-insn entry gap is a
+ * genuine regalloc ceiling; needs the permuter, not a C-structural lever. */
 void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     char *p;
     int *s1;
