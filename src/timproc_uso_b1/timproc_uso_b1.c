@@ -36,10 +36,97 @@ typedef struct { int a, b, c, d; } Quad4;
  * have any chance of matching the if-else rewrite. Default INCLUDE_ASM
  * matches via original asm. Multi-tick decompile expected. */
 void timproc_uso_b1_func_000000B0(int *a0, int a1) {
-    /* TODO: full 14-case if-else chain dispatching on a1 */
-    if ((unsigned int)a1 >= 14) return;
-    (void)gl_func_00000000();
-    (void)a0;
+    char *d = (char *)&D_00000000;
+    int done = 0;
+    int state;
+    int v, s0v;
+    do {
+        state = a1;
+        if ((unsigned int)state >= 14) break;
+        switch (state) {
+        case 0:
+            gl_func_00000000(a0, 1, 7, 1);
+            *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
+            break;
+        case 1:
+            gl_func_00000000(a0, 1, 7, 1);
+            *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
+            break;
+        case 2:
+            gl_func_00000000(a0, 1, 7, 2);
+            *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
+            break;
+        case 3:
+            gl_func_00000000(a0, 1, 7, 4);
+            *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
+            break;
+        case 4:
+            gl_func_00000000(a0, 1, *(int *)(d + 0x64));
+            *(int *)(d + 0x40) = 5;
+            break;
+        case 5:
+            gl_func_00000000(d, *(int *)(d + 4));
+            gl_func_00000000(d, 4, *(int *)(d + 0x64), 1);
+            v = gl_func_00000000(a0, *a0, 1);
+            s0v = gl_func_00000000(0, 0x410000, v, *a0);
+            gl_func_00000000(a0, 0, s0v);
+            done = 1;
+            break;
+        case 6:
+            gl_func_00000000(a0, 0, *(unsigned char *)(d + 376));
+            *(int *)(d + 0x40) = 7;
+            break;
+        case 7:
+            gl_func_00000000(d, 10, *(int *)(d + 0x64), 1);
+            v = gl_func_00000000(a0, *a0, 1);
+            s0v = gl_func_00000000(0, *(int *)(d + 368) + 0x1A000F, v, *a0);
+            gl_func_00000000(a0, 0, s0v);
+            done = 1;
+            break;
+        case 8:
+            gl_func_00000000(a0);
+            *(int *)(d + 0x40) = *(int *)(d + 0x44);
+            break;
+        case 9:
+            gl_func_00000000(a0);
+            *(int *)(d + 0x40) = 10;
+            break;
+        case 10:
+            gl_func_00000000(d, 7, 0, 0);
+            s0v = gl_func_00000000(0);
+            gl_func_00000000(a0, 1, s0v);
+            done = 1;
+            break;
+        case 11:
+            v = gl_func_00000000(a0, *a0, 4);
+            s0v = gl_func_00000000(0, *(int *)(d + 368) + 0x20000, v, *a0);
+            {
+                char *r = (char *)s0v;
+                gl_func_00000000(d + 16, r);
+                if (*(int *)(r + 0x14) != 0) *(int *)(r + 0x4) = 1;
+                *(int *)(r + 0x14) = (int)d;
+            }
+            gl_func_00000000(a0, *a0);
+            done = 1;
+            break;
+        case 12:
+            s0v = gl_func_00000000(*(int *)(d + 0x64));
+            gl_func_00000000(a0, (*(int *)(d + 0x64) | 0x2000) | s0v, 8192, *a0);
+            done = 1;
+            break;
+        case 13:
+            s0v = gl_func_00000000(0, 1, 0);
+            {
+                char *r = (char *)s0v;
+                gl_func_00000000(d + 16, r);
+                if (*(int *)(r + 0x14) != 0) *(int *)(r + 0x4) = 1;
+                *(int *)(r + 0x14) = (int)d;
+            }
+            done = 1;
+            break;
+        }
+        a1 = *(int *)(d + 0x40);
+    } while (done == 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000000B0);
